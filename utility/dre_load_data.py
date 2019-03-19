@@ -15,22 +15,40 @@ df['RF2'] = df['RF2'].str.strip()
 df['EMAIL2'] = df['EMAIL2'].str.strip()
 df['TELEFONE2'] = df['TELEFONE2'].str.strip()
 
-for _, line in df.iterrows():
-    print(line.RF, line.COGESTOR, line.DRE)
-    phone = line.TELEFONE
-    mob, ph = phone.split('_')
-    sub_manager = SubManagerProfile(name=line.COGESTOR,
-                                    email=line.EMAIL,
-                                    functional_register=line.RF,
-                                    phone=ph,
-                                    mobile_phone=mob)
-    sub_manager.save()
 
-    alternate_manager = AlternateProfile(name=line.SUPLENTE,
-                                         email=line.EMAIL2,
-                                         functional_register=line.RF,
-                                         phone=line.TELEFONE2)
-    alternate_manager.save()
+def get_or_create_manager(line, instance):
+    if isinstance(instance, SubManagerProfile):  # sub manager
+        sub = instance.objects.filter(functional_register=line.RF).first()
+        if not line.RF:
+            print(line)
+            return None
+        mob, ph = line.TELEFONE.split('_')
+        if not sub:
+            sub = instance(name=line.COGESTOR,
+                           email=line.EMAIL,
+                           functional_register=line.RF,
+                           phone=ph,
+                           mobile_phone=mob)
+            sub.save()
+    else:  # alternate
+        sub = instance.objects.filter(functional_register=line.RF2).first()
+        if not line.RF2:
+            return None
+        if not sub:
+            sub = instance(name=line.SUPLENTE,
+                           email=line.EMAIL2,
+                           functional_register=line.RF2,
+                           phone=line.TELEFONE2)
+            sub.save()
+    return sub
+
+
+for _, line in df.iterrows():
+    # print(line)
+    phone = line.TELEFONE
+
+    sub_manager = get_or_create_manager(line, SubManagerProfile)
+    alternate_manager = get_or_create_manager(line, AlternateProfile)
 
     dre = RegionalDirectorProfile(abbreviation=line.DRE,
                                   description='My Wonderful Description',

@@ -18,8 +18,8 @@ class BaseProfile(models.Model):
             return cls[member].value[0]
 
     name = models.CharField(_('Functional register'), max_length=256)
-    email = models.EmailField(_('E-mail'), max_length=60, unique=True)
-    functional_register = models.CharField(_('Functional register'), max_length=60, unique=True)
+    email = models.EmailField(_('E-mail'), max_length=60, unique=True, blank=True, null=True)
+    functional_register = models.CharField(_('Functional register'), max_length=60, unique=True, blank=True, null=True)
     phone = models.CharField(_('Phone'), max_length=11, null=True)
     mobile_phone = models.CharField(_('Mobile phone'), max_length=11, null=True)
     status = models.CharField(max_length=3,
@@ -45,16 +45,16 @@ class AlternateProfile(BaseProfile):
     pass
 
 
-class RegionalDirectorProfile(BaseProfile):
+class RegionalDirectorProfile(models.Model):
     """DRE - Diretoria Regional"""
     abbreviation = models.CharField(_('Abbreviation'), max_length=4)
     description = models.TextField(_('Description'), max_length=256)
-    sub_manager = models.ForeignKey(SubManagerProfile, null=True, on_delete=models.DO_NOTHING)
-    alternate = models.ForeignKey(AlternateProfile, null=True, on_delete=models.DO_NOTHING)
+    sub_manager = models.ForeignKey(SubManagerProfile, on_delete=models.DO_NOTHING, null=True)
+    alternate = models.ForeignKey(AlternateProfile, on_delete=models.DO_NOTHING, null=True)
 
 
 class NutritionistProfile(BaseProfile):
     """Nutri"""
     regional_director = models.ForeignKey(RegionalDirectorProfile,
-                                          null=True,
-                                          on_delete=models.DO_NOTHING)
+                                          on_delete=models.DO_NOTHING,
+                                          null=True)
