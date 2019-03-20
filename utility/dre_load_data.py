@@ -17,7 +17,6 @@ df['TELEFONE2'] = df['TELEFONE2'].str.strip()
 
 
 def get_or_create_submanager(line):
-    print(line)
     sub = SubManagerProfile.objects.filter(functional_register=line.RF).first()
     if not line.RF:
         return None
@@ -35,7 +34,6 @@ def get_or_create_submanager(line):
 def get_or_create_alternate(line):
     sub = AlternateProfile.objects.filter(functional_register=line.RF2).first()
     if not line.RF2:
-        print(line)
         return None
     if not sub:
         sub = AlternateProfile(name=line.SUPLENTE,
@@ -47,12 +45,12 @@ def get_or_create_alternate(line):
 
 
 for _, line in df.iterrows():
-    phone = line.TELEFONE
+    print(line.DRE)
     sub_manager = get_or_create_submanager(line)
     alternate_manager = get_or_create_alternate(line)
 
-    dre = RegionalDirectorProfile(abbreviation=line.DRE,
-                                  description='My Wonderful Description',
+    dre = RegionalDirectorProfile(abbreviation=line.DRE.replace(' ', ''),
+                                  description='',
                                   alternate=alternate_manager,
                                   sub_manager=sub_manager)
     dre.save()
