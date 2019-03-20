@@ -285,4 +285,7 @@ sme_pratoaberto_terceirizadas/media/
 
 .pytest_cache/
 
-.idea
+# undesired files
+*.xlsx
+*.csv
+*.idea
