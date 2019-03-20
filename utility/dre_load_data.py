@@ -1,7 +1,10 @@
+import environ
 import pandas as pd
 
 from sme_pratoaberto_terceirizadas.user_profiles.models import (RegionalDirectorProfile, AlternateProfile,
                                                                 SubManagerProfile)
+
+env = environ.Env()
 
 df = pd.read_csv('DRES.csv', sep=',',
                  converters={'RF': str,
@@ -22,8 +25,14 @@ def get_or_create_submanager(line):
         return None
     mob, ph = line.TELEFONE.split('_')
     if not sub:
-        sub = SubManagerProfile(name=line.COGESTOR,
+        names = line.COGESTOR.split(' ')
+        first = names[0]
+        last = ' '.join(p for p in names[1:])
+        sub = SubManagerProfile(first_name=first.strip(),
+                                last_name=last.strip(),
+                                username=first + last[:3],  # primeiro nome + 3 letras
                                 email=line.EMAIL,
+                                password=env('DEFAULT_PASSWORD'),
                                 functional_register=line.RF,
                                 phone=ph,
                                 mobile_phone=mob)
@@ -36,7 +45,13 @@ def get_or_create_alternate(line):
     if not line.RF2:
         return None
     if not sub:
-        sub = AlternateProfile(name=line.SUPLENTE,
+        names = line.SUPLENTE.split(' ')
+        first = names[0]
+        last = ' '.join(p for p in names[1:])
+        sub = AlternateProfile(first_name=first.strip(),
+                               last_name=last.strip(),
+                               password=env('DEFAULT_PASSWORD'),
+                               username=first + last[:3],  # primeiro nome + 3 letras
                                email=line.EMAIL2,
                                functional_register=line.RF2,
                                phone=line.TELEFONE2)
