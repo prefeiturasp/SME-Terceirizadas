@@ -7,6 +7,8 @@ SME-PratoAberto-Terceirizadas
 .. image:: https://api.codeclimate.com/v1/badges/1f1cdb448bbc3f74efe3/test_coverage
    :target: https://codeclimate.com/github/prefeiturasp/SME-PratoAberto-Terceirizadas/test_coverage
    :alt: Test Coverage
+.. image:: https://travis-ci.org/prefeiturasp/SME-PratoAberto-Terceirizadas.svg?branch=master
+   :target: https://travis-ci.org/prefeiturasp/SME-PratoAberto-Terceirizadas
 
 Sistema de alimentação focado em terceirizadas
 
