@@ -1,6 +1,13 @@
 SME-PratoAberto-Terceirizadas
 =============================
 
+.. image:: https://api.codeclimate.com/v1/badges/1f1cdb448bbc3f74efe3/maintainability
+   :target: https://codeclimate.com/github/prefeiturasp/SME-PratoAberto-Terceirizadas/maintainability
+   :alt: Maintainability
+.. image:: https://api.codeclimate.com/v1/badges/1f1cdb448bbc3f74efe3/test_coverage
+   :target: https://codeclimate.com/github/prefeiturasp/SME-PratoAberto-Terceirizadas/test_coverage
+   :alt: Test Coverage
+
 Sistema de alimentação focado em terceirizadas
 
 .. image:: https://img.shields.io/badge/built%20with-Cookiecutter%20Django-ff69b4.svg
