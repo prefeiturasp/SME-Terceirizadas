@@ -31,13 +31,12 @@ TEMPLATES[0]['OPTIONS']['debug'] = DEBUG  # noqa F405
 
 # EMAIL
 # ------------------------------------------------------------------------------
-DEFAULT_FROM_EMAIL = "default@email.com "
-EMAIL_HOST = 'smtp.sendgrid.net'
-EMAIL_PORT = 587
-EMAIL_HOST_USER = 'calvinfr'
-EMAIL_HOST_PASSWORD = 'testingfreeemail123'
-EMAIL_USE_TLS = True
-
+DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL')
+EMAIL_HOST = env('EMAIL_HOST')
+EMAIL_PORT = env('EMAIL_PORT')
+EMAIL_HOST_USER = env('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
+EMAIL_USE_TLS = env('EMAIL_USE_TLS')
 
 # django-debug-toolbar
 # ------------------------------------------------------------------------------
@@ -54,7 +53,6 @@ DEBUG_TOOLBAR_CONFIG = {
 }
 # https://django-debug-toolbar.readthedocs.io/en/latest/installation.html#internal-ips
 INTERNAL_IPS = ['127.0.0.1', '10.0.2.2']
-
 
 # django-extensions
 # ------------------------------------------------------------------------------

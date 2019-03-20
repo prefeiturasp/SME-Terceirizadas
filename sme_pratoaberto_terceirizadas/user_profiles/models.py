@@ -59,9 +59,15 @@ class RegionalDirectorProfile(models.Model):
     sub_manager = models.ForeignKey(SubManagerProfile, on_delete=models.DO_NOTHING, null=True)
     alternate = models.ForeignKey(AlternateProfile, on_delete=models.DO_NOTHING, null=True)
 
+    def __str__(self):
+        return 'Abbreviation: {}'.format(self.abbreviation)
+
 
 class NutritionistProfile(BasePerson, BaseAbstractPersonIndividual):
     """Nutri"""
     regional_director = models.ForeignKey(RegionalDirectorProfile,
                                           on_delete=models.DO_NOTHING,
                                           null=True)
+
+    def __str__(self):
+        return 'Nutritionist: {}'.format(self.name)
