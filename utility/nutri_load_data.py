@@ -21,7 +21,12 @@ for _, line in df.iterrows():
     dre = get_or_create_dre(abbreviation=line.DRE.replace(' ', '').replace('.', ''))
     print(dre)
     print('________')
-    n = NutritionistProfile(name=line.NOME,
+    names = line.NOME.split(' ')
+    first = names[0]
+    last = ' '.join(p for p in names[1:])
+    n = NutritionistProfile(first_name=first.strip(),
+                            last_name=last.strip(),
+                            username=first + last[:3],  # primeiro nome + 3 letras
                             functional_register=line.RF,
                             regional_director=dre)
     n.save()
