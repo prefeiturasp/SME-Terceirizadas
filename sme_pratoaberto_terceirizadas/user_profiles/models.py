@@ -1,7 +1,7 @@
-from enum import Enum
-
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
+
+from sme_pratoaberto_terceirizadas.users.models import User
 
 
 class BaseAbstractPersonIndividual(models.Model):
@@ -19,35 +19,16 @@ class BaseAbstractPersonCompany(models.Model):
         abstract = True
 
 
-class BasePerson(models.Model):
-    class STATUSES(Enum):
-        active = ('act', 'Active')
-        inactive = ('ina', 'Inactive')
-
-        @classmethod
-        def get_value(cls, member):
-            return cls[member].value[0]
-
-    name = models.CharField(_('Functional register'), max_length=256)
-    email = models.EmailField(_('E-mail'), max_length=60, unique=True, blank=True, null=True)
-    functional_register = models.CharField(_('Functional register'), max_length=60, unique=True, blank=True, null=True)
-    phone = models.CharField(_('Phone'), max_length=11, null=True)
-    mobile_phone = models.CharField(_('Mobile phone'), max_length=11, null=True)
-    status = models.CharField(max_length=3,
-                              choices=[x.value for x in STATUSES],
-                              default=STATUSES.active.value[0])
-
-
-class OutSourcedProfile(BasePerson, BaseAbstractPersonCompany):
+class OutSourcedProfile(User, BaseAbstractPersonCompany):
     """Terceirizada"""
     # colocar campos de edital
 
 
-class SubManagerProfile(BasePerson, BaseAbstractPersonIndividual):
+class SubManagerProfile(User, BaseAbstractPersonIndividual):
     """Cogestor"""
 
 
-class AlternateProfile(BasePerson, BaseAbstractPersonIndividual):
+class AlternateProfile(User, BaseAbstractPersonIndividual):
     """Suplente"""
     pass
 
@@ -63,11 +44,11 @@ class RegionalDirectorProfile(models.Model):
         return 'Abbreviation: {}'.format(self.abbreviation)
 
 
-class NutritionistProfile(BasePerson, BaseAbstractPersonIndividual):
+class NutritionistProfile(User, BaseAbstractPersonIndividual):
     """Nutri"""
     regional_director = models.ForeignKey(RegionalDirectorProfile,
                                           on_delete=models.DO_NOTHING,
                                           null=True)
 
     def __str__(self):
-        return 'Nutritionist: {}'.format(self.name)
+        return 'Nutritionist: {}'.format(self.first_name)
