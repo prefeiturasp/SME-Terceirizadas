@@ -28,7 +28,7 @@ class BasePerson(models.Model):
         def get_value(cls, member):
             return cls[member].value[0]
 
-    name = models.CharField(_('Functional register'), max_length=256)
+    name = models.CharField(_('Name'), max_length=256)
     email = models.EmailField(_('E-mail'), max_length=60, unique=True, blank=True, null=True)
     functional_register = models.CharField(_('Functional register'), max_length=60, unique=True, blank=True, null=True)
     phone = models.CharField(_('Phone'), max_length=11, null=True)
