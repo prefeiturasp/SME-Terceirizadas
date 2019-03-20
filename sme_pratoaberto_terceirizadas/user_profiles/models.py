@@ -4,11 +4,22 @@ from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
 
-class BaseProfile(models.Model):
-    """
-    An abstract base class model that provides common data between profiles.
-    """
+class BaseAbstractPersonIndividual(models.Model):
+    cpf = models.CharField(_('CPF'), max_length=11, unique=True, blank=True, null=True)
 
+    class Meta:
+        abstract = True
+
+
+class BaseAbstractPersonCompany(models.Model):
+    cnpj = models.CharField(_('CNPJ'), max_length=11, unique=True, blank=True, null=True)
+    state_registry = models.CharField(_('State Registry'), max_length=11, unique=True, blank=True, null=True)
+
+    class Meta:
+        abstract = True
+
+
+class BasePerson(models.Model):
     class STATUSES(Enum):
         active = ('act', 'Active')
         inactive = ('ina', 'Inactive')
@@ -26,21 +37,17 @@ class BaseProfile(models.Model):
                               choices=[x.value for x in STATUSES],
                               default=STATUSES.active.value[0])
 
-    class Meta:
-        abstract = True
 
-
-class OutSourcedProfile(BaseProfile):
+class OutSourcedProfile(BasePerson, BaseAbstractPersonCompany):
     """Terceirizada"""
-    pass
+    # colocar campos de edital
 
 
-class SubManagerProfile(BaseProfile):
+class SubManagerProfile(BasePerson, BaseAbstractPersonIndividual):
     """Cogestor"""
-    pass
 
 
-class AlternateProfile(BaseProfile):
+class AlternateProfile(BasePerson, BaseAbstractPersonIndividual):
     """Suplente"""
     pass
 
@@ -53,7 +60,7 @@ class RegionalDirectorProfile(models.Model):
     alternate = models.ForeignKey(AlternateProfile, on_delete=models.DO_NOTHING, null=True)
 
 
-class NutritionistProfile(BaseProfile):
+class NutritionistProfile(BasePerson, BaseAbstractPersonIndividual):
     """Nutri"""
     regional_director = models.ForeignKey(RegionalDirectorProfile,
                                           on_delete=models.DO_NOTHING,
