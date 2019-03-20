@@ -3,7 +3,7 @@
 CAUTION: Do not modify this file unless you know what you are doing.
          Unexpected results may occur if the code is changed deliberately.
 -->
-<dbmodel pgmodeler-ver="0.9.1-beta" last-position="0,0" last-zoom="0.85"
+<dbmodel pgmodeler-ver="0.9.1-beta" last-position="432,672" last-zoom="0.85"
 	 default-owner="postgres">
 <database name="new_database">
 </database>
@@ -30,7 +30,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<column name="status" not-null="true" default-value="true">
 		<type name="boolean" length="0"/>
 	</column>
-	<column name="function_register" not-null="true">
+	<column name="functional_register">
 		<type name="varchar" length="60"/>
 		<comment><![CDATA[Registro funcional do usuario]]></comment>
 	</column>
@@ -102,7 +102,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 <table name="state">
 	<schema name="public"/>
 	<role name="postgres"/>
-	<position x="900" y="240"/>
+	<position x="940" y="240"/>
 	<column name="state_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -121,7 +121,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<schema name="public"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Unidade escolares]]></comment>
-	<position x="560" y="480"/>
+	<position x="540" y="480"/>
 	<column name="unity_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -133,25 +133,6 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	</column>
 	<constraint name="unity_pk" type="pk-constr" table="public.unity">
 		<columns names="unity_id" ref-type="src-columns"/>
-	</constraint>
-</table>
-
-<table name="region">
-	<schema name="public"/>
-	<role name="postgres"/>
-	<comment><![CDATA[Tabela utilizada para registra informações das DRE's responsável pela escola]]></comment>
-	<position x="900" y="520"/>
-	<column name="region_id" not-null="true">
-		<type name="serial" length="0"/>
-	</column>
-	<column name="title" not-null="true">
-		<type name="varchar" length="65"/>
-	</column>
-	<column name="status" not-null="true" default-value="true">
-		<type name="boolean" length="0"/>
-	</column>
-	<constraint name="region_pk" type="pk-constr" table="public.region">
-		<columns names="region_id" ref-type="src-columns"/>
 	</constraint>
 </table>
 
@@ -231,6 +212,9 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<column name="age_id" not-null="true">
 		<type name="integer" length="0"/>
 	</column>
+	<constraint name="menu_age_pk" type="pk-constr" table="public.menu_age">
+		<columns names="menu_id,age_id" ref-type="src-columns"/>
+	</constraint>
 </table>
 
 <table name="food">
@@ -290,6 +274,9 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<column name="food_id" not-null="true">
 		<type name="integer" length="0"/>
 	</column>
+	<constraint name="menu_food_pk" type="pk-constr" table="public.menu_food">
+		<columns names="menu_id,food_id" ref-type="src-columns"/>
+	</constraint>
 </table>
 
 <table name="type">
@@ -355,20 +342,23 @@ CAUTION: Do not modify this file unless you know what you are doing.
 <table name="school_age">
 	<schema name="public"/>
 	<role name="postgres"/>
-	<position x="160" y="500"/>
+	<position x="160" y="480"/>
 	<column name="shool_id" not-null="true">
 		<type name="integer" length="0"/>
 	</column>
 	<column name="age_id" not-null="true">
 		<type name="integer" length="0"/>
 	</column>
+	<constraint name="school_age_pk" type="pk-constr" table="public.school_age">
+		<columns names="shool_id,age_id" ref-type="src-columns"/>
+	</constraint>
 </table>
 
 <table name="under_prefecture">
 	<schema name="public"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Registro de subprefeitura]]></comment>
-	<position x="900" y="380"/>
+	<position x="580" y="300"/>
 	<column name="under_prefecture_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -421,9 +411,6 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	</column>
 	<column name="unity_id" not-null="true">
 		<type name="public.unity" length="0"/>
-	</column>
-	<column name="region_id" not-null="true">
-		<type name="public.region" length="0"/>
 	</column>
 	<column name="managerment_id" not-null="true">
 		<type name="public.management" length="0"/>
@@ -512,7 +499,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<schema name="public"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Registra eventos de usuário realizado no sistema]]></comment>
-	<position x="1260" y="440"/>
+	<position x="1300" y="420"/>
 	<column name="log_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -534,18 +521,118 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	</constraint>
 </table>
 
-<table name="profile_region">
+<table name="regional_director">
 	<schema name="public"/>
 	<role name="postgres"/>
-	<position x="1440" y="640"/>
-	<column name="region_id" not-null="true">
+	<comment><![CDATA[Tabela utilizada para registrar as DREs (DIRETORIA REGIONAL DA EDUCAÇÃO)]]></comment>
+	<position x="880" y="1080"/>
+	<column name="id_regional_director" not-null="true">
+		<type name="serial" length="0"/>
+	</column>
+	<column name="initials" not-null="true">
+		<type name="varchar" length="50"/>
+	</column>
+	<column name="name" not-null="true">
+		<type name="varchar" length="80"/>
+	</column>
+	<constraint name="regional_director_pk" type="pk-constr" table="public.regional_director">
+		<columns names="id_regional_director" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<table name="company">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<position x="1240" y="1040"/>
+	<column name="id_company" not-null="true">
+		<type name="serial" length="80"/>
+	</column>
+	<column name="name_company" not-null="true">
+		<type name="varchar" length="80"/>
+	</column>
+	<column name="cnpj" not-null="true">
 		<type name="integer" length="0"/>
 	</column>
-	<column name="profile_id" not-null="true">
+	<column name="contract" not-null="true">
+		<type name="varchar" length="80"/>
+	</column>
+	<column name="notice" not-null="true">
+		<type name="varchar" length="80"/>
+		<comment><![CDATA[Edital de pregão]]></comment>
+	</column>
+	<column name="status" not-null="true">
+		<type name="boolean" length="0"/>
+	</column>
+	<constraint name="company_pk" type="pk-constr" table="public.company">
+		<columns names="id_company" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<table name="service_batch">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<comment><![CDATA[Lote de  atendimento]]></comment>
+	<position x="880" y="1300"/>
+	<column name="id_service_batch" not-null="true">
+		<type name="serial" length="0"/>
+	</column>
+	<column name="initials" not-null="true">
+		<type name="varchar" length="80"/>
+		<comment><![CDATA[Sigla da Diretoria regional]]></comment>
+	</column>
+	<column name="name" not-null="true">
+		<type name="varchar" length="80"/>
+	</column>
+	<column name="id_regional_director" not-null="true">
 		<type name="integer" length="0"/>
 	</column>
-	<constraint name="profile_region_pk" type="pk-constr" table="public.profile_region">
-		<columns names="region_id,profile_id" ref-type="src-columns"/>
+	<constraint name="service_batch_pk" type="pk-constr" table="public.service_batch">
+		<columns names="id_service_batch" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<table name="company_service_batch">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<position x="1260" y="1280"/>
+	<column name="id_service_batch" not-null="true">
+		<type name="integer" length="0"/>
+	</column>
+	<column name="id_company" not-null="true">
+		<type name="integer" length="0"/>
+	</column>
+	<constraint name="company_service_batch_pk" type="pk-constr" table="public.company_service_batch">
+		<columns names="id_service_batch,id_company" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<table name="regional_director_user">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<position x="860" y="680"/>
+	<column name="id_regional_director" not-null="true">
+		<type name="integer" length="0"/>
+	</column>
+	<column name="id_user" not-null="true">
+		<type name="integer" length="0"/>
+	</column>
+	<constraint name="regional_director_user_pk" type="pk-constr" table="public.regional_director_user">
+		<columns names="id_regional_director,id_user" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<table name="company_user">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<position x="1220" y="700"/>
+	<column name="id_user" not-null="true">
+		<type name="integer" length="0"/>
+	</column>
+	<column name="id_company" not-null="true">
+		<type name="integer" length="0"/>
+	</column>
+	<constraint name="company_user_pk" type="pk-constr" table="public.company_user">
+		<columns names="id_user,id_company" ref-type="src-columns"/>
 	</constraint>
 </table>
 
@@ -639,12 +726,6 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<columns names="unity_id" ref-type="dst-columns"/>
 </constraint>
 
-<constraint name="fk_region" type="fk-constr" comparison-type="MATCH FULL"
-	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="public.region" table="public.school">
-	<columns names="region_id" ref-type="src-columns"/>
-	<columns names="region_id" ref-type="dst-columns"/>
-</constraint>
-
 <constraint name="fk_managerment" type="fk-constr" comparison-type="MATCH FULL"
 	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="public.management" table="public.school">
 	<columns names="managerment_id" ref-type="src-columns"/>
@@ -681,16 +762,46 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<columns names="user_id" ref-type="dst-columns"/>
 </constraint>
 
-<constraint name="fk_regin_id" type="fk-constr" comparison-type="MATCH FULL"
-	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="public.region" table="public.profile_region">
-	<columns names="region_id" ref-type="src-columns"/>
-	<columns names="region_id" ref-type="dst-columns"/>
+<constraint name="fk_regional_director" type="fk-constr" comparison-type="MATCH FULL"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="public.regional_director" table="public.service_batch">
+	<columns names="id_regional_director" ref-type="src-columns"/>
+	<columns names="id_regional_director" ref-type="dst-columns"/>
 </constraint>
 
-<constraint name="fk_profile_id" type="fk-constr" comparison-type="MATCH FULL"
-	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="public.profile" table="public.profile_region">
-	<columns names="profile_id" ref-type="src-columns"/>
-	<columns names="profile_id" ref-type="dst-columns"/>
+<constraint name="fk_company" type="fk-constr" comparison-type="MATCH FULL"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="public.company" table="public.company_service_batch">
+	<columns names="id_company" ref-type="src-columns"/>
+	<columns names="id_company" ref-type="dst-columns"/>
+</constraint>
+
+<constraint name="fk_service_batch" type="fk-constr" comparison-type="MATCH FULL"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="public.service_batch" table="public.company_service_batch">
+	<columns names="id_service_batch" ref-type="src-columns"/>
+	<columns names="id_service_batch" ref-type="dst-columns"/>
+</constraint>
+
+<constraint name="fk_regional_director" type="fk-constr" comparison-type="MATCH FULL"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="public.regional_director" table="public.regional_director_user">
+	<columns names="id_regional_director" ref-type="src-columns"/>
+	<columns names="id_regional_director" ref-type="dst-columns"/>
+</constraint>
+
+<constraint name="fk_user" type="fk-constr" comparison-type="MATCH FULL"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="public.&quot;user&quot;" table="public.regional_director_user">
+	<columns names="id_user" ref-type="src-columns"/>
+	<columns names="user_id" ref-type="dst-columns"/>
+</constraint>
+
+<constraint name="fk_user" type="fk-constr" comparison-type="MATCH FULL"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="public.&quot;user&quot;" table="public.company_user">
+	<columns names="id_user" ref-type="src-columns"/>
+	<columns names="user_id" ref-type="dst-columns"/>
+</constraint>
+
+<constraint name="fk_company" type="fk-constr" comparison-type="MATCH FULL"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="public.company" table="public.company_user">
+	<columns names="id_company" ref-type="src-columns"/>
+	<columns names="id_company" ref-type="dst-columns"/>
 </constraint>
 
 <relationship name="rel_address_state" type="relfk"
@@ -753,11 +864,6 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	 dst-table="public.unity"
 	 src-required="false" dst-required="false"/>
 
-<relationship name="rel_school_region" type="relfk"
-	 src-table="public.school"
-	 dst-table="public.region"
-	 src-required="false" dst-required="false"/>
-
 <relationship name="rel_school_management" type="relfk"
 	 src-table="public.school"
 	 dst-table="public.management"
@@ -798,19 +904,44 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	 dst-table="public.profile"
 	 src-required="false" dst-required="false"/>
 
-<relationship name="rel_profile_region_region" type="relfk"
-	 src-table="public.profile_region"
-	 dst-table="public.region"
-	 src-required="false" dst-required="false"/>
-
-<relationship name="rel_profile_region_profile" type="relfk"
-	 src-table="public.profile_region"
-	 dst-table="public.profile"
-	 src-required="false" dst-required="false"/>
-
 <relationship name="rel_menu_user" type="relfk"
 	 src-table="public.menu"
 	 dst-table="public.&quot;user&quot;"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="rel_service_batch_regional_director" type="relfk"
+	 src-table="public.service_batch"
+	 dst-table="public.regional_director"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="rel_company_service_batch_company" type="relfk"
+	 src-table="public.company_service_batch"
+	 dst-table="public.company"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="rel_company_service_batch_service_batch" type="relfk"
+	 src-table="public.company_service_batch"
+	 dst-table="public.service_batch"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="rel_regional_director_user_regional_director" type="relfk"
+	 src-table="public.regional_director_user"
+	 dst-table="public.regional_director"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="rel_regional_director_user_user" type="relfk"
+	 src-table="public.regional_director_user"
+	 dst-table="public.&quot;user&quot;"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="rel_company_user_user" type="relfk"
+	 src-table="public.company_user"
+	 dst-table="public.&quot;user&quot;"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="rel_company_user_company" type="relfk"
+	 src-table="public.company_user"
+	 dst-table="public.company"
 	 src-required="false" dst-required="false"/>
 
 </dbmodel>
