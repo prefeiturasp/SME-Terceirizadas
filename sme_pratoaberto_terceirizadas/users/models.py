@@ -5,6 +5,11 @@ from django.utils.translation import ugettext_lazy as _
 
 
 class User(AbstractUser):
+    is_nutritionist = models.BooleanField(default=False, editable=False)
+    is_regional_director = models.BooleanField(default=False, editable=False)
+    is_alternate = models.BooleanField(default=False, editable=False)
+    is_sub_manager = models.BooleanField(default=False, editable=False)
+    is_outsourced = models.BooleanField(default=False, editable=False)
     functional_register = models.CharField(_('Functional register'), max_length=60, unique=True, blank=True, null=True)
     phone = models.CharField(_('Phone'), max_length=11, null=True)
     mobile_phone = models.CharField(_('Mobile phone'), max_length=11, null=True)
