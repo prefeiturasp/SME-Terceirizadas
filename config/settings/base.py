@@ -2,10 +2,12 @@
 Base settings to build other settings files upon.
 """
 
-import environ
 import os
 
-ROOT_DIR = environ.Path(__file__) - 3  # (sme_pratoaberto_terceirizadas/config/settings/base.py - 3 = sme_pratoaberto_terceirizadas/)
+import environ
+
+# (sme_pratoaberto_terceirizadas/config/settings/base.py - 3 = sme_pratoaberto_terceirizadas/)
+ROOT_DIR = environ.Path(__file__) - 3
 APPS_DIR = ROOT_DIR.path('sme_pratoaberto_terceirizadas')
 
 env = environ.Env()
@@ -43,8 +45,16 @@ LOCALE_PATHS = (
 # https://docs.djangoproject.com/en/dev/ref/settings/#databases
 
 DATABASES = {
-    'default': env.db('DATABASE_URL', default='postgres:///sme_pratoaberto_terceirizadas'),
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': env('POSTGRES_DB'),
+        'USER': env('POSTGRES_USER'),
+        'PASSWORD': env('POSTGRES_PASSWORD'),
+        'HOST': env('POSTGRES_HOST'),
+        'PORT': env('POSTGRES_PORT'),
+    }
 }
+
 DATABASES['default']['ATOMIC_REQUESTS'] = True
 
 # URLS
@@ -236,7 +246,6 @@ ADMINS = [
 # https://docs.djangoproject.com/en/dev/ref/settings/#managers
 MANAGERS = ADMINS
 
-
 # django-allauth
 # ------------------------------------------------------------------------------
 ACCOUNT_ALLOW_REGISTRATION = env.bool('DJANGO_ACCOUNT_ALLOW_REGISTRATION', True)
@@ -250,7 +259,6 @@ ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
 ACCOUNT_ADAPTER = 'sme_pratoaberto_terceirizadas.users.adapters.AccountAdapter'
 # https://django-allauth.readthedocs.io/en/latest/configuration.html
 SOCIALACCOUNT_ADAPTER = 'sme_pratoaberto_terceirizadas.users.adapters.SocialAccountAdapter'
-
 
 # Your stuff...
 # ------------------------------------------------------------------------------
