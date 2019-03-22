@@ -1,5 +1,9 @@
 from django.contrib import admin
-from .models import NutritionistProfile, RegionalDirectorProfile
+from .models import AlternateProfile, NutritionistProfile, RegionalDirectorProfile
+
+
+class AlternateProfileAdmin(admin.ModelAdmin):
+    pass
 
 
 class NutritionistProfileAdmin(admin.ModelAdmin):
@@ -11,5 +15,6 @@ class RegionalDirectorProfileAdmin(admin.ModelAdmin):
     search_fields = ('abbreviation',)
 
 
+admin.site.register(AlternateProfile, AlternateProfileAdmin)
 admin.site.register(NutritionistProfile, NutritionistProfileAdmin)
 admin.site.register(RegionalDirectorProfile, RegionalDirectorProfileAdmin)
