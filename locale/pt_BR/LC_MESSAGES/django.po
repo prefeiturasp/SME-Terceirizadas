@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-03-20 15:36-0300\n"
+"POT-Creation-Date: 2019-03-21 15:04-0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -110,7 +110,7 @@ msgstr ""
 #: sme_pratoaberto_terceirizadas/templates/account/login.html:7
 #: sme_pratoaberto_terceirizadas/templates/account/login.html:11
 #: sme_pratoaberto_terceirizadas/templates/account/login.html:44
-#: sme_pratoaberto_terceirizadas/templates/base.html:68
+#: sme_pratoaberto_terceirizadas/templates/base.html:69
 msgid "Sign In"
 msgstr "Entrar"
 
@@ -141,7 +141,7 @@ msgstr "Esqueceu a Senha?"
 #: sme_pratoaberto_terceirizadas/templates/account/logout.html:5
 #: sme_pratoaberto_terceirizadas/templates/account/logout.html:8
 #: sme_pratoaberto_terceirizadas/templates/account/logout.html:17
-#: sme_pratoaberto_terceirizadas/templates/base.html:59
+#: sme_pratoaberto_terceirizadas/templates/base.html:60
 msgid "Sign Out"
 msgstr "Sair"
 
@@ -178,7 +178,8 @@ msgstr "Redefinir Minha Senha"
 
 #: sme_pratoaberto_terceirizadas/templates/account/password_reset.html:24
 msgid "Please contact us if you have any trouble resetting your password."
-msgstr "Por favor contate-nos se você tiver qualquer problema ao redefinir sua senha"
+msgstr ""
+"Por favor contate-nos se você tiver qualquer problema ao redefinir sua senha"
 
 #: sme_pratoaberto_terceirizadas/templates/account/password_reset_done.html:15
 msgid ""
@@ -219,7 +220,7 @@ msgstr ""
 
 #: sme_pratoaberto_terceirizadas/templates/account/signup.html:9
 #: sme_pratoaberto_terceirizadas/templates/account/signup.html:19
-#: sme_pratoaberto_terceirizadas/templates/base.html:64
+#: sme_pratoaberto_terceirizadas/templates/base.html:65
 msgid "Sign Up"
 msgstr ""
 
@@ -273,7 +274,11 @@ msgid ""
 "mail address</a>."
 msgstr ""
 
-#: sme_pratoaberto_terceirizadas/templates/base.html:55
+#: sme_pratoaberto_terceirizadas/templates/base.html:51
+msgid "About"
+msgstr "Sobre"
+
+#: sme_pratoaberto_terceirizadas/templates/base.html:56
 msgid "My Profile"
 msgstr "Meu Perfil"
 
@@ -289,41 +294,59 @@ msgstr "CNPJ"
 msgid "State Registry"
 msgstr "Registro de Estado"
 
-#: sme_pratoaberto_terceirizadas/user_profiles/models.py:31
-msgid "Name"
-msgstr "Nome"
-
-#: sme_pratoaberto_terceirizadas/user_profiles/models.py:32
-msgid "E-mail"
-msgstr "E-mail"
-
-#: sme_pratoaberto_terceirizadas/user_profiles/models.py:33
-msgid "Functional register"
-msgstr "Registro Funcional"
-
-#: sme_pratoaberto_terceirizadas/user_profiles/models.py:34
-msgid "Phone"
-msgstr "Telefone"
-
-#: sme_pratoaberto_terceirizadas/user_profiles/models.py:35
-msgid "Mobile phone"
-msgstr "Celular"
-
-#: sme_pratoaberto_terceirizadas/user_profiles/models.py:57
+#: sme_pratoaberto_terceirizadas/user_profiles/models.py:38
 msgid "Abbreviation"
 msgstr "Abreviação"
 
-#: sme_pratoaberto_terceirizadas/user_profiles/models.py:58
+#: sme_pratoaberto_terceirizadas/user_profiles/models.py:39
 msgid "Description"
 msgstr "Descrição"
+
+#: sme_pratoaberto_terceirizadas/user_profiles/models.py:40
+msgid "Sub Manager"
+msgstr "Cogestor"
+
+#: sme_pratoaberto_terceirizadas/user_profiles/models.py:42
+msgid "Alternate"
+msgstr "Suplente"
+
+#: sme_pratoaberto_terceirizadas/user_profiles/models.py:48
+msgid "Regional Director"
+msgstr "DRE"
+
+#: sme_pratoaberto_terceirizadas/user_profiles/models.py:49
+msgid "Regional Directors"
+msgstr "DREs"
+
+#: sme_pratoaberto_terceirizadas/user_profiles/models.py:62
+msgid "Nutritionist"
+msgstr "Nutricionista"
+
+#: sme_pratoaberto_terceirizadas/user_profiles/models.py:63
+msgid "Nutritionists"
+msgstr "Nutricionistas"
 
 #: sme_pratoaberto_terceirizadas/users/forms.py:17
 msgid "This username has already been taken."
 msgstr "Esse nome de usuário já existe."
 
-#: sme_pratoaberto_terceirizadas/users/models.py:11
-msgid "Name of User"
-msgstr "Nome do Usuário"
+#: sme_pratoaberto_terceirizadas/users/models.py:13
+msgid "Functional register"
+msgstr "Registro Funcional"
 
-msgid "About"
-msgstr "Sobre"
+#: sme_pratoaberto_terceirizadas/users/models.py:14
+msgid "Phone"
+msgstr "Telefone"
+
+#: sme_pratoaberto_terceirizadas/users/models.py:15
+msgid "Mobile phone"
+msgstr "Celular"
+
+#~ msgid "Name"
+#~ msgstr "Nome"
+
+#~ msgid "E-mail"
+#~ msgstr "E-mail"
+
+#~ msgid "Name of User"
+#~ msgstr "Nome do Usuário"
