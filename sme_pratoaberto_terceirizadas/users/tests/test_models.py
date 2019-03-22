@@ -4,10 +4,12 @@ from django.conf import settings
 pytestmark = pytest.mark.django_db
 
 
-def test_user_get_absolute_url(user: settings.AUTH_USER_MODEL):
-    assert user.get_absolute_url() == f"/users/{user.username}/"
+class TestUsers:
 
+    def test_user_get_absolute_url(self, user: settings.AUTH_USER_MODEL):
+        assert user.get_absolute_url() == f"/users/{user.username}/"
 
-def test_new_user(django_user_model):
-    django_user_model.objects.create(username="someone", is_nutritionist=True, functional_register="etc",
-                                     password="something", phone='phone', mobile_phone='mob')
+    def test_new_user(self, django_user_model):
+        self.user = django_user_model.objects.create(username="someone", is_nutritionist=True,
+                                                     functional_register="etc", phone='phone',
+                                                     password="something", mobile_phone='mob')
