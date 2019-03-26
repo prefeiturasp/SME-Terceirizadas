@@ -5,15 +5,15 @@ from sme_pratoaberto_terceirizadas.users.models import User
 
 
 class BaseAbstractPersonIndividual(models.Model):
-    cpf = models.CharField(_('CPF'), max_length=11, unique=True, blank=True, null=True)
+    cpf = models.CharField(_('CPF'), max_length=15, unique=True, blank=True, null=True)
 
     class Meta:
         abstract = True
 
 
 class BaseAbstractPersonCompany(models.Model):
-    cnpj = models.CharField(_('CNPJ'), max_length=11, unique=True, blank=True, null=True)
-    state_registry = models.CharField(_('State Registry'), max_length=11, unique=True, blank=True, null=True)
+    cnpj = models.CharField(_('CNPJ'), max_length=18, unique=True, blank=True, null=True)
+    state_registry = models.CharField(_('State Registry'), max_length=20, unique=True, blank=True, null=True)
 
     class Meta:
         abstract = True

@@ -1,6 +1,23 @@
 import pytest
-from .factories import AlternateProfileFactory, SubManagerProfileFactory, RegionalDirectorProfileFactory, \
-                       NutritionistProfileFactory
+from .factories import OutSourceProfileFactory, AlternateProfileFactory, SubManagerProfileFactory, \
+                       RegionalDirectorProfileFactory, NutritionistProfileFactory
+
+
+@pytest.mark.django_db
+def test_out_sourced_profile_model():
+    """ Testando OutSourceProfile model """
+    out_sourced = OutSourceProfileFactory.build(first_name='John',
+                                                last_name='Jones',
+                                                email='john@jones123.com',
+                                                is_staff=False,
+                                                cnpj='85.773.346/0001-85',
+                                                state_registry='765420613384')
+    assert out_sourced.get_short_name() == 'John'
+    assert out_sourced.last_name == 'Jones'
+    assert out_sourced.email == 'john@jones123.com'
+    assert not out_sourced.is_staff
+    assert out_sourced.cnpj == '85.773.346/0001-85'
+    assert out_sourced.state_registry == '765420613384'
 
 
 @pytest.mark.django_db
