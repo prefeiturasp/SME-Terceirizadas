@@ -1,5 +1,4 @@
 import factory
-import random
 
 from .. import models
 from ...users.tests.factories import UserFactory
@@ -8,22 +7,12 @@ ABBREVIATIONS = ['BT', 'CL', 'CS', 'FB', 'FO', 'G', 'IP',
                  'IQ', 'JT', 'MP', 'PE', 'PJ', 'SA', 'SM']
 
 
-def generate_cpf_mask(cpf):
-    cpf = cpf[:3] + "." + cpf[3:6] + "." + cpf[6:9] + "-" + cpf[9:]
-    return cpf
-
-
-def generate_cnpj_mask(cnpj):
-    cnpj = cnpj[:2] + "." + cnpj[2:5] + "." + cnpj[5:8] + "/" + cnpj[8:12] + "-" + cnpj[12:14]
-    return cnpj
-
-
 class BaseAbstractPersonIndividualFactory(factory.DjangoModelFactory):
     class Meta:
         abstract = True
         model = models.BaseAbstractPersonIndividual
 
-    cpf = generate_cpf_mask(str(random.randint(10000000000, 99999999999)))
+    cpf = factory.Faker('random_number', digits=11)
 
 
 class BaseAbstractPersonCompanyFactory(factory.DjangoModelFactory):
@@ -31,7 +20,7 @@ class BaseAbstractPersonCompanyFactory(factory.DjangoModelFactory):
         abstract = True
         model = models.BaseAbstractPersonCompany
 
-    cnpj = generate_cnpj_mask(str(random.randint(10000000000000, 99999999999999)))
+    cnpj = factory.Faker('random_number', digits=14)
     state_registry = factory.Faker('random_number', digits=20)
 
 

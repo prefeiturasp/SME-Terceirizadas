@@ -1,9 +1,12 @@
 import pytest
+
+from utility.common_functions import extract_digits
 from .factories import OutSourceProfileFactory, AlternateProfileFactory, SubManagerProfileFactory, \
-                       RegionalDirectorProfileFactory, NutritionistProfileFactory
+    RegionalDirectorProfileFactory, NutritionistProfileFactory
+
+pytestmark = pytest.mark.django_db
 
 
-@pytest.mark.django_db
 def test_out_sourced_profile_model():
     """ Testando OutSourceProfile model """
     out_sourced = OutSourceProfileFactory.build(first_name='John',
@@ -17,26 +20,28 @@ def test_out_sourced_profile_model():
     assert out_sourced.email == 'john@jones123.com'
     assert not out_sourced.is_staff
     assert out_sourced.cnpj == '85.773.346/0001-85'
+    assert len(extract_digits(out_sourced.cnpj)) == 14
+    assert extract_digits(out_sourced.cnpj) == '85773346000185'
     assert out_sourced.state_registry == '765420613384'
 
 
-@pytest.mark.django_db
 def test_alternate_profile_model():
     """ Testando AlternateProfile model """
     alternate = AlternateProfileFactory.build(first_name='John',
                                               last_name='Jones',
                                               email='john@jones123.com',
                                               username='john_jones',
-                                              cpf='85234196089')
+                                              cpf='901.614.980-51')
     assert alternate.get_short_name() == 'John'
     assert alternate.last_name == 'Jones'
     assert alternate.get_full_name() == 'John Jones'
     assert alternate.get_username() == 'john_jones'
     assert alternate.email == 'john@jones123.com'
-    assert alternate.cpf == '85234196089'
+    assert alternate.cpf == '901.614.980-51'
+    assert len(extract_digits(alternate.cpf)) == 11
+    assert extract_digits(alternate.cpf) == '90161498051'
 
 
-@pytest.mark.django_db
 def test_sub_manager_profile_model():
     """ Testando SubManagerProfile model """
     sub_manager = SubManagerProfileFactory.build(first_name='Harrison',
@@ -50,7 +55,6 @@ def test_sub_manager_profile_model():
     assert sub_manager.email == 'harrison@ford123.com'
 
 
-@pytest.mark.django_db
 def test_regional_director_profile_model():
     """ Testando RegionalDirectorProfile model """
     alternate = AlternateProfileFactory.build()
@@ -66,7 +70,6 @@ def test_regional_director_profile_model():
     assert regional_director.sub_manager == sub_manager
 
 
-@pytest.mark.django_db
 def test_nutritionist_profile_model():
     """ Testando NutritionistProfile model """
     regional_director = RegionalDirectorProfileFactory.build()
