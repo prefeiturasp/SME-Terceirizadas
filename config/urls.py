@@ -21,6 +21,11 @@ urlpatterns = [
     ),
     path("accounts/", include("allauth.urls")),
     # Your stuff: custom urls includes go here
+    path(
+        "user_profiles/",
+        include("sme_pratoaberto_terceirizadas.user_profiles.urls", namespace="user_profiles"),
+    ),
+
 ] + static(
     settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
 )

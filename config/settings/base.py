@@ -262,3 +262,8 @@ SOCIALACCOUNT_ADAPTER = 'sme_pratoaberto_terceirizadas.users.adapters.SocialAcco
 
 # Your stuff...
 # ------------------------------------------------------------------------------
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAdminUser',
+    ),
+}
