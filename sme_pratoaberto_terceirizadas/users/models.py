@@ -1,3 +1,5 @@
+import uuid
+
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.urls import reverse
@@ -12,6 +14,7 @@ class User(AbstractUser):
     is_outsourced = models.BooleanField(default=False, editable=False)
     phone = models.CharField(_('Phone'), max_length=11, null=True)
     mobile_phone = models.CharField(_('Mobile phone'), max_length=11, null=True)
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
 
     def get_absolute_url(self):
         return reverse("users:detail", kwargs={"username": self.username})
