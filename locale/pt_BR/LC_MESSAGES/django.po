@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-03-21 15:04-0300\n"
+"POT-Creation-Date: 2019-03-30 20:48-0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -286,61 +286,78 @@ msgstr "Meu Perfil"
 msgid "CPF"
 msgstr "CPF"
 
-#: sme_pratoaberto_terceirizadas/user_profiles/models.py:15
+#: sme_pratoaberto_terceirizadas/user_profiles/models.py:9
+msgid "Functional register"
+msgstr "Registro Funcional"
+
+#: sme_pratoaberto_terceirizadas/user_profiles/models.py:16
 msgid "CNPJ"
 msgstr "CNPJ"
 
-#: sme_pratoaberto_terceirizadas/user_profiles/models.py:16
+#: sme_pratoaberto_terceirizadas/user_profiles/models.py:17
 msgid "State Registry"
 msgstr "Registro de Estado"
 
-#: sme_pratoaberto_terceirizadas/user_profiles/models.py:38
+#: sme_pratoaberto_terceirizadas/user_profiles/models.py:43
+#: sme_pratoaberto_terceirizadas/user_profiles/models.py:52
 msgid "Abbreviation"
 msgstr "Abreviação"
 
-#: sme_pratoaberto_terceirizadas/user_profiles/models.py:39
-msgid "Description"
-msgstr "Descrição"
-
-#: sme_pratoaberto_terceirizadas/user_profiles/models.py:40
-msgid "Sub Manager"
-msgstr "Cogestor"
-
-#: sme_pratoaberto_terceirizadas/user_profiles/models.py:42
+#: sme_pratoaberto_terceirizadas/user_profiles/models.py:44
 msgid "Alternate"
 msgstr "Suplente"
 
+#: sme_pratoaberto_terceirizadas/user_profiles/models.py:46
+msgid "Description"
+msgstr "Descrição"
+
 #: sme_pratoaberto_terceirizadas/user_profiles/models.py:48
+msgid "Sub Manager"
+msgstr "Cogestor"
+
+#: sme_pratoaberto_terceirizadas/user_profiles/models.py:55
 msgid "Regional Director"
 msgstr "DRE"
 
-#: sme_pratoaberto_terceirizadas/user_profiles/models.py:49
+#: sme_pratoaberto_terceirizadas/user_profiles/models.py:56
 msgid "Regional Directors"
 msgstr "DREs"
 
-#: sme_pratoaberto_terceirizadas/user_profiles/models.py:62
+#: sme_pratoaberto_terceirizadas/user_profiles/models.py:66
+#: sme_pratoaberto_terceirizadas/user_profiles/models.py:69
 msgid "Nutritionist"
 msgstr "Nutricionista"
 
-#: sme_pratoaberto_terceirizadas/user_profiles/models.py:63
-msgid "Nutritionists"
-msgstr "Nutricionistas"
+#: sme_pratoaberto_terceirizadas/user_profiles/models.py:76
+msgid "EOL code"
+msgstr "Código EOL"
+
+#: sme_pratoaberto_terceirizadas/user_profiles/models.py:77
+msgid "CODAE code"
+msgstr "Código CODAE"
+
+#: sme_pratoaberto_terceirizadas/user_profiles/models.py:79
+msgid "School name"
+msgstr "Nome da escola"
+
+#: sme_pratoaberto_terceirizadas/user_profiles/models.py:85
+msgid "School"
+msgstr "Escola"
 
 #: sme_pratoaberto_terceirizadas/users/forms.py:17
 msgid "This username has already been taken."
 msgstr "Esse nome de usuário já existe."
 
 #: sme_pratoaberto_terceirizadas/users/models.py:13
-msgid "Functional register"
-msgstr "Registro Funcional"
-
-#: sme_pratoaberto_terceirizadas/users/models.py:14
 msgid "Phone"
 msgstr "Telefone"
 
-#: sme_pratoaberto_terceirizadas/users/models.py:15
+#: sme_pratoaberto_terceirizadas/users/models.py:14
 msgid "Mobile phone"
 msgstr "Celular"
+
+#~ msgid "Nutritionists"
+#~ msgstr "Nutricionistas"
 
 #~ msgid "Name"
 #~ msgstr "Nome"
