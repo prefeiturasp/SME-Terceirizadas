@@ -20,6 +20,21 @@ class BaseAbstractPersonCompany(models.Model):
         abstract = True
 
 
+class Describable(models.Model):
+    name = models.CharField(_("Name"), max_length=50)
+    description = models.TextField(_("Description"), max_length=256)
+
+    class Meta:
+        abstract = True
+
+
+class Activable(models.Model):
+    is_active = models.BooleanField(_("Active"))
+
+    class Meta:
+        abstract = True
+
+
 class OutSourcedProfile(User, BaseAbstractPersonCompany):
     # TODO: tem RF?
     """Terceirizada"""
@@ -83,3 +98,43 @@ class SchoolProfile(User):
 
     def __str__(self):
         return _('School') + self.school_name
+
+
+#
+# TODO: criar apps separados?
+#
+
+#
+# Relacionados a escolas
+#
+
+class ManagementType(models.Model, Describable):
+    """Tipo de gestão. Ex.: Terceirizada, Direta e Mista"""
+
+
+class SubTownHall(models.Model, Describable, Activable):
+    """Sub Prefeitura"""
+
+
+#
+# Endereço
+#
+
+class CityLocation(models.Model):
+    """TODO: deixar pre cadastrada cidade São Paulo e UF PA"""
+    city = models.CharField(_("City"), max_length=50)
+    state = models.CharField(_("UF"), max_length=2)
+
+
+class Address(models.Model):
+    """TODO: usar futuramente https://viacep.com.br/ para preencher automaticamente endereço"""
+    street_name = models.CharField(_("Street name"), max_length=256)
+    complement = models.CharField(_("Complement"), max_length=30)
+    district = models.CharField(_("District"), max_length=30)
+    number = models.CharField(_("Number"), max_length=6)
+    postal_code = models.CharField(_("Postal code"), max_length=9)
+    lat = models.DecimalField(max_digits=9, decimal_places=6)
+    lon = models.DecimalField(max_digits=9, decimal_places=6)
+    city_location = models.ForeignKey(CityLocation,
+                                      on_delete=models.DO_NOTHING,
+                                      null=True)
