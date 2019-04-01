@@ -36,7 +36,6 @@ class Activable(models.Model):
 
 
 class OutSourcedProfile(User, BaseAbstractPersonCompany):
-    # TODO: tem RF?
     """Terceirizada"""
     # colocar campos de edital
 
@@ -47,7 +46,6 @@ class SubManagerProfile(User, BaseAbstractPersonIndividual):
 
 class AlternateProfile(User, BaseAbstractPersonIndividual):
     """Suplente"""
-    pass
 
 
 class RegionalDirectorProfile(User):
