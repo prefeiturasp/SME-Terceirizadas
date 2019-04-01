@@ -3,7 +3,7 @@
 CAUTION: Do not modify this file unless you know what you are doing.
          Unexpected results may occur if the code is changed deliberately.
 -->
-<dbmodel pgmodeler-ver="0.9.1-beta" last-position="432,672" last-zoom="0.85"
+<dbmodel pgmodeler-ver="0.9.1-beta" last-position="0,0" last-zoom="0.85"
 	 default-owner="postgres">
 <database name="new_database">
 </database>
@@ -14,21 +14,22 @@ CAUTION: Do not modify this file unless you know what you are doing.
 <table name="user">
 	<schema name="public"/>
 	<role name="postgres"/>
+	<comment><![CDATA[Campo para validar se o usuário foi ativado via email]]></comment>
 	<position x="920" y="20"/>
 	<column name="user_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
 	<column name="profile_id" not-null="true">
-		<type name="integer" length="0"/>
+		<type name="serial" length="0"/>
 	</column>
-	<column name="name" not-null="true">
+	<column name="first_name" not-null="true">
+		<type name="varchar" length="100"/>
+	</column>
+	<column name="last_name">
 		<type name="varchar" length="100"/>
 	</column>
 	<column name="email" not-null="true">
 		<type name="varchar" length="160"/>
-	</column>
-	<column name="status" not-null="true" default-value="true">
-		<type name="boolean" length="0"/>
 	</column>
 	<column name="functional_register">
 		<type name="varchar" length="60"/>
@@ -36,6 +37,15 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	</column>
 	<column name="password" not-null="true">
 		<type name="varchar" length="99"/>
+	</column>
+	<column name="is_staff">
+		<type name="bool" length="0"/>
+	</column>
+	<column name="date_joined">
+		<type name="timestamp" length="0"/>
+	</column>
+	<column name="is_trusty" default-value="false">
+		<type name="bool" length="0"/>
 	</column>
 	<constraint name="user_pk" type="pk-constr" table="public.&quot;user&quot;">
 		<columns names="user_id" ref-type="src-columns"/>
@@ -46,7 +56,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<schema name="public"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Permissões do usuário]]></comment>
-	<position x="1620" y="340"/>
+	<position x="1620" y="320"/>
 	<column name="role_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -73,7 +83,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 		<type name="serial" length="0"/>
 	</column>
 	<column name="state_id" not-null="true">
-		<type name="integer" length="0"/>
+		<type name="serial" length="0"/>
 	</column>
 	<column name="street" not-null="true">
 		<type name="varchar" length="199"/>
@@ -102,7 +112,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 <table name="state">
 	<schema name="public"/>
 	<role name="postgres"/>
-	<position x="940" y="240"/>
+	<position x="940" y="320"/>
 	<column name="state_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -117,22 +127,22 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	</constraint>
 </table>
 
-<table name="unity">
+<table name="school_unit">
 	<schema name="public"/>
 	<role name="postgres"/>
-	<comment><![CDATA[Unidade escolares]]></comment>
+	<comment><![CDATA[Unidade escolar]]></comment>
 	<position x="540" y="480"/>
-	<column name="unity_id" not-null="true">
+	<column name="unit_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
 	<column name="title" not-null="true">
 		<type name="varchar" length="99"/>
 	</column>
-	<column name="unity_status" not-null="true">
+	<column name="unit_status" not-null="true">
 		<type name="bool" length="0"/>
 	</column>
-	<constraint name="unity_pk" type="pk-constr" table="public.unity">
-		<columns names="unity_id" ref-type="src-columns"/>
+	<constraint name="unity_pk" type="pk-constr" table="public.school_unit">
+		<columns names="unit_id" ref-type="src-columns"/>
 	</constraint>
 </table>
 
@@ -181,7 +191,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<schema name="public"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Edital para alimentação]]></comment>
-	<position x="360" y="1280"/>
+	<position x="500" y="1300"/>
 	<column name="notice_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -235,7 +245,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 		<type name="bool" length="0"/>
 	</column>
 	<column name="category_food_id" not-null="true">
-		<type name="integer" length="0"/>
+		<type name="serial" length="0"/>
 	</column>
 	<constraint name="food_pk" type="pk-constr" table="public.food">
 		<columns names="food_id" ref-type="src-columns"/>
@@ -246,7 +256,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<schema name="public"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Categoria de alimentação.]]></comment>
-	<position x="1200" y="860"/>
+	<position x="1200" y="980"/>
 	<column name="category_food_id" not-null="true">
 		<type name="integer" length="0"/>
 	</column>
@@ -283,7 +293,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<schema name="public"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Tabela registra os tipos de cardápios, Ex: Normal, Lactantes, Diabéticos]]></comment>
-	<position x="60" y="1300"/>
+	<position x="40" y="1320"/>
 	<column name="type_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -307,13 +317,13 @@ CAUTION: Do not modify this file unless you know what you are doing.
 		<type name="serial" length="0"/>
 	</column>
 	<column name="user_id" not-null="true">
-		<type name="integer" length="0"/>
+		<type name="serial" length="0"/>
 	</column>
 	<column name="notice_id" not-null="true">
-		<type name="public.notice" length="0"/>
+		<type name="serial" length="0"/>
 	</column>
 	<column name="type_id" not-null="true">
-		<type name="public.type" length="0"/>
+		<type name="serial" length="0"/>
 	</column>
 	<column name="title" not-null="true">
 		<type name="varchar" length="99"/>
@@ -342,7 +352,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 <table name="school_age">
 	<schema name="public"/>
 	<role name="postgres"/>
-	<position x="160" y="480"/>
+	<position x="80" y="460"/>
 	<column name="shool_id" not-null="true">
 		<type name="integer" length="0"/>
 	</column>
@@ -379,7 +389,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 <table name="school">
 	<schema name="public"/>
 	<role name="postgres"/>
-	<position x="20" y="100"/>
+	<position x="20" y="80"/>
 	<column name="school_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -389,10 +399,10 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<column name="email">
 		<type name="varchar" length="199"/>
 	</column>
-	<column name="telephone1" not-null="true">
+	<column name="phone" not-null="true">
 		<type name="varchar" length="45"/>
 	</column>
-	<column name="telephone2">
+	<column name="phone2">
 		<type name="varchar" length="45"/>
 	</column>
 	<column name="grouping" not-null="true">
@@ -402,21 +412,17 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<column name="school_status" not-null="true" default-value="true">
 		<type name="bool" length="0"/>
 	</column>
-	<column name="x_id">
-		<type name="varchar" length="99"/>
-		<comment><![CDATA[campo utilizado para registrar id gerado pela tabela de exportação.]]></comment>
+	<column name="address_id" not-null="true">
+		<type name="serial" length="0"/>
 	</column>
-	<column name="addres_id" not-null="true">
-		<type name="public.address" length="0"/>
-	</column>
-	<column name="unity_id" not-null="true">
-		<type name="public.unity" length="0"/>
+	<column name="unit_id" not-null="true">
+		<type name="serial" length="0"/>
 	</column>
 	<column name="managerment_id" not-null="true">
-		<type name="public.management" length="0"/>
+		<type name="serial" length="0"/>
 	</column>
 	<column name="under_prefecture_id" not-null="true">
-		<type name="public.under_prefecture" length="0"/>
+		<type name="serial" length="0"/>
 	</column>
 	<constraint name="school_pk" type="pk-constr" table="public.school">
 		<columns names="school_id" ref-type="src-columns"/>
@@ -490,7 +496,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<column name="role_id" not-null="true">
 		<type name="integer" length="0"/>
 	</column>
-	<constraint name="user_role_pk" type="pk-constr" table="public.user_role">
+	<constraint name="user_role_terc_pk" type="pk-constr" table="public.user_role">
 		<columns names="user_id,role_id" ref-type="src-columns"/>
 	</constraint>
 </table>
@@ -499,7 +505,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<schema name="public"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Registra eventos de usuário realizado no sistema]]></comment>
-	<position x="1300" y="420"/>
+	<position x="1500" y="480"/>
 	<column name="log_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -507,7 +513,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 		<type name="timestamp" length="0"/>
 	</column>
 	<column name="user_id" not-null="true">
-		<type name="integer" length="0"/>
+		<type name="serial" length="0"/>
 	</column>
 	<column name="title" not-null="true">
 		<type name="varchar" length="60"/>
@@ -543,9 +549,12 @@ CAUTION: Do not modify this file unless you know what you are doing.
 <table name="company">
 	<schema name="public"/>
 	<role name="postgres"/>
-	<position x="1240" y="1040"/>
+	<position x="1540" y="920"/>
 	<column name="id_company" not-null="true">
 		<type name="serial" length="80"/>
+	</column>
+	<column name="id_address">
+		<type name="serial" length="0"/>
 	</column>
 	<column name="name_company" not-null="true">
 		<type name="varchar" length="80"/>
@@ -572,7 +581,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<schema name="public"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Lote de  atendimento]]></comment>
-	<position x="880" y="1300"/>
+	<position x="900" y="1340"/>
 	<column name="id_service_batch" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -584,7 +593,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 		<type name="varchar" length="80"/>
 	</column>
 	<column name="id_regional_director" not-null="true">
-		<type name="integer" length="0"/>
+		<type name="serial" length="0"/>
 	</column>
 	<constraint name="service_batch_pk" type="pk-constr" table="public.service_batch">
 		<columns names="id_service_batch" ref-type="src-columns"/>
@@ -594,7 +603,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 <table name="company_service_batch">
 	<schema name="public"/>
 	<role name="postgres"/>
-	<position x="1260" y="1280"/>
+	<position x="1520" y="1240"/>
 	<column name="id_service_batch" not-null="true">
 		<type name="integer" length="0"/>
 	</column>
@@ -624,7 +633,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 <table name="company_user">
 	<schema name="public"/>
 	<role name="postgres"/>
-	<position x="1220" y="700"/>
+	<position x="1340" y="680"/>
 	<column name="id_user" not-null="true">
 		<type name="integer" length="0"/>
 	</column>
@@ -678,25 +687,25 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<columns names="food_id" ref-type="dst-columns"/>
 </constraint>
 
-<constraint name="fk_notice" type="fk-constr" comparison-type="MATCH FULL"
-	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="public.notice" table="public.menu">
-	<columns names="notice_id" ref-type="src-columns"/>
-	<columns names="notice_id" ref-type="dst-columns"/>
-</constraint>
-
-<constraint name="fk_type" type="fk-constr" comparison-type="MATCH FULL"
-	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="public.type" table="public.menu">
-	<columns names="type_id" ref-type="src-columns"/>
-	<columns names="type_id" ref-type="dst-columns"/>
-</constraint>
-
 <constraint name="fk_management" type="fk-constr" comparison-type="MATCH FULL"
 	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="public.management_menu" table="public.menu">
 	<columns names="management_menu_id" ref-type="src-columns"/>
 	<columns names="management_menu_id" ref-type="dst-columns"/>
 </constraint>
 
-<constraint name="fk_user" type="fk-constr" comparison-type="MATCH FULL"
+<constraint name="notice_fk" type="fk-constr" comparison-type="MATCH FULL"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="public.notice" table="public.menu">
+	<columns names="notice_id" ref-type="src-columns"/>
+	<columns names="notice_id" ref-type="dst-columns"/>
+</constraint>
+
+<constraint name="type_fk" type="fk-constr" comparison-type="MATCH FULL"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="public.type" table="public.menu">
+	<columns names="type_id" ref-type="src-columns"/>
+	<columns names="type_id" ref-type="dst-columns"/>
+</constraint>
+
+<constraint name="user_fk" type="fk-constr" comparison-type="MATCH FULL"
 	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="public.&quot;user&quot;" table="public.menu">
 	<columns names="user_id" ref-type="src-columns"/>
 	<columns names="user_id" ref-type="dst-columns"/>
@@ -714,25 +723,25 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<columns names="age_id" ref-type="dst-columns"/>
 </constraint>
 
-<constraint name="fk_addres" type="fk-constr" comparison-type="MATCH FULL"
+<constraint name="address_fk" type="fk-constr" comparison-type="MATCH FULL"
 	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="public.address" table="public.school">
-	<columns names="addres_id" ref-type="src-columns"/>
+	<columns names="address_id" ref-type="src-columns"/>
 	<columns names="address_id" ref-type="dst-columns"/>
 </constraint>
 
-<constraint name="fk_unity" type="fk-constr" comparison-type="MATCH FULL"
-	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="public.unity" table="public.school">
-	<columns names="unity_id" ref-type="src-columns"/>
-	<columns names="unity_id" ref-type="dst-columns"/>
+<constraint name="unity_fk" type="fk-constr" comparison-type="MATCH FULL"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="public.school_unit" table="public.school">
+	<columns names="unit_id" ref-type="src-columns"/>
+	<columns names="unit_id" ref-type="dst-columns"/>
 </constraint>
 
-<constraint name="fk_managerment" type="fk-constr" comparison-type="MATCH FULL"
+<constraint name="manager_fk" type="fk-constr" comparison-type="MATCH FULL"
 	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="public.management" table="public.school">
 	<columns names="managerment_id" ref-type="src-columns"/>
 	<columns names="management_id" ref-type="dst-columns"/>
 </constraint>
 
-<constraint name="fk_under_prefecture" type="fk-constr" comparison-type="MATCH FULL"
+<constraint name="under_prefecture_fk" type="fk-constr" comparison-type="MATCH FULL"
 	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="public.under_prefecture" table="public.school">
 	<columns names="under_prefecture_id" ref-type="src-columns"/>
 	<columns names="under_prefecture_id" ref-type="dst-columns"/>
@@ -760,6 +769,12 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="public.&quot;user&quot;" table="public.log">
 	<columns names="user_id" ref-type="src-columns"/>
 	<columns names="user_id" ref-type="dst-columns"/>
+</constraint>
+
+<constraint name="address_fk" type="fk-constr" comparison-type="MATCH FULL"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="public.address" table="public.company">
+	<columns names="id_address" ref-type="src-columns"/>
+	<columns names="address_id" ref-type="dst-columns"/>
 </constraint>
 
 <constraint name="fk_regional_director" type="fk-constr" comparison-type="MATCH FULL"
@@ -834,16 +849,6 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	 dst-table="public.food"
 	 src-required="false" dst-required="false"/>
 
-<relationship name="rel_menu_notice" type="relfk"
-	 src-table="public.menu"
-	 dst-table="public.notice"
-	 src-required="false" dst-required="false"/>
-
-<relationship name="rel_menu_type" type="relfk"
-	 src-table="public.menu"
-	 dst-table="public.type"
-	 src-required="false" dst-required="false"/>
-
 <relationship name="rel_school_age_school" type="relfk"
 	 src-table="public.school_age"
 	 dst-table="public.school"
@@ -861,18 +866,21 @@ CAUTION: Do not modify this file unless you know what you are doing.
 
 <relationship name="rel_school_unity" type="relfk"
 	 src-table="public.school"
-	 dst-table="public.unity"
-	 src-required="false" dst-required="false"/>
+	 dst-table="public.school_unit"
+	 src-required="false" dst-required="false">
+	<label ref-type="name-label">
+		<position x="0" y="0"/>
+	</label>
+</relationship>
 
 <relationship name="rel_school_management" type="relfk"
 	 src-table="public.school"
 	 dst-table="public.management"
-	 src-required="false" dst-required="false"/>
-
-<relationship name="rel_school_under_prefecture" type="relfk"
-	 src-table="public.school"
-	 dst-table="public.under_prefecture"
-	 src-required="false" dst-required="false"/>
+	 src-required="false" dst-required="false">
+	<label ref-type="src-label">
+		<position x="0" y="0"/>
+	</label>
+</relationship>
 
 <relationship name="rel_menu_management_menu" type="relfk"
 	 src-table="public.menu"
@@ -942,6 +950,26 @@ CAUTION: Do not modify this file unless you know what you are doing.
 <relationship name="rel_company_user_company" type="relfk"
 	 src-table="public.company_user"
 	 dst-table="public.company"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="rel_menu_notice" type="relfk"
+	 src-table="public.menu"
+	 dst-table="public.notice"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="rel_menu_type" type="relfk"
+	 src-table="public.menu"
+	 dst-table="public.type"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="rel_school_under_prefecture" type="relfk"
+	 src-table="public.school"
+	 dst-table="public.under_prefecture"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="rel_company_address" type="relfk"
+	 src-table="public.company"
+	 dst-table="public.address"
 	 src-required="false" dst-required="false"/>
 
 </dbmodel>
