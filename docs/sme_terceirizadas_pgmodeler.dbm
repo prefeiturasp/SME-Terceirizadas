@@ -15,7 +15,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<schema name="public"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Campo para validar se o usuário foi ativado via email]]></comment>
-	<position x="920" y="20"/>
+	<position x="940" y="200"/>
 	<column name="user_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -78,7 +78,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<schema name="public"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Endereço ligado a escola.]]></comment>
-	<position x="540" y="80"/>
+	<position x="420" y="20"/>
 	<column name="address_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -98,11 +98,17 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<column name="number">
 		<type name="varchar" length="65"/>
 	</column>
+	<column name="postalcode">
+		<type name="varchar" length="60"/>
+	</column>
 	<column name="long">
 		<type name="varchar" length="65"/>
 	</column>
 	<column name="lat">
 		<type name="varchar" length="65"/>
+	</column>
+	<column name="id_city" not-null="true">
+		<type name="serial" length="0"/>
 	</column>
 	<constraint name="address_pk" type="pk-constr" table="public.address">
 		<columns names="address_id" ref-type="src-columns"/>
@@ -112,7 +118,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 <table name="state">
 	<schema name="public"/>
 	<role name="postgres"/>
-	<position x="940" y="320"/>
+	<position x="1140" y="40"/>
 	<column name="state_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -231,7 +237,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<schema name="public"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Tabela util.izada para registrar alimentos.]]></comment>
-	<position x="840" y="840"/>
+	<position x="860" y="820"/>
 	<column name="food_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -256,7 +262,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<schema name="public"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Categoria de alimentação.]]></comment>
-	<position x="1200" y="980"/>
+	<position x="1220" y="900"/>
 	<column name="category_food_id" not-null="true">
 		<type name="integer" length="0"/>
 	</column>
@@ -352,7 +358,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 <table name="school_age">
 	<schema name="public"/>
 	<role name="postgres"/>
-	<position x="80" y="460"/>
+	<position x="40" y="440"/>
 	<column name="shool_id" not-null="true">
 		<type name="integer" length="0"/>
 	</column>
@@ -471,7 +477,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<schema name="public"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Perfil do usuário cadastrado. Ex: Cogestor, Nutricionista ou etc...]]></comment>
-	<position x="1400" y="20"/>
+	<position x="1420" y="40"/>
 	<column name="profile_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -505,7 +511,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<schema name="public"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Registra eventos de usuário realizado no sistema]]></comment>
-	<position x="1500" y="480"/>
+	<position x="1560" y="480"/>
 	<column name="log_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -549,7 +555,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 <table name="company">
 	<schema name="public"/>
 	<role name="postgres"/>
-	<position x="1540" y="920"/>
+	<position x="1600" y="860"/>
 	<column name="id_company" not-null="true">
 		<type name="serial" length="80"/>
 	</column>
@@ -581,7 +587,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<schema name="public"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Lote de  atendimento]]></comment>
-	<position x="900" y="1340"/>
+	<position x="960" y="1300"/>
 	<column name="id_service_batch" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -618,7 +624,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 <table name="regional_director_user">
 	<schema name="public"/>
 	<role name="postgres"/>
-	<position x="860" y="680"/>
+	<position x="860" y="620"/>
 	<column name="id_regional_director" not-null="true">
 		<type name="integer" length="0"/>
 	</column>
@@ -633,7 +639,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 <table name="company_user">
 	<schema name="public"/>
 	<role name="postgres"/>
-	<position x="1340" y="680"/>
+	<position x="1240" y="640"/>
 	<column name="id_user" not-null="true">
 		<type name="integer" length="0"/>
 	</column>
@@ -645,16 +651,32 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	</constraint>
 </table>
 
+<table name="city">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<comment><![CDATA[Cidades]]></comment>
+	<position x="800" y="40"/>
+	<column name="id_city" not-null="true">
+		<type name="serial" length="0"/>
+	</column>
+	<column name="name" not-null="true">
+		<type name="text" length="0"/>
+	</column>
+	<column name="state_id" not-null="true">
+		<type name="serial" length="0"/>
+	</column>
+</table>
+
 <constraint name="fk_profile" type="fk-constr" comparison-type="MATCH FULL"
 	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="public.profile" table="public.&quot;user&quot;">
 	<columns names="profile_id" ref-type="src-columns"/>
 	<columns names="profile_id" ref-type="dst-columns"/>
 </constraint>
 
-<constraint name="fk_state" type="fk-constr" comparison-type="MATCH FULL"
-	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="public.state" table="public.address">
-	<columns names="state_id" ref-type="src-columns"/>
-	<columns names="state_id" ref-type="dst-columns"/>
+<constraint name="city_fk" type="fk-constr" comparison-type="MATCH FULL"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="public.city" table="public.address">
+	<columns names="id_city" ref-type="src-columns"/>
+	<columns names="id_city" ref-type="dst-columns"/>
 </constraint>
 
 <constraint name="fk_menu" type="fk-constr" comparison-type="MATCH FULL"
@@ -819,10 +841,11 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<columns names="id_company" ref-type="dst-columns"/>
 </constraint>
 
-<relationship name="rel_address_state" type="relfk"
-	 src-table="public.address"
-	 dst-table="public.state"
-	 src-required="false" dst-required="false"/>
+<constraint name="state_fk" type="fk-constr" comparison-type="MATCH FULL"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="public.state" table="public.city">
+	<columns names="state_id" ref-type="src-columns"/>
+	<columns names="state_id" ref-type="dst-columns"/>
+</constraint>
 
 <relationship name="rel_menu_age_menu" type="relfk"
 	 src-table="public.menu_age"
@@ -940,7 +963,11 @@ CAUTION: Do not modify this file unless you know what you are doing.
 <relationship name="rel_regional_director_user_user" type="relfk"
 	 src-table="public.regional_director_user"
 	 dst-table="public.&quot;user&quot;"
-	 src-required="false" dst-required="false"/>
+	 src-required="false" dst-required="false">
+	<label ref-type="name-label">
+		<position x="0" y="0"/>
+	</label>
+</relationship>
 
 <relationship name="rel_company_user_user" type="relfk"
 	 src-table="public.company_user"
@@ -970,6 +997,16 @@ CAUTION: Do not modify this file unless you know what you are doing.
 <relationship name="rel_company_address" type="relfk"
 	 src-table="public.company"
 	 dst-table="public.address"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="rel_city_location_state" type="relfk"
+	 src-table="public.city"
+	 dst-table="public.state"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="rel_address_city_location" type="relfk"
+	 src-table="public.address"
+	 dst-table="public.city"
 	 src-required="false" dst-required="false"/>
 
 </dbmodel>
