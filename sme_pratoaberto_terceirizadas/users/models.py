@@ -51,6 +51,8 @@ class User(AbstractUser, PermissionsMixin):
     class Meta:
         verbose_name = _('user')
         verbose_name_plural = _('users')
+        managed = False
+        db_table = 'user'
 
     def get_full_name(self):
         return '{} {}'.format(self.first_name, self.last_name)

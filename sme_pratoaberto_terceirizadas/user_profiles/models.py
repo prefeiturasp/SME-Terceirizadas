@@ -113,15 +113,15 @@ class Address(models.Model):
 #
 
 
-class SubTownHall(models.Model, Describable, Activable):
+class SubTownHall(Describable, Activable):
     """Sub Prefeitura"""
 
 
-class SchoolUnitType(models.Model, Describable, Activable):
+class SchoolUnitType(Describable, Activable):
     """Tipo de unidade escolar: EMEI, EMEF, CIEJA..."""
 
 
-class ManagementType(models.Model, Describable, Activable):
+class ManagementType(Describable, Activable):
     """Tipo de gestão escolar: DIRETA, MISTA, TERCEIRIZADA..."""
 
 
