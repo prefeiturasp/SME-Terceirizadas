@@ -3,7 +3,7 @@
 CAUTION: Do not modify this file unless you know what you are doing.
          Unexpected results may occur if the code is changed deliberately.
 -->
-<dbmodel pgmodeler-ver="0.9.1" last-position="0,102" last-zoom="0.85"
+<dbmodel pgmodeler-ver="0.9.1" last-position="0,0" last-zoom="0.85"
 	 default-owner="postgres">
 <database name="new_database" is-template="false" allow-conns="true">
 </database>
@@ -121,7 +121,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<schema name="public"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Unidade escolar]]></comment>
-	<position x="460" y="480"/>
+	<position x="520" y="380"/>
 	<column name="unit_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -140,17 +140,17 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<schema name="public"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Qual o tipo de gestão da escola. Ex.: Terceirizada, Direta e Mista]]></comment>
-	<position x="380" y="640"/>
+	<position x="380" y="520"/>
 	<column name="management_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
-	<column name="management_type" not-null="true">
+	<column name="name" not-null="true">
 		<type name="varchar" length="99"/>
 	</column>
 	<column name="description">
 		<type name="text" length="0"/>
 	</column>
-	<column name="management_status" not-null="true" default-value="true">
+	<column name="is_active" not-null="true" default-value="true">
 		<type name="bool" length="0"/>
 	</column>
 	<constraint name="attendance_pk" type="pk-constr" table="public.management_type">
@@ -342,7 +342,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 <table name="school_age">
 	<schema name="public"/>
 	<role name="postgres"/>
-	<position x="40" y="460"/>
+	<position x="20" y="460"/>
 	<column name="shool_id" not-null="true">
 		<type name="integer" length="0"/>
 	</column>
@@ -358,7 +358,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<schema name="public"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Registro de subprefeitura]]></comment>
-	<position x="480" y="280"/>
+	<position x="600" y="240"/>
 	<column name="under_prefecture_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -379,7 +379,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 <table name="school">
 	<schema name="public"/>
 	<role name="postgres"/>
-	<position x="40" y="80"/>
+	<position x="20" y="60"/>
 	<column name="school_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -399,7 +399,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 		<type name="smallint" length="0"/>
 		<comment><![CDATA[Agrupamento escolar?]]></comment>
 	</column>
-	<column name="school_status" not-null="true" default-value="true">
+	<column name="is_active" not-null="true" default-value="true">
 		<type name="bool" length="0"/>
 	</column>
 	<column name="address_id" not-null="true">
@@ -413,6 +413,12 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	</column>
 	<column name="under_prefecture_id" not-null="true">
 		<type name="serial" length="0"/>
+	</column>
+	<column name="eol_code">
+		<type name="varchar" length="10"/>
+	</column>
+	<column name="codae_code">
+		<type name="varchar" length="10"/>
 	</column>
 	<constraint name="school_pk" type="pk-constr" table="public.school">
 		<columns names="school_id" ref-type="src-columns"/>
@@ -753,7 +759,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<columns names="management_id" ref-type="dst-columns"/>
 </constraint>
 
-<constraint name="under_prefecture_fk" type="fk-constr" comparison-type="MATCH FULL"
+<constraint name="sub_town_hall_fk" type="fk-constr" comparison-type="MATCH FULL"
 	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="public.sub_town_hall" table="public.school">
 	<columns names="under_prefecture_id" ref-type="src-columns"/>
 	<columns names="under_prefecture_id" ref-type="dst-columns"/>
@@ -885,7 +891,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	 dst-table="public.management_type" reference-fk="manager_fk"
 	 src-required="false" dst-required="false">
 	<label ref-type="src-label">
-		<position x="0" y="0"/>
+		<position x="3.21375" y="-6.275"/>
 	</label>
 </relationship>
 
@@ -975,7 +981,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 
 <relationship name="rel_school_under_prefecture" type="relfk"
 	 src-table="public.school"
-	 dst-table="public.sub_town_hall" reference-fk="under_prefecture_fk"
+	 dst-table="public.sub_town_hall" reference-fk="sub_town_hall_fk"
 	 src-required="false" dst-required="false"/>
 
 <relationship name="rel_company_address" type="relfk"

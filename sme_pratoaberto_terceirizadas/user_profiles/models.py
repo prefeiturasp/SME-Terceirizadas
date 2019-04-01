@@ -84,38 +84,6 @@ class NutritionistProfile(User, BaseAbstractPersonIndividual):
         verbose_name = _("Nutritionist")
 
 
-class SchoolProfile(User):
-    """Escola"""
-    # TODO: consultar o weslei para mais detalhes.
-    # TODO: tem RF?
-    eol_code = models.CharField(_("EOL code"), max_length=6)
-    codae_code = models.CharField(_('CODAE code'), max_length=6)
-    # unity_scholar_type = models.ForeignKey emei emef...
-    school_name = models.CharField(_("School name"), max_length=200)
-    regional_director = models.ForeignKey(RegionalDirectorProfile,
-                                          on_delete=models.DO_NOTHING,
-                                          null=True)
-
-    def __str__(self):
-        return _('School') + self.school_name
-
-
-#
-# TODO: criar apps separados?
-#
-
-#
-# Relacionados a escolas
-#
-
-class ManagementType(models.Model, Describable):
-    """Tipo de gestão. Ex.: Terceirizada, Direta e Mista"""
-
-
-class SubTownHall(models.Model, Describable, Activable):
-    """Sub Prefeitura"""
-
-
 #
 # Endereço
 #
@@ -138,3 +106,51 @@ class Address(models.Model):
     city_location = models.ForeignKey(CityLocation,
                                       on_delete=models.DO_NOTHING,
                                       null=True)
+
+
+#
+# Relacionados a escolas
+#
+
+
+class SubTownHall(models.Model, Describable, Activable):
+    """Sub Prefeitura"""
+
+
+class SchoolUnitType(models.Model, Describable, Activable):
+    """Tipo de unidade escolar: EMEI, EMEF, CIEJA..."""
+
+
+class ManagementType(models.Model, Describable, Activable):
+    """Tipo de gestão escolar: DIRETA, MISTA, TERCEIRIZADA..."""
+
+
+class SchoolProfile(User, Describable, Activable):
+    """Escola"""
+    eol_code = models.CharField(_("EOL code"), max_length=6)
+    codae_code = models.CharField(_('CODAE code'), max_length=6)
+    grouping = models.SmallIntegerField(_('Grouping'))
+
+    # fks
+    regional_director = models.ForeignKey(RegionalDirectorProfile,
+                                          on_delete=models.DO_NOTHING,
+                                          null=True)
+    address = models.ForeignKey(Address,
+                                on_delete=models.DO_NOTHING,
+                                null=True)
+    unit_type = models.ForeignKey(SchoolUnitType,
+                                  on_delete=models.DO_NOTHING,
+                                  null=True)
+    management_type = models.ForeignKey(ManagementType,
+                                        on_delete=models.DO_NOTHING,
+                                        null=True)
+    sub_town_hall = models.ForeignKey(SubTownHall,
+                                      on_delete=models.DO_NOTHING,
+                                      null=True)
+
+    def __str__(self):
+        return _('School') + self.name
+
+#
+# TODO: criar apps separados?
+#
