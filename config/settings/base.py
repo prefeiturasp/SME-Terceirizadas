@@ -85,8 +85,8 @@ THIRD_PARTY_APPS = [
 ]
 LOCAL_APPS = [
     'sme_pratoaberto_terceirizadas.users.apps.UsersAppConfig',
-    # 'sme_pratoaberto_terceirizadas.user_profiles.apps.UserProfilesConfig'
-    # Your stuff: custom apps go here
+    'sme_pratoaberto_terceirizadas.user_profiles.apps.UserProfilesConfig',
+    'sme_pratoaberto_terceirizadas.core.apps.CoreConfig'
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
