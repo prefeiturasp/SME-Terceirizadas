@@ -52,6 +52,7 @@ class School(Describable, Activable):
                                         on_delete=models.DO_NOTHING,
                                         null=True)
     borough = models.ForeignKey(Borough,
+                                null=True,
                                 on_delete=models.DO_NOTHING)
     ages = models.ManyToManyField(SchoolAge)
 
