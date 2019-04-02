@@ -3,15 +3,14 @@ from django.utils.translation import ugettext_lazy as _
 
 from sme_pratoaberto_terceirizadas.abstract_shareable import Describable, Activable
 from sme_pratoaberto_terceirizadas.common_data.models import Address
-from sme_pratoaberto_terceirizadas.user_profiles.models import AlternateProfile, SubManagerProfile
 
 
-class RegionalDirector(models.Model, Describable):
+class RegionalDirector(Describable):
     """DRE - Diretoria Regional"""
     abbreviation = models.CharField(_('Abbreviation'), max_length=4)
-    alternate = models.ForeignKey(AlternateProfile, verbose_name=_('Alternate'),
+    alternate = models.ForeignKey('AlternateProfile', verbose_name=_('Alternate'),
                                   on_delete=models.DO_NOTHING, null=True)
-    sub_manager = models.ForeignKey(SubManagerProfile,
+    sub_manager = models.ForeignKey('SubManagerProfile',
                                     verbose_name=_('Sub Manager'),
                                     on_delete=models.DO_NOTHING, null=True)
 
