@@ -3,9 +3,9 @@
 CAUTION: Do not modify this file unless you know what you are doing.
          Unexpected results may occur if the code is changed deliberately.
 -->
-<dbmodel pgmodeler-ver="0.9.1" last-position="635,420" last-zoom="0.65"
+<dbmodel pgmodeler-ver="0.9.1-beta" last-position="565,236" last-zoom="0.75"
 	 default-owner="postgres">
-<database name="new_database" is-template="false" allow-conns="true">
+<database name="new_database">
 </database>
 
 <schema name="public" rect-visible="true" fill-color="#e1e1e1" sql-disabled="true">
@@ -23,7 +23,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<schema name="profile"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Permissões do usuário]]></comment>
-	<position x="1560" y="1000"/>
+	<position x="1440" y="960"/>
 	<column name="role_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -49,7 +49,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<schema name="school"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Unidade escolar]]></comment>
-	<position x="20" y="680"/>
+	<position x="100" y="1063"/>
 	<column name="unit_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -68,7 +68,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<schema name="school"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Qual o tipo de gestão da escola. Ex.: Terceirizada, Direta e Mista]]></comment>
-	<position x="460" y="680"/>
+	<position x="520" y="700"/>
 	<column name="management_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -90,7 +90,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<schema name="school"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Tabela utilizada para registrar faiza etária de idade]]></comment>
-	<position x="40" y="200"/>
+	<position x="180" y="520"/>
 	<column name="age_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -108,21 +108,6 @@ CAUTION: Do not modify this file unless you know what you are doing.
 <schema name="codae" rect-visible="true" fill-color="#00aaff">
 	<role name="postgres"/>
 </schema>
-
-<table name="menu_age">
-	<schema name="food"/>
-	<role name="postgres"/>
-	<position x="540" y="1700"/>
-	<column name="menu_id" not-null="true">
-		<type name="integer" length="0"/>
-	</column>
-	<column name="age_id" not-null="true">
-		<type name="integer" length="0"/>
-	</column>
-	<constraint name="menu_age_pk" type="pk-constr" table="food.menu_age">
-		<columns names="menu_id,age_id" ref-type="src-columns"/>
-	</constraint>
-</table>
 
 <table name="food">
 	<schema name="food"/>
@@ -246,27 +231,12 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	</constraint>
 </table>
 
-<table name="school_age">
-	<schema name="school"/>
-	<role name="postgres"/>
-	<position x="420" y="200"/>
-	<column name="shool_id" not-null="true">
-		<type name="integer" length="0"/>
-	</column>
-	<column name="age_id" not-null="true">
-		<type name="integer" length="0"/>
-	</column>
-	<constraint name="school_age_pk" type="pk-constr" table="school.school_age">
-		<columns names="shool_id,age_id" ref-type="src-columns"/>
-	</constraint>
-</table>
-
 <table name="borough">
 	<schema name="school"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Registro de subprefeitura
 Borough hall record.]]></comment>
-	<position x="440" y="500"/>
+	<position x="540" y="520"/>
 	<column name="borough_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -285,23 +255,14 @@ Borough hall record.]]></comment>
 </table>
 
 <table name="school">
-	<schema name="profile"/>
+	<schema name="school"/>
 	<role name="postgres"/>
-	<position x="1380" y="620"/>
+	<position x="100" y="703"/>
 	<column name="school_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
 	<column name="name" not-null="true">
 		<type name="varchar" length="199"/>
-	</column>
-	<column name="email">
-		<type name="varchar" length="199"/>
-	</column>
-	<column name="phone" not-null="true">
-		<type name="varchar" length="45"/>
-	</column>
-	<column name="phone2">
-		<type name="varchar" length="45"/>
 	</column>
 	<column name="grouping" not-null="true">
 		<type name="smallint" length="0"/>
@@ -328,8 +289,11 @@ Borough hall record.]]></comment>
 	<column name="codae_code">
 		<type name="varchar" length="10"/>
 	</column>
-	<constraint name="school_pk" type="pk-constr" table="profile.school">
+	<constraint name="school_pk" type="pk-constr" table="school.school">
 		<columns names="school_id" ref-type="src-columns"/>
+	</constraint>
+	<constraint name="eol_code_unique" type="uq-constr" table="school.school">
+		<columns names="eol_code" ref-type="src-columns"/>
 	</constraint>
 </table>
 
@@ -359,15 +323,15 @@ Borough hall record.]]></comment>
 <table name="profile">
 	<schema name="profile"/>
 	<role name="postgres"/>
-	<comment><![CDATA[Perfil do usuário cadastrado. Ex: Cogestor, Nutricionista ou etc...]]></comment>
-	<position x="1760" y="840"/>
+	<comment><![CDATA[Perfil do usuário Ex: Cogestor, Nutricionista ou COGESTOR E NUTRI, etc.]]></comment>
+	<position x="1460" y="800"/>
 	<column name="profile_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
 	<column name="title" not-null="true">
 		<type name="varchar" length="90"/>
 	</column>
-	<column name="profile_status" not-null="true" default-value="True">
+	<column name="is_active" not-null="true" default-value="True">
 		<type name="boolean" length="0"/>
 	</column>
 	<constraint name="profile_pk" type="pk-constr" table="profile.profile">
@@ -379,7 +343,7 @@ Borough hall record.]]></comment>
 	<schema name="common_data"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Registra eventos de usuário realizado no sistema]]></comment>
-	<position x="2240" y="1320"/>
+	<position x="1860" y="1303"/>
 	<column name="log_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -402,10 +366,10 @@ Borough hall record.]]></comment>
 </table>
 
 <table name="regional_director">
-	<schema name="profile"/>
+	<schema name="school"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Tabela utilizada para registrar as DREs (DIRETORIA REGIONAL DA EDUCAÇÃO)]]></comment>
-	<position x="1100" y="940"/>
+	<position x="460" y="1080"/>
 	<column name="id_regional_director" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -415,15 +379,15 @@ Borough hall record.]]></comment>
 	<column name="name" not-null="true">
 		<type name="varchar" length="80"/>
 	</column>
-	<constraint name="regional_director_pk" type="pk-constr" table="profile.regional_director">
+	<constraint name="regional_director_pk" type="pk-constr" table="school.regional_director">
 		<columns names="id_regional_director" ref-type="src-columns"/>
 	</constraint>
 </table>
 
 <table name="company">
-	<schema name="profile"/>
+	<schema name="company"/>
 	<role name="postgres"/>
-	<position x="1720" y="620"/>
+	<position x="780" y="200"/>
 	<column name="id_company" not-null="true">
 		<type name="serial" length="80"/>
 	</column>
@@ -446,9 +410,18 @@ Borough hall record.]]></comment>
 	<column name="status" not-null="true">
 		<type name="boolean" length="0"/>
 	</column>
-	<constraint name="company_pk" type="pk-constr" table="profile.company">
+	<constraint name="company_pk" type="pk-constr" table="company.company">
 		<columns names="id_company" ref-type="src-columns"/>
 	</constraint>
+
+	<customidxs object-type="column">
+		<object name="institution_id_institution" index="7"/>
+	</customidxs>
+
+	<customidxs object-type="constraint">
+		<object name="company_uq" index="2"/>
+		<object name="institution_fk" index="1"/>
+	</customidxs>
 </table>
 
 <table name="service_batch">
@@ -474,26 +447,11 @@ Borough hall record.]]></comment>
 	</constraint>
 </table>
 
-<table name="regional_director_user">
-	<schema name="school"/>
-	<role name="postgres"/>
-	<position x="340" y="380"/>
-	<column name="id_regional_director" not-null="true">
-		<type name="integer" length="0"/>
-	</column>
-	<column name="id_user" not-null="true">
-		<type name="integer" length="0"/>
-	</column>
-	<constraint name="regional_director_user_pk" type="pk-constr" table="school.regional_director_user">
-		<columns names="id_regional_director,id_user" ref-type="src-columns"/>
-	</constraint>
-</table>
-
 <table name="city_location">
 	<schema name="common_data"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Cidades]]></comment>
-	<position x="2580" y="1200"/>
+	<position x="2200" y="1309"/>
 	<column name="id_city_location" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -520,7 +478,7 @@ Borough hall record.]]></comment>
 	 pk-col-pattern="id"
 	 custom-color="#7f8ee6"
 	 src-table="codae.service_batch"
-	 dst-table="profile.company"
+	 dst-table="company.company"
 	 src-required="false" dst-required="false"
 	 table-name="service_batch_company"/>
 
@@ -528,18 +486,12 @@ Borough hall record.]]></comment>
 	<schema name="django_data"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Campo para validar se o usuário foi ativado via email]]></comment>
-	<position x="2540" y="320"/>
+	<position x="1720" y="423"/>
 	<column name="user_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
 	<column name="profile_id" not-null="true">
 		<type name="integer" length="0"/>
-	</column>
-	<column name="first_name" not-null="true">
-		<type name="varchar" length="100"/>
-	</column>
-	<column name="last_name">
-		<type name="varchar" length="100"/>
 	</column>
 	<column name="email" not-null="true">
 		<type name="varchar" length="160"/>
@@ -560,6 +512,12 @@ Borough hall record.]]></comment>
 	<column name="is_trusty" default-value="false">
 		<type name="bool" length="0"/>
 	</column>
+	<column name="name">
+		<type name="varchar" length="50"/>
+	</column>
+	<column name="is_admin" default-value="false">
+		<type name="bool" length="0"/>
+	</column>
 	<constraint name="user_pk" type="pk-constr" table="django_data.&quot;user&quot;">
 		<columns names="user_id" ref-type="src-columns"/>
 	</constraint>
@@ -569,7 +527,7 @@ Borough hall record.]]></comment>
 	<schema name="common_data"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Endereço ligado a escola.]]></comment>
-	<position x="2240" y="1460"/>
+	<position x="1820" y="1543"/>
 	<column name="address_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -636,16 +594,22 @@ Borough hall record.]]></comment>
 <table name="contact">
 	<schema name="common_data"/>
 	<role name="postgres"/>
-	<comment><![CDATA[Contato do usuário cadastrado]]></comment>
-	<position x="2280" y="1180"/>
+	<comment><![CDATA[Lista de contatos de escola]]></comment>
+	<position x="1780" y="1140"/>
 	<column name="contact_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
-	<column name="number" not-null="true">
-		<type name="varchar" length="20"/>
+	<column name="phone" not-null="true">
+		<type name="varchar" length="30"/>
 	</column>
-	<column name="user_id" not-null="true">
-		<type name="integer" length="0"/>
+	<column name="mobile_phone">
+		<type name="varchar" length="30"/>
+	</column>
+	<column name="email">
+		<type name="varchar" length="150"/>
+	</column>
+	<column name="fax">
+		<type name="varchar" length="30"/>
 	</column>
 	<constraint name="contact_pk" type="pk-constr" table="common_data.contact">
 		<columns names="contact_id" ref-type="src-columns"/>
@@ -667,32 +631,103 @@ Borough hall record.]]></comment>
 	 pk-col-pattern="id"
 	 custom-color="#ce5c00"
 	 src-table="django_data.&quot;user&quot;"
-	 dst-table="profile.company"
+	 dst-table="company.company"
 	 src-required="false" dst-required="false"
 	 table-name="user_company"/>
 
-<relationship name="user_role" type="relnn"
+<relationship name="age_school" type="relnn"
 	 src-col-pattern="{sc}_{st}" dst-col-pattern="{sc}_{dt}"
 	 pk-pattern="{gt}_pk" uq-pattern="{gt}_uq"
 	 src-fk-pattern="{st}_fk" dst-fk-pattern="{dt}_fk"
 	 pk-col-pattern="id"
-	 custom-color="#b9c325"
-	 src-table="django_data.&quot;user&quot;"
-	 dst-table="profile.role"
+	 custom-color="#4e9a06"
+	 src-table="school.age"
+	 dst-table="school.school"
 	 src-required="false" dst-required="false"
-	 table-name="user_role"/>
+	 table-name="age_school"/>
 
-<constraint name="fk_menu" type="fk-constr" comparison-type="MATCH FULL"
-	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="food.menu" table="food.menu_age">
-	<columns names="menu_id" ref-type="src-columns"/>
-	<columns names="menu_id" ref-type="dst-columns"/>
-</constraint>
+<relationship name="menu_age" type="relnn"
+	 src-col-pattern="{sc}_{st}" dst-col-pattern="{sc}_{dt}"
+	 pk-pattern="{gt}_pk" uq-pattern="{gt}_uq"
+	 src-fk-pattern="{st}_fk" dst-fk-pattern="{dt}_fk"
+	 pk-col-pattern="id"
+	 custom-color="#e06c3a"
+	 src-table="food.menu"
+	 dst-table="school.age"
+	 src-required="false" dst-required="false"
+	 table-name="menu_age"/>
 
-<constraint name="fk_age" type="fk-constr" comparison-type="MATCH FULL"
-	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="school.age" table="food.menu_age">
-	<columns names="age_id" ref-type="src-columns"/>
-	<columns names="age_id" ref-type="dst-columns"/>
-</constraint>
+<table name="institution" hide-ext-attribs="true">
+	<schema name="profile"/>
+	<role name="postgres"/>
+	<comment><![CDATA[Instiuição: CODAE, DRE, ESCOLA e TERCEIRIZADA]]></comment>
+	<position x="1100" y="960"/>
+	<column name="institution_id" not-null="true">
+		<type name="serial" length="0"/>
+	</column>
+	<constraint name="institution_pk" type="pk-constr" table="profile.institution">
+		<columns names="institution_id" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<relationship name="institution_address" type="rel11"
+	 src-col-pattern="{sc}_{st}"
+	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
+	 src-fk-pattern="{st}_fk"
+	 src-table="common_data.address"
+	 dst-table="profile.institution"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="institution_contact" type="rel1n"
+	 src-col-pattern="{sc}_{st}"
+	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
+	 src-fk-pattern="{st}_fk"
+	 src-table="profile.institution"
+	 dst-table="common_data.contact"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="school_institution" type="rel11"
+	 src-col-pattern="{sc}_{st}"
+	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
+	 src-fk-pattern="{st}_fk"
+	 src-table="profile.institution"
+	 dst-table="school.school"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="company_institution" type="rel11"
+	 src-col-pattern="{sc}_{st}"
+	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
+	 src-fk-pattern="{st}_fk"
+	 src-table="profile.institution"
+	 dst-table="company.company"
+	 src-required="false" dst-required="false"/>
+
+<schema name="company" rect-visible="true" fill-color="#0b0b49">
+	<role name="postgres"/>
+</schema>
+
+<relationship name="user_regional_director" type="relnn"
+	 src-col-pattern="{sc}_{st}" dst-col-pattern="{sc}_{dt}"
+	 pk-pattern="{gt}_pk" uq-pattern="{gt}_uq"
+	 src-fk-pattern="{st}_fk" dst-fk-pattern="{dt}_fk"
+	 pk-col-pattern="id"
+	 custom-color="#ce77d3"
+	 src-table="django_data.&quot;user&quot;"
+	 dst-table="school.regional_director"
+	 src-required="false" dst-required="false"
+	 table-name="user_regional_director"/>
+
+<table name="user_role">
+	<schema name="profile"/>
+	<role name="postgres"/>
+	<position x="1220" y="780"/>
+	<column name="id_user">
+		<type name="integer" length="0"/>
+	</column>
+	<column name="id_role">
+		<type name="integer" length="0"/>
+	</column>
+</table>
 
 <constraint name="fk_category_food" type="fk-constr" comparison-type="MATCH FULL"
 	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="food.category_food" table="food.food">
@@ -736,38 +771,20 @@ Borough hall record.]]></comment>
 	<columns names="user_id" ref-type="dst-columns"/>
 </constraint>
 
-<constraint name="fk_school" type="fk-constr" comparison-type="MATCH FULL"
-	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="profile.school" table="school.school_age">
-	<columns names="shool_id" ref-type="src-columns"/>
-	<columns names="school_id" ref-type="dst-columns"/>
-</constraint>
-
-<constraint name="fk_age" type="fk-constr" comparison-type="MATCH FULL"
-	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="school.age" table="school.school_age">
-	<columns names="age_id" ref-type="src-columns"/>
-	<columns names="age_id" ref-type="dst-columns"/>
-</constraint>
-
-<constraint name="address_fk" type="fk-constr" comparison-type="MATCH FULL"
-	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="common_data.address" table="profile.school">
-	<columns names="address_id" ref-type="src-columns"/>
-	<columns names="address_id" ref-type="dst-columns"/>
-</constraint>
-
 <constraint name="unity_fk" type="fk-constr" comparison-type="MATCH FULL"
-	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="school.school_unit" table="profile.school">
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="school.school_unit" table="school.school">
 	<columns names="unit_id" ref-type="src-columns"/>
 	<columns names="unit_id" ref-type="dst-columns"/>
 </constraint>
 
 <constraint name="manager_fk" type="fk-constr" comparison-type="MATCH FULL"
-	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="school.management_type" table="profile.school">
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="school.management_type" table="school.school">
 	<columns names="managerment_id" ref-type="src-columns"/>
 	<columns names="management_id" ref-type="dst-columns"/>
 </constraint>
 
 <constraint name="borough_fk" type="fk-constr" comparison-type="MATCH FULL"
-	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="school.borough" table="profile.school">
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="school.borough" table="school.school">
 	<columns names="borough_id" ref-type="src-columns"/>
 	<columns names="borough_id" ref-type="dst-columns"/>
 </constraint>
@@ -778,28 +795,10 @@ Borough hall record.]]></comment>
 	<columns names="user_id" ref-type="dst-columns"/>
 </constraint>
 
-<constraint name="address_fk" type="fk-constr" comparison-type="MATCH FULL"
-	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="common_data.address" table="profile.company">
-	<columns names="id_address" ref-type="src-columns"/>
-	<columns names="address_id" ref-type="dst-columns"/>
-</constraint>
-
 <constraint name="fk_regional_director" type="fk-constr" comparison-type="MATCH FULL"
-	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="profile.regional_director" table="codae.service_batch">
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="school.regional_director" table="codae.service_batch">
 	<columns names="id_regional_director" ref-type="src-columns"/>
 	<columns names="id_regional_director" ref-type="dst-columns"/>
-</constraint>
-
-<constraint name="fk_regional_director" type="fk-constr" comparison-type="MATCH FULL"
-	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="profile.regional_director" table="school.regional_director_user">
-	<columns names="id_regional_director" ref-type="src-columns"/>
-	<columns names="id_regional_director" ref-type="dst-columns"/>
-</constraint>
-
-<constraint name="fk_user" type="fk-constr" comparison-type="MATCH FULL"
-	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="django_data.&quot;user&quot;" table="school.regional_director_user">
-	<columns names="id_user" ref-type="src-columns"/>
-	<columns names="user_id" ref-type="dst-columns"/>
 </constraint>
 
 <constraint name="fk_profile" type="fk-constr" comparison-type="MATCH FULL"
@@ -808,124 +807,91 @@ Borough hall record.]]></comment>
 	<columns names="profile_id" ref-type="dst-columns"/>
 </constraint>
 
-<constraint name="fk_user_id" type="fk-constr" comparison-type="MATCH FULL"
-	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="django_data.&quot;user&quot;" table="common_data.contact">
-	<columns names="contact_id" ref-type="src-columns"/>
+<constraint name="userfk" type="fk-constr" comparison-type="MATCH FULL"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="django_data.&quot;user&quot;" table="profile.user_role">
+	<columns names="id_user" ref-type="src-columns"/>
 	<columns names="user_id" ref-type="dst-columns"/>
 </constraint>
 
-<relationship name="rel_menu_age_menu" type="relfk"
-	 src-table="food.menu_age"
-	 dst-table="food.menu" reference-fk="fk_menu"
-	 src-required="false" dst-required="false"/>
-
-<relationship name="rel_menu_age_age" type="relfk"
-	 src-table="food.menu_age"
-	 dst-table="school.age" reference-fk="fk_age"
-	 src-required="false" dst-required="false"/>
+<constraint name="rolefk" type="fk-constr" comparison-type="MATCH FULL"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="profile.role" table="profile.user_role">
+	<columns names="id_role" ref-type="src-columns"/>
+	<columns names="role_id" ref-type="dst-columns"/>
+</constraint>
 
 <relationship name="rel_food_category_food" type="relfk"
 	 src-table="food.food"
-	 dst-table="food.category_food" reference-fk="fk_category_food"
+	 dst-table="food.category_food"
 	 src-required="false" dst-required="false"/>
 
 <relationship name="rel_menu_food_menu" type="relfk"
 	 src-table="food.menu_food"
-	 dst-table="food.menu" reference-fk="fk_menu"
+	 dst-table="food.menu"
 	 src-required="false" dst-required="false"/>
 
 <relationship name="rel_menu_food_food" type="relfk"
 	 src-table="food.menu_food"
-	 dst-table="food.food" reference-fk="fk_food"
+	 dst-table="food.food"
 	 src-required="false" dst-required="false"/>
 
 <relationship name="rel_menu_management_menu" type="relfk"
 	 src-table="food.menu"
-	 dst-table="food.management_menu" reference-fk="fk_management"
+	 dst-table="food.management_menu"
 	 src-required="false" dst-required="false"/>
 
 <relationship name="rel_menu_notice" type="relfk"
 	 src-table="food.menu"
-	 dst-table="codae.notice" reference-fk="notice_fk"
+	 dst-table="codae.notice"
 	 src-required="false" dst-required="false"/>
 
 <relationship name="rel_menu_type" type="relfk"
 	 src-table="food.menu"
-	 dst-table="food.type" reference-fk="type_fk"
+	 dst-table="food.type"
 	 src-required="false" dst-required="false"/>
 
 <relationship name="rel_menu_user" type="relfk"
 	 src-table="food.menu"
-	 dst-table="django_data.&quot;user&quot;" reference-fk="user_fk"
-	 src-required="false" dst-required="false"/>
-
-<relationship name="rel_school_age_school" type="relfk"
-	 src-table="school.school_age"
-	 dst-table="profile.school" reference-fk="fk_school"
-	 src-required="false" dst-required="false"/>
-
-<relationship name="rel_school_age_age" type="relfk"
-	 src-table="school.school_age"
-	 dst-table="school.age" reference-fk="fk_age"
-	 src-required="false" dst-required="false"/>
-
-<relationship name="rel_school_address" type="relfk"
-	 src-table="profile.school"
-	 dst-table="common_data.address" reference-fk="address_fk"
+	 dst-table="django_data.&quot;user&quot;"
 	 src-required="false" dst-required="false"/>
 
 <relationship name="rel_school_school_unit" type="relfk"
-	 src-table="profile.school"
-	 dst-table="school.school_unit" reference-fk="unity_fk"
+	 src-table="school.school"
+	 dst-table="school.school_unit"
 	 src-required="false" dst-required="false"/>
 
 <relationship name="rel_school_management_type" type="relfk"
-	 src-table="profile.school"
-	 dst-table="school.management_type" reference-fk="manager_fk"
+	 src-table="school.school"
+	 dst-table="school.management_type"
 	 src-required="false" dst-required="false"/>
 
 <relationship name="rel_school_borough" type="relfk"
-	 src-table="profile.school"
-	 dst-table="school.borough" reference-fk="borough_fk"
-	 src-required="false" dst-required="false">
-	<label ref-type="name-label">
-		<position x="109.584" y="7.39844"/>
-	</label>
-</relationship>
+	 src-table="school.school"
+	 dst-table="school.borough"
+	 src-required="false" dst-required="false"/>
 
 <relationship name="rel_log_user" type="relfk"
 	 src-table="common_data.log"
-	 dst-table="django_data.&quot;user&quot;" reference-fk="fk_user_id"
-	 src-required="false" dst-required="false"/>
-
-<relationship name="rel_company_address" type="relfk"
-	 src-table="profile.company"
-	 dst-table="common_data.address" reference-fk="address_fk"
+	 dst-table="django_data.&quot;user&quot;"
 	 src-required="false" dst-required="false"/>
 
 <relationship name="rel_service_batch_regional_director" type="relfk"
 	 src-table="codae.service_batch"
-	 dst-table="profile.regional_director" reference-fk="fk_regional_director"
-	 src-required="false" dst-required="false"/>
-
-<relationship name="rel_regional_director_user_regional_director" type="relfk"
-	 src-table="school.regional_director_user"
-	 dst-table="profile.regional_director" reference-fk="fk_regional_director"
-	 src-required="false" dst-required="false"/>
-
-<relationship name="rel_regional_director_user_user" type="relfk"
-	 src-table="school.regional_director_user"
-	 dst-table="django_data.&quot;user&quot;" reference-fk="fk_user"
+	 dst-table="school.regional_director"
 	 src-required="false" dst-required="false"/>
 
 <relationship name="rel_user_profile" type="relfk"
 	 src-table="django_data.&quot;user&quot;"
-	 dst-table="profile.profile" reference-fk="fk_profile"
+	 dst-table="profile.profile"
 	 src-required="false" dst-required="false"/>
 
-<relationship name="rel_contact_user" type="relfk"
-	 src-table="common_data.contact"
-	 dst-table="django_data.&quot;user&quot;" reference-fk="fk_user_id"
+<relationship name="rel_user_role_user" type="relfk"
+	 src-table="profile.user_role"
+	 dst-table="django_data.&quot;user&quot;"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="rel_user_role_role" type="relfk"
+	 src-table="profile.user_role"
+	 dst-table="profile.role"
 	 src-required="false" dst-required="false"/>
 
 </dbmodel>
