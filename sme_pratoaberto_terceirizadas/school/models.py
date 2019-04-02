@@ -8,6 +8,7 @@ from sme_pratoaberto_terceirizadas.common_data.models import Address
 class RegionalDirector(Describable):
     """DRE - Diretoria Regional"""
     abbreviation = models.CharField(_('Abbreviation'), max_length=4)
+
     # TODO: resolve imports
     # alternate = models.ForeignKey('AlternateProfile', verbose_name=_('Alternate'),
     #                               on_delete=models.DO_NOTHING, null=True)
