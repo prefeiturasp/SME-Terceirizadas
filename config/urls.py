@@ -20,10 +20,7 @@ urlpatterns = [
         "users/",
         include("sme_pratoaberto_terceirizadas.users.urls", namespace="users"),
     ),
-    path(
-        "user_profiles/",
-        include("sme_pratoaberto_terceirizadas.user_profiles.urls", namespace="user_profiles"),
-    ),
+
     # TODO: continuar com o jwt.
     path("api-token-auth/", obtain_jwt_token)
 
