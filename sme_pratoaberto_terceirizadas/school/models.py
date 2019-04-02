@@ -52,11 +52,8 @@ class School(Describable, Activable):
                                         on_delete=models.DO_NOTHING,
                                         null=True)
     borough = models.ForeignKey(Borough,
-                                on_delete=models.DO_NOTHING,
-                                null=True)
-    ages = models.ManyToManyField(SchoolAge,
-                                  on_delete=models.DO_NOTHING,
-                                  null=True)
+                                on_delete=models.DO_NOTHING)
+    ages = models.ManyToManyField(SchoolAge)
 
     def __str__(self):
         return _('School') + self.name
