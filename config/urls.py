@@ -20,8 +20,6 @@ urlpatterns = [
         "users/",
         include("sme_pratoaberto_terceirizadas.users.urls", namespace="users"),
     ),
-    path("accounts/", include("allauth.urls")),
-    # Your stuff: custom urls includes go here
     path(
         "user_profiles/",
         include("sme_pratoaberto_terceirizadas.user_profiles.urls", namespace="user_profiles"),
