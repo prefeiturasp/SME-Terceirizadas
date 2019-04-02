@@ -8,7 +8,6 @@ from sme_pratoaberto_terceirizadas.users.models import User
 
 class BaseAbstractPersonIndividual(models.Model):
     cpf = models.CharField(_('CPF'), max_length=15, unique=True, blank=True, null=True)
-    functional_register = models.CharField(_('Functional register'), max_length=60, unique=True, blank=True, null=True)
 
     class Meta:
         abstract = True

@@ -1,9 +1,9 @@
 from rest_framework import serializers
 
-from ..models import SchoolProfile
+from sme_pratoaberto_terceirizadas.school.models import School
 
 
 class SchoolProfileSerializer(serializers.ModelSerializer):
     class Meta:
-        model = SchoolProfile
+        model = School
         fields = ['eol_code', 'codae_code', 'school_name', 'username']

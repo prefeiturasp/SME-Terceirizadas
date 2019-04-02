@@ -1,5 +1,6 @@
 from django.contrib import admin
-from .models import AlternateProfile, NutritionistProfile, RegionalDirectorProfile
+
+from .models import AlternateProfile, NutritionistProfile
 
 
 class AlternateProfileAdmin(admin.ModelAdmin):
@@ -17,4 +18,3 @@ class RegionalDirectorProfileAdmin(admin.ModelAdmin):
 
 admin.site.register(AlternateProfile, AlternateProfileAdmin)
 admin.site.register(NutritionistProfile, NutritionistProfileAdmin)
-admin.site.register(RegionalDirectorProfile, RegionalDirectorProfileAdmin)

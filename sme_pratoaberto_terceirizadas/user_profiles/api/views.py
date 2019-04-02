@@ -4,12 +4,12 @@ from rest_framework.generics import (
 )
 from rest_framework.permissions import IsAuthenticated
 
+from sme_pratoaberto_terceirizadas.school.models import School
 from .serializers import SchoolProfileSerializer
-from ..models import SchoolProfile
 
 
 class SchoolProfileListCreateAPIView(ListCreateAPIView):
-    queryset = SchoolProfile.objects.all()
+    queryset = School.objects.all()
     permission_classes = (IsAuthenticated,)
     serializer_class = SchoolProfileSerializer
     lookup_field = 'eol_code'
@@ -17,7 +17,7 @@ class SchoolProfileListCreateAPIView(ListCreateAPIView):
 
 
 class SchoolProfileRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
-    queryset = SchoolProfile.objects.all()
+    queryset = School.objects.all()
     permission_classes = (IsAuthenticated,)
     serializer_class = SchoolProfileSerializer
     lookup_field = 'eol_code'
