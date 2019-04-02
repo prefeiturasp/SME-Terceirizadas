@@ -3,7 +3,7 @@
 CAUTION: Do not modify this file unless you know what you are doing.
          Unexpected results may occur if the code is changed deliberately.
 -->
-<dbmodel pgmodeler-ver="0.9.1-beta" last-position="565,236" last-zoom="0.75"
+<dbmodel pgmodeler-ver="0.9.1-beta" last-position="0,96" last-zoom="0.55"
 	 default-owner="postgres">
 <database name="new_database">
 </database>
@@ -23,7 +23,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<schema name="profile"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Permissões do usuário]]></comment>
-	<position x="1440" y="960"/>
+	<position x="1840" y="1220"/>
 	<column name="role_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -49,7 +49,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<schema name="school"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Unidade escolar]]></comment>
-	<position x="100" y="1063"/>
+	<position x="280" y="903"/>
 	<column name="unit_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -68,7 +68,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<schema name="school"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Qual o tipo de gestão da escola. Ex.: Terceirizada, Direta e Mista]]></comment>
-	<position x="520" y="700"/>
+	<position x="700" y="543"/>
 	<column name="management_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -90,7 +90,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<schema name="school"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Tabela utilizada para registrar faiza etária de idade]]></comment>
-	<position x="180" y="520"/>
+	<position x="360" y="363"/>
 	<column name="age_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -113,7 +113,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<schema name="food"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Tabela util.izada para registrar alimentos.]]></comment>
-	<position x="40" y="1660"/>
+	<position x="100" y="1563"/>
 	<column name="food_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -138,7 +138,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<schema name="food"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Categoria de alimentação.]]></comment>
-	<position x="960" y="1480"/>
+	<position x="960" y="1400"/>
 	<column name="category_food_id" not-null="true">
 		<type name="integer" length="0"/>
 	</column>
@@ -159,7 +159,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 <table name="menu_food">
 	<schema name="food"/>
 	<role name="postgres"/>
-	<position x="960" y="1680"/>
+	<position x="880" y="1580"/>
 	<column name="menu_id" not-null="true">
 		<type name="integer" length="0"/>
 	</column>
@@ -175,7 +175,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<schema name="food"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Tabela registra os tipos de cardápios, Ex: Normal, Lactantes, Diabéticos]]></comment>
-	<position x="600" y="1480"/>
+	<position x="660" y="1383"/>
 	<column name="type_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -194,7 +194,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<schema name="food"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Cardápio escolar]]></comment>
-	<position x="40" y="1340"/>
+	<position x="100" y="1243"/>
 	<column name="menu_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -236,7 +236,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<role name="postgres"/>
 	<comment><![CDATA[Registro de subprefeitura
 Borough hall record.]]></comment>
-	<position x="540" y="520"/>
+	<position x="700" y="383"/>
 	<column name="borough_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -257,7 +257,7 @@ Borough hall record.]]></comment>
 <table name="school">
 	<schema name="school"/>
 	<role name="postgres"/>
-	<position x="100" y="703"/>
+	<position x="280" y="543"/>
 	<column name="school_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -301,7 +301,7 @@ Borough hall record.]]></comment>
 	<schema name="food"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Registra o tipo de gestão do prato: Direto, Mista e Indireto]]></comment>
-	<position x="920" y="1340"/>
+	<position x="900" y="1260"/>
 	<column name="management_menu_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -324,7 +324,7 @@ Borough hall record.]]></comment>
 	<schema name="profile"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Perfil do usuário Ex: Cogestor, Nutricionista ou COGESTOR E NUTRI, etc.]]></comment>
-	<position x="1460" y="800"/>
+	<position x="2000" y="1003"/>
 	<column name="profile_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -343,7 +343,7 @@ Borough hall record.]]></comment>
 	<schema name="common_data"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Registra eventos de usuário realizado no sistema]]></comment>
-	<position x="1860" y="1303"/>
+	<position x="2460" y="1143"/>
 	<column name="log_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -369,7 +369,7 @@ Borough hall record.]]></comment>
 	<schema name="school"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Tabela utilizada para registrar as DREs (DIRETORIA REGIONAL DA EDUCAÇÃO)]]></comment>
-	<position x="460" y="1080"/>
+	<position x="620" y="843"/>
 	<column name="id_regional_director" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -384,51 +384,11 @@ Borough hall record.]]></comment>
 	</constraint>
 </table>
 
-<table name="company">
-	<schema name="company"/>
-	<role name="postgres"/>
-	<position x="780" y="200"/>
-	<column name="id_company" not-null="true">
-		<type name="serial" length="80"/>
-	</column>
-	<column name="id_address">
-		<type name="serial" length="0"/>
-	</column>
-	<column name="name_company" not-null="true">
-		<type name="varchar" length="80"/>
-	</column>
-	<column name="cnpj" not-null="true">
-		<type name="integer" length="0"/>
-	</column>
-	<column name="contract" not-null="true">
-		<type name="varchar" length="80"/>
-	</column>
-	<column name="notice" not-null="true">
-		<type name="varchar" length="80"/>
-		<comment><![CDATA[Edital de pregão]]></comment>
-	</column>
-	<column name="status" not-null="true">
-		<type name="boolean" length="0"/>
-	</column>
-	<constraint name="company_pk" type="pk-constr" table="company.company">
-		<columns names="id_company" ref-type="src-columns"/>
-	</constraint>
-
-	<customidxs object-type="column">
-		<object name="institution_id_institution" index="7"/>
-	</customidxs>
-
-	<customidxs object-type="constraint">
-		<object name="company_uq" index="2"/>
-		<object name="institution_fk" index="1"/>
-	</customidxs>
-</table>
-
 <table name="service_batch">
 	<schema name="codae"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Lote de  atendimento]]></comment>
-	<position x="1380" y="240"/>
+	<position x="1720" y="183"/>
 	<column name="id_service_batch" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -451,7 +411,7 @@ Borough hall record.]]></comment>
 	<schema name="common_data"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Cidades]]></comment>
-	<position x="2200" y="1309"/>
+	<position x="2840" y="1083"/>
 	<column name="id_city_location" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -471,22 +431,11 @@ Borough hall record.]]></comment>
 	<role name="postgres"/>
 </schema>
 
-<relationship name="service_batch_company" type="relnn"
-	 src-col-pattern="{sc}_{st}" dst-col-pattern="{sc}_{dt}"
-	 pk-pattern="{gt}_pk" uq-pattern="{gt}_uq"
-	 src-fk-pattern="{st}_fk" dst-fk-pattern="{dt}_fk"
-	 pk-col-pattern="id"
-	 custom-color="#7f8ee6"
-	 src-table="codae.service_batch"
-	 dst-table="company.company"
-	 src-required="false" dst-required="false"
-	 table-name="service_batch_company"/>
-
 <table name="user">
 	<schema name="django_data"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Campo para validar se o usuário foi ativado via email]]></comment>
-	<position x="1720" y="423"/>
+	<position x="2120" y="643"/>
 	<column name="user_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -527,7 +476,7 @@ Borough hall record.]]></comment>
 	<schema name="common_data"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Endereço ligado a escola.]]></comment>
-	<position x="1820" y="1543"/>
+	<position x="2440" y="1360"/>
 	<column name="address_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -570,7 +519,7 @@ Borough hall record.]]></comment>
 	<schema name="codae"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Edital para alimentação]]></comment>
-	<position x="1560" y="80"/>
+	<position x="2080" y="183"/>
 	<column name="notice_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -595,7 +544,7 @@ Borough hall record.]]></comment>
 	<schema name="common_data"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Lista de contatos de escola]]></comment>
-	<position x="1780" y="1140"/>
+	<position x="2420" y="960"/>
 	<column name="contact_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -624,17 +573,6 @@ Borough hall record.]]></comment>
 	 dst-table="common_data.address"
 	 src-required="false" dst-required="false"/>
 
-<relationship name="user_company" type="relnn"
-	 src-col-pattern="{sc}_{st}" dst-col-pattern="{sc}_{dt}"
-	 pk-pattern="{gt}_pk" uq-pattern="{gt}_uq"
-	 src-fk-pattern="{st}_fk" dst-fk-pattern="{dt}_fk"
-	 pk-col-pattern="id"
-	 custom-color="#ce5c00"
-	 src-table="django_data.&quot;user&quot;"
-	 dst-table="company.company"
-	 src-required="false" dst-required="false"
-	 table-name="user_company"/>
-
 <relationship name="age_school" type="relnn"
 	 src-col-pattern="{sc}_{st}" dst-col-pattern="{sc}_{dt}"
 	 pk-pattern="{gt}_pk" uq-pattern="{gt}_uq"
@@ -661,7 +599,7 @@ Borough hall record.]]></comment>
 	<schema name="profile"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Instiuição: CODAE, DRE, ESCOLA e TERCEIRIZADA]]></comment>
-	<position x="1100" y="960"/>
+	<position x="1440" y="1363"/>
 	<column name="institution_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -694,33 +632,84 @@ Borough hall record.]]></comment>
 	 dst-table="school.school"
 	 src-required="false" dst-required="false"/>
 
+<schema name="outsourced" rect-visible="true" fill-color="#0b0b49">
+	<role name="postgres"/>
+</schema>
+
+<table name="company">
+	<schema name="outsourced"/>
+	<role name="postgres"/>
+	<position x="1140" y="283"/>
+	<column name="id_company" not-null="true">
+		<type name="serial" length="80"/>
+	</column>
+	<column name="id_address">
+		<type name="serial" length="0"/>
+	</column>
+	<column name="name_company" not-null="true">
+		<type name="varchar" length="80"/>
+	</column>
+	<column name="cnpj" not-null="true">
+		<type name="integer" length="0"/>
+	</column>
+	<column name="contract" not-null="true">
+		<type name="varchar" length="80"/>
+	</column>
+	<column name="notice" not-null="true">
+		<type name="varchar" length="80"/>
+		<comment><![CDATA[Edital de pregão]]></comment>
+	</column>
+	<column name="status" not-null="true">
+		<type name="boolean" length="0"/>
+	</column>
+	<constraint name="company_pk" type="pk-constr" table="outsourced.company">
+		<columns names="id_company" ref-type="src-columns"/>
+	</constraint>
+
+	<customidxs object-type="column">
+		<object name="institution_id_institution" index="7"/>
+	</customidxs>
+
+	<customidxs object-type="constraint">
+		<object name="company_uq" index="2"/>
+		<object name="institution_fk" index="1"/>
+	</customidxs>
+</table>
+
+<relationship name="user_company" type="relnn"
+	 src-col-pattern="{sc}_{st}" dst-col-pattern="{sc}_{dt}"
+	 pk-pattern="{gt}_pk" uq-pattern="{gt}_uq"
+	 src-fk-pattern="{st}_fk" dst-fk-pattern="{dt}_fk"
+	 pk-col-pattern="id"
+	 custom-color="#ce5c00"
+	 src-table="django_data.&quot;user&quot;"
+	 dst-table="outsourced.company"
+	 src-required="false" dst-required="false"
+	 table-name="user_company"/>
+
 <relationship name="company_institution" type="rel11"
 	 src-col-pattern="{sc}_{st}"
 	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
 	 src-fk-pattern="{st}_fk"
 	 src-table="profile.institution"
-	 dst-table="company.company"
+	 dst-table="outsourced.company"
 	 src-required="false" dst-required="false"/>
 
-<schema name="company" rect-visible="true" fill-color="#0b0b49">
-	<role name="postgres"/>
-</schema>
-
-<relationship name="user_regional_director" type="relnn"
+<relationship name="service_batch_company" type="relnn"
 	 src-col-pattern="{sc}_{st}" dst-col-pattern="{sc}_{dt}"
 	 pk-pattern="{gt}_pk" uq-pattern="{gt}_uq"
 	 src-fk-pattern="{st}_fk" dst-fk-pattern="{dt}_fk"
 	 pk-col-pattern="id"
-	 custom-color="#ce77d3"
-	 src-table="django_data.&quot;user&quot;"
-	 dst-table="school.regional_director"
+	 custom-color="#7f8ee6"
+	 src-table="codae.service_batch"
+	 dst-table="outsourced.company"
 	 src-required="false" dst-required="false"
-	 table-name="user_regional_director"/>
+	 table-name="service_batch_company"/>
 
 <table name="user_role">
 	<schema name="profile"/>
 	<role name="postgres"/>
-	<position x="1220" y="780"/>
+	<position x="1760" y="1000"/>
 	<column name="id_user">
 		<type name="integer" length="0"/>
 	</column>
@@ -728,6 +717,15 @@ Borough hall record.]]></comment>
 		<type name="integer" length="0"/>
 	</column>
 </table>
+
+<relationship name="institution_regional_director" type="rel1n"
+	 src-col-pattern="{sc}_{st}"
+	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
+	 src-fk-pattern="{st}_fk"
+	 custom-color="#67e257"
+	 src-table="profile.institution"
+	 dst-table="school.regional_director"
+	 src-required="false" dst-required="false"/>
 
 <constraint name="fk_category_food" type="fk-constr" comparison-type="MATCH FULL"
 	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="food.category_food" table="food.food">
