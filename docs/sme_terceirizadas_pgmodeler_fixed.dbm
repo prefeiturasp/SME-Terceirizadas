@@ -3,7 +3,7 @@
 CAUTION: Do not modify this file unless you know what you are doing.
          Unexpected results may occur if the code is changed deliberately.
 -->
-<dbmodel pgmodeler-ver="0.9.1" last-position="275,114" last-zoom="0.85"
+<dbmodel pgmodeler-ver="0.9.1" last-position="635,420" last-zoom="0.65"
 	 default-owner="postgres">
 <database name="new_database" is-template="false" allow-conns="true">
 </database>
@@ -261,13 +261,13 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	</constraint>
 </table>
 
-<table name="burough">
+<table name="borough">
 	<schema name="school"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Registro de subprefeitura
-Burough record.]]></comment>
-	<position x="300" y="540"/>
-	<column name="burough_id" not-null="true">
+Borough hall record.]]></comment>
+	<position x="440" y="500"/>
+	<column name="borough_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
 	<column name="name" not-null="true">
@@ -279,8 +279,8 @@ Burough record.]]></comment>
 	<column name="is_active" not-null="true" default-value="true">
 		<type name="bool" length="0"/>
 	</column>
-	<constraint name="under_prefecture_pk" type="pk-constr" table="school.burough">
-		<columns names="burough_id" ref-type="src-columns"/>
+	<constraint name="borough_pk" type="pk-constr" table="school.borough">
+		<columns names="borough_id" ref-type="src-columns"/>
 	</constraint>
 </table>
 
@@ -319,7 +319,7 @@ Burough record.]]></comment>
 	<column name="managerment_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
-	<column name="burough_id" not-null="true">
+	<column name="borough_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
 	<column name="eol_code">
@@ -379,7 +379,7 @@ Burough record.]]></comment>
 	<schema name="common_data"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Registra eventos de usuário realizado no sistema]]></comment>
-	<position x="2400" y="1420"/>
+	<position x="2240" y="1320"/>
 	<column name="log_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -493,7 +493,7 @@ Burough record.]]></comment>
 	<schema name="common_data"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Cidades]]></comment>
-	<position x="2740" y="1300"/>
+	<position x="2580" y="1200"/>
 	<column name="id_city_location" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -569,7 +569,7 @@ Burough record.]]></comment>
 	<schema name="common_data"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Endereço ligado a escola.]]></comment>
-	<position x="2400" y="1560"/>
+	<position x="2240" y="1460"/>
 	<column name="address_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -637,7 +637,7 @@ Burough record.]]></comment>
 	<schema name="common_data"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Contato do usuário cadastrado]]></comment>
-	<position x="2440" y="1280"/>
+	<position x="2280" y="1180"/>
 	<column name="contact_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -766,10 +766,10 @@ Burough record.]]></comment>
 	<columns names="management_id" ref-type="dst-columns"/>
 </constraint>
 
-<constraint name="sub_town_hall_fk" type="fk-constr" comparison-type="MATCH FULL"
-	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="school.burough" table="profile.school">
-	<columns names="burough_id" ref-type="src-columns"/>
-	<columns names="burough_id" ref-type="dst-columns"/>
+<constraint name="borough_fk" type="fk-constr" comparison-type="MATCH FULL"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="school.borough" table="profile.school">
+	<columns names="borough_id" ref-type="src-columns"/>
+	<columns names="borough_id" ref-type="dst-columns"/>
 </constraint>
 
 <constraint name="fk_user_id" type="fk-constr" comparison-type="MATCH FULL"
@@ -886,8 +886,12 @@ Burough record.]]></comment>
 
 <relationship name="rel_school_borough" type="relfk"
 	 src-table="profile.school"
-	 dst-table="school.burough" reference-fk="sub_town_hall_fk"
-	 src-required="false" dst-required="false"/>
+	 dst-table="school.borough" reference-fk="borough_fk"
+	 src-required="false" dst-required="false">
+	<label ref-type="name-label">
+		<position x="109.584" y="7.39844"/>
+	</label>
+</relationship>
 
 <relationship name="rel_log_user" type="relfk"
 	 src-table="common_data.log"
