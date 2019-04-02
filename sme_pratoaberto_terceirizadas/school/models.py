@@ -7,14 +7,8 @@ from sme_pratoaberto_terceirizadas.common_data.models import Address
 
 class RegionalDirector(Describable):
     """DRE - Diretoria Regional"""
+    # TODO chave estrangeira para Institution
     abbreviation = models.CharField(_('Abbreviation'), max_length=4)
-
-    # TODO: resolve imports
-    # alternate = models.ForeignKey('AlternateProfile', verbose_name=_('Alternate'),
-    #                               on_delete=models.DO_NOTHING, null=True)
-    # sub_manager = models.ForeignKey('SubManagerProfile',
-    #                                 verbose_name=_('Sub Manager'),
-    #                                 on_delete=models.DO_NOTHING, null=True)
 
     def __str__(self):
         return _('Abbreviation') + self.abbreviation
@@ -22,6 +16,10 @@ class RegionalDirector(Describable):
     class Meta:
         verbose_name = _("Regional Director")
         verbose_name_plural = _("Regional Directors")
+
+
+class SchoolAge(Describable, Activable):
+    """Tabela utilizada para registrar faiza etária de idade"""
 
 
 class Borough(Describable, Activable):
@@ -38,6 +36,7 @@ class ManagementType(Describable, Activable):
 
 class School(Describable, Activable):
     """Escola"""
+    # TODO chave estrangeira para Institution
     eol_code = models.CharField(_("EOL code"), max_length=6)
     codae_code = models.CharField(_('CODAE code'), max_length=6)
     grouping = models.SmallIntegerField(_('Grouping'))
@@ -46,9 +45,6 @@ class School(Describable, Activable):
     regional_director = models.ForeignKey(RegionalDirector,
                                           on_delete=models.DO_NOTHING,
                                           null=True)
-    address = models.ForeignKey(Address,
-                                on_delete=models.DO_NOTHING,
-                                null=True)
     unit_type = models.ForeignKey(SchoolUnitType,
                                   on_delete=models.DO_NOTHING,
                                   null=True)
@@ -56,8 +52,9 @@ class School(Describable, Activable):
                                         on_delete=models.DO_NOTHING,
                                         null=True)
     borough = models.ForeignKey(Borough,
-                                on_delete=models.DO_NOTHING,
-                                null=True)
+                                null=True,
+                                on_delete=models.DO_NOTHING)
+    ages = models.ManyToManyField(SchoolAge)
 
     def __str__(self):
         return _('School') + self.name
