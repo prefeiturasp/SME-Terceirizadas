@@ -79,7 +79,6 @@ DJANGO_APPS = [
 THIRD_PARTY_APPS = [
     'crispy_forms',
     'rest_framework',
-    'django_use_email_as_username.apps.DjangoUseEmailAsUsernameConfig',
 ]
 LOCAL_APPS = [
     'sme_pratoaberto_terceirizadas.users.apps.CustomUserConfig',
