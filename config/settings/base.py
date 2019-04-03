@@ -79,9 +79,10 @@ DJANGO_APPS = [
 THIRD_PARTY_APPS = [
     'crispy_forms',
     'rest_framework',
+    'django_use_email_as_username.apps.DjangoUseEmailAsUsernameConfig',
 ]
 LOCAL_APPS = [
-    'sme_pratoaberto_terceirizadas.users.apps.UsersAppConfig',
+    'sme_pratoaberto_terceirizadas.users.apps.CustomUserConfig',
     'sme_pratoaberto_terceirizadas.common_data.apps.CommonDataConfig',
     'sme_pratoaberto_terceirizadas.school.apps.SchoolConfig'
 ]
@@ -269,5 +270,3 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.BasicAuthentication',
     ),
 }
-
-AUTH_USER_MODEL = 'users.User'
