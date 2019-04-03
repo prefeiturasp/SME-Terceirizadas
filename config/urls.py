@@ -1,27 +1,24 @@
 from django.conf import settings
-from django.urls import include, path
 from django.conf.urls.static import static
 from django.contrib import admin
+from django.urls import include, path
 from django.views import defaults as default_views
-from rest_framework_jwt.views import obtain_jwt_token
 from rest_framework.routers import DefaultRouter
-from sme_pratoaberto_terceirizadas.users.api.viewsets import UsersViewSet
+from rest_framework_jwt.views import obtain_jwt_token
 
 route = DefaultRouter()
 
-route.register(r'users', UsersViewSet)
-
 urlpatterns = [
-    path('',include(route.urls)),
+                  path('', include(route.urls)),
 
-    # Django Admin, use {% url 'admin:index' %}
-    path(settings.ADMIN_URL, admin.site.urls),
-    # User management
+                  # Django Admin, use {% url 'admin:index' %}
+                  path(settings.ADMIN_URL, admin.site.urls),
+                  # User management
 
-    # TODO: continuar com o jwt.
-    path("api-token-auth/", obtain_jwt_token)
+                  # TODO: continuar com o jwt.
+                  path("api-token-auth/", obtain_jwt_token)
 
-] + static(
+              ] + static(
     settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
 )
 

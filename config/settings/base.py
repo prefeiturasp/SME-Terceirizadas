@@ -81,7 +81,7 @@ THIRD_PARTY_APPS = [
     'rest_framework',
 ]
 LOCAL_APPS = [
-    'sme_pratoaberto_terceirizadas.users.apps.UsersAppConfig',
+    'sme_pratoaberto_terceirizadas.users.apps.CustomUserConfig',
     'sme_pratoaberto_terceirizadas.common_data.apps.CommonDataConfig',
     'sme_pratoaberto_terceirizadas.school.apps.SchoolConfig'
 ]
@@ -269,5 +269,3 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.BasicAuthentication',
     ),
 }
-
-AUTH_USER_MODEL = 'users.User'
