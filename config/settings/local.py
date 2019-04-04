@@ -61,3 +61,11 @@ INSTALLED_APPS += ['django_extensions']  # noqa F405
 
 # Your stuff...
 # ------------------------------------------------------------------------------
+# Para permitir acesso de navegadores sem problema.
+CORS_ORIGIN_ALLOW_ALL = True
+DEV_MIDDLEWARE = ['corsheaders.middleware.CorsMiddleware',
+                  'django.middleware.common.BrokenLinkEmailsMiddleware']
+
+DEV_APPS = ['corsheaders']
+INSTALLED_APPS += DEV_APPS
+MIDDLEWARE += DEV_MIDDLEWARE
