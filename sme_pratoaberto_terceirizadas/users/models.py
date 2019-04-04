@@ -92,6 +92,7 @@ class User(CustomAbstractUser):
     """User model."""
 
     username = None
+    name = models.CharField(_('name'), max_length=150)
     email = models.EmailField(_("email address"), unique=True)
     phone = models.CharField(_('Phone'), max_length=11, null=True)
     mobile_phone = models.CharField(_('Mobile phone'), max_length=11, null=True)
