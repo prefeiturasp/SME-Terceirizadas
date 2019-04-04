@@ -3,7 +3,6 @@
 #
 
 import pandas as pd
-from django.shortcuts import get_object_or_404
 
 from sme_pratoaberto_terceirizadas.school.models import School, ManagementType, SchoolUnitType, Borough
 from sme_pratoaberto_terceirizadas.common_data.models import Address, CityLocation, Contact
@@ -27,7 +26,7 @@ df['CODAE'] = df['CODAE'].str.trip()
 
 
 def check_create_borough(name, description):
-    borough = Borough.objects.filter(name=name).exists()
+    borough = Borough.objects.filter(name=name, is_active=True).first()
     if not borough:
         borough = Borough(name=name, description=description)
         borough.save()
@@ -35,15 +34,15 @@ def check_create_borough(name, description):
 
 
 def check_create_management_type(name, description):
-    mt = ManagementType.objects.filter(name=name).first()
+    mt = ManagementType.objects.filter(name=name, is_active=True).first()
     if not mt:
         mt = ManagementType(name=name, description=description)
         mt.save()
     return mt
 
 
-def check_create_school_unit(name, description):
-    ue = SchoolUnitType.objects.filter(name=name).first()
+def check_create_school_unit_type(name, description):
+    ue = SchoolUnitType.objects.filter(name=name, is_active=True).first()
     if not ue:
         ue = SchoolUnitType(name=name, description=description)
         ue.save()
@@ -62,8 +61,8 @@ def create_address(line, city):
     # TODO common_data_address.complement pode ser NULL
     # TODO incluir complemento no csv
     # TODO common_data_address.lat e common_data_address.lon podem ser NULL
-    address = Address(street_name = line.ENDERECO,
-                      # complement = line.COMPLEMENTO,
+    address = Address(street_name=line.ENDERECO,
+                      # complement=line.COMPLEMENTO,
                       district=line.BAIRRO,
                       number=line.NUMERO,
                       postal_code=line.CEP,
@@ -85,7 +84,7 @@ for _, line in df.iterrows():
     gestao = check_create_management_type('TERCEIRIZADA', 'Gestão terceirizada')
 
     # UNIDADE ESCOLAR/SCHOOL UNIT
-    ue = check_create_school_unit(line.UE, 'Unidade Escolar')
+    ue = check_create_school_unit_type(line.UE, 'Unidade Escolar')
 
     # CIDADE-ESTADO/CITY-STATE
     # TODO por emquanto city='SÃO PAULO' state='SP'
@@ -97,12 +96,13 @@ for _, line in df.iterrows():
     # ESCOLA/SCHOOL
     escola = School(name = line.NOME,
                     # grouping = line.AGRUPAMENTO,
-                    address = endereco,
-                    unit_id = ue,
-                    management_type = gestao,
-                    borough_id = subpref,
-                    eol_code = line.EOL,
-                    codae_code = line.CODAE)
+                    address=endereco,
+                    unit_id=ue,
+                    management_type=gestao,
+                    borough_id=subpref,
+                    eol_code=line.EOL,
+                    codae_code=line.CODAE,
+                    is_active=True)
     escola.save()
 
     # CONTATO/CONTACT
