@@ -3,6 +3,7 @@
 #
 
 import pandas as pd
+from django.shortcuts import get_object_or_404
 
 from sme_pratoaberto_terceirizadas.school.models import School, ManagementType, SchoolUnitType, Borough
 from sme_pratoaberto_terceirizadas.common_data.models import Address, CityLocation, Contact
@@ -26,34 +27,33 @@ df['CODAE'] = df['CODAE'].str.trip()
 
 
 def check_create_borough(name, description):
-     borough = Borough.objects.filter(name=name).first()
-     if not borough:
-         borough =  Borough(name=name,
-                            description=description)
-         borough.save()
-     return borough
+    borough = Borough.objects.filter(name=name).exists()
+    if not borough:
+        borough = Borough(name=name, description=description)
+        borough.save()
+    return borough
+
 
 def check_create_management_type(name, description):
     mt = ManagementType.objects.filter(name=name).first()
     if not mt:
-        mt = ManagementType(name=name,
-                            description=description)
+        mt = ManagementType(name=name, description=description)
         mt.save()
     return mt
+
 
 def check_create_school_unit(name, description):
     ue = SchoolUnitType.objects.filter(name=name).first()
     if not ue:
-        ue = SchoolUnitType(name=name,
-                            description=description)
+        ue = SchoolUnitType(name=name, description=description)
         ue.save()
     return ue
+
 
 def check_create_city_location(city, state):
     city = CityLocation.objects.filter(city=city, state=state).first()
     if not city:
-        city = CityLocation(city=city,
-                            state=state)
+        city = CityLocation(city=city, state=state)
         city.save()
     return city
 
@@ -64,13 +64,12 @@ def create_address(line, city):
     # TODO common_data_address.lat e common_data_address.lon podem ser NULL
     address = Address(street_name = line.ENDERECO,
                       # complement = line.COMPLEMENTO,
-                      district = line.BAIRRO,
-                      number = line.NUMERO,
-                      postal_code = line.CEP,
-                      city_location = city)
+                      district=line.BAIRRO,
+                      number=line.NUMERO,
+                      postal_code=line.CEP,
+                      city_location=city)
     address.save()
     return address
-
 # ----------------------------------------------------------------------------------------
 
 
@@ -102,8 +101,8 @@ for _, line in df.iterrows():
                     unit_id = ue,
                     management_type = gestao,
                     borough_id = subpref,
-                    eol_code = lin.EOL,
-                    codae_code = lin.CODAE)
+                    eol_code = line.EOL,
+                    codae_code = line.CODAE)
     escola.save()
 
     # CONTATO/CONTACT
