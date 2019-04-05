@@ -7,7 +7,7 @@ import pandas as pd
 from sme_pratoaberto_terceirizadas.school.models import School, ManagementType, SchoolUnitType, Borough
 from sme_pratoaberto_terceirizadas.common_data.models import Address, CityLocation, Contact
 
-df = pd.read_csv('/home/amcom/Documents/Terceirizadas/escolas.csv', sep=':')
+df = pd.read_csv('/home/amcom/Documents/Terceirizadas/escolas.csv', dtype={'CODAE': str},sep=':')
 
 # .. df['EOL']
 df['UE'] = df['UE'].str.strip().str.upper()
@@ -31,7 +31,7 @@ def check_create_borough(name, description):
     if not borough:
         borough = Borough(name=name, description=description, is_active=True)
         borough.save()
-    return borough
+    return borough.id
 
 
 def check_create_management_type(name, description):
@@ -51,11 +51,11 @@ def check_create_school_unit_type(name, description):
 
 
 def check_create_city_location(city, state):
-    city = CityLocation.objects.filter(city=city, state=state).first()
-    if not city:
-        city = CityLocation(city=city, state=state)
-        city.save()
-    return city
+    c_loc = CityLocation.objects.filter(city=city, state=state).first()
+    if not c_loc:
+        c_loc = CityLocation(city=city, state=state)
+        c_loc.save()
+    return c_loc
 
 
 def create_address(line, city):
@@ -95,10 +95,10 @@ for _, line in df.iterrows():
     endereco = create_address(line, cidade)
 
     # ESCOLA/SCHOOL
+    # TODO incluir agrupamento no csv. Assumindo 0
     escola = School(name=line.NOME,
-                    # grouping = line.AGRUPAMENTO,
-                    address=endereco,
-                    unit_id=ue,
+                    grouping = 0
+                    unit_type=ue,
                     management_type=gestao,
                     borough_id=subpref,
                     eol_code=line.EOL,
