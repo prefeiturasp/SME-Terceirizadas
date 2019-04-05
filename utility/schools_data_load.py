@@ -7,10 +7,11 @@ import pandas as pd
 from sme_pratoaberto_terceirizadas.school.models import School, ManagementType, SchoolUnitType, Borough
 from sme_pratoaberto_terceirizadas.common_data.models import Address, CityLocation, Contact
 
-df = pd.read_csv('escolas.csv', sep=',')
-df['EOL'] = df['EOL'].str.strip()
-df['UE'] = df['UE'].str.trip().str.upper()
-df['NOME'] = df['NOME'].str.upper()
+df = pd.read_csv('/home/amcom/Documents/Terceirizadas/escolas.csv', sep=':')
+
+# .. df['EOL']
+df['UE'] = df['UE'].str.strip().str.upper()
+df['NOME'] = df['NOME'].str.strip().str.upper()
 df['DRE'] = df['DRE'].str.strip().str.upper()
 df['DRE_SIGLA'] = df['DRE_SIGLA'].str.strip().str.upper()
 df['LOTE'] = df['LOTE'].str.strip().str.upper()
@@ -22,13 +23,13 @@ df['CEP'] = df['CEP'].str.strip()
 df['TELEFONE1'] = df['TELEFONE1'].str.strip()
 df['TELEFONE2'] = df['TELEFONE2'].str.strip()
 df['EMPRESA'] = df['EMPRESA'].str.strip().str.upper()
-df['CODAE'] = df['CODAE'].str.trip()
+# .. df['CODAE']
 
 
 def check_create_borough(name, description):
     borough = Borough.objects.filter(name=name, is_active=True).first()
     if not borough:
-        borough = Borough(name=name, description=description)
+        borough = Borough(name=name, description=description, is_active=True)
         borough.save()
     return borough
 
@@ -36,7 +37,7 @@ def check_create_borough(name, description):
 def check_create_management_type(name, description):
     mt = ManagementType.objects.filter(name=name, is_active=True).first()
     if not mt:
-        mt = ManagementType(name=name, description=description)
+        mt = ManagementType(name=name, description=description, is_active=True)
         mt.save()
     return mt
 
@@ -44,7 +45,7 @@ def check_create_management_type(name, description):
 def check_create_school_unit_type(name, description):
     ue = SchoolUnitType.objects.filter(name=name, is_active=True).first()
     if not ue:
-        ue = SchoolUnitType(name=name, description=description)
+        ue = SchoolUnitType(name=name, description=description, is_active=True)
         ue.save()
     return ue
 
@@ -94,7 +95,7 @@ for _, line in df.iterrows():
     endereco = create_address(line, cidade)
 
     # ESCOLA/SCHOOL
-    escola = School(name = line.NOME,
+    escola = School(name=line.NOME,
                     # grouping = line.AGRUPAMENTO,
                     address=endereco,
                     unit_id=ue,
