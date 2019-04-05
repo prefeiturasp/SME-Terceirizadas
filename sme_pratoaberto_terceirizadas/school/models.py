@@ -37,6 +37,7 @@ class ManagementType(Describable, Activable):
 class School(Describable, Activable):
     """Escola"""
     # TODO chave estrangeira para Institution
+    name = models.CharField(_("Name"), max_length=80)
     eol_code = models.CharField(_("EOL code"), max_length=10)
     codae_code = models.CharField(_('CODAE code'), max_length=10)
     grouping = models.SmallIntegerField(_('Grouping'))

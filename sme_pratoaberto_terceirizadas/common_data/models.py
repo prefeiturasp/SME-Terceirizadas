@@ -16,12 +16,10 @@ class LogEventData(TimestampAble, Describable):
 
 class Contact(Describable):
     """Contatos de um usuário"""
+    name = models.CharField(_("Name"), max_length=80)
     phone = models.CharField(_('Phone'), max_length=11, null=True)
     mobile_phone = models.CharField(_('Mobile phone'), max_length=11, null=True)
     email = models.EmailField(_('email address'), blank=True)
-    user = models.ForeignKey(get_user_model(),
-                             on_delete=models.DO_NOTHING,
-                             null=True, )
 
 
 class CityLocation(models.Model):
@@ -36,8 +34,8 @@ class Address(models.Model):
     district = models.CharField(_("District"), max_length=60)
     number = models.CharField(_("Number"), max_length=20)
     postal_code = models.CharField(_("Postal code"), max_length=9)
-    lat = models.DecimalField(max_digits=9, decimal_places=6)
-    lon = models.DecimalField(max_digits=9, decimal_places=6)
+    lat = models.DecimalField(max_digits=9, decimal_places=6, null=True)
+    lon = models.DecimalField(max_digits=9, decimal_places=6, null=True)
     # for now cant edit city because there is only one: SP
     city_location = models.ForeignKey(CityLocation,
                                       on_delete=models.DO_NOTHING,
