@@ -7,9 +7,9 @@ import pandas as pd
 from sme_pratoaberto_terceirizadas.school.models import School, ManagementType, SchoolUnitType, Borough
 from sme_pratoaberto_terceirizadas.common_data.models import Address, CityLocation, Contact
 
-df = pd.read_csv('/home/amcom/Documents/Terceirizadas/escolas.csv', dtype={'CODAE': str},sep=':')
+df = pd.read_csv('escolas.csv', dtype={'CODAE': str}, sep=':')
 
-# .. df['EOL']
+# df['EOL']
 df['UE'] = df['UE'].str.strip().str.upper()
 df['NOME'] = df['NOME'].str.strip().str.upper()
 df['DRE'] = df['DRE'].str.strip().str.upper()
@@ -23,7 +23,7 @@ df['CEP'] = df['CEP'].str.strip()
 df['TELEFONE1'] = df['TELEFONE1'].str.strip()
 df['TELEFONE2'] = df['TELEFONE2'].str.strip()
 df['EMPRESA'] = df['EMPRESA'].str.strip().str.upper()
-# .. df['CODAE']
+# df['CODAE']
 
 
 def check_create_borough(name, description):
@@ -62,14 +62,14 @@ def create_address(line, city):
     # TODO common_data_address.complement pode ser NULL
     # TODO incluir complemento no csv
     # TODO common_data_address.lat e common_data_address.lon podem ser NULL
-    address = Address(street_name=line.ENDERECO,
+    addrss = Address(street_name=line.ENDERECO,
                       # complement=line.COMPLEMENTO,
                       district=line.BAIRRO,
                       number=line.NUMERO,
                       postal_code=line.CEP,
                       city_location=city)
-    address.save()
-    return address
+    addrss.save()
+    return addrss.id
 # ----------------------------------------------------------------------------------------
 
 
@@ -81,7 +81,7 @@ for _, line in df.iterrows():
     subpref = check_create_borough(line.DRE, 'Nome da DRE')
 
     # GESTÃO/MANAGEMENT_TYPE
-    # TODO Sempre 'TERCEIRIZADA'
+    # TODO Sempre 'TERCEIRIZADA' ??
     gestao = check_create_management_type('TERCEIRIZADA', 'Gestão terceirizada')
 
     # UNIDADE ESCOLAR/SCHOOL UNIT
@@ -95,9 +95,9 @@ for _, line in df.iterrows():
     endereco = create_address(line, cidade)
 
     # ESCOLA/SCHOOL
-    # TODO incluir agrupamento no csv. Assumindo 0
+    # TODO incluir agrupamento no csv. Assumindo 0.
     escola = School(name=line.NOME,
-                    grouping = 0
+                    grouping = 0,
                     unit_type=ue,
                     management_type=gestao,
                     borough_id=subpref,
