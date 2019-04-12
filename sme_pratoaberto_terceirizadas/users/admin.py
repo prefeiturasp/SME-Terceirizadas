@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 from django.utils.translation import ugettext_lazy as _
 
-from .models import User
+from .models import User, Profile, ProfileCategory
 
 
 class BaseUserAdmin(DjangoUserAdmin):
@@ -14,6 +14,9 @@ class BaseUserAdmin(DjangoUserAdmin):
         }),
         (_('Personal info'), {
             'fields': ('name', )
+        }),
+        (_('Profile'), {
+            'fields': ('profile', )
         }),
         (_('Permissions'), {
             'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')
@@ -31,4 +34,6 @@ class BaseUserAdmin(DjangoUserAdmin):
     ordering = ('email',)
 
 
+admin.site.register(ProfileCategory)
+admin.site.register(Profile)
 admin.site.register(User, BaseUserAdmin)

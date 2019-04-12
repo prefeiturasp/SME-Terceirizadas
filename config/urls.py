@@ -3,14 +3,18 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 from django.views import defaults as default_views
+import notifications.urls
 from rest_framework.routers import DefaultRouter
 from rest_framework_jwt.views import obtain_jwt_token
 
-route = DefaultRouter()
+from sme_pratoaberto_terceirizadas.meal_kit.views import MealKitViewSet
+
+route = DefaultRouter(trailing_slash=True)
+route.register(r'meal_kit', MealKitViewSet)
 
 urlpatterns = [
                   path('', include(route.urls)),
-
+                  path('^inbox/notifications/', include(notifications.urls, namespace='notifications')),
                   # Django Admin, use {% url 'admin:index' %}
                   path(settings.ADMIN_URL, admin.site.urls),
                   # User management

@@ -4,11 +4,14 @@ from django.contrib.auth.base_user import AbstractBaseUser
 from django.contrib.auth.models import BaseUserManager, PermissionsMixin
 from django.core.mail import send_mail
 from django.db import models
+from django.db.models.signals import post_save
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
-
+from sme_pratoaberto_terceirizadas.abstract_shareable import Activable
+from notifications.signals import notify
 
 # Thanks to https://github.com/jmfederico/django-use-email-as-username
+
 
 class CustomUserManager(BaseUserManager):
     """Define a model manager for User model with no username field."""
@@ -88,6 +91,32 @@ class CustomAbstractUser(AbstractBaseUser, PermissionsMixin):
         send_mail(subject, message, from_email, [self.email], **kwargs)
 
 
+class ProfileCategory(models.Model):
+    """Categoria de Perfil"""
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    title = models.CharField(_('Title'), max_length=90)
+
+    def __str__(self):
+        return self.title
+
+    class Meta:
+        verbose_name = _('Profile Category')
+        verbose_name_plural = _('Profile Categories')
+
+
+class Profile(models.Model, Activable):
+    """Perfil de usuário"""
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    category = models.ForeignKey(ProfileCategory, on_delete=models.DO_NOTHING)
+    title = models.CharField(_('Title'), max_length=90)
+
+    def __str__(self):
+        return '%s - %s' % (self.category.title, self.title)
+
+    class Meta:
+        verbose_name = _('Profile')
+
+
 class User(CustomAbstractUser):
     """User model."""
 
@@ -99,6 +128,13 @@ class User(CustomAbstractUser):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     functional_register = models.CharField(_('Functional register'), max_length=60,
                                            unique=True, blank=True, null=True)
-
+    profile = models.ForeignKey(Profile, on_delete=models.DO_NOTHING, null=True, blank=True)
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
+
+
+def my_handler(sender, instance, created, **kwargs):
+    notify.send(instance, recipient=instance.user_set.all(), verb='waas asasaved')
+
+
+post_save.connect(my_handler, sender=Profile)
