@@ -104,7 +104,7 @@ class ProfileCategory(models.Model):
         verbose_name_plural = _('Profile Categories')
 
 
-class Profile(models.Model, Activable):
+class Profile(Activable):
     """Perfil de usuário"""
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     category = models.ForeignKey(ProfileCategory, on_delete=models.DO_NOTHING)
