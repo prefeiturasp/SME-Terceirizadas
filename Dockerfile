@@ -3,11 +3,11 @@ ENV PYTHONUNBUFFERED 1
 ADD . /code
 WORKDIR /code
 
-RUN apk update && apk add --no-cache \
+RUN apk update && apk add postgresql-dev \
+      && apk add --no-cache \
       --virtual=.build-dependencies \
       gcc \
       musl-dev \
-      postgresql-dev \
       git \
       python3-dev \
       jpeg-dev \
