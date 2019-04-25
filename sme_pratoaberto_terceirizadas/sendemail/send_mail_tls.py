@@ -1,5 +1,5 @@
 #
-# send_email.py  - Usa SSL
+# send_email_tls.py  Usa: starttls
 #
 
 import smtplib
@@ -14,12 +14,12 @@ from email.mime.base import MIMEBase
 from email.mime.image import MIMEImage
 from email.mime.text import MIMEText
 
-# ..Parametros - email account criado para testes
+# ..Parametros
 sender_address = ''
 password = ''
-default_subject = 'Testando envio de email {}'.format(sender_address)
-smtp_server_address = "smtp.gmail.com"
-smtp_port_number = 465
+default_subject = 'Testando envio de email TLS {}'.format(sender_address)
+smtp_server_address = 'smtp.gmail.com'
+smtp_port_number = 587
 
 
 def send_by_smtp(to=None, cc=None, bcc=None, subject=None, texto=None, html=None, attachments=None):
@@ -77,9 +77,13 @@ def send_by_smtp(to=None, cc=None, bcc=None, subject=None, texto=None, html=None
 
     try:
         context = ssl.create_default_context()
-        with smtplib.SMTP_SSL(host=smtp_server_address, port=smtp_port_number, context=context, timeout=300) as server:
+        with smtplib.SMTP(host=smtp_server_address, port=smtp_port_number) as server:
+            server.ehlo()
+            server.starttls(context=context)
+            server.ehlo()
             server.login(sender_address, password)
             server.sendmail(from_addr=email_from, to_addrs=email_to, msg=msg.as_string())
+
         print('Email enviado para: {}'.format(str(email_to)))
         return True
     except smtplib.SMTPException as e:
@@ -112,16 +116,17 @@ if __name__ == '__main__':
     """
 
     print('Enviado email..')
-    result = send_by_smtp(to=[''],
-                          cc=[''],
+    result = send_by_smtp(to=[],
+                          cc=[],
                           bcc=[],
                           subject='',
                           texto=texto,
                           html=html,
-                          attachments=[''])
+                          attachments=[])
 
 
     if result:
         print('Email enviado com sucesso.')
     else:
         print('Email não pudo ser enviado.')
+
