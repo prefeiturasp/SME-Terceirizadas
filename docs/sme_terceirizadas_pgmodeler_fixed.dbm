@@ -3,7 +3,7 @@
 CAUTION: Do not modify this file unless you know what you are doing.
          Unexpected results may occur if the code is changed deliberately.
 -->
-<dbmodel pgmodeler-ver="0.9.1-beta" last-position="740,504" last-zoom="0.7"
+<dbmodel pgmodeler-ver="0.9.1-beta" last-position="0,879" last-zoom="0.8"
 	 default-owner="postgres">
 <database name="new_database">
 </database>
@@ -113,7 +113,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<schema name="food"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Tabela util.izada para registrar alimentos.]]></comment>
-	<position x="100" y="1560"/>
+	<position x="520" y="1540"/>
 	<column name="food_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -138,7 +138,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<schema name="food"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Categoria de alimentação.]]></comment>
-	<position x="960" y="1400"/>
+	<position x="940" y="1440"/>
 	<column name="category_food_id" not-null="true">
 		<type name="integer" length="0"/>
 	</column>
@@ -156,26 +156,11 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	</constraint>
 </table>
 
-<table name="menu_food">
-	<schema name="food"/>
-	<role name="postgres"/>
-	<position x="880" y="1580"/>
-	<column name="menu_id" not-null="true">
-		<type name="integer" length="0"/>
-	</column>
-	<column name="food_id" not-null="true">
-		<type name="integer" length="0"/>
-	</column>
-	<constraint name="menu_food_pk" type="pk-constr" table="food.menu_food">
-		<columns names="menu_id,food_id" ref-type="src-columns"/>
-	</constraint>
-</table>
-
 <table name="type">
 	<schema name="food"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Tabela registra os tipos de cardápios, Ex: Normal, Lactantes, Diabéticos]]></comment>
-	<position x="660" y="1380"/>
+	<position x="660" y="1383"/>
 	<column name="type_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -194,7 +179,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<schema name="food"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Cardápio escolar]]></comment>
-	<position x="100" y="1240"/>
+	<position x="100" y="1243"/>
 	<column name="menu_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -301,7 +286,7 @@ Borough hall record.]]></comment>
 	<schema name="food"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Registra o tipo de gestão do prato: Direto, Mista e Indireto]]></comment>
-	<position x="900" y="1260"/>
+	<position x="900" y="1263"/>
 	<column name="management_menu_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -742,23 +727,25 @@ Borough hall record.]]></comment>
 	 dst-table="profile.profile"
 	 src-required="false" dst-required="false"/>
 
-<constraint name="fk_category_food" type="fk-constr" comparison-type="MATCH FULL"
-	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="food.category_food" table="food.food">
-	<columns names="category_food_id" ref-type="src-columns"/>
-	<columns names="category_food_id" ref-type="dst-columns"/>
-</constraint>
+<relationship name="food_menu" type="relnn"
+	 src-col-pattern="{sc}_{st}" dst-col-pattern="{sc}_{dt}"
+	 pk-pattern="{gt}_pk" uq-pattern="{gt}_uq"
+	 src-fk-pattern="{st}_fk" dst-fk-pattern="{dt}_fk"
+	 pk-col-pattern="id"
+	 custom-color="#bfa130"
+	 src-table="food.food"
+	 dst-table="food.menu"
+	 src-required="false" dst-required="false"
+	 table-name="food_menu"/>
 
-<constraint name="fk_menu" type="fk-constr" comparison-type="MATCH FULL"
-	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="food.menu" table="food.menu_food">
-	<columns names="menu_id" ref-type="src-columns"/>
-	<columns names="menu_id" ref-type="dst-columns"/>
-</constraint>
-
-<constraint name="fk_food" type="fk-constr" comparison-type="MATCH FULL"
-	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="food.food" table="food.menu_food">
-	<columns names="food_id" ref-type="src-columns"/>
-	<columns names="food_id" ref-type="dst-columns"/>
-</constraint>
+<relationship name="category_food" type="rel1n"
+	 src-col-pattern="{sc}_{st}"
+	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
+	 src-fk-pattern="{st}_fk"
+	 custom-color="#af81f8"
+	 src-table="food.category_food"
+	 dst-table="food.food"
+	 src-required="false" dst-required="false"/>
 
 <constraint name="fk_management" type="fk-constr" comparison-type="MATCH FULL"
 	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="food.management_menu" table="food.menu">
@@ -819,21 +806,6 @@ Borough hall record.]]></comment>
 	<columns names="profile_id" ref-type="src-columns"/>
 	<columns names="profile_id" ref-type="dst-columns"/>
 </constraint>
-
-<relationship name="rel_food_category_food" type="relfk"
-	 src-table="food.food"
-	 dst-table="food.category_food"
-	 src-required="false" dst-required="false"/>
-
-<relationship name="rel_menu_food_menu" type="relfk"
-	 src-table="food.menu_food"
-	 dst-table="food.menu"
-	 src-required="false" dst-required="false"/>
-
-<relationship name="rel_menu_food_food" type="relfk"
-	 src-table="food.menu_food"
-	 dst-table="food.food"
-	 src-required="false" dst-required="false"/>
 
 <relationship name="rel_menu_management_menu" type="relfk"
 	 src-table="food.menu"
