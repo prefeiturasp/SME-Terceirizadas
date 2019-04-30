@@ -3,7 +3,7 @@
 CAUTION: Do not modify this file unless you know what you are doing.
          Unexpected results may occur if the code is changed deliberately.
 -->
-<dbmodel pgmodeler-ver="0.9.1-beta" last-position="0,879" last-zoom="0.8"
+<dbmodel pgmodeler-ver="0.9.1-beta" last-position="1115,757" last-zoom="0.9"
 	 default-owner="postgres">
 <database name="new_database">
 </database>
@@ -23,7 +23,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<schema name="profile"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Permissões do usuário]]></comment>
-	<position x="1900" y="1180"/>
+	<position x="1980" y="1140"/>
 	<column name="permission_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -309,7 +309,7 @@ Borough hall record.]]></comment>
 	<schema name="profile"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Perfil do usuário Ex: Cogestor, Nutricionista ou COGESTOR E NUTRI, etc.]]></comment>
-	<position x="1920" y="980"/>
+	<position x="1920" y="983"/>
 	<column name="profile_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -587,7 +587,7 @@ Borough hall record.]]></comment>
 	<schema name="profile"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Instiuição: CODAE, DRE, ESCOLA e TERCEIRIZADA]]></comment>
-	<position x="1580" y="1000"/>
+	<position x="1580" y="980"/>
 	<column name="institution_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -706,11 +706,12 @@ Borough hall record.]]></comment>
 <table name="profile_category">
 	<schema name="profile"/>
 	<role name="postgres"/>
+	<comment><![CDATA[Categoria do perfil, ex: Nutricionista, Cogestor, Suplente e etc]]></comment>
 	<position x="1580" y="1180"/>
 	<column name="profile_category_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
-	<column name="title">
+	<column name="title" not-null="true">
 		<type name="varchar" length="90"/>
 	</column>
 	<constraint name="profile_category_pk" type="pk-constr" table="profile.profile_category">
@@ -745,6 +746,15 @@ Borough hall record.]]></comment>
 	 custom-color="#af81f8"
 	 src-table="food.category_food"
 	 dst-table="food.food"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="profile_category_permisison" type="rel1n"
+	 src-col-pattern="{sc}_{st}"
+	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
+	 src-fk-pattern="{st}_fk"
+	 custom-color="#f2792b"
+	 src-table="profile.profile_category"
+	 dst-table="profile.permisison"
 	 src-required="false" dst-required="false"/>
 
 <constraint name="fk_management" type="fk-constr" comparison-type="MATCH FULL"
