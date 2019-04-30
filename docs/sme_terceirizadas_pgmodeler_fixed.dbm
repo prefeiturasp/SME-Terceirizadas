@@ -23,7 +23,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<schema name="profile"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Permissões do usuário]]></comment>
-	<position x="2040" y="1140"/>
+	<position x="1980" y="1223"/>
 	<column name="permission_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -309,7 +309,7 @@ Borough hall record.]]></comment>
 	<schema name="profile"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Perfil do usuário Ex: Cogestor, Nutricionista ou COGESTOR E NUTRI, etc.]]></comment>
-	<position x="1920" y="983"/>
+	<position x="1880" y="943"/>
 	<column name="profile_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -587,7 +587,7 @@ Borough hall record.]]></comment>
 	<schema name="profile"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Instiuição: CODAE, DRE, ESCOLA e TERCEIRIZADA]]></comment>
-	<position x="1580" y="980"/>
+	<position x="1480" y="946"/>
 	<column name="institution_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -610,7 +610,11 @@ Borough hall record.]]></comment>
 	 src-fk-pattern="{st}_fk"
 	 src-table="profile.institution"
 	 dst-table="common_data.contact"
-	 src-required="false" dst-required="false"/>
+	 src-required="false" dst-required="false">
+	<label ref-type="src-label">
+		<position x="21.2166" y="14.9447"/>
+	</label>
+</relationship>
 
 <relationship name="school_institution" type="rel11"
 	 src-col-pattern="{sc}_{st}"
@@ -707,7 +711,7 @@ Borough hall record.]]></comment>
 	<schema name="profile"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Categoria do perfil, ex: Nutricionista, Cogestor, Suplente e etc]]></comment>
-	<position x="1580" y="1140"/>
+	<position x="1480" y="1203"/>
 	<column name="profile_category_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -758,6 +762,19 @@ Borough hall record.]]></comment>
 	 dst-table="profile.profile_category"
 	 src-required="false" dst-required="false"
 	 table-name="many_permisison_has_many_profile_category"/>
+
+<relationship name="institution_profile" type="rel1n"
+	 src-col-pattern="{sc}_{st}"
+	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
+	 src-fk-pattern="{st}_fk"
+	 custom-color="#2153d1"
+	 src-table="profile.institution"
+	 dst-table="profile.profile"
+	 src-required="false" dst-required="false">
+	<label ref-type="src-label">
+		<position x="0" y="0"/>
+	</label>
+</relationship>
 
 <constraint name="fk_management" type="fk-constr" comparison-type="MATCH FULL"
 	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="food.management_menu" table="food.menu">
