@@ -23,7 +23,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<schema name="profile"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Permissões do usuário]]></comment>
-	<position x="1980" y="1140"/>
+	<position x="2040" y="1140"/>
 	<column name="permission_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -707,7 +707,7 @@ Borough hall record.]]></comment>
 	<schema name="profile"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Categoria do perfil, ex: Nutricionista, Cogestor, Suplente e etc]]></comment>
-	<position x="1580" y="1180"/>
+	<position x="1580" y="1140"/>
 	<column name="profile_category_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -748,14 +748,16 @@ Borough hall record.]]></comment>
 	 dst-table="food.food"
 	 src-required="false" dst-required="false"/>
 
-<relationship name="profile_category_permisison" type="rel1n"
-	 src-col-pattern="{sc}_{st}"
-	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
-	 src-fk-pattern="{st}_fk"
-	 custom-color="#f2792b"
-	 src-table="profile.profile_category"
-	 dst-table="profile.permisison"
-	 src-required="false" dst-required="false"/>
+<relationship name="permisison_mm_category" type="relnn"
+	 src-col-pattern="{sc}_{st}" dst-col-pattern="{sc}_{dt}"
+	 pk-pattern="{gt}_pk" uq-pattern="{gt}_uq"
+	 src-fk-pattern="{st}_fk" dst-fk-pattern="{dt}_fk"
+	 pk-col-pattern="id"
+	 custom-color="#100020"
+	 src-table="profile.permisison"
+	 dst-table="profile.profile_category"
+	 src-required="false" dst-required="false"
+	 table-name="many_permisison_has_many_profile_category"/>
 
 <constraint name="fk_management" type="fk-constr" comparison-type="MATCH FULL"
 	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="food.management_menu" table="food.menu">
