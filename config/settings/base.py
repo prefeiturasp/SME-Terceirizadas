@@ -86,7 +86,8 @@ LOCAL_APPS = [
     'sme_pratoaberto_terceirizadas.users.apps.CustomUserConfig',
     'sme_pratoaberto_terceirizadas.common_data.apps.CommonDataConfig',
     'sme_pratoaberto_terceirizadas.school.apps.SchoolConfig',
-    'sme_pratoaberto_terceirizadas.meal_kit.apps.MealKitConfig'
+    'sme_pratoaberto_terceirizadas.meal_kit.apps.MealKitConfig',
+    'sme_pratoaberto_terceirizadas.permission.apps.PermissionConfig'
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS

@@ -1,3 +1,4 @@
+from django.conf import settings
 from notifications.models import Notification
 from rest_framework import serializers
 from .models import User
@@ -33,5 +34,5 @@ class PrivateUserSerializer(serializers.ModelSerializer):
     notifications = NotificationSerializer(many=True, read_only=True)
 
     class Meta:
-        model = User
+        model = settings.AUTH_USER_MODEL
         fields = ('name', 'email', 'profile', 'notifications')

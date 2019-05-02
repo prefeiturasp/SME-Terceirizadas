@@ -22,6 +22,9 @@ msgstr ""
 msgid "Account Inactive"
 msgstr "Conta Inativa"
 
+msgid "Active"
+msgstr "Ativo"
+
 #: sme_pratoaberto_terceirizadas/templates/account/account_inactive.html:10
 msgid "This account is inactive."
 msgstr "Esta conta está inativa"
@@ -355,6 +358,30 @@ msgstr "Telefone"
 #: sme_pratoaberto_terceirizadas/users/models.py:14
 msgid "Mobile phone"
 msgstr "Celular"
+
+#: sme_pratoaberto_terceirizadas/users/models.py:14
+msgid "Profile"
+msgstr "Perfil"
+
+msgid "Profiles"
+msgstr "Perfis"
+
+msgid "Permission from Profile"
+msgstr "Permissão de Perfil"
+
+msgid "Permissions from Profiles"
+msgstr "Permissões de Perfil"
+
+
+msgid "Meal Kits"
+msgstr "Kits Lanche"
+
+msgid "Meal Kit"
+msgstr "Kit Lanche"
+
+
+
+
 
 #~ msgid "Nutritionists"
 #~ msgstr "Nutricionistas"
