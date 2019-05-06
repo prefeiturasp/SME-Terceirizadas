@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-03-30 20:48-0300\n"
+"POT-Creation-Date: 2019-05-02 11:19-0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,6 +16,126 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: sme_pratoaberto_terceirizadas/abstract_shareable.py:6
+#: sme_pratoaberto_terceirizadas/common_data/models.py:19
+#: sme_pratoaberto_terceirizadas/school/models.py:51
+msgid "Name"
+msgstr "Nome"
+
+#: sme_pratoaberto_terceirizadas/abstract_shareable.py:7
+#: sme_pratoaberto_terceirizadas/food/models.py:25
+msgid "Description"
+msgstr "Descrição"
+
+#: sme_pratoaberto_terceirizadas/abstract_shareable.py:14
+msgid "Active"
+msgstr ""
+
+#: sme_pratoaberto_terceirizadas/common_data/models.py:20
+#: sme_pratoaberto_terceirizadas/users/models.py:132
+msgid "Phone"
+msgstr "Telefone"
+
+#: sme_pratoaberto_terceirizadas/common_data/models.py:21
+#: sme_pratoaberto_terceirizadas/users/models.py:133
+msgid "Mobile phone"
+msgstr "Celular"
+
+#: sme_pratoaberto_terceirizadas/common_data/models.py:22
+#: sme_pratoaberto_terceirizadas/users/models.py:58
+#: sme_pratoaberto_terceirizadas/users/models.py:131
+#, fuzzy
+#| msgid "E-mail Addresses"
+msgid "email address"
+msgstr "Endereços de E-mail"
+
+#: sme_pratoaberto_terceirizadas/common_data/models.py:26
+msgid "City"
+msgstr ""
+
+#: sme_pratoaberto_terceirizadas/common_data/models.py:27
+msgid "UF"
+msgstr ""
+
+#: sme_pratoaberto_terceirizadas/common_data/models.py:32
+msgid "Street name"
+msgstr ""
+
+#: sme_pratoaberto_terceirizadas/common_data/models.py:33
+msgid "Complement"
+msgstr ""
+
+#: sme_pratoaberto_terceirizadas/common_data/models.py:34
+msgid "District"
+msgstr ""
+
+#: sme_pratoaberto_terceirizadas/common_data/models.py:35
+msgid "Number"
+msgstr ""
+
+#: sme_pratoaberto_terceirizadas/common_data/models.py:36
+msgid "Postal code"
+msgstr ""
+
+#: sme_pratoaberto_terceirizadas/common_data/validators.py:8
+#, python-format
+msgid "%(value) is not a valid weekday"
+msgstr ""
+
+#: sme_pratoaberto_terceirizadas/food/models.py:13
+#: sme_pratoaberto_terceirizadas/food/models.py:24
+#: sme_pratoaberto_terceirizadas/users/models.py:97
+#: sme_pratoaberto_terceirizadas/users/models.py:103
+#: sme_pratoaberto_terceirizadas/users/models.py:117
+msgid "Title"
+msgstr ""
+
+#: sme_pratoaberto_terceirizadas/food_inclusion/views.py:39
+msgid "TO_VALIDATE"
+msgstr "A_VALIDAR"
+
+#: sme_pratoaberto_terceirizadas/food_inclusion/views.py:46
+#: sme_pratoaberto_terceirizadas/meal_kit/views.py:44
+msgid "Meal Kit - Solicitation"
+msgstr "Kit Lanche - Solicitação"
+
+#: sme_pratoaberto_terceirizadas/meal_kit/models.py:13
+msgid "Meal Kit"
+msgstr "Kit Lanche"
+
+#: sme_pratoaberto_terceirizadas/meal_kit/models.py:14
+msgid "Meal Kits"
+msgstr "Kits Lanche"
+
+#: sme_pratoaberto_terceirizadas/school/models.py:12
+#: sme_pratoaberto_terceirizadas/school/models.py:15
+msgid "Abbreviation"
+msgstr "Abreviação"
+
+#: sme_pratoaberto_terceirizadas/school/models.py:18
+msgid "Regional Director"
+msgstr "DRE"
+
+#: sme_pratoaberto_terceirizadas/school/models.py:19
+msgid "Regional Directors"
+msgstr "DREs"
+
+#: sme_pratoaberto_terceirizadas/school/models.py:45
+msgid "Grouping"
+msgstr "Agrupamento"
+
+#: sme_pratoaberto_terceirizadas/school/models.py:52
+msgid "EOL code"
+msgstr "Código EOL"
+
+#: sme_pratoaberto_terceirizadas/school/models.py:53
+msgid "CODAE code"
+msgstr "Código CODAE"
+
+#: sme_pratoaberto_terceirizadas/school/models.py:72
+msgid "School"
+msgstr "Escola"
 
 #: sme_pratoaberto_terceirizadas/templates/account/account_inactive.html:5
 #: sme_pratoaberto_terceirizadas/templates/account/account_inactive.html:8
@@ -231,7 +351,7 @@ msgid ""
 msgstr ""
 
 #: sme_pratoaberto_terceirizadas/templates/account/signup_closed.html:5
-#: sme_pratoaberto_terceirizadas/templates/account/signup_closed.html:8
+#: sme_pratoaberto_terceirizadas/templates/account/signup_closed.html:8makem
 msgid "Sign Up Closed"
 msgstr ""
 
@@ -282,85 +402,97 @@ msgstr "Sobre"
 msgid "My Profile"
 msgstr "Meu Perfil"
 
-#: sme_pratoaberto_terceirizadas/user_profiles/models.py:8
-msgid "CPF"
-msgstr "CPF"
+#: sme_pratoaberto_terceirizadas/users/admin.py:15
+msgid "Personal info"
+msgstr "Informações Pessoais"
 
-#: sme_pratoaberto_terceirizadas/user_profiles/models.py:9
+#: sme_pratoaberto_terceirizadas/users/admin.py:18
+#: sme_pratoaberto_terceirizadas/users/models.py:123
+#, fuzzy
+#| msgid "My Profile"
+msgid "Profile"
+msgstr "Meu Perfil"
+
+#: sme_pratoaberto_terceirizadas/users/admin.py:21
+msgid "Permissions"
+msgstr "Permissões"
+
+#: sme_pratoaberto_terceirizadas/users/admin.py:24
+msgid "Important dates"
+msgstr "Datas importantes"
+
+#: sme_pratoaberto_terceirizadas/users/models.py:60
+msgid "staff status"
+msgstr "Status de staff"
+
+#: sme_pratoaberto_terceirizadas/users/models.py:62
+msgid "Designates whether the user can log into this admin site."
+msgstr "Designa se um usuário pode logar neste admin."
+
+#: sme_pratoaberto_terceirizadas/users/models.py:65
+msgid "active"
+msgstr "ativo"
+
+#: sme_pratoaberto_terceirizadas/users/models.py:68
+msgid ""
+"Designates whether this user should be treated as active. Unselect this "
+"instead of deleting accounts."
+msgstr ""
+
+#: sme_pratoaberto_terceirizadas/users/models.py:72
+msgid "date joined"
+msgstr "data de inclusão"
+
+#: sme_pratoaberto_terceirizadas/users/models.py:81
+msgid "user"
+msgstr "usuário"
+
+#: sme_pratoaberto_terceirizadas/users/models.py:82
+msgid "users"
+msgstr "usuários"
+
+#: sme_pratoaberto_terceirizadas/users/models.py:109
+msgid "Profile Category"
+msgstr ""
+
+#: sme_pratoaberto_terceirizadas/users/models.py:110
+msgid "Profile Categories"
+msgstr ""
+
+#: sme_pratoaberto_terceirizadas/users/models.py:130
+msgid "name"
+msgstr "nome"
+
+#: sme_pratoaberto_terceirizadas/users/models.py:135
 msgid "Functional register"
 msgstr "Registro Funcional"
 
-#: sme_pratoaberto_terceirizadas/user_profiles/models.py:16
-msgid "CNPJ"
-msgstr "CNPJ"
+#~ msgid "CPF"
+#~ msgstr "CPF"
 
-#: sme_pratoaberto_terceirizadas/user_profiles/models.py:17
-msgid "State Registry"
-msgstr "Registro de Estado"
+#~ msgid "CNPJ"
+#~ msgstr "CNPJ"
 
-#: sme_pratoaberto_terceirizadas/user_profiles/models.py:43
-#: sme_pratoaberto_terceirizadas/user_profiles/models.py:52
-msgid "Abbreviation"
-msgstr "Abreviação"
+#~ msgid "State Registry"
+#~ msgstr "Registro de Estado"
 
-#: sme_pratoaberto_terceirizadas/user_profiles/models.py:44
-msgid "Alternate"
-msgstr "Suplente"
+#~ msgid "Alternate"
+#~ msgstr "Suplente"
 
-#: sme_pratoaberto_terceirizadas/user_profiles/models.py:46
-msgid "Description"
-msgstr "Descrição"
+#~ msgid "Sub Manager"
+#~ msgstr "Cogestor"
 
-#: sme_pratoaberto_terceirizadas/user_profiles/models.py:48
-msgid "Sub Manager"
-msgstr "Cogestor"
+#~ msgid "Nutritionist"
+#~ msgstr "Nutricionista"
 
-#: sme_pratoaberto_terceirizadas/user_profiles/models.py:55
-msgid "Regional Director"
-msgstr "DRE"
+#~ msgid "School name"
+#~ msgstr "Nome da escola"
 
-#: sme_pratoaberto_terceirizadas/user_profiles/models.py:56
-msgid "Regional Directors"
-msgstr "DREs"
-
-#: sme_pratoaberto_terceirizadas/user_profiles/models.py:66
-#: sme_pratoaberto_terceirizadas/user_profiles/models.py:69
-msgid "Nutritionist"
-msgstr "Nutricionista"
-
-#: sme_pratoaberto_terceirizadas/user_profiles/models.py:76
-msgid "EOL code"
-msgstr "Código EOL"
-
-#: sme_pratoaberto_terceirizadas/user_profiles/models.py:77
-msgid "CODAE code"
-msgstr "Código CODAE"
-
-#: sme_pratoaberto_terceirizadas/user_profiles/models.py:79
-msgid "School name"
-msgstr "Nome da escola"
-
-#: sme_pratoaberto_terceirizadas/user_profiles/models.py:85
-msgid "School"
-msgstr "Escola"
-
-#: sme_pratoaberto_terceirizadas/users/forms.py:17
-msgid "This username has already been taken."
-msgstr "Esse nome de usuário já existe."
-
-#: sme_pratoaberto_terceirizadas/users/models.py:13
-msgid "Phone"
-msgstr "Telefone"
-
-#: sme_pratoaberto_terceirizadas/users/models.py:14
-msgid "Mobile phone"
-msgstr "Celular"
+#~ msgid "This username has already been taken."
+#~ msgstr "Esse nome de usuário já existe."
 
 #~ msgid "Nutritionists"
 #~ msgstr "Nutricionistas"
-
-#~ msgid "Name"
-#~ msgstr "Nome"
 
 #~ msgid "E-mail"
 #~ msgstr "E-mail"

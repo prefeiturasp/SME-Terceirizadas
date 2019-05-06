@@ -11,7 +11,7 @@ class LogEventData(TimestampAble, Describable):
     #TODO: categorizar os tipos de evento (Enum)"""
     user = models.ForeignKey(get_user_model(),
                              on_delete=models.DO_NOTHING,
-                             null=True, )
+                             null=True)
 
 
 class Contact(Describable):

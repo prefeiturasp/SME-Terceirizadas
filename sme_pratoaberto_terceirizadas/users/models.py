@@ -91,7 +91,13 @@ class CustomAbstractUser(AbstractBaseUser, PermissionsMixin):
         send_mail(subject, message, from_email, [self.email], **kwargs)
 
 
-class ProfileCategory(models.Model):
+class Notice(models.Model):
+    """Edital"""
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    title = models.CharField(_('Title'), max_length=90)
+
+
+class Institution(models.Model):
     """Categoria de Perfil"""
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     title = models.CharField(_('Title'), max_length=90)
@@ -107,7 +113,7 @@ class ProfileCategory(models.Model):
 class Profile(Activable):
     """Perfil de usuário"""
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-    category = models.ForeignKey(ProfileCategory, on_delete=models.DO_NOTHING)
+    category = models.ForeignKey(Institution, on_delete=models.DO_NOTHING)
     title = models.CharField(_('Title'), max_length=90)
 
     def __str__(self):
@@ -131,10 +137,3 @@ class User(CustomAbstractUser):
     profile = models.ForeignKey(Profile, on_delete=models.DO_NOTHING, null=True, blank=True)
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
-
-
-def my_handler(sender, instance, created, **kwargs):
-    notify.send(instance, recipient=instance.user_set.all(), verb='waas asasaved')
-
-
-post_save.connect(my_handler, sender=Profile)
