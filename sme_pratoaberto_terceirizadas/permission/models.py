@@ -10,6 +10,7 @@ from ..users.models import Profile
 class Permission(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     title = models.CharField(_('title'), max_length=90)
+    endpoint = models.CharField(_('endpoint'), max_length=90)
     permissions = models.ManyToManyField(Profile, through='ProfilePermission',
                                          through_fields=('permission', 'profile'))
 

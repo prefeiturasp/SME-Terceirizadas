@@ -8,11 +8,11 @@ from rest_framework.routers import DefaultRouter
 from rest_framework_jwt.views import obtain_jwt_token
 
 from sme_pratoaberto_terceirizadas.meal_kit.views import MealKitViewSet
-from sme_pratoaberto_terceirizadas.permission.api.viewsets import PermissionViewSets
+from sme_pratoaberto_terceirizadas.permission.routers import urlpatterns as permissions_url
+from sme_pratoaberto_terceirizadas.users.routers import urlpatterns as user_url
 
 route = DefaultRouter(trailing_slash=True)
 route.register(r'meal_kit', MealKitViewSet)
-route.register('profile', PermissionViewSets)
 
 urlpatterns = [
                   path('', include(route.urls)),
@@ -27,6 +27,10 @@ urlpatterns = [
               ] + static(
     settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
 )
+
+#### ADDING ROUTERS FROM ALL APPS ####
+urlpatterns += user_url
+urlpatterns += permissions_url
 
 if settings.DEBUG:
     # This allows the error pages to be debugged during development, just visit
