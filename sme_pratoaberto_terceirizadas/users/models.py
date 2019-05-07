@@ -10,6 +10,7 @@ from django.utils.translation import ugettext_lazy as _
 from sme_pratoaberto_terceirizadas.abstract_shareable import Activable
 from notifications.signals import notify
 
+
 # Thanks to https://github.com/jmfederico/django-use-email-as-username
 
 
@@ -100,14 +101,14 @@ class Notice(models.Model):
 class Institution(models.Model):
     """Categoria de Perfil"""
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-    title = models.CharField(_('Title'), max_length=90)
+    name = models.CharField(_('Institution'), max_length=60)
 
     def __str__(self):
-        return self.title
+        return self.name
 
     class Meta:
-        verbose_name = _('Profile Category')
-        verbose_name_plural = _('Profile Categories')
+        verbose_name = _('Institution')
+        verbose_name_plural = _('Institutions')
 
 
 class Profile(Activable):
@@ -115,9 +116,10 @@ class Profile(Activable):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     category = models.ForeignKey(Institution, on_delete=models.DO_NOTHING)
     title = models.CharField(_('Title'), max_length=90)
+    institution = models.ForeignKey(Institution, on_delete=models.DO_NOTHING)
 
     def __str__(self):
-        return '%s - %s' % (self.category.title, self.title)
+        return self.title
 
     class Meta:
         verbose_name = _('Profile')

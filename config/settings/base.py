@@ -87,6 +87,7 @@ LOCAL_APPS = [
     'sme_pratoaberto_terceirizadas.common_data.apps.CommonDataConfig',
     'sme_pratoaberto_terceirizadas.school.apps.SchoolConfig',
     'sme_pratoaberto_terceirizadas.meal_kit.apps.MealKitConfig',
+    'sme_pratoaberto_terceirizadas.permission.apps.PermissionConfig'
     'sme_pratoaberto_terceirizadas.food.apps.FoodConfig',
     'sme_pratoaberto_terceirizadas.food_inclusion.apps.FoodInclusionConfig'
 ]

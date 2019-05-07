@@ -63,3 +63,11 @@ INSTALLED_APPS += ['django_extensions']  # noqa F405
 # ------------------------------------------------------------------------------
 # Para permitir acesso de navegadores sem problema.
 CORS_ORIGIN_ALLOW_ALL = True
+
+
+# For to permition endpoints no validations
+# REST_FRAMEWORK = {
+#
+#     'DEFAULT_AUTHENTICATION_CLASSES': [],
+#     'DEFAULT_PERMISSION_CLASSES': [],
+# }

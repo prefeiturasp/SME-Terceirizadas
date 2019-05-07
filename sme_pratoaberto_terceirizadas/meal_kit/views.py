@@ -40,7 +40,6 @@ class MealKitViewSet(ModelViewSet):
             action_object = new_meal_kit
             notify.send(
                 sender=actor,
-                recipient=recipient,
                 verb=_('Meal Kit - Solicitation'),
                 action_object=action_object,
                 description='O usuário ' + actor.name + ' solicitou um kit lanche para o dia 20/06/2019')

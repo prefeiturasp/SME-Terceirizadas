@@ -23,15 +23,12 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<schema name="profile"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Permissões do usuário]]></comment>
-	<position x="1980" y="1140"/>
+	<position x="1500" y="1040"/>
 	<column name="permission_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
 	<column name="title" not-null="true">
 		<type name="varchar" length="99"/>
-	</column>
-	<column name="description">
-		<type name="text" length="0"/>
 	</column>
 	<column name="is_active" not-null="true" default-value="true">
 		<type name="bool" length="0"/>
@@ -68,7 +65,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<schema name="school"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Qual o tipo de gestão da escola. Ex.: Terceirizada, Direta e Mista]]></comment>
-	<position x="700" y="540"/>
+	<position x="680" y="540"/>
 	<column name="management_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -160,7 +157,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<schema name="food"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Tabela registra os tipos de cardápios, Ex: Normal, Lactantes, Diabéticos]]></comment>
-	<position x="660" y="1383"/>
+	<position x="600" y="1380"/>
 	<column name="type_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -179,7 +176,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<schema name="food"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Cardápio escolar]]></comment>
-	<position x="100" y="1243"/>
+	<position x="140" y="1260"/>
 	<column name="menu_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -286,7 +283,7 @@ Borough hall record.]]></comment>
 	<schema name="food"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Registra o tipo de gestão do prato: Direto, Mista e Indireto]]></comment>
-	<position x="900" y="1263"/>
+	<position x="900" y="1260"/>
 	<column name="management_menu_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -354,7 +351,7 @@ Borough hall record.]]></comment>
 	<schema name="school"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Tabela utilizada para registrar as DREs (DIRETORIA REGIONAL DA EDUCAÇÃO)]]></comment>
-	<position x="620" y="840"/>
+	<position x="620" y="860"/>
 	<column name="id_regional_director" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -581,19 +578,39 @@ Borough hall record.]]></comment>
 	 src-table="food.menu"
 	 dst-table="school.age"
 	 src-required="false" dst-required="false"
-	 table-name="menu_age"/>
+	 table-name="menu_age">
+	<label ref-type="src-label">
+		<position x="10.4268" y="-0.15"/>
+	</label>
+	<label ref-type="dst-label">
+		<position x="0" y="0"/>
+	</label>
+</relationship>
 
 <table name="institution" hide-ext-attribs="true">
 	<schema name="profile"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Instiuição: CODAE, DRE, ESCOLA e TERCEIRIZADA]]></comment>
-	<position x="1580" y="980"/>
+	<position x="1500" y="940"/>
 	<column name="institution_id" not-null="true">
 		<type name="serial" length="0"/>
+	</column>
+	<column name="name" not-null="true">
+		<type name="varchar" length="99"/>
+		<comment><![CDATA[Nome da instituição ex: DRE, CODAE e etc]]></comment>
 	</column>
 	<constraint name="institution_pk" type="pk-constr" table="profile.institution">
 		<columns names="institution_id" ref-type="src-columns"/>
 	</constraint>
+
+	<customidxs object-type="column">
+		<object name="address_id_address" index="1"/>
+	</customidxs>
+
+	<customidxs object-type="constraint">
+		<object name="address_fk" index="1"/>
+		<object name="institution_uq" index="2"/>
+	</customidxs>
 </table>
 
 <relationship name="institution_address" type="rel11"
@@ -610,7 +627,11 @@ Borough hall record.]]></comment>
 	 src-fk-pattern="{st}_fk"
 	 src-table="profile.institution"
 	 dst-table="common_data.contact"
-	 src-required="false" dst-required="false"/>
+	 src-required="false" dst-required="false">
+	<label ref-type="src-label">
+		<position x="21.2166" y="14.9447"/>
+	</label>
+</relationship>
 
 <relationship name="school_institution" type="rel11"
 	 src-col-pattern="{sc}_{st}"
@@ -703,31 +724,6 @@ Borough hall record.]]></comment>
 	 dst-table="school.regional_director"
 	 src-required="false" dst-required="false"/>
 
-<table name="profile_category">
-	<schema name="profile"/>
-	<role name="postgres"/>
-	<comment><![CDATA[Categoria do perfil, ex: Nutricionista, Cogestor, Suplente e etc]]></comment>
-	<position x="1580" y="1180"/>
-	<column name="profile_category_id" not-null="true">
-		<type name="serial" length="0"/>
-	</column>
-	<column name="title" not-null="true">
-		<type name="varchar" length="90"/>
-	</column>
-	<constraint name="profile_category_pk" type="pk-constr" table="profile.profile_category">
-		<columns names="profile_category_id" ref-type="src-columns"/>
-	</constraint>
-</table>
-
-<relationship name="category_profile" type="rel1n"
-	 src-col-pattern="{sc}_{st}"
-	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
-	 src-fk-pattern="{st}_fk"
-	 custom-color="#bbef2f"
-	 src-table="profile.profile_category"
-	 dst-table="profile.profile"
-	 src-required="false" dst-required="false"/>
-
 <relationship name="food_menu" type="relnn"
 	 src-col-pattern="{sc}_{st}" dst-col-pattern="{sc}_{dt}"
 	 pk-pattern="{gt}_pk" uq-pattern="{gt}_uq"
@@ -748,14 +744,29 @@ Borough hall record.]]></comment>
 	 dst-table="food.food"
 	 src-required="false" dst-required="false"/>
 
-<relationship name="profile_category_permisison" type="rel1n"
+<relationship name="institution_profile" type="rel1n"
 	 src-col-pattern="{sc}_{st}"
 	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
 	 src-fk-pattern="{st}_fk"
-	 custom-color="#f2792b"
-	 src-table="profile.profile_category"
-	 dst-table="profile.permisison"
-	 src-required="false" dst-required="false"/>
+	 custom-color="#2153d1"
+	 src-table="profile.institution"
+	 dst-table="profile.profile"
+	 src-required="false" dst-required="false">
+	<label ref-type="src-label">
+		<position x="0" y="0"/>
+	</label>
+</relationship>
+
+<relationship name="permisison_mm_profile" type="relnn"
+	 src-col-pattern="{sc}_{st}" dst-col-pattern="{sc}_{dt}"
+	 pk-pattern="{gt}_pk" uq-pattern="{gt}_uq"
+	 src-fk-pattern="{st}_fk" dst-fk-pattern="{dt}_fk"
+	 pk-col-pattern="id"
+	 custom-color="#471416"
+	 src-table="profile.permisison"
+	 dst-table="profile.profile"
+	 src-required="false" dst-required="false"
+	 table-name="many_permisison_has_many_profile"/>
 
 <constraint name="fk_management" type="fk-constr" comparison-type="MATCH FULL"
 	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="food.management_menu" table="food.menu">

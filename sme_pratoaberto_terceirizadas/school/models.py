@@ -30,7 +30,7 @@ class SchoolPeriod(Describable):
 
 
 class SchoolAge(Describable, Activable):
-    """Tabela utilizada para registrar faiza etária de idade"""
+    """Tabela utilizada para registrar faixa etária de idade"""
 
 
 class Borough(Describable, Activable):
