@@ -4,12 +4,13 @@ from django.core.validators import validate_comma_separated_integer_list
 from django.db import models
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import ugettext as _
 
+from notifications.signals import notify
 from sme_pratoaberto_terceirizadas.abstract_shareable import Describable, TimestampAble
 from sme_pratoaberto_terceirizadas.common_data.utils import str_to_date
 from sme_pratoaberto_terceirizadas.food.models import MealType
-from sme_pratoaberto_terceirizadas.food_inclusion.utils import get_object, get_status_or_default, object_exists
+from sme_pratoaberto_terceirizadas.food_inclusion.utils import get_object, object_exists
 from sme_pratoaberto_terceirizadas.school.models import SchoolPeriod
 from sme_pratoaberto_terceirizadas.users.models import User
 
@@ -46,10 +47,11 @@ class FoodInclusion(TimestampAble):
     weekdays = models.CharField(blank=True, null=True, max_length=14,
                                 validators=[validate_comma_separated_integer_list])
     status = models.ForeignKey(FoodInclusionStatus, on_delete=models.DO_NOTHING)
+    priority = models.BooleanField(default=False)
     obs = models.TextField()
 
     def __str__(self):
-        return self.status.name + ' - ' + str(self.id)
+        return '{name} - {id}'.format(name=self.status.name, id=self.id)
 
     class Meta:
         verbose_name = _("Food Inclusion")
@@ -57,7 +59,7 @@ class FoodInclusion(TimestampAble):
 
     def create_or_update(self, request_data, user):
         reason = request_data.get('reason')
-        self.status = get_status_or_default(request_data)
+        self._set_status(request_data)
         self.created_by = user
         self.reason = get_object(FoodInclusionReason, name=reason)
         self._assign_date_block(request_data)
@@ -80,10 +82,62 @@ class FoodInclusion(TimestampAble):
     def _create_or_update_descriptions(self, request_data):
         descriptions = request_data.get('descriptions')
         for description in descriptions:
-            uuid_description = description.get('uuid', None)
-            food_inclusion_description = FoodInclusionDescription.objects.get(uuid=uuid_description) \
-                if uuid_description else FoodInclusionDescription()
+            desc_uuid = description.get('uuid', None)
+            food_inclusion_description = FoodInclusionDescription.objects.get(uuid=desc_uuid) \
+                if desc_uuid else FoodInclusionDescription()
             food_inclusion_description.create_or_update(description, self)
+
+    def _set_status(self, request_data):
+        status = request_data.get('status', None)
+        name = status if status else _('TO_VALIDATE')
+        if not object_exists(FoodInclusionStatus, name=_('TO_VALIDATE')):
+            default = FoodInclusionStatus(name=_('TO_VALIDATE'))
+            default.save()
+        self.status = get_object(FoodInclusionStatus, name=name)
+
+    def _notification_aux(self, _type, validation_diff='creation'):
+        notification_dict = {
+            _('TO_VALIDATE'): {
+                'recipient': User.objects.all(),
+                'verb': _(validation_diff.capitalize()),
+                'description': _('created') if validation_diff else _('edited')
+            },
+            _('TO_EDIT'): {
+                'recipient': User.objects.all(),
+                'verb': _('It needs edition'),
+                'description': _('did not validated')
+            },
+            _('TO_APPROVE'): {
+                'recipient': User.objects.all(),
+                'verb': _('Validation'),
+                'description': _('validated')
+            },
+            _('TO_VISUALIZE'): {
+                'recipient': User.objects.all(),
+                'verb': _('Approval'),
+                'description': _('approved')
+            },
+            _('DENIED'): {
+                'recipient': User.objects.all(),
+                'verb': _('Denial'),
+                'description': _('denied')
+            },
+            _('VISUALIZED'): {
+                'recipient': User.objects.all(),
+                'verb': _('Visualization'),
+                'description': _('visualized')
+            },
+        }
+        return notification_dict[self.status.name][_type]
+
+    def send_notification(self, actor, validation_diff='creation'):
+        notify.send(
+            sender=actor,
+            recipient=self._notification_aux('recipient', validation_diff),
+            verb=_('Food Inclusion - ') + self._notification_aux('verb', validation_diff),
+            action_object=self,
+            description=_('The user ') + actor.name + self._notification_aux('description', validation_diff) +
+                        _(' a food inclusion.'))
 
 
 class FoodInclusionDescription(models.Model):
@@ -94,7 +148,8 @@ class FoodInclusionDescription(models.Model):
     food_inclusion = models.ForeignKey(FoodInclusion, on_delete=models.DO_NOTHING)
 
     def __str__(self):
-        return self.period.name + ' - ' + str(self.number_of_students)
+        return '{name} - {number_of_students}'.format(name=self.period.name,
+                                                      number_of_students=str(self.number_of_students))
 
     class Meta:
         verbose_name = _("Food Inclusion")
@@ -109,6 +164,7 @@ class FoodInclusionDescription(models.Model):
         self.save()
         self.meal_type.add(get_object(MealType, name=meal_type))
         self.save()
+
 
 @receiver(pre_save, sender=FoodInclusion)
 def food_inclusion_pre_save(sender, instance, *args, **kwargs):

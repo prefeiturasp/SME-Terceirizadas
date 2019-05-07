@@ -2,10 +2,9 @@ import datetime
 
 from django.utils.translation import ugettext_lazy as _
 from notifications.signals import notify
-
 from ..food.models import MealType
+from ..food_inclusion import models
 from ..school.models import SchoolPeriod
-from ..users.models import User, Institution
 
 
 def validate_date_format(date_text, errors_list):
@@ -24,22 +23,6 @@ def validate_weekdays(weekdays, errors_list):
         errors_list.append(_('weekdays invalid'))
 
 
-def _validate_reason(request_data, errors):
-    from .models import FoodInclusionReason
-    reason = request_data.get('reason')
-    reason_exists = object_exists(FoodInclusionReason, name=reason)
-    if not reason_exists:
-        errors.append(_('reason doesnt exist'))
-
-
-def _validate_status(request_data, errors):
-    from .models import FoodInclusionStatus
-    status = request_data.get('status')
-    status_exists = object_exists(FoodInclusionStatus, name=status)
-    if 'status' in request_data and not status_exists:
-        errors.append(_('status doesnt exist'))
-
-
 def object_exists(query_set, **kwargs):
     return query_set.objects.filter(**kwargs).exists()
 
@@ -54,6 +37,24 @@ def _check_required_data(request_data):
     else:
         required_data = ['reason', 'date_from', 'date_to', 'weekdays', 'descriptions']
     return all(elem in request_data for elem in required_data)
+
+
+def check_required_data_generic(request_data, required_data):
+    return all(elem in request_data for elem in required_data)
+
+
+def _validate_reason(request_data, errors):
+    reason = request_data.get('reason')
+    reason_exists = object_exists(models.FoodInclusionReason, name=reason)
+    if not reason_exists:
+        errors.append(_('reason doesnt exist'))
+
+
+def _validate_status(request_data, errors):
+    status = request_data.get('status')
+    status_exists = object_exists(models.FoodInclusionStatus, name=status)
+    if 'status' in request_data and not status_exists:
+        errors.append(_('status doesnt exist'))
 
 
 def get_errors_list(request_data):
@@ -105,22 +106,3 @@ def _validate_descriptions(request_data, errors):
             errors.append(_('school period doesnt exist'))
         if not isinstance(number_of_students, int):
             errors.append(_('number of students needs to be int'))
-
-
-def get_status_or_default(request_data):
-    from .models import FoodInclusionStatus
-    status = request_data.get('status', None)
-    name = status if status else _('TO_VALIDATE')
-    return get_object(FoodInclusionStatus, name=name)
-
-
-def create_notification(user, obj):
-    actor = user
-    recipient = User.objects.filter(profile__category=get_object(Institution, title='DRE'))
-    action_object = obj
-    notify.send(
-        sender=actor,
-        recipient=recipient,
-        verb=_('Food Inclusion - Creation or Edition'),
-        action_object=action_object,
-        description='O usuário ' + actor.name + ' criou/editou uma inclusão de alimentação')
