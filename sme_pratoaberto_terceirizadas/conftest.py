@@ -1,20 +1,13 @@
 import pytest
-from django.conf import settings
-from django.test import RequestFactory
 
-from sme_pratoaberto_terceirizadas.users.tests.factories import UserFactory
-
-
-@pytest.fixture(autouse=True)
-def media_storage(settings, tmpdir):
-    settings.MEDIA_ROOT = tmpdir.strpath
+from sme_pratoaberto_terceirizadas.meal_kit.tests.factories import MealKitFactory
 
 
 @pytest.fixture
-def user() -> settings.AUTH_USER_MODEL:
-    return UserFactory()
+def sample():
+    return 'teste'
 
 
 @pytest.fixture
-def request_factory() -> RequestFactory:
-    return RequestFactory()
+def meal_kit() -> MealKitFactory:
+    return MealKitFactory()
