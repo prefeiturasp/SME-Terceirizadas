@@ -1,4 +1,4 @@
-from factory import DjangoModelFactory, Faker, random, SubFactory, post_generation
+from factory import DjangoModelFactory, Faker, random, SubFactory, post_generation, Sequence
 
 from sme_pratoaberto_terceirizadas.users.tests.factories import ProfileFactory
 from ..models import Permission, ProfilePermission
@@ -8,13 +8,13 @@ random.reseed_random('seed')
 
 class PermissionFactory(DjangoModelFactory):
     uuid = Faker("md5")
-    title = Faker("name")
+    title = Faker("job")
     endpoint = Faker("url")
+    id = Sequence(lambda n: n)
 
     @post_generation
-    def groups(self, create, extracted, **kwargs):
-        if not create:
-            return
+    def permissions(self, create, extracted, **kwargs):
+        print(create, extracted, kwargs, 'awsiodasdjsaidjiosa')
         if extracted:
             # A list of groups were passed in, use them
             for permission in extracted:
