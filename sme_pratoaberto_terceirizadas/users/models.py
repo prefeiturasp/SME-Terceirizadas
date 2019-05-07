@@ -114,7 +114,6 @@ class Institution(models.Model):
 class Profile(Activable):
     """Perfil de usuário"""
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-    category = models.ForeignKey(Institution, on_delete=models.DO_NOTHING)
     title = models.CharField(_('Title'), max_length=90)
     institution = models.ForeignKey(Institution, on_delete=models.DO_NOTHING)
 
