@@ -1,8 +1,9 @@
+import uuid
+
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
 from sme_pratoaberto_terceirizadas.abstract_shareable import Describable, Activable
-from sme_pratoaberto_terceirizadas.common_data.models import Address
 
 
 class RegionalDirector(Describable):
@@ -16,6 +17,16 @@ class RegionalDirector(Describable):
     class Meta:
         verbose_name = _("Regional Director")
         verbose_name_plural = _("Regional Directors")
+
+
+class SchoolPeriod(Describable):
+    """Períodos Escolares"""
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = _("School Period")
+        verbose_name_plural = _("School Periods")
 
 
 class SchoolAge(Describable, Activable):
@@ -34,15 +45,21 @@ class ManagementType(Describable, Activable):
     """Tipo de gestão escolar: DIRETA, MISTA, TERCEIRIZADA..."""
 
 
+class SchoolGroup(models.Model):
+    """Agrupamento"""
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    models.SmallIntegerField(_('Grouping'))
+
+
 class School(Describable, Activable):
     """Escola"""
     # TODO chave estrangeira para Institution
     name = models.CharField(_("Name"), max_length=80)
     eol_code = models.CharField(_("EOL code"), max_length=10)
     codae_code = models.CharField(_('CODAE code'), max_length=10)
-    grouping = models.SmallIntegerField(_('Grouping'))
-
-    # fks
+    grouping = models.ForeignKey(SchoolGroup,
+                                 on_delete=models.DO_NOTHING,
+                                 null=True)
     regional_director = models.ForeignKey(RegionalDirector,
                                           on_delete=models.DO_NOTHING,
                                           null=True)

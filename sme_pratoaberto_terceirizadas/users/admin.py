@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 from django.utils.translation import ugettext_lazy as _
 
-from .models import User, Profile, ProfileCategory
+from .models import User, Profile, Institution
 
 
 class BaseUserAdmin(DjangoUserAdmin):
@@ -34,6 +34,6 @@ class BaseUserAdmin(DjangoUserAdmin):
     ordering = ('email',)
 
 
-admin.site.register(ProfileCategory)
+admin.site.register(Institution)
 admin.site.register(Profile)
 admin.site.register(User, BaseUserAdmin)

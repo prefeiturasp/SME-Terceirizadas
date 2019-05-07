@@ -1,4 +1,3 @@
-from notifications.models import Notification
 from rest_framework import serializers
 from .models import User
 from sme_pratoaberto_terceirizadas.meal_kit.models import MealKit

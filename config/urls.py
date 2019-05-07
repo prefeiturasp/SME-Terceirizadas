@@ -8,9 +8,11 @@ from rest_framework.routers import DefaultRouter
 from rest_framework_jwt.views import obtain_jwt_token
 
 from sme_pratoaberto_terceirizadas.meal_kit.views import MealKitViewSet
+from sme_pratoaberto_terceirizadas.food_inclusion.api.viewsets import FoodInclusionViewSet
 
 route = DefaultRouter(trailing_slash=True)
 route.register(r'meal_kit', MealKitViewSet)
+route.register(r'food_inclusion', FoodInclusionViewSet)
 
 urlpatterns = [
                   path('', include(route.urls)),

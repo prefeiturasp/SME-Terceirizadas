@@ -7,7 +7,7 @@ from rest_framework.viewsets import ModelViewSet
 
 from .models import MealKit
 from .serializers import MealKitSerializer
-from ..users.models import User, ProfileCategory
+from ..users.models import User, Institution
 from ..users.serializers import PrivateUserSerializer
 
 
@@ -36,7 +36,7 @@ class MealKitViewSet(ModelViewSet):
             new_meal_kit.description = request.data.get('description')
             new_meal_kit.save()
             actor = user
-            recipient = User.objects.filter(profile__category=ProfileCategory.objects.get(title='DRE'))
+            recipient = User.objects.filter(profile__category=Institution.objects.get(title='DRE'))
             action_object = new_meal_kit
             notify.send(
                 sender=actor,
