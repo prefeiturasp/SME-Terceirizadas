@@ -31,10 +31,10 @@ class FoodInclusionViewSet(ModelViewSet):
             errors_list = get_errors_list(request.data)
             if errors_list:
                 raise FoodInclusionCreateOrUpdateException(_('some argument(s) is(are) not valid'))
-            uuid = request.data.get('uuid', None),
+            uuid = request.data.get('uuid', None)
             food_inclusion = get_object_or_404(FoodInclusion, uuid=uuid) if uuid else FoodInclusion()
             if uuid:
-                assert food_inclusion.status == FoodInclusionStatus.objects.get(name=_('TO_EDIT')), \
+                assert food_inclusion.status == FoodInclusionStatus.objects.get(name=FoodInclusionStatus.TO_EDIT), \
                     _('food inclusion status is not to edit')
             food_inclusion.create_or_update(request_data=request.data, user=user)
             validation_diff = 'creation' if not uuid else 'edition'
@@ -60,10 +60,10 @@ class FoodInclusionViewSet(ModelViewSet):
             validation_answer = request.data.get('validation_answer')
             uuid = request.data.get('uuid')
             food_inclusion = get_object_or_404(FoodInclusion, uuid=uuid)
-            assert food_inclusion.status == FoodInclusionStatus.objects.get(name=_('TO_VALIDATE')), \
+            assert food_inclusion.status == FoodInclusionStatus.objects.get(name=FoodInclusionStatus.TO_VALIDATE), \
                 _('food inclusion status is not to validate')
-            new_status = FoodInclusionStatus.objects.get(name=_('TO_APPROVE')) if validation_answer else \
-                FoodInclusionStatus.objects.get(name=_('TO_EDIT'))
+            new_status = FoodInclusionStatus.objects.get(name=FoodInclusionStatus.TO_APPROVE) if validation_answer \
+                else FoodInclusionStatus.objects.get(FoodInclusionStatus.TO_EDIT)
             food_inclusion.status = new_status
             food_inclusion.save()
             food_inclusion.send_notification(user)
@@ -86,10 +86,10 @@ class FoodInclusionViewSet(ModelViewSet):
             approval_answer = request.data.get('approval_answer')
             uuid = request.data.get('uuid')
             food_inclusion = get_object_or_404(FoodInclusion, uuid=uuid)
-            assert food_inclusion.status == FoodInclusionStatus.objects.get(name=_('TO_APPROVE')), \
+            assert food_inclusion.status == FoodInclusionStatus.objects.get(name=FoodInclusionStatus.TO_APPROVE), \
                 _('food inclusion status is not to approve')
-            new_status = FoodInclusionStatus.objects.get(name=_('TO_VISUALIZE')) if approval_answer else \
-                FoodInclusionStatus.objects.get(name=_('DENIED'))
+            new_status = FoodInclusionStatus.objects.get(name=FoodInclusionStatus.TO_VISUALIZE) if approval_answer \
+                else FoodInclusionStatus.objects.get(name=FoodInclusionStatus.DENIED)
             food_inclusion.status = new_status
             food_inclusion.save()
             food_inclusion.send_notification(user)
@@ -110,9 +110,9 @@ class FoodInclusionViewSet(ModelViewSet):
             user = get_object_or_404(User, uuid=pk)
             uuid = request.data.get('uuid')
             food_inclusion = get_object_or_404(FoodInclusion, uuid=uuid)
-            assert food_inclusion.status == FoodInclusionStatus.objects.get(name=_('TO_VISUALIZE')), \
+            assert food_inclusion.status == FoodInclusionStatus.objects.get(name=FoodInclusionStatus.TO_VISUALIZE), \
                 _('food inclusion status is not to visualize')
-            new_status = FoodInclusionStatus.objects.get(name=_('VISUALIZED'))
+            new_status = FoodInclusionStatus.objects.get(name=FoodInclusionStatus.VISUALIZED)
             food_inclusion.status = new_status
             food_inclusion.save()
             food_inclusion.send_notification(user)

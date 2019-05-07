@@ -2,21 +2,26 @@ import uuid
 
 from django.core.validators import validate_comma_separated_integer_list
 from django.db import models
-from django.db.models.signals import pre_save
-from django.dispatch import receiver
 from django.utils.translation import ugettext as _
 
 from notifications.signals import notify
 from sme_pratoaberto_terceirizadas.abstract_shareable import Describable, TimestampAble
 from sme_pratoaberto_terceirizadas.common_data.utils import str_to_date
 from sme_pratoaberto_terceirizadas.food.models import MealType
-from sme_pratoaberto_terceirizadas.food_inclusion.utils import get_object, object_exists
+from sme_pratoaberto_terceirizadas.food_inclusion.utils import get_object
 from sme_pratoaberto_terceirizadas.school.models import SchoolPeriod
 from sme_pratoaberto_terceirizadas.users.models import User
 
 
 class FoodInclusionStatus(Describable):
     """Status da Inclusão de Alimentação"""
+
+    TO_VALIDATE = _('TO_VALIDATE')
+    TO_APPROVE = _('TO_APPROVE')
+    TO_EDIT = _('TO_EDIT')
+    TO_VISUALIZE = _('TO_VISUALIZE')
+    DENIED = _('DENIED')
+    VISUALIZED = _('VISUALIZED')
 
     def __str__(self):
         return self.name
@@ -89,40 +94,37 @@ class FoodInclusion(TimestampAble):
 
     def _set_status(self, request_data):
         status = request_data.get('status', None)
-        name = status if status else _('TO_VALIDATE')
-        if not object_exists(FoodInclusionStatus, name=_('TO_VALIDATE')):
-            default = FoodInclusionStatus(name=_('TO_VALIDATE'))
-            default.save()
+        name = status if status else FoodInclusionStatus.TO_VALIDATE
         self.status = get_object(FoodInclusionStatus, name=name)
 
     def _notification_aux(self, _type, validation_diff='creation'):
         notification_dict = {
-            _('TO_VALIDATE'): {
+            FoodInclusionStatus.TO_VALIDATE: {
                 'recipient': User.objects.all(),
                 'verb': _(validation_diff.capitalize()),
                 'description': _('created') if validation_diff else _('edited')
             },
-            _('TO_EDIT'): {
+            FoodInclusionStatus.TO_EDIT: {
                 'recipient': User.objects.all(),
                 'verb': _('It needs edition'),
                 'description': _('did not validated')
             },
-            _('TO_APPROVE'): {
+            FoodInclusionStatus.TO_APPROVE: {
                 'recipient': User.objects.all(),
                 'verb': _('Validation'),
                 'description': _('validated')
             },
-            _('TO_VISUALIZE'): {
+            FoodInclusionStatus.TO_VISUALIZE: {
                 'recipient': User.objects.all(),
                 'verb': _('Approval'),
                 'description': _('approved')
             },
-            _('DENIED'): {
+            FoodInclusionStatus.DENIED: {
                 'recipient': User.objects.all(),
                 'verb': _('Denial'),
                 'description': _('denied')
             },
-            _('VISUALIZED'): {
+            FoodInclusionStatus.VISUALIZED: {
                 'recipient': User.objects.all(),
                 'verb': _('Visualization'),
                 'description': _('visualized')
@@ -137,7 +139,7 @@ class FoodInclusion(TimestampAble):
             verb=_('Food Inclusion - ') + self._notification_aux('verb', validation_diff),
             action_object=self,
             description=_('The user ') + actor.name + self._notification_aux('description', validation_diff) +
-                        _(' a food inclusion.'))
+            _(' a food inclusion.'))
 
 
 class FoodInclusionDescription(models.Model):
@@ -152,8 +154,8 @@ class FoodInclusionDescription(models.Model):
                                                       number_of_students=str(self.number_of_students))
 
     class Meta:
-        verbose_name = _("Food Inclusion")
-        verbose_name_plural = _("Food Inclusions")
+        verbose_name = _("Food Inclusion description")
+        verbose_name_plural = _("Food Inclusion descriptions")
 
     def create_or_update(self, request_data, food_inclusion):
         school_period = request_data.get('school_period')
@@ -164,9 +166,3 @@ class FoodInclusionDescription(models.Model):
         self.save()
         self.meal_type.add(get_object(MealType, name=meal_type))
         self.save()
-
-
-@receiver(pre_save, sender=FoodInclusion)
-def food_inclusion_pre_save(sender, instance, *args, **kwargs):
-    if instance.weekdays:
-        validate_comma_separated_integer_list(instance.weekdays)

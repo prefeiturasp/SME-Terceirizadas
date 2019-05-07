@@ -5,6 +5,12 @@ from django.utils.translation import ugettext_lazy as _
 from sme_pratoaberto_terceirizadas.abstract_shareable import Describable, TimestampAble
 
 
+class WorkingDays(object):
+    def __init__(self, **kwargs):
+        for field in ('date_five_working_days', 'date_two_working_days'):
+            setattr(self, field, kwargs.get(field, None))
+
+
 class LogEventData(TimestampAble, Describable):
     """Eventos de dados importantes para acompanhamento.
     Ex.: Fulano X a tarefa do tipo Z no dia tal, passando os dados W

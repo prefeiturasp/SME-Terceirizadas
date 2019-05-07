@@ -8,12 +8,14 @@ from rest_framework.routers import DefaultRouter
 from rest_framework_jwt.views import obtain_jwt_token
 
 from sme_pratoaberto_terceirizadas.meal_kit.views import MealKitViewSet
+from sme_pratoaberto_terceirizadas.common_data.api.viewsets import WorkingDaysViewSet
 from sme_pratoaberto_terceirizadas.users.routers import urlpatterns as user_url
 from sme_pratoaberto_terceirizadas.permission.routers import urlpatterns as permissions_url
 from sme_pratoaberto_terceirizadas.food_inclusion.api.viewsets import FoodInclusionViewSet
 
 route = DefaultRouter(trailing_slash=True)
 route.register(r'meal_kit', MealKitViewSet)
+route.register(r'working_days', WorkingDaysViewSet, base_name='working_days')
 route.register(r'food_inclusion', FoodInclusionViewSet)
 
 urlpatterns = [
