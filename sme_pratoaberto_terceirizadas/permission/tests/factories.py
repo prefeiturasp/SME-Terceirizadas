@@ -1,5 +1,6 @@
-from factory import DjangoModelFactory, Faker, random, SubFactory
+from factory import DjangoModelFactory, Faker, random, SubFactory, post_generation
 
+from sme_pratoaberto_terceirizadas.users.tests.factories import ProfileFactory
 from ..models import Permission, ProfilePermission
 
 random.reseed_random('seed')
@@ -10,6 +11,15 @@ class PermissionFactory(DjangoModelFactory):
     title = Faker("name")
     endpoint = Faker("url")
 
+    @post_generation
+    def groups(self, create, extracted, **kwargs):
+        if not create:
+            return
+        if extracted:
+            # A list of groups were passed in, use them
+            for permission in extracted:
+                self.permissions.add(permission)
+
     class Meta:
         model = Permission
         django_get_or_create = ["title"]
@@ -17,7 +27,7 @@ class PermissionFactory(DjangoModelFactory):
 
 class ProfilePermissionFactory(DjangoModelFactory):
     permission = SubFactory(PermissionFactory)
-    profile = 1
+    profile = SubFactory(ProfileFactory)
     verbs = 'R'
 
     class Meta:
