@@ -1,7 +1,7 @@
 import datetime
 
 from django.utils.translation import ugettext_lazy as _
-from notifications.signals import notify
+
 from ..food.models import MealType
 from ..food_inclusion import models
 from ..school.models import SchoolPeriod

@@ -3,7 +3,6 @@ import uuid as uuid
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
-from sme_pratoaberto_terceirizadas.abstract_shareable import Activable
 from ..users.models import Profile
 
 
@@ -28,7 +27,8 @@ class ProfilePermission(models.Model):
     profile = models.ForeignKey(Profile, on_delete=models.PROTECT)
     permission = models.ForeignKey(Permission, on_delete=models.PROTECT)
     verbs = models.CharField(_('Verbs'), default='R', max_length=2,
-                             help_text='Campo utilizado para indenticar o nível de permissão do usuário (R : Read-only, W : Writer)')
+                             help_text='Campo utilizado para indenticar o nível de permissão'
+                                       ' do usuário (R : Read-only, W : Writer)')
 
     def __str__(self):
         return '{} - {}'.format(self.profile, self.permission)
