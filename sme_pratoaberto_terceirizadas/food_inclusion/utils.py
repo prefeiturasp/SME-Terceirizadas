@@ -1,7 +1,7 @@
 import datetime
 
 from django.utils.translation import ugettext_lazy as _
-
+from ..common_data.utils import get_working_days_after
 from ..food.models import MealType
 from ..food_inclusion import models
 from ..school.models import SchoolPeriod
@@ -9,7 +9,7 @@ from ..school.models import SchoolPeriod
 
 def validate_date_format(date_text, errors_list):
     try:
-        datetime.datetime.strptime(date_text, '%Y%m%d')
+        return datetime.datetime.strptime(date_text, '%Y%m%d')
     except ValueError:
         errors_list.append(_('incorrect data format, should be YYYYMMDD'))
 
@@ -79,7 +79,9 @@ def _is_valid_payload(request_data):
 
 def _validate_date_block(request_data, errors):
     if 'date' in request_data:
-        validate_date_format(request_data.get('date'), errors)
+        _datetime = validate_date_format(request_data.get('date'), errors)
+        if _datetime and _datetime.date() < get_working_days_after(2):
+            errors.append(_('minimum of 2 working days for request'))
     else:
         validate_date_format(request_data.get('date_from'), errors)
         validate_date_format(request_data.get('date_to'), errors)

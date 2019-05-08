@@ -39,4 +39,5 @@ class FoodInclusionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = FoodInclusion
-        fields = ('uuid', 'descriptions', 'date', 'reason', 'date_from', 'date_to', 'weekdays', 'status', 'obs')
+        fields = ('uuid', 'descriptions', 'date', 'reason', 'date_from', 'date_to', 'weekdays', 'status', 'obs',
+                  'priority')
