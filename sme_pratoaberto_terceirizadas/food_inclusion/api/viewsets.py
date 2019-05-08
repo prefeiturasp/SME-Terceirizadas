@@ -89,7 +89,7 @@ class FoodInclusionViewSet(ModelViewSet):
             assert food_inclusion.status == FoodInclusionStatus.objects.get(name=FoodInclusionStatus.TO_APPROVE), \
                 _('food inclusion status is not to approve')
             new_status = FoodInclusionStatus.objects.get(name=FoodInclusionStatus.TO_VISUALIZE) if approval_answer \
-                else FoodInclusionStatus.objects.get(name=FoodInclusionStatus.DENIED)
+                else FoodInclusionStatus.objects.get(name=FoodInclusionStatus.DENIED_BY_CODAE)
             food_inclusion.status = new_status
             food_inclusion.save()
             food_inclusion.send_notification(user)
@@ -112,7 +112,12 @@ class FoodInclusionViewSet(ModelViewSet):
             food_inclusion = get_object_or_404(FoodInclusion, uuid=uuid)
             assert food_inclusion.status == FoodInclusionStatus.objects.get(name=FoodInclusionStatus.TO_VISUALIZE), \
                 _('food inclusion status is not to visualize')
-            new_status = FoodInclusionStatus.objects.get(name=FoodInclusionStatus.VISUALIZED)
+            accepted_by_company = request.data.get('accepted_by_company', True)
+            if accepted_by_company:
+                new_status = FoodInclusionStatus.objects.get(name=FoodInclusionStatus.VISUALIZED)
+            else:
+                new_status = FoodInclusionStatus.objects.get(name=FoodInclusionStatus.DENIED_BY_COMPANY)
+                food_inclusion.denial_reason = request.data.get('denial_reason')
             food_inclusion.status = new_status
             food_inclusion.save()
             food_inclusion.send_notification(user)

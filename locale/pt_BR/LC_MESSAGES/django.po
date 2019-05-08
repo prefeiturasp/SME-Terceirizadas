@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-05-07 16:40-0300\n"
+"POT-Creation-Date: 2019-05-08 13:06-0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
 #: sme_pratoaberto_terceirizadas/abstract_shareable.py:6
-#: sme_pratoaberto_terceirizadas/common_data/models.py:19
+#: sme_pratoaberto_terceirizadas/common_data/models.py:25
 #: sme_pratoaberto_terceirizadas/school/models.py:57
 msgid "Name"
 msgstr "Nome"
@@ -32,17 +32,17 @@ msgstr "Descrição"
 msgid "Active"
 msgstr ""
 
-#: sme_pratoaberto_terceirizadas/common_data/models.py:20
+#: sme_pratoaberto_terceirizadas/common_data/models.py:26
 #: sme_pratoaberto_terceirizadas/users/models.py:133
 msgid "Phone"
 msgstr "Telefone"
 
-#: sme_pratoaberto_terceirizadas/common_data/models.py:21
+#: sme_pratoaberto_terceirizadas/common_data/models.py:27
 #: sme_pratoaberto_terceirizadas/users/models.py:134
 msgid "Mobile phone"
 msgstr "Celular"
 
-#: sme_pratoaberto_terceirizadas/common_data/models.py:22
+#: sme_pratoaberto_terceirizadas/common_data/models.py:28
 #: sme_pratoaberto_terceirizadas/users/models.py:59
 #: sme_pratoaberto_terceirizadas/users/models.py:132
 #, fuzzy
@@ -50,31 +50,31 @@ msgstr "Celular"
 msgid "email address"
 msgstr "Endereços de E-mail"
 
-#: sme_pratoaberto_terceirizadas/common_data/models.py:26
+#: sme_pratoaberto_terceirizadas/common_data/models.py:32
 msgid "City"
 msgstr ""
 
-#: sme_pratoaberto_terceirizadas/common_data/models.py:27
+#: sme_pratoaberto_terceirizadas/common_data/models.py:33
 msgid "UF"
 msgstr ""
 
-#: sme_pratoaberto_terceirizadas/common_data/models.py:32
+#: sme_pratoaberto_terceirizadas/common_data/models.py:38
 msgid "Street name"
 msgstr ""
 
-#: sme_pratoaberto_terceirizadas/common_data/models.py:33
+#: sme_pratoaberto_terceirizadas/common_data/models.py:39
 msgid "Complement"
 msgstr ""
 
-#: sme_pratoaberto_terceirizadas/common_data/models.py:34
+#: sme_pratoaberto_terceirizadas/common_data/models.py:40
 msgid "District"
 msgstr ""
 
-#: sme_pratoaberto_terceirizadas/common_data/models.py:35
+#: sme_pratoaberto_terceirizadas/common_data/models.py:41
 msgid "Number"
 msgstr ""
 
-#: sme_pratoaberto_terceirizadas/common_data/models.py:36
+#: sme_pratoaberto_terceirizadas/common_data/models.py:42
 msgid "Postal code"
 msgstr ""
 
@@ -120,14 +120,14 @@ msgstr "o status da inclusão de alimentação não é 'A_VALIDAR'"
 #: sme_pratoaberto_terceirizadas/food_inclusion/api/viewsets.py:43
 #: sme_pratoaberto_terceirizadas/food_inclusion/api/viewsets.py:71
 #: sme_pratoaberto_terceirizadas/food_inclusion/api/viewsets.py:97
-#: sme_pratoaberto_terceirizadas/food_inclusion/api/viewsets.py:120
+#: sme_pratoaberto_terceirizadas/food_inclusion/api/viewsets.py:125
 msgid "user not found"
 msgstr ""
 
 #: sme_pratoaberto_terceirizadas/food_inclusion/api/viewsets.py:43
 #: sme_pratoaberto_terceirizadas/food_inclusion/api/viewsets.py:71
 #: sme_pratoaberto_terceirizadas/food_inclusion/api/viewsets.py:97
-#: sme_pratoaberto_terceirizadas/food_inclusion/api/viewsets.py:120
+#: sme_pratoaberto_terceirizadas/food_inclusion/api/viewsets.py:125
 msgid "food inclusion not found"
 msgstr ""
 
@@ -148,126 +148,136 @@ msgstr ""
 msgid "food inclusion status is not to visualize"
 msgstr ""
 
-#: sme_pratoaberto_terceirizadas/food_inclusion/models.py:19
+#: sme_pratoaberto_terceirizadas/food_inclusion/models.py:20
 msgid "TO_VALIDATE"
 msgstr "A_VALIDAR"
 
-#: sme_pratoaberto_terceirizadas/food_inclusion/models.py:20
+#: sme_pratoaberto_terceirizadas/food_inclusion/models.py:21
 msgid "TO_APPROVE"
 msgstr "A_APROVAR"
 
-#: sme_pratoaberto_terceirizadas/food_inclusion/models.py:21
+#: sme_pratoaberto_terceirizadas/food_inclusion/models.py:22
 msgid "TO_EDIT"
 msgstr "A_EDITAR"
 
-#: sme_pratoaberto_terceirizadas/food_inclusion/models.py:22
+#: sme_pratoaberto_terceirizadas/food_inclusion/models.py:23
 msgid "TO_VISUALIZE"
 msgstr "A_VISUALIZAR"
 
-#: sme_pratoaberto_terceirizadas/food_inclusion/models.py:23
-msgid "DENIED"
-msgstr "NEGADO"
-
 #: sme_pratoaberto_terceirizadas/food_inclusion/models.py:24
+msgid "DENIED_BY_CODAE"
+msgstr "NEGADO_PELA_CODAE"
+
+#: sme_pratoaberto_terceirizadas/food_inclusion/models.py:25
+msgid "DENIED_BY_COMPANY"
+msgstr "NEGADO_PELA_TERCEIRIZADA"
+
+#: sme_pratoaberto_terceirizadas/food_inclusion/models.py:26
 msgid "VISUALIZED"
 msgstr "VISUALIZADO"
 
-#: sme_pratoaberto_terceirizadas/food_inclusion/models.py:30
-#: sme_pratoaberto_terceirizadas/food_inclusion/models.py:31
+#: sme_pratoaberto_terceirizadas/food_inclusion/models.py:32
+#: sme_pratoaberto_terceirizadas/food_inclusion/models.py:33
 msgid "Status"
 msgstr ""
 
-#: sme_pratoaberto_terceirizadas/food_inclusion/models.py:41
+#: sme_pratoaberto_terceirizadas/food_inclusion/models.py:43
 msgid "Reason"
-msgstr ""
+msgstr "Razão"
 
-#: sme_pratoaberto_terceirizadas/food_inclusion/models.py:42
+#: sme_pratoaberto_terceirizadas/food_inclusion/models.py:44
 msgid "Reasons"
-msgstr ""
+msgstr "Razões"
 
-#: sme_pratoaberto_terceirizadas/food_inclusion/models.py:62
+#: sme_pratoaberto_terceirizadas/food_inclusion/models.py:66
 msgid "Food Inclusion"
-msgstr ""
+msgstr "Inclusão de Alimentação"
 
-#: sme_pratoaberto_terceirizadas/food_inclusion/models.py:63
+#: sme_pratoaberto_terceirizadas/food_inclusion/models.py:67
 msgid "Food Inclusions"
-msgstr ""
-
-#: sme_pratoaberto_terceirizadas/food_inclusion/models.py:105
-msgid "created"
-msgstr ""
-
-#: sme_pratoaberto_terceirizadas/food_inclusion/models.py:105
-msgid "edited"
-msgstr ""
-
-#: sme_pratoaberto_terceirizadas/food_inclusion/models.py:109
-msgid "It needs edition"
-msgstr ""
+msgstr "Inclusões de Alimentação"
 
 #: sme_pratoaberto_terceirizadas/food_inclusion/models.py:110
+msgid "created"
+msgstr "criado"
+
+#: sme_pratoaberto_terceirizadas/food_inclusion/models.py:110
+msgid "edited"
+msgstr "editado"
+
+#: sme_pratoaberto_terceirizadas/food_inclusion/models.py:114
+msgid "It needs edition"
+msgstr "Precisa de Edição"
+
+#: sme_pratoaberto_terceirizadas/food_inclusion/models.py:115
 #, fuzzy
 #| msgid "did not validated "
 msgid "did not validated"
 msgstr "não validou "
 
-#: sme_pratoaberto_terceirizadas/food_inclusion/models.py:114
+#: sme_pratoaberto_terceirizadas/food_inclusion/models.py:119
 msgid "Validation"
-msgstr ""
+msgstr "Validação"
 
-#: sme_pratoaberto_terceirizadas/food_inclusion/models.py:115
+#: sme_pratoaberto_terceirizadas/food_inclusion/models.py:120
 #, fuzzy
 #| msgid "did not validated "
 msgid "validated"
 msgstr "não validou "
 
-#: sme_pratoaberto_terceirizadas/food_inclusion/models.py:119
+#: sme_pratoaberto_terceirizadas/food_inclusion/models.py:124
 msgid "Approval"
-msgstr ""
+msgstr "Aprovação"
 
-#: sme_pratoaberto_terceirizadas/food_inclusion/models.py:120
+#: sme_pratoaberto_terceirizadas/food_inclusion/models.py:125
 #, fuzzy
 #| msgid "approved "
 msgid "approved"
 msgstr "aprovado "
 
-#: sme_pratoaberto_terceirizadas/food_inclusion/models.py:124
-msgid "Denial"
-msgstr ""
-
-#: sme_pratoaberto_terceirizadas/food_inclusion/models.py:125
-#, fuzzy
-#| msgid "denied "
-msgid "denied"
-msgstr "negado "
-
 #: sme_pratoaberto_terceirizadas/food_inclusion/models.py:129
-msgid "Visualization"
+msgid "Denial by CODAE"
 msgstr ""
 
 #: sme_pratoaberto_terceirizadas/food_inclusion/models.py:130
-msgid "visualized"
+msgid "denied by CODAE"
+msgstr ""
+
+#: sme_pratoaberto_terceirizadas/food_inclusion/models.py:134
+msgid "Denial by Company"
+msgstr ""
+
+#: sme_pratoaberto_terceirizadas/food_inclusion/models.py:135
+msgid "denied by company"
 msgstr ""
 
 #: sme_pratoaberto_terceirizadas/food_inclusion/models.py:139
+msgid "Visualization"
+msgstr ""
+
+#: sme_pratoaberto_terceirizadas/food_inclusion/models.py:140
+msgid "visualized"
+msgstr ""
+
+#: sme_pratoaberto_terceirizadas/food_inclusion/models.py:149
 msgid "Food Inclusion - "
 msgstr ""
 
-#: sme_pratoaberto_terceirizadas/food_inclusion/models.py:141
+#: sme_pratoaberto_terceirizadas/food_inclusion/models.py:151
 #, fuzzy
 #| msgid "user"
 msgid "The user "
 msgstr "usuário"
 
-#: sme_pratoaberto_terceirizadas/food_inclusion/models.py:142
+#: sme_pratoaberto_terceirizadas/food_inclusion/models.py:152
 msgid " a food inclusion."
 msgstr ""
 
-#: sme_pratoaberto_terceirizadas/food_inclusion/models.py:157
+#: sme_pratoaberto_terceirizadas/food_inclusion/models.py:167
 msgid "Food Inclusion description"
 msgstr ""
 
-#: sme_pratoaberto_terceirizadas/food_inclusion/models.py:158
+#: sme_pratoaberto_terceirizadas/food_inclusion/models.py:168
 msgid "Food Inclusion descriptions"
 msgstr ""
 
@@ -292,23 +302,27 @@ msgstr ""
 msgid "request_data needs to be a QueryString"
 msgstr ""
 
-#: sme_pratoaberto_terceirizadas/food_inclusion/utils.py:93
-msgid "descriptions needs to be a list"
+#: sme_pratoaberto_terceirizadas/food_inclusion/utils.py:84
+msgid "minimum of 2 working days for request"
 msgstr ""
 
 #: sme_pratoaberto_terceirizadas/food_inclusion/utils.py:95
+msgid "descriptions needs to be a list"
+msgstr ""
+
+#: sme_pratoaberto_terceirizadas/food_inclusion/utils.py:97
 msgid "descriptions cannot be empty"
 msgstr ""
 
-#: sme_pratoaberto_terceirizadas/food_inclusion/utils.py:104
+#: sme_pratoaberto_terceirizadas/food_inclusion/utils.py:106
 msgid "meal type doesnt exist"
 msgstr ""
 
-#: sme_pratoaberto_terceirizadas/food_inclusion/utils.py:106
+#: sme_pratoaberto_terceirizadas/food_inclusion/utils.py:108
 msgid "school period doesnt exist"
 msgstr ""
 
-#: sme_pratoaberto_terceirizadas/food_inclusion/utils.py:108
+#: sme_pratoaberto_terceirizadas/food_inclusion/utils.py:110
 msgid "number of students needs to be int"
 msgstr ""
 
@@ -724,6 +738,14 @@ msgstr "nome"
 #: sme_pratoaberto_terceirizadas/users/models.py:136
 msgid "Functional register"
 msgstr "Registro Funcional"
+
+#~ msgid "DENIED"
+#~ msgstr "NEGADO"
+
+#, fuzzy
+#~| msgid "denied "
+#~ msgid "denied"
+#~ msgstr "negado "
 
 #, fuzzy
 #~| msgid "Abbreviation"

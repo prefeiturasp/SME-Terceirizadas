@@ -6,7 +6,7 @@ from django.utils.translation import ugettext as _
 
 from notifications.signals import notify
 from sme_pratoaberto_terceirizadas.abstract_shareable import Describable, TimestampAble
-from sme_pratoaberto_terceirizadas.common_data.utils import str_to_date
+from sme_pratoaberto_terceirizadas.common_data.utils import str_to_date, get_working_days_after
 from sme_pratoaberto_terceirizadas.food.models import MealType
 from sme_pratoaberto_terceirizadas.food_inclusion.utils import get_object
 from sme_pratoaberto_terceirizadas.school.models import SchoolPeriod
@@ -20,7 +20,8 @@ class FoodInclusionStatus(Describable):
     TO_APPROVE = _('TO_APPROVE')
     TO_EDIT = _('TO_EDIT')
     TO_VISUALIZE = _('TO_VISUALIZE')
-    DENIED = _('DENIED')
+    DENIED_BY_CODAE = _('DENIED_BY_CODAE')
+    DENIED_BY_COMPANY = _('DENIED_BY_COMPANY')
     VISUALIZED = _('VISUALIZED')
 
     def __str__(self):
@@ -53,7 +54,9 @@ class FoodInclusion(TimestampAble):
                                 validators=[validate_comma_separated_integer_list])
     status = models.ForeignKey(FoodInclusionStatus, on_delete=models.DO_NOTHING)
     priority = models.BooleanField(default=False)
-    obs = models.TextField()
+    denied_by_company = models.BooleanField(default=False)
+    denial_reason = models.TextField(blank=True, null=True)
+    obs = models.TextField(blank=True, null=True)
 
     def __str__(self):
         return '{name} - {id}'.format(name=self.status.name, id=self.id)
@@ -75,6 +78,7 @@ class FoodInclusion(TimestampAble):
     def _assign_date_block(self, request_data):
         if 'date' in request_data.keys():
             self.date = str_to_date(request_data.get('date'), '%Y%m%d')
+            self.priority = get_working_days_after(days=2) <= self.date <= get_working_days_after(days=5)
             self.date_from = None
             self.date_to = None
             self.weekdays = None
@@ -119,10 +123,15 @@ class FoodInclusion(TimestampAble):
                 'verb': _('Approval'),
                 'description': _('approved')
             },
-            FoodInclusionStatus.DENIED: {
+            FoodInclusionStatus.DENIED_BY_CODAE: {
                 'recipient': User.objects.all(),
-                'verb': _('Denial'),
-                'description': _('denied')
+                'verb': _('Denial by CODAE'),
+                'description': _('denied by CODAE')
+            },
+            FoodInclusionStatus.DENIED_BY_COMPANY: {
+                'recipient': User.objects.all(),
+                'verb': _('Denial by Company'),
+                'description': _('denied by company')
             },
             FoodInclusionStatus.VISUALIZED: {
                 'recipient': User.objects.all(),
