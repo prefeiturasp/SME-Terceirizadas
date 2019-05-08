@@ -4,11 +4,9 @@ from django.contrib.auth.base_user import AbstractBaseUser
 from django.contrib.auth.models import BaseUserManager, PermissionsMixin
 from django.core.mail import send_mail
 from django.db import models
-from django.db.models.signals import post_save
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from sme_pratoaberto_terceirizadas.abstract_shareable import Activable
-from notifications.signals import notify
 
 
 # Thanks to https://github.com/jmfederico/django-use-email-as-username
