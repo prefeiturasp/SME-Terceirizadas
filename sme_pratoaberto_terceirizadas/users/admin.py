@@ -35,7 +35,6 @@ class BaseUserAdmin(DjangoUserAdmin):
 
 
 admin.site.register(Institution)
-# admin.site.register(Profile)
 admin.site.register(User, BaseUserAdmin)
 
 

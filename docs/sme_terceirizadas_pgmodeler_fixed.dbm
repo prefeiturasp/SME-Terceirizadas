@@ -3,7 +3,7 @@
 CAUTION: Do not modify this file unless you know what you are doing.
          Unexpected results may occur if the code is changed deliberately.
 -->
-<dbmodel pgmodeler-ver="0.9.1-beta" last-position="891,518" last-zoom="0.9"
+<dbmodel pgmodeler-ver="0.9.1-beta" last-position="0,1003" last-zoom="0.9"
 	 default-owner="postgres">
 <database name="new_database">
 </database>
@@ -110,7 +110,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<schema name="food"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Tabela util.izada para registrar alimentos.]]></comment>
-	<position x="540" y="1520"/>
+	<position x="520" y="1543"/>
 	<column name="food_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -135,7 +135,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<schema name="food"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Categoria de alimentação.]]></comment>
-	<position x="940" y="1400"/>
+	<position x="940" y="1443"/>
 	<column name="category_food_id" not-null="true">
 		<type name="integer" length="0"/>
 	</column>
@@ -306,7 +306,7 @@ Borough hall record.]]></comment>
 	<schema name="profile"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Perfil do usuário Ex: Cogestor, Nutricionista ou COGESTOR E NUTRI, etc.]]></comment>
-	<position x="1880" y="920"/>
+	<position x="1920" y="980"/>
 	<column name="profile_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>

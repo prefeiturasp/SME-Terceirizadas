@@ -1,0 +1,2 @@
+class FoodInclusionCreateOrUpdateException(Exception):
+    pass
