@@ -6,11 +6,6 @@ from .users.tests.factories import ProfileFactory
 
 
 @pytest.fixture
-def sample():
-    return 'teste'
-
-
-@pytest.fixture
 def meal_kit() -> MealKitFactory:
     return MealKitFactory()
 
