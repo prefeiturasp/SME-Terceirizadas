@@ -2,6 +2,7 @@
 Base settings to build other settings files upon.
 """
 
+import datetime
 import os
 
 import environ
@@ -288,4 +289,8 @@ SWAGGER_SETTINGS = {
     'DOC_EXPANSION': 'list',
     'APIS_SORTER': 'alpha',
     'SECURITY_DEFINITIONS': None,
+}
+
+JWT_AUTH = {
+    'JWT_REFRESH_EXPIRATION_DELTA': datetime.timedelta(days=7),
 }

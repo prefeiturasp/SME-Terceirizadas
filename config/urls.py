@@ -6,10 +6,10 @@ from django.urls import include, path
 from django.utils.translation import ugettext as _
 from django.views import defaults as default_views
 from rest_framework.routers import DefaultRouter
-from rest_framework_jwt.views import obtain_jwt_token
+from rest_framework_jwt.views import obtain_jwt_token, verify_jwt_token
 from rest_framework_swagger.views import get_swagger_view
 
-from sme_pratoaberto_terceirizadas.common_data.api.viewsets import WorkingDaysViewSet
+from sme_pratoaberto_terceirizadas.common_data.api.viewsets import WorkingDaysViewSet, EmailConfigurationViewSet
 from sme_pratoaberto_terceirizadas.food_inclusion.api.viewsets import FoodInclusionViewSet
 from sme_pratoaberto_terceirizadas.meal_kit.views import MealKitViewSet
 from sme_pratoaberto_terceirizadas.permission.routers import urlpatterns as permissions_url
@@ -21,21 +21,17 @@ route = DefaultRouter(trailing_slash=True)
 route.register(r'meal_kit', MealKitViewSet)
 route.register(r'working_days', WorkingDaysViewSet, base_name='working_days')
 route.register(r'food_inclusion', FoodInclusionViewSet)
+route.register(r'email', EmailConfigurationViewSet)
 
 urlpatterns = [
                   path('api', schema_view),
                   path('', include(route.urls)),
                   path(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
                   path('^inbox/notifications/', include(notifications.urls, namespace='notifications')),
-                  # Django Admin, use {% url 'admin:index' %}
-
                   path(settings.ADMIN_URL, admin.site.urls),
-                  # User management
 
-                  # TODO: continuar com o jwt.
-                  path("api-token-auth/", obtain_jwt_token),
-
-                  path("commom-data/", include('sme_pratoaberto_terceirizadas.common_data.urls'))
+                  path(r"api-token-auth/", obtain_jwt_token),
+                  path(r'api-token-verify/', verify_jwt_token),
 
               ] + static(
     settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
