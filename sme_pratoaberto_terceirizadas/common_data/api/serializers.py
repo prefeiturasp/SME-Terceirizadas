@@ -20,4 +20,5 @@ class WorkingDaysSerializer(serializers.Serializer):
 class EmailConfigurationSerializer(serializers.ModelSerializer):
     class Meta:
         model = EmailConfiguration
-        fields = ('username', 'email')
+        fields = ('host', 'port', 'username', 'password', 'email_from',
+                  'use_tls', 'use_ssl', 'timeout')

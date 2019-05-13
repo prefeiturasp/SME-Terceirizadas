@@ -292,5 +292,5 @@ SWAGGER_SETTINGS = {
 }
 
 JWT_AUTH = {
-    'JWT_REFRESH_EXPIRATION_DELTA': datetime.timedelta(days=7),
+    'JWT_EXPIRATION_DELTA': datetime.timedelta(hours=2),
 }

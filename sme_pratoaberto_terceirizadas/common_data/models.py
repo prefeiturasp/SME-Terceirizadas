@@ -52,15 +52,15 @@ class Address(models.Model):
 # from django.core.mail.backends.smtp import EmailBackend
 
 
-
-
 class EmailConfiguration(models.Model):
     """Para salvar configurações de email do terceirizadas"""
-    host = models.URLField(_("Host"))
+    host = models.CharField(_("Host"), max_length=100)
     port = models.IntegerField(_("Port"))
-    username = models.CharField(_("Username"), max_length=100)
+    username = models.EmailField(_("Username"), max_length=100)
     password = models.CharField(_("Password"), max_length=100)
-    email = models.EmailField(_("Email"), max_length=100)
+    from_email = models.EmailField(_("Email"), max_length=100)
+
+    # default
     use_tls = models.BooleanField(_("Use TLS"), default=False)
     fail_silently = models.BooleanField(_("Fail silently"), default=False)
     use_ssl = models.BooleanField(_("Use SSL"), default=False)
