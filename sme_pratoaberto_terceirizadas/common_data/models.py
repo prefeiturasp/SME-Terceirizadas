@@ -1,3 +1,5 @@
+from smtplib import SMTPException
+
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
@@ -48,25 +50,3 @@ class Address(models.Model):
                                       null=True,
                                       editable=False)
 
-
-# from django.core.mail.backends.smtp import EmailBackend
-
-
-
-
-class EmailConfiguration(models.Model):
-    """Para salvar configurações de email do terceirizadas"""
-    host = models.URLField(_("Host"))
-    port = models.IntegerField(_("Port"))
-    username = models.CharField(_("Username"), max_length=100)
-    password = models.CharField(_("Password"), max_length=100)
-    email = models.EmailField(_("Email"), max_length=100)
-    use_tls = models.BooleanField(_("Use TLS"), default=False)
-    fail_silently = models.BooleanField(_("Fail silently"), default=False)
-    use_ssl = models.BooleanField(_("Use SSL"), default=False)
-    timeout = models.IntegerField(_("Timeout"), default=30)
-
-    # def send_test_email(self):
-    #     backend = EmailBackend(host=self.host, port=self.port, username=self.username,
-    #                            password=self.password, use_tls=self.use_tls,
-    #                            fail_silently=self.fail_silently)

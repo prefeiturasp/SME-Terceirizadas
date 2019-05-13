@@ -82,7 +82,8 @@ THIRD_PARTY_APPS = [
     'crispy_forms',
     'rest_framework',
     'notifications',
-    'rest_framework_swagger'
+    'rest_framework_swagger',
+    'des'
 ]
 LOCAL_APPS = [
     'sme_pratoaberto_terceirizadas.users.apps.CustomUserConfig',
@@ -155,7 +156,6 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -242,7 +242,9 @@ X_FRAME_OPTIONS = 'DENY'
 # EMAIL
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#email-backend
-EMAIL_BACKEND = env('DJANGO_EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend')
+EMAIL_BACKEND = env('DJANGO_EMAIL_BACKEND', default='des.backends.ConfiguredEmailBackend')
+DES_TEST_SUBJECT = "TESTE"
+DES_TEST_TEXT_TEMPLATE = os.path.join(APPS_DIR, "templates", "email", "test_email.txt")
 
 # ADMIN
 # ------------------------------------------------------------------------------
@@ -292,5 +294,5 @@ SWAGGER_SETTINGS = {
 }
 
 JWT_AUTH = {
-    'JWT_REFRESH_EXPIRATION_DELTA': datetime.timedelta(days=7),
+    'JWT_EXPIRATION_DELTA': datetime.timedelta(hours=2),
 }

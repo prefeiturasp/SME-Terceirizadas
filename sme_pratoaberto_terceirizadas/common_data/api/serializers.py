@@ -1,6 +1,6 @@
+from des.models import DynamicEmailConfiguration
 from rest_framework import serializers
 
-from sme_pratoaberto_terceirizadas.common_data.models import EmailConfiguration
 from ..models import WorkingDays
 
 
@@ -19,5 +19,6 @@ class WorkingDaysSerializer(serializers.Serializer):
 
 class EmailConfigurationSerializer(serializers.ModelSerializer):
     class Meta:
-        model = EmailConfiguration
-        fields = ('username', 'email')
+        model = DynamicEmailConfiguration
+        fields = ('host', 'port', 'username', 'password',
+                  'from_email', 'use_tls', 'use_ssl', 'timeout')
