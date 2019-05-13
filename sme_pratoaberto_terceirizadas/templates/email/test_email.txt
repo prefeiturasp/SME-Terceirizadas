@@ -1,2 +1,2 @@
-ESTE É UM EMAIL DE TESTE.
-PARABÉNS, A CONFIGURAÇÃO ESTÁ CORRETA!
+--------------ESTE É UM EMAIL DE TESTE------------------
+-------PARABÉNS, A CONFIGURAÇÃO ESTÁ CORRETA!-----------
