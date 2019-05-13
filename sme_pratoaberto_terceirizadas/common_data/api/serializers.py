@@ -1,7 +1,6 @@
 from rest_framework import serializers
 
-from sme_pratoaberto_terceirizadas.common_data.models import EmailConfiguration
-from ..models import WorkingDays
+from ..models import WorkingDays, EmailConfiguration
 
 
 class WorkingDaysSerializer(serializers.Serializer):
@@ -20,5 +19,5 @@ class WorkingDaysSerializer(serializers.Serializer):
 class EmailConfigurationSerializer(serializers.ModelSerializer):
     class Meta:
         model = EmailConfiguration
-        fields = ('host', 'port', 'username', 'password', 'email_from',
-                  'use_tls', 'use_ssl', 'timeout')
+        fields = ('host', 'port', 'username', 'password',
+                  'from_email', 'use_tls', 'use_ssl', 'timeout')

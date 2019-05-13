@@ -1,3 +1,5 @@
+from smtplib import SMTPException
+
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
@@ -49,7 +51,8 @@ class Address(models.Model):
                                       editable=False)
 
 
-# from django.core.mail.backends.smtp import EmailBackend
+from django.core.mail import EmailMessage
+from django.core.mail.backends.smtp import EmailBackend
 
 
 class EmailConfiguration(models.Model):
@@ -66,7 +69,17 @@ class EmailConfiguration(models.Model):
     use_ssl = models.BooleanField(_("Use SSL"), default=False)
     timeout = models.IntegerField(_("Timeout"), default=30)
 
-    # def send_test_email(self):
-    #     backend = EmailBackend(host=self.host, port=self.port, username=self.username,
-    #                            password=self.password, use_tls=self.use_tls,
-    #                            fail_silently=self.fail_silently)
+    def send_test_email(self):
+        backend = EmailBackend(host=self.host, port=self.port, username=self.username,
+                               password=self.password, use_tls=self.use_tls,
+                               fail_silently=self.fail_silently)
+        email = EmailMessage(subject='SUBJECT...', body='TEST...', from_email=self.from_email, to=[self.username],
+                             connection=backend)
+        email.send()
+
+    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
+        try:
+            self.send_test_email()
+        except SMTPException as e:
+            return {'Error: {}'.format(e)}
+        super().save(force_insert, force_update, using, update_fields)

@@ -1,4 +1,5 @@
 import notifications.urls
+from des import urls as des_urls
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
@@ -32,6 +33,7 @@ urlpatterns = [
 
                   path(r"api-token-auth/", obtain_jwt_token),
                   path(r'api-token-verify/', verify_jwt_token),
+                  path(r'django-des/', include(des_urls)),
 
               ] + static(
     settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
