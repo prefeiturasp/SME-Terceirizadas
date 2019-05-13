@@ -72,3 +72,8 @@ CORS_ORIGIN_ALLOW_ALL = True
 #     'DEFAULT_AUTHENTICATION_CLASSES': [],
 #     'DEFAULT_PERMISSION_CLASSES': [],
 # }
+
+
+JWT_AUTH = {
+    'JWT_EXPIRATION_DELTA': datetime.timedelta(hours=20),
+}

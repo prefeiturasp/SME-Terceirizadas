@@ -10,8 +10,8 @@ from rest_framework.routers import DefaultRouter
 from rest_framework_jwt.views import obtain_jwt_token, verify_jwt_token
 from rest_framework_swagger.views import get_swagger_view
 
-from sme_pratoaberto_terceirizadas.common_data import urls as common_data_urls
-from sme_pratoaberto_terceirizadas.common_data.api.viewsets import WorkingDaysViewSet, EmailConfigurationViewSet
+from sme_pratoaberto_terceirizadas.common_data.urls import urlpatterns as common_urls
+from sme_pratoaberto_terceirizadas.common_data.api.viewsets import WorkingDaysViewSet
 from sme_pratoaberto_terceirizadas.food_inclusion.api.viewsets import FoodInclusionViewSet
 from sme_pratoaberto_terceirizadas.meal_kit.views import MealKitViewSet
 from sme_pratoaberto_terceirizadas.permission.routers import urlpatterns as permissions_url
@@ -23,7 +23,6 @@ route = DefaultRouter(trailing_slash=True)
 route.register(r'meal_kit', MealKitViewSet)
 route.register(r'working_days', WorkingDaysViewSet, base_name='working_days')
 route.register(r'food_inclusion', FoodInclusionViewSet)
-# route.register(r'email', EmailConfigurationViewSet)
 
 urlpatterns = [
                   path('api', schema_view),
@@ -34,7 +33,6 @@ urlpatterns = [
                   path(r"api-token-auth/", obtain_jwt_token),
                   path(r'api-token-verify/', verify_jwt_token),
                   path(r'django-des/', include(des_urls)),
-                  path(r'email/', include(common_data_urls)),
 
               ] + static(
     settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
@@ -43,6 +41,7 @@ urlpatterns = [
 #### ADDING ROUTERS FROM ALL APPS ####
 urlpatterns += user_url
 urlpatterns += permissions_url
+urlpatterns += common_urls
 
 if settings.DEBUG:
     # This allows the error pages to be debugged during development, just visit

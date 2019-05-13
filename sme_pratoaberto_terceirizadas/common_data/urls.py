@@ -1,12 +1,13 @@
-from django.urls import path
+from django.urls import path, include
+from rest_framework import routers
 
-from .api.viewsets import (
-    EmailConfigurationViewSet,
-)
+from .api import viewsets
 from .views import send_test_email
 
-app_name = "commom-data"
+router = routers.DefaultRouter()
+router.register('email', viewsets.EmailConfigurationViewSet)
+
 urlpatterns = [
-    # path("", view=EmailConfigurationViewSet, name="email"),
-    path(r"test", view=send_test_email, name="test_email"),
+    path("api/v1/", include(router.urls)),
+    path("api/v1/email-test/", send_test_email, name="send_test_email")
 ]

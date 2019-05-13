@@ -1,12 +1,12 @@
 from des.models import DynamicEmailConfiguration
 from django.conf import settings
 from django.core.mail import send_mail
-from django.shortcuts import render
+from django.http import HttpResponse
 from django.template import loader
 from django.utils.translation import ugettext as _
-from django.views.decorators.http import require_http_methods
 
 # Create your views here.
+from django.views.decorators.http import require_http_methods
 
 subject = getattr(settings, 'DES_TEST_SUBJECT', _("Test Email"))
 text_template = getattr(settings, 'DES_TEST_TEXT_TEMPLATE', "des/test_email.txt")
@@ -16,7 +16,7 @@ message_text = loader.render_to_string(text_template)
 message_html = loader.render_to_string(html_template) if html_template else None
 
 
-@require_http_methods(["POST"])
+# @require_http_methods(["POST"])
 def send_test_email(request):
     email = request.POST.get('email', None)
     config = DynamicEmailConfiguration.get_solo()
@@ -38,4 +38,4 @@ def send_test_email(request):
     else:
         response = _("You must provide an email address to test with.")
 
-    return render({'response': response})
+    return HttpResponse({'xx': response})
