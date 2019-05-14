@@ -1,5 +1,3 @@
-from smtplib import SMTPException
-
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
@@ -49,4 +47,3 @@ class Address(models.Model):
                                       on_delete=models.DO_NOTHING,
                                       null=True,
                                       editable=False)
-

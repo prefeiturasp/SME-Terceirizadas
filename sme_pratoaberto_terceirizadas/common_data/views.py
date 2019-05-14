@@ -20,25 +20,23 @@ message_html = loader.render_to_string(html_template) if html_template else None
 def send_test_email(request):
     body_unicode = request.body.decode('utf-8')
     body = json.loads(body_unicode)
-    email = body['email']
-
+    to_email = body.get('to_email')
     config = DynamicEmailConfiguration.get_solo()
-
-    if email:
+    response = {}
+    if to_email:
         try:
             send_mail(
                 subject,
                 message_text,
                 config.from_email or None,
-                [email],
+                [to_email],
                 html_message=message_html)
-            response = _("Test email sent. Please check \"{}\" for a "
-                         "message with the subject \"{}\"").format(
-                email,
+            response['detail'] = _("Test email sent. Please check \"{}\" for a "
+                                   "message with the subject \"{}\"").format(
+                to_email,
                 subject)
         except Exception as e:
-            response = _("Could not send email. {}").format(e)
+            response['error'] = _("Could not send email. {}").format(e)
     else:
-        response = _("You must provide an email address to test with.")
-
-    return HttpResponse(response)
+        response['error'] = _("You must provide an email address to test with.")
+    return HttpResponse(json.dumps(response))
