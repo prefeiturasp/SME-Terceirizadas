@@ -25,7 +25,7 @@ route.register(r'working_days', WorkingDaysViewSet, base_name='working_days')
 route.register(r'food_inclusion', FoodInclusionViewSet)
 
 urlpatterns = [
-                  path('api', schema_view),
+                  path('docs', schema_view),
                   path('', include(route.urls)),
                   path(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
                   path('^inbox/notifications/', include(notifications.urls, namespace='notifications')),
