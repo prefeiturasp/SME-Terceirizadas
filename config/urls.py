@@ -11,6 +11,7 @@ from rest_framework_jwt.views import obtain_jwt_token, refresh_jwt_token
 from rest_framework_swagger.views import get_swagger_view
 
 from sme_pratoaberto_terceirizadas.common_data.api.viewsets import WorkingDaysViewSet
+from sme_pratoaberto_terceirizadas.school.routers import urlpatterns as school_url
 from sme_pratoaberto_terceirizadas.common_data.urls import urlpatterns as common_urls
 from sme_pratoaberto_terceirizadas.food_inclusion.api.viewsets import FoodInclusionViewSet
 from sme_pratoaberto_terceirizadas.meal_kit.views import MealKitViewSet
@@ -39,8 +40,9 @@ urlpatterns = [
 )
 
 #### ADDING ROUTERS FROM ALL APPS ####
-urlpatterns += user_url
 urlpatterns += permissions_url
+urlpatterns += school_url
+urlpatterns += user_url
 urlpatterns += common_urls
 
 if settings.DEBUG:

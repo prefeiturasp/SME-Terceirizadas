@@ -11,7 +11,7 @@ class Describable(models.Model):
 
 
 class Activable(models.Model):
-    is_active = models.BooleanField(_("Active"))
+    is_active = models.BooleanField(_("Is active"))
 
     class Meta:
         abstract = True

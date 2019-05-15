@@ -3,7 +3,7 @@ from datetime import datetime
 from workalendar.america import BrazilSaoPauloCity
 
 
-def str_to_date(date_str, format_date_str='%d%m%Y'):
+def str_to_date(date_str, format_date_str='%d/%m/%Y'):
     """
     Auxilliary method to define format to send and receive dates
     """

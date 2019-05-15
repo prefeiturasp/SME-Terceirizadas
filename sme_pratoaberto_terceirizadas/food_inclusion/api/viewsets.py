@@ -22,6 +22,20 @@ class FoodInclusionViewSet(ModelViewSet):
     object_class = FoodInclusion
     permission_classes = ()
 
+    @detail_route(methods=['get'], permission_classes=[])
+    def get_saved_food_inclusions(self, request, pk=None):
+        response = {'content': {}, 'log_content': {}, 'code': None}
+        try:
+            user = get_object_or_404(User, uuid=pk)
+            food_inclusions = FoodInclusion.objects.filter(status__name=FoodInclusionStatus.SAVED, created_by=user)
+        except Http404:
+            response['log_content'] = ["Usuário não encontrado"]
+            response['code'] = status.HTTP_404_NOT_FOUND
+        else:
+            response['code'] = status.HTTP_200_OK
+            response['content']['food_inclusions'] = FoodInclusionSerializer(food_inclusions, many=True).data
+        return Response(response, status=response['code'])
+
     @detail_route(methods=['post'], permission_classes=[])
     def create_or_update(self, request, pk=None):
         response = {'content': {}, 'log_content': {}, 'code': None}
@@ -34,20 +48,47 @@ class FoodInclusionViewSet(ModelViewSet):
             uuid = request.data.get('uuid', None)
             food_inclusion = get_object_or_404(FoodInclusion, uuid=uuid) if uuid else FoodInclusion()
             if uuid:
-                assert food_inclusion.status == FoodInclusionStatus.objects.get(name=FoodInclusionStatus.TO_EDIT), \
-                    _('food inclusion status is not to edit')
+                assert food_inclusion.status in [FoodInclusionStatus.objects.get(name=FoodInclusionStatus.TO_EDIT),
+                                                 FoodInclusionStatus.objects.get(name=FoodInclusionStatus.SAVED)], \
+                    "Inclusão de Alimentação não está com status válido para edição"
+                food_inclusion.foodinclusiondescription_set.all().delete()
             food_inclusion.create_or_update(request_data=request.data, user=user)
             validation_diff = 'creation' if not uuid else 'edition'
-            food_inclusion.send_notification(user, validation_diff)
+            if food_inclusion.status.name != FoodInclusionStatus.SAVED:
+                food_inclusion.send_notification(user, validation_diff)
         except Http404 as error:
             response['log_content'] = [_('user not found')] if 'User' in str(error) else [_('food inclusion not found')]
             response['code'] = status.HTTP_404_NOT_FOUND
+        except AssertionError as error:
+            response['log_content'] = [str(error)]
+            response['code'] = status.HTTP_400_BAD_REQUEST
         except FoodInclusionCreateOrUpdateException:
             response['log_content'] = errors_list
             response['code'] = status.HTTP_400_BAD_REQUEST
         else:
             response['code'] = status.HTTP_200_OK
             response['content']['food_inclusion'] = FoodInclusionSerializer(food_inclusion).data
+        return Response(response, status=response['code'])
+
+    @detail_route(methods=['delete'], permission_classes=[])
+    def delete(self, request, pk=None):
+        response = {'content': {}, 'log_content': {}, 'code': None}
+        try:
+            user = get_object_or_404(User, uuid=pk)
+            uuid = request.data.get('uuid', None)
+            food_inclusion = get_object_or_404(FoodInclusion, uuid=uuid, created_by=user)
+            assert food_inclusion.status == FoodInclusionStatus.objects.get(name=FoodInclusionStatus.SAVED), \
+                "Status de inclusão não está como SALVO"
+            food_inclusion.delete()
+        except Http404 as error:
+            response['log_content'] = ['Usuário não encontrado'] if 'User' in str(error) else [
+                'Inclusão de alimentação não encontrada']
+            response['code'] = status.HTTP_404_NOT_FOUND
+        except AssertionError as error:
+            response['code'] = status.HTTP_400_BAD_REQUEST
+            response['log_content'] = [str(error)]
+        else:
+            response['code'] = status.HTTP_200_OK
         return Response(response, status=response['code'])
 
     @detail_route(methods=['post'], permission_classes=[])
