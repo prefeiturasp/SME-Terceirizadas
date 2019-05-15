@@ -7,11 +7,11 @@ from django.urls import include, path
 from django.utils.translation import ugettext as _
 from django.views import defaults as default_views
 from rest_framework.routers import DefaultRouter
-from rest_framework_jwt.views import obtain_jwt_token, verify_jwt_token
+from rest_framework_jwt.views import obtain_jwt_token, refresh_jwt_token
 from rest_framework_swagger.views import get_swagger_view
 
-from sme_pratoaberto_terceirizadas.common_data.urls import urlpatterns as common_urls
 from sme_pratoaberto_terceirizadas.common_data.api.viewsets import WorkingDaysViewSet
+from sme_pratoaberto_terceirizadas.common_data.urls import urlpatterns as common_urls
 from sme_pratoaberto_terceirizadas.food_inclusion.api.viewsets import FoodInclusionViewSet
 from sme_pratoaberto_terceirizadas.meal_kit.views import MealKitViewSet
 from sme_pratoaberto_terceirizadas.permission.routers import urlpatterns as permissions_url
@@ -31,7 +31,7 @@ urlpatterns = [
                   path('^inbox/notifications/', include(notifications.urls, namespace='notifications')),
                   path(settings.ADMIN_URL, admin.site.urls),
                   path(r"api-token-auth/", obtain_jwt_token),
-                  path(r'api-token-verify/', verify_jwt_token),
+                  path(r'api-token-refresh/', refresh_jwt_token),
                   path(r'django-des/', include(des_urls)),
 
               ] + static(
