@@ -16,6 +16,7 @@ from sme_pratoaberto_terceirizadas.users.models import User
 class FoodInclusionStatus(Describable):
     """Status da Inclusão de Alimentação"""
 
+    SAVED = "SALVO"
     TO_VALIDATE = _('TO_VALIDATE')
     TO_APPROVE = _('TO_APPROVE')
     TO_EDIT = _('TO_EDIT')
@@ -76,25 +77,30 @@ class FoodInclusion(TimestampAble):
         self._create_or_update_descriptions(request_data)
 
     def _assign_date_block(self, request_data):
-        if 'date' in request_data.keys():
-            self.date = str_to_date(request_data.get('date'), '%Y%m%d')
+        if request_data.get('date', None):
+            self.date = str_to_date(request_data.get('date'), '%d/%m/%Y')
             self.priority = get_working_days_after(days=2) <= self.date <= get_working_days_after(days=5)
             self.date_from = None
             self.date_to = None
             self.weekdays = None
         else:
             self.date = None
-            self.date_from = str_to_date(request_data.get('date_from'), '%Y%m%d')
-            self.date_to = str_to_date(request_data.get('date_to'), '%Y%m%d')
-            self.weekdays = request_data.get('weekdays', None)
+            self.date_from = str_to_date(request_data.get('date_from'), '%d/%m/%Y')
+            self.date_to = str_to_date(request_data.get('date_to'), '%d/%m/%Y')
+            self.weekdays = ",".join(request_data.get('weekdays', None))
 
     def _create_or_update_descriptions(self, request_data):
-        descriptions = request_data.get('descriptions')
+        descriptions = [request_data.get('description_first_period', None),
+                        request_data.get('description_second_period', None),
+                        request_data.get('description_third_period', None),
+                        request_data.get('description_fourth_period', None),
+                        request_data.get('description_integrate', None)]
         for description in descriptions:
-            desc_uuid = description.get('uuid', None)
-            food_inclusion_description = FoodInclusionDescription.objects.get(uuid=desc_uuid) \
-                if desc_uuid else FoodInclusionDescription()
-            food_inclusion_description.create_or_update(description, self)
+            if description:
+                desc_uuid = description.get('uuid', None)
+                food_inclusion_description = FoodInclusionDescription.objects.get(uuid=desc_uuid) \
+                    if desc_uuid else FoodInclusionDescription()
+                food_inclusion_description.create_or_update(description, self)
 
     def _set_status(self, request_data):
         status = request_data.get('status', None)
@@ -156,7 +162,7 @@ class FoodInclusionDescription(models.Model):
     period = models.ForeignKey(SchoolPeriod, on_delete=models.DO_NOTHING)
     meal_type = models.ManyToManyField(MealType)
     number_of_students = models.IntegerField()
-    food_inclusion = models.ForeignKey(FoodInclusion, on_delete=models.DO_NOTHING)
+    food_inclusion = models.ForeignKey(FoodInclusion, on_delete=models.CASCADE)
 
     def __str__(self):
         return '{name} - {number_of_students}'.format(name=self.period.name,
@@ -167,11 +173,12 @@ class FoodInclusionDescription(models.Model):
         verbose_name_plural = _("Food Inclusion descriptions")
 
     def create_or_update(self, request_data, food_inclusion):
-        school_period = request_data.get('school_period')
-        meal_type = request_data.get('meal_type')
-        self.number_of_students = request_data.get('number_of_students')
+        school_period = request_data.get('value')
+        meal_types = request_data.get('select') if isinstance(request_data.get('select'), list) else [request_data.get('select')]
+        self.number_of_students = request_data.get('number')
         self.food_inclusion = food_inclusion
-        self.period = get_object(SchoolPeriod, name=school_period)
+        self.period = get_object(SchoolPeriod, value=school_period)
         self.save()
-        self.meal_type.add(get_object(MealType, name=meal_type))
+        for meal_type in meal_types:
+            self.meal_type.add(get_object(MealType, name=meal_type))
         self.save()

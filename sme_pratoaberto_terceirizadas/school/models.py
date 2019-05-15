@@ -4,6 +4,7 @@ from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
 from sme_pratoaberto_terceirizadas.abstract_shareable import Describable, Activable
+from sme_pratoaberto_terceirizadas.users.models import User
 
 
 class RegionalDirector(Describable):
@@ -21,6 +22,13 @@ class RegionalDirector(Describable):
 
 class SchoolPeriod(Describable):
     """Períodos Escolares"""
+    FIRST_PERIOD = 'first_period'
+    SECOND_PERIOD = 'second_period'
+    THIRD_PERIOD = 'third_period'
+    FOURTH_PERIOD = 'fourth_period'
+    INTEGRATE = 'integrate'
+    value = models.CharField(max_length=50, blank=True, null=True)
+
     def __str__(self):
         return self.name
 
@@ -59,20 +67,27 @@ class School(Describable, Activable):
     codae_code = models.CharField(_('CODAE code'), max_length=10)
     grouping = models.ForeignKey(SchoolGroup,
                                  on_delete=models.DO_NOTHING,
+                                 blank=True,
                                  null=True)
     regional_director = models.ForeignKey(RegionalDirector,
                                           on_delete=models.DO_NOTHING,
+                                          blank=True,
                                           null=True)
     unit_type = models.ForeignKey(SchoolUnitType,
                                   on_delete=models.DO_NOTHING,
+                                  blank=True,
                                   null=True)
     management_type = models.ForeignKey(ManagementType,
                                         on_delete=models.DO_NOTHING,
+                                        blank=True,
                                         null=True)
     borough = models.ForeignKey(Borough,
+                                blank=True,
                                 null=True,
                                 on_delete=models.DO_NOTHING)
-    ages = models.ManyToManyField(SchoolAge)
+    ages = models.ManyToManyField(SchoolAge, blank=True)
+    periods = models.ManyToManyField(SchoolPeriod, blank=True)
+    users = models.ManyToManyField(User, blank=True)
 
     def __str__(self):
-        return _('School') + self.name
+        return self.name
