@@ -1,9 +1,9 @@
 from django.conf import settings
-from notifications.models import Notification
 from rest_framework import serializers
-from .models import User
+
 from sme_pratoaberto_terceirizadas.meal_kit.models import MealKit
 from sme_pratoaberto_terceirizadas.meal_kit.serializers import MealKitSerializer
+from .models import User
 
 
 class GenericNotificationRelatedField(serializers.RelatedField):
@@ -15,7 +15,6 @@ class GenericNotificationRelatedField(serializers.RelatedField):
 
 
 class PublicUserSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = User
         fields = ('name', 'email', 'profile')
