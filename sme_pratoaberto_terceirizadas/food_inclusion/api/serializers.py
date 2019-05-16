@@ -1,7 +1,23 @@
 from rest_framework import serializers
 
-from sme_pratoaberto_terceirizadas.food_inclusion.models import FoodInclusion, FoodInclusionDescription
+from sme_pratoaberto_terceirizadas.food_inclusion.models import FoodInclusion, FoodInclusionDescription, \
+    FoodInclusionReason
 from sme_pratoaberto_terceirizadas.school.models import SchoolPeriod
+
+
+class FoodInclusionReasonSerializer(serializers.ModelSerializer):
+    label = serializers.SerializerMethodField()
+    value = serializers.SerializerMethodField()
+
+    def get_label(self, obj):
+        return obj.name
+
+    def get_value(self, obj):
+        return obj.name
+
+    class Meta:
+        model = FoodInclusionReason
+        fields = ('label', 'value')
 
 
 class FoodInclusionDescriptionSerializer(serializers.ModelSerializer):
@@ -99,6 +115,7 @@ class FoodInclusionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = FoodInclusion
-        fields = ('id', 'uuid', 'created_at', 'description_first_period', 'description_second_period', 'description_third_period',
-                  'description_fourth_period', 'description_integrate', 'date', 'reason', 'date_from', 'date_to',
-                  'weekdays', 'status', 'obs', 'priority')
+        fields = (
+            'id', 'uuid', 'created_at', 'description_first_period', 'description_second_period',
+            'description_third_period', 'description_fourth_period', 'description_integrate', 'date', 'reason',
+            'which_reason', 'date_from', 'date_to', 'weekdays', 'status', 'obs', 'priority')
