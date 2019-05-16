@@ -5,7 +5,7 @@ from django.db import models
 from django.utils.translation import ugettext as _
 
 from notifications.signals import notify
-from sme_pratoaberto_terceirizadas.abstract_shareable import Describable, TimestampAble
+from sme_pratoaberto_terceirizadas.abstract_shareable import Activable, Describable, TimestampAble
 from sme_pratoaberto_terceirizadas.common_data.utils import str_to_date, get_working_days_after
 from sme_pratoaberto_terceirizadas.food.models import MealType
 from sme_pratoaberto_terceirizadas.food_inclusion.utils import get_object
@@ -33,7 +33,7 @@ class FoodInclusionStatus(Describable):
         verbose_name_plural = _("Status")
 
 
-class FoodInclusionReason(Describable):
+class FoodInclusionReason(Describable, Activable):
     """Motivo para Inclusão de Alimentação"""
 
     def __str__(self):
@@ -47,6 +47,7 @@ class FoodInclusionReason(Describable):
 class FoodInclusion(TimestampAble):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     reason = models.ForeignKey(FoodInclusionReason, on_delete=models.DO_NOTHING)
+    which_reason = models.TextField(blank=True, null=True)
     date = models.DateField(blank=True, null=True)
     date_from = models.DateField(blank=True, null=True)
     date_to = models.DateField(blank=True, null=True)
@@ -73,6 +74,7 @@ class FoodInclusion(TimestampAble):
         self.reason = get_object(FoodInclusionReason, name=reason)
         self._assign_date_block(request_data)
         self.obs = request_data.get('obs', None)
+        self.which_reason = request_data.get('which_reason', None)
         self.save()
         self._create_or_update_descriptions(request_data)
 

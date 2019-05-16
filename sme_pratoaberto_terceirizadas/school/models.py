@@ -28,6 +28,7 @@ class SchoolPeriod(Describable):
     FOURTH_PERIOD = 'fourth_period'
     INTEGRATE = 'integrate'
     value = models.CharField(max_length=50, blank=True, null=True)
+    meal_types = models.ManyToManyField('food.MealType', blank=True)
 
     def __str__(self):
         return self.name
