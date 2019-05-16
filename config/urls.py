@@ -28,12 +28,12 @@ route.register(r'food_inclusion', FoodInclusionViewSet)
 urlpatterns = [
                   path('docs', schema_view),
                   path('', include(route.urls)),
-                  path(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
-                  path('^inbox/notifications/', include(notifications.urls, namespace='notifications')),
+                  path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+                  path('inbox/notifications/', include(notifications.urls, namespace='notifications')),
                   path(settings.ADMIN_URL, admin.site.urls),
-                  path(r"api-token-auth/", obtain_jwt_token),
-                  path(r'api-token-refresh/', refresh_jwt_token),
-                  path(r'django-des/', include(des_urls)),
+                  path("api-token-auth/", obtain_jwt_token),
+                  path('api-token-refresh/', refresh_jwt_token),
+                  path('django-des/', include(des_urls)),
 
               ] + static(
     settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
