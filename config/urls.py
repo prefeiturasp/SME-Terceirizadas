@@ -21,8 +21,8 @@ from sme_pratoaberto_terceirizadas.users.routers import urlpatterns as user_url
 schema_view = get_swagger_view(title=_('API of SME-Companies'))
 
 route = DefaultRouter(trailing_slash=True)
-route.register(r'working_days', WorkingDaysViewSet, base_name='working_days')
-route.register(r'food_inclusion', FoodInclusionViewSet)
+route.register('working_days', WorkingDaysViewSet, base_name='working_days')
+route.register('food_inclusion', FoodInclusionViewSet)
 
 urlpatterns = [
                   path('docs', schema_view),

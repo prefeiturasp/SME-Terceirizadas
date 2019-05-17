@@ -47,21 +47,16 @@ class MealType(Describable):
 class Meal(models.Model):
     """Refeição """
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-    meal_type = models.ForeignKey(MealType, on_delete=models.DO_NOTHING)
-    # management = models.ForeignKey(ManagementType, on_delete=models.DO_NOTHING)
-    # unit_type = models.ForeignKey(SchoolUnitType, on_delete=models.DO_NOTHING)
-    # grouping = models.ForeignKey(SchoolGroup, on_delete=models.DO_NOTHING)
-
+    title = models.CharField(_("title"), max_length=50)
+    description = models.TextField(_("Description"), blank=True, null=True, max_length=256)
     foods = models.ManyToManyField(Food)
 
-    # date = models.DateField()
-
     def __str__(self):
-        return self.meal_title
+        return self.title
 
     class Meta:
         verbose_name = _("Meal")
-        verbose_name_plural = _("Meal Titles")
+        verbose_name_plural = _("Meals")
 
 
 class DayMenu(TimestampAble):

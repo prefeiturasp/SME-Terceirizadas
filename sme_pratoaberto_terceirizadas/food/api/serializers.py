@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from sme_pratoaberto_terceirizadas.food.models import MealType
+from sme_pratoaberto_terceirizadas.food.models import MealType, Meal
 
 
 class MealTypeSerializer(serializers.ModelSerializer):
@@ -16,3 +16,11 @@ class MealTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = MealType
         fields = ('label', 'value')
+
+
+class MealSerializer(serializers.ModelSerializer):
+    foods = serializers.StringRelatedField(many=True)
+
+    class Meta:
+        model = Meal
+        fields = ['uuid', 'title', 'foods']
