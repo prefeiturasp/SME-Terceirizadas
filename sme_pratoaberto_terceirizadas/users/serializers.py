@@ -2,7 +2,7 @@ from django.conf import settings
 from rest_framework import serializers
 
 from sme_pratoaberto_terceirizadas.meal_kit.models import MealKit
-from sme_pratoaberto_terceirizadas.meal_kit.serializers import MealKitSerializer
+from sme_pratoaberto_terceirizadas.meal_kit.api.serializers import MealKitSerializer
 from .models import User
 
 

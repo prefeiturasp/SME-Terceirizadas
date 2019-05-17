@@ -14,14 +14,13 @@ from sme_pratoaberto_terceirizadas.common_data.api.viewsets import WorkingDaysVi
 from sme_pratoaberto_terceirizadas.school.routers import urlpatterns as school_url
 from sme_pratoaberto_terceirizadas.common_data.urls import urlpatterns as common_urls
 from sme_pratoaberto_terceirizadas.food_inclusion.api.viewsets import FoodInclusionViewSet
-from sme_pratoaberto_terceirizadas.meal_kit.views import MealKitViewSet
+from sme_pratoaberto_terceirizadas.meal_kit.api.routers import urlpatterns as meal_kit_url
 from sme_pratoaberto_terceirizadas.permission.routers import urlpatterns as permissions_url
 from sme_pratoaberto_terceirizadas.users.routers import urlpatterns as user_url
 
 schema_view = get_swagger_view(title=_('API of SME-Companies'))
 
 route = DefaultRouter(trailing_slash=True)
-route.register(r'meal_kit', MealKitViewSet)
 route.register(r'working_days', WorkingDaysViewSet, base_name='working_days')
 route.register(r'food_inclusion', FoodInclusionViewSet)
 
@@ -44,6 +43,7 @@ urlpatterns += permissions_url
 urlpatterns += school_url
 urlpatterns += user_url
 urlpatterns += common_urls
+urlpatterns += meal_kit_url
 
 if settings.DEBUG:
     # This allows the error pages to be debugged during development, just visit

@@ -9,14 +9,14 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('food_inclusion', '0001_initial'),
+        ('food', '0001_initial'),
         ('school', '0001_initial'),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='foodinclusiondescription',
-            name='period',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, to='school.SchoolPeriod'),
+            model_name='daymenu',
+            name='age',
+            field=models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, to='school.SchoolAge'),
         ),
     ]
