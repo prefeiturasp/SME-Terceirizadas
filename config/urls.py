@@ -11,11 +11,11 @@ from rest_framework_jwt.views import obtain_jwt_token, refresh_jwt_token
 from rest_framework_swagger.views import get_swagger_view
 
 from sme_pratoaberto_terceirizadas.common_data.api.viewsets import WorkingDaysViewSet
-from sme_pratoaberto_terceirizadas.school.routers import urlpatterns as school_url
 from sme_pratoaberto_terceirizadas.common_data.urls import urlpatterns as common_urls
 from sme_pratoaberto_terceirizadas.food_inclusion.api.viewsets import FoodInclusionViewSet
 from sme_pratoaberto_terceirizadas.meal_kit.views import MealKitViewSet
 from sme_pratoaberto_terceirizadas.permission.routers import urlpatterns as permissions_url
+from sme_pratoaberto_terceirizadas.school.routers import urlpatterns as school_url
 from sme_pratoaberto_terceirizadas.users.routers import urlpatterns as user_url
 
 schema_view = get_swagger_view(title=_('API of SME-Companies'))
@@ -39,7 +39,10 @@ urlpatterns = [
     settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
 )
 
-#### ADDING ROUTERS FROM ALL APPS ####
+#
+# ADDING ROUTERS FROM ALL APPS
+#
+
 urlpatterns += permissions_url
 urlpatterns += school_url
 urlpatterns += user_url
