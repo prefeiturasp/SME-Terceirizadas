@@ -22,3 +22,11 @@ class TimestampAble(models.Model):
 
     class Meta:
         abstract = True
+
+
+class IntervaloDeTempo(models.Model):
+    data_inicial = models.DateTimeField(auto_now_add=True)
+    data_final = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        abstract = True

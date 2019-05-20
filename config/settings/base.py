@@ -83,7 +83,7 @@ THIRD_PARTY_APPS = [
     'rest_framework',
     'notifications',
     'rest_framework_swagger',
-    'des'
+    'des',  # for email configuration in database
 ]
 LOCAL_APPS = [
     'sme_pratoaberto_terceirizadas.users.apps.CustomUserConfig',
@@ -92,7 +92,8 @@ LOCAL_APPS = [
     'sme_pratoaberto_terceirizadas.meal_kit.apps.MealKitConfig',
     'sme_pratoaberto_terceirizadas.permission.apps.PermissionConfig',
     'sme_pratoaberto_terceirizadas.food.apps.FoodConfig',
-    'sme_pratoaberto_terceirizadas.food_inclusion.apps.FoodInclusionConfig'
+    'sme_pratoaberto_terceirizadas.food_inclusion.apps.FoodInclusionConfig',
+    'sme_pratoaberto_terceirizadas.cardapio.apps.AlteracaoDeCardapioConfig'
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
