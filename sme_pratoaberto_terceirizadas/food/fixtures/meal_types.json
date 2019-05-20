@@ -1,0 +1,30 @@
+[
+  {
+    "model": "food.mealtype",
+    "id": 1,
+    "fields": {
+      "name": "Lanche 4 Horas"
+    }
+  },
+  {
+    "model": "food.mealtype",
+    "id": 2,
+    "fields": {
+      "name": "Lanche 5/6 Horas"
+    }
+  },
+  {
+    "model": "food.mealtype",
+    "id": 3,
+    "fields": {
+      "name": "Refeição/Sobremesa"
+    }
+  },
+  {
+    "model": "food.mealtype",
+    "id": 4,
+    "fields": {
+      "name": "Sobremesa"
+    }
+  }
+]

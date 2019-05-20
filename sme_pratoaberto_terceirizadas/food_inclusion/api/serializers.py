@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from sme_pratoaberto_terceirizadas.food_inclusion.models import FoodInclusion, FoodInclusionDescription, \
-    FoodInclusionReason
+    FoodInclusionReason, FoodInclusionDayReason
 from sme_pratoaberto_terceirizadas.school.models import SchoolPeriod
 
 
@@ -18,6 +18,38 @@ class FoodInclusionReasonSerializer(serializers.ModelSerializer):
     class Meta:
         model = FoodInclusionReason
         fields = ('label', 'value')
+
+
+class FoodInclusionDayReasonSerializer(serializers.ModelSerializer):
+    date = serializers.SerializerMethodField()
+    date_from = serializers.SerializerMethodField()
+    date_to = serializers.SerializerMethodField()
+    weekdays = serializers.SerializerMethodField()
+    reason = serializers.SerializerMethodField()
+
+    def get_date(self, obj):
+        return obj.date.strftime('%d/%m/%Y') if obj.date else None
+
+    def get_date_from(self, obj):
+        return obj.date_from.strftime('%d/%m/%Y') if obj.date_from else None
+
+    def get_date_to(self, obj):
+        return obj.date_to.strftime('%d/%m/%Y') if obj.date_to else None
+
+    def get_weekdays(self, obj):
+        if obj.weekdays:
+            if isinstance(obj.weekdays, list):
+                return obj.weekdays
+            else:
+                return [day for day in obj.weekdays.split(',')]
+        return None
+
+    def get_reason(self, obj):
+        return obj.reason.name
+
+    class Meta:
+        model = FoodInclusionDayReason
+        fields = ('id', 'date', 'date_from', 'date_to', 'weekdays', 'which_reason', 'priority', 'reason')
 
 
 class FoodInclusionDescriptionSerializer(serializers.ModelSerializer):
@@ -50,12 +82,8 @@ class FoodInclusionSerializer(serializers.ModelSerializer):
     description_fourth_period = serializers.SerializerMethodField()
     description_integrate = serializers.SerializerMethodField()
     created_at = serializers.SerializerMethodField()
-    date = serializers.SerializerMethodField()
-    date_from = serializers.SerializerMethodField()
-    date_to = serializers.SerializerMethodField()
-    reason = serializers.SerializerMethodField()
     status = serializers.SerializerMethodField()
-    weekdays = serializers.SerializerMethodField()
+    day_reasons = serializers.SerializerMethodField()
 
     def get_description_first_period(self, obj):
         if obj.foodinclusiondescription_set.filter(period__value=SchoolPeriod.FIRST_PERIOD).exists():
@@ -87,35 +115,20 @@ class FoodInclusionSerializer(serializers.ModelSerializer):
                 period__value=SchoolPeriod.INTEGRATE)).data
         return None
 
+    def get_day_reasons(self, obj):
+        if obj.foodinclusiondayreason_set.exists():
+            return FoodInclusionDayReasonSerializer(obj.foodinclusiondayreason_set.all(), many=True).data
+        return None
+
     def get_created_at(self, obj):
         return obj.created_at.strftime("%d/%m/%Y às %H:%M")
 
-    def get_reason(self, obj):
-        return obj.reason.name if obj.reason else None
-
     def get_status(self, obj):
         return obj.status.name if obj.status else None
-
-    def get_date(self, obj):
-        return obj.date.strftime('%d/%m/%Y') if obj.date else None
-
-    def get_date_from(self, obj):
-        return obj.date_from.strftime('%d/%m/%Y') if obj.date_from else None
-
-    def get_date_to(self, obj):
-        return obj.date_to.strftime('%d/%m/%Y') if obj.date_to else None
-
-    def get_weekdays(self, obj):
-        if obj.weekdays:
-            if isinstance(obj.weekdays, list):
-                return obj.weekdays
-            else:
-                return [day for day in obj.weekdays.split(',')]
-        return None
 
     class Meta:
         model = FoodInclusion
         fields = (
             'id', 'uuid', 'created_at', 'description_first_period', 'description_second_period',
-            'description_third_period', 'description_fourth_period', 'description_integrate', 'date', 'reason',
-            'which_reason', 'date_from', 'date_to', 'weekdays', 'status', 'obs', 'priority')
+            'description_third_period', 'description_fourth_period', 'description_integrate',
+            'status', 'obs', 'day_reasons')
