@@ -30,15 +30,6 @@ CACHES = {
 # https://docs.djangoproject.com/en/dev/ref/settings/#templates
 TEMPLATES[0]['OPTIONS']['debug'] = DEBUG  # noqa F405
 
-# EMAIL
-# ------------------------------------------------------------------------------
-DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL')
-EMAIL_HOST = env('EMAIL_HOST')
-EMAIL_PORT = env('EMAIL_PORT')
-EMAIL_HOST_USER = env('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
-EMAIL_USE_TLS = env('EMAIL_USE_TLS')
-
 # django-debug-toolbar
 # ------------------------------------------------------------------------------
 # https://django-debug-toolbar.readthedocs.io/en/latest/installation.html#prerequisites
