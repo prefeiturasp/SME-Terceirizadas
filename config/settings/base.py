@@ -275,6 +275,7 @@ SOCIALACCOUNT_ADAPTER = 'sme_pratoaberto_terceirizadas.users.adapters.SocialAcco
 # Your stuff...
 # ------------------------------------------------------------------------------
 REST_FRAMEWORK = {
+    # https://www.django-rest-framework.org/api-guide/settings/
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
     ),
@@ -283,6 +284,12 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.BasicAuthentication',
     ),
+    'DATETIME_FORMAT': "%d/%m/%Y %H:%M:%S",
+    'DATETIME_INPUT_FORMATS': ["%d/%m/%Y %H:%M:%S", 'iso-8601'],
+    'DATE_FORMAT': "%d/%m/%Y",
+    'DATE_INPUT_FORMATS': ["%d/%m/%Y", 'iso-8601'],
+    'TIME_FORMAT': '%H:%M:%S',
+    'TIME_INPUT_FORMATS': ['%H:%M:%S', 'iso-8601'],
 }
 
 SWAGGER_SETTINGS = {
