@@ -1,4 +1,5 @@
 import uuid
+from enum import Enum
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
@@ -7,8 +8,16 @@ from sme_pratoaberto_terceirizadas.food.models import Meal
 from sme_pratoaberto_terceirizadas.school.models import School
 
 
+class StatusSolicitacao(Enum):
+    SAVED = 'SALVO'
+    SENDED = 'ENVIADA'
+    CANCELED = 'CANCELADA'
+    DENIED = 'NEGADO'
+
+
+
 class MealKit(models.Model):
-    """Kit Lanche"""
+    """Kit Lanches"""
 
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     name = models.CharField(_('Name'), max_length=160)
@@ -27,7 +36,8 @@ class MealKit(models.Model):
 class OrderMealKit(models.Model):
     """ Solicitação de kit lanche """
 
-    TYPES_STATUS = (('SAVED', 'SALVO'), ('SENDED', 'ENVIADO'))
+    TYPES_STATUS = (('SAVED', 'SALVO'), ('SENDED', 'ENVIADO'), ('CANCELED', 'CANCELADO'), ('DENIED', 'NEGADO'))
+
     location = models.CharField(_('Order Location'), max_length=160)
     students_quantity = models.IntegerField(_('Students Quantity'))
     order_date = models.DateField(_('Order Date'))

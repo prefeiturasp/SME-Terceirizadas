@@ -10,7 +10,7 @@ from sme_pratoaberto_terceirizadas.users.models import User
 class RegionalDirector(Describable):
     """DRE - Diretoria Regional"""
     # TODO chave estrangeira para Institution
-    abbreviation = models.CharField(_('Abbreviation'), max_length=4)
+    abbreviation = models.CharField(_('Abbreviation'), max_length=10)
 
     def __str__(self):
         return _('Abbreviation') + self.abbreviation
@@ -57,13 +57,15 @@ class ManagementType(Describable, Activable):
 class SchoolGroup(models.Model):
     """Agrupamento"""
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-    models.SmallIntegerField(_('Grouping'))
+    codigo = models.SmallIntegerField(_('Grouping'))
+
+
 
 
 class School(Describable, Activable):
     """Escola"""
     # TODO chave estrangeira para Institution
-    name = models.CharField(_("Name"), max_length=80)
+    name = models.CharField(_("Name"), max_length=160)
     eol_code = models.CharField(_("EOL code"), max_length=10)
     codae_code = models.CharField(_('CODAE code'), max_length=10)
     grouping = models.ForeignKey(SchoolGroup,
@@ -92,3 +94,5 @@ class School(Describable, Activable):
 
     def __str__(self):
         return self.name
+
+

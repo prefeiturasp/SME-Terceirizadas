@@ -38,7 +38,7 @@ urlpatterns = [
     settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
 )
 
-#### ADDING ROUTERS FROM ALL APPS ####
+# ADDING ROUTERS FROM ALL APPS ####
 urlpatterns += permissions_url
 urlpatterns += school_url
 urlpatterns += user_url
