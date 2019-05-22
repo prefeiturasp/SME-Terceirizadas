@@ -55,3 +55,9 @@ INSTALLED_APPS += ['django_extensions']  # noqa F405
 # ------------------------------------------------------------------------------
 # Para permitir acesso de navegadores sem problema.
 CORS_ORIGIN_ALLOW_ALL = True
+
+JWT_AUTH = {
+    'JWT_EXPIRATION_DELTA': datetime.timedelta(hours=8),
+    'JWT_REFRESH_EXPIRATION_DELTA': datetime.timedelta(hours=1),
+    'JWT_ALLOW_REFRESH': True,
+}

@@ -7,15 +7,21 @@ from sme_pratoaberto_terceirizadas.users.models import User
 
 
 class AlteracaoCardapio(IntervaloDeDia, Describable, TemChaveExterna):
-    STATUS = Choices(('SALVO', 'Salvo'),
-                     ('A_VALIDAR', 'A validar'),
-                     ('CONFIRMADO', 'Confirmado'),
-                     ('A_VISUALIZAR', 'A visualizar'),
-                     ('A_APROVAR', 'A aprovar'),
-                     ('A_EDITAR', 'A editar'),
-                     ('NEGADO_PELA_CODAE', 'Negado pela CODAE'),
-                     ('NEGADO_PELA_COMPANHIA', 'Negado pela companhia'),
-                     ('VISUALIZADO', 'Visualizado'))
+    STATUS = Choices(
+        # DRE
+        ('DRE_A_VALIDAR', 'A validar pela DRE'),  # IMEDIATAMENTE ENTRA NESSE APOS CRIAR
+        ('DRE_APROVADO', 'Aprovado pela DRE'),  # CODAE RECEBE
+        ('DRE_REPROVADO', 'Reprovado pela DRE'),  # ESCOLA PODE EDITAR
+
+        # CODAE
+        ('CODAE_A_VALIDAR', 'A validar pela CODAE'),  # QUANDO A DRE VALIDA
+        ('CODAE_APROVADO', 'Aprovado pela CODAE'),  # CODAE RECEBE
+        ('CODAE_REPROVADO', 'Reprovado pela CODAE'),  # CODAE REPROVA FIM DE FLUXO
+
+        # TERCEIRIZADA
+        ('TERCEIRIZADA_A_VISUALIZAR', 'Terceirizada a visualizar'),
+        ('TERCEIRIZADA_A_VISUALIZADO', 'Terceirizada visualizado')  # TOMOU CIENCIA, TODOS DEVEM FICAR SABENDO...
+    )
     status = StatusField()
     # TODO criar o relacionamento...
     nome_escola = models.CharField('Nome da escola...', blank=True, null=True, max_length=256)
