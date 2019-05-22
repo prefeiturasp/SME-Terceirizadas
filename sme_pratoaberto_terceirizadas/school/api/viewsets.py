@@ -2,7 +2,7 @@ from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.utils.translation import ugettext as _
 from rest_framework import status
-from rest_framework.decorators import detail_route
+from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
@@ -20,7 +20,7 @@ class SchoolViewSet(ModelViewSet):
     object_class = School
     permission_classes = ()
 
-    @detail_route(methods=['get'], permission_classes=[])
+    @action(methods=['get'], permission_classes=[], detail=True)
     def get_periods(self, request, pk=None):
         response = {'content': {}, 'log_content': {}, 'code': None}
         try:

@@ -13,7 +13,7 @@ class BaseUserAdmin(DjangoUserAdmin):
             'fields': ('email', 'password')
         }),
         (_('Personal info'), {
-            'fields': ('name',)
+            'fields': ('email', 'name')
         }),
         (_('Profile'), {
             'fields': ('profile',)
@@ -29,7 +29,7 @@ class BaseUserAdmin(DjangoUserAdmin):
         'classes': ('wide',),
         'fields': ('email', 'password1', 'password2'),
     }),)
-    list_display = ('name', 'email', 'is_staff', 'is_active')
+    list_display = ('email', 'name', 'is_staff', 'is_active')
     search_fields = ('email', 'name')
     ordering = ('email',)
 
