@@ -1,3 +1,5 @@
+import uuid
+
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
@@ -35,6 +37,13 @@ class IntervaloDeTempo(models.Model):
 class IntervaloDeDia(models.Model):
     data_inicial = models.DateField()
     data_final = models.DateField()
+
+    class Meta:
+        abstract = True
+
+
+class TemChaveExterna(models.Model):
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
 
     class Meta:
         abstract = True

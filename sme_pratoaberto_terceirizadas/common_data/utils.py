@@ -2,6 +2,8 @@ from datetime import datetime
 
 from workalendar.america import BrazilSaoPauloCity
 
+calendar = BrazilSaoPauloCity()
+
 
 def str_to_date(date_str, format_date_str='%d/%m/%Y'):
     """
@@ -15,5 +17,8 @@ def str_to_date(date_str, format_date_str='%d/%m/%Y'):
 
 def get_working_days_after(days=5, date=datetime.utcnow().date()):
     """Retorna o próximo dia útil após a variável days"""
-    calendar = BrazilSaoPauloCity()
     return calendar.add_working_days(date, days)
+
+
+def is_working_day(date):
+    return calendar.is_working_day(date)

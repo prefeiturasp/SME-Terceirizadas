@@ -1,11 +1,11 @@
 from model_utils import Choices
 from model_utils.fields import StatusField
 
-from sme_pratoaberto_terceirizadas.abstract_shareable import Describable, IntervaloDeDia
+from sme_pratoaberto_terceirizadas.abstract_shareable import Describable, IntervaloDeDia, TemChaveExterna
 from sme_pratoaberto_terceirizadas.users.models import User
 
 
-class AlteracaoCardapio(IntervaloDeDia, Describable):
+class AlteracaoCardapio(IntervaloDeDia, Describable, TemChaveExterna):
     STATUS = Choices(('SALVO', 'Salvo'),
                      ('A_VALIDAR', 'A validar'),
                      ('CONFIRMADO', 'Confirmado'),
