@@ -60,8 +60,6 @@ class SchoolGroup(models.Model):
     codigo = models.SmallIntegerField(_('Grouping'))
 
 
-
-
 class School(Describable, Activable):
     """Escola"""
     # TODO chave estrangeira para Institution
@@ -94,5 +92,3 @@ class School(Describable, Activable):
 
     def __str__(self):
         return self.name
-
-

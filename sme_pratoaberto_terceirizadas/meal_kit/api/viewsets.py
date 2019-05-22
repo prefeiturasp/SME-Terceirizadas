@@ -19,13 +19,12 @@ class MealKitViewSet(ModelViewSet):
     # permission_classes = (IsAuthenticated, ValidatePermission)
 
     @action(detail=False)
-    def students(self,request):
+    def students(self, request):
         return Response({'students': 200}, status=status.HTTP_200_OK)
 
 
 class OrderMealKitViewSet(ModelViewSet):
     """ Endpoint para Solicitações de Kit Lanches """
-    # queryset = OrderMealKit.objects.all()
     serializer_class = OrderMealKitSerializer
 
     # permission_classes = (IsAuthenticated, ValidatePermission)
@@ -33,17 +32,13 @@ class OrderMealKitViewSet(ModelViewSet):
     def get_queryset(self):
         return OrderMealKit.objects.filter(status='SAVED')
 
-    def destroy(self, request):
+    def destroy(self, request, pk=None):
         solicitacao = OrderMealKit.objects.get(pk=request.data['id'])
         if solicitacao:
             solicitacao.delete()
             return Response({'detail': 'Solicitação removida com sucesso.'})
         else:
             return Response({'detail': 'Solicitação não encontrada'}, status=status.HTTP_400_BAD_REQUEST)
-
-    def update(self, request, *args, **kwargs):
-        print(request.data)
-        return Response({'message': 'hello world'})
 
     def create(self, request):
 
@@ -97,3 +92,24 @@ class OrderMealKitViewSet(ModelViewSet):
 
         if solicitacao:
             return Response({'details': response_message}, status=status.HTTP_200_OK)
+
+    def update(self, request, pk=None, *args, **kwargs, ):
+
+        data = request.data
+        data_passeio = datetime.strptime(data['evento_data'], '%d/%m/%Y').date()
+        meals = MealKit.objects.filter(meals__uuid__in=data['kit_lanche'])
+
+        solicitacao = OrderMealKit.objects.get(pk=pk)
+        if solicitacao:
+            solicitacao.location = data['local_passeio']
+            solicitacao.students_quantity = data['nro_alunos']
+            solicitacao.order_date = data_passeio
+            solicitacao.observation = data['obs'],
+            solicitacao.status = 'SAVED'
+            solicitacao.scheduled_time = data['tempo_passeio']
+            for m in meals:
+                solicitacao.meal_kits.add(m)
+            solicitacao.save()
+
+            return Response({'details': 'Solicitação atualizada com sucesso'})
+        return Response({'details': 'Solicitação não encontrada'}, status=status.HTTP_400_BAD_REQUEST)
