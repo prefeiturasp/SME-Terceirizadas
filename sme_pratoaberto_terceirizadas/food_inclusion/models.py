@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime
 
 from django.core.validators import validate_comma_separated_integer_list
 from django.db import models
@@ -46,16 +47,8 @@ class FoodInclusionReason(Describable, Activable):
 
 class FoodInclusion(TimestampAble):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-    reason = models.ForeignKey(FoodInclusionReason, on_delete=models.DO_NOTHING)
-    which_reason = models.TextField(blank=True, null=True)
-    date = models.DateField(blank=True, null=True)
-    date_from = models.DateField(blank=True, null=True)
-    date_to = models.DateField(blank=True, null=True)
     created_by = models.ForeignKey(User, on_delete=models.DO_NOTHING)
-    weekdays = models.CharField(blank=True, null=True, max_length=14,
-                                validators=[validate_comma_separated_integer_list])
     status = models.ForeignKey(FoodInclusionStatus, on_delete=models.DO_NOTHING)
-    priority = models.BooleanField(default=False)
     denied_by_company = models.BooleanField(default=False)
     denial_reason = models.TextField(blank=True, null=True)
     obs = models.TextField(blank=True, null=True)
@@ -68,28 +61,20 @@ class FoodInclusion(TimestampAble):
         verbose_name_plural = _("Food Inclusions")
 
     def create_or_update(self, request_data, user):
-        reason = request_data.get('reason')
         self._set_status(request_data)
         self.created_by = user
-        self.reason = get_object(FoodInclusionReason, name=reason)
-        self._assign_date_block(request_data)
         self.obs = request_data.get('obs', None)
-        self.which_reason = request_data.get('which_reason', None)
         self.save()
+        self._create_or_update_day_reasons(request_data)
         self._create_or_update_descriptions(request_data)
 
-    def _assign_date_block(self, request_data):
-        if request_data.get('date', None):
-            self.date = str_to_date(request_data.get('date'), '%d/%m/%Y')
-            self.priority = get_working_days_after(days=2) <= self.date <= get_working_days_after(days=5)
-            self.date_from = None
-            self.date_to = None
-            self.weekdays = None
-        else:
-            self.date = None
-            self.date_from = str_to_date(request_data.get('date_from'), '%d/%m/%Y')
-            self.date_to = str_to_date(request_data.get('date_to'), '%d/%m/%Y')
-            self.weekdays = ",".join(request_data.get('weekdays', None))
+    def _create_or_update_day_reasons(self, request_data):
+        day_reasons = request_data.get('day_reasons')
+        for day_reason in day_reasons:
+            day_reason_uuid = day_reason.get('uuid', None)
+            food_inclusion_day_reason = FoodInclusionDayReason.objects.get(uuid=day_reason_uuid) \
+                if day_reason_uuid else FoodInclusionDayReason()
+            food_inclusion_day_reason.create_or_update(day_reason, self)
 
     def _create_or_update_descriptions(self, request_data):
         descriptions = [request_data.get('description_first_period', None),
@@ -184,4 +169,36 @@ class FoodInclusionDescription(models.Model):
         self.save()
         for meal_type in meal_types:
             self.meal_type.add(get_object(MealType, name=meal_type))
+        self.save()
+
+
+class FoodInclusionDayReason(models.Model):
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    food_inclusion = models.ForeignKey(FoodInclusion, on_delete=models.CASCADE)
+    reason = models.ForeignKey(FoodInclusionReason, on_delete=models.DO_NOTHING)
+    which_reason = models.TextField(blank=True, null=True)
+    priority = models.BooleanField(default=False)
+    date = models.DateField(blank=True, null=True)
+    date_from = models.DateField(blank=True, null=True)
+    date_to = models.DateField(blank=True, null=True)
+    weekdays = models.CharField(blank=True, null=True, max_length=14,
+                                validators=[validate_comma_separated_integer_list])
+
+    def create_or_update(self, request_data, food_inclusion):
+        date = request_data.get('date', None)
+        reason = request_data.get('reason')
+        self.reason = FoodInclusionReason.objects.get(name=reason)
+        self.which_reason = request_data.get('which_reason', None)
+        self.food_inclusion = food_inclusion
+        if date:
+            self.date = str_to_date(date)
+            self.priority = get_working_days_after(days=2) <= self.date <= get_working_days_after(days=5)
+            self.date_from = None
+            self.date_to = None
+            self.weekdays = None
+        else:
+            self.date = None
+            self.date_from = str_to_date(request_data.get('date_from'))
+            self.date_to = str_to_date(request_data.get('date_to'))
+            self.weekdays = ",".join(request_data.get('weekdays', None))
         self.save()

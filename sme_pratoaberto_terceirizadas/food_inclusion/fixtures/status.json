@@ -1,0 +1,58 @@
+[
+  {
+    "model": "food_inclusion.foodinclusionstatus",
+    "id": 1,
+    "fields": {
+      "name": "SALVO"
+    }
+  },
+  {
+    "model": "food_inclusion.foodinclusionstatus",
+    "id": 2,
+    "fields": {
+      "name": "A_VALIDAR"
+    }
+  },
+  {
+    "model": "food_inclusion.foodinclusionstatus",
+    "id": 3,
+    "fields": {
+      "name": "A_APROVAR"
+    }
+  },
+  {
+    "model": "food_inclusion.foodinclusionstatus",
+    "id": 4,
+    "fields": {
+      "name": "A_EDITAR"
+    }
+  },
+  {
+    "model": "food_inclusion.foodinclusionstatus",
+    "id": 5,
+    "fields": {
+      "name": "A_VISUALIZAR"
+    }
+  },
+  {
+    "model": "food_inclusion.foodinclusionstatus",
+    "id": 6,
+    "fields": {
+      "name": "NEGADO_PELA_CODAE"
+    }
+  },
+  {
+    "model": "food_inclusion.foodinclusionstatus",
+    "id": 7,
+    "fields": {
+      "name": "NEGADO_PELA_TERCEIRIZADA"
+    }
+  },
+  {
+    "model": "food_inclusion.foodinclusionstatus",
+    "id": 8,
+    "fields": {
+      "name": "VISUALIZADO"
+    }
+  }
+]
