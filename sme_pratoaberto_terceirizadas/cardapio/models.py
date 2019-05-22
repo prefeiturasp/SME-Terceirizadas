@@ -1,3 +1,4 @@
+from django.db import models
 from model_utils import Choices
 from model_utils.fields import StatusField
 
@@ -16,3 +17,5 @@ class AlteracaoCardapio(IntervaloDeDia, Describable, TemChaveExterna):
                      ('NEGADO_PELA_COMPANHIA', 'Negado pela companhia'),
                      ('VISUALIZADO', 'Visualizado'))
     status = StatusField()
+    # TODO criar o relacionamento...
+    nome_escola = models.CharField('Nome da escola...', blank=True, null=True, max_length=256)
