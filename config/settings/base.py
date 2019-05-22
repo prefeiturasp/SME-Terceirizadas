@@ -83,7 +83,7 @@ THIRD_PARTY_APPS = [
     'rest_framework',
     'notifications',
     'rest_framework_swagger',
-    'des'
+    'des',  # for email configuration in database
 ]
 LOCAL_APPS = [
     'sme_pratoaberto_terceirizadas.users.apps.CustomUserConfig',
@@ -92,7 +92,8 @@ LOCAL_APPS = [
     'sme_pratoaberto_terceirizadas.meal_kit.apps.MealKitConfig',
     'sme_pratoaberto_terceirizadas.permission.apps.PermissionConfig',
     'sme_pratoaberto_terceirizadas.food.apps.FoodConfig',
-    'sme_pratoaberto_terceirizadas.food_inclusion.apps.FoodInclusionConfig'
+    'sme_pratoaberto_terceirizadas.food_inclusion.apps.FoodInclusionConfig',
+    'sme_pratoaberto_terceirizadas.cardapio.apps.AlteracaoDeCardapioConfig'
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -274,6 +275,7 @@ SOCIALACCOUNT_ADAPTER = 'sme_pratoaberto_terceirizadas.users.adapters.SocialAcco
 # Your stuff...
 # ------------------------------------------------------------------------------
 REST_FRAMEWORK = {
+    # https://www.django-rest-framework.org/api-guide/settings/
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
     ),
@@ -282,6 +284,12 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.BasicAuthentication',
     ),
+    'DATETIME_FORMAT': "%d/%m/%Y %H:%M:%S",
+    'DATETIME_INPUT_FORMATS': ["%d/%m/%Y %H:%M:%S", 'iso-8601'],
+    'DATE_FORMAT': "%d/%m/%Y",
+    'DATE_INPUT_FORMATS': ["%d/%m/%Y", 'iso-8601'],
+    'TIME_FORMAT': '%H:%M:%S',
+    'TIME_INPUT_FORMATS': ['%H:%M:%S', 'iso-8601'],
 }
 
 SWAGGER_SETTINGS = {

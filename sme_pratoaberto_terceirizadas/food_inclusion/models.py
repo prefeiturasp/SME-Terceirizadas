@@ -3,8 +3,8 @@ import uuid
 from django.core.validators import validate_comma_separated_integer_list
 from django.db import models
 from django.utils.translation import ugettext as _
-
 from notifications.signals import notify
+
 from sme_pratoaberto_terceirizadas.abstract_shareable import Describable, TimestampAble
 from sme_pratoaberto_terceirizadas.common_data.utils import str_to_date, get_working_days_after
 from sme_pratoaberto_terceirizadas.food.models import MealType
@@ -154,7 +154,7 @@ class FoodInclusion(TimestampAble):
             verb=_('Food Inclusion - ') + self._notification_aux('verb', validation_diff),
             action_object=self,
             description=_('The user ') + actor.name + self._notification_aux('description', validation_diff) +
-            _(' a food inclusion.'))
+                        _(' a food inclusion.'))
 
 
 class FoodInclusionDescription(models.Model):
@@ -174,7 +174,8 @@ class FoodInclusionDescription(models.Model):
 
     def create_or_update(self, request_data, food_inclusion):
         school_period = request_data.get('value')
-        meal_types = request_data.get('select') if isinstance(request_data.get('select'), list) else [request_data.get('select')]
+        meal_types = request_data.get('select') if isinstance(request_data.get('select'), list) else [
+            request_data.get('select')]
         self.number_of_students = request_data.get('number')
         self.food_inclusion = food_inclusion
         self.period = get_object(SchoolPeriod, value=school_period)

@@ -90,7 +90,8 @@ def _validate_date_block(request_data, errors):
 
 
 def _validate_description(description, errors):
-    meal_types = description.get('select') if isinstance(description.get('select'), list) else [description.get('select')]
+    meal_types = description.get('select') if isinstance(description.get('select'), list) else [
+        description.get('select')]
     print(meal_types)
     number_of_students = description.get('number')
     for meal_type in meal_types:
