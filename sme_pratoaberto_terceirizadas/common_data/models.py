@@ -38,7 +38,7 @@ class Address(models.Model):
     street_name = models.CharField(_("Street name"), max_length=256)
     complement = models.CharField(_("Complement"), max_length=30)
     district = models.CharField(_("District"), max_length=60)
-    number = models.CharField(_("Number"), max_length=20)
+    number = models.CharField(_("Number"), max_length=60)
     postal_code = models.CharField(_("Postal code"), max_length=9)
     lat = models.DecimalField(max_digits=9, decimal_places=6, null=True)
     lon = models.DecimalField(max_digits=9, decimal_places=6, null=True)

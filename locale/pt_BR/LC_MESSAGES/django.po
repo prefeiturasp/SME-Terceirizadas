@@ -87,7 +87,7 @@ msgstr ""
 #: sme_pratoaberto_terceirizadas/users/models.py:96
 #: sme_pratoaberto_terceirizadas/users/models.py:115
 msgid "Title"
-msgstr ""
+msgstr "Título"
 
 #: sme_pratoaberto_terceirizadas/food/models.py:37
 msgid "Meal Type"
@@ -97,19 +97,25 @@ msgstr ""
 #, fuzzy
 #| msgid "Meal Kits"
 msgid "Meal Types"
-msgstr "Kits Lanche"
+msgstr "Tipos de Refeições"
 
 #: sme_pratoaberto_terceirizadas/food/models.py:56
 #, fuzzy
 #| msgid "Meal Kit"
-msgid "Meal Title"
-msgstr "Kit Lanche"
+msgid "Meal"
+msgstr "Refeição"
+
+msgid "Food"
+msgstr "Alimento"
+
+msgid "Foods"
+msgstr "Alimentos"
 
 #: sme_pratoaberto_terceirizadas/food/models.py:57
 #, fuzzy
 #| msgid "Meal Kits"
 msgid "Meal Titles"
-msgstr "Kits Lanche"
+msgstr "Título da Refeição"
 
 #: sme_pratoaberto_terceirizadas/food_inclusion/api/viewsets.py:33
 msgid "some argument(s) is(are) not valid"
@@ -126,7 +132,7 @@ msgstr "o status da inclusão de alimentação não é 'A_VALIDAR'"
 #: sme_pratoaberto_terceirizadas/food_inclusion/api/viewsets.py:97
 #: sme_pratoaberto_terceirizadas/food_inclusion/api/viewsets.py:125
 msgid "user not found"
-msgstr ""
+msgstr "Usuário não encontrado"
 
 #: sme_pratoaberto_terceirizadas/food_inclusion/api/viewsets.py:43
 #: sme_pratoaberto_terceirizadas/food_inclusion/api/viewsets.py:71

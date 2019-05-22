@@ -17,7 +17,7 @@ class ValidatePermission(permissions.BasePermission):
 
             profile = request.user.profile
 
-            permission = Permission.objects.get(endpoint=endpoint).id
+            permission = Permission.objects.get(endpoint=endpoint)
 
             granted_permission = ProfilePermission.objects.filter(profile=profile, permission=permission)
 

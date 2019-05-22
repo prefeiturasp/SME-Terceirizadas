@@ -6,9 +6,10 @@ from rest_framework.decorators import detail_route
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
-from sme_pratoaberto_terceirizadas.food_inclusion.api.serializers import FoodInclusionSerializer
+from sme_pratoaberto_terceirizadas.food_inclusion.api.serializers import FoodInclusionSerializer, \
+    FoodInclusionReasonSerializer
 from sme_pratoaberto_terceirizadas.food_inclusion.errors import FoodInclusionCreateOrUpdateException
-from sme_pratoaberto_terceirizadas.food_inclusion.models import FoodInclusion, FoodInclusionStatus
+from sme_pratoaberto_terceirizadas.food_inclusion.models import FoodInclusion, FoodInclusionStatus, FoodInclusionReason
 from sme_pratoaberto_terceirizadas.food_inclusion.utils import get_errors_list, check_required_data_generic
 from sme_pratoaberto_terceirizadas.users.models import User
 
@@ -21,6 +22,20 @@ class FoodInclusionViewSet(ModelViewSet):
     serializer_class = FoodInclusionSerializer
     object_class = FoodInclusion
     permission_classes = ()
+
+    @detail_route(methods=['get'], permission_classes=[])
+    def get_reasons(self, request, pk=None):
+        response = {'content': {}, 'log_content': {}, 'code': None}
+        try:
+            get_object_or_404(User, uuid=pk)
+            reasons = FoodInclusionReason.objects.filter(is_active=True)
+        except Http404:
+            response['log_content'] = ["Usuário não encontrado"]
+            response['code'] = status.HTTP_404_NOT_FOUND
+        else:
+            response['code'] = status.HTTP_200_OK
+            response['content']['reasons'] = FoodInclusionReasonSerializer(reasons, many=True).data
+        return Response(response, status=response['code'])
 
     @detail_route(methods=['get'], permission_classes=[])
     def get_saved_food_inclusions(self, request, pk=None):

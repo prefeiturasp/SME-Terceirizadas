@@ -14,7 +14,7 @@ from sme_pratoaberto_terceirizadas.cardapio.urls import urlpatterns as cardapio_
 from sme_pratoaberto_terceirizadas.common_data.api.viewsets import WorkingDaysViewSet
 from sme_pratoaberto_terceirizadas.common_data.urls import urlpatterns as common_urls
 from sme_pratoaberto_terceirizadas.food_inclusion.api.viewsets import FoodInclusionViewSet
-from sme_pratoaberto_terceirizadas.meal_kit.views import MealKitViewSet
+from sme_pratoaberto_terceirizadas.meal_kit.api.routers import urlpatterns as meal_kit_url
 from sme_pratoaberto_terceirizadas.permission.routers import urlpatterns as permissions_url
 from sme_pratoaberto_terceirizadas.school.routers import urlpatterns as school_url
 from sme_pratoaberto_terceirizadas.users.routers import urlpatterns as user_url
@@ -22,9 +22,8 @@ from sme_pratoaberto_terceirizadas.users.routers import urlpatterns as user_url
 schema_view = get_swagger_view(title=_('API of SME-Companies'))
 
 route = DefaultRouter(trailing_slash=True)
-route.register(r'meal_kit', MealKitViewSet)
-route.register(r'working_days', WorkingDaysViewSet, base_name='working_days')
-route.register(r'food_inclusion', FoodInclusionViewSet)
+route.register('working_days', WorkingDaysViewSet, base_name='working_days')
+route.register('food_inclusion', FoodInclusionViewSet)
 
 urlpatterns = [
                   path('docs', schema_view),
@@ -32,9 +31,9 @@ urlpatterns = [
                   path(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
                   path(r'inbox/notifications/', include(notification_urls, namespace='notifications')),
                   path(settings.ADMIN_URL, admin.site.urls),
-                  path(r"api-token-auth/", obtain_jwt_token),
-                  path(r'api-token-refresh/', refresh_jwt_token),
-                  path(r'django-des/', include(des_urls)),
+                  path("api-token-auth/", obtain_jwt_token),
+                  path('api-token-refresh/', refresh_jwt_token),
+                  path('django-des/', include(des_urls)),
 
               ] + static(
     settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
