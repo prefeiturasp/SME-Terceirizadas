@@ -2,7 +2,7 @@ from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.utils.translation import ugettext as _
 from rest_framework import status
-from rest_framework.decorators import detail_route
+from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
@@ -23,21 +23,26 @@ class FoodInclusionViewSet(ModelViewSet):
     object_class = FoodInclusion
     permission_classes = ()
 
-    @detail_route(methods=['get'], permission_classes=[])
+    @action(detail=True, methods=['get'], permission_classes=[])
     def get_reasons(self, request, pk=None):
         response = {'content': {}, 'log_content': {}, 'code': None}
         try:
             get_object_or_404(User, uuid=pk)
-            reasons = FoodInclusionReason.objects.filter(is_active=True)
+            reasons_simple = FoodInclusionReason.objects.exclude(name__icontains='Programa Contínuo').filter(
+                is_active=True)
+            reasons_continuous_program = FoodInclusionReason.objects.filter(name__icontains='Programa Contínuo',
+                                                                            is_active=True)
         except Http404:
             response['log_content'] = ["Usuário não encontrado"]
             response['code'] = status.HTTP_404_NOT_FOUND
         else:
             response['code'] = status.HTTP_200_OK
-            response['content']['reasons'] = FoodInclusionReasonSerializer(reasons, many=True).data
+            response['content']['reasons_simple'] = FoodInclusionReasonSerializer(reasons_simple, many=True).data
+            response['content']['reasons_continuous_program'] = FoodInclusionReasonSerializer(
+                reasons_continuous_program, many=True).data
         return Response(response, status=response['code'])
 
-    @detail_route(methods=['get'], permission_classes=[])
+    @action(detail=True, methods=['get'], permission_classes=[])
     def get_saved_food_inclusions(self, request, pk=None):
         response = {'content': {}, 'log_content': {}, 'code': None}
         try:
@@ -51,7 +56,7 @@ class FoodInclusionViewSet(ModelViewSet):
             response['content']['food_inclusions'] = FoodInclusionSerializer(food_inclusions, many=True).data
         return Response(response, status=response['code'])
 
-    @detail_route(methods=['post'], permission_classes=[])
+    @action(detail=True, methods=['post'], permission_classes=[])
     def create_or_update(self, request, pk=None):
         response = {'content': {}, 'log_content': {}, 'code': None}
         errors_list = list()
@@ -67,6 +72,7 @@ class FoodInclusionViewSet(ModelViewSet):
                                                  FoodInclusionStatus.objects.get(name=FoodInclusionStatus.SAVED)], \
                     "Inclusão de Alimentação não está com status válido para edição"
                 food_inclusion.foodinclusiondescription_set.all().delete()
+                food_inclusion.foodinclusiondayreason_set.all().delete()
             food_inclusion.create_or_update(request_data=request.data, user=user)
             validation_diff = 'creation' if not uuid else 'edition'
             if food_inclusion.status.name != FoodInclusionStatus.SAVED:
@@ -85,7 +91,7 @@ class FoodInclusionViewSet(ModelViewSet):
             response['content']['food_inclusion'] = FoodInclusionSerializer(food_inclusion).data
         return Response(response, status=response['code'])
 
-    @detail_route(methods=['delete'], permission_classes=[])
+    @action(detail=True, methods=['delete'], permission_classes=[])
     def delete(self, request, pk=None):
         response = {'content': {}, 'log_content': {}, 'code': None}
         try:
@@ -106,7 +112,7 @@ class FoodInclusionViewSet(ModelViewSet):
             response['code'] = status.HTTP_200_OK
         return Response(response, status=response['code'])
 
-    @detail_route(methods=['post'], permission_classes=[])
+    @action(detail=True, methods=['post'], permission_classes=[])
     def validate(self, request, pk=None):
         response = {'content': {}, 'log_content': {}, 'code': None}
         try:
@@ -134,7 +140,7 @@ class FoodInclusionViewSet(ModelViewSet):
             response['content']['food_inclusion'] = FoodInclusionSerializer(food_inclusion).data
         return Response(response, status=response['code'])
 
-    @detail_route(methods=['post'], permission_classes=[])
+    @action(detail=True, methods=['post'], permission_classes=[])
     def approve(self, request, pk=None):
         response = {'content': {}, 'log_content': {}, 'code': None}
         try:
@@ -159,7 +165,7 @@ class FoodInclusionViewSet(ModelViewSet):
             response['content']['food_inclusion'] = FoodInclusionSerializer(food_inclusion).data
         return Response(response, status=response['code'])
 
-    @detail_route(methods=['post'], permission_classes=[])
+    @action(detail=True, methods=['post'], permission_classes=[])
     def visualize(self, request, pk=None):
         response = {'content': {}, 'log_content': {}, 'code': None}
         try:

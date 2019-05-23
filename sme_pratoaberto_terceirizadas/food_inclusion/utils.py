@@ -32,10 +32,7 @@ def get_object(query_set, **kwargs):
 
 
 def _check_required_data(request_data):
-    if 'date' in request_data:
-        required_data = ['reason', 'date']
-    else:
-        required_data = ['reason', 'date_from', 'date_to', 'weekdays']
+    required_data = ['day_reasons']
     return all(elem in request_data for elem in required_data)
 
 
@@ -47,7 +44,7 @@ def _validate_reason(request_data, errors):
     reason = request_data.get('reason')
     reason_exists = object_exists(models.FoodInclusionReason, name=reason)
     if not reason_exists:
-        errors.append(_('reason doesnt exist'))
+        errors.append(_('Motivo não existe'))
 
 
 def _validate_status(request_data, errors):
@@ -68,7 +65,6 @@ def get_errors_list(request_data):
 
     _validate_descriptions(request_data, errors)
     _validate_status(request_data, errors)
-    _validate_reason(request_data, errors)
     _validate_date_block(request_data, errors)
     return errors
 
@@ -78,15 +74,18 @@ def _is_valid_payload(request_data):
 
 
 def _validate_date_block(request_data, errors):
-    if request_data.get('date', None):
-        _datetime = validate_date_format(request_data.get('date'), errors)
-        if _datetime and _datetime.date() < get_working_days_after(2):
-            errors.append('Mínimo de 2 dias úteis para fazer o pedido')
-    else:
-        validate_date_format(request_data.get('date_from'), errors)
-        validate_date_format(request_data.get('date_to'), errors)
-        if 'weekdays' in request_data:
-            validate_weekdays(request_data.get('weekdays'), errors)
+    day_reasons = request_data.get('day_reasons')
+    for day_reason in day_reasons:
+        _validate_reason(day_reason, errors)
+        if day_reason.get('date', None):
+            _datetime = validate_date_format(day_reason.get('date'), errors)
+            if _datetime and _datetime.date() < get_working_days_after(2):
+                errors.append('Mínimo de 2 dias úteis para fazer o pedido')
+        else:
+            validate_date_format(day_reason.get('date_from'), errors)
+            validate_date_format(day_reason.get('date_to'), errors)
+            if 'weekdays' in request_data:
+                validate_weekdays(day_reason.get('weekdays'), errors)
 
 
 def _validate_description(description, errors):

@@ -1,6 +1,7 @@
 import uuid
 from enum import Enum
 from django.db import models
+from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
 from sme_pratoaberto_terceirizadas.abstract_shareable import Describable
@@ -45,3 +46,12 @@ class OrderMealKit(models.Model):
     meal_kits = models.ManyToManyField(MealKit)
     observation = models.TextField(_('Observation'), blank=True, null=True)
     status = models.CharField(_('Status'), choices=TYPES_STATUS, default=0, max_length=6)
+    scheduled_time = models.CharField(_('Scheduled Time'), max_length=60)
+    register = models.DateTimeField(_('Registered'), auto_now_add=True)
+
+    def __str__(self):
+        return self.location
+
+    class Meta:
+        verbose_name = 'Solicitar Kit Lanche'
+        verbose_name_plural = 'Solicitar Kits Lanche'
