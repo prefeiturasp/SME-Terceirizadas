@@ -1,14 +1,14 @@
 from datetime import datetime
-from rest_framework.viewsets import ModelViewSet
-from rest_framework.permissions import IsAuthenticated
+
+from django.core.exceptions import ObjectDoesNotExist
+from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework import status
-from sme_pratoaberto_terceirizadas.permission.permissions import ValidatePermission
-from sme_pratoaberto_terceirizadas.school.models import School
-from ..models import MealKit, OrderMealKit
+from rest_framework.viewsets import ModelViewSet
 
 from sme_pratoaberto_terceirizadas.meal_kit.api.serializers import MealKitSerializer, OrderMealKitSerializer
+from sme_pratoaberto_terceirizadas.school.models import School
+from ..models import MealKit, OrderMealKit
 
 
 class MealKitViewSet(ModelViewSet):
@@ -61,37 +61,39 @@ class OrderMealKitViewSet(ModelViewSet):
 
         return True
 
-    def _enviar_solicitacao_kit_lanche(self, data, school):
+    def _enviar_solicitacao_kit_lanche(self, params, school):
 
-        data_passeio = datetime.strptime(data['evento_data'], '%d/%m/%Y').date()
+        try:
+            data_passeio = datetime.strptime(params['evento_data'], '%d/%m/%Y').date()
 
-        meals = MealKit.objects.filter(meals__uuid__in=data['kit_lanche'])
+            meals = MealKit.objects.filter(uuid__in=params['kit_lanche'])
 
-        if 'Acao' in data:
-            status_solicitacao = 'SENDED'
-            response_message = 'Solicitação em fase de aprovação'
-        else:
-            status_solicitacao = 'SAVED'
-            response_message = 'Solicitação salva com sucesso'
+            if 'Acao' in params:
+                status_solicitacao = 'SENDED'
+                response_message = 'Solicitação em fase de aprovação'
+            else:
+                status_solicitacao = 'SAVED'
+                response_message = 'Solicitação salva com sucesso'
 
-        solicitacao = OrderMealKit(
-            location=data['local_passeio'],
-            students_quantity=data['nro_alunos'],
-            order_date=data_passeio,
-            observation=data['obs'],
-            status=status_solicitacao,
-            scheduled_time=data['tempo_passeio']
-        )
-        solicitacao.save()
+            solicitacao = OrderMealKit(
+                location=params['local_passeio'],
+                students_quantity=params['nro_alunos'],
+                order_date=data_passeio,
+                observation=params['obs'],
+                status=status_solicitacao,
+                scheduled_time=params['tempo_passeio']
+            )
+            solicitacao.save()
 
-        solicitacao.schools.add(school)
-        for m in meals:
-            solicitacao.meal_kits.add(m)
+            solicitacao.schools.add(school)
+            for m in meals:
+                solicitacao.meal_kits.add(m)
 
-        solicitacao.save()
+            solicitacao.save()
 
-        if solicitacao:
             return Response({'details': response_message}, status=status.HTTP_200_OK)
+        except ObjectDoesNotExist:
+            return Response({'details': 'Erro ao tentar salvar solicitação'}, status=status.HTTP_502_BAD_GATEWAY)
 
     def update(self, request, pk=None, *args, **kwargs, ):
 
@@ -113,3 +115,6 @@ class OrderMealKitViewSet(ModelViewSet):
 
             return Response({'details': 'Solicitação atualizada com sucesso'})
         return Response({'details': 'Solicitação não encontrada'}, status=status.HTTP_400_BAD_REQUEST)
+
+    def _disparar_notificacao(self, data):
+        pass
