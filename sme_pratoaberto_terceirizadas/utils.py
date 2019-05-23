@@ -1,3 +1,5 @@
+import asyncio
+
 from des.models import DynamicEmailConfiguration
 from django.core.mail import get_connection, EmailMultiAlternatives
 from django.core.mail import send_mail
@@ -5,6 +7,8 @@ from django.db.models import QuerySet
 from notifications.signals import notify
 
 from sme_pratoaberto_terceirizadas.users.models import User
+
+loop = asyncio.get_event_loop()
 
 
 def send_notification(sender: User, recipients: [QuerySet, list],
@@ -32,7 +36,7 @@ def send_email(subject, message_text, to_email):
         [to_email])
 
 
-def send_mass_html_mail(subject, text, html, recipients):
+def _send_mass_html_mail(subject, text, html, recipients):
     """
     :param subject:
     :param text:
@@ -52,3 +56,7 @@ def send_mass_html_mail(subject, text, html, recipients):
             message.attach_alternative(html, 'text/html')
         messages.append(message)
     return connection.send_messages(messages)
+
+
+def async_send_mass_html_mail(subject, text, html, recipients):
+    loop.run_in_executor(None, _send_mass_html_mail, subject, text, html, recipients)
