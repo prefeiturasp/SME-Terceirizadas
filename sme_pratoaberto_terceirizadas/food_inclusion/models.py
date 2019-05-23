@@ -6,7 +6,7 @@ from django.db import models
 from django.utils.translation import ugettext as _
 from notifications.signals import notify
 
-from sme_pratoaberto_terceirizadas.abstract_shareable import Activable, Describable, TimestampAble
+from sme_pratoaberto_terceirizadas.abstract_shareable import Describable, TimestampAble, Activable
 from sme_pratoaberto_terceirizadas.common_data.utils import str_to_date, get_working_days_after
 from sme_pratoaberto_terceirizadas.food.models import MealType
 from sme_pratoaberto_terceirizadas.food_inclusion.utils import get_object
