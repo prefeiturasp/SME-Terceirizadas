@@ -10,14 +10,15 @@ from rest_framework.routers import DefaultRouter
 from rest_framework_jwt.views import obtain_jwt_token, refresh_jwt_token
 from rest_framework_swagger.views import get_swagger_view
 
+from sme_pratoaberto_terceirizadas.cardapio.urls import urlpatterns as cardapio_url
 from sme_pratoaberto_terceirizadas.common_data.api.viewsets import WorkingDaysViewSet
-from sme_pratoaberto_terceirizadas.school.routers import urlpatterns as school_url
 from sme_pratoaberto_terceirizadas.common_data.urls import urlpatterns as common_urls
+from sme_pratoaberto_terceirizadas.food.api.routers import urlpatterns as food_url
 from sme_pratoaberto_terceirizadas.food_inclusion.api.viewsets import FoodInclusionViewSet
 from sme_pratoaberto_terceirizadas.meal_kit.api.routers import urlpatterns as meal_kit_url
 from sme_pratoaberto_terceirizadas.permission.routers import urlpatterns as permissions_url
+from sme_pratoaberto_terceirizadas.school.routers import urlpatterns as school_url
 from sme_pratoaberto_terceirizadas.users.routers import urlpatterns as user_url
-from sme_pratoaberto_terceirizadas.food.api.routers import urlpatterns as food_url
 
 schema_view = get_swagger_view(title=_('API of SME-Companies'))
 
@@ -46,6 +47,7 @@ urlpatterns += user_url
 urlpatterns += common_urls
 urlpatterns += meal_kit_url
 urlpatterns += food_url
+urlpatterns += cardapio_url
 
 if settings.DEBUG:
     # This allows the error pages to be debugged during development, just visit
