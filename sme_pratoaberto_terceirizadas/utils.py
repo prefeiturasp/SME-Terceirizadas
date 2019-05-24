@@ -8,8 +8,6 @@ from notifications.signals import notify
 
 from sme_pratoaberto_terceirizadas.users.models import User
 
-loop = asyncio.get_event_loop()
-
 
 def send_notification(sender: User, recipients: [QuerySet, list],
                       short_desc: str, long_desc: str):
@@ -56,6 +54,9 @@ def _send_mass_html_mail(subject, text, html, recipients):
             message.attach_alternative(html, 'text/html')
         messages.append(message)
     return connection.send_messages(messages)
+
+
+loop = asyncio.get_event_loop()
 
 
 def async_send_mass_html_mail(subject, text, html, recipients):

@@ -1,12 +1,21 @@
 from rest_framework import serializers
 
+from sme_pratoaberto_terceirizadas.school.models import SchoolAge
 from sme_pratoaberto_terceirizadas.validators import (nao_pode_ser_passado,
                                                       deve_pedir_com_antecedencia,
                                                       dia_util)
 from ..models import AlteracaoCardapio
 
 
+class IdadeEscolarSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SchoolAge
+        fields = '__all__'
+
+
 class AlteracaoCardapioSerializer(serializers.ModelSerializer):
+    idade = serializers.SlugRelatedField(slug_field='uuid', queryset=SchoolAge.objects.all())
+
     class Meta:
         model = AlteracaoCardapio
         fields = '__all__'

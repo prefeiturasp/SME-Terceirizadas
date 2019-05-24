@@ -1,9 +1,7 @@
-import uuid
-
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
-from sme_pratoaberto_terceirizadas.abstract_shareable import Describable, Activable
+from sme_pratoaberto_terceirizadas.abstract_shareable import Describable, Activable, TemChaveExterna
 from sme_pratoaberto_terceirizadas.users.models import User
 
 
@@ -38,7 +36,7 @@ class SchoolPeriod(Describable):
         verbose_name_plural = _("School Periods")
 
 
-class SchoolAge(Describable, Activable):
+class SchoolAge(Describable, Activable, TemChaveExterna):
     """Tabela utilizada para registrar faixa etária de idade"""
 
 
@@ -54,9 +52,8 @@ class ManagementType(Describable, Activable):
     """Tipo de gestão escolar: DIRETA, MISTA, TERCEIRIZADA..."""
 
 
-class SchoolGroup(models.Model):
+class SchoolGroup(TemChaveExterna):
     """Agrupamento"""
-    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     codigo = models.SmallIntegerField(_('Grouping'))
 
 
