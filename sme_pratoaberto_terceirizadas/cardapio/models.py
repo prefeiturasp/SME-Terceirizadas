@@ -3,6 +3,7 @@ from model_utils import Choices
 from model_utils.fields import StatusField
 
 from sme_pratoaberto_terceirizadas.abstract_shareable import Describable, IntervaloDeDia, TemChaveExterna
+from sme_pratoaberto_terceirizadas.school.models import School, SchoolAge
 from sme_pratoaberto_terceirizadas.users.models import User
 
 
@@ -23,5 +24,4 @@ class AlteracaoCardapio(IntervaloDeDia, Describable, TemChaveExterna):
         ('TERCEIRIZADA_A_VISUALIZADO', 'Terceirizada visualizado')  # TOMOU CIENCIA, TODOS DEVEM FICAR SABENDO...
     )
     status = StatusField()
-    # TODO criar o relacionamento...
-    nome_escola = models.CharField('Nome da escola...', blank=True, null=True, max_length=256)
+    idade = models.ForeignKey(SchoolAge, on_delete=models.DO_NOTHING)
