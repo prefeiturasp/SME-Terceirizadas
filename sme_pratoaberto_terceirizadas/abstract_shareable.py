@@ -6,8 +6,14 @@ from django.utils.translation import ugettext_lazy as _
 
 class Describable(models.Model):
     name = models.CharField(_("Name"), blank=True, null=True, max_length=50)
-    motivo = models.TextField("Motivo", blank=True, null=True, max_length=256)
     description = models.TextField(_("Description"), blank=True, null=True, max_length=256)
+
+    class Meta:
+        abstract = True
+
+
+class Motivos(models.Model):
+    motivo = models.TextField("Motivo", blank=True, null=True, max_length=256)
 
     class Meta:
         abstract = True

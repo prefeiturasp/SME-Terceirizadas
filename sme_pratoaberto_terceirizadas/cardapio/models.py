@@ -1,13 +1,15 @@
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from model_utils import Choices
 from model_utils.fields import StatusField
 
-from sme_pratoaberto_terceirizadas.abstract_shareable import Describable, IntervaloDeDia, TemChaveExterna
-from sme_pratoaberto_terceirizadas.school.models import School, SchoolAge
+from sme_pratoaberto_terceirizadas.abstract_shareable import Describable, IntervaloDeDia, TemChaveExterna, \
+    Motivos
+from sme_pratoaberto_terceirizadas.school.models import School, SchoolAge, RegionalDirector
 from sme_pratoaberto_terceirizadas.users.models import User
 
 
-class AlteracaoCardapio(IntervaloDeDia, Describable, TemChaveExterna):
+class AlteracaoCardapio(IntervaloDeDia, Describable, TemChaveExterna, Motivos):
     STATUS = Choices(
 
         # ESCOLA
@@ -29,4 +31,26 @@ class AlteracaoCardapio(IntervaloDeDia, Describable, TemChaveExterna):
         ('TERCEIRIZADA_A_VISUALIZADO', 'Terceirizada visualizado')  # TOMOU CIENCIA, TODOS DEVEM FICAR SABENDO...
     )
     status = StatusField()
-    idade = models.ForeignKey(SchoolAge, on_delete=models.DO_NOTHING)
+    escola = models.ForeignKey(School, on_delete=models.DO_NOTHING)
+
+    @classmethod
+    def valida_existencia(cls, inicio, fim, escola_id):
+        escola = cls.get_escola(escola_id)
+        existe = cls.objects.filter(data_inicio=inicio, data_final=fim, escola=escola)
+        if existe:
+            return False
+        return True
+
+    @classmethod
+    def get_escola(cls, id_escola):
+        try:
+            return School.objects.get(pk=id_escola)
+        except ObjectDoesNotExist:
+            return False
+
+    @classmethod
+    def get_usuarios_dre(cls, escola):
+        dre = RegionalDirector.objects.filter(regional_director=escola.regional_director)
+        return dre.values_list('users').all()
+
+

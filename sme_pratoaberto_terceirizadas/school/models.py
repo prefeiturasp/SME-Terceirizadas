@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth.models import User
 from django.utils.translation import ugettext_lazy as _
 
 from sme_pratoaberto_terceirizadas.abstract_shareable import Describable, Activable, TemChaveExterna
@@ -9,6 +10,7 @@ class RegionalDirector(Describable):
     """DRE - Diretoria Regional"""
     # TODO chave estrangeira para Institution
     abbreviation = models.CharField(_('Abbreviation'), max_length=10)
+    users = models.ManyToManyField(User, blank=True)
 
     def __str__(self):
         return _('Abbreviation') + self.abbreviation
