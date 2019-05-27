@@ -1,0 +1,26 @@
+[
+  {
+    "model": "food.meal",
+    "id": 1,
+    "fields": {
+      "title": "Kit 1",
+      "foods": [1, 4, 6]
+    }
+  },
+  {
+    "model": "food.meal",
+    "id": 2,
+    "fields": {
+      "title": "Kit 2",
+      "foods": [4, 5, 6]
+    }
+  },
+  {
+    "model": "food.meal",
+    "id": 3,
+    "fields": {
+      "title": "Kit 3",
+      "foods": [2, 3, 7]
+    }
+  }
+]

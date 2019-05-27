@@ -1,0 +1,64 @@
+[
+  {
+    "model": "food.food",
+    "id": 1,
+    "fields": {
+      "title": "Barra de Cereal (20 a 25 g embalagem individual)",
+      "details": "Barra de Cereal (20 a 25 g embalagem individual)",
+      "is_active": true
+    }
+  },
+  {
+    "model": "food.food",
+    "id": 2,
+    "fields": {
+      "title": "Pão tipo hot dog (50g) com queijo (40g, duas fatias)",
+      "details": "Pão tipo hot dog (50g) com queijo (40g, duas fatias)",
+      "is_active": true
+    }
+  },
+  {
+    "model": "food.food",
+    "id": 3,
+    "fields": {
+      "title": "Pão tipo Bisnaguinha (2 unidades - 40 g )",
+      "details": "Pão tipo Bisnaguinha (2 unidades - 40 g )",
+      "is_active": true
+    }
+  },
+  {
+    "model": "food.food",
+    "id": 4,
+    "fields": {
+      "title": "Néctar UHT ou Suco Tropical UHT (200 ml)",
+      "details": "Néctar UHT ou Suco Tropical UHT (200 ml)",
+      "is_active": true
+    }
+  },
+  {
+    "model": "food.food",
+    "id": 5,
+    "fields": {
+      "title": "Fruta",
+      "details": "Fruta",
+      "is_active": true
+    }
+  },
+  {
+    "model": "food.food",
+    "id": 6,
+    "fields": {
+      "title": "Biscoito Integral Salgado (mín. de 25g embalagem individual)",
+      "details": "Biscoito Integral Salgado (mín. de 25g embalagem individual)",
+      "is_active": true
+    }
+  },{
+    "model": "food.food",
+    "id": 7,
+    "fields": {
+      "title": "Bebida Láctea UHT Sabor Chocolate (200 ml)",
+      "details": "Bebida Láctea UHT Sabor Chocolate (200 ml)",
+      "is_active": true
+    }
+  }
+]
