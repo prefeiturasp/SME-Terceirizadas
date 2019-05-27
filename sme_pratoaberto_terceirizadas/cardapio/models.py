@@ -9,6 +9,11 @@ from sme_pratoaberto_terceirizadas.users.models import User
 
 class AlteracaoCardapio(IntervaloDeDia, Describable, TemChaveExterna):
     STATUS = Choices(
+
+        # ESCOLA
+        ('ESCOLA_SOLICITA', 'Nova solicitação pela Escola'),
+        ('ESCOLA_RESOLICITA', 'Solicitação refeita pela Escola'),
+
         # DRE
         ('DRE_A_VALIDAR', 'A validar pela DRE'),  # IMEDIATAMENTE ENTRA NESSE APOS CRIAR
         ('DRE_APROVADO', 'Aprovado pela DRE'),  # CODAE RECEBE

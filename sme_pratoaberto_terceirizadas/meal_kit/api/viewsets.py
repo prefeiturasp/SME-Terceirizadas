@@ -10,7 +10,8 @@ from sme_pratoaberto_terceirizadas.meal_kit.api.serializers import MealKitSerial
 from sme_pratoaberto_terceirizadas.school.models import School
 from sme_pratoaberto_terceirizadas.users.models import User
 from ..models import MealKit, OrderMealKit
-from sme_pratoaberto_terceirizadas.utils import send_notification, send_email
+from sme_pratoaberto_terceirizadas.utils import send_notification
+from .validators import valida_usuario_escola
 
 
 class MealKitViewSet(ModelViewSet):
@@ -122,7 +123,10 @@ class OrderMealKitViewSet(ModelViewSet):
     @action(detail=False, methods=['post'])
     def salvar(self, request):
         params = request.data
-        escola = self._valida_escola(request.user)
+        escola = School.objects.filter(users=request.user).first()
+        if not valida_usuario_escola(request.user):
+            return Response({'error': 'Sem escola relacinada a este usuário'}, status=status.HTTP_401_UNAUTHORIZED)
+
         data_passeio = datetime.strptime(params['evento_data'], '%d/%m/%Y').date()
         ja_cadastrado = OrderMealKit.objects.filter(schools=escola, order_date=data_passeio, status='SAVED')
         if ja_cadastrado and not params['id']:
