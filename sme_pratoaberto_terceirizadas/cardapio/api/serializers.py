@@ -3,7 +3,7 @@ from rest_framework import serializers
 from sme_pratoaberto_terceirizadas.school.models import School
 from sme_pratoaberto_terceirizadas.validators import (nao_pode_ser_passado,
                                                       deve_pedir_com_antecedencia,
-                                                      dia_util)
+                                                      dia_util, verificar_se_existe)
 from ..models import AlteracaoCardapio
 
 
@@ -33,13 +33,20 @@ class AlteracaoCardapioSerializer(serializers.ModelSerializer):
         dia_util(data_final)
         return data_final
 
-    def validate_ja_cadastrado(self, data):
-        if not AlteracaoCardapio.valida_existencia(data):
+    def _validate_ja_cadastrado(self, data):
+        inicio = data.get('data_inicial', None)
+        fim = data.get('data_final', None)
+        escola = data.get('escola', None)
+        existe = verificar_se_existe(AlteracaoCardapio,
+                                     data_inicial=inicio,
+                                     data_final=fim,
+                                     escola=escola)
+        if existe:
             raise serializers.ValidationError('Solicitação já foi cadastrada')
         return data
 
     def validate(self, data):
-        self.validate_ja_cadastrado(data)
+        self._validate_ja_cadastrado(data)
         data_inicial = data.get('data_inicial', None)
         data_final = data.get('data_final', None)
         if data_inicial and data_final:

@@ -23,8 +23,6 @@ class AlteracaoCardapioViewSet(ModelViewSet):
     def create(self, request: Request, *args: Any, **kwargs: Any) -> Response:
         response = super().create(request, *args, **kwargs)
         if response:
-            # escola = AlteracaoCardapio.get_escola(response.data.get('escola'))
-            # usuarios_dre = AlteracaoCardapio.get_usuarios_dre(escola)
             short_desc = 'Alteração de cardápio criada'.format(response.data.get('id', None))
             send_notification(sender=request.user, recipients=cintia_qs,
                               short_desc=short_desc, long_desc=response.data)

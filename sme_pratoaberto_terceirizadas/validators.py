@@ -22,3 +22,11 @@ def dia_util(data: datetime.date):
     if not is_working_day(data):
         raise serializers.ValidationError('Não é dia útil em São Paulo')
     return True
+
+
+# TODO: validar o primeiro parametro pra ser instance of Model
+def verificar_se_existe(obj_model, **kwargs) -> bool:
+    qtd = obj_model.objects.filter(**kwargs).count()
+    if qtd:
+        return True
+    return False
