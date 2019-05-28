@@ -33,7 +33,13 @@ class AlteracaoCardapioSerializer(serializers.ModelSerializer):
         dia_util(data_final)
         return data_final
 
+    def validate_ja_cadastrado(self, data):
+        if not AlteracaoCardapio.valida_existencia(data):
+            raise serializers.ValidationError('Solicitação já foi cadastrada')
+        return data
+
     def validate(self, data):
+        self.validate_ja_cadastrado(data)
         data_inicial = data.get('data_inicial', None)
         data_final = data.get('data_final', None)
         if data_inicial and data_final:

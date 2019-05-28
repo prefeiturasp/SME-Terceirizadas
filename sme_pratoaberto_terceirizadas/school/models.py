@@ -1,3 +1,4 @@
+import uuid as uuid
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils.translation import ugettext_lazy as _
@@ -59,9 +60,10 @@ class SchoolGroup(TemChaveExterna):
     codigo = models.SmallIntegerField(_('Grouping'))
 
 
-class School(Describable, Activable):
+class School(Activable):
     """Escola"""
     # TODO chave estrangeira para Institution
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     name = models.CharField(_("Name"), max_length=160)
     eol_code = models.CharField(_("EOL code"), max_length=10)
     codae_code = models.CharField(_('CODAE code'), max_length=10)

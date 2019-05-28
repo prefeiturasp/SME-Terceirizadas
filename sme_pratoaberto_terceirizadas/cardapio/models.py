@@ -34,9 +34,11 @@ class AlteracaoCardapio(IntervaloDeDia, Describable, TemChaveExterna, Motivos):
     escola = models.ForeignKey(School, on_delete=models.DO_NOTHING)
 
     @classmethod
-    def valida_existencia(cls, inicio, fim, escola_id):
-        escola = cls.get_escola(escola_id)
-        existe = cls.objects.filter(data_inicio=inicio, data_final=fim, escola=escola)
+    def valida_existencia(cls, data):
+        inicio = data.get('data_inicial', None)
+        fim = data.get('data_final', None)
+        escola = data.get('escola', None)
+        existe = cls.objects.filter(data_inicial=inicio, data_final=fim, escola=escola).count()
         if existe:
             return False
         return True
