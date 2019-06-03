@@ -1,5 +1,6 @@
 from django.contrib import admin
-from .models import MealKit, OrderMealKit
+from .models import MealKit, OrderMealKit, SolicitacaoUnificada, SolicitacaoUnificadaFormulario, \
+    SolicitacaoUnificadaMultiploEscola, RazaoSolicitacaoUnificada
 
 
 @admin.register(MealKit)
@@ -11,3 +12,9 @@ class MealKitAdmin(admin.ModelAdmin):
 @admin.register(OrderMealKit)
 class OrderMealKitAdmin(admin.ModelAdmin):
     list_display = ['location', 'students_quantity', 'order_date']
+
+
+admin.site.register(RazaoSolicitacaoUnificada)
+admin.site.register(SolicitacaoUnificada)
+admin.site.register(SolicitacaoUnificadaMultiploEscola)
+admin.site.register(SolicitacaoUnificadaFormulario)

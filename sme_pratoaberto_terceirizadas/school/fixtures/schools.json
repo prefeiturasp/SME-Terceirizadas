@@ -1,0 +1,102 @@
+[
+  {
+    "model": "school.school",
+    "id": 1,
+    "fields": {
+      "name": "EMEI PAULO CAMILHIER FLORENÇANO (TERC.)",
+      "eol_code": "86",
+      "codae_code": "86",
+      "periods": [1,2,3,4,5]
+    }
+  },
+  {
+    "model": "school.school",
+    "id": 2,
+    "fields": {
+      "name": "EMEI VICENTE PAULO DA SILVA (TERC.)",
+      "eol_code": "94",
+      "codae_code": "94",
+      "periods": [1,2,3,4,5]
+    }
+  },
+  {
+    "model": "school.school",
+    "id": 3,
+    "fields": {
+      "name": "EMEF JOSE ERMIRIO DE MORAIS, SEN. (TERC.)",
+      "eol_code": "108",
+      "codae_code": "108",
+      "periods": [1,2,3,4,5]
+    }
+  },
+  {
+    "model": "school.school",
+    "id": 4,
+    "fields": {
+      "name": "EMEBS PROFA. VERA LÚCIA APARECIDA RIBEIRO - (MIST)",
+      "eol_code": "205",
+      "codae_code": "205",
+      "periods": [1,2,3,4,5]
+    }
+  },
+  {
+    "model": "school.school",
+    "id": 5,
+    "fields": {
+      "name": "EMEI PROF. ANTONIO CARLOS PACHECO E SILVA (MIST)",
+      "eol_code": "213",
+      "codae_code": "213",
+      "periods": [1,2,3,4,5]
+    }
+  },
+  {
+    "model": "school.school",
+    "id": 6,
+    "fields": {
+      "name": "EMEI NAIR CORREA BUARQUE (TERC.)",
+      "eol_code": "221",
+      "codae_code": "221",
+      "periods": [1,2,3,4,5]
+    }
+  },
+  {
+    "model": "school.school",
+    "id": 7,
+    "fields": {
+      "name": "EMEI MARIA YOLANDA DE SOUZA PINTO HAHNE (TERC.)",
+      "eol_code": "230",
+      "codae_code": "230",
+      "periods": [1,2,3,4,5]
+    }
+  },
+  {
+    "model": "school.school",
+    "id": 8,
+    "fields": {
+      "name": "EMEI WALFRIDO DE CARVALHO, CEL. (TERC.)",
+      "eol_code": "248",
+      "codae_code": "248",
+      "periods": [1,2,3,4,5]
+    }
+  },
+  {
+    "model": "school.school",
+    "id": 9,
+    "fields": {
+      "name": "EMEI PROFA. WILMA ALVARENGA DE OLIVEIRA  - (MIST)",
+      "eol_code": "256",
+      "codae_code": "256",
+      "periods": [1,2,3,4,5]
+    }
+  },
+  {
+    "model": "school.school",
+    "id": 10,
+    "fields": {
+      "name": "EMEF ALM. SYLVIO HECK - (MIST)",
+      "eol_code": "264",
+      "codae_code": "264",
+      "periods": [1,2,3,4,5]
+    }
+  }
+]
