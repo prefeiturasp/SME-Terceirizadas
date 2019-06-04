@@ -201,6 +201,7 @@ class SolicitacaoUnificadaFormulario(models.Model):
     """Formulario de Solicitação Unificada de Kit Lanche (DRE)"""
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     criado_por = models.ForeignKey(User, on_delete=models.DO_NOTHING)
+    criado_em = models.DateTimeField(auto_now_add=True)
     dia = models.DateField()
     razao = models.ForeignKey(RazaoSolicitacaoUnificada, on_delete=models.DO_NOTHING)
     local_passeio = models.CharField("Local", max_length=200)
@@ -264,7 +265,8 @@ class SolicitacaoUnificadaMultiploEscola(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     escola = models.ForeignKey(School, on_delete=models.DO_NOTHING)
     numero_alunos = models.IntegerField()
-    solicitacao_unificada = models.ForeignKey(SolicitacaoUnificadaFormulario, on_delete=models.DO_NOTHING, related_name='escolas')
+    solicitacao_unificada = models.ForeignKey(SolicitacaoUnificadaFormulario, on_delete=models.DO_NOTHING,
+                                              related_name='escolas')
 
     def __str__(self):
         return self.escola.name + ' - ' + str(self.numero_alunos)

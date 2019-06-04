@@ -41,9 +41,15 @@ class SolicitacaoUnificadaFormularioSerializer(serializers.ModelSerializer):
     kit_lanche = serializers.SerializerMethodField()
 
     def get_escolas(self, obj):
-        return [{'id': multiplo_escola.escola.eol_code, 'nome': multiplo_escola.escola.name,
-                 'numero_alunos': multiplo_escola.numero_alunos, 'check': True} for multiplo_escola in
-                obj.escolas.all()]
+        if obj.escolas.exists():
+            return [{'id': multiplo_escola.escola.eol_code, 'nome': multiplo_escola.escola.name,
+                     'numero_alunos': multiplo_escola.numero_alunos, 'check': True} for multiplo_escola in
+                    obj.escolas.all()]
+        else:
+            return [{'id': solicitacao.schools.get().eol_code, 'nome': solicitacao.schools.get().name,
+                     'nro_alunos': solicitacao.students_quantity, 'tempo_passeio': solicitacao.scheduled_time,
+                     'kit_lanche': [kit_lanche.uuid for kit_lanche in solicitacao.meal_kits.all()], 'check': True} for
+                    solicitacao in obj.solicitacoes.all()]
 
     def get_razao(self, obj):
         return obj.razao.name

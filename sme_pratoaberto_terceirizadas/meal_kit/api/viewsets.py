@@ -85,7 +85,7 @@ class SolicitacaoUnificadaViewSet(ModelViewSet):
     serializer_class = SolicitacaoUnificadaFormularioSerializer
 
     def get_queryset(self):
-        return SolicitacaoUnificadaFormulario.objects.filter(criado_por=self.request.user)[:1]
+        return SolicitacaoUnificadaFormulario.objects.filter(criado_por=self.request.user)
 
     @action(detail=False, methods=['post'])
     def salvar(self, request):
@@ -97,4 +97,4 @@ class SolicitacaoUnificadaViewSet(ModelViewSet):
                             status=status.HTTP_400_BAD_REQUEST)
         """
         SolicitacaoUnificadaFormulario.salvar_formulario(params, usuario)
-        return Response({'success': 'Solicitação salva com sucesso'})
+        return Response({'success': 'Solicitação salva com sucesso'}, status=status.HTTP_200_OK)
