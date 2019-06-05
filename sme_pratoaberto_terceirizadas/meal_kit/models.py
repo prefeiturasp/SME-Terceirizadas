@@ -204,6 +204,7 @@ class SolicitacaoUnificadaFormulario(models.Model):
     criado_em = models.DateTimeField(auto_now_add=True)
     dia = models.DateField()
     razao = models.ForeignKey(RazaoSolicitacaoUnificada, on_delete=models.DO_NOTHING)
+    qual_razao = models.TextField(blank=True, null=True)
     local_passeio = models.CharField("Local", max_length=200)
     solicitacoes = models.ManyToManyField(OrderMealKit, blank=True)
     pedido_multiplo = models.BooleanField(default=False)
@@ -220,6 +221,8 @@ class SolicitacaoUnificadaFormulario(models.Model):
         try:
             if data.get('id', None):
                 obj = cls.objects.get(pk=data.get('id'))
+                obj.solicitacoes.all().delete()
+                obj.escolas.all().delete()
             else:
                 obj = cls()
             obj.criado_por = usuario
@@ -227,6 +230,7 @@ class SolicitacaoUnificadaFormulario(models.Model):
             razao = data.get('razao')
             obj.dia = datetime.strptime(dia, '%d/%m/%Y').date()
             obj.razao = RazaoSolicitacaoUnificada.objects.get(name=razao)
+            obj.qual_razao = data.get('qual_razao', None)
             obj.local_passeio = data.get('local_passeio')
             obj.obs = data.get('obs', None)
             obj.pedido_multiplo = data.get('pedido_multiplo', False)
@@ -265,7 +269,7 @@ class SolicitacaoUnificadaMultiploEscola(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     escola = models.ForeignKey(School, on_delete=models.DO_NOTHING)
     numero_alunos = models.IntegerField()
-    solicitacao_unificada = models.ForeignKey(SolicitacaoUnificadaFormulario, on_delete=models.DO_NOTHING,
+    solicitacao_unificada = models.ForeignKey(SolicitacaoUnificadaFormulario, on_delete=models.CASCADE,
                                               related_name='escolas')
 
     def __str__(self):

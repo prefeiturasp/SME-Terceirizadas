@@ -81,11 +81,17 @@ class OrderMealKitViewSet(ModelViewSet):
 
 class SolicitacaoUnificadaViewSet(ModelViewSet):
     """ Endpoint para Solicitações Unificadas de Kit Lanches """
-    queryset = SolicitacaoUnificadaFormulario.objects.all()
     serializer_class = SolicitacaoUnificadaFormularioSerializer
+    lookup_field = 'uuid'
 
     def get_queryset(self):
         return SolicitacaoUnificadaFormulario.objects.filter(criado_por=self.request.user)
+
+    def destroy(self, request, *args, **kwargs):
+        response = super(SolicitacaoUnificadaViewSet, self).destroy(request, *args, **kwargs)
+        if response.status_code == 204:
+            return Response({'success': 'Solicitação removida com sucesso.'})
+        return Response({'error': 'Solicitação não encontrada'}, status=status.HTTP_409_CONFLICT)
 
     @action(detail=False, methods=['post'])
     def salvar(self, request):

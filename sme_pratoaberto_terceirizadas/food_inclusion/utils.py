@@ -2,9 +2,9 @@ import datetime
 
 from django.utils.translation import ugettext_lazy as _
 
-from ..common_data.utils import get_working_days_after
-from ..food.models import MealType
-from ..food_inclusion import models
+from sme_pratoaberto_terceirizadas.common_data.utils import get_working_days_after
+from sme_pratoaberto_terceirizadas.food.models import MealType
+from sme_pratoaberto_terceirizadas.food_inclusion import models
 
 
 def validate_date_format(date_text, errors_list):

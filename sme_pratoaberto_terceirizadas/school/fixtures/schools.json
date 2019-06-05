@@ -33,6 +33,16 @@
     "model": "school.school",
     "id": 4,
     "fields": {
+      "name": "EMEF PROF. ALIPIO CORREA NETO - (MIST)",
+      "eol_code": "191",
+      "codae_code": "191",
+      "periods": [1,2,3,4,5]
+    }
+  },
+  {
+    "model": "school.school",
+    "id": 5,
+    "fields": {
       "name": "EMEBS PROFA. VERA LÚCIA APARECIDA RIBEIRO - (MIST)",
       "eol_code": "205",
       "codae_code": "205",
@@ -41,7 +51,7 @@
   },
   {
     "model": "school.school",
-    "id": 5,
+    "id": 6,
     "fields": {
       "name": "EMEI PROF. ANTONIO CARLOS PACHECO E SILVA (MIST)",
       "eol_code": "213",
@@ -51,7 +61,7 @@
   },
   {
     "model": "school.school",
-    "id": 6,
+    "id": 7,
     "fields": {
       "name": "EMEI NAIR CORREA BUARQUE (TERC.)",
       "eol_code": "221",
@@ -61,7 +71,7 @@
   },
   {
     "model": "school.school",
-    "id": 7,
+    "id": 8,
     "fields": {
       "name": "EMEI MARIA YOLANDA DE SOUZA PINTO HAHNE (TERC.)",
       "eol_code": "230",
@@ -71,7 +81,7 @@
   },
   {
     "model": "school.school",
-    "id": 8,
+    "id": 9,
     "fields": {
       "name": "EMEI WALFRIDO DE CARVALHO, CEL. (TERC.)",
       "eol_code": "248",
@@ -81,7 +91,7 @@
   },
   {
     "model": "school.school",
-    "id": 9,
+    "id": 10,
     "fields": {
       "name": "EMEI PROFA. WILMA ALVARENGA DE OLIVEIRA  - (MIST)",
       "eol_code": "256",
@@ -91,7 +101,7 @@
   },
   {
     "model": "school.school",
-    "id": 10,
+    "id": 11,
     "fields": {
       "name": "EMEF ALM. SYLVIO HECK - (MIST)",
       "eol_code": "264",
