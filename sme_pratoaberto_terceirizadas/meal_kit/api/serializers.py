@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from sme_pratoaberto_terceirizadas.food.api.serializers import MealSerializer
 from sme_pratoaberto_terceirizadas.meal_kit.models import MealKit, OrderMealKit, SolicitacaoUnificadaFormulario, \
-    RazaoSolicitacaoUnificada, SolicitacaoUnificadaMultiploEscola
+    RazaoSolicitacaoUnificada, SolicitacaoUnificadaMultiploEscola, SolicitacaoUnificada
 from sme_pratoaberto_terceirizadas.school.api.serializers import SchoolSerializer
 
 
@@ -23,7 +23,7 @@ class OrderMealKitSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class SolicitacaoUnificadaMultiploEscolaSerializer(serializers.SerializerMethodField):
+class SolicitacaoUnificadaMultiploEscolaSerializer(serializers.ModelSerializer):
     class Meta:
         model = SolicitacaoUnificadaMultiploEscola
         fields = '__all__'
@@ -59,4 +59,24 @@ class SolicitacaoUnificadaFormularioSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SolicitacaoUnificadaFormulario
+        fields = '__all__'
+
+
+class SolicitacaoUnificadaSerializer(serializers.ModelSerializer):
+    formulario = SolicitacaoUnificadaFormularioSerializer()
+    lote = serializers.SerializerMethodField()
+    status = serializers.SerializerMethodField()
+    dre = serializers.SerializerMethodField()
+
+    def get_lote(self, obj):
+        return obj.lote.nome
+
+    def get_status(self, obj):
+        return obj.status.name
+
+    def get_dre(self, obj):
+        return obj.formulario.criado_por.DRES.get().name
+
+    class Meta:
+        model = SolicitacaoUnificada
         fields = '__all__'

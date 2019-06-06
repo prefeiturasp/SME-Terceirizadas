@@ -1,5 +1,3 @@
-from datetime import datetime
-
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import status
 from rest_framework.decorators import action
@@ -7,10 +5,11 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
 from sme_pratoaberto_terceirizadas.meal_kit.api.serializers import MealKitSerializer, OrderMealKitSerializer, \
-    SolicitacaoUnificadaFormularioSerializer
+    SolicitacaoUnificadaFormularioSerializer, SolicitacaoUnificadaSerializer
 from sme_pratoaberto_terceirizadas.school.models import School
 from sme_pratoaberto_terceirizadas.users.models import User
-from ..models import MealKit, OrderMealKit, SolicitacaoUnificadaFormulario
+from ..models import MealKit, OrderMealKit, SolicitacaoUnificada, SolicitacaoUnificadaFormulario, \
+    StatusSolicitacaoUnificada
 from .validators import valida_usuario_escola
 
 
@@ -79,16 +78,17 @@ class OrderMealKitViewSet(ModelViewSet):
         return Response({'success': 'Solicitação salva com sucesso'})
 
 
-class SolicitacaoUnificadaViewSet(ModelViewSet):
-    """ Endpoint para Solicitações Unificadas de Kit Lanches """
+class SolicitacaoUnificadaFormularioViewSet(ModelViewSet):
+    """ Endpoint para Formularios de Solicitações Unificadas de Kit Lanches """
     serializer_class = SolicitacaoUnificadaFormularioSerializer
     lookup_field = 'uuid'
 
     def get_queryset(self):
-        return SolicitacaoUnificadaFormulario.objects.filter(criado_por=self.request.user)
+        return SolicitacaoUnificadaFormulario.objects.filter(criado_por=self.request.user,
+                                                             solicitacaounificada__isnull=True)
 
     def destroy(self, request, *args, **kwargs):
-        response = super(SolicitacaoUnificadaViewSet, self).destroy(request, *args, **kwargs)
+        response = super(SolicitacaoUnificadaFormularioViewSet, self).destroy(request, *args, **kwargs)
         if response.status_code == 204:
             return Response({'success': 'Solicitação removida com sucesso.'})
         return Response({'error': 'Solicitação não encontrada'}, status=status.HTTP_409_CONFLICT)
@@ -102,5 +102,16 @@ class SolicitacaoUnificadaViewSet(ModelViewSet):
             return Response({'error': 'Já existe um evento cadastrado para esta data'},
                             status=status.HTTP_400_BAD_REQUEST)
         """
-        SolicitacaoUnificadaFormulario.salvar_formulario(params, usuario)
+        formulario = SolicitacaoUnificadaFormulario.salvar_formulario(params, usuario)
+        if params.get('status') == StatusSolicitacaoUnificada.TO_APPROVE:
+            SolicitacaoUnificada.criar_solicitacoes(formulario)
         return Response({'success': 'Solicitação salva com sucesso'}, status=status.HTTP_200_OK)
+
+
+class SolicitacaoUnificadaViewSet(ModelViewSet):
+    """ Endpoint para Solicitações Unificadas de Kit Lanches """
+    serializer_class = SolicitacaoUnificadaSerializer
+    lookup_field = 'uuid'
+
+    def get_queryset(self):
+        return SolicitacaoUnificada.objects.all()

@@ -12,7 +12,7 @@ class RegionalDirector(Describable):
     """DRE - Diretoria Regional"""
     # TODO chave estrangeira para Institution
     abbreviation = models.CharField(_('Abbreviation'), max_length=10)
-    users = models.ManyToManyField(User, blank=True)
+    users = models.ManyToManyField(User, blank=True, related_name='DREs')
 
     def __str__(self):
         return _('Abbreviation') + self.abbreviation

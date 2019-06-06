@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .models import MealKit, OrderMealKit, SolicitacaoUnificada, SolicitacaoUnificadaFormulario, \
-    SolicitacaoUnificadaMultiploEscola, RazaoSolicitacaoUnificada
+    SolicitacaoUnificadaMultiploEscola, RazaoSolicitacaoUnificada, StatusSolicitacaoUnificada
 
 
 @admin.register(MealKit)
@@ -18,3 +18,4 @@ admin.site.register(RazaoSolicitacaoUnificada)
 admin.site.register(SolicitacaoUnificada)
 admin.site.register(SolicitacaoUnificadaMultiploEscola)
 admin.site.register(SolicitacaoUnificadaFormulario)
+admin.site.register(StatusSolicitacaoUnificada)

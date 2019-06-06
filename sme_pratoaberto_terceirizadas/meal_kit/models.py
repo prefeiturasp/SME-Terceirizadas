@@ -213,8 +213,13 @@ class SolicitacaoUnificadaFormulario(models.Model):
     kits_lanche = models.ManyToManyField(MealKit, blank=True)
     obs = models.TextField("Observação", blank=True, null=True)
 
-    def __str__(self):
-        return self.dia.strftime("%d/%m/%Y") + ' - ' + self.local_passeio
+    def existe_escola_desse_lote(self, lote):
+        if self.escolas.exists():
+            print('if')
+            return self.escolas.filter(escola__lote=lote).exists()
+        else:
+            print('else')
+            return self.solicitacoes.schools.filter(lote=lote).exists()
 
     @classmethod
     def salvar_formulario(cls, data, usuario):
@@ -259,9 +264,13 @@ class SolicitacaoUnificadaFormulario(models.Model):
                         solicitacao = OrderMealKit.salvar_solicitacao(escola, escola_obj)
                         obj.solicitacoes.add(solicitacao)
             obj.save()
+            return obj
         except ValueError as e:
             print(e)
             return False
+
+    def __str__(self):
+        return self.dia.strftime("%d/%m/%Y") + ' - ' + self.local_passeio
 
 
 class SolicitacaoUnificadaMultiploEscola(models.Model):
@@ -282,3 +291,22 @@ class SolicitacaoUnificada(models.Model):
     formulario = models.ForeignKey(SolicitacaoUnificadaFormulario, on_delete=models.DO_NOTHING)
     status = models.ForeignKey(StatusSolicitacaoUnificada, on_delete=models.DO_NOTHING)
     lote = models.ForeignKey(Lote, on_delete=models.DO_NOTHING)
+
+    @classmethod
+    def criar_solicitacoes(cls, formulario):
+        try:
+            dre = formulario.criado_por.DREs.get()
+            for lote in dre.lote_set.all():
+                if formulario.existe_escola_desse_lote(lote):
+                    obj = cls()
+                    obj.formulario = formulario
+                    obj.lote = lote
+                    obj.status = StatusSolicitacaoUnificada.objects.get(name='A_APROVAR')
+                    obj.save()
+        except ValueError as e:
+            print(e)
+            return False
+
+    def __str__(self):
+        return self.formulario.criado_por.DREs.get().name + ' - ' + self.lote.nome + ' - ' + \
+               self.formulario.local_passeio + ' - ' + self.formulario.dia.strftime("%d/%m/%Y")
