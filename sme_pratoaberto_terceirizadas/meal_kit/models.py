@@ -51,6 +51,21 @@ class OrderMealKit(models.Model):
     scheduled_time = models.CharField(_('Scheduled Time'), max_length=60)
     register = models.DateTimeField(_('Registered'), auto_now_add=True)
 
+    @property
+    def tempo_passeio_formulario(self):
+        if self.scheduled_time:
+            if self.scheduled_time == '4h':
+                return "Até 4 horas (1 kit)"
+            elif self.scheduled_time == '5_7h':
+                return "5 a 7 horas (2 kits)"
+            else:
+                return "8 horas ou mais (3 kits)"
+        return None
+
+    @property
+    def opcao_desejada(self):
+        return "Modelo " + ", ".join([kit_lanche.name[-1] for kit_lanche in self.meal_kits.all()])
+
     def __str__(self):
         return self.location or self.schools.get().name
 
@@ -213,13 +228,26 @@ class SolicitacaoUnificadaFormulario(models.Model):
     kits_lanche = models.ManyToManyField(MealKit, blank=True)
     obs = models.TextField("Observação", blank=True, null=True)
 
+    @property
+    def tempo_passeio_formulario(self):
+        if self.tempo_passeio:
+            if self.tempo_passeio == '4h':
+                return "Até 4 horas (1 kit)"
+            elif self.tempo_passeio == '5_7h':
+                return "5 a 7 horas (2 kits)"
+            else:
+                return "8 horas ou mais (3 kits)"
+        return None
+
+    @property
+    def opcao_desejada(self):
+        return "Modelo " + ", ".join([kit_lanche.name[-1] for kit_lanche in self.kits_lanche.all()])
+
     def existe_escola_desse_lote(self, lote):
         if self.escolas.exists():
-            print('if')
             return self.escolas.filter(escola__lote=lote).exists()
         else:
-            print('else')
-            return self.solicitacoes.schools.filter(lote=lote).exists()
+            return self.solicitacoes.filter(schools__lote=lote).exists()
 
     @classmethod
     def salvar_formulario(cls, data, usuario):
@@ -292,6 +320,15 @@ class SolicitacaoUnificada(models.Model):
     status = models.ForeignKey(StatusSolicitacaoUnificada, on_delete=models.DO_NOTHING)
     lote = models.ForeignKey(Lote, on_delete=models.DO_NOTHING)
 
+    @property
+    def kits_total(self):
+        if self.formulario.escolas.exists():
+            return sum([len(multiplo_escola.solicitacao_unificada.kits_lanche.all()) * multiplo_escola.numero_alunos for
+                        multiplo_escola in self.formulario.escolas.filter(escola__lote=self.lote)])
+        else:
+            return sum([len(solicitacao.meal_kits.all()) * solicitacao.students_quantity for
+                        solicitacao in self.formulario.solicitacoes.filter(schools__lote=self.lote)])
+
     @classmethod
     def criar_solicitacoes(cls, formulario):
         try:
@@ -301,7 +338,7 @@ class SolicitacaoUnificada(models.Model):
                     obj = cls()
                     obj.formulario = formulario
                     obj.lote = lote
-                    obj.status = StatusSolicitacaoUnificada.objects.get(name='A_APROVAR')
+                    obj.status = StatusSolicitacaoUnificada.objects.get(name='A APROVAR')
                     obj.save()
         except ValueError as e:
             print(e)
