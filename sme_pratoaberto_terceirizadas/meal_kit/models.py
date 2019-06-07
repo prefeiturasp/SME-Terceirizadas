@@ -10,6 +10,7 @@ from sme_pratoaberto_terceirizadas.school.models import School, RegionalDirector
 from sme_pratoaberto_terceirizadas.utils import send_notification, async_send_mass_html_mail
 from sme_pratoaberto_terceirizadas.users.models import User
 from sme_pratoaberto_terceirizadas.terceirizada.models import Lote
+from sme_pratoaberto_terceirizadas.meal_kit.utils import datetime_to_string, string_to_date
 
 
 class StatusSolicitacao(Enum):
@@ -76,7 +77,7 @@ class OrderMealKit(models.Model):
     @classmethod
     def salvar_solicitacao(cls, data, escola):
         try:
-            data_passeio = datetime.strptime(data.get('evento_data'), '%d/%m/%Y').date() if data.get(
+            data_passeio = string_to_date(data.get('evento_data')) if data.get(
                 'evento_data') else None
             meals = MealKit.objects.filter(uuid__in=data.get('kit_lanche', None))
             if data.get('id', None):
@@ -112,7 +113,7 @@ class OrderMealKit(models.Model):
     @classmethod
     def ja_existe_salvo(cls, data, escola):
         try:
-            data_passeio = datetime.strptime(data.get('evento_data', None), '%d/%m/%Y').date()
+            data_passeio = string_to_date(data.get('evento_data'))
             return cls.objects.filter(schools=escola, order_date=data_passeio, status='SAVED').exists()
         except ValueError:
             return False
@@ -120,7 +121,7 @@ class OrderMealKit(models.Model):
     @classmethod
     def valida_duplicidade(cls, data, escola):
         tempo = data.get('tempo_passeio', None)
-        data_passeio = datetime.strptime(data.get('evento_data'), '%d/%m/%Y')
+        data_passeio = string_to_date(data.get('evento_data'))
         if cls.objects.filter(schools=escola, order_date=data_passeio, status='SENDED',
                               scheduled_time=tempo).count():
             return False
@@ -129,7 +130,7 @@ class OrderMealKit(models.Model):
     @classmethod
     def solicitar_kit_lanche(cls, data, escola, usuario):
         try:
-            data_passeio = datetime.strptime(data.get('evento_data', None), '%d/%m/%Y').date()
+            data_passeio = string_to_date(data.get('evento_data', None))
             meals = MealKit.objects.filter(uuid__in=data.get('kit_lanche', None))
             obj = cls(
                 location=data.get('local_passeio', None),
@@ -158,7 +159,7 @@ class OrderMealKit(models.Model):
             contador_solicitacoes = 0
             for solicitacao in solicitacoes:
                 dado_validador = {'tempo_passeio': solicitacao.scheduled_time,
-                                  'evento_data': datetime.strftime(solicitacao.order_date, '%d/%m/%Y')}
+                                  'evento_data': datetime_to_string(solicitacao.order_date)}
                 if cls.valida_duplicidade(dado_validador, solicitacao.schools.first()):
                     solicitacao.status = 'SENDED'
                     solicitacao.save()
@@ -170,7 +171,7 @@ class OrderMealKit(models.Model):
     def notifica_dres(cls, usuario, escola, solicitacao):
         usuarios_dre = RegionalDirector.object.get(school=escola).users.all()
         email_usuarios_dre = RegionalDirector.objects.filter(school=escola).values_list('users__email')
-        data_formatada = datetime.strftime(solicitacao.order_date, '%d/%m/%Y')
+        data_formatada = datetime_to_string(solicitacao.order_date)
         mensagem_notificacao = 'Solicitação kit lanche para a escola {} para {} no dia: {}'.format(escola,
                                                                                                    solicitacao.location,
                                                                                                    data_formatada)
@@ -252,7 +253,7 @@ class SolicitacaoUnificadaFormulario(models.Model):
     @classmethod
     def existe_solicitacao_para_alguma_escola(cls, data):
         escolas = data.get('escolas')
-        dia = datetime.strptime(data.get('dia'), '%d/%m/%Y').date()
+        dia = string_to_date(data.get('dia'))
         escolas_com_evento = []
         for escola in escolas:
             if escola.get('checked', False):
@@ -278,7 +279,7 @@ class SolicitacaoUnificadaFormulario(models.Model):
             obj.criado_por = usuario
             dia = data.get('dia')
             razao = data.get('razao')
-            obj.dia = datetime.strptime(dia, '%d/%m/%Y').date()
+            obj.dia = string_to_date(dia)
             obj.razao = RazaoSolicitacaoUnificada.objects.get(name=razao)
             obj.qual_razao = data.get('qual_razao', None)
             obj.local_passeio = data.get('local_passeio')
@@ -314,7 +315,7 @@ class SolicitacaoUnificadaFormulario(models.Model):
             return False
 
     def __str__(self):
-        return self.dia.strftime("%d/%m/%Y") + ' - ' + self.local_passeio
+        return datetime_to_string(self.dia) + ' - ' + self.local_passeio
 
 
 class SolicitacaoUnificadaMultiploEscola(models.Model):
@@ -362,4 +363,4 @@ class SolicitacaoUnificada(models.Model):
 
     def __str__(self):
         return self.formulario.criado_por.DREs.get().name + ' - ' + self.lote.nome + ' - ' + \
-               self.formulario.local_passeio + ' - ' + self.formulario.dia.strftime("%d/%m/%Y")
+               self.formulario.local_passeio + ' - ' + datetime_to_string(self.formulario.dia)
