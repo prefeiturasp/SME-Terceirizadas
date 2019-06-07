@@ -5,13 +5,14 @@ from django.utils.translation import ugettext_lazy as _
 
 from sme_pratoaberto_terceirizadas.abstract_shareable import Describable, Activable, TemChaveExterna
 from sme_pratoaberto_terceirizadas.users.models import User
+from sme_pratoaberto_terceirizadas.terceirizada.models import Lote
 
 
 class RegionalDirector(Describable):
     """DRE - Diretoria Regional"""
     # TODO chave estrangeira para Institution
     abbreviation = models.CharField(_('Abbreviation'), max_length=10)
-    users = models.ManyToManyField(User, blank=True)
+    users = models.ManyToManyField(User, blank=True, related_name='DREs')
 
     def __str__(self):
         return _('Abbreviation') + self.abbreviation
@@ -67,6 +68,10 @@ class School(Activable):
     name = models.CharField(_("Name"), max_length=160)
     eol_code = models.CharField(_("EOL code"), max_length=10)
     codae_code = models.CharField(_('CODAE code'), max_length=10)
+    lote = models.ForeignKey(Lote,
+                             on_delete=models.DO_NOTHING,
+                             blank=True,
+                             null=True)
     grouping = models.ForeignKey(SchoolGroup,
                                  on_delete=models.DO_NOTHING,
                                  blank=True,

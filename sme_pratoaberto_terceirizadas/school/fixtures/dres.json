@@ -1,0 +1,10 @@
+[
+  {
+    "model": "school.regionaldirector",
+    "id": 1,
+    "fields": {
+      "name": "DRE Ipiranga",
+      "abbreviation": "IPI"
+    }
+  }
+]

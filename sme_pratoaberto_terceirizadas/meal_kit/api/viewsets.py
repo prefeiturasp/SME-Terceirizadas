@@ -1,15 +1,15 @@
-from datetime import datetime
-
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
-from sme_pratoaberto_terceirizadas.meal_kit.api.serializers import MealKitSerializer, OrderMealKitSerializer
+from sme_pratoaberto_terceirizadas.meal_kit.api.serializers import MealKitSerializer, OrderMealKitSerializer, \
+    SolicitacaoUnificadaFormularioSerializer, SolicitacaoUnificadaSerializer
 from sme_pratoaberto_terceirizadas.school.models import School
 from sme_pratoaberto_terceirizadas.users.models import User
-from ..models import MealKit, OrderMealKit
+from ..models import MealKit, OrderMealKit, SolicitacaoUnificada, SolicitacaoUnificadaFormulario, \
+    StatusSolicitacaoUnificada
 from .validators import valida_usuario_escola
 
 
@@ -17,6 +17,7 @@ class MealKitViewSet(ModelViewSet):
     """ Endpoint para visualização de Kit Lanches """
     queryset = MealKit.objects.all()
     serializer_class = MealKitSerializer
+
     # permission_classes = (IsAuthenticated, ValidatePermission)
 
     @action(detail=False)
@@ -27,6 +28,7 @@ class MealKitViewSet(ModelViewSet):
 class OrderMealKitViewSet(ModelViewSet):
     """ Endpoint para Solicitações de Kit Lanches """
     serializer_class = OrderMealKitSerializer
+
     # permission_classes = (IsAuthenticated, ValidatePermission)
 
     def get_queryset(self):
@@ -56,11 +58,11 @@ class OrderMealKitViewSet(ModelViewSet):
 
     @action(detail=False, methods=['post'])
     def solicitacoes(self, request):
-        resposta = OrderMealKit.solicita_kit_lanche_em_lote(request.data, request.user)
-        if resposta is False:
-            return Response({'error': 'Ocorreu um error na solicitação em massa, tente novamente'},
-                            status=status.HTTP_400_BAD_REQUEST)
-        return Response({'success': '{} solicitações enviada com sucesso.'.format(resposta)})
+        if 'ids' in request.data:
+            resposta = OrderMealKit.solicita_kit_lanche_em_lote(request.data, request.user)
+            return Response({'success': '{} solicitações enviada com sucesso.'.format(resposta)})
+        return Response({'error': 'Ocorreu um error na solicitação em massa, tente novamente'},
+                        status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=['post'])
     def salvar(self, request):
@@ -74,3 +76,43 @@ class OrderMealKitViewSet(ModelViewSet):
                             status=status.HTTP_400_BAD_REQUEST)
         OrderMealKit.salvar_solicitacao(params, escola)
         return Response({'success': 'Solicitação salva com sucesso'})
+
+
+class SolicitacaoUnificadaFormularioViewSet(ModelViewSet):
+    """ Endpoint para Formularios de Solicitações Unificadas de Kit Lanches """
+    serializer_class = SolicitacaoUnificadaFormularioSerializer
+    lookup_field = 'uuid'
+
+    def get_queryset(self):
+        return SolicitacaoUnificadaFormulario.objects.filter(criado_por=self.request.user,
+                                                             solicitacaounificada__isnull=True)
+
+    def destroy(self, request, *args, **kwargs):
+        response = super(SolicitacaoUnificadaFormularioViewSet, self).destroy(request, *args, **kwargs)
+        if response.status_code == 204:
+            return Response({'success': 'Solicitação removida com sucesso.'})
+        return Response({'error': 'Solicitação não encontrada'}, status=status.HTTP_409_CONFLICT)
+
+    @action(detail=False, methods=['post'])
+    def salvar(self, request):
+        params = request.data
+        usuario = request.user
+        escolas = SolicitacaoUnificadaFormulario.existe_solicitacao_para_alguma_escola(request.data)
+        if escolas and not params.get('prosseguir', False):
+            return Response(
+                {'error': 'Já existe um evento cadastrado para alguma(s) escola(s) no dia ' + params.get('dia'),
+                 'escolas': escolas},
+                status=status.HTTP_400_BAD_REQUEST)
+        formulario = SolicitacaoUnificadaFormulario.salvar_formulario(params, usuario)
+        if params.get('status') == StatusSolicitacaoUnificada.TO_APPROVE:
+            SolicitacaoUnificada.criar_solicitacoes(formulario)
+        return Response({'success': 'Solicitação salva com sucesso'}, status=status.HTTP_200_OK)
+
+
+class SolicitacaoUnificadaViewSet(ModelViewSet):
+    """ Endpoint para Solicitações Unificadas de Kit Lanches """
+    serializer_class = SolicitacaoUnificadaSerializer
+    lookup_field = 'uuid'
+
+    def get_queryset(self):
+        return SolicitacaoUnificada.objects.all()
