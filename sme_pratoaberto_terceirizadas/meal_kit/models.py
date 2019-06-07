@@ -250,6 +250,23 @@ class SolicitacaoUnificadaFormulario(models.Model):
             return self.solicitacoes.filter(schools__lote=lote).exists()
 
     @classmethod
+    def existe_solicitacao_para_alguma_escola(cls, data):
+        escolas = data.get('escolas')
+        dia = datetime.strptime(data.get('dia'), '%d/%m/%Y').date()
+        escolas_com_evento = []
+        for escola in escolas:
+            if escola.get('checked', False):
+                if OrderMealKit.objects.filter(schools__eol_code=escola.get('id'), order_date=dia).exists() or \
+                    OrderMealKit.objects.filter(schools__eol_code=escola.get('id'),
+                                                solicitacaounificadaformulario__dia=dia).exclude(
+                        solicitacaounificadaformulario__uuid=data.get('uuid')).exists() or \
+                    SolicitacaoUnificadaMultiploEscola.objects.filter(escola__eol_code=escola.get('id'),
+                                                                      solicitacao_unificada__dia=dia).exclude(
+                        solicitacao_unificada__uuid=data.get('uuid', None)).exists():
+                    escolas_com_evento.append(escola.get('nome'))
+        return escolas_com_evento if len(escolas_com_evento) else False
+
+    @classmethod
     def salvar_formulario(cls, data, usuario):
         try:
             if data.get('id', None):
@@ -268,13 +285,13 @@ class SolicitacaoUnificadaFormulario(models.Model):
             obj.obs = data.get('obs', None)
             obj.pedido_multiplo = data.get('pedido_multiplo', False)
             obj.save()
+            escolas = data.get('escolas')
             if obj.pedido_multiplo:
                 obj.max_numero_alunos_por_escola = data.get('max_numero_alunos_por_escola')
                 obj.tempo_passeio = data.get('tempo_passeio')
                 refeicoes = MealKit.objects.filter(uuid__in=data.get('kit_lanche', None))
                 for refeicao in refeicoes:
                     obj.kits_lanche.add(refeicao)
-                escolas = data.get('escolas')
                 for escola in escolas:
                     if escola.get('checked') is True:
                         solicitacao_multiplo_escola = SolicitacaoUnificadaMultiploEscola()
@@ -284,7 +301,6 @@ class SolicitacaoUnificadaFormulario(models.Model):
                         solicitacao_multiplo_escola.solicitacao_unificada = obj
                         solicitacao_multiplo_escola.save()
             else:
-                escolas = data.get('escolas')
                 for escola in escolas:
                     if escola.get('checked') is True:
                         escola_obj = School.objects.get(eol_code=escola.get('id'))
@@ -310,7 +326,7 @@ class SolicitacaoUnificadaMultiploEscola(models.Model):
                                               related_name='escolas')
 
     def __str__(self):
-        return self.escola.name + ' - ' + str(self.numero_alunos)
+        return self.escola.eol_code + ' - ' + self.escola.name + ' - ' + str(self.numero_alunos)
 
 
 class SolicitacaoUnificada(models.Model):

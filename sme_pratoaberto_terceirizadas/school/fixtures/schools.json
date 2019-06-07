@@ -6,6 +6,7 @@
       "name": "EMEI PAULO CAMILHIER FLORENÇANO (TERC.)",
       "eol_code": "86",
       "codae_code": "86",
+      "lote": 1,
       "periods": [1,2,3,4,5]
     }
   },
@@ -16,6 +17,7 @@
       "name": "EMEI VICENTE PAULO DA SILVA (TERC.)",
       "eol_code": "94",
       "codae_code": "94",
+      "lote": 2,
       "periods": [1,2,3,4,5]
     }
   },
@@ -26,6 +28,7 @@
       "name": "EMEF JOSE ERMIRIO DE MORAIS, SEN. (TERC.)",
       "eol_code": "108",
       "codae_code": "108",
+      "lote": 1,
       "periods": [1,2,3,4,5]
     }
   },
@@ -36,6 +39,7 @@
       "name": "EMEF PROF. ALIPIO CORREA NETO - (MIST)",
       "eol_code": "191",
       "codae_code": "191",
+      "lote": 2,
       "periods": [1,2,3,4,5]
     }
   },
@@ -46,6 +50,7 @@
       "name": "EMEBS PROFA. VERA LÚCIA APARECIDA RIBEIRO - (MIST)",
       "eol_code": "205",
       "codae_code": "205",
+      "lote": 1,
       "periods": [1,2,3,4,5]
     }
   },
@@ -56,6 +61,7 @@
       "name": "EMEI PROF. ANTONIO CARLOS PACHECO E SILVA (MIST)",
       "eol_code": "213",
       "codae_code": "213",
+      "lote": 2,
       "periods": [1,2,3,4,5]
     }
   },
@@ -66,6 +72,7 @@
       "name": "EMEI NAIR CORREA BUARQUE (TERC.)",
       "eol_code": "221",
       "codae_code": "221",
+      "lote": 1,
       "periods": [1,2,3,4,5]
     }
   },
@@ -76,6 +83,7 @@
       "name": "EMEI MARIA YOLANDA DE SOUZA PINTO HAHNE (TERC.)",
       "eol_code": "230",
       "codae_code": "230",
+      "lote": 2,
       "periods": [1,2,3,4,5]
     }
   },
@@ -86,6 +94,7 @@
       "name": "EMEI WALFRIDO DE CARVALHO, CEL. (TERC.)",
       "eol_code": "248",
       "codae_code": "248",
+      "lote": 1,
       "periods": [1,2,3,4,5]
     }
   },
@@ -96,6 +105,7 @@
       "name": "EMEI PROFA. WILMA ALVARENGA DE OLIVEIRA  - (MIST)",
       "eol_code": "256",
       "codae_code": "256",
+      "lote": 2,
       "periods": [1,2,3,4,5]
     }
   },
@@ -106,6 +116,7 @@
       "name": "EMEF ALM. SYLVIO HECK - (MIST)",
       "eol_code": "264",
       "codae_code": "264",
+      "lote": 1,
       "periods": [1,2,3,4,5]
     }
   }

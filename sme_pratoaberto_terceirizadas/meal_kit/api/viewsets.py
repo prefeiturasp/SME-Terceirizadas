@@ -97,11 +97,12 @@ class SolicitacaoUnificadaFormularioViewSet(ModelViewSet):
     def salvar(self, request):
         params = request.data
         usuario = request.user
-        """
-        if OrderMealKit.ja_existe_salvo(params, escola) and not params.get('id', None):
-            return Response({'error': 'Já existe um evento cadastrado para esta data'},
-                            status=status.HTTP_400_BAD_REQUEST)
-        """
+        escolas = SolicitacaoUnificadaFormulario.existe_solicitacao_para_alguma_escola(request.data)
+        if escolas and not params.get('prosseguir', False):
+            return Response(
+                {'error': 'Já existe um evento cadastrado para alguma(s) escola(s) no dia ' + params.get('dia'),
+                 'escolas': escolas},
+                status=status.HTTP_400_BAD_REQUEST)
         formulario = SolicitacaoUnificadaFormulario.salvar_formulario(params, usuario)
         if params.get('status') == StatusSolicitacaoUnificada.TO_APPROVE:
             SolicitacaoUnificada.criar_solicitacoes(formulario)
