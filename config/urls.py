@@ -19,11 +19,12 @@ from sme_pratoaberto_terceirizadas.meal_kit.api.routers import urlpatterns as me
 from sme_pratoaberto_terceirizadas.permission.routers import urlpatterns as permissions_url
 from sme_pratoaberto_terceirizadas.school.routers import urlpatterns as school_url
 from sme_pratoaberto_terceirizadas.users.routers import urlpatterns as user_url
+from sme_pratoaberto_terceirizadas.alimentacao.api.routers import urlpattern as alimentacao_url
 
 schema_view = get_swagger_view(title=_('API of SME-Companies'))
 
 route = DefaultRouter(trailing_slash=True)
-route.register('working_days', WorkingDaysViewSet, base_name='working_days')
+route.register('working_days', WorkingDaysViewSet, 'working_days')
 route.register('food_inclusion', FoodInclusionViewSet)
 
 urlpatterns = [
@@ -48,6 +49,7 @@ urlpatterns += common_urls
 urlpatterns += meal_kit_url
 urlpatterns += food_url
 urlpatterns += cardapio_url
+urlpatterns += alimentacao_url
 
 if settings.DEBUG:
     # This allows the error pages to be debugged during development, just visit

@@ -50,5 +50,3 @@ class AlteracaoCardapio(IntervaloDeDia, Describable, TemChaveExterna, Motivos):
     def get_usuarios_dre(cls, escola):
         dre = RegionalDirector.objects.filter(regional_director=escola.regional_director)
         return dre.values_list('users').all()
-
-
