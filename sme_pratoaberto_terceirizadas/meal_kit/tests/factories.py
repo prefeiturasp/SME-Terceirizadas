@@ -1,6 +1,6 @@
 from factory import DjangoModelFactory, Faker, random
 
-from ..models import MealKit, Meal
+from ..models import MealKit
 
 random.reseed_random('seed')
 
@@ -17,6 +17,3 @@ class MealKitFactory(DjangoModelFactory):
 class MealsFactory(DjangoModelFactory):
     uuid = Faker('ean13')
     meal_title = Faker('job')
-
-
-

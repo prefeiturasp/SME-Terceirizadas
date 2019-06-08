@@ -1,0 +1,44 @@
+[
+  {
+    "model": "meal_kit.statussolicitacaounificada",
+    "id": 1,
+    "fields": {
+      "name": "A_APROVAR"
+    }
+  },
+  {
+    "model": "meal_kit.statussolicitacaounificada",
+    "id": 2,
+    "fields": {
+      "name": "A_EDITAR"
+    }
+  },
+  {
+    "model": "meal_kit.statussolicitacaounificada",
+    "id": 3,
+    "fields": {
+      "name": "A_VISUALIZAR"
+    }
+  },
+  {
+    "model": "meal_kit.statussolicitacaounificada",
+    "id": 4,
+    "fields": {
+      "name": "NEGADO_PELA_CODAE"
+    }
+  },
+  {
+    "model": "meal_kit.statussolicitacaounificada",
+    "id": 5,
+    "fields": {
+      "name": "NEGADO_PELA_TERCEIRIZADA"
+    }
+  },
+  {
+    "model": "meal_kit.statussolicitacaounificada",
+    "id": 6,
+    "fields": {
+      "name": "VISUALIZADO"
+    }
+  }
+]
