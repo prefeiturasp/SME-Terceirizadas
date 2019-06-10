@@ -14,10 +14,10 @@ from sme_pratoaberto_terceirizadas.meal_kit.utils import datetime_to_string, str
 
 
 class StatusSolicitacao(Enum):
-    SAVED = 'SALVO'
-    SENDED = 'ENVIADA'
-    CANCELED = 'CANCELADA'
-    DENIED = 'NEGADO'
+    SALVO = 'SALVO'
+    ENVIADO = 'ENVIADA'
+    CANCELADO = 'CANCELADA'
+    NEGADO = 'NEGADO'
 
 
 class MealKit(models.Model):

@@ -5,12 +5,12 @@ from .viewsets import MealKitViewSet, OrderMealKitViewSet, SolicitacaoUnificadaF
 
 router = routers.DefaultRouter()
 
-router.register('kit-lanche', MealKitViewSet, base_name='meal_kit')
-router.register('solicitar-kit-lanche', OrderMealKitViewSet, basename='solicitar_kit_lanche')
+router.register('kit-lanche', MealKitViewSet, 'meal_kit')
+router.register('solicitar-kit-lanche', OrderMealKitViewSet, 'solicitar_kit_lanche')
 router.register('solicitacao-unificada', SolicitacaoUnificadaViewSet,
-                basename='solicitacao_unificada')
+                'solicitacao_unificada')
 router.register('solicitacao-unificada-formulario', SolicitacaoUnificadaFormularioViewSet,
-                basename='solicitacao_unificada_formulario')
+                'solicitacao_unificada_formulario')
 router.register('kit-lanche', MealKitViewSet, 'meal_kit')
 router.register('solicitar-kit-lanche', OrderMealKitViewSet, 'solicitar_kit_lanche')
 
