@@ -3,21 +3,21 @@
     "model": "meal_kit.statussolicitacaounificada",
     "id": 1,
     "fields": {
-      "name": "A_APROVAR"
+      "name": "A APROVAR"
     }
   },
   {
     "model": "meal_kit.statussolicitacaounificada",
     "id": 2,
     "fields": {
-      "name": "A_EDITAR"
+      "name": "A EDITAR"
     }
   },
   {
     "model": "meal_kit.statussolicitacaounificada",
     "id": 3,
     "fields": {
-      "name": "A_VISUALIZAR"
+      "name": "A VISUALIZAR"
     }
   },
   {
