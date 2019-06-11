@@ -7,7 +7,6 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
 from sme_pratoaberto_terceirizadas.school.models import School
-from sme_pratoaberto_terceirizadas.users.models import User
 from sme_pratoaberto_terceirizadas.school.api.serializers import SchoolSerializer, SchoolPeriodSerializer
 
 
@@ -18,13 +17,12 @@ class SchoolViewSet(ModelViewSet):
     queryset = School.objects.all()
     serializer_class = SchoolSerializer
     object_class = School
-    permission_classes = ()
 
-    @action(methods=['get'], permission_classes=[], detail=True)
-    def get_periods(self, request, pk=None):
+    @action(detail=False, methods=['get'])
+    def get_periods(self, request):
         response = {'content': {}, 'log_content': {}, 'code': None}
         try:
-            user = get_object_or_404(User, uuid=pk)
+            user = request.user
             school = get_object_or_404(School, users=user)
             school_periods = school.periods.all().order_by('name')
         except Http404 as error:
