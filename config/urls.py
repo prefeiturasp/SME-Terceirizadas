@@ -20,6 +20,7 @@ from sme_pratoaberto_terceirizadas.permission.routers import urlpatterns as perm
 from sme_pratoaberto_terceirizadas.school.routers import urlpatterns as school_url
 from sme_pratoaberto_terceirizadas.users.routers import urlpatterns as user_url
 from sme_pratoaberto_terceirizadas.alimentacao.api.routers import urlpattern as alimentacao_url
+from sme_pratoaberto_terceirizadas.suspensao_de_alimentacao.api.routers import urlpatterns as suspensao_url
 
 schema_view = get_swagger_view(title=_('API of SME-Companies'))
 
@@ -50,6 +51,7 @@ urlpatterns += meal_kit_url
 urlpatterns += food_url
 urlpatterns += cardapio_url
 urlpatterns += alimentacao_url
+urlpatterns += suspensao_url
 
 if settings.DEBUG:
     # This allows the error pages to be debugged during development, just visit

@@ -1,5 +1,4 @@
 import uuid
-from datetime import datetime
 
 from django.core.validators import validate_comma_separated_integer_list
 from django.db import models
@@ -140,8 +139,8 @@ class FoodInclusion(TimestampAble):
             recipient=self._notification_aux('recipient', validation_diff),
             verb=_('Food Inclusion - ') + self._notification_aux('verb', validation_diff),
             action_object=self,
-            description=_('The user ') + actor.name + self._notification_aux('description', validation_diff) +
-                        _(' a food inclusion.'))
+            description="O usuário" + actor.name + self._notification_aux('description', validation_diff) +
+                        " uma inclusão de alimentação")
 
 
 class FoodInclusionDescription(models.Model):

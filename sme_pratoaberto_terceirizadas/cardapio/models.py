@@ -5,8 +5,7 @@ from model_utils.fields import StatusField
 
 from sme_pratoaberto_terceirizadas.abstract_shareable import Describable, IntervaloDeDia, TemChaveExterna, \
     Motivos
-from sme_pratoaberto_terceirizadas.school.models import School, SchoolAge, RegionalDirector
-from sme_pratoaberto_terceirizadas.users.models import User
+from sme_pratoaberto_terceirizadas.school.models import School, RegionalDirector
 
 
 class AlteracaoCardapio(IntervaloDeDia, Describable, TemChaveExterna, Motivos):
