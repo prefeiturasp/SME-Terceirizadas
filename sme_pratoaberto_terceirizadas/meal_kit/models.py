@@ -1,5 +1,4 @@
 import uuid
-from datetime import datetime
 from enum import Enum
 from django.db import models
 from django.utils.translation import ugettext_lazy as _

@@ -142,7 +142,7 @@ class DescricaoSuspensaoDeAlimentacao(models.Model):
         obj.periodo = SchoolPeriod.objects.get(value=data.get('periodo'))
         obj.numero_de_alunos = data.get('numero_de_alunos')
         obj.save()
-        tipos_de_refeicao = data.get('tipos_de_refeicao')
+        tipos_de_refeicao = data.get('tipo_de_refeicao')
         for tipo_de_refeicao in tipos_de_refeicao:
             obj.tipo_de_refeicao.add(MealType.objects.get(name=tipo_de_refeicao))
         obj.save()

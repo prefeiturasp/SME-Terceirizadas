@@ -29,5 +29,6 @@ class CategoriaAdmin(admin.ModelAdmin):
 
 @admin.register(Cardapio)
 class CardapioAdmin(admin.ModelAdmin):
-    list_display = ['data', 'tipo', 'categoria','criado_por', 'edital', 'ultima_atualizacao', 'descricao', 'atualizado_por']
-    ordering = ['data',  'tipo', 'categoria', 'edital', 'ultima_atualizacao']
+    list_display = ['data', 'tipo', 'categoria', 'criado_por', 'edital', 'ultima_atualizacao', 'descricao',
+                    'atualizado_por']
+    ordering = ['data', 'tipo', 'categoria', 'edital', 'ultima_atualizacao']
