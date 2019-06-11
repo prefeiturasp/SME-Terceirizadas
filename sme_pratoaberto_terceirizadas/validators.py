@@ -11,9 +11,9 @@ def nao_pode_ser_passado(data: datetime.date):
     return True
 
 
-def deve_pedir_com_antecedencia(data: datetime.date, dias: int = 2):
-    prox_dia_util = get_working_days_after(dias)
-    if data <= prox_dia_util:
+def deve_pedir_com_antecedencia(dia: datetime.date, dias: int = 2):
+    prox_dia_util = get_working_days_after(days=dias, date=datetime.datetime.today())
+    if dia <= prox_dia_util:
         raise serializers.ValidationError('Deve pedir com pelo menos {} dias úteis de antecedência'.format(dias))
     return True
 
