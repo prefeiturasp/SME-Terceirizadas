@@ -32,11 +32,20 @@ def test_deve_pedir_com_antecedencia_t2():
     assert deve_pedir_com_antecedencia(t6, 2) is True
 
 
-@freeze_time("2019-05-22")
+@freeze_time("2019-05-22")  # qua
 def test_deve_pedir_com_antecedencia_validation_error():
-    t1 = datetime.date(2019, 5, 27)
+    t1 = datetime.date(2019, 5, 27)  # seg passaram 3 dias uteis
+    t2 = datetime.date(2019, 5, 28)  # ter passaram 4 dias uteis
+    t3 = datetime.date(2019, 5, 23)  # qui passaram 1 dias uteis
+    t4 = datetime.date(2019, 5, 21)  # ter um dia antes
     with pytest.raises(ValidationError, match='Deve pedir com pelo menos 5 dias úteis de antecedência'):
         deve_pedir_com_antecedencia(t1, 5)
+    with pytest.raises(ValidationError, match='Deve pedir com pelo menos 5 dias úteis de antecedência'):
+        deve_pedir_com_antecedencia(t2, 5)
+    with pytest.raises(ValidationError, match='Deve pedir com pelo menos 2 dias úteis de antecedência'):
+        deve_pedir_com_antecedencia(t3, 2)
+    with pytest.raises(ValidationError, match='Deve pedir com pelo menos 2 dias úteis de antecedência'):
+        deve_pedir_com_antecedencia(t4, 2)
 
 
 def test_dia_util():
@@ -56,12 +65,15 @@ def test_not_dia_util():
     t1 = datetime.date(2019, 6, 15)  # sab
     t2 = datetime.date(2019, 6, 16)  # dom
     t3 = datetime.date(2019, 6, 20)  # feriado corpus crhist
+    t4 = datetime.date(2019, 12, 25)  # qua natal
     with pytest.raises(ValidationError, match='Não é dia útil em São Paulo'):
         dia_util(t1)
     with pytest.raises(ValidationError, match='Não é dia útil em São Paulo'):
         dia_util(t2)
     with pytest.raises(ValidationError, match='Não é dia útil em São Paulo'):
         dia_util(t3)
+    with pytest.raises(ValidationError, match='Não é dia útil em São Paulo'):
+        dia_util(t4)
 
 
 @freeze_time("2019-05-22")

@@ -5,13 +5,13 @@ from workalendar.america import BrazilSaoPauloCity
 calendar = BrazilSaoPauloCity()
 
 
-def str_to_date(date_str, format_date_str='%d/%m/%Y'):
+def str_to_date(date_str: str, format_date_str='%d/%m/%Y'):
     """
     Auxilliary method to define format to send and receive dates
     """
     try:
         return datetime.datetime.strptime(date_str, format_date_str).date()
-    except ValueError:
+    except (ValueError, AttributeError):
         raise Exception('invalid_date')
 
 

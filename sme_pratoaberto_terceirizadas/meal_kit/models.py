@@ -9,7 +9,7 @@ from sme_pratoaberto_terceirizadas.school.models import School, RegionalDirector
 from sme_pratoaberto_terceirizadas.utils import send_notification, async_send_mass_html_mail
 from sme_pratoaberto_terceirizadas.users.models import User
 from sme_pratoaberto_terceirizadas.terceirizada.models import Lote
-from sme_pratoaberto_terceirizadas.meal_kit.utils import datetime_to_string, string_to_date
+from sme_pratoaberto_terceirizadas.meal_kit.utils import date_to_string, string_to_date
 
 
 class StatusSolicitacao(Enum):
@@ -158,7 +158,7 @@ class OrderMealKit(models.Model):
             contador_solicitacoes = 0
             for solicitacao in solicitacoes:
                 dado_validador = {'tempo_passeio': solicitacao.scheduled_time,
-                                  'evento_data': datetime_to_string(solicitacao.order_date)}
+                                  'evento_data': date_to_string(solicitacao.order_date)}
                 if cls.valida_duplicidade(dado_validador, solicitacao.schools.first()):
                     solicitacao.status = 'SENDED'
                     solicitacao.save()
@@ -170,7 +170,7 @@ class OrderMealKit(models.Model):
     def notifica_dres(cls, usuario, escola, solicitacao):
         usuarios_dre = RegionalDirector.object.get(school=escola).users.all()
         email_usuarios_dre = RegionalDirector.objects.filter(school=escola).values_list('users__email')
-        data_formatada = datetime_to_string(solicitacao.order_date)
+        data_formatada = date_to_string(solicitacao.order_date)
         mensagem_notificacao = 'Solicitação kit lanche para a escola {} para {} no dia: {}'.format(escola,
                                                                                                    solicitacao.location,
                                                                                                    data_formatada)
@@ -314,7 +314,7 @@ class SolicitacaoUnificadaFormulario(models.Model):
             return False
 
     def __str__(self):
-        return datetime_to_string(self.dia) + ' - ' + self.local_passeio
+        return date_to_string(self.dia) + ' - ' + self.local_passeio
 
 
 class SolicitacaoUnificadaMultiploEscola(models.Model):
@@ -362,4 +362,4 @@ class SolicitacaoUnificada(models.Model):
 
     def __str__(self):
         return self.formulario.criado_por.DREs.get().name + ' - ' + self.lote.nome + ' - ' + \
-               self.formulario.local_passeio + ' - ' + datetime_to_string(self.formulario.dia)
+               self.formulario.local_passeio + ' - ' + date_to_string(self.formulario.dia)
