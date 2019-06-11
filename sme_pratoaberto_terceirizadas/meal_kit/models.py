@@ -1,15 +1,16 @@
 import uuid
 from enum import Enum
+
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
 from sme_pratoaberto_terceirizadas.abstract_shareable import Describable, Activable
 from sme_pratoaberto_terceirizadas.food.models import Meal
-from sme_pratoaberto_terceirizadas.school.models import School, RegionalDirector
-from sme_pratoaberto_terceirizadas.utils import send_notification, async_send_mass_html_mail
-from sme_pratoaberto_terceirizadas.users.models import User
-from sme_pratoaberto_terceirizadas.terceirizada.models import Lote
 from sme_pratoaberto_terceirizadas.meal_kit.utils import date_to_string, string_to_date
+from sme_pratoaberto_terceirizadas.school.models import School, RegionalDirector
+from sme_pratoaberto_terceirizadas.terceirizada.models import Lote
+from sme_pratoaberto_terceirizadas.users.models import User
+from sme_pratoaberto_terceirizadas.utils import send_notification, async_send_mass_html_mail
 
 
 class StatusSolicitacao(Enum):
@@ -53,6 +54,7 @@ class OrderMealKit(models.Model):
 
     @property
     def tempo_passeio_formulario(self):
+        # TODO: colocar choices para ter limites de escolhas.
         if self.scheduled_time:
             if self.scheduled_time == '4h':
                 return "Até 4 horas (1 kit)"
@@ -64,6 +66,7 @@ class OrderMealKit(models.Model):
 
     @property
     def opcao_desejada(self):
+        # XXX: retornando Modelo l, l, l, l, l???
         return "Modelo " + ", ".join([kit_lanche.name[-1] for kit_lanche in self.meal_kits.all()])
 
     def __str__(self):
