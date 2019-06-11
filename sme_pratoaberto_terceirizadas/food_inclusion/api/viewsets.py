@@ -3,6 +3,7 @@ from django.shortcuts import get_object_or_404
 from django.utils.translation import ugettext as _
 from rest_framework import status
 from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
@@ -21,13 +22,11 @@ class FoodInclusionViewSet(ModelViewSet):
     queryset = FoodInclusion.objects.all()
     serializer_class = FoodInclusionSerializer
     object_class = FoodInclusion
-    permission_classes = ()
 
-    @action(detail=True, methods=['get'], permission_classes=[])
-    def get_reasons(self, request, pk=None):
+    @action(detail=False, methods=['get'])
+    def get_reasons(self, request):
         response = {'content': {}, 'log_content': {}, 'code': None}
         try:
-            get_object_or_404(User, uuid=pk)
             reasons_simple = FoodInclusionReason.objects.exclude(name__icontains='Programa Contínuo').filter(
                 is_active=True)
             reasons_continuous_program = FoodInclusionReason.objects.filter(name__icontains='Programa Contínuo',
@@ -42,11 +41,11 @@ class FoodInclusionViewSet(ModelViewSet):
                 reasons_continuous_program, many=True).data
         return Response(response, status=response['code'])
 
-    @action(detail=True, methods=['get'], permission_classes=[])
-    def get_saved_food_inclusions(self, request, pk=None):
+    @action(detail=False, methods=['get'])
+    def get_saved_food_inclusions(self, request):
         response = {'content': {}, 'log_content': {}, 'code': None}
         try:
-            user = get_object_or_404(User, uuid=pk)
+            user = request.user
             food_inclusions = FoodInclusion.objects.filter(status__name=FoodInclusionStatus.SAVED, created_by=user)
         except Http404:
             response['log_content'] = ["Usuário não encontrado"]
@@ -56,12 +55,12 @@ class FoodInclusionViewSet(ModelViewSet):
             response['content']['food_inclusions'] = FoodInclusionSerializer(food_inclusions, many=True).data
         return Response(response, status=response['code'])
 
-    @action(detail=True, methods=['post'], permission_classes=[])
-    def create_or_update(self, request, pk=None):
+    @action(detail=False, methods=['post'])
+    def create_or_update(self, request):
         response = {'content': {}, 'log_content': {}, 'code': None}
         errors_list = list()
         try:
-            user = get_object_or_404(User, uuid=pk)
+            user = request.user
             errors_list = get_errors_list(request.data)
             if errors_list:
                 raise FoodInclusionCreateOrUpdateException(_('some argument(s) is(are) not valid'))
@@ -91,11 +90,11 @@ class FoodInclusionViewSet(ModelViewSet):
             response['content']['food_inclusion'] = FoodInclusionSerializer(food_inclusion).data
         return Response(response, status=response['code'])
 
-    @action(detail=True, methods=['delete'], permission_classes=[])
-    def delete(self, request, pk=None):
+    @action(detail=False, methods=['delete'])
+    def delete(self, request):
         response = {'content': {}, 'log_content': {}, 'code': None}
         try:
-            user = get_object_or_404(User, uuid=pk)
+            user = request.user
             uuid = request.data.get('uuid', None)
             food_inclusion = get_object_or_404(FoodInclusion, uuid=uuid, created_by=user)
             assert food_inclusion.status == FoodInclusionStatus.objects.get(name=FoodInclusionStatus.SAVED), \
@@ -112,11 +111,11 @@ class FoodInclusionViewSet(ModelViewSet):
             response['code'] = status.HTTP_200_OK
         return Response(response, status=response['code'])
 
-    @action(detail=True, methods=['post'], permission_classes=[])
-    def validate(self, request, pk=None):
+    @action(detail=False, methods=['post'])
+    def validate(self, request):
         response = {'content': {}, 'log_content': {}, 'code': None}
         try:
-            user = get_object_or_404(User, uuid=pk)
+            user = request.user
             assert check_required_data_generic(request.data, ['uuid', 'validation_answer']), \
                 _('missing arguments')
             validation_answer = request.data.get('validation_answer')
@@ -140,11 +139,11 @@ class FoodInclusionViewSet(ModelViewSet):
             response['content']['food_inclusion'] = FoodInclusionSerializer(food_inclusion).data
         return Response(response, status=response['code'])
 
-    @action(detail=True, methods=['post'], permission_classes=[])
-    def approve(self, request, pk=None):
+    @action(detail=False, methods=['post'])
+    def approve(self, request):
         response = {'content': {}, 'log_content': {}, 'code': None}
         try:
-            user = get_object_or_404(User, uuid=pk)
+            user = request.user
             approval_answer = request.data.get('approval_answer')
             uuid = request.data.get('uuid')
             food_inclusion = get_object_or_404(FoodInclusion, uuid=uuid)
@@ -165,11 +164,11 @@ class FoodInclusionViewSet(ModelViewSet):
             response['content']['food_inclusion'] = FoodInclusionSerializer(food_inclusion).data
         return Response(response, status=response['code'])
 
-    @action(detail=True, methods=['post'], permission_classes=[])
-    def visualize(self, request, pk=None):
+    @action(detail=False, methods=['post'])
+    def visualize(self, request):
         response = {'content': {}, 'log_content': {}, 'code': None}
         try:
-            user = get_object_or_404(User, uuid=pk)
+            user = request.user
             uuid = request.data.get('uuid')
             food_inclusion = get_object_or_404(FoodInclusion, uuid=uuid)
             assert food_inclusion.status == FoodInclusionStatus.objects.get(name=FoodInclusionStatus.TO_VISUALIZE), \

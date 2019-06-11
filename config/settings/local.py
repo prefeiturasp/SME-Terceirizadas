@@ -57,7 +57,7 @@ INSTALLED_APPS += ['django_extensions']  # noqa F405
 CORS_ORIGIN_ALLOW_ALL = True
 
 JWT_AUTH = {
-    'JWT_EXPIRATION_DELTA': datetime.timedelta(hours=8),
-    'JWT_REFRESH_EXPIRATION_DELTA': datetime.timedelta(hours=1),
+    'JWT_EXPIRATION_DELTA': datetime.timedelta(hours=8),  # noqa
+    'JWT_REFRESH_EXPIRATION_DELTA': datetime.timedelta(hours=1),  # noqa
     'JWT_ALLOW_REFRESH': True,
 }
