@@ -1,11 +1,14 @@
 import uuid as uuid
 from enum import Enum
+from django.utils.timezone import now
 
 from django.db import models
+from traitlets import Bool
 
 from sme_pratoaberto_terceirizadas.food.models import Food
 from sme_pratoaberto_terceirizadas.school.models import School
 from sme_pratoaberto_terceirizadas.users.models import User
+from .api.utils import valida_dia_util, valida_dia_feriado
 
 
 class Gestao(models.Model):
@@ -97,14 +100,15 @@ class Cardapio(models.Model):
 
 
 class StatusSolicitacoes(Enum):
-    DRE_A_VALIDAR = 'A validar pela DRE'
-    DRE_APROVADO = 'Aprovado pela DRE'
-    DRE_REPROVADO = 'Reprovado pela DRE'
-    CODAE_A_VALIDAR = 'A validar pela CODAE'
-    CODAE_APROVADO = 'Aprovado pela CODAE'
-    CODAE_REPROVADO = 'Reprovado pela CODAE'
-    TERCEIRIZADA_A_VISUALIZAR = 'Terceirizada a visualizar'
-    TERCEIRIZADA_A_VISUALIZADO = 'Terceirizada visualizado'
+    ESCOLA_SALVOU = 'ESCOLA_SALVOU'
+    DRE_A_VALIDAR = 'DRE_A_VALIDAR'
+    DRE_APROVADO = 'DRE_APROVADO'
+    DRE_REPROVADO = 'DRE_REPROVADO'
+    CODAE_A_VALIDAR = 'CODAE_A_VALIDAR'
+    CODAE_APROVADO = 'CODAE_APROVADO'
+    CODAE_REPROVADO = 'CODAE_REPROVADO'
+    TERCEIRIZADA_A_VISUALIZAR = 'TERCEIRIZADA_A_VISUALIZAR'
+    TERCEIRIZADA_A_VISUALIZADO = 'TERCEIRIZADA_A_VISUALIZADO'
 
 
 class InverterDiaCardapio(models.Model):
@@ -122,8 +126,35 @@ class InverterDiaCardapio(models.Model):
 
     @classmethod
     def ja_existe(cls, request):
-        return cls.objects.filter(cls.data_de == request.get('data_de')).filter(
-            cls.data_para == request.get('data_para')).filter(escola__uuid=request.get('escola')).exists()
+        return cls.objects.filter(cls.data_de == request.get('data_de')) \
+            .filter(cls.data_para == request.get('data_para')) \
+            .filter(escola__uuid=request.get('escola')).exists()
+
+    @classmethod
+    def valida_fim_semana(cls, request):
+        if valida_dia_util(request.get('data_de')) and valida_dia_util(request.get('data_para')):
+            return True
+        return False
+
+    @classmethod
+    def valida_feriado(cls, request):
+        if valida_dia_feriado(request.get('data_de')) and valida_dia_feriado(request.get('data_para')):
+            return True
+        return False
+
+    @classmethod
+    def valida_usuario_escola(cls, usuario: User) -> Bool:
+        return School.objects.filter(users=usuario).exists()
+
+    @classmethod
+    def valida_dia_atual(cls, request):
+        if request.get('data_de') == now().date() or request.get('data_para') == now().date():
+            return False
+        return True
+
+    @classmethod
+    def salvar_solicitacao(cls, request):
+        pass
 
     def __str__(self):
         return self.uuid

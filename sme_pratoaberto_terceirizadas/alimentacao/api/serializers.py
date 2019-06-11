@@ -16,3 +16,16 @@ class InverterDiaCardapioSerializer(serializers.ModelSerializer):
     class Meta:
         model = InverterDiaCardapio
         fields = '__all__'
+
+    def create(self, validated_data):
+        if not InverterDiaCardapio.valida_usuario_escola(validated_data.get('usuario')):
+            raise serializers.ValidationError('Nenhuma escola vinculada ao usuário')
+        if not InverterDiaCardapio.valida_feriado(validated_data):
+            raise serializers.ValidationError('Não é possivel solicitar de feriado para inversão')
+        if not InverterDiaCardapio.valida_dia_atual(validated_data):
+            raise serializers.ValidationError('Não é possivel solicitar dia de hoje para inversão')
+
+
+
+
+
