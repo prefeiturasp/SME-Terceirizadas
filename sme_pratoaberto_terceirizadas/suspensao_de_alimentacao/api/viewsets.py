@@ -23,13 +23,9 @@ class SuspensaoDeAlimentacaoViewSet(ModelViewSet):
       "obs":"observacao da solicitacao",
       "dias_razoes":[
         {
-          "data_de":"20/06/2019",
+          "data_de":"19/06/2019",
           "data_ate":"21/06/2019",
-          "dias_de_semana":[
-            "1",
-            "2",
-            "3"
-          ],
+          "dias_de_semana":"1,2,3",
           "razao":"Dia da família"
         }
       ],
