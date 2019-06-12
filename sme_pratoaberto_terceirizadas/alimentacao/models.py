@@ -8,7 +8,7 @@ from traitlets import Bool
 from sme_pratoaberto_terceirizadas.food.models import Food
 from sme_pratoaberto_terceirizadas.school.models import School
 from sme_pratoaberto_terceirizadas.users.models import User
-from .api.utils import valida_dia_util, valida_dia_feriado
+from .api.utils import valida_dia_util, valida_dia_feriado, converter_str_para_datetime
 
 
 class Gestao(models.Model):
@@ -126,9 +126,10 @@ class InverterDiaCardapio(models.Model):
 
     @classmethod
     def ja_existe(cls, request):
-        return cls.objects.filter(cls.data_de == request.get('data_de')) \
-            .filter(cls.data_para == request.get('data_para')) \
-            .filter(escola__uuid=request.get('escola')).exists()
+        de = converter_str_para_datetime(request.get('data_de'))
+        para = converter_str_para_datetime(request.get('data_para'))
+        escola = School.objects.filter(pk=request.get('escola')).first()
+        return InverterDiaCardapio.objects.filter(data_de=de, data_para=para, escola=escola).exists()
 
     @classmethod
     def valida_fim_semana(cls, request):
@@ -143,7 +144,7 @@ class InverterDiaCardapio(models.Model):
         return False
 
     @classmethod
-    def valida_usuario_escola(cls, usuario: User) -> Bool:
+    def valida_usuario_escola(cls, usuario: User):
         return School.objects.filter(users=usuario).exists()
 
     @classmethod
@@ -153,8 +154,28 @@ class InverterDiaCardapio(models.Model):
         return True
 
     @classmethod
-    def salvar_solicitacao(cls, request):
-        pass
+    def salvar_solicitacao(cls, request, usuario):
+        escola = School.objects.filter(pk=request.get('escola'))
+        if request.get('id'):
+            obj = cls.objects.get(pk=request.get('id'))
+            obj.usuario = usuario
+            obj.data_de = converter_str_para_datetime(request.get('data_de'))
+            obj.data_para = converter_str_para_datetime(request.get('data_para'))
+            obj.status = StatusSolicitacoes.ESCOLA_SALVOU
+            obj.descricao = request.get('descricao'),
+            obj.escola = escola.get()
+            obj.save()
+            return obj
+        else:
+            obj = InverterDiaCardapio(
+                usuario=usuario,
+                data_de=converter_str_para_datetime(request.get('data_de')),
+                data_para=converter_str_para_datetime(request.get('data_para')),
+                status=StatusSolicitacoes.ESCOLA_SALVOU,
+                descricao=request.get('descricao'),
+                escola=escola.get()
+            ).save()
+            return obj
 
     def __str__(self):
-        return self.uuid
+        return str(self.uuid)
