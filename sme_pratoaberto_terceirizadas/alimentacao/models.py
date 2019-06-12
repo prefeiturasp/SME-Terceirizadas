@@ -8,7 +8,7 @@ from traitlets import Bool
 from sme_pratoaberto_terceirizadas.food.models import Food
 from sme_pratoaberto_terceirizadas.school.models import School
 from sme_pratoaberto_terceirizadas.users.models import User
-from .api.utils import valida_dia_util, valida_dia_feriado
+from .api.utils import valida_dia_util, valida_dia_feriado, converter_str_para_datetime
 
 
 class Gestao(models.Model):
@@ -153,8 +153,28 @@ class InverterDiaCardapio(models.Model):
         return True
 
     @classmethod
-    def salvar_solicitacao(cls, request):
-        pass
+    def salvar_solicitacao(cls, request, usuario):
+        escola = School.objects.filter(users=usuario)
+        if request.get('id'):
+            obj = cls.objects.get(pk=request.get('id'))
+            obj.usuario = usuario
+            obj.data_de = converter_str_para_datetime(request.get('data_de'))
+            obj.data_para = converter_str_para_datetime(request.get('data_para'))
+            obj.status = StatusSolicitacoes.ESCOLA_SALVOU
+            obj.descricao = request.get('descricao'),
+            obj.escola = escola
+            obj.save()
+            return obj
+        else:
+            obj = InverterDiaCardapio(
+                usuario=usuario,
+                data_de=converter_str_para_datetime(request.get('data_de')),
+                data_para=converter_str_para_datetime(request.get('data_para')),
+                status=StatusSolicitacoes.ESCOLA_SALVOU,
+                descricao=request.get('descricao'),
+                escola=escola
+            ).save()
+            return obj
 
     def __str__(self):
         return self.uuid

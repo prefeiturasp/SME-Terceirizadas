@@ -22,6 +22,6 @@ class InverterDiaCardapioViewSet(viewsets.ModelViewSet):
     def create(self, request: Request, *args: Any, **kwargs: Any):
         if request.data.get('acao') == 'SALVAR':
             request.data['acao'] = StatusSolicitacoes.ESCOLA_SALVOU
-            if InverterDiaCardapio.salvar_solicitacao(request.data):
+            if InverterDiaCardapio.salvar_solicitacao(request.data, request.user):
                 return Response({'details': 'Solicitação salva com sucesso.'})
         super(InverterDiaCardapioViewSet, self).create(request, *args, **kwargs)

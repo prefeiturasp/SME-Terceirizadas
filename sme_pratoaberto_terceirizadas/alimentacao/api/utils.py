@@ -18,3 +18,11 @@ def valida_dia_feriado(dia):
         if dia == feriado[0]:
             return False
     return True
+
+
+def converter_str_para_datetime(str_dia, formato='%Y-%m-%d'):
+    try:
+        data = datetime.strptime(str_dia, formato)
+        return data
+    except ValueError:
+        return False
