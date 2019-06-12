@@ -1,6 +1,9 @@
 from datetime import datetime
 from workalendar.america import BrazilSaoPauloCity
 
+from sme_pratoaberto_terceirizadas.school.models import School
+from sme_pratoaberto_terceirizadas.users.models import User
+
 calendar = BrazilSaoPauloCity()
 
 
@@ -26,3 +29,7 @@ def converter_str_para_datetime(str_dia, formato='%Y-%m-%d'):
         return data
     except ValueError:
         return False
+
+
+def valida_usuario_vinculado_escola(usuario: User):
+    return School.objects.filter(users=usuario).exists()

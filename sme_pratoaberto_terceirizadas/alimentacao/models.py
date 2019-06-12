@@ -126,9 +126,10 @@ class InverterDiaCardapio(models.Model):
 
     @classmethod
     def ja_existe(cls, request):
-        return cls.objects.filter(cls.data_de == request.get('data_de')) \
-            .filter(cls.data_para == request.get('data_para')) \
-            .filter(escola__uuid=request.get('escola')).exists()
+        de = converter_str_para_datetime(request.get('data_de'))
+        para = converter_str_para_datetime(request.get('data_para'))
+        escola = School.objects.filter(pk=request.get('escola')).first()
+        return InverterDiaCardapio.objects.filter(data_de=de, data_para=para, escola=escola).exists()
 
     @classmethod
     def valida_fim_semana(cls, request):
@@ -143,7 +144,7 @@ class InverterDiaCardapio(models.Model):
         return False
 
     @classmethod
-    def valida_usuario_escola(cls, usuario: User) -> Bool:
+    def valida_usuario_escola(cls, usuario: User):
         return School.objects.filter(users=usuario).exists()
 
     @classmethod
@@ -154,7 +155,7 @@ class InverterDiaCardapio(models.Model):
 
     @classmethod
     def salvar_solicitacao(cls, request, usuario):
-        escola = School.objects.filter(users=usuario)
+        escola = School.objects.filter(pk=request.get('escola'))
         if request.get('id'):
             obj = cls.objects.get(pk=request.get('id'))
             obj.usuario = usuario
@@ -162,7 +163,7 @@ class InverterDiaCardapio(models.Model):
             obj.data_para = converter_str_para_datetime(request.get('data_para'))
             obj.status = StatusSolicitacoes.ESCOLA_SALVOU
             obj.descricao = request.get('descricao'),
-            obj.escola = escola
+            obj.escola = escola.get()
             obj.save()
             return obj
         else:
@@ -172,9 +173,9 @@ class InverterDiaCardapio(models.Model):
                 data_para=converter_str_para_datetime(request.get('data_para')),
                 status=StatusSolicitacoes.ESCOLA_SALVOU,
                 descricao=request.get('descricao'),
-                escola=escola
+                escola=escola.get()
             ).save()
             return obj
 
     def __str__(self):
-        return self.uuid
+        return str(self.uuid)
