@@ -11,7 +11,7 @@ class MealKitAdmin(admin.ModelAdmin):
 
 @admin.register(OrderMealKit)
 class OrderMealKitAdmin(admin.ModelAdmin):
-    list_display = ['location', 'students_quantity', 'order_date']
+    list_display = ['location', 'students_quantity', 'order_date', 'status']
 
 
 admin.site.register(RazaoSolicitacaoUnificada)

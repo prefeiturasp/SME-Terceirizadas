@@ -1,5 +1,4 @@
 import uuid
-from datetime import datetime
 from enum import Enum
 
 from django.db import models
@@ -145,19 +144,31 @@ class OrderMealKit(models.Model):
         try:
             data_passeio = string_to_date(data.get('evento_data', None))
             meals = MealKit.objects.filter(uuid__in=data.get('kit_lanche', None))
-            obj = cls(
-                location=data.get('local_passeio', None),
-                students_quantity=data.get('nro_alunos', None),
-                order_date=data_passeio,
-                observation=data.get('obs', None),
-                status='SENDED',
-                scheduled_time=data.get('tempo_passeio', None)
-            )
-            obj.save()
+            if not data.get('id'):
+                obj = cls(
+                    location=data.get('local_passeio', None),
+                    students_quantity=data.get('nro_alunos', None),
+                    order_date=data_passeio,
+                    observation=data.get('obs', None),
+                    status='SENDED',
+                    scheduled_time=data.get('tempo_passeio', None)
+                )
+                obj.save()
+            else:
+                obj = cls.objects.get(pk=data.get('id'))
+                obj.location = data.get('local_passeio', None)
+                obj.students_quantity = data.get('nro_alunos', None)
+                obj.order_date = data_passeio
+                obj.observation = data.get('obs', None)
+                obj.status = 'SENDED'
+                obj.scheduled_time = data.get('tempo_passeio', None)
+                obj.save()
+
             obj.schools.add(escola)
             for m in meals:
                 obj.meal_kits.add(m)
             obj.save()
+
             message = 'Solicitação: {} - Data: {}'.format(obj.location, obj.order_date)
             send_notification(usuario, User.objects.filter(email='mmaia.cc@gmail.com'), 'Teste de nofiticação',
                               message)
