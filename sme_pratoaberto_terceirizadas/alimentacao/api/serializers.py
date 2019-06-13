@@ -25,6 +25,9 @@ class InverterDiaCardapioSerializer(serializers.ModelSerializer):
         if not InverterDiaCardapio.valida_dia_atual(validated_data):
             raise serializers.ValidationError('Não é possivel solicitar dia de hoje para inversão')
 
+    # def validate(self, attrs):
+    #     pass
+
 
 
 

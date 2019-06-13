@@ -1,6 +1,9 @@
 from datetime import datetime
 from workalendar.america import BrazilSaoPauloCity
 
+from sme_pratoaberto_terceirizadas.school.models import School
+from sme_pratoaberto_terceirizadas.users.models import User
+
 calendar = BrazilSaoPauloCity()
 
 
@@ -18,3 +21,15 @@ def valida_dia_feriado(dia):
         if dia == feriado[0]:
             return False
     return True
+
+
+def converter_str_para_datetime(str_dia, formato='%Y-%m-%d'):
+    try:
+        data = datetime.strptime(str_dia, formato)
+        return data
+    except ValueError:
+        return False
+
+
+def valida_usuario_vinculado_escola(usuario: User):
+    return School.objects.filter(users=usuario).exists()
