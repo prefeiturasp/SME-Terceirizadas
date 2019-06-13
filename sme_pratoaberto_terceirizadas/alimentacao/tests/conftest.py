@@ -49,8 +49,8 @@ def user():
 @pytest.fixture
 def request_solicitar_errado():
     request = {
-        "data_de": datetime.strptime("2019-06-10", FORMAT).date(),
-        "data_para": datetime.strptime("2019-06-15", FORMAT).date(),
+        "data_de": datetime(2019, 6, 10).date(),
+        "data_para": datetime(2019, 6, 15).date(),
         "descricao": "Descrição para teste",
         "usuario": 1,
         "escola": 1
@@ -61,8 +61,8 @@ def request_solicitar_errado():
 @pytest.fixture
 def request_solicitar_certo():
     request = {
-        "data_de": datetime.strptime("2019-06-10", FORMAT).date(),
-        "data_para": datetime.strptime("2019-06-14", FORMAT).date(),
+        "data_de": datetime(2019, 6, 10).date(),
+        "data_para": datetime(2019, 6, 14).date(),
         "descricao": "Descrição para teste",
         "usuario": 1,
         "escola": 1
@@ -73,8 +73,8 @@ def request_solicitar_certo():
 @pytest.fixture
 def request_solicitar_feriado():
     request = {
-        "data_de": datetime.strptime("2019-06-10", FORMAT).date(),
-        "data_para": datetime.strptime("2019-06-20", FORMAT).date(),
+        "data_de": datetime(2019, 6, 10).date(),
+        "data_para": datetime(2019, 6, 20).date(),
         "descricao": "Descrição para teste",
         "usuario": 1,
         "escola": 1
@@ -86,3 +86,21 @@ def request_solicitar_feriado():
 def school():
     school = mommy.prepare('school.School', _save_related=True)
     return school
+
+
+@pytest.fixture
+def request_post():
+    request = {
+        "data_de": datetime(2019, 6, 13),
+        "data_para": datetime(2019, 6, 20),
+        "descricao": "Descrição para teste",
+        "usuario": mommy.prepare('users.User', _save_related=True),
+        "escola": mommy.prepare('School', _save_related=True)
+    }
+    return request
+
+
+@pytest.fixture
+def usuario_sem_escola():
+    usuario = mommy.prepare('users.User', _save_related=True)
+    return usuario

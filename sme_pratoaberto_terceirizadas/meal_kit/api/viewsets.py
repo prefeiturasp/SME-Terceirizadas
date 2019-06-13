@@ -40,14 +40,21 @@ class OrderMealKitViewSet(ModelViewSet):
         return Response({'error': 'Solicitação não encontrada'}, status=status.HTTP_409_CONFLICT)
 
     def create(self, request):
+        quantidade_matriculados = 200
         escola = self._valida_escola(request.user)
-        if OrderMealKit.valida_duplicidade(request.data, escola):
-            if OrderMealKit.solicitar_kit_lanche(request.data, escola, request.user):
-                return Response({'success': 'Sua solicitação foi enviada com sucesso'}, status=status.HTTP_201_CREATED)
-            return Response({'error': 'Erro ao tentar salvar solicitação, tente novamente'},
-                            status=status.HTTP_502_BAD_GATEWAY)
-        return Response({'error': 'Solicitação já cadastrada no sistema com esta data'},
-                        status=status.HTTP_400_BAD_REQUEST)
+        if not OrderMealKit.valida_quantidade_matriculados(quantidade_matriculados, int(request.data.get('nro_alunos')),
+                                                           request.data.get('evento_data'),
+                                                           escola):
+            return Response(
+                {'error': 'A Quantidade de aluno para o evento, excedeu a quantidade limite de alunos para este dia'},
+                status=status.HTTP_400_BAD_REQUEST)
+        if not OrderMealKit.valida_duplicidade(request.data, escola):
+            return Response({'error': 'Solicitação já cadastrada no sistema com esta data'},
+                            status=status.HTTP_400_BAD_REQUEST)
+        if OrderMealKit.solicitar_kit_lanche(request.data, escola, request.user):
+            return Response({'success': 'Sua solicitação foi enviada com sucesso'}, status=status.HTTP_201_CREATED)
+        return Response({'error': 'Erro ao tentar salvar solicitação, tente novamente'},
+                        status=status.HTTP_502_BAD_GATEWAY)
 
     def _valida_escola(self, user: User):
         escola = School.objects.filter(users=user).first()

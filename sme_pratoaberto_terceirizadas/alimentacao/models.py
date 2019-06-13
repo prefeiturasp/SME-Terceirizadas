@@ -3,7 +3,6 @@ from enum import Enum
 from django.utils.timezone import now
 
 from django.db import models
-from traitlets import Bool
 
 from sme_pratoaberto_terceirizadas.food.models import Food
 from sme_pratoaberto_terceirizadas.school.models import School
@@ -111,6 +110,12 @@ class StatusSolicitacoes(Enum):
     TERCEIRIZADA_A_VISUALIZADO = 'TERCEIRIZADA_A_VISUALIZADO'
 
 
+status_validacao = [StatusSolicitacoes.DRE_A_VALIDAR, StatusSolicitacoes.DRE_APROVADO,
+                    StatusSolicitacoes.CODAE_A_VALIDAR,
+                    StatusSolicitacoes.CODAE_APROVADO, StatusSolicitacoes.TERCEIRIZADA_A_VISUALIZAR,
+                    StatusSolicitacoes.TERCEIRIZADA_A_VISUALIZADO]
+
+
 class InverterDiaCardapio(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     registro = models.DateTimeField(auto_now_add=True)
@@ -126,10 +131,11 @@ class InverterDiaCardapio(models.Model):
 
     @classmethod
     def ja_existe(cls, request):
-        de = converter_str_para_datetime(request.get('data_de'))
-        para = converter_str_para_datetime(request.get('data_para'))
-        escola = School.objects.filter(pk=request.get('escola')).first()
-        return InverterDiaCardapio.objects.filter(data_de=de, data_para=para, escola=escola).exists()
+        de = request.get('data_de')
+        para = request.get('data_para')
+        escola = request.get('escola')
+        return InverterDiaCardapio.objects.filter(data_de=de, data_para=para, escola=escola,
+                                                  status__in=status_validacao).exists()
 
     @classmethod
     def valida_fim_semana(cls, request):

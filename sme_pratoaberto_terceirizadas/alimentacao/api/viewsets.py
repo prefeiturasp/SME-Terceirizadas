@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from traitlets import Any
 
 from sme_pratoaberto_terceirizadas.alimentacao.api.serializers import CardapioSerializer
-from sme_pratoaberto_terceirizadas.alimentacao.api.utils import valida_usuario_vinculado_escola
+from sme_pratoaberto_terceirizadas.alimentacao.api.utils import valida_usuario_vinculado_escola, notifica_dres
 from sme_pratoaberto_terceirizadas.alimentacao.models import Cardapio, InverterDiaCardapio, StatusSolicitacoes
 from .serializers import InverterDiaCardapioSerializer
 
@@ -22,16 +22,18 @@ class InverterDiaCardapioViewSet(viewsets.ModelViewSet):
     serializer_class = InverterDiaCardapioSerializer
 
     def create(self, request: Request, *args: Any, **kwargs: Any):
-        super(InverterDiaCardapioViewSet, self).create(request, *args, **kwargs)
+        response = super(InverterDiaCardapioViewSet, self).create(request, *args, **kwargs)
+        if response.status_code == status.HTTP_201_CREATED:
+            params = response.data
+            notifica_dres(request.user, params.get('escola'), params.get('data_de'), params.get('data_para'))
+            return Response({'details': 'Solicitação enviada com sucesso.'}, status=status.HTTP_200_OK)
+        return Response({'details': 'Error ao tentar solicitar inversão de dia de cardápio'})
 
     @action(detail=False, methods=['post'])
     def salvar(self, request):
         if not valida_usuario_vinculado_escola(request.user):
             return Response({'details': 'Usuário sem relacionamento a uma escola'}, status=status.HTTP_409_CONFLICT)
-
-        if InverterDiaCardapio.ja_existe(request.data):
-            return Response({'details': 'Cadastro já registrado no sistema'}, status=status.HTTP_409_CONFLICT)
-
         if InverterDiaCardapio.salvar_solicitacao(request.data, request.user):
             return Response({'details': 'Solicitação salva com sucesso.'}, status=status.HTTP_201_CREATED)
-        return Response({'details': 'Ocorreu um erro ao tentar salvar solicitação, tente novamente'}, status=status.HTTP_409_CONFLICT)
+        return Response({'details': 'Ocorreu um erro ao tentar salvar solicitação, tente novamente'},
+                        status=status.HTTP_409_CONFLICT)

@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime
 from enum import Enum
 
 from django.db import models
@@ -122,22 +123,21 @@ class OrderMealKit(models.Model):
 
     @classmethod
     def valida_duplicidade(cls, data, escola):
-        matriculados = 200
         tempo = data.get('tempo_passeio', None)
         data_passeio = string_to_date(data.get('evento_data'))
-        if cls.valida_quantidade_matriculados(matriculados, int(data.get('nro_alunos')), data_passeio, escola):
-            if cls.objects.filter(schools=escola, order_date=data_passeio, status='SENDED',
-                                  scheduled_time=tempo).count():
-                return False
-        else:
+        if cls.objects.filter(schools=escola, order_date=data_passeio, status='SENDED',
+                              scheduled_time=tempo).count():
             return False
         return True
 
     @classmethod
-    def valida_quantidade_matriculados(cls, matriculados, quantidade_aluno_passeio, data_passeio, escola):
-        passeio = cls.objects.filter(schools=escola, order_date=data_passeio).first()
-        if (int(passeio.students_quantity) + quantidade_aluno_passeio) > matriculados:
-            return False
+    def valida_quantidade_matriculados(cls, matriculados: int, quantidade_aluno_passeio: int,
+                                       data_passeio, escola):
+        data = string_to_date(data_passeio)
+        passeio = cls.objects.filter(schools=escola, order_date=data).first()
+        if passeio:
+            if (passeio.students_quantity + quantidade_aluno_passeio) > matriculados:
+                return False
         return True
 
     @classmethod
