@@ -19,7 +19,7 @@ class WorkingDaysViewSet(ViewSet):
     def list(self, request):
         working_days = {
             1: WorkingDays(
-                date_five_working_days=get_working_days_after().strftime('%d/%m/%Y'),
+                date_five_working_days=get_working_days_after(5).strftime('%d/%m/%Y'),
                 date_two_working_days=get_working_days_after(2).strftime('%d/%m/%Y'))
         }
         serializer = WorkingDaysSerializer(
