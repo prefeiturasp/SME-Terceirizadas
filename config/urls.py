@@ -10,6 +10,7 @@ from rest_framework.routers import DefaultRouter
 from rest_framework_jwt.views import obtain_jwt_token, refresh_jwt_token
 from rest_framework_swagger.views import get_swagger_view
 
+from sme_pratoaberto_terceirizadas.alimentacao.api.routers import urlpattern as alimentacao_url
 from sme_pratoaberto_terceirizadas.cardapio.urls import urlpatterns as cardapio_url
 from sme_pratoaberto_terceirizadas.common_data.api.viewsets import WorkingDaysViewSet
 from sme_pratoaberto_terceirizadas.common_data.urls import urlpatterns as common_urls
@@ -18,9 +19,8 @@ from sme_pratoaberto_terceirizadas.food_inclusion.api.viewsets import FoodInclus
 from sme_pratoaberto_terceirizadas.meal_kit.api.routers import urlpatterns as meal_kit_url
 from sme_pratoaberto_terceirizadas.permission.routers import urlpatterns as permissions_url
 from sme_pratoaberto_terceirizadas.school.routers import urlpatterns as school_url
-from sme_pratoaberto_terceirizadas.users.routers import urlpatterns as user_url
-from sme_pratoaberto_terceirizadas.alimentacao.api.routers import urlpattern as alimentacao_url
 from sme_pratoaberto_terceirizadas.suspensao_de_alimentacao.api.routers import urlpatterns as suspensao_url
+from sme_pratoaberto_terceirizadas.users.routers import urlpatterns as user_url
 
 schema_view = get_swagger_view(title=_('API of SME-Companies'))
 
