@@ -5,7 +5,7 @@ from model_utils.fields import StatusField
 
 from sme_pratoaberto_terceirizadas.abstract_shareable import Describable, IntervaloDeDia, TemChaveExterna, \
     Motivos
-from sme_pratoaberto_terceirizadas.school.models import School, RegionalDirector
+from sme_pratoaberto_terceirizadas.escola.models import Escola, DiretorRegional
 
 
 class AlteracaoCardapio(IntervaloDeDia, Describable, TemChaveExterna, Motivos):
@@ -26,7 +26,7 @@ class AlteracaoCardapio(IntervaloDeDia, Describable, TemChaveExterna, Motivos):
         ('TERCEIRIZADA_A_VISUALIZADO', 'Terceirizada visualizado')  # TOMOU CIENCIA, TODOS DEVEM FICAR SABENDO...
     )
     status = StatusField()
-    escola = models.ForeignKey(School, on_delete=models.DO_NOTHING)
+    escola = models.ForeignKey(Escola, on_delete=models.DO_NOTHING)
 
     @classmethod
     def valida_existencia(cls, data):
@@ -41,11 +41,11 @@ class AlteracaoCardapio(IntervaloDeDia, Describable, TemChaveExterna, Motivos):
     @classmethod
     def get_escola(cls, id_escola):
         try:
-            return School.objects.get(pk=id_escola)
+            return Escola.objects.get(pk=id_escola)
         except ObjectDoesNotExist:
             return False
 
     @classmethod
     def get_usuarios_dre(cls, escola):
-        dre = RegionalDirector.objects.filter(regional_director=escola.regional_director)
+        dre = DiretorRegional.objects.filter(regional_director=escola.regional_director)
         return dre.values_list('users').all()

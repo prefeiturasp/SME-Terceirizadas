@@ -6,7 +6,7 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework.decorators import action
 
 from sme_pratoaberto_terceirizadas.users.models import User
-from sme_pratoaberto_terceirizadas.utils import send_notification, async_send_mass_html_mail
+from sme_pratoaberto_terceirizadas.utils import enviar_notificacao, async_envio_email_html_em_massa
 from .serializers import AlteracaoCardapioSerializer
 from ..models import AlteracaoCardapio
 
@@ -25,9 +25,9 @@ class AlteracaoCardapioViewSet(ModelViewSet):
         if response:
             short_desc = 'Alteração de cardápio solicitada'.format(response.data.get('id', None))
 
-            send_notification(sender=request.user, recipients=cintia_qs,
+            enviar_notificacao(sender=request.user, recipients=cintia_qs,
                               short_desc=short_desc, long_desc=response.data)
-            async_send_mass_html_mail(short_desc, str(response.data), None, emails)
+            async_envio_email_html_em_massa(short_desc, str(response.data), None, emails)
         return response
 
     def partial_update(self, request: Request, *args: Any, **kwargs: Any) -> Response:
@@ -37,9 +37,9 @@ class AlteracaoCardapioViewSet(ModelViewSet):
             status = response.data.get('status', None)
             short_desc = 'Alteração de cardápio #{} atualizada para: {}'.format(
                 alt_id, status)
-            send_notification(sender=request.user, recipients=cintia_qs,
+            enviar_notificacao(sender=request.user, recipients=cintia_qs,
                               short_desc=short_desc, long_desc=response.data)
-            async_send_mass_html_mail(short_desc, str(response.data), None, emails)
+            async_envio_email_html_em_massa(short_desc, str(response.data), None, emails)
         return response
 
     @action(detail=False)
