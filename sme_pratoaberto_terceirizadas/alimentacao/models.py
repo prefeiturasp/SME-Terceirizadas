@@ -5,7 +5,7 @@ from django.utils.timezone import now
 from django.db import models
 
 from sme_pratoaberto_terceirizadas.food.models import Food
-from sme_pratoaberto_terceirizadas.school.models import School
+from sme_pratoaberto_terceirizadas.school.models import Escola
 from sme_pratoaberto_terceirizadas.users.models import User
 from .api.utils import valida_dia_util, valida_dia_feriado, converter_str_para_datetime
 
@@ -88,7 +88,7 @@ class Cardapio(models.Model):
     categoria = models.ForeignKey(Categoria, on_delete=models.DO_NOTHING, help_text='Ex: Lactante, Normal ou Diabética')
     gestao = models.ForeignKey(Gestao, on_delete=models.DO_NOTHING)
     alimentos = models.ManyToManyField(Food)
-    escolas = models.ManyToManyField(School)
+    escolas = models.ManyToManyField(Escola)
 
     def __str__(self):
         return '{} - {}'.format(self.data, self.descricao)
@@ -120,7 +120,7 @@ class InverterDiaCardapio(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     registro = models.DateTimeField(auto_now_add=True)
     usuario = models.ForeignKey(User, on_delete=models.DO_NOTHING, help_text='Usuário que solicitou a altereação')
-    escola = models.ForeignKey(School, on_delete=models.DO_NOTHING)
+    escola = models.ForeignKey(Escola, on_delete=models.DO_NOTHING)
     data_de = models.DateField(verbose_name='Data De', help_text='Data do dia inicial da inversão')
     data_para = models.DateField(verbose_name='Data Para', help_text='Data do dia final da inversão')
     descricao = models.TextField('Descrição')
@@ -151,7 +151,7 @@ class InverterDiaCardapio(models.Model):
 
     @classmethod
     def valida_usuario_escola(cls, usuario: User):
-        return School.objects.filter(users=usuario).exists()
+        return Escola.objects.filter(users=usuario).exists()
 
     @classmethod
     def valida_dia_atual(cls, request):
@@ -161,7 +161,7 @@ class InverterDiaCardapio(models.Model):
 
     @classmethod
     def salvar_solicitacao(cls, request, usuario):
-        escola = School.objects.filter(pk=request.get('escola'))
+        escola = Escola.objects.filter(pk=request.get('escola'))
         if request.get('id'):
             obj = cls.objects.get(pk=request.get('id'))
             obj.usuario = usuario
