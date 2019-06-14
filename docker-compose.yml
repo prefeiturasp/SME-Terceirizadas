@@ -1,0 +1,22 @@
+# Use postgres/example user/password credentials
+version: '3.1'
+
+services:
+  redis:
+    image: redis:5.0.5-alpine
+
+  db:
+    image: postgres:11.2-alpine
+    restart: always
+    env_file:
+      - .env
+
+  backend:
+    image: backend12
+    # http://docs.gunicorn.org/en/latest/design.html#how-many-workers
+    # http://docs.gunicorn.org/en/latest/settings.html#worker-class
+    command: "gunicorn config.wsgi:application --bind=0.0.0.0:8000 -w 9"
+    ports:
+      - 8000:8000
+    env_file:
+      - .env
