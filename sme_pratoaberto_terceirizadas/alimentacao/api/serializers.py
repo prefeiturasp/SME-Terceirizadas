@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from sme_pratoaberto_terceirizadas.alimentacao.models import Cardapio, InverterDiaCardapio
-from sme_pratoaberto_terceirizadas.school.api.serializers import EscolaSerializer
+from sme_pratoaberto_terceirizadas.escola.api.serializers import EscolaSerializer
 
 
 class CardapioSerializer(serializers.ModelSerializer):

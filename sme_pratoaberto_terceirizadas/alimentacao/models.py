@@ -5,7 +5,7 @@ from django.utils.timezone import now
 from django.db import models
 
 from sme_pratoaberto_terceirizadas.food.models import Food
-from sme_pratoaberto_terceirizadas.school.models import Escola
+from sme_pratoaberto_terceirizadas.escola.models import Escola
 from sme_pratoaberto_terceirizadas.users.models import User
 from .api.utils import valida_dia_util, valida_dia_feriado, converter_str_para_datetime
 

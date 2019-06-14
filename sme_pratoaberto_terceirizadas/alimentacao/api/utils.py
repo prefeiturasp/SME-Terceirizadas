@@ -1,7 +1,7 @@
 from datetime import datetime
 from workalendar.america import BrazilSaoPauloCity
 
-from sme_pratoaberto_terceirizadas.school.models import Escola, DiretorRegional
+from sme_pratoaberto_terceirizadas.escola.models import Escola, DiretorRegional
 from sme_pratoaberto_terceirizadas.users.models import User
 from sme_pratoaberto_terceirizadas.utils import async_envio_email_html_em_massa, enviar_notificacao
 
