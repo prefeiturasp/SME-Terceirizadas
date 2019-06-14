@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from sme_pratoaberto_terceirizadas.food_inclusion.models import FoodInclusion, FoodInclusionDescription, \
     FoodInclusionReason, FoodInclusionDayReason
-from sme_pratoaberto_terceirizadas.school.models import SchoolPeriod
+from sme_pratoaberto_terceirizadas.escola.models import PeriodoEscolar
 
 
 class FoodInclusionReasonSerializer(serializers.ModelSerializer):
@@ -86,33 +86,33 @@ class FoodInclusionSerializer(serializers.ModelSerializer):
     day_reasons = serializers.SerializerMethodField()
 
     def get_description_first_period(self, obj):
-        if obj.foodinclusiondescription_set.filter(period__value=SchoolPeriod.FIRST_PERIOD).exists():
+        if obj.foodinclusiondescription_set.filter(period__value=PeriodoEscolar.FIRST_PERIOD).exists():
             return FoodInclusionDescriptionSerializer(obj.foodinclusiondescription_set.get(
-                period__value=SchoolPeriod.FIRST_PERIOD)).data
+                period__value=PeriodoEscolar.FIRST_PERIOD)).data
         return None
 
     def get_description_second_period(self, obj):
-        if obj.foodinclusiondescription_set.filter(period__value=SchoolPeriod.SECOND_PERIOD).exists():
+        if obj.foodinclusiondescription_set.filter(period__value=PeriodoEscolar.SECOND_PERIOD).exists():
             return FoodInclusionDescriptionSerializer(obj.foodinclusiondescription_set.get(
-                period__value=SchoolPeriod.SECOND_PERIOD)).data
+                period__value=PeriodoEscolar.SECOND_PERIOD)).data
         return None
 
     def get_description_third_period(self, obj):
-        if obj.foodinclusiondescription_set.filter(period__value=SchoolPeriod.THIRD_PERIOD).exists():
+        if obj.foodinclusiondescription_set.filter(period__value=PeriodoEscolar.THIRD_PERIOD).exists():
             return FoodInclusionDescriptionSerializer(obj.foodinclusiondescription_set.get(
-                period__value=SchoolPeriod.THIRD_PERIOD)).data
+                period__value=PeriodoEscolar.THIRD_PERIOD)).data
         return None
 
     def get_description_fourth_period(self, obj):
-        if obj.foodinclusiondescription_set.filter(period__value=SchoolPeriod.FOURTH_PERIOD).exists():
+        if obj.foodinclusiondescription_set.filter(period__value=PeriodoEscolar.FOURTH_PERIOD).exists():
             return FoodInclusionDescriptionSerializer(obj.foodinclusiondescription_set.get(
-                period__value=SchoolPeriod.FOURTH_PERIOD)).data
+                period__value=PeriodoEscolar.FOURTH_PERIOD)).data
         return None
 
     def get_description_integrate(self, obj):
-        if obj.foodinclusiondescription_set.filter(period__value=SchoolPeriod.INTEGRATE).exists():
+        if obj.foodinclusiondescription_set.filter(period__value=PeriodoEscolar.INTEGRATE).exists():
             return FoodInclusionDescriptionSerializer(obj.foodinclusiondescription_set.get(
-                period__value=SchoolPeriod.INTEGRATE)).data
+                period__value=PeriodoEscolar.INTEGRATE)).data
         return None
 
     def get_day_reasons(self, obj):

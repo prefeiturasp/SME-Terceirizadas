@@ -4,7 +4,7 @@
 
 import pandas as pd
 
-from sme_pratoaberto_terceirizadas.school.models import School, ManagementType, SchoolUnitType, Borough
+from sme_pratoaberto_terceirizadas.escola.models import Escola, ManagementType, SchoolUnitType, Borough
 from sme_pratoaberto_terceirizadas.common_data.models import Address, CityLocation, Contact
 
 df = pd.read_csv('wes.csv', dtype={'CODAE': str}, sep='¬')
@@ -101,7 +101,7 @@ for _, line in df.iterrows():
 
     # ESCOLA/SCHOOL
     # TODO incluir agrupamento no csv. Assumindo 0.
-    escola = School(name=line.NOME,
+    escola = Escola(name=line.NOME,
                     grouping=0,
                     unit_type=ue,
                     management_type=gestao,

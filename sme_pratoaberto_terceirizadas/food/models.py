@@ -4,7 +4,7 @@ from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
 from sme_pratoaberto_terceirizadas.abstract_shareable import Describable, TimestampAble
-from sme_pratoaberto_terceirizadas.school.models import SchoolAge, SchoolGroup, SchoolUnitType, ManagementType
+from sme_pratoaberto_terceirizadas.escola.models import SchoolAge, SchoolGroup, SchoolUnitType, ManagementType
 from sme_pratoaberto_terceirizadas.users.models import User
 
 now = timezone.now()

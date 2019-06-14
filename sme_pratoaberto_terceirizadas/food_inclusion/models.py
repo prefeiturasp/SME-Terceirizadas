@@ -9,7 +9,7 @@ from sme_pratoaberto_terceirizadas.abstract_shareable import Describable, Timest
 from sme_pratoaberto_terceirizadas.common_data.utils import str_to_date, get_working_days_after
 from sme_pratoaberto_terceirizadas.food.models import MealType
 from sme_pratoaberto_terceirizadas.food_inclusion.utils import get_object
-from sme_pratoaberto_terceirizadas.school.models import SchoolPeriod
+from sme_pratoaberto_terceirizadas.escola.models import PeriodoEscolar
 from sme_pratoaberto_terceirizadas.users.models import User
 
 
@@ -145,7 +145,7 @@ class FoodInclusion(TimestampAble):
 
 class FoodInclusionDescription(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-    period = models.ForeignKey(SchoolPeriod, on_delete=models.DO_NOTHING)
+    period = models.ForeignKey(PeriodoEscolar, on_delete=models.DO_NOTHING)
     meal_type = models.ManyToManyField(MealType)
     number_of_students = models.IntegerField()
     food_inclusion = models.ForeignKey(FoodInclusion, on_delete=models.CASCADE)
@@ -164,7 +164,7 @@ class FoodInclusionDescription(models.Model):
             request_data.get('select')]
         self.number_of_students = request_data.get('number')
         self.food_inclusion = food_inclusion
-        self.period = get_object(SchoolPeriod, value=school_period)
+        self.period = get_object(PeriodoEscolar, value=school_period)
         self.save()
         for meal_type in meal_types:
             self.meal_type.add(get_object(MealType, name=meal_type))

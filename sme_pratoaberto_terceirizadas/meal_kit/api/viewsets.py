@@ -5,7 +5,7 @@ from rest_framework.viewsets import ModelViewSet
 
 from sme_pratoaberto_terceirizadas.meal_kit.api.serializers import MealKitSerializer, OrderMealKitSerializer, \
     SolicitacaoUnificadaFormularioSerializer, SolicitacaoUnificadaSerializer
-from sme_pratoaberto_terceirizadas.school.models import School
+from sme_pratoaberto_terceirizadas.escola.models import Escola
 from sme_pratoaberto_terceirizadas.users.models import User
 from ..models import MealKit, OrderMealKit, SolicitacaoUnificada, SolicitacaoUnificadaFormulario, \
     StatusSolicitacaoUnificada
@@ -57,7 +57,7 @@ class OrderMealKitViewSet(ModelViewSet):
                         status=status.HTTP_502_BAD_GATEWAY)
 
     def _valida_escola(self, user: User):
-        escola = School.objects.filter(users=user).first()
+        escola = Escola.objects.filter(users=user).first()
         if not escola:
             return Response({'error': 'Sem escola relacinada a este usuário'}, status=status.HTTP_401_UNAUTHORIZED)
         return escola
@@ -73,7 +73,7 @@ class OrderMealKitViewSet(ModelViewSet):
     @action(detail=False, methods=['post'])
     def salvar(self, request):
         params = request.data
-        escola = School.objects.filter(users=request.user).first()
+        escola = Escola.objects.filter(users=request.user).first()
         if not valida_usuario_escola(request.user):
             return Response({'error': 'Sem escola relacinada a este usuário'}, status=status.HTTP_401_UNAUTHORIZED)
 

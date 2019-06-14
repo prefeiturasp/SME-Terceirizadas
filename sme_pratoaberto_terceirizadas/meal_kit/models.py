@@ -7,10 +7,10 @@ from django.utils.translation import ugettext_lazy as _
 from sme_pratoaberto_terceirizadas.abstract_shareable import Describable, Activable
 from sme_pratoaberto_terceirizadas.food.models import Meal
 from sme_pratoaberto_terceirizadas.meal_kit.utils import date_to_string, string_to_date
-from sme_pratoaberto_terceirizadas.school.models import School, RegionalDirector
+from sme_pratoaberto_terceirizadas.escola.models import Escola, DiretorRegional
 from sme_pratoaberto_terceirizadas.terceirizada.models import Lote
 from sme_pratoaberto_terceirizadas.users.models import User
-from sme_pratoaberto_terceirizadas.utils import send_notification, async_send_mass_html_mail
+from sme_pratoaberto_terceirizadas.utils import enviar_notificacao, async_envio_email_html_em_massa
 
 
 class StatusSolicitacao(Enum):
@@ -45,7 +45,7 @@ class OrderMealKit(models.Model):
     location = models.CharField(_('Order Location'), max_length=160, blank=True, null=True)
     students_quantity = models.IntegerField(_('Students Quantity'))
     order_date = models.DateField(_('Order Date'), blank=True, null=True)
-    schools = models.ManyToManyField(School)
+    schools = models.ManyToManyField(Escola)
     meal_kits = models.ManyToManyField(MealKit)
     observation = models.TextField(_('Observation'), blank=True, null=True)
     status = models.CharField(_('Status'), choices=TYPES_STATUS, default=0, max_length=6)
@@ -170,7 +170,7 @@ class OrderMealKit(models.Model):
             obj.save()
 
             message = 'Solicitação: {} - Data: {}'.format(obj.location, obj.order_date)
-            send_notification(usuario, User.objects.filter(email='mmaia.cc@gmail.com'), 'Teste de nofiticação',
+            enviar_notificacao(usuario, User.objects.filter(email='mmaia.cc@gmail.com'), 'Teste de nofiticação',
                               message)
             return obj
         except ValueError:
@@ -193,20 +193,20 @@ class OrderMealKit(models.Model):
 
     @classmethod
     def notifica_dres(cls, usuario, escola, solicitacao):
-        usuarios_dre = RegionalDirector.object.get(school=escola).users.all()
-        email_usuarios_dre = RegionalDirector.objects.filter(school=escola).values_list('users__email')
+        usuarios_dre = DiretorRegional.object.get(school=escola).users.all()
+        email_usuarios_dre = DiretorRegional.objects.filter(school=escola).values_list('users__email')
         data_formatada = date_to_string(solicitacao.order_date)
         mensagem_notificacao = 'Solicitação kit lanche para a escola {} para {} no dia: {}'.format(escola,
                                                                                                    solicitacao.location,
                                                                                                    data_formatada)
-        send_notification(
+        enviar_notificacao(
             usuario,
             usuarios_dre,
             'Solicitação de Kit Lanche da escola: {}'.format(escola),
             mensagem_notificacao
         )
 
-        async_send_mass_html_mail('Solicitação de Kit Lanche da escola: {}'.format(escola), mensagem_notificacao, '',
+        async_envio_email_html_em_massa('Solicitação de Kit Lanche da escola: {}'.format(escola), mensagem_notificacao, '',
                                   email_usuarios_dre)
 
 
@@ -320,7 +320,7 @@ class SolicitacaoUnificadaFormulario(models.Model):
                 for escola in escolas:
                     if escola.get('checked') is True:
                         solicitacao_multiplo_escola = SolicitacaoUnificadaMultiploEscola()
-                        escola_obj = School.objects.get(eol_code=escola.get('id'))
+                        escola_obj = Escola.objects.get(eol_code=escola.get('id'))
                         solicitacao_multiplo_escola.escola = escola_obj
                         solicitacao_multiplo_escola.numero_alunos = escola.get('numero_alunos')
                         solicitacao_multiplo_escola.solicitacao_unificada = obj
@@ -328,7 +328,7 @@ class SolicitacaoUnificadaFormulario(models.Model):
             else:
                 for escola in escolas:
                     if escola.get('checked') is True:
-                        escola_obj = School.objects.get(eol_code=escola.get('id'))
+                        escola_obj = Escola.objects.get(eol_code=escola.get('id'))
                         escola.pop('id')
                         solicitacao = OrderMealKit.salvar_solicitacao(escola, escola_obj)
                         obj.solicitacoes.add(solicitacao)
@@ -345,7 +345,7 @@ class SolicitacaoUnificadaFormulario(models.Model):
 class SolicitacaoUnificadaMultiploEscola(models.Model):
     """Par Escola <> Número de estudantes quando Solicitação Unificada é Múltipla"""
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-    escola = models.ForeignKey(School, on_delete=models.DO_NOTHING)
+    escola = models.ForeignKey(Escola, on_delete=models.DO_NOTHING)
     numero_alunos = models.IntegerField()
     solicitacao_unificada = models.ForeignKey(SolicitacaoUnificadaFormulario, on_delete=models.CASCADE,
                                               related_name='escolas')

@@ -3,7 +3,7 @@ from rest_framework import serializers
 from sme_pratoaberto_terceirizadas.food.api.serializers import MealSerializer
 from sme_pratoaberto_terceirizadas.meal_kit.models import MealKit, OrderMealKit, SolicitacaoUnificadaFormulario, \
     RazaoSolicitacaoUnificada, SolicitacaoUnificadaMultiploEscola, SolicitacaoUnificada
-from sme_pratoaberto_terceirizadas.school.api.serializers import SchoolSerializer
+from sme_pratoaberto_terceirizadas.escola.api.serializers import EscolaSerializer
 
 
 class MealKitSerializer(serializers.ModelSerializer):
@@ -15,7 +15,7 @@ class MealKitSerializer(serializers.ModelSerializer):
 
 
 class OrderMealKitSerializer(serializers.ModelSerializer):
-    schools = SchoolSerializer(many=True, read_only=True)
+    schools = EscolaSerializer(many=True, read_only=True)
     meal_kits = MealKitSerializer(many=True, read_only=True)
 
     class Meta:

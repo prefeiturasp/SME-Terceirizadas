@@ -13,7 +13,7 @@ from sme_pratoaberto_terceirizadas.users.models import User
 calendar = BrazilSaoPauloCity()
 
 
-def send_notification(sender: User, recipients: [QuerySet, list],
+def enviar_notificacao(sender: User, recipients: [QuerySet, list],
                       short_desc: str, long_desc: str):
     """
     :param sender: User instance
@@ -63,7 +63,7 @@ def _send_mass_html_mail(subject, text, html, recipients):
 loop = asyncio.get_event_loop()
 
 
-def async_send_mass_html_mail(subject, text, html, recipients):
+def async_envio_email_html_em_massa(subject, text, html, recipients):
     loop.run_in_executor(None, _send_mass_html_mail, subject, text, html, recipients)
 
 

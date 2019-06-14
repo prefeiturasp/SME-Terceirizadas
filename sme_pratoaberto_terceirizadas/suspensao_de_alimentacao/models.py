@@ -5,7 +5,7 @@ from django.db import models
 
 from sme_pratoaberto_terceirizadas.common_data.utils import get_working_days_after
 from sme_pratoaberto_terceirizadas.food.models import MealType
-from sme_pratoaberto_terceirizadas.school.models import SchoolPeriod
+from sme_pratoaberto_terceirizadas.escola.models import PeriodoEscolar
 from sme_pratoaberto_terceirizadas.users.models import User
 from sme_pratoaberto_terceirizadas.meal_kit.utils import string_to_date
 
@@ -125,7 +125,7 @@ class DiaRazaoSuspensaoDeAlimentacao(models.Model):
 
 class DescricaoSuspensaoDeAlimentacao(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-    periodo = models.ForeignKey(SchoolPeriod, on_delete=models.DO_NOTHING)
+    periodo = models.ForeignKey(PeriodoEscolar, on_delete=models.DO_NOTHING)
     tipo_de_refeicao = models.ManyToManyField(MealType)
     numero_de_alunos = models.IntegerField()
     suspensao_de_alimentacao = models.ForeignKey(SuspensaoDeAlimentacao, on_delete=models.CASCADE,
@@ -139,7 +139,7 @@ class DescricaoSuspensaoDeAlimentacao(models.Model):
     def salvar_descricoes(cls, data, suspensao):
         obj = cls()
         obj.suspensao_de_alimentacao = suspensao
-        obj.periodo = SchoolPeriod.objects.get(value=data.get('periodo'))
+        obj.periodo = PeriodoEscolar.objects.get(value=data.get('periodo'))
         obj.numero_de_alunos = data.get('numero_de_alunos')
         obj.save()
         tipos_de_refeicao = data.get('tipo_de_refeicao')
