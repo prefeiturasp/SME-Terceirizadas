@@ -28,4 +28,4 @@ RUN apk update && apk add postgresql-dev \
 EXPOSE 8000
 # http://docs.gunicorn.org/en/latest/design.html#how-many-workers
 # http://docs.gunicorn.org/en/latest/settings.html#worker-class
-CMD ["gunicorn", "config.wsgi:application", "--worker-class sync",  "--workers 9", "--name=Terceirizadas-backend", "--bind=127.0.0.1:8000"]
+CMD ["gunicorn", "config.wsgi:application", "--config config/settings/gunicorn.ini"]

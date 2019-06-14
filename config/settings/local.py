@@ -16,6 +16,12 @@ ALLOWED_HOSTS = [
     "10.50.1.16"
 ]
 
+READ_DOT_ENV_FILE = env.bool('DJANGO_READ_DOT_ENV_FILE', default=True)
+if READ_DOT_ENV_FILE:
+    # OS environment variables take precedence over variables from .env.local
+    print('Loading local environment...', str(ROOT_DIR.path('.env.local')))
+    env.read_env(str(ROOT_DIR.path('.env.local')))
+
 # CACHES
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#caches
