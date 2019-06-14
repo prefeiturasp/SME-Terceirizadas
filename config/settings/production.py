@@ -7,6 +7,9 @@ from .base import env
 SECRET_KEY = env('DJANGO_SECRET_KEY')
 # https://docs.djangoproject.com/en/dev/ref/settings/#allowed-hosts
 ALLOWED_HOSTS = env.list('DJANGO_ALLOWED_HOSTS', default=['terceirizadas.sme.prefeitura.sp.gov.br'])
+# TODO: verificar essa conf...
+# CORS_ORIGIN_WHITELIST = env.list('CORS_ORIGIN_WHITELIST', default=['terceirizadas.sme.prefeitura.sp.gov.br'])
+CORS_ORIGIN_ALLOW_ALL = True
 
 # DATABASES
 # ------------------------------------------------------------------------------
@@ -84,7 +87,6 @@ ADMIN_URL = env('DJANGO_ADMIN_URL')
 # ------------------------------------------------------------------------------
 INSTALLED_APPS += ['gunicorn']  # noqa F405
 
-
 # LOGGING
 # ------------------------------------------------------------------------------
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#logging
@@ -132,7 +134,6 @@ LOGGING = {
         }
     }
 }
-
 
 # Your stuff...
 # ------------------------------------------------------------------------------
