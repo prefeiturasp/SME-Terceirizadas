@@ -1,3 +1,4 @@
+from django.core import serializers
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -42,15 +43,24 @@ class OrderMealKitViewSet(ModelViewSet):
     def create(self, request):
         quantidade_matriculados = 200
         escola = self._valida_escola(request.user)
-        if not OrderMealKit.valida_quantidade_matriculados(quantidade_matriculados, int(request.data.get('nro_alunos')),
-                                                           request.data.get('evento_data'),
-                                                           escola):
-            return Response(
-                {'error': 'A Quantidade de aluno para o evento, excedeu a quantidade limite de alunos para este dia'},
-                status=status.HTTP_400_BAD_REQUEST)
-        if not OrderMealKit.valida_duplicidade(request.data, escola):
-            return Response({'error': 'Solicitação já cadastrada no sistema com esta data'},
-                            status=status.HTTP_400_BAD_REQUEST)
+        numero_alunos = int(request.data.get('nro_alunos'))
+        data_evento = request.data.get('evento_data')
+        valida_quatidade = OrderMealKit.valida_quantidade_matriculados(quantidade_matriculados, numero_alunos,
+                                                                       data_evento,
+                                                                       escola)
+        valida_duplicidade = OrderMealKit.valida_duplicidade(request.data, escola)
+        if not request.data.get('confirmar'):
+            if valida_quatidade:
+                return Response(
+                    {
+                        'error': 'A Quantidade de aluno para o evento, excedeu a quantidade limite de alunos para este dia. Descrição de um evento cadastrado: {} - {} - {} alunos'.format(
+                            valida_quatidade.location, valida_quatidade.order_date.strftime('%d/%m/%Y'),
+                            valida_quatidade.students_quantity)},
+                    status=status.HTTP_400_BAD_REQUEST)
+            if valida_duplicidade:
+                return Response({'error': 'Solicitação já cadastrada no sistema com esta data. Obs: {} - {}'.format(
+                    valida_duplicidade.location, valida_duplicidade.order_date.strftime('%d/%m/%Y'))},
+                    status=status.HTTP_400_BAD_REQUEST)
         if OrderMealKit.solicitar_kit_lanche(request.data, escola, request.user):
             return Response({'success': 'Sua solicitação foi enviada com sucesso'}, status=status.HTTP_201_CREATED)
         return Response({'error': 'Erro ao tentar salvar solicitação, tente novamente'},

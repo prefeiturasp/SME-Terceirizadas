@@ -124,10 +124,11 @@ class OrderMealKit(models.Model):
     def valida_duplicidade(cls, data, escola):
         tempo = data.get('tempo_passeio', None)
         data_passeio = string_to_date(data.get('evento_data'))
-        if cls.objects.filter(schools=escola, order_date=data_passeio, status='SENDED',
-                              scheduled_time=tempo).count():
-            return False
-        return True
+        passeio = cls.objects.filter(schools=escola, order_date=data_passeio, status='SENDED',
+                                     scheduled_time=tempo)
+        if passeio.count():
+            return passeio.get()
+        return False
 
     @classmethod
     def valida_quantidade_matriculados(cls, matriculados: int, quantidade_aluno_passeio: int,
@@ -136,8 +137,8 @@ class OrderMealKit(models.Model):
         passeio = cls.objects.filter(schools=escola, order_date=data).first()
         if passeio:
             if (passeio.students_quantity + quantidade_aluno_passeio) > matriculados:
-                return False
-        return True
+                return passeio
+        return False
 
     @classmethod
     def solicitar_kit_lanche(cls, data, escola, usuario):
@@ -178,7 +179,7 @@ class OrderMealKit(models.Model):
 
     @classmethod
     def solicita_kit_lanche_em_lote(cls, data, usuario):
-        solicitacoes = cls.objects.filter(pk__in=data['ids'])
+        solicitacoes = cls.objects.filter(pk__in=data.get('ids'))
         if solicitacoes:
             contador_solicitacoes = 0
             for solicitacao in solicitacoes:
