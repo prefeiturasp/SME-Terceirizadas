@@ -6,7 +6,6 @@ from sme_pratoaberto_terceirizadas.abstract_shareable import Descritivel, Ativav
 from sme_pratoaberto_terceirizadas.users.models import User
 from sme_pratoaberto_terceirizadas.terceirizada.models import Lote
 
-# TODO: resolver problema de recursividade => linha 54
 
 
 class DiretoriaRegional(Descritivel):

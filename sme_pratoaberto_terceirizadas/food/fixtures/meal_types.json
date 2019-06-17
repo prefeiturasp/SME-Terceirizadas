@@ -1,27 +1,27 @@
 [
   {
-    "model": "food.mealtype",
+    "model": "food.tiporefeicao",
     "id": 1,
     "fields": {
       "nome": "Lanche 4 Horas"
     }
   },
   {
-    "model": "food.mealtype",
+    "model": "food.tiporefeicao",
     "id": 2,
     "fields": {
       "nome": "Lanche 5/6 Horas"
     }
   },
   {
-    "model": "food.mealtype",
+    "model": "food.tiporefeicao",
     "id": 3,
     "fields": {
       "nome": "Refeição/Sobremesa"
     }
   },
   {
-    "model": "food.mealtype",
+    "model": "food.tiporefeicao",
     "id": 4,
     "fields": {
       "nome": "Sobremesa"

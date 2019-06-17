@@ -8,10 +8,10 @@ class MealTypeSerializer(serializers.ModelSerializer):
     value = serializers.SerializerMethodField()
 
     def get_label(self, obj):
-        return obj.name
+        return obj.nome
 
     def get_value(self, obj):
-        return obj.name
+        return obj.nome
 
     class Meta:
         model = TipoRefeicao

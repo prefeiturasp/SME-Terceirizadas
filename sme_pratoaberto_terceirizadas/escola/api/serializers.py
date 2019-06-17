@@ -19,7 +19,7 @@ class PeriodoEscolarSerializer(serializers.ModelSerializer):
         return obj.nome
 
     def get_tipo_refeicao(self, obj):
-        return MealTypeSerializer(obj.meal_types.all(), many=True).data
+        return MealTypeSerializer(obj.tipo_refeicao.all(), many=True).data
 
     class Meta:
         model = PeriodoEscolar
