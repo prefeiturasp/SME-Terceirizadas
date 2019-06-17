@@ -18,8 +18,9 @@ class CardapioViewSet(viewsets.ModelViewSet):
 
 class InverterDiaCardapioViewSet(viewsets.ModelViewSet):
     """ Endpoint para solicitar inversão para dia de cardápio """
-    queryset = InverterDiaCardapio.objects.all()
+    queryset = InverterDiaCardapio.objects.filter(status='ESCOLA_SALVOU')
     serializer_class = InverterDiaCardapioSerializer
+    lookup_field = 'uuid'
 
     def create(self, request: Request, *args: Any, **kwargs: Any):
         response = super(InverterDiaCardapioViewSet, self).create(request, *args, **kwargs)
@@ -28,7 +29,13 @@ class InverterDiaCardapioViewSet(viewsets.ModelViewSet):
             notifica_dres(request.user, params.get('escola'), params.get('data_de'), params.get('data_para'))
             return Response({'details': 'Solicitação enviada com sucesso.'}, status=status.HTTP_200_OK)
         return Response({'details': 'Error ao tentar solicitar inversão de dia de cardápio'})
-
+    
+    def destroy(self, request: Request, *args: Any, **kwargs: Any):
+        response = super(InverterDiaCardapioViewSet, self).destroy(request)
+        if response.status_code == status.HTTP_204_NO_CONTENT:
+            return Response({'details': 'Solicitação removida com sucesso.'}, status=status.HTTP_204_NO_CONTENT)
+        return Response({'details': 'Error ao tentar remover solicitação '}, status=status.HTTP_400_BAD_REQUEST)
+    
     @action(detail=False, methods=['post'])
     def salvar(self, request):
         if not valida_usuario_vinculado_escola(request.user):
@@ -37,3 +44,4 @@ class InverterDiaCardapioViewSet(viewsets.ModelViewSet):
             return Response({'details': 'Solicitação salva com sucesso.'}, status=status.HTTP_201_CREATED)
         return Response({'details': 'Ocorreu um erro ao tentar salvar solicitação, tente novamente'},
                         status=status.HTTP_409_CONFLICT)
+

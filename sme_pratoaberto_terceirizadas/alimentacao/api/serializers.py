@@ -2,6 +2,7 @@ from rest_framework import serializers
 
 from sme_pratoaberto_terceirizadas.alimentacao.models import Cardapio, InverterDiaCardapio
 from sme_pratoaberto_terceirizadas.school.api.serializers import SchoolSerializer
+from sme_pratoaberto_terceirizadas.users.serializers import PublicUserSerializer
 
 
 class CardapioSerializer(serializers.ModelSerializer):
@@ -13,9 +14,11 @@ class CardapioSerializer(serializers.ModelSerializer):
 
 
 class InverterDiaCardapioSerializer(serializers.ModelSerializer):
+    usuario = PublicUserSerializer(many=False)
+
     class Meta:
         model = InverterDiaCardapio
-        fields = '__all__'
+        fields = ['uuid', 'registro', 'usuario', 'data_de', 'data_para', 'descricao', 'status', 'registro', 'observacao']
 
     def validate(self, attrs):
         if InverterDiaCardapio.ja_existe(attrs):

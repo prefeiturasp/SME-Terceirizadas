@@ -124,9 +124,10 @@ class InverterDiaCardapio(models.Model):
     data_de = models.DateField(verbose_name='Data De', help_text='Data do dia inicial da inversão')
     data_para = models.DateField(verbose_name='Data Para', help_text='Data do dia final da inversão')
     descricao = models.TextField('Descrição')
+    observacao = models.TextField('Observação', blank=True, null=True)
     status = models.CharField(verbose_name='Status',
                               max_length=60,
-                              choices=[(status, status.value) for status in StatusSolicitacoes],
+                              choices=[(status.value, status.value) for status in StatusSolicitacoes],
                               default=StatusSolicitacoes.DRE_A_VALIDAR)
 
     @classmethod
@@ -161,26 +162,29 @@ class InverterDiaCardapio(models.Model):
 
     @classmethod
     def salvar_solicitacao(cls, request, usuario):
-        escola = School.objects.filter(pk=request.get('escola'))
-        if request.get('id'):
-            obj = cls.objects.get(pk=request.get('id'))
+        escola = School.objects.filter(users=usuario).first()
+        if request.get('uuid'):
+            obj = cls.objects.get(uuid=request.get('uuid'))
             obj.usuario = usuario
-            obj.data_de = converter_str_para_datetime(request.get('data_de'))
-            obj.data_para = converter_str_para_datetime(request.get('data_para'))
-            obj.status = StatusSolicitacoes.ESCOLA_SALVOU
-            obj.descricao = request.get('descricao'),
-            obj.escola = escola.get()
+            obj.data_de = converter_str_para_datetime(request.get('data_de'), formato='%d/%m/%Y')
+            obj.data_para = converter_str_para_datetime(request.get('data_para'), formato='%d/%m/%Y')
+            obj.status = 'ESCOLA_SALVOU'
+            obj.descricao = request.get('descricao')
+            obj.observacao = request.get('observacao')
+            obj.escola = escola
             obj.save()
             return obj
         else:
             obj = InverterDiaCardapio(
                 usuario=usuario,
-                data_de=converter_str_para_datetime(request.get('data_de')),
-                data_para=converter_str_para_datetime(request.get('data_para')),
-                status=StatusSolicitacoes.ESCOLA_SALVOU,
+                data_de=converter_str_para_datetime(request.get('data_de'), formato='%d/%m/%Y'),
+                data_para=converter_str_para_datetime(request.get('data_para'), formato='%d/%m/%Y'),
+                status='ESCOLA_SALVOU',
                 descricao=request.get('descricao'),
-                escola=escola.get()
-            ).save()
+                observacao=request.get('observacao'),
+                escola=escola
+            )
+            obj.save()
             return obj
 
     def __str__(self):
