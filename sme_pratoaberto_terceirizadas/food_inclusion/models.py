@@ -7,7 +7,7 @@ from notifications.signals import notify
 
 from sme_pratoaberto_terceirizadas.abstract_shareable import Descritivel, RegistroHora, Ativavel
 from sme_pratoaberto_terceirizadas.common_data.utils import str_to_date, get_working_days_after
-from sme_pratoaberto_terceirizadas.food.models import MealType
+from sme_pratoaberto_terceirizadas.food.models import TipoRefeicao
 from sme_pratoaberto_terceirizadas.food_inclusion.utils import get_object
 from sme_pratoaberto_terceirizadas.escola.models import PeriodoEscolar
 from sme_pratoaberto_terceirizadas.users.models import User
@@ -146,7 +146,7 @@ class FoodInclusion(RegistroHora):
 class FoodInclusionDescription(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     period = models.ForeignKey(PeriodoEscolar, on_delete=models.DO_NOTHING)
-    meal_type = models.ManyToManyField(MealType)
+    meal_type = models.ManyToManyField(TipoRefeicao)
     number_of_students = models.IntegerField()
     food_inclusion = models.ForeignKey(FoodInclusion, on_delete=models.CASCADE)
 
@@ -167,7 +167,7 @@ class FoodInclusionDescription(models.Model):
         self.period = get_object(PeriodoEscolar, value=school_period)
         self.save()
         for meal_type in meal_types:
-            self.meal_type.add(get_object(MealType, name=meal_type))
+            self.meal_type.add(get_object(TipoRefeicao, name=meal_type))
         self.save()
 
 

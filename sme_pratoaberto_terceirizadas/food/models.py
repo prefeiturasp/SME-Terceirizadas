@@ -32,12 +32,12 @@ class Food(models.Model):
         return self.title
 
 
-class MealType(Descritivel):
+class TipoRefeicao(Descritivel):
     """Tipo de Refeição"""
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
 
     def __str__(self):
-        return self.name
+        return self.nome
 
     class Meta:
         verbose_name = _("Meal Type")

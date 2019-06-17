@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import MealType, Meal, Food, DayMenu, MenuStatus, MenuType
+from .models import TipoRefeicao, Meal, Food, DayMenu, MenuStatus
 
 
 @admin.register(Food)
@@ -8,8 +8,7 @@ class FoodAdmin(admin.ModelAdmin):
     ordering = ['title']
 
 
-admin.site.register(MealType)
+admin.site.register(TipoRefeicao)
 admin.site.register(Meal)
 admin.site.register(DayMenu)
 admin.site.register(MenuStatus)
-admin.site.register(MenuType)

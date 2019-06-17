@@ -3,7 +3,7 @@ import datetime
 from django.utils.translation import ugettext_lazy as _
 
 from sme_pratoaberto_terceirizadas.common_data.utils import get_working_days_after
-from sme_pratoaberto_terceirizadas.food.models import MealType
+from sme_pratoaberto_terceirizadas.food.models import TipoRefeicao
 from sme_pratoaberto_terceirizadas.food_inclusion import models
 
 
@@ -94,7 +94,7 @@ def _validate_description(description, errors):
     print(meal_types)
     number_of_students = description.get('number')
     for meal_type in meal_types:
-        if not object_exists(MealType, name=meal_type):
+        if not object_exists(TipoRefeicao, name=meal_type):
             errors.append('Tipo de refeição não existe')
     if not number_of_students.isdigit():
         errors.append('Número de estudantes precisa vir como inteiro')

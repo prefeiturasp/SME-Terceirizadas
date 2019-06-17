@@ -6,6 +6,8 @@ from sme_pratoaberto_terceirizadas.abstract_shareable import Descritivel, Ativav
 from sme_pratoaberto_terceirizadas.users.models import User
 from sme_pratoaberto_terceirizadas.terceirizada.models import Lote
 
+# TODO: resolver problema de recursividade => linha 54
+
 
 class DiretoriaRegional(Descritivel):
     """DRE - Diretoria Regional"""
@@ -19,24 +21,6 @@ class DiretoriaRegional(Descritivel):
     class Meta:
         verbose_name = _("Diretor Regional")
         verbose_name_plural = _("Diretores Regionais")
-
-
-class PeriodoEscolar(Descritivel):
-    """Períodos Escolares"""
-    PRIMEIRO_PERIODO = 'primeiro_periodo'
-    SEGUNDO_PERIODO = 'segundo_periodo'
-    TERCEIRO_PERIODO = 'terceiro_periodo'
-    QUARTO_PERIODO = 'quarto_periodo'
-    INTEGRAL = 'integral'
-    valor = models.CharField(max_length=50, blank=True, null=True)
-    tipo_refeicao = models.ManyToManyField('food.MealType', blank=True)
-
-    def __str__(self):
-        return self.nome
-
-    class Meta:
-        verbose_name = _("Periodo Escolar")
-        verbose_name_plural = _("Periodos Escolares")
 
 
 class IdadeEscolar(Descritivel, Ativavel, TemChaveExterna):
@@ -59,10 +43,27 @@ class GrupoEscolar(TemChaveExterna):
     """Agrupamento"""
     codigo = models.SmallIntegerField(_('Grouping'))
 
-
     class Meta:
         verbose_name = _("Grupo Escolar")
         verbose_name_plural = _("Grupos Escolares")
+
+
+class PeriodoEscolar(Descritivel):
+    """Períodos Escolares"""
+    PRIMEIRO_PERIODO = 'primeiro_periodo'
+    SEGUNDO_PERIODO = 'segundo_periodo'
+    TERCEIRO_PERIODO = 'terceiro_periodo'
+    QUARTO_PERIODO = 'quarto_periodo'
+    INTEGRAL = 'integral'
+    valor = models.CharField(max_length=50, blank=True, null=True)
+    tipo_refeicao = models.ManyToManyField('food.TipoRefeicao', blank=True)
+
+    def __str__(self):
+        return self.nome
+
+    class Meta:
+        verbose_name = _("Periodo Escolar")
+        verbose_name_plural = _("Periodos Escolares")
 
 
 class Escola(Ativavel):
@@ -77,25 +78,25 @@ class Escola(Ativavel):
                              blank=True,
                              null=True)
     agrupamento = models.ForeignKey(GrupoEscolar,
-                                 on_delete=models.DO_NOTHING,
-                                 blank=True,
-                                 null=True)
+                                    on_delete=models.DO_NOTHING,
+                                    blank=True,
+                                    null=True)
     diretoria_regional = models.ForeignKey(DiretoriaRegional,
-                                          on_delete=models.DO_NOTHING,
-                                          blank=True,
-                                          null=True)
+                                           on_delete=models.DO_NOTHING,
+                                           blank=True,
+                                           null=True)
     tipo_unidade = models.ForeignKey(TipoUnidadeEscolar,
-                                  on_delete=models.DO_NOTHING,
-                                  blank=True,
-                                  null=True)
+                                     on_delete=models.DO_NOTHING,
+                                     blank=True,
+                                     null=True)
     tipo_gestao = models.ForeignKey(TipoGestao,
-                                        on_delete=models.DO_NOTHING,
-                                        blank=True,
-                                        null=True)
+                                    on_delete=models.DO_NOTHING,
+                                    blank=True,
+                                    null=True)
     sub_prefeitura = models.ForeignKey(SubPrefeitura,
-                                blank=True,
-                                null=True,
-                                on_delete=models.DO_NOTHING)
+                                       blank=True,
+                                       null=True,
+                                       on_delete=models.DO_NOTHING)
     idades = models.ManyToManyField(IdadeEscolar, blank=True)
     periodos = models.ManyToManyField(PeriodoEscolar, blank=True)
     users = models.ManyToManyField(User, blank=True)

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from sme_pratoaberto_terceirizadas.food.models import MealType
+from sme_pratoaberto_terceirizadas.food.models import TipoRefeicao
 from sme_pratoaberto_terceirizadas.escola.models import PeriodoEscolar
 from sme_pratoaberto_terceirizadas.suspensao_de_alimentacao.models import SuspensaoDeAlimentacao, \
     StatusSuspensaoDeAlimentacao, DiaRazaoSuspensaoDeAlimentacao, RazaoSuspensaoDeAlimentacao, \
@@ -55,7 +55,7 @@ class DiaRazaoSuspensaoDeAlimentacaoSerializer(serializers.ModelSerializer):
 
 class DescricaoSuspensaoDeAlimentacaoSerializer(serializers.ModelSerializer):
     periodo = serializers.SlugRelatedField(slug_field='value', queryset=PeriodoEscolar.objects.all())
-    tipo_de_refeicao = serializers.SlugRelatedField(slug_field='name', queryset=MealType.objects.all(), many=True)
+    tipo_de_refeicao = serializers.SlugRelatedField(slug_field='name', queryset=TipoRefeicao.objects.all(), many=True)
     suspensao_de_alimentacao = serializers.SerializerMethodField()
 
     class Meta:

@@ -4,7 +4,7 @@ from django.core.validators import validate_comma_separated_integer_list
 from django.db import models
 
 from sme_pratoaberto_terceirizadas.common_data.utils import get_working_days_after
-from sme_pratoaberto_terceirizadas.food.models import MealType
+from sme_pratoaberto_terceirizadas.food.models import TipoRefeicao
 from sme_pratoaberto_terceirizadas.escola.models import PeriodoEscolar
 from sme_pratoaberto_terceirizadas.users.models import User
 from sme_pratoaberto_terceirizadas.meal_kit.utils import string_to_date
@@ -126,7 +126,7 @@ class DiaRazaoSuspensaoDeAlimentacao(models.Model):
 class DescricaoSuspensaoDeAlimentacao(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     periodo = models.ForeignKey(PeriodoEscolar, on_delete=models.DO_NOTHING)
-    tipo_de_refeicao = models.ManyToManyField(MealType)
+    tipo_de_refeicao = models.ManyToManyField(TipoRefeicao)
     numero_de_alunos = models.IntegerField()
     suspensao_de_alimentacao = models.ForeignKey(SuspensaoDeAlimentacao, on_delete=models.CASCADE,
                                                  related_name="descricoes")
@@ -144,5 +144,5 @@ class DescricaoSuspensaoDeAlimentacao(models.Model):
         obj.save()
         tipos_de_refeicao = data.get('tipo_de_refeicao')
         for tipo_de_refeicao in tipos_de_refeicao:
-            obj.tipo_de_refeicao.add(MealType.objects.get(name=tipo_de_refeicao))
+            obj.tipo_de_refeicao.add(TipoRefeicao.objects.get(name=tipo_de_refeicao))
         obj.save()
