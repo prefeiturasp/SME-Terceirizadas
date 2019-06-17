@@ -1,0 +1,51 @@
+[
+  {
+    "model": "kit_lanche.razaosolicitacaounificada",
+    "id": 1,
+    "fields": {
+      "nome": "Reposição de aula"
+    }
+  },
+  {
+    "model": "kit_lanche.razaosolicitacaounificada",
+    "id": 2,
+    "fields": {
+      "nome": "Dia da família"
+    }
+  },
+  {
+    "model": "kit_lanche.razaosolicitacaounificada",
+    "id": 3,
+    "fields": {
+      "nome": "Outro"
+    }
+  },
+  {
+    "model": "kit_lanche.razaosolicitacaounificada",
+    "id": 4,
+    "fields": {
+      "nome": "Programa Contínuo - Mais Educação"
+    }
+  },
+  {
+    "model": "kit_lanche.razaosolicitacaounificada",
+    "id": 5,
+    "fields": {
+      "nome": "Programa Contínuo - São Paulo integral"
+    }
+  },
+  {
+    "model": "kit_lanche.razaosolicitacaounificada",
+    "id": 6,
+    "fields": {
+      "nome": "Programa Contínuo - Extensão de Jornada"
+    }
+  },
+  {
+    "model": nome"kit_lanche.razaosolicitacaounificada",
+    "id": 7,
+    "fields": {
+      "nome": "Programa Contínuo - Outro"
+    }
+  }
+]

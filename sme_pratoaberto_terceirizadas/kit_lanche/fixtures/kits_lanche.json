@@ -1,29 +1,29 @@
 [
   {
-    "model": "meal_kit.mealkit",
+    "model": "kit_lanche.kitlanche",
     "id": 1,
     "fields": {
-      "name": "Kit Lanche Nº 1",
-      "is_active": true,
-      "meals": [1]
+      "nome": "Kit Lanche Nº 1",
+      "ativo": true,
+      "refeicoes": [1]
     }
   },
   {
-    "model": "meal_kit.mealkit",
+    "model": "kit_lanche.kitlanche",
     "id": 2,
     "fields": {
-      "name": "Kit Lanche Nº 2",
-      "is_active": true,
-      "meals": [2]
+      "nome": "Kit Lanche Nº 2",
+      "ativo": true,
+      "refeicoes": [2]
     }
   },
   {
-    "model": "meal_kit.mealkit",
+    "model": "kit_lanche.kitlanche",
     "id": 3,
     "fields": {
-      "name": "Kit Lanche Nº 3",
-      "is_active": true,
-      "meals": [3]
+      "nome": "Kit Lanche Nº 3",
+      "ativo": true,
+      "refeicoes": [3]
     }
   }
 ]
