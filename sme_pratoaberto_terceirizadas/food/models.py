@@ -24,8 +24,8 @@ class TipoCardapio(Descritivel):
 class Alimento(models.Model):
     """Alimento"""
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-    titulo = models.CharField(_("Title"), max_length=99)
-    detalhes = models.TextField(_('Description'), blank=True)
+    titulo = models.CharField(_("Titulo"), max_length=99)
+    detalhes = models.TextField(_('Descricao'), blank=True)
     ativo = models.BooleanField(default=True)
 
     def __str__(self):
@@ -47,8 +47,8 @@ class TipoRefeicao(Descritivel):
 class Refeicao(models.Model):
     """Refeição """
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-    titulo = models.CharField(_("title"), max_length=50)
-    descricao = models.TextField(_("Description"), blank=True, null=True, max_length=256)
+    titulo = models.CharField(_("Titulo"), max_length=50)
+    descricao = models.TextField(_("Descricao"), blank=True, null=True, max_length=256)
     alimentos = models.ManyToManyField(Alimento)
 
     def __str__(self):
