@@ -1,3 +1,4 @@
+from django.http import Http404
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
@@ -5,8 +6,10 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
 from sme_pratoaberto_terceirizadas.suspensao_de_alimentacao.api.serializers import SuspensaoDeAlimentacaoSerializer, \
-    DiaRazaoSuspensaoDeAlimentacaoSerializer, DescricaoSuspensaoDeAlimentacaoSerializer
-from sme_pratoaberto_terceirizadas.suspensao_de_alimentacao.models import SuspensaoDeAlimentacao
+    DiaRazaoSuspensaoDeAlimentacaoSerializer, DescricaoSuspensaoDeAlimentacaoSerializer, \
+    RazaoSuspensaoDeAlimentacaoSerializer
+from sme_pratoaberto_terceirizadas.suspensao_de_alimentacao.models import SuspensaoDeAlimentacao, \
+    RazaoSuspensaoDeAlimentacao, StatusSuspensaoDeAlimentacao
 
 
 class SuspensaoDeAlimentacaoViewSet(ModelViewSet):
@@ -46,6 +49,41 @@ class SuspensaoDeAlimentacaoViewSet(ModelViewSet):
     object_class = SuspensaoDeAlimentacao
     permission_classes = ()
     lookup_field = 'uuid'
+
+    @action(detail=False, methods=['get'])
+    def razoes(self, request):
+        response = {'content': {}, 'log_content': {}, 'code': None}
+        try:
+            reasons_simple = RazaoSuspensaoDeAlimentacao.objects.exclude(nome__icontains='Programa Contínuo')
+            reasons_continuous_program = RazaoSuspensaoDeAlimentacao.objects.filter(nome__icontains='Programa Contínuo')
+        except Http404:
+            response['log_content'] = ["Usuário não encontrado"]
+            response['code'] = status.HTTP_404_NOT_FOUND
+        else:
+            response['code'] = status.HTTP_200_OK
+            response['content']['reasons_simple'] = RazaoSuspensaoDeAlimentacaoSerializer(reasons_simple,
+                                                                                          many=True).data
+            response['content']['reasons_continuous_program'] = RazaoSuspensaoDeAlimentacaoSerializer(
+                reasons_continuous_program, many=True).data
+        return Response(response, status=response['code'])
+
+    @action(detail=False, methods=['get'])
+    def suspensoes_de_alimentacao_salvas(self, request):
+        response = {'content': {}, 'log_content': {}, 'code': None}
+        try:
+            usuario = request.user
+            inclusoes_de_alimentacao = SuspensaoDeAlimentacao.objects.filter(
+                status__nome=StatusSuspensaoDeAlimentacao.SALVO,
+                criado_por=usuario)
+        except Http404:
+            response['log_content'] = ["Usuário não encontrado"]
+            response['code'] = status.HTTP_404_NOT_FOUND
+        else:
+            response['code'] = status.HTTP_200_OK
+            response['content']['suspensoes_de_alimentacao'] = SuspensaoDeAlimentacaoSerializer(
+                inclusoes_de_alimentacao,
+                many=True).data
+        return Response(response, status=response['code'])
 
     @action(detail=False, methods=['post'])
     def salvar(self, request):

@@ -47,6 +47,7 @@ class RazaoSuspensaoDeAlimentacao(models.Model):
 class SuspensaoDeAlimentacao(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     criado_por = models.ForeignKey(User, on_delete=models.DO_NOTHING)
+    criado_em = models.DateTimeField(auto_now_add=True)
     status = models.ForeignKey(StatusSuspensaoDeAlimentacao, on_delete=models.DO_NOTHING)
     negado_pela_terceirizada = models.BooleanField(default=False)
     razao_negacao = models.TextField(blank=True, null=True)
