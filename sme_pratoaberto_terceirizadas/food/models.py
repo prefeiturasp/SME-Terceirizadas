@@ -3,8 +3,8 @@ from django.db import models
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
-from sme_pratoaberto_terceirizadas.abstract_shareable import Describable, TimestampAble
-from sme_pratoaberto_terceirizadas.escola.models import SchoolAge, SchoolGroup, SchoolUnitType, ManagementType
+from sme_pratoaberto_terceirizadas.abstract_shareable import Descritivel, RegistroHora
+from sme_pratoaberto_terceirizadas.escola.models import IdadeEscolar, GrupoEscolar, TipoUnidadeEscolar, TipoGestao
 from sme_pratoaberto_terceirizadas.users.models import User
 
 now = timezone.now()
@@ -16,7 +16,7 @@ class MenuStatus(models.Model):
     title = models.CharField(_("Title"), max_length=99)
 
 
-class MenuType(Describable):
+class MenuType(Descritivel):
     """Tipo de Menu (Comum, Lactante, Diabético, etc)"""
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
 
@@ -32,7 +32,7 @@ class Food(models.Model):
         return self.title
 
 
-class MealType(Describable):
+class MealType(Descritivel):
     """Tipo de Refeição"""
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
 
@@ -59,14 +59,14 @@ class Meal(models.Model):
         verbose_name_plural = _("Meals")
 
 
-class DayMenu(TimestampAble):
+class DayMenu(RegistroHora):
     """Cardápio para um dia"""
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     status = models.ForeignKey(MenuStatus, on_delete=models.DO_NOTHING)
     created_by = models.ForeignKey(User, on_delete=models.DO_NOTHING)
-    management = models.ForeignKey(ManagementType, on_delete=models.DO_NOTHING)
-    unit_type = models.ForeignKey(SchoolUnitType, on_delete=models.DO_NOTHING)
-    grouping = models.ForeignKey(SchoolGroup, on_delete=models.DO_NOTHING)
+    management = models.ForeignKey(TipoGestao, on_delete=models.DO_NOTHING)
+    unit_type = models.ForeignKey(TipoUnidadeEscolar, on_delete=models.DO_NOTHING)
+    grouping = models.ForeignKey(GrupoEscolar, on_delete=models.DO_NOTHING)
     date = models.DateField()
-    age = models.ForeignKey(SchoolAge, on_delete=models.DO_NOTHING)
+    age = models.ForeignKey(IdadeEscolar, on_delete=models.DO_NOTHING)
     meals = models.ManyToManyField(Meal)

@@ -1,10 +1,10 @@
 [
   {
-    "model": "school.regionaldirector",
+    "model": "escola.diretoriaregional",
     "id": 1,
     "fields": {
-      "name": "DRE Ipiranga",
-      "abbreviation": "IPI"
+      "nome": "DRE Ipiranga",
+      "codigo": "IPI"
     }
   }
 ]

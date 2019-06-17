@@ -4,7 +4,7 @@
 
 import pandas as pd
 
-from sme_pratoaberto_terceirizadas.escola.models import Escola, ManagementType, SchoolUnitType, Borough
+from sme_pratoaberto_terceirizadas.escola.models import Escola, TipoGestao, TipoUnidadeEscolar, SubPrefeitura
 from sme_pratoaberto_terceirizadas.common_data.models import Address, CityLocation, Contact
 
 df = pd.read_csv('wes.csv', dtype={'CODAE': str}, sep='¬')
@@ -30,25 +30,25 @@ df['EMPRESA'] = df['EMPRESA'].str.strip().str.upper()
 
 
 def check_create_borough(name, description):
-    borough = Borough.objects.filter(name=name, is_active=True).first()
+    borough = SubPrefeitura.objects.filter(name=name, is_active=True).first()
     if not borough:
-        borough = Borough(name=name, description=description, is_active=True)
+        borough = SubPrefeitura(name=name, description=description, is_active=True)
         borough.save()
     return borough.id
 
 
 def check_create_management_type(name, description):
-    mt = ManagementType.objects.filter(name=name, is_active=True).first()
+    mt = TipoGestao.objects.filter(name=name, is_active=True).first()
     if not mt:
-        mt = ManagementType(name=name, description=description, is_active=True)
+        mt = TipoGestao(name=name, description=description, is_active=True)
         mt.save()
     return mt
 
 
 def check_create_school_unit_type(name, description):
-    ue = SchoolUnitType.objects.filter(name=name, is_active=True).first()
+    ue = TipoUnidadeEscolar.objects.filter(name=name, is_active=True).first()
     if not ue:
-        ue = SchoolUnitType(name=name, description=description, is_active=True)
+        ue = TipoUnidadeEscolar(name=name, description=description, is_active=True)
         ue.save()
     return ue
 

@@ -4,10 +4,10 @@ from enum import Enum
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
-from sme_pratoaberto_terceirizadas.abstract_shareable import Describable, Activable
+from sme_pratoaberto_terceirizadas.abstract_shareable import Descritivel, Ativavel
 from sme_pratoaberto_terceirizadas.food.models import Meal
 from sme_pratoaberto_terceirizadas.meal_kit.utils import date_to_string, string_to_date
-from sme_pratoaberto_terceirizadas.escola.models import Escola, DiretorRegional
+from sme_pratoaberto_terceirizadas.escola.models import Escola, DiretoriaRegional
 from sme_pratoaberto_terceirizadas.terceirizada.models import Lote
 from sme_pratoaberto_terceirizadas.users.models import User
 from sme_pratoaberto_terceirizadas.utils import enviar_notificacao, async_envio_email_html_em_massa
@@ -193,8 +193,8 @@ class OrderMealKit(models.Model):
 
     @classmethod
     def notifica_dres(cls, usuario, escola, solicitacao):
-        usuarios_dre = DiretorRegional.object.get(school=escola).users.all()
-        email_usuarios_dre = DiretorRegional.objects.filter(school=escola).values_list('users__email')
+        usuarios_dre = DiretoriaRegional.object.get(school=escola).users.all()
+        email_usuarios_dre = DiretoriaRegional.objects.filter(school=escola).values_list('users__email')
         data_formatada = date_to_string(solicitacao.order_date)
         mensagem_notificacao = 'Solicitação kit lanche para a escola {} para {} no dia: {}'.format(escola,
                                                                                                    solicitacao.location,
@@ -210,7 +210,7 @@ class OrderMealKit(models.Model):
                                   email_usuarios_dre)
 
 
-class StatusSolicitacaoUnificada(Describable):
+class StatusSolicitacaoUnificada(Descritivel):
     """Status para Solicitação Unificada"""
     TO_APPROVE = "A APROVAR"
     TO_EDIT = "A EDITAR"
@@ -226,7 +226,7 @@ class StatusSolicitacaoUnificada(Describable):
         verbose_name_plural = "Status"
 
 
-class RazaoSolicitacaoUnificada(Describable, Activable):
+class RazaoSolicitacaoUnificada(Descritivel, Ativavel):
     """Motivo para Solicitação Unificada"""
 
     def __str__(self):

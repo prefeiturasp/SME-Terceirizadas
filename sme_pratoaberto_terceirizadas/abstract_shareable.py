@@ -4,9 +4,9 @@ from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
 
-class Describable(models.Model):
-    name = models.CharField(_("Name"), blank=True, null=True, max_length=50)
-    description = models.TextField(_("Description"), blank=True, null=True, max_length=256)
+class Descritivel(models.Model):
+    nome = models.CharField(_("Name"), blank=True, null=True, max_length=50)
+    descricao = models.TextField(_("Description"), blank=True, null=True, max_length=256)
 
     class Meta:
         abstract = True
@@ -19,15 +19,15 @@ class Motivos(models.Model):
         abstract = True
 
 
-class Activable(models.Model):
-    is_active = models.BooleanField(_("Is active"), default=True)
+class Ativavel(models.Model):
+    ativo = models.BooleanField(_("Está Ativo"), default=True)
 
     class Meta:
         abstract = True
 
 
-class TimestampAble(models.Model):
-    created_at = models.DateTimeField(auto_now_add=True)
+class RegistroHora(models.Model):
+    criado_em = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         abstract = True

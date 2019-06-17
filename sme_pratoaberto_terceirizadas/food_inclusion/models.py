@@ -5,7 +5,7 @@ from django.db import models
 from django.utils.translation import ugettext as _
 from notifications.signals import notify
 
-from sme_pratoaberto_terceirizadas.abstract_shareable import Describable, TimestampAble, Activable
+from sme_pratoaberto_terceirizadas.abstract_shareable import Descritivel, RegistroHora, Ativavel
 from sme_pratoaberto_terceirizadas.common_data.utils import str_to_date, get_working_days_after
 from sme_pratoaberto_terceirizadas.food.models import MealType
 from sme_pratoaberto_terceirizadas.food_inclusion.utils import get_object
@@ -13,7 +13,7 @@ from sme_pratoaberto_terceirizadas.escola.models import PeriodoEscolar
 from sme_pratoaberto_terceirizadas.users.models import User
 
 
-class FoodInclusionStatus(Describable):
+class FoodInclusionStatus(Descritivel):
     """Status da Inclusão de Alimentação"""
 
     SAVED = "SALVO"
@@ -33,7 +33,7 @@ class FoodInclusionStatus(Describable):
         verbose_name_plural = _("Status")
 
 
-class FoodInclusionReason(Describable, Activable):
+class FoodInclusionReason(Descritivel, Ativavel):
     """Motivo para Inclusão de Alimentação"""
 
     def __str__(self):
@@ -44,7 +44,7 @@ class FoodInclusionReason(Describable, Activable):
         verbose_name_plural = _("Reasons")
 
 
-class FoodInclusion(TimestampAble):
+class FoodInclusion(RegistroHora):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     created_by = models.ForeignKey(User, on_delete=models.DO_NOTHING)
     status = models.ForeignKey(FoodInclusionStatus, on_delete=models.DO_NOTHING)

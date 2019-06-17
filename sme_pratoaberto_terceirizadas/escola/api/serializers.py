@@ -11,16 +11,16 @@ class EscolaSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class SchoolPeriodSerializer(serializers.ModelSerializer):
+class PeriodoEscolarSerializer(serializers.ModelSerializer):
     label = serializers.SerializerMethodField()
-    meal_types = serializers.SerializerMethodField()
+    tipo_refeicao = serializers.SerializerMethodField()
 
     def get_label(self, obj):
-        return obj.name
+        return obj.nome
 
-    def get_meal_types(self, obj):
+    def get_tipo_refeicao(self, obj):
         return MealTypeSerializer(obj.meal_types.all(), many=True).data
 
     class Meta:
         model = PeriodoEscolar
-        fields = ('label', 'value', 'meal_types')
+        fields = ('label', 'valor', 'tipo_refeicao' )

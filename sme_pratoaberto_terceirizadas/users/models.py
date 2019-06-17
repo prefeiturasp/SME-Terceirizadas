@@ -7,7 +7,7 @@ from django.db import models
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
-from sme_pratoaberto_terceirizadas.abstract_shareable import Activable
+from sme_pratoaberto_terceirizadas.abstract_shareable import Ativavel
 
 
 # Thanks to https://github.com/jmfederico/django-use-email-as-username
@@ -110,7 +110,7 @@ class Institution(models.Model):
         verbose_name_plural = _('Institutions')
 
 
-class Profile(Activable):
+class Profile(Ativavel):
     """Perfil de usuário"""
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     title = models.CharField(_('Title'), max_length=90)

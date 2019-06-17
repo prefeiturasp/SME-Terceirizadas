@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
-from sme_pratoaberto_terceirizadas.abstract_shareable import Describable, TimestampAble
+from sme_pratoaberto_terceirizadas.abstract_shareable import Descritivel, RegistroHora
 
 
 class WorkingDays(object):
@@ -11,7 +11,7 @@ class WorkingDays(object):
             setattr(self, field, kwargs.get(field, None))
 
 
-class LogEventData(TimestampAble, Describable):
+class LogEventData(RegistroHora, Descritivel):
     """Eventos de dados importantes para acompanhamento.
     Ex.: Fulano X a tarefa do tipo Z no dia tal, passando os dados W
     #TODO: categorizar os tipos de evento (Enum)"""
@@ -20,7 +20,7 @@ class LogEventData(TimestampAble, Describable):
                              null=True)
 
 
-class Contact(Describable):
+class Contact(Descritivel):
     """Contatos de um usuário"""
     name = models.CharField(_("Name"), max_length=80)
     phone = models.CharField(_('Phone'), max_length=11, null=True)

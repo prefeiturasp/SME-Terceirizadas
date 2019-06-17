@@ -7,7 +7,7 @@ from sme_pratoaberto_terceirizadas.users.models import User
 from sme_pratoaberto_terceirizadas.terceirizada.models import Lote
 
 
-class DiretorRegional(Descritivel):
+class DiretoriaRegional(Descritivel):
     """DRE - Diretoria Regional"""
     # TODO chave estrangeira para Institution
     codigo = models.CharField(_('Codigo'), max_length=10)
@@ -60,6 +60,11 @@ class GrupoEscolar(TemChaveExterna):
     codigo = models.SmallIntegerField(_('Grouping'))
 
 
+    class Meta:
+        verbose_name = _("Grupo Escolar")
+        verbose_name_plural = _("Grupos Escolares")
+
+
 class Escola(Ativavel):
     """Escola"""
     # TODO chave estrangeira para Institution
@@ -75,7 +80,7 @@ class Escola(Ativavel):
                                  on_delete=models.DO_NOTHING,
                                  blank=True,
                                  null=True)
-    diretor_regional = models.ForeignKey(DiretorRegional,
+    diretoria_regional = models.ForeignKey(DiretoriaRegional,
                                           on_delete=models.DO_NOTHING,
                                           blank=True,
                                           null=True)

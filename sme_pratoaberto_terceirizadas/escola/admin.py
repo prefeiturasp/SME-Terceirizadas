@@ -1,9 +1,9 @@
 from django.contrib import admin
-from .models import DiretorRegional, PeriodoEscolar, Escola, GrupoEscolar
+from .models import DiretoriaRegional, PeriodoEscolar, Escola, GrupoEscolar
 
 
-@admin.register(DiretorRegional)
-class RegionalDirectorAdmin(admin.ModelAdmin):
+@admin.register(DiretoriaRegional)
+class DiretoriaRegionalAdmin(admin.ModelAdmin):
     list_display = ['codigo']
     list_filter = ['codigo']
 

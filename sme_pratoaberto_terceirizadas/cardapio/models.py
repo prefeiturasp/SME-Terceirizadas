@@ -3,12 +3,12 @@ from django.db import models
 from model_utils import Choices
 from model_utils.fields import StatusField
 
-from sme_pratoaberto_terceirizadas.abstract_shareable import Describable, IntervaloDeDia, TemChaveExterna, \
+from sme_pratoaberto_terceirizadas.abstract_shareable import Descritivel, IntervaloDeDia, TemChaveExterna, \
     Motivos
-from sme_pratoaberto_terceirizadas.escola.models import Escola, DiretorRegional
+from sme_pratoaberto_terceirizadas.escola.models import Escola, DiretoriaRegional
 
 
-class AlteracaoCardapio(IntervaloDeDia, Describable, TemChaveExterna, Motivos):
+class AlteracaoCardapio(IntervaloDeDia, Descritivel, TemChaveExterna, Motivos):
     STATUS = Choices(
 
         # DRE
@@ -47,5 +47,5 @@ class AlteracaoCardapio(IntervaloDeDia, Describable, TemChaveExterna, Motivos):
 
     @classmethod
     def get_usuarios_dre(cls, escola):
-        dre = DiretorRegional.objects.filter(regional_director=escola.regional_director)
+        dre = DiretoriaRegional.objects.filter(regional_director=escola.regional_director)
         return dre.values_list('users').all()

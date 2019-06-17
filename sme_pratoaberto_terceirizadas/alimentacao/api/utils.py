@@ -1,7 +1,7 @@
 from datetime import datetime
 from workalendar.america import BrazilSaoPauloCity
 
-from sme_pratoaberto_terceirizadas.escola.models import Escola, DiretorRegional
+from sme_pratoaberto_terceirizadas.escola.models import Escola, DiretoriaRegional
 from sme_pratoaberto_terceirizadas.users.models import User
 from sme_pratoaberto_terceirizadas.utils import async_envio_email_html_em_massa, enviar_notificacao
 
@@ -37,8 +37,8 @@ def valida_usuario_vinculado_escola(usuario: User):
 
 def notifica_dres(usuario: User, escola: str, dia_de: str, dia_para: str):
     escola = Escola.objects.get(pk=escola)
-    usuarios_dre = DiretorRegional.objects.get(school=escola).users.all()
-    email_usuarios_dre = DiretorRegional.objects.filter(school=escola).values_list('users__email')
+    usuarios_dre = DiretoriaRegional.objects.get(school=escola).users.all()
+    email_usuarios_dre = DiretoriaRegional.objects.filter(school=escola).values_list('users__email')
     mensagem_notificacao = 'Solicitação de inversão de dia de cardápio para a escola {} do dia {} para o dia: {}'.format(
         escola,
         dia_de,
