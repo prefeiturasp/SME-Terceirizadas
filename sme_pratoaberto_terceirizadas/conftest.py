@@ -2,7 +2,7 @@ import pytest
 from faker import Faker
 from model_mommy import mommy
 
-from sme_pratoaberto_terceirizadas.food.models import Meal
+from sme_pratoaberto_terceirizadas.food.models import Refeicao
 from sme_pratoaberto_terceirizadas.meal_kit.models import OrderMealKit
 from .meal_kit.models import MealKit
 from .permission.models import Permission, ProfilePermission
@@ -16,7 +16,7 @@ fake.seed(420)
 
 @pytest.fixture
 def meal_kit():
-    meals = mommy.make(Meal, _quantity=4)
+    meals = mommy.make(Refeicao, _quantity=4)
     return mommy.make(MealKit, name='kit lance nro tal',
                       description='este kit lanche foi feito por fulano em...',
                       meals=meals)
@@ -25,7 +25,7 @@ def meal_kit():
 @pytest.fixture(scope="function", params=['4h', '6h', '8h'])
 def order_meal_kit(request):
     param = request.param
-    meals = mommy.make(Meal, _quantity=4)
+    meals = mommy.make(Refeicao, _quantity=4)
     meal_kits = mommy.make(MealKit, name='kit lance nro tal',
                            description='este kit lanche foi feito por fulano em...',
                            meals=meals, _quantity=5)

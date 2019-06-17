@@ -5,7 +5,7 @@ from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
 from sme_pratoaberto_terceirizadas.abstract_shareable import Descritivel, Ativavel
-from sme_pratoaberto_terceirizadas.food.models import Meal
+from sme_pratoaberto_terceirizadas.food.models import Refeicao
 from sme_pratoaberto_terceirizadas.meal_kit.utils import date_to_string, string_to_date
 from sme_pratoaberto_terceirizadas.escola.models import Escola, DiretoriaRegional
 from sme_pratoaberto_terceirizadas.terceirizada.models import Lote
@@ -27,7 +27,7 @@ class MealKit(models.Model):
     name = models.CharField(_('Name'), max_length=160)
     description = models.TextField(_('Description'), blank=True, null=True)
     is_active = models.BooleanField(_('Is Active'), default=True)
-    meals = models.ManyToManyField(Meal)
+    meals = models.ManyToManyField(Refeicao)
 
     def __str__(self):
         return self.name

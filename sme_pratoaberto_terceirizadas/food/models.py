@@ -10,26 +10,26 @@ from sme_pratoaberto_terceirizadas.users.models import User
 now = timezone.now()
 
 
-class MenuStatus(models.Model):
+class StatusCardapio(models.Model):
     """Status do Cardápio"""
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-    title = models.CharField(_("Title"), max_length=99)
+    titulo = models.CharField(_("Titulo"), max_length=99)
 
 
-class MenuType(Descritivel):
+class TipoCardapio(Descritivel):
     """Tipo de Menu (Comum, Lactante, Diabético, etc)"""
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
 
 
-class Food(models.Model):
+class Alimento(models.Model):
     """Alimento"""
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-    title = models.CharField(_("Title"), max_length=99)
-    details = models.TextField(_('Description'), blank=True)
-    is_active = models.BooleanField(default=True)
+    titulo = models.CharField(_("Title"), max_length=99)
+    detalhes = models.TextField(_('Description'), blank=True)
+    ativo = models.BooleanField(default=True)
 
     def __str__(self):
-        return self.title
+        return self.titulo
 
 
 class TipoRefeicao(Descritivel):
@@ -40,33 +40,33 @@ class TipoRefeicao(Descritivel):
         return self.nome
 
     class Meta:
-        verbose_name = _("Meal Type")
-        verbose_name_plural = _("Meal Types")
+        verbose_name = _("Tipo de Refeição")
+        verbose_name_plural = _("Tipos de refeições")
 
 
-class Meal(models.Model):
+class Refeicao(models.Model):
     """Refeição """
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-    title = models.CharField(_("title"), max_length=50)
-    description = models.TextField(_("Description"), blank=True, null=True, max_length=256)
-    foods = models.ManyToManyField(Food)
+    titulo = models.CharField(_("title"), max_length=50)
+    descricao = models.TextField(_("Description"), blank=True, null=True, max_length=256)
+    alimentos = models.ManyToManyField(Alimento)
 
     def __str__(self):
-        return self.title
+        return self.titulo
 
     class Meta:
-        verbose_name = _("Meal")
-        verbose_name_plural = _("Meals")
+        verbose_name = _("Refeição")
+        verbose_name_plural = _("Refeições")
 
 
-class DayMenu(RegistroHora):
+class CradapioDia(RegistroHora):
     """Cardápio para um dia"""
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-    status = models.ForeignKey(MenuStatus, on_delete=models.DO_NOTHING)
-    created_by = models.ForeignKey(User, on_delete=models.DO_NOTHING)
-    management = models.ForeignKey(TipoGestao, on_delete=models.DO_NOTHING)
-    unit_type = models.ForeignKey(TipoUnidadeEscolar, on_delete=models.DO_NOTHING)
-    grouping = models.ForeignKey(GrupoEscolar, on_delete=models.DO_NOTHING)
-    date = models.DateField()
-    age = models.ForeignKey(IdadeEscolar, on_delete=models.DO_NOTHING)
-    meals = models.ManyToManyField(Meal)
+    status = models.ForeignKey(StatusCardapio, on_delete=models.DO_NOTHING)
+    criado_por = models.ForeignKey(User, on_delete=models.DO_NOTHING)
+    tipo_gestao = models.ForeignKey(TipoGestao, on_delete=models.DO_NOTHING)
+    tipo_unidade = models.ForeignKey(TipoUnidadeEscolar, on_delete=models.DO_NOTHING)
+    grupo_escolar = models.ForeignKey(GrupoEscolar, on_delete=models.DO_NOTHING)
+    data = models.DateField()
+    idade = models.ForeignKey(IdadeEscolar, on_delete=models.DO_NOTHING)
+    refeicoes = models.ManyToManyField(Refeicao)

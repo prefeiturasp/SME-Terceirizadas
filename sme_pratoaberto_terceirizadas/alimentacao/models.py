@@ -4,7 +4,7 @@ from django.utils.timezone import now
 
 from django.db import models
 
-from sme_pratoaberto_terceirizadas.food.models import Food
+from sme_pratoaberto_terceirizadas.food.models import Alimento
 from sme_pratoaberto_terceirizadas.escola.models import Escola
 from sme_pratoaberto_terceirizadas.users.models import User
 from .api.utils import valida_dia_util, valida_dia_feriado, converter_str_para_datetime
@@ -87,7 +87,7 @@ class Cardapio(models.Model):
     tipo = models.ForeignKey(Tipo, on_delete=models.DO_NOTHING, help_text='Ex: Café, Almoço e Janta')
     categoria = models.ForeignKey(Categoria, on_delete=models.DO_NOTHING, help_text='Ex: Lactante, Normal ou Diabética')
     gestao = models.ForeignKey(Gestao, on_delete=models.DO_NOTHING)
-    alimentos = models.ManyToManyField(Food)
+    alimentos = models.ManyToManyField(Alimento)
     escolas = models.ManyToManyField(Escola)
 
     def __str__(self):

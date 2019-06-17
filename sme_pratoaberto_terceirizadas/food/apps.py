@@ -1,5 +1,5 @@
 from django.apps import AppConfig
 
 
-class FoodConfig(AppConfig):
+class AlimentoConfig(AppConfig):
     name = 'sme_pratoaberto_terceirizadas.food'

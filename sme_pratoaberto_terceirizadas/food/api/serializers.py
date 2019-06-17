@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from sme_pratoaberto_terceirizadas.food.models import TipoRefeicao, Meal
+from sme_pratoaberto_terceirizadas.food.models import TipoRefeicao, Refeicao
 
 
 class MealTypeSerializer(serializers.ModelSerializer):
@@ -22,5 +22,5 @@ class MealSerializer(serializers.ModelSerializer):
     foods = serializers.StringRelatedField(many=True)
 
     class Meta:
-        model = Meal
+        model = Refeicao
         fields = ['uuid', 'title', 'foods']
