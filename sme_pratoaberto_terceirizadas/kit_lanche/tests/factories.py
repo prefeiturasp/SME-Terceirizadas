@@ -1,6 +1,6 @@
 from factory import DjangoModelFactory, Faker, random
 
-from ..models import MealKit
+from ..models import KitLanche
 
 random.reseed_random('seed')
 
@@ -10,7 +10,7 @@ class MealKitFactory(DjangoModelFactory):
     name = Faker("name")
 
     class Meta:
-        model = MealKit
+        model = KitLanche
         django_get_or_create = ["name"]
 
 

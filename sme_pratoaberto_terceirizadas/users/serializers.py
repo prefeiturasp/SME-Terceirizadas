@@ -1,15 +1,15 @@
 from django.conf import settings
 from rest_framework import serializers
 
-from sme_pratoaberto_terceirizadas.meal_kit.models import MealKit
-from sme_pratoaberto_terceirizadas.meal_kit.api.serializers import MealKitSerializer
+from sme_pratoaberto_terceirizadas.kit_lanche.models import KitLanche
+from sme_pratoaberto_terceirizadas.kit_lanche.api.serializers import KitLancheSerializer
 from .models import User
 
 
 class GenericNotificationRelatedField(serializers.RelatedField):
     def to_representation(self, value):
-        if isinstance(value, MealKit):
-            serializer = MealKitSerializer(value)
+        if isinstance(value, KitLanche):
+            serializer = KitLancheSerializer(value)
 
         return serializer.data
 

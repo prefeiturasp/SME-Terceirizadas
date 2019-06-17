@@ -1,25 +1,25 @@
 from rest_framework import serializers
 
 from sme_pratoaberto_terceirizadas.alimento.api.serializers import RefeicaoSerializer
-from sme_pratoaberto_terceirizadas.meal_kit.models import MealKit, OrderMealKit, SolicitacaoUnificadaFormulario, \
+from sme_pratoaberto_terceirizadas.kit_lanche.models import KitLanche, SolicitacaoKitLanche, SolicitacaoUnificadaFormulario, \
     RazaoSolicitacaoUnificada, SolicitacaoUnificadaMultiploEscola, SolicitacaoUnificada
 from sme_pratoaberto_terceirizadas.escola.api.serializers import EscolaSerializer
 
 
-class MealKitSerializer(serializers.ModelSerializer):
-    meals = RefeicaoSerializer(many=True, read_only=True)
+class KitLancheSerializer(serializers.ModelSerializer):
+    refeicoes = RefeicaoSerializer(many=True, read_only=True)
 
     class Meta:
-        model = MealKit
-        fields = ['uuid', 'name', 'is_active', 'meals']
+        model = KitLanche
+        fields = ['uuid', 'nome', 'ativo', 'refeicoes']
 
 
-class OrderMealKitSerializer(serializers.ModelSerializer):
-    schools = EscolaSerializer(many=True, read_only=True)
-    meal_kits = MealKitSerializer(many=True, read_only=True)
+class SolicitacaoKitLancheSerializer(serializers.ModelSerializer):
+    escolas = EscolaSerializer(many=True, read_only=True)
+    kits_lanche = KitLancheSerializer(many=True, read_only=True)
 
     class Meta:
-        model = OrderMealKit
+        model = SolicitacaoKitLanche
         fields = '__all__'
 
 
@@ -32,7 +32,7 @@ class SolicitacaoUnificadaMultiploEscolaSerializer(serializers.ModelSerializer):
 class RazaoSolicitacaoUnificadaSerializer(serializers.ModelSerializer):
     class Meta:
         model = RazaoSolicitacaoUnificada
-        fields = ('name',)
+        fields = ('nome',)
 
 
 class SolicitacaoUnificadaFormularioSerializer(serializers.ModelSerializer):
@@ -70,7 +70,7 @@ class SolicitacaoUnificadaFormularioSerializer(serializers.ModelSerializer):
                          'opcao_desejada': solicitacao.opcao_desejada} for solicitacao in obj.solicitacoes.all()]
 
     def get_razao(self, obj):
-        return obj.razao.name
+        return obj.razao.nome
 
     def get_kit_lanche(self, obj):
         return [kit_lanche.uuid for kit_lanche in obj.kits_lanche.all()]
@@ -103,10 +103,10 @@ class SolicitacaoUnificadaSerializer(serializers.ModelSerializer):
         return obj.lote.nome
 
     def get_status(self, obj):
-        return obj.status.name
+        return obj.status.nome
 
     def get_dre(self, obj):
-        return obj.formulario.criado_por.DREs.get().name
+        return obj.formulario.criado_por.DREs.get().nome
 
     def get_kits_total(self, obj):
         return obj.kits_total

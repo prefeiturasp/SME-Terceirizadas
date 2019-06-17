@@ -15,7 +15,7 @@ from sme_pratoaberto_terceirizadas.common_data.api.viewsets import WorkingDaysVi
 from sme_pratoaberto_terceirizadas.common_data.urls import urlpatterns as common_urls
 from sme_pratoaberto_terceirizadas.alimento.api.routers import urlpatterns as alimento_url
 from sme_pratoaberto_terceirizadas.food_inclusion.api.viewsets import FoodInclusionViewSet
-from sme_pratoaberto_terceirizadas.meal_kit.api.routers import urlpatterns as meal_kit_url
+from sme_pratoaberto_terceirizadas.kit_lanche.api.routers import urlpatterns as meal_kit_url
 from sme_pratoaberto_terceirizadas.permission.routers import urlpatterns as permissions_url
 from sme_pratoaberto_terceirizadas.escola.routers import urlpatterns as escola_url
 from sme_pratoaberto_terceirizadas.users.routers import urlpatterns as user_url

@@ -1,17 +1,17 @@
 from django.contrib import admin
-from .models import MealKit, OrderMealKit, SolicitacaoUnificada, SolicitacaoUnificadaFormulario, \
+from .models import KitLanche, SolicitacaoKitLanche, SolicitacaoUnificada, SolicitacaoUnificadaFormulario, \
     SolicitacaoUnificadaMultiploEscola, RazaoSolicitacaoUnificada, StatusSolicitacaoUnificada
 
 
-@admin.register(MealKit)
-class MealKitAdmin(admin.ModelAdmin):
-    list_display = ('name', 'is_active')
-    ordering = ('name', 'is_active')
+@admin.register(KitLanche)
+class KitLancheAdmin(admin.ModelAdmin):
+    list_display = ('nome', 'ativo')
+    ordering = ('nome', 'ativo')
 
 
-@admin.register(OrderMealKit)
+@admin.register(SolicitacaoKitLanche)
 class OrderMealKitAdmin(admin.ModelAdmin):
-    list_display = ['location', 'students_quantity', 'order_date', 'status']
+    list_display = ['localizacao', 'quantidade_estudantes', 'data_solicitacao', 'status']
 
 
 admin.site.register(RazaoSolicitacaoUnificada)

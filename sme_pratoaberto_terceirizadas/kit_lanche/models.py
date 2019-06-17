@@ -6,7 +6,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from sme_pratoaberto_terceirizadas.abstract_shareable import Descritivel, Ativavel
 from sme_pratoaberto_terceirizadas.alimento.models import Refeicao
-from sme_pratoaberto_terceirizadas.meal_kit.utils import date_to_string, string_to_date
+from sme_pratoaberto_terceirizadas.kit_lanche.utils import date_to_string, string_to_date
 from sme_pratoaberto_terceirizadas.escola.models import Escola, DiretoriaRegional
 from sme_pratoaberto_terceirizadas.terceirizada.models import Lote
 from sme_pratoaberto_terceirizadas.users.models import User
@@ -19,46 +19,51 @@ class StatusSolicitacao(Enum):
     CANCELADO = 'CANCELADA'
     NEGADO = 'NEGADO'
 
-
-class MealKit(models.Model):
+#TODO repensar um nome mais semantico para o campo 'refeicoes'
+class KitLanche(models.Model):
     """Kit Lanches"""
 
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-    name = models.CharField(_('Name'), max_length=160)
-    description = models.TextField(_('Description'), blank=True, null=True)
-    is_active = models.BooleanField(_('Is Active'), default=True)
-    meals = models.ManyToManyField(Refeicao)
+    nome = models.CharField(_('Name'), max_length=160)
+    descricao = models.TextField(_('Description'), blank=True, null=True)
+    ativo = models.BooleanField(_('Is Active'), default=True)
+    refeicoes = models.ManyToManyField(Refeicao)
 
     def __str__(self):
-        return self.name
+        return self.nome
 
     class Meta:
-        verbose_name = _("Meal Kit")
-        verbose_name_plural = _("Meal Kits")
+        verbose_name = _("Kit Lanche")
+        verbose_name_plural = _("Kits Lanche")
 
 
-class OrderMealKit(models.Model):
+class SolicitacaoKitLanche(models.Model):
     """ Solicitação de kit lanche """
 
-    TYPES_STATUS = (('SAVED', 'SALVO'), ('SENDED', 'ENVIADO'), ('CANCELED', 'CANCELADO'), ('DENIED', 'NEGADO'))
+    TIPOS_STATUS = (
+        ('SALVO', 'SALVO'),
+        ('ENVIADO', 'ENVIADO'),
+        ('CANCELADO', 'CANCELADO'),
+        ('NEGADO', 'NEGADO')
+    )
 
-    location = models.CharField(_('Order Location'), max_length=160, blank=True, null=True)
-    students_quantity = models.IntegerField(_('Students Quantity'))
-    order_date = models.DateField(_('Order Date'), blank=True, null=True)
-    schools = models.ManyToManyField(Escola)
-    meal_kits = models.ManyToManyField(MealKit)
-    observation = models.TextField(_('Observation'), blank=True, null=True)
-    status = models.CharField(_('Status'), choices=TYPES_STATUS, default=0, max_length=6)
-    scheduled_time = models.CharField(_('Scheduled Time'), max_length=60)
-    register = models.DateTimeField(_('Registered'), auto_now_add=True)
+    localizacao = models.CharField(_('Local da Solicitação'), max_length=160, blank=True, null=True)
+    quantidade_estudantes = models.IntegerField(_('Quantidade de Estudantes'))
+    data_solicitacao = models.DateField(_('Data da Solicitação'), blank=True, null=True)
+    escolas = models.ManyToManyField(Escola)
+    kit_lanches = models.ManyToManyField(KitLanche)
+    observacao = models.TextField(_('Observação'), blank=True, null=True)
+    status = models.CharField(_('Status'), choices=TIPOS_STATUS, default=0, max_length=6)
+    tempo_agendado = models.CharField(_('Tempo Agendado'), max_length=60)
+    registrado = models.DateTimeField(_('Registrado'), auto_now_add=True)
 
     @property
     def tempo_passeio_formulario(self):
         # TODO: colocar choices para ter limites de escolhas.
-        if self.scheduled_time:
-            if self.scheduled_time == '4h':
+        if self.data_solicitacao:
+            if self.data_solicitacao == '4h':
                 return "Até 4 horas (1 kit)"
-            elif self.scheduled_time == '5_7h':
+            elif self.data_solicitacao == '5_7h':
                 return "5 a 7 horas (2 kits)"
             else:
                 return "8 horas ou mais (3 kits)"
@@ -67,10 +72,10 @@ class OrderMealKit(models.Model):
     @property
     def opcao_desejada(self):
         # XXX: retornando Modelo l, l, l, l, l???
-        return "Modelo " + ", ".join([kit_lanche.name[-1] for kit_lanche in self.meal_kits.all()])
+        return "Modelo " + ", ".join([kit_lanche.name[-1] for kit_lanche in self.kit_lanches.all()])
 
     def __str__(self):
-        return self.location or self.schools.get().name
+        return self.localizacao or self.escolas.get().name
 
     class Meta:
         verbose_name = 'Solicitar Kit Lanche'
@@ -81,17 +86,17 @@ class OrderMealKit(models.Model):
         try:
             data_passeio = string_to_date(data.get('evento_data')) if data.get(
                 'evento_data') else None
-            meals = MealKit.objects.filter(uuid__in=data.get('kit_lanche', None))
+            lanches = KitLanche.objects.filter(uuid__in=data.get('kit_lanche', None))
             if data.get('id', None):
                 obj = cls.objects.get(pk=data.get('id'))
-                obj.location = data.get('local_passeio', None)
-                obj.students_quantity = data.get('nro_alunos')
-                obj.order_date = data_passeio
-                obj.observation = data.get('obs')
-                obj.scheduled_time = data.get('tempo_passeio')
-                for m in meals:
-                    obj.meal_kits.add(m)
-                obj.schools.add(escola)
+                obj.localizacao = data.get('local_passeio', None)
+                obj.quantidade_estudantes = data.get('nro_alunos')
+                obj.data_solicitacao = data_passeio
+                obj.observacao = data.get('obs')
+                obj.data_solicitacao = data.get('tempo_passeio')
+                for m in lanches:
+                    obj.kit_lanches.add(m)
+                obj.escolas.add(escola)
                 obj.save()
                 return obj
             else:
@@ -104,9 +109,9 @@ class OrderMealKit(models.Model):
                     scheduled_time=data.get('tempo_passeio')
                 )
                 obj.save()
-                for m in meals:
-                    obj.meal_kits.add(m)
-                obj.schools.add(escola)
+                for m in lanches:
+                    obj.kit_lanches.add(m)
+                obj.escolas.add(escola)
                 obj.save()
                 return obj
         except ValueError:
@@ -143,7 +148,7 @@ class OrderMealKit(models.Model):
     def solicitar_kit_lanche(cls, data, escola, usuario):
         try:
             data_passeio = string_to_date(data.get('evento_data', None))
-            meals = MealKit.objects.filter(uuid__in=data.get('kit_lanche', None))
+            meals = KitLanche.objects.filter(uuid__in=data.get('kit_lanche', None))
             if not data.get('id'):
                 obj = cls(
                     location=data.get('local_passeio', None),
@@ -156,20 +161,20 @@ class OrderMealKit(models.Model):
                 obj.save()
             else:
                 obj = cls.objects.get(pk=data.get('id'))
-                obj.location = data.get('local_passeio', None)
-                obj.students_quantity = data.get('nro_alunos', None)
-                obj.order_date = data_passeio
-                obj.observation = data.get('obs', None)
+                obj.localizacao = data.get('local_passeio', None)
+                obj.quantidade_estudantes = data.get('nro_alunos', None)
+                obj.data_solicitacao = data_passeio
+                obj.observacao = data.get('obs', None)
                 obj.status = 'SENDED'
-                obj.scheduled_time = data.get('tempo_passeio', None)
+                obj.data_solicitacao = data.get('tempo_passeio', None)
                 obj.save()
 
-            obj.schools.add(escola)
+            obj.escolas.add(escola)
             for m in meals:
-                obj.meal_kits.add(m)
+                obj.kit_lanches.add(m)
             obj.save()
 
-            message = 'Solicitação: {} - Data: {}'.format(obj.location, obj.order_date)
+            message = 'Solicitação: {} - Data: {}'.format(obj.localizacao, obj.data_solicitacao)
             enviar_notificacao(usuario, User.objects.filter(email='mmaia.cc@gmail.com'), 'Teste de nofiticação',
                               message)
             return obj
@@ -219,7 +224,7 @@ class StatusSolicitacaoUnificada(Descritivel):
     VISUALIZED = "VISUALIZADO"
 
     def __str__(self):
-        return self.name
+        return self.nome
 
     class Meta:
         verbose_name = "Status"
@@ -230,7 +235,7 @@ class RazaoSolicitacaoUnificada(Descritivel, Ativavel):
     """Motivo para Solicitação Unificada"""
 
     def __str__(self):
-        return self.name
+        return self.nome
 
     class Meta:
         verbose_name = "Razão"
@@ -246,11 +251,11 @@ class SolicitacaoUnificadaFormulario(models.Model):
     razao = models.ForeignKey(RazaoSolicitacaoUnificada, on_delete=models.DO_NOTHING)
     qual_razao = models.TextField(blank=True, null=True)
     local_passeio = models.CharField("Local", max_length=200)
-    solicitacoes = models.ManyToManyField(OrderMealKit, blank=True)
+    solicitacoes = models.ManyToManyField(SolicitacaoKitLanche, blank=True)
     pedido_multiplo = models.BooleanField(default=False)
     max_numero_alunos_por_escola = models.IntegerField(blank=True, null=True)
     tempo_passeio = models.CharField("Tempo de Passeio", max_length=60, blank=True, null=True)
-    kits_lanche = models.ManyToManyField(MealKit, blank=True)
+    kits_lanche = models.ManyToManyField(KitLanche, blank=True)
     obs = models.TextField("Observação", blank=True, null=True)
 
     @property
@@ -281,8 +286,8 @@ class SolicitacaoUnificadaFormulario(models.Model):
         escolas_com_evento = []
         for escola in escolas:
             if escola.get('checked', False):
-                if OrderMealKit.objects.filter(schools__eol_code=escola.get('id'), order_date=dia).exists() or \
-                    OrderMealKit.objects.filter(schools__eol_code=escola.get('id'),
+                if SolicitacaoKitLanche.objects.filter(schools__eol_code=escola.get('id'), order_date=dia).exists() or \
+                    SolicitacaoKitLanche.objects.filter(schools__eol_code=escola.get('id'),
                                                 solicitacaounificadaformulario__dia=dia).exclude(
                         solicitacaounificadaformulario__uuid=data.get('uuid')).exists() or \
                     SolicitacaoUnificadaMultiploEscola.objects.filter(escola__eol_code=escola.get('id'),
@@ -314,7 +319,7 @@ class SolicitacaoUnificadaFormulario(models.Model):
             if obj.pedido_multiplo:
                 obj.max_numero_alunos_por_escola = data.get('max_numero_alunos_por_escola')
                 obj.tempo_passeio = data.get('tempo_passeio')
-                refeicoes = MealKit.objects.filter(uuid__in=data.get('kit_lanche', None))
+                refeicoes = KitLanche.objects.filter(uuid__in=data.get('kit_lanche', None))
                 for refeicao in refeicoes:
                     obj.kits_lanche.add(refeicao)
                 for escola in escolas:
@@ -330,7 +335,7 @@ class SolicitacaoUnificadaFormulario(models.Model):
                     if escola.get('checked') is True:
                         escola_obj = Escola.objects.get(eol_code=escola.get('id'))
                         escola.pop('id')
-                        solicitacao = OrderMealKit.salvar_solicitacao(escola, escola_obj)
+                        solicitacao = SolicitacaoKitLanche.salvar_solicitacao(escola, escola_obj)
                         obj.solicitacoes.add(solicitacao)
             obj.save()
             return obj

@@ -7,7 +7,7 @@ from sme_pratoaberto_terceirizadas.common_data.utils import get_working_days_aft
 from sme_pratoaberto_terceirizadas.alimento.models import TipoRefeicao
 from sme_pratoaberto_terceirizadas.escola.models import PeriodoEscolar
 from sme_pratoaberto_terceirizadas.users.models import User
-from sme_pratoaberto_terceirizadas.meal_kit.utils import string_to_date
+from sme_pratoaberto_terceirizadas.kit_lanche.utils import string_to_date
 
 
 class StatusSuspensaoDeAlimentacao(models.Model):

@@ -3,19 +3,19 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
-from sme_pratoaberto_terceirizadas.meal_kit.api.serializers import MealKitSerializer, OrderMealKitSerializer, \
+from sme_pratoaberto_terceirizadas.kit_lanche.api.serializers import KitLancheSerializer, SolicitacaoKitLancheSerializer, \
     SolicitacaoUnificadaFormularioSerializer, SolicitacaoUnificadaSerializer
 from sme_pratoaberto_terceirizadas.escola.models import Escola
 from sme_pratoaberto_terceirizadas.users.models import User
-from ..models import MealKit, OrderMealKit, SolicitacaoUnificada, SolicitacaoUnificadaFormulario, \
+from ..models import KitLanche, SolicitacaoKitLanche, SolicitacaoUnificada, SolicitacaoUnificadaFormulario, \
     StatusSolicitacaoUnificada
 from .validators import valida_usuario_escola
 
 
-class MealKitViewSet(ModelViewSet):
+class KitLancheViewSet(ModelViewSet):
     """ Endpoint para visualização de Kit Lanches """
-    queryset = MealKit.objects.all()
-    serializer_class = MealKitSerializer
+    queryset = KitLanche.objects.all()
+    serializer_class = KitLancheSerializer
 
     # permission_classes = (IsAuthenticated, ValidatePermission)
 
@@ -24,34 +24,36 @@ class MealKitViewSet(ModelViewSet):
         return Response({'students': 200}, status=status.HTTP_200_OK)
 
 
-class OrderMealKitViewSet(ModelViewSet):
+class SolicitacaoKitLancheViewSet(ModelViewSet):
     """ Endpoint para Solicitações de Kit Lanches """
-    serializer_class = OrderMealKitSerializer
+    serializer_class = SolicitacaoKitLancheSerializer
 
     # permission_classes = (IsAuthenticated, ValidatePermission)
 
     def get_queryset(self):
-        return OrderMealKit.objects.filter(status='SAVED')
+        return SolicitacaoKitLanche.objects.filter(status='SALVO')
 
     def destroy(self, request, *args, **kwargs):
-        response = super(OrderMealKitViewSet, self).destroy(request, *args, **kwargs)
+        response = super(SolicitacaoKitLancheViewSet, self).destroy(request, *args, **kwargs)
         if response.status_code == 204:
             return Response({'success': 'Solicitação removida com sucesso.'})
         return Response({'error': 'Solicitação não encontrada'}, status=status.HTTP_409_CONFLICT)
 
     def create(self, request):
+        # TODO verificar
         quantidade_matriculados = 200
         escola = self._valida_escola(request.user)
-        if not OrderMealKit.valida_quantidade_matriculados(quantidade_matriculados, int(request.data.get('nro_alunos')),
-                                                           request.data.get('evento_data'),
-                                                           escola):
+        if not SolicitacaoKitLanche.valida_quantidade_matriculados(
+                quantidade_matriculados, int(request.data.get('nro_alunos', 0)),
+                request.data.get('evento_data', None),
+                escola):
             return Response(
                 {'error': 'A Quantidade de aluno para o evento, excedeu a quantidade limite de alunos para este dia'},
                 status=status.HTTP_400_BAD_REQUEST)
-        if not OrderMealKit.valida_duplicidade(request.data, escola):
+        if not SolicitacaoKitLanche.valida_duplicidade(request.data, escola):
             return Response({'error': 'Solicitação já cadastrada no sistema com esta data'},
                             status=status.HTTP_400_BAD_REQUEST)
-        if OrderMealKit.solicitar_kit_lanche(request.data, escola, request.user):
+        if SolicitacaoKitLanche.solicitar_kit_lanche(request.data, escola, request.user):
             return Response({'success': 'Sua solicitação foi enviada com sucesso'}, status=status.HTTP_201_CREATED)
         return Response({'error': 'Erro ao tentar salvar solicitação, tente novamente'},
                         status=status.HTTP_502_BAD_GATEWAY)
@@ -65,7 +67,7 @@ class OrderMealKitViewSet(ModelViewSet):
     @action(detail=False, methods=['post'])
     def solicitacoes(self, request):
         if 'ids' in request.data:
-            resposta = OrderMealKit.solicita_kit_lanche_em_lote(request.data, request.user)
+            resposta = SolicitacaoKitLanche.solicita_kit_lanche_em_lote(request.data, request.user)
             return Response({'success': '{} solicitações enviada com sucesso.'.format(resposta)})
         return Response({'error': 'Ocorreu um error na solicitação em massa, tente novamente'},
                         status=status.HTTP_400_BAD_REQUEST)
@@ -77,10 +79,10 @@ class OrderMealKitViewSet(ModelViewSet):
         if not valida_usuario_escola(request.user):
             return Response({'error': 'Sem escola relacinada a este usuário'}, status=status.HTTP_401_UNAUTHORIZED)
 
-        if OrderMealKit.ja_existe_salvo(params, escola) and not params.get('id', None):
+        if SolicitacaoKitLanche.ja_existe_salvo(params, escola) and not params.get('id', None):
             return Response({'error': 'Já existe um evento cadastrado para esta data'},
                             status=status.HTTP_400_BAD_REQUEST)
-        OrderMealKit.salvar_solicitacao(params, escola)
+        SolicitacaoKitLanche.salvar_solicitacao(params, escola)
         return Response({'success': 'Solicitação salva com sucesso'})
 
 
