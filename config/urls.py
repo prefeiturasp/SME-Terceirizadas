@@ -13,11 +13,11 @@ from rest_framework_swagger.views import get_swagger_view
 from sme_pratoaberto_terceirizadas.cardapio.urls import urlpatterns as cardapio_url
 from sme_pratoaberto_terceirizadas.common_data.api.viewsets import WorkingDaysViewSet
 from sme_pratoaberto_terceirizadas.common_data.urls import urlpatterns as common_urls
-from sme_pratoaberto_terceirizadas.food.api.routers import urlpatterns as food_url
+from sme_pratoaberto_terceirizadas.alimento.api.routers import urlpatterns as alimento_url
 from sme_pratoaberto_terceirizadas.food_inclusion.api.viewsets import FoodInclusionViewSet
 from sme_pratoaberto_terceirizadas.meal_kit.api.routers import urlpatterns as meal_kit_url
 from sme_pratoaberto_terceirizadas.permission.routers import urlpatterns as permissions_url
-from sme_pratoaberto_terceirizadas.escola.routers import urlpatterns as school_url
+from sme_pratoaberto_terceirizadas.escola.routers import urlpatterns as escola_url
 from sme_pratoaberto_terceirizadas.users.routers import urlpatterns as user_url
 from sme_pratoaberto_terceirizadas.alimentacao.api.routers import urlpattern as alimentacao_url
 from sme_pratoaberto_terceirizadas.suspensao_de_alimentacao.api.routers import urlpatterns as suspensao_url
@@ -44,11 +44,11 @@ urlpatterns = [
 
 # ADDING ROUTERS FROM ALL APPS ####
 urlpatterns += permissions_url
-urlpatterns += school_url
+urlpatterns += escola_url
 urlpatterns += user_url
 urlpatterns += common_urls
 urlpatterns += meal_kit_url
-urlpatterns += food_url
+urlpatterns += alimento_url
 urlpatterns += cardapio_url
 urlpatterns += alimentacao_url
 urlpatterns += suspensao_url
