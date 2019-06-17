@@ -2,7 +2,7 @@ import pytest
 from faker import Faker
 from model_mommy import mommy
 
-from sme_pratoaberto_terceirizadas.food.models import Refeicao
+from sme_pratoaberto_terceirizadas.alimento.models import Refeicao
 from sme_pratoaberto_terceirizadas.meal_kit.models import OrderMealKit
 from .meal_kit.models import MealKit
 from .permission.models import Permission, ProfilePermission

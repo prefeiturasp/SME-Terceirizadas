@@ -3,7 +3,7 @@ import datetime
 from django.utils.translation import ugettext_lazy as _
 
 from sme_pratoaberto_terceirizadas.common_data.utils import get_working_days_after
-from sme_pratoaberto_terceirizadas.food.models import TipoRefeicao
+from sme_pratoaberto_terceirizadas.alimento.models import TipoRefeicao
 from sme_pratoaberto_terceirizadas.food_inclusion import models
 
 

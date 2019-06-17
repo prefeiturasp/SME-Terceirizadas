@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from sme_pratoaberto_terceirizadas.escola.models import Escola, PeriodoEscolar
-from sme_pratoaberto_terceirizadas.food.api.serializers import MealTypeSerializer
+from sme_pratoaberto_terceirizadas.alimento.api.serializers import TipoRefeicaoSerializer
 
 
 class EscolaSerializer(serializers.ModelSerializer):
@@ -19,7 +19,7 @@ class PeriodoEscolarSerializer(serializers.ModelSerializer):
         return obj.nome
 
     def get_tipo_refeicao(self, obj):
-        return MealTypeSerializer(obj.tipo_refeicao.all(), many=True).data
+        return TipoRefeicaoSerializer(obj.tipo_refeicao.all(), many=True).data
 
     class Meta:
         model = PeriodoEscolar

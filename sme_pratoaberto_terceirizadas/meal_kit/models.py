@@ -5,7 +5,7 @@ from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
 from sme_pratoaberto_terceirizadas.abstract_shareable import Descritivel, Ativavel
-from sme_pratoaberto_terceirizadas.food.models import Refeicao
+from sme_pratoaberto_terceirizadas.alimento.models import Refeicao
 from sme_pratoaberto_terceirizadas.meal_kit.utils import date_to_string, string_to_date
 from sme_pratoaberto_terceirizadas.escola.models import Escola, DiretoriaRegional
 from sme_pratoaberto_terceirizadas.terceirizada.models import Lote

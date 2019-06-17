@@ -1,13 +1,13 @@
 from rest_framework import serializers
 
-from sme_pratoaberto_terceirizadas.food.api.serializers import MealSerializer
+from sme_pratoaberto_terceirizadas.alimento.api.serializers import RefeicaoSerializer
 from sme_pratoaberto_terceirizadas.meal_kit.models import MealKit, OrderMealKit, SolicitacaoUnificadaFormulario, \
     RazaoSolicitacaoUnificada, SolicitacaoUnificadaMultiploEscola, SolicitacaoUnificada
 from sme_pratoaberto_terceirizadas.escola.api.serializers import EscolaSerializer
 
 
 class MealKitSerializer(serializers.ModelSerializer):
-    meals = MealSerializer(many=True, read_only=True)
+    meals = RefeicaoSerializer(many=True, read_only=True)
 
     class Meta:
         model = MealKit

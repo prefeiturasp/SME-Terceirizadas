@@ -55,7 +55,7 @@ class PeriodoEscolar(Descritivel):
     QUARTO_PERIODO = 'quarto_periodo'
     INTEGRAL = 'integral'
     valor = models.CharField(max_length=50, blank=True, null=True)
-    tipo_refeicao = models.ManyToManyField('food.TipoRefeicao', blank=True)
+    tipo_refeicao = models.ManyToManyField('alimento.TipoRefeicao', blank=True)
 
     def __str__(self):
         return self.nome

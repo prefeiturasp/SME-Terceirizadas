@@ -7,7 +7,7 @@ from notifications.signals import notify
 
 from sme_pratoaberto_terceirizadas.abstract_shareable import Descritivel, RegistroHora, Ativavel
 from sme_pratoaberto_terceirizadas.common_data.utils import str_to_date, get_working_days_after
-from sme_pratoaberto_terceirizadas.food.models import TipoRefeicao
+from sme_pratoaberto_terceirizadas.alimento.models import TipoRefeicao
 from sme_pratoaberto_terceirizadas.food_inclusion.utils import get_object
 from sme_pratoaberto_terceirizadas.escola.models import PeriodoEscolar
 from sme_pratoaberto_terceirizadas.users.models import User
