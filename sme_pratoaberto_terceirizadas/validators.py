@@ -2,7 +2,7 @@ import datetime
 
 from rest_framework import serializers
 
-from sme_pratoaberto_terceirizadas.common_data.utils import get_working_days_after, is_working_day
+from sme_pratoaberto_terceirizadas.common_data.utils import obter_dias_uteis_apos, is_working_day
 
 
 def nao_pode_ser_passado(data: datetime.date):
@@ -12,7 +12,7 @@ def nao_pode_ser_passado(data: datetime.date):
 
 
 def deve_pedir_com_antecedencia(dia: datetime.date, dias: int = 2):
-    prox_dia_util = get_working_days_after(days=dias, date=datetime.datetime.today())
+    prox_dia_util = obter_dias_uteis_apos(days=dias, date=datetime.datetime.today())
     if dia <= prox_dia_util:
         raise serializers.ValidationError('Deve pedir com pelo menos {} dias úteis de antecedência'.format(dias))
     return True

@@ -3,7 +3,7 @@ import uuid
 from django.core.validators import validate_comma_separated_integer_list
 from django.db import models
 
-from sme_pratoaberto_terceirizadas.common_data.utils import get_working_days_after
+from sme_pratoaberto_terceirizadas.common_data.utils import obter_dias_uteis_apos
 from sme_pratoaberto_terceirizadas.alimento.models import TipoRefeicao
 from sme_pratoaberto_terceirizadas.escola.models import PeriodoEscolar
 from sme_pratoaberto_terceirizadas.users.models import User
@@ -114,7 +114,7 @@ class DiaRazaoSuspensaoDeAlimentacao(models.Model):
         obj.qual_razao = data.get('qual_razao', None)
         if data.get('data', None):
             obj.data = string_to_date(data.get('data'))
-            obj.priority = get_working_days_after(days=2) <= obj.data <= get_working_days_after(days=5)
+            obj.priority = obter_dias_uteis_apos(days=2) <= obj.data <= obter_dias_uteis_apos(days=5)
         else:
             obj.data_de = string_to_date(data.get('data_de'))
             obj.data_ate = string_to_date(data.get('data_ate'))

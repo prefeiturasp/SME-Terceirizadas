@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
-from sme_pratoaberto_terceirizadas.food_inclusion.models import FoodInclusion, FoodInclusionDescription, \
-    FoodInclusionReason, FoodInclusionDayReason
+from sme_pratoaberto_terceirizadas.food_inclusion.models import InclusaoAlimentacao, DescricaoInclusaoAlimentacao, \
+    MotivoInclusaoAlimentacao, DiaMotivoInclusaoAlimentacao
 from sme_pratoaberto_terceirizadas.escola.models import PeriodoEscolar
 
 
@@ -16,7 +16,7 @@ class FoodInclusionReasonSerializer(serializers.ModelSerializer):
         return obj.name
 
     class Meta:
-        model = FoodInclusionReason
+        model = MotivoInclusaoAlimentacao
         fields = ('label', 'value')
 
 
@@ -48,7 +48,7 @@ class FoodInclusionDayReasonSerializer(serializers.ModelSerializer):
         return obj.reason.name
 
     class Meta:
-        model = FoodInclusionDayReason
+        model = DiaMotivoInclusaoAlimentacao
         fields = ('id', 'date', 'date_from', 'date_to', 'weekdays', 'which_reason', 'priority', 'reason')
 
 
@@ -71,7 +71,7 @@ class FoodInclusionDescriptionSerializer(serializers.ModelSerializer):
         return str(obj.number_of_students)
 
     class Meta:
-        model = FoodInclusionDescription
+        model = DescricaoInclusaoAlimentacao
         fields = ('check', 'value', 'select', 'number')
 
 
@@ -127,7 +127,7 @@ class FoodInclusionSerializer(serializers.ModelSerializer):
         return obj.status.name if obj.status else None
 
     class Meta:
-        model = FoodInclusion
+        model = InclusaoAlimentacao
         fields = (
             'id', 'uuid', 'created_at', 'description_first_period', 'description_second_period',
             'description_third_period', 'description_fourth_period', 'description_integrate',

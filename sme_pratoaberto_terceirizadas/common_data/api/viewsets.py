@@ -9,7 +9,7 @@ from rest_framework.viewsets import ViewSet, ModelViewSet
 
 from .serializers import WorkingDaysSerializer, EmailConfigurationSerializer
 from ..models import WorkingDays
-from ..utils import get_working_days_after
+from ..utils import obter_dias_uteis_apos
 
 
 class WorkingDaysViewSet(ViewSet):
@@ -19,8 +19,8 @@ class WorkingDaysViewSet(ViewSet):
     def list(self, request):
         working_days = {
             1: WorkingDays(
-                date_five_working_days=get_working_days_after(5).strftime('%d/%m/%Y'),
-                date_two_working_days=get_working_days_after(2).strftime('%d/%m/%Y'))
+                date_five_working_days=obter_dias_uteis_apos(5).strftime('%d/%m/%Y'),
+                date_two_working_days=obter_dias_uteis_apos(2).strftime('%d/%m/%Y'))
         }
         serializer = WorkingDaysSerializer(
             instance=working_days.values(), many=True)

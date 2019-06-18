@@ -1,9 +1,9 @@
 from django.contrib import admin
-from .models import FoodInclusion, FoodInclusionDescription, FoodInclusionReason, FoodInclusionStatus, \
-    FoodInclusionDayReason
+from .models import InclusaoAlimentacao, DescricaoInclusaoAlimentacao, MotivoInclusaoAlimentacao, InclusaoAlimentacaoStatus, \
+    DiaMotivoInclusaoAlimentacao
 
-admin.site.register(FoodInclusion)
-admin.site.register(FoodInclusionDescription)
-admin.site.register(FoodInclusionReason)
-admin.site.register(FoodInclusionStatus)
-admin.site.register(FoodInclusionDayReason)
+admin.site.register(InclusaoAlimentacao)
+admin.site.register(DescricaoInclusaoAlimentacao)
+admin.site.register(MotivoInclusaoAlimentacao)
+admin.site.register(InclusaoAlimentacaoStatus)
+admin.site.register(DiaMotivoInclusaoAlimentacao)
