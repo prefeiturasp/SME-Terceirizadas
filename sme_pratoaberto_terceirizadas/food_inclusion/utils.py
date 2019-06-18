@@ -2,120 +2,120 @@ import datetime
 
 from django.utils.translation import ugettext_lazy as _
 
-from sme_pratoaberto_terceirizadas.common_data.utils import get_working_days_after
+from sme_pratoaberto_terceirizadas.common_data.utils import obter_dias_uteis_apos
 from sme_pratoaberto_terceirizadas.alimento.models import TipoRefeicao
 from sme_pratoaberto_terceirizadas.food_inclusion import models
 
 
-def validate_date_format(date_text, errors_list):
+def validar_formato_data(data_texto, lista_erros):
     try:
-        return datetime.datetime.strptime(date_text, '%d/%m/%Y')
+        return datetime.datetime.strptime(data_texto, '%d/%m/%Y')
     except ValueError:
-        errors_list.append(_('incorrect data format, should be DD/MM/YYYY'))
+        lista_erros.append(_('Formato de data incorreto, deve ser DD/MM/AAAA'))
 
 
-def validate_weekdays(weekdays, errors_list):
+def validar_dias_da_semana(dias_semana, lista_erros):
     try:
-        for weekday in weekdays:
-            if weekday not in ['0', '1', '2', '3', '4', '5', '6', ',']:
-                return errors_list.append(_('weekdays invalid'))
+        for dia_semana in dias_semana:
+            if dia_semana not in ['0', '1', '2', '3', '4', '5', '6', ',']:
+                return lista_erros.append(_('dias da semana invalido'))
     except ValueError:
-        errors_list.append(_('weekdays invalid'))
+        lista_erros.append(_('dias da semana invalido'))
 
 
-def object_exists(query_set, **kwargs):
+def objeto_existe(query_set, **kwargs):
     return query_set.objects.filter(**kwargs).exists()
 
 
-def get_object(query_set, **kwargs):
+def obter_objeto(query_set, **kwargs):
     return query_set.objects.get(**kwargs)
 
 
-def _check_required_data(request_data):
-    required_data = ['day_reasons']
-    return all(elem in request_data for elem in required_data)
+def _checar_dados_requeridos(request_data):
+    dados_requeridos = ['motivos_dia']
+    return all(elem in request_data for elem in dados_requeridos)
 
 
-def check_required_data_generic(request_data, required_data):
-    return all(elem in request_data for elem in required_data)
+def checar_dados_genericos_requeridos(request_data, dados_requeridos):
+    return all(elem in request_data for elem in dados_requeridos)
 
 
-def _validate_reason(request_data, errors):
-    reason = request_data.get('reason')
-    reason_exists = object_exists(models.FoodInclusionReason, name=reason)
-    if not reason_exists:
-        errors.append(_('Motivo não existe'))
+def _validar_motivo(request_data, erros):
+    motivo = request_data.get('motivo')
+    motivo_existe = objeto_existe(models.MotivoInclusaoAlimentacao, nome=motivo)
+    if not motivo_existe:
+        erros.append(_('Motivo não existe'))
 
 
-def _validate_status(request_data, errors):
+def _validar_status(request_data, erros):
     status = request_data.get('status')
-    status_exists = object_exists(models.FoodInclusionStatus, name=status)
-    if 'status' in request_data and not status_exists:
-        errors.append("Status não existe")
+    status_existe = objeto_existe(models.InclusaoAlimentacaoStatus, nome=status)
+    if 'status' in request_data and not status_existe:
+        erros.append("Status não existe")
 
 
-def get_errors_list(request_data):
-    errors = list()
+def obter_lista_erros(request_data):
+    erros = list()
 
-    if not _check_required_data(request_data):
+    if not _checar_dados_requeridos(request_data):
         return ['Parâmetros faltando']
 
-    if not _is_valid_payload(request_data):
+    if not _carga_dados_eh_valida(request_data):
         return ['Formato de requisição inválido']
 
-    _validate_descriptions(request_data, errors)
-    _validate_status(request_data, errors)
-    _validate_date_block(request_data, errors)
-    return errors
+    _validar_descricoes(request_data, erros)
+    _validar_status(request_data, erros)
+    _validar_bloco_data(request_data, erros)
+    return erros
 
 
-def _is_valid_payload(request_data):
+def _carga_dados_eh_valida(request_data):
     return request_data and isinstance(request_data, dict)
 
 
-def _validate_date_block(request_data, errors):
-    day_reasons = request_data.get('day_reasons')
-    for day_reason in day_reasons:
-        _validate_reason(day_reason, errors)
-        if day_reason.get('date', None):
-            _datetime = validate_date_format(day_reason.get('date'), errors)
-            if _datetime and _datetime.date() < get_working_days_after(2):
-                errors.append('Mínimo de 2 dias úteis para fazer o pedido')
+def _validar_bloco_data(request_data, erros):
+    motivos_dia = request_data.get('motivos_dia')
+    for motivo_dia in motivos_dia:
+        _validar_motivo(motivo_dia, erros)
+        if motivo_dia.get('data', None):
+            _data_hora = validar_formato_data(motivo_dia.get('data'), erros)
+            if _data_hora and _data_hora.date() < obter_dias_uteis_apos(2):
+                erros.append('Mínimo de 2 dias úteis para fazer o pedido')
         else:
-            validate_date_format(day_reason.get('date_from'), errors)
-            validate_date_format(day_reason.get('date_to'), errors)
-            if 'weekdays' in request_data:
-                validate_weekdays(day_reason.get('weekdays'), errors)
+            validar_formato_data(motivo_dia.get('do_dia'), erros)
+            validar_formato_data(motivo_dia.get('ate_dia'), erros)
+            if 'dias_semana' in request_data:
+                validar_dias_da_semana(motivo_dia.get('dias_semana'), erros)
 
 
-def _validate_description(description, errors):
-    meal_types = description.get('select') if isinstance(description.get('select'), list) else [
-        description.get('select')]
-    print(meal_types)
-    number_of_students = description.get('number')
-    for meal_type in meal_types:
-        if not object_exists(TipoRefeicao, name=meal_type):
-            errors.append('Tipo de refeição não existe')
-    if not number_of_students.isdigit():
-        errors.append('Número de estudantes precisa vir como inteiro')
+def _validar_descricao(descricao, erros):
+    tipos_refeicoes = descricao.get('select') if isinstance(descricao.get('select'), list) else [
+        descricao.get('select')]
+    #print(tipos_refeicoes)
+    numero_de_estudantes = descricao.get('numero')
+    for tipo_refeicao in tipos_refeicoes:
+        if not objeto_existe(TipoRefeicao, nome=tipo_refeicao):
+            erros.append('Tipo de refeição não existe')
+    if not numero_de_estudantes.isdigit():
+        erros.append('Número de estudantes precisa vir como inteiro')
 
 
-def _validate_descriptions(request_data, errors):
-    description_first_period = request_data.get('description_first_period', None)
-    description_second_period = request_data.get('description_second_period', None)
-    description_third_period = request_data.get('description_third_period', None)
-    description_fourth_period = request_data.get('description_fourth_period', None)
-    description_integrate = request_data.get('description_integrate', None)
-    if not (description_first_period or description_second_period or description_third_period
-            or description_fourth_period or description_integrate):
-        errors.append("Obrigatório ao menos um período")
-    if description_first_period:
-        _validate_description(description_first_period, errors)
-    if description_second_period:
-        _validate_description(description_second_period, errors)
-    if description_third_period:
-        _validate_description(description_third_period, errors)
-    if description_fourth_period:
-        _validate_description(description_fourth_period, errors)
-    if description_integrate:
-        _validate_description(description_integrate, errors)
+def _validar_descricoes(request_data, erros):
+    descricao_primeiro_periodo = request_data.get('descricao_primeiro_periodo', None)
+    descricao_segundo_periodo = request_data.get('descricao_segundo_periodo', None)
+    descricao_terceiro_periodo = request_data.get('descricao_terceiro_periodo', None)
+    descricao_quarto_periodo = request_data.get('descricao_quarto_periodo', None)
+    descricao_integral = request_data.get('descricao_integral', None)
+    if not (descricao_primeiro_periodo or descricao_segundo_periodo or descricao_terceiro_periodo
+            or descricao_quarto_periodo or descricao_integral):
+        erros.append("Obrigatório ao menos um período")
+    if descricao_primeiro_periodo:
+        _validar_descricao(descricao_primeiro_periodo, erros)
+    if descricao_segundo_periodo:
+        _validar_descricao(descricao_segundo_periodo, erros)
+    if descricao_terceiro_periodo:
+        _validar_descricao(descricao_terceiro_periodo, erros)
+    if descricao_quarto_periodo:
+        _validar_descricao(descricao_quarto_periodo, erros)
+    if descricao_integral:
+        _validar_descricao(descricao_integral, erros)

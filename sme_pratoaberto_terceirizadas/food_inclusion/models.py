@@ -6,198 +6,198 @@ from django.utils.translation import ugettext as _
 from notifications.signals import notify
 
 from sme_pratoaberto_terceirizadas.abstract_shareable import Descritivel, RegistroHora, Ativavel
-from sme_pratoaberto_terceirizadas.common_data.utils import str_to_date, get_working_days_after
+from sme_pratoaberto_terceirizadas.common_data.utils import str_to_date, obter_dias_uteis_apos
 from sme_pratoaberto_terceirizadas.alimento.models import TipoRefeicao
-from sme_pratoaberto_terceirizadas.food_inclusion.utils import get_object
+from sme_pratoaberto_terceirizadas.food_inclusion.utils import obter_objeto
 from sme_pratoaberto_terceirizadas.escola.models import PeriodoEscolar
 from sme_pratoaberto_terceirizadas.users.models import User
 
 
-class FoodInclusionStatus(Descritivel):
+class InclusaoAlimentacaoStatus(Descritivel):
     """Status da Inclusão de Alimentação"""
 
-    SAVED = "SALVO"
-    TO_VALIDATE = _('TO_VALIDATE')
-    TO_APPROVE = _('TO_APPROVE')
-    TO_EDIT = _('TO_EDIT')
-    TO_VISUALIZE = _('TO_VISUALIZE')
-    DENIED_BY_CODAE = _('DENIED_BY_CODAE')
-    DENIED_BY_COMPANY = _('DENIED_BY_COMPANY')
-    VISUALIZED = _('VISUALIZED')
+    SALVO = "SALVO"
+    A_VALIDAR = _('A_VALIDAR')
+    A_APROVAR = _('A_APROVAR')
+    A_EDITAR = _('A_EDITAR')
+    A_VISUALIZAR = _('A_VISUALIZAR')
+    NEGADO_PELA_CODAE = _('NEGADO_PELA_CODAE')
+    NEGADO_PELA_TERCEIRIZADA = _('NEGADO_PELA_TERCEIRIZADA')
+    VISUALIZADO = _('VISUALIZADO')
 
     def __str__(self):
-        return self.name
+        return self.nome
 
     class Meta:
         verbose_name = _("Status")
         verbose_name_plural = _("Status")
 
 
-class FoodInclusionReason(Descritivel, Ativavel):
+class MotivoInclusaoAlimentacao(Descritivel, Ativavel):
     """Motivo para Inclusão de Alimentação"""
 
     def __str__(self):
-        return self.name
+        return self.nome
 
     class Meta:
-        verbose_name = _("Reason")
-        verbose_name_plural = _("Reasons")
+        verbose_name = _("Motivo")
+        verbose_name_plural = _("Motivos")
 
 
-class FoodInclusion(RegistroHora):
+class InclusaoAlimentacao(RegistroHora):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-    created_by = models.ForeignKey(User, on_delete=models.DO_NOTHING)
-    status = models.ForeignKey(FoodInclusionStatus, on_delete=models.DO_NOTHING)
-    denied_by_company = models.BooleanField(default=False)
-    denial_reason = models.TextField(blank=True, null=True)
-    obs = models.TextField(blank=True, null=True)
+    criado_por = models.ForeignKey(User, on_delete=models.DO_NOTHING)
+    status = models.ForeignKey(InclusaoAlimentacaoStatus, on_delete=models.DO_NOTHING)
+    negado_pela_terceirizada = models.BooleanField(default=False)
+    motivo_recusa = models.TextField(blank=True, null=True)
+    observacao = models.TextField(blank=True, null=True)
 
     def __str__(self):
-        return '{name} - {id}'.format(name=self.status.name, id=self.id)
+        return '{nome} - {id}'.format(name=self.status.nome, id=self.id)
 
     class Meta:
-        verbose_name = _("Food Inclusion")
-        verbose_name_plural = _("Food Inclusions")
+        verbose_name = _("Inclusao Alimentacao")
+        verbose_name_plural = _("Inclusao Alimentacões")
 
-    def create_or_update(self, request_data, user):
+    def criar_ou_alterar(self, request_data, user):
         self._set_status(request_data)
-        self.created_by = user
-        self.obs = request_data.get('obs', None)
+        self.criado_por = user
+        self.observacao = request_data.get('observacao', None)
         self.save()
-        self._create_or_update_day_reasons(request_data)
-        self._create_or_update_descriptions(request_data)
+        self._criar_ou_alterar_dia_motivos(request_data)
+        self._criar_ou_alterar_descricoes(request_data)
 
-    def _create_or_update_day_reasons(self, request_data):
-        day_reasons = request_data.get('day_reasons')
-        for day_reason in day_reasons:
-            day_reason_uuid = day_reason.get('uuid', None)
-            food_inclusion_day_reason = FoodInclusionDayReason.objects.get(uuid=day_reason_uuid) \
-                if day_reason_uuid else FoodInclusionDayReason()
-            food_inclusion_day_reason.create_or_update(day_reason, self)
+    def _criar_ou_alterar_dia_motivos(self, request_data):
+        dia_motivos = request_data.get('dia_motivos')
+        for dia_motivo in dia_motivos:
+            dia_motivo_uuid = dia_motivo.get('uuid', None)
+            dia_motivo_inclusao_alimentacao = DiaMotivoInclusaoAlimentacao.objects.get(uuid=dia_motivo_uuid) \
+                if dia_motivo_uuid else DiaMotivoInclusaoAlimentacao()
+            dia_motivo_inclusao_alimentacao.criar_ou_alterar(dia_motivo, self)
 
-    def _create_or_update_descriptions(self, request_data):
-        descriptions = [request_data.get('description_first_period', None),
-                        request_data.get('description_second_period', None),
-                        request_data.get('description_third_period', None),
-                        request_data.get('description_fourth_period', None),
-                        request_data.get('description_integrate', None)]
-        for description in descriptions:
-            if description:
-                desc_uuid = description.get('uuid', None)
-                food_inclusion_description = FoodInclusionDescription.objects.get(uuid=desc_uuid) \
-                    if desc_uuid else FoodInclusionDescription()
-                food_inclusion_description.create_or_update(description, self)
+    def _criar_ou_alterar_descricoes(self, request_data):
+        descricoes = [request_data.get('descricao_primeiro_periodo', None),
+                        request_data.get('descricao_segundo_periodo', None),
+                        request_data.get('descricao_terceiro_periodo', None),
+                        request_data.get('descricao_quarto_periodo', None),
+                        request_data.get('descricao_integral', None)]
+        for descricao in descricoes:
+            if descricao:
+                desc_uuid = descricao.get('uuid', None)
+                food_inclusion_description = DescricaoInclusaoAlimentacao.objects.get(uuid=desc_uuid) \
+                    if desc_uuid else DescricaoInclusaoAlimentacao()
+                food_inclusion_description.criar_ou_alterar(descricao, self)
 
     def _set_status(self, request_data):
         status = request_data.get('status', None)
-        name = status if status else FoodInclusionStatus.TO_VALIDATE
-        self.status = get_object(FoodInclusionStatus, name=name)
+        nome = status if status else InclusaoAlimentacaoStatus.A_VALIDAR
+        self.status = obter_objeto(InclusaoAlimentacaoStatus, name=nome)
 
-    def _notification_aux(self, _type, validation_diff='creation'):
-        notification_dict = {
-            FoodInclusionStatus.TO_VALIDATE: {
-                'recipient': User.objects.all(),
-                'verb': _(validation_diff.capitalize()),
-                'description': _('created') if validation_diff else _('edited')
+    def _notificacao_aux(self, _type, validation_diff='creation'):
+        notificacao_dict = {
+            InclusaoAlimentacaoStatus.A_VALIDAR: {
+                'receptor': User.objects.all(),
+                'aviso': _(validation_diff.capitalize()),
+                'descricao': _('created') if validation_diff else _('edited')
             },
-            FoodInclusionStatus.TO_EDIT: {
-                'recipient': User.objects.all(),
-                'verb': _('It needs edition'),
-                'description': _('did not validated')
+            InclusaoAlimentacaoStatus.A_EDITAR: {
+                'receptor': User.objects.all(),
+                'aviso': _('Necessário editar'),
+                'descricao': _('não válidado')
             },
-            FoodInclusionStatus.TO_APPROVE: {
-                'recipient': User.objects.all(),
-                'verb': _('Validation'),
-                'description': _('validated')
+            InclusaoAlimentacaoStatus.A_APROVAR: {
+                'receptor': User.objects.all(),
+                'aviso': _('Validação'),
+                'descricao': _('validado')
             },
-            FoodInclusionStatus.TO_VISUALIZE: {
-                'recipient': User.objects.all(),
-                'verb': _('Approval'),
-                'description': _('approved')
+            InclusaoAlimentacaoStatus.A_VISUALIZAR: {
+                'receptor': User.objects.all(),
+                'aviso': _('Aprovação'),
+                'descricao': _('aprovado')
             },
-            FoodInclusionStatus.DENIED_BY_CODAE: {
-                'recipient': User.objects.all(),
-                'verb': _('Denial by CODAE'),
-                'description': _('denied by CODAE')
+            InclusaoAlimentacaoStatus.NEGADO_PELA_CODAE: {
+                'receptor': User.objects.all(),
+                'aviso': _('Negado pela CODAE'),
+                'descricao': _('negado pela CODAE')
             },
-            FoodInclusionStatus.DENIED_BY_COMPANY: {
-                'recipient': User.objects.all(),
-                'verb': _('Denial by Company'),
-                'description': _('denied by company')
+            InclusaoAlimentacaoStatus.NEGADO_PELA_TERCEIRIZADA_: {
+                'receptor': User.objects.all(),
+                'aviso': _('Negado pela Terceirizada'),
+                'descricao': _('negada pela terceirizada')
             },
-            FoodInclusionStatus.VISUALIZED: {
-                'recipient': User.objects.all(),
-                'verb': _('Visualization'),
-                'description': _('visualized')
+            InclusaoAlimentacaoStatus.VISUALIZADO: {
+                'receptor': User.objects.all(),
+                'aviso': _('Visualização'),
+                'descricao': _('visualizado')
             },
         }
-        return notification_dict[self.status.name][_type]
+        return notificacao_dict[self.status.nome][_type]
 
-    def send_notification(self, actor, validation_diff='creation'):
+    def enviar_notificacao(self, actor, validation_diff='creation'):
         notify.send(
             sender=actor,
-            recipient=self._notification_aux('recipient', validation_diff),
-            verb=_('Food Inclusion - ') + self._notification_aux('verb', validation_diff),
+            recipient=self._notificacao_aux('receptor', validation_diff),
+            verb=_('Inclusao Alimentacao - ') + self._notificacao_aux('verb', validation_diff),
             action_object=self,
-            description="O usuário" + actor.name + self._notification_aux('description', validation_diff) +
+            description="O usuário" + actor.name + self._notificacao_aux('descricao', validation_diff) +
                         " uma inclusão de alimentação")
 
 
-class FoodInclusionDescription(models.Model):
+class DescricaoInclusaoAlimentacao(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-    period = models.ForeignKey(PeriodoEscolar, on_delete=models.DO_NOTHING)
-    meal_type = models.ManyToManyField(TipoRefeicao)
-    number_of_students = models.IntegerField()
-    food_inclusion = models.ForeignKey(FoodInclusion, on_delete=models.CASCADE)
+    periodo = models.ForeignKey(PeriodoEscolar, on_delete=models.DO_NOTHING)
+    tipo_refeicao = models.ManyToManyField(TipoRefeicao)
+    numero_de_estudantes = models.IntegerField()
+    inclusao_alimentacao = models.ForeignKey(InclusaoAlimentacao, on_delete=models.CASCADE)
 
     def __str__(self):
-        return '{name} - {number_of_students}'.format(name=self.period.name,
-                                                      number_of_students=str(self.number_of_students))
+        return '{name} - {number_of_students}'.format(name=self.periodo.name,
+                                                      number_of_students=str(self.numero_de_estudantes))
 
     class Meta:
-        verbose_name = _("Food Inclusion description")
-        verbose_name_plural = _("Food Inclusion descriptions")
+        verbose_name = _("Descrição de inclusão de alimentação")
+        verbose_name_plural = _("Descrições de inclusão de alimentação")
 
-    def create_or_update(self, request_data, food_inclusion):
-        school_period = request_data.get('value')
-        meal_types = request_data.get('select') if isinstance(request_data.get('select'), list) else [
+    def criar_ou_atualizar(self, request_data, food_inclusion):
+        periodo_escolar = request_data.get('value')
+        tipo_refeicao = request_data.get('select') if isinstance(request_data.get('select'), list) else [
             request_data.get('select')]
-        self.number_of_students = request_data.get('number')
-        self.food_inclusion = food_inclusion
-        self.period = get_object(PeriodoEscolar, value=school_period)
+        self.numero_de_estudantes = request_data.get('number')
+        self.inclusao_alimentacao = food_inclusion
+        self.periodo = obter_objeto(PeriodoEscolar, value=periodo_escolar)
         self.save()
-        for meal_type in meal_types:
-            self.meal_type.add(get_object(TipoRefeicao, name=meal_type))
+        for refeicao in tipo_refeicao:
+            self.tipo_refeicao.add(obter_objeto(TipoRefeicao, name=refeicao))
         self.save()
 
 
-class FoodInclusionDayReason(models.Model):
+class DiaMotivoInclusaoAlimentacao(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-    food_inclusion = models.ForeignKey(FoodInclusion, on_delete=models.CASCADE)
-    reason = models.ForeignKey(FoodInclusionReason, on_delete=models.DO_NOTHING)
-    which_reason = models.TextField(blank=True, null=True)
-    priority = models.BooleanField(default=False)
+    inclusao_alimentacao = models.ForeignKey(InclusaoAlimentacao, on_delete=models.CASCADE)
+    motivo = models.ForeignKey(MotivoInclusaoAlimentacao, on_delete=models.DO_NOTHING)
+    descricao_motivo = models.TextField(blank=True, null=True)
+    prioridade = models.BooleanField(default=False)
     date = models.DateField(blank=True, null=True)
-    date_from = models.DateField(blank=True, null=True)
-    date_to = models.DateField(blank=True, null=True)
-    weekdays = models.CharField(blank=True, null=True, max_length=14,
+    do_dia = models.DateField(blank=True, null=True)
+    ate_dia = models.DateField(blank=True, null=True)
+    dias_semana = models.CharField(blank=True, null=True, max_length=14,
                                 validators=[validate_comma_separated_integer_list])
 
-    def create_or_update(self, request_data, food_inclusion):
-        date = request_data.get('date', None)
-        reason = request_data.get('reason')
-        self.reason = FoodInclusionReason.objects.get(name=reason)
-        self.which_reason = request_data.get('which_reason', None)
-        self.food_inclusion = food_inclusion
-        if date:
-            self.date = str_to_date(date)
-            self.priority = get_working_days_after(days=2) <= self.date <= get_working_days_after(days=5)
-            self.date_from = None
-            self.date_to = None
-            self.weekdays = None
+    def criar_ou_atualizar(self, request_data, inclusao_alimentacao):
+        data = request_data.get('data', None)
+        motivo = request_data.get('motivo')
+        self.motivo = MotivoInclusaoAlimentacao.objects.get(name=motivo)
+        self.descricao_motivo = request_data.get('descricao_motivo', None)
+        self.inclusao_alimentacao = inclusao_alimentacao
+        if data:
+            self.data = str_to_date(data)
+            self.prioridade = obter_dias_uteis_apos(days=2) <= self.data <= obter_dias_uteis_apos(days=5)
+            self.do_dia = None
+            self.ate_dia = None
+            self.dias_semana = None
         else:
-            self.date = None
-            self.date_from = str_to_date(request_data.get('date_from'))
-            self.date_to = str_to_date(request_data.get('date_to'))
-            self.weekdays = ",".join(request_data.get('weekdays', None))
+            self.data = None
+            self.do_dia = str_to_date(request_data.get('do_dia'))
+            self.ate_dia = str_to_date(request_data.get('ate_dia'))
+            self.dias_semana = ",".join(request_data.get('dias_semana', None))
         self.save()
