@@ -5,8 +5,8 @@ from django.utils.translation import ugettext_lazy as _
 
 
 class Descritivel(models.Model):
-    nome = models.CharField(_("Name"), blank=True, null=True, max_length=50)
-    descricao = models.TextField(_("Description"), blank=True, null=True, max_length=256)
+    nome = models.CharField(_("Nome"), blank=True, null=True, max_length=50)
+    descricao = models.TextField(_("Descricao"), blank=True, null=True, max_length=256)
 
     class Meta:
         abstract = True

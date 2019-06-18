@@ -5,7 +5,7 @@
 import pandas as pd
 
 from sme_pratoaberto_terceirizadas.escola.models import Escola, TipoGestao, TipoUnidadeEscolar, SubPrefeitura
-from sme_pratoaberto_terceirizadas.common_data.models import Address, CityLocation, Contact
+from sme_pratoaberto_terceirizadas.dados_comuns.models import Endereco, LocalizacaoCidade, Contato
 
 df = pd.read_csv('wes.csv', dtype={'CODAE': str}, sep='¬')
 
@@ -54,9 +54,9 @@ def check_create_school_unit_type(name, description):
 
 
 def check_create_city_location(city, state):
-    c_loc = CityLocation.objects.filter(city=city, state=state).first()
+    c_loc = LocalizacaoCidade.objects.filter(city=city, state=state).first()
     if not c_loc:
-        c_loc = CityLocation(city=city, state=state)
+        c_loc = LocalizacaoCidade(city=city, state=state)
         c_loc.save()
     return c_loc
 
@@ -65,7 +65,7 @@ def create_address(line, city):
     # TODO common_data_address.complement pode ser NULL
     # TODO incluir complemento no csv
     # TODO common_data_address.lat e common_data_address.lon podem ser NULL
-    addrss = Address(street_name=line.ENDERECO,
+    addrss = Endereco(street_name=line.ENDERECO,
                      # complement=line.COMPLEMENTO,
                      district=line.BAIRRO,
                      number=line.NUMERO,
@@ -112,7 +112,7 @@ for _, line in df.iterrows():
     escola.save()
 
     # CONTATO/CONTACT
-    contato = Contact(name=line.NOME,
+    contato = Contato(name=line.NOME,
                       phone=line.TELEFONE1,
                       mobile_phone=line.TELEFONE2,
                       email=line.EMAIL)

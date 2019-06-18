@@ -7,29 +7,29 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.viewsets import ViewSet, ModelViewSet
 
-from .serializers import WorkingDaysSerializer, EmailConfigurationSerializer
-from ..models import WorkingDays
+from .serializers import DiasUteisSerializer, ConfiguracaoEmailSerializer
+from ..models import DiasUteis
 from ..utils import obter_dias_uteis_apos
 
 
-class WorkingDaysViewSet(ViewSet):
+class DiasUteisViewSet(ViewSet):
     permission_classes = ()
-    serializer_class = WorkingDaysSerializer
+    serializer_class = DiasUteisSerializer
 
     def list(self, request):
-        working_days = {
-            1: WorkingDays(
-                date_five_working_days=obter_dias_uteis_apos(5).strftime('%d/%m/%Y'),
-                date_two_working_days=obter_dias_uteis_apos(2).strftime('%d/%m/%Y'))
+        dias_uteis = {
+            1: DiasUteis(
+                data_cinco_dias_uteis=obter_dias_uteis_apos(5).strftime('%d/%m/%Y'),
+                data_dois_dias_uteis=obter_dias_uteis_apos(2).strftime('%d/%m/%Y'))
         }
-        serializer = WorkingDaysSerializer(
-            instance=working_days.values(), many=True)
+        serializer = DiasUteisSerializer(
+            instance=dias_uteis.values(), many=True)
         return Response(serializer.data)
 
 
-class EmailConfigurationViewSet(ModelViewSet):
+class ConfiguracaoEmailViewSet(ModelViewSet):
     queryset = DynamicEmailConfiguration.objects.all()
-    serializer_class = EmailConfigurationSerializer
+    serializer_class = ConfiguracaoEmailSerializer
 
     def list(self, request: Request, *args: Any, **kwargs: Any) -> Response:
         return super().list(request, *args, **kwargs)

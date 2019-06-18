@@ -2,7 +2,7 @@ import datetime
 
 from rest_framework import serializers
 
-from sme_pratoaberto_terceirizadas.common_data.utils import obter_dias_uteis_apos, is_working_day
+from sme_pratoaberto_terceirizadas.dados_comuns.utils import obter_dias_uteis_apos, eh_dia_util
 
 
 def nao_pode_ser_passado(data: datetime.date):
@@ -19,7 +19,7 @@ def deve_pedir_com_antecedencia(dia: datetime.date, dias: int = 2):
 
 
 def dia_util(data: datetime.date):
-    if not is_working_day(data):
+    if not eh_dia_util(data):
         raise serializers.ValidationError('Não é dia útil em São Paulo')
     return True
 

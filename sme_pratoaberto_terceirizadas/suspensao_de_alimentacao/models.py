@@ -3,7 +3,7 @@ import uuid
 from django.core.validators import validate_comma_separated_integer_list
 from django.db import models
 
-from sme_pratoaberto_terceirizadas.common_data.utils import obter_dias_uteis_apos
+from sme_pratoaberto_terceirizadas.dados_comuns.utils import obter_dias_uteis_apos
 from sme_pratoaberto_terceirizadas.alimento.models import TipoRefeicao
 from sme_pratoaberto_terceirizadas.escola.models import PeriodoEscolar
 from sme_pratoaberto_terceirizadas.users.models import User

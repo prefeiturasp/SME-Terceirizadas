@@ -6,7 +6,7 @@ from django.utils.translation import ugettext as _
 from notifications.signals import notify
 
 from sme_pratoaberto_terceirizadas.abstract_shareable import Descritivel, RegistroHora, Ativavel
-from sme_pratoaberto_terceirizadas.common_data.utils import str_to_date, obter_dias_uteis_apos
+from sme_pratoaberto_terceirizadas.dados_comuns.utils import string_para_data, obter_dias_uteis_apos
 from sme_pratoaberto_terceirizadas.alimento.models import TipoRefeicao
 from sme_pratoaberto_terceirizadas.inclusao_alimentacao.utils import obter_objeto
 from sme_pratoaberto_terceirizadas.escola.models import PeriodoEscolar
@@ -190,14 +190,14 @@ class DiaMotivoInclusaoAlimentacao(models.Model):
         self.descricao_motivo = request_data.get('descricao_motivo', None)
         self.inclusao_alimentacao = inclusao_alimentacao
         if data:
-            self.data = str_to_date(data)
+            self.data = string_para_data(data)
             self.prioridade = obter_dias_uteis_apos(days=2) <= self.data <= obter_dias_uteis_apos(days=5)
             self.do_dia = None
             self.ate_dia = None
             self.dias_semana = None
         else:
             self.data = None
-            self.do_dia = str_to_date(request_data.get('do_dia'))
-            self.ate_dia = str_to_date(request_data.get('ate_dia'))
+            self.do_dia = string_para_data(request_data.get('do_dia'))
+            self.ate_dia = string_para_data(request_data.get('ate_dia'))
             self.dias_semana = ",".join(request_data.get('dias_semana', None))
         self.save()

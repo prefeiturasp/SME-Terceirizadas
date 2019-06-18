@@ -11,8 +11,8 @@ from rest_framework_jwt.views import obtain_jwt_token, refresh_jwt_token
 from rest_framework_swagger.views import get_swagger_view
 
 from sme_pratoaberto_terceirizadas.cardapio.urls import urlpatterns as cardapio_url
-from sme_pratoaberto_terceirizadas.common_data.api.viewsets import WorkingDaysViewSet
-from sme_pratoaberto_terceirizadas.common_data.urls import urlpatterns as common_urls
+from sme_pratoaberto_terceirizadas.dados_comuns.api.viewsets import DiasUteisViewSet
+from sme_pratoaberto_terceirizadas.dados_comuns.urls import urlpatterns as common_urls
 from sme_pratoaberto_terceirizadas.alimento.api.routers import urlpatterns as alimento_url
 from sme_pratoaberto_terceirizadas.inclusao_alimentacao.api.viewsets import InclusaoAlimentacaoViewSet
 from sme_pratoaberto_terceirizadas.kit_lanche.api.routers import urlpatterns as meal_kit_url
@@ -25,7 +25,7 @@ from sme_pratoaberto_terceirizadas.suspensao_de_alimentacao.api.routers import u
 schema_view = get_swagger_view(title=_('API of SME-Companies'))
 
 route = DefaultRouter(trailing_slash=True)
-route.register('working_days', WorkingDaysViewSet, 'working_days')
+route.register('working_days', DiasUteisViewSet, 'working_days')
 route.register('inclusao_alimentacao', InclusaoAlimentacaoViewSet)
 
 urlpatterns = [

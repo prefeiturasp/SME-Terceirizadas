@@ -5,9 +5,9 @@ from .api import viewsets
 from .views import send_test_email
 
 router = routers.DefaultRouter()
-router.register('email', viewsets.EmailConfigurationViewSet)
+router.register('email', viewsets.ConfiguracaoEmailViewSet)
 
 urlpatterns = [
     path("", include(router.urls)),
-    path("email-test/", send_test_email, name="send_test_email")
+    path("email-teste/", send_test_email, name="enviar_email_teste")
 ]
