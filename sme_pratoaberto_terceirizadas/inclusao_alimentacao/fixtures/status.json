@@ -1,55 +1,55 @@
 [
   {
-    "model": "food_inclusion.foodinclusionstatus",
+    "model": "inclusao_alimentacao.inclusaoalimentacaostatus",
     "id": 1,
     "fields": {
       "name": "SALVO"
     }
   },
   {
-    "model": "food_inclusion.foodinclusionstatus",
+    "model": "inclusao_alimentacao.inclusaoalimentacaostatus",
     "id": 2,
     "fields": {
       "name": "A_VALIDAR"
     }
   },
   {
-    "model": "food_inclusion.foodinclusionstatus",
+    "model": "inclusao_alimentacao.inclusaoalimentacaostatus",
     "id": 3,
     "fields": {
       "name": "A_APROVAR"
     }
   },
   {
-    "model": "food_inclusion.foodinclusionstatus",
+    "model": "inclusao_alimentacao.inclusaoalimentacaostatus",
     "id": 4,
     "fields": {
       "name": "A_EDITAR"
     }
   },
   {
-    "model": "food_inclusion.foodinclusionstatus",
+    "model": "inclusao_alimentacao.inclusaoalimentacaostatus",
     "id": 5,
     "fields": {
       "name": "A_VISUALIZAR"
     }
   },
   {
-    "model": "food_inclusion.foodinclusionstatus",
+    "model": "inclusao_alimentacao.inclusaoalimentacaostatus",
     "id": 6,
     "fields": {
       "name": "NEGADO_PELA_CODAE"
     }
   },
   {
-    "model": "food_inclusion.foodinclusionstatus",
+    "model": "inclusao_alimentacao.inclusaoalimentacaostatus",
     "id": 7,
     "fields": {
       "name": "NEGADO_PELA_TERCEIRIZADA"
     }
   },
   {
-    "model": "food_inclusion.foodinclusionstatus",
+    "model": "inclusao_alimentacao.inclusaoalimentacaostatus",
     "id": 8,
     "fields": {
       "name": "VISUALIZADO"

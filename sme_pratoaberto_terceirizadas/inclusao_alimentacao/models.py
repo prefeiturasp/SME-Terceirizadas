@@ -8,7 +8,7 @@ from notifications.signals import notify
 from sme_pratoaberto_terceirizadas.abstract_shareable import Descritivel, RegistroHora, Ativavel
 from sme_pratoaberto_terceirizadas.common_data.utils import str_to_date, obter_dias_uteis_apos
 from sme_pratoaberto_terceirizadas.alimento.models import TipoRefeicao
-from sme_pratoaberto_terceirizadas.food_inclusion.utils import obter_objeto
+from sme_pratoaberto_terceirizadas.inclusao_alimentacao.utils import obter_objeto
 from sme_pratoaberto_terceirizadas.escola.models import PeriodoEscolar
 from sme_pratoaberto_terceirizadas.users.models import User
 
@@ -148,11 +148,11 @@ class DescricaoInclusaoAlimentacao(models.Model):
     periodo = models.ForeignKey(PeriodoEscolar, on_delete=models.DO_NOTHING)
     tipo_refeicao = models.ManyToManyField(TipoRefeicao)
     numero_de_estudantes = models.IntegerField()
-    inclusao_alimentacao = models.ForeignKey(InclusaoAlimentacao, on_delete=models.CASCADE)
+    inclusao_alimentacao = models.ForeignKey(InclusaoAlimentacao, related_name="descricoes", on_delete=models.CASCADE)
 
     def __str__(self):
-        return '{name} - {number_of_students}'.format(name=self.periodo.name,
-                                                      number_of_students=str(self.numero_de_estudantes))
+        return '{nome} - {numero_de_estudantes}'.format(nome=self.periodo.name,
+                                                      numero_de_estudantes=str(self.numero_de_estudantes))
 
     class Meta:
         verbose_name = _("Descrição de inclusão de alimentação")
@@ -174,10 +174,10 @@ class DescricaoInclusaoAlimentacao(models.Model):
 class DiaMotivoInclusaoAlimentacao(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     inclusao_alimentacao = models.ForeignKey(InclusaoAlimentacao, on_delete=models.CASCADE)
-    motivo = models.ForeignKey(MotivoInclusaoAlimentacao, on_delete=models.DO_NOTHING)
+    motivo = models.ForeignKey(MotivoInclusaoAlimentacao,  related_name="motivos", on_delete=models.DO_NOTHING)
     descricao_motivo = models.TextField(blank=True, null=True)
     prioridade = models.BooleanField(default=False)
-    date = models.DateField(blank=True, null=True)
+    data = models.DateField(blank=True, null=True)
     do_dia = models.DateField(blank=True, null=True)
     ate_dia = models.DateField(blank=True, null=True)
     dias_semana = models.CharField(blank=True, null=True, max_length=14,

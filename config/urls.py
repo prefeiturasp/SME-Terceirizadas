@@ -14,7 +14,7 @@ from sme_pratoaberto_terceirizadas.cardapio.urls import urlpatterns as cardapio_
 from sme_pratoaberto_terceirizadas.common_data.api.viewsets import WorkingDaysViewSet
 from sme_pratoaberto_terceirizadas.common_data.urls import urlpatterns as common_urls
 from sme_pratoaberto_terceirizadas.alimento.api.routers import urlpatterns as alimento_url
-from sme_pratoaberto_terceirizadas.food_inclusion.api.viewsets import FoodInclusionViewSet
+from sme_pratoaberto_terceirizadas.inclusao_alimentacao.api.viewsets import InclusaoAlimentacaoViewSet
 from sme_pratoaberto_terceirizadas.kit_lanche.api.routers import urlpatterns as meal_kit_url
 from sme_pratoaberto_terceirizadas.permission.routers import urlpatterns as permissions_url
 from sme_pratoaberto_terceirizadas.escola.routers import urlpatterns as escola_url
@@ -26,7 +26,7 @@ schema_view = get_swagger_view(title=_('API of SME-Companies'))
 
 route = DefaultRouter(trailing_slash=True)
 route.register('working_days', WorkingDaysViewSet, 'working_days')
-route.register('food_inclusion', FoodInclusionViewSet)
+route.register('inclusao_alimentacao', InclusaoAlimentacaoViewSet)
 
 urlpatterns = [
                   path('docs', schema_view),
