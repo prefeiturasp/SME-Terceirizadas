@@ -110,10 +110,8 @@ class StatusSolicitacoes(Enum):
     TERCEIRIZADA_A_VISUALIZADO = 'TERCEIRIZADA_A_VISUALIZADO'
 
 
-status_validacao = [StatusSolicitacoes.DRE_A_VALIDAR, StatusSolicitacoes.DRE_APROVADO,
-                    StatusSolicitacoes.CODAE_A_VALIDAR,
-                    StatusSolicitacoes.CODAE_APROVADO, StatusSolicitacoes.TERCEIRIZADA_A_VISUALIZAR,
-                    StatusSolicitacoes.TERCEIRIZADA_A_VISUALIZADO]
+status_validacao = ['DRE_A_VALIDAR', 'DRE_APROVADO', 'CODAE_A_VALIDAR', 'CODAE_APROVADO', 'TERCEIRIZADA_A_VISUALIZAR',
+                    'TERCEIRIZADA_A_VISUALIZADO']
 
 
 class InverterDiaCardapio(models.Model):
@@ -129,6 +127,32 @@ class InverterDiaCardapio(models.Model):
                               max_length=60,
                               choices=[(status.value, status.value) for status in StatusSolicitacoes],
                               default=StatusSolicitacoes.DRE_A_VALIDAR)
+
+    @classmethod
+    def solicitar(cls, request, usuario: User):
+        if request.get('uuid'):
+            obj = cls.objects.filter(uuid=request.get('uuid')).first()
+            obj.usuario = usuario
+            obj.data_de = request.get('data_de')
+            obj.data_para = request.get('data_para')
+            obj.status = 'DRE_A_VALIDAR'
+            obj.descricao = request.get('descricao')
+            obj.observacao = request.get('observacao')
+            obj.escola = request.get('escola')
+            obj.save()
+            return obj
+        else:
+            obj = InverterDiaCardapio(
+                usuario=usuario,
+                data_de=request.get('data_de'),
+                data_para=request.get('data_para'),
+                status='DRE_A_VALIDAR',
+                descricao=request.get('descricao'),
+                observacao=request.get('observacao'),
+                escola=request.get('escola')
+            )
+            obj.save()
+            return obj
 
     @classmethod
     def ja_existe(cls, request):
@@ -156,33 +180,32 @@ class InverterDiaCardapio(models.Model):
 
     @classmethod
     def valida_dia_atual(cls, request):
-        if request.get('data_de') == now().date() or request.get('data_para') == now().date():
+        if request.get('data_de').date() == now().date() or request.get('data_para').date() == now().date():
             return False
         return True
 
     @classmethod
     def salvar_solicitacao(cls, request, usuario):
-        escola = School.objects.filter(users=usuario).first()
         if request.get('uuid'):
             obj = cls.objects.get(uuid=request.get('uuid'))
             obj.usuario = usuario
-            obj.data_de = converter_str_para_datetime(request.get('data_de'), formato='%d/%m/%Y')
-            obj.data_para = converter_str_para_datetime(request.get('data_para'), formato='%d/%m/%Y')
+            obj.data_de = request.get('data_de')
+            obj.data_para = request.get('data_para')
             obj.status = 'ESCOLA_SALVOU'
             obj.descricao = request.get('descricao')
             obj.observacao = request.get('observacao')
-            obj.escola = escola
+            obj.escola = request.get('escola')
             obj.save()
             return obj
         else:
             obj = InverterDiaCardapio(
                 usuario=usuario,
-                data_de=converter_str_para_datetime(request.get('data_de'), formato='%d/%m/%Y'),
-                data_para=converter_str_para_datetime(request.get('data_para'), formato='%d/%m/%Y'),
+                data_de=request.get('data_de'),
+                data_para=request.get('data_para'),
                 status='ESCOLA_SALVOU',
                 descricao=request.get('descricao'),
                 observacao=request.get('observacao'),
-                escola=escola
+                escola=request.get('escola')
             )
             obj.save()
             return obj

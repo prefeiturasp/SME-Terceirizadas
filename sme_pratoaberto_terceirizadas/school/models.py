@@ -95,5 +95,9 @@ class School(Activable):
     periods = models.ManyToManyField(SchoolPeriod, blank=True)
     users = models.ManyToManyField(User, blank=True)
 
+    @classmethod
+    def get_escola_by_usuario(cls, usuario: User):
+        return cls.objects.filter(users=usuario).first()
+
     def __str__(self):
         return self.name

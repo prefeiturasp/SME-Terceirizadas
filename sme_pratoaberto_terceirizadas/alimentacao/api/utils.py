@@ -19,7 +19,7 @@ def valida_dia_util(dia):
 def valida_dia_feriado(dia):
     feriados = calendar.get_variable_days(dia.year)
     for feriado in feriados:
-        if dia == feriado[0]:
+        if dia.date() == feriado[0]:
             return False
     return True
 
@@ -35,14 +35,14 @@ def valida_usuario_vinculado_escola(usuario: User):
     return School.objects.filter(users=usuario).exists()
 
 
-def notifica_dres(usuario: User, escola: str, dia_de: str, dia_para: str):
-    escola = School.objects.get(pk=escola)
+def notifica_dres(usuario: User, escola: School, dia_de: datetime, dia_para: datetime):
+    # escola = School.objects.get(pk=escola)
     usuarios_dre = RegionalDirector.objects.get(school=escola).users.all()
     email_usuarios_dre = RegionalDirector.objects.filter(school=escola).values_list('users__email')
     mensagem_notificacao = 'Solicitação de inversão de dia de cardápio para a escola {} do dia {} para o dia: {}'.format(
         escola,
-        dia_de,
-        dia_para)
+        dia_de.date().strftime('%d/%m/%Y'),
+        dia_para.date().strftime('%d/%m/%Y'))
 
     send_notification(
         usuario,
