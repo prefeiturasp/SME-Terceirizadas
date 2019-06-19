@@ -5,8 +5,8 @@ from model_mommy import mommy
 from sme_pratoaberto_terceirizadas.alimento.models import Refeicao
 from sme_pratoaberto_terceirizadas.meal_kit.models import SolicitacaoKitLanche
 from .meal_kit.models import KitLanche
-from .permission.models import Permission, ProfilePermission
-from .users.models import Profile, Institution
+from .permission.models import Permissao, PermissaoPerfil
+from .users.models import Perfil, Institution
 
 fake = Faker('pt_BR')
 fake.seed(420)
@@ -35,15 +35,15 @@ def order_meal_kit(request):
 @pytest.fixture
 def profile():
     institution = mommy.make(Institution, name='Faker SA')
-    return mommy.make(Profile, title='título do perfil', institution=institution)
+    return mommy.make(Perfil, title='título do perfil', institution=institution)
 
 
 @pytest.fixture
 def permission():
-    return mommy.make(Permission, title='A permissão do fulano de tal', endpoint='http://meu.endpoint/')
+    return mommy.make(Permissao, title='A permissão do fulano de tal', endpoint='http://meu.endpoint/')
 
 
 @pytest.fixture
 def profile_permission():
-    permission = mommy.make(Permission, title='A permissão do fulano de tal', endpoint='http://meu.endpoint/')
-    return mommy.make(ProfilePermission, permission=permission)
+    permission = mommy.make(Permissao, title='A permissão do fulano de tal', endpoint='http://meu.endpoint/')
+    return mommy.make(PermissaoPerfil, permission=permission)

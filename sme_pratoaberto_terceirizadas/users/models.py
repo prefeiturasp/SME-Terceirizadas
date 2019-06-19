@@ -110,17 +110,17 @@ class Institution(models.Model):
         verbose_name_plural = _('Institutions')
 
 
-class Profile(Ativavel):
+class Perfil(Ativavel):
     """Perfil de usuário"""
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-    title = models.CharField(_('Title'), max_length=90)
-    institution = models.ForeignKey(Institution, on_delete=models.DO_NOTHING)
+    titulo = models.CharField(_('Title'), max_length=90)
+    instituicao = models.ForeignKey(Institution, on_delete=models.DO_NOTHING)
 
     def __str__(self):
-        return self.title
+        return self.titulo
 
     class Meta:
-        verbose_name = _('Profile')
+        verbose_name = _('Perfil')
 
 
 class User(CustomAbstractUser):
@@ -134,6 +134,6 @@ class User(CustomAbstractUser):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     functional_register = models.CharField(_('Functional register'), max_length=60,
                                            unique=True, blank=True, null=True)
-    profile = models.ForeignKey(Profile, on_delete=models.DO_NOTHING, null=True, blank=True)
+    profile = models.ForeignKey(Perfil, on_delete=models.DO_NOTHING, null=True, blank=True)
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []

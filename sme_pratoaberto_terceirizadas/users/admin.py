@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 from django.utils.translation import ugettext_lazy as _
 
-from .models import User, Profile, Institution
+from .models import User, Perfil, Institution
 
 
 class BaseUserAdmin(DjangoUserAdmin):
@@ -38,7 +38,7 @@ admin.site.register(Institution)
 admin.site.register(User, BaseUserAdmin)
 
 
-@admin.register(Profile)
+@admin.register(Perfil)
 class ProfileAdmin(admin.ModelAdmin):
-    list_display = ['title', 'institution', 'uuid']
-    ordering = ['title', 'institution']
+    list_display = ['titulo', 'instituicao', 'uuid']
+    ordering = ['titulo', 'instituicao']

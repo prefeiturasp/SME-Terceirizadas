@@ -16,7 +16,7 @@ from sme_pratoaberto_terceirizadas.dados_comuns.urls import urlpatterns as commo
 from sme_pratoaberto_terceirizadas.alimento.api.routers import urlpatterns as alimento_url
 from sme_pratoaberto_terceirizadas.inclusao_alimentacao.api.viewsets import InclusaoAlimentacaoViewSet
 from sme_pratoaberto_terceirizadas.kit_lanche.api.routers import urlpatterns as meal_kit_url
-from sme_pratoaberto_terceirizadas.permission.routers import urlpatterns as permissions_url
+from sme_pratoaberto_terceirizadas.permissao.routers import urlpatterns as permissions_url
 from sme_pratoaberto_terceirizadas.escola.routers import urlpatterns as escola_url
 from sme_pratoaberto_terceirizadas.users.routers import urlpatterns as user_url
 from sme_pratoaberto_terceirizadas.alimentacao.api.routers import urlpattern as alimentacao_url
