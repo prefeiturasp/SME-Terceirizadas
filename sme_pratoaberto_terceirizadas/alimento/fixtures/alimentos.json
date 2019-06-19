@@ -1,6 +1,6 @@
 [
   {
-    "model": "food.alimento",
+    "model": "alimento.alimento",
     "id": 1,
     "fields": {
       "titulo": "Barra de Cereal (20 a 25 g embalagem individual)",
@@ -9,7 +9,7 @@
     }
   },
   {
-    "model": "food.alimento",
+    "model": "alimento.alimento",
     "id": 2,
     "fields": {
       "titulo": "Pão tipo hot dog (50g) com queijo (40g, duas fatias)",
@@ -18,7 +18,7 @@
     }
   },
   {
-    "model": "food.alimento",
+    "model": "alimento.alimento",
     "id": 3,
     "fields": {
       "titulo": "Pão tipo Bisnaguinha (2 unidades - 40 g )",
@@ -27,7 +27,7 @@
     }
   },
   {
-    "model": "food.alimento",
+    "model": "alimento.alimento",
     "id": 4,
     "fields": {
       "titulo": "Néctar UHT ou Suco Tropical UHT (200 ml)",
@@ -45,7 +45,7 @@
     }
   },
   {
-    "model": "food.alimento",
+    "model": "alimento.alimento",
     "id": 6,
     "fields": {
       "titulo": "Biscoito Integral Salgado (mín. de 25g embalagem individual)",
@@ -53,7 +53,7 @@
       "ativo": true
     }
   },{
-    "model": "food.alimento",
+    "model": "alimento.alimento",
     "id": 7,
     "fields": {
       "titulo": "Bebida Láctea UHT Sabor Chocolate (200 ml)",

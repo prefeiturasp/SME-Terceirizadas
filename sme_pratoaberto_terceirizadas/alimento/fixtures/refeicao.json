@@ -1,6 +1,6 @@
 [
   {
-    "model": "food.refeicao",
+    "model": "alimento.refeicao",
     "id": 1,
     "fields": {
       "titulo": "Kit 1",
@@ -8,7 +8,7 @@
     }
   },
   {
-    "model": "food.refeicao",
+    "model": "alimento.refeicao",
     "id": 2,
     "fields": {
       "titulo": "Kit 2",
@@ -16,7 +16,7 @@
     }
   },
   {
-    "model": "food.refeicao",
+    "model": "alimento.refeicao",
     "id": 3,
     "fields": {
       "titulo": "Kit 3",

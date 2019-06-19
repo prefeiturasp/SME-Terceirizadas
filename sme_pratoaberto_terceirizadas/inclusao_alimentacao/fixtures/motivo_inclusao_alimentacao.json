@@ -3,49 +3,49 @@
     "model": "inclusao_alimentacao.motivoinclusaoalimentacao",
     "id": 1,
     "fields": {
-      "name": "Reposição de aula"
+      "nome": "Reposição de aula"
     }
   },
   {
     "model": "inclusao_alimentacao.motivoinclusaoalimentacao",
     "id": 2,
     "fields": {
-      "name": "Dia da família"
+      "nome": "Dia da família"
     }
   },
   {
     "model": "inclusao_alimentacao.motivoinclusaoalimentacao",
     "id": 3,
     "fields": {
-      "name": "Outro"
+      "nome": "Outro"
     }
   },
   {
     "model": "inclusao_alimentacao.motivoinclusaoalimentacao",
     "id": 4,
     "fields": {
-      "name": "Programa Contínuo - Mais Educação"
+      "nome": "Programa Contínuo - Mais Educação"
     }
   },
   {
     "model": "inclusao_alimentacao.motivoinclusaoalimentacao",
     "id": 5,
     "fields": {
-      "name": "Programa Contínuo - São Paulo integral"
+      "nome": "Programa Contínuo - São Paulo integral"
     }
   },
   {
     "model": "inclusao_alimentacao.motivoinclusaoalimentacao",
     "id": 6,
     "fields": {
-      "name": "Programa Contínuo - Extensão de Jornada"
+      "nome": "Programa Contínuo - Extensão de Jornada"
     }
   },
   {
     "model": "inclusao_alimentacao.motivoinclusaoalimentacao",
     "id": 7,
     "fields": {
-      "name": "Programa Contínuo - Outro"
+      "nome": "Programa Contínuo - Outro"
     }
   }
 ]

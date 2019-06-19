@@ -3,56 +3,56 @@
     "model": "inclusao_alimentacao.inclusaoalimentacaostatus",
     "id": 1,
     "fields": {
-      "name": "SALVO"
+      "nome": "SALVO"
     }
   },
   {
     "model": "inclusao_alimentacao.inclusaoalimentacaostatus",
     "id": 2,
     "fields": {
-      "name": "A_VALIDAR"
+      "nome": "A_VALIDAR"
     }
   },
   {
     "model": "inclusao_alimentacao.inclusaoalimentacaostatus",
     "id": 3,
     "fields": {
-      "name": "A_APROVAR"
+      "nome": "A_APROVAR"
     }
   },
   {
     "model": "inclusao_alimentacao.inclusaoalimentacaostatus",
     "id": 4,
     "fields": {
-      "name": "A_EDITAR"
+      "nome": "A_EDITAR"
     }
   },
   {
     "model": "inclusao_alimentacao.inclusaoalimentacaostatus",
     "id": 5,
     "fields": {
-      "name": "A_VISUALIZAR"
+      "nome": "A_VISUALIZAR"
     }
   },
   {
     "model": "inclusao_alimentacao.inclusaoalimentacaostatus",
     "id": 6,
     "fields": {
-      "name": "NEGADO_PELA_CODAE"
+      "nome": "NEGADO_PELA_CODAE"
     }
   },
   {
     "model": "inclusao_alimentacao.inclusaoalimentacaostatus",
     "id": 7,
     "fields": {
-      "name": "NEGADO_PELA_TERCEIRIZADA"
+      "nome": "NEGADO_PELA_TERCEIRIZADA"
     }
   },
   {
     "model": "inclusao_alimentacao.inclusaoalimentacaostatus",
     "id": 8,
     "fields": {
-      "name": "VISUALIZADO"
+      "nome": "VISUALIZADO"
     }
   }
 ]
