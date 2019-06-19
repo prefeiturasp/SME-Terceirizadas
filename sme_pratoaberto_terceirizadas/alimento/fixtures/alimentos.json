@@ -36,7 +36,7 @@
     }
   },
   {
-    "model": "food.alimento",
+    "model": "alimento.alimento",
     "id": 5,
     "fields": {
       "titulo": "Fruta",

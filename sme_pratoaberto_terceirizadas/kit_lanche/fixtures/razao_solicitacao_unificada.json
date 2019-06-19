@@ -42,7 +42,7 @@
     }
   },
   {
-    "model": nome"kit_lanche.razaosolicitacaounificada",
+    "model": "kit_lanche.razaosolicitacaounificada",
     "id": 7,
     "fields": {
       "nome": "Programa Contínuo - Outro"
