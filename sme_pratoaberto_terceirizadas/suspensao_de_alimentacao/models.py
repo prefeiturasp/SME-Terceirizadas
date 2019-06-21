@@ -119,7 +119,7 @@ class DiaRazaoSuspensaoDeAlimentacao(models.Model):
         else:
             obj.data_de = string_to_date(data.get('data_de'))
             obj.data_ate = string_to_date(data.get('data_ate'))
-            obj.dias_de_semana = ",".join(data.get('dias_de_semana'))
+            obj.dias_de_semana = data.get('dias_de_semana')
         obj.save()
         return obj
 

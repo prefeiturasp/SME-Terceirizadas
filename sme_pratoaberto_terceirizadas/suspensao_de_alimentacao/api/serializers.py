@@ -51,7 +51,11 @@ class SuspensaoDeAlimentacaoSerializer(serializers.ModelSerializer):
 
 class DiaRazaoSuspensaoDeAlimentacaoSerializer(serializers.ModelSerializer):
     razao = serializers.SlugRelatedField(slug_field='nome', queryset=RazaoSuspensaoDeAlimentacao.objects.all())
+    dias_de_semana = serializers.SerializerMethodField()
     suspensao_de_alimentacao = serializers.SerializerMethodField()
+
+    def get_dias_de_semana(self, obj):
+        return obj.dias_de_semana
 
     def get_suspensao_de_alimentacao(self, obj):
         return obj.suspensao_de_alimentacao.uuid
@@ -79,7 +83,7 @@ class DiaRazaoSuspensaoDeAlimentacaoSerializer(serializers.ModelSerializer):
         return value
 
     def validate(self, data):
-        if data['data_de'] and data['data_ate'] and data['data_de'] >= data['data_ate']:
+        if data.get('data_de', None) and data.get('data_ate', None) and data['data_de'] >= data['data_ate']:
             raise serializers.ValidationError('Data inicial não deve ser maior ou igual à data final')
         return data
 

@@ -1,4 +1,5 @@
 from django.http import Http404
+from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
@@ -103,3 +104,25 @@ class SuspensaoDeAlimentacaoViewSet(ModelViewSet):
             return Response({'error': validation_error.get_full_details()}, status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response({'success': 'Solicitação salva com sucesso'}, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['delete'])
+    def remover(self, request):
+        response = {'content': {}, 'log_content': {}, 'code': None}
+        try:
+            usuario = request.user
+            uuid = request.data.get('uuid', None)
+            suspensao_de_alimentacao = get_object_or_404(SuspensaoDeAlimentacao, uuid=uuid, criado_por=usuario)
+            assert suspensao_de_alimentacao.status == StatusSuspensaoDeAlimentacao.objects.get(
+                nome=StatusSuspensaoDeAlimentacao.SALVO), \
+                "Status de Suspensão de Alimentação não está como SALVO"
+            suspensao_de_alimentacao.delete()
+        except Http404 as error:
+            response['log_content'] = ['Usuário não encontrado'] if 'User' in str(error) else [
+                'Suspensão de alimentação não encontrada']
+            response['code'] = status.HTTP_404_NOT_FOUND
+        except AssertionError as error:
+            response['code'] = status.HTTP_400_BAD_REQUEST
+            response['log_content'] = [str(error)]
+        else:
+            response['code'] = status.HTTP_200_OK
+        return Response(response, status=response['code'])
