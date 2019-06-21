@@ -4,7 +4,7 @@ from .viewsets import SuspensaoDeAlimentacaoViewSet
 
 router = routers.DefaultRouter()
 
-router.register('suspensao-de-alimentacao', SuspensaoDeAlimentacaoViewSet, 'suspensao_de_alimentacao')
+router.register('suspensao-de-alimentacao', SuspensaoDeAlimentacaoViewSet, 'Suspensão de Alimentação')
 
 
 urlpatterns = [
