@@ -1,8 +1,8 @@
 from rest_framework import serializers
 
+from sme_pratoaberto_terceirizadas.escola.models import PeriodoEscolar
 from sme_pratoaberto_terceirizadas.inclusao_alimentacao.models import InclusaoAlimentacao, DescricaoInclusaoAlimentacao, \
     MotivoInclusaoAlimentacao, DiaMotivoInclusaoAlimentacao
-from sme_pratoaberto_terceirizadas.escola.models import PeriodoEscolar
 
 
 class MotivoInclusaoAlimentacaoSerializer(serializers.ModelSerializer):

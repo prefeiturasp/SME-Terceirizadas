@@ -4,11 +4,11 @@ from model_utils import Choices
 from model_utils.fields import StatusField
 
 from sme_pratoaberto_terceirizadas.abstract_shareable import Descritivel, IntervaloDeDia, TemChaveExterna, \
-    Motivos
+    Motivo
 from sme_pratoaberto_terceirizadas.escola.models import Escola, DiretoriaRegional
 
 
-class AlteracaoCardapio(IntervaloDeDia, Descritivel, TemChaveExterna, Motivos):
+class AlteracaoCardapio(IntervaloDeDia, Descritivel, TemChaveExterna, Motivo):
     STATUS = Choices(
 
         # DRE

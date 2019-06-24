@@ -5,7 +5,7 @@ from django.db import models
 from django.utils.translation import ugettext as _
 from notifications.signals import notify
 
-from sme_pratoaberto_terceirizadas.abstract_shareable import Descritivel, RegistroHora, Ativavel
+from sme_pratoaberto_terceirizadas.abstract_shareable import Descritivel, CriadoEm, Ativavel
 from sme_pratoaberto_terceirizadas.dados_comuns.utils import string_para_data, obter_dias_uteis_apos
 from sme_pratoaberto_terceirizadas.alimento.models import TipoRefeicao
 from sme_pratoaberto_terceirizadas.inclusao_alimentacao.utils import obter_objeto
@@ -44,7 +44,7 @@ class MotivoInclusaoAlimentacao(Descritivel, Ativavel):
         verbose_name_plural = _("Motivos")
 
 
-class InclusaoAlimentacao(RegistroHora):
+class InclusaoAlimentacao(CriadoEm):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     criado_por = models.ForeignKey(User, on_delete=models.DO_NOTHING)
     status = models.ForeignKey(InclusaoAlimentacaoStatus, on_delete=models.DO_NOTHING)

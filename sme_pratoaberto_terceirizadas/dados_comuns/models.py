@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
-from sme_pratoaberto_terceirizadas.abstract_shareable import Descritivel, RegistroHora
+from sme_pratoaberto_terceirizadas.abstract_shareable import Descritivel, CriadoEm
 
 
 class DiasUteis(object):
@@ -11,7 +11,7 @@ class DiasUteis(object):
             setattr(self, campo, kwargs.get(campo, None))
 
 
-class DadoLogEvenvos(RegistroHora, Descritivel):
+class DadoLogEvenvos(CriadoEm, Descritivel):
     """Eventos de dados importantes para acompanhamento.
     Ex.: Fulano X a tarefa do tipo Z no dia tal, passando os dados W
     #TODO: categorizar os tipos de evento (Enum)"""

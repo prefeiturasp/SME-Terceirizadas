@@ -3,7 +3,7 @@ from django.db import models
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
-from sme_pratoaberto_terceirizadas.abstract_shareable import Descritivel, RegistroHora
+from sme_pratoaberto_terceirizadas.abstract_shareable import Descritivel, CriadoEm
 from sme_pratoaberto_terceirizadas.escola.models import IdadeEscolar, GrupoEscolar, TipoUnidadeEscolar, TipoGestao
 from sme_pratoaberto_terceirizadas.users.models import User
 
@@ -59,7 +59,7 @@ class Refeicao(models.Model):
         verbose_name_plural = _("Refeições")
 
 
-class CardapioDia(RegistroHora):
+class CardapioDia(CriadoEm):
     """Cardápio para um dia"""
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     status = models.ForeignKey(StatusCardapio, on_delete=models.DO_NOTHING)
