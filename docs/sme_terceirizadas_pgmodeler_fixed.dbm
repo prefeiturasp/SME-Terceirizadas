@@ -3,7 +3,7 @@
 CAUTION: Do not modify this file unless you know what you are doing.
          Unexpected results may occur if the code is changed deliberately.
 -->
-<dbmodel pgmodeler-ver="0.9.1" last-position="0,0" last-zoom="0.3"
+<dbmodel pgmodeler-ver="0.9.1" last-position="0,0" last-zoom="0.6"
 	 default-owner="postgres">
 <database name="new_database" is-template="false" allow-conns="true">
 </database>
@@ -13,6 +13,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 
 <schema name="perfil" rect-visible="true" fill-color="#55aa00">
 	<role name="postgres"/>
+	<comment><![CDATA[a ideia é limitar os endpoints que um dado perfil tem acesso.]]></comment>
 </schema>
 
 <schema name="escola" rect-visible="true" fill-color="#9c12d9">
@@ -22,41 +23,47 @@ CAUTION: Do not modify this file unless you know what you are doing.
 <table name="permissao">
 	<schema name="perfil"/>
 	<role name="postgres"/>
-	<comment><![CDATA[Permissões do usuário]]></comment>
-	<position x="1960" y="1540"/>
+	<comment><![CDATA[Permissões do usuário. 
+Ex. Pode fazer compra, 
+pode abrir a escola, 
+pode fazer merenda, 
+pode dar aula,
+pode fechar a escola, etc.]]></comment>
+	<position x="1995.45" y="1950.09"/>
 	<column name="permissao_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
-	<column name="titulo" not-null="true">
+	<column name="descricao" not-null="true">
 		<type name="varchar" length="99"/>
 	</column>
 	<column name="ativo" not-null="true" default-value="true">
 		<type name="bool" length="0"/>
+	</column>
+	<column name="nome">
+		<type name="varchar" length="30"/>
 	</column>
 	<constraint name="papel_usuario_pk" type="pk-constr" table="perfil.permissao">
 		<columns names="permissao_id" ref-type="src-columns"/>
 	</constraint>
 </table>
 
-<schema name="alimentacao" rect-visible="true" fill-color="#000000">
+<schema name="alimentacao" rect-visible="true" fill-color="#ffff00">
 	<role name="postgres"/>
+	<comment><![CDATA[Verificar como trataremos cardápio no sistema de terceirizadas]]></comment>
 </schema>
 
-<table name="unidade_escolar">
+<table name="tipo_unidade_escolar">
 	<schema name="escola"/>
 	<role name="postgres"/>
-	<comment><![CDATA[Unidade escolar]]></comment>
-	<position x="580" y="160"/>
+	<comment><![CDATA[Unidade escolar. EMEF, EMEI, EMEBS, CEI, CEMEI]]></comment>
+	<position x="1537.5" y="1926.68"/>
 	<column name="unidade_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
-	<column name="titulo" not-null="true">
-		<type name="varchar" length="99"/>
+	<column name="iniciais" not-null="true">
+		<type name="varchar" length="15"/>
 	</column>
-	<column name="status_unidade" not-null="true">
-		<type name="bool" length="0"/>
-	</column>
-	<constraint name="unidade_pk" type="pk-constr" table="escola.unidade_escolar">
+	<constraint name="unidade_pk" type="pk-constr" table="escola.tipo_unidade_escolar">
 		<columns names="unidade_id" ref-type="src-columns"/>
 	</constraint>
 </table>
@@ -65,7 +72,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<schema name="escola"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Qual o tipo de gestão da escola. Ex.: Terceirizada, Direta e Mista]]></comment>
-	<position x="1240" y="140"/>
+	<position x="589.513" y="2067.67"/>
 	<column name="gestao_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -83,21 +90,25 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	</constraint>
 </table>
 
-<table name="idade">
+<table name="idade_escolar">
 	<schema name="escola"/>
 	<role name="postgres"/>
-	<comment><![CDATA[Tabela utilizada para registrar faiza etária de idade]]></comment>
-	<position x="1000" y="720"/>
+	<comment><![CDATA[Tabela utilizada para registrar faixa etária de idade.
+Ex. de 1 a 2 anos
+de 2 a 5 anos
+de 7 a 18 anos.
+de 6meses a 1 ano]]></comment>
+	<position x="730.295" y="1448.23"/>
 	<column name="idade_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
-	<column name="titulo" not-null="true">
-		<type name="varchar" length="99"/>
+	<column name="nome" not-null="true">
+		<type name="varchar" length="30"/>
 	</column>
-	<column name="status_idade" not-null="true" default-value="true">
+	<column name="ativo" not-null="true" default-value="true">
 		<type name="bool" length="0"/>
 	</column>
-	<constraint name="idade_pk" type="pk-constr" table="escola.idade">
+	<constraint name="idade_pk" type="pk-constr" table="escola.idade_escolar">
 		<columns names="idade_id" ref-type="src-columns"/>
 	</constraint>
 </table>
@@ -106,58 +117,12 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<role name="postgres"/>
 </schema>
 
-<table name="alimento">
+<table name="tipo_cardapio">
 	<schema name="alimentacao"/>
 	<role name="postgres"/>
-	<comment><![CDATA[Tabela util.izada para registrar alimentos.]]></comment>
-	<position x="880" y="1620"/>
-	<column name="alimento_id" not-null="true">
-		<type name="serial" length="0"/>
-	</column>
-	<column name="titulo" not-null="true">
-		<type name="varchar" length="99"/>
-	</column>
-	<column name="detalhes_alimento">
-		<type name="text" length="0"/>
-	</column>
-	<column name="status_alimento" not-null="true" default-value="true">
-		<type name="bool" length="0"/>
-	</column>
-	<column name="categoria_alimento_id" not-null="true">
-		<type name="serial" length="0"/>
-	</column>
-	<constraint name="alimento_pk" type="pk-constr" table="alimentacao.alimento">
-		<columns names="alimento_id" ref-type="src-columns"/>
-	</constraint>
-</table>
-
-<table name="categoria_alimento">
-	<schema name="alimentacao"/>
-	<role name="postgres"/>
-	<comment><![CDATA[Categoria de alimentação.]]></comment>
-	<position x="1520" y="1600"/>
-	<column name="categoria_alimento_id" not-null="true">
-		<type name="integer" length="0"/>
-	</column>
-	<column name="titulo" not-null="true">
-		<type name="varchar" length="99"/>
-	</column>
-	<column name="desccricao">
-		<type name="text" length="0"/>
-	</column>
-	<column name="status_categoria_alimento" not-null="true" default-value="true">
-		<type name="bool" length="0"/>
-	</column>
-	<constraint name="categoria_alimento_pk" type="pk-constr" table="alimentacao.categoria_alimento">
-		<columns names="categoria_alimento_id" ref-type="src-columns"/>
-	</constraint>
-</table>
-
-<table name="tipo">
-	<schema name="alimentacao"/>
-	<role name="postgres"/>
-	<comment><![CDATA[Tabela registra os tipos de cardápios, Ex: Normal, Lactantes, Diabéticos]]></comment>
-	<position x="1280" y="1280"/>
+	<comment><![CDATA[Tabela registra os tipos de cardápios, 
+Almoço, janta, colação.]]></comment>
+	<position x="923.232" y="229.07"/>
 	<column name="tipo_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -167,7 +132,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<column name="descricao">
 		<type name="text" length="0"/>
 	</column>
-	<constraint name="tipo_pk" type="pk-constr" table="alimentacao.tipo">
+	<constraint name="tipo_pk" type="pk-constr" table="alimentacao.tipo_cardapio">
 		<columns names="tipo_id" ref-type="src-columns"/>
 	</constraint>
 </table>
@@ -176,20 +141,11 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<schema name="alimentacao"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Cardápio escolar]]></comment>
-	<position x="480" y="1300"/>
+	<position x="1339.89" y="24.0426"/>
 	<column name="cardapio_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
-	<column name="usuario_id" not-null="true">
-		<type name="serial" length="0"/>
-	</column>
-	<column name="noticia_id" not-null="true">
-		<type name="serial" length="0"/>
-	</column>
-	<column name="tipo_id" not-null="true">
-		<type name="serial" length="0"/>
-	</column>
-	<column name="titulo" not-null="true">
+	<column name="nome" not-null="true">
 		<type name="varchar" length="99"/>
 	</column>
 	<column name="data_cardapio" not-null="true">
@@ -211,62 +167,38 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<constraint name="cardapio_pk" type="pk-constr" table="alimentacao.cardapio">
 		<columns names="cardapio_id" ref-type="src-columns"/>
 	</constraint>
-</table>
 
-<table name="bairro">
-	<schema name="escola"/>
-	<role name="postgres"/>
-	<comment><![CDATA[Registro de subprefeitura
-Borough hall record.]]></comment>
-	<position x="1220" y="300"/>
-	<column name="bairro_id" not-null="true">
-		<type name="serial" length="0"/>
-	</column>
-	<column name="nome" not-null="true">
-		<type name="varchar" length="99"/>
-	</column>
-	<column name="descricao">
-		<type name="text" length="0"/>
-	</column>
-	<column name="ativo" not-null="true" default-value="true">
-		<type name="bool" length="0"/>
-	</column>
-	<constraint name="bairro_pk" type="pk-constr" table="escola.bairro">
-		<columns names="bairro_id" ref-type="src-columns"/>
-	</constraint>
+	<customidxs object-type="column">
+		<object name="edital_id_edital" index="8"/>
+		<object name="gestao_cardapio_id_gestao_cardapio" index="7"/>
+		<object name="tipo_id_tipo_cardapio" index="9"/>
+	</customidxs>
+
+	<customidxs object-type="constraint">
+		<object name="edital_fk" index="1"/>
+		<object name="gestao_cardapio_fk" index="3"/>
+		<object name="tipo_cardapio_fk" index="2"/>
+	</customidxs>
 </table>
 
 <table name="escola">
 	<schema name="escola"/>
 	<role name="postgres"/>
-	<position x="540" y="340"/>
+	<position x="613.967" y="1704.05"/>
 	<column name="escola_id" not-null="true">
 		<type name="serial" length="0"/>
+	</column>
+	<column name="qtd_alunos">
+		<type name="smallint" length="0"/>
 	</column>
 	<column name="nome" not-null="true">
 		<type name="varchar" length="199"/>
 	</column>
-	<column name="agrupamento" not-null="true">
-		<type name="smallint" length="0"/>
-		<comment><![CDATA[Agrupamento escolar?]]></comment>
-	</column>
 	<column name="ativo" not-null="true" default-value="true">
 		<type name="bool" length="0"/>
 	</column>
-	<column name="endereco_id" not-null="true">
-		<type name="serial" length="0"/>
-	</column>
-	<column name="unidade_id" not-null="true">
-		<type name="serial" length="0"/>
-	</column>
-	<column name="gestao_id" not-null="true">
-		<type name="serial" length="0"/>
-	</column>
-	<column name="bairro_id" not-null="true">
-		<type name="serial" length="0"/>
-	</column>
 	<column name="codigo_eol">
-		<type name="varchar" length="10"/>
+		<type name="varchar" length="6"/>
 	</column>
 	<column name="codigo_codae">
 		<type name="varchar" length="10"/>
@@ -277,21 +209,30 @@ Borough hall record.]]></comment>
 	<constraint name="codigo_eol_unique" type="uq-constr" table="escola.escola">
 		<columns names="codigo_eol" ref-type="src-columns"/>
 	</constraint>
+
+	<customidxs object-type="column">
+		<object name="gestao_id_tipo_gestão" index="8"/>
+		<object name="lote_id_lote" index="6"/>
+		<object name="unidade_id_tipo_unidade_escolar" index="7"/>
+	</customidxs>
+
+	<customidxs object-type="constraint">
+		<object name="lote_fk" index="4"/>
+		<object name="tipo_gestão_fk" index="3"/>
+		<object name="tipo_unidade_escolar_fk" index="2"/>
+	</customidxs>
 </table>
 
 <table name="gestao_cardapio">
 	<schema name="alimentacao"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Registra o tipo de gestão do prato: Direto, Mista e Indireto]]></comment>
-	<position x="1540" y="1360"/>
+	<position x="834.385" y="23"/>
 	<column name="gestao_cardapio_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
 	<column name="titulo" not-null="true">
 		<type name="varchar" length="99"/>
-	</column>
-	<column name="status_gestao_cardapio" default-value="true">
-		<type name="boolean" length="0"/>
 	</column>
 	<constraint name="gestao_cardapio_pk" type="pk-constr" table="alimentacao.gestao_cardapio">
 		<columns names="gestao_cardapio_id" ref-type="src-columns"/>
@@ -305,27 +246,41 @@ Borough hall record.]]></comment>
 <table name="perfil">
 	<schema name="perfil"/>
 	<role name="postgres"/>
-	<comment><![CDATA[Perfil do usuário Ex: Cogestor, Nutricionista ou COGESTOR E NUTRI, etc.]]></comment>
-	<position x="2820" y="1380"/>
+	<comment><![CDATA[Perfil do usuário Ex: Cogestor, Nutricionista. Cada perfil tem uma série de permissoes.
+
+Ex: o perfil diretor tem as permissões: [abrir escola, fechar escola]
+o perfil professor pode [dar aula, fazer denuncia na DRE]]]></comment>
+	<position x="2327.81" y="1720.56"/>
 	<column name="perfil_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
-	<column name="titulo" not-null="true">
+	<column name="descricao" not-null="true">
 		<type name="varchar" length="90"/>
 	</column>
 	<column name="ativo" not-null="true" default-value="True">
 		<type name="boolean" length="0"/>
 	</column>
+	<column name="nome">
+		<type name="varchar" length="30"/>
+	</column>
 	<constraint name="perfil_pk" type="pk-constr" table="perfil.perfil">
 		<columns names="perfil_id" ref-type="src-columns"/>
 	</constraint>
+
+	<customidxs object-type="column">
+		<object name="usuario_id_usuario" index="4"/>
+	</customidxs>
+
+	<customidxs object-type="constraint">
+		<object name="usuario_fk" index="1"/>
+	</customidxs>
 </table>
 
-<table name="log">
+<table name="log_usuario">
 	<schema name="dados_comuns"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Registra eventos de usuário realizado no sistema]]></comment>
-	<position x="3200" y="480"/>
+	<position x="3217.07" y="416.667"/>
 	<column name="log_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -342,16 +297,16 @@ Borough hall record.]]></comment>
 		<type name="text" length="0"/>
 		<comment><![CDATA[Qual a informação o usuario cadastrou no sistema]]></comment>
 	</column>
-	<constraint name="log_pk" type="pk-constr" table="dados_comuns.log">
+	<constraint name="log_pk" type="pk-constr" table="dados_comuns.log_usuario">
 		<columns names="log_id" ref-type="src-columns"/>
 	</constraint>
 </table>
 
-<table name="diretor_regional">
+<table name="diretoria_regional">
 	<schema name="escola"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Tabela utilizada para registrar as DREs (DIRETORIA REGIONAL DA EDUCAÇÃO)]]></comment>
-	<position x="1220" y="480"/>
+	<position x="1458.8" y="1563.14"/>
 	<column name="diretor_regional_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -361,7 +316,7 @@ Borough hall record.]]></comment>
 	<column name="nome" not-null="true">
 		<type name="varchar" length="80"/>
 	</column>
-	<constraint name="diretor_regional_pk" type="pk-constr" table="escola.diretor_regional">
+	<constraint name="diretor_regional_pk" type="pk-constr" table="escola.diretoria_regional">
 		<columns names="diretor_regional_id" ref-type="src-columns"/>
 	</constraint>
 </table>
@@ -370,7 +325,7 @@ Borough hall record.]]></comment>
 	<schema name="codae"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Lote de  atendimento]]></comment>
-	<position x="2060" y="100"/>
+	<position x="2028.48" y="936.297"/>
 	<column name="lote_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -393,7 +348,7 @@ Borough hall record.]]></comment>
 	<schema name="dados_comuns"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Cidades]]></comment>
-	<position x="3280" y="1240"/>
+	<position x="3235.1" y="1036.01"/>
 	<column name="localizacao_cidade_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -417,7 +372,7 @@ Borough hall record.]]></comment>
 	<schema name="dados_do_django"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Campo para validar se o usuário foi ativado via email]]></comment>
-	<position x="1860" y="520"/>
+	<position x="2773.33" y="963"/>
 	<column name="usuario_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -461,7 +416,7 @@ Borough hall record.]]></comment>
 	<schema name="dados_comuns"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Endereço ligado a escola.]]></comment>
-	<position x="3180" y="1640"/>
+	<position x="3227.78" y="770"/>
 	<column name="endereco_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -504,7 +459,7 @@ Borough hall record.]]></comment>
 	<schema name="codae"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Edital para alimentação]]></comment>
-	<position x="2260" y="280"/>
+	<position x="1898.48" y="709.393"/>
 	<column name="edital_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -529,7 +484,7 @@ Borough hall record.]]></comment>
 	<schema name="dados_comuns"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Lista de contatos de escola]]></comment>
-	<position x="3220" y="720"/>
+	<position x="3234.44" y="599.573"/>
 	<column name="contato_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -569,7 +524,7 @@ Borough hall record.]]></comment>
 	 pk-col-pattern="id"
 	 custom-color="#f70c3e"
 	 src-table="alimentacao.cardapio"
-	 dst-table="escola.idade"
+	 dst-table="escola.idade_escolar"
 	 src-required="false" dst-required="false"
 	 table-name="menu_age">
 	<label ref-type="src-label">
@@ -583,80 +538,6 @@ Borough hall record.]]></comment>
 	</label>
 </relationship>
 
-<table name="instituicao" hide-ext-attribs="true">
-	<schema name="perfil"/>
-	<role name="postgres"/>
-	<comment><![CDATA[Instiuição: CODAE, DRE, ESCOLA e TERCEIRIZADA]]></comment>
-	<position x="2000" y="1320"/>
-	<column name="instituicao_id" not-null="true">
-		<type name="serial" length="0"/>
-	</column>
-	<column name="nome" not-null="true">
-		<type name="varchar" length="99"/>
-		<comment><![CDATA[Nome da instituição ex: DRE, CODAE e etc]]></comment>
-	</column>
-	<constraint name="instituicao_pk" type="pk-constr" table="perfil.instituicao">
-		<columns names="instituicao_id" ref-type="src-columns"/>
-	</constraint>
-
-	<customidxs object-type="column">
-		<object name="endereco_id_endereco" index="2"/>
-	</customidxs>
-
-	<customidxs object-type="constraint">
-		<object name="endereco_fk" index="1"/>
-		<object name="instituicao_uq" index="2"/>
-	</customidxs>
-</table>
-
-<relationship name="instituicao_possui_um_endereco" type="rel11"
-	 src-col-pattern="{sc}_{st}"
-	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
-	 src-fk-pattern="{st}_fk"
-	 custom-color="#f70c3e"
-	 src-table="dados_comuns.endereco"
-	 dst-table="perfil.instituicao"
-	 src-required="false" dst-required="false">
-	<label ref-type="dst-label">
-		<position x="9.66625" y="11.725"/>
-	</label>
-	<label ref-type="name-label">
-		<position x="24.1115" y="3.23934"/>
-	</label>
-</relationship>
-
-<relationship name="instituicao_possui_muitos_contatos" type="rel1n"
-	 src-col-pattern="{sc}_{st}"
-	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
-	 src-fk-pattern="{st}_fk"
-	 custom-color="#f70c3e"
-	 src-table="perfil.instituicao"
-	 dst-table="dados_comuns.contato"
-	 src-required="false" dst-required="false">
-	<label ref-type="src-label">
-		<position x="189.666" y="-40.275"/>
-	</label>
-	<label ref-type="name-label">
-		<position x="0" y="0"/>
-	</label>
-</relationship>
-
-<relationship name="instituicao_pertence_a_uma_escola" type="rel11"
-	 src-col-pattern="{sc}_{st}"
-	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
-	 src-fk-pattern="{st}_fk"
-	 custom-color="#f70c3e"
-	 src-table="perfil.instituicao"
-	 dst-table="escola.escola"
-	 src-required="false" dst-required="false">
-	<label ref-type="src-label">
-		<position x="-87.3825" y="-0.275"/>
-	</label>
-	<label ref-type="name-label">
-		<position x="45.6115" y="-2.76066"/>
-	</label>
-</relationship>
-
 <schema name="terceirizada" rect-visible="true" fill-color="#0b0b49">
 	<role name="postgres"/>
 </schema>
@@ -664,7 +545,8 @@ Borough hall record.]]></comment>
 <table name="terceirizada">
 	<schema name="terceirizada"/>
 	<role name="postgres"/>
-	<position x="3120" y="140"/>
+	<comment><![CDATA[qual o relacionamento com edital e contrato?]]></comment>
+	<position x="2053.42" y="1326.2"/>
 	<column name="terceirizada_id" not-null="true">
 		<type name="serial" length="80"/>
 	</column>
@@ -680,120 +562,20 @@ Borough hall record.]]></comment>
 	<column name="contrato" not-null="true">
 		<type name="varchar" length="80"/>
 	</column>
-	<column name="noticia" not-null="true">
-		<type name="varchar" length="80"/>
-		<comment><![CDATA[Edital de pregão]]></comment>
-	</column>
-	<column name="status" not-null="true">
+	<column name="ativo" not-null="true">
 		<type name="boolean" length="0"/>
 	</column>
 	<constraint name="terceirizada_pk" type="pk-constr" table="terceirizada.terceirizada">
 		<columns names="terceirizada_id" ref-type="src-columns"/>
 	</constraint>
-
-	<customidxs object-type="column">
-		<object name="instituicao_id_instituicao" index="7"/>
-	</customidxs>
-
-	<customidxs object-type="constraint">
-		<object name="instituicao_fk" index="1"/>
-		<object name="terceirizada_uq" index="2"/>
-	</customidxs>
 </table>
-
-<relationship name="instituicao_pertence_a_uma_terceirizada" type="rel11"
-	 src-col-pattern="{sc}_{st}"
-	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
-	 src-fk-pattern="{st}_fk"
-	 custom-color="#f70c3e"
-	 src-table="perfil.instituicao"
-	 dst-table="terceirizada.terceirizada"
-	 src-required="false" dst-required="false">
-	<label ref-type="src-label">
-		<position x="129.666" y="-60.275"/>
-	</label>
-	<label ref-type="dst-label">
-		<position x="-147.382" y="81.725"/>
-	</label>
-	<label ref-type="name-label">
-		<position x="1.19109" y="18.3984"/>
-	</label>
-</relationship>
-
-<relationship name="muitos_lotes_possuem_muitas_terceirizadas" type="relnn"
-	 src-col-pattern="{sc}_{st}" dst-col-pattern="{sc}_{dt}"
-	 pk-pattern="{gt}_pk" uq-pattern="{gt}_uq"
-	 src-fk-pattern="{st}_fk" dst-fk-pattern="{dt}_fk"
-	 pk-col-pattern="id"
-	 custom-color="#f70c3e"
-	 src-table="codae.lote"
-	 dst-table="terceirizada.terceirizada"
-	 src-required="false" dst-required="false"
-	 table-name="service_batch_company">
-	<label ref-type="dst-label">
-		<position x="-22.15" y="11.9669"/>
-	</label>
-	<label ref-type="name-label">
-		<position x="84.9865" y="-53.1857"/>
-	</label>
-</relationship>
-
-<relationship name="instituicao_possui_muitos_diretores_regionais" type="rel1n"
-	 src-col-pattern="{sc}_{st}"
-	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
-	 src-fk-pattern="{st}_fk"
-	 custom-color="#f70c3e"
-	 src-table="perfil.instituicao"
-	 dst-table="escola.diretor_regional"
-	 src-required="false" dst-required="false">
-	<label ref-type="src-label">
-		<position x="-107.382" y="-120.275"/>
-	</label>
-	<label ref-type="name-label">
-		<position x="140.712" y="-3.76066"/>
-	</label>
-</relationship>
-
-<relationship name="muitos_cardapios_possuem_muitos_alimentos" type="relnn"
-	 src-col-pattern="{sc}_{st}" dst-col-pattern="{sc}_{dt}"
-	 pk-pattern="{gt}_pk" uq-pattern="{gt}_uq"
-	 src-fk-pattern="{st}_fk" dst-fk-pattern="{dt}_fk"
-	 pk-col-pattern="id"
-	 custom-color="#bfa130"
-	 src-table="alimentacao.alimento"
-	 dst-table="alimentacao.cardapio"
-	 src-required="false" dst-required="false"
-	 table-name="food_menu">
-	<label ref-type="name-label">
-		<position x="0" y="0"/>
-	</label>
-</relationship>
-
-<relationship name="instituicao_possui_muitos_perfis" type="rel1n"
-	 src-col-pattern="{sc}_{st}"
-	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
-	 src-fk-pattern="{st}_fk"
-	 custom-color="#000000"
-	 src-table="perfil.instituicao"
-	 dst-table="perfil.perfil"
-	 src-required="false" dst-required="false">
-	<label ref-type="src-label">
-		<position x="129.666" y="19.725"/>
-	</label>
-	<label ref-type="dst-label">
-		<position x="-127.382" y="-22.275"/>
-	</label>
-	<label ref-type="name-label">
-		<position x="24.6115" y="-53.7607"/>
-	</label>
-</relationship>
 
 <relationship name="muitas_permissoes_possuem_muitos_perfis" type="relnn"
 	 src-col-pattern="{sc}_{st}" dst-col-pattern="{sc}_{dt}"
 	 pk-pattern="{gt}_pk" uq-pattern="{gt}_uq"
 	 src-fk-pattern="{st}_fk" dst-fk-pattern="{dt}_fk"
 	 pk-col-pattern="id"
-	 custom-color="#471416"
+	 custom-color="#ff0000"
 	 src-table="perfil.permissao"
 	 dst-table="perfil.perfil"
 	 src-required="false" dst-required="false"
@@ -805,7 +587,7 @@ Borough hall record.]]></comment>
 		<position x="-62.15" y="-11.5807"/>
 	</label>
 	<label ref-type="name-label">
-		<position x="9.68313" y="-48.6857"/>
+		<position x="110.193" y="-48.0125"/>
 	</label>
 </relationship>
 
@@ -814,32 +596,16 @@ Borough hall record.]]></comment>
 	 pk-pattern="{gt}_pk" uq-pattern="{gt}_uq"
 	 src-fk-pattern="{st}_fk" dst-fk-pattern="{dt}_fk"
 	 pk-col-pattern="id"
-	 custom-color="#ab830f"
+	 custom-color="#ff0000"
 	 src-table="escola.escola"
-	 dst-table="escola.idade"
+	 dst-table="escola.idade_escolar"
 	 src-required="false" dst-required="false"
 	 table-name="many_escola_has_many_idade">
 	<label ref-type="dst-label">
 		<position x="-70.1847" y="1.85"/>
 	</label>
 	<label ref-type="name-label">
-		<position x="105.987" y="9.31434"/>
-	</label>
-</relationship>
-
-<relationship name="categoria_alimento_possui_muitos_alimentos" type="rel1n"
-	 src-col-pattern="{sc}_{st}"
-	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
-	 src-fk-pattern="{st}_fk"
-	 custom-color="#e7d48a"
-	 src-table="alimentacao.categoria_alimento"
-	 dst-table="alimentacao.alimento"
-	 src-required="false" dst-required="false">
-	<label ref-type="dst-label">
-		<position x="13.8663" y="9.725"/>
-	</label>
-	<label ref-type="name-label">
-		<position x="93.2115" y="32.2393"/>
+		<position x="27.7799" y="-70.6115"/>
 	</label>
 </relationship>
 
@@ -850,7 +616,7 @@ Borough hall record.]]></comment>
 <table name="edital">
 	<schema name="alimentacao"/>
 	<role name="postgres"/>
-	<position x="1300" y="1460"/>
+	<position x="912.326" y="108.455"/>
 	<column name="edital_id" not-null="true">
 		<type name="serial" length="0"/>
 		<comment><![CDATA[Edital de alimentação.]]></comment>
@@ -869,15 +635,6 @@ Borough hall record.]]></comment>
 	</constraint>
 </table>
 
-<relationship name="edital_possui_muitos_cardapios" type="rel1n"
-	 src-col-pattern="{sc}_{st}"
-	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
-	 src-fk-pattern="{st}_fk"
-	 custom-color="#3a3a3a"
-	 src-table="alimentacao.edital"
-	 dst-table="alimentacao.cardapio"
-	 src-required="false" dst-required="false"/>
-
 <relationship name="perfil_possui_muitos_usuarios" type="rel1n"
 	 src-col-pattern="{sc}_{st}"
 	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
@@ -891,103 +648,408 @@ Borough hall record.]]></comment>
 	</label>
 </relationship>
 
-<constraint name="gestao_fk" type="fk-constr" comparison-type="MATCH FULL"
-	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="alimentacao.gestao_cardapio" table="alimentacao.cardapio">
-	<columns names="gestao_cardapio_id" ref-type="src-columns"/>
-	<columns names="gestao_cardapio_id" ref-type="dst-columns"/>
-</constraint>
+<relationship name="tipo_unidade_escolar_has_many_escola" type="rel1n"
+	 src-col-pattern="{sc}_{st}"
+	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
+	 src-fk-pattern="{st}_fk"
+	 custom-color="#000000"
+	 src-table="escola.tipo_unidade_escolar"
+	 dst-table="escola.escola"
+	 src-required="false" dst-required="false"/>
 
-<constraint name="noticia_fk" type="fk-constr" comparison-type="MATCH FULL"
-	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="codae.edital" table="alimentacao.cardapio">
-	<columns names="noticia_id" ref-type="src-columns"/>
-	<columns names="edital_id" ref-type="dst-columns"/>
-</constraint>
+<relationship name="tipo_gestão_has_many_escola" type="rel1n"
+	 src-col-pattern="{sc}_{st}"
+	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
+	 src-fk-pattern="{st}_fk"
+	 custom-color="#000000"
+	 src-table="escola.&quot;tipo_gestão&quot;"
+	 dst-table="escola.escola"
+	 src-required="false" dst-required="false"/>
 
-<constraint name="tipo_fk" type="fk-constr" comparison-type="MATCH FULL"
-	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="alimentacao.tipo" table="alimentacao.cardapio">
-	<columns names="tipo_id" ref-type="src-columns"/>
-	<columns names="tipo_id" ref-type="dst-columns"/>
-</constraint>
+<relationship name="gestao_cardapio_has_many_cardapio" type="rel1n"
+	 src-col-pattern="{sc}_{st}"
+	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
+	 src-fk-pattern="{st}_fk"
+	 custom-color="#000000"
+	 src-table="alimentacao.gestao_cardapio"
+	 dst-table="alimentacao.cardapio"
+	 src-required="false" dst-required="false"/>
 
-<constraint name="usuario_fk" type="fk-constr" comparison-type="MATCH FULL"
-	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="dados_do_django.usuario" table="alimentacao.cardapio">
-	<columns names="usuario_id" ref-type="src-columns"/>
-	<columns names="usuario_id" ref-type="dst-columns"/>
-</constraint>
+<relationship name="edital_has_many_cardapio" type="rel1n"
+	 src-col-pattern="{sc}_{st}"
+	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
+	 src-fk-pattern="{st}_fk"
+	 custom-color="#000000"
+	 src-table="alimentacao.edital"
+	 dst-table="alimentacao.cardapio"
+	 src-required="false" dst-required="false"/>
 
-<constraint name="unidade_fk" type="fk-constr" comparison-type="MATCH FULL"
-	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="escola.unidade_escolar" table="escola.escola">
-	<columns names="unidade_id" ref-type="src-columns"/>
-	<columns names="unidade_id" ref-type="dst-columns"/>
-</constraint>
+<relationship name="tipo_cardapio_has_many_cardapio" type="rel1n"
+	 src-col-pattern="{sc}_{st}"
+	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
+	 src-fk-pattern="{st}_fk"
+	 custom-color="#000000"
+	 src-table="alimentacao.tipo_cardapio"
+	 dst-table="alimentacao.cardapio"
+	 src-required="false" dst-required="false"/>
 
-<constraint name="gestao_fk" type="fk-constr" comparison-type="MATCH FULL"
-	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="escola.&quot;tipo_gestão&quot;" table="escola.escola">
-	<columns names="gestao_id" ref-type="src-columns"/>
-	<columns names="gestao_id" ref-type="dst-columns"/>
-</constraint>
+<relationship name="lote tem muitas escolas" type="rel1n"
+	 src-col-pattern="{sc}_{st}"
+	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
+	 src-fk-pattern="{st}_fk"
+	 custom-color="#000000"
+	 src-table="codae.lote"
+	 dst-table="escola.escola"
+	 src-required="false" dst-required="false">
+	<label ref-type="name-label">
+		<position x="0" y="0"/>
+	</label>
+</relationship>
 
-<constraint name="bairro_fk" type="fk-constr" comparison-type="MATCH FULL"
-	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="escola.bairro" table="escola.escola">
-	<columns names="bairro_id" ref-type="src-columns"/>
-	<columns names="bairro_id" ref-type="dst-columns"/>
-</constraint>
+<relationship name="dre tem 1 ou mais lotes" type="rel1n"
+	 src-col-pattern="{sc}_{st}"
+	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
+	 src-fk-pattern="{st}_fk"
+	 custom-color="#000000"
+	 src-table="escola.diretoria_regional"
+	 dst-table="codae.lote"
+	 src-required="false" dst-required="false">
+	<label ref-type="name-label">
+		<position x="0" y="0"/>
+	</label>
+</relationship>
+
+<relationship name="many_terceirizada_has_many_lote" type="relnn"
+	 src-col-pattern="{sc}_{st}" dst-col-pattern="{sc}_{dt}"
+	 pk-pattern="{gt}_pk" uq-pattern="{gt}_uq"
+	 src-fk-pattern="{st}_fk" dst-fk-pattern="{dt}_fk"
+	 pk-col-pattern="id"
+	 custom-color="#ff0000"
+	 src-table="terceirizada.terceirizada"
+	 dst-table="codae.lote"
+	 src-required="false" dst-required="false"
+	 table-name="many_terceirizada_has_many_lote">
+	<label ref-type="name-label">
+		<position x="0" y="0"/>
+	</label>
+</relationship>
+
+<table name="kit_lanche">
+	<schema name="alimentacao"/>
+	<role name="postgres"/>
+	<position x="311.286" y="145.417"/>
+	<column name="id" not-null="true">
+		<type name="serial" length="0"/>
+	</column>
+	<column name="nome">
+		<type name="varchar" length="30"/>
+	</column>
+	<column name="descricao">
+		<type name="varchar" length="30"/>
+	</column>
+	<constraint name="kit_lanche_pk" type="pk-constr" table="alimentacao.kit_lanche">
+		<columns names="id" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<table name="solicitacao_kit_lanche">
+	<schema name="alimentacao"/>
+	<role name="postgres"/>
+	<position x="257.769" y="654.538"/>
+	<column name="id" not-null="true">
+		<type name="serial" length="0"/>
+	</column>
+	<constraint name="solicitacao_kit_lanche_pk" type="pk-constr" table="alimentacao.solicitacao_kit_lanche">
+		<columns names="id" ref-type="src-columns"/>
+	</constraint>
+
+	<customidxs object-type="column">
+		<object name="id_solicitacao_kit_lanche_base" index="1"/>
+	</customidxs>
+
+	<customidxs object-type="constraint">
+		<object name="solicitacao_kit_lanche_base_fk" index="1"/>
+	</customidxs>
+</table>
+
+<relationship name="many_solicitacao_kit_lanche_has_many_escola" type="relnn"
+	 src-col-pattern="{sc}_{st}" dst-col-pattern="{sc}_{dt}"
+	 pk-pattern="{gt}_pk" uq-pattern="{gt}_uq"
+	 src-fk-pattern="{st}_fk" dst-fk-pattern="{dt}_fk"
+	 pk-col-pattern="id"
+	 custom-color="#ff0000"
+	 src-table="alimentacao.solicitacao_kit_lanche"
+	 dst-table="escola.escola"
+	 src-required="false" dst-required="false"
+	 table-name="many_solicitacao_kit_lanche_has_many_escola"/>
+
+<table name="solicitacao_kit_lanche_base">
+	<schema name="alimentacao"/>
+	<role name="postgres"/>
+	<position x="3.33333" y="277.805"/>
+	<column name="id" not-null="true">
+		<type name="serial" length="0"/>
+	</column>
+	<column name="dia_passeio">
+		<type name="date" length="0"/>
+	</column>
+	<column name="motivo">
+		<type name="varchar" length="0"/>
+	</column>
+	<column name="local">
+		<type name="varchar" length="0"/>
+	</column>
+	<column name="obs">
+		<type name="varchar" length="0"/>
+	</column>
+	<column name="qtd_alunos">
+		<type name="smallint" length="0"/>
+	</column>
+	<column name="data_pedido">
+		<type name="smallint" length="0"/>
+	</column>
+	<column name="tempo_passeio">
+		<type name="smallint" length="0"/>
+		<comment><![CDATA[é um combo com opcoes de 4 6 ou 8h]]></comment>
+	</column>
+	<constraint name="solicitacao_kit_lanche_base_pk" type="pk-constr" table="alimentacao.solicitacao_kit_lanche_base">
+		<columns names="id" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<table name="solicitacao_kit_lanche_unificada">
+	<schema name="alimentacao"/>
+	<role name="postgres"/>
+	<position x="514.317" y="393.817"/>
+	<column name="id" not-null="true">
+		<type name="serial" length="0"/>
+	</column>
+	<column name="razao2">
+		<type name="varchar" length="0"/>
+	</column>
+	<column name="qtd_alunos_por_escola">
+		<type name="smallint" length="0"/>
+	</column>
+	<constraint name="solicitacao_kit_lanche_unificada_pk" type="pk-constr" table="alimentacao.solicitacao_kit_lanche_unificada">
+		<columns names="id" ref-type="src-columns"/>
+	</constraint>
+
+	<customidxs object-type="column">
+		<object name="diretor_regional_id_diretoria_regional" index="3"/>
+		<object name="id_razao_solicitacao_unificada" index="5"/>
+		<object name="id_solicitacao_kit_lanche_base" index="4"/>
+	</customidxs>
+
+	<customidxs object-type="constraint">
+		<object name="diretoria_regional_fk" index="1"/>
+		<object name="razao_solicitacao_unificada_fk" index="3"/>
+		<object name="solicitacao_kit_lanche_base_fk" index="2"/>
+	</customidxs>
+</table>
+
+<relationship name="solicitacao_kit_lanche_base_has_many_solicitacao_kit_lanche" type="rel1n"
+	 src-col-pattern="{sc}_{st}"
+	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
+	 src-fk-pattern="{st}_fk"
+	 custom-color="#000000"
+	 src-table="alimentacao.solicitacao_kit_lanche_base"
+	 dst-table="alimentacao.solicitacao_kit_lanche"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="many_kit_lanche_has_many_solicitacao_kit_lanche_base" type="relnn"
+	 src-col-pattern="{sc}_{st}" dst-col-pattern="{sc}_{dt}"
+	 pk-pattern="{gt}_pk" uq-pattern="{gt}_uq"
+	 src-fk-pattern="{st}_fk" dst-fk-pattern="{dt}_fk"
+	 pk-col-pattern="id"
+	 custom-color="#ff0000"
+	 src-table="alimentacao.kit_lanche"
+	 dst-table="alimentacao.solicitacao_kit_lanche_base"
+	 src-required="false" dst-required="false"
+	 table-name="many_kit_lanche_has_many_solicitacao_kit_lanche_base"/>
+
+<relationship name="diretoria_regional_has_many_solicitacao_kit_lanche_unificada" type="rel1n"
+	 src-col-pattern="{sc}_{st}"
+	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
+	 src-fk-pattern="{st}_fk"
+	 custom-color="#000000"
+	 src-table="escola.diretoria_regional"
+	 dst-table="alimentacao.solicitacao_kit_lanche_unificada"
+	 src-required="false" dst-required="false">
+	<label ref-type="name-label">
+		<position x="0" y="0"/>
+	</label>
+</relationship>
+
+<relationship name="solicitacao_kit_lanche_base_has_many_solicitacao_kit_lanche_uni" type="rel1n"
+	 src-col-pattern="{sc}_{st}"
+	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
+	 src-fk-pattern="{st}_fk"
+	 custom-color="#000000"
+	 src-table="alimentacao.solicitacao_kit_lanche_base"
+	 dst-table="alimentacao.solicitacao_kit_lanche_unificada"
+	 src-required="false" dst-required="false"/>
+
+<table name="razao_solicitacao_unificada">
+	<schema name="alimentacao"/>
+	<role name="postgres"/>
+	<comment><![CDATA[a ideia é ser um combo de opcoes fixas]]></comment>
+	<position x="1447.33" y="338.325"/>
+	<column name="id" not-null="true">
+		<type name="smallint" length="0"/>
+	</column>
+	<column name="nome">
+		<type name="varchar" length="0"/>
+	</column>
+	<column name="descricao">
+		<type name="varchar" length="0"/>
+	</column>
+	<constraint name="razao_solicitacao_unificada_pk" type="pk-constr" table="alimentacao.razao_solicitacao_unificada">
+		<columns names="id" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<relationship name="razao_solicitacao_unificada_has_many_solicitacao_kit_lanche_uni" type="rel1n"
+	 src-col-pattern="{sc}_{st}"
+	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
+	 src-fk-pattern="{st}_fk"
+	 custom-color="#000000"
+	 src-table="alimentacao.razao_solicitacao_unificada"
+	 dst-table="alimentacao.solicitacao_kit_lanche_unificada"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="diretoria_regional_has_many_escola" type="rel1n"
+	 src-col-pattern="{sc}_{st}"
+	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
+	 src-fk-pattern="{st}_fk"
+	 custom-color="#000000"
+	 src-table="escola.diretoria_regional"
+	 dst-table="escola.escola"
+	 src-required="false" dst-required="false"/>
+
+<table name="sub_prefeitura">
+	<schema name="escola"/>
+	<role name="postgres"/>
+	<position x="1516.99" y="2154.44"/>
+	<column name="id" not-null="true">
+		<type name="serial" length="0"/>
+	</column>
+	<column name="nome">
+		<type name="varchar" length="0"/>
+	</column>
+	<column name="descricao">
+		<type name="text" length="0"/>
+	</column>
+	<constraint name="sub_prefeitura_pk" type="pk-constr" table="escola.sub_prefeitura">
+		<columns names="id" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<relationship name="sub_prefeitura_has_many_escola" type="rel1n"
+	 src-col-pattern="{sc}_{st}"
+	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
+	 src-fk-pattern="{st}_fk"
+	 custom-color="#000000"
+	 src-table="escola.sub_prefeitura"
+	 dst-table="escola.escola"
+	 src-required="false" dst-required="false"/>
+
+<table name="periodo_escolar">
+	<schema name="escola"/>
+	<role name="postgres"/>
+	<comment><![CDATA[manha, tarde, noite, integral]]></comment>
+	<position x="1035.56" y="1425.48"/>
+	<column name="id" not-null="true">
+		<type name="serial" length="0"/>
+	</column>
+	<column name="nome">
+		<type name="varchar" length="0"/>
+	</column>
+	<column name="descricao">
+		<type name="text" length="0"/>
+	</column>
+	<constraint name="periodo_escolar_pk" type="pk-constr" table="escola.periodo_escolar">
+		<columns names="id" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<relationship name="many_escola_has_many_periodo_escolar" type="relnn"
+	 src-col-pattern="{sc}_{st}" dst-col-pattern="{sc}_{dt}"
+	 pk-pattern="{gt}_pk" uq-pattern="{gt}_uq"
+	 src-fk-pattern="{st}_fk" dst-fk-pattern="{dt}_fk"
+	 pk-col-pattern="id"
+	 custom-color="#ff0000"
+	 src-table="escola.escola"
+	 dst-table="escola.periodo_escolar"
+	 src-required="false" dst-required="false"
+	 table-name="many_escola_has_many_periodo_escolar"/>
+
+<table name="tipo_refeicao">
+	<schema name="alimentacao"/>
+	<role name="postgres"/>
+	<comment><![CDATA[almoço, janta colação, etc.]]></comment>
+	<position x="760.212" y="815.065"/>
+	<column name="id" not-null="true">
+		<type name="serial" length="0"/>
+	</column>
+	<column name="nome">
+		<type name="varchar" length="0"/>
+	</column>
+	<column name="descricao">
+		<type name="text" length="0"/>
+	</column>
+	<constraint name="tipo_refeicao_pk" type="pk-constr" table="alimentacao.tipo_refeicao">
+		<columns names="id" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<relationship name="many_tipo_refeicao_has_many_periodo_escolar" type="relnn"
+	 src-col-pattern="{sc}_{st}" dst-col-pattern="{sc}_{dt}"
+	 pk-pattern="{gt}_pk" uq-pattern="{gt}_uq"
+	 src-fk-pattern="{st}_fk" dst-fk-pattern="{dt}_fk"
+	 pk-col-pattern="id"
+	 custom-color="#ff0000"
+	 src-table="alimentacao.tipo_refeicao"
+	 dst-table="escola.periodo_escolar"
+	 src-required="false" dst-required="false"
+	 table-name="many_tipo_refeicao_has_many_periodo_escolar"/>
+
+<table name="grupo_perfil">
+	<schema name="perfil"/>
+	<role name="postgres"/>
+	<comment><![CDATA[grupo CODAE: tem os perfis gerente1, sup2, etc.
+grupo ESCOLA: tem os perfis prof, diretor, etc.
+]]></comment>
+	<position x="1946.6" y="1687.88"/>
+	<column name="id" not-null="true">
+		<type name="serial" length="0"/>
+	</column>
+	<column name="nome">
+		<type name="varchar" length="0"/>
+	</column>
+	<constraint name="grupo_perfil_pk" type="pk-constr" table="perfil.grupo_perfil">
+		<columns names="id" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<relationship name="grupo_perfil_has_many_perfil" type="rel1n"
+	 src-col-pattern="{sc}_{st}"
+	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
+	 src-fk-pattern="{st}_fk"
+	 custom-color="#000000"
+	 src-table="perfil.grupo_perfil"
+	 dst-table="perfil.perfil"
+	 src-required="false" dst-required="false"/>
 
 <constraint name="fk_usuario_id" type="fk-constr" comparison-type="MATCH FULL"
-	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="dados_do_django.usuario" table="dados_comuns.log">
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="dados_do_django.usuario" table="dados_comuns.log_usuario">
 	<columns names="user_id" ref-type="src-columns"/>
 	<columns names="usuario_id" ref-type="dst-columns"/>
 </constraint>
 
-<constraint name="diretor_regional_fk" type="fk-constr" comparison-type="MATCH FULL"
-	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="escola.diretor_regional" table="codae.lote">
-	<columns names="diretor_regional_id" ref-type="src-columns"/>
-	<columns names="diretor_regional_id" ref-type="dst-columns"/>
-</constraint>
-
-<relationship name="rel_cardapio_gestao_cardapio" type="relfk"
-	 src-table="alimentacao.cardapio"
-	 dst-table="alimentacao.gestao_cardapio" reference-fk="gestao_fk"
-	 src-required="false" dst-required="false"/>
-
-<relationship name="rel_cardapio_edital" type="relfk"
-	 src-table="alimentacao.cardapio"
-	 dst-table="codae.edital" reference-fk="noticia_fk"
-	 src-required="false" dst-required="false"/>
-
-<relationship name="rel_cardapio_tipo" type="relfk"
-	 src-table="alimentacao.cardapio"
-	 dst-table="alimentacao.tipo" reference-fk="tipo_fk"
-	 src-required="false" dst-required="false"/>
-
-<relationship name="rel_cardapio_usuario" type="relfk"
-	 src-table="alimentacao.cardapio"
-	 dst-table="dados_do_django.usuario" reference-fk="usuario_fk"
-	 src-required="false" dst-required="false"/>
-
-<relationship name="rel_escola_unidade_escolar" type="relfk"
-	 src-table="escola.escola"
-	 dst-table="escola.unidade_escolar" reference-fk="unidade_fk"
-	 src-required="false" dst-required="false"/>
-
-<relationship name="&quot;rel_escola_tipo_gestão&quot;" type="relfk"
-	 src-table="escola.escola"
-	 dst-table="escola.&quot;tipo_gestão&quot;" reference-fk="gestao_fk"
-	 src-required="false" dst-required="false"/>
-
-<relationship name="rel_escola_bairro" type="relfk"
-	 src-table="escola.escola"
-	 dst-table="escola.bairro" reference-fk="bairro_fk"
-	 src-required="false" dst-required="false"/>
-
 <relationship name="rel_log_usuario" type="relfk"
-	 src-table="dados_comuns.log"
+	 custom-color="#000000"
+	 src-table="dados_comuns.log_usuario"
 	 dst-table="dados_do_django.usuario" reference-fk="fk_usuario_id"
-	 src-required="false" dst-required="false"/>
-
-<relationship name="rel_lote_diretor_regional" type="relfk"
-	 src-table="codae.lote"
-	 dst-table="escola.diretor_regional" reference-fk="diretor_regional_fk"
 	 src-required="false" dst-required="false"/>
 
 </dbmodel>
