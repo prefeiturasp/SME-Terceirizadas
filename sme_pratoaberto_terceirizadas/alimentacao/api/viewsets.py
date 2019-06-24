@@ -25,7 +25,7 @@ class InverterDiaCardapioViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
 
     def create(self, request: Request, *args, **kwargs):
-        request = self._filters(request)
+        request = self._filter_request(request)
         return validacao_e_solicitacao(request)
 
     def destroy(self, request: Request, *args: Any, **kwargs: Any):
@@ -36,10 +36,10 @@ class InverterDiaCardapioViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['post'])
     def salvar(self, request):
-        request = self._filters(request)
+        request = self._filter_request(request)
         return validacao_e_salvamento(request)
 
-    def _filters(self, request):
+    def _filter_request(self, request):
         request.data['data_de'] = converter_str_para_datetime(request.data.get('data_de'), formato='%d/%m/%Y')
         request.data['data_para'] = converter_str_para_datetime(request.data.get('data_para'), formato='%d/%m/%Y')
         request.data['escola'] = School.get_escola_by_usuario(request.user)
