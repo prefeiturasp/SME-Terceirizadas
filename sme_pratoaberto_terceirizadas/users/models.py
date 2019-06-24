@@ -7,7 +7,7 @@ from django.db import models
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
-from sme_pratoaberto_terceirizadas.abstract_shareable import Ativavel
+from sme_pratoaberto_terceirizadas.abstract_shareable import Ativavel, TemChaveExterna, Descritivel
 
 
 # Thanks to https://github.com/jmfederico/django-use-email-as-username
@@ -97,24 +97,22 @@ class Notice(models.Model):
     title = models.CharField(_('Title'), max_length=90)
 
 
-class Institution(models.Model):
-    """Categoria de Perfil"""
-    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-    name = models.CharField(_('Institution'), max_length=60)
+class Instituicao(TemChaveExterna):
+    nome = models.CharField("Nome", blank=True, null=True, max_length=50)
 
     def __str__(self):
-        return self.name
+        return self.nome
 
     class Meta:
-        verbose_name = _('Institution')
-        verbose_name_plural = _('Institutions')
+        verbose_name = 'Instituição'
+        verbose_name_plural = 'Instituições'
 
 
 class Perfil(Ativavel):
     """Perfil de usuário"""
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     titulo = models.CharField(_('Title'), max_length=90)
-    instituicao = models.ForeignKey(Institution, on_delete=models.DO_NOTHING)
+    instituicao = models.ForeignKey(Instituicao, on_delete=models.DO_NOTHING)
 
     def __str__(self):
         return self.titulo

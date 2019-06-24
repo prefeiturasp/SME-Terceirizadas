@@ -3,7 +3,7 @@ import uuid as uuid
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
-from ..users.models import Perfil, Institution
+from ..users.models import Perfil, Instituicao
 
 
 class Permissao(models.Model):
@@ -12,7 +12,7 @@ class Permissao(models.Model):
     endpoint = models.CharField(_('endpoint'), max_length=90)
     permissoes = models.ManyToManyField(Perfil, through='PerfilPermissao',
                                         through_fields=('permissao', 'perfil'))
-    instituicao = models.ForeignKey(Institution, on_delete=models.DO_NOTHING, null=True, blank=True)
+    instituicao = models.ForeignKey(Instituicao, on_delete=models.DO_NOTHING, null=True, blank=True)
 
     def __str__(self):
         return self.titulo

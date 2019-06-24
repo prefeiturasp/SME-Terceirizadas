@@ -6,7 +6,7 @@ from sme_pratoaberto_terceirizadas.alimento.models import Refeicao
 from sme_pratoaberto_terceirizadas.meal_kit.models import SolicitacaoKitLanche
 from .meal_kit.models import KitLanche
 from .permission.models import Permissao, PermissaoPerfil
-from .users.models import Perfil, Institution
+from .users.models import Perfil, Instituicao
 
 fake = Faker('pt_BR')
 fake.seed(420)
@@ -34,7 +34,7 @@ def order_meal_kit(request):
 
 @pytest.fixture
 def profile():
-    institution = mommy.make(Institution, name='Faker SA')
+    institution = mommy.make(Instituicao, name='Faker SA')
     return mommy.make(Perfil, title='título do perfil', institution=institution)
 
 

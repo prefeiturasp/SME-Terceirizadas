@@ -1,13 +1,18 @@
 from django.contrib import admin
-from .models import DiretoriaRegional, PeriodoEscolar, Escola, GrupoEscolar
+
+from sme_pratoaberto_terceirizadas.escola.models import TipoGestao, TipoUnidadeEscolar, SubPrefeitura, IdadeEscolar
+from .models import DiretoriaRegional, PeriodoEscolar, Escola
 
 
 @admin.register(DiretoriaRegional)
 class DiretoriaRegionalAdmin(admin.ModelAdmin):
-    list_display = ['codigo']
-    list_filter = ['codigo']
+    list_display = ['nome']
+    list_filter = ['nome']
 
 
 admin.site.register(Escola)
 admin.site.register(PeriodoEscolar)
-admin.site.register(GrupoEscolar)
+admin.site.register(TipoGestao)
+admin.site.register(TipoUnidadeEscolar)
+admin.site.register(SubPrefeitura)
+admin.site.register(IdadeEscolar)

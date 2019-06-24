@@ -1,10 +1,11 @@
 import uuid
+
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
-from sme_pratoaberto_terceirizadas.abstract_shareable import Descritivel, CriadoEm
-from sme_pratoaberto_terceirizadas.escola.models import IdadeEscolar, GrupoEscolar, TipoUnidadeEscolar, TipoGestao
+from sme_pratoaberto_terceirizadas.abstract_shareable import Descritivel, CriadoEm, Nomeavel
+from sme_pratoaberto_terceirizadas.escola.models import IdadeEscolar, TipoUnidadeEscolar, TipoGestao
 from sme_pratoaberto_terceirizadas.users.models import User
 
 now = timezone.now()
@@ -32,9 +33,8 @@ class Alimento(models.Model):
         return self.titulo
 
 
-class TipoRefeicao(Descritivel):
+class TipoRefeicao(Descritivel, Nomeavel):
     """Tipo de Refeição"""
-    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
 
     def __str__(self):
         return self.nome
@@ -66,7 +66,6 @@ class CardapioDia(CriadoEm):
     criado_por = models.ForeignKey(User, on_delete=models.DO_NOTHING)
     tipo_gestao = models.ForeignKey(TipoGestao, on_delete=models.DO_NOTHING)
     tipo_unidade = models.ForeignKey(TipoUnidadeEscolar, on_delete=models.DO_NOTHING)
-    grupo_escolar = models.ForeignKey(GrupoEscolar, on_delete=models.DO_NOTHING)
     data = models.DateField()
     idade = models.ForeignKey(IdadeEscolar, on_delete=models.DO_NOTHING)
     refeicoes = models.ManyToManyField(Refeicao)

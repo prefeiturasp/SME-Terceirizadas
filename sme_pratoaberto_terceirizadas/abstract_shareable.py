@@ -11,8 +11,14 @@ class Iniciais(models.Model):
 
 
 class Descritivel(models.Model):
-    nome = models.CharField("Nome", blank=True, null=True, max_length=50)
     descricao = models.TextField("Descricao", blank=True, null=True)
+
+    class Meta:
+        abstract = True
+
+
+class Nomeavel(models.Model):
+    nome = models.CharField("Nome", blank=True, null=True, max_length=50)
 
     class Meta:
         abstract = True
