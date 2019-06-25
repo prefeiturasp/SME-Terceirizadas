@@ -3,7 +3,7 @@
 CAUTION: Do not modify this file unless you know what you are doing.
          Unexpected results may occur if the code is changed deliberately.
 -->
-<dbmodel pgmodeler-ver="0.9.1" last-position="0,0" last-zoom="0.6"
+<dbmodel pgmodeler-ver="0.9.1" last-position="771,246" last-zoom="0.65"
 	 default-owner="postgres">
 <database name="new_database" is-template="false" allow-conns="true">
 </database>
@@ -29,7 +29,7 @@ pode abrir a escola,
 pode fazer merenda, 
 pode dar aula,
 pode fechar a escola, etc.]]></comment>
-	<position x="1995.45" y="1950.09"/>
+	<position x="2723.78" y="1638.42"/>
 	<column name="permissao_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -56,7 +56,7 @@ pode fechar a escola, etc.]]></comment>
 	<schema name="escola"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Unidade escolar. EMEF, EMEI, EMEBS, CEI, CEMEI]]></comment>
-	<position x="1537.5" y="1926.68"/>
+	<position x="615.082" y="2268.88"/>
 	<column name="unidade_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -72,7 +72,7 @@ pode fechar a escola, etc.]]></comment>
 	<schema name="escola"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Qual o tipo de gestão da escola. Ex.: Terceirizada, Direta e Mista]]></comment>
-	<position x="589.513" y="2067.67"/>
+	<position x="611.051" y="2030.75"/>
 	<column name="gestao_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -98,7 +98,7 @@ Ex. de 1 a 2 anos
 de 2 a 5 anos
 de 7 a 18 anos.
 de 6meses a 1 ano]]></comment>
-	<position x="730.295" y="1448.23"/>
+	<position x="727.218" y="1440.54"/>
 	<column name="idade_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -122,7 +122,7 @@ de 6meses a 1 ano]]></comment>
 	<role name="postgres"/>
 	<comment><![CDATA[Tabela registra os tipos de cardápios, 
 Almoço, janta, colação.]]></comment>
-	<position x="923.232" y="229.07"/>
+	<position x="1430.73" y="540.718"/>
 	<column name="tipo_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -141,7 +141,7 @@ Almoço, janta, colação.]]></comment>
 	<schema name="alimentacao"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Cardápio escolar]]></comment>
-	<position x="1339.89" y="24.0426"/>
+	<position x="1921.24" y="451.076"/>
 	<column name="cardapio_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -169,13 +169,13 @@ Almoço, janta, colação.]]></comment>
 	</constraint>
 
 	<customidxs object-type="column">
-		<object name="edital_id_edital" index="8"/>
 		<object name="gestao_cardapio_id_gestao_cardapio" index="7"/>
+		<object name="id_categoria" index="8"/>
 		<object name="tipo_id_tipo_cardapio" index="9"/>
 	</customidxs>
 
 	<customidxs object-type="constraint">
-		<object name="edital_fk" index="1"/>
+		<object name="categoria_fk" index="1"/>
 		<object name="gestao_cardapio_fk" index="3"/>
 		<object name="tipo_cardapio_fk" index="2"/>
 	</customidxs>
@@ -184,7 +184,7 @@ Almoço, janta, colação.]]></comment>
 <table name="escola">
 	<schema name="escola"/>
 	<role name="postgres"/>
-	<position x="613.967" y="1704.05"/>
+	<position x="607.813" y="1730.2"/>
 	<column name="escola_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -227,11 +227,11 @@ Almoço, janta, colação.]]></comment>
 	<schema name="alimentacao"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Registra o tipo de gestão do prato: Direto, Mista e Indireto]]></comment>
-	<position x="834.385" y="23"/>
+	<position x="1415.73" y="450.033"/>
 	<column name="gestao_cardapio_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
-	<column name="titulo" not-null="true">
+	<column name="nome" not-null="true">
 		<type name="varchar" length="99"/>
 	</column>
 	<constraint name="gestao_cardapio_pk" type="pk-constr" table="alimentacao.gestao_cardapio">
@@ -250,7 +250,7 @@ Almoço, janta, colação.]]></comment>
 
 Ex: o perfil diretor tem as permissões: [abrir escola, fechar escola]
 o perfil professor pode [dar aula, fazer denuncia na DRE]]]></comment>
-	<position x="2327.81" y="1720.56"/>
+	<position x="3056.14" y="1408.89"/>
 	<column name="perfil_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -280,7 +280,7 @@ o perfil professor pode [dar aula, fazer denuncia na DRE]]]></comment>
 	<schema name="dados_comuns"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Registra eventos de usuário realizado no sistema]]></comment>
-	<position x="3217.07" y="416.667"/>
+	<position x="3013.74" y="416.667"/>
 	<column name="log_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -306,7 +306,7 @@ o perfil professor pode [dar aula, fazer denuncia na DRE]]]></comment>
 	<schema name="escola"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Tabela utilizada para registrar as DREs (DIRETORIA REGIONAL DA EDUCAÇÃO)]]></comment>
-	<position x="1458.8" y="1563.14"/>
+	<position x="1434.74" y="1603.42"/>
 	<column name="diretor_regional_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -325,7 +325,7 @@ o perfil professor pode [dar aula, fazer denuncia na DRE]]]></comment>
 	<schema name="codae"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Lote de  atendimento]]></comment>
-	<position x="2028.48" y="936.297"/>
+	<position x="1764.8" y="1927.02"/>
 	<column name="lote_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -348,7 +348,7 @@ o perfil professor pode [dar aula, fazer denuncia na DRE]]]></comment>
 	<schema name="dados_comuns"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Cidades]]></comment>
-	<position x="3235.1" y="1036.01"/>
+	<position x="3031.77" y="1036.01"/>
 	<column name="localizacao_cidade_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -372,7 +372,7 @@ o perfil professor pode [dar aula, fazer denuncia na DRE]]]></comment>
 	<schema name="dados_do_django"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Campo para validar se o usuário foi ativado via email]]></comment>
-	<position x="2773.33" y="963"/>
+	<position x="2401.66" y="896.333"/>
 	<column name="usuario_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -416,7 +416,7 @@ o perfil professor pode [dar aula, fazer denuncia na DRE]]]></comment>
 	<schema name="dados_comuns"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Endereço ligado a escola.]]></comment>
-	<position x="3227.78" y="770"/>
+	<position x="3024.45" y="770"/>
 	<column name="endereco_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -456,17 +456,17 @@ o perfil professor pode [dar aula, fazer denuncia na DRE]]]></comment>
 </table>
 
 <table name="edital">
-	<schema name="codae"/>
+	<schema name="terceirizada"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Edital para alimentação]]></comment>
-	<position x="1898.48" y="709.393"/>
+	<position x="1818.13" y="1137.55"/>
 	<column name="edital_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
-	<column name="titulo" not-null="true">
+	<column name="nome" not-null="true">
 		<type name="varchar" length="99"/>
 	</column>
-	<column name="detalhes">
+	<column name="descricao">
 		<type name="text" length="0"/>
 	</column>
 	<column name="inicio" not-null="true">
@@ -475,7 +475,10 @@ o perfil professor pode [dar aula, fazer denuncia na DRE]]]></comment>
 	<column name="fim" not-null="true">
 		<type name="date" length="0"/>
 	</column>
-	<constraint name="notice_pk" type="pk-constr" table="codae.edital">
+	<column name="ativo">
+		<type name="bool" length="0"/>
+	</column>
+	<constraint name="notice_pk" type="pk-constr" table="terceirizada.edital">
 		<columns names="edital_id" ref-type="src-columns"/>
 	</constraint>
 </table>
@@ -484,7 +487,7 @@ o perfil professor pode [dar aula, fazer denuncia na DRE]]]></comment>
 	<schema name="dados_comuns"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Lista de contatos de escola]]></comment>
-	<position x="3234.44" y="599.573"/>
+	<position x="3031.11" y="599.573"/>
 	<column name="contato_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -546,7 +549,7 @@ o perfil professor pode [dar aula, fazer denuncia na DRE]]]></comment>
 	<schema name="terceirizada"/>
 	<role name="postgres"/>
 	<comment><![CDATA[qual o relacionamento com edital e contrato?]]></comment>
-	<position x="2053.42" y="1326.2"/>
+	<position x="2082.74" y="1101.37"/>
 	<column name="terceirizada_id" not-null="true">
 		<type name="serial" length="80"/>
 	</column>
@@ -613,28 +616,6 @@ o perfil professor pode [dar aula, fazer denuncia na DRE]]]></comment>
 	<role name="postgres"/>
 </schema>
 
-<table name="edital">
-	<schema name="alimentacao"/>
-	<role name="postgres"/>
-	<position x="912.326" y="108.455"/>
-	<column name="edital_id" not-null="true">
-		<type name="serial" length="0"/>
-		<comment><![CDATA[Edital de alimentação.]]></comment>
-	</column>
-	<column name="numero" not-null="true">
-		<type name="varchar" length="60"/>
-	</column>
-	<column name="descricao">
-		<type name="text" length="0"/>
-	</column>
-	<column name="edital_ativo" not-null="true" default-value="true">
-		<type name="bool" length="0"/>
-	</column>
-	<constraint name="edital_pk" type="pk-constr" table="alimentacao.edital">
-		<columns names="edital_id" ref-type="src-columns"/>
-	</constraint>
-</table>
-
 <relationship name="perfil_possui_muitos_usuarios" type="rel1n"
 	 src-col-pattern="{sc}_{st}"
 	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
@@ -672,15 +653,6 @@ o perfil professor pode [dar aula, fazer denuncia na DRE]]]></comment>
 	 src-fk-pattern="{st}_fk"
 	 custom-color="#000000"
 	 src-table="alimentacao.gestao_cardapio"
-	 dst-table="alimentacao.cardapio"
-	 src-required="false" dst-required="false"/>
-
-<relationship name="edital_has_many_cardapio" type="rel1n"
-	 src-col-pattern="{sc}_{st}"
-	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
-	 src-fk-pattern="{st}_fk"
-	 custom-color="#000000"
-	 src-table="alimentacao.edital"
 	 dst-table="alimentacao.cardapio"
 	 src-required="false" dst-required="false"/>
 
@@ -735,9 +707,9 @@ o perfil professor pode [dar aula, fazer denuncia na DRE]]]></comment>
 </relationship>
 
 <table name="kit_lanche">
-	<schema name="alimentacao"/>
+	<schema name="kit_lanche"/>
 	<role name="postgres"/>
-	<position x="311.286" y="145.417"/>
+	<position x="123.288" y="480.777"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -747,19 +719,19 @@ o perfil professor pode [dar aula, fazer denuncia na DRE]]]></comment>
 	<column name="descricao">
 		<type name="varchar" length="30"/>
 	</column>
-	<constraint name="kit_lanche_pk" type="pk-constr" table="alimentacao.kit_lanche">
+	<constraint name="kit_lanche_pk" type="pk-constr" table="kit_lanche.kit_lanche">
 		<columns names="id" ref-type="src-columns"/>
 	</constraint>
 </table>
 
 <table name="solicitacao_kit_lanche">
-	<schema name="alimentacao"/>
+	<schema name="kit_lanche"/>
 	<role name="postgres"/>
-	<position x="257.769" y="654.538"/>
+	<position x="332.848" y="943.744"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
-	<constraint name="solicitacao_kit_lanche_pk" type="pk-constr" table="alimentacao.solicitacao_kit_lanche">
+	<constraint name="solicitacao_kit_lanche_pk" type="pk-constr" table="kit_lanche.solicitacao_kit_lanche">
 		<columns names="id" ref-type="src-columns"/>
 	</constraint>
 
@@ -778,15 +750,15 @@ o perfil professor pode [dar aula, fazer denuncia na DRE]]]></comment>
 	 src-fk-pattern="{st}_fk" dst-fk-pattern="{dt}_fk"
 	 pk-col-pattern="id"
 	 custom-color="#ff0000"
-	 src-table="alimentacao.solicitacao_kit_lanche"
+	 src-table="kit_lanche.solicitacao_kit_lanche"
 	 dst-table="escola.escola"
 	 src-required="false" dst-required="false"
 	 table-name="many_solicitacao_kit_lanche_has_many_escola"/>
 
 <table name="solicitacao_kit_lanche_base">
-	<schema name="alimentacao"/>
+	<schema name="kit_lanche"/>
 	<role name="postgres"/>
-	<position x="3.33333" y="277.805"/>
+	<position x="67.3016" y="681.456"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -812,15 +784,15 @@ o perfil professor pode [dar aula, fazer denuncia na DRE]]]></comment>
 		<type name="smallint" length="0"/>
 		<comment><![CDATA[é um combo com opcoes de 4 6 ou 8h]]></comment>
 	</column>
-	<constraint name="solicitacao_kit_lanche_base_pk" type="pk-constr" table="alimentacao.solicitacao_kit_lanche_base">
+	<constraint name="solicitacao_kit_lanche_base_pk" type="pk-constr" table="kit_lanche.solicitacao_kit_lanche_base">
 		<columns names="id" ref-type="src-columns"/>
 	</constraint>
 </table>
 
 <table name="solicitacao_kit_lanche_unificada">
-	<schema name="alimentacao"/>
+	<schema name="kit_lanche"/>
 	<role name="postgres"/>
-	<position x="514.317" y="393.817"/>
+	<position x="627.516" y="652.681"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -830,7 +802,7 @@ o perfil professor pode [dar aula, fazer denuncia na DRE]]]></comment>
 	<column name="qtd_alunos_por_escola">
 		<type name="smallint" length="0"/>
 	</column>
-	<constraint name="solicitacao_kit_lanche_unificada_pk" type="pk-constr" table="alimentacao.solicitacao_kit_lanche_unificada">
+	<constraint name="solicitacao_kit_lanche_unificada_pk" type="pk-constr" table="kit_lanche.solicitacao_kit_lanche_unificada">
 		<columns names="id" ref-type="src-columns"/>
 	</constraint>
 
@@ -852,8 +824,8 @@ o perfil professor pode [dar aula, fazer denuncia na DRE]]]></comment>
 	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
 	 src-fk-pattern="{st}_fk"
 	 custom-color="#000000"
-	 src-table="alimentacao.solicitacao_kit_lanche_base"
-	 dst-table="alimentacao.solicitacao_kit_lanche"
+	 src-table="kit_lanche.solicitacao_kit_lanche_base"
+	 dst-table="kit_lanche.solicitacao_kit_lanche"
 	 src-required="false" dst-required="false"/>
 
 <relationship name="many_kit_lanche_has_many_solicitacao_kit_lanche_base" type="relnn"
@@ -862,8 +834,8 @@ o perfil professor pode [dar aula, fazer denuncia na DRE]]]></comment>
 	 src-fk-pattern="{st}_fk" dst-fk-pattern="{dt}_fk"
 	 pk-col-pattern="id"
 	 custom-color="#ff0000"
-	 src-table="alimentacao.kit_lanche"
-	 dst-table="alimentacao.solicitacao_kit_lanche_base"
+	 src-table="kit_lanche.kit_lanche"
+	 dst-table="kit_lanche.solicitacao_kit_lanche_base"
 	 src-required="false" dst-required="false"
 	 table-name="many_kit_lanche_has_many_solicitacao_kit_lanche_base"/>
 
@@ -873,7 +845,7 @@ o perfil professor pode [dar aula, fazer denuncia na DRE]]]></comment>
 	 src-fk-pattern="{st}_fk"
 	 custom-color="#000000"
 	 src-table="escola.diretoria_regional"
-	 dst-table="alimentacao.solicitacao_kit_lanche_unificada"
+	 dst-table="kit_lanche.solicitacao_kit_lanche_unificada"
 	 src-required="false" dst-required="false">
 	<label ref-type="name-label">
 		<position x="0" y="0"/>
@@ -885,15 +857,15 @@ o perfil professor pode [dar aula, fazer denuncia na DRE]]]></comment>
 	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
 	 src-fk-pattern="{st}_fk"
 	 custom-color="#000000"
-	 src-table="alimentacao.solicitacao_kit_lanche_base"
-	 dst-table="alimentacao.solicitacao_kit_lanche_unificada"
+	 src-table="kit_lanche.solicitacao_kit_lanche_base"
+	 dst-table="kit_lanche.solicitacao_kit_lanche_unificada"
 	 src-required="false" dst-required="false"/>
 
 <table name="razao_solicitacao_unificada">
-	<schema name="alimentacao"/>
+	<schema name="kit_lanche"/>
 	<role name="postgres"/>
 	<comment><![CDATA[a ideia é ser um combo de opcoes fixas]]></comment>
-	<position x="1447.33" y="338.325"/>
+	<position x="815.743" y="455.309"/>
 	<column name="id" not-null="true">
 		<type name="smallint" length="0"/>
 	</column>
@@ -903,7 +875,7 @@ o perfil professor pode [dar aula, fazer denuncia na DRE]]]></comment>
 	<column name="descricao">
 		<type name="varchar" length="0"/>
 	</column>
-	<constraint name="razao_solicitacao_unificada_pk" type="pk-constr" table="alimentacao.razao_solicitacao_unificada">
+	<constraint name="razao_solicitacao_unificada_pk" type="pk-constr" table="kit_lanche.razao_solicitacao_unificada">
 		<columns names="id" ref-type="src-columns"/>
 	</constraint>
 </table>
@@ -913,8 +885,8 @@ o perfil professor pode [dar aula, fazer denuncia na DRE]]]></comment>
 	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
 	 src-fk-pattern="{st}_fk"
 	 custom-color="#000000"
-	 src-table="alimentacao.razao_solicitacao_unificada"
-	 dst-table="alimentacao.solicitacao_kit_lanche_unificada"
+	 src-table="kit_lanche.razao_solicitacao_unificada"
+	 dst-table="kit_lanche.solicitacao_kit_lanche_unificada"
 	 src-required="false" dst-required="false"/>
 
 <relationship name="diretoria_regional_has_many_escola" type="rel1n"
@@ -929,7 +901,7 @@ o perfil professor pode [dar aula, fazer denuncia na DRE]]]></comment>
 <table name="sub_prefeitura">
 	<schema name="escola"/>
 	<role name="postgres"/>
-	<position x="1516.99" y="2154.44"/>
+	<position x="613.913" y="2155.98"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -957,7 +929,7 @@ o perfil professor pode [dar aula, fazer denuncia na DRE]]]></comment>
 	<schema name="escola"/>
 	<role name="postgres"/>
 	<comment><![CDATA[manha, tarde, noite, integral]]></comment>
-	<position x="1035.56" y="1425.48"/>
+	<position x="1032.48" y="1417.79"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -986,8 +958,8 @@ o perfil professor pode [dar aula, fazer denuncia na DRE]]]></comment>
 <table name="tipo_refeicao">
 	<schema name="alimentacao"/>
 	<role name="postgres"/>
-	<comment><![CDATA[almoço, janta colação, etc.]]></comment>
-	<position x="760.212" y="815.065"/>
+	<comment><![CDATA[almoço, janta colação, etc. Ex.: D - DESJEJUM para o título: Desjejum]]></comment>
+	<position x="1388.22" y="843.465"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -1019,7 +991,7 @@ o perfil professor pode [dar aula, fazer denuncia na DRE]]]></comment>
 	<comment><![CDATA[grupo CODAE: tem os perfis gerente1, sup2, etc.
 grupo ESCOLA: tem os perfis prof, diretor, etc.
 ]]></comment>
-	<position x="1946.6" y="1687.88"/>
+	<position x="2674.93" y="1376.21"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -1038,6 +1010,45 @@ grupo ESCOLA: tem os perfis prof, diretor, etc.
 	 custom-color="#000000"
 	 src-table="perfil.grupo_perfil"
 	 dst-table="perfil.perfil"
+	 src-required="false" dst-required="false"/>
+
+<schema name="kit_lanche" rect-visible="true" fill-color="#55007f">
+	<role name="postgres"/>
+</schema>
+
+<table name="categoria">
+	<schema name="alimentacao"/>
+	<role name="postgres"/>
+	<comment><![CDATA[ Lactante, Normal ou Diabética]]></comment>
+	<position x="2103.21" y="825.874"/>
+	<column name="id" not-null="true">
+		<type name="serial" length="0"/>
+	</column>
+	<column name="tipo">
+		<type name="smallint" length="0"/>
+		<comment><![CDATA[Lactante, Normal ou Diabética]]></comment>
+	</column>
+	<constraint name="categoria_pk" type="pk-constr" table="alimentacao.categoria">
+		<columns names="id" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<relationship name="categoria_has_many_cardapio" type="rel1n"
+	 src-col-pattern="{sc}_{st}"
+	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
+	 src-fk-pattern="{st}_fk"
+	 custom-color="#000000"
+	 src-table="alimentacao.categoria"
+	 dst-table="alimentacao.cardapio"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="edital_has_many_cardapio" type="rel1n"
+	 src-col-pattern="{sc}_{st}"
+	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
+	 src-fk-pattern="{st}_fk"
+	 custom-color="#000000"
+	 src-table="terceirizada.edital"
+	 dst-table="alimentacao.cardapio"
 	 src-required="false" dst-required="false"/>
 
 <constraint name="fk_usuario_id" type="fk-constr" comparison-type="MATCH FULL"
