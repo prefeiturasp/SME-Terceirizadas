@@ -3,7 +3,7 @@
 CAUTION: Do not modify this file unless you know what you are doing.
          Unexpected results may occur if the code is changed deliberately.
 -->
-<dbmodel pgmodeler-ver="0.9.1" last-position="421,650" last-zoom="0.65"
+<dbmodel pgmodeler-ver="0.9.1" last-position="1760,185" last-zoom="0.85"
 	 default-owner="postgres">
 <database name="new_database" is-template="false" allow-conns="true">
 </database>
@@ -16,7 +16,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<comment><![CDATA[a ideia é limitar os endpoints que um dado perfil tem acesso.]]></comment>
 </schema>
 
-<schema name="escola[revisado]" rect-visible="true" fill-color="#9c12d9">
+<schema name="escola[revisado]" rect-visible="true" fill-color="#5b0d32">
 	<role name="postgres"/>
 </schema>
 
@@ -29,7 +29,7 @@ pode abrir a escola,
 pode fazer merenda, 
 pode dar aula,
 pode fechar a escola, etc.]]></comment>
-	<position x="2690.92" y="1768.85"/>
+	<position x="2924.07" y="1822.56"/>
 	<column name="permissao_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -56,8 +56,10 @@ pode fechar a escola, etc.]]></comment>
 <table name="tipo_unidade_escolar[revisado]">
 	<schema name="&quot;escola[revisado]&quot;"/>
 	<role name="postgres"/>
-	<comment><![CDATA[Unidade escolar. EMEF, CIEJA, EMEI, EMEBS, CEI, CEMEI]]></comment>
-	<position x="1082.87" y="1542.64"/>
+	<comment><![CDATA[[ATENCAO, QUANDO FOR CEMEI, TEM DOIS TIPOS DE ALUNOS: DE  CEI E EMEI, OU SEJA, COMPLEXIDADE ESPECIFICA DO CASO.]
+
+Unidade escolar. EMEF, CIEJA, EMEI, EMEBS, CEI, CEMEI]]></comment>
+	<position x="1064.54" y="1550.46"/>
 	<column name="unidade_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -73,7 +75,7 @@ pode fechar a escola, etc.]]></comment>
 	<schema name="&quot;escola[revisado]&quot;"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Qual o tipo de gestão da escola. Ex.: Terceirizada completa, tec mista]]></comment>
-	<position x="1071.15" y="1424.29"/>
+	<position x="1051.57" y="1430.68"/>
 	<column name="gestao_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -98,7 +100,7 @@ Ex. de 1 a 2 anos
 de 2 a 5 anos
 de 7 a 18 anos.
 de 6meses a 1 ano]]></comment>
-	<position x="2077.01" y="1732.99"/>
+	<position x="2041.19" y="1667.06"/>
 	<column name="idade_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -121,13 +123,16 @@ de 6meses a 1 ano]]></comment>
 	<schema name="&quot;cardapio[revisado]&quot;"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Tabela registra os tipos de cardápios, 
+Dejejum
+Colação
+Almoço
 Refeição
 sobremesa
 Lanche 4 horas
 Lanche 5 horas 
 Lanche 6horas
 Merenda Seca]]></comment>
-	<position x="2502.13" y="560.334"/>
+	<position x="2219.59" y="426.097"/>
 	<column name="tipo_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -144,10 +149,10 @@ Merenda Seca]]></comment>
 	<role name="postgres"/>
 	<comment><![CDATA[Cardápio escolar tem:
 1 dia pra acontecer ex (26/06)
-1 lista de tipos de refeicao (LANCHE DE 4 HS OU 8 HS; LANCHE DE 5HS OU 6 HS; REFEIÇÃO).
+1 lista de tipos de refeicao (Dejejum, Colação, Almoço, LANCHE DE 4 HS OU 8 HS; LANCHE DE 5HS OU 6 HS; REFEIÇÃO).
 
 !!!!OBS!!! PARA CEI varia por faixa de idade.]]></comment>
-	<position x="2457.83" y="844.742"/>
+	<position x="2194.69" y="689.937"/>
 	<column name="cardapio_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -176,7 +181,7 @@ Merenda Seca]]></comment>
 <table name="escola[revisado]">
 	<schema name="&quot;escola[revisado]&quot;"/>
 	<role name="postgres"/>
-	<position x="1588.26" y="1216.66"/>
+	<position x="1803.63" y="1222.16"/>
 	<column name="escola_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -214,7 +219,7 @@ Merenda Seca]]></comment>
 
 Ex: o perfil diretor tem as permissões: [abrir escola, fechar escola]
 o perfil professor pode [dar aula, fazer denuncia na DRE]]]></comment>
-	<position x="3091.28" y="1607.32"/>
+	<position x="3324.43" y="1661.03"/>
 	<column name="perfil_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -236,7 +241,7 @@ o perfil professor pode [dar aula, fazer denuncia na DRE]]]></comment>
 	<schema name="dados_comuns"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Registra eventos de usuário realizado no sistema]]></comment>
-	<position x="3549.74" y="568.667"/>
+	<position x="3595.3" y="650.889"/>
 	<column name="log_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -262,7 +267,7 @@ o perfil professor pode [dar aula, fazer denuncia na DRE]]]></comment>
 	<schema name="&quot;escola[revisado]&quot;"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Tabela utilizada para registrar as DREs (DIRETORIA REGIONAL DA EDUCAÇÃO)]]></comment>
-	<position x="802.644" y="1251.85"/>
+	<position x="783.066" y="1259.67"/>
 	<column name="diretor_regional_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -283,7 +288,7 @@ o perfil professor pode [dar aula, fazer denuncia na DRE]]]></comment>
 	<comment><![CDATA[Lote de  atendimento
 Uma DRE pode ter 1 ou mais lotes
 um lote é um conjunto de escolas que a terceirizada atende]]></comment>
-	<position x="847.731" y="1748.28"/>
+	<position x="828.153" y="1756.1"/>
 	<column name="lote_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -314,7 +319,7 @@ um lote é um conjunto de escolas que a terceirizada atende]]></comment>
 	<schema name="dados_comuns"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Cidades]]></comment>
-	<position x="3463.77" y="1180.01"/>
+	<position x="3509.33" y="1262.23"/>
 	<column name="localizacao_cidade_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -382,7 +387,7 @@ um lote é um conjunto de escolas que a terceirizada atende]]></comment>
 	<schema name="dados_comuns"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Endereço ligado a escola.]]></comment>
-	<position x="3456.45" y="914"/>
+	<position x="3502.01" y="996.222"/>
 	<column name="endereco_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -425,7 +430,7 @@ um lote é um conjunto de escolas que a terceirizada atende]]></comment>
 	<schema name="dados_comuns"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Lista de contatos de escola]]></comment>
-	<position x="3463.11" y="743.573"/>
+	<position x="3508.67" y="825.795"/>
 	<column name="contato_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -466,7 +471,7 @@ um lote é um conjunto de escolas que a terceirizada atende]]></comment>
 	<schema name="terceirizada"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Edital para alimentação]]></comment>
-	<position x="2379.5" y="1198.3"/>
+	<position x="2808.64" y="1228.3"/>
 	<column name="edital_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -494,14 +499,11 @@ um lote é um conjunto de escolas que a terceirizada atende]]></comment>
 	<schema name="terceirizada"/>
 	<role name="postgres"/>
 	<comment><![CDATA[qual o relacionamento com edital e contrato?]]></comment>
-	<position x="2396.86" y="1398.17"/>
+	<position x="2855.23" y="1432.79"/>
 	<column name="terceirizada_id" not-null="true">
 		<type name="serial" length="80"/>
 	</column>
-	<column name="id_address">
-		<type name="serial" length="0"/>
-	</column>
-	<column name="come_compania" not-null="true">
+	<column name="nome_fantasia" not-null="true">
 		<type name="varchar" length="80"/>
 	</column>
 	<column name="cnpj" not-null="true">
@@ -561,8 +563,8 @@ um lote é um conjunto de escolas que a terceirizada atende]]></comment>
 	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
 	 src-fk-pattern="{st}_fk"
 	 custom-color="#000000"
-	 src-table="escola.&quot;tipo_unidade_escolar[revisado]&quot;"
-	 dst-table="escola.&quot;escola[revisado]&quot;"
+	 src-table="&quot;escola[revisado]&quot;.&quot;tipo_unidade_escolar[revisado]&quot;"
+	 dst-table="&quot;escola[revisado]&quot;.&quot;escola[revisado]&quot;"
 	 src-required="false" dst-required="false"/>
 
 <relationship name="tipo_gestão_has_many_escola" type="rel1n"
@@ -570,8 +572,8 @@ um lote é um conjunto de escolas que a terceirizada atende]]></comment>
 	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
 	 src-fk-pattern="{st}_fk"
 	 custom-color="#000000"
-	 src-table="escola.&quot;tipo_gestão[revisado]&quot;"
-	 dst-table="escola.&quot;escola[revisado]&quot;"
+	 src-table="&quot;escola[revisado]&quot;.&quot;tipo_gestão[revisado]&quot;"
+	 dst-table="&quot;escola[revisado]&quot;.&quot;escola[revisado]&quot;"
 	 src-required="false" dst-required="false"/>
 
 <relationship name="lote tem muitas escolas" type="rel1n"
@@ -579,9 +581,12 @@ um lote é um conjunto de escolas que a terceirizada atende]]></comment>
 	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
 	 src-fk-pattern="{st}_fk"
 	 custom-color="#000000"
-	 src-table="escola.&quot;lote[validado]&quot;"
-	 dst-table="escola.&quot;escola[revisado]&quot;"
+	 src-table="&quot;escola[revisado]&quot;.&quot;lote[validado]&quot;"
+	 dst-table="&quot;escola[revisado]&quot;.&quot;escola[revisado]&quot;"
 	 src-required="false" dst-required="false">
+	<label ref-type="src-label">
+		<position x="0" y="0"/>
+	</label>
 	<label ref-type="name-label">
 		<position x="0" y="0"/>
 	</label>
@@ -592,8 +597,8 @@ um lote é um conjunto de escolas que a terceirizada atende]]></comment>
 	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
 	 src-fk-pattern="{st}_fk"
 	 custom-color="#000000"
-	 src-table="escola.&quot;diretoria_regional[validado]&quot;"
-	 dst-table="escola.&quot;lote[validado]&quot;"
+	 src-table="&quot;escola[revisado]&quot;.&quot;diretoria_regional[validado]&quot;"
+	 dst-table="&quot;escola[revisado]&quot;.&quot;lote[validado]&quot;"
 	 src-required="false" dst-required="false">
 	<label ref-type="name-label">
 		<position x="0" y="0"/>
@@ -607,7 +612,7 @@ um lote é um conjunto de escolas que a terceirizada atende]]></comment>
 	 pk-col-pattern="id"
 	 custom-color="#ff0000"
 	 src-table="terceirizada.terceirizada"
-	 dst-table="escola.&quot;lote[validado]&quot;"
+	 dst-table="&quot;escola[revisado]&quot;.&quot;lote[validado]&quot;"
 	 src-required="false" dst-required="false"
 	 table-name="many_terceirizada_has_many_lote">
 	<label ref-type="name-label">
@@ -620,15 +625,15 @@ um lote é um conjunto de escolas que a terceirizada atende]]></comment>
 	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
 	 src-fk-pattern="{st}_fk"
 	 custom-color="#000000"
-	 src-table="escola.&quot;diretoria_regional[validado]&quot;"
-	 dst-table="escola.&quot;escola[revisado]&quot;"
+	 src-table="&quot;escola[revisado]&quot;.&quot;diretoria_regional[validado]&quot;"
+	 dst-table="&quot;escola[revisado]&quot;.&quot;escola[revisado]&quot;"
 	 src-required="false" dst-required="false"/>
 
 <table name="periodo_escolar[revisado]">
 	<schema name="&quot;escola[revisado]&quot;"/>
 	<role name="postgres"/>
 	<comment><![CDATA[manhã, intermediário, tarde, vespertino, noturno, integral]]></comment>
-	<position x="1711.95" y="1767.34"/>
+	<position x="2380.37" y="1218.91"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -646,10 +651,14 @@ um lote é um conjunto de escolas que a terceirizada atende]]></comment>
 	 src-fk-pattern="{st}_fk" dst-fk-pattern="{dt}_fk"
 	 pk-col-pattern="id"
 	 custom-color="#ff0000"
-	 src-table="escola.&quot;escola[revisado]&quot;"
-	 dst-table="escola.&quot;periodo_escolar[revisado]&quot;"
+	 src-table="&quot;escola[revisado]&quot;.&quot;escola[revisado]&quot;"
+	 dst-table="&quot;escola[revisado]&quot;.&quot;periodo_escolar[revisado]&quot;"
 	 src-required="false" dst-required="false"
-	 table-name="many_escola_has_many_periodo_escolar"/>
+	 table-name="many_escola_has_many_periodo_escolar">
+	<label ref-type="name-label">
+		<position x="22.2979" y="9.30542"/>
+	</label>
+</relationship>
 
 <table name="grupo_perfil">
 	<schema name="perfil"/>
@@ -657,7 +666,7 @@ um lote é um conjunto de escolas que a terceirizada atende]]></comment>
 	<comment><![CDATA[grupo CODAE: tem os perfis gerente1, sup2, etc.
 grupo ESCOLA: tem os perfis prof, diretor, etc.
 ]]></comment>
-	<position x="2710.07" y="1574.64"/>
+	<position x="2943.22" y="1628.35"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -686,7 +695,7 @@ grupo ESCOLA: tem os perfis prof, diretor, etc.
 	<schema name="kit_lanche"/>
 	<role name="postgres"/>
 	<comment><![CDATA[a ideia é ser um combo de opcoes fixas]]></comment>
-	<position x="1118.6" y="432.452"/>
+	<position x="778.6" y="323.881"/>
 	<column name="id" not-null="true">
 		<type name="smallint" length="0"/>
 	</column>
@@ -704,7 +713,7 @@ grupo ESCOLA: tem os perfis prof, diretor, etc.
 <table name="kit_lanche">
 	<schema name="kit_lanche"/>
 	<role name="postgres"/>
-	<position x="426.145" y="457.92"/>
+	<position x="86.145" y="349.349"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -722,7 +731,7 @@ grupo ESCOLA: tem os perfis prof, diretor, etc.
 <table name="solicitacao_kit_lanche">
 	<schema name="kit_lanche"/>
 	<role name="postgres"/>
-	<position x="931.09" y="900.887"/>
+	<position x="591.09" y="792.316"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -738,14 +747,14 @@ grupo ESCOLA: tem os perfis prof, diretor, etc.
 	 pk-col-pattern="id"
 	 custom-color="#ff0000"
 	 src-table="kit_lanche.solicitacao_kit_lanche"
-	 dst-table="escola.&quot;escola[revisado]&quot;"
+	 dst-table="&quot;escola[revisado]&quot;.&quot;escola[revisado]&quot;"
 	 src-required="false" dst-required="false"
 	 table-name="many_solicitacao_kit_lanche_has_many_escola"/>
 
 <table name="solicitacao_kit_lanche_base">
 	<schema name="kit_lanche"/>
 	<role name="postgres"/>
-	<position x="370.159" y="658.599"/>
+	<position x="30.159" y="550.028"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -779,7 +788,7 @@ grupo ESCOLA: tem os perfis prof, diretor, etc.
 <table name="solicitacao_kit_lanche_unificada">
 	<schema name="kit_lanche"/>
 	<role name="postgres"/>
-	<position x="1028.83" y="608.286"/>
+	<position x="688.835" y="499.714"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -819,7 +828,7 @@ grupo ESCOLA: tem os perfis prof, diretor, etc.
 	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
 	 src-fk-pattern="{st}_fk"
 	 custom-color="#000000"
-	 src-table="escola.&quot;diretoria_regional[validado]&quot;"
+	 src-table="&quot;escola[revisado]&quot;.&quot;diretoria_regional[validado]&quot;"
 	 dst-table="kit_lanche.solicitacao_kit_lanche_unificada"
 	 src-required="false" dst-required="false">
 	<label ref-type="name-label">
@@ -851,7 +860,7 @@ grupo ESCOLA: tem os perfis prof, diretor, etc.
 	 src-fk-pattern="{st}_fk"
 	 custom-color="#000000"
 	 src-table="terceirizada.edital"
-	 dst-table="cardapio.&quot;cardapio[revisado]&quot;"
+	 dst-table="&quot;cardapio[revisado]&quot;.&quot;cardapio[revisado]&quot;"
 	 src-required="false" dst-required="false"/>
 
 <table name="inversao_cardapio[revisado]">
@@ -861,7 +870,7 @@ grupo ESCOLA: tem os perfis prof, diretor, etc.
 
 """
 Nayla - por exemplo: quero servir o cardápio do dia 30 no dia 15, automaticamente o cardápio do dia 15 será servido no dia 30"""]]></comment>
-	<position x="1754.65" y="735.531"/>
+	<position x="1533.1" y="650.385"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -899,8 +908,8 @@ Nayla - por exemplo: quero servir o cardápio do dia 30 no dia 15, automaticamen
 	 src-fk-pattern="{st}_fk" dst-fk-pattern="{dt}_fk"
 	 pk-col-pattern="id"
 	 custom-color="#ff0000"
-	 src-table="escola.&quot;escola[revisado]&quot;"
-	 dst-table="cardapio.&quot;cardapio[revisado]&quot;"
+	 src-table="&quot;escola[revisado]&quot;.&quot;escola[revisado]&quot;"
+	 dst-table="&quot;cardapio[revisado]&quot;.&quot;cardapio[revisado]&quot;"
 	 src-required="false" dst-required="false"
 	 table-name="many_escola_has_many_cardapio"/>
 
@@ -909,8 +918,8 @@ Nayla - por exemplo: quero servir o cardápio do dia 30 no dia 15, automaticamen
 	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
 	 src-fk-pattern="{st}_fk"
 	 custom-color="#000000"
-	 src-table="escola.&quot;escola[revisado]&quot;"
-	 dst-table="cardapio.&quot;inversao_cardapio[revisado]&quot;"
+	 src-table="&quot;escola[revisado]&quot;.&quot;escola[revisado]&quot;"
+	 dst-table="&quot;cardapio[revisado]&quot;.&quot;inversao_cardapio[revisado]&quot;"
 	 src-required="false" dst-required="false"/>
 
 <relationship name="cardapio tem uma série de tipos de refeicao" type="relnn"
@@ -919,8 +928,8 @@ Nayla - por exemplo: quero servir o cardápio do dia 30 no dia 15, automaticamen
 	 src-fk-pattern="{st}_fk" dst-fk-pattern="{dt}_fk"
 	 pk-col-pattern="id"
 	 custom-color="#ff0000"
-	 src-table="cardapio.&quot;cardapio[revisado]&quot;"
-	 dst-table="cardapio.&quot;tipo_cardapio[revisado]&quot;"
+	 src-table="&quot;cardapio[revisado]&quot;.&quot;cardapio[revisado]&quot;"
+	 dst-table="&quot;cardapio[revisado]&quot;.&quot;tipo_cardapio[revisado]&quot;"
 	 src-required="false" dst-required="false"
 	 table-name="cardapio tem uma série de tipos de refeicao">
 	<label ref-type="name-label">
@@ -943,7 +952,7 @@ Nayla - Outro exemplo, a escola vai comemorar a festa junina no dia 28 só no pe
 Marcelo - entendi, trocar o almoço do dia 28 por mais lanches para atender a demanda"""
 
 obs>> a alteração de cardápio é para um dia específico, não da pra cancelar um almoço de um dia pra virar em dobro no outro]]></comment>
-	<position x="1771.81" y="454.167"/>
+	<position x="1536.55" y="354.475"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -982,8 +991,8 @@ obs>> a alteração de cardápio é para um dia específico, não da pra cancela
 	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
 	 src-fk-pattern="{st}_fk"
 	 custom-color="#000000"
-	 src-table="cardapio.&quot;cardapio[revisado]&quot;"
-	 dst-table="cardapio.&quot;alteracao_cardapio[revisado]&quot;"
+	 src-table="&quot;cardapio[revisado]&quot;.&quot;cardapio[revisado]&quot;"
+	 dst-table="&quot;cardapio[revisado]&quot;.&quot;alteracao_cardapio[revisado]&quot;"
 	 src-required="false" dst-required="false">
 	<label ref-type="name-label">
 		<position x="51.3605" y="-3.73182"/>
@@ -995,8 +1004,8 @@ obs>> a alteração de cardápio é para um dia específico, não da pra cancela
 	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
 	 src-fk-pattern="{st}_fk"
 	 custom-color="#000000"
-	 src-table="escola.&quot;escola[revisado]&quot;"
-	 dst-table="cardapio.&quot;alteracao_cardapio[revisado]&quot;"
+	 src-table="&quot;escola[revisado]&quot;.&quot;escola[revisado]&quot;"
+	 dst-table="&quot;cardapio[revisado]&quot;.&quot;alteracao_cardapio[revisado]&quot;"
 	 src-required="false" dst-required="false"/>
 
 <relationship name="tipo_cardapio[revisado]_has_many_alteracao_cardapio" type="rel1n"
@@ -1004,8 +1013,8 @@ obs>> a alteração de cardápio é para um dia específico, não da pra cancela
 	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
 	 src-fk-pattern="{st}_fk"
 	 custom-color="#000000"
-	 src-table="cardapio.&quot;tipo_cardapio[revisado]&quot;"
-	 dst-table="cardapio.&quot;alteracao_cardapio[revisado]&quot;"
+	 src-table="&quot;cardapio[revisado]&quot;.&quot;tipo_cardapio[revisado]&quot;"
+	 dst-table="&quot;cardapio[revisado]&quot;.&quot;alteracao_cardapio[revisado]&quot;"
 	 src-required="false" dst-required="false">
 	<column name="item_de">
 		<type name="serial" length="0"/>
@@ -1017,8 +1026,8 @@ obs>> a alteração de cardápio é para um dia específico, não da pra cancela
 	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
 	 src-fk-pattern="{st}_fk"
 	 custom-color="#000000"
-	 src-table="cardapio.&quot;tipo_cardapio[revisado]&quot;"
-	 dst-table="cardapio.&quot;alteracao_cardapio[revisado]&quot;"
+	 src-table="&quot;cardapio[revisado]&quot;.&quot;tipo_cardapio[revisado]&quot;"
+	 dst-table="&quot;cardapio[revisado]&quot;.&quot;alteracao_cardapio[revisado]&quot;"
 	 src-required="false" dst-required="false">
 	<label ref-type="name-label">
 		<position x="-2.58027" y="1.90969"/>
@@ -1033,8 +1042,8 @@ obs>> a alteração de cardápio é para um dia específico, não da pra cancela
 	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
 	 src-fk-pattern="{st}_fk"
 	 custom-color="#000000"
-	 src-table="cardapio.&quot;cardapio[revisado]&quot;"
-	 dst-table="cardapio.&quot;inversao_cardapio[revisado]&quot;"
+	 src-table="&quot;cardapio[revisado]&quot;.&quot;cardapio[revisado]&quot;"
+	 dst-table="&quot;cardapio[revisado]&quot;.&quot;inversao_cardapio[revisado]&quot;"
 	 src-required="false" dst-required="false">
 	<column name="cardapio_de">
 		<type name="int2" length="0"/>
@@ -1046,13 +1055,127 @@ obs>> a alteração de cardápio é para um dia específico, não da pra cancela
 	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
 	 src-fk-pattern="{st}_fk"
 	 custom-color="#000000"
-	 src-table="cardapio.&quot;cardapio[revisado]&quot;"
-	 dst-table="cardapio.&quot;inversao_cardapio[revisado]&quot;"
+	 src-table="&quot;cardapio[revisado]&quot;.&quot;cardapio[revisado]&quot;"
+	 dst-table="&quot;cardapio[revisado]&quot;.&quot;inversao_cardapio[revisado]&quot;"
 	 src-required="false" dst-required="false">
 	<column name="cardapio_para">
 		<type name="int2" length="0"/>
 	</column>
 </relationship>
+
+<table name="inclusao_alimentacao">
+	<schema name="inclusao_alimentacao"/>
+	<role name="postgres"/>
+	<comment><![CDATA[Muito parecido com cardápio.
+
+Acontece quando não tem cardápio para a escola, por exemplo num domingo, no qual vai ter uma atividade de dança avulsa e a escola gostaria de dar almoço e  merenda pros participantes.]]></comment>
+	<position x="2686.75" y="357.856"/>
+	<column name="id" not-null="true">
+		<type name="serial" length="0"/>
+	</column>
+	<column name="data_inicial">
+		<type name="date" length="0"/>
+	</column>
+	<column name="data_fim">
+		<type name="date" length="0"/>
+	</column>
+	<column name="descricao">
+		<type name="text" length="0"/>
+	</column>
+	<constraint name="inclusao_alimentacao_pk" type="pk-constr" table="inclusao_alimentacao.inclusao_alimentacao">
+		<columns names="id" ref-type="src-columns"/>
+	</constraint>
+
+	<customidxs object-type="column">
+		<object name="escola_id_escola[revisado]" index="4"/>
+	</customidxs>
+
+	<customidxs object-type="constraint">
+		<object name="escola[revisado]_fk" index="1"/>
+	</customidxs>
+</table>
+
+<schema name="inclusao_alimentacao" rect-visible="true" fill-color="#837521">
+	<role name="postgres"/>
+</schema>
+
+<relationship name="escola[revisado]_has_many_inclusao_alimentacao" type="rel1n"
+	 src-col-pattern="{sc}_{st}"
+	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
+	 src-fk-pattern="{st}_fk"
+	 custom-color="#000000"
+	 src-table="&quot;escola[revisado]&quot;.&quot;escola[revisado]&quot;"
+	 dst-table="inclusao_alimentacao.inclusao_alimentacao"
+	 src-required="false" dst-required="false"/>
+
+<table name="dia_semana">
+	<schema name="inclusao_alimentacao"/>
+	<role name="postgres"/>
+	<comment><![CDATA[seg, sex;...]]></comment>
+	<position x="3252.48" y="438.822"/>
+	<column name="id" not-null="true">
+		<type name="serial" length="0"/>
+	</column>
+	<column name="nome">
+		<type name="varchar" length="0"/>
+	</column>
+	<constraint name="dia_semana_pk" type="pk-constr" table="inclusao_alimentacao.dia_semana">
+		<columns names="id" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<relationship name="many_dia_semana_has_many_inclusao_alimentacao" type="relnn"
+	 src-col-pattern="{sc}_{st}" dst-col-pattern="{sc}_{dt}"
+	 pk-pattern="{gt}_pk" uq-pattern="{gt}_uq"
+	 src-fk-pattern="{st}_fk" dst-fk-pattern="{dt}_fk"
+	 pk-col-pattern="id"
+	 custom-color="#ff0000"
+	 src-table="inclusao_alimentacao.dia_semana"
+	 dst-table="inclusao_alimentacao.inclusao_alimentacao"
+	 src-required="false" dst-required="false"
+	 table-name="many_dia_semana_has_many_inclusao_alimentacao">
+	<label ref-type="name-label">
+		<position x="0" y="0"/>
+	</label>
+</relationship>
+
+<table name="periodo_inclusao">
+	<schema name="inclusao_alimentacao"/>
+	<role name="postgres"/>
+	<comment><![CDATA[manha tarde noite. periodo que a comida vai ser servida.]]></comment>
+	<position x="2720.37" y="651.405"/>
+	<column name="id" not-null="true">
+		<type name="serial" length="0"/>
+	</column>
+	<column name="nome">
+		<type name="varchar" length="0"/>
+	</column>
+	<constraint name="periodo_inclusao_pk" type="pk-constr" table="inclusao_alimentacao.periodo_inclusao">
+		<columns names="id" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<relationship name="many_periodo_inclusao_has_many_tipo_cardapio[revisado]" type="relnn"
+	 src-col-pattern="{sc}_{st}" dst-col-pattern="{sc}_{dt}"
+	 pk-pattern="{gt}_pk" uq-pattern="{gt}_uq"
+	 src-fk-pattern="{st}_fk" dst-fk-pattern="{dt}_fk"
+	 pk-col-pattern="id"
+	 custom-color="#ff0000"
+	 src-table="inclusao_alimentacao.periodo_inclusao"
+	 dst-table="&quot;cardapio[revisado]&quot;.&quot;tipo_cardapio[revisado]&quot;"
+	 src-required="false" dst-required="false"
+	 table-name="many_periodo_inclusao_has_many_tipo_cardapio[revisado]"/>
+
+<relationship name="many_inclusao_alimentacao_has_many_periodo_inclusao" type="relnn"
+	 src-col-pattern="{sc}_{st}" dst-col-pattern="{sc}_{dt}"
+	 pk-pattern="{gt}_pk" uq-pattern="{gt}_uq"
+	 src-fk-pattern="{st}_fk" dst-fk-pattern="{dt}_fk"
+	 pk-col-pattern="id"
+	 custom-color="#ff0000"
+	 src-table="inclusao_alimentacao.inclusao_alimentacao"
+	 dst-table="inclusao_alimentacao.periodo_inclusao"
+	 src-required="false" dst-required="false"
+	 table-name="many_inclusao_alimentacao_has_many_periodo_inclusao"/>
 
 <constraint name="fk_usuario_id" type="fk-constr" comparison-type="MATCH FULL"
 	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="dados_do_django.usuario" table="dados_comuns.log_usuario">
