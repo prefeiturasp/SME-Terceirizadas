@@ -3,7 +3,7 @@
 CAUTION: Do not modify this file unless you know what you are doing.
          Unexpected results may occur if the code is changed deliberately.
 -->
-<dbmodel pgmodeler-ver="0.9.1" last-position="1658,472" last-zoom="0.95"
+<dbmodel pgmodeler-ver="0.9.1" last-position="421,650" last-zoom="0.65"
 	 default-owner="postgres">
 <database name="new_database" is-template="false" allow-conns="true">
 </database>
@@ -16,7 +16,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<comment><![CDATA[a ideia é limitar os endpoints que um dado perfil tem acesso.]]></comment>
 </schema>
 
-<schema name="escola" rect-visible="true" fill-color="#9c12d9">
+<schema name="escola[revisado]" rect-visible="true" fill-color="#9c12d9">
 	<role name="postgres"/>
 </schema>
 
@@ -29,7 +29,7 @@ pode abrir a escola,
 pode fazer merenda, 
 pode dar aula,
 pode fechar a escola, etc.]]></comment>
-	<position x="2653.78" y="1717.42"/>
+	<position x="2690.92" y="1768.85"/>
 	<column name="permissao_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -47,59 +47,58 @@ pode fechar a escola, etc.]]></comment>
 	</constraint>
 </table>
 
-<schema name="cardapio" rect-visible="true" fill-color="#ffff00">
+<schema name="cardapio[revisado]" rect-visible="true" fill-color="#ffff00">
 	<role name="postgres"/>
 	<comment><![CDATA[
 ]]></comment>
 </schema>
 
-<table name="tipo_unidade_escolar">
-	<schema name="escola"/>
+<table name="tipo_unidade_escolar[revisado]">
+	<schema name="&quot;escola[revisado]&quot;"/>
 	<role name="postgres"/>
-	<comment><![CDATA[Unidade escolar. EMEF, EMEI, EMEBS, CEI, CEMEI]]></comment>
-	<position x="587.082" y="2100.88"/>
+	<comment><![CDATA[Unidade escolar. EMEF, CIEJA, EMEI, EMEBS, CEI, CEMEI]]></comment>
+	<position x="1082.87" y="1542.64"/>
 	<column name="unidade_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
 	<column name="iniciais" not-null="true">
 		<type name="varchar" length="15"/>
 	</column>
-	<constraint name="unidade_pk" type="pk-constr" table="escola.tipo_unidade_escolar">
+	<constraint name="unidade_pk" type="pk-constr" table="&quot;escola[revisado]&quot;.&quot;tipo_unidade_escolar[revisado]&quot;">
 		<columns names="unidade_id" ref-type="src-columns"/>
 	</constraint>
 </table>
 
-<table name="tipo_gestão">
-	<schema name="escola"/>
+<table name="tipo_gestão[revisado]">
+	<schema name="&quot;escola[revisado]&quot;"/>
 	<role name="postgres"/>
-	<comment><![CDATA[Qual o tipo de gestão da escola. Ex.: Terceirizada, Direta e Mista]]></comment>
-	<position x="583.051" y="1862.75"/>
+	<comment><![CDATA[Qual o tipo de gestão da escola. Ex.: Terceirizada completa, tec mista]]></comment>
+	<position x="1071.15" y="1424.29"/>
 	<column name="gestao_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
 	<column name="nome" not-null="true">
 		<type name="varchar" length="99"/>
 	</column>
-	<column name="descricao">
-		<type name="text" length="0"/>
-	</column>
 	<column name="ativo" not-null="true" default-value="true">
 		<type name="bool" length="0"/>
 	</column>
-	<constraint name="tipo_gestao_pk" type="pk-constr" table="escola.&quot;tipo_gestão&quot;">
+	<constraint name="tipo_gestao_pk" type="pk-constr" table="&quot;escola[revisado]&quot;.&quot;tipo_gestão[revisado]&quot;">
 		<columns names="gestao_id" ref-type="src-columns"/>
 	</constraint>
 </table>
 
-<table name="idade_escolar">
-	<schema name="escola"/>
+<table name="faixa_idade_escolar">
+	<schema name="&quot;escola[revisado]&quot;"/>
 	<role name="postgres"/>
-	<comment><![CDATA[Tabela utilizada para registrar faixa etária de idade.
+	<comment><![CDATA[[o cardapio so varia por idade quando é CEI, tirando isso nao é interessante a faixa.]
+
+Tabela utilizada para registrar faixa etária de idade.
 Ex. de 1 a 2 anos
 de 2 a 5 anos
 de 7 a 18 anos.
 de 6meses a 1 ano]]></comment>
-	<position x="1134.93" y="1198.97"/>
+	<position x="2077.01" y="1732.99"/>
 	<column name="idade_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -109,7 +108,7 @@ de 6meses a 1 ano]]></comment>
 	<column name="ativo" not-null="true" default-value="true">
 		<type name="bool" length="0"/>
 	</column>
-	<constraint name="idade_pk" type="pk-constr" table="escola.idade_escolar">
+	<constraint name="idade_pk" type="pk-constr" table="&quot;escola[revisado]&quot;.faixa_idade_escolar">
 		<columns names="idade_id" ref-type="src-columns"/>
 	</constraint>
 </table>
@@ -119,7 +118,7 @@ de 6meses a 1 ano]]></comment>
 </schema>
 
 <table name="tipo_cardapio[revisado]">
-	<schema name="cardapio"/>
+	<schema name="&quot;cardapio[revisado]&quot;"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Tabela registra os tipos de cardápios, 
 Refeição
@@ -128,27 +127,27 @@ Lanche 4 horas
 Lanche 5 horas 
 Lanche 6horas
 Merenda Seca]]></comment>
-	<position x="2540.12" y="597.524"/>
+	<position x="2502.13" y="560.334"/>
 	<column name="tipo_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
 	<column name="nome" not-null="true">
 		<type name="varchar" length="99"/>
 	</column>
-	<constraint name="tipo_pk" type="pk-constr" table="cardapio.&quot;tipo_cardapio[revisado]&quot;">
+	<constraint name="tipo_pk" type="pk-constr" table="&quot;cardapio[revisado]&quot;.&quot;tipo_cardapio[revisado]&quot;">
 		<columns names="tipo_id" ref-type="src-columns"/>
 	</constraint>
 </table>
 
 <table name="cardapio[revisado]">
-	<schema name="cardapio"/>
+	<schema name="&quot;cardapio[revisado]&quot;"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Cardápio escolar tem:
 1 dia pra acontecer ex (26/06)
 1 lista de tipos de refeicao (LANCHE DE 4 HS OU 8 HS; LANCHE DE 5HS OU 6 HS; REFEIÇÃO).
 
 !!!!OBS!!! PARA CEI varia por faixa de idade.]]></comment>
-	<position x="2528.13" y="912.702"/>
+	<position x="2457.83" y="844.742"/>
 	<column name="cardapio_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -161,7 +160,7 @@ Merenda Seca]]></comment>
 	<column name="ativo" not-null="true" default-value="true">
 		<type name="bool" length="0"/>
 	</column>
-	<constraint name="cardapio_pk" type="pk-constr" table="cardapio.&quot;cardapio[revisado]&quot;">
+	<constraint name="cardapio_pk" type="pk-constr" table="&quot;cardapio[revisado]&quot;.&quot;cardapio[revisado]&quot;">
 		<columns names="cardapio_id" ref-type="src-columns"/>
 	</constraint>
 
@@ -174,10 +173,10 @@ Merenda Seca]]></comment>
 	</customidxs>
 </table>
 
-<table name="escola">
-	<schema name="escola"/>
+<table name="escola[revisado]">
+	<schema name="&quot;escola[revisado]&quot;"/>
 	<role name="postgres"/>
-	<position x="984.813" y="1466.13"/>
+	<position x="1588.26" y="1216.66"/>
 	<column name="escola_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -196,10 +195,10 @@ Merenda Seca]]></comment>
 	<column name="codigo_codae">
 		<type name="varchar" length="10"/>
 	</column>
-	<constraint name="escola_pk" type="pk-constr" table="escola.escola">
+	<constraint name="escola_pk" type="pk-constr" table="&quot;escola[revisado]&quot;.&quot;escola[revisado]&quot;">
 		<columns names="escola_id" ref-type="src-columns"/>
 	</constraint>
-	<constraint name="codigo_eol_unique" type="uq-constr" table="escola.escola">
+	<constraint name="codigo_eol_unique" type="uq-constr" table="&quot;escola[revisado]&quot;.&quot;escola[revisado]&quot;">
 		<columns names="codigo_eol" ref-type="src-columns"/>
 	</constraint>
 </table>
@@ -215,7 +214,7 @@ Merenda Seca]]></comment>
 
 Ex: o perfil diretor tem as permissões: [abrir escola, fechar escola]
 o perfil professor pode [dar aula, fazer denuncia na DRE]]]></comment>
-	<position x="3054.14" y="1555.89"/>
+	<position x="3091.28" y="1607.32"/>
 	<column name="perfil_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -259,11 +258,11 @@ o perfil professor pode [dar aula, fazer denuncia na DRE]]]></comment>
 	</constraint>
 </table>
 
-<table name="diretoria_regional">
-	<schema name="escola"/>
+<table name="diretoria_regional[validado]">
+	<schema name="&quot;escola[revisado]&quot;"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Tabela utilizada para registrar as DREs (DIRETORIA REGIONAL DA EDUCAÇÃO)]]></comment>
-	<position x="1176.93" y="1940.42"/>
+	<position x="802.644" y="1251.85"/>
 	<column name="diretor_regional_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -273,16 +272,18 @@ o perfil professor pode [dar aula, fazer denuncia na DRE]]]></comment>
 	<column name="nome" not-null="true">
 		<type name="varchar" length="80"/>
 	</column>
-	<constraint name="diretor_regional_pk" type="pk-constr" table="escola.diretoria_regional">
+	<constraint name="diretor_regional_pk" type="pk-constr" table="&quot;escola[revisado]&quot;.&quot;diretoria_regional[validado]&quot;">
 		<columns names="diretor_regional_id" ref-type="src-columns"/>
 	</constraint>
 </table>
 
-<table name="lote">
-	<schema name="codae"/>
+<table name="lote[validado]">
+	<schema name="&quot;escola[revisado]&quot;"/>
 	<role name="postgres"/>
-	<comment><![CDATA[Lote de  atendimento]]></comment>
-	<position x="1394.37" y="2298.95"/>
+	<comment><![CDATA[Lote de  atendimento
+Uma DRE pode ter 1 ou mais lotes
+um lote é um conjunto de escolas que a terceirizada atende]]></comment>
+	<position x="847.731" y="1748.28"/>
 	<column name="lote_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -296,9 +297,17 @@ o perfil professor pode [dar aula, fazer denuncia na DRE]]]></comment>
 	<column name="diretor_regional_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
-	<constraint name="lote_pk" type="pk-constr" table="codae.lote">
+	<constraint name="lote_pk" type="pk-constr" table="&quot;escola[revisado]&quot;.&quot;lote[validado]&quot;">
 		<columns names="lote_id" ref-type="src-columns"/>
 	</constraint>
+
+	<customidxs object-type="column">
+		<object name="diretor_regional_id_diretoria_regional[validado]" index="4"/>
+	</customidxs>
+
+	<customidxs object-type="constraint">
+		<object name="diretoria_regional[validado]_fk" index="1"/>
+	</customidxs>
 </table>
 
 <table name="localizacao_cidade">
@@ -449,27 +458,6 @@ o perfil professor pode [dar aula, fazer denuncia na DRE]]]></comment>
 	</label>
 </relationship>
 
-<relationship name="muitos_cardapios_possuem_muitas_idades" type="relnn"
-	 src-col-pattern="{sc}_{st}" dst-col-pattern="{sc}_{dt}"
-	 pk-pattern="{gt}_pk" uq-pattern="{gt}_uq"
-	 src-fk-pattern="{st}_fk" dst-fk-pattern="{dt}_fk"
-	 pk-col-pattern="id"
-	 custom-color="#f70c3e"
-	 src-table="cardapio.&quot;cardapio[revisado]&quot;"
-	 dst-table="escola.idade_escolar"
-	 src-required="false" dst-required="false"
-	 table-name="menu_age">
-	<label ref-type="src-label">
-		<position x="10.4268" y="-0.15"/>
-	</label>
-	<label ref-type="dst-label">
-		<position x="0" y="0"/>
-	</label>
-	<label ref-type="name-label">
-		<position x="0" y="0"/>
-	</label>
-</relationship>
-
 <schema name="terceirizada" rect-visible="true" fill-color="#0b0b49">
 	<role name="postgres"/>
 </schema>
@@ -478,7 +466,7 @@ o perfil professor pode [dar aula, fazer denuncia na DRE]]]></comment>
 	<schema name="terceirizada"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Edital para alimentação]]></comment>
-	<position x="1990.93" y="1372.59"/>
+	<position x="2379.5" y="1198.3"/>
 	<column name="edital_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -506,7 +494,7 @@ o perfil professor pode [dar aula, fazer denuncia na DRE]]]></comment>
 	<schema name="terceirizada"/>
 	<role name="postgres"/>
 	<comment><![CDATA[qual o relacionamento com edital e contrato?]]></comment>
-	<position x="2314" y="1401.03"/>
+	<position x="2396.86" y="1398.17"/>
 	<column name="terceirizada_id" not-null="true">
 		<type name="serial" length="80"/>
 	</column>
@@ -551,24 +539,6 @@ o perfil professor pode [dar aula, fazer denuncia na DRE]]]></comment>
 	</label>
 </relationship>
 
-<relationship name="muitas_escolas_possuem_muitas_idades" type="relnn"
-	 src-col-pattern="{sc}_{st}" dst-col-pattern="{sc}_{dt}"
-	 pk-pattern="{gt}_pk" uq-pattern="{gt}_uq"
-	 src-fk-pattern="{st}_fk" dst-fk-pattern="{dt}_fk"
-	 pk-col-pattern="id"
-	 custom-color="#ff0000"
-	 src-table="escola.escola"
-	 dst-table="escola.idade_escolar"
-	 src-required="false" dst-required="false"
-	 table-name="many_escola_has_many_idade">
-	<label ref-type="dst-label">
-		<position x="-70.1847" y="1.85"/>
-	</label>
-	<label ref-type="name-label">
-		<position x="27.7799" y="-70.6115"/>
-	</label>
-</relationship>
-
 <schema name="codae_cp" rect-visible="true" fill-color="#00aaff">
 	<role name="postgres"/>
 </schema>
@@ -591,8 +561,8 @@ o perfil professor pode [dar aula, fazer denuncia na DRE]]]></comment>
 	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
 	 src-fk-pattern="{st}_fk"
 	 custom-color="#000000"
-	 src-table="escola.tipo_unidade_escolar"
-	 dst-table="escola.escola"
+	 src-table="escola.&quot;tipo_unidade_escolar[revisado]&quot;"
+	 dst-table="escola.&quot;escola[revisado]&quot;"
 	 src-required="false" dst-required="false"/>
 
 <relationship name="tipo_gestão_has_many_escola" type="rel1n"
@@ -600,8 +570,8 @@ o perfil professor pode [dar aula, fazer denuncia na DRE]]]></comment>
 	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
 	 src-fk-pattern="{st}_fk"
 	 custom-color="#000000"
-	 src-table="escola.&quot;tipo_gestão&quot;"
-	 dst-table="escola.escola"
+	 src-table="escola.&quot;tipo_gestão[revisado]&quot;"
+	 dst-table="escola.&quot;escola[revisado]&quot;"
 	 src-required="false" dst-required="false"/>
 
 <relationship name="lote tem muitas escolas" type="rel1n"
@@ -609,8 +579,8 @@ o perfil professor pode [dar aula, fazer denuncia na DRE]]]></comment>
 	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
 	 src-fk-pattern="{st}_fk"
 	 custom-color="#000000"
-	 src-table="codae.lote"
-	 dst-table="escola.escola"
+	 src-table="escola.&quot;lote[validado]&quot;"
+	 dst-table="escola.&quot;escola[revisado]&quot;"
 	 src-required="false" dst-required="false">
 	<label ref-type="name-label">
 		<position x="0" y="0"/>
@@ -622,8 +592,8 @@ o perfil professor pode [dar aula, fazer denuncia na DRE]]]></comment>
 	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
 	 src-fk-pattern="{st}_fk"
 	 custom-color="#000000"
-	 src-table="escola.diretoria_regional"
-	 dst-table="codae.lote"
+	 src-table="escola.&quot;diretoria_regional[validado]&quot;"
+	 dst-table="escola.&quot;lote[validado]&quot;"
 	 src-required="false" dst-required="false">
 	<label ref-type="name-label">
 		<position x="0" y="0"/>
@@ -637,7 +607,7 @@ o perfil professor pode [dar aula, fazer denuncia na DRE]]]></comment>
 	 pk-col-pattern="id"
 	 custom-color="#ff0000"
 	 src-table="terceirizada.terceirizada"
-	 dst-table="codae.lote"
+	 dst-table="escola.&quot;lote[validado]&quot;"
 	 src-required="false" dst-required="false"
 	 table-name="many_terceirizada_has_many_lote">
 	<label ref-type="name-label">
@@ -650,52 +620,22 @@ o perfil professor pode [dar aula, fazer denuncia na DRE]]]></comment>
 	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
 	 src-fk-pattern="{st}_fk"
 	 custom-color="#000000"
-	 src-table="escola.diretoria_regional"
-	 dst-table="escola.escola"
+	 src-table="escola.&quot;diretoria_regional[validado]&quot;"
+	 dst-table="escola.&quot;escola[revisado]&quot;"
 	 src-required="false" dst-required="false"/>
 
-<table name="sub_prefeitura">
-	<schema name="escola"/>
+<table name="periodo_escolar[revisado]">
+	<schema name="&quot;escola[revisado]&quot;"/>
 	<role name="postgres"/>
-	<position x="585.913" y="1987.98"/>
+	<comment><![CDATA[manhã, intermediário, tarde, vespertino, noturno, integral]]></comment>
+	<position x="1711.95" y="1767.34"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
 	<column name="nome">
 		<type name="varchar" length="0"/>
 	</column>
-	<column name="descricao">
-		<type name="text" length="0"/>
-	</column>
-	<constraint name="sub_prefeitura_pk" type="pk-constr" table="escola.sub_prefeitura">
-		<columns names="id" ref-type="src-columns"/>
-	</constraint>
-</table>
-
-<relationship name="sub_prefeitura_has_many_escola" type="rel1n"
-	 src-col-pattern="{sc}_{st}"
-	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
-	 src-fk-pattern="{st}_fk"
-	 custom-color="#000000"
-	 src-table="escola.sub_prefeitura"
-	 dst-table="escola.escola"
-	 src-required="false" dst-required="false"/>
-
-<table name="periodo_escolar">
-	<schema name="escola"/>
-	<role name="postgres"/>
-	<comment><![CDATA[manha, tarde, noite, integral]]></comment>
-	<position x="1513.77" y="1473.36"/>
-	<column name="id" not-null="true">
-		<type name="serial" length="0"/>
-	</column>
-	<column name="nome">
-		<type name="varchar" length="0"/>
-	</column>
-	<column name="descricao">
-		<type name="text" length="0"/>
-	</column>
-	<constraint name="periodo_escolar_pk" type="pk-constr" table="escola.periodo_escolar">
+	<constraint name="periodo_escolar_pk" type="pk-constr" table="&quot;escola[revisado]&quot;.&quot;periodo_escolar[revisado]&quot;">
 		<columns names="id" ref-type="src-columns"/>
 	</constraint>
 </table>
@@ -706,8 +646,8 @@ o perfil professor pode [dar aula, fazer denuncia na DRE]]]></comment>
 	 src-fk-pattern="{st}_fk" dst-fk-pattern="{dt}_fk"
 	 pk-col-pattern="id"
 	 custom-color="#ff0000"
-	 src-table="escola.escola"
-	 dst-table="escola.periodo_escolar"
+	 src-table="escola.&quot;escola[revisado]&quot;"
+	 dst-table="escola.&quot;periodo_escolar[revisado]&quot;"
 	 src-required="false" dst-required="false"
 	 table-name="many_escola_has_many_periodo_escolar"/>
 
@@ -717,7 +657,7 @@ o perfil professor pode [dar aula, fazer denuncia na DRE]]]></comment>
 	<comment><![CDATA[grupo CODAE: tem os perfis gerente1, sup2, etc.
 grupo ESCOLA: tem os perfis prof, diretor, etc.
 ]]></comment>
-	<position x="2672.93" y="1523.21"/>
+	<position x="2710.07" y="1574.64"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -782,7 +722,7 @@ grupo ESCOLA: tem os perfis prof, diretor, etc.
 <table name="solicitacao_kit_lanche">
 	<schema name="kit_lanche"/>
 	<role name="postgres"/>
-	<position x="635.705" y="920.887"/>
+	<position x="931.09" y="900.887"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -798,7 +738,7 @@ grupo ESCOLA: tem os perfis prof, diretor, etc.
 	 pk-col-pattern="id"
 	 custom-color="#ff0000"
 	 src-table="kit_lanche.solicitacao_kit_lanche"
-	 dst-table="escola.escola"
+	 dst-table="escola.&quot;escola[revisado]&quot;"
 	 src-required="false" dst-required="false"
 	 table-name="many_solicitacao_kit_lanche_has_many_escola"/>
 
@@ -839,7 +779,7 @@ grupo ESCOLA: tem os perfis prof, diretor, etc.
 <table name="solicitacao_kit_lanche_unificada">
 	<schema name="kit_lanche"/>
 	<role name="postgres"/>
-	<position x="930.373" y="629.824"/>
+	<position x="1028.83" y="608.286"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -879,7 +819,7 @@ grupo ESCOLA: tem os perfis prof, diretor, etc.
 	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
 	 src-fk-pattern="{st}_fk"
 	 custom-color="#000000"
-	 src-table="escola.diretoria_regional"
+	 src-table="escola.&quot;diretoria_regional[validado]&quot;"
 	 dst-table="kit_lanche.solicitacao_kit_lanche_unificada"
 	 src-required="false" dst-required="false">
 	<label ref-type="name-label">
@@ -915,13 +855,13 @@ grupo ESCOLA: tem os perfis prof, diretor, etc.
 	 src-required="false" dst-required="false"/>
 
 <table name="inversao_cardapio[revisado]">
-	<schema name="cardapio"/>
+	<schema name="&quot;cardapio[revisado]&quot;"/>
 	<role name="postgres"/>
 	<comment><![CDATA[[ATENÇÃO AOS STATUS... TEM UM FLUXO DE APROVAÇÃO]
 
 """
 Nayla - por exemplo: quero servir o cardápio do dia 30 no dia 15, automaticamente o cardápio do dia 15 será servido no dia 30"""]]></comment>
-	<position x="1853.82" y="845.663"/>
+	<position x="1754.65" y="735.531"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -934,7 +874,7 @@ Nayla - por exemplo: quero servir o cardápio do dia 30 no dia 15, automaticamen
 	<column name="status">
 		<type name="smallint" length="0"/>
 	</column>
-	<constraint name="troca_dia_cardapio_pk" type="pk-constr" table="cardapio.&quot;inversao_cardapio[revisado]&quot;">
+	<constraint name="troca_dia_cardapio_pk" type="pk-constr" table="&quot;cardapio[revisado]&quot;.&quot;inversao_cardapio[revisado]&quot;">
 		<columns names="id" ref-type="src-columns"/>
 	</constraint>
 
@@ -943,13 +883,13 @@ Nayla - por exemplo: quero servir o cardápio do dia 30 no dia 15, automaticamen
 		<object name="cardapio_id_cardapio[revisado]" index="5"/>
 		<object name="cardapio_id_cardapio[revisado]1" index="7"/>
 		<object name="cardapio_para" index="8"/>
-		<object name="escola_id_escola" index="4"/>
+		<object name="escola_id_escola[revisado]" index="4"/>
 	</customidxs>
 
 	<customidxs object-type="constraint">
 		<object name="cardapio[revisado]_fk" index="2"/>
 		<object name="cardapio[revisado]_fk1" index="3"/>
-		<object name="escola_fk" index="1"/>
+		<object name="escola[revisado]_fk" index="1"/>
 	</customidxs>
 </table>
 
@@ -959,7 +899,7 @@ Nayla - por exemplo: quero servir o cardápio do dia 30 no dia 15, automaticamen
 	 src-fk-pattern="{st}_fk" dst-fk-pattern="{dt}_fk"
 	 pk-col-pattern="id"
 	 custom-color="#ff0000"
-	 src-table="escola.escola"
+	 src-table="escola.&quot;escola[revisado]&quot;"
 	 dst-table="cardapio.&quot;cardapio[revisado]&quot;"
 	 src-required="false" dst-required="false"
 	 table-name="many_escola_has_many_cardapio"/>
@@ -969,7 +909,7 @@ Nayla - por exemplo: quero servir o cardápio do dia 30 no dia 15, automaticamen
 	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
 	 src-fk-pattern="{st}_fk"
 	 custom-color="#000000"
-	 src-table="escola.escola"
+	 src-table="escola.&quot;escola[revisado]&quot;"
 	 dst-table="cardapio.&quot;inversao_cardapio[revisado]&quot;"
 	 src-required="false" dst-required="false"/>
 
@@ -989,7 +929,7 @@ Nayla - por exemplo: quero servir o cardápio do dia 30 no dia 15, automaticamen
 </relationship>
 
 <table name="alteracao_cardapio[revisado]">
-	<schema name="cardapio"/>
+	<schema name="&quot;cardapio[revisado]&quot;"/>
 	<role name="postgres"/>
 	<comment><![CDATA[[ATENÇÃO AOS STATUS... TEM UM FLUXO DE APROVAÇÃO]
 
@@ -1003,7 +943,7 @@ Nayla - Outro exemplo, a escola vai comemorar a festa junina no dia 28 só no pe
 Marcelo - entendi, trocar o almoço do dia 28 por mais lanches para atender a demanda"""
 
 obs>> a alteração de cardápio é para um dia específico, não da pra cancelar um almoço de um dia pra virar em dobro no outro]]></comment>
-	<position x="1856.86" y="577.24"/>
+	<position x="1771.81" y="454.167"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -1016,13 +956,13 @@ obs>> a alteração de cardápio é para um dia específico, não da pra cancela
 	<column name="status">
 		<type name="smallint" length="0"/>
 	</column>
-	<constraint name="alteracao_cardapio_pk" type="pk-constr" table="cardapio.&quot;alteracao_cardapio[revisado]&quot;">
+	<constraint name="alteracao_cardapio_pk" type="pk-constr" table="&quot;cardapio[revisado]&quot;.&quot;alteracao_cardapio[revisado]&quot;">
 		<columns names="id" ref-type="src-columns"/>
 	</constraint>
 
 	<customidxs object-type="column">
 		<object name="cardapio_id_cardapio[revisado]" index="4"/>
-		<object name="escola_id_escola" index="5"/>
+		<object name="escola_id_escola[revisado]" index="5"/>
 		<object name="item_de" index="7"/>
 		<object name="item_para" index="9"/>
 		<object name="tipo_id_tipo_cardapio[revisado]" index="6"/>
@@ -1031,7 +971,7 @@ obs>> a alteração de cardápio é para um dia específico, não da pra cancela
 
 	<customidxs object-type="constraint">
 		<object name="cardapio[revisado]_fk" index="0"/>
-		<object name="escola_fk" index="1"/>
+		<object name="escola[revisado]_fk" index="2"/>
 		<object name="tipo_cardapio[revisado]_fk" index="3"/>
 		<object name="tipo_cardapio[revisado]_fk1" index="4"/>
 	</customidxs>
@@ -1055,7 +995,7 @@ obs>> a alteração de cardápio é para um dia específico, não da pra cancela
 	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
 	 src-fk-pattern="{st}_fk"
 	 custom-color="#000000"
-	 src-table="escola.escola"
+	 src-table="escola.&quot;escola[revisado]&quot;"
 	 dst-table="cardapio.&quot;alteracao_cardapio[revisado]&quot;"
 	 src-required="false" dst-required="false"/>
 
