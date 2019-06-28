@@ -3,7 +3,7 @@
 CAUTION: Do not modify this file unless you know what you are doing.
          Unexpected results may occur if the code is changed deliberately.
 -->
-<dbmodel pgmodeler-ver="0.9.1" last-position="1071,482" last-zoom="0.85"
+<dbmodel pgmodeler-ver="0.9.1" last-position="2321,417" last-zoom="0.5"
 	 default-owner="postgres">
 <database name="new_database" is-template="false" allow-conns="true">
 </database>
@@ -11,12 +11,12 @@ CAUTION: Do not modify this file unless you know what you are doing.
 <schema name="public" rect-visible="true" fill-color="#e1e1e1" sql-disabled="true">
 </schema>
 
-<schema name="perfil" rect-visible="true" fill-color="#55aa00">
+<schema name="perfil" rect-visible="true" fill-color="#23c4f1">
 	<role name="postgres"/>
 	<comment><![CDATA[a ideia é limitar os endpoints que um dado perfil tem acesso.]]></comment>
 </schema>
 
-<schema name="escola[revisado]" rect-visible="true" fill-color="#5b0d32">
+<schema name="escola[revisado]" rect-visible="true" fill-color="#28c508">
 	<role name="postgres"/>
 </schema>
 
@@ -29,7 +29,7 @@ pode abrir a escola,
 pode fazer merenda, 
 pode dar aula,
 pode fechar a escola, etc.]]></comment>
-	<position x="3010.74" y="1735.89"/>
+	<position x="5487.96" y="2216.23"/>
 	<column name="permissao_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -47,7 +47,7 @@ pode fechar a escola, etc.]]></comment>
 	</constraint>
 </table>
 
-<schema name="cardapio[revisado]" rect-visible="true" fill-color="#ffff00">
+<schema name="cardapio[revisado]" rect-visible="true" fill-color="#68464b">
 	<role name="postgres"/>
 	<comment><![CDATA[
 ]]></comment>
@@ -59,7 +59,7 @@ pode fechar a escola, etc.]]></comment>
 	<comment><![CDATA[[ATENCAO, QUANDO FOR CEMEI, TEM DOIS TIPOS DE ALUNOS: DE  CEI E EMEI, OU SEJA, COMPLEXIDADE ESPECIFICA DO CASO.]
 
 Unidade escolar. EMEF, CIEJA, EMEI, EMEBS, CEI, CEMEI]]></comment>
-	<position x="815.493" y="2121.42"/>
+	<position x="3913.31" y="1518.47"/>
 	<column name="unidade_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -75,7 +75,7 @@ Unidade escolar. EMEF, CIEJA, EMEI, EMEBS, CEI, CEMEI]]></comment>
 	<schema name="&quot;escola[revisado]&quot;"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Qual o tipo de gestão da escola. Ex.: Terceirizada completa, tec mista]]></comment>
-	<position x="802.523" y="2001.64"/>
+	<position x="3791.45" y="1378.69"/>
 	<column name="gestao_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -100,7 +100,7 @@ Ex. de 1 a 2 anos
 de 2 a 5 anos
 de 7 a 18 anos.
 de 6meses a 1 ano]]></comment>
-	<position x="1792.15" y="2238.02"/>
+	<position x="4968.38" y="962.527"/>
 	<column name="idade_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -133,7 +133,7 @@ Lanche 4 horas
 Lanche 5 horas 
 Lanche 6horas
 Merenda Seca]]></comment>
-	<position x="2153.34" y="135.313"/>
+	<position x="5015.89" y="2127.42"/>
 	<column name="tipo_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -153,7 +153,7 @@ Merenda Seca]]></comment>
 1 lista de tipos de refeicao (Dejejum, Colação, Almoço, LANCHE DE 4 HS OU 8 HS; LANCHE DE 5HS OU 6 HS; REFEIÇÃO).
 
 !!!!OBS!!! PARA CEI varia por faixa de idade.]]></comment>
-	<position x="2044.98" y="383.924"/>
+	<position x="4274.76" y="2489.37"/>
 	<column name="cardapio_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -174,7 +174,7 @@ Merenda Seca]]></comment>
 <table name="escola[revisado]">
 	<schema name="&quot;escola[revisado]&quot;"/>
 	<role name="postgres"/>
-	<position x="1524.59" y="1813.12"/>
+	<position x="4387.41" y="945.445"/>
 	<column name="escola_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -212,7 +212,7 @@ Merenda Seca]]></comment>
 
 Ex: o perfil diretor tem as permissões: [abrir escola, fechar escola]
 o perfil professor pode [dar aula, fazer denuncia na DRE]]]></comment>
-	<position x="3411.1" y="1574.36"/>
+	<position x="5888.32" y="2054.7"/>
 	<column name="perfil_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -234,7 +234,7 @@ o perfil professor pode [dar aula, fazer denuncia na DRE]]]></comment>
 	<schema name="dados_comuns"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Registra eventos de usuário realizado no sistema]]></comment>
-	<position x="4123.87" y="960.889"/>
+	<position x="6522.65" y="2061.15"/>
 	<column name="log_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -260,7 +260,7 @@ o perfil professor pode [dar aula, fazer denuncia na DRE]]]></comment>
 	<schema name="&quot;escola[revisado]&quot;"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Tabela utilizada para registrar as DREs (DIRETORIA REGIONAL DA EDUCAÇÃO)]]></comment>
-	<position x="534.019" y="1830.63"/>
+	<position x="3660.39" y="1044.13"/>
 	<column name="diretor_regional_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -281,7 +281,7 @@ o perfil professor pode [dar aula, fazer denuncia na DRE]]]></comment>
 	<comment><![CDATA[Lote de  atendimento
 Uma DRE pode ter 1 ou mais lotes
 um lote é um conjunto de escolas que a terceirizada atende]]></comment>
-	<position x="1345.08" y="1131"/>
+	<position x="2958.41" y="2279"/>
 	<column name="lote_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -308,35 +308,15 @@ um lote é um conjunto de escolas que a terceirizada atende]]></comment>
 	</customidxs>
 </table>
 
-<table name="localizacao_cidade">
-	<schema name="dados_comuns"/>
-	<role name="postgres"/>
-	<comment><![CDATA[Cidades]]></comment>
-	<position x="4130.76" y="1699.37"/>
-	<column name="localizacao_cidade_id" not-null="true">
-		<type name="serial" length="0"/>
-	</column>
-	<column name="cidade" not-null="true">
-		<type name="varchar" length="50"/>
-		<comment><![CDATA[No Brasil, o município como maior nome do país está no estado de Mato Grosso, é o município de Vila Bela da Santíssima Trindade, com um total de 28 letras]]></comment>
-	</column>
-	<column name="estado" not-null="true">
-		<type name="varchar" length="2"/>
-	</column>
-	<constraint name="localizacao_cidade_pk" type="pk-constr" table="dados_comuns.localizacao_cidade">
-		<columns names="localizacao_cidade_id" ref-type="src-columns"/>
-	</constraint>
-</table>
-
 <schema name="dados_do_django" rect-visible="true" fill-color="#60ad88">
 	<role name="postgres"/>
 </schema>
 
-<table name="usuario">
+<table name="usuario" hide-ext-attribs="true">
 	<schema name="dados_do_django"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Campo para validar se o usuário foi ativado via email]]></comment>
-	<position x="3075.49" y="1198.33"/>
+	<position x="5884.38" y="1722.89"/>
 	<column name="usuario_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -376,86 +356,6 @@ um lote é um conjunto de escolas que a terceirizada atende]]></comment>
 	</constraint>
 </table>
 
-<table name="endereco">
-	<schema name="dados_comuns"/>
-	<role name="postgres"/>
-	<comment><![CDATA[Endereço ligado a escola.]]></comment>
-	<position x="4127.72" y="1430.51"/>
-	<column name="endereco_id" not-null="true">
-		<type name="serial" length="0"/>
-	</column>
-	<column name="rua" not-null="true">
-		<type name="varchar" length="199"/>
-	</column>
-	<column name="complement">
-		<type name="varchar" length="65"/>
-	</column>
-	<column name="distrito" not-null="true">
-		<type name="varchar" length="99"/>
-		<comment><![CDATA[Bairro]]></comment>
-	</column>
-	<column name="numero">
-		<type name="varchar" length="65"/>
-	</column>
-	<column name="codigo_postal">
-		<type name="varchar" length="60"/>
-	</column>
-	<column name="longitude">
-		<type name="varchar" length="65"/>
-	</column>
-	<column name="latitude">
-		<type name="varchar" length="65"/>
-	</column>
-	<constraint name="endereco_pk" type="pk-constr" table="dados_comuns.endereco">
-		<columns names="endereco_id" ref-type="src-columns"/>
-	</constraint>
-
-	<customidxs object-type="column">
-		<object name="localizacao_cidade_id_localizacao_cidade" index="8"/>
-	</customidxs>
-
-	<customidxs object-type="constraint">
-		<object name="localizacao_cidade_fk" index="1"/>
-	</customidxs>
-</table>
-
-<table name="contato">
-	<schema name="dados_comuns"/>
-	<role name="postgres"/>
-	<comment><![CDATA[Lista de contatos de escola]]></comment>
-	<position x="4135.81" y="1202.94"/>
-	<column name="contato_id" not-null="true">
-		<type name="serial" length="0"/>
-	</column>
-	<column name="telefone" not-null="true">
-		<type name="varchar" length="30"/>
-	</column>
-	<column name="telefone_celular">
-		<type name="varchar" length="30"/>
-	</column>
-	<column name="email">
-		<type name="varchar" length="150"/>
-	</column>
-	<column name="fax">
-		<type name="varchar" length="30"/>
-	</column>
-	<constraint name="contato_pk" type="pk-constr" table="dados_comuns.contato">
-		<columns names="contato_id" ref-type="src-columns"/>
-	</constraint>
-</table>
-
-<relationship name="localizacao_cidade_possui_muitos_enderecos" type="rel1n"
-	 src-col-pattern="{sc}_{st}"
-	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
-	 src-fk-pattern="{st}_fk"
-	 src-table="dados_comuns.localizacao_cidade"
-	 dst-table="dados_comuns.endereco"
-	 src-required="false" dst-required="false">
-	<label ref-type="name-label">
-		<position x="113.691" y="11.3984"/>
-	</label>
-</relationship>
-
 <schema name="terceirizada" rect-visible="true" fill-color="#0b0b49">
 	<role name="postgres"/>
 </schema>
@@ -464,7 +364,7 @@ um lote é um conjunto de escolas que a terceirizada atende]]></comment>
 	<schema name="terceirizada"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Edital para alimentação]]></comment>
-	<position x="1453.45" y="957.741"/>
+	<position x="3066.78" y="2105.74"/>
 	<column name="edital_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -492,7 +392,7 @@ um lote é um conjunto de escolas que a terceirizada atende]]></comment>
 	<schema name="terceirizada"/>
 	<role name="postgres"/>
 	<comment><![CDATA[qual o relacionamento com edital e contrato?]]></comment>
-	<position x="1618.22" y="1347.69"/>
+	<position x="3231.55" y="2495.69"/>
 	<column name="terceirizada_id" not-null="true">
 		<type name="serial" length="80"/>
 	</column>
@@ -594,7 +494,7 @@ um lote é um conjunto de escolas que a terceirizada atende]]></comment>
 	 dst-table="terceirizada.&quot;lote[validado]&quot;"
 	 src-required="false" dst-required="false">
 	<label ref-type="name-label">
-		<position x="0" y="0"/>
+		<position x="13.7247" y="10.5521"/>
 	</label>
 </relationship>
 
@@ -626,7 +526,7 @@ um lote é um conjunto de escolas que a terceirizada atende]]></comment>
 	<schema name="&quot;escola[revisado]&quot;"/>
 	<role name="postgres"/>
 	<comment><![CDATA[manhã, intermediário, tarde, vespertino, noturno, integral]]></comment>
-	<position x="2531.04" y="1610.63"/>
+	<position x="4930.52" y="1458.24"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -659,7 +559,7 @@ um lote é um conjunto de escolas que a terceirizada atende]]></comment>
 	<comment><![CDATA[grupo CODAE: tem os perfis gerente1, sup2, etc.
 grupo ESCOLA: tem os perfis prof, diretor, etc.
 ]]></comment>
-	<position x="3029.89" y="1541.68"/>
+	<position x="5507.11" y="2022.02"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -688,14 +588,11 @@ grupo ESCOLA: tem os perfis prof, diretor, etc.
 	<schema name="kit_lanche"/>
 	<role name="postgres"/>
 	<comment><![CDATA[a ideia é ser um combo de opcoes fixas]]></comment>
-	<position x="760.822" y="486.103"/>
+	<position x="2147.75" y="1401.56"/>
 	<column name="id" not-null="true">
 		<type name="smallint" length="0"/>
 	</column>
 	<column name="nome">
-		<type name="varchar" length="0"/>
-	</column>
-	<column name="descricao">
 		<type name="varchar" length="0"/>
 	</column>
 	<constraint name="razao_solicitacao_unificada_pk" type="pk-constr" table="kit_lanche.razao_solicitacao_unificada">
@@ -706,14 +603,12 @@ grupo ESCOLA: tem os perfis prof, diretor, etc.
 <table name="kit_lanche">
 	<schema name="kit_lanche"/>
 	<role name="postgres"/>
-	<position x="68.3672" y="511.571"/>
+	<comment><![CDATA[kit1, kit2, kit3]]></comment>
+	<position x="2343.47" y="1144.03"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
 	<column name="nome">
-		<type name="varchar" length="30"/>
-	</column>
-	<column name="descricao">
 		<type name="varchar" length="30"/>
 	</column>
 	<constraint name="kit_lanche_pk" type="pk-constr" table="kit_lanche.kit_lanche">
@@ -721,33 +616,47 @@ grupo ESCOLA: tem os perfis prof, diretor, etc.
 	</constraint>
 </table>
 
-<table name="solicitacao_kit_lanche">
+<table name="solicitacao_kit_lanche_avulsa">
 	<schema name="kit_lanche"/>
 	<role name="postgres"/>
-	<position x="573.312" y="954.538"/>
+	<comment><![CDATA[[tem um fluxo de aprovação, desde rascunho ate aprovado pela DRE e etc.]]]></comment>
+	<position x="3172.84" y="1707.54"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
-	<constraint name="solicitacao_kit_lanche_pk" type="pk-constr" table="kit_lanche.solicitacao_kit_lanche">
+	<column name="status">
+		<type name="smallint" length="0"/>
+	</column>
+	<column name="local">
+		<type name="varchar" length="0"/>
+	</column>
+	<column name="quantidade_alunos">
+		<type name="smallint" length="0"/>
+	</column>
+	<constraint name="solicitacao_kit_lanche_pk" type="pk-constr" table="kit_lanche.solicitacao_kit_lanche_avulsa">
 		<columns names="id" ref-type="src-columns"/>
 	</constraint>
+
+	<customidxs object-type="column">
+		<object name="escola_id_escola[revisado]" index="3"/>
+		<object name="id_solicitacao_kit_lanche" index="2"/>
+	</customidxs>
+
+	<customidxs object-type="constraint">
+		<object name="escola[revisado]_fk" index="2"/>
+		<object name="solicitacao_kit_lanche_fk" index="1"/>
+	</customidxs>
 </table>
 
-<relationship name="many_solicitacao_kit_lanche_has_many_escola" type="relnn"
-	 src-col-pattern="{sc}_{st}" dst-col-pattern="{sc}_{dt}"
-	 pk-pattern="{gt}_pk" uq-pattern="{gt}_uq"
-	 src-fk-pattern="{st}_fk" dst-fk-pattern="{dt}_fk"
-	 pk-col-pattern="id"
-	 custom-color="#ff0000"
-	 src-table="kit_lanche.solicitacao_kit_lanche"
-	 dst-table="&quot;escola[revisado]&quot;.&quot;escola[revisado]&quot;"
-	 src-required="false" dst-required="false"
-	 table-name="many_solicitacao_kit_lanche_has_many_escola"/>
-
-<table name="solicitacao_kit_lanche_base">
+<table name="solicitacao_kit_lanche">
 	<schema name="kit_lanche"/>
 	<role name="postgres"/>
-	<position x="12.3812" y="712.25"/>
+	<comment><![CDATA[tem um tempo de passeio podendo ser de 4, 5 a 7 ou 8h ou mais
+qtd_kits = 1, 2 ou 3
+
+
+se  a solicitacao for multipla, não deve ter kit lanche apontando pra ca.]]></comment>
+	<position x="2781.05" y="932.243"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -757,23 +666,17 @@ grupo ESCOLA: tem os perfis prof, diretor, etc.
 	<column name="motivo">
 		<type name="varchar" length="0"/>
 	</column>
-	<column name="local">
-		<type name="varchar" length="0"/>
+	<column name="observacao">
+		<type name="text" length="0"/>
 	</column>
-	<column name="obs">
-		<type name="varchar" length="0"/>
-	</column>
-	<column name="qtd_alunos">
-		<type name="smallint" length="0"/>
-	</column>
-	<column name="data_pedido">
-		<type name="smallint" length="0"/>
+	<column name="data_criacao">
+		<type name="timestamp" length="0"/>
 	</column>
 	<column name="tempo_passeio">
 		<type name="smallint" length="0"/>
 		<comment><![CDATA[é um combo com opcoes de 4 6 ou 8h]]></comment>
 	</column>
-	<constraint name="solicitacao_kit_lanche_base_pk" type="pk-constr" table="kit_lanche.solicitacao_kit_lanche_base">
+	<constraint name="solicitacao_kit_lanche_base_pk" type="pk-constr" table="kit_lanche.solicitacao_kit_lanche">
 		<columns names="id" ref-type="src-columns"/>
 	</constraint>
 </table>
@@ -781,19 +684,53 @@ grupo ESCOLA: tem os perfis prof, diretor, etc.
 <table name="solicitacao_kit_lanche_unificada">
 	<schema name="kit_lanche"/>
 	<role name="postgres"/>
-	<position x="671.057" y="661.936"/>
+	<comment><![CDATA[significa que uma DRE vai pedir kit lanche para as escolas:
+o motivo, lugar, dia, outro motivo, 
+
+PODEM VARIAR kits e quantidade de kits e numero de alunos.:
+
+multiplo é a mesma lista de kit lanche pra todos.
+não multiuplo cada escola tem sua lista de kit lanche
+
+
+QUANDO É MULTIPLO: ex: passeio pra escola x,y,z no ibira (local)  no dia 26 onde a escola x vai ter 100 alunos, a y 50 e a z 77 alunos. onde todos vao comemorar o dia da arvore (motivo)
+
+
+]]></comment>
+	<position x="2186.5" y="1650.41"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
-	<column name="razao2">
+	<column name="outra_motivo">
+		<type name="text" length="0"/>
+	</column>
+	<column name="quantidade_alunos_max_por_escola">
+		<type name="smallint" length="0"/>
+	</column>
+	<column name="status">
+		<type name="smallint" length="0"/>
+	</column>
+	<column name="local">
 		<type name="varchar" length="0"/>
 	</column>
-	<column name="qtd_alunos_por_escola">
-		<type name="smallint" length="0"/>
+	<column name="multiplo">
+		<type name="bool" length="0"/>
 	</column>
 	<constraint name="solicitacao_kit_lanche_unificada_pk" type="pk-constr" table="kit_lanche.solicitacao_kit_lanche_unificada">
 		<columns names="id" ref-type="src-columns"/>
 	</constraint>
+
+	<customidxs object-type="column">
+		<object name="diretor_regional_id_diretoria_regional[validado]" index="6"/>
+		<object name="id_razao_solicitacao_unificada" index="7"/>
+		<object name="id_solicitacao_kit_lanche" index="8"/>
+	</customidxs>
+
+	<customidxs object-type="constraint">
+		<object name="diretoria_regional[validado]_fk" index="1"/>
+		<object name="razao_solicitacao_unificada_fk" index="2"/>
+		<object name="solicitacao_kit_lanche_fk" index="3"/>
+	</customidxs>
 </table>
 
 <relationship name="solicitacao_kit_lanche_base_has_many_solicitacao_kit_lanche" type="rel1n"
@@ -801,8 +738,8 @@ grupo ESCOLA: tem os perfis prof, diretor, etc.
 	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
 	 src-fk-pattern="{st}_fk"
 	 custom-color="#000000"
-	 src-table="kit_lanche.solicitacao_kit_lanche_base"
-	 dst-table="kit_lanche.solicitacao_kit_lanche"
+	 src-table="kit_lanche.solicitacao_kit_lanche"
+	 dst-table="kit_lanche.solicitacao_kit_lanche_avulsa"
 	 src-required="false" dst-required="false"/>
 
 <relationship name="many_kit_lanche_has_many_solicitacao_kit_lanche_base" type="relnn"
@@ -812,7 +749,7 @@ grupo ESCOLA: tem os perfis prof, diretor, etc.
 	 pk-col-pattern="id"
 	 custom-color="#ff0000"
 	 src-table="kit_lanche.kit_lanche"
-	 dst-table="kit_lanche.solicitacao_kit_lanche_base"
+	 dst-table="kit_lanche.solicitacao_kit_lanche"
 	 src-required="false" dst-required="false"
 	 table-name="many_kit_lanche_has_many_solicitacao_kit_lanche_base"/>
 
@@ -828,15 +765,6 @@ grupo ESCOLA: tem os perfis prof, diretor, etc.
 		<position x="0" y="0"/>
 	</label>
 </relationship>
-
-<relationship name="solicitacao_kit_lanche_base_has_many_solicitacao_kit_lanche_uni" type="rel1n"
-	 src-col-pattern="{sc}_{st}"
-	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
-	 src-fk-pattern="{st}_fk"
-	 custom-color="#000000"
-	 src-table="kit_lanche.solicitacao_kit_lanche_base"
-	 dst-table="kit_lanche.solicitacao_kit_lanche_unificada"
-	 src-required="false" dst-required="false"/>
 
 <relationship name="razao_solicitacao_unificada_has_many_solicitacao_kit_lanche_uni" type="rel1n"
 	 src-col-pattern="{sc}_{st}"
@@ -863,7 +791,7 @@ grupo ESCOLA: tem os perfis prof, diretor, etc.
 
 """
 Nayla - por exemplo: quero servir o cardápio do dia 30 no dia 15, automaticamente o cardápio do dia 15 será servido no dia 30"""]]></comment>
-	<position x="1316.43" y="453.718"/>
+	<position x="3683.99" y="2019.72"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -931,7 +859,7 @@ Nayla - Outro exemplo, a escola vai comemorar a festa junina no dia 28 só no pe
 Marcelo - entendi, trocar o almoço do dia 28 por mais lanches para atender a demanda"""
 
 obs>> a alteração de cardápio é para um dia específico, não da pra cancelar um almoço de um dia pra virar em dobro no outro]]></comment>
-	<position x="1319.88" y="157.808"/>
+	<position x="4158.55" y="1997.14"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -1049,7 +977,7 @@ Muito parecido com cardápio.
 Acontece quando não tem cardápio para a escola, por exemplo num domingo, no qual vai ter uma atividade de dança avulsa e a escola gostaria de dar almoço e  merenda pros participantes.
 
 tipo, continuo ou normal]]></comment>
-	<position x="2855.22" y="217.48"/>
+	<position x="5697.22" y="902.369"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -1074,12 +1002,12 @@ tipo, continuo ou normal]]></comment>
 
 	<customidxs object-type="column">
 		<object name="escola_id_escola[revisado]" index="6"/>
-		<object name="id_motivo_inclusao_continua" index="7"/>
+		<object name="id_motivo_inclusao_continua[revisado]" index="7"/>
 	</customidxs>
 
 	<customidxs object-type="constraint">
 		<object name="escola[revisado]_fk" index="1"/>
-		<object name="motivo_inclusao_continua_fk" index="2"/>
+		<object name="motivo_inclusao_continua[revisado]_fk" index="2"/>
 	</customidxs>
 </table>
 
@@ -1096,7 +1024,7 @@ tipo, continuo ou normal]]></comment>
 	<schema name="dados_comuns"/>
 	<role name="postgres"/>
 	<comment><![CDATA[seg, sex;...]]></comment>
-	<position x="4120.82" y="640.31"/>
+	<position x="6498.06" y="1799.03"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -1129,7 +1057,7 @@ tipo, continuo ou normal]]></comment>
 	<comment><![CDATA[continuo -  mais educacao
 continuo-sp integral
 continuo - outro]]></comment>
-	<position x="3483.66" y="255.419"/>
+	<position x="6325.66" y="940.308"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -1153,7 +1081,7 @@ continuo - outro]]></comment>
 <table name="qtd_por_periodo[revisado]">
 	<schema name="&quot;inclusao_alimentacao[revisado]&quot;"/>
 	<role name="postgres"/>
-	<position x="2856.67" y="554.13"/>
+	<position x="5695.51" y="1221.12"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -1199,7 +1127,7 @@ continuo - outro]]></comment>
 <table name="inclusao_alimentacao_normal[revisado]">
 	<schema name="&quot;inclusao_alimentacao[revisado]&quot;"/>
 	<role name="postgres"/>
-	<position x="3283.86" y="536.62"/>
+	<position x="6317.86" y="1133.51"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -1217,11 +1145,11 @@ continuo - outro]]></comment>
 	</constraint>
 
 	<customidxs object-type="column">
-		<object name="id_motivo_inclusao_normal" index="3"/>
+		<object name="id_motivo_inclusao_normal[revisado]" index="4"/>
 	</customidxs>
 
 	<customidxs object-type="constraint">
-		<object name="motivo_inclusao_normal_fk" index="1"/>
+		<object name="motivo_inclusao_normal[revisado]_fk" index="1"/>
 	</customidxs>
 </table>
 
@@ -1231,7 +1159,7 @@ continuo - outro]]></comment>
 	<comment><![CDATA[reposicao de aula
 dia de familia
 outro]]></comment>
-	<position x="3604.11" y="860.752"/>
+	<position x="6380.11" y="1481.64"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -1255,7 +1183,7 @@ outro]]></comment>
 <table name="grupo_inclusao_alimentacao_normal[revisado]">
 	<schema name="&quot;inclusao_alimentacao[revisado]&quot;"/>
 	<role name="postgres"/>
-	<position x="2825.19" y="805.292"/>
+	<position x="5667.19" y="1490.18"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -1320,7 +1248,7 @@ tipo pode ser cardapio, periodo (manha, tarde) ou itens do cardapio.
  - pode ser um cardapio inteiro
  - pode ser só um período (manha, tarde, noite)
  - pode ser só um item de um cardápio]]></comment>
-	<position x="2315.8" y="664.238"/>
+	<position x="4866.69" y="2499.68"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -1385,6 +1313,120 @@ tipo pode ser cardapio, periodo (manha, tarde) ou itens do cardapio.
 	 src-required="false" dst-required="false"
 	 table-name="many_tipo_cardapio[revisado]_has_many_suspensao_alimentacao"/>
 
+<table name="item_kit_lanche">
+	<schema name="kit_lanche"/>
+	<role name="postgres"/>
+	<comment><![CDATA[Barra de Cereal (20 a 25 g embalagem individual)
+Néctar UHT ou Suco Tropical UHT (200 ml)
+Biscoito Integral Salgado (mín. de 25g embalagem individual)
+
+etc.]]></comment>
+	<position x="2070.32" y="978.626"/>
+	<column name="id" not-null="true">
+		<type name="smallint" length="0"/>
+	</column>
+	<column name="nome">
+		<type name="varchar" length="0"/>
+	</column>
+	<constraint name="item_kit_lanche_pk" type="pk-constr" table="kit_lanche.item_kit_lanche">
+		<columns names="id" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<relationship name="many_item_kit_lanche_has_many_kit_lanche" type="relnn"
+	 src-col-pattern="{sc}_{st}" dst-col-pattern="{sc}_{dt}"
+	 pk-pattern="{gt}_pk" uq-pattern="{gt}_uq"
+	 src-fk-pattern="{st}_fk" dst-fk-pattern="{dt}_fk"
+	 pk-col-pattern="id"
+	 custom-color="#ff0000"
+	 src-table="kit_lanche.item_kit_lanche"
+	 dst-table="kit_lanche.kit_lanche"
+	 src-required="false" dst-required="false"
+	 table-name="many_item_kit_lanche_has_many_kit_lanche"/>
+
+<relationship name="escola[revisado]_has_many_solicitacao_kit_lanche" type="rel1n"
+	 src-col-pattern="{sc}_{st}"
+	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
+	 src-fk-pattern="{st}_fk"
+	 custom-color="#000000"
+	 src-table="&quot;escola[revisado]&quot;.&quot;escola[revisado]&quot;"
+	 dst-table="kit_lanche.solicitacao_kit_lanche_avulsa"
+	 src-required="false" dst-required="false"/>
+
+<table name="escola_quantidade">
+	<schema name="kit_lanche"/>
+	<role name="postgres"/>
+	<comment><![CDATA[quando a solicitacao NÃO eh multipla cada escola vai ter seu conjunto de kit lanches e alunos variando
+
+quando é multipla: todas as escolas vao ter a mesma opcao de kits, com numero de alunos variando.
+
+]]></comment>
+	<position x="3208.93" y="1257.48"/>
+	<column name="id" not-null="true">
+		<type name="smallint" length="0"/>
+	</column>
+	<column name="quantidade_alunos">
+		<type name="smallint" length="0"/>
+	</column>
+	<column name="quantidade_kits_escolhidos">
+		<type name="smallint" length="0"/>
+	</column>
+	<column name="tempo_passeio">
+		<type name="smallint" length="0"/>
+	</column>
+	<constraint name="escola_quantidade_kits_pk" type="pk-constr" table="kit_lanche.escola_quantidade">
+		<columns names="id" ref-type="src-columns"/>
+	</constraint>
+
+	<customidxs object-type="column">
+		<object name="escola_id_escola[revisado]" index="5"/>
+		<object name="id_solicitacao_kit_lanche_unificada" index="4"/>
+	</customidxs>
+
+	<customidxs object-type="constraint">
+		<object name="escola[revisado]_fk" index="2"/>
+		<object name="solicitacao_kit_lanche_unificada_fk" index="1"/>
+	</customidxs>
+</table>
+
+<relationship name="solicitacao_kit_lanche_unificada_multipla_has_many_escola_quant" type="rel1n"
+	 src-col-pattern="{sc}_{st}"
+	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
+	 src-fk-pattern="{st}_fk"
+	 custom-color="#000000"
+	 src-table="kit_lanche.solicitacao_kit_lanche_unificada"
+	 dst-table="kit_lanche.escola_quantidade"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="escola[revisado]_has_many_escola_quantidade_kits" type="rel1n"
+	 src-col-pattern="{sc}_{st}"
+	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
+	 src-fk-pattern="{st}_fk"
+	 custom-color="#000000"
+	 src-table="&quot;escola[revisado]&quot;.&quot;escola[revisado]&quot;"
+	 dst-table="kit_lanche.escola_quantidade"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="solicitacao_kit_lanche_has_many_solicitacao_kit_lanche_unificad" type="rel1n"
+	 src-col-pattern="{sc}_{st}"
+	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
+	 src-fk-pattern="{st}_fk"
+	 custom-color="#000000"
+	 src-table="kit_lanche.solicitacao_kit_lanche"
+	 dst-table="kit_lanche.solicitacao_kit_lanche_unificada"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="many_escola_quantidade_has_many_kit_lanche" type="relnn"
+	 src-col-pattern="{sc}_{st}" dst-col-pattern="{sc}_{dt}"
+	 pk-pattern="{gt}_pk" uq-pattern="{gt}_uq"
+	 src-fk-pattern="{st}_fk" dst-fk-pattern="{dt}_fk"
+	 pk-col-pattern="id"
+	 custom-color="#ff0000"
+	 src-table="kit_lanche.escola_quantidade"
+	 dst-table="kit_lanche.kit_lanche"
+	 src-required="false" dst-required="false"
+	 table-name="many_escola_quantidade_has_many_kit_lanche"/>
+
 <constraint name="fk_usuario_id" type="fk-constr" comparison-type="MATCH FULL"
 	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="dados_do_django.usuario" table="dados_comuns.log_usuario">
 	<columns names="user_id" ref-type="src-columns"/>
@@ -1392,6 +1434,7 @@ tipo pode ser cardapio, periodo (manha, tarde) ou itens do cardapio.
 </constraint>
 
 <relationship name="rel_log_usuario_usuario" type="relfk"
+	 custom-color="#000000"
 	 src-table="dados_comuns.log_usuario"
 	 dst-table="dados_do_django.usuario" reference-fk="fk_usuario_id"
 	 src-required="false" dst-required="false"/>
