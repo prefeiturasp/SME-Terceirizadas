@@ -3,7 +3,7 @@
 CAUTION: Do not modify this file unless you know what you are doing.
          Unexpected results may occur if the code is changed deliberately.
 -->
-<dbmodel pgmodeler-ver="0.9.1" last-position="1471,140" last-zoom="0.7"
+<dbmodel pgmodeler-ver="0.9.1" last-position="1644,128" last-zoom="0.7"
 	 default-owner="postgres">
 <database name="new_database" is-template="false" allow-conns="true">
 </database>
@@ -132,7 +132,7 @@ Lanche 4 horas
 Lanche 5 horas 
 Lanche 6horas
 Merenda Seca]]></comment>
-	<position x="2325.3" y="406.097"/>
+	<position x="2135.3" y="244.097"/>
 	<column name="tipo_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -152,7 +152,7 @@ Merenda Seca]]></comment>
 1 lista de tipos de refeicao (Dejejum, Colação, Almoço, LANCHE DE 4 HS OU 8 HS; LANCHE DE 5HS OU 6 HS; REFEIÇÃO).
 
 !!!!OBS!!! PARA CEI varia por faixa de idade.]]></comment>
-	<position x="2289.69" y="623.27"/>
+	<position x="2099.69" y="461.27"/>
 	<column name="cardapio_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -233,7 +233,7 @@ o perfil professor pode [dar aula, fazer denuncia na DRE]]]></comment>
 	<schema name="dados_comuns"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Registra eventos de usuário realizado no sistema]]></comment>
-	<position x="3755.3" y="914.222"/>
+	<position x="4221.01" y="888.032"/>
 	<column name="log_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -303,7 +303,7 @@ um lote é um conjunto de escolas que a terceirizada atende]]></comment>
 	<schema name="dados_comuns"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Cidades]]></comment>
-	<position x="3669.33" y="1525.56"/>
+	<position x="4135.04" y="1499.37"/>
 	<column name="localizacao_cidade_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -371,7 +371,7 @@ um lote é um conjunto de escolas que a terceirizada atende]]></comment>
 	<schema name="dados_comuns"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Endereço ligado a escola.]]></comment>
-	<position x="3662.01" y="1259.56"/>
+	<position x="4127.72" y="1233.37"/>
 	<column name="endereco_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -414,7 +414,7 @@ um lote é um conjunto de escolas que a terceirizada atende]]></comment>
 	<schema name="dados_comuns"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Lista de contatos de escola]]></comment>
-	<position x="3668.67" y="1089.13"/>
+	<position x="4134.38" y="1062.94"/>
 	<column name="contato_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -854,7 +854,7 @@ grupo ESCOLA: tem os perfis prof, diretor, etc.
 
 """
 Nayla - por exemplo: quero servir o cardápio do dia 30 no dia 15, automaticamente o cardápio do dia 15 será servido no dia 30"""]]></comment>
-	<position x="1533.1" y="650.385"/>
+	<position x="1343.1" y="488.385"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -922,7 +922,7 @@ Nayla - Outro exemplo, a escola vai comemorar a festa junina no dia 28 só no pe
 Marcelo - entendi, trocar o almoço do dia 28 por mais lanches para atender a demanda"""
 
 obs>> a alteração de cardápio é para um dia específico, não da pra cancelar um almoço de um dia pra virar em dobro no outro]]></comment>
-	<position x="1536.55" y="354.475"/>
+	<position x="1346.55" y="192.475"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -1029,15 +1029,18 @@ obs>> a alteração de cardápio é para um dia específico, não da pra cancela
 	<role name="postgres"/>
 </schema>
 
-<table name="inclusao_alimentacao">
+<table name="inclusao_alimentacao_continuo">
 	<schema name="inclusao_alimentacao"/>
 	<role name="postgres"/>
 	<comment><![CDATA[[ATENCAO QUE TEM FLUXO DE STATUS...]
+[tipo pode ser avulso ou continuo...]
 
 Muito parecido com cardápio.
 
-Acontece quando não tem cardápio para a escola, por exemplo num domingo, no qual vai ter uma atividade de dança avulsa e a escola gostaria de dar almoço e  merenda pros participantes.]]></comment>
-	<position x="2846.51" y="442.32"/>
+Acontece quando não tem cardápio para a escola, por exemplo num domingo, no qual vai ter uma atividade de dança avulsa e a escola gostaria de dar almoço e  merenda pros participantes.
+
+tipo, continuo ou normal]]></comment>
+	<position x="2907.89" y="226.813"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -1053,18 +1056,21 @@ Acontece quando não tem cardápio para a escola, por exemplo num domingo, no qu
 	<column name="status">
 		<type name="smallint" length="0"/>
 	</column>
-	<constraint name="inclusao_alimentacao_pk" type="pk-constr" table="inclusao_alimentacao.inclusao_alimentacao">
+	<column name="motivo_outro">
+		<type name="text" length="0"/>
+	</column>
+	<constraint name="inclusao_alimentacao_pk" type="pk-constr" table="inclusao_alimentacao.inclusao_alimentacao_continuo">
 		<columns names="id" ref-type="src-columns"/>
 	</constraint>
 
 	<customidxs object-type="column">
-		<object name="escola_id_escola[revisado]" index="5"/>
-		<object name="id_motivo_inclusao" index="6"/>
+		<object name="escola_id_escola[revisado]" index="6"/>
+		<object name="id_motivo_inclusao_continua" index="7"/>
 	</customidxs>
 
 	<customidxs object-type="constraint">
 		<object name="escola[revisado]_fk" index="1"/>
-		<object name="motivo_inclusao_fk" index="2"/>
+		<object name="motivo_inclusao_continua_fk" index="2"/>
 	</customidxs>
 </table>
 
@@ -1074,21 +1080,21 @@ Acontece quando não tem cardápio para a escola, por exemplo num domingo, no qu
 	 src-fk-pattern="{st}_fk"
 	 custom-color="#000000"
 	 src-table="&quot;escola[revisado]&quot;.&quot;escola[revisado]&quot;"
-	 dst-table="inclusao_alimentacao.inclusao_alimentacao"
+	 dst-table="inclusao_alimentacao.inclusao_alimentacao_continuo"
 	 src-required="false" dst-required="false"/>
 
 <table name="dia_semana">
-	<schema name="inclusao_alimentacao"/>
+	<schema name="dados_comuns"/>
 	<role name="postgres"/>
 	<comment><![CDATA[seg, sex;...]]></comment>
-	<position x="3426.53" y="577.929"/>
+	<position x="4120.82" y="640.31"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
 	<column name="nome">
 		<type name="varchar" length="0"/>
 	</column>
-	<constraint name="dia_semana_pk" type="pk-constr" table="inclusao_alimentacao.dia_semana">
+	<constraint name="dia_semana_pk" type="pk-constr" table="dados_comuns.dia_semana">
 		<columns names="id" ref-type="src-columns"/>
 	</constraint>
 </table>
@@ -1099,8 +1105,8 @@ Acontece quando não tem cardápio para a escola, por exemplo num domingo, no qu
 	 src-fk-pattern="{st}_fk" dst-fk-pattern="{dt}_fk"
 	 pk-col-pattern="id"
 	 custom-color="#ff0000"
-	 src-table="inclusao_alimentacao.dia_semana"
-	 dst-table="inclusao_alimentacao.inclusao_alimentacao"
+	 src-table="dados_comuns.dia_semana"
+	 dst-table="inclusao_alimentacao.inclusao_alimentacao_continuo"
 	 src-required="false" dst-required="false"
 	 table-name="many_dia_semana_has_many_inclusao_alimentacao">
 	<label ref-type="name-label">
@@ -1108,18 +1114,20 @@ Acontece quando não tem cardápio para a escola, por exemplo num domingo, no qu
 	</label>
 </relationship>
 
-<table name="motivo_inclusao">
+<table name="motivo_inclusao_continua">
 	<schema name="inclusao_alimentacao"/>
 	<role name="postgres"/>
-	<comment><![CDATA[motivos recorrentes de inclusao. a ideia eh ser um combo...]]></comment>
-	<position x="3372.19" y="405.148"/>
+	<comment><![CDATA[continuo -  mais educacao
+continuo-sp integral
+continuo - outro]]></comment>
+	<position x="3461.66" y="214.086"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
 	<column name="nome">
 		<type name="varchar" length="0"/>
 	</column>
-	<constraint name="motivo_inclusao_pk" type="pk-constr" table="inclusao_alimentacao.motivo_inclusao">
+	<constraint name="motivo_inclusao_pk" type="pk-constr" table="inclusao_alimentacao.motivo_inclusao_continua">
 		<columns names="id" ref-type="src-columns"/>
 	</constraint>
 </table>
@@ -1129,14 +1137,14 @@ Acontece quando não tem cardápio para a escola, por exemplo num domingo, no qu
 	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
 	 src-fk-pattern="{st}_fk"
 	 custom-color="#000000"
-	 src-table="inclusao_alimentacao.motivo_inclusao"
-	 dst-table="inclusao_alimentacao.inclusao_alimentacao"
+	 src-table="inclusao_alimentacao.motivo_inclusao_continua"
+	 dst-table="inclusao_alimentacao.inclusao_alimentacao_continuo"
 	 src-required="false" dst-required="false"/>
 
 <table name="qtd_por_periodo">
 	<schema name="inclusao_alimentacao"/>
 	<role name="postgres"/>
-	<position x="2959.7" y="864.97"/>
+	<position x="2896" y="546.13"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -1174,10 +1182,123 @@ Acontece quando não tem cardápio para a escola, por exemplo num domingo, no qu
 	 src-fk-pattern="{st}_fk" dst-fk-pattern="{dt}_fk"
 	 pk-col-pattern="id"
 	 custom-color="#ff0000"
-	 src-table="inclusao_alimentacao.inclusao_alimentacao"
+	 src-table="inclusao_alimentacao.inclusao_alimentacao_continuo"
 	 dst-table="inclusao_alimentacao.qtd_por_periodo"
 	 src-required="false" dst-required="false"
 	 table-name="many_inclusao_alimentacao_has_many_qtd_por_periodo"/>
+
+<table name="inclusao_alimentacao_normal">
+	<schema name="inclusao_alimentacao"/>
+	<role name="postgres"/>
+	<position x="3354.53" y="711.953"/>
+	<column name="id" not-null="true">
+		<type name="serial" length="0"/>
+	</column>
+	<column name="motivo_outro">
+		<type name="text" length="0"/>
+	</column>
+	<column name="dia">
+		<type name="date" length="0"/>
+	</column>
+	<column name="prioritario">
+		<type name="bool" length="0"/>
+	</column>
+	<constraint name="inclusao_alimentacao_normal_pk" type="pk-constr" table="inclusao_alimentacao.inclusao_alimentacao_normal">
+		<columns names="id" ref-type="src-columns"/>
+	</constraint>
+
+	<customidxs object-type="column">
+		<object name="id_motivo_inclusao_normal" index="3"/>
+	</customidxs>
+
+	<customidxs object-type="constraint">
+		<object name="motivo_inclusao_normal_fk" index="1"/>
+	</customidxs>
+</table>
+
+<table name="motivo_inclusao_normal">
+	<schema name="inclusao_alimentacao"/>
+	<role name="postgres"/>
+	<comment><![CDATA[reposicao de aula
+dia de familia
+outro]]></comment>
+	<position x="3656.78" y="870.085"/>
+	<column name="id" not-null="true">
+		<type name="serial" length="0"/>
+	</column>
+	<column name="nome">
+		<type name="smallint" length="0"/>
+	</column>
+	<constraint name="motivo_inclusao_normal_pk" type="pk-constr" table="inclusao_alimentacao.motivo_inclusao_normal">
+		<columns names="id" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<relationship name="motivo_inclusao_normal_has_many_inclusao_alimentacao_normal" type="rel1n"
+	 src-col-pattern="{sc}_{st}"
+	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
+	 src-fk-pattern="{st}_fk"
+	 custom-color="#000000"
+	 src-table="inclusao_alimentacao.motivo_inclusao_normal"
+	 dst-table="inclusao_alimentacao.inclusao_alimentacao_normal"
+	 src-required="false" dst-required="false"/>
+
+<table name="grupo_inclusao_alimentacao_normal">
+	<schema name="inclusao_alimentacao"/>
+	<role name="postgres"/>
+	<position x="2843.19" y="835.959"/>
+	<column name="id" not-null="true">
+		<type name="serial" length="0"/>
+	</column>
+	<column name="observacao">
+		<type name="text" length="0"/>
+	</column>
+	<column name="status">
+		<type name="smallint" length="0"/>
+	</column>
+	<constraint name="grupo_inclusao_alimentacao_normal_pk" type="pk-constr" table="inclusao_alimentacao.grupo_inclusao_alimentacao_normal">
+		<columns names="id" ref-type="src-columns"/>
+	</constraint>
+
+	<customidxs object-type="column">
+		<object name="escola_id_escola[revisado]" index="3"/>
+	</customidxs>
+
+	<customidxs object-type="constraint">
+		<object name="escola[revisado]_fk" index="1"/>
+	</customidxs>
+</table>
+
+<relationship name="escola[revisado]_has_many_grupo_inclusao_alimentacao_normal" type="rel1n"
+	 src-col-pattern="{sc}_{st}"
+	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
+	 src-fk-pattern="{st}_fk"
+	 custom-color="#000000"
+	 src-table="&quot;escola[revisado]&quot;.&quot;escola[revisado]&quot;"
+	 dst-table="inclusao_alimentacao.grupo_inclusao_alimentacao_normal"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="many_grupo_inclusao_alimentacao_normal_has_many_inclusao_alimen" type="relnn"
+	 src-col-pattern="{sc}_{st}" dst-col-pattern="{sc}_{dt}"
+	 pk-pattern="{gt}_pk" uq-pattern="{gt}_uq"
+	 src-fk-pattern="{st}_fk" dst-fk-pattern="{dt}_fk"
+	 pk-col-pattern="id"
+	 custom-color="#ff0000"
+	 src-table="inclusao_alimentacao.grupo_inclusao_alimentacao_normal"
+	 dst-table="inclusao_alimentacao.inclusao_alimentacao_normal"
+	 src-required="false" dst-required="false"
+	 table-name="many_grupo_inclusao_alimentacao_normal_has_many_inclusao_alimen"/>
+
+<relationship name="many_grupo_inclusao_alimentacao_normal_has_many_qtd_por_periodo" type="relnn"
+	 src-col-pattern="{sc}_{st}" dst-col-pattern="{sc}_{dt}"
+	 pk-pattern="{gt}_pk" uq-pattern="{gt}_uq"
+	 src-fk-pattern="{st}_fk" dst-fk-pattern="{dt}_fk"
+	 pk-col-pattern="id"
+	 custom-color="#ff0000"
+	 src-table="inclusao_alimentacao.grupo_inclusao_alimentacao_normal"
+	 dst-table="inclusao_alimentacao.qtd_por_periodo"
+	 src-required="false" dst-required="false"
+	 table-name="many_grupo_inclusao_alimentacao_normal_has_many_qtd_por_periodo"/>
 
 <constraint name="fk_usuario_id" type="fk-constr" comparison-type="MATCH FULL"
 	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="dados_do_django.usuario" table="dados_comuns.log_usuario">
