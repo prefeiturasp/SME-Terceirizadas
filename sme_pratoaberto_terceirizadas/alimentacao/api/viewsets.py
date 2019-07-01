@@ -31,8 +31,8 @@ class InverterDiaCardapioViewSet(viewsets.ModelViewSet):
     def destroy(self, request: Request, *args: Any, **kwargs: Any):
         response = super(InverterDiaCardapioViewSet, self).destroy(request)
         if response.status_code == status.HTTP_204_NO_CONTENT:
-            return Response({'details': 'Solicitação removida com sucesso.'}, status=status.HTTP_204_NO_CONTENT)
-        return Response({'details': 'Error ao tentar remover solicitação '}, status=status.HTTP_409_CONFLICT)
+            return Response({'success': 'Solicitação removida com sucesso.'}, status=status.HTTP_204_NO_CONTENT)
+        return Response({'error': 'Error ao tentar remover solicitação '}, status=status.HTTP_409_CONFLICT)
 
     @action(detail=False, methods=['post'])
     def salvar(self, request):
