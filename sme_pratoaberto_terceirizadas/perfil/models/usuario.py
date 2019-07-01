@@ -5,7 +5,8 @@ from django.db import models
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
-from sme_pratoaberto_terceirizadas.dados_comuns.models_abstract import TemChaveExterna
+from .perfil import Perfil
+from ...dados_comuns.models_abstract import TemChaveExterna
 
 
 # Thanks to https://github.com/jmfederico/django-use-email-as-username
@@ -90,9 +91,11 @@ class CustomAbstractUser(AbstractBaseUser, PermissionsMixin):
 
 
 class Usuario(CustomAbstractUser, TemChaveExterna):
-    """User model."""
+    """Classe de autenticacao do django, ela tem muitos perfis."""
 
     nome = models.CharField(_('name'), max_length=150)
     email = models.EmailField(_("email address"), unique=True)
+    perfis = models.ManyToManyField(Perfil)
+
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
