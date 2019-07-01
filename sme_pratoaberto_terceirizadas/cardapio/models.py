@@ -48,4 +48,4 @@ class AlteracaoCardapio(IntervaloDeDia, Descritivel, TemChaveExterna, Motivo):
     @classmethod
     def get_usuarios_dre(cls, escola):
         dre = DiretoriaRegional.objects.filter(regional_director=escola.regional_director)
-        return dre.values_list('users').all()
+        return dre.values_list('perfil').all()

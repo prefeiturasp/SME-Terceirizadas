@@ -9,7 +9,7 @@ from sme_pratoaberto_terceirizadas.alimento.models import Refeicao
 from sme_pratoaberto_terceirizadas.kit_lanche.utils import date_to_string, string_to_date
 from sme_pratoaberto_terceirizadas.escola.models import Escola, DiretoriaRegional
 from sme_pratoaberto_terceirizadas.terceirizada.models import Lote
-from sme_pratoaberto_terceirizadas.users.models import User
+from sme_pratoaberto_terceirizadas.perfil.models import Usuario
 from sme_pratoaberto_terceirizadas.utils import enviar_notificacao, async_envio_email_html_em_massa
 
 
@@ -175,8 +175,8 @@ class SolicitacaoKitLanche(models.Model):
             obj.save()
 
             message = 'Solicitação: {} - Data: {}'.format(obj.localizacao, obj.data_solicitacao)
-            enviar_notificacao(usuario, User.objects.filter(email='mmaia.cc@gmail.com'), 'Teste de nofiticação',
-                              message)
+            enviar_notificacao(usuario, Usuario.objects.filter(email='mmaia.cc@gmail.com'), 'Teste de nofiticação',
+                               message)
             return obj
         except ValueError:
             return False
@@ -245,7 +245,7 @@ class RazaoSolicitacaoUnificada(Descritivel, Ativavel):
 class SolicitacaoUnificadaFormulario(models.Model):
     """Formulario de Solicitação Unificada de Kit Lanche (DRE)"""
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-    criado_por = models.ForeignKey(User, on_delete=models.DO_NOTHING)
+    criado_por = models.ForeignKey(Usuario, on_delete=models.DO_NOTHING)
     criado_em = models.DateTimeField(auto_now_add=True)
     dia = models.DateField()
     razao = models.ForeignKey(RazaoSolicitacaoUnificada, on_delete=models.DO_NOTHING)

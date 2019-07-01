@@ -6,7 +6,7 @@ from django.db import models
 
 from sme_pratoaberto_terceirizadas.alimento.models import Alimento
 from sme_pratoaberto_terceirizadas.escola.models import Escola
-from sme_pratoaberto_terceirizadas.users.models import User
+from sme_pratoaberto_terceirizadas.perfil.models import Usuario
 from .api.utils import valida_dia_util, valida_dia_feriado, converter_str_para_datetime
 
 
@@ -78,9 +78,9 @@ class Cardapio(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     data = models.DateField(verbose_name='Data')
     descricao = models.TextField(verbose_name='Descrição', null=True, blank=True)
-    criado_por = models.ForeignKey(User, on_delete=models.DO_NOTHING, related_name='criador')
+    criado_por = models.ForeignKey(Usuario, on_delete=models.DO_NOTHING, related_name='criador')
     criado_em = models.DateTimeField(verbose_name='Criado em', auto_now_add=True)
-    atualizado_por = models.ForeignKey(User, on_delete=models.DO_NOTHING, null=True, blank=True,
+    atualizado_por = models.ForeignKey(Usuario, on_delete=models.DO_NOTHING, null=True, blank=True,
                                        related_name='atualizador')
     ultima_atualizacao = models.DateTimeField(verbose_name='Última atualização', auto_now=True)
     edital = models.ForeignKey(Edital, on_delete=models.DO_NOTHING)
@@ -119,7 +119,7 @@ status_validacao = [StatusSolicitacoes.DRE_A_VALIDAR, StatusSolicitacoes.DRE_APR
 class InverterDiaCardapio(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     registro = models.DateTimeField(auto_now_add=True)
-    usuario = models.ForeignKey(User, on_delete=models.DO_NOTHING, help_text='Usuário que solicitou a altereação')
+    usuario = models.ForeignKey(Usuario, on_delete=models.DO_NOTHING, help_text='Usuário que solicitou a altereação')
     escola = models.ForeignKey(Escola, on_delete=models.DO_NOTHING)
     data_de = models.DateField(verbose_name='Data De', help_text='Data do dia inicial da inversão')
     data_para = models.DateField(verbose_name='Data Para', help_text='Data do dia final da inversão')
@@ -150,7 +150,7 @@ class InverterDiaCardapio(models.Model):
         return False
 
     @classmethod
-    def valida_usuario_escola(cls, usuario: User):
+    def valida_usuario_escola(cls, usuario: Usuario):
         return Escola.objects.filter(users=usuario).exists()
 
     @classmethod

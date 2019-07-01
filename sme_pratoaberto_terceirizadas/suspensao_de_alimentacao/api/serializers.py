@@ -5,13 +5,13 @@ from sme_pratoaberto_terceirizadas.escola.models import PeriodoEscolar
 from sme_pratoaberto_terceirizadas.suspensao_de_alimentacao.models import SuspensaoDeAlimentacao, \
     StatusSuspensaoDeAlimentacao, DiaRazaoSuspensaoDeAlimentacao, RazaoSuspensaoDeAlimentacao, \
     DescricaoSuspensaoDeAlimentacao
-from sme_pratoaberto_terceirizadas.users.models import User
+from sme_pratoaberto_terceirizadas.perfil.models import Usuario
 from sme_pratoaberto_terceirizadas.validators import nao_pode_ser_passado, deve_pedir_com_antecedencia, dia_util
 
 
 class SuspensaoDeAlimentacaoSerializer(serializers.ModelSerializer):
     status = serializers.SlugRelatedField(slug_field='nome', queryset=StatusSuspensaoDeAlimentacao.objects.all())
-    criado_por = serializers.SlugRelatedField(slug_field='uuid', queryset=User.objects.all())
+    criado_por = serializers.SlugRelatedField(slug_field='uuid', queryset=Usuario.objects.all())
 
     class Meta:
         model = SuspensaoDeAlimentacao

@@ -2,7 +2,7 @@ from django.db import models
 
 from sme_pratoaberto_terceirizadas.abstract_shareable import Descritivel, Ativavel, TemChaveExterna, Iniciais, Nomeavel
 from sme_pratoaberto_terceirizadas.terceirizada.models import Lote
-from sme_pratoaberto_terceirizadas.users.models import User
+from sme_pratoaberto_terceirizadas.perfil.models import Usuario
 
 
 class DiretoriaRegional(Iniciais, Nomeavel):

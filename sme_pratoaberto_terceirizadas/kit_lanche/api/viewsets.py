@@ -6,7 +6,7 @@ from rest_framework.viewsets import ModelViewSet
 from sme_pratoaberto_terceirizadas.kit_lanche.api.serializers import KitLancheSerializer, SolicitacaoKitLancheSerializer, \
     SolicitacaoUnificadaFormularioSerializer, SolicitacaoUnificadaSerializer
 from sme_pratoaberto_terceirizadas.escola.models import Escola
-from sme_pratoaberto_terceirizadas.users.models import User
+from sme_pratoaberto_terceirizadas.perfil.models import Usuario
 from ..models import KitLanche, SolicitacaoKitLanche, SolicitacaoUnificada, SolicitacaoUnificadaFormulario, \
     StatusSolicitacaoUnificada
 from .validators import valida_usuario_escola
@@ -58,7 +58,7 @@ class SolicitacaoKitLancheViewSet(ModelViewSet):
         return Response({'error': 'Erro ao tentar salvar solicitação, tente novamente'},
                         status=status.HTTP_502_BAD_GATEWAY)
 
-    def _valida_escola(self, user: User):
+    def _valida_escola(self, user: Usuario):
         escola = Escola.objects.filter(users=user).first()
         if not escola:
             return Response({'error': 'Sem escola relacinada a este usuário'}, status=status.HTTP_401_UNAUTHORIZED)

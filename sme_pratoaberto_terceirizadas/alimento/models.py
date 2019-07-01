@@ -6,7 +6,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from sme_pratoaberto_terceirizadas.abstract_shareable import Descritivel, CriadoEm, Nomeavel
 from sme_pratoaberto_terceirizadas.escola.models import IdadeEscolar, TipoUnidadeEscolar, TipoGestao
-from sme_pratoaberto_terceirizadas.users.models import User
+from sme_pratoaberto_terceirizadas.perfil.models import Usuario
 
 now = timezone.now()
 
@@ -63,7 +63,7 @@ class CardapioDia(CriadoEm):
     """Cardápio para um dia"""
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     status = models.ForeignKey(StatusCardapio, on_delete=models.DO_NOTHING)
-    criado_por = models.ForeignKey(User, on_delete=models.DO_NOTHING)
+    criado_por = models.ForeignKey(Usuario, on_delete=models.DO_NOTHING)
     tipo_gestao = models.ForeignKey(TipoGestao, on_delete=models.DO_NOTHING)
     tipo_unidade = models.ForeignKey(TipoUnidadeEscolar, on_delete=models.DO_NOTHING)
     data = models.DateField()

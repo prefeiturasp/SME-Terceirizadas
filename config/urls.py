@@ -10,23 +10,9 @@ from rest_framework.routers import DefaultRouter
 from rest_framework_jwt.views import obtain_jwt_token, refresh_jwt_token
 from rest_framework_swagger.views import get_swagger_view
 
-from sme_pratoaberto_terceirizadas.cardapio.urls import urlpatterns as cardapio_url
-from sme_pratoaberto_terceirizadas.dados_comuns.api.viewsets import DiasUteisViewSet
-from sme_pratoaberto_terceirizadas.dados_comuns.urls import urlpatterns as common_urls
-from sme_pratoaberto_terceirizadas.alimento.api.routers import urlpatterns as alimento_url
-from sme_pratoaberto_terceirizadas.inclusao_alimentacao.api.viewsets import InclusaoAlimentacaoViewSet
-from sme_pratoaberto_terceirizadas.kit_lanche.api.routers import urlpatterns as meal_kit_url
-from sme_pratoaberto_terceirizadas.permissao.routers import urlpatterns as permissions_url
-from sme_pratoaberto_terceirizadas.escola.routers import urlpatterns as escola_url
-from sme_pratoaberto_terceirizadas.users.routers import urlpatterns as user_url
-from sme_pratoaberto_terceirizadas.alimentacao.api.routers import urlpattern as alimentacao_url
-from sme_pratoaberto_terceirizadas.suspensao_de_alimentacao.api.routers import urlpatterns as suspensao_url
-
 schema_view = get_swagger_view(title=_('API of SME-Companies'))
 
 route = DefaultRouter(trailing_slash=True)
-route.register('working_days', DiasUteisViewSet, 'working_days')
-route.register('inclusao_alimentacao', InclusaoAlimentacaoViewSet)
 
 urlpatterns = [
                   path('docs', schema_view),
@@ -43,15 +29,15 @@ urlpatterns = [
 )
 
 # ADDING ROUTERS FROM ALL APPS ####
-urlpatterns += permissions_url
-urlpatterns += escola_url
-urlpatterns += user_url
-urlpatterns += common_urls
-urlpatterns += meal_kit_url
-urlpatterns += alimento_url
-urlpatterns += cardapio_url
-urlpatterns += alimentacao_url
-urlpatterns += suspensao_url
+# urlpatterns += permissions_url
+# urlpatterns += escola_url
+# urlpatterns += user_url
+# urlpatterns += common_urls
+# urlpatterns += meal_kit_url
+# urlpatterns += alimento_url
+# urlpatterns += cardapio_url
+# urlpatterns += alimentacao_url
+# urlpatterns += suspensao_url
 
 if settings.DEBUG:
     # This allows the error pages to be debugged during development, just visit

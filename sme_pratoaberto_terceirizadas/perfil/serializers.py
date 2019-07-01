@@ -3,7 +3,7 @@ from rest_framework import serializers
 
 from sme_pratoaberto_terceirizadas.kit_lanche.models import KitLanche
 from sme_pratoaberto_terceirizadas.kit_lanche.api.serializers import KitLancheSerializer
-from .models import User
+from .models import Usuario
 
 
 class GenericNotificationRelatedField(serializers.RelatedField):
@@ -16,7 +16,7 @@ class GenericNotificationRelatedField(serializers.RelatedField):
 
 class PublicUserSerializer(serializers.ModelSerializer):
     class Meta:
-        model = User
+        model = Usuario
         fields = ('name', 'email', 'profile')
 
 

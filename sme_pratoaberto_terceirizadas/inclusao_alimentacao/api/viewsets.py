@@ -12,7 +12,7 @@ from sme_pratoaberto_terceirizadas.inclusao_alimentacao.api.serializers import I
 from sme_pratoaberto_terceirizadas.inclusao_alimentacao.errors import InclusaoAlimentacaoCriarOuAtualizarException
 from sme_pratoaberto_terceirizadas.inclusao_alimentacao.models import InclusaoAlimentacao, InclusaoAlimentacaoStatus, MotivoInclusaoAlimentacao
 from sme_pratoaberto_terceirizadas.inclusao_alimentacao.utils import obter_lista_erros, checar_dados_genericos_requeridos
-from sme_pratoaberto_terceirizadas.users.models import User
+from sme_pratoaberto_terceirizadas.perfil.models import Usuario
 
 
 class InclusaoAlimentacaoViewSet(ModelViewSet):

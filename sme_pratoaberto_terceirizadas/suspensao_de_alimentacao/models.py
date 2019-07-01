@@ -6,7 +6,7 @@ from django.db import models
 from sme_pratoaberto_terceirizadas.dados_comuns.utils import obter_dias_uteis_apos
 from sme_pratoaberto_terceirizadas.alimento.models import TipoRefeicao
 from sme_pratoaberto_terceirizadas.escola.models import PeriodoEscolar
-from sme_pratoaberto_terceirizadas.users.models import User
+from sme_pratoaberto_terceirizadas.perfil.models import Usuario
 from sme_pratoaberto_terceirizadas.kit_lanche.utils import string_to_date
 
 
@@ -46,7 +46,7 @@ class RazaoSuspensaoDeAlimentacao(models.Model):
 
 class SuspensaoDeAlimentacao(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-    criado_por = models.ForeignKey(User, on_delete=models.DO_NOTHING)
+    criado_por = models.ForeignKey(Usuario, on_delete=models.DO_NOTHING)
     status = models.ForeignKey(StatusSuspensaoDeAlimentacao, on_delete=models.DO_NOTHING)
     negado_pela_terceirizada = models.BooleanField(default=False)
     razao_negacao = models.TextField(blank=True, null=True)

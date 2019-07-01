@@ -10,7 +10,7 @@ from sme_pratoaberto_terceirizadas.dados_comuns.utils import string_para_data, o
 from sme_pratoaberto_terceirizadas.alimento.models import TipoRefeicao
 from sme_pratoaberto_terceirizadas.inclusao_alimentacao.utils import obter_objeto
 from sme_pratoaberto_terceirizadas.escola.models import PeriodoEscolar
-from sme_pratoaberto_terceirizadas.users.models import User
+from sme_pratoaberto_terceirizadas.perfil.models import Usuario
 
 
 class InclusaoAlimentacaoStatus(Descritivel):
@@ -46,7 +46,7 @@ class MotivoInclusaoAlimentacao(Descritivel, Ativavel):
 
 class InclusaoAlimentacao(CriadoEm):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-    criado_por = models.ForeignKey(User, on_delete=models.DO_NOTHING)
+    criado_por = models.ForeignKey(Usuario, on_delete=models.DO_NOTHING)
     status = models.ForeignKey(InclusaoAlimentacaoStatus, on_delete=models.DO_NOTHING)
     negado_pela_terceirizada = models.BooleanField(default=False)
     motivo_recusa = models.TextField(blank=True, null=True)
@@ -96,37 +96,37 @@ class InclusaoAlimentacao(CriadoEm):
     def _notificacao_aux(self, _type, validation_diff='creation'):
         notificacao_dict = {
             InclusaoAlimentacaoStatus.A_VALIDAR: {
-                'receptor': User.objects.all(),
+                'receptor': Usuario.objects.all(),
                 'aviso': _(validation_diff.capitalize()),
                 'descricao': _('created') if validation_diff else _('edited')
             },
             InclusaoAlimentacaoStatus.A_EDITAR: {
-                'receptor': User.objects.all(),
+                'receptor': Usuario.objects.all(),
                 'aviso': _('Necessário editar'),
                 'descricao': _('não válidado')
             },
             InclusaoAlimentacaoStatus.A_APROVAR: {
-                'receptor': User.objects.all(),
+                'receptor': Usuario.objects.all(),
                 'aviso': _('Validação'),
                 'descricao': _('validado')
             },
             InclusaoAlimentacaoStatus.A_VISUALIZAR: {
-                'receptor': User.objects.all(),
+                'receptor': Usuario.objects.all(),
                 'aviso': _('Aprovação'),
                 'descricao': _('aprovado')
             },
             InclusaoAlimentacaoStatus.NEGADO_PELA_CODAE: {
-                'receptor': User.objects.all(),
+                'receptor': Usuario.objects.all(),
                 'aviso': _('Negado pela CODAE'),
                 'descricao': _('negado pela CODAE')
             },
             InclusaoAlimentacaoStatus.NEGADO_PELA_TERCEIRIZADA_: {
-                'receptor': User.objects.all(),
+                'receptor': Usuario.objects.all(),
                 'aviso': _('Negado pela Terceirizada'),
                 'descricao': _('negada pela terceirizada')
             },
             InclusaoAlimentacaoStatus.VISUALIZADO: {
-                'receptor': User.objects.all(),
+                'receptor': Usuario.objects.all(),
                 'aviso': _('Visualização'),
                 'descricao': _('visualizado')
             },

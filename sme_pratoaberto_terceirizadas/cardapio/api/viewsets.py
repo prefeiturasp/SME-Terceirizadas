@@ -5,12 +5,12 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.decorators import action
 
-from sme_pratoaberto_terceirizadas.users.models import User
+from sme_pratoaberto_terceirizadas.perfil.models import Usuario
 from sme_pratoaberto_terceirizadas.utils import enviar_notificacao, async_envio_email_html_em_massa
 from .serializers import AlteracaoCardapioSerializer
 from ..models import AlteracaoCardapio
 
-cintia_qs = User.objects.filter(email='mmaia.cc@gmail.com')
+cintia_qs = Usuario.objects.filter(email='mmaia.cc@gmail.com')
 
 emails = ['mmaia.cc@gmail.com', 'weslei.souza@amcom.com.br', 'cintia.ramos@amcom.com.br']
 

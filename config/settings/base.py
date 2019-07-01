@@ -86,17 +86,17 @@ THIRD_PARTY_APPS = [
     'des',  # for email configuration in database
 ]
 LOCAL_APPS = [
-    'sme_pratoaberto_terceirizadas.users.apps.CustomUserConfig',
-    'sme_pratoaberto_terceirizadas.dados_comuns.apps.DadosComunsConfig',
-    'sme_pratoaberto_terceirizadas.escola.apps.EscolaConfig',
-    'sme_pratoaberto_terceirizadas.kit_lanche.apps.KitLancheConfig',
-    'sme_pratoaberto_terceirizadas.permissao.apps.PermissaoConfig',
-    'sme_pratoaberto_terceirizadas.alimento.apps.AlimentoConfig',
-    'sme_pratoaberto_terceirizadas.inclusao_alimentacao.apps.InclusaoAlimentacaoConfig',
-    'sme_pratoaberto_terceirizadas.cardapio.apps.AlteracaoDeCardapioConfig',
-    'sme_pratoaberto_terceirizadas.terceirizada.apps.TerceirizadaConfig',
-    'sme_pratoaberto_terceirizadas.alimentacao.apps.AlimentacaoConfig',
-    'sme_pratoaberto_terceirizadas.suspensao_de_alimentacao.apps.SuspensaoDeAlimentacaoConfig'
+    'sme_pratoaberto_terceirizadas.perfil.apps.PerfilConfig',
+    # 'sme_pratoaberto_terceirizadas.dados_comuns.apps.DadosComunsConfig',
+    # 'sme_pratoaberto_terceirizadas.escola.apps.EscolaConfig',
+    # 'sme_pratoaberto_terceirizadas.kit_lanche.apps.KitLancheConfig',
+    # 'sme_pratoaberto_terceirizadas.permissao.apps.PermissaoConfig',
+    # 'sme_pratoaberto_terceirizadas.alimento.apps.AlimentoConfig',
+    # 'sme_pratoaberto_terceirizadas.inclusao_alimentacao.apps.InclusaoAlimentacaoConfig',
+    # 'sme_pratoaberto_terceirizadas.cardapio.apps.AlteracaoDeCardapioConfig',
+    # 'sme_pratoaberto_terceirizadas.terceirizada.apps.TerceirizadaConfig',
+    # 'sme_pratoaberto_terceirizadas.alimentacao.apps.AlimentacaoConfig',
+    # 'sme_pratoaberto_terceirizadas.suspensao_de_alimentacao.apps.SuspensaoDeAlimentacaoConfig'
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -116,9 +116,9 @@ AUTHENTICATION_BACKENDS = [
     'allauth.account.auth_backends.AuthenticationBackend',
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#auth-user-model
-AUTH_USER_MODEL = 'users.User'
+AUTH_USER_MODEL = 'perfil.Usuario'
 # https://docs.djangoproject.com/en/dev/ref/settings/#login-redirect-url
-LOGIN_REDIRECT_URL = 'users:redirect'
+LOGIN_REDIRECT_URL = 'perfil:redirect'
 # https://docs.djangoproject.com/en/dev/ref/settings/#login-url
 LOGIN_URL = 'account_login'
 
@@ -271,9 +271,9 @@ ACCOUNT_EMAIL_REQUIRED = True
 # https://django-allauth.readthedocs.io/en/latest/configuration.html
 ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
 # https://django-allauth.readthedocs.io/en/latest/configuration.html
-ACCOUNT_ADAPTER = 'sme_pratoaberto_terceirizadas.users.adapters.AccountAdapter'
+ACCOUNT_ADAPTER = 'sme_pratoaberto_terceirizadas.perfil.adapters.AccountAdapter'
 # https://django-allauth.readthedocs.io/en/latest/configuration.html
-SOCIALACCOUNT_ADAPTER = 'sme_pratoaberto_terceirizadas.users.adapters.SocialAccountAdapter'
+SOCIALACCOUNT_ADAPTER = 'sme_pratoaberto_terceirizadas.perfil.adapters.SocialAccountAdapter'
 
 # Your stuff...
 # ------------------------------------------------------------------------------

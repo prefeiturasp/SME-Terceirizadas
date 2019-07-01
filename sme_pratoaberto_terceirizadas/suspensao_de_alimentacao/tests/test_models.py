@@ -6,7 +6,7 @@ from model_mommy import mommy
 class SuspensaoDeAlimentacaoCase(TestCase):
     def setUp(self):
         self.status = mommy.make('StatusSuspensaoDeAlimentacao', _fill_optional=True)
-        self.user = mommy.make('users.User', _fill_optional=True)
+        self.user = mommy.make('perfil.User', _fill_optional=True)
         self.suspensao = mommy.make('SuspensaoDeAlimentacao', _fill_optional=True, criado_por=self.user,
                                     status=self.status)
 

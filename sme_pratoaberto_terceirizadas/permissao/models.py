@@ -3,7 +3,7 @@ import uuid as uuid
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
-from ..users.models import Perfil, Instituicao
+from ..perfil.models import Perfil, Instituicao
 
 
 class Permissao(models.Model):

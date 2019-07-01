@@ -1,5 +1,3 @@
-import uuid
-
 from django.contrib.auth.base_user import AbstractBaseUser
 from django.contrib.auth.models import BaseUserManager, PermissionsMixin
 from django.core.mail import send_mail
@@ -7,7 +5,7 @@ from django.db import models
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
-from sme_pratoaberto_terceirizadas.abstract_shareable import Ativavel, TemChaveExterna, Descritivel
+from sme_pratoaberto_terceirizadas.dados_comuns.models_abstract import TemChaveExterna
 
 
 # Thanks to https://github.com/jmfederico/django-use-email-as-username
@@ -78,8 +76,8 @@ class CustomAbstractUser(AbstractBaseUser, PermissionsMixin):
     REQUIRED_FIELDS = ['email']
 
     class Meta:
-        verbose_name = _('user')
-        verbose_name_plural = _('users')
+        verbose_name = _('perfil')
+        verbose_name_plural = _('perfis')
         abstract = True
 
     def clean(self):
@@ -91,47 +89,10 @@ class CustomAbstractUser(AbstractBaseUser, PermissionsMixin):
         send_mail(subject, message, from_email, [self.email], **kwargs)
 
 
-class Notice(models.Model):
-    """Edital"""
-    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-    title = models.CharField(_('Title'), max_length=90)
-
-
-class Instituicao(TemChaveExterna):
-    nome = models.CharField("Nome", blank=True, null=True, max_length=50)
-
-    def __str__(self):
-        return self.nome
-
-    class Meta:
-        verbose_name = 'Instituição'
-        verbose_name_plural = 'Instituições'
-
-
-class Perfil(Ativavel):
-    """Perfil de usuário"""
-    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-    titulo = models.CharField(_('Title'), max_length=90)
-    instituicao = models.ForeignKey(Instituicao, on_delete=models.DO_NOTHING)
-
-    def __str__(self):
-        return self.titulo
-
-    class Meta:
-        verbose_name = _('Perfil')
-
-
-class User(CustomAbstractUser):
+class Usuario(CustomAbstractUser, TemChaveExterna):
     """User model."""
 
-    # username = None
-    name = models.CharField(_('name'), max_length=150)
+    nome = models.CharField(_('name'), max_length=150)
     email = models.EmailField(_("email address"), unique=True)
-    phone = models.CharField(_('Phone'), max_length=11, null=True)
-    mobile_phone = models.CharField(_('Mobile phone'), max_length=11, null=True)
-    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-    functional_register = models.CharField(_('Functional register'), max_length=60,
-                                           unique=True, blank=True, null=True)
-    profile = models.ForeignKey(Perfil, on_delete=models.DO_NOTHING, null=True, blank=True)
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []

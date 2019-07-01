@@ -5,7 +5,7 @@ from rest_framework_jwt.settings import api_settings
 from model_mommy import mommy
 from django.utils.timezone import now
 
-from sme_pratoaberto_terceirizadas.users.models import User
+from sme_pratoaberto_terceirizadas.perfil.models import Usuario
 
 jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
 jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
@@ -21,7 +21,7 @@ def client():
 
 @pytest.fixture
 def token():
-    user = User.objects.all().first()
+    user = Usuario.objects.all().first()
     paylod = jwt_payload_handler(user)
     token = jwt_encode_handler(paylod)
     return token
@@ -29,7 +29,7 @@ def token():
 
 @pytest.fixture
 def cardapio():
-    user = mommy.prepare('users.User', _save_related=True)
+    user = mommy.prepare('perfil.User', _save_related=True)
     cardapio = mommy.prepare('Cardapio', _save_related=True, criado_em=now(), atualizado_por=user)
     return cardapio
 
@@ -42,7 +42,7 @@ def inverter_dia_cardapio():
 
 @pytest.fixture
 def user():
-    user = mommy.prepare('users.User', _save_related=True)
+    user = mommy.prepare('perfil.User', _save_related=True)
     return user
 
 
@@ -94,7 +94,7 @@ def request_post():
         "data_de": datetime(2019, 6, 13),
         "data_para": datetime(2019, 6, 20),
         "descricao": "Descrição para teste",
-        "usuario": mommy.prepare('users.User', _save_related=True),
+        "usuario": mommy.prepare('perfil.User', _save_related=True),
         "escola": mommy.prepare('School', _save_related=True)
     }
     return request
@@ -102,5 +102,5 @@ def request_post():
 
 @pytest.fixture
 def usuario_sem_escola():
-    usuario = mommy.prepare('users.User', _save_related=True)
+    usuario = mommy.prepare('perfil.User', _save_related=True)
     return usuario

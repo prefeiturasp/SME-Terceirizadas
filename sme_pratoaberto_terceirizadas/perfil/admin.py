@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 from django.utils.translation import ugettext_lazy as _
 
-from .models import User, Perfil, Instituicao
+from .models import Usuario
 
 
 class BaseUserAdmin(DjangoUserAdmin):
@@ -13,7 +13,7 @@ class BaseUserAdmin(DjangoUserAdmin):
             'fields': ('email', 'password')
         }),
         (_('Personal info'), {
-            'fields': ('email', 'name')
+            'fields': ('email', 'nome')
         }),
         (_('Profile'), {
             'fields': ('profile',)
@@ -29,16 +29,9 @@ class BaseUserAdmin(DjangoUserAdmin):
         'classes': ('wide',),
         'fields': ('email', 'password1', 'password2'),
     }),)
-    list_display = ('email', 'name', 'is_staff', 'is_active')
-    search_fields = ('email', 'name')
+    list_display = ('email', 'nome', 'is_staff', 'is_active')
+    search_fields = ('email', 'nome')
     ordering = ('email',)
 
 
-admin.site.register(Instituicao)
-admin.site.register(User, BaseUserAdmin)
-
-
-@admin.register(Perfil)
-class ProfileAdmin(admin.ModelAdmin):
-    list_display = ['titulo', 'instituicao', 'uuid']
-    ordering = ['titulo', 'instituicao']
+admin.site.register(Usuario, BaseUserAdmin)
