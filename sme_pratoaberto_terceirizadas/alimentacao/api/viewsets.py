@@ -30,7 +30,7 @@ class InverterDiaCardapioViewSet(viewsets.ModelViewSet):
 
     def destroy(self, request: Request, *args: Any, **kwargs: Any):
         response = super(InverterDiaCardapioViewSet, self).destroy(request)
-        if response.status_code == status.HTTP_204_NO_CONTENT:
+        if response.status_code == status.HTTP_200_OK:
             return Response({'success': 'Solicitação removida com sucesso.'}, status=status.HTTP_204_NO_CONTENT)
         return Response({'error': 'Error ao tentar remover solicitação '}, status=status.HTTP_409_CONFLICT)
 
@@ -40,7 +40,7 @@ class InverterDiaCardapioViewSet(viewsets.ModelViewSet):
         return validacao_e_salvamento(request)
 
     def _filter_request(self, request):
-        request.data['data_de'] = converter_str_para_datetime(request.data.get('data_de'), formato='%d/%m/%Y')
-        request.data['data_para'] = converter_str_para_datetime(request.data.get('data_para'), formato='%d/%m/%Y')
+        request.data['data_de'] = converter_str_para_datetime(request.data.get('data_de'), formato='%d/%m/%Y').date()
+        request.data['data_para'] = converter_str_para_datetime(request.data.get('data_para'), formato='%d/%m/%Y').date()
         request.data['escola'] = School.get_escola_by_usuario(request.user)
         return request

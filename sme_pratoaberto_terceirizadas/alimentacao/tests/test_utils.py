@@ -11,7 +11,7 @@ def test_valida_dia_util():
 
 def test_valida_dia_feriado():
     assert valida_dia_feriado(datetime(2019, 6, 20))
-    assert valida_dia_feriado(datetime(2019, 6, 15))
+    assert not valida_dia_feriado(datetime(2019, 6, 15))
 
 
 def test_valida_conversao_string_para_datetime():

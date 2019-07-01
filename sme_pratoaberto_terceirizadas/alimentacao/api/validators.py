@@ -39,11 +39,11 @@ def validacao_e_solicitacao(request):
     if not valida_dia_hoje(request.data):
         return Response({'error': 'Não é possivel solicitar dia de hoje para inversão'},
                         status=status.HTTP_409_CONFLICT)
-    if not valida_dia_util(request.data):
-        return Response({'error': 'Não é possivel solicitar dia de fim de semana para alteração'},
-                        status=status.HTTP_409_CONFLICT)
     if not valida_feriado(request.data):
-        return Response({'error': 'Não é possivel solicitar dia de feriado para inversão'},
+        return Response({'error': 'Não é possivel solicitar feriado para inversão'},
+                        status=status.HTTP_409_CONFLICT)
+    if not valida_dia_util(request.data):
+        return Response({'error': 'Não é possivel solicitar fim de semana para alteração'},
                         status=status.HTTP_409_CONFLICT)
 
     obj = InverterDiaCardapio.solicitar(request.data, request.user)
@@ -64,11 +64,11 @@ def validacao_e_salvamento(request):
     if not valida_dia_hoje(request.data):
         return Response({'error': 'Não é possivel solicitar dia de hoje para inversão'},
                         status=status.HTTP_409_CONFLICT)
-    if not valida_dia_util(request.data):
-        return Response({'error': 'Não é possivel solicitar dia de fim de semana para alteração'},
-                        status=status.HTTP_409_CONFLICT)
     if not valida_feriado(request.data):
-        return Response({'error': 'Não é possivel solicitar dia de feriado para inversão'},
+        return Response({'error': 'Não é possivel solicitar feriado para inversão'},
+                        status=status.HTTP_409_CONFLICT)
+    if not valida_dia_util(request.data):
+        return Response({'error': 'Não é possivel solicitar final de semana para inversão'},
                         status=status.HTTP_409_CONFLICT)
 
     obj = InverterDiaCardapio.salvar_solicitacao(request.data, request.user)

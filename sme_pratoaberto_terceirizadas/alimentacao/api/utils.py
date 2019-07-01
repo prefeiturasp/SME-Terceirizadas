@@ -9,19 +9,12 @@ calendar = BrazilSaoPauloCity()
 
 
 def valida_dia_util(dia):
-    fim_de_semana = [5, 6]
-    dia_semana = dia.weekday()
-    if dia_semana in fim_de_semana:
-        return False
-    return True
+    return calendar.is_working_day(dia)
 
 
 def valida_dia_feriado(dia):
-    feriados = calendar.get_variable_days(dia.year)
-    for feriado in feriados:
-        if dia.date() == feriado[0]:
-            return False
-    return True
+    feriado = calendar.is_holiday(dia)
+    return feriado
 
 
 def converter_str_para_datetime(str_dia, formato='%Y-%m-%d'):
@@ -41,8 +34,8 @@ def notifica_dres(usuario: User, escola: School, dia_de: datetime, dia_para: dat
     email_usuarios_dre = RegionalDirector.objects.filter(school=escola).values_list('users__email')
     mensagem_notificacao = 'Solicitação de inversão de dia de cardápio para a escola {} do dia {} para o dia: {}'.format(
         escola,
-        dia_de.date().strftime('%d/%m/%Y'),
-        dia_para.date().strftime('%d/%m/%Y'))
+        dia_de.strftime('%d/%m/%Y'),
+        dia_para.strftime('%d/%m/%Y'))
 
     send_notification(
         usuario,

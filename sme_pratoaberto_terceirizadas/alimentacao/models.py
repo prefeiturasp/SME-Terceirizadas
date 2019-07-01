@@ -170,9 +170,9 @@ class InverterDiaCardapio(models.Model):
 
     @classmethod
     def valida_feriado(cls, request):
-        if valida_dia_feriado(request.get('data_de')) and valida_dia_feriado(request.get('data_para')):
-            return True
-        return False
+        if valida_dia_feriado(request.get('data_de')) or valida_dia_feriado(request.get('data_para')):
+            return False
+        return True
 
     @classmethod
     def valida_usuario_escola(cls, usuario: User):
@@ -180,7 +180,7 @@ class InverterDiaCardapio(models.Model):
 
     @classmethod
     def valida_dia_atual(cls, request):
-        if request.get('data_de').date() == now().date() or request.get('data_para').date() == now().date():
+        if request.get('data_de') == now().date() or request.get('data_para') == now().date():
             return False
         return True
 
