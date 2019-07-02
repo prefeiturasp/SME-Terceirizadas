@@ -74,20 +74,14 @@ class Escola(Ativavel, TemChaveExterna):
     codigo_codae = models.CharField('Código CODAE', max_length=10, unique=True)
     quantidade_alunos = models.PositiveSmallIntegerField("Quantidade de alunos")
 
-    # TODO colocar lote
     diretoria_regional = models.ForeignKey(DiretoriaRegional,
-                                           on_delete=models.DO_NOTHING,
-                                           blank=True,
-                                           null=True)
+                                           on_delete=models.DO_NOTHING)
     tipo_unidade = models.ForeignKey(TipoUnidadeEscolar,
-                                     on_delete=models.DO_NOTHING,
-                                     blank=True,
-                                     null=True)
-
+                                     on_delete=models.DO_NOTHING)
     tipo_gestao = models.ForeignKey(TipoGestao,
-                                    on_delete=models.DO_NOTHING,
-                                    blank=True,
-                                    null=True)
+                                    on_delete=models.DO_NOTHING)
+    lote = models.ForeignKey('terceirizada.Lote',
+                             on_delete=models.DO_NOTHING)
 
     idades = models.ManyToManyField(FaixaIdadeEscolar, blank=True)
     periodos = models.ManyToManyField(PeriodoEscolar, blank=True)
