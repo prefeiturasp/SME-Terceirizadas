@@ -91,6 +91,7 @@ class Escola(Ativavel, TemChaveExterna):
 
     idades = models.ManyToManyField(FaixaIdadeEscolar, blank=True)
     periodos = models.ManyToManyField(PeriodoEscolar, blank=True)
+    cardapios = models.ManyToManyField('cardapio.Cardapio', blank=True)
 
     def __str__(self):
         return '{}: {}'.format(self.codigo_eol, self.nome)

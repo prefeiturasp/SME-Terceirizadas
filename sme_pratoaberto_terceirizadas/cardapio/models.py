@@ -83,7 +83,9 @@ class Cardapio(Descritivel, Ativavel, TemData):
     tipos_alimentacao = models.ManyToManyField(TipoAlimentacao)
 
     def __str__(self):
-        return '{}  - {}'.format(self.data, self.descricao)
+        if self.descricao:
+            return '{}  - {}'.format(self.data, self.descricao)
+        return '{}'.format(self.data)
 
     class Meta:
         verbose_name = "Cardápio"
@@ -159,7 +161,7 @@ class SuspensaoAlimentacao(TemData):
         (PERIODO_ESCOLAR, 'Período escolar'),
         (TIPO_ALIMENTACAO, 'Tipo alimentação'),
     )
-    # TODO: esse choices com int nao comba bem com o admin do django...
+    
     tipo = models.PositiveSmallIntegerField(choices=CHOICES, default=PERIODO_ESCOLAR)
 
     cardapio = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING,
@@ -170,7 +172,7 @@ class SuspensaoAlimentacao(TemData):
                                                blank=True)
 
     def __str__(self):
-        return self.tipo
+        return self.get_tipo_display()
 
     class Meta:
         verbose_name = "Suspensão de alimentação"
