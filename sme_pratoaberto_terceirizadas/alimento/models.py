@@ -4,8 +4,8 @@ from django.db import models
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
-from sme_pratoaberto_terceirizadas.abstract_shareable import Descritivel, CriadoEm, Nomeavel
-from sme_pratoaberto_terceirizadas.escola.models import IdadeEscolar, TipoUnidadeEscolar, TipoGestao
+from sme_pratoaberto_terceirizadas.dados_comuns.models_abstract import Descritivel, CriadoEm, Nomeavel
+from sme_pratoaberto_terceirizadas.escola.models import FaixaIdadeEscolar, TipoUnidadeEscolar, TipoGestao
 from sme_pratoaberto_terceirizadas.perfil.models import Usuario
 
 now = timezone.now()
@@ -67,5 +67,5 @@ class CardapioDia(CriadoEm):
     tipo_gestao = models.ForeignKey(TipoGestao, on_delete=models.DO_NOTHING)
     tipo_unidade = models.ForeignKey(TipoUnidadeEscolar, on_delete=models.DO_NOTHING)
     data = models.DateField()
-    idade = models.ForeignKey(IdadeEscolar, on_delete=models.DO_NOTHING)
+    idade = models.ForeignKey(FaixaIdadeEscolar, on_delete=models.DO_NOTHING)
     refeicoes = models.ManyToManyField(Refeicao)

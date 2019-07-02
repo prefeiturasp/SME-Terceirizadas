@@ -88,7 +88,7 @@ THIRD_PARTY_APPS = [
 LOCAL_APPS = [
     'sme_pratoaberto_terceirizadas.perfil.apps.PerfilConfig',
     'sme_pratoaberto_terceirizadas.dados_comuns.apps.DadosComunsConfig',
-    # 'sme_pratoaberto_terceirizadas.escola.apps.EscolaConfig',
+    'sme_pratoaberto_terceirizadas.escola.apps.EscolaConfig',
     # 'sme_pratoaberto_terceirizadas.kit_lanche.apps.KitLancheConfig',
     # 'sme_pratoaberto_terceirizadas.permissao.apps.PermissaoConfig',
     # 'sme_pratoaberto_terceirizadas.alimento.apps.AlimentoConfig',

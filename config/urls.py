@@ -11,6 +11,7 @@ from rest_framework_jwt.views import obtain_jwt_token, refresh_jwt_token
 from rest_framework_swagger.views import get_swagger_view
 
 from sme_pratoaberto_terceirizadas.dados_comuns.urls import urlpatterns as comuns_urls
+from sme_pratoaberto_terceirizadas.escola.urls import urlpatterns as escola_urls
 
 schema_view = get_swagger_view(title=_('API of SME-Companies'))
 
@@ -32,8 +33,8 @@ urlpatterns = [
 
 # ADDING ROUTERS FROM ALL APPS ####
 urlpatterns += comuns_urls
+urlpatterns += escola_urls
 # urlpatterns += permissions_url
-# urlpatterns += escola_url
 # urlpatterns += user_url
 # urlpatterns += common_urls
 # urlpatterns += meal_kit_url

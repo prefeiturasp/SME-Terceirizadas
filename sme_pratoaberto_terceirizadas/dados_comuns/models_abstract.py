@@ -4,7 +4,7 @@ from django.db import models
 
 
 class Iniciais(models.Model):
-    iniciais = models.CharField("Iniciais", blank=True, null=True, max_length=4)
+    iniciais = models.CharField("Iniciais", blank=True, null=True, max_length=10)
 
     class Meta:
         abstract = True
