@@ -61,6 +61,13 @@ class IntervaloDeDia(models.Model):
         abstract = True
 
 
+class TemData(models.Model):
+    data = models.DateField("Data")
+
+    class Meta:
+        abstract = True
+
+
 class TemChaveExterna(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
 

@@ -1,9 +1,9 @@
 from rest_framework import serializers
 
 from sme_pratoaberto_terceirizadas.escola.models import Escola
-from sme_pratoaberto_terceirizadas.validators import (nao_pode_ser_passado,
-                                                      deve_pedir_com_antecedencia,
-                                                      dia_util, verificar_se_existe)
+from sme_pratoaberto_terceirizadas.dados_comuns.validators import (nao_pode_ser_passado,
+                                                                   deve_pedir_com_antecedencia,
+                                                                   dia_util, verificar_se_existe)
 from ..models import AlteracaoCardapio
 
 

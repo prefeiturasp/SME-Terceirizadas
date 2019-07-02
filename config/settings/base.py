@@ -93,7 +93,7 @@ LOCAL_APPS = [
     # 'sme_pratoaberto_terceirizadas.permissao.apps.PermissaoConfig',
     # 'sme_pratoaberto_terceirizadas.alimento.apps.AlimentoConfig',
     # 'sme_pratoaberto_terceirizadas.inclusao_alimentacao.apps.InclusaoAlimentacaoConfig',
-    # 'sme_pratoaberto_terceirizadas.cardapio.apps.AlteracaoDeCardapioConfig',
+    'sme_pratoaberto_terceirizadas.cardapio.apps.AlteracaoDeCardapioConfig',
     # 'sme_pratoaberto_terceirizadas.terceirizada.apps.TerceirizadaConfig',
     # 'sme_pratoaberto_terceirizadas.alimentacao.apps.AlimentacaoConfig',
     # 'sme_pratoaberto_terceirizadas.suspensao_de_alimentacao.apps.SuspensaoDeAlimentacaoConfig'

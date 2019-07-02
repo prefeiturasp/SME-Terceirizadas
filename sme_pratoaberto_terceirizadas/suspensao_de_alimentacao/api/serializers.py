@@ -6,7 +6,7 @@ from sme_pratoaberto_terceirizadas.suspensao_de_alimentacao.models import Suspen
     StatusSuspensaoDeAlimentacao, DiaRazaoSuspensaoDeAlimentacao, RazaoSuspensaoDeAlimentacao, \
     DescricaoSuspensaoDeAlimentacao
 from sme_pratoaberto_terceirizadas.perfil.models import Usuario
-from sme_pratoaberto_terceirizadas.validators import nao_pode_ser_passado, deve_pedir_com_antecedencia, dia_util
+from sme_pratoaberto_terceirizadas.dados_comuns.validators import nao_pode_ser_passado, deve_pedir_com_antecedencia, dia_util
 
 
 class SuspensaoDeAlimentacaoSerializer(serializers.ModelSerializer):

@@ -4,7 +4,7 @@ import pytest
 from freezegun import freeze_time
 from rest_framework.exceptions import ValidationError
 
-from sme_pratoaberto_terceirizadas.validators import deve_pedir_com_antecedencia, dia_util, nao_pode_ser_passado
+from sme_pratoaberto_terceirizadas.dados_comuns.validators import deve_pedir_com_antecedencia, dia_util, nao_pode_ser_passado
 
 
 @freeze_time("2019-05-22")  # qua
