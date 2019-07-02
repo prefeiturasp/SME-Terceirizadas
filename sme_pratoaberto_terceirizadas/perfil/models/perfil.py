@@ -9,6 +9,13 @@ class GrupoPerfil(Nomeavel, Descritivel, Ativavel):
         grupo ESCOLA: tem os perfis prof, diretor, etc.
     """
 
+    class Meta:
+        verbose_name = 'Grupo de perfil'
+        verbose_name_plural = 'Grupos de perfis'
+
+    def __str__(self):
+        return self.nome
+
 
 class Permissao(Nomeavel, Ativavel):
     """
@@ -20,6 +27,13 @@ class Permissao(Nomeavel, Ativavel):
         pode fechar a escola, etc.
     """
 
+    class Meta:
+        verbose_name = 'Permissão'
+        verbose_name_plural = 'Permissões'
+
+    def __str__(self):
+        return self.nome
+
 
 class Perfil(Nomeavel, Descritivel, Ativavel):
     """
@@ -30,3 +44,10 @@ class Perfil(Nomeavel, Descritivel, Ativavel):
     """
     permissoes = models.ManyToManyField(Permissao)
     grupo = models.ForeignKey(GrupoPerfil, on_delete=models.DO_NOTHING, null=True, blank=True)
+
+    class Meta:
+        verbose_name = 'Perfil'
+        verbose_name_plural = 'Perfis'
+
+    def __str__(self):
+        return self.nome

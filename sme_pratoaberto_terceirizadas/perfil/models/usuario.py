@@ -77,8 +77,8 @@ class CustomAbstractUser(AbstractBaseUser, PermissionsMixin):
     REQUIRED_FIELDS = ['email']
 
     class Meta:
-        verbose_name = 'usuário'
-        verbose_name_plural = 'usuários'
+        verbose_name = 'Usuário'
+        verbose_name_plural = 'Usuários'
         abstract = True
 
     def clean(self):

@@ -10,6 +10,8 @@ from rest_framework.routers import DefaultRouter
 from rest_framework_jwt.views import obtain_jwt_token, refresh_jwt_token
 from rest_framework_swagger.views import get_swagger_view
 
+from sme_pratoaberto_terceirizadas.dados_comuns.urls import urlpatterns as comuns_urls
+
 schema_view = get_swagger_view(title=_('API of SME-Companies'))
 
 route = DefaultRouter(trailing_slash=True)
@@ -29,6 +31,7 @@ urlpatterns = [
 )
 
 # ADDING ROUTERS FROM ALL APPS ####
+urlpatterns += comuns_urls
 # urlpatterns += permissions_url
 # urlpatterns += escola_url
 # urlpatterns += user_url
