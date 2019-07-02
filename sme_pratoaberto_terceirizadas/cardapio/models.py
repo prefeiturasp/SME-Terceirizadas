@@ -139,3 +139,39 @@ class AlteracaoCardapio(CriadoEm, Descritivel):
     class Meta:
         verbose_name = "Alteração de cardápio"
         verbose_name_plural = "Alteração de cardápios"
+
+
+class SuspensaoAlimentacao(TemData):
+    """
+        Uma escola pede para suspender as refeições:
+        tipo pode ser cardapio, periodo (manha, tarde) ou itens do cardapio (Tipo alimentacao).
+
+         - pode ser um cardapio inteiro
+         - pode ser só um período(s) ( manhã, intermediário, tarde, vespertino, noturno, integral)
+         - pode ser item(s) de um cardápio (Tipo alimentacao)
+    """
+    CARDAPIO_INTEIRO = 0
+    PERIODO_ESCOLAR = 1
+    TIPO_ALIMENTACAO = 2
+
+    CHOICES = (
+        (CARDAPIO_INTEIRO, 'Cardápio inteiro'),
+        (PERIODO_ESCOLAR, 'Período escolar'),
+        (TIPO_ALIMENTACAO, 'Tipo alimentação'),
+    )
+    # TODO: esse choices com int nao comba bem com o admin do django...
+    tipo = models.PositiveSmallIntegerField(choices=CHOICES, default=PERIODO_ESCOLAR)
+
+    cardapio = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING,
+                                 blank=True, null=True)
+    periodos = models.ManyToManyField('escola.PeriodoEscolar',
+                                      blank=True)
+    tipos_alimentacao = models.ManyToManyField(TipoAlimentacao,
+                                               blank=True)
+
+    def __str__(self):
+        return self.tipo
+
+    class Meta:
+        verbose_name = "Suspensão de alimentação"
+        verbose_name_plural = "Suspensões de alimentação"
