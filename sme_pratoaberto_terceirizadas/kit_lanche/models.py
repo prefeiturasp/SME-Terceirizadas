@@ -1,9 +1,10 @@
 from django.db import models
 
-from sme_pratoaberto_terceirizadas.dados_comuns.models_abstract import Nomeavel, TemData, Motivo, Descritivel, CriadoEm
+from sme_pratoaberto_terceirizadas.dados_comuns.models_abstract import (
+    Nomeavel, TemData, Motivo, Descritivel, CriadoEm)
 
 
-class RazaoSolicitacaoUnificado(Nomeavel):
+class MotivoSolicitacaoUnificada(Nomeavel):
     """
         a ideia é ser um combo de opcoes fixas
     """
@@ -41,6 +42,7 @@ class KitLanche(Nomeavel):
 
 
 class SolicitacaoKitLanche(TemData, Motivo, Descritivel, CriadoEm):
+    # TODO: DRY no enum
     QUATRO = 0
     CINCO_A_SETE = 1
     OITO_OU_MAIS = 2
@@ -73,3 +75,43 @@ class SolicitacaoKitLancheAvulsa(models.Model):
     class Meta:
         verbose_name = "Solicitação de kit lanche avulsa"
         verbose_name_plural = "Solicitações de kit lanche avulsa"
+
+
+class SolicitacaoKitLancheUnificada(models.Model):
+    """
+        significa que uma DRE vai pedir kit lanche para as escolas:
+
+        lista_kit_lanche_igual é a mesma lista de kit lanche pra todos.
+        não lista_kit_lanche_igual: cada escola tem sua lista de kit lanche
+
+        QUANDO É lista_kit_lanche_igual: ex: passeio pra escola x,y,z no ibira (local)
+        no dia 26 onde a escola x vai ter 100 alunos, a y 50 e a z 77 alunos.
+        onde todos vao comemorar o dia da arvore (motivo)
+    """
+    motivo = models.ForeignKey(MotivoSolicitacaoUnificada, on_delete=models.DO_NOTHING,
+                               blank=True, null=True)
+    outro_motivo = models.TextField(blank=True, null=True)
+    quantidade_max_alunos_por_escola = models.PositiveSmallIntegerField()
+    local = models.CharField(max_length=160)
+    lista_kit_lanche_igual = models.BooleanField(default=False)
+
+    diretoria_regional = models.ForeignKey('escola.DiretoriaRegional', on_delete=models.DO_NOTHING)
+    dado_base = models.ForeignKey(SolicitacaoKitLanche, on_delete=models.DO_NOTHING)
+
+
+class EscolaQuantidade(models.Model):
+    # TODO: DRY no enum
+    QUATRO = 0
+    CINCO_A_SETE = 1
+    OITO_OU_MAIS = 2
+
+    HORAS = (
+        (QUATRO, 'Quatro horas'),
+        (CINCO_A_SETE, 'Cinco a sete horas'),
+        (OITO_OU_MAIS, 'Oito horas'),
+    )
+    tempo_passeio = models.PositiveSmallIntegerField(choices=HORAS, default=QUATRO)
+    quantidade_alunos = models.PositiveSmallIntegerField()
+    solicitacao_unificada = models.ForeignKey(SolicitacaoKitLancheUnificada, on_delete=models.DO_NOTHING)
+    kits = models.ManyToManyField(KitLanche)
+    escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING)
