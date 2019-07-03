@@ -1,37 +1,30 @@
 import notifications.urls
-from des import urls as des_urls
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
-from django.utils.translation import ugettext as _
 from django.views import defaults as default_views
-from rest_framework.routers import DefaultRouter
 from rest_framework_jwt.views import obtain_jwt_token, refresh_jwt_token
 from rest_framework_swagger.views import get_swagger_view
 
 from sme_pratoaberto_terceirizadas.dados_comuns.urls import urlpatterns as comuns_urls
 from sme_pratoaberto_terceirizadas.escola.urls import urlpatterns as escola_urls
 
-schema_view = get_swagger_view(title=_('API of SME-Companies'))
-
-route = DefaultRouter(trailing_slash=True)
+schema_view = get_swagger_view(title='API de Terceirizadas')
 
 urlpatterns = [
                   path('docs', schema_view),
-                  path('', include(route.urls)),
                   path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
                   path('inbox/notifications/', include(notifications.urls, namespace='notifications')),
                   path(settings.ADMIN_URL, admin.site.urls),
                   path("api-token-auth/", obtain_jwt_token),
                   path('api-token-refresh/', refresh_jwt_token),
-                  path('django-des/', include(des_urls)),
 
               ] + static(
     settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
 )
 
-# ADDING ROUTERS FROM ALL APPS ####
+# ADDING ROUTERS FROM ALL APPS #
 urlpatterns += comuns_urls
 urlpatterns += escola_urls
 # urlpatterns += permissions_url

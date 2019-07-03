@@ -1,28 +1,36 @@
 from rest_framework import serializers
 
-from sme_pratoaberto_terceirizadas.escola.models import Escola, PeriodoEscolar
+from ..models import Escola, PeriodoEscolar, DiretoriaRegional, FaixaIdadeEscolar
 
 
 # from sme_pratoaberto_terceirizadas.alimento.api.serializers import TipoRefeicaoSerializer
 
+class FaixaIdadeEscolarSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = FaixaIdadeEscolar
+        exclude = ('id',)
+
+
+class DiretoriaRegionalSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DiretoriaRegional
+        # exclude = ('id',)
+        include = '__all__'
+
 
 class EscolaSerializer(serializers.ModelSerializer):
+    # diretoria_regional = DiretoriaRegionalSerializer()
+    # idades = FaixaIdadeEscolarSerializer()
+    # idades = serializers.RelatedField(read_only=True)
+    # idades = FaixaIdadeEscolarSerializer()
 
     class Meta:
         model = Escola
-        fields = '__all__'
+        exclude = ('cardapios', 'id')
+        depth = 1
 
 
 class PeriodoEscolarSerializer(serializers.ModelSerializer):
-    label = serializers.SerializerMethodField()
-    tipo_refeicao = serializers.SerializerMethodField()
-
-    def get_label(self, obj):
-        return obj.nome
-
-    # def get_tipo_refeicao(self, obj):
-    #     return TipoRefeicaoSerializer(obj.tipo_refeicao.all(), many=True).data
-
     class Meta:
         model = PeriodoEscolar
-        fields = ('label', 'valor', 'tipo_refeicao' )
+        exclude = ('id',)
