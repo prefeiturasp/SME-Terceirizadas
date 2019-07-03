@@ -1,10 +1,10 @@
 from django.core.validators import MinLengthValidator
 from django.db import models
 
-from ..dados_comuns.models_abstract import (Ativavel, TemChaveExterna, Iniciais, Nomeavel)
+from ..dados_comuns.models_abstract import (Ativavel, Iniciais, Nomeavel, TemChaveExterna)
 
 
-class DiretoriaRegional(Iniciais, Nomeavel):
+class DiretoriaRegional(Iniciais, Nomeavel, TemChaveExterna):
     def __str__(self):
         return '{}: {}'.format(self.iniciais, self.nome)
 
@@ -13,7 +13,7 @@ class DiretoriaRegional(Iniciais, Nomeavel):
         verbose_name_plural = "Diretorias regionais"
 
 
-class FaixaIdadeEscolar(Nomeavel, Ativavel):
+class FaixaIdadeEscolar(Nomeavel, Ativavel, TemChaveExterna):
     """
         Ex. de 1 a 2 anos
         de 2 a 5 anos
@@ -29,7 +29,7 @@ class FaixaIdadeEscolar(Nomeavel, Ativavel):
         verbose_name_plural = "Idades escolares"
 
 
-class TipoUnidadeEscolar(Iniciais, Ativavel):
+class TipoUnidadeEscolar(Iniciais, Ativavel, TemChaveExterna):
     """
         Tipo de unidade escolar: EEMEF, CIEJA, EMEI, EMEBS, CEI, CEMEI...
     """
@@ -42,7 +42,7 @@ class TipoUnidadeEscolar(Iniciais, Ativavel):
         verbose_name_plural = "Tipos de unidade escolar"
 
 
-class TipoGestao(Nomeavel, Ativavel):
+class TipoGestao(Nomeavel, Ativavel, TemChaveExterna):
     """
         Ex.: Terceirizada completa, tec mista
     """
@@ -55,7 +55,7 @@ class TipoGestao(Nomeavel, Ativavel):
         verbose_name_plural = "Tipos de gestão"
 
 
-class PeriodoEscolar(Nomeavel):
+class PeriodoEscolar(Nomeavel, TemChaveExterna):
     """
         manhã, intermediário, tarde, vespertino, noturno, integral
     """

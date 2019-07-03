@@ -1,12 +1,14 @@
 from django.db import models
 
-from ..dados_comuns.models_abstract import (Ativavel, Descritivel, CriadoEm, Ativavel,
-                                            Nomeavel, IntervaloDeDia, TemData)
+from ..dados_comuns.models_abstract import (
+    Ativavel, Descritivel, CriadoEm, Ativavel,
+    Nomeavel, IntervaloDeDia, TemData, TemChaveExterna
+)
 from ..escola.models import PeriodoEscolar
 from ..perfil.models import Usuario
 
 
-class QuantidadePorPeriodo(models.Model):
+class QuantidadePorPeriodo(TemChaveExterna):
     numero_alunos = models.PositiveSmallIntegerField()
     periodo_escolar = models.ForeignKey('escola.PeriodoEscolar', on_delete=models.DO_NOTHING)
     tipos_alimentacao = models.ManyToManyField('cardapio.TipoAlimentacao')
@@ -21,7 +23,7 @@ class QuantidadePorPeriodo(models.Model):
         verbose_name_plural = "Quantidades por periodo"
 
 
-class MotivoInclusaoContinua(Nomeavel):
+class MotivoInclusaoContinua(Nomeavel, TemChaveExterna):
     """
         continuo -  mais educacao
         continuo-sp integral
@@ -36,7 +38,7 @@ class MotivoInclusaoContinua(Nomeavel):
         verbose_name_plural = "Motivos de inclusao contínua"
 
 
-class InclusaoAlimentacaoContinua(IntervaloDeDia, Descritivel):
+class InclusaoAlimentacaoContinua(IntervaloDeDia, Descritivel, TemChaveExterna):
     outro_motivo = models.CharField("Outro motivo", blank=True, null=True, max_length=50)
     motivo = models.ForeignKey(MotivoInclusaoContinua, on_delete=models.DO_NOTHING)
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING)
@@ -55,7 +57,7 @@ class InclusaoAlimentacaoContinua(IntervaloDeDia, Descritivel):
         verbose_name_plural = "Inclusões de alimentação contínua"
 
 
-class MotivoInclusaoNormal(Nomeavel):
+class MotivoInclusaoNormal(Nomeavel, TemChaveExterna):
     """
         reposicao de aula
         dia de familia
@@ -70,7 +72,7 @@ class MotivoInclusaoNormal(Nomeavel):
         verbose_name_plural = "Motivos de inclusao normais"
 
 
-class InclusaoAlimentacaoNormal(TemData):
+class InclusaoAlimentacaoNormal(TemData, TemChaveExterna):
     quantidades_periodo = models.ManyToManyField(QuantidadePorPeriodo)
     prioritario = models.BooleanField(default=False)
     motivo = models.ForeignKey(MotivoInclusaoNormal, on_delete=models.DO_NOTHING)
@@ -86,7 +88,7 @@ class InclusaoAlimentacaoNormal(TemData):
         verbose_name_plural = "Inclusões de alimentação normal"
 
 
-class GrupoInclusaoAlimentacaoNormal(Descritivel):
+class GrupoInclusaoAlimentacaoNormal(Descritivel, TemChaveExterna):
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING)
     inclusoes = models.ManyToManyField(InclusaoAlimentacaoNormal)
 

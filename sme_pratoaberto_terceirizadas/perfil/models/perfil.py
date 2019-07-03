@@ -1,9 +1,9 @@
 from django.db import models
 
-from ...dados_comuns.models_abstract import Nomeavel, Descritivel, Ativavel
+from ...dados_comuns.models_abstract import (Nomeavel, Descritivel, Ativavel, TemChaveExterna)
 
 
-class GrupoPerfil(Nomeavel, Descritivel, Ativavel):
+class GrupoPerfil(Nomeavel, Descritivel, Ativavel, TemChaveExterna):
     """
         grupo CODAE: tem os perfis gerente1, sup2, etc.
         grupo ESCOLA: tem os perfis prof, diretor, etc.
@@ -17,7 +17,7 @@ class GrupoPerfil(Nomeavel, Descritivel, Ativavel):
         return self.nome
 
 
-class Permissao(Nomeavel, Ativavel):
+class Permissao(Nomeavel, Ativavel, TemChaveExterna):
     """
     Permissões do usuário:
     Ex. Pode fazer compra,
@@ -35,7 +35,7 @@ class Permissao(Nomeavel, Ativavel):
         return self.nome
 
 
-class Perfil(Nomeavel, Descritivel, Ativavel):
+class Perfil(Nomeavel, Descritivel, Ativavel, TemChaveExterna):
     """
     Perfil do usuário Ex: Cogestor, Nutricionista. Cada perfil tem uma série de permissoes.
 

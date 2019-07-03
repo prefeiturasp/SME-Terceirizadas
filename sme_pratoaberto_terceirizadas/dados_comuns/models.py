@@ -1,10 +1,10 @@
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
-from .models_abstract import Descritivel, CriadoEm, Nomeavel
+from .models_abstract import (Descritivel, CriadoEm, Nomeavel, TemChaveExterna)
 
 
-class LogUsuario(Descritivel, CriadoEm):
+class LogUsuario(Descritivel, CriadoEm, TemChaveExterna):
     """
         Eventos de dados importantes para acompanhamento.
     Ex.: Fulano X a tarefa do tipo Z no dia tal, passando os dados W
@@ -13,7 +13,7 @@ class LogUsuario(Descritivel, CriadoEm):
     # Lembrando que o objetivo final é fazer uma especie de auditoria...
 
 
-class DiaSemana(models.Model):
+class DiaSemana(TemChaveExterna):
     """
         Seg a Dom...
     """

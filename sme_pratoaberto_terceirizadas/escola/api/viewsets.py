@@ -1,7 +1,7 @@
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
-from .serializers import EscolaSerializer, PeriodoEscolarSerializer, DiretoriaRegionalSerializer
-from ..models import Escola, PeriodoEscolar, DiretoriaRegional
+from .serializers import (EscolaSerializer, PeriodoEscolarSerializer, DiretoriaRegionalSerializer)
+from ..models import (Escola, PeriodoEscolar, DiretoriaRegional)
 
 
 class EscolaViewSet(ReadOnlyModelViewSet):

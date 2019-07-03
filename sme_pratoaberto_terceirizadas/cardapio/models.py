@@ -1,8 +1,10 @@
 from django.db import models
 
-from sme_pratoaberto_terceirizadas.dados_comuns.models_abstract import Descritivel, TemData, IntervaloDeDia, \
+from ..dados_comuns.models_abstract import (
+    Descritivel, TemData, IntervaloDeDia,
     TemChaveExterna, Motivo, Ativavel, Nomeavel, CriadoEm
-from sme_pratoaberto_terceirizadas.escola.models import Escola, DiretoriaRegional
+)
+from ..escola.models import Escola, DiretoriaRegional
 
 
 #
@@ -49,7 +51,7 @@ from sme_pratoaberto_terceirizadas.escola.models import Escola, DiretoriaRegiona
 #         return dre.values_list('perfil').all()
 
 
-class TipoAlimentacao(Nomeavel):
+class TipoAlimentacao(Nomeavel, TemChaveExterna):
     """
         Dejejum
         Colação
@@ -70,7 +72,7 @@ class TipoAlimentacao(Nomeavel):
         verbose_name_plural = "Tipos de alimentação"
 
 
-class Cardapio(Descritivel, Ativavel, TemData):
+class Cardapio(Descritivel, Ativavel, TemData, TemChaveExterna):
     """
         Cardápio escolar tem:
         tem 1 data pra acontecer ex (26/06)
@@ -92,7 +94,7 @@ class Cardapio(Descritivel, Ativavel, TemData):
         verbose_name_plural = "Cardápios"
 
 
-class InversaoCardapio(CriadoEm, Descritivel):
+class InversaoCardapio(CriadoEm, Descritivel, TemChaveExterna):
     """
         servir o cardápio do dia 30 no dia 15, automaticamente o
         cardápio do dia 15 será servido no dia 30
@@ -117,7 +119,7 @@ class InversaoCardapio(CriadoEm, Descritivel):
         verbose_name_plural = "Inversão de cardápios"
 
 
-class AlteracaoCardapio(CriadoEm, Descritivel):
+class AlteracaoCardapio(CriadoEm, Descritivel, TemChaveExterna):
     """
         Uma unidade quer alterar um tipo_alimentacao de cardápio de
         rotina para outro tipo_alimentacao de cardapio.
@@ -143,7 +145,7 @@ class AlteracaoCardapio(CriadoEm, Descritivel):
         verbose_name_plural = "Alteração de cardápios"
 
 
-class SuspensaoAlimentacao(TemData):
+class SuspensaoAlimentacao(TemData, TemChaveExterna):
     """
         Uma escola pede para suspender as refeições:
         tipo pode ser cardapio, periodo (manha, tarde) ou itens do cardapio (Tipo alimentacao).
@@ -161,7 +163,7 @@ class SuspensaoAlimentacao(TemData):
         (PERIODO_ESCOLAR, 'Período escolar'),
         (TIPO_ALIMENTACAO, 'Tipo alimentação'),
     )
-    
+
     tipo = models.PositiveSmallIntegerField(choices=CHOICES, default=PERIODO_ESCOLAR)
 
     cardapio = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING,

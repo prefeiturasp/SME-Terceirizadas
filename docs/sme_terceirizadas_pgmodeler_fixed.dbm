@@ -3,7 +3,7 @@
 CAUTION: Do not modify this file unless you know what you are doing.
          Unexpected results may occur if the code is changed deliberately.
 -->
-<dbmodel pgmodeler-ver="0.9.1" last-position="1197,168" last-zoom="0.6"
+<dbmodel pgmodeler-ver="0.9.1" last-position="1362,468" last-zoom="0.55"
 	 default-owner="postgres">
 <database name="new_database" is-template="false" allow-conns="true">
 </database>
@@ -97,7 +97,7 @@ Ex. de 1 a 2 anos
 de 2 a 5 anos
 de 7 a 18 anos.
 de 6meses a 1 ano]]></comment>
-	<position x="5174.12" y="1215.91"/>
+	<position x="5085.88" y="1120.28"/>
 	<column name="idade_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -179,7 +179,7 @@ Merenda Seca]]></comment>
 <table name="escola[revisado]">
 	<schema name="&quot;escola[revisado]&quot;"/>
 	<role name="postgres"/>
-	<position x="4269.34" y="1097.3"/>
+	<position x="4264.34" y="1078.97"/>
 	<column name="escola_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -265,7 +265,7 @@ o perfil professor pode [dar aula, fazer denuncia na DRE]]]></comment>
 	<schema name="&quot;escola[revisado]&quot;"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Tabela utilizada para registrar as DREs (DIRETORIA REGIONAL DA EDUCAÇÃO)]]></comment>
-	<position x="3658.61" y="1160.23"/>
+	<position x="3591.76" y="1124.22"/>
 	<column name="diretor_regional_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -510,7 +510,7 @@ um lote é um conjunto de escolas que a terceirizada atende]]></comment>
 	<schema name="&quot;escola[revisado]&quot;"/>
 	<role name="postgres"/>
 	<comment><![CDATA[manhã, intermediário, tarde, vespertino, noturno, integral]]></comment>
-	<position x="4921.88" y="1594.24"/>
+	<position x="4933.55" y="1497.57"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>

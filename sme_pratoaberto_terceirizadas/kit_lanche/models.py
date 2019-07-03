@@ -1,16 +1,23 @@
 from django.db import models
 
-from sme_pratoaberto_terceirizadas.dados_comuns.models_abstract import (
-    Nomeavel, TemData, Motivo, Descritivel, CriadoEm)
+from ..dados_comuns.models_abstract import (
+    Nomeavel, TemData, Motivo, Descritivel, CriadoEm, TemChaveExterna
+)
 
 
-class MotivoSolicitacaoUnificada(Nomeavel):
+class MotivoSolicitacaoUnificada(Nomeavel, TemChaveExterna):
     """
         a ideia é ser um combo de opcoes fixas
     """
+    def __str__(self):
+        return self.nome
+
+    class Meta:
+        verbose_name = "Motivo da solicitação unificada"
+        verbose_name_plural = "Motivos da solicitação unificada"
 
 
-class ItemKitLanche(Nomeavel):
+class ItemKitLanche(Nomeavel, TemChaveExterna):
     """
         Barra de Cereal (20 a 25 g embalagem individual)
         Néctar UHT ou Suco Tropical UHT (200 ml)
@@ -27,7 +34,7 @@ class ItemKitLanche(Nomeavel):
         verbose_name_plural = "Item do kit lanche"
 
 
-class KitLanche(Nomeavel):
+class KitLanche(Nomeavel, TemChaveExterna):
     """
         kit1, kit2, kit3
     """
@@ -41,7 +48,7 @@ class KitLanche(Nomeavel):
         verbose_name_plural = "Kits lanche"
 
 
-class SolicitacaoKitLanche(TemData, Motivo, Descritivel, CriadoEm):
+class SolicitacaoKitLanche(TemData, Motivo, Descritivel, CriadoEm, TemChaveExterna):
     # TODO: DRY no enum
     QUATRO = 0
     CINCO_A_SETE = 1
@@ -63,7 +70,7 @@ class SolicitacaoKitLanche(TemData, Motivo, Descritivel, CriadoEm):
         verbose_name_plural = "Kits lanche"
 
 
-class SolicitacaoKitLancheAvulsa(models.Model):
+class SolicitacaoKitLancheAvulsa(TemChaveExterna):
     local = models.CharField(max_length=160)
     quantidade_alunos = models.PositiveSmallIntegerField()
     dado_base = models.ForeignKey(SolicitacaoKitLanche, on_delete=models.DO_NOTHING)
@@ -77,7 +84,7 @@ class SolicitacaoKitLancheAvulsa(models.Model):
         verbose_name_plural = "Solicitações de kit lanche avulsa"
 
 
-class SolicitacaoKitLancheUnificada(models.Model):
+class SolicitacaoKitLancheUnificada(TemChaveExterna):
     """
         significa que uma DRE vai pedir kit lanche para as escolas:
 
@@ -99,7 +106,7 @@ class SolicitacaoKitLancheUnificada(models.Model):
     dado_base = models.ForeignKey(SolicitacaoKitLanche, on_delete=models.DO_NOTHING)
 
 
-class EscolaQuantidade(models.Model):
+class EscolaQuantidade(TemChaveExterna):
     # TODO: DRY no enum
     QUATRO = 0
     CINCO_A_SETE = 1
