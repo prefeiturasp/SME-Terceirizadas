@@ -4,7 +4,7 @@ from .serializers import UsuarioSerializer, PerfilSerializer, GrupoCompletoPerfi
 from ..models import Usuario, Perfil, GrupoPerfil
 
 
-class UsusarioViewSet(viewsets.ReadOnlyModelViewSet):
+class UsuarioViewSet(viewsets.ReadOnlyModelViewSet):
     lookup_field = 'uuid'
     queryset = Usuario.objects.all()
     serializer_class = UsuarioSerializer

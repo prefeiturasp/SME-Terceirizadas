@@ -5,11 +5,17 @@ from django.db import IntegrityError
 from rest_framework import status
 from rest_framework.request import Request
 from rest_framework.response import Response
-from rest_framework.viewsets import ViewSet, ModelViewSet
+from rest_framework.viewsets import ViewSet, ModelViewSet, ReadOnlyModelViewSet
 
-from .serializers import DiasUteisSerializer, ConfiguracaoEmailSerializer
-from ..models import DiasUteis
+from .serializers import DiasUteisSerializer, ConfiguracaoEmailSerializer, DiaSemanaSerializer
+from ..models import DiasUteis, DiaSemana
 from ..utils import obter_dias_uteis_apos
+
+
+class DiasDaSemanaViewSet(ReadOnlyModelViewSet):
+    lookup_field = 'id'
+    queryset = DiaSemana.objects.all()
+    serializer_class = DiaSemanaSerializer
 
 
 class DiasUteisViewSet(ViewSet):
@@ -19,8 +25,8 @@ class DiasUteisViewSet(ViewSet):
     def list(self, request):
         dias_uteis = {
             1: DiasUteis(
-                data_cinco_dias_uteis=obter_dias_uteis_apos(5).strftime('%d/%m/%Y'),
-                data_dois_dias_uteis=obter_dias_uteis_apos(2).strftime('%d/%m/%Y'))
+                proximos_cinco_dias_uteis=obter_dias_uteis_apos(5).strftime('%d/%m/%Y'),
+                proximos_dois_dias_uteis=obter_dias_uteis_apos(2).strftime('%d/%m/%Y'))
         }
         serializer = DiasUteisSerializer(
             instance=dias_uteis.values(), many=True)

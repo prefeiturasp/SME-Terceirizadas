@@ -73,7 +73,8 @@ class MotivoInclusaoNormal(Nomeavel, TemChaveExterna):
 
 
 class InclusaoAlimentacaoNormal(TemData, TemChaveExterna):
-    quantidades_periodo = models.ManyToManyField(QuantidadePorPeriodo)
+    quantidades_periodo = models.ForeignKey(QuantidadePorPeriodo, on_delete=models.DO_NOTHING,
+                                            blank=True, null=True)
     prioritario = models.BooleanField(default=False)
     motivo = models.ForeignKey(MotivoInclusaoNormal, on_delete=models.DO_NOTHING)
     outro_motivo = models.CharField("Outro motivo", blank=True, null=True, max_length=50)

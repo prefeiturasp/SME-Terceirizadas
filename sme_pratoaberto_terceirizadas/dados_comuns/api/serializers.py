@@ -1,7 +1,7 @@
 from des.models import DynamicEmailConfiguration
 from rest_framework import serializers
 
-from ..models import DiasUteis
+from ..models import DiasUteis, DiaSemana
 
 
 class DiasUteisSerializer(serializers.Serializer):
@@ -22,3 +22,9 @@ class ConfiguracaoEmailSerializer(serializers.ModelSerializer):
         model = DynamicEmailConfiguration
         fields = ('host', 'port', 'username', 'password',
                   'from_email', 'use_tls', 'use_ssl', 'timeout')
+
+
+class DiaSemanaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DiaSemana
+        exclude = ('uuid', 'numero')

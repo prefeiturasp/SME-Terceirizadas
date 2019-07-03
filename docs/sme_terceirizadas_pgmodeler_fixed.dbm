@@ -3,7 +3,7 @@
 CAUTION: Do not modify this file unless you know what you are doing.
          Unexpected results may occur if the code is changed deliberately.
 -->
-<dbmodel pgmodeler-ver="0.9.1" last-position="1362,468" last-zoom="0.55"
+<dbmodel pgmodeler-ver="0.9.1" last-position="4113,735" last-zoom="0.75"
 	 default-owner="postgres">
 <database name="new_database" is-template="false" allow-conns="true">
 </database>
@@ -29,7 +29,7 @@ pode abrir a escola,
 pode fazer merenda, 
 pode dar aula,
 pode fechar a escola, etc.]]></comment>
-	<position x="5712.96" y="2426.72"/>
+	<position x="5712.96" y="2424.11"/>
 	<column name="permissao_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -217,7 +217,7 @@ Merenda Seca]]></comment>
 
 Ex: o perfil diretor tem as permissões: [abrir escola, fechar escola]
 o perfil professor pode [dar aula, fazer denuncia na DRE]]]></comment>
-	<position x="6099.5" y="2275.34"/>
+	<position x="6192.3" y="2311.34"/>
 	<column name="perfil_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -288,7 +288,7 @@ o perfil professor pode [dar aula, fazer denuncia na DRE]]]></comment>
 	<schema name="perfil"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Campo para validar se o usuário foi ativado via email]]></comment>
-	<position x="6091.85" y="2021.85"/>
+	<position x="6092.72" y="2020.98"/>
 	<column name="usuario_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -542,8 +542,10 @@ um lote é um conjunto de escolas que a terceirizada atende]]></comment>
 	<role name="postgres"/>
 	<comment><![CDATA[grupo CODAE: tem os perfis gerente1, sup2, etc.
 grupo ESCOLA: tem os perfis prof, diretor, etc.
+grupo DRE
+grupo TERC
 ]]></comment>
-	<position x="5693.58" y="2239.13"/>
+	<position x="5692.71" y="2239.13"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -1040,7 +1042,7 @@ tipo, continuo ou normal]]></comment>
 	<comment><![CDATA[continuo -  mais educacao
 continuo-sp integral
 continuo - outro]]></comment>
-	<position x="6616.04" y="886.374"/>
+	<position x="6614.71" y="886.374"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -1166,7 +1168,7 @@ outro]]></comment>
 <table name="grupo_inclusao_alimentacao_normal[revisado]">
 	<schema name="&quot;inclusao_alimentacao[revisado]&quot;"/>
 	<role name="postgres"/>
-	<position x="5905.26" y="1440.86"/>
+	<position x="5947.93" y="1415.53"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
