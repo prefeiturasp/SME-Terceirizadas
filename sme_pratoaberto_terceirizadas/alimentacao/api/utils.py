@@ -29,7 +29,6 @@ def valida_usuario_vinculado_escola(usuario: User):
 
 
 def notifica_dres(usuario: User, escola: School, dia_de: datetime, dia_para: datetime):
-    # escola = School.objects.get(pk=escola)
     usuarios_dre = RegionalDirector.objects.get(school=escola).users.all()
     email_usuarios_dre = RegionalDirector.objects.filter(school=escola).values_list('users__email')
     mensagem_notificacao = 'Solicitação de inversão de dia de cardápio para a escola {} do dia {} para o dia: {}'.format(

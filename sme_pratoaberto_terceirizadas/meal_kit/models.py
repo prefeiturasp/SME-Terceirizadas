@@ -1,3 +1,4 @@
+import functools
 import uuid
 from enum import Enum
 
@@ -134,9 +135,10 @@ class OrderMealKit(models.Model):
     def valida_quantidade_matriculados(cls, matriculados: int, quantidade_aluno_passeio: int,
                                        data_passeio, escola):
         data = string_to_date(data_passeio)
-        passeio = cls.objects.filter(schools=escola, order_date=data).first()
+        passeio = cls.objects.filter(schools=escola, order_date=data, status='SENDED').all()
+        quantidade_cadastrada = functools.reduce(lambda x, y: x.students_quantity + y.students_quantity, list(passeio))
         if passeio:
-            if (passeio.students_quantity + quantidade_aluno_passeio) > matriculados:
+            if (quantidade_cadastrada + quantidade_aluno_passeio) > matriculados:
                 return passeio
         return False
 

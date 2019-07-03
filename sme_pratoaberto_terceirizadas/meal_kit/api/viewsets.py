@@ -1,4 +1,3 @@
-from django.core import serializers
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -45,18 +44,18 @@ class OrderMealKitViewSet(ModelViewSet):
         escola = self._valida_escola(request.user)
         numero_alunos = int(request.data.get('nro_alunos'))
         data_evento = request.data.get('evento_data')
-        valida_quatidade = OrderMealKit.valida_quantidade_matriculados(quantidade_matriculados, numero_alunos,
-                                                                       data_evento,
-                                                                       escola)
+        valida_quantidade = OrderMealKit.valida_quantidade_matriculados(quantidade_matriculados, numero_alunos,
+                                                                        data_evento,
+                                                                        escola)
         valida_duplicidade = OrderMealKit.valida_duplicidade(request.data, escola)
+        if valida_quantidade:
+            return Response(
+                {
+                    'error': 'A Quantidade de aluno para o evento, excedeu a quantidade limite de alunos para este dia. Já existe {} evento(s) cadatrado com esta data'.format(
+                        len(valida_quantidade)), 'sem_acordo': True},
+                status=status.HTTP_400_BAD_REQUEST)
+
         if not request.data.get('confirmar'):
-            if valida_quatidade:
-                return Response(
-                    {
-                        'error': 'A Quantidade de aluno para o evento, excedeu a quantidade limite de alunos para este dia. Descrição de um evento cadastrado: {} - {} - {} alunos'.format(
-                            valida_quatidade.location, valida_quatidade.order_date.strftime('%d/%m/%Y'),
-                            valida_quatidade.students_quantity)},
-                    status=status.HTTP_400_BAD_REQUEST)
             if valida_duplicidade:
                 return Response({'error': 'Solicitação já cadastrada no sistema com esta data. Obs: {} - {}'.format(
                     valida_duplicidade.location, valida_duplicidade.order_date.strftime('%d/%m/%Y'))},
