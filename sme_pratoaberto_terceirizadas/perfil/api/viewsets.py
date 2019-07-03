@@ -1,9 +1,22 @@
 from rest_framework import viewsets
 
-from sme_pratoaberto_terceirizadas.perfil.serializers import PublicUserSerializer
-from ..models import Usuario
+from .serializers import UsuarioSerializer, PerfilSerializer, GrupoCompletoPerfilSerializer
+from ..models import Usuario, Perfil, GrupoPerfil
 
 
-class UserViewSet(viewsets.ModelViewSet):
+class UsusarioViewSet(viewsets.ReadOnlyModelViewSet):
+    lookup_field = 'uuid'
     queryset = Usuario.objects.all()
-    serializer_class = PublicUserSerializer
+    serializer_class = UsuarioSerializer
+
+
+class PerfilViewSet(viewsets.ReadOnlyModelViewSet):
+    lookup_field = 'uuid'
+    queryset = Perfil.objects.all()
+    serializer_class = PerfilSerializer
+
+
+class GrupoPerfilViewSet(viewsets.ReadOnlyModelViewSet):
+    lookup_field = 'uuid'
+    queryset = GrupoPerfil.objects.all()
+    serializer_class = GrupoCompletoPerfilSerializer

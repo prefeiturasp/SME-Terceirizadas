@@ -43,7 +43,9 @@ class Perfil(Nomeavel, Descritivel, Ativavel, TemChaveExterna):
         o perfil professor pode [dar aula]
     """
     permissoes = models.ManyToManyField(Permissao)
-    grupo = models.ForeignKey(GrupoPerfil, on_delete=models.DO_NOTHING, null=True, blank=True)
+    grupo = models.ForeignKey(GrupoPerfil, on_delete=models.DO_NOTHING,
+                              related_name='perfis',
+                              null=True, blank=True)
 
     class Meta:
         verbose_name = 'Perfil'

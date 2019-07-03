@@ -7,7 +7,7 @@ router = routers.DefaultRouter()
 
 router.register('escolas', viewsets.EscolaViewSet, basename='escolas')
 router.register('periodos', viewsets.PeriodoEscolarViewSet, basename='periodos')
-router.register('dres', viewsets.DiretoriaRegionalViewSet, basename='dres')
+router.register('diretorias-regionais', viewsets.DiretoriaRegionalViewSet, basename='dres')
 
 urlpatterns = [
     path('', include(router.urls))

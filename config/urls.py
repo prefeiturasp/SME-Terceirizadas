@@ -9,6 +9,7 @@ from rest_framework_swagger.views import get_swagger_view
 
 from sme_pratoaberto_terceirizadas.dados_comuns.urls import urlpatterns as comuns_urls
 from sme_pratoaberto_terceirizadas.escola.urls import urlpatterns as escola_urls
+from sme_pratoaberto_terceirizadas.perfil.urls import urlpatterns as perfil_urls
 
 schema_view = get_swagger_view(title='API de Terceirizadas')
 
@@ -27,6 +28,7 @@ urlpatterns = [
 # ADDING ROUTERS FROM ALL APPS #
 urlpatterns += comuns_urls
 urlpatterns += escola_urls
+urlpatterns += perfil_urls
 # urlpatterns += permissions_url
 # urlpatterns += user_url
 # urlpatterns += common_urls
