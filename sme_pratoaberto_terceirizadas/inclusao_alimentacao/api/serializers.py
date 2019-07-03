@@ -1,5 +1,7 @@
 from rest_framework import serializers
 
+from sme_pratoaberto_terceirizadas.escola.api.serializers import EscolaSimplesSerializer
+from sme_pratoaberto_terceirizadas.escola.api.serializers import PeriodoEscolarSerializer
 from sme_pratoaberto_terceirizadas.inclusao_alimentacao.models import (
     MotivoInclusaoContinua, MotivoInclusaoNormal,
     InclusaoAlimentacaoNormal, QuantidadePorPeriodo,
@@ -19,6 +21,11 @@ class MotivoInclusaoNormalSerializer(serializers.ModelSerializer):
 
 
 class QuantidadePorPeriodoSerializer(serializers.ModelSerializer):
+    periodo_escolar = PeriodoEscolarSerializer()
+
+    # TODO: esperar app cardapio.
+    # tipos_alimentacao = TipoAlimentacao
+
     class Meta:
         model = QuantidadePorPeriodo
         exclude = ('id',)
@@ -36,11 +43,12 @@ class InclusaoAlimentacaoNormalSerializer(serializers.ModelSerializer):
 class InclusaoAlimentacaoNormalSimplesSerializer(serializers.ModelSerializer):
     class Meta:
         model = InclusaoAlimentacaoNormal
-        exclude = ('id',)
+        exclude = ('id', 'data')
 
 
 class GrupoInclusaoAlimentacaoNormalSerializer(serializers.ModelSerializer):
-    inclusoes = InclusaoAlimentacaoNormalSimplesSerializer()
+    inclusoes = InclusaoAlimentacaoNormalSerializer(many=True)
+    escola = EscolaSimplesSerializer()
 
     class Meta:
         model = GrupoInclusaoAlimentacaoNormal
