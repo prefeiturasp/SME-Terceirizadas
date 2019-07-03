@@ -3,7 +3,7 @@ from rest_framework import serializers
 from sme_pratoaberto_terceirizadas.alimento.api.serializers import RefeicaoSerializer
 from sme_pratoaberto_terceirizadas.kit_lanche.models import KitLanche, SolicitacaoKitLanche, SolicitacaoUnificadaFormulario, \
     RazaoSolicitacaoUnificada, SolicitacaoUnificadaMultiploEscola, SolicitacaoUnificada
-from sme_pratoaberto_terceirizadas.escola.api.serializers import EscolaSerializer
+from sme_pratoaberto_terceirizadas.escola.api.serializers import EscolaCompletaSerializer
 
 
 class KitLancheSerializer(serializers.ModelSerializer):
@@ -15,7 +15,7 @@ class KitLancheSerializer(serializers.ModelSerializer):
 
 
 class SolicitacaoKitLancheSerializer(serializers.ModelSerializer):
-    escolas = EscolaSerializer(many=True, read_only=True)
+    escolas = EscolaCompletaSerializer(many=True, read_only=True)
     kits_lanche = KitLancheSerializer(many=True, read_only=True)
 
     class Meta:

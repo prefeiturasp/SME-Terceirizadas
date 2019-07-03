@@ -21,6 +21,7 @@ class Lote(TemChaveExterna, Nomeavel, Iniciais):
     """Lote de escolas"""
     diretoria_regional = models.ForeignKey('escola.DiretoriaRegional',
                                            on_delete=models.DO_NOTHING,
+                                           related_name='lotes',
                                            null=True,
                                            blank=True)
 

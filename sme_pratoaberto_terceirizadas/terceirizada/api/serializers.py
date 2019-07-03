@@ -7,4 +7,4 @@ class LoteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Lote
-        exclude = ('id',)
+        exclude = ('id', 'diretoria_regional')

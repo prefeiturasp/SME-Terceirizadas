@@ -1,12 +1,12 @@
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
-from .serializers import (EscolaSerializer, PeriodoEscolarSerializer, DiretoriaRegionalSerializer)
+from .serializers import (EscolaCompletaSerializer, PeriodoEscolarSerializer, DiretoriaRegionalCompletaSerializer)
 from ..models import (Escola, PeriodoEscolar, DiretoriaRegional)
 
 
 class EscolaViewSet(ReadOnlyModelViewSet):
     queryset = Escola.objects.all()
-    serializer_class = EscolaSerializer
+    serializer_class = EscolaCompletaSerializer
 
 
 class PeriodoEscolarViewSet(ReadOnlyModelViewSet):
@@ -16,4 +16,4 @@ class PeriodoEscolarViewSet(ReadOnlyModelViewSet):
 
 class DiretoriaRegionalViewSet(ReadOnlyModelViewSet):
     queryset = DiretoriaRegional.objects.all()
-    serializer_class = DiretoriaRegionalSerializer
+    serializer_class = DiretoriaRegionalCompletaSerializer

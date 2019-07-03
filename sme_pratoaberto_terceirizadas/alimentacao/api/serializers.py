@@ -1,11 +1,11 @@
 from rest_framework import serializers
 
 from sme_pratoaberto_terceirizadas.alimentacao.models import Cardapio, InverterDiaCardapio
-from sme_pratoaberto_terceirizadas.escola.api.serializers import EscolaSerializer
+from sme_pratoaberto_terceirizadas.escola.api.serializers import EscolaCompletaSerializer
 
 
 class CardapioSerializer(serializers.ModelSerializer):
-    escolas = EscolaSerializer(many=True, read_only=True)
+    escolas = EscolaCompletaSerializer(many=True, read_only=True)
 
     class Meta:
         model = Cardapio

@@ -5,8 +5,6 @@ from ..models import (Escola, PeriodoEscolar, DiretoriaRegional,
 from ...terceirizada.api.serializers import LoteSerializer
 
 
-# from sme_pratoaberto_terceirizadas.alimento.api.serializers import TipoRefeicaoSerializer
-
 class PeriodoEscolarSerializer(serializers.ModelSerializer):
     class Meta:
         model = PeriodoEscolar
@@ -31,15 +29,14 @@ class FaixaIdadeEscolarSerializer(serializers.ModelSerializer):
         exclude = ('id',)
 
 
-class DiretoriaRegionalSerializer(serializers.ModelSerializer):
+class DiretoriaRegionalSimplesSerializer(serializers.ModelSerializer):
     class Meta:
         model = DiretoriaRegional
-        # exclude = ('id',)
-        fields = '__all__'
+        exclude = ('id',)
 
 
-class EscolaSerializer(serializers.ModelSerializer):
-    diretoria_regional = DiretoriaRegionalSerializer()
+class EscolaCompletaSerializer(serializers.ModelSerializer):
+    diretoria_regional = DiretoriaRegionalSimplesSerializer()
     idades = FaixaIdadeEscolarSerializer(many=True)
     tipo_unidade = TipoUnidadeEscolarSerializer()
     tipo_gestao = TipoGestaoSerializer()
@@ -49,4 +46,18 @@ class EscolaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Escola
         exclude = ('cardapios', 'id')
-        # depth = 1
+
+
+class EscolaSimplesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Escola
+        fields = ('uuid', 'nome', 'codigo_eol', 'quantidade_alunos')
+
+
+class DiretoriaRegionalCompletaSerializer(serializers.ModelSerializer):
+    lotes = LoteSerializer(many=True)
+    escolas = EscolaSimplesSerializer(many=True)
+
+    class Meta:
+        model = DiretoriaRegional
+        exclude = ('id',)

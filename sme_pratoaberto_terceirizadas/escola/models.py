@@ -75,6 +75,7 @@ class Escola(Ativavel, TemChaveExterna):
     quantidade_alunos = models.PositiveSmallIntegerField("Quantidade de alunos")
 
     diretoria_regional = models.ForeignKey(DiretoriaRegional,
+                                           related_name='escolas',
                                            on_delete=models.DO_NOTHING)
     tipo_unidade = models.ForeignKey(TipoUnidadeEscolar,
                                      on_delete=models.DO_NOTHING)
