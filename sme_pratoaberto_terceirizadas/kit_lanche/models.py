@@ -103,7 +103,7 @@ class SolicitacaoKitLancheUnificada(TemChaveExterna):
     outro_motivo = models.TextField(blank=True, null=True)
     quantidade_max_alunos_por_escola = models.PositiveSmallIntegerField()
     local = models.CharField(max_length=160)
-    lista_kit_lanche_igual = models.BooleanField(default=False)
+    lista_kit_lanche_igual = models.BooleanField(default=True)
 
     diretoria_regional = models.ForeignKey('escola.DiretoriaRegional', on_delete=models.DO_NOTHING)
     dado_base = models.ForeignKey(SolicitacaoKitLanche, on_delete=models.DO_NOTHING)
