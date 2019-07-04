@@ -30,3 +30,15 @@ def verificar_se_existe(obj_model, **kwargs) -> bool:
     if qtd:
         return True
     return False
+
+
+def deve_ter_1_kit_somente(lista_igual, numero_kits):
+    deve_ter_1_kit = lista_igual is True and numero_kits == 1
+    if not deve_ter_1_kit:
+        raise serializers.ValidationError('Em "dado_base", quando lista_kit_lanche é igual, deve ter somente 1 kit')
+
+
+def deve_ter_0_kit(lista_igual, numero_kits):
+    deve_ter_nenhum_kit = lista_igual is False and numero_kits == 0
+    if not deve_ter_nenhum_kit:
+        raise serializers.ValidationError('Em "dado_base", quando lista_kit_lanche NÃO é igual, deve ter 0 kit')
