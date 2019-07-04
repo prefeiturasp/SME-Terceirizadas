@@ -22,8 +22,9 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
     queryset = models.SolicitacaoKitLancheAvulsa.objects.all()
     serializer_class = serializers.SolicitacaoKitLancheAvulsaSerializer
 
+    # TODO: permitir deletar somente se o status for do inicial...
     def get_serializer_class(self):
-        if self.action == 'create':
+        if self.action in ['create', 'update', 'partial_update']:
             return serializers_create.SolicitacaoKitLancheAvulsaCreationSerializer
         return serializers.SolicitacaoKitLancheAvulsaSerializer
 
