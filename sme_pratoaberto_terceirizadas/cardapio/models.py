@@ -72,7 +72,7 @@ class TipoAlimentacao(Nomeavel, TemChaveExterna):
         verbose_name_plural = "Tipos de alimentação"
 
 
-class Cardapio(Descritivel, Ativavel, TemData, TemChaveExterna):
+class Cardapio(Descritivel, Ativavel, TemData, TemChaveExterna, CriadoEm):
     """
         Cardápio escolar tem:
         tem 1 data pra acontecer ex (26/06)

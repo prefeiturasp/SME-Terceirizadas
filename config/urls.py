@@ -12,6 +12,7 @@ from sme_pratoaberto_terceirizadas.escola.urls import urlpatterns as escola_urls
 from sme_pratoaberto_terceirizadas.inclusao_alimentacao.urls import urlpatterns as inclusao_urls
 from sme_pratoaberto_terceirizadas.kit_lanche.urls import urlpatterns as kit_lanche_urls
 from sme_pratoaberto_terceirizadas.perfil.urls import urlpatterns as perfil_urls
+from sme_pratoaberto_terceirizadas.cardapio.urls import urlpatterns as cardapio_urls
 
 schema_view = get_swagger_view(title='API de Terceirizadas')
 
@@ -33,6 +34,8 @@ urlpatterns += escola_urls
 urlpatterns += perfil_urls
 urlpatterns += inclusao_urls
 urlpatterns += kit_lanche_urls
+urlpatterns += cardapio_urls
+
 # urlpatterns += permissions_url
 # urlpatterns += user_url
 # urlpatterns += common_urls
