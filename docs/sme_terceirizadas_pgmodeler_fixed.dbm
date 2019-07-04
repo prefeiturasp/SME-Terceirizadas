@@ -3,7 +3,7 @@
 CAUTION: Do not modify this file unless you know what you are doing.
          Unexpected results may occur if the code is changed deliberately.
 -->
-<dbmodel pgmodeler-ver="0.9.1" last-position="4113,735" last-zoom="0.75"
+<dbmodel pgmodeler-ver="0.9.1" last-position="1961,180" last-zoom="0.9"
 	 default-owner="postgres">
 <database name="new_database" is-template="false" allow-conns="true">
 </database>
@@ -577,7 +577,7 @@ grupo TERC
 	<schema name="kit_lanche"/>
 	<role name="postgres"/>
 	<comment><![CDATA[a ideia é ser um combo de opcoes fixas]]></comment>
-	<position x="2277.65" y="541.984"/>
+	<position x="2259.47" y="531.408"/>
 	<column name="id" not-null="true">
 		<type name="smallint" length="0"/>
 	</column>
@@ -593,7 +593,7 @@ grupo TERC
 	<schema name="kit_lanche"/>
 	<role name="postgres"/>
 	<comment><![CDATA[kit1, kit2, kit3]]></comment>
-	<position x="2416.7" y="301.454"/>
+	<position x="2398.52" y="290.878"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -609,7 +609,7 @@ grupo TERC
 	<schema name="kit_lanche"/>
 	<role name="postgres"/>
 	<comment><![CDATA[[tem um fluxo de aprovação, desde rascunho ate aprovado pela DRE e etc.]]]></comment>
-	<position x="3244.74" y="866.297"/>
+	<position x="3199.99" y="781.883"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -643,7 +643,7 @@ qtd_kits = 1, 2 ou 3
 
 
 se  a solicitacao for multipla, não deve ter kit lanche apontando pra ca.]]></comment>
-	<position x="2994.61" y="102.667"/>
+	<position x="2976.43" y="92.0909"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -684,7 +684,7 @@ QUANDO É MULTIPLO: ex: passeio pra escola x,y,z no ibira (local)  no dia 26 ond
 
 
 ]]></comment>
-	<position x="2258.4" y="805.834"/>
+	<position x="2240.22" y="795.258"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -1286,7 +1286,7 @@ Néctar UHT ou Suco Tropical UHT (200 ml)
 Biscoito Integral Salgado (mín. de 25g embalagem individual)
 
 etc.]]></comment>
-	<position x="2142.22" y="137.383"/>
+	<position x="2122.22" y="124.989"/>
 	<column name="id" not-null="true">
 		<type name="smallint" length="0"/>
 	</column>
@@ -1321,12 +1321,12 @@ etc.]]></comment>
 <table name="escola_quantidade">
 	<schema name="kit_lanche"/>
 	<role name="postgres"/>
-	<comment><![CDATA[quando a solicitacao NÃO eh multipla cada escola vai ter seu conjunto de kit lanches e alunos variando
+	<comment><![CDATA[quando a não lista_kit_lanche_igual cada escola vai ter seu conjunto de kit lanches e alunos variando
 
 quando é multipla: todas as escolas vao ter a mesma opcao de kits, com numero de alunos variando.
 
 ]]></comment>
-	<position x="3155.83" y="476.824"/>
+	<position x="3086.54" y="425.137"/>
 	<column name="id" not-null="true">
 		<type name="smallint" length="0"/>
 	</column>

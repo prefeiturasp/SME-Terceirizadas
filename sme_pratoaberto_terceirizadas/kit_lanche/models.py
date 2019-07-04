@@ -9,6 +9,7 @@ class MotivoSolicitacaoUnificada(Nomeavel, TemChaveExterna):
     """
         a ideia é ser um combo de opcoes fixas
     """
+
     def __str__(self):
         return self.nome
 
@@ -66,15 +67,16 @@ class SolicitacaoKitLanche(TemData, Motivo, Descritivel, CriadoEm, TemChaveExter
         return "{} criado em {}".format(self.motivo, self.criado_em)
 
     class Meta:
-        verbose_name = "Kit lanche"
-        verbose_name_plural = "Kits lanche"
+        verbose_name = "Solicitação kit lanche base"
+        verbose_name_plural = "Solicitações kit lanche base"
 
 
 class SolicitacaoKitLancheAvulsa(TemChaveExterna):
     local = models.CharField(max_length=160)
     quantidade_alunos = models.PositiveSmallIntegerField()
     dado_base = models.ForeignKey(SolicitacaoKitLanche, on_delete=models.DO_NOTHING)
-    escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING)
+    escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING,
+                               related_name='solicitacoes_kit_lanche_avulsa')
 
     def __str__(self):
         return "{} SOLICITA PARA {} ALUNOS EM {}".format(self.escola, self.quantidade_alunos, self.local)
@@ -105,6 +107,16 @@ class SolicitacaoKitLancheUnificada(TemChaveExterna):
     diretoria_regional = models.ForeignKey('escola.DiretoriaRegional', on_delete=models.DO_NOTHING)
     dado_base = models.ForeignKey(SolicitacaoKitLanche, on_delete=models.DO_NOTHING)
 
+    def __str__(self):
+        return "{} pedindo passeio em {} com kits iguais? {}".format(
+            self.diretoria_regional,
+            self.local,
+            self.lista_kit_lanche_igual)
+
+    class Meta:
+        verbose_name = "Solicitação kit lanche unificada"
+        verbose_name_plural = "Solicitações de  kit lanche unificadas"
+
 
 class EscolaQuantidade(TemChaveExterna):
     # TODO: DRY no enum
@@ -120,5 +132,16 @@ class EscolaQuantidade(TemChaveExterna):
     tempo_passeio = models.PositiveSmallIntegerField(choices=HORAS, default=QUATRO)
     quantidade_alunos = models.PositiveSmallIntegerField()
     solicitacao_unificada = models.ForeignKey(SolicitacaoKitLancheUnificada, on_delete=models.DO_NOTHING)
-    kits = models.ManyToManyField(KitLanche)
+    kits = models.ManyToManyField(KitLanche, blank=True)
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING)
+
+    def __str__(self):
+        kit_lanche_personalizado = bool(self.kits.count())
+        return "{} para {} alunos, kits diferenciados? {}".format(
+            self.get_tempo_passeio_display(),
+            self.quantidade_alunos,
+            kit_lanche_personalizado)
+
+    class Meta:
+        verbose_name = "Escola quantidade"
+        verbose_name_plural = "Escolas quantidades"
