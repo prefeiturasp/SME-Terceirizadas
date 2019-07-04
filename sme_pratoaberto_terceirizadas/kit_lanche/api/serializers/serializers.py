@@ -33,8 +33,10 @@ class KitLancheSimplesSerializer(serializers.ModelSerializer):
 
 
 class SolicitacaoKitLancheSimplesSerializer(serializers.ModelSerializer):
-    kits = KitLancheSimplesSerializer(many=True)
-    tempo_passeio_descricao = serializers.CharField(source='get_tempo_passeio_display')
+    kits = KitLancheSimplesSerializer(many=True, required=False)
+    tempo_passeio_explicacao = serializers.CharField(source='get_tempo_passeio_display',
+                                                     required=False,
+                                                     read_only=True)
 
     class Meta:
         model = SolicitacaoKitLanche
@@ -43,7 +45,8 @@ class SolicitacaoKitLancheSimplesSerializer(serializers.ModelSerializer):
 
 class SolicitacaoKitLancheAvulsaSerializer(serializers.ModelSerializer):
     dado_base = SolicitacaoKitLancheSimplesSerializer()
-    escola = EscolaSimplesSerializer()
+    escola = EscolaSimplesSerializer(read_only=True,
+                                     required=False)
 
     class Meta:
         model = SolicitacaoKitLancheAvulsa
@@ -60,8 +63,9 @@ class SolicitacaoKitLancheUnificadaSerializer(serializers.ModelSerializer):
 
 
 class EscolaQuantidadeSerializer(serializers.ModelSerializer):
-    kits = KitLancheSimplesSerializer(many=True)
+    kits = KitLancheSimplesSerializer(many=True, required=False)
     escola = EscolaSimplesSerializer()
+
     # solicitacao_unificada = SolicitacaoKitLancheUnificadaSerializer()
 
     class Meta:

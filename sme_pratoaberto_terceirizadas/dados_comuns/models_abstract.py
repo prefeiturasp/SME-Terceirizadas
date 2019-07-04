@@ -39,7 +39,7 @@ class Ativavel(models.Model):
 
 
 class CriadoEm(models.Model):
-    criado_em = models.DateTimeField("Criado em", auto_now_add=True)
+    criado_em = models.DateTimeField("Criado em", editable=False, auto_now_add=True)
 
     class Meta:
         abstract = True

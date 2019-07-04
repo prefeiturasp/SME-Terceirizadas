@@ -60,8 +60,9 @@ class SolicitacaoKitLanche(TemData, Motivo, Descritivel, CriadoEm, TemChaveExter
         (CINCO_A_SETE, 'Cinco a sete horas'),
         (OITO_OU_MAIS, 'Oito horas'),
     )
-    tempo_passeio = models.PositiveSmallIntegerField(choices=HORAS, default=QUATRO)
-    kits = models.ManyToManyField(KitLanche)
+    tempo_passeio = models.PositiveSmallIntegerField(choices=HORAS,
+                                                     null=True, blank=True)
+    kits = models.ManyToManyField(KitLanche, blank=True)
 
     def __str__(self):
         return "{} criado em {}".format(self.motivo, self.criado_em)
