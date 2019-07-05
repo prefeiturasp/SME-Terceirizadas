@@ -132,7 +132,10 @@ class EscolaQuantidade(TemChaveExterna):
     )
     tempo_passeio = models.PositiveSmallIntegerField(choices=HORAS, default=QUATRO)
     quantidade_alunos = models.PositiveSmallIntegerField()
-    solicitacao_unificada = models.ForeignKey(SolicitacaoKitLancheUnificada, on_delete=models.DO_NOTHING)
+    solicitacao_unificada = models.ForeignKey(SolicitacaoKitLancheUnificada,
+                                              on_delete=models.DO_NOTHING,
+                                              related_name='escolas_quantidades',
+                                              blank=True, null=True)
     kits = models.ManyToManyField(KitLanche, blank=True)
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING)
 
