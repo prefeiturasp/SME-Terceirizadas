@@ -35,7 +35,6 @@ def verificar_se_existe(obj_model, **kwargs) -> bool:
     return False
 
 
-<<<<<<< HEAD
 def objeto_nao_deve_ter_duplicidade(obj_model, mensagem="Objeto já existe", **kwargs, ):
     qtd = obj_model.objects.filter(**kwargs).count()
     if qtd:
@@ -46,31 +45,25 @@ def deve_ter_1_kit_somente(lista_igual, numero_kits):
     deve_ter_1_kit = lista_igual is True and numero_kits == 1
     if not deve_ter_1_kit:
         raise serializers.ValidationError('Em "dado_base", quando lista_kit_lanche é igual, deve ter somente 1 kit')
-=======
+
+
 def solicitacao_deve_ter_1_ou_mais_kits(numero_kits: int):
     deve_ter_1_ou_mais_kit = numero_kits >= 1
     if not deve_ter_1_ou_mais_kit:
         raise serializers.ValidationError(
             'Quando lista_kit_lanche_igual é Verdadeiro, '
             '"dado_base", deve ter de 1 a 3 kits')
->>>>>>> 2820-Traduzir-Codigo-PT3
 
 
 def solicitacao_deve_ter_0_kit(numero_kits: int):
     deve_ter_nenhum_kit = numero_kits == 0
     if not deve_ter_nenhum_kit:
-<<<<<<< HEAD
         raise serializers.ValidationError('Em "dado_base", quando lista_kit_lanche NÃO é igual, deve ter 0 kit')
 
 
 def nao_pode_ser_feriado(data: datetime.date, mensagem='Não pode ser no feriado'):
     if calendario.is_holiday(data):
         raise serializers.ValidationError(mensagem)
-=======
-        raise serializers.ValidationError(
-            'Quando lista_kit_lanche_igual é Falso, '
-            '"dado_base", deve ter 0 kits, cada escola deve ter uma '
-            'especificação própria dos seus kit-lanches.')
 
 
 def escola_quantidade_deve_ter_0_kit(numero_kits: int, indice: int, ):
@@ -121,4 +114,3 @@ def valida_tempo_passeio_lista_nao_igual(tempo_passeio):
             'Quando o lista_kit_lanche_igual for Falso, tempo de passeio deve '
             'ser null. Cada escola deve ter uma '
             'especificação própria dos seus kit-lanches.')
->>>>>>> 2820-Traduzir-Codigo-PT3
