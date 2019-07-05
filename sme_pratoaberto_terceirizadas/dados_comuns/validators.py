@@ -32,16 +32,16 @@ def verificar_se_existe(obj_model, **kwargs) -> bool:
     return False
 
 
-def solicitacao_deve_ter_1_ou_mais_kits(lista_igual: bool, numero_kits: int):
-    deve_ter_1_ou_mais_kit = lista_igual is True and numero_kits >= 1
+def solicitacao_deve_ter_1_ou_mais_kits(numero_kits: int):
+    deve_ter_1_ou_mais_kit = numero_kits >= 1
     if not deve_ter_1_ou_mais_kit:
         raise serializers.ValidationError(
             'Quando lista_kit_lanche_igual é Verdadeiro, '
             '"dado_base", deve ter de 1 a 3 kits')
 
 
-def solicitacao_deve_ter_0_kit(lista_igual: bool, numero_kits: int):
-    deve_ter_nenhum_kit = lista_igual is False and numero_kits == 0
+def solicitacao_deve_ter_0_kit(numero_kits: int):
+    deve_ter_nenhum_kit = numero_kits == 0
     if not deve_ter_nenhum_kit:
         raise serializers.ValidationError(
             'Quando lista_kit_lanche_igual é Falso, '
@@ -49,12 +49,20 @@ def solicitacao_deve_ter_0_kit(lista_igual: bool, numero_kits: int):
             'especificação própria dos seus kit-lanches.')
 
 
-def escola_quantidade_deve_ter_0_kit(numero_kits: int, indice: int,):
+def escola_quantidade_deve_ter_0_kit(numero_kits: int, indice: int, ):
     deve_ter_nenhum_kit = numero_kits == 0
     if not deve_ter_nenhum_kit:
         raise serializers.ValidationError(
-            'escola_quantidade indice #{} deve ter 0 kit'
+            'escola_quantidade indice # {} deve ter 0 kit'
             ' pois a lista é igual para todas as escolas'.format(indice)
+        )
+
+
+def escola_quantidade_deve_ter_1_ou_mais_kits(numero_kits: int, indice: int, ):
+    deve_ter_um_ou_mais = numero_kits >= 1
+    if not deve_ter_um_ou_mais:
+        raise serializers.ValidationError(
+            'escola_quantidade indice # {} deve ter 1 ou mais kits'.format(indice)
         )
 
 
@@ -66,16 +74,14 @@ def escola_quantidade_deve_ter_mesmo_tempo_passeio(escola_quantidade,
 
     if tempo_passeio_escola != tempo_passeio_geral:
         raise serializers.ValidationError(
-            'escola_quantidade indice #{} deve diverge do tempo'
-            ' de dado_base, esperado: {}, recebido: {}'.format(
+            'escola_quantidade indice #{} diverge do tempo_passeio'
+            ' de dado_base. Esperado: {}, recebido: {}'.format(
                 indice, tempo_passeio_geral, tempo_passeio_escola)
         )
 
 
-def valida_tempo_passeio_lista_igual(lista_igual: bool, tempo_passeio):
-    if lista_igual is not True:
-        return
-    tentativa1 = lista_igual and type(tempo_passeio) == int
+def valida_tempo_passeio_lista_igual(tempo_passeio):
+    tentativa1 = type(tempo_passeio) == int
 
     if not tentativa1:
         raise serializers.ValidationError(
@@ -83,10 +89,8 @@ def valida_tempo_passeio_lista_igual(lista_igual: bool, tempo_passeio):
             'ser de 0 a 2.')
 
 
-def valida_tempo_passeio_lista_nao_igual(lista_igual: bool, tempo_passeio):
-    if lista_igual is not False:
-        return
-    tentativa2 = not lista_igual and tempo_passeio is None
+def valida_tempo_passeio_lista_nao_igual(tempo_passeio):
+    tentativa2 = tempo_passeio is None
 
     if not tentativa2:
         raise serializers.ValidationError(

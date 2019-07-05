@@ -3,7 +3,7 @@ from rest_framework import serializers
 from sme_pratoaberto_terceirizadas.dados_comuns.validators import solicitacao_deve_ter_1_ou_mais_kits, \
     solicitacao_deve_ter_0_kit, \
     valida_tempo_passeio_lista_igual, valida_tempo_passeio_lista_nao_igual, escola_quantidade_deve_ter_0_kit, \
-    escola_quantidade_deve_ter_mesmo_tempo_passeio
+    escola_quantidade_deve_ter_mesmo_tempo_passeio, escola_quantidade_deve_ter_1_ou_mais_kits
 from sme_pratoaberto_terceirizadas.escola.models import Escola, DiretoriaRegional
 from sme_pratoaberto_terceirizadas.kit_lanche.models import EscolaQuantidade
 from ... import models
@@ -157,12 +157,12 @@ class SolicitacaoKitLancheUnificadaCreationSerializer(serializers.ModelSerialize
         lista_igual = data.get('lista_kit_lanche_igual', True)
         tempo_passeio_base = dado_base.get('tempo_passeio', None)
 
-        valida_tempo_passeio_lista_igual(lista_igual, tempo_passeio_base)
-        valida_tempo_passeio_lista_nao_igual(lista_igual, tempo_passeio_base)
         if lista_igual:
-            solicitacao_deve_ter_1_ou_mais_kits(lista_igual, len(kits_base))
+            valida_tempo_passeio_lista_igual(tempo_passeio_base)
+            solicitacao_deve_ter_1_ou_mais_kits(len(kits_base))
         else:
-            solicitacao_deve_ter_0_kit(lista_igual, len(kits_base))
+            valida_tempo_passeio_lista_nao_igual(tempo_passeio_base)
+            solicitacao_deve_ter_0_kit(len(kits_base))
 
     def _valida_escolas_quantidades(self, data):
         escolas_quantidades = data.get('escolas_quantidades')
@@ -174,9 +174,16 @@ class SolicitacaoKitLancheUnificadaCreationSerializer(serializers.ModelSerialize
             for escola_quantidade in escolas_quantidades:
                 kits = escola_quantidade.get('kits')
                 escola_quantidade_deve_ter_0_kit(len(kits), indice=cont)
-                escola_quantidade_deve_ter_mesmo_tempo_passeio(escola_quantidade,
-                                                               dado_base,
-                                                               indice=cont)
+                escola_quantidade_deve_ter_mesmo_tempo_passeio(
+                    escola_quantidade,
+                    dado_base,
+                    indice=cont)
+                cont += 1
+        else:
+            cont = 0
+            for escola_quantidade in escolas_quantidades:
+                kits = escola_quantidade.get('kits')
+                escola_quantidade_deve_ter_1_ou_mais_kits(len(kits), indice=cont)
                 cont += 1
 
     def _gera_escolas_quantidades(self, escolas_quantidades):
