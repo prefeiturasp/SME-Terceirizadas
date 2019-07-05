@@ -294,5 +294,7 @@ sme_pratoaberto_terceirizadas/media/
 ##sme_pratoaberto_terceirizadas/*/migrations/*.pyc
 ##sme_pratoaberto_terceirizadas/*/migrations/*.py
 
-/migrations/
+/migrations/*.py
+/migrations/*.pyc
+
 sme_pratoaberto_terceirizadas/contrib/sites/migrations/*.py
