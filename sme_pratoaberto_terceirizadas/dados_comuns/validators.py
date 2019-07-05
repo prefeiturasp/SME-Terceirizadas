@@ -1,8 +1,11 @@
 import datetime
 
 from rest_framework import serializers
+from workalendar.america import BrazilSaoPauloCity
 
-from sme_pratoaberto_terceirizadas.dados_comuns.utils import obter_dias_uteis_apos, eh_dia_util
+from ..dados_comuns.utils import obter_dias_uteis_apos, eh_dia_util
+
+calendario = BrazilSaoPauloCity()
 
 
 def nao_pode_ser_passado(data: datetime.date):
@@ -32,6 +35,12 @@ def verificar_se_existe(obj_model, **kwargs) -> bool:
     return False
 
 
+def objeto_nao_deve_ter_duplicidade(obj_model, mensagem="Objeto já existe", **kwargs, ):
+    qtd = obj_model.objects.filter(**kwargs).count()
+    if qtd:
+        raise serializers.ValidationError(mensagem)
+
+
 def deve_ter_1_kit_somente(lista_igual, numero_kits):
     deve_ter_1_kit = lista_igual is True and numero_kits == 1
     if not deve_ter_1_kit:
@@ -42,3 +51,8 @@ def deve_ter_0_kit(lista_igual, numero_kits):
     deve_ter_nenhum_kit = lista_igual is False and numero_kits == 0
     if not deve_ter_nenhum_kit:
         raise serializers.ValidationError('Em "dado_base", quando lista_kit_lanche NÃO é igual, deve ter 0 kit')
+
+
+def nao_pode_ser_feriado(data: datetime.date, mensagem='Não pode ser no feriado'):
+    if calendario.is_holiday(data):
+        raise serializers.ValidationError(mensagem)
