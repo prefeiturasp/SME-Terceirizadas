@@ -108,6 +108,11 @@ class SolicitacaoKitLancheUnificada(TemChaveExterna):
     diretoria_regional = models.ForeignKey('escola.DiretoriaRegional', on_delete=models.DO_NOTHING)
     dado_base = models.ForeignKey(SolicitacaoKitLanche, on_delete=models.DO_NOTHING)
 
+    def vincula_escolas_quantidades(self, escolas_quantidades):
+        for escola_quantidade in escolas_quantidades:
+            escola_quantidade.solicitacao_unificada = self
+            escola_quantidade.save()
+
     def __str__(self):
         return "{} pedindo passeio em {} com kits iguais? {}".format(
             self.diretoria_regional,
@@ -132,7 +137,10 @@ class EscolaQuantidade(TemChaveExterna):
     )
     tempo_passeio = models.PositiveSmallIntegerField(choices=HORAS, default=QUATRO)
     quantidade_alunos = models.PositiveSmallIntegerField()
-    solicitacao_unificada = models.ForeignKey(SolicitacaoKitLancheUnificada, on_delete=models.DO_NOTHING)
+    solicitacao_unificada = models.ForeignKey(SolicitacaoKitLancheUnificada,
+                                              on_delete=models.DO_NOTHING,
+                                              related_name='escolas_quantidades',
+                                              blank=True, null=True)
     kits = models.ManyToManyField(KitLanche, blank=True)
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING)
 
