@@ -26,7 +26,7 @@ class SolicitacaoKitLancheCreationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.SolicitacaoKitLanche
-        exclude = ('id', 'uuid')
+        exclude = ('id',)
 
 
 class SolicitacaoKitLancheAvulsaCreationSerializer(serializers.ModelSerializer):
@@ -133,12 +133,39 @@ class SolicitacaoKitLancheUnificadaCreationSerializer(serializers.ModelSerialize
         return solicitacao_kit_unificada
 
     def update(self, instance, validated_data):
-        dado_base = validated_data.pop('dado_base')
-        kits = dado_base.pop('kits', [])
+        dado_base_json = validated_data.pop('dado_base')
+        kits_base_json = dado_base_json.pop('kits', [])
+        escolas_quantidades_json = validated_data.pop('escolas_quantidades')
 
         solicitacao_base = instance.dado_base
-        update_instance_from_dict(solicitacao_base, dado_base)
-        solicitacao_base.kits.set(kits)
+        escolas_quantidades = instance.escolas_quantidades.all()
+
+        # TODO: aprimorar isso aqui...
+        for eq in range(len(escolas_quantidades_json)):
+            escola_quantidade_json = escolas_quantidades_json[eq]
+            escola_quantidade_kits = escola_quantidade_json.pop('kits')
+
+            escola_quantidade = escolas_quantidades[eq]
+            update_instance_from_dict(escola_quantidade, escola_quantidade_json)
+            escola_quantidade.kits.set(escola_quantidade_kits)
+            escola_quantidade.save()
+
+            # import ipdb
+            # ipdb.set_trace()
+        # TODO:
+        # for escola_qtd_json in escolas_quantidades_json:
+        #     escola_quantidade_object = escola_qtd_json.get('uuid')
+        #
+        #     escola_quantidade_kits = escola_qtd_json.pop('kits')
+        #
+        #     update_instance_from_dict(escola_quantidade_object, escola_qtd_json)  # atualiza com os dados do json
+        #
+        #     escola_quantidade_object.kits.set(escola_quantidade_kits)
+        #
+        #     escola_quantidade_object.save()
+
+        update_instance_from_dict(solicitacao_base, dado_base_json)
+        solicitacao_base.kits.set(kits_base_json)
         update_instance_from_dict(instance, validated_data)
 
         instance.save()
