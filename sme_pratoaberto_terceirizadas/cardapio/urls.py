@@ -4,7 +4,7 @@ from rest_framework import routers
 from .api import viewsets
 
 router = routers.DefaultRouter()
-router.register("alteracao-cardapio", viewsets.AlteracaoCardapioViewSet)
+router.register("cardapio", viewsets.CardapioViewSet)
 
 urlpatterns = [
     path("", include(router.urls)),
