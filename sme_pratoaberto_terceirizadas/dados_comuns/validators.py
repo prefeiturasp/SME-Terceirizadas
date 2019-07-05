@@ -32,13 +32,41 @@ def verificar_se_existe(obj_model, **kwargs) -> bool:
     return False
 
 
-def deve_ter_1_kit_somente(lista_igual, numero_kits):
-    deve_ter_1_kit = lista_igual is True and numero_kits == 1
-    if not deve_ter_1_kit:
-        raise serializers.ValidationError('Em "dado_base", quando lista_kit_lanche é igual, deve ter somente 1 kit')
+def deve_ter_1_ou_mais_kits(lista_igual: bool, numero_kits: int):
+    deve_ter_1_ou_mais_kit = lista_igual is True and numero_kits >= 1
+    if not deve_ter_1_ou_mais_kit:
+        raise serializers.ValidationError(
+            'Quando lista_kit_lanche_igual é Verdadeiro, '
+            '"dado_base", deve ter de 1 a 3 kits')
 
 
-def deve_ter_0_kit(lista_igual, numero_kits):
+def deve_ter_0_kit(lista_igual: bool, numero_kits: int):
     deve_ter_nenhum_kit = lista_igual is False and numero_kits == 0
     if not deve_ter_nenhum_kit:
-        raise serializers.ValidationError('Em "dado_base", quando lista_kit_lanche NÃO é igual, deve ter 0 kit')
+        raise serializers.ValidationError(
+            'Quando lista_kit_lanche_igual é Falso, '
+            '"dado_base", deve ter 0 kits, cada escola deve ter uma '
+            'especificação própria dos seus kit-lanches.')
+
+
+def valida_tempo_passeio_lista_igual(lista_igual: bool, tempo_passeio):
+    if lista_igual is not True:
+        return
+    tentativa1 = lista_igual and type(tempo_passeio) == int
+
+    if not tentativa1:
+        raise serializers.ValidationError(
+            'Quando o lista_kit_lanche_igual for Verdadeiro, tempo de passeio deve '
+            'ser de 0 a 2.')
+
+
+def valida_tempo_passeio_lista_nao_igual(lista_igual: bool, tempo_passeio):
+    if lista_igual is not False:
+        return
+    tentativa2 = not lista_igual and tempo_passeio is None
+
+    if not tentativa2:
+        raise serializers.ValidationError(
+            'Quando o lista_kit_lanche_igual for Falso, tempo de passeio deve '
+            'ser null. Cada escola deve ter uma '
+            'especificação própria dos seus kit-lanches.')
