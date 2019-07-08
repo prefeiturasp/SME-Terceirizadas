@@ -5,9 +5,9 @@ from .api import viewsets
 
 router = routers.DefaultRouter()
 
-router.register('usuarios', viewsets.UsuarioViewSet, base_name='usuarios')
-router.register('perfis', viewsets.PerfilViewSet, base_name='perfis')
-router.register('grupos-perfis', viewsets.GrupoPerfilViewSet, base_name='grupos-perfis')
+router.register('usuarios', viewsets.UsuarioViewSet, 'Usuários')
+router.register('perfis', viewsets.PerfilViewSet, 'Perfis')
+router.register('grupos-perfis', viewsets.GrupoPerfilViewSet, 'Grupos de Perfis')
 
 urlpatterns = [
     path('', include(router.urls))

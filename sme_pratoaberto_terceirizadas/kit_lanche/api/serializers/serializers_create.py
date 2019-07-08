@@ -1,7 +1,11 @@
 from rest_framework import serializers
 
-from sme_pratoaberto_terceirizadas.dados_comuns.validators import deve_ter_1_kit_somente, deve_ter_0_kit
+from sme_pratoaberto_terceirizadas.dados_comuns.validators import solicitacao_deve_ter_1_ou_mais_kits, \
+    solicitacao_deve_ter_0_kit, \
+    valida_tempo_passeio_lista_igual, valida_tempo_passeio_lista_nao_igual, escola_quantidade_deve_ter_0_kit, \
+    escola_quantidade_deve_ter_mesmo_tempo_passeio, escola_quantidade_deve_ter_1_ou_mais_kits
 from sme_pratoaberto_terceirizadas.escola.models import Escola, DiretoriaRegional
+from sme_pratoaberto_terceirizadas.kit_lanche.models import EscolaQuantidade
 from ... import models
 
 
@@ -13,7 +17,7 @@ def update_instance_from_dict(instance, attrs):
 class SolicitacaoKitLancheCreationSerializer(serializers.ModelSerializer):
     kits = serializers.SlugRelatedField(
         slug_field='uuid', many=True,
-        required=False,
+        required=True,
         queryset=models.KitLanche.objects.all())
     tempo_passeio_explicacao = serializers.CharField(
         source='get_tempo_passeio_display',
@@ -37,10 +41,9 @@ class SolicitacaoKitLancheAvulsaCreationSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         dado_base = validated_data.pop('dado_base')
-        kits = dado_base.pop('kits', None)
+        kits = dado_base.pop('kits', [])
         solicitacao_base = models.SolicitacaoKitLanche.objects.create(**dado_base)
-        if kits:
-            solicitacao_base.kits.set(kits)
+        solicitacao_base.kits.set(kits)
 
         solicitacao_kit_avulsa = models.SolicitacaoKitLancheAvulsa.objects.create(
             dado_base=solicitacao_base, **validated_data
@@ -49,7 +52,7 @@ class SolicitacaoKitLancheAvulsaCreationSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         dado_base = validated_data.pop('dado_base')
-        kits = dado_base.pop('kits', None)
+        kits = dado_base.pop('kits', [])
 
         solicitacao_base = instance.dado_base
         update_instance_from_dict(solicitacao_base, dado_base)
@@ -62,6 +65,33 @@ class SolicitacaoKitLancheAvulsaCreationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.SolicitacaoKitLancheAvulsa
+        exclude = ('id', 'uuid')
+
+
+class EscolaQuantidadeCreationSerializer(serializers.ModelSerializer):
+    kits = serializers.SlugRelatedField(
+        slug_field='uuid', many=True,
+        required=True,
+        queryset=models.KitLanche.objects.all())
+    escola = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=Escola.objects.all()
+    )
+
+    tempo_passeio_explicacao = serializers.CharField(
+        source='get_tempo_passeio_display',
+        required=False,
+        read_only=True)
+
+    solicitacao_unificada = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=models.SolicitacaoKitLancheUnificada.objects.all()
+    )
+
+    class Meta:
+        model = EscolaQuantidade
         exclude = ('id',)
 
 
@@ -78,43 +108,120 @@ class SolicitacaoKitLancheUnificadaCreationSerializer(serializers.ModelSerialize
         required=False,
         queryset=DiretoriaRegional.objects.all()
     )
+    escolas_quantidades = EscolaQuantidadeCreationSerializer(
+        many=True,
+        required=False
+    )
 
     def create(self, validated_data):
+        lista_igual = validated_data.get('lista_kit_lanche_igual', True)
         dado_base = validated_data.pop('dado_base')
-        kits = dado_base.pop('kits', None)
+        escolas_quantidades = validated_data.pop('escolas_quantidades')
+
+        kits = dado_base.pop('kits', [])
         solicitacao_base = models.SolicitacaoKitLanche.objects.create(**dado_base)
-        if kits:
+
+        if lista_igual:
             solicitacao_base.kits.set(kits)
+
+        lista_quantidade_escola = self._gera_escolas_quantidades(escolas_quantidades)
 
         solicitacao_kit_unificada = models.SolicitacaoKitLancheUnificada.objects.create(
             dado_base=solicitacao_base, **validated_data
         )
+        solicitacao_kit_unificada.vincula_escolas_quantidades(lista_quantidade_escola)
         return solicitacao_kit_unificada
 
     def update(self, instance, validated_data):
-        dado_base = validated_data.pop('dado_base')
-        kits = dado_base.pop('kits', None)
+        dado_base_json = validated_data.pop('dado_base')
+        kits_base_json = dado_base_json.pop('kits', [])
+        escolas_quantidades_json = validated_data.pop('escolas_quantidades')
 
         solicitacao_base = instance.dado_base
-        update_instance_from_dict(solicitacao_base, dado_base)
-        if kits:
-            solicitacao_base.kits.set(kits)
+        escolas_quantidades = instance.escolas_quantidades.all()
+
+        # TODO: aprimorar isso aqui...
+        for eq in range(len(escolas_quantidades_json)):
+            escola_quantidade_json = escolas_quantidades_json[eq]
+            escola_quantidade_kits = escola_quantidade_json.pop('kits')
+
+            escola_quantidade = escolas_quantidades[eq]
+            update_instance_from_dict(escola_quantidade, escola_quantidade_json)
+            escola_quantidade.kits.set(escola_quantidade_kits)
+            escola_quantidade.save()
+
+            # import ipdb
+            # ipdb.set_trace()
+        # TODO:
+        # for escola_qtd_json in escolas_quantidades_json:
+        #     escola_quantidade_object = escola_qtd_json.get('uuid')
+        #
+        #     escola_quantidade_kits = escola_qtd_json.pop('kits')
+        #
+        #     update_instance_from_dict(escola_quantidade_object, escola_qtd_json)  # atualiza com os dados do json
+        #
+        #     escola_quantidade_object.kits.set(escola_quantidade_kits)
+        #
+        #     escola_quantidade_object.save()
+
+        update_instance_from_dict(solicitacao_base, dado_base_json)
+        solicitacao_base.kits.set(kits_base_json)
         update_instance_from_dict(instance, validated_data)
 
         instance.save()
         return instance
 
     def validate(self, data):
-        # TODO: refinar....
-        dado_base = data.get('dado_base')
-        kits = dado_base.pop('kits', None)
-        lista_igual = dado_base.get('lista_kit_lanche_igual', True)
-        if kits is not None:
-            if lista_igual:
-                deve_ter_1_kit_somente(lista_igual, len(kits))
-            else:
-                deve_ter_0_kit(lista_igual, len(kits))
+
+        self._valida_dados_base(data)
+        self._valida_escolas_quantidades(data)
+
         return data
+
+    def _valida_dados_base(self, data):
+        dado_base = data.get('dado_base')
+        kits_base = dado_base.get('kits', [])
+        lista_igual = data.get('lista_kit_lanche_igual', True)
+        tempo_passeio_base = dado_base.get('tempo_passeio', None)
+
+        if lista_igual:
+            valida_tempo_passeio_lista_igual(tempo_passeio_base)
+            solicitacao_deve_ter_1_ou_mais_kits(len(kits_base))
+        else:
+            valida_tempo_passeio_lista_nao_igual(tempo_passeio_base)
+            solicitacao_deve_ter_0_kit(len(kits_base))
+
+    def _valida_escolas_quantidades(self, data):
+        escolas_quantidades = data.get('escolas_quantidades')
+        lista_igual = data.get('lista_kit_lanche_igual', True)
+        dado_base = data.get('dado_base')
+
+        if lista_igual:
+            cont = 0
+            for escola_quantidade in escolas_quantidades:
+                kits = escola_quantidade.get('kits')
+                escola_quantidade_deve_ter_0_kit(len(kits), indice=cont)
+                escola_quantidade_deve_ter_mesmo_tempo_passeio(
+                    escola_quantidade,
+                    dado_base,
+                    indice=cont)
+                cont += 1
+        else:
+            cont = 0
+            for escola_quantidade in escolas_quantidades:
+                kits = escola_quantidade.get('kits')
+                escola_quantidade_deve_ter_1_ou_mais_kits(len(kits), indice=cont)
+                cont += 1
+
+    def _gera_escolas_quantidades(self, escolas_quantidades):
+        objetos_lista = []
+        for escola_quantidade in escolas_quantidades:
+            kits_personalizados_da_escola = escola_quantidade.pop('kits', [])
+            escola_quantidade_object = models.EscolaQuantidade.objects.create(**escola_quantidade)
+            escola_quantidade_object.kits.set(kits_personalizados_da_escola)
+            objetos_lista.append(escola_quantidade_object)
+
+        return objetos_lista
 
     class Meta:
         model = models.SolicitacaoKitLancheUnificada
