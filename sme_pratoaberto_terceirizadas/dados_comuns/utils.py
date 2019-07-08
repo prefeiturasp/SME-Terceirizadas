@@ -21,4 +21,4 @@ def obter_dias_uteis_apos(days=2, date=datetime.datetime.now()):
 
 
 def eh_dia_util(date):
-    return calendar.eh_dia_util(date)
+    return calendar.is_working_day(date)

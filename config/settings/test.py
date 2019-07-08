@@ -1,5 +1,5 @@
 """
-With these settings, tests run faster.
+With these settings, __tests__ run faster.
 """
 
 from .base import *  # noqa

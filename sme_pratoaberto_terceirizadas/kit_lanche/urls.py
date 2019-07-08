@@ -17,6 +17,9 @@ router.register('solicitacao-kit-lanche-avulsa', viewsets.SolicitacaoKitLancheAv
 router.register('solicitacao-kit-lanche-unificada', viewsets.SolicitacaoKitLancheUnificadaViewSet,
                 basename='solicitacao-kit-lanche-unificada')
 
+router.register('escolas-quantidades', viewsets.EscolaQuantidadeViewSet,
+                basename='escolas-quantidades')
+
 urlpatterns = [
     path('', include(router.urls))
 ]

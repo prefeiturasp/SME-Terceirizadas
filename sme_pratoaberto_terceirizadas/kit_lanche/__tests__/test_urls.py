@@ -8,5 +8,5 @@ pytestmark = pytest.mark.django_db
 class TestUrls(APITestCase):
 
     def test_meal_kit_endpoint(self):
-        response = self.client.get('/kit-lanche/')
+        response = self.client.get('/kit-lanches/')
         assert response.status_code, status.HTTP_401_UNAUTHORIZED

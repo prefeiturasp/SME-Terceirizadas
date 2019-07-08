@@ -3,7 +3,7 @@ import datetime
 from rest_framework import serializers
 from workalendar.america import BrazilSaoPauloCity
 
-from ..dados_comuns.utils import obter_dias_uteis_apos, eh_dia_util
+from .utils import obter_dias_uteis_apos, eh_dia_util
 
 calendario = BrazilSaoPauloCity()
 

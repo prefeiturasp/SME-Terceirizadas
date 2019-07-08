@@ -2,7 +2,7 @@ import datetime
 
 import pytest
 
-from sme_pratoaberto_terceirizadas.meal_kit.utils import date_to_string, string_to_date
+from ..utils import date_to_string, string_to_date
 
 
 def test_datetime_to_string():
