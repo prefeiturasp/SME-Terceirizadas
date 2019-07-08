@@ -4,8 +4,6 @@ python:
 install:
   - pip install -r requirements/local.txt
 script:
-  - ./manage.py makemigrations
-  - ./manage.py migrate --settings=config.settings.local
   - pytest
   - docker build -t marcelomaia/terceirizadas_backend .
   - docker run -d -p 8000:8000 marcelomaia/terceirizadas_backend python manage.py runserver --settings=config.settings.local

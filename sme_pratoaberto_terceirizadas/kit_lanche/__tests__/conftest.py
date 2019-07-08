@@ -57,3 +57,23 @@ def solicitacao():
                       motivo=fake.text(),
                       tempo_passeio=models.SolicitacaoKitLanche.CINCO_A_SETE,
                       kits=kits)
+
+
+@pytest.fixture(params=[
+    (0, True),
+    (1, True),
+    (2, True),
+])
+def horarios_passeio(request):
+    return request.param
+
+
+erro_esperado_passeio = 'tempo de passeio deve ser qualquer uma das opções:'
+
+
+@pytest.fixture(params=[
+    ('0', erro_esperado_passeio),
+    ('TESTE', erro_esperado_passeio),
+])
+def horarios_passeio_invalido(request):
+    return request.param

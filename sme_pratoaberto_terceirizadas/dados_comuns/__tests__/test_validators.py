@@ -2,8 +2,8 @@ import pytest
 from freezegun import freeze_time
 from rest_framework.exceptions import ValidationError
 
-from sme_pratoaberto_terceirizadas.dados_comuns.validators import deve_pedir_com_antecedencia, dia_util, \
-    nao_pode_ser_passado, valida_tempo_passeio_lista_nao_igual
+from ..validators import (deve_pedir_com_antecedencia, dia_util,
+                          nao_pode_ser_passado)
 
 
 @freeze_time("2019-05-22")  # qua
@@ -41,7 +41,3 @@ def test_nao_pode_ser_passado_raise_exception(dias_passados):
     dia, esperado = dias_passados
     with pytest.raises(ValidationError, match=esperado):
         nao_pode_ser_passado(dia)
-
-
-def test_valida_tempo_passeio_lista_nao_igual():
-    assert valida_tempo_passeio_lista_nao_igual(None) is True

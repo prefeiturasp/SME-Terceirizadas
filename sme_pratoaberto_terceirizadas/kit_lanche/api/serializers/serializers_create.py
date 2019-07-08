@@ -1,12 +1,17 @@
 from rest_framework import serializers
 
-from sme_pratoaberto_terceirizadas.dados_comuns.validators import solicitacao_deve_ter_1_ou_mais_kits, \
-    solicitacao_deve_ter_0_kit, \
-    valida_tempo_passeio_lista_igual, valida_tempo_passeio_lista_nao_igual, escola_quantidade_deve_ter_0_kit, \
-    escola_quantidade_deve_ter_mesmo_tempo_passeio, escola_quantidade_deve_ter_1_ou_mais_kits
 from sme_pratoaberto_terceirizadas.escola.models import Escola, DiretoriaRegional
 from sme_pratoaberto_terceirizadas.kit_lanche.models import EscolaQuantidade
 from ... import models
+from ...validators import (
+    solicitacao_deve_ter_1_ou_mais_kits,
+    solicitacao_deve_ter_0_kit,
+    valida_tempo_passeio_lista_igual,
+    valida_tempo_passeio_lista_nao_igual,
+    escola_quantidade_deve_ter_0_kit,
+    escola_quantidade_deve_ter_mesmo_tempo_passeio,
+    escola_quantidade_deve_ter_1_ou_mais_kits
+)
 
 
 def update_instance_from_dict(instance, attrs):
