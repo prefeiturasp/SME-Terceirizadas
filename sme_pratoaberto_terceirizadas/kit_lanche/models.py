@@ -46,7 +46,7 @@ class KitLanche(Nomeavel, TemChaveExterna):
 
     class Meta:
         verbose_name = "Kit lanche"
-        verbose_name_plural = "Kits lanche"
+        verbose_name_plural = "Kit lanches"
 
 
 class SolicitacaoKitLanche(TemData, Motivo, Descritivel, CriadoEm, TemChaveExterna):

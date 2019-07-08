@@ -114,3 +114,4 @@ def valida_tempo_passeio_lista_nao_igual(tempo_passeio):
             'Quando o lista_kit_lanche_igual for Falso, tempo de passeio deve '
             'ser null. Cada escola deve ter uma '
             'especificação própria dos seus kit-lanches.')
+    return True
