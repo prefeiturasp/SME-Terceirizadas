@@ -1,10 +1,11 @@
 from rest_framework import serializers
 
+from sme_pratoaberto_terceirizadas.dados_comuns.models import DiaSemana
 from sme_pratoaberto_terceirizadas.dados_comuns.utils import update_instance_from_dict
-from sme_pratoaberto_terceirizadas.escola.models import PeriodoEscolar
+from sme_pratoaberto_terceirizadas.escola.models import PeriodoEscolar, Escola
 from sme_pratoaberto_terceirizadas.inclusao_alimentacao.models import (
     MotivoInclusaoContinua, MotivoInclusaoNormal,
-    InclusaoAlimentacaoNormal, QuantidadePorPeriodo)
+    InclusaoAlimentacaoNormal, QuantidadePorPeriodo, InclusaoAlimentacaoContinua)
 
 
 class MotivoInclusaoContinuaSerializer(serializers.ModelSerializer):
@@ -61,7 +62,49 @@ class InclusaoAlimentacaoNormalCreationSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
-
     class Meta:
         model = InclusaoAlimentacaoNormal
+        exclude = ('id',)
+
+
+class InclusaoAlimentacaoContinuaCreationSerializer(serializers.ModelSerializer):
+    motivo = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=MotivoInclusaoContinua.objects.all())
+    escola = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=Escola.objects.all()
+    )
+    quantidades_periodo = QuantidadePorPeriodoCreationSerializer(many=True)
+    dias_semana = serializers.PrimaryKeyRelatedField(
+        many=True, queryset=DiaSemana.objects.all()
+    )
+
+    def create(self, validated_data):
+        quantidades_periodo_array = validated_data.pop('quantidades_periodo')
+
+        lista_escola_quantidade = self._gera_lista_escola_quantidade(quantidades_periodo_array)
+        dias_semana = validated_data.pop('dias_semana', [])
+
+        inclusao_alimentacao_continua = InclusaoAlimentacaoContinua.objects.create(
+            **validated_data)
+
+        inclusao_alimentacao_continua.dias_semana.set(dias_semana)
+        inclusao_alimentacao_continua.quantidades_periodo.set(lista_escola_quantidade)
+
+        return inclusao_alimentacao_continua
+
+    def _gera_lista_escola_quantidade(self, quantidades_periodo_array):
+        objetos_lista = []
+        for quantidade_periodo in quantidades_periodo_array:
+            tipos_alimentacao = quantidade_periodo.pop('tipos_alimentacao', [])
+            quantidades_periodo_obj = QuantidadePorPeriodo.objects.create(**quantidade_periodo)
+            quantidades_periodo_obj.tipos_alimentacao.set(tipos_alimentacao)
+            objetos_lista.append(quantidades_periodo_obj)
+        return objetos_lista
+
+    class Meta:
+        model = InclusaoAlimentacaoContinua
         exclude = ('id',)

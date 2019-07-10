@@ -13,7 +13,8 @@ router.register('inclusao-alimentacao-normal', viewsets.InclusaoAlimentacaoNorma
                 basename='inclusao-alimentacao-normal')
 router.register('grupo-inclusao-alimentacao-normal', viewsets.GrupoInclusaoAlimentacaoNormalViewSet,
                 basename='grupo-inclusao-alimentacao-normal')
-
+router.register('inclusao-alimentacao-continua', viewsets.InclusaoAlimentacaoContinuaViewSet,
+                basename='inclusao-alimentacao-continua')
 urlpatterns = [
     path('', include(router.urls))
 ]

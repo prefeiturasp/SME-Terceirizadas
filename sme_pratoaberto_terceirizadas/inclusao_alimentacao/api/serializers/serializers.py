@@ -1,11 +1,12 @@
 from rest_framework import serializers
 
+from sme_pratoaberto_terceirizadas.dados_comuns.api.serializers import DiaSemanaSerializer
 from sme_pratoaberto_terceirizadas.escola.api.serializers import EscolaSimplesSerializer
 from sme_pratoaberto_terceirizadas.escola.api.serializers import PeriodoEscolarSerializer
 from sme_pratoaberto_terceirizadas.inclusao_alimentacao.models import (
     MotivoInclusaoContinua, MotivoInclusaoNormal,
     InclusaoAlimentacaoNormal, QuantidadePorPeriodo,
-    GrupoInclusaoAlimentacaoNormal)
+    GrupoInclusaoAlimentacaoNormal, InclusaoAlimentacaoContinua)
 
 
 class MotivoInclusaoContinuaSerializer(serializers.ModelSerializer):
@@ -40,6 +41,17 @@ class InclusaoAlimentacaoNormalSerializer(serializers.ModelSerializer):
         exclude = ('id',)
 
 
+class InclusaoAlimentacaoContinuaSerializer(serializers.ModelSerializer):
+    motivo = MotivoInclusaoContinuaSerializer()
+    quantidades_periodo = QuantidadePorPeriodoSerializer(many=True)
+    escola = EscolaSimplesSerializer()
+    dias_semana = DiaSemanaSerializer(many=True)
+
+    class Meta:
+        model = InclusaoAlimentacaoContinua
+        exclude = ('id',)
+
+
 class InclusaoAlimentacaoNormalSimplesSerializer(serializers.ModelSerializer):
     class Meta:
         model = InclusaoAlimentacaoNormal
@@ -53,4 +65,3 @@ class GrupoInclusaoAlimentacaoNormalSerializer(serializers.ModelSerializer):
     class Meta:
         model = GrupoInclusaoAlimentacaoNormal
         exclude = ('id',)
-
