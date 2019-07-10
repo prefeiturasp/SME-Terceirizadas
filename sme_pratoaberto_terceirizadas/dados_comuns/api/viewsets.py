@@ -3,13 +3,14 @@ from typing import Any
 from des.models import DynamicEmailConfiguration
 from django.db import IntegrityError
 from rest_framework import status
+from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.viewsets import ViewSet, ModelViewSet, ReadOnlyModelViewSet
 
-from .serializers import DiasUteisSerializer, ConfiguracaoEmailSerializer, DiaSemanaSerializer
-from ..models import DiasUteis, DiaSemana
-from ..utils import obter_dias_uteis_apos
+from .serializers import ConfiguracaoEmailSerializer, DiaSemanaSerializer
+from ..models import DiaSemana
+from ..utils import obter_dias_uteis_apos_hoje
 
 
 class DiasDaSemanaViewSet(ReadOnlyModelViewSet):
@@ -19,18 +20,15 @@ class DiasDaSemanaViewSet(ReadOnlyModelViewSet):
 
 
 class DiasUteisViewSet(ViewSet):
-    permission_classes = ()
-    serializer_class = DiasUteisSerializer
+    permission_classes = (AllowAny,)
 
     def list(self, request):
         dias_uteis = {
-            1: DiasUteis(
-                proximos_cinco_dias_uteis=obter_dias_uteis_apos(5).strftime('%d/%m/%Y'),
-                proximos_dois_dias_uteis=obter_dias_uteis_apos(2).strftime('%d/%m/%Y'))
+            'proximos_cinco_dias_uteis': obter_dias_uteis_apos_hoje(5),
+            'proximos_dois_dias_uteis': obter_dias_uteis_apos_hoje(2)
         }
-        serializer = DiasUteisSerializer(
-            instance=dias_uteis.values(), many=True)
-        return Response(serializer.data)
+
+        return Response(dias_uteis)
 
 
 class ConfiguracaoEmailViewSet(ModelViewSet):

@@ -1,20 +1,7 @@
 from des.models import DynamicEmailConfiguration
 from rest_framework import serializers
 
-from ..models import DiasUteis, DiaSemana
-
-
-class DiasUteisSerializer(serializers.Serializer):
-    data_cinco_dias_uteis = serializers.DateField()
-    data_dois_dias_uteis = serializers.DateField()
-
-    def create(self, validated_data):
-        return DiasUteis(id=None, **validated_data)
-
-    def update(self, instance, validated_data):
-        for campo, valor in validated_data.items():
-            setattr(instance, campo, valor)
-        return instance
+from ..models import DiaSemana
 
 
 class ConfiguracaoEmailSerializer(serializers.ModelSerializer):
