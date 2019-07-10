@@ -28,7 +28,7 @@ def solicitacao_avulsa():
     dado_base = mommy.make(models.SolicitacaoKitLanche, )
     escola = mommy.make('escola.Escola')
     return mommy.make(models.SolicitacaoKitLancheAvulsa,
-                      local=fake.text(),
+                      local=fake.text()[:160],
                       quantidade_alunos=999,
                       dado_base=dado_base,
                       escola=escola)
