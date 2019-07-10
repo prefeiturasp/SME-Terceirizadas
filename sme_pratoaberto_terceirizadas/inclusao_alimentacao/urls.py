@@ -7,6 +7,8 @@ router = routers.DefaultRouter()
 
 router.register('motivo-inclusao-continua', viewsets.MotivoInclusaoContinuaViewSet,
                 basename='motivo-inclusao-continua')
+router.register('motivo-inclusao-normal', viewsets.MotivoInclusaoNormalViewSet,
+                basename='motivo-inclusao-normal')
 router.register('inclusao-alimentacao-normal', viewsets.InclusaoAlimentacaoNormalViewSet,
                 basename='inclusao-alimentacao-normal')
 router.register('grupo-inclusao-alimentacao-normal', viewsets.GrupoInclusaoAlimentacaoNormalViewSet,

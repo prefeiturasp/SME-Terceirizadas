@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from sme_pratoaberto_terceirizadas.dados_comuns.utils import update_instance_from_dict
 from sme_pratoaberto_terceirizadas.escola.models import Escola, DiretoriaRegional
 from sme_pratoaberto_terceirizadas.kit_lanche.models import EscolaQuantidade
 from ... import models
@@ -12,11 +13,6 @@ from ...validators import (
     escola_quantidade_deve_ter_mesmo_tempo_passeio,
     escola_quantidade_deve_ter_1_ou_mais_kits
 )
-
-
-def update_instance_from_dict(instance, attrs):
-    for attr, val in attrs.items():
-        setattr(instance, attr, val)
 
 
 class SolicitacaoKitLancheCreationSerializer(serializers.ModelSerializer):

@@ -26,10 +26,3 @@ class DiaSemana(TemChaveExterna):
 
     def __str__(self):
         return '{}: {}'.format(self.numero, self.nome)
-
-
-class DiasUteis(object):
-    # TODO: Qual o objetivo dessa classe?
-    def __init__(self, **kwargs):
-        for campo in ('data_cinco_dias_uteis', 'data_dois_dias_uteis'):
-            setattr(self, campo, kwargs.get(campo, None))

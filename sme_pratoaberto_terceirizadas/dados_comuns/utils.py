@@ -24,3 +24,8 @@ def obter_dias_uteis_apos_hoje(quantidade_dias: int):
 
 def eh_dia_util(date):
     return calendar.is_working_day(date)
+
+
+def update_instance_from_dict(instance, attrs):
+    for attr, val in attrs.items():
+        setattr(instance, attr, val)
