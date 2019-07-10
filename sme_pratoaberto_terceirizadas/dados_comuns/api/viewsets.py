@@ -3,6 +3,7 @@ from typing import Any
 from des.models import DynamicEmailConfiguration
 from django.db import IntegrityError
 from rest_framework import status
+from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.viewsets import ViewSet, ModelViewSet, ReadOnlyModelViewSet
@@ -19,11 +20,12 @@ class DiasDaSemanaViewSet(ReadOnlyModelViewSet):
 
 
 class DiasUteisViewSet(ViewSet):
+    permission_classes = (AllowAny,)
 
     def list(self, request):
         dias_uteis = {
-            'proximos_cinco_dias_uteis': obter_dias_uteis_apos_hoje(5).strftime('%d/%m/%Y'),
-            'proximos_dois_dias_uteis': obter_dias_uteis_apos_hoje(2).strftime('%d/%m/%Y')
+            'proximos_cinco_dias_uteis': obter_dias_uteis_apos_hoje(5),
+            'proximos_dois_dias_uteis': obter_dias_uteis_apos_hoje(2)
         }
 
         return Response(dias_uteis)
