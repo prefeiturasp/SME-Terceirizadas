@@ -2,7 +2,7 @@ import datetime
 
 from django.utils.translation import ugettext_lazy as _
 
-from sme_pratoaberto_terceirizadas.dados_comuns.utils import obter_dias_uteis_apos
+from sme_pratoaberto_terceirizadas.dados_comuns.utils import obter_dias_uteis_apos_hoje
 from sme_pratoaberto_terceirizadas.alimento.models import TipoRefeicao
 from sme_pratoaberto_terceirizadas.inclusao_alimentacao import models
 
@@ -79,7 +79,7 @@ def _validar_bloco_data(request_data, erros):
         _validar_motivo(motivo_dia, erros)
         if motivo_dia.get('data', None):
             _data_hora = validar_formato_data(motivo_dia.get('data'), erros)
-            if _data_hora and _data_hora.date() < obter_dias_uteis_apos(2):
+            if _data_hora and _data_hora.date() < obter_dias_uteis_apos_hoje(2):
                 erros.append('Mínimo de 2 dias úteis para fazer o pedido')
         else:
             validar_formato_data(motivo_dia.get('do_dia'), erros)

@@ -91,3 +91,14 @@ dia_passado_esperado = 'Não pode ser no passado'
 ])
 def dias_passados(request):
     return request.param
+
+
+@pytest.fixture(scope='function', params=[
+    # dia,  esperado
+    # dia fake do teste: "2019-07-10" -> qua
+    (2, datetime.date(2019, 7, 12)),  # sex
+    (3, datetime.date(2019, 7, 15)),  # seg
+    (5, datetime.date(2019, 7, 17)),  # qua
+])
+def dias_uteis_apos(request):
+    return request.param
