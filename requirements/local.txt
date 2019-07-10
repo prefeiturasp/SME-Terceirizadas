@@ -14,6 +14,7 @@ freezegun==0.3.11    # https://pypi.org/project/freezegun/
 pytest-watch==4.2.0  # https://github.com/joeyespo/pytest-watch
 model_mommy==1.6.0   # https://github.com/berinhard/model_mommy/
 Faker==1.0.7         # https://github.com/joke2k/faker
+pytest-cov==2.7.1    # https://pypi.org/project/pytest-cov/
 # Code quality
 # ------------------------------------------------------------------------------
 flake8==3.7.5  # https://github.com/PyCQA/flake8
