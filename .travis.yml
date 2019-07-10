@@ -6,9 +6,9 @@ python:
 before_script:
   - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
   - chmod +x ./cc-test-reporter
-  - psql -c "CREATE DATABASE travis_ci_test;" -U postgres
-  - psql -c "ALTER USER postgres CREATEDB;" -U postgres
-  - psql -c "ALTER USER postgres WITH PASSWORD 'password';" -U postgres
+  - psql -c "CREATE DATABASE test;" -U postgres
+  - psql -c "CREATE USER admin WITH PASSWORD 'adminadmin';" -U postgres
+  - psql -c "ALTER USER admin CREATEDB;" -U postgres
 
 install:
   - pip install -r requirements/local.txt

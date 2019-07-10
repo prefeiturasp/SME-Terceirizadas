@@ -54,7 +54,6 @@ EMAIL_PORT = 1025
 # Your stuff...
 # ------------------------------------------------------------------------------
 
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
