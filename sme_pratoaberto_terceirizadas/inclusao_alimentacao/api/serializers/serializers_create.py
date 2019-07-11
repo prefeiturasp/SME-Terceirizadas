@@ -30,6 +30,20 @@ class QuantidadePorPeriodoCreationSerializer(serializers.ModelSerializer):
     # TODO: esperar app cardapio.
     # tipos_alimentacao = TipoAlimentacao
 
+    def create(self, validated_data):
+        tipos_alimentacao = validated_data.pop('tipos_alimentacao', [])
+        quantidade_periodo = QuantidadePorPeriodo.objects.create(**validated_data)
+        quantidade_periodo.tipos_alimentacao.set(tipos_alimentacao)
+        return quantidade_periodo
+
+    def update(self, instance, validated_data):
+        tipos_alimentacao = validated_data.pop('tipos_alimentacao', [])
+        if tipos_alimentacao:
+            instance.tipos_alimentacao.set(tipos_alimentacao)
+        update_instance_from_dict(instance, validated_data)
+        instance.save()
+        return instance
+
     class Meta:
         model = QuantidadePorPeriodo
         exclude = ('id', 'tipos_alimentacao')
@@ -47,22 +61,18 @@ class InclusaoAlimentacaoNormalCreationSerializer(serializers.ModelSerializer):
         return data
 
     def create(self, validated_data):
-        quantidades_periodo = validated_data.pop('quantidade_periodo')
-        tipos_alimentacao = quantidades_periodo.pop('tipos_alimentacao', [])
-        quantidade_periodo_obj = QuantidadePorPeriodo.objects.create(**quantidades_periodo)
-        quantidade_periodo_obj.tipos_alimentacao.set(tipos_alimentacao)
+        quantidades_periodo_json = validated_data.pop('quantidade_periodo')
+        quantidade_periodo = QuantidadePorPeriodoCreationSerializer(
+        ).create(quantidades_periodo_json)
         inclusao_alimentacao_normal_obj = InclusaoAlimentacaoNormal.objects.create(
-            quantidade_periodo=quantidade_periodo_obj, **validated_data)
+            quantidade_periodo=quantidade_periodo, **validated_data)
         return inclusao_alimentacao_normal_obj
 
     def update(self, instance, validated_data):
-        quantidades_periodo = validated_data.pop('quantidade_periodo')
-        tipos_alimentacao = quantidades_periodo.pop('tipos_alimentacao', [])
-
-        quantidades_periodo_obj = instance.quantidade_periodo
-        update_instance_from_dict(quantidades_periodo_obj, quantidades_periodo)
-        if tipos_alimentacao:
-            quantidades_periodo_obj.tipos_alimentacao.set(tipos_alimentacao)
+        quantidade_periodo_json = validated_data.pop('quantidade_periodo')
+        quantidade_periodo = instance.quantidade_periodo
+        QuantidadePorPeriodoCreationSerializer(
+        ).update(quantidade_periodo, quantidade_periodo_json)
         update_instance_from_dict(instance, validated_data)
         instance.save()
         return instance
@@ -81,27 +91,24 @@ class GrupoInclusaoAlimentacaoNormalCreationSerializer(serializers.ModelSerializ
     )
 
     def create(self, validated_data):
-        inclusoes = validated_data.pop('inclusoes')
-        incs_lst = []
-        for inclusao in inclusoes:
-            inc = InclusaoAlimentacaoNormalCreationSerializer().create(validated_data=inclusao)
-            incs_lst.append(inc)
+        inclusoes_json = validated_data.pop('inclusoes')
+        inclusoes_lista = []
+        for inclusao_json in inclusoes_json:
+            inc = InclusaoAlimentacaoNormalCreationSerializer(
+            ).create(validated_data=inclusao_json)
+            inclusoes_lista.append(inc)
         grupo_inclusao_alimentacao_normal = GrupoInclusaoAlimentacaoNormal.objects.create(**validated_data)
-        grupo_inclusao_alimentacao_normal.inclusoes.set(incs_lst)
+        grupo_inclusao_alimentacao_normal.inclusoes.set(inclusoes_lista)
         return grupo_inclusao_alimentacao_normal
 
     def update(self, instance, validated_data):
         inclusoes_dict = validated_data.pop('inclusoes')
         inclusoes = instance.inclusoes.all()
         assert len(inclusoes) == len(inclusoes_dict)
-        incs_lst = []
         for index in range(len(inclusoes_dict)):
-            inc = InclusaoAlimentacaoNormalCreationSerializer().update(
-                instance=inclusoes[index], validated_data=inclusoes_dict[index])
-            inc.save()
-            incs_lst.append(inc)
+            InclusaoAlimentacaoNormalCreationSerializer(
+            ).update(instance=inclusoes[index], validated_data=inclusoes_dict[index])
         update_instance_from_dict(instance, validated_data)
-        instance.inclusoes.set(incs_lst)
         instance.save()
         return instance
 
