@@ -53,9 +53,23 @@ class SolicitacaoKitLancheAvulsaSerializer(serializers.ModelSerializer):
         exclude = ('id',)
 
 
+class EscolaQuantidadeSerializerSimples(serializers.ModelSerializer):
+    kits = KitLancheSimplesSerializer(many=True, required=False)
+    escola = EscolaSimplesSerializer()
+    solicitacao_unificada = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=SolicitacaoKitLancheUnificada.objects.all())
+
+    class Meta:
+        model = EscolaQuantidade
+        exclude = ('id',)
+
+
 class SolicitacaoKitLancheUnificadaSerializer(serializers.ModelSerializer):
     motivo = MotivoSolicitacaoUnificadaSerializer()
     dado_base = SolicitacaoKitLancheSimplesSerializer()
+    escolas_quantidades = EscolaQuantidadeSerializerSimples(many=True)
 
     class Meta:
         model = SolicitacaoKitLancheUnificada
