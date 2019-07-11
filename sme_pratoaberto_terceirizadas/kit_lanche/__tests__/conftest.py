@@ -77,3 +77,13 @@ erro_esperado_passeio = 'tempo de passeio deve ser qualquer uma das opções:'
 ])
 def horarios_passeio_invalido(request):
     return request.param
+
+
+@pytest.fixture(params=[
+    # tempo passeio, qtd kits
+    (0, 1),
+    (1, 2),
+    (2, 3),
+])
+def tempo_kits(request):
+    return request.param

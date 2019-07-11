@@ -1,10 +1,11 @@
 from rest_framework import serializers
 
 from sme_pratoaberto_terceirizadas.dados_comuns.utils import update_instance_from_dict
+from sme_pratoaberto_terceirizadas.dados_comuns.validators import nao_pode_ser_passado
 from sme_pratoaberto_terceirizadas.escola.models import Escola, DiretoriaRegional
+from sme_pratoaberto_terceirizadas.kit_lanche.api.validators import valida_quantidade_kits_tempo_passeio
 from sme_pratoaberto_terceirizadas.kit_lanche.models import EscolaQuantidade
-from ... import models
-from ...validators import (
+from ..validators import (
     solicitacao_deve_ter_1_ou_mais_kits,
     solicitacao_deve_ter_0_kit,
     valida_tempo_passeio_lista_igual,
@@ -13,6 +14,7 @@ from ...validators import (
     escola_quantidade_deve_ter_mesmo_tempo_passeio,
     escola_quantidade_deve_ter_1_ou_mais_kits
 )
+from ... import models
 
 
 class SolicitacaoKitLancheCreationSerializer(serializers.ModelSerializer):
@@ -24,6 +26,30 @@ class SolicitacaoKitLancheCreationSerializer(serializers.ModelSerializer):
         source='get_tempo_passeio_display',
         required=False,
         read_only=True)
+
+    def validate_data(self, data):
+        nao_pode_ser_passado(data)
+        return data
+
+    def validate(self, attrs):
+        tempo_passeio = attrs.get('tempo_passeio')
+        qtd_kits = len(attrs.get('kits'))
+        valida_quantidade_kits_tempo_passeio(tempo_passeio, qtd_kits)
+        return attrs
+
+    def create(self, validated_data):
+        kits = validated_data.pop('kits', [])
+        solicitacao_kit_lanche = models.SolicitacaoKitLanche.objects.create(**validated_data)
+        solicitacao_kit_lanche.kits.set(kits)
+        return solicitacao_kit_lanche
+
+    def update(self, instance, validated_data):
+        kits = validated_data.pop('kits', [])
+        update_instance_from_dict(instance, validated_data)
+        instance.kits.set(kits)
+        instance.save()
+
+        return instance
 
     class Meta:
         model = models.SolicitacaoKitLanche
@@ -41,24 +67,22 @@ class SolicitacaoKitLancheAvulsaCreationSerializer(serializers.ModelSerializer):
     )
 
     def create(self, validated_data):
-        dado_base = validated_data.pop('dado_base')
-        kits = dado_base.pop('kits', [])
-        solicitacao_base = models.SolicitacaoKitLanche.objects.create(**dado_base)
-        solicitacao_base.kits.set(kits)
+        dado_base_json = validated_data.pop('dado_base')
+        dado_base = SolicitacaoKitLancheCreationSerializer(
+        ).create(dado_base_json)
 
         solicitacao_kit_avulsa = models.SolicitacaoKitLancheAvulsa.objects.create(
-            dado_base=solicitacao_base, **validated_data
+            dado_base=dado_base, **validated_data
         )
         return solicitacao_kit_avulsa
 
     def update(self, instance, validated_data):
-        dado_base = validated_data.pop('dado_base')
-        kits = dado_base.pop('kits', [])
+        dado_base_json = validated_data.pop('dado_base')
+        dado_base = instance.dado_base
 
-        solicitacao_base = instance.dado_base
-        update_instance_from_dict(solicitacao_base, dado_base)
-        if kits:
-            solicitacao_base.kits.set(kits)
+        SolicitacaoKitLancheCreationSerializer(
+        ).update(dado_base, dado_base_json)
+
         update_instance_from_dict(instance, validated_data)
 
         instance.save()

@@ -1,14 +1,15 @@
 import pytest
 from rest_framework.exceptions import ValidationError
 
-from ..validators import (
+from sme_pratoaberto_terceirizadas.kit_lanche.api.validators import valida_quantidade_kits_tempo_passeio
+from ..api.validators import (
     valida_tempo_passeio_lista_igual,
     escola_quantidade_deve_ter_mesmo_tempo_passeio,
     escola_quantidade_deve_ter_1_ou_mais_kits,
     escola_quantidade_deve_ter_0_kit, solicitacao_deve_ter_0_kit,
-    solicitacao_deve_ter_1_ou_mais_kits
+    solicitacao_deve_ter_1_ou_mais_kits,
+    valida_tempo_passeio_lista_nao_igual
 )
-from ..validators import (valida_tempo_passeio_lista_nao_igual)
 
 
 def test_valida_tempo_passeio_lista_nao_igual():
@@ -89,3 +90,8 @@ def test_solicitacao_deve_ter_1_ou_mais_kits_exception():
     esperado = 'Quando lista_kit_lanche_igual é Verdadeiro, "dado_base", deve ter de 1 a 3 kits'
     with pytest.raises(ValidationError, match=esperado):
         solicitacao_deve_ter_1_ou_mais_kits(numero_kits=0)
+
+
+def test_valida_quantidade_kits_tempo_passeio(tempo_kits):
+    tempo, qtd_kits = tempo_kits
+    assert valida_quantidade_kits_tempo_passeio(tempo, qtd_kits) is True
