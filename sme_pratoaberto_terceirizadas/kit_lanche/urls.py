@@ -11,10 +11,10 @@ router.register('motivos-solicitacao-unificada', viewsets.MotivoSolicitacaoUnifi
 router.register('kit-lanches', viewsets.KitLancheViewSet,
                 basename='kit-lanches')
 
-router.register('solicitacao-kit-lanche-avulsa', viewsets.SolicitacaoKitLancheAvulsaViewSet,
+router.register('solicitacoes-kit-lanche-avulsa', viewsets.SolicitacaoKitLancheAvulsaViewSet,
                 basename='solicitacao-kit-lanche-avulsa')
 
-router.register('solicitacao-kit-lanche-unificada', viewsets.SolicitacaoKitLancheUnificadaViewSet,
+router.register('solicitacoes-kit-lanche-unificada', viewsets.SolicitacaoKitLancheUnificadaViewSet,
                 basename='solicitacao-kit-lanche-unificada')
 
 router.register('escolas-quantidades', viewsets.EscolaQuantidadeViewSet,
