@@ -1,12 +1,15 @@
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 
 from sme_pratoaberto_terceirizadas.dados_comuns.models import DiaSemana
 from sme_pratoaberto_terceirizadas.dados_comuns.utils import update_instance_from_dict
 from sme_pratoaberto_terceirizadas.dados_comuns.validators import nao_pode_ser_passado
 from sme_pratoaberto_terceirizadas.escola.models import PeriodoEscolar, Escola
-from sme_pratoaberto_terceirizadas.inclusao_alimentacao.models import (
+from ...models import (
     MotivoInclusaoContinua, MotivoInclusaoNormal,
-    InclusaoAlimentacaoNormal, QuantidadePorPeriodo, InclusaoAlimentacaoContinua, GrupoInclusaoAlimentacaoNormal)
+    InclusaoAlimentacaoNormal, QuantidadePorPeriodo,
+    InclusaoAlimentacaoContinua, GrupoInclusaoAlimentacaoNormal
+)
 
 
 class MotivoInclusaoContinuaSerializer(serializers.ModelSerializer):
@@ -132,28 +135,55 @@ class InclusaoAlimentacaoContinuaCreationSerializer(serializers.ModelSerializer)
         many=True, queryset=DiaSemana.objects.all()
     )
 
+    def validate_data_inicial(self, data):
+        nao_pode_ser_passado(data)
+        return data
+
+    def validate_data_final(self, data):
+        nao_pode_ser_passado(data)
+        return data
+
+    def validate(self, attrs):
+        data_inicial = attrs.get('data_inicial', None)
+        data_final = attrs.get('data_final', None)
+        if data_inicial > data_final:
+            raise ValidationError('data inicial não pode ser maior que data final')
+        return attrs
+
     def create(self, validated_data):
         quantidades_periodo_array = validated_data.pop('quantidades_periodo')
-
         lista_escola_quantidade = self._gera_lista_escola_quantidade(quantidades_periodo_array)
         dias_semana = validated_data.pop('dias_semana', [])
-
         inclusao_alimentacao_continua = InclusaoAlimentacaoContinua.objects.create(
             **validated_data)
-
         inclusao_alimentacao_continua.dias_semana.set(dias_semana)
         inclusao_alimentacao_continua.quantidades_periodo.set(lista_escola_quantidade)
 
         return inclusao_alimentacao_continua
 
+    def update(self, instance, validated_data):
+        quantidades_periodo_array = validated_data.pop('quantidades_periodo')
+        dias_semana = validated_data.pop('dias_semana', [])
+        quantidades_periodo = instance.quantidades_periodo.all()
+
+        assert len(quantidades_periodo) == len(quantidades_periodo_array)
+        for index in range(len(quantidades_periodo_array)):
+            QuantidadePorPeriodoCreationSerializer(
+            ).update(instance=quantidades_periodo[index],
+                     validated_data=quantidades_periodo_array[index]
+                     )
+        update_instance_from_dict(instance, validated_data)
+        instance.dias_semana.set(dias_semana)
+        instance.save()
+        return instance
+
     def _gera_lista_escola_quantidade(self, quantidades_periodo_array):
-        objetos_lista = []
-        for quantidade_periodo in quantidades_periodo_array:
-            tipos_alimentacao = quantidade_periodo.pop('tipos_alimentacao', [])
-            quantidades_periodo_obj = QuantidadePorPeriodo.objects.create(**quantidade_periodo)
-            quantidades_periodo_obj.tipos_alimentacao.set(tipos_alimentacao)
-            objetos_lista.append(quantidades_periodo_obj)
-        return objetos_lista
+        escola_qtd_lista = []
+        for quantidade_periodo_json in quantidades_periodo_array:
+            quantidade_periodo = QuantidadePorPeriodoCreationSerializer(
+            ).create(quantidade_periodo_json)
+            escola_qtd_lista.append(quantidade_periodo)
+        return escola_qtd_lista
 
     class Meta:
         model = InclusaoAlimentacaoContinua
