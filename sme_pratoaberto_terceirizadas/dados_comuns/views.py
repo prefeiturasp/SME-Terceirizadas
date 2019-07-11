@@ -16,7 +16,6 @@ message_text = loader.render_to_string(text_template)
 message_html = loader.render_to_string(html_template) if html_template else None
 
 
-
 @require_http_methods(["POST"])
 def send_test_email(request):
     body_unicode = request.body.decode('utf-8')

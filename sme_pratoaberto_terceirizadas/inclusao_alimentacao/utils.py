@@ -91,7 +91,6 @@ def _validar_bloco_data(request_data, erros):
 def _validar_descricao(descricao, erros):
     tipos_refeicoes = descricao.get('select') if isinstance(descricao.get('select'), list) else [
         descricao.get('select')]
-    #print(tipos_refeicoes)
     numero_de_estudantes = descricao.get('numero')
     for tipo_refeicao in tipos_refeicoes:
         if not objeto_existe(TipoRefeicao, nome=tipo_refeicao):

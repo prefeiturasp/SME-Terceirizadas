@@ -1,11 +1,9 @@
 from django.db import models
 
 from ..dados_comuns.models_abstract import (
-    Ativavel, Descritivel, CriadoEm, Ativavel,
-    Nomeavel, IntervaloDeDia, TemData, TemChaveExterna
+    Descritivel, IntervaloDeDia,
+    Nomeavel, TemData, TemChaveExterna
 )
-from ..escola.models import PeriodoEscolar
-from ..perfil.models import Usuario
 
 
 class QuantidadePorPeriodo(TemChaveExterna):

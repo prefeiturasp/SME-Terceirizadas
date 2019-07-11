@@ -56,18 +56,6 @@ def dias_nao_uteis(request):
 
 
 @pytest.fixture(scope='function', params=[
-    # dia, dias antecedencia, esperado
-    # dia fake do teste: "2019-05-22"
-    (datetime.date(2019, 5, 27), 5, 'Deve pedir com pelo menos 5 dias úteis de antecedência'),
-    (datetime.date(2019, 5, 28), 5, 'Deve pedir com pelo menos 5 dias úteis de antecedência'),
-    (datetime.date(2019, 5, 23), 2, 'Deve pedir com pelo menos 2 dias úteis de antecedência'),
-    (datetime.date(2019, 5, 21), 2, 'Deve pedir com pelo menos 2 dias úteis de antecedência'),
-])
-def dias_teste_antecedencia_erro(request):
-    return request.param
-
-
-@pytest.fixture(scope='function', params=[
     # dia,  esperado
     # dia fake do teste: "2019-05-22"
     (datetime.date(2019, 5, 22), True),

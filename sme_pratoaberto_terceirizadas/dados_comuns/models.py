@@ -1,7 +1,7 @@
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
-from .models_abstract import (Descritivel, CriadoEm, Nomeavel, TemChaveExterna)
+from .models_abstract import (Descritivel, CriadoEm, TemChaveExterna)
 
 
 class LogUsuario(Descritivel, CriadoEm, TemChaveExterna):
