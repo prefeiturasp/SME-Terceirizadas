@@ -2,10 +2,11 @@ from rest_framework import serializers
 
 from sme_pratoaberto_terceirizadas.dados_comuns.models import DiaSemana
 from sme_pratoaberto_terceirizadas.dados_comuns.utils import update_instance_from_dict
+from sme_pratoaberto_terceirizadas.dados_comuns.validators import nao_pode_ser_passado
 from sme_pratoaberto_terceirizadas.escola.models import PeriodoEscolar, Escola
 from sme_pratoaberto_terceirizadas.inclusao_alimentacao.models import (
     MotivoInclusaoContinua, MotivoInclusaoNormal,
-    InclusaoAlimentacaoNormal, QuantidadePorPeriodo, InclusaoAlimentacaoContinua)
+    InclusaoAlimentacaoNormal, QuantidadePorPeriodo, InclusaoAlimentacaoContinua, GrupoInclusaoAlimentacaoNormal)
 
 
 class MotivoInclusaoContinuaSerializer(serializers.ModelSerializer):
@@ -39,22 +40,26 @@ class InclusaoAlimentacaoNormalCreationSerializer(serializers.ModelSerializer):
         slug_field='uuid',
         required=True,
         queryset=MotivoInclusaoNormal.objects.all())
-    quantidades_periodo = QuantidadePorPeriodoCreationSerializer()
+    quantidade_periodo = QuantidadePorPeriodoCreationSerializer()
+
+    def validate_data(self, data):
+        nao_pode_ser_passado(data)
+        return data
 
     def create(self, validated_data):
-        quantidades_periodo = validated_data.pop('quantidades_periodo')
+        quantidades_periodo = validated_data.pop('quantidade_periodo')
         tipos_alimentacao = quantidades_periodo.pop('tipos_alimentacao', [])
-        quantidades_periodo_obj = QuantidadePorPeriodo.objects.create(**quantidades_periodo)
-        quantidades_periodo_obj.tipos_alimentacao.set(tipos_alimentacao)
+        quantidade_periodo_obj = QuantidadePorPeriodo.objects.create(**quantidades_periodo)
+        quantidade_periodo_obj.tipos_alimentacao.set(tipos_alimentacao)
         inclusao_alimentacao_normal_obj = InclusaoAlimentacaoNormal.objects.create(
-            quantidades_periodo=quantidades_periodo_obj, **validated_data)
+            quantidade_periodo=quantidade_periodo_obj, **validated_data)
         return inclusao_alimentacao_normal_obj
 
     def update(self, instance, validated_data):
-        quantidades_periodo = validated_data.pop('quantidades_periodo')
+        quantidades_periodo = validated_data.pop('quantidade_periodo')
         tipos_alimentacao = quantidades_periodo.pop('tipos_alimentacao', [])
 
-        quantidades_periodo_obj = instance.quantidades_periodo
+        quantidades_periodo_obj = instance.quantidade_periodo
         update_instance_from_dict(quantidades_periodo_obj, quantidades_periodo)
         if tipos_alimentacao:
             quantidades_periodo_obj.tipos_alimentacao.set(tipos_alimentacao)
@@ -64,6 +69,44 @@ class InclusaoAlimentacaoNormalCreationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = InclusaoAlimentacaoNormal
+        exclude = ('id',)
+
+
+class GrupoInclusaoAlimentacaoNormalCreationSerializer(serializers.ModelSerializer):
+    inclusoes = InclusaoAlimentacaoNormalCreationSerializer(many=True)
+    escola = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=Escola.objects.all()
+    )
+
+    def create(self, validated_data):
+        inclusoes = validated_data.pop('inclusoes')
+        incs_lst = []
+        for inclusao in inclusoes:
+            inc = InclusaoAlimentacaoNormalCreationSerializer().create(validated_data=inclusao)
+            incs_lst.append(inc)
+        grupo_inclusao_alimentacao_normal = GrupoInclusaoAlimentacaoNormal.objects.create(**validated_data)
+        grupo_inclusao_alimentacao_normal.inclusoes.set(incs_lst)
+        return grupo_inclusao_alimentacao_normal
+
+    def update(self, instance, validated_data):
+        inclusoes_dict = validated_data.pop('inclusoes')
+        inclusoes = instance.inclusoes.all()
+        assert len(inclusoes) == len(inclusoes_dict)
+        incs_lst = []
+        for index in range(len(inclusoes_dict)):
+            inc = InclusaoAlimentacaoNormalCreationSerializer().update(
+                instance=inclusoes[index], validated_data=inclusoes_dict[index])
+            inc.save()
+            incs_lst.append(inc)
+        update_instance_from_dict(instance, validated_data)
+        instance.inclusoes.set(incs_lst)
+        instance.save()
+        return instance
+
+    class Meta:
+        model = GrupoInclusaoAlimentacaoNormal
         exclude = ('id',)
 
 

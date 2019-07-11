@@ -15,6 +15,7 @@ router.register('grupos-inclusao-alimentacao-normal', viewsets.GrupoInclusaoAlim
                 basename='grupo-inclusao-alimentacao-normal')
 router.register('inclusoes-alimentacao-continua', viewsets.InclusaoAlimentacaoContinuaViewSet,
                 basename='inclusao-alimentacao-continua')
+
 urlpatterns = [
     path('', include(router.urls))
 ]

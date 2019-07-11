@@ -33,6 +33,12 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
     queryset = models.GrupoInclusaoAlimentacaoNormal.objects.all()
     serializer_class = serializers.GrupoInclusaoAlimentacaoNormalSerializer
 
+    # TODO: permitir deletar somente se o status for do inicial...
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update']:
+            return serializers_create.GrupoInclusaoAlimentacaoNormalCreationSerializer
+        return serializers.GrupoInclusaoAlimentacaoNormalSerializer
+
 
 class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
     lookup_field = 'uuid'
