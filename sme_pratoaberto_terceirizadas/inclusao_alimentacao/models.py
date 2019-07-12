@@ -1,15 +1,14 @@
+from django.core.validators import MinValueValidator
 from django.db import models
 
 from ..dados_comuns.models_abstract import (
-    Ativavel, Descritivel, CriadoEm, Ativavel,
-    Nomeavel, IntervaloDeDia, TemData, TemChaveExterna
+    Descritivel, IntervaloDeDia,
+    Nomeavel, TemData, TemChaveExterna
 )
-from ..escola.models import PeriodoEscolar
-from ..perfil.models import Usuario
 
 
 class QuantidadePorPeriodo(TemChaveExterna):
-    numero_alunos = models.PositiveSmallIntegerField()
+    numero_alunos = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)])
     periodo_escolar = models.ForeignKey('escola.PeriodoEscolar', on_delete=models.DO_NOTHING)
     tipos_alimentacao = models.ManyToManyField('cardapio.TipoAlimentacao')
 
@@ -73,8 +72,8 @@ class MotivoInclusaoNormal(Nomeavel, TemChaveExterna):
 
 
 class InclusaoAlimentacaoNormal(TemData, TemChaveExterna):
-    quantidades_periodo = models.ForeignKey(QuantidadePorPeriodo, on_delete=models.DO_NOTHING,
-                                            blank=True, null=True)
+    quantidade_periodo = models.ForeignKey(QuantidadePorPeriodo, on_delete=models.DO_NOTHING,
+                                           blank=True, null=True)
     prioritario = models.BooleanField(default=False)
     motivo = models.ForeignKey(MotivoInclusaoNormal, on_delete=models.DO_NOTHING)
     outro_motivo = models.CharField("Outro motivo", blank=True, null=True, max_length=50)

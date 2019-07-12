@@ -1,10 +1,11 @@
 from rest_framework import serializers
 
 from sme_pratoaberto_terceirizadas.dados_comuns.utils import update_instance_from_dict
+from sme_pratoaberto_terceirizadas.dados_comuns.validators import nao_pode_ser_passado
 from sme_pratoaberto_terceirizadas.escola.models import Escola, DiretoriaRegional
+from sme_pratoaberto_terceirizadas.kit_lanche.api.validators import valida_quantidade_kits_tempo_passeio
 from sme_pratoaberto_terceirizadas.kit_lanche.models import EscolaQuantidade
-from ... import models
-from ...validators import (
+from ..validators import (
     solicitacao_deve_ter_1_ou_mais_kits,
     solicitacao_deve_ter_0_kit,
     valida_tempo_passeio_lista_igual,
@@ -13,6 +14,7 @@ from ...validators import (
     escola_quantidade_deve_ter_mesmo_tempo_passeio,
     escola_quantidade_deve_ter_1_ou_mais_kits
 )
+from ... import models
 
 
 class SolicitacaoKitLancheCreationSerializer(serializers.ModelSerializer):
@@ -24,6 +26,30 @@ class SolicitacaoKitLancheCreationSerializer(serializers.ModelSerializer):
         source='get_tempo_passeio_display',
         required=False,
         read_only=True)
+
+    def validate_data(self, data):
+        nao_pode_ser_passado(data)
+        return data
+
+    def validate(self, attrs):
+        tempo_passeio = attrs.get('tempo_passeio')
+        qtd_kits = len(attrs.get('kits'))
+        valida_quantidade_kits_tempo_passeio(tempo_passeio, qtd_kits)
+        return attrs
+
+    def create(self, validated_data):
+        kits = validated_data.pop('kits', [])
+        solicitacao_kit_lanche = models.SolicitacaoKitLanche.objects.create(**validated_data)
+        solicitacao_kit_lanche.kits.set(kits)
+        return solicitacao_kit_lanche
+
+    def update(self, instance, validated_data):
+        kits = validated_data.pop('kits', [])
+        update_instance_from_dict(instance, validated_data)
+        instance.kits.set(kits)
+        instance.save()
+
+        return instance
 
     class Meta:
         model = models.SolicitacaoKitLanche
@@ -41,24 +67,22 @@ class SolicitacaoKitLancheAvulsaCreationSerializer(serializers.ModelSerializer):
     )
 
     def create(self, validated_data):
-        dado_base = validated_data.pop('dado_base')
-        kits = dado_base.pop('kits', [])
-        solicitacao_base = models.SolicitacaoKitLanche.objects.create(**dado_base)
-        solicitacao_base.kits.set(kits)
+        dado_base_json = validated_data.pop('dado_base')
+        dado_base = SolicitacaoKitLancheCreationSerializer(
+        ).create(dado_base_json)
 
         solicitacao_kit_avulsa = models.SolicitacaoKitLancheAvulsa.objects.create(
-            dado_base=solicitacao_base, **validated_data
+            dado_base=dado_base, **validated_data
         )
         return solicitacao_kit_avulsa
 
     def update(self, instance, validated_data):
-        dado_base = validated_data.pop('dado_base')
-        kits = dado_base.pop('kits', [])
+        dado_base_json = validated_data.pop('dado_base')
+        dado_base = instance.dado_base
 
-        solicitacao_base = instance.dado_base
-        update_instance_from_dict(solicitacao_base, dado_base)
-        if kits:
-            solicitacao_base.kits.set(kits)
+        SolicitacaoKitLancheCreationSerializer(
+        ).update(dado_base, dado_base_json)
+
         update_instance_from_dict(instance, validated_data)
 
         instance.save()
@@ -91,6 +115,25 @@ class EscolaQuantidadeCreationSerializer(serializers.ModelSerializer):
         queryset=models.SolicitacaoKitLancheUnificada.objects.all()
     )
 
+    def validate(self, attrs):
+        tempo_passeio = attrs.get('tempo_passeio')
+        qtd_kits = len(attrs.get('kits'))
+        valida_quantidade_kits_tempo_passeio(tempo_passeio, qtd_kits)
+        return attrs
+
+    def create(self, validated_data):
+        kits = validated_data.pop('kits', [])
+        escola_quantiade = EscolaQuantidade.objects.create(**validated_data)
+        escola_quantiade.kits.set(kits)
+        return escola_quantiade
+
+    def update(self, instance, validated_data):
+        kits = validated_data.pop('kits', [])
+        update_instance_from_dict(instance, validated_data)
+        instance.kits.set(kits)
+        instance.save()
+        return instance
+
     class Meta:
         model = EscolaQuantidade
         exclude = ('id',)
@@ -119,11 +162,10 @@ class SolicitacaoKitLancheUnificadaCreationSerializer(serializers.ModelSerialize
         dado_base = validated_data.pop('dado_base')
         escolas_quantidades = validated_data.pop('escolas_quantidades')
 
-        kits = dado_base.pop('kits', [])
-        solicitacao_base = models.SolicitacaoKitLanche.objects.create(**dado_base)
+        solicitacao_base = SolicitacaoKitLancheCreationSerializer().create(dado_base)
 
-        if lista_igual:
-            solicitacao_base.kits.set(kits)
+        if not lista_igual:
+            solicitacao_base.kits.set([])
 
         lista_quantidade_escola = self._gera_escolas_quantidades(escolas_quantidades)
 
@@ -134,41 +176,17 @@ class SolicitacaoKitLancheUnificadaCreationSerializer(serializers.ModelSerialize
         return solicitacao_kit_unificada
 
     def update(self, instance, validated_data):
+        escolas_quantidades_array = validated_data.pop('escolas_quantidades')
         dado_base_json = validated_data.pop('dado_base')
-        kits_base_json = dado_base_json.pop('kits', [])
-        escolas_quantidades_json = validated_data.pop('escolas_quantidades')
 
-        solicitacao_base = instance.dado_base
+        dado_base = instance.dado_base
         escolas_quantidades = instance.escolas_quantidades.all()
 
-        # TODO: aprimorar isso aqui...
-        for eq in range(len(escolas_quantidades_json)):
-            escola_quantidade_json = escolas_quantidades_json[eq]
-            escola_quantidade_kits = escola_quantidade_json.pop('kits')
+        SolicitacaoKitLancheCreationSerializer().update(dado_base, dado_base_json)
 
-            escola_quantidade = escolas_quantidades[eq]
-            update_instance_from_dict(escola_quantidade, escola_quantidade_json)
-            escola_quantidade.kits.set(escola_quantidade_kits)
-            escola_quantidade.save()
+        self._atualiza_escolas_quantidades(escolas_quantidades, escolas_quantidades_array)
 
-            # import ipdb
-            # ipdb.set_trace()
-        # TODO:
-        # for escola_qtd_json in escolas_quantidades_json:
-        #     escola_quantidade_object = escola_qtd_json.get('uuid')
-        #
-        #     escola_quantidade_kits = escola_qtd_json.pop('kits')
-        #
-        #     update_instance_from_dict(escola_quantidade_object, escola_qtd_json)  # atualiza com os dados do json
-        #
-        #     escola_quantidade_object.kits.set(escola_quantidade_kits)
-        #
-        #     escola_quantidade_object.save()
-
-        update_instance_from_dict(solicitacao_base, dado_base_json)
-        solicitacao_base.kits.set(kits_base_json)
         update_instance_from_dict(instance, validated_data)
-
         instance.save()
         return instance
 
@@ -215,14 +233,19 @@ class SolicitacaoKitLancheUnificadaCreationSerializer(serializers.ModelSerialize
                 cont += 1
 
     def _gera_escolas_quantidades(self, escolas_quantidades):
-        objetos_lista = []
-        for escola_quantidade in escolas_quantidades:
-            kits_personalizados_da_escola = escola_quantidade.pop('kits', [])
-            escola_quantidade_object = models.EscolaQuantidade.objects.create(**escola_quantidade)
-            escola_quantidade_object.kits.set(kits_personalizados_da_escola)
-            objetos_lista.append(escola_quantidade_object)
+        escola_quantidade_lista = []
+        for escola_quantidade_json in escolas_quantidades:
+            escola_quantidade_object = EscolaQuantidadeCreationSerializer(
+            ).create(escola_quantidade_json)
+            escola_quantidade_lista.append(escola_quantidade_object)
+        return escola_quantidade_lista
 
-        return objetos_lista
+    def _atualiza_escolas_quantidades(self, escolas_quantidades, escolas_quantidades_lista):
+        # TODO: quando o o len dos dois for diferente, tratar esse diff...
+        for index in range(len(escolas_quantidades)):
+            EscolaQuantidadeCreationSerializer(
+            ).update(instance=escolas_quantidades[index],
+                     validated_data=escolas_quantidades_lista[index])
 
     class Meta:
         model = models.SolicitacaoKitLancheUnificada

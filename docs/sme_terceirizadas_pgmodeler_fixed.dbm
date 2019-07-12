@@ -3,7 +3,7 @@
 CAUTION: Do not modify this file unless you know what you are doing.
          Unexpected results may occur if the code is changed deliberately.
 -->
-<dbmodel pgmodeler-ver="0.9.1" last-position="2510,0" last-zoom="1.05"
+<dbmodel pgmodeler-ver="0.9.1" last-position="772,250" last-zoom="0.45"
 	 default-owner="postgres">
 <database name="new_database" is-template="false" allow-conns="true">
 </database>
@@ -56,7 +56,7 @@ pode fechar a escola, etc.]]></comment>
 	<comment><![CDATA[[ATENCAO, QUANDO FOR CEMEI, TEM DOIS TIPOS DE ALUNOS: DE  CEI E EMEI, OU SEJA, COMPLEXIDADE ESPECIFICA DO CASO.]
 
 Unidade escolar. EMEF, CIEJA, EMEI, EMEBS, CEI, CEMEI]]></comment>
-	<position x="3908.67" y="1633.14"/>
+	<position x="3954" y="1032.47"/>
 	<column name="unidade_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -72,7 +72,7 @@ Unidade escolar. EMEF, CIEJA, EMEI, EMEBS, CEI, CEMEI]]></comment>
 	<schema name="&quot;escola[revisado]&quot;"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Qual o tipo de gestão da escola. Ex.: Terceirizada completa, tec mista]]></comment>
-	<position x="3873.48" y="1496.02"/>
+	<position x="3918.81" y="895.35"/>
 	<column name="gestao_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -97,7 +97,7 @@ Ex. de 1 a 2 anos
 de 2 a 5 anos
 de 7 a 18 anos.
 de 6meses a 1 ano]]></comment>
-	<position x="5085.88" y="1120.28"/>
+	<position x="5131.21" y="519.61"/>
 	<column name="idade_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -150,7 +150,7 @@ Merenda Seca]]></comment>
 1 lista de tipos de refeicao (Dejejum, Colação, Almoço, LANCHE DE 4 HS OU 8 HS; LANCHE DE 5HS OU 6 HS; REFEIÇÃO).
 
 !!!!OBS!!! PARA CEI varia por faixa de idade.]]></comment>
-	<position x="4277.11" y="2487.7"/>
+	<position x="4061.55" y="2467.7"/>
 	<column name="cardapio_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -179,7 +179,7 @@ Merenda Seca]]></comment>
 <table name="escola[revisado]">
 	<schema name="&quot;escola[revisado]&quot;"/>
 	<role name="postgres"/>
-	<position x="4264.34" y="1078.97"/>
+	<position x="4257.01" y="321.273"/>
 	<column name="escola_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -239,7 +239,7 @@ o perfil professor pode [dar aula, fazer denuncia na DRE]]]></comment>
 	<schema name="dados_comuns"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Registra eventos de usuário realizado no sistema]]></comment>
-	<position x="6667.65" y="1966.15"/>
+	<position x="4709.21" y="1706.59"/>
 	<column name="log_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -265,7 +265,7 @@ o perfil professor pode [dar aula, fazer denuncia na DRE]]]></comment>
 	<schema name="&quot;escola[revisado]&quot;"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Tabela utilizada para registrar as DREs (DIRETORIA REGIONAL DA EDUCAÇÃO)]]></comment>
-	<position x="3591.76" y="1124.22"/>
+	<position x="3637.09" y="523.55"/>
 	<column name="diretor_regional_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -325,7 +325,7 @@ o perfil professor pode [dar aula, fazer denuncia na DRE]]]></comment>
 	<comment><![CDATA[Lote de  atendimento
 Uma DRE pode ter 1 ou mais lotes
 um lote é um conjunto de escolas que a terceirizada atende]]></comment>
-	<position x="2598.41" y="1624"/>
+	<position x="2911.42" y="1059.71"/>
 	<column name="lote_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -348,7 +348,7 @@ um lote é um conjunto de escolas que a terceirizada atende]]></comment>
 	<schema name="terceirizada"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Edital para alimentação]]></comment>
-	<position x="2706.78" y="1450.74"/>
+	<position x="2455.35" y="1480.74"/>
 	<column name="edital_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -376,7 +376,7 @@ um lote é um conjunto de escolas que a terceirizada atende]]></comment>
 	<schema name="terceirizada"/>
 	<role name="postgres"/>
 	<comment><![CDATA[qual o relacionamento com edital e contrato?]]></comment>
-	<position x="2871.55" y="1840.69"/>
+	<position x="3295.36" y="1440.84"/>
 	<column name="terceirizada_id" not-null="true">
 		<type name="serial" length="80"/>
 	</column>
@@ -384,13 +384,28 @@ um lote é um conjunto de escolas que a terceirizada atende]]></comment>
 		<type name="varchar" length="80"/>
 	</column>
 	<column name="cnpj" not-null="true">
-		<type name="integer" length="0"/>
+		<type name="varchar" length="0"/>
 	</column>
 	<column name="contrato" not-null="true">
 		<type name="varchar" length="80"/>
 	</column>
 	<column name="ativo" not-null="true">
 		<type name="boolean" length="0"/>
+	</column>
+	<column name="razao_social">
+		<type name="varchar" length="0"/>
+	</column>
+	<column name="representante_legal">
+		<type name="varchar" length="0"/>
+	</column>
+	<column name="representante_contato">
+		<type name="varchar" length="0"/>
+	</column>
+	<column name="nutricionista_responsavel">
+		<type name="varchar" length="0"/>
+	</column>
+	<column name="nutricionista_crn">
+		<type name="smallint" length="0"/>
 	</column>
 	<constraint name="terceirizada_pk" type="pk-constr" table="terceirizada.terceirizada">
 		<columns names="terceirizada_id" ref-type="src-columns"/>
@@ -510,7 +525,7 @@ um lote é um conjunto de escolas que a terceirizada atende]]></comment>
 	<schema name="&quot;escola[revisado]&quot;"/>
 	<role name="postgres"/>
 	<comment><![CDATA[manhã, intermediário, tarde, vespertino, noturno, integral]]></comment>
-	<position x="4933.55" y="1497.57"/>
+	<position x="4978.88" y="896.9"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -778,7 +793,7 @@ QUANDO É MULTIPLO: ex: passeio pra escola x,y,z no ibira (local)  no dia 26 ond
 
 """
 Nayla - por exemplo: quero servir o cardápio do dia 30 no dia 15, automaticamente o cardápio do dia 15 será servido no dia 30"""]]></comment>
-	<position x="3237.88" y="2258.61"/>
+	<position x="3237.88" y="2436.39"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -964,7 +979,7 @@ Muito parecido com cardápio.
 Acontece quando não tem cardápio para a escola, por exemplo num domingo, no qual vai ter uma atividade de dança avulsa e a escola gostaria de dar almoço e  merenda pros participantes.
 
 tipo, continuo ou normal]]></comment>
-	<position x="5935.29" y="853.051"/>
+	<position x="5799.62" y="166.718"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -1009,7 +1024,7 @@ tipo, continuo ou normal]]></comment>
 	<schema name="dados_comuns"/>
 	<role name="postgres"/>
 	<comment><![CDATA[seg, sex;...]]></comment>
-	<position x="6639.73" y="1702.92"/>
+	<position x="4727.95" y="1230.03"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -1042,7 +1057,7 @@ tipo, continuo ou normal]]></comment>
 	<comment><![CDATA[continuo -  mais educacao
 continuo-sp integral
 continuo - outro]]></comment>
-	<position x="6614.71" y="886.374"/>
+	<position x="6479.04" y="200.041"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -1066,7 +1081,7 @@ continuo - outro]]></comment>
 <table name="qtd_por_periodo[revisado]">
 	<schema name="&quot;inclusao_alimentacao[revisado]&quot;"/>
 	<role name="postgres"/>
-	<position x="5933.58" y="1171.8"/>
+	<position x="5813.91" y="496.04"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -1112,7 +1127,7 @@ continuo - outro]]></comment>
 <table name="inclusao_alimentacao_normal[revisado]">
 	<schema name="&quot;inclusao_alimentacao[revisado]&quot;"/>
 	<role name="postgres"/>
-	<position x="6555.93" y="1084.19"/>
+	<position x="6420.26" y="397.86"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -1144,7 +1159,7 @@ continuo - outro]]></comment>
 	<comment><![CDATA[reposicao de aula
 dia de familia
 outro]]></comment>
-	<position x="6618.18" y="1432.32"/>
+	<position x="6482.51" y="745.99"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -1168,7 +1183,7 @@ outro]]></comment>
 <table name="grupo_inclusao_alimentacao_normal[revisado]">
 	<schema name="&quot;inclusao_alimentacao[revisado]&quot;"/>
 	<role name="postgres"/>
-	<position x="5947.93" y="1415.53"/>
+	<position x="5812.26" y="729.2"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -1422,6 +1437,72 @@ quando é multipla: todas as escolas vao ter a mesma opcao de kits, com numero d
 	 custom-color="#000000"
 	 src-table="&quot;inclusao_alimentacao[revisado]&quot;.&quot;qtd_por_periodo[revisado]&quot;"
 	 dst-table="&quot;inclusao_alimentacao[revisado]&quot;.&quot;inclusao_alimentacao_normal[revisado]&quot;"
+	 src-required="false" dst-required="false"/>
+
+<table name="endereco">
+	<schema name="dados_comuns"/>
+	<role name="postgres"/>
+	<position x="4715.56" y="1591.77"/>
+	<column name="id" not-null="true">
+		<type name="serial" length="0"/>
+	</column>
+	<column name="endereco">
+		<type name="text" length="0"/>
+	</column>
+	<column name="cep">
+		<type name="varchar" length="0"/>
+	</column>
+	<constraint name="endereco_pk" type="pk-constr" table="dados_comuns.endereco">
+		<columns names="id" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<relationship name="endereco_has_many_terceirizada" type="rel1n"
+	 src-col-pattern="{sc}_{st}"
+	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
+	 src-fk-pattern="{st}_fk"
+	 custom-color="#000000"
+	 src-table="dados_comuns.endereco"
+	 dst-table="terceirizada.terceirizada"
+	 src-required="false" dst-required="false"/>
+
+<table name="contato">
+	<schema name="dados_comuns"/>
+	<role name="postgres"/>
+	<position x="4673.33" y="1411.11"/>
+	<column name="id" not-null="true">
+		<type name="smallint" length="0"/>
+	</column>
+	<column name="telefone">
+		<type name="varchar" length="0"/>
+	</column>
+	<column name="celular">
+		<type name="varchar" length="0"/>
+	</column>
+	<column name="email">
+		<type name="varchar" length="0"/>
+	</column>
+	<constraint name="contato_pk" type="pk-constr" table="dados_comuns.contato">
+		<columns names="id" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<relationship name="contato_has_many_terceirizada" type="rel1n"
+	 src-col-pattern="{sc}_{st}"
+	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
+	 src-fk-pattern="{st}_fk"
+	 custom-color="#000000"
+	 src-table="dados_comuns.contato"
+	 dst-table="terceirizada.terceirizada"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="edital_has_many_terceirizada" type="rel1n"
+	 src-col-pattern="{sc}_{st}"
+	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
+	 src-fk-pattern="{st}_fk"
+	 custom-color="#000000"
+	 src-table="terceirizada.edital"
+	 dst-table="terceirizada.terceirizada"
 	 src-required="false" dst-required="false"/>
 
 <constraint name="fk_usuario_id" type="fk-constr" comparison-type="MATCH FULL"
