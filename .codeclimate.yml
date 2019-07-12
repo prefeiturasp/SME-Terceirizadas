@@ -4,3 +4,4 @@ exclude_patterns:
   - "utility/*"
   - "**/**/urls.py"
   - "**/**/**/serializers/serializer*"
+  - "**/**/**/viewsets.py"
