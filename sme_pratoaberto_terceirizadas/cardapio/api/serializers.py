@@ -5,8 +5,8 @@ from traitlets import Any
 
 from sme_pratoaberto_terceirizadas.dados_comuns.validators import (nao_pode_ser_passado, nao_pode_ser_feriado, \
                                                                    objeto_nao_deve_ter_duplicidade, verificar_se_existe)
+from .validators import cardapio_antigo
 from ..models import *
-from .validators import cardapio_antigo, cardapio_existe, valida_cardapio_de_para
 
 
 class TipoAlimentacaoSerializer(serializers.ModelSerializer):
@@ -23,21 +23,31 @@ class TipoAlimentacaoSerializer(serializers.ModelSerializer):
 
 class InversaoCardapioSerializer(serializers.ModelSerializer):
 
-    def validate_cardapio_de(self, cardapio_de):
-        cardapio_existe(cardapio_de)
-        cardapio_antigo(cardapio_de)
-        return cardapio_de
+    def validate_cardapio_de(self, value):
+        verificar_se_existe(Cardapio, uuid=value)
+        cardapio_antigo(value)
+        return value
 
-    def validate_cardapio_para(self, cardapio_para):
-        cardapio_existe(cardapio_para)
-        cardapio_antigo(cardapio_para)
-        return cardapio_para
+    #
+    # def validate_cardapio_para(self, value):
+    #     verificar_se_existe(Cardapio, uuid=value)
+    #     cardapio_antigo(value)
+    #     return value
 
-    def validate(self, attrs):
-        de = attrs.get('cardapio_de')
-        para = attrs.get('cardapio_para')
-        valida_cardapio_de_para(de, para)
-        return attrs
+    # def validate(self, attrs):
+    #     request = self._filtrar_requisicao(attrs)
+    #     de = request.get('cardapio_de')
+    #     para = request.get('cardapio_para')
+    #     escola = request.get('escola')
+    #     valida_cardapio_de_para(de, para)
+    #     valida_duplicidade(de, para, escola)
+    #     return attrs
+
+    def _filtrar_requisicao(self, request):
+        request['cardapio_de'] = Cardapio.objects.get(uuid=request.get('cardapio_de'))
+        request['cardapio_para'] = Cardapio.objects.get(uuid=request.get('cardapio_para'))
+        request['escola'] = Escola.objects.get(uuid=request.get('escola'))
+        return request
 
     class Meta:
         model = InversaoCardapio
