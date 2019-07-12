@@ -1,0 +1,10 @@
+[
+  {
+    "model": "escola.diretoriaregional",
+    "id": 1,
+    "fields": {
+      "nome": "DRE Ipiranga",
+      "codigo": "IPI"
+    }
+  }
+]

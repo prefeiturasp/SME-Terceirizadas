@@ -1,0 +1,44 @@
+[
+  {
+    "model": "kit_lanche.statussolicitacaounificada",
+    "id": 1,
+    "fields": {
+      "nome": "A APROVAR"
+    }
+  },
+  {
+    "model": "kit_lanche.statussolicitacaounificada",
+    "id": 2,
+    "fields": {
+      "nome": "A EDITAR"
+    }
+  },
+  {
+    "model": "kit_lanche.statussolicitacaounificada",
+    "id": 3,
+    "fields": {
+      "nome": "A VISUALIZAR"
+    }
+  },
+  {
+    "model": "kit_lanche.statussolicitacaounificada",
+    "id": 4,
+    "fields": {
+      "nome": "NEGADO_PELA_CODAE"
+    }
+  },
+  {
+    "model": "kit_lanche.statussolicitacaounificada",
+    "id": 5,
+    "fields": {
+      "nome": "NEGADO_PELA_TERCEIRIZADA"
+    }
+  },
+  {
+    "model": "kit_lanche.statussolicitacaounificada",
+    "id": 6,
+    "fields": {
+      "nome": "VISUALIZADO"
+    }
+  }
+]

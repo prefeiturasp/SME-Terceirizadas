@@ -12,7 +12,14 @@ django-model-utils==3.1.2  # https://github.com/jazzband/django-model-utils
 django-allauth==0.38.0  # https://github.com/pennersr/django-allauth
 django-crispy-forms==1.7.2  # https://github.com/django-crispy-forms/django-crispy-forms
 django-redis==4.10.0  # https://github.com/niwinz/django-redis
+django-des==2.4.1 # https://github.com/jamiecounsell/django-des
+django-cors-headers==3.0.2   # https://pypi.org/project/django-cors-headers/
+traitlets==4.3.2    # https://pypi.org/project/traitlets/
 
 # Django REST Framework
 djangorestframework==3.9.1  # https://github.com/encode/django-rest-framework
 coreapi==2.3.3  # https://github.com/core-api/python-client
+djangorestframework-jwt==1.11.0 # https://getblimp.github.io/django-rest-framework-jwt/
+django-notifications-hq==1.5.0 # https://github.com/django-notifications/django-notifications
+workalendar==4.3.1 # https://github.com/peopledoc/workalendar
+django-rest-swagger==2.2.0 # https://github.com/marcgibbons/django-rest-swagger
