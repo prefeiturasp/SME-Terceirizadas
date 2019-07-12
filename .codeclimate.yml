@@ -3,3 +3,4 @@ exclude_patterns:
   - "**/**/migrations/**"
   - "utility/*"
   - "**/**/urls.py "
+  - "**/**/**/serializers/**"
