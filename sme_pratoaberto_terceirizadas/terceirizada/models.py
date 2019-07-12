@@ -36,9 +36,26 @@ class Lote(TemChaveExterna, Nomeavel, Iniciais):
 class Terceirizada(TemChaveExterna, Ativavel):
     """Empresa Terceirizada"""
 
-    nome_fantasia = models.CharField("Nome fantasia", max_length=160)
+    nome_fantasia = models.CharField("Nome fantasia", max_length=160,
+                                     blank=True, null=True)
+    razao_social = models.CharField("Razao social", max_length=160,
+                                    blank=True, null=True)
     cnpj = models.CharField("CNPJ", validators=[MinLengthValidator(14)], max_length=14)
-    lotes = models.ManyToManyField(Lote)
+    lotes = models.ManyToManyField(Lote, related_name="lotes")
+
+    representante_legal = models.CharField("Representante legal", max_length=160,
+                                           blank=True, null=True)
+    representante_contato = models.CharField("Representante contato (email/tel)", max_length=160,
+                                             blank=True, null=True)
+    nutricionista_responsavel = models.CharField("Nutricionista responsavel", max_length=160,
+                                                 blank=True, null=True)
+    nutricionista_crn = models.CharField("Nutricionista crn", max_length=160,
+                                         blank=True, null=True)
+
+    endereco = models.ForeignKey("dados_comuns.Endereco", on_delete=models.CASCADE,
+                                 blank=True, null=True)
+    contato = models.ForeignKey("dados_comuns.Contato", on_delete=models.CASCADE,
+                                blank=True, null=True)
 
     def __str__(self):
         return "{} {}".format(self.nome_fantasia, self.cnpj)
