@@ -4,9 +4,9 @@ from django.db import models
 from ..dados_comuns.models_abstract import (Ativavel, Iniciais, Nomeavel, TemChaveExterna)
 
 
-class DiretoriaRegional(Iniciais, Nomeavel, TemChaveExterna):
+class DiretoriaRegional(Nomeavel, TemChaveExterna):
     def __str__(self):
-        return '{}: {}'.format(self.iniciais, self.nome)
+        return self.nome
 
     class Meta:
         verbose_name = "Diretoria regional"
