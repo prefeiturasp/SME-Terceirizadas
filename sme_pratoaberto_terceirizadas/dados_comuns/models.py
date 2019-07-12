@@ -31,6 +31,8 @@ class DiaSemana(TemChaveExterna):
 class Contato(models.Model):
     telefone = models.CharField(max_length=10, validators=[MinLengthValidator(8)],
                                 blank=True, null=True)
+    telefone2 = models.CharField(max_length=10, validators=[MinLengthValidator(8)],
+                                 blank=True, null=True)
     celular = models.CharField(max_length=11, validators=[MinLengthValidator(8)],
                                blank=True, null=True)
     email = models.EmailField(blank=True, null=True)

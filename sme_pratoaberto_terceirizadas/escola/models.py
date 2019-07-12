@@ -71,7 +71,8 @@ class PeriodoEscolar(Nomeavel, TemChaveExterna):
 class Escola(Ativavel, TemChaveExterna):
     nome = models.CharField("Nome", max_length=160, blank=True, null=True)
     codigo_eol = models.CharField("Código EOL", max_length=6, unique=True, validators=[MinLengthValidator(6)])
-    codigo_codae = models.CharField('Código CODAE', max_length=10, unique=True)
+    codigo_codae = models.CharField('Código CODAE', max_length=10, unique=True,
+                                    blank=True, null=True)
     quantidade_alunos = models.PositiveSmallIntegerField("Quantidade de alunos")
 
     diretoria_regional = models.ForeignKey(DiretoriaRegional,
@@ -83,6 +84,11 @@ class Escola(Ativavel, TemChaveExterna):
                                     on_delete=models.DO_NOTHING)
     lote = models.ForeignKey('terceirizada.Lote',
                              on_delete=models.DO_NOTHING)
+
+    endereco = models.ForeignKey('dados_comuns.Endereco', on_delete=models.DO_NOTHING,
+                                 blank=True, null=True)
+    contato = models.ForeignKey('dados_comuns.Contato', on_delete=models.DO_NOTHING,
+                                blank=True, null=True)
 
     idades = models.ManyToManyField(FaixaIdadeEscolar, blank=True)
     periodos = models.ManyToManyField(PeriodoEscolar, blank=True)
