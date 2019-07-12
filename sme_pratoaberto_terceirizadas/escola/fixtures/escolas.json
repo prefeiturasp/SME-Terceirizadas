@@ -1,0 +1,123 @@
+[
+  {
+    "model": "escola.escola",
+    "id": 1,
+    "fields": {
+      "nome": "EMEI PAULO CAMILHIER FLORENÇANO (TERC.)",
+      "codigo_eol": "86",
+      "codigo_codae": "86",
+      "lote": 1,
+      "periodos": [1,2,3,4,5]
+    }
+  },
+  {
+    "model": "escola.escola",
+    "id": 2,
+    "fields": {
+      "nome": "EMEI VICENTE PAULO DA SILVA (TERC.)",
+      "codigo_eol": "94",
+      "codigo_codae": "94",
+      "lote": 2,
+      "periodos": [1,2,3,4,5]
+    }
+  },
+  {
+    "model": "escola.escola",
+    "id": 3,
+    "fields": {
+      "nome": "EMEF JOSE ERMIRIO DE MORAIS, SEN. (TERC.)",
+      "codigo_eol": "108",
+      "codigo_codae": "108",
+      "lote": 1,
+      "periodos": [1,2,3,4,5]
+    }
+  },
+  {
+    "model": "escola.escola",
+    "id": 4,
+    "fields": {
+      "nome": "EMEF PROF. ALIPIO CORREA NETO - (MIST)",
+      "codigo_eol": "191",
+      "codigo_codae": "191",
+      "lote": 2,
+      "periodos": [1,2,3,4,5]
+    }
+  },
+  {
+    "model": "escola.escola",
+    "id": 5,
+    "fields": {
+      "nome": "EMEBS PROFA. VERA LÚCIA APARECIDA RIBEIRO - (MIST)",
+      "codigo_eol": "205",
+      "codigo_codae": "205",
+      "lote": 1,
+      "periodos": [1,2,3,4,5]
+    }
+  },
+  {
+    "model": "escola.escola",
+    "id": 6,
+    "fields": {
+      "nome": "EMEI PROF. ANTONIO CARLOS PACHECO E SILVA (MIST)",
+      "codigo_eol": "213",
+      "codigo_codae": "213",
+      "lote": 2,
+      "periodos": [1,2,3,4,5]
+    }
+  },
+  {
+    "model": "escola.escola",
+    "id": 7,
+    "fields": {
+      "nome": "EMEI NAIR CORREA BUARQUE (TERC.)",
+      "codigo_eol": "221",
+      "codigo_codae": "221",
+      "lote": 1,
+      "periodos": [1,2,3,4,5]
+    }
+  },
+  {
+    "model": "escola.escola",
+    "id": 8,
+    "fields": {
+      "nome": "EMEI MARIA YOLANDA DE SOUZA PINTO HAHNE (TERC.)",
+      "codigo_eol": "230",
+      "codigo_codae": "230",
+      "lote": 2,
+      "periodos": [1,2,3,4,5]
+    }
+  },
+  {
+    "model": "escola.escola",
+    "id": 9,
+    "fields": {
+      "nome": "EMEI WALFRIDO DE CARVALHO, CEL. (TERC.)",
+      "codigo_eol": "248",
+      "codigo_codae": "248",
+      "lote": 1,
+      "periodos": [1,2,3,4,5]
+    }
+  },
+  {
+    "model": "escola.escola",
+    "id": 10,
+    "fields": {
+      "nome": "EMEI PROFA. WILMA ALVARENGA DE OLIVEIRA  - (MIST)",
+      "codigo_eol": "256",
+      "codigo_codae": "256",
+      "lote": 2,
+      "periodos": [1,2,3,4,5]
+    }
+  },
+  {
+    "model": "escola.escola",
+    "id": 11,
+    "fields": {
+      "nome": "EMEF ALM. SYLVIO HECK - (MIST)",
+      "codigo_eol": "264",
+      "codigo_codae": "264",
+      "lote": 1,
+      "periodos": [1,2,3,4,5]
+    }
+  }
+]

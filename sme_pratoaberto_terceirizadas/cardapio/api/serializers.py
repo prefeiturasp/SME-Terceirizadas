@@ -1,55 +1,72 @@
+from datetime import date
+
 from rest_framework import serializers
+from traitlets import Any
 
-from sme_pratoaberto_terceirizadas.school.models import School
-from sme_pratoaberto_terceirizadas.validators import (nao_pode_ser_passado,
-                                                      deve_pedir_com_antecedencia,
-                                                      dia_util, verificar_se_existe)
-from ..models import AlteracaoCardapio
-
-
-class EscolaSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = School
-        fields = '__all__'
+from sme_pratoaberto_terceirizadas.dados_comuns.validators import (nao_pode_ser_passado, nao_pode_ser_feriado, \
+                                                                   objeto_nao_deve_ter_duplicidade, verificar_se_existe)
+from .validators import cardapio_antigo
+from ..models import *
 
 
-class AlteracaoCardapioSerializer(serializers.ModelSerializer):
-    escola = serializers.SlugRelatedField(slug_field='uuid', queryset=School.objects.all())
+class TipoAlimentacaoSerializer(serializers.ModelSerializer):
+
+    def validate_nome(self, nome: str) -> Any:
+        objeto_nao_deve_ter_duplicidade(TipoAlimentacao, 'Já existe um tipo de alimento com este nome: {}'.format(nome),
+                                        nome=nome)
+        return nome
 
     class Meta:
-        model = AlteracaoCardapio
-        fields = '__all__'
+        model = TipoAlimentacao
+        fields = ['uuid', 'nome']
 
-    # https://www.django-rest-framework.org/api-guide/serializers/#field-level-validation
 
-    def validate_data_inicial(self, data_inicial):
-        nao_pode_ser_passado(data_inicial)
-        deve_pedir_com_antecedencia(data_inicial)
-        dia_util(data_inicial)
-        return data_inicial
+class InversaoCardapioSerializer(serializers.ModelSerializer):
 
-    def validate_data_final(self, data_final):
-        nao_pode_ser_passado(data_final)
-        dia_util(data_final)
-        return data_final
+    def validate_cardapio_de(self, value):
+        verificar_se_existe(Cardapio, uuid=value)
+        cardapio_antigo(value)
+        return value
 
-    def _validate_ja_cadastrado(self, data):
-        inicio = data.get('data_inicial', None)
-        fim = data.get('data_final', None)
-        escola = data.get('escola', None)
-        existe = verificar_se_existe(AlteracaoCardapio,
-                                     data_inicial=inicio,
-                                     data_final=fim,
-                                     escola=escola)
-        if existe:
-            raise serializers.ValidationError('Solicitação já foi cadastrada')
+    #
+    # def validate_cardapio_para(self, value):
+    #     verificar_se_existe(Cardapio, uuid=value)
+    #     cardapio_antigo(value)
+    #     return value
+
+    # def validate(self, attrs):
+    #     request = self._filtrar_requisicao(attrs)
+    #     de = request.get('cardapio_de')
+    #     para = request.get('cardapio_para')
+    #     escola = request.get('escola')
+    #     valida_cardapio_de_para(de, para)
+    #     valida_duplicidade(de, para, escola)
+    #     return attrs
+
+    def _filtrar_requisicao(self, request):
+        request['cardapio_de'] = Cardapio.objects.get(uuid=request.get('cardapio_de'))
+        request['cardapio_para'] = Cardapio.objects.get(uuid=request.get('cardapio_para'))
+        request['escola'] = Escola.objects.get(uuid=request.get('escola'))
+        return request
+
+    class Meta:
+        model = InversaoCardapio
+        fields = ['uuid', 'descricao', 'criado_em', 'cardapio_de', 'cardapio_para', 'escola']
+
+
+class CardapioSerializer(serializers.ModelSerializer):
+    tipos_alimentacao = TipoAlimentacaoSerializer(many=True, read_only=True)
+
+    def validate_data(self, data: date) -> Any:
+        nao_pode_ser_passado(data)
+        nao_pode_ser_feriado(data)
+        objeto_nao_deve_ter_duplicidade(
+            Cardapio,
+            mensagem='Já existe um cardápio cadastrado com esta data',
+            data=data
+        )
         return data
 
-    def validate(self, data):
-        self._validate_ja_cadastrado(data)
-        data_inicial = data.get('data_inicial', None)
-        data_final = data.get('data_final', None)
-        if data_inicial and data_final:
-            if data_inicial > data_final:
-                raise serializers.ValidationError('Data inicial não deve ser maior que a data final')
-        return data
+    class Meta:
+        model = Cardapio
+        fields = ['uuid', 'data', 'ativo', 'criado_em', 'tipos_alimentacao']

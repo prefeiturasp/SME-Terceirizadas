@@ -1,13 +1,24 @@
 language: python
+services:
+  - postgresql
 python:
   - "3.6"
+before_script:
+  - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+  - chmod +x ./cc-test-reporter
+  - psql -c "CREATE DATABASE test;" -U postgres
+  - psql -c "CREATE USER admin WITH PASSWORD 'adminadmin';" -U postgres
+  - psql -c "ALTER USER admin CREATEDB;" -U postgres
+
 install:
   - pip install -r requirements/local.txt
 script:
-  #  - pytest
+  - pytest
   - docker build -t marcelomaia/terceirizadas_backend .
   - docker run -d -p 8000:8000 marcelomaia/terceirizadas_backend python manage.py runserver --settings=config.settings.local
   - docker ps -a
+after_script:
+  - ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT
 deploy:
   provider: script
   script: echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin

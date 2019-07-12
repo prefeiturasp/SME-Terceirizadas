@@ -1,0 +1,58 @@
+[
+  {
+    "model": "inclusao_alimentacao.inclusaoalimentacaostatus",
+    "id": 1,
+    "fields": {
+      "nome": "SALVO"
+    }
+  },
+  {
+    "model": "inclusao_alimentacao.inclusaoalimentacaostatus",
+    "id": 2,
+    "fields": {
+      "nome": "A_VALIDAR"
+    }
+  },
+  {
+    "model": "inclusao_alimentacao.inclusaoalimentacaostatus",
+    "id": 3,
+    "fields": {
+      "nome": "A_APROVAR"
+    }
+  },
+  {
+    "model": "inclusao_alimentacao.inclusaoalimentacaostatus",
+    "id": 4,
+    "fields": {
+      "nome": "A_EDITAR"
+    }
+  },
+  {
+    "model": "inclusao_alimentacao.inclusaoalimentacaostatus",
+    "id": 5,
+    "fields": {
+      "nome": "A_VISUALIZAR"
+    }
+  },
+  {
+    "model": "inclusao_alimentacao.inclusaoalimentacaostatus",
+    "id": 6,
+    "fields": {
+      "nome": "NEGADO_PELA_CODAE"
+    }
+  },
+  {
+    "model": "inclusao_alimentacao.inclusaoalimentacaostatus",
+    "id": 7,
+    "fields": {
+      "nome": "NEGADO_PELA_TERCEIRIZADA"
+    }
+  },
+  {
+    "model": "inclusao_alimentacao.inclusaoalimentacaostatus",
+    "id": 8,
+    "fields": {
+      "nome": "VISUALIZADO"
+    }
+  }
+]

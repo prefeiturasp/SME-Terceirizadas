@@ -1,0 +1,47 @@
+[
+  {
+    "model": "escola.periodoescolar",
+    "id": 1,
+    "fields": {
+      "nome": "1º Período - Matutino",
+      "valor": "primeiro_periodo",
+      "tipo_refeicao": [1,2,3]
+    }
+  },
+  {
+    "model": "escola.periodoescolar",
+    "id": 2,
+    "fields": {
+      "nome": "2º Período - Intermediário",
+      "valor": "segundo_periodo",
+      "tipo_refeicao": [1,3]
+    }
+  },
+  {
+    "model": "escola.periodoescolar",
+    "id": 3,
+    "fields": {
+      "nome": "3º Período - Vespertino",
+      "valor": "terceiro_periodo",
+      "tipo_refeicao": [1,2,3]
+    }
+  },
+  {
+    "model": "escola.periodoescolar",
+    "id": 4,
+    "fields": {
+      "nome": "4º Período - Noturno",
+      "valor": "quarto_periodo",
+      "tipo_refeicao": [1,3]
+    }
+  },
+  {
+    "model": "escola.periodoescolar",
+    "id": 5,
+    "fields": {
+      "nome": "Integral",
+      "valor": "integral",
+      "tipo_refeicao": [1,2,3,4]
+    }
+  }
+]

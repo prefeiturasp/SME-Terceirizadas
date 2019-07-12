@@ -86,17 +86,13 @@ THIRD_PARTY_APPS = [
     'des',  # for email configuration in database
 ]
 LOCAL_APPS = [
-    'sme_pratoaberto_terceirizadas.users.apps.CustomUserConfig',
-    'sme_pratoaberto_terceirizadas.common_data.apps.CommonDataConfig',
-    'sme_pratoaberto_terceirizadas.school.apps.SchoolConfig',
-    'sme_pratoaberto_terceirizadas.meal_kit.apps.MealKitConfig',
-    'sme_pratoaberto_terceirizadas.permission.apps.PermissionConfig',
-    'sme_pratoaberto_terceirizadas.food.apps.FoodConfig',
-    'sme_pratoaberto_terceirizadas.food_inclusion.apps.FoodInclusionConfig',
-    'sme_pratoaberto_terceirizadas.cardapio.apps.AlteracaoDeCardapioConfig',
+    'sme_pratoaberto_terceirizadas.perfil.apps.PerfilConfig',
+    'sme_pratoaberto_terceirizadas.dados_comuns.apps.DadosComunsConfig',
+    'sme_pratoaberto_terceirizadas.escola.apps.EscolaConfig',
+    'sme_pratoaberto_terceirizadas.kit_lanche.apps.KitLancheConfig',
+    'sme_pratoaberto_terceirizadas.inclusao_alimentacao.apps.InclusaoAlimentacaoConfig',
+    'sme_pratoaberto_terceirizadas.cardapio.apps.CardapioConfig',
     'sme_pratoaberto_terceirizadas.terceirizada.apps.TerceirizadaConfig',
-    'sme_pratoaberto_terceirizadas.alimentacao.apps.AlimentacaoConfig',
-    'sme_pratoaberto_terceirizadas.suspensao_de_alimentacao.apps.SuspensaoDeAlimentacaoConfig'
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -116,9 +112,9 @@ AUTHENTICATION_BACKENDS = [
     'allauth.account.auth_backends.AuthenticationBackend',
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#auth-user-model
-AUTH_USER_MODEL = 'users.User'
+AUTH_USER_MODEL = 'perfil.Usuario'
 # https://docs.djangoproject.com/en/dev/ref/settings/#login-redirect-url
-LOGIN_REDIRECT_URL = 'users:redirect'
+LOGIN_REDIRECT_URL = 'perfil:redirect'
 # https://docs.djangoproject.com/en/dev/ref/settings/#login-url
 LOGIN_URL = 'account_login'
 
@@ -271,9 +267,9 @@ ACCOUNT_EMAIL_REQUIRED = True
 # https://django-allauth.readthedocs.io/en/latest/configuration.html
 ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
 # https://django-allauth.readthedocs.io/en/latest/configuration.html
-ACCOUNT_ADAPTER = 'sme_pratoaberto_terceirizadas.users.adapters.AccountAdapter'
+ACCOUNT_ADAPTER = 'sme_pratoaberto_terceirizadas.perfil.adapters.AccountAdapter'
 # https://django-allauth.readthedocs.io/en/latest/configuration.html
-SOCIALACCOUNT_ADAPTER = 'sme_pratoaberto_terceirizadas.users.adapters.SocialAccountAdapter'
+SOCIALACCOUNT_ADAPTER = 'sme_pratoaberto_terceirizadas.perfil.adapters.SocialAccountAdapter'
 
 # Your stuff...
 # ------------------------------------------------------------------------------
@@ -293,6 +289,8 @@ REST_FRAMEWORK = {
     'DATE_INPUT_FORMATS': ["%d/%m/%Y", 'iso-8601'],
     'TIME_FORMAT': '%H:%M:%S',
     'TIME_INPUT_FORMATS': ['%H:%M:%S', 'iso-8601'],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    'PAGE_SIZE': 100
 }
 
 SWAGGER_SETTINGS = {
@@ -305,7 +303,7 @@ SWAGGER_SETTINGS = {
 }
 
 JWT_AUTH = {
-    'JWT_EXPIRATION_DELTA': datetime.timedelta(hours=1),
-    'JWT_REFRESH_EXPIRATION_DELTA': datetime.timedelta(hours=1),
+    'JWT_EXPIRATION_DELTA': datetime.timedelta(hours=100),
+    'JWT_REFRESH_EXPIRATION_DELTA': datetime.timedelta(hours=100),
     'JWT_ALLOW_REFRESH': True,
 }

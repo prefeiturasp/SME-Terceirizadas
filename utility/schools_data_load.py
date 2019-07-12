@@ -4,8 +4,8 @@
 
 import pandas as pd
 
-from sme_pratoaberto_terceirizadas.school.models import School, ManagementType, SchoolUnitType, Borough
-from sme_pratoaberto_terceirizadas.common_data.models import Address, CityLocation, Contact
+from sme_pratoaberto_terceirizadas.escola.models import Escola, TipoGestao, TipoUnidadeEscolar, SubPrefeitura
+from sme_pratoaberto_terceirizadas.dados_comuns.models import Endereco, LocalizacaoCidade, Contato
 
 df = pd.read_csv('wes.csv', dtype={'CODAE': str}, sep='¬')
 
@@ -30,33 +30,33 @@ df['EMPRESA'] = df['EMPRESA'].str.strip().str.upper()
 
 
 def check_create_borough(name, description):
-    borough = Borough.objects.filter(name=name, is_active=True).first()
+    borough = SubPrefeitura.objects.filter(name=name, is_active=True).first()
     if not borough:
-        borough = Borough(name=name, description=description, is_active=True)
+        borough = SubPrefeitura(name=name, description=description, is_active=True)
         borough.save()
     return borough.id
 
 
 def check_create_management_type(name, description):
-    mt = ManagementType.objects.filter(name=name, is_active=True).first()
+    mt = TipoGestao.objects.filter(name=name, is_active=True).first()
     if not mt:
-        mt = ManagementType(name=name, description=description, is_active=True)
+        mt = TipoGestao(name=name, description=description, is_active=True)
         mt.save()
     return mt
 
 
 def check_create_school_unit_type(name, description):
-    ue = SchoolUnitType.objects.filter(name=name, is_active=True).first()
+    ue = TipoUnidadeEscolar.objects.filter(name=name, is_active=True).first()
     if not ue:
-        ue = SchoolUnitType(name=name, description=description, is_active=True)
+        ue = TipoUnidadeEscolar(name=name, description=description, is_active=True)
         ue.save()
     return ue
 
 
 def check_create_city_location(city, state):
-    c_loc = CityLocation.objects.filter(city=city, state=state).first()
+    c_loc = LocalizacaoCidade.objects.filter(city=city, state=state).first()
     if not c_loc:
-        c_loc = CityLocation(city=city, state=state)
+        c_loc = LocalizacaoCidade(city=city, state=state)
         c_loc.save()
     return c_loc
 
@@ -65,7 +65,7 @@ def create_address(line, city):
     # TODO common_data_address.complement pode ser NULL
     # TODO incluir complemento no csv
     # TODO common_data_address.lat e common_data_address.lon podem ser NULL
-    addrss = Address(street_name=line.ENDERECO,
+    addrss = Endereco(street_name=line.ENDERECO,
                      # complement=line.COMPLEMENTO,
                      district=line.BAIRRO,
                      number=line.NUMERO,
@@ -101,7 +101,7 @@ for _, line in df.iterrows():
 
     # ESCOLA/SCHOOL
     # TODO incluir agrupamento no csv. Assumindo 0.
-    escola = School(name=line.NOME,
+    escola = Escola(name=line.NOME,
                     grouping=0,
                     unit_type=ue,
                     management_type=gestao,
@@ -112,7 +112,7 @@ for _, line in df.iterrows():
     escola.save()
 
     # CONTATO/CONTACT
-    contato = Contact(name=line.NOME,
+    contato = Contato(name=line.NOME,
                       phone=line.TELEFONE1,
                       mobile_phone=line.TELEFONE2,
                       email=line.EMAIL)

@@ -729,7 +729,7 @@ msgid "user"
 msgstr "usuário"
 
 #: sme_pratoaberto_terceirizadas/users/models.py:81
-msgid "users"
+msgid "perfil"
 msgstr "usuários"
 
 #: sme_pratoaberto_terceirizadas/users/models.py:102
