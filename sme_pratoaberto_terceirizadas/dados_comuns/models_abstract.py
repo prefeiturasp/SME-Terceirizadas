@@ -1,6 +1,7 @@
 import uuid
 
 from django.db import models
+from model_utils import Choices
 
 
 class Iniciais(models.Model):
@@ -70,6 +71,24 @@ class TemData(models.Model):
 
 class TemChaveExterna(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+
+    class Meta:
+        abstract = True
+
+
+class StatusValidacao(models.Model):
+    """ https://steelkiwi.com/blog/best-practices-working-django-models-python/ """
+    STATUSES = Choices(
+        (0, 'DRE_A_VALIDAR', 'A validar pela DRE'),
+        (1, 'DRE_APROVADO', 'Aprovado pela DRE'),
+        (2, 'DRE_REPROVADO', 'Reprovado pela DRE'),
+        (3, 'CODAE_A_VALIDAR', 'A validar pela CODAE'),  # QUANDO A DRE VALIDA
+        (4, 'CODAE_APROVADO', 'Aprovado pela CODAE'),  # CODAE RECEBE
+        (5, 'CODAE_REPROVADO', 'Reprovado pela CODAE'),
+        (6, 'TERCEIRIZADA_A_VISUALIZAR', 'Terceirizada a visualizar'),
+        (7, 'TERCEIRIZADA_A_VISUALIZADO', 'Terceirizada visualizado')  # TOMOU CIENCIA, TODOS DEVEM FICAR SABENDO...
+    )
+    status = models.IntegerField(choices=STATUSES, default=STATUSES.DRE_A_VALIDAR)
 
     class Meta:
         abstract = True

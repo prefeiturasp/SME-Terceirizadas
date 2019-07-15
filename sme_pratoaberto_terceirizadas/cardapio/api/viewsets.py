@@ -2,6 +2,7 @@ from rest_framework import viewsets
 
 from .serializers import CardapioSerializer, TipoAlimentacaoSerializer, InversaoCardapioSerializer
 from ..models import Cardapio, TipoAlimentacao, InversaoCardapio
+from .serializers_create import InversaoCardapioSerializerCreate
 
 
 class CardapioViewSet(viewsets.ModelViewSet):
@@ -18,5 +19,9 @@ class TipoAlimentacaoViewSet(viewsets.ModelViewSet):
 
 class InversaoCardapioViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
-    serializer_class = InversaoCardapioSerializer
     queryset = InversaoCardapio.objects.all()
+
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update']:
+            return InversaoCardapioSerializerCreate
+        return InversaoCardapioSerializer

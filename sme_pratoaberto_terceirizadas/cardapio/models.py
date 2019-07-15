@@ -2,7 +2,7 @@ from django.db import models
 
 from ..dados_comuns.models_abstract import (
     Descritivel, TemData, IntervaloDeDia,
-    TemChaveExterna, Motivo, Ativavel, Nomeavel, CriadoEm
+    TemChaveExterna, Motivo, Ativavel, Nomeavel, CriadoEm, StatusValidacao
 )
 from ..escola.models import Escola, DiretoriaRegional
 
@@ -94,12 +94,11 @@ class Cardapio(Descritivel, Ativavel, TemData, TemChaveExterna, CriadoEm):
         verbose_name_plural = "Cardápios"
 
 
-class InversaoCardapio(CriadoEm, Descritivel, TemChaveExterna):
+class InversaoCardapio(CriadoEm, Descritivel, TemChaveExterna, StatusValidacao):
     """
         servir o cardápio do dia 30 no dia 15, automaticamente o
         cardápio do dia 15 será servido no dia 30
     """
-    # TODO: colocar o controle de fluxo atraves do status
     cardapio_de = models.ForeignKey(Cardapio, on_delete=models.DO_NOTHING,
                                     blank=True, null=True,
                                     related_name='cardapio_de')

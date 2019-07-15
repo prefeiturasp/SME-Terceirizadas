@@ -1,3 +1,4 @@
+from django.db.models import Q
 from traitlets import Any
 
 from sme_pratoaberto_terceirizadas.cardapio.models import Cardapio
@@ -21,8 +22,17 @@ def valida_cardapio_de_para(cardapio_de: Cardapio, cardapio_para: Cardapio) -> A
 
 
 def valida_duplicidade(cardapio_de: Cardapio, cardapio_para: Cardapio, escola: Escola) -> Any:
-    inversao_cardapio = InversaoCardapio.objects.filter(cardapio_de=cardapio_de).filter(cardapio_para=cardapio_para).filter(
+    inversao_cardapio = InversaoCardapio.objects.filter(cardapio_de=cardapio_de).filter(
+        cardapio_para=cardapio_para).filter(
         escola=escola).exists()
     if inversao_cardapio:
         raise serializers.ValidationError('Já existe uma solicitação de inversão com estes dados')
+    return True
+
+
+def existe_data_cadastrada(cardapio_de: Cardapio, cardapio_para: Cardapio, escola: Escola):
+    inversao_cardapio = InversaoCardapio.objects.filter(Q(cardapio_de=cardapio_de) | Q(cardapio_para=cardapio_para),
+                                                        escola=escola).exists()
+    if inversao_cardapio:
+        return False
     return True
