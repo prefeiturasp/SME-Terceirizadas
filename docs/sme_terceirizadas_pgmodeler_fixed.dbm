@@ -32,7 +32,7 @@ pode fechar a escola, etc.
 
 
 tipo: pode criar, visualizar, recebe, fica ciente...]]></comment>
-	<position x="5611.29" y="2397.44"/>
+	<position x="5573.4" y="2403.76"/>
 	<column name="permissao_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -220,7 +220,7 @@ Merenda Seca]]></comment>
 
 Ex: o perfil diretor tem as permissões: [abrir escola, fechar escola]
 o perfil professor pode [dar aula, fazer denuncia na DRE]]]></comment>
-	<position x="6191.47" y="2223.84"/>
+	<position x="6174.62" y="2214.37"/>
 	<column name="perfil_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -542,7 +542,7 @@ grupo ESCOLA: tem os perfis prof, diretor, etc.
 grupo DRE
 grupo TERC
 ]]></comment>
-	<position x="5693.54" y="2239.96"/>
+	<position x="5654.6" y="2198.91"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -1490,7 +1490,7 @@ quando é multipla: todas as escolas vao ter a mesma opcao de kits, com numero d
 <table name="perfil_permissao">
 	<schema name="perfil"/>
 	<role name="postgres"/>
-	<position x="6032.28" y="2530.18"/>
+	<position x="6038.6" y="2470.18"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
