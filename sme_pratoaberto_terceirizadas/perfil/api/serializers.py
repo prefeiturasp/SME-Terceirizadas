@@ -26,7 +26,7 @@ class PerfilSimplesSerializer(serializers.ModelSerializer):
         fields = ('nome', 'uuid')
 
 
-class GrupoCompletoPerfilSerializer(serializers.ModelSerializer):
+class GrupoPerfilCreateSerializer(serializers.ModelSerializer):
     perfis = serializers.SlugRelatedField(
         many=True, slug_field='uuid', queryset=Perfil.objects.all()
     )
@@ -65,4 +65,12 @@ class PerfilPermissaoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PerfilPermissao
+        exclude = ('id',)
+
+
+class GrupoCompletoPerfilSerializer(serializers.ModelSerializer):
+    perfis = PerfilSerializer(many=True)
+
+    class Meta:
+        model = GrupoPerfil
         exclude = ('id',)
