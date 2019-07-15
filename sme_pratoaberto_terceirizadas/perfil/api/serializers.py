@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from sme_pratoaberto_terceirizadas.perfil.models.perfil import PerfilPermissao
 from ..models import Usuario, Perfil, Permissao, GrupoPerfil
 
 
@@ -26,11 +27,13 @@ class PerfilSimplesSerializer(serializers.ModelSerializer):
 
 
 class GrupoCompletoPerfilSerializer(serializers.ModelSerializer):
-    perfis = PerfilSimplesSerializer(many=True)
+    perfis = serializers.SlugRelatedField(
+        many=True, slug_field='uuid', queryset=Perfil.objects.all()
+    )
 
     class Meta:
         model = GrupoPerfil
-        exclude = ('id', 'ativo')
+        exclude = ('id',)
 
 
 class GrupoSimplesSerializer(serializers.ModelSerializer):
@@ -40,26 +43,26 @@ class GrupoSimplesSerializer(serializers.ModelSerializer):
 
 
 class PerfilSerializer(serializers.ModelSerializer):
-    permissoes = PermissaoSerializer(many=True)
     grupo = GrupoSimplesSerializer()
 
     class Meta:
         model = Perfil
         exclude = ('id', 'ativo')
 
-#
-# class NotificationSerializer(serializers.Serializer):
-#     unread = serializers.BooleanField(read_only=True)
-#     action_object = GenericNotificationRelatedField(read_only=True)
-#     description = serializers.SerializerMethodField()
-#
-#     def get_description(self, obj):
-#         return obj.description
 
-#
-# class PrivateUserSerializer(serializers.ModelSerializer):
-#     notifications = NotificationSerializer(many=True, read_only=True)
-#
-#     class Meta:
-#         model = settings.AUTH_USER_MODEL
-#         fields = ('name', 'email', 'profile', 'notifications')
+class PerfilPermissaoCreateSerializer(serializers.ModelSerializer):
+    permissao = serializers.SlugRelatedField(slug_field='uuid', queryset=Permissao.objects.all())
+    perfil = serializers.SlugRelatedField(slug_field='uuid', queryset=Perfil.objects.all())
+
+    class Meta:
+        model = PerfilPermissao
+        exclude = ('id',)
+
+
+class PerfilPermissaoSerializer(serializers.ModelSerializer):
+    permissao = PermissaoSerializer()
+    perfil = PerfilSerializer()
+
+    class Meta:
+        model = PerfilPermissao
+        exclude = ('id',)

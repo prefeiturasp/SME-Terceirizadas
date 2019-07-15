@@ -6,7 +6,6 @@ pytestmark = pytest.mark.django_db
 def test_perfil(perfil):
     assert perfil.nome == 'título do perfil'
     assert perfil.__str__() == 'título do perfil'
-    assert perfil.permissoes.count() == 4
     assert perfil.grupo is not None
 
 
