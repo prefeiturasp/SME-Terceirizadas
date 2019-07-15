@@ -14,6 +14,8 @@ from ..utils import obter_dias_uteis_apos_hoje
 
 
 class DiasDaSemanaViewSet(ReadOnlyModelViewSet):
+    permission_classes = (AllowAny,)
+
     lookup_field = 'id'
     queryset = DiaSemana.objects.all()
     serializer_class = DiaSemanaSerializer

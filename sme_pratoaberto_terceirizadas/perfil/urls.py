@@ -8,6 +8,8 @@ router = routers.DefaultRouter()
 router.register('usuarios', viewsets.UsuarioViewSet, 'Usuários')
 router.register('perfis', viewsets.PerfilViewSet, 'Perfis')
 router.register('grupos-perfis', viewsets.GrupoPerfilViewSet, 'Grupos de Perfis')
+router.register('permissoes', viewsets.PermissaoViewSet, 'Permissões')
+router.register('acoes', viewsets.AcoesViewSet, 'Ações')
 
 urlpatterns = [
     path('', include(router.urls))

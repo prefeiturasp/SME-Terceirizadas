@@ -1,3 +1,4 @@
+from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
 from ...dados_comuns.models_abstract import (Nomeavel, Descritivel, Ativavel, TemChaveExterna)
@@ -26,6 +27,27 @@ class Permissao(Nomeavel, Ativavel, TemChaveExterna):
         pode dar aula,
         pode fechar a escola, etc.
     """
+    CRIA = 0
+    VISUALIZA = 1
+    CANCELA = 2
+    EDITA = 3
+    RECEBE = 4
+    FICA_CIENTE = 5
+    CIENTE_APOS_AUTORIZACAO = 6
+
+    ACOES = (
+        (CRIA, 'Cria'),
+        (VISUALIZA, 'Visualiza'),
+        (EDITA, 'Edita'),
+        (CANCELA, 'Cancela'),
+        (RECEBE, 'Recebe'),
+        (FICA_CIENTE, 'Fica ciente'),
+        (CIENTE_APOS_AUTORIZACAO, 'Ciente após autorização'),
+    )
+
+    acoes = ArrayField(models.PositiveSmallIntegerField(choices=ACOES,
+                                                        default=[],
+                                                        null=True, blank=True))
 
     class Meta:
         verbose_name = 'Permissão'

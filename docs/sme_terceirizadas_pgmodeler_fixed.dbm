@@ -3,7 +3,7 @@
 CAUTION: Do not modify this file unless you know what you are doing.
          Unexpected results may occur if the code is changed deliberately.
 -->
-<dbmodel pgmodeler-ver="0.9.1" last-position="772,250" last-zoom="0.45"
+<dbmodel pgmodeler-ver="0.9.1" last-position="5271,1952" last-zoom="0.95"
 	 default-owner="postgres">
 <database name="new_database" is-template="false" allow-conns="true">
 </database>
@@ -28,8 +28,11 @@ Ex. Pode fazer compra,
 pode abrir a escola, 
 pode fazer merenda, 
 pode dar aula,
-pode fechar a escola, etc.]]></comment>
-	<position x="5712.96" y="2424.11"/>
+pode fechar a escola, etc.
+
+
+tipo: pode criar, visualizar, recebe, fica ciente...]]></comment>
+	<position x="5611.29" y="2397.44"/>
 	<column name="permissao_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -217,7 +220,7 @@ Merenda Seca]]></comment>
 
 Ex: o perfil diretor tem as permissões: [abrir escola, fechar escola]
 o perfil professor pode [dar aula, fazer denuncia na DRE]]]></comment>
-	<position x="6192.3" y="2311.34"/>
+	<position x="6191.47" y="2223.84"/>
 	<column name="perfil_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -288,7 +291,7 @@ o perfil professor pode [dar aula, fazer denuncia na DRE]]]></comment>
 	<schema name="perfil"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Campo para validar se o usuário foi ativado via email]]></comment>
-	<position x="6092.72" y="2020.98"/>
+	<position x="6093.55" y="2021.81"/>
 	<column name="usuario_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -411,27 +414,6 @@ um lote é um conjunto de escolas que a terceirizada atende]]></comment>
 		<columns names="terceirizada_id" ref-type="src-columns"/>
 	</constraint>
 </table>
-
-<relationship name="muitas_permissoes_possuem_muitos_perfis" type="relnn"
-	 src-col-pattern="{sc}_{st}" dst-col-pattern="{sc}_{dt}"
-	 pk-pattern="{gt}_pk" uq-pattern="{gt}_uq"
-	 src-fk-pattern="{st}_fk" dst-fk-pattern="{dt}_fk"
-	 pk-col-pattern="id"
-	 custom-color="#ff0000"
-	 src-table="perfil.permissao"
-	 dst-table="perfil.perfil"
-	 src-required="false" dst-required="false"
-	 table-name="many_permisison_has_many_profile">
-	<label ref-type="src-label">
-		<position x="39.3701" y="3.51522"/>
-	</label>
-	<label ref-type="dst-label">
-		<position x="-62.15" y="-11.5807"/>
-	</label>
-	<label ref-type="name-label">
-		<position x="110.193" y="-48.0125"/>
-	</label>
-</relationship>
 
 <schema name="codae_cp" rect-visible="true" fill-color="#00aaff">
 	<role name="postgres"/>
@@ -560,7 +542,7 @@ grupo ESCOLA: tem os perfis prof, diretor, etc.
 grupo DRE
 grupo TERC
 ]]></comment>
-	<position x="5692.71" y="2239.13"/>
+	<position x="5693.54" y="2239.96"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -1503,6 +1485,39 @@ quando é multipla: todas as escolas vao ter a mesma opcao de kits, com numero d
 	 custom-color="#000000"
 	 src-table="terceirizada.edital"
 	 dst-table="terceirizada.terceirizada"
+	 src-required="false" dst-required="false"/>
+
+<table name="perfil_permissao">
+	<schema name="perfil"/>
+	<role name="postgres"/>
+	<position x="6032.28" y="2530.18"/>
+	<column name="id" not-null="true">
+		<type name="serial" length="0"/>
+	</column>
+	<column name="acoes">
+		<type name="varbit" length="0"/>
+	</column>
+	<constraint name="perfil_permissao_pk" type="pk-constr" table="perfil.perfil_permissao">
+		<columns names="id" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<relationship name="perfil_has_many_perfil_permissao" type="rel1n"
+	 src-col-pattern="{sc}_{st}"
+	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
+	 src-fk-pattern="{st}_fk"
+	 custom-color="#000000"
+	 src-table="perfil.perfil"
+	 dst-table="perfil.perfil_permissao"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="permissao_has_many_perfil_permissao" type="rel1n"
+	 src-col-pattern="{sc}_{st}"
+	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
+	 src-fk-pattern="{st}_fk"
+	 custom-color="#000000"
+	 src-table="perfil.permissao"
+	 dst-table="perfil.perfil_permissao"
 	 src-required="false" dst-required="false"/>
 
 <constraint name="fk_usuario_id" type="fk-constr" comparison-type="MATCH FULL"

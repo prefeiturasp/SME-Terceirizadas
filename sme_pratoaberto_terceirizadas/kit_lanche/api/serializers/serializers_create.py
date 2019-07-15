@@ -58,7 +58,7 @@ class SolicitacaoKitLancheCreationSerializer(serializers.ModelSerializer):
 
 class SolicitacaoKitLancheAvulsaCreationSerializer(serializers.ModelSerializer):
     dado_base = SolicitacaoKitLancheCreationSerializer(
-        required=False
+        required=True
     )
     escola = serializers.SlugRelatedField(
         slug_field='uuid',
@@ -90,7 +90,7 @@ class SolicitacaoKitLancheAvulsaCreationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.SolicitacaoKitLancheAvulsa
-        exclude = ('id', 'uuid')
+        exclude = ('id',)
 
 
 class EscolaQuantidadeCreationSerializer(serializers.ModelSerializer):
