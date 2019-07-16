@@ -2,10 +2,11 @@ from rest_framework import serializers
 
 from sme_pratoaberto_terceirizadas.cardapio.api.validators import cardapio_antigo, valida_duplicidade, \
     valida_cardapio_de_para
-from sme_pratoaberto_terceirizadas.cardapio.models import InversaoCardapio, Cardapio, TipoAlimentacao
+from sme_pratoaberto_terceirizadas.cardapio.models import InversaoCardapio, Cardapio, TipoAlimentacao, \
+    SuspensaoAlimentacao
 from sme_pratoaberto_terceirizadas.dados_comuns.validators import nao_pode_ser_passado, nao_pode_ser_feriado, \
     objeto_nao_deve_ter_duplicidade
-from sme_pratoaberto_terceirizadas.escola.models import Escola
+from sme_pratoaberto_terceirizadas.escola.models import Escola, PeriodoEscolar
 from sme_pratoaberto_terceirizadas.terceirizada.models import Edital
 
 
@@ -76,4 +77,77 @@ class CardapioCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Cardapio
+        exclude = ('id',)
+
+
+class SuspensaoAlimentacaoCreateSerializer(serializers.ModelSerializer):
+    escola = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=Escola.objects.all()
+    )
+    cardapio = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=Cardapio.objects.all()
+    )
+    periodos = serializers.SlugRelatedField(
+        slug_field='uuid',
+        many=True,
+        required=False,
+        queryset=PeriodoEscolar.objects.all()
+    )
+    tipos_alimentacao = serializers.SlugRelatedField(
+        slug_field='uuid',
+        many=True,
+        required=False,
+        queryset=TipoAlimentacao.objects.all()
+    )
+
+    def validate_data(self, data):
+        nao_pode_ser_passado(data)
+        return data
+
+    def create(self, validated_data):
+        periodos = validated_data.pop('periodos', [])
+        tipos_alimentacao = validated_data.pop('tipos_alimentacao', [])
+
+        suspensao_alimentacao = SuspensaoAlimentacao.objects.create(
+            **validated_data
+        )
+        suspensao_alimentacao.periodos.set(periodos)
+        suspensao_alimentacao.tipos_alimentacao.set(tipos_alimentacao)
+
+        return suspensao_alimentacao
+
+    def validate(self, attrs):
+        tipo = attrs.get('tipo')
+        cardapio = attrs.get('cardapio')
+        periodos = attrs.get('periodos', [])
+        tipos_alimentacao = attrs.get('tipos_alimentacao', [])
+        if tipo == SuspensaoAlimentacao.CARDAPIO_INTEIRO:
+            if not cardapio:
+                raise serializers.ValidationError(
+                    f'Quando tipo {tipo} (cardápio inteiro), deve ter cardápio')
+            if periodos or tipos_alimentacao:
+                raise serializers.ValidationError(
+                    f'Quando tipo {tipo} (cardápio inteiro), não pode ter períodos ou tipos de alimentação')
+        elif tipo == SuspensaoAlimentacao.PERIODO_ESCOLAR:
+            if not periodos:
+                raise serializers.ValidationError(
+                    f'Quando tipo {tipo} (periodo escolar), deve ter ao menos 1 periodo escolar')
+            if cardapio or tipos_alimentacao:
+                raise serializers.ValidationError(
+                    f'Quando tipo {tipo} (periodo escolar), não pode ter cardapio ou tipos de alimentação')
+        elif tipo == SuspensaoAlimentacao.TIPO_ALIMENTACAO:
+            if not tipos_alimentacao:
+                raise serializers.ValidationError(
+                    f'Quando tipo {tipo} (tipo alimentação), deve ter ao menos 1 tipo de alimentação')
+            if cardapio or periodos:
+                raise serializers.ValidationError(
+                    f'Quando tipo {tipo} (tipo alimentação), não pode ter cardapio ou períodos')
+        return attrs
+
+    class Meta:
+        model = SuspensaoAlimentacao
         exclude = ('id',)

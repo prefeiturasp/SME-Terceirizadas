@@ -120,9 +120,9 @@ class SuspensaoAlimentacao(TemData, TemChaveExterna):
         (TIPO_ALIMENTACAO, 'Tipo alimentação'),
     )
 
-    tipo = models.PositiveSmallIntegerField(choices=CHOICES, default=PERIODO_ESCOLAR)
-
-    cardapio = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING,
+    tipo = models.PositiveSmallIntegerField(choices=CHOICES)
+    escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING)
+    cardapio = models.ForeignKey(Cardapio, on_delete=models.DO_NOTHING,
                                  blank=True, null=True)
     periodos = models.ManyToManyField('escola.PeriodoEscolar',
                                       blank=True)
