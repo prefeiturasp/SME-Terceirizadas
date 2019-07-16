@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from ..helpers import notificar_partes_interessadas
 from sme_pratoaberto_terceirizadas.cardapio.api.validators import cardapio_antigo, valida_duplicidade, \
     valida_cardapio_de_para
 from sme_pratoaberto_terceirizadas.cardapio.models import InversaoCardapio, Cardapio
@@ -40,7 +41,9 @@ class InversaoCardapioSerializerCreate(serializers.ModelSerializer):
 
     def create(self, validated_data):
         inversao_cardapio = InversaoCardapio.objects.create(**validated_data)
-        # TODO criar as notificações e disparar e-mails
+        if inversao_cardapio.pk:
+            usuario = self.context['user']
+            notificar_partes_interessadas(usuario, **validated_data)
         return inversao_cardapio
 
     class Meta:

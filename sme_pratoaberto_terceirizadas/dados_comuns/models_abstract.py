@@ -77,7 +77,10 @@ class TemChaveExterna(models.Model):
 
 
 class StatusValidacao(models.Model):
-    """ https://steelkiwi.com/blog/best-practices-working-django-models-python/ """
+    """
+     - https://steelkiwi.com/blog/best-practices-working-django-models-python/
+     - https://hackernoon.com/using-enum-as-model-field-choice-in-django-92d8b97aaa63
+    """
     STATUSES = Choices(
         (0, 'DRE_A_VALIDAR', 'A validar pela DRE'),
         (1, 'DRE_APROVADO', 'Aprovado pela DRE'),

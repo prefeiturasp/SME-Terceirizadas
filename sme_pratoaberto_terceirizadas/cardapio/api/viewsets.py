@@ -1,8 +1,8 @@
 from rest_framework import viewsets
 
-from .serializers import CardapioSerializer, TipoAlimentacaoSerializer, InversaoCardapioSerializer
+from .serializers.serializers import CardapioSerializer, TipoAlimentacaoSerializer, InversaoCardapioSerializer
 from ..models import Cardapio, TipoAlimentacao, InversaoCardapio
-from .serializers_create import InversaoCardapioSerializerCreate
+from sme_pratoaberto_terceirizadas.cardapio.api.serializers.serializers_create import InversaoCardapioSerializerCreate
 
 
 class CardapioViewSet(viewsets.ModelViewSet):

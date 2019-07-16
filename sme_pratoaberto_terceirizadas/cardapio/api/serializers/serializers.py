@@ -5,7 +5,8 @@ from traitlets import Any
 
 from sme_pratoaberto_terceirizadas.dados_comuns.validators import (nao_pode_ser_passado, nao_pode_ser_feriado, \
                                                                    objeto_nao_deve_ter_duplicidade)
-from ..models import *
+from sme_pratoaberto_terceirizadas.cardapio.models import *
+from sme_pratoaberto_terceirizadas.escola.api.serializers import EscolaSimplesSerializer
 
 
 class TipoAlimentacaoSerializer(serializers.ModelSerializer):
@@ -47,12 +48,12 @@ class CardapioSerializer(serializers.ModelSerializer):
 class InversaoCardapioSerializer(serializers.ModelSerializer):
     cardapio_de = CardapioSimplesSerializer()
     cardapio_para = CardapioSimplesSerializer()
-    escola = serializers.SlugRelatedField(
-        slug_field='uuid',
-        required=True,
-        queryset=Escola.objects.all()
-    )
+    escola = EscolaSimplesSerializer()
+    status = serializers.SerializerMethodField()
+
+    def get_status(self, obj):
+        return obj.get_status_display()
 
     class Meta:
         model = InversaoCardapio
-        fields = ['uuid', 'descricao', 'criado_em', 'cardapio_de', 'cardapio_para', 'escola']
+        fields = ['uuid', 'descricao', 'criado_em', 'cardapio_de', 'cardapio_para', 'escola', 'status']
