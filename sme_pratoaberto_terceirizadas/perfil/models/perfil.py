@@ -90,5 +90,15 @@ class PerfilPermissao(models.Model):
     permissao = models.ForeignKey(Permissao, on_delete=models.DO_NOTHING)
     perfil = models.ForeignKey(Perfil, on_delete=models.DO_NOTHING)
 
+    def acoes_choices_array_display(self):
+        result = ''
+        choices = dict(self.ACOES)
+        for index, value in enumerate(self.acoes):
+            result += "{0}".format(choices[value])
+            if not index == len(self.acoes) - 1:
+                result += ', '
+        return result
+
     def __str__(self):
-        return f'{self.permissao} - {self.perfil} - {self.acoes}'
+        return f'{self.perfil} Tem ações: ({self.acoes_choices_array_display()})' \
+            f' da permissão {self.permissao}'

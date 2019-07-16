@@ -54,6 +54,11 @@ class PerfilPermissaoCreateSerializer(serializers.ModelSerializer):
     permissao = serializers.SlugRelatedField(slug_field='uuid', queryset=Permissao.objects.all())
     perfil = serializers.SlugRelatedField(slug_field='uuid', queryset=Perfil.objects.all())
 
+    acoes_explicacao = serializers.CharField(
+        source='acoes_choices_array_display',
+        required=False,
+        read_only=True)
+
     class Meta:
         model = PerfilPermissao
         exclude = ('id',)
@@ -62,6 +67,10 @@ class PerfilPermissaoCreateSerializer(serializers.ModelSerializer):
 class PerfilPermissaoSerializer(serializers.ModelSerializer):
     permissao = PermissaoSerializer()
     perfil = PerfilSerializer()
+    acoes_explicacao = serializers.CharField(
+        source='acoes_choices_array_display',
+        required=False,
+        read_only=True)
 
     class Meta:
         model = PerfilPermissao
