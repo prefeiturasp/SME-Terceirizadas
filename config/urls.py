@@ -13,6 +13,7 @@ from sme_pratoaberto_terceirizadas.escola.urls import urlpatterns as escola_urls
 from sme_pratoaberto_terceirizadas.inclusao_alimentacao.urls import urlpatterns as inclusao_urls
 from sme_pratoaberto_terceirizadas.kit_lanche.urls import urlpatterns as kit_lanche_urls
 from sme_pratoaberto_terceirizadas.perfil.urls import urlpatterns as perfil_urls
+from sme_pratoaberto_terceirizadas.terceirizada.urls import urlpatterns as terceirizada_urls
 
 schema_view = get_swagger_view(title='API de Terceirizadas')
 
@@ -28,22 +29,14 @@ urlpatterns = [
     settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
 )
 
-# ADDING ROUTERS FROM ALL APPS #
+# ADDING ROUTERS FROM ALL APPS
 urlpatterns += comuns_urls
 urlpatterns += escola_urls
 urlpatterns += perfil_urls
 urlpatterns += inclusao_urls
 urlpatterns += kit_lanche_urls
 urlpatterns += cardapio_urls
-
-# urlpatterns += permissions_url
-# urlpatterns += user_url
-# urlpatterns += common_urls
-# urlpatterns += meal_kit_url
-# urlpatterns += alimento_url
-# urlpatterns += cardapio_url
-# urlpatterns += alimentacao_url
-# urlpatterns += suspensao_url
+urlpatterns += terceirizada_urls
 
 if settings.DEBUG:
     # This allows the error pages to be debugged during development, just visit
