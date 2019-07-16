@@ -1,13 +1,19 @@
 from rest_framework import serializers
 
-from sme_pratoaberto_terceirizadas.cardapio.api.validators import cardapio_antigo, valida_duplicidade, \
-    valida_cardapio_de_para
-from sme_pratoaberto_terceirizadas.cardapio.models import InversaoCardapio, Cardapio, TipoAlimentacao, \
-    SuspensaoAlimentacao
-from sme_pratoaberto_terceirizadas.dados_comuns.validators import nao_pode_ser_passado, nao_pode_ser_feriado, \
+from sme_pratoaberto_terceirizadas.dados_comuns.validators import (
+    nao_pode_ser_passado, nao_pode_ser_feriado,
     objeto_nao_deve_ter_duplicidade
+)
 from sme_pratoaberto_terceirizadas.escola.models import Escola, PeriodoEscolar
 from sme_pratoaberto_terceirizadas.terceirizada.models import Edital
+from ..api.validators import (
+    cardapio_antigo, valida_duplicidade,
+    valida_cardapio_de_para, valida_tipo_cardapio_inteiro,
+    valida_tipo_periodo_escolar, valida_tipo_alimentacao
+)
+from ..models import (
+    InversaoCardapio, Cardapio,
+    TipoAlimentacao, SuspensaoAlimentacao)
 
 
 class InversaoCardapioSerializerCreate(serializers.ModelSerializer):
@@ -103,6 +109,10 @@ class SuspensaoAlimentacaoCreateSerializer(serializers.ModelSerializer):
         required=False,
         queryset=TipoAlimentacao.objects.all()
     )
+    tipo_explicacao = serializers.CharField(
+        source='get_tipo_display',
+        required=False,
+        read_only=True)
 
     def validate_data(self, data):
         nao_pode_ser_passado(data)
@@ -126,26 +136,11 @@ class SuspensaoAlimentacaoCreateSerializer(serializers.ModelSerializer):
         periodos = attrs.get('periodos', [])
         tipos_alimentacao = attrs.get('tipos_alimentacao', [])
         if tipo == SuspensaoAlimentacao.CARDAPIO_INTEIRO:
-            if not cardapio:
-                raise serializers.ValidationError(
-                    f'Quando tipo {tipo} (cardápio inteiro), deve ter cardápio')
-            if periodos or tipos_alimentacao:
-                raise serializers.ValidationError(
-                    f'Quando tipo {tipo} (cardápio inteiro), não pode ter períodos ou tipos de alimentação')
+            valida_tipo_cardapio_inteiro(cardapio, periodos, tipo, tipos_alimentacao)
         elif tipo == SuspensaoAlimentacao.PERIODO_ESCOLAR:
-            if not periodos:
-                raise serializers.ValidationError(
-                    f'Quando tipo {tipo} (periodo escolar), deve ter ao menos 1 periodo escolar')
-            if cardapio or tipos_alimentacao:
-                raise serializers.ValidationError(
-                    f'Quando tipo {tipo} (periodo escolar), não pode ter cardapio ou tipos de alimentação')
+            valida_tipo_periodo_escolar(cardapio, periodos, tipo, tipos_alimentacao)
         elif tipo == SuspensaoAlimentacao.TIPO_ALIMENTACAO:
-            if not tipos_alimentacao:
-                raise serializers.ValidationError(
-                    f'Quando tipo {tipo} (tipo alimentação), deve ter ao menos 1 tipo de alimentação')
-            if cardapio or periodos:
-                raise serializers.ValidationError(
-                    f'Quando tipo {tipo} (tipo alimentação), não pode ter cardapio ou períodos')
+            valida_tipo_alimentacao(cardapio, periodos, tipo, tipos_alimentacao)
         return attrs
 
     class Meta:
