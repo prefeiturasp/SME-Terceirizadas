@@ -303,6 +303,7 @@ SWAGGER_SETTINGS = {
 }
 
 JWT_AUTH = {
+    # TODO: rever a configuração...
     'JWT_EXPIRATION_DELTA': datetime.timedelta(hours=100),
     'JWT_REFRESH_EXPIRATION_DELTA': datetime.timedelta(hours=100),
     'JWT_ALLOW_REFRESH': True,
