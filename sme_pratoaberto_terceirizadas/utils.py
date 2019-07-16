@@ -1,4 +1,3 @@
-import asyncio
 from datetime import datetime
 
 from des.models import DynamicEmailConfiguration
@@ -60,11 +59,12 @@ def _send_mass_html_mail(subject, text, html, recipients):
     return connection.send_messages(messages)
 
 
-loop = asyncio.get_event_loop()
+# loop = asyncio.get_event_loop()
 
 
 def async_envio_email_html_em_massa(subject, text, html, recipients):
-    loop.run_in_executor(None, _send_mass_html_mail, subject, text, html, recipients)
+    pass
+    # loop.run_in_executor(None, _send_mass_html_mail, subject, text, html, recipients)
 
 
 def valida_dia_util(dia):
