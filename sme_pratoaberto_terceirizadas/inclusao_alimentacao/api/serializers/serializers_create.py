@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
+from sme_pratoaberto_terceirizadas.cardapio.models import TipoAlimentacao
 from sme_pratoaberto_terceirizadas.dados_comuns.models import DiaSemana
 from sme_pratoaberto_terceirizadas.dados_comuns.utils import update_instance_from_dict
 from sme_pratoaberto_terceirizadas.dados_comuns.validators import nao_pode_ser_passado
@@ -30,8 +31,11 @@ class QuantidadePorPeriodoCreationSerializer(serializers.ModelSerializer):
         required=True,
         queryset=PeriodoEscolar.objects.all())
 
-    # TODO: esperar app cardapio.
-    # tipos_alimentacao = TipoAlimentacao
+    tipos_alimentacao = serializers.SlugRelatedField(
+        slug_field='uuid',
+        many=True,
+        required=True,
+        queryset=TipoAlimentacao.objects.all())
 
     def create(self, validated_data):
         tipos_alimentacao = validated_data.pop('tipos_alimentacao', [])
@@ -49,7 +53,7 @@ class QuantidadePorPeriodoCreationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = QuantidadePorPeriodo
-        exclude = ('id', 'tipos_alimentacao')
+        exclude = ('id',)
 
 
 class InclusaoAlimentacaoNormalCreationSerializer(serializers.ModelSerializer):

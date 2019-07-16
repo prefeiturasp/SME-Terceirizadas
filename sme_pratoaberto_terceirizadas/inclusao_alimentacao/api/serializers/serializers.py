@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from sme_pratoaberto_terceirizadas.cardapio.api.serializers import TipoAlimentacaoSerializer
 from sme_pratoaberto_terceirizadas.dados_comuns.api.serializers import DiaSemanaSerializer
 from sme_pratoaberto_terceirizadas.escola.api.serializers import EscolaSimplesSerializer
 from sme_pratoaberto_terceirizadas.escola.api.serializers import PeriodoEscolarSerializer
@@ -23,9 +24,7 @@ class MotivoInclusaoNormalSerializer(serializers.ModelSerializer):
 
 class QuantidadePorPeriodoSerializer(serializers.ModelSerializer):
     periodo_escolar = PeriodoEscolarSerializer()
-
-    # TODO: esperar app cardapio.
-    # tipos_alimentacao = TipoAlimentacao
+    tipos_alimentacao = TipoAlimentacaoSerializer()
 
     class Meta:
         model = QuantidadePorPeriodo
