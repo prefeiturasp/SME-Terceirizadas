@@ -1,10 +1,10 @@
 from rest_framework import viewsets
 
-from .serializers import (
+from .serializers.serializers import (
     CardapioSerializer, TipoAlimentacaoSerializer,
     InversaoCardapioSerializer, SuspensaoAlimentacaoSerializer
 )
-from .serializers_create import (
+from .serializers.serializers_create import (
     InversaoCardapioSerializerCreate, CardapioCreateSerializer,
     SuspensaoAlimentacaoCreateSerializer
 )

@@ -3,10 +3,14 @@ from datetime import date
 from rest_framework import serializers
 from traitlets import Any
 
-from sme_pratoaberto_terceirizadas.dados_comuns.validators import (nao_pode_ser_passado, nao_pode_ser_feriado, \
-                                                                   objeto_nao_deve_ter_duplicidade)
 from sme_pratoaberto_terceirizadas.cardapio.models import *
-from sme_pratoaberto_terceirizadas.escola.api.serializers import EscolaSimplesSerializer
+from sme_pratoaberto_terceirizadas.dados_comuns.validators import (
+    nao_pode_ser_passado, nao_pode_ser_feriado,
+    objeto_nao_deve_ter_duplicidade
+)
+from sme_pratoaberto_terceirizadas.escola.api.serializers import (
+    EscolaSimplesSerializer, PeriodoEscolarSerializer
+)
 
 
 class TipoAlimentacaoSerializer(serializers.ModelSerializer):
@@ -57,3 +61,14 @@ class InversaoCardapioSerializer(serializers.ModelSerializer):
     class Meta:
         model = InversaoCardapio
         fields = ['uuid', 'descricao', 'criado_em', 'cardapio_de', 'cardapio_para', 'escola', 'status']
+
+
+class SuspensaoAlimentacaoSerializer(serializers.ModelSerializer):
+    escola = EscolaSimplesSerializer()
+    cardapio = CardapioSerializer()
+    periodos = PeriodoEscolarSerializer(many=True)
+    tipos_alimentacao = TipoAlimentacaoSerializer(many=True)
+
+    class Meta:
+        model = SuspensaoAlimentacao
+        exclude = ('id',)
