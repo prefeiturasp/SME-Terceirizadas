@@ -1,10 +1,13 @@
 from django.core.validators import MinLengthValidator
 from django.db import models
 
+from sme_pratoaberto_terceirizadas.perfil.models import Usuario
 from ..dados_comuns.models_abstract import (Ativavel, Iniciais, Nomeavel, TemChaveExterna)
 
 
 class DiretoriaRegional(Nomeavel, TemChaveExterna):
+    usuarios = models.ManyToManyField(Usuario)
+
     def __str__(self):
         return self.nome
 
@@ -93,6 +96,7 @@ class Escola(Ativavel, TemChaveExterna):
     idades = models.ManyToManyField(FaixaIdadeEscolar, blank=True)
     periodos_escolares = models.ManyToManyField(PeriodoEscolar, blank=True)
     cardapios = models.ManyToManyField('cardapio.Cardapio', blank=True)
+    usuarios = models.ManyToManyField(Usuario)
 
     def __str__(self):
         return '{}: {}'.format(self.codigo_eol, self.nome)
