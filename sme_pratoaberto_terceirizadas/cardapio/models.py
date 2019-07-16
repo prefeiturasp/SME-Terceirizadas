@@ -7,50 +7,6 @@ from ..dados_comuns.models_abstract import (
 from ..escola.models import Escola, DiretoriaRegional
 
 
-#
-# class AlteracaoCardapio(IntervaloDeDia, Descritivel, TemChaveExterna, Motivo):
-#     STATUS = Choices(
-#
-#         # DRE
-#         ('DRE_A_VALIDAR', 'A validar pela DRE'),  # IMEDIATAMENTE ENTRA NESSE APOS CRIAR
-#         ('DRE_APROVADO', 'Aprovado pela DRE'),  # CODAE RECEBE
-#         ('DRE_REPROVADO', 'Reprovado pela DRE'),  # ESCOLA PODE EDITAR
-#
-#         # CODAE
-#         ('CODAE_A_VALIDAR', 'A validar pela CODAE'),  # QUANDO A DRE VALIDA
-#         ('CODAE_APROVADO', 'Aprovado pela CODAE'),  # CODAE RECEBE
-#         ('CODAE_REPROVADO', 'Reprovado pela CODAE'),  # CODAE REPROVA FIM DE FLUXO
-#
-#         # TERCEIRIZADA
-#         ('TERCEIRIZADA_A_VISUALIZAR', 'Terceirizada a visualizar'),
-#         ('TERCEIRIZADA_A_VISUALIZADO', 'Terceirizada visualizado')  # TOMOU CIENCIA, TODOS DEVEM FICAR SABENDO...
-#     )
-#     status = StatusField()
-#     escola = models.ForeignKey(Escola, on_delete=models.DO_NOTHING)
-#
-#     @classmethod
-#     def valida_existencia(cls, data):
-#         inicio = data.get('data_inicial', None)
-#         fim = data.get('data_final', None)
-#         escola = data.get('escola', None)
-#         existe = cls.objects.filter(data_inicial=inicio, data_final=fim, escola=escola).count()
-#         if existe:
-#             return False
-#         return True
-#
-#     @classmethod
-#     def get_escola(cls, id_escola):
-#         try:
-#             return Escola.objects.get(pk=id_escola)
-#         except ObjectDoesNotExist:
-#             return False
-#
-#     @classmethod
-#     def get_usuarios_dre(cls, escola):
-#         dre = DiretoriaRegional.objects.filter(regional_director=escola.regional_director)
-#         return dre.values_list('perfil').all()
-
-
 class TipoAlimentacao(Nomeavel, TemChaveExterna):
     """
         Dejejum
@@ -83,6 +39,7 @@ class Cardapio(Descritivel, Ativavel, TemData, TemChaveExterna, CriadoEm):
     """
     # TODO: adicionar fk para edital
     tipos_alimentacao = models.ManyToManyField(TipoAlimentacao)
+    edital = models.ForeignKey('terceirizada.Edital', on_delete=models.DO_NOTHING)
 
     def __str__(self):
         if self.descricao:
