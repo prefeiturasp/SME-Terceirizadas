@@ -124,8 +124,8 @@ class SuspensaoAlimentacao(TemData, TemChaveExterna):
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING)
     cardapio = models.ForeignKey(Cardapio, on_delete=models.DO_NOTHING,
                                  blank=True, null=True)
-    periodos = models.ManyToManyField('escola.PeriodoEscolar',
-                                      blank=True)
+    periodos_escolares = models.ManyToManyField('escola.PeriodoEscolar',
+                                                blank=True)
     tipos_alimentacao = models.ManyToManyField(TipoAlimentacao,
                                                blank=True)
 

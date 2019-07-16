@@ -97,7 +97,7 @@ class SuspensaoAlimentacaoCreateSerializer(serializers.ModelSerializer):
         required=False,
         queryset=Cardapio.objects.all()
     )
-    periodos = serializers.SlugRelatedField(
+    periodos_escolares = serializers.SlugRelatedField(
         slug_field='uuid',
         many=True,
         required=False,
@@ -119,13 +119,13 @@ class SuspensaoAlimentacaoCreateSerializer(serializers.ModelSerializer):
         return data
 
     def create(self, validated_data):
-        periodos = validated_data.pop('periodos', [])
+        periodos_escolares = validated_data.pop('periodos_escolares', [])
         tipos_alimentacao = validated_data.pop('tipos_alimentacao', [])
 
         suspensao_alimentacao = SuspensaoAlimentacao.objects.create(
             **validated_data
         )
-        suspensao_alimentacao.periodos.set(periodos)
+        suspensao_alimentacao.periodos_escolares.set(periodos_escolares)
         suspensao_alimentacao.tipos_alimentacao.set(tipos_alimentacao)
 
         return suspensao_alimentacao
@@ -133,14 +133,14 @@ class SuspensaoAlimentacaoCreateSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         tipo = attrs.get('tipo')
         cardapio = attrs.get('cardapio')
-        periodos = attrs.get('periodos', [])
+        periodos_escolares = attrs.get('periodos_escolares', [])
         tipos_alimentacao = attrs.get('tipos_alimentacao', [])
         if tipo == SuspensaoAlimentacao.CARDAPIO_INTEIRO:
-            valida_tipo_cardapio_inteiro(cardapio, periodos, tipo, tipos_alimentacao)
+            valida_tipo_cardapio_inteiro(cardapio, periodos_escolares, tipo, tipos_alimentacao)
         elif tipo == SuspensaoAlimentacao.PERIODO_ESCOLAR:
-            valida_tipo_periodo_escolar(cardapio, periodos, tipo, tipos_alimentacao)
+            valida_tipo_periodo_escolar(cardapio, periodos_escolares, tipo, tipos_alimentacao)
         elif tipo == SuspensaoAlimentacao.TIPO_ALIMENTACAO:
-            valida_tipo_alimentacao(cardapio, periodos, tipo, tipos_alimentacao)
+            valida_tipo_alimentacao(cardapio, periodos_escolares, tipo, tipos_alimentacao)
         return attrs
 
     class Meta:
