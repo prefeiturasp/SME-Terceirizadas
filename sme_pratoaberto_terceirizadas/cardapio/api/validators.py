@@ -1,10 +1,10 @@
+from datetime import date
+
 from django.db.models import Q
+from rest_framework import serializers
 from traitlets import Any
 
 from sme_pratoaberto_terceirizadas.cardapio.models import Cardapio
-from rest_framework import serializers
-from datetime import date
-
 from sme_pratoaberto_terceirizadas.escola.models import Escola
 from ..models import InversaoCardapio
 
@@ -35,4 +35,34 @@ def existe_data_cadastrada(cardapio_de: Cardapio, cardapio_para: Cardapio, escol
                                                         escola=escola).exists()
     if inversao_cardapio:
         return False
+    return True
+
+
+def valida_tipo_cardapio_inteiro(cardapio, periodos, tipo, tipos_alimentacao):
+    if not cardapio:
+        raise serializers.ValidationError(
+            f'Quando tipo {tipo} (cardápio inteiro), deve ter cardápio')
+    if periodos or tipos_alimentacao:
+        raise serializers.ValidationError(
+            f'Quando tipo {tipo} (cardápio inteiro), não pode ter períodos ou tipos de alimentação')
+    return True
+
+
+def valida_tipo_periodo_escolar(cardapio, periodos, tipo, tipos_alimentacao):
+    if not periodos:
+        raise serializers.ValidationError(
+            f'Quando tipo {tipo} (periodo escolar), deve ter ao menos 1 periodo escolar')
+    if cardapio or tipos_alimentacao:
+        raise serializers.ValidationError(
+            f'Quando tipo {tipo} (periodo escolar), não pode ter cardapio ou tipos de alimentação')
+    return True
+
+
+def valida_tipo_alimentacao(cardapio, periodos, tipo, tipos_alimentacao):
+    if not tipos_alimentacao:
+        raise serializers.ValidationError(
+            f'Quando tipo {tipo} (tipo alimentação), deve ter ao menos 1 tipo de alimentação')
+    if cardapio or periodos:
+        raise serializers.ValidationError(
+            f'Quando tipo {tipo} (tipo alimentação), não pode ter cardapio ou períodos')
     return True

@@ -1,0 +1,12 @@
+[
+  {
+    "model": "terceirizada.edital",
+    "id": 1,
+    "fields": {
+      "nome": "EDITAL NRO XXX-ZZZ",
+      "descricao": "ESSE É UM EDITAL DE TESTE",
+      "data_inicial": "2016-01-01",
+      "data_final": "2016-12-31"
+    }
+  }
+]

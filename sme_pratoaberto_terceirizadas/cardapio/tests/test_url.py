@@ -2,12 +2,12 @@ from rest_framework import status
 
 
 def test_url_endpoint_cardapio(client):
-    response = client.get('/cardapio/')
+    response = client.get('/cardapios/')
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
 def test_url_endpoint_tipo_de_alimentacao(client):
-    response = client.get('/tipo-alimentacao/')
+    response = client.get('/tipos-alimentacao/')
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 

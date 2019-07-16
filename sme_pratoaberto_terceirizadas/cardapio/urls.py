@@ -4,9 +4,10 @@ from rest_framework import routers
 from .api import viewsets
 
 router = routers.DefaultRouter()
-router.register("cardapio", viewsets.CardapioViewSet, 'Cardápio')
-router.register("tipo-alimentacao", viewsets.TipoAlimentacaoViewSet, 'Tipo de Alimetação')
+router.register("cardapios", viewsets.CardapioViewSet, 'Cardápios')
+router.register("tipos-alimentacao", viewsets.TipoAlimentacaoViewSet, 'Tipos de Alimetação')
 router.register("inverte-dia-cardapio", viewsets.InversaoCardapioViewSet, 'Inversão de dia de Cardápio')
+router.register("suspensoes-alimentacao", viewsets.SuspensaoAlimentacaoViewSet, "Suspensão de alimentação")
 
 urlpatterns = [
     path("", include(router.urls)),

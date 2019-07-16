@@ -91,7 +91,7 @@ class Escola(Ativavel, TemChaveExterna):
                                 blank=True, null=True)
 
     idades = models.ManyToManyField(FaixaIdadeEscolar, blank=True)
-    periodos = models.ManyToManyField(PeriodoEscolar, blank=True)
+    periodos_escolares = models.ManyToManyField(PeriodoEscolar, blank=True)
     cardapios = models.ManyToManyField('cardapio.Cardapio', blank=True)
 
     def __str__(self):
