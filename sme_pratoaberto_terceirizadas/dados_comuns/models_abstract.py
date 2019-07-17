@@ -135,3 +135,20 @@ class DiasSemana(models.Model):
 
     class Meta:
         abstract = True
+
+
+class TempoPasseio(models.Model):
+    QUATRO = 0
+    CINCO_A_SETE = 1
+    OITO_OU_MAIS = 2
+
+    HORAS = (
+        (QUATRO, 'Quatro horas'),
+        (CINCO_A_SETE, 'Cinco a sete horas'),
+        (OITO_OU_MAIS, 'Oito horas'),
+    )
+    tempo_passeio = models.PositiveSmallIntegerField(choices=HORAS,
+                                                     null=True, blank=True)
+
+    class Meta:
+        abstract = True

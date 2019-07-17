@@ -1,7 +1,8 @@
 from django.db import models
 
 from ..dados_comuns.models_abstract import (
-    Nomeavel, TemData, Motivo, Descritivel, CriadoEm, TemChaveExterna
+    Nomeavel, TemData, Motivo, Descritivel,
+    CriadoEm, TemChaveExterna, TempoPasseio
 )
 
 
@@ -49,19 +50,7 @@ class KitLanche(Nomeavel, TemChaveExterna):
         verbose_name_plural = "Kit lanches"
 
 
-class SolicitacaoKitLanche(TemData, Motivo, Descritivel, CriadoEm, TemChaveExterna):
-    # TODO: DRY no enum
-    QUATRO = 0
-    CINCO_A_SETE = 1
-    OITO_OU_MAIS = 2
-
-    HORAS = (
-        (QUATRO, 'Quatro horas'),
-        (CINCO_A_SETE, 'Cinco a sete horas'),
-        (OITO_OU_MAIS, 'Oito horas'),
-    )
-    tempo_passeio = models.PositiveSmallIntegerField(choices=HORAS,
-                                                     null=True, blank=True)
+class SolicitacaoKitLanche(TemData, Motivo, Descritivel, CriadoEm, TempoPasseio, TemChaveExterna):
     kits = models.ManyToManyField(KitLanche, blank=True)
 
     def __str__(self):
@@ -124,18 +113,7 @@ class SolicitacaoKitLancheUnificada(TemChaveExterna):
         verbose_name_plural = "Solicitações de  kit lanche unificadas"
 
 
-class EscolaQuantidade(TemChaveExterna):
-    # TODO: DRY no enum
-    QUATRO = 0
-    CINCO_A_SETE = 1
-    OITO_OU_MAIS = 2
-
-    HORAS = (
-        (QUATRO, 'Quatro horas'),
-        (CINCO_A_SETE, 'Cinco a sete horas'),
-        (OITO_OU_MAIS, 'Oito horas'),
-    )
-    tempo_passeio = models.PositiveSmallIntegerField(choices=HORAS, default=QUATRO)
+class EscolaQuantidade(TemChaveExterna, TempoPasseio):
     quantidade_alunos = models.PositiveSmallIntegerField()
     solicitacao_unificada = models.ForeignKey(SolicitacaoKitLancheUnificada,
                                               on_delete=models.DO_NOTHING,

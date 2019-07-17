@@ -1,6 +1,8 @@
 import pytest
 from model_mommy import mommy
 
+from sme_pratoaberto_terceirizadas.dados_comuns.models_abstract import TempoPasseio
+
 pytestmark = pytest.mark.django_db
 
 
@@ -33,6 +35,6 @@ def test_solicitacao_unificada(solicitacao_unificada):
 
 
 def test_solicitacao(solicitacao):
-    assert solicitacao.tempo_passeio == solicitacao.CINCO_A_SETE
+    assert solicitacao.tempo_passeio == TempoPasseio.CINCO_A_SETE
     assert solicitacao.kits.count() == 3
     assert 'Solicitação kit lanche base' in solicitacao._meta.verbose_name

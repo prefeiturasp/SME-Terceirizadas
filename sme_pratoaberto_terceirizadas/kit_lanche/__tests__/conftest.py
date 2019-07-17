@@ -2,6 +2,7 @@ import pytest
 from faker import Faker
 from model_mommy import mommy
 
+from sme_pratoaberto_terceirizadas.dados_comuns.models_abstract import TempoPasseio
 from .. import models
 
 fake = Faker('pt_BR')
@@ -55,7 +56,7 @@ def solicitacao():
     return mommy.make(models.SolicitacaoKitLanche,
                       descricao=fake.text(),
                       motivo=fake.text(),
-                      tempo_passeio=models.SolicitacaoKitLanche.CINCO_A_SETE,
+                      tempo_passeio=TempoPasseio.CINCO_A_SETE,
                       kits=kits)
 
 
