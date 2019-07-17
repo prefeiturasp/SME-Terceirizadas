@@ -75,6 +75,7 @@ erro_esperado_passeio = 'tempo de passeio deve ser qualquer uma das opções:'
 @pytest.fixture(params=[
     ('0', erro_esperado_passeio),
     ('TESTE', erro_esperado_passeio),
+    (3, erro_esperado_passeio),
 ])
 def horarios_passeio_invalido(request):
     return request.param
