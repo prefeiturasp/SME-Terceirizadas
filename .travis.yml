@@ -23,7 +23,5 @@ deploy:
   provider: script
   script: bash utility/deploy_dockerhub.sh
   on:
-    branches:
-      only:
-        - master
-        - development
+    tags: true
+    all_branches: true
