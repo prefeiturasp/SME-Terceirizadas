@@ -3,7 +3,8 @@ from django.db import models
 
 from ..dados_comuns.models_abstract import (
     Descritivel, IntervaloDeDia,
-    Nomeavel, TemData, TemChaveExterna
+    Nomeavel, TemData, TemChaveExterna,
+    DiasSemana
 )
 
 
@@ -37,19 +38,16 @@ class MotivoInclusaoContinua(Nomeavel, TemChaveExterna):
         verbose_name_plural = "Motivos de inclusao contínua"
 
 
-class InclusaoAlimentacaoContinua(IntervaloDeDia, Descritivel, TemChaveExterna):
+class InclusaoAlimentacaoContinua(IntervaloDeDia, Descritivel, TemChaveExterna, DiasSemana):
     outro_motivo = models.CharField("Outro motivo", blank=True, null=True, max_length=50)
     motivo = models.ForeignKey(MotivoInclusaoContinua, on_delete=models.DO_NOTHING)
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING)
     quantidades_periodo = models.ManyToManyField(QuantidadePorPeriodo)
-    dias_semana = models.ManyToManyField('dados_comuns.DiaSemana')
-
-    # TODO: status aqui.
 
     def __str__(self):
-        return "de {} até {} para {} por {}X por semana".format(
+        return "de {} até {} para {} para {}".format(
             self.data_inicial, self.data_final, self.escola,
-            self.dias_semana.count())
+            self.dias_semana_display())
 
     class Meta:
         verbose_name = "Inclusão de alimentação contínua"

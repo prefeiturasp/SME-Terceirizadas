@@ -1,5 +1,6 @@
 import uuid
 
+from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from model_utils import Choices
 
@@ -92,6 +93,42 @@ class StatusValidacao(models.Model):
         (7, 'TERCEIRIZADA_A_VISUALIZADO', 'Terceirizada visualizado')  # TOMOU CIENCIA, TODOS DEVEM FICAR SABENDO...
     )
     status = models.IntegerField(choices=STATUSES, default=STATUSES.DRE_A_VALIDAR)
+
+    class Meta:
+        abstract = True
+
+
+class DiasSemana(models.Model):
+    SEGUNDA = 1
+    TERCA = 2
+    QUARTA = 3
+    QUINTA = 4
+    SEXTA = 5
+    SABADO = 6
+    DOMINGO = 7
+
+    DIAS = (
+        (SEGUNDA, 'Segunda'),
+        (TERCA, 'Terça'),
+        (QUINTA, 'Quarta'),
+        (QUARTA, 'Quinta'),
+        (SEXTA, 'Sexta'),
+        (SABADO, 'Sábado'),
+        (DOMINGO, 'Domingo'),
+    )
+
+    dias_semana = ArrayField(models.PositiveSmallIntegerField(choices=DIAS,
+                                                              default=[],
+                                                              null=True, blank=True))
+
+    def dias_semana_display(self):
+        result = ''
+        choices = dict(self.DIAS)
+        for index, value in enumerate(self.dias_semana):
+            result += "{0}".format(choices[value])
+            if not index == len(self.dias_semana) - 1:
+                result += ', '
+        return result
 
     class Meta:
         abstract = True
