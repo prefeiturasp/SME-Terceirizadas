@@ -1,2 +1,0 @@
-class InclusaoAlimentacaoCriarOuAtualizarException(Exception):
-    pass

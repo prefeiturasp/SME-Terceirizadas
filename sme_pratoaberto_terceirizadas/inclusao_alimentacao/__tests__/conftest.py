@@ -1,5 +1,3 @@
-import datetime
-
 import pytest
 from faker import Faker
 from model_mommy import mommy
@@ -8,18 +6,6 @@ from .. import models
 
 fake = Faker('pt-Br')
 fake.seed(420)
-
-
-@pytest.fixture(scope='function', params=[
-    # dia, dias antecedencia, esperado
-    # dia fake do teste: "2019-05-22"
-    (datetime.date(2019, 5, 27), 2, True),
-    (datetime.date(2019, 5, 25), 2, True),
-    (datetime.date(2019, 5, 30), 5, True),
-    (datetime.date(2019, 5, 28), 3, True),
-])
-def dias_teste_antecedencia(request):
-    return request.param
 
 
 @pytest.fixture
