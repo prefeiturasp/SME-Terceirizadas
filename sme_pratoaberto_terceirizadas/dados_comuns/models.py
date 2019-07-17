@@ -13,21 +13,6 @@ class LogUsuario(Descritivel, CriadoEm, TemChaveExterna):
     # Lembrando que o objetivo final é fazer uma especie de auditoria...
 
 
-class DiaSemana(TemChaveExterna):
-    """
-        Seg a Dom...
-    """
-    nome = models.CharField("Nome", blank=True, null=True, max_length=20, unique=True)
-    numero = models.PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(7)], unique=True)
-
-    class Meta:
-        verbose_name = "Dia da semana"
-        verbose_name_plural = "Dias da semana"
-
-    def __str__(self):
-        return '{}: {}'.format(self.numero, self.nome)
-
-
 class Contato(models.Model):
     telefone = models.CharField(max_length=10, validators=[MinLengthValidator(8)],
                                 blank=True, null=True)

@@ -99,13 +99,13 @@ class StatusValidacao(models.Model):
 
 
 class DiasSemana(models.Model):
-    SEGUNDA = 1
-    TERCA = 2
-    QUARTA = 3
-    QUINTA = 4
-    SEXTA = 5
-    SABADO = 6
-    DOMINGO = 7
+    SEGUNDA = 0
+    TERCA = 1
+    QUARTA = 2
+    QUINTA = 3
+    SEXTA = 4
+    SABADO = 5
+    DOMINGO = 6
 
     DIAS = (
         (SEGUNDA, 'Segunda'),
@@ -117,9 +117,12 @@ class DiasSemana(models.Model):
         (DOMINGO, 'Domingo'),
     )
 
-    dias_semana = ArrayField(models.PositiveSmallIntegerField(choices=DIAS,
-                                                              default=[],
-                                                              null=True, blank=True))
+    dias_semana = ArrayField(
+        models.PositiveSmallIntegerField(choices=DIAS,
+                                         default=[],
+                                         null=True, blank=True
+                                         )
+    )
 
     def dias_semana_display(self):
         result = ''

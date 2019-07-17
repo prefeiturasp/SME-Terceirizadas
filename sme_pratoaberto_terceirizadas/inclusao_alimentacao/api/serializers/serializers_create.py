@@ -2,7 +2,6 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from sme_pratoaberto_terceirizadas.cardapio.models import TipoAlimentacao
-from sme_pratoaberto_terceirizadas.dados_comuns.models import DiaSemana
 from sme_pratoaberto_terceirizadas.dados_comuns.utils import update_instance_from_dict
 from sme_pratoaberto_terceirizadas.dados_comuns.validators import nao_pode_ser_passado
 from sme_pratoaberto_terceirizadas.escola.models import PeriodoEscolar, Escola
@@ -135,8 +134,10 @@ class InclusaoAlimentacaoContinuaCreationSerializer(serializers.ModelSerializer)
         queryset=Escola.objects.all()
     )
     quantidades_periodo = QuantidadePorPeriodoCreationSerializer(many=True)
-    dias_semana = serializers.PrimaryKeyRelatedField(
-        many=True, queryset=DiaSemana.objects.all()
+    dias_semana_explicacao = serializers.CharField(
+        source='dias_semana_display',
+        required=False,
+        read_only=True
     )
 
     def validate_data_inicial(self, data):
@@ -157,17 +158,14 @@ class InclusaoAlimentacaoContinuaCreationSerializer(serializers.ModelSerializer)
     def create(self, validated_data):
         quantidades_periodo_array = validated_data.pop('quantidades_periodo')
         lista_escola_quantidade = self._gera_lista_escola_quantidade(quantidades_periodo_array)
-        dias_semana = validated_data.pop('dias_semana', [])
         inclusao_alimentacao_continua = InclusaoAlimentacaoContinua.objects.create(
             **validated_data)
-        inclusao_alimentacao_continua.dias_semana.set(dias_semana)
         inclusao_alimentacao_continua.quantidades_periodo.set(lista_escola_quantidade)
 
         return inclusao_alimentacao_continua
 
     def update(self, instance, validated_data):
         quantidades_periodo_array = validated_data.pop('quantidades_periodo')
-        dias_semana = validated_data.pop('dias_semana', [])
         quantidades_periodo = instance.quantidades_periodo.all()
 
         assert len(quantidades_periodo) == len(quantidades_periodo_array)
@@ -177,7 +175,6 @@ class InclusaoAlimentacaoContinuaCreationSerializer(serializers.ModelSerializer)
                      validated_data=quantidades_periodo_array[index]
                      )
         update_instance_from_dict(instance, validated_data)
-        instance.dias_semana.set(dias_semana)
         instance.save()
         return instance
 
