@@ -8,7 +8,7 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.viewsets import ViewSet, ModelViewSet
 
-from sme_pratoaberto_terceirizadas.dados_comuns.models_abstract import DiasSemana
+from sme_pratoaberto_terceirizadas.dados_comuns.models_abstract import DiasSemana, TempoPasseio
 from .serializers import ConfiguracaoEmailSerializer
 from ..utils import obter_dias_uteis_apos_hoje
 
@@ -18,6 +18,13 @@ class DiasDaSemanaViewSet(ViewSet):
 
     def list(self, request):
         return Response(dict(DiasSemana.DIAS))
+
+
+class TempoDePasseioViewSet(ViewSet):
+    permission_classes = (AllowAny,)
+
+    def list(self, request):
+        return Response(dict(TempoPasseio.HORAS))
 
 
 class DiasUteisViewSet(ViewSet):
