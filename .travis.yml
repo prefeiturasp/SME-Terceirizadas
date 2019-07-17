@@ -23,5 +23,4 @@ deploy:
   provider: script
   script: bash utility/deploy_dockerhub.sh
   on:
-    tags: true
     all_branches: true
