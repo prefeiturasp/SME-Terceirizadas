@@ -115,11 +115,10 @@ class EscolaQuantidadeCreationSerializer(serializers.ModelSerializer):
         queryset=models.SolicitacaoKitLancheUnificada.objects.all()
     )
 
-    def validate(self, attrs):
-        tempo_passeio = attrs.get('tempo_passeio')
-        qtd_kits = len(attrs.get('kits'))
+    def validate_tempo_passeio(self, tempo_passeio):
+        qtd_kits = len(self.initial_data.get('kits'))
         valida_quantidade_kits_tempo_passeio(tempo_passeio, qtd_kits)
-        return attrs
+        return tempo_passeio
 
     def create(self, validated_data):
         kits = validated_data.pop('kits', [])

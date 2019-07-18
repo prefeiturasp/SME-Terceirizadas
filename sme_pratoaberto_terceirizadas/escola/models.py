@@ -98,6 +98,12 @@ class Escola(Ativavel, TemChaveExterna):
     cardapios = models.ManyToManyField('cardapio.Cardapio', blank=True)
     usuarios = models.ManyToManyField(Usuario)
 
+    def get_grupos_inclusao_normal(self):
+        return self.grupos_inclusoes_normais
+
+    def get_inclusoes_alimentacao_continua(self):
+        return self.inclusoes_alimentacao_continua
+
     def __str__(self):
         return '{}: {}'.format(self.codigo_eol, self.nome)
 

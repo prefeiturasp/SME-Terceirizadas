@@ -18,7 +18,7 @@ from sme_pratoaberto_terceirizadas.terceirizada.urls import urlpatterns as terce
 schema_view = get_swagger_view(title='API de Terceirizadas')
 
 urlpatterns = [
-                  path('docs', schema_view),
+                  path('docs', schema_view, name='docs'),
                   path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
                   path('inbox/notifications/', include(notifications.urls, namespace='notifications')),
                   path(settings.ADMIN_URL, admin.site.urls),

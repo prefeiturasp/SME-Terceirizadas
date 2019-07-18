@@ -41,7 +41,8 @@ class MotivoInclusaoContinua(Nomeavel, TemChaveExterna):
 class InclusaoAlimentacaoContinua(IntervaloDeDia, Descritivel, TemChaveExterna, DiasSemana):
     outro_motivo = models.CharField("Outro motivo", blank=True, null=True, max_length=50)
     motivo = models.ForeignKey(MotivoInclusaoContinua, on_delete=models.DO_NOTHING)
-    escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING)
+    escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING,
+                               related_name='inclusoes_alimentacao_continua')
     quantidades_periodo = models.ManyToManyField(QuantidadePorPeriodo)
 
     def __str__(self):
@@ -87,7 +88,8 @@ class InclusaoAlimentacaoNormal(TemData, TemChaveExterna):
 
 
 class GrupoInclusaoAlimentacaoNormal(Descritivel, TemChaveExterna):
-    escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING)
+    escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING,
+                               related_name='grupos_inclusoes_normais')
     inclusoes = models.ManyToManyField(InclusaoAlimentacaoNormal)
 
     # TODO: status aqui.

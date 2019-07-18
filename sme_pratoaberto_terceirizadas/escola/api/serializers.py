@@ -40,7 +40,7 @@ class EscolaCompletaSerializer(serializers.ModelSerializer):
     idades = FaixaIdadeEscolarSerializer(many=True)
     tipo_unidade = TipoUnidadeEscolarSerializer()
     tipo_gestao = TipoGestaoSerializer()
-    periodos = PeriodoEscolarSerializer(many=True)
+    periodos_escolares = PeriodoEscolarSerializer(many=True)
     lote = LoteSerializer()
 
     class Meta:
