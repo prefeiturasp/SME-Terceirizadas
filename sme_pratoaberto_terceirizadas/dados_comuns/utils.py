@@ -29,3 +29,4 @@ def eh_dia_util(date):
 def update_instance_from_dict(instance, attrs):
     for attr, val in attrs.items():
         setattr(instance, attr, val)
+    return instance

@@ -8,6 +8,8 @@ from .serializers import (EscolaCompletaSerializer, PeriodoEscolarSerializer, Di
 from ..models import (Escola, PeriodoEscolar, DiretoriaRegional)
 
 
+# https://www.django-rest-framework.org/api-guide/permissions/#custom-permissions
+
 class EscolaViewSet(ReadOnlyModelViewSet):
     lookup_field = 'uuid'
     queryset = Escola.objects.all()

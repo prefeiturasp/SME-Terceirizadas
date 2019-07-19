@@ -41,7 +41,7 @@ def solicitacao_unificada():
     dado_base = mommy.make(models.SolicitacaoKitLanche, )
     dre = mommy.make('escola.DiretoriaRegional')
     return mommy.make(models.SolicitacaoKitLancheUnificada,
-                      local=fake.text(),
+                      local=fake.text()[:160],
                       quantidade_max_alunos_por_escola=999,
                       lista_kit_lanche_igual=True,
                       dado_base=dado_base,

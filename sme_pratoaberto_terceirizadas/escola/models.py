@@ -8,6 +8,10 @@ from ..dados_comuns.models_abstract import (Ativavel, Iniciais, Nomeavel, TemCha
 class DiretoriaRegional(Nomeavel, TemChaveExterna):
     usuarios = models.ManyToManyField(Usuario)
 
+    @property
+    def escolas(self):
+        return self.escolas
+
     def __str__(self):
         return self.nome
 
@@ -36,6 +40,7 @@ class TipoUnidadeEscolar(Iniciais, Ativavel, TemChaveExterna):
     """
         Tipo de unidade escolar: EEMEF, CIEJA, EMEI, EMEBS, CEI, CEMEI...
     """
+    cardapios = models.ManyToManyField('cardapio.Cardapio', blank=True)
 
     def __str__(self):
         return self.iniciais
@@ -95,7 +100,6 @@ class Escola(Ativavel, TemChaveExterna):
 
     idades = models.ManyToManyField(FaixaIdadeEscolar, blank=True)
     periodos_escolares = models.ManyToManyField(PeriodoEscolar, blank=True)
-    cardapios = models.ManyToManyField('cardapio.Cardapio', blank=True)
     usuarios = models.ManyToManyField(Usuario)
 
     def get_grupos_inclusao_normal(self):
