@@ -32,7 +32,6 @@ class QuantidadePorPeriodoSerializer(serializers.ModelSerializer):
 
 class InclusaoAlimentacaoNormalSerializer(serializers.ModelSerializer):
     motivo = MotivoInclusaoNormalSerializer()
-    quantidade_periodo = QuantidadePorPeriodoSerializer()
 
     class Meta:
         model = InclusaoAlimentacaoNormal
@@ -63,6 +62,7 @@ class InclusaoAlimentacaoNormalSimplesSerializer(serializers.ModelSerializer):
 class GrupoInclusaoAlimentacaoNormalSerializer(serializers.ModelSerializer):
     inclusoes = InclusaoAlimentacaoNormalSerializer(many=True)
     escola = EscolaSimplesSerializer()
+    quantidades_periodo = QuantidadePorPeriodoSerializer(many=True)
 
     class Meta:
         model = GrupoInclusaoAlimentacaoNormal

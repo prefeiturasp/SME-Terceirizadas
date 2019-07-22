@@ -88,6 +88,7 @@ class InclusaoAlimentacaoNormal(TemData, TemChaveExterna):
     motivo = models.ForeignKey(MotivoInclusaoNormal, on_delete=models.DO_NOTHING)
     outro_motivo = models.CharField("Outro motivo", blank=True, null=True, max_length=50)
     grupo_inclusao = models.ForeignKey('GrupoInclusaoAlimentacaoNormal',
+                                       blank=True, null=True,
                                        on_delete=models.DO_NOTHING,
                                        related_name='inclusoes_normais')
 
@@ -112,6 +113,16 @@ class GrupoInclusaoAlimentacaoNormal(Descritivel, TemChaveExterna):
     @property
     def quantidades_periodo(self):
         return self.quantidades_por_periodo
+
+    def adiciona_inclusao_normal(self, inclusao: InclusaoAlimentacaoNormal):
+        # TODO: padronizar grupo_inclusao ou grupo_inclusao_normal
+        inclusao.grupo_inclusao = self
+        inclusao.save()
+
+    def adiciona_quantidade_periodo(self, quantidade_periodo: QuantidadePorPeriodo):
+        # TODO: padronizar grupo_inclusao ou grupo_inclusao_normal
+        quantidade_periodo.grupo_inclusao_normal = self
+        quantidade_periodo.save()
 
     # TODO: status aqui.
     def __str__(self):
