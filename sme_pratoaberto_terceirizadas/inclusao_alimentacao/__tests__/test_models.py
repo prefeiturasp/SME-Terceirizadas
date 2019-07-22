@@ -27,4 +27,3 @@ def test_quantidade_por_periodo(quantidade_por_periodo):
 def test_inclusao_alimentacao_continua(inclusao_alimentacao_continua):
     assert isinstance(inclusao_alimentacao_continua.escola, Escola)
     assert isinstance(inclusao_alimentacao_continua.motivo, MotivoInclusaoContinua)
-    assert inclusao_alimentacao_continua.quantidades_periodo.all().count() == 419
