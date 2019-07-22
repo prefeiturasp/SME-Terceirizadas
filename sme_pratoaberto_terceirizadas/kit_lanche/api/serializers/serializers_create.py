@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from sme_pratoaberto_terceirizadas.dados_comuns.utils import update_instance_from_dict
-from sme_pratoaberto_terceirizadas.dados_comuns.validators import nao_pode_ser_passado
+from sme_pratoaberto_terceirizadas.dados_comuns.validators import nao_pode_ser_no_passado
 from sme_pratoaberto_terceirizadas.escola.models import Escola, DiretoriaRegional
 from sme_pratoaberto_terceirizadas.kit_lanche.api.validators import valida_quantidade_kits_tempo_passeio
 from sme_pratoaberto_terceirizadas.kit_lanche.models import EscolaQuantidade
@@ -28,7 +28,7 @@ class SolicitacaoKitLancheCreationSerializer(serializers.ModelSerializer):
         read_only=True)
 
     def validate_data(self, data):
-        nao_pode_ser_passado(data)
+        nao_pode_ser_no_passado(data)
         return data
 
     def validate(self, attrs):

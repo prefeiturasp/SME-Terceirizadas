@@ -8,7 +8,7 @@ from .utils import obter_dias_uteis_apos_hoje, eh_dia_util
 calendario = BrazilSaoPauloCity()
 
 
-def nao_pode_ser_passado(data: datetime.date):
+def nao_pode_ser_no_passado(data: datetime.date):
     if data < datetime.date.today():
         raise serializers.ValidationError('Não pode ser no passado')
     return True

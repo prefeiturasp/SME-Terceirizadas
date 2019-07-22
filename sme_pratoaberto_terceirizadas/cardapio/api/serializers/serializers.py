@@ -5,7 +5,7 @@ from traitlets import Any
 
 from sme_pratoaberto_terceirizadas.cardapio.models import *
 from sme_pratoaberto_terceirizadas.dados_comuns.validators import (
-    nao_pode_ser_passado, nao_pode_ser_feriado,
+    nao_pode_ser_no_passado, nao_pode_ser_feriado,
     objeto_nao_deve_ter_duplicidade
 )
 from sme_pratoaberto_terceirizadas.escola.api.serializers import (
@@ -35,7 +35,7 @@ class CardapioSerializer(serializers.ModelSerializer):
     tipos_alimentacao = TipoAlimentacaoSerializer(many=True, read_only=True)
 
     def validate_data(self, data: date) -> Any:
-        nao_pode_ser_passado(data)
+        nao_pode_ser_no_passado(data)
         nao_pode_ser_feriado(data)
         objeto_nao_deve_ter_duplicidade(
             Cardapio,
