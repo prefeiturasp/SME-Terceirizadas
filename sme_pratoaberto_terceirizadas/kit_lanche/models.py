@@ -64,7 +64,7 @@ class SolicitacaoKitLanche(TemData, Motivo, Descritivel, CriadoEm, TempoPasseio,
 class SolicitacaoKitLancheAvulsa(TemChaveExterna):
     local = models.CharField(max_length=160)
     quantidade_alunos = models.PositiveSmallIntegerField()
-    dado_base = models.ForeignKey(SolicitacaoKitLanche, on_delete=models.DO_NOTHING)
+    solicitacao_kit_lanche = models.ForeignKey(SolicitacaoKitLanche, on_delete=models.DO_NOTHING)
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING,
                                related_name='solicitacoes_kit_lanche_avulsa')
 
@@ -95,7 +95,7 @@ class SolicitacaoKitLancheUnificada(TemChaveExterna):
     lista_kit_lanche_igual = models.BooleanField(default=True)
 
     diretoria_regional = models.ForeignKey('escola.DiretoriaRegional', on_delete=models.DO_NOTHING)
-    dado_base = models.ForeignKey(SolicitacaoKitLanche, on_delete=models.DO_NOTHING)
+    solicitacao_kit_lanche = models.ForeignKey(SolicitacaoKitLanche, on_delete=models.DO_NOTHING)
 
     def vincula_escolas_quantidades(self, escolas_quantidades):
         for escola_quantidade in escolas_quantidades:

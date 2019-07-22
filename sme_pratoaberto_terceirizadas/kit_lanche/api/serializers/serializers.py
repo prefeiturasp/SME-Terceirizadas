@@ -46,7 +46,7 @@ class SolicitacaoKitLancheSimplesSerializer(serializers.ModelSerializer):
 
 
 class SolicitacaoKitLancheAvulsaSerializer(serializers.ModelSerializer):
-    dado_base = SolicitacaoKitLancheSimplesSerializer()
+    solicitacao_kit_lanche = SolicitacaoKitLancheSimplesSerializer()
     escola = EscolaSimplesSerializer(read_only=True,
                                      required=False)
 
@@ -70,7 +70,7 @@ class EscolaQuantidadeSerializerSimples(serializers.ModelSerializer):
 
 class SolicitacaoKitLancheUnificadaSerializer(serializers.ModelSerializer):
     motivo = MotivoSolicitacaoUnificadaSerializer()
-    dado_base = SolicitacaoKitLancheSimplesSerializer()
+    solicitacao_kit_lanche = SolicitacaoKitLancheSimplesSerializer()
     escolas_quantidades = EscolaQuantidadeSerializerSimples(many=True)
 
     class Meta:
