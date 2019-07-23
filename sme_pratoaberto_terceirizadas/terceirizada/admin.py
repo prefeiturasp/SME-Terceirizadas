@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Lote, Terceirizada
 
-admin.site.register(Lote)
+from .models import Terceirizada
+
 admin.site.register(Terceirizada)

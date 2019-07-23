@@ -13,28 +13,8 @@ class Edital(TemChaveExterna, Nomeavel, Descritivel, Ativavel, IntervaloDeDia):
         return "{} válido de {} até {}".format(self.nome, self.data_inicial, self.data_final)
 
     class Meta:
-        verbose_name = "Lote"
-        verbose_name_plural = "Lotes"
-
-
-class Lote(TemChaveExterna, Nomeavel, Iniciais):
-    """Lote de escolas"""
-    diretoria_regional = models.ForeignKey('escola.DiretoriaRegional',
-                                           on_delete=models.DO_NOTHING,
-                                           related_name='lotes',
-                                           null=True,
-                                           blank=True)
-
-    @property
-    def escolas(self):
-        return self.escolas
-
-    def __str__(self):
-        return self.nome
-
-    class Meta:
-        verbose_name = "Lote"
-        verbose_name_plural = "Lotes"
+        verbose_name = "Edital"
+        verbose_name_plural = "Editais"
 
 
 class Terceirizada(TemChaveExterna, Ativavel):
@@ -45,7 +25,7 @@ class Terceirizada(TemChaveExterna, Ativavel):
     razao_social = models.CharField("Razao social", max_length=160,
                                     blank=True, null=True)
     cnpj = models.CharField("CNPJ", validators=[MinLengthValidator(14)], max_length=14)
-    lotes = models.ManyToManyField(Lote, related_name="lotes")
+    lotes = models.ManyToManyField("escola.Lote", related_name="lotes")
 
     representante_legal = models.CharField("Representante legal", max_length=160,
                                            blank=True, null=True)

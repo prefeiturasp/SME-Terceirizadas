@@ -1,12 +1,6 @@
 from rest_framework import serializers
 
-from ..models import (Lote, Edital)
-
-
-class LoteSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Lote
-        exclude = ('id', 'diretoria_regional')
+from ..models import (Edital)
 
 
 class EditalSerializer(serializers.ModelSerializer):

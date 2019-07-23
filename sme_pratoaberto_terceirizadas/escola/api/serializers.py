@@ -1,8 +1,7 @@
 from rest_framework import serializers
 
 from ..models import (Escola, PeriodoEscolar, DiretoriaRegional,
-                      FaixaIdadeEscolar, TipoUnidadeEscolar, TipoGestao, )
-from ...terceirizada.api.serializers import LoteSerializer
+                      FaixaIdadeEscolar, TipoUnidadeEscolar, TipoGestao, Lote)
 
 
 class PeriodoEscolarSerializer(serializers.ModelSerializer):
@@ -35,13 +34,19 @@ class DiretoriaRegionalSimplesSerializer(serializers.ModelSerializer):
         exclude = ('id',)
 
 
+class LoteSimplesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Lote
+        exclude = ('id', 'diretoria_regional', 'escolas')
+
+
 class EscolaCompletaSerializer(serializers.ModelSerializer):
     diretoria_regional = DiretoriaRegionalSimplesSerializer()
     idades = FaixaIdadeEscolarSerializer(many=True)
     tipo_unidade = TipoUnidadeEscolarSerializer()
     tipo_gestao = TipoGestaoSerializer()
     periodos_escolares = PeriodoEscolarSerializer(many=True)
-    lote = LoteSerializer()
+    lote = LoteSimplesSerializer()
 
     class Meta:
         model = Escola
@@ -55,7 +60,7 @@ class EscolaSimplesSerializer(serializers.ModelSerializer):
 
 
 class DiretoriaRegionalCompletaSerializer(serializers.ModelSerializer):
-    lotes = LoteSerializer(many=True)
+    lotes = LoteSimplesSerializer(many=True)
     escolas = EscolaSimplesSerializer(many=True)
 
     class Meta:
