@@ -25,6 +25,10 @@ class Lote(TemChaveExterna, Nomeavel, Iniciais):
                                            null=True,
                                            blank=True)
 
+    @property
+    def escolas(self):
+        return self.escolas
+
     def __str__(self):
         return self.nome
 

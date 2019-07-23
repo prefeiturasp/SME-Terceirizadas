@@ -91,6 +91,7 @@ class Escola(Ativavel, TemChaveExterna):
     tipo_gestao = models.ForeignKey(TipoGestao,
                                     on_delete=models.DO_NOTHING)
     lote = models.ForeignKey('terceirizada.Lote',
+                             related_name='escolas',
                              on_delete=models.DO_NOTHING)
 
     endereco = models.ForeignKey('dados_comuns.Endereco', on_delete=models.DO_NOTHING,
