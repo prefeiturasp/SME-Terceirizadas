@@ -24,7 +24,14 @@ class TempoDePasseioViewSet(ViewSet):
     permission_classes = (AllowAny,)
 
     def list(self, request):
-        return Response(dict(TempoPasseio.HORAS))
+        tempo_de_passeio_descricao = {
+            TempoPasseio.QUATRO: {'quantidade_kits': 1, 'descricao': 'até 4 horas: 1 kit'},
+            TempoPasseio.CINCO_A_SETE: {'quantidade_kits': 2,
+                                        'descricao': 'entre 5 e 7 horas: 2 kits'},
+            TempoPasseio.OITO_OU_MAIS: {'quantidade_kits': 3,
+                                        'descricao': '8 ou mais horas: 3 kits'}
+        }
+        return Response(tempo_de_passeio_descricao)
 
 
 class DiasUteisViewSet(ViewSet):
