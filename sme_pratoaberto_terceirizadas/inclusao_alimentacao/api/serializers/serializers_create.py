@@ -36,6 +36,16 @@ class QuantidadePorPeriodoCreationSerializer(serializers.ModelSerializer):
         required=True,
         queryset=TipoAlimentacao.objects.all())
 
+    grupo_inclusao_normal = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=GrupoInclusaoAlimentacaoNormal.objects.all())
+
+    inclusao_alimentacao_continua = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=InclusaoAlimentacaoContinua.objects.all())
+
     def create(self, validated_data):
         tipos_alimentacao = validated_data.pop('tipos_alimentacao', [])
         quantidade_periodo = QuantidadePorPeriodo.objects.create(**validated_data)

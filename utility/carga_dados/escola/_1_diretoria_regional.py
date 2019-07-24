@@ -6,8 +6,7 @@ Diretoria regional:
 
 import pandas as pd
 
-from sme_pratoaberto_terceirizadas.escola.models import DiretoriaRegional
-from sme_pratoaberto_terceirizadas.terceirizada.models import Lote
+from sme_pratoaberto_terceirizadas.escola.models import DiretoriaRegional, Lote
 
 df = pd.read_excel('/home/marcelo/Desktop/docs PO alimentacao/lista de lotes.xlsx',
                    sheet_name='Sheet1')
