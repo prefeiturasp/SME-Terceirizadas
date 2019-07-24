@@ -10,6 +10,7 @@ router.register('periodos-escolares', viewsets.PeriodoEscolarViewSet, basename='
 router.register('diretorias-regionais', viewsets.DiretoriaRegionalViewSet, basename='dres')
 router.register('lotes', viewsets.LoteViewSet, basename='lotes')
 
+
 urlpatterns = [
     path('', include(router.urls))
 ]

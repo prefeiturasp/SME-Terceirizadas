@@ -4,7 +4,7 @@ from django.db.models import Q
 from rest_framework import serializers
 from traitlets import Any
 
-from sme_pratoaberto_terceirizadas.cardapio.models import Cardapio
+from sme_pratoaberto_terceirizadas.cardapio.models import Cardapio, AlteracaoCardapio, TipoAlimentacao
 from sme_pratoaberto_terceirizadas.escola.models import Escola
 from ..models import InversaoCardapio
 
@@ -27,6 +27,15 @@ def valida_duplicidade(cardapio_de: Cardapio, cardapio_para: Cardapio, escola: E
         escola=escola).exists()
     if inversao_cardapio:
         raise serializers.ValidationError('Já existe uma solicitação de inversão com estes dados')
+    return True
+
+
+def valida_duplicidade_alteracao_cardapio(tipo_de: TipoAlimentacao, tipo_para: TipoAlimentacao, escola: Escola) -> Any:
+    alteracao_cardapio = AlteracaoCardapio.objects.filter(tipo_de=tipo_de).filter(
+        tipo_para=tipo_para).filter(
+        escola=escola).exists()
+    if alteracao_cardapio:
+        raise serializers.ValidationError('Já existe uma alteração de carvalho com estes dados')
     return True
 
 
