@@ -11,12 +11,12 @@ from ..helpers import notificar_partes_envolvidas
 from ...api.validators import (
     cardapio_antigo, valida_duplicidade,
     valida_cardapio_de_para, valida_tipo_cardapio_inteiro,
-    valida_tipo_periodo_escolar, valida_tipo_alimentacao
+    valida_tipo_periodo_escolar, valida_tipo_alimentacao,
 )
 from ...models import (
     InversaoCardapio, Cardapio,
-    TipoAlimentacao, SuspensaoAlimentacao)
-from sme_pratoaberto_terceirizadas.utils import enviar_notificacao
+    TipoAlimentacao, SuspensaoAlimentacao,
+    AlteracaoCardapio)
 
 
 class InversaoCardapioSerializerCreate(serializers.ModelSerializer):
@@ -160,3 +160,39 @@ class SuspensaoAlimentacaoCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = SuspensaoAlimentacao
         exclude = ('id',)
+
+
+class AlteracaoCardapioSerializerCreate(serializers.ModelSerializer):
+    tipo_de = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=TipoAlimentacao.objects.all()
+    )
+
+    tipo_para = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=TipoAlimentacao.objects.all()
+    )
+
+    escola = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=Escola.objects.all()
+    )
+
+    def validate(self, attrs):
+        objeto_nao_deve_ter_duplicidade(AlteracaoCardapio, tipo_de=attrs.get('tipo_de'), tipo_para=attrs.get('tipo_para'), escola=attrs.get('escola'),
+                                        mensagem="Já existe uma alteração de cardápio com estes dados")
+        return attrs
+
+    def create(self, validated_data):
+        alteracao_cardapio = AlteracaoCardapio.objects.create(**validated_data)
+        usuario = self.context.get('request').user
+        notificar_partes_envolvidas(usuario, **validated_data)
+        return alteracao_cardapio
+
+    class Meta:
+        model = AlteracaoCardapio
+        exclude = ('id',)
+

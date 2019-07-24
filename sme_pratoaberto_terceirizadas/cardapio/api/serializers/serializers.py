@@ -66,9 +66,19 @@ class InversaoCardapioSerializer(serializers.ModelSerializer):
 class SuspensaoAlimentacaoSerializer(serializers.ModelSerializer):
     escola = EscolaSimplesSerializer()
     cardapio = CardapioSerializer()
-    periodos = PeriodoEscolarSerializer(many=True)
+    periodos_escolares = PeriodoEscolarSerializer(many=True)
     tipos_alimentacao = TipoAlimentacaoSerializer(many=True)
 
     class Meta:
         model = SuspensaoAlimentacao
         exclude = ('id',)
+
+
+class AlteracaoCardapioSerializer(serializers.ModelSerializer):
+    tipo_de = TipoAlimentacaoSerializer()
+    tipo_para = TipoAlimentacaoSerializer()
+    escola = EscolaSimplesSerializer()
+
+    class Meta:
+        model = AlteracaoCardapio
+        fields = ['uuid', 'descricao', 'criado_em', 'tipo_de', 'tipo_para', 'escola']

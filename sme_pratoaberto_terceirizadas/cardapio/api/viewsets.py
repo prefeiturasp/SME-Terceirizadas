@@ -2,13 +2,13 @@ from rest_framework import viewsets
 
 from .serializers.serializers import (
     CardapioSerializer, TipoAlimentacaoSerializer,
-    InversaoCardapioSerializer, SuspensaoAlimentacaoSerializer
+    InversaoCardapioSerializer, SuspensaoAlimentacaoSerializer, AlteracaoCardapioSerializer
 )
 from .serializers.serializers_create import (
     InversaoCardapioSerializerCreate, CardapioCreateSerializer,
-    SuspensaoAlimentacaoCreateSerializer
+    SuspensaoAlimentacaoCreateSerializer, AlteracaoCardapioSerializerCreate
 )
-from ..models import Cardapio, TipoAlimentacao, InversaoCardapio
+from ..models import Cardapio, TipoAlimentacao, InversaoCardapio, AlteracaoCardapio
 from ..models import SuspensaoAlimentacao
 
 
@@ -48,3 +48,13 @@ class SuspensaoAlimentacaoViewSet(viewsets.ModelViewSet):
         if self.action in ['create', 'update', 'partial_update']:
             return SuspensaoAlimentacaoCreateSerializer
         return SuspensaoAlimentacaoSerializer
+
+
+class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
+    lookup_field = 'uuid'
+    queryset = AlteracaoCardapio.objects.all()
+
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update']:
+            return AlteracaoCardapioSerializerCreate
+        return AlteracaoCardapioSerializer
