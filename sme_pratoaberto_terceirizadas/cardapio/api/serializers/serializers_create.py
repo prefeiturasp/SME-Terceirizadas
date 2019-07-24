@@ -4,6 +4,7 @@ from sme_pratoaberto_terceirizadas.dados_comuns.validators import (
     nao_pode_ser_no_passado, nao_pode_ser_feriado,
     objeto_nao_deve_ter_duplicidade
 )
+from sme_pratoaberto_terceirizadas.perfil.models import Usuario
 from sme_pratoaberto_terceirizadas.escola.models import Escola, PeriodoEscolar
 from sme_pratoaberto_terceirizadas.terceirizada.models import Edital
 from ..helpers import notificar_partes_envolvidas
@@ -15,6 +16,7 @@ from ...api.validators import (
 from ...models import (
     InversaoCardapio, Cardapio,
     TipoAlimentacao, SuspensaoAlimentacao)
+from sme_pratoaberto_terceirizadas.utils import enviar_notificacao
 
 
 class InversaoCardapioSerializerCreate(serializers.ModelSerializer):
@@ -90,6 +92,11 @@ class CardapioCreateSerializer(serializers.ModelSerializer):
 
 
 class SuspensaoAlimentacaoCreateSerializer(serializers.ModelSerializer):
+    criado_por = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=Usuario.objects.all()
+    )
     escola = serializers.SlugRelatedField(
         slug_field='uuid',
         required=True,
@@ -130,6 +137,10 @@ class SuspensaoAlimentacaoCreateSerializer(serializers.ModelSerializer):
         )
         suspensao_alimentacao.periodos_escolares.set(periodos_escolares)
         suspensao_alimentacao.tipos_alimentacao.set(tipos_alimentacao)
+        enviar_notificacao(sender=suspensao_alimentacao.criado_por,
+                           recipient=suspensao_alimentacao.notificacao_enviar_para,
+                           short_desc="Criação de Suspensão de Alimentação",
+                           long_desc="Uma Suspensão de Alimentação foi criada por " + suspensao_alimentacao.criado_por.nome)
 
         return suspensao_alimentacao
 
