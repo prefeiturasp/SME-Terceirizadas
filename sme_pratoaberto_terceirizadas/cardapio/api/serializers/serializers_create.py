@@ -10,7 +10,7 @@ from ..helpers import notificar_partes_envolvidas
 from ...api.validators import (
     cardapio_antigo, valida_duplicidade,
     valida_cardapio_de_para, valida_tipo_cardapio_inteiro,
-    valida_tipo_periodo_escolar, valida_tipo_alimentacao, valida_duplicidade_alteracao_cardapio
+    valida_tipo_periodo_escolar, valida_tipo_alimentacao,
 )
 from ...models import (
     InversaoCardapio, Cardapio,
@@ -171,7 +171,8 @@ class AlteracaoCardapioSerializerCreate(serializers.ModelSerializer):
     )
 
     def validate(self, attrs):
-        valida_duplicidade_alteracao_cardapio(attrs.get('tipo_de'), attrs.get('tipo_para'), attrs.get('escola'))
+        objeto_nao_deve_ter_duplicidade(AlteracaoCardapio, tipo_de=attrs.get('tipo_de'), tipo_para=attrs.get('tipo_para'), escola=attrs.get('escola'),
+                                        mensagem="Já existe uma alteração de cardápio com estes dados")
         return attrs
 
     def create(self, validated_data):

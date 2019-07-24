@@ -30,15 +30,6 @@ def valida_duplicidade(cardapio_de: Cardapio, cardapio_para: Cardapio, escola: E
     return True
 
 
-def valida_duplicidade_alteracao_cardapio(tipo_de: TipoAlimentacao, tipo_para: TipoAlimentacao, escola: Escola) -> Any:
-    alteracao_cardapio = AlteracaoCardapio.objects.filter(tipo_de=tipo_de).filter(
-        tipo_para=tipo_para).filter(
-        escola=escola).exists()
-    if alteracao_cardapio:
-        raise serializers.ValidationError('Já existe uma alteração de carvalho com estes dados')
-    return True
-
-
 def existe_data_cadastrada(cardapio_de: Cardapio, cardapio_para: Cardapio, escola: Escola):
     inversao_cardapio = InversaoCardapio.objects.filter(Q(cardapio_de=cardapio_de) | Q(cardapio_para=cardapio_para),
                                                         escola=escola).exists()
