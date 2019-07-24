@@ -13,8 +13,8 @@ class Edital(TemChaveExterna, Nomeavel, Descritivel, Ativavel, IntervaloDeDia):
         return "{} válido de {} até {}".format(self.nome, self.data_inicial, self.data_final)
 
     class Meta:
-        verbose_name = "Lote"
-        verbose_name_plural = "Lotes"
+        verbose_name = "Edital"
+        verbose_name_plural = "Editais"
 
 
 class Lote(TemChaveExterna, Nomeavel, Iniciais):
