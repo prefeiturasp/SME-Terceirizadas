@@ -6,7 +6,8 @@ from sme_pratoaberto_terceirizadas.kit_lanche.models import EscolaQuantidade, So
 def deve_ter_1_kit_somente(lista_igual, numero_kits):
     deve_ter_1_kit = lista_igual is True and numero_kits == 1
     if not deve_ter_1_kit:
-        raise serializers.ValidationError('Em "solicitacao_kit_lanche", quando lista_kit_lanche é igual, deve ter somente 1 kit')
+        raise serializers.ValidationError(
+            'Em "solicitacao_kit_lanche", quando lista_kit_lanche é igual, deve ter somente 1 kit')
 
 
 def solicitacao_deve_ter_1_ou_mais_kits(numero_kits: int):
@@ -21,7 +22,8 @@ def solicitacao_deve_ter_1_ou_mais_kits(numero_kits: int):
 def solicitacao_deve_ter_0_kit(numero_kits: int):
     deve_ter_nenhum_kit = numero_kits == 0
     if not deve_ter_nenhum_kit:
-        raise serializers.ValidationError('Em "solicitacao_kit_lanche", quando lista_kit_lanche NÃO é igual, deve ter 0 kit')
+        raise serializers.ValidationError(
+            'Em "solicitacao_kit_lanche", quando lista_kit_lanche NÃO é igual, deve ter 0 kit')
     return True
 
 
