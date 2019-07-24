@@ -4,6 +4,8 @@ from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from model_utils import Choices
 
+from .fluxo_status import ControleDeFluxoDeStatusAPartirDaEscola
+
 
 class Iniciais(models.Model):
     iniciais = models.CharField("Iniciais", blank=True, null=True, max_length=10)
@@ -149,6 +151,39 @@ class TempoPasseio(models.Model):
     )
     tempo_passeio = models.PositiveSmallIntegerField(choices=HORAS,
                                                      null=True, blank=True)
+
+    class Meta:
+        abstract = True
+
+
+class FluxoAprovacaoPartindoEscola(models.Model):
+    STATUSES = (
+        (ControleDeFluxoDeStatusAPartirDaEscola.RASCUNHO, 'Rascunho'),
+        (ControleDeFluxoDeStatusAPartirDaEscola.DRE_A_VALIDAR, 'A validar pela DRE'),
+        (ControleDeFluxoDeStatusAPartirDaEscola.DRE_APROVADO, 'Aprovado pela DRE'),
+        (ControleDeFluxoDeStatusAPartirDaEscola.DRE_PEDE_REVISAO, 'DRE pede revisão'),
+        (ControleDeFluxoDeStatusAPartirDaEscola.CODAE_APROVADO, 'Aprovado pela CODAE'),
+        (ControleDeFluxoDeStatusAPartirDaEscola.CODAE_SUSPENDEU, 'Reprovado pela CODAE'),
+        (ControleDeFluxoDeStatusAPartirDaEscola.TERCEIRIZADA_TOMA_CIENCIA, 'Terceirizada Toma ciência'),
+    )
+
+    state = models.PositiveSmallIntegerField(choices=STATUSES,
+                                             default=ControleDeFluxoDeStatusAPartirDaEscola.RASCUNHO)
+
+    def pode_excluir(self):
+        return self.state == ControleDeFluxoDeStatusAPartirDaEscola.RASCUNHO
+
+    def esta_na_dre(self):
+        return self.state in [ControleDeFluxoDeStatusAPartirDaEscola.DRE_A_VALIDAR,
+                              ControleDeFluxoDeStatusAPartirDaEscola.DRE_PEDE_REVISAO]
+
+    def esta_na_codae(self):
+        return self.state in [ControleDeFluxoDeStatusAPartirDaEscola.DRE_APROVADO,
+                              ControleDeFluxoDeStatusAPartirDaEscola.CODAE_SUSPENDEU]
+
+    def esta_na_terceirizada(self):
+        return self.state in [ControleDeFluxoDeStatusAPartirDaEscola.CODAE_APROVADO,
+                              ControleDeFluxoDeStatusAPartirDaEscola.TERCEIRIZADA_TOMA_CIENCIA]
 
     class Meta:
         abstract = True

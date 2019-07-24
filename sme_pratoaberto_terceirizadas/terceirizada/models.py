@@ -2,7 +2,8 @@ from django.core.validators import MinLengthValidator
 from django.db import models
 
 from ..dados_comuns.models_abstract import (
-    TemChaveExterna, Nomeavel, Ativavel, Descritivel, IntervaloDeDia
+    Descritivel, IntervaloDeDia
+    TemChaveExterna, Nomeavel, Ativavel, 
 )
 
 

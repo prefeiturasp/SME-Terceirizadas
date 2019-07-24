@@ -26,7 +26,6 @@ def diretoria_regional():
                       nome=fake.name())
 
 
-
 @pytest.fixture
 def escola():
     return mommy.make(models.Escola,

@@ -1,4 +1,4 @@
-from django.core.validators import MaxValueValidator, MinValueValidator, MinLengthValidator
+from django.core.validators import MinLengthValidator
 from django.db import models
 
 from .models_abstract import (Descritivel, CriadoEm, TemChaveExterna)
