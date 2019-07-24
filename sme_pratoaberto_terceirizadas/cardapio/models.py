@@ -1,10 +1,8 @@
 from django.db import models
 
 from ..dados_comuns.models_abstract import (
-    Descritivel, TemData, IntervaloDeDia,
-    TemChaveExterna, Motivo, Ativavel, Nomeavel, CriadoEm, StatusValidacao
+    Descritivel, TemData, TemChaveExterna, Ativavel, Nomeavel, CriadoEm, StatusValidacao
 )
-from ..escola.models import Escola, DiretoriaRegional
 
 
 class TipoAlimentacao(Nomeavel, TemChaveExterna):
@@ -120,6 +118,9 @@ class SuspensaoAlimentacao(TemData, TemChaveExterna):
         (TIPO_ALIMENTACAO, 'Tipo alimentação'),
     )
 
+    # TODO: checar se criado_por é obrigatório ou opcional; caso seja obrigatório, remover blank e null ao resetar
+    #  migrações (criar um novo initial)
+    criado_por = models.ForeignKey('perfil.Usuario', on_delete=models.DO_NOTHING, blank=True, null=True)
     tipo = models.PositiveSmallIntegerField(choices=CHOICES)
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING)
     cardapio = models.ForeignKey(Cardapio, on_delete=models.DO_NOTHING,
@@ -128,6 +129,11 @@ class SuspensaoAlimentacao(TemData, TemChaveExterna):
                                                 blank=True)
     tipos_alimentacao = models.ManyToManyField(TipoAlimentacao,
                                                blank=True)
+
+    @property
+    def notificacao_enviar_para(self):
+        # TODO: checar se quando cria uma notificação de um formulário, dispara para todos os usuários da DRE da Escola
+        return self.escola.usuarios_diretoria_regional
 
     def __str__(self):
         return self.get_tipo_display()
