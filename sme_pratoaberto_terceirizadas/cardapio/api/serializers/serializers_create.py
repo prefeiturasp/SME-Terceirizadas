@@ -176,9 +176,8 @@ class AlteracaoCardapioSerializerCreate(serializers.ModelSerializer):
 
     def create(self, validated_data):
         alteracao_cardapio = AlteracaoCardapio.objects.create(**validated_data)
-        if alteracao_cardapio.pk:
-            usuario = self.context.get('request').user
-            notificar_partes_envolvidas(usuario, **validated_data)
+        usuario = self.context.get('request').user
+        notificar_partes_envolvidas(usuario, **validated_data)
         return alteracao_cardapio
 
     class Meta:
