@@ -13,7 +13,6 @@ from sme_pratoaberto_terceirizadas.escola.api.serializers import (
 )
 
 
-
 class TipoAlimentacaoSerializer(serializers.ModelSerializer):
 
     def validate_nome(self, nome: str) -> Any:
@@ -67,7 +66,7 @@ class InversaoCardapioSerializer(serializers.ModelSerializer):
 class SuspensaoAlimentacaoSerializer(serializers.ModelSerializer):
     escola = EscolaSimplesSerializer()
     cardapio = CardapioSerializer()
-    periodos = PeriodoEscolarSerializer(many=True)
+    periodos_escolares = PeriodoEscolarSerializer(many=True)
     tipos_alimentacao = TipoAlimentacaoSerializer(many=True)
 
     class Meta:

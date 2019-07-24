@@ -3,6 +3,10 @@ from rest_framework.test import APIClient
 from model_mommy import mommy
 from datetime import datetime, timedelta
 
+from ..models import SuspensaoAlimentacao, InversaoCardapio
+
+from sme_pratoaberto_terceirizadas.cardapio.api.serializers.serializers import SuspensaoAlimentacaoSerializer
+from sme_pratoaberto_terceirizadas.cardapio.api.serializers.serializers import InversaoCardapioSerializer
 
 @pytest.fixture
 def client():
@@ -37,3 +41,15 @@ def cardapio_invalido():
 def escola():
     escola = mommy.prepare('Escola', _save_related=True)
     return escola
+
+
+@pytest.fixture
+def inversao_cardapio_serializer():
+    inversao_cardapio = mommy.make(InversaoCardapio)
+    return InversaoCardapioSerializer(inversao_cardapio)
+
+
+@pytest.fixture
+def suspensao_alimentacao_serializer():
+    suspensao_alimentacao = mommy.make(SuspensaoAlimentacao)
+    return SuspensaoAlimentacaoSerializer(suspensao_alimentacao)
