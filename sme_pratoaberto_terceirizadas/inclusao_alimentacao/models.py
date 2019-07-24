@@ -12,6 +12,14 @@ class QuantidadePorPeriodo(TemChaveExterna):
     numero_alunos = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)])
     periodo_escolar = models.ForeignKey('escola.PeriodoEscolar', on_delete=models.DO_NOTHING)
     tipos_alimentacao = models.ManyToManyField('cardapio.TipoAlimentacao')
+    grupo_inclusao_normal = models.ForeignKey('GrupoInclusaoAlimentacaoNormal',
+                                              on_delete=models.DO_NOTHING,
+                                              null=True, blank=True,
+                                              related_name='quantidades_por_periodo')
+    inclusao_alimentacao_continua = models.ForeignKey('InclusaoAlimentacaoContinua',
+                                                      on_delete=models.DO_NOTHING,
+                                                      null=True, blank=True,
+                                                      related_name='quantidades_por_periodo')
 
     def __str__(self):
         return "{} alunos para {} com {} tipo(s) de alimentação".format(
@@ -43,7 +51,10 @@ class InclusaoAlimentacaoContinua(IntervaloDeDia, Descritivel, TemChaveExterna, 
     motivo = models.ForeignKey(MotivoInclusaoContinua, on_delete=models.DO_NOTHING)
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING,
                                related_name='inclusoes_alimentacao_continua')
-    quantidades_periodo = models.ManyToManyField(QuantidadePorPeriodo)
+
+    @property
+    def quantidades_periodo(self):
+        return self.quantidades_por_periodo
 
     def __str__(self):
         return "de {} até {} para {} para {}".format(
@@ -76,6 +87,10 @@ class InclusaoAlimentacaoNormal(TemData, TemChaveExterna):
     prioritario = models.BooleanField(default=False)
     motivo = models.ForeignKey(MotivoInclusaoNormal, on_delete=models.DO_NOTHING)
     outro_motivo = models.CharField("Outro motivo", blank=True, null=True, max_length=50)
+    grupo_inclusao = models.ForeignKey('GrupoInclusaoAlimentacaoNormal',
+                                       blank=True, null=True,
+                                       on_delete=models.DO_NOTHING,
+                                       related_name='inclusoes_normais')
 
     def __str__(self):
         if self.outro_motivo:
@@ -90,7 +105,24 @@ class InclusaoAlimentacaoNormal(TemData, TemChaveExterna):
 class GrupoInclusaoAlimentacaoNormal(Descritivel, TemChaveExterna):
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING,
                                related_name='grupos_inclusoes_normais')
-    inclusoes = models.ManyToManyField(InclusaoAlimentacaoNormal)
+
+    @property
+    def inclusoes(self):
+        return self.inclusoes_normais
+
+    @property
+    def quantidades_periodo(self):
+        return self.quantidades_por_periodo
+
+    def adiciona_inclusao_normal(self, inclusao: InclusaoAlimentacaoNormal):
+        # TODO: padronizar grupo_inclusao ou grupo_inclusao_normal
+        inclusao.grupo_inclusao = self
+        inclusao.save()
+
+    def adiciona_quantidade_periodo(self, quantidade_periodo: QuantidadePorPeriodo):
+        # TODO: padronizar grupo_inclusao ou grupo_inclusao_normal
+        quantidade_periodo.grupo_inclusao_normal = self
+        quantidade_periodo.save()
 
     # TODO: status aqui.
     def __str__(self):

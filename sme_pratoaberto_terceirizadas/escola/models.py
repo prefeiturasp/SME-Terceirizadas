@@ -90,7 +90,8 @@ class Escola(Ativavel, TemChaveExterna):
                                      on_delete=models.DO_NOTHING)
     tipo_gestao = models.ForeignKey(TipoGestao,
                                     on_delete=models.DO_NOTHING)
-    lote = models.ForeignKey('terceirizada.Lote',
+    lote = models.ForeignKey('Lote',
+                             related_name='escolas',
                              on_delete=models.DO_NOTHING)
 
     endereco = models.ForeignKey('dados_comuns.Endereco', on_delete=models.DO_NOTHING,
@@ -114,3 +115,23 @@ class Escola(Ativavel, TemChaveExterna):
     class Meta:
         verbose_name = "Escola"
         verbose_name_plural = "Escolas"
+
+
+class Lote(TemChaveExterna, Nomeavel, Iniciais):
+    """Lote de escolas"""
+    diretoria_regional = models.ForeignKey('escola.DiretoriaRegional',
+                                           on_delete=models.DO_NOTHING,
+                                           related_name='lotes',
+                                           null=True,
+                                           blank=True)
+
+    @property
+    def escolas(self):
+        return self.escolas
+
+    def __str__(self):
+        return self.nome
+
+    class Meta:
+        verbose_name = "Lote"
+        verbose_name_plural = "Lotes"

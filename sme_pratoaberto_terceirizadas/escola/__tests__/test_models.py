@@ -1,7 +1,8 @@
 import pytest
 
-from sme_pratoaberto_terceirizadas.escola.models import DiretoriaRegional, TipoUnidadeEscolar, TipoGestao
-from sme_pratoaberto_terceirizadas.terceirizada.models import Lote
+from ..models import (
+    DiretoriaRegional, TipoUnidadeEscolar, TipoGestao, Lote
+)
 
 pytestmark = pytest.mark.django_db
 

@@ -100,7 +100,7 @@ def vincula_periodo_escolar_a_escola():
             print(f'{escola} -> {periodo_letra}')
             periodo_obj = PeriodoEscolar.objects.get(nome=depara.get(periodo_letra))
             periodo_escolar_lista.append(periodo_obj)
-        escola.periodos.set(periodo_escolar_lista)
+        escola.periodos_escolares.set(periodo_escolar_lista)
         escola.save()
         cont += 1
         print(f'escola {escola} tem {len(periodo_escolar_lista)} periodos escolares')

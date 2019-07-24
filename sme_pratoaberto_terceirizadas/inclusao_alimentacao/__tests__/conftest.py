@@ -16,7 +16,7 @@ def motivo_inclusao_continua():
 @pytest.fixture
 def motivo_inclusao_normal():
     # TODO: dando erro com fake.name por que?
-    return mommy.make(models.MotivoInclusaoNormal, nome='TESTE')
+    return mommy.make(models.MotivoInclusaoNormal, nome=fake.name())
 
 
 @pytest.fixture
@@ -34,9 +34,7 @@ def quantidade_por_periodo():
 def inclusao_alimentacao_continua():
     motivo = mommy.make(models.MotivoInclusaoContinua, nome=fake.name())
     escola = mommy.make('escola.Escola')
-    quantidades_periodo = mommy.make(models.QuantidadePorPeriodo, _quantity=419, make_m2m=True)
     return mommy.make(models.InclusaoAlimentacaoContinua,
                       motivo=motivo,
                       outro_motivo=fake.name(),
-                      escola=escola,
-                      quantidades_periodo=quantidades_periodo)
+                      escola=escola)

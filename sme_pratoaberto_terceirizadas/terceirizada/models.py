@@ -41,7 +41,7 @@ class Terceirizada(TemChaveExterna, Ativavel):
     razao_social = models.CharField("Razao social", max_length=160,
                                     blank=True, null=True)
     cnpj = models.CharField("CNPJ", validators=[MinLengthValidator(14)], max_length=14)
-    lotes = models.ManyToManyField(Lote, related_name="lotes")
+    lotes = models.ManyToManyField("escola.Lote", related_name="lotes")
 
     representante_legal = models.CharField("Representante legal", max_length=160,
                                            blank=True, null=True)

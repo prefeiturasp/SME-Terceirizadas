@@ -7,8 +7,6 @@ router = routers.DefaultRouter()
 
 router.register('editais', viewsets.EditalViewSet,
                 basename='editais')
-router.register('lotes', viewsets.LoteViewSet,
-                basename='lotes')
 
 urlpatterns = [
     path('', include(router.urls))
