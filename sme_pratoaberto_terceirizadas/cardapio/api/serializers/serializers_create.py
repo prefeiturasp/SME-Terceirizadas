@@ -182,4 +182,5 @@ class AlteracaoCardapioSerializerCreate(serializers.ModelSerializer):
 
     class Meta:
         model = AlteracaoCardapio
-        fields = ['uuid', 'descricao', 'tipo_de', 'tipo_para', 'escola']
+        exclude = ('id',)
+
