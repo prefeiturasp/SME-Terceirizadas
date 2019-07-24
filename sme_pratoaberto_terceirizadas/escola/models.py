@@ -103,6 +103,10 @@ class Escola(Ativavel, TemChaveExterna):
     periodos_escolares = models.ManyToManyField(PeriodoEscolar, blank=True)
     usuarios = models.ManyToManyField(Usuario)
 
+    @property
+    def usuarios_diretoria_regional(self):
+        return self.diretoria_regional.usuarios.all() if self.diretoria_regional else Usuario.objects.none()
+
     def get_grupos_inclusao_normal(self):
         return self.grupos_inclusoes_normais
 
