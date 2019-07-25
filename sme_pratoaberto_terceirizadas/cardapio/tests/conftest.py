@@ -8,6 +8,7 @@ from ..models import SuspensaoAlimentacao, InversaoCardapio, MotivoAlteracaoCard
 
 from sme_pratoaberto_terceirizadas.cardapio.api.serializers.serializers import SuspensaoAlimentacaoSerializer
 from sme_pratoaberto_terceirizadas.cardapio.api.serializers.serializers import InversaoCardapioSerializer
+from sme_pratoaberto_terceirizadas.cardapio.api.serializers.serializers import MotivoAlteracaoCardapioSerializer
 
 fake = Faker('pt_BR')
 fake.seed(420)
@@ -63,3 +64,9 @@ def suspensao_alimentacao_serializer():
 @pytest.fixture
 def motivo_alteracao_cardapio():
     return mommy.make(MotivoAlteracaoCardapio, nome=fake.name())
+
+
+@pytest.fixture
+def motivo_alteracao_cardapio_serializer():
+    motivo_alteracao_cardapio = mommy.make(MotivoAlteracaoCardapio)
+    return MotivoAlteracaoCardapioSerializer(motivo_alteracao_cardapio)

@@ -4,12 +4,15 @@ from .serializers.serializers import (
     CardapioSerializer, TipoAlimentacaoSerializer,
     InversaoCardapioSerializer, SuspensaoAlimentacaoSerializer, AlteracaoCardapioSerializer
 )
+from .serializers.serializers import MotivoAlteracaoCardapioSerializer
+
 from .serializers.serializers_create import (
     InversaoCardapioSerializerCreate, CardapioCreateSerializer,
     SuspensaoAlimentacaoCreateSerializer, AlteracaoCardapioSerializerCreate
 )
 from ..models import Cardapio, TipoAlimentacao, InversaoCardapio, AlteracaoCardapio
 from ..models import SuspensaoAlimentacao
+from ..models import MotivoAlteracaoCardapio
 
 
 class CardapioViewSet(viewsets.ModelViewSet):
@@ -58,3 +61,10 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
         if self.action in ['create', 'update', 'partial_update']:
             return AlteracaoCardapioSerializerCreate
         return AlteracaoCardapioSerializer
+
+
+class MotivosAlteracaoCardapioViewSet(viewsets.ReadOnlyModelViewSet):
+    lookup_field = 'uuid'
+    queryset = MotivoAlteracaoCardapio.objects.all()
+    serializer_class = MotivoAlteracaoCardapioSerializer
+
