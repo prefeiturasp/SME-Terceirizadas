@@ -159,6 +159,7 @@ class TempoPasseio(models.Model):
 
 class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
     workflow_class = PedidoAPartirDaEscolaWorkflow
+
     status = xwf_models.StateField(workflow_class)
 
     @property
