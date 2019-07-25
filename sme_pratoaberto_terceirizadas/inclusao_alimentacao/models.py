@@ -4,7 +4,8 @@ from django.db import models
 from ..dados_comuns.models_abstract import (
     Descritivel, IntervaloDeDia,
     Nomeavel, TemData, TemChaveExterna,
-    DiasSemana
+    DiasSemana, CriadoPor,
+    FluxoAprovacaoPartindoDaEscola
 )
 
 
@@ -13,11 +14,11 @@ class QuantidadePorPeriodo(TemChaveExterna):
     periodo_escolar = models.ForeignKey('escola.PeriodoEscolar', on_delete=models.DO_NOTHING)
     tipos_alimentacao = models.ManyToManyField('cardapio.TipoAlimentacao')
     grupo_inclusao_normal = models.ForeignKey('GrupoInclusaoAlimentacaoNormal',
-                                              on_delete=models.DO_NOTHING,
+                                              on_delete=models.CASCADE,
                                               null=True, blank=True,
                                               related_name='quantidades_por_periodo')
     inclusao_alimentacao_continua = models.ForeignKey('InclusaoAlimentacaoContinua',
-                                                      on_delete=models.DO_NOTHING,
+                                                      on_delete=models.CASCADE,
                                                       null=True, blank=True,
                                                       related_name='quantidades_por_periodo')
 
@@ -46,7 +47,9 @@ class MotivoInclusaoContinua(Nomeavel, TemChaveExterna):
         verbose_name_plural = "Motivos de inclusao contínua"
 
 
-class InclusaoAlimentacaoContinua(IntervaloDeDia, Descritivel, TemChaveExterna, DiasSemana):
+class InclusaoAlimentacaoContinua(IntervaloDeDia, Descritivel, TemChaveExterna,
+                                  DiasSemana, FluxoAprovacaoPartindoDaEscola,
+                                  CriadoPor):
     outro_motivo = models.CharField("Outro motivo", blank=True, null=True, max_length=50)
     motivo = models.ForeignKey(MotivoInclusaoContinua, on_delete=models.DO_NOTHING)
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING,
