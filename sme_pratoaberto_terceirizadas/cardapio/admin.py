@@ -1,7 +1,8 @@
 from django.contrib import admin
 
-from .models import TipoAlimentacao, Cardapio, InversaoCardapio, AlteracaoCardapio, SuspensaoAlimentacao
-from .models import MotivoAlteracaoCardapio
+from .models import (
+    TipoAlimentacao, Cardapio, InversaoCardapio, AlteracaoCardapio, SuspensaoAlimentacao, MotivoAlteracaoCardapio
+)
 
 admin.site.register(TipoAlimentacao)
 admin.site.register(InversaoCardapio)
