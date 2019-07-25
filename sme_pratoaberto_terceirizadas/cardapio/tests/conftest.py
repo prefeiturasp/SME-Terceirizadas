@@ -62,5 +62,4 @@ def suspensao_alimentacao_serializer():
 
 @pytest.fixture
 def motivo_alteracao_cardapio():
-    return mommy.make(MotivoAlteracaoCardapio,
-                      iniciais=fake.name()[:10])
+    return mommy.make(MotivoAlteracaoCardapio, nome=fake.name())

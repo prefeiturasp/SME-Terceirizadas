@@ -1,8 +1,6 @@
 import pytest
 
-from ..models import (
-    MotivoAlteracaoCardapio
-)
+from ..models import MotivoAlteracaoCardapio
 
 pytestmark = pytest.mark.django_db
 
