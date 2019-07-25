@@ -2,9 +2,10 @@ import uuid
 
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
+from django_xworkflows import models as xwf_models
 from model_utils import Choices
 
-from .fluxo_status import ControleDeFluxoDeStatusAPartirDaEscola
+from .fluxo_status import PedidoAPartirDaEscolaWorkflow
 
 
 class Iniciais(models.Model):
@@ -156,34 +157,29 @@ class TempoPasseio(models.Model):
         abstract = True
 
 
-class FluxoAprovacaoPartindoEscola(models.Model):
-    STATUSES = (
-        (ControleDeFluxoDeStatusAPartirDaEscola.RASCUNHO, 'Rascunho'),
-        (ControleDeFluxoDeStatusAPartirDaEscola.DRE_A_VALIDAR, 'A validar pela DRE'),
-        (ControleDeFluxoDeStatusAPartirDaEscola.DRE_APROVADO, 'Aprovado pela DRE'),
-        (ControleDeFluxoDeStatusAPartirDaEscola.DRE_PEDE_REVISAO, 'DRE pede revisão'),
-        (ControleDeFluxoDeStatusAPartirDaEscola.CODAE_APROVADO, 'Aprovado pela CODAE'),
-        (ControleDeFluxoDeStatusAPartirDaEscola.CODAE_SUSPENDEU, 'Reprovado pela CODAE'),
-        (ControleDeFluxoDeStatusAPartirDaEscola.TERCEIRIZADA_TOMA_CIENCIA, 'Terceirizada Toma ciência'),
-    )
+class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
+    status = xwf_models.StateField(PedidoAPartirDaEscolaWorkflow)
 
-    state = models.PositiveSmallIntegerField(choices=STATUSES,
-                                             default=ControleDeFluxoDeStatusAPartirDaEscola.RASCUNHO)
-
+    @property
     def pode_excluir(self):
-        return self.state == ControleDeFluxoDeStatusAPartirDaEscola.RASCUNHO
+        return self.status == PedidoAPartirDaEscolaWorkflow.RASCUNHO
 
-    def esta_na_dre(self):
-        return self.state in [ControleDeFluxoDeStatusAPartirDaEscola.DRE_A_VALIDAR,
-                              ControleDeFluxoDeStatusAPartirDaEscola.DRE_PEDE_REVISAO]
+    @property
+    def ta_na_dre(self):
+        return self.status == PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR
 
-    def esta_na_codae(self):
-        return self.state in [ControleDeFluxoDeStatusAPartirDaEscola.DRE_APROVADO,
-                              ControleDeFluxoDeStatusAPartirDaEscola.CODAE_SUSPENDEU]
+    @property
+    def ta_na_escola(self):
+        return self.status == [PedidoAPartirDaEscolaWorkflow.RASCUNHO,
+                               PedidoAPartirDaEscolaWorkflow.DRE_PEDE_ESCOLA_REVISAR]
 
-    def esta_na_terceirizada(self):
-        return self.state in [ControleDeFluxoDeStatusAPartirDaEscola.CODAE_APROVADO,
-                              ControleDeFluxoDeStatusAPartirDaEscola.TERCEIRIZADA_TOMA_CIENCIA]
+    @property
+    def ta_na_codae(self):
+        return self.status == [PedidoAPartirDaEscolaWorkflow.DRE_APROVADO]
+
+    @property
+    def ta_na_terceirizada(self):
+        return self.status == [PedidoAPartirDaEscolaWorkflow.CODAE_APROVADO]
 
     class Meta:
         abstract = True

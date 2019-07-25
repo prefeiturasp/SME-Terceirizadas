@@ -84,6 +84,7 @@ THIRD_PARTY_APPS = [
     'notifications',
     'rest_framework_swagger',
     'des',  # for email configuration in database
+    'django_xworkflows'
 ]
 LOCAL_APPS = [
     'sme_pratoaberto_terceirizadas.perfil.apps.PerfilConfig',
