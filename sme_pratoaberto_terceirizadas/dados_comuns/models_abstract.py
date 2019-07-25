@@ -5,7 +5,7 @@ from django.db import models
 from django_xworkflows import models as xwf_models
 from model_utils import Choices
 
-from .fluxo_status import PedidoAPartirDaEscolaWorkflow
+from .fluxo_status import PedidoAPartirDaEscolaWorkflow, PedidoAPartirDaDiretoriaRegionalWorkflow
 
 
 class Iniciais(models.Model):
@@ -158,28 +158,54 @@ class TempoPasseio(models.Model):
 
 
 class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
-    status = xwf_models.StateField(PedidoAPartirDaEscolaWorkflow)
+    workflow_class = PedidoAPartirDaEscolaWorkflow
+    status = xwf_models.StateField(workflow_class)
 
     @property
     def pode_excluir(self):
-        return self.status == PedidoAPartirDaEscolaWorkflow.RASCUNHO
+        return self.status == self.workflow_class.RASCUNHO
 
     @property
     def ta_na_dre(self):
-        return self.status == PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR
+        return self.status == self.workflow_class.DRE_A_VALIDAR
 
     @property
     def ta_na_escola(self):
-        return self.status == [PedidoAPartirDaEscolaWorkflow.RASCUNHO,
-                               PedidoAPartirDaEscolaWorkflow.DRE_PEDE_ESCOLA_REVISAR]
+        return self.status in [self.workflow_class.RASCUNHO,
+                               self.workflow_class.DRE_PEDE_ESCOLA_REVISAR]
 
     @property
     def ta_na_codae(self):
-        return self.status == [PedidoAPartirDaEscolaWorkflow.DRE_APROVADO]
+        return self.status == self.workflow_class.DRE_APROVADO
 
     @property
     def ta_na_terceirizada(self):
-        return self.status == [PedidoAPartirDaEscolaWorkflow.CODAE_APROVADO]
+        return self.status == self.workflow_class.CODAE_APROVADO
+
+    class Meta:
+        abstract = True
+
+
+class FluxoAprovacaoPartindoDaDiretoriaRegional(xwf_models.WorkflowEnabled, models.Model):
+    workflow_class = PedidoAPartirDaDiretoriaRegionalWorkflow
+    status = xwf_models.StateField(workflow_class)
+
+    @property
+    def pode_excluir(self):
+        return self.status == self.workflow_class.RASCUNHO
+
+    @property
+    def ta_na_dre(self):
+        return self.status in [self.workflow_class.CODAE_PEDE_DRE_REVISAR,
+                               self.workflow_class.RASCUNHO]
+
+    @property
+    def ta_na_codae(self):
+        return self.status == self.workflow_class.CODAE_A_VALIDAR
+
+    @property
+    def ta_na_terceirizada(self):
+        return self.status == self.workflow_class.CODAE_APROVADO
 
     class Meta:
         abstract = True
