@@ -1,5 +1,4 @@
 from rest_framework.decorators import action
-from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet, ModelViewSet
 
 from sme_pratoaberto_terceirizadas.escola.api.serializers import LoteSimplesSerializer
@@ -20,20 +19,22 @@ class EscolaViewSet(ReadOnlyModelViewSet):
     @action(detail=True)
     def meus_grupos_inclusao_normal(self, request, uuid=None):
         escola = self.get_object()
-        inclusoes = escola.get_grupos_inclusao_normal()
+        inclusoes = escola.grupos_inclusoes.all()
+        page = self.paginate_queryset(inclusoes)
         serializer = GrupoInclusaoAlimentacaoNormalSerializer(
-            inclusoes, many=True
+            page, many=True
         )
-        return Response(serializer.data)
+        return self.get_paginated_response(serializer.data)
 
     @action(detail=True)
     def minhas_inclusoes_alimentacao_continua(self, request, uuid=None):
         escola = self.get_object()
-        inclusoes = escola.get_inclusoes_alimentacao_continua()
+        inclusoes = escola.inclusoes_continuas.all()
+        page = self.paginate_queryset(inclusoes)
         serializer = InclusaoAlimentacaoContinuaSerializer(
-            inclusoes, many=True
+            page, many=True
         )
-        return Response(serializer.data)
+        return self.get_paginated_response(serializer.data)
 
 
 class PeriodoEscolarViewSet(ReadOnlyModelViewSet):

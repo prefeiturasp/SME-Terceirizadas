@@ -108,10 +108,12 @@ class Escola(Ativavel, TemChaveExterna):
     def usuarios_diretoria_regional(self):
         return self.diretoria_regional.usuarios.all() if self.diretoria_regional else Usuario.objects.none()
 
-    def get_grupos_inclusao_normal(self):
+    @property
+    def grupos_inclusoes(self):
         return self.grupos_inclusoes_normais
 
-    def get_inclusoes_alimentacao_continua(self):
+    @property
+    def inclusoes_continuas(self):
         return self.inclusoes_alimentacao_continua
 
     def __str__(self):

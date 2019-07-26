@@ -63,8 +63,9 @@ def _send_mass_html_mail(subject, text, html, recipients):
 
 
 def async_envio_email_html_em_massa(subject, text, html, recipients):
-    pass
+    # TODO: criar uma rotina assincrona para envio de email. esse async ta dando erro em alguns pcs.
     # loop.run_in_executor(None, _send_mass_html_mail, subject, text, html, recipients)
+    pass
 
 
 def obter_dias_uteis_apos_hoje(quantidade_dias: int):
