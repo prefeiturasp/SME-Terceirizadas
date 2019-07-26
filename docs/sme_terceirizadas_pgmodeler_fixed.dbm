@@ -3,7 +3,7 @@
 CAUTION: Do not modify this file unless you know what you are doing.
          Unexpected results may occur if the code is changed deliberately.
 -->
-<dbmodel pgmodeler-ver="0.9.1" last-position="2464,1338" last-zoom="0.75"
+<dbmodel pgmodeler-ver="0.9.1" last-position="2463,1337" last-zoom="0.75"
 	 default-owner="postgres">
 <database name="new_database" is-template="false" allow-conns="true">
 </database>
@@ -857,7 +857,7 @@ obs>> a alteração de cardápio é para um dia específico, não da pra cancela
 	<column name="data_criacao">
 		<type name="date" length="0"/>
 	</column>
-	<column name="descricao">
+	<column name="observacao">
 		<type name="text" length="0"/>
 	</column>
 	<column name="status">
@@ -868,9 +868,6 @@ obs>> a alteração de cardápio é para um dia específico, não da pra cancela
 	</column>
 	<column name="data_final">
 		<type name="date" length="0"/>
-	</column>
-	<column name="observacao">
-		<type name="smallint" length="0"/>
 	</column>
 	<constraint name="alteracao_cardapio_pk" type="pk-constr" table="&quot;cardapio[revisado]&quot;.&quot;alteracao_cardapio[revisado]&quot;">
 		<columns names="id" ref-type="src-columns"/>
