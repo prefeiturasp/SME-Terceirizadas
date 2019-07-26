@@ -82,3 +82,9 @@ class AlteracaoCardapioSerializer(serializers.ModelSerializer):
     class Meta:
         model = AlteracaoCardapio
         fields = ['uuid', 'descricao', 'criado_em', 'tipo_de', 'tipo_para', 'escola']
+
+
+class MotivoAlteracaoCardapioSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MotivoAlteracaoCardapio
+        exclude = ('id',)

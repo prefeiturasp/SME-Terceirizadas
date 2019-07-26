@@ -9,6 +9,7 @@ router.register("tipos-alimentacao", viewsets.TipoAlimentacaoViewSet, 'Tipos de 
 router.register("inverte-dia-cardapio", viewsets.InversaoCardapioViewSet, 'Inversão de dia de Cardápio')
 router.register("suspensoes-alimentacao", viewsets.SuspensaoAlimentacaoViewSet, "Suspensão de alimentação")
 router.register("alteracoes-cardapio", viewsets.AlteracoesCardapioViewSet, "Alterações de Cardápio")
+router.register("motivos-alteracao-cardapio", viewsets.MotivosAlteracaoCardapioViewSet, "Motivos de alteração de cardápio")
 
 urlpatterns = [
     path("", include(router.urls)),

@@ -2,11 +2,17 @@ import pytest
 from rest_framework.test import APIClient
 from model_mommy import mommy
 from datetime import datetime, timedelta
+from faker import Faker
 
-from ..models import SuspensaoAlimentacao, InversaoCardapio
+from ..models import SuspensaoAlimentacao, InversaoCardapio, MotivoAlteracaoCardapio
 
 from sme_pratoaberto_terceirizadas.cardapio.api.serializers.serializers import SuspensaoAlimentacaoSerializer
 from sme_pratoaberto_terceirizadas.cardapio.api.serializers.serializers import InversaoCardapioSerializer
+from sme_pratoaberto_terceirizadas.cardapio.api.serializers.serializers import MotivoAlteracaoCardapioSerializer
+
+fake = Faker('pt_BR')
+fake.seed(420)
+
 
 @pytest.fixture
 def client():
@@ -53,3 +59,14 @@ def inversao_cardapio_serializer():
 def suspensao_alimentacao_serializer():
     suspensao_alimentacao = mommy.make(SuspensaoAlimentacao)
     return SuspensaoAlimentacaoSerializer(suspensao_alimentacao)
+
+
+@pytest.fixture
+def motivo_alteracao_cardapio():
+    return mommy.make(MotivoAlteracaoCardapio, nome=fake.name())
+
+
+@pytest.fixture
+def motivo_alteracao_cardapio_serializer():
+    motivo_alteracao_cardapio = mommy.make(MotivoAlteracaoCardapio)
+    return MotivoAlteracaoCardapioSerializer(motivo_alteracao_cardapio)

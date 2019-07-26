@@ -141,3 +141,18 @@ class SuspensaoAlimentacao(TemData, TemChaveExterna):
     class Meta:
         verbose_name = "Suspensão de alimentação"
         verbose_name_plural = "Suspensões de alimentação"
+
+
+class MotivoAlteracaoCardapio(Nomeavel, TemChaveExterna):
+    """
+    Exemplos:
+        - atividade diferenciada
+        - aniversariante do mes
+    """
+
+    def __str__(self):
+        return self.nome
+
+    class Meta:
+        verbose_name = "Motivo de alteração de cardápio"
+        verbose_name_plural = "Motivos de alteração de cardápio"
