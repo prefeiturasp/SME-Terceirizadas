@@ -2,8 +2,8 @@ from django.db import models
 
 from ..dados_comuns.models_abstract import (
     Nomeavel, TemData, Motivo, Descritivel,
-    CriadoEm, TemChaveExterna, TempoPasseio
-)
+    CriadoEm, TemChaveExterna, TempoPasseio,
+    FluxoAprovacaoPartindoDaEscola)
 
 
 class MotivoSolicitacaoUnificada(Nomeavel, TemChaveExterna):
@@ -61,7 +61,9 @@ class SolicitacaoKitLanche(TemData, Motivo, Descritivel, CriadoEm, TempoPasseio,
         verbose_name_plural = "Solicitações kit lanche base"
 
 
-class SolicitacaoKitLancheAvulsa(TemChaveExterna):
+class SolicitacaoKitLancheAvulsa(TemChaveExterna, FluxoAprovacaoPartindoDaEscola):
+    # TODO: ao deletar este, deletar solicitacao_kit_lanche também que é uma tabela acessória
+    # TODO: passar `local` para solicitacao_kit_lanche
     local = models.CharField(max_length=160)
     quantidade_alunos = models.PositiveSmallIntegerField()
     solicitacao_kit_lanche = models.ForeignKey(SolicitacaoKitLanche, on_delete=models.DO_NOTHING)
@@ -87,6 +89,8 @@ class SolicitacaoKitLancheUnificada(TemChaveExterna):
         no dia 26 onde a escola x vai ter 100 alunos, a y 50 e a z 77 alunos.
         onde todos vao comemorar o dia da arvore (motivo)
     """
+    # TODO: ao deletar este, deletar solicitacao_kit_lanche também que é uma tabela acessória
+    # TODO: passar `local` para solicitacao_kit_lanche
     motivo = models.ForeignKey(MotivoSolicitacaoUnificada, on_delete=models.DO_NOTHING,
                                blank=True, null=True)
     outro_motivo = models.TextField(blank=True, null=True)

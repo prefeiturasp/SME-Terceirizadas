@@ -39,6 +39,10 @@ class Cardapio(Descritivel, Ativavel, TemData, TemChaveExterna, CriadoEm):
     tipos_alimentacao = models.ManyToManyField(TipoAlimentacao)
     edital = models.ForeignKey('terceirizada.Edital', on_delete=models.DO_NOTHING)
 
+    @property
+    def tipos_unidade_escolar(self):
+        return self.tipos_unidade_escolar
+
     def __str__(self):
         if self.descricao:
             return '{}  - {}'.format(self.data, self.descricao)
