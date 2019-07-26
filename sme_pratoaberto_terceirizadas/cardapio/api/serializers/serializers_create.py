@@ -16,7 +16,7 @@ from ...api.validators import (
 from ...models import (
     InversaoCardapio, Cardapio,
     TipoAlimentacao, SuspensaoAlimentacao,
-    AlteracaoCardapio)
+    AlteracaoCardapio, MotivoAlteracaoCardapio)
 
 
 class InversaoCardapioSerializerCreate(serializers.ModelSerializer):
@@ -163,16 +163,11 @@ class SuspensaoAlimentacaoCreateSerializer(serializers.ModelSerializer):
 
 
 class AlteracaoCardapioSerializerCreate(serializers.ModelSerializer):
-    tipo_de = serializers.SlugRelatedField(
-        slug_field='uuid',
-        required=True,
-        queryset=TipoAlimentacao.objects.all()
-    )
 
-    tipo_para = serializers.SlugRelatedField(
+    motivo = serializers.SlugRelatedField(
         slug_field='uuid',
         required=True,
-        queryset=TipoAlimentacao.objects.all()
+        queryset=MotivoAlteracaoCardapio.objects.all()
     )
 
     escola = serializers.SlugRelatedField(
@@ -180,11 +175,6 @@ class AlteracaoCardapioSerializerCreate(serializers.ModelSerializer):
         required=True,
         queryset=Escola.objects.all()
     )
-
-    def validate(self, attrs):
-        objeto_nao_deve_ter_duplicidade(AlteracaoCardapio, tipo_de=attrs.get('tipo_de'), tipo_para=attrs.get('tipo_para'), escola=attrs.get('escola'),
-                                        mensagem="Já existe uma alteração de cardápio com estes dados")
-        return attrs
 
     def create(self, validated_data):
         alteracao_cardapio = AlteracaoCardapio.objects.create(**validated_data)

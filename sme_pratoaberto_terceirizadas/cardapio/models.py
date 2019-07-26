@@ -1,7 +1,7 @@
 from django.db import models
 
 from ..dados_comuns.models_abstract import (
-    Descritivel, TemData, TemChaveExterna, Ativavel, Nomeavel, CriadoEm, StatusValidacao
+    Descritivel, TemData, TemChaveExterna, Ativavel, Nomeavel, CriadoEm, StatusValidacao, IntervaloDeDia, TemObservacao
 )
 
 
@@ -77,32 +77,6 @@ class InversaoCardapio(CriadoEm, Descritivel, TemChaveExterna, StatusValidacao):
         verbose_name_plural = "Inversão de cardápios"
 
 
-class AlteracaoCardapio(CriadoEm, Descritivel, TemChaveExterna):
-    """
-        Uma unidade quer alterar um tipo_alimentacao de cardápio de
-        rotina para outro tipo_alimentacao de cardapio.
-    """
-    # TODO: colocar o controle de fluxo atraves do status
-    # TODO: seria de tipoS de para tipoS para?
-    tipo_de = models.ForeignKey(TipoAlimentacao, on_delete=models.DO_NOTHING,
-                                blank=True, null=True,
-                                related_name='tipo_de')
-    tipo_para = models.ForeignKey(TipoAlimentacao, on_delete=models.DO_NOTHING,
-                                  blank=True, null=True,
-                                  related_name='tipo_para')
-    escola = models.ForeignKey('escola.Escola', blank=True, null=True,
-                               on_delete=models.DO_NOTHING)
-
-    def __str__(self):
-        if self.tipo_de and self.tipo_para and self.escola:
-            return '{}: \nDe: {} \nPara: {}'.format(self.escola.nome, self.tipo_de, self.tipo_para)
-        return self.descricao
-
-    class Meta:
-        verbose_name = "Alteração de cardápio"
-        verbose_name_plural = "Alteração de cardápios"
-
-
 class SuspensaoAlimentacao(TemData, TemChaveExterna):
     """
         Uma escola pede para suspender as refeições:
@@ -160,3 +134,36 @@ class MotivoAlteracaoCardapio(Nomeavel, TemChaveExterna):
     class Meta:
         verbose_name = "Motivo de alteração de cardápio"
         verbose_name_plural = "Motivos de alteração de cardápio"
+
+
+class AlteracaoCardapio(CriadoEm, TemChaveExterna, IntervaloDeDia, StatusValidacao, TemObservacao):
+    """
+    A unidade quer trocar um ou mais tipos de refeição em um ou mais períodos escolares devido a um evento especial
+    (motivo) em dado período de tempo.
+
+    Ex: Alterar  nos períodos matutino e intermediario, o lanche e refeição pelo motivo "aniversariantes do mês"
+    """
+
+    escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING, blank=True, null=True)
+    motivo = models.ForeignKey('MotivoAlteracaoCardapio', on_delete=models.PROTECT, blank=True, null=True)
+
+    def __str__(self):
+        return f'Alteração de cardápio: {self.uuid}'
+
+    class Meta:
+        verbose_name = "Alteração de cardápio"
+        verbose_name_plural = "Alterações de cardápio"
+
+
+class SubstituicoesAlimentacaoNoPeriodoEscolar(TemChaveExterna):
+    alteracao_cardapio = models.ForeignKey('AlteracaoCardapio', on_delete=models.CASCADE, related_name="substituicoes")
+    qtd_alunos = models.PositiveSmallIntegerField(default=0)
+    periodo_escolar = models.ForeignKey('escola.PeriodoEscolar', on_delete=models.PROTECT)
+    tipos_alimentacao = models.ManyToManyField('TipoAlimentacao', related_name="tipos_alimento_substituidos")
+
+    def __str__(self):
+        return f'Substituições de alimentação: {self.uuid} da Alteração de Cardápio: {self.alteracao_cardapio.uuid}'
+
+    class Meta:
+        verbose_name = "Substituições de alimentação no período"
+        verbose_name_plural = "Substituições de alimentação no período"
