@@ -3,7 +3,7 @@
 CAUTION: Do not modify this file unless you know what you are doing.
          Unexpected results may occur if the code is changed deliberately.
 -->
-<dbmodel pgmodeler-ver="0.9.1" last-position="2281,1156" last-zoom="0.7"
+<dbmodel pgmodeler-ver="0.9.1" last-position="2464,1338" last-zoom="0.75"
 	 default-owner="postgres">
 <database name="new_database" is-template="false" allow-conns="true">
 </database>
@@ -133,7 +133,7 @@ Lanche 4 horas
 Lanche 5 horas 
 Lanche 6horas
 Merenda Seca]]></comment>
-	<position x="4700" y="1960"/>
+	<position x="4380" y="1940"/>
 	<column name="tipo_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -153,7 +153,7 @@ Merenda Seca]]></comment>
 1 lista de tipos de refeicao (Dejejum, Colação, Almoço, LANCHE DE 4 HS OU 8 HS; LANCHE DE 5HS OU 6 HS; REFEIÇÃO).
 
 !!!!OBS!!! PARA CEI varia por faixa de idade.]]></comment>
-	<position x="4060" y="2440"/>
+	<position x="4040" y="2400"/>
 	<column name="cardapio_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -775,7 +775,7 @@ QUANDO É MULTIPLO: ex: passeio pra escola x,y,z no ibira (local)  no dia 26 ond
 
 """
 Nayla - por exemplo: quero servir o cardápio do dia 30 no dia 15, automaticamente o cardápio do dia 15 será servido no dia 30"""]]></comment>
-	<position x="3240" y="2420"/>
+	<position x="3260" y="2400"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -833,6 +833,13 @@ Nayla - por exemplo: quero servir o cardápio do dia 30 no dia 15, automaticamen
 	<role name="postgres"/>
 	<comment><![CDATA[[ATENÇÃO AOS STATUS... TEM UM FLUXO DE APROVAÇÃO]
 
+*** NOVO ENTENDIMENTO (26/07/19):
+É quando a unidade quer trocar um ou mais tipos de refeição em um ou mais períodos escolares por um evento especial (motivo) em dado período de tempo.
+
+Ex: Alterar  nos períodos matutino e intermediario, o lanche e refeição pelo motivo "aniversariantes do mês"
+****
+
+### Entendimento anterior que foi mudado:
 É quando a unidade quer alterar um item de cardápio de rotina para outro item de cardapio.
 
 entende-se: item de cardapio é um tipo_cardapio.
@@ -843,7 +850,7 @@ Nayla - Outro exemplo, a escola vai comemorar a festa junina no dia 28 só no pe
 Marcelo - entendi, trocar o almoço do dia 28 por mais lanches para atender a demanda"""
 
 obs>> a alteração de cardápio é para um dia específico, não da pra cancelar um almoço de um dia pra virar em dobro no outro]]></comment>
-	<position x="3880" y="1900"/>
+	<position x="3860" y="1920"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -856,31 +863,29 @@ obs>> a alteração de cardápio é para um dia específico, não da pra cancela
 	<column name="status">
 		<type name="smallint" length="0"/>
 	</column>
+	<column name="data_inicial">
+		<type name="date" length="0"/>
+	</column>
+	<column name="data_final">
+		<type name="date" length="0"/>
+	</column>
+	<column name="observacao">
+		<type name="smallint" length="0"/>
+	</column>
 	<constraint name="alteracao_cardapio_pk" type="pk-constr" table="&quot;cardapio[revisado]&quot;.&quot;alteracao_cardapio[revisado]&quot;">
 		<columns names="id" ref-type="src-columns"/>
 	</constraint>
 
 	<customidxs object-type="column">
-		<object name="cardapio_id_cardapio[revisado]" index="4"/>
+		<object name="escola_id_escola[revisado]" index="4"/>
+		<object name="id_motivo_alteracao_cardapio" index="5"/>
 	</customidxs>
 
 	<customidxs object-type="constraint">
-		<object name="cardapio[revisado]_fk" index="0"/>
+		<object name="escola[revisado]_fk" index="1"/>
+		<object name="motivo_alteracao_cardapio_fk" index="2"/>
 	</customidxs>
 </table>
-
-<relationship name="cardapio[revisado]_has_many_alteracao_cardapio" type="rel1n"
-	 src-col-pattern="{sc}_{st}"
-	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
-	 src-fk-pattern="{st}_fk"
-	 custom-color="#000000"
-	 src-table="&quot;cardapio[revisado]&quot;.&quot;cardapio[revisado]&quot;"
-	 dst-table="&quot;cardapio[revisado]&quot;.&quot;alteracao_cardapio[revisado]&quot;"
-	 src-required="false" dst-required="false">
-	<label ref-type="name-label">
-		<position x="51.3605" y="-3.73182"/>
-	</label>
-</relationship>
 
 <relationship name="escola_has_many_alteracao_cardapio" type="rel1n"
 	 src-col-pattern="{sc}_{st}"
@@ -890,35 +895,6 @@ obs>> a alteração de cardápio é para um dia específico, não da pra cancela
 	 src-table="&quot;escola[revisado]&quot;.&quot;escola[revisado]&quot;"
 	 dst-table="&quot;cardapio[revisado]&quot;.&quot;alteracao_cardapio[revisado]&quot;"
 	 src-required="false" dst-required="false"/>
-
-<relationship name="tipo_cardapio[revisado]_has_many_alteracao_cardapio" type="rel1n"
-	 src-col-pattern="{sc}_{st}"
-	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
-	 src-fk-pattern="{st}_fk"
-	 custom-color="#000000"
-	 src-table="&quot;cardapio[revisado]&quot;.&quot;tipo_alimentacao[revisado]&quot;"
-	 dst-table="&quot;cardapio[revisado]&quot;.&quot;alteracao_cardapio[revisado]&quot;"
-	 src-required="false" dst-required="false">
-	<column name="item_de">
-		<type name="serial" length="0"/>
-	</column>
-</relationship>
-
-<relationship name="tipo_cardapio[revisado]_has_many_alteracao_cardapio2" type="rel1n"
-	 src-col-pattern="{sc}_{st}"
-	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
-	 src-fk-pattern="{st}_fk"
-	 custom-color="#000000"
-	 src-table="&quot;cardapio[revisado]&quot;.&quot;tipo_alimentacao[revisado]&quot;"
-	 dst-table="&quot;cardapio[revisado]&quot;.&quot;alteracao_cardapio[revisado]&quot;"
-	 src-required="false" dst-required="false">
-	<label ref-type="name-label">
-		<position x="-2.58027" y="1.90969"/>
-	</label>
-	<column name="item_para">
-		<type name="int2" length="0"/>
-	</column>
-</relationship>
 
 <relationship name="cardapio[revisado]_has_many_troca_dia_cardapio" type="rel1n"
 	 src-col-pattern="{sc}_{st}"
@@ -1171,7 +1147,7 @@ tipo pode ser cardapio, periodo (manha, tarde) ou itens do cardapio.
  - pode ser um cardapio inteiro
  - pode ser só um período (manha, tarde, noite)
  - pode ser só um item de um cardápio]]></comment>
-	<position x="5000" y="2400"/>
+	<position x="5000" y="2380"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -1497,7 +1473,7 @@ quando é multipla: todas as escolas vao ter a mesma opcao de kits, com numero d
 - atividade diferenciada
 - aniversariante do mes
 ]]></comment>
-	<position x="3480" y="1920"/>
+	<position x="3420" y="1920"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -1508,6 +1484,61 @@ quando é multipla: todas as escolas vao ter a mesma opcao de kits, com numero d
 		<columns names="id" ref-type="src-columns"/>
 	</constraint>
 </table>
+
+<relationship name="motivo_alteracao_cardapio_has_many_alteracao_cardapio[revisado]" type="rel1n"
+	 src-col-pattern="{sc}_{st}"
+	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
+	 src-fk-pattern="{st}_fk"
+	 custom-color="#000000"
+	 src-table="&quot;cardapio[revisado]&quot;.motivo_alteracao_cardapio"
+	 dst-table="&quot;cardapio[revisado]&quot;.&quot;alteracao_cardapio[revisado]&quot;"
+	 src-required="false" dst-required="false"/>
+
+<table name="substituicao_de_alimentacao">
+	<schema name="&quot;cardapio[revisado]&quot;"/>
+	<role name="postgres"/>
+	<comment><![CDATA[Período Escolar x Tipos de alimentação que serão substituidos.]]></comment>
+	<position x="3860" y="2180"/>
+	<column name="id" not-null="true">
+		<type name="serial" length="0"/>
+	</column>
+	<column name="qtd_alunos">
+		<type name="smallint" length="0"/>
+		<comment><![CDATA[Quantidade de alunos que terão a alimentação substituida.]]></comment>
+	</column>
+	<constraint name="substituicao_de_alimentacao_pk" type="pk-constr" table="&quot;cardapio[revisado]&quot;.substituicao_de_alimentacao">
+		<columns names="id" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<relationship name="periodo_escolar[revisado]_has_many_substituicao_de_alimentacao" type="rel1n"
+	 src-col-pattern="{sc}_{st}"
+	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
+	 src-fk-pattern="{st}_fk"
+	 custom-color="#0a493c"
+	 src-table="&quot;escola[revisado]&quot;.&quot;periodo_escolar[revisado]&quot;"
+	 dst-table="&quot;cardapio[revisado]&quot;.substituicao_de_alimentacao"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="alteracao_cardapio[revisado]_has_many_substituicao_de_alimentac" type="rel1n"
+	 src-col-pattern="{sc}_{st}"
+	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
+	 src-fk-pattern="{st}_fk"
+	 custom-color="#000000"
+	 src-table="&quot;cardapio[revisado]&quot;.&quot;alteracao_cardapio[revisado]&quot;"
+	 dst-table="&quot;cardapio[revisado]&quot;.substituicao_de_alimentacao"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="many_tipo_alimentacao[revisado]_has_many_substituicao_de_alimen" type="relnn"
+	 src-col-pattern="{sc}_{st}" dst-col-pattern="{sc}_{dt}"
+	 pk-pattern="{gt}_pk" uq-pattern="{gt}_uq"
+	 src-fk-pattern="{st}_fk" dst-fk-pattern="{dt}_fk"
+	 pk-col-pattern="id"
+	 custom-color="#ff0000"
+	 src-table="&quot;cardapio[revisado]&quot;.&quot;tipo_alimentacao[revisado]&quot;"
+	 dst-table="&quot;cardapio[revisado]&quot;.substituicao_de_alimentacao"
+	 src-required="false" dst-required="false"
+	 table-name="many_tipo_alimentacao[revisado]_has_many_substituicao_de_alimen"/>
 
 <constraint name="fk_usuario_id" type="fk-constr" comparison-type="MATCH FULL"
 	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="perfil.usuario" table="dados_comuns.log_usuario">
