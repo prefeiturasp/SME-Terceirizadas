@@ -3,7 +3,7 @@
 CAUTION: Do not modify this file unless you know what you are doing.
          Unexpected results may occur if the code is changed deliberately.
 -->
-<dbmodel pgmodeler-ver="0.9.1" last-position="2463,1337" last-zoom="0.75"
+<dbmodel pgmodeler-ver="0.9.1" last-position="2508,1335" last-zoom="0.75"
 	 default-owner="postgres">
 <database name="new_database" is-template="false" allow-conns="true">
 </database>
@@ -1491,11 +1491,11 @@ quando é multipla: todas as escolas vao ter a mesma opcao de kits, com numero d
 	 dst-table="&quot;cardapio[revisado]&quot;.&quot;alteracao_cardapio[revisado]&quot;"
 	 src-required="false" dst-required="false"/>
 
-<table name="substituicao_de_alimentacao">
+<table name="substituicoes_alimentacao_no_periodo_escolar">
 	<schema name="&quot;cardapio[revisado]&quot;"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Período Escolar x Tipos de alimentação que serão substituidos.]]></comment>
-	<position x="3860" y="2180"/>
+	<position x="3840" y="2180"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -1503,9 +1503,19 @@ quando é multipla: todas as escolas vao ter a mesma opcao de kits, com numero d
 		<type name="smallint" length="0"/>
 		<comment><![CDATA[Quantidade de alunos que terão a alimentação substituida.]]></comment>
 	</column>
-	<constraint name="substituicao_de_alimentacao_pk" type="pk-constr" table="&quot;cardapio[revisado]&quot;.substituicao_de_alimentacao">
+	<constraint name="substituicao_de_alimentacao_pk" type="pk-constr" table="&quot;cardapio[revisado]&quot;.substituicoes_alimentacao_no_periodo_escolar">
 		<columns names="id" ref-type="src-columns"/>
 	</constraint>
+
+	<customidxs object-type="column">
+		<object name="id_alteracao_cardapio[revisado]" index="3"/>
+		<object name="id_periodo_escolar[revisado]" index="2"/>
+	</customidxs>
+
+	<customidxs object-type="constraint">
+		<object name="alteracao_cardapio[revisado]_fk" index="2"/>
+		<object name="periodo_escolar[revisado]_fk" index="1"/>
+	</customidxs>
 </table>
 
 <relationship name="periodo_escolar[revisado]_has_many_substituicao_de_alimentacao" type="rel1n"
@@ -1514,7 +1524,7 @@ quando é multipla: todas as escolas vao ter a mesma opcao de kits, com numero d
 	 src-fk-pattern="{st}_fk"
 	 custom-color="#0a493c"
 	 src-table="&quot;escola[revisado]&quot;.&quot;periodo_escolar[revisado]&quot;"
-	 dst-table="&quot;cardapio[revisado]&quot;.substituicao_de_alimentacao"
+	 dst-table="&quot;cardapio[revisado]&quot;.substituicoes_alimentacao_no_periodo_escolar"
 	 src-required="false" dst-required="false"/>
 
 <relationship name="alteracao_cardapio[revisado]_has_many_substituicao_de_alimentac" type="rel1n"
@@ -1523,7 +1533,7 @@ quando é multipla: todas as escolas vao ter a mesma opcao de kits, com numero d
 	 src-fk-pattern="{st}_fk"
 	 custom-color="#000000"
 	 src-table="&quot;cardapio[revisado]&quot;.&quot;alteracao_cardapio[revisado]&quot;"
-	 dst-table="&quot;cardapio[revisado]&quot;.substituicao_de_alimentacao"
+	 dst-table="&quot;cardapio[revisado]&quot;.substituicoes_alimentacao_no_periodo_escolar"
 	 src-required="false" dst-required="false"/>
 
 <relationship name="many_tipo_alimentacao[revisado]_has_many_substituicao_de_alimen" type="relnn"
@@ -1533,7 +1543,7 @@ quando é multipla: todas as escolas vao ter a mesma opcao de kits, com numero d
 	 pk-col-pattern="id"
 	 custom-color="#ff0000"
 	 src-table="&quot;cardapio[revisado]&quot;.&quot;tipo_alimentacao[revisado]&quot;"
-	 dst-table="&quot;cardapio[revisado]&quot;.substituicao_de_alimentacao"
+	 dst-table="&quot;cardapio[revisado]&quot;.substituicoes_alimentacao_no_periodo_escolar"
 	 src-required="false" dst-required="false"
 	 table-name="many_tipo_alimentacao[revisado]_has_many_substituicao_de_alimen"/>
 
