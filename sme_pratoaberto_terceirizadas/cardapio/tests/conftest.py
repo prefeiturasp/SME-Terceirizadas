@@ -4,7 +4,8 @@ from model_mommy import mommy
 from datetime import datetime, timedelta
 from faker import Faker
 
-from ..models import SuspensaoAlimentacao, InversaoCardapio, MotivoAlteracaoCardapio
+from ..models import SuspensaoAlimentacao, InversaoCardapio, MotivoAlteracaoCardapio, AlteracaoCardapio, \
+    SubstituicoesAlimentacaoNoPeriodoEscolar
 
 from sme_pratoaberto_terceirizadas.cardapio.api.serializers.serializers import SuspensaoAlimentacaoSerializer
 from sme_pratoaberto_terceirizadas.cardapio.api.serializers.serializers import InversaoCardapioSerializer
@@ -70,3 +71,14 @@ def motivo_alteracao_cardapio():
 def motivo_alteracao_cardapio_serializer():
     motivo_alteracao_cardapio = mommy.make(MotivoAlteracaoCardapio)
     return MotivoAlteracaoCardapioSerializer(motivo_alteracao_cardapio)
+
+
+@pytest.fixture
+def alteracao_cardapio():
+    return mommy.make(AlteracaoCardapio, observacao="teste")
+
+
+@pytest.fixture
+def substituicoes_alimentacao_periodo():
+    alteracao_cardapio = mommy.make(AlteracaoCardapio, observacao="teste")
+    return mommy.make(SubstituicoesAlimentacaoNoPeriodoEscolar, alteracao_cardapio=alteracao_cardapio)
