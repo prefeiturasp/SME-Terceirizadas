@@ -1,5 +1,4 @@
 from sme_pratoaberto_terceirizadas.perfil.models import Usuario
-from sme_pratoaberto_terceirizadas.utils import enviar_notificacao
 
 
 # TODO Resolver conflitos de disparos de notificações

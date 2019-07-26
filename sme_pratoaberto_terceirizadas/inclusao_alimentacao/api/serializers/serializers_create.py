@@ -151,6 +151,11 @@ class InclusaoAlimentacaoContinuaCreationSerializer(serializers.ModelSerializer)
         required=False,
         read_only=True
     )
+    status_explicacao = serializers.CharField(
+        source='status',
+        required=False,
+        read_only=True
+    )
 
     def validate_data_inicial(self, data):
         nao_pode_ser_no_passado(data)
@@ -200,4 +205,4 @@ class InclusaoAlimentacaoContinuaCreationSerializer(serializers.ModelSerializer)
 
     class Meta:
         model = InclusaoAlimentacaoContinua
-        exclude = ('id',)
+        exclude = ('id', 'status')

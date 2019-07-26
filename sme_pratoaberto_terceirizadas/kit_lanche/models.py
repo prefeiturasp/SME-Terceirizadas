@@ -51,6 +51,9 @@ class KitLanche(Nomeavel, TemChaveExterna):
 
 
 class SolicitacaoKitLanche(TemData, Motivo, Descritivel, CriadoEm, TempoPasseio, TemChaveExterna):
+    # TODO: implementar one to one, nas duas tabelas que apontam pra essa
+    # https://docs.djangoproject.com/en/2.2/ref/models/fields/#django.db.models.OneToOneField
+
     kits = models.ManyToManyField(KitLanche, blank=True)
 
     def __str__(self):
