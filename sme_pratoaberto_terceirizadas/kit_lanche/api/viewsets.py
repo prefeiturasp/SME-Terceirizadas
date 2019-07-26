@@ -1,3 +1,4 @@
+from rest_framework.decorators import action
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
 from .permissions import SolicitacaoUnificadaPermission
@@ -23,11 +24,22 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
     queryset = models.SolicitacaoKitLancheAvulsa.objects.all()
     serializer_class = serializers.SolicitacaoKitLancheAvulsaSerializer
 
-    # TODO: permitir deletar somente se o status for do inicial...
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update']:
             return serializers_create.SolicitacaoKitLancheAvulsaCreationSerializer
         return serializers.SolicitacaoKitLancheAvulsaSerializer
+
+    # TODO: com as permissoes feitas, somente uma pessoa com permissao dentro da escola poder pedir
+    # usar PermissionClasses...
+    @action(detail=True, )
+    def inicio_de_pedido(self, request, uuid=None):
+        solicitacao = self.get_object()
+        solicitacao.inicia_fluxo()
+
+    def destroy(self, request, *args, **kwargs):
+        solicitacao = self.get_object()
+        if solicitacao.pode_excluir:
+            return super().destroy(request, *args, **kwargs)
 
 
 class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
