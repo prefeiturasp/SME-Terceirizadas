@@ -8,7 +8,8 @@ from sme_pratoaberto_terceirizadas.dados_comuns.validators import (
 )
 from sme_pratoaberto_terceirizadas.escola.api.serializers import (
     EscolaSimplesSerializer, PeriodoEscolarSerializer,
-    TipoUnidadeEscolarSerializer)
+    TipoUnidadeEscolarSerializer
+)
 from sme_pratoaberto_terceirizadas.terceirizada.api.serializers import EditalSerializer
 from ...models import (
     TipoAlimentacao, Cardapio, InversaoCardapio,
@@ -80,17 +81,16 @@ class SuspensaoAlimentacaoSerializer(serializers.ModelSerializer):
         exclude = ('id',)
 
 
-class AlteracaoCardapioSerializer(serializers.ModelSerializer):
-    tipo_de = TipoAlimentacaoSerializer()
-    tipo_para = TipoAlimentacaoSerializer()
-    escola = EscolaSimplesSerializer()
-
-    class Meta:
-        model = AlteracaoCardapio
-        exclude = ('id',)
-
-
 class MotivoAlteracaoCardapioSerializer(serializers.ModelSerializer):
     class Meta:
         model = MotivoAlteracaoCardapio
+        exclude = ('id',)
+
+
+class AlteracaoCardapioSerializer(serializers.ModelSerializer):
+    escola = EscolaSimplesSerializer()
+    motivo = MotivoAlteracaoCardapioSerializer()
+
+    class Meta:
+        model = AlteracaoCardapio
         exclude = ('id',)
