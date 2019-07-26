@@ -9,7 +9,7 @@ from sme_pratoaberto_terceirizadas.dados_comuns.validators import (
     objeto_nao_deve_ter_duplicidade
 )
 from sme_pratoaberto_terceirizadas.escola.api.serializers import (
-    EscolaSimplesSerializer, PeriodoEscolarSerializer
+    EscolaSimplesSerializer, PeriodoEscolarSerializer,
 )
 
 
@@ -74,17 +74,19 @@ class SuspensaoAlimentacaoSerializer(serializers.ModelSerializer):
         exclude = ('id',)
 
 
-class AlteracaoCardapioSerializer(serializers.ModelSerializer):
-    tipo_de = TipoAlimentacaoSerializer()
-    tipo_para = TipoAlimentacaoSerializer()
-    escola = EscolaSimplesSerializer()
-
-    class Meta:
-        model = AlteracaoCardapio
-        fields = ['uuid', 'descricao', 'criado_em', 'tipo_de', 'tipo_para', 'escola']
-
-
 class MotivoAlteracaoCardapioSerializer(serializers.ModelSerializer):
     class Meta:
         model = MotivoAlteracaoCardapio
         exclude = ('id',)
+
+
+class AlteracaoCardapioSerializer(serializers.ModelSerializer):
+    escola = EscolaSimplesSerializer()
+    motivo = MotivoAlteracaoCardapioSerializer()
+
+    class Meta:
+        model = AlteracaoCardapio
+        exclude = ('id',)
+
+
+
