@@ -219,3 +219,10 @@ class CriadoPor(models.Model):
 
     class Meta:
         abstract = True
+
+
+class TemObservacao(models.Model):
+    observacao = models.TextField("Observação", blank=True, null=True)
+
+    class Meta:
+        abstract = True
