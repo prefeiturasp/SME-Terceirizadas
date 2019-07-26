@@ -1,40 +1,47 @@
 from datetime import date
 
 from rest_framework import serializers
-from traitlets import Any
 
-from sme_pratoaberto_terceirizadas.cardapio.models import *
 from sme_pratoaberto_terceirizadas.dados_comuns.validators import (
     nao_pode_ser_no_passado, nao_pode_ser_feriado,
     objeto_nao_deve_ter_duplicidade
 )
 from sme_pratoaberto_terceirizadas.escola.api.serializers import (
     EscolaSimplesSerializer, PeriodoEscolarSerializer,
+    TipoUnidadeEscolarSerializer
+)
+from sme_pratoaberto_terceirizadas.terceirizada.api.serializers import EditalSerializer
+from ...models import (
+    TipoAlimentacao, Cardapio, InversaoCardapio,
+    SuspensaoAlimentacao, AlteracaoCardapio, MotivoAlteracaoCardapio
 )
 
 
 class TipoAlimentacaoSerializer(serializers.ModelSerializer):
 
-    def validate_nome(self, nome: str) -> Any:
-        objeto_nao_deve_ter_duplicidade(TipoAlimentacao, 'Já existe um tipo de alimento com este nome: {}'.format(nome),
-                                        nome=nome)
+    def validate_nome(self, nome: str):
+        objeto_nao_deve_ter_duplicidade(
+            TipoAlimentacao, 'Já existe um tipo de alimento com este nome: {}'.format(nome),
+            nome=nome)
         return nome
 
     class Meta:
         model = TipoAlimentacao
-        fields = ['uuid', 'nome']
+        exclude = ('id',)
 
 
 class CardapioSimplesSerializer(serializers.ModelSerializer):
     class Meta:
         model = Cardapio
-        fields = ['uuid', 'data']
+        exclude = ('id',)
 
 
 class CardapioSerializer(serializers.ModelSerializer):
     tipos_alimentacao = TipoAlimentacaoSerializer(many=True, read_only=True)
+    tipos_unidade_escolar = TipoUnidadeEscolarSerializer(many=True, read_only=True)
+    edital = EditalSerializer()
 
-    def validate_data(self, data: date) -> Any:
+    def validate_data(self, data: date):
         nao_pode_ser_no_passado(data)
         nao_pode_ser_feriado(data)
         objeto_nao_deve_ter_duplicidade(
@@ -46,7 +53,7 @@ class CardapioSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Cardapio
-        fields = ['uuid', 'data', 'ativo', 'criado_em', 'tipos_alimentacao']
+        exclude = ('id',)
 
 
 class InversaoCardapioSerializer(serializers.ModelSerializer):
@@ -60,7 +67,7 @@ class InversaoCardapioSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = InversaoCardapio
-        fields = ['uuid', 'descricao', 'criado_em', 'cardapio_de', 'cardapio_para', 'escola', 'status']
+        exclude = ('id',)
 
 
 class SuspensaoAlimentacaoSerializer(serializers.ModelSerializer):
@@ -87,6 +94,3 @@ class AlteracaoCardapioSerializer(serializers.ModelSerializer):
     class Meta:
         model = AlteracaoCardapio
         exclude = ('id',)
-
-
-

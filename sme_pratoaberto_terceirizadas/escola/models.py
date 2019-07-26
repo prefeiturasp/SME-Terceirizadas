@@ -40,7 +40,8 @@ class TipoUnidadeEscolar(Iniciais, Ativavel, TemChaveExterna):
     """
         Tipo de unidade escolar: EEMEF, CIEJA, EMEI, EMEBS, CEI, CEMEI...
     """
-    cardapios = models.ManyToManyField('cardapio.Cardapio', blank=True)
+    cardapios = models.ManyToManyField('cardapio.Cardapio', blank=True,
+                                       related_name='tipos_unidade_escolar')
 
     def __str__(self):
         return self.iniciais
