@@ -1,8 +1,7 @@
 from notifications.models import Notification
 from rest_framework import serializers
 
-from sme_pratoaberto_terceirizadas.perfil.models.perfil import PerfilPermissao
-from ..models import Usuario, Perfil, Permissao, GrupoPerfil
+from ..models import (Usuario, Perfil, Permissao, GrupoPerfil, PerfilPermissao)
 
 
 class UsuarioSerializer(serializers.ModelSerializer):
@@ -89,4 +88,5 @@ class GrupoCompletoPerfilSerializer(serializers.ModelSerializer):
 class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
-        fields = '__all__'
+        exclude = ('actor_object_id', 'target_object_id', 'action_object_object_id', 'recipient',
+                   'actor_content_type', 'target_content_type', 'action_object_content_type')

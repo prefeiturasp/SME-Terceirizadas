@@ -5,6 +5,7 @@ from rest_framework.mixins import RetrieveModelMixin
 from rest_framework.response import Response
 from rest_framework.viewsets import ViewSet, GenericViewSet
 
+from .permissions import PodeMarcarDesmarcarComoLidaPermission
 from .serializers import (
     PerfilPermissaoCreateSerializer, PerfilPermissaoSerializer,
     GrupoCompletoPerfilSerializer, NotificationSerializer,
@@ -12,7 +13,6 @@ from .serializers import (
     PermissaoSerializer
 )
 from ..models import Usuario, Perfil, GrupoPerfil, Permissao, PerfilPermissao
-from ..permissions import PodeMarcarComoLidaPermission
 
 
 class UsuarioViewSet(viewsets.ReadOnlyModelViewSet):
@@ -70,26 +70,28 @@ class NotificationViewSet(RetrieveModelMixin, GenericViewSet):
     def minhas_notificacoes_nao_lidas(self, request):
         user = request.user
         notifications = user.notifications.unread()
-        ser = self.get_serializer(notifications, many=True)
-        return Response(ser.data)
+        page = self.paginate_queryset(notifications)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
 
     @action(detail=False)
     def minhas_notificacoes_lidas(self, request):
         user = request.user
         notifications = user.notifications.read()
-        ser = self.get_serializer(notifications, many=True)
-        return Response(ser.data)
+        page = self.paginate_queryset(notifications)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
 
-    @action(detail=True, permission_classes=[PodeMarcarComoLidaPermission])
-    def marcar_como_lida(self, request, pk):
+    @action(detail=True, permission_classes=[PodeMarcarDesmarcarComoLidaPermission])
+    def marcar_lido(self, request, pk):
         notificacao = self.get_object()
         notificacao.mark_as_read()
-        ser = self.get_serializer(notificacao)
-        return Response(ser.data)
+        serializer = self.get_serializer(notificacao)
+        return Response(serializer.data)
 
-    @action(detail=True, permission_classes=[PodeMarcarComoLidaPermission])
-    def marcar_como_nao_lida(self, request, pk):
+    @action(detail=True, permission_classes=[PodeMarcarDesmarcarComoLidaPermission])
+    def desmarcar_lido(self, request, pk):
         notificacao = self.get_object()
         notificacao.mark_as_unread()
-        ser = self.get_serializer(notificacao)
-        return Response(ser.data)
+        serializer = self.get_serializer(notificacao)
+        return Response(serializer.data)
