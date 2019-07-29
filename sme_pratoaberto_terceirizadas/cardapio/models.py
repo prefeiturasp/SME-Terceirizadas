@@ -1,7 +1,9 @@
 from django.db import models
 
 from ..dados_comuns.models_abstract import (
-    Descritivel, TemData, TemChaveExterna, Ativavel, Nomeavel, CriadoEm, StatusValidacao, IntervaloDeDia, TemObservacao
+    Descritivel, TemData, TemChaveExterna, Ativavel,
+    Nomeavel, CriadoEm, StatusValidacao, IntervaloDeDia,
+    TemObservacao, FluxoAprovacaoPartindoDaEscola
 )
 
 
@@ -136,7 +138,7 @@ class MotivoAlteracaoCardapio(Nomeavel, TemChaveExterna):
         verbose_name_plural = "Motivos de alteração de cardápio"
 
 
-class AlteracaoCardapio(CriadoEm, TemChaveExterna, IntervaloDeDia, StatusValidacao, TemObservacao):
+class AlteracaoCardapio(CriadoEm, TemChaveExterna, IntervaloDeDia, TemObservacao, FluxoAprovacaoPartindoDaEscola):
     """
     A unidade quer trocar um ou mais tipos de refeição em um ou mais períodos escolares devido a um evento especial
     (motivo) em dado período de tempo.
