@@ -46,6 +46,13 @@ def escola_quantidade_deve_ter_1_ou_mais_kits(numero_kits: int, indice: int, ):
     return True
 
 
+def escola_quantidade_nao_deve_ter_kits_e_tempo_passeio(num_kits, tempo_passeio, indice):
+    vazio = num_kits == 0 and tempo_passeio is None
+    if not vazio:
+        raise serializers.ValidationError(f'escola_quantidade indice #{indice} '
+                                          f'deve ter kits = [] e tempo passeio nulo')
+
+
 def escola_quantidade_deve_ter_mesmo_tempo_passeio(escola_quantidade,
                                                    solicitacao_kit_lanche,
                                                    indice):

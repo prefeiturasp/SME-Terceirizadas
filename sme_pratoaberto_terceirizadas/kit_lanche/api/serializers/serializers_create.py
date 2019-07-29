@@ -3,15 +3,14 @@ from rest_framework import serializers
 from sme_pratoaberto_terceirizadas.dados_comuns.utils import update_instance_from_dict
 from sme_pratoaberto_terceirizadas.dados_comuns.validators import nao_pode_ser_no_passado
 from sme_pratoaberto_terceirizadas.escola.models import Escola, DiretoriaRegional
-from sme_pratoaberto_terceirizadas.kit_lanche.api.validators import valida_quantidade_kits_tempo_passeio
+from sme_pratoaberto_terceirizadas.kit_lanche.api.validators import valida_quantidade_kits_tempo_passeio, \
+    escola_quantidade_nao_deve_ter_kits_e_tempo_passeio
 from sme_pratoaberto_terceirizadas.kit_lanche.models import EscolaQuantidade
 from ..validators import (
     solicitacao_deve_ter_1_ou_mais_kits,
     solicitacao_deve_ter_0_kit,
     valida_tempo_passeio_lista_igual,
     valida_tempo_passeio_lista_nao_igual,
-    escola_quantidade_deve_ter_0_kit,
-    escola_quantidade_deve_ter_mesmo_tempo_passeio,
     escola_quantidade_deve_ter_1_ou_mais_kits
 )
 from ... import models
@@ -115,10 +114,11 @@ class EscolaQuantidadeCreationSerializer(serializers.ModelSerializer):
         queryset=models.SolicitacaoKitLancheUnificada.objects.all()
     )
 
-    def validate_tempo_passeio(self, tempo_passeio):
-        qtd_kits = len(self.initial_data.get('kits'))
+    def validate(self, attrs):
+        qtd_kits = len(attrs.get('kits'))
+        tempo_passeio = attrs.get('tempo_passeio')
         valida_quantidade_kits_tempo_passeio(tempo_passeio, qtd_kits)
-        return tempo_passeio
+        return attrs
 
     def create(self, validated_data):
         kits = validated_data.pop('kits', [])
@@ -212,17 +212,16 @@ class SolicitacaoKitLancheUnificadaCreationSerializer(serializers.ModelSerialize
     def _valida_escolas_quantidades(self, data):
         escolas_quantidades = data.get('escolas_quantidades')
         lista_igual = data.get('lista_kit_lanche_igual', True)
-        solicitacao_kit_lanche = data.get('solicitacao_kit_lanche')
 
         if lista_igual:
             cont = 0
             for escola_quantidade in escolas_quantidades:
                 kits = escola_quantidade.get('kits')
-                escola_quantidade_deve_ter_0_kit(len(kits), indice=cont)
-                escola_quantidade_deve_ter_mesmo_tempo_passeio(
-                    escola_quantidade,
-                    solicitacao_kit_lanche,
-                    indice=cont)
+                escola_quantidade_nao_deve_ter_kits_e_tempo_passeio(
+                    num_kits=len(kits),
+                    tempo_passeio=escola_quantidade.get('tempo_passeio'),
+                    indice=cont
+                )
                 cont += 1
         else:
             cont = 0

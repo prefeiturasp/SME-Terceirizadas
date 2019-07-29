@@ -97,7 +97,7 @@ class SolicitacaoKitLancheUnificada(TemChaveExterna):
     motivo = models.ForeignKey(MotivoSolicitacaoUnificada, on_delete=models.DO_NOTHING,
                                blank=True, null=True)
     outro_motivo = models.TextField(blank=True, null=True)
-    quantidade_max_alunos_por_escola = models.PositiveSmallIntegerField()
+    quantidade_max_alunos_por_escola = models.PositiveSmallIntegerField(null=True, blank=True)
     local = models.CharField(max_length=160)
     lista_kit_lanche_igual = models.BooleanField(default=True)
 
