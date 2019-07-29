@@ -11,6 +11,7 @@ router.register('grupos-perfis', viewsets.GrupoPerfilViewSet, 'Grupos de Perfis'
 router.register('permissoes', viewsets.PermissaoViewSet, 'Permissões')
 router.register('permissoes-acoes', viewsets.AcoesViewSet, 'Ações')
 router.register('perfis-permissoes', viewsets.PerfilPermissaoViewSet, 'Perfis permissões')
+router.register('notificacoes', viewsets.NotificationViewSet, 'Notificações')
 
 urlpatterns = [
     path('', include(router.urls))

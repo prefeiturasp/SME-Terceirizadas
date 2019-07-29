@@ -1,5 +1,3 @@
-from typing import Any
-
 from des.models import DynamicEmailConfiguration
 from django.db import IntegrityError
 from rest_framework import status
@@ -50,10 +48,10 @@ class ConfiguracaoEmailViewSet(ModelViewSet):
     queryset = DynamicEmailConfiguration.objects.all()
     serializer_class = ConfiguracaoEmailSerializer
 
-    def list(self, request: Request, *args: Any, **kwargs: Any) -> Response:
+    def list(self, request: Request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
 
-    def create(self, request: Request, *args: Any, **kwargs: Any) -> Response:
+    def create(self, request: Request, *args, **kwargs):
         try:
             return super().create(request, *args, **kwargs)
         except IntegrityError as e:
@@ -61,5 +59,6 @@ class ConfiguracaoEmailViewSet(ModelViewSet):
                                   'detail': '{}'.format(e)},
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    def update(self, request: Request, *args: Any, **kwargs: Any) -> Response:
+    def update(self, request: Request, *args, **kwargs):
         return super().update(request, *args, **kwargs)
+
