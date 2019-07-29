@@ -1,3 +1,4 @@
+from notifications.models import Notification
 from rest_framework import serializers
 
 from sme_pratoaberto_terceirizadas.perfil.models.perfil import PerfilPermissao
@@ -83,3 +84,9 @@ class GrupoCompletoPerfilSerializer(serializers.ModelSerializer):
     class Meta:
         model = GrupoPerfil
         exclude = ('id',)
+
+
+class NotificationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Notification
+        fields = '__all__'
