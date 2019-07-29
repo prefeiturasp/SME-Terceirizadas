@@ -1,12 +1,18 @@
+from notifications.models import Notification
 from rest_framework import viewsets
+from rest_framework.decorators import action
+from rest_framework.mixins import RetrieveModelMixin
 from rest_framework.response import Response
-from rest_framework.viewsets import ViewSet
+from rest_framework.viewsets import ViewSet, GenericViewSet
 
-from sme_pratoaberto_terceirizadas.perfil.api.serializers import PerfilPermissaoCreateSerializer, \
-    PerfilPermissaoSerializer, GrupoCompletoPerfilSerializer
-from sme_pratoaberto_terceirizadas.perfil.models.perfil import PerfilPermissao
-from .serializers import UsuarioSerializer, PerfilSerializer, GrupoPerfilCreateSerializer, PermissaoSerializer
-from ..models import Usuario, Perfil, GrupoPerfil, Permissao
+from .permissions import PodeMarcarDesmarcarComoLidaPermission
+from .serializers import (
+    PerfilPermissaoCreateSerializer, PerfilPermissaoSerializer,
+    GrupoCompletoPerfilSerializer, NotificationSerializer,
+    UsuarioSerializer, PerfilSerializer, GrupoPerfilCreateSerializer,
+    PermissaoSerializer
+)
+from ..models import Usuario, Perfil, GrupoPerfil, Permissao, PerfilPermissao
 
 
 class UsuarioViewSet(viewsets.ReadOnlyModelViewSet):
@@ -54,3 +60,38 @@ class PerfilPermissaoViewSet(viewsets.ModelViewSet):
         if self.action in ['create', 'update', 'partial_update']:
             return PerfilPermissaoCreateSerializer
         return PerfilPermissaoSerializer
+
+
+class NotificationViewSet(RetrieveModelMixin, GenericViewSet):
+    queryset = Notification.objects.all()
+    serializer_class = NotificationSerializer
+
+    @action(detail=False)
+    def minhas_notificacoes_nao_lidas(self, request):
+        user = request.user
+        notifications = user.notifications.unread()
+        page = self.paginate_queryset(notifications)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False)
+    def minhas_notificacoes_lidas(self, request):
+        user = request.user
+        notifications = user.notifications.read()
+        page = self.paginate_queryset(notifications)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=True, permission_classes=[PodeMarcarDesmarcarComoLidaPermission])
+    def marcar_lido(self, request, pk):
+        notificacao = self.get_object()
+        notificacao.mark_as_read()
+        serializer = self.get_serializer(notificacao)
+        return Response(serializer.data)
+
+    @action(detail=True, permission_classes=[PodeMarcarDesmarcarComoLidaPermission])
+    def desmarcar_lido(self, request, pk):
+        notificacao = self.get_object()
+        notificacao.mark_as_unread()
+        serializer = self.get_serializer(notificacao)
+        return Response(serializer.data)

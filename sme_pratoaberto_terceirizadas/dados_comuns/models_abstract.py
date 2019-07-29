@@ -226,3 +226,15 @@ class TemObservacao(models.Model):
 
     class Meta:
         abstract = True
+
+
+class TemIdentificadorExternoAmigavel(object):
+    """
+    Gera uma chave externa amigável, não única.
+    Somente para identificar externamente.
+    Obrigatoriamente o objeto deve ter um uuid
+    """
+
+    @property
+    def id_externo(self):
+        return str(self.uuid).upper()[:5]
