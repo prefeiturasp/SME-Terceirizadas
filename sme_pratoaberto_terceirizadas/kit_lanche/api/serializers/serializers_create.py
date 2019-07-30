@@ -175,15 +175,17 @@ class SolicitacaoKitLancheUnificadaCreationSerializer(serializers.ModelSerialize
         return solicitacao_kit_unificada
 
     def update(self, instance, validated_data):
-        escolas_quantidades_array = validated_data.pop('escolas_quantidades')
+        escolas_quantidades = validated_data.pop('escolas_quantidades')
         solicitacao_kit_lanche_json = validated_data.pop('solicitacao_kit_lanche')
 
         solicitacao_kit_lanche = instance.solicitacao_kit_lanche
-        escolas_quantidades = instance.escolas_quantidades.all()
+        instance.escolas_quantidades.all().delete()
 
         SolicitacaoKitLancheCreationSerializer().update(solicitacao_kit_lanche, solicitacao_kit_lanche_json)
 
-        self._atualiza_escolas_quantidades(escolas_quantidades, escolas_quantidades_array)
+        lista_quantidade_escola = self._gera_escolas_quantidades(escolas_quantidades)
+
+        instance.vincula_escolas_quantidades(lista_quantidade_escola)
 
         update_instance_from_dict(instance, validated_data)
         instance.save()
