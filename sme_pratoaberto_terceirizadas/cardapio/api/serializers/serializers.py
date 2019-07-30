@@ -11,12 +11,10 @@ from sme_pratoaberto_terceirizadas.escola.api.serializers import (
     TipoUnidadeEscolarSerializer
 )
 from sme_pratoaberto_terceirizadas.terceirizada.api.serializers import EditalSerializer
-
-from sme_pratoaberto_terceirizadas.escola.models import PeriodoEscolar
-
 from ...models import (
     TipoAlimentacao, Cardapio, InversaoCardapio,
-    SuspensaoAlimentacao, AlteracaoCardapio, MotivoAlteracaoCardapio, SubstituicoesAlimentacaoNoPeriodoEscolar,
+    SuspensaoAlimentacao, AlteracaoCardapio, MotivoAlteracaoCardapio,
+    SubstituicoesAlimentacaoNoPeriodoEscolar,
 )
 
 

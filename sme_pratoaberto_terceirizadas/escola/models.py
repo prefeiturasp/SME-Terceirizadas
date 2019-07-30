@@ -69,6 +69,8 @@ class PeriodoEscolar(Nomeavel, TemChaveExterna):
         manhã, intermediário, tarde, vespertino, noturno, integral
     """
 
+    tipos_alimentacao = models.ManyToManyField('cardapio.TipoAlimentacao', related_name='periodos_escolares')
+
     class Meta:
         verbose_name = "Período escolar"
         verbose_name_plural = "Períodos escolares"

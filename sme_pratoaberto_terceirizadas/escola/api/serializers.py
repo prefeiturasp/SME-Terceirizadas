@@ -2,9 +2,18 @@ from rest_framework import serializers
 
 from ..models import (Escola, PeriodoEscolar, DiretoriaRegional,
                       FaixaIdadeEscolar, TipoUnidadeEscolar, TipoGestao, Lote)
+from ...cardapio.models import TipoAlimentacao
+
+
+class TipoAlimentacaoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TipoAlimentacao
+        exclude = ('id',)
 
 
 class PeriodoEscolarSerializer(serializers.ModelSerializer):
+    tipos_alimentacao = TipoAlimentacaoSerializer(many=True)
+
     class Meta:
         model = PeriodoEscolar
         exclude = ('id',)
