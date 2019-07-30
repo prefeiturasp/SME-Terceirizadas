@@ -5,8 +5,8 @@ from ..dados_comuns.models_abstract import (
     Descritivel, IntervaloDeDia,
     Nomeavel, TemData, TemChaveExterna,
     DiasSemana, CriadoPor,
-    FluxoAprovacaoPartindoDaEscola
-)
+    FluxoAprovacaoPartindoDaEscola,
+    TemIdentificadorExternoAmigavel)
 
 
 class QuantidadePorPeriodo(TemChaveExterna):
@@ -49,7 +49,7 @@ class MotivoInclusaoContinua(Nomeavel, TemChaveExterna):
 
 class InclusaoAlimentacaoContinua(IntervaloDeDia, Descritivel, TemChaveExterna,
                                   DiasSemana, FluxoAprovacaoPartindoDaEscola,
-                                  CriadoPor):
+                                  CriadoPor, TemIdentificadorExternoAmigavel):
     outro_motivo = models.CharField("Outro motivo", blank=True, null=True, max_length=50)
     motivo = models.ForeignKey(MotivoInclusaoContinua, on_delete=models.DO_NOTHING)
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING,
@@ -58,6 +58,10 @@ class InclusaoAlimentacaoContinua(IntervaloDeDia, Descritivel, TemChaveExterna,
     @property
     def quantidades_periodo(self):
         return self.quantidades_por_periodo
+
+    @property
+    def descricao_curta(self):
+        return f"Inclusão de alimentação contínua #{self.id_externo}"
 
     def __str__(self):
         return "de {} até {} para {} para {}".format(

@@ -1,6 +1,12 @@
 from rest_framework.decorators import action
+from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet, ModelViewSet
+from xworkflows import InvalidTransitionError
 
+from .permissions import (
+    PodeIniciarInclusaoAlimentacaoContinuaPermission,
+    PodeAprovarAlimentacaoContinuaDaEscolaPermission
+)
 from .serializers import serializers, serializers_create
 from .. import models
 
@@ -51,21 +57,25 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
             return serializers_create.InclusaoAlimentacaoContinuaCreationSerializer
         return serializers.InclusaoAlimentacaoContinuaSerializer
 
-    # TODO: com as permissoes feitas, somente uma pessoa com permissao dentro da escola poder pedir
-    # usar PermissionClasses...
-    @action(detail=True, )
+    @action(detail=True, permission_classes=[PodeIniciarInclusaoAlimentacaoContinuaPermission])
     def inicio_de_pedido(self, request, uuid=None):
         alimentacao_continua = self.get_object()
-        alimentacao_continua.inicia_fluxo()
+        try:
+            alimentacao_continua.inicia_fluxo(user=request.user)
+            serializer = self.get_serializer(alimentacao_continua)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'))
 
-    # TODO: com as permissoes feitas, somente uma pessoa com permissao dentro da dre pode confirmar
-    # usar PermissionClasses...
-    # TODO: fazer uma classe inteligente que busca quem ela tem que notificar
-    # entende-se por notificar: mandar emails e usar a lib notify as partes interessadas
-    @action(detail=True, )
+    @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission])
     def confirma_pedido(self, request, uuid=None):
         alimentacao_continua = self.get_object()
-        alimentacao_continua.dre_aprovou()
+        try:
+            alimentacao_continua.dre_aprovou()
+            serializer = self.get_serializer(alimentacao_continua)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'))
 
     def destroy(self, request, *args, **kwargs):
         alimentacao_continua = self.get_object()

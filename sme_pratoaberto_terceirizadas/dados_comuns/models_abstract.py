@@ -1,11 +1,13 @@
 import uuid
 
+import xworkflows
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django_xworkflows import models as xwf_models
 from model_utils import Choices
 
 from .fluxo_status import PedidoAPartirDaEscolaWorkflow, PedidoAPartirDaDiretoriaRegionalWorkflow
+from .utils import enviar_notificacao_e_email
 
 
 class Iniciais(models.Model):
@@ -182,6 +184,63 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
     @property
     def ta_na_terceirizada(self):
         return self.status == self.workflow_class.CODAE_APROVADO
+
+    @property
+    def descricao_curta(self):
+        raise NotImplementedError('Deve ter uma descrição curta')
+
+    def _get_partes_interessadas_inicio_fluxo(self):
+        """
+
+        """
+        dre = self.escola.diretoria_regional
+        usuarios_dre = dre.usuarios.all()
+        return usuarios_dre
+
+    #
+    # Esses hooks são chamados automaticamente após a
+    # transition do status ser chamada.
+    # Ex. >>> alimentacao_continua.inicia_fluxo(param1, param2, key1='val')
+    #
+
+    @xworkflows.after_transition('inicia_fluxo')
+    def _inicia_fluxo_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        short_desc = self.descricao_curta
+        long_desc = str(self)
+        enviar_notificacao_e_email(sender=user,
+                                   recipients=self._get_partes_interessadas_inicio_fluxo(),
+                                   short_desc=short_desc,
+                                   long_desc=long_desc)
+        print(f'Notificar partes interessadas nesse momento {self.escola.diretoria_regional}')
+
+    @xworkflows.after_transition('dre_aprovou')
+    def _dre_aprovou_hook(self, *args, **kwargs):
+        print(f'Notificar partes interessadas nesse momento {self.escola}')
+
+    @xworkflows.after_transition('dre_pediu_revisao')
+    def _dre_pediu_revisao_hook(self, *args, **kwargs):
+        print(f'Notificar partes interessadas nesse momento {self.escola}')
+
+    @xworkflows.after_transition('escola_revisou')
+    def _escola_revisou_hook(self, *args, **kwargs):
+        print(f'Notificar partes interessadas nesse momento {self.escola.diretoria_regional}')
+
+    @xworkflows.after_transition('codae_aprovou')
+    def _codae_aprovou_hook(self, *args, **kwargs):
+        print(f'Notificar partes interessadas nesse momento {self.escola.diretoria_regional}')
+        print(f'Notificar partes interessadas nesse momento {self.escola}')
+        # notifica terceirizada tbm
+
+    @xworkflows.after_transition('codae_recusou')
+    def _codae_recusou_hook(self, *args, **kwargs):
+        print(f'Notificar partes interessadas nesse momento {self.escola.diretoria_regional}')
+        print(f'Notificar partes interessadas nesse momento {self.escola}')
+
+    @xworkflows.after_transition('terceirizada_toma_ciencia')
+    def _terceirizada_toma_ciencia_hook(self, *args, **kwargs):
+        print(f'Notificar partes interessadas nesse momento {self.escola.diretoria_regional}')
+        print(f'Notificar partes interessadas nesse momento {self.escola}')
 
     class Meta:
         abstract = True
