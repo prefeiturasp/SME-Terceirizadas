@@ -267,6 +267,28 @@ class FluxoAprovacaoPartindoDaDiretoriaRegional(xwf_models.WorkflowEnabled, mode
     def ta_na_terceirizada(self):
         return self.status == self.workflow_class.CODAE_APROVADO
 
+    @property
+    def descricao_curta(self):
+        raise NotImplementedError('Deve ter uma descrição curta')
+
+    @property
+    def partes_interessadas_inicio_fluxo(self):
+        """
+        TODO: retornar usuários CODAE, esse abaixo é so pra passar...
+        """
+        usuarios_dre = self.diretoria_regional.usuarios.all()
+        return usuarios_dre
+
+    @xworkflows.after_transition('inicia_fluxo')
+    def _inicia_fluxo_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        short_desc = self.descricao_curta
+        long_desc = str(self)
+        enviar_notificacao_e_email(sender=user,
+                                   recipients=self.partes_interessadas_inicio_fluxo,
+                                   short_desc=short_desc,
+                                   long_desc=long_desc)
+
     class Meta:
         abstract = True
 

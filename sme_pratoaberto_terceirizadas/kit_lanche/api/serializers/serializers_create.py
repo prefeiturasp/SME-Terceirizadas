@@ -155,11 +155,17 @@ class SolicitacaoKitLancheUnificadaCreationSerializer(serializers.ModelSerialize
         many=True,
         required=False
     )
+    status_explicacao = serializers.CharField(
+        source='status',
+        required=False,
+        read_only=True
+    )
 
     def create(self, validated_data):
         lista_igual = validated_data.get('lista_kit_lanche_igual', True)
         solicitacao_kit_lanche = validated_data.pop('solicitacao_kit_lanche')
         escolas_quantidades = validated_data.pop('escolas_quantidades')
+        validated_data['criado_por'] = self.context['request'].user
 
         solicitacao_base = SolicitacaoKitLancheCreationSerializer().create(solicitacao_kit_lanche)
 
@@ -249,4 +255,4 @@ class SolicitacaoKitLancheUnificadaCreationSerializer(serializers.ModelSerialize
 
     class Meta:
         model = models.SolicitacaoKitLancheUnificada
-        exclude = ('id',)
+        exclude = ('id', 'status')
