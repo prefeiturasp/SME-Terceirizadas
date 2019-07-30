@@ -1,3 +1,4 @@
+import asyncio
 import datetime
 
 from des.models import DynamicEmailConfiguration
@@ -7,22 +8,22 @@ from django.db.models import QuerySet
 from notifications.signals import notify
 from workalendar.america import BrazilSaoPauloCity
 
-from sme_pratoaberto_terceirizadas.perfil.models import Usuario
-
 calendar = BrazilSaoPauloCity()
 
 
-def enviar_notificacao(sender: Usuario, recipient: [QuerySet, list],
+def enviar_notificacao(sender, recipients: [QuerySet, list],
                        short_desc: str, long_desc: str):
     """
     :param sender: User instance
-    :param recipient: A Group or User QuerySet or User List
+    :param recipients: A Group or User QuerySet or User List
     :param short_desc:
     :param long_desc:
     """
+    if not recipients:
+        return
     notify.send(
         sender=sender,
-        recipient=recipient,
+        recipient=recipients,
         verb=short_desc,
         description=long_desc
     )
@@ -42,7 +43,7 @@ def _send_mass_html_mail(subject, text, html, recipients):
     :param subject:
     :param text:
     :param html:
-    :param recipients: an array of email
+    :param recipients: an array of User
     :return:
     """
     config = DynamicEmailConfiguration.get_solo()
@@ -52,20 +53,20 @@ def _send_mass_html_mail(subject, text, html, recipients):
 
     messages = []
     for recipient in recipients:
-        message = EmailMultiAlternatives(subject, text, from_email, [recipient])
+        message = EmailMultiAlternatives(subject, text, from_email, [recipient.email])
         if html:
             message.attach_alternative(html, 'text/html')
         messages.append(message)
     return connection.send_messages(messages)
 
 
-# loop = asyncio.get_event_loop()
+loop = asyncio.get_event_loop()
 
 
 def async_envio_email_html_em_massa(subject, text, html, recipients):
-    # TODO: criar uma rotina assincrona para envio de email. esse async ta dando erro em alguns pcs.
-    # loop.run_in_executor(None, _send_mass_html_mail, subject, text, html, recipients)
-    pass
+    if not recipients:
+        return
+    loop.run_in_executor(None, _send_mass_html_mail, subject, text, html, recipients)
 
 
 def obter_dias_uteis_apos_hoje(quantidade_dias: int):
@@ -83,3 +84,9 @@ def update_instance_from_dict(instance, attrs):
     for attr, val in attrs.items():
         setattr(instance, attr, val)
     return instance
+
+
+def enviar_notificacao_e_email(sender, recipients: [QuerySet, list],
+                               short_desc: str, long_desc: str):
+    enviar_notificacao(sender, recipients, short_desc, long_desc)
+    async_envio_email_html_em_massa(subject=short_desc, text=long_desc, html='', recipients=recipients)
