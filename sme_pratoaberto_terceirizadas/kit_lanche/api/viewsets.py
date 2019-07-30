@@ -1,7 +1,10 @@
 from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework.status import HTTP_400_BAD_REQUEST
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
+from xworkflows import InvalidTransitionError
 
-from .permissions import SolicitacaoUnificadaPermission
+from .permissions import SolicitacaoUnificadaPermission, PodeIniciarSolicitacaoUnificadaPermission
 from .serializers import serializers
 from .serializers import serializers_create
 from .. import models
@@ -53,6 +56,27 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
         if self.action in ['create', 'update', 'partial_update']:
             return serializers_create.SolicitacaoKitLancheUnificadaCreationSerializer
         return serializers.SolicitacaoKitLancheUnificadaSerializer
+
+    @action(detail=False)
+    def minhas_solicitacoes(self, request):
+        usuario = request.user
+        solicitacoes_unificadas = models.SolicitacaoKitLancheUnificada.objects.filter(
+            criado_por=usuario,
+            status=models.SolicitacaoKitLancheUnificada.workflow_class.RASCUNHO
+        )
+        page = self.paginate_queryset(solicitacoes_unificadas)
+        serializer = serializers.SolicitacaoKitLancheUnificadaSerializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=True, url_path="inicio-pedido", permission_classes=[PodeIniciarSolicitacaoUnificadaPermission])
+    def inicio_de_pedido(self, request, uuid=None):
+        solicitacao_unificada = self.get_object()
+        try:
+            solicitacao_unificada.inicia_fluxo(user=request.user)
+            serializer = self.get_serializer(solicitacao_unificada)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
 
 class EscolaQuantidadeViewSet(ModelViewSet):

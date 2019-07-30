@@ -2,8 +2,9 @@ from django.db import models
 
 from ..dados_comuns.models_abstract import (
     Nomeavel, TemData, Motivo, Descritivel,
-    CriadoEm, TemChaveExterna, TempoPasseio,
-    FluxoAprovacaoPartindoDaEscola)
+    CriadoEm, TemChaveExterna, TempoPasseio, CriadoPor,
+    FluxoAprovacaoPartindoDaEscola, TemIdentificadorExternoAmigavel,
+    FluxoAprovacaoPartindoDaDiretoriaRegional)
 
 
 class MotivoSolicitacaoUnificada(Nomeavel, TemChaveExterna):
@@ -81,7 +82,8 @@ class SolicitacaoKitLancheAvulsa(TemChaveExterna, FluxoAprovacaoPartindoDaEscola
         verbose_name_plural = "Solicitações de kit lanche avulsa"
 
 
-class SolicitacaoKitLancheUnificada(TemChaveExterna):
+class SolicitacaoKitLancheUnificada(CriadoPor, TemChaveExterna, TemIdentificadorExternoAmigavel,
+                                    FluxoAprovacaoPartindoDaDiretoriaRegional):
     """
         significa que uma DRE vai pedir kit lanche para as escolas:
 
@@ -104,6 +106,10 @@ class SolicitacaoKitLancheUnificada(TemChaveExterna):
     diretoria_regional = models.ForeignKey('escola.DiretoriaRegional', on_delete=models.DO_NOTHING)
     solicitacao_kit_lanche = models.ForeignKey(SolicitacaoKitLanche, on_delete=models.DO_NOTHING)
 
+    @property
+    def descricao_curta(self):
+        return f'Solicitação de Kit Lanche Unificada #{self.id_externo}'
+
     def vincula_escolas_quantidades(self, escolas_quantidades):
         for escola_quantidade in escolas_quantidades:
             escola_quantidade.solicitacao_unificada = self
@@ -123,7 +129,7 @@ class SolicitacaoKitLancheUnificada(TemChaveExterna):
 class EscolaQuantidade(TemChaveExterna, TempoPasseio):
     quantidade_alunos = models.PositiveSmallIntegerField()
     solicitacao_unificada = models.ForeignKey(SolicitacaoKitLancheUnificada,
-                                              on_delete=models.DO_NOTHING,
+                                              on_delete=models.CASCADE,
                                               related_name='escolas_quantidades',
                                               blank=True, null=True)
     kits = models.ManyToManyField(KitLanche, blank=True)

@@ -72,6 +72,7 @@ class SolicitacaoKitLancheUnificadaSerializer(serializers.ModelSerializer):
     motivo = MotivoSolicitacaoUnificadaSerializer()
     solicitacao_kit_lanche = SolicitacaoKitLancheSimplesSerializer()
     escolas_quantidades = EscolaQuantidadeSerializerSimples(many=True)
+    id_externo = serializers.CharField()
 
     class Meta:
         model = SolicitacaoKitLancheUnificada
