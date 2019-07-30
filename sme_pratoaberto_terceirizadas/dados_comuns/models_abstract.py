@@ -6,8 +6,8 @@ from django.db import models
 from django_xworkflows import models as xwf_models
 from model_utils import Choices
 
-from sme_pratoaberto_terceirizadas.dados_comuns.utils import enviar_notificacao
 from .fluxo_status import PedidoAPartirDaEscolaWorkflow, PedidoAPartirDaDiretoriaRegionalWorkflow
+from .utils import enviar_notificacao_e_email
 
 
 class Iniciais(models.Model):
@@ -208,10 +208,10 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
         user = kwargs['user']
         short_desc = self.descricao_curta
         long_desc = str(self)
-        enviar_notificacao(sender=user,
-                           recipients=self._get_partes_interessadas_inicio_fluxo(),
-                           short_desc=short_desc,
-                           long_desc=long_desc)
+        enviar_notificacao_e_email(sender=user,
+                                   recipients=self._get_partes_interessadas_inicio_fluxo(),
+                                   short_desc=short_desc,
+                                   long_desc=long_desc)
         print(f'Notificar partes interessadas nesse momento {self.escola.diretoria_regional}')
 
     @xworkflows.after_transition('dre_aprovou')

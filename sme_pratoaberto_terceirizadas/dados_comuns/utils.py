@@ -43,7 +43,7 @@ def _send_mass_html_mail(subject, text, html, recipients):
     :param subject:
     :param text:
     :param html:
-    :param recipients: an array of email
+    :param recipients: an array of User
     :return:
     """
     config = DynamicEmailConfiguration.get_solo()
@@ -53,7 +53,7 @@ def _send_mass_html_mail(subject, text, html, recipients):
 
     messages = []
     for recipient in recipients:
-        message = EmailMultiAlternatives(subject, text, from_email, [recipient])
+        message = EmailMultiAlternatives(subject, text, from_email, [recipient.email])
         if html:
             message.attach_alternative(html, 'text/html')
         messages.append(message)
