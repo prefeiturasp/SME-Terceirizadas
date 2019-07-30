@@ -4,10 +4,11 @@ from sme_pratoaberto_terceirizadas.dados_comuns.validators import (
     nao_pode_ser_no_passado, nao_pode_ser_feriado,
     objeto_nao_deve_ter_duplicidade
 )
-from sme_pratoaberto_terceirizadas.perfil.models import Usuario
 from sme_pratoaberto_terceirizadas.escola.models import Escola, PeriodoEscolar
+from sme_pratoaberto_terceirizadas.perfil.models import Usuario
 from sme_pratoaberto_terceirizadas.terceirizada.models import Edital
 from ..helpers import notificar_partes_envolvidas
+from sme_pratoaberto_terceirizadas.dados_comuns.utils import update_instance_from_dict
 from ...api.validators import (
     cardapio_antigo, valida_duplicidade,
     valida_cardapio_de_para, valida_tipo_cardapio_inteiro,
@@ -16,7 +17,7 @@ from ...api.validators import (
 from ...models import (
     InversaoCardapio, Cardapio,
     TipoAlimentacao, SuspensaoAlimentacao,
-    AlteracaoCardapio, MotivoAlteracaoCardapio)
+    AlteracaoCardapio, MotivoAlteracaoCardapio, SubstituicoesAlimentacaoNoPeriodoEscolar)
 
 
 class InversaoCardapioSerializerCreate(serializers.ModelSerializer):
@@ -162,7 +163,72 @@ class SuspensaoAlimentacaoCreateSerializer(serializers.ModelSerializer):
         exclude = ('id',)
 
 
+class SubstituicoesAlimentacaoNoPeriodoEscolarSerializerCreate(serializers.ModelSerializer):
+    periodo_escolar = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=PeriodoEscolar.objects.all()
+    )
+    alteracao_cardapio = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=AlteracaoCardapio.objects.all()
+    )
+
+    tipos_alimentacao = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=TipoAlimentacao.objects.all(),
+        many=True
+    )
+
+    def create(self, validated_data):
+        tipos_alimentacao = validated_data.pop('tipos_alimentacao')
+
+        substituicoes_alimentacao = SubstituicoesAlimentacaoNoPeriodoEscolar.objects.create(**validated_data)
+        substituicoes_alimentacao.tipos_alimentacao.set(tipos_alimentacao)
+
+        return substituicoes_alimentacao
+
+    def update(self, instance, validated_data):
+        tipos_alimentacao = validated_data.pop('tipos_alimentacao')
+        update_instance_from_dict(instance, validated_data)
+        instance.tipos_alimentacao.set(tipos_alimentacao)
+        instance.save()
+        return instance
+
+    class Meta:
+        model = SubstituicoesAlimentacaoNoPeriodoEscolar
+        exclude = ('id',)
+
+
 class AlteracaoCardapioSerializerCreate(serializers.ModelSerializer):
+    """
+    Exemplo de um payload de criação de Alteração de Cardápio
+    {
+      "escola": "c0cc9d5e-563a-48e4-bf53-22d47b6347b4",
+
+      "motivo": "3f1684f9-0dd9-4cce-9c56-f07164f857b9",
+
+      "data_inicial": "01/01/2018",
+      "data_final": "26/07/2019",
+      "observacao": "Teste",
+
+      "substituicoes": [
+        {
+          "periodo_escolar": "811ab9bd-a25a-4304-9ae4-a48a3eaae24b",
+          "tipos_alimentacao": ["5aca23f2-055d-4f73-9bf5-6ed39dbd8407"],
+          "qtd_alunos": 100
+        },
+        {
+          "periodo_escolar": "30782fd8-4db6-4947-995a-0e9f85e1d9bf",
+          "tipos_alimentacao": ["5aca23f2-055d-4f73-9bf5-6ed39dbd8407", "7c0af352-5439-47a5-a945-7f882e89a4b3"],
+          "qtd_alunos": 100
+        }
+      ]
+
+    }
+    """
 
     motivo = serializers.SlugRelatedField(
         slug_field='uuid',
@@ -176,13 +242,36 @@ class AlteracaoCardapioSerializerCreate(serializers.ModelSerializer):
         queryset=Escola.objects.all()
     )
 
+    substituicoes = SubstituicoesAlimentacaoNoPeriodoEscolarSerializerCreate(many=True)
+
     def create(self, validated_data):
+        substituicoes = validated_data.pop('substituicoes')
+
+        substituicoes_lista = []
+        for substituicao in substituicoes:
+            substituicoes_object = SubstituicoesAlimentacaoNoPeriodoEscolarSerializerCreate(
+            ).create(substituicao)
+            substituicoes_lista.append(substituicoes_object)
         alteracao_cardapio = AlteracaoCardapio.objects.create(**validated_data)
+        alteracao_cardapio.substituicoes.set(substituicoes_lista)
+
         usuario = self.context.get('request').user
         notificar_partes_envolvidas(usuario, **validated_data)
         return alteracao_cardapio
 
+    def update(self, instance, validated_data):
+        substituicoes_array = validated_data.pop('substituicoes')
+        substituicoes_obj = instance.substituicoes.all()
+
+        for index in range(len(substituicoes_array)):
+            SubstituicoesAlimentacaoNoPeriodoEscolarSerializerCreate(
+            ).update(instance=substituicoes_obj[index],
+                     validated_data=substituicoes_array[index])
+
+        update_instance_from_dict(instance, validated_data)
+        instance.save()
+        return instance
+
     class Meta:
         model = AlteracaoCardapio
         exclude = ('id',)
-

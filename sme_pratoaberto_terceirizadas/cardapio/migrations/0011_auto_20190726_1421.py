@@ -59,11 +59,11 @@ class Migration(migrations.Migration):
             name='observacao',
             field=models.TextField(blank=True, null=True, verbose_name='Observação'),
         ),
-        migrations.AddField(
-            model_name='alteracaocardapio',
-            name='status',
-            field=models.IntegerField(choices=[(0, 'A validar pela DRE'), (1, 'Aprovado pela DRE'), (2, 'Reprovado pela DRE'), (3, 'A validar pela CODAE'), (4, 'Aprovado pela CODAE'), (5, 'Reprovado pela CODAE'), (6, 'Terceirizada a visualizar'), (7, 'Terceirizada visualizado')], default=0),
-        ),
+        # migrations.AddField(
+        #     model_name='alteracaocardapio',
+        #     name='status',
+        #     field=models.IntegerField(choices=[(0, 'A validar pela DRE'), (1, 'Aprovado pela DRE'), (2, 'Reprovado pela DRE'), (3, 'A validar pela CODAE'), (4, 'Aprovado pela CODAE'), (5, 'Reprovado pela CODAE'), (6, 'Terceirizada a visualizar'), (7, 'Terceirizada visualizado')], default=0),
+        # ),
         migrations.AddField(
             model_name='substituicaoalimentacao',
             name='alteracao_cardapio',

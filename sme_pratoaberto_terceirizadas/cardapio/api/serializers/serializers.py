@@ -11,9 +11,12 @@ from sme_pratoaberto_terceirizadas.escola.api.serializers import (
     TipoUnidadeEscolarSerializer
 )
 from sme_pratoaberto_terceirizadas.terceirizada.api.serializers import EditalSerializer
+
+from sme_pratoaberto_terceirizadas.escola.models import PeriodoEscolar
+
 from ...models import (
     TipoAlimentacao, Cardapio, InversaoCardapio,
-    SuspensaoAlimentacao, AlteracaoCardapio, MotivoAlteracaoCardapio
+    SuspensaoAlimentacao, AlteracaoCardapio, MotivoAlteracaoCardapio, SubstituicoesAlimentacaoNoPeriodoEscolar,
 )
 
 
@@ -87,9 +90,24 @@ class MotivoAlteracaoCardapioSerializer(serializers.ModelSerializer):
         exclude = ('id',)
 
 
+class SubstituicoesAlimentacaoNoPeriodoEscolarSerializer(serializers.ModelSerializer):
+    periodo_escolar = PeriodoEscolarSerializer()
+    alteracao_cardapio = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=AlteracaoCardapio.objects.all()
+    )
+    tipos_alimentacao = TipoAlimentacaoSerializer(many=True)
+
+    class Meta:
+        model = SubstituicoesAlimentacaoNoPeriodoEscolar
+        exclude = ('id',)
+
+
 class AlteracaoCardapioSerializer(serializers.ModelSerializer):
     escola = EscolaSimplesSerializer()
     motivo = MotivoAlteracaoCardapioSerializer()
+    substituicoes = SubstituicoesAlimentacaoNoPeriodoEscolarSerializer(many=True)
 
     class Meta:
         model = AlteracaoCardapio
