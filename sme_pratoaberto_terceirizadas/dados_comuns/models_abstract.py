@@ -4,7 +4,6 @@ import xworkflows
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django_xworkflows import models as xwf_models
-from model_utils import Choices
 
 from .fluxo_status import PedidoAPartirDaEscolaWorkflow, PedidoAPartirDaDiretoriaRegionalWorkflow
 from .utils import enviar_notificacao_e_email
@@ -77,27 +76,6 @@ class TemData(models.Model):
 
 class TemChaveExterna(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-
-    class Meta:
-        abstract = True
-
-
-class StatusValidacao(models.Model):
-    """
-     - https://steelkiwi.com/blog/best-practices-working-django-models-python/
-     - https://hackernoon.com/using-enum-as-model-field-choice-in-django-92d8b97aaa63
-    """
-    STATUSES = Choices(
-        (0, 'DRE_A_VALIDAR', 'A validar pela DRE'),
-        (1, 'DRE_APROVADO', 'Aprovado pela DRE'),
-        (2, 'DRE_REPROVADO', 'Reprovado pela DRE'),
-        (3, 'CODAE_A_VALIDAR', 'A validar pela CODAE'),  # QUANDO A DRE VALIDA
-        (4, 'CODAE_APROVADO', 'Aprovado pela CODAE'),  # CODAE RECEBE
-        (5, 'CODAE_REPROVADO', 'Reprovado pela CODAE'),
-        (6, 'TERCEIRIZADA_A_VISUALIZAR', 'Terceirizada a visualizar'),
-        (7, 'TERCEIRIZADA_A_VISUALIZADO', 'Terceirizada visualizado')  # TOMOU CIENCIA, TODOS DEVEM FICAR SABENDO...
-    )
-    status = models.IntegerField(choices=STATUSES, default=STATUSES.DRE_A_VALIDAR)
 
     class Meta:
         abstract = True

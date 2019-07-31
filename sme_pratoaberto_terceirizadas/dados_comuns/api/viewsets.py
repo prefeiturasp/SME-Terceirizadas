@@ -2,12 +2,12 @@ from des.models import DynamicEmailConfiguration
 from django.db import IntegrityError
 from rest_framework import status
 from rest_framework.permissions import AllowAny
-from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.viewsets import ViewSet, ModelViewSet
 
-from sme_pratoaberto_terceirizadas.dados_comuns.models_abstract import DiasSemana, TempoPasseio
-from .serializers import ConfiguracaoEmailSerializer
+from .serializers import ConfiguracaoEmailSerializer, ConfiguracaoMensagemSerializer
+from ..models import ConfiguracaoMensagem
+from ..models_abstract import DiasSemana, TempoPasseio
 from ..utils import obter_dias_uteis_apos_hoje
 
 
@@ -48,10 +48,7 @@ class ConfiguracaoEmailViewSet(ModelViewSet):
     queryset = DynamicEmailConfiguration.objects.all()
     serializer_class = ConfiguracaoEmailSerializer
 
-    def list(self, request: Request, *args, **kwargs):
-        return super().list(request, *args, **kwargs)
-
-    def create(self, request: Request, *args, **kwargs):
+    def create(self, request, *args, **kwargs):
         try:
             return super().create(request, *args, **kwargs)
         except IntegrityError as e:
@@ -59,6 +56,9 @@ class ConfiguracaoEmailViewSet(ModelViewSet):
                                   'detail': '{}'.format(e)},
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    def update(self, request: Request, *args, **kwargs):
-        return super().update(request, *args, **kwargs)
 
+class ConfiguracaoMensagemViewSet(ModelViewSet):
+    lookup_field = 'uuid'
+    # permission_classes = [EhAdminDaCodae]
+    queryset = ConfiguracaoMensagem.objects.all()
+    serializer_class = ConfiguracaoMensagemSerializer

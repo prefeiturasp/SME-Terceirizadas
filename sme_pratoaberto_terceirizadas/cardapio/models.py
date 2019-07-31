@@ -2,7 +2,7 @@ from django.db import models
 
 from ..dados_comuns.models_abstract import (
     Descritivel, TemData, TemChaveExterna, Ativavel,
-    Nomeavel, CriadoEm, StatusValidacao, IntervaloDeDia,
+    Nomeavel, CriadoEm, IntervaloDeDia, CriadoPor,
     TemObservacao, FluxoAprovacaoPartindoDaEscola
 )
 
@@ -59,11 +59,12 @@ class Cardapio(Descritivel, Ativavel, TemData, TemChaveExterna, CriadoEm):
         verbose_name_plural = "Cardápios"
 
 
-class InversaoCardapio(CriadoEm, Descritivel, TemChaveExterna, StatusValidacao):
+class InversaoCardapio(CriadoEm, Descritivel, TemChaveExterna, FluxoAprovacaoPartindoDaEscola):
     """
         servir o cardápio do dia 30 no dia 15, automaticamente o
         cardápio do dia 15 será servido no dia 30
     """
+
     cardapio_de = models.ForeignKey(Cardapio, on_delete=models.DO_NOTHING,
                                     blank=True, null=True,
                                     related_name='cardapio_de')
@@ -83,7 +84,7 @@ class InversaoCardapio(CriadoEm, Descritivel, TemChaveExterna, StatusValidacao):
         verbose_name_plural = "Inversão de cardápios"
 
 
-class SuspensaoAlimentacao(TemData, TemChaveExterna):
+class SuspensaoAlimentacao(TemData, TemChaveExterna, CriadoPor):
     """
         Uma escola pede para suspender as refeições:
         tipo pode ser cardapio, periodo (manha, tarde) ou itens do cardapio (Tipo alimentacao).
@@ -102,9 +103,6 @@ class SuspensaoAlimentacao(TemData, TemChaveExterna):
         (TIPO_ALIMENTACAO, 'Tipo alimentação'),
     )
 
-    # TODO: checar se criado_por é obrigatório ou opcional; caso seja obrigatório, remover blank e null ao resetar
-    #  migrações (criar um novo initial)
-    criado_por = models.ForeignKey('perfil.Usuario', on_delete=models.DO_NOTHING, blank=True, null=True)
     tipo = models.PositiveSmallIntegerField(choices=CHOICES)
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING)
     cardapio = models.ForeignKey(Cardapio, on_delete=models.DO_NOTHING,
