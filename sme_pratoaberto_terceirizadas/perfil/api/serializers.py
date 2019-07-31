@@ -1,6 +1,8 @@
 from notifications.models import Notification
 from rest_framework import serializers
 
+from sme_pratoaberto_terceirizadas.escola.api.serializers import EscolaSimplesSerializer, \
+    DiretoriaRegionalSimplesSerializer
 from ..models import (Usuario, Perfil, Permissao, GrupoPerfil, PerfilPermissao)
 
 
@@ -90,3 +92,13 @@ class NotificationSerializer(serializers.ModelSerializer):
         model = Notification
         exclude = ('actor_object_id', 'target_object_id', 'action_object_object_id', 'recipient',
                    'actor_content_type', 'target_content_type', 'action_object_content_type')
+
+
+class UsuarioDetalheSerializer(serializers.ModelSerializer):
+    perfis = PerfilSerializer(many=True, read_only=True)
+    escolas = EscolaSimplesSerializer(many=True)
+    diretorias_regionais = DiretoriaRegionalSimplesSerializer(many=True)
+
+    class Meta:
+        model = Usuario
+        fields = ('uuid', 'nome', 'email', 'date_joined', 'perfis', 'escolas', 'diretorias_regionais')
