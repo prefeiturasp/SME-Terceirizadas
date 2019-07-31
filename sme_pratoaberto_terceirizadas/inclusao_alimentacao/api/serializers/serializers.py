@@ -47,6 +47,7 @@ class InclusaoAlimentacaoContinuaSerializer(serializers.ModelSerializer):
         required=False,
         read_only=True
     )
+    id_externo = serializers.CharField()
 
     class Meta:
         model = InclusaoAlimentacaoContinua

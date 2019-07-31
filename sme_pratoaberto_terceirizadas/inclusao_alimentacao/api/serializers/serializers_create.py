@@ -174,6 +174,7 @@ class InclusaoAlimentacaoContinuaCreationSerializer(serializers.ModelSerializer)
 
     def create(self, validated_data):
         quantidades_periodo_array = validated_data.pop('quantidades_periodo')
+        validated_data['criado_por'] = self.context['request'].user
         lista_escola_quantidade = self._gera_lista_escola_quantidade(quantidades_periodo_array)
         inclusao_alimentacao_continua = InclusaoAlimentacaoContinua.objects.create(
             **validated_data)
