@@ -10,7 +10,7 @@ from .serializers import (
     PerfilPermissaoCreateSerializer, PerfilPermissaoSerializer,
     GrupoCompletoPerfilSerializer, NotificationSerializer,
     UsuarioSerializer, PerfilSerializer, GrupoPerfilCreateSerializer,
-    PermissaoSerializer
+    PermissaoSerializer, UsuarioDetalheSerializer
 )
 from ..models import Usuario, Perfil, GrupoPerfil, Permissao, PerfilPermissao
 
@@ -19,6 +19,12 @@ class UsuarioViewSet(viewsets.ReadOnlyModelViewSet):
     lookup_field = 'uuid'
     queryset = Usuario.objects.all()
     serializer_class = UsuarioSerializer
+
+    @action(detail=False, url_path="meus-dados")
+    def meus_dados(self, request):
+        usuario = request.user
+        serializer = UsuarioDetalheSerializer(usuario)
+        return Response(serializer.data)
 
 
 class PerfilViewSet(viewsets.ReadOnlyModelViewSet):

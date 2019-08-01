@@ -6,7 +6,7 @@ from ..dados_comuns.models_abstract import (Ativavel, Iniciais, Nomeavel, TemCha
 
 
 class DiretoriaRegional(Nomeavel, TemChaveExterna):
-    usuarios = models.ManyToManyField(Usuario)
+    usuarios = models.ManyToManyField(Usuario, related_name='diretorias_regionais')
 
     @property
     def escolas(self):
@@ -104,7 +104,7 @@ class Escola(Ativavel, TemChaveExterna):
 
     idades = models.ManyToManyField(FaixaIdadeEscolar, blank=True)
     periodos_escolares = models.ManyToManyField(PeriodoEscolar, blank=True)
-    usuarios = models.ManyToManyField(Usuario)
+    usuarios = models.ManyToManyField(Usuario, related_name='escolas')
 
     @property
     def usuarios_diretoria_regional(self):

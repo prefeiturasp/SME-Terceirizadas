@@ -99,3 +99,11 @@ class Usuario(CustomAbstractUser, TemChaveExterna):
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
+
+    @property
+    def escolas(self):
+        return self.escolas
+
+    @property
+    def diretorias_regionais(self):
+        return self.diretorias_regionais

@@ -57,6 +57,17 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
             return serializers_create.InclusaoAlimentacaoContinuaCreationSerializer
         return serializers.InclusaoAlimentacaoContinuaSerializer
 
+    @action(detail=False, url_path="minhas-solicitacoes")
+    def minhas_solicitacoes(self, request):
+        usuario = request.user
+        solicitacoes_unificadas = models.InclusaoAlimentacaoContinua.objects.filter(
+            criado_por=usuario,
+            status=models.InclusaoAlimentacaoContinua.workflow_class.RASCUNHO
+        )
+        page = self.paginate_queryset(solicitacoes_unificadas)
+        serializer = serializers.InclusaoAlimentacaoContinuaSerializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
     @action(detail=True, permission_classes=[PodeIniciarInclusaoAlimentacaoContinuaPermission])
     def inicio_de_pedido(self, request, uuid=None):
         alimentacao_continua = self.get_object()
