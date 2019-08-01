@@ -64,6 +64,7 @@ class GrupoInclusaoAlimentacaoNormalSerializer(serializers.ModelSerializer):
     inclusoes = InclusaoAlimentacaoNormalSerializer(many=True)
     escola = EscolaSimplesSerializer()
     quantidades_periodo = QuantidadePorPeriodoSerializer(many=True)
+    id_externo = serializers.CharField()
 
     class Meta:
         model = GrupoInclusaoAlimentacaoNormal

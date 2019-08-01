@@ -46,6 +46,32 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
             return serializers_create.GrupoInclusaoAlimentacaoNormalCreationSerializer
         return serializers.GrupoInclusaoAlimentacaoNormalSerializer
 
+    @action(detail=False, url_path="minhas-solicitacoes")
+    def minhas_solicitacoes(self, request):
+        usuario = request.user
+        solicitacoes_unificadas = models.GrupoInclusaoAlimentacaoNormal.objects.filter(
+            criado_por=usuario,
+            status=models.GrupoInclusaoAlimentacaoNormal.workflow_class.RASCUNHO
+        )
+        page = self.paginate_queryset(solicitacoes_unificadas)
+        serializer = serializers.GrupoInclusaoAlimentacaoNormalSerializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=True, permission_classes=[PodeIniciarInclusaoAlimentacaoContinuaPermission])
+    def inicio_de_pedido(self, request, uuid=None):
+        alimentacao_normal = self.get_object()
+        try:
+            alimentacao_normal.inicia_fluxo(user=request.user)
+            serializer = self.get_serializer(alimentacao_normal)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'))
+
+    def destroy(self, request, *args, **kwargs):
+        alimentacao_normal = self.get_object()
+        if alimentacao_normal.pode_excluir:
+            return super().destroy(request, *args, **kwargs)
+
 
 class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
     lookup_field = 'uuid'
