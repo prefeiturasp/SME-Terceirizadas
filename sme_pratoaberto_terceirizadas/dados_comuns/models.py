@@ -1,7 +1,10 @@
 from django.core.validators import MinLengthValidator
 from django.db import models
 
-from sme_pratoaberto_terceirizadas.inclusao_alimentacao.models import InclusaoAlimentacaoContinua
+from sme_pratoaberto_terceirizadas.cardapio.models import AlteracaoCardapio, SuspensaoAlimentacao, InversaoCardapio
+from sme_pratoaberto_terceirizadas.inclusao_alimentacao.models import InclusaoAlimentacaoContinua, \
+    GrupoInclusaoAlimentacaoNormal
+from sme_pratoaberto_terceirizadas.kit_lanche.models import SolicitacaoKitLancheUnificada, SolicitacaoKitLancheAvulsa
 from .models_abstract import (Descritivel, CriadoEm, TemChaveExterna)
 
 
@@ -58,8 +61,20 @@ class TemplateMensagem(TemChaveExterna):
     assunto = models.CharField('Assunto', max_length=256, null=True, blank=True)
     template_html = models.TextField('Template', null=True, blank=True)
 
-    def aplica_objeto_no_template(self, objeto):
+    def aplica_objeto_no_template(self, objeto: [InclusaoAlimentacaoContinua,
+                                                 GrupoInclusaoAlimentacaoNormal,
+                                                 SolicitacaoKitLancheUnificada,
+                                                 SolicitacaoKitLancheAvulsa,
+                                                 AlteracaoCardapio,
+                                                 SuspensaoAlimentacao,
+                                                 InversaoCardapio
+                                                 ]):
+        """
+        :param objeto:
+        :return:
+        """
         # TODO: aplicar nome e sobrenome no user model?
+        # TODO: retornar uma url padrão e futuramete com detalhe do pedido?
         # TODO: automaticamente colocar URGENTE no titulo quando o prazo for pequeno
         # Olá @nome, a Alteração de cardápio #@identificador solicitada por @requerente está em situação @status.
         template_troca = {
@@ -79,8 +94,25 @@ class TemplateMensagem(TemChaveExterna):
 
     @classmethod
     def get_template_by_obj(cls, objeto):
+        # TODO: ver uma melhor forma de fazer isso...
+        # talvez o model retorna o template dele?
+        # inclusao alimentação
         if isinstance(objeto, InclusaoAlimentacaoContinua):
             return cls.objects.get(tipo=cls.INCLUSAO_ALIMENTACAO_CONTINUA)
+        elif isinstance(objeto, GrupoInclusaoAlimentacaoNormal):
+            return cls.objects.get(tipo=cls.INCLUSAO_ALIMENTACAO)
+        # cardapio
+        elif isinstance(objeto, AlteracaoCardapio):
+            return cls.objects.get(tipo=cls.ALTERACAO_CARDAPIO)
+        elif isinstance(objeto, SuspensaoAlimentacao):
+            return cls.objects.get(tipo=cls.SUSPENSAO_ALIMENTACAO)
+        elif isinstance(objeto, InversaoCardapio):
+            return cls.objects.get(tipo=cls.INVERSAO_CARDAPIO)
+        # kit lanche
+        elif isinstance(objeto, SolicitacaoKitLancheAvulsa):
+            return cls.objects.get(tipo=cls.SOLICITACAO_KIT_LANCHE_AVULSA)
+        elif isinstance(objeto, SolicitacaoKitLancheUnificada):
+            return cls.objects.get(tipo=cls.SOLICITACAO_KIT_LANCHE_UNIFICADA)
 
     def __str__(self):
         return f"{self.get_tipo_display()}"
