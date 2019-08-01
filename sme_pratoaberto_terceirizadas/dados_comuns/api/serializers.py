@@ -1,7 +1,7 @@
 from des.models import DynamicEmailConfiguration
 from rest_framework import serializers
 
-from ..models import ConfiguracaoMensagem
+from ..models import TemplateMensagem
 
 
 class ConfiguracaoEmailSerializer(serializers.ModelSerializer):
@@ -13,5 +13,5 @@ class ConfiguracaoEmailSerializer(serializers.ModelSerializer):
 
 class ConfiguracaoMensagemSerializer(serializers.ModelSerializer):
     class Meta:
-        model = ConfiguracaoMensagem
+        model = TemplateMensagem
         exclude = ('id', 'tipo')

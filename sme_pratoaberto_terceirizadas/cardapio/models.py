@@ -41,9 +41,8 @@ class Cardapio(Descritivel, Ativavel, TemData, TemChaveExterna, CriadoEm):
 
         !!!OBS!!! PARA CEI varia por faixa de idade.
     """
-    # TODO: adicionar fk para edital
     tipos_alimentacao = models.ManyToManyField(TipoAlimentacao)
-    edital = models.ForeignKey('terceirizada.Edital', on_delete=models.DO_NOTHING)
+    edital = models.ForeignKey('terceirizada.Edital', on_delete=models.DO_NOTHING, related_name='editais')
 
     @property
     def tipos_unidade_escolar(self):

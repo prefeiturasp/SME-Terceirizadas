@@ -165,9 +165,11 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
 
     @property
     def descricao_curta(self):
+        # TODO: remover isso... foi trocada por Assunto do modelo Template
         raise NotImplementedError('Deve ter uma descrição curta')
 
-    def _get_partes_interessadas_inicio_fluxo(self):
+    @property
+    def partes_interessadas_inicio_fluxo(self):
         """
 
         """
@@ -183,14 +185,17 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
 
     @xworkflows.after_transition('inicia_fluxo')
     def _inicia_fluxo_hook(self, *args, **kwargs):
+        # TODO: resolver esse import aqui...
+        from .models import TemplateMensagem
         user = kwargs['user']
-        short_desc = self.descricao_curta
-        long_desc = str(self)
+        template = TemplateMensagem.get_template_by_obj(self)
+        short_desc = f"{template.assunto} #{self.id_externo}"
+        long_desc = template.aplica_objeto_no_template(self)
+
         enviar_notificacao_e_email(sender=user,
-                                   recipients=self._get_partes_interessadas_inicio_fluxo(),
+                                   recipients=self.partes_interessadas_inicio_fluxo,
                                    short_desc=short_desc,
                                    long_desc=long_desc)
-        print(f'Notificar partes interessadas nesse momento {self.escola.diretoria_regional}')
 
     @xworkflows.after_transition('dre_aprovou')
     def _dre_aprovou_hook(self, *args, **kwargs):
@@ -259,9 +264,14 @@ class FluxoAprovacaoPartindoDaDiretoriaRegional(xwf_models.WorkflowEnabled, mode
 
     @xworkflows.after_transition('inicia_fluxo')
     def _inicia_fluxo_hook(self, *args, **kwargs):
+        from .models import TemplateMensagem
         user = kwargs['user']
-        short_desc = self.descricao_curta
-        long_desc = str(self)
+        template = TemplateMensagem.get_template_by_obj(self)
+        short_desc = f"{template.assunto} #{self.id_externo}"
+        long_desc = template.aplica_objeto_no_template(self)
+        import ipdb
+        ipdb.set_trace()
+
         enviar_notificacao_e_email(sender=user,
                                    recipients=self.partes_interessadas_inicio_fluxo,
                                    short_desc=short_desc,

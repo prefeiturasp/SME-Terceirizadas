@@ -1,5 +1,5 @@
 from django.contrib import admin
 
-from .models import ConfiguracaoMensagem
+from .models import TemplateMensagem
 
-admin.site.register(ConfiguracaoMensagem)
+admin.site.register(TemplateMensagem)

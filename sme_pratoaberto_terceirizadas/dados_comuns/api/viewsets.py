@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ViewSet, ModelViewSet
 
 from .serializers import ConfiguracaoEmailSerializer, ConfiguracaoMensagemSerializer
-from ..models import ConfiguracaoMensagem
+from ..models import TemplateMensagem
 from ..models_abstract import DiasSemana, TempoPasseio
 from ..utils import obter_dias_uteis_apos_hoje
 
@@ -57,8 +57,8 @@ class ConfiguracaoEmailViewSet(ModelViewSet):
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-class ConfiguracaoMensagemViewSet(ModelViewSet):
+class TemplateMensagemViewSet(ModelViewSet):
     lookup_field = 'uuid'
     # permission_classes = [EhAdminDaCodae]
-    queryset = ConfiguracaoMensagem.objects.all()
+    queryset = TemplateMensagem.objects.all()
     serializer_class = ConfiguracaoMensagemSerializer
