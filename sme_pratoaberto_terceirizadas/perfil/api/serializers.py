@@ -1,8 +1,8 @@
 from notifications.models import Notification
 from rest_framework import serializers
 
-from sme_pratoaberto_terceirizadas.escola.api.serializers import EscolaSimplesSerializer, \
-    DiretoriaRegionalSimplesSerializer
+from sme_pratoaberto_terceirizadas.escola.api.serializers import (
+    EscolaSimplesSerializer, DiretoriaRegionalSimplesSerializer)
 from ..models import (Usuario, Perfil, Permissao, GrupoPerfil, PerfilPermissao)
 
 
