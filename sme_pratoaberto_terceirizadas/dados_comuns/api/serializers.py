@@ -14,4 +14,4 @@ class ConfiguracaoEmailSerializer(serializers.ModelSerializer):
 class ConfiguracaoMensagemSerializer(serializers.ModelSerializer):
     class Meta:
         model = ConfiguracaoMensagem
-        exclude = ('id',)
+        exclude = ('id', 'tipo')

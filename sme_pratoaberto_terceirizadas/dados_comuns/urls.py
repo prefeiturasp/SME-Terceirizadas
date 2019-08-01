@@ -9,7 +9,8 @@ router.register('email', viewsets.ConfiguracaoEmailViewSet, basename='Email')
 router.register('dias-semana', viewsets.DiasDaSemanaViewSet, basename='Dias da semana')
 router.register('tempos-passeio', viewsets.TempoDePasseioViewSet, basename='Tempos de passeio')
 router.register('dias-uteis', viewsets.DiasUteisViewSet, basename='Dias úteis')
-router.register('configuracoes-mensagem', viewsets.ConfiguracaoMensagemViewSet, basename='Configuração de mensagem')
+router.register('templates-mensagem', viewsets.ConfiguracaoMensagemViewSet,
+                basename='Configuração de mensagem')
 
 urlpatterns = [
     path("", include(router.urls)),
