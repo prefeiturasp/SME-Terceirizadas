@@ -185,17 +185,12 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
 
     @xworkflows.after_transition('inicia_fluxo')
     def _inicia_fluxo_hook(self, *args, **kwargs):
-        # TODO: resolver esse import aqui...
-        from .models import TemplateMensagem
         user = kwargs['user']
-        template = TemplateMensagem.get_template_by_obj(self)
-        short_desc = f"{template.assunto} #{self.id_externo}"
-        long_desc = template.aplica_objeto_no_template(self)
-
+        assunto, corpo = self.template_mensagem
         enviar_notificacao_e_email(sender=user,
                                    recipients=self.partes_interessadas_inicio_fluxo,
-                                   short_desc=short_desc,
-                                   long_desc=long_desc)
+                                   short_desc=assunto,
+                                   long_desc=corpo)
 
     @xworkflows.after_transition('dre_aprovou')
     def _dre_aprovou_hook(self, *args, **kwargs):
@@ -264,18 +259,13 @@ class FluxoAprovacaoPartindoDaDiretoriaRegional(xwf_models.WorkflowEnabled, mode
 
     @xworkflows.after_transition('inicia_fluxo')
     def _inicia_fluxo_hook(self, *args, **kwargs):
-        from .models import TemplateMensagem
         user = kwargs['user']
-        template = TemplateMensagem.get_template_by_obj(self)
-        short_desc = f"{template.assunto} #{self.id_externo}"
-        long_desc = template.aplica_objeto_no_template(self)
-        import ipdb
-        ipdb.set_trace()
+        assunto, corpo = self.template_mensagem
 
         enviar_notificacao_e_email(sender=user,
                                    recipients=self.partes_interessadas_inicio_fluxo,
-                                   short_desc=short_desc,
-                                   long_desc=long_desc)
+                                   short_desc=assunto,
+                                   long_desc=corpo)
 
     class Meta:
         abstract = True
@@ -306,4 +296,12 @@ class TemIdentificadorExternoAmigavel(object):
 
     @property
     def id_externo(self):
-        return str(self.uuid).upper()[:5]
+        uuid = str(self.uuid)
+        return uuid.upper()[:5]
+
+
+class AplicaTemplateMensagem(object):
+    # TODO: tirar isso daqui, juntar com o outro acima
+    @property
+    def template_mensagem(self):
+        raise NotImplementedError('Deve criar um property que recupera o assunto e corpo mensagem desse objeto')
