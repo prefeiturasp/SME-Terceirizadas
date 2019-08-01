@@ -184,14 +184,9 @@ class InclusaoAlimentacaoContinuaCreationSerializer(serializers.ModelSerializer)
 
     def update(self, instance, validated_data):
         quantidades_periodo_array = validated_data.pop('quantidades_periodo')
-        quantidades_periodo = instance.quantidades_periodo.all()
-
-        assert len(quantidades_periodo) == len(quantidades_periodo_array)
-        for index in range(len(quantidades_periodo_array)):
-            QuantidadePorPeriodoCreationSerializer(
-            ).update(instance=quantidades_periodo[index],
-                     validated_data=quantidades_periodo_array[index]
-                     )
+        instance.quantidades_periodo.all().delete()
+        lista_escola_quantidade = self._gera_lista_escola_quantidade(quantidades_periodo_array)
+        instance.quantidades_periodo.set(lista_escola_quantidade)
         update_instance_from_dict(instance, validated_data)
         instance.save()
         return instance
