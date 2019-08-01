@@ -89,14 +89,12 @@ class MotivoInclusaoNormal(Nomeavel, TemChaveExterna):
 
 
 class InclusaoAlimentacaoNormal(TemData, TemChaveExterna):
-    quantidade_periodo = models.ForeignKey(QuantidadePorPeriodo, on_delete=models.DO_NOTHING,
-                                           blank=True, null=True)
     prioritario = models.BooleanField(default=False)
     motivo = models.ForeignKey(MotivoInclusaoNormal, on_delete=models.DO_NOTHING)
     outro_motivo = models.CharField("Outro motivo", blank=True, null=True, max_length=50)
     grupo_inclusao = models.ForeignKey('GrupoInclusaoAlimentacaoNormal',
                                        blank=True, null=True,
-                                       on_delete=models.DO_NOTHING,
+                                       on_delete=models.CASCADE,
                                        related_name='inclusoes_normais')
 
     def __str__(self):
@@ -109,9 +107,14 @@ class InclusaoAlimentacaoNormal(TemData, TemChaveExterna):
         verbose_name_plural = "Inclusões de alimentação normal"
 
 
-class GrupoInclusaoAlimentacaoNormal(Descritivel, TemChaveExterna):
+class GrupoInclusaoAlimentacaoNormal(Descritivel, TemChaveExterna, FluxoAprovacaoPartindoDaEscola,
+                                     CriadoPor, TemIdentificadorExternoAmigavel):
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING,
                                related_name='grupos_inclusoes_normais')
+
+    @property
+    def descricao_curta(self):
+        return f"Grupo de inclusão de alimentação normal #{self.id_externo}"
 
     @property
     def inclusoes(self):
