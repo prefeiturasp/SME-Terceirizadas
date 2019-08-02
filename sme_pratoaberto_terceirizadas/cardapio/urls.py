@@ -10,6 +10,7 @@ router.register("inversoes-dia-cardapio", viewsets.InversaoCardapioViewSet, 'Inv
 router.register("suspensoes-alimentacao", viewsets.SuspensaoAlimentacaoViewSet, "Suspensão de alimentação")
 router.register("alteracoes-cardapio", viewsets.AlteracoesCardapioViewSet, "Alterações de Cardápio")
 router.register("motivos-alteracao-cardapio", viewsets.MotivosAlteracaoCardapioViewSet, "Motivos de alteração de cardápio")
+router.register("alteracoes-cardapio-rascunho", viewsets.AlteracoesCardapioRascunhoViewSet, "Alterações de Cardápio Rascunho")
 
 urlpatterns = [
     path("", include(router.urls)),

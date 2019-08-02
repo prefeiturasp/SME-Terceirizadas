@@ -170,6 +170,10 @@ class AlteracaoCardapio(CriadoEm, TemChaveExterna, IntervaloDeDia, TemObservacao
     def __str__(self):
         return f'Alteração de cardápio: {self.uuid}'
 
+    @property
+    def descricao_curta(self):
+        return "Solicitação de alteração de cardápio."
+
     class Meta:
         verbose_name = "Alteração de cardápio"
         verbose_name_plural = "Alterações de cardápio"
