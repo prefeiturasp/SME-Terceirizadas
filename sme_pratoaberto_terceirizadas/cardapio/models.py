@@ -83,6 +83,10 @@ class InversaoCardapio(CriadoEm, CriadoPor, TemObservacao, Descritivel, TemChave
     def data_para(self):
         return self.cardapio_para.data if self.cardapio_para else None
 
+    @property
+    def descricao_curta(self):
+        return f"Inversão de dia de Cardápio #{self.id_externo}"
+
     def __str__(self):
         if self.cardapio_de and self.cardapio_para and self.escola:
             return '{}: \nDe: {} \nPara: {}'.format(self.escola.nome, self.cardapio_de, self.cardapio_para)

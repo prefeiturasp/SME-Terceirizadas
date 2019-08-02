@@ -62,6 +62,7 @@ class InversaoCardapioSerializer(serializers.ModelSerializer):
     cardapio_para = CardapioSimplesSerializer()
     escola = EscolaSimplesSerializer()
     status = serializers.SerializerMethodField()
+    id_externo = serializers.CharField()
 
     def get_status(self, obj):
         return obj.get_status_display()

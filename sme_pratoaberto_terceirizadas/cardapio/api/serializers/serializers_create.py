@@ -48,11 +48,22 @@ class InversaoCardapioSerializerCreate(serializers.ModelSerializer):
         escola = validated_data.get('escola')
         validated_data['cardapio_de'] = escola.get_cardapio(data_de)
         validated_data['cardapio_para'] = escola.get_cardapio(data_para)
+        validated_data['criado_por'] = self.context['request'].user
         inversao_cardapio = InversaoCardapio.objects.create(**validated_data)
         if inversao_cardapio.pk:
             usuario = self.context.get('request').user
             notificar_partes_envolvidas(usuario, **validated_data)
         return inversao_cardapio
+
+    def update(self, instance, validated_data):
+        data_de = validated_data.pop('data_de')
+        data_para = validated_data.pop('data_para')
+        escola = validated_data.get('escola')
+        validated_data['cardapio_de'] = escola.get_cardapio(data_de)
+        validated_data['cardapio_para'] = escola.get_cardapio(data_para)
+        update_instance_from_dict(instance, validated_data)
+        instance.save()
+        return instance
 
     class Meta:
         model = InversaoCardapio
