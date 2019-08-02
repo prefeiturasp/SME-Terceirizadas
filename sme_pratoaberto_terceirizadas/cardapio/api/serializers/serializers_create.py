@@ -1,17 +1,16 @@
 from rest_framework import serializers
 
+from sme_pratoaberto_terceirizadas.dados_comuns.utils import update_instance_from_dict, enviar_notificacao
 from sme_pratoaberto_terceirizadas.dados_comuns.validators import (
     nao_pode_ser_no_passado, nao_pode_ser_feriado,
-    objeto_nao_deve_ter_duplicidade
+    objeto_nao_deve_ter_duplicidade, existe_cardapio
 )
 from sme_pratoaberto_terceirizadas.escola.models import Escola, PeriodoEscolar
 from sme_pratoaberto_terceirizadas.perfil.models import Usuario
 from sme_pratoaberto_terceirizadas.terceirizada.models import Edital
 from ..helpers import notificar_partes_envolvidas
-from sme_pratoaberto_terceirizadas.dados_comuns.utils import update_instance_from_dict
 from ...api.validators import (
-    cardapio_antigo, valida_duplicidade,
-    valida_cardapio_de_para, valida_tipo_cardapio_inteiro,
+    valida_tipo_cardapio_inteiro,
     valida_tipo_periodo_escolar, valida_tipo_alimentacao,
 )
 from ...models import (
@@ -21,17 +20,8 @@ from ...models import (
 
 
 class InversaoCardapioSerializerCreate(serializers.ModelSerializer):
-    cardapio_de = serializers.SlugRelatedField(
-        slug_field='uuid',
-        required=True,
-        queryset=Cardapio.objects.all()
-    )
-
-    cardapio_para = serializers.SlugRelatedField(
-        slug_field='uuid',
-        required=True,
-        queryset=Cardapio.objects.all()
-    )
+    data_de = serializers.DateField()
+    data_para = serializers.DateField()
 
     escola = serializers.SlugRelatedField(
         slug_field='uuid',
@@ -39,20 +29,25 @@ class InversaoCardapioSerializerCreate(serializers.ModelSerializer):
         queryset=Escola.objects.all()
     )
 
-    def validate_cardapio_de(self, attr):
-        cardapio_antigo(attr)
-        return attr
+    def validate_data_de(self, data_de):
+        nao_pode_ser_no_passado(data_de)
+        return data_de
 
-    def validate_cardapio_para(self, attr):
-        cardapio_antigo(attr)
-        return attr
+    def validate_data_para(self, data_para):
+        nao_pode_ser_no_passado(data_para)
+        return data_para
 
     def validate(self, attrs):
-        valida_cardapio_de_para(attrs.get('cardapio_de'), attrs.get('cardapio_para'))
-        valida_duplicidade(attrs.get('cardapio_de'), attrs.get('cardapio_para'), attrs.get('escola'))
+        existe_cardapio(attrs['escola'], attrs['data_de'])
+        existe_cardapio(attrs['escola'], attrs['data_para'])
         return attrs
 
     def create(self, validated_data):
+        data_de = validated_data.pop('data_de')
+        data_para = validated_data.pop('data_para')
+        escola = validated_data.get('escola')
+        validated_data['cardapio_de'] = escola.get_cardapio(data_de)
+        validated_data['cardapio_para'] = escola.get_cardapio(data_para)
         inversao_cardapio = InversaoCardapio.objects.create(**validated_data)
         if inversao_cardapio.pk:
             usuario = self.context.get('request').user
@@ -61,7 +56,7 @@ class InversaoCardapioSerializerCreate(serializers.ModelSerializer):
 
     class Meta:
         model = InversaoCardapio
-        fields = ['uuid', 'descricao', 'cardapio_de', 'cardapio_para', 'escola']
+        fields = ('uuid', 'descricao', 'observacao', 'data_de', 'data_para', 'escola')
 
 
 class CardapioCreateSerializer(serializers.ModelSerializer):
@@ -139,9 +134,10 @@ class SuspensaoAlimentacaoCreateSerializer(serializers.ModelSerializer):
         suspensao_alimentacao.periodos_escolares.set(periodos_escolares)
         suspensao_alimentacao.tipos_alimentacao.set(tipos_alimentacao)
         enviar_notificacao(sender=suspensao_alimentacao.criado_por,
-                           recipient=suspensao_alimentacao.notificacao_enviar_para,
+                           recipients=suspensao_alimentacao.notificacao_enviar_para,
                            short_desc="Criação de Suspensão de Alimentação",
-                           long_desc="Uma Suspensão de Alimentação foi criada por " + suspensao_alimentacao.criado_por.nome)
+                           long_desc=("Uma Suspensão de Alimentação foi criada por " +
+                                      suspensao_alimentacao.criado_por.nome))
 
         return suspensao_alimentacao
 

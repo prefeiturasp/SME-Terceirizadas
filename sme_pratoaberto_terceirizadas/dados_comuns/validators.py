@@ -14,6 +14,12 @@ def nao_pode_ser_no_passado(data: datetime.date):
     return True
 
 
+def existe_cardapio(escola, data: datetime.date):
+    if not escola.get_cardapio(data):
+        raise serializers.ValidationError(f'Escola não possui cardápio para esse dia: {data}')
+    return True
+
+
 def deve_pedir_com_antecedencia(dia: datetime.date, dias: int = 2):
     prox_dia_util = obter_dias_uteis_apos_hoje(quantidade_dias=dias)
     if dia <= prox_dia_util:
@@ -29,7 +35,7 @@ def dia_util(data: datetime.date):
 
 # TODO: validar o primeiro parametro pra ser instance of Model
 def verificar_se_existe(obj_model, **kwargs) -> bool:
-    qtd = obj_model.objects.filter(**kwargs).count()
+    qtd = obj_model.objects.filter(**kwargs).exists()
     if qtd:
         return True
     return False

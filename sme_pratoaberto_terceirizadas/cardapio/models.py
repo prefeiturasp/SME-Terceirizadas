@@ -3,7 +3,8 @@ from django.db import models
 from ..dados_comuns.models_abstract import (
     Descritivel, TemData, TemChaveExterna, Ativavel,
     Nomeavel, CriadoEm, StatusValidacao, IntervaloDeDia,
-    TemObservacao, FluxoAprovacaoPartindoDaEscola
+    TemObservacao, FluxoAprovacaoPartindoDaEscola, CriadoPor,
+    TemIdentificadorExternoAmigavel
 )
 
 
@@ -59,7 +60,8 @@ class Cardapio(Descritivel, Ativavel, TemData, TemChaveExterna, CriadoEm):
         verbose_name_plural = "Cardápios"
 
 
-class InversaoCardapio(CriadoEm, Descritivel, TemChaveExterna, StatusValidacao):
+class InversaoCardapio(CriadoEm, CriadoPor, TemObservacao, Descritivel, TemChaveExterna,
+                       TemIdentificadorExternoAmigavel, FluxoAprovacaoPartindoDaEscola):
     """
         servir o cardápio do dia 30 no dia 15, automaticamente o
         cardápio do dia 15 será servido no dia 30
@@ -72,6 +74,14 @@ class InversaoCardapio(CriadoEm, Descritivel, TemChaveExterna, StatusValidacao):
                                       related_name='cardapio_para')
     escola = models.ForeignKey('escola.Escola', blank=True, null=True,
                                on_delete=models.DO_NOTHING)
+
+    @property
+    def data_de(self):
+        return self.cardapio_de.data if self.cardapio_de else None
+
+    @property
+    def data_para(self):
+        return self.cardapio_para.data if self.cardapio_para else None
 
     def __str__(self):
         if self.cardapio_de and self.cardapio_para and self.escola:
