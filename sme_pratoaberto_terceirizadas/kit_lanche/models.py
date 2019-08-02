@@ -106,10 +106,6 @@ class SolicitacaoKitLancheUnificada(CriadoPor, TemChaveExterna, TemIdentificador
     diretoria_regional = models.ForeignKey('escola.DiretoriaRegional', on_delete=models.DO_NOTHING)
     solicitacao_kit_lanche = models.ForeignKey(SolicitacaoKitLanche, on_delete=models.DO_NOTHING)
 
-    @property
-    def descricao_curta(self):
-        return f'Solicitação de Kit Lanche Unificada #{self.id_externo}'
-
     def vincula_escolas_quantidades(self, escolas_quantidades):
         for escola_quantidade in escolas_quantidades:
             escola_quantidade.solicitacao_unificada = self

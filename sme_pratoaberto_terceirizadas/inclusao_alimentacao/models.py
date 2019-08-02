@@ -2,7 +2,6 @@ from django.core.validators import MinValueValidator
 from django.db import models
 
 from sme_pratoaberto_terceirizadas.dados_comuns.models import TemplateMensagem
-from sme_pratoaberto_terceirizadas.dados_comuns.models_abstract import AplicaTemplateMensagem
 from ..dados_comuns.models_abstract import (
     Descritivel, IntervaloDeDia,
     Nomeavel, TemData, TemChaveExterna,
@@ -53,7 +52,7 @@ class MotivoInclusaoContinua(Nomeavel, TemChaveExterna):
 class InclusaoAlimentacaoContinua(IntervaloDeDia, Descritivel, TemChaveExterna,
                                   DiasSemana, FluxoAprovacaoPartindoDaEscola,
                                   CriadoPor, TemIdentificadorExternoAmigavel,
-                                  CriadoEm, AplicaTemplateMensagem):
+                                  CriadoEm):
     outro_motivo = models.CharField("Outro motivo", blank=True, null=True, max_length=50)
     motivo = models.ForeignKey(MotivoInclusaoContinua, on_delete=models.DO_NOTHING)
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING,
