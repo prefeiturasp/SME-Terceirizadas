@@ -83,45 +83,55 @@ class InversaoCardapio(CriadoEm, Descritivel, TemChaveExterna, FluxoAprovacaoPar
         verbose_name_plural = "Inversão de cardápios"
 
 
-class SuspensaoAlimentacao(TemData, TemChaveExterna, CriadoPor):
+class MotivoSuspensao(Nomeavel, TemChaveExterna):
     """
-        Uma escola pede para suspender as refeições:
-        tipo pode ser cardapio, periodo (manha, tarde) ou itens do cardapio (Tipo alimentacao).
-
-         - pode ser um cardapio inteiro
-         - pode ser só um período(s) ( manhã, intermediário, tarde, vespertino, noturno, integral)
-         - pode ser item(s) de um cardápio (Tipo alimentacao)
+    Exemplos:
+        - greve
+        - reforma
     """
-    CARDAPIO_INTEIRO = 0
-    PERIODO_ESCOLAR = 1
-    TIPO_ALIMENTACAO = 2
-
-    CHOICES = (
-        (CARDAPIO_INTEIRO, 'Cardápio inteiro'),
-        (PERIODO_ESCOLAR, 'Período escolar'),
-        (TIPO_ALIMENTACAO, 'Tipo alimentação'),
-    )
-
-    tipo = models.PositiveSmallIntegerField(choices=CHOICES)
-    escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING)
-    cardapio = models.ForeignKey(Cardapio, on_delete=models.DO_NOTHING,
-                                 blank=True, null=True)
-    periodos_escolares = models.ManyToManyField('escola.PeriodoEscolar',
-                                                blank=True)
-    tipos_alimentacao = models.ManyToManyField(TipoAlimentacao,
-                                               blank=True)
-
-    @property
-    def notificacao_enviar_para(self):
-        # TODO: checar se quando cria uma notificação de um formulário, dispara para todos os usuários da DRE da Escola
-        return self.escola.usuarios_diretoria_regional
 
     def __str__(self):
-        return self.get_tipo_display()
+        return self.nome
+
+    class Meta:
+        verbose_name = "Motivo de suspensão de alimentação"
+        verbose_name_plural = "Motivo de suspensão de alimentação"
+
+
+class SuspensaoAlimentacao(TemData, TemChaveExterna, CriadoPor, CriadoEm):
+    """
+    Uma escola pede para suspender as refeições: escolhe os
+    """
+    motivo = models.ForeignKey(MotivoSuspensao, on_delete=models.DO_NOTHING)
+    escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING)
+
+    def __str__(self):
+        return f"{self.motivo}"
+
+    @property
+    def suspensoes_periodo_escolar(self):
+        return self.suspensoes_periodo_escolar
 
     class Meta:
         verbose_name = "Suspensão de alimentação"
         verbose_name_plural = "Suspensões de alimentação"
+
+
+class SuspensaoAlimentacaoNoPeriodoEscolar(TemChaveExterna):
+    suspensao_alimentacao = models.ForeignKey(SuspensaoAlimentacao, on_delete=models.CASCADE,
+                                              null=True, blank=True,
+                                              related_name="suspensoes_periodo_escolar")
+    qtd_alunos = models.PositiveSmallIntegerField(default=0)
+    periodo_escolar = models.ForeignKey('escola.PeriodoEscolar', on_delete=models.PROTECT,
+                                        related_name="suspensoes_periodo_escolar")
+    tipos_alimentacao = models.ManyToManyField('TipoAlimentacao', related_name="suspensoes_periodo_escolar")
+
+    def __str__(self):
+        return f'Suspensão de alimentação da Alteração de Cardápio: {self.suspensao_alimentacao}'
+
+    class Meta:
+        verbose_name = "Suspensão de alimentação no período"
+        verbose_name_plural = "Suspensões de alimentação no período"
 
 
 class MotivoAlteracaoCardapio(Nomeavel, TemChaveExterna):

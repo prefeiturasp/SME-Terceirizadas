@@ -1,23 +1,21 @@
 from rest_framework import serializers
 
+from sme_pratoaberto_terceirizadas.dados_comuns.utils import update_instance_from_dict
 from sme_pratoaberto_terceirizadas.dados_comuns.validators import (
     nao_pode_ser_no_passado, nao_pode_ser_feriado,
     objeto_nao_deve_ter_duplicidade
 )
 from sme_pratoaberto_terceirizadas.escola.models import Escola, PeriodoEscolar
-from sme_pratoaberto_terceirizadas.perfil.models import Usuario
 from sme_pratoaberto_terceirizadas.terceirizada.models import Edital
 from ..helpers import notificar_partes_envolvidas
-from sme_pratoaberto_terceirizadas.dados_comuns.utils import update_instance_from_dict
 from ...api.validators import (
     cardapio_antigo, valida_duplicidade,
-    valida_cardapio_de_para, valida_tipo_cardapio_inteiro,
-    valida_tipo_periodo_escolar, valida_tipo_alimentacao,
-)
+    valida_cardapio_de_para, )
 from ...models import (
     InversaoCardapio, Cardapio,
     TipoAlimentacao, SuspensaoAlimentacao,
-    AlteracaoCardapio, MotivoAlteracaoCardapio, SubstituicoesAlimentacaoNoPeriodoEscolar)
+    AlteracaoCardapio, MotivoAlteracaoCardapio, SubstituicoesAlimentacaoNoPeriodoEscolar,
+    SuspensaoAlimentacaoNoPeriodoEscolar, MotivoSuspensao)
 
 
 class InversaoCardapioSerializerCreate(serializers.ModelSerializer):
@@ -92,71 +90,43 @@ class CardapioCreateSerializer(serializers.ModelSerializer):
         exclude = ('id',)
 
 
+class SuspensaoAlimentacaoNoPeriodoEscolarCreateSerializer(serializers.ModelSerializer):
+    periodo_escolar = serializers.SlugRelatedField(slug_field='uuid',
+                                                   queryset=PeriodoEscolar.objects.all())
+    tipos_alimentacao = serializers.SlugRelatedField(slug_field='uuid',
+                                                     many=True,
+                                                     queryset=TipoAlimentacao.objects.all())
+
+    class Meta:
+        model = SuspensaoAlimentacaoNoPeriodoEscolar
+        exclude = ('id', 'suspensao_alimentacao')
+
+
 class SuspensaoAlimentacaoCreateSerializer(serializers.ModelSerializer):
-    criado_por = serializers.SlugRelatedField(
-        slug_field='uuid',
-        required=True,
-        queryset=Usuario.objects.all()
-    )
     escola = serializers.SlugRelatedField(
         slug_field='uuid',
         required=True,
         queryset=Escola.objects.all()
     )
-    cardapio = serializers.SlugRelatedField(
+    motivo = serializers.SlugRelatedField(
         slug_field='uuid',
-        required=False,
-        queryset=Cardapio.objects.all()
+        queryset=MotivoSuspensao.objects.all()
     )
-    periodos_escolares = serializers.SlugRelatedField(
-        slug_field='uuid',
-        many=True,
-        required=False,
-        queryset=PeriodoEscolar.objects.all()
-    )
-    tipos_alimentacao = serializers.SlugRelatedField(
-        slug_field='uuid',
-        many=True,
-        required=False,
-        queryset=TipoAlimentacao.objects.all()
-    )
-    tipo_explicacao = serializers.CharField(
-        source='get_tipo_display',
-        required=False,
-        read_only=True)
+    suspensoes_periodo_escolar = SuspensaoAlimentacaoNoPeriodoEscolarCreateSerializer(many=True)
 
     def validate_data(self, data):
         nao_pode_ser_no_passado(data)
         return data
 
     def create(self, validated_data):
-        periodos_escolares = validated_data.pop('periodos_escolares', [])
-        tipos_alimentacao = validated_data.pop('tipos_alimentacao', [])
+        suspensoes_periodo_escolar_json = validated_data.pop('suspensoes_periodo_escolar', [])
 
         suspensao_alimentacao = SuspensaoAlimentacao.objects.create(
             **validated_data
         )
-        suspensao_alimentacao.periodos_escolares.set(periodos_escolares)
-        suspensao_alimentacao.tipos_alimentacao.set(tipos_alimentacao)
-        enviar_notificacao(sender=suspensao_alimentacao.criado_por,
-                           recipient=suspensao_alimentacao.notificacao_enviar_para,
-                           short_desc="Criação de Suspensão de Alimentação",
-                           long_desc="Uma Suspensão de Alimentação foi criada por " + suspensao_alimentacao.criado_por.nome)
+        suspensao_alimentacao.suspensoes_periodo_escolar.set(suspensoes_periodo_escolar_json)
 
         return suspensao_alimentacao
-
-    def validate(self, attrs):
-        tipo = attrs.get('tipo')
-        cardapio = attrs.get('cardapio')
-        periodos_escolares = attrs.get('periodos_escolares', [])
-        tipos_alimentacao = attrs.get('tipos_alimentacao', [])
-        if tipo == SuspensaoAlimentacao.CARDAPIO_INTEIRO:
-            valida_tipo_cardapio_inteiro(cardapio, periodos_escolares, tipo, tipos_alimentacao)
-        elif tipo == SuspensaoAlimentacao.PERIODO_ESCOLAR:
-            valida_tipo_periodo_escolar(cardapio, periodos_escolares, tipo, tipos_alimentacao)
-        elif tipo == SuspensaoAlimentacao.TIPO_ALIMENTACAO:
-            valida_tipo_alimentacao(cardapio, periodos_escolares, tipo, tipos_alimentacao)
-        return attrs
 
     class Meta:
         model = SuspensaoAlimentacao

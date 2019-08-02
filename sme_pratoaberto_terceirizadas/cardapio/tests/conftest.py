@@ -1,14 +1,14 @@
-import pytest
-from rest_framework.test import APIClient
-from model_mommy import mommy
 from datetime import datetime, timedelta
-from faker import Faker
 
-from ..models import SuspensaoAlimentacao, InversaoCardapio, MotivoAlteracaoCardapio, AlteracaoCardapio, \
-    SubstituicoesAlimentacaoNoPeriodoEscolar
+import pytest
+from faker import Faker
+from model_mommy import mommy
+from rest_framework.test import APIClient
 
 from ..api.serializers.serializers import SuspensaoAlimentacaoSerializer, InversaoCardapioSerializer, \
     MotivoAlteracaoCardapioSerializer, AlteracaoCardapioSerializer, SubstituicoesAlimentacaoNoPeriodoEscolarSerializer
+from ..models import SuspensaoAlimentacao, InversaoCardapio, MotivoAlteracaoCardapio, AlteracaoCardapio, \
+    SubstituicoesAlimentacaoNoPeriodoEscolar
 
 fake = Faker('pt_BR')
 fake.seed(420)
@@ -93,4 +93,3 @@ def alteracao_cardapio_serializer():
 def substituicoes_alimentacao_no_periodo_escolar_serializer():
     substituicoes_alimentacao_no_periodo_escolar = mommy.make(SubstituicoesAlimentacaoNoPeriodoEscolar)
     return SubstituicoesAlimentacaoNoPeriodoEscolarSerializer(substituicoes_alimentacao_no_periodo_escolar)
-

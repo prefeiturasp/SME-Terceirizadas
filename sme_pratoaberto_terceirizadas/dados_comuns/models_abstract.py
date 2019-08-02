@@ -164,11 +164,6 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
         return self.status == self.workflow_class.CODAE_APROVADO
 
     @property
-    def descricao_curta(self):
-        # TODO: remover isso... foi trocada por Assunto do modelo Template
-        raise NotImplementedError('Deve ter uma descrição curta')
-
-    @property
     def partes_interessadas_inicio_fluxo(self):
         """
 
@@ -176,6 +171,10 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
         dre = self.escola.diretoria_regional
         usuarios_dre = dre.usuarios.all()
         return usuarios_dre
+
+    @property
+    def template_mensagem(self):
+        raise NotImplementedError('Deve criar um property que recupera o assunto e corpo mensagem desse objeto')
 
     #
     # Esses hooks são chamados automaticamente após a
@@ -246,16 +245,16 @@ class FluxoAprovacaoPartindoDaDiretoriaRegional(xwf_models.WorkflowEnabled, mode
         return self.status == self.workflow_class.CODAE_APROVADO
 
     @property
-    def descricao_curta(self):
-        raise NotImplementedError('Deve ter uma descrição curta')
-
-    @property
     def partes_interessadas_inicio_fluxo(self):
         """
         TODO: retornar usuários CODAE, esse abaixo é so pra passar...
         """
         usuarios_dre = self.diretoria_regional.usuarios.all()
         return usuarios_dre
+
+    @property
+    def template_mensagem(self):
+        raise NotImplementedError('Deve criar um property que recupera o assunto e corpo mensagem desse objeto')
 
     @xworkflows.after_transition('inicia_fluxo')
     def _inicia_fluxo_hook(self, *args, **kwargs):
@@ -298,10 +297,3 @@ class TemIdentificadorExternoAmigavel(object):
     def id_externo(self):
         uuid = str(self.uuid)
         return uuid.upper()[:5]
-
-
-class AplicaTemplateMensagem(object):
-    # TODO: tirar isso daqui, juntar com o outro acima
-    @property
-    def template_mensagem(self):
-        raise NotImplementedError('Deve criar um property que recupera o assunto e corpo mensagem desse objeto')

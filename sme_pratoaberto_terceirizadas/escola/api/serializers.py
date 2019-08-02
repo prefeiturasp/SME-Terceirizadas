@@ -19,6 +19,12 @@ class PeriodoEscolarSerializer(serializers.ModelSerializer):
         exclude = ('id',)
 
 
+class PeriodoEscolarSimplesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PeriodoEscolar
+        exclude = ('id', 'tipos_alimentacao')
+
+
 class TipoGestaoSerializer(serializers.ModelSerializer):
     class Meta:
         model = TipoGestao
