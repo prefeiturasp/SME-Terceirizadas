@@ -23,7 +23,7 @@ class MotivoInclusaoNormalSerializer(serializers.ModelSerializer):
 
 class QuantidadePorPeriodoSerializer(serializers.ModelSerializer):
     periodo_escolar = PeriodoEscolarSerializer()
-    tipos_alimentacao = TipoAlimentacaoSerializer()
+    tipos_alimentacao = TipoAlimentacaoSerializer(many=True, read_only=True)
 
     class Meta:
         model = QuantidadePorPeriodo
@@ -64,6 +64,7 @@ class GrupoInclusaoAlimentacaoNormalSerializer(serializers.ModelSerializer):
     inclusoes = InclusaoAlimentacaoNormalSerializer(many=True)
     escola = EscolaSimplesSerializer()
     quantidades_periodo = QuantidadePorPeriodoSerializer(many=True)
+    id_externo = serializers.CharField()
 
     class Meta:
         model = GrupoInclusaoAlimentacaoNormal
