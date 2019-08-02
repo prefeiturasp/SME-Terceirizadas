@@ -27,3 +27,7 @@ def test_url_endpoint_motivos_alteracao_cardapio(client):
     # TODO Criar um teste com autenticação
     assert str(response.content, encoding='utf8') == '{"detail":"As credenciais de autenticação não foram fornecidas."}'
 
+
+def test_url_endpoint_alteracoes_cardapio_rascunho(client):
+    response = client.get('/alteracoes-cardapio-rascunho/')
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED

@@ -88,3 +88,8 @@ class MotivosAlteracaoCardapioViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = MotivoAlteracaoCardapio.objects.all()
     serializer_class = MotivoAlteracaoCardapioSerializer
 
+
+class AlteracoesCardapioRascunhoViewSet(viewsets.ReadOnlyModelViewSet):
+    lookup_field = 'uuid'
+    queryset = AlteracaoCardapio.objects.filter(status="RASCUNHO")
+    serializer_class = AlteracaoCardapioSerializer
