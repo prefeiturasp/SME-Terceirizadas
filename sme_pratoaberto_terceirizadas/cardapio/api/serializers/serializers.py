@@ -9,7 +9,8 @@ from ...models import (
     TipoAlimentacao, Cardapio, InversaoCardapio,
     SuspensaoAlimentacao, AlteracaoCardapio, MotivoAlteracaoCardapio,
     SubstituicoesAlimentacaoNoPeriodoEscolar,
-    SuspensaoAlimentacaoNoPeriodoEscolar)
+    SuspensaoAlimentacaoNoPeriodoEscolar, GrupoSuspensaoAlimentacao,
+    QuantidadePorPeriodoSuspensaoAlimentacao, MotivoSuspensao)
 
 
 class TipoAlimentacaoSerializer(serializers.ModelSerializer):
@@ -49,6 +50,12 @@ class InversaoCardapioSerializer(serializers.ModelSerializer):
         exclude = ('id',)
 
 
+class MotivoSuspensaoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MotivoSuspensao
+        exclude = ('id',)
+
+
 class SuspensaoAlimentacaoNoPeriodoEscolarSerializer(serializers.ModelSerializer):
     periodo_escolar = PeriodoEscolarSimplesSerializer()
     tipos_alimentacao = TipoAlimentacaoSerializer(many=True)
@@ -59,9 +66,29 @@ class SuspensaoAlimentacaoNoPeriodoEscolarSerializer(serializers.ModelSerializer
 
 
 class SuspensaoAlimentacaoSerializer(serializers.ModelSerializer):
+    motivo = MotivoSuspensaoSerializer()
 
     class Meta:
         model = SuspensaoAlimentacao
+        exclude = ('id', 'grupo_suspensao')
+
+
+class QuantidadePorPeriodoSuspensaoAlimentacaoSerializer(serializers.ModelSerializer):
+    periodo_escolar = PeriodoEscolarSimplesSerializer()
+    tipos_alimentacao = TipoAlimentacaoSerializer(many=True)
+
+    class Meta:
+        model = QuantidadePorPeriodoSuspensaoAlimentacao
+        exclude = ('id', 'grupo_suspensao')
+
+
+class GrupoSuspensaoAlimentacaoSerializer(serializers.ModelSerializer):
+    escola = EscolaSimplesSerializer()
+    quantidades_por_periodo = QuantidadePorPeriodoSuspensaoAlimentacaoSerializer(many=True)
+    suspensoes_alimentacao = SuspensaoAlimentacaoSerializer(many=True)
+
+    class Meta:
+        model = GrupoSuspensaoAlimentacao
         exclude = ('id',)
 
 

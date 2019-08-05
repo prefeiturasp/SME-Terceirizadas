@@ -134,8 +134,8 @@ class SuspensaoAlimentacao(TemData, TemChaveExterna):
     Uma escola pede para suspender as refeições: escolhe os
     """
     motivo = models.ForeignKey(MotivoSuspensao, on_delete=models.DO_NOTHING)
-    grupo_suspensao = models.ForeignKey('SuspensaoAlimentacao', on_delete=models.CASCADE,
-                                        blank=True, null=True)
+    grupo_suspensao = models.ForeignKey('GrupoSuspensaoAlimentacao', on_delete=models.CASCADE,
+                                        blank=True, null=True, related_name='suspensoes_alimentacao')
 
     def __str__(self):
         return f"{self.motivo}"
@@ -171,6 +171,10 @@ class GrupoSuspensaoAlimentacao(TemChaveExterna, CriadoPor, CriadoEm,
     @property
     def quantidades_por_periodo(self):
         return self.quantidades_por_periodo
+
+    @property
+    def suspensoes_alimentacao(self):
+        return self.suspensoes_alimentacao
 
     def __str__(self):
         return f"{self.observacao}"

@@ -17,7 +17,8 @@ from ...models import (
     InversaoCardapio, Cardapio,
     TipoAlimentacao, SuspensaoAlimentacao,
     AlteracaoCardapio, MotivoAlteracaoCardapio, SubstituicoesAlimentacaoNoPeriodoEscolar,
-    SuspensaoAlimentacaoNoPeriodoEscolar, MotivoSuspensao)
+    SuspensaoAlimentacaoNoPeriodoEscolar, MotivoSuspensao, GrupoSuspensaoAlimentacao,
+    QuantidadePorPeriodoSuspensaoAlimentacao)
 
 
 class InversaoCardapioSerializerCreate(serializers.ModelSerializer):
@@ -184,33 +185,6 @@ class SubstituicoesAlimentacaoNoPeriodoEscolarSerializerCreate(serializers.Model
 
 
 class AlteracaoCardapioSerializerCreate(serializers.ModelSerializer):
-    """
-    Exemplo de um payload de criação de Alteração de Cardápio
-    {
-      "escola": "c0cc9d5e-563a-48e4-bf53-22d47b6347b4",
-
-      "motivo": "3f1684f9-0dd9-4cce-9c56-f07164f857b9",
-
-      "data_inicial": "01/01/2018",
-      "data_final": "26/07/2019",
-      "observacao": "Teste",
-
-      "substituicoes": [
-        {
-          "periodo_escolar": "811ab9bd-a25a-4304-9ae4-a48a3eaae24b",
-          "tipos_alimentacao": ["5aca23f2-055d-4f73-9bf5-6ed39dbd8407"],
-          "qtd_alunos": 100
-        },
-        {
-          "periodo_escolar": "30782fd8-4db6-4947-995a-0e9f85e1d9bf",
-          "tipos_alimentacao": ["5aca23f2-055d-4f73-9bf5-6ed39dbd8407", "7c0af352-5439-47a5-a945-7f882e89a4b3"],
-          "qtd_alunos": 100
-        }
-      ]
-
-    }
-    """
-
     motivo = serializers.SlugRelatedField(
         slug_field='uuid',
         required=True,
@@ -255,4 +229,62 @@ class AlteracaoCardapioSerializerCreate(serializers.ModelSerializer):
 
     class Meta:
         model = AlteracaoCardapio
+        exclude = ('id',)
+
+
+class QuantidadePorPeriodoSuspensaoAlimentacaoCreateSerializer(serializers.ModelSerializer):
+    periodo_escolar = serializers.SlugRelatedField(
+        slug_field='uuid',
+        queryset=PeriodoEscolar.objects.all()
+    )
+    tipos_alimentacao = serializers.SlugRelatedField(
+        slug_field='uuid',
+        many=True,
+        queryset=TipoAlimentacao.objects.all()
+    )
+
+    class Meta:
+        model = QuantidadePorPeriodoSuspensaoAlimentacao
+        exclude = ('id', 'grupo_suspensao')
+
+
+class SuspensaoAlimentacaoCreateSerializer(serializers.ModelSerializer):
+    motivo = serializers.SlugRelatedField(
+        slug_field='uuid',
+        queryset=MotivoSuspensao.objects.all()
+    )
+
+    class Meta:
+        model = SuspensaoAlimentacao
+        exclude = ('id', 'grupo_suspensao')
+
+
+class GrupoSuspensaoAlimentacaoCreateSerializer(serializers.ModelSerializer):
+    escola = serializers.SlugRelatedField(slug_field='uuid',
+                                          queryset=Escola.objects.all()
+                                          )
+    quantidades_por_periodo = QuantidadePorPeriodoSuspensaoAlimentacaoCreateSerializer(many=True)
+    suspensoes_alimentacao = SuspensaoAlimentacaoCreateSerializer(many=True)
+
+    def create(self, validated_data):
+        quantidades_por_periodo_array = validated_data.pop('quantidades_por_periodo')
+        suspensoes_alimentacao_array = validated_data.pop('suspensoes_alimentacao')
+
+        quantidades = []
+        for quantidade_json in quantidades_por_periodo_array:
+            quantidade = QuantidadePorPeriodoSuspensaoAlimentacaoCreateSerializer().create(quantidade_json)
+            quantidades.append(quantidade)
+
+        suspensoes = []
+        for suspensao_json in suspensoes_alimentacao_array:
+            suspensao = SuspensaoAlimentacaoCreateSerializer().create(suspensao_json)
+            suspensoes.append(suspensao)
+
+        grupo = GrupoSuspensaoAlimentacao.objects.create(**validated_data)
+        grupo.quantidades_por_periodo.set(quantidades)
+        grupo.suspensoes_alimentacao.set(suspensoes)
+        return grupo
+
+    class Meta:
+        model = GrupoSuspensaoAlimentacao
         exclude = ('id',)
