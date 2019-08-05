@@ -12,6 +12,8 @@ router.register("grupos-suspensoes-alimentacao", viewsets.GrupoSuspensaoAlimenta
 router.register("alteracoes-cardapio", viewsets.AlteracoesCardapioViewSet, "Alterações de Cardápio")
 router.register("motivos-alteracao-cardapio", viewsets.MotivosAlteracaoCardapioViewSet,
                 "Motivos de alteração de cardápio")
+router.register("motivos-suspensao-cardapio", viewsets.MotivosSuspensaoCardapioViewSet,
+                "Motivos de suspensão de cardápio")
 router.register("alteracoes-cardapio-rascunho", viewsets.AlteracoesCardapioRascunhoViewSet,
                 "Alterações de Cardápio Rascunho")
 

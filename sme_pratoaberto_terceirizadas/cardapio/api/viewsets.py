@@ -3,6 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from xworkflows import InvalidTransitionError
 
+from sme_pratoaberto_terceirizadas.cardapio.api.serializers.serializers import MotivoSuspensaoSerializer
 from .permissions import (
     PodeIniciarAlteracaoCardapioPermission
 )
@@ -13,9 +14,12 @@ from .serializers.serializers import (
 from .serializers.serializers import MotivoAlteracaoCardapioSerializer
 from .serializers.serializers_create import (
     InversaoCardapioSerializerCreate, CardapioCreateSerializer,
-    AlteracaoCardapioSerializerCreate
+    AlteracaoCardapioSerializerCreate,
+    GrupoSuspensaoAlimentacaoCreateSerializer)
+from ..models import (
+    Cardapio, TipoAlimentacao, InversaoCardapio,
+    AlteracaoCardapio, GrupoSuspensaoAlimentacao, MotivoSuspensao
 )
-from ..models import Cardapio, TipoAlimentacao, InversaoCardapio, AlteracaoCardapio, GrupoSuspensaoAlimentacao
 from ..models import MotivoAlteracaoCardapio
 
 
@@ -52,10 +56,21 @@ class GrupoSuspensaoAlimentacaoSerializerViewSet(viewsets.ModelViewSet):
     queryset = GrupoSuspensaoAlimentacao.objects.all()
     serializer_class = GrupoSuspensaoAlimentacaoSerializer
 
-    # def get_serializer_class(self):
-    #     if self.action in ['create', 'update', 'partial_update']:
-    #         return SuspensaoAlimentacaoCreateSerializer
-    #     return GrupoSuspensaoAlimentacaoSerializer
+    @action(detail=False)
+    def meus_rascunhos(self, request):
+        usuario = request.user
+        grupos_suspensao = GrupoSuspensaoAlimentacao.objects.filter(
+            criado_por=usuario,
+            status=GrupoSuspensaoAlimentacao.workflow_class.RASCUNHO
+        )
+        page = self.paginate_queryset(grupos_suspensao)
+        serializer = GrupoSuspensaoAlimentacaoSerializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update']:
+            return GrupoSuspensaoAlimentacaoCreateSerializer
+        return GrupoSuspensaoAlimentacaoSerializer
 
 
 class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
@@ -88,3 +103,9 @@ class AlteracoesCardapioRascunhoViewSet(viewsets.ReadOnlyModelViewSet):
     lookup_field = 'uuid'
     queryset = AlteracaoCardapio.objects.filter(status="RASCUNHO")
     serializer_class = AlteracaoCardapioSerializer
+
+
+class MotivosSuspensaoCardapioViewSet(viewsets.ReadOnlyModelViewSet):
+    lookup_field = 'uuid'
+    queryset = MotivoSuspensao.objects.all()
+    serializer_class = MotivoSuspensaoSerializer
