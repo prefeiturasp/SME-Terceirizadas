@@ -1,3 +1,4 @@
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.validators import MinLengthValidator
 from django.db import models
 
@@ -42,6 +43,13 @@ class TipoUnidadeEscolar(Iniciais, Ativavel, TemChaveExterna):
     """
     cardapios = models.ManyToManyField('cardapio.Cardapio', blank=True,
                                        related_name='tipos_unidade_escolar')
+
+    def get_cardapio(self, data):
+        # TODO: ter certeza que tem so um cardapio por dia por tipo de u.e.
+        try:
+            return self.cardapios.get(data=data)
+        except ObjectDoesNotExist:
+            return None
 
     def __str__(self):
         return self.iniciais
@@ -113,6 +121,9 @@ class Escola(Ativavel, TemChaveExterna):
     @property
     def grupos_inclusoes(self):
         return self.grupos_inclusoes_normais
+
+    def get_cardapio(self, data):
+        return self.tipo_unidade.get_cardapio(data)
 
     @property
     def inclusoes_continuas(self):
