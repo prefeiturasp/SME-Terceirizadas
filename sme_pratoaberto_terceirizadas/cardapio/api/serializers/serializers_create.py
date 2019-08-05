@@ -3,7 +3,7 @@ from rest_framework import serializers
 from sme_pratoaberto_terceirizadas.dados_comuns.utils import update_instance_from_dict, enviar_notificacao
 from sme_pratoaberto_terceirizadas.dados_comuns.validators import (
     nao_pode_ser_no_passado, nao_pode_ser_feriado,
-    objeto_nao_deve_ter_duplicidade, existe_cardapio
+    objeto_nao_deve_ter_duplicidade, deve_existir_cardapio
 )
 from sme_pratoaberto_terceirizadas.escola.models import Escola, PeriodoEscolar
 from sme_pratoaberto_terceirizadas.terceirizada.models import Edital
@@ -34,8 +34,8 @@ class InversaoCardapioSerializerCreate(serializers.ModelSerializer):
         return data_para
 
     def validate(self, attrs):
-        existe_cardapio(attrs['escola'], attrs['data_de'])
-        existe_cardapio(attrs['escola'], attrs['data_para'])
+        deve_existir_cardapio(attrs['escola'], attrs['data_de'])
+        deve_existir_cardapio(attrs['escola'], attrs['data_para'])
         return attrs
 
     def create(self, validated_data):

@@ -14,7 +14,7 @@ def nao_pode_ser_no_passado(data: datetime.date):
     return True
 
 
-def existe_cardapio(escola, data: datetime.date):
+def deve_existir_cardapio(escola, data: datetime.date):
     if not escola.get_cardapio(data):
         raise serializers.ValidationError(f'Escola não possui cardápio para esse dia: {data}')
     return True
@@ -35,10 +35,8 @@ def dia_util(data: datetime.date):
 
 # TODO: validar o primeiro parametro pra ser instance of Model
 def verificar_se_existe(obj_model, **kwargs) -> bool:
-    qtd = obj_model.objects.filter(**kwargs).exists()
-    if qtd:
-        return True
-    return False
+    existe = obj_model.objects.filter(**kwargs).exists()
+    return existe
 
 
 def objeto_nao_deve_ter_duplicidade(obj_model, mensagem="Objeto já existe", **kwargs, ):

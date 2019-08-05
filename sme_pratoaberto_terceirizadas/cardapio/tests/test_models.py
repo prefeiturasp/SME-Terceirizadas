@@ -1,5 +1,6 @@
 import pytest
-
+from sme_pratoaberto_terceirizadas.escola.models import Escola
+from sme_pratoaberto_terceirizadas.cardapio.models import Cardapio
 
 pytestmark = pytest.mark.django_db
 
@@ -21,4 +22,11 @@ def test_substituicoes_alimentacao_periodo(substituicoes_alimentacao_periodo):
     assert substituicoes_alimentacao_periodo.alteracao_cardapio.substituicoes is not None
 
 
-
+def test_inversao_dia_cardapio(inversao_dia_cardapio):
+    assert isinstance(inversao_dia_cardapio.escola, Escola)
+    assert isinstance(inversao_dia_cardapio.cardapio_de, Cardapio)
+    assert isinstance(inversao_dia_cardapio.cardapio_para, Cardapio)
+    assunto, template_html = inversao_dia_cardapio.template_mensagem
+    assert assunto == 'TESTE INVERSAO CARDAPIO'
+    assert '98DC7' in template_html
+    assert 'RASCUNHO' in template_html
