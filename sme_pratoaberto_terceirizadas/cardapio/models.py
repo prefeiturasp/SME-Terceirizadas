@@ -1,9 +1,11 @@
 from django.db import models
 
+from ..dados_comuns.models import TemplateMensagem
 from ..dados_comuns.models_abstract import (
     Descritivel, TemData, TemChaveExterna, Ativavel,
     Nomeavel, CriadoEm, IntervaloDeDia, CriadoPor,
-    TemObservacao, FluxoAprovacaoPartindoDaEscola
+    TemObservacao, FluxoAprovacaoPartindoDaEscola,
+    CriadoPor, TemIdentificadorExternoAmigavel
 )
 
 
@@ -58,7 +60,8 @@ class Cardapio(Descritivel, Ativavel, TemData, TemChaveExterna, CriadoEm):
         verbose_name_plural = "Cardápios"
 
 
-class InversaoCardapio(CriadoEm, Descritivel, TemChaveExterna, FluxoAprovacaoPartindoDaEscola):
+class InversaoCardapio(CriadoEm, CriadoPor, TemObservacao, Descritivel, TemChaveExterna,
+                       TemIdentificadorExternoAmigavel, FluxoAprovacaoPartindoDaEscola):
     """
         servir o cardápio do dia 30 no dia 15, automaticamente o
         cardápio do dia 15 será servido no dia 30
@@ -72,6 +75,34 @@ class InversaoCardapio(CriadoEm, Descritivel, TemChaveExterna, FluxoAprovacaoPar
                                       related_name='cardapio_para')
     escola = models.ForeignKey('escola.Escola', blank=True, null=True,
                                on_delete=models.DO_NOTHING)
+
+    @property
+    def data_de(self):
+        return self.cardapio_de.data if self.cardapio_de else None
+
+    @property
+    def data_para(self):
+        return self.cardapio_para.data if self.cardapio_para else None
+
+    @property
+    def descricao_curta(self):
+        return f"Inversão de dia de Cardápio #{self.id_externo}"
+
+    @property
+    def template_mensagem(self):
+        template = TemplateMensagem.objects.get(tipo=TemplateMensagem.INVERSAO_CARDAPIO)
+        template_troca = {
+            '@id': self.id_externo,
+            '@criado_em': str(self.criado_em),
+            '@criado_por': str(self.criado_por),
+            '@status': str(self.status),
+            # TODO: verificar a url padrão do pedido
+            '@link': 'http://teste.com',
+        }
+        corpo = template.template_html
+        for chave, valor in template_troca.items():
+            corpo = corpo.replace(chave, valor)
+        return template.assunto, corpo
 
     def __str__(self):
         if self.cardapio_de and self.cardapio_para and self.escola:

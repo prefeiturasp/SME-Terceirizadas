@@ -6,6 +6,7 @@ from .api import viewsets
 router = routers.DefaultRouter()
 router.register("cardapios", viewsets.CardapioViewSet, 'Cardápios')
 router.register("tipos-alimentacao", viewsets.TipoAlimentacaoViewSet, 'Tipos de Alimentação')
+router.register("inversoes-dia-cardapio", viewsets.InversaoCardapioViewSet, 'Inversão de dia de Cardápio')
 router.register("inverte-dia-cardapio", viewsets.InversaoCardapioViewSet, 'Inversão de dia de Cardápio')
 router.register("grupos-suspensoes-alimentacao", viewsets.GrupoSuspensaoAlimentacaoSerializerViewSet,
                 "Grupos de suspensão de alimentação.")

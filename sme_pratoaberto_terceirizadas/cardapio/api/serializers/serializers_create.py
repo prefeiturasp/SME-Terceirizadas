@@ -8,9 +8,11 @@ from sme_pratoaberto_terceirizadas.dados_comuns.validators import (
 from sme_pratoaberto_terceirizadas.escola.models import Escola, PeriodoEscolar
 from sme_pratoaberto_terceirizadas.terceirizada.models import Edital
 from ..helpers import notificar_partes_envolvidas
+
 from ...api.validators import (
-    cardapio_antigo, valida_duplicidade,
-    valida_cardapio_de_para, )
+    valida_duplicidade, valida_cardapio_de_para
+    )
+from sme_pratoaberto_terceirizadas.dados_comuns.validators import deve_existir_cardapio
 from ...models import (
     InversaoCardapio, Cardapio,
     TipoAlimentacao, SuspensaoAlimentacao,
@@ -20,17 +22,8 @@ from ...models import (
 
 
 class InversaoCardapioSerializerCreate(serializers.ModelSerializer):
-    cardapio_de = serializers.SlugRelatedField(
-        slug_field='uuid',
-        required=True,
-        queryset=Cardapio.objects.all()
-    )
-
-    cardapio_para = serializers.SlugRelatedField(
-        slug_field='uuid',
-        required=True,
-        queryset=Cardapio.objects.all()
-    )
+    data_de = serializers.DateField()
+    data_para = serializers.DateField()
 
     escola = serializers.SlugRelatedField(
         slug_field='uuid',
@@ -38,29 +31,47 @@ class InversaoCardapioSerializerCreate(serializers.ModelSerializer):
         queryset=Escola.objects.all()
     )
 
-    def validate_cardapio_de(self, attr):
-        cardapio_antigo(attr)
-        return attr
+    def validate_data_de(self, data_de):
+        nao_pode_ser_no_passado(data_de)
+        return data_de
 
-    def validate_cardapio_para(self, attr):
-        cardapio_antigo(attr)
-        return attr
+    def validate_data_para(self, data_para):
+        nao_pode_ser_no_passado(data_para)
+        return data_para
 
     def validate(self, attrs):
-        valida_cardapio_de_para(attrs.get('cardapio_de'), attrs.get('cardapio_para'))
-        valida_duplicidade(attrs.get('cardapio_de'), attrs.get('cardapio_para'), attrs.get('escola'))
+        valida_cardapio_de_para(attrs.get('data_de'), attrs.get('data_para'))
+        valida_duplicidade(attrs.get('data_de'), attrs.get('data_para'), attrs.get('escola'))
+        deve_existir_cardapio(attrs['escola'], attrs['data_de'])
         return attrs
 
     def create(self, validated_data):
+        data_de = validated_data.pop('data_de')
+        data_para = validated_data.pop('data_para')
+        escola = validated_data.get('escola')
+        validated_data['cardapio_de'] = escola.get_cardapio(data_de)
+        validated_data['cardapio_para'] = escola.get_cardapio(data_para)
+        validated_data['criado_por'] = self.context['request'].user
+
         inversao_cardapio = InversaoCardapio.objects.create(**validated_data)
         if inversao_cardapio.pk:
             usuario = self.context.get('request').user
             notificar_partes_envolvidas(usuario, **validated_data)
         return inversao_cardapio
 
+    def update(self, instance, validated_data):
+        data_de = validated_data.pop('data_de')
+        data_para = validated_data.pop('data_para')
+        escola = validated_data.get('escola')
+        validated_data['cardapio_de'] = escola.get_cardapio(data_de)
+        validated_data['cardapio_para'] = escola.get_cardapio(data_para)
+        update_instance_from_dict(instance, validated_data)
+        instance.save()
+        return instance
+
     class Meta:
         model = InversaoCardapio
-        fields = ['uuid', 'descricao', 'cardapio_de', 'cardapio_para', 'escola']
+        fields = ('uuid', 'descricao', 'data_de', 'data_para', 'escola')
 
 
 class CardapioCreateSerializer(serializers.ModelSerializer):

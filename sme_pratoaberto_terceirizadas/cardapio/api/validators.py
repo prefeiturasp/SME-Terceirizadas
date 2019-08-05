@@ -15,15 +15,15 @@ def cardapio_antigo(cardapio: Cardapio) -> Any:
     return True
 
 
-def valida_cardapio_de_para(cardapio_de: Cardapio, cardapio_para: Cardapio) -> Any:
-    if cardapio_de.data >= cardapio_para.data:
+def valida_cardapio_de_para(data_de: date, data_para: date) -> Any:
+    if data_de >= data_para:
         raise serializers.ValidationError('Data de cardápio para troca é superior a data de inversão')
     return True
 
 
-def valida_duplicidade(cardapio_de: Cardapio, cardapio_para: Cardapio, escola: Escola) -> Any:
-    inversao_cardapio = InversaoCardapio.objects.filter(cardapio_de=cardapio_de).filter(
-        cardapio_para=cardapio_para).filter(
+def valida_duplicidade(data_de: date, data_para: date, escola: Escola) -> Any:
+    inversao_cardapio = InversaoCardapio.objects.filter(cardapio_de__data=data_de).filter(
+        cardapio_para__data=data_para).filter(
         escola=escola).exists()
     if inversao_cardapio:
         raise serializers.ValidationError('Já existe uma solicitação de inversão com estes dados')

@@ -12,7 +12,7 @@ def test_url_endpoint_tipo_de_alimentacao(client):
 
 
 def test_url_endpoint_inverter_dia_cardapio(client):
-    response = client.get('/inverte-dia-cardapio/')
+    response = client.get('/inversoes-dia-cardapio/')
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
