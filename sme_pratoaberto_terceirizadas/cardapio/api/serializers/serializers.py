@@ -69,7 +69,7 @@ class SuspensaoAlimentacaoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SuspensaoAlimentacao
-        exclude = ('id',)
+        exclude = ('id', 'grupo_suspensao')
 
 
 class QuantidadePorPeriodoSuspensaoAlimentacaoSerializer(serializers.ModelSerializer):
@@ -84,6 +84,7 @@ class QuantidadePorPeriodoSuspensaoAlimentacaoSerializer(serializers.ModelSerial
 class GrupoSuspensaoAlimentacaoSerializer(serializers.ModelSerializer):
     escola = EscolaSimplesSerializer()
     quantidades_por_periodo = QuantidadePorPeriodoSuspensaoAlimentacaoSerializer(many=True)
+    suspensoes_alimentacao = SuspensaoAlimentacaoSerializer(many=True)
 
     class Meta:
         model = GrupoSuspensaoAlimentacao
