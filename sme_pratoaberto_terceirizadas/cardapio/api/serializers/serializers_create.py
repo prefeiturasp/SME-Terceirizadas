@@ -8,6 +8,10 @@ from sme_pratoaberto_terceirizadas.dados_comuns.validators import (
 from sme_pratoaberto_terceirizadas.escola.models import Escola, PeriodoEscolar
 from sme_pratoaberto_terceirizadas.terceirizada.models import Edital
 from ..helpers import notificar_partes_envolvidas
+
+from ...api.validators import (
+    valida_duplicidade, valida_cardapio_de_para
+    )
 from sme_pratoaberto_terceirizadas.dados_comuns.validators import deve_existir_cardapio
 from ...models import (
     InversaoCardapio, Cardapio,
@@ -35,6 +39,8 @@ class InversaoCardapioSerializerCreate(serializers.ModelSerializer):
         return data_para
 
     def validate(self, attrs):
+        valida_cardapio_de_para(attrs.get('data_de'), attrs.get('data_para'))
+        valida_duplicidade(attrs.get('data_de'), attrs.get('data_para'), attrs.get('escola'))
         deve_existir_cardapio(attrs['escola'], attrs['data_de'])
         return attrs
 
