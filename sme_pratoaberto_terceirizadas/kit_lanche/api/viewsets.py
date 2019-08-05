@@ -4,7 +4,9 @@ from rest_framework.status import HTTP_400_BAD_REQUEST
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from xworkflows import InvalidTransitionError
 
-from .permissions import SolicitacaoUnificadaPermission, PodeIniciarSolicitacaoUnificadaPermission
+from .permissions import (
+    SolicitacaoUnificadaPermission, PodeIniciarSolicitacaoUnificadaPermission,
+    PodeIniciarSolicitacaoKitLancheAvulsaPermission)
 from .serializers import serializers
 from .serializers import serializers_create
 from .. import models
@@ -34,14 +36,30 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
 
     # TODO: com as permissoes feitas, somente uma pessoa com permissao dentro da escola poder pedir
     # usar PermissionClasses...
-    @action(detail=True, )
+    @action(detail=False, url_path="minhas-solicitacoes")
+    def minhas_solicitacoes(self, request):
+        usuario = request.user
+        solicitacoes_unificadas = models.SolicitacaoKitLancheAvulsa.objects.filter(
+            criado_por=usuario,
+            status=models.SolicitacaoKitLancheAvulsa.workflow_class.RASCUNHO
+        )
+        page = self.paginate_queryset(solicitacoes_unificadas)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=True, permission_classes=[PodeIniciarSolicitacaoKitLancheAvulsaPermission])
     def inicio_de_pedido(self, request, uuid=None):
-        solicitacao = self.get_object()
-        solicitacao.inicia_fluxo()
+        solicitacao_kit_lanche_avulsa = self.get_object()
+        try:
+            solicitacao_kit_lanche_avulsa.inicia_fluxo(user=request.user)
+            serializer = self.get_serializer(solicitacao_kit_lanche_avulsa)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'))
 
     def destroy(self, request, *args, **kwargs):
-        solicitacao = self.get_object()
-        if solicitacao.pode_excluir:
+        solicitacao_kit_lanche_avulsa = self.get_object()
+        if solicitacao_kit_lanche_avulsa.pode_excluir:
             return super().destroy(request, *args, **kwargs)
 
 

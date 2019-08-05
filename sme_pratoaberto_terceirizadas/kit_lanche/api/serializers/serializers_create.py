@@ -66,6 +66,7 @@ class SolicitacaoKitLancheAvulsaCreationSerializer(serializers.ModelSerializer):
     )
 
     def create(self, validated_data):
+        validated_data['criado_por'] = self.context['request'].user
         solicitacao_kit_lanche_json = validated_data.pop('solicitacao_kit_lanche')
         solicitacao_kit_lanche = SolicitacaoKitLancheCreationSerializer(
         ).create(solicitacao_kit_lanche_json)

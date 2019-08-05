@@ -14,7 +14,7 @@ class PodeAprovarAlimentacaoContinuaDaEscolaPermission(permissions.BasePermissio
     message = 'Você não tem permissão para aprovar um pedido de inclusão de alimentação contínua.'
 
     def has_object_permission(self, request, view, alimentacao_continua):
-        # TODO: verificar se esse user (request.user) tem permissão de
+        # TODO: verificar se esse user (request.user) tem permissão de inclusão de alimentação contínua
         # aprovar da escola o pedido de alimentacao continua
         # entende-se que ele responde pela DRE em que a escola está contida
         return True

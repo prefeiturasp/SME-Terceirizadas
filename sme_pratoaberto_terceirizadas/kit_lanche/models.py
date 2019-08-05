@@ -1,5 +1,6 @@
 from django.db import models
 
+from sme_pratoaberto_terceirizadas.dados_comuns.models import TemplateMensagem
 from ..dados_comuns.models_abstract import (
     Nomeavel, TemData, Motivo, Descritivel,
     CriadoEm, TemChaveExterna, TempoPasseio, CriadoPor,
@@ -65,7 +66,8 @@ class SolicitacaoKitLanche(TemData, Motivo, Descritivel, CriadoEm, TempoPasseio,
         verbose_name_plural = "Solicitações kit lanche base"
 
 
-class SolicitacaoKitLancheAvulsa(TemChaveExterna, FluxoAprovacaoPartindoDaEscola):
+class SolicitacaoKitLancheAvulsa(TemChaveExterna, FluxoAprovacaoPartindoDaEscola, TemIdentificadorExternoAmigavel,
+                                 CriadoPor):
     # TODO: ao deletar este, deletar solicitacao_kit_lanche também que é uma tabela acessória
     # TODO: passar `local` para solicitacao_kit_lanche
     local = models.CharField(max_length=160)
@@ -73,6 +75,22 @@ class SolicitacaoKitLancheAvulsa(TemChaveExterna, FluxoAprovacaoPartindoDaEscola
     solicitacao_kit_lanche = models.ForeignKey(SolicitacaoKitLanche, on_delete=models.DO_NOTHING)
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING,
                                related_name='solicitacoes_kit_lanche_avulsa')
+
+    @property
+    def template_mensagem(self):
+        template = TemplateMensagem.objects.get(tipo=TemplateMensagem.SOLICITACAO_KIT_LANCHE_AVULSA)
+        template_troca = {
+            '@id': self.id_externo,
+            '@criado_em': str(self.solicitacao_kit_lanche.criado_em),
+            '@criado_por': str(self.criado_por),
+            '@status': str(self.status),
+            # TODO: verificar a url padrão do pedido
+            '@link': 'http://teste.com',
+        }
+        corpo = template.template_html
+        for chave, valor in template_troca.items():
+            corpo = corpo.replace(chave, valor)
+        return template.assunto, corpo
 
     def __str__(self):
         return "{} SOLICITA PARA {} ALUNOS EM {}".format(self.escola, self.quantidade_alunos, self.local)
@@ -105,6 +123,22 @@ class SolicitacaoKitLancheUnificada(CriadoPor, TemChaveExterna, TemIdentificador
 
     diretoria_regional = models.ForeignKey('escola.DiretoriaRegional', on_delete=models.DO_NOTHING)
     solicitacao_kit_lanche = models.ForeignKey(SolicitacaoKitLanche, on_delete=models.DO_NOTHING)
+
+    @property
+    def template_mensagem(self):
+        template = TemplateMensagem.objects.get(tipo=TemplateMensagem.SOLICITACAO_KIT_LANCHE_UNIFICADA)
+        template_troca = {
+            '@id': self.id_externo,
+            '@criado_em': str(self.solicitacao_kit_lanche.criado_em),
+            '@criado_por': str(self.criado_por),
+            '@status': str(self.status),
+            # TODO: verificar a url padrão do pedido
+            '@link': 'http://teste.com',
+        }
+        corpo = template.template_html
+        for chave, valor in template_troca.items():
+            corpo = corpo.replace(chave, valor)
+        return template.assunto, corpo
 
     def vincula_escolas_quantidades(self, escolas_quantidades):
         for escola_quantidade in escolas_quantidades:

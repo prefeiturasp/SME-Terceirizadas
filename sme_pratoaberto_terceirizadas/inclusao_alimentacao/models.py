@@ -128,6 +128,21 @@ class GrupoInclusaoAlimentacaoNormal(Descritivel, TemChaveExterna, FluxoAprovaca
                                related_name='grupos_inclusoes_normais')
 
     @property
+    def template_mensagem(self):
+        template = TemplateMensagem.objects.get(tipo=TemplateMensagem.INCLUSAO_ALIMENTACAO)
+        template_troca = {
+            '@id': self.id_externo,
+            '@criado_por': str(self.criado_por),
+            '@status': str(self.status),
+            # TODO: verificar a url padrão do pedido
+            '@link': 'http://teste.com',
+        }
+        corpo = template.template_html
+        for chave, valor in template_troca.items():
+            corpo = corpo.replace(chave, valor)
+        return template.assunto, corpo
+
+    @property
     def descricao_curta(self):
         return f"Grupo de inclusão de alimentação normal #{self.id_externo}"
 
