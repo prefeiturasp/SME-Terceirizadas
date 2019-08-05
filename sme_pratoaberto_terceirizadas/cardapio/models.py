@@ -103,7 +103,7 @@ class SuspensaoAlimentacao(TemData, TemChaveExterna):
     Uma escola pede para suspender as refeições: escolhe os
     """
     motivo = models.ForeignKey(MotivoSuspensao, on_delete=models.DO_NOTHING)
-    grupo_suspensao = models.ForeignKey('SuspensaoAlimentacao', on_delete=models.CASCADE,
+    grupo_suspensao = models.ForeignKey('GrupoSuspensaoAlimentacao', on_delete=models.CASCADE,
                                         blank=True, null=True)
 
     def __str__(self):

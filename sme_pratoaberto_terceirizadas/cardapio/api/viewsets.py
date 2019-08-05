@@ -1,28 +1,22 @@
-from rest_framework.decorators import action
 from rest_framework import viewsets
+from rest_framework.decorators import action
 from rest_framework.response import Response
-
 from xworkflows import InvalidTransitionError
 
+from .permissions import (
+    PodeIniciarAlteracaoCardapioPermission
+)
 from .serializers.serializers import (
     CardapioSerializer, TipoAlimentacaoSerializer,
-    InversaoCardapioSerializer, SuspensaoAlimentacaoSerializer, AlteracaoCardapioSerializer
-)
+    InversaoCardapioSerializer, AlteracaoCardapioSerializer,
+    GrupoSuspensaoAlimentacaoSerializer)
 from .serializers.serializers import MotivoAlteracaoCardapioSerializer
-
 from .serializers.serializers_create import (
     InversaoCardapioSerializerCreate, CardapioCreateSerializer,
-    SuspensaoAlimentacaoCreateSerializer, AlteracaoCardapioSerializerCreate
+    AlteracaoCardapioSerializerCreate
 )
-
-from ..models import Cardapio, TipoAlimentacao, InversaoCardapio, AlteracaoCardapio
-from ..models import SuspensaoAlimentacao
+from ..models import Cardapio, TipoAlimentacao, InversaoCardapio, AlteracaoCardapio, GrupoSuspensaoAlimentacao
 from ..models import MotivoAlteracaoCardapio
-
-from .permissions import (
-    PodeIniciarAlteracaoCardapioPermission,
-    PodeAprovarAlteracaoCardapioPermission
-)
 
 
 class CardapioViewSet(viewsets.ModelViewSet):
@@ -53,14 +47,15 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
         return InversaoCardapioSerializer
 
 
-class SuspensaoAlimentacaoViewSet(viewsets.ModelViewSet):
+class GrupoSuspensaoAlimentacaoSerializerViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
-    queryset = SuspensaoAlimentacao.objects.all()
+    queryset = GrupoSuspensaoAlimentacao.objects.all()
+    serializer_class = GrupoSuspensaoAlimentacaoSerializer
 
-    def get_serializer_class(self):
-        if self.action in ['create', 'update', 'partial_update']:
-            return SuspensaoAlimentacaoCreateSerializer
-        return SuspensaoAlimentacaoSerializer
+    # def get_serializer_class(self):
+    #     if self.action in ['create', 'update', 'partial_update']:
+    #         return SuspensaoAlimentacaoCreateSerializer
+    #     return GrupoSuspensaoAlimentacaoSerializer
 
 
 class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
