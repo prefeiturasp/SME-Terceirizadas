@@ -4,20 +4,36 @@ from django.db import models
 from ..dados_comuns.models_abstract import (
     Descritivel, IntervaloDeDia,
     TemChaveExterna, Nomeavel, Ativavel,
-)
+    TemIdentificadorExternoAmigavel)
 
 
 class Edital(TemChaveExterna, Nomeavel, Descritivel, Ativavel, IntervaloDeDia):
 
     def __str__(self):
-        return "{} válido de {} até {}".format(self.nome, self.data_inicial, self.data_final)
+        return f"{self.nome} válido de {self.data_inicial} até {self.data_final}"
 
     class Meta:
         verbose_name = "Edital"
         verbose_name_plural = "Editais"
 
 
-class Terceirizada(TemChaveExterna, Ativavel):
+class Nutricionista(TemChaveExterna, Nomeavel):
+    # TODO: verificar a diferença dessa pra nutricionista da CODAE
+
+    crn_numero = models.CharField("Nutricionista crn", max_length=160,
+                                  blank=True, null=True)
+    terceirizada = models.ForeignKey('Terceirizada', on_delete=models.CASCADE,
+                                     related_name='nutricionistas')
+
+    def __str__(self):
+        return self.nome
+
+    class Meta:
+        verbose_name = "Nutricionista"
+        verbose_name_plural = "Nutricionistas"
+
+
+class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel):
     """Empresa Terceirizada"""
 
     nome_fantasia = models.CharField("Nome fantasia", max_length=160,
@@ -31,18 +47,19 @@ class Terceirizada(TemChaveExterna, Ativavel):
                                            blank=True, null=True)
     representante_contato = models.CharField("Representante contato (email/tel)", max_length=160,
                                              blank=True, null=True)
-    nutricionista_responsavel = models.CharField("Nutricionista responsavel", max_length=160,
-                                                 blank=True, null=True)
-    nutricionista_crn = models.CharField("Nutricionista crn", max_length=160,
-                                         blank=True, null=True)
-
     endereco = models.ForeignKey("dados_comuns.Endereco", on_delete=models.CASCADE,
                                  blank=True, null=True)
-    contato = models.ForeignKey("dados_comuns.Contato", on_delete=models.CASCADE,
-                                blank=True, null=True)
+    # TODO: criar uma tabela central (Instituição) para agregar Escola, DRE, Terc e CODAE???
+    # e a partir dai a instituição que tem contatos e endereço?
+    # o mesmo para pessoa fisica talvez?
+    contatos = models.ManyToManyField("dados_comuns.Contato", blank=True)
+
+    @property
+    def nutricionistas(self):
+        return self.nutricionistas
 
     def __str__(self):
-        return "{} {}".format(self.nome_fantasia, self.cnpj)
+        return f"{self.nome_fantasia} {self.cnpj}"
 
     class Meta:
         verbose_name = "Terceirizada"
