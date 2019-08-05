@@ -98,23 +98,55 @@ class MotivoSuspensao(Nomeavel, TemChaveExterna):
         verbose_name_plural = "Motivo de suspensão de alimentação"
 
 
-class SuspensaoAlimentacao(TemData, TemChaveExterna, CriadoPor, CriadoEm):
+class SuspensaoAlimentacao(TemData, TemChaveExterna):
     """
     Uma escola pede para suspender as refeições: escolhe os
     """
     motivo = models.ForeignKey(MotivoSuspensao, on_delete=models.DO_NOTHING)
-    escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING)
+    grupo_suspensao = models.ForeignKey('SuspensaoAlimentacao', on_delete=models.CASCADE,
+                                        blank=True, null=True)
 
     def __str__(self):
         return f"{self.motivo}"
 
-    @property
-    def suspensoes_periodo_escolar(self):
-        return self.suspensoes_periodo_escolar
-
     class Meta:
         verbose_name = "Suspensão de alimentação"
         verbose_name_plural = "Suspensões de alimentação"
+
+
+class QuantidadePorPeriodoSuspensaoAlimentacao(TemChaveExterna):
+    numero_alunos = models.SmallIntegerField()
+    periodo_escolar = models.ForeignKey('escola.PeriodoEscolar', on_delete=models.DO_NOTHING)
+    grupo_suspensao = models.ForeignKey('GrupoSuspensaoAlimentacao', on_delete=models.CASCADE,
+                                        blank=True, null=True, related_name='quantidades_por_periodo')
+    tipos_alimentacao = models.ManyToManyField(TipoAlimentacao)
+
+    def __str__(self):
+        return f"Quantidade de alunos: {self.numero_alunos}"
+
+    class Meta:
+        verbose_name = "Quantidade por período de suspensão de alimentação"
+        verbose_name_plural = "Quantidade por período de suspensão de alimentação"
+
+
+class GrupoSuspensaoAlimentacao(TemChaveExterna, CriadoPor, CriadoEm,
+                                TemObservacao, FluxoAprovacaoPartindoDaEscola):
+    # TODO: criar fluxo direto de rascunho...
+    """
+        Serve para agrupar suspensões
+    """
+    escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING)
+
+    @property
+    def quantidades_por_periodo(self):
+        return self.quantidades_por_periodo
+
+    def __str__(self):
+        return f"{self.observacao}"
+
+    class Meta:
+        verbose_name = "Grupo de suspensão de alimentação"
+        verbose_name_plural = "Grupo de suspensão de alimentação"
 
 
 class SuspensaoAlimentacaoNoPeriodoEscolar(TemChaveExterna):
