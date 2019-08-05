@@ -58,8 +58,6 @@ class SuspensaoAlimentacaoNoPeriodoEscolarSerializer(serializers.ModelSerializer
 
 
 class SuspensaoAlimentacaoSerializer(serializers.ModelSerializer):
-    escola = EscolaSimplesSerializer()
-    suspensoes_periodo_escolar = SuspensaoAlimentacaoNoPeriodoEscolarSerializer(many=True)
 
     class Meta:
         model = SuspensaoAlimentacao
