@@ -56,7 +56,7 @@ class GrupoSuspensaoAlimentacaoSerializerViewSet(viewsets.ModelViewSet):
     queryset = GrupoSuspensaoAlimentacao.objects.all()
     serializer_class = GrupoSuspensaoAlimentacaoSerializer
 
-    @action(detail=False)
+    @action(detail=False, methods=['GET'])
     def meus_rascunhos(self, request):
         usuario = request.user
         grupos_suspensao = GrupoSuspensaoAlimentacao.objects.filter(
