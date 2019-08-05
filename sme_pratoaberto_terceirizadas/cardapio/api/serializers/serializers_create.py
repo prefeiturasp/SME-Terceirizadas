@@ -258,6 +258,7 @@ class GrupoSuspensaoAlimentacaoCreateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         quantidades_por_periodo_array = validated_data.pop('quantidades_por_periodo')
         suspensoes_alimentacao_array = validated_data.pop('suspensoes_alimentacao')
+        validated_data['criado_por'] = self.context['request'].user
 
         quantidades = []
         for quantidade_json in quantidades_por_periodo_array:
@@ -273,6 +274,29 @@ class GrupoSuspensaoAlimentacaoCreateSerializer(serializers.ModelSerializer):
         grupo.quantidades_por_periodo.set(quantidades)
         grupo.suspensoes_alimentacao.set(suspensoes)
         return grupo
+
+    def update(self, instance, validated_data):
+        quantidades_por_periodo_array = validated_data.pop('quantidades_por_periodo')
+        suspensoes_alimentacao_array = validated_data.pop('suspensoes_alimentacao')
+
+        instance.quantidades_por_periodo.all().delete()
+        instance.suspensoes_alimentacao.all().delete()
+
+        quantidades = []
+        for quantidade_json in quantidades_por_periodo_array:
+            quantidade = QuantidadePorPeriodoSuspensaoAlimentacaoCreateSerializer().create(quantidade_json)
+            quantidades.append(quantidade)
+
+        suspensoes = []
+        for suspensao_json in suspensoes_alimentacao_array:
+            suspensao = SuspensaoAlimentacaoCreateSerializer().create(suspensao_json)
+            suspensoes.append(suspensao)
+
+        update_instance_from_dict(instance, validated_data, save=True)
+        instance.quantidades_por_periodo.set(quantidades)
+        instance.suspensoes_alimentacao.set(suspensoes)
+
+        return instance
 
     class Meta:
         model = GrupoSuspensaoAlimentacao
