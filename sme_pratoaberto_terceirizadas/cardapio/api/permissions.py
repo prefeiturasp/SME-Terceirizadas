@@ -18,3 +18,13 @@ class PodeAprovarAlteracaoCardapioPermission(permissions.BasePermission):
         # aprovar da escola o pedido de alteração de cardápio
         # entende-se que ele responde pela DRE em que a escola está contida
         return True
+
+
+class PodeIniciarInversaoDeDiaDeCardapioPermission(permissions.BasePermission):
+    message = 'Você não tem permissão para aprovar um pedido de inversão de dia de cardápio.'
+
+    def has_object_permission(self, request, view, alimentacao_continua):
+        # TODO: verificar se esse user (request.user) tem permissão de iniciar o pedido de inversão de dia de cardápio
+        # aprovar da escola o pedido de inversão de dia de cardápio
+        # entende-se que ele responde pela DRE em que a escola está contida
+        return True
