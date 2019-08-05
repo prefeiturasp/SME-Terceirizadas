@@ -1,13 +1,13 @@
 from django.contrib import admin
 
 from .models import (
-    TipoAlimentacao, Cardapio, InversaoCardapio, AlteracaoCardapio, SuspensaoAlimentacao, MotivoAlteracaoCardapio,
-    SubstituicoesAlimentacaoNoPeriodoEscolar
-)
+    TipoAlimentacao, Cardapio, InversaoCardapio,
+    MotivoAlteracaoCardapio, AlteracaoCardapio,
+    SubstituicoesAlimentacaoNoPeriodoEscolar, SuspensaoAlimentacao,
+    SuspensaoAlimentacaoNoPeriodoEscolar)
 
 admin.site.register(TipoAlimentacao)
 admin.site.register(InversaoCardapio)
-admin.site.register(SuspensaoAlimentacao)
 admin.site.register(MotivoAlteracaoCardapio)
 admin.site.register(SubstituicoesAlimentacaoNoPeriodoEscolar)
 
@@ -25,7 +25,14 @@ class SubstituicoesInLine(admin.TabularInline):
 
 @admin.register(AlteracaoCardapio)
 class AlteracaoCardapioModelAdmin(admin.ModelAdmin):
-
     inlines = [SubstituicoesInLine]
 
 
+class SuspensoesInline(admin.TabularInline):
+    model = SuspensaoAlimentacaoNoPeriodoEscolar
+    extra = 1
+
+
+@admin.register(SuspensaoAlimentacao)
+class SuspensaoAlimentacaoModelAdmin(admin.ModelAdmin):
+    inlines = [SuspensoesInline]

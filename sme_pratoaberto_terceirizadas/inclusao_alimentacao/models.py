@@ -1,12 +1,14 @@
 from django.core.validators import MinValueValidator
 from django.db import models
 
+from sme_pratoaberto_terceirizadas.dados_comuns.models import TemplateMensagem
 from ..dados_comuns.models_abstract import (
     Descritivel, IntervaloDeDia,
     Nomeavel, TemData, TemChaveExterna,
     DiasSemana, CriadoPor,
     FluxoAprovacaoPartindoDaEscola,
-    TemIdentificadorExternoAmigavel)
+    TemIdentificadorExternoAmigavel,
+    CriadoEm)
 
 
 class QuantidadePorPeriodo(TemChaveExterna):
@@ -49,7 +51,8 @@ class MotivoInclusaoContinua(Nomeavel, TemChaveExterna):
 
 class InclusaoAlimentacaoContinua(IntervaloDeDia, Descritivel, TemChaveExterna,
                                   DiasSemana, FluxoAprovacaoPartindoDaEscola,
-                                  CriadoPor, TemIdentificadorExternoAmigavel):
+                                  CriadoPor, TemIdentificadorExternoAmigavel,
+                                  CriadoEm):
     outro_motivo = models.CharField("Outro motivo", blank=True, null=True, max_length=50)
     motivo = models.ForeignKey(MotivoInclusaoContinua, on_delete=models.DO_NOTHING)
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING,
@@ -60,8 +63,20 @@ class InclusaoAlimentacaoContinua(IntervaloDeDia, Descritivel, TemChaveExterna,
         return self.quantidades_por_periodo
 
     @property
-    def descricao_curta(self):
-        return f"Inclusão de alimentação contínua #{self.id_externo}"
+    def template_mensagem(self):
+        template = TemplateMensagem.objects.get(tipo=TemplateMensagem.INCLUSAO_ALIMENTACAO_CONTINUA)
+        template_troca = {
+            '@id': self.id_externo,
+            '@criado_em': str(self.criado_em),
+            '@criado_por': str(self.criado_por),
+            '@status': str(self.status),
+            # TODO: verificar a url padrão do pedido
+            '@link': 'http://teste.com',
+        }
+        corpo = template.template_html
+        for chave, valor in template_troca.items():
+            corpo = corpo.replace(chave, valor)
+        return template.assunto, corpo
 
     def __str__(self):
         return "de {} até {} para {} para {}".format(

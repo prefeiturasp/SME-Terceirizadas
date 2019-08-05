@@ -4,7 +4,6 @@ import xworkflows
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django_xworkflows import models as xwf_models
-from model_utils import Choices
 
 from .fluxo_status import PedidoAPartirDaEscolaWorkflow, PedidoAPartirDaDiretoriaRegionalWorkflow
 from .utils import enviar_notificacao_e_email
@@ -77,27 +76,6 @@ class TemData(models.Model):
 
 class TemChaveExterna(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-
-    class Meta:
-        abstract = True
-
-
-class StatusValidacao(models.Model):
-    """
-     - https://steelkiwi.com/blog/best-practices-working-django-models-python/
-     - https://hackernoon.com/using-enum-as-model-field-choice-in-django-92d8b97aaa63
-    """
-    STATUSES = Choices(
-        (0, 'DRE_A_VALIDAR', 'A validar pela DRE'),
-        (1, 'DRE_APROVADO', 'Aprovado pela DRE'),
-        (2, 'DRE_REPROVADO', 'Reprovado pela DRE'),
-        (3, 'CODAE_A_VALIDAR', 'A validar pela CODAE'),  # QUANDO A DRE VALIDA
-        (4, 'CODAE_APROVADO', 'Aprovado pela CODAE'),  # CODAE RECEBE
-        (5, 'CODAE_REPROVADO', 'Reprovado pela CODAE'),
-        (6, 'TERCEIRIZADA_A_VISUALIZAR', 'Terceirizada a visualizar'),
-        (7, 'TERCEIRIZADA_A_VISUALIZADO', 'Terceirizada visualizado')  # TOMOU CIENCIA, TODOS DEVEM FICAR SABENDO...
-    )
-    status = models.IntegerField(choices=STATUSES, default=STATUSES.DRE_A_VALIDAR)
 
     class Meta:
         abstract = True
@@ -186,16 +164,17 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
         return self.status == self.workflow_class.CODAE_APROVADO
 
     @property
-    def descricao_curta(self):
-        raise NotImplementedError('Deve ter uma descrição curta')
-
-    def _get_partes_interessadas_inicio_fluxo(self):
+    def partes_interessadas_inicio_fluxo(self):
         """
 
         """
         dre = self.escola.diretoria_regional
         usuarios_dre = dre.usuarios.all()
         return usuarios_dre
+
+    @property
+    def template_mensagem(self):
+        raise NotImplementedError('Deve criar um property que recupera o assunto e corpo mensagem desse objeto')
 
     #
     # Esses hooks são chamados automaticamente após a
@@ -206,13 +185,11 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
     @xworkflows.after_transition('inicia_fluxo')
     def _inicia_fluxo_hook(self, *args, **kwargs):
         user = kwargs['user']
-        short_desc = self.descricao_curta
-        long_desc = str(self)
+        assunto, corpo = self.template_mensagem
         enviar_notificacao_e_email(sender=user,
-                                   recipients=self._get_partes_interessadas_inicio_fluxo(),
-                                   short_desc=short_desc,
-                                   long_desc=long_desc)
-        print(f'Notificar partes interessadas nesse momento {self.escola.diretoria_regional}')
+                                   recipients=self.partes_interessadas_inicio_fluxo,
+                                   short_desc=assunto,
+                                   long_desc=corpo)
 
     @xworkflows.after_transition('dre_aprovou')
     def _dre_aprovou_hook(self, *args, **kwargs):
@@ -268,10 +245,6 @@ class FluxoAprovacaoPartindoDaDiretoriaRegional(xwf_models.WorkflowEnabled, mode
         return self.status == self.workflow_class.CODAE_APROVADO
 
     @property
-    def descricao_curta(self):
-        raise NotImplementedError('Deve ter uma descrição curta')
-
-    @property
     def partes_interessadas_inicio_fluxo(self):
         """
         TODO: retornar usuários CODAE, esse abaixo é so pra passar...
@@ -279,15 +252,19 @@ class FluxoAprovacaoPartindoDaDiretoriaRegional(xwf_models.WorkflowEnabled, mode
         usuarios_dre = self.diretoria_regional.usuarios.all()
         return usuarios_dre
 
+    @property
+    def template_mensagem(self):
+        raise NotImplementedError('Deve criar um property que recupera o assunto e corpo mensagem desse objeto')
+
     @xworkflows.after_transition('inicia_fluxo')
     def _inicia_fluxo_hook(self, *args, **kwargs):
         user = kwargs['user']
-        short_desc = self.descricao_curta
-        long_desc = str(self)
+        assunto, corpo = self.template_mensagem
+
         enviar_notificacao_e_email(sender=user,
                                    recipients=self.partes_interessadas_inicio_fluxo,
-                                   short_desc=short_desc,
-                                   long_desc=long_desc)
+                                   short_desc=assunto,
+                                   long_desc=corpo)
 
     class Meta:
         abstract = True
@@ -318,4 +295,5 @@ class TemIdentificadorExternoAmigavel(object):
 
     @property
     def id_externo(self):
-        return str(self.uuid).upper()[:5]
+        uuid = str(self.uuid)
+        return uuid.upper()[:5]

@@ -90,3 +90,23 @@ def dias_passados(request):
 ])
 def dias_uteis_apos(request):
     return request.param
+
+
+@pytest.fixture(scope='function', params=[
+    # model-params-dict, esperado
+    (
+        {'_model': 'TemplateMensagem',
+         'assunto': 'Inversão de cardápio',
+         'template_html': '<p><span style="color: rgb(133,135,150);background-color:'
+                          ' rgb(255,255,255);font-size: 16px;">Ola @nome, a Inversão de'
+                          ' cardápio #@id pedida por @criado_por está em @status. '
+                          'Acesse: @link</span></p>'
+         },
+        '<p><span style="color: rgb(133,135,150);background-color:'
+        ' rgb(255,255,255);font-size: 16px;">Ola fulano, a Inversão de'
+        ' cardápio #FAKE_id_externo pedida por FAKE_criado_por está em FAKE_status. '
+        'Acesse: http:teste.com</span></p>'
+    ),
+])
+def template_mensagem(request):
+    return request.param
