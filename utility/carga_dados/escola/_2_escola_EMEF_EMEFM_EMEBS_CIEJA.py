@@ -12,7 +12,7 @@ from sme_pratoaberto_terceirizadas.escola.models import (
     TipoUnidadeEscolar, TipoGestao, Escola, DiretoriaRegional, Lote)
 from utility.carga_dados.escola.helper import coloca_zero_a_esquerda, normaliza_nome, somente_digitos
 
-df = pd.read_excel('/home/marcelo/Desktop/docs PO alimentacao/escola_dre_codae.xlsx',
+df = pd.read_excel('/home/amcom/Documentos/docs PO alimentacao/escola_dre_codae.xlsx',
                    converters={'EOL': str,
                                'TELEFONE2': str,
                                'COD. CODAE': str,

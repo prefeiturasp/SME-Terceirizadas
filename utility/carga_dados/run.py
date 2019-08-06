@@ -1,5 +1,4 @@
-from utility.carga_dados.escola import _1_diretoria_regional
-from utility.carga_dados.terceirizada import lote
-from utility.carga_dados.escola import escola
-from utility.carga_dados.terceirizada import terceirizada
-
+from utility.carga_dados.escola import (
+    _2_escola_EMEF_EMEFM_EMEBS_CIEJA, _3_escola_EMEI, _4_escola_CEI, _5_periodo_escolar
+)
+from utility.carga_dados._2_cardapio._1_cardapios import gera_muitos_cardapios

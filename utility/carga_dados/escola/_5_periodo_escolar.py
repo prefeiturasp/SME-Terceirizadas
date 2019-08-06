@@ -4,7 +4,7 @@ import pandas as pd
 from sme_pratoaberto_terceirizadas.escola.models import PeriodoEscolar, Escola
 from utility.carga_dados.escola.helper import coloca_zero_a_esquerda
 
-df = pd.read_excel('/home/marcelo/Desktop/docs PO alimentacao/CADASTRO ESCOLAS DIVULGACAO.xlsx',
+df = pd.read_excel('/home/amcom/Documentos/docs PO alimentacao/CADASTRO ESCOLAS DIVULGACAO.xlsx',
                    converters={
                        'ANO': str,
                        'CODESC': str,

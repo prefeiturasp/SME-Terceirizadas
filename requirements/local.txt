@@ -4,6 +4,9 @@ Werkzeug==0.14.1  # https://github.com/pallets/werkzeug
 ipdb==0.11  # https://github.com/gotcha/ipdb
 Sphinx==1.8.4  # https://github.com/sphinx-doc/sphinx
 psycopg2-binary==2.7.7  # https://github.com/psycopg/psycopg2
+pandas==0.25.0 # https://github.com/pandas-dev/pandas/
+numpy==1.17.0 # https://github.com/numpy/numpy/
+xlrd==1.2.0 # https://pypi.org/project/xlrd/
 
 # Testing
 # ------------------------------------------------------------------------------

@@ -50,9 +50,10 @@ class DiretoriaRegionalSimplesSerializer(serializers.ModelSerializer):
 
 
 class LoteSimplesSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Lote
-        exclude = ('id', 'diretoria_regional')
+        exclude = ('id',)
 
 
 class EscolaCompletaSerializer(serializers.ModelSerializer):

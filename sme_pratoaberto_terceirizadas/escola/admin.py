@@ -1,9 +1,10 @@
 from django.contrib import admin
 
 from .models import (TipoGestao, TipoUnidadeEscolar, FaixaIdadeEscolar,
-                     DiretoriaRegional, PeriodoEscolar, Escola)
+                     DiretoriaRegional, PeriodoEscolar, Escola, Lote)
 
 admin.site.register(Escola)
+admin.site.register(Lote)
 admin.site.register(DiretoriaRegional)
 admin.site.register(PeriodoEscolar)
 admin.site.register(TipoGestao)
