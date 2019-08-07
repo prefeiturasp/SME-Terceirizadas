@@ -22,12 +22,18 @@ class Contato(models.Model):
                                blank=True, null=True)
     email = models.EmailField(blank=True, null=True)
 
+    def __str__(self):
+        return f'{self.telefone}, {self.email}'
+
 
 class Endereco(models.Model):
     rua = models.CharField(max_length=200)
     cep = models.CharField(max_length=8, validators=[MinLengthValidator(8)])
     bairro = models.CharField(max_length=100)
     numero = models.CharField(max_length=10, blank=True, null=True)
+
+    def __str__(self):
+        return f'{self.rua}, {self.numero}'
 
 
 class TemplateMensagem(TemChaveExterna):
