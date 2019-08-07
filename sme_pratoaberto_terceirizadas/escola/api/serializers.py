@@ -3,7 +3,7 @@ from rest_framework import serializers
 from ..models import (Escola, PeriodoEscolar, DiretoriaRegional, Subprefeitura,
                       FaixaIdadeEscolar, TipoUnidadeEscolar, TipoGestao, Lote)
 from ...cardapio.models import TipoAlimentacao
-from sme_pratoaberto_terceirizadas.terceirizada.api.serializers import TerceirizadaSimplesSerializer
+from sme_pratoaberto_terceirizadas.terceirizada.api.serializers.serializers import TerceirizadaSimplesSerializer
 
 
 class TipoAlimentacaoSerializer(serializers.ModelSerializer):
