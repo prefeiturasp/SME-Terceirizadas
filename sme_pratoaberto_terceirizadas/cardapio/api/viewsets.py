@@ -7,7 +7,7 @@ from sme_pratoaberto_terceirizadas.cardapio.api.serializers.serializers import M
 from .permissions import (
     PodeIniciarAlteracaoCardapioPermission
 )
-from .permissions import PodeIniciarInversaoDeDiaDeCardapioPermission
+from .permissions import PodeIniciarInversaoDeDiaDeCardapioPermission, PodeIniciarSuspensaoDeAlimentacaoPermission
 from .serializers.serializers import (
     CardapioSerializer, TipoAlimentacaoSerializer,
     InversaoCardapioSerializer, AlteracaoCardapioSerializer,
@@ -99,6 +99,16 @@ class GrupoSuspensaoAlimentacaoSerializerViewSet(viewsets.ModelViewSet):
         if self.action in ['create', 'update', 'partial_update']:
             return GrupoSuspensaoAlimentacaoCreateSerializer
         return GrupoSuspensaoAlimentacaoSerializer
+
+    @action(detail=True, permission_classes=[PodeIniciarSuspensaoDeAlimentacaoPermission])
+    def inicio_de_pedido(self, request, uuid=None):
+        suspensao_de_alimentacao = self.get_object()
+        try:
+            suspensao_de_alimentacao.inicia_fluxo(user=request.user)
+            serializer = self.get_serializer(suspensao_de_alimentacao)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'))
 
 
 class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
