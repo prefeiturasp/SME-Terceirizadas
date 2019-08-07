@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from ..models import (Escola, DiretoriaRegional,
-                      Lote)
+                      Lote, TipoGestao, Subprefeitura)
 
 
 class LoteCreateSerializer(serializers.ModelSerializer):
@@ -9,6 +9,17 @@ class LoteCreateSerializer(serializers.ModelSerializer):
     diretoria_regional = serializers.SlugRelatedField(
         slug_field='uuid',
         queryset=DiretoriaRegional.objects.all()
+
+    )
+    subprefeituras = serializers.SlugRelatedField(
+        slug_field='uuid',
+        many=True,
+        queryset=Subprefeitura.objects.all()
+
+    )
+    tipo_gestao = serializers.SlugRelatedField(
+        slug_field='uuid',
+        queryset=TipoGestao.objects.all()
 
     )
 
