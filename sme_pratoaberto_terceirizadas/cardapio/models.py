@@ -179,6 +179,26 @@ class GrupoSuspensaoAlimentacao(TemChaveExterna, CriadoPor, CriadoEm,
     def __str__(self):
         return f"{self.observacao}"
 
+    @property
+    def descricao_curta(self):
+        return "Suspensão de Alimentação."
+
+    @property
+    def template_mensagem(self):
+        template = TemplateMensagem.objects.get(tipo=TemplateMensagem.SUSPENSAO_ALIMENTACAO)
+        template_troca = {
+            '@id': self.id,
+            '@criado_em': str(self.criado_em),
+            '@criado_por': str(self.criado_por),
+            '@status': str(self.status),
+            # TODO: verificar a url padrão do pedido
+            '@link': 'http://teste.com',
+        }
+        corpo = template.template_html
+        # for chave, valor in template_troca.items():
+        #     corpo = corpo.replace(chave, valor)
+        return template.assunto, corpo
+
     class Meta:
         verbose_name = "Grupo de suspensão de alimentação"
         verbose_name_plural = "Grupo de suspensão de alimentação"
