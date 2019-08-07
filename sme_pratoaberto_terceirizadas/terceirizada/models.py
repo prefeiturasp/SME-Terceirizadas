@@ -22,8 +22,11 @@ class Nutricionista(TemChaveExterna, Nomeavel):
 
     crn_numero = models.CharField("Nutricionista crn", max_length=160,
                                   blank=True, null=True)
-    terceirizada = models.ForeignKey('Terceirizada', on_delete=models.CASCADE,
-                                     related_name='nutricionistas')
+    terceirizada = models.ForeignKey('Terceirizada',
+                                     on_delete=models.CASCADE,
+                                     related_name='nutricionistas',
+                                     blank=True,
+                                     null=True)
 
     def __str__(self):
         return self.nome
@@ -57,9 +60,6 @@ class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel):
     @property
     def nutricionistas(self):
         return self.nutricionistas
-
-    # def __str__(self):
-    #     return f"{self.nome_fantasia} {self.cnpj}"
 
     class Meta:
         verbose_name = "Terceirizada"
