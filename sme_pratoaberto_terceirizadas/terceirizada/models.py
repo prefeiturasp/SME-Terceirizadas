@@ -58,8 +58,8 @@ class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel):
     def nutricionistas(self):
         return self.nutricionistas
 
-    def __str__(self):
-        return f"{self.nome_fantasia} {self.cnpj}"
+    # def __str__(self):
+    #     return f"{self.nome_fantasia} {self.cnpj}"
 
     class Meta:
         verbose_name = "Terceirizada"
