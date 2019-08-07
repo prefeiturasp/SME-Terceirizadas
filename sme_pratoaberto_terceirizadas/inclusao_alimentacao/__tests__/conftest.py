@@ -16,7 +16,6 @@ def motivo_inclusao_continua():
 
 @pytest.fixture
 def motivo_inclusao_normal():
-    # TODO: dando erro com fake.name por que?
     return mommy.make(models.MotivoInclusaoNormal, nome=fake.name())
 
 

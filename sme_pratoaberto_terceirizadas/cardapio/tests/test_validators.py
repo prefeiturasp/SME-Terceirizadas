@@ -1,8 +1,7 @@
 import pytest
 from rest_framework.exceptions import ValidationError
 
-# TODO: rodar o flake8 aqui
-from ..api.validators import *
+from ..api.validators import cardapio_antigo, valida_cardapio_de_para
 
 
 @pytest.mark.django_db

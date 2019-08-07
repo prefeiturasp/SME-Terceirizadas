@@ -4,7 +4,7 @@ from django.db.models import Q
 from rest_framework import serializers
 from traitlets import Any
 
-from sme_pratoaberto_terceirizadas.cardapio.models import Cardapio, AlteracaoCardapio, TipoAlimentacao
+from sme_pratoaberto_terceirizadas.cardapio.models import Cardapio
 from sme_pratoaberto_terceirizadas.escola.models import Escola
 from ..models import InversaoCardapio
 
