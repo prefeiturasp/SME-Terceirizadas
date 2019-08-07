@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from sme_pratoaberto_terceirizadas.dados_comuns.utils import update_instance_from_dict
+from sme_pratoaberto_terceirizadas.dados_comuns.validators import deve_existir_cardapio
 from sme_pratoaberto_terceirizadas.dados_comuns.validators import (
     nao_pode_ser_no_passado, nao_pode_ser_feriado,
     objeto_nao_deve_ter_duplicidade
@@ -8,11 +9,9 @@ from sme_pratoaberto_terceirizadas.dados_comuns.validators import (
 from sme_pratoaberto_terceirizadas.escola.models import Escola, PeriodoEscolar
 from sme_pratoaberto_terceirizadas.terceirizada.models import Edital
 from ..helpers import notificar_partes_envolvidas
-
 from ...api.validators import (
     valida_duplicidade, valida_cardapio_de_para
-    )
-from sme_pratoaberto_terceirizadas.dados_comuns.validators import deve_existir_cardapio
+)
 from ...models import (
     InversaoCardapio, Cardapio,
     TipoAlimentacao, SuspensaoAlimentacao,
@@ -245,17 +244,6 @@ class QuantidadePorPeriodoSuspensaoAlimentacaoCreateSerializer(serializers.Model
 
     class Meta:
         model = QuantidadePorPeriodoSuspensaoAlimentacao
-        exclude = ('id', 'grupo_suspensao')
-
-
-class SuspensaoAlimentacaoCreateSerializer(serializers.ModelSerializer):
-    motivo = serializers.SlugRelatedField(
-        slug_field='uuid',
-        queryset=MotivoSuspensao.objects.all()
-    )
-
-    class Meta:
-        model = SuspensaoAlimentacao
         exclude = ('id', 'grupo_suspensao')
 
 

@@ -5,7 +5,7 @@ from ..dados_comuns.models_abstract import (
     Descritivel, TemData, TemChaveExterna, Ativavel,
     Nomeavel, CriadoEm, IntervaloDeDia, CriadoPor,
     TemObservacao, FluxoAprovacaoPartindoDaEscola,
-    CriadoPor, TemIdentificadorExternoAmigavel
+    TemIdentificadorExternoAmigavel
 )
 
 
