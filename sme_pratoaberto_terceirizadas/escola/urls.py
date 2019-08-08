@@ -10,8 +10,8 @@ router.register('escolas-simples', viewsets.EscolaSimplesViewSet, basename='esco
 router.register('periodos-escolares', viewsets.PeriodoEscolarViewSet, basename='periodos')
 router.register('diretorias-regionais', viewsets.DiretoriaRegionalViewSet, basename='dres')
 router.register('lotes', viewsets.LoteViewSet, basename='lotes')
-router.register('tipos-gestao', viewsets.TipoGestaoViewSet, base_name="tipos-gestao")
-router.register('subprefeituras', viewsets.SubprefeituraViewSet, base_name="subprefeituras")
+router.register('tipos-gestao', viewsets.TipoGestaoViewSet, basename="tipos-gestao")
+router.register('subprefeituras', viewsets.SubprefeituraViewSet, basename="subprefeituras")
 
 urlpatterns = [
     path('', include(router.urls))
