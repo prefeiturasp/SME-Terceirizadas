@@ -17,6 +17,8 @@ class NutricionistaSerializer(serializers.ModelSerializer):
 
 
 class TerceirizadaSerializer(serializers.ModelSerializer):
+    nutricionistas = NutricionistaSerializer(many=True)
+
     class Meta:
         model = Terceirizada
         exclude = ('id',)
