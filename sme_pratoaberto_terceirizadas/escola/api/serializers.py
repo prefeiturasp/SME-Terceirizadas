@@ -1,8 +1,9 @@
 from rest_framework import serializers
 
-from ..models import (Escola, PeriodoEscolar, DiretoriaRegional,
+from ..models import (Escola, PeriodoEscolar, DiretoriaRegional, Subprefeitura,
                       FaixaIdadeEscolar, TipoUnidadeEscolar, TipoGestao, Lote)
 from ...cardapio.models import TipoAlimentacao
+from sme_pratoaberto_terceirizadas.terceirizada.api.serializers.serializers import TerceirizadaSimplesSerializer
 
 
 class TipoAlimentacaoSerializer(serializers.ModelSerializer):
@@ -31,6 +32,12 @@ class TipoGestaoSerializer(serializers.ModelSerializer):
         exclude = ('id',)
 
 
+class SubprefeituraSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Subprefeitura
+        exclude = ('id',)
+
+
 class TipoUnidadeEscolarSerializer(serializers.ModelSerializer):
     class Meta:
         model = TipoUnidadeEscolar
@@ -49,7 +56,18 @@ class DiretoriaRegionalSimplesSerializer(serializers.ModelSerializer):
         exclude = ('id',)
 
 
+class EscolaSimplesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Escola
+        fields = ('uuid', 'nome', 'codigo_eol', 'quantidade_alunos')
+
+
 class LoteSimplesSerializer(serializers.ModelSerializer):
+    diretoria_regional = DiretoriaRegionalSimplesSerializer()
+    tipo_gestao = TipoGestaoSerializer()
+    escolas = EscolaSimplesSerializer(many=True)
+    terceirizada = TerceirizadaSimplesSerializer()
+    subprefeituras = SubprefeituraSerializer(many=True)
 
     class Meta:
         model = Lote
@@ -67,12 +85,6 @@ class EscolaCompletaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Escola
         exclude = ('id',)
-
-
-class EscolaSimplesSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Escola
-        fields = ('uuid', 'nome', 'codigo_eol', 'quantidade_alunos')
 
 
 class DiretoriaRegionalCompletaSerializer(serializers.ModelSerializer):

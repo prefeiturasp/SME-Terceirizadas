@@ -7,7 +7,7 @@ from ..dados_comuns.models_abstract import (Ativavel, Iniciais, Nomeavel, TemCha
 
 
 class DiretoriaRegional(Nomeavel, TemChaveExterna):
-    usuarios = models.ManyToManyField(Usuario, related_name='diretorias_regionais')
+    usuarios = models.ManyToManyField(Usuario, related_name='diretorias_regionais', blank=True)
 
     @property
     def escolas(self):
@@ -103,7 +103,7 @@ class Escola(Ativavel, TemChaveExterna):
                                     on_delete=models.DO_NOTHING)
     lote = models.ForeignKey('Lote',
                              related_name='escolas',
-                             on_delete=models.DO_NOTHING)
+                             on_delete=models.CASCADE)
 
     endereco = models.ForeignKey('dados_comuns.Endereco', on_delete=models.DO_NOTHING,
                                  blank=True, null=True)
@@ -139,19 +139,47 @@ class Escola(Ativavel, TemChaveExterna):
 
 class Lote(TemChaveExterna, Nomeavel, Iniciais):
     """Lote de escolas"""
+    tipo_gestao = models.ForeignKey(TipoGestao,
+                                    on_delete=models.DO_NOTHING,
+                                    related_name='lotes',
+                                    null=True,
+                                    blank=True)
     diretoria_regional = models.ForeignKey('escola.DiretoriaRegional',
                                            on_delete=models.DO_NOTHING,
                                            related_name='lotes',
                                            null=True,
                                            blank=True)
+    terceirizada = models.ForeignKey('terceirizada.Terceirizada',
+                                     on_delete=models.DO_NOTHING,
+                                     related_name='lotes',
+                                     null=True,
+                                     blank=True)
 
     @property
     def escolas(self):
         return self.escolas
 
     def __str__(self):
-        return self.nome
+        return self.nome + ' - ' + self.diretoria_regional.nome
 
     class Meta:
         verbose_name = "Lote"
         verbose_name_plural = "Lotes"
+
+
+class Subprefeitura(Nomeavel, TemChaveExterna):
+    diretoria_regional = models.ManyToManyField(DiretoriaRegional,
+                                                related_name='subprefeituras',
+                                                blank=True)
+    lote = models.ForeignKey('Lote',
+                             related_name='subprefeituras',
+                             on_delete=models.SET_NULL,
+                             null=True,
+                             blank=True)
+
+    def __str__(self):
+        return self.nome
+
+    class Meta:
+        verbose_name = "Subprefeitura"
+        verbose_name_plural = "Subprefeituras"

@@ -5,8 +5,9 @@ from sme_pratoaberto_terceirizadas.escola.api.serializers import LoteSimplesSeri
 from sme_pratoaberto_terceirizadas.escola.api.serializers_create import LoteCreateSerializer
 from sme_pratoaberto_terceirizadas.inclusao_alimentacao.api.serializers.serializers import (
     GrupoInclusaoAlimentacaoNormalSerializer, InclusaoAlimentacaoContinuaSerializer)
-from .serializers import (EscolaCompletaSerializer, PeriodoEscolarSerializer, DiretoriaRegionalCompletaSerializer)
-from ..models import (Escola, PeriodoEscolar, DiretoriaRegional, Lote)
+from .serializers import (EscolaCompletaSerializer, PeriodoEscolarSerializer, DiretoriaRegionalCompletaSerializer,
+                          TipoGestaoSerializer, SubprefeituraSerializer, EscolaSimplesSerializer)
+from ..models import (Escola, PeriodoEscolar, DiretoriaRegional, Lote, TipoGestao, Subprefeitura)
 
 
 # https://www.django-rest-framework.org/api-guide/permissions/#custom-permissions
@@ -37,6 +38,12 @@ class EscolaViewSet(ReadOnlyModelViewSet):
         return self.get_paginated_response(serializer.data)
 
 
+class EscolaSimplesViewSet(ReadOnlyModelViewSet):
+    lookup_field = 'uuid'
+    queryset = Escola.objects.all()
+    serializer_class = EscolaSimplesSerializer
+
+
 class PeriodoEscolarViewSet(ReadOnlyModelViewSet):
     lookup_field = 'uuid'
     queryset = PeriodoEscolar.objects.all()
@@ -47,6 +54,18 @@ class DiretoriaRegionalViewSet(ReadOnlyModelViewSet):
     lookup_field = 'uuid'
     queryset = DiretoriaRegional.objects.all()
     serializer_class = DiretoriaRegionalCompletaSerializer
+
+
+class TipoGestaoViewSet(ReadOnlyModelViewSet):
+    lookup_field = 'uuid'
+    queryset = TipoGestao.objects.all()
+    serializer_class = TipoGestaoSerializer
+
+
+class SubprefeituraViewSet(ReadOnlyModelViewSet):
+    lookup_field = 'uuid'
+    queryset = Subprefeitura.objects.all()
+    serializer_class = SubprefeituraSerializer
 
 
 class LoteViewSet(ModelViewSet):
