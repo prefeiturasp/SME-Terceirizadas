@@ -23,8 +23,8 @@ class TerceirizadaSerializer(serializers.ModelSerializer):
 
 
 class TerceirizadaSimplesSerializer(serializers.ModelSerializer):
-    contato = ContatoSerializer()
+    contatos = ContatoSerializer(many=True)
 
     class Meta:
         model = Terceirizada
-        fields = ('uuid', 'cnpj', 'nome_fantasia', 'contato')
+        fields = ('uuid', 'cnpj', 'nome_fantasia', 'contatos')

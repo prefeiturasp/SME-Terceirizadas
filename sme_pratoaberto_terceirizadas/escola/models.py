@@ -7,7 +7,7 @@ from ..dados_comuns.models_abstract import (Ativavel, Iniciais, Nomeavel, TemCha
 
 
 class DiretoriaRegional(Nomeavel, TemChaveExterna):
-    usuarios = models.ManyToManyField(Usuario, related_name='diretorias_regionais')
+    usuarios = models.ManyToManyField(Usuario, related_name='diretorias_regionais', blank=True)
 
     @property
     def escolas(self):
@@ -168,11 +168,9 @@ class Lote(TemChaveExterna, Nomeavel, Iniciais):
 
 
 class Subprefeitura(Nomeavel, TemChaveExterna):
-    diretoria_regional = models.ForeignKey(DiretoriaRegional,
-                                           related_name='subprefeituras',
-                                           on_delete=models.DO_NOTHING,
-                                           null=True,
-                                           blank=True)
+    diretoria_regional = models.ManyToManyField(DiretoriaRegional,
+                                                related_name='subprefeituras',
+                                                blank=True)
     lote = models.ForeignKey('Lote',
                              related_name='subprefeituras',
                              on_delete=models.SET_NULL,
