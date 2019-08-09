@@ -3,7 +3,7 @@ from rest_framework import viewsets
 from .serializers.serializers import (
     EditalSerializer, TerceirizadaSerializer, EditalContratosSerializer
 )
-from .serializers.serializers_create import TerceirizadaCreateSerializer
+from .serializers.serializers_create import TerceirizadaCreateSerializer, EditalContratosCreateSerializer
 from ..models import Edital, Terceirizada
 
 
@@ -24,7 +24,12 @@ class TerceirizadaViewSet(viewsets.ModelViewSet):
         return TerceirizadaSerializer
 
 
-class EditalContratosViewSet(viewsets.ReadOnlyModelViewSet):
+class EditalContratosViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
     serializer_class = EditalContratosSerializer
     queryset = Edital.objects.all()
+
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update']:
+            return EditalContratosCreateSerializer
+        return EditalContratosSerializer
