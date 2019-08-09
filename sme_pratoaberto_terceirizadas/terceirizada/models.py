@@ -7,10 +7,15 @@ from ..dados_comuns.models_abstract import (
     TemIdentificadorExternoAmigavel)
 
 
-class Edital(TemChaveExterna, Nomeavel, Descritivel, Ativavel, IntervaloDeDia):
+class Edital(TemChaveExterna):
+    numero = models.CharField("Edital No", max_length=100, help_text="Número do Edital")
+    tipo_contratacao = models.CharField("Tipo de contratação", max_length=100)
+    processo = models.CharField("Processo Administrativo", max_length=100,
+                                help_text="Processo administrativo do contrato")
+    objeto = models.TextField("objeto resumido")
 
     def __str__(self):
-        return f"{self.nome} válido de {self.data_inicial} até {self.data_final}"
+        return f"{self.numero} - {self.objeto}"
 
     class Meta:
         verbose_name = "Edital"
