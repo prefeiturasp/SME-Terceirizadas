@@ -5,12 +5,18 @@ from faker import Faker
 from model_mommy import mommy
 from rest_framework.test import APIClient
 
-from sme_pratoaberto_terceirizadas.dados_comuns.models import TemplateMensagem
-
 from ..models import (
     Edital,
     Contrato,
-    VigenciaContrato
+    VigenciaContrato,
+    Terceirizada
+)
+
+from ..api.serializers.serializers import (
+    VigenciaContratoSerializer,
+    ContratoSerializer,
+    EditalContratosSerializer,
+    TerceirizadaSimplesSerializer
 )
 
 fake = Faker('pt_BR')
@@ -33,3 +39,25 @@ def contrato():
 @pytest.fixture
 def vigencia_contrato():
     return mommy.make(VigenciaContrato)
+
+@pytest.fixture
+def vigencia_contrato_serializer():
+    vigencia_contrato = mommy.make(VigenciaContrato)
+    return VigenciaContratoSerializer(vigencia_contrato)
+
+@pytest.fixture
+def contrato_serializer():
+    contrato = mommy.make(Contrato)
+    return ContratoSerializer(contrato)
+
+
+@pytest.fixture
+def edital_contratos_serializer():
+    edital_contratos = mommy.make(Edital)
+    return EditalContratosSerializer(edital_contratos)
+
+
+@pytest.fixture
+def terceirizada_simples_serializer():
+    terceirizada = mommy.make(Terceirizada)
+    return TerceirizadaSimplesSerializer(terceirizada)
