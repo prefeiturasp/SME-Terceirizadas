@@ -1,6 +1,7 @@
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.validators import MinLengthValidator
 from django.db import models
+from django.db.models import Sum
 
 from sme_pratoaberto_terceirizadas.perfil.models import Usuario
 from ..dados_comuns.models_abstract import (Ativavel, Iniciais, Nomeavel, TemChaveExterna)
@@ -12,6 +13,12 @@ class DiretoriaRegional(Nomeavel, TemChaveExterna):
     @property
     def escolas(self):
         return self.escolas
+
+    @property
+    def quantidade_alunos(self):
+        return DiretoriaRegional.objects.annotate(
+            total_alunos=Sum('escolas__quantidade_alunos')).get(
+            id=self.id).total_alunos
 
     def __str__(self):
         return self.nome

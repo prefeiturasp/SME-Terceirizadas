@@ -6,7 +6,8 @@ from sme_pratoaberto_terceirizadas.escola.api.serializers_create import LoteCrea
 from sme_pratoaberto_terceirizadas.inclusao_alimentacao.api.serializers.serializers import (
     GrupoInclusaoAlimentacaoNormalSerializer, InclusaoAlimentacaoContinuaSerializer)
 from .serializers import (EscolaCompletaSerializer, PeriodoEscolarSerializer, DiretoriaRegionalCompletaSerializer,
-                          TipoGestaoSerializer, SubprefeituraSerializer, EscolaSimplesSerializer)
+                          TipoGestaoSerializer, SubprefeituraSerializer, EscolaSimplesSerializer,
+                          DiretoriaRegionalComboSerializer, EscolaComboSerializer)
 from ..models import (Escola, PeriodoEscolar, DiretoriaRegional, Lote, TipoGestao, Subprefeitura)
 
 
@@ -44,6 +45,12 @@ class EscolaSimplesViewSet(ReadOnlyModelViewSet):
     serializer_class = EscolaSimplesSerializer
 
 
+class EscolaComboViewSet(ReadOnlyModelViewSet):
+    lookup_field = 'uuid'
+    queryset = Escola.objects.all()
+    serializer_class = EscolaComboSerializer
+
+
 class PeriodoEscolarViewSet(ReadOnlyModelViewSet):
     lookup_field = 'uuid'
     queryset = PeriodoEscolar.objects.all()
@@ -54,6 +61,12 @@ class DiretoriaRegionalViewSet(ReadOnlyModelViewSet):
     lookup_field = 'uuid'
     queryset = DiretoriaRegional.objects.all()
     serializer_class = DiretoriaRegionalCompletaSerializer
+
+
+class DiretoriaRegionalComboViewSet(ReadOnlyModelViewSet):
+    lookup_field = 'uuid'
+    queryset = DiretoriaRegional.objects.all()
+    serializer_class = DiretoriaRegionalComboSerializer
 
 
 class TipoGestaoViewSet(ReadOnlyModelViewSet):

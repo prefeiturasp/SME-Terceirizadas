@@ -42,6 +42,7 @@ class InversaoCardapioSerializerCreate(serializers.ModelSerializer):
         valida_cardapio_de_para(attrs.get('data_de'), attrs.get('data_para'))
         valida_duplicidade(attrs.get('data_de'), attrs.get('data_para'), attrs.get('escola'))
         deve_existir_cardapio(attrs['escola'], attrs['data_de'])
+        deve_existir_cardapio(attrs['escola'], attrs['data_para'])
         return attrs
 
     def create(self, validated_data):

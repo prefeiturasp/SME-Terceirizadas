@@ -56,7 +56,8 @@
       "nome": "LOTE 11 A",
       "iniciais": "PE I",
       "tipo_gestao": 1,
-      "diretoria_regional": 10
+      "diretoria_regional": 10,
+      "terceirizada": 4
     }
   },
   {
@@ -66,7 +67,8 @@
       "nome": "LOTE 4",
       "iniciais": "CS",
       "tipo_gestao": 1,
-      "diretoria_regional": 5
+      "diretoria_regional": 5,
+      "terceirizada": 2
     }
   },
   {
@@ -76,7 +78,8 @@
       "nome": "LOTE 7 A",
       "iniciais": "IP I",
       "tipo_gestao": 1,
-      "diretoria_regional": 6
+      "diretoria_regional": 6,
+      "terceirizada": 5
     }
   },
   {
@@ -86,7 +89,8 @@
       "nome": "LOTE 10 B",
       "iniciais": "MP II",
       "tipo_gestao": 1,
-      "diretoria_regional": 13
+      "diretoria_regional": 13,
+      "terceirizada": 5
     }
   },
   {
@@ -96,7 +100,8 @@
       "nome": "LOTE 7 B",
       "iniciais": "IP II",
       "tipo_gestao": 1,
-      "diretoria_regional": 6
+      "diretoria_regional": 6,
+      "terceirizada": 5
     }
   },
   {
@@ -106,7 +111,8 @@
       "nome": "LOTE 8",
       "iniciais": "IQ",
       "tipo_gestao": 1,
-      "diretoria_regional": 7
+      "diretoria_regional": 7,
+      "terceirizada": 4
     }
   },
   {
@@ -116,7 +122,8 @@
       "nome": "LOTE 6",
       "iniciais": "G",
       "tipo_gestao": 1,
-      "diretoria_regional": 8
+      "diretoria_regional": 8,
+      "terceirizada": 4
     }
   },
   {
@@ -126,7 +133,8 @@
       "nome": "LOTE 14 A",
       "iniciais": "SM I",
       "tipo_gestao": 1,
-      "diretoria_regional": 9
+      "diretoria_regional": 9,
+      "terceirizada": 3
     }
   },
   {
@@ -136,7 +144,8 @@
       "nome": "LOTE 11 B",
       "iniciais": "PE II",
       "tipo_gestao": 1,
-      "diretoria_regional": 10
+      "diretoria_regional": 10,
+      "terceirizada": 4
     }
   },
   {
@@ -146,7 +155,8 @@
       "nome": "LOTE 9",
       "iniciais": "JT",
       "tipo_gestao": 1,
-      "diretoria_regional": 11
+      "diretoria_regional": 11,
+      "terceirizada": 3
     }
   },
   {
@@ -156,7 +166,8 @@
       "nome": "LOTE 5",
       "iniciais": "FO",
       "tipo_gestao": 1,
-      "diretoria_regional": 12
+      "diretoria_regional": 12,
+      "terceirizada": 3
     }
   },
   {
@@ -166,7 +177,8 @@
       "nome": "LOTE 10 A",
       "iniciais": "MP I",
       "tipo_gestao": 1,
-      "diretoria_regional": 13
+      "diretoria_regional": 13,
+      "terceirizada": 5
     }
   },
   {
@@ -176,7 +188,8 @@
       "nome": "LOTE 14 B",
       "iniciais": "SM II",
       "tipo_gestao": 1,
-      "diretoria_regional": 9
+      "diretoria_regional": 9,
+      "terceirizada": 1
     }
   }
 ]

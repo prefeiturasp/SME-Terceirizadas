@@ -1,0 +1,52 @@
+[
+  {
+    "model": "dados_comuns.endereco",
+    "id": 1,
+    "fields": {
+      "rua": "Estrada Velha do Pilar",
+      "cep": "35278797",
+      "bairro": "Chácara Rio Petrópolis",
+      "numero": "1083"
+    }
+  },
+  {
+    "model": "dados_comuns.endereco",
+    "id": 2,
+    "fields": {
+      "rua": "Rua Alvarenga",
+      "cep": "05509000",
+      "bairro": "Butantã",
+      "numero": "470"
+    }
+  },
+  {
+    "model": "dados_comuns.endereco",
+    "id": 3,
+    "fields": {
+      "rua": "Avenida Lucas Nogueira Garcez",
+      "cep": "12325000",
+      "bairro": "Nova Jacareí",
+      "numero": "2600"
+    }
+  },
+  {
+    "model": "dados_comuns.endereco",
+    "id": 4,
+    "fields": {
+      "rua": "Rua Amazonas",
+      "cep": "09520070",
+      "bairro": "São Caetano do Sul / Centro",
+      "numero": "521"
+    }
+  },
+    {
+    "model": "dados_comuns.endereco",
+    "id": 5,
+    "fields": {
+      "rua": "Rua Pernambucana",
+      "cep": "25510430",
+      "bairro": "Vila Rosali – São João de Meriti",
+      "numero": "1260"
+    }
+  }
+]
