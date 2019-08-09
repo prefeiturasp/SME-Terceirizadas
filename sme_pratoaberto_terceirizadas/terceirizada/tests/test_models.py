@@ -17,4 +17,18 @@ def test_modelo_edital(edital):
     assert edital.objeto is not None
 
 
+def test_modelo_contrato(contrato):
+    assert contrato.uuid is not None
+    assert contrato.numero is not None
+    assert contrato.processo is not None
+    assert contrato.data_proposta is not None
+    assert contrato.lotes is not None
+    assert contrato.terceirizadas is not None
+    assert contrato.vigencias is not None
 
+
+def test_modelo_vigencia_contrato(vigencia_contrato):
+    assert vigencia_contrato.uuid is not None
+    assert vigencia_contrato.data_inicial is not None
+    assert vigencia_contrato.data_final is not None
+    assert vigencia_contrato.contrato is not None

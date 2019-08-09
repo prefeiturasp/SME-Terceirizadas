@@ -8,7 +8,9 @@ from rest_framework.test import APIClient
 from sme_pratoaberto_terceirizadas.dados_comuns.models import TemplateMensagem
 
 from ..models import (
-    Edital
+    Edital,
+    Contrato,
+    VigenciaContrato
 )
 
 fake = Faker('pt_BR')
@@ -23,3 +25,11 @@ def client():
 @pytest.fixture
 def edital():
     return mommy.make(Edital)
+
+@pytest.fixture
+def contrato():
+    return mommy.make(Contrato)
+
+@pytest.fixture
+def vigencia_contrato():
+    return mommy.make(VigenciaContrato)
