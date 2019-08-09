@@ -116,6 +116,7 @@ class AlteracaoCardapioSerializer(serializers.ModelSerializer):
     escola = EscolaSimplesSerializer()
     motivo = MotivoAlteracaoCardapioSerializer()
     substituicoes = SubstituicoesAlimentacaoNoPeriodoEscolarSerializer(many=True)
+    id_externo = serializers.CharField()
 
     class Meta:
         model = AlteracaoCardapio
