@@ -114,30 +114,14 @@ class SuspensaoAlimentacaoNoPeriodoEscolarCreateSerializer(serializers.ModelSeri
 
 
 class SuspensaoAlimentacaoCreateSerializer(serializers.ModelSerializer):
-    escola = serializers.SlugRelatedField(
-        slug_field='uuid',
-        required=True,
-        queryset=Escola.objects.all()
-    )
     motivo = serializers.SlugRelatedField(
         slug_field='uuid',
         queryset=MotivoSuspensao.objects.all()
     )
-    suspensoes_periodo_escolar = SuspensaoAlimentacaoNoPeriodoEscolarCreateSerializer(many=True)
 
     def validate_data(self, data):
         nao_pode_ser_no_passado(data)
         return data
-
-    def create(self, validated_data):
-        suspensoes_periodo_escolar_json = validated_data.pop('suspensoes_periodo_escolar', [])
-
-        suspensao_alimentacao = SuspensaoAlimentacao.objects.create(
-            **validated_data
-        )
-        suspensao_alimentacao.suspensoes_periodo_escolar.set(suspensoes_periodo_escolar_json)
-
-        return suspensao_alimentacao
 
     class Meta:
         model = SuspensaoAlimentacao

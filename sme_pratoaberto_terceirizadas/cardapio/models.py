@@ -133,7 +133,9 @@ class SuspensaoAlimentacao(TemData, TemChaveExterna):
     """
     Uma escola pede para suspender as refeições: escolhe os
     """
+    prioritario = models.BooleanField(default=False)
     motivo = models.ForeignKey(MotivoSuspensao, on_delete=models.DO_NOTHING)
+    outro_motivo = models.CharField("Outro motivo", blank=True, null=True, max_length=50)
     grupo_suspensao = models.ForeignKey('GrupoSuspensaoAlimentacao', on_delete=models.CASCADE,
                                         blank=True, null=True, related_name='suspensoes_alimentacao')
 
@@ -160,8 +162,8 @@ class QuantidadePorPeriodoSuspensaoAlimentacao(TemChaveExterna):
         verbose_name_plural = "Quantidade por período de suspensão de alimentação"
 
 
-class GrupoSuspensaoAlimentacao(TemChaveExterna, CriadoPor, CriadoEm,
-                                TemObservacao, FluxoAprovacaoPartindoDaEscola):
+class GrupoSuspensaoAlimentacao(TemChaveExterna, CriadoPor, TemIdentificadorExternoAmigavel,
+                                CriadoEm, TemObservacao, FluxoAprovacaoPartindoDaEscola):
     # TODO: criar fluxo direto de rascunho...
     """
         Serve para agrupar suspensões

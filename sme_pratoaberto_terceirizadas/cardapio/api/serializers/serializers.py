@@ -86,6 +86,7 @@ class GrupoSuspensaoAlimentacaoSerializer(serializers.ModelSerializer):
     escola = EscolaSimplesSerializer()
     quantidades_por_periodo = QuantidadePorPeriodoSuspensaoAlimentacaoSerializer(many=True)
     suspensoes_alimentacao = SuspensaoAlimentacaoSerializer(many=True)
+    id_externo = serializers.CharField()
 
     class Meta:
         model = GrupoSuspensaoAlimentacao
