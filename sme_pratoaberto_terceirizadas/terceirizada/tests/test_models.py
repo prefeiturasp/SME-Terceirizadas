@@ -33,4 +33,3 @@ def test_modelo_vigencia_contrato(vigencia_contrato):
     assert vigencia_contrato.uuid is not None
     assert vigencia_contrato.data_inicial is not None
     assert vigencia_contrato.data_final is not None
-    assert vigencia_contrato.contrato is not None
