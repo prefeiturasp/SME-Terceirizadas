@@ -14,7 +14,7 @@ from ..escola.models import (
 
 
 class Edital(TemChaveExterna):
-    numero = models.CharField("Edital No", max_length=100, help_text="Número do Edital")
+    numero = models.CharField("Edital No", max_length=100, help_text="Número do Edital", unique=True)
     tipo_contratacao = models.CharField("Tipo de contratação", max_length=100)
     processo = models.CharField("Processo Administrativo", max_length=100,
                                 help_text="Processo administrativo do edital")
