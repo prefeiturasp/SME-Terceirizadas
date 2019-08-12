@@ -100,7 +100,7 @@ class Contrato(TemChaveExterna):
 
 
 class VigenciaContrato(TemChaveExterna, IntervaloDeDia):
-    contrato = models.ForeignKey(Contrato, on_delete=models.CASCADE, related_name="vigencias")
+    contrato = models.ForeignKey(Contrato, on_delete=models.CASCADE, related_name="vigencias", null=True, blank=True)
 
     def __str__(self):
         return f"Contrato:{self.contrato.numero} {self.data_inicial} a {self.data_final}"

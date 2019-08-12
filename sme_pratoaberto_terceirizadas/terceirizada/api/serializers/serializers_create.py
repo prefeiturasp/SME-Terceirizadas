@@ -52,19 +52,46 @@ class ContratoCreateSerializer(serializers.ModelSerializer):
 
     vigencias = VigenciaContratoCreateSerializer(many=True)
 
+
     def create(self, validated_data):
-        vigencias_json = validated_data.pop('vigencias', [])
         lotes_json = validated_data.pop('lotes', [])
         terceirizadas_json = validated_data.pop('terceirizadas', [])
 
-        contrato = Contrato.objects.create(
-            **validated_data
-        )
-        contrato.vigencias.set(vigencias_json)
+        vigencias_array = validated_data.pop('vigencias')
+
+        vigencias = []
+        for vigencia_json in vigencias_array:
+            vigencia = VigenciaContratoCreateSerializer().create(vigencia_json)
+            vigencias.append(vigencia)
+
+        contrato = Contrato.objects.create(**validated_data)
+        contrato.vigencias.set(vigencias)
+
         contrato.lotes.set(lotes_json)
         contrato.terceirizadas.set(terceirizadas_json)
 
         return contrato
+
+    def update(self, instance, validated_data):
+        lotes_json = validated_data.pop('lotes', [])
+        terceirizadas_json = validated_data.pop('terceirizadas', [])
+
+        vigencias_array = validated_data.pop('vigencias')
+
+        instance.vigencias.all().delete()
+
+        vigencias = []
+        for vigencia_json in vigencias_array:
+            vigencia = VigenciaContratoCreateSerializer().create(vigencia_json)
+            vigencias.append(vigencia)
+
+        update_instance_from_dict(instance, validated_data, save=True)
+
+        instance.contratos.set(vigencias)
+        instance.lotes.set(lotes_json)
+        instance.terceirizadas.set(terceirizadas_json)
+
+        return instance
 
     class Meta:
         model = Contrato
@@ -74,16 +101,6 @@ class ContratoCreateSerializer(serializers.ModelSerializer):
 class EditalContratosCreateSerializer(serializers.ModelSerializer):
 
     contratos = ContratoCreateSerializer(many=True)
-
-    def create(self, validated_data):
-        contratos_json = validated_data.pop('contratos', [])
-
-        edital = Edital.objects.create(
-            **validated_data
-        )
-        edital.contratos.set(contratos_json)
-
-        return edital
 
     def create(self, validated_data):
         contratos_array = validated_data.pop('contratos')
