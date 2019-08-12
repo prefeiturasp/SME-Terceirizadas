@@ -110,7 +110,8 @@ class Escola(Ativavel, TemChaveExterna):
                                     on_delete=models.DO_NOTHING)
     lote = models.ForeignKey('Lote',
                              related_name='escolas',
-                             on_delete=models.CASCADE)
+                             blank=True, null=True,
+                             on_delete=models.SET_NULL)
 
     endereco = models.ForeignKey('dados_comuns.Endereco', on_delete=models.DO_NOTHING,
                                  blank=True, null=True)

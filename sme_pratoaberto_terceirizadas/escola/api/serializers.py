@@ -80,9 +80,9 @@ class DiretoriaRegionalComboSerializer(serializers.ModelSerializer):
 
 
 class LoteSimplesSerializer(serializers.ModelSerializer):
-    diretoria_regional = DiretoriaRegionalSimplesSerializer()
+    diretoria_regional = DiretoriaRegionalComboSerializer()
     tipo_gestao = TipoGestaoSerializer()
-    escolas = EscolaSimplesSerializer(many=True)
+    escolas = EscolaComboSerializer(many=True)
     terceirizada = TerceirizadaSimplesSerializer()
     subprefeituras = SubprefeituraSerializer(many=True)
 
