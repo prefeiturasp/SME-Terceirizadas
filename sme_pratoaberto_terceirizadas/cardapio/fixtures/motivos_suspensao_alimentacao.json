@@ -1,0 +1,23 @@
+[
+  {
+    "model": "cardapio.motivosuspensao",
+    "id": 1,
+    "fields": {
+      "nome": "Parada Pedagógica"
+    }
+  },
+  {
+    "model": "cardapio.motivosuspensao",
+    "id": 2,
+    "fields": {
+      "nome": "Unidade sem atendimento"
+    }
+  },
+  {
+    "model": "cardapio.motivosuspensao",
+    "id": 3,
+    "fields": {
+      "nome": "Outro"
+    }
+  }
+]

@@ -84,6 +84,7 @@ THIRD_PARTY_APPS = [
     'notifications',
     'rest_framework_swagger',
     'des',  # for email configuration in database
+    'django_xworkflows'
 ]
 LOCAL_APPS = [
     'sme_pratoaberto_terceirizadas.perfil.apps.PerfilConfig',
@@ -303,6 +304,7 @@ SWAGGER_SETTINGS = {
 }
 
 JWT_AUTH = {
+    # TODO: rever a configuração...
     'JWT_EXPIRATION_DELTA': datetime.timedelta(hours=100),
     'JWT_REFRESH_EXPIRATION_DELTA': datetime.timedelta(hours=100),
     'JWT_ALLOW_REFRESH': True,

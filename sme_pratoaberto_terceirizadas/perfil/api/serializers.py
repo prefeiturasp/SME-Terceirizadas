@@ -1,6 +1,9 @@
+from notifications.models import Notification
 from rest_framework import serializers
 
-from ..models import Usuario, Perfil, Permissao, GrupoPerfil
+from sme_pratoaberto_terceirizadas.escola.api.serializers import (
+    EscolaSimplesSerializer, DiretoriaRegionalSimplesSerializer)
+from ..models import (Usuario, Perfil, Permissao, GrupoPerfil, PerfilPermissao)
 
 
 class UsuarioSerializer(serializers.ModelSerializer):
@@ -25,12 +28,14 @@ class PerfilSimplesSerializer(serializers.ModelSerializer):
         fields = ('nome', 'uuid')
 
 
-class GrupoCompletoPerfilSerializer(serializers.ModelSerializer):
-    perfis = PerfilSimplesSerializer(many=True)
+class GrupoPerfilCreateSerializer(serializers.ModelSerializer):
+    perfis = serializers.SlugRelatedField(
+        many=True, slug_field='uuid', queryset=Perfil.objects.all()
+    )
 
     class Meta:
         model = GrupoPerfil
-        exclude = ('id', 'ativo')
+        exclude = ('id',)
 
 
 class GrupoSimplesSerializer(serializers.ModelSerializer):
@@ -40,26 +45,60 @@ class GrupoSimplesSerializer(serializers.ModelSerializer):
 
 
 class PerfilSerializer(serializers.ModelSerializer):
-    permissoes = PermissaoSerializer(many=True)
     grupo = GrupoSimplesSerializer()
 
     class Meta:
         model = Perfil
         exclude = ('id', 'ativo')
 
-#
-# class NotificationSerializer(serializers.Serializer):
-#     unread = serializers.BooleanField(read_only=True)
-#     action_object = GenericNotificationRelatedField(read_only=True)
-#     description = serializers.SerializerMethodField()
-#
-#     def get_description(self, obj):
-#         return obj.description
 
-#
-# class PrivateUserSerializer(serializers.ModelSerializer):
-#     notifications = NotificationSerializer(many=True, read_only=True)
-#
-#     class Meta:
-#         model = settings.AUTH_USER_MODEL
-#         fields = ('name', 'email', 'profile', 'notifications')
+class PerfilPermissaoCreateSerializer(serializers.ModelSerializer):
+    permissao = serializers.SlugRelatedField(slug_field='uuid', queryset=Permissao.objects.all())
+    perfil = serializers.SlugRelatedField(slug_field='uuid', queryset=Perfil.objects.all())
+
+    acoes_explicacao = serializers.CharField(
+        source='acoes_choices_array_display',
+        required=False,
+        read_only=True)
+
+    class Meta:
+        model = PerfilPermissao
+        exclude = ('id',)
+
+
+class PerfilPermissaoSerializer(serializers.ModelSerializer):
+    permissao = PermissaoSerializer()
+    perfil = PerfilSerializer()
+    acoes_explicacao = serializers.CharField(
+        source='acoes_choices_array_display',
+        required=False,
+        read_only=True)
+
+    class Meta:
+        model = PerfilPermissao
+        exclude = ('id',)
+
+
+class GrupoCompletoPerfilSerializer(serializers.ModelSerializer):
+    perfis = PerfilSerializer(many=True)
+
+    class Meta:
+        model = GrupoPerfil
+        exclude = ('id',)
+
+
+class NotificationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Notification
+        exclude = ('actor_object_id', 'target_object_id', 'action_object_object_id', 'recipient',
+                   'actor_content_type', 'target_content_type', 'action_object_content_type')
+
+
+class UsuarioDetalheSerializer(serializers.ModelSerializer):
+    perfis = PerfilSerializer(many=True, read_only=True)
+    escolas = EscolaSimplesSerializer(many=True)
+    diretorias_regionais = DiretoriaRegionalSimplesSerializer(many=True)
+
+    class Meta:
+        model = Usuario
+        fields = ('uuid', 'nome', 'email', 'date_joined', 'perfis', 'escolas', 'diretorias_regionais')

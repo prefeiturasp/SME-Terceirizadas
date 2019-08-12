@@ -1,0 +1,93 @@
+[
+  {
+    "model": "escola.diretoriaregional",
+    "id": 1,
+    "fields": {
+      "nome": "SANTO AMARO"
+    }
+  },
+  {
+    "model": "escola.diretoriaregional",
+    "id": 2,
+    "fields": {
+      "nome": "PIRITUBA"
+    }
+  },
+  {
+    "model": "escola.diretoriaregional",
+    "id": 3,
+    "fields": {
+      "nome": "BUTANTA"
+    }
+  },
+  {
+    "model": "escola.diretoriaregional",
+    "id": 4,
+    "fields": {
+      "nome": "CAMPO LIMPO"
+    }
+  },
+  {
+    "model": "escola.diretoriaregional",
+    "id": 5,
+    "fields": {
+      "nome": "CAPELA DO SOCORRO"
+    }
+  },
+  {
+    "model": "escola.diretoriaregional",
+    "id": 6,
+    "fields": {
+      "nome": "IPIRANGA"
+    }
+  },
+  {
+    "model": "escola.diretoriaregional",
+    "id": 7,
+    "fields": {
+      "nome": "ITAQUERA"
+    }
+  },
+  {
+    "model": "escola.diretoriaregional",
+    "id": 8,
+    "fields": {
+      "nome": "GUAIANASES"
+    }
+  },
+  {
+    "model": "escola.diretoriaregional",
+    "id": 9,
+    "fields": {
+      "nome": "SAO MATEUS"
+    }
+  },
+  {
+    "model": "escola.diretoriaregional",
+    "id": 10,
+    "fields": {
+      "nome": "PENHA"
+    }
+  },
+  {
+    "model": "escola.diretoriaregional",
+    "id": 11,
+    "fields": {
+      "nome": "JACANA/TREMEMBE"
+    }
+  },
+  {
+    "model": "escola.diretoriaregional",
+    "id": 12,
+    "fields": {
+      "nome": "FREGUESIA/BRASILANDIA"
+    }
+  },
+  {
+    "model": "escola.diretoriaregional",
+    "id": 13,
+    "fields": {
+      "nome": "SAO MIGUEL"
+    }
+  }
+]

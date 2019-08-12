@@ -3,7 +3,7 @@
 CAUTION: Do not modify this file unless you know what you are doing.
          Unexpected results may occur if the code is changed deliberately.
 -->
-<dbmodel pgmodeler-ver="0.9.1" last-position="772,250" last-zoom="0.45"
+<dbmodel pgmodeler-ver="0.9.1" last-position="6238,2271" last-zoom="1.2"
 	 default-owner="postgres">
 <database name="new_database" is-template="false" allow-conns="true">
 </database>
@@ -28,8 +28,11 @@ Ex. Pode fazer compra,
 pode abrir a escola, 
 pode fazer merenda, 
 pode dar aula,
-pode fechar a escola, etc.]]></comment>
-	<position x="5712.96" y="2424.11"/>
+pode fechar a escola, etc.
+
+
+tipo: pode criar, visualizar, recebe, fica ciente...]]></comment>
+	<position x="6000" y="2020"/>
 	<column name="permissao_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -56,7 +59,7 @@ pode fechar a escola, etc.]]></comment>
 	<comment><![CDATA[[ATENCAO, QUANDO FOR CEMEI, TEM DOIS TIPOS DE ALUNOS: DE  CEI E EMEI, OU SEJA, COMPLEXIDADE ESPECIFICA DO CASO.]
 
 Unidade escolar. EMEF, CIEJA, EMEI, EMEBS, CEI, CEMEI]]></comment>
-	<position x="3954" y="1032.47"/>
+	<position x="3820" y="1060"/>
 	<column name="unidade_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -72,7 +75,7 @@ Unidade escolar. EMEF, CIEJA, EMEI, EMEBS, CEI, CEMEI]]></comment>
 	<schema name="&quot;escola[revisado]&quot;"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Qual o tipo de gestão da escola. Ex.: Terceirizada completa, tec mista]]></comment>
-	<position x="3918.81" y="895.35"/>
+	<position x="3620" y="920"/>
 	<column name="gestao_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -97,7 +100,7 @@ Ex. de 1 a 2 anos
 de 2 a 5 anos
 de 7 a 18 anos.
 de 6meses a 1 ano]]></comment>
-	<position x="5131.21" y="519.61"/>
+	<position x="5140" y="520"/>
 	<column name="idade_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -130,7 +133,7 @@ Lanche 4 horas
 Lanche 5 horas 
 Lanche 6horas
 Merenda Seca]]></comment>
-	<position x="5218.23" y="1959.42"/>
+	<position x="4460" y="2500"/>
 	<column name="tipo_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -150,7 +153,7 @@ Merenda Seca]]></comment>
 1 lista de tipos de refeicao (Dejejum, Colação, Almoço, LANCHE DE 4 HS OU 8 HS; LANCHE DE 5HS OU 6 HS; REFEIÇÃO).
 
 !!!!OBS!!! PARA CEI varia por faixa de idade.]]></comment>
-	<position x="4061.55" y="2467.7"/>
+	<position x="4320" y="1960"/>
 	<column name="cardapio_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -179,7 +182,7 @@ Merenda Seca]]></comment>
 <table name="escola[revisado]">
 	<schema name="&quot;escola[revisado]&quot;"/>
 	<role name="postgres"/>
-	<position x="4257.01" y="321.273"/>
+	<position x="4260" y="320"/>
 	<column name="escola_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -217,7 +220,7 @@ Merenda Seca]]></comment>
 
 Ex: o perfil diretor tem as permissões: [abrir escola, fechar escola]
 o perfil professor pode [dar aula, fazer denuncia na DRE]]]></comment>
-	<position x="6192.3" y="2311.34"/>
+	<position x="6600" y="1840"/>
 	<column name="perfil_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -239,7 +242,7 @@ o perfil professor pode [dar aula, fazer denuncia na DRE]]]></comment>
 	<schema name="dados_comuns"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Registra eventos de usuário realizado no sistema]]></comment>
-	<position x="4709.21" y="1706.59"/>
+	<position x="4400" y="1720"/>
 	<column name="log_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -265,7 +268,7 @@ o perfil professor pode [dar aula, fazer denuncia na DRE]]]></comment>
 	<schema name="&quot;escola[revisado]&quot;"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Tabela utilizada para registrar as DREs (DIRETORIA REGIONAL DA EDUCAÇÃO)]]></comment>
-	<position x="3637.09" y="523.55"/>
+	<position x="3640" y="520"/>
 	<column name="diretor_regional_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -288,7 +291,7 @@ o perfil professor pode [dar aula, fazer denuncia na DRE]]]></comment>
 	<schema name="perfil"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Campo para validar se o usuário foi ativado via email]]></comment>
-	<position x="6092.72" y="2020.98"/>
+	<position x="6520" y="1640"/>
 	<column name="usuario_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -325,7 +328,7 @@ o perfil professor pode [dar aula, fazer denuncia na DRE]]]></comment>
 	<comment><![CDATA[Lote de  atendimento
 Uma DRE pode ter 1 ou mais lotes
 um lote é um conjunto de escolas que a terceirizada atende]]></comment>
-	<position x="2911.42" y="1059.71"/>
+	<position x="2400" y="1060"/>
 	<column name="lote_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -348,7 +351,7 @@ um lote é um conjunto de escolas que a terceirizada atende]]></comment>
 	<schema name="terceirizada"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Edital para alimentação]]></comment>
-	<position x="2455.35" y="1480.74"/>
+	<position x="1940" y="1480"/>
 	<column name="edital_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -376,7 +379,7 @@ um lote é um conjunto de escolas que a terceirizada atende]]></comment>
 	<schema name="terceirizada"/>
 	<role name="postgres"/>
 	<comment><![CDATA[qual o relacionamento com edital e contrato?]]></comment>
-	<position x="3295.36" y="1440.84"/>
+	<position x="2780" y="1440"/>
 	<column name="terceirizada_id" not-null="true">
 		<type name="serial" length="80"/>
 	</column>
@@ -411,27 +414,6 @@ um lote é um conjunto de escolas que a terceirizada atende]]></comment>
 		<columns names="terceirizada_id" ref-type="src-columns"/>
 	</constraint>
 </table>
-
-<relationship name="muitas_permissoes_possuem_muitos_perfis" type="relnn"
-	 src-col-pattern="{sc}_{st}" dst-col-pattern="{sc}_{dt}"
-	 pk-pattern="{gt}_pk" uq-pattern="{gt}_uq"
-	 src-fk-pattern="{st}_fk" dst-fk-pattern="{dt}_fk"
-	 pk-col-pattern="id"
-	 custom-color="#ff0000"
-	 src-table="perfil.permissao"
-	 dst-table="perfil.perfil"
-	 src-required="false" dst-required="false"
-	 table-name="many_permisison_has_many_profile">
-	<label ref-type="src-label">
-		<position x="39.3701" y="3.51522"/>
-	</label>
-	<label ref-type="dst-label">
-		<position x="-62.15" y="-11.5807"/>
-	</label>
-	<label ref-type="name-label">
-		<position x="110.193" y="-48.0125"/>
-	</label>
-</relationship>
 
 <schema name="codae_cp" rect-visible="true" fill-color="#00aaff">
 	<role name="postgres"/>
@@ -525,7 +507,7 @@ um lote é um conjunto de escolas que a terceirizada atende]]></comment>
 	<schema name="&quot;escola[revisado]&quot;"/>
 	<role name="postgres"/>
 	<comment><![CDATA[manhã, intermediário, tarde, vespertino, noturno, integral]]></comment>
-	<position x="4978.88" y="896.9"/>
+	<position x="4720" y="1140"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -560,7 +542,7 @@ grupo ESCOLA: tem os perfis prof, diretor, etc.
 grupo DRE
 grupo TERC
 ]]></comment>
-	<position x="5692.71" y="2239.13"/>
+	<position x="6080" y="1820"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -592,7 +574,7 @@ grupo TERC
 	<schema name="kit_lanche"/>
 	<role name="postgres"/>
 	<comment><![CDATA[a ideia é ser um combo de opcoes fixas]]></comment>
-	<position x="2259.47" y="530.456"/>
+	<position x="2260" y="540"/>
 	<column name="id" not-null="true">
 		<type name="smallint" length="0"/>
 	</column>
@@ -608,7 +590,7 @@ grupo TERC
 	<schema name="kit_lanche"/>
 	<role name="postgres"/>
 	<comment><![CDATA[kit1, kit2, kit3]]></comment>
-	<position x="2510.94" y="201.54"/>
+	<position x="2520" y="200"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -624,7 +606,7 @@ grupo TERC
 	<schema name="kit_lanche"/>
 	<role name="postgres"/>
 	<comment><![CDATA[[tem um fluxo de aprovação, desde rascunho ate aprovado pela DRE e etc.]]]></comment>
-	<position x="3112.88" y="741.194"/>
+	<position x="3120" y="740"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -658,7 +640,7 @@ qtd_kits = 1, 2 ou 3
 
 
 se  a solicitacao for multipla, não deve ter kit lanche apontando pra ca.]]></comment>
-	<position x="3060.67" y="96.0327"/>
+	<position x="3060" y="100"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -699,7 +681,7 @@ QUANDO É MULTIPLO: ex: passeio pra escola x,y,z no ibira (local)  no dia 26 ond
 
 
 ]]></comment>
-	<position x="2212.22" y="742.306"/>
+	<position x="2220" y="740"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -793,7 +775,7 @@ QUANDO É MULTIPLO: ex: passeio pra escola x,y,z no ibira (local)  no dia 26 ond
 
 """
 Nayla - por exemplo: quero servir o cardápio do dia 30 no dia 15, automaticamente o cardápio do dia 15 será servido no dia 30"""]]></comment>
-	<position x="3237.88" y="2436.39"/>
+	<position x="2940" y="2660"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -810,17 +792,6 @@ Nayla - por exemplo: quero servir o cardápio do dia 30 no dia 15, automaticamen
 		<columns names="id" ref-type="src-columns"/>
 	</constraint>
 </table>
-
-<relationship name="many_escola_has_many_cardapio" type="relnn"
-	 src-col-pattern="{sc}_{st}" dst-col-pattern="{sc}_{dt}"
-	 pk-pattern="{gt}_pk" uq-pattern="{gt}_uq"
-	 src-fk-pattern="{st}_fk" dst-fk-pattern="{dt}_fk"
-	 pk-col-pattern="id"
-	 custom-color="#ff0000"
-	 src-table="&quot;escola[revisado]&quot;.&quot;escola[revisado]&quot;"
-	 dst-table="&quot;cardapio[revisado]&quot;.&quot;cardapio[revisado]&quot;"
-	 src-required="false" dst-required="false"
-	 table-name="many_escola_has_many_cardapio"/>
 
 <relationship name="escola_has_many_troca_dia_cardapio" type="rel1n"
 	 src-col-pattern="{sc}_{st}"
@@ -851,6 +822,13 @@ Nayla - por exemplo: quero servir o cardápio do dia 30 no dia 15, automaticamen
 	<role name="postgres"/>
 	<comment><![CDATA[[ATENÇÃO AOS STATUS... TEM UM FLUXO DE APROVAÇÃO]
 
+*** NOVO ENTENDIMENTO (26/07/19):
+É quando a unidade quer trocar um ou mais tipos de refeição em um ou mais períodos escolares por um evento especial (motivo) em dado período de tempo.
+
+Ex: Alterar  nos períodos matutino e intermediario, o lanche e refeição pelo motivo "aniversariantes do mês"
+****
+
+### Entendimento anterior que foi mudado:
 É quando a unidade quer alterar um item de cardápio de rotina para outro item de cardapio.
 
 entende-se: item de cardapio é um tipo_cardapio.
@@ -861,44 +839,39 @@ Nayla - Outro exemplo, a escola vai comemorar a festa junina no dia 28 só no pe
 Marcelo - entendi, trocar o almoço do dia 28 por mais lanches para atender a demanda"""
 
 obs>> a alteração de cardápio é para um dia específico, não da pra cancelar um almoço de um dia pra virar em dobro no outro]]></comment>
-	<position x="3942.84" y="1928.89"/>
+	<position x="3740" y="2160"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
 	<column name="data_criacao">
 		<type name="date" length="0"/>
 	</column>
-	<column name="descricao">
+	<column name="observacao">
 		<type name="text" length="0"/>
 	</column>
 	<column name="status">
 		<type name="smallint" length="0"/>
+	</column>
+	<column name="data_inicial">
+		<type name="date" length="0"/>
+	</column>
+	<column name="data_final">
+		<type name="date" length="0"/>
 	</column>
 	<constraint name="alteracao_cardapio_pk" type="pk-constr" table="&quot;cardapio[revisado]&quot;.&quot;alteracao_cardapio[revisado]&quot;">
 		<columns names="id" ref-type="src-columns"/>
 	</constraint>
 
 	<customidxs object-type="column">
-		<object name="cardapio_id_cardapio[revisado]" index="4"/>
+		<object name="escola_id_escola[revisado]" index="4"/>
+		<object name="id_motivo_alteracao_cardapio" index="5"/>
 	</customidxs>
 
 	<customidxs object-type="constraint">
-		<object name="cardapio[revisado]_fk" index="0"/>
+		<object name="escola[revisado]_fk" index="1"/>
+		<object name="motivo_alteracao_cardapio_fk" index="2"/>
 	</customidxs>
 </table>
-
-<relationship name="cardapio[revisado]_has_many_alteracao_cardapio" type="rel1n"
-	 src-col-pattern="{sc}_{st}"
-	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
-	 src-fk-pattern="{st}_fk"
-	 custom-color="#000000"
-	 src-table="&quot;cardapio[revisado]&quot;.&quot;cardapio[revisado]&quot;"
-	 dst-table="&quot;cardapio[revisado]&quot;.&quot;alteracao_cardapio[revisado]&quot;"
-	 src-required="false" dst-required="false">
-	<label ref-type="name-label">
-		<position x="51.3605" y="-3.73182"/>
-	</label>
-</relationship>
 
 <relationship name="escola_has_many_alteracao_cardapio" type="rel1n"
 	 src-col-pattern="{sc}_{st}"
@@ -908,35 +881,6 @@ obs>> a alteração de cardápio é para um dia específico, não da pra cancela
 	 src-table="&quot;escola[revisado]&quot;.&quot;escola[revisado]&quot;"
 	 dst-table="&quot;cardapio[revisado]&quot;.&quot;alteracao_cardapio[revisado]&quot;"
 	 src-required="false" dst-required="false"/>
-
-<relationship name="tipo_cardapio[revisado]_has_many_alteracao_cardapio" type="rel1n"
-	 src-col-pattern="{sc}_{st}"
-	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
-	 src-fk-pattern="{st}_fk"
-	 custom-color="#000000"
-	 src-table="&quot;cardapio[revisado]&quot;.&quot;tipo_alimentacao[revisado]&quot;"
-	 dst-table="&quot;cardapio[revisado]&quot;.&quot;alteracao_cardapio[revisado]&quot;"
-	 src-required="false" dst-required="false">
-	<column name="item_de">
-		<type name="serial" length="0"/>
-	</column>
-</relationship>
-
-<relationship name="tipo_cardapio[revisado]_has_many_alteracao_cardapio2" type="rel1n"
-	 src-col-pattern="{sc}_{st}"
-	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
-	 src-fk-pattern="{st}_fk"
-	 custom-color="#000000"
-	 src-table="&quot;cardapio[revisado]&quot;.&quot;tipo_alimentacao[revisado]&quot;"
-	 dst-table="&quot;cardapio[revisado]&quot;.&quot;alteracao_cardapio[revisado]&quot;"
-	 src-required="false" dst-required="false">
-	<label ref-type="name-label">
-		<position x="-2.58027" y="1.90969"/>
-	</label>
-	<column name="item_para">
-		<type name="int2" length="0"/>
-	</column>
-</relationship>
 
 <relationship name="cardapio[revisado]_has_many_troca_dia_cardapio" type="rel1n"
 	 src-col-pattern="{sc}_{st}"
@@ -979,7 +923,7 @@ Muito parecido com cardápio.
 Acontece quando não tem cardápio para a escola, por exemplo num domingo, no qual vai ter uma atividade de dança avulsa e a escola gostaria de dar almoço e  merenda pros participantes.
 
 tipo, continuo ou normal]]></comment>
-	<position x="5799.62" y="166.718"/>
+	<position x="5660" y="160"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -995,6 +939,9 @@ tipo, continuo ou normal]]></comment>
 	<column name="status">
 		<type name="smallint" length="0"/>
 	</column>
+	<column name="dias_da_semana">
+		<type name="varchar" length="0"/>
+	</column>
 	<column name="motivo_outro">
 		<type name="text" length="0"/>
 	</column>
@@ -1003,11 +950,13 @@ tipo, continuo ou normal]]></comment>
 	</constraint>
 
 	<customidxs object-type="column">
-		<object name="escola_id_escola[revisado]" index="6"/>
+		<object name="escola_id_escola[revisado]" index="7"/>
+		<object name="id_motivo_inclusao_continua[revisado]" index="8"/>
 	</customidxs>
 
 	<customidxs object-type="constraint">
 		<object name="escola[revisado]_fk" index="1"/>
+		<object name="motivo_inclusao_continua[revisado]_fk" index="2"/>
 	</customidxs>
 </table>
 
@@ -1020,44 +969,13 @@ tipo, continuo ou normal]]></comment>
 	 dst-table="&quot;inclusao_alimentacao[revisado]&quot;.&quot;inclusao_alimentacao_continuo[revisado]&quot;"
 	 src-required="false" dst-required="false"/>
 
-<table name="dia_semana">
-	<schema name="dados_comuns"/>
-	<role name="postgres"/>
-	<comment><![CDATA[seg, sex;...]]></comment>
-	<position x="4727.95" y="1230.03"/>
-	<column name="id" not-null="true">
-		<type name="serial" length="0"/>
-	</column>
-	<column name="nome">
-		<type name="varchar" length="0"/>
-	</column>
-	<constraint name="dia_semana_pk" type="pk-constr" table="dados_comuns.dia_semana">
-		<columns names="id" ref-type="src-columns"/>
-	</constraint>
-</table>
-
-<relationship name="many_dia_semana_has_many_inclusao_alimentacao" type="relnn"
-	 src-col-pattern="{sc}_{st}" dst-col-pattern="{sc}_{dt}"
-	 pk-pattern="{gt}_pk" uq-pattern="{gt}_uq"
-	 src-fk-pattern="{st}_fk" dst-fk-pattern="{dt}_fk"
-	 pk-col-pattern="id"
-	 custom-color="#ff0000"
-	 src-table="dados_comuns.dia_semana"
-	 dst-table="&quot;inclusao_alimentacao[revisado]&quot;.&quot;inclusao_alimentacao_continuo[revisado]&quot;"
-	 src-required="false" dst-required="false"
-	 table-name="many_dia_semana_has_many_inclusao_alimentacao">
-	<label ref-type="name-label">
-		<position x="0" y="0"/>
-	</label>
-</relationship>
-
 <table name="motivo_inclusao_continua[revisado]">
 	<schema name="&quot;inclusao_alimentacao[revisado]&quot;"/>
 	<role name="postgres"/>
 	<comment><![CDATA[continuo -  mais educacao
 continuo-sp integral
 continuo - outro]]></comment>
-	<position x="6479.04" y="200.041"/>
+	<position x="6240" y="160"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -1081,7 +999,7 @@ continuo - outro]]></comment>
 <table name="qtd_por_periodo[revisado]">
 	<schema name="&quot;inclusao_alimentacao[revisado]&quot;"/>
 	<role name="postgres"/>
-	<position x="5813.91" y="496.04"/>
+	<position x="5660" y="460"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -1113,21 +1031,10 @@ continuo - outro]]></comment>
 	 dst-table="&quot;inclusao_alimentacao[revisado]&quot;.&quot;qtd_por_periodo[revisado]&quot;"
 	 src-required="false" dst-required="false"/>
 
-<relationship name="many_inclusao_alimentacao_has_many_qtd_por_periodo" type="relnn"
-	 src-col-pattern="{sc}_{st}" dst-col-pattern="{sc}_{dt}"
-	 pk-pattern="{gt}_pk" uq-pattern="{gt}_uq"
-	 src-fk-pattern="{st}_fk" dst-fk-pattern="{dt}_fk"
-	 pk-col-pattern="id"
-	 custom-color="#ff0000"
-	 src-table="&quot;inclusao_alimentacao[revisado]&quot;.&quot;inclusao_alimentacao_continuo[revisado]&quot;"
-	 dst-table="&quot;inclusao_alimentacao[revisado]&quot;.&quot;qtd_por_periodo[revisado]&quot;"
-	 src-required="false" dst-required="false"
-	 table-name="many_inclusao_alimentacao_has_many_qtd_por_periodo"/>
-
 <table name="inclusao_alimentacao_normal[revisado]">
 	<schema name="&quot;inclusao_alimentacao[revisado]&quot;"/>
 	<role name="postgres"/>
-	<position x="6420.26" y="397.86"/>
+	<position x="6280" y="380"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -1159,7 +1066,7 @@ continuo - outro]]></comment>
 	<comment><![CDATA[reposicao de aula
 dia de familia
 outro]]></comment>
-	<position x="6482.51" y="745.99"/>
+	<position x="6340" y="740"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -1183,7 +1090,7 @@ outro]]></comment>
 <table name="grupo_inclusao_alimentacao_normal[revisado]">
 	<schema name="&quot;inclusao_alimentacao[revisado]&quot;"/>
 	<role name="postgres"/>
-	<position x="5812.26" y="729.2"/>
+	<position x="5780" y="820"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -1215,17 +1122,6 @@ outro]]></comment>
 	 dst-table="&quot;inclusao_alimentacao[revisado]&quot;.&quot;grupo_inclusao_alimentacao_normal[revisado]&quot;"
 	 src-required="false" dst-required="false"/>
 
-<relationship name="many_grupo_inclusao_alimentacao_normal_has_many_inclusao_alimen" type="relnn"
-	 src-col-pattern="{sc}_{st}" dst-col-pattern="{sc}_{dt}"
-	 pk-pattern="{gt}_pk" uq-pattern="{gt}_uq"
-	 src-fk-pattern="{st}_fk" dst-fk-pattern="{dt}_fk"
-	 pk-col-pattern="id"
-	 custom-color="#ff0000"
-	 src-table="&quot;inclusao_alimentacao[revisado]&quot;.&quot;grupo_inclusao_alimentacao_normal[revisado]&quot;"
-	 dst-table="&quot;inclusao_alimentacao[revisado]&quot;.&quot;inclusao_alimentacao_normal[revisado]&quot;"
-	 src-required="false" dst-required="false"
-	 table-name="many_grupo_inclusao_alimentacao_normal_has_many_inclusao_alimen"/>
-
 <table name="suspensao_alimentacao[revisado]">
 	<schema name="&quot;cardapio[revisado]&quot;"/>
 	<role name="postgres"/>
@@ -1237,12 +1133,12 @@ tipo pode ser cardapio, periodo (manha, tarde) ou itens do cardapio.
  - pode ser um cardapio inteiro
  - pode ser só um período (manha, tarde, noite)
  - pode ser só um item de um cardápio]]></comment>
-	<position x="5170.98" y="2433.84"/>
+	<position x="5340" y="2300"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
-	<column name="tipo">
-		<type name="smallint" length="0"/>
+	<column name="data_criacao">
+		<type name="date" length="0"/>
 	</column>
 	<column name="dia">
 		<type name="date" length="0"/>
@@ -1252,46 +1148,15 @@ tipo pode ser cardapio, periodo (manha, tarde) ou itens do cardapio.
 	</constraint>
 
 	<customidxs object-type="column">
-		<object name="escola_id_escola[revisado]" index="3"/>
+		<object name="id_grupo_suspensao_alimentacao_normal" index="4"/>
+		<object name="id_motivo_suspensao" index="3"/>
 	</customidxs>
 
 	<customidxs object-type="constraint">
-		<object name="escola[revisado]_fk" index="1"/>
+		<object name="grupo_suspensao_alimentacao_normal_fk" index="2"/>
+		<object name="motivo_suspensao_fk" index="1"/>
 	</customidxs>
 </table>
-
-<relationship name="escola[revisado]_has_many_suspensao_alimentacao" type="rel1n"
-	 src-col-pattern="{sc}_{st}"
-	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
-	 src-fk-pattern="{st}_fk"
-	 custom-color="#000000"
-	 src-table="&quot;escola[revisado]&quot;.&quot;escola[revisado]&quot;"
-	 dst-table="&quot;cardapio[revisado]&quot;.&quot;suspensao_alimentacao[revisado]&quot;"
-	 src-required="false" dst-required="false"/>
-
-<relationship name="cardapio[revisado]_has_many_suspensao_alimentacao" type="rel1n"
-	 src-col-pattern="{sc}_{st}"
-	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
-	 src-fk-pattern="{st}_fk"
-	 custom-color="#000000"
-	 src-table="&quot;cardapio[revisado]&quot;.&quot;cardapio[revisado]&quot;"
-	 dst-table="&quot;cardapio[revisado]&quot;.&quot;suspensao_alimentacao[revisado]&quot;"
-	 src-required="false" dst-required="false"/>
-
-<relationship name="many_tipo_cardapio[revisado]_has_many_suspensao_alimentacao" type="relnn"
-	 src-col-pattern="{sc}_{st}" dst-col-pattern="{sc}_{dt}"
-	 pk-pattern="{gt}_pk" uq-pattern="{gt}_uq"
-	 src-fk-pattern="{st}_fk" dst-fk-pattern="{dt}_fk"
-	 pk-col-pattern="id"
-	 custom-color="#ff0000"
-	 src-table="&quot;cardapio[revisado]&quot;.&quot;tipo_alimentacao[revisado]&quot;"
-	 dst-table="&quot;cardapio[revisado]&quot;.&quot;suspensao_alimentacao[revisado]&quot;"
-	 src-required="false" dst-required="false"
-	 table-name="many_tipo_cardapio[revisado]_has_many_suspensao_alimentacao">
-	<label ref-type="name-label">
-		<position x="0" y="0"/>
-	</label>
-</relationship>
 
 <table name="item_kit_lanche">
 	<schema name="kit_lanche"/>
@@ -1301,7 +1166,7 @@ Néctar UHT ou Suco Tropical UHT (200 ml)
 Biscoito Integral Salgado (mín. de 25g embalagem individual)
 
 etc.]]></comment>
-	<position x="2122.22" y="124.036"/>
+	<position x="2120" y="120"/>
 	<column name="id" not-null="true">
 		<type name="smallint" length="0"/>
 	</column>
@@ -1341,7 +1206,7 @@ etc.]]></comment>
 quando é multipla: todas as escolas vao ter a mesma opcao de kits, com numero de alunos variando.
 
 ]]></comment>
-	<position x="3086.54" y="424.184"/>
+	<position x="3080" y="420"/>
 	<column name="id" not-null="true">
 		<type name="smallint" length="0"/>
 	</column>
@@ -1419,30 +1284,10 @@ quando é multipla: todas as escolas vao ter a mesma opcao de kits, com numero d
 	 src-required="false" dst-required="false"
 	 table-name="many_faixa_idade_escolar_has_many_escola[revisado]"/>
 
-<relationship name="many_suspensao_alimentacao[revisado]_has_many_periodo_escolar[r" type="relnn"
-	 src-col-pattern="{sc}_{st}" dst-col-pattern="{sc}_{dt}"
-	 pk-pattern="{gt}_pk" uq-pattern="{gt}_uq"
-	 src-fk-pattern="{st}_fk" dst-fk-pattern="{dt}_fk"
-	 pk-col-pattern="id"
-	 custom-color="#ff0000"
-	 src-table="&quot;cardapio[revisado]&quot;.&quot;suspensao_alimentacao[revisado]&quot;"
-	 dst-table="&quot;escola[revisado]&quot;.&quot;periodo_escolar[revisado]&quot;"
-	 src-required="false" dst-required="false"
-	 table-name="many_suspensao_alimentacao[revisado]_has_many_periodo_escolar[r"/>
-
-<relationship name="qtd_por_periodo[revisado]_has_many_inclusao_alimentacao_normal[" type="rel1n"
-	 src-col-pattern="{sc}_{st}"
-	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
-	 src-fk-pattern="{st}_fk"
-	 custom-color="#000000"
-	 src-table="&quot;inclusao_alimentacao[revisado]&quot;.&quot;qtd_por_periodo[revisado]&quot;"
-	 dst-table="&quot;inclusao_alimentacao[revisado]&quot;.&quot;inclusao_alimentacao_normal[revisado]&quot;"
-	 src-required="false" dst-required="false"/>
-
 <table name="endereco">
 	<schema name="dados_comuns"/>
 	<role name="postgres"/>
-	<position x="4715.56" y="1591.77"/>
+	<position x="4420" y="1620"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -1469,7 +1314,7 @@ quando é multipla: todas as escolas vao ter a mesma opcao de kits, com numero d
 <table name="contato">
 	<schema name="dados_comuns"/>
 	<role name="postgres"/>
-	<position x="4673.33" y="1411.11"/>
+	<position x="4380" y="1440"/>
 	<column name="id" not-null="true">
 		<type name="smallint" length="0"/>
 	</column>
@@ -1503,6 +1348,285 @@ quando é multipla: todas as escolas vao ter a mesma opcao de kits, com numero d
 	 custom-color="#000000"
 	 src-table="terceirizada.edital"
 	 dst-table="terceirizada.terceirizada"
+	 src-required="false" dst-required="false"/>
+
+<table name="perfil_permissao">
+	<schema name="perfil"/>
+	<role name="postgres"/>
+	<position x="6460" y="2100"/>
+	<column name="id" not-null="true">
+		<type name="serial" length="0"/>
+	</column>
+	<column name="acoes">
+		<type name="varbit" length="0"/>
+	</column>
+	<constraint name="perfil_permissao_pk" type="pk-constr" table="perfil.perfil_permissao">
+		<columns names="id" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<relationship name="perfil_has_many_perfil_permissao" type="rel1n"
+	 src-col-pattern="{sc}_{st}"
+	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
+	 src-fk-pattern="{st}_fk"
+	 custom-color="#000000"
+	 src-table="perfil.perfil"
+	 dst-table="perfil.perfil_permissao"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="permissao_has_many_perfil_permissao" type="rel1n"
+	 src-col-pattern="{sc}_{st}"
+	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
+	 src-fk-pattern="{st}_fk"
+	 custom-color="#000000"
+	 src-table="perfil.permissao"
+	 dst-table="perfil.perfil_permissao"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="grupo_inclusao_alimentacao_normal[revisado]_has_many_inclusao_a" type="rel1n"
+	 src-col-pattern="{sc}_{st}"
+	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
+	 src-fk-pattern="{st}_fk"
+	 custom-color="#000000"
+	 src-table="&quot;inclusao_alimentacao[revisado]&quot;.&quot;grupo_inclusao_alimentacao_normal[revisado]&quot;"
+	 dst-table="&quot;inclusao_alimentacao[revisado]&quot;.&quot;inclusao_alimentacao_normal[revisado]&quot;"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="grupo_inclusao_alimentacao_normal[revisado]_has_many_qtd_por_pe" type="rel1n"
+	 src-col-pattern="{sc}_{st}"
+	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
+	 src-fk-pattern="{st}_fk"
+	 custom-color="#000000"
+	 src-table="&quot;inclusao_alimentacao[revisado]&quot;.&quot;grupo_inclusao_alimentacao_normal[revisado]&quot;"
+	 dst-table="&quot;inclusao_alimentacao[revisado]&quot;.&quot;qtd_por_periodo[revisado]&quot;"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="inclusao_alimentacao_continuo[revisado]_has_many_qtd_por_period" type="rel1n"
+	 src-col-pattern="{sc}_{st}"
+	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
+	 src-fk-pattern="{st}_fk"
+	 custom-color="#000000"
+	 src-table="&quot;inclusao_alimentacao[revisado]&quot;.&quot;inclusao_alimentacao_continuo[revisado]&quot;"
+	 dst-table="&quot;inclusao_alimentacao[revisado]&quot;.&quot;qtd_por_periodo[revisado]&quot;"
+	 src-required="false" dst-required="false"/>
+
+<table name="motivo_alteracao_cardapio">
+	<schema name="&quot;cardapio[revisado]&quot;"/>
+	<role name="postgres"/>
+	<comment><![CDATA[Alteração de alimentação
+- atividade diferenciada
+- aniversariante do mes
+]]></comment>
+	<position x="3100" y="2180"/>
+	<column name="id" not-null="true">
+		<type name="serial" length="0"/>
+	</column>
+	<column name="nome">
+		<type name="text" length="0"/>
+	</column>
+	<constraint name="motivo_inclusao_normal_pk" type="pk-constr" table="&quot;cardapio[revisado]&quot;.motivo_alteracao_cardapio">
+		<columns names="id" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<relationship name="motivo_alteracao_cardapio_has_many_alteracao_cardapio[revisado]" type="rel1n"
+	 src-col-pattern="{sc}_{st}"
+	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
+	 src-fk-pattern="{st}_fk"
+	 custom-color="#000000"
+	 src-table="&quot;cardapio[revisado]&quot;.motivo_alteracao_cardapio"
+	 dst-table="&quot;cardapio[revisado]&quot;.&quot;alteracao_cardapio[revisado]&quot;"
+	 src-required="false" dst-required="false"/>
+
+<table name="substituicoes_alimentacao_no_periodo_escolar">
+	<schema name="&quot;cardapio[revisado]&quot;"/>
+	<role name="postgres"/>
+	<comment><![CDATA[Período Escolar x Tipos de alimentação que serão substituidos.]]></comment>
+	<position x="3920" y="2540"/>
+	<column name="id" not-null="true">
+		<type name="serial" length="0"/>
+	</column>
+	<column name="qtd_alunos">
+		<type name="smallint" length="0"/>
+		<comment><![CDATA[Quantidade de alunos que terão a alimentação substituida.]]></comment>
+	</column>
+	<constraint name="substituicao_de_alimentacao_pk" type="pk-constr" table="&quot;cardapio[revisado]&quot;.substituicoes_alimentacao_no_periodo_escolar">
+		<columns names="id" ref-type="src-columns"/>
+	</constraint>
+
+	<customidxs object-type="column">
+		<object name="id_alteracao_cardapio[revisado]" index="3"/>
+		<object name="id_periodo_escolar[revisado]" index="2"/>
+	</customidxs>
+
+	<customidxs object-type="constraint">
+		<object name="alteracao_cardapio[revisado]_fk" index="2"/>
+		<object name="periodo_escolar[revisado]_fk" index="1"/>
+	</customidxs>
+</table>
+
+<relationship name="periodo_escolar[revisado]_has_many_substituicao_de_alimentacao" type="rel1n"
+	 src-col-pattern="{sc}_{st}"
+	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
+	 src-fk-pattern="{st}_fk"
+	 custom-color="#000000"
+	 src-table="&quot;escola[revisado]&quot;.&quot;periodo_escolar[revisado]&quot;"
+	 dst-table="&quot;cardapio[revisado]&quot;.substituicoes_alimentacao_no_periodo_escolar"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="alteracao_cardapio[revisado]_has_many_substituicao_de_alimentac" type="rel1n"
+	 src-col-pattern="{sc}_{st}"
+	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
+	 src-fk-pattern="{st}_fk"
+	 custom-color="#000000"
+	 src-table="&quot;cardapio[revisado]&quot;.&quot;alteracao_cardapio[revisado]&quot;"
+	 dst-table="&quot;cardapio[revisado]&quot;.substituicoes_alimentacao_no_periodo_escolar"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="many_tipo_alimentacao[revisado]_has_many_substituicao_de_alimen" type="relnn"
+	 src-col-pattern="{sc}_{st}" dst-col-pattern="{sc}_{dt}"
+	 pk-pattern="{gt}_pk" uq-pattern="{gt}_uq"
+	 src-fk-pattern="{st}_fk" dst-fk-pattern="{dt}_fk"
+	 pk-col-pattern="id"
+	 custom-color="#ff0000"
+	 src-table="&quot;cardapio[revisado]&quot;.&quot;tipo_alimentacao[revisado]&quot;"
+	 dst-table="&quot;cardapio[revisado]&quot;.substituicoes_alimentacao_no_periodo_escolar"
+	 src-required="false" dst-required="false"
+	 table-name="many_tipo_alimentacao[revisado]_has_many_substituicao_de_alimen"/>
+
+<relationship name="many_tipo_unidade_escolar[revisado]_has_many_cardapio[revisado]" type="relnn"
+	 src-col-pattern="{sc}_{st}" dst-col-pattern="{sc}_{dt}"
+	 pk-pattern="{gt}_pk" uq-pattern="{gt}_uq"
+	 src-fk-pattern="{st}_fk" dst-fk-pattern="{dt}_fk"
+	 pk-col-pattern="id"
+	 custom-color="#ff0000"
+	 src-table="&quot;escola[revisado]&quot;.&quot;tipo_unidade_escolar[revisado]&quot;"
+	 dst-table="&quot;cardapio[revisado]&quot;.&quot;cardapio[revisado]&quot;"
+	 src-required="false" dst-required="false"
+	 table-name="many_tipo_unidade_escolar[revisado]_has_many_cardapio[revisado]"/>
+
+<table name="motivo_suspensao">
+	<schema name="&quot;cardapio[revisado]&quot;"/>
+	<role name="postgres"/>
+	<position x="5460" y="2540"/>
+	<column name="id" not-null="true">
+		<type name="smallint" length="0"/>
+	</column>
+	<column name="nome">
+		<type name="varchar" length="0"/>
+	</column>
+	<constraint name="motivo_suspensao_pk" type="pk-constr" table="&quot;cardapio[revisado]&quot;.motivo_suspensao">
+		<columns names="id" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<relationship name="motivo_suspensao_has_many_suspensao_alimentacao[revisado]" type="rel1n"
+	 src-col-pattern="{sc}_{st}"
+	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
+	 src-fk-pattern="{st}_fk"
+	 custom-color="#000000"
+	 src-table="&quot;cardapio[revisado]&quot;.motivo_suspensao"
+	 dst-table="&quot;cardapio[revisado]&quot;.&quot;suspensao_alimentacao[revisado]&quot;"
+	 src-required="false" dst-required="false"/>
+
+<table name="suspensao_alimentacao_no_periodo_escolar">
+	<schema name="&quot;cardapio[revisado]&quot;"/>
+	<role name="postgres"/>
+	<position x="4840" y="2080"/>
+	<column name="id" not-null="true">
+		<type name="smallint" length="0"/>
+	</column>
+	<column name="qtd_alunos">
+		<type name="smallint" length="0"/>
+	</column>
+	<constraint name="suspensoes_alimentacao_pk" type="pk-constr" table="&quot;cardapio[revisado]&quot;.suspensao_alimentacao_no_periodo_escolar">
+		<columns names="id" ref-type="src-columns"/>
+	</constraint>
+
+	<customidxs object-type="column">
+		<object name="id_grupo_suspensao_alimentacao_normal" index="3"/>
+		<object name="id_periodo_escolar[revisado]" index="2"/>
+	</customidxs>
+
+	<customidxs object-type="constraint">
+		<object name="grupo_suspensao_alimentacao_normal_fk" index="2"/>
+		<object name="periodo_escolar[revisado]_fk" index="1"/>
+	</customidxs>
+</table>
+
+<schema name="inclusao_alimentacao[revisado]_cp" rect-visible="true" fill-color="#d74a0e">
+	<role name="postgres"/>
+</schema>
+
+<table name="grupo_suspensao_alimentacao_normal">
+	<schema name="&quot;cardapio[revisado]&quot;"/>
+	<role name="postgres"/>
+	<position x="5520" y="1960"/>
+	<column name="id" not-null="true">
+		<type name="serial" length="0"/>
+	</column>
+	<column name="observacao">
+		<type name="text" length="0"/>
+	</column>
+	<column name="status">
+		<type name="smallint" length="0"/>
+	</column>
+	<column name="data_criacao">
+		<type name="date" length="0"/>
+	</column>
+	<column name="criado_por">
+		<type name="int2" length="0"/>
+	</column>
+	<constraint name="grupo_inclusao_alimentacao_normal_pk" type="pk-constr" table="&quot;cardapio[revisado]&quot;.grupo_suspensao_alimentacao_normal">
+		<columns names="id" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<relationship name="grupo_suspensao_alimentacao_normal_has_many_suspensao_alimentac" type="rel1n"
+	 src-col-pattern="{sc}_{st}"
+	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
+	 src-fk-pattern="{st}_fk"
+	 custom-color="#000000"
+	 src-table="&quot;cardapio[revisado]&quot;.grupo_suspensao_alimentacao_normal"
+	 dst-table="&quot;cardapio[revisado]&quot;.&quot;suspensao_alimentacao[revisado]&quot;"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="many_suspensoes_alimentacao_no_periodo_escolar_has_many_tipo_al" type="relnn"
+	 src-col-pattern="{sc}_{st}" dst-col-pattern="{sc}_{dt}"
+	 pk-pattern="{gt}_pk" uq-pattern="{gt}_uq"
+	 src-fk-pattern="{st}_fk" dst-fk-pattern="{dt}_fk"
+	 pk-col-pattern="id"
+	 custom-color="#ff0000"
+	 src-table="&quot;cardapio[revisado]&quot;.suspensao_alimentacao_no_periodo_escolar"
+	 dst-table="&quot;cardapio[revisado]&quot;.&quot;tipo_alimentacao[revisado]&quot;"
+	 src-required="false" dst-required="false"
+	 table-name="many_suspensoes_alimentacao_no_periodo_escolar_has_many_tipo_al"/>
+
+<relationship name="periodo_escolar[revisado]_has_many_suspensoes_alimentacao_no_pe" type="rel1n"
+	 src-col-pattern="{sc}_{st}"
+	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
+	 src-fk-pattern="{st}_fk"
+	 custom-color="#000000"
+	 src-table="&quot;escola[revisado]&quot;.&quot;periodo_escolar[revisado]&quot;"
+	 dst-table="&quot;cardapio[revisado]&quot;.suspensao_alimentacao_no_periodo_escolar"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="grupo_suspensao_alimentacao_normal_has_many_suspensoes_alimenta" type="rel1n"
+	 src-col-pattern="{sc}_{st}"
+	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
+	 src-fk-pattern="{st}_fk"
+	 custom-color="#000000"
+	 src-table="&quot;cardapio[revisado]&quot;.grupo_suspensao_alimentacao_normal"
+	 dst-table="&quot;cardapio[revisado]&quot;.suspensao_alimentacao_no_periodo_escolar"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="escola[revisado]_has_many_grupo_suspensao_alimentacao_normal" type="rel1n"
+	 src-col-pattern="{sc}_{st}"
+	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
+	 src-fk-pattern="{st}_fk"
+	 custom-color="#000000"
+	 src-table="&quot;escola[revisado]&quot;.&quot;escola[revisado]&quot;"
+	 dst-table="&quot;cardapio[revisado]&quot;.grupo_suspensao_alimentacao_normal"
 	 src-required="false" dst-required="false"/>
 
 <constraint name="fk_usuario_id" type="fk-constr" comparison-type="MATCH FULL"

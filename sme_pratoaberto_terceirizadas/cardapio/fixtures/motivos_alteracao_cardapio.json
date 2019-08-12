@@ -1,0 +1,30 @@
+[
+  {
+    "model": "cardapio.motivoalteracaocardapio",
+    "id": 1,
+    "fields": {
+      "nome": "Parada Pedagógica"
+    }
+  },
+  {
+    "model": "cardapio.motivoalteracaocardapio",
+    "id": 2,
+    "fields": {
+      "nome": "Unidade sem atendimento"
+    }
+  },
+  {
+    "model": "cardapio.motivoalteracaocardapio",
+    "id": 3,
+    "fields": {
+      "nome": "Aniversário de aluno"
+    }
+  },
+  {
+    "model": "cardapio.motivoalteracaocardapio",
+    "id": 4,
+    "fields": {
+      "nome": "Outro"
+    }
+  }
+]

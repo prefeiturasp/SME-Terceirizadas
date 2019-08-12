@@ -2,6 +2,7 @@ import pytest
 from faker import Faker
 from model_mommy import mommy
 
+from sme_pratoaberto_terceirizadas.dados_comuns.models_abstract import TempoPasseio
 from .. import models
 
 fake = Faker('pt_BR')
@@ -25,25 +26,25 @@ def item_kit_lanche():
 
 @pytest.fixture
 def solicitacao_avulsa():
-    dado_base = mommy.make(models.SolicitacaoKitLanche, )
+    solicitacao_kit_lanche = mommy.make(models.SolicitacaoKitLanche, )
     escola = mommy.make('escola.Escola')
     return mommy.make(models.SolicitacaoKitLancheAvulsa,
                       local=fake.text()[:160],
                       quantidade_alunos=999,
-                      dado_base=dado_base,
+                      solicitacao_kit_lanche=solicitacao_kit_lanche,
                       escola=escola)
 
 
 @pytest.fixture
 def solicitacao_unificada():
     motivo = mommy.make(models.MotivoSolicitacaoUnificada, nome=fake.name())
-    dado_base = mommy.make(models.SolicitacaoKitLanche, )
+    solicitacao_kit_lanche = mommy.make(models.SolicitacaoKitLanche, )
     dre = mommy.make('escola.DiretoriaRegional')
     return mommy.make(models.SolicitacaoKitLancheUnificada,
-                      local=fake.text(),
+                      local=fake.text()[:160],
                       quantidade_max_alunos_por_escola=999,
                       lista_kit_lanche_igual=True,
-                      dado_base=dado_base,
+                      solicitacao_kit_lanche=solicitacao_kit_lanche,
                       outro_motivo=fake.text(),
                       diretoria_regional=dre,
                       motivo=motivo)
@@ -55,7 +56,7 @@ def solicitacao():
     return mommy.make(models.SolicitacaoKitLanche,
                       descricao=fake.text(),
                       motivo=fake.text(),
-                      tempo_passeio=models.SolicitacaoKitLanche.CINCO_A_SETE,
+                      tempo_passeio=TempoPasseio.CINCO_A_SETE,
                       kits=kits)
 
 
@@ -74,6 +75,7 @@ erro_esperado_passeio = 'tempo de passeio deve ser qualquer uma das opções:'
 @pytest.fixture(params=[
     ('0', erro_esperado_passeio),
     ('TESTE', erro_esperado_passeio),
+    (3, erro_esperado_passeio),
 ])
 def horarios_passeio_invalido(request):
     return request.param

@@ -1,9 +1,9 @@
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from sme_pratoaberto_terceirizadas.dados_comuns.models import DiaSemana
+from sme_pratoaberto_terceirizadas.cardapio.models import TipoAlimentacao
 from sme_pratoaberto_terceirizadas.dados_comuns.utils import update_instance_from_dict
-from sme_pratoaberto_terceirizadas.dados_comuns.validators import nao_pode_ser_passado
+from sme_pratoaberto_terceirizadas.dados_comuns.validators import nao_pode_ser_no_passado
 from sme_pratoaberto_terceirizadas.escola.models import PeriodoEscolar, Escola
 from ...models import (
     MotivoInclusaoContinua, MotivoInclusaoNormal,
@@ -30,8 +30,21 @@ class QuantidadePorPeriodoCreationSerializer(serializers.ModelSerializer):
         required=True,
         queryset=PeriodoEscolar.objects.all())
 
-    # TODO: esperar app cardapio.
-    # tipos_alimentacao = TipoAlimentacao
+    tipos_alimentacao = serializers.SlugRelatedField(
+        slug_field='uuid',
+        many=True,
+        required=True,
+        queryset=TipoAlimentacao.objects.all())
+
+    grupo_inclusao_normal = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=GrupoInclusaoAlimentacaoNormal.objects.all())
+
+    inclusao_alimentacao_continua = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=InclusaoAlimentacaoContinua.objects.all())
 
     def create(self, validated_data):
         tipos_alimentacao = validated_data.pop('tipos_alimentacao', [])
@@ -49,7 +62,7 @@ class QuantidadePorPeriodoCreationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = QuantidadePorPeriodo
-        exclude = ('id', 'tipos_alimentacao')
+        exclude = ('id',)
 
 
 class InclusaoAlimentacaoNormalCreationSerializer(serializers.ModelSerializer):
@@ -57,25 +70,12 @@ class InclusaoAlimentacaoNormalCreationSerializer(serializers.ModelSerializer):
         slug_field='uuid',
         required=True,
         queryset=MotivoInclusaoNormal.objects.all())
-    quantidade_periodo = QuantidadePorPeriodoCreationSerializer()
 
     def validate_data(self, data):
-        nao_pode_ser_passado(data)
+        nao_pode_ser_no_passado(data)
         return data
 
-    def create(self, validated_data):
-        quantidades_periodo_json = validated_data.pop('quantidade_periodo')
-        quantidade_periodo = QuantidadePorPeriodoCreationSerializer(
-        ).create(quantidades_periodo_json)
-        inclusao_alimentacao_normal_obj = InclusaoAlimentacaoNormal.objects.create(
-            quantidade_periodo=quantidade_periodo, **validated_data)
-        return inclusao_alimentacao_normal_obj
-
     def update(self, instance, validated_data):
-        quantidade_periodo_json = validated_data.pop('quantidade_periodo')
-        quantidade_periodo = instance.quantidade_periodo
-        QuantidadePorPeriodoCreationSerializer(
-        ).update(quantidade_periodo, quantidade_periodo_json)
         update_instance_from_dict(instance, validated_data)
         instance.save()
         return instance
@@ -86,31 +86,54 @@ class InclusaoAlimentacaoNormalCreationSerializer(serializers.ModelSerializer):
 
 
 class GrupoInclusaoAlimentacaoNormalCreationSerializer(serializers.ModelSerializer):
-    inclusoes = InclusaoAlimentacaoNormalCreationSerializer(many=True)
+    inclusoes = InclusaoAlimentacaoNormalCreationSerializer(
+        many=True,
+        required=True
+    )
     escola = serializers.SlugRelatedField(
         slug_field='uuid',
         required=True,
         queryset=Escola.objects.all()
     )
+    quantidades_periodo = QuantidadePorPeriodoCreationSerializer(
+        many=True,
+        required=True
+    )
 
     def create(self, validated_data):
         inclusoes_json = validated_data.pop('inclusoes')
-        inclusoes_lista = []
-        for inclusao_json in inclusoes_json:
-            inc = InclusaoAlimentacaoNormalCreationSerializer(
-            ).create(validated_data=inclusao_json)
-            inclusoes_lista.append(inc)
+        quantidades_periodo_json = validated_data.pop('quantidades_periodo')
+        validated_data['criado_por'] = self.context['request'].user
         grupo_inclusao_alimentacao_normal = GrupoInclusaoAlimentacaoNormal.objects.create(**validated_data)
-        grupo_inclusao_alimentacao_normal.inclusoes.set(inclusoes_lista)
+
+        for inclusao_json in inclusoes_json:
+            inc = InclusaoAlimentacaoNormalCreationSerializer().create(
+                validated_data=inclusao_json)
+            grupo_inclusao_alimentacao_normal.adiciona_inclusao_normal(inc)
+
+        for quantidade_periodo_json in quantidades_periodo_json:
+            qtd = QuantidadePorPeriodoCreationSerializer().create(
+                validated_data=quantidade_periodo_json)
+            grupo_inclusao_alimentacao_normal.adiciona_quantidade_periodo(qtd)
+
         return grupo_inclusao_alimentacao_normal
 
     def update(self, instance, validated_data):
-        inclusoes_dict = validated_data.pop('inclusoes')
-        inclusoes = instance.inclusoes.all()
-        assert len(inclusoes) == len(inclusoes_dict)
-        for index in range(len(inclusoes_dict)):
-            InclusaoAlimentacaoNormalCreationSerializer(
-            ).update(instance=inclusoes[index], validated_data=inclusoes_dict[index])
+        inclusoes_json = validated_data.pop('inclusoes')
+        quantidades_periodo_json = validated_data.pop('quantidades_periodo')
+        instance.inclusoes.all().delete()
+        instance.quantidades_periodo.all().delete()
+
+        for inclusao_json in inclusoes_json:
+            inc = InclusaoAlimentacaoNormalCreationSerializer().create(
+                validated_data=inclusao_json)
+            instance.adiciona_inclusao_normal(inc)
+
+        for quantidade_periodo_json in quantidades_periodo_json:
+            qtd = QuantidadePorPeriodoCreationSerializer().create(
+                validated_data=quantidade_periodo_json)
+            instance.adiciona_quantidade_periodo(qtd)
+
         update_instance_from_dict(instance, validated_data)
         instance.save()
         return instance
@@ -131,16 +154,23 @@ class InclusaoAlimentacaoContinuaCreationSerializer(serializers.ModelSerializer)
         queryset=Escola.objects.all()
     )
     quantidades_periodo = QuantidadePorPeriodoCreationSerializer(many=True)
-    dias_semana = serializers.PrimaryKeyRelatedField(
-        many=True, queryset=DiaSemana.objects.all()
+    dias_semana_explicacao = serializers.CharField(
+        source='dias_semana_display',
+        required=False,
+        read_only=True
+    )
+    status_explicacao = serializers.CharField(
+        source='status',
+        required=False,
+        read_only=True
     )
 
     def validate_data_inicial(self, data):
-        nao_pode_ser_passado(data)
+        nao_pode_ser_no_passado(data)
         return data
 
     def validate_data_final(self, data):
-        nao_pode_ser_passado(data)
+        nao_pode_ser_no_passado(data)
         return data
 
     def validate(self, attrs):
@@ -152,28 +182,20 @@ class InclusaoAlimentacaoContinuaCreationSerializer(serializers.ModelSerializer)
 
     def create(self, validated_data):
         quantidades_periodo_array = validated_data.pop('quantidades_periodo')
+        validated_data['criado_por'] = self.context['request'].user
         lista_escola_quantidade = self._gera_lista_escola_quantidade(quantidades_periodo_array)
-        dias_semana = validated_data.pop('dias_semana', [])
         inclusao_alimentacao_continua = InclusaoAlimentacaoContinua.objects.create(
             **validated_data)
-        inclusao_alimentacao_continua.dias_semana.set(dias_semana)
         inclusao_alimentacao_continua.quantidades_periodo.set(lista_escola_quantidade)
 
         return inclusao_alimentacao_continua
 
     def update(self, instance, validated_data):
         quantidades_periodo_array = validated_data.pop('quantidades_periodo')
-        dias_semana = validated_data.pop('dias_semana', [])
-        quantidades_periodo = instance.quantidades_periodo.all()
-
-        assert len(quantidades_periodo) == len(quantidades_periodo_array)
-        for index in range(len(quantidades_periodo_array)):
-            QuantidadePorPeriodoCreationSerializer(
-            ).update(instance=quantidades_periodo[index],
-                     validated_data=quantidades_periodo_array[index]
-                     )
+        instance.quantidades_periodo.all().delete()
+        lista_escola_quantidade = self._gera_lista_escola_quantidade(quantidades_periodo_array)
+        instance.quantidades_periodo.set(lista_escola_quantidade)
         update_instance_from_dict(instance, validated_data)
-        instance.dias_semana.set(dias_semana)
         instance.save()
         return instance
 
@@ -187,4 +209,4 @@ class InclusaoAlimentacaoContinuaCreationSerializer(serializers.ModelSerializer)
 
     class Meta:
         model = InclusaoAlimentacaoContinua
-        exclude = ('id',)
+        exclude = ('id', 'status')

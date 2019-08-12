@@ -2,9 +2,9 @@ import pandas as pd
 from unicodedata import normalize
 
 from sme_pratoaberto_terceirizadas.escola.models import DiretoriaRegional
-from sme_pratoaberto_terceirizadas.terceirizada.models import Lote
+from sme_pratoaberto_terceirizadas.escola.models import Lote
 
-caminho_excel = '/home/amcom/Documents/planilhas/lista de lotes.xlsx'
+caminho_excel = '/home/amcom/Documentos/docs PO alimentacao/lista de lotes.xlsx'
 
 arquivo_excel = pd.ExcelFile(caminho_excel)
 

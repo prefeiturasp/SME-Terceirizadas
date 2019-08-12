@@ -8,11 +8,11 @@ import numpy as np
 import pandas as pd
 
 from sme_pratoaberto_terceirizadas.dados_comuns.models import Endereco, Contato
-from sme_pratoaberto_terceirizadas.escola.models import (TipoUnidadeEscolar, TipoGestao, Escola, DiretoriaRegional)
-from sme_pratoaberto_terceirizadas.terceirizada.models import Lote
+from sme_pratoaberto_terceirizadas.escola.models import (Lote, TipoUnidadeEscolar, TipoGestao, Escola,
+                                                         DiretoriaRegional)
 from utility.carga_dados.escola.helper import coloca_zero_a_esquerda, normaliza_nome, somente_digitos
 
-df = pd.read_excel('/home/marcelo/Desktop/docs PO alimentacao/escola_dre_codae.xlsx',
+df = pd.read_excel('/home/amcom/Documentos/docs PO alimentacao/escola_dre_codae.xlsx',
                    converters={'EOL': str,
                                'TELEFONE2': str,
                                'COD. CODAE': str,

@@ -1,6 +1,8 @@
 from rest_framework import serializers
 
-from sme_pratoaberto_terceirizadas.escola.api.serializers import EscolaSimplesSerializer
+from sme_pratoaberto_terceirizadas.escola.api.serializers import (
+    EscolaSimplesSerializer, DiretoriaRegionalComboSerializer
+)
 from ...models import (
     MotivoSolicitacaoUnificada, ItemKitLanche, KitLanche,
     SolicitacaoKitLanche, SolicitacaoKitLancheAvulsa,
@@ -46,9 +48,10 @@ class SolicitacaoKitLancheSimplesSerializer(serializers.ModelSerializer):
 
 
 class SolicitacaoKitLancheAvulsaSerializer(serializers.ModelSerializer):
-    dado_base = SolicitacaoKitLancheSimplesSerializer()
+    solicitacao_kit_lanche = SolicitacaoKitLancheSimplesSerializer()
     escola = EscolaSimplesSerializer(read_only=True,
                                      required=False)
+    id_externo = serializers.CharField()
 
     class Meta:
         model = SolicitacaoKitLancheAvulsa
@@ -62,6 +65,9 @@ class EscolaQuantidadeSerializerSimples(serializers.ModelSerializer):
         slug_field='uuid',
         required=True,
         queryset=SolicitacaoKitLancheUnificada.objects.all())
+    tempo_passeio_explicacao = serializers.CharField(source='get_tempo_passeio_display',
+                                                     required=False,
+                                                     read_only=True)
 
     class Meta:
         model = EscolaQuantidade
@@ -69,9 +75,12 @@ class EscolaQuantidadeSerializerSimples(serializers.ModelSerializer):
 
 
 class SolicitacaoKitLancheUnificadaSerializer(serializers.ModelSerializer):
+    diretoria_regional = DiretoriaRegionalComboSerializer()
     motivo = MotivoSolicitacaoUnificadaSerializer()
-    dado_base = SolicitacaoKitLancheSimplesSerializer()
+    solicitacao_kit_lanche = SolicitacaoKitLancheSimplesSerializer()
     escolas_quantidades = EscolaQuantidadeSerializerSimples(many=True)
+    id_externo = serializers.CharField()
+    total_kit_lanche = serializers.IntegerField()
 
     class Meta:
         model = SolicitacaoKitLancheUnificada

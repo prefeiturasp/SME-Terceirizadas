@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from sme_pratoaberto_terceirizadas.dados_comuns.api.serializers import DiaSemanaSerializer
+from sme_pratoaberto_terceirizadas.cardapio.api.serializers.serializers import TipoAlimentacaoSerializer
 from sme_pratoaberto_terceirizadas.escola.api.serializers import EscolaSimplesSerializer
 from sme_pratoaberto_terceirizadas.escola.api.serializers import PeriodoEscolarSerializer
 from sme_pratoaberto_terceirizadas.inclusao_alimentacao.models import (
@@ -23,9 +23,7 @@ class MotivoInclusaoNormalSerializer(serializers.ModelSerializer):
 
 class QuantidadePorPeriodoSerializer(serializers.ModelSerializer):
     periodo_escolar = PeriodoEscolarSerializer()
-
-    # TODO: esperar app cardapio.
-    # tipos_alimentacao = TipoAlimentacao
+    tipos_alimentacao = TipoAlimentacaoSerializer(many=True, read_only=True)
 
     class Meta:
         model = QuantidadePorPeriodo
@@ -34,7 +32,6 @@ class QuantidadePorPeriodoSerializer(serializers.ModelSerializer):
 
 class InclusaoAlimentacaoNormalSerializer(serializers.ModelSerializer):
     motivo = MotivoInclusaoNormalSerializer()
-    quantidade_periodo = QuantidadePorPeriodoSerializer()
 
     class Meta:
         model = InclusaoAlimentacaoNormal
@@ -45,7 +42,12 @@ class InclusaoAlimentacaoContinuaSerializer(serializers.ModelSerializer):
     motivo = MotivoInclusaoContinuaSerializer()
     quantidades_periodo = QuantidadePorPeriodoSerializer(many=True)
     escola = EscolaSimplesSerializer()
-    dias_semana = DiaSemanaSerializer(many=True)
+    dias_semana_explicacao = serializers.CharField(
+        source='dias_semana_display',
+        required=False,
+        read_only=True
+    )
+    id_externo = serializers.CharField()
 
     class Meta:
         model = InclusaoAlimentacaoContinua
@@ -61,6 +63,8 @@ class InclusaoAlimentacaoNormalSimplesSerializer(serializers.ModelSerializer):
 class GrupoInclusaoAlimentacaoNormalSerializer(serializers.ModelSerializer):
     inclusoes = InclusaoAlimentacaoNormalSerializer(many=True)
     escola = EscolaSimplesSerializer()
+    quantidades_periodo = QuantidadePorPeriodoSerializer(many=True)
+    id_externo = serializers.CharField()
 
     class Meta:
         model = GrupoInclusaoAlimentacaoNormal

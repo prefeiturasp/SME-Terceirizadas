@@ -4,7 +4,7 @@ import pandas as pd
 from sme_pratoaberto_terceirizadas.escola.models import PeriodoEscolar, Escola
 from utility.carga_dados.escola.helper import coloca_zero_a_esquerda
 
-df = pd.read_excel('/home/marcelo/Desktop/docs PO alimentacao/CADASTRO ESCOLAS DIVULGACAO.xlsx',
+df = pd.read_excel('/home/amcom/Documentos/docs PO alimentacao/CADASTRO ESCOLAS DIVULGACAO.xlsx',
                    converters={
                        'ANO': str,
                        'CODESC': str,
@@ -100,7 +100,7 @@ def vincula_periodo_escolar_a_escola():
             print(f'{escola} -> {periodo_letra}')
             periodo_obj = PeriodoEscolar.objects.get(nome=depara.get(periodo_letra))
             periodo_escolar_lista.append(periodo_obj)
-        escola.periodos.set(periodo_escolar_lista)
+        escola.periodos_escolares.set(periodo_escolar_lista)
         escola.save()
         cont += 1
         print(f'escola {escola} tem {len(periodo_escolar_lista)} periodos escolares')

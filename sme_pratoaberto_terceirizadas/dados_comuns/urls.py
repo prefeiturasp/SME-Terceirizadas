@@ -5,9 +5,12 @@ from .api import viewsets
 from .views import send_test_email
 
 router = routers.DefaultRouter()
-router.register('email', viewsets.ConfiguracaoEmailViewSet, basename='email')
-router.register('dias-semana', viewsets.DiasDaSemanaViewSet, basename='dias-semana')
-router.register('dias-uteis', viewsets.DiasUteisViewSet, basename='dias-uteis')
+router.register('email', viewsets.ConfiguracaoEmailViewSet, basename='Email')
+router.register('dias-semana', viewsets.DiasDaSemanaViewSet, basename='Dias da semana')
+router.register('tempos-passeio', viewsets.TempoDePasseioViewSet, basename='Tempos de passeio')
+router.register('dias-uteis', viewsets.DiasUteisViewSet, basename='Dias úteis')
+router.register('templates-mensagem', viewsets.TemplateMensagemViewSet,
+                basename='Configuração de mensagem')
 
 urlpatterns = [
     path("", include(router.urls)),

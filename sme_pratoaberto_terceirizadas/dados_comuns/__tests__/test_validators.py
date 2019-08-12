@@ -3,7 +3,7 @@ from freezegun import freeze_time
 from rest_framework.exceptions import ValidationError
 
 from ..validators import (deve_pedir_com_antecedencia, dia_util,
-                          nao_pode_ser_passado)
+                          nao_pode_ser_no_passado)
 
 
 @freeze_time("2019-05-22")  # qua
@@ -33,11 +33,11 @@ def test_dia_nao_util(dias_nao_uteis):
 @freeze_time("2019-05-22")
 def test_nao_pode_ser_passado(dias_futuros):
     dia, esperado = dias_futuros
-    assert nao_pode_ser_passado(dia) is esperado
+    assert nao_pode_ser_no_passado(dia) is esperado
 
 
 @freeze_time("2019-05-22")
 def test_nao_pode_ser_passado_raise_exception(dias_passados):
     dia, esperado = dias_passados
     with pytest.raises(ValidationError, match=esperado):
-        nao_pode_ser_passado(dia)
+        nao_pode_ser_no_passado(dia)

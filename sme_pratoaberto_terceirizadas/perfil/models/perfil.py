@@ -1,6 +1,9 @@
+from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
-from ...dados_comuns.models_abstract import (Nomeavel, Descritivel, Ativavel, TemChaveExterna)
+from ...dados_comuns.models_abstract import (
+    Nomeavel, Descritivel, Ativavel, TemChaveExterna
+)
 
 
 class GrupoPerfil(Nomeavel, Descritivel, Ativavel, TemChaveExterna):
@@ -42,7 +45,6 @@ class Perfil(Nomeavel, Descritivel, Ativavel, TemChaveExterna):
     Ex: o perfil diretor tem as permissões: [abrir escola, fechar escola]
         o perfil professor pode [dar aula]
     """
-    permissoes = models.ManyToManyField(Permissao)
     grupo = models.ForeignKey(GrupoPerfil, on_delete=models.DO_NOTHING,
                               related_name='perfis',
                               null=True, blank=True)
@@ -53,3 +55,50 @@ class Perfil(Nomeavel, Descritivel, Ativavel, TemChaveExterna):
 
     def __str__(self):
         return self.nome
+
+
+class PerfilPermissao(models.Model):
+    """
+    Permissões do usuário:
+    Ex. Pode fazer compra,
+        pode abrir a escola,
+        pode fazer merenda,
+        pode dar aula,
+        pode fechar a escola, etc.
+    """
+    CRIA = 0
+    VISUALIZA = 1
+    CANCELA = 2
+    EDITA = 3
+    RECEBE = 4
+    FICA_CIENTE = 5
+    CIENTE_APOS_AUTORIZACAO = 6
+
+    ACOES = (
+        (CRIA, 'Cria'),
+        (VISUALIZA, 'Visualiza'),
+        (EDITA, 'Edita'),
+        (CANCELA, 'Cancela'),
+        (RECEBE, 'Recebe'),
+        (FICA_CIENTE, 'Fica ciente'),
+        (CIENTE_APOS_AUTORIZACAO, 'Ciente após autorização'),
+    )
+
+    acoes = ArrayField(models.PositiveSmallIntegerField(choices=ACOES,
+                                                        default=[],
+                                                        null=True, blank=True))
+    permissao = models.ForeignKey(Permissao, on_delete=models.DO_NOTHING)
+    perfil = models.ForeignKey(Perfil, on_delete=models.DO_NOTHING)
+
+    def acoes_choices_array_display(self):
+        result = ''
+        choices = dict(self.ACOES)
+        for index, value in enumerate(self.acoes):
+            result += "{0}".format(choices[value])
+            if not index == len(self.acoes) - 1:
+                result += ', '
+        return result
+
+    def __str__(self):
+        return f'{self.perfil} Tem ações: ({self.acoes_choices_array_display()})' \
+            f' da permissão {self.permissao}'

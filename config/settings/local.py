@@ -8,19 +8,13 @@ DEBUG = env('DJANGO_DEBUG', default=True)
 # https://docs.djangoproject.com/en/dev/ref/settings/#secret-key
 SECRET_KEY = env('DJANGO_SECRET_KEY', default='6fEIQS2aeFhyGongtjqGdLNfjiIhmAdTE8q5UycOPMWbUEDbmiefODftEQBx1mPK')
 # https://docs.djangoproject.com/en/dev/ref/settings/#allowed-hosts
-ALLOWED_HOSTS = [
-    "localhost",
-    "0.0.0.0",
-    "127.0.0.1",
-    "backend",
-    "10.50.1.16"
-]
+ALLOWED_HOSTS = env.list('DJANGO_ALLOWED_HOSTS', default=['terceirizadas.sme.prefeitura.sp.gov.br'])
 
 READ_DOT_ENV_FILE = env.bool('DJANGO_READ_DOT_ENV_FILE', default=True)
 if READ_DOT_ENV_FILE:
     # OS environment variables take precedence over variables from .env.local
-    print('Loading local environment...', str(ROOT_DIR.path('.env.local')))
-    env.read_env(str(ROOT_DIR.path('.env.local')))
+    print('Loading local environment...', str(ROOT_DIR.path('.env')))  # noqa F405
+    env.read_env(str(ROOT_DIR.path('.env')))  # noqa F405
 
 # CACHES
 # ------------------------------------------------------------------------------

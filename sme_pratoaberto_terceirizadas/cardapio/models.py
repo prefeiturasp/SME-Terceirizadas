@@ -1,54 +1,12 @@
 from django.db import models
 
+from ..dados_comuns.models import TemplateMensagem
 from ..dados_comuns.models_abstract import (
-    Descritivel, TemData, IntervaloDeDia,
-    TemChaveExterna, Motivo, Ativavel, Nomeavel, CriadoEm
+    Descritivel, TemData, TemChaveExterna, Ativavel,
+    Nomeavel, CriadoEm, IntervaloDeDia, CriadoPor,
+    TemObservacao, FluxoAprovacaoPartindoDaEscola,
+    TemIdentificadorExternoAmigavel
 )
-from ..escola.models import Escola, DiretoriaRegional
-
-
-#
-# class AlteracaoCardapio(IntervaloDeDia, Descritivel, TemChaveExterna, Motivo):
-#     STATUS = Choices(
-#
-#         # DRE
-#         ('DRE_A_VALIDAR', 'A validar pela DRE'),  # IMEDIATAMENTE ENTRA NESSE APOS CRIAR
-#         ('DRE_APROVADO', 'Aprovado pela DRE'),  # CODAE RECEBE
-#         ('DRE_REPROVADO', 'Reprovado pela DRE'),  # ESCOLA PODE EDITAR
-#
-#         # CODAE
-#         ('CODAE_A_VALIDAR', 'A validar pela CODAE'),  # QUANDO A DRE VALIDA
-#         ('CODAE_APROVADO', 'Aprovado pela CODAE'),  # CODAE RECEBE
-#         ('CODAE_REPROVADO', 'Reprovado pela CODAE'),  # CODAE REPROVA FIM DE FLUXO
-#
-#         # TERCEIRIZADA
-#         ('TERCEIRIZADA_A_VISUALIZAR', 'Terceirizada a visualizar'),
-#         ('TERCEIRIZADA_A_VISUALIZADO', 'Terceirizada visualizado')  # TOMOU CIENCIA, TODOS DEVEM FICAR SABENDO...
-#     )
-#     status = StatusField()
-#     escola = models.ForeignKey(Escola, on_delete=models.DO_NOTHING)
-#
-#     @classmethod
-#     def valida_existencia(cls, data):
-#         inicio = data.get('data_inicial', None)
-#         fim = data.get('data_final', None)
-#         escola = data.get('escola', None)
-#         existe = cls.objects.filter(data_inicial=inicio, data_final=fim, escola=escola).count()
-#         if existe:
-#             return False
-#         return True
-#
-#     @classmethod
-#     def get_escola(cls, id_escola):
-#         try:
-#             return Escola.objects.get(pk=id_escola)
-#         except ObjectDoesNotExist:
-#             return False
-#
-#     @classmethod
-#     def get_usuarios_dre(cls, escola):
-#         dre = DiretoriaRegional.objects.filter(regional_director=escola.regional_director)
-#         return dre.values_list('perfil').all()
 
 
 class TipoAlimentacao(Nomeavel, TemChaveExterna):
@@ -63,6 +21,10 @@ class TipoAlimentacao(Nomeavel, TemChaveExterna):
         Lanche 6horas
         Merenda Seca
     """
+
+    @property
+    def substituicoes_periodo_escolar(self):
+        return self.substituicoes_periodo_escolar
 
     def __str__(self):
         return self.nome
@@ -81,8 +43,12 @@ class Cardapio(Descritivel, Ativavel, TemData, TemChaveExterna, CriadoEm):
 
         !!!OBS!!! PARA CEI varia por faixa de idade.
     """
-    # TODO: adicionar fk para edital
     tipos_alimentacao = models.ManyToManyField(TipoAlimentacao)
+    edital = models.ForeignKey('terceirizada.Edital', on_delete=models.DO_NOTHING, related_name='editais')
+
+    @property
+    def tipos_unidade_escolar(self):
+        return self.tipos_unidade_escolar
 
     def __str__(self):
         if self.descricao:
@@ -94,12 +60,13 @@ class Cardapio(Descritivel, Ativavel, TemData, TemChaveExterna, CriadoEm):
         verbose_name_plural = "Cardápios"
 
 
-class InversaoCardapio(CriadoEm, Descritivel, TemChaveExterna):
+class InversaoCardapio(CriadoEm, CriadoPor, TemObservacao, Descritivel, TemChaveExterna,
+                       TemIdentificadorExternoAmigavel, FluxoAprovacaoPartindoDaEscola):
     """
         servir o cardápio do dia 30 no dia 15, automaticamente o
         cardápio do dia 15 será servido no dia 30
     """
-    # TODO: colocar o controle de fluxo atraves do status
+
     cardapio_de = models.ForeignKey(Cardapio, on_delete=models.DO_NOTHING,
                                     blank=True, null=True,
                                     related_name='cardapio_de')
@@ -108,6 +75,34 @@ class InversaoCardapio(CriadoEm, Descritivel, TemChaveExterna):
                                       related_name='cardapio_para')
     escola = models.ForeignKey('escola.Escola', blank=True, null=True,
                                on_delete=models.DO_NOTHING)
+
+    @property
+    def data_de(self):
+        return self.cardapio_de.data if self.cardapio_de else None
+
+    @property
+    def data_para(self):
+        return self.cardapio_para.data if self.cardapio_para else None
+
+    @property
+    def descricao_curta(self):
+        return f"Inversão de dia de Cardápio #{self.id_externo}"
+
+    @property
+    def template_mensagem(self):
+        template = TemplateMensagem.objects.get(tipo=TemplateMensagem.INVERSAO_CARDAPIO)
+        template_troca = {
+            '@id': self.id_externo,
+            '@criado_em': str(self.criado_em),
+            '@criado_por': str(self.criado_por),
+            '@status': str(self.status),
+            # TODO: verificar a url padrão do pedido
+            '@link': 'http://teste.com',
+        }
+        corpo = template.template_html
+        for chave, valor in template_troca.items():
+            corpo = corpo.replace(chave, valor)
+        return template.assunto, corpo
 
     def __str__(self):
         if self.cardapio_de and self.cardapio_para and self.escola:
@@ -119,63 +114,186 @@ class InversaoCardapio(CriadoEm, Descritivel, TemChaveExterna):
         verbose_name_plural = "Inversão de cardápios"
 
 
-class AlteracaoCardapio(CriadoEm, Descritivel, TemChaveExterna):
+class MotivoSuspensao(Nomeavel, TemChaveExterna):
     """
-        Uma unidade quer alterar um tipo_alimentacao de cardápio de
-        rotina para outro tipo_alimentacao de cardapio.
+    Exemplos:
+        - greve
+        - reforma
     """
-    # TODO: colocar o controle de fluxo atraves do status
-    # TODO: seria de tipoS de para tipoS para?
-    tipo_de = models.ForeignKey(TipoAlimentacao, on_delete=models.DO_NOTHING,
-                                blank=True, null=True,
-                                related_name='tipo_de')
-    tipo_para = models.ForeignKey(TipoAlimentacao, on_delete=models.DO_NOTHING,
-                                  blank=True, null=True,
-                                  related_name='tipo_para')
-    escola = models.ForeignKey('escola.Escola', blank=True, null=True,
-                               on_delete=models.DO_NOTHING)
 
     def __str__(self):
-        if self.tipo_de and self.tipo_para and self.escola:
-            return '{}: \nDe: {} \nPara: {}'.format(self.escola.nome, self.tipo_de, self.tipo_para)
-        return self.descricao
+        return self.nome
 
     class Meta:
-        verbose_name = "Alteração de cardápio"
-        verbose_name_plural = "Alteração de cardápios"
+        verbose_name = "Motivo de suspensão de alimentação"
+        verbose_name_plural = "Motivo de suspensão de alimentação"
 
 
 class SuspensaoAlimentacao(TemData, TemChaveExterna):
     """
-        Uma escola pede para suspender as refeições:
-        tipo pode ser cardapio, periodo (manha, tarde) ou itens do cardapio (Tipo alimentacao).
-
-         - pode ser um cardapio inteiro
-         - pode ser só um período(s) ( manhã, intermediário, tarde, vespertino, noturno, integral)
-         - pode ser item(s) de um cardápio (Tipo alimentacao)
+    Uma escola pede para suspender as refeições: escolhe os
     """
-    CARDAPIO_INTEIRO = 0
-    PERIODO_ESCOLAR = 1
-    TIPO_ALIMENTACAO = 2
-
-    CHOICES = (
-        (CARDAPIO_INTEIRO, 'Cardápio inteiro'),
-        (PERIODO_ESCOLAR, 'Período escolar'),
-        (TIPO_ALIMENTACAO, 'Tipo alimentação'),
-    )
-
-    tipo = models.PositiveSmallIntegerField(choices=CHOICES, default=PERIODO_ESCOLAR)
-
-    cardapio = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING,
-                                 blank=True, null=True)
-    periodos = models.ManyToManyField('escola.PeriodoEscolar',
-                                      blank=True)
-    tipos_alimentacao = models.ManyToManyField(TipoAlimentacao,
-                                               blank=True)
+    prioritario = models.BooleanField(default=False)
+    motivo = models.ForeignKey(MotivoSuspensao, on_delete=models.DO_NOTHING)
+    outro_motivo = models.CharField("Outro motivo", blank=True, null=True, max_length=50)
+    grupo_suspensao = models.ForeignKey('GrupoSuspensaoAlimentacao', on_delete=models.CASCADE,
+                                        blank=True, null=True, related_name='suspensoes_alimentacao')
 
     def __str__(self):
-        return self.get_tipo_display()
+        return f"{self.motivo}"
 
     class Meta:
         verbose_name = "Suspensão de alimentação"
         verbose_name_plural = "Suspensões de alimentação"
+
+
+class QuantidadePorPeriodoSuspensaoAlimentacao(TemChaveExterna):
+    numero_alunos = models.SmallIntegerField()
+    periodo_escolar = models.ForeignKey('escola.PeriodoEscolar', on_delete=models.DO_NOTHING)
+    grupo_suspensao = models.ForeignKey('GrupoSuspensaoAlimentacao', on_delete=models.CASCADE,
+                                        blank=True, null=True, related_name='quantidades_por_periodo')
+    tipos_alimentacao = models.ManyToManyField(TipoAlimentacao)
+
+    def __str__(self):
+        return f"Quantidade de alunos: {self.numero_alunos}"
+
+    class Meta:
+        verbose_name = "Quantidade por período de suspensão de alimentação"
+        verbose_name_plural = "Quantidade por período de suspensão de alimentação"
+
+
+class GrupoSuspensaoAlimentacao(TemChaveExterna, CriadoPor, TemIdentificadorExternoAmigavel,
+                                CriadoEm, TemObservacao, FluxoAprovacaoPartindoDaEscola):
+    # TODO: criar fluxo direto de rascunho...
+    """
+        Serve para agrupar suspensões
+    """
+    escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING)
+
+    @property
+    def quantidades_por_periodo(self):
+        return self.quantidades_por_periodo
+
+    @property
+    def suspensoes_alimentacao(self):
+        return self.suspensoes_alimentacao
+
+    def __str__(self):
+        return f"{self.observacao}"
+
+    @property
+    def descricao_curta(self):
+        return "Suspensão de Alimentação."
+
+    @property
+    def template_mensagem(self):
+        template = TemplateMensagem.objects.get(tipo=TemplateMensagem.SUSPENSAO_ALIMENTACAO)
+        template_troca = {
+            '@id': self.id,
+            '@criado_em': str(self.criado_em),
+            '@criado_por': str(self.criado_por),
+            '@status': str(self.status),
+            # TODO: verificar a url padrão do pedido
+            '@link': 'http://teste.com',
+        }
+        corpo = template.template_html
+        # for chave, valor in template_troca.items():
+        #     corpo = corpo.replace(chave, valor)
+        return template.assunto, corpo
+
+    class Meta:
+        verbose_name = "Grupo de suspensão de alimentação"
+        verbose_name_plural = "Grupo de suspensão de alimentação"
+
+
+class SuspensaoAlimentacaoNoPeriodoEscolar(TemChaveExterna):
+    suspensao_alimentacao = models.ForeignKey(SuspensaoAlimentacao, on_delete=models.CASCADE,
+                                              null=True, blank=True,
+                                              related_name="suspensoes_periodo_escolar")
+    qtd_alunos = models.PositiveSmallIntegerField(default=0)
+    periodo_escolar = models.ForeignKey('escola.PeriodoEscolar', on_delete=models.PROTECT,
+                                        related_name="suspensoes_periodo_escolar")
+    tipos_alimentacao = models.ManyToManyField('TipoAlimentacao', related_name="suspensoes_periodo_escolar")
+
+    def __str__(self):
+        return f'Suspensão de alimentação da Alteração de Cardápio: {self.suspensao_alimentacao}'
+
+    class Meta:
+        verbose_name = "Suspensão de alimentação no período"
+        verbose_name_plural = "Suspensões de alimentação no período"
+
+
+class MotivoAlteracaoCardapio(Nomeavel, TemChaveExterna):
+    """
+    Exemplos:
+        - atividade diferenciada
+        - aniversariante do mes
+    """
+
+    def __str__(self):
+        return self.nome
+
+    class Meta:
+        verbose_name = "Motivo de alteração de cardápio"
+        verbose_name_plural = "Motivos de alteração de cardápio"
+
+
+class AlteracaoCardapio(CriadoEm, TemChaveExterna, IntervaloDeDia, TemObservacao,
+                        FluxoAprovacaoPartindoDaEscola, TemIdentificadorExternoAmigavel):
+    """
+    A unidade quer trocar um ou mais tipos de refeição em um ou mais períodos escolares devido a um evento especial
+    (motivo) em dado período de tempo.
+
+    Ex: Alterar  nos períodos matutino e intermediario, o lanche e refeição pelo motivo "aniversariantes do mês"
+    """
+
+    escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING, blank=True, null=True)
+    motivo = models.ForeignKey('MotivoAlteracaoCardapio', on_delete=models.PROTECT, blank=True, null=True)
+
+    @property
+    def substituicoes(self):
+        return self.substituicoes_periodo_escolar
+
+    def __str__(self):
+        return f'Alteração de cardápio: {self.uuid}'
+
+    @property
+    def descricao_curta(self):
+        return "Solicitação de alteração de cardápio."
+
+    @property
+    def template_mensagem(self):
+        template = TemplateMensagem.objects.get(tipo=TemplateMensagem.ALTERACAO_CARDAPIO)
+        template_troca = {
+            '@id': self.id,
+            '@criado_em': str(self.criado_em),
+            # '@criado_por': str(self.criado_por),
+            '@status': str(self.status),
+            # TODO: verificar a url padrão do pedido
+            '@link': 'http://teste.com',
+        }
+        corpo = template.template_html
+        # for chave, valor in template_troca.items():
+        #     corpo = corpo.replace(chave, valor)
+        return template.assunto, corpo
+
+    class Meta:
+        verbose_name = "Alteração de cardápio"
+        verbose_name_plural = "Alterações de cardápio"
+
+
+class SubstituicoesAlimentacaoNoPeriodoEscolar(TemChaveExterna):
+    alteracao_cardapio = models.ForeignKey('AlteracaoCardapio', on_delete=models.CASCADE,
+                                           null=True, blank=True,
+                                           related_name="substituicoes_periodo_escolar")
+    qtd_alunos = models.PositiveSmallIntegerField(default=0)
+    periodo_escolar = models.ForeignKey('escola.PeriodoEscolar', on_delete=models.PROTECT,
+                                        related_name="substituicoes_periodo_escolar")
+    tipos_alimentacao = models.ManyToManyField('TipoAlimentacao', related_name="substituicoes_periodo_escolar")
+
+    def __str__(self):
+        return f'Substituições de alimentação: {self.uuid} da Alteração de Cardápio: {self.alteracao_cardapio.uuid}'
+
+    class Meta:
+        verbose_name = "Substituições de alimentação no período"
+        verbose_name_plural = "Substituições de alimentação no período"
