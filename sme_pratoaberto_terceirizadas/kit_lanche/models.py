@@ -140,6 +140,19 @@ class SolicitacaoKitLancheUnificada(CriadoPor, TemChaveExterna, TemIdentificador
             corpo = corpo.replace(chave, valor)
         return template.assunto, corpo
 
+    @property
+    def total_kit_lanche(self):
+        if self.lista_kit_lanche_igual:
+            total_alunos = SolicitacaoKitLancheUnificada.objects.annotate(
+                total_alunos=models.Sum('escolas_quantidades__quantidade_alunos')).get(id=self.id).total_alunos
+            total_kit_lanche = self.solicitacao_kit_lanche.kits.all().count()
+            return total_alunos * total_kit_lanche
+        else:
+            total_kit_lanche = 0
+            for escola_quantidade in self.escolas_quantidades.all():
+                total_kit_lanche += escola_quantidade.total_kit_lanche
+            return total_kit_lanche
+
     def vincula_escolas_quantidades(self, escolas_quantidades):
         for escola_quantidade in escolas_quantidades:
             escola_quantidade.solicitacao_unificada = self
@@ -164,6 +177,10 @@ class EscolaQuantidade(TemChaveExterna, TempoPasseio):
                                               blank=True, null=True)
     kits = models.ManyToManyField(KitLanche, blank=True)
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING)
+
+    @property
+    def total_kit_lanche(self):
+        return self.quantidade_alunos * self.kits.all().count()
 
     def __str__(self):
         kit_lanche_personalizado = bool(self.kits.count())

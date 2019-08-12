@@ -65,7 +65,7 @@ class EscolaComboSerializer(serializers.ModelSerializer):
 
 
 class DiretoriaRegionalSimplesSerializer(serializers.ModelSerializer):
-    escolas = EscolaSimplesSerializer(many=True)
+    escolas = EscolaComboSerializer(many=True)
     quantidade_alunos = serializers.IntegerField()
 
     class Meta:
