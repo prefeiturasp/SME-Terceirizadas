@@ -26,7 +26,7 @@ def test_modelo_contrato(contrato):
     assert contrato.lotes is not None
     assert contrato.terceirizadas is not None
     assert contrato.vigencias is not None
-    # assert contrato.edital is not None
+    assert contrato.diretorias_regionais is not None
 
 
 def test_modelo_vigencia_contrato(vigencia_contrato):
