@@ -86,6 +86,7 @@ class InclusaoAlimentacaoContinua(IntervaloDeDia, Descritivel, TemChaveExterna,
     class Meta:
         verbose_name = "Inclusão de alimentação contínua"
         verbose_name_plural = "Inclusões de alimentação contínua"
+        ordering = ['data_inicial']
 
 
 class MotivoInclusaoNormal(Nomeavel, TemChaveExterna):

@@ -5,6 +5,7 @@ from django.db import models
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
+from sme_pratoaberto_terceirizadas.dados_comuns.fluxo_status import PedidoAPartirDaEscolaWorkflow
 from .perfil import Perfil
 from ...dados_comuns.models_abstract import TemChaveExterna
 
@@ -107,3 +108,8 @@ class Usuario(CustomAbstractUser, TemChaveExterna):
     @property
     def diretorias_regionais(self):
         return self.diretorias_regionais
+
+    @property
+    def status_possiveis(self):
+        if self.diretorias_regionais.exists():
+            return [PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR]
