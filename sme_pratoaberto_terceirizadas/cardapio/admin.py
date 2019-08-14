@@ -28,6 +28,8 @@ class SubstituicoesInLine(admin.TabularInline):
 @admin.register(AlteracaoCardapio)
 class AlteracaoCardapioModelAdmin(admin.ModelAdmin):
     inlines = [SubstituicoesInLine]
+    list_display = ['uuid', 'data_inicial', 'data_final', 'status']
+    list_filter = ['status']
 
 
 class SuspensaoAlimentacaoInline(admin.TabularInline):

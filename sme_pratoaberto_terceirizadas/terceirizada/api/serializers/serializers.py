@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from ...models import (Edital, Terceirizada, Nutricionista, Contrato, VigenciaContrato)
 from sme_pratoaberto_terceirizadas.dados_comuns.api.serializers import ContatoSerializer
-from sme_pratoaberto_terceirizadas.escola.models import Lote
+from sme_pratoaberto_terceirizadas.escola.models import Lote, DiretoriaRegional
 
 
 class NutricionistaSerializer(serializers.ModelSerializer):
@@ -46,9 +46,15 @@ class ContratoSerializer(serializers.ModelSerializer):
     )
     terceirizadas = TerceirizadaSimplesSerializer(many=True)
 
+    diretorias_regionais = serializers.SlugRelatedField(
+        slug_field='uuid',
+        queryset=DiretoriaRegional.objects.all(),
+        many=True
+    )
+
     class Meta:
         model = Contrato
-        fields = ('uuid', 'numero', 'processo', 'data_proposta', 'lotes', 'terceirizadas', 'edital', 'vigencias')
+        exclude = ('id',)
 
 
 class EditalSerializer(serializers.ModelSerializer):
