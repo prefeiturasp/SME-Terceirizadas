@@ -46,7 +46,7 @@ class ContratoSerializer(serializers.ModelSerializer):
     )
     terceirizadas = TerceirizadaSimplesSerializer(many=True)
 
-    dres = serializers.SlugRelatedField(
+    diretorias_regionais = serializers.SlugRelatedField(
         slug_field='uuid',
         queryset=DiretoriaRegional.objects.all(),
         many=True
@@ -54,7 +54,7 @@ class ContratoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Contrato
-        fields = ('uuid', 'numero', 'processo', 'data_proposta', 'lotes', 'terceirizadas', 'edital', 'vigencias', 'dres')
+        exclude = ('id',)
 
 
 class EditalSerializer(serializers.ModelSerializer):
