@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from sme_pratoaberto_terceirizadas.dados_comuns.utils import update_instance_from_dict
-from sme_pratoaberto_terceirizadas.escola.models import Lote
+from sme_pratoaberto_terceirizadas.escola.models import Lote, DiretoriaRegional
 from ...models import (Terceirizada, Nutricionista, VigenciaContrato, Contrato, Edital)
 
 
@@ -50,12 +50,19 @@ class ContratoCreateSerializer(serializers.ModelSerializer):
         queryset=Terceirizada.objects.all()
     )
 
+    dres = serializers.SlugRelatedField(
+        slug_field='uuid',
+        many=True,
+        queryset=DiretoriaRegional.objects.all()
+    )
+
     vigencias = VigenciaContratoCreateSerializer(many=True)
 
 
     def create(self, validated_data):
         lotes_json = validated_data.pop('lotes', [])
         terceirizadas_json = validated_data.pop('terceirizadas', [])
+        dres_json = validated_data.pop('dres', [])
 
         vigencias_array = validated_data.pop('vigencias')
 
@@ -69,12 +76,14 @@ class ContratoCreateSerializer(serializers.ModelSerializer):
 
         contrato.lotes.set(lotes_json)
         contrato.terceirizadas.set(terceirizadas_json)
+        contrato.dres.set(dres_json)
 
         return contrato
 
     def update(self, instance, validated_data):
         lotes_json = validated_data.pop('lotes', [])
         terceirizadas_json = validated_data.pop('terceirizadas', [])
+        dres_json = validated_data.pop('dres', [])
 
         vigencias_array = validated_data.pop('vigencias')
 
@@ -90,6 +99,7 @@ class ContratoCreateSerializer(serializers.ModelSerializer):
         instance.contratos.set(vigencias)
         instance.lotes.set(lotes_json)
         instance.terceirizadas.set(terceirizadas_json)
+        instance.dres.set(dres_json)
 
         return instance
 

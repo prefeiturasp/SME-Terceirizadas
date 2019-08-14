@@ -5,7 +5,11 @@ from xworkflows import InvalidTransitionError
 
 from sme_pratoaberto_terceirizadas.cardapio.api.serializers.serializers import MotivoSuspensaoSerializer
 from .permissions import (
-    PodeIniciarAlteracaoCardapioPermission
+    PodeIniciarAlteracaoCardapioPermission,
+    PodeAprovarPelaDREAlteracaoCardapioPermission,
+    PodePedirRevisaoPelaDREAlteracaoCardapioPermission,
+    PodeAprovarPelaCODAEAlteracaoCardapioPermission,
+    PodeRecusarPelaCODAEAlteracaoCardapioPermission,
 )
 from .permissions import PodeIniciarInversaoDeDiaDeCardapioPermission, PodeIniciarSuspensaoDeAlimentacaoPermission
 from .serializers.serializers import (
@@ -125,6 +129,56 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
         alimentacao_normal = self.get_object()
         try:
             alimentacao_normal.inicia_fluxo(user=request.user)
+            serializer = self.get_serializer(alimentacao_normal)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'))
+
+    @action(detail=True, permission_classes=[PodeAprovarPelaDREAlteracaoCardapioPermission], methods=['patch'])
+    def dre_aprovou(self, request, uuid=None):
+        alimentacao_normal = self.get_object()
+        try:
+            alimentacao_normal.dre_aprovou(user=request.user)
+            serializer = self.get_serializer(alimentacao_normal)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'))
+
+    @action(detail=True, permission_classes=[PodePedirRevisaoPelaDREAlteracaoCardapioPermission], methods=['patch'])
+    def dre_pediu_revisao(self, request, uuid=None):
+        alimentacao_normal = self.get_object()
+        try:
+            alimentacao_normal.dre_pediu_revisao(user=request.user)
+            serializer = self.get_serializer(alimentacao_normal)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'))
+
+    @action(detail=True, permission_classes=[PodeIniciarAlteracaoCardapioPermission], methods=['patch'])
+    def escola_revisou(self, request, uuid=None):
+        alimentacao_normal = self.get_object()
+        try:
+            alimentacao_normal.escola_revisou(user=request.user)
+            serializer = self.get_serializer(alimentacao_normal)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'))
+
+    @action(detail=True, permission_classes=[PodeAprovarPelaCODAEAlteracaoCardapioPermission], methods=['patch'])
+    def cadae_aprovou(self, request, uuid=None):
+        alimentacao_normal = self.get_object()
+        try:
+            alimentacao_normal.codae_aprovou(user=request.user)
+            serializer = self.get_serializer(alimentacao_normal)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'))
+
+    @action(detail=True, permission_classes=[PodeRecusarPelaCODAEAlteracaoCardapioPermission], methods=['patch'])
+    def cadae_recusou(self, request, uuid=None):
+        alimentacao_normal = self.get_object()
+        try:
+            alimentacao_normal.codae_recusou(user=request.user)
             serializer = self.get_serializer(alimentacao_normal)
             return Response(serializer.data)
         except InvalidTransitionError as e:
