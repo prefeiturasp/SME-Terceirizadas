@@ -8,7 +8,7 @@ from ..dados_comuns.models_abstract import (
     DiasSemana, CriadoPor,
     FluxoAprovacaoPartindoDaEscola,
     TemIdentificadorExternoAmigavel,
-    CriadoEm)
+    CriadoEm, TemPrioridade)
 
 
 class QuantidadePorPeriodo(TemChaveExterna):
@@ -103,8 +103,7 @@ class MotivoInclusaoNormal(Nomeavel, TemChaveExterna):
         verbose_name_plural = "Motivos de inclusao normais"
 
 
-class InclusaoAlimentacaoNormal(TemData, TemChaveExterna):
-    prioritario = models.BooleanField(default=False)
+class InclusaoAlimentacaoNormal(TemData, TemChaveExterna, TemPrioridade):
     motivo = models.ForeignKey(MotivoInclusaoNormal, on_delete=models.DO_NOTHING)
     outro_motivo = models.CharField("Outro motivo", blank=True, null=True, max_length=50)
     grupo_inclusao = models.ForeignKey('GrupoInclusaoAlimentacaoNormal',
