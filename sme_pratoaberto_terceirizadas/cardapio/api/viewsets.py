@@ -184,6 +184,27 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'))
 
+    @action(detail=False, methods=['GET'])
+    def prazo_vencendo(self, request):
+        query_set = AlteracaoCardapio.prazo_vencendo.all()
+        page = self.paginate_queryset(query_set)
+        serializer = AlteracaoCardapioSerializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False, methods=['GET'])
+    def prazo_limite(self, request):
+        query_set = AlteracaoCardapio.prazo_limite.all()
+        page = self.paginate_queryset(query_set)
+        serializer = AlteracaoCardapioSerializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False, methods=['GET'])
+    def prazo_regular(self, request):
+        query_set = AlteracaoCardapio.prazo_regular.all()
+        page = self.paginate_queryset(query_set)
+        serializer = AlteracaoCardapioSerializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
 
 class MotivosAlteracaoCardapioViewSet(viewsets.ReadOnlyModelViewSet):
     lookup_field = 'uuid'
