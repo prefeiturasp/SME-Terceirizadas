@@ -50,12 +50,42 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
     @action(detail=False, url_path="minhas-solicitacoes")
     def minhas_solicitacoes(self, request):
         usuario = request.user
-        solicitacoes_unificadas = models.GrupoInclusaoAlimentacaoNormal.objects.filter(
+        alimentacao_normal = models.GrupoInclusaoAlimentacaoNormal.objects.filter(
             criado_por=usuario,
             status=models.GrupoInclusaoAlimentacaoNormal.workflow_class.RASCUNHO
         )
-        page = self.paginate_queryset(solicitacoes_unificadas)
+        page = self.paginate_queryset(alimentacao_normal)
         serializer = serializers.GrupoInclusaoAlimentacaoNormalSerializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False, url_path="pedidos-prioritarios-diretoria-regional")
+    def pedidos_prioritarios_diretoria_regional(self, request):
+        usuario = request.user
+        # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
+        diretoria_regional = usuario.diretorias_regionais.first()
+        inclusoes_normais = diretoria_regional.inclusoes_normais_das_minhas_escolas_no_prazo_vencendo
+        page = self.paginate_queryset(inclusoes_normais)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False, url_path="pedidos-no-limite-diretoria-regional")
+    def pedidos_no_limite_diretoria_regional(self, request):
+        usuario = request.user
+        # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
+        diretoria_regional = usuario.diretorias_regionais.first()
+        inclusoes_normais = diretoria_regional.inclusoes_normais_das_minhas_escolas_no_prazo_limite
+        page = self.paginate_queryset(inclusoes_normais)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False, url_path="pedidos-no-prazo-diretoria-regional")
+    def pedidos_no_prazo_diretoria_regional(self, request):
+        usuario = request.user
+        # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
+        diretoria_regional = usuario.diretorias_regionais.first()
+        inclusoes_normais = diretoria_regional.inclusoes_normais_das_minhas_escolas_no_prazo_regular
+        page = self.paginate_queryset(inclusoes_normais)
+        serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
     @action(detail=True, permission_classes=[PodeIniciarInclusaoAlimentacaoContinuaPermission])
@@ -63,6 +93,16 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
         alimentacao_normal = self.get_object()
         try:
             alimentacao_normal.inicia_fluxo(user=request.user, notificar=True)
+            serializer = self.get_serializer(alimentacao_normal)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'))
+
+    @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission])
+    def confirma_pedido(self, request, uuid=None):
+        alimentacao_normal = self.get_object()
+        try:
+            alimentacao_normal.dre_aprovou(user=request.user, notificar=True)
             serializer = self.get_serializer(alimentacao_normal)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -95,41 +135,34 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
         serializer = serializers.InclusaoAlimentacaoContinuaSerializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
-    @action(detail=False, url_path="pedidos-prioritarios")
-    def pedidos_prioritarios(self, request):
+    @action(detail=False, url_path="pedidos-prioritarios-diretoria-regional")
+    def pedidos_prioritarios_diretoria_regional(self, request):
         usuario = request.user
-        solicitacoes_unificadas = models.InclusaoAlimentacaoContinua.objects.filter(
-            criado_por=usuario,
-            status__in=usuario.status_possiveis,
-            data_inicial__lte=obter_dias_uteis_apos_hoje(2)
-        )
-        page = self.paginate_queryset(solicitacoes_unificadas)
-        serializer = serializers.InclusaoAlimentacaoContinuaSerializer(page, many=True)
+        # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
+        diretoria_regional = usuario.diretorias_regionais.first()
+        inclusoes_continuas = diretoria_regional.inclusoes_continuas_das_minhas_escolas_no_prazo_vencendo
+        page = self.paginate_queryset(inclusoes_continuas)
+        serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
-    @action(detail=False, url_path="pedidos-no-limite")
-    def pedidos_no_limite(self, request):
+    @action(detail=False, url_path="pedidos-no-limite-diretoria-regional")
+    def pedidos_no_limite_diretoria_regional(self, request):
         usuario = request.user
-        solicitacoes_unificadas = models.InclusaoAlimentacaoContinua.objects.filter(
-            criado_por=usuario,
-            status=models.InclusaoAlimentacaoContinua.workflow_class.DRE_A_VALIDAR,
-            data_inicial__gt=obter_dias_uteis_apos_hoje(2),
-            data_inicial__lt=obter_dias_uteis_apos_hoje(5)
-        )
-        page = self.paginate_queryset(solicitacoes_unificadas)
-        serializer = serializers.InclusaoAlimentacaoContinuaSerializer(page, many=True)
+        # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
+        diretoria_regional = usuario.diretorias_regionais.first()
+        inclusoes_continuas = diretoria_regional.inclusoes_continuas_das_minhas_escolas_no_prazo_limite
+        page = self.paginate_queryset(inclusoes_continuas)
+        serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
-    @action(detail=False, url_path="pedidos-no-prazo")
-    def pedidos_no_prazo(self, request):
+    @action(detail=False, url_path="pedidos-no-prazo-diretoria-regional")
+    def pedidos_no_prazo_diretoria_regional(self, request):
         usuario = request.user
-        solicitacoes_unificadas = models.InclusaoAlimentacaoContinua.objects.filter(
-            criado_por=usuario,
-            status=models.InclusaoAlimentacaoContinua.workflow_class.DRE_A_VALIDAR,
-            data_inicial__gte=obter_dias_uteis_apos_hoje(5),
-        )
-        page = self.paginate_queryset(solicitacoes_unificadas)
-        serializer = serializers.InclusaoAlimentacaoContinuaSerializer(page, many=True)
+        # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
+        diretoria_regional = usuario.diretorias_regionais.first()
+        inclusoes_continuas = diretoria_regional.inclusoes_continuas_das_minhas_escolas_no_prazo_regular
+        page = self.paginate_queryset(inclusoes_continuas)
+        serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
     @action(detail=True, permission_classes=[PodeIniciarInclusaoAlimentacaoContinuaPermission])

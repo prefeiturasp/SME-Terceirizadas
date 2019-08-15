@@ -2,6 +2,15 @@ from django.core.validators import MinValueValidator
 from django.db import models
 
 from sme_pratoaberto_terceirizadas.dados_comuns.models import TemplateMensagem
+from .managers import (
+    InclusoesDeAlimentacaoContinuaPrazoLimiteManager,
+    InclusoesDeAlimentacaoContinuaPrazoVencendoManager,
+    InclusoesDeAlimentacaoContinuaPrazoRegularManager,
+    InclusoesDeAlimentacaoNormalPrazoLimiteManager,
+    InclusoesDeAlimentacaoNormalPrazoRegularManager,
+    InclusoesDeAlimentacaoNormalPrazoVencendoManager
+)
+
 from ..dados_comuns.models_abstract import (
     Descritivel, IntervaloDeDia,
     Nomeavel, TemData, TemChaveExterna,
@@ -57,6 +66,11 @@ class InclusaoAlimentacaoContinua(IntervaloDeDia, Descritivel, TemChaveExterna,
     motivo = models.ForeignKey(MotivoInclusaoContinua, on_delete=models.DO_NOTHING)
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING,
                                related_name='inclusoes_alimentacao_continua')
+
+    objects = models.Manager()  # Manager Padrão
+    prazo_vencendo = InclusoesDeAlimentacaoContinuaPrazoVencendoManager()
+    prazo_limite = InclusoesDeAlimentacaoContinuaPrazoLimiteManager()
+    prazo_regular = InclusoesDeAlimentacaoContinuaPrazoRegularManager()
 
     @property
     def quantidades_periodo(self):
@@ -120,12 +134,18 @@ class InclusaoAlimentacaoNormal(TemData, TemChaveExterna, TemPrioridade):
     class Meta:
         verbose_name = "Inclusão de alimentação normal"
         verbose_name_plural = "Inclusões de alimentação normal"
+        ordering = ('data',)
 
 
 class GrupoInclusaoAlimentacaoNormal(Descritivel, TemChaveExterna, FluxoAprovacaoPartindoDaEscola,
                                      CriadoPor, TemIdentificadorExternoAmigavel):
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING,
                                related_name='grupos_inclusoes_normais')
+
+    objects = models.Manager()  # Manager Padrão
+    prazo_vencendo = InclusoesDeAlimentacaoNormalPrazoVencendoManager()
+    prazo_limite = InclusoesDeAlimentacaoNormalPrazoLimiteManager()
+    prazo_regular = InclusoesDeAlimentacaoNormalPrazoRegularManager()
 
     @property
     def template_mensagem(self):

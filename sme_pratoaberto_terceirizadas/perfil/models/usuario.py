@@ -108,8 +108,3 @@ class Usuario(CustomAbstractUser, TemChaveExterna):
     @property
     def diretorias_regionais(self):
         return self.diretorias_regionais
-
-    @property
-    def status_possiveis(self):
-        if self.diretorias_regionais.exists():
-            return [PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR]
