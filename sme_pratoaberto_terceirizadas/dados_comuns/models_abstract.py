@@ -6,6 +6,7 @@ from django.db import models
 from django_xworkflows import models as xwf_models
 
 from .fluxo_status import PedidoAPartirDaEscolaWorkflow, PedidoAPartirDaDiretoriaRegionalWorkflow
+from .models import LogSolicitacoesUsuario
 from .utils import enviar_notificacao_e_email
 
 
@@ -195,6 +196,13 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
                                    recipients=self.partes_interessadas_inicio_fluxo,
                                    short_desc=assunto,
                                    long_desc=corpo)
+        LogSolicitacoesUsuario.objects.create(descricao=str(self),
+                                              status_evento=LogSolicitacoesUsuario.INICIO_FLUXO,
+                                              # TODO: definir o modelo (solicitacao_tipo)
+                                              # em que esta se trabalhando aqui...
+                                              solicitacao_tipo=LogSolicitacoesUsuario.INCLUSAO_ALIMENTACAO_CONTINUA,
+                                              usuario=user,
+                                              uuid_original=self.uuid)
 
     @xworkflows.after_transition('dre_aprovou')
     def _dre_aprovou_hook(self, *args, **kwargs):

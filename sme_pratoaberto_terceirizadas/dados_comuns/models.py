@@ -1,10 +1,10 @@
+import uuid
+
 from django.core.validators import MinLengthValidator
 from django.db import models
 
-from .models_abstract import (Descritivel, CriadoEm, TemChaveExterna)
 
-
-class LogSolicitacoesUsuario(Descritivel, CriadoEm, TemChaveExterna):
+class LogSolicitacoesUsuario(models.Model):
     """
         Eventos de dados importantes para acompanhamento.
     Ex.: Fulano X  executou a atividade Y no objeto W no dia DDDDMMAA
@@ -58,6 +58,9 @@ class LogSolicitacoesUsuario(Descritivel, CriadoEm, TemChaveExterna):
         (SOLICITACAO_KIT_LANCHE_UNIFICADA, 'Solicitação de kit lanche unificada'),
     )
 
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    criado_em = models.DateTimeField("Criado em", editable=False, auto_now_add=True)
+    descricao = models.TextField("Descricao", blank=True, null=True)
     status_evento = models.PositiveSmallIntegerField(choices=STATUS_POSSIVEIS)
     solicitacao_tipo = models.PositiveSmallIntegerField(choices=TIPOS_SOLICITACOES)
     uuid_original = models.UUIDField()
@@ -91,7 +94,7 @@ class Endereco(models.Model):
         return f'{self.rua}, {self.numero}'
 
 
-class TemplateMensagem(TemChaveExterna):
+class TemplateMensagem(models.Model):
     """
         Tem um texto base e troca por campos do objeto que entra como parâmetro
         Ex:  Olá @nome, a Alteração de cardápio #@identificador solicitada
@@ -114,6 +117,7 @@ class TemplateMensagem(TemChaveExterna):
         (SOLICITACAO_KIT_LANCHE_UNIFICADA, 'Solicitação de kit lanche unificada'),
         (INVERSAO_CARDAPIO, 'Inversão de cardápio')
     )
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     tipo = models.PositiveSmallIntegerField(choices=CHOICES, unique=True)
     assunto = models.CharField('Assunto', max_length=256, null=True, blank=True)
     template_html = models.TextField('Template', null=True, blank=True)
