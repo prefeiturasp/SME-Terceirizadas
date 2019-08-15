@@ -3,7 +3,7 @@
 CAUTION: Do not modify this file unless you know what you are doing.
          Unexpected results may occur if the code is changed deliberately.
 -->
-<dbmodel pgmodeler-ver="0.9.1" last-position="6238,2271" last-zoom="1.2"
+<dbmodel pgmodeler-ver="0.9.1" last-position="3108,880" last-zoom="0.75"
 	 default-owner="postgres">
 <database name="new_database" is-template="false" allow-conns="true">
 </database>
@@ -242,7 +242,7 @@ o perfil professor pode [dar aula, fazer denuncia na DRE]]]></comment>
 	<schema name="dados_comuns"/>
 	<role name="postgres"/>
 	<comment><![CDATA[Registra eventos de usuário realizado no sistema]]></comment>
-	<position x="4400" y="1720"/>
+	<position x="4790.67" y="1720"/>
 	<column name="log_id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -1287,7 +1287,7 @@ quando é multipla: todas as escolas vao ter a mesma opcao de kits, com numero d
 <table name="endereco">
 	<schema name="dados_comuns"/>
 	<role name="postgres"/>
-	<position x="4420" y="1620"/>
+	<position x="4396" y="1588"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
