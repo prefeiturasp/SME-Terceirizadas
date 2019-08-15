@@ -88,7 +88,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
-    @action(detail=True, permission_classes=[PodeIniciarInclusaoAlimentacaoContinuaPermission])
+    @action(detail=True, permission_classes=[PodeIniciarInclusaoAlimentacaoContinuaPermission], methods=['patch'])
     def inicio_de_pedido(self, request, uuid=None):
         alimentacao_normal = self.get_object()
         try:
@@ -98,7 +98,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'))
 
-    @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission])
+    @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission], methods=['patch'])
     def confirma_pedido(self, request, uuid=None):
         alimentacao_normal = self.get_object()
         try:
@@ -165,7 +165,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
-    @action(detail=True, permission_classes=[PodeIniciarInclusaoAlimentacaoContinuaPermission])
+    @action(detail=True, permission_classes=[PodeIniciarInclusaoAlimentacaoContinuaPermission], methods=['patch'])
     def inicio_de_pedido(self, request, uuid=None):
         alimentacao_continua = self.get_object()
         try:
@@ -175,7 +175,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'))
 
-    @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission])
+    @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission], methods=['patch'])
     def confirma_pedido(self, request, uuid=None):
         alimentacao_continua = self.get_object()
         try:
@@ -185,7 +185,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'))
 
-    @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission])
+    @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission], methods=['patch'])
     def codae_aprovou(self, request, uuid=None):
         alimentacao_continua = self.get_object()
         try:
@@ -195,7 +195,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'))
 
-    @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission])
+    @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission], methods=['patch'])
     def terceirizada_tomou_ciencia(self, request, uuid=None):
         alimentacao_continua = self.get_object()
         try:

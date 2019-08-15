@@ -50,20 +50,20 @@ class FaixaIdadeEscolarSerializer(serializers.ModelSerializer):
         exclude = ('id',)
 
 
-class DiretoriaRegionalComboSerializer(serializers.ModelSerializer):
+class DiretoriaRegionalSimplissimaSerializer(serializers.ModelSerializer):
     class Meta:
         model = DiretoriaRegional
         fields = ('uuid', 'nome')
 
 
-class EscolaComboSerializer(serializers.ModelSerializer):
+class EscolaSimplissimaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Escola
         fields = ('uuid', 'nome', 'codigo_eol')
 
 
 class DiretoriaRegionalSimplesSerializer(serializers.ModelSerializer):
-    escolas = EscolaComboSerializer(many=True)
+    escolas = EscolaSimplissimaSerializer(many=True)
     quantidade_alunos = serializers.IntegerField()
 
     class Meta:
@@ -72,9 +72,9 @@ class DiretoriaRegionalSimplesSerializer(serializers.ModelSerializer):
 
 
 class LoteSimplesSerializer(serializers.ModelSerializer):
-    diretoria_regional = DiretoriaRegionalComboSerializer()
+    diretoria_regional = DiretoriaRegionalSimplissimaSerializer()
     tipo_gestao = TipoGestaoSerializer()
-    escolas = EscolaComboSerializer(many=True)
+    escolas = EscolaSimplissimaSerializer(many=True)
     terceirizada = TerceirizadaSimplesSerializer()
     subprefeituras = SubprefeituraSerializer(many=True)
 
