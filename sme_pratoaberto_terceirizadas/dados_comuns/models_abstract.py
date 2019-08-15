@@ -142,6 +142,11 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
 
     status = xwf_models.StateField(workflow_class)
 
+    def cancelar_pedido_48h_antes(self):
+        # TODO: verificar o campo de data do pedido, se tiver no intervalo altera o status
+        # não faz nada caso contrario
+        self.status = self.workflow_class.ESCOLA_CANCELA_48H_ANTES
+
     @property
     def pode_excluir(self):
         return self.status == self.workflow_class.RASCUNHO
