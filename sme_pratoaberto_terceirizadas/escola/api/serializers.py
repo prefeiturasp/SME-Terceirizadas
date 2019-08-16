@@ -85,11 +85,12 @@ class LoteSimplesSerializer(serializers.ModelSerializer):
 
 class EscolaSimplesSerializer(serializers.ModelSerializer):
     lote = LoteSimplesSerializer()
+    tipo_gestao = TipoGestaoSerializer()
     periodos_escolares = PeriodoEscolarSerializer(many=True)
 
     class Meta:
         model = Escola
-        fields = ('uuid', 'nome', 'codigo_eol', 'quantidade_alunos', 'periodos_escolares', 'lote')
+        fields = ('uuid', 'nome', 'codigo_eol', 'quantidade_alunos', 'periodos_escolares', 'lote', 'tipo_gestao')
 
 
 class EscolaCompletaSerializer(serializers.ModelSerializer):
