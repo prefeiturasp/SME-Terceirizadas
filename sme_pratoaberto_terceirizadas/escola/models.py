@@ -6,6 +6,8 @@ from django.db.models import Sum
 from sme_pratoaberto_terceirizadas.perfil.models import Usuario
 from ..dados_comuns.models_abstract import (Ativavel, Iniciais, Nomeavel, TemChaveExterna)
 
+from sme_pratoaberto_terceirizadas.cardapio.models import (AlteracaoCardapio)
+
 
 class DiretoriaRegional(Nomeavel, TemChaveExterna):
     usuarios = models.ManyToManyField(Usuario, related_name='diretorias_regionais', blank=True)
@@ -19,6 +21,13 @@ class DiretoriaRegional(Nomeavel, TemChaveExterna):
         return DiretoriaRegional.objects.annotate(
             total_alunos=Sum('escolas__quantidade_alunos')).get(
             id=self.id).total_alunos
+
+    @property
+    def alteracoes_cardapio_das_minhas_escolas_pendentes(self):
+        return AlteracaoCardapio.objects.filter(
+            escola__in=self.escolas.all(),
+            status=AlteracaoCardapio.workflow_class.DRE_A_VALIDAR
+        )
 
     def __str__(self):
         return self.nome

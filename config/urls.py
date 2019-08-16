@@ -14,6 +14,7 @@ from sme_pratoaberto_terceirizadas.inclusao_alimentacao.urls import urlpatterns 
 from sme_pratoaberto_terceirizadas.kit_lanche.urls import urlpatterns as kit_lanche_urls
 from sme_pratoaberto_terceirizadas.perfil.urls import urlpatterns as perfil_urls
 from sme_pratoaberto_terceirizadas.terceirizada.urls import urlpatterns as terceirizada_urls
+from sme_pratoaberto_terceirizadas.paineis_consolidados.urls import urlpatterns as paineis_consolidados_urls
 
 schema_view = get_swagger_view(title='API de Terceirizadas')
 
@@ -37,6 +38,7 @@ urlpatterns += inclusao_urls
 urlpatterns += kit_lanche_urls
 urlpatterns += cardapio_urls
 urlpatterns += terceirizada_urls
+urlpatterns += paineis_consolidados_urls
 
 if settings.DEBUG:
     # This allows the error pages to be debugged during development, just visit
