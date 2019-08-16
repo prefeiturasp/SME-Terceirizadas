@@ -182,6 +182,9 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
     def template_mensagem(self):
         raise NotImplementedError('Deve criar um property que recupera o assunto e corpo mensagem desse objeto')
 
+    def salvar_log_transicao(self, status_evento, usuario):
+        raise NotImplementedError('Deve criar um método salvar_log_transicao')
+
     #
     # Esses hooks são chamados automaticamente após a
     # transition do status ser chamada.
@@ -196,13 +199,8 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
                                    recipients=self.partes_interessadas_inicio_fluxo,
                                    short_desc=assunto,
                                    long_desc=corpo)
-        LogSolicitacoesUsuario.objects.create(descricao=str(self),
-                                              status_evento=LogSolicitacoesUsuario.INICIO_FLUXO,
-                                              # TODO: definir o modelo (solicitacao_tipo)
-                                              # em que esta se trabalhando aqui...
-                                              solicitacao_tipo=LogSolicitacoesUsuario.INCLUSAO_ALIMENTACAO_CONTINUA,
-                                              usuario=user,
-                                              uuid_original=self.uuid)
+        self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.INICIO_FLUXO,
+                                  usuario=user)
 
     @xworkflows.after_transition('dre_aprovou')
     def _dre_aprovou_hook(self, *args, **kwargs):

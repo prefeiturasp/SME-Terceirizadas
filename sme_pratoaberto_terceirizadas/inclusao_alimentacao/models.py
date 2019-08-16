@@ -1,7 +1,7 @@
 from django.core.validators import MinValueValidator
 from django.db import models
 
-from sme_pratoaberto_terceirizadas.dados_comuns.models import TemplateMensagem
+from sme_pratoaberto_terceirizadas.dados_comuns.models import TemplateMensagem, LogSolicitacoesUsuario
 from ..dados_comuns.models_abstract import (
     Descritivel, IntervaloDeDia,
     Nomeavel, TemData, TemChaveExterna,
@@ -78,10 +78,15 @@ class InclusaoAlimentacaoContinua(IntervaloDeDia, Descritivel, TemChaveExterna,
             corpo = corpo.replace(chave, valor)
         return template.assunto, corpo
 
+    def salvar_log_transicao(self, status_evento, usuario):
+        LogSolicitacoesUsuario.objects.create(descricao=str(self),
+                                              status_evento=status_evento,
+                                              solicitacao_tipo=LogSolicitacoesUsuario.INCLUSAO_ALIMENTACAO_CONTINUA,
+                                              usuario=usuario,
+                                              uuid_original=self.uuid)
+
     def __str__(self):
-        return "de {} até {} para {} para {}".format(
-            self.data_inicial, self.data_final, self.escola,
-            self.dias_semana_display())
+        return f"de {self.data_inicial} até {self.data_final} para {self.escola} para {self.dias_semana_display()}"
 
     class Meta:
         verbose_name = "Inclusão de alimentação contínua"
