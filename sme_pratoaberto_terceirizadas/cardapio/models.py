@@ -8,6 +8,12 @@ from ..dados_comuns.models_abstract import (
     TemIdentificadorExternoAmigavel
 )
 
+from .managers import (
+    AlteracoesCardapioPrazoVencendoManager,
+    AlteracoesCardapioPrazoLimiteManager,
+    AlteracoesCardapioPrazoRegularManager
+)
+
 
 class TipoAlimentacao(Nomeavel, TemChaveExterna):
     """
@@ -252,6 +258,11 @@ class AlteracaoCardapio(CriadoEm, TemChaveExterna, IntervaloDeDia, TemObservacao
 
     Ex: Alterar  nos períodos matutino e intermediario, o lanche e refeição pelo motivo "aniversariantes do mês"
     """
+
+    objects = models.Manager()  # Manager Padrão
+    prazo_vencendo = AlteracoesCardapioPrazoVencendoManager()
+    prazo_limite = AlteracoesCardapioPrazoLimiteManager()
+    prazo_regular = AlteracoesCardapioPrazoRegularManager()
 
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING, blank=True, null=True)
     motivo = models.ForeignKey('MotivoAlteracaoCardapio', on_delete=models.PROTECT, blank=True, null=True)

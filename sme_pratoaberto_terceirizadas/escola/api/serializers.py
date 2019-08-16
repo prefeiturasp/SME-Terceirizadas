@@ -50,22 +50,20 @@ class FaixaIdadeEscolarSerializer(serializers.ModelSerializer):
         exclude = ('id',)
 
 
-class EscolaSimplesSerializer(serializers.ModelSerializer):
-    periodos_escolares = PeriodoEscolarSerializer(many=True)
-
+class DiretoriaRegionalSimplissimaSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Escola
-        fields = ('uuid', 'nome', 'codigo_eol', 'quantidade_alunos', 'periodos_escolares')
+        model = DiretoriaRegional
+        fields = ('uuid', 'nome')
 
 
-class EscolaComboSerializer(serializers.ModelSerializer):
+class EscolaSimplissimaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Escola
         fields = ('uuid', 'nome', 'codigo_eol')
 
 
 class DiretoriaRegionalSimplesSerializer(serializers.ModelSerializer):
-    escolas = EscolaComboSerializer(many=True)
+    escolas = EscolaSimplissimaSerializer(many=True)
     quantidade_alunos = serializers.IntegerField()
 
     class Meta:
@@ -73,22 +71,26 @@ class DiretoriaRegionalSimplesSerializer(serializers.ModelSerializer):
         exclude = ('id',)
 
 
-class DiretoriaRegionalComboSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = DiretoriaRegional
-        fields = ('uuid', 'nome')
-
-
 class LoteSimplesSerializer(serializers.ModelSerializer):
-    diretoria_regional = DiretoriaRegionalComboSerializer()
+    diretoria_regional = DiretoriaRegionalSimplissimaSerializer()
     tipo_gestao = TipoGestaoSerializer()
-    escolas = EscolaComboSerializer(many=True)
+    escolas = EscolaSimplissimaSerializer(many=True)
     terceirizada = TerceirizadaSimplesSerializer()
     subprefeituras = SubprefeituraSerializer(many=True)
 
     class Meta:
         model = Lote
         exclude = ('id',)
+
+
+class EscolaSimplesSerializer(serializers.ModelSerializer):
+    lote = LoteSimplesSerializer()
+    tipo_gestao = TipoGestaoSerializer()
+    periodos_escolares = PeriodoEscolarSerializer(many=True)
+
+    class Meta:
+        model = Escola
+        fields = ('uuid', 'nome', 'codigo_eol', 'quantidade_alunos', 'periodos_escolares', 'lote', 'tipo_gestao')
 
 
 class EscolaCompletaSerializer(serializers.ModelSerializer):

@@ -38,9 +38,11 @@ def test_inclusao_alimentacao_continua(inclusao_alimentacao_continua):
 def test_inclusao_alimentacao_continua_fluxo(inclusao_alimentacao_continua):
     fake_user = mommy.make('perfil.Usuario')
     inclusao_alimentacao_continua.inicia_fluxo(user=fake_user)
-    assert str(inclusao_alimentacao_continua.status) == 'DRE_A_VALIDAR'
+    assert inclusao_alimentacao_continua.ta_na_dre
     inclusao_alimentacao_continua.dre_aprovou(user=fake_user)
-    assert str(inclusao_alimentacao_continua.status) == 'DRE_APROVADO'
+    assert inclusao_alimentacao_continua.ta_na_codae
+    inclusao_alimentacao_continua.codae_aprovou(user=fake_user)
+    assert inclusao_alimentacao_continua.ta_na_terceirizada
 
 
 def test_inclusao_alimentacao_continua_fluxo_erro(inclusao_alimentacao_continua):

@@ -7,7 +7,7 @@ from sme_pratoaberto_terceirizadas.inclusao_alimentacao.api.serializers.serializ
     GrupoInclusaoAlimentacaoNormalSerializer, InclusaoAlimentacaoContinuaSerializer)
 from .serializers import (EscolaCompletaSerializer, PeriodoEscolarSerializer, DiretoriaRegionalCompletaSerializer,
                           TipoGestaoSerializer, SubprefeituraSerializer, EscolaSimplesSerializer,
-                          DiretoriaRegionalComboSerializer, EscolaComboSerializer)
+                          DiretoriaRegionalSimplissimaSerializer, EscolaSimplissimaSerializer)
 from ..models import (Escola, PeriodoEscolar, DiretoriaRegional, Lote, TipoGestao, Subprefeitura)
 
 
@@ -45,10 +45,10 @@ class EscolaSimplesViewSet(ReadOnlyModelViewSet):
     serializer_class = EscolaSimplesSerializer
 
 
-class EscolaComboViewSet(ReadOnlyModelViewSet):
+class EscolaSimplissimaViewSet(ReadOnlyModelViewSet):
     lookup_field = 'uuid'
     queryset = Escola.objects.all()
-    serializer_class = EscolaComboSerializer
+    serializer_class = EscolaSimplissimaSerializer
 
 
 class PeriodoEscolarViewSet(ReadOnlyModelViewSet):
@@ -63,10 +63,10 @@ class DiretoriaRegionalViewSet(ReadOnlyModelViewSet):
     serializer_class = DiretoriaRegionalCompletaSerializer
 
 
-class DiretoriaRegionalComboViewSet(ReadOnlyModelViewSet):
+class DiretoriaRegionalSimplissimaViewSet(ReadOnlyModelViewSet):
     lookup_field = 'uuid'
     queryset = DiretoriaRegional.objects.all()
-    serializer_class = DiretoriaRegionalComboSerializer
+    serializer_class = DiretoriaRegionalSimplissimaSerializer
 
 
 class TipoGestaoViewSet(ReadOnlyModelViewSet):
