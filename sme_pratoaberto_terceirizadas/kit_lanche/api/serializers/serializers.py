@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from sme_pratoaberto_terceirizadas.escola.api.serializers import (
-    EscolaSimplesSerializer, DiretoriaRegionalComboSerializer
+    EscolaSimplesSerializer, DiretoriaRegionalSimplissimaSerializer
 )
 from ...models import (
     MotivoSolicitacaoUnificada, ItemKitLanche, KitLanche,
@@ -75,7 +75,7 @@ class EscolaQuantidadeSerializerSimples(serializers.ModelSerializer):
 
 
 class SolicitacaoKitLancheUnificadaSerializer(serializers.ModelSerializer):
-    diretoria_regional = DiretoriaRegionalComboSerializer()
+    diretoria_regional = DiretoriaRegionalSimplissimaSerializer()
     motivo = MotivoSolicitacaoUnificadaSerializer()
     solicitacao_kit_lanche = SolicitacaoKitLancheSimplesSerializer()
     escolas_quantidades = EscolaQuantidadeSerializerSimples(many=True)

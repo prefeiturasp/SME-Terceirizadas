@@ -5,6 +5,8 @@ from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django_xworkflows import models as xwf_models
 
+from sme_pratoaberto_terceirizadas.perfil import models as models_perfil
+from sme_pratoaberto_terceirizadas.dados_comuns.utils import obter_dias_uteis_apos_hoje
 from .fluxo_status import PedidoAPartirDaEscolaWorkflow, PedidoAPartirDaDiretoriaRegionalWorkflow
 from .utils import enviar_notificacao_e_email
 
@@ -178,6 +180,24 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
         return usuarios_dre
 
     @property
+    def partes_interessadas_dre_aprovou(self):
+        #TODO: filtrar usuários CODAE
+        usuarios_codae = models_perfil.Usuario.objects.filter()
+        return usuarios_codae
+
+    @property
+    def partes_interessadas_codae_aprovou(self):
+        # TODO: filtrar usuários Terceirizadas
+        usuarios_terceirizadas = models_perfil.Usuario.objects.filter()
+        return usuarios_terceirizadas
+
+    @property
+    def partes_interessadas_terceirizadas_tomou_ciencia(self):
+        # TODO: filtrar usuários Escolas
+        usuarios_terceirizadas = models_perfil.Usuario.objects.filter()
+        return usuarios_terceirizadas
+
+    @property
     def template_mensagem(self):
         raise NotImplementedError('Deve criar um property que recupera o assunto e corpo mensagem desse objeto')
 
@@ -198,7 +218,13 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
 
     @xworkflows.after_transition('dre_aprovou')
     def _dre_aprovou_hook(self, *args, **kwargs):
-        print(f'Notificar partes interessadas nesse momento {self.escola}')
+        user = kwargs['user']
+        if user and kwargs.get('notificar', False):
+            assunto, corpo = self.template_mensagem
+            enviar_notificacao_e_email(sender=user,
+                                       recipients=self.partes_interessadas_dre_aprovou,
+                                       short_desc=assunto,
+                                       long_desc=corpo)
 
     @xworkflows.after_transition('dre_pediu_revisao')
     def _dre_pediu_revisao_hook(self, *args, **kwargs):
@@ -210,19 +236,28 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
 
     @xworkflows.after_transition('codae_aprovou')
     def _codae_aprovou_hook(self, *args, **kwargs):
-        print(f'Notificar partes interessadas nesse momento {self.escola.diretoria_regional}')
-        print(f'Notificar partes interessadas nesse momento {self.escola}')
-        # notifica terceirizada tbm
+        user = kwargs['user']
+        if user and kwargs.get('notificar', False):
+            assunto, corpo = self.template_mensagem
+            enviar_notificacao_e_email(sender=user,
+                                       recipients=self.partes_interessadas_codae_aprovou,
+                                       short_desc=assunto,
+                                       long_desc=corpo)
 
     @xworkflows.after_transition('codae_recusou')
     def _codae_recusou_hook(self, *args, **kwargs):
         print(f'Notificar partes interessadas nesse momento {self.escola.diretoria_regional}')
         print(f'Notificar partes interessadas nesse momento {self.escola}')
 
-    @xworkflows.after_transition('terceirizada_toma_ciencia')
-    def _terceirizada_toma_ciencia_hook(self, *args, **kwargs):
-        print(f'Notificar partes interessadas nesse momento {self.escola.diretoria_regional}')
-        print(f'Notificar partes interessadas nesse momento {self.escola}')
+    @xworkflows.after_transition('terceirizada_tomou_ciencia')
+    def _terceirizada_tomou_ciencia_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        if user and kwargs.get('notificar', False):
+            assunto, corpo = self.template_mensagem
+            enviar_notificacao_e_email(sender=user,
+                                       recipients=self.partes_interessadas_terceirizadas_tomou_ciencia,
+                                       short_desc=assunto,
+                                       long_desc=corpo)
 
     class Meta:
         abstract = True
@@ -302,3 +337,16 @@ class TemIdentificadorExternoAmigavel(object):
     def id_externo(self):
         uuid = str(self.uuid)
         return uuid.upper()[:5]
+
+
+class TemPrioridade(object):
+    """
+    Calcula se a data ou data_inicial é prioridade
+    """
+
+    @property
+    def prioridade(self):
+        if hasattr(self, "data"):
+            return obter_dias_uteis_apos_hoje(2) <= self.data < obter_dias_uteis_apos_hoje(5)
+        elif hasattr(self, "data_inicial"):
+            return obter_dias_uteis_apos_hoje(2) <= self.data_inicial < obter_dias_uteis_apos_hoje(5)

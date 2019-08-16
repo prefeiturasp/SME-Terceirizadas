@@ -3,6 +3,9 @@ from django.core.validators import MinLengthValidator
 from django.db import models
 from django.db.models import Sum
 
+from sme_pratoaberto_terceirizadas.inclusao_alimentacao.models import (
+    InclusaoAlimentacaoContinua, GrupoInclusaoAlimentacaoNormal
+)
 from sme_pratoaberto_terceirizadas.perfil.models import Usuario
 from ..dados_comuns.models_abstract import (Ativavel, Iniciais, Nomeavel, TemChaveExterna)
 
@@ -16,9 +19,52 @@ class DiretoriaRegional(Nomeavel, TemChaveExterna):
 
     @property
     def quantidade_alunos(self):
-        return DiretoriaRegional.objects.annotate(
-            total_alunos=Sum('escolas__quantidade_alunos')).get(
-            id=self.id).total_alunos
+        quantidade_result = self.escolas.aggregate(Sum('quantidade_alunos'))
+        return quantidade_result.get('quantidade_alunos__sum', 0)
+
+    #TODO: talvez fazer um manager genérico pra fazer esse filtro
+
+    @property
+    def inclusoes_continuas_das_minhas_escolas_no_prazo_vencendo(self):
+        return InclusaoAlimentacaoContinua.prazo_vencendo.filter(
+            escola__in=self.escolas.all(),
+            status=InclusaoAlimentacaoContinua.workflow_class.DRE_A_VALIDAR
+        )
+
+    @property
+    def inclusoes_continuas_das_minhas_escolas_no_prazo_limite(self):
+        return InclusaoAlimentacaoContinua.prazo_limite.filter(
+            escola__in=self.escolas.all(),
+            status=InclusaoAlimentacaoContinua.workflow_class.DRE_A_VALIDAR
+        )
+
+    @property
+    def inclusoes_continuas_das_minhas_escolas_no_prazo_regular(self):
+        return InclusaoAlimentacaoContinua.prazo_regular.filter(
+            escola__in=self.escolas.all(),
+            status=InclusaoAlimentacaoContinua.workflow_class.DRE_A_VALIDAR
+        )
+
+    @property
+    def inclusoes_normais_das_minhas_escolas_no_prazo_vencendo(self):
+        return GrupoInclusaoAlimentacaoNormal.prazo_vencendo.filter(
+            escola__in=self.escolas.all(),
+            status=InclusaoAlimentacaoContinua.workflow_class.DRE_A_VALIDAR
+        )
+
+    @property
+    def inclusoes_normais_das_minhas_escolas_no_prazo_limite(self):
+        return GrupoInclusaoAlimentacaoNormal.prazo_limite.filter(
+            escola__in=self.escolas.all(),
+            status=InclusaoAlimentacaoContinua.workflow_class.DRE_A_VALIDAR
+        )
+
+    @property
+    def inclusoes_normais_das_minhas_escolas_no_prazo_regular(self):
+        return GrupoInclusaoAlimentacaoNormal.prazo_regular.filter(
+            escola__in=self.escolas.all(),
+            status=InclusaoAlimentacaoContinua.workflow_class.DRE_A_VALIDAR
+        )
 
     def __str__(self):
         return self.nome
