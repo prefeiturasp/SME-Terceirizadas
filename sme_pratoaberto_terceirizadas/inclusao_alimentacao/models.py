@@ -1,7 +1,7 @@
 from django.core.validators import MinValueValidator
 from django.db import models
 
-from sme_pratoaberto_terceirizadas.dados_comuns.models import TemplateMensagem
+from sme_pratoaberto_terceirizadas.dados_comuns.models import TemplateMensagem, LogSolicitacoesUsuario
 from .managers import (
     InclusoesDeAlimentacaoContinuaPrazoLimiteManager,
     InclusoesDeAlimentacaoContinuaPrazoLimiteDaquiA7DiasManager,
@@ -14,7 +14,7 @@ from .managers import (
     InclusoesDeAlimentacaoNormalPrazoRegularManager,
     InclusoesDeAlimentacaoNormalPrazoVencendoManager
 )
-from ..dados_comuns.models import LogSolicitacoesUsuario
+
 from ..dados_comuns.models_abstract import (
     Descritivel, IntervaloDeDia,
     Nomeavel, TemData, TemChaveExterna,
