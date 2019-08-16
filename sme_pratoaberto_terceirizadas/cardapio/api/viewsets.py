@@ -1,4 +1,6 @@
-from rest_framework import viewsets
+import datetime
+
+from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from xworkflows import InvalidTransitionError
@@ -165,7 +167,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'))
 
     @action(detail=True, permission_classes=[PodeAprovarPelaCODAEAlteracaoCardapioPermission], methods=['patch'])
-    def cadae_aprovou(self, request, uuid=None):
+    def codae_aprovou(self, request, uuid=None):
         alimentacao_normal = self.get_object()
         try:
             alimentacao_normal.codae_aprovou(user=request.user)
@@ -175,7 +177,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'))
 
     @action(detail=True, permission_classes=[PodeRecusarPelaCODAEAlteracaoCardapioPermission], methods=['patch'])
-    def cadae_recusou(self, request, uuid=None):
+    def codae_recusou(self, request, uuid=None):
         alimentacao_normal = self.get_object()
         try:
             alimentacao_normal.codae_recusou(user=request.user)
@@ -204,6 +206,37 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
         page = self.paginate_queryset(query_set)
         serializer = AlteracaoCardapioSerializer(page, many=True)
         return self.get_paginated_response(serializer.data)
+
+    @action(detail=False, methods=['GET'])
+    def resumo_pendencias(self, request):
+
+        urgente_query_set = AlteracaoCardapio.prazo_vencendo.filter(escola__diretoria_regional__usuarios=request.user)
+        limite_query_set = AlteracaoCardapio.prazo_limite.filter(escola__diretoria_regional__usuarios=request.user)
+        regular_query_set = AlteracaoCardapio.prazo_regular.filter(escola__diretoria_regional__usuarios=request.user)
+
+        visao = self.request.query_params.get('visao', None)
+
+        if visao == "dia":
+            urgente_query_set = urgente_query_set\
+                .filter(data_inicial__lte=datetime.datetime.today(), data_final__gte=datetime.datetime.today())
+
+        if visao == "semana":
+            urgente_query_set = urgente_query_set\
+                .filter(data_inicial__gte=datetime.datetime.today() + datetime.timedelta(days=7),
+                        data_final__lte=datetime.datetime.today() + datetime.timedelta(days=7))
+
+        if visao == "mes":
+            urgente_query_set = urgente_query_set\
+                .filter(data_inicial__gte=datetime.datetime.today() + datetime.timedelta(days=30),
+                        data_final__lte=datetime.datetime.today() + datetime.timedelta(days=30))
+
+        urgente_quantidade = urgente_query_set.count()
+        limite_quantidade = limite_query_set.count()
+        regular_quantidade = regular_query_set.count()
+
+        response = {'urgente': urgente_quantidade, 'limite': limite_quantidade, 'regular': regular_quantidade}
+
+        return Response(response, status=status.HTTP_200_OK)
 
 
 class MotivosAlteracaoCardapioViewSet(viewsets.ReadOnlyModelViewSet):
