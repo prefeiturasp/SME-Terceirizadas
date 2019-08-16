@@ -4,13 +4,17 @@ from django.db import models
 from sme_pratoaberto_terceirizadas.dados_comuns.models import TemplateMensagem
 from .managers import (
     InclusoesDeAlimentacaoContinuaPrazoLimiteManager,
+    InclusoesDeAlimentacaoContinuaPrazoLimiteDaquiA7DiasManager,
     InclusoesDeAlimentacaoContinuaPrazoVencendoManager,
+    InclusoesDeAlimentacaoContinuaPrazoVencendoHojeManager,
     InclusoesDeAlimentacaoContinuaPrazoRegularManager,
+    InclusoesDeAlimentacaoContinuaPrazoRegularDaquiA7DiasManager,
+    InclusoesDeAlimentacaoContinuaPrazoRegularDaquiA30DiasManager,
     InclusoesDeAlimentacaoNormalPrazoLimiteManager,
     InclusoesDeAlimentacaoNormalPrazoRegularManager,
     InclusoesDeAlimentacaoNormalPrazoVencendoManager
 )
-
+from ..dados_comuns.models import LogSolicitacoesUsuario
 from ..dados_comuns.models_abstract import (
     Descritivel, IntervaloDeDia,
     Nomeavel, TemData, TemChaveExterna,
@@ -69,8 +73,12 @@ class InclusaoAlimentacaoContinua(IntervaloDeDia, Descritivel, TemChaveExterna,
 
     objects = models.Manager()  # Manager Padrão
     prazo_vencendo = InclusoesDeAlimentacaoContinuaPrazoVencendoManager()
+    prazo_vencendo_hoje = InclusoesDeAlimentacaoContinuaPrazoVencendoHojeManager()
     prazo_limite = InclusoesDeAlimentacaoContinuaPrazoLimiteManager()
+    prazo_limite_daqui_a_7_dias = InclusoesDeAlimentacaoContinuaPrazoLimiteDaquiA7DiasManager()
     prazo_regular = InclusoesDeAlimentacaoContinuaPrazoRegularManager()
+    prazo_regular_daqui_a_7_dias = InclusoesDeAlimentacaoContinuaPrazoRegularDaquiA7DiasManager()
+    prazo_regular_daqui_a_30_dias = InclusoesDeAlimentacaoContinuaPrazoRegularDaquiA30DiasManager()
 
     @property
     def quantidades_periodo(self):
@@ -93,11 +101,13 @@ class InclusaoAlimentacaoContinua(IntervaloDeDia, Descritivel, TemChaveExterna,
         return template.assunto, corpo
 
     def salvar_log_transicao(self, status_evento, usuario):
-        LogSolicitacoesUsuario.objects.create(descricao=str(self),
-                                              status_evento=status_evento,
-                                              solicitacao_tipo=LogSolicitacoesUsuario.INCLUSAO_ALIMENTACAO_CONTINUA,
-                                              usuario=usuario,
-                                              uuid_original=self.uuid)
+        LogSolicitacoesUsuario.objects.create(
+            descricao=str(self),
+            status_evento=status_evento,
+            solicitacao_tipo=LogSolicitacoesUsuario.INCLUSAO_ALIMENTACAO_CONTINUA,
+            usuario=usuario,
+            uuid_original=self.uuid
+        )
 
     def __str__(self):
         return f"de {self.data_inicial} até {self.data_final} para {self.escola} para {self.dias_semana_display()}"

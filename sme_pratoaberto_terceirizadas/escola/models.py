@@ -22,25 +22,36 @@ class DiretoriaRegional(Nomeavel, TemChaveExterna):
         quantidade_result = self.escolas.aggregate(Sum('quantidade_alunos'))
         return quantidade_result.get('quantidade_alunos__sum', 0)
 
-    #TODO: talvez fazer um manager genérico pra fazer esse filtro
+    # TODO: talvez fazer um manager genérico pra fazer esse filtro
 
-    @property
-    def inclusoes_continuas_das_minhas_escolas_no_prazo_vencendo(self):
-        return InclusaoAlimentacaoContinua.prazo_vencendo.filter(
+    def inclusoes_continuas_das_minhas_escolas_no_prazo_vencendo(self, filtro_aplicado):
+        if filtro_aplicado == "hoje":
+            inclusoes_continuas = InclusaoAlimentacaoContinua.prazo_vencendo_hoje
+        else:
+            inclusoes_continuas = InclusaoAlimentacaoContinua.prazo_vencendo
+        return inclusoes_continuas.filter(
             escola__in=self.escolas.all(),
             status=InclusaoAlimentacaoContinua.workflow_class.DRE_A_VALIDAR
         )
 
-    @property
-    def inclusoes_continuas_das_minhas_escolas_no_prazo_limite(self):
-        return InclusaoAlimentacaoContinua.prazo_limite.filter(
+    def inclusoes_continuas_das_minhas_escolas_no_prazo_limite(self, filtro_aplicado):
+        if filtro_aplicado == "daqui_a_7_dias":
+            inclusoes_continuas = InclusaoAlimentacaoContinua.prazo_limite_daqui_a_7_dias
+        else:
+            inclusoes_continuas = InclusaoAlimentacaoContinua.prazo_limite
+        return inclusoes_continuas.filter(
             escola__in=self.escolas.all(),
             status=InclusaoAlimentacaoContinua.workflow_class.DRE_A_VALIDAR
         )
 
-    @property
-    def inclusoes_continuas_das_minhas_escolas_no_prazo_regular(self):
-        return InclusaoAlimentacaoContinua.prazo_regular.filter(
+    def inclusoes_continuas_das_minhas_escolas_no_prazo_regular(self, filtro_aplicado):
+        if filtro_aplicado == "daqui_a_30_dias":
+            inclusoes_continuas = InclusaoAlimentacaoContinua.prazo_regular_daqui_a_30_dias
+        elif filtro_aplicado == "daqui_a_7_dias":
+            inclusoes_continuas = InclusaoAlimentacaoContinua.prazo_regular_daqui_a_7_dias
+        else:
+            inclusoes_continuas = InclusaoAlimentacaoContinua.prazo_regular
+        return inclusoes_continuas.filter(
             escola__in=self.escolas.all(),
             status=InclusaoAlimentacaoContinua.workflow_class.DRE_A_VALIDAR
         )
