@@ -11,7 +11,7 @@ class PedidoAPartirDaEscolaWorkflow(xwf_models.Workflow):
     DRE_PEDE_ESCOLA_REVISAR = 'DRE_PEDE_ESCOLA_REVISAR'  # PODE HAVER LOOP AQUI...
     DRE_CANCELA_PEDIDO_ESCOLA = 'DRE_CANCELA_PEDIDO_ESCOLA'  # FIM DE FLUXO
     CODAE_APROVADO = 'CODAE_APROVADO'
-    CODAE_RECUSOU = 'CODAE_RECUSOU'  # FIM, NOTIFICA ESCOLA E DRE
+    CODAE_CANCELOU_PEDIDO = 'CODAE_CANCELOU_PEDIDO'  # FIM, NOTIFICA ESCOLA E DRE
     TERCEIRIZADA_TOMA_CIENCIA = 'TERCEIRIZADA_TOMA_CIENCIA'  # FIM, NOTIFICA ESCOLA, DRE E CODAE
 
     # UM STATUS POSSIVEL, QUE PODE SER ATIVADO PELA ESCOLA EM ATE 48H ANTES
@@ -25,7 +25,7 @@ class PedidoAPartirDaEscolaWorkflow(xwf_models.Workflow):
         (DRE_PEDE_ESCOLA_REVISAR, "Escola tem que revisar o pedido"),
         (DRE_CANCELA_PEDIDO_ESCOLA, "DRE cancela pedido da escola"),
         (CODAE_APROVADO, "CODAE aprovado"),
-        (CODAE_RECUSOU, "CODAE recusa"),
+        (CODAE_CANCELOU_PEDIDO, "CODAE recusa"),
         (TERCEIRIZADA_TOMA_CIENCIA, "Terceirizada toma ciencia"),
         (ESCOLA_CANCELA_48H_ANTES, "Escola pediu cancelamento 48h antes")
     )
@@ -37,7 +37,7 @@ class PedidoAPartirDaEscolaWorkflow(xwf_models.Workflow):
         ('dre_cancela_pedido', DRE_A_VALIDAR, DRE_CANCELA_PEDIDO_ESCOLA),
         ('escola_revisou', DRE_PEDE_ESCOLA_REVISAR, DRE_A_VALIDAR),
         ('codae_aprovou', DRE_APROVADO, CODAE_APROVADO),
-        ('codae_recusou', DRE_APROVADO, CODAE_RECUSOU),
+        ('codae_cancelou_pedido', DRE_APROVADO, CODAE_CANCELOU_PEDIDO),
         ('terceirizada_toma_ciencia', CODAE_APROVADO, TERCEIRIZADA_TOMA_CIENCIA),
     )
 
@@ -52,7 +52,7 @@ class PedidoAPartirDaDiretoriaRegionalWorkflow(xwf_models.Workflow):
     RASCUNHO = 'RASCUNHO'  # INICIO
     CODAE_A_VALIDAR = 'CODAE_A_VALIDAR'
     CODAE_PEDE_DRE_REVISAR = 'DRE_PEDE_ESCOLA_REVISAR'  # PODE HAVER LOOP AQUI...
-    CODAE_CANCELA_PEDIDO = 'CODAE_CANCELA_PEDIDO'  # FIM DE FLUXO
+    CODAE_CANCELOU_PEDIDO = 'CODAE_CANCELOU_PEDIDO'  # FIM DE FLUXO
     CODAE_APROVADO = 'CODAE_APROVADO'
     TERCEIRIZADA_TOMA_CIENCIA = 'CODAE_APROVADO'  # FIM, NOTIFICA ESCOLA, DRE E CODAE
 
@@ -60,7 +60,7 @@ class PedidoAPartirDaDiretoriaRegionalWorkflow(xwf_models.Workflow):
         (RASCUNHO, "Rascunho"),
         (CODAE_A_VALIDAR, "CODAE a validar"),
         (CODAE_PEDE_DRE_REVISAR, "DRE tem que revisar o pedido"),
-        (CODAE_CANCELA_PEDIDO, "CODAE recusa o pedido da DRE"),
+        (CODAE_CANCELOU_PEDIDO, "CODAE recusa o pedido da DRE"),
         (CODAE_APROVADO, "CODAE aprovado"),
         (TERCEIRIZADA_TOMA_CIENCIA, "Terceirizada toma ciencia"),
     )
@@ -68,7 +68,7 @@ class PedidoAPartirDaDiretoriaRegionalWorkflow(xwf_models.Workflow):
     transitions = (
         ('inicia_fluxo', RASCUNHO, CODAE_A_VALIDAR),
         ('codae_pediu_revisao', CODAE_A_VALIDAR, CODAE_PEDE_DRE_REVISAR),
-        ('codae_cancela_pedido', CODAE_A_VALIDAR, CODAE_CANCELA_PEDIDO),
+        ('codae_cancelou_pedido', CODAE_A_VALIDAR, CODAE_CANCELOU_PEDIDO),
         ('dre_revisou', CODAE_PEDE_DRE_REVISAR, CODAE_A_VALIDAR),
         ('codae_aprovou', CODAE_A_VALIDAR, CODAE_APROVADO),
         ('terceirizada_toma_ciencia', CODAE_APROVADO, TERCEIRIZADA_TOMA_CIENCIA),

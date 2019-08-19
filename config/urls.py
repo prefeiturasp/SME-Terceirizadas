@@ -16,10 +16,10 @@ from sme_pratoaberto_terceirizadas.perfil.urls import urlpatterns as perfil_urls
 from sme_pratoaberto_terceirizadas.terceirizada.urls import urlpatterns as terceirizada_urls
 from sme_pratoaberto_terceirizadas.paineis_consolidados.urls import urlpatterns as paineis_consolidados_urls
 
-schema_view = get_swagger_view(title='API de Terceirizadas')
+schema_view = get_swagger_view(title='API de Terceirizadas', url='/api/')
 
 urlpatterns = [
-                  path('docs', schema_view, name='docs'),
+                  path('docs/', schema_view, name='docs'),
                   path('django-des/', include(des_urls)),
                   path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
                   path(settings.ADMIN_URL, admin.site.urls),

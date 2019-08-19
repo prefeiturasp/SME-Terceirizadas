@@ -18,3 +18,5 @@ class PodeAprovarAlimentacaoContinuaDaEscolaPermission(permissions.BasePermissio
         # aprovar da escola o pedido de alimentacao continua
         # entende-se que ele responde pela DRE em que a escola está contida
         return True
+
+

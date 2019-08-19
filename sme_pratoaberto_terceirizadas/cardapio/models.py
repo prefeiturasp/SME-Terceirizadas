@@ -110,6 +110,9 @@ class InversaoCardapio(CriadoEm, CriadoPor, TemObservacao, Descritivel, TemChave
             corpo = corpo.replace(chave, valor)
         return template.assunto, corpo
 
+    def salvar_log_transicao(self, status_evento, usuario):
+        pass
+
     def __str__(self):
         if self.cardapio_de and self.cardapio_para and self.escola:
             return '{}: \nDe: {} \nPara: {}'.format(self.escola.nome, self.cardapio_de, self.cardapio_para)
@@ -207,6 +210,9 @@ class GrupoSuspensaoAlimentacao(TemChaveExterna, CriadoPor, TemIdentificadorExte
         #     corpo = corpo.replace(chave, valor)
         return template.assunto, corpo
 
+    def salvar_log_transicao(self, status_evento, usuario):
+        pass
+
     class Meta:
         verbose_name = "Grupo de suspensão de alimentação"
         verbose_name_plural = "Grupo de suspensão de alimentação"
@@ -287,6 +293,9 @@ class AlteracaoCardapio(CriadoEm, TemChaveExterna, IntervaloDeDia, TemObservacao
         # for chave, valor in template_troca.items():
         #     corpo = corpo.replace(chave, valor)
         return template.assunto, corpo
+
+    def salvar_log_transicao(self, status_evento, usuario):
+        pass
 
     class Meta:
         verbose_name = "Alteração de cardápio"

@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet, ModelViewSet
 from xworkflows import InvalidTransitionError
 
+from sme_pratoaberto_terceirizadas.dados_comuns.utils import obter_dias_uteis_apos_hoje
 from .permissions import (
     PodeIniciarInclusaoAlimentacaoContinuaPermission,
     PodeAprovarAlimentacaoContinuaDaEscolaPermission
@@ -49,19 +50,59 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
     @action(detail=False, url_path="minhas-solicitacoes")
     def minhas_solicitacoes(self, request):
         usuario = request.user
-        solicitacoes_unificadas = models.GrupoInclusaoAlimentacaoNormal.objects.filter(
+        alimentacao_normal = models.GrupoInclusaoAlimentacaoNormal.objects.filter(
             criado_por=usuario,
             status=models.GrupoInclusaoAlimentacaoNormal.workflow_class.RASCUNHO
         )
-        page = self.paginate_queryset(solicitacoes_unificadas)
+        page = self.paginate_queryset(alimentacao_normal)
         serializer = serializers.GrupoInclusaoAlimentacaoNormalSerializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
-    @action(detail=True, permission_classes=[PodeIniciarInclusaoAlimentacaoContinuaPermission])
+    @action(detail=False, url_path="pedidos-prioritarios-diretoria-regional")
+    def pedidos_prioritarios_diretoria_regional(self, request):
+        usuario = request.user
+        # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
+        diretoria_regional = usuario.diretorias_regionais.first()
+        inclusoes_normais = diretoria_regional.inclusoes_normais_das_minhas_escolas_no_prazo_vencendo
+        page = self.paginate_queryset(inclusoes_normais)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False, url_path="pedidos-no-limite-diretoria-regional")
+    def pedidos_no_limite_diretoria_regional(self, request):
+        usuario = request.user
+        # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
+        diretoria_regional = usuario.diretorias_regionais.first()
+        inclusoes_normais = diretoria_regional.inclusoes_normais_das_minhas_escolas_no_prazo_limite
+        page = self.paginate_queryset(inclusoes_normais)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False, url_path="pedidos-no-prazo-diretoria-regional")
+    def pedidos_no_prazo_diretoria_regional(self, request):
+        usuario = request.user
+        # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
+        diretoria_regional = usuario.diretorias_regionais.first()
+        inclusoes_normais = diretoria_regional.inclusoes_normais_das_minhas_escolas_no_prazo_regular
+        page = self.paginate_queryset(inclusoes_normais)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=True, permission_classes=[PodeIniciarInclusaoAlimentacaoContinuaPermission], methods=['patch'])
     def inicio_de_pedido(self, request, uuid=None):
         alimentacao_normal = self.get_object()
         try:
-            alimentacao_normal.inicia_fluxo(user=request.user)
+            alimentacao_normal.inicia_fluxo(user=request.user, notificar=True)
+            serializer = self.get_serializer(alimentacao_normal)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'))
+
+    @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission], methods=['patch'])
+    def confirma_pedido(self, request, uuid=None):
+        alimentacao_normal = self.get_object()
+        try:
+            alimentacao_normal.dre_aprovou(user=request.user, notificar=True)
             serializer = self.get_serializer(alimentacao_normal)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -94,21 +135,71 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
         serializer = serializers.InclusaoAlimentacaoContinuaSerializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
-    @action(detail=True, permission_classes=[PodeIniciarInclusaoAlimentacaoContinuaPermission])
+    @action(detail=False, url_path="pedidos-prioritarios-diretoria-regional")
+    def pedidos_prioritarios_diretoria_regional(self, request):
+        usuario = request.user
+        # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
+        diretoria_regional = usuario.diretorias_regionais.first()
+        inclusoes_continuas = diretoria_regional.inclusoes_continuas_das_minhas_escolas_no_prazo_vencendo
+        page = self.paginate_queryset(inclusoes_continuas)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False, url_path="pedidos-no-limite-diretoria-regional")
+    def pedidos_no_limite_diretoria_regional(self, request):
+        usuario = request.user
+        # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
+        diretoria_regional = usuario.diretorias_regionais.first()
+        inclusoes_continuas = diretoria_regional.inclusoes_continuas_das_minhas_escolas_no_prazo_limite
+        page = self.paginate_queryset(inclusoes_continuas)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False, url_path="pedidos-no-prazo-diretoria-regional")
+    def pedidos_no_prazo_diretoria_regional(self, request):
+        usuario = request.user
+        # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
+        diretoria_regional = usuario.diretorias_regionais.first()
+        inclusoes_continuas = diretoria_regional.inclusoes_continuas_das_minhas_escolas_no_prazo_regular
+        page = self.paginate_queryset(inclusoes_continuas)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=True, permission_classes=[PodeIniciarInclusaoAlimentacaoContinuaPermission], methods=['patch'])
     def inicio_de_pedido(self, request, uuid=None):
         alimentacao_continua = self.get_object()
         try:
-            alimentacao_continua.inicia_fluxo(user=request.user)
+            alimentacao_continua.inicia_fluxo(user=request.user, notificar=True)
             serializer = self.get_serializer(alimentacao_continua)
             return Response(serializer.data)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'))
 
-    @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission])
+    @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission], methods=['patch'])
     def confirma_pedido(self, request, uuid=None):
         alimentacao_continua = self.get_object()
         try:
-            alimentacao_continua.dre_aprovou()
+            alimentacao_continua.dre_aprovou(user=request.user, notificar=True)
+            serializer = self.get_serializer(alimentacao_continua)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'))
+
+    @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission], methods=['patch'])
+    def codae_aprovou(self, request, uuid=None):
+        alimentacao_continua = self.get_object()
+        try:
+            alimentacao_continua.codae_aprovou(user=request.user, notificar=True)
+            serializer = self.get_serializer(alimentacao_continua)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'))
+
+    @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission], methods=['patch'])
+    def terceirizada_tomou_ciencia(self, request, uuid=None):
+        alimentacao_continua = self.get_object()
+        try:
+            alimentacao_continua.terceirizada_tomou_ciencia(user=request.user, notificar=True)
             serializer = self.get_serializer(alimentacao_continua)
             return Response(serializer.data)
         except InvalidTransitionError as e:
