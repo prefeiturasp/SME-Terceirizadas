@@ -180,59 +180,15 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     #
-    # IMPLEMENTAÇÃO DO FLUXO
+    # IMPLEMENTAÇÃO DO FLUXO (PARTINDO DA DRE)
     #
 
-    @action(detail=True, url_path="inicio-pedido", permission_classes=[PodeIniciarSolicitacaoUnificadaPermission],
-            methods=['patch'])
+    @action(detail=True, url_path="inicio-pedido",
+            permission_classes=[PodeIniciarSolicitacaoUnificadaPermission], methods=['patch'])
     def inicio_de_pedido(self, request, uuid=None):
         solicitacao_unificada = self.get_object()
         try:
             solicitacao_unificada.inicia_fluxo(user=request.user, notificar=True)
-            serializer = self.get_serializer(solicitacao_unificada)
-            return Response(serializer.data)
-        except InvalidTransitionError as e:
-            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
-
-    @action(detail=True, url_path="diretoria-regional-aprova-pedido",
-            permission_classes=[PodeIniciarSolicitacaoUnificadaPermission], methods=['patch'])
-    def diretoria_regional_aprova_pedido(self, request, uuid=None):
-        solicitacao_unificada = self.get_object()
-        try:
-            solicitacao_unificada.dre_aprovou(user=request.user, notificar=True)
-            serializer = self.get_serializer(solicitacao_unificada)
-            return Response(serializer.data)
-        except InvalidTransitionError as e:
-            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
-
-    @action(detail=True, url_path="diretoria-regional-pede-revisao",
-            permission_classes=[PodeIniciarSolicitacaoUnificadaPermission], methods=['patch'])
-    def diretoria_regional_pede_revisao(self, request, uuid=None):
-        solicitacao_unificada = self.get_object()
-        try:
-            solicitacao_unificada.dre_pediu_revisao(user=request.user, notificar=True)
-            serializer = self.get_serializer(solicitacao_unificada)
-            return Response(serializer.data)
-        except InvalidTransitionError as e:
-            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
-
-    @action(detail=True, url_path="diretoria-regional-cancela-pedido",
-            permission_classes=[PodeIniciarSolicitacaoUnificadaPermission], methods=['patch'])
-    def diretoria_regional_cancela_pedido(self, request, uuid=None):
-        solicitacao_unificada = self.get_object()
-        try:
-            solicitacao_unificada.dre_cancelou_pedido(user=request.user, notificar=True)
-            serializer = self.get_serializer(solicitacao_unificada)
-            return Response(serializer.data)
-        except InvalidTransitionError as e:
-            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
-
-    @action(detail=True, url_path="escola-revisa",
-            permission_classes=[PodeIniciarSolicitacaoUnificadaPermission], methods=['patch'])
-    def escola_revisa(self, request, uuid=None):
-        solicitacao_unificada = self.get_object()
-        try:
-            solicitacao_unificada.escola_revisou(user=request.user, notificar=True)
             serializer = self.get_serializer(solicitacao_unificada)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -249,12 +205,34 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
-    @action(detail=True, url_path="codae-cancelou-pedido",
+    @action(detail=True, url_path="codae-pediu-revisao",
+            permission_classes=[PodeIniciarSolicitacaoUnificadaPermission], methods=['patch'])
+    def codae_pede_revisao(self, request, uuid=None):
+        solicitacao_unificada = self.get_object()
+        try:
+            solicitacao_unificada.codae_pediu_revisao(user=request.user, notificar=True)
+            serializer = self.get_serializer(solicitacao_unificada)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, url_path="codae-cancela-pedido",
             permission_classes=[PodeIniciarSolicitacaoUnificadaPermission], methods=['patch'])
     def codae_cancela_pedido(self, request, uuid=None):
         solicitacao_unificada = self.get_object()
         try:
             solicitacao_unificada.codae_cancelou_pedido(user=request.user, notificar=True)
+            serializer = self.get_serializer(solicitacao_unificada)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, url_path="diretoria-regional-revisa",
+            permission_classes=[PodeIniciarSolicitacaoUnificadaPermission], methods=['patch'])
+    def dre_revisa(self, request, uuid=None):
+        solicitacao_unificada = self.get_object()
+        try:
+            solicitacao_unificada.dre_revisou(user=request.user, notificar=True)
             serializer = self.get_serializer(solicitacao_unificada)
             return Response(serializer.data)
         except InvalidTransitionError as e:
