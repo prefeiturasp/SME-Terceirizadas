@@ -6,7 +6,7 @@ from sme_pratoaberto_terceirizadas.dados_comuns.utils import obter_dias_uteis_ap
 
 class InclusoesDeAlimentacaoContinuaPrazoVencendoManager(models.Manager):
     def get_queryset(self):
-        data_limite = obter_dias_uteis_apos_hoje(quantidade_dias=3)
+        data_limite = obter_dias_uteis_apos_hoje(quantidade_dias=2)
         return super(InclusoesDeAlimentacaoContinuaPrazoVencendoManager, self).get_queryset().filter(
             data_inicial__range=(datetime.date.today(), data_limite)
         )
@@ -67,7 +67,7 @@ class InclusoesDeAlimentacaoContinuaPrazoRegularDaquiA30DiasManager(models.Manag
 
 class InclusoesDeAlimentacaoNormalPrazoVencendoManager(models.Manager):
     def get_queryset(self):
-        data_limite = obter_dias_uteis_apos_hoje(quantidade_dias=3)
+        data_limite = obter_dias_uteis_apos_hoje(quantidade_dias=2)
         return super(InclusoesDeAlimentacaoNormalPrazoVencendoManager, self).get_queryset().filter(
             inclusoes_normais__data__range=(datetime.date.today(), data_limite)
         ).distinct()
@@ -85,7 +85,7 @@ class InclusoesDeAlimentacaoNormalPrazoVencendoHojeManager(models.Manager):
 class InclusoesDeAlimentacaoNormalPrazoLimiteManager(models.Manager):
     def get_queryset(self):
         data_limite_inicial = obter_dias_uteis_apos_hoje(quantidade_dias=3)
-        data_limite_final = obter_dias_uteis_apos_hoje(quantidade_dias=5)
+        data_limite_final = obter_dias_uteis_apos_hoje(quantidade_dias=5) - datetime.timedelta(days=1)
         return super(InclusoesDeAlimentacaoNormalPrazoLimiteManager, self).get_queryset().filter(
             inclusoes_normais__data__range=(data_limite_inicial, data_limite_final)
         ).distinct()
@@ -94,7 +94,7 @@ class InclusoesDeAlimentacaoNormalPrazoLimiteManager(models.Manager):
 class InclusoesDeAlimentacaoNormalPrazoLimiteDaquiA7DiasManager(models.Manager):
     def get_queryset(self):
         data_limite_inicial = obter_dias_uteis_apos_hoje(quantidade_dias=3)
-        data_limite_final = datetime.date.today() + datetime.timedelta(days=8)
+        data_limite_final = datetime.date.today() + datetime.timedelta(days=6)
         return super(InclusoesDeAlimentacaoNormalPrazoLimiteDaquiA7DiasManager, self).get_queryset().filter(
             inclusoes_normais__data__range=(data_limite_inicial, data_limite_final)
         ).distinct()
