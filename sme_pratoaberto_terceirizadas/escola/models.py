@@ -55,7 +55,7 @@ class DiretoriaRegional(Nomeavel, TemChaveExterna):
     def inclusoes_continuas_das_minhas_escolas_no_prazo_vencendo(self, filtro_aplicado):
         if filtro_aplicado == "hoje":
             inclusoes_continuas = InclusaoAlimentacaoContinua.prazo_vencendo_hoje
-        else:
+        else:  # se o filtro nao for hoje, filtra o padrao
             inclusoes_continuas = InclusaoAlimentacaoContinua.prazo_vencendo
         return inclusoes_continuas.filter(
             escola__in=self.escolas.all(),

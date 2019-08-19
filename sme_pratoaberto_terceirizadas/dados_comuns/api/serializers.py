@@ -6,16 +6,12 @@ from sme_pratoaberto_terceirizadas.perfil.api.serializers import UsuarioSerializ
 
 
 class LogSolicitacoesUsuarioSerializer(serializers.ModelSerializer):
-    usuario = serializers.SerializerMethodField()
+    usuario = UsuarioSerializer()
     status_evento_explicacao = serializers.CharField(
         source='get_status_evento_display',
         required=False,
         read_only=True
     )
-
-    def get_usuario(self, obj):
-
-        return UsuarioSerializer(obj.usuario).data
 
     class Meta:
         model = LogSolicitacoesUsuario
