@@ -8,9 +8,9 @@ PARSE_MODE="Markdown"
 
 # Use built-in Travis variables to check if all previous steps passed:
 if [ $TRAVIS_TEST_RESULT -ne 0 ]; then
-    build_status="failed"
+    build_status="FAILED ☠️"
 else
-    build_status="succeeded"
+    build_status="SUCCEEDED 🥳"
 fi
 
 # Define send message function. parse_mode can be changed to
