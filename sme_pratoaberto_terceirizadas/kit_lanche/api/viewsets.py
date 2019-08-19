@@ -174,23 +174,107 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
     @action(detail=False)
     def minhas_solicitacoes(self, request):
         usuario = request.user
-        solicitacoes_unificadas = SolicitacaoKitLancheUnificada.objects.filter(
-            criado_por=usuario,
-            status=SolicitacaoKitLancheUnificada.workflow_class.RASCUNHO
-        )
+        solicitacoes_unificadas = SolicitacaoKitLancheUnificada.get_pedidos_rascunho(usuario)
         page = self.paginate_queryset(solicitacoes_unificadas)
         serializer = serializers.SolicitacaoKitLancheUnificadaSerializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
-    @action(detail=True, url_path="inicio-pedido", permission_classes=[PodeIniciarSolicitacaoUnificadaPermission])
+    #
+    # IMPLEMENTAÇÃO DO FLUXO
+    #
+
+    @action(detail=True, url_path="inicio-pedido", permission_classes=[PodeIniciarSolicitacaoUnificadaPermission],
+            methods=['patch'])
     def inicio_de_pedido(self, request, uuid=None):
         solicitacao_unificada = self.get_object()
         try:
-            solicitacao_unificada.inicia_fluxo(user=request.user)
+            solicitacao_unificada.inicia_fluxo(user=request.user, notificar=True)
             serializer = self.get_serializer(solicitacao_unificada)
             return Response(serializer.data)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, url_path="diretoria-regional-aprova-pedido",
+            permission_classes=[PodeIniciarSolicitacaoUnificadaPermission], methods=['patch'])
+    def diretoria_regional_aprova_pedido(self, request, uuid=None):
+        solicitacao_unificada = self.get_object()
+        try:
+            solicitacao_unificada.dre_aprovou(user=request.user, notificar=True)
+            serializer = self.get_serializer(solicitacao_unificada)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, url_path="diretoria-regional-pede-revisao",
+            permission_classes=[PodeIniciarSolicitacaoUnificadaPermission], methods=['patch'])
+    def diretoria_regional_pede_revisao(self, request, uuid=None):
+        solicitacao_unificada = self.get_object()
+        try:
+            solicitacao_unificada.dre_pediu_revisao(user=request.user, notificar=True)
+            serializer = self.get_serializer(solicitacao_unificada)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, url_path="diretoria-regional-cancela-pedido",
+            permission_classes=[PodeIniciarSolicitacaoUnificadaPermission], methods=['patch'])
+    def diretoria_regional_cancela_pedido(self, request, uuid=None):
+        solicitacao_unificada = self.get_object()
+        try:
+            solicitacao_unificada.dre_cancelou_pedido(user=request.user, notificar=True)
+            serializer = self.get_serializer(solicitacao_unificada)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, url_path="escola-revisa",
+            permission_classes=[PodeIniciarSolicitacaoUnificadaPermission], methods=['patch'])
+    def escola_revisa(self, request, uuid=None):
+        solicitacao_unificada = self.get_object()
+        try:
+            solicitacao_unificada.escola_revisou(user=request.user, notificar=True)
+            serializer = self.get_serializer(solicitacao_unificada)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, url_path="codae-aprova",
+            permission_classes=[PodeIniciarSolicitacaoUnificadaPermission], methods=['patch'])
+    def codae_aprova(self, request, uuid=None):
+        solicitacao_unificada = self.get_object()
+        try:
+            solicitacao_unificada.codae_aprovou(user=request.user, notificar=True)
+            serializer = self.get_serializer(solicitacao_unificada)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, url_path="codae-cancelou-pedido",
+            permission_classes=[PodeIniciarSolicitacaoUnificadaPermission], methods=['patch'])
+    def codae_cancela_pedido(self, request, uuid=None):
+        solicitacao_unificada = self.get_object()
+        try:
+            solicitacao_unificada.codae_cancelou_pedido(user=request.user, notificar=True)
+            serializer = self.get_serializer(solicitacao_unificada)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, url_path="terceirizada-toma-ciencia",
+            permission_classes=[PodeIniciarSolicitacaoUnificadaPermission], methods=['patch'])
+    def terceirizada_toma_ciencia(self, request, uuid=None):
+        solicitacao_unificada = self.get_object()
+        try:
+            solicitacao_unificada.terceirizada_tomou_ciencia(user=request.user, notificar=True)
+            serializer = self.get_serializer(solicitacao_unificada)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+
+    def destroy(self, request, *args, **kwargs):
+        solicitacao_unificada = self.get_object()
+        if solicitacao_unificada.pode_excluir:
+            return super().destroy(request, *args, **kwargs)
 
 
 class EscolaQuantidadeViewSet(ModelViewSet):
