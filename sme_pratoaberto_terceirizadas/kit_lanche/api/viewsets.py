@@ -40,7 +40,6 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
         return serializers.SolicitacaoKitLancheAvulsaSerializer
 
     # TODO: com as permissoes feitas, somente uma pessoa com permissao dentro da escola poder pedir
-    # usar PermissionClasses...
     @action(detail=False, url_path="minhas-solicitacoes")
     def minhas_solicitacoes(self, request):
         usuario = request.user
@@ -53,7 +52,7 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     #
-    # IMPLEMENTAÇÃO DO FLUXO
+    # IMPLEMENTAÇÃO DO FLUXO (PARTINDO DA ESCOLA)
     #
 
     @action(detail=True, permission_classes=[PodeIniciarSolicitacaoKitLancheAvulsaPermission],
@@ -65,7 +64,7 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
             serializer = self.get_serializer(solicitacao_kit_lanche_avulsa)
             return Response(serializer.data)
         except InvalidTransitionError as e:
-            return Response(dict(detail=f'Erro de transição de estado: {e}'))
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeIniciarSolicitacaoKitLancheAvulsaPermission],
             methods=['patch'], url_path="diretoria-regional-aprova-pedido")
@@ -76,7 +75,7 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
             serializer = self.get_serializer(solicitacao_kit_lanche_avulsa)
             return Response(serializer.data)
         except InvalidTransitionError as e:
-            return Response(dict(detail=f'Erro de transição de estado: {e}'))
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeIniciarSolicitacaoKitLancheAvulsaPermission],
             methods=['patch'], url_path="diretoria-regional-pede-revisao")
@@ -87,7 +86,7 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
             serializer = self.get_serializer(solicitacao_kit_lanche_avulsa)
             return Response(serializer.data)
         except InvalidTransitionError as e:
-            return Response(dict(detail=f'Erro de transição de estado: {e}'))
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeIniciarSolicitacaoKitLancheAvulsaPermission],
             methods=['patch'], url_path="diretoria-regional-cancela-pedido")
@@ -98,7 +97,7 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
             serializer = self.get_serializer(solicitacao_kit_lanche_avulsa)
             return Response(serializer.data)
         except InvalidTransitionError as e:
-            return Response(dict(detail=f'Erro de transição de estado: {e}'))
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeIniciarSolicitacaoKitLancheAvulsaPermission],
             methods=['patch'], url_path="escola-revisa-pedido")
@@ -109,7 +108,7 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
             serializer = self.get_serializer(solicitacao_kit_lanche_avulsa)
             return Response(serializer.data)
         except InvalidTransitionError as e:
-            return Response(dict(detail=f'Erro de transição de estado: {e}'))
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeIniciarSolicitacaoKitLancheAvulsaPermission],
             methods=['patch'], url_path="codae-aprova-pedido")
@@ -120,7 +119,7 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
             serializer = self.get_serializer(solicitacao_kit_lanche_avulsa)
             return Response(serializer.data)
         except InvalidTransitionError as e:
-            return Response(dict(detail=f'Erro de transição de estado: {e}'))
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeIniciarSolicitacaoKitLancheAvulsaPermission],
             methods=['patch'], url_path="codae-cancela-pedido")
@@ -131,7 +130,7 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
             serializer = self.get_serializer(solicitacao_kit_lanche_avulsa)
             return Response(serializer.data)
         except InvalidTransitionError as e:
-            return Response(dict(detail=f'Erro de transição de estado: {e}'))
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeIniciarSolicitacaoKitLancheAvulsaPermission],
             methods=['patch'], url_path="terceirizada-toma-ciencia")
@@ -142,7 +141,7 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
             serializer = self.get_serializer(solicitacao_kit_lanche_avulsa)
             return Response(serializer.data)
         except InvalidTransitionError as e:
-            return Response(dict(detail=f'Erro de transição de estado: {e}'))
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeIniciarSolicitacaoKitLancheAvulsaPermission],
             methods=['patch'], url_path="escola-cancela-pedido-48h-antes")
@@ -153,7 +152,7 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
             serializer = self.get_serializer(solicitacao_kit_lanche_avulsa)
             return Response(serializer.data)
         except InvalidTransitionError as e:
-            return Response(dict(detail=f'Erro de transição de estado: {e}'))
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     def destroy(self, request, *args, **kwargs):
         solicitacao_kit_lanche_avulsa = self.get_object()
