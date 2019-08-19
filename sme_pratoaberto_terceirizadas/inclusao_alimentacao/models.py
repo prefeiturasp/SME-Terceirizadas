@@ -73,6 +73,14 @@ class InclusaoAlimentacaoContinua(IntervaloDeDia, Descritivel, TemChaveExterna,
     prazo_limite = InclusoesDeAlimentacaoContinuaPrazoLimiteManager()
     prazo_regular = InclusoesDeAlimentacaoContinuaPrazoRegularManager()
 
+    @classmethod
+    def get_solicitacoes_rascunho(cls, usuario):
+        inclusoes_continuas = cls.objects.filter(
+            criado_por=usuario,
+            status=InclusaoAlimentacaoContinua.workflow_class.RASCUNHO
+        )
+        return inclusoes_continuas
+
     @property
     def quantidades_periodo(self):
         return self.quantidades_por_periodo
