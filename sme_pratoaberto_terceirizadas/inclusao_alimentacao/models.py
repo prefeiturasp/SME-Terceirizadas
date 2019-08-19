@@ -1,7 +1,9 @@
 from django.core.validators import MinValueValidator
 from django.db import models
 
-from sme_pratoaberto_terceirizadas.dados_comuns.models import TemplateMensagem, LogSolicitacoesUsuario
+from sme_pratoaberto_terceirizadas.dados_comuns.models import (
+    TemplateMensagem, LogSolicitacoesUsuario
+)
 from .managers import (
     InclusoesDeAlimentacaoContinuaPrazoLimiteManager,
     InclusoesDeAlimentacaoContinuaPrazoVencendoManager,
@@ -150,6 +152,14 @@ class GrupoInclusaoAlimentacaoNormal(Descritivel, TemChaveExterna, FluxoAprovaca
     prazo_vencendo = InclusoesDeAlimentacaoNormalPrazoVencendoManager()
     prazo_limite = InclusoesDeAlimentacaoNormalPrazoLimiteManager()
     prazo_regular = InclusoesDeAlimentacaoNormalPrazoRegularManager()
+
+    @classmethod
+    def get_solicitacoes_rascunho(cls, usuario):
+        alimentacao_normal = cls.objects.filter(
+            criado_por=usuario,
+            status=GrupoInclusaoAlimentacaoNormal.workflow_class.RASCUNHO
+        )
+        return alimentacao_normal
 
     @property
     def template_mensagem(self):

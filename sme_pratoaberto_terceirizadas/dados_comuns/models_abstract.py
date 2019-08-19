@@ -5,8 +5,8 @@ from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django_xworkflows import models as xwf_models
 
-from sme_pratoaberto_terceirizadas.perfil import models as models_perfil
 from sme_pratoaberto_terceirizadas.dados_comuns.utils import obter_dias_uteis_apos_hoje
+from sme_pratoaberto_terceirizadas.perfil import models as models_perfil
 from .fluxo_status import PedidoAPartirDaEscolaWorkflow, PedidoAPartirDaDiretoriaRegionalWorkflow
 from .models import LogSolicitacoesUsuario
 from .utils import enviar_notificacao_e_email
@@ -145,9 +145,10 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
 
     status = xwf_models.StateField(workflow_class)
 
-    def cancelar_pedido_48h_antes(self):
+    def cancelar_pedido_48h_antes(self, user, notificar=True):
         # TODO: verificar o campo de data do pedido, se tiver no intervalo altera o status
         # não faz nada caso contrario
+        # TODO, disparar erro InvalidTransitionError caso de errado...
         self.status = self.workflow_class.ESCOLA_CANCELA_48H_ANTES
 
     @property
@@ -182,7 +183,7 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
 
     @property
     def partes_interessadas_dre_aprovou(self):
-        #TODO: filtrar usuários CODAE
+        # TODO: filtrar usuários CODAE
         usuarios_codae = models_perfil.Usuario.objects.filter()
         return usuarios_codae
 
