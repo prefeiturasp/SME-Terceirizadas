@@ -16,7 +16,7 @@ from sme_pratoaberto_terceirizadas.perfil.urls import urlpatterns as perfil_urls
 from sme_pratoaberto_terceirizadas.terceirizada.urls import urlpatterns as terceirizada_urls
 from sme_pratoaberto_terceirizadas.paineis_consolidados.urls import urlpatterns as paineis_consolidados_urls
 
-schema_view = get_swagger_view(title='API de Terceirizadas', url='/api/')
+schema_view = get_swagger_view(title='API de Terceirizadas')
 
 urlpatterns = [
                   path('docs/', schema_view, name='docs'),

@@ -1,5 +1,3 @@
-import datetime
-
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -207,28 +205,14 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
         serializer = AlteracaoCardapioSerializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
-    @action(detail=False, methods=['GET'])
-    def resumo_pendencias(self, request):
+    @action(detail=False, methods=['GET'], url_path="resumo-de-pendencias/(?P<visao>(dia|semana|mes)+)")
+    def resumo_pendencias(self, request, visao="dia"):
 
-        urgente_query_set = AlteracaoCardapio.prazo_vencendo.filter(escola__diretoria_regional__usuarios=request.user)
-        limite_query_set = AlteracaoCardapio.prazo_limite.filter(escola__diretoria_regional__usuarios=request.user)
-        regular_query_set = AlteracaoCardapio.prazo_regular.filter(escola__diretoria_regional__usuarios=request.user)
+        # visao = self.request.query_params.get('visao', None)
 
-        visao = self.request.query_params.get('visao', None)
-
-        if visao == "dia":
-            urgente_query_set = urgente_query_set\
-                .filter(data_inicial__lte=datetime.datetime.today(), data_final__gte=datetime.datetime.today())
-
-        if visao == "semana":
-            urgente_query_set = urgente_query_set\
-                .filter(data_inicial__gte=datetime.datetime.today() + datetime.timedelta(days=7),
-                        data_final__lte=datetime.datetime.today() + datetime.timedelta(days=7))
-
-        if visao == "mes":
-            urgente_query_set = urgente_query_set\
-                .filter(data_inicial__gte=datetime.datetime.today() + datetime.timedelta(days=30),
-                        data_final__lte=datetime.datetime.today() + datetime.timedelta(days=30))
+        urgente_query_set = AlteracaoCardapio.solicitacoes_vencendo_por_usuario_e_visao(usuario=request.user, visao=visao)
+        limite_query_set = AlteracaoCardapio.solicitacoes_limite_por_usuario_e_visao(usuario=request.user, visao=visao)
+        regular_query_set = AlteracaoCardapio.solicitacoes_regulares_por_usuario_e_visao(usuario=request.user, visao=visao)
 
         urgente_quantidade = urgente_query_set.count()
         limite_quantidade = limite_query_set.count()
