@@ -1,22 +1,19 @@
-from datetime import datetime, timedelta
-
 import pytest
 from faker import Faker
 from model_mommy import mommy
 from rest_framework.test import APIClient
-
-from ..models import (
-    Edital,
-    Contrato,
-    VigenciaContrato,
-    Terceirizada
-)
 
 from ..api.serializers.serializers import (
     VigenciaContratoSerializer,
     ContratoSerializer,
     EditalContratosSerializer,
     TerceirizadaSimplesSerializer
+)
+from ..models import (
+    Edital,
+    Contrato,
+    VigenciaContrato,
+    Terceirizada
 )
 
 fake = Faker('pt_BR')
@@ -28,22 +25,27 @@ def client():
     client = APIClient()
     return client
 
+
 @pytest.fixture
 def edital():
     return mommy.make(Edital)
+
 
 @pytest.fixture
 def contrato():
     return mommy.make(Contrato)
 
+
 @pytest.fixture
 def vigencia_contrato():
     return mommy.make(VigenciaContrato)
+
 
 @pytest.fixture
 def vigencia_contrato_serializer():
     vigencia_contrato = mommy.make(VigenciaContrato)
     return VigenciaContratoSerializer(vigencia_contrato)
+
 
 @pytest.fixture
 def contrato_serializer():

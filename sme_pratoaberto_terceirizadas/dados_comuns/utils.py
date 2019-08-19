@@ -49,7 +49,7 @@ def _send_mass_html_mail(subject, text, html, recipients):
     config = DynamicEmailConfiguration.get_solo()
     from_email = config.from_email
 
-    #TODO: verificar como abrir e fechar conexão
+    # TODO: verificar como abrir e fechar conexão
     connection = get_connection()
 
     messages = []

@@ -22,7 +22,7 @@ class DiretoriaRegional(Nomeavel, TemChaveExterna):
         quantidade_result = self.escolas.aggregate(Sum('quantidade_alunos'))
         return quantidade_result.get('quantidade_alunos__sum', 0)
 
-    #TODO: talvez fazer um manager genérico pra fazer esse filtro
+    # TODO: talvez fazer um manager genérico pra fazer esse filtro
 
     @property
     def inclusoes_continuas_das_minhas_escolas_no_prazo_vencendo(self):
