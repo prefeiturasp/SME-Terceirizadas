@@ -19,6 +19,8 @@ script:
   - docker ps -a
 after_script:
   - ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT
+  - bash utility/telegram_notification.sh
+
 deploy:
   provider: script
   script: bash utility/deploy_dockerhub.sh
