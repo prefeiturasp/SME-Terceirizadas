@@ -1,4 +1,4 @@
-from rest_framework import viewsets
+from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from xworkflows import InvalidTransitionError
@@ -165,7 +165,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'))
 
     @action(detail=True, permission_classes=[PodeAprovarPelaCODAEAlteracaoCardapioPermission], methods=['patch'])
-    def cadae_aprovou(self, request, uuid=None):
+    def codae_aprovou(self, request, uuid=None):
         alimentacao_normal = self.get_object()
         try:
             alimentacao_normal.codae_aprovou(user=request.user)
@@ -175,7 +175,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'))
 
     @action(detail=True, permission_classes=[PodeRecusarPelaCODAEAlteracaoCardapioPermission], methods=['patch'])
-    def cadae_recusou(self, request, uuid=None):
+    def codae_recusou(self, request, uuid=None):
         alimentacao_normal = self.get_object()
         try:
             alimentacao_normal.codae_recusou(user=request.user)
@@ -204,6 +204,26 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
         page = self.paginate_queryset(query_set)
         serializer = AlteracaoCardapioSerializer(page, many=True)
         return self.get_paginated_response(serializer.data)
+
+    @action(detail=False, methods=['GET'], url_path="resumo-de-pendencias/(?P<visao>(dia|semana|mes)+)")
+    def resumo_pendencias(self, request, visao="dia"):
+
+        try:
+            urgente_query_set = AlteracaoCardapio.solicitacoes_vencendo_por_usuario_e_visao(usuario=request.user, visao=visao)
+            limite_query_set = AlteracaoCardapio.solicitacoes_limite_por_usuario_e_visao(usuario=request.user, visao=visao)
+            regular_query_set = AlteracaoCardapio.solicitacoes_regulares_por_usuario_e_visao(usuario=request.user, visao=visao)
+
+            urgente_quantidade = urgente_query_set.count()
+            limite_quantidade = limite_query_set.count()
+            regular_quantidade = regular_query_set.count()
+
+            response = {'urgente': urgente_quantidade, 'limite': limite_quantidade, 'regular': regular_quantidade}
+            status_code = status.HTTP_200_OK
+        except Exception as e:
+            response = {'detail': f'Erro ao sumarizar pendências: {e}'}
+            status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+
+        return Response(response, status=status_code)
 
 
 class MotivosAlteracaoCardapioViewSet(viewsets.ReadOnlyModelViewSet):

@@ -9,6 +9,8 @@ from sme_pratoaberto_terceirizadas.inclusao_alimentacao.models import (
 from sme_pratoaberto_terceirizadas.perfil.models import Usuario
 from ..dados_comuns.models_abstract import (Ativavel, Iniciais, Nomeavel, TemChaveExterna)
 
+from sme_pratoaberto_terceirizadas.cardapio.models import (AlteracaoCardapio)
+
 
 class DiretoriaRegional(Nomeavel, TemChaveExterna):
     usuarios = models.ManyToManyField(Usuario, related_name='diretorias_regionais', blank=True)
@@ -114,6 +116,13 @@ class DiretoriaRegional(Nomeavel, TemChaveExterna):
         return inclusoes_normais.filter(
             escola__in=self.escolas.all(),
             status=InclusaoAlimentacaoContinua.workflow_class.DRE_A_VALIDAR
+        )
+
+    @property
+    def alteracoes_cardapio_pendentes_das_minhas_escolas(self):
+        return AlteracaoCardapio.objects.filter(
+            escola__in=self.escolas.all(),
+            status=AlteracaoCardapio.workflow_class.DRE_A_VALIDAR
         )
 
     def __str__(self):
