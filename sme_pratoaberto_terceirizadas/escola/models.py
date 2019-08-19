@@ -3,13 +3,12 @@ from django.core.validators import MinLengthValidator
 from django.db import models
 from django.db.models import Sum
 
+from sme_pratoaberto_terceirizadas.cardapio.models import (AlteracaoCardapio)
 from sme_pratoaberto_terceirizadas.inclusao_alimentacao.models import (
     InclusaoAlimentacaoContinua, GrupoInclusaoAlimentacaoNormal
 )
 from sme_pratoaberto_terceirizadas.perfil.models import Usuario
 from ..dados_comuns.models_abstract import (Ativavel, Iniciais, Nomeavel, TemChaveExterna)
-
-from sme_pratoaberto_terceirizadas.cardapio.models import (AlteracaoCardapio)
 
 
 class DiretoriaRegional(Nomeavel, TemChaveExterna):

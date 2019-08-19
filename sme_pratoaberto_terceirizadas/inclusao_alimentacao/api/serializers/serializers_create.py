@@ -3,7 +3,7 @@ from rest_framework.exceptions import ValidationError
 
 from sme_pratoaberto_terceirizadas.cardapio.models import TipoAlimentacao
 from sme_pratoaberto_terceirizadas.dados_comuns.utils import update_instance_from_dict
-from sme_pratoaberto_terceirizadas.dados_comuns.validators import nao_pode_ser_no_passado
+from sme_pratoaberto_terceirizadas.dados_comuns.validators import nao_pode_ser_no_passado, deve_pedir_com_antecedencia
 from sme_pratoaberto_terceirizadas.escola.models import PeriodoEscolar, Escola
 from ...models import (
     MotivoInclusaoContinua, MotivoInclusaoNormal,
@@ -73,6 +73,7 @@ class InclusaoAlimentacaoNormalCreationSerializer(serializers.ModelSerializer):
 
     def validate_data(self, data):
         nao_pode_ser_no_passado(data)
+        deve_pedir_com_antecedencia(data)
         return data
 
     def update(self, instance, validated_data):
@@ -167,6 +168,7 @@ class InclusaoAlimentacaoContinuaCreationSerializer(serializers.ModelSerializer)
 
     def validate_data_inicial(self, data):
         nao_pode_ser_no_passado(data)
+        deve_pedir_com_antecedencia(data)
         return data
 
     def validate_data_final(self, data):

@@ -1,7 +1,9 @@
 from django.core.validators import MinValueValidator
 from django.db import models
 
-from sme_pratoaberto_terceirizadas.dados_comuns.models import TemplateMensagem, LogSolicitacoesUsuario
+from sme_pratoaberto_terceirizadas.dados_comuns.models import (
+    TemplateMensagem, LogSolicitacoesUsuario
+)
 from .managers import (
     InclusoesDeAlimentacaoContinuaPrazoLimiteManager,
     InclusoesDeAlimentacaoContinuaPrazoLimiteDaquiA7DiasManager,
@@ -83,6 +85,14 @@ class InclusaoAlimentacaoContinua(IntervaloDeDia, Descritivel, TemChaveExterna,
     prazo_regular = InclusoesDeAlimentacaoContinuaPrazoRegularManager()
     prazo_regular_daqui_a_7_dias = InclusoesDeAlimentacaoContinuaPrazoRegularDaquiA7DiasManager()
     prazo_regular_daqui_a_30_dias = InclusoesDeAlimentacaoContinuaPrazoRegularDaquiA30DiasManager()
+
+    @classmethod
+    def get_solicitacoes_rascunho(cls, usuario):
+        inclusoes_continuas = cls.objects.filter(
+            criado_por=usuario,
+            status=InclusaoAlimentacaoContinua.workflow_class.RASCUNHO
+        )
+        return inclusoes_continuas
 
     @property
     def quantidades_periodo(self):
@@ -169,6 +179,14 @@ class GrupoInclusaoAlimentacaoNormal(Descritivel, TemChaveExterna, FluxoAprovaca
     prazo_regular = InclusoesDeAlimentacaoNormalPrazoRegularManager()
     prazo_regular_daqui_a_7_dias = InclusoesDeAlimentacaoNormalPrazoRegularDaquiA7DiasManager()
     prazo_regular_daqui_a_30_dias = InclusoesDeAlimentacaoNormalPrazoRegularDaquiA30DiasManager()
+
+    @classmethod
+    def get_solicitacoes_rascunho(cls, usuario):
+        alimentacao_normal = cls.objects.filter(
+            criado_por=usuario,
+            status=GrupoInclusaoAlimentacaoNormal.workflow_class.RASCUNHO
+        )
+        return alimentacao_normal
 
     @property
     def template_mensagem(self):

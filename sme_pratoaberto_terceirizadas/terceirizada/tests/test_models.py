@@ -1,9 +1,4 @@
-from model_mommy import mommy
 import pytest
-from xworkflows.base import InvalidTransitionError
-
-from sme_pratoaberto_terceirizadas.terceirizada.models import Edital
-
 
 pytestmark = pytest.mark.django_db
 
