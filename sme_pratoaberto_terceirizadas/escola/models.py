@@ -125,6 +125,20 @@ class DiretoriaRegional(Nomeavel, TemChaveExterna):
             status=AlteracaoCardapio.workflow_class.DRE_A_VALIDAR
         )
 
+    @property
+    def alteracoes_cardapio_aprovadas(self):
+        return AlteracaoCardapio.objects.filter(
+            escola__in=self.escolas.all(),
+            status=AlteracaoCardapio.workflow_class.DRE_APROVADO
+        )
+
+    @property
+    def alteracoes_cardapio_reprovadas(self):
+        return AlteracaoCardapio.objects.filter(
+            escola__in=self.escolas.all(),
+            status=AlteracaoCardapio.workflow_class.DRE_CANCELA_PEDIDO_ESCOLA
+        )
+
     def __str__(self):
         return self.nome
 

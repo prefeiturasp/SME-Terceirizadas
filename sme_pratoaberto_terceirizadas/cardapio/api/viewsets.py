@@ -225,6 +225,26 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
 
         return Response(response, status=status_code)
 
+    @action(detail=False, url_path="pedidos-aprovados-diretoria-regional")
+    def pedidos_aprovados_diretoria_regional(self, request):
+        usuario = request.user
+        # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
+        diretoria_regional = usuario.diretorias_regionais.first()
+        alteracoes_cardapio = diretoria_regional.alteracoes_cardapio_aprovadas
+        page = self.paginate_queryset(alteracoes_cardapio)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False, url_path="pedidos-reprovados-diretoria-regional")
+    def pedidos_reprovados_diretoria_regional(self, request):
+        usuario = request.user
+        # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
+        diretoria_regional = usuario.diretorias_regionais.first()
+        alteracoes_cardapio = diretoria_regional.alteracoes_cardapio_reprovadas
+        page = self.paginate_queryset(alteracoes_cardapio)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
 
 class MotivosAlteracaoCardapioViewSet(viewsets.ReadOnlyModelViewSet):
     lookup_field = 'uuid'
