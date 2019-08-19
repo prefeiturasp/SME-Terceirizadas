@@ -208,19 +208,22 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['GET'], url_path="resumo-de-pendencias/(?P<visao>(dia|semana|mes)+)")
     def resumo_pendencias(self, request, visao="dia"):
 
-        # visao = self.request.query_params.get('visao', None)
+        try:
+            urgente_query_set = AlteracaoCardapio.solicitacoes_vencendo_por_usuario_e_visao(usuario=request.user, visao=visao)
+            limite_query_set = AlteracaoCardapio.solicitacoes_limite_por_usuario_e_visao(usuario=request.user, visao=visao)
+            regular_query_set = AlteracaoCardapio.solicitacoes_regulares_por_usuario_e_visao(usuario=request.user, visao=visao)
 
-        urgente_query_set = AlteracaoCardapio.solicitacoes_vencendo_por_usuario_e_visao(usuario=request.user, visao=visao)
-        limite_query_set = AlteracaoCardapio.solicitacoes_limite_por_usuario_e_visao(usuario=request.user, visao=visao)
-        regular_query_set = AlteracaoCardapio.solicitacoes_regulares_por_usuario_e_visao(usuario=request.user, visao=visao)
+            urgente_quantidade = urgente_query_set.count()
+            limite_quantidade = limite_query_set.count()
+            regular_quantidade = regular_query_set.count()
 
-        urgente_quantidade = urgente_query_set.count()
-        limite_quantidade = limite_query_set.count()
-        regular_quantidade = regular_query_set.count()
+            response = {'urgente': urgente_quantidade, 'limite': limite_quantidade, 'regular': regular_quantidade}
+            status_code = status.HTTP_200_OK
+        except Exception as e:
+            response = {'detail': f'Erro ao sumarizar pendências: {e}'}
+            status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
 
-        response = {'urgente': urgente_quantidade, 'limite': limite_quantidade, 'regular': regular_quantidade}
-
-        return Response(response, status=status.HTTP_200_OK)
+        return Response(response, status=status_code)
 
 
 class MotivosAlteracaoCardapioViewSet(viewsets.ReadOnlyModelViewSet):
