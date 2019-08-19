@@ -12,7 +12,7 @@ class DrePendentesAprovacaoViewSet(viewsets.ViewSet):
         usuario = request.user
         dre = DiretoriaRegional.objects.filter(usuarios=usuario).first()
         response = []
-        for alteracao in dre.alteracoes_cardapio_das_minhas_escolas_pendentes.all():
+        for alteracao in dre.alteracoes_cardapio_pendentes_das_minhas_escolas.all():
             nova_alteracao = {
                 'text': f'{alteracao.id_externo} - {alteracao.escola.lote} - Alteração de Cardápio',
                 'date': f'{alteracao.data_inicial}'

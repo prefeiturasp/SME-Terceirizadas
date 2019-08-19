@@ -69,7 +69,7 @@ class DiretoriaRegional(Nomeavel, TemChaveExterna):
         )
 
     @property
-    def alteracoes_cardapio_das_minhas_escolas_pendentes(self):
+    def alteracoes_cardapio_pendentes_das_minhas_escolas(self):
         return AlteracaoCardapio.objects.filter(
             escola__in=self.escolas.all(),
             status=AlteracaoCardapio.workflow_class.DRE_A_VALIDAR
