@@ -6,9 +6,9 @@ from sme_pratoaberto_terceirizadas.dados_comuns.utils import obter_dias_uteis_ap
 
 class InclusoesDeAlimentacaoContinuaPrazoVencendoManager(models.Manager):
     def get_queryset(self):
-        data_limite = obter_dias_uteis_apos_hoje(quantidade_dias=2)
+        data_limite = obter_dias_uteis_apos_hoje(quantidade_dias=3)
         return super(InclusoesDeAlimentacaoContinuaPrazoVencendoManager, self).get_queryset().filter(
-            data_inicial__lte=data_limite
+            data_inicial__range=(datetime.datetime.utcnow().date(), data_limite)
         )
 
 
@@ -67,10 +67,19 @@ class InclusoesDeAlimentacaoContinuaPrazoRegularDaquiA30DiasManager(models.Manag
 
 class InclusoesDeAlimentacaoNormalPrazoVencendoManager(models.Manager):
     def get_queryset(self):
-        data_limite = obter_dias_uteis_apos_hoje(quantidade_dias=2)
+        data_limite = obter_dias_uteis_apos_hoje(quantidade_dias=3)
         return super(InclusoesDeAlimentacaoNormalPrazoVencendoManager, self).get_queryset().filter(
-            inclusoes_normais__data__lte=data_limite
-        )
+            inclusoes_normais__data__range=(datetime.datetime.utcnow().date(), data_limite)
+        ).distinct()
+
+
+class InclusoesDeAlimentacaoNormalPrazoVencendoHojeManager(models.Manager):
+    def get_queryset(self):
+        data_limite = datetime.datetime.utcnow().date()
+        print(data_limite)
+        return super(InclusoesDeAlimentacaoNormalPrazoVencendoHojeManager, self).get_queryset().filter(
+            inclusoes_normais__data=data_limite
+        ).distinct()
 
 
 class InclusoesDeAlimentacaoNormalPrazoLimiteManager(models.Manager):
@@ -79,7 +88,16 @@ class InclusoesDeAlimentacaoNormalPrazoLimiteManager(models.Manager):
         data_limite_final = obter_dias_uteis_apos_hoje(quantidade_dias=5)
         return super(InclusoesDeAlimentacaoNormalPrazoLimiteManager, self).get_queryset().filter(
             inclusoes_normais__data__range=(data_limite_inicial, data_limite_final)
-        )
+        ).distinct()
+
+
+class InclusoesDeAlimentacaoNormalPrazoLimiteDaquiA7DiasManager(models.Manager):
+    def get_queryset(self):
+        data_limite_inicial = obter_dias_uteis_apos_hoje(quantidade_dias=3)
+        data_limite_final = datetime.datetime.utcnow().date() + datetime.timedelta(days=8)
+        return super(InclusoesDeAlimentacaoNormalPrazoLimiteDaquiA7DiasManager, self).get_queryset().filter(
+            inclusoes_normais__data__range=(data_limite_inicial, data_limite_final)
+        ).distinct()
 
 
 class InclusoesDeAlimentacaoNormalPrazoRegularManager(models.Manager):
@@ -87,4 +105,22 @@ class InclusoesDeAlimentacaoNormalPrazoRegularManager(models.Manager):
         data_limite = obter_dias_uteis_apos_hoje(quantidade_dias=5)
         return super(InclusoesDeAlimentacaoNormalPrazoRegularManager, self).get_queryset().filter(
             inclusoes_normais__data__gte=data_limite
-        )
+        ).distinct()
+
+
+class InclusoesDeAlimentacaoNormalPrazoRegularDaquiA7DiasManager(models.Manager):
+    def get_queryset(self):
+        data_limite_inicial = obter_dias_uteis_apos_hoje(quantidade_dias=5)
+        data_limite_final = datetime.datetime.utcnow().date() + datetime.timedelta(days=8)
+        return super(InclusoesDeAlimentacaoNormalPrazoRegularDaquiA7DiasManager, self).get_queryset().filter(
+            inclusoes_normais__data__range=(data_limite_inicial, data_limite_final)
+        ).distinct()
+
+
+class InclusoesDeAlimentacaoNormalPrazoRegularDaquiA30DiasManager(models.Manager):
+    def get_queryset(self):
+        data_limite_inicial = obter_dias_uteis_apos_hoje(quantidade_dias=5)
+        data_limite_final = datetime.datetime.utcnow().date() + datetime.timedelta(days=31)
+        return super(InclusoesDeAlimentacaoNormalPrazoRegularDaquiA30DiasManager, self).get_queryset().filter(
+            inclusoes_normais__data__range=(data_limite_inicial, data_limite_final)
+        ).distinct()

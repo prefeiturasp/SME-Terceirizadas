@@ -11,8 +11,12 @@ from .managers import (
     InclusoesDeAlimentacaoContinuaPrazoRegularDaquiA7DiasManager,
     InclusoesDeAlimentacaoContinuaPrazoRegularDaquiA30DiasManager,
     InclusoesDeAlimentacaoNormalPrazoLimiteManager,
+    InclusoesDeAlimentacaoNormalPrazoLimiteDaquiA7DiasManager,
     InclusoesDeAlimentacaoNormalPrazoRegularManager,
-    InclusoesDeAlimentacaoNormalPrazoVencendoManager
+    InclusoesDeAlimentacaoNormalPrazoRegularDaquiA7DiasManager,
+    InclusoesDeAlimentacaoNormalPrazoRegularDaquiA30DiasManager,
+    InclusoesDeAlimentacaoNormalPrazoVencendoManager,
+    InclusoesDeAlimentacaoNormalPrazoVencendoHojeManager
 )
 
 from ..dados_comuns.models_abstract import (
@@ -153,14 +157,18 @@ class InclusaoAlimentacaoNormal(TemData, TemChaveExterna, TemPrioridade):
 
 
 class GrupoInclusaoAlimentacaoNormal(Descritivel, TemChaveExterna, FluxoAprovacaoPartindoDaEscola,
-                                     CriadoPor, TemIdentificadorExternoAmigavel):
+                                     CriadoPor, TemIdentificadorExternoAmigavel, Logs):
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING,
                                related_name='grupos_inclusoes_normais')
 
     objects = models.Manager()  # Manager Padrão
     prazo_vencendo = InclusoesDeAlimentacaoNormalPrazoVencendoManager()
+    prazo_vencendo_hoje = InclusoesDeAlimentacaoNormalPrazoVencendoHojeManager()
     prazo_limite = InclusoesDeAlimentacaoNormalPrazoLimiteManager()
+    prazo_limite_daqui_a_7_dias = InclusoesDeAlimentacaoNormalPrazoLimiteDaquiA7DiasManager()
     prazo_regular = InclusoesDeAlimentacaoNormalPrazoRegularManager()
+    prazo_regular_daqui_a_7_dias = InclusoesDeAlimentacaoNormalPrazoRegularDaquiA7DiasManager()
+    prazo_regular_daqui_a_30_dias = InclusoesDeAlimentacaoNormalPrazoRegularDaquiA30DiasManager()
 
     @property
     def template_mensagem(self):
@@ -182,7 +190,13 @@ class GrupoInclusaoAlimentacaoNormal(Descritivel, TemChaveExterna, FluxoAprovaca
         return f"Grupo de inclusão de alimentação normal #{self.id_externo}"
 
     def salvar_log_transicao(self, status_evento, usuario):
-        pass
+        LogSolicitacoesUsuario.objects.create(
+            descricao=str(self),
+            status_evento=status_evento,
+            solicitacao_tipo=LogSolicitacoesUsuario.INCLUSAO_ALIMENTACAO_NORMAL,
+            usuario=usuario,
+            uuid_original=self.uuid
+        )
 
     @property
     def inclusoes(self):
