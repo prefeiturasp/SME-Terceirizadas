@@ -1,3 +1,5 @@
+import environ
+
 from des import urls as des_urls
 from django.conf import settings
 from django.conf.urls.static import static
@@ -15,7 +17,11 @@ from sme_pratoaberto_terceirizadas.kit_lanche.urls import urlpatterns as kit_lan
 from sme_pratoaberto_terceirizadas.perfil.urls import urlpatterns as perfil_urls
 from sme_pratoaberto_terceirizadas.terceirizada.urls import urlpatterns as terceirizada_urls
 
-schema_view = get_swagger_view(title='API de Terceirizadas', url='/api/')
+env = environ.Env()
+
+DJANGO_API_URL = env.str('DJANGO_API_URL', default='')
+
+schema_view = get_swagger_view(title='API de Terceirizadas', url=DJANGO_API_URL)
 
 urlpatterns = [
                   path('docs/', schema_view, name='docs'),

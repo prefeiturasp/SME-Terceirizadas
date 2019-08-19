@@ -1,12 +1,14 @@
 from rest_framework import serializers
 
 from sme_pratoaberto_terceirizadas.cardapio.api.serializers.serializers import TipoAlimentacaoSerializer
+from sme_pratoaberto_terceirizadas.dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
 from sme_pratoaberto_terceirizadas.escola.api.serializers import EscolaSimplesSerializer
 from sme_pratoaberto_terceirizadas.escola.api.serializers import PeriodoEscolarSerializer
 from sme_pratoaberto_terceirizadas.inclusao_alimentacao.models import (
     MotivoInclusaoContinua, MotivoInclusaoNormal,
     InclusaoAlimentacaoNormal, QuantidadePorPeriodo,
-    GrupoInclusaoAlimentacaoNormal, InclusaoAlimentacaoContinua)
+    GrupoInclusaoAlimentacaoNormal, InclusaoAlimentacaoContinua
+)
 
 
 class MotivoInclusaoContinuaSerializer(serializers.ModelSerializer):
@@ -42,6 +44,7 @@ class InclusaoAlimentacaoContinuaSerializer(serializers.ModelSerializer):
     motivo = MotivoInclusaoContinuaSerializer()
     quantidades_periodo = QuantidadePorPeriodoSerializer(many=True)
     escola = EscolaSimplesSerializer()
+    logs = LogSolicitacoesUsuarioSerializer(many=True)
     dias_semana_explicacao = serializers.CharField(
         source='dias_semana_display',
         required=False,
@@ -64,6 +67,7 @@ class GrupoInclusaoAlimentacaoNormalSerializer(serializers.ModelSerializer):
     inclusoes = InclusaoAlimentacaoNormalSerializer(many=True)
     escola = EscolaSimplesSerializer()
     quantidades_periodo = QuantidadePorPeriodoSerializer(many=True)
+    logs = LogSolicitacoesUsuarioSerializer(many=True)
     id_externo = serializers.CharField()
 
     class Meta:
