@@ -10,6 +10,7 @@ class DrePendentesAprovacaoViewSet(viewsets.ViewSet):
 
     def list(self, request):
         usuario = request.user
+        # TODO Rever quando a regra de negócios de perfis estiver definida.
         dre = DiretoriaRegional.objects.filter(usuarios=usuario).first()
         response = []
         for alteracao in dre.alteracoes_cardapio_pendentes_das_minhas_escolas.all():
