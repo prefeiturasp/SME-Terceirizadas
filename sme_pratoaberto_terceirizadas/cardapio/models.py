@@ -294,6 +294,9 @@ class AlteracaoCardapio(CriadoEm, TemChaveExterna, IntervaloDeDia, TemObservacao
         #     corpo = corpo.replace(chave, valor)
         return template.assunto, corpo
 
+    def salvar_log_transicao(self, status_evento, usuario):
+        pass
+
     class Meta:
         verbose_name = "Alteração de cardápio"
         verbose_name_plural = "Alterações de cardápio"

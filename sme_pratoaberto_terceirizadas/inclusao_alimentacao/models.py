@@ -181,6 +181,9 @@ class GrupoInclusaoAlimentacaoNormal(Descritivel, TemChaveExterna, FluxoAprovaca
     def descricao_curta(self):
         return f"Grupo de inclusão de alimentação normal #{self.id_externo}"
 
+    def salvar_log_transicao(self, status_evento, usuario):
+        pass
+
     @property
     def inclusoes(self):
         return self.inclusoes_normais
