@@ -232,6 +232,8 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
                                        recipients=self.partes_interessadas_dre_aprovou,
                                        short_desc=assunto,
                                        long_desc=corpo)
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.DRE_APROVOU,
+                                      usuario=user)
 
     @xworkflows.after_transition('dre_pediu_revisao')
     def _dre_pediu_revisao_hook(self, *args, **kwargs):
@@ -357,3 +359,9 @@ class TemPrioridade(object):
             return obter_dias_uteis_apos_hoje(2) <= self.data < obter_dias_uteis_apos_hoje(5)
         elif hasattr(self, "data_inicial"):
             return obter_dias_uteis_apos_hoje(2) <= self.data_inicial < obter_dias_uteis_apos_hoje(5)
+
+
+class Logs(object):
+    @property
+    def logs(self):
+        return LogSolicitacoesUsuario.objects.filter(uuid_original=self.uuid)

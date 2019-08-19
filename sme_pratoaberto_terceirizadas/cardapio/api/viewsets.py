@@ -1,9 +1,10 @@
-from rest_framework import viewsets
+from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST
 from xworkflows import InvalidTransitionError
 
+from sme_pratoaberto_terceirizadas.cardapio.models import MotivoAlteracaoCardapio, MotivoSuspensao
 from .permissions import (
     PodeIniciarAlteracaoCardapioPermission,
     PodeAprovarPelaCODAEAlteracaoCardapioPermission,
@@ -16,16 +17,17 @@ from .serializers.serializers import (
     CardapioSerializer, TipoAlimentacaoSerializer,
     InversaoCardapioSerializer, AlteracaoCardapioSerializer,
     GrupoSuspensaoAlimentacaoSerializer)
-from .serializers.serializers import MotivoAlteracaoCardapioSerializer
-from .serializers.serializers import MotivoSuspensaoSerializer
+from .serializers.serializers import (
+    MotivoAlteracaoCardapioSerializer,
+    MotivoSuspensaoSerializer
+)
 from .serializers.serializers_create import (
     InversaoCardapioSerializerCreate, CardapioCreateSerializer,
     AlteracaoCardapioSerializerCreate,
     GrupoSuspensaoAlimentacaoCreateSerializer)
 from ..models import (
     Cardapio, TipoAlimentacao, InversaoCardapio,
-    AlteracaoCardapio, GrupoSuspensaoAlimentacao, MotivoSuspensao,
-    MotivoAlteracaoCardapio
+    AlteracaoCardapio, GrupoSuspensaoAlimentacao
 )
 
 
@@ -411,6 +413,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
             methods=['patch'], url_path="escola-cancela-pedido-48h-antes")
     def escola_cancela_pedido_48h_antes(self, request, uuid=None):
         inclusao_alimentacao_continua = self.get_object()
+
         try:
             inclusao_alimentacao_continua.cancelar_pedido_48h_antes(user=request.user, notificar=True)
             serializer = self.get_serializer(inclusao_alimentacao_continua)
@@ -418,26 +421,51 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'))
 
-    @action(detail=False, methods=['GET'])
-    def prazo_vencendo(self, request):
-        query_set = AlteracaoCardapio.prazo_vencendo.all()
-        page = self.paginate_queryset(query_set)
-        serializer = AlteracaoCardapioSerializer(page, many=True)
-        return self.get_paginated_response(serializer.data)
 
-    @action(detail=False, methods=['GET'])
-    def prazo_limite(self, request):
-        query_set = AlteracaoCardapio.prazo_limite.all()
-        page = self.paginate_queryset(query_set)
-        serializer = AlteracaoCardapioSerializer(page, many=True)
-        return self.get_paginated_response(serializer.data)
+@action(detail=False, methods=['GET'])
+def prazo_vencendo(self, request):
+    query_set = AlteracaoCardapio.prazo_vencendo.all()
+    page = self.paginate_queryset(query_set)
+    serializer = AlteracaoCardapioSerializer(page, many=True)
+    return self.get_paginated_response(serializer.data)
 
-    @action(detail=False, methods=['GET'])
-    def prazo_regular(self, request):
-        query_set = AlteracaoCardapio.prazo_regular.all()
-        page = self.paginate_queryset(query_set)
-        serializer = AlteracaoCardapioSerializer(page, many=True)
-        return self.get_paginated_response(serializer.data)
+
+@action(detail=False, methods=['GET'])
+def prazo_limite(self, request):
+    query_set = AlteracaoCardapio.prazo_limite.all()
+    page = self.paginate_queryset(query_set)
+    serializer = AlteracaoCardapioSerializer(page, many=True)
+    return self.get_paginated_response(serializer.data)
+
+
+@action(detail=False, methods=['GET'])
+def prazo_regular(self, request):
+    query_set = AlteracaoCardapio.prazo_regular.all()
+    page = self.paginate_queryset(query_set)
+    serializer = AlteracaoCardapioSerializer(page, many=True)
+    return self.get_paginated_response(serializer.data)
+
+
+@action(detail=False, methods=['GET'], url_path="resumo-de-pendencias/(?P<visao>(dia|semana|mes)+)")
+def resumo_pendencias(self, request, visao="dia"):
+    try:
+        urgente_query_set = AlteracaoCardapio.solicitacoes_vencendo_por_usuario_e_visao(usuario=request.user,
+                                                                                        visao=visao)
+        limite_query_set = AlteracaoCardapio.solicitacoes_limite_por_usuario_e_visao(usuario=request.user, visao=visao)
+        regular_query_set = AlteracaoCardapio.solicitacoes_regulares_por_usuario_e_visao(usuario=request.user,
+                                                                                         visao=visao)
+
+        urgente_quantidade = urgente_query_set.count()
+        limite_quantidade = limite_query_set.count()
+        regular_quantidade = regular_query_set.count()
+
+        response = {'urgente': urgente_quantidade, 'limite': limite_quantidade, 'regular': regular_quantidade}
+        status_code = status.HTTP_200_OK
+    except Exception as e:
+        response = {'detail': f'Erro ao sumarizar pendências: {e}'}
+        status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+
+    return Response(response, status=status_code)
 
 
 class MotivosAlteracaoCardapioViewSet(viewsets.ReadOnlyModelViewSet):

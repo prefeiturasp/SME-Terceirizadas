@@ -3,6 +3,8 @@ from rest_framework import serializers
 from ..models import (Escola, PeriodoEscolar, DiretoriaRegional, Subprefeitura,
                       FaixaIdadeEscolar, TipoUnidadeEscolar, TipoGestao, Lote)
 from ...cardapio.models import TipoAlimentacao
+from sme_pratoaberto_terceirizadas.perfil.models import Usuario
+from sme_pratoaberto_terceirizadas.perfil.api.serializers import PerfilSerializer
 from sme_pratoaberto_terceirizadas.terceirizada.api.serializers.serializers import TerceirizadaSimplesSerializer
 
 
@@ -113,3 +115,13 @@ class DiretoriaRegionalCompletaSerializer(serializers.ModelSerializer):
     class Meta:
         model = DiretoriaRegional
         exclude = ('id',)
+
+
+class UsuarioDetalheSerializer(serializers.ModelSerializer):
+    perfis = PerfilSerializer(many=True, read_only=True)
+    escolas = EscolaSimplesSerializer(many=True)
+    diretorias_regionais = DiretoriaRegionalSimplesSerializer(many=True)
+
+    class Meta:
+        model = Usuario
+        fields = ('uuid', 'nome', 'email', 'date_joined', 'perfis', 'escolas', 'diretorias_regionais')

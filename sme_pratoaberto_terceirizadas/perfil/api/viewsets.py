@@ -10,8 +10,9 @@ from .serializers import (
     PerfilPermissaoCreateSerializer, PerfilPermissaoSerializer,
     GrupoCompletoPerfilSerializer, NotificationSerializer,
     UsuarioSerializer, PerfilSerializer, GrupoPerfilCreateSerializer,
-    PermissaoSerializer, UsuarioDetalheSerializer
+    PermissaoSerializer
 )
+from sme_pratoaberto_terceirizadas.escola.api.serializers import UsuarioDetalheSerializer
 from ..models import Usuario, Perfil, GrupoPerfil, Permissao, PerfilPermissao
 
 

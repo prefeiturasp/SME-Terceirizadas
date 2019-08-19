@@ -1,3 +1,4 @@
+import environ
 from des import urls as des_urls
 from django.conf import settings
 from django.conf.urls.static import static
@@ -6,6 +7,7 @@ from django.urls import include, path
 from django.views import defaults as default_views
 from rest_framework_jwt.views import obtain_jwt_token, refresh_jwt_token
 from rest_framework_swagger.views import get_swagger_view
+from sme_pratoaberto_terceirizadas.paineis_consolidados.urls import urlpatterns as paineis_consolidados_urls
 
 from sme_pratoaberto_terceirizadas.cardapio.urls import urlpatterns as cardapio_urls
 from sme_pratoaberto_terceirizadas.dados_comuns.urls import urlpatterns as comuns_urls
@@ -15,7 +17,9 @@ from sme_pratoaberto_terceirizadas.kit_lanche.urls import urlpatterns as kit_lan
 from sme_pratoaberto_terceirizadas.perfil.urls import urlpatterns as perfil_urls
 from sme_pratoaberto_terceirizadas.terceirizada.urls import urlpatterns as terceirizada_urls
 
-schema_view = get_swagger_view(title='API de Terceirizadas', url='/api/')
+env = environ.Env()
+
+schema_view = get_swagger_view(title='API de Terceirizadas', url=env.str('DJANGO_API_URL', default=''))
 
 urlpatterns = [
                   path('docs/', schema_view, name='docs'),
@@ -37,6 +41,7 @@ urlpatterns += inclusao_urls
 urlpatterns += kit_lanche_urls
 urlpatterns += cardapio_urls
 urlpatterns += terceirizada_urls
+urlpatterns += paineis_consolidados_urls
 
 if settings.DEBUG:
     # This allows the error pages to be debugged during development, just visit
