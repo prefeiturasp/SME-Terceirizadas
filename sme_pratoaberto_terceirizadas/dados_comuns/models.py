@@ -14,28 +14,32 @@ class LogSolicitacoesUsuario(models.Model):
         INICIO_FLUXO,
         CODAE_APROVOU,
         TERCEIRIZADA_TOMA_CIENCIA,
-        CODAE_CANCELOU_PEDIDO,
+        TERCEIRIZADA_RECUSOU,
+        CODAE_REPROVOU,
         # ESPECIFICA DO PARTINDO DA DRE
         CODAE_PEDE_REVISAO,
         DRE_REVISOU,
         # ESPECIFICA DO PARTINDO DA ESCOLA
         DRE_APROVOU,
         DRE_PEDIU_REVISAO,
-        DRE_CANCELOU_PEDIDO,
-        ESCOLA_REVISOU
-    ) = range(10)
+        DRE_REPROVOU,
+        ESCOLA_REVISOU,
+        ESCOLA_CANCELOU,
+    ) = range(12)
 
     STATUS_POSSIVEIS = (
-        (INICIO_FLUXO, 'Inicio de fluxo'),
+        (INICIO_FLUXO, 'Solicitação Realizada'),
         (CODAE_APROVOU, 'CODAE aprovou'),
-        (TERCEIRIZADA_TOMA_CIENCIA, 'Terceirizada toma ciência'),
-        (CODAE_CANCELOU_PEDIDO, 'CODAE cancelou pedido'),
-        (CODAE_PEDE_REVISAO, 'CODAE pede revisão'),
+        (TERCEIRIZADA_TOMA_CIENCIA, 'Terceirizada tomou ciência'),
+        (TERCEIRIZADA_RECUSOU, 'Terceirizada recusou'),
+        (CODAE_REPROVOU, 'CODAE reprovou'),
+        (CODAE_PEDE_REVISAO, 'CODAE pediu revisão'),
         (DRE_REVISOU, 'DRE revisou'),
         (DRE_APROVOU, 'DRE aprovou'),
         (DRE_PEDIU_REVISAO, 'DRE pediu revisão'),
-        (DRE_CANCELOU_PEDIDO, 'DRE cancelou pedido'),
+        (DRE_REPROVOU, 'DRE reprovou'),
         (ESCOLA_REVISOU, 'Escola revisou'),
+        (ESCOLA_CANCELOU, 'Escola cancelou')
     )
     (  # DA ESCOLA
         SOLICITACAO_KIT_LANCHE_AVULSA,
@@ -69,6 +73,9 @@ class LogSolicitacoesUsuario(models.Model):
     def __str__(self):
         return f"{self.usuario} executou {self.get_status_evento_display()} em " \
             f"{self.get_solicitacao_tipo_display()} no dia {self.criado_em}"
+
+    class Meta:
+        ordering = ('criado_em',)
 
 
 class Contato(models.Model):
