@@ -2,6 +2,9 @@ import datetime
 
 from django.db import models
 
+from sme_pratoaberto_terceirizadas.cardapio.managers import AlteracoesCardapioVencidaManager, \
+    InversaoCardapioVencidaManager
+from sme_pratoaberto_terceirizadas.dados_comuns.models_abstract import FluxoInformativoPartindoDaEscola
 from .managers import (
     AlteracoesCardapioPrazoVencendoManager,
     AlteracoesCardapioPrazoLimiteManager,
@@ -73,6 +76,9 @@ class InversaoCardapio(CriadoEm, CriadoPor, TemObservacao, Descritivel, TemChave
         servir o cardápio do dia 30 no dia 15, automaticamente o
         cardápio do dia 15 será servido no dia 30
     """
+
+    objects = models.Manager()  # Manager Padrão
+    vencidos = InversaoCardapioVencidaManager()
 
     cardapio_de = models.ForeignKey(Cardapio, on_delete=models.DO_NOTHING,
                                     blank=True, null=True,
@@ -181,8 +187,7 @@ class QuantidadePorPeriodoSuspensaoAlimentacao(TemChaveExterna):
 
 
 class GrupoSuspensaoAlimentacao(TemChaveExterna, CriadoPor, TemIdentificadorExternoAmigavel,
-                                CriadoEm, TemObservacao, FluxoAprovacaoPartindoDaEscola):
-    # TODO: criar fluxo direto de rascunho...
+                                CriadoEm, TemObservacao, FluxoInformativoPartindoDaEscola):
     """
         Serve para agrupar suspensões
     """
@@ -272,6 +277,7 @@ class AlteracaoCardapio(CriadoEm, TemChaveExterna, IntervaloDeDia, TemObservacao
     prazo_vencendo = AlteracoesCardapioPrazoVencendoManager()
     prazo_limite = AlteracoesCardapioPrazoLimiteManager()
     prazo_regular = AlteracoesCardapioPrazoRegularManager()
+    vencidos = AlteracoesCardapioVencidaManager()
 
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING, blank=True, null=True)
     motivo = models.ForeignKey('MotivoAlteracaoCardapio', on_delete=models.PROTECT, blank=True, null=True)

@@ -144,3 +144,18 @@ class InclusoesDeAlimentacaoNormalPrazoRegularDaquiA30DiasManager(models.Manager
         return super(InclusoesDeAlimentacaoNormalPrazoRegularDaquiA30DiasManager, self).get_queryset().filter(
             inclusoes_normais__data__range=(data_limite_inicial, data_limite_final)
         ).distinct()
+
+
+class InclusoesDeAlimentacaoNormalVencidosDiasManager(models.Manager):
+    # TODO: se alguma tiver vencida cancela o grupo todo, ou espera todas as inclusoes_normais
+    # vencerem para dar como vencido o grupo? verificar...
+    def get_queryset(self):
+        hoje = datetime.date.today()
+        return super(InclusoesDeAlimentacaoNormalVencidosDiasManager, self).get_queryset(
+        ).filter(
+            inclusoes_normais__data__lt=hoje
+        ).filter(
+            ~Q(status__in=[PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_TOMA_CIENCIA,
+                           PedidoAPartirDaEscolaWorkflow.ESCOLA_CANCELA_48H_ANTES,
+                           PedidoAPartirDaEscolaWorkflow.CANCELAMENTO_AUTOMATICO])
+        ).distinct()

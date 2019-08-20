@@ -7,7 +7,11 @@ from django_xworkflows import models as xwf_models
 
 from sme_pratoaberto_terceirizadas.dados_comuns.utils import obter_dias_uteis_apos_hoje
 from sme_pratoaberto_terceirizadas.perfil import models as models_perfil
-from .fluxo_status import PedidoAPartirDaEscolaWorkflow, PedidoAPartirDaDiretoriaRegionalWorkflow
+from .fluxo_status import (
+    PedidoAPartirDaEscolaWorkflow,
+    PedidoAPartirDaDiretoriaRegionalWorkflow,
+    InformativoPartindoDaEscolaWorkflow
+)
 from .models import LogSolicitacoesUsuario
 from .utils import enviar_notificacao_e_email
 
@@ -318,6 +322,39 @@ class FluxoAprovacaoPartindoDaDiretoriaRegional(xwf_models.WorkflowEnabled, mode
 
         enviar_notificacao_e_email(sender=user,
                                    recipients=self.partes_interessadas_inicio_fluxo,
+                                   short_desc=assunto,
+                                   long_desc=corpo)
+
+    class Meta:
+        abstract = True
+
+
+class FluxoInformativoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
+    workflow_class = InformativoPartindoDaEscolaWorkflow
+    status = xwf_models.StateField(workflow_class)
+
+    @property
+    def pode_excluir(self):
+        return self.status == self.workflow_class.RASCUNHO
+
+    @property
+    def partes_interessadas_informacao(self):
+        """
+        TODO: retornar usuários DRE, esse abaixo é so pra passar...
+        """
+        usuarios_dre = self.diretoria_regional.usuarios.all()
+        return usuarios_dre
+
+    @property
+    def template_mensagem(self):
+        raise NotImplementedError('Deve criar um property que recupera o assunto e corpo mensagem desse objeto')
+
+    @xworkflows.after_transition('informa')
+    def _informa_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        assunto, corpo = self.template_mensagem
+        enviar_notificacao_e_email(sender=user,
+                                   recipients=self.partes_interessadas_informacao,
                                    short_desc=assunto,
                                    long_desc=corpo)
 

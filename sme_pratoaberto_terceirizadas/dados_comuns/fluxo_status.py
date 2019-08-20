@@ -85,3 +85,22 @@ class PedidoAPartirDaDiretoriaRegionalWorkflow(xwf_models.Workflow):
     )
 
     initial_state = RASCUNHO
+
+
+class InformativoPartindoDaEscolaWorkflow(xwf_models.Workflow):
+    # leia com atenção: https://django-xworkflows.readthedocs.io/en/latest/index.html
+    log_model = ''  # Disable logging to database
+
+    RASCUNHO = 'RASCUNHO'  # INICIO
+    INFORMADO = 'INFORMADO'
+
+    states = (
+        (RASCUNHO, "Rascunho"),
+        (INFORMADO, "Informado"),
+    )
+
+    transitions = (
+        ('informa', RASCUNHO, INFORMADO),
+    )
+
+    initial_state = RASCUNHO
