@@ -193,6 +193,13 @@ class GrupoSuspensaoAlimentacao(TemChaveExterna, CriadoPor, TemIdentificadorExte
     """
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING)
 
+    @classmethod
+    def get_rascunhos_do_usuario(cls, usuario):
+        return cls.objects.filter(
+            criado_por=usuario,
+            status=cls.workflow_class.RASCUNHO
+        )
+
     @property
     def quantidades_por_periodo(self):
         return self.quantidades_por_periodo
