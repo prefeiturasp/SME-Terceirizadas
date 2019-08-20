@@ -18,6 +18,10 @@ class PedidoAPartirDaEscolaWorkflow(xwf_models.Workflow):
     # AS TRANSIÇÕES NÃO ENXERGAM ESSE STATUS
     ESCOLA_CANCELA_48H_ANTES = 'ESCOLA_PEDE_CANCELAMENTO_48H_ANTES'
 
+    # TEM UMA ROTINA QUE CANCELA CASO O PEDIDO TENHA PASSADO DO DIA E NÃO TENHA TERMINADO O FLUXO
+    # AS TRANSIÇÕES NÃO ENXERGAM ESSE STATUS
+    CANCELAMENTO_AUTOMATICO = 'CANCELAMENTO_AUTOMATICO'
+
     states = (
         (RASCUNHO, "Rascunho"),
         (DRE_A_VALIDAR, "DRE a validar"),
@@ -27,7 +31,8 @@ class PedidoAPartirDaEscolaWorkflow(xwf_models.Workflow):
         (CODAE_APROVADO, "CODAE aprovado"),
         (CODAE_CANCELOU_PEDIDO, "CODAE recusa"),
         (TERCEIRIZADA_TOMA_CIENCIA, "Terceirizada toma ciencia"),
-        (ESCOLA_CANCELA_48H_ANTES, "Escola pediu cancelamento 48h antes")
+        (ESCOLA_CANCELA_48H_ANTES, "Escola pediu cancelamento 48h antes"),
+        (CANCELAMENTO_AUTOMATICO, "Cancelamento automático"),
     )
 
     transitions = (
@@ -56,6 +61,10 @@ class PedidoAPartirDaDiretoriaRegionalWorkflow(xwf_models.Workflow):
     CODAE_APROVADO = 'CODAE_APROVADO'
     TERCEIRIZADA_TOMA_CIENCIA = 'CODAE_APROVADO'  # FIM, NOTIFICA ESCOLA, DRE E CODAE
 
+    # TEM UMA ROTINA QUE CANCELA CASO O PEDIDO TENHA PASSADO DO DIA E NÃO TENHA TERMINADO O FLUXO
+    # AS TRANSIÇÕES NÃO ENXERGAM ESSE STATUS
+    CANCELAMENTO_AUTOMATICO = 'CANCELAMENTO_AUTOMATICO'
+
     states = (
         (RASCUNHO, "Rascunho"),
         (CODAE_A_VALIDAR, "CODAE a validar"),
@@ -63,6 +72,7 @@ class PedidoAPartirDaDiretoriaRegionalWorkflow(xwf_models.Workflow):
         (CODAE_CANCELOU_PEDIDO, "CODAE recusa o pedido da DRE"),
         (CODAE_APROVADO, "CODAE aprovado"),
         (TERCEIRIZADA_TOMA_CIENCIA, "Terceirizada toma ciencia"),
+        (CANCELAMENTO_AUTOMATICO, "Cancelamento automático"),
     )
 
     transitions = (

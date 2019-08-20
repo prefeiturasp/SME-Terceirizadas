@@ -1,6 +1,9 @@
 import datetime
-from django.db import models
 
+from django.db import models
+from django.db.models import Q
+
+from sme_pratoaberto_terceirizadas.dados_comuns.fluxo_status import PedidoAPartirDaEscolaWorkflow
 from sme_pratoaberto_terceirizadas.dados_comuns.utils import obter_dias_uteis_apos_hoje
 
 
@@ -62,6 +65,23 @@ class InclusoesDeAlimentacaoContinuaPrazoRegularDaquiA30DiasManager(models.Manag
         data_limite_final = datetime.date.today() + datetime.timedelta(days=31)
         return super(InclusoesDeAlimentacaoContinuaPrazoRegularDaquiA30DiasManager, self).get_queryset().filter(
             data_inicial__range=(data_limite_inicial, data_limite_final)
+        )
+
+
+class InclusoesDeAlimentacaoContinuaVencidaDiasManager(models.Manager):
+    """
+    retorna todos os pedidos que ja tenham passado da data e que o fluxo não tenha terminado
+    """
+
+    def get_queryset(self):
+        hoje = datetime.date.today()
+        return super(InclusoesDeAlimentacaoContinuaVencidaDiasManager, self).get_queryset(
+        ).filter(
+            data_inicial__lt=hoje
+        ).filter(
+            ~Q(status__in=[PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_TOMA_CIENCIA,
+                           PedidoAPartirDaEscolaWorkflow.ESCOLA_CANCELA_48H_ANTES,
+                           PedidoAPartirDaEscolaWorkflow.CANCELAMENTO_AUTOMATICO])
         )
 
 

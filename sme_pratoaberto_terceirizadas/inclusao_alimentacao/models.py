@@ -4,6 +4,7 @@ from django.db import models
 from sme_pratoaberto_terceirizadas.dados_comuns.models import (
     TemplateMensagem, LogSolicitacoesUsuario
 )
+from sme_pratoaberto_terceirizadas.inclusao_alimentacao.managers import InclusoesDeAlimentacaoContinuaVencidaDiasManager
 from .managers import (
     InclusoesDeAlimentacaoContinuaPrazoLimiteManager,
     InclusoesDeAlimentacaoContinuaPrazoLimiteDaquiA7DiasManager,
@@ -85,6 +86,7 @@ class InclusaoAlimentacaoContinua(IntervaloDeDia, Descritivel, TemChaveExterna,
     prazo_regular = InclusoesDeAlimentacaoContinuaPrazoRegularManager()
     prazo_regular_daqui_a_7_dias = InclusoesDeAlimentacaoContinuaPrazoRegularDaquiA7DiasManager()
     prazo_regular_daqui_a_30_dias = InclusoesDeAlimentacaoContinuaPrazoRegularDaquiA30DiasManager()
+    vencidos = InclusoesDeAlimentacaoContinuaVencidaDiasManager()
 
     @classmethod
     def get_solicitacoes_rascunho(cls, usuario):

@@ -151,6 +151,12 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
         # TODO, disparar erro InvalidTransitionError caso de errado...
         self.status = self.workflow_class.ESCOLA_CANCELA_48H_ANTES
 
+    def cancelamento_automatico_apos_vencimento(self):
+        """
+        Chamado automaticamente quando o pedido já passou do dia de atendimento e não chegou ao fim do fluxo
+        """
+        self.status = self.workflow_class.CANCELAMENTO_AUTOMATICO
+
     @property
     def pode_excluir(self):
         return self.status == self.workflow_class.RASCUNHO
