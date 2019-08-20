@@ -9,6 +9,7 @@ before_script:
   - psql -c "CREATE DATABASE test;" -U postgres
   - psql -c "CREATE USER admin WITH PASSWORD 'adminadmin';" -U postgres
   - psql -c "ALTER USER admin CREATEDB;" -U postgres
+  - export AUTHOR_NAME="$(git log -1 $TRAVIS_COMMIT --pretty="%aN")"
 
 install:
   - pip install -r requirements/local.txt
