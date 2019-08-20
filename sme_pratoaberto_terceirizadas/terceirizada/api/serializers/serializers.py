@@ -18,6 +18,18 @@ class TerceirizadaSerializer(serializers.ModelSerializer):
         model = Terceirizada
         exclude = ('id',)
 
+class LoteSimplesSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Lote
+        fields = ('uuid', 'nome', )
+
+class DiretoriaRegionalSimplesSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = DiretoriaRegional
+        fields = ('uuid', 'nome',)
+
 
 class TerceirizadaSimplesSerializer(serializers.ModelSerializer):
     contatos = ContatoSerializer(many=True)
@@ -39,18 +51,12 @@ class ContratoSerializer(serializers.ModelSerializer):
         queryset=Edital.objects.all()
     )
     vigencias = VigenciaContratoSerializer(many=True)
-    lotes = serializers.SlugRelatedField(
-        slug_field='uuid',
-        queryset=Lote.objects.all(),
-        many=True
-    )
+
+    lotes = LoteSimplesSerializer(many=True)
+
     terceirizadas = TerceirizadaSimplesSerializer(many=True)
 
-    diretorias_regionais = serializers.SlugRelatedField(
-        slug_field='uuid',
-        queryset=DiretoriaRegional.objects.all(),
-        many=True
-    )
+    diretorias_regionais = DiretoriaRegionalSimplesSerializer(many=True)
 
     class Meta:
         model = Contrato
