@@ -384,6 +384,7 @@ class Codae(Nomeavel, TemChaveExterna):
             status=InclusaoAlimentacaoContinua.workflow_class.DRE_APROVADO
         )
 
+
     def save(self, *args, **kwargs):
         self.pk = 1
         super(Codae, self).save(*args, **kwargs)

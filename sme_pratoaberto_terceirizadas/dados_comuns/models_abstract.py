@@ -252,6 +252,8 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
                                        recipients=self.partes_interessadas_codae_aprovou,
                                        short_desc=assunto,
                                        long_desc=corpo)
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_APROVOU,
+                                      usuario=user)
 
     @xworkflows.after_transition('codae_recusou')
     def _codae_recusou_hook(self, *args, **kwargs):
@@ -267,6 +269,8 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
                                        recipients=self.partes_interessadas_terceirizadas_tomou_ciencia,
                                        short_desc=assunto,
                                        long_desc=corpo)
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_TOMA_CIENCIA,
+                                      usuario=user)
 
     class Meta:
         abstract = True

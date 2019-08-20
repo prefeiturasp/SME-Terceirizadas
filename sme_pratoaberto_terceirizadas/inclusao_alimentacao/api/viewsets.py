@@ -180,6 +180,68 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
+    @action(detail=False,
+            url_path="pedidos-prioritarios-terceirizada/"
+                     "(?P<filtro_aplicado>(sem_filtro|hoje|daqui_a_7_dias|daqui_a_30_dias)+)")
+    def pedidos_prioritarios_terceirizada(self, request, filtro_aplicado="sem_filtro"):
+        usuario = request.user
+        # TODO: aguardando definição de perfis pra saber em qual Terceirizada eu estou fazendo a requisição
+        terceirizada = usuario.terceirizadas.first()
+        inclusoes_normais = terceirizada.inclusoes_normais_das_minhas_escolas_no_prazo_vencendo(
+            filtro_aplicado
+        )
+        page = self.paginate_queryset(inclusoes_normais)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False,
+            url_path="pedidos-no-limite-terceirizada/"
+                     "(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)")
+    def pedidos_no_limite_terceirizada(self, request, filtro_aplicado="sem_filtro"):
+        usuario = request.user
+        # TODO: aguardando definição de perfis pra saber em qual Terceirizada eu estou fazendo a requisição
+        terceirizada = usuario.terceirizadas.first()
+        inclusoes_normais = terceirizada.inclusoes_normais_das_minhas_escolas_no_prazo_limite(
+            filtro_aplicado
+        )
+        page = self.paginate_queryset(inclusoes_normais)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False,
+            url_path="pedidos-no-prazo-terceirizada/"
+                     "(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)")
+    def pedidos_no_prazo_terceirizada(self, request, filtro_aplicado="sem_filtro"):
+        usuario = request.user
+        # TODO: aguardando definição de perfis pra saber em qual Terceirizada eu estou fazendo a requisição
+        terceirizada = usuario.terceirizadas.first()
+        inclusoes_normais = terceirizada.inclusoes_normais_das_minhas_escolas_no_prazo_regular(
+            filtro_aplicado
+        )
+        page = self.paginate_queryset(inclusoes_normais)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False, url_path="pedidos-aprovados-terceirizada")
+    def pedidos_aprovados_terceirizada(self, request):
+        usuario = request.user
+        # TODO: aguardando definição de perfis pra saber em qual Terceirizada eu estou fazendo a requisição
+        terceirizada = usuario.terceirizadas.first()
+        inclusoes_normais = terceirizada.inclusoes_normais_aprovadas
+        page = self.paginate_queryset(inclusoes_normais)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False, url_path="pedidos-reprovados-terceirizada")
+    def pedidos_reprovados_terceirizada(self, request):
+        usuario = request.user
+        # TODO: aguardando definição de perfis pra saber em qual Terceirizada eu estou fazendo a requisição
+        terceirizada = usuario.terceirizadas.first()
+        inclusoes_normais = terceirizada.inclusoes_normais_reprovadas
+        page = self.paginate_queryset(inclusoes_normais)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
     #
     # IMPLEMENTACAO DO FLUXO
     #
@@ -196,7 +258,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'))
 
     @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
-            methods=['patch'], url_path="diretoria-regional-aprova")
+            methods=['patch'], url_path="diretoria-regional-aprova-pedido")
     def diretoria_regional_aprova(self, request, uuid=None):
         grupo_alimentacao_normal = self.get_object()
         try:
@@ -282,21 +344,6 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
             return Response(serializer.data)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'))
-
-    @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission], methods=['patch'])
-    def codae_aprovou(self, request, uuid=None):
-        alimentacao_normal = self.get_object()
-        try:
-            alimentacao_normal.codae_aprovou(user=request.user, notificar=True)
-            serializer = self.get_serializer(alimentacao_normal)
-            return Response(serializer.data)
-        except InvalidTransitionError as e:
-            return Response(dict(detail=f'Erro de transição de estado: {e}'))
-
-    def destroy(self, request, *args, **kwargs):
-        alimentacao_normal = self.get_object()
-        if alimentacao_normal.pode_excluir:
-            return super().destroy(request, *args, **kwargs)
 
 
 class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
@@ -437,6 +484,68 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
         # TODO: aguardando definição de perfis pra saber em qual CODAE eu estou fazendo a requisição
         codae = usuario.CODAE.first()
         inclusoes_continuas = codae.inclusoes_continuas_reprovadas
+        page = self.paginate_queryset(inclusoes_continuas)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False,
+            url_path="pedidos-prioritarios-terceirizada/"
+                     "(?P<filtro_aplicado>(sem_filtro|hoje|daqui_a_7_dias|daqui_a_30_dias)+)")
+    def pedidos_prioritarios_terceirizada(self, request, filtro_aplicado="sem_filtro"):
+        usuario = request.user
+        # TODO: aguardando definição de perfis pra saber em qual Terceirizada eu estou fazendo a requisição
+        terceirizada = usuario.terceirizadas.first()
+        inclusoes_continuas = terceirizada.inclusoes_continuas_das_minhas_escolas_no_prazo_vencendo(
+            filtro_aplicado
+        )
+        page = self.paginate_queryset(inclusoes_continuas)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False,
+            url_path="pedidos-no-limite-terceirizada/"
+                     "(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)")
+    def pedidos_no_limite_terceirizada(self, request, filtro_aplicado="sem_filtro"):
+        usuario = request.user
+        # TODO: aguardando definição de perfis pra saber em qual Terceirizada eu estou fazendo a requisição
+        terceirizada = usuario.terceirizadas.first()
+        inclusoes_continuas = terceirizada.inclusoes_continuas_das_minhas_escolas_no_prazo_limite(
+            filtro_aplicado
+        )
+        page = self.paginate_queryset(inclusoes_continuas)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False,
+            url_path="pedidos-no-prazo-terceirizada/"
+                     "(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)")
+    def pedidos_no_prazo_terceirizada(self, request, filtro_aplicado="sem_filtro"):
+        usuario = request.user
+        # TODO: aguardando definição de perfis pra saber em qual Terceirizada eu estou fazendo a requisição
+        terceirizada = usuario.terceirizadas.first()
+        inclusoes_continuas = terceirizada.inclusoes_continuas_das_minhas_escolas_no_prazo_regular(
+            filtro_aplicado
+        )
+        page = self.paginate_queryset(inclusoes_continuas)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False, url_path="pedidos-aprovados-terceirizada")
+    def pedidos_aprovados_terceirizada(self, request):
+        usuario = request.user
+        # TODO: aguardando definição de perfis pra saber em qual Terceirizada eu estou fazendo a requisição
+        terceirizada = usuario.terceirizadas.first()
+        inclusoes_continuas = terceirizada.inclusoes_continuas_aprovadas
+        page = self.paginate_queryset(inclusoes_continuas)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False, url_path="pedidos-reprovados-terceirizada")
+    def pedidos_reprovados_terceirizada(self, request):
+        usuario = request.user
+        # TODO: aguardando definição de perfis pra saber em qual Terceirizada eu estou fazendo a requisição
+        terceirizada = usuario.terceirizadas.first()
+        inclusoes_continuas = terceirizada.inclusoes_continuas_reprovadas
         page = self.paginate_queryset(inclusoes_continuas)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)

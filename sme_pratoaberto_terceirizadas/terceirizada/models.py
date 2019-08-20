@@ -1,6 +1,9 @@
 from django.core.validators import MinLengthValidator
 from django.db import models
 
+from sme_pratoaberto_terceirizadas.inclusao_alimentacao.models import (
+    InclusaoAlimentacaoContinua, GrupoInclusaoAlimentacaoNormal
+)
 from ..dados_comuns.models_abstract import (
     IntervaloDeDia,
     TemChaveExterna, Nomeavel, Ativavel,
@@ -52,6 +55,7 @@ class Nutricionista(TemChaveExterna, Nomeavel):
 class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel):
     """Empresa Terceirizada"""
 
+    usuarios = models.ManyToManyField("perfil.Usuario", related_name='terceirizadas', blank=True)
     nome_fantasia = models.CharField("Nome fantasia", max_length=160,
                                      blank=True, null=True)
     razao_social = models.CharField("Razao social", max_length=160,
@@ -71,6 +75,100 @@ class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel):
     @property
     def nutricionistas(self):
         return self.nutricionistas
+
+    @property
+    def inclusoes_continuas_aprovadas(self):
+        return InclusaoAlimentacaoContinua.objects.filter(
+            escola__lote__in=self.lotes.all(),
+            status=InclusaoAlimentacaoContinua.workflow_class.TERCEIRIZADA_TOMA_CIENCIA
+        )
+
+    @property
+    def inclusoes_normais_aprovadas(self):
+        return GrupoInclusaoAlimentacaoNormal.objects.filter(
+            escola__lote__in=self.lotes.all(),
+            status=GrupoInclusaoAlimentacaoNormal.workflow_class.TERCEIRIZADA_TOMA_CIENCIA
+        )
+
+    @property
+    def inclusoes_continuas_reprovadas(self):
+        return InclusaoAlimentacaoContinua.objects.filter(
+            escola__lote__in=self.lotes.all(),
+            status=InclusaoAlimentacaoContinua.workflow_class.CODAE_CANCELOU_PEDIDO
+        )
+
+    @property
+    def inclusoes_normais_reprovadas(self):
+        return GrupoInclusaoAlimentacaoNormal.objects.filter(
+            escola__lote__in=self.lotes.all(),
+            status=GrupoInclusaoAlimentacaoNormal.workflow_class.CODAE_CANCELOU_PEDIDO
+        )
+
+    # TODO: talvez fazer um manager genérico pra fazer esse filtro
+
+    def inclusoes_continuas_das_minhas_escolas_no_prazo_vencendo(self, filtro_aplicado):
+        if filtro_aplicado == "hoje":
+            inclusoes_continuas = InclusaoAlimentacaoContinua.prazo_vencendo_hoje
+        else:  # se o filtro nao for hoje, filtra o padrao
+            inclusoes_continuas = InclusaoAlimentacaoContinua.prazo_vencendo
+        return inclusoes_continuas.filter(
+            status=InclusaoAlimentacaoContinua.workflow_class.CODAE_APROVADO,
+            escola__lote__in=self.lotes.all()
+        )
+
+    def inclusoes_continuas_das_minhas_escolas_no_prazo_limite(self, filtro_aplicado):
+        if filtro_aplicado == "daqui_a_7_dias":
+            inclusoes_continuas = InclusaoAlimentacaoContinua.prazo_limite_daqui_a_7_dias
+        else:
+            inclusoes_continuas = InclusaoAlimentacaoContinua.prazo_limite
+        return inclusoes_continuas.filter(
+            status=InclusaoAlimentacaoContinua.workflow_class.CODAE_APROVADO,
+            escola__lote__in=self.lotes.all()
+        )
+
+    def inclusoes_continuas_das_minhas_escolas_no_prazo_regular(self, filtro_aplicado):
+        if filtro_aplicado == "daqui_a_30_dias":
+            inclusoes_continuas = InclusaoAlimentacaoContinua.prazo_regular_daqui_a_30_dias
+        elif filtro_aplicado == "daqui_a_7_dias":
+            inclusoes_continuas = InclusaoAlimentacaoContinua.prazo_regular_daqui_a_7_dias
+        else:
+            inclusoes_continuas = InclusaoAlimentacaoContinua.prazo_regular
+        return inclusoes_continuas.filter(
+            status=InclusaoAlimentacaoContinua.workflow_class.CODAE_APROVADO,
+            escola__lote__in=self.lotes.all()
+        )
+
+    def inclusoes_normais_das_minhas_escolas_no_prazo_vencendo(self, filtro_aplicado):
+        if filtro_aplicado == "hoje":
+            inclusoes_normais = GrupoInclusaoAlimentacaoNormal.prazo_vencendo_hoje
+        else:
+            inclusoes_normais = GrupoInclusaoAlimentacaoNormal.prazo_vencendo
+        return inclusoes_normais.filter(
+            status=InclusaoAlimentacaoContinua.workflow_class.CODAE_APROVADO,
+            escola__lote__in=self.lotes.all()
+        )
+
+    def inclusoes_normais_das_minhas_escolas_no_prazo_limite(self, filtro_aplicado):
+        if filtro_aplicado == "daqui_a_7_dias":
+            inclusoes_normais = GrupoInclusaoAlimentacaoNormal.prazo_limite_daqui_a_7_dias
+        else:
+            inclusoes_normais = GrupoInclusaoAlimentacaoNormal.prazo_limite
+        return inclusoes_normais.filter(
+            status=InclusaoAlimentacaoContinua.workflow_class.CODAE_APROVADO,
+            escola__lote__in=self.lotes.all()
+        )
+
+    def inclusoes_normais_das_minhas_escolas_no_prazo_regular(self, filtro_aplicado):
+        if filtro_aplicado == "daqui_a_30_dias":
+            inclusoes_normais = GrupoInclusaoAlimentacaoNormal.prazo_regular_daqui_a_30_dias
+        elif filtro_aplicado == "daqui_a_7_dias":
+            inclusoes_normais = GrupoInclusaoAlimentacaoNormal.prazo_regular_daqui_a_7_dias
+        else:
+            inclusoes_normais = GrupoInclusaoAlimentacaoNormal.prazo_regular
+        return inclusoes_normais.filter(
+            status=InclusaoAlimentacaoContinua.workflow_class.CODAE_APROVADO,
+            escola__lote__in=self.lotes.all()
+        )
 
     def __str__(self):
         return f"{self.nome_fantasia}"

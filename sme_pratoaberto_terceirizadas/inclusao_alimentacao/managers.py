@@ -15,7 +15,6 @@ class InclusoesDeAlimentacaoContinuaPrazoVencendoManager(models.Manager):
 class InclusoesDeAlimentacaoContinuaPrazoVencendoHojeManager(models.Manager):
     def get_queryset(self):
         data_limite = datetime.date.today()
-        print(data_limite)
         return super(InclusoesDeAlimentacaoContinuaPrazoVencendoHojeManager, self).get_queryset().filter(
             data_inicial=data_limite
         )
@@ -76,7 +75,6 @@ class InclusoesDeAlimentacaoNormalPrazoVencendoManager(models.Manager):
 class InclusoesDeAlimentacaoNormalPrazoVencendoHojeManager(models.Manager):
     def get_queryset(self):
         data_limite = datetime.date.today()
-        print(data_limite)
         return super(InclusoesDeAlimentacaoNormalPrazoVencendoHojeManager, self).get_queryset().filter(
             inclusoes_normais__data=data_limite
         ).distinct()
