@@ -14,13 +14,12 @@ from .managers import (
     AlteracoesCardapioPrazoRegularDaquiA7DiasManager,
     AlteracoesCardapioPrazoRegularDaquiA30DiasManager
 )
-
 from ..dados_comuns.models import TemplateMensagem
 from ..dados_comuns.models_abstract import (
     Descritivel, TemData, TemChaveExterna, Ativavel,
     Nomeavel, CriadoEm, IntervaloDeDia, CriadoPor,
     TemObservacao, FluxoAprovacaoPartindoDaEscola,
-    TemIdentificadorExternoAmigavel
+    TemIdentificadorExternoAmigavel, Motivo
 )
 
 
@@ -75,7 +74,7 @@ class Cardapio(Descritivel, Ativavel, TemData, TemChaveExterna, CriadoEm):
         verbose_name_plural = "Cardápios"
 
 
-class InversaoCardapio(CriadoEm, CriadoPor, TemObservacao, Descritivel, TemChaveExterna,
+class InversaoCardapio(CriadoEm, CriadoPor, TemObservacao, Motivo, TemChaveExterna,
                        TemIdentificadorExternoAmigavel, FluxoAprovacaoPartindoDaEscola):
     """
         servir o cardápio do dia 30 no dia 15, automaticamente o

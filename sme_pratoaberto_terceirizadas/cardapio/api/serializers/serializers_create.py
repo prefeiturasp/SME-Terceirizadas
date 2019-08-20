@@ -71,7 +71,7 @@ class InversaoCardapioSerializerCreate(serializers.ModelSerializer):
 
     class Meta:
         model = InversaoCardapio
-        fields = ('uuid', 'descricao', 'data_de', 'data_para', 'escola')
+        fields = ('uuid', 'motivo', 'observacao', 'data_de', 'data_para', 'escola')
 
 
 class CardapioCreateSerializer(serializers.ModelSerializer):

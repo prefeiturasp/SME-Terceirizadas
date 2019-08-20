@@ -21,10 +21,13 @@ def valida_cardapio_de_para(data_de: date, data_para: date) -> Any:
     return True
 
 
-def valida_duplicidade(data_de: date, data_para: date, escola: Escola) -> Any:
-    inversao_cardapio = InversaoCardapio.objects.filter(cardapio_de__data=data_de).filter(
-        cardapio_para__data=data_para).filter(
-        escola=escola).exists()
+def valida_duplicidade(data_de: date, data_para: date, escola: Escola):
+    inversao_cardapio = InversaoCardapio.objects.filter(
+        cardapio_de__data=data_de,
+        cardapio_para__data=data_para,
+        escola=escola).filter(
+        ~Q(status=InversaoCardapio.workflow_class.RASCUNHO)
+    ).exists()
     if inversao_cardapio:
         raise serializers.ValidationError('Já existe uma solicitação de inversão com estes dados')
     return True
