@@ -51,7 +51,7 @@ class ContratoCreateSerializer(serializers.ModelSerializer):
         queryset=Terceirizada.objects.all()
     )
 
-    dres = serializers.SlugRelatedField(
+    diretorias_regionais = serializers.SlugRelatedField(
         slug_field='uuid',
         many=True,
         queryset=DiretoriaRegional.objects.all()
