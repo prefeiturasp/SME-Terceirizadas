@@ -346,6 +346,91 @@ class Subprefeitura(Nomeavel, TemChaveExterna):
 class Codae(Nomeavel, TemChaveExterna):
     usuarios = models.ManyToManyField(Usuario, related_name='CODAE', blank=True)
 
+    @property
+    def inclusoes_continuas_aprovadas(self):
+        return InclusaoAlimentacaoContinua.objects.filter(
+            status=InclusaoAlimentacaoContinua.workflow_class.CODAE_APROVADO
+        )
+
+    @property
+    def inclusoes_normais_aprovadas(self):
+        return GrupoInclusaoAlimentacaoNormal.objects.filter(
+            status=GrupoInclusaoAlimentacaoNormal.workflow_class.CODAE_APROVADO
+        )
+
+    @property
+    def inclusoes_continuas_reprovadas(self):
+        return InclusaoAlimentacaoContinua.objects.filter(
+            status=InclusaoAlimentacaoContinua.workflow_class.CODAE_CANCELOU_PEDIDO
+        )
+
+    @property
+    def inclusoes_normais_reprovadas(self):
+        return GrupoInclusaoAlimentacaoNormal.objects.filter(
+            status=GrupoInclusaoAlimentacaoNormal.workflow_class.CODAE_CANCELOU_PEDIDO
+        )
+
+    # TODO: talvez fazer um manager genérico pra fazer esse filtro
+
+    def inclusoes_continuas_das_minhas_escolas_no_prazo_vencendo(self, filtro_aplicado):
+        if filtro_aplicado == "hoje":
+            inclusoes_continuas = InclusaoAlimentacaoContinua.prazo_vencendo_hoje
+        else:  # se o filtro nao for hoje, filtra o padrao
+            inclusoes_continuas = InclusaoAlimentacaoContinua.prazo_vencendo
+        return inclusoes_continuas.filter(
+            status=InclusaoAlimentacaoContinua.workflow_class.DRE_APROVADO
+        )
+
+    def inclusoes_continuas_das_minhas_escolas_no_prazo_limite(self, filtro_aplicado):
+        if filtro_aplicado == "daqui_a_7_dias":
+            inclusoes_continuas = InclusaoAlimentacaoContinua.prazo_limite_daqui_a_7_dias
+        else:
+            inclusoes_continuas = InclusaoAlimentacaoContinua.prazo_limite
+        return inclusoes_continuas.filter(
+            status=InclusaoAlimentacaoContinua.workflow_class.DRE_APROVADO
+        )
+
+    def inclusoes_continuas_das_minhas_escolas_no_prazo_regular(self, filtro_aplicado):
+        if filtro_aplicado == "daqui_a_30_dias":
+            inclusoes_continuas = InclusaoAlimentacaoContinua.prazo_regular_daqui_a_30_dias
+        elif filtro_aplicado == "daqui_a_7_dias":
+            inclusoes_continuas = InclusaoAlimentacaoContinua.prazo_regular_daqui_a_7_dias
+        else:
+            inclusoes_continuas = InclusaoAlimentacaoContinua.prazo_regular
+        return inclusoes_continuas.filter(
+            status=InclusaoAlimentacaoContinua.workflow_class.DRE_APROVADO
+        )
+
+    def inclusoes_normais_das_minhas_escolas_no_prazo_vencendo(self, filtro_aplicado):
+        if filtro_aplicado == "hoje":
+            inclusoes_normais = GrupoInclusaoAlimentacaoNormal.prazo_vencendo_hoje
+        else:
+            inclusoes_normais = GrupoInclusaoAlimentacaoNormal.prazo_vencendo
+        return inclusoes_normais.filter(
+            status=InclusaoAlimentacaoContinua.workflow_class.DRE_APROVADO
+        )
+
+    def inclusoes_normais_das_minhas_escolas_no_prazo_limite(self, filtro_aplicado):
+        if filtro_aplicado == "daqui_a_7_dias":
+            inclusoes_normais = GrupoInclusaoAlimentacaoNormal.prazo_limite_daqui_a_7_dias
+        else:
+            inclusoes_normais = GrupoInclusaoAlimentacaoNormal.prazo_limite
+        return inclusoes_normais.filter(
+            status=InclusaoAlimentacaoContinua.workflow_class.DRE_APROVADO
+        )
+
+    def inclusoes_normais_das_minhas_escolas_no_prazo_regular(self, filtro_aplicado):
+        if filtro_aplicado == "daqui_a_30_dias":
+            inclusoes_normais = GrupoInclusaoAlimentacaoNormal.prazo_regular_daqui_a_30_dias
+        elif filtro_aplicado == "daqui_a_7_dias":
+            inclusoes_normais = GrupoInclusaoAlimentacaoNormal.prazo_regular_daqui_a_7_dias
+        else:
+            inclusoes_normais = GrupoInclusaoAlimentacaoNormal.prazo_regular
+        return inclusoes_normais.filter(
+            status=InclusaoAlimentacaoContinua.workflow_class.DRE_APROVADO
+        )
+
+
     def save(self, *args, **kwargs):
         self.pk = 1
         super(Codae, self).save(*args, **kwargs)
