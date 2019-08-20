@@ -421,51 +421,47 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'))
 
+    @action(detail=False, methods=['GET'])
+    def prazo_vencendo(self, request):
+        query_set = AlteracaoCardapio.prazo_vencendo.all()
+        page = self.paginate_queryset(query_set)
+        serializer = AlteracaoCardapioSerializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
 
-@action(detail=False, methods=['GET'])
-def prazo_vencendo(self, request):
-    query_set = AlteracaoCardapio.prazo_vencendo.all()
-    page = self.paginate_queryset(query_set)
-    serializer = AlteracaoCardapioSerializer(page, many=True)
-    return self.get_paginated_response(serializer.data)
+    @action(detail=False, methods=['GET'])
+    def prazo_limite(self, request):
+        query_set = AlteracaoCardapio.prazo_limite.all()
+        page = self.paginate_queryset(query_set)
+        serializer = AlteracaoCardapioSerializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
 
+    @action(detail=False, methods=['GET'])
+    def prazo_regular(self, request):
+        query_set = AlteracaoCardapio.prazo_regular.all()
+        page = self.paginate_queryset(query_set)
+        serializer = AlteracaoCardapioSerializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
 
-@action(detail=False, methods=['GET'])
-def prazo_limite(self, request):
-    query_set = AlteracaoCardapio.prazo_limite.all()
-    page = self.paginate_queryset(query_set)
-    serializer = AlteracaoCardapioSerializer(page, many=True)
-    return self.get_paginated_response(serializer.data)
+    @action(detail=False, methods=['GET'], url_path="resumo-de-pendencias/(?P<visao>(dia|semana|mes)+)")
+    def resumo_pendencias(self, request, visao="dia"):
+        try:
+            urgente_query_set = AlteracaoCardapio.solicitacoes_vencendo_por_usuario_e_visao(usuario=request.user,
+                                                                                            visao=visao)
+            limite_query_set = AlteracaoCardapio.solicitacoes_limite_por_usuario_e_visao(usuario=request.user, visao=visao)
+            regular_query_set = AlteracaoCardapio.solicitacoes_regulares_por_usuario_e_visao(usuario=request.user,
+                                                                                             visao=visao)
 
+            urgente_quantidade = urgente_query_set.count()
+            limite_quantidade = limite_query_set.count()
+            regular_quantidade = regular_query_set.count()
 
-@action(detail=False, methods=['GET'])
-def prazo_regular(self, request):
-    query_set = AlteracaoCardapio.prazo_regular.all()
-    page = self.paginate_queryset(query_set)
-    serializer = AlteracaoCardapioSerializer(page, many=True)
-    return self.get_paginated_response(serializer.data)
+            response = {'urgente': urgente_quantidade, 'limite': limite_quantidade, 'regular': regular_quantidade}
+            status_code = status.HTTP_200_OK
+        except Exception as e:
+            response = {'detail': f'Erro ao sumarizar pendências: {e}'}
+            status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
 
-
-@action(detail=False, methods=['GET'], url_path="resumo-de-pendencias/(?P<visao>(dia|semana|mes)+)")
-def resumo_pendencias(self, request, visao="dia"):
-    try:
-        urgente_query_set = AlteracaoCardapio.solicitacoes_vencendo_por_usuario_e_visao(usuario=request.user,
-                                                                                        visao=visao)
-        limite_query_set = AlteracaoCardapio.solicitacoes_limite_por_usuario_e_visao(usuario=request.user, visao=visao)
-        regular_query_set = AlteracaoCardapio.solicitacoes_regulares_por_usuario_e_visao(usuario=request.user,
-                                                                                         visao=visao)
-
-        urgente_quantidade = urgente_query_set.count()
-        limite_quantidade = limite_query_set.count()
-        regular_quantidade = regular_query_set.count()
-
-        response = {'urgente': urgente_quantidade, 'limite': limite_quantidade, 'regular': regular_quantidade}
-        status_code = status.HTTP_200_OK
-    except Exception as e:
-        response = {'detail': f'Erro ao sumarizar pendências: {e}'}
-        status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
-
-    return Response(response, status=status_code)
+            return Response(response, status=status_code)
 
     @action(detail=False, url_path="pedidos-aprovados-diretoria-regional")
     def pedidos_aprovados_diretoria_regional(self, request):
@@ -483,6 +479,48 @@ def resumo_pendencias(self, request, visao="dia"):
         # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
         diretoria_regional = usuario.diretorias_regionais.first()
         alteracoes_cardapio = diretoria_regional.alteracoes_cardapio_reprovadas
+        page = self.paginate_queryset(alteracoes_cardapio)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False,
+            url_path="pedidos-prioritarios-diretoria-regional/"
+                     "(?P<filtro_aplicado>(sem_filtro|hoje|daqui_a_7_dias|daqui_a_30_dias)+)")
+    def pedidos_prioritarios_diretoria_regional(self, request, filtro_aplicado="sem_filtro"):
+        usuario = request.user
+        # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
+        diretoria_regional = usuario.diretorias_regionais.first()
+        alteracoes_cardapio = diretoria_regional.alteracoes_cardapio_das_minhas_escolas_no_prazo_vencendo(
+            filtro_aplicado
+        )
+        page = self.paginate_queryset(alteracoes_cardapio)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False,
+            url_path="pedidos-no-limite-diretoria-regional/"
+                     "(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)")
+    def pedidos_no_limite_diretoria_regional(self, request, filtro_aplicado="sem_filtro"):
+        usuario = request.user
+        # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
+        diretoria_regional = usuario.diretorias_regionais.first()
+        alteracoes_cardapio = diretoria_regional.alteracoes_cardapio_das_minhas_escolas_no_prazo_limite(
+            filtro_aplicado
+        )
+        page = self.paginate_queryset(alteracoes_cardapio)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False,
+            url_path="pedidos-no-prazo-diretoria-regional/"
+                     "(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)")
+    def pedidos_no_prazo_diretoria_regional(self, request, filtro_aplicado="sem_filtro"):
+        usuario = request.user
+        # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
+        diretoria_regional = usuario.diretorias_regionais.first()
+        alteracoes_cardapio = diretoria_regional.alteracoes_cardapio_das_minhas_escolas_no_prazo_regular(
+            filtro_aplicado
+        )
         page = self.paginate_queryset(alteracoes_cardapio)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)

@@ -138,6 +138,38 @@ class DiretoriaRegional(Nomeavel, TemChaveExterna):
             status=AlteracaoCardapio.workflow_class.DRE_CANCELA_PEDIDO_ESCOLA
         )
 
+    def alteracoes_cardapio_das_minhas_escolas_no_prazo_vencendo(self, filtro_aplicado):
+        if filtro_aplicado == "hoje":
+            alteracoes_cardapio = AlteracaoCardapio.prazo_vencendo_hoje
+        else:
+            alteracoes_cardapio = AlteracaoCardapio.prazo_vencendo
+        return alteracoes_cardapio.filter(
+            escola__in=self.escolas.all(),
+            status=AlteracaoCardapio.workflow_class.DRE_A_VALIDAR
+        )
+
+    def alteracoes_cardapio_das_minhas_escolas_no_prazo_limite(self, filtro_aplicado):
+        if filtro_aplicado == "daqui_a_7_dias":
+            alteracoes_cardapio = AlteracaoCardapio.prazo_limite_daqui_a_7_dias
+        else:
+            alteracoes_cardapio = AlteracaoCardapio.prazo_limite
+        return alteracoes_cardapio.filter(
+            escola__in=self.escolas.all(),
+            status=AlteracaoCardapio.workflow_class.DRE_A_VALIDAR
+        )
+
+    def alteracoes_cardapio_das_minhas_escolas_no_prazo_regular(self, filtro_aplicado):
+        if filtro_aplicado == "daqui_a_30_dias":
+            alteracoes_cardapio = AlteracaoCardapio.prazo_regular_daqui_a_30_dias
+        elif filtro_aplicado == "daqui_a_7_dias":
+            alteracoes_cardapio = AlteracaoCardapio.prazo_regular_daqui_a_7_dias
+        else:
+            alteracoes_cardapio = AlteracaoCardapio.prazo_regular
+        return alteracoes_cardapio.filter(
+            escola__in=self.escolas.all(),
+            status=AlteracaoCardapio.workflow_class.DRE_A_VALIDAR
+        )
+
     def __str__(self):
         return self.nome
 
