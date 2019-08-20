@@ -61,11 +61,8 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
     @action(detail=False, url_path="minhas-solicitacoes")
     def minhas_solicitacoes(self, request):
         usuario = request.user
-        solicitacoes_unificadas = InversaoCardapio.objects.filter(
-            criado_por=usuario,
-            status=InversaoCardapio.workflow_class.RASCUNHO
-        )
-        page = self.paginate_queryset(solicitacoes_unificadas)
+        inversoes_rascunho = InversaoCardapio.get_solicitacoes_rascunho(usuario)
+        page = self.paginate_queryset(inversoes_rascunho)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
