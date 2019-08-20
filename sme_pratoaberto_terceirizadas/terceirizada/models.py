@@ -2,11 +2,9 @@ from django.core.validators import MinLengthValidator
 from django.db import models
 
 from ..dados_comuns.models_abstract import (
-    Descritivel, IntervaloDeDia,
+    IntervaloDeDia,
     TemChaveExterna, Nomeavel, Ativavel,
     TemIdentificadorExternoAmigavel)
-
-
 from ..escola.models import (
     Lote,
     DiretoriaRegional
@@ -109,4 +107,3 @@ class VigenciaContrato(TemChaveExterna, IntervaloDeDia):
     class Meta:
         verbose_name = "Vigência de contrato"
         verbose_name_plural = "Vigências de contrato"
-

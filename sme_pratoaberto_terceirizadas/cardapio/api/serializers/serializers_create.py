@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from sme_pratoaberto_terceirizadas.dados_comuns.utils import update_instance_from_dict
-from sme_pratoaberto_terceirizadas.dados_comuns.validators import deve_existir_cardapio
+from sme_pratoaberto_terceirizadas.dados_comuns.validators import deve_existir_cardapio, deve_pedir_com_antecedencia
 from sme_pratoaberto_terceirizadas.dados_comuns.validators import (
     nao_pode_ser_no_passado, nao_pode_ser_feriado,
     objeto_nao_deve_ter_duplicidade
@@ -180,6 +180,11 @@ class AlteracaoCardapioSerializerCreate(serializers.ModelSerializer):
         required=True,
         queryset=Escola.objects.all()
     )
+
+    def validate_data_inicial(self, data):
+        nao_pode_ser_no_passado(data)
+        deve_pedir_com_antecedencia(data)
+        return data
 
     substituicoes = SubstituicoesAlimentacaoNoPeriodoEscolarSerializerCreate(many=True)
 

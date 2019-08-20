@@ -1,4 +1,5 @@
 from rest_framework import serializers
+
 from sme_pratoaberto_terceirizadas.dados_comuns.utils import update_instance_from_dict
 from sme_pratoaberto_terceirizadas.escola.models import Lote, DiretoriaRegional
 from ...models import (Terceirizada, Nutricionista, VigenciaContrato, Contrato, Edital)
@@ -58,7 +59,6 @@ class ContratoCreateSerializer(serializers.ModelSerializer):
 
     vigencias = VigenciaContratoCreateSerializer(many=True)
 
-
     def create(self, validated_data):
         lotes_json = validated_data.pop('lotes', [])
         terceirizadas_json = validated_data.pop('terceirizadas', [])
@@ -109,7 +109,6 @@ class ContratoCreateSerializer(serializers.ModelSerializer):
 
 
 class EditalContratosCreateSerializer(serializers.ModelSerializer):
-
     contratos = ContratoCreateSerializer(many=True)
 
     def create(self, validated_data):

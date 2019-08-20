@@ -34,11 +34,11 @@ class PedidoAPartirDaEscolaWorkflow(xwf_models.Workflow):
         ('inicia_fluxo', RASCUNHO, DRE_A_VALIDAR),
         ('dre_aprovou', DRE_A_VALIDAR, DRE_APROVADO),
         ('dre_pediu_revisao', DRE_A_VALIDAR, DRE_PEDE_ESCOLA_REVISAR),
-        ('dre_cancela_pedido', DRE_A_VALIDAR, DRE_CANCELA_PEDIDO_ESCOLA),
+        ('dre_cancelou_pedido', DRE_A_VALIDAR, DRE_CANCELA_PEDIDO_ESCOLA),
         ('escola_revisou', DRE_PEDE_ESCOLA_REVISAR, DRE_A_VALIDAR),
         ('codae_aprovou', DRE_APROVADO, CODAE_APROVADO),
         ('codae_cancelou_pedido', DRE_APROVADO, CODAE_CANCELOU_PEDIDO),
-        ('terceirizada_toma_ciencia', CODAE_APROVADO, TERCEIRIZADA_TOMA_CIENCIA),
+        ('terceirizada_tomou_ciencia', CODAE_APROVADO, TERCEIRIZADA_TOMA_CIENCIA),
     )
 
     initial_state = RASCUNHO
@@ -71,7 +71,7 @@ class PedidoAPartirDaDiretoriaRegionalWorkflow(xwf_models.Workflow):
         ('codae_cancelou_pedido', CODAE_A_VALIDAR, CODAE_CANCELOU_PEDIDO),
         ('dre_revisou', CODAE_PEDE_DRE_REVISAR, CODAE_A_VALIDAR),
         ('codae_aprovou', CODAE_A_VALIDAR, CODAE_APROVADO),
-        ('terceirizada_toma_ciencia', CODAE_APROVADO, TERCEIRIZADA_TOMA_CIENCIA),
+        ('terceirizada_tomou_ciencia', CODAE_APROVADO, TERCEIRIZADA_TOMA_CIENCIA),
     )
 
     initial_state = RASCUNHO
