@@ -5,6 +5,8 @@ from sme_pratoaberto_terceirizadas.dados_comuns.models import (
     TemplateMensagem, LogSolicitacoesUsuario
 )
 from .managers import (
+    InclusoesDeAlimentacaoContinuaVencidaDiasManager,
+    InclusoesDeAlimentacaoNormalVencidosDiasManager,
     InclusoesDeAlimentacaoContinuaPrazoLimiteManager,
     InclusoesDeAlimentacaoContinuaPrazoLimiteDaquiA7DiasManager,
     InclusoesDeAlimentacaoContinuaPrazoVencendoManager,
@@ -20,7 +22,6 @@ from .managers import (
     InclusoesDeAlimentacaoNormalPrazoVencendoManager,
     InclusoesDeAlimentacaoNormalPrazoVencendoHojeManager
 )
-
 from ..dados_comuns.models_abstract import (
     Descritivel, IntervaloDeDia,
     Nomeavel, TemData, TemChaveExterna,
@@ -85,6 +86,7 @@ class InclusaoAlimentacaoContinua(IntervaloDeDia, Descritivel, TemChaveExterna,
     prazo_regular = InclusoesDeAlimentacaoContinuaPrazoRegularManager()
     prazo_regular_daqui_a_7_dias = InclusoesDeAlimentacaoContinuaPrazoRegularDaquiA7DiasManager()
     prazo_regular_daqui_a_30_dias = InclusoesDeAlimentacaoContinuaPrazoRegularDaquiA30DiasManager()
+    vencidos = InclusoesDeAlimentacaoContinuaVencidaDiasManager()
 
     @classmethod
     def get_solicitacoes_rascunho(cls, usuario):
@@ -179,6 +181,7 @@ class GrupoInclusaoAlimentacaoNormal(Descritivel, TemChaveExterna, FluxoAprovaca
     prazo_regular = InclusoesDeAlimentacaoNormalPrazoRegularManager()
     prazo_regular_daqui_a_7_dias = InclusoesDeAlimentacaoNormalPrazoRegularDaquiA7DiasManager()
     prazo_regular_daqui_a_30_dias = InclusoesDeAlimentacaoNormalPrazoRegularDaquiA30DiasManager()
+    vencidos = InclusoesDeAlimentacaoNormalVencidosDiasManager()
 
     @classmethod
     def get_solicitacoes_rascunho(cls, usuario):
@@ -234,7 +237,6 @@ class GrupoInclusaoAlimentacaoNormal(Descritivel, TemChaveExterna, FluxoAprovaca
         quantidade_periodo.grupo_inclusao_normal = self
         quantidade_periodo.save()
 
-    # TODO: status aqui.
     def __str__(self):
         return "{} pedindo {} inclusoes".format(self.escola, self.inclusoes.count())
 
