@@ -2,18 +2,22 @@ import datetime
 
 from django.db import models
 
+from .managers import (
+    AlteracoesCardapioPrazoVencendoManager,
+    AlteracoesCardapioPrazoLimiteManager,
+    AlteracoesCardapioPrazoRegularManager,
+    AlteracoesCardapioPrazoVencendoHojeManager,
+    AlteracoesCardapioPrazoLimiteDaquiA7DiasManager,
+    AlteracoesCardapioPrazoRegularDaquiA7DiasManager,
+    AlteracoesCardapioPrazoRegularDaquiA30DiasManager
+)
+
 from ..dados_comuns.models import TemplateMensagem
 from ..dados_comuns.models_abstract import (
     Descritivel, TemData, TemChaveExterna, Ativavel,
     Nomeavel, CriadoEm, IntervaloDeDia, CriadoPor,
     TemObservacao, FluxoAprovacaoPartindoDaEscola,
     TemIdentificadorExternoAmigavel
-)
-
-from .managers import (
-    AlteracoesCardapioPrazoVencendoManager,
-    AlteracoesCardapioPrazoLimiteManager,
-    AlteracoesCardapioPrazoRegularManager
 )
 
 
@@ -83,6 +87,14 @@ class InversaoCardapio(CriadoEm, CriadoPor, TemObservacao, Descritivel, TemChave
                                       related_name='cardapio_para')
     escola = models.ForeignKey('escola.Escola', blank=True, null=True,
                                on_delete=models.DO_NOTHING)
+
+    @classmethod
+    def get_solicitacoes_rascunho(cls, usuario):
+        solicitacoes_unificadas = InversaoCardapio.objects.filter(
+            criado_por=usuario,
+            status=InversaoCardapio.workflow_class.RASCUNHO
+        )
+        return solicitacoes_unificadas
 
     @property
     def data_de(self):
@@ -263,8 +275,14 @@ class AlteracaoCardapio(CriadoEm, TemChaveExterna, IntervaloDeDia, TemObservacao
 
     objects = models.Manager()  # Manager Padrão
     prazo_vencendo = AlteracoesCardapioPrazoVencendoManager()
+    prazo_vencendo_hoje = AlteracoesCardapioPrazoVencendoHojeManager()
+
     prazo_limite = AlteracoesCardapioPrazoLimiteManager()
+    prazo_limite_daqui_a_7_dias = AlteracoesCardapioPrazoLimiteDaquiA7DiasManager()
+
     prazo_regular = AlteracoesCardapioPrazoRegularManager()
+    prazo_regular_daqui_a_7_dias = AlteracoesCardapioPrazoRegularDaquiA7DiasManager()
+    prazo_regular_daqui_a_30_dias = AlteracoesCardapioPrazoRegularDaquiA30DiasManager()
 
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING, blank=True, null=True)
     motivo = models.ForeignKey('MotivoAlteracaoCardapio', on_delete=models.PROTECT, blank=True, null=True)

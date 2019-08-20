@@ -1,0 +1,28 @@
+[
+  {
+    "model": "terceirizada.contrato",
+    "id": 1,
+    "fields": {
+      "numero": "34/SME/CODAE/2019",
+      "processo": "6016.2017/0029748-5",
+      "data_proposta": "2019-09-10",
+      "edital": 1,
+      "lotes": [1, 3],
+      "terceirizadas": [4],
+      "diretorias_regionais": [4,7]
+    }
+  },
+  {
+    "model": "terceirizada.contrato",
+    "id": 2,
+    "fields": {
+      "numero": "38/SME/CODAE/2019",
+      "processo": "6016.2019/0029750-7",
+      "data_proposta": "2019-08-20",
+      "edital": 1,
+      "lotes": [5, 2],
+      "terceirizadas": [1],
+      "diretorias_regionais": [4,7]
+    }
+  }
+]
