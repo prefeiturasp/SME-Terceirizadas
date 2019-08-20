@@ -127,6 +127,14 @@ class SolicitacaoKitLancheUnificada(CriadoPor, TemChaveExterna, TemIdentificador
     diretoria_regional = models.ForeignKey('escola.DiretoriaRegional', on_delete=models.DO_NOTHING)
     solicitacao_kit_lanche = models.ForeignKey(SolicitacaoKitLanche, on_delete=models.DO_NOTHING)
 
+    @classmethod
+    def get_pedidos_rascunho(cls, usuario):
+        solicitacoes_unificadas = SolicitacaoKitLancheUnificada.objects.filter(
+            criado_por=usuario,
+            status=SolicitacaoKitLancheUnificada.workflow_class.RASCUNHO
+        )
+        return solicitacoes_unificadas
+
     @property
     def template_mensagem(self):
         template = TemplateMensagem.objects.get(tipo=TemplateMensagem.SOLICITACAO_KIT_LANCHE_UNIFICADA)

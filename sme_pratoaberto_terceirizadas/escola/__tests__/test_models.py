@@ -1,7 +1,7 @@
 import pytest
 
 from ..models import (
-    DiretoriaRegional, TipoUnidadeEscolar, TipoGestao, Lote
+    DiretoriaRegional, TipoUnidadeEscolar, TipoGestao
 )
 
 pytestmark = pytest.mark.django_db
