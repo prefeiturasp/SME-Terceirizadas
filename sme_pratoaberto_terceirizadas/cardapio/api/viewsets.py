@@ -335,7 +335,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
         alteracao_cardapio = self.get_object()
         try:
             alteracao_cardapio.dre_aprovou(user=request.user, notificar=True)
-            serializer = self.get_serializer(alteracao_cardapio, notificar=True)
+            serializer = self.get_serializer(alteracao_cardapio)
             return Response(serializer.data)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
