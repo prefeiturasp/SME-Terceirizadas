@@ -5,8 +5,13 @@ from django.db import models
 from .managers import (
     AlteracoesCardapioPrazoVencendoManager,
     AlteracoesCardapioPrazoLimiteManager,
-    AlteracoesCardapioPrazoRegularManager
+    AlteracoesCardapioPrazoRegularManager,
+    AlteracoesCardapioPrazoVencendoHojeManager,
+    AlteracoesCardapioPrazoLimiteDaquiA7DiasManager,
+    AlteracoesCardapioPrazoRegularDaquiA7DiasManager,
+    AlteracoesCardapioPrazoRegularDaquiA30DiasManager
 )
+
 from ..dados_comuns.models import TemplateMensagem
 from ..dados_comuns.models_abstract import (
     Descritivel, TemData, TemChaveExterna, Ativavel,
@@ -270,8 +275,14 @@ class AlteracaoCardapio(CriadoEm, TemChaveExterna, IntervaloDeDia, TemObservacao
 
     objects = models.Manager()  # Manager Padrão
     prazo_vencendo = AlteracoesCardapioPrazoVencendoManager()
+    prazo_vencendo_hoje = AlteracoesCardapioPrazoVencendoHojeManager()
+
     prazo_limite = AlteracoesCardapioPrazoLimiteManager()
+    prazo_limite_daqui_a_7_dias = AlteracoesCardapioPrazoLimiteDaquiA7DiasManager()
+
     prazo_regular = AlteracoesCardapioPrazoRegularManager()
+    prazo_regular_daqui_a_7_dias = AlteracoesCardapioPrazoRegularDaquiA7DiasManager()
+    prazo_regular_daqui_a_30_dias = AlteracoesCardapioPrazoRegularDaquiA30DiasManager()
 
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING, blank=True, null=True)
     motivo = models.ForeignKey('MotivoAlteracaoCardapio', on_delete=models.PROTECT, blank=True, null=True)
