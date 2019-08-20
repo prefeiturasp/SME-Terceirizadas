@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from sme_pratoaberto_terceirizadas.dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
 from sme_pratoaberto_terceirizadas.escola.api.serializers import (
     EscolaSimplesSerializer, PeriodoEscolarSerializer,
     TipoUnidadeEscolarSerializer,
@@ -118,6 +119,7 @@ class AlteracaoCardapioSerializer(serializers.ModelSerializer):
     motivo = MotivoAlteracaoCardapioSerializer()
     substituicoes = SubstituicoesAlimentacaoNoPeriodoEscolarSerializer(many=True)
     id_externo = serializers.CharField()
+    logs = LogSolicitacoesUsuarioSerializer(many=True)
 
     class Meta:
         model = AlteracaoCardapio
