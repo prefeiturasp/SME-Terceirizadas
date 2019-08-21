@@ -2,6 +2,7 @@ import datetime
 
 from django.db import models
 
+from sme_pratoaberto_terceirizadas.dados_comuns.utils import obter_dias_uteis_apos_hoje
 from .managers import (
     AlteracoesCardapioPrazoVencendoManager,
     AlteracoesCardapioPrazoLimiteManager,
@@ -9,10 +10,13 @@ from .managers import (
     AlteracoesCardapioPrazoVencendoHojeManager,
     AlteracoesCardapioPrazoLimiteDaquiA7DiasManager,
     AlteracoesCardapioPrazoRegularDaquiA7DiasManager,
-    AlteracoesCardapioPrazoRegularDaquiA30DiasManager
-)
-from .managers import (
     AlteracoesCardapioVencidaManager,
+    AlteracoesCardapioPrazoRegularDaquiA30DiasManager,
+    InversaoCardapioPrazoVencendoManager,
+    InversaoCardapioPrazoVencendoHojeManager,
+    InversaoCardapioPrazoLimiteManager,
+    InversaoCardapioPrazoLimiteDaquiA7DiasManager,
+    InversaoCardapioPrazoLimiteDaquiA30DiasManager,
     InversaoCardapioVencidaManager
 )
 from ..dados_comuns.models import TemplateMensagem
@@ -22,8 +26,8 @@ from ..dados_comuns.models_abstract import (
     TemObservacao, FluxoAprovacaoPartindoDaEscola,
     Motivo, Logs, LogSolicitacoesUsuario,
     TemIdentificadorExternoAmigavel,
-    FluxoInformativoPartindoDaEscola, FluxoInformativoPartindoDaEscola
-)
+    FluxoInformativoPartindoDaEscola,
+    TemPrioridade)
 
 
 class TipoAlimentacao(Nomeavel, TemChaveExterna):
@@ -78,13 +82,21 @@ class Cardapio(Descritivel, Ativavel, TemData, TemChaveExterna, CriadoEm):
 
 
 class InversaoCardapio(CriadoEm, CriadoPor, TemObservacao, Motivo, TemChaveExterna,
-                       TemIdentificadorExternoAmigavel, FluxoAprovacaoPartindoDaEscola):
+                       TemIdentificadorExternoAmigavel, FluxoAprovacaoPartindoDaEscola,
+                       TemPrioridade):
     """
         servir o cardápio do dia 30 no dia 15, automaticamente o
         cardápio do dia 15 será servido no dia 30
     """
 
     objects = models.Manager()  # Manager Padrão
+    prazo_vencendo = InversaoCardapioPrazoVencendoManager()
+    prazo_vencendo_hoje = InversaoCardapioPrazoVencendoHojeManager()
+
+    prazo_limite = InversaoCardapioPrazoLimiteManager()
+    prazo_limite_daqui_a_7_dias = InversaoCardapioPrazoLimiteDaquiA7DiasManager()
+    prazo_limite_daqui_a_30_dias = InversaoCardapioPrazoLimiteDaquiA30DiasManager()
+
     vencidos = InversaoCardapioVencidaManager()
 
     cardapio_de = models.ForeignKey(Cardapio, on_delete=models.DO_NOTHING,
@@ -111,6 +123,26 @@ class InversaoCardapio(CriadoEm, CriadoPor, TemObservacao, Motivo, TemChaveExter
     @property
     def data_para(self):
         return self.cardapio_para.data if self.cardapio_para else None
+
+    @property
+    def prioridade(self):
+        descricao = 'VENCIDO'
+        data = self.data_de
+        if self.data_para < self.data_de:
+            data = self.data_para
+        prox_2_dias_uteis = obter_dias_uteis_apos_hoje(2)
+        prox_3_dias_uteis = obter_dias_uteis_apos_hoje(3)
+        prox_5_dias_uteis = obter_dias_uteis_apos_hoje(5)
+        prox_6_dias_uteis = obter_dias_uteis_apos_hoje(6)
+        hoje = datetime.date.today()
+
+        if hoje <= data <= prox_2_dias_uteis:
+            descricao = 'PRIORITARIO'
+        elif prox_5_dias_uteis >= data >= prox_3_dias_uteis:
+            descricao = 'LIMITE'
+        elif data >= prox_6_dias_uteis:
+            descricao = 'REGULAR'
+        return descricao
 
     @property
     def descricao_curta(self):

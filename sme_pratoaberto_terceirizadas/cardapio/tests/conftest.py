@@ -70,7 +70,9 @@ def inversao_dia_cardapio(cardapio_valido, cardapio_valido2):
 
 @pytest.fixture
 def inversao_cardapio_serializer():
-    inversao_cardapio = mommy.make(InversaoCardapio)
+    cardapio_de = mommy.make('cardapio.Cardapio')
+    cardapio_para = mommy.make('cardapio.Cardapio')
+    inversao_cardapio = mommy.make(InversaoCardapio, cardapio_de=cardapio_de, cardapio_para=cardapio_para)
     return InversaoCardapioSerializer(inversao_cardapio)
 
 
