@@ -2,9 +2,6 @@ import datetime
 
 from django.db import models
 
-from sme_pratoaberto_terceirizadas.cardapio.managers import AlteracoesCardapioVencidaManager, \
-    InversaoCardapioVencidaManager
-from sme_pratoaberto_terceirizadas.dados_comuns.models_abstract import FluxoInformativoPartindoDaEscola
 from .managers import (
     AlteracoesCardapioPrazoVencendoManager,
     AlteracoesCardapioPrazoLimiteManager,
@@ -14,14 +11,18 @@ from .managers import (
     AlteracoesCardapioPrazoRegularDaquiA7DiasManager,
     AlteracoesCardapioPrazoRegularDaquiA30DiasManager
 )
-
-from ..dados_comuns.models import (TemplateMensagem, LogSolicitacoesUsuario)
+from .managers import (
+    AlteracoesCardapioVencidaManager,
+    InversaoCardapioVencidaManager
+)
+from ..dados_comuns.models import TemplateMensagem
 from ..dados_comuns.models_abstract import (
     Descritivel, TemData, TemChaveExterna, Ativavel,
     Nomeavel, CriadoEm, IntervaloDeDia, CriadoPor,
     TemObservacao, FluxoAprovacaoPartindoDaEscola,
-    TemIdentificadorExternoAmigavel, Motivo
-    TemIdentificadorExternoAmigavel, Logs
+    Motivo, Logs, LogSolicitacoesUsuario,
+    TemIdentificadorExternoAmigavel,
+    FluxoInformativoPartindoDaEscola, FluxoInformativoPartindoDaEscola
 )
 
 
