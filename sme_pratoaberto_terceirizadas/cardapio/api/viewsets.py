@@ -493,6 +493,68 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
+    @action(detail=False,
+            url_path="pedidos-prioritarios-terceirizada/"
+                     "(?P<filtro_aplicado>(sem_filtro|hoje|daqui_a_7_dias|daqui_a_30_dias)+)")
+    def pedidos_prioritarios_terceirizada(self, request, filtro_aplicado="sem_filtro"):
+        usuario = request.user
+        # TODO: aguardando definição de perfis pra saber em qual Terceirizada eu estou fazendo a requisição
+        terceirizada = usuario.terceirizadas.first()
+        alteracoes_cardapio = terceirizada.alteracoes_cardapio_das_minhas_escolas_no_prazo_vencendo(
+            filtro_aplicado
+        )
+        page = self.paginate_queryset(alteracoes_cardapio)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False,
+            url_path="pedidos-no-limite-terceirizada/"
+                     "(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)")
+    def pedidos_no_limite_terceirizada(self, request, filtro_aplicado="sem_filtro"):
+        usuario = request.user
+        # TODO: aguardando definição de perfis pra saber em qual Terceirizada eu estou fazendo a requisição
+        terceirizada = usuario.terceirizadas.first()
+        alteracoes_cardapio = terceirizada.alteracoes_cardapio_das_minhas_escolas_no_prazo_limite(
+            filtro_aplicado
+        )
+        page = self.paginate_queryset(alteracoes_cardapio)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False,
+            url_path="pedidos-no-prazo-terceirizada/"
+                     "(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)")
+    def pedidos_no_prazo_terceirizada(self, request, filtro_aplicado="sem_filtro"):
+        usuario = request.user
+        # TODO: aguardando definição de perfis pra saber em qual Terceirizada eu estou fazendo a requisição
+        terceirizada = usuario.terceirizadas.first()
+        alteracoes_cardapio = terceirizada.alteracoes_cardapio_das_minhas_escolas_no_prazo_regular(
+            filtro_aplicado
+        )
+        page = self.paginate_queryset(alteracoes_cardapio)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False, url_path="pedidos-aprovados-terceirizada")
+    def pedidos_aprovados_terceirizada(self, request):
+        usuario = request.user
+        # TODO: aguardando definição de perfis pra saber em qual Terceirizada eu estou fazendo a requisição
+        terceirizada = usuario.terceirizadas.first()
+        alteracoes_cardapio = terceirizada.alteracoes_cardapio_aprovadas
+        page = self.paginate_queryset(alteracoes_cardapio)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False, url_path="pedidos-reprovados-terceirizada")
+    def pedidos_reprovados_terceirizada(self, request):
+        usuario = request.user
+        # TODO: aguardando definição de perfis pra saber em qual Terceirizada eu estou fazendo a requisição
+        terceirizada = usuario.terceirizadas.first()
+        alteracoes_cardapio = terceirizada.alteracoes_cardapio_reprovadas
+        page = self.paginate_queryset(alteracoes_cardapio)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
 
 class MotivosAlteracaoCardapioViewSet(viewsets.ReadOnlyModelViewSet):
     lookup_field = 'uuid'
