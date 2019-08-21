@@ -3,7 +3,7 @@ from django.core.validators import MinLengthValidator
 from django.db import models
 from django.db.models import Sum
 
-from sme_pratoaberto_terceirizadas.cardapio.models import (AlteracaoCardapio)
+from sme_pratoaberto_terceirizadas.cardapio.models import (AlteracaoCardapio, InversaoCardapio)
 from sme_pratoaberto_terceirizadas.inclusao_alimentacao.models import (
     InclusaoAlimentacaoContinua, GrupoInclusaoAlimentacaoNormal
 )
@@ -22,6 +22,10 @@ class DiretoriaRegional(Nomeavel, TemChaveExterna):
     def quantidade_alunos(self):
         quantidade_result = self.escolas.aggregate(Sum('quantidade_alunos'))
         return quantidade_result.get('quantidade_alunos__sum', 0)
+
+    #
+    # Inclusões continuas e normais
+    #
 
     @property
     def inclusoes_continuas_aprovadas(self):
@@ -117,6 +121,10 @@ class DiretoriaRegional(Nomeavel, TemChaveExterna):
             status=InclusaoAlimentacaoContinua.workflow_class.DRE_A_VALIDAR
         )
 
+    #
+    # Alterações de cardápio
+    #
+
     @property
     def alteracoes_cardapio_pendentes_das_minhas_escolas(self):
         return AlteracaoCardapio.objects.filter(
@@ -168,6 +176,21 @@ class DiretoriaRegional(Nomeavel, TemChaveExterna):
         return alteracoes_cardapio.filter(
             escola__in=self.escolas.all(),
             status=AlteracaoCardapio.workflow_class.DRE_A_VALIDAR
+        )
+
+    #
+    # Inversões de cardápio
+    #
+
+    def inversoes_cardapio_das_minhas_escolas_no_prazo_limite(self, filtro_aplicado):
+        # TODO fazer todos os managers e metodos de filtro na DRE...
+        if filtro_aplicado == "daqui_a_7_dias":
+            inversoes_cardapio = InversaoCardapio.prazo_limite_daqui_a_7_dias
+        else:
+            inversoes_cardapio = InversaoCardapio.prazo_limite
+        return inversoes_cardapio.filter(
+            escola__in=self.escolas.all(),
+            status=InversaoCardapio.workflow_class.DRE_A_VALIDAR
         )
 
     def __str__(self):
@@ -429,7 +452,6 @@ class Codae(Nomeavel, TemChaveExterna):
         return inclusoes_normais.filter(
             status=InclusaoAlimentacaoContinua.workflow_class.DRE_APROVADO
         )
-
 
     def save(self, *args, **kwargs):
         self.pk = 1
