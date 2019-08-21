@@ -2,8 +2,6 @@ import datetime
 
 from django.db import models
 
-from sme_pratoaberto_terceirizadas.cardapio.managers import InversaoCardapioPrazoVencendoManager, \
-    InversaoCardapioPrazoVencendoHojeManager, InversaoCardapioPrazoLimiteManager
 from .managers import (
     AlteracoesCardapioPrazoVencendoManager,
     AlteracoesCardapioPrazoLimiteManager,
@@ -11,10 +9,13 @@ from .managers import (
     AlteracoesCardapioPrazoVencendoHojeManager,
     AlteracoesCardapioPrazoLimiteDaquiA7DiasManager,
     AlteracoesCardapioPrazoRegularDaquiA7DiasManager,
-    AlteracoesCardapioPrazoRegularDaquiA30DiasManager
-)
-from .managers import (
     AlteracoesCardapioVencidaManager,
+    AlteracoesCardapioPrazoRegularDaquiA30DiasManager,
+    InversaoCardapioPrazoVencendoManager,
+    InversaoCardapioPrazoVencendoHojeManager,
+    InversaoCardapioPrazoLimiteManager,
+    InversaoCardapioPrazoLimiteDaquiA7DiasManager,
+    InversaoCardapioPrazoLimiteDaquiA30DiasManager,
     InversaoCardapioVencidaManager
 )
 from ..dados_comuns.models import TemplateMensagem
@@ -24,7 +25,7 @@ from ..dados_comuns.models_abstract import (
     TemObservacao, FluxoAprovacaoPartindoDaEscola,
     Motivo, Logs, LogSolicitacoesUsuario,
     TemIdentificadorExternoAmigavel,
-    FluxoInformativoPartindoDaEscola, FluxoInformativoPartindoDaEscola
+    FluxoInformativoPartindoDaEscola,
 )
 
 
@@ -91,6 +92,8 @@ class InversaoCardapio(CriadoEm, CriadoPor, TemObservacao, Motivo, TemChaveExter
     prazo_vencendo_hoje = InversaoCardapioPrazoVencendoHojeManager()
 
     prazo_limite = InversaoCardapioPrazoLimiteManager()
+    prazo_limite_daqui_a_7_dias = InversaoCardapioPrazoLimiteDaquiA7DiasManager()
+    prazo_limite_daqui_a_30_dias = InversaoCardapioPrazoLimiteDaquiA30DiasManager()
 
     vencidos = InversaoCardapioVencidaManager()
 

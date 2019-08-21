@@ -25,6 +25,28 @@ class InversaoCardapioPrazoVencendoHojeManager(models.Manager):
         )
 
 
+class InversaoCardapioPrazoLimiteDaquiA7DiasManager(models.Manager):
+    def get_queryset(self):
+        data_limite_inicial = datetime.date.today()
+        data_limite_final = datetime.date.today() + datetime.timedelta(days=7)
+        return super(InversaoCardapioPrazoLimiteDaquiA7DiasManager, self).get_queryset().filter(
+            Q(cardapio_de__data__range=(data_limite_inicial, data_limite_final))
+            |
+            Q(cardapio_para__data__range=(data_limite_inicial, data_limite_final))
+        ).filter(cardapio_de__data__gt=data_limite_inicial)
+
+
+class InversaoCardapioPrazoLimiteDaquiA30DiasManager(models.Manager):
+    def get_queryset(self):
+        data_limite_inicial = datetime.date.today()
+        data_limite_final = datetime.date.today() + datetime.timedelta(days=30)
+        return super(InversaoCardapioPrazoLimiteDaquiA30DiasManager, self).get_queryset().filter(
+            Q(cardapio_de__data__range=(data_limite_inicial, data_limite_final))
+            |
+            Q(cardapio_para__data__range=(data_limite_inicial, data_limite_final))
+        ).filter(cardapio_de__data__gt=data_limite_inicial)
+
+
 class InversaoCardapioPrazoLimiteManager(models.Manager):
     def get_queryset(self):
         data_limite_inicial = obter_dias_uteis_apos_hoje(quantidade_dias=MINIMO_DIAS_PARA_PEDIDO + 1)
