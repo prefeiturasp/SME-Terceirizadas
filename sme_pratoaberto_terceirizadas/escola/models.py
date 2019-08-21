@@ -201,6 +201,7 @@ class DiretoriaRegional(Nomeavel, TemChaveExterna):
     class Meta:
         verbose_name = "Diretoria regional"
         verbose_name_plural = "Diretorias regionais"
+        ordering = ('nome',)
 
 
 class FaixaIdadeEscolar(Nomeavel, Ativavel, TemChaveExterna):
@@ -217,6 +218,7 @@ class FaixaIdadeEscolar(Nomeavel, Ativavel, TemChaveExterna):
     class Meta:
         verbose_name = "Idade escolar"
         verbose_name_plural = "Idades escolares"
+        ordering = ('nome',)
 
 
 class TipoUnidadeEscolar(Iniciais, Ativavel, TemChaveExterna):
@@ -286,7 +288,7 @@ class Escola(Ativavel, TemChaveExterna):
     lote = models.ForeignKey('Lote',
                              related_name='escolas',
                              blank=True, null=True,
-                             on_delete=models.SET_NULL)
+                             on_delete=models.PROTECT)
 
     endereco = models.ForeignKey('dados_comuns.Endereco', on_delete=models.DO_NOTHING,
                                  blank=True, null=True)
@@ -318,6 +320,7 @@ class Escola(Ativavel, TemChaveExterna):
     class Meta:
         verbose_name = "Escola"
         verbose_name_plural = "Escolas"
+        ordering = ('codigo_eol',)
 
 
 class Lote(TemChaveExterna, Nomeavel, Iniciais):
@@ -366,6 +369,7 @@ class Subprefeitura(Nomeavel, TemChaveExterna):
     class Meta:
         verbose_name = "Subprefeitura"
         verbose_name_plural = "Subprefeituras"
+        ordering = ('nome',)
 
 
 class Codae(Nomeavel, TemChaveExterna):
@@ -453,6 +457,48 @@ class Codae(Nomeavel, TemChaveExterna):
             inclusoes_normais = GrupoInclusaoAlimentacaoNormal.prazo_regular
         return inclusoes_normais.filter(
             status=InclusaoAlimentacaoContinua.workflow_class.DRE_APROVADO
+        )
+
+    # Alterações de Cardapio
+    def alteracoes_cardapio_das_minhas_escolas_no_prazo_vencendo(self, filtro_aplicado):
+        if filtro_aplicado == "hoje":
+            alteracoes_cardapio = AlteracaoCardapio.prazo_vencendo_hoje
+        else:  # se o filtro nao for hoje, filtra o padrao
+            alteracoes_cardapio = AlteracaoCardapio.prazo_vencendo
+        return alteracoes_cardapio.filter(
+            status=AlteracaoCardapio.workflow_class.DRE_APROVADO
+        )
+
+    def alteracoes_cardapio_das_minhas_escolas_no_prazo_limite(self, filtro_aplicado):
+        if filtro_aplicado == "daqui_a_7_dias":
+            alteracoes_cardapio = AlteracaoCardapio.prazo_limite_daqui_a_7_dias
+        else:
+            alteracoes_cardapio = AlteracaoCardapio.prazo_limite
+        return alteracoes_cardapio.filter(
+            status=AlteracaoCardapio.workflow_class.DRE_APROVADO
+        )
+
+    def alteracoes_cardapio_das_minhas_escolas_no_prazo_regular(self, filtro_aplicado):
+        if filtro_aplicado == "daqui_a_30_dias":
+            alteracoes_cardapio = AlteracaoCardapio.prazo_regular_daqui_a_30_dias
+        elif filtro_aplicado == "daqui_a_7_dias":
+            alteracoes_cardapio = AlteracaoCardapio.prazo_regular_daqui_a_7_dias
+        else:
+            alteracoes_cardapio = AlteracaoCardapio.prazo_regular
+        return alteracoes_cardapio.filter(
+            status=AlteracaoCardapio.workflow_class.DRE_APROVADO
+        )
+
+    @property
+    def alteracoes_cardapio_aprovadas(self):
+        return AlteracaoCardapio.objects.filter(
+            status=AlteracaoCardapio.workflow_class.CODAE_APROVADO
+        )
+
+    @property
+    def alteracoes_cardapio_reprovadas(self):
+        return AlteracaoCardapio.objects.filter(
+            status=AlteracaoCardapio.workflow_class.CODAE_CANCELOU_PEDIDO
         )
 
     def save(self, *args, **kwargs):

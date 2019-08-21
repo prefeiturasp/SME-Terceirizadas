@@ -59,9 +59,14 @@ class DiretoriaRegionalSimplissimaSerializer(serializers.ModelSerializer):
 
 
 class EscolaSimplissimaSerializer(serializers.ModelSerializer):
+    lote = serializers.SerializerMethodField()
+
+    def get_lote(self, obj):
+        return f"{obj.lote.nome} - {obj.lote.iniciais}" if obj.lote else None
+
     class Meta:
         model = Escola
-        fields = ('uuid', 'nome', 'codigo_eol')
+        fields = ('uuid', 'nome', 'codigo_eol', 'lote')
 
 
 class DiretoriaRegionalSimplesSerializer(serializers.ModelSerializer):
