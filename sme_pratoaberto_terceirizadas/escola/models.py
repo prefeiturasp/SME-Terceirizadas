@@ -176,6 +176,7 @@ class DiretoriaRegional(Nomeavel, TemChaveExterna):
     class Meta:
         verbose_name = "Diretoria regional"
         verbose_name_plural = "Diretorias regionais"
+        ordering = ('nome',)
 
 
 class FaixaIdadeEscolar(Nomeavel, Ativavel, TemChaveExterna):
@@ -192,6 +193,7 @@ class FaixaIdadeEscolar(Nomeavel, Ativavel, TemChaveExterna):
     class Meta:
         verbose_name = "Idade escolar"
         verbose_name_plural = "Idades escolares"
+        ordering = ('nome',)
 
 
 class TipoUnidadeEscolar(Iniciais, Ativavel, TemChaveExterna):
@@ -261,7 +263,7 @@ class Escola(Ativavel, TemChaveExterna):
     lote = models.ForeignKey('Lote',
                              related_name='escolas',
                              blank=True, null=True,
-                             on_delete=models.SET_NULL)
+                             on_delete=models.PROTECT)
 
     endereco = models.ForeignKey('dados_comuns.Endereco', on_delete=models.DO_NOTHING,
                                  blank=True, null=True)
@@ -293,6 +295,7 @@ class Escola(Ativavel, TemChaveExterna):
     class Meta:
         verbose_name = "Escola"
         verbose_name_plural = "Escolas"
+        ordering = ('codigo_eol',)
 
 
 class Lote(TemChaveExterna, Nomeavel, Iniciais):
@@ -341,6 +344,7 @@ class Subprefeitura(Nomeavel, TemChaveExterna):
     class Meta:
         verbose_name = "Subprefeitura"
         verbose_name_plural = "Subprefeituras"
+        ordering = ('nome',)
 
 
 class Codae(Nomeavel, TemChaveExterna):
