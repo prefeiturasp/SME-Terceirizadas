@@ -1,5 +1,7 @@
+import datetime
 import pytest
 from faker import Faker
+from freezegun import freeze_time
 from model_mommy import mommy
 
 from sme_pratoaberto_terceirizadas.dados_comuns.models import TemplateMensagem

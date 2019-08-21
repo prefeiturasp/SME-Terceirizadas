@@ -14,12 +14,14 @@ from .managers import (
     AlteracoesCardapioPrazoRegularDaquiA7DiasManager,
     AlteracoesCardapioPrazoRegularDaquiA30DiasManager
 )
-from ..dados_comuns.models import TemplateMensagem
+
+from ..dados_comuns.models import (TemplateMensagem, LogSolicitacoesUsuario)
 from ..dados_comuns.models_abstract import (
     Descritivel, TemData, TemChaveExterna, Ativavel,
     Nomeavel, CriadoEm, IntervaloDeDia, CriadoPor,
     TemObservacao, FluxoAprovacaoPartindoDaEscola,
     TemIdentificadorExternoAmigavel, Motivo
+    TemIdentificadorExternoAmigavel, Logs
 )
 
 
@@ -276,7 +278,7 @@ class MotivoAlteracaoCardapio(Nomeavel, TemChaveExterna):
 
 
 class AlteracaoCardapio(CriadoEm, TemChaveExterna, IntervaloDeDia, TemObservacao,
-                        FluxoAprovacaoPartindoDaEscola, TemIdentificadorExternoAmigavel):
+                        FluxoAprovacaoPartindoDaEscola, TemIdentificadorExternoAmigavel, Logs):
     """
     A unidade quer trocar um ou mais tipos de refeição em um ou mais períodos escolares devido a um evento especial
     (motivo) em dado período de tempo.
@@ -327,7 +329,13 @@ class AlteracaoCardapio(CriadoEm, TemChaveExterna, IntervaloDeDia, TemObservacao
         return template.assunto, corpo
 
     def salvar_log_transicao(self, status_evento, usuario):
-        pass
+        LogSolicitacoesUsuario.objects.create(
+            descricao=str(self),
+            status_evento=status_evento,
+            solicitacao_tipo=LogSolicitacoesUsuario.ALTERACAO_DE_CARDAPIO,
+            usuario=usuario,
+            uuid_original=self.uuid
+        )
 
     @classmethod
     def solicitacoes_por_visao(cls, query_set_base, visao):

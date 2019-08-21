@@ -26,7 +26,7 @@ class InclusoesDeAlimentacaoContinuaPrazoVencendoHojeManager(models.Manager):
 class InclusoesDeAlimentacaoContinuaPrazoLimiteManager(models.Manager):
     def get_queryset(self):
         data_limite_inicial = obter_dias_uteis_apos_hoje(quantidade_dias=3)
-        data_limite_final = obter_dias_uteis_apos_hoje(quantidade_dias=5)
+        data_limite_final = obter_dias_uteis_apos_hoje(quantidade_dias=5) - datetime.timedelta(days=1)
         return super(InclusoesDeAlimentacaoContinuaPrazoLimiteManager, self).get_queryset().filter(
             data_inicial__range=(data_limite_inicial, data_limite_final)
         )
@@ -35,7 +35,7 @@ class InclusoesDeAlimentacaoContinuaPrazoLimiteManager(models.Manager):
 class InclusoesDeAlimentacaoContinuaPrazoLimiteDaquiA7DiasManager(models.Manager):
     def get_queryset(self):
         data_limite_inicial = obter_dias_uteis_apos_hoje(quantidade_dias=3)
-        data_limite_final = datetime.date.today() + datetime.timedelta(days=8)
+        data_limite_final = obter_dias_uteis_apos_hoje(quantidade_dias=5) - datetime.timedelta(days=1)
         return super(InclusoesDeAlimentacaoContinuaPrazoLimiteDaquiA7DiasManager, self).get_queryset().filter(
             data_inicial__range=(data_limite_inicial, data_limite_final)
         )
