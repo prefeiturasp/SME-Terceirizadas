@@ -2,6 +2,7 @@ import datetime
 
 from django.db import models
 
+from sme_pratoaberto_terceirizadas.dados_comuns.utils import obter_dias_uteis_apos_hoje
 from .managers import (
     AlteracoesCardapioPrazoVencendoManager,
     AlteracoesCardapioPrazoLimiteManager,
@@ -26,7 +27,7 @@ from ..dados_comuns.models_abstract import (
     Motivo, Logs, LogSolicitacoesUsuario,
     TemIdentificadorExternoAmigavel,
     FluxoInformativoPartindoDaEscola,
-)
+    TemPrioridade)
 
 
 class TipoAlimentacao(Nomeavel, TemChaveExterna):
@@ -81,7 +82,8 @@ class Cardapio(Descritivel, Ativavel, TemData, TemChaveExterna, CriadoEm):
 
 
 class InversaoCardapio(CriadoEm, CriadoPor, TemObservacao, Motivo, TemChaveExterna,
-                       TemIdentificadorExternoAmigavel, FluxoAprovacaoPartindoDaEscola):
+                       TemIdentificadorExternoAmigavel, FluxoAprovacaoPartindoDaEscola,
+                       TemPrioridade):
     """
         servir o cardápio do dia 30 no dia 15, automaticamente o
         cardápio do dia 15 será servido no dia 30
@@ -121,6 +123,26 @@ class InversaoCardapio(CriadoEm, CriadoPor, TemObservacao, Motivo, TemChaveExter
     @property
     def data_para(self):
         return self.cardapio_para.data if self.cardapio_para else None
+
+    @property
+    def prioridade(self):
+        descricao = 'VENCIDO'
+        data = self.data_de
+        if self.data_para < self.data_de:
+            data = self.data_para
+        prox_2_dias_uteis = obter_dias_uteis_apos_hoje(2)
+        prox_3_dias_uteis = obter_dias_uteis_apos_hoje(3)
+        prox_5_dias_uteis = obter_dias_uteis_apos_hoje(5)
+        prox_6_dias_uteis = obter_dias_uteis_apos_hoje(6)
+        hoje = datetime.date.today()
+
+        if hoje <= data <= prox_2_dias_uteis:
+            descricao = 'URGENTE'
+        elif prox_5_dias_uteis >= data >= prox_3_dias_uteis:
+            descricao = 'LIMITE'
+        elif data >= prox_6_dias_uteis:
+            descricao = 'REGULAR'
+        return descricao
 
     @property
     def descricao_curta(self):

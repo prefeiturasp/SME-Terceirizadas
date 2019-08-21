@@ -33,7 +33,7 @@ class InversaoCardapioPrazoLimiteDaquiA7DiasManager(models.Manager):
             Q(cardapio_de__data__range=(data_limite_inicial, data_limite_final))
             |
             Q(cardapio_para__data__range=(data_limite_inicial, data_limite_final))
-        ).filter(cardapio_de__data__gt=data_limite_inicial)
+        ).filter(cardapio_de__data__gte=data_limite_inicial, cardapio_para__data__gte=data_limite_inicial)
 
 
 class InversaoCardapioPrazoLimiteDaquiA30DiasManager(models.Manager):
@@ -44,7 +44,7 @@ class InversaoCardapioPrazoLimiteDaquiA30DiasManager(models.Manager):
             Q(cardapio_de__data__range=(data_limite_inicial, data_limite_final))
             |
             Q(cardapio_para__data__range=(data_limite_inicial, data_limite_final))
-        ).filter(cardapio_de__data__gt=data_limite_inicial)
+        ).filter(cardapio_de__data__gte=data_limite_inicial, cardapio_para__data__gte=data_limite_inicial)
 
 
 class InversaoCardapioPrazoLimiteManager(models.Manager):

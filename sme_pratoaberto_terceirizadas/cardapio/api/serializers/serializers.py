@@ -42,13 +42,14 @@ class InversaoCardapioSerializer(serializers.ModelSerializer):
     escola = EscolaSimplesSerializer()
     status = serializers.SerializerMethodField()
     id_externo = serializers.CharField()
+    prioridade = serializers.CharField()
 
     def get_status(self, obj):
         return obj.get_status_display()
 
     class Meta:
         model = InversaoCardapio
-        exclude = ('id',)
+        exclude = ('id', 'criado_por')
 
 
 class MotivoSuspensaoSerializer(serializers.ModelSerializer):

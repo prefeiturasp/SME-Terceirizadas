@@ -1,3 +1,4 @@
+import datetime
 import uuid
 
 import xworkflows
@@ -397,15 +398,30 @@ class TemIdentificadorExternoAmigavel(object):
 
 class TemPrioridade(object):
     """
-    Calcula se a data ou data_inicial é prioridade
+        Exibe uma descrição para a data caso seja prioridade
     """
 
     @property
     def prioridade(self):
+        data = None
+        descricao = ''
+        prox_2_dias_uteis = obter_dias_uteis_apos_hoje(2)
+        prox_3_dias_uteis = obter_dias_uteis_apos_hoje(3)
+        prox_5_dias_uteis = obter_dias_uteis_apos_hoje(5)
+        prox_6_dias_uteis = obter_dias_uteis_apos_hoje(6)
+        hoje = datetime.date.today()
         if hasattr(self, "data"):
-            return obter_dias_uteis_apos_hoje(2) <= self.data < obter_dias_uteis_apos_hoje(5)
+            data = self.data
         elif hasattr(self, "data_inicial"):
-            return obter_dias_uteis_apos_hoje(2) <= self.data_inicial < obter_dias_uteis_apos_hoje(5)
+            data = self.data_inicial
+
+        if hoje <= data <= prox_2_dias_uteis:
+            descricao = 'URGENTE'
+        elif prox_5_dias_uteis >= data >= prox_3_dias_uteis:
+            descricao = 'LIMITE'
+        elif data >= prox_6_dias_uteis:
+            descricao = 'REGULAR'
+        return descricao
 
 
 class Logs(object):
