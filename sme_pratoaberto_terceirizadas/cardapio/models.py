@@ -2,6 +2,8 @@ import datetime
 
 from django.db import models
 
+from sme_pratoaberto_terceirizadas.cardapio.managers import InversaoCardapioPrazoVencendoManager, \
+    InversaoCardapioPrazoVencendoHojeManager, InversaoCardapioPrazoLimiteManager
 from .managers import (
     AlteracoesCardapioPrazoVencendoManager,
     AlteracoesCardapioPrazoLimiteManager,
@@ -85,6 +87,11 @@ class InversaoCardapio(CriadoEm, CriadoPor, TemObservacao, Motivo, TemChaveExter
     """
 
     objects = models.Manager()  # Manager Padrão
+    prazo_vencendo = InversaoCardapioPrazoVencendoManager()
+    prazo_vencendo_hoje = InversaoCardapioPrazoVencendoHojeManager()
+
+    prazo_limite = InversaoCardapioPrazoLimiteManager()
+
     vencidos = InversaoCardapioVencidaManager()
 
     cardapio_de = models.ForeignKey(Cardapio, on_delete=models.DO_NOTHING,

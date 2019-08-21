@@ -60,7 +60,7 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
         diretoria_regional = usuario.diretorias_regionais.first()
-        inversoes_cardapio = diretoria_regional.inclusoes_continuas_das_minhas_escolas_no_prazo_limite(
+        inversoes_cardapio = diretoria_regional.inversoes_cardapio_das_minhas_escolas_no_prazo_limite(
             filtro_aplicado
         )
         page = self.paginate_queryset(inversoes_cardapio)
