@@ -294,7 +294,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeAprovarPelaCODAEAlteracaoCardapioPermission],
-            methods=['patch'], url_path="codae-aprova")
+            methods=['patch'], url_path="codae-aprova-pedido")
     def codae_aprova(self, request, uuid=None):
         alteracao_cardapio = self.get_object()
         try:
@@ -427,6 +427,68 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
         alteracoes_cardapio = diretoria_regional.alteracoes_cardapio_das_minhas_escolas_no_prazo_regular(
             filtro_aplicado
         )
+        page = self.paginate_queryset(alteracoes_cardapio)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False,
+            url_path="pedidos-prioritarios-codae/"
+                     "(?P<filtro_aplicado>(sem_filtro|hoje|daqui_a_7_dias|daqui_a_30_dias)+)")
+    def pedidos_prioritarios_codae(self, request, filtro_aplicado="sem_filtro"):
+        usuario = request.user
+        # TODO: aguardando definição de perfis pra saber em qual CODAE eu estou fazendo a requisição
+        codae = usuario.CODAE.first()
+        alteracoes_cardapio = codae.alteracoes_cardapio_das_minhas_escolas_no_prazo_vencendo(
+            filtro_aplicado
+        )
+        page = self.paginate_queryset(alteracoes_cardapio)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False,
+            url_path="pedidos-no-limite-codae/"
+                     "(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)")
+    def pedidos_no_limite_codae(self, request, filtro_aplicado="sem_filtro"):
+        usuario = request.user
+        # TODO: aguardando definição de perfis pra saber em qual CODAE eu estou fazendo a requisição
+        codae = usuario.CODAE.first()
+        alteracoes_cardapio = codae.alteracoes_cardapio_das_minhas_escolas_no_prazo_limite(
+            filtro_aplicado
+        )
+        page = self.paginate_queryset(alteracoes_cardapio)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False,
+            url_path="pedidos-no-prazo-codae/"
+                     "(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)")
+    def pedidos_no_prazo_codae(self, request, filtro_aplicado="sem_filtro"):
+        usuario = request.user
+        # TODO: aguardando definição de perfis pra saber em qual CODAE eu estou fazendo a requisição
+        codae = usuario.CODAE.first()
+        alteracoes_cardapio = codae.alteracoes_cardapio_das_minhas_escolas_no_prazo_regular(
+            filtro_aplicado
+        )
+        page = self.paginate_queryset(alteracoes_cardapio)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False, url_path="pedidos-aprovados-codae")
+    def pedidos_aprovados_codae(self, request):
+        usuario = request.user
+        # TODO: aguardando definição de perfis pra saber em qual CODAE eu estou fazendo a requisição
+        codae = usuario.CODAE.first()
+        alteracoes_cardapio = codae.alteracoes_cardapio_aprovadas
+        page = self.paginate_queryset(alteracoes_cardapio)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False, url_path="pedidos-reprovados-codae")
+    def pedidos_reprovados_codae(self, request):
+        usuario = request.user
+        # TODO: aguardando definição de perfis pra saber em qual CODAE eu estou fazendo a requisição
+        codae = usuario.CODAE.first()
+        alteracoes_cardapio = codae.alteracoes_cardapio_reprovadas
         page = self.paginate_queryset(alteracoes_cardapio)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)

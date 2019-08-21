@@ -430,6 +430,47 @@ class Codae(Nomeavel, TemChaveExterna):
             status=InclusaoAlimentacaoContinua.workflow_class.DRE_APROVADO
         )
 
+    # Alterações de Cardapio
+    def alteracoes_cardapio_das_minhas_escolas_no_prazo_vencendo(self, filtro_aplicado):
+        if filtro_aplicado == "hoje":
+            alteracoes_cardapio = AlteracaoCardapio.prazo_vencendo_hoje
+        else:  # se o filtro nao for hoje, filtra o padrao
+            alteracoes_cardapio = AlteracaoCardapio.prazo_vencendo
+        return alteracoes_cardapio.filter(
+            status=AlteracaoCardapio.workflow_class.DRE_APROVADO
+        )
+
+    def alteracoes_cardapio_das_minhas_escolas_no_prazo_limite(self, filtro_aplicado):
+        if filtro_aplicado == "daqui_a_7_dias":
+            alteracoes_cardapio = AlteracaoCardapio.prazo_limite_daqui_a_7_dias
+        else:
+            alteracoes_cardapio = AlteracaoCardapio.prazo_limite
+        return alteracoes_cardapio.filter(
+            status=AlteracaoCardapio.workflow_class.DRE_APROVADO
+        )
+
+    def alteracoes_cardapio_das_minhas_escolas_no_prazo_regular(self, filtro_aplicado):
+        if filtro_aplicado == "daqui_a_30_dias":
+            alteracoes_cardapio = AlteracaoCardapio.prazo_regular_daqui_a_30_dias
+        elif filtro_aplicado == "daqui_a_7_dias":
+            alteracoes_cardapio = AlteracaoCardapio.prazo_regular_daqui_a_7_dias
+        else:
+            alteracoes_cardapio = AlteracaoCardapio.prazo_regular
+        return alteracoes_cardapio.filter(
+            status=AlteracaoCardapio.workflow_class.DRE_APROVADO
+        )
+
+    @property
+    def alteracoes_cardapio_aprovadas(self):
+        return AlteracaoCardapio.objects.filter(
+            status=AlteracaoCardapio.workflow_class.CODAE_APROVADO
+        )
+
+    @property
+    def alteracoes_cardapio_reprovadas(self):
+        return AlteracaoCardapio.objects.filter(
+            status=AlteracaoCardapio.workflow_class.CODAE_CANCELOU_PEDIDO
+        )
 
     def save(self, *args, **kwargs):
         self.pk = 1
