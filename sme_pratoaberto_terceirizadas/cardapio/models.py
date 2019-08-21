@@ -137,7 +137,7 @@ class InversaoCardapio(CriadoEm, CriadoPor, TemObservacao, Motivo, TemChaveExter
         hoje = datetime.date.today()
 
         if hoje <= data <= prox_2_dias_uteis:
-            descricao = 'URGENTE'
+            descricao = 'PRIORITARIO'
         elif prox_5_dias_uteis >= data >= prox_3_dias_uteis:
             descricao = 'LIMITE'
         elif data >= prox_6_dias_uteis:
