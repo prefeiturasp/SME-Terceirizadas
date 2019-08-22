@@ -13,6 +13,10 @@ from ..escola.models import (
     DiretoriaRegional
 )
 
+from sme_pratoaberto_terceirizadas.cardapio.models import (
+    AlteracaoCardapio
+)
+
 
 class Edital(TemChaveExterna):
     numero = models.CharField("Edital No", max_length=100, help_text="Número do Edital", unique=True)
@@ -170,6 +174,52 @@ class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel):
             escola__lote__in=self.lotes.all()
         )
 
+    def alteracoes_cardapio_das_minhas_escolas_no_prazo_vencendo(self, filtro_aplicado):
+        if filtro_aplicado == "hoje":
+            alteracoes_cardapio = AlteracaoCardapio.prazo_vencendo_hoje
+        else:
+            alteracoes_cardapio = AlteracaoCardapio.prazo_vencendo
+        return alteracoes_cardapio.filter(
+            status=AlteracaoCardapio.workflow_class.CODAE_APROVADO,
+            escola__lote__in=self.lotes.all()
+        )
+
+    def alteracoes_cardapio_das_minhas_escolas_no_prazo_limite(self, filtro_aplicado):
+        if filtro_aplicado == "daqui_a_7_dias":
+            alteracoes_cardapio = AlteracaoCardapio.prazo_limite_daqui_a_7_dias
+        else:
+            alteracoes_cardapio = AlteracaoCardapio.prazo_limite
+        return alteracoes_cardapio.filter(
+            status=AlteracaoCardapio.workflow_class.CODAE_APROVADO,
+            escola__lote__in=self.lotes.all()
+        )
+
+    def alteracoes_cardapio_das_minhas_escolas_no_prazo_regular(self, filtro_aplicado):
+        if filtro_aplicado == "daqui_a_30_dias":
+            alteracoes_cardapio = AlteracaoCardapio.prazo_regular_daqui_a_30_dias
+        elif filtro_aplicado == "daqui_a_7_dias":
+            alteracoes_cardapio = AlteracaoCardapio.prazo_regular_daqui_a_7_dias
+        else:
+            alteracoes_cardapio = AlteracaoCardapio.prazo_regular
+        return alteracoes_cardapio.filter(
+            status=AlteracaoCardapio.workflow_class.CODAE_APROVADO,
+            escola__lote__in=self.lotes.all()
+        )
+
+    @property
+    def alteracoes_cardapio_aprovadas(self):
+        return AlteracaoCardapio.objects.filter(
+            escola__lote__in=self.lotes.all(),
+            status=AlteracaoCardapio.workflow_class.TERCEIRIZADA_TOMA_CIENCIA
+        )
+
+    @property
+    def alteracoes_cardapio_reprovadas(self):
+        return AlteracaoCardapio.objects.filter(
+            escola__lote__in=self.lotes.all(),
+            status=AlteracaoCardapio.workflow_class.CODAE_CANCELOU_PEDIDO
+        )
+
     def __str__(self):
         return f"{self.nome_fantasia}"
 
@@ -185,7 +235,7 @@ class Contrato(TemChaveExterna):
     data_proposta = models.DateField("Data da proposta")
     lotes = models.ManyToManyField(Lote, related_name="contratos_do_lote")
     terceirizadas = models.ManyToManyField(Terceirizada, related_name="contratos_da_terceirizada")
-    edital = models.ForeignKey(Edital, on_delete=models.PROTECT, related_name="contratos", blank=True, null=True)
+    edital = models.ForeignKey(Edital, on_delete=models.CASCADE, related_name="contratos", blank=True, null=True)
     diretorias_regionais = models.ManyToManyField(DiretoriaRegional, related_name="contratos_da_diretoria_regional")
 
     def __str__(self):
