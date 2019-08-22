@@ -2,7 +2,7 @@ from des.models import DynamicEmailConfiguration
 from rest_framework import serializers
 
 from ..models import Contato, TemplateMensagem, LogSolicitacoesUsuario
-from sme_pratoaberto_terceirizadas.perfil.api.serializers import UsuarioSerializer
+from ...perfil.api.serializers import UsuarioSerializer
 
 
 class LogSolicitacoesUsuarioSerializer(serializers.ModelSerializer):
@@ -15,7 +15,7 @@ class LogSolicitacoesUsuarioSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = LogSolicitacoesUsuario
-        fields = ('status_evento_explicacao', 'usuario', 'criado_em')
+        fields = ('status_evento_explicacao', 'usuario', 'criado_em', 'descricao')
 
 
 class ConfiguracaoEmailSerializer(serializers.ModelSerializer):
