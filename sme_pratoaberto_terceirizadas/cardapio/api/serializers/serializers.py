@@ -1,17 +1,19 @@
 from rest_framework import serializers
 
-from sme_pratoaberto_terceirizadas.dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
-from sme_pratoaberto_terceirizadas.escola.api.serializers import (
-    EscolaSimplesSerializer, PeriodoEscolarSerializer,
-    TipoUnidadeEscolarSerializer,
-    PeriodoEscolarSimplesSerializer)
-from sme_pratoaberto_terceirizadas.terceirizada.api.serializers.serializers import EditalSerializer
 from ...models import (
     TipoAlimentacao, Cardapio, InversaoCardapio,
     SuspensaoAlimentacao, AlteracaoCardapio, MotivoAlteracaoCardapio,
     SubstituicoesAlimentacaoNoPeriodoEscolar,
     SuspensaoAlimentacaoNoPeriodoEscolar, GrupoSuspensaoAlimentacao,
-    QuantidadePorPeriodoSuspensaoAlimentacao, MotivoSuspensao)
+    QuantidadePorPeriodoSuspensaoAlimentacao, MotivoSuspensao
+)
+from ....dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
+from ....escola.api.serializers import (
+    EscolaSimplesSerializer, PeriodoEscolarSerializer,
+    TipoUnidadeEscolarSerializer,
+    PeriodoEscolarSimplesSerializer
+)
+from ....terceirizada.api.serializers.serializers import EditalSerializer
 
 
 class TipoAlimentacaoSerializer(serializers.ModelSerializer):
@@ -43,6 +45,9 @@ class InversaoCardapioSerializer(serializers.ModelSerializer):
     status = serializers.SerializerMethodField()
     id_externo = serializers.CharField()
     prioridade = serializers.CharField()
+    data_de = serializers.DateField()
+    data_para = serializers.DateField()
+    logs = LogSolicitacoesUsuarioSerializer(many=True)
 
     def get_status(self, obj):
         return obj.get_status_display()

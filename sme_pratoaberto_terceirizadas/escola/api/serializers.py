@@ -1,11 +1,13 @@
 from rest_framework import serializers
 
-from sme_pratoaberto_terceirizadas.perfil.api.serializers import PerfilSerializer
-from sme_pratoaberto_terceirizadas.perfil.models import Usuario
-from sme_pratoaberto_terceirizadas.terceirizada.api.serializers.serializers import TerceirizadaSimplesSerializer
-from ..models import (Escola, PeriodoEscolar, DiretoriaRegional, Subprefeitura,
-                      FaixaIdadeEscolar, TipoUnidadeEscolar, TipoGestao, Lote)
+from ..models import (
+    Escola, PeriodoEscolar, DiretoriaRegional, Subprefeitura,
+    FaixaIdadeEscolar, TipoUnidadeEscolar, TipoGestao, Lote
+)
 from ...cardapio.models import TipoAlimentacao
+from ...perfil.api.serializers import PerfilSerializer
+from ...perfil.models import Usuario
+from ...terceirizada.api.serializers.serializers import TerceirizadaSimplesSerializer
 
 
 class TipoAlimentacaoSerializer(serializers.ModelSerializer):
@@ -90,9 +92,14 @@ class LoteSimplesSerializer(serializers.ModelSerializer):
         exclude = ('id',)
 
 
+class LoteNomeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Lote
+        fields = ('uuid', 'nome')
+
+
 class EscolaSimplesSerializer(serializers.ModelSerializer):
-    lote = serializers.SlugRelatedField(slug_field='uuid',
-                                        queryset=Lote.objects.all())
+    lote = LoteNomeSerializer()
     tipo_gestao = TipoGestaoSerializer()
     periodos_escolares = PeriodoEscolarSerializer(many=True)
 

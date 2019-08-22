@@ -2,7 +2,6 @@ import datetime
 
 from django.db import models
 
-from sme_pratoaberto_terceirizadas.dados_comuns.utils import obter_dias_uteis_apos_hoje
 from .managers import (
     AlteracoesCardapioPrazoVencendoManager,
     AlteracoesCardapioPrazoLimiteManager,
@@ -27,7 +26,9 @@ from ..dados_comuns.models_abstract import (
     Motivo, Logs, LogSolicitacoesUsuario,
     TemIdentificadorExternoAmigavel,
     FluxoInformativoPartindoDaEscola,
-    TemPrioridade)
+    TemPrioridade
+)
+from ..dados_comuns.utils import obter_dias_uteis_apos_hoje
 
 
 class TipoAlimentacao(Nomeavel, TemChaveExterna):
@@ -83,7 +84,7 @@ class Cardapio(Descritivel, Ativavel, TemData, TemChaveExterna, CriadoEm):
 
 class InversaoCardapio(CriadoEm, CriadoPor, TemObservacao, Motivo, TemChaveExterna,
                        TemIdentificadorExternoAmigavel, FluxoAprovacaoPartindoDaEscola,
-                       TemPrioridade):
+                       TemPrioridade, Logs):
     """
         servir o cardápio do dia 30 no dia 15, automaticamente o
         cardápio do dia 15 será servido no dia 30
@@ -165,7 +166,13 @@ class InversaoCardapio(CriadoEm, CriadoPor, TemObservacao, Motivo, TemChaveExter
         return template.assunto, corpo
 
     def salvar_log_transicao(self, status_evento, usuario):
-        pass
+        LogSolicitacoesUsuario.objects.create(
+            descricao=str(self),
+            status_evento=status_evento,
+            solicitacao_tipo=LogSolicitacoesUsuario.INVERSAO_DE_CARDAPIO,
+            usuario=usuario,
+            uuid_original=self.uuid
+        )
 
     def __str__(self):
         if self.cardapio_de and self.cardapio_para and self.escola:
