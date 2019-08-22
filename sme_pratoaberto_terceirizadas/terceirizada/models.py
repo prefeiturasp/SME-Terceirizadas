@@ -235,7 +235,7 @@ class Contrato(TemChaveExterna):
     data_proposta = models.DateField("Data da proposta")
     lotes = models.ManyToManyField(Lote, related_name="contratos_do_lote")
     terceirizadas = models.ManyToManyField(Terceirizada, related_name="contratos_da_terceirizada")
-    edital = models.ForeignKey(Edital, on_delete=models.PROTECT, related_name="contratos", blank=True, null=True)
+    edital = models.ForeignKey(Edital, on_delete=models.CASCADE, related_name="contratos", blank=True, null=True)
     diretorias_regionais = models.ManyToManyField(DiretoriaRegional, related_name="contratos_da_diretoria_regional")
 
     def __str__(self):

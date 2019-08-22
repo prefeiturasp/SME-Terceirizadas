@@ -62,7 +62,7 @@ class ContratoCreateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         lotes_json = validated_data.pop('lotes', [])
         terceirizadas_json = validated_data.pop('terceirizadas', [])
-        dres_json = validated_data.pop('dres', [])
+        dres_json = validated_data.pop('diretorias_regionais', [])
 
         vigencias_array = validated_data.pop('vigencias')
 
@@ -76,14 +76,14 @@ class ContratoCreateSerializer(serializers.ModelSerializer):
 
         contrato.lotes.set(lotes_json)
         contrato.terceirizadas.set(terceirizadas_json)
-        contrato.dres.set(dres_json)
+        contrato.diretorias_regionais.set(dres_json)
 
         return contrato
 
     def update(self, instance, validated_data):
         lotes_json = validated_data.pop('lotes', [])
         terceirizadas_json = validated_data.pop('terceirizadas', [])
-        dres_json = validated_data.pop('dres', [])
+        dres_json = validated_data.pop('diretorias_regionais', [])
 
         vigencias_array = validated_data.pop('vigencias')
 
@@ -99,7 +99,7 @@ class ContratoCreateSerializer(serializers.ModelSerializer):
         instance.contratos.set(vigencias)
         instance.lotes.set(lotes_json)
         instance.terceirizadas.set(terceirizadas_json)
-        instance.dres.set(dres_json)
+        instance.diretorias_regionais.set(dres_json)
 
         return instance
 
