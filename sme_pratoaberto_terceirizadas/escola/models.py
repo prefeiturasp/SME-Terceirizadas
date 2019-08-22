@@ -7,6 +7,7 @@ from sme_pratoaberto_terceirizadas.cardapio.models import (AlteracaoCardapio, In
 from sme_pratoaberto_terceirizadas.inclusao_alimentacao.models import (
     InclusaoAlimentacaoContinua, GrupoInclusaoAlimentacaoNormal
 )
+from sme_pratoaberto_terceirizadas.kit_lanche.models import SolicitacaoKitLancheAvulsa
 from sme_pratoaberto_terceirizadas.perfil.models import Usuario
 from ..dados_comuns.models_abstract import (Ativavel, Iniciais, Nomeavel, TemChaveExterna)
 
@@ -56,6 +57,38 @@ class DiretoriaRegional(Nomeavel, TemChaveExterna):
         )
 
     # TODO: talvez fazer um manager genérico pra fazer esse filtro
+
+    def solicitacoes_kit_lanche_das_minhas_escolas_no_prazo_vencendo(self, filtro_aplicado):
+        if filtro_aplicado == "hoje":
+            solicitacoes_kit_lanche_avulsa = SolicitacaoKitLancheAvulsa.prazo_vencendo_hoje
+        else:
+            solicitacoes_kit_lanche_avulsa = SolicitacaoKitLancheAvulsa.prazo_vencendo
+        return solicitacoes_kit_lanche_avulsa.filter(
+            escola__in=self.escolas.all(),
+            status=SolicitacaoKitLancheAvulsa.workflow_class.DRE_A_VALIDAR
+        )
+
+    def solicitacoes_kit_lanche_das_minhas_escolas_no_prazo_limite(self, filtro_aplicado):
+        if filtro_aplicado == "daqui_a_7_dias":
+            solicitacoes_kit_lanche_avulsa = SolicitacaoKitLancheAvulsa.prazo_limite_daqui_a_7_dias
+        else:
+            solicitacoes_kit_lanche_avulsa = SolicitacaoKitLancheAvulsa.prazo_limite
+        return solicitacoes_kit_lanche_avulsa.filter(
+            escola__in=self.escolas.all(),
+            status=SolicitacaoKitLancheAvulsa.workflow_class.DRE_A_VALIDAR
+        )
+
+    def solicitacoes_kit_lanche_das_minhas_escolas_no_prazo_regular(self, filtro_aplicado):
+        if filtro_aplicado == "daqui_a_30_dias":
+            inclusoes_continuas = SolicitacaoKitLancheAvulsa.prazo_regular_daqui_a_30_dias
+        elif filtro_aplicado == "daqui_a_7_dias":
+            inclusoes_continuas = SolicitacaoKitLancheAvulsa.prazo_regular_daqui_a_7_dias
+        else:
+            inclusoes_continuas = SolicitacaoKitLancheAvulsa.prazo_regular
+        return inclusoes_continuas.filter(
+            escola__in=self.escolas.all(),
+            status=InclusaoAlimentacaoContinua.workflow_class.DRE_A_VALIDAR
+        )
 
     def inclusoes_continuas_das_minhas_escolas_no_prazo_vencendo(self, filtro_aplicado):
         if filtro_aplicado == "hoje":
@@ -400,6 +433,38 @@ class Codae(Nomeavel, TemChaveExterna):
         )
 
     # TODO: talvez fazer um manager genérico pra fazer esse filtro
+
+    def solicitacoes_kit_lanche_das_minhas_escolas_no_prazo_vencendo(self, filtro_aplicado):
+        if filtro_aplicado == "hoje":
+            solicitacoes_kit_lanche_avulsa = SolicitacaoKitLancheAvulsa.prazo_vencendo_hoje
+        else:
+            solicitacoes_kit_lanche_avulsa = SolicitacaoKitLancheAvulsa.prazo_vencendo
+        return solicitacoes_kit_lanche_avulsa.filter(
+            escola__in=self.escolas.all(),
+            status=SolicitacaoKitLancheAvulsa.workflow_class.DRE_A_VALIDAR
+        )
+
+    def solicitacoes_kit_lanche_das_minhas_escolas_no_prazo_limite(self, filtro_aplicado):
+        if filtro_aplicado == "daqui_a_7_dias":
+            solicitacoes_kit_lanche_avulsa = SolicitacaoKitLancheAvulsa.prazo_limite_daqui_a_7_dias
+        else:
+            solicitacoes_kit_lanche_avulsa = SolicitacaoKitLancheAvulsa.prazo_limite
+        return solicitacoes_kit_lanche_avulsa.filter(
+            escola__in=self.escolas.all(),
+            status=SolicitacaoKitLancheAvulsa.workflow_class.DRE_A_VALIDAR
+        )
+
+    def solicitacoes_kit_lanche_das_minhas_escolas_no_prazo_regular(self, filtro_aplicado):
+        if filtro_aplicado == "daqui_a_30_dias":
+            inclusoes_continuas = SolicitacaoKitLancheAvulsa.prazo_regular_daqui_a_30_dias
+        elif filtro_aplicado == "daqui_a_7_dias":
+            inclusoes_continuas = SolicitacaoKitLancheAvulsa.prazo_regular_daqui_a_7_dias
+        else:
+            inclusoes_continuas = SolicitacaoKitLancheAvulsa.prazo_regular
+        return inclusoes_continuas.filter(
+            escola__in=self.escolas.all(),
+            status=InclusaoAlimentacaoContinua.workflow_class.DRE_A_VALIDAR
+        )
 
     def inclusoes_continuas_das_minhas_escolas_no_prazo_vencendo(self, filtro_aplicado):
         if filtro_aplicado == "hoje":
