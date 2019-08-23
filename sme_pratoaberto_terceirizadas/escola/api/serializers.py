@@ -139,7 +139,3 @@ class UsuarioDetalheSerializer(serializers.ModelSerializer):
     class Meta:
         model = Usuario
         fields = ('uuid', 'nome', 'email', 'date_joined', 'perfis', 'escolas', 'diretorias_regionais')
-
-
-
-

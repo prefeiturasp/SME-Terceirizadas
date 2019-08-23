@@ -1,9 +1,10 @@
 from rest_framework.decorators import action
 from rest_framework.viewsets import ReadOnlyModelViewSet, ModelViewSet
 
-from sme_pratoaberto_terceirizadas.escola.api.serializers import LoteSimplesSerializer
-from sme_pratoaberto_terceirizadas.escola.api.serializers_create import LoteCreateSerializer
-from sme_pratoaberto_terceirizadas.inclusao_alimentacao.api.serializers.serializers import (
+from ...escola.api.serializers import LoteSimplesSerializer
+from ...escola.api.serializers_create import LoteCreateSerializer
+
+from ...inclusao_alimentacao.api.serializers.serializers import (
     GrupoInclusaoAlimentacaoNormalSerializer, InclusaoAlimentacaoContinuaSerializer)
 
 from .serializers import (EscolaCompletaSerializer, PeriodoEscolarSerializer, DiretoriaRegionalCompletaSerializer,
@@ -65,7 +66,7 @@ class DiretoriaRegionalViewSet(ReadOnlyModelViewSet):
     queryset = DiretoriaRegional.objects.all()
     serializer_class = DiretoriaRegionalCompletaSerializer
 
-    @action(detail=True)
+    @action(detail=True, url_path="solicitacoes-autorizadas-por-mim")
     def solicitacoes_autorizadas_por_mim(self, request, uuid=None):
         diretoria_regional = self.get_object()
         autorizadas = diretoria_regional.solicitacoes_autorizadas()
