@@ -5,13 +5,16 @@ from sme_pratoaberto_terceirizadas.escola.api.serializers import LoteSimplesSeri
 from sme_pratoaberto_terceirizadas.escola.api.serializers_create import LoteCreateSerializer
 from sme_pratoaberto_terceirizadas.inclusao_alimentacao.api.serializers.serializers import (
     GrupoInclusaoAlimentacaoNormalSerializer, InclusaoAlimentacaoContinuaSerializer)
+
 from .serializers import (EscolaCompletaSerializer, PeriodoEscolarSerializer, DiretoriaRegionalCompletaSerializer,
                           TipoGestaoSerializer, SubprefeituraSerializer, EscolaSimplesSerializer,
-                          DiretoriaRegionalSimplissimaSerializer, EscolaSimplissimaSerializer)
+                          DiretoriaRegionalSimplissimaSerializer, EscolaSimplissimaSerializer,)
 from ..models import (Escola, PeriodoEscolar, DiretoriaRegional, Lote, TipoGestao, Subprefeitura)
 
+from ...paineis_consolidados.api.serializers import SolicitacoesAutorizadasDRESerializer
 
 # https://www.django-rest-framework.org/api-guide/permissions/#custom-permissions
+
 
 class EscolaViewSet(ReadOnlyModelViewSet):
     lookup_field = 'uuid'
@@ -61,6 +64,16 @@ class DiretoriaRegionalViewSet(ReadOnlyModelViewSet):
     lookup_field = 'uuid'
     queryset = DiretoriaRegional.objects.all()
     serializer_class = DiretoriaRegionalCompletaSerializer
+
+    @action(detail=True)
+    def solicitacoes_autorizadas_por_mim(self, request, uuid=None):
+        diretoria_regional = self.get_object()
+        autorizadas = diretoria_regional.solicitacoes_autorizadas()
+        page = self.paginate_queryset(autorizadas)
+        serializer = SolicitacoesAutorizadasDRESerializer(
+            page, many=True
+        )
+        return self.get_paginated_response(serializer.data)
 
 
 class DiretoriaRegionalSimplissimaViewSet(ReadOnlyModelViewSet):

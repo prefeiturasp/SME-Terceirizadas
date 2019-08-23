@@ -6,6 +6,7 @@ from sme_pratoaberto_terceirizadas.terceirizada.api.serializers.serializers impo
 from ..models import (Escola, PeriodoEscolar, DiretoriaRegional, Subprefeitura,
                       FaixaIdadeEscolar, TipoUnidadeEscolar, TipoGestao, Lote)
 from ...cardapio.models import TipoAlimentacao
+from ...paineis_consolidados.models import SolicitacoesAutorizadasDRE
 
 
 class TipoAlimentacaoSerializer(serializers.ModelSerializer):
@@ -131,3 +132,7 @@ class UsuarioDetalheSerializer(serializers.ModelSerializer):
     class Meta:
         model = Usuario
         fields = ('uuid', 'nome', 'email', 'date_joined', 'perfis', 'escolas', 'diretorias_regionais')
+
+
+
+
