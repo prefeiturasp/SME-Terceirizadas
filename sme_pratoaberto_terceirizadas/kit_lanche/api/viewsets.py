@@ -40,13 +40,13 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
         return serializers.SolicitacaoKitLancheAvulsaSerializer
 
     @action(detail=False,
-            url_path="pedidos-prioritarios-diretoria-regional/"
+            url_path="pedidos-diretoria-regional/"
                      "(?P<filtro_aplicado>(sem_filtro|hoje|daqui_a_7_dias|daqui_a_30_dias)+)")
-    def pedidos_prioritarios_diretoria_regional(self, request, filtro_aplicado="sem_filtro"):
+    def pedidos_diretoria_regional(self, request, filtro_aplicado="sem_filtro"):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
         diretoria_regional = usuario.diretorias_regionais.first()
-        kit_lanches_avulso = diretoria_regional.solicitacoes_kit_lanche_das_minhas_escolas_no_prazo_vencendo(
+        kit_lanches_avulso = diretoria_regional.solicitacoes_kit_lanche_das_minhas_escolas_a_validar(
             filtro_aplicado
         )
         page = self.paginate_queryset(kit_lanches_avulso)
@@ -54,13 +54,13 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False,
-            url_path="pedidos-no-limite-diretoria-regional/"
-                     "(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)")
-    def pedidos_no_limite_diretoria_regional(self, request, filtro_aplicado="sem_filtro"):
+            url_path="pedidos-codae/"
+                     "(?P<filtro_aplicado>(sem_filtro|hoje|daqui_a_7_dias|daqui_a_30_dias)+)")
+    def pedidos_codae(self, request, filtro_aplicado="sem_filtro"):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
-        diretoria_regional = usuario.diretorias_regionais.first()
-        kit_lanches_avulso = diretoria_regional.solicitacoes_kit_lanche_das_minhas_escolas_no_prazo_limite(
+        codae = usuario.CODAE.first()
+        kit_lanches_avulso = codae.solicitacoes_kit_lanche_das_minhas_escolas_a_validar(
             filtro_aplicado
         )
         page = self.paginate_queryset(kit_lanches_avulso)
@@ -68,13 +68,13 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False,
-            url_path="pedidos-no-prazo-diretoria-regional/"
-                     "(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)")
-    def pedidos_no_prazo_diretoria_regional(self, request, filtro_aplicado="sem_filtro"):
+            url_path="pedidos-terceirizadas/"
+                     "(?P<filtro_aplicado>(sem_filtro|hoje|daqui_a_7_dias|daqui_a_30_dias)+)")
+    def pedidos_terceirizadas(self, request, filtro_aplicado="sem_filtro"):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
-        diretoria_regional = usuario.diretorias_regionais.first()
-        kit_lanches_avulso = diretoria_regional.solicitacoes_kit_lanche_das_minhas_escolas_no_prazo_regular(
+        terceirizadas = usuario.terceirizadas.first()
+        kit_lanches_avulso = terceirizadas.solicitacoes_kit_lanche_das_minhas_escolas_a_validar(
             filtro_aplicado
         )
         page = self.paginate_queryset(kit_lanches_avulso)
