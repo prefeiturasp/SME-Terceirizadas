@@ -2,16 +2,17 @@ from rest_framework import serializers
 
 from sme_pratoaberto_terceirizadas.dados_comuns.utils import update_instance_from_dict
 from sme_pratoaberto_terceirizadas.dados_comuns.validators import (
-    nao_pode_ser_no_passado, deve_pedir_com_antecedencia
-)
+    nao_pode_ser_no_passado, deve_pedir_com_antecedencia,
+    nao_pode_ser_nulo, deve_ser_deste_tipo)
 from sme_pratoaberto_terceirizadas.escola.models import Escola, DiretoriaRegional
 from ..validators import (
     solicitacao_deve_ter_1_ou_mais_kits,
     solicitacao_deve_ter_0_kit,
     valida_tempo_passeio_lista_igual,
     valida_tempo_passeio_lista_nao_igual,
-    escola_quantidade_deve_ter_1_ou_mais_kits
-)
+    escola_quantidade_deve_ter_1_ou_mais_kits,
+    valida_duplicidade_passeio_data_escola,
+    valida_quantidades_alunos_e_escola)
 from ..validators import (
     valida_quantidade_kits_tempo_passeio,
     escola_quantidade_nao_deve_ter_kits_e_tempo_passeio
@@ -71,6 +72,22 @@ class SolicitacaoKitLancheAvulsaCreationSerializer(serializers.ModelSerializer):
         required=False,
         queryset=Escola.objects.all()
     )
+
+    # Parametro utilizado para confirmar mesmo com kit para o mesmo dia
+    confirmar = serializers.BooleanField(required=False)
+
+    def validate(self, attrs):
+        quantidade_aluno_passeio = attrs.get('quantidade_alunos')
+        data = attrs.get('solicitacao_kit_lanche').get("data")
+        escola = attrs.get('escola')
+        confirmar = attrs.get('confirmar', False)
+        nao_pode_ser_nulo(quantidade_aluno_passeio, mensagem="O campo Quantidade de aluno não pode ser nulo")
+        deve_ser_deste_tipo(quantidade_aluno_passeio, tipo=int, mensagem="Quantidade de aluno de ser do tipo int")
+        valida_quantidades_alunos_e_escola(data, escola, quantidade_aluno_passeio)
+        valida_duplicidade_passeio_data_escola(data, escola, confirmar)
+        if attrs.get('confirmar'):
+            attrs.pop('confirmar')
+        return attrs
 
     def create(self, validated_data):
         validated_data['criado_por'] = self.context['request'].user
