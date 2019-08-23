@@ -11,6 +11,8 @@ from sme_pratoaberto_terceirizadas.kit_lanche.models import SolicitacaoKitLanche
 from sme_pratoaberto_terceirizadas.perfil.models import Usuario
 from ..dados_comuns.models_abstract import (Ativavel, Iniciais, Nomeavel, TemChaveExterna)
 
+from ..paineis_consolidados.models import SolicitacoesAutorizadasDRE
+
 
 class DiretoriaRegional(Nomeavel, TemChaveExterna):
     usuarios = models.ManyToManyField(Usuario, related_name='diretorias_regionais', blank=True)
@@ -227,6 +229,12 @@ class DiretoriaRegional(Nomeavel, TemChaveExterna):
             escola__in=self.escolas.all(),
             status=InversaoCardapio.workflow_class.DRE_A_VALIDAR
         )
+
+    #
+    # Consultas consolidadas de todos os tipos de solicitação para a DRE
+    #
+    def solicitacoes_autorizadas(self):
+        return SolicitacoesAutorizadasDRE.objects.filter(diretoria_regional_id=self.id)
 
     def __str__(self):
         return self.nome
