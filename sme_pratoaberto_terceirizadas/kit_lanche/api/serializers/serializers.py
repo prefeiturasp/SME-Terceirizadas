@@ -51,6 +51,7 @@ class SolicitacaoKitLancheAvulsaSerializer(serializers.ModelSerializer):
     solicitacao_kit_lanche = SolicitacaoKitLancheSimplesSerializer()
     escola = EscolaSimplesSerializer(read_only=True,
                                      required=False)
+    prioridade = serializers.CharField()
     id_externo = serializers.CharField()
 
     class Meta:

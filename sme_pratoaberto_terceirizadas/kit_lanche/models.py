@@ -1,11 +1,15 @@
 from django.db import models
 
 from sme_pratoaberto_terceirizadas.dados_comuns.models import TemplateMensagem
+from sme_pratoaberto_terceirizadas.kit_lanche.managers import SolicitacaoKitLancheAvulsaPrazoVencendoManager, \
+    SolicitacaoKitLancheAvulsaPrazoVencendoHojeManager, SolicitacaoKitLancheAvulsaPrazoLimiteManager, \
+    SolicitacaoKitLancheAvulsaPrazoLimiteDaquiA7DiasManager, SolicitacaoKitLancheAvulsaPrazoRegularManager, \
+    SolicitacaoKitLancheAvulsaPrazoRegularDaquiA30DiasManager, SolicitacaoKitLancheAvulsaVencidaDiasManager
 from ..dados_comuns.models_abstract import (
     Nomeavel, TemData, Motivo, Descritivel,
     CriadoEm, TemChaveExterna, TempoPasseio, CriadoPor,
     FluxoAprovacaoPartindoDaEscola, TemIdentificadorExternoAmigavel,
-    FluxoAprovacaoPartindoDaDiretoriaRegional)
+    FluxoAprovacaoPartindoDaDiretoriaRegional, TemPrioridade)
 
 
 class MotivoSolicitacaoUnificada(Nomeavel, TemChaveExterna):
@@ -67,7 +71,7 @@ class SolicitacaoKitLanche(TemData, Motivo, Descritivel, CriadoEm, TempoPasseio,
 
 
 class SolicitacaoKitLancheAvulsa(TemChaveExterna, FluxoAprovacaoPartindoDaEscola, TemIdentificadorExternoAmigavel,
-                                 CriadoPor):
+                                 CriadoPor, TemPrioridade):
     # TODO: ao deletar este, deletar solicitacao_kit_lanche também que é uma tabela acessória
     # TODO: passar `local` para solicitacao_kit_lanche
     local = models.CharField(max_length=160)
@@ -75,6 +79,16 @@ class SolicitacaoKitLancheAvulsa(TemChaveExterna, FluxoAprovacaoPartindoDaEscola
     solicitacao_kit_lanche = models.ForeignKey(SolicitacaoKitLanche, on_delete=models.DO_NOTHING)
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING,
                                related_name='solicitacoes_kit_lanche_avulsa')
+
+    objects = models.Manager()  # Manager Padrão
+    prazo_vencendo = SolicitacaoKitLancheAvulsaPrazoVencendoManager()
+    prazo_vencendo_hoje = SolicitacaoKitLancheAvulsaPrazoVencendoHojeManager()
+    prazo_limite = SolicitacaoKitLancheAvulsaPrazoLimiteManager()
+    prazo_limite_daqui_a_7_dias = SolicitacaoKitLancheAvulsaPrazoLimiteDaquiA7DiasManager()
+    prazo_regular = SolicitacaoKitLancheAvulsaPrazoRegularManager()
+    prazo_regular_daqui_a_7_dias = SolicitacaoKitLancheAvulsaPrazoLimiteDaquiA7DiasManager()
+    prazo_regular_daqui_a_30_dias = SolicitacaoKitLancheAvulsaPrazoRegularDaquiA30DiasManager()
+    vencidos = SolicitacaoKitLancheAvulsaVencidaDiasManager()
 
     @property
     def template_mensagem(self):

@@ -13,7 +13,7 @@ APPS_DIR = ROOT_DIR.path('sme_pratoaberto_terceirizadas')
 
 env = environ.Env()
 
-READ_DOT_ENV_FILE = env.bool('DJANGO_READ_DOT_ENV_FILE', default=False)
+READ_DOT_ENV_FILE = env.bool('DJANGO_READ_DOT_ENV_FILE', default=True)
 if READ_DOT_ENV_FILE:
     # OS environment variables take precedence over variables from .env
     print('Loading environment...', str(ROOT_DIR.path('.env')))

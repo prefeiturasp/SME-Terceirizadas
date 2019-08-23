@@ -1,20 +1,21 @@
 from django.core.validators import MinLengthValidator
 from django.db import models
 
-from sme_pratoaberto_terceirizadas.inclusao_alimentacao.models import (
-    InclusaoAlimentacaoContinua, GrupoInclusaoAlimentacaoNormal
+from ..cardapio.models import (
+    AlteracaoCardapio,
+    InversaoCardapio
 )
 from ..dados_comuns.models_abstract import (
-    IntervaloDeDia,
-    TemChaveExterna, Nomeavel, Ativavel,
-    TemIdentificadorExternoAmigavel)
+    IntervaloDeDia, Ativavel,
+    TemChaveExterna, Nomeavel,
+    TemIdentificadorExternoAmigavel
+)
 from ..escola.models import (
     Lote,
     DiretoriaRegional
 )
-
-from sme_pratoaberto_terceirizadas.cardapio.models import (
-    AlteracaoCardapio
+from ..inclusao_alimentacao.models import (
+    InclusaoAlimentacaoContinua, GrupoInclusaoAlimentacaoNormal
 )
 
 
@@ -220,6 +221,21 @@ class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel):
             status=AlteracaoCardapio.workflow_class.CODAE_CANCELOU_PEDIDO
         )
 
+    #
+    # Inversão de dia de cardápio
+    #
+
+    def inversoes_cardapio_das_minhas_escolas(self, filtro_aplicado):
+        if filtro_aplicado == "daqui_a_7_dias":
+            inversoes_cardapio = InversaoCardapio.prazo_limite_daqui_a_7_dias
+        elif filtro_aplicado == "daqui_a_30_dias":
+            inversoes_cardapio = InversaoCardapio.prazo_limite_daqui_a_30_dias
+        else:
+            inversoes_cardapio = InversaoCardapio.objects
+        return inversoes_cardapio.filter(
+            status=InversaoCardapio.workflow_class.CODAE_APROVADO
+        )
+
     def __str__(self):
         return f"{self.nome_fantasia}"
 
@@ -235,7 +251,7 @@ class Contrato(TemChaveExterna):
     data_proposta = models.DateField("Data da proposta")
     lotes = models.ManyToManyField(Lote, related_name="contratos_do_lote")
     terceirizadas = models.ManyToManyField(Terceirizada, related_name="contratos_da_terceirizada")
-    edital = models.ForeignKey(Edital, on_delete=models.PROTECT, related_name="contratos", blank=True, null=True)
+    edital = models.ForeignKey(Edital, on_delete=models.CASCADE, related_name="contratos", blank=True, null=True)
     diretorias_regionais = models.ManyToManyField(DiretoriaRegional, related_name="contratos_da_diretoria_regional")
 
     def __str__(self):

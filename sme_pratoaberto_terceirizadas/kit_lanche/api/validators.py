@@ -1,6 +1,8 @@
+from django.db.models import Sum
 from rest_framework import serializers
 
-from sme_pratoaberto_terceirizadas.kit_lanche.models import EscolaQuantidade, SolicitacaoKitLanche
+from sme_pratoaberto_terceirizadas.kit_lanche.models import EscolaQuantidade, SolicitacaoKitLanche, \
+    SolicitacaoKitLancheAvulsa
 
 
 def deve_ter_1_kit_somente(lista_igual, numero_kits):
@@ -103,3 +105,27 @@ def valida_quantidade_kits_tempo_passeio(tempo_passeio, quantidade_kits):
             raise serializers.ValidationError(
                 'Tempo de passeio {} de oito ou mais horas deve ter 3 kits'.format(tempo_passeio))
     return True
+
+
+def valida_quantidades_alunos_e_escola(data, escola, quantidade_aluno_passeio):
+    solicitacoes = SolicitacaoKitLancheAvulsa.objects.filter(escola=escola,
+                                                             solicitacao_kit_lanche__data=data).aggregate(
+        Sum('quantidade_alunos'))
+    if solicitacoes.get('quantidade_alunos__sum') is None:
+        quantidade_alunos = 0
+    else:
+        quantidade_alunos = int(solicitacoes.get('quantidade_alunos__sum'))
+    quantidade_alunos_total_passeio = quantidade_alunos + quantidade_aluno_passeio
+    if quantidade_alunos_total_passeio > escola.quantidade_alunos:
+        raise serializers.ValidationError({
+            "details": 'A quantidade de alunos informados para o evento'
+                       ' excede a quantidade de alunos matriculados na escola', 'tipo_error': 1})
+
+
+def valida_duplicidade_passeio_data_escola(data, escola, confirmar=False):
+    solicitacao = SolicitacaoKitLancheAvulsa.objects.filter(escola=escola,
+                                                            solicitacao_kit_lanche__data=data)
+    if not confirmar:
+        if solicitacao:
+            raise serializers.ValidationError(
+                {'details': 'Já existe um evento cadastrado para este dia', 'tipo_error': 2})
