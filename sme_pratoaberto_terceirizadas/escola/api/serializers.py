@@ -102,10 +102,11 @@ class EscolaSimplesSerializer(serializers.ModelSerializer):
     lote = LoteNomeSerializer()
     tipo_gestao = TipoGestaoSerializer()
     periodos_escolares = PeriodoEscolarSerializer(many=True)
+    diretoria_regional = DiretoriaRegionalSimplissimaSerializer()
 
     class Meta:
         model = Escola
-        fields = ('uuid', 'nome', 'codigo_eol', 'quantidade_alunos', 'periodos_escolares', 'lote', 'tipo_gestao')
+        fields = ('uuid', 'nome', 'codigo_eol', 'quantidade_alunos', 'periodos_escolares', 'lote', 'tipo_gestao', 'diretoria_regional')
 
 
 class EscolaCompletaSerializer(serializers.ModelSerializer):
