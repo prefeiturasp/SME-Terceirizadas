@@ -1,6 +1,6 @@
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.status import HTTP_400_BAD_REQUEST
+from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_200_OK
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from xworkflows import InvalidTransitionError
 
@@ -115,7 +115,7 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
         try:
             solicitacao_kit_lanche_avulsa.dre_aprovou(user=request.user, notificar=True)
             serializer = self.get_serializer(solicitacao_kit_lanche_avulsa)
-            return Response(serializer.data)
+            return Response(serializer.data, status=HTTP_200_OK)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
