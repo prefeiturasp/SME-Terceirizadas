@@ -12,7 +12,7 @@ with open(sql_path, 'r') as f:
 
 class Migration(migrations.Migration):
     dependencies = [
-        ('paineis_consolidados', '0002_solicitacoespendentesdre'),
+        ('paineis_consolidados', '0001_initial'),
     ]
 
     operations = [
