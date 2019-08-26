@@ -5,6 +5,7 @@ from ..models import (
     FaixaIdadeEscolar, TipoUnidadeEscolar, TipoGestao, Lote
 )
 from ...cardapio.models import TipoAlimentacao
+
 from ...perfil.api.serializers import PerfilSerializer
 from ...perfil.models import Usuario
 from ...terceirizada.api.serializers.serializers import TerceirizadaSimplesSerializer

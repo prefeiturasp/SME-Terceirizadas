@@ -94,6 +94,7 @@ LOCAL_APPS = [
     'sme_pratoaberto_terceirizadas.inclusao_alimentacao.apps.InclusaoAlimentacaoConfig',
     'sme_pratoaberto_terceirizadas.cardapio.apps.CardapioConfig',
     'sme_pratoaberto_terceirizadas.terceirizada.apps.TerceirizadaConfig',
+    'sme_pratoaberto_terceirizadas.paineis_consolidados.apps.PaineisConsolidadosConfig',
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
