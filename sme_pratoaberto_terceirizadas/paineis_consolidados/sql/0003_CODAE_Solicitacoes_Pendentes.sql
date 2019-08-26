@@ -1,4 +1,4 @@
-CREATE OR REPLACE VIEW DRE_solicitacoes_autorizadas AS -- Essa view consolida todas as solicitacoes autorizadas pelas DREs
+CREATE OR REPLACE VIEW CODAE_solicitacoes_pendentes AS -- Essa view consolida todas as solicitacoes pendentes para a CODAE
  -- Alteracoes de cardapio
 
 SELECT cardapio.id,
@@ -15,6 +15,7 @@ WHERE escola.id = cardapio.escola_id
   AND lote.id = escola.lote_id
   AND cardapio.uuid = logs.uuid_original
   AND logs.status_evento = 7
+  AND cardapio.status = 'DRE_APROVADO'
 GROUP BY cardapio.id,
          lote.nome,
          escola.diretoria_regional_id
@@ -34,6 +35,7 @@ WHERE escola.id = inc_alimentacao.escola_id
   AND lote.id = escola.lote_id
   AND inc_alimentacao.uuid = logs.uuid_original
   AND logs.status_evento = 7
+  AND inc_alimentacao.status = 'DRE_APROVADO'
 GROUP BY inc_alimentacao.id,
          lote.nome,
          escola.diretoria_regional_id
@@ -53,6 +55,7 @@ WHERE escola.id = inv_cardapio.escola_id
   AND lote.id = escola.lote_id
   AND inv_cardapio.uuid = logs.uuid_original
   AND logs.status_evento = 7
+  AND inv_cardapio.status = 'DRE_APROVADO'
 GROUP BY inv_cardapio.id,
          lote.nome,
          escola.diretoria_regional_id
@@ -72,6 +75,7 @@ WHERE escola.id = kit_lanche.escola_id
   AND lote.id = escola.lote_id
   AND kit_lanche.uuid = logs.uuid_original
   AND logs.status_evento = 7
+  AND kit_lanche.status = 'DRE_APROVADO'
 GROUP BY kit_lanche.id,
          lote.nome,
          escola.diretoria_regional_id
@@ -91,6 +95,7 @@ WHERE escola.id = susp_alimentacao.escola_id
   AND lote.id = escola.lote_id
   AND susp_alimentacao.uuid = logs.uuid_original
   AND logs.status_evento = 7
+  AND susp_alimentacao.status = 'DRE_APROVADO'
 GROUP BY susp_alimentacao.id,
          lote.nome,
          escola.diretoria_regional_id

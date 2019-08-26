@@ -1,15 +1,21 @@
 from django.db import models
 
-from sme_pratoaberto_terceirizadas.dados_comuns.models import TemplateMensagem
-from sme_pratoaberto_terceirizadas.kit_lanche.managers import SolicitacaoKitLancheAvulsaPrazoVencendoManager, \
-    SolicitacaoKitLancheAvulsaPrazoVencendoHojeManager, SolicitacaoKitLancheAvulsaPrazoLimiteManager, \
-    SolicitacaoKitLancheAvulsaPrazoLimiteDaquiA7DiasManager, SolicitacaoKitLancheAvulsaPrazoRegularManager, \
-    SolicitacaoKitLancheAvulsaPrazoRegularDaquiA30DiasManager, SolicitacaoKitLancheAvulsaVencidaDiasManager
+from .managers import (
+    SolicitacaoKitLancheAvulsaPrazoVencendoManager,
+    SolicitacaoKitLancheAvulsaPrazoVencendoHojeManager,
+    SolicitacaoKitLancheAvulsaPrazoLimiteManager,
+    SolicitacaoKitLancheAvulsaPrazoLimiteDaquiA7DiasManager,
+    SolicitacaoKitLancheAvulsaPrazoRegularManager,
+    SolicitacaoKitLancheAvulsaPrazoRegularDaquiA30DiasManager,
+    SolicitacaoKitLancheAvulsaVencidaDiasManager
+)
+from ..dados_comuns.models import TemplateMensagem
 from ..dados_comuns.models_abstract import (
     Nomeavel, TemData, Motivo, Descritivel,
     CriadoEm, TemChaveExterna, TempoPasseio, CriadoPor,
     FluxoAprovacaoPartindoDaEscola, TemIdentificadorExternoAmigavel,
-    FluxoAprovacaoPartindoDaDiretoriaRegional, TemPrioridade)
+    FluxoAprovacaoPartindoDaDiretoriaRegional, TemPrioridade
+)
 
 
 class MotivoSolicitacaoUnificada(Nomeavel, TemChaveExterna):
