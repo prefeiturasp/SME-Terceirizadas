@@ -1,8 +1,5 @@
 from .codae import (
-    SolicitacoesAutorizadasCODAE,
-    SolicitacoesPendentesCODAE,
-    SolicitacoesCanceladasCODAE,
-    SolicitacoesRevisaoCODAE
+    SolicitacoesCODAE
 )
 from .diretoria_regional import (
     SolicitacoesPendentesDRE,

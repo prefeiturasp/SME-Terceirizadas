@@ -2,6 +2,7 @@ import datetime
 
 from rest_framework import serializers
 
+from sme_pratoaberto_terceirizadas.paineis_consolidados.models.codae import SolicitacoesCODAE
 from ..models import SolicitacoesAutorizadasDRE, SolicitacoesPendentesDRE
 
 
@@ -24,19 +25,31 @@ class SolicitacoesDRESerializer(serializers.ModelSerializer):
 
 
 class SolicitacoesAutorizadasDRESerializer(SolicitacoesDRESerializer):
-
     class Meta:
         fields = '__all__'
         model = SolicitacoesAutorizadasDRE
 
 
 class SolicitacoesPendentesDRESerializer(SolicitacoesDRESerializer):
-
     class Meta:
         fields = '__all__'
         model = SolicitacoesPendentesDRE
 
 
+class SolicitacoesSerializer(serializers.ModelSerializer):
+    data = serializers.SerializerMethodField()
+    descricao = serializers.SerializerMethodField()
 
+    def get_descricao(self, obj):
+        uuid = str(obj.uuid)
+        return f'{uuid.upper()[:5]} - {obj.lote[:20]} - {obj.tipo_doc}'
 
+    def get_data(self, obj):
+        criado_em = obj.criado_em
+        if criado_em.date() == datetime.date.today():
+            return criado_em.strftime('%H:%M')
+        return criado_em.strftime('%d/%m/%Y')
 
+    class Meta:
+        fields = '__all__'
+        model = SolicitacoesCODAE

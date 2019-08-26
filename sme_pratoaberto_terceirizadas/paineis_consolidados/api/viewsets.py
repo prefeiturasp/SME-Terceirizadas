@@ -1,9 +1,10 @@
-import datetime
-
 from rest_framework import viewsets, status
+from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from sme_pratoaberto_terceirizadas.escola.models import DiretoriaRegional
+from ..models.codae import SolicitacoesCODAE
+from ...escola.models import DiretoriaRegional
+from ...paineis_consolidados.api.serializers import SolicitacoesSerializer
 
 
 class DrePendentesAprovacaoViewSet(viewsets.ViewSet):
@@ -23,3 +24,36 @@ class DrePendentesAprovacaoViewSet(viewsets.ViewSet):
 
         return Response(response, status=status.HTTP_200_OK)
 
+
+class CODAESolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
+    lookup_field = 'uuid'
+    queryset = SolicitacoesCODAE.objects.all()
+    serializer_class = SolicitacoesSerializer
+
+    @action(detail=False, methods=['GET'], url_path="pendentes-aprovacao")
+    def pendentes_aprovacao(self, request):
+        query_set = SolicitacoesCODAE.get_pendentes_aprovacao()
+        page = self.paginate_queryset(query_set)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False, methods=['GET'], url_path="aprovados")
+    def aprovados(self, request):
+        query_set = SolicitacoesCODAE.get_aprovados()
+        page = self.paginate_queryset(query_set)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False, methods=['GET'], url_path="cancelados")
+    def cancelados(self, request):
+        query_set = SolicitacoesCODAE.get_cancelados()
+        page = self.paginate_queryset(query_set)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False, methods=['GET'], url_path="solicitacoes-revisao")
+    def solicitacoes_revisao(self, request):
+        query_set = SolicitacoesCODAE.get_solicitacoes_revisao()
+        page = self.paginate_queryset(query_set)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
