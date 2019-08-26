@@ -1,3 +1,5 @@
+import datetime
+
 from django.db import models
 
 from .managers import (
@@ -86,11 +88,36 @@ class SolicitacaoKitLancheAvulsa(TemChaveExterna, FluxoAprovacaoPartindoDaEscola
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING,
                                related_name='solicitacoes_kit_lanche_avulsa')
 
+    @property
+    def data(self):
+        return self.solicitacao_kit_lanche.data
+
+    @property
+    def prioridade(self):
+        data = self.data
+        descricao = ''
+        prox_2_dias_uteis = obter_dias_uteis_apos_hoje(2)
+        prox_3_dias_uteis = obter_dias_uteis_apos_hoje(3)
+        prox_5_dias_uteis = obter_dias_uteis_apos_hoje(5)
+        prox_6_dias_uteis = obter_dias_uteis_apos_hoje(6)
+        hoje = datetime.date.today()
+
+        if hoje <= data <= prox_2_dias_uteis:
+            descricao = 'PRIORITARIO'
+        elif prox_5_dias_uteis >= data >= prox_3_dias_uteis:
+            descricao = 'LIMITE'
+        elif data >= prox_6_dias_uteis:
+            descricao = 'REGULAR'
+        return descricao
+
     objects = models.Manager()  # Manager Padrão
     prazo_vencendo = SolicitacaoKitLancheAvulsaPrazoVencendoManager()
     prazo_vencendo_hoje = SolicitacaoKitLancheAvulsaPrazoVencendoHojeManager()
+
     prazo_limite = SolicitacaoKitLancheAvulsaPrazoLimiteManager()
     prazo_limite_daqui_a_7_dias = SolicitacaoKitLancheAvulsaPrazoLimiteDaquiA7DiasManager()
+    prazo_limite_daqui_a_30_dias = SolicitacaoKitLancheAvulsaPrazoRegularDaquiA30DiasManager()
+
     prazo_regular = SolicitacaoKitLancheAvulsaPrazoRegularManager()
     prazo_regular_daqui_a_7_dias = SolicitacaoKitLancheAvulsaPrazoLimiteDaquiA7DiasManager()
     prazo_regular_daqui_a_30_dias = SolicitacaoKitLancheAvulsaPrazoRegularDaquiA30DiasManager()

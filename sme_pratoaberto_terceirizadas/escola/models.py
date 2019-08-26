@@ -60,6 +60,19 @@ class DiretoriaRegional(Nomeavel, TemChaveExterna):
 
     # TODO: talvez fazer um manager genérico pra fazer esse filtro
 
+    def solicitacoes_kit_lanche_das_minhas_escolas_a_validar(self, filtro_aplicado):
+        if filtro_aplicado == "daqui_a_7_dias":
+            inversoes_cardapio = SolicitacaoKitLancheAvulsa.prazo_limite_daqui_a_7_dias
+        elif filtro_aplicado == "daqui_a_30_dias":
+            inversoes_cardapio = SolicitacaoKitLancheAvulsa.prazo_limite_daqui_a_30_dias
+        else:
+            # inversoes_cardapio = InversaoCardapio.prazo_limite
+            inversoes_cardapio = SolicitacaoKitLancheAvulsa.objects
+        return inversoes_cardapio.filter(
+            escola__in=self.escolas.all(),
+            status=InversaoCardapio.workflow_class.DRE_A_VALIDAR
+        )
+
     def solicitacoes_kit_lanche_das_minhas_escolas_no_prazo_vencendo(self, filtro_aplicado):
         if filtro_aplicado == "hoje":
             solicitacoes_kit_lanche_avulsa = SolicitacaoKitLancheAvulsa.prazo_vencendo_hoje
@@ -461,36 +474,15 @@ class Codae(Nomeavel, TemChaveExterna):
 
     # TODO: talvez fazer um manager genérico pra fazer esse filtro
 
-    def solicitacoes_kit_lanche_das_minhas_escolas_no_prazo_vencendo(self, filtro_aplicado):
-        if filtro_aplicado == "hoje":
-            solicitacoes_kit_lanche_avulsa = SolicitacaoKitLancheAvulsa.prazo_vencendo_hoje
-        else:
-            solicitacoes_kit_lanche_avulsa = SolicitacaoKitLancheAvulsa.prazo_vencendo
-        return solicitacoes_kit_lanche_avulsa.filter(
-            escola__in=self.escolas.all(),
-            status=SolicitacaoKitLancheAvulsa.workflow_class.DRE_A_VALIDAR
-        )
-
-    def solicitacoes_kit_lanche_das_minhas_escolas_no_prazo_limite(self, filtro_aplicado):
+    def solicitacoes_kit_lanche_das_minhas_escolas_a_validar(self, filtro_aplicado):
         if filtro_aplicado == "daqui_a_7_dias":
-            solicitacoes_kit_lanche_avulsa = SolicitacaoKitLancheAvulsa.prazo_limite_daqui_a_7_dias
+            solicitacoes_kit_lanche = SolicitacaoKitLancheAvulsa.prazo_limite_daqui_a_7_dias
+        elif filtro_aplicado == "daqui_a_30_dias":
+            solicitacoes_kit_lanche = SolicitacaoKitLancheAvulsa.prazo_limite_daqui_a_30_dias
         else:
-            solicitacoes_kit_lanche_avulsa = SolicitacaoKitLancheAvulsa.prazo_limite
-        return solicitacoes_kit_lanche_avulsa.filter(
-            escola__in=self.escolas.all(),
-            status=SolicitacaoKitLancheAvulsa.workflow_class.DRE_A_VALIDAR
-        )
-
-    def solicitacoes_kit_lanche_das_minhas_escolas_no_prazo_regular(self, filtro_aplicado):
-        if filtro_aplicado == "daqui_a_30_dias":
-            inclusoes_continuas = SolicitacaoKitLancheAvulsa.prazo_regular_daqui_a_30_dias
-        elif filtro_aplicado == "daqui_a_7_dias":
-            inclusoes_continuas = SolicitacaoKitLancheAvulsa.prazo_regular_daqui_a_7_dias
-        else:
-            inclusoes_continuas = SolicitacaoKitLancheAvulsa.prazo_regular
-        return inclusoes_continuas.filter(
-            escola__in=self.escolas.all(),
-            status=InclusaoAlimentacaoContinua.workflow_class.DRE_A_VALIDAR
+            solicitacoes_kit_lanche = SolicitacaoKitLancheAvulsa.objects
+        return solicitacoes_kit_lanche.filter(
+            status=InversaoCardapio.workflow_class.DRE_APROVADO
         )
 
     def inclusoes_continuas_das_minhas_escolas_no_prazo_vencendo(self, filtro_aplicado):

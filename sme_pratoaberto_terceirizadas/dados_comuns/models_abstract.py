@@ -313,7 +313,8 @@ class FluxoAprovacaoPartindoDaDiretoriaRegional(xwf_models.WorkflowEnabled, mode
         """
         TODO: retornar usuários CODAE, esse abaixo é so pra passar...
         """
-        usuarios_dre = self.diretoria_regional.usuarios.all()
+        dre = self.escola.diretoria_regional
+        usuarios_dre = dre.usuarios.all()
         return usuarios_dre
 
     @property
@@ -347,7 +348,8 @@ class FluxoInformativoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model)
         """
         TODO: retornar usuários DRE, esse abaixo é so pra passar...
         """
-        usuarios_dre = self.diretoria_regional.usuarios.all()
+        dre = self.escola.diretoria_regional
+        usuarios_dre = dre.usuarios.all()
         return usuarios_dre
 
     @property
