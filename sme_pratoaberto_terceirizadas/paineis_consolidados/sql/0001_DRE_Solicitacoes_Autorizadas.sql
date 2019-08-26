@@ -1,5 +1,4 @@
 CREATE VIEW DRE_solicitacoes_autorizadas AS
--- TODO Incluir esse script no migrations do Django
 -- Essa view consolida todas as solicitacoes autorizadas pelas DREs
 
 -- Alteracoes de cardapio

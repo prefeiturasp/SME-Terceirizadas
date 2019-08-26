@@ -1,5 +1,4 @@
 CREATE VIEW DRE_solicitacoes_pendentes AS
--- TODO Incluir esse script no migrations do Django
 -- Essa view consolida todas as solicitacoes pendentes para as DREs
 
 -- Alteracoes de cardapio
