@@ -11,7 +11,7 @@ from sme_pratoaberto_terceirizadas.kit_lanche.models import SolicitacaoKitLanche
 from sme_pratoaberto_terceirizadas.perfil.models import Usuario
 from ..dados_comuns.models_abstract import (Ativavel, Iniciais, Nomeavel, TemChaveExterna)
 
-from ..paineis_consolidados.models import SolicitacoesAutorizadasDRE
+from ..paineis_consolidados.models import SolicitacoesAutorizadasDRE, SolicitacoesPendentesDRE
 
 
 class DiretoriaRegional(Nomeavel, TemChaveExterna):
@@ -235,6 +235,9 @@ class DiretoriaRegional(Nomeavel, TemChaveExterna):
     #
     def solicitacoes_autorizadas(self):
         return SolicitacoesAutorizadasDRE.objects.filter(diretoria_regional_id=self.id)
+
+    def solicitacoes_pendentes(self):
+        return SolicitacoesPendentesDRE.objects.filter(diretoria_regional_id=self.id)
 
     def __str__(self):
         return self.nome

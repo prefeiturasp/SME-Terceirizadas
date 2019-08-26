@@ -1,7 +1,7 @@
 from django.db import models
 
 
-class SolicitacoesAutorizadasDRE(models.Model):
+class SolicitacoesDRE(models.Model):
     uuid = models.UUIDField(editable=False)
     lote = models.CharField(max_length=50)
     diretoria_regional_id = models.PositiveIntegerField()
@@ -10,5 +10,19 @@ class SolicitacoesAutorizadasDRE(models.Model):
 
     class Meta:
         managed = False
+        abstract = True
+
+
+class SolicitacoesAutorizadasDRE(SolicitacoesDRE):
+
+    class Meta:
+        managed = False
         db_table = "dre_solicitacoes_autorizadas"
+
+
+class SolicitacoesPendentesDRE(SolicitacoesDRE):
+
+    class Meta:
+        managed = False
+        db_table = "dre_solicitacoes_pendentes"
 
