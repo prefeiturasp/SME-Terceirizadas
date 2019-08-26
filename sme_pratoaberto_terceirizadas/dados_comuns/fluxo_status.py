@@ -93,7 +93,7 @@ class InformativoPartindoDaEscolaWorkflow(xwf_models.Workflow):
 
     RASCUNHO = 'RASCUNHO'  # INICIO
     INFORMADO = 'INFORMADO'
-    TERCEIRIZADA_TOMA_CIENCIA = 'CODAE_APROVADO'
+    TERCEIRIZADA_TOMA_CIENCIA = 'TERCEIRIZADA_TOMA_CIENCIA'
 
     states = (
         (RASCUNHO, "Rascunho"),
