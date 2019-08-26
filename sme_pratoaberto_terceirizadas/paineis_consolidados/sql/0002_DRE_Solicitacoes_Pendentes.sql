@@ -1,42 +1,102 @@
-CREATE VIEW DRE_solicitacoes_pendentes AS
--- Essa view consolida todas as solicitacoes pendentes para as DREs
+CREATE OR REPLACE VIEW DRE_solicitacoes_pendentes AS -- Essa view consolida todas as solicitacoes pendentes para as DREs
+ -- Alteracoes de cardapio
 
--- Alteracoes de cardapio
-select cardapio.id, cardapio.uuid, lote.nome AS lote, escola.diretoria_regional_id, max(logs.criado_em) as data, 'ALT_CARDAPIO' as tipo_doc
-from cardapio_alteracaocardapio AS cardapio, escola_escola AS escola, escola_lote AS lote, dados_comuns_logsolicitacoesusuario AS logs
-where escola.id = cardapio.escola_id and lote.id = escola.lote_id and cardapio.uuid = logs.uuid_original and logs.status_evento = 0 and cardapio.status = 'DRE_A_VALIDAR'
-group by cardapio.id, lote.nome, escola.diretoria_regional_id
+SELECT cardapio.id,
+       cardapio.uuid,
+       lote.nome AS lote,
+       escola.diretoria_regional_id,
+       max(logs.criado_em) AS DATA,
+       'ALT_CARDAPIO' AS tipo_doc
+FROM cardapio_alteracaocardapio AS cardapio,
+     escola_escola AS escola,
+     escola_lote AS lote,
+     dados_comuns_logsolicitacoesusuario AS logs
+WHERE escola.id = cardapio.escola_id
+  AND lote.id = escola.lote_id
+  AND cardapio.uuid = logs.uuid_original
+  AND logs.status_evento = 0
+  AND cardapio.status = 'DRE_A_VALIDAR'
+GROUP BY cardapio.id,
+         lote.nome,
+         escola.diretoria_regional_id
+UNION -- Inclusoes de alimentacao
 
-union
+SELECT inc_alimentacao.id,
+       inc_alimentacao.uuid,
+       lote.nome AS lote,
+       escola.diretoria_regional_id,
+       max(logs.criado_em) AS DATA,
+       'INC_ALIMENTA' AS tipo_doc
+FROM inclusao_alimentacao_grupoinclusaoalimentacaonormal AS inc_alimentacao,
+     escola_escola AS escola,
+     escola_lote AS lote,
+     dados_comuns_logsolicitacoesusuario AS logs
+WHERE escola.id = inc_alimentacao.escola_id
+  AND lote.id = escola.lote_id
+  AND inc_alimentacao.uuid = logs.uuid_original
+  AND logs.status_evento = 0
+  AND inc_alimentacao.status = 'DRE_A_VALIDAR'
+GROUP BY inc_alimentacao.id,
+         lote.nome,
+         escola.diretoria_regional_id
+UNION -- Inversoes de cardapio
 
--- Inclusoes de alimentacao
-select inc_alimentacao.id, inc_alimentacao.uuid, lote.nome AS lote, escola.diretoria_regional_id, max(logs.criado_em) as data, 'INC_ALIMENTA' as tipo_doc
-from inclusao_alimentacao_grupoinclusaoalimentacaonormal as inc_alimentacao, escola_escola AS escola, escola_lote AS lote, dados_comuns_logsolicitacoesusuario AS logs
-where escola.id = inc_alimentacao.escola_id and lote.id = escola.lote_id and inc_alimentacao.uuid = logs.uuid_original and logs.status_evento = 0 and inc_alimentacao.status = 'DRE_A_VALIDAR'
-group by inc_alimentacao.id, lote.nome, escola.diretoria_regional_id
+SELECT inv_cardapio.id,
+       inv_cardapio.uuid,
+       lote.nome AS lote,
+       escola.diretoria_regional_id,
+       max(logs.criado_em) AS DATA,
+       'INV_CARDAPIO' AS tipo_doc
+FROM cardapio_inversaocardapio AS inv_cardapio,
+     escola_escola AS escola,
+     escola_lote AS lote,
+     dados_comuns_logsolicitacoesusuario AS logs
+WHERE escola.id = inv_cardapio.escola_id
+  AND lote.id = escola.lote_id
+  AND inv_cardapio.uuid = logs.uuid_original
+  AND logs.status_evento = 0
+  AND inv_cardapio.status = 'DRE_A_VALIDAR'
+GROUP BY inv_cardapio.id,
+         lote.nome,
+         escola.diretoria_regional_id
+UNION -- Kit Lanches Solicitacoes Avulsas
 
-union
+SELECT kit_lanche.id,
+       kit_lanche.uuid,
+       lote.nome AS lote,
+       escola.diretoria_regional_id,
+       max(logs.criado_em) AS DATA,
+       'KIT_LANCHE_AVULSA' AS tipo_doc
+FROM kit_lanche_solicitacaokitlancheavulsa AS kit_lanche,
+     escola_escola AS escola,
+     escola_lote AS lote,
+     dados_comuns_logsolicitacoesusuario AS logs
+WHERE escola.id = kit_lanche.escola_id
+  AND lote.id = escola.lote_id
+  AND kit_lanche.uuid = logs.uuid_original
+  AND logs.status_evento = 0
+  AND kit_lanche.status = 'DRE_A_VALIDAR'
+GROUP BY kit_lanche.id,
+         lote.nome,
+         escola.diretoria_regional_id
+UNION -- Suspensoes de Alimentacao
 
--- Inversoes de cardapio
-select inv_cardapio.id, inv_cardapio.uuid, lote.nome AS lote, escola.diretoria_regional_id, max(logs.criado_em) as data, 'INV_CARDAPIO' as tipo_doc
-from cardapio_inversaocardapio as inv_cardapio, escola_escola AS escola, escola_lote AS lote, dados_comuns_logsolicitacoesusuario AS logs
-where escola.id = inv_cardapio.escola_id and lote.id = escola.lote_id and inv_cardapio.uuid = logs.uuid_original and logs.status_evento = 0 and inv_cardapio.status = 'DRE_A_VALIDAR'
-group by inv_cardapio.id, lote.nome, escola.diretoria_regional_id
-
-union
-
--- Kit Lanches Solicitacoes Avulsas
-select kit_lanche.id, kit_lanche.uuid, lote.nome AS lote, escola.diretoria_regional_id, max(logs.criado_em) as data, 'KIT_LANCHE_AVULSA' as tipo_doc
-from kit_lanche_solicitacaokitlancheavulsa as kit_lanche, escola_escola AS escola, escola_lote AS lote, dados_comuns_logsolicitacoesusuario AS logs
-where escola.id = kit_lanche.escola_id and lote.id = escola.lote_id and kit_lanche.uuid = logs.uuid_original and logs.status_evento = 0 and kit_lanche.status = 'DRE_A_VALIDAR'
-group by kit_lanche.id, lote.nome, escola.diretoria_regional_id
-
-union
-
--- Suspensoes de Alimentacao
-select susp_alimentacao.id, susp_alimentacao.uuid, lote.nome AS lote, escola.diretoria_regional_id, max(logs.criado_em) as data, 'SUSP_ALIMENTACAO' as tipo_doc
-from cardapio_gruposuspensaoalimentacao as susp_alimentacao, escola_escola AS escola, escola_lote AS lote, dados_comuns_logsolicitacoesusuario AS logs
-where escola.id = susp_alimentacao.escola_id and lote.id = escola.lote_id and susp_alimentacao.uuid = logs.uuid_original and logs.status_evento = 0 and susp_alimentacao.status = 'DRE_A_VALIDAR'
-group by susp_alimentacao.id, lote.nome, escola.diretoria_regional_id
-
-order by data desc
+SELECT susp_alimentacao.id,
+       susp_alimentacao.uuid,
+       lote.nome AS lote,
+       escola.diretoria_regional_id,
+       max(logs.criado_em) AS DATA,
+       'SUSP_ALIMENTACAO' AS tipo_doc
+FROM cardapio_gruposuspensaoalimentacao AS susp_alimentacao,
+     escola_escola AS escola,
+     escola_lote AS lote,
+     dados_comuns_logsolicitacoesusuario AS logs
+WHERE escola.id = susp_alimentacao.escola_id
+  AND lote.id = escola.lote_id
+  AND susp_alimentacao.uuid = logs.uuid_original
+  AND logs.status_evento = 0
+  AND susp_alimentacao.status = 'DRE_A_VALIDAR'
+GROUP BY susp_alimentacao.id,
+         lote.nome,
+         escola.diretoria_regional_id
+ORDER BY DATA DESC
