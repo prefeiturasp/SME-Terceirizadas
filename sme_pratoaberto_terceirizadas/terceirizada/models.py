@@ -1,6 +1,7 @@
 from django.core.validators import MinLengthValidator
 from django.db import models
 
+from sme_pratoaberto_terceirizadas.kit_lanche.models import SolicitacaoKitLancheAvulsa
 from ..cardapio.models import (
     AlteracaoCardapio,
     InversaoCardapio
@@ -233,6 +234,18 @@ class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel):
         else:
             inversoes_cardapio = InversaoCardapio.objects
         return inversoes_cardapio.filter(
+            status=InversaoCardapio.workflow_class.CODAE_APROVADO
+        )
+
+    def solicitacoes_kit_lanche_das_minhas_escolas_a_validar(self, filtro_aplicado):
+        if filtro_aplicado == "daqui_a_7_dias":
+            solicitacoes_kit_lanche = SolicitacaoKitLancheAvulsa.prazo_limite_daqui_a_7_dias
+        elif filtro_aplicado == "daqui_a_30_dias":
+            solicitacoes_kit_lanche = SolicitacaoKitLancheAvulsa.prazo_limite_daqui_a_30_dias
+        else:
+            solicitacoes_kit_lanche = SolicitacaoKitLancheAvulsa.objects
+        return solicitacoes_kit_lanche.filter(
+            escola__lote__in=self.lotes.all(),
             status=InversaoCardapio.workflow_class.CODAE_APROVADO
         )
 

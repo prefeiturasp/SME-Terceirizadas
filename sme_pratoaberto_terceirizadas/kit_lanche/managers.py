@@ -60,7 +60,7 @@ class SolicitacaoKitLancheAvulsaPrazoRegularDaquiA7DiasManager(models.Manager):
 
 class SolicitacaoKitLancheAvulsaPrazoRegularDaquiA30DiasManager(models.Manager):
     def get_queryset(self):
-        data_limite_inicial = obter_dias_uteis_apos_hoje(quantidade_dias=5)
+        data_limite_inicial = obter_dias_uteis_apos_hoje(quantidade_dias=2)
         data_limite_final = datetime.date.today() + datetime.timedelta(days=31)
         return super(SolicitacaoKitLancheAvulsaPrazoRegularDaquiA30DiasManager, self).get_queryset().filter(
             solicitacao_kit_lanche__data__range=(data_limite_inicial, data_limite_final)
