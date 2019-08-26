@@ -2,10 +2,10 @@ import datetime
 
 from rest_framework import serializers
 
-from ..models import SolicitacoesAutorizadasDRE
+from ..models import SolicitacoesAutorizadasDRE, SolicitacoesPendentesDRE
 
 
-class SolicitacoesAutorizadasDRESerializer(serializers.ModelSerializer):
+class SolicitacoesDRESerializer(serializers.ModelSerializer):
     # TODO Campos para compatibilidade com o Front atual. Rever o front e remover os campos calculados.
     date = serializers.SerializerMethodField()
     text = serializers.SerializerMethodField()
@@ -20,8 +20,22 @@ class SolicitacoesAutorizadasDRESerializer(serializers.ModelSerializer):
         return f'{obj.data.date():%d/%m/%Y}'
 
     class Meta:
-        model = SolicitacoesAutorizadasDRE
+        abstract = True
+
+
+class SolicitacoesAutorizadasDRESerializer(SolicitacoesDRESerializer):
+
+    class Meta:
         fields = '__all__'
+        model = SolicitacoesAutorizadasDRE
+
+
+class SolicitacoesPendentesDRESerializer(SolicitacoesDRESerializer):
+
+    class Meta:
+        fields = '__all__'
+        model = SolicitacoesPendentesDRE
+
 
 
 
