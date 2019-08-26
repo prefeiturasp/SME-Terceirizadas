@@ -1,7 +1,7 @@
 import pytest
 from model_mommy import mommy
 
-from sme_pratoaberto_terceirizadas.dados_comuns.models_abstract import TempoPasseio
+from ...dados_comuns.models_abstract import TempoPasseio
 
 pytestmark = pytest.mark.django_db
 
