@@ -11,6 +11,8 @@ from sme_pratoaberto_terceirizadas.kit_lanche.models import SolicitacaoKitLanche
 from sme_pratoaberto_terceirizadas.perfil.models import Usuario
 from ..dados_comuns.models_abstract import (Ativavel, Iniciais, Nomeavel, TemChaveExterna)
 
+from ..paineis_consolidados.models import SolicitacoesAutorizadasDRE, SolicitacoesPendentesDRE
+
 
 class DiretoriaRegional(Nomeavel, TemChaveExterna):
     usuarios = models.ManyToManyField(Usuario, related_name='diretorias_regionais', blank=True)
@@ -228,6 +230,15 @@ class DiretoriaRegional(Nomeavel, TemChaveExterna):
             status=InversaoCardapio.workflow_class.DRE_A_VALIDAR
         )
 
+    #
+    # Consultas consolidadas de todos os tipos de solicitação para a DRE
+    #
+    def solicitacoes_autorizadas(self):
+        return SolicitacoesAutorizadasDRE.objects.filter(diretoria_regional_id=self.id)
+
+    def solicitacoes_pendentes(self):
+        return SolicitacoesPendentesDRE.objects.filter(diretoria_regional_id=self.id)
+
     def __str__(self):
         return self.nome
 
@@ -407,6 +418,22 @@ class Subprefeitura(Nomeavel, TemChaveExterna):
 
 class Codae(Nomeavel, TemChaveExterna):
     usuarios = models.ManyToManyField(Usuario, related_name='CODAE', blank=True)
+
+    #
+    # Inversões de cardápio
+    #
+
+    def inversoes_cardapio_das_minhas_escolas(self, filtro_aplicado):
+        if filtro_aplicado == "daqui_a_7_dias":
+            inversoes_cardapio = InversaoCardapio.prazo_limite_daqui_a_7_dias
+        elif filtro_aplicado == "daqui_a_30_dias":
+            inversoes_cardapio = InversaoCardapio.prazo_limite_daqui_a_30_dias
+        else:
+            # inversoes_cardapio = InversaoCardapio.prazo_limite
+            inversoes_cardapio = InversaoCardapio.objects
+        return inversoes_cardapio.filter(
+            status=InversaoCardapio.workflow_class.DRE_APROVADO
+        )
 
     @property
     def inclusoes_continuas_aprovadas(self):

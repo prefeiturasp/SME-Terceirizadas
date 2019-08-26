@@ -70,12 +70,27 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
     @action(detail=False,
             url_path="pedidos-codae/"
                      "(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)")
-    def pedidos_diretoria_regional(self, request, filtro_aplicado="sem_filtro"):
+    def pedidos_codae(self, request, filtro_aplicado="sem_filtro"):
         # TODO: colocar regras de codae CODAE aqui...
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
-        diretoria_regional = usuario.diretorias_regionais.first()
-        inversoes_cardapio = diretoria_regional.inversoes_cardapio_das_minhas_escolas(
+        codae = usuario.CODAE.first()
+        inversoes_cardapio = codae.inversoes_cardapio_das_minhas_escolas(
+            filtro_aplicado
+        )
+        page = self.paginate_queryset(inversoes_cardapio)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False,
+            url_path="pedidos-terceirizada/"
+                     "(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)")
+    def pedidos_terceirizada(self, request, filtro_aplicado="sem_filtro"):
+        # TODO: colocar regras de Terceirizada aqui...
+        usuario = request.user
+        # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
+        terceirizada = usuario.terceirizadas.first()
+        inversoes_cardapio = terceirizada.inversoes_cardapio_das_minhas_escolas(
             filtro_aplicado
         )
         page = self.paginate_queryset(inversoes_cardapio)
