@@ -210,6 +210,13 @@ class GrupoSuspensaoAlimentacaoSerializerViewSet(viewsets.ModelViewSet):
     serializer_class = GrupoSuspensaoAlimentacaoSerializer
 
     @action(detail=False, methods=['GET'])
+    def informadas(self, request):
+        grupo_informados = GrupoSuspensaoAlimentacao.get_informados()
+        page = self.paginate_queryset(grupo_informados)
+        serializer = GrupoSuspensaoAlimentacaoSerializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False, methods=['GET'])
     def meus_rascunhos(self, request):
         usuario = request.user
         grupos_suspensao = GrupoSuspensaoAlimentacao.get_rascunhos_do_usuario(usuario)

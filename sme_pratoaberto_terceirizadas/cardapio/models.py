@@ -240,6 +240,12 @@ class GrupoSuspensaoAlimentacao(TemChaveExterna, CriadoPor, TemIdentificadorExte
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING)
 
     @classmethod
+    def get_informados(cls):
+        return cls.objects.filter(
+            status=cls.workflow_class.INFORMADO
+        )
+
+    @classmethod
     def get_rascunhos_do_usuario(cls, usuario):
         return cls.objects.filter(
             criado_por=usuario,
