@@ -2,10 +2,9 @@ from rest_framework import serializers
 
 from ..models import (
     Escola, PeriodoEscolar, DiretoriaRegional, Subprefeitura,
-    FaixaIdadeEscolar, TipoUnidadeEscolar, TipoGestao, Lote
-)
+    FaixaIdadeEscolar, TipoUnidadeEscolar, TipoGestao, Lote,
+    Codae)
 from ...cardapio.models import TipoAlimentacao
-
 from ...perfil.api.serializers import PerfilSerializer
 from ...perfil.models import Usuario
 from ...terceirizada.api.serializers.serializers import TerceirizadaSimplesSerializer
@@ -141,3 +140,11 @@ class UsuarioDetalheSerializer(serializers.ModelSerializer):
     class Meta:
         model = Usuario
         fields = ('uuid', 'nome', 'email', 'date_joined', 'perfis', 'escolas', 'diretorias_regionais')
+
+
+class CODAESerializer(serializers.ModelSerializer):
+    quantidade_alunos = serializers.IntegerField()
+
+    class Meta:
+        model = Codae
+        fields = '__all__'
