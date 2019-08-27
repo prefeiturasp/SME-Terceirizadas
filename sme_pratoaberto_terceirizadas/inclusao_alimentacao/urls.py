@@ -9,8 +9,6 @@ router.register('motivos-inclusao-continua', viewsets.MotivoInclusaoContinuaView
                 basename='motivo-inclusao-continua')
 router.register('motivos-inclusao-normal', viewsets.MotivoInclusaoNormalViewSet,
                 basename='motivo-inclusao-normal')
-router.register('inclusoes-alimentacao-normal', viewsets.InclusaoAlimentacaoNormalViewSet,
-                basename='inclusao-alimentacao-normal')
 router.register('grupos-inclusao-alimentacao-normal', viewsets.GrupoInclusaoAlimentacaoNormalViewSet,
                 basename='grupo-inclusao-alimentacao-normal')
 router.register('inclusoes-alimentacao-continua', viewsets.InclusaoAlimentacaoContinuaViewSet,

@@ -15,6 +15,7 @@ router.register('diretorias-regionais-simplissima', viewsets.DiretoriaRegionalSi
 router.register('lotes', viewsets.LoteViewSet, basename='lotes')
 router.register('tipos-gestao', viewsets.TipoGestaoViewSet, basename="tipos-gestao")
 router.register('subprefeituras', viewsets.SubprefeituraViewSet, basename="subprefeituras")
+router.register('codae', viewsets.CODAESimplesViewSet, basename="codae")
 
 urlpatterns = [
     path('', include(router.urls))

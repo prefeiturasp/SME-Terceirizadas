@@ -3,15 +3,18 @@ from django.core.validators import MinLengthValidator
 from django.db import models
 from django.db.models import Sum
 
-from sme_pratoaberto_terceirizadas.cardapio.models import (AlteracaoCardapio, InversaoCardapio)
-from sme_pratoaberto_terceirizadas.inclusao_alimentacao.models import (
+from ..cardapio.models import (
+    AlteracaoCardapio, InversaoCardapio
+)
+from ..dados_comuns.models_abstract import (
+    Ativavel, Iniciais, Nomeavel, TemChaveExterna
+)
+from ..inclusao_alimentacao.models import (
     InclusaoAlimentacaoContinua, GrupoInclusaoAlimentacaoNormal
 )
-from sme_pratoaberto_terceirizadas.kit_lanche.models import SolicitacaoKitLancheAvulsa
-from sme_pratoaberto_terceirizadas.perfil.models import Usuario
-from ..dados_comuns.models_abstract import (Ativavel, Iniciais, Nomeavel, TemChaveExterna)
-
+from ..kit_lanche.models import SolicitacaoKitLancheAvulsa
 from ..paineis_consolidados.models import SolicitacoesAutorizadasDRE, SolicitacoesPendentesDRE
+from ..perfil.models import Usuario
 
 
 class DiretoriaRegional(Nomeavel, TemChaveExterna):
@@ -431,6 +434,12 @@ class Subprefeitura(Nomeavel, TemChaveExterna):
 
 class Codae(Nomeavel, TemChaveExterna):
     usuarios = models.ManyToManyField(Usuario, related_name='CODAE', blank=True)
+
+    @property
+    def quantidade_alunos(self):
+        escolas = Escola.objects.all()
+        quantidade_result = escolas.aggregate(Sum('quantidade_alunos'))
+        return quantidade_result.get('quantidade_alunos__sum', 0)
 
     #
     # Inversões de cardápio
