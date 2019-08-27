@@ -15,7 +15,7 @@ f = Faker('pt-br')
 f.seed(420)
 hoje = datetime.datetime.today()
 
-edital, created_edital = Edital.objects.first()
+edital = Edital.objects.first()
 
 
 def gera_muitos_cardapios(qtd=360):
