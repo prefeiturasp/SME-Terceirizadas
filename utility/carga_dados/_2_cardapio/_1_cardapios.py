@@ -15,12 +15,7 @@ f = Faker('pt-br')
 f.seed(420)
 hoje = datetime.datetime.today()
 
-OBJETO = "Contratação de empresa especializada para prestação de serviço de nutrição e alimentação escolar - terceirização total"
-
-edital, created_edital = Edital.objects.get_or_create(numero="78/SME/2016",
-                                                      tipo_contratacao="Pregão eletrônico",
-                                                      processo="6016.2016/0003098-3",
-                                                      objeto=OBJETO)
+edital, created_edital = Edital.objects.first()
 
 
 def gera_muitos_cardapios(qtd=360):

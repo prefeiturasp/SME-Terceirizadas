@@ -6,13 +6,16 @@ Diretoria regional:
 
 import numpy as np
 import pandas as pd
+import environ
 
 from sme_pratoaberto_terceirizadas.dados_comuns.models import Endereco, Contato
 from sme_pratoaberto_terceirizadas.escola.models import (Lote, TipoUnidadeEscolar, TipoGestao, Escola,
                                                          DiretoriaRegional)
 from utility.carga_dados.escola.helper import coloca_zero_a_esquerda, normaliza_nome, somente_digitos
 
-df = pd.read_excel('/home/amcom/Documentos/docs PO alimentacao/escola_dre_codae.xlsx',
+ROOT_DIR = environ.Path(__file__) -1
+
+df = pd.read_excel(f'{ROOT_DIR}/planilhas_de_carga/escola_dre_codae.xlsx',
                    converters={'EOL': str,
                                'TELEFONE2': str,
                                'COD. CODAE': str,
