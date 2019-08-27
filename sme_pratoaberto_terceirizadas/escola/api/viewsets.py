@@ -1,21 +1,24 @@
 from rest_framework.decorators import action
 from rest_framework.viewsets import ReadOnlyModelViewSet, ModelViewSet
 
-from ...escola.api.serializers import LoteSimplesSerializer
+from .serializers import (
+    EscolaCompletaSerializer, PeriodoEscolarSerializer, DiretoriaRegionalCompletaSerializer,
+    TipoGestaoSerializer, SubprefeituraSerializer, EscolaSimplesSerializer,
+    DiretoriaRegionalSimplissimaSerializer, EscolaSimplissimaSerializer
+)
+from ..models import (
+    Escola, PeriodoEscolar, DiretoriaRegional, Lote, TipoGestao, Subprefeitura,
+    Codae)
+from ...escola.api.serializers import LoteSimplesSerializer, CODAESerializer
 from ...escola.api.serializers_create import LoteCreateSerializer
-
 from ...inclusao_alimentacao.api.serializers.serializers import (
-    GrupoInclusaoAlimentacaoNormalSerializer, InclusaoAlimentacaoContinuaSerializer)
-
-from .serializers import (EscolaCompletaSerializer, PeriodoEscolarSerializer, DiretoriaRegionalCompletaSerializer,
-                          TipoGestaoSerializer, SubprefeituraSerializer, EscolaSimplesSerializer,
-                          DiretoriaRegionalSimplissimaSerializer, EscolaSimplissimaSerializer,)
-from ..models import (Escola, PeriodoEscolar, DiretoriaRegional, Lote, TipoGestao, Subprefeitura)
-
+    GrupoInclusaoAlimentacaoNormalSerializer, InclusaoAlimentacaoContinuaSerializer
+)
 from ...paineis_consolidados.api.serializers import (
     SolicitacoesAutorizadasDRESerializer,
     SolicitacoesPendentesDRESerializer
 )
+
 
 # https://www.django-rest-framework.org/api-guide/permissions/#custom-permissions
 
@@ -118,3 +121,9 @@ class LoteViewSet(ModelViewSet):
         if self.action in ['create', 'update', 'partial_update']:
             return LoteCreateSerializer
         return LoteSimplesSerializer
+
+
+class CODAESimplesViewSet(ReadOnlyModelViewSet):
+    lookup_field = 'uuid'
+    queryset = Codae.objects.all()
+    serializer_class = CODAESerializer
