@@ -7,7 +7,7 @@ import random
 import numpy as np
 from faker import Faker
 
-from sme_pratoaberto_terceirizadas.cardapio.models import TipoAlimentacao
+from sme_pratoaberto_terceirizadas.cardapio.models import TipoAlimentacao, InversaoCardapio, Cardapio
 from sme_pratoaberto_terceirizadas.escola.models import Escola, DiretoriaRegional, PeriodoEscolar
 from sme_pratoaberto_terceirizadas.inclusao_alimentacao.models import InclusaoAlimentacaoContinua, \
     MotivoInclusaoContinua, GrupoInclusaoAlimentacaoNormal, QuantidadePorPeriodo, InclusaoAlimentacaoNormal, \
@@ -29,6 +29,10 @@ def vincula_dre_escola_usuario():
     usuario = Usuario.objects.first()
     usuario.diretorias_regionais.set(dres)
     usuario.escolas.set(escolas)
+
+
+def _get_random_cardapio():
+    return Cardapio.objects.order_by("?").first()
 
 
 def _get_random_motivo_continuo():
@@ -69,7 +73,7 @@ def _get_random_tipos_alimentacao():
 
 
 def fluxo_escola_felix(obj, user):
-    print(f'aplicando fluxo ESCOLA feliz em {obj}')
+    # print(f'aplicando fluxo ESCOLA feliz em {obj}')
     obj.inicia_fluxo(user=user, notificar=True)
     if random.random() >= 0.1:
         obj.dre_aprovou(user=user, notificar=True)
@@ -80,7 +84,7 @@ def fluxo_escola_felix(obj, user):
 
 
 def fluxo_dre_felix(obj, user):
-    print(f'aplicando fluxo DRE feliz em {obj}')
+    # print(f'aplicando fluxo DRE feliz em {obj}')
     obj.inicia_fluxo(user=user, notificar=True)
     if random.random() >= 0.1:
         obj.codae_aprovou(user=user, notificar=True)
@@ -89,7 +93,7 @@ def fluxo_dre_felix(obj, user):
 
 
 def fluxo_escola_loop(obj, user):
-    print(f'aplicando fluxo loop revisao dre-escola em {obj}')
+    # print(f'aplicando fluxo loop revisao dre-escola em {obj}')
     obj.inicia_fluxo(user=user, notificar=True)
     obj.dre_pediu_revisao(user=user, notificar=True)
     obj.escola_revisou(user=user, notificar=True)
@@ -186,13 +190,50 @@ def cria_solicitacoes_kit_lanche_avulsa(qtd=50):
         fluxo_escola_felix(avulsa, user)
 
 
-# print('-> vinculando escola dre e usuarios')
-# vincula_dre_escola_usuario()
-# print('-> criando inclusoes continuas')
-# cria_inclusoes_continuas()
-# print('-> criando inclusoes normais')
-# cria_inclusoes_normais()
-# print('-> criando solicicitacoes kit lanche unificada')
-# cria_solicitacoes_kit_lanche_unificada()
+# cardapio_de = models.ForeignKey(Cardapio, on_delete=models.DO_NOTHING,
+#                                     blank=True, null=True,
+#                                     related_name='cardapio_de')
+#     cardapio_para = models.ForeignKey(Cardapio, on_delete=models.DO_NOTHING,
+#                                       blank=True, null=True,
+#                                       related_name='cardapio_para')
+#     escola = models.ForeignKey('escola.Escola', blank=True, null=True,
+#                                on_delete=models.DO_NOTHING)
+
+def cria_inversoes_cardapio(qtd=50):
+    user = Usuario.objects.first()
+    for i in range(qtd):
+        inversao = InversaoCardapio(
+            criado_por=user,
+            observacao=f.text()[:100],
+            motivo=f.text()[:40],
+            escola=_get_random_escola(),
+            cardapio_de=_get_random_cardapio(),
+            cardapio_para=_get_random_cardapio())
+        fluxo_escola_felix(inversao, user)
+
+
+# def cria_alteracoes_cardapio(qtd=50):
+#     user = Usuario.objects.first()
+#     for i in range(qtd):
+#         alteracao_cardapio = AlteracaoCardapio(
+#             criado_por=user,
+#             observacao=f.text()[:100],
+#             motivo=f.text()[:40],
+#             escola=_get_random_escola(),
+#             cardapio_de=_get_random_cardapio(),
+#             cardapio_para=_get_random_cardapio())
+#         fluxo_escola_felix(alteracao_cardapio, user)
+
+
+print('-> vinculando escola dre e usuarios')
+vincula_dre_escola_usuario()
+print('-> criando inclusoes continuas')
+cria_inclusoes_continuas(666)
+print('-> criando inclusoes normais')
+cria_inclusoes_normais(666)
+print('-> criando solicicitacoes kit lanche unificada')
+cria_solicitacoes_kit_lanche_unificada(666)
 print('-> criando solicicitacoes kit lanche avulsa')
-cria_solicitacoes_kit_lanche_avulsa()
+cria_solicitacoes_kit_lanche_avulsa(666)
+print('-> criando inversoes de cardapio')
+cria_inversoes_cardapio(666)

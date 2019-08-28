@@ -21,12 +21,19 @@ Comandos Básicos
 
 Carga inicial de dados
 ^^^^^^^^^^^^^^^^^^^^^^
+* Rodar as migrations::
+
+    $ ./manage.py migrate
+
+* Criar o super usuário::
+
+    $ ./manage.py createsuperuser
 
 * Carregar as fixtures::
 
     $ ./manage.py loaddata sme_pratoaberto_terceirizadas/**/fixtures/*.json
 
-* Carregar dados de planilhas excel::
+* Carregar dados de planilhas excel junto com pedidos fake::
 
     $ ./manage.py shell_plus
     $ from utility.carga_dados import run
