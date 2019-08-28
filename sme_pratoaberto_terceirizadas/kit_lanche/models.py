@@ -2,6 +2,7 @@ import datetime
 
 from django.db import models
 
+from sme_pratoaberto_terceirizadas.dados_comuns.utils import obter_dias_uteis_apos_hoje
 from .managers import (
     SolicitacaoKitLancheAvulsaPrazoVencendoManager,
     SolicitacaoKitLancheAvulsaPrazoVencendoHojeManager,
