@@ -13,6 +13,7 @@ from sme_pratoaberto_terceirizadas.escola.models import (Lote, TipoUnidadeEscola
                                                          DiretoriaRegional)
 from utility.carga_dados.escola.helper import coloca_zero_a_esquerda, normaliza_nome, somente_digitos
 
+
 ROOT_DIR = environ.Path(__file__) -1
 
 df = pd.read_excel(f'{ROOT_DIR}/planilhas_de_carga/escola_dre_codae.xlsx',

@@ -10,7 +10,8 @@ from .permissions import (
     PodeRecusarPelaCODAEAlteracaoCardapioPermission,
 )
 from .permissions import (
-    PodeIniciarSuspensaoDeAlimentacaoPermission
+    PodeIniciarSuspensaoDeAlimentacaoPermission,
+    PodeTomarCienciaSuspensaoDeAlimentacaoPermission
 )
 from .serializers.serializers import (
     CardapioSerializer, TipoAlimentacaoSerializer,
@@ -254,6 +255,17 @@ class GrupoSuspensaoAlimentacaoSerializerViewSet(viewsets.ModelViewSet):
         grupo_suspensao_de_alimentacao = self.get_object()
         try:
             grupo_suspensao_de_alimentacao.informa(user=request.user, notificar=True)
+            serializer = self.get_serializer(grupo_suspensao_de_alimentacao)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, permission_classes=[PodeTomarCienciaSuspensaoDeAlimentacaoPermission],
+            methods=['patch'], url_path='terceirizada-toma-ciencia')
+    def terceirizada_tomou_ciencia(self, request, uuid=None):
+        grupo_suspensao_de_alimentacao = self.get_object()
+        try:
+            grupo_suspensao_de_alimentacao.terceirizada_tomou_ciencia(user=request.user, notificar=True)
             serializer = self.get_serializer(grupo_suspensao_de_alimentacao)
             return Response(serializer.data)
         except InvalidTransitionError as e:

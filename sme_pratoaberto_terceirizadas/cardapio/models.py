@@ -233,7 +233,7 @@ class QuantidadePorPeriodoSuspensaoAlimentacao(TemChaveExterna):
 
 
 class GrupoSuspensaoAlimentacao(TemChaveExterna, CriadoPor, TemIdentificadorExternoAmigavel,
-                                CriadoEm, TemObservacao, FluxoInformativoPartindoDaEscola):
+                                CriadoEm, TemObservacao, FluxoInformativoPartindoDaEscola, Logs):
     """
         Serve para agrupar suspensões
     """
@@ -284,7 +284,13 @@ class GrupoSuspensaoAlimentacao(TemChaveExterna, CriadoPor, TemIdentificadorExte
         return template.assunto, corpo
 
     def salvar_log_transicao(self, status_evento, usuario):
-        pass
+        LogSolicitacoesUsuario.objects.create(
+            descricao=str(self),
+            status_evento=status_evento,
+            solicitacao_tipo=LogSolicitacoesUsuario.SUSPENSAO_DE_CARDAPIO,
+            usuario=usuario,
+            uuid_original=self.uuid
+        )
 
     class Meta:
         verbose_name = "Grupo de suspensão de alimentação"
