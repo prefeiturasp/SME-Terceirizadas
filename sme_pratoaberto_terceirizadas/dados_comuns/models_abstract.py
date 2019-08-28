@@ -336,9 +336,9 @@ class FluxoAprovacaoPartindoDaDiretoriaRegional(xwf_models.WorkflowEnabled, mode
         """
         TODO: retornar usuários CODAE, esse abaixo é so pra passar...
         """
-        dre = self.escola.diretoria_regional
-        usuarios_dre = dre.usuarios.all()
-        return usuarios_dre
+        # dre = self.escola.diretoria_regional
+        # usuarios_dre = dre.usuarios.all()
+        return []
 
     @property
     def template_mensagem(self):

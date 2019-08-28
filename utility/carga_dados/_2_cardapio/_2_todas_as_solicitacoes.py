@@ -4,6 +4,7 @@
 import datetime
 import random
 
+import numpy as np
 from faker import Faker
 
 from sme_pratoaberto_terceirizadas.cardapio.models import TipoAlimentacao
@@ -11,6 +12,8 @@ from sme_pratoaberto_terceirizadas.escola.models import Escola, DiretoriaRegiona
 from sme_pratoaberto_terceirizadas.inclusao_alimentacao.models import InclusaoAlimentacaoContinua, \
     MotivoInclusaoContinua, GrupoInclusaoAlimentacaoNormal, QuantidadePorPeriodo, InclusaoAlimentacaoNormal, \
     MotivoInclusaoNormal
+from sme_pratoaberto_terceirizadas.kit_lanche.models import MotivoSolicitacaoUnificada, SolicitacaoKitLancheUnificada, \
+    SolicitacaoKitLanche, KitLanche, SolicitacaoKitLancheAvulsa
 from sme_pratoaberto_terceirizadas.perfil.models import Usuario
 
 f = Faker('pt-br')
@@ -32,8 +35,16 @@ def _get_random_motivo_continuo():
     return MotivoInclusaoContinua.objects.order_by("?").first()
 
 
+def _get_kit_lanches():
+    return KitLanche.objects.all()
+
+
 def _get_random_motivo_normal():
     return MotivoInclusaoNormal.objects.order_by("?").first()
+
+
+def _get_random_motivo_unificado_kit_lanche():
+    return MotivoSolicitacaoUnificada.objects.order_by("?").first()
 
 
 def _get_random_escola():
@@ -58,7 +69,7 @@ def _get_random_tipos_alimentacao():
 
 
 def fluxo_escola_felix(obj, user):
-    print(f'aplicando fluxo feliz em {obj}')
+    print(f'aplicando fluxo ESCOLA feliz em {obj}')
     obj.inicia_fluxo(user=user, notificar=True)
     if random.random() >= 0.1:
         obj.dre_aprovou(user=user, notificar=True)
@@ -66,6 +77,15 @@ def fluxo_escola_felix(obj, user):
             obj.codae_aprovou(user=user, notificar=True)
             if random.random() >= 0.3:
                 obj.terceirizada_tomou_ciencia(user=user, notificar=True)
+
+
+def fluxo_dre_felix(obj, user):
+    print(f'aplicando fluxo DRE feliz em {obj}')
+    obj.inicia_fluxo(user=user, notificar=True)
+    if random.random() >= 0.1:
+        obj.codae_aprovou(user=user, notificar=True)
+        if random.random() >= 0.3:
+            obj.terceirizada_tomou_ciencia(user=user, notificar=True)
 
 
 def fluxo_escola_loop(obj, user):
@@ -84,7 +104,7 @@ def cria_inclusoes_continuas(qtd=50):
             escola=_get_random_escola(),
             outro_motivo=f.text()[:20],
             descricao=f.text()[:160], criado_por=user,
-            dias_semana=[1, 4, 5],
+            dias_semana=list(np.random.randint(6, size=4)),
             data_inicial=hoje + datetime.timedelta(
                 days=random.randint(1, 30)),
             data_final=hoje + datetime.timedelta(
@@ -123,9 +143,56 @@ def cria_inclusoes_normais(qtd=50):
         fluxo_escola_felix(grupo_inclusao_normal, user)
 
 
-print('-> vinculando escola dre e usuarios')
-vincula_dre_escola_usuario()
-print('-> criando inclusoes continuas')
-cria_inclusoes_continuas()
-print('-> criando inclusoes normais')
-cria_inclusoes_normais()
+def cria_solicitacoes_kit_lanche_unificada(qtd=50):
+    user = Usuario.objects.first()
+    for i in range(qtd):
+        base = SolicitacaoKitLanche.objects.create(
+            data=hoje + datetime.timedelta(days=random.randint(1, 30)),
+            motivo=f.text()[:40],
+            descricao=f.text()[:160],
+            tempo_passeio=SolicitacaoKitLanche.QUATRO)
+        kits = _get_kit_lanches()[:2]
+        base.kits.set(kits)
+
+        unificada = SolicitacaoKitLancheUnificada.objects.create(
+            criado_por=user,
+            motivo=_get_random_motivo_unificado_kit_lanche(),
+            outro_motivo=f.text()[:40],
+            quantidade_max_alunos_por_escola=666,
+            local=f.text()[:150],
+            lista_kit_lanche_igual=True,
+            diretoria_regional=_get_random_dre(),
+            solicitacao_kit_lanche=base,
+        )
+        fluxo_dre_felix(unificada, user)
+
+
+def cria_solicitacoes_kit_lanche_avulsa(qtd=50):
+    user = Usuario.objects.first()
+    for i in range(qtd):
+        base = SolicitacaoKitLanche.objects.create(
+            data=hoje + datetime.timedelta(days=random.randint(1, 30)),
+            motivo=f.text()[:40],
+            descricao=f.text()[:160],
+            tempo_passeio=SolicitacaoKitLanche.QUATRO)
+        kits = _get_kit_lanches()[:2]
+        base.kits.set(kits)
+        avulsa = SolicitacaoKitLancheAvulsa.objects.create(
+            criado_por=user,
+            quantidade_alunos=random.randint(20, 200),
+            local=f.text()[:150],
+            escola=_get_random_escola(),
+            solicitacao_kit_lanche=base)
+        fluxo_escola_felix(avulsa, user)
+
+
+# print('-> vinculando escola dre e usuarios')
+# vincula_dre_escola_usuario()
+# print('-> criando inclusoes continuas')
+# cria_inclusoes_continuas()
+# print('-> criando inclusoes normais')
+# cria_inclusoes_normais()
+# print('-> criando solicicitacoes kit lanche unificada')
+# cria_solicitacoes_kit_lanche_unificada()
+print('-> criando solicicitacoes kit lanche avulsa')
+cria_solicitacoes_kit_lanche_avulsa()
