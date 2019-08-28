@@ -23,7 +23,7 @@ def gera_muitos_cardapios(qtd=360):
     cont = 0
     alimentacoes_selecionadas = []
     for i in range(qtd):
-        for _ in range(5):  # seleciona 5 tipos de alm
+        for _ in range(5):
             x = random.choice(tipos_alimentacao)
             alimentacoes_selecionadas.append(x)
 
