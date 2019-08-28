@@ -8,7 +8,7 @@ import numpy as np
 from faker import Faker
 
 from sme_pratoaberto_terceirizadas.cardapio.models import TipoAlimentacao, InversaoCardapio, Cardapio
-from sme_pratoaberto_terceirizadas.escola.models import Escola, DiretoriaRegional, PeriodoEscolar
+from sme_pratoaberto_terceirizadas.escola.models import Escola, DiretoriaRegional, PeriodoEscolar, Codae
 from sme_pratoaberto_terceirizadas.inclusao_alimentacao.models import InclusaoAlimentacaoContinua, \
     MotivoInclusaoContinua, GrupoInclusaoAlimentacaoNormal, QuantidadePorPeriodo, InclusaoAlimentacaoNormal, \
     MotivoInclusaoNormal
@@ -22,13 +22,16 @@ hoje = datetime.datetime.today()
 
 
 def vincula_dre_escola_usuario():
-    dres = DiretoriaRegional.objects.filter(id__lte=5)
-    escolas = Escola.objects.filter(id__lte=5)
+    dres = DiretoriaRegional.objects.filter(pk=1)
+    escolas = Escola.objects.filter(pk=1)
+    codae, created = Codae.objects.get_or_create(nome='teste')
     for dre in dres:
         dre.escolas.set(escolas)
     usuario = Usuario.objects.first()
     usuario.diretorias_regionais.set(dres)
     usuario.escolas.set(escolas)
+
+    codae.usuarios.set([usuario])
 
 
 def _get_random_cardapio():
