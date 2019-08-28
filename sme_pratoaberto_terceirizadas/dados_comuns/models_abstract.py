@@ -353,6 +353,12 @@ class FluxoInformativoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model)
         return usuarios_dre
 
     @property
+    def partes_interessadas_terceirizadas_tomou_ciencia(self):
+        # TODO: filtrar usuários Escolas
+        usuarios_terceirizadas = models_perfil.Usuario.objects.filter()
+        return usuarios_terceirizadas
+
+    @property
     def template_mensagem(self):
         raise NotImplementedError('Deve criar um property que recupera o assunto e corpo mensagem desse objeto')
 
@@ -364,6 +370,20 @@ class FluxoInformativoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model)
                                    recipients=self.partes_interessadas_informacao,
                                    short_desc=assunto,
                                    long_desc=corpo)
+        self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.SUSPENSAO_DE_CARDAPIO,
+                                  usuario=user)
+
+    @xworkflows.after_transition('terceirizada_tomou_ciencia')
+    def _terceirizada_tomou_ciencia_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        if user and kwargs.get('notificar', False):
+            assunto, corpo = self.template_mensagem
+            enviar_notificacao_e_email(sender=user,
+                                       recipients=self.partes_interessadas_terceirizadas_tomou_ciencia,
+                                       short_desc=assunto,
+                                       long_desc=corpo)
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_TOMA_CIENCIA,
+                                      usuario=user)
 
     class Meta:
         abstract = True
