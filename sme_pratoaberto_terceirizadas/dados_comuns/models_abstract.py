@@ -332,13 +332,25 @@ class FluxoAprovacaoPartindoDaDiretoriaRegional(xwf_models.WorkflowEnabled, mode
         return self.status == self.workflow_class.CODAE_APROVADO
 
     @property
+    def partes_interessadas_codae_aprovou(self):
+        # TODO: filtrar usuários Terceirizadas
+        usuarios_terceirizadas = models_perfil.Usuario.objects.filter()
+        return usuarios_terceirizadas
+
+    @property
     def partes_interessadas_inicio_fluxo(self):
         """
         TODO: retornar usuários CODAE, esse abaixo é so pra passar...
         """
-        # dre = self.escola.diretoria_regional
-        # usuarios_dre = dre.usuarios.all()
-        return []
+        dre = self.diretoria_regional
+        usuarios_dre = dre.usuarios.all()
+        return usuarios_dre
+
+    @property
+    def partes_interessadas_terceirizadas_tomou_ciencia(self):
+        # TODO: filtrar usuários Escolas
+        usuarios_terceirizadas = models_perfil.Usuario.objects.filter()
+        return usuarios_terceirizadas
 
     @property
     def template_mensagem(self):
@@ -353,6 +365,32 @@ class FluxoAprovacaoPartindoDaDiretoriaRegional(xwf_models.WorkflowEnabled, mode
                                    recipients=self.partes_interessadas_inicio_fluxo,
                                    short_desc=assunto,
                                    long_desc=corpo)
+        self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.INICIO_FLUXO,
+                                  usuario=user)
+
+    @xworkflows.after_transition('codae_aprovou')
+    def _codae_aprovou_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        if user and kwargs.get('notificar', False):
+            assunto, corpo = self.template_mensagem
+            enviar_notificacao_e_email(sender=user,
+                                       recipients=self.partes_interessadas_codae_aprovou,
+                                       short_desc=assunto,
+                                       long_desc=corpo)
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_APROVOU,
+                                      usuario=user)
+
+    @xworkflows.after_transition('terceirizada_tomou_ciencia')
+    def _terceirizada_tomou_ciencia_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        if user and kwargs.get('notificar', False):
+            assunto, corpo = self.template_mensagem
+            enviar_notificacao_e_email(sender=user,
+                                       recipients=self.partes_interessadas_terceirizadas_tomou_ciencia,
+                                       short_desc=assunto,
+                                       long_desc=corpo)
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_TOMA_CIENCIA,
+                                      usuario=user)
 
     class Meta:
         abstract = True

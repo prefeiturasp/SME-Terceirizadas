@@ -12,7 +12,7 @@ from ..dados_comuns.models_abstract import (
 from ..inclusao_alimentacao.models import (
     InclusaoAlimentacaoContinua, GrupoInclusaoAlimentacaoNormal
 )
-from ..kit_lanche.models import SolicitacaoKitLancheAvulsa
+from ..kit_lanche.models import SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheUnificada
 from ..paineis_consolidados.models import SolicitacoesAutorizadasDRE, SolicitacoesPendentesDRE
 from ..perfil.models import Usuario
 
@@ -451,6 +451,7 @@ class Codae(Nomeavel, TemChaveExterna):
         elif filtro_aplicado == "daqui_a_30_dias":
             inversoes_cardapio = InversaoCardapio.prazo_limite_daqui_a_30_dias
         else:
+            # inversoes_cardapio = InversaoCardapio.prazo_limite
             inversoes_cardapio = InversaoCardapio.objects
         return inversoes_cardapio.filter(
             status=InversaoCardapio.workflow_class.DRE_APROVADO
@@ -476,6 +477,21 @@ class Codae(Nomeavel, TemChaveExterna):
             inversoes_cardapio = GrupoInclusaoAlimentacaoNormal.objects
         return inversoes_cardapio.filter(
             status=GrupoInclusaoAlimentacaoNormal.workflow_class.DRE_APROVADO
+        )
+
+        #
+        # Inversões de cardápio
+        #
+
+    def solicitacoes_unificadas(self, filtro_aplicado):
+        if filtro_aplicado == "daqui_a_7_dias":
+            solicitacoes_unificadas = SolicitacaoKitLancheUnificada.prazo_limite_daqui_a_7_dias
+        elif filtro_aplicado == "daqui_a_30_dias":
+            solicitacoes_unificadas = SolicitacaoKitLancheUnificada.prazo_limite_daqui_a_30_dias
+        else:
+            solicitacoes_unificadas = SolicitacaoKitLancheUnificada.objects
+        return solicitacoes_unificadas.filter(
+            status=SolicitacaoKitLancheUnificada.workflow_class.CODAE_A_VALIDAR
         )
 
     @property
