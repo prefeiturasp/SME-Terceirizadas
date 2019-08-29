@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
-from sme_pratoaberto_terceirizadas.dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
-from sme_pratoaberto_terceirizadas.escola.api.serializers import (
+from ....dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
+from ....escola.api.serializers import (
     EscolaSimplesSerializer, DiretoriaRegionalSimplissimaSerializer
 )
 from ...models import (

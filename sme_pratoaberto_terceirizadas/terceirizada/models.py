@@ -237,6 +237,7 @@ class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel):
         else:
             inversoes_cardapio = InversaoCardapio.objects
         return inversoes_cardapio.filter(
+            escola__lote__in=self.lotes.all(),
             status=InversaoCardapio.workflow_class.CODAE_APROVADO
         )
 
@@ -252,6 +253,7 @@ class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel):
         else:
             solicitacoes_unificadas = SolicitacaoKitLancheUnificada.objects
         return solicitacoes_unificadas.filter(
+            escolas_quantidades__escola__lote__in=self.lotes.all(),
             status=SolicitacaoKitLancheUnificada.workflow_class.CODAE_APROVADO
         )
 

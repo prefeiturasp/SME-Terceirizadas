@@ -102,24 +102,6 @@ class SolicitacaoKitLancheAvulsa(TemChaveExterna, FluxoAprovacaoPartindoDaEscola
     def data(self):
         return self.solicitacao_kit_lanche.data
 
-    @property
-    def prioridade(self):
-        data = self.data
-        descricao = ''
-        prox_2_dias_uteis = obter_dias_uteis_apos_hoje(2)
-        prox_3_dias_uteis = obter_dias_uteis_apos_hoje(3)
-        prox_5_dias_uteis = obter_dias_uteis_apos_hoje(5)
-        prox_6_dias_uteis = obter_dias_uteis_apos_hoje(6)
-        hoje = datetime.date.today()
-
-        if hoje <= data <= prox_2_dias_uteis:
-            descricao = 'PRIORITARIO'
-        elif prox_5_dias_uteis >= data >= prox_3_dias_uteis:
-            descricao = 'LIMITE'
-        elif data >= prox_6_dias_uteis:
-            descricao = 'REGULAR'
-        return descricao
-
     objects = models.Manager()  # Manager Padrão
     prazo_vencendo = SolicitacaoKitLancheAvulsaPrazoVencendoManager()
     prazo_vencendo_hoje = SolicitacaoKitLancheAvulsaPrazoVencendoHojeManager()
@@ -220,7 +202,6 @@ class SolicitacaoKitLancheUnificada(CriadoPor, TemChaveExterna, TemIdentificador
             uuid_original=self.uuid
         )
 
-    @property
     def dividir_por_lote(self):
         quantidade_de_lotes = self.escolas_quantidades.distinct('escola__lote').count()
         if quantidade_de_lotes > 1:
@@ -231,8 +212,8 @@ class SolicitacaoKitLancheUnificada(CriadoPor, TemChaveExterna, TemIdentificador
         else:
             return SolicitacaoKitLancheUnificada.objects.filter(id=self.id)
 
-    @property
-    def dividir_por_dois_lotes(self):
+    # TODO: melhorar esse metodo assim que tivermos um entendimento melhor
+    def dividir_por_dois_lotes(self) -> models.QuerySet:
         primeiro_id = self.id
         primeiro_lote = self.escolas_quantidades.first().escola.lote
         escolas_quantidades_desse_lote = self.escolas_quantidades.filter(escola__lote=primeiro_lote)
@@ -265,15 +246,6 @@ class SolicitacaoKitLancheUnificada(CriadoPor, TemChaveExterna, TemIdentificador
         for chave, valor in template_troca.items():
             corpo = corpo.replace(chave, valor)
         return template.assunto, corpo
-
-    def salvar_log_transicao(self, status_evento, usuario):
-        LogSolicitacoesUsuario.objects.create(
-            descricao=str(self),
-            status_evento=status_evento,
-            solicitacao_tipo=LogSolicitacoesUsuario.SOLICITACAO_KIT_LANCHE_UNIFICADA,
-            usuario=usuario,
-            uuid_original=self.uuid
-        )
 
     @property
     def total_kit_lanche(self):
