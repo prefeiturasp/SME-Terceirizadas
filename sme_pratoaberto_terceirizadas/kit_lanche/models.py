@@ -158,9 +158,6 @@ class SolicitacaoKitLancheAvulsa(TemChaveExterna, FluxoAprovacaoPartindoDaEscola
             corpo = corpo.replace(chave, valor)
         return template.assunto, corpo
 
-    def salvar_log_transicao(self, status_evento, usuario):
-        pass
-
     def __str__(self):
         return "{} SOLICITA PARA {} ALUNOS EM {}".format(self.escola, self.quantidade_alunos, self.local)
 
@@ -265,15 +262,6 @@ class SolicitacaoKitLancheUnificada(CriadoPor, TemChaveExterna, TemIdentificador
         for chave, valor in template_troca.items():
             corpo = corpo.replace(chave, valor)
         return template.assunto, corpo
-
-    def salvar_log_transicao(self, status_evento, usuario):
-        LogSolicitacoesUsuario.objects.create(
-            descricao=str(self),
-            status_evento=status_evento,
-            solicitacao_tipo=LogSolicitacoesUsuario.SOLICITACAO_KIT_LANCHE_UNIFICADA,
-            usuario=usuario,
-            uuid_original=self.uuid
-        )
 
     @property
     def total_kit_lanche(self):
