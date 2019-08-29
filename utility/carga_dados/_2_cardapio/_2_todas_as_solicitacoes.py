@@ -88,6 +88,9 @@ def _get_random_tipos_alimentacao():
 def fluxo_escola_felix(obj, user):
     # print(f'aplicando fluxo ESCOLA feliz em {obj}')
     obj.inicia_fluxo(user=user, notificar=True)
+    if random.random() < 0.3:
+        return
+
     if random.random() >= 0.1:
         obj.dre_aprovou(user=user, notificar=True)
         if random.random() >= 0.2:
