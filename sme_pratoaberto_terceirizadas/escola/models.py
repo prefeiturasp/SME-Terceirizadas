@@ -451,7 +451,6 @@ class Codae(Nomeavel, TemChaveExterna):
         elif filtro_aplicado == "daqui_a_30_dias":
             inversoes_cardapio = InversaoCardapio.prazo_limite_daqui_a_30_dias
         else:
-            # inversoes_cardapio = InversaoCardapio.prazo_limite
             inversoes_cardapio = InversaoCardapio.objects
         return inversoes_cardapio.filter(
             status=InversaoCardapio.workflow_class.DRE_APROVADO

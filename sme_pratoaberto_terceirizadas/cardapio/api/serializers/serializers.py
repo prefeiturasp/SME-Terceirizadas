@@ -57,6 +57,19 @@ class InversaoCardapioSerializer(serializers.ModelSerializer):
         exclude = ('id', 'criado_por')
 
 
+class InversaoCardapioSimpleserializer(serializers.ModelSerializer):
+    status = serializers.SerializerMethodField()
+    id_externo = serializers.CharField()
+    prioridade = serializers.CharField()
+
+    def get_status(self, obj):
+        return obj.get_status_display()
+
+    class Meta:
+        model = InversaoCardapio
+        exclude = ('id', 'criado_por', 'cardapio_de', 'cardapio_para', 'escola',)
+
+
 class MotivoSuspensaoSerializer(serializers.ModelSerializer):
     class Meta:
         model = MotivoSuspensao
