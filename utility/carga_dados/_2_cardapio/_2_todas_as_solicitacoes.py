@@ -75,6 +75,16 @@ def _get_random_tipos_alimentacao():
     return alimentacoes
 
 
+#  transitions = (
+#         ('inicia_fluxo', RASCUNHO, DRE_A_VALIDAR),
+#         ('dre_aprovou', DRE_A_VALIDAR, DRE_APROVADO),
+#         ('dre_pediu_revisao', DRE_A_VALIDAR, DRE_PEDE_ESCOLA_REVISAR),
+#         ('dre_cancelou_pedido', DRE_A_VALIDAR, DRE_CANCELA_PEDIDO_ESCOLA),
+#         ('escola_revisou', DRE_PEDE_ESCOLA_REVISAR, DRE_A_VALIDAR),
+#         ('codae_aprovou', DRE_APROVADO, CODAE_APROVADO),
+#         ('codae_cancelou_pedido', DRE_APROVADO, CODAE_CANCELOU_PEDIDO),
+#         ('terceirizada_tomou_ciencia', CODAE_APROVADO, TERCEIRIZADA_TOMA_CIENCIA),
+#     )
 def fluxo_escola_felix(obj, user):
     # print(f'aplicando fluxo ESCOLA feliz em {obj}')
     obj.inicia_fluxo(user=user, notificar=True)
@@ -84,6 +94,13 @@ def fluxo_escola_felix(obj, user):
             obj.codae_aprovou(user=user, notificar=True)
             if random.random() >= 0.3:
                 obj.terceirizada_tomou_ciencia(user=user, notificar=True)
+        else:
+            obj.codae_cancelou_pedido(user=user, notificar=True)
+    else:
+        if random.random() >= 0.1:
+            obj.dre_pediu_revisao(user=user, notificar=True)
+        else:
+            obj.dre_cancelou_pedido(user=user, notificar=True)
 
 
 def fluxo_dre_felix(obj, user):
@@ -227,16 +244,17 @@ def cria_inversoes_cardapio(qtd=50):
 #             cardapio_para=_get_random_cardapio())
 #         fluxo_escola_felix(alteracao_cardapio, user)
 
+QTD_PEDIDOS = 420
 
 print('-> vinculando escola dre e usuarios')
 vincula_dre_escola_usuario()
 print('-> criando inclusoes continuas')
-cria_inclusoes_continuas(666)
+cria_inclusoes_continuas(QTD_PEDIDOS)
 print('-> criando inclusoes normais')
-cria_inclusoes_normais(666)
+cria_inclusoes_normais(QTD_PEDIDOS)
 print('-> criando solicicitacoes kit lanche unificada')
-cria_solicitacoes_kit_lanche_unificada(666)
+cria_solicitacoes_kit_lanche_unificada(QTD_PEDIDOS)
 print('-> criando solicicitacoes kit lanche avulsa')
-cria_solicitacoes_kit_lanche_avulsa(666)
+cria_solicitacoes_kit_lanche_avulsa(QTD_PEDIDOS)
 print('-> criando inversoes de cardapio')
-cria_inversoes_cardapio(666)
+cria_inversoes_cardapio(QTD_PEDIDOS)
