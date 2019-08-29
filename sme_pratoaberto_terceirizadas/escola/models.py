@@ -457,6 +457,28 @@ class Codae(Nomeavel, TemChaveExterna):
             status=InversaoCardapio.workflow_class.DRE_APROVADO
         )
 
+    def inclusoes_alimentacao_continua_das_minhas_escolas(self, filtro_aplicado):
+        if filtro_aplicado == "daqui_a_7_dias":
+            inversoes_cardapio = InclusaoAlimentacaoContinua.prazo_limite_daqui_a_7_dias
+        elif filtro_aplicado == "daqui_a_30_dias":
+            inversoes_cardapio = InclusaoAlimentacaoContinua.prazo_limite_daqui_a_30_dias
+        else:
+            inversoes_cardapio = InclusaoAlimentacaoContinua.objects
+        return inversoes_cardapio.filter(
+            status=InclusaoAlimentacaoContinua.workflow_class.DRE_APROVADO
+        )
+
+    def grupos_inclusoes_alimentacao_normal_das_minhas_escolas(self, filtro_aplicado):
+        if filtro_aplicado == "daqui_a_7_dias":
+            inversoes_cardapio = GrupoInclusaoAlimentacaoNormal.prazo_limite_daqui_a_7_dias
+        elif filtro_aplicado == "daqui_a_30_dias":
+            inversoes_cardapio = GrupoInclusaoAlimentacaoNormal.prazo_limite_daqui_a_30_dias
+        else:
+            inversoes_cardapio = GrupoInclusaoAlimentacaoNormal.objects
+        return inversoes_cardapio.filter(
+            status=GrupoInclusaoAlimentacaoNormal.workflow_class.DRE_APROVADO
+        )
+
         #
         # Inversões de cardápio
         #

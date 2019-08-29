@@ -9,6 +9,9 @@ from ...models import (
     SolicitacaoKitLanche, SolicitacaoKitLancheAvulsa,
     EscolaQuantidade, SolicitacaoKitLancheUnificada
 )
+from ....escola.api.serializers import (
+    EscolaSimplesSerializer, DiretoriaRegionalSimplissimaSerializer
+)
 
 
 class MotivoSolicitacaoUnificadaSerializer(serializers.ModelSerializer):
@@ -55,10 +58,20 @@ class SolicitacaoKitLancheAvulsaSerializer(serializers.ModelSerializer):
                                      required=False)
     prioridade = serializers.CharField()
     id_externo = serializers.CharField()
+    logs = LogSolicitacoesUsuarioSerializer(many=True)
 
     class Meta:
         model = SolicitacaoKitLancheAvulsa
         exclude = ('id',)
+
+
+class SolicitacaoKitLancheAvulsaSimplesSerializer(serializers.ModelSerializer):
+    prioridade = serializers.CharField()
+    id_externo = serializers.CharField()
+
+    class Meta:
+        model = SolicitacaoKitLancheAvulsa
+        exclude = ('id', 'solicitacao_kit_lanche', 'escola', 'criado_por')
 
 
 class EscolaQuantidadeSerializerSimples(serializers.ModelSerializer):

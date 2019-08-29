@@ -57,6 +57,20 @@ class InclusaoAlimentacaoContinuaSerializer(serializers.ModelSerializer):
         exclude = ('id',)
 
 
+class InclusaoAlimentacaoContinuaSimplesSerializer(serializers.ModelSerializer):
+    motivo = MotivoInclusaoContinuaSerializer()
+    dias_semana_explicacao = serializers.CharField(
+        source='dias_semana_display',
+        required=False,
+        read_only=True
+    )
+    prioridade = serializers.CharField()
+
+    class Meta:
+        model = InclusaoAlimentacaoContinua
+        exclude = ('id', 'escola', 'criado_por')
+
+
 class InclusaoAlimentacaoNormalSimplesSerializer(serializers.ModelSerializer):
     class Meta:
         model = InclusaoAlimentacaoNormal
@@ -73,3 +87,11 @@ class GrupoInclusaoAlimentacaoNormalSerializer(serializers.ModelSerializer):
     class Meta:
         model = GrupoInclusaoAlimentacaoNormal
         exclude = ('id',)
+
+
+class GrupoInclusaoAlimentacaoNormalSimplesSerializer(serializers.ModelSerializer):
+    prioridade = serializers.CharField()
+
+    class Meta:
+        model = GrupoInclusaoAlimentacaoNormal
+        exclude = ('id', 'criado_por', 'escola')

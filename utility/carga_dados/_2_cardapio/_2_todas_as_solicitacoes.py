@@ -98,7 +98,8 @@ def fluxo_escola_felix(obj, user):
             if random.random() >= 0.3:
                 obj.terceirizada_tomou_ciencia(user=user, notificar=True)
         else:
-            obj.codae_cancelou_pedido(user=user, notificar=True)
+            if random.random() <= 0.2:
+                obj.codae_cancelou_pedido(user=user, notificar=True)
     else:
         if random.random() >= 0.1:
             obj.dre_pediu_revisao(user=user, notificar=True)
