@@ -20,7 +20,7 @@ from .managers import (
     SolicitacaoUnificadaPrazoLimiteDaquiA30DiasManager,
     SolicitacaoUnificadaVencidaManager
 )
-from ..dados_comuns.models import TemplateMensagem
+from ..dados_comuns.models import TemplateMensagem, LogSolicitacoesUsuario
 from ..dados_comuns.models_abstract import (
     Nomeavel, TemData, Motivo, Descritivel, Logs,
     CriadoEm, TemChaveExterna, TempoPasseio, CriadoPor,
@@ -89,7 +89,7 @@ class SolicitacaoKitLanche(TemData, Motivo, Descritivel, CriadoEm, TempoPasseio,
 
 
 class SolicitacaoKitLancheAvulsa(TemChaveExterna, FluxoAprovacaoPartindoDaEscola, TemIdentificadorExternoAmigavel,
-                                 CriadoPor, TemPrioridade):
+                                 CriadoPor, TemPrioridade, Logs):
     # TODO: ao deletar este, deletar solicitacao_kit_lanche também que é uma tabela acessória
     # TODO: passar `local` para solicitacao_kit_lanche
     local = models.CharField(max_length=160)
@@ -132,6 +132,15 @@ class SolicitacaoKitLancheAvulsa(TemChaveExterna, FluxoAprovacaoPartindoDaEscola
     prazo_regular_daqui_a_7_dias = SolicitacaoKitLancheAvulsaPrazoLimiteDaquiA7DiasManager()
     prazo_regular_daqui_a_30_dias = SolicitacaoKitLancheAvulsaPrazoRegularDaquiA30DiasManager()
     vencidos = SolicitacaoKitLancheAvulsaVencidaDiasManager()
+
+    def salvar_log_transicao(self, status_evento, usuario):
+        LogSolicitacoesUsuario.objects.create(
+            descricao=str(self),
+            status_evento=status_evento,
+            solicitacao_tipo=LogSolicitacoesUsuario.SOLICITACAO_KIT_LANCHE_AVULSA,
+            usuario=usuario,
+            uuid_original=self.uuid
+        )
 
     @property
     def template_mensagem(self):
@@ -201,6 +210,15 @@ class SolicitacaoKitLancheUnificada(CriadoPor, TemChaveExterna, TemIdentificador
             status=SolicitacaoKitLancheUnificada.workflow_class.RASCUNHO
         )
         return solicitacoes_unificadas
+
+    def salvar_log_transicao(self, status_evento, usuario):
+        LogSolicitacoesUsuario.objects.create(
+            descricao=str(self),
+            status_evento=status_evento,
+            solicitacao_tipo=LogSolicitacoesUsuario.SOLICITACAO_KIT_LANCHE_UNIFICADA,
+            usuario=usuario,
+            uuid_original=self.uuid
+        )
 
     @property
     def dividir_por_lote(self):
