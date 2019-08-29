@@ -72,7 +72,7 @@ class MotivoInclusaoContinua(Nomeavel, TemChaveExterna):
 class InclusaoAlimentacaoContinua(IntervaloDeDia, Descritivel, TemChaveExterna,
                                   DiasSemana, FluxoAprovacaoPartindoDaEscola,
                                   CriadoPor, TemIdentificadorExternoAmigavel,
-                                  CriadoEm, Logs):
+                                  CriadoEm, Logs, TemPrioridade):
     outro_motivo = models.CharField("Outro motivo", blank=True, null=True, max_length=50)
     motivo = models.ForeignKey(MotivoInclusaoContinua, on_delete=models.DO_NOTHING)
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING,
