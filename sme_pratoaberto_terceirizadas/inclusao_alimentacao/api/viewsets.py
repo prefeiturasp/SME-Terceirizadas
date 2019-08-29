@@ -57,6 +57,21 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False,
+            url_path="pedidos-codae/"
+                     "(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)")
+    def pedidos_codae(self, request, filtro_aplicado="sem_filtro"):
+        # TODO: colocar regras de codae CODAE aqui...
+        usuario = request.user
+        # TODO: aguardando definição de perfis pra saber
+        codae = usuario.CODAE.first()
+        inclusoes_continuas = codae.grupos_inclusoes_alimentacao_normal_das_minhas_escolas(
+            filtro_aplicado
+        )
+        page = self.paginate_queryset(inclusoes_continuas)
+        serializer = serializers.GrupoInclusaoAlimentacaoNormalSimplesSerializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False,
             url_path="pedidos-prioritarios-diretoria-regional/"
                      "(?P<filtro_aplicado>(sem_filtro|hoje|daqui_a_7_dias|daqui_a_30_dias)+)")
     def pedidos_prioritarios_diretoria_regional(self, request, filtro_aplicado="sem_filtro"):

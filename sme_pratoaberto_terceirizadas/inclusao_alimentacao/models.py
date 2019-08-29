@@ -1,9 +1,9 @@
+import datetime
+
 from django.core.validators import MinValueValidator
 from django.db import models
 
-from sme_pratoaberto_terceirizadas.dados_comuns.models import (
-    TemplateMensagem, LogSolicitacoesUsuario
-)
+from sme_pratoaberto_terceirizadas.dados_comuns.constants import MINIMO_DIAS_PARA_PEDIDO, QUANTIDADE_DIAS_OK_PARA_PEDIDO
 from .managers import (
     InclusoesDeAlimentacaoContinuaVencidaDiasManager,
     InclusoesDeAlimentacaoNormalVencidosDiasManager,
@@ -22,6 +22,9 @@ from .managers import (
     InclusoesDeAlimentacaoNormalPrazoVencendoManager,
     InclusoesDeAlimentacaoNormalPrazoVencendoHojeManager
 )
+from ..dados_comuns.models import (
+    TemplateMensagem, LogSolicitacoesUsuario
+)
 from ..dados_comuns.models_abstract import (
     Descritivel, IntervaloDeDia,
     Nomeavel, TemData, TemChaveExterna,
@@ -29,6 +32,7 @@ from ..dados_comuns.models_abstract import (
     FluxoAprovacaoPartindoDaEscola,
     TemIdentificadorExternoAmigavel,
     CriadoEm, TemPrioridade, Logs)
+from ..dados_comuns.utils import obter_dias_uteis_apos_hoje
 
 
 class QuantidadePorPeriodo(TemChaveExterna):
@@ -169,7 +173,7 @@ class InclusaoAlimentacaoNormal(TemData, TemChaveExterna, TemPrioridade):
 
 
 class GrupoInclusaoAlimentacaoNormal(Descritivel, TemChaveExterna, FluxoAprovacaoPartindoDaEscola,
-                                     CriadoPor, TemIdentificadorExternoAmigavel, Logs):
+                                     CriadoPor, TemIdentificadorExternoAmigavel, Logs, TemPrioridade):
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING,
                                related_name='grupos_inclusoes_normais')
 
@@ -205,6 +209,29 @@ class GrupoInclusaoAlimentacaoNormal(Descritivel, TemChaveExterna, FluxoAprovaca
         for chave, valor in template_troca.items():
             corpo = corpo.replace(chave, valor)
         return template.assunto, corpo
+
+    @property
+    def prioridade(self):
+        """
+            Dadas as inclusões normais, recupera a de menor data e retorna prioridade
+        """
+        descricao = ''
+        prox_2_dias_uteis = obter_dias_uteis_apos_hoje(MINIMO_DIAS_PARA_PEDIDO)
+        prox_3_dias_uteis = obter_dias_uteis_apos_hoje(3)
+        prox_5_dias_uteis = obter_dias_uteis_apos_hoje(QUANTIDADE_DIAS_OK_PARA_PEDIDO)
+        prox_6_dias_uteis = obter_dias_uteis_apos_hoje(6)
+        hoje = datetime.date.today()
+
+        inclusao_normal = self.inclusoes_normais.order_by('data').first()
+        data = inclusao_normal.data
+
+        if hoje <= data <= prox_2_dias_uteis:
+            descricao = 'PRIORITARIO'
+        elif prox_5_dias_uteis >= data >= prox_3_dias_uteis:
+            descricao = 'LIMITE'
+        elif data >= prox_6_dias_uteis:
+            descricao = 'REGULAR'
+        return descricao
 
     @property
     def descricao_curta(self):

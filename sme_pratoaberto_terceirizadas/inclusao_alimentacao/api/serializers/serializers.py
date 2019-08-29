@@ -87,3 +87,11 @@ class GrupoInclusaoAlimentacaoNormalSerializer(serializers.ModelSerializer):
     class Meta:
         model = GrupoInclusaoAlimentacaoNormal
         exclude = ('id',)
+
+
+class GrupoInclusaoAlimentacaoNormalSimplesSerializer(serializers.ModelSerializer):
+    prioridade = serializers.CharField()
+
+    class Meta:
+        model = GrupoInclusaoAlimentacaoNormal
+        exclude = ('id', 'criado_por', 'escola')
