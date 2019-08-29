@@ -212,6 +212,36 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
             return serializers_create.SolicitacaoKitLancheUnificadaCreationSerializer
         return serializers.SolicitacaoKitLancheUnificadaSerializer
 
+    @action(detail=False,
+            url_path="pedidos-codae/"
+                     "(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)")
+    def pedidos_codae(self, request, filtro_aplicado="sem_filtro"):
+        # TODO: colocar regras de codae CODAE aqui...
+        usuario = request.user
+        # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
+        codae = usuario.CODAE.first()
+        solicitacoes_unificadas = codae.solicitacoes_unificadas(
+            filtro_aplicado
+        )
+        page = self.paginate_queryset(solicitacoes_unificadas)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False,
+            url_path="pedidos-terceirizada/"
+                     "(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)")
+    def pedidos_terceirizada(self, request, filtro_aplicado="sem_filtro"):
+        # TODO: colocar regras de Terceirizada aqui...
+        usuario = request.user
+        # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
+        terceirizada = usuario.terceirizadas.first()
+        solicitacoes_unificadas = terceirizada.solicitacoes_unificadas_das_minhas_escolas(
+            filtro_aplicado
+        )
+        page = self.paginate_queryset(solicitacoes_unificadas)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
     @action(detail=False)
     def minhas_solicitacoes(self, request):
         usuario = request.user
@@ -229,13 +259,15 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
     def inicio_de_pedido(self, request, uuid=None):
         solicitacao_unificada = self.get_object()
         try:
-            solicitacao_unificada.inicia_fluxo(user=request.user, notificar=True)
-            serializer = self.get_serializer(solicitacao_unificada)
+            solicitacoes_unificadas = solicitacao_unificada.dividir_por_lote
+            for solicitacao_unificada in solicitacoes_unificadas:
+                solicitacao_unificada.inicia_fluxo(user=request.user, notificar=True)
+            serializer = self.get_serializer(solicitacoes_unificadas, many=True)
             return Response(serializer.data)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
-    @action(detail=True, url_path="codae-aprova",
+    @action(detail=True, url_path="codae-aprova-pedido",
             permission_classes=[PodeIniciarSolicitacaoUnificadaPermission], methods=['patch'])
     def codae_aprova(self, request, uuid=None):
         solicitacao_unificada = self.get_object()
