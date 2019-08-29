@@ -12,13 +12,13 @@ from .managers import (
     SolicitacaoKitLancheAvulsaPrazoRegularDaquiA30DiasManager,
     SolicitacaoKitLancheAvulsaVencidaDiasManager
 )
-from ..dados_comuns.models import TemplateMensagem
+from ..dados_comuns.models import TemplateMensagem, LogSolicitacoesUsuario
 from ..dados_comuns.models_abstract import (
     Nomeavel, TemData, Motivo, Descritivel,
     CriadoEm, TemChaveExterna, TempoPasseio, CriadoPor,
     FluxoAprovacaoPartindoDaEscola, TemIdentificadorExternoAmigavel,
-    FluxoAprovacaoPartindoDaDiretoriaRegional, TemPrioridade
-)
+    FluxoAprovacaoPartindoDaDiretoriaRegional, TemPrioridade,
+    Logs)
 
 
 class MotivoSolicitacaoUnificada(Nomeavel, TemChaveExterna):
@@ -80,7 +80,7 @@ class SolicitacaoKitLanche(TemData, Motivo, Descritivel, CriadoEm, TempoPasseio,
 
 
 class SolicitacaoKitLancheAvulsa(TemChaveExterna, FluxoAprovacaoPartindoDaEscola, TemIdentificadorExternoAmigavel,
-                                 CriadoPor, TemPrioridade):
+                                 CriadoPor, TemPrioridade, Logs):
     # TODO: ao deletar este, deletar solicitacao_kit_lanche também que é uma tabela acessória
     # TODO: passar `local` para solicitacao_kit_lanche
     local = models.CharField(max_length=160)
@@ -124,6 +124,15 @@ class SolicitacaoKitLancheAvulsa(TemChaveExterna, FluxoAprovacaoPartindoDaEscola
     prazo_regular_daqui_a_30_dias = SolicitacaoKitLancheAvulsaPrazoRegularDaquiA30DiasManager()
     vencidos = SolicitacaoKitLancheAvulsaVencidaDiasManager()
 
+    def salvar_log_transicao(self, status_evento, usuario):
+        LogSolicitacoesUsuario.objects.create(
+            descricao=str(self),
+            status_evento=status_evento,
+            solicitacao_tipo=LogSolicitacoesUsuario.SOLICITACAO_KIT_LANCHE_AVULSA,
+            usuario=usuario,
+            uuid_original=self.uuid
+        )
+
     @property
     def template_mensagem(self):
         template = TemplateMensagem.objects.get(tipo=TemplateMensagem.SOLICITACAO_KIT_LANCHE_AVULSA)
@@ -152,7 +161,7 @@ class SolicitacaoKitLancheAvulsa(TemChaveExterna, FluxoAprovacaoPartindoDaEscola
 
 
 class SolicitacaoKitLancheUnificada(CriadoPor, TemChaveExterna, TemIdentificadorExternoAmigavel,
-                                    FluxoAprovacaoPartindoDaDiretoriaRegional):
+                                    FluxoAprovacaoPartindoDaDiretoriaRegional, Logs):
     """
         significa que uma DRE vai pedir kit lanche para as escolas:
 
@@ -182,6 +191,15 @@ class SolicitacaoKitLancheUnificada(CriadoPor, TemChaveExterna, TemIdentificador
             status=SolicitacaoKitLancheUnificada.workflow_class.RASCUNHO
         )
         return solicitacoes_unificadas
+
+    def salvar_log_transicao(self, status_evento, usuario):
+        LogSolicitacoesUsuario.objects.create(
+            descricao=str(self),
+            status_evento=status_evento,
+            solicitacao_tipo=LogSolicitacoesUsuario.SOLICITACAO_KIT_LANCHE_UNIFICADA,
+            usuario=usuario,
+            uuid_original=self.uuid
+        )
 
     @property
     def template_mensagem(self):
