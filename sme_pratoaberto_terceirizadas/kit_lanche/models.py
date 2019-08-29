@@ -1,8 +1,8 @@
-import copy
 import datetime
 import uuid
 
 from django.db import models
+from django.db.models.functions import Coalesce
 
 from sme_pratoaberto_terceirizadas.dados_comuns.utils import obter_dias_uteis_apos_hoje
 from .managers import (
@@ -267,7 +267,8 @@ class SolicitacaoKitLancheUnificada(CriadoPor, TemChaveExterna, TemIdentificador
     def total_kit_lanche(self):
         if self.lista_kit_lanche_igual:
             total_alunos = SolicitacaoKitLancheUnificada.objects.annotate(
-                total_alunos=models.Sum('escolas_quantidades__quantidade_alunos')).get(id=self.id).total_alunos
+                total_alunos=Coalesce(models.Sum('escolas_quantidades__quantidade_alunos'), 0)).get(
+                id=self.id).total_alunos
             total_kit_lanche = self.solicitacao_kit_lanche.kits.all().count()
             return total_alunos * total_kit_lanche
         else:
@@ -277,6 +278,7 @@ class SolicitacaoKitLancheUnificada(CriadoPor, TemChaveExterna, TemIdentificador
             return total_kit_lanche
 
     def vincula_escolas_quantidades(self, escolas_quantidades):
+        # TODO trocar isso, fazer backref
         for escola_quantidade in escolas_quantidades:
             escola_quantidade.solicitacao_unificada = self
             escola_quantidade.save()

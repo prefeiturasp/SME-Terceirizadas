@@ -2,8 +2,8 @@ import pytest
 from faker import Faker
 from model_mommy import mommy
 
-from sme_pratoaberto_terceirizadas.dados_comuns.models_abstract import TempoPasseio
 from .. import models
+from ...dados_comuns.models_abstract import TempoPasseio
 
 fake = Faker('pt_BR')
 fake.seed(420)
@@ -36,9 +36,12 @@ def solicitacao_avulsa():
 
 
 @pytest.fixture
-def solicitacao_unificada():
+def solicitacao_unificada_lista_igual():
+    kits = mommy.make(models.KitLanche, _quantity=3)
     motivo = mommy.make(models.MotivoSolicitacaoUnificada, nome=fake.name())
-    solicitacao_kit_lanche = mommy.make(models.SolicitacaoKitLanche, )
+    solicitacao_kit_lanche = mommy.make(models.SolicitacaoKitLanche,
+                                        tempo_passeio=models.SolicitacaoKitLanche.OITO_OU_MAIS,
+                                        kits=kits)
     dre = mommy.make('escola.DiretoriaRegional')
     return mommy.make(models.SolicitacaoKitLancheUnificada,
                       local=fake.text()[:160],
