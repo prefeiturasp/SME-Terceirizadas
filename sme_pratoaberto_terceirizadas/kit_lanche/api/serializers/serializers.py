@@ -1,12 +1,12 @@
 from rest_framework import serializers
 
-from sme_pratoaberto_terceirizadas.escola.api.serializers import (
-    EscolaSimplesSerializer, DiretoriaRegionalSimplissimaSerializer
-)
 from ...models import (
     MotivoSolicitacaoUnificada, ItemKitLanche, KitLanche,
     SolicitacaoKitLanche, SolicitacaoKitLancheAvulsa,
     EscolaQuantidade, SolicitacaoKitLancheUnificada
+)
+from ....escola.api.serializers import (
+    EscolaSimplesSerializer, DiretoriaRegionalSimplissimaSerializer
 )
 
 
@@ -57,6 +57,15 @@ class SolicitacaoKitLancheAvulsaSerializer(serializers.ModelSerializer):
     class Meta:
         model = SolicitacaoKitLancheAvulsa
         exclude = ('id',)
+
+
+class SolicitacaoKitLancheAvulsaSimplesSerializer(serializers.ModelSerializer):
+    prioridade = serializers.CharField()
+    id_externo = serializers.CharField()
+
+    class Meta:
+        model = SolicitacaoKitLancheAvulsa
+        exclude = ('id', 'solicitacao_kit_lanche', 'escola', 'criado_por')
 
 
 class EscolaQuantidadeSerializerSimples(serializers.ModelSerializer):

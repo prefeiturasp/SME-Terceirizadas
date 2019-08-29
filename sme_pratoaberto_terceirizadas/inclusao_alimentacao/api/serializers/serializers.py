@@ -68,7 +68,7 @@ class InclusaoAlimentacaoContinuaSimplesSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = InclusaoAlimentacaoContinua
-        exclude = ('id',)
+        exclude = ('id', 'escola', 'criado_por')
 
 
 class InclusaoAlimentacaoNormalSimplesSerializer(serializers.ModelSerializer):
