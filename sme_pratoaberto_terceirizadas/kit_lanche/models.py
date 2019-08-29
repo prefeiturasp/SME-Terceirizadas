@@ -1,4 +1,6 @@
+import copy
 import datetime
+import uuid
 
 from django.db import models
 
@@ -10,14 +12,21 @@ from .managers import (
     SolicitacaoKitLancheAvulsaPrazoLimiteDaquiA7DiasManager,
     SolicitacaoKitLancheAvulsaPrazoRegularManager,
     SolicitacaoKitLancheAvulsaPrazoRegularDaquiA30DiasManager,
-    SolicitacaoKitLancheAvulsaVencidaDiasManager
+    SolicitacaoKitLancheAvulsaVencidaDiasManager,
+    SolicitacaoUnificadaPrazoVencendoManager,
+    SolicitacaoUnificadaPrazoVencendoHojeManager,
+    SolicitacaoUnificadaPrazoLimiteManager,
+    SolicitacaoUnificadaPrazoLimiteDaquiA7DiasManager,
+    SolicitacaoUnificadaPrazoLimiteDaquiA30DiasManager,
+    SolicitacaoUnificadaVencidaManager
 )
 from ..dados_comuns.models import TemplateMensagem
 from ..dados_comuns.models_abstract import (
-    Nomeavel, TemData, Motivo, Descritivel,
+    Nomeavel, TemData, Motivo, Descritivel, Logs,
     CriadoEm, TemChaveExterna, TempoPasseio, CriadoPor,
     FluxoAprovacaoPartindoDaEscola, TemIdentificadorExternoAmigavel,
-    FluxoAprovacaoPartindoDaDiretoriaRegional, TemPrioridade
+    FluxoAprovacaoPartindoDaDiretoriaRegional, TemPrioridade,
+    LogSolicitacoesUsuario
 )
 
 
@@ -65,7 +74,7 @@ class KitLanche(Nomeavel, TemChaveExterna):
         verbose_name_plural = "Kit lanches"
 
 
-class SolicitacaoKitLanche(TemData, Motivo, Descritivel, CriadoEm, TempoPasseio, TemChaveExterna):
+class SolicitacaoKitLanche(TemData, Motivo, Descritivel, CriadoEm, TempoPasseio, TemChaveExterna, TemPrioridade):
     # TODO: implementar one to one, nas duas tabelas que apontam pra essa
     # https://docs.djangoproject.com/en/2.2/ref/models/fields/#django.db.models.OneToOneField
 
@@ -152,7 +161,7 @@ class SolicitacaoKitLancheAvulsa(TemChaveExterna, FluxoAprovacaoPartindoDaEscola
 
 
 class SolicitacaoKitLancheUnificada(CriadoPor, TemChaveExterna, TemIdentificadorExternoAmigavel,
-                                    FluxoAprovacaoPartindoDaDiretoriaRegional):
+                                    FluxoAprovacaoPartindoDaDiretoriaRegional, Logs):
     """
         significa que uma DRE vai pedir kit lanche para as escolas:
 
@@ -175,6 +184,16 @@ class SolicitacaoKitLancheUnificada(CriadoPor, TemChaveExterna, TemIdentificador
     diretoria_regional = models.ForeignKey('escola.DiretoriaRegional', on_delete=models.DO_NOTHING)
     solicitacao_kit_lanche = models.ForeignKey(SolicitacaoKitLanche, on_delete=models.DO_NOTHING)
 
+    objects = models.Manager()  # Manager Padrão
+    prazo_vencendo = SolicitacaoUnificadaPrazoVencendoManager()
+    prazo_vencendo_hoje = SolicitacaoUnificadaPrazoVencendoHojeManager()
+
+    prazo_limite = SolicitacaoUnificadaPrazoLimiteManager()
+    prazo_limite_daqui_a_7_dias = SolicitacaoUnificadaPrazoLimiteDaquiA7DiasManager()
+    prazo_limite_daqui_a_30_dias = SolicitacaoUnificadaPrazoLimiteDaquiA30DiasManager()
+
+    vencida = SolicitacaoUnificadaVencidaManager()
+
     @classmethod
     def get_pedidos_rascunho(cls, usuario):
         solicitacoes_unificadas = SolicitacaoKitLancheUnificada.objects.filter(
@@ -182,6 +201,36 @@ class SolicitacaoKitLancheUnificada(CriadoPor, TemChaveExterna, TemIdentificador
             status=SolicitacaoKitLancheUnificada.workflow_class.RASCUNHO
         )
         return solicitacoes_unificadas
+
+    @property
+    def dividir_por_lote(self):
+        quantidade_de_lotes = self.escolas_quantidades.distinct('escola__lote').count()
+        if quantidade_de_lotes > 1:
+            if quantidade_de_lotes == 2:
+                return self.dividir_por_dois_lotes
+            else:
+                return self.dividir_por_tres_ou_mais_lotes
+        else:
+            return SolicitacaoKitLancheUnificada.objects.filter(id=self.id)
+
+    @property
+    def dividir_por_dois_lotes(self):
+        primeiro_id = self.id
+        primeiro_lote = self.escolas_quantidades.first().escola.lote
+        escolas_quantidades_desse_lote = self.escolas_quantidades.filter(escola__lote=primeiro_lote)
+        for escola_quantidade in escolas_quantidades_desse_lote:
+            self.escolas_quantidades.remove(escola_quantidade)
+        solicitacao_segundo_lote = self
+        solicitacao_segundo_lote.pk = None
+        solicitacao_segundo_lote.uuid = uuid.uuid4()
+        solicitacao_segundo_lote.save()
+        solicitacao_segundo_lote.escolas_quantidades.set(escolas_quantidades_desse_lote)
+        return SolicitacaoKitLancheUnificada.objects.filter(id__in=[primeiro_id, solicitacao_segundo_lote.id])
+
+    # TODO: se esse caso existir algum dia, implementar
+    @property
+    def dividir_por_tres_ou_mais_lotes(self):
+        return
 
     @property
     def template_mensagem(self):
@@ -200,7 +249,13 @@ class SolicitacaoKitLancheUnificada(CriadoPor, TemChaveExterna, TemIdentificador
         return template.assunto, corpo
 
     def salvar_log_transicao(self, status_evento, usuario):
-        pass
+        LogSolicitacoesUsuario.objects.create(
+            descricao=str(self),
+            status_evento=status_evento,
+            solicitacao_tipo=LogSolicitacoesUsuario.SOLICITACAO_KIT_LANCHE_UNIFICADA,
+            usuario=usuario,
+            uuid_original=self.uuid
+        )
 
     @property
     def total_kit_lanche(self):

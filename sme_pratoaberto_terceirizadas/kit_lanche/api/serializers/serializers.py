@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from sme_pratoaberto_terceirizadas.dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
 from sme_pratoaberto_terceirizadas.escola.api.serializers import (
     EscolaSimplesSerializer, DiretoriaRegionalSimplissimaSerializer
 )
@@ -38,6 +39,7 @@ class KitLancheSimplesSerializer(serializers.ModelSerializer):
 
 class SolicitacaoKitLancheSimplesSerializer(serializers.ModelSerializer):
     kits = KitLancheSimplesSerializer(many=True, required=False)
+    prioridade = serializers.CharField()
     tempo_passeio_explicacao = serializers.CharField(source='get_tempo_passeio_display',
                                                      required=False,
                                                      read_only=True)
@@ -82,6 +84,7 @@ class SolicitacaoKitLancheUnificadaSerializer(serializers.ModelSerializer):
     escolas_quantidades = EscolaQuantidadeSerializerSimples(many=True)
     id_externo = serializers.CharField()
     total_kit_lanche = serializers.IntegerField()
+    logs = LogSolicitacoesUsuarioSerializer(many=True)
 
     class Meta:
         model = SolicitacaoKitLancheUnificada
