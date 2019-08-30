@@ -1,8 +1,8 @@
 from rest_framework import serializers
 
 from ...models import (Edital, Terceirizada, Nutricionista, Contrato, VigenciaContrato)
-from sme_pratoaberto_terceirizadas.dados_comuns.api.serializers import ContatoSerializer
-from sme_pratoaberto_terceirizadas.escola.models import Lote, DiretoriaRegional
+from ....dados_comuns.api.serializers import ContatoSerializer
+from ....escola.models import Lote, DiretoriaRegional
 
 
 class NutricionistaSerializer(serializers.ModelSerializer):
@@ -18,14 +18,14 @@ class TerceirizadaSerializer(serializers.ModelSerializer):
         model = Terceirizada
         exclude = ('id',)
 
-class LoteSimplesSerializer(serializers.ModelSerializer):
 
+class LoteSimplesSerializer(serializers.ModelSerializer):
     class Meta:
         model = Lote
-        fields = ('uuid', 'nome', )
+        fields = ('uuid', 'nome',)
+
 
 class DiretoriaRegionalSimplesSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = DiretoriaRegional
         fields = ('uuid', 'nome',)

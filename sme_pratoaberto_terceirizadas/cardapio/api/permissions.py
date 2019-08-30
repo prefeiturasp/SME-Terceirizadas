@@ -20,7 +20,6 @@ class PodeAprovarPelaDREAlteracaoCardapioPermission(permissions.BasePermission):
         return True
 
 
-
 class PodePedirRevisaoPelaDREAlteracaoCardapioPermission(permissions.BasePermission):
     message = 'Você não tem permissão para pedir revisão, pela DRE, de um pedido de alteração de cardápio.'
 
@@ -50,6 +49,7 @@ class PodeIniciarSuspensaoDeAlimentacaoPermission(permissions.BasePermission):
         # entende-se que ele responde pela DRE em que a escola está contida
         return True
 
+
 class PodeTomarCienciaSuspensaoDeAlimentacaoPermission(permissions.BasePermission):
     message = 'Você não tem permissão para tomar ciencia de suspensão de alimentação.'
 
@@ -58,6 +58,7 @@ class PodeTomarCienciaSuspensaoDeAlimentacaoPermission(permissions.BasePermissio
         # aprovar da escola o pedido de inversão de dia de cardápio
         # entende-se que ele responde pela DRE em que a escola está contida
         return True
+
 
 class PodeAprovarPelaCODAEAlteracaoCardapioPermission(permissions.BasePermission):
     message = 'Você não tem permissão para aprovar, pela CODAE, um pedido de alteração de cardápio.'

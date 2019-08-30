@@ -1,7 +1,7 @@
-from .codae import (
+from .codae import (  # noqa
     SolicitacoesCODAE
 )
-from .diretoria_regional import (
+from .diretoria_regional import (  # noqa
     SolicitacoesPendentesDRE,
     SolicitacoesAutorizadasDRE
 )

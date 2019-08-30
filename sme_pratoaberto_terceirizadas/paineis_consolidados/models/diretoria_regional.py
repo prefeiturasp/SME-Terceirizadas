@@ -14,15 +14,12 @@ class SolicitacoesDRE(models.Model):
 
 
 class SolicitacoesAutorizadasDRE(SolicitacoesDRE):
-
     class Meta:
         managed = False
         db_table = "dre_solicitacoes_autorizadas"
 
 
 class SolicitacoesPendentesDRE(SolicitacoesDRE):
-
     class Meta:
         managed = False
         db_table = "dre_solicitacoes_pendentes"
-

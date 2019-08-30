@@ -1,10 +1,8 @@
-import datetime
 import uuid
 
 from django.db import models
 from django.db.models.functions import Coalesce
 
-from sme_pratoaberto_terceirizadas.dados_comuns.utils import obter_dias_uteis_apos_hoje
 from .managers import (
     SolicitacaoKitLancheAvulsaPrazoVencendoManager,
     SolicitacaoKitLancheAvulsaPrazoVencendoHojeManager,
@@ -25,8 +23,7 @@ from ..dados_comuns.models_abstract import (
     Nomeavel, TemData, Motivo, Descritivel, Logs,
     CriadoEm, TemChaveExterna, TempoPasseio, CriadoPor,
     FluxoAprovacaoPartindoDaEscola, TemIdentificadorExternoAmigavel,
-    FluxoAprovacaoPartindoDaDiretoriaRegional, TemPrioridade,
-    LogSolicitacoesUsuario
+    FluxoAprovacaoPartindoDaDiretoriaRegional, TemPrioridade
 )
 
 

@@ -25,13 +25,10 @@ def test_alteracao_cardapio_serializer(alteracao_cardapio_serializer):
     assert "substituicoes" in alteracao_cardapio_serializer.data
 
 
-def test_substituicoes_alimentacao_no_periodo_escolar_serializer(substituicoes_alimentacao_no_periodo_escolar_serializer):
+def test_substituicoes_alimentacao_no_periodo_escolar_serializer(  # noqa
+    substituicoes_alimentacao_no_periodo_escolar_serializer):
     assert substituicoes_alimentacao_no_periodo_escolar_serializer is not None
     assert "alteracao_cardapio" in substituicoes_alimentacao_no_periodo_escolar_serializer.data
     assert "qtd_alunos" in substituicoes_alimentacao_no_periodo_escolar_serializer.data
     assert "periodo_escolar" in substituicoes_alimentacao_no_periodo_escolar_serializer.data
     assert "tipos_alimentacao" in substituicoes_alimentacao_no_periodo_escolar_serializer.data
-
-
-
-

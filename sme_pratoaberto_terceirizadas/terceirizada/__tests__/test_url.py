@@ -1,5 +1,6 @@
 from rest_framework import status
 
+
 def test_url_terceirizadas(client):
     response = client.get('/terceirizadas/')
     assert response.status_code == status.HTTP_401_UNAUTHORIZED

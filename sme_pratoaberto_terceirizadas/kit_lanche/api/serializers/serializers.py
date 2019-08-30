@@ -1,14 +1,11 @@
 from rest_framework import serializers
 
-from ....dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
-from ....escola.api.serializers import (
-    EscolaSimplesSerializer, DiretoriaRegionalSimplissimaSerializer
-)
 from ...models import (
     MotivoSolicitacaoUnificada, ItemKitLanche, KitLanche,
     SolicitacaoKitLanche, SolicitacaoKitLancheAvulsa,
     EscolaQuantidade, SolicitacaoKitLancheUnificada
 )
+from ....dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
 from ....escola.api.serializers import (
     EscolaSimplesSerializer, DiretoriaRegionalSimplissimaSerializer
 )

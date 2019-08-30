@@ -270,7 +270,7 @@ class GrupoSuspensaoAlimentacao(TemChaveExterna, CriadoPor, TemIdentificadorExte
     @property
     def template_mensagem(self):
         template = TemplateMensagem.objects.get(tipo=TemplateMensagem.SUSPENSAO_ALIMENTACAO)
-        template_troca = {
+        template_troca = {  # noqa
             '@id': self.id,
             '@criado_em': str(self.criado_em),
             '@criado_por': str(self.criado_por),
@@ -367,7 +367,7 @@ class AlteracaoCardapio(CriadoEm, CriadoPor, TemChaveExterna, IntervaloDeDia, Te
     @property
     def template_mensagem(self):
         template = TemplateMensagem.objects.get(tipo=TemplateMensagem.ALTERACAO_CARDAPIO)
-        template_troca = {
+        template_troca = {  # noqa
             '@id': self.id,
             '@criado_em': str(self.criado_em),
             # '@criado_por': str(self.criado_por),
