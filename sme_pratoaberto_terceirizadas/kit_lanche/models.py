@@ -146,7 +146,7 @@ class SolicitacaoKitLancheAvulsa(TemChaveExterna, FluxoAprovacaoPartindoDaEscola
 
 
 class SolicitacaoKitLancheUnificada(CriadoPor, TemChaveExterna, TemIdentificadorExternoAmigavel,
-                                    FluxoAprovacaoPartindoDaDiretoriaRegional, Logs):
+                                    FluxoAprovacaoPartindoDaDiretoriaRegional, Logs, TemPrioridade):
     """
         significa que uma DRE vai pedir kit lanche para as escolas:
 
@@ -178,6 +178,10 @@ class SolicitacaoKitLancheUnificada(CriadoPor, TemChaveExterna, TemIdentificador
     prazo_limite_daqui_a_30_dias = SolicitacaoUnificadaPrazoLimiteDaquiA30DiasManager()
 
     vencida = SolicitacaoUnificadaVencidaManager()
+
+    @property
+    def data(self):
+        return self.solicitacao_kit_lanche.data
 
     @classmethod
     def get_pedidos_rascunho(cls, usuario):

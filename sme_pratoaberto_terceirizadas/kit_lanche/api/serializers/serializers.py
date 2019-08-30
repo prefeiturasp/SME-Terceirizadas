@@ -101,6 +101,14 @@ class SolicitacaoKitLancheUnificadaSerializer(serializers.ModelSerializer):
         exclude = ('id',)
 
 
+class SolicitacaoKitLancheUnificadaSimplesSerializer(serializers.ModelSerializer):
+    prioridade = serializers.CharField()
+
+    class Meta:
+        model = SolicitacaoKitLancheUnificada
+        exclude = ('id',)
+
+
 class EscolaQuantidadeSerializer(serializers.ModelSerializer):
     kits = KitLancheSimplesSerializer(many=True, required=False)
     escola = EscolaSimplesSerializer()
