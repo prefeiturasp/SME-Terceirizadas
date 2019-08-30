@@ -329,7 +329,7 @@ class MotivoAlteracaoCardapio(Nomeavel, TemChaveExterna):
         verbose_name_plural = "Motivos de alteração de cardápio"
 
 
-class AlteracaoCardapio(CriadoEm, TemChaveExterna, IntervaloDeDia, TemObservacao,
+class AlteracaoCardapio(CriadoEm, CriadoPor, TemChaveExterna, IntervaloDeDia, TemObservacao,
                         FluxoAprovacaoPartindoDaEscola, TemIdentificadorExternoAmigavel, Logs):
     """
     A unidade quer trocar um ou mais tipos de refeição em um ou mais períodos escolares devido a um evento especial

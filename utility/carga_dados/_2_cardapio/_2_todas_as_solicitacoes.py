@@ -7,14 +7,17 @@ import random
 import numpy as np
 from faker import Faker
 
-from sme_pratoaberto_terceirizadas.cardapio.models import TipoAlimentacao, InversaoCardapio, Cardapio
-from sme_pratoaberto_terceirizadas.escola.models import Escola, DiretoriaRegional, PeriodoEscolar, Codae
+from sme_pratoaberto_terceirizadas.cardapio.models import TipoAlimentacao, InversaoCardapio, Cardapio, \
+    GrupoSuspensaoAlimentacao, SuspensaoAlimentacao, MotivoSuspensao, QuantidadePorPeriodoSuspensaoAlimentacao, \
+    AlteracaoCardapio, MotivoAlteracaoCardapio
+from sme_pratoaberto_terceirizadas.escola.models import Escola, DiretoriaRegional, PeriodoEscolar, Codae, Lote
 from sme_pratoaberto_terceirizadas.inclusao_alimentacao.models import InclusaoAlimentacaoContinua, \
     MotivoInclusaoContinua, GrupoInclusaoAlimentacaoNormal, QuantidadePorPeriodo, InclusaoAlimentacaoNormal, \
     MotivoInclusaoNormal
 from sme_pratoaberto_terceirizadas.kit_lanche.models import MotivoSolicitacaoUnificada, SolicitacaoKitLancheUnificada, \
     SolicitacaoKitLanche, KitLanche, SolicitacaoKitLancheAvulsa
 from sme_pratoaberto_terceirizadas.perfil.models import Usuario
+from sme_pratoaberto_terceirizadas.terceirizada.models import Terceirizada
 
 f = Faker('pt-br')
 f.seed(420)
@@ -24,12 +27,18 @@ hoje = datetime.datetime.today()
 def vincula_dre_escola_usuario():
     dres = DiretoriaRegional.objects.filter(pk=1)
     escolas = Escola.objects.filter(pk=1)
+    lotes = Lote.objects.filter(diretoria_regional=dres[0])
+    terceirizadas = Terceirizada.objects.filter(pk=1)
+    for terceirizada in terceirizadas:
+        terceirizada.lotes.set(lotes)  # terceirizada atendendo todos os lotes
     codae, created = Codae.objects.get_or_create(nome='teste')
+
     for dre in dres:
         dre.escolas.set(escolas)
     usuario = Usuario.objects.first()
     usuario.diretorias_regionais.set(dres)
     usuario.escolas.set(escolas)
+    usuario.terceirizadas.set(terceirizadas)
 
     codae.usuarios.set([usuario])
 
@@ -42,12 +51,20 @@ def _get_random_motivo_continuo():
     return MotivoInclusaoContinua.objects.order_by("?").first()
 
 
+def _get_random_motivo_suspensao():
+    return MotivoSuspensao.objects.order_by("?").first()
+
+
 def _get_kit_lanches():
     return KitLanche.objects.all()
 
 
 def _get_random_motivo_normal():
     return MotivoInclusaoNormal.objects.order_by("?").first()
+
+
+def _get_random_motivo_altercao_cardapio():
+    return MotivoAlteracaoCardapio.objects.order_by("?").first()
 
 
 def _get_random_motivo_unificado_kit_lanche():
@@ -75,16 +92,6 @@ def _get_random_tipos_alimentacao():
     return alimentacoes
 
 
-#  transitions = (
-#         ('inicia_fluxo', RASCUNHO, DRE_A_VALIDAR),
-#         ('dre_aprovou', DRE_A_VALIDAR, DRE_APROVADO),
-#         ('dre_pediu_revisao', DRE_A_VALIDAR, DRE_PEDE_ESCOLA_REVISAR),
-#         ('dre_cancelou_pedido', DRE_A_VALIDAR, DRE_CANCELA_PEDIDO_ESCOLA),
-#         ('escola_revisou', DRE_PEDE_ESCOLA_REVISAR, DRE_A_VALIDAR),
-#         ('codae_aprovou', DRE_APROVADO, CODAE_APROVADO),
-#         ('codae_cancelou_pedido', DRE_APROVADO, CODAE_CANCELOU_PEDIDO),
-#         ('terceirizada_tomou_ciencia', CODAE_APROVADO, TERCEIRIZADA_TOMA_CIENCIA),
-#     )
 def fluxo_escola_felix(obj, user):
     # print(f'aplicando fluxo ESCOLA feliz em {obj}')
     obj.inicia_fluxo(user=user, notificar=True)
@@ -105,6 +112,12 @@ def fluxo_escola_felix(obj, user):
             obj.dre_pediu_revisao(user=user, notificar=True)
         else:
             obj.dre_cancelou_pedido(user=user, notificar=True)
+
+
+def fluxo_informativo_felix(obj, user):
+    obj.informa(user=user, notificar=True)
+    if random.random() >= 0.5:
+        obj.terceirizada_tomou_ciencia(user=user, notificar=True)
 
 
 def fluxo_dre_felix(obj, user):
@@ -226,7 +239,7 @@ def cria_solicitacoes_kit_lanche_avulsa(qtd=50):
 def cria_inversoes_cardapio(qtd=50):
     user = Usuario.objects.first()
     for i in range(qtd):
-        inversao = InversaoCardapio(
+        inversao = InversaoCardapio.objects.create(
             criado_por=user,
             observacao=f.text()[:100],
             motivo=f.text()[:40],
@@ -236,17 +249,42 @@ def cria_inversoes_cardapio(qtd=50):
         fluxo_escola_felix(inversao, user)
 
 
-# def cria_alteracoes_cardapio(qtd=50):
-#     user = Usuario.objects.first()
-#     for i in range(qtd):
-#         alteracao_cardapio = AlteracaoCardapio(
-#             criado_por=user,
-#             observacao=f.text()[:100],
-#             motivo=f.text()[:40],
-#             escola=_get_random_escola(),
-#             cardapio_de=_get_random_cardapio(),
-#             cardapio_para=_get_random_cardapio())
-#         fluxo_escola_felix(alteracao_cardapio, user)
+def cria_suspensoes_alimentacao(qtd=50):
+    user = Usuario.objects.first()
+    for i in range(qtd):
+        suspensao_grupo = GrupoSuspensaoAlimentacao.objects.create(
+            criado_por=user,
+            escola=_get_random_escola(),
+        )
+        for _ in range(random.randint(2, 5)):
+            SuspensaoAlimentacao.objects.create(
+                outro_motivo=f.text()[:50],
+                grupo_suspensao=suspensao_grupo,
+                data=hoje + datetime.timedelta(days=random.randint(1, 30)),
+                motivo=_get_random_motivo_suspensao()
+            )
+            q = QuantidadePorPeriodoSuspensaoAlimentacao.objects.create(
+                numero_alunos=random.randint(100, 420),
+                periodo_escolar=_get_random_periodo_escolar(),
+                grupo_suspensao=suspensao_grupo,
+            )
+            q.tipos_alimentacao.set(_get_random_tipos_alimentacao())
+        fluxo_informativo_felix(suspensao_grupo, user)
+
+
+def cria_alteracoes_cardapio(qtd=50):
+    # TODO terminar os relacionamentos...
+    user = Usuario.objects.first()
+    for i in range(qtd):
+        alteracao_cardapio = AlteracaoCardapio(
+            data_inicial=hoje + datetime.timedelta(1, 15),
+            data_final=hoje + datetime.timedelta(16, 30),
+            criado_por=user,
+            escola=_get_random_escola(),
+            motivo=_get_random_motivo_altercao_cardapio()
+        )
+        fluxo_escola_felix(alteracao_cardapio, user)
+
 
 QTD_PEDIDOS = 420
 
@@ -262,3 +300,7 @@ print('-> criando solicicitacoes kit lanche avulsa')
 cria_solicitacoes_kit_lanche_avulsa(QTD_PEDIDOS)
 print('-> criando inversoes de cardapio')
 cria_inversoes_cardapio(QTD_PEDIDOS)
+print('-> criando suspensoes alimentação')
+cria_suspensoes_alimentacao(QTD_PEDIDOS)
+print('-> criando alterações de cardapio')
+cria_alteracoes_cardapio(QTD_PEDIDOS)
