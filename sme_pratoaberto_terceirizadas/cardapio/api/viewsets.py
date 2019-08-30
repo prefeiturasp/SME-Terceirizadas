@@ -4,6 +4,8 @@ from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST
 from xworkflows import InvalidTransitionError
 
+from sme_pratoaberto_terceirizadas.dados_comuns.constants import PEDIDOS_TERCEIRIZADA, FILTRO_PADRAO_PEDIDOS, \
+    PEDIDOS_CODAE, PEDIDOS_DRE
 from .permissions import (
     PodeIniciarAlteracaoCardapioPermission,
     PodeAprovarPelaCODAEAlteracaoCardapioPermission,
@@ -56,8 +58,7 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
     queryset = InversaoCardapio.objects.all()
 
     @action(detail=False,
-            url_path="pedidos-diretoria-regional/"
-                     "(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)")
+            url_path=f"{PEDIDOS_DRE}/{FILTRO_PADRAO_PEDIDOS}")
     def pedidos_diretoria_regional(self, request, filtro_aplicado="sem_filtro"):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
@@ -70,8 +71,7 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False,
-            url_path="pedidos-codae/"
-                     "(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)")
+            url_path=f"{PEDIDOS_CODAE}/{FILTRO_PADRAO_PEDIDOS}")
     def pedidos_codae(self, request, filtro_aplicado="sem_filtro"):
         # TODO: colocar regras de codae CODAE aqui...
         usuario = request.user
@@ -85,8 +85,7 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False,
-            url_path="pedidos-terceirizada/"
-                     "(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)")
+            url_path=f"{PEDIDOS_TERCEIRIZADA}/{FILTRO_PADRAO_PEDIDOS}")
     def pedidos_terceirizada(self, request, filtro_aplicado="sem_filtro"):
         # TODO: colocar regras de Terceirizada aqui...
         usuario = request.user

@@ -15,6 +15,10 @@ from ..models import (
     EscolaQuantidade, SolicitacaoKitLancheUnificada,
     SolicitacaoKitLancheAvulsa
 )
+from ...dados_comuns.constants import (
+    PEDIDOS_CODAE, FILTRO_PADRAO_PEDIDOS,
+    PEDIDOS_TERCEIRIZADA, PEDIDOS_DRE
+)
 
 
 class MotivoSolicitacaoUnificadaViewSet(ModelViewSet):
@@ -40,8 +44,7 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
         return serializers.SolicitacaoKitLancheAvulsaSerializer
 
     @action(detail=False,
-            url_path="pedidos-diretoria-regional/"
-                     "(?P<filtro_aplicado>(sem_filtro|hoje|daqui_a_7_dias|daqui_a_30_dias)+)")
+            url_path=f"{PEDIDOS_DRE}/{FILTRO_PADRAO_PEDIDOS}")
     def pedidos_diretoria_regional(self, request, filtro_aplicado="sem_filtro"):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
@@ -54,8 +57,7 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False,
-            url_path="pedidos-codae/"
-                     "(?P<filtro_aplicado>(sem_filtro|hoje|daqui_a_7_dias|daqui_a_30_dias)+)")
+            url_path=f"{PEDIDOS_CODAE}/{FILTRO_PADRAO_PEDIDOS}")
     def pedidos_codae(self, request, filtro_aplicado="sem_filtro"):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
@@ -68,8 +70,7 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False,
-            url_path="pedidos-terceirizadas/"
-                     "(?P<filtro_aplicado>(sem_filtro|hoje|daqui_a_7_dias|daqui_a_30_dias)+)")
+            url_path=f"{PEDIDOS_TERCEIRIZADA}/{FILTRO_PADRAO_PEDIDOS}")
     def pedidos_terceirizadas(self, request, filtro_aplicado="sem_filtro"):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
@@ -213,8 +214,7 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
         return serializers.SolicitacaoKitLancheUnificadaSerializer
 
     @action(detail=False,
-            url_path="pedidos-codae/"
-                     "(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)")
+            url_path=f"{PEDIDOS_CODAE}/{FILTRO_PADRAO_PEDIDOS}")
     def pedidos_codae(self, request, filtro_aplicado="sem_filtro"):
         # TODO: colocar regras de codae CODAE aqui...
         usuario = request.user
@@ -228,8 +228,7 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False,
-            url_path="pedidos-terceirizada/"
-                     "(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)")
+            url_path=f"{PEDIDOS_TERCEIRIZADA}/{FILTRO_PADRAO_PEDIDOS}")
     def pedidos_terceirizada(self, request, filtro_aplicado="sem_filtro"):
         # TODO: colocar regras de Terceirizada aqui...
         usuario = request.user

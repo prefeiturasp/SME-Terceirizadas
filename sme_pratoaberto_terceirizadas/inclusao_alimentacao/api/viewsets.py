@@ -12,6 +12,7 @@ from ..models import (
     MotivoInclusaoContinua, InclusaoAlimentacaoContinua,
     GrupoInclusaoAlimentacaoNormal, MotivoInclusaoNormal, InclusaoAlimentacaoNormal
 )
+from ...dados_comuns.constants import PEDIDOS_CODAE, FILTRO_PADRAO_PEDIDOS
 
 
 class MotivoInclusaoContinuaViewSet(ReadOnlyModelViewSet):
@@ -57,8 +58,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False,
-            url_path="pedidos-codae/"
-                     "(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)")
+            url_path=f"{PEDIDOS_CODAE}/{FILTRO_PADRAO_PEDIDOS}")
     def pedidos_codae(self, request, filtro_aplicado="sem_filtro"):
         # TODO: colocar regras de codae CODAE aqui...
         usuario = request.user
@@ -380,8 +380,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False,
-            url_path="pedidos-codae/"
-                     "(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)")
+            url_path=f"{PEDIDOS_CODAE}/{FILTRO_PADRAO_PEDIDOS}")
     def pedidos_codae(self, request, filtro_aplicado="sem_filtro"):
         # TODO: colocar regras de codae CODAE aqui...
         usuario = request.user
