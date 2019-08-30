@@ -71,13 +71,25 @@ def solicitacao_unificada_lotes_diferentes():
                                        motivo=motivo)
     lote_um = mommy.make('escola.Lote')
     escola_um = mommy.make('escola.Escola', lote=lote_um)
+    escola_dois = mommy.make('escola.Escola', lote=lote_um)
+    escola_tres = mommy.make('escola.Escola', lote=lote_um)
     mommy.make(models.EscolaQuantidade,
                escola=escola_um,
                solicitacao_unificada=solicitacao_unificada)
-    lote_dois = mommy.make('escola.Lote')
-    escola_dois = mommy.make('escola.Escola', lote=lote_dois)
     mommy.make(models.EscolaQuantidade,
                escola=escola_dois,
+               solicitacao_unificada=solicitacao_unificada)
+    mommy.make(models.EscolaQuantidade,
+               escola=escola_tres,
+               solicitacao_unificada=solicitacao_unificada)
+    lote_dois = mommy.make('escola.Lote')
+    escola_quatro = mommy.make('escola.Escola', lote=lote_dois)
+    escola_cinco = mommy.make('escola.Escola', lote=lote_dois)
+    mommy.make(models.EscolaQuantidade,
+               escola=escola_quatro,
+               solicitacao_unificada=solicitacao_unificada)
+    mommy.make(models.EscolaQuantidade,
+               escola=escola_cinco,
                solicitacao_unificada=solicitacao_unificada)
     return solicitacao_unificada
 
@@ -100,12 +112,24 @@ def solicitacao_unificada_lotes_iguais():
                                        motivo=motivo)
     lote_um = mommy.make('escola.Lote')
     escola_um = mommy.make('escola.Escola', lote=lote_um)
+    escola_dois = mommy.make('escola.Escola', lote=lote_um)
+    escola_tres = mommy.make('escola.Escola', lote=lote_um)
+    escola_quatro = mommy.make('escola.Escola', lote=lote_um)
+    escola_cinco = mommy.make('escola.Escola', lote=lote_um)
     mommy.make(models.EscolaQuantidade,
                escola=escola_um,
                solicitacao_unificada=solicitacao_unificada)
-    escola_dois = mommy.make('escola.Escola', lote=lote_um)
     mommy.make(models.EscolaQuantidade,
                escola=escola_dois,
+               solicitacao_unificada=solicitacao_unificada)
+    mommy.make(models.EscolaQuantidade,
+               escola=escola_tres,
+               solicitacao_unificada=solicitacao_unificada)
+    mommy.make(models.EscolaQuantidade,
+               escola=escola_quatro,
+               solicitacao_unificada=solicitacao_unificada)
+    mommy.make(models.EscolaQuantidade,
+               escola=escola_cinco,
                solicitacao_unificada=solicitacao_unificada)
     return solicitacao_unificada
 
