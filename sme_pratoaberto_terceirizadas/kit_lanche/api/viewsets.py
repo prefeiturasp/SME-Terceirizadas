@@ -259,7 +259,7 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
     def inicio_de_pedido(self, request, uuid=None):
         solicitacao_unificada = self.get_object()
         try:
-            solicitacoes_unificadas = solicitacao_unificada.dividir_por_lote
+            solicitacoes_unificadas = solicitacao_unificada.dividir_por_lote()
             for solicitacao_unificada in solicitacoes_unificadas:
                 solicitacao_unificada.inicia_fluxo(user=request.user, notificar=True)
             serializer = self.get_serializer(solicitacoes_unificadas, many=True)
