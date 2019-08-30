@@ -35,6 +35,18 @@ def test_solicitacao_unificada(solicitacao_unificada_lista_igual):
     assert solicitacao_unificada_lista_igual.total_kit_lanche == 3000
 
 
+def test_solicitacao_unificada_lotes_diferentes(solicitacao_unificada_lotes_diferentes):
+    assert solicitacao_unificada_lotes_diferentes.quantidade_de_lotes == 2
+    solicitacoes_unificadas = solicitacao_unificada_lotes_diferentes.dividir_por_lote()
+    assert solicitacoes_unificadas.__len__() == 2
+
+
+def test_solicitacao_unificada_lotes_iguais(solicitacao_unificada_lotes_iguais):
+    assert solicitacao_unificada_lotes_iguais.quantidade_de_lotes == 1
+    solicitacoes_unificadas = solicitacao_unificada_lotes_iguais.dividir_por_lote()
+    assert solicitacoes_unificadas.__len__() == 1
+
+
 def test_solicitacao(solicitacao):
     assert solicitacao.tempo_passeio == TempoPasseio.CINCO_A_SETE
     assert solicitacao.kits.count() == 3

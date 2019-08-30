@@ -196,13 +196,16 @@ class SolicitacaoKitLancheUnificada(CriadoPor, TemChaveExterna, TemIdentificador
             uuid_original=self.uuid
         )
 
+    @property
+    def quantidade_de_lotes(self):
+        return self.escolas_quantidades.distinct('escola__lote').count()
+
     def dividir_por_lote(self):
-        quantidade_de_lotes = self.escolas_quantidades.distinct('escola__lote').count()
-        if quantidade_de_lotes > 1:
-            if quantidade_de_lotes == 2:
-                return self.dividir_por_dois_lotes
+        if self.quantidade_de_lotes > 1:
+            if self.quantidade_de_lotes == 2:
+                return self.dividir_por_dois_lotes()
             else:
-                return self.dividir_por_tres_ou_mais_lotes
+                return self.dividir_por_tres_ou_mais_lotes()
         else:
             return SolicitacaoKitLancheUnificada.objects.filter(id=self.id)
 
@@ -221,7 +224,6 @@ class SolicitacaoKitLancheUnificada(CriadoPor, TemChaveExterna, TemIdentificador
         return SolicitacaoKitLancheUnificada.objects.filter(id__in=[primeiro_id, solicitacao_segundo_lote.id])
 
     # TODO: se esse caso existir algum dia, implementar
-    @property
     def dividir_por_tres_ou_mais_lotes(self):
         return
 
