@@ -144,3 +144,11 @@ class AlteracaoCardapioSerializer(serializers.ModelSerializer):
     class Meta:
         model = AlteracaoCardapio
         exclude = ('id',)
+
+
+class AlteracaoCardapioSimplesSerializer(serializers.ModelSerializer):
+    prioridade = serializers.CharField()
+
+    class Meta:
+        model = AlteracaoCardapio
+        exclude = ('id', 'criado_por', 'escola', 'motivo')

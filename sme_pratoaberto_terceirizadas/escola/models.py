@@ -441,10 +441,6 @@ class Codae(Nomeavel, TemChaveExterna):
         quantidade_result = escolas.aggregate(Sum('quantidade_alunos'))
         return quantidade_result.get('quantidade_alunos__sum', 0)
 
-    #
-    # Inversões de cardápio
-    #
-
     def inversoes_cardapio_das_minhas_escolas(self, filtro_aplicado):
         if filtro_aplicado == "daqui_a_7_dias":
             inversoes_cardapio = InversaoCardapio.prazo_limite_daqui_a_7_dias
@@ -476,6 +472,17 @@ class Codae(Nomeavel, TemChaveExterna):
         else:
             inversoes_cardapio = GrupoInclusaoAlimentacaoNormal.objects
         return inversoes_cardapio.filter(
+            status=GrupoInclusaoAlimentacaoNormal.workflow_class.DRE_APROVADO
+        )
+
+    def alteracoes_cardapio_das_minhas(self, filtro_aplicado):
+        if filtro_aplicado == "daqui_a_7_dias":
+            alteracoes_cardapio = AlteracaoCardapio.prazo_limite_daqui_a_7_dias
+        elif filtro_aplicado == "daqui_a_30_dias":
+            alteracoes_cardapio = AlteracaoCardapio.prazo_limite_daqui_a_30_dias
+        else:
+            alteracoes_cardapio = AlteracaoCardapio.objects
+        return alteracoes_cardapio.filter(
             status=GrupoInclusaoAlimentacaoNormal.workflow_class.DRE_APROVADO
         )
 

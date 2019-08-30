@@ -330,7 +330,8 @@ class MotivoAlteracaoCardapio(Nomeavel, TemChaveExterna):
 
 
 class AlteracaoCardapio(CriadoEm, CriadoPor, TemChaveExterna, IntervaloDeDia, TemObservacao,
-                        FluxoAprovacaoPartindoDaEscola, TemIdentificadorExternoAmigavel, Logs):
+                        FluxoAprovacaoPartindoDaEscola, TemIdentificadorExternoAmigavel, Logs,
+                        TemPrioridade):
     """
     A unidade quer trocar um ou mais tipos de refeição em um ou mais períodos escolares devido a um evento especial
     (motivo) em dado período de tempo.
