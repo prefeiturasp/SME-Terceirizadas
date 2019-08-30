@@ -2,8 +2,8 @@ import datetime
 
 from rest_framework import serializers
 
-from sme_pratoaberto_terceirizadas.paineis_consolidados.models.codae import SolicitacoesCODAE
 from ..models import SolicitacoesAutorizadasDRE, SolicitacoesPendentesDRE
+from ..models.codae import SolicitacoesCODAE
 
 
 class SolicitacoesDRESerializer(serializers.ModelSerializer):

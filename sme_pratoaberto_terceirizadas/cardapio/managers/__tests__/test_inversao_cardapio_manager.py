@@ -1,12 +1,12 @@
 import datetime
 
 import pytest
-from freezegun import freeze_time
+from freezegun import freeze_time  # noqa I100
 from model_mommy import mommy
 
-from sme_pratoaberto_terceirizadas.dados_comuns.fluxo_status import PedidoAPartirDaEscolaWorkflow
 from ...models import InversaoCardapio
 from ....dados_comuns.constants import MINIMO_DIAS_PARA_PEDIDO, QUANTIDADE_DIAS_OK_PARA_PEDIDO
+from ....dados_comuns.fluxo_status import PedidoAPartirDaEscolaWorkflow
 from ....dados_comuns.utils import obter_dias_uteis_apos_hoje
 
 pytestmark = pytest.mark.django_db

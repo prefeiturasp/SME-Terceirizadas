@@ -4,8 +4,6 @@ from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST
 from xworkflows import InvalidTransitionError
 
-from sme_pratoaberto_terceirizadas.dados_comuns.constants import PEDIDOS_TERCEIRIZADA, FILTRO_PADRAO_PEDIDOS, \
-    PEDIDOS_CODAE, PEDIDOS_DRE
 from .permissions import (
     PodeIniciarAlteracaoCardapioPermission,
     PodeAprovarPelaCODAEAlteracaoCardapioPermission,
@@ -33,6 +31,9 @@ from ..models import (
     AlteracaoCardapio, GrupoSuspensaoAlimentacao
 )
 from ...cardapio.models import MotivoAlteracaoCardapio, MotivoSuspensao
+from ...dados_comuns.constants import (
+    PEDIDOS_TERCEIRIZADA, FILTRO_PADRAO_PEDIDOS,
+    PEDIDOS_CODAE, PEDIDOS_DRE, SOLICITACOES_DO_USUARIO)
 
 
 class CardapioViewSet(viewsets.ModelViewSet):
@@ -103,7 +104,7 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
             return InversaoCardapioSerializerCreate
         return InversaoCardapioSerializer
 
-    @action(detail=False, url_path="minhas-solicitacoes")
+    @action(detail=False, url_path=SOLICITACOES_DO_USUARIO)
     def minhas_solicitacoes(self, request):
         usuario = request.user
         inversoes_rascunho = InversaoCardapio.get_solicitacoes_rascunho(usuario)
