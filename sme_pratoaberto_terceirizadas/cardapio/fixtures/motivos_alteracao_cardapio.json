@@ -3,28 +3,14 @@
     "model": "cardapio.motivoalteracaocardapio",
     "id": 1,
     "fields": {
-      "nome": "Parada Pedagógica"
+      "nome": "Atividade Diferenciada"
     }
   },
   {
     "model": "cardapio.motivoalteracaocardapio",
     "id": 2,
     "fields": {
-      "nome": "Unidade sem atendimento"
-    }
-  },
-  {
-    "model": "cardapio.motivoalteracaocardapio",
-    "id": 3,
-    "fields": {
-      "nome": "Aniversário de aluno"
-    }
-  },
-  {
-    "model": "cardapio.motivoalteracaocardapio",
-    "id": 4,
-    "fields": {
-      "nome": "Outro"
+      "nome": "Aniversariante do Mês"
     }
   }
 ]
