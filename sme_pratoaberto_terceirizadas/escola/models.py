@@ -1,11 +1,12 @@
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.validators import MinLengthValidator
 from django.db import models
-from django.db.models import Sum
+from django.db.models import Q, Sum
 
 from ..cardapio.models import (
-    AlteracaoCardapio, InversaoCardapio
+    AlteracaoCardapio, GrupoSuspensaoAlimentacao, InversaoCardapio
 )
+from ..dados_comuns.constants import DAQUI_A_30_DIAS, DAQUI_A_7_DIAS
 from ..dados_comuns.models_abstract import (
     Ativavel, Iniciais, Nomeavel, TemChaveExterna
 )
@@ -64,9 +65,9 @@ class DiretoriaRegional(Nomeavel, TemChaveExterna):
     # TODO: talvez fazer um manager genérico pra fazer esse filtro
 
     def solicitacoes_kit_lanche_das_minhas_escolas_a_validar(self, filtro_aplicado):
-        if filtro_aplicado == "daqui_a_7_dias":
+        if filtro_aplicado == DAQUI_A_7_DIAS:
             inversoes_cardapio = SolicitacaoKitLancheAvulsa.prazo_limite_daqui_a_7_dias
-        elif filtro_aplicado == "daqui_a_30_dias":
+        elif filtro_aplicado == DAQUI_A_30_DIAS:
             inversoes_cardapio = SolicitacaoKitLancheAvulsa.prazo_limite_daqui_a_30_dias
         else:
             # inversoes_cardapio = InversaoCardapio.prazo_limite
@@ -87,7 +88,7 @@ class DiretoriaRegional(Nomeavel, TemChaveExterna):
         )
 
     def solicitacoes_kit_lanche_das_minhas_escolas_no_prazo_limite(self, filtro_aplicado):
-        if filtro_aplicado == "daqui_a_7_dias":
+        if filtro_aplicado == DAQUI_A_7_DIAS:
             solicitacoes_kit_lanche_avulsa = SolicitacaoKitLancheAvulsa.prazo_limite_daqui_a_7_dias
         else:
             solicitacoes_kit_lanche_avulsa = SolicitacaoKitLancheAvulsa.prazo_limite
@@ -97,9 +98,9 @@ class DiretoriaRegional(Nomeavel, TemChaveExterna):
         )
 
     def solicitacoes_kit_lanche_das_minhas_escolas_no_prazo_regular(self, filtro_aplicado):
-        if filtro_aplicado == "daqui_a_30_dias":
+        if filtro_aplicado == DAQUI_A_30_DIAS:
             inclusoes_continuas = SolicitacaoKitLancheAvulsa.prazo_regular_daqui_a_30_dias
-        elif filtro_aplicado == "daqui_a_7_dias":
+        elif filtro_aplicado == DAQUI_A_7_DIAS:
             inclusoes_continuas = SolicitacaoKitLancheAvulsa.prazo_regular_daqui_a_7_dias
         else:
             inclusoes_continuas = SolicitacaoKitLancheAvulsa.prazo_regular
@@ -119,7 +120,7 @@ class DiretoriaRegional(Nomeavel, TemChaveExterna):
         )
 
     def inclusoes_continuas_das_minhas_escolas_no_prazo_limite(self, filtro_aplicado):
-        if filtro_aplicado == "daqui_a_7_dias":
+        if filtro_aplicado == DAQUI_A_7_DIAS:
             inclusoes_continuas = InclusaoAlimentacaoContinua.prazo_limite_daqui_a_7_dias
         else:
             inclusoes_continuas = InclusaoAlimentacaoContinua.prazo_limite
@@ -129,9 +130,9 @@ class DiretoriaRegional(Nomeavel, TemChaveExterna):
         )
 
     def inclusoes_continuas_das_minhas_escolas_no_prazo_regular(self, filtro_aplicado):
-        if filtro_aplicado == "daqui_a_30_dias":
+        if filtro_aplicado == DAQUI_A_30_DIAS:
             inclusoes_continuas = InclusaoAlimentacaoContinua.prazo_regular_daqui_a_30_dias
-        elif filtro_aplicado == "daqui_a_7_dias":
+        elif filtro_aplicado == DAQUI_A_7_DIAS:
             inclusoes_continuas = InclusaoAlimentacaoContinua.prazo_regular_daqui_a_7_dias
         else:
             inclusoes_continuas = InclusaoAlimentacaoContinua.prazo_regular
@@ -151,7 +152,7 @@ class DiretoriaRegional(Nomeavel, TemChaveExterna):
         )
 
     def inclusoes_normais_das_minhas_escolas_no_prazo_limite(self, filtro_aplicado):
-        if filtro_aplicado == "daqui_a_7_dias":
+        if filtro_aplicado == DAQUI_A_7_DIAS:
             inclusoes_normais = GrupoInclusaoAlimentacaoNormal.prazo_limite_daqui_a_7_dias
         else:
             inclusoes_normais = GrupoInclusaoAlimentacaoNormal.prazo_limite
@@ -161,9 +162,9 @@ class DiretoriaRegional(Nomeavel, TemChaveExterna):
         )
 
     def inclusoes_normais_das_minhas_escolas_no_prazo_regular(self, filtro_aplicado):
-        if filtro_aplicado == "daqui_a_30_dias":
+        if filtro_aplicado == DAQUI_A_30_DIAS:
             inclusoes_normais = GrupoInclusaoAlimentacaoNormal.prazo_regular_daqui_a_30_dias
-        elif filtro_aplicado == "daqui_a_7_dias":
+        elif filtro_aplicado == DAQUI_A_7_DIAS:
             inclusoes_normais = GrupoInclusaoAlimentacaoNormal.prazo_regular_daqui_a_7_dias
         else:
             inclusoes_normais = GrupoInclusaoAlimentacaoNormal.prazo_regular
@@ -208,7 +209,7 @@ class DiretoriaRegional(Nomeavel, TemChaveExterna):
         )
 
     def alteracoes_cardapio_das_minhas_escolas_no_prazo_limite(self, filtro_aplicado):
-        if filtro_aplicado == "daqui_a_7_dias":
+        if filtro_aplicado == DAQUI_A_7_DIAS:
             alteracoes_cardapio = AlteracaoCardapio.prazo_limite_daqui_a_7_dias
         else:
             alteracoes_cardapio = AlteracaoCardapio.prazo_limite
@@ -218,9 +219,9 @@ class DiretoriaRegional(Nomeavel, TemChaveExterna):
         )
 
     def alteracoes_cardapio_das_minhas_escolas_no_prazo_regular(self, filtro_aplicado):
-        if filtro_aplicado == "daqui_a_30_dias":
+        if filtro_aplicado == DAQUI_A_30_DIAS:
             alteracoes_cardapio = AlteracaoCardapio.prazo_regular_daqui_a_30_dias
-        elif filtro_aplicado == "daqui_a_7_dias":
+        elif filtro_aplicado == DAQUI_A_7_DIAS:
             alteracoes_cardapio = AlteracaoCardapio.prazo_regular_daqui_a_7_dias
         else:
             alteracoes_cardapio = AlteracaoCardapio.prazo_regular
@@ -234,9 +235,9 @@ class DiretoriaRegional(Nomeavel, TemChaveExterna):
     #
 
     def inversoes_cardapio_das_minhas_escolas(self, filtro_aplicado):
-        if filtro_aplicado == "daqui_a_7_dias":
+        if filtro_aplicado == DAQUI_A_7_DIAS:
             inversoes_cardapio = InversaoCardapio.prazo_limite_daqui_a_7_dias
-        elif filtro_aplicado == "daqui_a_30_dias":
+        elif filtro_aplicado == DAQUI_A_30_DIAS:
             inversoes_cardapio = InversaoCardapio.prazo_limite_daqui_a_30_dias
         else:
             # inversoes_cardapio = InversaoCardapio.prazo_limite
@@ -442,9 +443,9 @@ class Codae(Nomeavel, TemChaveExterna):
         return quantidade_result.get('quantidade_alunos__sum', 0)
 
     def inversoes_cardapio_das_minhas_escolas(self, filtro_aplicado):
-        if filtro_aplicado == "daqui_a_7_dias":
+        if filtro_aplicado == DAQUI_A_7_DIAS:
             inversoes_cardapio = InversaoCardapio.prazo_limite_daqui_a_7_dias
-        elif filtro_aplicado == "daqui_a_30_dias":
+        elif filtro_aplicado == DAQUI_A_30_DIAS:
             inversoes_cardapio = InversaoCardapio.prazo_limite_daqui_a_30_dias
         else:
             # inversoes_cardapio = InversaoCardapio.prazo_limite
@@ -454,9 +455,9 @@ class Codae(Nomeavel, TemChaveExterna):
         )
 
     def inclusoes_alimentacao_continua_das_minhas_escolas(self, filtro_aplicado):
-        if filtro_aplicado == "daqui_a_7_dias":
+        if filtro_aplicado == DAQUI_A_7_DIAS:
             inversoes_cardapio = InclusaoAlimentacaoContinua.prazo_limite_daqui_a_7_dias
-        elif filtro_aplicado == "daqui_a_30_dias":
+        elif filtro_aplicado == DAQUI_A_30_DIAS:
             inversoes_cardapio = InclusaoAlimentacaoContinua.prazo_limite_daqui_a_30_dias
         else:
             inversoes_cardapio = InclusaoAlimentacaoContinua.objects
@@ -465,9 +466,9 @@ class Codae(Nomeavel, TemChaveExterna):
         )
 
     def grupos_inclusoes_alimentacao_normal_das_minhas_escolas(self, filtro_aplicado):
-        if filtro_aplicado == "daqui_a_7_dias":
+        if filtro_aplicado == DAQUI_A_7_DIAS:
             inversoes_cardapio = GrupoInclusaoAlimentacaoNormal.prazo_limite_daqui_a_7_dias
-        elif filtro_aplicado == "daqui_a_30_dias":
+        elif filtro_aplicado == DAQUI_A_30_DIAS:
             inversoes_cardapio = GrupoInclusaoAlimentacaoNormal.prazo_limite_daqui_a_30_dias
         else:
             inversoes_cardapio = GrupoInclusaoAlimentacaoNormal.objects
@@ -476,14 +477,19 @@ class Codae(Nomeavel, TemChaveExterna):
         )
 
     def alteracoes_cardapio_das_minhas(self, filtro_aplicado):
-        if filtro_aplicado == "daqui_a_7_dias":
+        if filtro_aplicado == DAQUI_A_7_DIAS:
             alteracoes_cardapio = AlteracaoCardapio.prazo_limite_daqui_a_7_dias
-        elif filtro_aplicado == "daqui_a_30_dias":
+        elif filtro_aplicado == DAQUI_A_30_DIAS:
             alteracoes_cardapio = AlteracaoCardapio.prazo_limite_daqui_a_30_dias
         else:
             alteracoes_cardapio = AlteracaoCardapio.objects
         return alteracoes_cardapio.filter(
-            status=GrupoInclusaoAlimentacaoNormal.workflow_class.DRE_APROVADO
+            status=AlteracaoCardapio.workflow_class.DRE_APROVADO
+        )
+
+    def suspensoes_cardapio_das_minhas_escolas(self, filtro_aplicado):
+        return GrupoSuspensaoAlimentacao.objects.filter(
+            ~Q(status__in=[GrupoSuspensaoAlimentacao.workflow_class.RASCUNHO])
         )
 
         #
@@ -491,9 +497,9 @@ class Codae(Nomeavel, TemChaveExterna):
         #
 
     def solicitacoes_unificadas(self, filtro_aplicado):
-        if filtro_aplicado == "daqui_a_7_dias":
+        if filtro_aplicado == DAQUI_A_7_DIAS:
             solicitacoes_unificadas = SolicitacaoKitLancheUnificada.prazo_limite_daqui_a_7_dias
-        elif filtro_aplicado == "daqui_a_30_dias":
+        elif filtro_aplicado == DAQUI_A_30_DIAS:
             solicitacoes_unificadas = SolicitacaoKitLancheUnificada.prazo_limite_daqui_a_30_dias
         else:
             solicitacoes_unificadas = SolicitacaoKitLancheUnificada.objects
@@ -528,9 +534,9 @@ class Codae(Nomeavel, TemChaveExterna):
     # TODO: talvez fazer um manager genérico pra fazer esse filtro
 
     def solicitacoes_kit_lanche_das_minhas_escolas_a_validar(self, filtro_aplicado):
-        if filtro_aplicado == "daqui_a_7_dias":
+        if filtro_aplicado == DAQUI_A_7_DIAS:
             solicitacoes_kit_lanche = SolicitacaoKitLancheAvulsa.prazo_limite_daqui_a_7_dias
-        elif filtro_aplicado == "daqui_a_30_dias":
+        elif filtro_aplicado == DAQUI_A_30_DIAS:
             solicitacoes_kit_lanche = SolicitacaoKitLancheAvulsa.prazo_limite_daqui_a_30_dias
         else:
             solicitacoes_kit_lanche = SolicitacaoKitLancheAvulsa.objects
@@ -548,7 +554,7 @@ class Codae(Nomeavel, TemChaveExterna):
         )
 
     def inclusoes_continuas_das_minhas_escolas_no_prazo_limite(self, filtro_aplicado):
-        if filtro_aplicado == "daqui_a_7_dias":
+        if filtro_aplicado == DAQUI_A_7_DIAS:
             inclusoes_continuas = InclusaoAlimentacaoContinua.prazo_limite_daqui_a_7_dias
         else:
             inclusoes_continuas = InclusaoAlimentacaoContinua.prazo_limite
@@ -557,9 +563,9 @@ class Codae(Nomeavel, TemChaveExterna):
         )
 
     def inclusoes_continuas_das_minhas_escolas_no_prazo_regular(self, filtro_aplicado):
-        if filtro_aplicado == "daqui_a_30_dias":
+        if filtro_aplicado == DAQUI_A_30_DIAS:
             inclusoes_continuas = InclusaoAlimentacaoContinua.prazo_regular_daqui_a_30_dias
-        elif filtro_aplicado == "daqui_a_7_dias":
+        elif filtro_aplicado == DAQUI_A_7_DIAS:
             inclusoes_continuas = InclusaoAlimentacaoContinua.prazo_regular_daqui_a_7_dias
         else:
             inclusoes_continuas = InclusaoAlimentacaoContinua.prazo_regular
@@ -577,7 +583,7 @@ class Codae(Nomeavel, TemChaveExterna):
         )
 
     def inclusoes_normais_das_minhas_escolas_no_prazo_limite(self, filtro_aplicado):
-        if filtro_aplicado == "daqui_a_7_dias":
+        if filtro_aplicado == DAQUI_A_7_DIAS:
             inclusoes_normais = GrupoInclusaoAlimentacaoNormal.prazo_limite_daqui_a_7_dias
         else:
             inclusoes_normais = GrupoInclusaoAlimentacaoNormal.prazo_limite
@@ -586,9 +592,9 @@ class Codae(Nomeavel, TemChaveExterna):
         )
 
     def inclusoes_normais_das_minhas_escolas_no_prazo_regular(self, filtro_aplicado):
-        if filtro_aplicado == "daqui_a_30_dias":
+        if filtro_aplicado == DAQUI_A_30_DIAS:
             inclusoes_normais = GrupoInclusaoAlimentacaoNormal.prazo_regular_daqui_a_30_dias
-        elif filtro_aplicado == "daqui_a_7_dias":
+        elif filtro_aplicado == DAQUI_A_7_DIAS:
             inclusoes_normais = GrupoInclusaoAlimentacaoNormal.prazo_regular_daqui_a_7_dias
         else:
             inclusoes_normais = GrupoInclusaoAlimentacaoNormal.prazo_regular
@@ -607,7 +613,7 @@ class Codae(Nomeavel, TemChaveExterna):
         )
 
     def alteracoes_cardapio_das_minhas_escolas_no_prazo_limite(self, filtro_aplicado):
-        if filtro_aplicado == "daqui_a_7_dias":
+        if filtro_aplicado == DAQUI_A_7_DIAS:
             alteracoes_cardapio = AlteracaoCardapio.prazo_limite_daqui_a_7_dias
         else:
             alteracoes_cardapio = AlteracaoCardapio.prazo_limite
@@ -616,9 +622,9 @@ class Codae(Nomeavel, TemChaveExterna):
         )
 
     def alteracoes_cardapio_das_minhas_escolas_no_prazo_regular(self, filtro_aplicado):
-        if filtro_aplicado == "daqui_a_30_dias":
+        if filtro_aplicado == DAQUI_A_30_DIAS:
             alteracoes_cardapio = AlteracaoCardapio.prazo_regular_daqui_a_30_dias
-        elif filtro_aplicado == "daqui_a_7_dias":
+        elif filtro_aplicado == DAQUI_A_7_DIAS:
             alteracoes_cardapio = AlteracaoCardapio.prazo_regular_daqui_a_7_dias
         else:
             alteracoes_cardapio = AlteracaoCardapio.prazo_regular

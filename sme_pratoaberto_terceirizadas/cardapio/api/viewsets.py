@@ -23,6 +23,7 @@ from .serializers.serializers import (
 from .serializers.serializers_create import (
     AlteracaoCardapioSerializerCreate, CardapioCreateSerializer,
     GrupoSuspensaoAlimentacaoCreateSerializer, InversaoCardapioSerializerCreate)
+from ..api.serializers.serializers import GrupoSuspensaoAlimentacaoSimplesSerializer
 from ..models import (
     AlteracaoCardapio, Cardapio, GrupoSuspensaoAlimentacao, InversaoCardapio, TipoAlimentacao
 )
@@ -30,6 +31,7 @@ from ...cardapio.models import MotivoAlteracaoCardapio, MotivoSuspensao
 from ...dados_comuns.constants import (
     FILTRO_PADRAO_PEDIDOS, PEDIDOS_CODAE, PEDIDOS_DRE, PEDIDOS_TERCEIRIZADA, SOLICITACOES_DO_USUARIO
 )
+from ...dados_comuns.constants import SEM_FILTRO
 
 
 class CardapioViewSet(viewsets.ModelViewSet):
@@ -221,6 +223,21 @@ class GrupoSuspensaoAlimentacaoSerializerViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
     queryset = GrupoSuspensaoAlimentacao.objects.all()
     serializer_class = GrupoSuspensaoAlimentacaoSerializer
+
+    @action(detail=False,
+            url_path=f"{PEDIDOS_CODAE}/{FILTRO_PADRAO_PEDIDOS}")
+    def pedidos_codae(self, request, filtro_aplicado=SEM_FILTRO):
+        # TODO: colocar regras de codae CODAE aqui...
+        usuario = request.user
+        # TODO: aguardando definição de perfis pra saber
+        codae = usuario.CODAE.first()
+        alteracoes_cardapio = codae.suspensoes_cardapio_das_minhas_escolas(
+            filtro_aplicado
+        )
+
+        page = self.paginate_queryset(alteracoes_cardapio)
+        serializer = GrupoSuspensaoAlimentacaoSimplesSerializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
 
     @action(detail=False, methods=['GET'])
     def informadas(self, request):
