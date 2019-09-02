@@ -10,7 +10,7 @@ from ..dados_comuns.models_abstract import (
     Ativavel, Iniciais, Nomeavel, TemChaveExterna
 )
 from ..inclusao_alimentacao.models import (
-    InclusaoAlimentacaoContinua, GrupoInclusaoAlimentacaoNormal
+    GrupoInclusaoAlimentacaoNormal, InclusaoAlimentacaoContinua
 )
 from ..kit_lanche.models import SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheUnificada
 from ..paineis_consolidados.models import SolicitacoesAutorizadasDRE, SolicitacoesPendentesDRE
