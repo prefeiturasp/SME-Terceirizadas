@@ -1,35 +1,35 @@
-from rest_framework import viewsets, status
+from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST
 from xworkflows import InvalidTransitionError
 
 from .permissions import (
-    PodeIniciarAlteracaoCardapioPermission,
-    PodeAprovarPelaCODAEAlteracaoCardapioPermission,
-    PodeRecusarPelaCODAEAlteracaoCardapioPermission,
+    PodeAprovarPelaCODAEAlteracaoCardapioPermission, PodeIniciarAlteracaoCardapioPermission,
+    PodeRecusarPelaCODAEAlteracaoCardapioPermission
 )
 from .permissions import (
     PodeIniciarSuspensaoDeAlimentacaoPermission,
     PodeTomarCienciaSuspensaoDeAlimentacaoPermission
 )
 from .serializers.serializers import (
-    CardapioSerializer, TipoAlimentacaoSerializer,
-    InversaoCardapioSerializer, AlteracaoCardapioSerializer,
-    GrupoSuspensaoAlimentacaoSerializer, InversaoCardapioSimpleserializer)
+    AlteracaoCardapioSerializer, AlteracaoCardapioSimplesSerializer, CardapioSerializer,
+    GrupoSuspensaoAlimentacaoSerializer, InversaoCardapioSerializer, InversaoCardapioSimpleserializer,
+    TipoAlimentacaoSerializer)
 from .serializers.serializers import (
     MotivoAlteracaoCardapioSerializer,
     MotivoSuspensaoSerializer
 )
 from .serializers.serializers_create import (
-    InversaoCardapioSerializerCreate, CardapioCreateSerializer,
-    AlteracaoCardapioSerializerCreate,
-    GrupoSuspensaoAlimentacaoCreateSerializer)
+    AlteracaoCardapioSerializerCreate, CardapioCreateSerializer,
+    GrupoSuspensaoAlimentacaoCreateSerializer, InversaoCardapioSerializerCreate)
 from ..models import (
-    Cardapio, TipoAlimentacao, InversaoCardapio,
-    AlteracaoCardapio, GrupoSuspensaoAlimentacao
+    AlteracaoCardapio, Cardapio, GrupoSuspensaoAlimentacao, InversaoCardapio, TipoAlimentacao
 )
 from ...cardapio.models import MotivoAlteracaoCardapio, MotivoSuspensao
+from ...dados_comuns.constants import (
+    FILTRO_PADRAO_PEDIDOS, PEDIDOS_CODAE, PEDIDOS_DRE, PEDIDOS_TERCEIRIZADA, SOLICITACOES_DO_USUARIO
+)
 
 
 class CardapioViewSet(viewsets.ModelViewSet):
@@ -55,8 +55,7 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
     queryset = InversaoCardapio.objects.all()
 
     @action(detail=False,
-            url_path="pedidos-diretoria-regional/"
-                     "(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)")
+            url_path=f"{PEDIDOS_DRE}/{FILTRO_PADRAO_PEDIDOS}")
     def pedidos_diretoria_regional(self, request, filtro_aplicado="sem_filtro"):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
@@ -69,8 +68,7 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False,
-            url_path="pedidos-codae/"
-                     "(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)")
+            url_path=f"{PEDIDOS_CODAE}/{FILTRO_PADRAO_PEDIDOS}")
     def pedidos_codae(self, request, filtro_aplicado="sem_filtro"):
         # TODO: colocar regras de codae CODAE aqui...
         usuario = request.user
@@ -84,8 +82,7 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False,
-            url_path="pedidos-terceirizada/"
-                     "(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)")
+            url_path=f"{PEDIDOS_TERCEIRIZADA}/{FILTRO_PADRAO_PEDIDOS}")
     def pedidos_terceirizada(self, request, filtro_aplicado="sem_filtro"):
         # TODO: colocar regras de Terceirizada aqui...
         usuario = request.user
@@ -103,7 +100,7 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
             return InversaoCardapioSerializerCreate
         return InversaoCardapioSerializer
 
-    @action(detail=False, url_path="minhas-solicitacoes")
+    @action(detail=False, url_path=SOLICITACOES_DO_USUARIO)
     def minhas_solicitacoes(self, request):
         usuario = request.user
         inversoes_rascunho = InversaoCardapio.get_solicitacoes_rascunho(usuario)
@@ -285,6 +282,26 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
         if self.action in ['create', 'update', 'partial_update']:
             return AlteracaoCardapioSerializerCreate
         return AlteracaoCardapioSerializer
+
+    #
+    # Pedidos
+    #
+
+    @action(detail=False,
+            url_path="pedidos-codae/"
+                     "(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)")
+    def pedidos_codae(self, request, filtro_aplicado="sem_filtro"):
+        # TODO: colocar regras de codae CODAE aqui...
+        usuario = request.user
+        # TODO: aguardando definição de perfis pra saber
+        codae = usuario.CODAE.first()
+        alteracoes_cardapio = codae.alteracoes_cardapio_das_minhas(
+            filtro_aplicado
+        )
+
+        page = self.paginate_queryset(alteracoes_cardapio)
+        serializer = AlteracaoCardapioSimplesSerializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
 
     #
     # IMPLEMENTAÇÃO DO FLUXO (PARTINDO DA ESCOLA)

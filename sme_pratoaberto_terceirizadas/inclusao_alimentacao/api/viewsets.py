@@ -1,17 +1,18 @@
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.viewsets import ReadOnlyModelViewSet, ModelViewSet
+from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from xworkflows import InvalidTransitionError
 
 from .permissions import (
-    PodeIniciarInclusaoAlimentacaoContinuaPermission,
-    PodeAprovarAlimentacaoContinuaDaEscolaPermission
+    PodeAprovarAlimentacaoContinuaDaEscolaPermission, PodeIniciarInclusaoAlimentacaoContinuaPermission
 )
 from .serializers import serializers, serializers_create
 from ..models import (
-    MotivoInclusaoContinua, InclusaoAlimentacaoContinua,
-    GrupoInclusaoAlimentacaoNormal, MotivoInclusaoNormal, InclusaoAlimentacaoNormal
+    GrupoInclusaoAlimentacaoNormal, InclusaoAlimentacaoContinua,
+    InclusaoAlimentacaoNormal, MotivoInclusaoContinua,
+    MotivoInclusaoNormal
 )
+from ...dados_comuns.constants import FILTRO_PADRAO_PEDIDOS, PEDIDOS_CODAE
 
 
 class MotivoInclusaoContinuaViewSet(ReadOnlyModelViewSet):
@@ -57,8 +58,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False,
-            url_path="pedidos-codae/"
-                     "(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)")
+            url_path=f"{PEDIDOS_CODAE}/{FILTRO_PADRAO_PEDIDOS}")
     def pedidos_codae(self, request, filtro_aplicado="sem_filtro"):
         # TODO: colocar regras de codae CODAE aqui...
         usuario = request.user
@@ -380,8 +380,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False,
-            url_path="pedidos-codae/"
-                     "(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)")
+            url_path=f"{PEDIDOS_CODAE}/{FILTRO_PADRAO_PEDIDOS}")
     def pedidos_codae(self, request, filtro_aplicado="sem_filtro"):
         # TODO: colocar regras de codae CODAE aqui...
         usuario = request.user

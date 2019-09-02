@@ -3,30 +3,20 @@ import datetime
 from django.db import models
 
 from .managers import (
-    AlteracoesCardapioPrazoVencendoManager,
-    AlteracoesCardapioPrazoLimiteManager,
-    AlteracoesCardapioPrazoRegularManager,
-    AlteracoesCardapioPrazoVencendoHojeManager,
-    AlteracoesCardapioPrazoLimiteDaquiA7DiasManager,
-    AlteracoesCardapioPrazoRegularDaquiA7DiasManager,
-    AlteracoesCardapioVencidaManager,
-    AlteracoesCardapioPrazoRegularDaquiA30DiasManager,
-    InversaoCardapioPrazoVencendoManager,
-    InversaoCardapioPrazoVencendoHojeManager,
-    InversaoCardapioPrazoLimiteManager,
-    InversaoCardapioPrazoLimiteDaquiA7DiasManager,
-    InversaoCardapioPrazoLimiteDaquiA30DiasManager,
+    AlteracoesCardapioPrazoLimiteDaquiA7DiasManager, AlteracoesCardapioPrazoLimiteManager,
+    AlteracoesCardapioPrazoRegularDaquiA30DiasManager, AlteracoesCardapioPrazoRegularDaquiA7DiasManager,
+    AlteracoesCardapioPrazoRegularManager, AlteracoesCardapioPrazoVencendoHojeManager,
+    AlteracoesCardapioPrazoVencendoManager, AlteracoesCardapioVencidaManager,
+    InversaoCardapioPrazoLimiteDaquiA30DiasManager, InversaoCardapioPrazoLimiteDaquiA7DiasManager,
+    InversaoCardapioPrazoLimiteManager, InversaoCardapioPrazoVencendoHojeManager, InversaoCardapioPrazoVencendoManager,
     InversaoCardapioVencidaManager
+
 )
-from ..dados_comuns.models import TemplateMensagem
+from ..dados_comuns.models import TemplateMensagem  # noqa I202
 from ..dados_comuns.models_abstract import (
-    Descritivel, TemData, TemChaveExterna, Ativavel,
-    Nomeavel, CriadoEm, IntervaloDeDia, CriadoPor,
-    TemObservacao, FluxoAprovacaoPartindoDaEscola,
-    Motivo, Logs, LogSolicitacoesUsuario,
-    TemIdentificadorExternoAmigavel,
-    FluxoInformativoPartindoDaEscola,
-    TemPrioridade
+    Ativavel, CriadoEm, CriadoPor, Descritivel, FluxoAprovacaoPartindoDaEscola, FluxoInformativoPartindoDaEscola,
+    IntervaloDeDia, LogSolicitacoesUsuario, Logs, Motivo, Nomeavel, TemChaveExterna, TemData,
+    TemIdentificadorExternoAmigavel, TemObservacao, TemPrioridade
 )
 from ..dados_comuns.utils import obter_dias_uteis_apos_hoje
 
@@ -205,7 +195,7 @@ class SuspensaoAlimentacao(TemData, TemChaveExterna):
     """
     prioritario = models.BooleanField(default=False)
     motivo = models.ForeignKey(MotivoSuspensao, on_delete=models.DO_NOTHING)
-    outro_motivo = models.CharField("Outro motivo", blank=True, null=True, max_length=50)
+    outro_motivo = models.CharField("Outro motivo", blank=True, max_length=50)
     grupo_suspensao = models.ForeignKey('GrupoSuspensaoAlimentacao', on_delete=models.CASCADE,
                                         blank=True, null=True, related_name='suspensoes_alimentacao')
 
@@ -330,7 +320,8 @@ class MotivoAlteracaoCardapio(Nomeavel, TemChaveExterna):
 
 
 class AlteracaoCardapio(CriadoEm, CriadoPor, TemChaveExterna, IntervaloDeDia, TemObservacao,
-                        FluxoAprovacaoPartindoDaEscola, TemIdentificadorExternoAmigavel, Logs):
+                        FluxoAprovacaoPartindoDaEscola, TemIdentificadorExternoAmigavel, Logs,
+                        TemPrioridade):
     """
     A unidade quer trocar um ou mais tipos de refeição em um ou mais períodos escolares devido a um evento especial
     (motivo) em dado período de tempo.

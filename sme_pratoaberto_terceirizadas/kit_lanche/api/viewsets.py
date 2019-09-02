@@ -1,19 +1,21 @@
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_200_OK
+from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from xworkflows import InvalidTransitionError
 
 from .permissions import (
-    SolicitacaoUnificadaPermission, PodeIniciarSolicitacaoUnificadaPermission,
-    PodeIniciarSolicitacaoKitLancheAvulsaPermission
+    PodeIniciarSolicitacaoKitLancheAvulsaPermission, PodeIniciarSolicitacaoUnificadaPermission,
+    SolicitacaoUnificadaPermission
 )
 from .serializers import serializers
 from .serializers import serializers_create
 from .. import models
 from ..models import (
-    EscolaQuantidade, SolicitacaoKitLancheUnificada,
-    SolicitacaoKitLancheAvulsa
+    EscolaQuantidade, SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheUnificada
+)
+from ...dados_comuns.constants import (
+    FILTRO_PADRAO_PEDIDOS, PEDIDOS_CODAE, PEDIDOS_DRE, PEDIDOS_TERCEIRIZADA
 )
 
 
@@ -40,8 +42,7 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
         return serializers.SolicitacaoKitLancheAvulsaSerializer
 
     @action(detail=False,
-            url_path="pedidos-diretoria-regional/"
-                     "(?P<filtro_aplicado>(sem_filtro|hoje|daqui_a_7_dias|daqui_a_30_dias)+)")
+            url_path=f"{PEDIDOS_DRE}/{FILTRO_PADRAO_PEDIDOS}")
     def pedidos_diretoria_regional(self, request, filtro_aplicado="sem_filtro"):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
@@ -54,8 +55,7 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False,
-            url_path="pedidos-codae/"
-                     "(?P<filtro_aplicado>(sem_filtro|hoje|daqui_a_7_dias|daqui_a_30_dias)+)")
+            url_path=f"{PEDIDOS_CODAE}/{FILTRO_PADRAO_PEDIDOS}")
     def pedidos_codae(self, request, filtro_aplicado="sem_filtro"):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
@@ -68,8 +68,7 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False,
-            url_path="pedidos-terceirizadas/"
-                     "(?P<filtro_aplicado>(sem_filtro|hoje|daqui_a_7_dias|daqui_a_30_dias)+)")
+            url_path=f"{PEDIDOS_TERCEIRIZADA}/{FILTRO_PADRAO_PEDIDOS}")
     def pedidos_terceirizadas(self, request, filtro_aplicado="sem_filtro"):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
@@ -213,8 +212,7 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
         return serializers.SolicitacaoKitLancheUnificadaSerializer
 
     @action(detail=False,
-            url_path="pedidos-codae/"
-                     "(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)")
+            url_path=f"{PEDIDOS_CODAE}/{FILTRO_PADRAO_PEDIDOS}")
     def pedidos_codae(self, request, filtro_aplicado="sem_filtro"):
         # TODO: colocar regras de codae CODAE aqui...
         usuario = request.user
@@ -224,12 +222,11 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
             filtro_aplicado
         )
         page = self.paginate_queryset(solicitacoes_unificadas)
-        serializer = self.get_serializer(page, many=True)
+        serializer = serializers.SolicitacaoKitLancheUnificadaSimplesSerializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False,
-            url_path="pedidos-terceirizada/"
-                     "(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)")
+            url_path=f"{PEDIDOS_TERCEIRIZADA}/{FILTRO_PADRAO_PEDIDOS}")
     def pedidos_terceirizada(self, request, filtro_aplicado="sem_filtro"):
         # TODO: colocar regras de Terceirizada aqui...
         usuario = request.user

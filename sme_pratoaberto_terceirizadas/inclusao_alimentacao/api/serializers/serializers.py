@@ -1,13 +1,12 @@
 from rest_framework import serializers
 
-from sme_pratoaberto_terceirizadas.cardapio.api.serializers.serializers import TipoAlimentacaoSerializer
-from sme_pratoaberto_terceirizadas.dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
-from sme_pratoaberto_terceirizadas.escola.api.serializers import EscolaSimplesSerializer
-from sme_pratoaberto_terceirizadas.escola.api.serializers import PeriodoEscolarSerializer
-from sme_pratoaberto_terceirizadas.inclusao_alimentacao.models import (
-    MotivoInclusaoContinua, MotivoInclusaoNormal,
-    InclusaoAlimentacaoNormal, QuantidadePorPeriodo,
-    GrupoInclusaoAlimentacaoNormal, InclusaoAlimentacaoContinua
+from ....cardapio.api.serializers.serializers import TipoAlimentacaoSerializer
+from ....dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
+from ....escola.api.serializers import EscolaSimplesSerializer
+from ....escola.api.serializers import PeriodoEscolarSerializer
+from ....inclusao_alimentacao.models import (
+    GrupoInclusaoAlimentacaoNormal, InclusaoAlimentacaoContinua, InclusaoAlimentacaoNormal, MotivoInclusaoContinua,
+    MotivoInclusaoNormal, QuantidadePorPeriodo
 )
 
 

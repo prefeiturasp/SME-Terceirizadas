@@ -1,26 +1,23 @@
 from rest_framework import serializers
 
-from sme_pratoaberto_terceirizadas.dados_comuns.utils import update_instance_from_dict
-from sme_pratoaberto_terceirizadas.dados_comuns.validators import (
-    nao_pode_ser_no_passado, deve_pedir_com_antecedencia,
-    nao_pode_ser_nulo, deve_ser_deste_tipo)
-from sme_pratoaberto_terceirizadas.escola.models import Escola, DiretoriaRegional
 from ..validators import (
-    solicitacao_deve_ter_1_ou_mais_kits,
-    solicitacao_deve_ter_0_kit,
-    valida_tempo_passeio_lista_igual,
-    valida_tempo_passeio_lista_nao_igual,
-    escola_quantidade_deve_ter_1_ou_mais_kits,
-    valida_duplicidade_passeio_data_escola,
-    valida_quantidades_alunos_e_escola)
+    escola_quantidade_deve_ter_1_ou_mais_kits, solicitacao_deve_ter_0_kit,
+    solicitacao_deve_ter_1_ou_mais_kits, valida_duplicidade_passeio_data_escola,
+    valida_quantidades_alunos_e_escola, valida_tempo_passeio_lista_igual,
+    valida_tempo_passeio_lista_nao_igual
+)
 from ..validators import (
-    valida_quantidade_kits_tempo_passeio,
-    escola_quantidade_nao_deve_ter_kits_e_tempo_passeio
+    escola_quantidade_nao_deve_ter_kits_e_tempo_passeio, valida_quantidade_kits_tempo_passeio
 )
 from ...models import (
-    SolicitacaoKitLancheUnificada, MotivoSolicitacaoUnificada,
-    SolicitacaoKitLancheAvulsa, KitLanche, SolicitacaoKitLanche, EscolaQuantidade
+    EscolaQuantidade, KitLanche, MotivoSolicitacaoUnificada, SolicitacaoKitLanche,
+    SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheUnificada
 )
+from ....dados_comuns.utils import update_instance_from_dict
+from ....dados_comuns.validators import (
+    deve_pedir_com_antecedencia, deve_ser_deste_tipo, nao_pode_ser_no_passado, nao_pode_ser_nulo
+)
+from ....escola.models import DiretoriaRegional, Escola
 
 
 class SolicitacaoKitLancheCreationSerializer(serializers.ModelSerializer):

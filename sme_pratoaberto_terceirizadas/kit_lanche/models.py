@@ -4,26 +4,18 @@ from django.db import models
 from django.db.models.functions import Coalesce
 
 from .managers import (
-    SolicitacaoKitLancheAvulsaPrazoVencendoManager,
-    SolicitacaoKitLancheAvulsaPrazoVencendoHojeManager,
-    SolicitacaoKitLancheAvulsaPrazoLimiteManager,
-    SolicitacaoKitLancheAvulsaPrazoLimiteDaquiA7DiasManager,
-    SolicitacaoKitLancheAvulsaPrazoRegularManager,
-    SolicitacaoKitLancheAvulsaPrazoRegularDaquiA30DiasManager,
-    SolicitacaoKitLancheAvulsaVencidaDiasManager,
-    SolicitacaoUnificadaPrazoVencendoManager,
-    SolicitacaoUnificadaPrazoVencendoHojeManager,
-    SolicitacaoUnificadaPrazoLimiteManager,
-    SolicitacaoUnificadaPrazoLimiteDaquiA7DiasManager,
-    SolicitacaoUnificadaPrazoLimiteDaquiA30DiasManager,
+    SolicitacaoKitLancheAvulsaPrazoLimiteDaquiA7DiasManager, SolicitacaoKitLancheAvulsaPrazoLimiteManager,
+    SolicitacaoKitLancheAvulsaPrazoRegularDaquiA30DiasManager, SolicitacaoKitLancheAvulsaPrazoRegularManager,
+    SolicitacaoKitLancheAvulsaPrazoVencendoHojeManager, SolicitacaoKitLancheAvulsaPrazoVencendoManager,
+    SolicitacaoKitLancheAvulsaVencidaDiasManager, SolicitacaoUnificadaPrazoLimiteDaquiA30DiasManager,
+    SolicitacaoUnificadaPrazoLimiteDaquiA7DiasManager, SolicitacaoUnificadaPrazoLimiteManager,
+    SolicitacaoUnificadaPrazoVencendoHojeManager, SolicitacaoUnificadaPrazoVencendoManager,
     SolicitacaoUnificadaVencidaManager
 )
-from ..dados_comuns.models import TemplateMensagem, LogSolicitacoesUsuario
+from ..dados_comuns.models import LogSolicitacoesUsuario, TemplateMensagem
 from ..dados_comuns.models_abstract import (
-    Nomeavel, TemData, Motivo, Descritivel, Logs,
-    CriadoEm, TemChaveExterna, TempoPasseio, CriadoPor,
-    FluxoAprovacaoPartindoDaEscola, TemIdentificadorExternoAmigavel,
-    FluxoAprovacaoPartindoDaDiretoriaRegional, TemPrioridade
+    CriadoEm, CriadoPor, Descritivel, FluxoAprovacaoPartindoDaDiretoriaRegional, FluxoAprovacaoPartindoDaEscola, Logs,
+    Motivo, Nomeavel, TemChaveExterna, TemData, TemIdentificadorExternoAmigavel, TemPrioridade, TempoPasseio
 )
 
 
@@ -146,7 +138,7 @@ class SolicitacaoKitLancheAvulsa(TemChaveExterna, FluxoAprovacaoPartindoDaEscola
 
 
 class SolicitacaoKitLancheUnificada(CriadoPor, TemChaveExterna, TemIdentificadorExternoAmigavel,
-                                    FluxoAprovacaoPartindoDaDiretoriaRegional, Logs):
+                                    FluxoAprovacaoPartindoDaDiretoriaRegional, Logs, TemPrioridade):
     """
         significa que uma DRE vai pedir kit lanche para as escolas:
 
@@ -161,7 +153,7 @@ class SolicitacaoKitLancheUnificada(CriadoPor, TemChaveExterna, TemIdentificador
     # TODO: passar `local` para solicitacao_kit_lanche
     motivo = models.ForeignKey(MotivoSolicitacaoUnificada, on_delete=models.DO_NOTHING,
                                blank=True, null=True)
-    outro_motivo = models.TextField(blank=True, null=True)
+    outro_motivo = models.TextField(blank=True)
     quantidade_max_alunos_por_escola = models.PositiveSmallIntegerField(null=True, blank=True)
     local = models.CharField(max_length=160)
     lista_kit_lanche_igual = models.BooleanField(default=True)
@@ -178,6 +170,10 @@ class SolicitacaoKitLancheUnificada(CriadoPor, TemChaveExterna, TemIdentificador
     prazo_limite_daqui_a_30_dias = SolicitacaoUnificadaPrazoLimiteDaquiA30DiasManager()
 
     vencida = SolicitacaoUnificadaVencidaManager()
+
+    @property
+    def data(self):
+        return self.solicitacao_kit_lanche.data
 
     @classmethod
     def get_pedidos_rascunho(cls, usuario):

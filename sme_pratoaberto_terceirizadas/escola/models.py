@@ -10,7 +10,7 @@ from ..dados_comuns.models_abstract import (
     Ativavel, Iniciais, Nomeavel, TemChaveExterna
 )
 from ..inclusao_alimentacao.models import (
-    InclusaoAlimentacaoContinua, GrupoInclusaoAlimentacaoNormal
+    GrupoInclusaoAlimentacaoNormal, InclusaoAlimentacaoContinua
 )
 from ..kit_lanche.models import SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheUnificada
 from ..paineis_consolidados.models import SolicitacoesAutorizadasDRE, SolicitacoesPendentesDRE
@@ -332,10 +332,10 @@ class PeriodoEscolar(Nomeavel, TemChaveExterna):
 
 
 class Escola(Ativavel, TemChaveExterna):
-    nome = models.CharField("Nome", max_length=160, blank=True, null=True)
+    nome = models.CharField("Nome", max_length=160, blank=True)
     codigo_eol = models.CharField("Código EOL", max_length=6, unique=True, validators=[MinLengthValidator(6)])
-    codigo_codae = models.CharField('Código CODAE', max_length=10, unique=True,
-                                    blank=True, null=True)
+    # não ta sendo usado
+    # codigo_codae = models.CharField('Código CODAE', max_length=10, unique=True, blank=True)
     quantidade_alunos = models.PositiveSmallIntegerField("Quantidade de alunos")
 
     diretoria_regional = models.ForeignKey(DiretoriaRegional,
@@ -441,10 +441,6 @@ class Codae(Nomeavel, TemChaveExterna):
         quantidade_result = escolas.aggregate(Sum('quantidade_alunos'))
         return quantidade_result.get('quantidade_alunos__sum', 0)
 
-    #
-    # Inversões de cardápio
-    #
-
     def inversoes_cardapio_das_minhas_escolas(self, filtro_aplicado):
         if filtro_aplicado == "daqui_a_7_dias":
             inversoes_cardapio = InversaoCardapio.prazo_limite_daqui_a_7_dias
@@ -476,6 +472,17 @@ class Codae(Nomeavel, TemChaveExterna):
         else:
             inversoes_cardapio = GrupoInclusaoAlimentacaoNormal.objects
         return inversoes_cardapio.filter(
+            status=GrupoInclusaoAlimentacaoNormal.workflow_class.DRE_APROVADO
+        )
+
+    def alteracoes_cardapio_das_minhas(self, filtro_aplicado):
+        if filtro_aplicado == "daqui_a_7_dias":
+            alteracoes_cardapio = AlteracaoCardapio.prazo_limite_daqui_a_7_dias
+        elif filtro_aplicado == "daqui_a_30_dias":
+            alteracoes_cardapio = AlteracaoCardapio.prazo_limite_daqui_a_30_dias
+        else:
+            alteracoes_cardapio = AlteracaoCardapio.objects
+        return alteracoes_cardapio.filter(
             status=GrupoInclusaoAlimentacaoNormal.workflow_class.DRE_APROVADO
         )
 

@@ -1,15 +1,14 @@
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from sme_pratoaberto_terceirizadas.cardapio.models import TipoAlimentacao
-from sme_pratoaberto_terceirizadas.dados_comuns.utils import update_instance_from_dict
-from sme_pratoaberto_terceirizadas.dados_comuns.validators import nao_pode_ser_no_passado, deve_pedir_com_antecedencia
-from sme_pratoaberto_terceirizadas.escola.models import PeriodoEscolar, Escola
 from ...models import (
-    MotivoInclusaoContinua, MotivoInclusaoNormal,
-    InclusaoAlimentacaoNormal, QuantidadePorPeriodo,
-    InclusaoAlimentacaoContinua, GrupoInclusaoAlimentacaoNormal
+    GrupoInclusaoAlimentacaoNormal, InclusaoAlimentacaoContinua, InclusaoAlimentacaoNormal, MotivoInclusaoContinua,
+    MotivoInclusaoNormal, QuantidadePorPeriodo
 )
+from ....cardapio.models import TipoAlimentacao
+from ....dados_comuns.utils import update_instance_from_dict
+from ....dados_comuns.validators import deve_pedir_com_antecedencia, nao_pode_ser_no_passado
+from ....escola.models import Escola, PeriodoEscolar
 
 
 class MotivoInclusaoContinuaSerializer(serializers.ModelSerializer):

@@ -1,9 +1,10 @@
 from rest_framework import serializers
 
 from ..models import (
-    Escola, PeriodoEscolar, DiretoriaRegional, Subprefeitura,
-    FaixaIdadeEscolar, TipoUnidadeEscolar, TipoGestao, Lote,
-    Codae)
+    Codae, DiretoriaRegional, Escola, FaixaIdadeEscolar,
+    Lote, PeriodoEscolar, Subprefeitura, TipoGestao,
+    TipoUnidadeEscolar
+)
 from ...cardapio.models import TipoAlimentacao
 from ...perfil.api.serializers import PerfilSerializer
 from ...perfil.models import Usuario

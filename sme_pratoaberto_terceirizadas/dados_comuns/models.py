@@ -64,28 +64,29 @@ class LogSolicitacoesUsuario(models.Model):
 
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     criado_em = models.DateTimeField("Criado em", editable=False, auto_now_add=True)
-    descricao = models.TextField("Descricao", blank=True, null=True)
+    descricao = models.TextField("Descricao", blank=True)
     status_evento = models.PositiveSmallIntegerField(choices=STATUS_POSSIVEIS)
     solicitacao_tipo = models.PositiveSmallIntegerField(choices=TIPOS_SOLICITACOES)
     uuid_original = models.UUIDField()
     usuario = models.ForeignKey('perfil.Usuario', on_delete=models.DO_NOTHING)
 
     def __str__(self):
-        return f"{self.usuario} executou {self.get_status_evento_display()} em " \
-            f"{self.get_solicitacao_tipo_display()} no dia {self.criado_em}"
+        return f"{self.usuario} executou {self.get_status_evento_display()} " \
+            f"em {self.get_solicitacao_tipo_display()} no dia {self.criado_em}"
 
-    class Meta:
-        ordering = ('criado_em',)
+
+class Meta:
+    ordering = ('criado_em',)
 
 
 class Contato(models.Model):
     telefone = models.CharField(max_length=10, validators=[MinLengthValidator(8)],
-                                blank=True, null=True)
+                                blank=True)
     telefone2 = models.CharField(max_length=10, validators=[MinLengthValidator(8)],
-                                 blank=True, null=True)
+                                 blank=True)
     celular = models.CharField(max_length=11, validators=[MinLengthValidator(8)],
-                               blank=True, null=True)
-    email = models.EmailField(blank=True, null=True)
+                               blank=True)
+    email = models.EmailField(blank=True)
 
     def __str__(self):
         return f'{self.telefone}, {self.email}'
@@ -95,7 +96,7 @@ class Endereco(models.Model):
     rua = models.CharField(max_length=200)
     cep = models.CharField(max_length=8, validators=[MinLengthValidator(8)])
     bairro = models.CharField(max_length=100)
-    numero = models.CharField(max_length=10, blank=True, null=True)
+    numero = models.CharField(max_length=10, blank=True)
 
     def __str__(self):
         return f'{self.rua}, {self.numero}'
@@ -126,8 +127,8 @@ class TemplateMensagem(models.Model):
     )
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     tipo = models.PositiveSmallIntegerField(choices=CHOICES, unique=True)
-    assunto = models.CharField('Assunto', max_length=256, null=True, blank=True)
-    template_html = models.TextField('Template', null=True, blank=True)
+    assunto = models.CharField('Assunto', max_length=256, blank=True)
+    template_html = models.TextField('Template', blank=True)
 
     def __str__(self):
         return f"{self.get_tipo_display()}"

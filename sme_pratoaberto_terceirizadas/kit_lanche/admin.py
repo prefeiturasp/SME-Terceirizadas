@@ -1,8 +1,9 @@
 from django.contrib import admin
 
-from .models import (KitLanche, ItemKitLanche, SolicitacaoKitLancheAvulsa,
-                     MotivoSolicitacaoUnificada, SolicitacaoKitLancheUnificada,
-                     EscolaQuantidade, SolicitacaoKitLanche)
+from .models import (
+    EscolaQuantidade, ItemKitLanche, KitLanche, MotivoSolicitacaoUnificada, SolicitacaoKitLanche,
+    SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheUnificada
+)
 
 admin.site.register(KitLanche)
 admin.site.register(ItemKitLanche)
