@@ -64,7 +64,7 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
             filtro_aplicado
         )
         page = self.paginate_queryset(kit_lanches_avulso)
-        serializer = serializers.SolicitacaoKitLancheAvulsaSimplesSerializer(page, many=True)
+        serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False,

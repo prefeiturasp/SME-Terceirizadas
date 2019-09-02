@@ -3,49 +3,14 @@
     "model": "kit_lanche.motivosolicitacaounificada",
     "id": 1,
     "fields": {
-      "nome": "Reposição de aula"
+      "nome": "Fora do prazo / desacordo com o contrato"
     }
   },
   {
     "model": "kit_lanche.motivosolicitacaounificada",
     "id": 2,
     "fields": {
-      "nome": "Dia da família"
-    }
-  },
-  {
-    "model": "kit_lanche.motivosolicitacaounificada",
-    "id": 3,
-    "fields": {
       "nome": "Outro"
-    }
-  },
-  {
-    "model": "kit_lanche.motivosolicitacaounificada",
-    "id": 4,
-    "fields": {
-      "nome": "Programa Contínuo - Mais Educação"
-    }
-  },
-  {
-    "model": "kit_lanche.motivosolicitacaounificada",
-    "id": 5,
-    "fields": {
-      "nome": "Programa Contínuo - São Paulo integral"
-    }
-  },
-  {
-    "model": "kit_lanche.motivosolicitacaounificada",
-    "id": 6,
-    "fields": {
-      "nome": "Programa Contínuo - Extensão de Jornada"
-    }
-  },
-  {
-    "model": "kit_lanche.motivosolicitacaounificada",
-    "id": 7,
-    "fields": {
-      "nome": "Programa Contínuo - Outro"
     }
   }
 ]
