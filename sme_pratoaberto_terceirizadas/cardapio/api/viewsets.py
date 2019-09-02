@@ -1,39 +1,35 @@
-from rest_framework import viewsets, status
+from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST
 from xworkflows import InvalidTransitionError
 
 from .permissions import (
-    PodeIniciarAlteracaoCardapioPermission,
-    PodeAprovarPelaCODAEAlteracaoCardapioPermission,
-    PodeRecusarPelaCODAEAlteracaoCardapioPermission,
+    PodeAprovarPelaCODAEAlteracaoCardapioPermission, PodeIniciarAlteracaoCardapioPermission,
+    PodeRecusarPelaCODAEAlteracaoCardapioPermission
 )
 from .permissions import (
     PodeIniciarSuspensaoDeAlimentacaoPermission,
     PodeTomarCienciaSuspensaoDeAlimentacaoPermission
 )
 from .serializers.serializers import (
-    CardapioSerializer, TipoAlimentacaoSerializer,
-    InversaoCardapioSerializer, AlteracaoCardapioSerializer,
-    GrupoSuspensaoAlimentacaoSerializer, InversaoCardapioSimpleserializer,
-    AlteracaoCardapioSimplesSerializer)
+    AlteracaoCardapioSerializer, AlteracaoCardapioSimplesSerializer, CardapioSerializer,
+    GrupoSuspensaoAlimentacaoSerializer, InversaoCardapioSerializer, InversaoCardapioSimpleserializer,
+    TipoAlimentacaoSerializer)
 from .serializers.serializers import (
     MotivoAlteracaoCardapioSerializer,
     MotivoSuspensaoSerializer
 )
 from .serializers.serializers_create import (
-    InversaoCardapioSerializerCreate, CardapioCreateSerializer,
-    AlteracaoCardapioSerializerCreate,
-    GrupoSuspensaoAlimentacaoCreateSerializer)
+    AlteracaoCardapioSerializerCreate, CardapioCreateSerializer,
+    GrupoSuspensaoAlimentacaoCreateSerializer, InversaoCardapioSerializerCreate)
 from ..models import (
-    Cardapio, TipoAlimentacao, InversaoCardapio,
-    AlteracaoCardapio, GrupoSuspensaoAlimentacao
+    AlteracaoCardapio, Cardapio, GrupoSuspensaoAlimentacao, InversaoCardapio, TipoAlimentacao
 )
 from ...cardapio.models import MotivoAlteracaoCardapio, MotivoSuspensao
 from ...dados_comuns.constants import (
-    PEDIDOS_TERCEIRIZADA, FILTRO_PADRAO_PEDIDOS,
-    PEDIDOS_CODAE, PEDIDOS_DRE, SOLICITACOES_DO_USUARIO)
+    FILTRO_PADRAO_PEDIDOS, PEDIDOS_CODAE, PEDIDOS_DRE, PEDIDOS_TERCEIRIZADA, SOLICITACOES_DO_USUARIO
+)
 
 
 class CardapioViewSet(viewsets.ModelViewSet):

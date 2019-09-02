@@ -3,30 +3,20 @@ import datetime
 from django.db import models
 
 from .managers import (
-    AlteracoesCardapioPrazoVencendoManager,
-    AlteracoesCardapioPrazoLimiteManager,
-    AlteracoesCardapioPrazoRegularManager,
-    AlteracoesCardapioPrazoVencendoHojeManager,
-    AlteracoesCardapioPrazoLimiteDaquiA7DiasManager,
-    AlteracoesCardapioPrazoRegularDaquiA7DiasManager,
-    AlteracoesCardapioVencidaManager,
-    AlteracoesCardapioPrazoRegularDaquiA30DiasManager,
-    InversaoCardapioPrazoVencendoManager,
-    InversaoCardapioPrazoVencendoHojeManager,
-    InversaoCardapioPrazoLimiteManager,
-    InversaoCardapioPrazoLimiteDaquiA7DiasManager,
-    InversaoCardapioPrazoLimiteDaquiA30DiasManager,
+    AlteracoesCardapioPrazoLimiteDaquiA7DiasManager, AlteracoesCardapioPrazoLimiteManager,
+    AlteracoesCardapioPrazoRegularDaquiA30DiasManager, AlteracoesCardapioPrazoRegularDaquiA7DiasManager,
+    AlteracoesCardapioPrazoRegularManager, AlteracoesCardapioPrazoVencendoHojeManager,
+    AlteracoesCardapioPrazoVencendoManager, AlteracoesCardapioVencidaManager,
+    InversaoCardapioPrazoLimiteDaquiA30DiasManager, InversaoCardapioPrazoLimiteDaquiA7DiasManager,
+    InversaoCardapioPrazoLimiteManager, InversaoCardapioPrazoVencendoHojeManager, InversaoCardapioPrazoVencendoManager,
     InversaoCardapioVencidaManager
+
 )
 from ..dados_comuns.models import TemplateMensagem
 from ..dados_comuns.models_abstract import (
-    Descritivel, TemData, TemChaveExterna, Ativavel,
-    Nomeavel, CriadoEm, IntervaloDeDia, CriadoPor,
-    TemObservacao, FluxoAprovacaoPartindoDaEscola,
-    Motivo, Logs, LogSolicitacoesUsuario,
-    TemIdentificadorExternoAmigavel,
-    FluxoInformativoPartindoDaEscola,
-    TemPrioridade
+    Ativavel, CriadoEm, CriadoPor, Descritivel, FluxoAprovacaoPartindoDaEscola, FluxoInformativoPartindoDaEscola,
+    IntervaloDeDia, LogSolicitacoesUsuario, Logs, Motivo, Nomeavel, TemChaveExterna, TemData,
+    TemIdentificadorExternoAmigavel, TemObservacao, TemPrioridade
 )
 from ..dados_comuns.utils import obter_dias_uteis_apos_hoje
 
