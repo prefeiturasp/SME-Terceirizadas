@@ -86,15 +86,15 @@ def cria_escola():
         dre_str = row['DRE']
         tipo_ue_str = row['TIPO DE U.E']
         lote_sigla_str = row['SIGLA/LOTE']
-        cod_codae = row['COD. CODAE']
+        # cod_codae = row['COD. CODAE']
         t1 = row['TELEFONE']
         if 8 < len(t1) > 10:
             t1 = None
         t2 = row['TELEFONE2']
         if 8 < len(t2) > 10:
             t2 = None
-        if not cod_codae:
-            cod_codae = None
+        # if not cod_codae:
+        #     cod_codae = None
 
         dre_obj, created_dre = DiretoriaRegional.objects.get_or_create(
             nome=dre_str)
@@ -124,7 +124,6 @@ def cria_escola():
         escola_obj, created = Escola.objects.get_or_create(
             nome=f"{row['TIPO DE U.E']} {row['NOME']}",
             codigo_eol=row['EOL'],
-            codigo_codae=cod_codae,
             diretoria_regional=dre_obj,
             tipo_unidade=tipo_ue_obj,
             tipo_gestao=tipo_gestao,
