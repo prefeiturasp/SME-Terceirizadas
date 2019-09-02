@@ -54,6 +54,36 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
+    @action(detail=False, url_path="pedidos-aprovados-diretoria-regional")
+    def pedidos_aprovados_diretoria_regional(self, request):
+        usuario = request.user
+        # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
+        diretoria_regional = usuario.diretorias_regionais.first()
+        kit_lanche = diretoria_regional.solicitacao_kit_lanche_avulsa_aprovadas
+        page = self.paginate_queryset(kit_lanche)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False, url_path="pedidos-aprovados-dre")
+    def pedidos_aprovados_codae(self, request):
+        usuario = request.user
+        # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
+        codae = usuario.CODAE.first()
+        kit_lanche = codae.solicitacao_kit_lanche_avulsa_aprovadas
+        page = self.paginate_queryset(kit_lanche)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False, url_path="pedidos-aprovados-terceirizadas")
+    def pedidos_aprovados_codae(self, request):
+        usuario = request.user
+        # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
+        terceirizadas = usuario.terceirizadas.first()
+        kit_lanche = terceirizadas.solicitacao_kit_lanche_avulsa_aprovadas
+        page = self.paginate_queryset(kit_lanche)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
     @action(detail=False,
             url_path=f"{PEDIDOS_CODAE}/{FILTRO_PADRAO_PEDIDOS}")
     def pedidos_codae(self, request, filtro_aplicado="sem_filtro"):
