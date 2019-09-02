@@ -1,25 +1,22 @@
 from django.core.validators import MinLengthValidator
 from django.db import models
 
-from ..kit_lanche.models import (
-    SolicitacaoKitLancheAvulsa,
-    SolicitacaoKitLancheUnificada
-)
 from ..cardapio.models import (
     AlteracaoCardapio,
     InversaoCardapio
 )
 from ..dados_comuns.models_abstract import (
-    IntervaloDeDia, Ativavel,
-    TemChaveExterna, Nomeavel,
-    TemIdentificadorExternoAmigavel
+    Ativavel, IntervaloDeDia, Nomeavel, TemChaveExterna, TemIdentificadorExternoAmigavel
 )
 from ..escola.models import (
-    Lote,
-    DiretoriaRegional
+    DiretoriaRegional, Lote
 )
 from ..inclusao_alimentacao.models import (
-    InclusaoAlimentacaoContinua, GrupoInclusaoAlimentacaoNormal
+    GrupoInclusaoAlimentacaoNormal, InclusaoAlimentacaoContinua
+)
+from ..kit_lanche.models import (
+    SolicitacaoKitLancheAvulsa,
+    SolicitacaoKitLancheUnificada
 )
 
 

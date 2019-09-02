@@ -4,16 +4,10 @@ from model_mommy import mommy
 from rest_framework.test import APIClient
 
 from ..api.serializers.serializers import (
-    VigenciaContratoSerializer,
-    ContratoSerializer,
-    EditalContratosSerializer,
-    TerceirizadaSimplesSerializer
+    ContratoSerializer, EditalContratosSerializer, TerceirizadaSimplesSerializer, VigenciaContratoSerializer
 )
 from ..models import (
-    Edital,
-    Contrato,
-    VigenciaContrato,
-    Terceirizada
+    Contrato, Edital, Terceirizada, VigenciaContrato
 )
 
 fake = Faker('pt_BR')
