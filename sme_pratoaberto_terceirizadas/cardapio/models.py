@@ -195,7 +195,7 @@ class SuspensaoAlimentacao(TemData, TemChaveExterna):
     """
     prioritario = models.BooleanField(default=False)
     motivo = models.ForeignKey(MotivoSuspensao, on_delete=models.DO_NOTHING)
-    outro_motivo = models.CharField("Outro motivo", blank=True, null=True, max_length=50)
+    outro_motivo = models.CharField("Outro motivo", blank=True, max_length=50)
     grupo_suspensao = models.ForeignKey('GrupoSuspensaoAlimentacao', on_delete=models.CASCADE,
                                         blank=True, null=True, related_name='suspensoes_alimentacao')
 

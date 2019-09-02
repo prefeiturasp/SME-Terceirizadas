@@ -332,10 +332,10 @@ class PeriodoEscolar(Nomeavel, TemChaveExterna):
 
 
 class Escola(Ativavel, TemChaveExterna):
-    nome = models.CharField("Nome", max_length=160, blank=True, null=True)
+    nome = models.CharField("Nome", max_length=160, blank=True)
     codigo_eol = models.CharField("Código EOL", max_length=6, unique=True, validators=[MinLengthValidator(6)])
-    codigo_codae = models.CharField('Código CODAE', max_length=10, unique=True,
-                                    blank=True, null=True)
+    # não ta sendo usado
+    # codigo_codae = models.CharField('Código CODAE', max_length=10, unique=True, blank=True)
     quantidade_alunos = models.PositiveSmallIntegerField("Quantidade de alunos")
 
     diretoria_regional = models.ForeignKey(DiretoriaRegional,

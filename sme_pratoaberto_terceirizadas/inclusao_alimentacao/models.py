@@ -67,7 +67,7 @@ class InclusaoAlimentacaoContinua(IntervaloDeDia, Descritivel, TemChaveExterna,
                                   DiasSemana, FluxoAprovacaoPartindoDaEscola,
                                   CriadoPor, TemIdentificadorExternoAmigavel,
                                   CriadoEm, Logs, TemPrioridade):
-    outro_motivo = models.CharField("Outro motivo", blank=True, null=True, max_length=50)
+    outro_motivo = models.CharField("Outro motivo", blank=True, max_length=50)
     motivo = models.ForeignKey(MotivoInclusaoContinua, on_delete=models.DO_NOTHING)
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING,
                                related_name='inclusoes_alimentacao_continua')
@@ -145,7 +145,7 @@ class MotivoInclusaoNormal(Nomeavel, TemChaveExterna):
 
 class InclusaoAlimentacaoNormal(TemData, TemChaveExterna, TemPrioridade):
     motivo = models.ForeignKey(MotivoInclusaoNormal, on_delete=models.DO_NOTHING)
-    outro_motivo = models.CharField("Outro motivo", blank=True, null=True, max_length=50)
+    outro_motivo = models.CharField("Outro motivo", blank=True, max_length=50)
     grupo_inclusao = models.ForeignKey('GrupoInclusaoAlimentacaoNormal',
                                        blank=True, null=True,
                                        on_delete=models.CASCADE,
