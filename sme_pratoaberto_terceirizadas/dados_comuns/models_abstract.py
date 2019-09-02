@@ -6,15 +6,13 @@ from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django_xworkflows import models as xwf_models
 
-from sme_pratoaberto_terceirizadas.dados_comuns.utils import obter_dias_uteis_apos_hoje
-from sme_pratoaberto_terceirizadas.perfil import models as models_perfil
 from .fluxo_status import (
-    PedidoAPartirDaEscolaWorkflow,
-    PedidoAPartirDaDiretoriaRegionalWorkflow,
-    InformativoPartindoDaEscolaWorkflow
+    InformativoPartindoDaEscolaWorkflow, PedidoAPartirDaDiretoriaRegionalWorkflow, PedidoAPartirDaEscolaWorkflow
 )
 from .models import LogSolicitacoesUsuario
 from .utils import enviar_notificacao_e_email
+from .utils import obter_dias_uteis_apos_hoje
+from ..perfil import models as models_perfil
 
 
 class Iniciais(models.Model):
