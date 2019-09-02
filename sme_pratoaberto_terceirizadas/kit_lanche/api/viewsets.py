@@ -1,23 +1,21 @@
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_200_OK
+from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from xworkflows import InvalidTransitionError
 
 from .permissions import (
-    SolicitacaoUnificadaPermission, PodeIniciarSolicitacaoUnificadaPermission,
-    PodeIniciarSolicitacaoKitLancheAvulsaPermission
+    PodeIniciarSolicitacaoKitLancheAvulsaPermission, PodeIniciarSolicitacaoUnificadaPermission,
+    SolicitacaoUnificadaPermission
 )
 from .serializers import serializers
 from .serializers import serializers_create
 from .. import models
 from ..models import (
-    EscolaQuantidade, SolicitacaoKitLancheUnificada,
-    SolicitacaoKitLancheAvulsa
+    EscolaQuantidade, SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheUnificada
 )
 from ...dados_comuns.constants import (
-    PEDIDOS_CODAE, FILTRO_PADRAO_PEDIDOS,
-    PEDIDOS_TERCEIRIZADA, PEDIDOS_DRE
+    FILTRO_PADRAO_PEDIDOS, PEDIDOS_CODAE, PEDIDOS_DRE, PEDIDOS_TERCEIRIZADA
 )
 
 

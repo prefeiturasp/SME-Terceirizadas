@@ -4,26 +4,18 @@ from django.db import models
 from django.db.models.functions import Coalesce
 
 from .managers import (
-    SolicitacaoKitLancheAvulsaPrazoVencendoManager,
-    SolicitacaoKitLancheAvulsaPrazoVencendoHojeManager,
-    SolicitacaoKitLancheAvulsaPrazoLimiteManager,
-    SolicitacaoKitLancheAvulsaPrazoLimiteDaquiA7DiasManager,
-    SolicitacaoKitLancheAvulsaPrazoRegularManager,
-    SolicitacaoKitLancheAvulsaPrazoRegularDaquiA30DiasManager,
-    SolicitacaoKitLancheAvulsaVencidaDiasManager,
-    SolicitacaoUnificadaPrazoVencendoManager,
-    SolicitacaoUnificadaPrazoVencendoHojeManager,
-    SolicitacaoUnificadaPrazoLimiteManager,
-    SolicitacaoUnificadaPrazoLimiteDaquiA7DiasManager,
-    SolicitacaoUnificadaPrazoLimiteDaquiA30DiasManager,
+    SolicitacaoKitLancheAvulsaPrazoLimiteDaquiA7DiasManager, SolicitacaoKitLancheAvulsaPrazoLimiteManager,
+    SolicitacaoKitLancheAvulsaPrazoRegularDaquiA30DiasManager, SolicitacaoKitLancheAvulsaPrazoRegularManager,
+    SolicitacaoKitLancheAvulsaPrazoVencendoHojeManager, SolicitacaoKitLancheAvulsaPrazoVencendoManager,
+    SolicitacaoKitLancheAvulsaVencidaDiasManager, SolicitacaoUnificadaPrazoLimiteDaquiA30DiasManager,
+    SolicitacaoUnificadaPrazoLimiteDaquiA7DiasManager, SolicitacaoUnificadaPrazoLimiteManager,
+    SolicitacaoUnificadaPrazoVencendoHojeManager, SolicitacaoUnificadaPrazoVencendoManager,
     SolicitacaoUnificadaVencidaManager
 )
-from ..dados_comuns.models import TemplateMensagem, LogSolicitacoesUsuario
+from ..dados_comuns.models import LogSolicitacoesUsuario, TemplateMensagem
 from ..dados_comuns.models_abstract import (
-    Nomeavel, TemData, Motivo, Descritivel, Logs,
-    CriadoEm, TemChaveExterna, TempoPasseio, CriadoPor,
-    FluxoAprovacaoPartindoDaEscola, TemIdentificadorExternoAmigavel,
-    FluxoAprovacaoPartindoDaDiretoriaRegional, TemPrioridade
+    CriadoEm, CriadoPor, Descritivel, FluxoAprovacaoPartindoDaDiretoriaRegional, FluxoAprovacaoPartindoDaEscola, Logs,
+    Motivo, Nomeavel, TemChaveExterna, TemData, TemIdentificadorExternoAmigavel, TemPrioridade, TempoPasseio
 )
 
 
