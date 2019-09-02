@@ -1,18 +1,18 @@
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.viewsets import ReadOnlyModelViewSet, ModelViewSet
+from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from xworkflows import InvalidTransitionError
 
 from .permissions import (
-    PodeIniciarInclusaoAlimentacaoContinuaPermission,
-    PodeAprovarAlimentacaoContinuaDaEscolaPermission
+    PodeAprovarAlimentacaoContinuaDaEscolaPermission, PodeIniciarInclusaoAlimentacaoContinuaPermission
 )
 from .serializers import serializers, serializers_create
 from ..models import (
-    MotivoInclusaoContinua, InclusaoAlimentacaoContinua,
-    GrupoInclusaoAlimentacaoNormal, MotivoInclusaoNormal, InclusaoAlimentacaoNormal
+    GrupoInclusaoAlimentacaoNormal, InclusaoAlimentacaoContinua,
+    InclusaoAlimentacaoNormal, MotivoInclusaoContinua,
+    MotivoInclusaoNormal
 )
-from ...dados_comuns.constants import PEDIDOS_CODAE, FILTRO_PADRAO_PEDIDOS
+from ...dados_comuns.constants import FILTRO_PADRAO_PEDIDOS, PEDIDOS_CODAE
 
 
 class MotivoInclusaoContinuaViewSet(ReadOnlyModelViewSet):

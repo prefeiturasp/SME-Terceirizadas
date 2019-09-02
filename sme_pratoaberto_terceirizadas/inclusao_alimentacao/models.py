@@ -3,35 +3,25 @@ import datetime
 from django.core.validators import MinValueValidator
 from django.db import models
 
-from sme_pratoaberto_terceirizadas.dados_comuns.constants import MINIMO_DIAS_PARA_PEDIDO, QUANTIDADE_DIAS_OK_PARA_PEDIDO
 from .managers import (
-    InclusoesDeAlimentacaoContinuaVencidaDiasManager,
-    InclusoesDeAlimentacaoNormalVencidosDiasManager,
-    InclusoesDeAlimentacaoContinuaPrazoLimiteManager,
-    InclusoesDeAlimentacaoContinuaPrazoLimiteDaquiA7DiasManager,
-    InclusoesDeAlimentacaoContinuaPrazoVencendoManager,
-    InclusoesDeAlimentacaoContinuaPrazoVencendoHojeManager,
-    InclusoesDeAlimentacaoContinuaPrazoRegularManager,
-    InclusoesDeAlimentacaoContinuaPrazoRegularDaquiA7DiasManager,
+    InclusoesDeAlimentacaoContinuaPrazoLimiteDaquiA7DiasManager, InclusoesDeAlimentacaoContinuaPrazoLimiteManager,
     InclusoesDeAlimentacaoContinuaPrazoRegularDaquiA30DiasManager,
-    InclusoesDeAlimentacaoNormalPrazoLimiteManager,
-    InclusoesDeAlimentacaoNormalPrazoLimiteDaquiA7DiasManager,
-    InclusoesDeAlimentacaoNormalPrazoRegularManager,
-    InclusoesDeAlimentacaoNormalPrazoRegularDaquiA7DiasManager,
-    InclusoesDeAlimentacaoNormalPrazoRegularDaquiA30DiasManager,
-    InclusoesDeAlimentacaoNormalPrazoVencendoManager,
-    InclusoesDeAlimentacaoNormalPrazoVencendoHojeManager
+    InclusoesDeAlimentacaoContinuaPrazoRegularDaquiA7DiasManager, InclusoesDeAlimentacaoContinuaPrazoRegularManager,
+    InclusoesDeAlimentacaoContinuaPrazoVencendoHojeManager, InclusoesDeAlimentacaoContinuaPrazoVencendoManager,
+    InclusoesDeAlimentacaoContinuaVencidaDiasManager, InclusoesDeAlimentacaoNormalPrazoLimiteDaquiA7DiasManager,
+    InclusoesDeAlimentacaoNormalPrazoLimiteManager, InclusoesDeAlimentacaoNormalPrazoRegularDaquiA30DiasManager,
+    InclusoesDeAlimentacaoNormalPrazoRegularDaquiA7DiasManager, InclusoesDeAlimentacaoNormalPrazoRegularManager,
+    InclusoesDeAlimentacaoNormalPrazoVencendoHojeManager, InclusoesDeAlimentacaoNormalPrazoVencendoManager,
+    InclusoesDeAlimentacaoNormalVencidosDiasManager
 )
+from ..dados_comuns.constants import MINIMO_DIAS_PARA_PEDIDO, QUANTIDADE_DIAS_OK_PARA_PEDIDO
 from ..dados_comuns.models import (
-    TemplateMensagem, LogSolicitacoesUsuario
+    LogSolicitacoesUsuario, TemplateMensagem
 )
 from ..dados_comuns.models_abstract import (
-    Descritivel, IntervaloDeDia,
-    Nomeavel, TemData, TemChaveExterna,
-    DiasSemana, CriadoPor,
-    FluxoAprovacaoPartindoDaEscola,
-    TemIdentificadorExternoAmigavel,
-    CriadoEm, TemPrioridade, Logs)
+    CriadoEm, CriadoPor, Descritivel, DiasSemana, FluxoAprovacaoPartindoDaEscola, IntervaloDeDia, Logs, Nomeavel,
+    TemChaveExterna, TemData, TemIdentificadorExternoAmigavel, TemPrioridade
+)
 from ..dados_comuns.utils import obter_dias_uteis_apos_hoje
 
 
