@@ -2,7 +2,7 @@ from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
 from ...dados_comuns.models_abstract import (
-    Nomeavel, Descritivel, Ativavel, TemChaveExterna
+    Ativavel, Descritivel, Nomeavel, TemChaveExterna
 )
 
 
