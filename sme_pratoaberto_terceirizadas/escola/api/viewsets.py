@@ -1,7 +1,7 @@
 from rest_framework.decorators import action
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
-from sme_pratoaberto_terceirizadas.dados_comuns.constants import FILTRO_PADRAO_PEDIDOS, SEM_FILTRO
+from ...dados_comuns.constants import FILTRO_PADRAO_PEDIDOS, SEM_FILTRO
 from .serializers import (
     DiretoriaRegionalCompletaSerializer, DiretoriaRegionalSimplissimaSerializer, EscolaCompletaSerializer,
     EscolaSimplesSerializer, EscolaSimplissimaSerializer, PeriodoEscolarSerializer, SubprefeituraSerializer,
