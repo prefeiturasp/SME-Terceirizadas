@@ -8,7 +8,8 @@ class SolicitacoesDRE7DiasManager(models.Manager):
     def get_queryset(self):
         data_limite_inicial = obter_dias_uteis_apos_hoje(quantidade_dias=0)
         data_limite_final = obter_dias_uteis_apos_hoje(quantidade_dias=8)
-        return super(SolicitacoesDRE7DiasManager, self).get_queryset().filter(data_doc__range=(data_limite_inicial, data_limite_final))
+        return super(SolicitacoesDRE7DiasManager, self).get_queryset().filter(data_doc__range=(data_limite_inicial,
+                                                                                               data_limite_final))
 
 
 class SolicitacoesDRE30DiasManager(models.Manager):
