@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Terceirizada, Edital, Nutricionista, Contrato, VigenciaContrato
+from .models import Contrato, Edital, Nutricionista, Terceirizada, VigenciaContrato
 
 # admin.site.register(Edital)
 

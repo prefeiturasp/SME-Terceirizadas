@@ -1,7 +1,7 @@
 from notifications.models import Notification
 from rest_framework import serializers
 
-from ..models import (Usuario, Perfil, Permissao, GrupoPerfil, PerfilPermissao)
+from ..models import (GrupoPerfil, Perfil, PerfilPermissao, Permissao, Usuario)
 
 
 class PermissaoSerializer(serializers.ModelSerializer):

@@ -3,35 +3,25 @@ import datetime
 from django.core.validators import MinValueValidator
 from django.db import models
 
-from sme_pratoaberto_terceirizadas.dados_comuns.constants import MINIMO_DIAS_PARA_PEDIDO, QUANTIDADE_DIAS_OK_PARA_PEDIDO
 from .managers import (
-    InclusoesDeAlimentacaoContinuaVencidaDiasManager,
-    InclusoesDeAlimentacaoNormalVencidosDiasManager,
-    InclusoesDeAlimentacaoContinuaPrazoLimiteManager,
-    InclusoesDeAlimentacaoContinuaPrazoLimiteDaquiA7DiasManager,
-    InclusoesDeAlimentacaoContinuaPrazoVencendoManager,
-    InclusoesDeAlimentacaoContinuaPrazoVencendoHojeManager,
-    InclusoesDeAlimentacaoContinuaPrazoRegularManager,
-    InclusoesDeAlimentacaoContinuaPrazoRegularDaquiA7DiasManager,
+    InclusoesDeAlimentacaoContinuaPrazoLimiteDaquiA7DiasManager, InclusoesDeAlimentacaoContinuaPrazoLimiteManager,
     InclusoesDeAlimentacaoContinuaPrazoRegularDaquiA30DiasManager,
-    InclusoesDeAlimentacaoNormalPrazoLimiteManager,
-    InclusoesDeAlimentacaoNormalPrazoLimiteDaquiA7DiasManager,
-    InclusoesDeAlimentacaoNormalPrazoRegularManager,
-    InclusoesDeAlimentacaoNormalPrazoRegularDaquiA7DiasManager,
-    InclusoesDeAlimentacaoNormalPrazoRegularDaquiA30DiasManager,
-    InclusoesDeAlimentacaoNormalPrazoVencendoManager,
-    InclusoesDeAlimentacaoNormalPrazoVencendoHojeManager
+    InclusoesDeAlimentacaoContinuaPrazoRegularDaquiA7DiasManager, InclusoesDeAlimentacaoContinuaPrazoRegularManager,
+    InclusoesDeAlimentacaoContinuaPrazoVencendoHojeManager, InclusoesDeAlimentacaoContinuaPrazoVencendoManager,
+    InclusoesDeAlimentacaoContinuaVencidaDiasManager, InclusoesDeAlimentacaoNormalPrazoLimiteDaquiA7DiasManager,
+    InclusoesDeAlimentacaoNormalPrazoLimiteManager, InclusoesDeAlimentacaoNormalPrazoRegularDaquiA30DiasManager,
+    InclusoesDeAlimentacaoNormalPrazoRegularDaquiA7DiasManager, InclusoesDeAlimentacaoNormalPrazoRegularManager,
+    InclusoesDeAlimentacaoNormalPrazoVencendoHojeManager, InclusoesDeAlimentacaoNormalPrazoVencendoManager,
+    InclusoesDeAlimentacaoNormalVencidosDiasManager
 )
+from ..dados_comuns.constants import MINIMO_DIAS_PARA_PEDIDO, QUANTIDADE_DIAS_OK_PARA_PEDIDO
 from ..dados_comuns.models import (
-    TemplateMensagem, LogSolicitacoesUsuario
+    LogSolicitacoesUsuario, TemplateMensagem
 )
 from ..dados_comuns.models_abstract import (
-    Descritivel, IntervaloDeDia,
-    Nomeavel, TemData, TemChaveExterna,
-    DiasSemana, CriadoPor,
-    FluxoAprovacaoPartindoDaEscola,
-    TemIdentificadorExternoAmigavel,
-    CriadoEm, TemPrioridade, Logs)
+    CriadoEm, CriadoPor, Descritivel, DiasSemana, FluxoAprovacaoPartindoDaEscola, IntervaloDeDia, Logs, Nomeavel,
+    TemChaveExterna, TemData, TemIdentificadorExternoAmigavel, TemPrioridade
+)
 from ..dados_comuns.utils import obter_dias_uteis_apos_hoje
 
 
@@ -77,7 +67,7 @@ class InclusaoAlimentacaoContinua(IntervaloDeDia, Descritivel, TemChaveExterna,
                                   DiasSemana, FluxoAprovacaoPartindoDaEscola,
                                   CriadoPor, TemIdentificadorExternoAmigavel,
                                   CriadoEm, Logs, TemPrioridade):
-    outro_motivo = models.CharField("Outro motivo", blank=True, null=True, max_length=50)
+    outro_motivo = models.CharField("Outro motivo", blank=True, max_length=50)
     motivo = models.ForeignKey(MotivoInclusaoContinua, on_delete=models.DO_NOTHING)
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING,
                                related_name='inclusoes_alimentacao_continua')
@@ -155,7 +145,7 @@ class MotivoInclusaoNormal(Nomeavel, TemChaveExterna):
 
 class InclusaoAlimentacaoNormal(TemData, TemChaveExterna, TemPrioridade):
     motivo = models.ForeignKey(MotivoInclusaoNormal, on_delete=models.DO_NOTHING)
-    outro_motivo = models.CharField("Outro motivo", blank=True, null=True, max_length=50)
+    outro_motivo = models.CharField("Outro motivo", blank=True, max_length=50)
     grupo_inclusao = models.ForeignKey('GrupoInclusaoAlimentacaoNormal',
                                        blank=True, null=True,
                                        on_delete=models.CASCADE,

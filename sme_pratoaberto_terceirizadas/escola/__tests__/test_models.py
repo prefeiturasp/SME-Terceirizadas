@@ -1,7 +1,7 @@
 import pytest
 
 from ..models import (
-    DiretoriaRegional, TipoUnidadeEscolar, TipoGestao
+    DiretoriaRegional, TipoGestao, TipoUnidadeEscolar
 )
 
 pytestmark = pytest.mark.django_db
@@ -24,7 +24,6 @@ def test_diretoria_regional(diretoria_regional):
 def test_escola(escola):
     assert escola.nome is not None
     assert escola.codigo_eol is not None
-    assert escola.codigo_codae is not None
     assert escola.quantidade_alunos is not None
     assert isinstance(escola.diretoria_regional, DiretoriaRegional)
     assert isinstance(escola.tipo_unidade, TipoUnidadeEscolar)

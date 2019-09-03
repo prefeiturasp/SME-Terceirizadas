@@ -6,40 +6,38 @@ from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django_xworkflows import models as xwf_models
 
-from sme_pratoaberto_terceirizadas.dados_comuns.utils import obter_dias_uteis_apos_hoje
-from sme_pratoaberto_terceirizadas.perfil import models as models_perfil
 from .fluxo_status import (
-    PedidoAPartirDaEscolaWorkflow,
-    PedidoAPartirDaDiretoriaRegionalWorkflow,
-    InformativoPartindoDaEscolaWorkflow
+    InformativoPartindoDaEscolaWorkflow, PedidoAPartirDaDiretoriaRegionalWorkflow, PedidoAPartirDaEscolaWorkflow
 )
 from .models import LogSolicitacoesUsuario
 from .utils import enviar_notificacao_e_email
+from .utils import obter_dias_uteis_apos_hoje
+from ..perfil import models as models_perfil
 
 
 class Iniciais(models.Model):
-    iniciais = models.CharField("Iniciais", blank=True, null=True, max_length=10)
+    iniciais = models.CharField("Iniciais", blank=True, max_length=10)
 
     class Meta:
         abstract = True
 
 
 class Descritivel(models.Model):
-    descricao = models.TextField("Descricao", blank=True, null=True)
+    descricao = models.TextField("Descricao", blank=True)
 
     class Meta:
         abstract = True
 
 
 class Nomeavel(models.Model):
-    nome = models.CharField("Nome", blank=True, null=True, max_length=50)
+    nome = models.CharField("Nome", blank=True, max_length=50)
 
     class Meta:
         abstract = True
 
 
 class Motivo(models.Model):
-    motivo = models.TextField("Motivo", blank=True, null=True)
+    motivo = models.TextField("Motivo", blank=True)
 
     class Meta:
         abstract = True
@@ -460,7 +458,7 @@ class CriadoPor(models.Model):
 
 
 class TemObservacao(models.Model):
-    observacao = models.TextField("Observação", blank=True, null=True)
+    observacao = models.TextField("Observação", blank=True)
 
     class Meta:
         abstract = True

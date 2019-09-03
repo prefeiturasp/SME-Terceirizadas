@@ -22,6 +22,11 @@ pytest-xdist==1.29.0 #
 # Code quality
 # ------------------------------------------------------------------------------
 flake8==3.7.5  # https://github.com/PyCQA/flake8
+flake8-import-order==0.18.1 # https://github.com/PyCQA/flake8-import-order
+flake8-blind-except==0.1.1  # https://github.com/elijahandrews/flake8-blind-except
+flake8-bugbear==19.8.0      # https://github.com/PyCQA/flake8-bugbear
+flake8-django==0.0.4        # https://github.com/rocioar/flake8-django
+flake8-debugger==3.1.0      # https://github.com/JBKahn/flake8-debugger
 coverage==4.5.2  # https://github.com/nedbat/coveragepy
 
 

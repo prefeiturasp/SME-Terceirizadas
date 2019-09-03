@@ -2,7 +2,7 @@ import asyncio
 import datetime
 
 from des.models import DynamicEmailConfiguration
-from django.core.mail import get_connection, EmailMultiAlternatives
+from django.core.mail import EmailMultiAlternatives, get_connection
 from django.core.mail import send_mail
 from django.db.models import QuerySet
 from notifications.signals import notify

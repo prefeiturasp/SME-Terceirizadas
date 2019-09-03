@@ -5,16 +5,15 @@ from faker import Faker
 from model_mommy import mommy
 from rest_framework.test import APIClient
 
-from sme_pratoaberto_terceirizadas.dados_comuns.models import TemplateMensagem
 from ..api.serializers.serializers import (
-    SuspensaoAlimentacaoSerializer, InversaoCardapioSerializer,
-    MotivoAlteracaoCardapioSerializer, AlteracaoCardapioSerializer,
-    SubstituicoesAlimentacaoNoPeriodoEscolarSerializer
+    AlteracaoCardapioSerializer, InversaoCardapioSerializer, MotivoAlteracaoCardapioSerializer,
+    SubstituicoesAlimentacaoNoPeriodoEscolarSerializer, SuspensaoAlimentacaoSerializer
 )
 from ..models import (
-    SuspensaoAlimentacao, InversaoCardapio, MotivoAlteracaoCardapio, AlteracaoCardapio,
-    SubstituicoesAlimentacaoNoPeriodoEscolar
+    AlteracaoCardapio, InversaoCardapio, MotivoAlteracaoCardapio,
+    SubstituicoesAlimentacaoNoPeriodoEscolar, SuspensaoAlimentacao
 )
+from ...dados_comuns.models import TemplateMensagem
 
 fake = Faker('pt_BR')
 fake.seed(420)

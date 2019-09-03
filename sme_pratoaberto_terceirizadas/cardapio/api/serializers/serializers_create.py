@@ -2,19 +2,18 @@ from rest_framework import serializers
 
 from ..helpers import notificar_partes_envolvidas
 from ...api.validators import (
-    valida_duplicidade, valida_cardapio_de_para
+    valida_cardapio_de_para, valida_duplicidade
 )
 from ...models import (
-    InversaoCardapio, Cardapio,
-    TipoAlimentacao, SuspensaoAlimentacao,
-    AlteracaoCardapio, MotivoAlteracaoCardapio, SubstituicoesAlimentacaoNoPeriodoEscolar,
-    SuspensaoAlimentacaoNoPeriodoEscolar, MotivoSuspensao, GrupoSuspensaoAlimentacao,
-    QuantidadePorPeriodoSuspensaoAlimentacao)
+    AlteracaoCardapio, Cardapio, GrupoSuspensaoAlimentacao, InversaoCardapio, MotivoAlteracaoCardapio, MotivoSuspensao,
+    QuantidadePorPeriodoSuspensaoAlimentacao, SubstituicoesAlimentacaoNoPeriodoEscolar, SuspensaoAlimentacao,
+    SuspensaoAlimentacaoNoPeriodoEscolar, TipoAlimentacao
+)
 from ....dados_comuns.utils import update_instance_from_dict
 from ....dados_comuns.validators import (
-    nao_pode_ser_no_passado, nao_pode_ser_feriado,
-    objeto_nao_deve_ter_duplicidade,
-    deve_existir_cardapio, deve_pedir_com_antecedencia
+    deve_existir_cardapio, deve_pedir_com_antecedencia,
+    nao_pode_ser_feriado, nao_pode_ser_no_passado,
+    objeto_nao_deve_ter_duplicidade
 )
 from ....escola.models import Escola, PeriodoEscolar
 from ....terceirizada.models import Edital

@@ -1,17 +1,14 @@
 from rest_framework import serializers
 
 from ...models import (
-    TipoAlimentacao, Cardapio, InversaoCardapio,
-    SuspensaoAlimentacao, AlteracaoCardapio, MotivoAlteracaoCardapio,
-    SubstituicoesAlimentacaoNoPeriodoEscolar,
-    SuspensaoAlimentacaoNoPeriodoEscolar, GrupoSuspensaoAlimentacao,
-    QuantidadePorPeriodoSuspensaoAlimentacao, MotivoSuspensao
+    AlteracaoCardapio, Cardapio, GrupoSuspensaoAlimentacao, InversaoCardapio, MotivoAlteracaoCardapio, MotivoSuspensao,
+    QuantidadePorPeriodoSuspensaoAlimentacao, SubstituicoesAlimentacaoNoPeriodoEscolar, SuspensaoAlimentacao,
+    SuspensaoAlimentacaoNoPeriodoEscolar, TipoAlimentacao
 )
 from ....dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
 from ....escola.api.serializers import (
     EscolaSimplesSerializer, PeriodoEscolarSerializer,
-    TipoUnidadeEscolarSerializer,
-    PeriodoEscolarSimplesSerializer
+    PeriodoEscolarSimplesSerializer, TipoUnidadeEscolarSerializer
 )
 from ....terceirizada.api.serializers.serializers import EditalSerializer
 
@@ -61,13 +58,14 @@ class InversaoCardapioSimpleserializer(serializers.ModelSerializer):
     status = serializers.SerializerMethodField()
     id_externo = serializers.CharField()
     prioridade = serializers.CharField()
+    escola = EscolaSimplesSerializer()
 
     def get_status(self, obj):
         return obj.get_status_display()
 
     class Meta:
         model = InversaoCardapio
-        exclude = ('id', 'criado_por', 'cardapio_de', 'cardapio_para', 'escola',)
+        exclude = ('id', 'criado_por', 'cardapio_de', 'cardapio_para',)
 
 
 class MotivoSuspensaoSerializer(serializers.ModelSerializer):
@@ -114,6 +112,12 @@ class GrupoSuspensaoAlimentacaoSerializer(serializers.ModelSerializer):
         exclude = ('id',)
 
 
+class GrupoSuspensaoAlimentacaoSimplesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = GrupoSuspensaoAlimentacao
+        exclude = ('id', 'criado_por', 'escola')
+
+
 class MotivoAlteracaoCardapioSerializer(serializers.ModelSerializer):
     class Meta:
         model = MotivoAlteracaoCardapio
@@ -144,3 +148,11 @@ class AlteracaoCardapioSerializer(serializers.ModelSerializer):
     class Meta:
         model = AlteracaoCardapio
         exclude = ('id',)
+
+
+class AlteracaoCardapioSimplesSerializer(serializers.ModelSerializer):
+    prioridade = serializers.CharField()
+
+    class Meta:
+        model = AlteracaoCardapio
+        exclude = ('id', 'criado_por', 'escola', 'motivo')

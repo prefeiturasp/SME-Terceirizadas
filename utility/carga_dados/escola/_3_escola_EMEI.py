@@ -124,7 +124,7 @@ def cria_escola():
         escola_obj, created = Escola.objects.get_or_create(
             nome=f"{row['TIPO DE U.E']} {row['NOME']}",
             codigo_eol=row['EOL'],
-            codigo_codae=cod_codae,
+            # codigo_codae=cod_codae,
             diretoria_regional=dre_obj,
             tipo_unidade=tipo_ue_obj,
             tipo_gestao=tipo_gestao,

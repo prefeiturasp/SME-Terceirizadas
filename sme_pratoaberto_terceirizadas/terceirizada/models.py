@@ -1,25 +1,22 @@
 from django.core.validators import MinLengthValidator
 from django.db import models
 
-from ..kit_lanche.models import (
-    SolicitacaoKitLancheAvulsa,
-    SolicitacaoKitLancheUnificada
-)
 from ..cardapio.models import (
     AlteracaoCardapio,
     InversaoCardapio
 )
 from ..dados_comuns.models_abstract import (
-    IntervaloDeDia, Ativavel,
-    TemChaveExterna, Nomeavel,
-    TemIdentificadorExternoAmigavel
+    Ativavel, IntervaloDeDia, Nomeavel, TemChaveExterna, TemIdentificadorExternoAmigavel
 )
 from ..escola.models import (
-    Lote,
-    DiretoriaRegional
+    DiretoriaRegional, Lote
 )
 from ..inclusao_alimentacao.models import (
-    InclusaoAlimentacaoContinua, GrupoInclusaoAlimentacaoNormal
+    GrupoInclusaoAlimentacaoNormal, InclusaoAlimentacaoContinua
+)
+from ..kit_lanche.models import (
+    SolicitacaoKitLancheAvulsa,
+    SolicitacaoKitLancheUnificada
 )
 
 
@@ -46,7 +43,7 @@ class Nutricionista(TemChaveExterna, Nomeavel):
     # TODO: verificar a diferença dessa pra nutricionista da CODAE
 
     crn_numero = models.CharField("Nutricionista crn", max_length=160,
-                                  blank=True, null=True)
+                                  blank=True)
     terceirizada = models.ForeignKey('Terceirizada',
                                      on_delete=models.CASCADE,
                                      related_name='nutricionistas',
@@ -65,15 +62,11 @@ class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel):
     """Empresa Terceirizada"""
 
     usuarios = models.ManyToManyField("perfil.Usuario", related_name='terceirizadas', blank=True)
-    nome_fantasia = models.CharField("Nome fantasia", max_length=160,
-                                     blank=True, null=True)
-    razao_social = models.CharField("Razao social", max_length=160,
-                                    blank=True, null=True)
+    nome_fantasia = models.CharField("Nome fantasia", max_length=160, blank=True)
+    razao_social = models.CharField("Razao social", max_length=160, blank=True)
     cnpj = models.CharField("CNPJ", validators=[MinLengthValidator(14)], max_length=14)
-    representante_legal = models.CharField("Representante legal", max_length=160,
-                                           blank=True, null=True)
-    representante_contato = models.CharField("Representante contato (email/tel)", max_length=160,
-                                             blank=True, null=True)
+    representante_legal = models.CharField("Representante legal", max_length=160, blank=True)
+    representante_contato = models.CharField("Representante contato (email/tel)", max_length=160, blank=True)
     endereco = models.ForeignKey("dados_comuns.Endereco", on_delete=models.CASCADE,
                                  blank=True, null=True)
     # TODO: criar uma tabela central (Instituição) para agregar Escola, DRE, Terc e CODAE???
@@ -104,6 +97,13 @@ class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel):
         return InclusaoAlimentacaoContinua.objects.filter(
             escola__lote__in=self.lotes.all(),
             status=InclusaoAlimentacaoContinua.workflow_class.CODAE_CANCELOU_PEDIDO
+        )
+
+    @property
+    def solicitacao_kit_lanche_avulsa_aprovadas(self):
+        return SolicitacaoKitLancheAvulsa.objects.filter(
+            escola__in=self.escolas.all(),
+            status=SolicitacaoKitLancheAvulsa.workflow_class.TERCEIRIZADA_TOMA_CIENCIA
         )
 
     @property

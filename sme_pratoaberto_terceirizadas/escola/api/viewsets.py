@@ -1,15 +1,15 @@
 from rest_framework.decorators import action
-from rest_framework.viewsets import ReadOnlyModelViewSet, ModelViewSet
+from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
 from .serializers import (
-    EscolaCompletaSerializer, PeriodoEscolarSerializer, DiretoriaRegionalCompletaSerializer,
-    TipoGestaoSerializer, SubprefeituraSerializer, EscolaSimplesSerializer,
-    DiretoriaRegionalSimplissimaSerializer, EscolaSimplissimaSerializer
+    DiretoriaRegionalCompletaSerializer, DiretoriaRegionalSimplissimaSerializer, EscolaCompletaSerializer,
+    EscolaSimplesSerializer, EscolaSimplissimaSerializer, PeriodoEscolarSerializer, SubprefeituraSerializer,
+    TipoGestaoSerializer
 )
 from ..models import (
-    Escola, PeriodoEscolar, DiretoriaRegional, Lote, TipoGestao, Subprefeitura,
-    Codae)
-from ...escola.api.serializers import LoteSimplesSerializer, CODAESerializer
+    Codae, DiretoriaRegional, Escola, Lote, PeriodoEscolar, Subprefeitura, TipoGestao
+)
+from ...escola.api.serializers import CODAESerializer, LoteSimplesSerializer
 from ...escola.api.serializers_create import LoteCreateSerializer
 from ...inclusao_alimentacao.api.serializers.serializers import (
     GrupoInclusaoAlimentacaoNormalSerializer, InclusaoAlimentacaoContinuaSerializer

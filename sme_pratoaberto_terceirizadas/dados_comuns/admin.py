@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import (TemplateMensagem, Contato, Endereco, LogSolicitacoesUsuario)
+from .models import (Contato, Endereco, LogSolicitacoesUsuario, TemplateMensagem)
 
 admin.site.register(Contato)
 admin.site.register(TemplateMensagem)
