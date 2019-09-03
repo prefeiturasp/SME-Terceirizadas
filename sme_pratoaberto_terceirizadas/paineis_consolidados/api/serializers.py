@@ -31,6 +31,11 @@ class SolicitacoesAutorizadasDRESerializer(SolicitacoesDRESerializer):
 
 
 class SolicitacoesPendentesDRESerializer(SolicitacoesDRESerializer):
+    prioridade = serializers.SerializerMethodField()
+
+    def get_prioridade(self, obj):
+        return obj.prioridade
+
     class Meta:
         fields = '__all__'
         model = SolicitacoesPendentesDRE
