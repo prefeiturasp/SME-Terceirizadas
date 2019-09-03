@@ -1,8 +1,9 @@
 from rest_framework import viewsets
 
 from .serializers.serializers import (
-    EditalContratosSerializer, EditalSerializer, TerceirizadaSerializer
+    EditalContratosSerializer, EditalSerializer
 )
+from ...escola.api.serializers import TerceirizadaSerializer
 from .serializers.serializers_create import EditalContratosCreateSerializer, TerceirizadaCreateSerializer
 from ..models import Edital, Terceirizada
 

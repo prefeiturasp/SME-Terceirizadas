@@ -1,22 +1,16 @@
 from rest_framework import serializers
 
 from ...models import (Contrato, Edital, Nutricionista, Terceirizada, VigenciaContrato)
-from ....dados_comuns.api.serializers import ContatoSerializer
+from ....dados_comuns.api.serializers import ContatoSerializer, EnderecoSerializer
 from ....escola.models import DiretoriaRegional, Lote
 
 
 class NutricionistaSerializer(serializers.ModelSerializer):
+    contatos = ContatoSerializer(many=True)
+
     class Meta:
         model = Nutricionista
         exclude = ('id', 'terceirizada')
-
-
-class TerceirizadaSerializer(serializers.ModelSerializer):
-    nutricionistas = NutricionistaSerializer(many=True)
-
-    class Meta:
-        model = Terceirizada
-        exclude = ('id',)
 
 
 class LoteSimplesSerializer(serializers.ModelSerializer):
@@ -54,7 +48,7 @@ class ContratoSerializer(serializers.ModelSerializer):
 
     lotes = LoteSimplesSerializer(many=True)
 
-    terceirizadas = TerceirizadaSimplesSerializer(many=True)
+    terceirizada = TerceirizadaSimplesSerializer()
 
     diretorias_regionais = DiretoriaRegionalSimplesSerializer(many=True)
 
@@ -75,3 +69,11 @@ class EditalContratosSerializer(serializers.ModelSerializer):
     class Meta:
         model = Edital
         exclude = ('id',)
+
+
+class ContratoSimplesSerializer(serializers.ModelSerializer):
+    edital = EditalSerializer()
+
+    class Meta:
+        model = Contrato
+        exclude = ('id', 'terceirizada', 'diretorias_regionais', 'lotes')

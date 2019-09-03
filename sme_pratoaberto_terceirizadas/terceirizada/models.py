@@ -50,6 +50,9 @@ class Nutricionista(TemChaveExterna, Nomeavel):
                                      blank=True,
                                      null=True)
 
+    # TODO: retornar aqui quando tiver um perfil definido
+    contatos = models.ManyToManyField("dados_comuns.Contato", blank=True)
+
     def __str__(self):
         return self.nome
 
@@ -66,9 +69,11 @@ class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel):
     razao_social = models.CharField("Razao social", max_length=160, blank=True)
     cnpj = models.CharField("CNPJ", validators=[MinLengthValidator(14)], max_length=14)
     representante_legal = models.CharField("Representante legal", max_length=160, blank=True)
-    representante_contato = models.CharField("Representante contato (email/tel)", max_length=160, blank=True)
+    representante_telefone = models.CharField("Representante contato (telefone)", max_length=160, blank=True)
+    representante_email = models.CharField("Representante contato (email)", max_length=160, blank=True)
     endereco = models.ForeignKey("dados_comuns.Endereco", on_delete=models.CASCADE,
                                  blank=True, null=True)
+
     # TODO: criar uma tabela central (Instituição) para agregar Escola, DRE, Terc e CODAE???
     # e a partir dai a instituição que tem contatos e endereço?
     # o mesmo para pessoa fisica talvez?
@@ -283,7 +288,7 @@ class Contrato(TemChaveExterna):
                                 help_text="Processo administrativo do contrato")
     data_proposta = models.DateField("Data da proposta")
     lotes = models.ManyToManyField(Lote, related_name="contratos_do_lote")
-    terceirizadas = models.ManyToManyField(Terceirizada, related_name="contratos_da_terceirizada")
+    terceirizada = models.ForeignKey(Terceirizada, on_delete=models.CASCADE, related_name="contratos")
     edital = models.ForeignKey(Edital, on_delete=models.CASCADE, related_name="contratos", blank=True, null=True)
     diretorias_regionais = models.ManyToManyField(DiretoriaRegional, related_name="contratos_da_diretoria_regional")
 

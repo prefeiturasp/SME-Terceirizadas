@@ -8,7 +8,8 @@
       "razao_social": "COMERCIAL MILANO BRASIL",
       "cnpj": "01920177000179",
       "representante_legal": "Celso Peretti Alves de Souza",
-      "representante_contato": "11950345921",
+      "representante_telefone": "11950345921",
+      "representante_email": "admin@admin.com.br",
       "endereco_id": 1,
       "contatos": [1]
     }
@@ -22,7 +23,8 @@
       "razao_social": "P.R.M. SERVIÇOS E MÃO DE OBRA ESPECIALIZADA EIRELI",
       "cnpj": "03706826000169",
       "representante_legal": "Márcio Rodrigues Pereira",
-      "representante_contato": "11945902486",
+      "representante_telefone": "11950345921",
+      "representante_email": "admin@admin.com.br",
       "endereco_id": 2,
       "contatos": [1]
     }
@@ -36,7 +38,8 @@
       "razao_social": "S.H.A COMÉRCIO DE ALIMENTOS LTDA",
       "cnpj": "61980272000190",
       "representante_legal": "David Fernando dos Santos Azevedo",
-      "representante_contato": "11970617349",
+      "representante_telefone": "11950345921",
+      "representante_email": "admin@admin.com.br",
       "endereco_id": 3,
       "contatos": [1]
     }
@@ -50,7 +53,8 @@
       "razao_social": "APETECE SISTEMAS DE ALIMENTAÇÃO S/A",
       "cnpj": "60166832000104",
       "representante_legal": "Luis Ricardo Ferri Botelho",
-      "representante_contato": "11968538276",
+      "representante_telefone": "11950345921",
+      "representante_email": "admin@admin.com.br",
       "endereco_id": 4,
       "contatos": [1]
     }
@@ -64,7 +68,8 @@
       "razao_social": "SINGULAR GESTÃO DE SERVIÇOS LTDA",
       "cnpj": "05951758000129",
       "representante_legal": "Paulo Cesar Ribeiro Alves",
-      "representante_contato": "11111111111",
+      "representante_telefone": "11950345921",
+      "representante_email": "admin@admin.com.br",
       "endereco_id": 5,
       "contatos": [1]
     }

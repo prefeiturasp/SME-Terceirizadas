@@ -17,7 +17,7 @@ def test_contrato_serializer(contrato_serializer):
     assert "processo" in contrato_serializer.data
     assert "data_proposta" in contrato_serializer.data
     assert "lotes" in contrato_serializer.data
-    assert "terceirizadas" in contrato_serializer.data
+    assert "terceirizada" in contrato_serializer.data
     assert "edital" in contrato_serializer.data
     assert "vigencias" in contrato_serializer.data
 

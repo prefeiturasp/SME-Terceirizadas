@@ -19,7 +19,7 @@ def test_modelo_contrato(contrato):
     assert contrato.processo is not None
     assert contrato.data_proposta is not None
     assert contrato.lotes is not None
-    assert contrato.terceirizadas is not None
+    assert contrato.terceirizada is not None
     assert contrato.vigencias is not None
     assert contrato.diretorias_regionais is not None
 

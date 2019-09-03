@@ -1,5 +1,10 @@
 from rest_framework import serializers
-
+from ...terceirizada.models import Terceirizada
+from ...terceirizada.api.serializers.serializers import (
+    NutricionistaSerializer,
+    ContratoSimplesSerializer
+)
+from ...dados_comuns.api.serializers import EnderecoSerializer, ContatoSerializer
 from ..models import (
     Codae, DiretoriaRegional, Escola, FaixaIdadeEscolar,
     Lote, PeriodoEscolar, Subprefeitura, TipoGestao,
@@ -149,3 +154,16 @@ class CODAESerializer(serializers.ModelSerializer):
     class Meta:
         model = Codae
         fields = '__all__'
+
+
+class TerceirizadaSerializer(serializers.ModelSerializer):
+    nutricionistas = NutricionistaSerializer(many=True)
+    contatos = ContatoSerializer(many=True)
+    endereco = EnderecoSerializer()
+    contratos = ContratoSimplesSerializer(many=True)
+    lotes = LoteNomeSerializer(many=True)
+    id_externo = serializers.CharField()
+
+    class Meta:
+        model = Terceirizada
+        exclude = ('id', 'usuarios',)

@@ -72,7 +72,7 @@ class LogSolicitacoesUsuario(models.Model):
 
     def __str__(self):
         return f"{self.usuario} executou {self.get_status_evento_display()} " \
-            f"em {self.get_solicitacao_tipo_display()} no dia {self.criado_em}"
+               f"em {self.get_solicitacao_tipo_display()} no dia {self.criado_em}"
 
 
 class Meta:
