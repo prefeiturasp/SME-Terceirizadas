@@ -75,7 +75,7 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False, url_path="pedidos-aprovados-terceirizadas")
-    def pedidos_aprovados_codae(self, request):
+    def pedidos_aprovados_terceirizadas(self, request):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
         terceirizadas = usuario.terceirizadas.first()
