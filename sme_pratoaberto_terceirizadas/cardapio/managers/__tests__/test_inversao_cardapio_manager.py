@@ -5,7 +5,7 @@ from freezegun import freeze_time  # noqa I100
 from model_mommy import mommy
 
 from ...models import InversaoCardapio
-from ....dados_comuns.constants import DIAS_UTEIS_LIMITE_SUPERIOR, MINIMO_DIAS_PARA_PEDIDO
+from ....dados_comuns.constants import DIAS_UTEIS_LIMITE_SUPERIOR, MINIMO_DIAS_PARA_PEDIDO, DIAS_UTEIS_LIMITE_INFERIOR
 from ....dados_comuns.fluxo_status import PedidoAPartirDaEscolaWorkflow
 from ....dados_comuns.utils import obter_dias_uteis_apos_hoje
 
@@ -13,7 +13,7 @@ pytestmark = pytest.mark.django_db
 
 
 def inversao_prazo_vencendo():
-    cardapio_de = mommy.make('cardapio.Cardapio', data=obter_dias_uteis_apos_hoje(MINIMO_DIAS_PARA_PEDIDO))
+    cardapio_de = mommy.make('cardapio.Cardapio', data=MINIMO_DIAS_PARA_PEDIDO)
     cardapio_para = mommy.make('cardapio.Cardapio', data=obter_dias_uteis_apos_hoje(420))
     escola = mommy.make('escola.Escola')
     inversao_cardapio_vencendo = mommy.make(InversaoCardapio,
@@ -24,20 +24,8 @@ def inversao_prazo_vencendo():
     assert inversao_cardapio_vencendo not in InversaoCardapio.prazo_vencendo_hoje.all()
 
 
-def inversao_prazo_vencendo_hoje():
-    cardapio_de = mommy.make('cardapio.Cardapio', data=obter_dias_uteis_apos_hoje(420))
-    cardapio_para = mommy.make('cardapio.Cardapio', data=datetime.date.today())
-    escola = mommy.make('escola.Escola')
-    inversao_cardapio_vencendo_hoje = mommy.make(InversaoCardapio,
-                                                 cardapio_de=cardapio_de,
-                                                 cardapio_para=cardapio_para,
-                                                 escola=escola)
-    assert inversao_cardapio_vencendo_hoje in InversaoCardapio.prazo_vencendo_hoje.all()
-    assert inversao_cardapio_vencendo_hoje in InversaoCardapio.prazo_vencendo.all()
-
-
 def inversao_prazo_limite_1():
-    cardapio_de = mommy.make('cardapio.Cardapio', data=obter_dias_uteis_apos_hoje(DIAS_UTEIS_LIMITE_SUPERIOR))
+    cardapio_de = mommy.make('cardapio.Cardapio', data=DIAS_UTEIS_LIMITE_SUPERIOR)
     cardapio_para = mommy.make('cardapio.Cardapio', data=obter_dias_uteis_apos_hoje(420))
     escola = mommy.make('escola.Escola')
     inversao_cardapio_prazo_limite = mommy.make(InversaoCardapio,
@@ -48,7 +36,7 @@ def inversao_prazo_limite_1():
 
 
 def inversao_prazo_limite_2():
-    cardapio_de = mommy.make('cardapio.Cardapio', data=obter_dias_uteis_apos_hoje(MINIMO_DIAS_PARA_PEDIDO + 1))
+    cardapio_de = mommy.make('cardapio.Cardapio', data=DIAS_UTEIS_LIMITE_INFERIOR)
     cardapio_para = mommy.make('cardapio.Cardapio', data=obter_dias_uteis_apos_hoje(420))
     escola = mommy.make('escola.Escola')
     inversao_cardapio_prazo_limite = mommy.make(InversaoCardapio,
@@ -98,7 +86,6 @@ def inversao_vencida():
 def test_segunda():
     inversao_prazo_limite_1()
     inversao_prazo_limite_2()
-    inversao_prazo_vencendo_hoje()
     inversao_prazo_vencendo()
     inversao_prazo_7dias()
     inversao_prazo_30dias()
@@ -109,7 +96,6 @@ def test_segunda():
 def test_terca():
     inversao_prazo_limite_1()
     inversao_prazo_limite_2()
-    inversao_prazo_vencendo_hoje()
     inversao_prazo_vencendo()
     inversao_prazo_7dias()
     inversao_prazo_30dias()
@@ -120,7 +106,6 @@ def test_terca():
 def test_quarta():
     inversao_prazo_limite_1()
     inversao_prazo_limite_2()
-    inversao_prazo_vencendo_hoje()
     inversao_prazo_vencendo()
     inversao_prazo_7dias()
     inversao_prazo_30dias()
@@ -131,7 +116,6 @@ def test_quarta():
 def test_quinta():
     inversao_prazo_limite_1()
     inversao_prazo_limite_2()
-    inversao_prazo_vencendo_hoje()
     inversao_prazo_vencendo()
     inversao_prazo_7dias()
     inversao_prazo_30dias()
@@ -142,7 +126,6 @@ def test_quinta():
 def test_sexta():
     inversao_prazo_limite_1()
     inversao_prazo_limite_2()
-    inversao_prazo_vencendo_hoje()
     inversao_prazo_vencendo()
     inversao_prazo_7dias()
     inversao_prazo_30dias()
@@ -153,7 +136,6 @@ def test_sexta():
 def test_sabado():
     inversao_prazo_limite_1()
     inversao_prazo_limite_2()
-    inversao_prazo_vencendo_hoje()
     inversao_prazo_vencendo()
     inversao_prazo_7dias()
     inversao_prazo_30dias()
@@ -164,7 +146,6 @@ def test_sabado():
 def test_domingo():
     inversao_prazo_limite_1()
     inversao_prazo_limite_2()
-    inversao_prazo_vencendo_hoje()
     inversao_prazo_vencendo()
     inversao_prazo_7dias()
     inversao_prazo_30dias()

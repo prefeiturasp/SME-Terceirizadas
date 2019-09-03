@@ -14,7 +14,6 @@ from .fluxo_status import (
 )
 from .models import LogSolicitacoesUsuario
 from .utils import enviar_notificacao_e_email
-from .utils import obter_dias_uteis_apos_hoje
 from ..perfil import models as models_perfil
 
 
@@ -487,23 +486,19 @@ class TemPrioridade(object):
 
     @property
     def prioridade(self):
-        data = None
+        data_pedido = None
         descricao = 'VENCIDO'
-        prox_2_dias_uteis = obter_dias_uteis_apos_hoje(MINIMO_DIAS_PARA_PEDIDO)
-        prox_3_dias_uteis = obter_dias_uteis_apos_hoje(DIAS_UTEIS_LIMITE_INFERIOR)
-        prox_5_dias_uteis = obter_dias_uteis_apos_hoje(DIAS_UTEIS_LIMITE_SUPERIOR)
-        prox_6_dias_uteis = obter_dias_uteis_apos_hoje(DIAS_DE_PRAZO_REGULAR_EM_DIANTE)
         hoje = datetime.date.today()
         if hasattr(self, "data"):
-            data = self.data
+            data_pedido = self.data
         elif hasattr(self, "data_inicial"):
-            data = self.data_inicial
+            data_pedido = self.data_inicial
 
-        if hoje <= data <= prox_2_dias_uteis:
+        if MINIMO_DIAS_PARA_PEDIDO >= data_pedido >= hoje:
             descricao = 'PRIORITARIO'
-        elif prox_5_dias_uteis >= data >= prox_3_dias_uteis:
+        elif DIAS_UTEIS_LIMITE_SUPERIOR >= data_pedido >= DIAS_UTEIS_LIMITE_INFERIOR:
             descricao = 'LIMITE'
-        elif data >= prox_6_dias_uteis:
+        elif data_pedido >= DIAS_DE_PRAZO_REGULAR_EM_DIANTE:
             descricao = 'REGULAR'
         return descricao
 

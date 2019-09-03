@@ -3,17 +3,19 @@ import datetime
 from django.db import models
 from django.db.models import Q
 
+from sme_pratoaberto_terceirizadas.dados_comuns.constants import DIAS_UTEIS_LIMITE_INFERIOR
 from ...dados_comuns.constants import DIAS_UTEIS_LIMITE_SUPERIOR, MINIMO_DIAS_PARA_PEDIDO
 from ...dados_comuns.fluxo_status import PedidoAPartirDaEscolaWorkflow
-from ...dados_comuns.utils import obter_dias_uteis_apos_hoje
+
+
+# from ...dados_comuns.utils import obter_dias_uteis_apos_hoje
 
 
 class InversaoCardapioPrazoVencendoManager(models.Manager):
     def get_queryset(self):
-        data_limite = obter_dias_uteis_apos_hoje(quantidade_dias=MINIMO_DIAS_PARA_PEDIDO)
         return super(InversaoCardapioPrazoVencendoManager, self).get_queryset(
         ).filter(
-            Q(cardapio_de__data__lte=data_limite) | Q(cardapio_para__data__lte=data_limite)
+            Q(cardapio_de__data__lte=MINIMO_DIAS_PARA_PEDIDO) | Q(cardapio_para__data__lte=MINIMO_DIAS_PARA_PEDIDO)
         )
 
 
@@ -47,13 +49,10 @@ class InversaoCardapioPrazoLimiteDaquiA30DiasManager(models.Manager):
 
 class InversaoCardapioPrazoLimiteManager(models.Manager):
     def get_queryset(self):
-        data_limite_inicial = obter_dias_uteis_apos_hoje(quantidade_dias=MINIMO_DIAS_PARA_PEDIDO + 1)
-        data_limite_final = obter_dias_uteis_apos_hoje(quantidade_dias=DIAS_UTEIS_LIMITE_SUPERIOR)
-
         return super(InversaoCardapioPrazoLimiteManager, self).get_queryset(
         ).filter(
-            Q(cardapio_de__data__range=(data_limite_inicial, data_limite_final)) |  # noqa W504
-            Q(cardapio_para__data__range=(data_limite_inicial, data_limite_final))
+            Q(cardapio_de__data__range=(DIAS_UTEIS_LIMITE_INFERIOR, DIAS_UTEIS_LIMITE_SUPERIOR)) |  # noqa W504
+            Q(cardapio_para__data__range=(DIAS_UTEIS_LIMITE_INFERIOR, DIAS_UTEIS_LIMITE_SUPERIOR))
         )
 
 
