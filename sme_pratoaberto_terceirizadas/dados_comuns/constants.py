@@ -9,7 +9,7 @@ DAQUI_A_7_DIAS = 'daqui_a_7_dias'
 DAQUI_A_30_DIAS = 'daqui_a_30_dias'
 
 PEDIDOS_CODAE = 'pedidos-codae'
-PEDIDOS_TERCEIRIZADA = 'pedidos-codae'
+PEDIDOS_TERCEIRIZADA = 'pedidos-terceirizadas'
 PEDIDOS_DRE = 'pedidos-diretoria-regional'
 FILTRO_PADRAO_PEDIDOS = f'(?P<filtro_aplicado>({SEM_FILTRO}|{DAQUI_A_7_DIAS}|{DAQUI_A_30_DIAS})+)'
 

@@ -199,6 +199,13 @@ class DiretoriaRegional(Nomeavel, TemChaveExterna):
         )
 
     @property
+    def solicitacao_kit_lanche_avulsa_reprovados(self):
+        return SolicitacaoKitLancheAvulsa.objects.filter(
+            escola__in=self.escolas.all(),
+            status=SolicitacaoKitLancheAvulsa.workflow_class.DRE_PEDE_ESCOLA_REVISAR
+        )
+
+    @property
     def alteracoes_cardapio_reprovadas(self):
         return AlteracaoCardapio.objects.filter(
             escola__in=self.escolas.all(),
@@ -542,6 +549,12 @@ class Codae(Nomeavel, TemChaveExterna):
     def solicitacao_kit_lanche_avulsa_aprovadas(self):
         return SolicitacaoKitLancheAvulsa.objects.filter(
             status=SolicitacaoKitLancheAvulsa.workflow_class.CODAE_APROVADO
+        )
+
+    @property
+    def solicitacao_kit_lanche_avulsa_reprovadas(self):
+        return SolicitacaoKitLancheAvulsa.objects.filter(
+            status=SolicitacaoKitLancheAvulsa.workflow_class.CODAE_CANCELOU_PEDIDO
         )
 
     # TODO: talvez fazer um manager genérico pra fazer esse filtro
