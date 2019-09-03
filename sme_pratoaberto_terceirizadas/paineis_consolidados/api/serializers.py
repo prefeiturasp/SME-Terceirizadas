@@ -16,9 +16,9 @@ class SolicitacoesDRESerializer(serializers.ModelSerializer):
         return f'{uuid.upper()[:5]} - {obj.lote[:20]} - {obj.tipo_doc}'
 
     def get_date(self, obj):
-        if obj.data.date() == datetime.date.today():
-            return f'{obj.data.time():%H:%M}'
-        return f'{obj.data.date():%d/%m/%Y}'
+        if obj.data_log.date() == datetime.date.today():
+            return f'{obj.data_log.time():%H:%M}'
+        return f'{obj.data_log.date():%d/%m/%Y}'
 
     class Meta:
         abstract = True
@@ -31,20 +31,25 @@ class SolicitacoesAutorizadasDRESerializer(SolicitacoesDRESerializer):
 
 
 class SolicitacoesPendentesDRESerializer(SolicitacoesDRESerializer):
+    prioridade = serializers.SerializerMethodField()
+
+    def get_prioridade(self, obj):
+        return obj.prioridade
+
     class Meta:
         fields = '__all__'
         model = SolicitacoesPendentesDRE
 
 
 class SolicitacoesSerializer(serializers.ModelSerializer):
-    data = serializers.SerializerMethodField()
+    data_log = serializers.SerializerMethodField()
     descricao = serializers.SerializerMethodField()
 
     def get_descricao(self, obj):
         uuid = str(obj.uuid)
         return f'{uuid.upper()[:5]} - {obj.lote[:20]} - {obj.tipo_doc}'
 
-    def get_data(self, obj):
+    def get_data_log(self, obj):
         criado_em = obj.criado_em
         if criado_em.date() == datetime.date.today():
             return criado_em.strftime('%H:%M')
