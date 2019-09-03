@@ -205,10 +205,6 @@ class GrupoInclusaoAlimentacaoNormal(Descritivel, TemChaveExterna, FluxoAprovaca
         inclusao_normal = self.inclusoes_normais.order_by('data').first()
         return inclusao_normal.data
 
-    @property
-    def descricao_curta(self):
-        return f"Grupo de inclusão de alimentação normal #{self.id_externo}"
-
     def salvar_log_transicao(self, status_evento, usuario):
         LogSolicitacoesUsuario.objects.create(
             descricao=str(self),

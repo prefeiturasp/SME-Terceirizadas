@@ -5,7 +5,7 @@ from freezegun import freeze_time  # noqa I100
 from model_mommy import mommy
 
 from ...models import InversaoCardapio
-from ....dados_comuns.constants import DIAS_UTEIS_LIMITE_SUPERIOR, MINIMO_DIAS_PARA_PEDIDO, DIAS_UTEIS_LIMITE_INFERIOR
+from ....dados_comuns.constants import DIAS_UTEIS_LIMITE_INFERIOR, DIAS_UTEIS_LIMITE_SUPERIOR, MINIMO_DIAS_PARA_PEDIDO
 from ....dados_comuns.fluxo_status import PedidoAPartirDaEscolaWorkflow
 from ....dados_comuns.utils import obter_dias_uteis_apos_hoje
 

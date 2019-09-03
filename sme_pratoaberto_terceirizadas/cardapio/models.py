@@ -121,10 +121,6 @@ class InversaoCardapio(CriadoEm, CriadoPor, TemObservacao, Motivo, TemChaveExter
         return data
 
     @property
-    def descricao_curta(self):
-        return f"Inversão de dia de Cardápio #{self.id_externo}"
-
-    @property
     def template_mensagem(self):
         template = TemplateMensagem.objects.get(tipo=TemplateMensagem.INVERSAO_CARDAPIO)
         template_troca = {
@@ -245,10 +241,6 @@ class GrupoSuspensaoAlimentacao(TemChaveExterna, CriadoPor, TemIdentificadorExte
         return f"{self.observacao}"
 
     @property
-    def descricao_curta(self):
-        return "Suspensão de Alimentação."
-
-    @property
     def template_mensagem(self):
         template = TemplateMensagem.objects.get(tipo=TemplateMensagem.SUSPENSAO_ALIMENTACAO)
         template_troca = {  # noqa
@@ -342,10 +334,6 @@ class AlteracaoCardapio(CriadoEm, CriadoPor, TemChaveExterna, IntervaloDeDia, Te
 
     def __str__(self):
         return f'Alteração de cardápio: {self.uuid}'
-
-    @property
-    def descricao_curta(self):
-        return "Solicitação de alteração de cardápio."
 
     @property
     def template_mensagem(self):
