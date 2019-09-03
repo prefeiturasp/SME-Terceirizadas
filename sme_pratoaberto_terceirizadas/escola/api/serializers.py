@@ -69,7 +69,7 @@ class EscolaSimplissimaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Escola
-        fields = ('uuid', 'nome', 'codigo_eol', 'lote')
+        fields = ('uuid', 'nome', 'codigo_eol', 'lote', 'quantidade_alunos')
 
 
 class DiretoriaRegionalSimplesSerializer(serializers.ModelSerializer):
