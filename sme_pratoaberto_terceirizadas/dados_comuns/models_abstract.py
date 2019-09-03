@@ -429,7 +429,7 @@ class FluxoInformativoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model)
                                    recipients=self.partes_interessadas_informacao,
                                    short_desc=assunto,
                                    long_desc=corpo)
-        self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.SUSPENSAO_DE_CARDAPIO,
+        self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.INICIO_FLUXO,
                                   usuario=user)
 
     @xworkflows.after_transition('terceirizada_tomou_ciencia')
