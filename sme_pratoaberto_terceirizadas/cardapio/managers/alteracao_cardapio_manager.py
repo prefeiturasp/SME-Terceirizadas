@@ -26,8 +26,8 @@ class AlteracoesCardapioPrazoLimiteManager(models.Manager):
         data_limite_inicial = obter_dias_uteis_apos_hoje(quantidade_dias=3)
         data_limite_final = obter_dias_uteis_apos_hoje(quantidade_dias=5)
 
-        return super(AlteracoesCardapioPrazoLimiteManager, self) \
-            .get_queryset().filter(data_inicial__range=(data_limite_inicial, data_limite_final))
+        return super(AlteracoesCardapioPrazoLimiteManager, self).get_queryset().filter(
+            data_inicial__range=(data_limite_inicial, data_limite_final))
 
 
 class AlteracoesCardapioPrazoLimiteDaquiA7DiasManager(models.Manager):

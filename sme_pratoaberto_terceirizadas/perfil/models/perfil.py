@@ -100,5 +100,4 @@ class PerfilPermissao(models.Model):
         return result
 
     def __str__(self):
-        return f'{self.perfil} Tem ações: ({self.acoes_choices_array_display()})' \
-            f' da permissão {self.permissao}'
+        return f'{self.perfil} Tem ações: ({self.acoes_choices_array_display()}) da permissão {self.permissao}'
