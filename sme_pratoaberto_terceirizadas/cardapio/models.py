@@ -3,14 +3,13 @@ import datetime
 from django.db import models
 
 from .managers import (
-    AlteracoesCardapioPrazoLimiteDaquiA7DiasManager, AlteracoesCardapioPrazoLimiteManager,
-    AlteracoesCardapioPrazoRegularDaquiA30DiasManager, AlteracoesCardapioPrazoRegularDaquiA7DiasManager,
-    AlteracoesCardapioPrazoRegularManager, AlteracoesCardapioPrazoVencendoHojeManager,
-    AlteracoesCardapioPrazoVencendoManager, AlteracoesCardapioVencidaManager,
-    InversaoCardapioPrazoLimiteDaquiA30DiasManager, InversaoCardapioPrazoLimiteDaquiA7DiasManager,
-    InversaoCardapioPrazoLimiteManager, InversaoCardapioPrazoVencendoHojeManager, InversaoCardapioPrazoVencendoManager,
-    InversaoCardapioVencidaManager
-
+    AlteracoesCardapioPrazoLimiteDaquiA30DiasManager, AlteracoesCardapioPrazoLimiteDaquiA7DiasManager,
+    AlteracoesCardapioPrazoLimiteManager, AlteracoesCardapioPrazoRegularDaquiA30DiasManager,
+    AlteracoesCardapioPrazoRegularDaquiA7DiasManager, AlteracoesCardapioPrazoRegularManager,
+    AlteracoesCardapioPrazoVencendoHojeManager, AlteracoesCardapioPrazoVencendoManager,
+    AlteracoesCardapioVencidaManager, InversaoCardapioPrazoLimiteDaquiA30DiasManager,
+    InversaoCardapioPrazoLimiteDaquiA7DiasManager, InversaoCardapioPrazoLimiteManager,
+    InversaoCardapioPrazoVencendoHojeManager, InversaoCardapioPrazoVencendoManager, InversaoCardapioVencidaManager
 )
 from ..dados_comuns.models import TemplateMensagem  # noqa I202
 from ..dados_comuns.models_abstract import (
@@ -335,6 +334,7 @@ class AlteracaoCardapio(CriadoEm, CriadoPor, TemChaveExterna, IntervaloDeDia, Te
 
     prazo_limite = AlteracoesCardapioPrazoLimiteManager()
     prazo_limite_daqui_a_7_dias = AlteracoesCardapioPrazoLimiteDaquiA7DiasManager()
+    prazo_limite_daqui_a_30_dias = AlteracoesCardapioPrazoLimiteDaquiA30DiasManager()
 
     prazo_regular = AlteracoesCardapioPrazoRegularManager()
     prazo_regular_daqui_a_7_dias = AlteracoesCardapioPrazoRegularDaquiA7DiasManager()

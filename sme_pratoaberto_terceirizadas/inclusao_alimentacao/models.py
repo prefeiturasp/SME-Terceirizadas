@@ -4,12 +4,14 @@ from django.core.validators import MinValueValidator
 from django.db import models
 
 from .managers import (
+    InclusoesDeAlimentacaoContinuaPrazoLimiteDaquiA30DiasManager,
     InclusoesDeAlimentacaoContinuaPrazoLimiteDaquiA7DiasManager, InclusoesDeAlimentacaoContinuaPrazoLimiteManager,
     InclusoesDeAlimentacaoContinuaPrazoRegularDaquiA30DiasManager,
     InclusoesDeAlimentacaoContinuaPrazoRegularDaquiA7DiasManager, InclusoesDeAlimentacaoContinuaPrazoRegularManager,
     InclusoesDeAlimentacaoContinuaPrazoVencendoHojeManager, InclusoesDeAlimentacaoContinuaPrazoVencendoManager,
-    InclusoesDeAlimentacaoContinuaVencidaDiasManager, InclusoesDeAlimentacaoNormalPrazoLimiteDaquiA7DiasManager,
-    InclusoesDeAlimentacaoNormalPrazoLimiteManager, InclusoesDeAlimentacaoNormalPrazoRegularDaquiA30DiasManager,
+    InclusoesDeAlimentacaoContinuaVencidaDiasManager, InclusoesDeAlimentacaoNormalPrazoLimiteDaquiA30DiasManager,
+    InclusoesDeAlimentacaoNormalPrazoLimiteDaquiA7DiasManager, InclusoesDeAlimentacaoNormalPrazoLimiteManager,
+    InclusoesDeAlimentacaoNormalPrazoRegularDaquiA30DiasManager,
     InclusoesDeAlimentacaoNormalPrazoRegularDaquiA7DiasManager, InclusoesDeAlimentacaoNormalPrazoRegularManager,
     InclusoesDeAlimentacaoNormalPrazoVencendoHojeManager, InclusoesDeAlimentacaoNormalPrazoVencendoManager,
     InclusoesDeAlimentacaoNormalVencidosDiasManager
@@ -77,6 +79,7 @@ class InclusaoAlimentacaoContinua(IntervaloDeDia, Descritivel, TemChaveExterna,
     prazo_vencendo_hoje = InclusoesDeAlimentacaoContinuaPrazoVencendoHojeManager()
     prazo_limite = InclusoesDeAlimentacaoContinuaPrazoLimiteManager()
     prazo_limite_daqui_a_7_dias = InclusoesDeAlimentacaoContinuaPrazoLimiteDaquiA7DiasManager()
+    prazo_limite_daqui_a_30_dias = InclusoesDeAlimentacaoContinuaPrazoLimiteDaquiA30DiasManager()
     prazo_regular = InclusoesDeAlimentacaoContinuaPrazoRegularManager()
     prazo_regular_daqui_a_7_dias = InclusoesDeAlimentacaoContinuaPrazoRegularDaquiA7DiasManager()
     prazo_regular_daqui_a_30_dias = InclusoesDeAlimentacaoContinuaPrazoRegularDaquiA30DiasManager()
@@ -172,6 +175,7 @@ class GrupoInclusaoAlimentacaoNormal(Descritivel, TemChaveExterna, FluxoAprovaca
     prazo_vencendo_hoje = InclusoesDeAlimentacaoNormalPrazoVencendoHojeManager()
     prazo_limite = InclusoesDeAlimentacaoNormalPrazoLimiteManager()
     prazo_limite_daqui_a_7_dias = InclusoesDeAlimentacaoNormalPrazoLimiteDaquiA7DiasManager()
+    prazo_limite_daqui_a_30_dias = InclusoesDeAlimentacaoNormalPrazoLimiteDaquiA30DiasManager()
     prazo_regular = InclusoesDeAlimentacaoNormalPrazoRegularManager()
     prazo_regular_daqui_a_7_dias = InclusoesDeAlimentacaoNormalPrazoRegularDaquiA7DiasManager()
     prazo_regular_daqui_a_30_dias = InclusoesDeAlimentacaoNormalPrazoRegularDaquiA30DiasManager()
