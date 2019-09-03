@@ -1,10 +1,10 @@
 from rest_framework import serializers
 from ...terceirizada.models import Terceirizada
 from ...terceirizada.api.serializers.serializers import (
-    NutricionistaSerializer,
-    ContratoSimplesSerializer
+    ContratoSimplesSerializer,
+    NutricionistaSerializer
 )
-from ...dados_comuns.api.serializers import EnderecoSerializer, ContatoSerializer
+from ...dados_comuns.api.serializers import ContatoSerializer, EnderecoSerializer
 from ..models import (
     Codae, DiretoriaRegional, Escola, FaixaIdadeEscolar,
     Lote, PeriodoEscolar, Subprefeitura, TipoGestao,

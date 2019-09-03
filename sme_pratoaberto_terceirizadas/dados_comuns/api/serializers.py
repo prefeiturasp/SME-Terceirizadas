@@ -1,7 +1,7 @@
 from des.models import DynamicEmailConfiguration
 from rest_framework import serializers
 
-from ..models import Contato, LogSolicitacoesUsuario, TemplateMensagem, Endereco
+from ..models import Contato, Endereco, LogSolicitacoesUsuario, TemplateMensagem
 from ...perfil.api.serializers import UsuarioSerializer
 
 
