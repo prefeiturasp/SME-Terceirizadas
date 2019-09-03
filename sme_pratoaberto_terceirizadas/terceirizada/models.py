@@ -82,14 +82,16 @@ class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel):
     def inclusoes_continuas_aprovadas(self):
         return InclusaoAlimentacaoContinua.objects.filter(
             escola__lote__in=self.lotes.all(),
-            status=InclusaoAlimentacaoContinua.workflow_class.TERCEIRIZADA_TOMA_CIENCIA
+            status__in=[InclusaoAlimentacaoContinua.workflow_class.CODAE_APROVADO,
+                        InclusaoAlimentacaoContinua.workflow_class.TERCEIRIZADA_TOMA_CIENCIA]
         )
 
     @property
     def inclusoes_normais_aprovadas(self):
         return GrupoInclusaoAlimentacaoNormal.objects.filter(
             escola__lote__in=self.lotes.all(),
-            status=GrupoInclusaoAlimentacaoNormal.workflow_class.TERCEIRIZADA_TOMA_CIENCIA
+            status__in=[GrupoInclusaoAlimentacaoNormal.workflow_class.CODAE_APROVADO,
+                        GrupoInclusaoAlimentacaoNormal.workflow_class.TERCEIRIZADA_TOMA_CIENCIA]
         )
 
     @property
