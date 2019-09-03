@@ -5,7 +5,7 @@ from freezegun import freeze_time  # noqa I100
 from model_mommy import mommy
 
 from ...models import InversaoCardapio
-from ....dados_comuns.constants import MINIMO_DIAS_PARA_PEDIDO, QUANTIDADE_DIAS_OK_PARA_PEDIDO
+from ....dados_comuns.constants import MINIMO_DIAS_PARA_PEDIDO, DIAS_UTEIS_LIMITE_SUPERIOR
 from ....dados_comuns.fluxo_status import PedidoAPartirDaEscolaWorkflow
 from ....dados_comuns.utils import obter_dias_uteis_apos_hoje
 
@@ -37,7 +37,7 @@ def inversao_prazo_vencendo_hoje():
 
 
 def inversao_prazo_limite_1():
-    cardapio_de = mommy.make('cardapio.Cardapio', data=obter_dias_uteis_apos_hoje(QUANTIDADE_DIAS_OK_PARA_PEDIDO))
+    cardapio_de = mommy.make('cardapio.Cardapio', data=obter_dias_uteis_apos_hoje(DIAS_UTEIS_LIMITE_SUPERIOR))
     cardapio_para = mommy.make('cardapio.Cardapio', data=obter_dias_uteis_apos_hoje(420))
     escola = mommy.make('escola.Escola')
     inversao_cardapio_prazo_limite = mommy.make(InversaoCardapio,

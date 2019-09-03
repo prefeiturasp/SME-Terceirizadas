@@ -17,7 +17,6 @@ from ..dados_comuns.models_abstract import (
     IntervaloDeDia, LogSolicitacoesUsuario, Logs, Motivo, Nomeavel, TemChaveExterna, TemData,
     TemIdentificadorExternoAmigavel, TemObservacao, TemPrioridade
 )
-from ..dados_comuns.utils import obter_dias_uteis_apos_hoje
 
 
 class TipoAlimentacao(Nomeavel, TemChaveExterna):
@@ -115,24 +114,11 @@ class InversaoCardapio(CriadoEm, CriadoPor, TemObservacao, Motivo, TemChaveExter
         return self.cardapio_para.data if self.cardapio_para else None
 
     @property
-    def prioridade(self):
-        descricao = 'VENCIDO'
+    def data(self):
         data = self.data_de
         if self.data_para < self.data_de:
             data = self.data_para
-        prox_2_dias_uteis = obter_dias_uteis_apos_hoje(2)
-        prox_3_dias_uteis = obter_dias_uteis_apos_hoje(3)
-        prox_5_dias_uteis = obter_dias_uteis_apos_hoje(5)
-        prox_6_dias_uteis = obter_dias_uteis_apos_hoje(6)
-        hoje = datetime.date.today()
-
-        if hoje <= data <= prox_2_dias_uteis:
-            descricao = 'PRIORITARIO'
-        elif prox_5_dias_uteis >= data >= prox_3_dias_uteis:
-            descricao = 'LIMITE'
-        elif data >= prox_6_dias_uteis:
-            descricao = 'REGULAR'
-        return descricao
+        return data
 
     @property
     def descricao_curta(self):

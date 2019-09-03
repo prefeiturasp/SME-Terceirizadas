@@ -3,7 +3,7 @@ import datetime
 from django.db import models
 from django.db.models import Q
 
-from ...dados_comuns.constants import MINIMO_DIAS_PARA_PEDIDO, QUANTIDADE_DIAS_OK_PARA_PEDIDO
+from ...dados_comuns.constants import MINIMO_DIAS_PARA_PEDIDO, DIAS_UTEIS_LIMITE_SUPERIOR
 from ...dados_comuns.fluxo_status import PedidoAPartirDaEscolaWorkflow
 from ...dados_comuns.utils import obter_dias_uteis_apos_hoje
 
@@ -48,7 +48,7 @@ class InversaoCardapioPrazoLimiteDaquiA30DiasManager(models.Manager):
 class InversaoCardapioPrazoLimiteManager(models.Manager):
     def get_queryset(self):
         data_limite_inicial = obter_dias_uteis_apos_hoje(quantidade_dias=MINIMO_DIAS_PARA_PEDIDO + 1)
-        data_limite_final = obter_dias_uteis_apos_hoje(quantidade_dias=QUANTIDADE_DIAS_OK_PARA_PEDIDO)
+        data_limite_final = obter_dias_uteis_apos_hoje(quantidade_dias=DIAS_UTEIS_LIMITE_SUPERIOR)
 
         return super(InversaoCardapioPrazoLimiteManager, self).get_queryset(
         ).filter(

@@ -6,6 +6,9 @@ from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django_xworkflows import models as xwf_models
 
+from .constants import (
+    MINIMO_DIAS_PARA_PEDIDO, DIAS_UTEIS_LIMITE_SUPERIOR, DIAS_UTEIS_LIMITE_INFERIOR, DIAS_DE_PRAZO_REGULAR_EM_DIANTE
+)
 from .fluxo_status import (
     InformativoPartindoDaEscolaWorkflow, PedidoAPartirDaDiretoriaRegionalWorkflow, PedidoAPartirDaEscolaWorkflow
 )
@@ -485,11 +488,11 @@ class TemPrioridade(object):
     @property
     def prioridade(self):
         data = None
-        descricao = ''
-        prox_2_dias_uteis = obter_dias_uteis_apos_hoje(2)
-        prox_3_dias_uteis = obter_dias_uteis_apos_hoje(3)
-        prox_5_dias_uteis = obter_dias_uteis_apos_hoje(5)
-        prox_6_dias_uteis = obter_dias_uteis_apos_hoje(6)
+        descricao = 'VENCIDO'
+        prox_2_dias_uteis = obter_dias_uteis_apos_hoje(MINIMO_DIAS_PARA_PEDIDO)
+        prox_3_dias_uteis = obter_dias_uteis_apos_hoje(DIAS_UTEIS_LIMITE_INFERIOR)
+        prox_5_dias_uteis = obter_dias_uteis_apos_hoje(DIAS_UTEIS_LIMITE_SUPERIOR)
+        prox_6_dias_uteis = obter_dias_uteis_apos_hoje(DIAS_DE_PRAZO_REGULAR_EM_DIANTE)
         hoje = datetime.date.today()
         if hasattr(self, "data"):
             data = self.data

@@ -27,6 +27,7 @@ flake8-blind-except==0.1.1  # https://github.com/elijahandrews/flake8-blind-exce
 flake8-bugbear==19.8.0      # https://github.com/PyCQA/flake8-bugbear
 flake8-django==0.0.4        # https://github.com/rocioar/flake8-django
 flake8-debugger==3.1.0      # https://github.com/JBKahn/flake8-debugger
+flake8-broken-line==0.1.1   # https://github.com/sobolevn/flake8-broken-line
 coverage==4.5.2  # https://github.com/nedbat/coveragepy
 
 

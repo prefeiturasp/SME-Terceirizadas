@@ -1,5 +1,3 @@
-import datetime
-
 from django.core.validators import MinValueValidator
 from django.db import models
 
@@ -16,7 +14,6 @@ from .managers import (
     InclusoesDeAlimentacaoNormalPrazoVencendoHojeManager, InclusoesDeAlimentacaoNormalPrazoVencendoManager,
     InclusoesDeAlimentacaoNormalVencidosDiasManager
 )
-from ..dados_comuns.constants import MINIMO_DIAS_PARA_PEDIDO, QUANTIDADE_DIAS_OK_PARA_PEDIDO
 from ..dados_comuns.models import (
     LogSolicitacoesUsuario, TemplateMensagem
 )
@@ -24,7 +21,6 @@ from ..dados_comuns.models_abstract import (
     CriadoEm, CriadoPor, Descritivel, DiasSemana, FluxoAprovacaoPartindoDaEscola, IntervaloDeDia, Logs, Nomeavel,
     TemChaveExterna, TemData, TemIdentificadorExternoAmigavel, TemPrioridade
 )
-from ..dados_comuns.utils import obter_dias_uteis_apos_hoje
 
 
 class QuantidadePorPeriodo(TemChaveExterna):
@@ -205,27 +201,9 @@ class GrupoInclusaoAlimentacaoNormal(Descritivel, TemChaveExterna, FluxoAprovaca
         return template.assunto, corpo
 
     @property
-    def prioridade(self):
-        """
-            Dadas as inclusões normais, recupera a de menor data e retorna prioridade
-        """
-        descricao = ''
-        prox_2_dias_uteis = obter_dias_uteis_apos_hoje(MINIMO_DIAS_PARA_PEDIDO)
-        prox_3_dias_uteis = obter_dias_uteis_apos_hoje(3)
-        prox_5_dias_uteis = obter_dias_uteis_apos_hoje(QUANTIDADE_DIAS_OK_PARA_PEDIDO)
-        prox_6_dias_uteis = obter_dias_uteis_apos_hoje(6)
-        hoje = datetime.date.today()
-
+    def data(self):
         inclusao_normal = self.inclusoes_normais.order_by('data').first()
-        data = inclusao_normal.data
-
-        if hoje <= data <= prox_2_dias_uteis:
-            descricao = 'PRIORITARIO'
-        elif prox_5_dias_uteis >= data >= prox_3_dias_uteis:
-            descricao = 'LIMITE'
-        elif data >= prox_6_dias_uteis:
-            descricao = 'REGULAR'
-        return descricao
+        return inclusao_normal.data
 
     @property
     def descricao_curta(self):
