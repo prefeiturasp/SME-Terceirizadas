@@ -1,7 +1,7 @@
-import datetime
 from django.db import models
 
 from ...dados_comuns.utils import obter_dias_uteis_apos_hoje
+from ...dados_comuns.models_abstract import TemPrioridade
 
 
 class SolicitacoesDRE7DiasManager(models.Manager):
@@ -24,7 +24,7 @@ class SolicitacoesDRE(models.Model):
     uuid = models.UUIDField(editable=False)
     lote = models.CharField(max_length=50)
     diretoria_regional_id = models.PositiveIntegerField()
-    data = models.DateTimeField()
+    data_log = models.DateTimeField()
     tipo_doc = models.CharField(max_length=30)
 
     class Meta:
@@ -39,7 +39,7 @@ class SolicitacoesAutorizadasDRE(SolicitacoesDRE):
         db_table = "dre_solicitacoes_autorizadas"
 
 
-class SolicitacoesPendentesDRE(SolicitacoesDRE):
+class SolicitacoesPendentesDRE(SolicitacoesDRE, TemPrioridade):
     data_doc = models.DateField()
 
     objects = models.Manager()
@@ -52,19 +52,5 @@ class SolicitacoesPendentesDRE(SolicitacoesDRE):
         db_table = "dre_solicitacoes_pendentes"
 
     @property
-    def prioridade(self):
-        descricao = 'VENCIDO'
-        data = self.data.date()
-        prox_2_dias_uteis = obter_dias_uteis_apos_hoje(2)
-        prox_3_dias_uteis = obter_dias_uteis_apos_hoje(3)
-        prox_5_dias_uteis = obter_dias_uteis_apos_hoje(5)
-        prox_6_dias_uteis = obter_dias_uteis_apos_hoje(6)
-        hoje = datetime.date.today()
-
-        if hoje <= data <= prox_2_dias_uteis:
-            descricao = 'PRIORITARIO'
-        elif prox_5_dias_uteis >= data >= prox_3_dias_uteis:
-            descricao = 'LIMITE'
-        elif data >= prox_6_dias_uteis:
-            descricao = 'REGULAR'
-        return descricao
+    def data(self):
+        return self.data_doc
