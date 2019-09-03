@@ -6,7 +6,7 @@ from django.db.models import Q, Sum
 from ..cardapio.models import (
     AlteracaoCardapio, GrupoSuspensaoAlimentacao, InversaoCardapio
 )
-from ..dados_comuns.constants import DAQUI_A_30_DIAS, DAQUI_A_7_DIAS
+from ..dados_comuns.constants import DAQUI_A_30_DIAS, DAQUI_A_7_DIAS, SEM_FILTRO
 from ..dados_comuns.models_abstract import (
     Ativavel, Iniciais, Nomeavel, TemChaveExterna
 )
@@ -199,6 +199,13 @@ class DiretoriaRegional(Nomeavel, TemChaveExterna):
         )
 
     @property
+    def solicitacao_kit_lanche_avulsa_reprovados(self):
+        return SolicitacaoKitLancheAvulsa.objects.filter(
+            escola__in=self.escolas.all(),
+            status=SolicitacaoKitLancheAvulsa.workflow_class.DRE_PEDE_ESCOLA_REVISAR
+        )
+
+    @property
     def alteracoes_cardapio_reprovadas(self):
         return AlteracaoCardapio.objects.filter(
             escola__in=self.escolas.all(),
@@ -260,8 +267,13 @@ class DiretoriaRegional(Nomeavel, TemChaveExterna):
     def solicitacoes_autorizadas(self):
         return SolicitacoesAutorizadasDRE.objects.filter(diretoria_regional_id=self.id)
 
-    def solicitacoes_pendentes(self):
-        return SolicitacoesPendentesDRE.objects.filter(diretoria_regional_id=self.id)
+    def solicitacoes_pendentes(self, filtro_aplicado=SEM_FILTRO):
+        if filtro_aplicado == SEM_FILTRO:
+            return SolicitacoesPendentesDRE.objects.filter(diretoria_regional_id=self.id)
+        elif filtro_aplicado == DAQUI_A_7_DIAS:
+            return SolicitacoesPendentesDRE.filtro_7_dias.filter(diretoria_regional_id=self.id)
+        elif filtro_aplicado == DAQUI_A_30_DIAS:
+            return SolicitacoesPendentesDRE.filtro_30_dias.filter(diretoria_regional_id=self.id)
 
     def __str__(self):
         return self.nome
@@ -542,6 +554,12 @@ class Codae(Nomeavel, TemChaveExterna):
     def solicitacao_kit_lanche_avulsa_aprovadas(self):
         return SolicitacaoKitLancheAvulsa.objects.filter(
             status=SolicitacaoKitLancheAvulsa.workflow_class.CODAE_APROVADO
+        )
+
+    @property
+    def solicitacao_kit_lanche_avulsa_reprovadas(self):
+        return SolicitacaoKitLancheAvulsa.objects.filter(
+            status=SolicitacaoKitLancheAvulsa.workflow_class.CODAE_CANCELOU_PEDIDO
         )
 
     # TODO: talvez fazer um manager genérico pra fazer esse filtro

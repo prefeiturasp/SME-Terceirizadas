@@ -6,12 +6,14 @@ from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django_xworkflows import models as xwf_models
 
+from .constants import (
+    DIAS_DE_PRAZO_REGULAR_EM_DIANTE, DIAS_UTEIS_LIMITE_INFERIOR, DIAS_UTEIS_LIMITE_SUPERIOR, MINIMO_DIAS_PARA_PEDIDO
+)
 from .fluxo_status import (
     InformativoPartindoDaEscolaWorkflow, PedidoAPartirDaDiretoriaRegionalWorkflow, PedidoAPartirDaEscolaWorkflow
 )
 from .models import LogSolicitacoesUsuario
 from .utils import enviar_notificacao_e_email
-from .utils import obter_dias_uteis_apos_hoje
 from ..perfil import models as models_perfil
 
 
@@ -429,7 +431,7 @@ class FluxoInformativoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model)
                                    recipients=self.partes_interessadas_informacao,
                                    short_desc=assunto,
                                    long_desc=corpo)
-        self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.SUSPENSAO_DE_CARDAPIO,
+        self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.INICIO_FLUXO,
                                   usuario=user)
 
     @xworkflows.after_transition('terceirizada_tomou_ciencia')
@@ -484,23 +486,19 @@ class TemPrioridade(object):
 
     @property
     def prioridade(self):
-        data = None
-        descricao = ''
-        prox_2_dias_uteis = obter_dias_uteis_apos_hoje(2)
-        prox_3_dias_uteis = obter_dias_uteis_apos_hoje(3)
-        prox_5_dias_uteis = obter_dias_uteis_apos_hoje(5)
-        prox_6_dias_uteis = obter_dias_uteis_apos_hoje(6)
+        data_pedido = None
+        descricao = 'VENCIDO'
         hoje = datetime.date.today()
         if hasattr(self, "data"):
-            data = self.data
+            data_pedido = self.data
         elif hasattr(self, "data_inicial"):
-            data = self.data_inicial
+            data_pedido = self.data_inicial
 
-        if hoje <= data <= prox_2_dias_uteis:
+        if MINIMO_DIAS_PARA_PEDIDO >= data_pedido >= hoje:
             descricao = 'PRIORITARIO'
-        elif prox_5_dias_uteis >= data >= prox_3_dias_uteis:
+        elif DIAS_UTEIS_LIMITE_SUPERIOR >= data_pedido >= DIAS_UTEIS_LIMITE_INFERIOR:
             descricao = 'LIMITE'
-        elif data >= prox_6_dias_uteis:
+        elif data_pedido >= DIAS_DE_PRAZO_REGULAR_EM_DIANTE:
             descricao = 'REGULAR'
         return descricao
 

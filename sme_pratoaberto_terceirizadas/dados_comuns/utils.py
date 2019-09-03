@@ -11,7 +11,7 @@ from workalendar.america import BrazilSaoPauloCity
 calendar = BrazilSaoPauloCity()
 
 
-def enviar_notificacao(sender, recipients: [QuerySet, list],
+def enviar_notificacao(sender, recipients: QuerySet,
                        short_desc: str, long_desc: str):
     """
     :param sender: User instance

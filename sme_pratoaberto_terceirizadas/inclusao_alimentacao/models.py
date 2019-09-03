@@ -1,20 +1,19 @@
-import datetime
-
 from django.core.validators import MinValueValidator
 from django.db import models
 
 from .managers import (
+    InclusoesDeAlimentacaoContinuaPrazoLimiteDaquiA30DiasManager,
     InclusoesDeAlimentacaoContinuaPrazoLimiteDaquiA7DiasManager, InclusoesDeAlimentacaoContinuaPrazoLimiteManager,
     InclusoesDeAlimentacaoContinuaPrazoRegularDaquiA30DiasManager,
     InclusoesDeAlimentacaoContinuaPrazoRegularDaquiA7DiasManager, InclusoesDeAlimentacaoContinuaPrazoRegularManager,
     InclusoesDeAlimentacaoContinuaPrazoVencendoHojeManager, InclusoesDeAlimentacaoContinuaPrazoVencendoManager,
-    InclusoesDeAlimentacaoContinuaVencidaDiasManager, InclusoesDeAlimentacaoNormalPrazoLimiteDaquiA7DiasManager,
-    InclusoesDeAlimentacaoNormalPrazoLimiteManager, InclusoesDeAlimentacaoNormalPrazoRegularDaquiA30DiasManager,
+    InclusoesDeAlimentacaoContinuaVencidaDiasManager, InclusoesDeAlimentacaoNormalPrazoLimiteDaquiA30DiasManager,
+    InclusoesDeAlimentacaoNormalPrazoLimiteDaquiA7DiasManager, InclusoesDeAlimentacaoNormalPrazoLimiteManager,
+    InclusoesDeAlimentacaoNormalPrazoRegularDaquiA30DiasManager,
     InclusoesDeAlimentacaoNormalPrazoRegularDaquiA7DiasManager, InclusoesDeAlimentacaoNormalPrazoRegularManager,
     InclusoesDeAlimentacaoNormalPrazoVencendoHojeManager, InclusoesDeAlimentacaoNormalPrazoVencendoManager,
     InclusoesDeAlimentacaoNormalVencidosDiasManager
 )
-from ..dados_comuns.constants import MINIMO_DIAS_PARA_PEDIDO, QUANTIDADE_DIAS_OK_PARA_PEDIDO
 from ..dados_comuns.models import (
     LogSolicitacoesUsuario, TemplateMensagem
 )
@@ -22,7 +21,6 @@ from ..dados_comuns.models_abstract import (
     CriadoEm, CriadoPor, Descritivel, DiasSemana, FluxoAprovacaoPartindoDaEscola, IntervaloDeDia, Logs, Nomeavel,
     TemChaveExterna, TemData, TemIdentificadorExternoAmigavel, TemPrioridade
 )
-from ..dados_comuns.utils import obter_dias_uteis_apos_hoje
 
 
 class QuantidadePorPeriodo(TemChaveExterna):
@@ -77,6 +75,7 @@ class InclusaoAlimentacaoContinua(IntervaloDeDia, Descritivel, TemChaveExterna,
     prazo_vencendo_hoje = InclusoesDeAlimentacaoContinuaPrazoVencendoHojeManager()
     prazo_limite = InclusoesDeAlimentacaoContinuaPrazoLimiteManager()
     prazo_limite_daqui_a_7_dias = InclusoesDeAlimentacaoContinuaPrazoLimiteDaquiA7DiasManager()
+    prazo_limite_daqui_a_30_dias = InclusoesDeAlimentacaoContinuaPrazoLimiteDaquiA30DiasManager()
     prazo_regular = InclusoesDeAlimentacaoContinuaPrazoRegularManager()
     prazo_regular_daqui_a_7_dias = InclusoesDeAlimentacaoContinuaPrazoRegularDaquiA7DiasManager()
     prazo_regular_daqui_a_30_dias = InclusoesDeAlimentacaoContinuaPrazoRegularDaquiA30DiasManager()
@@ -172,6 +171,7 @@ class GrupoInclusaoAlimentacaoNormal(Descritivel, TemChaveExterna, FluxoAprovaca
     prazo_vencendo_hoje = InclusoesDeAlimentacaoNormalPrazoVencendoHojeManager()
     prazo_limite = InclusoesDeAlimentacaoNormalPrazoLimiteManager()
     prazo_limite_daqui_a_7_dias = InclusoesDeAlimentacaoNormalPrazoLimiteDaquiA7DiasManager()
+    prazo_limite_daqui_a_30_dias = InclusoesDeAlimentacaoNormalPrazoLimiteDaquiA30DiasManager()
     prazo_regular = InclusoesDeAlimentacaoNormalPrazoRegularManager()
     prazo_regular_daqui_a_7_dias = InclusoesDeAlimentacaoNormalPrazoRegularDaquiA7DiasManager()
     prazo_regular_daqui_a_30_dias = InclusoesDeAlimentacaoNormalPrazoRegularDaquiA30DiasManager()
@@ -201,31 +201,9 @@ class GrupoInclusaoAlimentacaoNormal(Descritivel, TemChaveExterna, FluxoAprovaca
         return template.assunto, corpo
 
     @property
-    def prioridade(self):
-        """
-            Dadas as inclusões normais, recupera a de menor data e retorna prioridade
-        """
-        descricao = ''
-        prox_2_dias_uteis = obter_dias_uteis_apos_hoje(MINIMO_DIAS_PARA_PEDIDO)
-        prox_3_dias_uteis = obter_dias_uteis_apos_hoje(3)
-        prox_5_dias_uteis = obter_dias_uteis_apos_hoje(QUANTIDADE_DIAS_OK_PARA_PEDIDO)
-        prox_6_dias_uteis = obter_dias_uteis_apos_hoje(6)
-        hoje = datetime.date.today()
-
+    def data(self):
         inclusao_normal = self.inclusoes_normais.order_by('data').first()
-        data = inclusao_normal.data
-
-        if hoje <= data <= prox_2_dias_uteis:
-            descricao = 'PRIORITARIO'
-        elif prox_5_dias_uteis >= data >= prox_3_dias_uteis:
-            descricao = 'LIMITE'
-        elif data >= prox_6_dias_uteis:
-            descricao = 'REGULAR'
-        return descricao
-
-    @property
-    def descricao_curta(self):
-        return f"Grupo de inclusão de alimentação normal #{self.id_externo}"
+        return inclusao_normal.data
 
     def salvar_log_transicao(self, status_evento, usuario):
         LogSolicitacoesUsuario.objects.create(

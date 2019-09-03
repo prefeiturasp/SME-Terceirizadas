@@ -3,14 +3,13 @@ import datetime
 from django.db import models
 
 from .managers import (
-    AlteracoesCardapioPrazoLimiteDaquiA7DiasManager, AlteracoesCardapioPrazoLimiteManager,
-    AlteracoesCardapioPrazoRegularDaquiA30DiasManager, AlteracoesCardapioPrazoRegularDaquiA7DiasManager,
-    AlteracoesCardapioPrazoRegularManager, AlteracoesCardapioPrazoVencendoHojeManager,
-    AlteracoesCardapioPrazoVencendoManager, AlteracoesCardapioVencidaManager,
-    InversaoCardapioPrazoLimiteDaquiA30DiasManager, InversaoCardapioPrazoLimiteDaquiA7DiasManager,
-    InversaoCardapioPrazoLimiteManager, InversaoCardapioPrazoVencendoHojeManager, InversaoCardapioPrazoVencendoManager,
-    InversaoCardapioVencidaManager
-
+    AlteracoesCardapioPrazoLimiteDaquiA30DiasManager, AlteracoesCardapioPrazoLimiteDaquiA7DiasManager,
+    AlteracoesCardapioPrazoLimiteManager, AlteracoesCardapioPrazoRegularDaquiA30DiasManager,
+    AlteracoesCardapioPrazoRegularDaquiA7DiasManager, AlteracoesCardapioPrazoRegularManager,
+    AlteracoesCardapioPrazoVencendoHojeManager, AlteracoesCardapioPrazoVencendoManager,
+    AlteracoesCardapioVencidaManager, InversaoCardapioPrazoLimiteDaquiA30DiasManager,
+    InversaoCardapioPrazoLimiteDaquiA7DiasManager, InversaoCardapioPrazoLimiteManager,
+    InversaoCardapioPrazoVencendoHojeManager, InversaoCardapioPrazoVencendoManager, InversaoCardapioVencidaManager
 )
 from ..dados_comuns.models import TemplateMensagem  # noqa I202
 from ..dados_comuns.models_abstract import (
@@ -18,7 +17,6 @@ from ..dados_comuns.models_abstract import (
     IntervaloDeDia, LogSolicitacoesUsuario, Logs, Motivo, Nomeavel, TemChaveExterna, TemData,
     TemIdentificadorExternoAmigavel, TemObservacao, TemPrioridade
 )
-from ..dados_comuns.utils import obter_dias_uteis_apos_hoje
 
 
 class TipoAlimentacao(Nomeavel, TemChaveExterna):
@@ -116,28 +114,11 @@ class InversaoCardapio(CriadoEm, CriadoPor, TemObservacao, Motivo, TemChaveExter
         return self.cardapio_para.data if self.cardapio_para else None
 
     @property
-    def prioridade(self):
-        descricao = 'VENCIDO'
+    def data(self):
         data = self.data_de
         if self.data_para < self.data_de:
             data = self.data_para
-        prox_2_dias_uteis = obter_dias_uteis_apos_hoje(2)
-        prox_3_dias_uteis = obter_dias_uteis_apos_hoje(3)
-        prox_5_dias_uteis = obter_dias_uteis_apos_hoje(5)
-        prox_6_dias_uteis = obter_dias_uteis_apos_hoje(6)
-        hoje = datetime.date.today()
-
-        if hoje <= data <= prox_2_dias_uteis:
-            descricao = 'PRIORITARIO'
-        elif prox_5_dias_uteis >= data >= prox_3_dias_uteis:
-            descricao = 'LIMITE'
-        elif data >= prox_6_dias_uteis:
-            descricao = 'REGULAR'
-        return descricao
-
-    @property
-    def descricao_curta(self):
-        return f"Inversão de dia de Cardápio #{self.id_externo}"
+        return data
 
     @property
     def template_mensagem(self):
@@ -236,6 +217,12 @@ class GrupoSuspensaoAlimentacao(TemChaveExterna, CriadoPor, TemIdentificadorExte
         )
 
     @classmethod
+    def get_tomados_ciencia(cls):
+        return cls.objects.filter(
+            status=cls.workflow_class.TERCEIRIZADA_TOMA_CIENCIA
+        )
+
+    @classmethod
     def get_rascunhos_do_usuario(cls, usuario):
         return cls.objects.filter(
             criado_por=usuario,
@@ -252,10 +239,6 @@ class GrupoSuspensaoAlimentacao(TemChaveExterna, CriadoPor, TemIdentificadorExte
 
     def __str__(self):
         return f"{self.observacao}"
-
-    @property
-    def descricao_curta(self):
-        return "Suspensão de Alimentação."
 
     @property
     def template_mensagem(self):
@@ -335,6 +318,7 @@ class AlteracaoCardapio(CriadoEm, CriadoPor, TemChaveExterna, IntervaloDeDia, Te
 
     prazo_limite = AlteracoesCardapioPrazoLimiteManager()
     prazo_limite_daqui_a_7_dias = AlteracoesCardapioPrazoLimiteDaquiA7DiasManager()
+    prazo_limite_daqui_a_30_dias = AlteracoesCardapioPrazoLimiteDaquiA30DiasManager()
 
     prazo_regular = AlteracoesCardapioPrazoRegularManager()
     prazo_regular_daqui_a_7_dias = AlteracoesCardapioPrazoRegularDaquiA7DiasManager()
@@ -350,10 +334,6 @@ class AlteracaoCardapio(CriadoEm, CriadoPor, TemChaveExterna, IntervaloDeDia, Te
 
     def __str__(self):
         return f'Alteração de cardápio: {self.uuid}'
-
-    @property
-    def descricao_curta(self):
-        return "Solicitação de alteração de cardápio."
 
     @property
     def template_mensagem(self):
@@ -383,18 +363,19 @@ class AlteracaoCardapio(CriadoEm, CriadoPor, TemChaveExterna, IntervaloDeDia, Te
     @classmethod
     def solicitacoes_por_visao(cls, query_set_base, visao):
         if visao == "dia":
-            query_set_por_visao = query_set_base \
-                .filter(data_inicial__lte=datetime.datetime.today(), data_final__gte=datetime.datetime.today())
+            query_set_por_visao = query_set_base.filter(
+                data_inicial__lte=datetime.datetime.today(),
+                data_final__gte=datetime.datetime.today())
 
         elif visao == "semana":
-            query_set_por_visao = query_set_base \
-                .filter(data_inicial__gte=datetime.datetime.today() + datetime.timedelta(days=7),
-                        data_final__lte=datetime.datetime.today() + datetime.timedelta(days=7))
+            query_set_por_visao = query_set_base.filter(
+                data_inicial__gte=datetime.datetime.today() + datetime.timedelta(days=7),
+                data_final__lte=datetime.datetime.today() + datetime.timedelta(days=7))
 
         elif visao == "mes":
-            query_set_por_visao = query_set_base \
-                .filter(data_inicial__gte=datetime.datetime.today() + datetime.timedelta(days=30),
-                        data_final__lte=datetime.datetime.today() + datetime.timedelta(days=30))
+            query_set_por_visao = query_set_base.filter(
+                data_inicial__gte=datetime.datetime.today() + datetime.timedelta(days=30),
+                data_final__lte=datetime.datetime.today() + datetime.timedelta(days=30))
 
         else:
             query_set_por_visao = AlteracaoCardapio.objects.none()

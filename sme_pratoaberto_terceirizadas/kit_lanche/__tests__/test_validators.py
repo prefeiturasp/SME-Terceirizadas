@@ -39,8 +39,7 @@ def test_escola_quantidade_deve_ter_mesmo_tempo_passeio():
 def test_escola_quantidade_deve_ter_mesmo_tempo_passeio_exception():
     escola_quantidade_mock = {'tempo_passeio': 4}
     solicitacao_kit_lanche_mock = {'tempo_passeio': 3}
-    esperado = 'escola_quantidade indice #3 diverge do ' \
-               'tempo_passeio de solicitacao_kit_lanche.'
+    esperado = 'escola_quantidade indice #3 diverge do tempo_passeio de solicitacao_kit_lanche.'
     with pytest.raises(ValidationError, match=esperado):
         escola_quantidade_deve_ter_mesmo_tempo_passeio(
             escola_quantidade=escola_quantidade_mock,

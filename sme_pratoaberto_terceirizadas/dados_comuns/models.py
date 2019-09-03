@@ -75,6 +75,7 @@ class LogSolicitacoesUsuario(models.Model):
                f"em {self.get_solicitacao_tipo_display()} no dia {self.criado_em}"
 
 
+
 class Meta:
     ordering = ('criado_em',)
 

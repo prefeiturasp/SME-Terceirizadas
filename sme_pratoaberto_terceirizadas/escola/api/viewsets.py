@@ -1,6 +1,7 @@
 from rest_framework.decorators import action
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
+from ...dados_comuns.constants import FILTRO_PADRAO_PEDIDOS, SEM_FILTRO
 from .serializers import (
     DiretoriaRegionalCompletaSerializer, DiretoriaRegionalSimplissimaSerializer, EscolaCompletaSerializer,
     EscolaSimplesSerializer, EscolaSimplissimaSerializer, PeriodoEscolarSerializer, SubprefeituraSerializer,
@@ -82,10 +83,11 @@ class DiretoriaRegionalViewSet(ReadOnlyModelViewSet):
         )
         return self.get_paginated_response(serializer.data)
 
-    @action(detail=True, url_path="solicitacoes-pendentes-para-mim")
-    def solicitacoes_pendentes_para_mim(self, request, uuid=None):
+    @action(detail=True,
+            url_path=f"solicitacoes-pendentes-para-mim/{FILTRO_PADRAO_PEDIDOS}")
+    def solicitacoes_pendentes_para_mim(self, request, uuid=None, filtro_aplicado=SEM_FILTRO):
         diretoria_regional = self.get_object()
-        pendentes = diretoria_regional.solicitacoes_pendentes()
+        pendentes = diretoria_regional.solicitacoes_pendentes(filtro_aplicado=filtro_aplicado)
         page = self.paginate_queryset(pendentes)
         serializer = SolicitacoesPendentesDRESerializer(
             page, many=True
