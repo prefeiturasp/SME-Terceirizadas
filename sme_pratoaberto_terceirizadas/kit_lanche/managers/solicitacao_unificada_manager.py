@@ -3,7 +3,7 @@ import datetime
 from django.db import models
 from django.db.models import Q
 
-from ...dados_comuns.constants import MINIMO_DIAS_PARA_PEDIDO, DIAS_UTEIS_LIMITE_SUPERIOR
+from ...dados_comuns.constants import DIAS_UTEIS_LIMITE_SUPERIOR, MINIMO_DIAS_PARA_PEDIDO
 from ...dados_comuns.fluxo_status import PedidoAPartirDaDiretoriaRegionalWorkflow
 from ...dados_comuns.utils import obter_dias_uteis_apos_hoje
 

@@ -375,18 +375,19 @@ class AlteracaoCardapio(CriadoEm, CriadoPor, TemChaveExterna, IntervaloDeDia, Te
     @classmethod
     def solicitacoes_por_visao(cls, query_set_base, visao):
         if visao == "dia":
-            query_set_por_visao = query_set_base \
-                .filter(data_inicial__lte=datetime.datetime.today(), data_final__gte=datetime.datetime.today())
+            query_set_por_visao = query_set_base.filter(
+                data_inicial__lte=datetime.datetime.today(),
+                data_final__gte=datetime.datetime.today())
 
         elif visao == "semana":
-            query_set_por_visao = query_set_base \
-                .filter(data_inicial__gte=datetime.datetime.today() + datetime.timedelta(days=7),
-                        data_final__lte=datetime.datetime.today() + datetime.timedelta(days=7))
+            query_set_por_visao = query_set_base.filter(
+                data_inicial__gte=datetime.datetime.today() + datetime.timedelta(days=7),
+                data_final__lte=datetime.datetime.today() + datetime.timedelta(days=7))
 
         elif visao == "mes":
-            query_set_por_visao = query_set_base \
-                .filter(data_inicial__gte=datetime.datetime.today() + datetime.timedelta(days=30),
-                        data_final__lte=datetime.datetime.today() + datetime.timedelta(days=30))
+            query_set_por_visao = query_set_base.filter(
+                data_inicial__gte=datetime.datetime.today() + datetime.timedelta(days=30),
+                data_final__lte=datetime.datetime.today() + datetime.timedelta(days=30))
 
         else:
             query_set_por_visao = AlteracaoCardapio.objects.none()

@@ -7,7 +7,7 @@ from django.db import models
 from django_xworkflows import models as xwf_models
 
 from .constants import (
-    MINIMO_DIAS_PARA_PEDIDO, DIAS_UTEIS_LIMITE_SUPERIOR, DIAS_UTEIS_LIMITE_INFERIOR, DIAS_DE_PRAZO_REGULAR_EM_DIANTE
+    DIAS_DE_PRAZO_REGULAR_EM_DIANTE, DIAS_UTEIS_LIMITE_INFERIOR, DIAS_UTEIS_LIMITE_SUPERIOR, MINIMO_DIAS_PARA_PEDIDO
 )
 from .fluxo_status import (
     InformativoPartindoDaEscolaWorkflow, PedidoAPartirDaDiretoriaRegionalWorkflow, PedidoAPartirDaEscolaWorkflow

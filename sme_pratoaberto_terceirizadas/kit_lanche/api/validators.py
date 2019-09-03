@@ -1,8 +1,9 @@
 from django.db.models import Sum
 from rest_framework import serializers
 
-from sme_pratoaberto_terceirizadas.kit_lanche.models import EscolaQuantidade, SolicitacaoKitLanche, \
-    SolicitacaoKitLancheAvulsa
+from ..models import (
+    EscolaQuantidade, SolicitacaoKitLanche, SolicitacaoKitLancheAvulsa
+)
 
 
 def deve_ter_1_kit_somente(lista_igual, numero_kits):
@@ -91,7 +92,7 @@ def valida_tempo_passeio_lista_nao_igual(tempo_passeio):
     return True
 
 
-def valida_quantidade_kits_tempo_passeio(tempo_passeio, quantidade_kits):
+def valida_quantidade_kits_tempo_passeio(tempo_passeio, quantidade_kits):  # noqa C901
     if tempo_passeio == SolicitacaoKitLanche.QUATRO:
         if quantidade_kits != 1:
             raise serializers.ValidationError(
