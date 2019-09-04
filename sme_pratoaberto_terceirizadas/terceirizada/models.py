@@ -110,7 +110,8 @@ class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel):
     def solicitacao_kit_lanche_avulsa_aprovadas(self):
         return SolicitacaoKitLancheAvulsa.objects.filter(
             escola__lote__in=self.lotes.all(),
-            status=SolicitacaoKitLancheAvulsa.workflow_class.TERCEIRIZADA_TOMA_CIENCIA
+            status__in=[SolicitacaoKitLancheAvulsa.workflow_class.CODAE_APROVADO,
+                        SolicitacaoKitLancheAvulsa.workflow_class.TERCEIRIZADA_TOMA_CIENCIA]
         )
 
     @property
