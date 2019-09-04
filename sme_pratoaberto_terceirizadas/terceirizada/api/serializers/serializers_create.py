@@ -44,10 +44,9 @@ class ContratoCreateSerializer(serializers.ModelSerializer):
         queryset=Lote.objects.all()
     )
 
-    terceirizadas = serializers.SlugRelatedField(
+    terceirizada = serializers.SlugRelatedField(
         slug_field='uuid',
         required=True,
-        many=True,
         queryset=Terceirizada.objects.all()
     )
 
@@ -61,9 +60,7 @@ class ContratoCreateSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         lotes_json = validated_data.pop('lotes', [])
-        terceirizadas_json = validated_data.pop('terceirizadas', [])
         dres_json = validated_data.pop('diretorias_regionais', [])
-
         vigencias_array = validated_data.pop('vigencias')
 
         vigencias = []
@@ -73,9 +70,7 @@ class ContratoCreateSerializer(serializers.ModelSerializer):
 
         contrato = Contrato.objects.create(**validated_data)
         contrato.vigencias.set(vigencias)
-
         contrato.lotes.set(lotes_json)
-        contrato.terceirizadas.set(terceirizadas_json)
         contrato.diretorias_regionais.set(dres_json)
 
         return contrato
