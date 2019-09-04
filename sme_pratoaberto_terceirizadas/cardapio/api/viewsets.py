@@ -14,7 +14,7 @@ from .permissions import (
 )
 from .serializers.serializers import (
     AlteracaoCardapioSerializer, AlteracaoCardapioSimplesSerializer, CardapioSerializer,
-    GrupoSuspensaoAlimentacaoSerializer, InversaoCardapioSerializer, InversaoCardapioSimpleserializer,
+    GrupoSuspensaoAlimentacaoSerializer, InversaoCardapioSerializer,
     TipoAlimentacaoSerializer)
 from .serializers.serializers import (
     MotivoAlteracaoCardapioSerializer,
@@ -80,7 +80,7 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
             filtro_aplicado
         )
         page = self.paginate_queryset(inversoes_cardapio)
-        serializer = InversaoCardapioSimpleserializer(page, many=True)
+        serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False,
@@ -93,6 +93,36 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
         inversoes_cardapio = terceirizada.inversoes_cardapio_das_minhas_escolas(
             filtro_aplicado
         )
+        page = self.paginate_queryset(inversoes_cardapio)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False, url_path="pedidos-aprovados-diretoria-regional")
+    def pedidos_aprovados_diretoria_regional(self, request):
+        usuario = request.user
+        # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
+        diretoria_regional = usuario.diretorias_regionais.first()
+        inversoes_cardapio = diretoria_regional.inversoes_cardapio_aprovadas
+        page = self.paginate_queryset(inversoes_cardapio)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False, url_path="pedidos-aprovados-codae")
+    def pedidos_aprovados_codae(self, request):
+        usuario = request.user
+        # TODO: aguardando definição de perfis pra saber em qual CODAE eu estou fazendo a requisição
+        codae = usuario.CODAE.first()
+        inversoes_cardapio = codae.inversoes_cardapio_aprovadas
+        page = self.paginate_queryset(inversoes_cardapio)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False, url_path="pedidos-aprovados-terceirizada")
+    def pedidos_aprovados_terceirizada(self, request):
+        usuario = request.user
+        # TODO: aguardando definição de perfis pra saber em qual TERCEIRIZADA eu estou fazendo a requisição
+        terceirizada = usuario.terceirizadas.first()
+        inversoes_cardapio = terceirizada.inversoes_cardapio_aprovadas
         page = self.paginate_queryset(inversoes_cardapio)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)

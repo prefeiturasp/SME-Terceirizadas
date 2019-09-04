@@ -264,6 +264,14 @@ class DiretoriaRegional(Nomeavel, TemChaveExterna):
             status=InversaoCardapio.workflow_class.DRE_A_VALIDAR
         )
 
+    @property
+    def inversoes_cardapio_aprovadas(self):
+        return InversaoCardapio.objects.filter(
+            escola__in=self.escolas.all(),
+            status__in=[InversaoCardapio.workflow_class.CODAE_APROVADO,
+                        InversaoCardapio.workflow_class.TERCEIRIZADA_TOMA_CIENCIA]
+        )
+
     #
     # Consultas consolidadas de todos os tipos de solicitação para a DRE
     #
@@ -474,6 +482,13 @@ class Codae(Nomeavel, TemChaveExterna):
             inversoes_cardapio = InversaoCardapio.objects
         return inversoes_cardapio.filter(
             status=InversaoCardapio.workflow_class.DRE_APROVADO
+        )
+
+    @property
+    def inversoes_cardapio_aprovadas(self):
+        return InversaoCardapio.objects.filter(
+            status__in=[InversaoCardapio.workflow_class.CODAE_APROVADO,
+                        InversaoCardapio.workflow_class.TERCEIRIZADA_TOMA_CIENCIA]
         )
 
     def inclusoes_alimentacao_continua_das_minhas_escolas(self, filtro_aplicado):

@@ -39,15 +39,11 @@ class InversaoCardapioSerializer(serializers.ModelSerializer):
     cardapio_de = CardapioSimplesSerializer()
     cardapio_para = CardapioSimplesSerializer()
     escola = EscolaSimplesSerializer()
-    status = serializers.SerializerMethodField()
     id_externo = serializers.CharField()
     prioridade = serializers.CharField()
     data_de = serializers.DateField()
     data_para = serializers.DateField()
     logs = LogSolicitacoesUsuarioSerializer(many=True)
-
-    def get_status(self, obj):
-        return obj.get_status_display()
 
     class Meta:
         model = InversaoCardapio
@@ -55,13 +51,9 @@ class InversaoCardapioSerializer(serializers.ModelSerializer):
 
 
 class InversaoCardapioSimpleserializer(serializers.ModelSerializer):
-    status = serializers.SerializerMethodField()
     id_externo = serializers.CharField()
     prioridade = serializers.CharField()
     escola = EscolaSimplesSerializer()
-
-    def get_status(self, obj):
-        return obj.get_status_display()
 
     class Meta:
         model = InversaoCardapio
