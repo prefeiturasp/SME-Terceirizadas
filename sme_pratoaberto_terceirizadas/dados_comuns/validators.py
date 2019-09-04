@@ -17,7 +17,7 @@ def nao_pode_ser_no_passado(data: datetime.date):
 
 def deve_pedir_com_antecedencia(dia: datetime.date, dias: int = 2):
     prox_dia_util = obter_dias_uteis_apos_hoje(quantidade_dias=dias)
-    if dia <= prox_dia_util:
+    if dia < prox_dia_util:
         raise serializers.ValidationError('Deve pedir com pelo menos {} dias úteis de antecedência'.format(dias))
     return True
 
