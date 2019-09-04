@@ -110,7 +110,8 @@ class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel):
     def solicitacao_kit_lanche_avulsa_aprovadas(self):
         return SolicitacaoKitLancheAvulsa.objects.filter(
             escola__lote__in=self.lotes.all(),
-            status=SolicitacaoKitLancheAvulsa.workflow_class.TERCEIRIZADA_TOMA_CIENCIA
+            status__in=[SolicitacaoKitLancheAvulsa.workflow_class.CODAE_APROVADO,
+                        SolicitacaoKitLancheAvulsa.workflow_class.TERCEIRIZADA_TOMA_CIENCIA]
         )
 
     @property
@@ -271,7 +272,15 @@ class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel):
         return solicitacoes_unificadas.filter(
             escolas_quantidades__escola__lote__in=self.lotes.all(),
             status=SolicitacaoKitLancheUnificada.workflow_class.CODAE_APROVADO
-        )
+        ).distinct()
+
+    @property
+    def solicitacoes_unificadas_aprovadas(self):
+        return SolicitacaoKitLancheUnificada.objects.filter(
+            escolas_quantidades__escola__lote__in=self.lotes.all(),
+            status__in=[SolicitacaoKitLancheUnificada.workflow_class.CODAE_APROVADO,
+                        SolicitacaoKitLancheUnificada.workflow_class.TERCEIRIZADA_TOMA_CIENCIA]
+        ).distinct()
 
     def solicitacoes_kit_lanche_das_minhas_escolas_a_validar(self, filtro_aplicado):
         if filtro_aplicado == "daqui_a_7_dias":

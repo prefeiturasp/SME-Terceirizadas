@@ -198,7 +198,8 @@ class DiretoriaRegional(Nomeavel, TemChaveExterna):
     def solicitacao_kit_lanche_avulsa_aprovadas(self):
         return SolicitacaoKitLancheAvulsa.objects.filter(
             escola__in=self.escolas.all(),
-            status=SolicitacaoKitLancheAvulsa.workflow_class.CODAE_APROVADO
+            status__in=[SolicitacaoKitLancheAvulsa.workflow_class.CODAE_APROVADO,
+                        SolicitacaoKitLancheAvulsa.workflow_class.TERCEIRIZADA_TOMA_CIENCIA]
         )
 
     @property
@@ -545,6 +546,13 @@ class Codae(Nomeavel, TemChaveExterna):
         )
 
     @property
+    def solicitacoes_unificadas_aprovadas(self):
+        return SolicitacaoKitLancheUnificada.objects.filter(
+            status__in=[SolicitacaoKitLancheUnificada.workflow_class.CODAE_APROVADO,
+                        SolicitacaoKitLancheUnificada.workflow_class.TERCEIRIZADA_TOMA_CIENCIA]
+        )
+
+    @property
     def inclusoes_continuas_aprovadas(self):
         return InclusaoAlimentacaoContinua.objects.filter(
             status=InclusaoAlimentacaoContinua.workflow_class.CODAE_APROVADO
@@ -571,7 +579,8 @@ class Codae(Nomeavel, TemChaveExterna):
     @property
     def solicitacao_kit_lanche_avulsa_aprovadas(self):
         return SolicitacaoKitLancheAvulsa.objects.filter(
-            status=SolicitacaoKitLancheAvulsa.workflow_class.CODAE_APROVADO
+            status__in=[SolicitacaoKitLancheAvulsa.workflow_class.CODAE_APROVADO,
+                        SolicitacaoKitLancheAvulsa.workflow_class.TERCEIRIZADA_TOMA_CIENCIA]
         )
 
     @property
