@@ -249,6 +249,14 @@ class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel):
             status=InversaoCardapio.workflow_class.CODAE_APROVADO
         )
 
+    @property
+    def inversoes_cardapio_aprovadas(self):
+        return InversaoCardapio.objects.filter(
+            escola__lote__in=self.lotes.all(),
+            status__in=[InversaoCardapio.workflow_class.CODAE_APROVADO,
+                        InversaoCardapio.workflow_class.TERCEIRIZADA_TOMA_CIENCIA]
+        )
+
     #
     # Solicitação Unificada
     #
