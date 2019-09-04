@@ -71,8 +71,10 @@ class LogSolicitacoesUsuario(models.Model):
     usuario = models.ForeignKey('perfil.Usuario', on_delete=models.DO_NOTHING)
 
     def __str__(self):
-        return (f"{self.usuario} executou {self.get_status_evento_display()} ",
-                f"em {self.get_solicitacao_tipo_display()} no dia {self.criado_em}")
+        status = self.get_status_evento_display()
+        usuario = self.usuario
+        tipo_solicitacao = self.get_solicitacao_tipo_display()
+        return f"{usuario} executou {status} em {tipo_solicitacao} no dia {self.criado_em}"
 
 
 class Meta:

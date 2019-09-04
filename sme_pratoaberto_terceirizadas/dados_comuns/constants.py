@@ -1,9 +1,14 @@
-MINIMO_DIAS_PARA_PEDIDO = 2
-QUANTIDADE_DIAS_OK_PARA_PEDIDO = 5
+from .utils import obter_dias_uteis_apos_hoje
+
+MINIMO_DIAS_PARA_PEDIDO = obter_dias_uteis_apos_hoje(2)
+DIAS_UTEIS_LIMITE_INFERIOR = obter_dias_uteis_apos_hoje(3)
+DIAS_UTEIS_LIMITE_SUPERIOR = obter_dias_uteis_apos_hoje(5)
+DIAS_DE_PRAZO_REGULAR_EM_DIANTE = obter_dias_uteis_apos_hoje(6)
 
 #
 # PEDIDOS
 #
+
 SEM_FILTRO = 'sem_filtro'
 DAQUI_A_7_DIAS = 'daqui_a_7_dias'
 DAQUI_A_30_DIAS = 'daqui_a_30_dias'
