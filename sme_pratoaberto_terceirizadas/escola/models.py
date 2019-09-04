@@ -190,7 +190,8 @@ class DiretoriaRegional(Nomeavel, TemChaveExterna):
     def alteracoes_cardapio_aprovadas(self):
         return AlteracaoCardapio.objects.filter(
             escola__in=self.escolas.all(),
-            status=AlteracaoCardapio.workflow_class.CODAE_APROVADO
+            status__in=[AlteracaoCardapio.workflow_class.CODAE_APROVADO,
+                        AlteracaoCardapio.workflow_class.TERCEIRIZADA_TOMA_CIENCIA]
         )
 
     @property
@@ -668,7 +669,8 @@ class Codae(Nomeavel, TemChaveExterna):
     @property
     def alteracoes_cardapio_aprovadas(self):
         return AlteracaoCardapio.objects.filter(
-            status=AlteracaoCardapio.workflow_class.CODAE_APROVADO
+            status__in=[AlteracaoCardapio.workflow_class.CODAE_APROVADO,
+                        AlteracaoCardapio.workflow_class.TERCEIRIZADA_TOMA_CIENCIA]
         )
 
     @property

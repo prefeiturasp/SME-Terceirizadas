@@ -222,7 +222,8 @@ class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel):
     def alteracoes_cardapio_aprovadas(self):
         return AlteracaoCardapio.objects.filter(
             escola__lote__in=self.lotes.all(),
-            status=AlteracaoCardapio.workflow_class.TERCEIRIZADA_TOMA_CIENCIA
+            status__in=[AlteracaoCardapio.workflow_class.CODAE_APROVADO,
+                        AlteracaoCardapio.workflow_class.TERCEIRIZADA_TOMA_CIENCIA]
         )
 
     @property
