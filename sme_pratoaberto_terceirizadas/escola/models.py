@@ -38,14 +38,16 @@ class DiretoriaRegional(Nomeavel, TemChaveExterna):
     def inclusoes_continuas_aprovadas(self):
         return InclusaoAlimentacaoContinua.objects.filter(
             escola__in=self.escolas.all(),
-            status=InclusaoAlimentacaoContinua.workflow_class.DRE_APROVADO
+            status__in=[GrupoInclusaoAlimentacaoNormal.workflow_class.CODAE_APROVADO,
+                        GrupoInclusaoAlimentacaoNormal.workflow_class.TERCEIRIZADA_TOMA_CIENCIA]
         )
 
     @property
     def inclusoes_normais_aprovadas(self):
         return GrupoInclusaoAlimentacaoNormal.objects.filter(
             escola__in=self.escolas.all(),
-            status=GrupoInclusaoAlimentacaoNormal.workflow_class.DRE_APROVADO
+            status__in=[GrupoInclusaoAlimentacaoNormal.workflow_class.CODAE_APROVADO,
+                        GrupoInclusaoAlimentacaoNormal.workflow_class.TERCEIRIZADA_TOMA_CIENCIA]
         )
 
     @property
@@ -188,14 +190,14 @@ class DiretoriaRegional(Nomeavel, TemChaveExterna):
     def alteracoes_cardapio_aprovadas(self):
         return AlteracaoCardapio.objects.filter(
             escola__in=self.escolas.all(),
-            status=AlteracaoCardapio.workflow_class.DRE_APROVADO
+            status=AlteracaoCardapio.workflow_class.CODAE_APROVADO
         )
 
     @property
     def solicitacao_kit_lanche_avulsa_aprovadas(self):
         return SolicitacaoKitLancheAvulsa.objects.filter(
             escola__in=self.escolas.all(),
-            status=SolicitacaoKitLancheAvulsa.workflow_class.DRE_APROVADO
+            status=SolicitacaoKitLancheAvulsa.workflow_class.CODAE_APROVADO
         )
 
     @property
