@@ -272,7 +272,7 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
             filtro_aplicado
         )
         page = self.paginate_queryset(solicitacoes_unificadas)
-        serializer = serializers.SolicitacaoKitLancheUnificadaSimplesSerializer(page, many=True)
+        serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False,
@@ -289,12 +289,32 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
+    @action(detail=False, url_path="pedidos-aprovados-codae")
+    def pedidos_aprovados_codae(self, request):
+        usuario = request.user
+        # TODO: aguardando definição de perfis pra saber em qual CODAE eu estou fazendo a requisição
+        codae = usuario.CODAE.first()
+        kit_lanche = codae.solicitacoes_unificadas_aprovadas
+        page = self.paginate_queryset(kit_lanche)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False, url_path="pedidos-aprovados-terceirizada")
+    def pedidos_aprovados_terceirizada(self, request):
+        usuario = request.user
+        # TODO: aguardando definição de perfis pra saber em qual CODAE eu estou fazendo a requisição
+        terceirizada = usuario.terceirizadas.first()
+        kit_lanche = terceirizada.solicitacoes_unificadas_aprovadas
+        page = self.paginate_queryset(kit_lanche)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
     @action(detail=False)
     def minhas_solicitacoes(self, request):
         usuario = request.user
         solicitacoes_unificadas = SolicitacaoKitLancheUnificada.get_pedidos_rascunho(usuario)
         page = self.paginate_queryset(solicitacoes_unificadas)
-        serializer = serializers.SolicitacaoKitLancheUnificadaSerializer(page, many=True)
+        serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
     #

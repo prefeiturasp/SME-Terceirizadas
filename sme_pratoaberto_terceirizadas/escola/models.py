@@ -546,6 +546,13 @@ class Codae(Nomeavel, TemChaveExterna):
         )
 
     @property
+    def solicitacoes_unificadas_aprovadas(self):
+        return SolicitacaoKitLancheUnificada.objects.filter(
+            status__in=[SolicitacaoKitLancheUnificada.workflow_class.CODAE_APROVADO,
+                        SolicitacaoKitLancheUnificada.workflow_class.TERCEIRIZADA_TOMA_CIENCIA]
+        )
+
+    @property
     def inclusoes_continuas_aprovadas(self):
         return InclusaoAlimentacaoContinua.objects.filter(
             status=InclusaoAlimentacaoContinua.workflow_class.CODAE_APROVADO
