@@ -25,21 +25,16 @@ hoje = datetime.datetime.today()
 
 
 def vincula_dre_escola_usuario():
-    dres = DiretoriaRegional.objects.filter(pk=1)
-    escolas = Escola.objects.filter(pk=1)
-    lotes = Lote.objects.filter(diretoria_regional=dres[0])
-    terceirizadas = Terceirizada.objects.filter(pk=1)
-    for terceirizada in terceirizadas:
-        terceirizada.lotes.set(lotes)  # terceirizada atendendo todos os lotes
+    dre = DiretoriaRegional.objects.get(nome="SAO MIGUEL")
+    escola = dre.escolas.first()
+    lote = escola.lote
+    terceirizada = lote.terceirizada
     codae, created = Codae.objects.get_or_create(nome='teste')
 
-    for dre in dres:
-        dre.escolas.set(escolas)
     usuario = Usuario.objects.first()
-    usuario.diretorias_regionais.set(dres)
-    usuario.escolas.set(escolas)
-    usuario.terceirizadas.set(terceirizadas)
-
+    usuario.diretorias_regionais.add(dre)
+    usuario.escolas.add(escola)
+    usuario.terceirizadas.add(terceirizada)
     codae.usuarios.set([usuario])
 
 
@@ -277,8 +272,8 @@ def cria_alteracoes_cardapio(qtd=50):
     user = Usuario.objects.first()
     for i in range(qtd):
         alteracao_cardapio = AlteracaoCardapio(
-            data_inicial=hoje + datetime.timedelta(1, 15),
-            data_final=hoje + datetime.timedelta(16, 30),
+            data_inicial=hoje + datetime.timedelta(random.randint(1, 15)),
+            data_final=hoje + datetime.timedelta(random.randint(16, 30)),
             criado_por=user,
             escola=_get_random_escola(),
             motivo=_get_random_motivo_altercao_cardapio()

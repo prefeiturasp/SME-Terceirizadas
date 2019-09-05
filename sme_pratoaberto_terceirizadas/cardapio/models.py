@@ -252,8 +252,6 @@ class GrupoSuspensaoAlimentacao(TemChaveExterna, CriadoPor, TemIdentificadorExte
             '@link': 'http://teste.com',
         }
         corpo = template.template_html
-        # for chave, valor in template_troca.items():
-        #     corpo = corpo.replace(chave, valor)
         return template.assunto, corpo
 
     def salvar_log_transicao(self, status_evento, usuario):
@@ -341,14 +339,11 @@ class AlteracaoCardapio(CriadoEm, CriadoPor, TemChaveExterna, IntervaloDeDia, Te
         template_troca = {  # noqa
             '@id': self.id,
             '@criado_em': str(self.criado_em),
-            # '@criado_por': str(self.criado_por),
             '@status': str(self.status),
             # TODO: verificar a url padrão do pedido
             '@link': 'http://teste.com',
         }
         corpo = template.template_html
-        # for chave, valor in template_troca.items():
-        #     corpo = corpo.replace(chave, valor)
         return template.assunto, corpo
 
     def salvar_log_transicao(self, status_evento, usuario):

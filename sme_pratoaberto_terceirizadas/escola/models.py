@@ -72,7 +72,6 @@ class DiretoriaRegional(Nomeavel, TemChaveExterna):
         elif filtro_aplicado == DAQUI_A_30_DIAS:
             inversoes_cardapio = SolicitacaoKitLancheAvulsa.prazo_limite_daqui_a_30_dias
         else:
-            # inversoes_cardapio = InversaoCardapio.prazo_limite
             inversoes_cardapio = SolicitacaoKitLancheAvulsa.objects
         return inversoes_cardapio.filter(
             escola__in=self.escolas.all(),
@@ -258,7 +257,6 @@ class DiretoriaRegional(Nomeavel, TemChaveExterna):
         elif filtro_aplicado == DAQUI_A_30_DIAS:
             inversoes_cardapio = InversaoCardapio.prazo_limite_daqui_a_30_dias
         else:
-            # inversoes_cardapio = InversaoCardapio.prazo_limite
             inversoes_cardapio = InversaoCardapio.objects
         return inversoes_cardapio.filter(
             escola__in=self.escolas.all(),
@@ -367,7 +365,6 @@ class Escola(Ativavel, TemChaveExterna):
     nome = models.CharField("Nome", max_length=160, blank=True)
     codigo_eol = models.CharField("Código EOL", max_length=6, unique=True, validators=[MinLengthValidator(6)])
     # não ta sendo usado
-    # codigo_codae = models.CharField('Código CODAE', max_length=10, unique=True, blank=True)
     quantidade_alunos = models.PositiveSmallIntegerField("Quantidade de alunos")
 
     diretoria_regional = models.ForeignKey(DiretoriaRegional,
@@ -479,7 +476,6 @@ class Codae(Nomeavel, TemChaveExterna):
         elif filtro_aplicado == DAQUI_A_30_DIAS:
             inversoes_cardapio = InversaoCardapio.prazo_limite_daqui_a_30_dias
         else:
-            # inversoes_cardapio = InversaoCardapio.prazo_limite
             inversoes_cardapio = InversaoCardapio.objects
         return inversoes_cardapio.filter(
             status=InversaoCardapio.workflow_class.DRE_APROVADO

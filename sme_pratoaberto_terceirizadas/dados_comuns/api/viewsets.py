@@ -59,6 +59,5 @@ class ConfiguracaoEmailViewSet(ModelViewSet):
 
 class TemplateMensagemViewSet(ModelViewSet):
     lookup_field = 'uuid'
-    # permission_classes = [EhAdminDaCodae]
     queryset = TemplateMensagem.objects.all()
     serializer_class = ConfiguracaoMensagemSerializer

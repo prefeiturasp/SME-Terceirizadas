@@ -4,6 +4,7 @@ ADD . /code
 WORKDIR /code
 
 RUN apk update && apk add postgresql-dev \
+    cp /usr/share/zoneinfo/America/Sao_Paulo /etc/localtime && \
       && apk add --no-cache \
       --virtual=.build-dependencies \
       gcc \

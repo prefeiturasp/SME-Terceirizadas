@@ -31,7 +31,6 @@ def escola():
     return mommy.make(models.Escola,
                       nome=fake.name(),
                       codigo_eol=fake.name()[:6],
-                      # codigo_codae=fake.name()[:6],
                       quantidade_alunos=42)
 
 
