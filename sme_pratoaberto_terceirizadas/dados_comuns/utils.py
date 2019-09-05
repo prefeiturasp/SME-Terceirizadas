@@ -13,12 +13,12 @@ calendar = BrazilSaoPauloCity()
 
 def enviar_notificacao(sender, recipients: QuerySet,
                        short_desc: str, long_desc: str):
-    '''
+    """
     :param sender: User instance
     :param recipients: A Group or User QuerySet or User List
     :param short_desc:
     :param long_desc:
-    '''
+    """
     if not recipients:
         return
     notify.send(
@@ -39,13 +39,13 @@ def send_email(subject, message_text, to_email):
 
 
 def _send_mass_html_mail(subject, text, html, recipients):
-    '''
+    """
     :param subject:
     :param text:
     :param html:
     :param recipients: an array of User
     :return:
-    '''
+    """
     config = DynamicEmailConfiguration.get_solo()
     from_email = config.from_email
 
@@ -71,7 +71,7 @@ def async_envio_email_html_em_massa(subject, text, html, recipients):
 
 
 def obter_dias_uteis_apos_hoje(quantidade_dias: int):
-    '''Retorna o próximo dia útil após quantidade_dias'''
+    """Retorna o próximo dia útil após quantidade_dias"""
     dia = datetime.date.today()
 
     return calendar.add_working_days(dia, quantidade_dias)

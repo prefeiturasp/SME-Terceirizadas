@@ -295,12 +295,12 @@ class DiretoriaRegional(Nomeavel, TemChaveExterna):
 
 
 class FaixaIdadeEscolar(Nomeavel, Ativavel, TemChaveExterna):
-    '''
+    """
         Ex. de 1 a 2 anos
         de 2 a 5 anos
         de 7 a 18 anos.
         de 6 meses a 1 ano
-    '''
+    """
 
     def __str__(self):
         return self.nome
@@ -312,9 +312,9 @@ class FaixaIdadeEscolar(Nomeavel, Ativavel, TemChaveExterna):
 
 
 class TipoUnidadeEscolar(Iniciais, Ativavel, TemChaveExterna):
-    '''
+    """
         Tipo de unidade escolar: EEMEF, CIEJA, EMEI, EMEBS, CEI, CEMEI...
-    '''
+    """
     cardapios = models.ManyToManyField('cardapio.Cardapio', blank=True,
                                        related_name='tipos_unidade_escolar')
 
@@ -334,9 +334,9 @@ class TipoUnidadeEscolar(Iniciais, Ativavel, TemChaveExterna):
 
 
 class TipoGestao(Nomeavel, Ativavel, TemChaveExterna):
-    '''
+    """
         Ex.: Terceirizada completa, tec mista
-    '''
+    """
 
     def __str__(self):
         return self.nome
@@ -347,9 +347,9 @@ class TipoGestao(Nomeavel, Ativavel, TemChaveExterna):
 
 
 class PeriodoEscolar(Nomeavel, TemChaveExterna):
-    '''
+    """
         manhã, intermediário, tarde, vespertino, noturno, integral
-    '''
+    """
 
     tipos_alimentacao = models.ManyToManyField('cardapio.TipoAlimentacao', related_name='periodos_escolares')
 
@@ -413,7 +413,7 @@ class Escola(Ativavel, TemChaveExterna):
 
 
 class Lote(TemChaveExterna, Nomeavel, Iniciais):
-    '''Lote de escolas'''
+    """Lote de escolas"""
     tipo_gestao = models.ForeignKey(TipoGestao,
                                     on_delete=models.DO_NOTHING,
                                     related_name='lotes',

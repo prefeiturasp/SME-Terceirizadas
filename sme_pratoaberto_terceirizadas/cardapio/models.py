@@ -20,7 +20,7 @@ from ..dados_comuns.models_abstract import (
 
 
 class TipoAlimentacao(Nomeavel, TemChaveExterna):
-    '''
+    """
         Dejejum
         Colação
         Almoço
@@ -30,7 +30,7 @@ class TipoAlimentacao(Nomeavel, TemChaveExterna):
         Lanche 5 horas
         Lanche 6horas
         Merenda Seca
-    '''
+    """
 
     @property
     def substituicoes_periodo_escolar(self):
@@ -45,14 +45,14 @@ class TipoAlimentacao(Nomeavel, TemChaveExterna):
 
 
 class Cardapio(Descritivel, Ativavel, TemData, TemChaveExterna, CriadoEm):
-    '''
+    """
         Cardápio escolar tem:
         tem 1 data pra acontecer ex (26/06)
         tem 1 lista de tipos de alimentação (Dejejum, Colação, Almoço, LANCHE DE 4 HS OU 8 HS;
             LANCHE DE 5HS OU 6 HS; REFEIÇÃO).
 
         !!!OBS!!! PARA CEI varia por faixa de idade.
-    '''
+    """
     tipos_alimentacao = models.ManyToManyField(TipoAlimentacao)
     edital = models.ForeignKey('terceirizada.Edital', on_delete=models.DO_NOTHING, related_name='editais')
 
@@ -73,10 +73,10 @@ class Cardapio(Descritivel, Ativavel, TemData, TemChaveExterna, CriadoEm):
 class InversaoCardapio(CriadoEm, CriadoPor, TemObservacao, Motivo, TemChaveExterna,
                        TemIdentificadorExternoAmigavel, FluxoAprovacaoPartindoDaEscola,
                        TemPrioridade, Logs):
-    '''
+    """
         servir o cardápio do dia 30 no dia 15, automaticamente o
         cardápio do dia 15 será servido no dia 30
-    '''
+    """
 
     objects = models.Manager()  # Manager Padrão
     prazo_vencendo = InversaoCardapioPrazoVencendoManager()
@@ -156,11 +156,11 @@ class InversaoCardapio(CriadoEm, CriadoPor, TemObservacao, Motivo, TemChaveExter
 
 
 class MotivoSuspensao(Nomeavel, TemChaveExterna):
-    '''
+    """
     Exemplos:
         - greve
         - reforma
-    '''
+    """
 
     def __str__(self):
         return self.nome
@@ -171,9 +171,9 @@ class MotivoSuspensao(Nomeavel, TemChaveExterna):
 
 
 class SuspensaoAlimentacao(TemData, TemChaveExterna):
-    '''
+    """
     Uma escola pede para suspender as refeições: escolhe os
-    '''
+    """
     prioritario = models.BooleanField(default=False)
     motivo = models.ForeignKey(MotivoSuspensao, on_delete=models.DO_NOTHING)
     outro_motivo = models.CharField('Outro motivo', blank=True, max_length=50)
@@ -205,9 +205,9 @@ class QuantidadePorPeriodoSuspensaoAlimentacao(TemChaveExterna):
 
 class GrupoSuspensaoAlimentacao(TemChaveExterna, CriadoPor, TemIdentificadorExternoAmigavel,
                                 CriadoEm, TemObservacao, FluxoInformativoPartindoDaEscola, Logs):
-    '''
+    """
         Serve para agrupar suspensões
-    '''
+    """
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING)
 
     @classmethod
@@ -286,11 +286,11 @@ class SuspensaoAlimentacaoNoPeriodoEscolar(TemChaveExterna):
 
 
 class MotivoAlteracaoCardapio(Nomeavel, TemChaveExterna):
-    '''
+    """
     Exemplos:
         - atividade diferenciada
         - aniversariante do mes
-    '''
+    """
 
     def __str__(self):
         return self.nome
@@ -303,12 +303,12 @@ class MotivoAlteracaoCardapio(Nomeavel, TemChaveExterna):
 class AlteracaoCardapio(CriadoEm, CriadoPor, TemChaveExterna, IntervaloDeDia, TemObservacao,
                         FluxoAprovacaoPartindoDaEscola, TemIdentificadorExternoAmigavel, Logs,
                         TemPrioridade):
-    '''
+    """
     A unidade quer trocar um ou mais tipos de refeição em um ou mais períodos escolares devido a um evento especial
     (motivo) em dado período de tempo.
 
     Ex: Alterar  nos períodos matutino e intermediario, o lanche e refeição pelo motivo 'aniversariantes do mês'
-    '''
+    """
 
     objects = models.Manager()  # Manager Padrão
     prazo_vencendo = AlteracoesCardapioPrazoVencendoManager()

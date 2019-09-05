@@ -30,7 +30,7 @@ flake8-debugger==3.1.0      # https://github.com/JBKahn/flake8-debugger
 flake8-broken-line==0.1.1   # https://github.com/sobolevn/flake8-broken-line
 flake8-print==3.1.0         # https://pypi.org/project/flake8print/
 flake8-eradicate==0.2.1     # https://github.com/sobolevn/flake8-eradicate
-flake8-commas==2.0.0        # https://github.com/PyCQA/flake8-commas
+flake8-quotes==2.1.0        # https://github.com/zheller/flake8-quotes
 coverage==4.5.2             # https://github.com/nedbat/coveragepy
 
 

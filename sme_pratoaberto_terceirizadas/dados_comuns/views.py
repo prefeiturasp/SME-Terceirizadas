@@ -31,8 +31,8 @@ def send_test_email(request):
                 config.from_email or None,
                 [to_email],
                 html_message=message_html)
-            response['detail'] = _('Test email sent. Please check \'{}\' for a '
-                                   'message with the subject \'{}\'').format(
+            response['detail'] = _('Test email sent. Please check \'{}\' for a '  # noqa Q003
+                                   'message with the subject \'{}\'').format(  # noqa Q003
                 to_email,
                 subject)
         except Exception as e:

@@ -77,9 +77,9 @@ class InclusoesDeAlimentacaoContinuaPrazoRegularDaquiA30DiasManager(models.Manag
 
 
 class InclusoesDeAlimentacaoContinuaVencidaDiasManager(models.Manager):
-    '''
+    """
     retorna todos os pedidos que ja tenham passado da data e que o fluxo não tenha terminado
-    '''
+    """
 
     def get_queryset(self):
         hoje = datetime.date.today()

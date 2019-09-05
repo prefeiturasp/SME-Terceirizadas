@@ -5,10 +5,10 @@ from django.db import models
 
 
 class LogSolicitacoesUsuario(models.Model):
-    '''
+    """
         Eventos de dados importantes para acompanhamento.
     Ex.: Fulano X  executou a atividade Y no objeto W no dia DDDDMMAA
-    '''
+    """
 
     (  # COMUNS AOS DOIS FLUXOS (PARTINDO DA ESCOLA E DA DRE)
         INICIO_FLUXO,
@@ -103,11 +103,11 @@ class Endereco(models.Model):
 
 
 class TemplateMensagem(models.Model):
-    '''
+    """
         Tem um texto base e troca por campos do objeto que entra como parâmetro
         Ex:  Olá @nome, a Alteração de cardápio #@identificador solicitada
         por @requerinte está em situação @status.
-    '''
+    """
     ALTERACAO_CARDAPIO = 0
     INCLUSAO_ALIMENTACAO = 1
     INCLUSAO_ALIMENTACAO_CONTINUA = 2

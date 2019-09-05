@@ -157,9 +157,9 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
         self.status = self.workflow_class.ESCOLA_CANCELA_48H_ANTES
 
     def cancelamento_automatico_apos_vencimento(self):
-        '''
+        """
         Chamado automaticamente quando o pedido já passou do dia de atendimento e não chegou ao fim do fluxo
-        '''
+        """
         self.status = self.workflow_class.CANCELAMENTO_AUTOMATICO
 
     @property
@@ -185,9 +185,9 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
 
     @property
     def partes_interessadas_inicio_fluxo(self):
-        '''
+        """
 
-        '''
+        """
         dre = self.escola.diretoria_regional
         usuarios_dre = dre.usuarios.all()
         return usuarios_dre
@@ -339,9 +339,9 @@ class FluxoAprovacaoPartindoDaDiretoriaRegional(xwf_models.WorkflowEnabled, mode
 
     @property
     def partes_interessadas_inicio_fluxo(self):
-        '''
+        """
         TODO: retornar usuários CODAE, esse abaixo é so pra passar...
-        '''
+        """
         dre = self.diretoria_regional
         usuarios_dre = dre.usuarios.all()
         return usuarios_dre
@@ -406,9 +406,9 @@ class FluxoInformativoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model)
 
     @property
     def partes_interessadas_informacao(self):
-        '''
+        """
         TODO: retornar usuários DRE, esse abaixo é so pra passar...
-        '''
+        """
         dre = self.escola.diretoria_regional
         usuarios_dre = dre.usuarios.all()
         return usuarios_dre
@@ -467,11 +467,11 @@ class TemObservacao(models.Model):
 
 
 class TemIdentificadorExternoAmigavel(object):
-    '''
+    """
     Gera uma chave externa amigável, não única.
     Somente para identificar externamente.
     Obrigatoriamente o objeto deve ter um uuid
-    '''
+    """
 
     @property
     def id_externo(self):
@@ -480,9 +480,9 @@ class TemIdentificadorExternoAmigavel(object):
 
 
 class TemPrioridade(object):
-    '''
+    """
         Exibe uma descrição para a data caso seja prioridade
-    '''
+    """
 
     @property
     def prioridade(self):

@@ -119,7 +119,7 @@ def valida_quantidades_alunos_e_escola(data, escola, quantidade_aluno_passeio):
     quantidade_alunos_total_passeio = quantidade_alunos + quantidade_aluno_passeio
     if quantidade_alunos_total_passeio > escola.quantidade_alunos:
         raise serializers.ValidationError({
-            "details": 'A quantidade de alunos informados para o evento'
+            'details': 'A quantidade de alunos informados para o evento'
                        ' excede a quantidade de alunos matriculados na escola', 'tipo_error': 1})
 
 

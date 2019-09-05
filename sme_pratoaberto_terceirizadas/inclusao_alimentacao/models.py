@@ -47,11 +47,11 @@ class QuantidadePorPeriodo(TemChaveExterna):
 
 
 class MotivoInclusaoContinua(Nomeavel, TemChaveExterna):
-    '''
+    """
         continuo -  mais educacao
         continuo-sp integral
         continuo - outro
-    '''
+    """
 
     def __str__(self):
         return self.nome
@@ -128,11 +128,11 @@ class InclusaoAlimentacaoContinua(IntervaloDeDia, Descritivel, TemChaveExterna,
 
 
 class MotivoInclusaoNormal(Nomeavel, TemChaveExterna):
-    '''
+    """
         reposicao de aula
         dia de familia
         outro
-    '''
+    """
 
     def __str__(self):
         return self.nome

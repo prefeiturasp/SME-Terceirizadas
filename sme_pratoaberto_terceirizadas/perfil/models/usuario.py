@@ -13,12 +13,12 @@ from ...dados_comuns.models_abstract import TemChaveExterna
 
 
 class CustomUserManager(BaseUserManager):
-    '''Define a model manager for User model with no username field.'''
+    """Define a model manager for User model with no username field."""
 
     use_in_migrations = True
 
     def _create_user(self, email, password, **extra_fields):
-        '''Create and save a User with the given email and password.'''
+        """Create and save a User with the given email and password."""
         if not email:
             raise ValueError('The given email must be set')
         email = self.normalize_email(email)
@@ -28,13 +28,13 @@ class CustomUserManager(BaseUserManager):
         return user
 
     def create_user(self, email, password=None, **extra_fields):
-        '''Create and save a regular User with the given email and password.'''
+        """Create and save a regular User with the given email and password."""
         extra_fields.setdefault('is_staff', False)
         extra_fields.setdefault('is_superuser', False)
         return self._create_user(email, password, **extra_fields)
 
     def create_superuser(self, email, password, **extra_fields):
-        '''Create and save a SuperUser with the given email and password.'''
+        """Create and save a SuperUser with the given email and password."""
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
 
@@ -47,12 +47,12 @@ class CustomUserManager(BaseUserManager):
 
 
 class CustomAbstractUser(AbstractBaseUser, PermissionsMixin):
-    '''
+    """
     An abstract base class implementing a fully featured User model with
     admin-compliant permissions.
 
     Username and password are required. Other fields are optional.
-    '''
+    """
 
     email = models.EmailField(_('email address'), blank=True)
     is_staff = models.BooleanField(
@@ -86,12 +86,12 @@ class CustomAbstractUser(AbstractBaseUser, PermissionsMixin):
         self.email = self.__class__.objects.normalize_email(self.email)
 
     def email_user(self, subject, message, from_email=None, **kwargs):
-        '''Send an email to this user.'''
+        """Send an email to this user."""
         send_mail(subject, message, from_email, [self.email], **kwargs)
 
 
 class Usuario(CustomAbstractUser, TemChaveExterna):
-    '''Classe de autenticacao do django, ela tem muitos perfis.'''
+    """Classe de autenticacao do django, ela tem muitos perfis."""
 
     nome = models.CharField(_('name'), max_length=150)
     email = models.EmailField(_('email address'), unique=True)
