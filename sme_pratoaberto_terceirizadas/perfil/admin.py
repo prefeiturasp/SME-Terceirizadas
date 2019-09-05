@@ -6,7 +6,7 @@ from .models import (GrupoPerfil, Perfil, PerfilPermissao, Permissao, Usuario)
 
 
 class BaseUserAdmin(DjangoUserAdmin):
-    """Define admin model for custom User model with no email field."""
+    '''Define admin model for custom User model with no email field.'''
 
     fieldsets = (
         (None, {

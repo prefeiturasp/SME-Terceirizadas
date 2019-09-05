@@ -36,7 +36,7 @@ class SolicitacoesAutorizadasDRE(SolicitacoesDRE):
 
     class Meta:
         managed = False
-        db_table = "dre_solicitacoes_autorizadas"
+        db_table = 'dre_solicitacoes_autorizadas'
 
 
 class SolicitacoesPendentesDRE(SolicitacoesDRE, TemPrioridade):
@@ -49,7 +49,7 @@ class SolicitacoesPendentesDRE(SolicitacoesDRE, TemPrioridade):
 
     class Meta:
         managed = False
-        db_table = "dre_solicitacoes_pendentes"
+        db_table = 'dre_solicitacoes_pendentes'
 
     @property
     def data(self):

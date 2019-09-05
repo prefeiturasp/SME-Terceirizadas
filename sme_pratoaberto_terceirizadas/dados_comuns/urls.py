@@ -13,6 +13,6 @@ router.register('templates-mensagem', viewsets.TemplateMensagemViewSet,
                 basename='Configuração de mensagem')
 
 urlpatterns = [
-    path("", include(router.urls)),
-    path("email-teste/", send_test_email, name="enviar_email_teste")
+    path('', include(router.urls)),
+    path('email-teste/', send_test_email, name='enviar_email_teste')
 ]

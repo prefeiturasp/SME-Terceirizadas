@@ -37,35 +37,35 @@ class QuantidadePorPeriodo(TemChaveExterna):
                                                       related_name='quantidades_por_periodo')
 
     def __str__(self):
-        return "{} alunos para {} com {} tipo(s) de alimentação".format(
+        return '{} alunos para {} com {} tipo(s) de alimentação'.format(
             self.numero_alunos, self.periodo_escolar,
             self.tipos_alimentacao.count())
 
     class Meta:
-        verbose_name = "Quantidade por periodo"
-        verbose_name_plural = "Quantidades por periodo"
+        verbose_name = 'Quantidade por periodo'
+        verbose_name_plural = 'Quantidades por periodo'
 
 
 class MotivoInclusaoContinua(Nomeavel, TemChaveExterna):
-    """
+    '''
         continuo -  mais educacao
         continuo-sp integral
         continuo - outro
-    """
+    '''
 
     def __str__(self):
         return self.nome
 
     class Meta:
-        verbose_name = "Motivo de inclusao contínua"
-        verbose_name_plural = "Motivos de inclusao contínua"
+        verbose_name = 'Motivo de inclusao contínua'
+        verbose_name_plural = 'Motivos de inclusao contínua'
 
 
 class InclusaoAlimentacaoContinua(IntervaloDeDia, Descritivel, TemChaveExterna,
                                   DiasSemana, FluxoAprovacaoPartindoDaEscola,
                                   CriadoPor, TemIdentificadorExternoAmigavel,
                                   CriadoEm, Logs, TemPrioridade):
-    outro_motivo = models.CharField("Outro motivo", blank=True, max_length=50)
+    outro_motivo = models.CharField('Outro motivo', blank=True, max_length=50)
     motivo = models.ForeignKey(MotivoInclusaoContinua, on_delete=models.DO_NOTHING)
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING,
                                related_name='inclusoes_alimentacao_continua')
@@ -119,32 +119,32 @@ class InclusaoAlimentacaoContinua(IntervaloDeDia, Descritivel, TemChaveExterna,
         )
 
     def __str__(self):
-        return f"de {self.data_inicial} até {self.data_final} para {self.escola} para {self.dias_semana_display()}"
+        return f'de {self.data_inicial} até {self.data_final} para {self.escola} para {self.dias_semana_display()}'
 
     class Meta:
-        verbose_name = "Inclusão de alimentação contínua"
-        verbose_name_plural = "Inclusões de alimentação contínua"
+        verbose_name = 'Inclusão de alimentação contínua'
+        verbose_name_plural = 'Inclusões de alimentação contínua'
         ordering = ['data_inicial']
 
 
 class MotivoInclusaoNormal(Nomeavel, TemChaveExterna):
-    """
+    '''
         reposicao de aula
         dia de familia
         outro
-    """
+    '''
 
     def __str__(self):
         return self.nome
 
     class Meta:
-        verbose_name = "Motivo de inclusao normal"
-        verbose_name_plural = "Motivos de inclusao normais"
+        verbose_name = 'Motivo de inclusao normal'
+        verbose_name_plural = 'Motivos de inclusao normais'
 
 
 class InclusaoAlimentacaoNormal(TemData, TemChaveExterna, TemPrioridade):
     motivo = models.ForeignKey(MotivoInclusaoNormal, on_delete=models.DO_NOTHING)
-    outro_motivo = models.CharField("Outro motivo", blank=True, max_length=50)
+    outro_motivo = models.CharField('Outro motivo', blank=True, max_length=50)
     grupo_inclusao = models.ForeignKey('GrupoInclusaoAlimentacaoNormal',
                                        blank=True, null=True,
                                        on_delete=models.CASCADE,
@@ -152,12 +152,12 @@ class InclusaoAlimentacaoNormal(TemData, TemChaveExterna, TemPrioridade):
 
     def __str__(self):
         if self.outro_motivo:
-            return "Dia {} {} ".format(self.data, self.outro_motivo)
-        return "Dia {} {} ".format(self.data, self.motivo)
+            return 'Dia {} {} '.format(self.data, self.outro_motivo)
+        return 'Dia {} {} '.format(self.data, self.motivo)
 
     class Meta:
-        verbose_name = "Inclusão de alimentação normal"
-        verbose_name_plural = "Inclusões de alimentação normal"
+        verbose_name = 'Inclusão de alimentação normal'
+        verbose_name_plural = 'Inclusões de alimentação normal'
         ordering = ('data',)
 
 
@@ -233,8 +233,8 @@ class GrupoInclusaoAlimentacaoNormal(Descritivel, TemChaveExterna, FluxoAprovaca
         quantidade_periodo.save()
 
     def __str__(self):
-        return "{} pedindo {} inclusoes".format(self.escola, self.inclusoes.count())
+        return '{} pedindo {} inclusoes'.format(self.escola, self.inclusoes.count())
 
     class Meta:
-        verbose_name = "Grupo de inclusão de alimentação normal"
-        verbose_name_plural = "Grupos de inclusão de alimentação normal"
+        verbose_name = 'Grupo de inclusão de alimentação normal'
+        verbose_name_plural = 'Grupos de inclusão de alimentação normal'

@@ -117,7 +117,7 @@ def inclusao_continua_prazo_regular():
     assert inclusao_continua_35_dias_corridos in InclusaoAlimentacaoContinua.prazo_regular.all()
 
 
-@freeze_time("2019-12-23")
+@freeze_time('2019-12-23')
 def test_inclusao_continua_prazo_regular_segunda():
     inclusao_continua_prazo_regular()
     inclusao_continua_prazo_regular_daqui_a_7_dias()
@@ -128,7 +128,7 @@ def test_inclusao_continua_prazo_regular_segunda():
     inclusao_continua_prazo_vencendo()
 
 
-@freeze_time("2019-12-24")
+@freeze_time('2019-12-24')
 def test_inclusao_continua_prazo_regular_terca():
     inclusao_continua_prazo_regular()
     inclusao_continua_prazo_regular_daqui_a_7_dias()
@@ -139,7 +139,7 @@ def test_inclusao_continua_prazo_regular_terca():
     inclusao_continua_prazo_vencendo()
 
 
-@freeze_time("2019-12-25")
+@freeze_time('2019-12-25')
 def test_inclusao_continua_prazo_regular_quarta():
     inclusao_continua_prazo_regular()
     inclusao_continua_prazo_regular_daqui_a_7_dias()
@@ -150,7 +150,7 @@ def test_inclusao_continua_prazo_regular_quarta():
     inclusao_continua_prazo_vencendo()
 
 
-@freeze_time("2019-12-26")
+@freeze_time('2019-12-26')
 def test_inclusao_continua_prazo_regular_quinta():
     inclusao_continua_prazo_regular()
     inclusao_continua_prazo_regular_daqui_a_7_dias()
@@ -161,7 +161,7 @@ def test_inclusao_continua_prazo_regular_quinta():
     inclusao_continua_prazo_vencendo()
 
 
-@freeze_time("2019-12-27")
+@freeze_time('2019-12-27')
 def test_inclusao_continua_prazo_regular_sexta():
     inclusao_continua_prazo_regular()
     inclusao_continua_prazo_regular_daqui_a_7_dias()
@@ -172,7 +172,7 @@ def test_inclusao_continua_prazo_regular_sexta():
     inclusao_continua_prazo_vencendo()
 
 
-@freeze_time("2019-12-28")
+@freeze_time('2019-12-28')
 def test_inclusao_continua_prazo_regular_sabado():
     inclusao_continua_prazo_regular()
     inclusao_continua_prazo_regular_daqui_a_7_dias()
@@ -183,7 +183,7 @@ def test_inclusao_continua_prazo_regular_sabado():
     inclusao_continua_prazo_vencendo()
 
 
-@freeze_time("2019-12-29")
+@freeze_time('2019-12-29')
 def test_inclusao_continua_prazo_regular_domingo():
     inclusao_continua_prazo_regular()
     inclusao_continua_prazo_regular_daqui_a_7_dias()

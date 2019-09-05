@@ -40,7 +40,7 @@ def verificar_se_existe(obj_model, **kwargs) -> bool:
     return existe
 
 
-def objeto_nao_deve_ter_duplicidade(obj_model, mensagem="Objeto já existe", **kwargs, ):
+def objeto_nao_deve_ter_duplicidade(obj_model, mensagem='Objeto já existe', **kwargs, ):
     qtd = obj_model.objects.filter(**kwargs).count()
     if qtd:
         raise serializers.ValidationError(mensagem)
@@ -51,11 +51,11 @@ def nao_pode_ser_feriado(data: datetime.date, mensagem='Não pode ser no feriado
         raise serializers.ValidationError(mensagem)
 
 
-def nao_pode_ser_nulo(valor: Any, mensagem="Não pode ser nulo"):
+def nao_pode_ser_nulo(valor: Any, mensagem='Não pode ser nulo'):
     if not valor:
         raise serializers.ValidationError(mensagem)
 
 
-def deve_ser_deste_tipo(valor: Any, tipo=str, mensagem="Deve ser do tipo texto"):
+def deve_ser_deste_tipo(valor: Any, tipo=str, mensagem='Deve ser do tipo texto'):
     if type(valor) is not tipo:
         raise serializers.ValidationError(mensagem)

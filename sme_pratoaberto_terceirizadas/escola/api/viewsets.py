@@ -73,7 +73,7 @@ class DiretoriaRegionalViewSet(ReadOnlyModelViewSet):
     queryset = DiretoriaRegional.objects.all()
     serializer_class = DiretoriaRegionalCompletaSerializer
 
-    @action(detail=True, url_path="solicitacoes-autorizadas-por-mim")
+    @action(detail=True, url_path='solicitacoes-autorizadas-por-mim')
     def solicitacoes_autorizadas_por_mim(self, request, uuid=None):
         diretoria_regional = self.get_object()
         autorizadas = diretoria_regional.solicitacoes_autorizadas()
@@ -84,7 +84,7 @@ class DiretoriaRegionalViewSet(ReadOnlyModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=True,
-            url_path=f"solicitacoes-pendentes-para-mim/{FILTRO_PADRAO_PEDIDOS}")
+            url_path=f'solicitacoes-pendentes-para-mim/{FILTRO_PADRAO_PEDIDOS}')
     def solicitacoes_pendentes_para_mim(self, request, uuid=None, filtro_aplicado=SEM_FILTRO):
         diretoria_regional = self.get_object()
         pendentes = diretoria_regional.solicitacoes_pendentes(filtro_aplicado=filtro_aplicado)

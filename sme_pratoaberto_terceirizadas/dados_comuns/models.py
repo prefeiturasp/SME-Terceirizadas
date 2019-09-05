@@ -5,10 +5,10 @@ from django.db import models
 
 
 class LogSolicitacoesUsuario(models.Model):
-    """
+    '''
         Eventos de dados importantes para acompanhamento.
     Ex.: Fulano X  executou a atividade Y no objeto W no dia DDDDMMAA
-    """
+    '''
 
     (  # COMUNS AOS DOIS FLUXOS (PARTINDO DA ESCOLA E DA DRE)
         INICIO_FLUXO,
@@ -63,16 +63,16 @@ class LogSolicitacoesUsuario(models.Model):
     )
 
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-    criado_em = models.DateTimeField("Criado em", editable=False, auto_now_add=True)
-    descricao = models.TextField("Descricao", blank=True)
+    criado_em = models.DateTimeField('Criado em', editable=False, auto_now_add=True)
+    descricao = models.TextField('Descricao', blank=True)
     status_evento = models.PositiveSmallIntegerField(choices=STATUS_POSSIVEIS)
     solicitacao_tipo = models.PositiveSmallIntegerField(choices=TIPOS_SOLICITACOES)
     uuid_original = models.UUIDField()
     usuario = models.ForeignKey('perfil.Usuario', on_delete=models.DO_NOTHING)
 
     def __str__(self):
-        return (f"{self.usuario} executou {self.get_status_evento_display()} ",
-                f"em {self.get_solicitacao_tipo_display()} no dia {self.criado_em}")
+        return (f'{self.usuario} executou {self.get_status_evento_display()} ',
+                f'em {self.get_solicitacao_tipo_display()} no dia {self.criado_em}')
 
 
 class Meta:
@@ -103,11 +103,11 @@ class Endereco(models.Model):
 
 
 class TemplateMensagem(models.Model):
-    """
+    '''
         Tem um texto base e troca por campos do objeto que entra como parâmetro
         Ex:  Olá @nome, a Alteração de cardápio #@identificador solicitada
         por @requerinte está em situação @status.
-    """
+    '''
     ALTERACAO_CARDAPIO = 0
     INCLUSAO_ALIMENTACAO = 1
     INCLUSAO_ALIMENTACAO_CONTINUA = 2
@@ -131,8 +131,8 @@ class TemplateMensagem(models.Model):
     template_html = models.TextField('Template', blank=True)
 
     def __str__(self):
-        return f"{self.get_tipo_display()}"
+        return f'{self.get_tipo_display()}'
 
     class Meta:
-        verbose_name = "Template de mensagem"
-        verbose_name_plural = "Template de mensagem"
+        verbose_name = 'Template de mensagem'
+        verbose_name_plural = 'Template de mensagem'

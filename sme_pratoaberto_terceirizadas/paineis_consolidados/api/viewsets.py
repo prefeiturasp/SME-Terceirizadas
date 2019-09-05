@@ -30,28 +30,28 @@ class CODAESolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = SolicitacoesCODAE.objects.all()
     serializer_class = SolicitacoesSerializer
 
-    @action(detail=False, methods=['GET'], url_path="pendentes-aprovacao")
+    @action(detail=False, methods=['GET'], url_path='pendentes-aprovacao')
     def pendentes_aprovacao(self, request):
         query_set = SolicitacoesCODAE.get_pendentes_aprovacao()
         page = self.paginate_queryset(query_set)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
-    @action(detail=False, methods=['GET'], url_path="aprovados")
+    @action(detail=False, methods=['GET'], url_path='aprovados')
     def aprovados(self, request):
         query_set = SolicitacoesCODAE.get_aprovados()
         page = self.paginate_queryset(query_set)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
-    @action(detail=False, methods=['GET'], url_path="cancelados")
+    @action(detail=False, methods=['GET'], url_path='cancelados')
     def cancelados(self, request):
         query_set = SolicitacoesCODAE.get_cancelados()
         page = self.paginate_queryset(query_set)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
-    @action(detail=False, methods=['GET'], url_path="solicitacoes-revisao")
+    @action(detail=False, methods=['GET'], url_path='solicitacoes-revisao')
     def solicitacoes_revisao(self, request):
         query_set = SolicitacoesCODAE.get_solicitacoes_revisao()
         page = self.paginate_queryset(query_set)
