@@ -2,8 +2,6 @@ from django.contrib import admin
 
 from .models import Contrato, Edital, Nutricionista, Terceirizada, VigenciaContrato
 
-# admin.site.register(Edital)
-
 
 class NutricionistasInline(admin.TabularInline):
     model = Nutricionista

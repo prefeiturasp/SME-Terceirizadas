@@ -8,9 +8,6 @@ from ...dados_comuns.constants import DIAS_UTEIS_LIMITE_SUPERIOR, MINIMO_DIAS_PA
 from ...dados_comuns.fluxo_status import PedidoAPartirDaEscolaWorkflow
 
 
-# from ...dados_comuns.utils import obter_dias_uteis_apos_hoje
-
-
 class InversaoCardapioPrazoVencendoManager(models.Manager):
     def get_queryset(self):
         return super(InversaoCardapioPrazoVencendoManager, self).get_queryset(

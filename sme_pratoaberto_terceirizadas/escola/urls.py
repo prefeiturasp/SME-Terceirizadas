@@ -13,9 +13,9 @@ router.register('diretorias-regionais', viewsets.DiretoriaRegionalViewSet, basen
 router.register('diretorias-regionais-simplissima', viewsets.DiretoriaRegionalSimplissimaViewSet,
                 basename='dres-simplissima')
 router.register('lotes', viewsets.LoteViewSet, basename='lotes')
-router.register('tipos-gestao', viewsets.TipoGestaoViewSet, basename="tipos-gestao")
-router.register('subprefeituras', viewsets.SubprefeituraViewSet, basename="subprefeituras")
-router.register('codae', viewsets.CODAESimplesViewSet, basename="codae")
+router.register('tipos-gestao', viewsets.TipoGestaoViewSet, basename='tipos-gestao')
+router.register('subprefeituras', viewsets.SubprefeituraViewSet, basename='subprefeituras')
+router.register('codae', viewsets.CODAESimplesViewSet, basename='codae')
 
 urlpatterns = [
     path('', include(router.urls))

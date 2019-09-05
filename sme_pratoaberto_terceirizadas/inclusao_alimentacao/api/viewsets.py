@@ -49,7 +49,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
             return serializers_create.GrupoInclusaoAlimentacaoNormalCreationSerializer
         return serializers.GrupoInclusaoAlimentacaoNormalSerializer
 
-    @action(detail=False, url_path="minhas-solicitacoes")
+    @action(detail=False, url_path='minhas-solicitacoes')
     def minhas_solicitacoes(self, request):
         usuario = request.user
         alimentacoes_normais = GrupoInclusaoAlimentacaoNormal.get_solicitacoes_rascunho(usuario)
@@ -58,8 +58,8 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False,
-            url_path=f"{PEDIDOS_CODAE}/{FILTRO_PADRAO_PEDIDOS}")
-    def pedidos_codae(self, request, filtro_aplicado="sem_filtro"):
+            url_path=f'{PEDIDOS_CODAE}/{FILTRO_PADRAO_PEDIDOS}')
+    def pedidos_codae(self, request, filtro_aplicado='sem_filtro'):
         # TODO: colocar regras de codae CODAE aqui...
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber
@@ -72,9 +72,9 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False,
-            url_path="pedidos-prioritarios-diretoria-regional/"
-                     "(?P<filtro_aplicado>(sem_filtro|hoje|daqui_a_7_dias|daqui_a_30_dias)+)")
-    def pedidos_prioritarios_diretoria_regional(self, request, filtro_aplicado="sem_filtro"):
+            url_path='pedidos-prioritarios-diretoria-regional/'
+                     '(?P<filtro_aplicado>(sem_filtro|hoje|daqui_a_7_dias|daqui_a_30_dias)+)')
+    def pedidos_prioritarios_diretoria_regional(self, request, filtro_aplicado='sem_filtro'):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
         diretoria_regional = usuario.diretorias_regionais.first()
@@ -86,9 +86,9 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False,
-            url_path="pedidos-no-limite-diretoria-regional/"
-                     "(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)")
-    def pedidos_no_limite_diretoria_regional(self, request, filtro_aplicado="sem_filtro"):
+            url_path='pedidos-no-limite-diretoria-regional/'
+                     '(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)')
+    def pedidos_no_limite_diretoria_regional(self, request, filtro_aplicado='sem_filtro'):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
         diretoria_regional = usuario.diretorias_regionais.first()
@@ -100,9 +100,9 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False,
-            url_path="pedidos-no-prazo-diretoria-regional/"
-                     "(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)")
-    def pedidos_no_prazo_diretoria_regional(self, request, filtro_aplicado="sem_filtro"):
+            url_path='pedidos-no-prazo-diretoria-regional/'
+                     '(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)')
+    def pedidos_no_prazo_diretoria_regional(self, request, filtro_aplicado='sem_filtro'):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
         diretoria_regional = usuario.diretorias_regionais.first()
@@ -113,7 +113,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
-    @action(detail=False, url_path="pedidos-aprovados-diretoria-regional")
+    @action(detail=False, url_path='pedidos-aprovados-diretoria-regional')
     def pedidos_aprovados_diretoria_regional(self, request):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
@@ -123,7 +123,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
-    @action(detail=False, url_path="pedidos-reprovados-diretoria-regional")
+    @action(detail=False, url_path='pedidos-reprovados-diretoria-regional')
     def pedidos_reprovados_diretoria_regional(self, request):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
@@ -134,9 +134,9 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False,
-            url_path="pedidos-prioritarios-codae/"
-                     "(?P<filtro_aplicado>(sem_filtro|hoje|daqui_a_7_dias|daqui_a_30_dias)+)")
-    def pedidos_prioritarios_codae(self, request, filtro_aplicado="sem_filtro"):
+            url_path='pedidos-prioritarios-codae/'
+                     '(?P<filtro_aplicado>(sem_filtro|hoje|daqui_a_7_dias|daqui_a_30_dias)+)')
+    def pedidos_prioritarios_codae(self, request, filtro_aplicado='sem_filtro'):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual CODAE eu estou fazendo a requisição
         codae = usuario.CODAE.first()
@@ -148,9 +148,9 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False,
-            url_path="pedidos-no-limite-codae/"
-                     "(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)")
-    def pedidos_no_limite_codae(self, request, filtro_aplicado="sem_filtro"):
+            url_path='pedidos-no-limite-codae/'
+                     '(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)')
+    def pedidos_no_limite_codae(self, request, filtro_aplicado='sem_filtro'):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual CODAE eu estou fazendo a requisição
         codae = usuario.CODAE.first()
@@ -162,9 +162,9 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False,
-            url_path="pedidos-no-prazo-codae/"
-                     "(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)")
-    def pedidos_no_prazo_codae(self, request, filtro_aplicado="sem_filtro"):
+            url_path='pedidos-no-prazo-codae/'
+                     '(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)')
+    def pedidos_no_prazo_codae(self, request, filtro_aplicado='sem_filtro'):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual CODAE eu estou fazendo a requisição
         codae = usuario.CODAE.first()
@@ -175,7 +175,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
-    @action(detail=False, url_path="pedidos-aprovados-codae")
+    @action(detail=False, url_path='pedidos-aprovados-codae')
     def pedidos_aprovados_codae(self, request):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual CODAE eu estou fazendo a requisição
@@ -185,7 +185,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
-    @action(detail=False, url_path="pedidos-reprovados-codae")
+    @action(detail=False, url_path='pedidos-reprovados-codae')
     def pedidos_reprovados_codae(self, request):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual CODAE eu estou fazendo a requisição
@@ -196,9 +196,9 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False,
-            url_path="pedidos-prioritarios-terceirizada/"
-                     "(?P<filtro_aplicado>(sem_filtro|hoje|daqui_a_7_dias|daqui_a_30_dias)+)")
-    def pedidos_prioritarios_terceirizada(self, request, filtro_aplicado="sem_filtro"):
+            url_path='pedidos-prioritarios-terceirizada/'
+                     '(?P<filtro_aplicado>(sem_filtro|hoje|daqui_a_7_dias|daqui_a_30_dias)+)')
+    def pedidos_prioritarios_terceirizada(self, request, filtro_aplicado='sem_filtro'):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual Terceirizada eu estou fazendo a requisição
         terceirizada = usuario.terceirizadas.first()
@@ -210,9 +210,9 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False,
-            url_path="pedidos-no-limite-terceirizada/"
-                     "(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)")
-    def pedidos_no_limite_terceirizada(self, request, filtro_aplicado="sem_filtro"):
+            url_path='pedidos-no-limite-terceirizada/'
+                     '(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)')
+    def pedidos_no_limite_terceirizada(self, request, filtro_aplicado='sem_filtro'):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual Terceirizada eu estou fazendo a requisição
         terceirizada = usuario.terceirizadas.first()
@@ -224,9 +224,9 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False,
-            url_path="pedidos-no-prazo-terceirizada/"
-                     "(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)")
-    def pedidos_no_prazo_terceirizada(self, request, filtro_aplicado="sem_filtro"):
+            url_path='pedidos-no-prazo-terceirizada/'
+                     '(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)')
+    def pedidos_no_prazo_terceirizada(self, request, filtro_aplicado='sem_filtro'):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual Terceirizada eu estou fazendo a requisição
         terceirizada = usuario.terceirizadas.first()
@@ -237,7 +237,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
-    @action(detail=False, url_path="pedidos-aprovados-terceirizada")
+    @action(detail=False, url_path='pedidos-aprovados-terceirizada')
     def pedidos_aprovados_terceirizada(self, request):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual Terceirizada eu estou fazendo a requisição
@@ -247,7 +247,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
-    @action(detail=False, url_path="pedidos-reprovados-terceirizada")
+    @action(detail=False, url_path='pedidos-reprovados-terceirizada')
     def pedidos_reprovados_terceirizada(self, request):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual Terceirizada eu estou fazendo a requisição
@@ -262,7 +262,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
     #
 
     @action(detail=True, permission_classes=[PodeIniciarInclusaoAlimentacaoContinuaPermission],
-            methods=['patch'], url_path="inicio-pedido")
+            methods=['patch'], url_path='inicio-pedido')
     def inicio_de_pedido(self, request, uuid=None):
         grupo_alimentacao_normal = self.get_object()
         try:
@@ -273,7 +273,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'))
 
     @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
-            methods=['patch'], url_path="diretoria-regional-aprova-pedido")
+            methods=['patch'], url_path='diretoria-regional-aprova-pedido')
     def diretoria_regional_aprova(self, request, uuid=None):
         grupo_alimentacao_normal = self.get_object()
         try:
@@ -284,7 +284,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'))
 
     @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
-            methods=['patch'], url_path="diretoria-regional-pede-revisao")
+            methods=['patch'], url_path='diretoria-regional-pede-revisao')
     def diretoria_regional_pede_revisao(self, request, uuid=None):
         grupo_alimentacao_normal = self.get_object()
         try:
@@ -295,7 +295,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'))
 
     @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
-            methods=['patch'], url_path="diretoria-regional-cancela-pedido")
+            methods=['patch'], url_path='diretoria-regional-cancela-pedido')
     def diretoria_cancela_pedido(self, request, uuid=None):
         grupo_alimentacao_normal = self.get_object()
         try:
@@ -306,7 +306,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'))
 
     @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
-            methods=['patch'], url_path="escola-revisa-pedido")
+            methods=['patch'], url_path='escola-revisa-pedido')
     def escola_revisa_pedido(self, request, uuid=None):
         grupo_alimentacao_normal = self.get_object()
         try:
@@ -317,7 +317,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'))
 
     @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
-            methods=['patch'], url_path="codae-aprova-pedido")
+            methods=['patch'], url_path='codae-aprova-pedido')
     def codae_aprova_pedido(self, request, uuid=None):
         grupo_alimentacao_normal = self.get_object()
         try:
@@ -328,7 +328,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'))
 
     @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
-            methods=['patch'], url_path="codae-cancela-pedido")
+            methods=['patch'], url_path='codae-cancela-pedido')
     def codae_cancela_pedido(self, request, uuid=None):
         grupo_alimentacao_normal = self.get_object()
         try:
@@ -339,7 +339,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'))
 
     @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
-            methods=['patch'], url_path="terceirizada-toma-ciencia")
+            methods=['patch'], url_path='terceirizada-toma-ciencia')
     def terceirizada_toma_ciencia(self, request, uuid=None):
         grupo_alimentacao_normal = self.get_object()
         try:
@@ -350,7 +350,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'))
 
     @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
-            methods=['patch'], url_path="escola-cancela-pedido-48h-antes")
+            methods=['patch'], url_path='escola-cancela-pedido-48h-antes')
     def escola_cancela_pedido_48h_antes(self, request, uuid=None):
         grupo_alimentacao_normal = self.get_object()
         try:
@@ -371,7 +371,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
             return serializers_create.InclusaoAlimentacaoContinuaCreationSerializer
         return serializers.InclusaoAlimentacaoContinuaSerializer
 
-    @action(detail=False, url_path="minhas-solicitacoes")
+    @action(detail=False, url_path='minhas-solicitacoes')
     def minhas_solicitacoes(self, request):
         usuario = request.user
         inclusoes_continuas = InclusaoAlimentacaoContinua.get_solicitacoes_rascunho(usuario)
@@ -380,8 +380,8 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False,
-            url_path=f"{PEDIDOS_CODAE}/{FILTRO_PADRAO_PEDIDOS}")
-    def pedidos_codae(self, request, filtro_aplicado="sem_filtro"):
+            url_path=f'{PEDIDOS_CODAE}/{FILTRO_PADRAO_PEDIDOS}')
+    def pedidos_codae(self, request, filtro_aplicado='sem_filtro'):
         # TODO: colocar regras de codae CODAE aqui...
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber
@@ -394,9 +394,9 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False,
-            url_path="pedidos-prioritarios-diretoria-regional/"
-                     "(?P<filtro_aplicado>(sem_filtro|hoje|daqui_a_7_dias|daqui_a_30_dias)+)")
-    def pedidos_prioritarios_diretoria_regional(self, request, filtro_aplicado="sem_filtro"):
+            url_path='pedidos-prioritarios-diretoria-regional/'
+                     '(?P<filtro_aplicado>(sem_filtro|hoje|daqui_a_7_dias|daqui_a_30_dias)+)')
+    def pedidos_prioritarios_diretoria_regional(self, request, filtro_aplicado='sem_filtro'):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
         diretoria_regional = usuario.diretorias_regionais.first()
@@ -408,9 +408,9 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False,
-            url_path="pedidos-no-limite-diretoria-regional/"
-                     "(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)")
-    def pedidos_no_limite_diretoria_regional(self, request, filtro_aplicado="sem_filtro"):
+            url_path='pedidos-no-limite-diretoria-regional/'
+                     '(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)')
+    def pedidos_no_limite_diretoria_regional(self, request, filtro_aplicado='sem_filtro'):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
         diretoria_regional = usuario.diretorias_regionais.first()
@@ -422,9 +422,9 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False,
-            url_path="pedidos-no-prazo-diretoria-regional/"
-                     "(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)")
-    def pedidos_no_prazo_diretoria_regional(self, request, filtro_aplicado="sem_filtro"):
+            url_path='pedidos-no-prazo-diretoria-regional/'
+                     '(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)')
+    def pedidos_no_prazo_diretoria_regional(self, request, filtro_aplicado='sem_filtro'):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
         diretoria_regional = usuario.diretorias_regionais.first()
@@ -435,7 +435,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
-    @action(detail=False, url_path="pedidos-aprovados-diretoria-regional")
+    @action(detail=False, url_path='pedidos-aprovados-diretoria-regional')
     def pedidos_aprovados_diretoria_regional(self, request):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
@@ -445,7 +445,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
-    @action(detail=False, url_path="pedidos-reprovados-diretoria-regional")
+    @action(detail=False, url_path='pedidos-reprovados-diretoria-regional')
     def pedidos_reprovados_diretoria_regional(self, request):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
@@ -456,9 +456,9 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False,
-            url_path="pedidos-prioritarios-codae/"
-                     "(?P<filtro_aplicado>(sem_filtro|hoje|daqui_a_7_dias|daqui_a_30_dias)+)")
-    def pedidos_prioritarios_codae(self, request, filtro_aplicado="sem_filtro"):
+            url_path='pedidos-prioritarios-codae/'
+                     '(?P<filtro_aplicado>(sem_filtro|hoje|daqui_a_7_dias|daqui_a_30_dias)+)')
+    def pedidos_prioritarios_codae(self, request, filtro_aplicado='sem_filtro'):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual CODAE eu estou fazendo a requisição
         codae = usuario.CODAE.first()
@@ -470,9 +470,9 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False,
-            url_path="pedidos-no-limite-codae/"
-                     "(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)")
-    def pedidos_no_limite_codae(self, request, filtro_aplicado="sem_filtro"):
+            url_path='pedidos-no-limite-codae/'
+                     '(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)')
+    def pedidos_no_limite_codae(self, request, filtro_aplicado='sem_filtro'):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual CODAE eu estou fazendo a requisição
         codae = usuario.CODAE.first()
@@ -484,9 +484,9 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False,
-            url_path="pedidos-no-prazo-codae/"
-                     "(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)")
-    def pedidos_no_prazo_codae(self, request, filtro_aplicado="sem_filtro"):
+            url_path='pedidos-no-prazo-codae/'
+                     '(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)')
+    def pedidos_no_prazo_codae(self, request, filtro_aplicado='sem_filtro'):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual CODAE eu estou fazendo a requisição
         codae = usuario.CODAE.first()
@@ -497,7 +497,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
-    @action(detail=False, url_path="pedidos-aprovados-codae")
+    @action(detail=False, url_path='pedidos-aprovados-codae')
     def pedidos_aprovados_codae(self, request):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual CODAE eu estou fazendo a requisição
@@ -507,7 +507,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
-    @action(detail=False, url_path="pedidos-reprovados-codae")
+    @action(detail=False, url_path='pedidos-reprovados-codae')
     def pedidos_reprovados_codae(self, request):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual CODAE eu estou fazendo a requisição
@@ -518,9 +518,9 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False,
-            url_path="pedidos-prioritarios-terceirizada/"
-                     "(?P<filtro_aplicado>(sem_filtro|hoje|daqui_a_7_dias|daqui_a_30_dias)+)")
-    def pedidos_prioritarios_terceirizada(self, request, filtro_aplicado="sem_filtro"):
+            url_path='pedidos-prioritarios-terceirizada/'
+                     '(?P<filtro_aplicado>(sem_filtro|hoje|daqui_a_7_dias|daqui_a_30_dias)+)')
+    def pedidos_prioritarios_terceirizada(self, request, filtro_aplicado='sem_filtro'):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual Terceirizada eu estou fazendo a requisição
         terceirizada = usuario.terceirizadas.first()
@@ -532,9 +532,9 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False,
-            url_path="pedidos-no-limite-terceirizada/"
-                     "(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)")
-    def pedidos_no_limite_terceirizada(self, request, filtro_aplicado="sem_filtro"):
+            url_path='pedidos-no-limite-terceirizada/'
+                     '(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)')
+    def pedidos_no_limite_terceirizada(self, request, filtro_aplicado='sem_filtro'):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual Terceirizada eu estou fazendo a requisição
         terceirizada = usuario.terceirizadas.first()
@@ -546,9 +546,9 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False,
-            url_path="pedidos-no-prazo-terceirizada/"
-                     "(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)")
-    def pedidos_no_prazo_terceirizada(self, request, filtro_aplicado="sem_filtro"):
+            url_path='pedidos-no-prazo-terceirizada/'
+                     '(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)')
+    def pedidos_no_prazo_terceirizada(self, request, filtro_aplicado='sem_filtro'):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual Terceirizada eu estou fazendo a requisição
         terceirizada = usuario.terceirizadas.first()
@@ -559,7 +559,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
-    @action(detail=False, url_path="pedidos-aprovados-terceirizada")
+    @action(detail=False, url_path='pedidos-aprovados-terceirizada')
     def pedidos_aprovados_terceirizada(self, request):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual Terceirizada eu estou fazendo a requisição
@@ -569,7 +569,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
-    @action(detail=False, url_path="pedidos-reprovados-terceirizada")
+    @action(detail=False, url_path='pedidos-reprovados-terceirizada')
     def pedidos_reprovados_terceirizada(self, request):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual Terceirizada eu estou fazendo a requisição
@@ -584,7 +584,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
     #
 
     @action(detail=True, permission_classes=[PodeIniciarInclusaoAlimentacaoContinuaPermission],
-            methods=['patch'], url_path="inicio-pedido")
+            methods=['patch'], url_path='inicio-pedido')
     def inicio_de_pedido(self, request, uuid=None):
         inclusao_alimentacao_continua = self.get_object()
         try:
@@ -595,7 +595,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'))
 
     @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
-            methods=['patch'], url_path="diretoria-regional-aprova-pedido")
+            methods=['patch'], url_path='diretoria-regional-aprova-pedido')
     def diretoria_regional_aprova(self, request, uuid=None):
         inclusao_alimentacao_continua = self.get_object()
         try:
@@ -606,7 +606,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'))
 
     @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
-            methods=['patch'], url_path="diretoria-regional-pede-revisao")
+            methods=['patch'], url_path='diretoria-regional-pede-revisao')
     def diretoria_regional_pede_revisao(self, request, uuid=None):
         inclusao_alimentacao_continua = self.get_object()
         try:
@@ -617,7 +617,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'))
 
     @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
-            methods=['patch'], url_path="escola-revisa-pedido")
+            methods=['patch'], url_path='escola-revisa-pedido')
     def escola_revisa_pedido(self, request, uuid=None):
         inclusao_alimentacao_continua = self.get_object()
         try:
@@ -628,7 +628,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'))
 
     @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
-            methods=['patch'], url_path="codae-cancela-pedido")
+            methods=['patch'], url_path='codae-cancela-pedido')
     def codae_cancela_pedido(self, request, uuid=None):
         inclusao_alimentacao_continua = self.get_object()
         try:
@@ -639,7 +639,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'))
 
     @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
-            methods=['patch'], url_path="diretoria-regional-cancela-pedido")
+            methods=['patch'], url_path='diretoria-regional-cancela-pedido')
     def diretoria_regional_cancela_pedido(self, request, uuid=None):
         inclusao_alimentacao_continua = self.get_object()
         try:
@@ -650,7 +650,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'))
 
     @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
-            methods=['patch'], url_path="codae-aprova-pedido")
+            methods=['patch'], url_path='codae-aprova-pedido')
     def codae_aprova_pedido(self, request, uuid=None):
         inclusao_alimentacao_continua = self.get_object()
         try:
@@ -661,7 +661,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'))
 
     @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
-            methods=['patch'], url_path="terceirizada-toma-ciencia")
+            methods=['patch'], url_path='terceirizada-toma-ciencia')
     def terceirizada_toma_ciencia(self, request, uuid=None):
         inclusao_alimentacao_continua = self.get_object()
         try:
@@ -672,7 +672,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'))
 
     @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
-            methods=['patch'], url_path="escola-cancela-pedido-48h-antes")
+            methods=['patch'], url_path='escola-cancela-pedido-48h-antes')
     def escola_cancela_pedido_48h_antes(self, request, uuid=None):
         inclusao_alimentacao_continua = self.get_object()
         try:

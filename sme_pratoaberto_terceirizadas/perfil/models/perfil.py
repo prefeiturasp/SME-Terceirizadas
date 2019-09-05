@@ -94,7 +94,7 @@ class PerfilPermissao(models.Model):
         result = ''
         choices = dict(self.ACOES)
         for index, value in enumerate(self.acoes):
-            result += "{0}".format(choices[value])
+            result += '{0}'.format(choices[value])
             if not index == len(self.acoes) - 1:
                 result += ', '
         return result

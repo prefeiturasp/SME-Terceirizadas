@@ -40,8 +40,8 @@ class TipoAlimentacao(Nomeavel, TemChaveExterna):
         return self.nome
 
     class Meta:
-        verbose_name = "Tipo de alimentação"
-        verbose_name_plural = "Tipos de alimentação"
+        verbose_name = 'Tipo de alimentação'
+        verbose_name_plural = 'Tipos de alimentação'
 
 
 class Cardapio(Descritivel, Ativavel, TemData, TemChaveExterna, CriadoEm):
@@ -62,12 +62,12 @@ class Cardapio(Descritivel, Ativavel, TemData, TemChaveExterna, CriadoEm):
 
     def __str__(self):
         if self.descricao:
-            return '{}  - {}'.format(self.data, self.descricao)
-        return '{}'.format(self.data)
+            return f'{self.data}  - {self.descricao}'
+        return f'{self.data}'
 
     class Meta:
-        verbose_name = "Cardápio"
-        verbose_name_plural = "Cardápios"
+        verbose_name = 'Cardápio'
+        verbose_name_plural = 'Cardápios'
 
 
 class InversaoCardapio(CriadoEm, CriadoPor, TemObservacao, Motivo, TemChaveExterna,
@@ -147,12 +147,12 @@ class InversaoCardapio(CriadoEm, CriadoPor, TemObservacao, Motivo, TemChaveExter
 
     def __str__(self):
         if self.cardapio_de and self.cardapio_para and self.escola:
-            return '{}: \nDe: {} \nPara: {}'.format(self.escola.nome, self.cardapio_de, self.cardapio_para)
+            return f'{self.escola.nome}: \nDe: {self.cardapio_de} \nPara: {self.cardapio_para}'
         return self.descricao
 
     class Meta:
-        verbose_name = "Inversão de cardápio"
-        verbose_name_plural = "Inversão de cardápios"
+        verbose_name = 'Inversão de cardápio'
+        verbose_name_plural = 'Inversão de cardápios'
 
 
 class MotivoSuspensao(Nomeavel, TemChaveExterna):
@@ -166,8 +166,8 @@ class MotivoSuspensao(Nomeavel, TemChaveExterna):
         return self.nome
 
     class Meta:
-        verbose_name = "Motivo de suspensão de alimentação"
-        verbose_name_plural = "Motivo de suspensão de alimentação"
+        verbose_name = 'Motivo de suspensão de alimentação'
+        verbose_name_plural = 'Motivo de suspensão de alimentação'
 
 
 class SuspensaoAlimentacao(TemData, TemChaveExterna):
@@ -176,16 +176,16 @@ class SuspensaoAlimentacao(TemData, TemChaveExterna):
     """
     prioritario = models.BooleanField(default=False)
     motivo = models.ForeignKey(MotivoSuspensao, on_delete=models.DO_NOTHING)
-    outro_motivo = models.CharField("Outro motivo", blank=True, max_length=50)
+    outro_motivo = models.CharField('Outro motivo', blank=True, max_length=50)
     grupo_suspensao = models.ForeignKey('GrupoSuspensaoAlimentacao', on_delete=models.CASCADE,
                                         blank=True, null=True, related_name='suspensoes_alimentacao')
 
     def __str__(self):
-        return f"{self.motivo}"
+        return f'{self.motivo}'
 
     class Meta:
-        verbose_name = "Suspensão de alimentação"
-        verbose_name_plural = "Suspensões de alimentação"
+        verbose_name = 'Suspensão de alimentação'
+        verbose_name_plural = 'Suspensões de alimentação'
 
 
 class QuantidadePorPeriodoSuspensaoAlimentacao(TemChaveExterna):
@@ -196,11 +196,11 @@ class QuantidadePorPeriodoSuspensaoAlimentacao(TemChaveExterna):
     tipos_alimentacao = models.ManyToManyField(TipoAlimentacao)
 
     def __str__(self):
-        return f"Quantidade de alunos: {self.numero_alunos}"
+        return f'Quantidade de alunos: {self.numero_alunos}'
 
     class Meta:
-        verbose_name = "Quantidade por período de suspensão de alimentação"
-        verbose_name_plural = "Quantidade por período de suspensão de alimentação"
+        verbose_name = 'Quantidade por período de suspensão de alimentação'
+        verbose_name_plural = 'Quantidade por período de suspensão de alimentação'
 
 
 class GrupoSuspensaoAlimentacao(TemChaveExterna, CriadoPor, TemIdentificadorExternoAmigavel,
@@ -238,7 +238,7 @@ class GrupoSuspensaoAlimentacao(TemChaveExterna, CriadoPor, TemIdentificadorExte
         return self.suspensoes_alimentacao
 
     def __str__(self):
-        return f"{self.observacao}"
+        return f'{self.observacao}'
 
     @property
     def template_mensagem(self):
@@ -252,8 +252,6 @@ class GrupoSuspensaoAlimentacao(TemChaveExterna, CriadoPor, TemIdentificadorExte
             '@link': 'http://teste.com',
         }
         corpo = template.template_html
-        # for chave, valor in template_troca.items():
-        #     corpo = corpo.replace(chave, valor)
         return template.assunto, corpo
 
     def salvar_log_transicao(self, status_evento, usuario):
@@ -266,25 +264,25 @@ class GrupoSuspensaoAlimentacao(TemChaveExterna, CriadoPor, TemIdentificadorExte
         )
 
     class Meta:
-        verbose_name = "Grupo de suspensão de alimentação"
-        verbose_name_plural = "Grupo de suspensão de alimentação"
+        verbose_name = 'Grupo de suspensão de alimentação'
+        verbose_name_plural = 'Grupo de suspensão de alimentação'
 
 
 class SuspensaoAlimentacaoNoPeriodoEscolar(TemChaveExterna):
     suspensao_alimentacao = models.ForeignKey(SuspensaoAlimentacao, on_delete=models.CASCADE,
                                               null=True, blank=True,
-                                              related_name="suspensoes_periodo_escolar")
+                                              related_name='suspensoes_periodo_escolar')
     qtd_alunos = models.PositiveSmallIntegerField(default=0)
     periodo_escolar = models.ForeignKey('escola.PeriodoEscolar', on_delete=models.PROTECT,
-                                        related_name="suspensoes_periodo_escolar")
-    tipos_alimentacao = models.ManyToManyField('TipoAlimentacao', related_name="suspensoes_periodo_escolar")
+                                        related_name='suspensoes_periodo_escolar')
+    tipos_alimentacao = models.ManyToManyField('TipoAlimentacao', related_name='suspensoes_periodo_escolar')
 
     def __str__(self):
         return f'Suspensão de alimentação da Alteração de Cardápio: {self.suspensao_alimentacao}'
 
     class Meta:
-        verbose_name = "Suspensão de alimentação no período"
-        verbose_name_plural = "Suspensões de alimentação no período"
+        verbose_name = 'Suspensão de alimentação no período'
+        verbose_name_plural = 'Suspensões de alimentação no período'
 
 
 class MotivoAlteracaoCardapio(Nomeavel, TemChaveExterna):
@@ -298,8 +296,8 @@ class MotivoAlteracaoCardapio(Nomeavel, TemChaveExterna):
         return self.nome
 
     class Meta:
-        verbose_name = "Motivo de alteração de cardápio"
-        verbose_name_plural = "Motivos de alteração de cardápio"
+        verbose_name = 'Motivo de alteração de cardápio'
+        verbose_name_plural = 'Motivos de alteração de cardápio'
 
 
 class AlteracaoCardapio(CriadoEm, CriadoPor, TemChaveExterna, IntervaloDeDia, TemObservacao,
@@ -309,7 +307,7 @@ class AlteracaoCardapio(CriadoEm, CriadoPor, TemChaveExterna, IntervaloDeDia, Te
     A unidade quer trocar um ou mais tipos de refeição em um ou mais períodos escolares devido a um evento especial
     (motivo) em dado período de tempo.
 
-    Ex: Alterar  nos períodos matutino e intermediario, o lanche e refeição pelo motivo "aniversariantes do mês"
+    Ex: Alterar  nos períodos matutino e intermediario, o lanche e refeição pelo motivo 'aniversariantes do mês'
     """
 
     objects = models.Manager()  # Manager Padrão
@@ -341,14 +339,11 @@ class AlteracaoCardapio(CriadoEm, CriadoPor, TemChaveExterna, IntervaloDeDia, Te
         template_troca = {  # noqa
             '@id': self.id,
             '@criado_em': str(self.criado_em),
-            # '@criado_por': str(self.criado_por),
             '@status': str(self.status),
             # TODO: verificar a url padrão do pedido
             '@link': 'http://teste.com',
         }
         corpo = template.template_html
-        # for chave, valor in template_troca.items():
-        #     corpo = corpo.replace(chave, valor)
         return template.assunto, corpo
 
     def salvar_log_transicao(self, status_evento, usuario):
@@ -362,17 +357,17 @@ class AlteracaoCardapio(CriadoEm, CriadoPor, TemChaveExterna, IntervaloDeDia, Te
 
     @classmethod
     def solicitacoes_por_visao(cls, query_set_base, visao):
-        if visao == "dia":
+        if visao == 'dia':
             query_set_por_visao = query_set_base.filter(
                 data_inicial__lte=datetime.datetime.today(),
                 data_final__gte=datetime.datetime.today())
 
-        elif visao == "semana":
+        elif visao == 'semana':
             query_set_por_visao = query_set_base.filter(
                 data_inicial__gte=datetime.datetime.today() + datetime.timedelta(days=7),
                 data_final__lte=datetime.datetime.today() + datetime.timedelta(days=7))
 
-        elif visao == "mes":
+        elif visao == 'mes':
             query_set_por_visao = query_set_base.filter(
                 data_inicial__gte=datetime.datetime.today() + datetime.timedelta(days=30),
                 data_final__lte=datetime.datetime.today() + datetime.timedelta(days=30))
@@ -406,22 +401,22 @@ class AlteracaoCardapio(CriadoEm, CriadoPor, TemChaveExterna, IntervaloDeDia, Te
         return query_set_por_visao
 
     class Meta:
-        verbose_name = "Alteração de cardápio"
-        verbose_name_plural = "Alterações de cardápio"
+        verbose_name = 'Alteração de cardápio'
+        verbose_name_plural = 'Alterações de cardápio'
 
 
 class SubstituicoesAlimentacaoNoPeriodoEscolar(TemChaveExterna):
     alteracao_cardapio = models.ForeignKey('AlteracaoCardapio', on_delete=models.CASCADE,
                                            null=True, blank=True,
-                                           related_name="substituicoes_periodo_escolar")
+                                           related_name='substituicoes_periodo_escolar')
     qtd_alunos = models.PositiveSmallIntegerField(default=0)
     periodo_escolar = models.ForeignKey('escola.PeriodoEscolar', on_delete=models.PROTECT,
-                                        related_name="substituicoes_periodo_escolar")
-    tipos_alimentacao = models.ManyToManyField('TipoAlimentacao', related_name="substituicoes_periodo_escolar")
+                                        related_name='substituicoes_periodo_escolar')
+    tipos_alimentacao = models.ManyToManyField('TipoAlimentacao', related_name='substituicoes_periodo_escolar')
 
     def __str__(self):
         return f'Substituições de alimentação: {self.uuid} da Alteração de Cardápio: {self.alteracao_cardapio.uuid}'
 
     class Meta:
-        verbose_name = "Substituições de alimentação no período"
-        verbose_name_plural = "Substituições de alimentação no período"
+        verbose_name = 'Substituições de alimentação no período'
+        verbose_name_plural = 'Substituições de alimentação no período'

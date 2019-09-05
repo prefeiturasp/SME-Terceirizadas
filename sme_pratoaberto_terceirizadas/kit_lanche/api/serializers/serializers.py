@@ -112,8 +112,6 @@ class EscolaQuantidadeSerializer(serializers.ModelSerializer):
     kits = KitLancheSimplesSerializer(many=True, required=False)
     escola = EscolaSimplesSerializer()
 
-    # solicitacao_unificada = SolicitacaoKitLancheUnificadaSerializer()
-
     class Meta:
         model = EscolaQuantidade
         exclude = ('id',)

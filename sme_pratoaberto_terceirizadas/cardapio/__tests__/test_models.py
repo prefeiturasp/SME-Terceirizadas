@@ -1,9 +1,9 @@
-from model_mommy import mommy
 import pytest
+from model_mommy import mommy
 from xworkflows.base import InvalidTransitionError
-from sme_pratoaberto_terceirizadas.escola.models import Escola
-from sme_pratoaberto_terceirizadas.cardapio.models import Cardapio
 
+from ...cardapio.models import Cardapio
+from ...escola.models import Escola
 
 pytestmark = pytest.mark.django_db
 
@@ -15,7 +15,7 @@ def test_motivo_alteracao_cardapio(motivo_alteracao_cardapio):
 def test_alteracao_cardapio(alteracao_cardapio):
     assert alteracao_cardapio.data_inicial is not None
     assert alteracao_cardapio.data_final is not None
-    assert alteracao_cardapio.observacao == "teste"
+    assert alteracao_cardapio.observacao == 'teste'
     assert alteracao_cardapio.status is not None
 
 

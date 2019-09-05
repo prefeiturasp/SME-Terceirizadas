@@ -245,8 +245,8 @@ X_FRAME_OPTIONS = 'DENY'
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#email-backend
 EMAIL_BACKEND = env('DJANGO_EMAIL_BACKEND', default='des.backends.ConfiguredEmailBackend')
-DES_TEST_SUBJECT = "TESTE"
-DES_TEST_TEXT_TEMPLATE = os.path.join(APPS_DIR, "templates", "email", "test_email.txt")
+DES_TEST_SUBJECT = 'TESTE'
+DES_TEST_TEXT_TEMPLATE = os.path.join(APPS_DIR, 'templates', 'email', 'test_email.txt')
 
 # ADMIN
 # ------------------------------------------------------------------------------
@@ -285,10 +285,10 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.BasicAuthentication',
     ),
-    'DATETIME_FORMAT': "%d/%m/%Y %H:%M:%S",
-    'DATETIME_INPUT_FORMATS': ["%d/%m/%Y %H:%M:%S", 'iso-8601'],
-    'DATE_FORMAT': "%d/%m/%Y",
-    'DATE_INPUT_FORMATS': ["%d/%m/%Y", 'iso-8601'],
+    'DATETIME_FORMAT': '%d/%m/%Y %H:%M:%S',
+    'DATETIME_INPUT_FORMATS': ['%d/%m/%Y %H:%M:%S', 'iso-8601'],
+    'DATE_FORMAT': '%d/%m/%Y',
+    'DATE_INPUT_FORMATS': ['%d/%m/%Y', 'iso-8601'],
     'TIME_FORMAT': '%H:%M:%S',
     'TIME_INPUT_FORMATS': ['%H:%M:%S', 'iso-8601'],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',

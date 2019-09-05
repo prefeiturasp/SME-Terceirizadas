@@ -53,12 +53,11 @@ class ConfiguracaoEmailViewSet(ModelViewSet):
             return super().create(request, *args, **kwargs)
         except IntegrityError as e:
             return Response(data={'error': 'A configuração já existe, tente usar o método PUT',
-                                  'detail': '{}'.format(e)},
+                                  'detail': f'{e}'},
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class TemplateMensagemViewSet(ModelViewSet):
     lookup_field = 'uuid'
-    # permission_classes = [EhAdminDaCodae]
     queryset = TemplateMensagem.objects.all()
     serializer_class = ConfiguracaoMensagemSerializer

@@ -76,11 +76,11 @@ class SolicitacaoKitLancheAvulsaCreationSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         quantidade_aluno_passeio = attrs.get('quantidade_alunos')
-        data = attrs.get('solicitacao_kit_lanche').get("data")
+        data = attrs.get('solicitacao_kit_lanche').get('data')
         escola = attrs.get('escola')
         confirmar = attrs.get('confirmar', False)
-        nao_pode_ser_nulo(quantidade_aluno_passeio, mensagem="O campo Quantidade de aluno não pode ser nulo")
-        deve_ser_deste_tipo(quantidade_aluno_passeio, tipo=int, mensagem="Quantidade de aluno de ser do tipo int")
+        nao_pode_ser_nulo(quantidade_aluno_passeio, mensagem='O campo Quantidade de aluno não pode ser nulo')
+        deve_ser_deste_tipo(quantidade_aluno_passeio, tipo=int, mensagem='Quantidade de aluno de ser do tipo int')
         if attrs.get('status') != SolicitacaoKitLancheAvulsa.workflow_class.RASCUNHO:
             valida_quantidades_alunos_e_escola(data, escola, quantidade_aluno_passeio)
             valida_duplicidade_passeio_data_escola(data, escola, confirmar)

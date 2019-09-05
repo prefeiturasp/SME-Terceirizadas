@@ -23,16 +23,16 @@ class PedidoAPartirDaEscolaWorkflow(xwf_models.Workflow):
     CANCELAMENTO_AUTOMATICO = 'CANCELAMENTO_AUTOMATICO'
 
     states = (
-        (RASCUNHO, "Rascunho"),
-        (DRE_A_VALIDAR, "DRE a validar"),
-        (DRE_APROVADO, "DRE aprovado"),
-        (DRE_PEDE_ESCOLA_REVISAR, "Escola tem que revisar o pedido"),
-        (DRE_CANCELA_PEDIDO_ESCOLA, "DRE cancela pedido da escola"),
-        (CODAE_APROVADO, "CODAE aprovado"),
-        (CODAE_CANCELOU_PEDIDO, "CODAE recusa"),
-        (TERCEIRIZADA_TOMA_CIENCIA, "Terceirizada toma ciencia"),
-        (ESCOLA_CANCELA_48H_ANTES, "Escola pediu cancelamento 48h antes"),
-        (CANCELAMENTO_AUTOMATICO, "Cancelamento automático"),
+        (RASCUNHO, 'Rascunho'),
+        (DRE_A_VALIDAR, 'DRE a validar'),
+        (DRE_APROVADO, 'DRE aprovado'),
+        (DRE_PEDE_ESCOLA_REVISAR, 'Escola tem que revisar o pedido'),
+        (DRE_CANCELA_PEDIDO_ESCOLA, 'DRE cancela pedido da escola'),
+        (CODAE_APROVADO, 'CODAE aprovado'),
+        (CODAE_CANCELOU_PEDIDO, 'CODAE recusa'),
+        (TERCEIRIZADA_TOMA_CIENCIA, 'Terceirizada toma ciencia'),
+        (ESCOLA_CANCELA_48H_ANTES, 'Escola pediu cancelamento 48h antes'),
+        (CANCELAMENTO_AUTOMATICO, 'Cancelamento automático'),
     )
 
     transitions = (
@@ -66,13 +66,13 @@ class PedidoAPartirDaDiretoriaRegionalWorkflow(xwf_models.Workflow):
     CANCELAMENTO_AUTOMATICO = 'CANCELAMENTO_AUTOMATICO'
 
     states = (
-        (RASCUNHO, "Rascunho"),
-        (CODAE_A_VALIDAR, "CODAE a validar"),
-        (CODAE_PEDE_DRE_REVISAR, "DRE tem que revisar o pedido"),
-        (CODAE_CANCELOU_PEDIDO, "CODAE recusa o pedido da DRE"),
-        (CODAE_APROVADO, "CODAE aprovado"),
-        (TERCEIRIZADA_TOMA_CIENCIA, "Terceirizada toma ciencia"),
-        (CANCELAMENTO_AUTOMATICO, "Cancelamento automático"),
+        (RASCUNHO, 'Rascunho'),
+        (CODAE_A_VALIDAR, 'CODAE a validar'),
+        (CODAE_PEDE_DRE_REVISAR, 'DRE tem que revisar o pedido'),
+        (CODAE_CANCELOU_PEDIDO, 'CODAE recusa o pedido da DRE'),
+        (CODAE_APROVADO, 'CODAE aprovado'),
+        (TERCEIRIZADA_TOMA_CIENCIA, 'Terceirizada toma ciencia'),
+        (CANCELAMENTO_AUTOMATICO, 'Cancelamento automático'),
     )
 
     transitions = (
@@ -96,9 +96,9 @@ class InformativoPartindoDaEscolaWorkflow(xwf_models.Workflow):
     TERCEIRIZADA_TOMA_CIENCIA = 'TERCEIRIZADA_TOMA_CIENCIA'
 
     states = (
-        (RASCUNHO, "Rascunho"),
-        (INFORMADO, "Informado"),
-        (TERCEIRIZADA_TOMA_CIENCIA, "Terceirizada toma ciencia"),
+        (RASCUNHO, 'Rascunho'),
+        (INFORMADO, 'Informado'),
+        (TERCEIRIZADA_TOMA_CIENCIA, 'Terceirizada toma ciencia'),
     )
 
     transitions = (
