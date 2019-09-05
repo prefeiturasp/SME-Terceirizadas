@@ -37,13 +37,13 @@ class QuantidadePorPeriodo(TemChaveExterna):
                                                       related_name='quantidades_por_periodo')
 
     def __str__(self):
-        return '{} alunos para {} com {} tipo(s) de alimentação'.format(
-            self.numero_alunos, self.periodo_escolar,
-            self.tipos_alimentacao.count())
+        qtd = self.tipos_alimentacao.count()
+        return f'{self.numero_alunos} alunos para {self.periodo_escolar} com {qtd} tipo(s) de alimentação'
 
-    class Meta:
-        verbose_name = 'Quantidade por periodo'
-        verbose_name_plural = 'Quantidades por periodo'
+
+class Meta:
+    verbose_name = 'Quantidade por periodo'
+    verbose_name_plural = 'Quantidades por periodo'
 
 
 class MotivoInclusaoContinua(Nomeavel, TemChaveExterna):
@@ -152,8 +152,8 @@ class InclusaoAlimentacaoNormal(TemData, TemChaveExterna, TemPrioridade):
 
     def __str__(self):
         if self.outro_motivo:
-            return 'Dia {} {} '.format(self.data, self.outro_motivo)
-        return 'Dia {} {} '.format(self.data, self.motivo)
+            return f'Dia {self.data} {self.outro_motivo}'
+        return f'Dia {self.data} {self.motivo} '
 
     class Meta:
         verbose_name = 'Inclusão de alimentação normal'
@@ -233,7 +233,7 @@ class GrupoInclusaoAlimentacaoNormal(Descritivel, TemChaveExterna, FluxoAprovaca
         quantidade_periodo.save()
 
     def __str__(self):
-        return '{} pedindo {} inclusoes'.format(self.escola, self.inclusoes.count())
+        return f'{self.escola} pedindo {self.inclusoes.count()} inclusoes'
 
     class Meta:
         verbose_name = 'Grupo de inclusão de alimentação normal'

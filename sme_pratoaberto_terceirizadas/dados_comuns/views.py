@@ -36,7 +36,7 @@ def send_test_email(request):
                 to_email,
                 subject)
         except Exception as e:
-            response['error'] = _('Could not send email. {}').format(e)
+            response['error'] = _(f'Could not send email. {e}')
     else:
         response['error'] = _('You must provide an email address to test with.')
     return HttpResponse(json.dumps(response))

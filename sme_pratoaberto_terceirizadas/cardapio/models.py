@@ -62,8 +62,8 @@ class Cardapio(Descritivel, Ativavel, TemData, TemChaveExterna, CriadoEm):
 
     def __str__(self):
         if self.descricao:
-            return '{}  - {}'.format(self.data, self.descricao)
-        return '{}'.format(self.data)
+            return f'{self.data}  - {self.descricao}'
+        return f'{self.data}'
 
     class Meta:
         verbose_name = 'Cardápio'
@@ -147,7 +147,7 @@ class InversaoCardapio(CriadoEm, CriadoPor, TemObservacao, Motivo, TemChaveExter
 
     def __str__(self):
         if self.cardapio_de and self.cardapio_para and self.escola:
-            return '{}: \nDe: {} \nPara: {}'.format(self.escola.nome, self.cardapio_de, self.cardapio_para)
+            return f'{self.escola.nome}: \nDe: {self.cardapio_de} \nPara: {self.cardapio_para}'
         return self.descricao
 
     class Meta:

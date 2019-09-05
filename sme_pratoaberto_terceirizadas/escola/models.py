@@ -404,7 +404,7 @@ class Escola(Ativavel, TemChaveExterna):
         return self.inclusoes_alimentacao_continua
 
     def __str__(self):
-        return '{}: {}'.format(self.codigo_eol, self.nome)
+        return f'{self.codigo_eol}: {self.nome}'
 
     class Meta:
         verbose_name = 'Escola'
