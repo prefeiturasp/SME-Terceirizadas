@@ -29,7 +29,11 @@ flake8-django==0.0.4        # https://github.com/rocioar/flake8-django
 flake8-debugger==3.1.0      # https://github.com/JBKahn/flake8-debugger
 flake8-broken-line==0.1.1   # https://github.com/sobolevn/flake8-broken-line
 flake8-print==3.1.0         # https://pypi.org/project/flake8print/
-coverage==4.5.2  # https://github.com/nedbat/coveragepy
+flake8-eradicate==0.2.1     # https://github.com/sobolevn/flake8-eradicate
+flake8-quotes==2.1.0        # https://github.com/zheller/flake8-quotes
+flake8-string-format==0.2.3 # https://github.com/xZise/flake8-string-format
+flake8-mutable==1.2.0       # https://github.com/ebeweber/flake8-mutable
+coverage==4.5.2             # https://github.com/nedbat/coveragepy
 
 
 django-debug-toolbar==1.11  # https://github.com/jazzband/django-debug-toolbar

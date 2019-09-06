@@ -6,7 +6,6 @@ from .models import (
 )
 
 admin.site.register(DiretoriaRegional)
-# admin.site.register(Escola)
 admin.site.register(FaixaIdadeEscolar)
 admin.site.register(Lote)
 admin.site.register(PeriodoEscolar)

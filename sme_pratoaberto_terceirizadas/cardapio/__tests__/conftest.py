@@ -94,12 +94,12 @@ def motivo_alteracao_cardapio_serializer():
 
 @pytest.fixture
 def alteracao_cardapio():
-    return mommy.make(AlteracaoCardapio, observacao="teste")
+    return mommy.make(AlteracaoCardapio, observacao='teste')
 
 
 @pytest.fixture
 def substituicoes_alimentacao_periodo():
-    alteracao_cardapio = mommy.make(AlteracaoCardapio, observacao="teste")
+    alteracao_cardapio = mommy.make(AlteracaoCardapio, observacao='teste')
     return mommy.make(SubstituicoesAlimentacaoNoPeriodoEscolar, alteracao_cardapio=alteracao_cardapio)
 
 

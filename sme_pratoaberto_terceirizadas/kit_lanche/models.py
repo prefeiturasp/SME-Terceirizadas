@@ -28,8 +28,8 @@ class MotivoSolicitacaoUnificada(Nomeavel, TemChaveExterna):
         return self.nome
 
     class Meta:
-        verbose_name = "Motivo da solicitação unificada"
-        verbose_name_plural = "Motivos da solicitação unificada"
+        verbose_name = 'Motivo da solicitação unificada'
+        verbose_name_plural = 'Motivos da solicitação unificada'
 
 
 class ItemKitLanche(Nomeavel, TemChaveExterna):
@@ -45,8 +45,8 @@ class ItemKitLanche(Nomeavel, TemChaveExterna):
         return self.nome
 
     class Meta:
-        verbose_name = "Item do kit lanche"
-        verbose_name_plural = "Item do kit lanche"
+        verbose_name = 'Item do kit lanche'
+        verbose_name_plural = 'Item do kit lanche'
 
 
 class KitLanche(Nomeavel, TemChaveExterna):
@@ -59,8 +59,8 @@ class KitLanche(Nomeavel, TemChaveExterna):
         return self.nome
 
     class Meta:
-        verbose_name = "Kit lanche"
-        verbose_name_plural = "Kit lanches"
+        verbose_name = 'Kit lanche'
+        verbose_name_plural = 'Kit lanches'
 
 
 class SolicitacaoKitLanche(TemData, Motivo, Descritivel, CriadoEm, TempoPasseio, TemChaveExterna, TemPrioridade):
@@ -70,11 +70,11 @@ class SolicitacaoKitLanche(TemData, Motivo, Descritivel, CriadoEm, TempoPasseio,
     kits = models.ManyToManyField(KitLanche, blank=True)
 
     def __str__(self):
-        return "{} criado em {}".format(self.motivo, self.criado_em)
+        return f'{self.motivo} criado em {self.criado_em}'
 
     class Meta:
-        verbose_name = "Solicitação kit lanche base"
-        verbose_name_plural = "Solicitações kit lanche base"
+        verbose_name = 'Solicitação kit lanche base'
+        verbose_name_plural = 'Solicitações kit lanche base'
 
 
 class SolicitacaoKitLancheAvulsa(TemChaveExterna, FluxoAprovacaoPartindoDaEscola, TemIdentificadorExternoAmigavel,
@@ -130,11 +130,11 @@ class SolicitacaoKitLancheAvulsa(TemChaveExterna, FluxoAprovacaoPartindoDaEscola
         return template.assunto, corpo
 
     def __str__(self):
-        return "{} SOLICITA PARA {} ALUNOS EM {}".format(self.escola, self.quantidade_alunos, self.local)
+        return f'{self.escola} SOLICITA PARA {self.quantidade_alunos} ALUNOS EM {self.local}'
 
     class Meta:
-        verbose_name = "Solicitação de kit lanche avulsa"
-        verbose_name_plural = "Solicitações de kit lanche avulsa"
+        verbose_name = 'Solicitação de kit lanche avulsa'
+        verbose_name_plural = 'Solicitações de kit lanche avulsa'
 
 
 class SolicitacaoKitLancheUnificada(CriadoPor, TemChaveExterna, TemIdentificadorExternoAmigavel,
@@ -260,14 +260,12 @@ class SolicitacaoKitLancheUnificada(CriadoPor, TemChaveExterna, TemIdentificador
             escola_quantidade.save()
 
     def __str__(self):
-        return "{} pedindo passeio em {} com kits iguais? {}".format(
-            self.diretoria_regional,
-            self.local,
-            self.lista_kit_lanche_igual)
+        dre = self.diretoria_regional
+        return f'{dre} pedindo passeio em {self.local} com kits iguais? {self.lista_kit_lanche_igual}'
 
     class Meta:
-        verbose_name = "Solicitação kit lanche unificada"
-        verbose_name_plural = "Solicitações de  kit lanche unificadas"
+        verbose_name = 'Solicitação kit lanche unificada'
+        verbose_name_plural = 'Solicitações de  kit lanche unificadas'
 
 
 class EscolaQuantidade(TemChaveExterna, TempoPasseio):
@@ -285,11 +283,9 @@ class EscolaQuantidade(TemChaveExterna, TempoPasseio):
 
     def __str__(self):
         kit_lanche_personalizado = bool(self.kits.count())
-        return "{} para {} alunos, kits diferenciados? {}".format(
-            self.get_tempo_passeio_display(),
-            self.quantidade_alunos,
-            kit_lanche_personalizado)
+        tempo_passeio = self.get_tempo_passeio_display()
+        return f'{tempo_passeio} para {self.quantidade_alunos} alunos, kits diferenciados? {kit_lanche_personalizado}'
 
     class Meta:
-        verbose_name = "Escola quantidade"
-        verbose_name_plural = "Escolas quantidades"
+        verbose_name = 'Escola quantidade'
+        verbose_name_plural = 'Escolas quantidades'

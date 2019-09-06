@@ -25,7 +25,7 @@ urlpatterns = [path('docs/', schema_view, name='docs'),
                path('django-des/', include(des_urls)),
                path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
                path(settings.ADMIN_URL, admin.site.urls),
-               path("api-token-auth/", obtain_jwt_token),
+               path('api-token-auth/', obtain_jwt_token),
                path('api-token-refresh/', refresh_jwt_token)] + static(
     settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
 )
@@ -45,23 +45,23 @@ if settings.DEBUG:
     # these url in browser to see how these error pages look like.
     urlpatterns += [
         path(
-            "400/",
+            '400/',
             default_views.bad_request,
-            kwargs={"exception": Exception("Bad Request!")},
+            kwargs={'exception': Exception('Bad Request!')},
         ),
         path(
-            "403/",
+            '403/',
             default_views.permission_denied,
-            kwargs={"exception": Exception("Permission Denied")},
+            kwargs={'exception': Exception('Permission Denied')},
         ),
         path(
-            "404/",
+            '404/',
             default_views.page_not_found,
-            kwargs={"exception": Exception("Page not Found")},
+            kwargs={'exception': Exception('Page not Found')},
         ),
-        path("500/", default_views.server_error),
+        path('500/', default_views.server_error),
     ]
-    if "debug_toolbar" in settings.INSTALLED_APPS:
+    if 'debug_toolbar' in settings.INSTALLED_APPS:
         import debug_toolbar
 
-        urlpatterns = [path("__debug__/", include(debug_toolbar.urls))] + urlpatterns
+        urlpatterns = [path('__debug__/', include(debug_toolbar.urls))] + urlpatterns

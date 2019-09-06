@@ -19,7 +19,7 @@ class UsuarioViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Usuario.objects.all()
     serializer_class = UsuarioSerializer
 
-    @action(detail=False, url_path="meus-dados")
+    @action(detail=False, url_path='meus-dados')
     def meus_dados(self, request):
         usuario = request.user
         serializer = UsuarioDetalheSerializer(usuario)

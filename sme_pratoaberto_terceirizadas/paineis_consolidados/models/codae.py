@@ -42,4 +42,4 @@ class SolicitacoesCODAE(models.Model):
 
     class Meta:
         managed = False
-        db_table = "codae_solicitacoes"
+        db_table = 'codae_solicitacoes'

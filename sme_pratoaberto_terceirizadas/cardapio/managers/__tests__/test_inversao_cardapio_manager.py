@@ -82,7 +82,7 @@ def inversao_vencida():
     assert inversao_cardapio_vencida not in InversaoCardapio.prazo_limite_daqui_a_7_dias.all()
 
 
-@freeze_time("2019-12-30")
+@freeze_time('2019-12-30')
 def test_segunda():
     inversao_prazo_limite_1()
     inversao_prazo_limite_2()
@@ -92,7 +92,7 @@ def test_segunda():
     inversao_vencida()
 
 
-@freeze_time("2019-12-31")
+@freeze_time('2019-12-31')
 def test_terca():
     inversao_prazo_limite_1()
     inversao_prazo_limite_2()
@@ -102,7 +102,7 @@ def test_terca():
     inversao_vencida()
 
 
-@freeze_time("2020-1-1")
+@freeze_time('2020-1-1')
 def test_quarta():
     inversao_prazo_limite_1()
     inversao_prazo_limite_2()
@@ -112,7 +112,7 @@ def test_quarta():
     inversao_vencida()
 
 
-@freeze_time("2020-1-2")
+@freeze_time('2020-1-2')
 def test_quinta():
     inversao_prazo_limite_1()
     inversao_prazo_limite_2()
@@ -122,7 +122,7 @@ def test_quinta():
     inversao_vencida()
 
 
-@freeze_time("2020-1-3")
+@freeze_time('2020-1-3')
 def test_sexta():
     inversao_prazo_limite_1()
     inversao_prazo_limite_2()
@@ -132,7 +132,7 @@ def test_sexta():
     inversao_vencida()
 
 
-@freeze_time("2020-1-4")
+@freeze_time('2020-1-4')
 def test_sabado():
     inversao_prazo_limite_1()
     inversao_prazo_limite_2()
@@ -142,7 +142,7 @@ def test_sabado():
     inversao_vencida()
 
 
-@freeze_time("2020-1-5")
+@freeze_time('2020-1-5')
 def test_domingo():
     inversao_prazo_limite_1()
     inversao_prazo_limite_2()

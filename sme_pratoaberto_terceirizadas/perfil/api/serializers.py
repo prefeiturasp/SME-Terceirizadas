@@ -83,10 +83,6 @@ class NotificationSerializer(serializers.ModelSerializer):
 
 
 class UsuarioSerializer(serializers.ModelSerializer):
-    # TODO:     "groups": [],
-    # "user_permissions": [],
-    # "perfis": []
-    # date_joined -> ptbr
     class Meta:
         model = Usuario
         fields = ('uuid', 'nome', 'email', 'date_joined')

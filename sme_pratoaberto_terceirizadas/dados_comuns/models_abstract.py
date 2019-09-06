@@ -18,65 +18,65 @@ from ..perfil import models as models_perfil
 
 
 class Iniciais(models.Model):
-    iniciais = models.CharField("Iniciais", blank=True, max_length=10)
+    iniciais = models.CharField('Iniciais', blank=True, max_length=10)
 
     class Meta:
         abstract = True
 
 
 class Descritivel(models.Model):
-    descricao = models.TextField("Descricao", blank=True)
+    descricao = models.TextField('Descricao', blank=True)
 
     class Meta:
         abstract = True
 
 
 class Nomeavel(models.Model):
-    nome = models.CharField("Nome", blank=True, max_length=50)
+    nome = models.CharField('Nome', blank=True, max_length=50)
 
     class Meta:
         abstract = True
 
 
 class Motivo(models.Model):
-    motivo = models.TextField("Motivo", blank=True)
+    motivo = models.TextField('Motivo', blank=True)
 
     class Meta:
         abstract = True
 
 
 class Ativavel(models.Model):
-    ativo = models.BooleanField("Está ativo?", default=True)
+    ativo = models.BooleanField('Está ativo?', default=True)
 
     class Meta:
         abstract = True
 
 
 class CriadoEm(models.Model):
-    criado_em = models.DateTimeField("Criado em", editable=False, auto_now_add=True)
+    criado_em = models.DateTimeField('Criado em', editable=False, auto_now_add=True)
 
     class Meta:
         abstract = True
 
 
 class IntervaloDeTempo(models.Model):
-    data_hora_inicial = models.DateTimeField("Data/hora inicial")
-    data_hora_final = models.DateTimeField("Data/hora final")
+    data_hora_inicial = models.DateTimeField('Data/hora inicial')
+    data_hora_final = models.DateTimeField('Data/hora final')
 
     class Meta:
         abstract = True
 
 
 class IntervaloDeDia(models.Model):
-    data_inicial = models.DateField("Data inicial")
-    data_final = models.DateField("Data final")
+    data_inicial = models.DateField('Data inicial')
+    data_final = models.DateField('Data final')
 
     class Meta:
         abstract = True
 
 
 class TemData(models.Model):
-    data = models.DateField("Data")
+    data = models.DateField('Data')
 
     class Meta:
         abstract = True
@@ -119,7 +119,7 @@ class DiasSemana(models.Model):
         result = ''
         choices = dict(self.DIAS)
         for index, value in enumerate(self.dias_semana):
-            result += "{0}".format(choices[value])
+            result += '{0}'.format(choices[value])
             if not index == len(self.dias_semana) - 1:
                 result += ', '
         return result
@@ -460,7 +460,7 @@ class CriadoPor(models.Model):
 
 
 class TemObservacao(models.Model):
-    observacao = models.TextField("Observação", blank=True)
+    observacao = models.TextField('Observação', blank=True)
 
     class Meta:
         abstract = True
@@ -489,9 +489,9 @@ class TemPrioridade(object):
         data_pedido = None
         descricao = 'VENCIDO'
         hoje = datetime.date.today()
-        if hasattr(self, "data"):
+        if hasattr(self, 'data'):
             data_pedido = self.data
-        elif hasattr(self, "data_inicial"):
+        elif hasattr(self, 'data_inicial'):
             data_pedido = self.data_inicial
 
         if MINIMO_DIAS_PARA_PEDIDO >= data_pedido >= hoje:

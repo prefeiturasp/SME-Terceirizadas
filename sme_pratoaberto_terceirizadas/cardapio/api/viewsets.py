@@ -57,8 +57,8 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
     queryset = InversaoCardapio.objects.all()
 
     @action(detail=False,
-            url_path=f"{PEDIDOS_DRE}/{FILTRO_PADRAO_PEDIDOS}")
-    def pedidos_diretoria_regional(self, request, filtro_aplicado="sem_filtro"):
+            url_path=f'{PEDIDOS_DRE}/{FILTRO_PADRAO_PEDIDOS}')
+    def pedidos_diretoria_regional(self, request, filtro_aplicado='sem_filtro'):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
         diretoria_regional = usuario.diretorias_regionais.first()
@@ -70,8 +70,8 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False,
-            url_path=f"{PEDIDOS_CODAE}/{FILTRO_PADRAO_PEDIDOS}")
-    def pedidos_codae(self, request, filtro_aplicado="sem_filtro"):
+            url_path=f'{PEDIDOS_CODAE}/{FILTRO_PADRAO_PEDIDOS}')
+    def pedidos_codae(self, request, filtro_aplicado='sem_filtro'):
         # TODO: colocar regras de codae CODAE aqui...
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
@@ -84,8 +84,8 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False,
-            url_path=f"{PEDIDOS_TERCEIRIZADA}/{FILTRO_PADRAO_PEDIDOS}")
-    def pedidos_terceirizada(self, request, filtro_aplicado="sem_filtro"):
+            url_path=f'{PEDIDOS_TERCEIRIZADA}/{FILTRO_PADRAO_PEDIDOS}')
+    def pedidos_terceirizada(self, request, filtro_aplicado='sem_filtro'):
         # TODO: colocar regras de Terceirizada aqui...
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
@@ -97,7 +97,7 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
-    @action(detail=False, url_path="pedidos-aprovados-diretoria-regional")
+    @action(detail=False, url_path='pedidos-aprovados-diretoria-regional')
     def pedidos_aprovados_diretoria_regional(self, request):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
@@ -107,7 +107,7 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
-    @action(detail=False, url_path="pedidos-aprovados-codae")
+    @action(detail=False, url_path='pedidos-aprovados-codae')
     def pedidos_aprovados_codae(self, request):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual CODAE eu estou fazendo a requisição
@@ -117,7 +117,7 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
-    @action(detail=False, url_path="pedidos-aprovados-terceirizada")
+    @action(detail=False, url_path='pedidos-aprovados-terceirizada')
     def pedidos_aprovados_terceirizada(self, request):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual TERCEIRIZADA eu estou fazendo a requisição
@@ -145,7 +145,7 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
     #
 
     @action(detail=True, permission_classes=[PodeIniciarSuspensaoDeAlimentacaoPermission],
-            methods=['patch'], url_path="inicio-pedido")
+            methods=['patch'], url_path='inicio-pedido')
     def inicio_de_pedido(self, request, uuid=None):
         inversao_cardapio = self.get_object()
         try:
@@ -156,7 +156,7 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeIniciarSuspensaoDeAlimentacaoPermission],
-            methods=['patch'], url_path="diretoria-regional-aprova-pedido")
+            methods=['patch'], url_path='diretoria-regional-aprova-pedido')
     def diretoria_regional_aprova_pedido(self, request, uuid=None):
         inversao_cardapio = self.get_object()
         try:
@@ -167,7 +167,7 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeIniciarSuspensaoDeAlimentacaoPermission],
-            methods=['patch'], url_path="diretoria-regional-pede-revisao")
+            methods=['patch'], url_path='diretoria-regional-pede-revisao')
     def diretoria_regional_pede_revisao(self, request, uuid=None):
         inversao_cardapio = self.get_object()
         try:
@@ -178,7 +178,7 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeIniciarSuspensaoDeAlimentacaoPermission],
-            methods=['patch'], url_path="diretoria-regional-cancela-pedido")
+            methods=['patch'], url_path='diretoria-regional-cancela-pedido')
     def diretoria_regional_cancela_pedido(self, request, uuid=None):
         inversao_cardapio = self.get_object()
         try:
@@ -189,7 +189,7 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeIniciarSuspensaoDeAlimentacaoPermission],
-            methods=['patch'], url_path="escola-revisa-pedido")
+            methods=['patch'], url_path='escola-revisa-pedido')
     def escola_revisa_pedido(self, request, uuid=None):
         inversao_cardapio = self.get_object()
         try:
@@ -200,7 +200,7 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeIniciarSuspensaoDeAlimentacaoPermission],
-            methods=['patch'], url_path="codae-aprova-pedido")
+            methods=['patch'], url_path='codae-aprova-pedido')
     def codae_aprova_pedido(self, request, uuid=None):
         inversao_cardapio = self.get_object()
         try:
@@ -211,7 +211,7 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeIniciarSuspensaoDeAlimentacaoPermission],
-            methods=['patch'], url_path="codae-cancela-pedido")
+            methods=['patch'], url_path='codae-cancela-pedido')
     def codae_cancela_pedido(self, request, uuid=None):
         inversao_cardapio = self.get_object()
         try:
@@ -222,7 +222,7 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeIniciarSuspensaoDeAlimentacaoPermission],
-            methods=['patch'], url_path="terceirizada-toma-ciencia")
+            methods=['patch'], url_path='terceirizada-toma-ciencia')
     def terceirizada_toma_ciencia(self, request, uuid=None):
         inversao_cardapio = self.get_object()
         try:
@@ -233,7 +233,7 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeIniciarSuspensaoDeAlimentacaoPermission],
-            methods=['patch'], url_path="escola-cancela-pedido-48h-antes")
+            methods=['patch'], url_path='escola-cancela-pedido-48h-antes')
     def escola_cancela_pedido_48h_antes(self, request, uuid=None):
         inversao_cardapio = self.get_object()
         try:
@@ -255,7 +255,7 @@ class GrupoSuspensaoAlimentacaoSerializerViewSet(viewsets.ModelViewSet):
     serializer_class = GrupoSuspensaoAlimentacaoSerializer
 
     @action(detail=False,
-            url_path=f"{PEDIDOS_CODAE}/{FILTRO_PADRAO_PEDIDOS}")
+            url_path=f'{PEDIDOS_CODAE}/{FILTRO_PADRAO_PEDIDOS}')
     def pedidos_codae(self, request, filtro_aplicado=SEM_FILTRO):
         # TODO: colocar regras de codae CODAE aqui...
         usuario = request.user
@@ -302,7 +302,7 @@ class GrupoSuspensaoAlimentacaoSerializerViewSet(viewsets.ModelViewSet):
     #
 
     @action(detail=True, permission_classes=[PodeIniciarSuspensaoDeAlimentacaoPermission],
-            methods=['patch'], url_path="informa-suspensao")
+            methods=['patch'], url_path='informa-suspensao')
     def informa_suspensao(self, request, uuid=None):
         grupo_suspensao_de_alimentacao = self.get_object()
         try:
@@ -343,9 +343,9 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
     #
 
     @action(detail=False,
-            url_path="pedidos-codae/"
-                     "(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)")
-    def pedidos_codae(self, request, filtro_aplicado="sem_filtro"):
+            url_path='pedidos-codae/'
+                     '(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)')
+    def pedidos_codae(self, request, filtro_aplicado='sem_filtro'):
         # TODO: colocar regras de codae CODAE aqui...
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber
@@ -363,7 +363,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
     #
 
     @action(detail=True, permission_classes=[PodeIniciarAlteracaoCardapioPermission],
-            methods=['patch'], url_path="inicio-pedido")
+            methods=['patch'], url_path='inicio-pedido')
     def inicio_de_pedido(self, request, uuid=None):
         alteracao_cardapio = self.get_object()
         try:
@@ -374,7 +374,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeIniciarAlteracaoCardapioPermission],
-            methods=['patch'], url_path="diretoria-regional-aprova")
+            methods=['patch'], url_path='diretoria-regional-aprova')
     def diretoria_regional_aprova(self, request, uuid=None):
         alteracao_cardapio = self.get_object()
         try:
@@ -385,7 +385,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeIniciarAlteracaoCardapioPermission],
-            methods=['patch'], url_path="diretoria-regional-pede-revisao")
+            methods=['patch'], url_path='diretoria-regional-pede-revisao')
     def dre_pediu_revisao(self, request, uuid=None):
         alteracao_cardapio = self.get_object()
         try:
@@ -396,7 +396,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeIniciarAlteracaoCardapioPermission],
-            methods=['patch'], url_path="diretoria-regional-cancela-pedido")
+            methods=['patch'], url_path='diretoria-regional-cancela-pedido')
     def dre_cancela_pedido(self, request, uuid=None):
         alteracao_cardapio = self.get_object()
         try:
@@ -429,7 +429,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeAprovarPelaCODAEAlteracaoCardapioPermission],
-            methods=['patch'], url_path="codae-aprova-pedido")
+            methods=['patch'], url_path='codae-aprova-pedido')
     def codae_aprova(self, request, uuid=None):
         alteracao_cardapio = self.get_object()
         try:
@@ -451,7 +451,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeRecusarPelaCODAEAlteracaoCardapioPermission],
-            methods=['patch'], url_path="escola-cancela-pedido-48h-antes")
+            methods=['patch'], url_path='escola-cancela-pedido-48h-antes')
     def escola_cancela_pedido_48h_antes(self, request, uuid=None):
         inclusao_alimentacao_continua = self.get_object()
 
@@ -483,8 +483,8 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
         serializer = AlteracaoCardapioSerializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
-    @action(detail=False, methods=['GET'], url_path="resumo-de-pendencias/(?P<visao>(dia|semana|mes)+)")
-    def resumo_pendencias(self, request, visao="dia"):
+    @action(detail=False, methods=['GET'], url_path='resumo-de-pendencias/(?P<visao>(dia|semana|mes)+)')
+    def resumo_pendencias(self, request, visao='dia'):
         try:
             urgente_query_set = AlteracaoCardapio.solicitacoes_vencendo_por_usuario_e_visao(usuario=request.user,
                                                                                             visao=visao)
@@ -505,7 +505,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
 
             return Response(response, status=status_code)
 
-    @action(detail=False, url_path="pedidos-aprovados-diretoria-regional")
+    @action(detail=False, url_path='pedidos-aprovados-diretoria-regional')
     def pedidos_aprovados_diretoria_regional(self, request):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
@@ -515,7 +515,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
-    @action(detail=False, url_path="pedidos-reprovados-diretoria-regional")
+    @action(detail=False, url_path='pedidos-reprovados-diretoria-regional')
     def pedidos_reprovados_diretoria_regional(self, request):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
@@ -526,9 +526,9 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False,
-            url_path="pedidos-prioritarios-diretoria-regional/"
-                     "(?P<filtro_aplicado>(sem_filtro|hoje|daqui_a_7_dias|daqui_a_30_dias)+)")
-    def pedidos_prioritarios_diretoria_regional(self, request, filtro_aplicado="sem_filtro"):
+            url_path='pedidos-prioritarios-diretoria-regional/'
+                     '(?P<filtro_aplicado>(sem_filtro|hoje|daqui_a_7_dias|daqui_a_30_dias)+)')
+    def pedidos_prioritarios_diretoria_regional(self, request, filtro_aplicado='sem_filtro'):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
         diretoria_regional = usuario.diretorias_regionais.first()
@@ -540,9 +540,9 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False,
-            url_path="pedidos-no-limite-diretoria-regional/"
-                     "(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)")
-    def pedidos_no_limite_diretoria_regional(self, request, filtro_aplicado="sem_filtro"):
+            url_path='pedidos-no-limite-diretoria-regional/'
+                     '(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)')
+    def pedidos_no_limite_diretoria_regional(self, request, filtro_aplicado='sem_filtro'):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
         diretoria_regional = usuario.diretorias_regionais.first()
@@ -554,9 +554,9 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False,
-            url_path="pedidos-no-prazo-diretoria-regional/"
-                     "(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)")
-    def pedidos_no_prazo_diretoria_regional(self, request, filtro_aplicado="sem_filtro"):
+            url_path='pedidos-no-prazo-diretoria-regional/'
+                     '(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)')
+    def pedidos_no_prazo_diretoria_regional(self, request, filtro_aplicado='sem_filtro'):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
         diretoria_regional = usuario.diretorias_regionais.first()
@@ -568,9 +568,9 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False,
-            url_path="pedidos-prioritarios-codae/"
-                     "(?P<filtro_aplicado>(sem_filtro|hoje|daqui_a_7_dias|daqui_a_30_dias)+)")
-    def pedidos_prioritarios_codae(self, request, filtro_aplicado="sem_filtro"):
+            url_path='pedidos-prioritarios-codae/'
+                     '(?P<filtro_aplicado>(sem_filtro|hoje|daqui_a_7_dias|daqui_a_30_dias)+)')
+    def pedidos_prioritarios_codae(self, request, filtro_aplicado='sem_filtro'):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual CODAE eu estou fazendo a requisição
         codae = usuario.CODAE.first()
@@ -582,9 +582,9 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False,
-            url_path="pedidos-no-limite-codae/"
-                     "(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)")
-    def pedidos_no_limite_codae(self, request, filtro_aplicado="sem_filtro"):
+            url_path='pedidos-no-limite-codae/'
+                     '(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)')
+    def pedidos_no_limite_codae(self, request, filtro_aplicado='sem_filtro'):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual CODAE eu estou fazendo a requisição
         codae = usuario.CODAE.first()
@@ -596,9 +596,9 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False,
-            url_path="pedidos-no-prazo-codae/"
-                     "(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)")
-    def pedidos_no_prazo_codae(self, request, filtro_aplicado="sem_filtro"):
+            url_path='pedidos-no-prazo-codae/'
+                     '(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)')
+    def pedidos_no_prazo_codae(self, request, filtro_aplicado='sem_filtro'):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual CODAE eu estou fazendo a requisição
         codae = usuario.CODAE.first()
@@ -609,7 +609,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
-    @action(detail=False, url_path="pedidos-aprovados-codae")
+    @action(detail=False, url_path='pedidos-aprovados-codae')
     def pedidos_aprovados_codae(self, request):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual CODAE eu estou fazendo a requisição
@@ -619,7 +619,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
-    @action(detail=False, url_path="pedidos-reprovados-codae")
+    @action(detail=False, url_path='pedidos-reprovados-codae')
     def pedidos_reprovados_codae(self, request):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual CODAE eu estou fazendo a requisição
@@ -630,9 +630,9 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False,
-            url_path="pedidos-prioritarios-terceirizada/"
-                     "(?P<filtro_aplicado>(sem_filtro|hoje|daqui_a_7_dias|daqui_a_30_dias)+)")
-    def pedidos_prioritarios_terceirizada(self, request, filtro_aplicado="sem_filtro"):
+            url_path='pedidos-prioritarios-terceirizada/'
+                     '(?P<filtro_aplicado>(sem_filtro|hoje|daqui_a_7_dias|daqui_a_30_dias)+)')
+    def pedidos_prioritarios_terceirizada(self, request, filtro_aplicado='sem_filtro'):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual Terceirizada eu estou fazendo a requisição
         terceirizada = usuario.terceirizadas.first()
@@ -644,9 +644,9 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False,
-            url_path="pedidos-no-limite-terceirizada/"
-                     "(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)")
-    def pedidos_no_limite_terceirizada(self, request, filtro_aplicado="sem_filtro"):
+            url_path='pedidos-no-limite-terceirizada/'
+                     '(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)')
+    def pedidos_no_limite_terceirizada(self, request, filtro_aplicado='sem_filtro'):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual Terceirizada eu estou fazendo a requisição
         terceirizada = usuario.terceirizadas.first()
@@ -658,9 +658,9 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False,
-            url_path="pedidos-no-prazo-terceirizada/"
-                     "(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)")
-    def pedidos_no_prazo_terceirizada(self, request, filtro_aplicado="sem_filtro"):
+            url_path='pedidos-no-prazo-terceirizada/'
+                     '(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)')
+    def pedidos_no_prazo_terceirizada(self, request, filtro_aplicado='sem_filtro'):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual Terceirizada eu estou fazendo a requisição
         terceirizada = usuario.terceirizadas.first()
@@ -671,7 +671,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
-    @action(detail=False, url_path="pedidos-aprovados-terceirizada")
+    @action(detail=False, url_path='pedidos-aprovados-terceirizada')
     def pedidos_aprovados_terceirizada(self, request):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual Terceirizada eu estou fazendo a requisição
@@ -681,7 +681,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
-    @action(detail=False, url_path="pedidos-reprovados-terceirizada")
+    @action(detail=False, url_path='pedidos-reprovados-terceirizada')
     def pedidos_reprovados_terceirizada(self, request):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual Terceirizada eu estou fazendo a requisição
@@ -700,7 +700,7 @@ class MotivosAlteracaoCardapioViewSet(viewsets.ReadOnlyModelViewSet):
 
 class AlteracoesCardapioRascunhoViewSet(viewsets.ReadOnlyModelViewSet):
     lookup_field = 'uuid'
-    queryset = AlteracaoCardapio.objects.filter(status="RASCUNHO")
+    queryset = AlteracaoCardapio.objects.filter(status='RASCUNHO')
     serializer_class = AlteracaoCardapioSerializer
 
 
