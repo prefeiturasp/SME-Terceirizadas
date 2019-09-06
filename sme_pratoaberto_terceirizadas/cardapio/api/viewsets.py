@@ -271,10 +271,11 @@ class GrupoSuspensaoAlimentacaoSerializerViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['GET'])
     def informadas(self, request):
-        grupo_informados = GrupoSuspensaoAlimentacao.get_informados()
+        grupo_informados = GrupoSuspensaoAlimentacao.get_informados().order_by('-id')
         page = self.paginate_queryset(grupo_informados)
         serializer = GrupoSuspensaoAlimentacaoSerializer(page, many=True)
         return self.get_paginated_response(serializer.data)
+
 
     @action(detail=False, url_path='tomados-ciencia', methods=['GET'])
     def tomados_ciencia(self, request):
