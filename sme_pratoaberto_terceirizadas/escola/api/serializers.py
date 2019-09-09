@@ -116,6 +116,12 @@ class EscolaSimplesSerializer(serializers.ModelSerializer):
                   'diretoria_regional')
 
 
+class EscolaListagemSimplesSelializer(serializers.ModelSerializer):
+    class Meta:
+        model = Escola
+        fields = ('uuid', 'nome', 'codigo_eol')
+
+
 class EscolaCompletaSerializer(serializers.ModelSerializer):
     diretoria_regional = DiretoriaRegionalSimplesSerializer()
     idades = FaixaIdadeEscolarSerializer(many=True)

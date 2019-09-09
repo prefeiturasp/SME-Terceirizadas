@@ -7,7 +7,7 @@ from ...models import (
 )
 from ....dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
 from ....escola.api.serializers import (
-    EscolaSimplesSerializer, PeriodoEscolarSerializer,
+    EscolaListagemSimplesSelializer, EscolaSimplesSerializer, PeriodoEscolarSerializer,
     PeriodoEscolarSimplesSerializer, TipoUnidadeEscolarSerializer
 )
 from ....terceirizada.api.serializers.serializers import EditalSerializer
@@ -109,6 +109,14 @@ class GrupoSuspensaoAlimentacaoSimplesSerializer(serializers.ModelSerializer):
     class Meta:
         model = GrupoSuspensaoAlimentacao
         exclude = ('id', 'criado_por', 'escola')
+
+
+class GrupoSupensaoAlimentacaoListagemSimplesSerializer(serializers.ModelSerializer):
+    escola = EscolaListagemSimplesSelializer()
+
+    class Meta:
+        model = GrupoSuspensaoAlimentacao
+        fields = ('uuid', 'id_externo', 'status', 'criado_em', 'escola',)
 
 
 class MotivoAlteracaoCardapioSerializer(serializers.ModelSerializer):
