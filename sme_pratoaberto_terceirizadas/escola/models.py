@@ -435,7 +435,8 @@ class Lote(TemChaveExterna, Nomeavel, Iniciais):
         return self.escolas
 
     def __str__(self):
-        return self.nome + ' - ' + self.diretoria_regional.nome
+        nome_dre = self.diretoria_regional.nome if self.diretoria_regional else 'sem DRE definida'
+        return f'{self.nome} - {nome_dre}'
 
     class Meta:
         verbose_name = 'Lote'
