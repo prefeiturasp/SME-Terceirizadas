@@ -13,10 +13,10 @@ APPS_DIR = ROOT_DIR.path('sme_pratoaberto_terceirizadas')
 
 env = environ.Env()
 
-READ_DOT_ENV_FILE = env.bool('DJANGO_READ_DOT_ENV_FILE', default=False)
+READ_DOT_ENV_FILE = env.bool('DJANGO_READ_DOT_ENV_FILE', default=True)
 if READ_DOT_ENV_FILE:
     # OS environment variables take precedence over variables from .env
-    print('Loading environment...', str(ROOT_DIR.path('.env')))
+    print('Loading environment...', str(ROOT_DIR.path('.env')))  # noqa T001
     env.read_env(str(ROOT_DIR.path('.env')))
 
 # GENERAL
@@ -94,6 +94,7 @@ LOCAL_APPS = [
     'sme_pratoaberto_terceirizadas.inclusao_alimentacao.apps.InclusaoAlimentacaoConfig',
     'sme_pratoaberto_terceirizadas.cardapio.apps.CardapioConfig',
     'sme_pratoaberto_terceirizadas.terceirizada.apps.TerceirizadaConfig',
+    'sme_pratoaberto_terceirizadas.paineis_consolidados.apps.PaineisConsolidadosConfig',
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -167,7 +168,7 @@ MIDDLEWARE = [
 # https://docs.djangoproject.com/en/dev/ref/settings/#static-root
 STATIC_ROOT = str(ROOT_DIR('staticfiles'))
 # https://docs.djangoproject.com/en/dev/ref/settings/#static-url
-STATIC_URL = '/static/'
+STATIC_URL = '/django_static/'
 # https://docs.djangoproject.com/en/dev/ref/contrib/staticfiles/#std:setting-STATICFILES_DIRS
 STATICFILES_DIRS = [
     str(APPS_DIR.path('static')),
@@ -244,8 +245,8 @@ X_FRAME_OPTIONS = 'DENY'
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#email-backend
 EMAIL_BACKEND = env('DJANGO_EMAIL_BACKEND', default='des.backends.ConfiguredEmailBackend')
-DES_TEST_SUBJECT = "TESTE"
-DES_TEST_TEXT_TEMPLATE = os.path.join(APPS_DIR, "templates", "email", "test_email.txt")
+DES_TEST_SUBJECT = 'TESTE'
+DES_TEST_TEXT_TEMPLATE = os.path.join(APPS_DIR, 'templates', 'email', 'test_email.txt')
 
 # ADMIN
 # ------------------------------------------------------------------------------
@@ -284,10 +285,10 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.BasicAuthentication',
     ),
-    'DATETIME_FORMAT': "%d/%m/%Y %H:%M:%S",
-    'DATETIME_INPUT_FORMATS': ["%d/%m/%Y %H:%M:%S", 'iso-8601'],
-    'DATE_FORMAT': "%d/%m/%Y",
-    'DATE_INPUT_FORMATS': ["%d/%m/%Y", 'iso-8601'],
+    'DATETIME_FORMAT': '%d/%m/%Y %H:%M:%S',
+    'DATETIME_INPUT_FORMATS': ['%d/%m/%Y %H:%M:%S', 'iso-8601'],
+    'DATE_FORMAT': '%d/%m/%Y',
+    'DATE_INPUT_FORMATS': ['%d/%m/%Y', 'iso-8601'],
     'TIME_FORMAT': '%H:%M:%S',
     'TIME_INPUT_FORMATS': ['%H:%M:%S', 'iso-8601'],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',

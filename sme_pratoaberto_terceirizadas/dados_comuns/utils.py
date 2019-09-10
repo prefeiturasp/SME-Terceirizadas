@@ -2,7 +2,7 @@ import asyncio
 import datetime
 
 from des.models import DynamicEmailConfiguration
-from django.core.mail import get_connection, EmailMultiAlternatives
+from django.core.mail import EmailMultiAlternatives, get_connection
 from django.core.mail import send_mail
 from django.db.models import QuerySet
 from notifications.signals import notify
@@ -11,7 +11,7 @@ from workalendar.america import BrazilSaoPauloCity
 calendar = BrazilSaoPauloCity()
 
 
-def enviar_notificacao(sender, recipients: [QuerySet, list],
+def enviar_notificacao(sender, recipients: QuerySet,
                        short_desc: str, long_desc: str):
     """
     :param sender: User instance
@@ -49,6 +49,7 @@ def _send_mass_html_mail(subject, text, html, recipients):
     config = DynamicEmailConfiguration.get_solo()
     from_email = config.from_email
 
+    # TODO: verificar como abrir e fechar conexão
     connection = get_connection()
 
     messages = []

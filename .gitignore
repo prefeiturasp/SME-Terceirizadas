@@ -1,5 +1,7 @@
 ### Python template
 # Byte-compiled / optimized / DLL files
+utility/carga_dados/escola/planilhas_de_carga/
+
 __pycache__/
 *.py[cod]
 *$py.class

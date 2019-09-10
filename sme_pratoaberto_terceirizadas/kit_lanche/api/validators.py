@@ -1,6 +1,9 @@
+from django.db.models import Sum
 from rest_framework import serializers
 
-from sme_pratoaberto_terceirizadas.kit_lanche.models import EscolaQuantidade, SolicitacaoKitLanche
+from ..models import (
+    EscolaQuantidade, SolicitacaoKitLanche, SolicitacaoKitLancheAvulsa
+)
 
 
 def deve_ter_1_kit_somente(lista_igual, numero_kits):
@@ -31,8 +34,8 @@ def escola_quantidade_deve_ter_0_kit(numero_kits: int, indice: int, ):
     deve_ter_nenhum_kit = numero_kits == 0
     if not deve_ter_nenhum_kit:
         raise serializers.ValidationError(
-            'escola_quantidade indice # {} deve ter 0 kit'
-            ' pois a lista é igual para todas as escolas'.format(indice)
+            f'escola_quantidade indice # {indice} deve ter 0 kit'
+            ' pois a lista é igual para todas as escolas'
         )
     return True
 
@@ -41,7 +44,7 @@ def escola_quantidade_deve_ter_1_ou_mais_kits(numero_kits: int, indice: int, ):
     deve_ter_um_ou_mais = numero_kits >= 1
     if not deve_ter_um_ou_mais:
         raise serializers.ValidationError(
-            'escola_quantidade indice # {} deve ter 1 ou mais kits'.format(indice)
+            f'escola_quantidade indice # {indice} deve ter 1 ou mais kits'
         )
     return True
 
@@ -61,9 +64,8 @@ def escola_quantidade_deve_ter_mesmo_tempo_passeio(escola_quantidade,
 
     if tempo_passeio_escola != tempo_passeio_geral:
         raise serializers.ValidationError(
-            'escola_quantidade indice #{} diverge do tempo_passeio'
-            ' de solicitacao_kit_lanche. Esperado: {}, recebido: {}'.format(
-                indice, tempo_passeio_geral, tempo_passeio_escola)
+            f'escola_quantidade indice #{indice} diverge do tempo_passeio'
+            f' de solicitacao_kit_lanche. Esperado: {tempo_passeio_geral}, recebido: {tempo_passeio_escola}'
         )
     return True
 
@@ -73,8 +75,8 @@ def valida_tempo_passeio_lista_igual(tempo_passeio):
     tentativa1 = tempo_passeio in horas
     if not tentativa1:
         raise serializers.ValidationError(
-            'Quando o lista_kit_lanche_igual for Verdadeiro, tempo de passeio deve '
-            'ser qualquer uma das opções: {}.'.format(horas))
+            f'Quando o lista_kit_lanche_igual for Verdadeiro, tempo de passeio deve '
+            f'ser qualquer uma das opções: {horas}.')
     return True
 
 
@@ -89,17 +91,41 @@ def valida_tempo_passeio_lista_nao_igual(tempo_passeio):
     return True
 
 
-def valida_quantidade_kits_tempo_passeio(tempo_passeio, quantidade_kits):
+def valida_quantidade_kits_tempo_passeio(tempo_passeio, quantidade_kits):  # noqa C901
     if tempo_passeio == SolicitacaoKitLanche.QUATRO:
         if quantidade_kits != 1:
             raise serializers.ValidationError(
-                'Tempo de passeio {} de quatro horas deve ter 1 kit'.format(tempo_passeio))
+                f'Tempo de passeio {tempo_passeio} de quatro horas deve ter 1 kit')
     elif tempo_passeio == SolicitacaoKitLanche.CINCO_A_SETE:
         if quantidade_kits != 2:
             raise serializers.ValidationError(
-                'Tempo de passeio {} de cinco a sete horas deve ter 2 kits'.format(tempo_passeio))
+                f'Tempo de passeio {tempo_passeio} de cinco a sete horas deve ter 2 kits')
     elif tempo_passeio == SolicitacaoKitLanche.OITO_OU_MAIS:
         if quantidade_kits != 3:
             raise serializers.ValidationError(
-                'Tempo de passeio {} de oito ou mais horas deve ter 3 kits'.format(tempo_passeio))
+                f'Tempo de passeio {tempo_passeio} de oito ou mais horas deve ter 3 kits')
     return True
+
+
+def valida_quantidades_alunos_e_escola(data, escola, quantidade_aluno_passeio):
+    solicitacoes = SolicitacaoKitLancheAvulsa.objects.filter(escola=escola,
+                                                             solicitacao_kit_lanche__data=data).aggregate(
+        Sum('quantidade_alunos'))
+    if solicitacoes.get('quantidade_alunos__sum') is None:
+        quantidade_alunos = 0
+    else:
+        quantidade_alunos = int(solicitacoes.get('quantidade_alunos__sum'))
+    quantidade_alunos_total_passeio = quantidade_alunos + quantidade_aluno_passeio
+    if quantidade_alunos_total_passeio > escola.quantidade_alunos:
+        raise serializers.ValidationError({
+            'details': 'A quantidade de alunos informados para o evento'
+                       ' excede a quantidade de alunos matriculados na escola', 'tipo_error': 1})
+
+
+def valida_duplicidade_passeio_data_escola(data, escola, confirmar=False):
+    solicitacao = SolicitacaoKitLancheAvulsa.objects.filter(escola=escola,
+                                                            solicitacao_kit_lanche__data=data)
+    if not confirmar:
+        if solicitacao:
+            raise serializers.ValidationError(
+                {'details': 'Já existe um evento cadastrado para este dia', 'tipo_error': 2})

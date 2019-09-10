@@ -1,3 +1,4 @@
+import environ
 from des import urls as des_urls
 from django.conf import settings
 from django.conf.urls.static import static
@@ -12,20 +13,20 @@ from sme_pratoaberto_terceirizadas.dados_comuns.urls import urlpatterns as comun
 from sme_pratoaberto_terceirizadas.escola.urls import urlpatterns as escola_urls
 from sme_pratoaberto_terceirizadas.inclusao_alimentacao.urls import urlpatterns as inclusao_urls
 from sme_pratoaberto_terceirizadas.kit_lanche.urls import urlpatterns as kit_lanche_urls
+from sme_pratoaberto_terceirizadas.paineis_consolidados.urls import urlpatterns as paineis_consolidados_urls
 from sme_pratoaberto_terceirizadas.perfil.urls import urlpatterns as perfil_urls
 from sme_pratoaberto_terceirizadas.terceirizada.urls import urlpatterns as terceirizada_urls
 
-schema_view = get_swagger_view(title='API de Terceirizadas')
+env = environ.Env()
 
-urlpatterns = [
-                  path('docs', schema_view, name='docs'),
-                  path('django-des/', include(des_urls)),
-                  path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
-                  path(settings.ADMIN_URL, admin.site.urls),
-                  path("api-token-auth/", obtain_jwt_token),
-                  path('api-token-refresh/', refresh_jwt_token),
+schema_view = get_swagger_view(title='API de Terceirizadas', url=env.str('DJANGO_API_URL', default=''))
 
-              ] + static(
+urlpatterns = [path('docs/', schema_view, name='docs'),
+               path('django-des/', include(des_urls)),
+               path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+               path(settings.ADMIN_URL, admin.site.urls),
+               path('api-token-auth/', obtain_jwt_token),
+               path('api-token-refresh/', refresh_jwt_token)] + static(
     settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
 )
 
@@ -37,29 +38,30 @@ urlpatterns += inclusao_urls
 urlpatterns += kit_lanche_urls
 urlpatterns += cardapio_urls
 urlpatterns += terceirizada_urls
+urlpatterns += paineis_consolidados_urls
 
 if settings.DEBUG:
     # This allows the error pages to be debugged during development, just visit
     # these url in browser to see how these error pages look like.
     urlpatterns += [
         path(
-            "400/",
+            '400/',
             default_views.bad_request,
-            kwargs={"exception": Exception("Bad Request!")},
+            kwargs={'exception': Exception('Bad Request!')},
         ),
         path(
-            "403/",
+            '403/',
             default_views.permission_denied,
-            kwargs={"exception": Exception("Permission Denied")},
+            kwargs={'exception': Exception('Permission Denied')},
         ),
         path(
-            "404/",
+            '404/',
             default_views.page_not_found,
-            kwargs={"exception": Exception("Page not Found")},
+            kwargs={'exception': Exception('Page not Found')},
         ),
-        path("500/", default_views.server_error),
+        path('500/', default_views.server_error),
     ]
-    if "debug_toolbar" in settings.INSTALLED_APPS:
+    if 'debug_toolbar' in settings.INSTALLED_APPS:
         import debug_toolbar
 
-        urlpatterns = [path("__debug__/", include(debug_toolbar.urls))] + urlpatterns
+        urlpatterns = [path('__debug__/', include(debug_toolbar.urls))] + urlpatterns

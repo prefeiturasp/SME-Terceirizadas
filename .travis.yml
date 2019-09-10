@@ -9,16 +9,20 @@ before_script:
   - psql -c "CREATE DATABASE test;" -U postgres
   - psql -c "CREATE USER admin WITH PASSWORD 'adminadmin';" -U postgres
   - psql -c "ALTER USER admin CREATEDB;" -U postgres
+  - export AUTHOR_NAME="$(git log -1 $TRAVIS_COMMIT --pretty="%aN")"
 
 install:
   - pip install -r requirements/local.txt
 script:
   - pytest
+  - flake8
   - docker build -t marcelomaia/terceirizadas_backend .
   - docker run -d -p 8000:8000 marcelomaia/terceirizadas_backend python manage.py runserver --settings=config.settings.local
   - docker ps -a
 after_script:
   - ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT
+  - bash utility/telegram_notification.sh
+
 deploy:
   provider: script
   script: bash utility/deploy_dockerhub.sh

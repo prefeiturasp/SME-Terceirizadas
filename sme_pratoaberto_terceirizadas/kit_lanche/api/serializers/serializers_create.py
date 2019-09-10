@@ -1,26 +1,30 @@
 from rest_framework import serializers
 
-from sme_pratoaberto_terceirizadas.dados_comuns.utils import update_instance_from_dict
-from sme_pratoaberto_terceirizadas.dados_comuns.validators import nao_pode_ser_no_passado
-from sme_pratoaberto_terceirizadas.escola.models import Escola, DiretoriaRegional
-from sme_pratoaberto_terceirizadas.kit_lanche.api.validators import valida_quantidade_kits_tempo_passeio, \
-    escola_quantidade_nao_deve_ter_kits_e_tempo_passeio
-from sme_pratoaberto_terceirizadas.kit_lanche.models import EscolaQuantidade
 from ..validators import (
-    solicitacao_deve_ter_1_ou_mais_kits,
-    solicitacao_deve_ter_0_kit,
-    valida_tempo_passeio_lista_igual,
-    valida_tempo_passeio_lista_nao_igual,
-    escola_quantidade_deve_ter_1_ou_mais_kits
+    escola_quantidade_deve_ter_1_ou_mais_kits, solicitacao_deve_ter_0_kit,
+    solicitacao_deve_ter_1_ou_mais_kits, valida_duplicidade_passeio_data_escola,
+    valida_quantidades_alunos_e_escola, valida_tempo_passeio_lista_igual,
+    valida_tempo_passeio_lista_nao_igual
 )
-from ... import models
+from ..validators import (
+    escola_quantidade_nao_deve_ter_kits_e_tempo_passeio, valida_quantidade_kits_tempo_passeio
+)
+from ...models import (
+    EscolaQuantidade, KitLanche, MotivoSolicitacaoUnificada, SolicitacaoKitLanche,
+    SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheUnificada
+)
+from ....dados_comuns.utils import update_instance_from_dict
+from ....dados_comuns.validators import (
+    deve_pedir_com_antecedencia, deve_ser_deste_tipo, nao_pode_ser_no_passado, nao_pode_ser_nulo
+)
+from ....escola.models import DiretoriaRegional, Escola
 
 
 class SolicitacaoKitLancheCreationSerializer(serializers.ModelSerializer):
     kits = serializers.SlugRelatedField(
         slug_field='uuid', many=True,
         required=True,
-        queryset=models.KitLanche.objects.all())
+        queryset=KitLanche.objects.all())
     tempo_passeio_explicacao = serializers.CharField(
         source='get_tempo_passeio_display',
         required=False,
@@ -28,6 +32,7 @@ class SolicitacaoKitLancheCreationSerializer(serializers.ModelSerializer):
 
     def validate_data(self, data):
         nao_pode_ser_no_passado(data)
+        deve_pedir_com_antecedencia(data)
         return data
 
     def validate(self, attrs):
@@ -38,7 +43,7 @@ class SolicitacaoKitLancheCreationSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         kits = validated_data.pop('kits', [])
-        solicitacao_kit_lanche = models.SolicitacaoKitLanche.objects.create(**validated_data)
+        solicitacao_kit_lanche = SolicitacaoKitLanche.objects.create(**validated_data)
         solicitacao_kit_lanche.kits.set(kits)
         return solicitacao_kit_lanche
 
@@ -51,7 +56,7 @@ class SolicitacaoKitLancheCreationSerializer(serializers.ModelSerializer):
         return instance
 
     class Meta:
-        model = models.SolicitacaoKitLanche
+        model = SolicitacaoKitLanche
         exclude = ('id',)
 
 
@@ -65,13 +70,33 @@ class SolicitacaoKitLancheAvulsaCreationSerializer(serializers.ModelSerializer):
         queryset=Escola.objects.all()
     )
 
+    # Parametro utilizado para confirmar mesmo com kit para o mesmo dia
+    confirmar = serializers.BooleanField(required=False)
+    status = serializers.CharField(required=False)
+
+    def validate(self, attrs):
+        quantidade_aluno_passeio = attrs.get('quantidade_alunos')
+        data = attrs.get('solicitacao_kit_lanche').get('data')
+        escola = attrs.get('escola')
+        confirmar = attrs.get('confirmar', False)
+        nao_pode_ser_nulo(quantidade_aluno_passeio, mensagem='O campo Quantidade de aluno não pode ser nulo')
+        deve_ser_deste_tipo(quantidade_aluno_passeio, tipo=int, mensagem='Quantidade de aluno de ser do tipo int')
+        if attrs.get('status') != SolicitacaoKitLancheAvulsa.workflow_class.RASCUNHO:
+            valida_quantidades_alunos_e_escola(data, escola, quantidade_aluno_passeio)
+            valida_duplicidade_passeio_data_escola(data, escola, confirmar)
+        else:
+            attrs.pop('status')
+        if attrs.get('confirmar'):
+            attrs.pop('confirmar')
+        return attrs
+
     def create(self, validated_data):
         validated_data['criado_por'] = self.context['request'].user
         solicitacao_kit_lanche_json = validated_data.pop('solicitacao_kit_lanche')
         solicitacao_kit_lanche = SolicitacaoKitLancheCreationSerializer(
         ).create(solicitacao_kit_lanche_json)
 
-        solicitacao_kit_avulsa = models.SolicitacaoKitLancheAvulsa.objects.create(
+        solicitacao_kit_avulsa = SolicitacaoKitLancheAvulsa.objects.create(
             solicitacao_kit_lanche=solicitacao_kit_lanche, **validated_data
         )
         return solicitacao_kit_avulsa
@@ -89,7 +114,7 @@ class SolicitacaoKitLancheAvulsaCreationSerializer(serializers.ModelSerializer):
         return instance
 
     class Meta:
-        model = models.SolicitacaoKitLancheAvulsa
+        model = SolicitacaoKitLancheAvulsa
         exclude = ('id',)
 
 
@@ -97,7 +122,7 @@ class EscolaQuantidadeCreationSerializer(serializers.ModelSerializer):
     kits = serializers.SlugRelatedField(
         slug_field='uuid', many=True,
         required=True,
-        queryset=models.KitLanche.objects.all())
+        queryset=KitLanche.objects.all())
     escola = serializers.SlugRelatedField(
         slug_field='uuid',
         required=False,
@@ -112,7 +137,7 @@ class EscolaQuantidadeCreationSerializer(serializers.ModelSerializer):
     solicitacao_unificada = serializers.SlugRelatedField(
         slug_field='uuid',
         required=False,
-        queryset=models.SolicitacaoKitLancheUnificada.objects.all()
+        queryset=SolicitacaoKitLancheUnificada.objects.all()
     )
 
     def validate(self, attrs):
@@ -145,7 +170,7 @@ class SolicitacaoKitLancheUnificadaCreationSerializer(serializers.ModelSerialize
     )
     motivo = serializers.SlugRelatedField(
         slug_field='uuid',
-        queryset=models.MotivoSolicitacaoUnificada.objects.all()
+        queryset=MotivoSolicitacaoUnificada.objects.all()
     )
     diretoria_regional = serializers.SlugRelatedField(
         slug_field='uuid',
@@ -175,7 +200,7 @@ class SolicitacaoKitLancheUnificadaCreationSerializer(serializers.ModelSerialize
 
         lista_quantidade_escola = self._gera_escolas_quantidades(escolas_quantidades)
 
-        solicitacao_kit_unificada = models.SolicitacaoKitLancheUnificada.objects.create(
+        solicitacao_kit_unificada = SolicitacaoKitLancheUnificada.objects.create(
             solicitacao_kit_lanche=solicitacao_base, **validated_data
         )
         solicitacao_kit_unificada.vincula_escolas_quantidades(lista_quantidade_escola)
@@ -255,5 +280,5 @@ class SolicitacaoKitLancheUnificadaCreationSerializer(serializers.ModelSerialize
                      validated_data=escolas_quantidades_lista[index])
 
     class Meta:
-        model = models.SolicitacaoKitLancheUnificada
+        model = SolicitacaoKitLancheUnificada
         exclude = ('id', 'status')

@@ -1,11 +1,10 @@
 from django.contrib import admin
 
 from .models import (
-    TipoAlimentacao, Cardapio, InversaoCardapio,
-    MotivoAlteracaoCardapio, AlteracaoCardapio,
-    SubstituicoesAlimentacaoNoPeriodoEscolar, GrupoSuspensaoAlimentacao,
-    SuspensaoAlimentacao, QuantidadePorPeriodoSuspensaoAlimentacao,
-    MotivoSuspensao)
+    AlteracaoCardapio, Cardapio, GrupoSuspensaoAlimentacao, InversaoCardapio, MotivoAlteracaoCardapio, MotivoSuspensao,
+    QuantidadePorPeriodoSuspensaoAlimentacao, SubstituicoesAlimentacaoNoPeriodoEscolar, SuspensaoAlimentacao,
+    TipoAlimentacao
+)
 
 admin.site.register(TipoAlimentacao)
 admin.site.register(InversaoCardapio)
@@ -28,6 +27,8 @@ class SubstituicoesInLine(admin.TabularInline):
 @admin.register(AlteracaoCardapio)
 class AlteracaoCardapioModelAdmin(admin.ModelAdmin):
     inlines = [SubstituicoesInLine]
+    list_display = ['uuid', 'data_inicial', 'data_final', 'status']
+    list_filter = ['status']
 
 
 class SuspensaoAlimentacaoInline(admin.TabularInline):

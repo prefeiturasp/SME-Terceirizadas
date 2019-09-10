@@ -3,16 +3,15 @@ from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.mixins import RetrieveModelMixin
 from rest_framework.response import Response
-from rest_framework.viewsets import ViewSet, GenericViewSet
+from rest_framework.viewsets import GenericViewSet, ViewSet
 
 from .permissions import PodeMarcarDesmarcarComoLidaPermission
 from .serializers import (
-    PerfilPermissaoCreateSerializer, PerfilPermissaoSerializer,
-    GrupoCompletoPerfilSerializer, NotificationSerializer,
-    UsuarioSerializer, PerfilSerializer, GrupoPerfilCreateSerializer,
-    PermissaoSerializer, UsuarioDetalheSerializer
+    GrupoCompletoPerfilSerializer, GrupoPerfilCreateSerializer, NotificationSerializer, PerfilPermissaoCreateSerializer,
+    PerfilPermissaoSerializer, PerfilSerializer, PermissaoSerializer, UsuarioSerializer
 )
-from ..models import Usuario, Perfil, GrupoPerfil, Permissao, PerfilPermissao
+from ..models import GrupoPerfil, Perfil, PerfilPermissao, Permissao, Usuario
+from ...escola.api.serializers import UsuarioDetalheSerializer
 
 
 class UsuarioViewSet(viewsets.ReadOnlyModelViewSet):
@@ -20,7 +19,7 @@ class UsuarioViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Usuario.objects.all()
     serializer_class = UsuarioSerializer
 
-    @action(detail=False, url_path="meus-dados")
+    @action(detail=False, url_path='meus-dados')
     def meus_dados(self, request):
         usuario = request.user
         serializer = UsuarioDetalheSerializer(usuario)

@@ -1,22 +1,28 @@
 from rest_framework import serializers
 
-from ...models import (Edital, Terceirizada, Nutricionista, Contrato, VigenciaContrato)
-from sme_pratoaberto_terceirizadas.dados_comuns.api.serializers import ContatoSerializer
-from sme_pratoaberto_terceirizadas.escola.models import Lote
+from ...models import (Contrato, Edital, Nutricionista, Terceirizada, VigenciaContrato)
+from ....dados_comuns.api.serializers import ContatoSerializer
+from ....escola.models import DiretoriaRegional, Lote
 
 
 class NutricionistaSerializer(serializers.ModelSerializer):
+    contatos = ContatoSerializer(many=True)
+
     class Meta:
         model = Nutricionista
         exclude = ('id', 'terceirizada')
 
 
-class TerceirizadaSerializer(serializers.ModelSerializer):
-    nutricionistas = NutricionistaSerializer(many=True)
-
+class LoteSimplesSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Terceirizada
-        exclude = ('id',)
+        model = Lote
+        fields = ('uuid', 'nome',)
+
+
+class DiretoriaRegionalSimplesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DiretoriaRegional
+        fields = ('uuid', 'nome',)
 
 
 class TerceirizadaSimplesSerializer(serializers.ModelSerializer):
@@ -39,16 +45,16 @@ class ContratoSerializer(serializers.ModelSerializer):
         queryset=Edital.objects.all()
     )
     vigencias = VigenciaContratoSerializer(many=True)
-    lotes = serializers.SlugRelatedField(
-        slug_field='uuid',
-        queryset=Lote.objects.all(),
-        many=True
-    )
-    terceirizadas = TerceirizadaSimplesSerializer(many=True)
+
+    lotes = LoteSimplesSerializer(many=True)
+
+    terceirizada = TerceirizadaSimplesSerializer()
+
+    diretorias_regionais = DiretoriaRegionalSimplesSerializer(many=True)
 
     class Meta:
         model = Contrato
-        fields = ('uuid', 'numero', 'processo', 'data_proposta', 'lotes', 'terceirizadas', 'edital', 'vigencias')
+        exclude = ('id',)
 
 
 class EditalSerializer(serializers.ModelSerializer):
@@ -63,3 +69,11 @@ class EditalContratosSerializer(serializers.ModelSerializer):
     class Meta:
         model = Edital
         exclude = ('id',)
+
+
+class ContratoSimplesSerializer(serializers.ModelSerializer):
+    edital = EditalSerializer()
+
+    class Meta:
+        model = Contrato
+        exclude = ('id', 'terceirizada', 'diretorias_regionais', 'lotes')

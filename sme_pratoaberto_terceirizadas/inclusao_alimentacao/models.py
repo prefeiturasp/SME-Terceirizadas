@@ -1,14 +1,26 @@
 from django.core.validators import MinValueValidator
 from django.db import models
 
-from sme_pratoaberto_terceirizadas.dados_comuns.models import TemplateMensagem
+from .managers import (
+    InclusoesDeAlimentacaoContinuaPrazoLimiteDaquiA30DiasManager,
+    InclusoesDeAlimentacaoContinuaPrazoLimiteDaquiA7DiasManager, InclusoesDeAlimentacaoContinuaPrazoLimiteManager,
+    InclusoesDeAlimentacaoContinuaPrazoRegularDaquiA30DiasManager,
+    InclusoesDeAlimentacaoContinuaPrazoRegularDaquiA7DiasManager, InclusoesDeAlimentacaoContinuaPrazoRegularManager,
+    InclusoesDeAlimentacaoContinuaPrazoVencendoHojeManager, InclusoesDeAlimentacaoContinuaPrazoVencendoManager,
+    InclusoesDeAlimentacaoContinuaVencidaDiasManager, InclusoesDeAlimentacaoNormalPrazoLimiteDaquiA30DiasManager,
+    InclusoesDeAlimentacaoNormalPrazoLimiteDaquiA7DiasManager, InclusoesDeAlimentacaoNormalPrazoLimiteManager,
+    InclusoesDeAlimentacaoNormalPrazoRegularDaquiA30DiasManager,
+    InclusoesDeAlimentacaoNormalPrazoRegularDaquiA7DiasManager, InclusoesDeAlimentacaoNormalPrazoRegularManager,
+    InclusoesDeAlimentacaoNormalPrazoVencendoHojeManager, InclusoesDeAlimentacaoNormalPrazoVencendoManager,
+    InclusoesDeAlimentacaoNormalVencidosDiasManager
+)
+from ..dados_comuns.models import (
+    LogSolicitacoesUsuario, TemplateMensagem
+)
 from ..dados_comuns.models_abstract import (
-    Descritivel, IntervaloDeDia,
-    Nomeavel, TemData, TemChaveExterna,
-    DiasSemana, CriadoPor,
-    FluxoAprovacaoPartindoDaEscola,
-    TemIdentificadorExternoAmigavel,
-    CriadoEm)
+    CriadoEm, CriadoPor, Descritivel, DiasSemana, FluxoAprovacaoPartindoDaEscola, IntervaloDeDia, Logs, Nomeavel,
+    TemChaveExterna, TemData, TemIdentificadorExternoAmigavel, TemPrioridade
+)
 
 
 class QuantidadePorPeriodo(TemChaveExterna):
@@ -25,13 +37,13 @@ class QuantidadePorPeriodo(TemChaveExterna):
                                                       related_name='quantidades_por_periodo')
 
     def __str__(self):
-        return "{} alunos para {} com {} tipo(s) de alimentação".format(
-            self.numero_alunos, self.periodo_escolar,
-            self.tipos_alimentacao.count())
+        qtd = self.tipos_alimentacao.count()
+        return f'{self.numero_alunos} alunos para {self.periodo_escolar} com {qtd} tipo(s) de alimentação'
 
-    class Meta:
-        verbose_name = "Quantidade por periodo"
-        verbose_name_plural = "Quantidades por periodo"
+
+class Meta:
+    verbose_name = 'Quantidade por periodo'
+    verbose_name_plural = 'Quantidades por periodo'
 
 
 class MotivoInclusaoContinua(Nomeavel, TemChaveExterna):
@@ -45,18 +57,37 @@ class MotivoInclusaoContinua(Nomeavel, TemChaveExterna):
         return self.nome
 
     class Meta:
-        verbose_name = "Motivo de inclusao contínua"
-        verbose_name_plural = "Motivos de inclusao contínua"
+        verbose_name = 'Motivo de inclusao contínua'
+        verbose_name_plural = 'Motivos de inclusao contínua'
 
 
 class InclusaoAlimentacaoContinua(IntervaloDeDia, Descritivel, TemChaveExterna,
                                   DiasSemana, FluxoAprovacaoPartindoDaEscola,
                                   CriadoPor, TemIdentificadorExternoAmigavel,
-                                  CriadoEm):
-    outro_motivo = models.CharField("Outro motivo", blank=True, null=True, max_length=50)
+                                  CriadoEm, Logs, TemPrioridade):
+    outro_motivo = models.CharField('Outro motivo', blank=True, max_length=50)
     motivo = models.ForeignKey(MotivoInclusaoContinua, on_delete=models.DO_NOTHING)
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING,
                                related_name='inclusoes_alimentacao_continua')
+
+    objects = models.Manager()  # Manager Padrão
+    prazo_vencendo = InclusoesDeAlimentacaoContinuaPrazoVencendoManager()
+    prazo_vencendo_hoje = InclusoesDeAlimentacaoContinuaPrazoVencendoHojeManager()
+    prazo_limite = InclusoesDeAlimentacaoContinuaPrazoLimiteManager()
+    prazo_limite_daqui_a_7_dias = InclusoesDeAlimentacaoContinuaPrazoLimiteDaquiA7DiasManager()
+    prazo_limite_daqui_a_30_dias = InclusoesDeAlimentacaoContinuaPrazoLimiteDaquiA30DiasManager()
+    prazo_regular = InclusoesDeAlimentacaoContinuaPrazoRegularManager()
+    prazo_regular_daqui_a_7_dias = InclusoesDeAlimentacaoContinuaPrazoRegularDaquiA7DiasManager()
+    prazo_regular_daqui_a_30_dias = InclusoesDeAlimentacaoContinuaPrazoRegularDaquiA30DiasManager()
+    vencidos = InclusoesDeAlimentacaoContinuaVencidaDiasManager()
+
+    @classmethod
+    def get_solicitacoes_rascunho(cls, usuario):
+        inclusoes_continuas = cls.objects.filter(
+            criado_por=usuario,
+            status=InclusaoAlimentacaoContinua.workflow_class.RASCUNHO
+        )
+        return inclusoes_continuas
 
     @property
     def quantidades_periodo(self):
@@ -78,14 +109,22 @@ class InclusaoAlimentacaoContinua(IntervaloDeDia, Descritivel, TemChaveExterna,
             corpo = corpo.replace(chave, valor)
         return template.assunto, corpo
 
+    def salvar_log_transicao(self, status_evento, usuario):
+        LogSolicitacoesUsuario.objects.create(
+            descricao=str(self),
+            status_evento=status_evento,
+            solicitacao_tipo=LogSolicitacoesUsuario.INCLUSAO_ALIMENTACAO_CONTINUA,
+            usuario=usuario,
+            uuid_original=self.uuid
+        )
+
     def __str__(self):
-        return "de {} até {} para {} para {}".format(
-            self.data_inicial, self.data_final, self.escola,
-            self.dias_semana_display())
+        return f'de {self.data_inicial} até {self.data_final} para {self.escola} para {self.dias_semana_display()}'
 
     class Meta:
-        verbose_name = "Inclusão de alimentação contínua"
-        verbose_name_plural = "Inclusões de alimentação contínua"
+        verbose_name = 'Inclusão de alimentação contínua'
+        verbose_name_plural = 'Inclusões de alimentação contínua'
+        ordering = ['data_inicial']
 
 
 class MotivoInclusaoNormal(Nomeavel, TemChaveExterna):
@@ -99,14 +138,13 @@ class MotivoInclusaoNormal(Nomeavel, TemChaveExterna):
         return self.nome
 
     class Meta:
-        verbose_name = "Motivo de inclusao normal"
-        verbose_name_plural = "Motivos de inclusao normais"
+        verbose_name = 'Motivo de inclusao normal'
+        verbose_name_plural = 'Motivos de inclusao normais'
 
 
-class InclusaoAlimentacaoNormal(TemData, TemChaveExterna):
-    prioritario = models.BooleanField(default=False)
+class InclusaoAlimentacaoNormal(TemData, TemChaveExterna, TemPrioridade):
     motivo = models.ForeignKey(MotivoInclusaoNormal, on_delete=models.DO_NOTHING)
-    outro_motivo = models.CharField("Outro motivo", blank=True, null=True, max_length=50)
+    outro_motivo = models.CharField('Outro motivo', blank=True, max_length=50)
     grupo_inclusao = models.ForeignKey('GrupoInclusaoAlimentacaoNormal',
                                        blank=True, null=True,
                                        on_delete=models.CASCADE,
@@ -114,18 +152,38 @@ class InclusaoAlimentacaoNormal(TemData, TemChaveExterna):
 
     def __str__(self):
         if self.outro_motivo:
-            return "Dia {} {} ".format(self.data, self.outro_motivo)
-        return "Dia {} {} ".format(self.data, self.motivo)
+            return f'Dia {self.data} {self.outro_motivo}'
+        return f'Dia {self.data} {self.motivo} '
 
     class Meta:
-        verbose_name = "Inclusão de alimentação normal"
-        verbose_name_plural = "Inclusões de alimentação normal"
+        verbose_name = 'Inclusão de alimentação normal'
+        verbose_name_plural = 'Inclusões de alimentação normal'
+        ordering = ('data',)
 
 
 class GrupoInclusaoAlimentacaoNormal(Descritivel, TemChaveExterna, FluxoAprovacaoPartindoDaEscola,
-                                     CriadoPor, TemIdentificadorExternoAmigavel):
+                                     CriadoPor, TemIdentificadorExternoAmigavel, Logs, TemPrioridade):
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING,
                                related_name='grupos_inclusoes_normais')
+
+    objects = models.Manager()  # Manager Padrão
+    prazo_vencendo = InclusoesDeAlimentacaoNormalPrazoVencendoManager()
+    prazo_vencendo_hoje = InclusoesDeAlimentacaoNormalPrazoVencendoHojeManager()
+    prazo_limite = InclusoesDeAlimentacaoNormalPrazoLimiteManager()
+    prazo_limite_daqui_a_7_dias = InclusoesDeAlimentacaoNormalPrazoLimiteDaquiA7DiasManager()
+    prazo_limite_daqui_a_30_dias = InclusoesDeAlimentacaoNormalPrazoLimiteDaquiA30DiasManager()
+    prazo_regular = InclusoesDeAlimentacaoNormalPrazoRegularManager()
+    prazo_regular_daqui_a_7_dias = InclusoesDeAlimentacaoNormalPrazoRegularDaquiA7DiasManager()
+    prazo_regular_daqui_a_30_dias = InclusoesDeAlimentacaoNormalPrazoRegularDaquiA30DiasManager()
+    vencidos = InclusoesDeAlimentacaoNormalVencidosDiasManager()
+
+    @classmethod
+    def get_solicitacoes_rascunho(cls, usuario):
+        alimentacao_normal = cls.objects.filter(
+            criado_por=usuario,
+            status=GrupoInclusaoAlimentacaoNormal.workflow_class.RASCUNHO
+        )
+        return alimentacao_normal
 
     @property
     def template_mensagem(self):
@@ -143,8 +201,18 @@ class GrupoInclusaoAlimentacaoNormal(Descritivel, TemChaveExterna, FluxoAprovaca
         return template.assunto, corpo
 
     @property
-    def descricao_curta(self):
-        return f"Grupo de inclusão de alimentação normal #{self.id_externo}"
+    def data(self):
+        inclusao_normal = self.inclusoes_normais.order_by('data').first()
+        return inclusao_normal.data
+
+    def salvar_log_transicao(self, status_evento, usuario):
+        LogSolicitacoesUsuario.objects.create(
+            descricao=str(self),
+            status_evento=status_evento,
+            solicitacao_tipo=LogSolicitacoesUsuario.INCLUSAO_ALIMENTACAO_NORMAL,
+            usuario=usuario,
+            uuid_original=self.uuid
+        )
 
     @property
     def inclusoes(self):
@@ -164,10 +232,9 @@ class GrupoInclusaoAlimentacaoNormal(Descritivel, TemChaveExterna, FluxoAprovaca
         quantidade_periodo.grupo_inclusao_normal = self
         quantidade_periodo.save()
 
-    # TODO: status aqui.
     def __str__(self):
-        return "{} pedindo {} inclusoes".format(self.escola, self.inclusoes.count())
+        return f'{self.escola} pedindo {self.inclusoes.count()} inclusoes'
 
     class Meta:
-        verbose_name = "Grupo de inclusão de alimentação normal"
-        verbose_name_plural = "Grupos de inclusão de alimentação normal"
+        verbose_name = 'Grupo de inclusão de alimentação normal'
+        verbose_name_plural = 'Grupos de inclusão de alimentação normal'

@@ -6,13 +6,13 @@ from ..validators import (deve_pedir_com_antecedencia, dia_util,
                           nao_pode_ser_no_passado)
 
 
-@freeze_time("2019-05-22")  # qua
+@freeze_time('2019-05-22')  # qua
 def test_deve_pedir_com_antecedencia(dias_teste_antecedencia):
     dia, dias_antec, esperado = dias_teste_antecedencia
     assert deve_pedir_com_antecedencia(dia, dias_antec) is esperado
 
 
-@freeze_time("2019-05-22")  # qua
+@freeze_time('2019-05-22')  # qua
 def test_deve_pedir_com_antecedencia_validation_error(dias_teste_antecedencia_erro):
     dia, dias_antec, esperado = dias_teste_antecedencia_erro
     with pytest.raises(ValidationError, match=esperado):
@@ -30,13 +30,13 @@ def test_dia_nao_util(dias_nao_uteis):
         dia_util(dia)
 
 
-@freeze_time("2019-05-22")
+@freeze_time('2019-05-22')
 def test_nao_pode_ser_passado(dias_futuros):
     dia, esperado = dias_futuros
     assert nao_pode_ser_no_passado(dia) is esperado
 
 
-@freeze_time("2019-05-22")
+@freeze_time('2019-05-22')
 def test_nao_pode_ser_passado_raise_exception(dias_passados):
     dia, esperado = dias_passados
     with pytest.raises(ValidationError, match=esperado):

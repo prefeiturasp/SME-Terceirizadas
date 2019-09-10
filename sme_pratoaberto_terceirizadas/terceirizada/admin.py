@@ -1,8 +1,6 @@
 from django.contrib import admin
 
-from .models import Terceirizada, Edital, Nutricionista, Contrato, VigenciaContrato
-
-# admin.site.register(Edital)
+from .models import Contrato, Edital, Nutricionista, Terceirizada, VigenciaContrato
 
 
 class NutricionistasInline(admin.TabularInline):

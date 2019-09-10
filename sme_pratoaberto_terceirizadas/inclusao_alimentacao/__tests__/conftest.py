@@ -2,8 +2,8 @@ import pytest
 from faker import Faker
 from model_mommy import mommy
 
-from sme_pratoaberto_terceirizadas.dados_comuns.models import TemplateMensagem
 from .. import models
+from ...dados_comuns.models import TemplateMensagem
 
 fake = Faker('pt-Br')
 fake.seed(420)

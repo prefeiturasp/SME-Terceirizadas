@@ -16,20 +16,30 @@ Sistema de alimentação focado em terceirizadas
 :License: GPLv3
 
 
-Basic Commands
---------------
+Comandos Básicos
+----------------
 
-Setting Up Your Users
-^^^^^^^^^^^^^^^^^^^^^
+Carga inicial de dados
+^^^^^^^^^^^^^^^^^^^^^^
+* Rodar as migrations::
 
-* To create an **superuser account**, use this command::
+    $ ./manage.py migrate
 
-    $ python manage.py createsuperuser
+* Criar o super usuário::
 
-Type checks
-^^^^^^^^^^^
+    $ ./manage.py createsuperuser
 
-Running type checks with mypy:
+* Carregar as fixtures::
+
+    $ ./manage.py loaddata sme_pratoaberto_terceirizadas/**/fixtures/*.json
+
+* Carregar dados de planilhas excel junto com pedidos fake::
+
+    $ ./manage.py shell_plus
+    $ from utility.carga_dados import run
+
+Verificação de tipos de dados
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 ::
 
@@ -38,25 +48,6 @@ Running type checks with mypy:
 Test coverage
 ^^^^^^^^^^^^^
 
-To run the tests, check your test coverage, and generate an HTML coverage report::
+Para executar testes em modo daemon, use o pytest-watch::
 
-    $ coverage run -m pytest
-    $ coverage html
-    $ open htmlcov/index.html
-
-Running tests with py.test
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-::
-
-  $ pytest
-
-
-
-Deployment
-----------
-
-...
-
-
-
+    $ ptw

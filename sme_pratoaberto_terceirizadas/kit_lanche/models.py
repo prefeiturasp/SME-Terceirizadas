@@ -1,11 +1,22 @@
-from django.db import models
+import uuid
 
-from sme_pratoaberto_terceirizadas.dados_comuns.models import TemplateMensagem
+from django.db import models
+from django.db.models.functions import Coalesce
+
+from .managers import (
+    SolicitacaoKitLancheAvulsaPrazoLimiteDaquiA7DiasManager, SolicitacaoKitLancheAvulsaPrazoLimiteManager,
+    SolicitacaoKitLancheAvulsaPrazoRegularDaquiA30DiasManager, SolicitacaoKitLancheAvulsaPrazoRegularManager,
+    SolicitacaoKitLancheAvulsaPrazoVencendoHojeManager, SolicitacaoKitLancheAvulsaPrazoVencendoManager,
+    SolicitacaoKitLancheAvulsaVencidaDiasManager, SolicitacaoUnificadaPrazoLimiteDaquiA30DiasManager,
+    SolicitacaoUnificadaPrazoLimiteDaquiA7DiasManager, SolicitacaoUnificadaPrazoLimiteManager,
+    SolicitacaoUnificadaPrazoVencendoHojeManager, SolicitacaoUnificadaPrazoVencendoManager,
+    SolicitacaoUnificadaVencidaManager
+)
+from ..dados_comuns.models import LogSolicitacoesUsuario, TemplateMensagem
 from ..dados_comuns.models_abstract import (
-    Nomeavel, TemData, Motivo, Descritivel,
-    CriadoEm, TemChaveExterna, TempoPasseio, CriadoPor,
-    FluxoAprovacaoPartindoDaEscola, TemIdentificadorExternoAmigavel,
-    FluxoAprovacaoPartindoDaDiretoriaRegional)
+    CriadoEm, CriadoPor, Descritivel, FluxoAprovacaoPartindoDaDiretoriaRegional, FluxoAprovacaoPartindoDaEscola, Logs,
+    Motivo, Nomeavel, TemChaveExterna, TemData, TemIdentificadorExternoAmigavel, TemPrioridade, TempoPasseio
+)
 
 
 class MotivoSolicitacaoUnificada(Nomeavel, TemChaveExterna):
@@ -17,8 +28,8 @@ class MotivoSolicitacaoUnificada(Nomeavel, TemChaveExterna):
         return self.nome
 
     class Meta:
-        verbose_name = "Motivo da solicitação unificada"
-        verbose_name_plural = "Motivos da solicitação unificada"
+        verbose_name = 'Motivo da solicitação unificada'
+        verbose_name_plural = 'Motivos da solicitação unificada'
 
 
 class ItemKitLanche(Nomeavel, TemChaveExterna):
@@ -34,8 +45,8 @@ class ItemKitLanche(Nomeavel, TemChaveExterna):
         return self.nome
 
     class Meta:
-        verbose_name = "Item do kit lanche"
-        verbose_name_plural = "Item do kit lanche"
+        verbose_name = 'Item do kit lanche'
+        verbose_name_plural = 'Item do kit lanche'
 
 
 class KitLanche(Nomeavel, TemChaveExterna):
@@ -48,26 +59,26 @@ class KitLanche(Nomeavel, TemChaveExterna):
         return self.nome
 
     class Meta:
-        verbose_name = "Kit lanche"
-        verbose_name_plural = "Kit lanches"
+        verbose_name = 'Kit lanche'
+        verbose_name_plural = 'Kit lanches'
 
 
-class SolicitacaoKitLanche(TemData, Motivo, Descritivel, CriadoEm, TempoPasseio, TemChaveExterna):
+class SolicitacaoKitLanche(TemData, Motivo, Descritivel, CriadoEm, TempoPasseio, TemChaveExterna, TemPrioridade):
     # TODO: implementar one to one, nas duas tabelas que apontam pra essa
     # https://docs.djangoproject.com/en/2.2/ref/models/fields/#django.db.models.OneToOneField
 
     kits = models.ManyToManyField(KitLanche, blank=True)
 
     def __str__(self):
-        return "{} criado em {}".format(self.motivo, self.criado_em)
+        return f'{self.motivo} criado em {self.criado_em}'
 
     class Meta:
-        verbose_name = "Solicitação kit lanche base"
-        verbose_name_plural = "Solicitações kit lanche base"
+        verbose_name = 'Solicitação kit lanche base'
+        verbose_name_plural = 'Solicitações kit lanche base'
 
 
 class SolicitacaoKitLancheAvulsa(TemChaveExterna, FluxoAprovacaoPartindoDaEscola, TemIdentificadorExternoAmigavel,
-                                 CriadoPor):
+                                 CriadoPor, TemPrioridade, Logs):
     # TODO: ao deletar este, deletar solicitacao_kit_lanche também que é uma tabela acessória
     # TODO: passar `local` para solicitacao_kit_lanche
     local = models.CharField(max_length=160)
@@ -75,6 +86,32 @@ class SolicitacaoKitLancheAvulsa(TemChaveExterna, FluxoAprovacaoPartindoDaEscola
     solicitacao_kit_lanche = models.ForeignKey(SolicitacaoKitLanche, on_delete=models.DO_NOTHING)
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING,
                                related_name='solicitacoes_kit_lanche_avulsa')
+
+    @property
+    def data(self):
+        return self.solicitacao_kit_lanche.data
+
+    objects = models.Manager()  # Manager Padrão
+    prazo_vencendo = SolicitacaoKitLancheAvulsaPrazoVencendoManager()
+    prazo_vencendo_hoje = SolicitacaoKitLancheAvulsaPrazoVencendoHojeManager()
+
+    prazo_limite = SolicitacaoKitLancheAvulsaPrazoLimiteManager()
+    prazo_limite_daqui_a_7_dias = SolicitacaoKitLancheAvulsaPrazoLimiteDaquiA7DiasManager()
+    prazo_limite_daqui_a_30_dias = SolicitacaoKitLancheAvulsaPrazoRegularDaquiA30DiasManager()
+
+    prazo_regular = SolicitacaoKitLancheAvulsaPrazoRegularManager()
+    prazo_regular_daqui_a_7_dias = SolicitacaoKitLancheAvulsaPrazoLimiteDaquiA7DiasManager()
+    prazo_regular_daqui_a_30_dias = SolicitacaoKitLancheAvulsaPrazoRegularDaquiA30DiasManager()
+    vencidos = SolicitacaoKitLancheAvulsaVencidaDiasManager()
+
+    def salvar_log_transicao(self, status_evento, usuario):
+        LogSolicitacoesUsuario.objects.create(
+            descricao=str(self),
+            status_evento=status_evento,
+            solicitacao_tipo=LogSolicitacoesUsuario.SOLICITACAO_KIT_LANCHE_AVULSA,
+            usuario=usuario,
+            uuid_original=self.uuid
+        )
 
     @property
     def template_mensagem(self):
@@ -93,15 +130,15 @@ class SolicitacaoKitLancheAvulsa(TemChaveExterna, FluxoAprovacaoPartindoDaEscola
         return template.assunto, corpo
 
     def __str__(self):
-        return "{} SOLICITA PARA {} ALUNOS EM {}".format(self.escola, self.quantidade_alunos, self.local)
+        return f'{self.escola} SOLICITA PARA {self.quantidade_alunos} ALUNOS EM {self.local}'
 
     class Meta:
-        verbose_name = "Solicitação de kit lanche avulsa"
-        verbose_name_plural = "Solicitações de kit lanche avulsa"
+        verbose_name = 'Solicitação de kit lanche avulsa'
+        verbose_name_plural = 'Solicitações de kit lanche avulsa'
 
 
 class SolicitacaoKitLancheUnificada(CriadoPor, TemChaveExterna, TemIdentificadorExternoAmigavel,
-                                    FluxoAprovacaoPartindoDaDiretoriaRegional):
+                                    FluxoAprovacaoPartindoDaDiretoriaRegional, Logs, TemPrioridade):
     """
         significa que uma DRE vai pedir kit lanche para as escolas:
 
@@ -116,13 +153,75 @@ class SolicitacaoKitLancheUnificada(CriadoPor, TemChaveExterna, TemIdentificador
     # TODO: passar `local` para solicitacao_kit_lanche
     motivo = models.ForeignKey(MotivoSolicitacaoUnificada, on_delete=models.DO_NOTHING,
                                blank=True, null=True)
-    outro_motivo = models.TextField(blank=True, null=True)
+    outro_motivo = models.TextField(blank=True)
     quantidade_max_alunos_por_escola = models.PositiveSmallIntegerField(null=True, blank=True)
     local = models.CharField(max_length=160)
     lista_kit_lanche_igual = models.BooleanField(default=True)
 
     diretoria_regional = models.ForeignKey('escola.DiretoriaRegional', on_delete=models.DO_NOTHING)
     solicitacao_kit_lanche = models.ForeignKey(SolicitacaoKitLanche, on_delete=models.DO_NOTHING)
+
+    objects = models.Manager()  # Manager Padrão
+    prazo_vencendo = SolicitacaoUnificadaPrazoVencendoManager()
+    prazo_vencendo_hoje = SolicitacaoUnificadaPrazoVencendoHojeManager()
+
+    prazo_limite = SolicitacaoUnificadaPrazoLimiteManager()
+    prazo_limite_daqui_a_7_dias = SolicitacaoUnificadaPrazoLimiteDaquiA7DiasManager()
+    prazo_limite_daqui_a_30_dias = SolicitacaoUnificadaPrazoLimiteDaquiA30DiasManager()
+
+    vencida = SolicitacaoUnificadaVencidaManager()
+
+    @property
+    def data(self):
+        return self.solicitacao_kit_lanche.data
+
+    @classmethod
+    def get_pedidos_rascunho(cls, usuario):
+        solicitacoes_unificadas = SolicitacaoKitLancheUnificada.objects.filter(
+            criado_por=usuario,
+            status=SolicitacaoKitLancheUnificada.workflow_class.RASCUNHO
+        )
+        return solicitacoes_unificadas
+
+    def salvar_log_transicao(self, status_evento, usuario):
+        LogSolicitacoesUsuario.objects.create(
+            descricao=str(self),
+            status_evento=status_evento,
+            solicitacao_tipo=LogSolicitacoesUsuario.SOLICITACAO_KIT_LANCHE_UNIFICADA,
+            usuario=usuario,
+            uuid_original=self.uuid
+        )
+
+    @property
+    def quantidade_de_lotes(self):
+        return self.escolas_quantidades.distinct('escola__lote').count()
+
+    def dividir_por_lote(self):
+        if self.quantidade_de_lotes > 1:
+            if self.quantidade_de_lotes == 2:
+                return self.dividir_por_dois_lotes()
+            else:
+                return self.dividir_por_tres_ou_mais_lotes()
+        else:
+            return SolicitacaoKitLancheUnificada.objects.filter(id=self.id)
+
+    # TODO: melhorar esse metodo assim que tivermos um entendimento melhor
+    def dividir_por_dois_lotes(self) -> models.QuerySet:
+        primeiro_id = self.id
+        primeiro_lote = self.escolas_quantidades.first().escola.lote
+        escolas_quantidades_desse_lote = self.escolas_quantidades.filter(escola__lote=primeiro_lote)
+        for escola_quantidade in escolas_quantidades_desse_lote:
+            self.escolas_quantidades.remove(escola_quantidade)
+        solicitacao_segundo_lote = self
+        solicitacao_segundo_lote.pk = None
+        solicitacao_segundo_lote.uuid = uuid.uuid4()
+        solicitacao_segundo_lote.save()
+        solicitacao_segundo_lote.escolas_quantidades.set(escolas_quantidades_desse_lote)
+        return SolicitacaoKitLancheUnificada.objects.filter(id__in=[primeiro_id, solicitacao_segundo_lote.id])
+
+    # TODO: se esse caso existir algum dia, implementar
+    def dividir_por_tres_ou_mais_lotes(self):
+        return
 
     @property
     def template_mensagem(self):
@@ -144,7 +243,8 @@ class SolicitacaoKitLancheUnificada(CriadoPor, TemChaveExterna, TemIdentificador
     def total_kit_lanche(self):
         if self.lista_kit_lanche_igual:
             total_alunos = SolicitacaoKitLancheUnificada.objects.annotate(
-                total_alunos=models.Sum('escolas_quantidades__quantidade_alunos')).get(id=self.id).total_alunos
+                total_alunos=Coalesce(models.Sum('escolas_quantidades__quantidade_alunos'), 0)).get(
+                id=self.id).total_alunos
             total_kit_lanche = self.solicitacao_kit_lanche.kits.all().count()
             return total_alunos * total_kit_lanche
         else:
@@ -154,19 +254,18 @@ class SolicitacaoKitLancheUnificada(CriadoPor, TemChaveExterna, TemIdentificador
             return total_kit_lanche
 
     def vincula_escolas_quantidades(self, escolas_quantidades):
+        # TODO trocar isso, fazer backref
         for escola_quantidade in escolas_quantidades:
             escola_quantidade.solicitacao_unificada = self
             escola_quantidade.save()
 
     def __str__(self):
-        return "{} pedindo passeio em {} com kits iguais? {}".format(
-            self.diretoria_regional,
-            self.local,
-            self.lista_kit_lanche_igual)
+        dre = self.diretoria_regional
+        return f'{dre} pedindo passeio em {self.local} com kits iguais? {self.lista_kit_lanche_igual}'
 
     class Meta:
-        verbose_name = "Solicitação kit lanche unificada"
-        verbose_name_plural = "Solicitações de  kit lanche unificadas"
+        verbose_name = 'Solicitação kit lanche unificada'
+        verbose_name_plural = 'Solicitações de  kit lanche unificadas'
 
 
 class EscolaQuantidade(TemChaveExterna, TempoPasseio):
@@ -184,11 +283,9 @@ class EscolaQuantidade(TemChaveExterna, TempoPasseio):
 
     def __str__(self):
         kit_lanche_personalizado = bool(self.kits.count())
-        return "{} para {} alunos, kits diferenciados? {}".format(
-            self.get_tempo_passeio_display(),
-            self.quantidade_alunos,
-            kit_lanche_personalizado)
+        tempo_passeio = self.get_tempo_passeio_display()
+        return f'{tempo_passeio} para {self.quantidade_alunos} alunos, kits diferenciados? {kit_lanche_personalizado}'
 
     class Meta:
-        verbose_name = "Escola quantidade"
-        verbose_name_plural = "Escolas quantidades"
+        verbose_name = 'Escola quantidade'
+        verbose_name_plural = 'Escolas quantidades'

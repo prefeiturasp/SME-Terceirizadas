@@ -1,17 +1,28 @@
 from rest_framework.decorators import action
-from rest_framework.viewsets import ReadOnlyModelViewSet, ModelViewSet
+from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
-from sme_pratoaberto_terceirizadas.escola.api.serializers import LoteSimplesSerializer
-from sme_pratoaberto_terceirizadas.escola.api.serializers_create import LoteCreateSerializer
-from sme_pratoaberto_terceirizadas.inclusao_alimentacao.api.serializers.serializers import (
-    GrupoInclusaoAlimentacaoNormalSerializer, InclusaoAlimentacaoContinuaSerializer)
-from .serializers import (EscolaCompletaSerializer, PeriodoEscolarSerializer, DiretoriaRegionalCompletaSerializer,
-                          TipoGestaoSerializer, SubprefeituraSerializer, EscolaSimplesSerializer,
-                          DiretoriaRegionalComboSerializer, EscolaComboSerializer)
-from ..models import (Escola, PeriodoEscolar, DiretoriaRegional, Lote, TipoGestao, Subprefeitura)
+from ...dados_comuns.constants import FILTRO_PADRAO_PEDIDOS, SEM_FILTRO
+from .serializers import (
+    DiretoriaRegionalCompletaSerializer, DiretoriaRegionalSimplissimaSerializer, EscolaCompletaSerializer,
+    EscolaSimplesSerializer, EscolaSimplissimaSerializer, PeriodoEscolarSerializer, SubprefeituraSerializer,
+    TipoGestaoSerializer
+)
+from ..models import (
+    Codae, DiretoriaRegional, Escola, Lote, PeriodoEscolar, Subprefeitura, TipoGestao
+)
+from ...escola.api.serializers import CODAESerializer, LoteSimplesSerializer
+from ...escola.api.serializers_create import LoteCreateSerializer
+from ...inclusao_alimentacao.api.serializers.serializers import (
+    GrupoInclusaoAlimentacaoNormalSerializer, InclusaoAlimentacaoContinuaSerializer
+)
+from ...paineis_consolidados.api.serializers import (
+    SolicitacoesAutorizadasDRESerializer,
+    SolicitacoesPendentesDRESerializer
+)
 
 
 # https://www.django-rest-framework.org/api-guide/permissions/#custom-permissions
+
 
 class EscolaViewSet(ReadOnlyModelViewSet):
     lookup_field = 'uuid'
@@ -45,10 +56,10 @@ class EscolaSimplesViewSet(ReadOnlyModelViewSet):
     serializer_class = EscolaSimplesSerializer
 
 
-class EscolaComboViewSet(ReadOnlyModelViewSet):
+class EscolaSimplissimaViewSet(ReadOnlyModelViewSet):
     lookup_field = 'uuid'
     queryset = Escola.objects.all()
-    serializer_class = EscolaComboSerializer
+    serializer_class = EscolaSimplissimaSerializer
 
 
 class PeriodoEscolarViewSet(ReadOnlyModelViewSet):
@@ -62,11 +73,32 @@ class DiretoriaRegionalViewSet(ReadOnlyModelViewSet):
     queryset = DiretoriaRegional.objects.all()
     serializer_class = DiretoriaRegionalCompletaSerializer
 
+    @action(detail=True, url_path='solicitacoes-autorizadas-por-mim')
+    def solicitacoes_autorizadas_por_mim(self, request, uuid=None):
+        diretoria_regional = self.get_object()
+        autorizadas = diretoria_regional.solicitacoes_autorizadas()
+        page = self.paginate_queryset(autorizadas)
+        serializer = SolicitacoesAutorizadasDRESerializer(
+            page, many=True
+        )
+        return self.get_paginated_response(serializer.data)
 
-class DiretoriaRegionalComboViewSet(ReadOnlyModelViewSet):
+    @action(detail=True,
+            url_path=f'solicitacoes-pendentes-para-mim/{FILTRO_PADRAO_PEDIDOS}')
+    def solicitacoes_pendentes_para_mim(self, request, uuid=None, filtro_aplicado=SEM_FILTRO):
+        diretoria_regional = self.get_object()
+        pendentes = diretoria_regional.solicitacoes_pendentes(filtro_aplicado=filtro_aplicado)
+        page = self.paginate_queryset(pendentes)
+        serializer = SolicitacoesPendentesDRESerializer(
+            page, many=True
+        )
+        return self.get_paginated_response(serializer.data)
+
+
+class DiretoriaRegionalSimplissimaViewSet(ReadOnlyModelViewSet):
     lookup_field = 'uuid'
     queryset = DiretoriaRegional.objects.all()
-    serializer_class = DiretoriaRegionalComboSerializer
+    serializer_class = DiretoriaRegionalSimplissimaSerializer
 
 
 class TipoGestaoViewSet(ReadOnlyModelViewSet):
@@ -91,3 +123,9 @@ class LoteViewSet(ModelViewSet):
         if self.action in ['create', 'update', 'partial_update']:
             return LoteCreateSerializer
         return LoteSimplesSerializer
+
+
+class CODAESimplesViewSet(ReadOnlyModelViewSet):
+    lookup_field = 'uuid'
+    queryset = Codae.objects.all()
+    serializer_class = CODAESerializer

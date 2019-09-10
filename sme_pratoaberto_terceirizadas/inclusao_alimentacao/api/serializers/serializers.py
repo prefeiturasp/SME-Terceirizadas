@@ -1,12 +1,13 @@
 from rest_framework import serializers
 
-from sme_pratoaberto_terceirizadas.cardapio.api.serializers.serializers import TipoAlimentacaoSerializer
-from sme_pratoaberto_terceirizadas.escola.api.serializers import EscolaSimplesSerializer
-from sme_pratoaberto_terceirizadas.escola.api.serializers import PeriodoEscolarSerializer
-from sme_pratoaberto_terceirizadas.inclusao_alimentacao.models import (
-    MotivoInclusaoContinua, MotivoInclusaoNormal,
-    InclusaoAlimentacaoNormal, QuantidadePorPeriodo,
-    GrupoInclusaoAlimentacaoNormal, InclusaoAlimentacaoContinua)
+from ....cardapio.api.serializers.serializers import TipoAlimentacaoSerializer
+from ....dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
+from ....escola.api.serializers import EscolaSimplesSerializer
+from ....escola.api.serializers import PeriodoEscolarSerializer
+from ....inclusao_alimentacao.models import (
+    GrupoInclusaoAlimentacaoNormal, InclusaoAlimentacaoContinua, InclusaoAlimentacaoNormal, MotivoInclusaoContinua,
+    MotivoInclusaoNormal, QuantidadePorPeriodo
+)
 
 
 class MotivoInclusaoContinuaSerializer(serializers.ModelSerializer):
@@ -42,6 +43,7 @@ class InclusaoAlimentacaoContinuaSerializer(serializers.ModelSerializer):
     motivo = MotivoInclusaoContinuaSerializer()
     quantidades_periodo = QuantidadePorPeriodoSerializer(many=True)
     escola = EscolaSimplesSerializer()
+    logs = LogSolicitacoesUsuarioSerializer(many=True)
     dias_semana_explicacao = serializers.CharField(
         source='dias_semana_display',
         required=False,
@@ -54,6 +56,20 @@ class InclusaoAlimentacaoContinuaSerializer(serializers.ModelSerializer):
         exclude = ('id',)
 
 
+class InclusaoAlimentacaoContinuaSimplesSerializer(serializers.ModelSerializer):
+    motivo = MotivoInclusaoContinuaSerializer()
+    dias_semana_explicacao = serializers.CharField(
+        source='dias_semana_display',
+        required=False,
+        read_only=True
+    )
+    prioridade = serializers.CharField()
+
+    class Meta:
+        model = InclusaoAlimentacaoContinua
+        exclude = ('id', 'escola', 'criado_por')
+
+
 class InclusaoAlimentacaoNormalSimplesSerializer(serializers.ModelSerializer):
     class Meta:
         model = InclusaoAlimentacaoNormal
@@ -64,8 +80,17 @@ class GrupoInclusaoAlimentacaoNormalSerializer(serializers.ModelSerializer):
     inclusoes = InclusaoAlimentacaoNormalSerializer(many=True)
     escola = EscolaSimplesSerializer()
     quantidades_periodo = QuantidadePorPeriodoSerializer(many=True)
+    logs = LogSolicitacoesUsuarioSerializer(many=True)
     id_externo = serializers.CharField()
 
     class Meta:
         model = GrupoInclusaoAlimentacaoNormal
         exclude = ('id',)
+
+
+class GrupoInclusaoAlimentacaoNormalSimplesSerializer(serializers.ModelSerializer):
+    prioridade = serializers.CharField()
+
+    class Meta:
+        model = GrupoInclusaoAlimentacaoNormal
+        exclude = ('id', 'criado_por', 'escola')

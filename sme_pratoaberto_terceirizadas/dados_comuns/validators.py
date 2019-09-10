@@ -1,9 +1,10 @@
 import datetime
 
 from rest_framework import serializers
+from traitlets import Any
 from workalendar.america import BrazilSaoPauloCity
 
-from .utils import obter_dias_uteis_apos_hoje, eh_dia_util
+from .utils import eh_dia_util, obter_dias_uteis_apos_hoje
 
 calendario = BrazilSaoPauloCity()
 
@@ -16,8 +17,8 @@ def nao_pode_ser_no_passado(data: datetime.date):
 
 def deve_pedir_com_antecedencia(dia: datetime.date, dias: int = 2):
     prox_dia_util = obter_dias_uteis_apos_hoje(quantidade_dias=dias)
-    if dia <= prox_dia_util:
-        raise serializers.ValidationError('Deve pedir com pelo menos {} dias úteis de antecedência'.format(dias))
+    if dia < prox_dia_util:
+        raise serializers.ValidationError(f'Deve pedir com pelo menos {dias} dias úteis de antecedência')
     return True
 
 
@@ -39,7 +40,7 @@ def verificar_se_existe(obj_model, **kwargs) -> bool:
     return existe
 
 
-def objeto_nao_deve_ter_duplicidade(obj_model, mensagem="Objeto já existe", **kwargs, ):
+def objeto_nao_deve_ter_duplicidade(obj_model, mensagem='Objeto já existe', **kwargs, ):
     qtd = obj_model.objects.filter(**kwargs).count()
     if qtd:
         raise serializers.ValidationError(mensagem)
@@ -47,4 +48,14 @@ def objeto_nao_deve_ter_duplicidade(obj_model, mensagem="Objeto já existe", **k
 
 def nao_pode_ser_feriado(data: datetime.date, mensagem='Não pode ser no feriado'):
     if calendario.is_holiday(data):
+        raise serializers.ValidationError(mensagem)
+
+
+def nao_pode_ser_nulo(valor: Any, mensagem='Não pode ser nulo'):
+    if not valor:
+        raise serializers.ValidationError(mensagem)
+
+
+def deve_ser_deste_tipo(valor: Any, tipo=str, mensagem='Deve ser do tipo texto'):
+    if type(valor) is not tipo:
         raise serializers.ValidationError(mensagem)

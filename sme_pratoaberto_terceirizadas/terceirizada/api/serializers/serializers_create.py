@@ -1,7 +1,8 @@
 from rest_framework import serializers
-from sme_pratoaberto_terceirizadas.dados_comuns.utils import update_instance_from_dict
-from sme_pratoaberto_terceirizadas.escola.models import Lote
-from ...models import (Terceirizada, Nutricionista, VigenciaContrato, Contrato, Edital)
+
+from ...models import (Contrato, Edital, Nutricionista, Terceirizada, VigenciaContrato)
+from ....dados_comuns.utils import update_instance_from_dict
+from ....escola.models import DiretoriaRegional, Lote
 
 
 class NutricionistaCreateSerializer(serializers.ModelSerializer):
@@ -43,20 +44,23 @@ class ContratoCreateSerializer(serializers.ModelSerializer):
         queryset=Lote.objects.all()
     )
 
-    terceirizadas = serializers.SlugRelatedField(
+    terceirizada = serializers.SlugRelatedField(
         slug_field='uuid',
         required=True,
-        many=True,
         queryset=Terceirizada.objects.all()
+    )
+
+    diretorias_regionais = serializers.SlugRelatedField(
+        slug_field='uuid',
+        many=True,
+        queryset=DiretoriaRegional.objects.all()
     )
 
     vigencias = VigenciaContratoCreateSerializer(many=True)
 
-
     def create(self, validated_data):
         lotes_json = validated_data.pop('lotes', [])
-        terceirizadas_json = validated_data.pop('terceirizadas', [])
-
+        dres_json = validated_data.pop('diretorias_regionais', [])
         vigencias_array = validated_data.pop('vigencias')
 
         vigencias = []
@@ -66,15 +70,15 @@ class ContratoCreateSerializer(serializers.ModelSerializer):
 
         contrato = Contrato.objects.create(**validated_data)
         contrato.vigencias.set(vigencias)
-
         contrato.lotes.set(lotes_json)
-        contrato.terceirizadas.set(terceirizadas_json)
+        contrato.diretorias_regionais.set(dres_json)
 
         return contrato
 
     def update(self, instance, validated_data):
         lotes_json = validated_data.pop('lotes', [])
         terceirizadas_json = validated_data.pop('terceirizadas', [])
+        dres_json = validated_data.pop('diretorias_regionais', [])
 
         vigencias_array = validated_data.pop('vigencias')
 
@@ -90,6 +94,7 @@ class ContratoCreateSerializer(serializers.ModelSerializer):
         instance.contratos.set(vigencias)
         instance.lotes.set(lotes_json)
         instance.terceirizadas.set(terceirizadas_json)
+        instance.diretorias_regionais.set(dres_json)
 
         return instance
 
@@ -99,7 +104,6 @@ class ContratoCreateSerializer(serializers.ModelSerializer):
 
 
 class EditalContratosCreateSerializer(serializers.ModelSerializer):
-
     contratos = ContratoCreateSerializer(many=True)
 
     def create(self, validated_data):

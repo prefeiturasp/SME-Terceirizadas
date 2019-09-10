@@ -2,7 +2,7 @@ from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
 from ...dados_comuns.models_abstract import (
-    Nomeavel, Descritivel, Ativavel, TemChaveExterna
+    Ativavel, Descritivel, Nomeavel, TemChaveExterna
 )
 
 
@@ -94,11 +94,10 @@ class PerfilPermissao(models.Model):
         result = ''
         choices = dict(self.ACOES)
         for index, value in enumerate(self.acoes):
-            result += "{0}".format(choices[value])
+            result += '{0}'.format(choices[value])
             if not index == len(self.acoes) - 1:
                 result += ', '
         return result
 
     def __str__(self):
-        return f'{self.perfil} Tem ações: ({self.acoes_choices_array_display()})' \
-            f' da permissão {self.permissao}'
+        return f'{self.perfil} Tem ações: ({self.acoes_choices_array_display()}) da permissão {self.permissao}'

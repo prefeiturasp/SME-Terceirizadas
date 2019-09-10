@@ -1,23 +1,22 @@
 from rest_framework import serializers
 
-from sme_pratoaberto_terceirizadas.dados_comuns.utils import update_instance_from_dict
-from sme_pratoaberto_terceirizadas.dados_comuns.validators import deve_existir_cardapio
-from sme_pratoaberto_terceirizadas.dados_comuns.validators import (
-    nao_pode_ser_no_passado, nao_pode_ser_feriado,
-    objeto_nao_deve_ter_duplicidade
-)
-from sme_pratoaberto_terceirizadas.escola.models import Escola, PeriodoEscolar
-from sme_pratoaberto_terceirizadas.terceirizada.models import Edital
 from ..helpers import notificar_partes_envolvidas
 from ...api.validators import (
-    valida_duplicidade, valida_cardapio_de_para
+    valida_cardapio_de_para, valida_duplicidade
 )
 from ...models import (
-    InversaoCardapio, Cardapio,
-    TipoAlimentacao, SuspensaoAlimentacao,
-    AlteracaoCardapio, MotivoAlteracaoCardapio, SubstituicoesAlimentacaoNoPeriodoEscolar,
-    SuspensaoAlimentacaoNoPeriodoEscolar, MotivoSuspensao, GrupoSuspensaoAlimentacao,
-    QuantidadePorPeriodoSuspensaoAlimentacao)
+    AlteracaoCardapio, Cardapio, GrupoSuspensaoAlimentacao, InversaoCardapio, MotivoAlteracaoCardapio, MotivoSuspensao,
+    QuantidadePorPeriodoSuspensaoAlimentacao, SubstituicoesAlimentacaoNoPeriodoEscolar, SuspensaoAlimentacao,
+    SuspensaoAlimentacaoNoPeriodoEscolar, TipoAlimentacao
+)
+from ....dados_comuns.utils import update_instance_from_dict
+from ....dados_comuns.validators import (
+    deve_existir_cardapio, deve_pedir_com_antecedencia,
+    nao_pode_ser_feriado, nao_pode_ser_no_passado,
+    objeto_nao_deve_ter_duplicidade
+)
+from ....escola.models import Escola, PeriodoEscolar
+from ....terceirizada.models import Edital
 
 
 class InversaoCardapioSerializerCreate(serializers.ModelSerializer):
@@ -71,7 +70,7 @@ class InversaoCardapioSerializerCreate(serializers.ModelSerializer):
 
     class Meta:
         model = InversaoCardapio
-        fields = ('uuid', 'descricao', 'data_de', 'data_para', 'escola')
+        fields = ('uuid', 'motivo', 'observacao', 'data_de', 'data_para', 'escola')
 
 
 class CardapioCreateSerializer(serializers.ModelSerializer):
@@ -181,10 +180,16 @@ class AlteracaoCardapioSerializerCreate(serializers.ModelSerializer):
         queryset=Escola.objects.all()
     )
 
+    def validate_data_inicial(self, data):
+        nao_pode_ser_no_passado(data)
+        deve_pedir_com_antecedencia(data)
+        return data
+
     substituicoes = SubstituicoesAlimentacaoNoPeriodoEscolarSerializerCreate(many=True)
 
     def create(self, validated_data):
         substituicoes = validated_data.pop('substituicoes')
+        validated_data['criado_por'] = self.context['request'].user
 
         substituicoes_lista = []
         for substituicao in substituicoes:

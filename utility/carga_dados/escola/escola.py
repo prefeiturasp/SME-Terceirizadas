@@ -6,7 +6,7 @@ from sme_pratoaberto_terceirizadas.escola.models import Escola, DiretoriaRegiona
 
 from sme_pratoaberto_terceirizadas.escola.models import Lote
 
-caminho_excel = '/home/amcom/Documents/docs PO alimentacao/escola_dre_codae.xlsx'
+caminho_excel = '/home/amcom/Documents/planilhas_de_carga/escola_dre_codae.xlsx'
 
 arquivo_excel = pd.ExcelFile(caminho_excel)
 

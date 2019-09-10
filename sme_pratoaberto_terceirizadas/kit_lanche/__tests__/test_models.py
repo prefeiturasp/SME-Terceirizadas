@@ -1,7 +1,7 @@
 import pytest
 from model_mommy import mommy
 
-from sme_pratoaberto_terceirizadas.dados_comuns.models_abstract import TempoPasseio
+from ...dados_comuns.models_abstract import TempoPasseio
 
 pytestmark = pytest.mark.django_db
 
@@ -25,13 +25,26 @@ def test_solicitacao_avulsa(solicitacao_avulsa):
     assert 'Solicitação' in solicitacao_avulsa._meta.verbose_name
 
 
-def test_solicitacao_unificada(solicitacao_unificada):
-    assert isinstance(solicitacao_unificada.local, str)
-    assert solicitacao_unificada.lista_kit_lanche_igual is True
+def test_solicitacao_unificada(solicitacao_unificada_lista_igual):
+    assert isinstance(solicitacao_unificada_lista_igual.local, str)
+    assert solicitacao_unificada_lista_igual.lista_kit_lanche_igual is True
 
-    escolas_quantidades = mommy.make('EscolaQuantidade', _quantity=10)
-    assert solicitacao_unificada.vincula_escolas_quantidades(
+    escolas_quantidades = mommy.make('EscolaQuantidade', _quantity=10, quantidade_alunos=100)
+    assert solicitacao_unificada_lista_igual.vincula_escolas_quantidades(
         escolas_quantidades) is None
+    assert solicitacao_unificada_lista_igual.total_kit_lanche == 3000
+
+
+def test_solicitacao_unificada_lotes_diferentes(solicitacao_unificada_lotes_diferentes):
+    assert solicitacao_unificada_lotes_diferentes.quantidade_de_lotes == 2
+    solicitacoes_unificadas = solicitacao_unificada_lotes_diferentes.dividir_por_lote()
+    assert solicitacoes_unificadas.__len__() == 2
+
+
+def test_solicitacao_unificada_lotes_iguais(solicitacao_unificada_lotes_iguais):
+    assert solicitacao_unificada_lotes_iguais.quantidade_de_lotes == 1
+    solicitacoes_unificadas = solicitacao_unificada_lotes_iguais.dividir_por_lote()
+    assert solicitacoes_unificadas.__len__() == 1
 
 
 def test_solicitacao(solicitacao):

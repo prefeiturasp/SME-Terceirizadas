@@ -1,14 +1,10 @@
 import pytest
 from rest_framework.exceptions import ValidationError
 
-from sme_pratoaberto_terceirizadas.kit_lanche.api.validators import valida_quantidade_kits_tempo_passeio
 from ..api.validators import (
-    valida_tempo_passeio_lista_igual,
-    escola_quantidade_deve_ter_mesmo_tempo_passeio,
-    escola_quantidade_deve_ter_1_ou_mais_kits,
-    escola_quantidade_deve_ter_0_kit, solicitacao_deve_ter_0_kit,
-    solicitacao_deve_ter_1_ou_mais_kits,
-    valida_tempo_passeio_lista_nao_igual
+    escola_quantidade_deve_ter_0_kit, escola_quantidade_deve_ter_1_ou_mais_kits,
+    escola_quantidade_deve_ter_mesmo_tempo_passeio, solicitacao_deve_ter_0_kit, solicitacao_deve_ter_1_ou_mais_kits,
+    valida_quantidade_kits_tempo_passeio, valida_tempo_passeio_lista_igual, valida_tempo_passeio_lista_nao_igual
 )
 
 
@@ -43,8 +39,7 @@ def test_escola_quantidade_deve_ter_mesmo_tempo_passeio():
 def test_escola_quantidade_deve_ter_mesmo_tempo_passeio_exception():
     escola_quantidade_mock = {'tempo_passeio': 4}
     solicitacao_kit_lanche_mock = {'tempo_passeio': 3}
-    esperado = 'escola_quantidade indice #3 diverge do ' \
-               'tempo_passeio de solicitacao_kit_lanche.'
+    esperado = 'escola_quantidade indice #3 diverge do tempo_passeio de solicitacao_kit_lanche.'
     with pytest.raises(ValidationError, match=esperado):
         escola_quantidade_deve_ter_mesmo_tempo_passeio(
             escola_quantidade=escola_quantidade_mock,

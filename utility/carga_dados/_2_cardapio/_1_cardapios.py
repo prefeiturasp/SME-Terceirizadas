@@ -15,10 +15,7 @@ f = Faker('pt-br')
 f.seed(420)
 hoje = datetime.datetime.today()
 
-edital, created_edital = Edital.objects.get_or_create(numero=f.text(max_nb_chars=100),
-                                                      tipo_contratacao=f.text(max_nb_chars=100),
-                                                      processo=f.text(max_nb_chars=100),
-                                                      objeto=f.text())
+edital = Edital.objects.first()
 
 
 def gera_muitos_cardapios(qtd=360):
@@ -26,7 +23,7 @@ def gera_muitos_cardapios(qtd=360):
     cont = 0
     alimentacoes_selecionadas = []
     for i in range(qtd):
-        for _ in range(5):  # seleciona 5 tipos de alm
+        for _ in range(5):
             x = random.choice(tipos_alimentacao)
             alimentacoes_selecionadas.append(x)
 

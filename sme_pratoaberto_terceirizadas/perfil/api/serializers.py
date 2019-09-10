@@ -1,19 +1,7 @@
 from notifications.models import Notification
 from rest_framework import serializers
 
-from sme_pratoaberto_terceirizadas.escola.api.serializers import (
-    EscolaSimplesSerializer, DiretoriaRegionalSimplesSerializer)
-from ..models import (Usuario, Perfil, Permissao, GrupoPerfil, PerfilPermissao)
-
-
-class UsuarioSerializer(serializers.ModelSerializer):
-    # TODO:     "groups": [],
-    # "user_permissions": [],
-    # "perfis": []
-    # date_joined -> ptbr
-    class Meta:
-        model = Usuario
-        fields = ('uuid', 'nome', 'email', 'date_joined')
+from ..models import (GrupoPerfil, Perfil, PerfilPermissao, Permissao, Usuario)
 
 
 class PermissaoSerializer(serializers.ModelSerializer):
@@ -94,11 +82,7 @@ class NotificationSerializer(serializers.ModelSerializer):
                    'actor_content_type', 'target_content_type', 'action_object_content_type')
 
 
-class UsuarioDetalheSerializer(serializers.ModelSerializer):
-    perfis = PerfilSerializer(many=True, read_only=True)
-    escolas = EscolaSimplesSerializer(many=True)
-    diretorias_regionais = DiretoriaRegionalSimplesSerializer(many=True)
-
+class UsuarioSerializer(serializers.ModelSerializer):
     class Meta:
         model = Usuario
-        fields = ('uuid', 'nome', 'email', 'date_joined', 'perfis', 'escolas', 'diretorias_regionais')
+        fields = ('uuid', 'nome', 'email', 'date_joined')

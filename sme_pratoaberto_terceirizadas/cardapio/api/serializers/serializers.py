@@ -1,16 +1,16 @@
 from rest_framework import serializers
 
-from sme_pratoaberto_terceirizadas.escola.api.serializers import (
-    EscolaSimplesSerializer, PeriodoEscolarSerializer,
-    TipoUnidadeEscolarSerializer,
-    PeriodoEscolarSimplesSerializer)
-from sme_pratoaberto_terceirizadas.terceirizada.api.serializers.serializers import EditalSerializer
 from ...models import (
-    TipoAlimentacao, Cardapio, InversaoCardapio,
-    SuspensaoAlimentacao, AlteracaoCardapio, MotivoAlteracaoCardapio,
-    SubstituicoesAlimentacaoNoPeriodoEscolar,
-    SuspensaoAlimentacaoNoPeriodoEscolar, GrupoSuspensaoAlimentacao,
-    QuantidadePorPeriodoSuspensaoAlimentacao, MotivoSuspensao)
+    AlteracaoCardapio, Cardapio, GrupoSuspensaoAlimentacao, InversaoCardapio, MotivoAlteracaoCardapio, MotivoSuspensao,
+    QuantidadePorPeriodoSuspensaoAlimentacao, SubstituicoesAlimentacaoNoPeriodoEscolar, SuspensaoAlimentacao,
+    SuspensaoAlimentacaoNoPeriodoEscolar, TipoAlimentacao
+)
+from ....dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
+from ....escola.api.serializers import (
+    EscolaListagemSimplesSelializer, EscolaSimplesSerializer, PeriodoEscolarSerializer,
+    PeriodoEscolarSimplesSerializer, TipoUnidadeEscolarSerializer
+)
+from ....terceirizada.api.serializers.serializers import EditalSerializer
 
 
 class TipoAlimentacaoSerializer(serializers.ModelSerializer):
@@ -39,15 +39,26 @@ class InversaoCardapioSerializer(serializers.ModelSerializer):
     cardapio_de = CardapioSimplesSerializer()
     cardapio_para = CardapioSimplesSerializer()
     escola = EscolaSimplesSerializer()
-    status = serializers.SerializerMethodField()
     id_externo = serializers.CharField()
-
-    def get_status(self, obj):
-        return obj.get_status_display()
+    prioridade = serializers.CharField()
+    data_de = serializers.DateField()
+    data_para = serializers.DateField()
+    logs = LogSolicitacoesUsuarioSerializer(many=True)
 
     class Meta:
         model = InversaoCardapio
-        exclude = ('id',)
+        exclude = ('id', 'criado_por')
+
+
+class InversaoCardapioSimpleserializer(serializers.ModelSerializer):
+    id_externo = serializers.CharField()
+    prioridade = serializers.CharField()
+    escola = EscolaSimplesSerializer()
+    data = serializers.DateField()
+
+    class Meta:
+        model = InversaoCardapio
+        exclude = ('id', 'criado_por', 'cardapio_de', 'cardapio_para',)
 
 
 class MotivoSuspensaoSerializer(serializers.ModelSerializer):
@@ -87,10 +98,25 @@ class GrupoSuspensaoAlimentacaoSerializer(serializers.ModelSerializer):
     quantidades_por_periodo = QuantidadePorPeriodoSuspensaoAlimentacaoSerializer(many=True)
     suspensoes_alimentacao = SuspensaoAlimentacaoSerializer(many=True)
     id_externo = serializers.CharField()
+    logs = LogSolicitacoesUsuarioSerializer(many=True)
 
     class Meta:
         model = GrupoSuspensaoAlimentacao
         exclude = ('id',)
+
+
+class GrupoSuspensaoAlimentacaoSimplesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = GrupoSuspensaoAlimentacao
+        exclude = ('id', 'criado_por', 'escola')
+
+
+class GrupoSupensaoAlimentacaoListagemSimplesSerializer(serializers.ModelSerializer):
+    escola = EscolaListagemSimplesSelializer()
+
+    class Meta:
+        model = GrupoSuspensaoAlimentacao
+        fields = ('uuid', 'id_externo', 'status', 'criado_em', 'escola',)
 
 
 class MotivoAlteracaoCardapioSerializer(serializers.ModelSerializer):
@@ -118,7 +144,16 @@ class AlteracaoCardapioSerializer(serializers.ModelSerializer):
     motivo = MotivoAlteracaoCardapioSerializer()
     substituicoes = SubstituicoesAlimentacaoNoPeriodoEscolarSerializer(many=True)
     id_externo = serializers.CharField()
+    logs = LogSolicitacoesUsuarioSerializer(many=True)
 
     class Meta:
         model = AlteracaoCardapio
         exclude = ('id',)
+
+
+class AlteracaoCardapioSimplesSerializer(serializers.ModelSerializer):
+    prioridade = serializers.CharField()
+
+    class Meta:
+        model = AlteracaoCardapio
+        exclude = ('id', 'criado_por', 'escola', 'motivo')
