@@ -3,8 +3,8 @@ import datetime
 from django.db import models
 from django.db.models import Q
 
-from sme_pratoaberto_terceirizadas.dados_comuns.fluxo_status import PedidoAPartirDaEscolaWorkflow
-from sme_pratoaberto_terceirizadas.dados_comuns.utils import obter_dias_uteis_apos_hoje
+from ..dados_comuns.fluxo_status import PedidoAPartirDaEscolaWorkflow
+from ..dados_comuns.utils import obter_dias_uteis_apos_hoje
 
 
 class InclusoesDeAlimentacaoContinuaPrazoVencendoManager(models.Manager):
@@ -77,10 +77,6 @@ class InclusoesDeAlimentacaoContinuaPrazoRegularDaquiA30DiasManager(models.Manag
 
 
 class InclusoesDeAlimentacaoContinuaVencidaDiasManager(models.Manager):
-    """
-    retorna todos os pedidos que ja tenham passado da data e que o fluxo não tenha terminado
-    """
-
     def get_queryset(self):
         hoje = datetime.date.today()
         return super(InclusoesDeAlimentacaoContinuaVencidaDiasManager, self).get_queryset(

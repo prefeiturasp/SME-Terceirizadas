@@ -62,7 +62,6 @@ class Nutricionista(TemChaveExterna, Nomeavel):
 
 
 class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel):
-    """Empresa Terceirizada"""
 
     usuarios = models.ManyToManyField('perfil.Usuario', related_name='terceirizadas', blank=True)
     nome_fantasia = models.CharField('Nome fantasia', max_length=160, blank=True)
