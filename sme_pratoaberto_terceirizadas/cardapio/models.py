@@ -286,7 +286,8 @@ class SuspensaoAlimentacaoNoPeriodoEscolar(TemChaveExterna):
 
 
 class MotivoAlteracaoCardapio(Nomeavel, TemChaveExterna):
-    """
+    """Usado em conjunto com AlteracaoCardapio.
+
     Exemplos:
         - atividade diferenciada
         - aniversariante do mes
@@ -303,12 +304,6 @@ class MotivoAlteracaoCardapio(Nomeavel, TemChaveExterna):
 class AlteracaoCardapio(CriadoEm, CriadoPor, TemChaveExterna, IntervaloDeDia, TemObservacao,
                         FluxoAprovacaoPartindoDaEscola, TemIdentificadorExternoAmigavel, Logs,
                         TemPrioridade):
-    """
-    A unidade quer trocar um ou mais tipos de refeição em um ou mais períodos escolares devido a um evento especial
-    (motivo) em dado período de tempo.
-
-    Ex: Alterar  nos períodos matutino e intermediario, o lanche e refeição pelo motivo 'aniversariantes do mês'
-    """
 
     objects = models.Manager()  # Manager Padrão
     prazo_vencendo = AlteracoesCardapioPrazoVencendoManager()

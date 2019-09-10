@@ -61,7 +61,7 @@ class InversaoCardapioVencidaManager(models.Manager):
         ).filter(
             Q(cardapio_de__data__lt=hoje) | Q(cardapio_para__data__lt=hoje)
         ).filter(
-            ~Q(status__in=[PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_TOMA_CIENCIA,
+            ~Q(status__in=[PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_TOMOU_CIENCIA,
                            PedidoAPartirDaEscolaWorkflow.ESCOLA_CANCELA_48H_ANTES,
                            PedidoAPartirDaEscolaWorkflow.CANCELAMENTO_AUTOMATICO])
         ).distinct()

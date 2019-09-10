@@ -33,6 +33,7 @@ flake8-eradicate==0.2.1     # https://github.com/sobolevn/flake8-eradicate
 flake8-quotes==2.1.0        # https://github.com/zheller/flake8-quotes
 flake8-string-format==0.2.3 # https://github.com/xZise/flake8-string-format
 flake8-mutable==1.2.0       # https://github.com/ebeweber/flake8-mutable
+flake8-docstrings==1.4.0    # https://github.com/PyCQA/flake8-docstrings
 coverage==4.5.2             # https://github.com/nedbat/coveragepy
 
 

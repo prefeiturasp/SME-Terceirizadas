@@ -1,6 +1,4 @@
-"""
-With these settings, __tests__ run faster.
-"""
+"""With these settings, __tests__ run faster."""
 
 from .base import *  # noqa
 from .base import env

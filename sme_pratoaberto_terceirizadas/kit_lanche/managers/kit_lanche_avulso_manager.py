@@ -78,7 +78,7 @@ class SolicitacaoKitLancheAvulsaVencidaDiasManager(models.Manager):
         ).filter(
             solicitacao_kit_lanche__data__lt=hoje
         ).filter(
-            ~Q(solicitacao_kit_lanche__data__in=[PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_TOMA_CIENCIA,
+            ~Q(solicitacao_kit_lanche__data__in=[PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_TOMOU_CIENCIA,
                                                  PedidoAPartirDaEscolaWorkflow.ESCOLA_CANCELA_48H_ANTES,
                                                  PedidoAPartirDaEscolaWorkflow.CANCELAMENTO_AUTOMATICO])
         )

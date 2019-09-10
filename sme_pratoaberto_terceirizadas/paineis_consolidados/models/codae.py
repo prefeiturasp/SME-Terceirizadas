@@ -17,21 +17,21 @@ class SolicitacoesCODAE(models.Model):
     def get_pendentes_aprovacao(cls):
         return cls.objects.filter(
             status_evento=LogSolicitacoesUsuario.DRE_APROVOU,
-            status=PedidoAPartirDaEscolaWorkflow.DRE_APROVADO
+            status=PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO
         ).order_by('-criado_em')
 
     @classmethod
     def get_cancelados(cls):
         return cls.objects.filter(
             status_evento=LogSolicitacoesUsuario.CODAE_REPROVOU,
-            status=PedidoAPartirDaEscolaWorkflow.CODAE_CANCELOU_PEDIDO
+            status=PedidoAPartirDaEscolaWorkflow.CODAE_NEGOU_PEDIDO
         ).order_by('-criado_em')
 
     @classmethod
     def get_aprovados(cls):
         return cls.objects.filter(
             status_evento=LogSolicitacoesUsuario.CODAE_APROVOU,
-            status=PedidoAPartirDaEscolaWorkflow.CODAE_APROVADO
+            status=PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO
         ).order_by('-criado_em')
 
     @classmethod

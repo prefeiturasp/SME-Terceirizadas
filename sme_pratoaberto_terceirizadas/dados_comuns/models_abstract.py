@@ -173,15 +173,15 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
     @property
     def ta_na_escola(self):
         return self.status in [self.workflow_class.RASCUNHO,
-                               self.workflow_class.DRE_PEDE_ESCOLA_REVISAR]
+                               self.workflow_class.DRE_PEDIU_ESCOLA_REVISAR]
 
     @property
     def ta_na_codae(self):
-        return self.status == self.workflow_class.DRE_APROVADO
+        return self.status == self.workflow_class.DRE_VALIDADO
 
     @property
     def ta_na_terceirizada(self):
-        return self.status == self.workflow_class.CODAE_APROVADO
+        return self.status == self.workflow_class.CODAE_AUTORIZADO
 
     @property
     def partes_interessadas_inicio_fluxo(self):
