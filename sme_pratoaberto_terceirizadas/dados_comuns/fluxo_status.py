@@ -1,5 +1,5 @@
-"""
-Classes de apoio devem ser usadas em conjunto com as classes abstratas de fluxo.
+"""Classes de apoio devem ser usadas em conjunto com as classes abstratas de fluxo.
+
 Na pasta docs tem os BMPNs dos fluxos
 """
 from django_xworkflows import models as xwf_models
