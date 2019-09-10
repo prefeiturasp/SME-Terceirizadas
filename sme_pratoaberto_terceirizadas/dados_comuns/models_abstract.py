@@ -154,13 +154,13 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
         # TODO: verificar o campo de data do pedido, se tiver no intervalo altera o status
         # não faz nada caso contrario
         # TODO, disparar erro InvalidTransitionError caso de errado...
-        self.status = self.workflow_class.ESCOLA_CANCELA_48H_ANTES
+        self.status = self.workflow_class.ESCOLA_CANCELOU
 
     def cancelamento_automatico_apos_vencimento(self):
         """
         Chamado automaticamente quando o pedido já passou do dia de atendimento e não chegou ao fim do fluxo
         """
-        self.status = self.workflow_class.CANCELAMENTO_AUTOMATICO
+        self.status = self.workflow_class.CANCELADO_AUTOMATICAMENTE
 
     @property
     def pode_excluir(self):
@@ -320,16 +320,16 @@ class FluxoAprovacaoPartindoDaDiretoriaRegional(xwf_models.WorkflowEnabled, mode
 
     @property
     def ta_na_dre(self):
-        return self.status in [self.workflow_class.CODAE_PEDE_DRE_REVISAR,
+        return self.status in [self.workflow_class.CODAE_PEDIU_DRE_REVISAR,
                                self.workflow_class.RASCUNHO]
 
     @property
     def ta_na_codae(self):
-        return self.status == self.workflow_class.CODAE_A_VALIDAR
+        return self.status == self.workflow_class.CODAE_A_AUTORIZAR
 
     @property
     def ta_na_terceirizada(self):
-        return self.status == self.workflow_class.CODAE_APROVADO
+        return self.status == self.workflow_class.CODAE_AUTORIZADO
 
     @property
     def partes_interessadas_codae_aprovou(self):

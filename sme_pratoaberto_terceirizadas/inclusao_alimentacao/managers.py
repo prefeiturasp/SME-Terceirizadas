@@ -88,8 +88,8 @@ class InclusoesDeAlimentacaoContinuaVencidaDiasManager(models.Manager):
             data_inicial__lt=hoje
         ).filter(
             ~Q(status__in=[PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_TOMOU_CIENCIA,
-                           PedidoAPartirDaEscolaWorkflow.ESCOLA_CANCELA_48H_ANTES,
-                           PedidoAPartirDaEscolaWorkflow.CANCELAMENTO_AUTOMATICO])
+                           PedidoAPartirDaEscolaWorkflow.ESCOLA_CANCELOU,
+                           PedidoAPartirDaEscolaWorkflow.CANCELADO_AUTOMATICAMENTE])
         )
 
 
@@ -172,6 +172,6 @@ class InclusoesDeAlimentacaoNormalVencidosDiasManager(models.Manager):
             inclusoes_normais__data__lt=hoje
         ).filter(
             ~Q(status__in=[PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_TOMOU_CIENCIA,
-                           PedidoAPartirDaEscolaWorkflow.ESCOLA_CANCELA_48H_ANTES,
-                           PedidoAPartirDaEscolaWorkflow.CANCELAMENTO_AUTOMATICO])
+                           PedidoAPartirDaEscolaWorkflow.ESCOLA_CANCELOU,
+                           PedidoAPartirDaEscolaWorkflow.CANCELADO_AUTOMATICAMENTE])
         ).distinct()

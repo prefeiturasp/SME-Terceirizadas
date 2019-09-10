@@ -3,6 +3,7 @@ from model_mommy import mommy
 from xworkflows.base import InvalidTransitionError
 
 from ...cardapio.models import Cardapio
+from ...dados_comuns.fluxo_status import PedidoAPartirDaEscolaWorkflow
 from ...escola.models import Escola
 
 pytestmark = pytest.mark.django_db
@@ -38,9 +39,9 @@ def test_inversao_dia_cardapio(inversao_dia_cardapio):
 def test_inversao_dia_cardapio_fluxo(inversao_dia_cardapio):
     fake_user = mommy.make('perfil.Usuario')
     inversao_dia_cardapio.inicia_fluxo(user=fake_user)
-    assert str(inversao_dia_cardapio.status) == 'DRE_A_VALIDAR'
+    assert str(inversao_dia_cardapio.status) == PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR
     inversao_dia_cardapio.dre_aprovou(user=fake_user)
-    assert str(inversao_dia_cardapio.status) == 'DRE_APROVADO'
+    assert str(inversao_dia_cardapio.status) == PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO
 
 
 def test_inclusao_alimentacao_continua_fluxo_erro(inversao_dia_cardapio):
