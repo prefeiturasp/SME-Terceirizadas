@@ -161,7 +161,7 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
     def diretoria_regional_aprova_pedido(self, request, uuid=None):
         inversao_cardapio = self.get_object()
         try:
-            inversao_cardapio.dre_aprovou(user=request.user, notificar=True)
+            inversao_cardapio.dre_validou(user=request.user, notificar=True)
             serializer = self.get_serializer(inversao_cardapio)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -183,7 +183,7 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
     def diretoria_regional_cancela_pedido(self, request, uuid=None):
         inversao_cardapio = self.get_object()
         try:
-            inversao_cardapio.dre_cancelou_pedido(user=request.user, notificar=True)
+            inversao_cardapio.dre_nao_validou_pedido(user=request.user, notificar=True)
             serializer = self.get_serializer(inversao_cardapio)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -205,7 +205,7 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
     def codae_aprova_pedido(self, request, uuid=None):
         inversao_cardapio = self.get_object()
         try:
-            inversao_cardapio.codae_aprovou(user=request.user, notificar=True)
+            inversao_cardapio.codae_autorizou(user=request.user, notificar=True)
             serializer = self.get_serializer(inversao_cardapio)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -216,7 +216,7 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
     def codae_cancela_pedido(self, request, uuid=None):
         inversao_cardapio = self.get_object()
         try:
-            inversao_cardapio.codae_cancelou_pedido(user=request.user, notificar=True)
+            inversao_cardapio.codae_negou(user=request.user, notificar=True)
             serializer = self.get_serializer(inversao_cardapio)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -377,7 +377,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
     def diretoria_regional_aprova(self, request, uuid=None):
         alteracao_cardapio = self.get_object()
         try:
-            alteracao_cardapio.dre_aprovou(user=request.user, notificar=True)
+            alteracao_cardapio.dre_validou(user=request.user, notificar=True)
             serializer = self.get_serializer(alteracao_cardapio)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -399,7 +399,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
     def dre_cancela_pedido(self, request, uuid=None):
         alteracao_cardapio = self.get_object()
         try:
-            alteracao_cardapio.dre_cancelou_pedido(user=request.user, notificar=True)
+            alteracao_cardapio.dre_nao_validou_pedido(user=request.user, notificar=True)
             serializer = self.get_serializer(alteracao_cardapio)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -421,7 +421,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
     def codae_cancela_pedido(self, request, uuid=None):
         alteracao_cardapio = self.get_object()
         try:
-            alteracao_cardapio.codae_cancelou_pedido(user=request.user, notificar=True)
+            alteracao_cardapio.codae_negou(user=request.user, notificar=True)
             serializer = self.get_serializer(alteracao_cardapio)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -432,7 +432,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
     def codae_aprova(self, request, uuid=None):
         alteracao_cardapio = self.get_object()
         try:
-            alteracao_cardapio.codae_aprovou(user=request.user, notificar=True)
+            alteracao_cardapio.codae_autorizou(user=request.user, notificar=True)
             serializer = self.get_serializer(alteracao_cardapio)
             return Response(serializer.data)
         except InvalidTransitionError as e:

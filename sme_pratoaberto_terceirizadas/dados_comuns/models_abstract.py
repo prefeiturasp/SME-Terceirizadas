@@ -193,13 +193,13 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
         return usuarios_dre
 
     @property
-    def partes_interessadas_dre_aprovou(self):
+    def partes_interessadas_dre_validou(self):
         # TODO: filtrar usuários CODAE
         usuarios_codae = models_perfil.Usuario.objects.filter()
         return usuarios_codae
 
     @property
-    def partes_interessadas_codae_aprovou(self):
+    def partes_interessadas_codae_autorizou(self):
         # TODO: filtrar usuários Terceirizadas
         usuarios_terceirizadas = models_perfil.Usuario.objects.filter()
         return usuarios_terceirizadas
@@ -234,13 +234,13 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
         self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.INICIO_FLUXO,
                                   usuario=user)
 
-    @xworkflows.after_transition('dre_aprovou')
-    def _dre_aprovou_hook(self, *args, **kwargs):
+    @xworkflows.after_transition('dre_validou')
+    def _dre_validou_hook(self, *args, **kwargs):
         user = kwargs['user']
         if user and kwargs.get('notificar', False):
             assunto, corpo = self.template_mensagem
             enviar_notificacao_e_email(sender=user,
-                                       recipients=self.partes_interessadas_dre_aprovou,
+                                       recipients=self.partes_interessadas_dre_validou,
                                        short_desc=assunto,
                                        long_desc=corpo)
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.DRE_APROVOU,
@@ -252,7 +252,7 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
         if user and kwargs.get('notificar', False):
             assunto, corpo = self.template_mensagem
             enviar_notificacao_e_email(sender=user,
-                                       recipients=self.partes_interessadas_dre_aprovou,
+                                       recipients=self.partes_interessadas_dre_validou,
                                        short_desc=assunto,
                                        long_desc=corpo)
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.DRE_PEDIU_REVISAO,
@@ -264,31 +264,31 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
         if user and kwargs.get('notificar', False):
             assunto, corpo = self.template_mensagem
             enviar_notificacao_e_email(sender=user,
-                                       recipients=self.partes_interessadas_dre_aprovou,
+                                       recipients=self.partes_interessadas_dre_validou,
                                        short_desc=assunto,
                                        long_desc=corpo)
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.ESCOLA_REVISOU,
                                       usuario=user)
 
-    @xworkflows.after_transition('codae_aprovou')
-    def _codae_aprovou_hook(self, *args, **kwargs):
+    @xworkflows.after_transition('codae_autorizou')
+    def _codae_autorizou_hook(self, *args, **kwargs):
         user = kwargs['user']
         if user and kwargs.get('notificar', False):
             assunto, corpo = self.template_mensagem
             enviar_notificacao_e_email(sender=user,
-                                       recipients=self.partes_interessadas_codae_aprovou,
+                                       recipients=self.partes_interessadas_codae_autorizou,
                                        short_desc=assunto,
                                        long_desc=corpo)
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_APROVOU,
                                       usuario=user)
 
-    @xworkflows.after_transition('codae_cancelou_pedido')
+    @xworkflows.after_transition('codae_negou')
     def _codae_recusou_hook(self, *args, **kwargs):
         user = kwargs['user']
         if user and kwargs.get('notificar', False):
             assunto, corpo = self.template_mensagem
             enviar_notificacao_e_email(sender=user,
-                                       recipients=self.partes_interessadas_dre_aprovou,
+                                       recipients=self.partes_interessadas_dre_validou,
                                        short_desc=assunto,
                                        long_desc=corpo)
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_REPROVOU,
@@ -332,7 +332,7 @@ class FluxoAprovacaoPartindoDaDiretoriaRegional(xwf_models.WorkflowEnabled, mode
         return self.status == self.workflow_class.CODAE_AUTORIZADO
 
     @property
-    def partes_interessadas_codae_aprovou(self):
+    def partes_interessadas_codae_autorizou(self):
         # TODO: filtrar usuários Terceirizadas
         usuarios_terceirizadas = models_perfil.Usuario.objects.filter()
         return usuarios_terceirizadas
@@ -368,13 +368,13 @@ class FluxoAprovacaoPartindoDaDiretoriaRegional(xwf_models.WorkflowEnabled, mode
         self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.INICIO_FLUXO,
                                   usuario=user)
 
-    @xworkflows.after_transition('codae_aprovou')
-    def _codae_aprovou_hook(self, *args, **kwargs):
+    @xworkflows.after_transition('codae_autorizou')
+    def _codae_autorizou_hook(self, *args, **kwargs):
         user = kwargs['user']
         if user and kwargs.get('notificar', False):
             assunto, corpo = self.template_mensagem
             enviar_notificacao_e_email(sender=user,
-                                       recipients=self.partes_interessadas_codae_aprovou,
+                                       recipients=self.partes_interessadas_codae_autorizou,
                                        short_desc=assunto,
                                        long_desc=corpo)
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_APROVOU,

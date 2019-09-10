@@ -163,7 +163,7 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
     def diretoria_regional_aprova_pedido(self, request, uuid=None):
         solicitacao_kit_lanche_avulsa = self.get_object()
         try:
-            solicitacao_kit_lanche_avulsa.dre_aprovou(user=request.user, notificar=True)
+            solicitacao_kit_lanche_avulsa.dre_validou(user=request.user, notificar=True)
             serializer = self.get_serializer(solicitacao_kit_lanche_avulsa)
             return Response(serializer.data, status=HTTP_200_OK)
         except InvalidTransitionError as e:
@@ -185,7 +185,7 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
     def diretoria_regional_cancela_pedido(self, request, uuid=None):
         solicitacao_kit_lanche_avulsa = self.get_object()
         try:
-            solicitacao_kit_lanche_avulsa.dre_cancelou_pedido(user=request.user, notificar=True)
+            solicitacao_kit_lanche_avulsa.dre_nao_validou_pedido(user=request.user, notificar=True)
             serializer = self.get_serializer(solicitacao_kit_lanche_avulsa)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -207,7 +207,7 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
     def codae_aprova_pedido(self, request, uuid=None):
         solicitacao_kit_lanche_avulsa = self.get_object()
         try:
-            solicitacao_kit_lanche_avulsa.codae_aprovou(user=request.user, notificar=True)
+            solicitacao_kit_lanche_avulsa.codae_autorizou(user=request.user, notificar=True)
             serializer = self.get_serializer(solicitacao_kit_lanche_avulsa)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -218,7 +218,7 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
     def codae_cancela_pedido(self, request, uuid=None):
         solicitacao_kit_lanche_avulsa = self.get_object()
         try:
-            solicitacao_kit_lanche_avulsa.codae_cancelou_pedido(user=request.user, notificar=True)
+            solicitacao_kit_lanche_avulsa.codae_negou(user=request.user, notificar=True)
             serializer = self.get_serializer(solicitacao_kit_lanche_avulsa)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -340,7 +340,7 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
     def codae_aprova(self, request, uuid=None):
         solicitacao_unificada = self.get_object()
         try:
-            solicitacao_unificada.codae_aprovou(user=request.user, notificar=True)
+            solicitacao_unificada.codae_autorizou(user=request.user, notificar=True)
             serializer = self.get_serializer(solicitacao_unificada)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -362,7 +362,7 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
     def codae_cancela_pedido(self, request, uuid=None):
         solicitacao_unificada = self.get_object()
         try:
-            solicitacao_unificada.codae_cancelou_pedido(user=request.user, notificar=True)
+            solicitacao_unificada.codae_negou(user=request.user, notificar=True)
             serializer = self.get_serializer(solicitacao_unificada)
             return Response(serializer.data)
         except InvalidTransitionError as e:

@@ -41,12 +41,12 @@ class PedidoAPartirDaEscolaWorkflow(xwf_models.Workflow):
 
     transitions = (
         ('inicia_fluxo', RASCUNHO, DRE_A_VALIDAR),
-        ('dre_aprovou', DRE_A_VALIDAR, DRE_VALIDADO),
+        ('dre_validou', DRE_A_VALIDAR, DRE_VALIDADO),
         ('dre_pediu_revisao', DRE_A_VALIDAR, DRE_PEDIU_ESCOLA_REVISAR),
-        ('dre_cancelou_pedido', DRE_A_VALIDAR, DRE_NAO_VALIDOU_PEDIDO_ESCOLA),
+        ('dre_nao_validou_pedido', DRE_A_VALIDAR, DRE_NAO_VALIDOU_PEDIDO_ESCOLA),
         ('escola_revisou', DRE_PEDIU_ESCOLA_REVISAR, DRE_A_VALIDAR),
-        ('codae_aprovou', DRE_VALIDADO, CODAE_AUTORIZADO),
-        ('codae_cancelou_pedido', DRE_VALIDADO, CODAE_NEGOU_PEDIDO),
+        ('codae_autorizou', DRE_VALIDADO, CODAE_AUTORIZADO),
+        ('codae_negou', DRE_VALIDADO, CODAE_NEGOU_PEDIDO),
         ('terceirizada_tomou_ciencia', CODAE_AUTORIZADO, TERCEIRIZADA_TOMOU_CIENCIA),
     )
 
@@ -87,9 +87,9 @@ class PedidoAPartirDaDiretoriaRegionalWorkflow(xwf_models.Workflow):
     transitions = (
         ('inicia_fluxo', RASCUNHO, CODAE_A_AUTORIZAR),
         ('codae_pediu_revisao', CODAE_A_AUTORIZAR, CODAE_PEDIU_DRE_REVISAR),
-        ('codae_cancelou_pedido', CODAE_A_AUTORIZAR, CODAE_NEGOU_PEDIDO),
+        ('codae_negou', CODAE_A_AUTORIZAR, CODAE_NEGOU_PEDIDO),
         ('dre_revisou', CODAE_PEDIU_DRE_REVISAR, CODAE_A_AUTORIZAR),
-        ('codae_aprovou', CODAE_A_AUTORIZAR, CODAE_AUTORIZADO),
+        ('codae_autorizou', CODAE_A_AUTORIZAR, CODAE_AUTORIZADO),
         ('terceirizada_tomou_ciencia', CODAE_AUTORIZADO, TERCEIRIZADA_TOMOU_CIENCIA),
     )
 

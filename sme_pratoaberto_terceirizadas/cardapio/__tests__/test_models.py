@@ -40,7 +40,7 @@ def test_inversao_dia_cardapio_fluxo(inversao_dia_cardapio):
     fake_user = mommy.make('perfil.Usuario')
     inversao_dia_cardapio.inicia_fluxo(user=fake_user)
     assert str(inversao_dia_cardapio.status) == PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR
-    inversao_dia_cardapio.dre_aprovou(user=fake_user)
+    inversao_dia_cardapio.dre_validou(user=fake_user)
     assert str(inversao_dia_cardapio.status) == PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO
 
 
