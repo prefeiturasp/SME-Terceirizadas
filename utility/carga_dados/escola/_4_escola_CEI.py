@@ -4,17 +4,16 @@ Diretoria regional:
     nome, descricao, codigo
 """
 
+import environ
 import numpy as np
 import pandas as pd
-import environ
 
 from sme_pratoaberto_terceirizadas.dados_comuns.models import Endereco, Contato
 from sme_pratoaberto_terceirizadas.escola.models import (Lote, TipoUnidadeEscolar, TipoGestao, Escola,
                                                          DiretoriaRegional)
 from utility.carga_dados.escola.helper import coloca_zero_a_esquerda, normaliza_nome, somente_digitos
 
-
-ROOT_DIR = environ.Path(__file__) -1
+ROOT_DIR = environ.Path(__file__) - 1
 
 df = pd.read_excel(f'{ROOT_DIR}/planilhas_de_carga/escola_dre_codae.xlsx',
                    converters={'EOL': str,
@@ -70,10 +69,6 @@ def cria_tipo_unidade_escolar():
             cont += 1
             print('UNIDADE ESCOLAR {} CRIADO'.format(obj))
     print('qtd ue criados... {}'.format(cont))
-
-
-def cria_tipo_gestao():
-    obj, created = TipoGestao.objects.get_or_create(nome='TERCEIRIZADA TOTAL')
 
 
 def cria_escola():
@@ -141,5 +136,4 @@ def cria_escola():
 
 
 cria_tipo_unidade_escolar()
-cria_tipo_gestao()
 cria_escola()
