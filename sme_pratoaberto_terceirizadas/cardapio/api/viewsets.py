@@ -227,7 +227,7 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
     def escola_cancela_pedido_48h_antes(self, request, uuid=None):
         inversao_cardapio = self.get_object()
         try:
-            inversao_cardapio.cancelar_pedido_48h_antes(user=request.user, notificar=True)
+            inversao_cardapio.cancelar_pedido(user=request.user, notificar=True)
             serializer = self.get_serializer(inversao_cardapio)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -443,7 +443,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
         inclusao_alimentacao_continua = self.get_object()
 
         try:
-            inclusao_alimentacao_continua.cancelar_pedido_48h_antes(user=request.user, notificar=True)
+            inclusao_alimentacao_continua.cancelar_pedido(user=request.user, notificar=True)
             serializer = self.get_serializer(inclusao_alimentacao_continua)
             return Response(serializer.data)
         except InvalidTransitionError as e:
