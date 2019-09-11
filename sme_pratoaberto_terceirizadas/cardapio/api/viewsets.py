@@ -6,32 +6,24 @@ from xworkflows import InvalidTransitionError
 
 from .permissions import (
     PodeAprovarPelaCODAEAlteracaoCardapioPermission, PodeIniciarAlteracaoCardapioPermission,
-    PodeRecusarPelaCODAEAlteracaoCardapioPermission
-)
-from .permissions import (
-    PodeIniciarSuspensaoDeAlimentacaoPermission,
+    PodeIniciarSuspensaoDeAlimentacaoPermission, PodeRecusarPelaCODAEAlteracaoCardapioPermission,
     PodeTomarCienciaSuspensaoDeAlimentacaoPermission
 )
 from .serializers.serializers import (
-    AlteracaoCardapioSerializer, AlteracaoCardapioSimplesSerializer, CardapioSerializer,
-    GrupoSupensaoAlimentacaoListagemSimplesSerializer,
-    GrupoSuspensaoAlimentacaoSerializer, InversaoCardapioSerializer,
-    TipoAlimentacaoSerializer)
-from .serializers.serializers import (
-    MotivoAlteracaoCardapioSerializer,
-    MotivoSuspensaoSerializer
+    AlteracaoCardapioSerializer, AlteracaoCardapioSimplesSerializer,
+    CardapioSerializer, GrupoSupensaoAlimentacaoListagemSimplesSerializer,
+    GrupoSuspensaoAlimentacaoSerializer, GrupoSuspensaoAlimentacaoSimplesSerializer,
+    InversaoCardapioSerializer, MotivoAlteracaoCardapioSerializer,
+    MotivoSuspensaoSerializer, TipoAlimentacaoSerializer
 )
 from .serializers.serializers_create import (
     AlteracaoCardapioSerializerCreate, CardapioCreateSerializer,
     GrupoSuspensaoAlimentacaoCreateSerializer, InversaoCardapioSerializerCreate)
-from ..api.serializers.serializers import GrupoSuspensaoAlimentacaoSimplesSerializer
-from ..models import (
-    AlteracaoCardapio, Cardapio, GrupoSuspensaoAlimentacao, InversaoCardapio, TipoAlimentacao
-)
-from ...cardapio.models import MotivoAlteracaoCardapio, MotivoSuspensao
+from ..models import (AlteracaoCardapio, Cardapio, GrupoSuspensaoAlimentacao, InversaoCardapio, MotivoAlteracaoCardapio,
+                      MotivoSuspensao, TipoAlimentacao)
 from ...dados_comuns.constants import (
-    CODAE_AUTORIZA_PEDIDO, CODAE_NEGA_PEDIDO, DRE_CANCELA_PEDIDO, DRE_PEDE_REVISAO, DRE_VALIDA_PEDIDO, ESCOLA_CANCELA,
-    ESCOLA_REVISA_PEDIDO, FILTRO_PADRAO_PEDIDOS, INFORMAR_CIENCIA, INICIO_PEDIDO_ESCOLA, PEDIDOS_CODAE, PEDIDOS_DRE,
+    CODAE_AUTORIZA_PEDIDO, CODAE_NEGA_PEDIDO, DRE_NAO_VALIDA_PEDIDO, DRE_PEDE_REVISAO, DRE_VALIDA_PEDIDO, ESCOLA_CANCELA,
+    ESCOLA_REVISA_PEDIDO, FILTRO_PADRAO_PEDIDOS, ESCOLA_INFORMAR_SUSPENSAO, ESCOLA_INICIO_PEDIDO, PEDIDOS_CODAE, PEDIDOS_DRE,
     PEDIDOS_TERCEIRIZADA, SEM_FILTRO, SOLICITACOES_DO_USUARIO, TERCEIRIZADA_TOMA_CIENCIA
 )
 
@@ -147,7 +139,7 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
     #
 
     @action(detail=True, permission_classes=[PodeIniciarSuspensaoDeAlimentacaoPermission],
-            methods=['patch'], url_path=INICIO_PEDIDO_ESCOLA)
+            methods=['patch'], url_path=ESCOLA_INICIO_PEDIDO)
     def inicio_de_pedido(self, request, uuid=None):
         inversao_cardapio = self.get_object()
         try:
@@ -180,7 +172,7 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeIniciarSuspensaoDeAlimentacaoPermission],
-            methods=['patch'], url_path=DRE_CANCELA_PEDIDO)
+            methods=['patch'], url_path=DRE_NAO_VALIDA_PEDIDO)
     def diretoria_regional_cancela_pedido(self, request, uuid=None):
         inversao_cardapio = self.get_object()
         try:
@@ -302,7 +294,7 @@ class GrupoSuspensaoAlimentacaoSerializerViewSet(viewsets.ModelViewSet):
     #
 
     @action(detail=True, permission_classes=[PodeIniciarSuspensaoDeAlimentacaoPermission],
-            methods=['patch'], url_path=INFORMAR_CIENCIA)
+            methods=['patch'], url_path=ESCOLA_INFORMAR_SUSPENSAO)
     def informa_suspensao(self, request, uuid=None):
         grupo_suspensao_de_alimentacao = self.get_object()
         try:
@@ -362,7 +354,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
     #
 
     @action(detail=True, permission_classes=[PodeIniciarAlteracaoCardapioPermission],
-            methods=['patch'], url_path=INICIO_PEDIDO_ESCOLA)
+            methods=['patch'], url_path=ESCOLA_INICIO_PEDIDO)
     def inicio_de_pedido(self, request, uuid=None):
         alteracao_cardapio = self.get_object()
         try:
@@ -395,7 +387,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeIniciarAlteracaoCardapioPermission],
-            methods=['patch'], url_path=DRE_CANCELA_PEDIDO)
+            methods=['patch'], url_path=DRE_NAO_VALIDA_PEDIDO)
     def dre_cancela_pedido(self, request, uuid=None):
         alteracao_cardapio = self.get_object()
         try:
