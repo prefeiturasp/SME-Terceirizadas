@@ -42,6 +42,13 @@ def cardapio_valido2():
 
 
 @pytest.fixture
+def cardapio_valido3():
+    data = datetime.now() + timedelta(days=6)
+    cardapio_valido = mommy.make('Cardapio', id=22, data=data.date())
+    return cardapio_valido
+
+
+@pytest.fixture
 def cardapio_invalido():
     cardapio_invalido = mommy.prepare('Cardapio', _save_related=True, id=3, data=datetime(2019, 7, 2).date(),
                                       uuid='7a4ec98a-18a8-4d0a-b722-1da8f99aaf4d')
@@ -55,7 +62,20 @@ def escola():
 
 
 @pytest.fixture
-def inversao_dia_cardapio(cardapio_valido, cardapio_valido2):
+def inversao_dia_cardapio(cardapio_valido2, cardapio_valido3):
+    mommy.make(TemplateMensagem, assunto='TESTE INVERSAO CARDAPIO',
+               tipo=TemplateMensagem.INVERSAO_CARDAPIO,
+               template_html='@id @criado_em @status @link')
+    escola = mommy.make('escola.Escola')
+    return mommy.make(InversaoCardapio,
+                      uuid='98dc7cb7-7a38-408d-907c-c0f073ca2d13',
+                      cardapio_de=cardapio_valido2,
+                      cardapio_para=cardapio_valido3,
+                      escola=escola)
+
+
+@pytest.fixture
+def inversao_dia_cardapio2(cardapio_valido, cardapio_valido2):
     mommy.make(TemplateMensagem, assunto='TESTE INVERSAO CARDAPIO',
                tipo=TemplateMensagem.INVERSAO_CARDAPIO,
                template_html='@id @criado_em @status @link')

@@ -167,7 +167,7 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
             raise xworkflows.InvalidTransitionError('Já está cancelada')
         else:
             raise xworkflows.InvalidTransitionError(
-                f'Só pode cancelar com {self.DIAS_PARA_CANCELAR} dia(s) de antecedência')
+                f'Só pode cancelar com no mínimo {self.DIAS_PARA_CANCELAR} dia(s) de antecedência')
 
     def cancelamento_automatico_apos_vencimento(self):
         """Chamado automaticamente quando o pedido já passou do dia de atendimento e não chegou ao fim do fluxo."""
