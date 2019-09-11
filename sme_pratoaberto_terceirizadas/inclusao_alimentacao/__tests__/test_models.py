@@ -39,14 +39,14 @@ def test_inclusao_alimentacao_continua_fluxo(inclusao_alimentacao_continua):
     fake_user = mommy.make('perfil.Usuario')
     inclusao_alimentacao_continua.inicia_fluxo(user=fake_user)
     assert inclusao_alimentacao_continua.ta_na_dre
-    inclusao_alimentacao_continua.dre_validou(user=fake_user)
+    inclusao_alimentacao_continua.dre_valida(user=fake_user)
     assert inclusao_alimentacao_continua.ta_na_codae
-    inclusao_alimentacao_continua.codae_autorizou(user=fake_user)
+    inclusao_alimentacao_continua.codae_autoriza(user=fake_user)
     assert inclusao_alimentacao_continua.ta_na_terceirizada
 
 
 def test_inclusao_alimentacao_continua_fluxo_erro(inclusao_alimentacao_continua):
     # TODO: pedir incremento do fluxo para testá-lo por completo
     with pytest.raises(InvalidTransitionError,
-                       match="Transition 'dre_pediu_revisao' isn't available from state 'RASCUNHO'."):
-        inclusao_alimentacao_continua.dre_pediu_revisao()
+                       match="Transition 'dre_pede_revisao' isn't available from state 'RASCUNHO'."):
+        inclusao_alimentacao_continua.dre_pede_revisao()

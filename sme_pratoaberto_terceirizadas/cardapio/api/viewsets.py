@@ -6,33 +6,22 @@ from xworkflows import InvalidTransitionError
 
 from .permissions import (
     PodeAprovarPelaCODAEAlteracaoCardapioPermission, PodeIniciarAlteracaoCardapioPermission,
-    PodeRecusarPelaCODAEAlteracaoCardapioPermission
-)
-from .permissions import (
-    PodeIniciarSuspensaoDeAlimentacaoPermission,
+    PodeIniciarSuspensaoDeAlimentacaoPermission, PodeRecusarPelaCODAEAlteracaoCardapioPermission,
     PodeTomarCienciaSuspensaoDeAlimentacaoPermission
 )
 from .serializers.serializers import (
-    AlteracaoCardapioSerializer, AlteracaoCardapioSimplesSerializer, CardapioSerializer,
-    GrupoSupensaoAlimentacaoListagemSimplesSerializer,
-    GrupoSuspensaoAlimentacaoSerializer, InversaoCardapioSerializer,
-    TipoAlimentacaoSerializer)
-from .serializers.serializers import (
-    MotivoAlteracaoCardapioSerializer,
-    MotivoSuspensaoSerializer
+    AlteracaoCardapioSerializer, AlteracaoCardapioSimplesSerializer,
+    CardapioSerializer, GrupoSupensaoAlimentacaoListagemSimplesSerializer,
+    GrupoSuspensaoAlimentacaoSerializer, GrupoSuspensaoAlimentacaoSimplesSerializer,
+    InversaoCardapioSerializer, MotivoAlteracaoCardapioSerializer,
+    MotivoSuspensaoSerializer, TipoAlimentacaoSerializer
 )
 from .serializers.serializers_create import (
     AlteracaoCardapioSerializerCreate, CardapioCreateSerializer,
     GrupoSuspensaoAlimentacaoCreateSerializer, InversaoCardapioSerializerCreate)
-from ..api.serializers.serializers import GrupoSuspensaoAlimentacaoSimplesSerializer
-from ..models import (
-    AlteracaoCardapio, Cardapio, GrupoSuspensaoAlimentacao, InversaoCardapio, TipoAlimentacao
-)
-from ...cardapio.models import MotivoAlteracaoCardapio, MotivoSuspensao
-from ...dados_comuns.constants import (
-    FILTRO_PADRAO_PEDIDOS, PEDIDOS_CODAE, PEDIDOS_DRE, PEDIDOS_TERCEIRIZADA, SOLICITACOES_DO_USUARIO
-)
-from ...dados_comuns.constants import SEM_FILTRO
+from ..models import (AlteracaoCardapio, Cardapio, GrupoSuspensaoAlimentacao, InversaoCardapio, MotivoAlteracaoCardapio,
+                      MotivoSuspensao, TipoAlimentacao)
+from ...dados_comuns import constants
 
 
 class CardapioViewSet(viewsets.ModelViewSet):
@@ -58,8 +47,8 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
     queryset = InversaoCardapio.objects.all()
 
     @action(detail=False,
-            url_path=f'{PEDIDOS_DRE}/{FILTRO_PADRAO_PEDIDOS}')
-    def pedidos_diretoria_regional(self, request, filtro_aplicado='sem_filtro'):
+            url_path=f'{constants.PEDIDOS_DRE}/{constants.FILTRO_PADRAO_PEDIDOS}')
+    def pedidos_diretoria_regional(self, request, filtro_aplicado=constants.SEM_FILTRO):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
         diretoria_regional = usuario.diretorias_regionais.first()
@@ -71,8 +60,8 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False,
-            url_path=f'{PEDIDOS_CODAE}/{FILTRO_PADRAO_PEDIDOS}')
-    def pedidos_codae(self, request, filtro_aplicado='sem_filtro'):
+            url_path=f'{constants.PEDIDOS_CODAE}/{constants.FILTRO_PADRAO_PEDIDOS}')
+    def pedidos_codae(self, request, filtro_aplicado=constants.SEM_FILTRO):
         # TODO: colocar regras de codae CODAE aqui...
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
@@ -85,8 +74,8 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False,
-            url_path=f'{PEDIDOS_TERCEIRIZADA}/{FILTRO_PADRAO_PEDIDOS}')
-    def pedidos_terceirizada(self, request, filtro_aplicado='sem_filtro'):
+            url_path=f'{constants.PEDIDOS_TERCEIRIZADA}/{constants.FILTRO_PADRAO_PEDIDOS}')
+    def pedidos_terceirizada(self, request, filtro_aplicado=constants.SEM_FILTRO):
         # TODO: colocar regras de Terceirizada aqui...
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
@@ -133,7 +122,7 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
             return InversaoCardapioSerializerCreate
         return InversaoCardapioSerializer
 
-    @action(detail=False, url_path=SOLICITACOES_DO_USUARIO)
+    @action(detail=False, url_path=constants.SOLICITACOES_DO_USUARIO)
     def minhas_solicitacoes(self, request):
         usuario = request.user
         inversoes_rascunho = InversaoCardapio.get_solicitacoes_rascunho(usuario)
@@ -146,7 +135,7 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
     #
 
     @action(detail=True, permission_classes=[PodeIniciarSuspensaoDeAlimentacaoPermission],
-            methods=['patch'], url_path='inicio-pedido')
+            methods=['patch'], url_path=constants.ESCOLA_INICIO_PEDIDO)
     def inicio_de_pedido(self, request, uuid=None):
         inversao_cardapio = self.get_object()
         try:
@@ -157,84 +146,84 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeIniciarSuspensaoDeAlimentacaoPermission],
-            methods=['patch'], url_path='diretoria-regional-aprova-pedido')
+            methods=['patch'], url_path=constants.DRE_VALIDA_PEDIDO)
     def diretoria_regional_aprova_pedido(self, request, uuid=None):
         inversao_cardapio = self.get_object()
         try:
-            inversao_cardapio.dre_validou(user=request.user, notificar=True)
+            inversao_cardapio.dre_valida(user=request.user, notificar=True)
             serializer = self.get_serializer(inversao_cardapio)
             return Response(serializer.data)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeIniciarSuspensaoDeAlimentacaoPermission],
-            methods=['patch'], url_path='diretoria-regional-pede-revisao')
+            methods=['patch'], url_path=constants.DRE_PEDE_REVISAO)
     def diretoria_regional_pede_revisao(self, request, uuid=None):
         inversao_cardapio = self.get_object()
         try:
-            inversao_cardapio.dre_pediu_revisao(user=request.user, notificar=True)
+            inversao_cardapio.dre_pede_revisao(user=request.user, notificar=True)
             serializer = self.get_serializer(inversao_cardapio)
             return Response(serializer.data)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeIniciarSuspensaoDeAlimentacaoPermission],
-            methods=['patch'], url_path='diretoria-regional-cancela-pedido')
+            methods=['patch'], url_path=constants.DRE_NAO_VALIDA_PEDIDO)
     def diretoria_regional_cancela_pedido(self, request, uuid=None):
         inversao_cardapio = self.get_object()
         try:
-            inversao_cardapio.dre_nao_validou_pedido(user=request.user, notificar=True)
+            inversao_cardapio.dre_nao_valida(user=request.user, notificar=True)
             serializer = self.get_serializer(inversao_cardapio)
             return Response(serializer.data)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeIniciarSuspensaoDeAlimentacaoPermission],
-            methods=['patch'], url_path='escola-revisa-pedido')
+            methods=['patch'], url_path=constants.ESCOLA_REVISA_PEDIDO)
     def escola_revisa_pedido(self, request, uuid=None):
         inversao_cardapio = self.get_object()
         try:
-            inversao_cardapio.escola_revisou(user=request.user, notificar=True)
+            inversao_cardapio.escola_revisa(user=request.user, notificar=True)
             serializer = self.get_serializer(inversao_cardapio)
             return Response(serializer.data)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeIniciarSuspensaoDeAlimentacaoPermission],
-            methods=['patch'], url_path='codae-aprova-pedido')
+            methods=['patch'], url_path=constants.CODAE_AUTORIZA_PEDIDO)
     def codae_aprova_pedido(self, request, uuid=None):
         inversao_cardapio = self.get_object()
         try:
-            inversao_cardapio.codae_autorizou(user=request.user, notificar=True)
+            inversao_cardapio.codae_autoriza(user=request.user, notificar=True)
             serializer = self.get_serializer(inversao_cardapio)
             return Response(serializer.data)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeIniciarSuspensaoDeAlimentacaoPermission],
-            methods=['patch'], url_path='codae-cancela-pedido')
+            methods=['patch'], url_path=constants.CODAE_NEGA_PEDIDO)
     def codae_cancela_pedido(self, request, uuid=None):
         inversao_cardapio = self.get_object()
         try:
-            inversao_cardapio.codae_negou(user=request.user, notificar=True)
+            inversao_cardapio.codae_nega(user=request.user, notificar=True)
             serializer = self.get_serializer(inversao_cardapio)
             return Response(serializer.data)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeIniciarSuspensaoDeAlimentacaoPermission],
-            methods=['patch'], url_path='terceirizada-toma-ciencia')
+            methods=['patch'], url_path=constants.TERCEIRIZADA_TOMA_CIENCIA)
     def terceirizada_toma_ciencia(self, request, uuid=None):
         inversao_cardapio = self.get_object()
         try:
-            inversao_cardapio.terceirizada_tomou_ciencia(user=request.user, notificar=True)
+            inversao_cardapio.terceirizada_toma_ciencia(user=request.user, notificar=True)
             serializer = self.get_serializer(inversao_cardapio)
             return Response(serializer.data)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeIniciarSuspensaoDeAlimentacaoPermission],
-            methods=['patch'], url_path='escola-cancela-pedido-48h-antes')
+            methods=['patch'], url_path=constants.ESCOLA_CANCELA)
     def escola_cancela_pedido_48h_antes(self, request, uuid=None):
         inversao_cardapio = self.get_object()
         try:
@@ -256,8 +245,8 @@ class GrupoSuspensaoAlimentacaoSerializerViewSet(viewsets.ModelViewSet):
     serializer_class = GrupoSuspensaoAlimentacaoSerializer
 
     @action(detail=False,
-            url_path=f'{PEDIDOS_CODAE}/{FILTRO_PADRAO_PEDIDOS}')
-    def pedidos_codae(self, request, filtro_aplicado=SEM_FILTRO):
+            url_path=f'{constants.PEDIDOS_CODAE}/{constants.FILTRO_PADRAO_PEDIDOS}')
+    def pedidos_codae(self, request, filtro_aplicado=constants.SEM_FILTRO):
         # TODO: colocar regras de codae CODAE aqui...
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber
@@ -301,7 +290,7 @@ class GrupoSuspensaoAlimentacaoSerializerViewSet(viewsets.ModelViewSet):
     #
 
     @action(detail=True, permission_classes=[PodeIniciarSuspensaoDeAlimentacaoPermission],
-            methods=['patch'], url_path='informa-suspensao')
+            methods=['patch'], url_path=constants.ESCOLA_INFORMA_SUSPENSAO)
     def informa_suspensao(self, request, uuid=None):
         grupo_suspensao_de_alimentacao = self.get_object()
         try:
@@ -312,11 +301,11 @@ class GrupoSuspensaoAlimentacaoSerializerViewSet(viewsets.ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeTomarCienciaSuspensaoDeAlimentacaoPermission],
-            methods=['patch'], url_path='terceirizada-toma-ciencia')
-    def terceirizada_tomou_ciencia(self, request, uuid=None):
+            methods=['patch'], url_path=constants.TERCEIRIZADA_TOMA_CIENCIA)
+    def terceirizada_toma_ciencia(self, request, uuid=None):
         grupo_suspensao_de_alimentacao = self.get_object()
         try:
-            grupo_suspensao_de_alimentacao.terceirizada_tomou_ciencia(user=request.user, notificar=True)
+            grupo_suspensao_de_alimentacao.terceirizada_toma_ciencia(user=request.user, notificar=True)
             serializer = self.get_serializer(grupo_suspensao_de_alimentacao)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -342,8 +331,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
     #
 
     @action(detail=False,
-            url_path='pedidos-codae/'
-                     '(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)')
+            url_path=f'{constants.PEDIDOS_CODAE}/{constants.FILTRO_PADRAO_PEDIDOS}')
     def pedidos_codae(self, request, filtro_aplicado='sem_filtro'):
         # TODO: colocar regras de codae CODAE aqui...
         usuario = request.user
@@ -362,7 +350,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
     #
 
     @action(detail=True, permission_classes=[PodeIniciarAlteracaoCardapioPermission],
-            methods=['patch'], url_path='inicio-pedido')
+            methods=['patch'], url_path=constants.ESCOLA_INICIO_PEDIDO)
     def inicio_de_pedido(self, request, uuid=None):
         alteracao_cardapio = self.get_object()
         try:
@@ -373,84 +361,84 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeIniciarAlteracaoCardapioPermission],
-            methods=['patch'], url_path='diretoria-regional-aprova')
+            methods=['patch'], url_path=constants.DRE_VALIDA_PEDIDO)
     def diretoria_regional_aprova(self, request, uuid=None):
         alteracao_cardapio = self.get_object()
         try:
-            alteracao_cardapio.dre_validou(user=request.user, notificar=True)
+            alteracao_cardapio.dre_valida(user=request.user, notificar=True)
             serializer = self.get_serializer(alteracao_cardapio)
             return Response(serializer.data)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeIniciarAlteracaoCardapioPermission],
-            methods=['patch'], url_path='diretoria-regional-pede-revisao')
-    def dre_pediu_revisao(self, request, uuid=None):
+            methods=['patch'], url_path=constants.DRE_PEDE_REVISAO)
+    def dre_pede_revisao(self, request, uuid=None):
         alteracao_cardapio = self.get_object()
         try:
-            alteracao_cardapio.dre_pediu_revisao(user=request.user)
+            alteracao_cardapio.dre_pede_revisao(user=request.user)
             serializer = self.get_serializer(alteracao_cardapio, notificar=True)
             return Response(serializer.data)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeIniciarAlteracaoCardapioPermission],
-            methods=['patch'], url_path='diretoria-regional-cancela-pedido')
+            methods=['patch'], url_path=constants.DRE_NAO_VALIDA_PEDIDO)
     def dre_cancela_pedido(self, request, uuid=None):
         alteracao_cardapio = self.get_object()
         try:
-            alteracao_cardapio.dre_nao_validou_pedido(user=request.user, notificar=True)
+            alteracao_cardapio.dre_nao_valida(user=request.user, notificar=True)
             serializer = self.get_serializer(alteracao_cardapio)
             return Response(serializer.data)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeRecusarPelaCODAEAlteracaoCardapioPermission],
-            methods=['patch'], url_path='escola-revisa')
+            methods=['patch'], url_path=constants.ESCOLA_REVISA_PEDIDO)
     def escola_revisa(self, request, uuid=None):
         alteracao_cardapio = self.get_object()
         try:
-            alteracao_cardapio.escola_revisou(user=request.user, notificar=True)
+            alteracao_cardapio.escola_revisa(user=request.user, notificar=True)
             serializer = self.get_serializer(alteracao_cardapio)
             return Response(serializer.data)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeRecusarPelaCODAEAlteracaoCardapioPermission],
-            methods=['patch'], url_path='codae-cancela-pedido')
+            methods=['patch'], url_path=constants.CODAE_NEGA_PEDIDO)
     def codae_cancela_pedido(self, request, uuid=None):
         alteracao_cardapio = self.get_object()
         try:
-            alteracao_cardapio.codae_negou(user=request.user, notificar=True)
+            alteracao_cardapio.codae_nega(user=request.user, notificar=True)
             serializer = self.get_serializer(alteracao_cardapio)
             return Response(serializer.data)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeAprovarPelaCODAEAlteracaoCardapioPermission],
-            methods=['patch'], url_path='codae-aprova-pedido')
+            methods=['patch'], url_path=constants.CODAE_AUTORIZA_PEDIDO)
     def codae_aprova(self, request, uuid=None):
         alteracao_cardapio = self.get_object()
         try:
-            alteracao_cardapio.codae_autorizou(user=request.user, notificar=True)
+            alteracao_cardapio.codae_autoriza(user=request.user, notificar=True)
             serializer = self.get_serializer(alteracao_cardapio)
             return Response(serializer.data)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeRecusarPelaCODAEAlteracaoCardapioPermission],
-            methods=['patch'], url_path='terceirizada-toma-ciencia')
-    def terceirizada_tomou_ciencia(self, request, uuid=None):
+            methods=['patch'], url_path=constants.TERCEIRIZADA_TOMA_CIENCIA)
+    def terceirizada_toma_ciencia(self, request, uuid=None):
         alteracao_cardapio = self.get_object()
         try:
-            alteracao_cardapio.terceirizada_tomou_ciencia(user=request.user, notificar=True)
+            alteracao_cardapio.terceirizada_toma_ciencia(user=request.user, notificar=True)
             serializer = self.get_serializer(alteracao_cardapio)
             return Response(serializer.data)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeRecusarPelaCODAEAlteracaoCardapioPermission],
-            methods=['patch'], url_path='escola-cancela-pedido-48h-antes')
+            methods=['patch'], url_path=constants.ESCOLA_CANCELA)
     def escola_cancela_pedido_48h_antes(self, request, uuid=None):
         inclusao_alimentacao_continua = self.get_object()
 

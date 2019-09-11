@@ -9,10 +9,10 @@ from .permissions import (
 from .serializers import serializers, serializers_create
 from ..models import (
     GrupoInclusaoAlimentacaoNormal, InclusaoAlimentacaoContinua,
-    InclusaoAlimentacaoNormal, MotivoInclusaoContinua,
+    MotivoInclusaoContinua,
     MotivoInclusaoNormal
 )
-from ...dados_comuns.constants import FILTRO_PADRAO_PEDIDOS, PEDIDOS_CODAE
+from ...dados_comuns import constants
 
 
 class MotivoInclusaoContinuaViewSet(ReadOnlyModelViewSet):
@@ -27,18 +27,6 @@ class MotivoInclusaoNormalViewSet(ReadOnlyModelViewSet):
     serializer_class = serializers.MotivoInclusaoNormalSerializer
 
 
-class InclusaoAlimentacaoNormalViewSet(ModelViewSet):
-    lookup_field = 'uuid'
-    queryset = InclusaoAlimentacaoNormal.objects.all()
-    serializer_class = serializers.InclusaoAlimentacaoNormalSerializer
-
-    # TODO: permitir deletar somente se o status for do inicial...
-    def get_serializer_class(self):
-        if self.action in ['create', 'update', 'partial_update']:
-            return serializers_create.InclusaoAlimentacaoNormalCreationSerializer
-        return serializers.InclusaoAlimentacaoNormalSerializer
-
-
 class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
     lookup_field = 'uuid'
     queryset = GrupoInclusaoAlimentacaoNormal.objects.all()
@@ -49,7 +37,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
             return serializers_create.GrupoInclusaoAlimentacaoNormalCreationSerializer
         return serializers.GrupoInclusaoAlimentacaoNormalSerializer
 
-    @action(detail=False, url_path='minhas-solicitacoes')
+    @action(detail=False, url_path=constants.SOLICITACOES_DO_USUARIO)
     def minhas_solicitacoes(self, request):
         usuario = request.user
         alimentacoes_normais = GrupoInclusaoAlimentacaoNormal.get_solicitacoes_rascunho(usuario)
@@ -58,7 +46,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False,
-            url_path=f'{PEDIDOS_CODAE}/{FILTRO_PADRAO_PEDIDOS}')
+            url_path=f'{constants.PEDIDOS_CODAE}/{constants.FILTRO_PADRAO_PEDIDOS}')
     def pedidos_codae(self, request, filtro_aplicado='sem_filtro'):
         # TODO: colocar regras de codae CODAE aqui...
         usuario = request.user
@@ -262,7 +250,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
     #
 
     @action(detail=True, permission_classes=[PodeIniciarInclusaoAlimentacaoContinuaPermission],
-            methods=['patch'], url_path='inicio-pedido')
+            methods=['patch'], url_path=constants.ESCOLA_INICIO_PEDIDO)
     def inicio_de_pedido(self, request, uuid=None):
         grupo_alimentacao_normal = self.get_object()
         try:
@@ -273,84 +261,84 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'))
 
     @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
-            methods=['patch'], url_path='diretoria-regional-aprova-pedido')
+            methods=['patch'], url_path=constants.DRE_VALIDA_PEDIDO)
     def diretoria_regional_aprova(self, request, uuid=None):
         grupo_alimentacao_normal = self.get_object()
         try:
-            grupo_alimentacao_normal.dre_validou(user=request.user, notificar=True)
+            grupo_alimentacao_normal.dre_valida(user=request.user, notificar=True)
             serializer = self.get_serializer(grupo_alimentacao_normal)
             return Response(serializer.data)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'))
 
     @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
-            methods=['patch'], url_path='diretoria-regional-pede-revisao')
+            methods=['patch'], url_path=constants.DRE_PEDE_REVISAO)
     def diretoria_regional_pede_revisao(self, request, uuid=None):
         grupo_alimentacao_normal = self.get_object()
         try:
-            grupo_alimentacao_normal.dre_pediu_revisao(user=request.user, notificar=True)
+            grupo_alimentacao_normal.dre_pede_revisao(user=request.user, notificar=True)
             serializer = self.get_serializer(grupo_alimentacao_normal)
             return Response(serializer.data)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'))
 
     @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
-            methods=['patch'], url_path='diretoria-regional-cancela-pedido')
+            methods=['patch'], url_path=constants.DRE_NAO_VALIDA_PEDIDO)
     def diretoria_cancela_pedido(self, request, uuid=None):
         grupo_alimentacao_normal = self.get_object()
         try:
-            grupo_alimentacao_normal.dre_nao_validou_pedido(user=request.user, notificar=True)
+            grupo_alimentacao_normal.dre_nao_valida(user=request.user, notificar=True)
             serializer = self.get_serializer(grupo_alimentacao_normal)
             return Response(serializer.data)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'))
 
     @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
-            methods=['patch'], url_path='escola-revisa-pedido')
+            methods=['patch'], url_path=constants.ESCOLA_REVISA_PEDIDO)
     def escola_revisa_pedido(self, request, uuid=None):
         grupo_alimentacao_normal = self.get_object()
         try:
-            grupo_alimentacao_normal.escola_revisou(user=request.user, notificar=True)
+            grupo_alimentacao_normal.escola_revisa(user=request.user, notificar=True)
             serializer = self.get_serializer(grupo_alimentacao_normal)
             return Response(serializer.data)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'))
 
     @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
-            methods=['patch'], url_path='codae-aprova-pedido')
+            methods=['patch'], url_path=constants.CODAE_AUTORIZA_PEDIDO)
     def codae_aprova_pedido(self, request, uuid=None):
         grupo_alimentacao_normal = self.get_object()
         try:
-            grupo_alimentacao_normal.codae_autorizou(user=request.user, notificar=True)
+            grupo_alimentacao_normal.codae_autoriza(user=request.user, notificar=True)
             serializer = self.get_serializer(grupo_alimentacao_normal)
             return Response(serializer.data)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'))
 
     @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
-            methods=['patch'], url_path='codae-cancela-pedido')
+            methods=['patch'], url_path=constants.CODAE_NEGA_PEDIDO)
     def codae_cancela_pedido(self, request, uuid=None):
         grupo_alimentacao_normal = self.get_object()
         try:
-            grupo_alimentacao_normal.codae_negou(user=request.user, notificar=True)
+            grupo_alimentacao_normal.codae_nega(user=request.user, notificar=True)
             serializer = self.get_serializer(grupo_alimentacao_normal)
             return Response(serializer.data)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'))
 
     @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
-            methods=['patch'], url_path='terceirizada-toma-ciencia')
+            methods=['patch'], url_path=constants.TERCEIRIZADA_TOMA_CIENCIA)
     def terceirizada_toma_ciencia(self, request, uuid=None):
         grupo_alimentacao_normal = self.get_object()
         try:
-            grupo_alimentacao_normal.terceirizada_tomou_ciencia(user=request.user, notificar=True)
+            grupo_alimentacao_normal.terceirizada_toma_ciencia(user=request.user, notificar=True)
             serializer = self.get_serializer(grupo_alimentacao_normal)
             return Response(serializer.data)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'))
 
     @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
-            methods=['patch'], url_path='escola-cancela-pedido-48h-antes')
+            methods=['patch'], url_path=constants.ESCOLA_CANCELA)
     def escola_cancela_pedido_48h_antes(self, request, uuid=None):
         grupo_alimentacao_normal = self.get_object()
         try:
@@ -371,7 +359,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
             return serializers_create.InclusaoAlimentacaoContinuaCreationSerializer
         return serializers.InclusaoAlimentacaoContinuaSerializer
 
-    @action(detail=False, url_path='minhas-solicitacoes')
+    @action(detail=False, url_path=constants.SOLICITACOES_DO_USUARIO)
     def minhas_solicitacoes(self, request):
         usuario = request.user
         inclusoes_continuas = InclusaoAlimentacaoContinua.get_solicitacoes_rascunho(usuario)
@@ -380,7 +368,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False,
-            url_path=f'{PEDIDOS_CODAE}/{FILTRO_PADRAO_PEDIDOS}')
+            url_path=f'{constants.PEDIDOS_CODAE}/{constants.FILTRO_PADRAO_PEDIDOS}')
     def pedidos_codae(self, request, filtro_aplicado='sem_filtro'):
         # TODO: colocar regras de codae CODAE aqui...
         usuario = request.user
@@ -584,7 +572,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
     #
 
     @action(detail=True, permission_classes=[PodeIniciarInclusaoAlimentacaoContinuaPermission],
-            methods=['patch'], url_path='inicio-pedido')
+            methods=['patch'], url_path=constants.ESCOLA_INICIO_PEDIDO)
     def inicio_de_pedido(self, request, uuid=None):
         inclusao_alimentacao_continua = self.get_object()
         try:
@@ -595,84 +583,84 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'))
 
     @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
-            methods=['patch'], url_path='diretoria-regional-aprova-pedido')
+            methods=['patch'], url_path=constants.DRE_VALIDA_PEDIDO)
     def diretoria_regional_aprova(self, request, uuid=None):
         inclusao_alimentacao_continua = self.get_object()
         try:
-            inclusao_alimentacao_continua.dre_validou(user=request.user, notificar=True)
+            inclusao_alimentacao_continua.dre_valida(user=request.user, notificar=True)
             serializer = self.get_serializer(inclusao_alimentacao_continua)
             return Response(serializer.data)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'))
 
     @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
-            methods=['patch'], url_path='diretoria-regional-pede-revisao')
+            methods=['patch'], url_path=constants.DRE_PEDE_REVISAO)
     def diretoria_regional_pede_revisao(self, request, uuid=None):
         inclusao_alimentacao_continua = self.get_object()
         try:
-            inclusao_alimentacao_continua.dre_pediu_revisao(user=request.user, notificar=True)
+            inclusao_alimentacao_continua.dre_pede_revisao(user=request.user, notificar=True)
             serializer = self.get_serializer(inclusao_alimentacao_continua)
             return Response(serializer.data)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'))
 
     @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
-            methods=['patch'], url_path='escola-revisa-pedido')
+            methods=['patch'], url_path=constants.ESCOLA_REVISA_PEDIDO)
     def escola_revisa_pedido(self, request, uuid=None):
         inclusao_alimentacao_continua = self.get_object()
         try:
-            inclusao_alimentacao_continua.escola_revisou(user=request.user, notificar=True)
+            inclusao_alimentacao_continua.escola_revisa(user=request.user, notificar=True)
             serializer = self.get_serializer(inclusao_alimentacao_continua)
             return Response(serializer.data)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'))
 
     @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
-            methods=['patch'], url_path='codae-cancela-pedido')
+            methods=['patch'], url_path=constants.CODAE_NEGA_PEDIDO)
     def codae_cancela_pedido(self, request, uuid=None):
         inclusao_alimentacao_continua = self.get_object()
         try:
-            inclusao_alimentacao_continua.codae_negou(user=request.user, notificar=True)
+            inclusao_alimentacao_continua.codae_nega(user=request.user, notificar=True)
             serializer = self.get_serializer(inclusao_alimentacao_continua)
             return Response(serializer.data)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'))
 
     @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
-            methods=['patch'], url_path='diretoria-regional-cancela-pedido')
+            methods=['patch'], url_path=constants.DRE_NAO_VALIDA_PEDIDO)
     def diretoria_regional_cancela_pedido(self, request, uuid=None):
         inclusao_alimentacao_continua = self.get_object()
         try:
-            inclusao_alimentacao_continua.dre_nao_validou_pedido(user=request.user, notificar=True)
+            inclusao_alimentacao_continua.dre_nao_valida(user=request.user, notificar=True)
             serializer = self.get_serializer(inclusao_alimentacao_continua)
             return Response(serializer.data)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'))
 
     @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
-            methods=['patch'], url_path='codae-aprova-pedido')
+            methods=['patch'], url_path=constants.CODAE_AUTORIZA_PEDIDO)
     def codae_aprova_pedido(self, request, uuid=None):
         inclusao_alimentacao_continua = self.get_object()
         try:
-            inclusao_alimentacao_continua.codae_autorizou(user=request.user, notificar=True)
+            inclusao_alimentacao_continua.codae_autoriza(user=request.user, notificar=True)
             serializer = self.get_serializer(inclusao_alimentacao_continua)
             return Response(serializer.data)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'))
 
     @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
-            methods=['patch'], url_path='terceirizada-toma-ciencia')
+            methods=['patch'], url_path=constants.TERCEIRIZADA_TOMA_CIENCIA)
     def terceirizada_toma_ciencia(self, request, uuid=None):
         inclusao_alimentacao_continua = self.get_object()
         try:
-            inclusao_alimentacao_continua.terceirizada_tomou_ciencia(user=request.user, notificar=True)
+            inclusao_alimentacao_continua.terceirizada_toma_ciencia(user=request.user, notificar=True)
             serializer = self.get_serializer(inclusao_alimentacao_continua)
             return Response(serializer.data)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'))
 
     @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
-            methods=['patch'], url_path='escola-cancela-pedido-48h-antes')
+            methods=['patch'], url_path=constants.ESCOLA_CANCELA)
     def escola_cancela_pedido_48h_antes(self, request, uuid=None):
         inclusao_alimentacao_continua = self.get_object()
         try:

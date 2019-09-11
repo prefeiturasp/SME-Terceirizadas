@@ -19,7 +19,28 @@ PEDIDOS_DRE = 'pedidos-diretoria-regional'
 FILTRO_PADRAO_PEDIDOS = f'(?P<filtro_aplicado>({SEM_FILTRO}|{DAQUI_A_7_DIAS}|{DAQUI_A_30_DIAS})+)'
 
 #
-# FLUXO
+# FLUXO, usados nas actions de transição de status nas viewsets dos pedidos/informações do sistema
+#
+
+ESCOLA_INICIO_PEDIDO = 'inicio-pedido'
+ESCOLA_REVISA_PEDIDO = 'escola-revisa-pedido'
+ESCOLA_CANCELA = 'escola-cancela-pedido-48h-antes'
+ESCOLA_INFORMA_SUSPENSAO = 'informa-suspensao'
+
+DRE_INICIO_PEDIDO = 'inicio-pedido'
+DRE_VALIDA_PEDIDO = 'diretoria-regional-aprova-pedido'
+DRE_NAO_VALIDA_PEDIDO = 'diretoria-regional-cancela-pedido'
+DRE_PEDE_REVISAO = 'diretoria-regional-pede-revisao'
+DRE_REVISA_PEDIDO = 'diretoria-regional-revisa'
+
+CODAE_AUTORIZA_PEDIDO = 'codae-aprova-pedido'
+CODAE_NEGA_PEDIDO = 'codae-cancela-pedido'
+CODAE_PEDE_REVISAO = 'codae-pediu-revisao'
+
+TERCEIRIZADA_TOMA_CIENCIA = 'terceirizada-toma-ciencia'
+
+#
+# FILTROS
 #
 
 SOLICITACOES_DO_USUARIO = 'minhas-solicitacoes'
