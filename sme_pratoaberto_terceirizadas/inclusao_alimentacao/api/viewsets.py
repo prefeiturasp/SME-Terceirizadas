@@ -12,11 +12,7 @@ from ..models import (
     MotivoInclusaoContinua,
     MotivoInclusaoNormal
 )
-from ...dados_comuns.constants import (
-    SOLICITACOES_DO_USUARIO, ESCOLA_INICIO_PEDIDO, FILTRO_PADRAO_PEDIDOS, PEDIDOS_CODAE,
-    DRE_VALIDA_PEDIDO, DRE_PEDE_REVISAO, DRE_NAO_VALIDA_PEDIDO, ESCOLA_REVISA_PEDIDO, CODAE_AUTORIZA_PEDIDO,
-    CODAE_NEGA_PEDIDO, TERCEIRIZADA_TOMA_CIENCIA, ESCOLA_CANCELA
-)
+from ...dados_comuns import constants
 
 
 class MotivoInclusaoContinuaViewSet(ReadOnlyModelViewSet):
@@ -41,7 +37,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
             return serializers_create.GrupoInclusaoAlimentacaoNormalCreationSerializer
         return serializers.GrupoInclusaoAlimentacaoNormalSerializer
 
-    @action(detail=False, url_path=SOLICITACOES_DO_USUARIO)
+    @action(detail=False, url_path=constants.SOLICITACOES_DO_USUARIO)
     def minhas_solicitacoes(self, request):
         usuario = request.user
         alimentacoes_normais = GrupoInclusaoAlimentacaoNormal.get_solicitacoes_rascunho(usuario)
@@ -50,7 +46,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False,
-            url_path=f'{PEDIDOS_CODAE}/{FILTRO_PADRAO_PEDIDOS}')
+            url_path=f'{constants.PEDIDOS_CODAE}/{constants.FILTRO_PADRAO_PEDIDOS}')
     def pedidos_codae(self, request, filtro_aplicado='sem_filtro'):
         # TODO: colocar regras de codae CODAE aqui...
         usuario = request.user
@@ -254,7 +250,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
     #
 
     @action(detail=True, permission_classes=[PodeIniciarInclusaoAlimentacaoContinuaPermission],
-            methods=['patch'], url_path=ESCOLA_INICIO_PEDIDO)
+            methods=['patch'], url_path=constants.ESCOLA_INICIO_PEDIDO)
     def inicio_de_pedido(self, request, uuid=None):
         grupo_alimentacao_normal = self.get_object()
         try:
@@ -265,7 +261,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'))
 
     @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
-            methods=['patch'], url_path=DRE_VALIDA_PEDIDO)
+            methods=['patch'], url_path=constants.DRE_VALIDA_PEDIDO)
     def diretoria_regional_aprova(self, request, uuid=None):
         grupo_alimentacao_normal = self.get_object()
         try:
@@ -276,7 +272,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'))
 
     @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
-            methods=['patch'], url_path=DRE_PEDE_REVISAO)
+            methods=['patch'], url_path=constants.DRE_PEDE_REVISAO)
     def diretoria_regional_pede_revisao(self, request, uuid=None):
         grupo_alimentacao_normal = self.get_object()
         try:
@@ -287,7 +283,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'))
 
     @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
-            methods=['patch'], url_path=DRE_NAO_VALIDA_PEDIDO)
+            methods=['patch'], url_path=constants.DRE_NAO_VALIDA_PEDIDO)
     def diretoria_cancela_pedido(self, request, uuid=None):
         grupo_alimentacao_normal = self.get_object()
         try:
@@ -298,7 +294,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'))
 
     @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
-            methods=['patch'], url_path=ESCOLA_REVISA_PEDIDO)
+            methods=['patch'], url_path=constants.ESCOLA_REVISA_PEDIDO)
     def escola_revisa_pedido(self, request, uuid=None):
         grupo_alimentacao_normal = self.get_object()
         try:
@@ -309,7 +305,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'))
 
     @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
-            methods=['patch'], url_path=CODAE_AUTORIZA_PEDIDO)
+            methods=['patch'], url_path=constants.CODAE_AUTORIZA_PEDIDO)
     def codae_aprova_pedido(self, request, uuid=None):
         grupo_alimentacao_normal = self.get_object()
         try:
@@ -320,7 +316,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'))
 
     @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
-            methods=['patch'], url_path=CODAE_NEGA_PEDIDO)
+            methods=['patch'], url_path=constants.CODAE_NEGA_PEDIDO)
     def codae_cancela_pedido(self, request, uuid=None):
         grupo_alimentacao_normal = self.get_object()
         try:
@@ -331,7 +327,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'))
 
     @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
-            methods=['patch'], url_path=TERCEIRIZADA_TOMA_CIENCIA)
+            methods=['patch'], url_path=constants.TERCEIRIZADA_TOMA_CIENCIA)
     def terceirizada_toma_ciencia(self, request, uuid=None):
         grupo_alimentacao_normal = self.get_object()
         try:
@@ -342,7 +338,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'))
 
     @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
-            methods=['patch'], url_path=ESCOLA_CANCELA)
+            methods=['patch'], url_path=constants.ESCOLA_CANCELA)
     def escola_cancela_pedido_48h_antes(self, request, uuid=None):
         grupo_alimentacao_normal = self.get_object()
         try:
@@ -363,7 +359,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
             return serializers_create.InclusaoAlimentacaoContinuaCreationSerializer
         return serializers.InclusaoAlimentacaoContinuaSerializer
 
-    @action(detail=False, url_path=SOLICITACOES_DO_USUARIO)
+    @action(detail=False, url_path=constants.SOLICITACOES_DO_USUARIO)
     def minhas_solicitacoes(self, request):
         usuario = request.user
         inclusoes_continuas = InclusaoAlimentacaoContinua.get_solicitacoes_rascunho(usuario)
@@ -372,7 +368,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False,
-            url_path=f'{PEDIDOS_CODAE}/{FILTRO_PADRAO_PEDIDOS}')
+            url_path=f'{constants.PEDIDOS_CODAE}/{constants.FILTRO_PADRAO_PEDIDOS}')
     def pedidos_codae(self, request, filtro_aplicado='sem_filtro'):
         # TODO: colocar regras de codae CODAE aqui...
         usuario = request.user
@@ -576,7 +572,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
     #
 
     @action(detail=True, permission_classes=[PodeIniciarInclusaoAlimentacaoContinuaPermission],
-            methods=['patch'], url_path=ESCOLA_INICIO_PEDIDO)
+            methods=['patch'], url_path=constants.ESCOLA_INICIO_PEDIDO)
     def inicio_de_pedido(self, request, uuid=None):
         inclusao_alimentacao_continua = self.get_object()
         try:
@@ -587,7 +583,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'))
 
     @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
-            methods=['patch'], url_path=DRE_VALIDA_PEDIDO)
+            methods=['patch'], url_path=constants.DRE_VALIDA_PEDIDO)
     def diretoria_regional_aprova(self, request, uuid=None):
         inclusao_alimentacao_continua = self.get_object()
         try:
@@ -598,7 +594,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'))
 
     @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
-            methods=['patch'], url_path=DRE_PEDE_REVISAO)
+            methods=['patch'], url_path=constants.DRE_PEDE_REVISAO)
     def diretoria_regional_pede_revisao(self, request, uuid=None):
         inclusao_alimentacao_continua = self.get_object()
         try:
@@ -609,7 +605,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'))
 
     @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
-            methods=['patch'], url_path=ESCOLA_REVISA_PEDIDO)
+            methods=['patch'], url_path=constants.ESCOLA_REVISA_PEDIDO)
     def escola_revisa_pedido(self, request, uuid=None):
         inclusao_alimentacao_continua = self.get_object()
         try:
@@ -620,7 +616,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'))
 
     @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
-            methods=['patch'], url_path=CODAE_NEGA_PEDIDO)
+            methods=['patch'], url_path=constants.CODAE_NEGA_PEDIDO)
     def codae_cancela_pedido(self, request, uuid=None):
         inclusao_alimentacao_continua = self.get_object()
         try:
@@ -631,7 +627,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'))
 
     @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
-            methods=['patch'], url_path=DRE_NAO_VALIDA_PEDIDO)
+            methods=['patch'], url_path=constants.DRE_NAO_VALIDA_PEDIDO)
     def diretoria_regional_cancela_pedido(self, request, uuid=None):
         inclusao_alimentacao_continua = self.get_object()
         try:
@@ -642,7 +638,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'))
 
     @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
-            methods=['patch'], url_path=CODAE_AUTORIZA_PEDIDO)
+            methods=['patch'], url_path=constants.CODAE_AUTORIZA_PEDIDO)
     def codae_aprova_pedido(self, request, uuid=None):
         inclusao_alimentacao_continua = self.get_object()
         try:
@@ -653,7 +649,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'))
 
     @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
-            methods=['patch'], url_path=TERCEIRIZADA_TOMA_CIENCIA)
+            methods=['patch'], url_path=constants.TERCEIRIZADA_TOMA_CIENCIA)
     def terceirizada_toma_ciencia(self, request, uuid=None):
         inclusao_alimentacao_continua = self.get_object()
         try:
@@ -664,7 +660,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'))
 
     @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
-            methods=['patch'], url_path=ESCOLA_CANCELA)
+            methods=['patch'], url_path=constants.ESCOLA_CANCELA)
     def escola_cancela_pedido_48h_antes(self, request, uuid=None):
         inclusao_alimentacao_continua = self.get_object()
         try:

@@ -4,10 +4,6 @@ from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from xworkflows import InvalidTransitionError
 
-from sme_pratoaberto_terceirizadas.dados_comuns.constants import SOLICITACOES_DO_USUARIO, ESCOLA_INICIO_PEDIDO, \
-    DRE_VALIDA_PEDIDO, DRE_PEDE_REVISAO, DRE_NAO_VALIDA_PEDIDO, ESCOLA_REVISA_PEDIDO, CODAE_AUTORIZA_PEDIDO, \
-    CODAE_NEGA_PEDIDO, TERCEIRIZADA_TOMA_CIENCIA, ESCOLA_CANCELA, DRE_INICIO_PEDIDO, CODAE_PEDE_REVISAO, \
-    DRE_REVISA_PEDIDO
 from .permissions import (
     PodeIniciarSolicitacaoKitLancheAvulsaPermission, PodeIniciarSolicitacaoUnificadaPermission
 )
@@ -17,9 +13,7 @@ from .. import models
 from ..models import (
     SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheUnificada
 )
-from ...dados_comuns.constants import (
-    FILTRO_PADRAO_PEDIDOS, PEDIDOS_CODAE, PEDIDOS_DRE, PEDIDOS_TERCEIRIZADA
-)
+from ...dados_comuns import constants
 
 
 class MotivoSolicitacaoUnificadaViewSet(ModelViewSet):
@@ -45,7 +39,7 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
         return serializers.SolicitacaoKitLancheAvulsaSerializer
 
     @action(detail=False,
-            url_path=f'{PEDIDOS_DRE}/{FILTRO_PADRAO_PEDIDOS}')
+            url_path=f'{constants.PEDIDOS_DRE}/{constants.FILTRO_PADRAO_PEDIDOS}')
     def pedidos_diretoria_regional(self, request, filtro_aplicado='sem_filtro'):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
@@ -108,7 +102,7 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False,
-            url_path=f'{PEDIDOS_CODAE}/{FILTRO_PADRAO_PEDIDOS}')
+            url_path=f'{constants.PEDIDOS_CODAE}/{constants.FILTRO_PADRAO_PEDIDOS}')
     def pedidos_codae(self, request, filtro_aplicado='sem_filtro'):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
@@ -121,7 +115,7 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False,
-            url_path=f'{PEDIDOS_TERCEIRIZADA}/{FILTRO_PADRAO_PEDIDOS}')
+            url_path=f'{constants.PEDIDOS_TERCEIRIZADA}/{constants.FILTRO_PADRAO_PEDIDOS}')
     def pedidos_terceirizadas(self, request, filtro_aplicado='sem_filtro'):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
@@ -134,7 +128,7 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     # TODO: com as permissoes feitas, somente uma pessoa com permissao dentro da escola poder pedir
-    @action(detail=False, url_path=SOLICITACOES_DO_USUARIO)
+    @action(detail=False, url_path=constants.SOLICITACOES_DO_USUARIO)
     def minhas_solicitacoes(self, request):
         usuario = request.user
         solicitacoes_unificadas = SolicitacaoKitLancheAvulsa.objects.filter(
@@ -150,7 +144,7 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
     #
 
     @action(detail=True, permission_classes=[PodeIniciarSolicitacaoKitLancheAvulsaPermission],
-            methods=['patch'], url_path=ESCOLA_INICIO_PEDIDO)
+            methods=['patch'], url_path=constants.ESCOLA_INICIO_PEDIDO)
     def inicio_de_pedido(self, request, uuid=None):
         solicitacao_kit_lanche_avulsa = self.get_object()
         solicitacao_kit_lanche_avulsa.status = None
@@ -162,7 +156,7 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeIniciarSolicitacaoKitLancheAvulsaPermission],
-            methods=['patch'], url_path=DRE_VALIDA_PEDIDO)
+            methods=['patch'], url_path=constants.DRE_VALIDA_PEDIDO)
     def diretoria_regional_aprova_pedido(self, request, uuid=None):
         solicitacao_kit_lanche_avulsa = self.get_object()
         try:
@@ -173,7 +167,7 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeIniciarSolicitacaoKitLancheAvulsaPermission],
-            methods=['patch'], url_path=DRE_PEDE_REVISAO)
+            methods=['patch'], url_path=constants.DRE_PEDE_REVISAO)
     def diretoria_regional_pede_revisao(self, request, uuid=None):
         solicitacao_kit_lanche_avulsa = self.get_object()
         try:
@@ -184,7 +178,7 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeIniciarSolicitacaoKitLancheAvulsaPermission],
-            methods=['patch'], url_path=DRE_NAO_VALIDA_PEDIDO)
+            methods=['patch'], url_path=constants.DRE_NAO_VALIDA_PEDIDO)
     def diretoria_regional_cancela_pedido(self, request, uuid=None):
         solicitacao_kit_lanche_avulsa = self.get_object()
         try:
@@ -195,7 +189,7 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeIniciarSolicitacaoKitLancheAvulsaPermission],
-            methods=['patch'], url_path=ESCOLA_REVISA_PEDIDO)
+            methods=['patch'], url_path=constants.ESCOLA_REVISA_PEDIDO)
     def escola_revisa_pedido(self, request, uuid=None):
         solicitacao_kit_lanche_avulsa = self.get_object()
         try:
@@ -206,7 +200,7 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeIniciarSolicitacaoKitLancheAvulsaPermission],
-            methods=['patch'], url_path=CODAE_AUTORIZA_PEDIDO)
+            methods=['patch'], url_path=constants.CODAE_AUTORIZA_PEDIDO)
     def codae_aprova_pedido(self, request, uuid=None):
         solicitacao_kit_lanche_avulsa = self.get_object()
         try:
@@ -217,7 +211,7 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeIniciarSolicitacaoKitLancheAvulsaPermission],
-            methods=['patch'], url_path=CODAE_NEGA_PEDIDO)
+            methods=['patch'], url_path=constants.CODAE_NEGA_PEDIDO)
     def codae_cancela_pedido(self, request, uuid=None):
         solicitacao_kit_lanche_avulsa = self.get_object()
         try:
@@ -228,7 +222,7 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeIniciarSolicitacaoKitLancheAvulsaPermission],
-            methods=['patch'], url_path=TERCEIRIZADA_TOMA_CIENCIA)
+            methods=['patch'], url_path=constants.TERCEIRIZADA_TOMA_CIENCIA)
     def terceirizada_toma_ciencia(self, request, uuid=None):
         solicitacao_kit_lanche_avulsa = self.get_object()
         try:
@@ -239,7 +233,7 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeIniciarSolicitacaoKitLancheAvulsaPermission],
-            methods=['patch'], url_path=ESCOLA_CANCELA)
+            methods=['patch'], url_path=constants.ESCOLA_CANCELA)
     def escola_cancela_pedido_48h_antes(self, request, uuid=None):
         solicitacao_kit_lanche_avulsa = self.get_object()
         try:
@@ -266,7 +260,7 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
         return serializers.SolicitacaoKitLancheUnificadaSerializer
 
     @action(detail=False,
-            url_path=f'{PEDIDOS_CODAE}/{FILTRO_PADRAO_PEDIDOS}')
+            url_path=f'{constants.PEDIDOS_CODAE}/{constants.FILTRO_PADRAO_PEDIDOS}')
     def pedidos_codae(self, request, filtro_aplicado='sem_filtro'):
         # TODO: colocar regras de codae CODAE aqui...
         usuario = request.user
@@ -280,7 +274,7 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False,
-            url_path=f'{PEDIDOS_TERCEIRIZADA}/{FILTRO_PADRAO_PEDIDOS}')
+            url_path=f'{constants.PEDIDOS_TERCEIRIZADA}/{constants.FILTRO_PADRAO_PEDIDOS}')
     def pedidos_terceirizada(self, request, filtro_aplicado='sem_filtro'):
         # TODO: colocar regras de Terceirizada aqui...
         usuario = request.user
@@ -313,7 +307,7 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
-    @action(detail=False, url_path=SOLICITACOES_DO_USUARIO)
+    @action(detail=False, url_path=constants.SOLICITACOES_DO_USUARIO)
     def minhas_solicitacoes(self, request):
         usuario = request.user
         solicitacoes_unificadas = SolicitacaoKitLancheUnificada.get_pedidos_rascunho(usuario)
@@ -325,7 +319,7 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
     # IMPLEMENTAÇÃO DO FLUXO (PARTINDO DA DRE)
     #
 
-    @action(detail=True, url_path=DRE_INICIO_PEDIDO,
+    @action(detail=True, url_path=constants.DRE_INICIO_PEDIDO,
             permission_classes=[PodeIniciarSolicitacaoUnificadaPermission], methods=['patch'])
     def inicio_de_pedido(self, request, uuid=None):
         solicitacao_unificada = self.get_object()
@@ -338,7 +332,7 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
-    @action(detail=True, url_path=CODAE_AUTORIZA_PEDIDO,
+    @action(detail=True, url_path=constants.CODAE_AUTORIZA_PEDIDO,
             permission_classes=[PodeIniciarSolicitacaoUnificadaPermission], methods=['patch'])
     def codae_aprova(self, request, uuid=None):
         solicitacao_unificada = self.get_object()
@@ -349,7 +343,7 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
-    @action(detail=True, url_path=CODAE_PEDE_REVISAO,
+    @action(detail=True, url_path=constants.CODAE_PEDE_REVISAO,
             permission_classes=[PodeIniciarSolicitacaoUnificadaPermission], methods=['patch'])
     def codae_pede_revisao(self, request, uuid=None):
         solicitacao_unificada = self.get_object()
@@ -360,7 +354,7 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
-    @action(detail=True, url_path=CODAE_NEGA_PEDIDO,
+    @action(detail=True, url_path=constants.CODAE_NEGA_PEDIDO,
             permission_classes=[PodeIniciarSolicitacaoUnificadaPermission], methods=['patch'])
     def codae_cancela_pedido(self, request, uuid=None):
         solicitacao_unificada = self.get_object()
@@ -371,7 +365,7 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
-    @action(detail=True, url_path=DRE_REVISA_PEDIDO,
+    @action(detail=True, url_path=constants.DRE_REVISA_PEDIDO,
             permission_classes=[PodeIniciarSolicitacaoUnificadaPermission], methods=['patch'])
     def dre_revisa(self, request, uuid=None):
         solicitacao_unificada = self.get_object()
@@ -382,7 +376,7 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
-    @action(detail=True, url_path=TERCEIRIZADA_TOMA_CIENCIA,
+    @action(detail=True, url_path=constants.TERCEIRIZADA_TOMA_CIENCIA,
             permission_classes=[PodeIniciarSolicitacaoUnificadaPermission], methods=['patch'])
     def terceirizada_toma_ciencia(self, request, uuid=None):
         solicitacao_unificada = self.get_object()
