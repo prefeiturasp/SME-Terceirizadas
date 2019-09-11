@@ -324,6 +324,27 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
 class FluxoAprovacaoPartindoDaDiretoriaRegional(xwf_models.WorkflowEnabled, models.Model):
     workflow_class = PedidoAPartirDaDiretoriaRegionalWorkflow
     status = xwf_models.StateField(workflow_class)
+    DIAS_PARA_CANCELAR = 2
+
+    def cancelar_pedido(self, user, notificar=True):
+        """O objeto que herdar de FluxoAprovacaoPartindoDaDiretoriaRegional, deve ter um property data.
+
+        Atualmente o único pedido da DRE é o Solicitação kit lanche unificada
+        Dado dias de antecedencia de prazo, verifica se pode e altera o estado
+        """
+        dia_antecedencia = datetime.date.today() + datetime.timedelta(days=self.DIAS_PARA_CANCELAR)
+        data_do_evento = self.data
+
+        if (data_do_evento > dia_antecedencia) and (self.status != self.workflow_class.DRE_CANCELOU):
+            self.status = self.workflow_class.DRE_CANCELOU
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.DRE_CANCELOU,
+                                      usuario=user)
+            self.save()
+        elif self.status == self.workflow_class.DRE_CANCELOU:
+            raise xworkflows.InvalidTransitionError('Já está cancelada')
+        else:
+            raise xworkflows.InvalidTransitionError(
+                f'Só pode cancelar com no mínimo {self.DIAS_PARA_CANCELAR} dia(s) de antecedência')
 
     @property
     def pode_excluir(self):
