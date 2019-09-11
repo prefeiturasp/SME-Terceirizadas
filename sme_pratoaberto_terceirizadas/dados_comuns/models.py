@@ -5,39 +5,43 @@ from django.db import models
 
 
 class LogSolicitacoesUsuario(models.Model):
-    """
-        Eventos de dados importantes para acompanhamento.
+    """Eventos de dados importantes para acompanhamento.
+
     Ex.: Fulano X  executou a atividade Y no objeto W no dia DDDDMMAA
     """
 
     (  # COMUNS AOS DOIS FLUXOS (PARTINDO DA ESCOLA E DA DRE)
         INICIO_FLUXO,
-        CODAE_APROVOU,
-        TERCEIRIZADA_TOMA_CIENCIA,
+        CODAE_AUTORIZOU,
+        TERCEIRIZADA_TOMOU_CIENCIA,
         TERCEIRIZADA_RECUSOU,
-        CODAE_REPROVOU,
+        CODAE_NEGOU,
         # ESPECIFICA DO PARTINDO DA DRE
-        CODAE_PEDE_REVISAO,
+        CODAE_PEDIU_REVISAO,
         DRE_REVISOU,
+
         # ESPECIFICA DO PARTINDO DA ESCOLA
-        DRE_APROVOU,
+        DRE_VALIDOU,
         DRE_PEDIU_REVISAO,
-        DRE_REPROVOU,
+        DRE_NAO_VALIDOU,
         ESCOLA_REVISOU,
+
+        # "BURLADO DO FLUXO", PODE SER CHAMADO A QUALQUER MOMENTO COM AS DEVIDAS RESTRIÇÕES
         ESCOLA_CANCELOU,
-    ) = range(12)
+        DRE_CANCELOU,
+    ) = range(13)
 
     STATUS_POSSIVEIS = (
         (INICIO_FLUXO, 'Solicitação Realizada'),
-        (CODAE_APROVOU, 'CODAE aprovou'),
-        (TERCEIRIZADA_TOMA_CIENCIA, 'Terceirizada tomou ciência'),
+        (CODAE_AUTORIZOU, 'CODAE autorizou'),
+        (TERCEIRIZADA_TOMOU_CIENCIA, 'Terceirizada tomou ciência'),
         (TERCEIRIZADA_RECUSOU, 'Terceirizada recusou'),
-        (CODAE_REPROVOU, 'CODAE reprovou'),
-        (CODAE_PEDE_REVISAO, 'CODAE pediu revisão'),
+        (CODAE_NEGOU, 'CODAE negou'),
+        (CODAE_PEDIU_REVISAO, 'CODAE pediu revisão'),
         (DRE_REVISOU, 'DRE revisou'),
-        (DRE_APROVOU, 'DRE aprovou'),
+        (DRE_VALIDOU, 'DRE validou'),
         (DRE_PEDIU_REVISAO, 'DRE pediu revisão'),
-        (DRE_REPROVOU, 'DRE reprovou'),
+        (DRE_NAO_VALIDOU, 'DRE não validou'),
         (ESCOLA_REVISOU, 'Escola revisou'),
         (ESCOLA_CANCELOU, 'Escola cancelou')
     )
@@ -103,11 +107,12 @@ class Endereco(models.Model):
 
 
 class TemplateMensagem(models.Model):
+    """Tem um texto base e troca por campos do objeto que entra como parâmetro.
+
+    Ex:
+    Olá @nome, a Alteração de cardápio #@identificador solicitada por @requerinte está em situação @status.
     """
-        Tem um texto base e troca por campos do objeto que entra como parâmetro
-        Ex:  Olá @nome, a Alteração de cardápio #@identificador solicitada
-        por @requerinte está em situação @status.
-    """
+
     ALTERACAO_CARDAPIO = 0
     INCLUSAO_ALIMENTACAO = 1
     INCLUSAO_ALIMENTACAO_CONTINUA = 2

@@ -39,9 +39,9 @@ def test_inclusao_alimentacao_continua_fluxo(inclusao_alimentacao_continua):
     fake_user = mommy.make('perfil.Usuario')
     inclusao_alimentacao_continua.inicia_fluxo(user=fake_user)
     assert inclusao_alimentacao_continua.ta_na_dre
-    inclusao_alimentacao_continua.dre_aprovou(user=fake_user)
+    inclusao_alimentacao_continua.dre_validou(user=fake_user)
     assert inclusao_alimentacao_continua.ta_na_codae
-    inclusao_alimentacao_continua.codae_aprovou(user=fake_user)
+    inclusao_alimentacao_continua.codae_autorizou(user=fake_user)
     assert inclusao_alimentacao_continua.ta_na_terceirizada
 
 

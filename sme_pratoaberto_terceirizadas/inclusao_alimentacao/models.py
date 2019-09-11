@@ -47,10 +47,11 @@ class Meta:
 
 
 class MotivoInclusaoContinua(Nomeavel, TemChaveExterna):
-    """
-        continuo -  mais educacao
-        continuo-sp integral
-        continuo - outro
+    """Funciona em conjunto com InclusaoAlimentacaoContinua.
+
+    - continuo -  mais educacao
+    - continuo-sp integral
+    - continuo - outro
     """
 
     def __str__(self):
@@ -128,10 +129,11 @@ class InclusaoAlimentacaoContinua(IntervaloDeDia, Descritivel, TemChaveExterna,
 
 
 class MotivoInclusaoNormal(Nomeavel, TemChaveExterna):
-    """
-        reposicao de aula
-        dia de familia
-        outro
+    """Funciona em conjunto com InclusaoAlimentacaoNormal.
+
+    - reposicao de aula
+    - dia de familia
+    - outro
     """
 
     def __str__(self):

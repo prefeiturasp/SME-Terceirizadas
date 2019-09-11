@@ -60,6 +60,6 @@ class SolicitacaoUnificadaVencidaManager(models.Manager):
         ).filter(
             solicitacao_kit_lanche__data__lt=hoje
         ).filter(
-            ~Q(status__in=[PedidoAPartirDaDiretoriaRegionalWorkflow.TERCEIRIZADA_TOMA_CIENCIA,
+            ~Q(status__in=[PedidoAPartirDaDiretoriaRegionalWorkflow.TERCEIRIZADA_TOMOU_CIENCIA,
                            PedidoAPartirDaDiretoriaRegionalWorkflow.CANCELAMENTO_AUTOMATICO])
         ).distinct()

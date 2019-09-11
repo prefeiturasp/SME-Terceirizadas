@@ -20,9 +20,6 @@ from ..dados_comuns.models_abstract import (
 
 
 class MotivoSolicitacaoUnificada(Nomeavel, TemChaveExterna):
-    """
-        a ideia é ser um combo de opcoes fixas
-    """
 
     def __str__(self):
         return self.nome
@@ -33,12 +30,12 @@ class MotivoSolicitacaoUnificada(Nomeavel, TemChaveExterna):
 
 
 class ItemKitLanche(Nomeavel, TemChaveExterna):
-    """
-        Barra de Cereal (20 a 25 g embalagem individual)
-        Néctar UHT ou Suco Tropical UHT (200 ml)
-        Biscoito Integral Salgado (mín. de 25g embalagem individual)
+    """Que compõe o KitLanche.
 
-        etc.
+    - Barra de Cereal (20 a 25 g embalagem individual)
+    - Néctar UHT ou Suco Tropical UHT (200 ml)
+    - Biscoito Integral Salgado (mín. de 25g embalagem individual)
+    - etc.
     """
 
     def __str__(self):
@@ -50,9 +47,8 @@ class ItemKitLanche(Nomeavel, TemChaveExterna):
 
 
 class KitLanche(Nomeavel, TemChaveExterna):
-    """
-        kit1, kit2, kit3
-    """
+    """kit1, kit2, kit3."""
+
     itens = models.ManyToManyField(ItemKitLanche)
 
     def __str__(self):
@@ -139,16 +135,16 @@ class SolicitacaoKitLancheAvulsa(TemChaveExterna, FluxoAprovacaoPartindoDaEscola
 
 class SolicitacaoKitLancheUnificada(CriadoPor, TemChaveExterna, TemIdentificadorExternoAmigavel,
                                     FluxoAprovacaoPartindoDaDiretoriaRegional, Logs, TemPrioridade):
-    """
-        significa que uma DRE vai pedir kit lanche para as escolas:
+    """Uma DRE pede para as suas escolas.
 
-        lista_kit_lanche_igual é a mesma lista de kit lanche pra todos.
-        não lista_kit_lanche_igual: cada escola tem sua lista de kit lanche
+    lista_kit_lanche_igual é a mesma lista de kit lanche pra todos.
+    não lista_kit_lanche_igual: cada escola tem sua lista de kit lanche
 
-        QUANDO É lista_kit_lanche_igual: ex: passeio pra escola x,y,z no ibira (local)
-        no dia 26 onde a escola x vai ter 100 alunos, a y 50 e a z 77 alunos.
-        onde todos vao comemorar o dia da arvore (motivo)
+    QUANDO É lista_kit_lanche_igual: ex: passeio pra escola x,y,z no ibira (local)
+    no dia 26 onde a escola x vai ter 100 alunos, a y 50 e a z 77 alunos.
+    onde todos vao comemorar o dia da arvore (motivo)
     """
+
     # TODO: ao deletar este, deletar solicitacao_kit_lanche também que é uma tabela acessória
     # TODO: passar `local` para solicitacao_kit_lanche
     motivo = models.ForeignKey(MotivoSolicitacaoUnificada, on_delete=models.DO_NOTHING,

@@ -79,8 +79,8 @@ class AlteracoesCardapioVencidaManager(models.Manager):
         ).filter(
             data_inicial__lt=hoje
         ).filter(
-            ~Q(status__in=[PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_TOMA_CIENCIA,
-                           PedidoAPartirDaEscolaWorkflow.ESCOLA_CANCELA_48H_ANTES,
-                           PedidoAPartirDaEscolaWorkflow.CANCELAMENTO_AUTOMATICO]
+            ~Q(status__in=[PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_TOMOU_CIENCIA,
+                           PedidoAPartirDaEscolaWorkflow.ESCOLA_CANCELOU,
+                           PedidoAPartirDaEscolaWorkflow.CANCELADO_AUTOMATICAMENTE]
                )
         )

@@ -94,19 +94,19 @@ def fluxo_escola_felix(obj, user):
         return
 
     if random.random() >= 0.1:
-        obj.dre_aprovou(user=user, notificar=True)
+        obj.dre_validou(user=user, notificar=True)
         if random.random() >= 0.2:
-            obj.codae_aprovou(user=user, notificar=True)
+            obj.codae_autorizou(user=user, notificar=True)
             if random.random() >= 0.3:
                 obj.terceirizada_tomou_ciencia(user=user, notificar=True)
         else:
             if random.random() <= 0.2:
-                obj.codae_cancelou_pedido(user=user, notificar=True)
+                obj.codae_negou(user=user, notificar=True)
     else:
         if random.random() >= 0.1:
             obj.dre_pediu_revisao(user=user, notificar=True)
         else:
-            obj.dre_cancelou_pedido(user=user, notificar=True)
+            obj.dre_nao_validou_pedido(user=user, notificar=True)
 
 
 def fluxo_informativo_felix(obj, user):
@@ -119,7 +119,7 @@ def fluxo_dre_felix(obj, user):
     # print(f'aplicando fluxo DRE feliz em {obj}')
     obj.inicia_fluxo(user=user, notificar=True)
     if random.random() >= 0.1:
-        obj.codae_aprovou(user=user, notificar=True)
+        obj.codae_autorizou(user=user, notificar=True)
         if random.random() >= 0.3:
             obj.terceirizada_tomou_ciencia(user=user, notificar=True)
 
@@ -129,7 +129,7 @@ def fluxo_escola_loop(obj, user):
     obj.inicia_fluxo(user=user, notificar=True)
     obj.dre_pediu_revisao(user=user, notificar=True)
     obj.escola_revisou(user=user, notificar=True)
-    obj.dre_aprovou(user=user, notificar=True)
+    obj.dre_validou(user=user, notificar=True)
 
 
 def cria_inclusoes_continuas(qtd=50):

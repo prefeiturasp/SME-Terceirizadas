@@ -68,17 +68,13 @@ class SolicitacaoKitLancheAvulsaPrazoRegularDaquiA30DiasManager(models.Manager):
 
 
 class SolicitacaoKitLancheAvulsaVencidaDiasManager(models.Manager):
-    """
-    retorna todos os pedidos que ja tenham passado da data e que o fluxo não tenha terminado
-    """
-
     def get_queryset(self):
         hoje = datetime.date.today()
         return super(SolicitacaoKitLancheAvulsaVencidaDiasManager, self).get_queryset(
         ).filter(
             solicitacao_kit_lanche__data__lt=hoje
         ).filter(
-            ~Q(solicitacao_kit_lanche__data__in=[PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_TOMA_CIENCIA,
-                                                 PedidoAPartirDaEscolaWorkflow.ESCOLA_CANCELA_48H_ANTES,
-                                                 PedidoAPartirDaEscolaWorkflow.CANCELAMENTO_AUTOMATICO])
+            ~Q(solicitacao_kit_lanche__data__in=[PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_TOMOU_CIENCIA,
+                                                 PedidoAPartirDaEscolaWorkflow.ESCOLA_CANCELOU,
+                                                 PedidoAPartirDaEscolaWorkflow.CANCELADO_AUTOMATICAMENTE])
         )

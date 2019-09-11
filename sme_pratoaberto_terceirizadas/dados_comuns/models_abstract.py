@@ -154,13 +154,11 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
         # TODO: verificar o campo de data do pedido, se tiver no intervalo altera o status
         # não faz nada caso contrario
         # TODO, disparar erro InvalidTransitionError caso de errado...
-        self.status = self.workflow_class.ESCOLA_CANCELA_48H_ANTES
+        self.status = self.workflow_class.ESCOLA_CANCELOU
 
     def cancelamento_automatico_apos_vencimento(self):
-        """
-        Chamado automaticamente quando o pedido já passou do dia de atendimento e não chegou ao fim do fluxo
-        """
-        self.status = self.workflow_class.CANCELAMENTO_AUTOMATICO
+        """Chamado automaticamente quando o pedido já passou do dia de atendimento e não chegou ao fim do fluxo."""
+        self.status = self.workflow_class.CANCELADO_AUTOMATICAMENTE
 
     @property
     def pode_excluir(self):
@@ -173,15 +171,15 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
     @property
     def ta_na_escola(self):
         return self.status in [self.workflow_class.RASCUNHO,
-                               self.workflow_class.DRE_PEDE_ESCOLA_REVISAR]
+                               self.workflow_class.DRE_PEDIU_ESCOLA_REVISAR]
 
     @property
     def ta_na_codae(self):
-        return self.status == self.workflow_class.DRE_APROVADO
+        return self.status == self.workflow_class.DRE_VALIDADO
 
     @property
     def ta_na_terceirizada(self):
-        return self.status == self.workflow_class.CODAE_APROVADO
+        return self.status == self.workflow_class.CODAE_AUTORIZADO
 
     @property
     def partes_interessadas_inicio_fluxo(self):
@@ -193,13 +191,13 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
         return usuarios_dre
 
     @property
-    def partes_interessadas_dre_aprovou(self):
+    def partes_interessadas_dre_validou(self):
         # TODO: filtrar usuários CODAE
         usuarios_codae = models_perfil.Usuario.objects.filter()
         return usuarios_codae
 
     @property
-    def partes_interessadas_codae_aprovou(self):
+    def partes_interessadas_codae_autorizou(self):
         # TODO: filtrar usuários Terceirizadas
         usuarios_terceirizadas = models_perfil.Usuario.objects.filter()
         return usuarios_terceirizadas
@@ -234,16 +232,16 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
         self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.INICIO_FLUXO,
                                   usuario=user)
 
-    @xworkflows.after_transition('dre_aprovou')
-    def _dre_aprovou_hook(self, *args, **kwargs):
+    @xworkflows.after_transition('dre_validou')
+    def _dre_validou_hook(self, *args, **kwargs):
         user = kwargs['user']
         if user and kwargs.get('notificar', False):
             assunto, corpo = self.template_mensagem
             enviar_notificacao_e_email(sender=user,
-                                       recipients=self.partes_interessadas_dre_aprovou,
+                                       recipients=self.partes_interessadas_dre_validou,
                                        short_desc=assunto,
                                        long_desc=corpo)
-            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.DRE_APROVOU,
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.DRE_VALIDOU,
                                       usuario=user)
 
     @xworkflows.after_transition('dre_pediu_revisao')
@@ -252,7 +250,7 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
         if user and kwargs.get('notificar', False):
             assunto, corpo = self.template_mensagem
             enviar_notificacao_e_email(sender=user,
-                                       recipients=self.partes_interessadas_dre_aprovou,
+                                       recipients=self.partes_interessadas_dre_validou,
                                        short_desc=assunto,
                                        long_desc=corpo)
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.DRE_PEDIU_REVISAO,
@@ -264,34 +262,34 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
         if user and kwargs.get('notificar', False):
             assunto, corpo = self.template_mensagem
             enviar_notificacao_e_email(sender=user,
-                                       recipients=self.partes_interessadas_dre_aprovou,
+                                       recipients=self.partes_interessadas_dre_validou,
                                        short_desc=assunto,
                                        long_desc=corpo)
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.ESCOLA_REVISOU,
                                       usuario=user)
 
-    @xworkflows.after_transition('codae_aprovou')
-    def _codae_aprovou_hook(self, *args, **kwargs):
+    @xworkflows.after_transition('codae_autorizou')
+    def _codae_autorizou_hook(self, *args, **kwargs):
         user = kwargs['user']
         if user and kwargs.get('notificar', False):
             assunto, corpo = self.template_mensagem
             enviar_notificacao_e_email(sender=user,
-                                       recipients=self.partes_interessadas_codae_aprovou,
+                                       recipients=self.partes_interessadas_codae_autorizou,
                                        short_desc=assunto,
                                        long_desc=corpo)
-            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_APROVOU,
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU,
                                       usuario=user)
 
-    @xworkflows.after_transition('codae_cancelou_pedido')
+    @xworkflows.after_transition('codae_negou')
     def _codae_recusou_hook(self, *args, **kwargs):
         user = kwargs['user']
         if user and kwargs.get('notificar', False):
             assunto, corpo = self.template_mensagem
             enviar_notificacao_e_email(sender=user,
-                                       recipients=self.partes_interessadas_dre_aprovou,
+                                       recipients=self.partes_interessadas_dre_validou,
                                        short_desc=assunto,
                                        long_desc=corpo)
-            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_REPROVOU,
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_NEGOU,
                                       usuario=user)
 
     @xworkflows.after_transition('terceirizada_tomou_ciencia')
@@ -303,7 +301,7 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
                                        recipients=self.partes_interessadas_terceirizadas_tomou_ciencia,
                                        short_desc=assunto,
                                        long_desc=corpo)
-            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_TOMA_CIENCIA,
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_TOMOU_CIENCIA,
                                       usuario=user)
 
     class Meta:
@@ -320,28 +318,26 @@ class FluxoAprovacaoPartindoDaDiretoriaRegional(xwf_models.WorkflowEnabled, mode
 
     @property
     def ta_na_dre(self):
-        return self.status in [self.workflow_class.CODAE_PEDE_DRE_REVISAR,
+        return self.status in [self.workflow_class.CODAE_PEDIU_DRE_REVISAR,
                                self.workflow_class.RASCUNHO]
 
     @property
     def ta_na_codae(self):
-        return self.status == self.workflow_class.CODAE_A_VALIDAR
+        return self.status == self.workflow_class.CODAE_A_AUTORIZAR
 
     @property
     def ta_na_terceirizada(self):
-        return self.status == self.workflow_class.CODAE_APROVADO
+        return self.status == self.workflow_class.CODAE_AUTORIZADO
 
     @property
-    def partes_interessadas_codae_aprovou(self):
+    def partes_interessadas_codae_autorizou(self):
         # TODO: filtrar usuários Terceirizadas
         usuarios_terceirizadas = models_perfil.Usuario.objects.filter()
         return usuarios_terceirizadas
 
     @property
     def partes_interessadas_inicio_fluxo(self):
-        """
-        TODO: retornar usuários CODAE, esse abaixo é so pra passar...
-        """
+        """TODO: retornar usuários CODAE, esse abaixo é so pra passar..."""
         dre = self.diretoria_regional
         usuarios_dre = dre.usuarios.all()
         return usuarios_dre
@@ -368,16 +364,16 @@ class FluxoAprovacaoPartindoDaDiretoriaRegional(xwf_models.WorkflowEnabled, mode
         self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.INICIO_FLUXO,
                                   usuario=user)
 
-    @xworkflows.after_transition('codae_aprovou')
-    def _codae_aprovou_hook(self, *args, **kwargs):
+    @xworkflows.after_transition('codae_autorizou')
+    def _codae_autorizou_hook(self, *args, **kwargs):
         user = kwargs['user']
         if user and kwargs.get('notificar', False):
             assunto, corpo = self.template_mensagem
             enviar_notificacao_e_email(sender=user,
-                                       recipients=self.partes_interessadas_codae_aprovou,
+                                       recipients=self.partes_interessadas_codae_autorizou,
                                        short_desc=assunto,
                                        long_desc=corpo)
-            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_APROVOU,
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU,
                                       usuario=user)
 
     @xworkflows.after_transition('terceirizada_tomou_ciencia')
@@ -389,7 +385,7 @@ class FluxoAprovacaoPartindoDaDiretoriaRegional(xwf_models.WorkflowEnabled, mode
                                        recipients=self.partes_interessadas_terceirizadas_tomou_ciencia,
                                        short_desc=assunto,
                                        long_desc=corpo)
-            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_TOMA_CIENCIA,
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_TOMOU_CIENCIA,
                                       usuario=user)
 
     class Meta:
@@ -406,9 +402,7 @@ class FluxoInformativoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model)
 
     @property
     def partes_interessadas_informacao(self):
-        """
-        TODO: retornar usuários DRE, esse abaixo é so pra passar...
-        """
+        """TODO: retornar usuários DRE, esse abaixo é so pra passar..."""
         dre = self.escola.diretoria_regional
         usuarios_dre = dre.usuarios.all()
         return usuarios_dre
@@ -443,7 +437,7 @@ class FluxoInformativoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model)
                                        recipients=self.partes_interessadas_terceirizadas_tomou_ciencia,
                                        short_desc=assunto,
                                        long_desc=corpo)
-            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_TOMA_CIENCIA,
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_TOMOU_CIENCIA,
                                       usuario=user)
 
     class Meta:
@@ -467,8 +461,8 @@ class TemObservacao(models.Model):
 
 
 class TemIdentificadorExternoAmigavel(object):
-    """
-    Gera uma chave externa amigável, não única.
+    """Gera uma chave externa amigável, não única.
+
     Somente para identificar externamente.
     Obrigatoriamente o objeto deve ter um uuid
     """
@@ -480,9 +474,7 @@ class TemIdentificadorExternoAmigavel(object):
 
 
 class TemPrioridade(object):
-    """
-        Exibe uma descrição para a data caso seja prioridade
-    """
+    """Exibe o tipo de prioridade do objeto de acordo com as datas que ele tem."""
 
     @property
     def prioridade(self):
