@@ -41,13 +41,13 @@ class PedidoAPartirDaEscolaWorkflow(xwf_models.Workflow):
 
     transitions = (
         ('inicia_fluxo', RASCUNHO, DRE_A_VALIDAR),
-        ('dre_validou', DRE_A_VALIDAR, DRE_VALIDADO),
-        ('dre_pediu_revisao', DRE_A_VALIDAR, DRE_PEDIU_ESCOLA_REVISAR),
-        ('dre_nao_validou_pedido', DRE_A_VALIDAR, DRE_NAO_VALIDOU_PEDIDO_ESCOLA),
-        ('escola_revisou', DRE_PEDIU_ESCOLA_REVISAR, DRE_A_VALIDAR),
-        ('codae_autorizou', DRE_VALIDADO, CODAE_AUTORIZADO),
-        ('codae_negou', DRE_VALIDADO, CODAE_NEGOU_PEDIDO),
-        ('terceirizada_tomou_ciencia', CODAE_AUTORIZADO, TERCEIRIZADA_TOMOU_CIENCIA),
+        ('dre_valida', DRE_A_VALIDAR, DRE_VALIDADO),
+        ('dre_pede_revisao', DRE_A_VALIDAR, DRE_PEDIU_ESCOLA_REVISAR),
+        ('dre_nao_valida', DRE_A_VALIDAR, DRE_NAO_VALIDOU_PEDIDO_ESCOLA),
+        ('escola_revisa', DRE_PEDIU_ESCOLA_REVISAR, DRE_A_VALIDAR),
+        ('codae_autoriza', DRE_VALIDADO, CODAE_AUTORIZADO),
+        ('codae_nega', DRE_VALIDADO, CODAE_NEGOU_PEDIDO),
+        ('terceirizada_toma_ciencia', CODAE_AUTORIZADO, TERCEIRIZADA_TOMOU_CIENCIA),
     )
 
     initial_state = RASCUNHO
@@ -86,11 +86,11 @@ class PedidoAPartirDaDiretoriaRegionalWorkflow(xwf_models.Workflow):
 
     transitions = (
         ('inicia_fluxo', RASCUNHO, CODAE_A_AUTORIZAR),
-        ('codae_pediu_revisao', CODAE_A_AUTORIZAR, CODAE_PEDIU_DRE_REVISAR),
-        ('codae_negou', CODAE_A_AUTORIZAR, CODAE_NEGOU_PEDIDO),
-        ('dre_revisou', CODAE_PEDIU_DRE_REVISAR, CODAE_A_AUTORIZAR),
-        ('codae_autorizou', CODAE_A_AUTORIZAR, CODAE_AUTORIZADO),
-        ('terceirizada_tomou_ciencia', CODAE_AUTORIZADO, TERCEIRIZADA_TOMOU_CIENCIA),
+        ('codae_pede_revisao', CODAE_A_AUTORIZAR, CODAE_PEDIU_DRE_REVISAR),
+        ('codae_nega', CODAE_A_AUTORIZAR, CODAE_NEGOU_PEDIDO),
+        ('dre_revisa', CODAE_PEDIU_DRE_REVISAR, CODAE_A_AUTORIZAR),
+        ('codae_autoriza', CODAE_A_AUTORIZAR, CODAE_AUTORIZADO),
+        ('terceirizada_toma_ciencia', CODAE_AUTORIZADO, TERCEIRIZADA_TOMOU_CIENCIA),
     )
 
     initial_state = RASCUNHO
@@ -112,7 +112,7 @@ class InformativoPartindoDaEscolaWorkflow(xwf_models.Workflow):
 
     transitions = (
         ('informa', RASCUNHO, INFORMADO),
-        ('terceirizada_tomou_ciencia', INFORMADO, TERCEIRIZADA_TOMA_CIENCIA),
+        ('terceirizada_toma_ciencia', INFORMADO, TERCEIRIZADA_TOMA_CIENCIA),
     )
 
     initial_state = RASCUNHO

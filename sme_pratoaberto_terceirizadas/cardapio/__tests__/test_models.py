@@ -40,12 +40,12 @@ def test_inversao_dia_cardapio_fluxo(inversao_dia_cardapio):
     fake_user = mommy.make('perfil.Usuario')
     inversao_dia_cardapio.inicia_fluxo(user=fake_user)
     assert str(inversao_dia_cardapio.status) == PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR
-    inversao_dia_cardapio.dre_validou(user=fake_user)
+    inversao_dia_cardapio.dre_valida(user=fake_user)
     assert str(inversao_dia_cardapio.status) == PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO
 
 
 def test_inclusao_alimentacao_continua_fluxo_erro(inversao_dia_cardapio):
     # TODO: pedir incremento do fluxo para testá-lo por completo
     with pytest.raises(InvalidTransitionError,
-                       match="Transition 'dre_pediu_revisao' isn't available from state 'RASCUNHO'."):
-        inversao_dia_cardapio.dre_pediu_revisao()
+                       match="Transition 'dre_pede_revisao' isn't available from state 'RASCUNHO'."):
+        inversao_dia_cardapio.dre_pede_revisao()

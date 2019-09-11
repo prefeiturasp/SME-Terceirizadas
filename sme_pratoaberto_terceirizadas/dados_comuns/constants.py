@@ -25,7 +25,7 @@ FILTRO_PADRAO_PEDIDOS = f'(?P<filtro_aplicado>({SEM_FILTRO}|{DAQUI_A_7_DIAS}|{DA
 ESCOLA_INICIO_PEDIDO = 'inicio-pedido'
 ESCOLA_REVISA_PEDIDO = 'escola-revisa-pedido'
 ESCOLA_CANCELA = 'escola-cancela-pedido-48h-antes'
-ESCOLA_INFORMAR_SUSPENSAO = 'informa-suspensao'
+ESCOLA_INFORMA_SUSPENSAO = 'informa-suspensao'
 
 DRE_INICIO_PEDIDO = 'inicio-pedido'
 DRE_VALIDA_PEDIDO = 'diretoria-regional-aprova-pedido'
@@ -42,4 +42,5 @@ TERCEIRIZADA_TOMA_CIENCIA = 'terceirizada-toma-ciencia'
 #
 # FILTROS
 #
+
 SOLICITACOES_DO_USUARIO = 'minhas-solicitacoes'
