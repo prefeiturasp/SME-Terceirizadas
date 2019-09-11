@@ -339,10 +339,10 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
 
     @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
             methods=['patch'], url_path=constants.ESCOLA_CANCELA)
-    def escola_cancela_pedido_48h_antes(self, request, uuid=None):
+    def escola_cancela_pedido(self, request, uuid=None):
         grupo_alimentacao_normal = self.get_object()
         try:
-            grupo_alimentacao_normal.cancelar_pedido_48h_antes(user=request.user, notificar=True)
+            grupo_alimentacao_normal.cancelar_pedido(user=request.user, notificar=True)
             serializer = self.get_serializer(grupo_alimentacao_normal)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -661,10 +661,10 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
 
     @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
             methods=['patch'], url_path=constants.ESCOLA_CANCELA)
-    def escola_cancela_pedido_48h_antes(self, request, uuid=None):
+    def escola_cancela_pedido(self, request, uuid=None):
         inclusao_alimentacao_continua = self.get_object()
         try:
-            inclusao_alimentacao_continua.cancelar_pedido_48h_antes(user=request.user, notificar=True)
+            inclusao_alimentacao_continua.cancelar_pedido(user=request.user, notificar=True)
             serializer = self.get_serializer(inclusao_alimentacao_continua)
             return Response(serializer.data)
         except InvalidTransitionError as e:

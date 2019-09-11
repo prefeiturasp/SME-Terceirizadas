@@ -150,7 +150,7 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
     status = xwf_models.StateField(workflow_class)
     DIAS_PARA_CANCELAR = 2
 
-    def cancelar_pedido_48h_antes(self, user, notificar=True):
+    def cancelar_pedido(self, user, notificar=True):
         """O objeto que herdar de FluxoAprovacaoPartindoDaEscola, deve ter um property data.
 
         Dado dias de antecedencia de prazo, verifica se pode e altera o estado
@@ -158,11 +158,16 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
         dia_antecedencia = datetime.date.today() + datetime.timedelta(days=self.DIAS_PARA_CANCELAR)
         data_do_evento = self.data
 
-        if data_do_evento < dia_antecedencia:
+        if (data_do_evento > dia_antecedencia) and (self.status != self.workflow_class.ESCOLA_CANCELOU):
             self.status = self.workflow_class.ESCOLA_CANCELOU
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.ESCOLA_CANCELOU,
+                                      usuario=user)
+            self.save()
+        elif self.status == self.workflow_class.ESCOLA_CANCELOU:
+            raise xworkflows.InvalidTransitionError('Já está cancelada')
         else:
             raise xworkflows.InvalidTransitionError(
-                f'Só pode cancelar com {self.DIAS_PARA_CANCELAR} dia(s) de antecedência')
+                f'Só pode cancelar com no mínimo {self.DIAS_PARA_CANCELAR} dia(s) de antecedência')
 
     def cancelamento_automatico_apos_vencimento(self):
         """Chamado automaticamente quando o pedido já passou do dia de atendimento e não chegou ao fim do fluxo."""
