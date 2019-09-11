@@ -234,7 +234,7 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
 
     @action(detail=True, permission_classes=[PodeIniciarSolicitacaoKitLancheAvulsaPermission],
             methods=['patch'], url_path=constants.ESCOLA_CANCELA)
-    def escola_cancela_pedido_48h_antes(self, request, uuid=None):
+    def escola_cancela_pedido(self, request, uuid=None):
         solicitacao_kit_lanche_avulsa = self.get_object()
         try:
             solicitacao_kit_lanche_avulsa.cancelar_pedido(user=request.user, notificar=True)

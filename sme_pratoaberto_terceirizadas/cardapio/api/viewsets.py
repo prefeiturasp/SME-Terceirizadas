@@ -224,7 +224,7 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, permission_classes=[PodeIniciarSuspensaoDeAlimentacaoPermission],
             methods=['patch'], url_path=constants.ESCOLA_CANCELA)
-    def escola_cancela_pedido_48h_antes(self, request, uuid=None):
+    def escola_cancela_pedido(self, request, uuid=None):
         inversao_cardapio = self.get_object()
         try:
             inversao_cardapio.cancelar_pedido(user=request.user, notificar=True)
@@ -439,7 +439,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, permission_classes=[PodeRecusarPelaCODAEAlteracaoCardapioPermission],
             methods=['patch'], url_path=constants.ESCOLA_CANCELA)
-    def escola_cancela_pedido_48h_antes(self, request, uuid=None):
+    def escola_cancela_pedido(self, request, uuid=None):
         inclusao_alimentacao_continua = self.get_object()
 
         try:
