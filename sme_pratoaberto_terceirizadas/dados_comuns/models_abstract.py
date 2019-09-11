@@ -241,7 +241,7 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
                                        recipients=self.partes_interessadas_dre_validou,
                                        short_desc=assunto,
                                        long_desc=corpo)
-            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.DRE_APROVOU,
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.DRE_VALIDOU,
                                       usuario=user)
 
     @xworkflows.after_transition('dre_pediu_revisao')
@@ -277,7 +277,7 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
                                        recipients=self.partes_interessadas_codae_autorizou,
                                        short_desc=assunto,
                                        long_desc=corpo)
-            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_APROVOU,
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU,
                                       usuario=user)
 
     @xworkflows.after_transition('codae_negou')
@@ -289,7 +289,7 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
                                        recipients=self.partes_interessadas_dre_validou,
                                        short_desc=assunto,
                                        long_desc=corpo)
-            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_REPROVOU,
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_NEGOU,
                                       usuario=user)
 
     @xworkflows.after_transition('terceirizada_tomou_ciencia')
@@ -301,7 +301,7 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
                                        recipients=self.partes_interessadas_terceirizadas_tomou_ciencia,
                                        short_desc=assunto,
                                        long_desc=corpo)
-            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_TOMA_CIENCIA,
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_TOMOU_CIENCIA,
                                       usuario=user)
 
     class Meta:
@@ -373,7 +373,7 @@ class FluxoAprovacaoPartindoDaDiretoriaRegional(xwf_models.WorkflowEnabled, mode
                                        recipients=self.partes_interessadas_codae_autorizou,
                                        short_desc=assunto,
                                        long_desc=corpo)
-            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_APROVOU,
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU,
                                       usuario=user)
 
     @xworkflows.after_transition('terceirizada_tomou_ciencia')
@@ -385,7 +385,7 @@ class FluxoAprovacaoPartindoDaDiretoriaRegional(xwf_models.WorkflowEnabled, mode
                                        recipients=self.partes_interessadas_terceirizadas_tomou_ciencia,
                                        short_desc=assunto,
                                        long_desc=corpo)
-            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_TOMA_CIENCIA,
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_TOMOU_CIENCIA,
                                       usuario=user)
 
     class Meta:
@@ -437,7 +437,7 @@ class FluxoInformativoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model)
                                        recipients=self.partes_interessadas_terceirizadas_tomou_ciencia,
                                        short_desc=assunto,
                                        long_desc=corpo)
-            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_TOMA_CIENCIA,
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_TOMOU_CIENCIA,
                                       usuario=user)
 
     class Meta:
