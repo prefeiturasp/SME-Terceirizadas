@@ -30,9 +30,10 @@ from ..models import (
 )
 from ...cardapio.models import MotivoAlteracaoCardapio, MotivoSuspensao
 from ...dados_comuns.constants import (
-    FILTRO_PADRAO_PEDIDOS, PEDIDOS_CODAE, PEDIDOS_DRE, PEDIDOS_TERCEIRIZADA, SOLICITACOES_DO_USUARIO
+    CODAE_AUTORIZA_PEDIDO, CODAE_NEGA_PEDIDO, DRE_CANCELA_PEDIDO, DRE_PEDE_REVISAO, DRE_VALIDA_PEDIDO, ESCOLA_CANCELA,
+    ESCOLA_REVISA_PEDIDO, FILTRO_PADRAO_PEDIDOS, INFORMAR_CIENCIA, INICIO_PEDIDO_ESCOLA, PEDIDOS_CODAE, PEDIDOS_DRE,
+    PEDIDOS_TERCEIRIZADA, SEM_FILTRO, SOLICITACOES_DO_USUARIO, TERCEIRIZADA_TOMA_CIENCIA
 )
-from ...dados_comuns.constants import SEM_FILTRO
 
 
 class CardapioViewSet(viewsets.ModelViewSet):
@@ -146,7 +147,7 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
     #
 
     @action(detail=True, permission_classes=[PodeIniciarSuspensaoDeAlimentacaoPermission],
-            methods=['patch'], url_path='inicio-pedido')
+            methods=['patch'], url_path=INICIO_PEDIDO_ESCOLA)
     def inicio_de_pedido(self, request, uuid=None):
         inversao_cardapio = self.get_object()
         try:
@@ -157,7 +158,7 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeIniciarSuspensaoDeAlimentacaoPermission],
-            methods=['patch'], url_path='diretoria-regional-aprova-pedido')
+            methods=['patch'], url_path=DRE_VALIDA_PEDIDO)
     def diretoria_regional_aprova_pedido(self, request, uuid=None):
         inversao_cardapio = self.get_object()
         try:
@@ -168,7 +169,7 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeIniciarSuspensaoDeAlimentacaoPermission],
-            methods=['patch'], url_path='diretoria-regional-pede-revisao')
+            methods=['patch'], url_path=DRE_PEDE_REVISAO)
     def diretoria_regional_pede_revisao(self, request, uuid=None):
         inversao_cardapio = self.get_object()
         try:
@@ -179,7 +180,7 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeIniciarSuspensaoDeAlimentacaoPermission],
-            methods=['patch'], url_path='diretoria-regional-cancela-pedido')
+            methods=['patch'], url_path=DRE_CANCELA_PEDIDO)
     def diretoria_regional_cancela_pedido(self, request, uuid=None):
         inversao_cardapio = self.get_object()
         try:
@@ -190,7 +191,7 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeIniciarSuspensaoDeAlimentacaoPermission],
-            methods=['patch'], url_path='escola-revisa-pedido')
+            methods=['patch'], url_path=ESCOLA_REVISA_PEDIDO)
     def escola_revisa_pedido(self, request, uuid=None):
         inversao_cardapio = self.get_object()
         try:
@@ -201,7 +202,7 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeIniciarSuspensaoDeAlimentacaoPermission],
-            methods=['patch'], url_path='codae-aprova-pedido')
+            methods=['patch'], url_path=CODAE_AUTORIZA_PEDIDO)
     def codae_aprova_pedido(self, request, uuid=None):
         inversao_cardapio = self.get_object()
         try:
@@ -212,7 +213,7 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeIniciarSuspensaoDeAlimentacaoPermission],
-            methods=['patch'], url_path='codae-cancela-pedido')
+            methods=['patch'], url_path=CODAE_NEGA_PEDIDO)
     def codae_cancela_pedido(self, request, uuid=None):
         inversao_cardapio = self.get_object()
         try:
@@ -223,7 +224,7 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeIniciarSuspensaoDeAlimentacaoPermission],
-            methods=['patch'], url_path='terceirizada-toma-ciencia')
+            methods=['patch'], url_path=TERCEIRIZADA_TOMA_CIENCIA)
     def terceirizada_toma_ciencia(self, request, uuid=None):
         inversao_cardapio = self.get_object()
         try:
@@ -234,7 +235,7 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeIniciarSuspensaoDeAlimentacaoPermission],
-            methods=['patch'], url_path='escola-cancela-pedido-48h-antes')
+            methods=['patch'], url_path=ESCOLA_CANCELA)
     def escola_cancela_pedido_48h_antes(self, request, uuid=None):
         inversao_cardapio = self.get_object()
         try:
@@ -301,7 +302,7 @@ class GrupoSuspensaoAlimentacaoSerializerViewSet(viewsets.ModelViewSet):
     #
 
     @action(detail=True, permission_classes=[PodeIniciarSuspensaoDeAlimentacaoPermission],
-            methods=['patch'], url_path='informa-suspensao')
+            methods=['patch'], url_path=INFORMAR_CIENCIA)
     def informa_suspensao(self, request, uuid=None):
         grupo_suspensao_de_alimentacao = self.get_object()
         try:
@@ -312,7 +313,7 @@ class GrupoSuspensaoAlimentacaoSerializerViewSet(viewsets.ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeTomarCienciaSuspensaoDeAlimentacaoPermission],
-            methods=['patch'], url_path='terceirizada-toma-ciencia')
+            methods=['patch'], url_path=TERCEIRIZADA_TOMA_CIENCIA)
     def terceirizada_tomou_ciencia(self, request, uuid=None):
         grupo_suspensao_de_alimentacao = self.get_object()
         try:
@@ -342,8 +343,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
     #
 
     @action(detail=False,
-            url_path='pedidos-codae/'
-                     '(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)')
+            url_path=f'{PEDIDOS_CODAE}/{FILTRO_PADRAO_PEDIDOS}')
     def pedidos_codae(self, request, filtro_aplicado='sem_filtro'):
         # TODO: colocar regras de codae CODAE aqui...
         usuario = request.user
@@ -362,7 +362,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
     #
 
     @action(detail=True, permission_classes=[PodeIniciarAlteracaoCardapioPermission],
-            methods=['patch'], url_path='inicio-pedido')
+            methods=['patch'], url_path=INICIO_PEDIDO_ESCOLA)
     def inicio_de_pedido(self, request, uuid=None):
         alteracao_cardapio = self.get_object()
         try:
@@ -373,7 +373,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeIniciarAlteracaoCardapioPermission],
-            methods=['patch'], url_path='diretoria-regional-aprova')
+            methods=['patch'], url_path=DRE_VALIDA_PEDIDO)
     def diretoria_regional_aprova(self, request, uuid=None):
         alteracao_cardapio = self.get_object()
         try:
@@ -384,7 +384,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeIniciarAlteracaoCardapioPermission],
-            methods=['patch'], url_path='diretoria-regional-pede-revisao')
+            methods=['patch'], url_path=DRE_PEDE_REVISAO)
     def dre_pediu_revisao(self, request, uuid=None):
         alteracao_cardapio = self.get_object()
         try:
@@ -395,7 +395,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeIniciarAlteracaoCardapioPermission],
-            methods=['patch'], url_path='diretoria-regional-cancela-pedido')
+            methods=['patch'], url_path=DRE_CANCELA_PEDIDO)
     def dre_cancela_pedido(self, request, uuid=None):
         alteracao_cardapio = self.get_object()
         try:
@@ -406,7 +406,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeRecusarPelaCODAEAlteracaoCardapioPermission],
-            methods=['patch'], url_path='escola-revisa')
+            methods=['patch'], url_path=ESCOLA_REVISA_PEDIDO)
     def escola_revisa(self, request, uuid=None):
         alteracao_cardapio = self.get_object()
         try:
@@ -417,7 +417,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeRecusarPelaCODAEAlteracaoCardapioPermission],
-            methods=['patch'], url_path='codae-cancela-pedido')
+            methods=['patch'], url_path=CODAE_NEGA_PEDIDO)
     def codae_cancela_pedido(self, request, uuid=None):
         alteracao_cardapio = self.get_object()
         try:
@@ -428,7 +428,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeAprovarPelaCODAEAlteracaoCardapioPermission],
-            methods=['patch'], url_path='codae-aprova-pedido')
+            methods=['patch'], url_path=CODAE_AUTORIZA_PEDIDO)
     def codae_aprova(self, request, uuid=None):
         alteracao_cardapio = self.get_object()
         try:
@@ -439,7 +439,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeRecusarPelaCODAEAlteracaoCardapioPermission],
-            methods=['patch'], url_path='terceirizada-toma-ciencia')
+            methods=['patch'], url_path=TERCEIRIZADA_TOMA_CIENCIA)
     def terceirizada_tomou_ciencia(self, request, uuid=None):
         alteracao_cardapio = self.get_object()
         try:
@@ -450,7 +450,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeRecusarPelaCODAEAlteracaoCardapioPermission],
-            methods=['patch'], url_path='escola-cancela-pedido-48h-antes')
+            methods=['patch'], url_path=ESCOLA_CANCELA)
     def escola_cancela_pedido_48h_antes(self, request, uuid=None):
         inclusao_alimentacao_continua = self.get_object()
 
