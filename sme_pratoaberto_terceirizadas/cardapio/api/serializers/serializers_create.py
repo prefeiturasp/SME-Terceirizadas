@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from ..helpers import notificar_partes_envolvidas
 from ...api.validators import (
-    valida_cardapio_de_para, valida_duplicidade
+    deve_ser_no_mesmo_ano_corrente, nao_pode_ter_mais_que_60_dias_diferenca, valida_cardapio_de_para, valida_duplicidade
 )
 from ...models import (
     AlteracaoCardapio, Cardapio, GrupoSuspensaoAlimentacao, InversaoCardapio, MotivoAlteracaoCardapio, MotivoSuspensao,
@@ -30,18 +30,24 @@ class InversaoCardapioSerializerCreate(serializers.ModelSerializer):
     )
 
     def validate_data_de(self, data_de):
+        deve_ser_no_mesmo_ano_corrente(data_de)
         nao_pode_ser_no_passado(data_de)
         return data_de
 
     def validate_data_para(self, data_para):
+        deve_ser_no_mesmo_ano_corrente(data_para)
         nao_pode_ser_no_passado(data_para)
         return data_para
 
     def validate(self, attrs):
-        valida_cardapio_de_para(attrs.get('data_de'), attrs.get('data_para'))
-        valida_duplicidade(attrs.get('data_de'), attrs.get('data_para'), attrs.get('escola'))
-        deve_existir_cardapio(attrs['escola'], attrs['data_de'])
-        deve_existir_cardapio(attrs['escola'], attrs['data_para'])
+        data_de = attrs['data_de']
+        data_para = attrs['data_para']
+        escola = attrs['escola']
+        valida_cardapio_de_para(data_de, data_para)
+        valida_duplicidade(data_de, data_para, escola)
+        nao_pode_ter_mais_que_60_dias_diferenca(data_de, data_para)
+        deve_existir_cardapio(escola, data_de)
+        deve_existir_cardapio(escola, data_para)
         return attrs
 
     def create(self, validated_data):

@@ -69,3 +69,21 @@ def valida_tipo_alimentacao(cardapio, periodos, tipo, tipos_alimentacao):
         raise serializers.ValidationError(
             f'Quando tipo {tipo} (tipo alimentação), não pode ter cardapio ou períodos')
     return True
+
+
+def deve_ser_no_mesmo_ano_corrente(data_inversao):
+    ano_corrente = date.today().year
+    if ano_corrente != data_inversao.year:
+        raise serializers.ValidationError(
+            'Inversão de dia de cardapio deve ser solicitada no ano corrente'
+        )
+    return True
+
+
+def nao_pode_ter_mais_que_60_dias_diferenca(data_de, data_para):
+    diferenca = abs((data_para - data_de).days)
+    if diferenca > 60:
+        raise serializers.ValidationError(
+            'Diferença entre as datas não pode ultrapassar de 60 dias'
+        )
+    return True
