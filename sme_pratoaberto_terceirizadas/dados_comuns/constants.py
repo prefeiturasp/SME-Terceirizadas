@@ -31,9 +31,11 @@ DRE_INICIO_PEDIDO = 'inicio-pedido'
 DRE_VALIDA_PEDIDO = 'diretoria-regional-aprova-pedido'
 DRE_NAO_VALIDA_PEDIDO = 'diretoria-regional-cancela-pedido'
 DRE_PEDE_REVISAO = 'diretoria-regional-pede-revisao'
+DRE_REVISA_PEDIDO = 'diretoria-regional-revisa'
 
 CODAE_AUTORIZA_PEDIDO = 'codae-aprova-pedido'
 CODAE_NEGA_PEDIDO = 'codae-cancela-pedido'
+CODAE_PEDE_REVISAO = 'codae-pediu-revisao'
 
 TERCEIRIZADA_TOMA_CIENCIA = 'terceirizada-toma-ciencia'
 
