@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+import datetime
 
 import pytest
 from faker import Faker
@@ -27,7 +27,7 @@ def client():
 
 @pytest.fixture
 def cardapio_valido():
-    data = datetime.now() + timedelta(days=2)
+    data = datetime.datetime.now() + datetime.timedelta(days=2)
     cardapio_valido = mommy.make('Cardapio', id=1, data=data.date(),
                                  uuid='7a4ec98a-18a8-4d0a-b722-1da8f99aaf4b')
     return cardapio_valido
@@ -35,7 +35,7 @@ def cardapio_valido():
 
 @pytest.fixture
 def cardapio_valido2():
-    data = datetime.now() + timedelta(days=4)
+    data = datetime.datetime.now() + datetime.timedelta(days=4)
     cardapio_valido2 = mommy.make('Cardapio', id=2, data=data.date(),
                                   uuid='7a4ec98a-18a8-4d0a-b722-1da8f99aaf4c')
     return cardapio_valido2
@@ -43,14 +43,14 @@ def cardapio_valido2():
 
 @pytest.fixture
 def cardapio_valido3():
-    data = datetime.now() + timedelta(days=6)
+    data = datetime.datetime.now() + datetime.timedelta(days=6)
     cardapio_valido = mommy.make('Cardapio', id=22, data=data.date())
     return cardapio_valido
 
 
 @pytest.fixture
 def cardapio_invalido():
-    cardapio_invalido = mommy.prepare('Cardapio', _save_related=True, id=3, data=datetime(2019, 7, 2).date(),
+    cardapio_invalido = mommy.prepare('Cardapio', _save_related=True, id=3, data=datetime.datetime(2019, 7, 2).date(),
                                       uuid='7a4ec98a-18a8-4d0a-b722-1da8f99aaf4d')
     return cardapio_invalido
 
@@ -133,3 +133,40 @@ def alteracao_cardapio_serializer():
 def substituicoes_alimentacao_no_periodo_escolar_serializer():
     substituicoes_alimentacao_no_periodo_escolar = mommy.make(SubstituicoesAlimentacaoNoPeriodoEscolar)
     return SubstituicoesAlimentacaoNoPeriodoEscolarSerializer(substituicoes_alimentacao_no_periodo_escolar)
+
+
+@pytest.fixture(params=[
+    (datetime.date(2019, 8, 10), datetime.date(2019, 10, 24),
+     'Diferença entre as datas não pode ultrapassar de 60 dias'),
+    (datetime.date(2019, 1, 1), datetime.date(2019, 3, 3), 'Diferença entre as datas não pode ultrapassar de 60 dias'),
+    (datetime.date(2019, 1, 1), datetime.date(2019, 3, 4), 'Diferença entre as datas não pode ultrapassar de 60 dias'),
+])
+def datas_de_inversoes_intervalo_maior_60_dias(request):
+    return request.param
+
+
+@pytest.fixture(params=[
+    (datetime.date(2019, 8, 10), datetime.date(2019, 10, 9), True),
+    (datetime.date(2019, 1, 1), datetime.date(2019, 3, 1), True),
+    (datetime.date(2019, 1, 1), datetime.date(2019, 3, 2), True),
+])
+def datas_de_inversoes_intervalo_entre_60_dias(request):
+    return request.param
+
+
+@pytest.fixture(params=[
+    (datetime.date(2018, 5, 26), 'Inversão de dia de cardapio deve ser solicitada no ano corrente'),
+    (datetime.date(2020, 1, 1), 'Inversão de dia de cardapio deve ser solicitada no ano corrente'),
+    (datetime.date(2021, 12, 1), 'Inversão de dia de cardapio deve ser solicitada no ano corrente')
+])
+def data_inversao_ano_diferente(request):
+    return request.param
+
+
+@pytest.fixture(params=[
+    (datetime.date(2019, 5, 26), True),
+    (datetime.date(2019, 1, 1), True),
+    (datetime.date(2019, 12, 31), True)
+])
+def data_inversao_mesmo_ano(request):
+    return request.param

@@ -1,4 +1,4 @@
-from datetime import date
+import datetime
 
 from django.db.models import Q
 from rest_framework import serializers
@@ -10,18 +10,19 @@ from ..models import InversaoCardapio
 
 
 def cardapio_antigo(cardapio: Cardapio) -> Any:
-    if cardapio.data <= date.today():
+    if cardapio.data <= datetime.date.today():
         raise serializers.ValidationError('Não pode ser cardápio antigo')
     return True
 
 
-def valida_cardapio_de_para(data_de: date, data_para: date) -> Any:
+def data_troca_nao_pode_ser_superior_a_data_inversao(data_de: datetime.date, data_para: datetime.date) -> Any:
     if data_de >= data_para:
         raise serializers.ValidationError('Data de cardápio para troca é superior a data de inversão')
     return True
 
 
-def valida_duplicidade(data_de: date, data_para: date, escola: Escola):
+def nao_pode_existir_solicitacao_igual_para_mesma_escola(data_de: datetime.date, data_para: datetime.date,
+                                                         escola: Escola):
     inversao_cardapio = InversaoCardapio.objects.filter(
         cardapio_de__data=data_de,
         cardapio_para__data=data_para,
@@ -71,8 +72,8 @@ def valida_tipo_alimentacao(cardapio, periodos, tipo, tipos_alimentacao):
     return True
 
 
-def deve_ser_no_mesmo_ano_corrente(data_inversao):
-    ano_corrente = date.today().year
+def deve_ser_no_mesmo_ano_corrente(data_inversao: datetime.date):
+    ano_corrente = datetime.date.today().year
     if ano_corrente != data_inversao.year:
         raise serializers.ValidationError(
             'Inversão de dia de cardapio deve ser solicitada no ano corrente'
@@ -80,7 +81,7 @@ def deve_ser_no_mesmo_ano_corrente(data_inversao):
     return True
 
 
-def nao_pode_ter_mais_que_60_dias_diferenca(data_de, data_para):
+def nao_pode_ter_mais_que_60_dias_diferenca(data_de: datetime.date, data_para: datetime.date):
     diferenca = abs((data_para - data_de).days)
     if diferenca > 60:
         raise serializers.ValidationError(
