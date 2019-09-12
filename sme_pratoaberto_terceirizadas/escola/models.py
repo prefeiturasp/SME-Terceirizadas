@@ -530,7 +530,7 @@ class Codae(Nomeavel, TemChaveExterna):
         else:
             solicitacoes_unificadas = SolicitacaoKitLancheUnificada.objects
         return solicitacoes_unificadas.filter(
-            status=SolicitacaoKitLancheUnificada.workflow_class.CODAE_A_VALIDAR
+            status=SolicitacaoKitLancheUnificada.workflow_class.CODAE_A_AUTORIZAR
         )
 
     @property
