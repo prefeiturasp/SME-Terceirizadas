@@ -137,8 +137,6 @@ class SolicitacaoKitLancheUnificada(CriadoPor, TemChaveExterna, TemIdentificador
 
     # TODO: ao deletar este, deletar solicitacao_kit_lanche também que é uma tabela acessória
     # TODO: passar `local` para solicitacao_kit_lanche
-    #motivo = models.ForeignKey(MotivoSolicitacaoUnificada, on_delete=models.DO_NOTHING,
-                              # blank=True, null=True)
     outro_motivo = models.TextField(blank=True)
     quantidade_max_alunos_por_escola = models.PositiveSmallIntegerField(null=True, blank=True)
     local = models.CharField(max_length=160)
