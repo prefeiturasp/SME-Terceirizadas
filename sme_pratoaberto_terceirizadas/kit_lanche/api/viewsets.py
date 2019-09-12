@@ -261,7 +261,7 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
 
     @action(detail=False,
             url_path=f'{constants.PEDIDOS_CODAE}/{constants.FILTRO_PADRAO_PEDIDOS}')
-    def pedidos_codae(self, request, filtro_aplicado='sem_filtro'):
+    def pedidos_codae(self, request, filtro_aplicado=constants.SEM_FILTRO):
         # TODO: colocar regras de codae CODAE aqui...
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
@@ -275,7 +275,7 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
 
     @action(detail=False,
             url_path=f'{constants.PEDIDOS_TERCEIRIZADA}/{constants.FILTRO_PADRAO_PEDIDOS}')
-    def pedidos_terceirizada(self, request, filtro_aplicado='sem_filtro'):
+    def pedidos_terceirizada(self, request, filtro_aplicado=constants.SEM_FILTRO):
         # TODO: colocar regras de Terceirizada aqui...
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
@@ -382,6 +382,17 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
         solicitacao_unificada = self.get_object()
         try:
             solicitacao_unificada.terceirizada_toma_ciencia(user=request.user, notificar=True)
+            serializer = self.get_serializer(solicitacao_unificada)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, url_path=constants.DRE_CANCELA,
+            permission_classes=[PodeIniciarSolicitacaoUnificadaPermission], methods=['patch'])
+    def diretoria_regional_cancela(self, request, uuid=None):
+        solicitacao_unificada = self.get_object()
+        try:
+            solicitacao_unificada.cancelar_pedido(user=request.user, notificar=True)
             serializer = self.get_serializer(solicitacao_unificada)
             return Response(serializer.data)
         except InvalidTransitionError as e:
