@@ -19,16 +19,6 @@ from ..dados_comuns.models_abstract import (
 )
 
 
-class MotivoSolicitacaoUnificada(Nomeavel, TemChaveExterna):
-
-    def __str__(self):
-        return self.nome
-
-    class Meta:
-        verbose_name = 'Motivo da solicitação unificada'
-        verbose_name_plural = 'Motivos da solicitação unificada'
-
-
 class ItemKitLanche(Nomeavel, TemChaveExterna):
     """Que compõe o KitLanche.
 
@@ -147,8 +137,8 @@ class SolicitacaoKitLancheUnificada(CriadoPor, TemChaveExterna, TemIdentificador
 
     # TODO: ao deletar este, deletar solicitacao_kit_lanche também que é uma tabela acessória
     # TODO: passar `local` para solicitacao_kit_lanche
-    motivo = models.ForeignKey(MotivoSolicitacaoUnificada, on_delete=models.DO_NOTHING,
-                               blank=True, null=True)
+    #motivo = models.ForeignKey(MotivoSolicitacaoUnificada, on_delete=models.DO_NOTHING,
+                              # blank=True, null=True)
     outro_motivo = models.TextField(blank=True)
     quantidade_max_alunos_por_escola = models.PositiveSmallIntegerField(null=True, blank=True)
     local = models.CharField(max_length=160)

@@ -1,19 +1,13 @@
 from rest_framework import serializers
 
 from ...models import (
-    EscolaQuantidade, ItemKitLanche, KitLanche, MotivoSolicitacaoUnificada, SolicitacaoKitLanche,
+    EscolaQuantidade, ItemKitLanche, KitLanche, SolicitacaoKitLanche,
     SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheUnificada
 )
 from ....dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
 from ....escola.api.serializers import (
     DiretoriaRegionalSimplissimaSerializer, EscolaSimplesSerializer
 )
-
-
-class MotivoSolicitacaoUnificadaSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = MotivoSolicitacaoUnificada
-        exclude = ('id',)
 
 
 class ItemKitLancheSerializer(serializers.ModelSerializer):
@@ -88,7 +82,6 @@ class EscolaQuantidadeSerializerSimples(serializers.ModelSerializer):
 
 class SolicitacaoKitLancheUnificadaSerializer(serializers.ModelSerializer):
     diretoria_regional = DiretoriaRegionalSimplissimaSerializer()
-    motivo = MotivoSolicitacaoUnificadaSerializer()
     solicitacao_kit_lanche = SolicitacaoKitLancheSimplesSerializer()
     escolas_quantidades = EscolaQuantidadeSerializerSimples(many=True)
     id_externo = serializers.CharField()

@@ -10,7 +10,7 @@ from ..validators import (
     escola_quantidade_nao_deve_ter_kits_e_tempo_passeio, valida_quantidade_kits_tempo_passeio
 )
 from ...models import (
-    EscolaQuantidade, KitLanche, MotivoSolicitacaoUnificada, SolicitacaoKitLanche,
+    EscolaQuantidade, KitLanche, SolicitacaoKitLanche,
     SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheUnificada
 )
 from ....dados_comuns.utils import update_instance_from_dict
@@ -167,10 +167,6 @@ class EscolaQuantidadeCreationSerializer(serializers.ModelSerializer):
 class SolicitacaoKitLancheUnificadaCreationSerializer(serializers.ModelSerializer):
     solicitacao_kit_lanche = SolicitacaoKitLancheCreationSerializer(
         required=False
-    )
-    motivo = serializers.SlugRelatedField(
-        slug_field='uuid',
-        queryset=MotivoSolicitacaoUnificada.objects.all()
     )
     diretoria_regional = serializers.SlugRelatedField(
         slug_field='uuid',
