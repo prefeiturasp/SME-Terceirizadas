@@ -59,7 +59,7 @@ class PedidoAPartirDaDiretoriaRegionalWorkflow(xwf_models.Workflow):
     log_model = ''  # Disable logging to database
 
     RASCUNHO = 'RASCUNHO'  # INICIO
-    CODAE_A_AUTORIZAR = 'CODAE_A_VALIDAR'
+    CODAE_A_AUTORIZAR = 'CODAE_A_AUTORIZAR'
     CODAE_PEDIU_DRE_REVISAR = 'DRE_PEDE_ESCOLA_REVISAR'  # PODE HAVER LOOP AQUI...
     CODAE_NEGOU_PEDIDO = 'CODAE_CANCELOU_PEDIDO'  # FIM DE FLUXO
     CODAE_AUTORIZADO = 'CODAE_APROVADO'
