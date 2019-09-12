@@ -16,7 +16,6 @@ from ..models import (
 from ...dados_comuns import constants
 
 
-
 class KitLancheViewSet(ReadOnlyModelViewSet):
     lookup_field = 'uuid'
     queryset = models.KitLanche.objects.all()
