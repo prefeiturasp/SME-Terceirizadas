@@ -14,7 +14,7 @@ from sme_pratoaberto_terceirizadas.escola.models import Escola, DiretoriaRegiona
 from sme_pratoaberto_terceirizadas.inclusao_alimentacao.models import InclusaoAlimentacaoContinua, \
     MotivoInclusaoContinua, GrupoInclusaoAlimentacaoNormal, QuantidadePorPeriodo, InclusaoAlimentacaoNormal, \
     MotivoInclusaoNormal
-from sme_pratoaberto_terceirizadas.kit_lanche.models import MotivoSolicitacaoUnificada, SolicitacaoKitLancheUnificada, \
+from sme_pratoaberto_terceirizadas.kit_lanche.models import SolicitacaoKitLancheUnificada, \
     SolicitacaoKitLanche, KitLanche, SolicitacaoKitLancheAvulsa
 from sme_pratoaberto_terceirizadas.perfil.models import Usuario
 from sme_pratoaberto_terceirizadas.terceirizada.models import Terceirizada
@@ -60,10 +60,6 @@ def _get_random_motivo_normal():
 
 def _get_random_motivo_altercao_cardapio():
     return MotivoAlteracaoCardapio.objects.order_by("?").first()
-
-
-def _get_random_motivo_unificado_kit_lanche():
-    return MotivoSolicitacaoUnificada.objects.order_by("?").first()
 
 
 def _get_random_escola():
@@ -192,7 +188,6 @@ def cria_solicitacoes_kit_lanche_unificada(qtd=50):
 
         unificada = SolicitacaoKitLancheUnificada.objects.create(
             criado_por=user,
-            motivo=_get_random_motivo_unificado_kit_lanche(),
             outro_motivo=f.text()[:40],
             quantidade_max_alunos_por_escola=666,
             local=f.text()[:150],
