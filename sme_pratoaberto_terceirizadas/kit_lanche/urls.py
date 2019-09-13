@@ -5,9 +5,6 @@ from .api import viewsets
 
 router = routers.DefaultRouter()
 
-router.register('motivos-solicitacao-unificada', viewsets.MotivoSolicitacaoUnificadaViewSet,
-                basename='motivos-solicitacao-unificada')
-
 router.register('kit-lanches', viewsets.KitLancheViewSet,
                 basename='kit-lanches')
 

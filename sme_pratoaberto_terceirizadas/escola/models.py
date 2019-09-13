@@ -483,7 +483,7 @@ class Codae(Nomeavel, TemChaveExterna):
         else:
             inversoes_cardapio = InversaoCardapio.objects
         return inversoes_cardapio.filter(
-            status=InversaoCardapio.workflow_class.DRE_APROVADO
+            status=InversaoCardapio.workflow_class.DRE_VALIDADO
         )
 
     @property
@@ -501,7 +501,7 @@ class Codae(Nomeavel, TemChaveExterna):
         else:
             inversoes_cardapio = InclusaoAlimentacaoContinua.objects
         return inversoes_cardapio.filter(
-            status=InclusaoAlimentacaoContinua.workflow_class.DRE_APROVADO
+            status=InclusaoAlimentacaoContinua.workflow_class.DRE_VALIDADO
         )
 
     def grupos_inclusoes_alimentacao_normal_das_minhas_escolas(self, filtro_aplicado):
@@ -512,7 +512,7 @@ class Codae(Nomeavel, TemChaveExterna):
         else:
             inversoes_cardapio = GrupoInclusaoAlimentacaoNormal.objects
         return inversoes_cardapio.filter(
-            status=GrupoInclusaoAlimentacaoNormal.workflow_class.DRE_APROVADO
+            status=GrupoInclusaoAlimentacaoNormal.workflow_class.DRE_VALIDADO
         )
 
     def alteracoes_cardapio_das_minhas(self, filtro_aplicado):
@@ -523,7 +523,7 @@ class Codae(Nomeavel, TemChaveExterna):
         else:
             alteracoes_cardapio = AlteracaoCardapio.objects
         return alteracoes_cardapio.filter(
-            status=AlteracaoCardapio.workflow_class.DRE_APROVADO
+            status=AlteracaoCardapio.workflow_class.DRE_VALIDADO
         )
 
     def suspensoes_cardapio_das_minhas_escolas(self, filtro_aplicado):
@@ -600,7 +600,7 @@ class Codae(Nomeavel, TemChaveExterna):
         else:
             solicitacoes_kit_lanche = SolicitacaoKitLancheAvulsa.objects
         return solicitacoes_kit_lanche.filter(
-            status=InversaoCardapio.workflow_class.DRE_APROVADO
+            status=InversaoCardapio.workflow_class.DRE_VALIDADO
         )
 
     def inclusoes_continuas_das_minhas_escolas_no_prazo_vencendo(self, filtro_aplicado):
