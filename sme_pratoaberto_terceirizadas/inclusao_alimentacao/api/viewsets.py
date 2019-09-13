@@ -3,6 +3,9 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from xworkflows import InvalidTransitionError
 
+from sme_pratoaberto_terceirizadas.inclusao_alimentacao.api.serializers.serializers import \
+    InclusaoAlimentacaoNormalSimplesSerializer, InclusaoAlimentacaoContinuaSerializer, \
+    InclusaoAlimentacaoContinuaSimplesSerializer
 from .permissions import (
     PodeAprovarAlimentacaoContinuaDaEscolaPermission, PodeIniciarInclusaoAlimentacaoContinuaPermission
 )
@@ -421,6 +424,20 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
         )
         page = self.paginate_queryset(inclusoes_continuas)
         serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    # TODO rever os demais endpoints. Essa action consolida em uma única pesquisa as pesquisas por prioridade.
+    @action(detail=False,
+            url_path=f'{constants.PEDIDOS_DRE}/{constants.FILTRO_PADRAO_PEDIDOS}')
+    def pedidos_diretoria_regional(self, request, filtro_aplicado=constants.SEM_FILTRO):
+        usuario = request.user
+        # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
+        diretoria_regional = usuario.diretorias_regionais.first()
+        inclusoes_alimentacao_continua = diretoria_regional.inclusoes_alimentacao_continua_das_minhas_escolas(
+            filtro_aplicado
+        )
+        page = self.paginate_queryset(inclusoes_alimentacao_continua)
+        serializer = InclusaoAlimentacaoContinuaSimplesSerializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False, url_path='pedidos-aprovados-diretoria-regional')
