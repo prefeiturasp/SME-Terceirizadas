@@ -689,7 +689,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
             filtro_aplicado
         )
         page = self.paginate_queryset(alteracoes_cardapio)
-        serializer = self.get_serializer(page, many=True)
+        serializer = AlteracaoCardapioSimplesSerializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
 
