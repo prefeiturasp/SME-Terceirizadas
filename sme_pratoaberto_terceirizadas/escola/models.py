@@ -38,7 +38,7 @@ class DiretoriaRegional(Nomeavel, TemChaveExterna):
     def inclusoes_continuas_aprovadas(self):
         return InclusaoAlimentacaoContinua.objects.filter(
             escola__in=self.escolas.all(),
-            status__in=[GrupoInclusaoAlimentacaoNormal.workflow_class.CODAE_APROVADO,
+            status__in=[GrupoInclusaoAlimentacaoNormal.workflow_class.CODAE_AUTORIZADO,
                         GrupoInclusaoAlimentacaoNormal.workflow_class.TERCEIRIZADA_TOMA_CIENCIA]
         )
 
@@ -46,7 +46,7 @@ class DiretoriaRegional(Nomeavel, TemChaveExterna):
     def inclusoes_normais_aprovadas(self):
         return GrupoInclusaoAlimentacaoNormal.objects.filter(
             escola__in=self.escolas.all(),
-            status__in=[GrupoInclusaoAlimentacaoNormal.workflow_class.CODAE_APROVADO,
+            status__in=[GrupoInclusaoAlimentacaoNormal.workflow_class.CODAE_AUTORIZADO,
                         GrupoInclusaoAlimentacaoNormal.workflow_class.TERCEIRIZADA_TOMA_CIENCIA]
         )
 
@@ -54,14 +54,14 @@ class DiretoriaRegional(Nomeavel, TemChaveExterna):
     def inclusoes_continuas_reprovadas(self):
         return InclusaoAlimentacaoContinua.objects.filter(
             escola__in=self.escolas.all(),
-            status=InclusaoAlimentacaoContinua.workflow_class.DRE_CANCELA_PEDIDO_ESCOLA
+            status=InclusaoAlimentacaoContinua.workflow_class.DRE_NAO_VALIDOU_PEDIDO_ESCOLA
         )
 
     @property
     def inclusoes_normais_reprovadas(self):
         return GrupoInclusaoAlimentacaoNormal.objects.filter(
             escola__in=self.escolas.all(),
-            status=GrupoInclusaoAlimentacaoNormal.workflow_class.DRE_CANCELA_PEDIDO_ESCOLA
+            status=GrupoInclusaoAlimentacaoNormal.workflow_class.DRE_NAO_VALIDOU_PEDIDO_ESCOLA
         )
 
     # TODO: talvez fazer um manager genérico pra fazer esse filtro
@@ -189,7 +189,7 @@ class DiretoriaRegional(Nomeavel, TemChaveExterna):
     def alteracoes_cardapio_aprovadas(self):
         return AlteracaoCardapio.objects.filter(
             escola__in=self.escolas.all(),
-            status__in=[AlteracaoCardapio.workflow_class.CODAE_APROVADO,
+            status__in=[AlteracaoCardapio.workflow_class.CODAE_AUTORIZADO,
                         AlteracaoCardapio.workflow_class.TERCEIRIZADA_TOMA_CIENCIA]
         )
 
@@ -197,7 +197,7 @@ class DiretoriaRegional(Nomeavel, TemChaveExterna):
     def solicitacao_kit_lanche_avulsa_aprovadas(self):
         return SolicitacaoKitLancheAvulsa.objects.filter(
             escola__in=self.escolas.all(),
-            status__in=[SolicitacaoKitLancheAvulsa.workflow_class.CODAE_APROVADO,
+            status__in=[SolicitacaoKitLancheAvulsa.workflow_class.CODAE_AUTORIZADO,
                         SolicitacaoKitLancheAvulsa.workflow_class.TERCEIRIZADA_TOMA_CIENCIA]
         )
 
@@ -212,7 +212,7 @@ class DiretoriaRegional(Nomeavel, TemChaveExterna):
     def alteracoes_cardapio_reprovadas(self):
         return AlteracaoCardapio.objects.filter(
             escola__in=self.escolas.all(),
-            status=AlteracaoCardapio.workflow_class.DRE_CANCELA_PEDIDO_ESCOLA
+            status=AlteracaoCardapio.workflow_class.DRE_NAO_VALIDOU_PEDIDO_ESCOLA
         )
 
     def alteracoes_cardapio_das_minhas_escolas_no_prazo_vencendo(self, filtro_aplicado):
@@ -247,6 +247,19 @@ class DiretoriaRegional(Nomeavel, TemChaveExterna):
             status=AlteracaoCardapio.workflow_class.DRE_A_VALIDAR
         )
 
+    # TODO rever os demais métodos de alterações de cardápio, já que esse consolida todas as prioridades.
+    def alteracoes_cardapio_das_minhas_escolas(self, filtro_aplicado):
+        if filtro_aplicado == DAQUI_A_7_DIAS:
+            alteracoes_cardapio = AlteracaoCardapio.prazo_limite_daqui_a_7_dias
+        elif filtro_aplicado == DAQUI_A_30_DIAS:
+            alteracoes_cardapio = AlteracaoCardapio.prazo_limite_daqui_a_30_dias
+        else:
+            alteracoes_cardapio = AlteracaoCardapio.objects
+        return alteracoes_cardapio.filter(
+            escola__in=self.escolas.all(),
+            status=AlteracaoCardapio.workflow_class.DRE_A_VALIDAR
+        )
+
     #
     # Inversões de cardápio
     #
@@ -267,7 +280,7 @@ class DiretoriaRegional(Nomeavel, TemChaveExterna):
     def inversoes_cardapio_aprovadas(self):
         return InversaoCardapio.objects.filter(
             escola__in=self.escolas.all(),
-            status__in=[InversaoCardapio.workflow_class.CODAE_APROVADO,
+            status__in=[InversaoCardapio.workflow_class.CODAE_AUTORIZADO,
                         InversaoCardapio.workflow_class.TERCEIRIZADA_TOMA_CIENCIA]
         )
 
@@ -476,7 +489,7 @@ class Codae(Nomeavel, TemChaveExterna):
     @property
     def inversoes_cardapio_aprovadas(self):
         return InversaoCardapio.objects.filter(
-            status__in=[InversaoCardapio.workflow_class.CODAE_APROVADO,
+            status__in=[InversaoCardapio.workflow_class.CODAE_AUTORIZADO,
                         InversaoCardapio.workflow_class.TERCEIRIZADA_TOMA_CIENCIA]
         )
 
@@ -536,20 +549,20 @@ class Codae(Nomeavel, TemChaveExterna):
     @property
     def solicitacoes_unificadas_aprovadas(self):
         return SolicitacaoKitLancheUnificada.objects.filter(
-            status__in=[SolicitacaoKitLancheUnificada.workflow_class.CODAE_APROVADO,
+            status__in=[SolicitacaoKitLancheUnificada.workflow_class.CODAE_AUTORIZADO,
                         SolicitacaoKitLancheUnificada.workflow_class.TERCEIRIZADA_TOMA_CIENCIA]
         )
 
     @property
     def inclusoes_continuas_aprovadas(self):
         return InclusaoAlimentacaoContinua.objects.filter(
-            status=InclusaoAlimentacaoContinua.workflow_class.CODAE_APROVADO
+            status=InclusaoAlimentacaoContinua.workflow_class.CODAE_AUTORIZADO
         )
 
     @property
     def inclusoes_normais_aprovadas(self):
         return GrupoInclusaoAlimentacaoNormal.objects.filter(
-            status=GrupoInclusaoAlimentacaoNormal.workflow_class.CODAE_APROVADO
+            status=GrupoInclusaoAlimentacaoNormal.workflow_class.CODAE_AUTORIZADO
         )
 
     @property
@@ -567,7 +580,7 @@ class Codae(Nomeavel, TemChaveExterna):
     @property
     def solicitacao_kit_lanche_avulsa_aprovadas(self):
         return SolicitacaoKitLancheAvulsa.objects.filter(
-            status__in=[SolicitacaoKitLancheAvulsa.workflow_class.CODAE_APROVADO,
+            status__in=[SolicitacaoKitLancheAvulsa.workflow_class.CODAE_AUTORIZADO,
                         SolicitacaoKitLancheAvulsa.workflow_class.TERCEIRIZADA_TOMA_CIENCIA]
         )
 
@@ -681,7 +694,7 @@ class Codae(Nomeavel, TemChaveExterna):
     @property
     def alteracoes_cardapio_aprovadas(self):
         return AlteracaoCardapio.objects.filter(
-            status__in=[AlteracaoCardapio.workflow_class.CODAE_APROVADO,
+            status__in=[AlteracaoCardapio.workflow_class.CODAE_AUTORIZADO,
                         AlteracaoCardapio.workflow_class.TERCEIRIZADA_TOMA_CIENCIA]
         )
 
