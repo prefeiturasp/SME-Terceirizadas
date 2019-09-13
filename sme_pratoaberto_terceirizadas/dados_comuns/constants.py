@@ -38,7 +38,7 @@ CODAE_AUTORIZA_PEDIDO = 'codae-aprova-pedido'
 CODAE_NEGA_PEDIDO = 'codae-cancela-pedido'
 CODAE_PEDE_REVISAO = 'codae-pediu-revisao'
 
-TERCEIRIZADA_TOMA_CIENCIA = 'terceirizada-toma-ciencia'
+TERCEIRIZADA_TOMOU_CIENCIA = 'terceirizada-toma-ciencia'
 
 #
 # FILTROS

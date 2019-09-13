@@ -87,7 +87,7 @@ class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel):
         return InclusaoAlimentacaoContinua.objects.filter(
             escola__lote__in=self.lotes.all(),
             status__in=[InclusaoAlimentacaoContinua.workflow_class.CODAE_AUTORIZADO,
-                        InclusaoAlimentacaoContinua.workflow_class.TERCEIRIZADA_TOMA_CIENCIA]
+                        InclusaoAlimentacaoContinua.workflow_class.TERCEIRIZADA_TOMOU_CIENCIA]
         )
 
     @property
@@ -95,14 +95,14 @@ class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel):
         return GrupoInclusaoAlimentacaoNormal.objects.filter(
             escola__lote__in=self.lotes.all(),
             status__in=[GrupoInclusaoAlimentacaoNormal.workflow_class.CODAE_AUTORIZADO,
-                        GrupoInclusaoAlimentacaoNormal.workflow_class.TERCEIRIZADA_TOMA_CIENCIA]
+                        GrupoInclusaoAlimentacaoNormal.workflow_class.TERCEIRIZADA_TOMOU_CIENCIA]
         )
 
     @property
     def inclusoes_continuas_reprovadas(self):
         return InclusaoAlimentacaoContinua.objects.filter(
             escola__lote__in=self.lotes.all(),
-            status=InclusaoAlimentacaoContinua.workflow_class.CODAE_CANCELOU_PEDIDO
+            status=InclusaoAlimentacaoContinua.workflow_class.CODAE_NEGOU_PEDIDO
         )
 
     @property
@@ -110,14 +110,14 @@ class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel):
         return SolicitacaoKitLancheAvulsa.objects.filter(
             escola__lote__in=self.lotes.all(),
             status__in=[SolicitacaoKitLancheAvulsa.workflow_class.CODAE_AUTORIZADO,
-                        SolicitacaoKitLancheAvulsa.workflow_class.TERCEIRIZADA_TOMA_CIENCIA]
+                        SolicitacaoKitLancheAvulsa.workflow_class.TERCEIRIZADA_TOMOU_CIENCIA]
         )
 
     @property
     def inclusoes_normais_reprovadas(self):
         return GrupoInclusaoAlimentacaoNormal.objects.filter(
             escola__lote__in=self.lotes.all(),
-            status=GrupoInclusaoAlimentacaoNormal.workflow_class.CODAE_CANCELOU_PEDIDO
+            status=GrupoInclusaoAlimentacaoNormal.workflow_class.CODAE_NEGOU_PEDIDO
         )
 
     # TODO: talvez fazer um manager genérico pra fazer esse filtro
@@ -223,14 +223,14 @@ class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel):
         return AlteracaoCardapio.objects.filter(
             escola__lote__in=self.lotes.all(),
             status__in=[AlteracaoCardapio.workflow_class.CODAE_AUTORIZADO,
-                        AlteracaoCardapio.workflow_class.TERCEIRIZADA_TOMA_CIENCIA]
+                        AlteracaoCardapio.workflow_class.TERCEIRIZADA_TOMOU_CIENCIA]
         )
 
     @property
     def alteracoes_cardapio_reprovadas(self):
         return AlteracaoCardapio.objects.filter(
             escola__lote__in=self.lotes.all(),
-            status=AlteracaoCardapio.workflow_class.CODAE_CANCELOU_PEDIDO
+            status=AlteracaoCardapio.workflow_class.CODAE_NEGOU_PEDIDO
         )
 
     #
@@ -254,7 +254,7 @@ class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel):
         return InversaoCardapio.objects.filter(
             escola__lote__in=self.lotes.all(),
             status__in=[InversaoCardapio.workflow_class.CODAE_AUTORIZADO,
-                        InversaoCardapio.workflow_class.TERCEIRIZADA_TOMA_CIENCIA]
+                        InversaoCardapio.workflow_class.TERCEIRIZADA_TOMOU_CIENCIA]
         )
 
     #
@@ -278,7 +278,7 @@ class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel):
         return SolicitacaoKitLancheUnificada.objects.filter(
             escolas_quantidades__escola__lote__in=self.lotes.all(),
             status__in=[SolicitacaoKitLancheUnificada.workflow_class.CODAE_AUTORIZADO,
-                        SolicitacaoKitLancheUnificada.workflow_class.TERCEIRIZADA_TOMA_CIENCIA]
+                        SolicitacaoKitLancheUnificada.workflow_class.TERCEIRIZADA_TOMOU_CIENCIA]
         ).distinct()
 
     def solicitacoes_kit_lanche_das_minhas_escolas_a_validar(self, filtro_aplicado):
