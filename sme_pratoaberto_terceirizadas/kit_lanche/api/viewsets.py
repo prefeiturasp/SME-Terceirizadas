@@ -216,7 +216,7 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeIniciarSolicitacaoKitLancheAvulsaPermission],
-            methods=['patch'], url_path=constants.TERCEIRIZADA_TOMA_CIENCIA)
+            methods=['patch'], url_path=constants.TERCEIRIZADA_TOMOU_CIENCIA)
     def terceirizada_toma_ciencia(self, request, uuid=None):
         solicitacao_kit_lanche_avulsa = self.get_object()
         try:
@@ -370,7 +370,7 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
-    @action(detail=True, url_path=constants.TERCEIRIZADA_TOMA_CIENCIA,
+    @action(detail=True, url_path=constants.TERCEIRIZADA_TOMOU_CIENCIA,
             permission_classes=[PodeIniciarSolicitacaoUnificadaPermission], methods=['patch'])
     def terceirizada_toma_ciencia(self, request, uuid=None):
         solicitacao_unificada = self.get_object()

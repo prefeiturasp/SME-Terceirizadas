@@ -145,6 +145,7 @@ class AlteracaoCardapioSerializer(serializers.ModelSerializer):
     substituicoes = SubstituicoesAlimentacaoNoPeriodoEscolarSerializer(many=True)
     id_externo = serializers.CharField()
     logs = LogSolicitacoesUsuarioSerializer(many=True)
+    prioridade = serializers.CharField()
 
     class Meta:
         model = AlteracaoCardapio

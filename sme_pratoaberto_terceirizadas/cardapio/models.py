@@ -224,7 +224,7 @@ class GrupoSuspensaoAlimentacao(TemChaveExterna, CriadoPor, TemIdentificadorExte
     @classmethod
     def get_tomados_ciencia(cls):
         return cls.objects.filter(
-            status=cls.workflow_class.TERCEIRIZADA_TOMA_CIENCIA
+            status=cls.workflow_class.TERCEIRIZADA_TOMOU_CIENCIA
         )
 
     @classmethod

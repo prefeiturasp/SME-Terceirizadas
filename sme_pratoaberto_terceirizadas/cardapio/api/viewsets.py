@@ -212,7 +212,7 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeIniciarSuspensaoDeAlimentacaoPermission],
-            methods=['patch'], url_path=constants.TERCEIRIZADA_TOMA_CIENCIA)
+            methods=['patch'], url_path=constants.TERCEIRIZADA_TOMOU_CIENCIA)
     def terceirizada_toma_ciencia(self, request, uuid=None):
         inversao_cardapio = self.get_object()
         try:
@@ -301,7 +301,7 @@ class GrupoSuspensaoAlimentacaoSerializerViewSet(viewsets.ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeTomarCienciaSuspensaoDeAlimentacaoPermission],
-            methods=['patch'], url_path=constants.TERCEIRIZADA_TOMA_CIENCIA)
+            methods=['patch'], url_path=constants.TERCEIRIZADA_TOMOU_CIENCIA)
     def terceirizada_toma_ciencia(self, request, uuid=None):
         grupo_suspensao_de_alimentacao = self.get_object()
         try:
@@ -427,7 +427,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeRecusarPelaCODAEAlteracaoCardapioPermission],
-            methods=['patch'], url_path=constants.TERCEIRIZADA_TOMA_CIENCIA)
+            methods=['patch'], url_path=constants.TERCEIRIZADA_TOMOU_CIENCIA)
     def terceirizada_toma_ciencia(self, request, uuid=None):
         alteracao_cardapio = self.get_object()
         try:
@@ -676,6 +676,20 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
         alteracoes_cardapio = terceirizada.alteracoes_cardapio_reprovadas
         page = self.paginate_queryset(alteracoes_cardapio)
         serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    # TODO rever os demais endpoints. Essa action consolida em uma única pesquisa as pesquisas por prioridade.
+    @action(detail=False,
+            url_path=f'{constants.PEDIDOS_DRE}/{constants.FILTRO_PADRAO_PEDIDOS}')
+    def pedidos_diretoria_regional(self, request, filtro_aplicado=constants.SEM_FILTRO):
+        usuario = request.user
+        # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
+        diretoria_regional = usuario.diretorias_regionais.first()
+        alteracoes_cardapio = diretoria_regional.alteracoes_cardapio_das_minhas_escolas(
+            filtro_aplicado
+        )
+        page = self.paginate_queryset(alteracoes_cardapio)
+        serializer = AlteracaoCardapioSimplesSerializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
 
