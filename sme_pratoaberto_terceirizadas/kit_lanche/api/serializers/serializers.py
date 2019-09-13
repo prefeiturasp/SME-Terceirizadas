@@ -87,6 +87,7 @@ class SolicitacaoKitLancheUnificadaSerializer(serializers.ModelSerializer):
     id_externo = serializers.CharField()
     total_kit_lanche = serializers.IntegerField()
     logs = LogSolicitacoesUsuarioSerializer(many=True)
+    prioridade = serializers.CharField()
 
     class Meta:
         model = SolicitacaoKitLancheUnificada
