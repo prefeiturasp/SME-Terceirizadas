@@ -187,6 +187,19 @@ class DiretoriaRegional(Nomeavel, TemChaveExterna):
             status=InclusaoAlimentacaoContinua.workflow_class.DRE_A_VALIDAR
         )
 
+    # TODO rever os demais métodos de alterações de cardápio, já que esse consolida todas as prioridades.
+    def inclusoes_alimentacao_normal_das_minhas_escolas(self, filtro_aplicado):
+        if filtro_aplicado == DAQUI_A_7_DIAS:
+            inclusoes_alimentacao_normal = GrupoInclusaoAlimentacaoNormal.prazo_limite_daqui_a_7_dias
+        elif filtro_aplicado == DAQUI_A_30_DIAS:
+            inclusoes_alimentacao_normal = GrupoInclusaoAlimentacaoNormal.prazo_limite_daqui_a_30_dias
+        else:
+            inclusoes_alimentacao_normal = GrupoInclusaoAlimentacaoNormal.objects
+        return inclusoes_alimentacao_normal.filter(
+            escola__in=self.escolas.all(),
+            status=GrupoInclusaoAlimentacaoNormal.workflow_class.DRE_A_VALIDAR
+        )
+
     #
     # Alterações de cardápio
     #
