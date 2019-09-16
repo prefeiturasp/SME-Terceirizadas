@@ -10,10 +10,6 @@ def base_get_request(client_autenticado, resource):
     assert response.status_code == status.HTTP_200_OK
 
 
-def test_url_endpoint_motivos_solicitacao_unificada(client_autenticado):
-    base_get_request(client_autenticado, 'motivos-solicitacao-unificada')
-
-
 def test_url_endpoint_kit_lanches(client_autenticado):
     base_get_request(client_autenticado, 'kit-lanches')
 

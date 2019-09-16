@@ -16,12 +16,6 @@ from ..models import (
 from ...dados_comuns import constants
 
 
-class MotivoSolicitacaoUnificadaViewSet(ModelViewSet):
-    lookup_field = 'uuid'
-    queryset = models.MotivoSolicitacaoUnificada.objects.all()
-    serializer_class = serializers.MotivoSolicitacaoUnificadaSerializer
-
-
 class KitLancheViewSet(ReadOnlyModelViewSet):
     lookup_field = 'uuid'
     queryset = models.KitLanche.objects.all()

@@ -38,7 +38,6 @@ def solicitacao_avulsa():
 @pytest.fixture
 def solicitacao_unificada_lista_igual():
     kits = mommy.make(models.KitLanche, _quantity=3)
-    motivo = mommy.make(models.MotivoSolicitacaoUnificada, nome=fake.name())
     solicitacao_kit_lanche = mommy.make(models.SolicitacaoKitLanche,
                                         tempo_passeio=models.SolicitacaoKitLanche.OITO_OU_MAIS,
                                         kits=kits)
@@ -49,14 +48,12 @@ def solicitacao_unificada_lista_igual():
                       lista_kit_lanche_igual=True,
                       solicitacao_kit_lanche=solicitacao_kit_lanche,
                       outro_motivo=fake.text(),
-                      diretoria_regional=dre,
-                      motivo=motivo)
+                      diretoria_regional=dre)
 
 
 @pytest.fixture
 def solicitacao_unificada_lotes_diferentes():
     kits = mommy.make(models.KitLanche, _quantity=3)
-    motivo = mommy.make(models.MotivoSolicitacaoUnificada, nome=fake.name())
     solicitacao_kit_lanche = mommy.make(models.SolicitacaoKitLanche,
                                         tempo_passeio=models.SolicitacaoKitLanche.OITO_OU_MAIS,
                                         kits=kits)
@@ -67,8 +64,7 @@ def solicitacao_unificada_lotes_diferentes():
                                        lista_kit_lanche_igual=True,
                                        solicitacao_kit_lanche=solicitacao_kit_lanche,
                                        outro_motivo=fake.text(),
-                                       diretoria_regional=dre,
-                                       motivo=motivo)
+                                       diretoria_regional=dre)
     lote_um = mommy.make('escola.Lote')
     escola_um = mommy.make('escola.Escola', lote=lote_um)
     escola_dois = mommy.make('escola.Escola', lote=lote_um)
@@ -97,7 +93,6 @@ def solicitacao_unificada_lotes_diferentes():
 @pytest.fixture
 def solicitacao_unificada_lotes_iguais():
     kits = mommy.make(models.KitLanche, _quantity=3)
-    motivo = mommy.make(models.MotivoSolicitacaoUnificada, nome=fake.name())
     solicitacao_kit_lanche = mommy.make(models.SolicitacaoKitLanche,
                                         tempo_passeio=models.SolicitacaoKitLanche.OITO_OU_MAIS,
                                         kits=kits)
@@ -108,8 +103,7 @@ def solicitacao_unificada_lotes_iguais():
                                        lista_kit_lanche_igual=True,
                                        solicitacao_kit_lanche=solicitacao_kit_lanche,
                                        outro_motivo=fake.text(),
-                                       diretoria_regional=dre,
-                                       motivo=motivo)
+                                       diretoria_regional=dre)
     lote_um = mommy.make('escola.Lote')
     escola_um = mommy.make('escola.Escola', lote=lote_um)
     escola_dois = mommy.make('escola.Escola', lote=lote_um)
