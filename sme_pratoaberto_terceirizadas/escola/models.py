@@ -231,7 +231,7 @@ class DiretoriaRegional(Nomeavel, TemChaveExterna):
     def solicitacao_kit_lanche_avulsa_reprovados(self):
         return SolicitacaoKitLancheAvulsa.objects.filter(
             escola__in=self.escolas.all(),
-            status=SolicitacaoKitLancheAvulsa.workflow_class.DRE_PEDE_ESCOLA_REVISAR
+            status=SolicitacaoKitLancheAvulsa.workflow_class.DRE_PEDIU_ESCOLA_REVISAR
         )
 
     @property
@@ -635,7 +635,7 @@ class Codae(Nomeavel, TemChaveExterna):
         else:  # se o filtro nao for hoje, filtra o padrao
             inclusoes_continuas = InclusaoAlimentacaoContinua.prazo_vencendo
         return inclusoes_continuas.filter(
-            status=InclusaoAlimentacaoContinua.workflow_class.DRE_APROVADO
+            status=InclusaoAlimentacaoContinua.workflow_class.DRE_VALIDADO
         )
 
     def inclusoes_continuas_das_minhas_escolas_no_prazo_limite(self, filtro_aplicado):
@@ -644,7 +644,7 @@ class Codae(Nomeavel, TemChaveExterna):
         else:
             inclusoes_continuas = InclusaoAlimentacaoContinua.prazo_limite
         return inclusoes_continuas.filter(
-            status=InclusaoAlimentacaoContinua.workflow_class.DRE_APROVADO
+            status=InclusaoAlimentacaoContinua.workflow_class.DRE_VALIDADO
         )
 
     def inclusoes_continuas_das_minhas_escolas_no_prazo_regular(self, filtro_aplicado):
@@ -655,7 +655,7 @@ class Codae(Nomeavel, TemChaveExterna):
         else:
             inclusoes_continuas = InclusaoAlimentacaoContinua.prazo_regular
         return inclusoes_continuas.filter(
-            status=InclusaoAlimentacaoContinua.workflow_class.DRE_APROVADO
+            status=InclusaoAlimentacaoContinua.workflow_class.DRE_VALIDADO
         )
 
     def inclusoes_normais_das_minhas_escolas_no_prazo_vencendo(self, filtro_aplicado):
@@ -664,7 +664,7 @@ class Codae(Nomeavel, TemChaveExterna):
         else:
             inclusoes_normais = GrupoInclusaoAlimentacaoNormal.prazo_vencendo
         return inclusoes_normais.filter(
-            status=InclusaoAlimentacaoContinua.workflow_class.DRE_APROVADO
+            status=InclusaoAlimentacaoContinua.workflow_class.DRE_VALIDADO
         )
 
     def inclusoes_normais_das_minhas_escolas_no_prazo_limite(self, filtro_aplicado):
@@ -673,7 +673,7 @@ class Codae(Nomeavel, TemChaveExterna):
         else:
             inclusoes_normais = GrupoInclusaoAlimentacaoNormal.prazo_limite
         return inclusoes_normais.filter(
-            status=InclusaoAlimentacaoContinua.workflow_class.DRE_APROVADO
+            status=InclusaoAlimentacaoContinua.workflow_class.DRE_VALIDADO
         )
 
     def inclusoes_normais_das_minhas_escolas_no_prazo_regular(self, filtro_aplicado):
@@ -684,7 +684,7 @@ class Codae(Nomeavel, TemChaveExterna):
         else:
             inclusoes_normais = GrupoInclusaoAlimentacaoNormal.prazo_regular
         return inclusoes_normais.filter(
-            status=InclusaoAlimentacaoContinua.workflow_class.DRE_APROVADO
+            status=InclusaoAlimentacaoContinua.workflow_class.DRE_VALIDADO
         )
 
     # Alterações de Cardapio
@@ -694,7 +694,7 @@ class Codae(Nomeavel, TemChaveExterna):
         else:  # se o filtro nao for hoje, filtra o padrao
             alteracoes_cardapio = AlteracaoCardapio.prazo_vencendo
         return alteracoes_cardapio.filter(
-            status=AlteracaoCardapio.workflow_class.DRE_APROVADO
+            status=AlteracaoCardapio.workflow_class.DRE_VALIDADO
         )
 
     def alteracoes_cardapio_das_minhas_escolas_no_prazo_limite(self, filtro_aplicado):
@@ -703,7 +703,7 @@ class Codae(Nomeavel, TemChaveExterna):
         else:
             alteracoes_cardapio = AlteracaoCardapio.prazo_limite
         return alteracoes_cardapio.filter(
-            status=AlteracaoCardapio.workflow_class.DRE_APROVADO
+            status=AlteracaoCardapio.workflow_class.DRE_VALIDADO
         )
 
     def alteracoes_cardapio_das_minhas_escolas_no_prazo_regular(self, filtro_aplicado):
@@ -714,7 +714,7 @@ class Codae(Nomeavel, TemChaveExterna):
         else:
             alteracoes_cardapio = AlteracaoCardapio.prazo_regular
         return alteracoes_cardapio.filter(
-            status=AlteracaoCardapio.workflow_class.DRE_APROVADO
+            status=AlteracaoCardapio.workflow_class.DRE_VALIDADO
         )
 
     @property
