@@ -71,6 +71,8 @@ class InclusaoAlimentacaoContinuaSimplesSerializer(serializers.ModelSerializer):
 
 
 class InclusaoAlimentacaoNormalSimplesSerializer(serializers.ModelSerializer):
+    prioridade = serializers.CharField()
+
     class Meta:
         model = InclusaoAlimentacaoNormal
         exclude = ('id', 'data')
