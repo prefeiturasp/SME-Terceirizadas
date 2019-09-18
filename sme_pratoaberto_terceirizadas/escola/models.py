@@ -582,13 +582,15 @@ class Codae(Nomeavel, TemChaveExterna):
     @property
     def inclusoes_continuas_aprovadas(self):
         return InclusaoAlimentacaoContinua.objects.filter(
-            status=InclusaoAlimentacaoContinua.workflow_class.CODAE_AUTORIZADO
+            status__in=[InclusaoAlimentacaoContinua.workflow_class.CODAE_AUTORIZADO,
+                        SolicitacaoKitLancheUnificada.workflow_class.TERCEIRIZADA_TOMOU_CIENCIA]
         )
 
     @property
     def inclusoes_normais_aprovadas(self):
         return GrupoInclusaoAlimentacaoNormal.objects.filter(
-            status=GrupoInclusaoAlimentacaoNormal.workflow_class.CODAE_AUTORIZADO
+            status__in=[GrupoInclusaoAlimentacaoNormal.workflow_class.CODAE_AUTORIZADO,
+                        GrupoInclusaoAlimentacaoNormal.workflow_class.TERCEIRIZADA_TOMOU_CIENCIA]
         )
 
     @property
