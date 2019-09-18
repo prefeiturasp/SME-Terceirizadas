@@ -1,3 +1,5 @@
+import datetime
+
 import pytest
 from faker import Faker
 from model_mommy import mommy
@@ -26,7 +28,8 @@ def item_kit_lanche():
 
 @pytest.fixture
 def solicitacao_avulsa():
-    solicitacao_kit_lanche = mommy.make(models.SolicitacaoKitLanche, )
+    kits = mommy.make(models.KitLanche, _quantity=3)
+    solicitacao_kit_lanche = mommy.make(models.SolicitacaoKitLanche, kits=kits, data=datetime.datetime(2000, 1, 1))
     escola = mommy.make('escola.Escola')
     return mommy.make(models.SolicitacaoKitLancheAvulsa,
                       local=fake.text()[:160],
