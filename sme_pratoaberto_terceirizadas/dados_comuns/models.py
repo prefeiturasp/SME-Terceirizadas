@@ -69,13 +69,14 @@ class LogSolicitacoesUsuario(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     criado_em = models.DateTimeField('Criado em', editable=False, auto_now_add=True)
     descricao = models.TextField('Descricao', blank=True)
+    justificativa = models.TextField('Justificativa', blank=True)
     status_evento = models.PositiveSmallIntegerField(choices=STATUS_POSSIVEIS)
     solicitacao_tipo = models.PositiveSmallIntegerField(choices=TIPOS_SOLICITACOES)
     uuid_original = models.UUIDField()
     usuario = models.ForeignKey('perfil.Usuario', on_delete=models.DO_NOTHING)
 
     def __str__(self):
-        return (f'{self.usuario} executou {self.get_status_evento_display()} ',
+        return (f'{self.usuario} executou {self.get_status_evento_display()} '
                 f'em {self.get_solicitacao_tipo_display()} no dia {self.criado_em}')
 
 

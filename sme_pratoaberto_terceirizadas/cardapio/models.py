@@ -139,7 +139,7 @@ class InversaoCardapio(CriadoEm, CriadoPor, TemObservacao, Motivo, TemChaveExter
             corpo = corpo.replace(chave, valor)
         return template.assunto, corpo
 
-    def salvar_log_transicao(self, status_evento, usuario):
+    def salvar_log_transicao(self, status_evento, usuario, **kwargs):
         LogSolicitacoesUsuario.objects.create(
             descricao=str(self),
             status_evento=status_evento,
@@ -309,7 +309,6 @@ class MotivoAlteracaoCardapio(Nomeavel, TemChaveExterna):
 class AlteracaoCardapio(CriadoEm, CriadoPor, TemChaveExterna, IntervaloDeDia, TemObservacao,
                         FluxoAprovacaoPartindoDaEscola, TemIdentificadorExternoAmigavel, Logs,
                         TemPrioridade):
-
     objects = models.Manager()  # Manager Padrão
     prazo_vencendo = AlteracoesCardapioPrazoVencendoManager()
     prazo_vencendo_hoje = AlteracoesCardapioPrazoVencendoHojeManager()
