@@ -49,6 +49,8 @@ class SolicitacaoKitLancheAvulsaSerializer(serializers.ModelSerializer):
     prioridade = serializers.CharField()
     id_externo = serializers.CharField()
     logs = LogSolicitacoesUsuarioSerializer(many=True)
+    quantidade_alimentacoes = serializers.IntegerField()
+    data = serializers.DateField()
 
     class Meta:
         model = SolicitacaoKitLancheAvulsa

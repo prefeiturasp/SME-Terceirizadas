@@ -74,6 +74,10 @@ class SolicitacaoKitLancheAvulsa(TemChaveExterna, FluxoAprovacaoPartindoDaEscola
                                related_name='solicitacoes_kit_lanche_avulsa')
 
     @property
+    def quantidade_alimentacoes(self):
+        return self.quantidade_alunos * self.solicitacao_kit_lanche.kits.count()
+
+    @property
     def data(self):
         return self.solicitacao_kit_lanche.data
 
@@ -90,13 +94,16 @@ class SolicitacaoKitLancheAvulsa(TemChaveExterna, FluxoAprovacaoPartindoDaEscola
     prazo_regular_daqui_a_30_dias = SolicitacaoKitLancheAvulsaPrazoRegularDaquiA30DiasManager()
     vencidos = SolicitacaoKitLancheAvulsaVencidaDiasManager()
 
-    def salvar_log_transicao(self, status_evento, usuario):
+    def salvar_log_transicao(self, status_evento, usuario, **kwargs):
+        justificativa = kwargs.get('justificativa', '')
+
         LogSolicitacoesUsuario.objects.create(
             descricao=str(self),
             status_evento=status_evento,
             solicitacao_tipo=LogSolicitacoesUsuario.SOLICITACAO_KIT_LANCHE_AVULSA,
             usuario=usuario,
-            uuid_original=self.uuid
+            uuid_original=self.uuid,
+            justificativa=justificativa
         )
 
     @property

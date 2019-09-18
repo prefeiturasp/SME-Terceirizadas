@@ -229,9 +229,11 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
     @action(detail=True, permission_classes=[PodeIniciarSolicitacaoKitLancheAvulsaPermission],
             methods=['patch'], url_path=constants.ESCOLA_CANCELA)
     def escola_cancela_pedido(self, request, uuid=None):
+        justificativa = request.data.get('justificativa', '')
         solicitacao_kit_lanche_avulsa = self.get_object()
         try:
-            solicitacao_kit_lanche_avulsa.cancelar_pedido(user=request.user, notificar=True)
+            solicitacao_kit_lanche_avulsa.cancelar_pedido(user=request.user, notificar=True,
+                                                          justificativa=justificativa)
             serializer = self.get_serializer(solicitacao_kit_lanche_avulsa)
             return Response(serializer.data)
         except InvalidTransitionError as e:
