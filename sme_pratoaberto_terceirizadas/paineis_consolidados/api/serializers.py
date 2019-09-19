@@ -47,7 +47,7 @@ class SolicitacoesSerializer(serializers.ModelSerializer):
 
     def get_descricao(self, obj):
         uuid = str(obj.uuid)
-        return f'{uuid.upper()[:5]} - {obj.lote[:20]} - {obj.tipo_doc}'
+        return f'{uuid.upper()[:5]} - {obj.lote[:20]} - {obj.desc_doc}'
 
     def get_data_log(self, obj):
         criado_em = obj.criado_em
