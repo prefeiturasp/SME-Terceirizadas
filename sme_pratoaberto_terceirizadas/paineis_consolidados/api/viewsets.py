@@ -2,7 +2,9 @@ from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from ..models.codae import SolicitacoesCODAE
+from sme_pratoaberto_terceirizadas.paineis_consolidados.api.constants import PENDENTES_APROVACAO, FILTRO_ESCOLA_UUID, \
+    AUTORIZADOS, _NEGADOS, NEGADOS
+from ..models.codae import SolicitacoesCODAE, SolicitacoesEscola
 from ...escola.models import DiretoriaRegional
 from ...paineis_consolidados.api.serializers import SolicitacoesSerializer
 
@@ -30,21 +32,21 @@ class CODAESolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = SolicitacoesCODAE.objects.all()
     serializer_class = SolicitacoesSerializer
 
-    @action(detail=False, methods=['GET'], url_path='pendentes-aprovacao')
+    @action(detail=False, methods=['GET'], url_path=PENDENTES_APROVACAO)
     def pendentes_aprovacao(self, request):
         query_set = SolicitacoesCODAE.get_pendentes_aprovacao()
         page = self.paginate_queryset(query_set)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
-    @action(detail=False, methods=['GET'], url_path='aprovados')
+    @action(detail=False, methods=['GET'], url_path=AUTORIZADOS)
     def aprovados(self, request):
         query_set = SolicitacoesCODAE.get_autorizados()
         page = self.paginate_queryset(query_set)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
-    @action(detail=False, methods=['GET'], url_path='cancelados')
+    @action(detail=False, methods=['GET'], url_path=_NEGADOS)
     def cancelados(self, request):
         query_set = SolicitacoesCODAE.get_negados()
         page = self.paginate_queryset(query_set)
@@ -57,3 +59,29 @@ class CODAESolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
         page = self.paginate_queryset(query_set)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
+
+
+class EscolaSolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
+    lookup_field = 'uuid'
+    queryset = SolicitacoesEscola.objects.all()
+    serializer_class = SolicitacoesSerializer
+
+    def _retorno_base(self, query_set):
+        page = self.paginate_queryset(query_set)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False, methods=['GET'], url_path=f'{PENDENTES_APROVACAO}/{FILTRO_ESCOLA_UUID}')
+    def pendentes_aprovacao(self, request, escola_uuid=None):
+        query_set = SolicitacoesEscola.get_pendentes_aprovacao(escola_uuid=escola_uuid)
+        return self._retorno_base(query_set)
+
+    @action(detail=False, methods=['GET'], url_path=f'{AUTORIZADOS}/{FILTRO_ESCOLA_UUID}')
+    def autorizados(self, request, escola_uuid=None):
+        query_set = SolicitacoesEscola.get_autorizados(escola_uuid=escola_uuid)
+        return self._retorno_base(query_set)
+
+    @action(detail=False, methods=['GET'], url_path=f'{NEGADOS}/{FILTRO_ESCOLA_UUID}')
+    def autorizados(self, request, escola_uuid=None):
+        query_set = SolicitacoesEscola.get_negados(escola_uuid=escola_uuid)
+        return self._retorno_base(query_set)
