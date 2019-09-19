@@ -39,14 +39,14 @@ class CODAESolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
 
     @action(detail=False, methods=['GET'], url_path='aprovados')
     def aprovados(self, request):
-        query_set = SolicitacoesCODAE.get_aprovados()
+        query_set = SolicitacoesCODAE.get_autorizados()
         page = self.paginate_queryset(query_set)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False, methods=['GET'], url_path='cancelados')
     def cancelados(self, request):
-        query_set = SolicitacoesCODAE.get_cancelados()
+        query_set = SolicitacoesCODAE.get_negados()
         page = self.paginate_queryset(query_set)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
