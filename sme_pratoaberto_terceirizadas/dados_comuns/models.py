@@ -43,7 +43,8 @@ class LogSolicitacoesUsuario(models.Model):
         (DRE_PEDIU_REVISAO, 'DRE pediu revisão'),
         (DRE_NAO_VALIDOU, 'DRE não validou'),
         (ESCOLA_REVISOU, 'Escola revisou'),
-        (ESCOLA_CANCELOU, 'Escola cancelou')
+        (ESCOLA_CANCELOU, 'Escola cancelou'),
+        (DRE_CANCELOU, 'DRE cancelou')
     )
     (  # DA ESCOLA
         SOLICITACAO_KIT_LANCHE_AVULSA,

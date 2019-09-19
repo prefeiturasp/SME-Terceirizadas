@@ -166,6 +166,11 @@ class SolicitacaoKitLancheUnificada(CriadoPor, TemChaveExterna, TemIdentificador
     def data(self):
         return self.solicitacao_kit_lanche.data
 
+    @property
+    def quantidade_alimentacoes(self):
+        # TODO: remover essa ou total_kit_lanche
+        return self.total_kit_lanche
+
     @classmethod
     def get_pedidos_rascunho(cls, usuario):
         solicitacoes_unificadas = SolicitacaoKitLancheUnificada.objects.filter(
@@ -174,13 +179,16 @@ class SolicitacaoKitLancheUnificada(CriadoPor, TemChaveExterna, TemIdentificador
         )
         return solicitacoes_unificadas
 
-    def salvar_log_transicao(self, status_evento, usuario):
+    def salvar_log_transicao(self, status_evento, usuario, **kwargs):
+        justificativa = kwargs.get('justificativa', '')
+
         LogSolicitacoesUsuario.objects.create(
             descricao=str(self),
             status_evento=status_evento,
             solicitacao_tipo=LogSolicitacoesUsuario.SOLICITACAO_KIT_LANCHE_UNIFICADA,
             usuario=usuario,
-            uuid_original=self.uuid
+            uuid_original=self.uuid,
+            justificativa=justificativa
         )
 
     @property

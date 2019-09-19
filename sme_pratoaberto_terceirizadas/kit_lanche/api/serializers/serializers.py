@@ -87,9 +87,12 @@ class SolicitacaoKitLancheUnificadaSerializer(serializers.ModelSerializer):
     solicitacao_kit_lanche = SolicitacaoKitLancheSimplesSerializer()
     escolas_quantidades = EscolaQuantidadeSerializerSimples(many=True)
     id_externo = serializers.CharField()
+    # TODO: remover total_kit_lanche ou quantidade_alimentacoes. estao duplicados
     total_kit_lanche = serializers.IntegerField()
     logs = LogSolicitacoesUsuarioSerializer(many=True)
     prioridade = serializers.CharField()
+    data = serializers.DateField()
+    quantidade_alimentacoes = serializers.IntegerField()
 
     class Meta:
         model = SolicitacaoKitLancheUnificada

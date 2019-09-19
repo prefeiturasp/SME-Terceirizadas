@@ -327,7 +327,7 @@ class FluxoAprovacaoPartindoDaDiretoriaRegional(xwf_models.WorkflowEnabled, mode
     status = xwf_models.StateField(workflow_class)
     DIAS_PARA_CANCELAR = 2
 
-    def cancelar_pedido(self, user, notificar=True):
+    def cancelar_pedido(self, user, notificar=True, justificativa=''):
         """O objeto que herdar de FluxoAprovacaoPartindoDaDiretoriaRegional, deve ter um property data.
 
         Atualmente o único pedido da DRE é o Solicitação kit lanche unificada
@@ -339,7 +339,7 @@ class FluxoAprovacaoPartindoDaDiretoriaRegional(xwf_models.WorkflowEnabled, mode
         if (data_do_evento > dia_antecedencia) and (self.status != self.workflow_class.DRE_CANCELOU):
             self.status = self.workflow_class.DRE_CANCELOU
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.DRE_CANCELOU,
-                                      usuario=user)
+                                      usuario=user, justificativa=justificativa)
             self.save()
         elif self.status == self.workflow_class.DRE_CANCELOU:
             raise xworkflows.InvalidTransitionError('Já está cancelada')
@@ -386,6 +386,9 @@ class FluxoAprovacaoPartindoDaDiretoriaRegional(xwf_models.WorkflowEnabled, mode
     @property
     def template_mensagem(self):
         raise NotImplementedError('Deve criar um property que recupera o assunto e corpo mensagem desse objeto')
+
+    def salvar_log_transicao(self, status_evento, usuario, **kwargs):
+        raise NotImplementedError('Deve criar um método salvar_log_transicao')
 
     @xworkflows.after_transition('inicia_fluxo')
     def _inicia_fluxo_hook(self, *args, **kwargs):

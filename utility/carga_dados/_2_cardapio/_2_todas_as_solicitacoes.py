@@ -10,14 +10,13 @@ from faker import Faker
 from sme_pratoaberto_terceirizadas.cardapio.models import TipoAlimentacao, InversaoCardapio, Cardapio, \
     GrupoSuspensaoAlimentacao, SuspensaoAlimentacao, MotivoSuspensao, QuantidadePorPeriodoSuspensaoAlimentacao, \
     AlteracaoCardapio, MotivoAlteracaoCardapio
-from sme_pratoaberto_terceirizadas.escola.models import Escola, DiretoriaRegional, PeriodoEscolar, Codae, Lote
+from sme_pratoaberto_terceirizadas.escola.models import Escola, DiretoriaRegional, PeriodoEscolar, Codae
 from sme_pratoaberto_terceirizadas.inclusao_alimentacao.models import InclusaoAlimentacaoContinua, \
     MotivoInclusaoContinua, GrupoInclusaoAlimentacaoNormal, QuantidadePorPeriodo, InclusaoAlimentacaoNormal, \
     MotivoInclusaoNormal
 from sme_pratoaberto_terceirizadas.kit_lanche.models import SolicitacaoKitLancheUnificada, \
-    SolicitacaoKitLanche, KitLanche, SolicitacaoKitLancheAvulsa
+    SolicitacaoKitLanche, KitLanche, SolicitacaoKitLancheAvulsa, EscolaQuantidade
 from sme_pratoaberto_terceirizadas.perfil.models import Usuario
-from sme_pratoaberto_terceirizadas.terceirizada.models import Terceirizada
 
 f = Faker('pt-br')
 f.seed(420)
@@ -195,6 +194,11 @@ def cria_solicitacoes_kit_lanche_unificada(qtd=50):
             diretoria_regional=_get_random_dre(),
             solicitacao_kit_lanche=base,
         )
+        for _ in range(2, 5):
+            EscolaQuantidade.objects.create(quantidade_alunos=random.randint(10, 100),
+                                            solicitacao_unificada=unificada,
+                                            escola=_get_random_escola())
+
         fluxo_dre_felix(unificada, user)
 
 
@@ -276,7 +280,7 @@ def cria_alteracoes_cardapio(qtd=50):
         fluxo_escola_felix(alteracao_cardapio, user)
 
 
-QTD_PEDIDOS = 420
+QTD_PEDIDOS = 100
 
 print('-> vinculando escola dre e usuarios')
 vincula_dre_escola_usuario()

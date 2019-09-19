@@ -386,9 +386,10 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
     @action(detail=True, url_path=constants.DRE_CANCELA,
             permission_classes=[PodeIniciarSolicitacaoUnificadaPermission], methods=['patch'])
     def diretoria_regional_cancela(self, request, uuid=None):
+        justificativa = request.data.get('justificativa', '')
         solicitacao_unificada = self.get_object()
         try:
-            solicitacao_unificada.cancelar_pedido(user=request.user, notificar=True)
+            solicitacao_unificada.cancelar_pedido(user=request.user, notificar=True, justificativa=justificativa)
             serializer = self.get_serializer(solicitacao_unificada)
             return Response(serializer.data)
         except InvalidTransitionError as e:
