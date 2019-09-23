@@ -1,6 +1,12 @@
 CREATE OR REPLACE VIEW solicitacoes_consolidadas AS
--- Essa view consolida todas as solicitacoes pendentes para a CODAE
--- Alteracoes de cardapio
+-- Essa view consolida todas as solicitacoes
+
+-- alteração de cardápio
+-- inclusao de alimentacao normal
+-- Inversoes de cardapio
+-- Suspensoes de Alimentacao
+-- Kit Lanches Solicitacoes Avulsas
+
 
 SELECT cardapio.id,
        cardapio.uuid,
@@ -21,8 +27,7 @@ WHERE escola.id = cardapio.escola_id
   AND lote.id = escola.lote_id
   AND dre.id = escola.diretoria_regional_id
   AND cardapio.uuid = logs.uuid_original
---   AND logs.status_evento = 7
---   AND cardapio.status = 'DRE_APROVADO'
+
 GROUP BY cardapio.id,
          lote.nome,
 		 escola_uuid,
@@ -31,7 +36,6 @@ GROUP BY cardapio.id,
 		 logs.status_evento,
          escola.diretoria_regional_id
 UNION
--- Inclusoes de alimentacao
 
 SELECT inc_alimentacao.id,
        inc_alimentacao.uuid,
@@ -52,8 +56,7 @@ WHERE escola.id = inc_alimentacao.escola_id
   AND lote.id = escola.lote_id
   AND dre.id = escola.diretoria_regional_id
   AND inc_alimentacao.uuid = logs.uuid_original
---   AND logs.status_evento = 7
---   AND inc_alimentacao.status = 'DRE_APROVADO'
+
 GROUP BY inc_alimentacao.id,
          lote.nome,
 		 escola_uuid,
@@ -62,7 +65,6 @@ GROUP BY inc_alimentacao.id,
 		 logs.status_evento,
          escola.diretoria_regional_id
 UNION
--- Inversoes de cardapio
 
 SELECT inv_cardapio.id,
        inv_cardapio.uuid,
@@ -83,8 +85,7 @@ WHERE escola.id = inv_cardapio.escola_id
   AND lote.id = escola.lote_id
   AND inv_cardapio.uuid = logs.uuid_original
   AND dre.id = escola.diretoria_regional_id
---   AND logs.status_evento = 7
---   AND inv_cardapio.status = 'DRE_APROVADO'
+
 GROUP BY inv_cardapio.id,
          lote.nome,
 		 escola_uuid,
@@ -94,7 +95,6 @@ GROUP BY inv_cardapio.id,
          escola.diretoria_regional_id
 UNION
 -- TODO fazer parte da solicitação kit lanche unificada que parte da DRE
--- Kit Lanches Solicitacoes Avulsas
 
 SELECT kit_lanche.id,
        kit_lanche.uuid,
@@ -115,8 +115,7 @@ WHERE escola.id = kit_lanche.escola_id
   AND lote.id = escola.lote_id
   AND kit_lanche.uuid = logs.uuid_original
   AND dre.id = escola.diretoria_regional_id
---   AND logs.status_evento = 7
---   AND kit_lanche.status = 'DRE_APROVADO'
+
 GROUP BY kit_lanche.id,
          lote.nome,
 		 logs.criado_em,
@@ -125,7 +124,7 @@ GROUP BY kit_lanche.id,
 		 logs.status_evento,
          escola.diretoria_regional_id
 UNION
--- Suspensoes de Alimentacao
+
 
 SELECT susp_alimentacao.id,
        susp_alimentacao.uuid,
@@ -146,8 +145,7 @@ WHERE escola.id = susp_alimentacao.escola_id
   AND lote.id = escola.lote_id
   AND susp_alimentacao.uuid = logs.uuid_original
   AND dre.id = escola.diretoria_regional_id
---   AND logs.status_evento = 7
---   AND susp_alimentacao.status = 'DRE_APROVADO'
+
 GROUP BY susp_alimentacao.id,
          lote.nome,
 		 logs.criado_em,

@@ -3,9 +3,11 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from .constants import (
-    AUTORIZADOS, FILTRO_ESCOLA_UUID, NEGADOS, PENDENTES_APROVACAO, _NEGADOS, CANCELADOS, FILTRO_DRE_UUID
+    AUTORIZADOS, CANCELADOS, FILTRO_DRE_UUID, FILTRO_ESCOLA_UUID, NEGADOS, PENDENTES_APROVACAO, _NEGADOS
 )
-from ..models.codae import SolicitacoesCODAE, SolicitacoesEscola, SolicitacoesDRE
+from ..models.codae import (
+    SolicitacoesCODAE, SolicitacoesDRE, SolicitacoesEscola
+)
 from ...escola.models import DiretoriaRegional
 from ...paineis_consolidados.api.serializers import SolicitacoesSerializer
 

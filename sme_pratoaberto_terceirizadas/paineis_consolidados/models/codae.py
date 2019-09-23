@@ -1,6 +1,6 @@
 from django.db import models
 
-from ...dados_comuns.fluxo_status import PedidoAPartirDaEscolaWorkflow, PedidoAPartirDaDiretoriaRegionalWorkflow
+from ...dados_comuns.fluxo_status import PedidoAPartirDaDiretoriaRegionalWorkflow, PedidoAPartirDaEscolaWorkflow
 from ...dados_comuns.models import LogSolicitacoesUsuario
 
 
@@ -113,8 +113,7 @@ class SolicitacoesDRE(MoldeConsolidado):
     def get_pendentes_aprovacao(cls, **kwargs):
         dre_uuid = kwargs.get('dre_uuid')
         return cls.objects.filter(
-            status_evento=LogSolicitacoesUsuario.DRE_VALIDOU,
-            status=cls._WORKFLOW_CLASS.DRE_VALIDADO,
+            status=cls._WORKFLOW_CLASS.CODAE_A_AUTORIZAR,
             dre_uuid=dre_uuid
         ).order_by('-criado_em')
 
