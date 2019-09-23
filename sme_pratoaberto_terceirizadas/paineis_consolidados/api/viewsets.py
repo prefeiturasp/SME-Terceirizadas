@@ -3,7 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from .constants import (
-    AUTORIZADOS, FILTRO_ESCOLA_UUID, NEGADOS, PENDENTES_APROVACAO, _NEGADOS
+    AUTORIZADOS, FILTRO_ESCOLA_UUID, NEGADOS, PENDENTES_APROVACAO, _NEGADOS, CANCELADOS
 )
 from ..models.codae import SolicitacoesCODAE, SolicitacoesEscola
 from ...escola.models import DiretoriaRegional
@@ -77,6 +77,11 @@ class EscolaSolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
     @action(detail=False, methods=['GET'], url_path=f'{NEGADOS}/{FILTRO_ESCOLA_UUID}')
     def negados(self, request, escola_uuid=None):
         query_set = SolicitacoesEscola.get_negados(escola_uuid=escola_uuid)
+        return self._retorno_base(query_set)
+
+    @action(detail=False, methods=['GET'], url_path=f'{CANCELADOS}/{FILTRO_ESCOLA_UUID}')
+    def cancelados(self, request, escola_uuid=None):
+        query_set = SolicitacoesEscola.get_cancelados(escola_uuid=escola_uuid)
         return self._retorno_base(query_set)
 
     def _retorno_base(self, query_set):

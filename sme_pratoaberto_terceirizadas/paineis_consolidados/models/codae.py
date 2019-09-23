@@ -95,3 +95,12 @@ class SolicitacoesEscola(MoldeConsolidado):
             status=PedidoAPartirDaEscolaWorkflow.CODAE_NEGOU_PEDIDO,
             escola_uuid=escola_uuid
         ).order_by('-criado_em')
+
+    @classmethod
+    def get_cancelados(cls, **kwargs):
+        escola_uuid = kwargs.get('escola_uuid')
+        return cls.objects.filter(
+            status_evento=LogSolicitacoesUsuario.ESCOLA_CANCELOU,
+            status=PedidoAPartirDaEscolaWorkflow.ESCOLA_CANCELOU,
+            escola_uuid=escola_uuid
+        ).order_by('-criado_em')
