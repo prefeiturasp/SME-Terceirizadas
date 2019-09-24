@@ -3,9 +3,11 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from .constants import (
-    AUTORIZADOS, FILTRO_ESCOLA_UUID, NEGADOS, PENDENTES_APROVACAO, _NEGADOS, CANCELADOS
+    AUTORIZADOS, CANCELADOS, FILTRO_DRE_UUID, FILTRO_ESCOLA_UUID, NEGADOS, PENDENTES_APROVACAO, _NEGADOS
 )
-from ..models.codae import SolicitacoesCODAE, SolicitacoesEscola
+from ..models.codae import (
+    SolicitacoesCODAE, SolicitacoesDRE, SolicitacoesEscola
+)
 from ...escola.models import DiretoriaRegional
 from ...paineis_consolidados.api.serializers import SolicitacoesSerializer
 
@@ -82,6 +84,37 @@ class EscolaSolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
     @action(detail=False, methods=['GET'], url_path=f'{CANCELADOS}/{FILTRO_ESCOLA_UUID}')
     def cancelados(self, request, escola_uuid=None):
         query_set = SolicitacoesEscola.get_cancelados(escola_uuid=escola_uuid)
+        return self._retorno_base(query_set)
+
+    def _retorno_base(self, query_set):
+        page = self.paginate_queryset(query_set)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+
+class DRESolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
+    lookup_field = 'uuid'
+    queryset = SolicitacoesDRE.objects.all()
+    serializer_class = SolicitacoesSerializer
+
+    @action(detail=False, methods=['GET'], url_path=f'{PENDENTES_APROVACAO}/{FILTRO_DRE_UUID}')
+    def pendentes_aprovacao(self, request, dre_uuid=None):
+        query_set = SolicitacoesDRE.get_pendentes_aprovacao(dre_uuid=dre_uuid)
+        return self._retorno_base(query_set)
+
+    @action(detail=False, methods=['GET'], url_path=f'{AUTORIZADOS}/{FILTRO_DRE_UUID}')
+    def autorizados(self, request, dre_uuid=None):
+        query_set = SolicitacoesDRE.get_autorizados(dre_uuid=dre_uuid)
+        return self._retorno_base(query_set)
+
+    @action(detail=False, methods=['GET'], url_path=f'{NEGADOS}/{FILTRO_DRE_UUID}')
+    def negados(self, request, dre_uuid=None):
+        query_set = SolicitacoesDRE.get_negados(dre_uuid=dre_uuid)
+        return self._retorno_base(query_set)
+
+    @action(detail=False, methods=['GET'], url_path=f'{CANCELADOS}/{FILTRO_DRE_UUID}')
+    def cancelados(self, request, dre_uuid=None):
+        query_set = SolicitacoesDRE.get_cancelados(dre_uuid=dre_uuid)
         return self._retorno_base(query_set)
 
     def _retorno_base(self, query_set):

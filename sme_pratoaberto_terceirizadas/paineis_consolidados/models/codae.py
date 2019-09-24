@@ -1,6 +1,6 @@
 from django.db import models
 
-from ...dados_comuns.fluxo_status import PedidoAPartirDaEscolaWorkflow
+from ...dados_comuns.fluxo_status import PedidoAPartirDaDiretoriaRegionalWorkflow, PedidoAPartirDaEscolaWorkflow
 from ...dados_comuns.models import LogSolicitacoesUsuario
 
 
@@ -8,7 +8,7 @@ class MoldeConsolidado(models.Model):
     uuid = models.UUIDField(editable=False)
     escola_uuid = models.UUIDField(editable=False)
     lote = models.CharField(max_length=50)
-    diretoria_regional_id = models.PositiveIntegerField()
+    dre_uuid = models.UUIDField(editable=False)
     criado_em = models.DateTimeField()
     tipo_doc = models.CharField(max_length=30)
     desc_doc = models.CharField(max_length=50)
@@ -33,7 +33,7 @@ class MoldeConsolidado(models.Model):
 
     class Meta:
         managed = False
-        db_table = 'codae_solicitacoes'
+        db_table = 'solicitacoes_consolidadas'
         abstract = True
 
 
@@ -103,4 +103,43 @@ class SolicitacoesEscola(MoldeConsolidado):
             status_evento=LogSolicitacoesUsuario.ESCOLA_CANCELOU,
             status=PedidoAPartirDaEscolaWorkflow.ESCOLA_CANCELOU,
             escola_uuid=escola_uuid
+        ).order_by('-criado_em')
+
+
+class SolicitacoesDRE(MoldeConsolidado):
+    _WORKFLOW_CLASS = PedidoAPartirDaDiretoriaRegionalWorkflow
+
+    @classmethod
+    def get_pendentes_aprovacao(cls, **kwargs):
+        dre_uuid = kwargs.get('dre_uuid')
+        return cls.objects.filter(
+            status=cls._WORKFLOW_CLASS.CODAE_A_AUTORIZAR,
+            dre_uuid=dre_uuid
+        ).order_by('-criado_em')
+
+    @classmethod
+    def get_autorizados(cls, **kwargs):
+        dre_uuid = kwargs.get('dre_uuid')
+        return cls.objects.filter(
+            status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU,
+            status=cls._WORKFLOW_CLASS.CODAE_AUTORIZADO,
+            dre_uuid=dre_uuid
+        ).order_by('-criado_em')
+
+    @classmethod
+    def get_negados(cls, **kwargs):
+        dre_uuid = kwargs.get('dre_uuid')
+        return cls.objects.filter(
+            status_evento=LogSolicitacoesUsuario.CODAE_NEGOU,
+            status=cls._WORKFLOW_CLASS.CODAE_NEGOU_PEDIDO,
+            dre_uuid=dre_uuid
+        ).order_by('-criado_em')
+
+    @classmethod
+    def get_cancelados(cls, **kwargs):
+        dre_uuid = kwargs.get('dre_uuid')
+        return cls.objects.filter(
+            status_evento=LogSolicitacoesUsuario.DRE_CANCELOU,
+            status=cls._WORKFLOW_CLASS.DRE_CANCELOU,
+            dre_uuid=dre_uuid
         ).order_by('-criado_em')
