@@ -175,7 +175,7 @@ class SolicitacaoKitLancheUnificada(CriadoPor, TemChaveExterna, TemIdentificador
         try:
             escola_quantidade = self.escolas_quantidades.first()
             lote_nome = escola_quantidade.escola.lote.nome
-        except ObjectDoesNotExist as e:
+        except ObjectDoesNotExist:
             lote_nome = 'Não tem lote'
         return lote_nome
 
