@@ -89,6 +89,7 @@ class SolicitacaoKitLancheUnificadaSerializer(serializers.ModelSerializer):
     id_externo = serializers.CharField()
     # TODO: remover total_kit_lanche ou quantidade_alimentacoes. estao duplicados
     total_kit_lanche = serializers.IntegerField()
+    lote_nome = serializers.CharField()
     logs = LogSolicitacoesUsuarioSerializer(many=True)
     prioridade = serializers.CharField()
     data = serializers.DateField()

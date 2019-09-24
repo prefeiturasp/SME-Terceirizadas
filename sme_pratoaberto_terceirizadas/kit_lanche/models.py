@@ -1,5 +1,6 @@
 import uuid
 
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.db.models.functions import Coalesce
 
@@ -165,6 +166,18 @@ class SolicitacaoKitLancheUnificada(CriadoPor, TemChaveExterna, TemIdentificador
     @property
     def data(self):
         return self.solicitacao_kit_lanche.data
+
+    @property
+    def lote_nome(self):
+        """ A solicitação unificada é somente de um lote.
+        Vide o  self.dividir_por_lote()
+        """
+        try:
+            escola_quantidade = self.escolas_quantidades.first()
+            lote_nome = escola_quantidade.escola.lote.nome
+        except ObjectDoesNotExist as e:
+            lote_nome = 'Não tem lote'
+        return lote_nome
 
     @property
     def quantidade_alimentacoes(self):

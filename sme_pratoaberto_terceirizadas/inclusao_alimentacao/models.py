@@ -163,7 +163,7 @@ class InclusaoAlimentacaoNormal(TemData, TemChaveExterna, TemPrioridade):
         ordering = ('data',)
 
 
-class GrupoInclusaoAlimentacaoNormal(Descritivel, TemChaveExterna, FluxoAprovacaoPartindoDaEscola,
+class GrupoInclusaoAlimentacaoNormal(Descritivel, TemChaveExterna, FluxoAprovacaoPartindoDaEscola, CriadoEm,
                                      CriadoPor, TemIdentificadorExternoAmigavel, Logs, TemPrioridade):
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING,
                                related_name='grupos_inclusoes_normais')
