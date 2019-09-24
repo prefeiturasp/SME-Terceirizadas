@@ -169,7 +169,8 @@ class SolicitacaoKitLancheUnificada(CriadoPor, TemChaveExterna, TemIdentificador
 
     @property
     def lote_nome(self):
-        """ A solicitação unificada é somente de um lote.
+        """Solicitação unificada é somente de um lote.
+
         Vide o  self.dividir_por_lote()
         """
         try:
