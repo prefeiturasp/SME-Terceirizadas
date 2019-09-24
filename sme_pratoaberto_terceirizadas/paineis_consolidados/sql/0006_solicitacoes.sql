@@ -6,6 +6,7 @@ CREATE OR REPLACE VIEW solicitacoes_consolidadas AS
 -- Inversoes de cardapio
 -- Suspensoes de Alimentacao
 -- Kit Lanches Solicitacoes Avulsas
+-- kit lanche unificado
 
 
 SELECT cardapio.id,
@@ -94,7 +95,28 @@ GROUP BY inv_cardapio.id,
 		 logs.status_evento,
          escola.diretoria_regional_id
 UNION
--- TODO fazer parte da solicitação kit lanche unificada que parte da DRE
+
+SELECT kit_lanche.id,
+       kit_lanche.uuid,
+       'lote' AS lote,
+       dre.uuid as dre_uuid,
+       'c09c5187-f026-44d5-a0ef-423dbc408cca' as escola_uuid,
+       logs.criado_em,
+       'KIT_LANCHE_UNIFICADA' AS tipo_doc,
+       'Kit lanche unificado' AS desc_doc,
+       logs.status_evento,
+       kit_lanche.status as status
+FROM kit_lanche_solicitacaokitlancheunificada AS kit_lanche,
+     escola_diretoriaregional AS dre,
+     dados_comuns_logsolicitacoesusuario AS logs
+WHERE kit_lanche.diretoria_regional_id = dre.id
+  AND kit_lanche.uuid = logs.uuid_original
+
+GROUP BY kit_lanche.id,
+		 dre_uuid,
+		 logs.criado_em,
+		 logs.status_evento
+UNION
 
 SELECT kit_lanche.id,
        kit_lanche.uuid,
