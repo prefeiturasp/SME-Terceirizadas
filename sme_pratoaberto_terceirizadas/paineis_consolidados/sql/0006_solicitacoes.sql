@@ -3,6 +3,7 @@ CREATE OR REPLACE VIEW solicitacoes_consolidadas AS
 
 -- alteração de cardápio
 -- inclusao de alimentacao normal
+-- inclusao de alimentacao continua
 -- Inversoes de cardapio
 -- Suspensoes de Alimentacao
 -- Kit Lanches Solicitacoes Avulsas
@@ -57,8 +58,29 @@ WHERE escola.id = inc_alimentacao.escola_id
   AND lote.id = escola.lote_id
   AND dre.id = escola.diretoria_regional_id
   AND inc_alimentacao.uuid = logs.uuid_original
+UNION
 
-GROUP BY inc_alimentacao.id,
+SELECT inc_alimentacao_continua.id,
+       inc_alimentacao_continua.uuid,
+       lote.nome AS lote,
+       dre.uuid as dre_uuid,
+       escola.uuid as escola_uuid,
+       logs.criado_em,
+       'INC_ALIMENTA_CONTINUA' AS tipo_doc,
+       'Inclusão de alimentação contínua' AS desc_doc,
+       logs.status_evento,
+       inc_alimentacao_continua.status as status
+FROM inclusao_alimentacao_inclusaoalimentacaocontinua AS inc_alimentacao_continua,
+     escola_escola AS escola,
+     escola_lote AS lote,
+     escola_diretoriaregional AS dre,
+     dados_comuns_logsolicitacoesusuario AS logs
+WHERE escola.id = inc_alimentacao_continua.escola_id
+  AND lote.id = escola.lote_id
+  AND dre.id = escola.diretoria_regional_id
+  AND inc_alimentacao_continua.uuid = logs.uuid_original
+
+GROUP BY inc_alimentacao_continua.id,
          lote.nome,
 		 escola_uuid,
 		 dre_uuid,
