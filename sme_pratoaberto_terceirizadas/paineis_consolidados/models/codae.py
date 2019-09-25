@@ -72,11 +72,9 @@ class SolicitacoesEscola(MoldeConsolidado):
     @classmethod
     def get_pendentes_aprovacao(cls, **kwargs):
         escola_uuid = kwargs.get('escola_uuid')
-        return cls.objects.filter(
-            status_evento=LogSolicitacoesUsuario.DRE_VALIDOU,
-            status=PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO,
-            escola_uuid=escola_uuid
-        ).order_by('-criado_em')
+        return cls.objects.filter(escola_uuid=escola_uuid).exclude(
+            status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU).exclude(
+            status=PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO).order_by('-criado_em')
 
     @classmethod
     def get_autorizados(cls, **kwargs):
