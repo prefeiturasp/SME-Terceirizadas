@@ -1,7 +1,8 @@
 from rest_framework.decorators import action
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
+from rest_framework.response import Response
+from rest_framework import status
 
-from ...dados_comuns.constants import FILTRO_PADRAO_PEDIDOS, SEM_FILTRO
 from .serializers import (
     DiretoriaRegionalCompletaSerializer, DiretoriaRegionalSimplissimaSerializer, EscolaCompletaSerializer,
     EscolaSimplesSerializer, EscolaSimplissimaSerializer, PeriodoEscolarSerializer, SubprefeituraSerializer,
@@ -10,6 +11,7 @@ from .serializers import (
 from ..models import (
     Codae, DiretoriaRegional, Escola, Lote, PeriodoEscolar, Subprefeitura, TipoGestao
 )
+from ...dados_comuns.constants import FILTRO_PADRAO_PEDIDOS, SEM_FILTRO
 from ...escola.api.serializers import CODAESerializer, LoteSimplesSerializer
 from ...escola.api.serializers_create import LoteCreateSerializer
 from ...inclusao_alimentacao.api.serializers.serializers import (
@@ -118,11 +120,14 @@ class LoteViewSet(ModelViewSet):
     serializer_class = LoteSimplesSerializer
     queryset = Lote.objects.all()
 
-    # TODO: permitir deletar somente se o status for do inicial...
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update']:
             return LoteCreateSerializer
         return LoteSimplesSerializer
+
+    def destroy(self, request, *args, **kwargs):
+        return Response({'detail': 'Não é permitido excluir um Lote com escolas associadas'},
+                        status=status.HTTP_401_UNAUTHORIZED)
 
 
 class CODAESimplesViewSet(ReadOnlyModelViewSet):
