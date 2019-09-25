@@ -51,25 +51,23 @@ def _send_mass_html_mail(subject, text, html, recipients):
     config = DynamicEmailConfiguration.get_solo()
     from_email = config.from_email
 
-    # TODO: verificar como abrir e fechar conexão
-    connection = get_connection()
-
-    messages = []
-    for recipient in recipients:
-        message = EmailMultiAlternatives(subject, text, from_email, [recipient.email])
-        if html:
-            message.attach_alternative(html, 'text/html')
-        messages.append(message)
-    return connection.send_messages(messages)
+    with get_connection() as connection:
+        messages = []
+        for recipient in recipients:
+            message = EmailMultiAlternatives(subject, text, from_email, [recipient.email])
+            if html:
+                message.attach_alternative(html, 'text/html')
+            messages.append(message)
+        return connection.send_messages(messages)
 
 
 loop = asyncio.get_event_loop()
 
 
-def async_envio_email_html_em_massa(subject, text, html, recipients):
+async def async_envio_email_html_em_massa(subject, text, html, recipients):
     if not recipients:
         return
-    loop.run_in_executor(None, _send_mass_html_mail, subject, text, html, recipients)
+    await loop.run_in_executor(None, _send_mass_html_mail, subject, text, html, recipients)
 
 
 def obter_dias_uteis_apos_hoje(quantidade_dias: int):

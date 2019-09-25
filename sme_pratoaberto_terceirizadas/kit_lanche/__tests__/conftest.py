@@ -6,6 +6,7 @@ from model_mommy import mommy
 
 from .. import models
 from ...dados_comuns.models_abstract import TempoPasseio
+from ...dados_comuns.models import TemplateMensagem
 
 fake = Faker('pt_BR')
 fake.seed(420)
@@ -28,6 +29,7 @@ def item_kit_lanche():
 
 @pytest.fixture
 def solicitacao_avulsa():
+    mommy.make(TemplateMensagem, tipo=TemplateMensagem.SOLICITACAO_KIT_LANCHE_AVULSA)
     kits = mommy.make(models.KitLanche, _quantity=3)
     solicitacao_kit_lanche = mommy.make(models.SolicitacaoKitLanche, kits=kits, data=datetime.datetime(2000, 1, 1))
     escola = mommy.make('escola.Escola')
@@ -40,6 +42,7 @@ def solicitacao_avulsa():
 
 @pytest.fixture
 def solicitacao_unificada_lista_igual():
+    mommy.make(TemplateMensagem, tipo=TemplateMensagem.SOLICITACAO_KIT_LANCHE_UNIFICADA)
     kits = mommy.make(models.KitLanche, _quantity=3)
     solicitacao_kit_lanche = mommy.make(models.SolicitacaoKitLanche,
                                         tempo_passeio=models.SolicitacaoKitLanche.OITO_OU_MAIS,

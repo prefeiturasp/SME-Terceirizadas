@@ -2,6 +2,7 @@ import datetime
 
 import pytest
 from model_mommy import mommy
+from xworkflows import InvalidTransitionError
 
 from ...dados_comuns.models_abstract import TempoPasseio
 
@@ -55,3 +56,180 @@ def test_solicitacao(solicitacao):
     assert solicitacao.tempo_passeio == TempoPasseio.CINCO_A_SETE
     assert solicitacao.kits.count() == 3
     assert 'Solicitação kit lanche base' in solicitacao._meta.verbose_name
+
+
+def test_solicitacao_avulsa_workflow_case_1_PartindoDaEscola(solicitacao_avulsa):
+    """RASCUNHO > DRE_A_VALIDAR > DRE_VALIDADO > CODAE_AUTORIZADO > TERCEIRIZADA_TOMOU_CIENCIA."""
+    WC = solicitacao_avulsa.workflow_class
+    user = mommy.make('perfil.Usuario')
+    assert solicitacao_avulsa.status == WC.RASCUNHO
+
+    solicitacao_avulsa.inicia_fluxo(user=user)
+    assert solicitacao_avulsa.status == WC.DRE_A_VALIDAR
+
+    solicitacao_avulsa.dre_valida(user=user, notificar=True)
+    assert solicitacao_avulsa.status == WC.DRE_VALIDADO
+
+    solicitacao_avulsa.codae_autoriza(user=user, notificar=True)
+    assert solicitacao_avulsa.status == WC.CODAE_AUTORIZADO
+
+    solicitacao_avulsa.terceirizada_toma_ciencia(user=user, notificar=True)
+    assert solicitacao_avulsa.status == WC.TERCEIRIZADA_TOMOU_CIENCIA
+
+
+def test_solicitacao_avulsa_workflow_case_2_PartindoDaEscola(solicitacao_avulsa):
+    """RASCUNHO > DRE_A_VALIDAR > DRE_PEDIU_ESCOLA_REVISAR > DRE_A_VALIDAR."""
+    WC = solicitacao_avulsa.workflow_class
+    user = mommy.make('perfil.Usuario')
+    assert solicitacao_avulsa.status == WC.RASCUNHO
+
+    solicitacao_avulsa.inicia_fluxo(user=user)
+    assert solicitacao_avulsa.status == WC.DRE_A_VALIDAR
+
+    solicitacao_avulsa.dre_pede_revisao(user=user, notificar=True)
+    assert solicitacao_avulsa.status == WC.DRE_PEDIU_ESCOLA_REVISAR
+
+    solicitacao_avulsa.escola_revisa(user=user, notificar=True)
+    assert solicitacao_avulsa.status == WC.DRE_A_VALIDAR
+
+
+def test_solicitacao_avulsa_workflow_case_3_PartindoDaEscola(solicitacao_avulsa):
+    """RASCUNHO > DRE_A_VALIDAR > DRE_NAO_VALIDOU_PEDIDO_ESCOLA."""
+    WC = solicitacao_avulsa.workflow_class
+    user = mommy.make('perfil.Usuario')
+    assert solicitacao_avulsa.status == WC.RASCUNHO
+
+    solicitacao_avulsa.inicia_fluxo(user=user)
+    assert solicitacao_avulsa.status == WC.DRE_A_VALIDAR
+
+    solicitacao_avulsa.dre_nao_valida(user=user)
+    assert solicitacao_avulsa.status == WC.DRE_NAO_VALIDOU_PEDIDO_ESCOLA
+
+
+def test_solicitacao_avulsa_workflow_case_4_PartindoDaEscola(solicitacao_avulsa):
+    """RASCUNHO > DRE_A_VALIDAR > DRE_VALIDADO > CODAE_NEGOU_PEDIDO."""
+    WC = solicitacao_avulsa.workflow_class
+    user = mommy.make('perfil.Usuario')
+    assert solicitacao_avulsa.status == WC.RASCUNHO
+
+    solicitacao_avulsa.inicia_fluxo(user=user)
+    assert solicitacao_avulsa.status == WC.DRE_A_VALIDAR
+
+    solicitacao_avulsa.dre_valida(user=user, notificar=True)
+    assert solicitacao_avulsa.status == WC.DRE_VALIDADO
+
+    solicitacao_avulsa.codae_nega(user=user)
+    assert solicitacao_avulsa.status == WC.CODAE_NEGOU_PEDIDO
+
+
+def test_solicitacao_avulsa_workflow_PartindoDaEscola_with_error(solicitacao_avulsa):
+    WC = solicitacao_avulsa.workflow_class
+    user = mommy.make('perfil.Usuario')
+    assert solicitacao_avulsa.status == WC.RASCUNHO
+
+    with pytest.raises(InvalidTransitionError,
+                       match="Transition 'dre_valida' isn't available from state 'RASCUNHO'"):
+        solicitacao_avulsa.dre_valida(user=user)
+
+    with pytest.raises(InvalidTransitionError,
+                       match="Transition 'dre_nao_valida' isn't available from state 'RASCUNHO'"):
+        solicitacao_avulsa.dre_nao_valida(user=user)
+
+    with pytest.raises(InvalidTransitionError,
+                       match="Transition 'dre_pede_revisao' isn't available from state 'RASCUNHO'"):
+        solicitacao_avulsa.dre_pede_revisao(user=user)
+
+    with pytest.raises(InvalidTransitionError,
+                       match="Transition 'codae_autoriza' isn't available from state 'RASCUNHO'"):
+        solicitacao_avulsa.codae_autoriza(user=user)
+
+    with pytest.raises(InvalidTransitionError,
+                       match="Transition 'codae_nega' isn't available from state 'RASCUNHO'"):
+        solicitacao_avulsa.codae_nega(user=user)
+
+    with pytest.raises(InvalidTransitionError,
+                       match="Transition 'terceirizada_toma_ciencia' isn't available from state 'RASCUNHO'"):
+        solicitacao_avulsa.terceirizada_toma_ciencia(user=user)
+
+    with pytest.raises(InvalidTransitionError,
+                       match="Transition 'escola_revisa' isn't available from state 'RASCUNHO'"):
+        solicitacao_avulsa.escola_revisa(user=user)
+
+
+def test_solicitacao_unificada_lista_igual_workflow_case_1_PartindoDaDiretoriaRegional(
+    solicitacao_unificada_lista_igual
+):
+    """RASCUNHO > CODAE_A_AUTORIZAR > CODAE_PEDIU_DRE_REVISAR > CODAE_A_AUTORIZAR."""
+    WC = solicitacao_unificada_lista_igual.workflow_class
+    user = mommy.make('perfil.Usuario')
+    assert solicitacao_unificada_lista_igual.status == WC.RASCUNHO
+
+    solicitacao_unificada_lista_igual.inicia_fluxo(user=user)
+    assert solicitacao_unificada_lista_igual.status == WC.CODAE_A_AUTORIZAR
+
+    solicitacao_unificada_lista_igual.codae_pede_revisao(user=user)
+    assert solicitacao_unificada_lista_igual.status == WC.CODAE_PEDIU_DRE_REVISAR
+
+    solicitacao_unificada_lista_igual.dre_revisa(user=user)
+    assert solicitacao_unificada_lista_igual.status == WC.CODAE_A_AUTORIZAR
+
+
+def test_solicitacao_unificada_lista_igual_workflow_case_2_PartindoDaDiretoriaRegional(
+    solicitacao_unificada_lista_igual
+):
+    """RASCUNHO > CODAE_A_AUTORIZAR > CODAE_AUTORIZADO > TERCEIRIZADA_TOMOU_CIENCIA."""
+    WC = solicitacao_unificada_lista_igual.workflow_class
+    user = mommy.make('perfil.Usuario')
+    assert solicitacao_unificada_lista_igual.status == WC.RASCUNHO
+
+    solicitacao_unificada_lista_igual.inicia_fluxo(user=user)
+    assert solicitacao_unificada_lista_igual.status == WC.CODAE_A_AUTORIZAR
+
+    solicitacao_unificada_lista_igual.codae_autoriza(user=user)
+    assert solicitacao_unificada_lista_igual.status == WC.CODAE_AUTORIZADO
+
+    solicitacao_unificada_lista_igual.terceirizada_toma_ciencia(user=user)
+    assert solicitacao_unificada_lista_igual.status == WC.TERCEIRIZADA_TOMOU_CIENCIA
+
+
+def test_solicitacao_unificada_lista_igual_workflow_case_3_PartindoDaDiretoriaRegional(
+    solicitacao_unificada_lista_igual
+):
+    """RASCUNHO > CODAE_A_AUTORIZAR > CODAE_NEGOU_PEDIDO."""
+    WC = solicitacao_unificada_lista_igual.workflow_class
+    user = mommy.make('perfil.Usuario')
+    assert solicitacao_unificada_lista_igual.status == WC.RASCUNHO
+
+    solicitacao_unificada_lista_igual.inicia_fluxo(user=user)
+    assert solicitacao_unificada_lista_igual.status == WC.CODAE_A_AUTORIZAR
+
+    solicitacao_unificada_lista_igual.codae_nega(user=user)
+    assert solicitacao_unificada_lista_igual.status == WC.CODAE_NEGOU_PEDIDO
+
+
+def test_solicitacao_unificada_lista_igual_workflow_PartindoDaEscola_with_error(
+    solicitacao_unificada_lista_igual
+):
+    WC = solicitacao_unificada_lista_igual.workflow_class
+    user = mommy.make('perfil.Usuario')
+    assert solicitacao_unificada_lista_igual.status == WC.RASCUNHO
+
+    with pytest.raises(InvalidTransitionError,
+                       match="Transition 'codae_pede_revisao' isn't available from state 'RASCUNHO'"):
+        solicitacao_unificada_lista_igual.codae_pede_revisao(user=user)
+
+    with pytest.raises(InvalidTransitionError,
+                       match="Transition 'codae_nega' isn't available from state 'RASCUNHO'"):
+        solicitacao_unificada_lista_igual.codae_nega(user=user)
+
+    with pytest.raises(InvalidTransitionError,
+                       match="Transition 'dre_revisa' isn't available from state 'RASCUNHO'"):
+        solicitacao_unificada_lista_igual.dre_revisa(user=user)
+
+    with pytest.raises(InvalidTransitionError,
+                       match="Transition 'codae_autoriza' isn't available from state 'RASCUNHO'"):
+        solicitacao_unificada_lista_igual.codae_autoriza(user=user)
+
+    with pytest.raises(InvalidTransitionError,
+                       match="Transition 'terceirizada_toma_ciencia' isn't available from state 'RASCUNHO'"):
+        solicitacao_unificada_lista_igual.terceirizada_toma_ciencia(user=user)
