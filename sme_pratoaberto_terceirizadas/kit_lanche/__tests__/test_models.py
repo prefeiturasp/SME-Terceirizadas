@@ -67,13 +67,13 @@ def test_solicitacao_avulsa_workflow_case_1_PartindoDaEscola(solicitacao_avulsa)
     solicitacao_avulsa.inicia_fluxo(user=user)
     assert solicitacao_avulsa.status == WC.DRE_A_VALIDAR
 
-    solicitacao_avulsa.dre_valida(user=user, notificar=True)
+    solicitacao_avulsa.dre_valida(user=user,)
     assert solicitacao_avulsa.status == WC.DRE_VALIDADO
 
-    solicitacao_avulsa.codae_autoriza(user=user, notificar=True)
+    solicitacao_avulsa.codae_autoriza(user=user,)
     assert solicitacao_avulsa.status == WC.CODAE_AUTORIZADO
 
-    solicitacao_avulsa.terceirizada_toma_ciencia(user=user, notificar=True)
+    solicitacao_avulsa.terceirizada_toma_ciencia(user=user,)
     assert solicitacao_avulsa.status == WC.TERCEIRIZADA_TOMOU_CIENCIA
 
 
@@ -86,10 +86,10 @@ def test_solicitacao_avulsa_workflow_case_2_PartindoDaEscola(solicitacao_avulsa)
     solicitacao_avulsa.inicia_fluxo(user=user)
     assert solicitacao_avulsa.status == WC.DRE_A_VALIDAR
 
-    solicitacao_avulsa.dre_pede_revisao(user=user, notificar=True)
+    solicitacao_avulsa.dre_pede_revisao(user=user,)
     assert solicitacao_avulsa.status == WC.DRE_PEDIU_ESCOLA_REVISAR
 
-    solicitacao_avulsa.escola_revisa(user=user, notificar=True)
+    solicitacao_avulsa.escola_revisa(user=user,)
     assert solicitacao_avulsa.status == WC.DRE_A_VALIDAR
 
 
@@ -115,7 +115,7 @@ def test_solicitacao_avulsa_workflow_case_4_PartindoDaEscola(solicitacao_avulsa)
     solicitacao_avulsa.inicia_fluxo(user=user)
     assert solicitacao_avulsa.status == WC.DRE_A_VALIDAR
 
-    solicitacao_avulsa.dre_valida(user=user, notificar=True)
+    solicitacao_avulsa.dre_valida(user=user,)
     assert solicitacao_avulsa.status == WC.DRE_VALIDADO
 
     solicitacao_avulsa.codae_nega(user=user)
