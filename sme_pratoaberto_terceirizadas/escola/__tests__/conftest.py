@@ -21,9 +21,11 @@ def tipo_gestao():
 
 
 @pytest.fixture
-def diretoria_regional():
+def diretoria_regional(escola):
     return mommy.make(models.DiretoriaRegional,
-                      nome=fake.name())
+                      escolas=[escola],
+                      nome=fake.name(),
+                      make_m2m=True)
 
 
 @pytest.fixture
