@@ -44,6 +44,7 @@ class SolicitacoesPendentesDRESerializer(SolicitacoesDRESerializer):
 class SolicitacoesSerializer(serializers.ModelSerializer):
     data_log = serializers.SerializerMethodField()
     descricao = serializers.SerializerMethodField()
+    prioridade = serializers.CharField()
 
     def get_descricao(self, obj):
         uuid = str(obj.uuid)

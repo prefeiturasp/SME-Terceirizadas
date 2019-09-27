@@ -471,6 +471,7 @@ class Lote(TemChaveExterna, Nomeavel, Iniciais):
     class Meta:
         verbose_name = 'Lote'
         verbose_name_plural = 'Lotes'
+        ordering = ('nome',)
 
 
 class Subprefeitura(Nomeavel, TemChaveExterna):
