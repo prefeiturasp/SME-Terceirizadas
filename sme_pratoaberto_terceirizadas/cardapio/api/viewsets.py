@@ -139,7 +139,7 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
     def inicio_de_pedido(self, request, uuid=None):
         inversao_cardapio = self.get_object()
         try:
-            inversao_cardapio.inicia_fluxo(user=request.user, notificar=True)
+            inversao_cardapio.inicia_fluxo(user=request.user,)
             serializer = self.get_serializer(inversao_cardapio)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -150,7 +150,7 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
     def diretoria_regional_aprova_pedido(self, request, uuid=None):
         inversao_cardapio = self.get_object()
         try:
-            inversao_cardapio.dre_valida(user=request.user, notificar=True)
+            inversao_cardapio.dre_valida(user=request.user,)
             serializer = self.get_serializer(inversao_cardapio)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -161,7 +161,7 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
     def diretoria_regional_pede_revisao(self, request, uuid=None):
         inversao_cardapio = self.get_object()
         try:
-            inversao_cardapio.dre_pede_revisao(user=request.user, notificar=True)
+            inversao_cardapio.dre_pede_revisao(user=request.user,)
             serializer = self.get_serializer(inversao_cardapio)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -172,7 +172,7 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
     def diretoria_regional_cancela_pedido(self, request, uuid=None):
         inversao_cardapio = self.get_object()
         try:
-            inversao_cardapio.dre_nao_valida(user=request.user, notificar=True)
+            inversao_cardapio.dre_nao_valida(user=request.user,)
             serializer = self.get_serializer(inversao_cardapio)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -183,7 +183,7 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
     def escola_revisa_pedido(self, request, uuid=None):
         inversao_cardapio = self.get_object()
         try:
-            inversao_cardapio.escola_revisa(user=request.user, notificar=True)
+            inversao_cardapio.escola_revisa(user=request.user,)
             serializer = self.get_serializer(inversao_cardapio)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -194,7 +194,7 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
     def codae_aprova_pedido(self, request, uuid=None):
         inversao_cardapio = self.get_object()
         try:
-            inversao_cardapio.codae_autoriza(user=request.user, notificar=True)
+            inversao_cardapio.codae_autoriza(user=request.user,)
             serializer = self.get_serializer(inversao_cardapio)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -205,7 +205,7 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
     def codae_cancela_pedido(self, request, uuid=None):
         inversao_cardapio = self.get_object()
         try:
-            inversao_cardapio.codae_nega(user=request.user, notificar=True)
+            inversao_cardapio.codae_nega(user=request.user,)
             serializer = self.get_serializer(inversao_cardapio)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -216,7 +216,7 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
     def terceirizada_toma_ciencia(self, request, uuid=None):
         inversao_cardapio = self.get_object()
         try:
-            inversao_cardapio.terceirizada_toma_ciencia(user=request.user, notificar=True)
+            inversao_cardapio.terceirizada_toma_ciencia(user=request.user,)
             serializer = self.get_serializer(inversao_cardapio)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -227,7 +227,7 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
     def escola_cancela_pedido(self, request, uuid=None):
         inversao_cardapio = self.get_object()
         try:
-            inversao_cardapio.cancelar_pedido(user=request.user, notificar=True)
+            inversao_cardapio.cancelar_pedido(user=request.user,)
             serializer = self.get_serializer(inversao_cardapio)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -294,7 +294,7 @@ class GrupoSuspensaoAlimentacaoSerializerViewSet(viewsets.ModelViewSet):
     def informa_suspensao(self, request, uuid=None):
         grupo_suspensao_de_alimentacao = self.get_object()
         try:
-            grupo_suspensao_de_alimentacao.informa(user=request.user, notificar=True)
+            grupo_suspensao_de_alimentacao.informa(user=request.user,)
             serializer = self.get_serializer(grupo_suspensao_de_alimentacao)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -305,7 +305,7 @@ class GrupoSuspensaoAlimentacaoSerializerViewSet(viewsets.ModelViewSet):
     def terceirizada_toma_ciencia(self, request, uuid=None):
         grupo_suspensao_de_alimentacao = self.get_object()
         try:
-            grupo_suspensao_de_alimentacao.terceirizada_toma_ciencia(user=request.user, notificar=True)
+            grupo_suspensao_de_alimentacao.terceirizada_toma_ciencia(user=request.user,)
             serializer = self.get_serializer(grupo_suspensao_de_alimentacao)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -354,7 +354,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
     def inicio_de_pedido(self, request, uuid=None):
         alteracao_cardapio = self.get_object()
         try:
-            alteracao_cardapio.inicia_fluxo(user=request.user, notificar=True)
+            alteracao_cardapio.inicia_fluxo(user=request.user,)
             serializer = self.get_serializer(alteracao_cardapio)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -365,7 +365,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
     def diretoria_regional_aprova(self, request, uuid=None):
         alteracao_cardapio = self.get_object()
         try:
-            alteracao_cardapio.dre_valida(user=request.user, notificar=True)
+            alteracao_cardapio.dre_valida(user=request.user,)
             serializer = self.get_serializer(alteracao_cardapio)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -377,7 +377,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
         alteracao_cardapio = self.get_object()
         try:
             alteracao_cardapio.dre_pede_revisao(user=request.user)
-            serializer = self.get_serializer(alteracao_cardapio, notificar=True)
+            serializer = self.get_serializer(alteracao_cardapio,)
             return Response(serializer.data)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
@@ -387,7 +387,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
     def dre_cancela_pedido(self, request, uuid=None):
         alteracao_cardapio = self.get_object()
         try:
-            alteracao_cardapio.dre_nao_valida(user=request.user, notificar=True)
+            alteracao_cardapio.dre_nao_valida(user=request.user,)
             serializer = self.get_serializer(alteracao_cardapio)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -398,7 +398,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
     def escola_revisa(self, request, uuid=None):
         alteracao_cardapio = self.get_object()
         try:
-            alteracao_cardapio.escola_revisa(user=request.user, notificar=True)
+            alteracao_cardapio.escola_revisa(user=request.user,)
             serializer = self.get_serializer(alteracao_cardapio)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -409,7 +409,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
     def codae_cancela_pedido(self, request, uuid=None):
         alteracao_cardapio = self.get_object()
         try:
-            alteracao_cardapio.codae_nega(user=request.user, notificar=True)
+            alteracao_cardapio.codae_nega(user=request.user,)
             serializer = self.get_serializer(alteracao_cardapio)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -420,7 +420,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
     def codae_aprova(self, request, uuid=None):
         alteracao_cardapio = self.get_object()
         try:
-            alteracao_cardapio.codae_autoriza(user=request.user, notificar=True)
+            alteracao_cardapio.codae_autoriza(user=request.user,)
             serializer = self.get_serializer(alteracao_cardapio)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -431,7 +431,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
     def terceirizada_toma_ciencia(self, request, uuid=None):
         alteracao_cardapio = self.get_object()
         try:
-            alteracao_cardapio.terceirizada_toma_ciencia(user=request.user, notificar=True)
+            alteracao_cardapio.terceirizada_toma_ciencia(user=request.user,)
             serializer = self.get_serializer(alteracao_cardapio)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -443,7 +443,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
         inclusao_alimentacao_continua = self.get_object()
 
         try:
-            inclusao_alimentacao_continua.cancelar_pedido(user=request.user, notificar=True)
+            inclusao_alimentacao_continua.cancelar_pedido(user=request.user,)
             serializer = self.get_serializer(inclusao_alimentacao_continua)
             return Response(serializer.data)
         except InvalidTransitionError as e:

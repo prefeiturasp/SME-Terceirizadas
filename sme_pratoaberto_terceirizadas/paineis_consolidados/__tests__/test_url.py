@@ -1,10 +1,16 @@
 from rest_framework import status
 
 
-# TODO Encontrar forma de testar com autenticação no JWT
 def test_url_endpoint_painel_dre(client):
     response = client.get('/dre-pendentes-aprovacao/')
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+def test_url_endpoint_painel_dre_autenticado(client_autenticado_painel_consolidados):
+    client = client_autenticado_painel_consolidados
+    response = client.get('/dre-pendentes-aprovacao/')
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()) == 1
 
 
 def base_codae(client_autenticado, resource):

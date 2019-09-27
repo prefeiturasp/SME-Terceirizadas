@@ -7,7 +7,7 @@ from ..api.serializers.serializers import (
     ContratoSerializer, EditalContratosSerializer, TerceirizadaSimplesSerializer, VigenciaContratoSerializer
 )
 from ..models import (
-    Contrato, Edital, Terceirizada, VigenciaContrato
+    Contrato, Edital, Nutricionista, Terceirizada, VigenciaContrato
 )
 
 fake = Faker('pt_BR')
@@ -18,6 +18,23 @@ fake.seed(420)
 def client():
     client = APIClient()
     return client
+
+
+@pytest.fixture
+def client_autenticado_terceiro(client_autenticado,):
+    terceirizada = mommy.make(Terceirizada,
+                              usuarios=[mommy.make('perfil.Usuario')],
+                              contatos=[mommy.make('dados_comuns.Contato')],
+                              endereco=mommy.make('dados_comuns.Endereco'),
+                              make_m2m=True
+                              )
+
+    mommy.make(Nutricionista,
+               terceirizada=terceirizada,
+               contatos=[mommy.make('dados_comuns.Contato')],
+               )
+    mommy.make(Contrato, terceirizada=terceirizada, edital=mommy.make(Edital), make_m2m=True)
+    return client_autenticado
 
 
 @pytest.fixture
