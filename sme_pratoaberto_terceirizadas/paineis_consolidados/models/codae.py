@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Q
 
 from ...dados_comuns.fluxo_status import PedidoAPartirDaDiretoriaRegionalWorkflow, PedidoAPartirDaEscolaWorkflow
 from ...dados_comuns.models import LogSolicitacoesUsuario
@@ -72,17 +73,25 @@ class SolicitacoesEscola(MoldeConsolidado):
     @classmethod
     def get_pendentes_aprovacao(cls, **kwargs):
         escola_uuid = kwargs.get('escola_uuid')
-        return cls.objects.filter(escola_uuid=escola_uuid).exclude(
-            status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU).exclude(
-            status=PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO).order_by('-criado_em')
+        return cls.objects.filter(
+            escola_uuid=escola_uuid
+        ).filter(
+            Q(status=PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR,
+              status_evento=LogSolicitacoesUsuario.INICIO_FLUXO) |  # noqa W504
+            Q(status=PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO,
+              status_evento=LogSolicitacoesUsuario.DRE_VALIDOU)
+        ).order_by('-criado_em')
 
     @classmethod
     def get_autorizados(cls, **kwargs):
         escola_uuid = kwargs.get('escola_uuid')
         return cls.objects.filter(
-            status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU,
-            status=PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO,
             escola_uuid=escola_uuid
+        ).filter(
+            Q(status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU,
+              status=PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO) |  # noqa W504
+            Q(status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_TOMOU_CIENCIA,
+              status=PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_TOMOU_CIENCIA)
         ).order_by('-criado_em')
 
     @classmethod
