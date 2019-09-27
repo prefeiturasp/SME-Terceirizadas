@@ -1,5 +1,5 @@
 import datetime
-
+from model_mommy import mommy
 import pytest
 
 
@@ -110,3 +110,21 @@ def dias_uteis_apos(request):
 ])
 def template_mensagem(request):
     return request.param
+
+
+@pytest.fixture(autouse=True)
+def enable_db_access_for_all_tests(db):
+    pass
+
+
+@pytest.fixture
+def validators_models_object():
+    return mommy.make('dados_comuns.Endereco', numero=10)
+
+
+@pytest.fixture
+def validators_valor_str():
+    return {
+        'texto': 'Nome',
+        'none': None
+    }

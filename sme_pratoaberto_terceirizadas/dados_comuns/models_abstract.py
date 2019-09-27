@@ -150,7 +150,7 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
     status = xwf_models.StateField(workflow_class)
     DIAS_PARA_CANCELAR = 2
 
-    def cancelar_pedido(self, user, notificar=True, justificativa=''):
+    def cancelar_pedido(self, user, justificativa=''):
         """O objeto que herdar de FluxoAprovacaoPartindoDaEscola, deve ter um property data.
 
         Dado dias de antecedencia de prazo, verifica se pode e altera o estado
@@ -327,7 +327,7 @@ class FluxoAprovacaoPartindoDaDiretoriaRegional(xwf_models.WorkflowEnabled, mode
     status = xwf_models.StateField(workflow_class)
     DIAS_PARA_CANCELAR = 2
 
-    def cancelar_pedido(self, user, notificar=True, justificativa=''):
+    def cancelar_pedido(self, user, justificativa=''):
         """O objeto que herdar de FluxoAprovacaoPartindoDaDiretoriaRegional, deve ter um property data.
 
         Atualmente o único pedido da DRE é o Solicitação kit lanche unificada
@@ -405,7 +405,7 @@ class FluxoAprovacaoPartindoDaDiretoriaRegional(xwf_models.WorkflowEnabled, mode
     @xworkflows.after_transition('codae_autoriza')
     def _codae_autoriza_hook(self, *args, **kwargs):
         user = kwargs['user']
-        if user and kwargs.get('notificar', False):
+        if user:
             assunto, corpo = self.template_mensagem
             enviar_notificacao_e_email(sender=user,
                                        recipients=self.partes_interessadas_codae_autoriza,
@@ -417,7 +417,7 @@ class FluxoAprovacaoPartindoDaDiretoriaRegional(xwf_models.WorkflowEnabled, mode
     @xworkflows.after_transition('terceirizada_toma_ciencia')
     def _terceirizada_toma_ciencia_hook(self, *args, **kwargs):
         user = kwargs['user']
-        if user and kwargs.get('notificar', False):
+        if user:
             assunto, corpo = self.template_mensagem
             enviar_notificacao_e_email(sender=user,
                                        recipients=self.partes_interessadas_terceirizadas_tomou_ciencia,
@@ -469,7 +469,7 @@ class FluxoInformativoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model)
     @xworkflows.after_transition('terceirizada_toma_ciencia')
     def _terceirizada_toma_ciencia_hook(self, *args, **kwargs):
         user = kwargs['user']
-        if user and kwargs.get('notificar', False):
+        if user:
             assunto, corpo = self.template_mensagem
             enviar_notificacao_e_email(sender=user,
                                        recipients=self.partes_interessadas_terceirizadas_tomou_ciencia,

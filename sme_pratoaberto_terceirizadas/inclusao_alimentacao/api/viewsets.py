@@ -271,7 +271,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
     def inicio_de_pedido(self, request, uuid=None):
         grupo_alimentacao_normal = self.get_object()
         try:
-            grupo_alimentacao_normal.inicia_fluxo(user=request.user, notificar=True)
+            grupo_alimentacao_normal.inicia_fluxo(user=request.user,)
             serializer = self.get_serializer(grupo_alimentacao_normal)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -282,7 +282,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
     def diretoria_regional_aprova(self, request, uuid=None):
         grupo_alimentacao_normal = self.get_object()
         try:
-            grupo_alimentacao_normal.dre_valida(user=request.user, notificar=True)
+            grupo_alimentacao_normal.dre_valida(user=request.user,)
             serializer = self.get_serializer(grupo_alimentacao_normal)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -293,7 +293,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
     def diretoria_regional_pede_revisao(self, request, uuid=None):
         grupo_alimentacao_normal = self.get_object()
         try:
-            grupo_alimentacao_normal.dre_pede_revisao(user=request.user, notificar=True)
+            grupo_alimentacao_normal.dre_pede_revisao(user=request.user,)
             serializer = self.get_serializer(grupo_alimentacao_normal)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -304,7 +304,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
     def diretoria_cancela_pedido(self, request, uuid=None):
         grupo_alimentacao_normal = self.get_object()
         try:
-            grupo_alimentacao_normal.dre_nao_valida(user=request.user, notificar=True)
+            grupo_alimentacao_normal.dre_nao_valida(user=request.user,)
             serializer = self.get_serializer(grupo_alimentacao_normal)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -315,7 +315,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
     def escola_revisa_pedido(self, request, uuid=None):
         grupo_alimentacao_normal = self.get_object()
         try:
-            grupo_alimentacao_normal.escola_revisa(user=request.user, notificar=True)
+            grupo_alimentacao_normal.escola_revisa(user=request.user,)
             serializer = self.get_serializer(grupo_alimentacao_normal)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -326,7 +326,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
     def codae_aprova_pedido(self, request, uuid=None):
         grupo_alimentacao_normal = self.get_object()
         try:
-            grupo_alimentacao_normal.codae_autoriza(user=request.user, notificar=True)
+            grupo_alimentacao_normal.codae_autoriza(user=request.user,)
             serializer = self.get_serializer(grupo_alimentacao_normal)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -337,7 +337,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
     def codae_cancela_pedido(self, request, uuid=None):
         grupo_alimentacao_normal = self.get_object()
         try:
-            grupo_alimentacao_normal.codae_nega(user=request.user, notificar=True)
+            grupo_alimentacao_normal.codae_nega(user=request.user,)
             serializer = self.get_serializer(grupo_alimentacao_normal)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -348,7 +348,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
     def terceirizada_toma_ciencia(self, request, uuid=None):
         grupo_alimentacao_normal = self.get_object()
         try:
-            grupo_alimentacao_normal.terceirizada_toma_ciencia(user=request.user, notificar=True)
+            grupo_alimentacao_normal.terceirizada_toma_ciencia(user=request.user,)
             serializer = self.get_serializer(grupo_alimentacao_normal)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -359,7 +359,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
     def escola_cancela_pedido(self, request, uuid=None):
         grupo_alimentacao_normal = self.get_object()
         try:
-            grupo_alimentacao_normal.cancelar_pedido(user=request.user, notificar=True)
+            grupo_alimentacao_normal.cancelar_pedido(user=request.user,)
             serializer = self.get_serializer(grupo_alimentacao_normal)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -607,7 +607,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
     def inicio_de_pedido(self, request, uuid=None):
         inclusao_alimentacao_continua = self.get_object()
         try:
-            inclusao_alimentacao_continua.inicia_fluxo(user=request.user, notificar=True)
+            inclusao_alimentacao_continua.inicia_fluxo(user=request.user,)
             serializer = self.get_serializer(inclusao_alimentacao_continua)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -618,7 +618,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
     def diretoria_regional_aprova(self, request, uuid=None):
         inclusao_alimentacao_continua = self.get_object()
         try:
-            inclusao_alimentacao_continua.dre_valida(user=request.user, notificar=True)
+            inclusao_alimentacao_continua.dre_valida(user=request.user,)
             serializer = self.get_serializer(inclusao_alimentacao_continua)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -629,7 +629,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
     def diretoria_regional_pede_revisao(self, request, uuid=None):
         inclusao_alimentacao_continua = self.get_object()
         try:
-            inclusao_alimentacao_continua.dre_pede_revisao(user=request.user, notificar=True)
+            inclusao_alimentacao_continua.dre_pede_revisao(user=request.user,)
             serializer = self.get_serializer(inclusao_alimentacao_continua)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -640,7 +640,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
     def escola_revisa_pedido(self, request, uuid=None):
         inclusao_alimentacao_continua = self.get_object()
         try:
-            inclusao_alimentacao_continua.escola_revisa(user=request.user, notificar=True)
+            inclusao_alimentacao_continua.escola_revisa(user=request.user,)
             serializer = self.get_serializer(inclusao_alimentacao_continua)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -651,7 +651,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
     def codae_cancela_pedido(self, request, uuid=None):
         inclusao_alimentacao_continua = self.get_object()
         try:
-            inclusao_alimentacao_continua.codae_nega(user=request.user, notificar=True)
+            inclusao_alimentacao_continua.codae_nega(user=request.user,)
             serializer = self.get_serializer(inclusao_alimentacao_continua)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -662,7 +662,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
     def diretoria_regional_cancela_pedido(self, request, uuid=None):
         inclusao_alimentacao_continua = self.get_object()
         try:
-            inclusao_alimentacao_continua.dre_nao_valida(user=request.user, notificar=True)
+            inclusao_alimentacao_continua.dre_nao_valida(user=request.user,)
             serializer = self.get_serializer(inclusao_alimentacao_continua)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -673,7 +673,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
     def codae_aprova_pedido(self, request, uuid=None):
         inclusao_alimentacao_continua = self.get_object()
         try:
-            inclusao_alimentacao_continua.codae_autoriza(user=request.user, notificar=True)
+            inclusao_alimentacao_continua.codae_autoriza(user=request.user,)
             serializer = self.get_serializer(inclusao_alimentacao_continua)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -684,7 +684,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
     def terceirizada_toma_ciencia(self, request, uuid=None):
         inclusao_alimentacao_continua = self.get_object()
         try:
-            inclusao_alimentacao_continua.terceirizada_toma_ciencia(user=request.user, notificar=True)
+            inclusao_alimentacao_continua.terceirizada_toma_ciencia(user=request.user,)
             serializer = self.get_serializer(inclusao_alimentacao_continua)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -695,7 +695,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
     def escola_cancela_pedido(self, request, uuid=None):
         inclusao_alimentacao_continua = self.get_object()
         try:
-            inclusao_alimentacao_continua.cancelar_pedido(user=request.user, notificar=True)
+            inclusao_alimentacao_continua.cancelar_pedido(user=request.user,)
             serializer = self.get_serializer(inclusao_alimentacao_continua)
             return Response(serializer.data)
         except InvalidTransitionError as e:

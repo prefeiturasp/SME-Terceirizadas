@@ -3,6 +3,7 @@ import datetime
 from rest_framework import serializers
 from traitlets import Any
 from workalendar.america import BrazilSaoPauloCity
+from django.db import models
 
 from .utils import eh_dia_util, obter_dias_uteis_apos_hoje
 
@@ -34,8 +35,12 @@ def dia_util(data: datetime.date):
     return True
 
 
-# TODO: validar o primeiro parametro pra ser instance of Model
 def verificar_se_existe(obj_model, **kwargs) -> bool:
+    try:
+        if not issubclass(obj_model, models.Model):
+            raise TypeError('obj_model deve ser um "django models class"')
+    except TypeError:
+        raise TypeError('obj_model deve ser um "django models class"')
     existe = obj_model.objects.filter(**kwargs).exists()
     return existe
 
