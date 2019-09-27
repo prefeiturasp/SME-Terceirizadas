@@ -1,15 +1,18 @@
 from django.db import models
 
+from ...dados_comuns.models_abstract import TemPrioridade
 from ...dados_comuns.fluxo_status import PedidoAPartirDaDiretoriaRegionalWorkflow, PedidoAPartirDaEscolaWorkflow
 from ...dados_comuns.models import LogSolicitacoesUsuario
 
 
-class MoldeConsolidado(models.Model):
+class MoldeConsolidado(models.Model, TemPrioridade):
     uuid = models.UUIDField(editable=False)
     escola_uuid = models.UUIDField(editable=False)
     lote = models.CharField(max_length=50)
     dre_uuid = models.UUIDField(editable=False)
+    dre_nome = models.CharField(max_length=200)
     criado_em = models.DateTimeField()
+    data_doc = models.DateField()
     tipo_doc = models.CharField(max_length=30)
     desc_doc = models.CharField(max_length=50)
     status_evento = models.PositiveSmallIntegerField()
@@ -30,6 +33,10 @@ class MoldeConsolidado(models.Model):
     @classmethod
     def get_solicitacoes_revisao(cls, **kwargs):
         raise NotImplementedError('Precisa implementar')
+
+    @property
+    def data(self):
+        return self.data_doc
 
     class Meta:
         managed = False
