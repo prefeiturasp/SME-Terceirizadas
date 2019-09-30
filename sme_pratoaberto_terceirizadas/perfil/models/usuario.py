@@ -93,6 +93,7 @@ class Usuario(CustomAbstractUser, TemChaveExterna):
 
     nome = models.CharField(_('name'), max_length=150)
     email = models.EmailField(_('email address'), unique=True)
+    registro_funcional = models.CharField(_('RF'), max_length=10, default='')
     perfis = models.ManyToManyField(Perfil)
 
     USERNAME_FIELD = 'email'
