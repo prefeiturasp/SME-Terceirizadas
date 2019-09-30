@@ -140,12 +140,14 @@ class InversaoCardapio(CriadoEm, CriadoPor, TemObservacao, Motivo, TemChaveExter
         return template.assunto, corpo
 
     def salvar_log_transicao(self, status_evento, usuario, **kwargs):
+        justificativa = kwargs.get('justificativa', '')
         LogSolicitacoesUsuario.objects.create(
             descricao=str(self),
             status_evento=status_evento,
             solicitacao_tipo=LogSolicitacoesUsuario.INVERSAO_DE_CARDAPIO,
             usuario=usuario,
-            uuid_original=self.uuid
+            uuid_original=self.uuid,
+            justificativa=justificativa
         )
 
     def __str__(self):
@@ -326,6 +328,13 @@ class AlteracaoCardapio(CriadoEm, CriadoPor, TemChaveExterna, IntervaloDeDia, Te
     motivo = models.ForeignKey('MotivoAlteracaoCardapio', on_delete=models.PROTECT, blank=True, null=True)
 
     @property
+    def data(self):
+        data = self.data_inicial
+        if self.data_final < data:
+            data = self.data_final
+        return data
+
+    @property
     def substituicoes(self):
         return self.substituicoes_periodo_escolar
 
@@ -345,13 +354,15 @@ class AlteracaoCardapio(CriadoEm, CriadoPor, TemChaveExterna, IntervaloDeDia, Te
         corpo = template.template_html
         return template.assunto, corpo
 
-    def salvar_log_transicao(self, status_evento, usuario):
+    def salvar_log_transicao(self, status_evento, usuario, **kwargs):
+        justificativa = kwargs.get('justificativa', '')
         LogSolicitacoesUsuario.objects.create(
             descricao=str(self),
             status_evento=status_evento,
             solicitacao_tipo=LogSolicitacoesUsuario.ALTERACAO_DE_CARDAPIO,
             usuario=usuario,
-            uuid_original=self.uuid
+            uuid_original=self.uuid,
+            justificativa=justificativa
         )
 
     @classmethod
