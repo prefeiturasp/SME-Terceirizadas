@@ -20,7 +20,7 @@ def base_codae(client_autenticado, resource):
 
 
 def test_url_endpoint_painel_codae_pendentes_aprovacao(client_autenticado):
-    base_codae(client_autenticado, 'pendentes-aprovacao')
+    base_codae(client_autenticado, 'pendentes-aprovacao/sem_filtro')
 
 
 def test_url_endpoint_painel_codae_aprovados(client_autenticado):

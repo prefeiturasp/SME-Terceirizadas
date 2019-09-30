@@ -8,6 +8,7 @@ from .constants import (
 from ..models.codae import (
     SolicitacoesCODAE, SolicitacoesDRE, SolicitacoesEscola
 )
+from ...dados_comuns.constants import FILTRO_PADRAO_PEDIDOS, SEM_FILTRO
 from ...escola.models import DiretoriaRegional
 from ...paineis_consolidados.api.serializers import SolicitacoesSerializer
 
@@ -35,9 +36,9 @@ class CODAESolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = SolicitacoesCODAE.objects.all()
     serializer_class = SolicitacoesSerializer
 
-    @action(detail=False, methods=['GET'], url_path=PENDENTES_APROVACAO)
-    def pendentes_aprovacao(self, request):
-        query_set = SolicitacoesCODAE.get_pendentes_aprovacao()
+    @action(detail=False, methods=['GET'], url_path=f'{PENDENTES_APROVACAO}/{FILTRO_PADRAO_PEDIDOS}')
+    def pendentes_aprovacao(self, request, filtro_aplicado=SEM_FILTRO):
+        query_set = SolicitacoesCODAE.get_pendentes_aprovacao(filtro=filtro_aplicado)
         return self._retorno_base(query_set)
 
     @action(detail=False, methods=['GET'], url_path=AUTORIZADOS)
