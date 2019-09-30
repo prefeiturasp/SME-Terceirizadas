@@ -6,6 +6,7 @@ import random
 
 import numpy as np
 from faker import Faker
+from xworkflows import InvalidTransitionError
 
 from sme_pratoaberto_terceirizadas.cardapio.models import TipoAlimentacao, InversaoCardapio, Cardapio, \
     GrupoSuspensaoAlimentacao, SuspensaoAlimentacao, MotivoSuspensao, QuantidadePorPeriodoSuspensaoAlimentacao, \
@@ -62,11 +63,11 @@ def _get_random_motivo_altercao_cardapio():
 
 
 def _get_random_escola():
-    return Escola.objects.filter(id__lte=5).order_by("?").first()
+    return Escola.objects.filter(id__lte=2).order_by("?").first()
 
 
 def _get_random_dre():
-    return DiretoriaRegional.objects.filter(id__lte=5).order_by("?").first()
+    return DiretoriaRegional.objects.filter(id__lte=2).order_by("?").first()
 
 
 def _get_random_periodo_escolar():
@@ -94,6 +95,11 @@ def fluxo_escola_felix(obj, user):
             obj.codae_autoriza(user=user, notificar=True)
             if random.random() >= 0.3:
                 obj.terceirizada_toma_ciencia(user=user, notificar=True)
+                if random.random() >= 0.8:
+                    try:
+                        obj.cancelar_pedido(user=user)
+                    except InvalidTransitionError:
+                        return
         else:
             if random.random() <= 0.2:
                 obj.codae_nega(user=user, notificar=True)
@@ -105,26 +111,31 @@ def fluxo_escola_felix(obj, user):
 
 
 def fluxo_informativo_felix(obj, user):
-    obj.informa(user=user, notificar=True)
+    obj.informa(user=user)
     if random.random() >= 0.5:
-        obj.terceirizada_toma_ciencia(user=user, notificar=True)
+        obj.terceirizada_toma_ciencia(user=user)
 
 
 def fluxo_dre_felix(obj, user):
     # print(f'aplicando fluxo DRE feliz em {obj}')
-    obj.inicia_fluxo(user=user, notificar=True)
+    obj.inicia_fluxo(user=user)
     if random.random() >= 0.1:
         obj.codae_autoriza(user=user, notificar=True)
         if random.random() >= 0.3:
             obj.terceirizada_toma_ciencia(user=user, notificar=True)
+            if random.random() >= 0.8:
+                try:
+                    obj.cancelar_pedido(user=user)
+                except InvalidTransitionError:
+                    pass
 
 
 def fluxo_escola_loop(obj, user):
     # print(f'aplicando fluxo loop revisao dre-escola em {obj}')
-    obj.inicia_fluxo(user=user, notificar=True)
-    obj.dre_pede_revisao(user=user, notificar=True)
-    obj.escola_revisa(user=user, notificar=True)
-    obj.dre_valida(user=user, notificar=True)
+    obj.inicia_fluxo(user=user)
+    obj.dre_pede_revisao(user=user)
+    obj.escola_revisa(user=user)
+    obj.dre_valida(user=user)
 
 
 def cria_inclusoes_continuas(qtd=50):
@@ -280,7 +291,7 @@ def cria_alteracoes_cardapio(qtd=50):
         fluxo_escola_felix(alteracao_cardapio, user)
 
 
-QTD_PEDIDOS = 100
+QTD_PEDIDOS = 50
 
 print('-> vinculando escola dre e usuarios')
 vincula_dre_escola_usuario()
@@ -296,5 +307,6 @@ print('-> criando suspensoes alimentação')
 cria_suspensoes_alimentacao(QTD_PEDIDOS)
 print('-> criando alterações de cardapio')
 cria_alteracoes_cardapio(QTD_PEDIDOS)
+
 print('-> criando solicicitacoes kit lanche unificada')
 cria_solicitacoes_kit_lanche_unificada(QTD_PEDIDOS)

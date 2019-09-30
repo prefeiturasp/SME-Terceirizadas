@@ -82,6 +82,13 @@ class InclusaoAlimentacaoContinua(IntervaloDeDia, Descritivel, TemChaveExterna,
     prazo_regular_daqui_a_30_dias = InclusoesDeAlimentacaoContinuaPrazoRegularDaquiA30DiasManager()
     vencidos = InclusoesDeAlimentacaoContinuaVencidaDiasManager()
 
+    @property
+    def data(self):
+        data = self.data_inicial
+        if self.data_final < data:
+            data = self.data_final
+        return data
+
     @classmethod
     def get_solicitacoes_rascunho(cls, usuario):
         inclusoes_continuas = cls.objects.filter(
@@ -111,12 +118,14 @@ class InclusaoAlimentacaoContinua(IntervaloDeDia, Descritivel, TemChaveExterna,
         return template.assunto, corpo
 
     def salvar_log_transicao(self, status_evento, usuario, **kwargs):
+        justificativa = kwargs.get('justificativa', '')
         LogSolicitacoesUsuario.objects.create(
             descricao=str(self),
             status_evento=status_evento,
             solicitacao_tipo=LogSolicitacoesUsuario.INCLUSAO_ALIMENTACAO_CONTINUA,
             usuario=usuario,
-            uuid_original=self.uuid
+            uuid_original=self.uuid,
+            justificativa=justificativa
         )
 
     def __str__(self):
@@ -208,12 +217,14 @@ class GrupoInclusaoAlimentacaoNormal(Descritivel, TemChaveExterna, FluxoAprovaca
         return inclusao_normal.data
 
     def salvar_log_transicao(self, status_evento, usuario, **kwargs):
+        justificativa = kwargs.get('justificativa', '')
         LogSolicitacoesUsuario.objects.create(
             descricao=str(self),
             status_evento=status_evento,
             solicitacao_tipo=LogSolicitacoesUsuario.INCLUSAO_ALIMENTACAO_NORMAL,
             usuario=usuario,
-            uuid_original=self.uuid
+            uuid_original=self.uuid,
+            justificativa=justificativa
         )
 
     @property
