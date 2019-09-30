@@ -151,7 +151,8 @@ class UsuarioDetalheSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Usuario
-        fields = ('uuid', 'nome', 'email', 'date_joined', 'perfis', 'escolas', 'diretorias_regionais')
+        fields = ('uuid', 'nome', 'email', 'registro_funcional',
+                  'date_joined', 'perfis', 'escolas', 'diretorias_regionais')
 
 
 class CODAESerializer(serializers.ModelSerializer):
