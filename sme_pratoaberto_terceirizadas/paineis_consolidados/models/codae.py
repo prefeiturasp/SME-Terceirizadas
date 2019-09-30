@@ -1,6 +1,6 @@
 from django.db import models
 
-from sme_pratoaberto_terceirizadas.dados_comuns.constants import DAQUI_A_30_DIAS, DAQUI_A_7_DIAS
+from ...dados_comuns.constants import DAQUI_A_30_DIAS, DAQUI_A_7_DIAS
 from ...dados_comuns.fluxo_status import PedidoAPartirDaDiretoriaRegionalWorkflow, PedidoAPartirDaEscolaWorkflow
 from ...dados_comuns.models import LogSolicitacoesUsuario
 from ...dados_comuns.models_abstract import TemPrioridade

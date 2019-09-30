@@ -2,13 +2,13 @@ from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from sme_pratoaberto_terceirizadas.dados_comuns.constants import FILTRO_PADRAO_PEDIDOS, SEM_FILTRO
 from .constants import (
     AUTORIZADOS, CANCELADOS, FILTRO_DRE_UUID, FILTRO_ESCOLA_UUID, NEGADOS, PENDENTES_APROVACAO, _NEGADOS
 )
 from ..models.codae import (
     SolicitacoesCODAE, SolicitacoesDRE, SolicitacoesEscola
 )
+from ...dados_comuns.constants import FILTRO_PADRAO_PEDIDOS, SEM_FILTRO
 from ...escola.models import DiretoriaRegional
 from ...paineis_consolidados.api.serializers import SolicitacoesSerializer
 
