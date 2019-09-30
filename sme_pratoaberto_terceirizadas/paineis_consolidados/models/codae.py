@@ -1,8 +1,26 @@
 from django.db import models
 
-from ...dados_comuns.models_abstract import TemPrioridade
+from sme_pratoaberto_terceirizadas.dados_comuns.constants import DAQUI_A_7_DIAS, DAQUI_A_30_DIAS
 from ...dados_comuns.fluxo_status import PedidoAPartirDaDiretoriaRegionalWorkflow, PedidoAPartirDaEscolaWorkflow
 from ...dados_comuns.models import LogSolicitacoesUsuario
+from ...dados_comuns.models_abstract import TemPrioridade
+from ...dados_comuns.utils import obter_dias_uteis_apos_hoje
+
+
+class Solicitacoes7DiasManager(models.Manager):
+    def get_queryset(self):
+        data_limite_inicial = obter_dias_uteis_apos_hoje(quantidade_dias=0)
+        data_limite_final = obter_dias_uteis_apos_hoje(quantidade_dias=8)
+        return super(Solicitacoes7DiasManager, self).get_queryset().filter(data_doc__range=(data_limite_inicial,
+                                                                                            data_limite_final))
+
+
+class Solicitacoes30DiasManager(models.Manager):
+    def get_queryset(self):
+        data_limite_inicial = obter_dias_uteis_apos_hoje(quantidade_dias=0)
+        data_limite_final = obter_dias_uteis_apos_hoje(quantidade_dias=31)
+        return super(Solicitacoes30DiasManager, self).get_queryset().filter(
+            data_doc__range=(data_limite_inicial, data_limite_final))
 
 
 class MoldeConsolidado(models.Model, TemPrioridade):
@@ -17,6 +35,11 @@ class MoldeConsolidado(models.Model, TemPrioridade):
     desc_doc = models.CharField(max_length=50)
     status_evento = models.PositiveSmallIntegerField()
     status = models.CharField(max_length=32)
+
+    objects = models.Manager()
+    sem_filtro = models.Manager()
+    filtro_7_dias = Solicitacoes7DiasManager()
+    filtro_30_dias = Solicitacoes30DiasManager()
 
     @classmethod
     def get_pendentes_aprovacao(cls, **kwargs):
@@ -48,7 +71,13 @@ class SolicitacoesCODAE(MoldeConsolidado):
 
     @classmethod
     def get_pendentes_aprovacao(cls, **kwargs):
-        return cls.objects.filter(
+        filtro = kwargs.get('filtro')
+        manager = cls.sem_filtro
+        if filtro == DAQUI_A_7_DIAS:
+            manager = cls.filtro_7_dias
+        elif filtro == DAQUI_A_30_DIAS:
+            manager = cls.filtro_30_dias
+        return manager.filter(
             status_evento=LogSolicitacoesUsuario.DRE_VALIDOU,
             status=PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO
         ).order_by('-criado_em')

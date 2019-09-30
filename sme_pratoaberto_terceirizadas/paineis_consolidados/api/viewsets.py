@@ -2,6 +2,7 @@ from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
+from sme_pratoaberto_terceirizadas.dados_comuns.constants import FILTRO_PADRAO_PEDIDOS, SEM_FILTRO
 from .constants import (
     AUTORIZADOS, CANCELADOS, FILTRO_DRE_UUID, FILTRO_ESCOLA_UUID, NEGADOS, PENDENTES_APROVACAO, _NEGADOS
 )
@@ -35,9 +36,9 @@ class CODAESolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = SolicitacoesCODAE.objects.all()
     serializer_class = SolicitacoesSerializer
 
-    @action(detail=False, methods=['GET'], url_path=PENDENTES_APROVACAO)
-    def pendentes_aprovacao(self, request):
-        query_set = SolicitacoesCODAE.get_pendentes_aprovacao()
+    @action(detail=False, methods=['GET'], url_path=f'{PENDENTES_APROVACAO}/{FILTRO_PADRAO_PEDIDOS}')
+    def pendentes_aprovacao(self, request, filtro_aplicado=SEM_FILTRO):
+        query_set = SolicitacoesCODAE.get_pendentes_aprovacao(filtro=filtro_aplicado)
         return self._retorno_base(query_set)
 
     @action(detail=False, methods=['GET'], url_path=AUTORIZADOS)
