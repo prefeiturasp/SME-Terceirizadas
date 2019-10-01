@@ -58,74 +58,74 @@ def test_solicitacao(solicitacao):
     assert 'Solicitação kit lanche base' in solicitacao._meta.verbose_name
 
 
-def test_solicitacao_avulsa_workflow_case_1_PartindoDaEscola(solicitacao_avulsa):
+def test_solicitacao_avulsa_workflow_case_1_partindo_da_escola(solicitacao_avulsa):
     """RASCUNHO > DRE_A_VALIDAR > DRE_VALIDADO > CODAE_AUTORIZADO > TERCEIRIZADA_TOMOU_CIENCIA."""
-    WC = solicitacao_avulsa.workflow_class
+    wc = solicitacao_avulsa.workflow_class
     user = mommy.make('perfil.Usuario')
-    assert solicitacao_avulsa.status == WC.RASCUNHO
+    assert solicitacao_avulsa.status == wc.RASCUNHO
 
     solicitacao_avulsa.inicia_fluxo(user=user)
-    assert solicitacao_avulsa.status == WC.DRE_A_VALIDAR
+    assert solicitacao_avulsa.status == wc.DRE_A_VALIDAR
 
     solicitacao_avulsa.dre_valida(user=user,)
-    assert solicitacao_avulsa.status == WC.DRE_VALIDADO
+    assert solicitacao_avulsa.status == wc.DRE_VALIDADO
 
     solicitacao_avulsa.codae_autoriza(user=user,)
-    assert solicitacao_avulsa.status == WC.CODAE_AUTORIZADO
+    assert solicitacao_avulsa.status == wc.CODAE_AUTORIZADO
 
     solicitacao_avulsa.terceirizada_toma_ciencia(user=user,)
-    assert solicitacao_avulsa.status == WC.TERCEIRIZADA_TOMOU_CIENCIA
+    assert solicitacao_avulsa.status == wc.TERCEIRIZADA_TOMOU_CIENCIA
 
 
-def test_solicitacao_avulsa_workflow_case_2_PartindoDaEscola(solicitacao_avulsa):
+def test_solicitacao_avulsa_workflow_case_2_partindo_da_escola(solicitacao_avulsa):
     """RASCUNHO > DRE_A_VALIDAR > DRE_PEDIU_ESCOLA_REVISAR > DRE_A_VALIDAR."""
-    WC = solicitacao_avulsa.workflow_class
+    wc = solicitacao_avulsa.workflow_class
     user = mommy.make('perfil.Usuario')
-    assert solicitacao_avulsa.status == WC.RASCUNHO
+    assert solicitacao_avulsa.status == wc.RASCUNHO
 
     solicitacao_avulsa.inicia_fluxo(user=user)
-    assert solicitacao_avulsa.status == WC.DRE_A_VALIDAR
+    assert solicitacao_avulsa.status == wc.DRE_A_VALIDAR
 
     solicitacao_avulsa.dre_pede_revisao(user=user,)
-    assert solicitacao_avulsa.status == WC.DRE_PEDIU_ESCOLA_REVISAR
+    assert solicitacao_avulsa.status == wc.DRE_PEDIU_ESCOLA_REVISAR
 
     solicitacao_avulsa.escola_revisa(user=user,)
-    assert solicitacao_avulsa.status == WC.DRE_A_VALIDAR
+    assert solicitacao_avulsa.status == wc.DRE_A_VALIDAR
 
 
-def test_solicitacao_avulsa_workflow_case_3_PartindoDaEscola(solicitacao_avulsa):
+def test_solicitacao_avulsa_workflow_case_3_partindo_da_escola(solicitacao_avulsa):
     """RASCUNHO > DRE_A_VALIDAR > DRE_NAO_VALIDOU_PEDIDO_ESCOLA."""
-    WC = solicitacao_avulsa.workflow_class
+    wc = solicitacao_avulsa.workflow_class
     user = mommy.make('perfil.Usuario')
-    assert solicitacao_avulsa.status == WC.RASCUNHO
+    assert solicitacao_avulsa.status == wc.RASCUNHO
 
     solicitacao_avulsa.inicia_fluxo(user=user)
-    assert solicitacao_avulsa.status == WC.DRE_A_VALIDAR
+    assert solicitacao_avulsa.status == wc.DRE_A_VALIDAR
 
     solicitacao_avulsa.dre_nao_valida(user=user)
-    assert solicitacao_avulsa.status == WC.DRE_NAO_VALIDOU_PEDIDO_ESCOLA
+    assert solicitacao_avulsa.status == wc.DRE_NAO_VALIDOU_PEDIDO_ESCOLA
 
 
-def test_solicitacao_avulsa_workflow_case_4_PartindoDaEscola(solicitacao_avulsa):
+def test_solicitacao_avulsa_workflow_case_4_partindo_da_escola(solicitacao_avulsa):
     """RASCUNHO > DRE_A_VALIDAR > DRE_VALIDADO > CODAE_NEGOU_PEDIDO."""
-    WC = solicitacao_avulsa.workflow_class
+    wc = solicitacao_avulsa.workflow_class
     user = mommy.make('perfil.Usuario')
-    assert solicitacao_avulsa.status == WC.RASCUNHO
+    assert solicitacao_avulsa.status == wc.RASCUNHO
 
     solicitacao_avulsa.inicia_fluxo(user=user)
-    assert solicitacao_avulsa.status == WC.DRE_A_VALIDAR
+    assert solicitacao_avulsa.status == wc.DRE_A_VALIDAR
 
     solicitacao_avulsa.dre_valida(user=user,)
-    assert solicitacao_avulsa.status == WC.DRE_VALIDADO
+    assert solicitacao_avulsa.status == wc.DRE_VALIDADO
 
     solicitacao_avulsa.codae_nega(user=user)
-    assert solicitacao_avulsa.status == WC.CODAE_NEGOU_PEDIDO
+    assert solicitacao_avulsa.status == wc.CODAE_NEGOU_PEDIDO
 
 
-def test_solicitacao_avulsa_workflow_PartindoDaEscola_with_error(solicitacao_avulsa):
-    WC = solicitacao_avulsa.workflow_class
+def test_solicitacao_avulsa_workflow_partindo_da_escola_with_error(solicitacao_avulsa):
+    wc = solicitacao_avulsa.workflow_class
     user = mommy.make('perfil.Usuario')
-    assert solicitacao_avulsa.status == WC.RASCUNHO
+    assert solicitacao_avulsa.status == wc.RASCUNHO
 
     with pytest.raises(InvalidTransitionError,
                        match="Transition 'dre_valida' isn't available from state 'RASCUNHO'"):
@@ -156,63 +156,63 @@ def test_solicitacao_avulsa_workflow_PartindoDaEscola_with_error(solicitacao_avu
         solicitacao_avulsa.escola_revisa(user=user)
 
 
-def test_solicitacao_unificada_lista_igual_workflow_case_1_PartindoDaDiretoriaRegional(
+def test_solicitacao_unificada_lista_igual_workflow_case_1_partindo_da_diretoria_regional(
     solicitacao_unificada_lista_igual
 ):
     """RASCUNHO > CODAE_A_AUTORIZAR > CODAE_PEDIU_DRE_REVISAR > CODAE_A_AUTORIZAR."""
-    WC = solicitacao_unificada_lista_igual.workflow_class
+    wc = solicitacao_unificada_lista_igual.workflow_class
     user = mommy.make('perfil.Usuario')
-    assert solicitacao_unificada_lista_igual.status == WC.RASCUNHO
+    assert solicitacao_unificada_lista_igual.status == wc.RASCUNHO
 
     solicitacao_unificada_lista_igual.inicia_fluxo(user=user)
-    assert solicitacao_unificada_lista_igual.status == WC.CODAE_A_AUTORIZAR
+    assert solicitacao_unificada_lista_igual.status == wc.CODAE_A_AUTORIZAR
 
     solicitacao_unificada_lista_igual.codae_pede_revisao(user=user)
-    assert solicitacao_unificada_lista_igual.status == WC.CODAE_PEDIU_DRE_REVISAR
+    assert solicitacao_unificada_lista_igual.status == wc.CODAE_PEDIU_DRE_REVISAR
 
     solicitacao_unificada_lista_igual.dre_revisa(user=user)
-    assert solicitacao_unificada_lista_igual.status == WC.CODAE_A_AUTORIZAR
+    assert solicitacao_unificada_lista_igual.status == wc.CODAE_A_AUTORIZAR
 
 
-def test_solicitacao_unificada_lista_igual_workflow_case_2_PartindoDaDiretoriaRegional(
+def test_solicitacao_unificada_lista_igual_workflow_case_2_partindo_da_diretoria_regional(
     solicitacao_unificada_lista_igual
 ):
     """RASCUNHO > CODAE_A_AUTORIZAR > CODAE_AUTORIZADO > TERCEIRIZADA_TOMOU_CIENCIA."""
-    WC = solicitacao_unificada_lista_igual.workflow_class
+    wc = solicitacao_unificada_lista_igual.workflow_class
     user = mommy.make('perfil.Usuario')
-    assert solicitacao_unificada_lista_igual.status == WC.RASCUNHO
+    assert solicitacao_unificada_lista_igual.status == wc.RASCUNHO
 
     solicitacao_unificada_lista_igual.inicia_fluxo(user=user)
-    assert solicitacao_unificada_lista_igual.status == WC.CODAE_A_AUTORIZAR
+    assert solicitacao_unificada_lista_igual.status == wc.CODAE_A_AUTORIZAR
 
     solicitacao_unificada_lista_igual.codae_autoriza(user=user)
-    assert solicitacao_unificada_lista_igual.status == WC.CODAE_AUTORIZADO
+    assert solicitacao_unificada_lista_igual.status == wc.CODAE_AUTORIZADO
 
     solicitacao_unificada_lista_igual.terceirizada_toma_ciencia(user=user)
-    assert solicitacao_unificada_lista_igual.status == WC.TERCEIRIZADA_TOMOU_CIENCIA
+    assert solicitacao_unificada_lista_igual.status == wc.TERCEIRIZADA_TOMOU_CIENCIA
 
 
-def test_solicitacao_unificada_lista_igual_workflow_case_3_PartindoDaDiretoriaRegional(
+def test_solicitacao_unificada_lista_igual_workflow_case_3_partindo_da_diretoria_regional(
     solicitacao_unificada_lista_igual
 ):
     """RASCUNHO > CODAE_A_AUTORIZAR > CODAE_NEGOU_PEDIDO."""
-    WC = solicitacao_unificada_lista_igual.workflow_class
+    wc = solicitacao_unificada_lista_igual.workflow_class
     user = mommy.make('perfil.Usuario')
-    assert solicitacao_unificada_lista_igual.status == WC.RASCUNHO
+    assert solicitacao_unificada_lista_igual.status == wc.RASCUNHO
 
     solicitacao_unificada_lista_igual.inicia_fluxo(user=user)
-    assert solicitacao_unificada_lista_igual.status == WC.CODAE_A_AUTORIZAR
+    assert solicitacao_unificada_lista_igual.status == wc.CODAE_A_AUTORIZAR
 
     solicitacao_unificada_lista_igual.codae_nega(user=user)
-    assert solicitacao_unificada_lista_igual.status == WC.CODAE_NEGOU_PEDIDO
+    assert solicitacao_unificada_lista_igual.status == wc.CODAE_NEGOU_PEDIDO
 
 
-def test_solicitacao_unificada_lista_igual_workflow_PartindoDaEscola_with_error(
+def test_solicitacao_unificada_lista_igual_workflow_partindo_da_escola_with_error(
     solicitacao_unificada_lista_igual
 ):
-    WC = solicitacao_unificada_lista_igual.workflow_class
+    wc = solicitacao_unificada_lista_igual.workflow_class
     user = mommy.make('perfil.Usuario')
-    assert solicitacao_unificada_lista_igual.status == WC.RASCUNHO
+    assert solicitacao_unificada_lista_igual.status == wc.RASCUNHO
 
     with pytest.raises(InvalidTransitionError,
                        match="Transition 'codae_pede_revisao' isn't available from state 'RASCUNHO'"):
