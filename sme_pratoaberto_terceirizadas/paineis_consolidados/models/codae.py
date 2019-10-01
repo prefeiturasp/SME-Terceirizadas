@@ -156,7 +156,7 @@ class SolicitacoesDRE(MoldeConsolidado):
     def get_pendentes_aprovacao(cls, **kwargs):
         dre_uuid = kwargs.get('dre_uuid')
         return cls.objects.filter(
-            status=cls._WORKFLOW_CLASS.CODAE_A_AUTORIZAR,
+            status__in=[cls._WORKFLOW_CLASS.CODAE_A_AUTORIZAR, PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO],
             dre_uuid=dre_uuid
         ).order_by('-criado_em')
 
