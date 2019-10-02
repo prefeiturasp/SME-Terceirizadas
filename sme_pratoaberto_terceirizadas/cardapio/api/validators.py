@@ -2,20 +2,19 @@ import datetime
 
 from django.db.models import Q
 from rest_framework import serializers
-from traitlets import Any
 
 from sme_pratoaberto_terceirizadas.cardapio.models import Cardapio
 from sme_pratoaberto_terceirizadas.escola.models import Escola
 from ..models import InversaoCardapio
 
 
-def cardapio_antigo(cardapio: Cardapio) -> Any:
+def cardapio_antigo(cardapio: Cardapio):
     if cardapio.data <= datetime.date.today():
         raise serializers.ValidationError('Não pode ser cardápio antigo')
     return True
 
 
-def data_troca_nao_pode_ser_superior_a_data_inversao(data_de: datetime.date, data_para: datetime.date) -> Any:
+def data_troca_nao_pode_ser_superior_a_data_inversao(data_de: datetime.date, data_para: datetime.date):
     if data_de >= data_para:
         raise serializers.ValidationError('Data de cardápio para troca é superior a data de inversão')
     return True

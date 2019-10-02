@@ -1,7 +1,6 @@
 import datetime
 
 from rest_framework import serializers
-from traitlets import Any
 from workalendar.america import BrazilSaoPauloCity
 from django.db import models
 
@@ -56,11 +55,11 @@ def nao_pode_ser_feriado(data: datetime.date, mensagem='Não pode ser no feriado
         raise serializers.ValidationError(mensagem)
 
 
-def nao_pode_ser_nulo(valor: Any, mensagem='Não pode ser nulo'):
+def nao_pode_ser_nulo(valor, mensagem='Não pode ser nulo'):
     if not valor:
         raise serializers.ValidationError(mensagem)
 
 
-def deve_ser_deste_tipo(valor: Any, tipo=str, mensagem='Deve ser do tipo texto'):
+def deve_ser_deste_tipo(valor, tipo=str, mensagem='Deve ser do tipo texto'):
     if type(valor) is not tipo:
         raise serializers.ValidationError(mensagem)
