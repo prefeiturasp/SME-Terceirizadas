@@ -13,7 +13,7 @@ from .fluxo_status import (
     InformativoPartindoDaEscolaWorkflow, PedidoAPartirDaDiretoriaRegionalWorkflow, PedidoAPartirDaEscolaWorkflow
 )
 from .models import LogSolicitacoesUsuario
-from .utils import enviar_notificacao_e_email
+from .utils import eh_dia_util, enviar_notificacao_e_email
 from ..perfil import models as models_perfil
 
 
@@ -538,6 +538,13 @@ class TemIdentificadorExternoAmigavel(object):
 class TemPrioridade(object):
     """Exibe o tipo de prioridade do objeto de acordo com as datas que ele tem."""
 
+    def _get_ultimo_dia_util(self, data: datetime.date):
+        """Assumindo que é sab, dom ou feriado volta para o dia util anterior."""
+        data_retorno = data
+        while not eh_dia_util(data_retorno):
+            data_retorno -= datetime.timedelta(days=1)
+        return data_retorno
+
     @property
     def prioridade(self):
         data_pedido = None
@@ -548,11 +555,13 @@ class TemPrioridade(object):
         elif hasattr(self, 'data_inicial'):
             data_pedido = self.data_inicial
 
-        if MINIMO_DIAS_PARA_PEDIDO >= data_pedido >= hoje:
+        ultimo_dia_util = self._get_ultimo_dia_util(data_pedido)
+
+        if MINIMO_DIAS_PARA_PEDIDO >= ultimo_dia_util >= hoje:
             descricao = 'PRIORITARIO'
-        elif DIAS_UTEIS_LIMITE_SUPERIOR >= data_pedido >= DIAS_UTEIS_LIMITE_INFERIOR:
+        elif DIAS_UTEIS_LIMITE_SUPERIOR >= ultimo_dia_util >= DIAS_UTEIS_LIMITE_INFERIOR:
             descricao = 'LIMITE'
-        elif data_pedido >= DIAS_DE_PRAZO_REGULAR_EM_DIANTE:
+        elif ultimo_dia_util >= DIAS_DE_PRAZO_REGULAR_EM_DIANTE:
             descricao = 'REGULAR'
         return descricao
 

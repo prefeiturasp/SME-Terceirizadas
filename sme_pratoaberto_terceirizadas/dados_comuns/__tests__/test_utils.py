@@ -1,6 +1,6 @@
 from freezegun import freeze_time
 
-from sme_pratoaberto_terceirizadas.dados_comuns.utils import obter_dias_uteis_apos_hoje, update_instance_from_dict
+from ..utils import obter_dias_uteis_apos_hoje, update_instance_from_dict
 
 
 @freeze_time('2019-07-10')

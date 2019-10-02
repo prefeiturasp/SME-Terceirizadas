@@ -1,6 +1,7 @@
 import datetime
 
 import pytest
+from freezegun import freeze_time
 from model_mommy import mommy
 from xworkflows import InvalidTransitionError
 
@@ -67,13 +68,13 @@ def test_solicitacao_avulsa_workflow_case_1_partindo_da_escola(solicitacao_avuls
     solicitacao_avulsa.inicia_fluxo(user=user)
     assert solicitacao_avulsa.status == wc.DRE_A_VALIDAR
 
-    solicitacao_avulsa.dre_valida(user=user,)
+    solicitacao_avulsa.dre_valida(user=user, )
     assert solicitacao_avulsa.status == wc.DRE_VALIDADO
 
-    solicitacao_avulsa.codae_autoriza(user=user,)
+    solicitacao_avulsa.codae_autoriza(user=user, )
     assert solicitacao_avulsa.status == wc.CODAE_AUTORIZADO
 
-    solicitacao_avulsa.terceirizada_toma_ciencia(user=user,)
+    solicitacao_avulsa.terceirizada_toma_ciencia(user=user, )
     assert solicitacao_avulsa.status == wc.TERCEIRIZADA_TOMOU_CIENCIA
 
 
@@ -86,10 +87,10 @@ def test_solicitacao_avulsa_workflow_case_2_partindo_da_escola(solicitacao_avuls
     solicitacao_avulsa.inicia_fluxo(user=user)
     assert solicitacao_avulsa.status == wc.DRE_A_VALIDAR
 
-    solicitacao_avulsa.dre_pede_revisao(user=user,)
+    solicitacao_avulsa.dre_pede_revisao(user=user, )
     assert solicitacao_avulsa.status == wc.DRE_PEDIU_ESCOLA_REVISAR
 
-    solicitacao_avulsa.escola_revisa(user=user,)
+    solicitacao_avulsa.escola_revisa(user=user, )
     assert solicitacao_avulsa.status == wc.DRE_A_VALIDAR
 
 
@@ -115,7 +116,7 @@ def test_solicitacao_avulsa_workflow_case_4_partindo_da_escola(solicitacao_avuls
     solicitacao_avulsa.inicia_fluxo(user=user)
     assert solicitacao_avulsa.status == wc.DRE_A_VALIDAR
 
-    solicitacao_avulsa.dre_valida(user=user,)
+    solicitacao_avulsa.dre_valida(user=user, )
     assert solicitacao_avulsa.status == wc.DRE_VALIDADO
 
     solicitacao_avulsa.codae_nega(user=user)
@@ -233,3 +234,11 @@ def test_solicitacao_unificada_lista_igual_workflow_partindo_da_escola_with_erro
     with pytest.raises(InvalidTransitionError,
                        match="Transition 'terceirizada_toma_ciencia' isn't available from state 'RASCUNHO'"):
         solicitacao_unificada_lista_igual.terceirizada_toma_ciencia(user=user)
+
+
+@freeze_time('2019-10-02')
+def test_tageamento_prioridade(kits_avulsos_tageamentos):
+    data_tupla, esperado = kits_avulsos_tageamentos
+    kit_lanche_base = mommy.make('SolicitacaoKitLanche', data=datetime.date(*data_tupla))
+    kit_lanche_avulso = mommy.make('SolicitacaoKitLancheAvulsa', solicitacao_kit_lanche=kit_lanche_base)
+    assert kit_lanche_avulso.prioridade == esperado

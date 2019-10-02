@@ -5,8 +5,8 @@ from faker import Faker
 from model_mommy import mommy
 
 from .. import models
-from ...dados_comuns.models_abstract import TempoPasseio
 from ...dados_comuns.models import TemplateMensagem
+from ...dados_comuns.models_abstract import TempoPasseio
 
 fake = Faker('pt_BR')
 fake.seed(420)
@@ -172,4 +172,25 @@ def horarios_passeio_invalido(request):
     (2, 3),
 ])
 def tempo_kits(request):
+    return request.param
+
+
+@pytest.fixture(params=[
+    # data, tag
+    ((2019, 9, 30), 'VENCIDO'),
+    ((2019, 10, 1), 'VENCIDO'),
+    ((2019, 10, 2), 'PRIORITARIO'),
+    ((2019, 10, 3), 'PRIORITARIO'),
+    ((2019, 10, 4), 'PRIORITARIO'),
+    ((2019, 10, 5), 'PRIORITARIO'),
+    ((2019, 10, 6), 'PRIORITARIO'),
+    ((2019, 10, 7), 'LIMITE'),
+    ((2019, 10, 8), 'LIMITE'),
+    ((2019, 10, 9), 'LIMITE'),
+    ((2019, 10, 10), 'REGULAR'),
+    ((2019, 10, 11), 'REGULAR'),
+    ((2019, 10, 12), 'REGULAR'),
+    ((2019, 10, 13), 'REGULAR'),
+])
+def kits_avulsos_tageamentos(request):
     return request.param
