@@ -1,5 +1,6 @@
 import datetime
 
+from django.utils import timezone
 from rest_framework import serializers
 
 from ..models import SolicitacoesAutorizadasDRE, SolicitacoesPendentesDRE
@@ -51,7 +52,7 @@ class SolicitacoesSerializer(serializers.ModelSerializer):
         return f'{uuid.upper()[:5]} - {obj.lote[:20]} - {obj.desc_doc}'
 
     def get_data_log(self, obj):
-        criado_em = obj.criado_em
+        criado_em = obj.criado_em.astimezone(timezone.get_current_timezone())
         if criado_em.date() == datetime.date.today():
             return criado_em.strftime('%H:%M')
         return criado_em.strftime('%d/%m/%Y')
