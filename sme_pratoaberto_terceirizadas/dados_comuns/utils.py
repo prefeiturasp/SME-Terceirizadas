@@ -77,6 +77,11 @@ def obter_dias_uteis_apos_hoje(quantidade_dias: int):
     return calendar.add_working_days(dia, quantidade_dias)
 
 
+def obter_dias_uteis_apos(dia: datetime.date, quantidade_dias: int):
+    """Retorna o próximo dia útil após dia de parâmetro."""
+    return calendar.add_working_days(dia, quantidade_dias)
+
+
 def eh_dia_util(date):
     return calendar.is_working_day(date)
 

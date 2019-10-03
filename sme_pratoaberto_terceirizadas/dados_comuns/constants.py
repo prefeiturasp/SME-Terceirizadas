@@ -1,9 +1,14 @@
 from .utils import obter_dias_uteis_apos_hoje
 
-MINIMO_DIAS_PARA_PEDIDO = obter_dias_uteis_apos_hoje(2)
-DIAS_UTEIS_LIMITE_INFERIOR = obter_dias_uteis_apos_hoje(3)
-DIAS_UTEIS_LIMITE_SUPERIOR = obter_dias_uteis_apos_hoje(5)
-DIAS_DE_PRAZO_REGULAR_EM_DIANTE = obter_dias_uteis_apos_hoje(6)
+PRIORITARIO = 2
+LIMITE_INFERIOR = 3
+LIMITE_SUPERIOR = 5
+REGULAR = 6
+
+MINIMO_DIAS_PARA_PEDIDO = obter_dias_uteis_apos_hoje(PRIORITARIO)
+DIAS_UTEIS_LIMITE_INFERIOR = obter_dias_uteis_apos_hoje(LIMITE_INFERIOR)
+DIAS_UTEIS_LIMITE_SUPERIOR = obter_dias_uteis_apos_hoje(LIMITE_SUPERIOR)
+DIAS_DE_PRAZO_REGULAR_EM_DIANTE = obter_dias_uteis_apos_hoje(REGULAR)
 
 #
 # PEDIDOS

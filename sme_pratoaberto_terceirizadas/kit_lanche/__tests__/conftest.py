@@ -176,7 +176,8 @@ def tempo_kits(request):
 
 
 @pytest.fixture(params=[
-    # data, tag
+    # para testar no dia 2/10/19
+    # data do evento, tag
     ((2019, 9, 30), 'VENCIDO'),
     ((2019, 10, 1), 'VENCIDO'),
     ((2019, 10, 2), 'PRIORITARIO'),
@@ -192,5 +193,28 @@ def tempo_kits(request):
     ((2019, 10, 12), 'REGULAR'),
     ((2019, 10, 13), 'REGULAR'),
 ])
-def kits_avulsos_tageamentos(request):
+def kits_avulsos_parametros(request):
+    return request.param
+
+
+@pytest.fixture(params=[
+    # para testar no dia 20/12/19
+    # data do evento, tag
+    ((2019, 12, 18), 'VENCIDO'),
+    ((2019, 12, 19), 'VENCIDO'),
+    ((2019, 12, 20), 'PRIORITARIO'),
+    ((2019, 12, 21), 'PRIORITARIO'),
+    ((2019, 12, 22), 'PRIORITARIO'),
+    ((2019, 12, 23), 'PRIORITARIO'),
+    ((2019, 12, 24), 'PRIORITARIO'),
+    ((2019, 12, 25), 'PRIORITARIO'),
+    ((2019, 12, 26), 'LIMITE'),
+    ((2019, 12, 27), 'LIMITE'),
+    ((2019, 12, 28), 'LIMITE'),
+    ((2019, 12, 29), 'LIMITE'),
+    ((2019, 12, 30), 'LIMITE'),
+    ((2019, 12, 31), 'REGULAR'),
+    ((2020, 1, 1), 'REGULAR')
+])
+def kits_avulsos_parametros2(request):
     return request.param

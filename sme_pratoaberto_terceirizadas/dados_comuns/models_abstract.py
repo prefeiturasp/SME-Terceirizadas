@@ -6,14 +6,12 @@ from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django_xworkflows import models as xwf_models
 
-from .constants import (
-    DIAS_DE_PRAZO_REGULAR_EM_DIANTE, DIAS_UTEIS_LIMITE_INFERIOR, DIAS_UTEIS_LIMITE_SUPERIOR, MINIMO_DIAS_PARA_PEDIDO
-)
+from .constants import LIMITE_INFERIOR, LIMITE_SUPERIOR, PRIORITARIO, REGULAR
 from .fluxo_status import (
     InformativoPartindoDaEscolaWorkflow, PedidoAPartirDaDiretoriaRegionalWorkflow, PedidoAPartirDaEscolaWorkflow
 )
 from .models import LogSolicitacoesUsuario
-from .utils import eh_dia_util, enviar_notificacao_e_email
+from .utils import eh_dia_util, enviar_notificacao_e_email, obter_dias_uteis_apos
 from ..perfil import models as models_perfil
 
 
@@ -536,7 +534,35 @@ class TemIdentificadorExternoAmigavel(object):
 
 
 class TemPrioridade(object):
-    """Exibe o tipo de prioridade do objeto de acordo com as datas que ele tem."""
+    """Exibe o tipo de prioridade do objeto de acordo com as datas que ele tem.
+
+    Quando o objeto implementa o TemPrioridade, ele deve ter um property data
+    """
+
+    @property
+    def data(self):
+        raise NotImplementedError('Deve implementar um property @data')
+
+    @property
+    def prioridade(self):
+        descricao = 'VENCIDO'
+        hoje = datetime.date.today()
+        data_pedido = self.data
+
+        ultimo_dia_util = self._get_ultimo_dia_util(data_pedido)
+        minimo_dias_para_pedido = obter_dias_uteis_apos(hoje, PRIORITARIO)
+        dias_uteis_limite_inferior = obter_dias_uteis_apos(hoje, LIMITE_INFERIOR)
+        dias_uteis_limite_superior = obter_dias_uteis_apos(hoje, LIMITE_SUPERIOR)
+        dias_de_prazo_regular_em_diante = obter_dias_uteis_apos(hoje, REGULAR)
+
+        if minimo_dias_para_pedido >= ultimo_dia_util >= hoje:
+            descricao = 'PRIORITARIO'
+        elif dias_uteis_limite_superior >= ultimo_dia_util >= dias_uteis_limite_inferior:
+            descricao = 'LIMITE'
+        elif ultimo_dia_util >= dias_de_prazo_regular_em_diante:
+            descricao = 'REGULAR'
+
+        return descricao
 
     def _get_ultimo_dia_util(self, data: datetime.date):
         """Assumindo que é sab, dom ou feriado volta para o dia util anterior."""
@@ -544,26 +570,6 @@ class TemPrioridade(object):
         while not eh_dia_util(data_retorno):
             data_retorno -= datetime.timedelta(days=1)
         return data_retorno
-
-    @property
-    def prioridade(self):
-        data_pedido = None
-        descricao = 'VENCIDO'
-        hoje = datetime.date.today()
-        if hasattr(self, 'data'):
-            data_pedido = self.data
-        elif hasattr(self, 'data_inicial'):
-            data_pedido = self.data_inicial
-
-        ultimo_dia_util = self._get_ultimo_dia_util(data_pedido)
-
-        if MINIMO_DIAS_PARA_PEDIDO >= ultimo_dia_util >= hoje:
-            descricao = 'PRIORITARIO'
-        elif DIAS_UTEIS_LIMITE_SUPERIOR >= ultimo_dia_util >= DIAS_UTEIS_LIMITE_INFERIOR:
-            descricao = 'LIMITE'
-        elif ultimo_dia_util >= DIAS_DE_PRAZO_REGULAR_EM_DIANTE:
-            descricao = 'REGULAR'
-        return descricao
 
 
 class Logs(object):
