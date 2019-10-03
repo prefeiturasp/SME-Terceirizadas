@@ -5,10 +5,9 @@ from django.db import models
 from django.db.models.functions import Coalesce
 
 from .managers import (
-    SolicitacaoUnificadaDesteMesManager,
-    SolicitacaoUnificadaDestaSemanaManager, SolicitacaoUnificadaVencidaManager,
-    SolicitacoesKitLancheAvulsaDestaSemanaManager,
-    SolicitacoesKitLancheAvulsaDesteMesManager, SolicitacoesKitLancheAvulsaVencidaDiasManager
+    SolicitacaoUnificadaDestaSemanaManager, SolicitacaoUnificadaDesteMesManager, SolicitacaoUnificadaVencidaManager,
+    SolicitacoesKitLancheAvulsaDestaSemanaManager, SolicitacoesKitLancheAvulsaDesteMesManager,
+    SolicitacoesKitLancheAvulsaVencidaDiasManager
 )
 from ..dados_comuns.models import LogSolicitacoesUsuario, TemplateMensagem
 from ..dados_comuns.models_abstract import (

@@ -4,7 +4,7 @@ import pytest
 from freezegun import freeze_time
 from model_mommy import mommy
 
-from ...dados_comuns.fluxo_status import PedidoAPartirDaEscolaWorkflow, PedidoAPartirDaDiretoriaRegionalWorkflow
+from ...dados_comuns.fluxo_status import PedidoAPartirDaDiretoriaRegionalWorkflow, PedidoAPartirDaEscolaWorkflow
 from ...kit_lanche.models import SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheUnificada
 
 pytestmark = pytest.mark.django_db
@@ -67,6 +67,6 @@ def test_manager_kit_lanche_unificado_deste_mes(kits_avulsos_datas_mes):
 
 
 @freeze_time('2019-10-03')
-def test_manager_kit_lanche_unificado_deste_mes(kits_avulsos_datas_semana):
+def test_manager_kit_lanche_unificado_deste_semana(kits_avulsos_datas_semana):
     solicitacao_kit_lanche_unificada = _monta_kit_lanche_unificado(kits_avulsos_datas_semana)
     assert solicitacao_kit_lanche_unificada in SolicitacaoKitLancheUnificada.desta_semana.all()
