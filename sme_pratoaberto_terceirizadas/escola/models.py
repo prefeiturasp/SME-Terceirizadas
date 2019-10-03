@@ -78,38 +78,6 @@ class DiretoriaRegional(Nomeavel, TemChaveExterna):
             status=InversaoCardapio.workflow_class.DRE_A_VALIDAR
         )
 
-    def solicitacoes_kit_lanche_das_minhas_escolas_no_prazo_vencendo(self, filtro_aplicado):
-        if filtro_aplicado == 'hoje':
-            solicitacoes_kit_lanche_avulsa = SolicitacaoKitLancheAvulsa.prazo_vencendo_hoje
-        else:
-            solicitacoes_kit_lanche_avulsa = SolicitacaoKitLancheAvulsa.prazo_vencendo
-        return solicitacoes_kit_lanche_avulsa.filter(
-            escola__in=self.escolas.all(),
-            status=SolicitacaoKitLancheAvulsa.workflow_class.DRE_A_VALIDAR
-        )
-
-    def solicitacoes_kit_lanche_das_minhas_escolas_no_prazo_limite(self, filtro_aplicado):
-        if filtro_aplicado == DAQUI_A_7_DIAS:
-            solicitacoes_kit_lanche_avulsa = SolicitacaoKitLancheAvulsa.prazo_limite_daqui_a_7_dias
-        else:
-            solicitacoes_kit_lanche_avulsa = SolicitacaoKitLancheAvulsa.prazo_limite
-        return solicitacoes_kit_lanche_avulsa.filter(
-            escola__in=self.escolas.all(),
-            status=SolicitacaoKitLancheAvulsa.workflow_class.DRE_A_VALIDAR
-        )
-
-    def solicitacoes_kit_lanche_das_minhas_escolas_no_prazo_regular(self, filtro_aplicado):
-        if filtro_aplicado == DAQUI_A_30_DIAS:
-            inclusoes_continuas = SolicitacaoKitLancheAvulsa.prazo_regular_daqui_a_30_dias
-        elif filtro_aplicado == DAQUI_A_7_DIAS:
-            inclusoes_continuas = SolicitacaoKitLancheAvulsa.prazo_regular_daqui_a_7_dias
-        else:
-            inclusoes_continuas = SolicitacaoKitLancheAvulsa.prazo_regular
-        return inclusoes_continuas.filter(
-            escola__in=self.escolas.all(),
-            status=InclusaoAlimentacaoContinua.workflow_class.DRE_A_VALIDAR
-        )
-
     def inclusoes_continuas_das_minhas_escolas_no_prazo_vencendo(self, filtro_aplicado):
         if filtro_aplicado == 'hoje':
             inclusoes_continuas = InclusaoAlimentacaoContinua.prazo_vencendo_hoje

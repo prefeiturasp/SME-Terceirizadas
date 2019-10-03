@@ -74,14 +74,6 @@ class SolicitacaoKitLancheAvulsa(TemChaveExterna, FluxoAprovacaoPartindoDaEscola
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING,
                                related_name='solicitacoes_kit_lanche_avulsa')
 
-    @property
-    def quantidade_alimentacoes(self):
-        return self.quantidade_alunos * self.solicitacao_kit_lanche.kits.count()
-
-    @property
-    def data(self):
-        return self.solicitacao_kit_lanche.data
-
     objects = models.Manager()  # Manager Padrão
     prazo_vencendo = SolicitacaoKitLancheAvulsaPrazoVencendoManager()
     prazo_vencendo_hoje = SolicitacaoKitLancheAvulsaPrazoVencendoHojeManager()
@@ -94,6 +86,14 @@ class SolicitacaoKitLancheAvulsa(TemChaveExterna, FluxoAprovacaoPartindoDaEscola
     prazo_regular_daqui_a_7_dias = SolicitacaoKitLancheAvulsaPrazoLimiteDaquiA7DiasManager()
     prazo_regular_daqui_a_30_dias = SolicitacaoKitLancheAvulsaPrazoRegularDaquiA30DiasManager()
     vencidos = SolicitacaoKitLancheAvulsaVencidaDiasManager()
+
+    @property
+    def quantidade_alimentacoes(self):
+        return self.quantidade_alunos * self.solicitacao_kit_lanche.kits.count()
+
+    @property
+    def data(self):
+        return self.solicitacao_kit_lanche.data
 
     def salvar_log_transicao(self, status_evento, usuario, **kwargs):
         justificativa = kwargs.get('justificativa', '')
