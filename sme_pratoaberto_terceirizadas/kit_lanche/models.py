@@ -5,13 +5,11 @@ from django.db import models
 from django.db.models.functions import Coalesce
 
 from .managers import (
-    SolicitacaoKitLancheAvulsaPrazoLimiteDaquiA7DiasManager, SolicitacaoKitLancheAvulsaPrazoLimiteManager,
-    SolicitacaoKitLancheAvulsaPrazoRegularDaquiA30DiasManager, SolicitacaoKitLancheAvulsaPrazoRegularManager,
-    SolicitacaoKitLancheAvulsaPrazoVencendoHojeManager, SolicitacaoKitLancheAvulsaPrazoVencendoManager,
-    SolicitacaoKitLancheAvulsaVencidaDiasManager, SolicitacaoUnificadaPrazoLimiteDaquiA30DiasManager,
+    SolicitacaoUnificadaPrazoLimiteDaquiA30DiasManager,
     SolicitacaoUnificadaPrazoLimiteDaquiA7DiasManager, SolicitacaoUnificadaPrazoLimiteManager,
     SolicitacaoUnificadaPrazoVencendoHojeManager, SolicitacaoUnificadaPrazoVencendoManager,
-    SolicitacaoUnificadaVencidaManager
+    SolicitacaoUnificadaVencidaManager, SolicitacoesKitLancheAvulsaDestaSemanaManager,
+    SolicitacoesKitLancheAvulsaDesteMesManager, SolicitacoesKitLancheAvulsaVencidaDiasManager
 )
 from ..dados_comuns.models import LogSolicitacoesUsuario, TemplateMensagem
 from ..dados_comuns.models_abstract import (
@@ -75,17 +73,9 @@ class SolicitacaoKitLancheAvulsa(TemChaveExterna, FluxoAprovacaoPartindoDaEscola
                                related_name='solicitacoes_kit_lanche_avulsa')
 
     objects = models.Manager()  # Manager Padrão
-    prazo_vencendo = SolicitacaoKitLancheAvulsaPrazoVencendoManager()
-    prazo_vencendo_hoje = SolicitacaoKitLancheAvulsaPrazoVencendoHojeManager()
-
-    prazo_limite = SolicitacaoKitLancheAvulsaPrazoLimiteManager()
-    prazo_limite_daqui_a_7_dias = SolicitacaoKitLancheAvulsaPrazoLimiteDaquiA7DiasManager()
-    prazo_limite_daqui_a_30_dias = SolicitacaoKitLancheAvulsaPrazoRegularDaquiA30DiasManager()
-
-    prazo_regular = SolicitacaoKitLancheAvulsaPrazoRegularManager()
-    prazo_regular_daqui_a_7_dias = SolicitacaoKitLancheAvulsaPrazoLimiteDaquiA7DiasManager()
-    prazo_regular_daqui_a_30_dias = SolicitacaoKitLancheAvulsaPrazoRegularDaquiA30DiasManager()
-    vencidos = SolicitacaoKitLancheAvulsaVencidaDiasManager()
+    desta_semana = SolicitacoesKitLancheAvulsaDestaSemanaManager()
+    deste_mes = SolicitacoesKitLancheAvulsaDesteMesManager()
+    vencidos = SolicitacoesKitLancheAvulsaVencidaDiasManager()
 
     @property
     def quantidade_alimentacoes(self):

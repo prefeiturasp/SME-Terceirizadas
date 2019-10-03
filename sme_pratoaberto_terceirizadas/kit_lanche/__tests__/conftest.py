@@ -5,6 +5,7 @@ from faker import Faker
 from model_mommy import mommy
 
 from .. import models
+from ...dados_comuns.fluxo_status import PedidoAPartirDaEscolaWorkflow
 from ...dados_comuns.models import TemplateMensagem
 from ...dados_comuns.models_abstract import TempoPasseio
 
@@ -217,4 +218,47 @@ def kits_avulsos_parametros(request):
     ((2020, 1, 1), 'REGULAR')
 ])
 def kits_avulsos_parametros2(request):
+    return request.param
+
+
+@pytest.fixture(params=[
+    # para testar no dia 3/10/19
+    # data do evento, status
+    ((2019, 10, 2), PedidoAPartirDaEscolaWorkflow.RASCUNHO),
+    ((2019, 10, 1), PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO),
+    ((2019, 9, 30), PedidoAPartirDaEscolaWorkflow.DRE_PEDIU_ESCOLA_REVISAR),
+    ((2019, 9, 29), PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO),
+    ((2019, 9, 28), PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO),
+    ((2019, 9, 27), PedidoAPartirDaEscolaWorkflow.RASCUNHO),
+    ((2019, 9, 26), PedidoAPartirDaEscolaWorkflow.DRE_PEDIU_ESCOLA_REVISAR),
+])
+def kits_avulsos_datas_passado_parametros(request):
+    return request.param
+
+
+@pytest.fixture(params=[
+    # para testar no dia 3/10/19
+    ((2019, 10, 3)),
+    ((2019, 10, 4)),
+    ((2019, 10, 5)),
+    ((2019, 10, 6)),
+    ((2019, 10, 7)),
+    ((2019, 10, 8)),
+    ((2019, 10, 9)),
+    ((2019, 10, 10)),
+])
+def kits_avulsos_datas_semana(request):
+    return request.param
+
+
+@pytest.fixture(params=[
+    # para testar no dia 3/10/19
+    ((2019, 10, 3)),
+    ((2019, 10, 8)),
+    ((2019, 10, 10)),
+    ((2019, 10, 15)),
+    ((2019, 10, 20)),
+    ((2019, 11, 3)),
+])
+def kits_avulsos_datas_mes(request):
     return request.param

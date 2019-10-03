@@ -68,9 +68,9 @@ class DiretoriaRegional(Nomeavel, TemChaveExterna):
 
     def solicitacoes_kit_lanche_das_minhas_escolas_a_validar(self, filtro_aplicado):
         if filtro_aplicado == DAQUI_A_7_DIAS:
-            inversoes_cardapio = SolicitacaoKitLancheAvulsa.prazo_limite_daqui_a_7_dias
+            inversoes_cardapio = SolicitacaoKitLancheAvulsa.desta_semana
         elif filtro_aplicado == DAQUI_A_30_DIAS:
-            inversoes_cardapio = SolicitacaoKitLancheAvulsa.prazo_limite_daqui_a_30_dias
+            inversoes_cardapio = SolicitacaoKitLancheAvulsa.deste_mes
         else:
             inversoes_cardapio = SolicitacaoKitLancheAvulsa.objects
         return inversoes_cardapio.filter(
@@ -591,9 +591,9 @@ class Codae(Nomeavel, TemChaveExterna):
 
     def solicitacoes_kit_lanche_das_minhas_escolas_a_validar(self, filtro_aplicado):
         if filtro_aplicado == DAQUI_A_7_DIAS:
-            solicitacoes_kit_lanche = SolicitacaoKitLancheAvulsa.prazo_limite_daqui_a_7_dias
+            solicitacoes_kit_lanche = SolicitacaoKitLancheAvulsa.desta_semana
         elif filtro_aplicado == DAQUI_A_30_DIAS:
-            solicitacoes_kit_lanche = SolicitacaoKitLancheAvulsa.prazo_limite_daqui_a_30_dias
+            solicitacoes_kit_lanche = SolicitacaoKitLancheAvulsa.deste_mes
         else:
             solicitacoes_kit_lanche = SolicitacaoKitLancheAvulsa.objects
         return solicitacoes_kit_lanche.filter(
