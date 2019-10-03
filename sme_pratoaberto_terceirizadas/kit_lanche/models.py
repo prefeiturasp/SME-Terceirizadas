@@ -5,10 +5,9 @@ from django.db import models
 from django.db.models.functions import Coalesce
 
 from .managers import (
-    SolicitacaoUnificadaPrazoLimiteDaquiA30DiasManager,
-    SolicitacaoUnificadaPrazoLimiteDaquiA7DiasManager, SolicitacaoUnificadaPrazoLimiteManager,
-    SolicitacaoUnificadaPrazoVencendoHojeManager, SolicitacaoUnificadaPrazoVencendoManager,
-    SolicitacaoUnificadaVencidaManager, SolicitacoesKitLancheAvulsaDestaSemanaManager,
+    SolicitacaoUnificadaDesteMesManager,
+    SolicitacaoUnificadaDestaSemanaManager, SolicitacaoUnificadaVencidaManager,
+    SolicitacoesKitLancheAvulsaDestaSemanaManager,
     SolicitacoesKitLancheAvulsaDesteMesManager, SolicitacoesKitLancheAvulsaVencidaDiasManager
 )
 from ..dados_comuns.models import LogSolicitacoesUsuario, TemplateMensagem
@@ -144,14 +143,9 @@ class SolicitacaoKitLancheUnificada(CriadoPor, TemChaveExterna, TemIdentificador
     solicitacao_kit_lanche = models.ForeignKey(SolicitacaoKitLanche, on_delete=models.DO_NOTHING)
 
     objects = models.Manager()  # Manager Padrão
-    prazo_vencendo = SolicitacaoUnificadaPrazoVencendoManager()
-    prazo_vencendo_hoje = SolicitacaoUnificadaPrazoVencendoHojeManager()
-
-    prazo_limite = SolicitacaoUnificadaPrazoLimiteManager()
-    prazo_limite_daqui_a_7_dias = SolicitacaoUnificadaPrazoLimiteDaquiA7DiasManager()
-    prazo_limite_daqui_a_30_dias = SolicitacaoUnificadaPrazoLimiteDaquiA30DiasManager()
-
-    vencida = SolicitacaoUnificadaVencidaManager()
+    desta_semana = SolicitacaoUnificadaDestaSemanaManager()
+    deste_mes = SolicitacaoUnificadaDesteMesManager()
+    vencidos = SolicitacaoUnificadaVencidaManager()
 
     @property
     def data(self):

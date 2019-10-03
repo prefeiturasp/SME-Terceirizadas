@@ -5,7 +5,7 @@ from faker import Faker
 from model_mommy import mommy
 
 from .. import models
-from ...dados_comuns.fluxo_status import PedidoAPartirDaEscolaWorkflow
+from ...dados_comuns.fluxo_status import PedidoAPartirDaEscolaWorkflow, PedidoAPartirDaDiretoriaRegionalWorkflow
 from ...dados_comuns.models import TemplateMensagem
 from ...dados_comuns.models_abstract import TempoPasseio
 
@@ -261,4 +261,19 @@ def kits_avulsos_datas_semana(request):
     ((2019, 11, 3)),
 ])
 def kits_avulsos_datas_mes(request):
+    return request.param
+
+
+@pytest.fixture(params=[
+    # para testar no dia 3/10/19
+    # data do evento, status
+    ((2019, 10, 2), PedidoAPartirDaDiretoriaRegionalWorkflow.RASCUNHO),
+    ((2019, 10, 1), PedidoAPartirDaDiretoriaRegionalWorkflow.CODAE_A_AUTORIZAR),
+    ((2019, 9, 30), PedidoAPartirDaDiretoriaRegionalWorkflow.CODAE_PEDIU_DRE_REVISAR),
+    ((2019, 9, 29), PedidoAPartirDaDiretoriaRegionalWorkflow.RASCUNHO),
+    ((2019, 9, 28), PedidoAPartirDaDiretoriaRegionalWorkflow.CODAE_PEDIU_DRE_REVISAR),
+    ((2019, 9, 27), PedidoAPartirDaDiretoriaRegionalWorkflow.CODAE_A_AUTORIZAR),
+    ((2019, 9, 26), PedidoAPartirDaDiretoriaRegionalWorkflow.CODAE_PEDIU_DRE_REVISAR),
+])
+def kits_unificados_datas_passado_parametros(request):
     return request.param
