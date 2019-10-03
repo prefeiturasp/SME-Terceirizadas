@@ -386,8 +386,9 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
             methods=['patch'], url_path=constants.DRE_NAO_VALIDA_PEDIDO)
     def dre_cancela_pedido(self, request, uuid=None):
         alteracao_cardapio = self.get_object()
+        justificativa = request.data.get('justificativa', '')
         try:
-            alteracao_cardapio.dre_nao_valida(user=request.user,)
+            alteracao_cardapio.dre_nao_valida(user=request.user, justificativa=justificativa)
             serializer = self.get_serializer(alteracao_cardapio)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -408,8 +409,9 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
             methods=['patch'], url_path=constants.CODAE_NEGA_PEDIDO)
     def codae_cancela_pedido(self, request, uuid=None):
         alteracao_cardapio = self.get_object()
+        justificativa = request.data.get('justificativa', '')
         try:
-            alteracao_cardapio.codae_nega(user=request.user,)
+            alteracao_cardapio.codae_nega(user=request.user, justificativa=justificativa)
             serializer = self.get_serializer(alteracao_cardapio)
             return Response(serializer.data)
         except InvalidTransitionError as e:
