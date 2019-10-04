@@ -25,8 +25,12 @@ Carga inicial de dados
 
     $ ./manage.py migrate
 
-* Criar o super usuário::
+* Criar os super usuários::
 
+    -> escola@admin.com
+    -> dre@admin.com
+    -> codae@admin.com
+    -> terceirizada@admin.com
     $ ./manage.py createsuperuser
 
 * Carregar as fixtures::

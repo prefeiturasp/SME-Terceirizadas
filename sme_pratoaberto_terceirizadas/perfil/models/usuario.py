@@ -108,15 +108,8 @@ class Usuario(CustomAbstractUser, TemChaveExterna):
         return self.diretorias_regionais
 
     @property
-    def adminitrador(self):
-        return (self.escolas.exists() and self.diretorias_regionais.exists()
-            and self.CODAE.exists() and self.terceirizadas.exists())
-
-    @property
     def tipo_usuario(self):
-        if self.adminitrador:
-            return "admin"
-        elif self.escolas.exists():
+        if self.escolas.exists():
             return "escola"
         elif self.diretorias_regionais.exists():
             return "diretoria_regional"

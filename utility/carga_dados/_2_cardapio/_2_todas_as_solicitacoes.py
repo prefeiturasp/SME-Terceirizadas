@@ -31,11 +31,14 @@ def vincula_dre_escola_usuario():
     terceirizada = lote.terceirizada
     codae, created = Codae.objects.get_or_create(nome='teste')
 
-    usuario = Usuario.objects.first()
-    usuario.diretorias_regionais.add(dre)
-    usuario.escolas.add(escola)
-    usuario.terceirizadas.add(terceirizada)
-    codae.usuarios.set([usuario])
+    usuario_escola = Usuario.objects.get(email="escola@admin.com")
+    usuario_escola.escolas.add(escola)
+    usuario_dre = Usuario.objects.get(email="dre@admin.com")
+    usuario_dre.diretorias_regionais.add(dre)
+    usuario_codae = Usuario.objects.get(email="codae@admin.com")
+    codae.usuarios.set([usuario_codae])
+    usuario_terceirizada = Usuario.objects.get(email="terceirizada@admin.com")
+    usuario_terceirizada.terceirizadas.add(terceirizada)
 
 
 def _get_random_cardapio():
@@ -139,7 +142,7 @@ def fluxo_escola_loop(obj, user):
 
 
 def cria_inclusoes_continuas(qtd=50):
-    user = Usuario.objects.first()
+    user = Usuario.objects.get(email="escola@admin.com")
     for i in range(qtd):
         inclusao_continua = InclusaoAlimentacaoContinua.objects.create(
             motivo=_get_random_motivo_continuo(),
@@ -163,7 +166,7 @@ def cria_inclusoes_continuas(qtd=50):
 
 
 def cria_inclusoes_normais(qtd=50):
-    user = Usuario.objects.first()
+    user = Usuario.objects.get(email="escola@admin.com")
     for i in range(qtd):
         grupo_inclusao_normal = GrupoInclusaoAlimentacaoNormal.objects.create(
             descricao=f.text()[:160],
@@ -186,7 +189,7 @@ def cria_inclusoes_normais(qtd=50):
 
 
 def cria_solicitacoes_kit_lanche_unificada(qtd=50):
-    user = Usuario.objects.first()
+    user = Usuario.objects.get(email="dre@admin.com")
     for i in range(qtd):
         base = SolicitacaoKitLanche.objects.create(
             data=hoje + datetime.timedelta(days=random.randint(1, 30)),
@@ -214,7 +217,7 @@ def cria_solicitacoes_kit_lanche_unificada(qtd=50):
 
 
 def cria_solicitacoes_kit_lanche_avulsa(qtd=50):
-    user = Usuario.objects.first()
+    user = Usuario.objects.get(email="escola@admin.com")
     for i in range(qtd):
         base = SolicitacaoKitLanche.objects.create(
             data=hoje + datetime.timedelta(days=random.randint(1, 30)),
@@ -242,7 +245,7 @@ def cria_solicitacoes_kit_lanche_avulsa(qtd=50):
 #                                on_delete=models.DO_NOTHING)
 
 def cria_inversoes_cardapio(qtd=50):
-    user = Usuario.objects.first()
+    user = Usuario.objects.get(email="escola@admin.com")
     for i in range(qtd):
         inversao = InversaoCardapio.objects.create(
             criado_por=user,
@@ -255,7 +258,7 @@ def cria_inversoes_cardapio(qtd=50):
 
 
 def cria_suspensoes_alimentacao(qtd=50):
-    user = Usuario.objects.first()
+    user = Usuario.objects.get(email="escola@admin.com")
     for i in range(qtd):
         suspensao_grupo = GrupoSuspensaoAlimentacao.objects.create(
             criado_por=user,
@@ -279,7 +282,7 @@ def cria_suspensoes_alimentacao(qtd=50):
 
 def cria_alteracoes_cardapio(qtd=50):
     # TODO terminar os relacionamentos...
-    user = Usuario.objects.first()
+    user = Usuario.objects.get(email="escola@admin.com")
     for i in range(qtd):
         alteracao_cardapio = AlteracaoCardapio(
             data_inicial=hoje + datetime.timedelta(random.randint(1, 15)),
