@@ -110,12 +110,12 @@ class Usuario(CustomAbstractUser, TemChaveExterna):
     @property  # noqa C901
     def tipo_usuario(self):
         if self.escolas.exists():
-            return "escola"
+            return 'escola'
         elif self.diretorias_regionais.exists():
-            return "diretoria_regional"
+            return 'diretoria_regional'
         elif self.CODAE.exists():
-            return "codae"
+            return 'codae'
         elif self.terceirizadas.exists():
-            return "terceirizada"
+            return 'terceirizada'
         else:
-            return "indefinido"
+            return 'indefinido'
