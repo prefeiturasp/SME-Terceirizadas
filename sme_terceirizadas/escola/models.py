@@ -283,7 +283,7 @@ class DiretoriaRegional(Nomeavel, TemChaveExterna):
     def inversoes_cardapio_reprovados(self):
         return InversaoCardapio.objects.filter(
             escola__in=self.escolas.all(),
-            status__in=[InversaoCardapio.workflow_class.CODAE_NEGOU_PEDIDO]
+            status__in=[InversaoCardapio.workflow_class.DRE_NAO_VALIDOU_PEDIDO_ESCOLA]
         )
 
     #
