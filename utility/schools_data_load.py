@@ -4,8 +4,8 @@
 
 import pandas as pd
 
-from sme_pratoaberto_terceirizadas.escola.models import Escola, TipoGestao, TipoUnidadeEscolar, SubPrefeitura
-from sme_pratoaberto_terceirizadas.dados_comuns.models import Endereco, LocalizacaoCidade, Contato
+from sme_terceirizadas.escola.models import Escola, TipoGestao, TipoUnidadeEscolar, SubPrefeitura
+from sme_terceirizadas.dados_comuns.models import Endereco, LocalizacaoCidade, Contato
 
 df = pd.read_csv('wes.csv', dtype={'CODAE': str}, sep='¬')
 

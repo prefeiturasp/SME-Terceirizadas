@@ -19,10 +19,10 @@ import sys
 from django.core.wsgi import get_wsgi_application
 
 # This allows easy placement of apps within the interior
-# sme_pratoaberto_terceirizadas directory.
+# sme_terceirizadas directory.
 app_path = os.path.abspath(os.path.join(
     os.path.dirname(os.path.abspath(__file__)), os.pardir))
-sys.path.append(os.path.join(app_path, 'sme_pratoaberto_terceirizadas'))
+sys.path.append(os.path.join(app_path, 'sme_terceirizadas'))
 
 # We defer to a DJANGO_SETTINGS_MODULE already in the environment. This breaks
 # if running multiple sites in the same mod_wsgi process. To fix this, use

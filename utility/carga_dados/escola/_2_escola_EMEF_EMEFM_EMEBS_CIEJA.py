@@ -8,8 +8,8 @@ import environ
 import numpy as np
 import pandas as pd
 
-from sme_pratoaberto_terceirizadas.dados_comuns.models import Endereco, Contato
-from sme_pratoaberto_terceirizadas.escola.models import (
+from sme_terceirizadas.dados_comuns.models import Endereco, Contato
+from sme_terceirizadas.escola.models import (
     TipoUnidadeEscolar, TipoGestao, Escola, DiretoriaRegional, Lote)
 from utility.carga_dados.escola.helper import coloca_zero_a_esquerda, normaliza_nome, somente_digitos
 

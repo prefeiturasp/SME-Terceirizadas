@@ -5,9 +5,9 @@ import os
 
 import environ
 
-# (sme_pratoaberto_terceirizadas/config/settings/base.py - 3 = sme_pratoaberto_terceirizadas/)
+# (sme_terceirizadas/config/settings/base.py - 3 = sme_terceirizadas/)
 ROOT_DIR = environ.Path(__file__) - 3
-APPS_DIR = ROOT_DIR.path('sme_pratoaberto_terceirizadas')
+APPS_DIR = ROOT_DIR.path('sme_terceirizadas')
 
 env = environ.Env()
 
@@ -84,14 +84,14 @@ THIRD_PARTY_APPS = [
     'django_xworkflows'
 ]
 LOCAL_APPS = [
-    'sme_pratoaberto_terceirizadas.perfil.apps.PerfilConfig',
-    'sme_pratoaberto_terceirizadas.dados_comuns.apps.DadosComunsConfig',
-    'sme_pratoaberto_terceirizadas.escola.apps.EscolaConfig',
-    'sme_pratoaberto_terceirizadas.kit_lanche.apps.KitLancheConfig',
-    'sme_pratoaberto_terceirizadas.inclusao_alimentacao.apps.InclusaoAlimentacaoConfig',
-    'sme_pratoaberto_terceirizadas.cardapio.apps.CardapioConfig',
-    'sme_pratoaberto_terceirizadas.terceirizada.apps.TerceirizadaConfig',
-    'sme_pratoaberto_terceirizadas.paineis_consolidados.apps.PaineisConsolidadosConfig',
+    'sme_terceirizadas.perfil.apps.PerfilConfig',
+    'sme_terceirizadas.dados_comuns.apps.DadosComunsConfig',
+    'sme_terceirizadas.escola.apps.EscolaConfig',
+    'sme_terceirizadas.kit_lanche.apps.KitLancheConfig',
+    'sme_terceirizadas.inclusao_alimentacao.apps.InclusaoAlimentacaoConfig',
+    'sme_terceirizadas.cardapio.apps.CardapioConfig',
+    'sme_terceirizadas.terceirizada.apps.TerceirizadaConfig',
+    'sme_terceirizadas.paineis_consolidados.apps.PaineisConsolidadosConfig',
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -100,7 +100,7 @@ INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#migration-modules
 MIGRATION_MODULES = {
-    'sites': 'sme_pratoaberto_terceirizadas.contrib.sites.migrations'
+    'sites': 'sme_terceirizadas.contrib.sites.migrations'
 }
 
 # AUTHENTICATION

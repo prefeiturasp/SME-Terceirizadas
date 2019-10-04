@@ -1,8 +1,8 @@
 import environ
 import pandas as pd
 
-from sme_pratoaberto_terceirizadas.user_profiles.models import (RegionalDirectorProfile, AlternateProfile,
-                                                                SubManagerProfile)
+from sme_terceirizadas.user_profiles.models import (RegionalDirectorProfile, AlternateProfile,
+                                                    SubManagerProfile)
 
 env = environ.Env()
 
