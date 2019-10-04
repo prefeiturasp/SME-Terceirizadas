@@ -97,6 +97,16 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
+    @action(detail=False, url_path='pedidos-reprovados-diretoria-regional')
+    def pedidos_reprovados_diretoria_regional(self, request):
+        usuario = request.user
+        # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
+        diretoria_regional = usuario.diretorias_regionais.first()
+        inversoes_cardapio = diretoria_regional.inversoes_cardapio_reprovados
+        page = self.paginate_queryset(inversoes_cardapio)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
     @action(detail=False, url_path='pedidos-aprovados-codae')
     def pedidos_aprovados_codae(self, request):
         usuario = request.user
@@ -106,6 +116,18 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
         page = self.paginate_queryset(inversoes_cardapio)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
+
+    @action(detail=False, url_path='pedidos-reprovados-codae')
+    def pedidos_reprovados_codae(self, request):
+        usuario = request.user
+        # TODO: aguardando definição de perfis pra saber em qual CODAE eu estou fazendo a requisição
+        codae = usuario.CODAE.first()
+        inversoes_cardapio = codae.inversoes_cardapio_reprovados
+        page = self.paginate_queryset(inversoes_cardapio)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+
 
     @action(detail=False, url_path='pedidos-aprovados-terceirizada')
     def pedidos_aprovados_terceirizada(self, request):
@@ -171,8 +193,9 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
             methods=['patch'], url_path=constants.DRE_NAO_VALIDA_PEDIDO)
     def diretoria_regional_cancela_pedido(self, request, uuid=None):
         inversao_cardapio = self.get_object()
+        justificativa = request.data.get('justificativa', '')
         try:
-            inversao_cardapio.dre_nao_valida(user=request.user,)
+            inversao_cardapio.dre_nao_valida(user=request.user, justificativa=justificativa)
             serializer = self.get_serializer(inversao_cardapio)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -204,8 +227,9 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
             methods=['patch'], url_path=constants.CODAE_NEGA_PEDIDO)
     def codae_cancela_pedido(self, request, uuid=None):
         inversao_cardapio = self.get_object()
+        justificativa = request.data.get('justificativa', '')
         try:
-            inversao_cardapio.codae_nega(user=request.user,)
+            inversao_cardapio.codae_nega(user=request.user, justificativa=justificativa)
             serializer = self.get_serializer(inversao_cardapio)
             return Response(serializer.data)
         except InvalidTransitionError as e:
