@@ -127,8 +127,6 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
-
-
     @action(detail=False, url_path='pedidos-aprovados-terceirizada')
     def pedidos_aprovados_terceirizada(self, request):
         usuario = request.user
