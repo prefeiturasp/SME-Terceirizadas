@@ -4,8 +4,8 @@ from django.db import models
 from .managers import (
     InclusoesDeAlimentacaoContinuaDesteMesManager,
     InclusoesDeAlimentacaoContinuaDestaSemanaManager, InclusoesDeAlimentacaoContinuaVencidaDiasManager,
-    InclusoesDeAlimentacaoNormalDesteMesManager,
-    InclusoesDeAlimentacaoNormalDestaSemanaManager, InclusoesDeAlimentacaoNormalVencidosDiasManager
+    GrupoInclusoesDeAlimentacaoNormalDesteMesManager,
+    GrupoInclusoesDeAlimentacaoNormalDestaSemanaManager, GrupoInclusoesDeAlimentacaoNormalVencidosDiasManager
 )
 from ..dados_comuns.models import (
     LogSolicitacoesUsuario, TemplateMensagem
@@ -165,9 +165,9 @@ class GrupoInclusaoAlimentacaoNormal(Descritivel, TemChaveExterna, FluxoAprovaca
                                related_name='grupos_inclusoes_normais')
 
     objects = models.Manager()  # Manager Padrão
-    desta_semana = InclusoesDeAlimentacaoNormalDestaSemanaManager()
-    deste_mes = InclusoesDeAlimentacaoNormalDesteMesManager()
-    vencidos = InclusoesDeAlimentacaoNormalVencidosDiasManager()
+    desta_semana = GrupoInclusoesDeAlimentacaoNormalDestaSemanaManager()
+    deste_mes = GrupoInclusoesDeAlimentacaoNormalDesteMesManager()
+    vencidos = GrupoInclusoesDeAlimentacaoNormalVencidosDiasManager()
 
     @classmethod
     def get_solicitacoes_rascunho(cls, usuario):

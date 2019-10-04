@@ -4,7 +4,6 @@ from django.db import models
 from django.db.models import Q
 
 from ..dados_comuns.fluxo_status import PedidoAPartirDaEscolaWorkflow
-from ..dados_comuns.utils import obter_dias_uteis_apos_hoje
 
 
 class InclusoesDeAlimentacaoContinuaDestaSemanaManager(models.Manager):
@@ -41,30 +40,32 @@ class InclusoesDeAlimentacaoContinuaVencidaDiasManager(models.Manager):
         ])
 
 
-class InclusoesDeAlimentacaoNormalDestaSemanaManager(models.Manager):
+class GrupoInclusoesDeAlimentacaoNormalDestaSemanaManager(models.Manager):
     def get_queryset(self):
-        data_limite_inicial = obter_dias_uteis_apos_hoje(quantidade_dias=5)
-        data_limite_final = datetime.date.today() + datetime.timedelta(days=8)
-        return super(InclusoesDeAlimentacaoNormalDestaSemanaManager, self).get_queryset().filter(
+        hoje = datetime.date.today()
+        data_limite_inicial = hoje
+        data_limite_final = hoje + datetime.timedelta(days=7)
+        return super(GrupoInclusoesDeAlimentacaoNormalDestaSemanaManager, self).get_queryset().filter(
             inclusoes_normais__data__range=(data_limite_inicial, data_limite_final)
         )
 
 
-class InclusoesDeAlimentacaoNormalDesteMesManager(models.Manager):
+class GrupoInclusoesDeAlimentacaoNormalDesteMesManager(models.Manager):
     def get_queryset(self):
-        data_limite_inicial = obter_dias_uteis_apos_hoje(quantidade_dias=5)
+        hoje = datetime.date.today()
+        data_limite_inicial = hoje
         data_limite_final = datetime.date.today() + datetime.timedelta(days=31)
-        return super(InclusoesDeAlimentacaoNormalDesteMesManager, self).get_queryset().filter(
+        return super(GrupoInclusoesDeAlimentacaoNormalDesteMesManager, self).get_queryset().filter(
             inclusoes_normais__data__range=(data_limite_inicial, data_limite_final)
         )
 
 
-class InclusoesDeAlimentacaoNormalVencidosDiasManager(models.Manager):
+class GrupoInclusoesDeAlimentacaoNormalVencidosDiasManager(models.Manager):
     # TODO: se alguma tiver vencida cancela o grupo todo, ou espera todas as inclusoes_normais
     # vencerem para dar como vencido o grupo? verificar...
     def get_queryset(self):
         hoje = datetime.date.today()
-        return super(InclusoesDeAlimentacaoNormalVencidosDiasManager, self).get_queryset(
+        return super(GrupoInclusoesDeAlimentacaoNormalVencidosDiasManager, self).get_queryset(
         ).filter(
             inclusoes_normais__data__lt=hoje
         ).filter(
