@@ -5,13 +5,9 @@ from django.db import models
 from django.db.models.functions import Coalesce
 
 from .managers import (
-    SolicitacaoKitLancheAvulsaPrazoLimiteDaquiA7DiasManager, SolicitacaoKitLancheAvulsaPrazoLimiteManager,
-    SolicitacaoKitLancheAvulsaPrazoRegularDaquiA30DiasManager, SolicitacaoKitLancheAvulsaPrazoRegularManager,
-    SolicitacaoKitLancheAvulsaPrazoVencendoHojeManager, SolicitacaoKitLancheAvulsaPrazoVencendoManager,
-    SolicitacaoKitLancheAvulsaVencidaDiasManager, SolicitacaoUnificadaPrazoLimiteDaquiA30DiasManager,
-    SolicitacaoUnificadaPrazoLimiteDaquiA7DiasManager, SolicitacaoUnificadaPrazoLimiteManager,
-    SolicitacaoUnificadaPrazoVencendoHojeManager, SolicitacaoUnificadaPrazoVencendoManager,
-    SolicitacaoUnificadaVencidaManager
+    SolicitacaoUnificadaDestaSemanaManager, SolicitacaoUnificadaDesteMesManager, SolicitacaoUnificadaVencidaManager,
+    SolicitacoesKitLancheAvulsaDestaSemanaManager, SolicitacoesKitLancheAvulsaDesteMesManager,
+    SolicitacoesKitLancheAvulsaVencidaDiasManager
 )
 from ..dados_comuns.models import LogSolicitacoesUsuario, TemplateMensagem
 from ..dados_comuns.models_abstract import (
@@ -74,6 +70,11 @@ class SolicitacaoKitLancheAvulsa(TemChaveExterna, FluxoAprovacaoPartindoDaEscola
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING,
                                related_name='solicitacoes_kit_lanche_avulsa')
 
+    objects = models.Manager()  # Manager Padrão
+    desta_semana = SolicitacoesKitLancheAvulsaDestaSemanaManager()
+    deste_mes = SolicitacoesKitLancheAvulsaDesteMesManager()
+    vencidos = SolicitacoesKitLancheAvulsaVencidaDiasManager()
+
     @property
     def quantidade_alimentacoes(self):
         return self.quantidade_alunos * self.solicitacao_kit_lanche.kits.count()
@@ -81,19 +82,6 @@ class SolicitacaoKitLancheAvulsa(TemChaveExterna, FluxoAprovacaoPartindoDaEscola
     @property
     def data(self):
         return self.solicitacao_kit_lanche.data
-
-    objects = models.Manager()  # Manager Padrão
-    prazo_vencendo = SolicitacaoKitLancheAvulsaPrazoVencendoManager()
-    prazo_vencendo_hoje = SolicitacaoKitLancheAvulsaPrazoVencendoHojeManager()
-
-    prazo_limite = SolicitacaoKitLancheAvulsaPrazoLimiteManager()
-    prazo_limite_daqui_a_7_dias = SolicitacaoKitLancheAvulsaPrazoLimiteDaquiA7DiasManager()
-    prazo_limite_daqui_a_30_dias = SolicitacaoKitLancheAvulsaPrazoRegularDaquiA30DiasManager()
-
-    prazo_regular = SolicitacaoKitLancheAvulsaPrazoRegularManager()
-    prazo_regular_daqui_a_7_dias = SolicitacaoKitLancheAvulsaPrazoLimiteDaquiA7DiasManager()
-    prazo_regular_daqui_a_30_dias = SolicitacaoKitLancheAvulsaPrazoRegularDaquiA30DiasManager()
-    vencidos = SolicitacaoKitLancheAvulsaVencidaDiasManager()
 
     def salvar_log_transicao(self, status_evento, usuario, **kwargs):
         justificativa = kwargs.get('justificativa', '')
@@ -154,14 +142,9 @@ class SolicitacaoKitLancheUnificada(CriadoPor, TemChaveExterna, TemIdentificador
     solicitacao_kit_lanche = models.ForeignKey(SolicitacaoKitLanche, on_delete=models.DO_NOTHING)
 
     objects = models.Manager()  # Manager Padrão
-    prazo_vencendo = SolicitacaoUnificadaPrazoVencendoManager()
-    prazo_vencendo_hoje = SolicitacaoUnificadaPrazoVencendoHojeManager()
-
-    prazo_limite = SolicitacaoUnificadaPrazoLimiteManager()
-    prazo_limite_daqui_a_7_dias = SolicitacaoUnificadaPrazoLimiteDaquiA7DiasManager()
-    prazo_limite_daqui_a_30_dias = SolicitacaoUnificadaPrazoLimiteDaquiA30DiasManager()
-
-    vencida = SolicitacaoUnificadaVencidaManager()
+    desta_semana = SolicitacaoUnificadaDestaSemanaManager()
+    deste_mes = SolicitacaoUnificadaDesteMesManager()
+    vencidos = SolicitacaoUnificadaVencidaManager()
 
     @property
     def data(self):
