@@ -134,7 +134,7 @@ class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel):
 
     def inclusoes_continuas_das_minhas_escolas_no_prazo_limite(self, filtro_aplicado):
         if filtro_aplicado == 'daqui_a_7_dias':
-            inclusoes_continuas = InclusaoAlimentacaoContinua.prazo_limite_daqui_a_7_dias
+            inclusoes_continuas = InclusaoAlimentacaoContinua.desta_semana
         else:
             inclusoes_continuas = InclusaoAlimentacaoContinua.prazo_limite
         return inclusoes_continuas.filter(

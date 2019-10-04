@@ -90,7 +90,7 @@ class DiretoriaRegional(Nomeavel, TemChaveExterna):
 
     def inclusoes_continuas_das_minhas_escolas_no_prazo_limite(self, filtro_aplicado):
         if filtro_aplicado == DAQUI_A_7_DIAS:
-            inclusoes_continuas = InclusaoAlimentacaoContinua.prazo_limite_daqui_a_7_dias
+            inclusoes_continuas = InclusaoAlimentacaoContinua.desta_semana
         else:
             inclusoes_continuas = InclusaoAlimentacaoContinua.prazo_limite
         return inclusoes_continuas.filter(
@@ -113,9 +113,9 @@ class DiretoriaRegional(Nomeavel, TemChaveExterna):
     # TODO rever os demais métodos de alterações de cardápio, já que esse consolida todas as prioridades.
     def inclusoes_alimentacao_continua_das_minhas_escolas(self, filtro_aplicado):
         if filtro_aplicado == DAQUI_A_7_DIAS:
-            inclusoes_alimentacao_continuas = InclusaoAlimentacaoContinua.prazo_limite_daqui_a_7_dias
+            inclusoes_alimentacao_continuas = InclusaoAlimentacaoContinua.desta_semana
         elif filtro_aplicado == DAQUI_A_30_DIAS:
-            inclusoes_alimentacao_continuas = InclusaoAlimentacaoContinua.prazo_limite_daqui_a_30_dias
+            inclusoes_alimentacao_continuas = InclusaoAlimentacaoContinua.deste_mes
         else:
             inclusoes_alimentacao_continuas = InclusaoAlimentacaoContinua.objects
         return inclusoes_alimentacao_continuas.filter(
@@ -490,9 +490,9 @@ class Codae(Nomeavel, TemChaveExterna):
 
     def inclusoes_alimentacao_continua_das_minhas_escolas(self, filtro_aplicado):
         if filtro_aplicado == DAQUI_A_7_DIAS:
-            inversoes_cardapio = InclusaoAlimentacaoContinua.prazo_limite_daqui_a_7_dias
+            inversoes_cardapio = InclusaoAlimentacaoContinua.desta_semana
         elif filtro_aplicado == DAQUI_A_30_DIAS:
-            inversoes_cardapio = InclusaoAlimentacaoContinua.prazo_limite_daqui_a_30_dias
+            inversoes_cardapio = InclusaoAlimentacaoContinua.deste_mes
         else:
             inversoes_cardapio = InclusaoAlimentacaoContinua.objects
         return inversoes_cardapio.filter(
@@ -611,7 +611,7 @@ class Codae(Nomeavel, TemChaveExterna):
 
     def inclusoes_continuas_das_minhas_escolas_no_prazo_limite(self, filtro_aplicado):
         if filtro_aplicado == DAQUI_A_7_DIAS:
-            inclusoes_continuas = InclusaoAlimentacaoContinua.prazo_limite_daqui_a_7_dias
+            inclusoes_continuas = InclusaoAlimentacaoContinua.desta_semana
         else:
             inclusoes_continuas = InclusaoAlimentacaoContinua.prazo_limite
         return inclusoes_continuas.filter(

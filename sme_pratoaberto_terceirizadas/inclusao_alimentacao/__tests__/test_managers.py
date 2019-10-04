@@ -55,20 +55,6 @@ def inclusao_continua_prazo_limite():
     assert inclusao_continua_20_dias_corridos not in InclusaoAlimentacaoContinua.prazo_limite.all()
 
 
-def inclusao_continua_prazo_limite_daqui_a_7_dias():
-    inclusao_continua_hoje = mommy.make(InclusaoAlimentacaoContinua, data_inicial=datetime.date.today())
-    inclusao_continua_2_dias_uteis = mommy.make(InclusaoAlimentacaoContinua,
-                                                data_inicial=obter_dias_uteis_apos_hoje(2))
-    inclusao_continua_5_dias_uteis = mommy.make(InclusaoAlimentacaoContinua,
-                                                data_inicial=obter_dias_uteis_apos_hoje(5))
-    inclusao_continua_20_dias_corridos = mommy.make(InclusaoAlimentacaoContinua,
-                                                    data_inicial=datetime.date.today() + datetime.timedelta(days=20))
-    assert inclusao_continua_hoje not in InclusaoAlimentacaoContinua.prazo_limite_daqui_a_7_dias.all()
-    assert inclusao_continua_2_dias_uteis not in InclusaoAlimentacaoContinua.prazo_limite_daqui_a_7_dias.all()
-    assert inclusao_continua_5_dias_uteis not in InclusaoAlimentacaoContinua.prazo_limite_daqui_a_7_dias.all()
-    assert inclusao_continua_20_dias_corridos not in InclusaoAlimentacaoContinua.prazo_limite_daqui_a_7_dias.all()
-
-
 def inclusao_continua_prazo_regular_daqui_a_30_dias():
     inclusao_continua_hoje = mommy.make(InclusaoAlimentacaoContinua, data_inicial=datetime.date.today())
     inclusao_continua_2_dias_uteis = mommy.make(InclusaoAlimentacaoContinua,
@@ -122,7 +108,6 @@ def test_inclusao_continua_prazo_regular_segunda():
     inclusao_continua_prazo_regular()
     inclusao_continua_prazo_regular_daqui_a_7_dias()
     inclusao_continua_prazo_regular_daqui_a_30_dias()
-    inclusao_continua_prazo_limite_daqui_a_7_dias()
     inclusao_continua_prazo_limite()
     inclusao_continua_prazo_vencendo_hoje()
     inclusao_continua_prazo_vencendo()
@@ -133,7 +118,6 @@ def test_inclusao_continua_prazo_regular_terca():
     inclusao_continua_prazo_regular()
     inclusao_continua_prazo_regular_daqui_a_7_dias()
     inclusao_continua_prazo_regular_daqui_a_30_dias()
-    inclusao_continua_prazo_limite_daqui_a_7_dias()
     inclusao_continua_prazo_limite()
     inclusao_continua_prazo_vencendo_hoje()
     inclusao_continua_prazo_vencendo()
@@ -144,7 +128,6 @@ def test_inclusao_continua_prazo_regular_quarta():
     inclusao_continua_prazo_regular()
     inclusao_continua_prazo_regular_daqui_a_7_dias()
     inclusao_continua_prazo_regular_daqui_a_30_dias()
-    inclusao_continua_prazo_limite_daqui_a_7_dias()
     inclusao_continua_prazo_limite()
     inclusao_continua_prazo_vencendo_hoje()
     inclusao_continua_prazo_vencendo()
@@ -155,7 +138,6 @@ def test_inclusao_continua_prazo_regular_quinta():
     inclusao_continua_prazo_regular()
     inclusao_continua_prazo_regular_daqui_a_7_dias()
     inclusao_continua_prazo_regular_daqui_a_30_dias()
-    inclusao_continua_prazo_limite_daqui_a_7_dias()
     inclusao_continua_prazo_limite()
     inclusao_continua_prazo_vencendo_hoje()
     inclusao_continua_prazo_vencendo()
@@ -166,7 +148,6 @@ def test_inclusao_continua_prazo_regular_sexta():
     inclusao_continua_prazo_regular()
     inclusao_continua_prazo_regular_daqui_a_7_dias()
     inclusao_continua_prazo_regular_daqui_a_30_dias()
-    inclusao_continua_prazo_limite_daqui_a_7_dias()
     inclusao_continua_prazo_limite()
     inclusao_continua_prazo_vencendo_hoje()
     inclusao_continua_prazo_vencendo()
@@ -177,7 +158,6 @@ def test_inclusao_continua_prazo_regular_sabado():
     inclusao_continua_prazo_regular()
     inclusao_continua_prazo_regular_daqui_a_7_dias()
     inclusao_continua_prazo_regular_daqui_a_30_dias()
-    inclusao_continua_prazo_limite_daqui_a_7_dias()
     inclusao_continua_prazo_limite()
     inclusao_continua_prazo_vencendo_hoje()
     inclusao_continua_prazo_vencendo()
@@ -188,7 +168,26 @@ def test_inclusao_continua_prazo_regular_domingo():
     inclusao_continua_prazo_regular()
     inclusao_continua_prazo_regular_daqui_a_7_dias()
     inclusao_continua_prazo_regular_daqui_a_30_dias()
-    inclusao_continua_prazo_limite_daqui_a_7_dias()
     inclusao_continua_prazo_limite()
     inclusao_continua_prazo_vencendo_hoje()
     inclusao_continua_prazo_vencendo()
+
+
+@freeze_time('2019-10-4')
+def test_manager_inclusao_continua_desta_semana(inclusao_alimentacao_continua_parametros_semana):
+    data_inicial, data_final = inclusao_alimentacao_continua_parametros_semana
+
+    inclusao_continua = mommy.make('InclusaoAlimentacaoContinua',
+                                   data_inicial=datetime.date(*data_inicial),
+                                   data_final=datetime.date(*data_final))
+    assert inclusao_continua in InclusaoAlimentacaoContinua.desta_semana.all()
+
+
+@freeze_time('2019-10-4')
+def test_manager_inclusao_continua_deste_mes(inclusao_alimentacao_continua_parametros_mes):
+    data_inicial, data_final = inclusao_alimentacao_continua_parametros_mes
+
+    inclusao_continua = mommy.make('InclusaoAlimentacaoContinua',
+                                   data_inicial=datetime.date(*data_inicial),
+                                   data_final=datetime.date(*data_final))
+    assert inclusao_continua in InclusaoAlimentacaoContinua.deste_mes.all()

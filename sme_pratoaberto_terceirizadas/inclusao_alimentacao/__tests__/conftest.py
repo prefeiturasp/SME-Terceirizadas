@@ -42,3 +42,33 @@ def inclusao_alimentacao_continua():
                       motivo=motivo,
                       outro_motivo=fake.name(),
                       escola=escola)
+
+
+@pytest.fixture(params=[
+    # data_inicial, data_final
+    ((2019, 10, 4), (2019, 12, 31)),
+    ((2019, 10, 5), (2019, 12, 31)),
+    ((2019, 10, 6), (2019, 12, 31)),
+    ((2019, 10, 7), (2019, 12, 31)),
+    ((2019, 10, 8), (2019, 12, 31)),
+    ((2019, 10, 9), (2019, 12, 31)),
+    ((2019, 10, 10), (2019, 12, 31)),
+    ((2019, 10, 11), (2019, 12, 31)),
+])
+def inclusao_alimentacao_continua_parametros_semana(request):
+    return request.param
+
+
+@pytest.fixture(params=[
+    # data_inicial, data_final
+    ((2019, 10, 4), (2019, 12, 31)),
+    ((2019, 10, 5), (2019, 12, 31)),
+    ((2019, 10, 10), (2019, 12, 31)),
+    ((2019, 10, 20), (2019, 12, 31)),
+    ((2019, 10, 25), (2019, 12, 31)),
+    ((2019, 10, 31), (2019, 12, 31)),
+    ((2019, 11, 3), (2019, 12, 31)),
+    ((2019, 11, 4), (2019, 12, 31)),
+])
+def inclusao_alimentacao_continua_parametros_mes(request):
+    return request.param

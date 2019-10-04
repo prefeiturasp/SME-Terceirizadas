@@ -47,7 +47,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
 
     @action(detail=False,
             url_path=f'{constants.PEDIDOS_CODAE}/{constants.FILTRO_PADRAO_PEDIDOS}')
-    def pedidos_codae(self, request, filtro_aplicado='sem_filtro'):
+    def solicitacoes_codae(self, request, filtro_aplicado='sem_filtro'):
         # TODO: colocar regras de codae CODAE aqui...
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber
@@ -62,7 +62,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
     @action(detail=False,
             url_path='pedidos-prioritarios-diretoria-regional/'
                      '(?P<filtro_aplicado>(sem_filtro|hoje|daqui_a_7_dias|daqui_a_30_dias)+)')
-    def pedidos_prioritarios_diretoria_regional(self, request, filtro_aplicado='sem_filtro'):
+    def solicitacoes_prioritarios_diretoria_regional(self, request, filtro_aplicado='sem_filtro'):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
         diretoria_regional = usuario.diretorias_regionais.first()
@@ -76,7 +76,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
     @action(detail=False,
             url_path='pedidos-no-limite-diretoria-regional/'
                      '(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)')
-    def pedidos_no_limite_diretoria_regional(self, request, filtro_aplicado='sem_filtro'):
+    def solicitacoes_no_limite_diretoria_regional(self, request, filtro_aplicado='sem_filtro'):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
         diretoria_regional = usuario.diretorias_regionais.first()
@@ -90,7 +90,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
     @action(detail=False,
             url_path='pedidos-no-prazo-diretoria-regional/'
                      '(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)')
-    def pedidos_no_prazo_diretoria_regional(self, request, filtro_aplicado='sem_filtro'):
+    def solicitacoes_no_prazo_diretoria_regional(self, request, filtro_aplicado='sem_filtro'):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
         diretoria_regional = usuario.diretorias_regionais.first()
@@ -104,7 +104,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
     # TODO rever os demais endpoints. Essa action consolida em uma única pesquisa as pesquisas por prioridade.
     @action(detail=False,
             url_path=f'{constants.PEDIDOS_DRE}/{constants.FILTRO_PADRAO_PEDIDOS}')
-    def pedidos_diretoria_regional(self, request, filtro_aplicado=constants.SEM_FILTRO):
+    def solicitacoes_diretoria_regional(self, request, filtro_aplicado=constants.SEM_FILTRO):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
         diretoria_regional = usuario.diretorias_regionais.first()
@@ -116,7 +116,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False, url_path='pedidos-aprovados-diretoria-regional')
-    def pedidos_aprovados_diretoria_regional(self, request):
+    def solicitacoes_aprovados_diretoria_regional(self, request):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
         diretoria_regional = usuario.diretorias_regionais.first()
@@ -126,7 +126,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False, url_path='pedidos-reprovados-diretoria-regional')
-    def pedidos_reprovados_diretoria_regional(self, request):
+    def solicitacoes_reprovados_diretoria_regional(self, request):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
         diretoria_regional = usuario.diretorias_regionais.first()
@@ -138,7 +138,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
     @action(detail=False,
             url_path='pedidos-prioritarios-codae/'
                      '(?P<filtro_aplicado>(sem_filtro|hoje|daqui_a_7_dias|daqui_a_30_dias)+)')
-    def pedidos_prioritarios_codae(self, request, filtro_aplicado='sem_filtro'):
+    def solicitacoes_prioritarios_codae(self, request, filtro_aplicado='sem_filtro'):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual CODAE eu estou fazendo a requisição
         codae = usuario.CODAE.first()
@@ -152,7 +152,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
     @action(detail=False,
             url_path='pedidos-no-limite-codae/'
                      '(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)')
-    def pedidos_no_limite_codae(self, request, filtro_aplicado='sem_filtro'):
+    def solicitacoes_no_limite_codae(self, request, filtro_aplicado='sem_filtro'):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual CODAE eu estou fazendo a requisição
         codae = usuario.CODAE.first()
@@ -166,7 +166,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
     @action(detail=False,
             url_path='pedidos-no-prazo-codae/'
                      '(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)')
-    def pedidos_no_prazo_codae(self, request, filtro_aplicado='sem_filtro'):
+    def solicitacoes_no_prazo_codae(self, request, filtro_aplicado='sem_filtro'):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual CODAE eu estou fazendo a requisição
         codae = usuario.CODAE.first()
@@ -178,7 +178,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False, url_path='pedidos-aprovados-codae')
-    def pedidos_aprovados_codae(self, request):
+    def solicitacoes_aprovados_codae(self, request):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual CODAE eu estou fazendo a requisição
         codae = usuario.CODAE.first()
@@ -188,7 +188,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False, url_path='pedidos-reprovados-codae')
-    def pedidos_reprovados_codae(self, request):
+    def solicitacoes_reprovados_codae(self, request):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual CODAE eu estou fazendo a requisição
         codae = usuario.CODAE.first()
@@ -200,7 +200,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
     @action(detail=False,
             url_path='pedidos-prioritarios-terceirizada/'
                      '(?P<filtro_aplicado>(sem_filtro|hoje|daqui_a_7_dias|daqui_a_30_dias)+)')
-    def pedidos_prioritarios_terceirizada(self, request, filtro_aplicado='sem_filtro'):
+    def solicitacoes_prioritarios_terceirizada(self, request, filtro_aplicado='sem_filtro'):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual Terceirizada eu estou fazendo a requisição
         terceirizada = usuario.terceirizadas.first()
@@ -214,7 +214,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
     @action(detail=False,
             url_path='pedidos-no-limite-terceirizada/'
                      '(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)')
-    def pedidos_no_limite_terceirizada(self, request, filtro_aplicado='sem_filtro'):
+    def solicitacoes_no_limite_terceirizada(self, request, filtro_aplicado='sem_filtro'):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual Terceirizada eu estou fazendo a requisição
         terceirizada = usuario.terceirizadas.first()
@@ -228,7 +228,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
     @action(detail=False,
             url_path='pedidos-no-prazo-terceirizada/'
                      '(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)')
-    def pedidos_no_prazo_terceirizada(self, request, filtro_aplicado='sem_filtro'):
+    def solicitacoes_no_prazo_terceirizada(self, request, filtro_aplicado='sem_filtro'):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual Terceirizada eu estou fazendo a requisição
         terceirizada = usuario.terceirizadas.first()
@@ -240,7 +240,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False, url_path='pedidos-aprovados-terceirizada')
-    def pedidos_aprovados_terceirizada(self, request):
+    def solicitacoes_aprovados_terceirizada(self, request):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual Terceirizada eu estou fazendo a requisição
         terceirizada = usuario.terceirizadas.first()
@@ -250,7 +250,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False, url_path='pedidos-reprovados-terceirizada')
-    def pedidos_reprovados_terceirizada(self, request):
+    def solicitacoes_reprovados_terceirizada(self, request):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual Terceirizada eu estou fazendo a requisição
         terceirizada = usuario.terceirizadas.first()
@@ -383,7 +383,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
 
     @action(detail=False,
             url_path=f'{constants.PEDIDOS_CODAE}/{constants.FILTRO_PADRAO_PEDIDOS}')
-    def pedidos_codae(self, request, filtro_aplicado=constants.SEM_FILTRO):
+    def solicitacoes_codae(self, request, filtro_aplicado=constants.SEM_FILTRO):
         # TODO: colocar regras de codae CODAE aqui...
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber
@@ -398,7 +398,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
     @action(detail=False,
             url_path='pedidos-prioritarios-diretoria-regional/'
                      '(?P<filtro_aplicado>(sem_filtro|hoje|daqui_a_7_dias|daqui_a_30_dias)+)')
-    def pedidos_prioritarios_diretoria_regional(self, request, filtro_aplicado='sem_filtro'):
+    def solicitacoes_prioritarios_diretoria_regional(self, request, filtro_aplicado='sem_filtro'):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
         diretoria_regional = usuario.diretorias_regionais.first()
@@ -409,10 +409,9 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
-    # TODO rever os demais endpoints. Essa action consolida em uma única pesquisa as pesquisas por prioridade.
     @action(detail=False,
             url_path=f'{constants.PEDIDOS_DRE}/{constants.FILTRO_PADRAO_PEDIDOS}')
-    def pedidos_diretoria_regional(self, request, filtro_aplicado=constants.SEM_FILTRO):
+    def solicitacoes_diretoria_regional(self, request, filtro_aplicado=constants.SEM_FILTRO):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
         diretoria_regional = usuario.diretorias_regionais.first()
@@ -424,7 +423,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False, url_path='pedidos-aprovados-diretoria-regional')
-    def pedidos_aprovados_diretoria_regional(self, request):
+    def solicitacoes_aprovados_diretoria_regional(self, request):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
         diretoria_regional = usuario.diretorias_regionais.first()
@@ -434,7 +433,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False, url_path='pedidos-reprovados-diretoria-regional')
-    def pedidos_reprovados_diretoria_regional(self, request):
+    def solicitacoes_reprovados_diretoria_regional(self, request):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
         diretoria_regional = usuario.diretorias_regionais.first()
@@ -446,7 +445,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
     @action(detail=False,
             url_path='pedidos-prioritarios-codae/'
                      '(?P<filtro_aplicado>(sem_filtro|hoje|daqui_a_7_dias|daqui_a_30_dias)+)')
-    def pedidos_prioritarios_codae(self, request, filtro_aplicado='sem_filtro'):
+    def solicitacoes_prioritarios_codae(self, request, filtro_aplicado='sem_filtro'):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual CODAE eu estou fazendo a requisição
         codae = usuario.CODAE.first()
@@ -460,7 +459,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
     @action(detail=False,
             url_path='pedidos-no-limite-codae/'
                      '(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)')
-    def pedidos_no_limite_codae(self, request, filtro_aplicado='sem_filtro'):
+    def solicitacoes_no_limite_codae(self, request, filtro_aplicado='sem_filtro'):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual CODAE eu estou fazendo a requisição
         codae = usuario.CODAE.first()
@@ -474,7 +473,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
     @action(detail=False,
             url_path='pedidos-no-prazo-codae/'
                      '(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)')
-    def pedidos_no_prazo_codae(self, request, filtro_aplicado='sem_filtro'):
+    def solicitacoes_no_prazo_codae(self, request, filtro_aplicado='sem_filtro'):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual CODAE eu estou fazendo a requisição
         codae = usuario.CODAE.first()
@@ -486,7 +485,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False, url_path='pedidos-aprovados-codae')
-    def pedidos_aprovados_codae(self, request):
+    def solicitacoes_aprovados_codae(self, request):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual CODAE eu estou fazendo a requisição
         codae = usuario.CODAE.first()
@@ -496,7 +495,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False, url_path='pedidos-reprovados-codae')
-    def pedidos_reprovados_codae(self, request):
+    def solicitacoes_reprovados_codae(self, request):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual CODAE eu estou fazendo a requisição
         codae = usuario.CODAE.first()
@@ -508,7 +507,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
     @action(detail=False,
             url_path='pedidos-prioritarios-terceirizada/'
                      '(?P<filtro_aplicado>(sem_filtro|hoje|daqui_a_7_dias|daqui_a_30_dias)+)')
-    def pedidos_prioritarios_terceirizada(self, request, filtro_aplicado='sem_filtro'):
+    def solicitacoes_prioritarios_terceirizada(self, request, filtro_aplicado='sem_filtro'):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual Terceirizada eu estou fazendo a requisição
         terceirizada = usuario.terceirizadas.first()
@@ -522,7 +521,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
     @action(detail=False,
             url_path='pedidos-no-limite-terceirizada/'
                      '(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)')
-    def pedidos_no_limite_terceirizada(self, request, filtro_aplicado='sem_filtro'):
+    def solicitacoes_no_limite_terceirizada(self, request, filtro_aplicado='sem_filtro'):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual Terceirizada eu estou fazendo a requisição
         terceirizada = usuario.terceirizadas.first()
@@ -536,7 +535,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
     @action(detail=False,
             url_path='pedidos-no-prazo-terceirizada/'
                      '(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)')
-    def pedidos_no_prazo_terceirizada(self, request, filtro_aplicado='sem_filtro'):
+    def solicitacoes_no_prazo_terceirizada(self, request, filtro_aplicado='sem_filtro'):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual Terceirizada eu estou fazendo a requisição
         terceirizada = usuario.terceirizadas.first()
@@ -548,7 +547,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False, url_path='pedidos-aprovados-terceirizada')
-    def pedidos_aprovados_terceirizada(self, request):
+    def solicitacoes_aprovados_terceirizada(self, request):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual Terceirizada eu estou fazendo a requisição
         terceirizada = usuario.terceirizadas.first()
@@ -558,7 +557,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False, url_path='pedidos-reprovados-terceirizada')
-    def pedidos_reprovados_terceirizada(self, request):
+    def solicitacoes_reprovados_terceirizada(self, request):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual Terceirizada eu estou fazendo a requisição
         terceirizada = usuario.terceirizadas.first()

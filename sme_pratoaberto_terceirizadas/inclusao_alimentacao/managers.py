@@ -32,20 +32,22 @@ class InclusoesDeAlimentacaoContinuaPrazoLimiteManager(models.Manager):
         )
 
 
-class InclusoesDeAlimentacaoContinuaPrazoLimiteDaquiA7DiasManager(models.Manager):
+class InclusoesDeAlimentacaoContinuaDestaSemanaManager(models.Manager):
     def get_queryset(self):
-        data_limite_inicial = obter_dias_uteis_apos_hoje(quantidade_dias=3)
-        data_limite_final = obter_dias_uteis_apos_hoje(quantidade_dias=5) - datetime.timedelta(days=1)
-        return super(InclusoesDeAlimentacaoContinuaPrazoLimiteDaquiA7DiasManager, self).get_queryset().filter(
+        hoje = datetime.date.today()
+        data_limite_inicial = hoje
+        data_limite_final = hoje + datetime.timedelta(days=7)
+        return super(InclusoesDeAlimentacaoContinuaDestaSemanaManager, self).get_queryset().filter(
             data_inicial__range=(data_limite_inicial, data_limite_final)
         )
 
 
-class InclusoesDeAlimentacaoContinuaPrazoLimiteDaquiA30DiasManager(models.Manager):
+class InclusoesDeAlimentacaoContinuaDesteMesManager(models.Manager):
     def get_queryset(self):
-        data_limite_inicial = datetime.date.today()
-        data_limite_final = datetime.date.today() + datetime.timedelta(days=30)
-        return super(InclusoesDeAlimentacaoContinuaPrazoLimiteDaquiA30DiasManager, self).get_queryset().filter(
+        hoje = datetime.date.today()
+        data_limite_inicial = hoje
+        data_limite_final = hoje + datetime.timedelta(days=31)
+        return super(InclusoesDeAlimentacaoContinuaDesteMesManager, self).get_queryset().filter(
             data_inicial__range=(data_limite_inicial, data_limite_final)
         )
 

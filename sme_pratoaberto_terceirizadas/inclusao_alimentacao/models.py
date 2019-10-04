@@ -2,8 +2,8 @@ from django.core.validators import MinValueValidator
 from django.db import models
 
 from .managers import (
-    InclusoesDeAlimentacaoContinuaPrazoLimiteDaquiA30DiasManager,
-    InclusoesDeAlimentacaoContinuaPrazoLimiteDaquiA7DiasManager, InclusoesDeAlimentacaoContinuaPrazoLimiteManager,
+    InclusoesDeAlimentacaoContinuaDesteMesManager,
+    InclusoesDeAlimentacaoContinuaDestaSemanaManager, InclusoesDeAlimentacaoContinuaPrazoLimiteManager,
     InclusoesDeAlimentacaoContinuaPrazoRegularDaquiA30DiasManager,
     InclusoesDeAlimentacaoContinuaPrazoRegularDaquiA7DiasManager, InclusoesDeAlimentacaoContinuaPrazoRegularManager,
     InclusoesDeAlimentacaoContinuaPrazoVencendoHojeManager, InclusoesDeAlimentacaoContinuaPrazoVencendoManager,
@@ -75,11 +75,13 @@ class InclusaoAlimentacaoContinua(IntervaloDeDia, Descritivel, TemChaveExterna,
     prazo_vencendo = InclusoesDeAlimentacaoContinuaPrazoVencendoManager()
     prazo_vencendo_hoje = InclusoesDeAlimentacaoContinuaPrazoVencendoHojeManager()
     prazo_limite = InclusoesDeAlimentacaoContinuaPrazoLimiteManager()
-    prazo_limite_daqui_a_7_dias = InclusoesDeAlimentacaoContinuaPrazoLimiteDaquiA7DiasManager()
-    prazo_limite_daqui_a_30_dias = InclusoesDeAlimentacaoContinuaPrazoLimiteDaquiA30DiasManager()
+
     prazo_regular = InclusoesDeAlimentacaoContinuaPrazoRegularManager()
     prazo_regular_daqui_a_7_dias = InclusoesDeAlimentacaoContinuaPrazoRegularDaquiA7DiasManager()
     prazo_regular_daqui_a_30_dias = InclusoesDeAlimentacaoContinuaPrazoRegularDaquiA30DiasManager()
+
+    desta_semana = InclusoesDeAlimentacaoContinuaDestaSemanaManager()
+    deste_mes = InclusoesDeAlimentacaoContinuaDesteMesManager()
     vencidos = InclusoesDeAlimentacaoContinuaVencidaDiasManager()
 
     @property
