@@ -5,7 +5,7 @@ import django.core.validators
 from django.db import migrations, models
 import django.db.models.deletion
 import django_xworkflows.models
-import sme_pratoaberto_terceirizadas.dados_comuns.models_abstract
+import sme_terceirizadas.dados_comuns.models_abstract
 import uuid
 
 
@@ -31,7 +31,7 @@ class Migration(migrations.Migration):
                 'verbose_name': 'Grupo de inclusão de alimentação normal',
                 'verbose_name_plural': 'Grupos de inclusão de alimentação normal',
             },
-            bases=(django_xworkflows.models.BaseWorkflowEnabled, models.Model, sme_pratoaberto_terceirizadas.dados_comuns.models_abstract.TemIdentificadorExternoAmigavel, sme_pratoaberto_terceirizadas.dados_comuns.models_abstract.Logs),
+            bases=(django_xworkflows.models.BaseWorkflowEnabled, models.Model, sme_terceirizadas.dados_comuns.models_abstract.TemIdentificadorExternoAmigavel, sme_terceirizadas.dados_comuns.models_abstract.Logs),
         ),
         migrations.CreateModel(
             name='InclusaoAlimentacaoContinua',
@@ -51,7 +51,7 @@ class Migration(migrations.Migration):
                 'verbose_name_plural': 'Inclusões de alimentação contínua',
                 'ordering': ['data_inicial'],
             },
-            bases=(django_xworkflows.models.BaseWorkflowEnabled, sme_pratoaberto_terceirizadas.dados_comuns.models_abstract.TemIdentificadorExternoAmigavel, models.Model, sme_pratoaberto_terceirizadas.dados_comuns.models_abstract.Logs),
+            bases=(django_xworkflows.models.BaseWorkflowEnabled, sme_terceirizadas.dados_comuns.models_abstract.TemIdentificadorExternoAmigavel, models.Model, sme_terceirizadas.dados_comuns.models_abstract.Logs),
         ),
         migrations.CreateModel(
             name='InclusaoAlimentacaoNormal',
@@ -67,7 +67,7 @@ class Migration(migrations.Migration):
                 'verbose_name_plural': 'Inclusões de alimentação normal',
                 'ordering': ('data',),
             },
-            bases=(models.Model, sme_pratoaberto_terceirizadas.dados_comuns.models_abstract.TemPrioridade),
+            bases=(models.Model, sme_terceirizadas.dados_comuns.models_abstract.TemPrioridade),
         ),
         migrations.CreateModel(
             name='MotivoInclusaoContinua',

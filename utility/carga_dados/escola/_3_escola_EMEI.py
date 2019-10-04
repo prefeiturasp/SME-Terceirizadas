@@ -8,9 +8,9 @@ import environ
 import numpy as np
 import pandas as pd
 
-from sme_pratoaberto_terceirizadas.dados_comuns.models import Endereco, Contato
-from sme_pratoaberto_terceirizadas.escola.models import (Lote, TipoUnidadeEscolar, TipoGestao, Escola,
-                                                         DiretoriaRegional)
+from sme_terceirizadas.dados_comuns.models import Endereco, Contato
+from sme_terceirizadas.escola.models import (Lote, TipoUnidadeEscolar, TipoGestao, Escola,
+                                             DiretoriaRegional)
 from utility.carga_dados.escola.helper import coloca_zero_a_esquerda, normaliza_nome, somente_digitos
 
 ROOT_DIR = environ.Path(__file__) - 1

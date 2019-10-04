@@ -4,7 +4,7 @@ import django.contrib.postgres.fields
 from django.db import migrations, models
 import django.db.models.deletion
 import django.utils.timezone
-import sme_pratoaberto_terceirizadas.perfil.models.usuario
+import sme_terceirizadas.perfil.models.usuario
 import uuid
 
 
@@ -38,7 +38,7 @@ class Migration(migrations.Migration):
                 'abstract': False,
             },
             managers=[
-                ('objects', sme_pratoaberto_terceirizadas.perfil.models.usuario.CustomUserManager()),
+                ('objects', sme_terceirizadas.perfil.models.usuario.CustomUserManager()),
             ],
         ),
         migrations.CreateModel(

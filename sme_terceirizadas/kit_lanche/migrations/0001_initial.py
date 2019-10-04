@@ -2,7 +2,7 @@
 
 from django.db import migrations, models
 import django_xworkflows.models
-import sme_pratoaberto_terceirizadas.dados_comuns.models_abstract
+import sme_terceirizadas.dados_comuns.models_abstract
 import uuid
 
 
@@ -92,7 +92,7 @@ class Migration(migrations.Migration):
                 'verbose_name': 'Solicitação de kit lanche avulsa',
                 'verbose_name_plural': 'Solicitações de kit lanche avulsa',
             },
-            bases=(django_xworkflows.models.BaseWorkflowEnabled, sme_pratoaberto_terceirizadas.dados_comuns.models_abstract.TemIdentificadorExternoAmigavel, models.Model, sme_pratoaberto_terceirizadas.dados_comuns.models_abstract.TemPrioridade),
+            bases=(django_xworkflows.models.BaseWorkflowEnabled, sme_terceirizadas.dados_comuns.models_abstract.TemIdentificadorExternoAmigavel, models.Model, sme_terceirizadas.dados_comuns.models_abstract.TemPrioridade),
         ),
         migrations.CreateModel(
             name='SolicitacaoKitLancheUnificada',
@@ -109,6 +109,6 @@ class Migration(migrations.Migration):
                 'verbose_name': 'Solicitação kit lanche unificada',
                 'verbose_name_plural': 'Solicitações de  kit lanche unificadas',
             },
-            bases=(sme_pratoaberto_terceirizadas.dados_comuns.models_abstract.TemIdentificadorExternoAmigavel, django_xworkflows.models.BaseWorkflowEnabled, models.Model),
+            bases=(sme_terceirizadas.dados_comuns.models_abstract.TemIdentificadorExternoAmigavel, django_xworkflows.models.BaseWorkflowEnabled, models.Model),
         ),
     ]

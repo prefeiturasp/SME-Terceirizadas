@@ -2,7 +2,7 @@
 
 from django.db import migrations, models
 import django_xworkflows.models
-import sme_pratoaberto_terceirizadas.dados_comuns.models_abstract
+import sme_terceirizadas.dados_comuns.models_abstract
 import uuid
 
 
@@ -29,7 +29,7 @@ class Migration(migrations.Migration):
                 'verbose_name': 'Alteração de cardápio',
                 'verbose_name_plural': 'Alterações de cardápio',
             },
-            bases=(django_xworkflows.models.BaseWorkflowEnabled, models.Model, sme_pratoaberto_terceirizadas.dados_comuns.models_abstract.TemIdentificadorExternoAmigavel, sme_pratoaberto_terceirizadas.dados_comuns.models_abstract.Logs),
+            bases=(django_xworkflows.models.BaseWorkflowEnabled, models.Model, sme_terceirizadas.dados_comuns.models_abstract.TemIdentificadorExternoAmigavel, sme_terceirizadas.dados_comuns.models_abstract.Logs),
         ),
         migrations.CreateModel(
             name='Cardapio',
@@ -59,7 +59,7 @@ class Migration(migrations.Migration):
                 'verbose_name': 'Grupo de suspensão de alimentação',
                 'verbose_name_plural': 'Grupo de suspensão de alimentação',
             },
-            bases=(sme_pratoaberto_terceirizadas.dados_comuns.models_abstract.TemIdentificadorExternoAmigavel, django_xworkflows.models.BaseWorkflowEnabled, models.Model),
+            bases=(sme_terceirizadas.dados_comuns.models_abstract.TemIdentificadorExternoAmigavel, django_xworkflows.models.BaseWorkflowEnabled, models.Model),
         ),
         migrations.CreateModel(
             name='InversaoCardapio',
@@ -75,7 +75,7 @@ class Migration(migrations.Migration):
                 'verbose_name': 'Inversão de cardápio',
                 'verbose_name_plural': 'Inversão de cardápios',
             },
-            bases=(sme_pratoaberto_terceirizadas.dados_comuns.models_abstract.TemIdentificadorExternoAmigavel, django_xworkflows.models.BaseWorkflowEnabled, models.Model, sme_pratoaberto_terceirizadas.dados_comuns.models_abstract.TemPrioridade, sme_pratoaberto_terceirizadas.dados_comuns.models_abstract.Logs),
+            bases=(sme_terceirizadas.dados_comuns.models_abstract.TemIdentificadorExternoAmigavel, django_xworkflows.models.BaseWorkflowEnabled, models.Model, sme_terceirizadas.dados_comuns.models_abstract.TemPrioridade, sme_terceirizadas.dados_comuns.models_abstract.Logs),
         ),
         migrations.CreateModel(
             name='MotivoAlteracaoCardapio',

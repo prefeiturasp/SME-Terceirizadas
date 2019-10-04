@@ -1,5 +1,5 @@
-from sme_pratoaberto_terceirizadas.cardapio.models import TipoAlimentacao
-from sme_pratoaberto_terceirizadas.escola.models import PeriodoEscolar
+from sme_terceirizadas.cardapio.models import TipoAlimentacao
+from sme_terceirizadas.escola.models import PeriodoEscolar
 
 
 def vincula_tipo_alimentcao():

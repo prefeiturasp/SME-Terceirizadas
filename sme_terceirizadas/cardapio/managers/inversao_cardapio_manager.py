@@ -3,7 +3,7 @@ import datetime
 from django.db import models
 from django.db.models import Q
 
-from sme_pratoaberto_terceirizadas.dados_comuns.constants import DIAS_UTEIS_LIMITE_INFERIOR
+from sme_terceirizadas.dados_comuns.constants import DIAS_UTEIS_LIMITE_INFERIOR
 from ...dados_comuns.constants import DIAS_UTEIS_LIMITE_SUPERIOR, MINIMO_DIAS_PARA_PEDIDO
 from ...dados_comuns.fluxo_status import PedidoAPartirDaEscolaWorkflow
 

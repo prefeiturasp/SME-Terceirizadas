@@ -1,4 +1,4 @@
-from sme_pratoaberto_terceirizadas.terceirizada.models import Terceirizada
+from sme_terceirizadas.terceirizada.models import Terceirizada
 
 empresas = [
     {
