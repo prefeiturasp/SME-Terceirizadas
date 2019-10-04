@@ -198,7 +198,7 @@ class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel):
 
     def alteracoes_cardapio_das_minhas_escolas_no_prazo_limite(self, filtro_aplicado):
         if filtro_aplicado == 'daqui_a_7_dias':
-            alteracoes_cardapio = AlteracaoCardapio.prazo_limite_daqui_a_7_dias
+            alteracoes_cardapio = AlteracaoCardapio.desta_semana
         else:
             alteracoes_cardapio = AlteracaoCardapio.prazo_limite
         return alteracoes_cardapio.filter(
