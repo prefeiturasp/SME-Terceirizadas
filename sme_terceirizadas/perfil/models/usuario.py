@@ -106,3 +106,16 @@ class Usuario(CustomAbstractUser, TemChaveExterna):
     @property
     def diretorias_regionais(self):
         return self.diretorias_regionais
+
+    @property  # noqa C901
+    def tipo_usuario(self):
+        if self.escolas.exists():
+            return 'escola'
+        elif self.diretorias_regionais.exists():
+            return 'diretoria_regional'
+        elif self.CODAE.exists():
+            return 'codae'
+        elif self.terceirizadas.exists():
+            return 'terceirizada'
+        else:
+            return 'indefinido'
