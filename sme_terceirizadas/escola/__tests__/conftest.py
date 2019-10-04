@@ -40,3 +40,9 @@ def escola():
 def faixa_idade_escolar():
     return mommy.make(models.FaixaIdadeEscolar,
                       nome=fake.name())
+
+
+@pytest.fixture
+def codae(escola):
+    return mommy.make(models.Codae,
+                      make_m2m=True)
