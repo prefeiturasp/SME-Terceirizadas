@@ -145,9 +145,9 @@ class DiretoriaRegional(Nomeavel, TemChaveExterna):
 
     def inclusoes_normais_das_minhas_escolas_no_prazo_regular(self, filtro_aplicado):
         if filtro_aplicado == DAQUI_A_30_DIAS:
-            inclusoes_normais = GrupoInclusaoAlimentacaoNormal.prazo_regular_daqui_a_30_dias
+            inclusoes_normais = GrupoInclusaoAlimentacaoNormal.deste_mes
         elif filtro_aplicado == DAQUI_A_7_DIAS:
-            inclusoes_normais = GrupoInclusaoAlimentacaoNormal.prazo_regular_daqui_a_7_dias
+            inclusoes_normais = GrupoInclusaoAlimentacaoNormal.desta_semana
         else:
             inclusoes_normais = GrupoInclusaoAlimentacaoNormal.prazo_regular
         return inclusoes_normais.filter(
@@ -649,9 +649,9 @@ class Codae(Nomeavel, TemChaveExterna):
 
     def inclusoes_normais_das_minhas_escolas_no_prazo_regular(self, filtro_aplicado):
         if filtro_aplicado == DAQUI_A_30_DIAS:
-            inclusoes_normais = GrupoInclusaoAlimentacaoNormal.prazo_regular_daqui_a_30_dias
+            inclusoes_normais = GrupoInclusaoAlimentacaoNormal.deste_mes
         elif filtro_aplicado == DAQUI_A_7_DIAS:
-            inclusoes_normais = GrupoInclusaoAlimentacaoNormal.prazo_regular_daqui_a_7_dias
+            inclusoes_normais = GrupoInclusaoAlimentacaoNormal.desta_semana
         else:
             inclusoes_normais = GrupoInclusaoAlimentacaoNormal.prazo_regular
         return inclusoes_normais.filter(

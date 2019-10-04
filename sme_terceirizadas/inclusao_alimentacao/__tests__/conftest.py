@@ -2,6 +2,7 @@ import pytest
 from faker import Faker
 from model_mommy import mommy
 
+from sme_terceirizadas.dados_comuns.fluxo_status import PedidoAPartirDaEscolaWorkflow
 from .. import models
 from ...dados_comuns.models import TemplateMensagem
 
@@ -71,4 +72,15 @@ def inclusao_alimentacao_continua_parametros_semana(request):
     ((2019, 11, 4), (2019, 12, 31)),
 ])
 def inclusao_alimentacao_continua_parametros_mes(request):
+    return request.param
+
+
+@pytest.fixture(params=[
+    # data_inicial, data_final, status
+    ((2019, 10, 3), (2019, 12, 31), PedidoAPartirDaEscolaWorkflow.RASCUNHO),
+    ((2019, 10, 2), (2019, 12, 31), PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR),
+    ((2019, 10, 1), (2019, 12, 31), PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO),
+    ((2019, 10, 1), (2019, 12, 31), PedidoAPartirDaEscolaWorkflow.DRE_PEDIU_ESCOLA_REVISAR),
+])
+def inclusao_alimentacao_continua_parametros_vencidos(request):
     return request.param

@@ -3,16 +3,9 @@ from django.db import models
 
 from .managers import (
     InclusoesDeAlimentacaoContinuaDesteMesManager,
-    InclusoesDeAlimentacaoContinuaDestaSemanaManager, InclusoesDeAlimentacaoContinuaPrazoLimiteManager,
-    InclusoesDeAlimentacaoContinuaPrazoRegularDaquiA30DiasManager,
-    InclusoesDeAlimentacaoContinuaPrazoRegularDaquiA7DiasManager, InclusoesDeAlimentacaoContinuaPrazoRegularManager,
-    InclusoesDeAlimentacaoContinuaPrazoVencendoHojeManager, InclusoesDeAlimentacaoContinuaPrazoVencendoManager,
-    InclusoesDeAlimentacaoContinuaVencidaDiasManager, InclusoesDeAlimentacaoNormalPrazoLimiteDaquiA30DiasManager,
-    InclusoesDeAlimentacaoNormalPrazoLimiteDaquiA7DiasManager, InclusoesDeAlimentacaoNormalPrazoLimiteManager,
-    InclusoesDeAlimentacaoNormalPrazoRegularDaquiA30DiasManager,
-    InclusoesDeAlimentacaoNormalPrazoRegularDaquiA7DiasManager, InclusoesDeAlimentacaoNormalPrazoRegularManager,
-    InclusoesDeAlimentacaoNormalPrazoVencendoHojeManager, InclusoesDeAlimentacaoNormalPrazoVencendoManager,
-    InclusoesDeAlimentacaoNormalVencidosDiasManager
+    InclusoesDeAlimentacaoContinuaDestaSemanaManager, InclusoesDeAlimentacaoContinuaVencidaDiasManager,
+    InclusoesDeAlimentacaoNormalDesteMesManager,
+    InclusoesDeAlimentacaoNormalDestaSemanaManager, InclusoesDeAlimentacaoNormalVencidosDiasManager
 )
 from ..dados_comuns.models import (
     LogSolicitacoesUsuario, TemplateMensagem
@@ -72,14 +65,6 @@ class InclusaoAlimentacaoContinua(IntervaloDeDia, Descritivel, TemChaveExterna,
                                related_name='inclusoes_alimentacao_continua')
 
     objects = models.Manager()  # Manager Padrão
-    prazo_vencendo = InclusoesDeAlimentacaoContinuaPrazoVencendoManager()
-    prazo_vencendo_hoje = InclusoesDeAlimentacaoContinuaPrazoVencendoHojeManager()
-    prazo_limite = InclusoesDeAlimentacaoContinuaPrazoLimiteManager()
-
-    prazo_regular = InclusoesDeAlimentacaoContinuaPrazoRegularManager()
-    prazo_regular_daqui_a_7_dias = InclusoesDeAlimentacaoContinuaPrazoRegularDaquiA7DiasManager()
-    prazo_regular_daqui_a_30_dias = InclusoesDeAlimentacaoContinuaPrazoRegularDaquiA30DiasManager()
-
     desta_semana = InclusoesDeAlimentacaoContinuaDestaSemanaManager()
     deste_mes = InclusoesDeAlimentacaoContinuaDesteMesManager()
     vencidos = InclusoesDeAlimentacaoContinuaVencidaDiasManager()
@@ -180,14 +165,8 @@ class GrupoInclusaoAlimentacaoNormal(Descritivel, TemChaveExterna, FluxoAprovaca
                                related_name='grupos_inclusoes_normais')
 
     objects = models.Manager()  # Manager Padrão
-    prazo_vencendo = InclusoesDeAlimentacaoNormalPrazoVencendoManager()
-    prazo_vencendo_hoje = InclusoesDeAlimentacaoNormalPrazoVencendoHojeManager()
-    prazo_limite = InclusoesDeAlimentacaoNormalPrazoLimiteManager()
-    prazo_limite_daqui_a_7_dias = InclusoesDeAlimentacaoNormalPrazoLimiteDaquiA7DiasManager()
-    prazo_limite_daqui_a_30_dias = InclusoesDeAlimentacaoNormalPrazoLimiteDaquiA30DiasManager()
-    prazo_regular = InclusoesDeAlimentacaoNormalPrazoRegularManager()
-    prazo_regular_daqui_a_7_dias = InclusoesDeAlimentacaoNormalPrazoRegularDaquiA7DiasManager()
-    prazo_regular_daqui_a_30_dias = InclusoesDeAlimentacaoNormalPrazoRegularDaquiA30DiasManager()
+    desta_semana = InclusoesDeAlimentacaoNormalDestaSemanaManager()
+    deste_mes = InclusoesDeAlimentacaoNormalDesteMesManager()
     vencidos = InclusoesDeAlimentacaoNormalVencidosDiasManager()
 
     @classmethod
