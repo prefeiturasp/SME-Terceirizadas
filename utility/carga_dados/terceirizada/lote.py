@@ -1,8 +1,8 @@
 import pandas as pd
 from unicodedata import normalize
 
-from sme_pratoaberto_terceirizadas.escola.models import DiretoriaRegional
-from sme_pratoaberto_terceirizadas.escola.models import Lote
+from sme_terceirizadas.escola.models import DiretoriaRegional
+from sme_terceirizadas.escola.models import Lote
 
 caminho_excel = '/home/amcom/Documentos/docs PO alimentacao/lista de lotes.xlsx'
 

@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import environ
 
-from sme_pratoaberto_terceirizadas.escola.models import PeriodoEscolar, Escola
+from sme_terceirizadas.escola.models import PeriodoEscolar, Escola
 from utility.carga_dados.escola.helper import coloca_zero_a_esquerda
 
 

@@ -8,16 +8,16 @@ import numpy as np
 from faker import Faker
 from xworkflows import InvalidTransitionError
 
-from sme_pratoaberto_terceirizadas.cardapio.models import TipoAlimentacao, InversaoCardapio, Cardapio, \
+from sme_terceirizadas.cardapio.models import TipoAlimentacao, InversaoCardapio, Cardapio, \
     GrupoSuspensaoAlimentacao, SuspensaoAlimentacao, MotivoSuspensao, QuantidadePorPeriodoSuspensaoAlimentacao, \
     AlteracaoCardapio, MotivoAlteracaoCardapio
-from sme_pratoaberto_terceirizadas.escola.models import Escola, DiretoriaRegional, PeriodoEscolar, Codae
-from sme_pratoaberto_terceirizadas.inclusao_alimentacao.models import InclusaoAlimentacaoContinua, \
+from sme_terceirizadas.escola.models import Escola, DiretoriaRegional, PeriodoEscolar, Codae
+from sme_terceirizadas.inclusao_alimentacao.models import InclusaoAlimentacaoContinua, \
     MotivoInclusaoContinua, GrupoInclusaoAlimentacaoNormal, QuantidadePorPeriodo, InclusaoAlimentacaoNormal, \
     MotivoInclusaoNormal
-from sme_pratoaberto_terceirizadas.kit_lanche.models import SolicitacaoKitLancheUnificada, \
+from sme_terceirizadas.kit_lanche.models import SolicitacaoKitLancheUnificada, \
     SolicitacaoKitLanche, KitLanche, SolicitacaoKitLancheAvulsa, EscolaQuantidade
-from sme_pratoaberto_terceirizadas.perfil.models import Usuario
+from sme_terceirizadas.perfil.models import Usuario
 
 f = Faker('pt-br')
 f.seed(420)

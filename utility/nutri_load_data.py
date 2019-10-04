@@ -1,7 +1,7 @@
 import environ
 import pandas as pd
 
-from sme_pratoaberto_terceirizadas.user_profiles.models import NutritionistProfile, RegionalDirectorProfile
+from sme_terceirizadas.user_profiles.models import NutritionistProfile, RegionalDirectorProfile
 
 env = environ.Env()
 df = pd.read_csv('nutris.csv', sep=',', converters={'RF': str})
