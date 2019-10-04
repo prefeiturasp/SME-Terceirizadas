@@ -2,10 +2,9 @@ from django.core.validators import MinValueValidator
 from django.db import models
 
 from .managers import (
-    InclusoesDeAlimentacaoContinuaDesteMesManager,
-    InclusoesDeAlimentacaoContinuaDestaSemanaManager, InclusoesDeAlimentacaoContinuaVencidaDiasManager,
-    GrupoInclusoesDeAlimentacaoNormalDesteMesManager,
-    GrupoInclusoesDeAlimentacaoNormalDestaSemanaManager, GrupoInclusoesDeAlimentacaoNormalVencidosDiasManager
+    GrupoInclusoesDeAlimentacaoNormalDestaSemanaManager, GrupoInclusoesDeAlimentacaoNormalDesteMesManager,
+    GrupoInclusoesDeAlimentacaoNormalVencidosDiasManager, InclusoesDeAlimentacaoContinuaDestaSemanaManager,
+    InclusoesDeAlimentacaoContinuaDesteMesManager, InclusoesDeAlimentacaoContinuaVencidaDiasManager
 )
 from ..dados_comuns.models import (
     LogSolicitacoesUsuario, TemplateMensagem

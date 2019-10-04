@@ -260,9 +260,9 @@ class DiretoriaRegional(Nomeavel, TemChaveExterna):
 
     def inversoes_cardapio_das_minhas_escolas(self, filtro_aplicado):
         if filtro_aplicado == DAQUI_A_7_DIAS:
-            inversoes_cardapio = InversaoCardapio.prazo_limite_daqui_a_7_dias
+            inversoes_cardapio = InversaoCardapio.desta_semana
         elif filtro_aplicado == DAQUI_A_30_DIAS:
-            inversoes_cardapio = InversaoCardapio.prazo_limite_daqui_a_30_dias
+            inversoes_cardapio = InversaoCardapio.deste_mes
         else:
             inversoes_cardapio = InversaoCardapio.objects
         return inversoes_cardapio.filter(
@@ -472,9 +472,9 @@ class Codae(Nomeavel, TemChaveExterna):
 
     def inversoes_cardapio_das_minhas_escolas(self, filtro_aplicado):
         if filtro_aplicado == DAQUI_A_7_DIAS:
-            inversoes_cardapio = InversaoCardapio.prazo_limite_daqui_a_7_dias
+            inversoes_cardapio = InversaoCardapio.desta_semana
         elif filtro_aplicado == DAQUI_A_30_DIAS:
-            inversoes_cardapio = InversaoCardapio.prazo_limite_daqui_a_30_dias
+            inversoes_cardapio = InversaoCardapio.deste_mes
         else:
             inversoes_cardapio = InversaoCardapio.objects
         return inversoes_cardapio.filter(

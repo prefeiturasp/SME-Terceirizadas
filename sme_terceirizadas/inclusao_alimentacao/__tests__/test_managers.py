@@ -4,7 +4,7 @@ import pytest
 from freezegun import freeze_time
 from model_mommy import mommy
 
-from ..models import InclusaoAlimentacaoContinua, InclusaoAlimentacaoNormal, GrupoInclusaoAlimentacaoNormal
+from ..models import GrupoInclusaoAlimentacaoNormal, InclusaoAlimentacaoContinua, InclusaoAlimentacaoNormal
 
 pytestmark = pytest.mark.django_db
 

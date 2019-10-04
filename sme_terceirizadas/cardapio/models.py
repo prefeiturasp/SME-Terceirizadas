@@ -7,9 +7,8 @@ from .managers import (
     AlteracoesCardapioPrazoLimiteManager, AlteracoesCardapioPrazoRegularDaquiA30DiasManager,
     AlteracoesCardapioPrazoRegularDaquiA7DiasManager, AlteracoesCardapioPrazoRegularManager,
     AlteracoesCardapioPrazoVencendoHojeManager, AlteracoesCardapioPrazoVencendoManager,
-    AlteracoesCardapioVencidaManager, InversaoCardapioPrazoLimiteDaquiA30DiasManager,
-    InversaoCardapioPrazoLimiteDaquiA7DiasManager, InversaoCardapioPrazoLimiteManager,
-    InversaoCardapioPrazoVencendoHojeManager, InversaoCardapioPrazoVencendoManager, InversaoCardapioVencidaManager
+    AlteracoesCardapioVencidaManager, InversaoCardapioDestaSemanaManager, InversaoCardapioDesteMesManager,
+    InversaoCardapioVencidaManager
 )
 from ..dados_comuns.models import TemplateMensagem  # noqa I202
 from ..dados_comuns.models_abstract import (
@@ -82,13 +81,8 @@ class InversaoCardapio(CriadoEm, CriadoPor, TemObservacao, Motivo, TemChaveExter
     """
 
     objects = models.Manager()  # Manager Padrão
-    prazo_vencendo = InversaoCardapioPrazoVencendoManager()
-    prazo_vencendo_hoje = InversaoCardapioPrazoVencendoHojeManager()
-
-    prazo_limite = InversaoCardapioPrazoLimiteManager()
-    prazo_limite_daqui_a_7_dias = InversaoCardapioPrazoLimiteDaquiA7DiasManager()
-    prazo_limite_daqui_a_30_dias = InversaoCardapioPrazoLimiteDaquiA30DiasManager()
-
+    desta_semana = InversaoCardapioDestaSemanaManager()
+    deste_mes = InversaoCardapioDesteMesManager()
     vencidos = InversaoCardapioVencidaManager()
 
     cardapio_de = models.ForeignKey(Cardapio, on_delete=models.DO_NOTHING,
@@ -151,9 +145,7 @@ class InversaoCardapio(CriadoEm, CriadoPor, TemObservacao, Motivo, TemChaveExter
         )
 
     def __str__(self):
-        if self.cardapio_de and self.cardapio_para and self.escola:
-            return f'{self.escola.nome}: \nDe: {self.cardapio_de} \nPara: {self.cardapio_para}'
-        return self.descricao
+        return f'Inversão de \nDe: {self.cardapio_de} \nPara: {self.cardapio_para}'
 
     class Meta:
         verbose_name = 'Inversão de cardápio'

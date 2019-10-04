@@ -239,9 +239,9 @@ class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel):
 
     def inversoes_cardapio_das_minhas_escolas(self, filtro_aplicado):
         if filtro_aplicado == 'daqui_a_7_dias':
-            inversoes_cardapio = InversaoCardapio.prazo_limite_daqui_a_7_dias
+            inversoes_cardapio = InversaoCardapio.desta_semana
         elif filtro_aplicado == 'daqui_a_30_dias':
-            inversoes_cardapio = InversaoCardapio.prazo_limite_daqui_a_30_dias
+            inversoes_cardapio = InversaoCardapio.deste_mes
         else:
             inversoes_cardapio = InversaoCardapio.objects
         return inversoes_cardapio.filter(
