@@ -3,12 +3,8 @@ import datetime
 from django.db import models
 
 from .managers import (
-    AlteracoesCardapioPrazoLimiteDaquiA30DiasManager, AlteracoesCardapioPrazoLimiteDaquiA7DiasManager,
-    AlteracoesCardapioPrazoLimiteManager, AlteracoesCardapioPrazoRegularDaquiA30DiasManager,
-    AlteracoesCardapioPrazoRegularDaquiA7DiasManager, AlteracoesCardapioPrazoRegularManager,
-    AlteracoesCardapioPrazoVencendoHojeManager, AlteracoesCardapioPrazoVencendoManager,
-    AlteracoesCardapioVencidaManager, InversaoCardapioDestaSemanaManager, InversaoCardapioDesteMesManager,
-    InversaoCardapioVencidaManager
+    AlteracoesCardapioDestaSemanaManager, AlteracoesCardapioDesteMesManager, AlteracoesCardapioVencidaManager,
+    InversaoCardapioDestaSemanaManager, InversaoCardapioDesteMesManager, InversaoCardapioVencidaManager
 )
 from ..dados_comuns.models import TemplateMensagem  # noqa I202
 from ..dados_comuns.models_abstract import (
@@ -304,16 +300,8 @@ class AlteracaoCardapio(CriadoEm, CriadoPor, TemChaveExterna, IntervaloDeDia, Te
                         FluxoAprovacaoPartindoDaEscola, TemIdentificadorExternoAmigavel, Logs,
                         TemPrioridade):
     objects = models.Manager()  # Manager Padrão
-    prazo_vencendo = AlteracoesCardapioPrazoVencendoManager()
-    prazo_vencendo_hoje = AlteracoesCardapioPrazoVencendoHojeManager()
-
-    prazo_limite = AlteracoesCardapioPrazoLimiteManager()
-    prazo_limite_daqui_a_7_dias = AlteracoesCardapioPrazoLimiteDaquiA7DiasManager()
-    prazo_limite_daqui_a_30_dias = AlteracoesCardapioPrazoLimiteDaquiA30DiasManager()
-
-    prazo_regular = AlteracoesCardapioPrazoRegularManager()
-    prazo_regular_daqui_a_7_dias = AlteracoesCardapioPrazoRegularDaquiA7DiasManager()
-    prazo_regular_daqui_a_30_dias = AlteracoesCardapioPrazoRegularDaquiA30DiasManager()
+    desta_semana = AlteracoesCardapioDestaSemanaManager()
+    deste_mes = AlteracoesCardapioDesteMesManager()
     vencidos = AlteracoesCardapioVencidaManager()
 
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING, blank=True, null=True)
@@ -331,7 +319,7 @@ class AlteracaoCardapio(CriadoEm, CriadoPor, TemChaveExterna, IntervaloDeDia, Te
         return self.substituicoes_periodo_escolar
 
     def __str__(self):
-        return f'Alteração de cardápio: {self.uuid}'
+        return f'Alteração de cardápio de: {self.data_inicial} para {self.data_final}'
 
     @property
     def template_mensagem(self):

@@ -221,7 +221,7 @@ class DiretoriaRegional(Nomeavel, TemChaveExterna):
 
     def alteracoes_cardapio_das_minhas_escolas_no_prazo_limite(self, filtro_aplicado):
         if filtro_aplicado == DAQUI_A_7_DIAS:
-            alteracoes_cardapio = AlteracaoCardapio.prazo_limite_daqui_a_7_dias
+            alteracoes_cardapio = AlteracaoCardapio.desta_semana
         else:
             alteracoes_cardapio = AlteracaoCardapio.prazo_limite
         return alteracoes_cardapio.filter(
@@ -244,9 +244,9 @@ class DiretoriaRegional(Nomeavel, TemChaveExterna):
     # TODO rever os demais métodos de alterações de cardápio, já que esse consolida todas as prioridades.
     def alteracoes_cardapio_das_minhas_escolas(self, filtro_aplicado):
         if filtro_aplicado == DAQUI_A_7_DIAS:
-            alteracoes_cardapio = AlteracaoCardapio.prazo_limite_daqui_a_7_dias
+            alteracoes_cardapio = AlteracaoCardapio.desta_semana
         elif filtro_aplicado == DAQUI_A_30_DIAS:
-            alteracoes_cardapio = AlteracaoCardapio.prazo_limite_daqui_a_30_dias
+            alteracoes_cardapio = AlteracaoCardapio.deste_mes
         else:
             alteracoes_cardapio = AlteracaoCardapio.objects
         return alteracoes_cardapio.filter(
@@ -512,9 +512,9 @@ class Codae(Nomeavel, TemChaveExterna):
 
     def alteracoes_cardapio_das_minhas(self, filtro_aplicado):
         if filtro_aplicado == DAQUI_A_7_DIAS:
-            alteracoes_cardapio = AlteracaoCardapio.prazo_limite_daqui_a_7_dias
+            alteracoes_cardapio = AlteracaoCardapio.desta_semana
         elif filtro_aplicado == DAQUI_A_30_DIAS:
-            alteracoes_cardapio = AlteracaoCardapio.prazo_limite_daqui_a_30_dias
+            alteracoes_cardapio = AlteracaoCardapio.deste_mes
         else:
             alteracoes_cardapio = AlteracaoCardapio.objects
         return alteracoes_cardapio.filter(
@@ -670,7 +670,7 @@ class Codae(Nomeavel, TemChaveExterna):
 
     def alteracoes_cardapio_das_minhas_escolas_no_prazo_limite(self, filtro_aplicado):
         if filtro_aplicado == DAQUI_A_7_DIAS:
-            alteracoes_cardapio = AlteracaoCardapio.prazo_limite_daqui_a_7_dias
+            alteracoes_cardapio = AlteracaoCardapio.desta_semana
         else:
             alteracoes_cardapio = AlteracaoCardapio.prazo_limite
         return alteracoes_cardapio.filter(
