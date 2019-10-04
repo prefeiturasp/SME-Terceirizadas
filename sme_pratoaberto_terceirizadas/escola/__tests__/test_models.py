@@ -16,10 +16,11 @@ def test_tipo_gestao(tipo_gestao):
     assert tipo_gestao.nome is not None
 
 
-def test_diretoria_regional(diretoria_regional):
+def test_diretoria_regional(diretoria_regional, escola):
     assert diretoria_regional.nome is not None
     assert diretoria_regional.escolas is not None
     assert diretoria_regional.quantidade_alunos is not None
+    assert escola in diretoria_regional.escolas.all()
 
 
 def test_escola(escola):

@@ -40,6 +40,7 @@ class InclusaoAlimentacaoNormalSerializer(serializers.ModelSerializer):
 
 
 class InclusaoAlimentacaoContinuaSerializer(serializers.ModelSerializer):
+    prioridade = serializers.CharField()
     motivo = MotivoInclusaoContinuaSerializer()
     quantidades_periodo = QuantidadePorPeriodoSerializer(many=True)
     escola = EscolaSimplesSerializer()
@@ -79,6 +80,7 @@ class InclusaoAlimentacaoNormalSimplesSerializer(serializers.ModelSerializer):
 
 
 class GrupoInclusaoAlimentacaoNormalSerializer(serializers.ModelSerializer):
+    prioridade = serializers.CharField()
     inclusoes = InclusaoAlimentacaoNormalSerializer(many=True)
     escola = EscolaSimplesSerializer()
     quantidades_periodo = QuantidadePorPeriodoSerializer(many=True)

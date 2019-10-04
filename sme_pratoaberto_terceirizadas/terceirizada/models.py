@@ -263,9 +263,9 @@ class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel):
 
     def solicitacoes_unificadas_das_minhas_escolas(self, filtro_aplicado):
         if filtro_aplicado == 'daqui_a_7_dias':
-            solicitacoes_unificadas = SolicitacaoKitLancheUnificada.prazo_limite_daqui_a_7_dias
+            solicitacoes_unificadas = SolicitacaoKitLancheUnificada.desta_semana
         elif filtro_aplicado == 'daqui_a_30_dias':
-            solicitacoes_unificadas = SolicitacaoKitLancheUnificada.prazo_limite_daqui_a_30_dias
+            solicitacoes_unificadas = SolicitacaoKitLancheUnificada.deste_mes
         else:
             solicitacoes_unificadas = SolicitacaoKitLancheUnificada.objects
         return solicitacoes_unificadas.filter(
@@ -283,9 +283,9 @@ class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel):
 
     def solicitacoes_kit_lanche_das_minhas_escolas_a_validar(self, filtro_aplicado):
         if filtro_aplicado == 'daqui_a_7_dias':
-            solicitacoes_kit_lanche = SolicitacaoKitLancheAvulsa.prazo_limite_daqui_a_7_dias
+            solicitacoes_kit_lanche = SolicitacaoKitLancheAvulsa.desta_semana
         elif filtro_aplicado == 'daqui_a_30_dias':
-            solicitacoes_kit_lanche = SolicitacaoKitLancheAvulsa.prazo_limite_daqui_a_30_dias
+            solicitacoes_kit_lanche = SolicitacaoKitLancheAvulsa.deste_mes
         else:
             solicitacoes_kit_lanche = SolicitacaoKitLancheAvulsa.objects
         return solicitacoes_kit_lanche.filter(
