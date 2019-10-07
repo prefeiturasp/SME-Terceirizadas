@@ -4,7 +4,8 @@ from django.db import models
 
 from .managers import (
     AlteracoesCardapioDestaSemanaManager, AlteracoesCardapioDesteMesManager, AlteracoesCardapioVencidaManager,
-    InversaoCardapioDestaSemanaManager, InversaoCardapioDesteMesManager, InversaoCardapioVencidaManager
+    InversaoCardapioDestaSemanaManager, InversaoCardapioDesteMesManager, InversaoCardapioVencidaManager,
+    AlteracoesCardapioVencendoHojeManager
 )
 from ..dados_comuns.models import TemplateMensagem  # noqa I202
 from ..dados_comuns.models_abstract import (
@@ -197,7 +198,8 @@ class QuantidadePorPeriodoSuspensaoAlimentacao(TemChaveExterna):
 
 
 class GrupoSuspensaoAlimentacao(TemChaveExterna, CriadoPor, TemIdentificadorExternoAmigavel,
-                                CriadoEm, TemObservacao, FluxoInformativoPartindoDaEscola, Logs):
+                                CriadoEm, TemObservacao, FluxoInformativoPartindoDaEscola, Logs,
+                                TemPrioridade):
     """Serve para agrupar suspensões.
 
     Vide SuspensaoAlimentacao e QuantidadePorPeriodoSuspensaoAlimentacao
@@ -231,6 +233,11 @@ class GrupoSuspensaoAlimentacao(TemChaveExterna, CriadoPor, TemIdentificadorExte
     @property
     def suspensoes_alimentacao(self):
         return self.suspensoes_alimentacao
+
+    @property
+    def data(self):
+        data = self.criado_em.date()
+        return data
 
     def __str__(self):
         return f'{self.observacao}'
@@ -303,6 +310,7 @@ class AlteracaoCardapio(CriadoEm, CriadoPor, TemChaveExterna, IntervaloDeDia, Te
     desta_semana = AlteracoesCardapioDestaSemanaManager()
     deste_mes = AlteracoesCardapioDesteMesManager()
     vencidos = AlteracoesCardapioVencidaManager()
+    prazo_vencendo_hoje = AlteracoesCardapioVencendoHojeManager()
 
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING, blank=True, null=True)
     motivo = models.ForeignKey('MotivoAlteracaoCardapio', on_delete=models.PROTECT, blank=True, null=True)

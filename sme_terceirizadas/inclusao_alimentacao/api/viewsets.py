@@ -60,6 +60,20 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False,
+            url_path=f'{constants.PEDIDOS_TERCEIRIZADA}/{constants.FILTRO_PADRAO_PEDIDOS}')
+    def solicitacoes_terceirizada(self, request, filtro_aplicado='sem_filtro'):
+        # TODO: colocar regras de terceirizada aqui...
+        usuario = request.user
+        # TODO: aguardando definição de perfis pra saber
+        terceirizada = usuario.terceirizadas.first()
+        inclusoes_continuas = terceirizada.grupos_inclusoes_alimentacao_normal_das_minhas_escolas(
+            filtro_aplicado
+        )
+        page = self.paginate_queryset(inclusoes_continuas)
+        serializer = serializers.GrupoInclusaoAlimentacaoNormalSimplesSerializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False,
             url_path='pedidos-prioritarios-diretoria-regional/'
                      '(?P<filtro_aplicado>(sem_filtro|hoje|daqui_a_7_dias|daqui_a_30_dias)+)')
     def solicitacoes_prioritarios_diretoria_regional(self, request, filtro_aplicado='sem_filtro'):
@@ -389,6 +403,20 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
         # TODO: aguardando definição de perfis pra saber
         codae = usuario.CODAE.first()
         inclusoes_continuas = codae.inclusoes_alimentacao_continua_das_minhas_escolas(
+            filtro_aplicado
+        )
+        page = self.paginate_queryset(inclusoes_continuas)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False,
+            url_path=f'{constants.PEDIDOS_TERCEIRIZADA}/{constants.FILTRO_PADRAO_PEDIDOS}')
+    def solicitacoes_terceirizada(self, request, filtro_aplicado=constants.SEM_FILTRO):
+        # TODO: colocar regras de terceirizada aqui...
+        usuario = request.user
+        # TODO: aguardando definição de perfis pra saber
+        terceirizada = usuario.terceirizadas.first()
+        inclusoes_continuas = terceirizada.inclusoes_alimentacao_continua_das_minhas_escolas(
             filtro_aplicado
         )
         page = self.paginate_queryset(inclusoes_continuas)

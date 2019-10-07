@@ -144,26 +144,6 @@ class DiretoriaRegionalCompletaSerializer(serializers.ModelSerializer):
         exclude = ('id',)
 
 
-class UsuarioDetalheSerializer(serializers.ModelSerializer):
-    perfis = PerfilSerializer(many=True, read_only=True)
-    escolas = EscolaSimplesSerializer(many=True)
-    diretorias_regionais = DiretoriaRegionalSimplesSerializer(many=True)
-    tipo_usuario = serializers.CharField()
-
-    class Meta:
-        model = Usuario
-        fields = ('uuid', 'nome', 'email', 'registro_funcional', 'tipo_usuario',
-                  'date_joined', 'perfis', 'escolas', 'diretorias_regionais')
-
-
-class CODAESerializer(serializers.ModelSerializer):
-    quantidade_alunos = serializers.IntegerField()
-
-    class Meta:
-        model = Codae
-        fields = '__all__'
-
-
 class TerceirizadaSerializer(serializers.ModelSerializer):
     nutricionistas = NutricionistaSerializer(many=True)
     contatos = ContatoSerializer(many=True)
@@ -175,3 +155,25 @@ class TerceirizadaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Terceirizada
         exclude = ('id', 'usuarios',)
+
+
+class UsuarioDetalheSerializer(serializers.ModelSerializer):
+    perfis = PerfilSerializer(many=True, read_only=True)
+    escolas = EscolaSimplesSerializer(many=True)
+    diretorias_regionais = DiretoriaRegionalSimplesSerializer(many=True)
+    terceirizadas = TerceirizadaSerializer(many=True)
+    tipo_usuario = serializers.CharField()
+
+    class Meta:
+        model = Usuario
+        fields = ('uuid', 'nome', 'email', 'registro_funcional', 'tipo_usuario',
+                  'date_joined', 'perfis', 'escolas', 'diretorias_regionais',
+                  'terceirizadas')
+
+
+class CODAESerializer(serializers.ModelSerializer):
+    quantidade_alunos = serializers.IntegerField()
+
+    class Meta:
+        model = Codae
+        fields = '__all__'

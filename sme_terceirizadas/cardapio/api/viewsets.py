@@ -287,6 +287,21 @@ class GrupoSuspensaoAlimentacaoSerializerViewSet(viewsets.ModelViewSet):
         serializer = GrupoSupensaoAlimentacaoListagemSimplesSerializer(grupo_informados, many=True)
         return Response(serializer.data)
 
+    @action(detail=False, methods=['GET'],
+            url_path=f'{constants.PEDIDOS_TERCEIRIZADA}/{constants.FILTRO_PADRAO_PEDIDOS}')
+    def pedidos_terceirizada(self, request, filtro_aplicado='sem_filtro'):
+        # TODO: colocar regras de Terceirizada aqui...
+        usuario = request.user
+        # TODO: aguardando definição de perfis pra saber
+        terceirizada = usuario.terceirizadas.first()
+        suspensoes_cardapio = terceirizada.suspensoes_cardapio_das_minhas_escolas(
+            filtro_aplicado
+        )
+
+        page = self.paginate_queryset(suspensoes_cardapio)
+        serializer = GrupoSupensaoAlimentacaoListagemSimplesSerializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
     @action(detail=False, url_path='tomados-ciencia', methods=['GET'])
     def tomados_ciencia(self, request):
         grupo_informados = GrupoSuspensaoAlimentacao.get_tomados_ciencia()
@@ -360,6 +375,21 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
         # TODO: aguardando definição de perfis pra saber
         codae = usuario.CODAE.first()
         alteracoes_cardapio = codae.alteracoes_cardapio_das_minhas(
+            filtro_aplicado
+        )
+
+        page = self.paginate_queryset(alteracoes_cardapio)
+        serializer = AlteracaoCardapioSimplesSerializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False,
+            url_path=f'{constants.PEDIDOS_TERCEIRIZADA}/{constants.FILTRO_PADRAO_PEDIDOS}')
+    def pedidos_terceirizada(self, request, filtro_aplicado='sem_filtro'):
+        # TODO: colocar regras de Terceirizada aqui...
+        usuario = request.user
+        # TODO: aguardando definição de perfis pra saber
+        terceirizada = usuario.terceirizadas.first()
+        alteracoes_cardapio = terceirizada.alteracoes_cardapio_das_minhas(
             filtro_aplicado
         )
 
