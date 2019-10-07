@@ -23,7 +23,8 @@ class MotivoInclusaoNormalSerializer(serializers.ModelSerializer):
         exclude = ('id',)
 
 
-class QuantidadePorPeriodoCreationSerializer(serializers.ModelSerializer):
+class \
+    QuantidadePorPeriodoCreationSerializer(serializers.ModelSerializer):
     periodo_escolar = serializers.SlugRelatedField(
         slug_field='uuid',
         required=True,

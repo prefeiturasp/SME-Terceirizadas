@@ -28,6 +28,8 @@ class TipoAlimentacao(Nomeavel, TemChaveExterna):
     Merenda Seca
     """
 
+    substituicoes = models.ManyToManyField('TipoAlimentacao')
+
     @property
     def substituicoes_periodo_escolar(self):
         return self.substituicoes_periodo_escolar
@@ -402,7 +404,10 @@ class SubstituicoesAlimentacaoNoPeriodoEscolar(TemChaveExterna):
     qtd_alunos = models.PositiveSmallIntegerField(default=0)
     periodo_escolar = models.ForeignKey('escola.PeriodoEscolar', on_delete=models.PROTECT,
                                         related_name='substituicoes_periodo_escolar')
-    tipos_alimentacao = models.ManyToManyField('TipoAlimentacao', related_name='substituicoes_periodo_escolar')
+    tipo_alimentacao_de = models.ForeignKey('cardapio.TipoAlimentacao', on_delete=models.PROTECT,
+                                            related_name='substituicoes_tipo_alimentacao_de', blank=True, null=True)
+    tipo_alimentacao_para = models.ForeignKey('cardapio.TipoAlimentacao', on_delete=models.PROTECT,
+                                              related_name='substituicoes_tipo_alimentacao_para', blank=True, null=True)
 
     def __str__(self):
         return f'Substituições de alimentação: {self.uuid} da Alteração de Cardápio: {self.alteracao_cardapio.uuid}'

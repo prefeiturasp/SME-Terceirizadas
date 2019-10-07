@@ -148,25 +148,24 @@ class SubstituicoesAlimentacaoNoPeriodoEscolarSerializerCreate(serializers.Model
         queryset=AlteracaoCardapio.objects.all()
     )
 
-    tipos_alimentacao = serializers.SlugRelatedField(
+    tipo_alimentacao_de = serializers.SlugRelatedField(
         slug_field='uuid',
         required=False,
-        queryset=TipoAlimentacao.objects.all(),
-        many=True
+        queryset=TipoAlimentacao.objects.all()
+    )
+
+    tipo_alimentacao_para = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=TipoAlimentacao.objects.all()
     )
 
     def create(self, validated_data):
-        tipos_alimentacao = validated_data.pop('tipos_alimentacao')
-
         substituicoes_alimentacao = SubstituicoesAlimentacaoNoPeriodoEscolar.objects.create(**validated_data)
-        substituicoes_alimentacao.tipos_alimentacao.set(tipos_alimentacao)
-
         return substituicoes_alimentacao
 
     def update(self, instance, validated_data):
-        tipos_alimentacao = validated_data.pop('tipos_alimentacao')
         update_instance_from_dict(instance, validated_data)
-        instance.tipos_alimentacao.set(tipos_alimentacao)
         instance.save()
         return instance
 
@@ -212,16 +211,19 @@ class AlteracaoCardapioSerializerCreate(serializers.ModelSerializer):
         return alteracao_cardapio
 
     def update(self, instance, validated_data):
-        substituicoes_array = validated_data.pop('substituicoes')
-        substituicoes_obj = instance.substituicoes.all()
+        substituicoes_json = validated_data.pop('substituicoes')
+        instance.substituicoes.all().delete()
 
-        for index in range(len(substituicoes_array)):
-            SubstituicoesAlimentacaoNoPeriodoEscolarSerializerCreate(
-            ).update(instance=substituicoes_obj[index],
-                     validated_data=substituicoes_array[index])
+        substituicoes_lista = []
+        for substituicao_json in substituicoes_json:
+            substituicoes_object = SubstituicoesAlimentacaoNoPeriodoEscolarSerializerCreate(
+            ).create(substituicao_json)
+            substituicoes_lista.append(substituicoes_object)
 
         update_instance_from_dict(instance, validated_data)
+        instance.substituicoes.set(substituicoes_lista)
         instance.save()
+
         return instance
 
     class Meta:
