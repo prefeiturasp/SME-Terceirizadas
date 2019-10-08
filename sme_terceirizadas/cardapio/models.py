@@ -401,7 +401,6 @@ class SubstituicoesAlimentacaoNoPeriodoEscolar(TemChaveExterna):
     alteracao_cardapio = models.ForeignKey('AlteracaoCardapio', on_delete=models.CASCADE,
                                            null=True, blank=True,
                                            related_name='substituicoes_periodo_escolar')
-    qtd_alunos = models.PositiveSmallIntegerField(default=0)
     periodo_escolar = models.ForeignKey('escola.PeriodoEscolar', on_delete=models.PROTECT,
                                         related_name='substituicoes_periodo_escolar')
     tipo_alimentacao_de = models.ForeignKey('cardapio.TipoAlimentacao', on_delete=models.PROTECT,
