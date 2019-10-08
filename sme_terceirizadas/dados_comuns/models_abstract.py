@@ -3,6 +3,7 @@ import uuid
 
 import xworkflows
 from django.contrib.postgres.fields import ArrayField
+from django.core.validators import MinLengthValidator
 from django.db import models
 from django_xworkflows import models as xwf_models
 
@@ -30,7 +31,7 @@ class Descritivel(models.Model):
 
 
 class Nomeavel(models.Model):
-    nome = models.CharField('Nome', blank=True, max_length=50)
+    nome = models.CharField('Nome', blank=True, max_length=100)
 
     class Meta:
         abstract = True
@@ -82,6 +83,13 @@ class TemData(models.Model):
 
 class TemChaveExterna(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+
+    class Meta:
+        abstract = True
+
+
+class TemCodigoEOL(models.Model):
+    codigo_eol = models.CharField('Código EOL', max_length=6, unique=True, validators=[MinLengthValidator(6)])
 
     class Meta:
         abstract = True
@@ -201,9 +209,7 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
         """
 
         """
-        dre = self.escola.diretoria_regional
-        usuarios_dre = dre.usuarios.all()
-        return usuarios_dre
+        return []
 
     @property
     def partes_interessadas_dre_valida(self):
