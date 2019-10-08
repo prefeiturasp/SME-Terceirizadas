@@ -2,11 +2,9 @@ from django.core.validators import MinLengthValidator
 from django.db import models
 
 from ..cardapio.models import (
-    AlteracaoCardapio,
-    InversaoCardapio,
-    GrupoSuspensaoAlimentacao
+    AlteracaoCardapio, GrupoSuspensaoAlimentacao, InversaoCardapio
 )
-from ..dados_comuns.constants import DAQUI_A_30_DIAS, DAQUI_A_7_DIAS, SEM_FILTRO
+from ..dados_comuns.constants import DAQUI_A_30_DIAS, DAQUI_A_7_DIAS
 from ..dados_comuns.models_abstract import (
     Ativavel, IntervaloDeDia, Nomeavel, TemChaveExterna, TemIdentificadorExternoAmigavel
 )
@@ -255,7 +253,6 @@ class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel):
             status=AlteracaoCardapio.workflow_class.CODAE_AUTORIZADO,
             escola__lote__in=self.lotes.all()
         )
-
 
     def suspensoes_cardapio_das_minhas_escolas(self, filtro_aplicado):
         return GrupoSuspensaoAlimentacao.objects.filter(

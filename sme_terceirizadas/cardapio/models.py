@@ -3,9 +3,10 @@ import datetime
 from django.db import models
 
 from .managers import (
-    AlteracoesCardapioDestaSemanaManager, AlteracoesCardapioDesteMesManager, AlteracoesCardapioVencidaManager,
-    InversaoCardapioDestaSemanaManager, InversaoCardapioDesteMesManager, InversaoCardapioVencidaManager,
-    AlteracoesCardapioVencendoHojeManager
+    AlteracoesCardapioDestaSemanaManager, AlteracoesCardapioDesteMesManager,
+    AlteracoesCardapioVencendoHojeManager, AlteracoesCardapioVencidaManager,
+    InversaoCardapioDestaSemanaManager, InversaoCardapioDesteMesManager,
+    InversaoCardapioVencidaManager
 )
 from ..dados_comuns.models import TemplateMensagem  # noqa I202
 from ..dados_comuns.models_abstract import (

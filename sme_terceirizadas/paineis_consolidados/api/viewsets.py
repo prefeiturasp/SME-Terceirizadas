@@ -4,7 +4,7 @@ from rest_framework.response import Response
 
 from .constants import (
     AUTORIZADOS, CANCELADOS, FILTRO_DRE_UUID, FILTRO_ESCOLA_UUID,
-    NEGADOS, PENDENTES_APROVACAO, _NEGADOS, FILTRO_TERCEIRIZADA_UUID
+    FILTRO_TERCEIRIZADA_UUID, NEGADOS, PENDENTES_APROVACAO, _NEGADOS
 )
 from ..models.codae import (
     SolicitacoesCODAE, SolicitacoesDRE, SolicitacoesEscola, SolicitacoesTerceirizada
@@ -123,6 +123,7 @@ class DRESolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
         page = self.paginate_queryset(query_set)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
+
 
 class TerceirizadaSolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
     lookup_field = 'uuid'

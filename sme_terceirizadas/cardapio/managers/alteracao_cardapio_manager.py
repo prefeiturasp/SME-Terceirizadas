@@ -37,6 +37,7 @@ class AlteracoesCardapioVencidaManager(models.Manager):
                         PedidoAPartirDaEscolaWorkflow.DRE_PEDIU_ESCOLA_REVISAR]
         )
 
+
 class AlteracoesCardapioVencendoHojeManager(models.Manager):
     def get_queryset(self):
         hoje = datetime.date.today()

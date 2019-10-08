@@ -1,15 +1,10 @@
 from rest_framework import viewsets
-from rest_framework.decorators import action
 from .serializers.serializers import (
     EditalContratosSerializer, EditalSerializer
 )
-from ...dados_comuns.constants import FILTRO_PADRAO_PEDIDOS, SEM_FILTRO
 from ...escola.api.serializers import TerceirizadaSerializer
 from .serializers.serializers_create import EditalContratosCreateSerializer, TerceirizadaCreateSerializer
 from ..models import Edital, Terceirizada
-from ...paineis_consolidados.api.serializers import (
-    SolicitacoesSerializer
-)
 
 
 class EditalViewSet(viewsets.ReadOnlyModelViewSet):

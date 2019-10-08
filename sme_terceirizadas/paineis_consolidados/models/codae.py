@@ -197,9 +197,9 @@ class SolicitacoesTerceirizada(MoldeConsolidado):
         terceirizada_uuid = kwargs.get('terceirizada_uuid')
         return cls.objects.filter(
             status_evento__in=[LogSolicitacoesUsuario.DRE_VALIDOU,
-            LogSolicitacoesUsuario.CODAE_AUTORIZOU],
+                               LogSolicitacoesUsuario.CODAE_AUTORIZOU],
             status__in=[cls._WORKFLOW_CLASS.CODAE_AUTORIZADO,
-            cls._WORKFLOW_CLASS.DRE_VALIDADO],
+                        cls._WORKFLOW_CLASS.DRE_VALIDADO],
             terceirizada_uuid=terceirizada_uuid
         ).order_by('-criado_em')
 
@@ -208,9 +208,9 @@ class SolicitacoesTerceirizada(MoldeConsolidado):
         terceirizada_uuid = kwargs.get('terceirizada_uuid')
         return cls.objects.filter(
             status_evento__in=[LogSolicitacoesUsuario.DRE_CANCELOU,
-            LogSolicitacoesUsuario.CODAE_NEGOU, LogSolicitacoesUsuario.ESCOLA_CANCELOU],
+                               LogSolicitacoesUsuario.CODAE_NEGOU, LogSolicitacoesUsuario.ESCOLA_CANCELOU],
             status__in=[cls._WORKFLOW_CLASS.DRE_NAO_VALIDOU_PEDIDO_ESCOLA,
-            cls._WORKFLOW_CLASS.CODAE_NEGOU_PEDIDO,
-            cls._WORKFLOW_CLASS.ESCOLA_CANCELOU],
+                        cls._WORKFLOW_CLASS.CODAE_NEGOU_PEDIDO,
+                        cls._WORKFLOW_CLASS.ESCOLA_CANCELOU],
             terceirizada_uuid=terceirizada_uuid
         ).order_by('-criado_em')
