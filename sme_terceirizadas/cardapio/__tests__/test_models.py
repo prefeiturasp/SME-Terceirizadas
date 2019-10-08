@@ -21,7 +21,6 @@ def test_alteracao_cardapio(alteracao_cardapio):
 
 
 def test_substituicoes_alimentacao_periodo(substituicoes_alimentacao_periodo):
-    assert substituicoes_alimentacao_periodo.qtd_alunos is not None
     assert substituicoes_alimentacao_periodo.alteracao_cardapio is not None
     assert substituicoes_alimentacao_periodo.alteracao_cardapio.substituicoes is not None
 
