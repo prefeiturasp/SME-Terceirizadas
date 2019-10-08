@@ -16,7 +16,15 @@ from ...perfil.models import Usuario
 from ...terceirizada.api.serializers.serializers import TerceirizadaSimplesSerializer
 
 
+class SubsticuicoesTipoAlimentacaoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TipoAlimentacao
+        exclude = ('id', 'substituicoes',)
+
+
 class TipoAlimentacaoSerializer(serializers.ModelSerializer):
+    substituicoes = SubsticuicoesTipoAlimentacaoSerializer(many=True)
+
     class Meta:
         model = TipoAlimentacao
         exclude = ('id',)
