@@ -8,6 +8,7 @@ router.register('dre-pendentes-aprovacao', viewsets.DrePendentesAprovacaoViewSet
 router.register('codae-solicitacoes', viewsets.CODAESolicitacoesViewSet, 'codae_solicitacoes')
 router.register('escola-solicitacoes', viewsets.EscolaSolicitacoesViewSet, 'escola_solicitacoes')
 router.register('diretoria-regional-solicitacoes', viewsets.DRESolicitacoesViewSet, 'dre_solicitacoes')
+router.register('terceirizada-solicitacoes', viewsets.TerceirizadaSolicitacoesViewSet, 'terceirizada_solicitacoes')
 
 urlpatterns = [
     path('', include(router.urls)),

@@ -3,10 +3,11 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from .constants import (
-    AUTORIZADOS, CANCELADOS, FILTRO_DRE_UUID, FILTRO_ESCOLA_UUID, NEGADOS, PENDENTES_APROVACAO, _NEGADOS
+    AUTORIZADOS, CANCELADOS, FILTRO_DRE_UUID, FILTRO_ESCOLA_UUID,
+    NEGADOS, PENDENTES_APROVACAO, _NEGADOS, FILTRO_TERCEIRIZADA_UUID
 )
 from ..models.codae import (
-    SolicitacoesCODAE, SolicitacoesDRE, SolicitacoesEscola
+    SolicitacoesCODAE, SolicitacoesDRE, SolicitacoesEscola, SolicitacoesTerceirizada
 )
 from ...dados_comuns.constants import FILTRO_PADRAO_PEDIDOS, SEM_FILTRO
 from ...escola.models import DiretoriaRegional
@@ -116,6 +117,26 @@ class DRESolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
     @action(detail=False, methods=['GET'], url_path=f'{CANCELADOS}/{FILTRO_DRE_UUID}')
     def cancelados(self, request, dre_uuid=None):
         query_set = SolicitacoesDRE.get_cancelados(dre_uuid=dre_uuid)
+        return self._retorno_base(query_set)
+
+    def _retorno_base(self, query_set):
+        page = self.paginate_queryset(query_set)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+class TerceirizadaSolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
+    lookup_field = 'uuid'
+    queryset = SolicitacoesTerceirizada.objects.all()
+    serializer_class = SolicitacoesSerializer
+
+    @action(detail=False, methods=['GET'], url_path=f'{PENDENTES_APROVACAO}/{FILTRO_TERCEIRIZADA_UUID}')
+    def pendentes_aprovacao(self, request, terceirizada_uuid=None):
+        query_set = SolicitacoesTerceirizada.get_pendentes_aprovacao(terceirizada_uuid=terceirizada_uuid)
+        return self._retorno_base(query_set)
+
+    @action(detail=False, methods=['GET'], url_path=f'{CANCELADOS}/{FILTRO_TERCEIRIZADA_UUID}')
+    def cancelados(self, request, terceirizada_uuid=None):
+        query_set = SolicitacoesTerceirizada.get_cancelados(terceirizada_uuid=terceirizada_uuid)
         return self._retorno_base(query_set)
 
     def _retorno_base(self, query_set):

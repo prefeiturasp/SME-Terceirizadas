@@ -256,9 +256,6 @@ class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel):
             escola__lote__in=self.lotes.all()
         )
 
-    def solicitacoes_pendentes(self, filtro_aplicado=SEM_FILTRO):
-        # TODO
-        return []
 
     def suspensoes_cardapio_das_minhas_escolas(self, filtro_aplicado):
         return GrupoSuspensaoAlimentacao.objects.filter(

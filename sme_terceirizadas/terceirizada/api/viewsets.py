@@ -28,16 +28,6 @@ class TerceirizadaViewSet(viewsets.ModelViewSet):
             return TerceirizadaCreateSerializer
         return TerceirizadaSerializer
 
-    @action(detail=True,
-            url_path=f'solicitacoes-pendentes-para-mim/{FILTRO_PADRAO_PEDIDOS}')
-    def solicitacoes_pendentes_para_mim(self, request, uuid=None, filtro_aplicado=SEM_FILTRO):
-        terceirizada = self.get_object()
-        pendentes = terceirizada.solicitacoes_pendentes(filtro_aplicado=filtro_aplicado)
-        page = self.paginate_queryset(pendentes)
-        serializer = SolicitacoesSerializer(
-            page, many=True
-        )
-        return self.get_paginated_response(serializer.data)
 
 class EditalContratosViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'

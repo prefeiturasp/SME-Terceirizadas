@@ -236,8 +236,8 @@ class GrupoSuspensaoAlimentacao(TemChaveExterna, CriadoPor, TemIdentificadorExte
 
     @property
     def data(self):
-        data = self.criado_em.date()
-        return data
+        query = self.suspensoes_alimentacao.order_by('data')
+        return query.first().data
 
     def __str__(self):
         return f'{self.observacao}'
