@@ -209,9 +209,7 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
         """
 
         """
-        dre = self.escola.diretoria_regional
-        usuarios_dre = dre.usuarios.all()
-        return usuarios_dre
+        return []
 
     @property
     def partes_interessadas_dre_valida(self):

@@ -297,7 +297,6 @@ class Escola(Ativavel, TemChaveExterna, TemCodigoEOL):
 
     diretoria_regional = models.ForeignKey(DiretoriaRegional,
                                            related_name='escolas',
-                                           null=True,
                                            on_delete=models.DO_NOTHING)
     tipo_unidade = models.ForeignKey(TipoUnidadeEscolar,
                                      on_delete=models.DO_NOTHING)
