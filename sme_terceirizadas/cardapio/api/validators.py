@@ -3,7 +3,7 @@ import datetime
 from django.db.models import Q
 from rest_framework import serializers
 
-from sme_terceirizadas.cardapio.models import Cardapio
+from sme_terceirizadas.cardapio.models import Cardapio, TipoAlimentacao
 from sme_terceirizadas.escola.models import Escola
 from ..models import InversaoCardapio
 
@@ -85,5 +85,15 @@ def nao_pode_ter_mais_que_60_dias_diferenca(data_de: datetime.date, data_para: d
     if diferenca > 60:
         raise serializers.ValidationError(
             'Diferença entre as datas não pode ultrapassar de 60 dias'
+        )
+    return True
+
+
+def precisa_pertencer_a_um_tipo_de_alimentacao(tipo_alimentacao_de: TipoAlimentacao,
+                                               tipo_alimentacao_para: TipoAlimentacao):
+    if tipo_alimentacao_para not in tipo_alimentacao_de.substituicoes.all():
+        raise serializers.ValidationError(
+            f'Tipo de alimentação {tipo_alimentacao_para.nome} não é substituível por {tipo_alimentacao_de.nome}'
+
         )
     return True

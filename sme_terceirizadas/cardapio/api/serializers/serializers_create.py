@@ -3,7 +3,8 @@ from rest_framework import serializers
 from ..helpers import notificar_partes_envolvidas
 from ...api.validators import (
     data_troca_nao_pode_ser_superior_a_data_inversao, deve_ser_no_mesmo_ano_corrente,
-    nao_pode_existir_solicitacao_igual_para_mesma_escola, nao_pode_ter_mais_que_60_dias_diferenca
+    nao_pode_existir_solicitacao_igual_para_mesma_escola, nao_pode_ter_mais_que_60_dias_diferenca,
+    precisa_pertencer_a_um_tipo_de_alimentacao
 )
 from ...models import (
     AlteracaoCardapio, Cardapio, GrupoSuspensaoAlimentacao, InversaoCardapio, MotivoAlteracaoCardapio, MotivoSuspensao,
@@ -148,25 +149,24 @@ class SubstituicoesAlimentacaoNoPeriodoEscolarSerializerCreate(serializers.Model
         queryset=AlteracaoCardapio.objects.all()
     )
 
-    tipos_alimentacao = serializers.SlugRelatedField(
+    tipo_alimentacao_de = serializers.SlugRelatedField(
         slug_field='uuid',
         required=False,
-        queryset=TipoAlimentacao.objects.all(),
-        many=True
+        queryset=TipoAlimentacao.objects.all()
+    )
+
+    tipo_alimentacao_para = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=TipoAlimentacao.objects.all()
     )
 
     def create(self, validated_data):
-        tipos_alimentacao = validated_data.pop('tipos_alimentacao')
-
         substituicoes_alimentacao = SubstituicoesAlimentacaoNoPeriodoEscolar.objects.create(**validated_data)
-        substituicoes_alimentacao.tipos_alimentacao.set(tipos_alimentacao)
-
         return substituicoes_alimentacao
 
     def update(self, instance, validated_data):
-        tipos_alimentacao = validated_data.pop('tipos_alimentacao')
         update_instance_from_dict(instance, validated_data)
-        instance.tipos_alimentacao.set(tipos_alimentacao)
         instance.save()
         return instance
 
@@ -176,6 +176,7 @@ class SubstituicoesAlimentacaoNoPeriodoEscolarSerializerCreate(serializers.Model
 
 
 class AlteracaoCardapioSerializerCreate(serializers.ModelSerializer):
+    substituicoes = SubstituicoesAlimentacaoNoPeriodoEscolarSerializerCreate(many=True)
     motivo = serializers.SlugRelatedField(
         slug_field='uuid',
         required=True,
@@ -188,12 +189,17 @@ class AlteracaoCardapioSerializerCreate(serializers.ModelSerializer):
         queryset=Escola.objects.all()
     )
 
+    def validate_substituicoes(self, substituicoes):
+        for substicuicao in substituicoes:
+            tipo_alimentacao_de = substicuicao.get('tipo_alimentacao_de')
+            tipo_alimentacao_para = substicuicao.get('tipo_alimentacao_para')
+            precisa_pertencer_a_um_tipo_de_alimentacao(tipo_alimentacao_de, tipo_alimentacao_para)
+        return substituicoes
+
     def validate_data_inicial(self, data):
         nao_pode_ser_no_passado(data)
         deve_pedir_com_antecedencia(data)
         return data
-
-    substituicoes = SubstituicoesAlimentacaoNoPeriodoEscolarSerializerCreate(many=True)
 
     def create(self, validated_data):
         substituicoes = validated_data.pop('substituicoes')
@@ -207,21 +213,22 @@ class AlteracaoCardapioSerializerCreate(serializers.ModelSerializer):
         alteracao_cardapio = AlteracaoCardapio.objects.create(**validated_data)
         alteracao_cardapio.substituicoes.set(substituicoes_lista)
 
-        usuario = self.context.get('request').user
-        notificar_partes_envolvidas(usuario, **validated_data)
         return alteracao_cardapio
 
     def update(self, instance, validated_data):
-        substituicoes_array = validated_data.pop('substituicoes')
-        substituicoes_obj = instance.substituicoes.all()
+        substituicoes_json = validated_data.pop('substituicoes')
+        instance.substituicoes.all().delete()
 
-        for index in range(len(substituicoes_array)):
-            SubstituicoesAlimentacaoNoPeriodoEscolarSerializerCreate(
-            ).update(instance=substituicoes_obj[index],
-                     validated_data=substituicoes_array[index])
+        substituicoes_lista = []
+        for substituicao_json in substituicoes_json:
+            substituicoes_object = SubstituicoesAlimentacaoNoPeriodoEscolarSerializerCreate(
+            ).create(substituicao_json)
+            substituicoes_lista.append(substituicoes_object)
 
         update_instance_from_dict(instance, validated_data)
+        instance.substituicoes.set(substituicoes_lista)
         instance.save()
+
         return instance
 
     class Meta:
