@@ -8,4 +8,5 @@ def vincula_tipo_alimentcao():
         periodo.tipos_alimentacao.set(tipos_alimentacao)
 
 
+print('Run script _6_periodo_escolar_tipo_alimentacao.py')
 vincula_tipo_alimentcao()
