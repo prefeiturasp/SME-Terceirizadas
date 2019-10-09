@@ -78,6 +78,18 @@ class DiretoriaRegional(Nomeavel, Iniciais, TemChaveExterna, TemCodigoEOL):
             status=InversaoCardapio.workflow_class.DRE_A_VALIDAR
         )
 
+    def alteracoes_cardapio_das_minhas_escolas_a_validar(self, filtro_aplicado):
+        if filtro_aplicado == DAQUI_A_7_DIAS:
+            inversoes_cardapio = AlteracaoCardapio.desta_semana
+        elif filtro_aplicado == DAQUI_A_30_DIAS:
+            inversoes_cardapio = AlteracaoCardapio.deste_mes
+        else:
+            inversoes_cardapio = AlteracaoCardapio.objects
+        return inversoes_cardapio.filter(
+            escola__in=self.escolas.all(),
+            status=InversaoCardapio.workflow_class.DRE_A_VALIDAR
+        )
+
     # TODO rever os demais métodos de alterações de cardápio, já que esse consolida todas as prioridades.
     def inclusoes_alimentacao_continua_das_minhas_escolas(self, filtro_aplicado):
         if filtro_aplicado == DAQUI_A_7_DIAS:

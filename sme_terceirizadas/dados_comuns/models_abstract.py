@@ -399,6 +399,12 @@ class FluxoAprovacaoPartindoDaDiretoriaRegional(xwf_models.WorkflowEnabled, mode
         return usuarios_terceirizadas
 
     @property
+    def partes_interessadas_codae_nega(self):
+        # TODO: filtrar usuários
+        usuarios_terceirizadas = models_perfil.Usuario.objects.filter()
+        return usuarios_terceirizadas
+
+    @property
     def partes_interessadas_inicio_fluxo(self):
         """TODO: retornar usuários CODAE, esse abaixo é so pra passar..."""
         dre = self.diretoria_regional
@@ -453,6 +459,20 @@ class FluxoAprovacaoPartindoDaDiretoriaRegional(xwf_models.WorkflowEnabled, mode
                                        long_desc=corpo)
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_TOMOU_CIENCIA,
                                       usuario=user)
+
+    @xworkflows.after_transition('codae_nega')
+    def _codae_recusou_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        justificativa = kwargs.get('justificativa', '')
+        if user:
+            assunto, corpo = self.template_mensagem
+            enviar_notificacao_e_email(sender=user,
+                                       recipients=self.partes_interessadas_codae_nega,
+                                       short_desc=assunto,
+                                       long_desc=corpo)
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_NEGOU,
+                                      usuario=user,
+                                      justificativa=justificativa)
 
     class Meta:
         abstract = True
