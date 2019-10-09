@@ -48,7 +48,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
 
     @action(detail=False,
             url_path=f'{constants.PEDIDOS_CODAE}/{constants.FILTRO_PADRAO_PEDIDOS}')
-    def solicitacoes_codae(self, request, filtro_aplicado='sem_filtro'):
+    def solicitacoes_codae(self, request, filtro_aplicado=constants.SEM_FILTRO):
         # TODO: colocar regras de codae CODAE aqui...
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber

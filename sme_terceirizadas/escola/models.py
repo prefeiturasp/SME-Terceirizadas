@@ -380,6 +380,17 @@ class Codae(Nomeavel, TemChaveExterna):
             status=InversaoCardapio.workflow_class.DRE_VALIDADO
         )
 
+    def grupos_inclusoes_alimentacao_normal_das_minhas_escolas(self, filtro_aplicado):
+        if filtro_aplicado == DAQUI_A_7_DIAS:
+            inversoes_cardapio = GrupoInclusaoAlimentacaoNormal.desta_semana
+        elif filtro_aplicado == DAQUI_A_30_DIAS:
+            inversoes_cardapio = GrupoInclusaoAlimentacaoNormal.deste_mes
+        else:
+            inversoes_cardapio = GrupoInclusaoAlimentacaoNormal.objects
+        return inversoes_cardapio.filter(
+            status=GrupoInclusaoAlimentacaoNormal.workflow_class.DRE_VALIDADO
+        )
+
     @property
     def inversoes_cardapio_aprovadas(self):
         return InversaoCardapio.objects.filter(

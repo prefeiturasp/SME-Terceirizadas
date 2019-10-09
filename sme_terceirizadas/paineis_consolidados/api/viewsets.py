@@ -3,7 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from .constants import (
-    AUTORIZADOS, CANCELADOS, FILTRO_DRE_UUID, FILTRO_ESCOLA_UUID, NEGADOS, PENDENTES_APROVACAO, _NEGADOS
+    AUTORIZADOS, CANCELADOS, FILTRO_DRE_UUID, FILTRO_ESCOLA_UUID, NEGADOS, PENDENTES_APROVACAO
 )
 from ..models.codae import (
     SolicitacoesCODAE, SolicitacoesDRE, SolicitacoesEscola
@@ -42,18 +42,18 @@ class CODAESolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
         return self._retorno_base(query_set)
 
     @action(detail=False, methods=['GET'], url_path=AUTORIZADOS)
-    def aprovados(self, request):
+    def autorizados(self, request):
         query_set = SolicitacoesCODAE.get_autorizados()
         return self._retorno_base(query_set)
 
-    @action(detail=False, methods=['GET'], url_path='solicitacoes-revisao')
-    def solicitacoes_revisao(self, request):
-        query_set = SolicitacoesCODAE.get_solicitacoes_revisao()
+    @action(detail=False, methods=['GET'], url_path=NEGADOS)
+    def negados(self, request):
+        query_set = SolicitacoesCODAE.get_negados()
         return self._retorno_base(query_set)
 
-    @action(detail=False, methods=['GET'], url_path=_NEGADOS)
+    @action(detail=False, methods=['GET'], url_path=CANCELADOS)
     def cancelados(self, request):
-        query_set = SolicitacoesCODAE.get_negados()
+        query_set = SolicitacoesCODAE.get_cancelados()
         return self._retorno_base(query_set)
 
     def _retorno_base(self, query_set):
