@@ -4,9 +4,8 @@ from django.db import models
 
 from .managers import (
     AlteracoesCardapioDestaSemanaManager, AlteracoesCardapioDesteMesManager,
-    AlteracoesCardapioVencendoHojeManager, AlteracoesCardapioVencidaManager,
-    InversaoCardapioDestaSemanaManager, InversaoCardapioDesteMesManager,
-    InversaoCardapioVencidaManager
+    AlteracoesCardapioVencidaManager, InversaoCardapioDestaSemanaManager,
+    InversaoCardapioDesteMesManager, InversaoCardapioVencidaManager
 )
 from ..dados_comuns.models import TemplateMensagem  # noqa I202
 from ..dados_comuns.models_abstract import (
@@ -311,7 +310,6 @@ class AlteracaoCardapio(CriadoEm, CriadoPor, TemChaveExterna, IntervaloDeDia, Te
     desta_semana = AlteracoesCardapioDestaSemanaManager()
     deste_mes = AlteracoesCardapioDesteMesManager()
     vencidos = AlteracoesCardapioVencidaManager()
-    prazo_vencendo_hoje = AlteracoesCardapioVencendoHojeManager()
 
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING, blank=True, null=True)
     motivo = models.ForeignKey('MotivoAlteracaoCardapio', on_delete=models.PROTECT, blank=True, null=True)

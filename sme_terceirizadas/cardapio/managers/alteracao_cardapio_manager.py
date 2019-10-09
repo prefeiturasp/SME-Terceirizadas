@@ -36,16 +36,3 @@ class AlteracoesCardapioVencidaManager(models.Manager):
                         PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR,
                         PedidoAPartirDaEscolaWorkflow.DRE_PEDIU_ESCOLA_REVISAR]
         )
-
-
-class AlteracoesCardapioVencendoHojeManager(models.Manager):
-    def get_queryset(self):
-        hoje = datetime.date.today()
-        return super(AlteracoesCardapioVencidaManager, self).get_queryset(
-        ).filter(
-            data_inicial=hoje
-        ).filter(
-            status__in=[PedidoAPartirDaEscolaWorkflow.RASCUNHO,
-                        PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR,
-                        PedidoAPartirDaEscolaWorkflow.DRE_PEDIU_ESCOLA_REVISAR]
-        )

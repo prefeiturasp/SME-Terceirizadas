@@ -80,7 +80,8 @@ class DiretoriaRegional(Nomeavel, TemChaveExterna):
 
     def inclusoes_continuas_das_minhas_escolas_no_prazo_vencendo(self, filtro_aplicado):
         if filtro_aplicado == 'hoje':
-            inclusoes_continuas = InclusaoAlimentacaoContinua.prazo_vencendo_hoje
+            # TODO: rever filtro hoje que nao é mais usado
+            inclusoes_continuas = InclusaoAlimentacaoContinua.objects
         else:  # se o filtro nao for hoje, filtra o padrao
             inclusoes_continuas = InclusaoAlimentacaoContinua.prazo_vencendo
         return inclusoes_continuas.filter(
@@ -125,7 +126,8 @@ class DiretoriaRegional(Nomeavel, TemChaveExterna):
 
     def inclusoes_normais_das_minhas_escolas_no_prazo_vencendo(self, filtro_aplicado):
         if filtro_aplicado == 'hoje':
-            inclusoes_normais = GrupoInclusaoAlimentacaoNormal.prazo_vencendo_hoje
+            # TODO: rever filtro hoje que nao é mais usado
+            inclusoes_normais = GrupoInclusaoAlimentacaoNormal.objects
         else:
             inclusoes_normais = GrupoInclusaoAlimentacaoNormal.prazo_vencendo
         return inclusoes_normais.filter(
@@ -211,7 +213,8 @@ class DiretoriaRegional(Nomeavel, TemChaveExterna):
 
     def alteracoes_cardapio_das_minhas_escolas_no_prazo_vencendo(self, filtro_aplicado):
         if filtro_aplicado == 'hoje':
-            alteracoes_cardapio = AlteracaoCardapio.prazo_vencendo_hoje
+            # TODO: rever filtro hoje que nao é mais usado
+            alteracoes_cardapio = AlteracaoCardapio.objects
         else:
             alteracoes_cardapio = AlteracaoCardapio.prazo_vencendo
         return alteracoes_cardapio.filter(
@@ -616,7 +619,8 @@ class Codae(Nomeavel, TemChaveExterna):
 
     def inclusoes_continuas_das_minhas_escolas_no_prazo_vencendo(self, filtro_aplicado):
         if filtro_aplicado == 'hoje':
-            inclusoes_continuas = InclusaoAlimentacaoContinua.prazo_vencendo_hoje
+            # TODO: rever filtro hoje que nao é mais usado
+            inclusoes_continuas = InclusaoAlimentacaoContinua.objects
         else:  # se o filtro nao for hoje, filtra o padrao
             inclusoes_continuas = InclusaoAlimentacaoContinua.prazo_vencendo
         return inclusoes_continuas.filter(
@@ -645,7 +649,8 @@ class Codae(Nomeavel, TemChaveExterna):
 
     def inclusoes_normais_das_minhas_escolas_no_prazo_vencendo(self, filtro_aplicado):
         if filtro_aplicado == 'hoje':
-            inclusoes_normais = GrupoInclusaoAlimentacaoNormal.prazo_vencendo_hoje
+            # TODO: rever filtro hoje que nao é mais usado
+            inclusoes_normais = GrupoInclusaoAlimentacaoNormal.objects
         else:
             inclusoes_normais = GrupoInclusaoAlimentacaoNormal.prazo_vencendo
         return inclusoes_normais.filter(
@@ -675,7 +680,8 @@ class Codae(Nomeavel, TemChaveExterna):
     # Alterações de Cardapio
     def alteracoes_cardapio_das_minhas_escolas_no_prazo_vencendo(self, filtro_aplicado):
         if filtro_aplicado == 'hoje':
-            alteracoes_cardapio = AlteracaoCardapio.prazo_vencendo_hoje
+            # TODO: rever filtro hoje que nao é mais usado
+            alteracoes_cardapio = AlteracaoCardapio.objects
         else:  # se o filtro nao for hoje, filtra o padrao
             alteracoes_cardapio = AlteracaoCardapio.prazo_vencendo
         return alteracoes_cardapio.filter(
