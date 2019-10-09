@@ -13,7 +13,17 @@ from ....escola.api.serializers import (
 from ....terceirizada.api.serializers.serializers import EditalSerializer
 
 
+class SubstituicoesTipoAlimentacaoSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = TipoAlimentacao
+        exclude = ('id', 'substituicoes',)
+
+
 class TipoAlimentacaoSerializer(serializers.ModelSerializer):
+
+    substituicoes = SubstituicoesTipoAlimentacaoSerializer(many=True)
+
     class Meta:
         model = TipoAlimentacao
         exclude = ('id',)
@@ -133,7 +143,8 @@ class SubstituicoesAlimentacaoNoPeriodoEscolarSerializer(serializers.ModelSerial
         required=False,
         queryset=AlteracaoCardapio.objects.all()
     )
-    tipos_alimentacao = TipoAlimentacaoSerializer(many=True)
+    tipo_alimentacao_de = TipoAlimentacaoSerializer()
+    tipo_alimentacao_para = TipoAlimentacaoSerializer()
 
     class Meta:
         model = SubstituicoesAlimentacaoNoPeriodoEscolar

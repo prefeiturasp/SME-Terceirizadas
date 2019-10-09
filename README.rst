@@ -27,20 +27,23 @@ Carga inicial de dados
 
 * Criar os super usuários::
 
-    -> escola@admin.com
-    -> dre@admin.com
-    -> codae@admin.com
-    -> terceirizada@admin.com
-    $ ./manage.py createsuperuser
+    $ ./manage.py shell -c "from sme_terceirizadas.perfil.models import Usuario; Usuario.objects.create_superuser('escola@admin.com', 'adminadmin')"
+    $ ./manage.py shell -c "from sme_terceirizadas.perfil.models import Usuario; Usuario.objects.create_superuser('dre@admin.com', 'adminadmin')"
+    $ ./manage.py shell -c "from sme_terceirizadas.perfil.models import Usuario; Usuario.objects.create_superuser('terceirizada@admin.com', 'adminadmin')"
+    $ ./manage.py shell -c "from sme_terceirizadas.perfil.models import Usuario; Usuario.objects.create_superuser('codae@admin.com', 'adminadmin')"
 
 * Carregar as fixtures::
 
-    $ ./manage.py loaddata sme_pratoaberto_terceirizadas/**/fixtures/*.json
+    $ ./manage.py loaddata sme_terceirizadas/**/fixtures/*.json
 
 * Carregar dados de planilhas excel junto com pedidos fake::
 
-    $ ./manage.py shell_plus
-    $ from utility.carga_dados import run
+    $ ./manage.py shell -c "from utility.carga_dados import run"
+
+
+* Ou rodar script de conveniência::
+
+    $ ./utility/carga_de_dados.sh
 
 Verificação de tipos de dados
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

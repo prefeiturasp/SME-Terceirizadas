@@ -1,5 +1,6 @@
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.status import HTTP_400_BAD_REQUEST
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from xworkflows import InvalidTransitionError
 
@@ -368,13 +369,14 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
     @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
             methods=['patch'], url_path=constants.ESCOLA_CANCELA)
     def escola_cancela_pedido(self, request, uuid=None):
+        justificativa = request.data.get('justificativa', '')
         grupo_alimentacao_normal = self.get_object()
         try:
-            grupo_alimentacao_normal.cancelar_pedido(user=request.user, )
+            grupo_alimentacao_normal.cancelar_pedido(user=request.user, justificativa=justificativa)
             serializer = self.get_serializer(grupo_alimentacao_normal)
             return Response(serializer.data)
         except InvalidTransitionError as e:
-            return Response(dict(detail=f'Erro de transição de estado: {e}'))
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
 
 class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
@@ -690,12 +692,13 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
             methods=['patch'], url_path=constants.ESCOLA_CANCELA)
     def escola_cancela_pedido(self, request, uuid=None):
         inclusao_alimentacao_continua = self.get_object()
+        justificativa = request.data.get('justificativa', '')
         try:
-            inclusao_alimentacao_continua.cancelar_pedido(user=request.user, )
+            inclusao_alimentacao_continua.cancelar_pedido(user=request.user, justificativa=justificativa)
             serializer = self.get_serializer(inclusao_alimentacao_continua)
             return Response(serializer.data)
         except InvalidTransitionError as e:
-            return Response(dict(detail=f'Erro de transição de estado: {e}'))
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     def destroy(self, request, *args, **kwargs):
         inclusao_alimentacao_continua = self.get_object()
