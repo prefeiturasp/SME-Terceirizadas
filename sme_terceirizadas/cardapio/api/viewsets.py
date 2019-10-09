@@ -705,15 +705,15 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
     # TODO rever os demais endpoints. Essa action consolida em uma única pesquisa as pesquisas por prioridade.
     @action(detail=False,
             url_path=f'{constants.PEDIDOS_DRE}/{constants.FILTRO_PADRAO_PEDIDOS}')
-    def pedidos_diretoria_regional(self, request, filtro_aplicado=constants.SEM_FILTRO):
+    def pedidos_diretoria_regional(self, request, filtro_aplicado='sem_filtro'):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
         diretoria_regional = usuario.diretorias_regionais.first()
-        alteracoes_cardapio = diretoria_regional.alteracoes_cardapio_das_minhas_escolas(
+        alteracoes_cardapio = diretoria_regional.alteracoes_cardapio_das_minhas_escolas_a_validar(
             filtro_aplicado
         )
         page = self.paginate_queryset(alteracoes_cardapio)
-        serializer = AlteracaoCardapioSimplesSerializer(page, many=True)
+        serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
 
