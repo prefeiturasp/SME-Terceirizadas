@@ -78,16 +78,6 @@ class DiretoriaRegional(Nomeavel, Iniciais, TemChaveExterna, TemCodigoEOL):
             status=InversaoCardapio.workflow_class.DRE_A_VALIDAR
         )
 
-    def inclusoes_continuas_das_minhas_escolas_no_prazo_limite(self, filtro_aplicado):
-        if filtro_aplicado == DAQUI_A_7_DIAS:
-            inclusoes_continuas = InclusaoAlimentacaoContinua.desta_semana
-        else:
-            inclusoes_continuas = InclusaoAlimentacaoContinua.prazo_limite
-        return inclusoes_continuas.filter(
-            escola__in=self.escolas.all(),
-            status=InclusaoAlimentacaoContinua.workflow_class.DRE_A_VALIDAR
-        )
-
     # TODO rever os demais métodos de alterações de cardápio, já que esse consolida todas as prioridades.
     def inclusoes_alimentacao_continua_das_minhas_escolas(self, filtro_aplicado):
         if filtro_aplicado == DAQUI_A_7_DIAS:
@@ -97,18 +87,6 @@ class DiretoriaRegional(Nomeavel, Iniciais, TemChaveExterna, TemCodigoEOL):
         else:
             inclusoes_alimentacao_continuas = InclusaoAlimentacaoContinua.objects
         return inclusoes_alimentacao_continuas.filter(
-            escola__in=self.escolas.all(),
-            status=InclusaoAlimentacaoContinua.workflow_class.DRE_A_VALIDAR
-        )
-
-    def inclusoes_normais_das_minhas_escolas_no_prazo_regular(self, filtro_aplicado):
-        if filtro_aplicado == DAQUI_A_30_DIAS:
-            inclusoes_normais = GrupoInclusaoAlimentacaoNormal.deste_mes
-        elif filtro_aplicado == DAQUI_A_7_DIAS:
-            inclusoes_normais = GrupoInclusaoAlimentacaoNormal.desta_semana
-        else:
-            inclusoes_normais = GrupoInclusaoAlimentacaoNormal.prazo_regular
-        return inclusoes_normais.filter(
             escola__in=self.escolas.all(),
             status=InclusaoAlimentacaoContinua.workflow_class.DRE_A_VALIDAR
         )
@@ -152,16 +130,6 @@ class DiretoriaRegional(Nomeavel, Iniciais, TemChaveExterna, TemCodigoEOL):
         return AlteracaoCardapio.objects.filter(
             escola__in=self.escolas.all(),
             status=AlteracaoCardapio.workflow_class.DRE_NAO_VALIDOU_PEDIDO_ESCOLA
-        )
-
-    def alteracoes_cardapio_das_minhas_escolas_no_prazo_limite(self, filtro_aplicado):
-        if filtro_aplicado == DAQUI_A_7_DIAS:
-            alteracoes_cardapio = AlteracaoCardapio.desta_semana
-        else:
-            alteracoes_cardapio = AlteracaoCardapio.prazo_limite
-        return alteracoes_cardapio.filter(
-            escola__in=self.escolas.all(),
-            status=AlteracaoCardapio.workflow_class.DRE_A_VALIDAR
         )
 
     # TODO rever os demais métodos de alterações de cardápio, já que esse consolida todas as prioridades.
@@ -524,44 +492,6 @@ class Codae(Nomeavel, TemChaveExterna):
             solicitacoes_kit_lanche = SolicitacaoKitLancheAvulsa.objects
         return solicitacoes_kit_lanche.filter(
             status=InversaoCardapio.workflow_class.DRE_VALIDADO
-        )
-
-    def inclusoes_continuas_das_minhas_escolas_no_prazo_limite(self, filtro_aplicado):
-        if filtro_aplicado == DAQUI_A_7_DIAS:
-            inclusoes_continuas = InclusaoAlimentacaoContinua.desta_semana
-        else:
-            inclusoes_continuas = InclusaoAlimentacaoContinua.prazo_limite
-        return inclusoes_continuas.filter(
-            status=InclusaoAlimentacaoContinua.workflow_class.DRE_VALIDADO
-        )
-
-    def inclusoes_normais_das_minhas_escolas_no_prazo_vencendo(self, filtro_aplicado):
-        if filtro_aplicado == 'hoje':
-            inclusoes_normais = GrupoInclusaoAlimentacaoNormal.prazo_vencendo_hoje
-        else:
-            inclusoes_normais = GrupoInclusaoAlimentacaoNormal.prazo_vencendo
-        return inclusoes_normais.filter(
-            status=InclusaoAlimentacaoContinua.workflow_class.DRE_VALIDADO
-        )
-
-    def inclusoes_normais_das_minhas_escolas_no_prazo_regular(self, filtro_aplicado):
-        if filtro_aplicado == DAQUI_A_30_DIAS:
-            inclusoes_normais = GrupoInclusaoAlimentacaoNormal.deste_mes
-        elif filtro_aplicado == DAQUI_A_7_DIAS:
-            inclusoes_normais = GrupoInclusaoAlimentacaoNormal.desta_semana
-        else:
-            inclusoes_normais = GrupoInclusaoAlimentacaoNormal.prazo_regular
-        return inclusoes_normais.filter(
-            status=InclusaoAlimentacaoContinua.workflow_class.DRE_VALIDADO
-        )
-
-    def alteracoes_cardapio_das_minhas_escolas_no_prazo_limite(self, filtro_aplicado):
-        if filtro_aplicado == DAQUI_A_7_DIAS:
-            alteracoes_cardapio = AlteracaoCardapio.desta_semana
-        else:
-            alteracoes_cardapio = AlteracaoCardapio.prazo_limite
-        return alteracoes_cardapio.filter(
-            status=AlteracaoCardapio.workflow_class.DRE_VALIDADO
         )
 
     @property
