@@ -62,7 +62,6 @@ class Nutricionista(TemChaveExterna, Nomeavel):
 
 
 class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel):
-
     usuarios = models.ManyToManyField('perfil.Usuario', related_name='terceirizadas', blank=True)
     nome_fantasia = models.CharField('Nome fantasia', max_length=160, blank=True)
     razao_social = models.CharField('Razao social', max_length=160, blank=True)
@@ -129,92 +128,6 @@ class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel):
             inclusoes_continuas = InclusaoAlimentacaoContinua.prazo_vencendo
         return inclusoes_continuas.filter(
             status=InclusaoAlimentacaoContinua.workflow_class.CODAE_AUTORIZADO,
-            escola__lote__in=self.lotes.all()
-        )
-
-    def inclusoes_continuas_das_minhas_escolas_no_prazo_limite(self, filtro_aplicado):
-        if filtro_aplicado == 'daqui_a_7_dias':
-            inclusoes_continuas = InclusaoAlimentacaoContinua.desta_semana
-        else:
-            inclusoes_continuas = InclusaoAlimentacaoContinua.prazo_limite
-        return inclusoes_continuas.filter(
-            status=InclusaoAlimentacaoContinua.workflow_class.CODAE_AUTORIZADO,
-            escola__lote__in=self.lotes.all()
-        )
-
-    def inclusoes_continuas_das_minhas_escolas_no_prazo_regular(self, filtro_aplicado):
-        if filtro_aplicado == 'daqui_a_30_dias':
-            inclusoes_continuas = InclusaoAlimentacaoContinua.prazo_regular_daqui_a_30_dias
-        elif filtro_aplicado == 'daqui_a_7_dias':
-            inclusoes_continuas = InclusaoAlimentacaoContinua.prazo_regular_daqui_a_7_dias
-        else:
-            inclusoes_continuas = InclusaoAlimentacaoContinua.prazo_regular
-        return inclusoes_continuas.filter(
-            status=InclusaoAlimentacaoContinua.workflow_class.CODAE_AUTORIZADO,
-            escola__lote__in=self.lotes.all()
-        )
-
-    def inclusoes_normais_das_minhas_escolas_no_prazo_vencendo(self, filtro_aplicado):
-        if filtro_aplicado == 'hoje':
-            inclusoes_normais = GrupoInclusaoAlimentacaoNormal.prazo_vencendo_hoje
-        else:
-            inclusoes_normais = GrupoInclusaoAlimentacaoNormal.prazo_vencendo
-        return inclusoes_normais.filter(
-            status=InclusaoAlimentacaoContinua.workflow_class.CODAE_AUTORIZADO,
-            escola__lote__in=self.lotes.all()
-        )
-
-    def inclusoes_normais_das_minhas_escolas_no_prazo_limite(self, filtro_aplicado):
-        if filtro_aplicado == 'daqui_a_7_dias':
-            inclusoes_normais = GrupoInclusaoAlimentacaoNormal.prazo_limite_daqui_a_7_dias
-        else:
-            inclusoes_normais = GrupoInclusaoAlimentacaoNormal.prazo_limite
-        return inclusoes_normais.filter(
-            status=InclusaoAlimentacaoContinua.workflow_class.CODAE_AUTORIZADO,
-            escola__lote__in=self.lotes.all()
-        )
-
-    def inclusoes_normais_das_minhas_escolas_no_prazo_regular(self, filtro_aplicado):
-        if filtro_aplicado == 'daqui_a_30_dias':
-            inclusoes_normais = GrupoInclusaoAlimentacaoNormal.deste_mes
-        elif filtro_aplicado == 'daqui_a_7_dias':
-            inclusoes_normais = GrupoInclusaoAlimentacaoNormal.desta_semana
-        else:
-            inclusoes_normais = GrupoInclusaoAlimentacaoNormal.prazo_regular
-        return inclusoes_normais.filter(
-            status=InclusaoAlimentacaoContinua.workflow_class.CODAE_AUTORIZADO,
-            escola__lote__in=self.lotes.all()
-        )
-
-    def alteracoes_cardapio_das_minhas_escolas_no_prazo_vencendo(self, filtro_aplicado):
-        if filtro_aplicado == 'hoje':
-            alteracoes_cardapio = AlteracaoCardapio.prazo_vencendo_hoje
-        else:
-            alteracoes_cardapio = AlteracaoCardapio.prazo_vencendo
-        return alteracoes_cardapio.filter(
-            status=AlteracaoCardapio.workflow_class.CODAE_AUTORIZADO,
-            escola__lote__in=self.lotes.all()
-        )
-
-    def alteracoes_cardapio_das_minhas_escolas_no_prazo_limite(self, filtro_aplicado):
-        if filtro_aplicado == 'daqui_a_7_dias':
-            alteracoes_cardapio = AlteracaoCardapio.desta_semana
-        else:
-            alteracoes_cardapio = AlteracaoCardapio.prazo_limite
-        return alteracoes_cardapio.filter(
-            status=AlteracaoCardapio.workflow_class.CODAE_AUTORIZADO,
-            escola__lote__in=self.lotes.all()
-        )
-
-    def alteracoes_cardapio_das_minhas_escolas_no_prazo_regular(self, filtro_aplicado):
-        if filtro_aplicado == 'daqui_a_30_dias':
-            alteracoes_cardapio = AlteracaoCardapio.prazo_regular_daqui_a_30_dias
-        elif filtro_aplicado == 'daqui_a_7_dias':
-            alteracoes_cardapio = AlteracaoCardapio.prazo_regular_daqui_a_7_dias
-        else:
-            alteracoes_cardapio = AlteracaoCardapio.prazo_regular
-        return alteracoes_cardapio.filter(
-            status=AlteracaoCardapio.workflow_class.CODAE_AUTORIZADO,
             escola__lote__in=self.lotes.all()
         )
 

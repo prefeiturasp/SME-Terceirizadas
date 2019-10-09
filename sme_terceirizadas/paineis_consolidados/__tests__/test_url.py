@@ -1,5 +1,8 @@
 from rest_framework import status
 
+from ..api.constants import AUTORIZADOS, CANCELADOS, NEGADOS, PENDENTES_APROVACAO
+from ...dados_comuns.constants import SEM_FILTRO
+
 
 def test_url_endpoint_painel_dre(client):
     response = client.get('/dre-pendentes-aprovacao/')
@@ -20,16 +23,16 @@ def base_codae(client_autenticado, resource):
 
 
 def test_url_endpoint_painel_codae_pendentes_aprovacao(client_autenticado):
-    base_codae(client_autenticado, 'pendentes-aprovacao/sem_filtro')
+    base_codae(client_autenticado, f'{PENDENTES_APROVACAO}/{SEM_FILTRO}')
 
 
 def test_url_endpoint_painel_codae_aprovados(client_autenticado):
-    base_codae(client_autenticado, 'aprovados')
+    base_codae(client_autenticado, AUTORIZADOS)
 
 
 def test_url_endpoint_painel_codae_cancelados(client_autenticado):
-    base_codae(client_autenticado, 'cancelados')
+    base_codae(client_autenticado, CANCELADOS)
 
 
-def test_url_endpoint_painel_codae_solicitacoes_revisao(client_autenticado):
-    base_codae(client_autenticado, 'solicitacoes-revisao')
+def test_url_endpoint_painel_codae_negados(client_autenticado):
+    base_codae(client_autenticado, NEGADOS)
