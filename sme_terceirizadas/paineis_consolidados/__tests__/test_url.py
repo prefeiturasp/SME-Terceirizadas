@@ -1,6 +1,6 @@
 from rest_framework import status
 
-from ..api.constants import CANCELADOS, PENDENTES_APROVACAO, AUTORIZADOS, NEGADOS
+from ..api.constants import AUTORIZADOS, CANCELADOS, NEGADOS, PENDENTES_APROVACAO
 from ...dados_comuns.constants import SEM_FILTRO
 
 
