@@ -123,7 +123,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
         diretoria_regional = usuario.diretorias_regionais.first()
-        inclusoes_alimentacao_normal = diretoria_regional.inclusoes_alimentacao_normal_das_minhas_escolas(
+        inclusoes_alimentacao_normal = diretoria_regional.grupos_inclusoes_alimentacao_normal_das_minhas_escolas(
             filtro_aplicado
         )
         page = self.paginate_queryset(inclusoes_alimentacao_normal)
