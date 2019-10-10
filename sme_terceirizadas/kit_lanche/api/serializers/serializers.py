@@ -32,7 +32,6 @@ class KitLancheSimplesSerializer(serializers.ModelSerializer):
 
 class SolicitacaoKitLancheSimplesSerializer(serializers.ModelSerializer):
     kits = KitLancheSimplesSerializer(many=True, required=False)
-    prioridade = serializers.CharField()
     tempo_passeio_explicacao = serializers.CharField(source='get_tempo_passeio_display',
                                                      required=False,
                                                      read_only=True)
