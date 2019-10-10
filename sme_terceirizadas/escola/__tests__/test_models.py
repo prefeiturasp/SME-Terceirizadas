@@ -26,7 +26,7 @@ def test_diretoria_regional(diretoria_regional, escola):
     assert diretoria_regional.inclusoes_continuas_reprovadas is not None
     assert diretoria_regional.inclusoes_normais_reprovadas is not None
     assert diretoria_regional.alteracoes_cardapio_pendentes_das_minhas_escolas is not None
-    assert diretoria_regional.alteracoes_cardapio_aprovadas is not None
+    assert diretoria_regional.alteracoes_cardapio_autorizadas is not None
     assert diretoria_regional.solicitacao_kit_lanche_avulsa_aprovadas is not None
     assert diretoria_regional.solicitacao_kit_lanche_avulsa_reprovados is not None
     assert diretoria_regional.alteracoes_cardapio_reprovadas is not None
@@ -62,5 +62,5 @@ def test_codae(codae):
     assert codae.inclusoes_normais_reprovadas is not None
     assert codae.solicitacao_kit_lanche_avulsa_aprovadas is not None
     assert codae.solicitacao_kit_lanche_avulsa_reprovadas is not None
-    assert codae.alteracoes_cardapio_aprovadas is not None
+    assert codae.alteracoes_cardapio_autorizadas is not None
     assert codae.alteracoes_cardapio_reprovadas is not None

@@ -37,7 +37,7 @@ def test_terceirizada(terceirizada):
     assert terceirizada.inclusoes_continuas_reprovadas is not None
     assert terceirizada.solicitacao_kit_lanche_avulsa_aprovadas is not None
     assert terceirizada.inclusoes_normais_reprovadas is not None
-    assert terceirizada.alteracoes_cardapio_aprovadas is not None
+    assert terceirizada.alteracoes_cardapio_autorizadas is not None
     assert terceirizada.alteracoes_cardapio_reprovadas is not None
     assert terceirizada.inversoes_cardapio_aprovadas is not None
     assert terceirizada.solicitacoes_unificadas_aprovadas is not None
