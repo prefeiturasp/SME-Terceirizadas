@@ -35,7 +35,7 @@ class DiretoriaRegional(Nomeavel, Iniciais, TemChaveExterna, TemCodigoEOL):
     #
 
     @property
-    def inclusoes_continuas_aprovadas(self):
+    def inclusoes_continuas_autorizadas(self):
         return InclusaoAlimentacaoContinua.objects.filter(
             escola__in=self.escolas.all(),
             status__in=[GrupoInclusaoAlimentacaoNormal.workflow_class.CODAE_AUTORIZADO,
@@ -43,7 +43,7 @@ class DiretoriaRegional(Nomeavel, Iniciais, TemChaveExterna, TemCodigoEOL):
         )
 
     @property
-    def inclusoes_normais_aprovadas(self):
+    def inclusoes_normais_autorizadas(self):
         return GrupoInclusaoAlimentacaoNormal.objects.filter(
             escola__in=self.escolas.all(),
             status__in=[GrupoInclusaoAlimentacaoNormal.workflow_class.CODAE_AUTORIZADO,
@@ -112,7 +112,18 @@ class DiretoriaRegional(Nomeavel, Iniciais, TemChaveExterna, TemCodigoEOL):
             inclusoes_alimentacao = GrupoInclusaoAlimentacaoNormal.objects  # type: ignore
         return inclusoes_alimentacao.filter(
             escola__in=self.escolas.all(),
-            status=InclusaoAlimentacaoContinua.workflow_class.DRE_A_VALIDAR
+            status=InclusaoAlimentacaoContinua.workflow_class.DRE_A_VALIDAR)
+
+    def grupos_inclusoes_alimentacao_normal_das_minhas_escolas(self, filtro_aplicado):
+        if filtro_aplicado == DAQUI_A_7_DIAS:
+            inclusoes_alimentacao_normais = GrupoInclusaoAlimentacaoNormal.desta_semana
+        elif filtro_aplicado == DAQUI_A_30_DIAS:
+            inclusoes_alimentacao_normais = GrupoInclusaoAlimentacaoNormal.deste_mes  # type: ignore
+        else:
+            inclusoes_alimentacao_normais = GrupoInclusaoAlimentacaoNormal.objects  # type: ignore
+        return inclusoes_alimentacao_normais.filter(
+            escola__in=self.escolas.all(),
+            status=GrupoInclusaoAlimentacaoNormal.workflow_class.DRE_A_VALIDAR
         )
 
     #
@@ -127,7 +138,7 @@ class DiretoriaRegional(Nomeavel, Iniciais, TemChaveExterna, TemCodigoEOL):
         )
 
     @property
-    def alteracoes_cardapio_aprovadas(self):
+    def alteracoes_cardapio_autorizadas(self):
         return AlteracaoCardapio.objects.filter(
             escola__in=self.escolas.all(),
             status__in=[AlteracaoCardapio.workflow_class.CODAE_AUTORIZADO,
@@ -478,14 +489,14 @@ class Codae(Nomeavel, TemChaveExterna):
         )
 
     @property
-    def inclusoes_continuas_aprovadas(self):
+    def inclusoes_continuas_autorizadas(self):
         return InclusaoAlimentacaoContinua.objects.filter(
             status__in=[InclusaoAlimentacaoContinua.workflow_class.CODAE_AUTORIZADO,
                         SolicitacaoKitLancheUnificada.workflow_class.TERCEIRIZADA_TOMOU_CIENCIA]
         )
 
     @property
-    def inclusoes_normais_aprovadas(self):
+    def inclusoes_normais_autorizadas(self):
         return GrupoInclusaoAlimentacaoNormal.objects.filter(
             status__in=[GrupoInclusaoAlimentacaoNormal.workflow_class.CODAE_AUTORIZADO,
                         GrupoInclusaoAlimentacaoNormal.workflow_class.TERCEIRIZADA_TOMOU_CIENCIA]
@@ -530,7 +541,7 @@ class Codae(Nomeavel, TemChaveExterna):
         )
 
     @property
-    def alteracoes_cardapio_aprovadas(self):
+    def alteracoes_cardapio_autorizadas(self):
         return AlteracaoCardapio.objects.filter(
             status__in=[AlteracaoCardapio.workflow_class.CODAE_AUTORIZADO,
                         AlteracaoCardapio.workflow_class.TERCEIRIZADA_TOMOU_CIENCIA]
