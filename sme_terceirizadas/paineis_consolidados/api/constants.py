@@ -6,3 +6,4 @@ CANCELADOS = 'cancelados'
 
 FILTRO_ESCOLA_UUID = '(?P<escola_uuid>[^/.]+)'
 FILTRO_DRE_UUID = '(?P<dre_uuid>[^/.]+)'
+FILTRO_TERCEIRIZADA_UUID = '(?P<terceirizada_uuid>[^/.]+)'

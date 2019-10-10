@@ -2,9 +2,9 @@ from django.core.validators import MinLengthValidator
 from django.db import models
 
 from ..cardapio.models import (
-    AlteracaoCardapio,
-    InversaoCardapio
+    AlteracaoCardapio, GrupoSuspensaoAlimentacao, InversaoCardapio
 )
+from ..dados_comuns.constants import DAQUI_A_30_DIAS, DAQUI_A_7_DIAS
 from ..dados_comuns.models_abstract import (
     Ativavel, IntervaloDeDia, Nomeavel, TemChaveExterna, TemIdentificadorExternoAmigavel
 )
@@ -123,11 +123,141 @@ class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel):
 
     def inclusoes_continuas_das_minhas_escolas_no_prazo_vencendo(self, filtro_aplicado):
         if filtro_aplicado == 'hoje':
-            inclusoes_continuas = InclusaoAlimentacaoContinua.prazo_vencendo_hoje
+            # TODO: rever filtro hoje que nao é mais usado
+            inclusoes_continuas = InclusaoAlimentacaoContinua.objects
         else:  # se o filtro nao for hoje, filtra o padrao
-            inclusoes_continuas = InclusaoAlimentacaoContinua.prazo_vencendo
+            inclusoes_continuas = InclusaoAlimentacaoContinua.vencidos
         return inclusoes_continuas.filter(
             status=InclusaoAlimentacaoContinua.workflow_class.CODAE_AUTORIZADO,
+            escola__lote__in=self.lotes.all()
+        )
+
+    def inclusoes_continuas_das_minhas_escolas_no_prazo_limite(self, filtro_aplicado):
+        if filtro_aplicado == 'daqui_a_7_dias':
+            inclusoes_continuas = InclusaoAlimentacaoContinua.desta_semana
+        else:
+            inclusoes_continuas = InclusaoAlimentacaoContinua.objects
+        return inclusoes_continuas.filter(
+            status=InclusaoAlimentacaoContinua.workflow_class.CODAE_AUTORIZADO,
+            escola__lote__in=self.lotes.all()
+        )
+
+    def inclusoes_continuas_das_minhas_escolas_no_prazo_regular(self, filtro_aplicado):
+        if filtro_aplicado == 'daqui_a_30_dias':
+            inclusoes_continuas = InclusaoAlimentacaoContinua.deste_mes
+        elif filtro_aplicado == 'daqui_a_7_dias':
+            inclusoes_continuas = InclusaoAlimentacaoContinua.desta_semana
+        else:
+            inclusoes_continuas = InclusaoAlimentacaoContinua.objects
+        return inclusoes_continuas.filter(
+            status=InclusaoAlimentacaoContinua.workflow_class.CODAE_AUTORIZADO,
+            escola__lote__in=self.lotes.all()
+        )
+
+    def inclusoes_normais_das_minhas_escolas_no_prazo_vencendo(self, filtro_aplicado):
+        if filtro_aplicado == 'hoje':
+            # TODO: rever filtro hoje que nao é mais usado
+            inclusoes_normais = GrupoInclusaoAlimentacaoNormal.objects
+        else:
+            inclusoes_normais = GrupoInclusaoAlimentacaoNormal.vencidos
+        return inclusoes_normais.filter(
+            status=InclusaoAlimentacaoContinua.workflow_class.CODAE_AUTORIZADO,
+            escola__lote__in=self.lotes.all()
+        )
+
+    def inclusoes_normais_das_minhas_escolas_no_prazo_limite(self, filtro_aplicado):
+        if filtro_aplicado == 'daqui_a_7_dias':
+            inclusoes_normais = GrupoInclusaoAlimentacaoNormal.desta_semana
+        else:
+            inclusoes_normais = GrupoInclusaoAlimentacaoNormal.objects
+        return inclusoes_normais.filter(
+            status=InclusaoAlimentacaoContinua.workflow_class.CODAE_AUTORIZADO,
+            escola__lote__in=self.lotes.all()
+        )
+
+    def inclusoes_normais_das_minhas_escolas_no_prazo_regular(self, filtro_aplicado):
+        if filtro_aplicado == 'daqui_a_30_dias':
+            inclusoes_normais = GrupoInclusaoAlimentacaoNormal.deste_mes
+        elif filtro_aplicado == 'daqui_a_7_dias':
+            inclusoes_normais = GrupoInclusaoAlimentacaoNormal.desta_semana
+        else:
+            inclusoes_normais = GrupoInclusaoAlimentacaoNormal.objects
+        return inclusoes_normais.filter(
+            status=InclusaoAlimentacaoContinua.workflow_class.CODAE_AUTORIZADO,
+            escola__lote__in=self.lotes.all()
+        )
+
+    def alteracoes_cardapio_das_minhas_escolas_no_prazo_vencendo(self, filtro_aplicado):
+        if filtro_aplicado == 'hoje':
+            # TODO: rever filtro hoje que nao é mais usado
+            alteracoes_cardapio = AlteracaoCardapio.objects
+        else:
+            alteracoes_cardapio = AlteracaoCardapio.vencidos
+        return alteracoes_cardapio.filter(
+            status=AlteracaoCardapio.workflow_class.CODAE_AUTORIZADO,
+            escola__lote__in=self.lotes.all()
+        )
+
+    def alteracoes_cardapio_das_minhas_escolas_no_prazo_limite(self, filtro_aplicado):
+        if filtro_aplicado == 'daqui_a_7_dias':
+            alteracoes_cardapio = AlteracaoCardapio.desta_semana
+        else:
+            alteracoes_cardapio = AlteracaoCardapio.objects
+        return alteracoes_cardapio.filter(
+            status=AlteracaoCardapio.workflow_class.CODAE_AUTORIZADO,
+            escola__lote__in=self.lotes.all()
+        )
+
+    def alteracoes_cardapio_das_minhas_escolas_no_prazo_regular(self, filtro_aplicado):
+        if filtro_aplicado == 'daqui_a_30_dias':
+            alteracoes_cardapio = AlteracaoCardapio.deste_mes
+        elif filtro_aplicado == 'daqui_a_7_dias':
+            alteracoes_cardapio = AlteracaoCardapio.desta_semana
+        else:
+            alteracoes_cardapio = AlteracaoCardapio.objects
+        return alteracoes_cardapio.filter(
+            status=AlteracaoCardapio.workflow_class.CODAE_AUTORIZADO,
+            escola__lote__in=self.lotes.all()
+        )
+
+    def alteracoes_cardapio_das_minhas(self, filtro_aplicado):
+        if filtro_aplicado == DAQUI_A_7_DIAS:
+            alteracoes_cardapio = AlteracaoCardapio.desta_semana
+        elif filtro_aplicado == DAQUI_A_30_DIAS:
+            alteracoes_cardapio = AlteracaoCardapio.deste_mes
+        else:
+            alteracoes_cardapio = AlteracaoCardapio.objects
+        return alteracoes_cardapio.filter(
+            status=AlteracaoCardapio.workflow_class.CODAE_AUTORIZADO,
+            escola__lote__in=self.lotes.all()
+        )
+
+    def grupos_inclusoes_alimentacao_normal_das_minhas_escolas(self, filtro_aplicado):
+        if filtro_aplicado == DAQUI_A_7_DIAS:
+            inversoes_cardapio = GrupoInclusaoAlimentacaoNormal.desta_semana
+        elif filtro_aplicado == DAQUI_A_30_DIAS:
+            inversoes_cardapio = GrupoInclusaoAlimentacaoNormal.deste_mes
+        else:
+            inversoes_cardapio = GrupoInclusaoAlimentacaoNormal.objects
+        return inversoes_cardapio.filter(
+            status=AlteracaoCardapio.workflow_class.CODAE_AUTORIZADO,
+            escola__lote__in=self.lotes.all()
+        )
+
+    def inclusoes_alimentacao_continua_das_minhas_escolas(self, filtro_aplicado):
+        if filtro_aplicado == DAQUI_A_7_DIAS:
+            inclusoes_alimentacao_continuas = InclusaoAlimentacaoContinua.desta_semana
+        elif filtro_aplicado == DAQUI_A_30_DIAS:
+            inclusoes_alimentacao_continuas = InclusaoAlimentacaoContinua.deste_mes
+        else:
+            inclusoes_alimentacao_continuas = InclusaoAlimentacaoContinua.objects
+        return inclusoes_alimentacao_continuas.filter(
+            status=AlteracaoCardapio.workflow_class.CODAE_AUTORIZADO,
+            escola__lote__in=self.lotes.all()
+        )
+
+    def suspensoes_cardapio_das_minhas_escolas(self, filtro_aplicado):
+        return GrupoSuspensaoAlimentacao.objects.filter(
             escola__lote__in=self.lotes.all()
         )
 

@@ -74,3 +74,13 @@ def edital_contratos_serializer():
 def terceirizada_simples_serializer():
     terceirizada = mommy.make(Terceirizada)
     return TerceirizadaSimplesSerializer(terceirizada)
+
+
+@pytest.fixture
+def terceirizada():
+    return mommy.make(Terceirizada,
+                      usuarios=[mommy.make('perfil.Usuario')],
+                      contatos=[mommy.make('dados_comuns.Contato')],
+                      endereco=mommy.make('dados_comuns.Endereco'),
+                      make_m2m=True
+                      )

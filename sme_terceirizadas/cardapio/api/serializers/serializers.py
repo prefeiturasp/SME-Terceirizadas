@@ -123,10 +123,11 @@ class GrupoSuspensaoAlimentacaoSimplesSerializer(serializers.ModelSerializer):
 
 class GrupoSupensaoAlimentacaoListagemSimplesSerializer(serializers.ModelSerializer):
     escola = EscolaListagemSimplesSelializer()
+    prioridade = serializers.CharField()
 
     class Meta:
         model = GrupoSuspensaoAlimentacao
-        fields = ('uuid', 'id_externo', 'status', 'criado_em', 'escola',)
+        fields = ('uuid', 'id_externo', 'status', 'prioridade', 'criado_em', 'escola',)
 
 
 class MotivoAlteracaoCardapioSerializer(serializers.ModelSerializer):

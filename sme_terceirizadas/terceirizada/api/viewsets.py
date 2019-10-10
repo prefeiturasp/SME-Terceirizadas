@@ -1,5 +1,4 @@
 from rest_framework import viewsets
-
 from .serializers.serializers import (
     EditalContratosSerializer, EditalSerializer
 )

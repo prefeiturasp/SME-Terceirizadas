@@ -3,8 +3,9 @@ import datetime
 from django.db import models
 
 from .managers import (
-    AlteracoesCardapioDestaSemanaManager, AlteracoesCardapioDesteMesManager, AlteracoesCardapioVencidaManager,
-    InversaoCardapioDestaSemanaManager, InversaoCardapioDesteMesManager, InversaoCardapioVencidaManager
+    AlteracoesCardapioDestaSemanaManager, AlteracoesCardapioDesteMesManager,
+    AlteracoesCardapioVencidaManager, InversaoCardapioDestaSemanaManager,
+    InversaoCardapioDesteMesManager, InversaoCardapioVencidaManager
 )
 from ..dados_comuns.models import TemplateMensagem  # noqa I202
 from ..dados_comuns.models_abstract import (
@@ -199,7 +200,8 @@ class QuantidadePorPeriodoSuspensaoAlimentacao(TemChaveExterna):
 
 
 class GrupoSuspensaoAlimentacao(TemChaveExterna, CriadoPor, TemIdentificadorExternoAmigavel,
-                                CriadoEm, TemObservacao, FluxoInformativoPartindoDaEscola, Logs):
+                                CriadoEm, TemObservacao, FluxoInformativoPartindoDaEscola, Logs,
+                                TemPrioridade):
     """Serve para agrupar suspensões.
 
     Vide SuspensaoAlimentacao e QuantidadePorPeriodoSuspensaoAlimentacao
@@ -233,6 +235,11 @@ class GrupoSuspensaoAlimentacao(TemChaveExterna, CriadoPor, TemIdentificadorExte
     @property  # type: ignore
     def suspensoes_alimentacao(self):
         return self.suspensoes_alimentacao
+
+    @property
+    def data(self):
+        query = self.suspensoes_alimentacao.order_by('data')
+        return query.first().data
 
     def __str__(self):
         return f'{self.observacao}'

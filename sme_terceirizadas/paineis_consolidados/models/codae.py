@@ -33,6 +33,7 @@ class MoldeConsolidado(models.Model, TemPrioridade):
     lote = models.CharField(max_length=50)
     dre_uuid = models.UUIDField(editable=False)
     dre_nome = models.CharField(max_length=200)
+    terceirizada_uuid = models.UUIDField(editable=False)
     criado_em = models.DateTimeField()
     data_doc = models.DateField()
     tipo_doc = models.CharField(max_length=30)
@@ -196,4 +197,31 @@ class SolicitacoesDRE(MoldeConsolidado):
             status_evento=LogSolicitacoesUsuario.DRE_CANCELOU,
             status=cls._WORKFLOW_CLASS.DRE_CANCELOU,
             dre_uuid=dre_uuid
+        ).order_by('-criado_em')
+
+
+class SolicitacoesTerceirizada(MoldeConsolidado):
+    _WORKFLOW_CLASS = PedidoAPartirDaEscolaWorkflow
+
+    @classmethod
+    def get_pendentes_aprovacao(cls, **kwargs):
+        terceirizada_uuid = kwargs.get('terceirizada_uuid')
+        return cls.objects.filter(
+            status_evento__in=[LogSolicitacoesUsuario.DRE_VALIDOU,
+                               LogSolicitacoesUsuario.CODAE_AUTORIZOU],
+            status__in=[cls._WORKFLOW_CLASS.CODAE_AUTORIZADO,
+                        cls._WORKFLOW_CLASS.DRE_VALIDADO],
+            terceirizada_uuid=terceirizada_uuid
+        ).order_by('-criado_em')
+
+    @classmethod
+    def get_cancelados(cls, **kwargs):
+        terceirizada_uuid = kwargs.get('terceirizada_uuid')
+        return cls.objects.filter(
+            status_evento__in=[LogSolicitacoesUsuario.DRE_CANCELOU,
+                               LogSolicitacoesUsuario.CODAE_NEGOU, LogSolicitacoesUsuario.ESCOLA_CANCELOU],
+            status__in=[cls._WORKFLOW_CLASS.DRE_NAO_VALIDOU_PEDIDO_ESCOLA,
+                        cls._WORKFLOW_CLASS.CODAE_NEGOU_PEDIDO,
+                        cls._WORKFLOW_CLASS.ESCOLA_CANCELOU],
+            terceirizada_uuid=terceirizada_uuid
         ).order_by('-criado_em')
