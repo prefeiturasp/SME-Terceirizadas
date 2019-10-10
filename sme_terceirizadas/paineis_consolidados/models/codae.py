@@ -4,7 +4,10 @@ from django.db import models
 from django.db.models import Q
 
 from ...dados_comuns.constants import DAQUI_A_30_DIAS, DAQUI_A_7_DIAS
-from ...dados_comuns.fluxo_status import PedidoAPartirDaDiretoriaRegionalWorkflow, PedidoAPartirDaEscolaWorkflow
+from ...dados_comuns.fluxo_status import (
+    InformativoPartindoDaEscolaWorkflow, PedidoAPartirDaDiretoriaRegionalWorkflow,
+    PedidoAPartirDaEscolaWorkflow
+)
 from ...dados_comuns.models import LogSolicitacoesUsuario
 from ...dados_comuns.models_abstract import TemPrioridade
 
@@ -124,10 +127,12 @@ class SolicitacoesEscola(MoldeConsolidado):
         return cls.objects.filter(
             escola_uuid=escola_uuid
         ).filter(
-            Q(status=PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR,
-              status_evento=LogSolicitacoesUsuario.INICIO_FLUXO) |  # noqa W504
-            Q(status=PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO,
-              status_evento=LogSolicitacoesUsuario.DRE_VALIDOU)
+            status__in=[PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR,
+                        PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO,
+                        InformativoPartindoDaEscolaWorkflow.INFORMADO],
+            status_evento__in=[LogSolicitacoesUsuario.INICIO_FLUXO,
+                               LogSolicitacoesUsuario.DRE_VALIDOU,
+                               LogSolicitacoesUsuario.INICIO_FLUXO]
         ).order_by('uuid', '-criado_em').distinct('uuid')
 
     @classmethod

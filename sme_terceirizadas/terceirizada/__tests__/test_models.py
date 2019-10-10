@@ -32,12 +32,12 @@ def test_modelo_vigencia_contrato(vigencia_contrato):
 
 def test_terceirizada(terceirizada):
     assert terceirizada.nutricionistas is not None
-    assert terceirizada.inclusoes_continuas_aprovadas is not None
-    assert terceirizada.inclusoes_normais_aprovadas is not None
+    assert terceirizada.inclusoes_continuas_autorizadas is not None
+    assert terceirizada.inclusoes_normais_autorizadas is not None
     assert terceirizada.inclusoes_continuas_reprovadas is not None
     assert terceirizada.solicitacao_kit_lanche_avulsa_aprovadas is not None
     assert terceirizada.inclusoes_normais_reprovadas is not None
-    assert terceirizada.alteracoes_cardapio_aprovadas is not None
+    assert terceirizada.alteracoes_cardapio_autorizadas is not None
     assert terceirizada.alteracoes_cardapio_reprovadas is not None
     assert terceirizada.inversoes_cardapio_aprovadas is not None
     assert terceirizada.solicitacoes_unificadas_aprovadas is not None

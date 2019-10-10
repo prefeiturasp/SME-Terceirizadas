@@ -560,12 +560,12 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
 
             return Response(response, status=status_code)
 
-    @action(detail=False, url_path='pedidos-aprovados-diretoria-regional')
-    def pedidos_aprovados_diretoria_regional(self, request):
+    @action(detail=False, url_path='pedidos-autorizados-diretoria-regional')
+    def pedidos_autorizados_diretoria_regional(self, request):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
         diretoria_regional = usuario.diretorias_regionais.first()
-        alteracoes_cardapio = diretoria_regional.alteracoes_cardapio_aprovadas
+        alteracoes_cardapio = diretoria_regional.alteracoes_cardapio_autorizadas
         page = self.paginate_queryset(alteracoes_cardapio)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
@@ -580,12 +580,12 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
-    @action(detail=False, url_path='pedidos-aprovados-codae')
-    def pedidos_aprovados_codae(self, request):
+    @action(detail=False, url_path='pedidos-autorizados-codae')
+    def pedidos_autorizados_codae(self, request):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual CODAE eu estou fazendo a requisição
         codae = usuario.CODAE.first()
-        alteracoes_cardapio = codae.alteracoes_cardapio_aprovadas
+        alteracoes_cardapio = codae.alteracoes_cardapio_autorizadas
         page = self.paginate_queryset(alteracoes_cardapio)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
@@ -600,12 +600,12 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
-    @action(detail=False, url_path='pedidos-aprovados-terceirizada')
-    def pedidos_aprovados_terceirizada(self, request):
+    @action(detail=False, url_path='pedidos-autorizados-terceirizada')
+    def pedidos_autorizados_terceirizada(self, request):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual Terceirizada eu estou fazendo a requisição
         terceirizada = usuario.terceirizadas.first()
-        alteracoes_cardapio = terceirizada.alteracoes_cardapio_aprovadas
+        alteracoes_cardapio = terceirizada.alteracoes_cardapio_autorizadas
         page = self.paginate_queryset(alteracoes_cardapio)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
