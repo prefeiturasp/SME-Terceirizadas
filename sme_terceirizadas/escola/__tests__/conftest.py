@@ -46,3 +46,18 @@ def faixa_idade_escolar():
 def codae(escola):
     return mommy.make(models.Codae,
                       make_m2m=True)
+
+
+@pytest.fixture
+def lote():
+    return mommy.make(models.Lote)
+
+
+@pytest.fixture
+def periodo_escolar():
+    return mommy.make(models.PeriodoEscolar)
+
+
+@pytest.fixture
+def sub_prefeitura():
+    return mommy.make(models.Subprefeitura)
