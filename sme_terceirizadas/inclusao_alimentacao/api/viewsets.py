@@ -130,12 +130,12 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
-    @action(detail=False, url_path='pedidos-aprovados-diretoria-regional')
-    def solicitacoes_aprovados_diretoria_regional(self, request):
+    @action(detail=False, url_path='pedidos-autorizados-diretoria-regional')
+    def solicitacoes_autorizados_diretoria_regional(self, request):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
         diretoria_regional = usuario.diretorias_regionais.first()
-        inclusoes_normais = diretoria_regional.inclusoes_normais_aprovadas
+        inclusoes_normais = diretoria_regional.inclusoes_normais_autorizadas
         page = self.paginate_queryset(inclusoes_normais)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
@@ -150,12 +150,12 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
-    @action(detail=False, url_path='pedidos-aprovados-codae')
-    def solicitacoes_aprovados_codae(self, request):
+    @action(detail=False, url_path='pedidos-autorizados-codae')
+    def solicitacoes_autorizadas_codae(self, request):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual CODAE eu estou fazendo a requisição
         codae = usuario.CODAE.first()
-        inclusoes_normais = codae.inclusoes_normais_aprovadas
+        inclusoes_normais = codae.inclusoes_normais_autorizadas
         page = self.paginate_queryset(inclusoes_normais)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
@@ -170,12 +170,12 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
-    @action(detail=False, url_path='pedidos-aprovados-terceirizada')
-    def solicitacoes_aprovados_terceirizada(self, request):
+    @action(detail=False, url_path='pedidos-autorizados-terceirizada')
+    def solicitacoes_autorizadas_terceirizada(self, request):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual Terceirizada eu estou fazendo a requisição
         terceirizada = usuario.terceirizadas.first()
-        inclusoes_normais = terceirizada.inclusoes_normais_aprovadas
+        inclusoes_normais = terceirizada.inclusoes_normais_autorizadas
         page = self.paginate_queryset(inclusoes_normais)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
@@ -207,7 +207,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
 
     @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
             methods=['patch'], url_path=constants.DRE_VALIDA_PEDIDO)
-    def diretoria_regional_aprova(self, request, uuid=None):
+    def diretoria_regional_valida(self, request, uuid=None):
         grupo_alimentacao_normal = self.get_object()
         try:
             grupo_alimentacao_normal.dre_valida(user=request.user, )
@@ -251,7 +251,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
 
     @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
             methods=['patch'], url_path=constants.CODAE_AUTORIZA_PEDIDO)
-    def codae_aprova_pedido(self, request, uuid=None):
+    def codae_autoriza_pedido(self, request, uuid=None):
         grupo_alimentacao_normal = self.get_object()
         try:
             grupo_alimentacao_normal.codae_autoriza(user=request.user, )
@@ -368,12 +368,12 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
-    @action(detail=False, url_path='pedidos-aprovados-diretoria-regional')
-    def solicitacoes_aprovados_diretoria_regional(self, request):
+    @action(detail=False, url_path='pedidos-autorizados-diretoria-regional')
+    def solicitacoes_autorizadas_diretoria_regional(self, request):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
         diretoria_regional = usuario.diretorias_regionais.first()
-        inclusoes_continuas = diretoria_regional.inclusoes_continuas_aprovadas
+        inclusoes_continuas = diretoria_regional.inclusoes_continuas_autorizadas
         page = self.paginate_queryset(inclusoes_continuas)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
@@ -388,12 +388,12 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
-    @action(detail=False, url_path='pedidos-aprovados-codae')
-    def solicitacoes_aprovados_codae(self, request):
+    @action(detail=False, url_path='pedidos-autorizados-codae')
+    def solicitacoes_autorizadas_codae(self, request):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual CODAE eu estou fazendo a requisição
         codae = usuario.CODAE.first()
-        inclusoes_continuas = codae.inclusoes_continuas_aprovadas
+        inclusoes_continuas = codae.inclusoes_continuas_autorizadas
         page = self.paginate_queryset(inclusoes_continuas)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
@@ -408,12 +408,12 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
-    @action(detail=False, url_path='pedidos-aprovados-terceirizada')
-    def solicitacoes_aprovados_terceirizada(self, request):
+    @action(detail=False, url_path='pedidos-autorizados-terceirizada')
+    def solicitacoes_autorizadas_terceirizada(self, request):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual Terceirizada eu estou fazendo a requisição
         terceirizada = usuario.terceirizadas.first()
-        inclusoes_continuas = terceirizada.inclusoes_continuas_aprovadas
+        inclusoes_continuas = terceirizada.inclusoes_continuas_autorizadas
         page = self.paginate_queryset(inclusoes_continuas)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
@@ -445,7 +445,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
 
     @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
             methods=['patch'], url_path=constants.DRE_VALIDA_PEDIDO)
-    def diretoria_regional_aprova(self, request, uuid=None):
+    def diretoria_regional_valida(self, request, uuid=None):
         inclusao_alimentacao_continua = self.get_object()
         try:
             inclusao_alimentacao_continua.dre_valida(user=request.user, )
@@ -500,7 +500,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
 
     @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
             methods=['patch'], url_path=constants.CODAE_AUTORIZA_PEDIDO)
-    def codae_aprova_pedido(self, request, uuid=None):
+    def codae_autoriza_pedido(self, request, uuid=None):
         inclusao_alimentacao_continua = self.get_object()
         try:
             inclusao_alimentacao_continua.codae_autoriza(user=request.user, )

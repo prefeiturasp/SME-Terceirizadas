@@ -82,7 +82,7 @@ class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel):
         return self.nutricionistas
 
     @property
-    def inclusoes_continuas_aprovadas(self):
+    def inclusoes_continuas_autorizadas(self):
         return InclusaoAlimentacaoContinua.objects.filter(
             escola__lote__in=self.lotes.all(),
             status__in=[InclusaoAlimentacaoContinua.workflow_class.CODAE_AUTORIZADO,
@@ -90,7 +90,7 @@ class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel):
         )
 
     @property
-    def inclusoes_normais_aprovadas(self):
+    def inclusoes_normais_autorizadas(self):
         return GrupoInclusaoAlimentacaoNormal.objects.filter(
             escola__lote__in=self.lotes.all(),
             status__in=[GrupoInclusaoAlimentacaoNormal.workflow_class.CODAE_AUTORIZADO,
