@@ -14,7 +14,7 @@ before_script:
 install:
   - pip install -r requirements/local.txt
 script:
-  . bash utility/verifica_qualidade.sh
+  - bash utility/verifica_qualidade.sh
   - docker build -t marcelomaia/terceirizadas_backend .
   - docker run -d -p 8000:8000 marcelomaia/terceirizadas_backend python manage.py runserver --settings=config.settings.local
   - docker ps -a
