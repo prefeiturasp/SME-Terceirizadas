@@ -103,6 +103,18 @@ class DiretoriaRegional(Nomeavel, Iniciais, TemChaveExterna, TemCodigoEOL):
             status=InclusaoAlimentacaoContinua.workflow_class.DRE_A_VALIDAR
         )
 
+    def inclusoes_alimentacao_normal_das_minhas_escolas(self, filtro_aplicado):
+        if filtro_aplicado == DAQUI_A_7_DIAS:
+            inclusoes_alimentacao = GrupoInclusaoAlimentacaoNormal.desta_semana
+        elif filtro_aplicado == DAQUI_A_30_DIAS:
+            inclusoes_alimentacao = GrupoInclusaoAlimentacaoNormal.deste_mes  # type: ignore
+        else:
+            inclusoes_alimentacao = GrupoInclusaoAlimentacaoNormal.objects  # type: ignore
+        return inclusoes_alimentacao.filter(
+            escola__in=self.escolas.all(),
+            status=InclusaoAlimentacaoContinua.workflow_class.DRE_A_VALIDAR
+        )
+
     #
     # Alterações de cardápio
     #

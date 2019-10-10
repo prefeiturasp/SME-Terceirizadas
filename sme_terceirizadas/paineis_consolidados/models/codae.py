@@ -79,7 +79,7 @@ class SolicitacoesCODAE(MoldeConsolidado):
         return manager.filter(
             status_evento=LogSolicitacoesUsuario.DRE_VALIDOU,
             status=PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO
-        ).order_by('-criado_em')
+        ).order_by('uuid', '-criado_em').distinct('uuid')
 
     @classmethod
     def get_autorizados(cls, **kwargs):
@@ -88,14 +88,14 @@ class SolicitacoesCODAE(MoldeConsolidado):
                                LogSolicitacoesUsuario.TERCEIRIZADA_TOMOU_CIENCIA],
             status__in=[PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO,
                         PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_TOMOU_CIENCIA]
-        ).order_by('-criado_em')
+        ).order_by('uuid', '-criado_em').distinct('uuid')
 
     @classmethod
     def get_negados(cls, **kwargs):
         return cls.objects.filter(
             status_evento=LogSolicitacoesUsuario.CODAE_NEGOU,
             status=PedidoAPartirDaEscolaWorkflow.CODAE_NEGOU_PEDIDO
-        ).order_by('-criado_em')
+        ).order_by('uuid', '-criado_em').distinct('uuid')
 
     @classmethod
     def get_cancelados(cls, **kwargs):
@@ -103,7 +103,7 @@ class SolicitacoesCODAE(MoldeConsolidado):
             status_evento__in=[LogSolicitacoesUsuario.DRE_CANCELOU, LogSolicitacoesUsuario.ESCOLA_CANCELOU],
             status__in=[PedidoAPartirDaEscolaWorkflow.ESCOLA_CANCELOU,
                         PedidoAPartirDaDiretoriaRegionalWorkflow.DRE_CANCELOU],
-        ).order_by('-criado_em')
+        ).order_by('uuid', '-criado_em').distinct('uuid')
 
     @classmethod
     def _get_manager(cls, kwargs):
@@ -128,7 +128,7 @@ class SolicitacoesEscola(MoldeConsolidado):
               status_evento=LogSolicitacoesUsuario.INICIO_FLUXO) |  # noqa W504
             Q(status=PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO,
               status_evento=LogSolicitacoesUsuario.DRE_VALIDOU)
-        ).order_by('-criado_em')
+        ).order_by('uuid', '-criado_em').distinct('uuid')
 
     @classmethod
     def get_autorizados(cls, **kwargs):
@@ -140,7 +140,7 @@ class SolicitacoesEscola(MoldeConsolidado):
               status=PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO) |  # noqa W504
             Q(status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_TOMOU_CIENCIA,
               status=PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_TOMOU_CIENCIA)
-        ).order_by('-criado_em')
+        ).order_by('uuid', '-criado_em').distinct('uuid')
 
     @classmethod
     def get_negados(cls, **kwargs):
@@ -149,7 +149,7 @@ class SolicitacoesEscola(MoldeConsolidado):
             status_evento=LogSolicitacoesUsuario.CODAE_NEGOU,
             status=PedidoAPartirDaEscolaWorkflow.CODAE_NEGOU_PEDIDO,
             escola_uuid=escola_uuid
-        ).order_by('-criado_em')
+        ).order_by('uuid', '-criado_em').distinct('uuid')
 
     @classmethod
     def get_cancelados(cls, **kwargs):
@@ -158,46 +158,54 @@ class SolicitacoesEscola(MoldeConsolidado):
             status_evento=LogSolicitacoesUsuario.ESCOLA_CANCELOU,
             status=PedidoAPartirDaEscolaWorkflow.ESCOLA_CANCELOU,
             escola_uuid=escola_uuid
-        ).order_by('-criado_em')
+        ).order_by('uuid', '-criado_em').distinct('uuid')
 
 
 class SolicitacoesDRE(MoldeConsolidado):
-    _WORKFLOW_CLASS = PedidoAPartirDaDiretoriaRegionalWorkflow
 
     @classmethod
     def get_pendentes_aprovacao(cls, **kwargs):
         dre_uuid = kwargs.get('dre_uuid')
         return cls.objects.filter(
-            status__in=[cls._WORKFLOW_CLASS.CODAE_A_AUTORIZAR, PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO],
+            status__in=[PedidoAPartirDaDiretoriaRegionalWorkflow.CODAE_A_AUTORIZAR,
+                        PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO],
+            status_evento__in=[LogSolicitacoesUsuario.DRE_VALIDOU, LogSolicitacoesUsuario.INICIO_FLUXO],
             dre_uuid=dre_uuid
-        ).order_by('-criado_em')
+        ).order_by('uuid', '-criado_em').distinct('uuid')
 
     @classmethod
     def get_autorizados(cls, **kwargs):
         dre_uuid = kwargs.get('dre_uuid')
         return cls.objects.filter(
-            status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU,
-            status=cls._WORKFLOW_CLASS.CODAE_AUTORIZADO,
+            status_evento__in=[LogSolicitacoesUsuario.CODAE_AUTORIZOU,
+                               LogSolicitacoesUsuario.TERCEIRIZADA_TOMOU_CIENCIA],
+            status__in=[PedidoAPartirDaDiretoriaRegionalWorkflow.CODAE_AUTORIZADO,
+                        PedidoAPartirDaDiretoriaRegionalWorkflow.TERCEIRIZADA_TOMOU_CIENCIA,
+                        PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO,
+                        PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_TOMOU_CIENCIA],
             dre_uuid=dre_uuid
-        ).order_by('-criado_em')
+        ).order_by('uuid', '-criado_em').distinct('uuid')
 
     @classmethod
     def get_negados(cls, **kwargs):
         dre_uuid = kwargs.get('dre_uuid')
         return cls.objects.filter(
-            status_evento=LogSolicitacoesUsuario.CODAE_NEGOU,
-            status=cls._WORKFLOW_CLASS.CODAE_NEGOU_PEDIDO,
+            status_evento__in=[LogSolicitacoesUsuario.CODAE_NEGOU,
+                               LogSolicitacoesUsuario.DRE_NAO_VALIDOU],
+            status__in=[PedidoAPartirDaDiretoriaRegionalWorkflow.CODAE_NEGOU_PEDIDO,
+                        PedidoAPartirDaEscolaWorkflow.CODAE_NEGOU_PEDIDO,
+                        PedidoAPartirDaEscolaWorkflow.DRE_NAO_VALIDOU_PEDIDO_ESCOLA, ],
             dre_uuid=dre_uuid
-        ).order_by('-criado_em')
+        ).order_by('uuid', '-criado_em').distinct('uuid')
 
     @classmethod
     def get_cancelados(cls, **kwargs):
         dre_uuid = kwargs.get('dre_uuid')
         return cls.objects.filter(
             status_evento=LogSolicitacoesUsuario.DRE_CANCELOU,
-            status=cls._WORKFLOW_CLASS.DRE_CANCELOU,
+            status=PedidoAPartirDaDiretoriaRegionalWorkflow.DRE_CANCELOU,
             dre_uuid=dre_uuid
-        ).order_by('-criado_em')
+        ).order_by('uuid', '-criado_em').distinct('uuid')
 
 
 class SolicitacoesTerceirizada(MoldeConsolidado):
@@ -212,7 +220,7 @@ class SolicitacoesTerceirizada(MoldeConsolidado):
             status__in=[cls._WORKFLOW_CLASS.CODAE_AUTORIZADO,
                         cls._WORKFLOW_CLASS.DRE_VALIDADO],
             terceirizada_uuid=terceirizada_uuid
-        ).order_by('-criado_em')
+        ).order_by('uuid', '-criado_em').distinct('uuid')
 
     @classmethod
     def get_cancelados(cls, **kwargs):
@@ -224,4 +232,4 @@ class SolicitacoesTerceirizada(MoldeConsolidado):
                         cls._WORKFLOW_CLASS.CODAE_NEGOU_PEDIDO,
                         cls._WORKFLOW_CLASS.ESCOLA_CANCELOU],
             terceirizada_uuid=terceirizada_uuid
-        ).order_by('-criado_em')
+        ).order_by('uuid', '-criado_em').distinct('uuid')
