@@ -3,7 +3,7 @@
     "model": "escola.lote",
     "id": 1,
     "fields": {
-      "nome": "LOTE 3",
+      "nome": "LOTE 03",
       "iniciais": "CLI II",
       "tipo_gestao": 2,
       "diretoria_regional": 4
@@ -13,7 +13,7 @@
     "model": "escola.lote",
     "id": 2,
     "fields": {
-      "nome": "LOTE 2",
+      "nome": "LOTE 02",
       "iniciais": "CLI I",
       "tipo_gestao": 2,
       "diretoria_regional": 4
@@ -23,7 +23,7 @@
     "model": "escola.lote",
     "id": 3,
     "fields": {
-      "nome": "LOTE 1",
+      "nome": "LOTE 01",
       "iniciais": "BT",
       "tipo_gestao": 2,
       "diretoria_regional": 3
@@ -64,7 +64,7 @@
     "model": "escola.lote",
     "id": 7,
     "fields": {
-      "nome": "LOTE 4",
+      "nome": "LOTE 04",
       "iniciais": "CS",
       "tipo_gestao": 1,
       "diretoria_regional": 5,
@@ -75,7 +75,7 @@
     "model": "escola.lote",
     "id": 8,
     "fields": {
-      "nome": "LOTE 7 A",
+      "nome": "LOTE 07 A",
       "iniciais": "IP I",
       "tipo_gestao": 1,
       "diretoria_regional": 6,
@@ -97,7 +97,7 @@
     "model": "escola.lote",
     "id": 10,
     "fields": {
-      "nome": "LOTE 7 B",
+      "nome": "LOTE 07 B",
       "iniciais": "IP II",
       "tipo_gestao": 1,
       "diretoria_regional": 6,
@@ -108,7 +108,7 @@
     "model": "escola.lote",
     "id": 11,
     "fields": {
-      "nome": "LOTE 8",
+      "nome": "LOTE 08",
       "iniciais": "IQ",
       "tipo_gestao": 1,
       "diretoria_regional": 7,
@@ -119,7 +119,7 @@
     "model": "escola.lote",
     "id": 12,
     "fields": {
-      "nome": "LOTE 6",
+      "nome": "LOTE 06",
       "iniciais": "G",
       "tipo_gestao": 1,
       "diretoria_regional": 8,
@@ -152,7 +152,7 @@
     "model": "escola.lote",
     "id": 15,
     "fields": {
-      "nome": "LOTE 9",
+      "nome": "LOTE 09",
       "iniciais": "JT",
       "tipo_gestao": 1,
       "diretoria_regional": 11,
@@ -163,7 +163,7 @@
     "model": "escola.lote",
     "id": 16,
     "fields": {
-      "nome": "LOTE 5",
+      "nome": "LOTE 05",
       "iniciais": "FO",
       "tipo_gestao": 1,
       "diretoria_regional": 12,
