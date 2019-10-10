@@ -97,7 +97,7 @@ class Usuario(CustomAbstractUser, TemChaveExterna):
     perfis = models.ManyToManyField(Perfil)
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = []
+    REQUIRED_FIELDS = []  # type: ignore
 
     @property
     def escolas(self):

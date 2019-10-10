@@ -68,12 +68,12 @@ class DiretoriaRegional(Nomeavel, Iniciais, TemChaveExterna, TemCodigoEOL):
 
     def solicitacoes_kit_lanche_das_minhas_escolas_a_validar(self, filtro_aplicado):
         if filtro_aplicado == DAQUI_A_7_DIAS:
-            inversoes_cardapio = SolicitacaoKitLancheAvulsa.desta_semana
+            solicitacoes_kit_lanche_avulsa = SolicitacaoKitLancheAvulsa.desta_semana
         elif filtro_aplicado == DAQUI_A_30_DIAS:
-            inversoes_cardapio = SolicitacaoKitLancheAvulsa.deste_mes
+            solicitacoes_kit_lanche_avulsa = SolicitacaoKitLancheAvulsa.deste_mes  # type: ignore
         else:
-            inversoes_cardapio = SolicitacaoKitLancheAvulsa.objects
-        return inversoes_cardapio.filter(
+            solicitacoes_kit_lanche_avulsa = SolicitacaoKitLancheAvulsa.objects  # type: ignore
+        return solicitacoes_kit_lanche_avulsa.filter(
             escola__in=self.escolas.all(),
             status=InversaoCardapio.workflow_class.DRE_A_VALIDAR
         )
@@ -82,9 +82,9 @@ class DiretoriaRegional(Nomeavel, Iniciais, TemChaveExterna, TemCodigoEOL):
         if filtro_aplicado == DAQUI_A_7_DIAS:
             inversoes_cardapio = AlteracaoCardapio.desta_semana
         elif filtro_aplicado == DAQUI_A_30_DIAS:
-            inversoes_cardapio = AlteracaoCardapio.deste_mes
+            inversoes_cardapio = AlteracaoCardapio.deste_mes  # type: ignore
         else:
-            inversoes_cardapio = AlteracaoCardapio.objects
+            inversoes_cardapio = AlteracaoCardapio.objects  # type: ignore
         return inversoes_cardapio.filter(
             escola__in=self.escolas.all(),
             status=InversaoCardapio.workflow_class.DRE_A_VALIDAR
@@ -95,9 +95,9 @@ class DiretoriaRegional(Nomeavel, Iniciais, TemChaveExterna, TemCodigoEOL):
         if filtro_aplicado == DAQUI_A_7_DIAS:
             inclusoes_alimentacao_continuas = InclusaoAlimentacaoContinua.desta_semana
         elif filtro_aplicado == DAQUI_A_30_DIAS:
-            inclusoes_alimentacao_continuas = InclusaoAlimentacaoContinua.deste_mes
+            inclusoes_alimentacao_continuas = InclusaoAlimentacaoContinua.deste_mes  # type: ignore
         else:
-            inclusoes_alimentacao_continuas = InclusaoAlimentacaoContinua.objects
+            inclusoes_alimentacao_continuas = InclusaoAlimentacaoContinua.objects  # type: ignore
         return inclusoes_alimentacao_continuas.filter(
             escola__in=self.escolas.all(),
             status=InclusaoAlimentacaoContinua.workflow_class.DRE_A_VALIDAR
@@ -149,9 +149,9 @@ class DiretoriaRegional(Nomeavel, Iniciais, TemChaveExterna, TemCodigoEOL):
         if filtro_aplicado == DAQUI_A_7_DIAS:
             alteracoes_cardapio = AlteracaoCardapio.desta_semana
         elif filtro_aplicado == DAQUI_A_30_DIAS:
-            alteracoes_cardapio = AlteracaoCardapio.deste_mes
+            alteracoes_cardapio = AlteracaoCardapio.deste_mes  # type: ignore
         else:
-            alteracoes_cardapio = AlteracaoCardapio.objects
+            alteracoes_cardapio = AlteracaoCardapio.objects  # type: ignore
         return alteracoes_cardapio.filter(
             escola__in=self.escolas.all(),
             status=AlteracaoCardapio.workflow_class.DRE_A_VALIDAR
@@ -165,9 +165,9 @@ class DiretoriaRegional(Nomeavel, Iniciais, TemChaveExterna, TemCodigoEOL):
         if filtro_aplicado == DAQUI_A_7_DIAS:
             inversoes_cardapio = InversaoCardapio.desta_semana
         elif filtro_aplicado == DAQUI_A_30_DIAS:
-            inversoes_cardapio = InversaoCardapio.deste_mes
+            inversoes_cardapio = InversaoCardapio.deste_mes  # type: ignore
         else:
-            inversoes_cardapio = InversaoCardapio.objects
+            inversoes_cardapio = InversaoCardapio.objects  # type: ignore
         return inversoes_cardapio.filter(
             escola__in=self.escolas.all(),
             status=InversaoCardapio.workflow_class.DRE_A_VALIDAR
@@ -385,9 +385,9 @@ class Codae(Nomeavel, TemChaveExterna):
         if filtro_aplicado == DAQUI_A_7_DIAS:
             inversoes_cardapio = InversaoCardapio.desta_semana
         elif filtro_aplicado == DAQUI_A_30_DIAS:
-            inversoes_cardapio = InversaoCardapio.deste_mes
+            inversoes_cardapio = InversaoCardapio.deste_mes  # type: ignore
         else:
-            inversoes_cardapio = InversaoCardapio.objects
+            inversoes_cardapio = InversaoCardapio.objects  # type: ignore
         return inversoes_cardapio.filter(
             status=InversaoCardapio.workflow_class.DRE_VALIDADO
         )
@@ -396,9 +396,9 @@ class Codae(Nomeavel, TemChaveExterna):
         if filtro_aplicado == DAQUI_A_7_DIAS:
             inversoes_cardapio = GrupoInclusaoAlimentacaoNormal.desta_semana
         elif filtro_aplicado == DAQUI_A_30_DIAS:
-            inversoes_cardapio = GrupoInclusaoAlimentacaoNormal.deste_mes
+            inversoes_cardapio = GrupoInclusaoAlimentacaoNormal.deste_mes  # type: ignore
         else:
-            inversoes_cardapio = GrupoInclusaoAlimentacaoNormal.objects
+            inversoes_cardapio = GrupoInclusaoAlimentacaoNormal.objects  # type: ignore
         return inversoes_cardapio.filter(
             status=GrupoInclusaoAlimentacaoNormal.workflow_class.DRE_VALIDADO
         )
@@ -420,9 +420,9 @@ class Codae(Nomeavel, TemChaveExterna):
         if filtro_aplicado == DAQUI_A_7_DIAS:
             inversoes_cardapio = InclusaoAlimentacaoContinua.desta_semana
         elif filtro_aplicado == DAQUI_A_30_DIAS:
-            inversoes_cardapio = InclusaoAlimentacaoContinua.deste_mes
+            inversoes_cardapio = InclusaoAlimentacaoContinua.deste_mes  # type: ignore
         else:
-            inversoes_cardapio = InclusaoAlimentacaoContinua.objects
+            inversoes_cardapio = InclusaoAlimentacaoContinua.objects  # type: ignore
         return inversoes_cardapio.filter(
             status=InclusaoAlimentacaoContinua.workflow_class.DRE_VALIDADO
         )
@@ -431,9 +431,9 @@ class Codae(Nomeavel, TemChaveExterna):
         if filtro_aplicado == DAQUI_A_7_DIAS:
             alteracoes_cardapio = AlteracaoCardapio.desta_semana
         elif filtro_aplicado == DAQUI_A_30_DIAS:
-            alteracoes_cardapio = AlteracaoCardapio.deste_mes
+            alteracoes_cardapio = AlteracaoCardapio.deste_mes  # type: ignore
         else:
-            alteracoes_cardapio = AlteracaoCardapio.objects
+            alteracoes_cardapio = AlteracaoCardapio.objects  # type: ignore
         return alteracoes_cardapio.filter(
             status=AlteracaoCardapio.workflow_class.DRE_VALIDADO
         )
@@ -451,9 +451,9 @@ class Codae(Nomeavel, TemChaveExterna):
         if filtro_aplicado == DAQUI_A_7_DIAS:
             solicitacoes_unificadas = SolicitacaoKitLancheUnificada.desta_semana
         elif filtro_aplicado == DAQUI_A_30_DIAS:
-            solicitacoes_unificadas = SolicitacaoKitLancheUnificada.deste_mes
+            solicitacoes_unificadas = SolicitacaoKitLancheUnificada.deste_mes  # type: ignore
         else:
-            solicitacoes_unificadas = SolicitacaoKitLancheUnificada.objects
+            solicitacoes_unificadas = SolicitacaoKitLancheUnificada.objects  # type: ignore
         return solicitacoes_unificadas.filter(
             status=SolicitacaoKitLancheUnificada.workflow_class.CODAE_A_AUTORIZAR
         )
@@ -510,9 +510,9 @@ class Codae(Nomeavel, TemChaveExterna):
         if filtro_aplicado == DAQUI_A_7_DIAS:
             solicitacoes_kit_lanche = SolicitacaoKitLancheAvulsa.desta_semana
         elif filtro_aplicado == DAQUI_A_30_DIAS:
-            solicitacoes_kit_lanche = SolicitacaoKitLancheAvulsa.deste_mes
+            solicitacoes_kit_lanche = SolicitacaoKitLancheAvulsa.deste_mes  # type: ignore
         else:
-            solicitacoes_kit_lanche = SolicitacaoKitLancheAvulsa.objects
+            solicitacoes_kit_lanche = SolicitacaoKitLancheAvulsa.objects  # type: ignore
         return solicitacoes_kit_lanche.filter(
             status=InversaoCardapio.workflow_class.DRE_VALIDADO
         )

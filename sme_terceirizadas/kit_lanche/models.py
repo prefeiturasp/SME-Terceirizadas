@@ -46,7 +46,7 @@ class KitLanche(Nomeavel, TemChaveExterna):
         verbose_name_plural = 'Kit lanches'
 
 
-class SolicitacaoKitLanche(TemData, Motivo, Descritivel, CriadoEm, TempoPasseio, TemChaveExterna, TemPrioridade):
+class SolicitacaoKitLanche(TemData, Motivo, Descritivel, CriadoEm, TempoPasseio, TemChaveExterna):
     # TODO: implementar one to one, nas duas tabelas que apontam pra essa
     # https://docs.djangoproject.com/en/2.2/ref/models/fields/#django.db.models.OneToOneField
 
@@ -204,7 +204,7 @@ class SolicitacaoKitLancheUnificada(CriadoPor, TemChaveExterna, TemIdentificador
     # TODO: melhorar esse metodo assim que tivermos um entendimento melhor
     def dividir_por_dois_lotes(self) -> models.QuerySet:
         primeiro_id = self.id
-        primeiro_lote = self.escolas_quantidades.first().escola.lote
+        primeiro_lote = self.escolas_quantidades.first().escola.lote  # type: ignore
         escolas_quantidades_desse_lote = self.escolas_quantidades.filter(escola__lote=primeiro_lote)
         for escola_quantidade in escolas_quantidades_desse_lote:
             self.escolas_quantidades.remove(escola_quantidade)
