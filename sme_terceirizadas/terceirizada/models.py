@@ -136,7 +136,7 @@ class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel):
         if filtro_aplicado == 'daqui_a_7_dias':
             inclusoes_continuas = InclusaoAlimentacaoContinua.desta_semana
         else:
-            inclusoes_continuas = InclusaoAlimentacaoContinua.objects
+            inclusoes_continuas = InclusaoAlimentacaoContinua.objects  # type: ignore
         return inclusoes_continuas.filter(
             status=InclusaoAlimentacaoContinua.workflow_class.CODAE_AUTORIZADO,
             escola__lote__in=self.lotes.all()
@@ -146,9 +146,9 @@ class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel):
         if filtro_aplicado == 'daqui_a_30_dias':
             inclusoes_continuas = InclusaoAlimentacaoContinua.deste_mes
         elif filtro_aplicado == 'daqui_a_7_dias':
-            inclusoes_continuas = InclusaoAlimentacaoContinua.desta_semana
+            inclusoes_continuas = InclusaoAlimentacaoContinua.desta_semana  # type: ignore
         else:
-            inclusoes_continuas = InclusaoAlimentacaoContinua.objects
+            inclusoes_continuas = InclusaoAlimentacaoContinua.objects  # type: ignore
         return inclusoes_continuas.filter(
             status=InclusaoAlimentacaoContinua.workflow_class.CODAE_AUTORIZADO,
             escola__lote__in=self.lotes.all()
@@ -169,7 +169,7 @@ class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel):
         if filtro_aplicado == 'daqui_a_7_dias':
             inclusoes_normais = GrupoInclusaoAlimentacaoNormal.desta_semana
         else:
-            inclusoes_normais = GrupoInclusaoAlimentacaoNormal.objects
+            inclusoes_normais = GrupoInclusaoAlimentacaoNormal.objects  # type: ignore
         return inclusoes_normais.filter(
             status=InclusaoAlimentacaoContinua.workflow_class.CODAE_AUTORIZADO,
             escola__lote__in=self.lotes.all()
@@ -179,9 +179,9 @@ class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel):
         if filtro_aplicado == 'daqui_a_30_dias':
             inclusoes_normais = GrupoInclusaoAlimentacaoNormal.deste_mes
         elif filtro_aplicado == 'daqui_a_7_dias':
-            inclusoes_normais = GrupoInclusaoAlimentacaoNormal.desta_semana
+            inclusoes_normais = GrupoInclusaoAlimentacaoNormal.desta_semana  # type: ignore
         else:
-            inclusoes_normais = GrupoInclusaoAlimentacaoNormal.objects
+            inclusoes_normais = GrupoInclusaoAlimentacaoNormal.objects  # type: ignore
         return inclusoes_normais.filter(
             status=InclusaoAlimentacaoContinua.workflow_class.CODAE_AUTORIZADO,
             escola__lote__in=self.lotes.all()
@@ -202,7 +202,7 @@ class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel):
         if filtro_aplicado == 'daqui_a_7_dias':
             alteracoes_cardapio = AlteracaoCardapio.desta_semana
         else:
-            alteracoes_cardapio = AlteracaoCardapio.objects
+            alteracoes_cardapio = AlteracaoCardapio.objects  # type: ignore
         return alteracoes_cardapio.filter(
             status=AlteracaoCardapio.workflow_class.CODAE_AUTORIZADO,
             escola__lote__in=self.lotes.all()
@@ -212,9 +212,9 @@ class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel):
         if filtro_aplicado == 'daqui_a_30_dias':
             alteracoes_cardapio = AlteracaoCardapio.deste_mes
         elif filtro_aplicado == 'daqui_a_7_dias':
-            alteracoes_cardapio = AlteracaoCardapio.desta_semana
+            alteracoes_cardapio = AlteracaoCardapio.desta_semana  # type: ignore
         else:
-            alteracoes_cardapio = AlteracaoCardapio.objects
+            alteracoes_cardapio = AlteracaoCardapio.objects  # type: ignore
         return alteracoes_cardapio.filter(
             status=AlteracaoCardapio.workflow_class.CODAE_AUTORIZADO,
             escola__lote__in=self.lotes.all()
@@ -224,9 +224,9 @@ class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel):
         if filtro_aplicado == DAQUI_A_7_DIAS:
             alteracoes_cardapio = AlteracaoCardapio.desta_semana
         elif filtro_aplicado == DAQUI_A_30_DIAS:
-            alteracoes_cardapio = AlteracaoCardapio.deste_mes
+            alteracoes_cardapio = AlteracaoCardapio.deste_mes  # type: ignore
         else:
-            alteracoes_cardapio = AlteracaoCardapio.objects
+            alteracoes_cardapio = AlteracaoCardapio.objects  # type: ignore
         return alteracoes_cardapio.filter(
             status=AlteracaoCardapio.workflow_class.CODAE_AUTORIZADO,
             escola__lote__in=self.lotes.all()
@@ -236,9 +236,9 @@ class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel):
         if filtro_aplicado == DAQUI_A_7_DIAS:
             inversoes_cardapio = GrupoInclusaoAlimentacaoNormal.desta_semana
         elif filtro_aplicado == DAQUI_A_30_DIAS:
-            inversoes_cardapio = GrupoInclusaoAlimentacaoNormal.deste_mes
+            inversoes_cardapio = GrupoInclusaoAlimentacaoNormal.deste_mes  # type: ignore
         else:
-            inversoes_cardapio = GrupoInclusaoAlimentacaoNormal.objects
+            inversoes_cardapio = GrupoInclusaoAlimentacaoNormal.objects  # type: ignore
         return inversoes_cardapio.filter(
             status=AlteracaoCardapio.workflow_class.CODAE_AUTORIZADO,
             escola__lote__in=self.lotes.all()
@@ -248,9 +248,9 @@ class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel):
         if filtro_aplicado == DAQUI_A_7_DIAS:
             inclusoes_alimentacao_continuas = InclusaoAlimentacaoContinua.desta_semana
         elif filtro_aplicado == DAQUI_A_30_DIAS:
-            inclusoes_alimentacao_continuas = InclusaoAlimentacaoContinua.deste_mes
+            inclusoes_alimentacao_continuas = InclusaoAlimentacaoContinua.deste_mes  # type: ignore
         else:
-            inclusoes_alimentacao_continuas = InclusaoAlimentacaoContinua.objects
+            inclusoes_alimentacao_continuas = InclusaoAlimentacaoContinua.objects  # type: ignore
         return inclusoes_alimentacao_continuas.filter(
             status=AlteracaoCardapio.workflow_class.CODAE_AUTORIZADO,
             escola__lote__in=self.lotes.all()

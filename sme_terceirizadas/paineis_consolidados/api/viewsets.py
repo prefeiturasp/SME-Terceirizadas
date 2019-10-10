@@ -3,7 +3,7 @@ from rest_framework.decorators import action
 
 from .constants import (
     AUTORIZADOS, CANCELADOS, FILTRO_DRE_UUID, FILTRO_ESCOLA_UUID,
-    FILTRO_TERCEIRIZADA_UUID, NEGADOS, PENDENTES_APROVACAO, _NEGADOS
+    FILTRO_TERCEIRIZADA_UUID, NEGADOS, PENDENTES_APROVACAO
 )
 from ..models.codae import (
     SolicitacoesCODAE, SolicitacoesDRE, SolicitacoesEscola, SolicitacoesTerceirizada
