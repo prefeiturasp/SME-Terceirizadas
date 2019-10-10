@@ -139,7 +139,7 @@ class MotivoInclusaoNormal(Nomeavel, TemChaveExterna):
         verbose_name_plural = 'Motivos de inclusao normais'
 
 
-class InclusaoAlimentacaoNormal(TemData, TemChaveExterna, TemPrioridade):
+class InclusaoAlimentacaoNormal(TemData, TemChaveExterna):
     motivo = models.ForeignKey(MotivoInclusaoNormal, on_delete=models.DO_NOTHING)
     outro_motivo = models.CharField('Outro motivo', blank=True, max_length=50)
     grupo_inclusao = models.ForeignKey('GrupoInclusaoAlimentacaoNormal',

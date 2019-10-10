@@ -1,3 +1,5 @@
+import datetime
+
 from django.db import models
 from django.db.models import Q
 
@@ -5,23 +7,24 @@ from ...dados_comuns.constants import DAQUI_A_30_DIAS, DAQUI_A_7_DIAS
 from ...dados_comuns.fluxo_status import PedidoAPartirDaDiretoriaRegionalWorkflow, PedidoAPartirDaEscolaWorkflow
 from ...dados_comuns.models import LogSolicitacoesUsuario
 from ...dados_comuns.models_abstract import TemPrioridade
-from ...dados_comuns.utils import obter_dias_uteis_apos_hoje
 
 
-class Solicitacoes7DiasManager(models.Manager):
+class SolicitacoesDestaSemanaManager(models.Manager):
     def get_queryset(self):
-        data_limite_inicial = obter_dias_uteis_apos_hoje(quantidade_dias=0)
-        data_limite_final = obter_dias_uteis_apos_hoje(quantidade_dias=8)
-        return super(Solicitacoes7DiasManager, self).get_queryset().filter(data_doc__range=(data_limite_inicial,
-                                                                                            data_limite_final))
+        hoje = datetime.date.today()
+        data_limite_inicial = hoje
+        data_limite_final = hoje + datetime.timedelta(7)
+        return super(SolicitacoesDestaSemanaManager, self).get_queryset(
+        ).filter(data_doc__range=(data_limite_inicial, data_limite_final))
 
 
-class Solicitacoes30DiasManager(models.Manager):
+class SolicitacoesDesteMesManager(models.Manager):
     def get_queryset(self):
-        data_limite_inicial = obter_dias_uteis_apos_hoje(quantidade_dias=0)
-        data_limite_final = obter_dias_uteis_apos_hoje(quantidade_dias=31)
-        return super(Solicitacoes30DiasManager, self).get_queryset().filter(
-            data_doc__range=(data_limite_inicial, data_limite_final))
+        hoje = datetime.date.today()
+        data_limite_inicial = hoje
+        data_limite_final = hoje + datetime.timedelta(31)
+        return super(SolicitacoesDesteMesManager, self).get_queryset(
+        ).filter(data_doc__range=(data_limite_inicial, data_limite_final))
 
 
 class MoldeConsolidado(models.Model, TemPrioridade):
@@ -39,16 +42,11 @@ class MoldeConsolidado(models.Model, TemPrioridade):
     status = models.CharField(max_length=32)
 
     objects = models.Manager()
-    sem_filtro = models.Manager()
-    filtro_7_dias = Solicitacoes7DiasManager()
-    filtro_30_dias = Solicitacoes30DiasManager()
+    filtro_7_dias = SolicitacoesDestaSemanaManager()
+    filtro_30_dias = SolicitacoesDesteMesManager()
 
     @classmethod
     def get_pendentes_aprovacao(cls, **kwargs):
-        raise NotImplementedError('Precisa implementar')
-
-    @classmethod
-    def get_negados(cls, **kwargs):
         raise NotImplementedError('Precisa implementar')
 
     @classmethod
@@ -56,7 +54,11 @@ class MoldeConsolidado(models.Model, TemPrioridade):
         raise NotImplementedError('Precisa implementar')
 
     @classmethod
-    def get_solicitacoes_revisao(cls, **kwargs):
+    def get_negados(cls, **kwargs):
+        raise NotImplementedError('Precisa implementar')
+
+    @classmethod
+    def get_cancelados(cls, **kwargs):
         raise NotImplementedError('Precisa implementar')
 
     @property
@@ -73,15 +75,19 @@ class SolicitacoesCODAE(MoldeConsolidado):
 
     @classmethod
     def get_pendentes_aprovacao(cls, **kwargs):
-        filtro = kwargs.get('filtro')
-        manager = cls.sem_filtro
-        if filtro == DAQUI_A_7_DIAS:
-            manager = cls.filtro_7_dias
-        elif filtro == DAQUI_A_30_DIAS:
-            manager = cls.filtro_30_dias
+        manager = cls._get_manager(kwargs)
         return manager.filter(
             status_evento=LogSolicitacoesUsuario.DRE_VALIDOU,
             status=PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO
+        ).order_by('-criado_em')
+
+    @classmethod
+    def get_autorizados(cls, **kwargs):
+        return cls.objects.filter(
+            status_evento__in=[LogSolicitacoesUsuario.CODAE_AUTORIZOU,
+                               LogSolicitacoesUsuario.TERCEIRIZADA_TOMOU_CIENCIA],
+            status__in=[PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO,
+                        PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_TOMOU_CIENCIA]
         ).order_by('-criado_em')
 
     @classmethod
@@ -92,17 +98,22 @@ class SolicitacoesCODAE(MoldeConsolidado):
         ).order_by('-criado_em')
 
     @classmethod
-    def get_autorizados(cls, **kwargs):
+    def get_cancelados(cls, **kwargs):
         return cls.objects.filter(
-            status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU,
-            status=PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO
+            status_evento__in=[LogSolicitacoesUsuario.DRE_CANCELOU, LogSolicitacoesUsuario.ESCOLA_CANCELOU],
+            status__in=[PedidoAPartirDaEscolaWorkflow.ESCOLA_CANCELOU,
+                        PedidoAPartirDaDiretoriaRegionalWorkflow.DRE_CANCELOU],
         ).order_by('-criado_em')
 
     @classmethod
-    def get_solicitacoes_revisao(cls, **kwargs):
-        return cls.objects.filter(
-            status_evento=LogSolicitacoesUsuario.CODAE_PEDIU_REVISAO,
-        ).order_by('-criado_em')
+    def _get_manager(cls, kwargs):
+        filtro = kwargs.get('filtro')
+        manager = cls.objects
+        if filtro == DAQUI_A_7_DIAS:
+            manager = cls.filtro_7_dias
+        elif filtro == DAQUI_A_30_DIAS:
+            manager = cls.filtro_30_dias
+        return manager
 
 
 class SolicitacoesEscola(MoldeConsolidado):

@@ -1,6 +1,5 @@
-from rest_framework import status, viewsets
+from rest_framework import viewsets
 from rest_framework.decorators import action
-from rest_framework.response import Response
 
 from .constants import (
     AUTORIZADOS, CANCELADOS, FILTRO_DRE_UUID, FILTRO_ESCOLA_UUID,
@@ -10,26 +9,7 @@ from ..models.codae import (
     SolicitacoesCODAE, SolicitacoesDRE, SolicitacoesEscola, SolicitacoesTerceirizada
 )
 from ...dados_comuns.constants import FILTRO_PADRAO_PEDIDOS, SEM_FILTRO
-from ...escola.models import DiretoriaRegional
 from ...paineis_consolidados.api.serializers import SolicitacoesSerializer
-
-
-class DrePendentesAprovacaoViewSet(viewsets.ViewSet):
-
-    def list(self, request):
-        usuario = request.user
-        # TODO Rever quando a regra de negócios de perfis estiver definida.
-        dre = DiretoriaRegional.objects.filter(usuarios=usuario).first()
-        response = []
-        for alteracao in dre.alteracoes_cardapio_pendentes_das_minhas_escolas.all():
-            nova_alteracao = {
-                'text': f'{alteracao.id_externo} - {alteracao.escola.lote} - Alteração de Cardápio',
-                'date': f'{alteracao.data_inicial}'
-            }
-
-            response.append(nova_alteracao)
-
-        return Response(response, status=status.HTTP_200_OK)
 
 
 class CODAESolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
@@ -43,18 +23,18 @@ class CODAESolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
         return self._retorno_base(query_set)
 
     @action(detail=False, methods=['GET'], url_path=AUTORIZADOS)
-    def aprovados(self, request):
+    def autorizados(self, request):
         query_set = SolicitacoesCODAE.get_autorizados()
         return self._retorno_base(query_set)
 
-    @action(detail=False, methods=['GET'], url_path='solicitacoes-revisao')
-    def solicitacoes_revisao(self, request):
-        query_set = SolicitacoesCODAE.get_solicitacoes_revisao()
+    @action(detail=False, methods=['GET'], url_path=NEGADOS)
+    def negados(self, request):
+        query_set = SolicitacoesCODAE.get_negados()
         return self._retorno_base(query_set)
 
-    @action(detail=False, methods=['GET'], url_path=_NEGADOS)
+    @action(detail=False, methods=['GET'], url_path=CANCELADOS)
     def cancelados(self, request):
-        query_set = SolicitacoesCODAE.get_negados()
+        query_set = SolicitacoesCODAE.get_cancelados()
         return self._retorno_base(query_set)
 
     def _retorno_base(self, query_set):

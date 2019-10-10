@@ -354,10 +354,11 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
 
     @action(detail=True, url_path=constants.CODAE_NEGA_PEDIDO,
             permission_classes=[PodeIniciarSolicitacaoUnificadaPermission], methods=['patch'])
-    def codae_cancela_pedido(self, request, uuid=None):
+    def codae_nega_pedido(self, request, uuid=None):
         solicitacao_unificada = self.get_object()
+        justificativa = request.data.get('justificativa', '')
         try:
-            solicitacao_unificada.codae_nega(user=request.user, )
+            solicitacao_unificada.codae_nega(user=request.user, justificativa=justificativa)
             serializer = self.get_serializer(solicitacao_unificada)
             return Response(serializer.data)
         except InvalidTransitionError as e:

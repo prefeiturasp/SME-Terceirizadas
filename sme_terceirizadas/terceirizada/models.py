@@ -62,7 +62,6 @@ class Nutricionista(TemChaveExterna, Nomeavel):
 
 
 class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel):
-
     usuarios = models.ManyToManyField('perfil.Usuario', related_name='terceirizadas', blank=True)
     nome_fantasia = models.CharField('Nome fantasia', max_length=160, blank=True)
     razao_social = models.CharField('Razao social', max_length=160, blank=True)
@@ -285,9 +284,9 @@ class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel):
         if filtro_aplicado == 'daqui_a_7_dias':
             inversoes_cardapio = InversaoCardapio.desta_semana
         elif filtro_aplicado == 'daqui_a_30_dias':
-            inversoes_cardapio = InversaoCardapio.deste_mes
+            inversoes_cardapio = InversaoCardapio.deste_mes  # type: ignore
         else:
-            inversoes_cardapio = InversaoCardapio.objects
+            inversoes_cardapio = InversaoCardapio.objects  # type: ignore
         return inversoes_cardapio.filter(
             escola__lote__in=self.lotes.all(),
             status=InversaoCardapio.workflow_class.CODAE_AUTORIZADO
@@ -309,9 +308,9 @@ class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel):
         if filtro_aplicado == 'daqui_a_7_dias':
             solicitacoes_unificadas = SolicitacaoKitLancheUnificada.desta_semana
         elif filtro_aplicado == 'daqui_a_30_dias':
-            solicitacoes_unificadas = SolicitacaoKitLancheUnificada.deste_mes
+            solicitacoes_unificadas = SolicitacaoKitLancheUnificada.deste_mes  # type: ignore
         else:
-            solicitacoes_unificadas = SolicitacaoKitLancheUnificada.objects
+            solicitacoes_unificadas = SolicitacaoKitLancheUnificada.objects  # type: ignore
         return solicitacoes_unificadas.filter(
             escolas_quantidades__escola__lote__in=self.lotes.all(),
             status=SolicitacaoKitLancheUnificada.workflow_class.CODAE_AUTORIZADO
@@ -329,9 +328,9 @@ class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel):
         if filtro_aplicado == 'daqui_a_7_dias':
             solicitacoes_kit_lanche = SolicitacaoKitLancheAvulsa.desta_semana
         elif filtro_aplicado == 'daqui_a_30_dias':
-            solicitacoes_kit_lanche = SolicitacaoKitLancheAvulsa.deste_mes
+            solicitacoes_kit_lanche = SolicitacaoKitLancheAvulsa.deste_mes  # type: ignore
         else:
-            solicitacoes_kit_lanche = SolicitacaoKitLancheAvulsa.objects
+            solicitacoes_kit_lanche = SolicitacaoKitLancheAvulsa.objects  # type: ignore
         return solicitacoes_kit_lanche.filter(
             escola__lote__in=self.lotes.all(),
             status=InversaoCardapio.workflow_class.CODAE_AUTORIZADO

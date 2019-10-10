@@ -94,7 +94,7 @@ def update_instance_from_dict(instance, attrs, save=False):
     return instance
 
 
-def enviar_notificacao_e_email(sender, recipients: [QuerySet, list],
+def enviar_notificacao_e_email(sender, recipients: QuerySet,
                                short_desc: str, long_desc: str):
     enviar_notificacao(sender, recipients, short_desc, long_desc)
     async_envio_email_html_em_massa(subject=short_desc, text='', html=long_desc, recipients=recipients)

@@ -56,7 +56,7 @@ class Cardapio(Descritivel, Ativavel, TemData, TemChaveExterna, CriadoEm):
     tipos_alimentacao = models.ManyToManyField(TipoAlimentacao)
     edital = models.ForeignKey('terceirizada.Edital', on_delete=models.DO_NOTHING, related_name='editais')
 
-    @property
+    @property  # type: ignore
     def tipos_unidade_escolar(self):
         return self.tipos_unidade_escolar
 
@@ -228,11 +228,11 @@ class GrupoSuspensaoAlimentacao(TemChaveExterna, CriadoPor, TemIdentificadorExte
             status=cls.workflow_class.RASCUNHO
         )
 
-    @property
+    @property  # type: ignore
     def quantidades_por_periodo(self):
         return self.quantidades_por_periodo
 
-    @property
+    @property  # type: ignore
     def suspensoes_alimentacao(self):
         return self.suspensoes_alimentacao
 
