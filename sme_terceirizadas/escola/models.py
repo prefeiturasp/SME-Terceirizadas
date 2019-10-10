@@ -115,7 +115,7 @@ class DiretoriaRegional(Nomeavel, Iniciais, TemChaveExterna, TemCodigoEOL):
         )
 
     @property
-    def alteracoes_cardapio_aprovadas(self):
+    def alteracoes_cardapio_autorizadas(self):
         return AlteracaoCardapio.objects.filter(
             escola__in=self.escolas.all(),
             status__in=[AlteracaoCardapio.workflow_class.CODAE_AUTORIZADO,
@@ -518,7 +518,7 @@ class Codae(Nomeavel, TemChaveExterna):
         )
 
     @property
-    def alteracoes_cardapio_aprovadas(self):
+    def alteracoes_cardapio_autorizadas(self):
         return AlteracaoCardapio.objects.filter(
             status__in=[AlteracaoCardapio.workflow_class.CODAE_AUTORIZADO,
                         AlteracaoCardapio.workflow_class.TERCEIRIZADA_TOMOU_CIENCIA]
