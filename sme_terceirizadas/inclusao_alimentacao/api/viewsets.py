@@ -57,7 +57,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
             filtro_aplicado
         )
         page = self.paginate_queryset(inclusoes_continuas)
-        serializer = serializers.GrupoInclusaoAlimentacaoNormalSimplesSerializer(page, many=True)
+        serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False,
