@@ -146,7 +146,7 @@ class DiretoriaRegional(Nomeavel, Iniciais, TemChaveExterna, TemCodigoEOL):
         )
 
     @property
-    def solicitacao_kit_lanche_avulsa_aprovadas(self):
+    def solicitacao_kit_lanche_avulsa_autorizadas(self):
         return SolicitacaoKitLancheAvulsa.objects.filter(
             escola__in=self.escolas.all(),
             status__in=[SolicitacaoKitLancheAvulsa.workflow_class.CODAE_AUTORIZADO,
@@ -515,7 +515,7 @@ class Codae(Nomeavel, TemChaveExterna):
         )
 
     @property
-    def solicitacao_kit_lanche_avulsa_aprovadas(self):
+    def solicitacao_kit_lanche_avulsa_autorizadas(self):
         return SolicitacaoKitLancheAvulsa.objects.filter(
             status__in=[SolicitacaoKitLancheAvulsa.workflow_class.CODAE_AUTORIZADO,
                         SolicitacaoKitLancheAvulsa.workflow_class.TERCEIRIZADA_TOMOU_CIENCIA]
