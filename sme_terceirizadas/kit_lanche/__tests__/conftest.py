@@ -46,6 +46,7 @@ def solicitacao_unificada_lista_igual():
     mommy.make(TemplateMensagem, tipo=TemplateMensagem.SOLICITACAO_KIT_LANCHE_UNIFICADA)
     kits = mommy.make(models.KitLanche, _quantity=3)
     solicitacao_kit_lanche = mommy.make(models.SolicitacaoKitLanche,
+                                        data=datetime.date(2019, 10, 14),
                                         tempo_passeio=models.SolicitacaoKitLanche.OITO_OU_MAIS,
                                         kits=kits)
     dre = mommy.make('escola.DiretoriaRegional')

@@ -157,6 +157,7 @@ def test_solicitacao_avulsa_workflow_partindo_da_escola_with_error(solicitacao_a
         solicitacao_avulsa.escola_revisa(user=user)
 
 
+@freeze_time('2019-10-11')
 def test_solicitacao_unificada_lista_igual_workflow_case_1_partindo_da_diretoria_regional(
     solicitacao_unificada_lista_igual
 ):
@@ -164,15 +165,19 @@ def test_solicitacao_unificada_lista_igual_workflow_case_1_partindo_da_diretoria
     wc = solicitacao_unificada_lista_igual.workflow_class
     user = mommy.make('perfil.Usuario')
     assert solicitacao_unificada_lista_igual.status == wc.RASCUNHO
-
+    assert solicitacao_unificada_lista_igual.pode_excluir is True
+    assert solicitacao_unificada_lista_igual.ta_na_dre is True
     solicitacao_unificada_lista_igual.inicia_fluxo(user=user)
+    assert solicitacao_unificada_lista_igual.ta_na_codae is True
     assert solicitacao_unificada_lista_igual.status == wc.CODAE_A_AUTORIZAR
-
     solicitacao_unificada_lista_igual.codae_pede_revisao(user=user)
+    assert solicitacao_unificada_lista_igual.ta_na_dre is True
     assert solicitacao_unificada_lista_igual.status == wc.CODAE_PEDIU_DRE_REVISAR
-
     solicitacao_unificada_lista_igual.dre_revisa(user=user)
+    assert solicitacao_unificada_lista_igual.ta_na_codae is True
     assert solicitacao_unificada_lista_igual.status == wc.CODAE_A_AUTORIZAR
+    solicitacao_unificada_lista_igual.cancelar_pedido(user=user, justificativa='TESTE')
+    assert solicitacao_unificada_lista_igual.status == wc.DRE_CANCELOU
 
 
 def test_solicitacao_unificada_lista_igual_workflow_case_2_partindo_da_diretoria_regional(
@@ -182,13 +187,14 @@ def test_solicitacao_unificada_lista_igual_workflow_case_2_partindo_da_diretoria
     wc = solicitacao_unificada_lista_igual.workflow_class
     user = mommy.make('perfil.Usuario')
     assert solicitacao_unificada_lista_igual.status == wc.RASCUNHO
+    assert solicitacao_unificada_lista_igual.ta_na_dre is True
 
     solicitacao_unificada_lista_igual.inicia_fluxo(user=user)
     assert solicitacao_unificada_lista_igual.status == wc.CODAE_A_AUTORIZAR
 
     solicitacao_unificada_lista_igual.codae_autoriza(user=user)
     assert solicitacao_unificada_lista_igual.status == wc.CODAE_AUTORIZADO
-
+    assert solicitacao_unificada_lista_igual.ta_na_terceirizada is True
     solicitacao_unificada_lista_igual.terceirizada_toma_ciencia(user=user)
     assert solicitacao_unificada_lista_igual.status == wc.TERCEIRIZADA_TOMOU_CIENCIA
 
