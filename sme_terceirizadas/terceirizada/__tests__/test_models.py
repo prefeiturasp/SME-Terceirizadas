@@ -40,7 +40,7 @@ def test_terceirizada(terceirizada):
     assert terceirizada.alteracoes_cardapio_autorizadas is not None
     assert terceirizada.alteracoes_cardapio_reprovadas is not None
     assert terceirizada.inversoes_cardapio_autorizadas is not None
-    assert terceirizada.solicitacoes_unificadas_aprovadas is not None
+    assert terceirizada.solicitacoes_unificadas_autorizadas is not None
 
     filtro = 'Hoje'
     assert terceirizada.inclusoes_continuas_das_minhas_escolas_no_prazo_vencendo(filtro) is not None
