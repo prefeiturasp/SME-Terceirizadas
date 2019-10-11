@@ -167,7 +167,7 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, permission_classes=[PodeIniciarSuspensaoDeAlimentacaoPermission],
             methods=['patch'], url_path=constants.DRE_VALIDA_PEDIDO)
-    def diretoria_regional_aprova_pedido(self, request, uuid=None):
+    def diretoria_regional_valida_pedido(self, request, uuid=None):
         inversao_cardapio = self.get_object()
         try:
             inversao_cardapio.dre_valida(user=request.user, )
@@ -212,7 +212,7 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, permission_classes=[PodeIniciarSuspensaoDeAlimentacaoPermission],
             methods=['patch'], url_path=constants.CODAE_AUTORIZA_PEDIDO)
-    def codae_aprova_pedido(self, request, uuid=None):
+    def codae_autoriza_pedido(self, request, uuid=None):
         inversao_cardapio = self.get_object()
         try:
             inversao_cardapio.codae_autoriza(user=request.user, )
@@ -428,7 +428,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, permission_classes=[PodeIniciarAlteracaoCardapioPermission],
             methods=['patch'], url_path=constants.DRE_VALIDA_PEDIDO)
-    def diretoria_regional_aprova(self, request, uuid=None):
+    def diretoria_regional_valida(self, request, uuid=None):
         alteracao_cardapio = self.get_object()
         try:
             alteracao_cardapio.dre_valida(user=request.user, )
@@ -485,7 +485,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, permission_classes=[PodeAprovarPelaCODAEAlteracaoCardapioPermission],
             methods=['patch'], url_path=constants.CODAE_AUTORIZA_PEDIDO)
-    def codae_aprova(self, request, uuid=None):
+    def codae_autoriza(self, request, uuid=None):
         alteracao_cardapio = self.get_object()
         try:
             alteracao_cardapio.codae_autoriza(user=request.user, )

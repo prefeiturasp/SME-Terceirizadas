@@ -34,7 +34,7 @@ def test_diretoria_regional(diretoria_regional, escola):
     assert diretoria_regional.solicitacao_kit_lanche_avulsa_aprovadas is not None
     assert diretoria_regional.solicitacao_kit_lanche_avulsa_reprovados is not None
     assert diretoria_regional.alteracoes_cardapio_reprovadas is not None
-    assert diretoria_regional.inversoes_cardapio_aprovadas is not None
+    assert diretoria_regional.inversoes_cardapio_autorizadas is not None
     assert diretoria_regional.inversoes_cardapio_reprovados is not None
     assert diretoria_regional.inclusoes_continuas_autorizadas is not None
 
@@ -75,7 +75,7 @@ def test_faixa_idade_escolar(faixa_idade_escolar):
 def test_codae(codae):
     assert isinstance(str(codae), str)
     assert codae.quantidade_alunos is not None
-    assert codae.inversoes_cardapio_aprovadas is not None
+    assert codae.inversoes_cardapio_autorizadas is not None
     assert codae.inversoes_cardapio_reprovados is not None
     assert codae.solicitacoes_unificadas_aprovadas is not None
     assert codae.inclusoes_continuas_autorizadas is not None
