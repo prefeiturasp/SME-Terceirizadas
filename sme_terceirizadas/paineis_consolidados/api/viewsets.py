@@ -5,7 +5,8 @@ from .constants import (
     AUTORIZADOS, CANCELADOS, FILTRO_DRE_UUID, FILTRO_ESCOLA_UUID,
     FILTRO_TERCEIRIZADA_UUID, NEGADOS, PENDENTES_APROVACAO
 )
-from ..models.codae import (
+from ..api.constants import FILTRO_PERIOD_UUID_DRE, PENDENTES_VALIDACAO_DRE
+from ..models import (
     SolicitacoesCODAE, SolicitacoesDRE, SolicitacoesEscola, SolicitacoesTerceirizada
 )
 from ...dados_comuns.constants import FILTRO_PADRAO_PEDIDOS, SEM_FILTRO
@@ -19,7 +20,7 @@ class CODAESolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
 
     @action(detail=False, methods=['GET'], url_path=f'{PENDENTES_APROVACAO}/{FILTRO_PADRAO_PEDIDOS}')
     def pendentes_aprovacao(self, request, filtro_aplicado=SEM_FILTRO):
-        query_set = SolicitacoesCODAE.get_pendentes_aprovacao(filtro=filtro_aplicado)
+        query_set = SolicitacoesCODAE.get_pendentes_autorizacao(filtro=filtro_aplicado)
         return self._retorno_base(query_set)
 
     @action(detail=False, methods=['GET'], url_path=AUTORIZADOS)
@@ -50,7 +51,7 @@ class EscolaSolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
 
     @action(detail=False, methods=['GET'], url_path=f'{PENDENTES_APROVACAO}/{FILTRO_ESCOLA_UUID}')
     def pendentes_aprovacao(self, request, escola_uuid=None):
-        query_set = SolicitacoesEscola.get_pendentes_aprovacao(escola_uuid=escola_uuid)
+        query_set = SolicitacoesEscola.get_pendentes_autorizacao(escola_uuid=escola_uuid)
         return self._retorno_base(query_set)
 
     @action(detail=False, methods=['GET'], url_path=f'{AUTORIZADOS}/{FILTRO_ESCOLA_UUID}')
@@ -81,7 +82,12 @@ class DRESolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
 
     @action(detail=False, methods=['GET'], url_path=f'{PENDENTES_APROVACAO}/{FILTRO_DRE_UUID}')
     def pendentes_aprovacao(self, request, dre_uuid=None):
-        query_set = SolicitacoesDRE.get_pendentes_aprovacao(dre_uuid=dre_uuid)
+        query_set = SolicitacoesDRE.get_pendentes_autorizacao(dre_uuid=dre_uuid)
+        return self._retorno_base(query_set)
+
+    @action(detail=False, methods=['GET'], url_path=f'{PENDENTES_VALIDACAO_DRE}/{FILTRO_PERIOD_UUID_DRE}')
+    def pendentes_validacao(self, request, dre_uuid=None, filtro_aplicado=SEM_FILTRO):
+        query_set = SolicitacoesDRE.get_pendentes_validacao(dre_uuid=dre_uuid, filtro_aplicado=filtro_aplicado)
         return self._retorno_base(query_set)
 
     @action(detail=False, methods=['GET'], url_path=f'{AUTORIZADOS}/{FILTRO_DRE_UUID}')
@@ -112,7 +118,7 @@ class TerceirizadaSolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
 
     @action(detail=False, methods=['GET'], url_path=f'{PENDENTES_APROVACAO}/{FILTRO_TERCEIRIZADA_UUID}')
     def pendentes_aprovacao(self, request, terceirizada_uuid=None):
-        query_set = SolicitacoesTerceirizada.get_pendentes_aprovacao(terceirizada_uuid=terceirizada_uuid)
+        query_set = SolicitacoesTerceirizada.get_pendentes_autorizacao(terceirizada_uuid=terceirizada_uuid)
         return self._retorno_base(query_set)
 
     @action(detail=False, methods=['GET'], url_path=f'{CANCELADOS}/{FILTRO_TERCEIRIZADA_UUID}')
