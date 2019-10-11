@@ -11,6 +11,7 @@ from ...dados_comuns.constants import DAQUI_A_30_DIAS, DAQUI_A_7_DIAS, SEM_FILTR
 
 pytestmark = pytest.mark.django_db
 
+
 @freeze_time('2019-10-11')
 def test_tipo_unidade_escolar(tipo_unidade_escolar):
     assert isinstance(str(tipo_unidade_escolar), str)
