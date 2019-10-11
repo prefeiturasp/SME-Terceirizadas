@@ -1,8 +1,8 @@
 from ...dados_comuns.constants import DAQUI_A_30_DIAS, DAQUI_A_7_DIAS, SEM_FILTRO
 
-PENDENTES_APROVACAO = 'pendentes-aprovacao'
+PENDENTES_AUTORIZACAO = 'pendentes-autorizacao'
 PENDENTES_VALIDACAO_DRE = 'pendentes-validacao'
-AUTORIZADOS = 'aprovados'
+AUTORIZADOS = 'autorizados'
 _NEGADOS = 'cancelados'
 NEGADOS = 'negados'
 CANCELADOS = 'cancelados'

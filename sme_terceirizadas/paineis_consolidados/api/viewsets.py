@@ -3,7 +3,7 @@ from rest_framework.decorators import action
 
 from .constants import (
     AUTORIZADOS, CANCELADOS, FILTRO_DRE_UUID, FILTRO_ESCOLA_UUID,
-    FILTRO_TERCEIRIZADA_UUID, NEGADOS, PENDENTES_APROVACAO
+    FILTRO_TERCEIRIZADA_UUID, NEGADOS, PENDENTES_AUTORIZACAO
 )
 from ..api.constants import FILTRO_PERIOD_UUID_DRE, PENDENTES_VALIDACAO_DRE
 from ..models import (
@@ -18,7 +18,7 @@ class CODAESolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = SolicitacoesCODAE.objects.all()
     serializer_class = SolicitacoesSerializer
 
-    @action(detail=False, methods=['GET'], url_path=f'{PENDENTES_APROVACAO}/{FILTRO_PADRAO_PEDIDOS}')
+    @action(detail=False, methods=['GET'], url_path=f'{PENDENTES_AUTORIZACAO}/{FILTRO_PADRAO_PEDIDOS}')
     def pendentes_autorizacao(self, request, filtro_aplicado=SEM_FILTRO):
         query_set = SolicitacoesCODAE.get_pendentes_autorizacao(filtro=filtro_aplicado)
         return self._retorno_base(query_set)
@@ -49,7 +49,7 @@ class EscolaSolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = SolicitacoesEscola.objects.all()
     serializer_class = SolicitacoesSerializer
 
-    @action(detail=False, methods=['GET'], url_path=f'{PENDENTES_APROVACAO}/{FILTRO_ESCOLA_UUID}')
+    @action(detail=False, methods=['GET'], url_path=f'{PENDENTES_AUTORIZACAO}/{FILTRO_ESCOLA_UUID}')
     def pendentes_autorizacao(self, request, escola_uuid=None):
         query_set = SolicitacoesEscola.get_pendentes_autorizacao(escola_uuid=escola_uuid)
         return self._retorno_base(query_set)
@@ -80,7 +80,7 @@ class DRESolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = SolicitacoesDRE.objects.all()
     serializer_class = SolicitacoesSerializer
 
-    @action(detail=False, methods=['GET'], url_path=f'{PENDENTES_APROVACAO}/{FILTRO_DRE_UUID}')
+    @action(detail=False, methods=['GET'], url_path=f'{PENDENTES_AUTORIZACAO}/{FILTRO_DRE_UUID}')
     def pendentes_autorizacao(self, request, dre_uuid=None):
         query_set = SolicitacoesDRE.get_pendentes_autorizacao(dre_uuid=dre_uuid)
         return self._retorno_base(query_set)
@@ -116,7 +116,7 @@ class TerceirizadaSolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = SolicitacoesTerceirizada.objects.all()
     serializer_class = SolicitacoesSerializer
 
-    @action(detail=False, methods=['GET'], url_path=f'{PENDENTES_APROVACAO}/{FILTRO_TERCEIRIZADA_UUID}')
+    @action(detail=False, methods=['GET'], url_path=f'{PENDENTES_AUTORIZACAO}/{FILTRO_TERCEIRIZADA_UUID}')
     def pendentes_autorizacao(self, request, terceirizada_uuid=None):
         query_set = SolicitacoesTerceirizada.get_pendentes_autorizacao(terceirizada_uuid=terceirizada_uuid)
         return self._retorno_base(query_set)

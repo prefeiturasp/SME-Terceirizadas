@@ -105,7 +105,7 @@ class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel):
         )
 
     @property
-    def solicitacao_kit_lanche_avulsa_aprovadas(self):
+    def solicitacao_kit_lanche_avulsa_autorizadas(self):
         return SolicitacaoKitLancheAvulsa.objects.filter(
             escola__lote__in=self.lotes.all(),
             status__in=[SolicitacaoKitLancheAvulsa.workflow_class.CODAE_AUTORIZADO,
@@ -317,7 +317,7 @@ class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel):
         ).distinct()
 
     @property
-    def solicitacoes_unificadas_aprovadas(self):
+    def solicitacoes_unificadas_autorizadas(self):
         return SolicitacaoKitLancheUnificada.objects.filter(
             escolas_quantidades__escola__lote__in=self.lotes.all(),
             status__in=[SolicitacaoKitLancheUnificada.workflow_class.CODAE_AUTORIZADO,
