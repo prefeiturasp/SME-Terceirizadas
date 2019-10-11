@@ -50,7 +50,7 @@ Verificação de tipos de dados
 
 ::
 
-  $ mypy sme_pratoaberto_terceirizadas
+  $ mypy sme_terceirizadas
 
 Test coverage
 ^^^^^^^^^^^^^
