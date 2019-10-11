@@ -15,7 +15,7 @@ checks:
   similar-code:
     enabled: true
     config:
-      threshold: 3
+      threshold: 6
 exclude_patterns:
   - "**/**/__tests__/"
   - "**/**/migrations/**"
