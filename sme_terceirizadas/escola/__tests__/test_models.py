@@ -1,9 +1,9 @@
 import pytest
 
-from ...dados_comuns.constants import DAQUI_A_30_DIAS, DAQUI_A_7_DIAS, SEM_FILTRO
 from ..models import (
     DiretoriaRegional, TipoGestao, TipoUnidadeEscolar
 )
+from ...dados_comuns.constants import DAQUI_A_30_DIAS, DAQUI_A_7_DIAS, SEM_FILTRO
 
 pytestmark = pytest.mark.django_db
 
@@ -44,9 +44,6 @@ def test_diretoria_regional(diretoria_regional, escola):
         assert diretoria_regional.inclusoes_alimentacao_continua_das_minhas_escolas(filtro) is not None
         assert diretoria_regional.alteracoes_cardapio_das_minhas_escolas(filtro) is not None
         assert diretoria_regional.inversoes_cardapio_das_minhas_escolas(filtro) is not None
-        assert diretoria_regional.solicitacoes_pendentes(filtro) is not None
-
-    assert diretoria_regional.solicitacoes_autorizadas() is not None
 
 
 def test_escola(escola):

@@ -3,13 +3,13 @@ import datetime
 from django.db import models
 from django.db.models import Q
 
-from ...dados_comuns.constants import DAQUI_A_30_DIAS, DAQUI_A_7_DIAS
-from ...dados_comuns.fluxo_status import (
+from ..dados_comuns.constants import DAQUI_A_30_DIAS, DAQUI_A_7_DIAS
+from ..dados_comuns.fluxo_status import (
     InformativoPartindoDaEscolaWorkflow, PedidoAPartirDaDiretoriaRegionalWorkflow,
     PedidoAPartirDaEscolaWorkflow
 )
-from ...dados_comuns.models import LogSolicitacoesUsuario
-from ...dados_comuns.models_abstract import TemPrioridade
+from ..dados_comuns.models import LogSolicitacoesUsuario
+from ..dados_comuns.models_abstract import TemPrioridade
 
 
 class SolicitacoesDestaSemanaManager(models.Manager):
@@ -49,7 +49,7 @@ class MoldeConsolidado(models.Model, TemPrioridade):
     filtro_30_dias = SolicitacoesDesteMesManager()
 
     @classmethod
-    def get_pendentes_aprovacao(cls, **kwargs):
+    def get_pendentes_autorizacao(cls, **kwargs):
         raise NotImplementedError('Precisa implementar')
 
     @classmethod
@@ -77,7 +77,7 @@ class MoldeConsolidado(models.Model, TemPrioridade):
 class SolicitacoesCODAE(MoldeConsolidado):
 
     @classmethod
-    def get_pendentes_aprovacao(cls, **kwargs):
+    def get_pendentes_autorizacao(cls, **kwargs):
         manager = cls._get_manager(kwargs)
         return manager.filter(
             status_evento=LogSolicitacoesUsuario.DRE_VALIDOU,
@@ -122,7 +122,7 @@ class SolicitacoesCODAE(MoldeConsolidado):
 class SolicitacoesEscola(MoldeConsolidado):
 
     @classmethod
-    def get_pendentes_aprovacao(cls, **kwargs):
+    def get_pendentes_autorizacao(cls, **kwargs):
         escola_uuid = kwargs.get('escola_uuid')
         return cls.objects.filter(
             escola_uuid=escola_uuid
@@ -169,7 +169,7 @@ class SolicitacoesEscola(MoldeConsolidado):
 class SolicitacoesDRE(MoldeConsolidado):
 
     @classmethod
-    def get_pendentes_aprovacao(cls, **kwargs):
+    def get_pendentes_autorizacao(cls, **kwargs):
         dre_uuid = kwargs.get('dre_uuid')
         return cls.objects.filter(
             status__in=[PedidoAPartirDaDiretoriaRegionalWorkflow.CODAE_A_AUTORIZAR,
@@ -207,8 +207,10 @@ class SolicitacoesDRE(MoldeConsolidado):
     def get_cancelados(cls, **kwargs):
         dre_uuid = kwargs.get('dre_uuid')
         return cls.objects.filter(
-            status_evento=LogSolicitacoesUsuario.DRE_CANCELOU,
-            status=PedidoAPartirDaDiretoriaRegionalWorkflow.DRE_CANCELOU,
+            status_evento__in=[LogSolicitacoesUsuario.DRE_CANCELOU,
+                               LogSolicitacoesUsuario.ESCOLA_CANCELOU],
+            status__in=[PedidoAPartirDaDiretoriaRegionalWorkflow.DRE_CANCELOU,
+                        PedidoAPartirDaEscolaWorkflow.ESCOLA_CANCELOU],
             dre_uuid=dre_uuid
         ).order_by('uuid', '-criado_em').distinct('uuid')
 
@@ -217,7 +219,7 @@ class SolicitacoesTerceirizada(MoldeConsolidado):
     _WORKFLOW_CLASS = PedidoAPartirDaEscolaWorkflow
 
     @classmethod
-    def get_pendentes_aprovacao(cls, **kwargs):
+    def get_pendentes_autorizacao(cls, **kwargs):
         terceirizada_uuid = kwargs.get('terceirizada_uuid')
         return cls.objects.filter(
             status_evento__in=[LogSolicitacoesUsuario.DRE_VALIDOU,

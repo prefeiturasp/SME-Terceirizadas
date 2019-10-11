@@ -11,15 +11,10 @@ from .serializers import (
 from ..models import (
     Codae, DiretoriaRegional, Escola, Lote, PeriodoEscolar, Subprefeitura, TipoGestao
 )
-from ...dados_comuns.constants import FILTRO_PADRAO_PEDIDOS, SEM_FILTRO
 from ...escola.api.serializers import CODAESerializer, LoteSimplesSerializer
 from ...escola.api.serializers_create import LoteCreateSerializer
 from ...inclusao_alimentacao.api.serializers.serializers import (
     GrupoInclusaoAlimentacaoNormalSerializer, InclusaoAlimentacaoContinuaSerializer
-)
-from ...paineis_consolidados.api.serializers import (
-    SolicitacoesAutorizadasDRESerializer,
-    SolicitacoesPendentesDRESerializer
 )
 
 
@@ -74,27 +69,6 @@ class DiretoriaRegionalViewSet(ReadOnlyModelViewSet):
     lookup_field = 'uuid'
     queryset = DiretoriaRegional.objects.all()
     serializer_class = DiretoriaRegionalCompletaSerializer
-
-    @action(detail=True, url_path='solicitacoes-autorizadas-por-mim')
-    def solicitacoes_autorizadas_por_mim(self, request, uuid=None):
-        diretoria_regional = self.get_object()
-        autorizadas = diretoria_regional.solicitacoes_autorizadas()
-        page = self.paginate_queryset(autorizadas)
-        serializer = SolicitacoesAutorizadasDRESerializer(
-            page, many=True
-        )
-        return self.get_paginated_response(serializer.data)
-
-    @action(detail=True,
-            url_path=f'solicitacoes-pendentes-para-mim/{FILTRO_PADRAO_PEDIDOS}')
-    def solicitacoes_pendentes_para_mim(self, request, uuid=None, filtro_aplicado=SEM_FILTRO):
-        diretoria_regional = self.get_object()
-        pendentes = diretoria_regional.solicitacoes_pendentes(filtro_aplicado=filtro_aplicado)
-        page = self.paginate_queryset(pendentes)
-        serializer = SolicitacoesPendentesDRESerializer(
-            page, many=True
-        )
-        return self.get_paginated_response(serializer.data)
 
 
 class DiretoriaRegionalSimplissimaViewSet(ReadOnlyModelViewSet):

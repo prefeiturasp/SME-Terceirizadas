@@ -6,7 +6,7 @@ from django.db.models import Q, Sum
 from ..cardapio.models import (
     AlteracaoCardapio, GrupoSuspensaoAlimentacao, InversaoCardapio
 )
-from ..dados_comuns.constants import DAQUI_A_30_DIAS, DAQUI_A_7_DIAS, SEM_FILTRO
+from ..dados_comuns.constants import DAQUI_A_30_DIAS, DAQUI_A_7_DIAS
 from ..dados_comuns.models_abstract import (
     Ativavel, Iniciais, Nomeavel, TemChaveExterna,
     TemCodigoEOL)
@@ -14,7 +14,6 @@ from ..inclusao_alimentacao.models import (
     GrupoInclusaoAlimentacaoNormal, InclusaoAlimentacaoContinua
 )
 from ..kit_lanche.models import SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheUnificada
-from ..paineis_consolidados.models import SolicitacoesAutorizadasDRE, SolicitacoesPendentesDRE
 from ..perfil.models import Usuario
 
 
@@ -211,20 +210,6 @@ class DiretoriaRegional(Nomeavel, Iniciais, TemChaveExterna, TemCodigoEOL):
             escola__in=self.escolas.all(),
             status__in=[InversaoCardapio.workflow_class.DRE_NAO_VALIDOU_PEDIDO_ESCOLA]
         )
-
-    #
-    # Consultas consolidadas de todos os tipos de solicitação para a DRE
-    #
-    def solicitacoes_autorizadas(self):
-        return SolicitacoesAutorizadasDRE.objects.filter(diretoria_regional_id=self.id)
-
-    def solicitacoes_pendentes(self, filtro_aplicado=SEM_FILTRO):
-        if filtro_aplicado == SEM_FILTRO:
-            return SolicitacoesPendentesDRE.objects.filter(diretoria_regional_id=self.id)
-        elif filtro_aplicado == DAQUI_A_7_DIAS:
-            return SolicitacoesPendentesDRE.filtro_7_dias.filter(diretoria_regional_id=self.id)
-        elif filtro_aplicado == DAQUI_A_30_DIAS:
-            return SolicitacoesPendentesDRE.filtro_30_dias.filter(diretoria_regional_id=self.id)
 
     def __str__(self):
         return self.nome
