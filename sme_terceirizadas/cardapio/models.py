@@ -1,5 +1,3 @@
-import datetime
-
 from django.db import models
 
 from .managers import (
@@ -353,51 +351,6 @@ class AlteracaoCardapio(CriadoEm, CriadoPor, TemChaveExterna, IntervaloDeDia, Te
             uuid_original=self.uuid,
             justificativa=justificativa
         )
-
-    @classmethod
-    def solicitacoes_por_visao(cls, query_set_base, visao):
-        if visao == 'dia':
-            query_set_por_visao = query_set_base.filter(
-                data_inicial__lte=datetime.datetime.today(),
-                data_final__gte=datetime.datetime.today())
-
-        elif visao == 'semana':
-            query_set_por_visao = query_set_base.filter(
-                data_inicial__gte=datetime.datetime.today() + datetime.timedelta(days=7),
-                data_final__lte=datetime.datetime.today() + datetime.timedelta(days=7))
-
-        elif visao == 'mes':
-            query_set_por_visao = query_set_base.filter(
-                data_inicial__gte=datetime.datetime.today() + datetime.timedelta(days=30),
-                data_final__lte=datetime.datetime.today() + datetime.timedelta(days=30))
-
-        else:
-            query_set_por_visao = AlteracaoCardapio.objects.none()
-
-        return query_set_por_visao
-
-    @classmethod
-    def solicitacoes_vencendo_por_usuario_e_visao(cls, usuario, visao):
-        query_set_base = AlteracaoCardapio.prazo_vencendo.filter(escola__diretoria_regional__usuarios=usuario)
-        query_set_por_visao = AlteracaoCardapio.solicitacoes_por_visao(query_set_base, visao)
-
-        return query_set_por_visao
-
-    @classmethod
-    def solicitacoes_limite_por_usuario_e_visao(cls, usuario, visao):
-        query_set_base = AlteracaoCardapio.prazo_limite.filter(escola__diretoria_regional__usuarios=usuario)
-
-        query_set_por_visao = AlteracaoCardapio.solicitacoes_por_visao(query_set_base, visao)
-
-        return query_set_por_visao
-
-    @classmethod
-    def solicitacoes_regulares_por_usuario_e_visao(cls, usuario, visao):
-        query_set_base = AlteracaoCardapio.prazo_regular.filter(escola__diretoria_regional__usuarios=usuario)
-
-        query_set_por_visao = AlteracaoCardapio.solicitacoes_por_visao(query_set_base, visao)
-
-        return query_set_por_visao
 
     class Meta:
         verbose_name = 'Alteração de cardápio'

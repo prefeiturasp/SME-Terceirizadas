@@ -538,28 +538,6 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
         serializer = AlteracaoCardapioSerializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
-    @action(detail=False, methods=['GET'], url_path='resumo-de-pendencias/(?P<visao>(dia|semana|mes)+)')
-    def resumo_pendencias(self, request, visao='dia'):
-        try:
-            urgente_query_set = AlteracaoCardapio.solicitacoes_vencendo_por_usuario_e_visao(usuario=request.user,
-                                                                                            visao=visao)
-            limite_query_set = AlteracaoCardapio.solicitacoes_limite_por_usuario_e_visao(usuario=request.user,
-                                                                                         visao=visao)
-            regular_query_set = AlteracaoCardapio.solicitacoes_regulares_por_usuario_e_visao(usuario=request.user,
-                                                                                             visao=visao)
-
-            urgente_quantidade = urgente_query_set.count()
-            limite_quantidade = limite_query_set.count()
-            regular_quantidade = regular_query_set.count()
-
-            response = {'urgente': urgente_quantidade, 'limite': limite_quantidade, 'regular': regular_quantidade}
-            status_code = status.HTTP_200_OK
-        except Exception as e:
-            response = {'detail': f'Erro ao sumarizar pendências: {e}'}
-            status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
-
-            return Response(response, status=status_code)
-
     @action(detail=False, url_path='pedidos-autorizados-diretoria-regional')
     def pedidos_autorizados_diretoria_regional(self, request):
         usuario = request.user

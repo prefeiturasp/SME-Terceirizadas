@@ -1,3 +1,5 @@
+import datetime
+
 import pytest
 from faker import Faker
 from model_mommy import mommy
@@ -10,8 +12,11 @@ fake.seed(420)
 
 @pytest.fixture
 def tipo_unidade_escolar():
+    cardapio1 = mommy.make('cardapio.Cardapio', data=datetime.date(2019, 10, 11))
+    cardapio2 = mommy.make('cardapio.Cardapio', data=datetime.date(2019, 10, 15))
     return mommy.make(models.TipoUnidadeEscolar,
-                      iniciais=fake.name()[:10])
+                      iniciais=fake.name()[:10],
+                      cardapios=[cardapio1, cardapio2])
 
 
 @pytest.fixture

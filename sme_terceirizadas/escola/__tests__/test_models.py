@@ -1,5 +1,9 @@
-import pytest
+import datetime
 
+import pytest
+from freezegun import freeze_time
+
+from sme_terceirizadas.cardapio.models import Cardapio
 from ..models import (
     DiretoriaRegional, TipoGestao, TipoUnidadeEscolar
 )
@@ -7,11 +11,13 @@ from ...dados_comuns.constants import DAQUI_A_30_DIAS, DAQUI_A_7_DIAS, SEM_FILTR
 
 pytestmark = pytest.mark.django_db
 
-
+@freeze_time('2019-10-11')
 def test_tipo_unidade_escolar(tipo_unidade_escolar):
     assert isinstance(str(tipo_unidade_escolar), str)
     assert tipo_unidade_escolar.iniciais is not None
     assert tipo_unidade_escolar.cardapios.all() is not None
+    cardapio_do_dia = tipo_unidade_escolar.get_cardapio(data=datetime.date.today())
+    assert isinstance(cardapio_do_dia, Cardapio)
 
 
 def test_tipo_gestao(tipo_gestao):
