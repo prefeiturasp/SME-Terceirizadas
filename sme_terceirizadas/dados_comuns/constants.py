@@ -34,7 +34,7 @@ ESCOLA_INFORMA_SUSPENSAO = 'informa-suspensao'
 
 DRE_INICIO_PEDIDO = 'inicio-pedido'
 DRE_VALIDA_PEDIDO = 'diretoria-regional-valida-pedido'
-DRE_NAO_VALIDA_PEDIDO = 'diretoria-regional-cancela-pedido'
+DRE_NAO_VALIDA_PEDIDO = 'diretoria-regional-nao-valida-pedido'
 DRE_PEDE_REVISAO = 'diretoria-regional-pede-revisao'
 DRE_REVISA_PEDIDO = 'diretoria-regional-revisa'
 DRE_CANCELA = 'diretoria-regional-cancela'
