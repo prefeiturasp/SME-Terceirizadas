@@ -74,7 +74,7 @@ def test_codae(codae):
     assert codae.quantidade_alunos is not None
     assert codae.inversoes_cardapio_autorizadas is not None
     assert codae.inversoes_cardapio_reprovados is not None
-    assert codae.solicitacoes_unificadas_aprovadas is not None
+    assert codae.solicitacoes_unificadas_autorizadas is not None
     assert codae.inclusoes_continuas_autorizadas is not None
     assert codae.inclusoes_normais_autorizadas is not None
     assert codae.inclusoes_continuas_reprovadas is not None

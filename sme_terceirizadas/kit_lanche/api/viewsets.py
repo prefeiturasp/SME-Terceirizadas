@@ -285,22 +285,22 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
-    @action(detail=False, url_path='pedidos-aprovados-codae')
-    def pedidos_aprovados_codae(self, request):
+    @action(detail=False, url_path='pedidos-autorizados-codae')
+    def pedidos_autorizados_codae(self, request):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual CODAE eu estou fazendo a requisição
         codae = usuario.CODAE.first()
-        kit_lanche = codae.solicitacoes_unificadas_aprovadas
+        kit_lanche = codae.solicitacoes_unificadas_autorizadas
         page = self.paginate_queryset(kit_lanche)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
-    @action(detail=False, url_path='pedidos-aprovados-terceirizada')
-    def pedidos_aprovados_terceirizada(self, request):
+    @action(detail=False, url_path='pedidos-autorizados-terceirizada')
+    def pedidos_autorizados_terceirizada(self, request):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber em qual CODAE eu estou fazendo a requisição
         terceirizada = usuario.terceirizadas.first()
-        kit_lanche = terceirizada.solicitacoes_unificadas_aprovadas
+        kit_lanche = terceirizada.solicitacoes_unificadas_autorizadas
         page = self.paginate_queryset(kit_lanche)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
@@ -332,7 +332,7 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
 
     @action(detail=True, url_path=constants.CODAE_AUTORIZA_PEDIDO,
             permission_classes=[PodeIniciarSolicitacaoUnificadaPermission], methods=['patch'])
-    def codae_aprova(self, request, uuid=None):
+    def codae_autoriza(self, request, uuid=None):
         solicitacao_unificada = self.get_object()
         try:
             solicitacao_unificada.codae_autoriza(user=request.user, )
