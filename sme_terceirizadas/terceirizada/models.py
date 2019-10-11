@@ -293,7 +293,7 @@ class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel):
         )
 
     @property
-    def inversoes_cardapio_aprovadas(self):
+    def inversoes_cardapio_autorizadas(self):
         return InversaoCardapio.objects.filter(
             escola__lote__in=self.lotes.all(),
             status__in=[InversaoCardapio.workflow_class.CODAE_AUTORIZADO,

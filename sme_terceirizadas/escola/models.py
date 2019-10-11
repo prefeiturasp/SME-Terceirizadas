@@ -197,7 +197,7 @@ class DiretoriaRegional(Nomeavel, Iniciais, TemChaveExterna, TemCodigoEOL):
         )
 
     @property
-    def inversoes_cardapio_aprovadas(self):
+    def inversoes_cardapio_autorizadas(self):
         return InversaoCardapio.objects.filter(
             escola__in=self.escolas.all(),
             status__in=[InversaoCardapio.workflow_class.DRE_VALIDADO,
@@ -427,7 +427,7 @@ class Codae(Nomeavel, TemChaveExterna):
         )
 
     @property
-    def inversoes_cardapio_aprovadas(self):
+    def inversoes_cardapio_autorizadas(self):
         return InversaoCardapio.objects.filter(
             status__in=[InversaoCardapio.workflow_class.CODAE_AUTORIZADO,
                         InversaoCardapio.workflow_class.TERCEIRIZADA_TOMOU_CIENCIA]
