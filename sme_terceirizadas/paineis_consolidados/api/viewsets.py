@@ -121,6 +121,16 @@ class TerceirizadaSolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
         query_set = SolicitacoesTerceirizada.get_pendentes_autorizacao(terceirizada_uuid=terceirizada_uuid)
         return self._retorno_base(query_set)
 
+    @action(detail=False, methods=['GET'], url_path=f'{AUTORIZADOS}/{FILTRO_TERCEIRIZADA_UUID}')
+    def autorizados(self, request, terceirizada_uuid=None):
+        query_set = SolicitacoesTerceirizada.get_autorizados(terceirizada_uuid=terceirizada_uuid)
+        return self._retorno_base(query_set)
+
+    @action(detail=False, methods=['GET'], url_path=f'{NEGADOS}/{FILTRO_TERCEIRIZADA_UUID}')
+    def negados(self, request, terceirizada_uuid=None):
+        query_set = SolicitacoesTerceirizada.get_negados(terceirizada_uuid=terceirizada_uuid)
+        return self._retorno_base(query_set)
+
     @action(detail=False, methods=['GET'], url_path=f'{CANCELADOS}/{FILTRO_TERCEIRIZADA_UUID}')
     def cancelados(self, request, terceirizada_uuid=None):
         query_set = SolicitacoesTerceirizada.get_cancelados(terceirizada_uuid=terceirizada_uuid)
