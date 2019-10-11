@@ -36,7 +36,7 @@ def test_diretoria_regional(diretoria_regional, escola):
     assert diretoria_regional.alteracoes_cardapio_reprovadas is not None
     assert diretoria_regional.inversoes_cardapio_aprovadas is not None
     assert diretoria_regional.inversoes_cardapio_reprovados is not None
-    assert diretoria_regional.inclusoes_continuas_aprovadas is not None
+    assert diretoria_regional.inclusoes_continuas_autorizadas is not None
 
     for filtro in [DAQUI_A_30_DIAS, DAQUI_A_7_DIAS, SEM_FILTRO]:
         assert diretoria_regional.solicitacoes_kit_lanche_das_minhas_escolas_a_validar(filtro) is not None
