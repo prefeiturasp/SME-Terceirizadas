@@ -18,7 +18,7 @@ class SolicitacoesSerializer(serializers.ModelSerializer):
     def get_data_log(self, obj):
         criado_em = obj.criado_em.astimezone(timezone.get_current_timezone())
         if criado_em.date() == datetime.date.today():
-            return criado_em.strftime('%H:%M')
+            return criado_em.strftime('%d/%m/%Y %H:%M')
         return criado_em.strftime('%d/%m/%Y')
 
     class Meta:
