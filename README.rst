@@ -1,11 +1,11 @@
 SME-Terceirizadas
 =============================
 
-.. image:: https://api.codeclimate.com/v1/badges/1f1cdb448bbc3f74efe3/maintainability
-   :target: https://codeclimate.com/github/prefeiturasp/SME-PratoAberto-Terceirizadas/maintainability
+.. image:: https://api.codeclimate.com/v1/badges/54aa60bc6a18ecb32662/maintainability
+   :target: https://codeclimate.com/github/prefeiturasp/SME-Terceirizadas/maintainability
    :alt: Maintainability
-.. image:: https://api.codeclimate.com/v1/badges/1f1cdb448bbc3f74efe3/test_coverage
-   :target: https://codeclimate.com/github/prefeiturasp/SME-PratoAberto-Terceirizadas/test_coverage
+.. image:: https://api.codeclimate.com/v1/badges/54aa60bc6a18ecb32662/test_coverage
+   :target: https://codeclimate.com/github/prefeiturasp/SME-Terceirizadas/test_coverage
    :alt: Test Coverage
 .. image:: https://travis-ci.org/prefeiturasp/SME-Terceirizadas.svg?branch=development
    :target: https://travis-ci.org/prefeiturasp/SME-Terceirizadas
