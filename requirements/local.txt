@@ -36,6 +36,7 @@ flake8-mutable==1.2.0       # https://github.com/ebeweber/flake8-mutable
 flake8-docstrings==1.4.0    # https://github.com/PyCQA/flake8-docstrings
 coverage==4.5.2             # https://github.com/nedbat/coveragepy
 django-stubs==1.2.0         # https://github.com/typeddjango/django-stubs
+bandit==1.6.2               # https://github.com/PyCQA/bandit
 
 django-debug-toolbar==1.11  # https://github.com/jazzband/django-debug-toolbar
 django-extensions==2.2.3    # https://github.com/django-extensions/django-extensions

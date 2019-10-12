@@ -11,7 +11,7 @@ checks:
   method-count:
     enabled: true
     config:
-      threshold: 20
+      threshold: 25
   identical-code:
     config:
       threshold: 25
@@ -25,5 +25,7 @@ exclude_patterns:
   - "**/**/urls.py"
   - "**/**/**/serializers/serializer*"
   - "**/**/**/viewsets.py"
+  - "**/**/**/*manager*.py"
   - "config/settings/*"
   - "**/**/admin.py"
+  - "**/paineis_consolidados/models.py"
