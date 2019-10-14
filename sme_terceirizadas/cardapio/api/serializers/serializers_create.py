@@ -1,6 +1,5 @@
 from rest_framework import serializers
 
-from ..helpers import notificar_partes_envolvidas
 from ...api.validators import (
     data_troca_nao_pode_ser_superior_a_data_inversao, deve_ser_no_mesmo_ano_corrente,
     nao_pode_existir_solicitacao_igual_para_mesma_escola, nao_pode_ter_mais_que_60_dias_diferenca,
@@ -57,14 +56,13 @@ class InversaoCardapioSerializerCreate(serializers.ModelSerializer):
         data_de = validated_data.pop('data_de')
         data_para = validated_data.pop('data_para')
         escola = validated_data.get('escola')
+
         validated_data['cardapio_de'] = escola.get_cardapio(data_de)
         validated_data['cardapio_para'] = escola.get_cardapio(data_para)
         validated_data['criado_por'] = self.context['request'].user
 
         inversao_cardapio = InversaoCardapio.objects.create(**validated_data)
-        if inversao_cardapio.pk:
-            usuario = self.context.get('request').user
-            notificar_partes_envolvidas(usuario, **validated_data)
+
         return inversao_cardapio
 
     def update(self, instance, validated_data):

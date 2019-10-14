@@ -257,3 +257,28 @@ def datas_alteracao_semana(request):
 ])
 def datas_alteracao_mes(request):
     return request.param
+
+
+@pytest.fixture(params=[
+    # data do teste 14 out 2019
+    # data de, data para
+    (datetime.date(2019, 10, 25), datetime.date(2019, 11, 25)),
+    (datetime.date(2019, 10, 25), datetime.date(2019, 12, 24)),
+    (datetime.date(2019, 12, 25), datetime.date(2019, 12, 31)),
+
+])
+def inversao_card_params(request):
+    return request.param
+
+
+@pytest.fixture(params=[
+    # data do teste 14 out 2019
+    # data de, data para
+    (datetime.date(2019, 12, 25), datetime.date(2020, 1, 10)),  # deve ser no ano corrente
+    (datetime.date(2019, 10, 1), datetime.date(2019, 10, 20)),  # nao pode ser no passado
+    (datetime.date(2019, 10, 17), datetime.date(2019, 12, 20)),  # nao pode ter mais de 60 dias de intervalo
+    (datetime.date(2019, 10, 31), datetime.date(2019, 10, 15)),  # data de nao pode ser maior que data para
+
+])
+def inversao_card_params_error(request):
+    return request.param
