@@ -165,14 +165,19 @@ class InclusaoAlimentacaoContinuaCreationSerializer(serializers.ModelSerializer)
         read_only=True
     )
 
-    def validate_data_inicial(self, data):
-        nao_pode_ser_no_passado(data)
-        deve_pedir_com_antecedencia(data)
-        return data
+    def validate_data_inicial(self, data_inicial):
+        nao_pode_ser_no_passado(data_inicial)
+        deve_pedir_com_antecedencia(data_inicial)
+        return data_inicial
 
-    def validate_data_final(self, data):
-        nao_pode_ser_no_passado(data)
-        return data
+    def validate_data_final(self, data_final):
+        nao_pode_ser_no_passado(data_final)
+        return data_final
+
+    def validate_quantidades_periodo(self, quantidades_periodo):
+        if not quantidades_periodo:
+            raise ValidationError('Deve possuir quantidades_periodo')
+        return quantidades_periodo
 
     def validate(self, attrs):
         data_inicial = attrs.get('data_inicial', None)

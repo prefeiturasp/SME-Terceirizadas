@@ -1,5 +1,3 @@
-import datetime
-
 import pytest
 from freezegun import freeze_time
 from model_mommy import mommy
@@ -14,8 +12,8 @@ def test_manager_inclusao_continua_desta_semana(inclusao_alimentacao_continua_pa
     data_inicial, data_final = inclusao_alimentacao_continua_parametros_semana
 
     inclusao_continua = mommy.make(InclusaoAlimentacaoContinua,
-                                   data_inicial=datetime.date(*data_inicial),
-                                   data_final=datetime.date(*data_final))
+                                   data_inicial=data_inicial,
+                                   data_final=data_final)
     assert inclusao_continua in InclusaoAlimentacaoContinua.desta_semana.all()
 
 
@@ -24,8 +22,8 @@ def test_manager_inclusao_continua_deste_mes(inclusao_alimentacao_continua_param
     data_inicial, data_final = inclusao_alimentacao_continua_parametros_mes
 
     inclusao_continua = mommy.make(InclusaoAlimentacaoContinua,
-                                   data_inicial=datetime.date(*data_inicial),
-                                   data_final=datetime.date(*data_final))
+                                   data_inicial=data_inicial,
+                                   data_final=data_final)
     assert inclusao_continua in InclusaoAlimentacaoContinua.deste_mes.all()
 
 
@@ -34,8 +32,8 @@ def test_manager_inclusao_continua_vencidos(inclusao_alimentacao_continua_parame
     data_inicial, data_final, status = inclusao_alimentacao_continua_parametros_vencidos
 
     inclusao_continua = mommy.make(InclusaoAlimentacaoContinua,
-                                   data_inicial=datetime.date(*data_inicial),
-                                   data_final=datetime.date(*data_final),
+                                   data_inicial=data_inicial,
+                                   data_final=data_final,
                                    status=status)
     assert inclusao_continua in InclusaoAlimentacaoContinua.vencidos.all()
 
@@ -45,7 +43,7 @@ def test_manager_inclusoes_normais_desta_semana(inclusao_alimentacao_continua_pa
     data_evento, _ = inclusao_alimentacao_continua_parametros_semana
 
     grupo_inclusoes = mommy.make(GrupoInclusaoAlimentacaoNormal)
-    mommy.make(InclusaoAlimentacaoNormal, data=datetime.datetime(*data_evento),
+    mommy.make(InclusaoAlimentacaoNormal, data=data_evento,
                grupo_inclusao=grupo_inclusoes)
     assert grupo_inclusoes in GrupoInclusaoAlimentacaoNormal.desta_semana.all()
 
@@ -55,7 +53,7 @@ def test_manager_inclusoes_normais_deste_mes(inclusao_alimentacao_continua_param
     data_evento, _ = inclusao_alimentacao_continua_parametros_mes
 
     grupo_inclusoes = mommy.make(GrupoInclusaoAlimentacaoNormal)
-    mommy.make(InclusaoAlimentacaoNormal, data=datetime.datetime(*data_evento),
+    mommy.make(InclusaoAlimentacaoNormal, data=data_evento,
                grupo_inclusao=grupo_inclusoes)
     assert grupo_inclusoes in GrupoInclusaoAlimentacaoNormal.deste_mes.all()
 
@@ -65,6 +63,6 @@ def test_manager_inclusoes_normais_vencidos(inclusao_alimentacao_continua_parame
     data_evento, _, status = inclusao_alimentacao_continua_parametros_vencidos
 
     grupo_inclusoes = mommy.make(GrupoInclusaoAlimentacaoNormal, status=status)
-    mommy.make(InclusaoAlimentacaoNormal, data=datetime.datetime(*data_evento),
+    mommy.make(InclusaoAlimentacaoNormal, data=data_evento,
                grupo_inclusao=grupo_inclusoes)
     assert grupo_inclusoes in GrupoInclusaoAlimentacaoNormal.vencidos.all()

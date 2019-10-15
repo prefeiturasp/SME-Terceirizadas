@@ -1,3 +1,5 @@
+import datetime
+
 import pytest
 from faker import Faker
 from model_mommy import mommy
@@ -47,14 +49,14 @@ def inclusao_alimentacao_continua():
 
 @pytest.fixture(params=[
     # data_inicial, data_final
-    ((2019, 10, 4), (2019, 12, 31)),
-    ((2019, 10, 5), (2019, 12, 31)),
-    ((2019, 10, 6), (2019, 12, 31)),
-    ((2019, 10, 7), (2019, 12, 31)),
-    ((2019, 10, 8), (2019, 12, 31)),
-    ((2019, 10, 9), (2019, 12, 31)),
-    ((2019, 10, 10), (2019, 12, 31)),
-    ((2019, 10, 11), (2019, 12, 31)),
+    (datetime.date(2019, 10, 4), datetime.date(2019, 12, 31)),
+    (datetime.date(2019, 10, 5), datetime.date(2019, 12, 31)),
+    (datetime.date(2019, 10, 6), datetime.date(2019, 12, 31)),
+    (datetime.date(2019, 10, 7), datetime.date(2019, 12, 31)),
+    (datetime.date(2019, 10, 8), datetime.date(2019, 12, 31)),
+    (datetime.date(2019, 10, 9), datetime.date(2019, 12, 31)),
+    (datetime.date(2019, 10, 10), datetime.date(2019, 12, 31)),
+    (datetime.date(2019, 10, 11), datetime.date(2019, 12, 31)),
 ])
 def inclusao_alimentacao_continua_parametros_semana(request):
     return request.param
@@ -62,14 +64,14 @@ def inclusao_alimentacao_continua_parametros_semana(request):
 
 @pytest.fixture(params=[
     # data_inicial, data_final
-    ((2019, 10, 4), (2019, 12, 31)),
-    ((2019, 10, 5), (2019, 12, 31)),
-    ((2019, 10, 10), (2019, 12, 31)),
-    ((2019, 10, 20), (2019, 12, 31)),
-    ((2019, 10, 25), (2019, 12, 31)),
-    ((2019, 10, 31), (2019, 12, 31)),
-    ((2019, 11, 3), (2019, 12, 31)),
-    ((2019, 11, 4), (2019, 12, 31)),
+    (datetime.date(2019, 10, 4), datetime.date(2019, 12, 31)),
+    (datetime.date(2019, 10, 5), datetime.date(2019, 12, 31)),
+    (datetime.date(2019, 10, 10), datetime.date(2019, 12, 31)),
+    (datetime.date(2019, 10, 20), datetime.date(2019, 12, 31)),
+    (datetime.date(2019, 10, 25), datetime.date(2019, 12, 31)),
+    (datetime.date(2019, 10, 31), datetime.date(2019, 12, 31)),
+    (datetime.date(2019, 11, 3), datetime.date(2019, 12, 31)),
+    (datetime.date(2019, 11, 4), datetime.date(2019, 12, 31)),
 ])
 def inclusao_alimentacao_continua_parametros_mes(request):
     return request.param
@@ -77,10 +79,21 @@ def inclusao_alimentacao_continua_parametros_mes(request):
 
 @pytest.fixture(params=[
     # data_inicial, data_final, status
-    ((2019, 10, 3), (2019, 12, 31), PedidoAPartirDaEscolaWorkflow.RASCUNHO),
-    ((2019, 10, 2), (2019, 12, 31), PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR),
-    ((2019, 10, 1), (2019, 12, 31), PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO),
-    ((2019, 10, 1), (2019, 12, 31), PedidoAPartirDaEscolaWorkflow.DRE_PEDIU_ESCOLA_REVISAR),
+    (datetime.date(2019, 10, 3), datetime.date(2019, 12, 31), PedidoAPartirDaEscolaWorkflow.RASCUNHO),
+    (datetime.date(2019, 10, 2), datetime.date(2019, 12, 31), PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR),
+    (datetime.date(2019, 10, 1), datetime.date(2019, 12, 31), PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO),
+    (datetime.date(2019, 10, 1), datetime.date(2019, 12, 31), PedidoAPartirDaEscolaWorkflow.DRE_PEDIU_ESCOLA_REVISAR),
 ])
 def inclusao_alimentacao_continua_parametros_vencidos(request):
+    return request.param
+
+
+@pytest.fixture(params=[
+    # data_inicial, data_final, dias semana,
+    (datetime.date(2019, 10, 20), datetime.date(2019, 10, 30), [1, 2, 3, 4, 5, 6]),
+    (datetime.date(2019, 10, 17), datetime.date(2020, 10, 30), [1, 2, 3]),
+    (datetime.date(2020, 1, 1), datetime.date(2020, 2, 28), [1, 2, 3, 4]),
+    (datetime.date(2019, 10, 17), datetime.date(2020, 12, 30), [1, 4])
+])
+def inclusao_alimentacao_continua_parametros(request):
     return request.param

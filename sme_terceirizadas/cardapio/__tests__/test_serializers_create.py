@@ -3,10 +3,10 @@ from freezegun import freeze_time
 from model_mommy import mommy
 from rest_framework.exceptions import ValidationError
 
-from ...cardapio.models import AlteracaoCardapio
 from ...cardapio.api.serializers.serializers_create import (
     AlteracaoCardapioSerializerCreate, InversaoCardapioSerializerCreate
 )
+from ...cardapio.models import AlteracaoCardapio
 from ...cardapio.models import InversaoCardapio
 
 pytestmark = pytest.mark.django_db
@@ -50,7 +50,7 @@ def test_inversao_serializer_validators_case_error(inversao_card_params_error):
         assert response_geral == attrs
 
 
-@freeze_time('2019-10-14')
+@freeze_time('2019-10-15')
 def test_inversao_serializer_creators(inversao_card_params):
     class FakeObject(object):
         user = mommy.make('perfil.Usuario')
