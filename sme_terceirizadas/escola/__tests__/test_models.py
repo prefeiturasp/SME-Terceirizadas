@@ -3,10 +3,10 @@ import datetime
 import pytest
 from freezegun import freeze_time
 
-from sme_terceirizadas.cardapio.models import Cardapio
 from ..models import (
     DiretoriaRegional, TipoGestao, TipoUnidadeEscolar
 )
+from ...cardapio.models import Cardapio
 from ...dados_comuns.constants import DAQUI_A_30_DIAS, DAQUI_A_7_DIAS, SEM_FILTRO
 
 pytestmark = pytest.mark.django_db

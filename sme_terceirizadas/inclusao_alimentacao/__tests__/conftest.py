@@ -2,8 +2,8 @@ import pytest
 from faker import Faker
 from model_mommy import mommy
 
-from sme_terceirizadas.dados_comuns.fluxo_status import PedidoAPartirDaEscolaWorkflow
 from .. import models
+from ...dados_comuns.fluxo_status import PedidoAPartirDaEscolaWorkflow
 from ...dados_comuns.models import TemplateMensagem
 
 fake = Faker('pt-Br')

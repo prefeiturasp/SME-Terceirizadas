@@ -18,6 +18,7 @@ script:
   - flake8
   - bandit -r sme_terceirizadas -ll
   - mypy sme_terceirizadas
+  - bash utility/verifica_import_relativo.sh
   - docker build -t marcelomaia/terceirizadas_backend .
   - docker run -d -p 8000:8000 marcelomaia/terceirizadas_backend python manage.py runserver --settings=config.settings.local
   - docker ps -a

@@ -3,9 +3,9 @@ import datetime
 from django.db.models import Q
 from rest_framework import serializers
 
-from sme_terceirizadas.cardapio.models import Cardapio, TipoAlimentacao
-from sme_terceirizadas.escola.models import Escola
 from ..models import InversaoCardapio
+from ...cardapio.models import Cardapio, TipoAlimentacao
+from ...escola.models import Escola
 
 
 def cardapio_antigo(cardapio: Cardapio):

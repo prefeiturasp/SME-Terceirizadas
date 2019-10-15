@@ -3,9 +3,10 @@ from freezegun import freeze_time
 from model_mommy import mommy
 from rest_framework.exceptions import ValidationError
 
-from sme_terceirizadas.cardapio.models import AlteracaoCardapio
-from ...cardapio.api.serializers.serializers_create import InversaoCardapioSerializerCreate, \
-    AlteracaoCardapioSerializerCreate
+from ...cardapio.models import AlteracaoCardapio
+from ...cardapio.api.serializers.serializers_create import (
+    AlteracaoCardapioSerializerCreate, InversaoCardapioSerializerCreate
+)
 from ...cardapio.models import InversaoCardapio
 
 pytestmark = pytest.mark.django_db
