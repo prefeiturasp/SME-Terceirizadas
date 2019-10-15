@@ -357,6 +357,7 @@ class AlteracaoCardapio(CriadoEm, CriadoPor, TemChaveExterna, IntervaloDeDia, Te
         verbose_name_plural = 'Alterações de cardápio'
 
 
+# TODO: passar nome da classe para singular
 class SubstituicoesAlimentacaoNoPeriodoEscolar(TemChaveExterna):
     alteracao_cardapio = models.ForeignKey('AlteracaoCardapio', on_delete=models.CASCADE,
                                            null=True, blank=True,

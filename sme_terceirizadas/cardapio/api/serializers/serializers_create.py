@@ -194,10 +194,10 @@ class AlteracaoCardapioSerializerCreate(serializers.ModelSerializer):
             precisa_pertencer_a_um_tipo_de_alimentacao(tipo_alimentacao_de, tipo_alimentacao_para)
         return substituicoes
 
-    def validate_data_inicial(self, data):
-        nao_pode_ser_no_passado(data)
-        deve_pedir_com_antecedencia(data)
-        return data
+    def validate_data_inicial(self, data_inicial):
+        nao_pode_ser_no_passado(data_inicial)
+        deve_pedir_com_antecedencia(data_inicial)
+        return data_inicial
 
     def create(self, validated_data):
         substituicoes = validated_data.pop('substituicoes')

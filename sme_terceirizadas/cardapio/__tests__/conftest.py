@@ -261,10 +261,15 @@ def datas_alteracao_mes(request):
 
 @pytest.fixture(params=[
     # data do teste 14 out 2019
-    # data de, data para
-    (datetime.date(2019, 10, 25), datetime.date(2019, 11, 25)),
-    (datetime.date(2019, 10, 25), datetime.date(2019, 12, 24)),
-    (datetime.date(2019, 12, 25), datetime.date(2019, 12, 31)),
+    # data de create, data para create, data de update, data para update
+    (datetime.date(2019, 10, 25), datetime.date(2019, 11, 25),
+     datetime.date(2019, 11, 24), datetime.date(2019, 11, 28)),
+
+    (datetime.date(2019, 10, 26), datetime.date(2019, 12, 24),
+     datetime.date(2019, 10, 20), datetime.date(2019, 11, 24)),
+
+    (datetime.date(2019, 12, 25), datetime.date(2019, 12, 30),
+     datetime.date(2019, 12, 15), datetime.date(2019, 12, 31)),
 
 ])
 def inversao_card_params(request):
@@ -281,4 +286,15 @@ def inversao_card_params(request):
 
 ])
 def inversao_card_params_error(request):
+    return request.param
+
+
+@pytest.fixture(params=[
+    # data do teste 15 out 2019
+    # data_inicial, data_final
+    (datetime.date(2019, 10, 17), datetime.date(2019, 10, 26)),
+    (datetime.date(2019, 10, 18), datetime.date(2019, 10, 26)),
+    (datetime.date(2020, 10, 11), datetime.date(2019, 10, 26)),
+])
+def alteracao_card_params(request):
     return request.param
