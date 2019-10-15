@@ -51,14 +51,6 @@ class QuantidadePorPeriodoCreationSerializer(serializers.ModelSerializer):
         quantidade_periodo.tipos_alimentacao.set(tipos_alimentacao)
         return quantidade_periodo
 
-    def update(self, instance, validated_data):
-        tipos_alimentacao = validated_data.pop('tipos_alimentacao', [])
-        if tipos_alimentacao:
-            instance.tipos_alimentacao.set(tipos_alimentacao)
-        update_instance_from_dict(instance, validated_data)
-        instance.save()
-        return instance
-
     class Meta:
         model = QuantidadePorPeriodo
         exclude = ('id',)
@@ -94,6 +86,11 @@ class GrupoInclusaoAlimentacaoNormalCreationSerializer(serializers.ModelSerializ
         many=True,
         required=True
     )
+
+    def validate_quantidades_periodo(self, quantidades_periodo):
+        if not quantidades_periodo:
+            raise ValidationError('Deve possuir quantidades_periodo')
+        return quantidades_periodo
 
     def create(self, validated_data):
         inclusoes_json = validated_data.pop('inclusoes')
