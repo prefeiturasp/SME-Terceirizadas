@@ -297,4 +297,17 @@ def inversao_card_params_error(request):
     (datetime.date(2020, 10, 11), datetime.date(2019, 10, 26)),
 ])
 def alteracao_card_params(request):
-    return request.param
+    alimentacao1 = mommy.make('cardapio.TipoAlimentacao')
+    alimentacao2 = mommy.make('cardapio.TipoAlimentacao')
+    alimentacao3 = mommy.make('cardapio.TipoAlimentacao')
+    alimentacao4 = mommy.make('cardapio.TipoAlimentacao')
+    alimentacao5 = mommy.make('cardapio.TipoAlimentacao')
+
+    alimentacao1.substituicoes.set([alimentacao2, alimentacao3, alimentacao4, alimentacao5])
+    alimentacao2.substituicoes.set([alimentacao1, alimentacao3, alimentacao4, alimentacao5])
+    alimentacao3.substituicoes.set([alimentacao1, alimentacao2, alimentacao4, alimentacao5])
+    alimentacao4.substituicoes.set([alimentacao1, alimentacao2, alimentacao3, alimentacao5])
+    alimentacao5.substituicoes.set([])
+
+    data_inicial, data_final = request.param
+    return data_inicial, data_final, alimentacao1, alimentacao2, alimentacao3, alimentacao4, alimentacao5

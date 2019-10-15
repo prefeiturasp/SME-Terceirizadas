@@ -3,6 +3,7 @@ from freezegun import freeze_time
 from model_mommy import mommy
 from rest_framework.exceptions import ValidationError
 
+from sme_terceirizadas.cardapio.models import AlteracaoCardapio
 from ...cardapio.api.serializers.serializers_create import InversaoCardapioSerializerCreate, \
     AlteracaoCardapioSerializerCreate
 from ...cardapio.models import InversaoCardapio
@@ -87,34 +88,64 @@ def test_alteracao_cardapio_validators(alteracao_card_params):
     class FakeObject(object):
         user = mommy.make('perfil.Usuario')
 
-    data_inicial, data_final = alteracao_card_params
+    data_inicial, data_final, alm1, alm2, alm3, alm4, alm5 = alteracao_card_params
 
     serializer_obj = AlteracaoCardapioSerializerCreate(context={'request': FakeObject})
-    alteracao = mommy.make('cardapio.AlteracaoCardapio', data_inicial=data_inicial, data_final=data_final)
-
-    alimentacao1 = mommy.make('cardapio.TipoAlimentacao')
-    alimentacao2 = mommy.make('cardapio.TipoAlimentacao')
-    alimentacao3 = mommy.make('cardapio.TipoAlimentacao')
-    alimentacao4 = mommy.make('cardapio.TipoAlimentacao')
-    alimentacao5 = mommy.make('cardapio.TipoAlimentacao')
-
-    alimentacao1.substituicoes.set([alimentacao2, alimentacao4])
-    alimentacao2.substituicoes.set([alimentacao3, alimentacao5])
-    alimentacao3.substituicoes.set([alimentacao1, alimentacao4])
-    alimentacao4.substituicoes.set([alimentacao3, alimentacao1])
-    alimentacao5.substituicoes.set([alimentacao2, alimentacao4])
-
-    substituicoes = []
     substituicoes_dict = []
-    for substituicao in range(4):
-        sub_obj = mommy.make('cardapio.SubstituicoesAlimentacaoNoPeriodoEscolar',
-                             tipo_alimentacao_de=alimentacao1,
-                             tipo_alimentacao_para=alimentacao4)
-        substituicoes.append(sub_obj)
-        substituicoes_dict.append(dict(tipo_alimentacao_de=alimentacao1, tipo_alimentacao_para=alimentacao4))
-    alteracao.substituicoes.set(substituicoes)
-
+    substituicoes_dict.append(dict(tipo_alimentacao_de=alm1, tipo_alimentacao_para=alm4))
+    substituicoes_dict.append(dict(tipo_alimentacao_de=alm2, tipo_alimentacao_para=alm5))
     resp_dt_inicial = serializer_obj.validate_data_inicial(data_inicial=data_inicial)
     resp_substicuicoes = serializer_obj.validate_substituicoes(substituicoes=substituicoes_dict)
+
     assert resp_dt_inicial == data_inicial
     assert resp_substicuicoes == substituicoes_dict
+
+
+@freeze_time('2019-10-15')
+def test_alteracao_cardapio_creators(alteracao_card_params):
+    class FakeObject(object):
+        user = mommy.make('perfil.Usuario')
+
+    data_inicial, data_final, alm1, alm2, alm3, alm4, alm5 = alteracao_card_params
+
+    serializer_obj = AlteracaoCardapioSerializerCreate(context={'request': FakeObject})
+    periodo_escolar = mommy.make('escola.PeriodoEscolar')
+
+    substituicoes_dict = []
+
+    substituicoes_dict.append(
+        dict(tipo_alimentacao_de=alm1,
+             tipo_alimentacao_para=alm4,
+             periodo_escolar=periodo_escolar))
+    substituicoes_dict.append(
+        dict(tipo_alimentacao_de=alm2,
+             tipo_alimentacao_para=alm5,
+             periodo_escolar=periodo_escolar))
+
+    validated_data_create = dict(data_inicial=data_inicial,
+                                 data_final=data_final,
+                                 substituicoes=substituicoes_dict)
+
+    resp_create = serializer_obj.create(validated_data=validated_data_create)
+
+    assert isinstance(resp_create, AlteracaoCardapio)
+    assert resp_create.substituicoes.count() == 2
+    assert resp_create.criado_por == FakeObject.user
+    assert resp_create.data_inicial == data_inicial
+    assert resp_create.data_final == data_final
+
+    substituicoes_dict.append(
+        dict(tipo_alimentacao_de=alm3,
+             tipo_alimentacao_para=alm5,
+             periodo_escolar=periodo_escolar))
+
+    validated_data_update = dict(data_inicial=data_inicial,
+                                 data_final=data_final,
+                                 substituicoes=substituicoes_dict)
+
+    resp_update = serializer_obj.update(instance=resp_create,
+                                        validated_data=validated_data_update)
+    assert isinstance(resp_update, AlteracaoCardapio)
+    assert resp_update.substituicoes.count() == 3
+    assert resp_update.data_inicial == data_inicial
+    assert resp_update.data_final == data_final

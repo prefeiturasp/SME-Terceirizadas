@@ -163,11 +163,6 @@ class SubstituicoesAlimentacaoNoPeriodoEscolarSerializerCreate(serializers.Model
         substituicoes_alimentacao = SubstituicoesAlimentacaoNoPeriodoEscolar.objects.create(**validated_data)
         return substituicoes_alimentacao
 
-    def update(self, instance, validated_data):
-        update_instance_from_dict(instance, validated_data)
-        instance.save()
-        return instance
-
     class Meta:
         model = SubstituicoesAlimentacaoNoPeriodoEscolar
         exclude = ('id',)
