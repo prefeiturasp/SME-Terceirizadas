@@ -2,9 +2,9 @@ import pytest
 from freezegun import freeze_time
 from model_mommy import mommy
 
-from sme_terceirizadas.inclusao_alimentacao.api.serializers.serializers_create import \
-    InclusaoAlimentacaoContinuaCreationSerializer
-from sme_terceirizadas.inclusao_alimentacao.models import InclusaoAlimentacaoContinua
+from ..api.serializers.serializers_create import (GrupoInclusaoAlimentacaoNormalCreationSerializer,
+                                                  InclusaoAlimentacaoContinuaCreationSerializer)
+from ..models import GrupoInclusaoAlimentacaoNormal, InclusaoAlimentacaoContinua
 
 pytestmark = pytest.mark.django_db
 
@@ -17,7 +17,7 @@ def test_inclusao_continua_serializer_validators(inclusao_alimentacao_continua_p
     data_inicial, data_final, dias_semana = inclusao_alimentacao_continua_parametros
     attrs = dict(data_inicial=data_inicial, data_final=data_final)
     quantidades_por_periodo = []
-    for i in range(4):
+    for _ in range(4):
         qtd = mommy.make('QuantidadePorPeriodo')
         quantidades_por_periodo.append(dict(numero_alunos=qtd.numero_alunos,
                                             periodo_escolar=qtd.periodo_escolar,
@@ -44,7 +44,7 @@ def test_inclusao_continua_serializer_creators(inclusao_alimentacao_continua_par
     motivo = mommy.make('MotivoInclusaoContinua')
     data_inicial, data_final, dias_semana = inclusao_alimentacao_continua_parametros
     quantidades_por_periodo = []
-    for i in range(4):
+    for _ in range(4):
         qtd = mommy.make('QuantidadePorPeriodo')
         quantidades_por_periodo.append(dict(numero_alunos=qtd.numero_alunos,
                                             periodo_escolar=qtd.periodo_escolar,
@@ -77,3 +77,41 @@ def test_inclusao_continua_serializer_creators(inclusao_alimentacao_continua_par
                                                           validated_data=validated_data_update)
     assert isinstance(inclusao_continua_obj_updated, InclusaoAlimentacaoContinua)
     assert inclusao_continua_obj.quantidades_periodo.count() == 3
+
+
+@freeze_time('2019-10-15')
+def test_grupo_inclusao_normal_serializer_creators(inclusao_alimentacao_continua_parametros):
+    class FakeObject(object):
+        user = mommy.make('perfil.Usuario')
+
+    data, _, _ = inclusao_alimentacao_continua_parametros
+    escola = mommy.make('escola.Escola')
+    quantidades_por_periodo = []
+    for _ in range(4):
+        qtd = mommy.make('QuantidadePorPeriodo')
+        quantidades_por_periodo.append(dict(numero_alunos=qtd.numero_alunos,
+                                            periodo_escolar=qtd.periodo_escolar,
+                                            tipos_alimentacao=[]))
+    inclusoes = []
+    for _ in range(5):
+        inclusao_normal = mommy.make('InclusaoAlimentacaoNormal', data=data)
+        inclusoes.append(dict(motivo=inclusao_normal.motivo,
+                              outro_motivo=inclusao_normal.outro_motivo,
+                              data=inclusao_normal.data))
+
+    serializer_obj = GrupoInclusaoAlimentacaoNormalCreationSerializer(context={'request': FakeObject})
+    validated_data = dict(quantidades_periodo=quantidades_por_periodo, escola=escola, inclusoes=inclusoes)
+
+    response_inclusao_created = serializer_obj.create(validated_data=validated_data)
+    assert isinstance(response_inclusao_created, GrupoInclusaoAlimentacaoNormal)
+    assert response_inclusao_created.criado_por == FakeObject.user
+    assert response_inclusao_created.inclusoes.count() == 5
+    assert response_inclusao_created.quantidades_periodo.count() == 4
+
+    validated_data_update = dict(quantidades_periodo=quantidades_por_periodo[:1],
+                                 escola=escola,
+                                 inclusoes=inclusoes[:2])
+    response_inclusao_updated = serializer_obj.update(instance=response_inclusao_created,
+                                                      validated_data=validated_data_update)
+    assert response_inclusao_updated.inclusoes.count() == 2
+    assert response_inclusao_updated.quantidades_periodo.count() == 1

@@ -75,11 +75,6 @@ class InclusaoAlimentacaoNormalCreationSerializer(serializers.ModelSerializer):
         deve_pedir_com_antecedencia(data)
         return data
 
-    def update(self, instance, validated_data):
-        update_instance_from_dict(instance, validated_data)
-        instance.save()
-        return instance
-
     class Meta:
         model = InclusaoAlimentacaoNormal
         exclude = ('id',)
