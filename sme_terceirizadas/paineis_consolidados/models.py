@@ -238,7 +238,7 @@ class SolicitacoesTerceirizada(MoldeConsolidado):
             status_evento__in=[LogSolicitacoesUsuario.DRE_VALIDOU,
                                LogSolicitacoesUsuario.INICIO_FLUXO],
             terceirizada_uuid=terceirizada_uuid
-        ).order_by('uuid', '-criado_em').distinct('uuid')
+        ).distinct().order_by('-criado_em')
 
     @classmethod
     def get_autorizados(cls, **kwargs):
@@ -249,7 +249,7 @@ class SolicitacoesTerceirizada(MoldeConsolidado):
             status__in=[PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO,
                         PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_TOMOU_CIENCIA],
             terceirizada_uuid=terceirizada_uuid
-        ).order_by('uuid', '-criado_em').distinct('uuid')
+        ).distinct().order_by('-criado_em')
 
     @classmethod
     def get_negados(cls, **kwargs):
