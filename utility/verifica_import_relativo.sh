@@ -1,6 +1,4 @@
 #!/usr/bin/env bash
-echo "limpando pycache..."
-find . | grep -E "(__pycache__|\.pyc|\.pyo$)" | xargs rm -rf
 
 RED='\033[0;31m'
 

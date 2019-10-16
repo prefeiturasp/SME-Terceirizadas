@@ -245,7 +245,7 @@ def test_solicitacao_unificada_lista_igual_workflow_partindo_da_escola_with_erro
 @freeze_time('2019-10-02')
 def test_tageamento_prioridade(kits_avulsos_parametros):
     data_tupla, esperado = kits_avulsos_parametros
-    kit_lanche_base = mommy.make('SolicitacaoKitLanche', data=datetime.date(*data_tupla))
+    kit_lanche_base = mommy.make('SolicitacaoKitLanche', data=data_tupla)
     kit_lanche_avulso = mommy.make('SolicitacaoKitLancheAvulsa', solicitacao_kit_lanche=kit_lanche_base)
     assert kit_lanche_avulso.prioridade == esperado
 
@@ -253,6 +253,6 @@ def test_tageamento_prioridade(kits_avulsos_parametros):
 @freeze_time('2019-12-20')
 def test_tageamento_prioridade_caso2(kits_avulsos_parametros2):
     data_tupla, esperado = kits_avulsos_parametros2
-    kit_lanche_base = mommy.make('SolicitacaoKitLanche', data=datetime.date(*data_tupla))
+    kit_lanche_base = mommy.make('SolicitacaoKitLanche', data=data_tupla)
     kit_lanche_avulso = mommy.make('SolicitacaoKitLancheAvulsa', solicitacao_kit_lanche=kit_lanche_base)
     assert kit_lanche_avulso.prioridade == esperado

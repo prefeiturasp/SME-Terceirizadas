@@ -3,8 +3,8 @@ from freezegun import freeze_time
 from rest_framework.exceptions import ValidationError
 
 
-from ..validators import (deve_pedir_com_antecedencia, deve_ser_deste_tipo, dia_util,
-                          nao_pode_ser_feriado, nao_pode_ser_no_passado, nao_pode_ser_nulo,
+from ..validators import (deve_pedir_com_antecedencia, campo_deve_ser_deste_tipo, dia_util,
+                          nao_pode_ser_feriado, nao_pode_ser_no_passado, campo_nao_pode_ser_nulo,
                           objeto_nao_deve_ter_duplicidade, verificar_se_existe)
 
 
@@ -73,20 +73,20 @@ def test_objeto_nao_deve_ter_duplicidade_raise_error(validators_models_object):
 
 def test_nao_pode_ser_nulo_valor_none(validators_valor_str):
     with pytest.raises(ValidationError, match='Não pode ser nulo'):
-        nao_pode_ser_nulo(validators_valor_str['none'])
+        campo_nao_pode_ser_nulo(validators_valor_str['none'])
 
 
 def test_nao_pode_ser_nulo_valor_valido(validators_valor_str):
-    assert nao_pode_ser_nulo(validators_valor_str['texto']) is None
+    assert campo_nao_pode_ser_nulo(validators_valor_str['texto']) is None
 
 
 def test_deve_ser_deste_tipo_valor_rasie_error(validators_valor_str):
     with pytest.raises(ValidationError, match='Deve ser do tipo texto'):
-        deve_ser_deste_tipo(validators_valor_str['none'])
+        campo_deve_ser_deste_tipo(validators_valor_str['none'])
 
 
 def test_deve_ser_deste_tipo_valor_valido(validators_valor_str):
-    assert deve_ser_deste_tipo(validators_valor_str['texto']) is None
+    assert campo_deve_ser_deste_tipo(validators_valor_str['texto']) is None
 
 
 def test_nao_pode_ser_feriado_raise_error(dias_nao_uteis):

@@ -180,20 +180,20 @@ def tempo_kits(request):
 @pytest.fixture(params=[
     # para testar no dia 2/10/19
     # data do evento, tag
-    ((2019, 9, 30), 'VENCIDO'),
-    ((2019, 10, 1), 'VENCIDO'),
-    ((2019, 10, 2), 'PRIORITARIO'),
-    ((2019, 10, 3), 'PRIORITARIO'),
-    ((2019, 10, 4), 'PRIORITARIO'),
-    ((2019, 10, 5), 'PRIORITARIO'),
-    ((2019, 10, 6), 'PRIORITARIO'),
-    ((2019, 10, 7), 'LIMITE'),
-    ((2019, 10, 8), 'LIMITE'),
-    ((2019, 10, 9), 'LIMITE'),
-    ((2019, 10, 10), 'REGULAR'),
-    ((2019, 10, 11), 'REGULAR'),
-    ((2019, 10, 12), 'REGULAR'),
-    ((2019, 10, 13), 'REGULAR'),
+    (datetime.date(2019, 9, 30), 'VENCIDO'),
+    (datetime.date(2019, 10, 1), 'VENCIDO'),
+    (datetime.date(2019, 10, 2), 'PRIORITARIO'),
+    (datetime.date(2019, 10, 3), 'PRIORITARIO'),
+    (datetime.date(2019, 10, 4), 'PRIORITARIO'),
+    (datetime.date(2019, 10, 5), 'PRIORITARIO'),
+    (datetime.date(2019, 10, 6), 'PRIORITARIO'),
+    (datetime.date(2019, 10, 7), 'LIMITE'),
+    (datetime.date(2019, 10, 8), 'LIMITE'),
+    (datetime.date(2019, 10, 9), 'LIMITE'),
+    (datetime.date(2019, 10, 10), 'REGULAR'),
+    (datetime.date(2019, 10, 11), 'REGULAR'),
+    (datetime.date(2019, 10, 12), 'REGULAR'),
+    (datetime.date(2019, 10, 13), 'REGULAR'),
 ])
 def kits_avulsos_parametros(request):
     return request.param
@@ -202,21 +202,21 @@ def kits_avulsos_parametros(request):
 @pytest.fixture(params=[
     # para testar no dia 20/12/19
     # data do evento, tag
-    ((2019, 12, 18), 'VENCIDO'),
-    ((2019, 12, 19), 'VENCIDO'),
-    ((2019, 12, 20), 'PRIORITARIO'),
-    ((2019, 12, 21), 'PRIORITARIO'),
-    ((2019, 12, 22), 'PRIORITARIO'),
-    ((2019, 12, 23), 'PRIORITARIO'),
-    ((2019, 12, 24), 'PRIORITARIO'),
-    ((2019, 12, 25), 'PRIORITARIO'),
-    ((2019, 12, 26), 'LIMITE'),
-    ((2019, 12, 27), 'LIMITE'),
-    ((2019, 12, 28), 'LIMITE'),
-    ((2019, 12, 29), 'LIMITE'),
-    ((2019, 12, 30), 'LIMITE'),
-    ((2019, 12, 31), 'REGULAR'),
-    ((2020, 1, 1), 'REGULAR')
+    (datetime.date(2019, 12, 18), 'VENCIDO'),
+    (datetime.date(2019, 12, 19), 'VENCIDO'),
+    (datetime.date(2019, 12, 20), 'PRIORITARIO'),
+    (datetime.date(2019, 12, 21), 'PRIORITARIO'),
+    (datetime.date(2019, 12, 22), 'PRIORITARIO'),
+    (datetime.date(2019, 12, 23), 'PRIORITARIO'),
+    (datetime.date(2019, 12, 24), 'PRIORITARIO'),
+    (datetime.date(2019, 12, 25), 'PRIORITARIO'),
+    (datetime.date(2019, 12, 26), 'LIMITE'),
+    (datetime.date(2019, 12, 27), 'LIMITE'),
+    (datetime.date(2019, 12, 28), 'LIMITE'),
+    (datetime.date(2019, 12, 29), 'LIMITE'),
+    (datetime.date(2019, 12, 30), 'LIMITE'),
+    (datetime.date(2019, 12, 31), 'REGULAR'),
+    (datetime.date(2020, 1, 1), 'REGULAR')
 ])
 def kits_avulsos_parametros2(request):
     return request.param
@@ -225,13 +225,13 @@ def kits_avulsos_parametros2(request):
 @pytest.fixture(params=[
     # para testar no dia 3/10/19
     # data do evento, status
-    ((2019, 10, 2), PedidoAPartirDaEscolaWorkflow.RASCUNHO),
-    ((2019, 10, 1), PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO),
-    ((2019, 9, 30), PedidoAPartirDaEscolaWorkflow.DRE_PEDIU_ESCOLA_REVISAR),
-    ((2019, 9, 29), PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO),
-    ((2019, 9, 28), PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO),
-    ((2019, 9, 27), PedidoAPartirDaEscolaWorkflow.RASCUNHO),
-    ((2019, 9, 26), PedidoAPartirDaEscolaWorkflow.DRE_PEDIU_ESCOLA_REVISAR),
+    (datetime.date(2019, 10, 2), PedidoAPartirDaEscolaWorkflow.RASCUNHO),
+    (datetime.date(2019, 10, 1), PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO),
+    (datetime.date(2019, 9, 30), PedidoAPartirDaEscolaWorkflow.DRE_PEDIU_ESCOLA_REVISAR),
+    (datetime.date(2019, 9, 29), PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO),
+    (datetime.date(2019, 9, 28), PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO),
+    (datetime.date(2019, 9, 27), PedidoAPartirDaEscolaWorkflow.RASCUNHO),
+    (datetime.date(2019, 9, 26), PedidoAPartirDaEscolaWorkflow.DRE_PEDIU_ESCOLA_REVISAR),
 ])
 def kits_avulsos_datas_passado_parametros(request):
     return request.param
@@ -239,14 +239,14 @@ def kits_avulsos_datas_passado_parametros(request):
 
 @pytest.fixture(params=[
     # para testar no dia 3/10/19
-    ((2019, 10, 3)),
-    ((2019, 10, 4)),
-    ((2019, 10, 5)),
-    ((2019, 10, 6)),
-    ((2019, 10, 7)),
-    ((2019, 10, 8)),
-    ((2019, 10, 9)),
-    ((2019, 10, 10)),
+    (datetime.date(2019, 10, 3)),
+    (datetime.date(2019, 10, 4)),
+    (datetime.date(2019, 10, 5)),
+    (datetime.date(2019, 10, 6)),
+    (datetime.date(2019, 10, 7)),
+    (datetime.date(2019, 10, 8)),
+    (datetime.date(2019, 10, 9)),
+    (datetime.date(2019, 10, 10)),
 ])
 def kits_avulsos_datas_semana(request):
     return request.param
@@ -254,12 +254,12 @@ def kits_avulsos_datas_semana(request):
 
 @pytest.fixture(params=[
     # para testar no dia 3/10/19
-    ((2019, 10, 3)),
-    ((2019, 10, 8)),
-    ((2019, 10, 10)),
-    ((2019, 10, 15)),
-    ((2019, 10, 20)),
-    ((2019, 11, 3)),
+    (datetime.date(2019, 10, 3)),
+    (datetime.date(2019, 10, 8)),
+    (datetime.date(2019, 10, 10)),
+    (datetime.date(2019, 10, 15)),
+    (datetime.date(2019, 10, 20)),
+    (datetime.date(2019, 11, 3)),
 ])
 def kits_avulsos_datas_mes(request):
     return request.param
@@ -268,13 +268,26 @@ def kits_avulsos_datas_mes(request):
 @pytest.fixture(params=[
     # para testar no dia 3/10/19
     # data do evento, status
-    ((2019, 10, 2), PedidoAPartirDaDiretoriaRegionalWorkflow.RASCUNHO),
-    ((2019, 10, 1), PedidoAPartirDaDiretoriaRegionalWorkflow.CODAE_A_AUTORIZAR),
-    ((2019, 9, 30), PedidoAPartirDaDiretoriaRegionalWorkflow.CODAE_PEDIU_DRE_REVISAR),
-    ((2019, 9, 29), PedidoAPartirDaDiretoriaRegionalWorkflow.RASCUNHO),
-    ((2019, 9, 28), PedidoAPartirDaDiretoriaRegionalWorkflow.CODAE_PEDIU_DRE_REVISAR),
-    ((2019, 9, 27), PedidoAPartirDaDiretoriaRegionalWorkflow.CODAE_A_AUTORIZAR),
-    ((2019, 9, 26), PedidoAPartirDaDiretoriaRegionalWorkflow.CODAE_PEDIU_DRE_REVISAR),
+    (datetime.date(2019, 10, 2), PedidoAPartirDaDiretoriaRegionalWorkflow.RASCUNHO),
+    (datetime.date(2019, 10, 1), PedidoAPartirDaDiretoriaRegionalWorkflow.CODAE_A_AUTORIZAR),
+    (datetime.date(2019, 9, 30), PedidoAPartirDaDiretoriaRegionalWorkflow.CODAE_PEDIU_DRE_REVISAR),
+    (datetime.date(2019, 9, 29), PedidoAPartirDaDiretoriaRegionalWorkflow.RASCUNHO),
+    (datetime.date(2019, 9, 28), PedidoAPartirDaDiretoriaRegionalWorkflow.CODAE_PEDIU_DRE_REVISAR),
+    (datetime.date(2019, 9, 27), PedidoAPartirDaDiretoriaRegionalWorkflow.CODAE_A_AUTORIZAR),
+    (datetime.date(2019, 9, 26), PedidoAPartirDaDiretoriaRegionalWorkflow.CODAE_PEDIU_DRE_REVISAR),
 ])
 def kits_unificados_datas_passado_parametros(request):
+    return request.param
+
+
+@pytest.fixture(params=[
+    # qtd_alunos_escola, qtd_alunos_pedido, dia, confirmar??? TODO ver esse confirmar...
+    (100, 101, datetime.date(2019, 10, 17), True),  # pedido tem mais que alunos
+    (100, 100, datetime.date(2001, 1, 1), True),  # nao pode ser passado
+    (100, 99, datetime.date(2019, 10, 16), False),  # deve pedir com antecedencia
+    (100, 99, datetime.date(2019, 10, 16), True),  # deve pedir com antecedencia
+    (100, 99, datetime.date(2019, 10, 17), True),  # deve pedir com antecedencia
+    (100, 400, datetime.date(2019, 10, 18), False),  # pedido tem mais que alunos
+])
+def kits_avulsos_param_erro_serializer(request):
     return request.param

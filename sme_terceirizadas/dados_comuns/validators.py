@@ -55,11 +55,11 @@ def nao_pode_ser_feriado(data: datetime.date, mensagem='Não pode ser no feriado
         raise serializers.ValidationError(mensagem)
 
 
-def nao_pode_ser_nulo(valor, mensagem='Não pode ser nulo'):
+def campo_nao_pode_ser_nulo(valor, mensagem='Não pode ser nulo'):
     if not valor:
         raise serializers.ValidationError(mensagem)
 
 
-def deve_ser_deste_tipo(valor, tipo=str, mensagem='Deve ser do tipo texto'):
+def campo_deve_ser_deste_tipo(valor, tipo=str, mensagem='Deve ser do tipo texto'):
     if type(valor) is not tipo:
         raise serializers.ValidationError(mensagem)
