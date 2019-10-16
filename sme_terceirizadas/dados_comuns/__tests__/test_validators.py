@@ -2,10 +2,10 @@ import pytest
 from freezegun import freeze_time
 from rest_framework.exceptions import ValidationError
 
-
-from ..validators import (deve_pedir_com_antecedencia, deve_ser_deste_tipo, dia_util,
-                          nao_pode_ser_feriado, nao_pode_ser_no_passado, nao_pode_ser_nulo,
-                          objeto_nao_deve_ter_duplicidade, verificar_se_existe)
+from ..validators import (deve_existir_cardapio, deve_pedir_com_antecedencia, deve_ser_deste_tipo,
+                          dia_util, nao_pode_ser_feriado, nao_pode_ser_no_passado, nao_pode_ser_nulo,
+                          objeto_nao_deve_ter_duplicidade, verificar_se_existe
+                          )
 
 
 @freeze_time('2019-05-22')  # qua
@@ -98,3 +98,8 @@ def test_nao_pode_ser_feriado_raise_error(dias_nao_uteis):
 def test_nao_pode_ser_feriado_valor_valido(dias_uteis):
     dia, _ = dias_uteis
     assert nao_pode_ser_feriado(dia) is None
+
+
+def test_nao_existe_cardapio(dias_sem_cardapio, escola):
+    with pytest.raises(ValidationError, match=f'Escola não possui cardápio para esse dia: {dias_sem_cardapio}'):
+        assert deve_existir_cardapio(escola, dias_sem_cardapio)

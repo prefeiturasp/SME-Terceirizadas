@@ -1,6 +1,12 @@
 import datetime
-from model_mommy import mommy
 import pytest
+from faker import Faker
+from model_mommy import mommy
+
+from sme_terceirizadas.escola import models
+
+fake = Faker('pt_BR')
+fake.seed(420)
 
 
 @pytest.fixture(scope='function', params=[
@@ -128,3 +134,23 @@ def validators_valor_str():
         'texto': 'Nome',
         'none': None
     }
+
+
+@pytest.fixture
+def escola():
+    return mommy.make(models.Escola,
+                      nome=fake.name(),
+                      codigo_eol=fake.name()[:6],
+                      quantidade_alunos=42)
+
+
+@pytest.fixture(scope='function', params=[
+    # dia do cardápio
+    (datetime.date(2019, 5, 18)),
+    (datetime.date(2019, 5, 19)),
+    (datetime.date(2019, 5, 25)),
+    (datetime.date(2019, 5, 26)),
+    (datetime.date(2018, 6, 1)),
+])
+def dias_sem_cardapio(request):
+    return request.param
