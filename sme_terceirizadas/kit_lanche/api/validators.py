@@ -56,6 +56,12 @@ def escola_quantidade_nao_deve_ter_kits_e_tempo_passeio(num_kits, tempo_passeio,
                                           f'deve ter kits = [] e tempo passeio nulo')
 
 
+def escola_quantidade_pedido_nao_pode_ser_mais_que_alunos(escola, quantidade_alunos_pedido, indice):
+    if quantidade_alunos_pedido > escola.quantidade_alunos:
+        raise serializers.ValidationError(f'escola {escola.nome} tem menos alunos que a quantidade pedida '
+                                          f'{quantidade_alunos_pedido}. Ver indice #{indice}')
+
+
 def escola_quantidade_deve_ter_mesmo_tempo_passeio(escola_quantidade,
                                                    solicitacao_kit_lanche,
                                                    indice):

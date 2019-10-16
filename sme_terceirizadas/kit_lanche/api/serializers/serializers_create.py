@@ -1,13 +1,10 @@
 from rest_framework import serializers
 
 from ..validators import (
-    escola_quantidade_deve_ter_1_ou_mais_kits, solicitacao_deve_ter_0_kit,
-    solicitacao_deve_ter_1_ou_mais_kits, valida_duplicidade_passeio_data_escola,
-    valida_quantidades_alunos_e_escola, valida_tempo_passeio_lista_igual,
-    valida_tempo_passeio_lista_nao_igual
-)
-from ..validators import (
-    escola_quantidade_nao_deve_ter_kits_e_tempo_passeio, valida_quantidade_kits_tempo_passeio
+    escola_quantidade_deve_ter_1_ou_mais_kits, escola_quantidade_nao_deve_ter_kits_e_tempo_passeio,
+    escola_quantidade_pedido_nao_pode_ser_mais_que_alunos, solicitacao_deve_ter_0_kit,
+    solicitacao_deve_ter_1_ou_mais_kits, valida_duplicidade_passeio_data_escola, valida_quantidade_kits_tempo_passeio,
+    valida_quantidades_alunos_e_escola, valida_tempo_passeio_lista_igual, valida_tempo_passeio_lista_nao_igual
 )
 from ...models import (
     EscolaQuantidade, KitLanche, SolicitacaoKitLanche,
@@ -15,7 +12,7 @@ from ...models import (
 )
 from ....dados_comuns.utils import update_instance_from_dict
 from ....dados_comuns.validators import (
-    deve_pedir_com_antecedencia, deve_ser_deste_tipo, nao_pode_ser_no_passado, nao_pode_ser_nulo
+    campo_deve_ser_deste_tipo, campo_nao_pode_ser_nulo, deve_pedir_com_antecedencia, nao_pode_ser_no_passado
 )
 from ....escola.models import DiretoriaRegional, Escola
 
@@ -75,16 +72,21 @@ class SolicitacaoKitLancheAvulsaCreationSerializer(serializers.ModelSerializer):
     status = serializers.CharField(required=False)
 
     def validate(self, attrs):
+        # TODO: revalidar essa regra, está esquisito
         quantidade_aluno_passeio = attrs.get('quantidade_alunos')
-        data = attrs.get('solicitacao_kit_lanche').get('data')
+        data_evento = attrs.get('solicitacao_kit_lanche').get('data')
         escola = attrs.get('escola')
         confirmar = attrs.get('confirmar', False)
-        nao_pode_ser_nulo(quantidade_aluno_passeio, mensagem='O campo Quantidade de aluno não pode ser nulo')
-        deve_ser_deste_tipo(quantidade_aluno_passeio, tipo=int, mensagem='Quantidade de aluno de ser do tipo int')
+        campo_nao_pode_ser_nulo(quantidade_aluno_passeio, mensagem='O campo Quantidade de aluno não pode ser nulo')
+        campo_deve_ser_deste_tipo(quantidade_aluno_passeio, tipo=int, mensagem='Quantidade de aluno de ser do tipo int')
+        nao_pode_ser_no_passado(data_evento)
+
+        deve_pedir_com_antecedencia(data_evento)
         if attrs.get('status') != SolicitacaoKitLancheAvulsa.workflow_class.RASCUNHO:
-            valida_quantidades_alunos_e_escola(data, escola, quantidade_aluno_passeio)
-            valida_duplicidade_passeio_data_escola(data, escola, confirmar)
+            valida_quantidades_alunos_e_escola(data_evento, escola, quantidade_aluno_passeio)
+            valida_duplicidade_passeio_data_escola(data_evento, escola, confirmar)
         else:
+            # TODO: status e confirmar no parametro? verificar
             attrs.pop('status')
         if attrs.get('confirmar'):
             attrs.pop('confirmar')
@@ -203,11 +205,15 @@ class SolicitacaoKitLancheUnificadaCreationSerializer(serializers.ModelSerialize
         return solicitacao_kit_unificada
 
     def update(self, instance, validated_data):
+        lista_igual = validated_data.get('lista_kit_lanche_igual', True)
         escolas_quantidades = validated_data.pop('escolas_quantidades')
         solicitacao_kit_lanche_json = validated_data.pop('solicitacao_kit_lanche')
 
         solicitacao_kit_lanche = instance.solicitacao_kit_lanche
         instance.escolas_quantidades.all().delete()
+
+        if not lista_igual:
+            solicitacao_kit_lanche.kits.set([])
 
         SolicitacaoKitLancheCreationSerializer().update(solicitacao_kit_lanche, solicitacao_kit_lanche_json)
 
@@ -250,6 +256,11 @@ class SolicitacaoKitLancheUnificadaCreationSerializer(serializers.ModelSerialize
                 escola_quantidade_nao_deve_ter_kits_e_tempo_passeio(
                     num_kits=len(kits),
                     tempo_passeio=escola_quantidade.get('tempo_passeio'),
+                    indice=cont
+                )
+                escola_quantidade_pedido_nao_pode_ser_mais_que_alunos(
+                    escola=escola_quantidade.get('escola'),
+                    quantidade_alunos_pedido=escola_quantidade.get('quantidade_alunos'),
                     indice=cont
                 )
                 cont += 1

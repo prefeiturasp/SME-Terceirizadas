@@ -3,7 +3,7 @@ import pytest
 from faker import Faker
 from model_mommy import mommy
 
-from sme_terceirizadas.escola import models
+from ...escola import models
 
 fake = Faker('pt_BR')
 fake.seed(420)
