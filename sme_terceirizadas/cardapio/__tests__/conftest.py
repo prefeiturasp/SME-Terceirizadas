@@ -205,15 +205,15 @@ def datas_inversao_desta_semana(request):
 
 @pytest.fixture(params=[
     # dia cardapio de, dia cardapio para, status
-    ((2019, 10, 29), (2019, 11, 1), PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR),
-    ((2019, 10, 15), (2019, 10, 31), PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR),
-    ((2019, 10, 10), (2019, 10, 29), PedidoAPartirDaEscolaWorkflow.RASCUNHO),
-    ((2019, 10, 28), (2019, 11, 3), PedidoAPartirDaEscolaWorkflow.DRE_PEDIU_ESCOLA_REVISAR),
+    (datetime.date(2019, 10, 29), datetime.date(2019, 11, 1), PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR),
+    (datetime.date(2019, 10, 15), datetime.date(2019, 10, 31), PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR),
+    (datetime.date(2019, 10, 10), datetime.date(2019, 10, 29), PedidoAPartirDaEscolaWorkflow.RASCUNHO),
+    (datetime.date(2019, 10, 28), datetime.date(2019, 11, 3), PedidoAPartirDaEscolaWorkflow.DRE_PEDIU_ESCOLA_REVISAR),
 
-    ((2019, 10, 10), (2019, 10, 15), PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR),
-    ((2019, 10, 15), (2019, 10, 10), PedidoAPartirDaEscolaWorkflow.RASCUNHO),
-    ((2019, 10, 4), (2019, 11, 4), PedidoAPartirDaEscolaWorkflow.DRE_PEDIU_ESCOLA_REVISAR),
-    ((2019, 11, 4), (2019, 10, 4), PedidoAPartirDaEscolaWorkflow.DRE_PEDIU_ESCOLA_REVISAR),
+    (datetime.date(2019, 10, 10), datetime.date(2019, 10, 15), PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR),
+    (datetime.date(2019, 10, 15), datetime.date(2019, 10, 10), PedidoAPartirDaEscolaWorkflow.RASCUNHO),
+    (datetime.date(2019, 10, 4), datetime.date(2019, 11, 4), PedidoAPartirDaEscolaWorkflow.DRE_PEDIU_ESCOLA_REVISAR),
+    (datetime.date(2019, 11, 4), datetime.date(2019, 10, 4), PedidoAPartirDaEscolaWorkflow.DRE_PEDIU_ESCOLA_REVISAR),
 ])
 def datas_inversao_deste_mes(request):
     return request.param

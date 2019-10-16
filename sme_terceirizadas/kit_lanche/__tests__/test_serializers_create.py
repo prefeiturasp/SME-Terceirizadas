@@ -165,6 +165,7 @@ def test_kit_lanche_unificado_serializer_creators_lista_igual(kits_unificados_pa
                                                              kits=kits[:1],
                                                              tempo_passeio=SolicitacaoKitLanche.QUATRO))
     response_update = serializer_obj.update(instance=response_create, validated_data=validated_data_update)
+
     assert isinstance(response_update, SolicitacaoKitLancheUnificada)
     assert response_update.escolas_quantidades.count() == 2
     assert response_update.lista_kit_lanche_igual is True
