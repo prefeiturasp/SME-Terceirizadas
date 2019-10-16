@@ -281,13 +281,25 @@ def kits_unificados_datas_passado_parametros(request):
 
 
 @pytest.fixture(params=[
-    # qtd_alunos_escola, qtd_alunos_pedido, dia, confirmar??? TODO ver esse confirmar...
-    (100, 101, datetime.date(2019, 10, 17), True),  # pedido tem mais que alunos
-    (100, 100, datetime.date(2001, 1, 1), True),  # nao pode ser passado
-    (100, 99, datetime.date(2019, 10, 16), False),  # deve pedir com antecedencia
-    (100, 99, datetime.date(2019, 10, 16), True),  # deve pedir com antecedencia
-    (100, 99, datetime.date(2019, 10, 17), True),  # deve pedir com antecedencia
-    (100, 400, datetime.date(2019, 10, 18), False),  # pedido tem mais que alunos
+    # qtd_alunos_escola, qtd_alunos_pedido, dia, confirmar??? TODO ver esse confirmar... erro esperado
+    (100, 101, datetime.date(2019, 10, 18), True,
+     'A quantidade de alunos informados para o evento excede a quantidade de alunos matriculados na escola'),
+    (100, 100, datetime.date(2001, 1, 1), True, 'Não pode ser no passado'),
+    (100, 99, datetime.date(2019, 10, 16), False, 'Deve pedir com pelo menos 2 dias úteis de antecedência'),
+    (100, 99, datetime.date(2019, 10, 16), True, 'Deve pedir com pelo menos 2 dias úteis de antecedência'),
+    (100, 99, datetime.date(2019, 10, 17), True, 'Deve pedir com pelo menos 2 dias úteis de antecedência'),
+    (100, 400, datetime.date(2019, 10, 18), False,
+     'A quantidade de alunos informados para o evento excede a quantidade de alunos matriculados na escola'),
 ])
 def kits_avulsos_param_erro_serializer(request):
+    return request.param
+
+
+@pytest.fixture(params=[
+    # qtd_alunos_escola, qtd_alunos_pedido, dia
+    (100, 100, datetime.date(2020, 1, 1)),
+    (1000, 77, datetime.date(2019, 10, 20)),
+    (1000, 700, datetime.date(2019, 10, 20)),
+])
+def kits_avulsos_param_serializer(request):
     return request.param
