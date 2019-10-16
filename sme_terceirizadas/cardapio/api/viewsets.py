@@ -379,7 +379,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
         )
 
         page = self.paginate_queryset(alteracoes_cardapio)
-        serializer = AlteracaoCardapioSimplesSerializer(page, many=True)
+        serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False,
@@ -408,7 +408,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
         )
 
         page = self.paginate_queryset(alteracoes_cardapio)
-        serializer = AlteracaoCardapioSimplesSerializer(page, many=True)
+        serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
     #

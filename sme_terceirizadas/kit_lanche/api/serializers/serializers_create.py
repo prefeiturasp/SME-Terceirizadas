@@ -1,14 +1,10 @@
 from rest_framework import serializers
 
-from sme_terceirizadas.kit_lanche.api.validators import escola_quantidade_pedido_nao_pode_ser_mais_que_alunos
 from ..validators import (
-    escola_quantidade_deve_ter_1_ou_mais_kits, solicitacao_deve_ter_0_kit,
-    solicitacao_deve_ter_1_ou_mais_kits, valida_duplicidade_passeio_data_escola,
-    valida_quantidades_alunos_e_escola, valida_tempo_passeio_lista_igual,
-    valida_tempo_passeio_lista_nao_igual
-)
-from ..validators import (
-    escola_quantidade_nao_deve_ter_kits_e_tempo_passeio, valida_quantidade_kits_tempo_passeio
+    escola_quantidade_deve_ter_1_ou_mais_kits, escola_quantidade_nao_deve_ter_kits_e_tempo_passeio,
+    escola_quantidade_pedido_nao_pode_ser_mais_que_alunos, solicitacao_deve_ter_0_kit,
+    solicitacao_deve_ter_1_ou_mais_kits, valida_duplicidade_passeio_data_escola, valida_quantidade_kits_tempo_passeio,
+    valida_quantidades_alunos_e_escola, valida_tempo_passeio_lista_igual, valida_tempo_passeio_lista_nao_igual
 )
 from ...models import (
     EscolaQuantidade, KitLanche, SolicitacaoKitLanche,
@@ -16,7 +12,7 @@ from ...models import (
 )
 from ....dados_comuns.utils import update_instance_from_dict
 from ....dados_comuns.validators import (
-    deve_pedir_com_antecedencia, campo_deve_ser_deste_tipo, nao_pode_ser_no_passado, campo_nao_pode_ser_nulo
+    campo_deve_ser_deste_tipo, campo_nao_pode_ser_nulo, deve_pedir_com_antecedencia, nao_pode_ser_no_passado
 )
 from ....escola.models import DiretoriaRegional, Escola
 

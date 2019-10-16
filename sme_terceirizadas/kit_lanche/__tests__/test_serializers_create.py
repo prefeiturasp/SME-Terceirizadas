@@ -6,10 +6,10 @@ from freezegun import freeze_time
 from model_mommy import mommy
 from rest_framework.exceptions import ValidationError
 
-from sme_terceirizadas.kit_lanche.models import SolicitacaoKitLancheUnificada
-from ..api.serializers.serializers_create import SolicitacaoKitLancheAvulsaCreationSerializer
-from ..api.serializers.serializers_create import SolicitacaoKitLancheUnificadaCreationSerializer
-from ..models import SolicitacaoKitLancheAvulsa, SolicitacaoKitLanche
+from ..api.serializers.serializers_create import (
+    SolicitacaoKitLancheAvulsaCreationSerializer, SolicitacaoKitLancheUnificadaCreationSerializer
+)
+from ..models import SolicitacaoKitLanche, SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheUnificada
 
 pytestmark = pytest.mark.django_db
 
@@ -37,7 +37,7 @@ def test_kit_lanche_avulso_serializer_validators_error(kits_avulsos_param_erro_s
                  confirmar=confirmar,
                  solicitacao_kit_lanche=dict(data=dia))
     with pytest.raises(ValidationError, match=erro_esperado):
-        response = serializer_obj.validate(attrs=attrs)
+        serializer_obj.validate(attrs=attrs)
 
 
 @freeze_time('2019-10-16')
@@ -82,7 +82,7 @@ def test_kit_lanche_unificado_serializer_validators_lista_igual(kits_unificados_
     qtd_alunos_escola, quantidade_alunos_pedido, data = kits_unificados_param_serializer
     escola = mommy.make('Escola', nome='teste', quantidade_alunos=qtd_alunos_escola)
     escola_quantidades = []
-    for i in range(3):
+    for _ in range(3):
         eq = mommy.make('EscolaQuantidade', quantidade_alunos=quantidade_alunos_pedido)
         escola_quantidades.append(dict(quantidade_alunos=eq.quantidade_alunos,
                                        kits=[],
@@ -105,7 +105,7 @@ def test_kit_lanche_unificado_serializer_validators_lista_nao_igual(kits_unifica
 
     escola = mommy.make('Escola', quantidade_alunos=qtd_alunos_escola)
     escola_quantidades = []
-    for i in range(3):
+    for _ in range(3):
         kits = mommy.make('KitLanche', _quantity=random.randint(1, 3))
         eq = mommy.make('EscolaQuantidade', quantidade_alunos=quantidade_alunos_pedido)
         escola_quantidades.append(dict(quantidade_alunos=eq.quantidade_alunos,
@@ -123,7 +123,7 @@ def test_kit_lanche_unificado_serializer_validators_lista_nao_igual(kits_unifica
 
 
 @freeze_time('2019-10-16')
-def test_kit_lanche_unificado_serializer_validators_lista_igual(kits_unificados_param_serializer):
+def test_kit_lanche_unificado_serializer_creators_lista_igual(kits_unificados_param_serializer):
     class FakeObject(object):
         user = mommy.make('perfil.Usuario')
 
@@ -135,7 +135,7 @@ def test_kit_lanche_unificado_serializer_validators_lista_igual(kits_unificados_
     diretoria_regional = mommy.make('DiretoriaRegional', nome='teste')
 
     escola_quantidades = []
-    for i in range(3):
+    for _ in range(3):
         eq = mommy.make('EscolaQuantidade', quantidade_alunos=quantidade_alunos_pedido)
         escola_quantidades.append(dict(quantidade_alunos=eq.quantidade_alunos,
                                        kits=[],
