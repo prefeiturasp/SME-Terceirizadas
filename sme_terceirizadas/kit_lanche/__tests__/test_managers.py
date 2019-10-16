@@ -1,5 +1,3 @@
-import datetime
-
 import pytest
 from freezegun import freeze_time
 from model_mommy import mommy
@@ -15,7 +13,7 @@ pytestmark = pytest.mark.django_db
 #
 
 def _monta_kit_lanche_avulso(kits_avulsos_datas, status=PedidoAPartirDaEscolaWorkflow.RASCUNHO):
-    solicitacao_kit_lanche_base = mommy.make('SolicitacaoKitLanche', data=datetime.date(*kits_avulsos_datas))
+    solicitacao_kit_lanche_base = mommy.make('SolicitacaoKitLanche', data=kits_avulsos_datas)
     solicitacao_kit_lanche_avulsa = mommy.make('SolicitacaoKitLancheAvulsa',
                                                status=status,
                                                solicitacao_kit_lanche=solicitacao_kit_lanche_base)
@@ -46,7 +44,7 @@ def test_manager_kit_lanche_avulso_deste_mes(kits_avulsos_datas_mes):
 #
 
 def _monta_kit_lanche_unificado(kits_avulsos_datas, status=PedidoAPartirDaDiretoriaRegionalWorkflow.RASCUNHO):
-    solicitacao_kit_lanche_base = mommy.make('SolicitacaoKitLanche', data=datetime.date(*kits_avulsos_datas))
+    solicitacao_kit_lanche_base = mommy.make('SolicitacaoKitLanche', data=kits_avulsos_datas)
     solicitacao_kit_lanche_unificada = mommy.make('SolicitacaoKitLancheUnificada',
                                                   status=status,
                                                   solicitacao_kit_lanche=solicitacao_kit_lanche_base)
