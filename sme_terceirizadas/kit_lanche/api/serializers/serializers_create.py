@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from sme_terceirizadas.kit_lanche.api.validators import escola_quantidade_pedido_nao_pode_ser_mais_que_alunos
 from ..validators import (
     escola_quantidade_deve_ter_1_ou_mais_kits, solicitacao_deve_ter_0_kit,
     solicitacao_deve_ter_1_ou_mais_kits, valida_duplicidade_passeio_data_escola,
@@ -255,6 +256,11 @@ class SolicitacaoKitLancheUnificadaCreationSerializer(serializers.ModelSerialize
                 escola_quantidade_nao_deve_ter_kits_e_tempo_passeio(
                     num_kits=len(kits),
                     tempo_passeio=escola_quantidade.get('tempo_passeio'),
+                    indice=cont
+                )
+                escola_quantidade_pedido_nao_pode_ser_mais_que_alunos(
+                    escola=escola_quantidade.get('escola'),
+                    quantidade_alunos_pedido=escola_quantidade.get('quantidade_alunos'),
                     indice=cont
                 )
                 cont += 1

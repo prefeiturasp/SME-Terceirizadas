@@ -1,12 +1,15 @@
 # SolicitacaoKitLancheAvulsaCreationSerializer
 import datetime
+import random
 
 import pytest
 from freezegun import freeze_time
 from model_mommy import mommy
 from rest_framework.exceptions import ValidationError
 
-from sme_terceirizadas.kit_lanche.models import SolicitacaoKitLancheAvulsa
+from sme_terceirizadas.kit_lanche.api.serializers.serializers_create import \
+    SolicitacaoKitLancheUnificadaCreationSerializer
+from sme_terceirizadas.kit_lanche.models import SolicitacaoKitLancheAvulsa, SolicitacaoKitLanche
 from ..api.serializers.serializers_create import SolicitacaoKitLancheAvulsaCreationSerializer
 
 pytestmark = pytest.mark.django_db
@@ -71,3 +74,50 @@ def test_kit_lanche_avulso_serializer_creators(kits_avulsos_param_serializer):
     response_updated = serializer_obj.update(instance=response_created, validated_data=validated_data_update)
     assert isinstance(response_updated, SolicitacaoKitLancheAvulsa)
     assert response_created.solicitacao_kit_lanche.data == data2
+
+
+@freeze_time('2019-10-16')
+def test_kit_lanche_unificado_serializer_validators_lista_igual(kits_unificados_param_serializer):
+    serializer_obj = SolicitacaoKitLancheUnificadaCreationSerializer()
+    kits = mommy.make('KitLanche', _quantity=3)
+    qtd_alunos_escola, quantidade_alunos_pedido, data = kits_unificados_param_serializer
+    escola = mommy.make('Escola', nome='teste', quantidade_alunos=qtd_alunos_escola)
+    escola_quantidades = []
+    for i in range(3):
+        eq = mommy.make('EscolaQuantidade', quantidade_alunos=quantidade_alunos_pedido)
+        escola_quantidades.append(dict(quantidade_alunos=eq.quantidade_alunos,
+                                       kits=[],
+                                       escola=escola))
+
+    lista_kit_lanche_igual = True
+    attrs = dict(lista_kit_lanche_igual=lista_kit_lanche_igual,
+                 escolas_quantidades=escola_quantidades,
+                 solicitacao_kit_lanche=dict(data=data,
+                                             kits=kits,
+                                             tempo_passeio=SolicitacaoKitLanche.CINCO_A_SETE))
+    response = serializer_obj.validate(data=attrs)
+    assert response == attrs
+
+
+@freeze_time('2019-10-16')
+def test_kit_lanche_unificado_serializer_validators_lista_nao_igual(kits_unificados_param_serializer):
+    serializer_obj = SolicitacaoKitLancheUnificadaCreationSerializer()
+    qtd_alunos_escola, quantidade_alunos_pedido, data = kits_unificados_param_serializer
+
+    escola = mommy.make('Escola', quantidade_alunos=qtd_alunos_escola)
+    escola_quantidades = []
+    for i in range(3):
+        kits = mommy.make('KitLanche', _quantity=random.randint(1, 3))
+        eq = mommy.make('EscolaQuantidade', quantidade_alunos=quantidade_alunos_pedido)
+        escola_quantidades.append(dict(quantidade_alunos=eq.quantidade_alunos,
+                                       kits=kits,
+                                       escola=escola))
+
+    lista_kit_lanche_igual = False
+    attrs = dict(lista_kit_lanche_igual=lista_kit_lanche_igual,
+                 escolas_quantidades=escola_quantidades,
+                 solicitacao_kit_lanche=dict(data=data,
+                                             kits=[],
+                                             tempo_passeio=None))
+    response = serializer_obj.validate(data=attrs)
+    assert response == attrs
