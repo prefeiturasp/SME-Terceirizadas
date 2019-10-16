@@ -43,8 +43,8 @@ def test_manager_inversao_desta_semana(datas_inversao_desta_semana):
 def test_manager_inversao_deste_mes(datas_inversao_deste_mes):
     dia_de, dia_para, status = datas_inversao_deste_mes
 
-    cardapio_de = mommy.make('cardapio.Cardapio', data=datetime.date(*dia_de))
-    cardapio_para = mommy.make('cardapio.Cardapio', data=datetime.date(*dia_para))
+    cardapio_de = mommy.make('cardapio.Cardapio', data=dia_de)
+    cardapio_para = mommy.make('cardapio.Cardapio', data=dia_para)
     inversao_cardapio_desta_semana = mommy.make(InversaoCardapio,
                                                 cardapio_de=cardapio_de,
                                                 cardapio_para=cardapio_para,
