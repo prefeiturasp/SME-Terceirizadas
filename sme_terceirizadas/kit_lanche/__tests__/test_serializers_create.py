@@ -1,4 +1,3 @@
-# SolicitacaoKitLancheAvulsaCreationSerializer
 import datetime
 import random
 
@@ -7,10 +6,10 @@ from freezegun import freeze_time
 from model_mommy import mommy
 from rest_framework.exceptions import ValidationError
 
-from sme_terceirizadas.kit_lanche.api.serializers.serializers_create import \
-    SolicitacaoKitLancheUnificadaCreationSerializer
-from sme_terceirizadas.kit_lanche.models import SolicitacaoKitLancheAvulsa, SolicitacaoKitLanche
+from sme_terceirizadas.kit_lanche.models import SolicitacaoKitLancheUnificada
 from ..api.serializers.serializers_create import SolicitacaoKitLancheAvulsaCreationSerializer
+from ..api.serializers.serializers_create import SolicitacaoKitLancheUnificadaCreationSerializer
+from ..models import SolicitacaoKitLancheAvulsa, SolicitacaoKitLanche
 
 pytestmark = pytest.mark.django_db
 
@@ -121,3 +120,54 @@ def test_kit_lanche_unificado_serializer_validators_lista_nao_igual(kits_unifica
                                              tempo_passeio=None))
     response = serializer_obj.validate(data=attrs)
     assert response == attrs
+
+
+@freeze_time('2019-10-16')
+def test_kit_lanche_unificado_serializer_validators_lista_igual(kits_unificados_param_serializer):
+    class FakeObject(object):
+        user = mommy.make('perfil.Usuario')
+
+    serializer_obj = SolicitacaoKitLancheUnificadaCreationSerializer(context={'request': FakeObject})
+
+    kits = mommy.make('KitLanche', _quantity=3)
+    qtd_alunos_escola, quantidade_alunos_pedido, data = kits_unificados_param_serializer
+    escola = mommy.make('Escola', nome='teste', quantidade_alunos=qtd_alunos_escola)
+    diretoria_regional = mommy.make('DiretoriaRegional', nome='teste')
+
+    escola_quantidades = []
+    for i in range(3):
+        eq = mommy.make('EscolaQuantidade', quantidade_alunos=quantidade_alunos_pedido)
+        escola_quantidades.append(dict(quantidade_alunos=eq.quantidade_alunos,
+                                       kits=[],
+                                       escola=escola))
+
+    lista_kit_lanche_igual = True
+    validated_data_create = dict(lista_kit_lanche_igual=lista_kit_lanche_igual,
+                                 escolas_quantidades=escola_quantidades,
+                                 diretoria_regional=diretoria_regional,
+                                 solicitacao_kit_lanche=dict(data=data,
+                                                             kits=kits,
+                                                             tempo_passeio=SolicitacaoKitLanche.CINCO_A_SETE))
+    response_create = serializer_obj.create(validated_data=validated_data_create)
+    assert isinstance(response_create, SolicitacaoKitLancheUnificada)
+    assert response_create.escolas_quantidades.count() == 3
+    assert response_create.criado_por == FakeObject.user
+    assert response_create.diretoria_regional == diretoria_regional
+    assert response_create.lista_kit_lanche_igual is True
+    assert response_create.solicitacao_kit_lanche.data == data
+    assert response_create.solicitacao_kit_lanche.kits.count() == 3
+    assert response_create.solicitacao_kit_lanche.tempo_passeio == SolicitacaoKitLanche.CINCO_A_SETE
+
+    validated_data_update = dict(lista_kit_lanche_igual=lista_kit_lanche_igual,
+                                 escolas_quantidades=escola_quantidades[:2],
+                                 diretoria_regional=diretoria_regional,
+                                 solicitacao_kit_lanche=dict(data=data,
+                                                             kits=kits[:1],
+                                                             tempo_passeio=SolicitacaoKitLanche.QUATRO))
+    response_update = serializer_obj.update(instance=response_create, validated_data=validated_data_update)
+    assert isinstance(response_update, SolicitacaoKitLancheUnificada)
+    assert response_update.escolas_quantidades.count() == 2
+    assert response_update.lista_kit_lanche_igual is True
+    assert response_update.solicitacao_kit_lanche.data == data
+    assert response_update.solicitacao_kit_lanche.kits.count() == 1
+    assert response_update.solicitacao_kit_lanche.tempo_passeio == SolicitacaoKitLanche.QUATRO

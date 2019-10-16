@@ -209,11 +209,15 @@ class SolicitacaoKitLancheUnificadaCreationSerializer(serializers.ModelSerialize
         return solicitacao_kit_unificada
 
     def update(self, instance, validated_data):
+        lista_igual = validated_data.get('lista_kit_lanche_igual', True)
         escolas_quantidades = validated_data.pop('escolas_quantidades')
         solicitacao_kit_lanche_json = validated_data.pop('solicitacao_kit_lanche')
 
         solicitacao_kit_lanche = instance.solicitacao_kit_lanche
         instance.escolas_quantidades.all().delete()
+
+        if not lista_igual:
+            solicitacao_kit_lanche.kits.set([])
 
         SolicitacaoKitLancheCreationSerializer().update(solicitacao_kit_lanche, solicitacao_kit_lanche_json)
 
