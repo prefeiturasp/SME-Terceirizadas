@@ -55,7 +55,7 @@ def test_terceirizada(terceirizada):
     assert terceirizada.alteracoes_cardapio_das_minhas(filtro) is not None
     assert terceirizada.grupos_inclusoes_alimentacao_normal_das_minhas_escolas(filtro) is not None
     assert terceirizada.inclusoes_alimentacao_continua_das_minhas_escolas(filtro) is not None
-    assert terceirizada.suspensoes_cardapio_das_minhas_escolas(filtro) is not None
+    assert terceirizada.suspensoes_alimentacao_das_minhas_escolas(filtro) is not None
     assert terceirizada.inversoes_cardapio_das_minhas_escolas(filtro) is not None
     assert terceirizada.solicitacoes_unificadas_das_minhas_escolas(filtro) is not None
     assert terceirizada.solicitacoes_kit_lanche_das_minhas_escolas_a_validar(filtro) is not None

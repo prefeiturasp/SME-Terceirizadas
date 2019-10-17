@@ -2,7 +2,8 @@ from django.db import models
 
 from .managers import (
     AlteracoesCardapioDestaSemanaManager, AlteracoesCardapioDesteMesManager,
-    AlteracoesCardapioVencidaManager, InversaoCardapioDestaSemanaManager,
+    AlteracoesCardapioVencidaManager, GrupoSuspensaoAlimentacaoDestaSemanaManager,
+    GrupoSuspensaoAlimentacaoDesteMesManager, InversaoCardapioDestaSemanaManager,
     InversaoCardapioDesteMesManager, InversaoCardapioVencidaManager
 )
 from ..dados_comuns.models import TemplateMensagem  # noqa I202
@@ -206,6 +207,9 @@ class GrupoSuspensaoAlimentacao(TemChaveExterna, CriadoPor, TemIdentificadorExte
     """
 
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING)
+    objects = models.Manager()  # Manager Padrão
+    desta_semana = GrupoSuspensaoAlimentacaoDestaSemanaManager()
+    deste_mes = GrupoSuspensaoAlimentacaoDesteMesManager()
 
     @classmethod
     def get_informados(cls):

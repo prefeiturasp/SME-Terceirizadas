@@ -256,8 +256,15 @@ class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel):
             escola__lote__in=self.lotes.all()
         )
 
-    def suspensoes_cardapio_das_minhas_escolas(self, filtro_aplicado):
-        return GrupoSuspensaoAlimentacao.objects.filter(
+    def suspensoes_alimentacao_das_minhas_escolas(self, filtro_aplicado):
+        if filtro_aplicado == DAQUI_A_7_DIAS:
+            suspensoes_alimentacao = GrupoSuspensaoAlimentacao.desta_semana
+        elif filtro_aplicado == DAQUI_A_30_DIAS:
+            suspensoes_alimentacao = GrupoSuspensaoAlimentacao.deste_mes
+        else:
+            suspensoes_alimentacao = GrupoSuspensaoAlimentacao.objects
+        return suspensoes_alimentacao.filter(
+            status=GrupoSuspensaoAlimentacao.workflow_class.INFORMADO,
             escola__lote__in=self.lotes.all()
         )
 
