@@ -78,6 +78,13 @@ class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel):
     contatos = models.ManyToManyField('dados_comuns.Contato', blank=True)
 
     @property
+    def quantidade_alunos(self):
+        quantidade_total = 0
+        for lote in self.lotes.all():
+            quantidade_total += lote.quantidade_alunos
+        return quantidade_total
+
+    @property
     def nutricionistas(self):
         return self.nutricionistas
 
@@ -258,7 +265,8 @@ class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel):
 
     def suspensoes_cardapio_das_minhas_escolas(self, filtro_aplicado):
         return GrupoSuspensaoAlimentacao.objects.filter(
-            escola__lote__in=self.lotes.all()
+            escola__lote__in=self.lotes.all(),
+            status=GrupoSuspensaoAlimentacao.workflow_class.INFORMADO
         )
 
     @property
