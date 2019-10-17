@@ -290,6 +290,21 @@ def inversao_card_params_error(request):
 
 
 @pytest.fixture(params=[
+    # data_inicial, data_final
+    (datetime.date(2019, 10, 4), datetime.date(2019, 12, 31)),
+    (datetime.date(2019, 10, 5), datetime.date(2019, 12, 31)),
+    (datetime.date(2019, 10, 10), datetime.date(2019, 12, 31)),
+    (datetime.date(2019, 10, 20), datetime.date(2019, 12, 31)),
+    (datetime.date(2019, 10, 25), datetime.date(2019, 12, 31)),
+    (datetime.date(2019, 10, 31), datetime.date(2019, 12, 31)),
+    (datetime.date(2019, 11, 3), datetime.date(2019, 12, 31)),
+    (datetime.date(2019, 11, 4), datetime.date(2019, 12, 31)),
+])
+def suspensao_alimentacao_parametros_mes(request):
+    return request.param
+
+
+@pytest.fixture(params=[
     # data do teste 15 out 2019
     # data_inicial, data_final
     (datetime.date(2019, 10, 17), datetime.date(2019, 10, 26)),

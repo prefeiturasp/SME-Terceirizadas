@@ -1,19 +1,50 @@
+from django.db.models.query import QuerySet
 from rest_framework import viewsets
 from rest_framework.decorators import action
+from rest_framework.response import Response
 
 from .constants import (
     AUTORIZADOS, CANCELADOS, FILTRO_DRE_UUID, FILTRO_ESCOLA_UUID,
-    FILTRO_TERCEIRIZADA_UUID, NEGADOS, PENDENTES_AUTORIZACAO
+    FILTRO_TERCEIRIZADA_UUID, NEGADOS, PENDENTES_AUTORIZACAO, PENDENTES_CIENCIA
 )
 from ..api.constants import FILTRO_PERIOD_UUID_DRE, PENDENTES_VALIDACAO_DRE
 from ..models import (
     SolicitacoesCODAE, SolicitacoesDRE, SolicitacoesEscola, SolicitacoesTerceirizada
 )
 from ...dados_comuns.constants import FILTRO_PADRAO_PEDIDOS, SEM_FILTRO
+from ...paineis_consolidados.api.constants import TIPO_VISAO, TIPO_VISAO_LOTE, TIPO_VISAO_SOLICITACOES
 from ...paineis_consolidados.api.serializers import SolicitacoesSerializer
 
 
-class CODAESolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
+class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
+
+    def _agrupar_solicitacoes(self, tipo_visao: str, query_set: QuerySet):
+        if tipo_visao == TIPO_VISAO_SOLICITACOES:
+            descricao_prioridade = [(solicitacao.desc_doc, solicitacao.prioridade) for solicitacao in query_set]
+        elif tipo_visao == TIPO_VISAO_LOTE:
+            descricao_prioridade = [(solicitacao.lote, solicitacao.prioridade) for solicitacao in query_set]
+        else:
+            descricao_prioridade = [(solicitacao.dre_nome, solicitacao.prioridade) for solicitacao in query_set]
+        return descricao_prioridade
+
+    def _agrupa_por_tipo_visao(self, tipo_visao: str, query_set: QuerySet) -> dict:
+        sumario = {}  # type: dict
+        descricao_prioridade = self._agrupar_solicitacoes(tipo_visao, query_set)
+        for nome_objeto, prioridade in descricao_prioridade:
+            if nome_objeto == 'Inclusão de Alimentação Contínua':
+                nome_objeto = 'Inclusão de Alimentação'
+            if nome_objeto not in sumario:
+                sumario[nome_objeto] = {'TOTAL': 0,
+                                        'REGULAR': 0,
+                                        'PRIORITARIO': 0,
+                                        'LIMITE': 0}
+            else:
+                sumario[nome_objeto][prioridade] += 1
+                sumario[nome_objeto]['TOTAL'] += 1
+        return sumario
+
+
+class CODAESolicitacoesViewSet(SolicitacoesViewSet):
     lookup_field = 'uuid'
     queryset = SolicitacoesCODAE.objects.all()
     serializer_class = SolicitacoesSerializer
@@ -44,7 +75,7 @@ class CODAESolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
         return self.get_paginated_response(serializer.data)
 
 
-class EscolaSolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
+class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
     lookup_field = 'uuid'
     queryset = SolicitacoesEscola.objects.all()
     serializer_class = SolicitacoesSerializer
@@ -75,7 +106,7 @@ class EscolaSolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
         return self.get_paginated_response(serializer.data)
 
 
-class DRESolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
+class DRESolicitacoesViewSet(SolicitacoesViewSet):
     lookup_field = 'uuid'
     queryset = SolicitacoesDRE.objects.all()
     serializer_class = SolicitacoesSerializer
@@ -111,7 +142,7 @@ class DRESolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
         return self.get_paginated_response(serializer.data)
 
 
-class TerceirizadaSolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
+class TerceirizadaSolicitacoesViewSet(SolicitacoesViewSet):
     lookup_field = 'uuid'
     queryset = SolicitacoesTerceirizada.objects.all()
     serializer_class = SolicitacoesSerializer
@@ -135,6 +166,15 @@ class TerceirizadaSolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
     def cancelados(self, request, terceirizada_uuid=None):
         query_set = SolicitacoesTerceirizada.get_cancelados(terceirizada_uuid=terceirizada_uuid)
         return self._retorno_base(query_set)
+
+    @action(detail=False, methods=['GET'],
+            url_path=f'{PENDENTES_CIENCIA}/{FILTRO_TERCEIRIZADA_UUID}/{FILTRO_PADRAO_PEDIDOS}/{TIPO_VISAO}')
+    def pendentes_ciencia(self, request, terceirizada_uuid=None, filtro_aplicado=SEM_FILTRO,
+                          tipo_visao=TIPO_VISAO_SOLICITACOES):
+        query_set = SolicitacoesTerceirizada.get_pendentes_ciencia(terceirizada_uuid=terceirizada_uuid,
+                                                                   filtro=filtro_aplicado)
+        response = {'results': self._agrupa_por_tipo_visao(tipo_visao=tipo_visao, query_set=query_set)}
+        return Response(response)
 
     def _retorno_base(self, query_set):
         page = self.paginate_queryset(query_set)

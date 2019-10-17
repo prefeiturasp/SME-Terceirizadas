@@ -340,6 +340,11 @@ class Lote(TemChaveExterna, Nomeavel, Iniciais):
     def escolas(self):
         return self.escolas
 
+    @property
+    def quantidade_alunos(self):
+        quantidade_result = self.escolas.aggregate(Sum('quantidade_alunos'))
+        return quantidade_result.get('quantidade_alunos__sum', 0)
+
     def __str__(self):
         nome_dre = self.diretoria_regional.nome if self.diretoria_regional else 'sem DRE definida'
         return f'{self.nome} - {nome_dre}'

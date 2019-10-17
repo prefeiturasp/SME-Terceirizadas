@@ -22,7 +22,7 @@ SELECT
   terceirizada.uuid AS terceirizada_uuid,
   logs.criado_em,
   'ALT_CARDAPIO' AS tipo_doc,
-  'Alteração de cardápio' AS desc_doc,
+  'Alteração de Cardápio' AS desc_doc,
   logs.status_evento,
   cardapio.status AS status
 FROM
@@ -61,7 +61,7 @@ SELECT
   terceirizada.uuid AS terceirizada_uuid,
   logs.criado_em,
   'INC_ALIMENTA' AS tipo_doc,
-  'Inclusão de alimentação' AS desc_doc,
+  'Inclusão de Alimentação' AS desc_doc,
   logs.status_evento,
   inc_alimentacao.status AS status
 FROM
@@ -102,7 +102,7 @@ SELECT
   terceirizada.uuid AS terceirizada_uuid,
   logs.criado_em,
   'INC_ALIMENTA_CONTINUA' AS tipo_doc,
-  'Inclusão de alimentação contínua' AS desc_doc,
+  'Inclusão de Alimentação Contínua' AS desc_doc,
   logs.status_evento,
   inc_alimentacao_continua.status AS status
 FROM
@@ -141,7 +141,7 @@ SELECT
   terceirizada.uuid AS terceirizada_uuid,
   logs.criado_em,
   'INV_CARDAPIO' AS tipo_doc,
-  'Inversão de cardápio' AS desc_doc,
+  'Inversão de dia de Cardápio' AS desc_doc,
   logs.status_evento,
   inv_cardapio.status AS status
 FROM
@@ -186,7 +186,7 @@ SELECT
   'c09c5187-f026-44d5-a0ef-423dbc408cca' AS terceirizada_uuid,
   logs.criado_em,
   'KIT_LANCHE_UNIFICADA' AS tipo_doc,
-  'Kit lanche unificado' AS desc_doc,
+  'Kit Lanche Passeio Unificado' AS desc_doc,
   logs.status_evento,
   kit_lanche.status AS status
 FROM
@@ -217,7 +217,7 @@ SELECT
   terceirizada.uuid AS terceirizada_uuid,
   logs.criado_em,
   'KIT_LANCHE_AVULSA' AS tipo_doc,
-  'Kit lanche avulso' AS desc_doc,
+  'Kit Lanche Passeio' AS desc_doc,
   logs.status_evento,
   kit_lanche.status AS status
 FROM
@@ -258,7 +258,7 @@ SELECT
   terceirizada.uuid AS terceirizada_uuid,
   logs.criado_em,
   'SUSP_ALIMENTACAO' AS tipo_doc,
-  'Suspensão de alimentação' AS desc_doc,
+  'Suspensão de Alimentação' AS desc_doc,
   logs.status_evento,
   susp_alimentacao.status AS status
 FROM

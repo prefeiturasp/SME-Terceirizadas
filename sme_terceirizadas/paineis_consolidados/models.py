@@ -270,3 +270,16 @@ class SolicitacoesTerceirizada(MoldeConsolidado):
                         PedidoAPartirDaDiretoriaRegionalWorkflow.DRE_CANCELOU],
             terceirizada_uuid=terceirizada_uuid
         ).distinct().order_by('-criado_em')
+
+    @classmethod
+    def get_pendentes_ciencia(cls, **kwargs):
+        terceirizada_uuid = kwargs.get('terceirizada_uuid')
+        manager = cls._get_manager(kwargs)
+        return manager.filter(
+            status__in=[PedidoAPartirDaDiretoriaRegionalWorkflow.CODAE_AUTORIZADO,
+                        PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO,
+                        InformativoPartindoDaEscolaWorkflow.INFORMADO],
+            status_evento__in=[LogSolicitacoesUsuario.CODAE_AUTORIZOU,
+                               LogSolicitacoesUsuario.INICIO_FLUXO],
+            terceirizada_uuid=terceirizada_uuid
+        ).distinct().order_by('-criado_em')
