@@ -4,17 +4,18 @@ Diretoria regional:
     nome, descricao, codigo
 """
 
+import environ
 import numpy as np
 import pandas as pd
-import environ
 
-from sme_pratoaberto_terceirizadas.dados_comuns.models import Endereco, Contato
-from sme_pratoaberto_terceirizadas.escola.models import (Lote, TipoUnidadeEscolar, TipoGestao, Escola,
-                                                         DiretoriaRegional)
-from utility.carga_dados.escola.helper import coloca_zero_a_esquerda, normaliza_nome, somente_digitos
+from sme_terceirizadas.dados_comuns.models import Endereco, Contato
+from sme_terceirizadas.escola.models import (Lote, TipoUnidadeEscolar, TipoGestao, Escola,
+                                             DiretoriaRegional)
+from utility.carga_dados.escola.helper import (
+    coloca_zero_a_esquerda, normaliza_nome, somente_digitos, busca_sigla_lote
+)
 
-
-ROOT_DIR = environ.Path(__file__) -1
+ROOT_DIR = environ.Path(__file__) - 1
 
 df = pd.read_excel(f'{ROOT_DIR}/planilhas_de_carga/escola_dre_codae.xlsx',
                    converters={'EOL': str,
@@ -72,10 +73,6 @@ def cria_tipo_unidade_escolar():
     print('qtd ue criados... {}'.format(cont))
 
 
-def cria_tipo_gestao():
-    obj, created = TipoGestao.objects.get_or_create(nome='TERCEIRIZADA TOTAL')
-
-
 def cria_escola():
     #     idades = models.ManyToManyField(FaixaIdadeEscolar, blank=True)
     #     periodos = models.ManyToManyField(PeriodoEscolar, blank=True)
@@ -104,8 +101,7 @@ def cria_escola():
 
         tipo_gestao = TipoGestao.objects.get(id=1)  # so tem um...
 
-        lote_obj, created_lote = Lote.objects.get_or_create(
-            iniciais=lote_sigla_str)
+        lote_obj = Lote.objects.get(id=busca_sigla_lote(lote_sigla_str))
 
         endereco_obj, created_endereco = Endereco.objects.get_or_create(
             rua=row['ENDEREÇO'],
@@ -140,6 +136,6 @@ def cria_escola():
     print('qtd escolas criadas... {}'.format(cont))
 
 
+print('Run script _3_escola_EMEI.py')
 cria_tipo_unidade_escolar()
-cria_tipo_gestao()
 cria_escola()

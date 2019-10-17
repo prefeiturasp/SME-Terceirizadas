@@ -163,7 +163,7 @@ html_static_path = ["_static"]
 # html_file_suffix = None
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = "sme_pratoaberto_terceirizadasdoc"
+htmlhelp_basename = "sme_terceirizadasdoc"
 
 
 # -- Options for LaTeX output --------------------------------------------------
@@ -182,7 +182,7 @@ latex_elements = {
 latex_documents = [
     (
         "index",
-        "sme_pratoaberto_terceirizadas.tex",
+        "sme_terceirizadas.tex",
         "SME-PratoAberto-Terceirizadas Documentation",
         """Equipe AMCOM|SME""",
         "manual",
@@ -217,7 +217,7 @@ latex_documents = [
 man_pages = [
     (
         "index",
-        "sme_pratoaberto_terceirizadas",
+        "sme_terceirizadas",
         "SME-PratoAberto-Terceirizadas Documentation",
         ["""Equipe AMCOM|SME"""],
         1,
@@ -236,7 +236,7 @@ man_pages = [
 texinfo_documents = [
     (
         "index",
-        "sme_pratoaberto_terceirizadas",
+        "sme_terceirizadas",
         "SME-PratoAberto-Terceirizadas Documentation",
         """Equipe AMCOM|SME""",
         "SME-PratoAberto-Terceirizadas",

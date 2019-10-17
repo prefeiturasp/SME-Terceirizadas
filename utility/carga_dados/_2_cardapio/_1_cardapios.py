@@ -6,10 +6,10 @@ import random
 
 from faker import Faker
 
-from sme_pratoaberto_terceirizadas.cardapio.models import Cardapio, TipoAlimentacao
-from sme_pratoaberto_terceirizadas.dados_comuns.utils import eh_dia_util
-from sme_pratoaberto_terceirizadas.escola.models import TipoUnidadeEscolar
-from sme_pratoaberto_terceirizadas.terceirizada.models import Edital
+from sme_terceirizadas.cardapio.models import Cardapio, TipoAlimentacao
+from sme_terceirizadas.dados_comuns.utils import eh_dia_util
+from sme_terceirizadas.escola.models import TipoUnidadeEscolar
+from sme_terceirizadas.terceirizada.models import Edital
 
 f = Faker('pt-br')
 f.seed(420)

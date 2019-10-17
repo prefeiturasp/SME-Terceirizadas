@@ -1,4 +1,6 @@
+import json
 from unicodedata import normalize
+from django.conf import settings
 
 
 def normaliza_nome(nome):
@@ -19,3 +21,26 @@ def coloca_zero_a_esquerda(palavra, tam=6):
     if tam_palavra < tam:
         final = zeros + palavra
     return final or palavra
+
+
+def busca_sigla_lote(sigla):
+    # Santo Amaro > Não tem escola associada a esse lote OBS: "SAM" eh nao existe
+    # Pirituba > Não tem escola associada a esse lote OBS: "PIR" eh nao existe
+    # Butanta > Não tem escola associada a esse lote OBS: "BTT" eh nao existe
+
+    fixture_data = json.load(
+        open('{0}/sme_terceirizadas/escola/fixtures/lotes.json'.format(settings.ROOT_DIR))
+    )
+
+    def _get_id(data):
+        try:
+            return list(
+                filter(lambda item: item["fields"]["iniciais"] == data, fixture_data)
+            )[0]["id"]
+        except (IndexError, TypeError) as ex:
+            raise Exception("Siga do Lote Nao Encontrado, %s" % str(ex)) from None
+
+    if sigla.strip() == 'MP':
+        return _get_id('MP I')
+    else:
+        return _get_id(sigla.strip())

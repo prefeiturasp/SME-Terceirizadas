@@ -6,18 +6,18 @@ import random
 
 import numpy as np
 from faker import Faker
+from xworkflows import InvalidTransitionError
 
-from sme_pratoaberto_terceirizadas.cardapio.models import TipoAlimentacao, InversaoCardapio, Cardapio, \
+from sme_terceirizadas.cardapio.models import TipoAlimentacao, InversaoCardapio, Cardapio, \
     GrupoSuspensaoAlimentacao, SuspensaoAlimentacao, MotivoSuspensao, QuantidadePorPeriodoSuspensaoAlimentacao, \
     AlteracaoCardapio, MotivoAlteracaoCardapio
-from sme_pratoaberto_terceirizadas.escola.models import Escola, DiretoriaRegional, PeriodoEscolar, Codae, Lote
-from sme_pratoaberto_terceirizadas.inclusao_alimentacao.models import InclusaoAlimentacaoContinua, \
+from sme_terceirizadas.escola.models import Escola, DiretoriaRegional, PeriodoEscolar, Codae
+from sme_terceirizadas.inclusao_alimentacao.models import InclusaoAlimentacaoContinua, \
     MotivoInclusaoContinua, GrupoInclusaoAlimentacaoNormal, QuantidadePorPeriodo, InclusaoAlimentacaoNormal, \
     MotivoInclusaoNormal
-from sme_pratoaberto_terceirizadas.kit_lanche.models import MotivoSolicitacaoUnificada, SolicitacaoKitLancheUnificada, \
-    SolicitacaoKitLanche, KitLanche, SolicitacaoKitLancheAvulsa
-from sme_pratoaberto_terceirizadas.perfil.models import Usuario
-from sme_pratoaberto_terceirizadas.terceirizada.models import Terceirizada
+from sme_terceirizadas.kit_lanche.models import SolicitacaoKitLancheUnificada, \
+    SolicitacaoKitLanche, KitLanche, SolicitacaoKitLancheAvulsa, EscolaQuantidade
+from sme_terceirizadas.perfil.models import Usuario
 
 f = Faker('pt-br')
 f.seed(420)
@@ -31,11 +31,14 @@ def vincula_dre_escola_usuario():
     terceirizada = lote.terceirizada
     codae, created = Codae.objects.get_or_create(nome='teste')
 
-    usuario = Usuario.objects.first()
-    usuario.diretorias_regionais.add(dre)
-    usuario.escolas.add(escola)
-    usuario.terceirizadas.add(terceirizada)
-    codae.usuarios.set([usuario])
+    usuario_escola = Usuario.objects.get(email="escola@admin.com")
+    usuario_escola.escolas.add(escola)
+    usuario_dre = Usuario.objects.get(email="dre@admin.com")
+    usuario_dre.diretorias_regionais.add(dre)
+    usuario_codae = Usuario.objects.get(email="codae@admin.com")
+    codae.usuarios.set([usuario_codae])
+    usuario_terceirizada = Usuario.objects.get(email="terceirizada@admin.com")
+    usuario_terceirizada.terceirizadas.add(terceirizada)
 
 
 def _get_random_cardapio():
@@ -62,16 +65,12 @@ def _get_random_motivo_altercao_cardapio():
     return MotivoAlteracaoCardapio.objects.order_by("?").first()
 
 
-def _get_random_motivo_unificado_kit_lanche():
-    return MotivoSolicitacaoUnificada.objects.order_by("?").first()
-
-
 def _get_random_escola():
-    return Escola.objects.filter(id__lte=5).order_by("?").first()
+    return Escola.objects.filter(id__lte=2).order_by("?").first()
 
 
 def _get_random_dre():
-    return DiretoriaRegional.objects.filter(id__lte=5).order_by("?").first()
+    return DiretoriaRegional.objects.filter(id__lte=2).order_by("?").first()
 
 
 def _get_random_periodo_escolar():
@@ -94,46 +93,56 @@ def fluxo_escola_felix(obj, user):
         return
 
     if random.random() >= 0.1:
-        obj.dre_aprovou(user=user, notificar=True)
+        obj.dre_valida(user=user, notificar=True)
         if random.random() >= 0.2:
-            obj.codae_aprovou(user=user, notificar=True)
+            obj.codae_autoriza(user=user, notificar=True)
             if random.random() >= 0.3:
-                obj.terceirizada_tomou_ciencia(user=user, notificar=True)
+                obj.terceirizada_toma_ciencia(user=user, notificar=True)
+                if random.random() >= 0.8:
+                    try:
+                        obj.cancelar_pedido(user=user)
+                    except InvalidTransitionError:
+                        return
         else:
             if random.random() <= 0.2:
-                obj.codae_cancelou_pedido(user=user, notificar=True)
+                obj.codae_nega(user=user, notificar=True)
     else:
         if random.random() >= 0.1:
-            obj.dre_pediu_revisao(user=user, notificar=True)
+            obj.dre_pede_revisao(user=user, notificar=True)
         else:
-            obj.dre_cancelou_pedido(user=user, notificar=True)
+            obj.dre_nao_valida(user=user, notificar=True)
 
 
 def fluxo_informativo_felix(obj, user):
-    obj.informa(user=user, notificar=True)
+    obj.informa(user=user)
     if random.random() >= 0.5:
-        obj.terceirizada_tomou_ciencia(user=user, notificar=True)
+        obj.terceirizada_toma_ciencia(user=user)
 
 
 def fluxo_dre_felix(obj, user):
     # print(f'aplicando fluxo DRE feliz em {obj}')
-    obj.inicia_fluxo(user=user, notificar=True)
+    obj.inicia_fluxo(user=user)
     if random.random() >= 0.1:
-        obj.codae_aprovou(user=user, notificar=True)
+        obj.codae_autoriza(user=user, notificar=True)
         if random.random() >= 0.3:
-            obj.terceirizada_tomou_ciencia(user=user, notificar=True)
+            obj.terceirizada_toma_ciencia(user=user, notificar=True)
+            if random.random() >= 0.8:
+                try:
+                    obj.cancelar_pedido(user=user)
+                except InvalidTransitionError:
+                    pass
 
 
 def fluxo_escola_loop(obj, user):
     # print(f'aplicando fluxo loop revisao dre-escola em {obj}')
-    obj.inicia_fluxo(user=user, notificar=True)
-    obj.dre_pediu_revisao(user=user, notificar=True)
-    obj.escola_revisou(user=user, notificar=True)
-    obj.dre_aprovou(user=user, notificar=True)
+    obj.inicia_fluxo(user=user)
+    obj.dre_pede_revisao(user=user)
+    obj.escola_revisa(user=user)
+    obj.dre_valida(user=user)
 
 
 def cria_inclusoes_continuas(qtd=50):
-    user = Usuario.objects.first()
+    user = Usuario.objects.get(email="escola@admin.com")
     for i in range(qtd):
         inclusao_continua = InclusaoAlimentacaoContinua.objects.create(
             motivo=_get_random_motivo_continuo(),
@@ -157,7 +166,7 @@ def cria_inclusoes_continuas(qtd=50):
 
 
 def cria_inclusoes_normais(qtd=50):
-    user = Usuario.objects.first()
+    user = Usuario.objects.get(email="escola@admin.com")
     for i in range(qtd):
         grupo_inclusao_normal = GrupoInclusaoAlimentacaoNormal.objects.create(
             descricao=f.text()[:160],
@@ -180,7 +189,7 @@ def cria_inclusoes_normais(qtd=50):
 
 
 def cria_solicitacoes_kit_lanche_unificada(qtd=50):
-    user = Usuario.objects.first()
+    user = Usuario.objects.get(email="dre@admin.com")
     for i in range(qtd):
         base = SolicitacaoKitLanche.objects.create(
             data=hoje + datetime.timedelta(days=random.randint(1, 30)),
@@ -192,7 +201,6 @@ def cria_solicitacoes_kit_lanche_unificada(qtd=50):
 
         unificada = SolicitacaoKitLancheUnificada.objects.create(
             criado_por=user,
-            motivo=_get_random_motivo_unificado_kit_lanche(),
             outro_motivo=f.text()[:40],
             quantidade_max_alunos_por_escola=666,
             local=f.text()[:150],
@@ -200,11 +208,16 @@ def cria_solicitacoes_kit_lanche_unificada(qtd=50):
             diretoria_regional=_get_random_dre(),
             solicitacao_kit_lanche=base,
         )
+        for _ in range(2, 5):
+            EscolaQuantidade.objects.create(quantidade_alunos=random.randint(10, 100),
+                                            solicitacao_unificada=unificada,
+                                            escola=_get_random_escola())
+
         fluxo_dre_felix(unificada, user)
 
 
 def cria_solicitacoes_kit_lanche_avulsa(qtd=50):
-    user = Usuario.objects.first()
+    user = Usuario.objects.get(email="escola@admin.com")
     for i in range(qtd):
         base = SolicitacaoKitLanche.objects.create(
             data=hoje + datetime.timedelta(days=random.randint(1, 30)),
@@ -232,7 +245,7 @@ def cria_solicitacoes_kit_lanche_avulsa(qtd=50):
 #                                on_delete=models.DO_NOTHING)
 
 def cria_inversoes_cardapio(qtd=50):
-    user = Usuario.objects.first()
+    user = Usuario.objects.get(email="escola@admin.com")
     for i in range(qtd):
         inversao = InversaoCardapio.objects.create(
             criado_por=user,
@@ -245,7 +258,7 @@ def cria_inversoes_cardapio(qtd=50):
 
 
 def cria_suspensoes_alimentacao(qtd=50):
-    user = Usuario.objects.first()
+    user = Usuario.objects.get(email="escola@admin.com")
     for i in range(qtd):
         suspensao_grupo = GrupoSuspensaoAlimentacao.objects.create(
             criado_por=user,
@@ -269,7 +282,7 @@ def cria_suspensoes_alimentacao(qtd=50):
 
 def cria_alteracoes_cardapio(qtd=50):
     # TODO terminar os relacionamentos...
-    user = Usuario.objects.first()
+    user = Usuario.objects.get(email="escola@admin.com")
     for i in range(qtd):
         alteracao_cardapio = AlteracaoCardapio(
             data_inicial=hoje + datetime.timedelta(random.randint(1, 15)),
@@ -281,21 +294,25 @@ def cria_alteracoes_cardapio(qtd=50):
         fluxo_escola_felix(alteracao_cardapio, user)
 
 
-QTD_PEDIDOS = 420
+QTD_PEDIDOS = 50
 
 print('-> vinculando escola dre e usuarios')
 vincula_dre_escola_usuario()
-print('-> criando inclusoes continuas')
-cria_inclusoes_continuas(QTD_PEDIDOS)
-print('-> criando inclusoes normais')
-cria_inclusoes_normais(QTD_PEDIDOS)
-print('-> criando solicicitacoes kit lanche unificada')
-cria_solicitacoes_kit_lanche_unificada(QTD_PEDIDOS)
-print('-> criando solicicitacoes kit lanche avulsa')
-cria_solicitacoes_kit_lanche_avulsa(QTD_PEDIDOS)
-print('-> criando inversoes de cardapio')
-cria_inversoes_cardapio(QTD_PEDIDOS)
-print('-> criando suspensoes alimentação')
-cria_suspensoes_alimentacao(QTD_PEDIDOS)
-print('-> criando alterações de cardapio')
-cria_alteracoes_cardapio(QTD_PEDIDOS)
+
+criar_pedidos = input('Criar pedidos do sistema? (S/N)?')
+if criar_pedidos.upper() == 'S':
+    print('-> criando inclusoes continuas')
+    cria_inclusoes_continuas(QTD_PEDIDOS)
+    print('-> criando inclusoes normais')
+    cria_inclusoes_normais(QTD_PEDIDOS)
+    print('-> criando solicicitacoes kit lanche avulsa')
+    cria_solicitacoes_kit_lanche_avulsa(QTD_PEDIDOS)
+    print('-> criando inversoes de cardapio')
+    cria_inversoes_cardapio(QTD_PEDIDOS)
+    print('-> criando suspensoes alimentação')
+    cria_suspensoes_alimentacao(QTD_PEDIDOS)
+    print('-> criando alterações de cardapio')
+    cria_alteracoes_cardapio(QTD_PEDIDOS)
+
+    print('-> criando solicicitacoes kit lanche unificada')
+    cria_solicitacoes_kit_lanche_unificada(QTD_PEDIDOS)

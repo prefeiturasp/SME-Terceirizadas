@@ -1,22 +1,19 @@
-"""
-Base settings to build other settings files upon.
-"""
+"""Base settings to build other settings files upon."""
 
 import datetime
 import os
 
 import environ
 
-# (sme_pratoaberto_terceirizadas/config/settings/base.py - 3 = sme_pratoaberto_terceirizadas/)
+# (sme_terceirizadas/config/settings/base.py - 3 = sme_terceirizadas/)
 ROOT_DIR = environ.Path(__file__) - 3
-APPS_DIR = ROOT_DIR.path('sme_pratoaberto_terceirizadas')
+APPS_DIR = ROOT_DIR.path('sme_terceirizadas')
 
 env = environ.Env()
 
-READ_DOT_ENV_FILE = env.bool('DJANGO_READ_DOT_ENV_FILE', default=True)
+READ_DOT_ENV_FILE = env.bool('DJANGO_READ_DOT_ENV_FILE', default=False)
 if READ_DOT_ENV_FILE:
     # OS environment variables take precedence over variables from .env
-    print('Loading environment...', str(ROOT_DIR.path('.env')))  # noqa T001
     env.read_env(str(ROOT_DIR.path('.env')))
 
 # GENERAL
@@ -29,7 +26,7 @@ DEBUG = env.bool('DJANGO_DEBUG', False)
 # In Windows, this must be set to your system time zone.
 TIME_ZONE = 'America/Sao_Paulo'
 # https://docs.djangoproject.com/en/dev/ref/settings/#language-code
-LANGUAGE_CODE = 'pt_BR'
+LANGUAGE_CODE = 'pt-BR'
 # https://docs.djangoproject.com/en/dev/ref/settings/#site-id
 SITE_ID = 1
 # https://docs.djangoproject.com/en/dev/ref/settings/#use-i18n
@@ -79,7 +76,6 @@ DJANGO_APPS = [
     'django.contrib.admin',
 ]
 THIRD_PARTY_APPS = [
-    'crispy_forms',
     'rest_framework',
     'notifications',
     'rest_framework_swagger',
@@ -87,14 +83,14 @@ THIRD_PARTY_APPS = [
     'django_xworkflows'
 ]
 LOCAL_APPS = [
-    'sme_pratoaberto_terceirizadas.perfil.apps.PerfilConfig',
-    'sme_pratoaberto_terceirizadas.dados_comuns.apps.DadosComunsConfig',
-    'sme_pratoaberto_terceirizadas.escola.apps.EscolaConfig',
-    'sme_pratoaberto_terceirizadas.kit_lanche.apps.KitLancheConfig',
-    'sme_pratoaberto_terceirizadas.inclusao_alimentacao.apps.InclusaoAlimentacaoConfig',
-    'sme_pratoaberto_terceirizadas.cardapio.apps.CardapioConfig',
-    'sme_pratoaberto_terceirizadas.terceirizada.apps.TerceirizadaConfig',
-    'sme_pratoaberto_terceirizadas.paineis_consolidados.apps.PaineisConsolidadosConfig',
+    'sme_terceirizadas.perfil.apps.PerfilConfig',
+    'sme_terceirizadas.dados_comuns.apps.DadosComunsConfig',
+    'sme_terceirizadas.escola.apps.EscolaConfig',
+    'sme_terceirizadas.kit_lanche.apps.KitLancheConfig',
+    'sme_terceirizadas.inclusao_alimentacao.apps.InclusaoAlimentacaoConfig',
+    'sme_terceirizadas.cardapio.apps.CardapioConfig',
+    'sme_terceirizadas.terceirizada.apps.TerceirizadaConfig',
+    'sme_terceirizadas.paineis_consolidados.apps.PaineisConsolidadosConfig',
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -103,7 +99,7 @@ INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#migration-modules
 MIGRATION_MODULES = {
-    'sites': 'sme_pratoaberto_terceirizadas.contrib.sites.migrations'
+    'sites': 'sme_terceirizadas.contrib.sites.migrations'
 }
 
 # AUTHENTICATION
@@ -111,7 +107,6 @@ MIGRATION_MODULES = {
 # https://docs.djangoproject.com/en/dev/ref/settings/#authentication-backends
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
-    'allauth.account.auth_backends.AuthenticationBackend',
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#auth-user-model
 AUTH_USER_MODEL = 'perfil.Usuario'
@@ -258,20 +253,6 @@ ADMINS = [
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#managers
 MANAGERS = ADMINS
-
-# django-allauth
-# ------------------------------------------------------------------------------
-ACCOUNT_ALLOW_REGISTRATION = env.bool('DJANGO_ACCOUNT_ALLOW_REGISTRATION', True)
-# https://django-allauth.readthedocs.io/en/latest/configuration.html
-ACCOUNT_AUTHENTICATION_METHOD = 'username'
-# https://django-allauth.readthedocs.io/en/latest/configuration.html
-ACCOUNT_EMAIL_REQUIRED = True
-# https://django-allauth.readthedocs.io/en/latest/configuration.html
-ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
-# https://django-allauth.readthedocs.io/en/latest/configuration.html
-ACCOUNT_ADAPTER = 'sme_pratoaberto_terceirizadas.perfil.adapters.AccountAdapter'
-# https://django-allauth.readthedocs.io/en/latest/configuration.html
-SOCIALACCOUNT_ADAPTER = 'sme_pratoaberto_terceirizadas.perfil.adapters.SocialAccountAdapter'
 
 # Your stuff...
 # ------------------------------------------------------------------------------

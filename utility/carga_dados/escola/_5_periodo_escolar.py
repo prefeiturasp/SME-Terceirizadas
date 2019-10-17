@@ -2,11 +2,11 @@ import numpy as np
 import pandas as pd
 import environ
 
-from sme_pratoaberto_terceirizadas.escola.models import PeriodoEscolar, Escola
+from sme_terceirizadas.escola.models import PeriodoEscolar, Escola
 from utility.carga_dados.escola.helper import coloca_zero_a_esquerda
 
 
-ROOT_DIR = environ.Path(__file__) -1
+ROOT_DIR = environ.Path(__file__) - 1
 
 df = pd.read_excel(f'{ROOT_DIR}/planilhas_de_carga/CADASTRO ESCOLAS DIVULGACAO.xlsx',
                    converters={
@@ -112,5 +112,6 @@ def vincula_periodo_escolar_a_escola():
     print(f'qtd  vinculados... {cont}')
 
 
+print('Run script _5_periodo_escolar.py')
 cria_periodo_escolar()
 vincula_periodo_escolar_a_escola()

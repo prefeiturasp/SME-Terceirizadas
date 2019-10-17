@@ -1,9 +1,0 @@
-[
-  {
-    "model": "escola.tipogestao",
-    "id": 2,
-    "fields": {
-      "nome": "MISTA"
-    }
-  }
-]

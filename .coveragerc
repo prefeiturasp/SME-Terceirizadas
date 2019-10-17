@@ -1,5 +1,5 @@
 [run]
-include = sme_pratoaberto_terceirizadas/*
+include = sme_terceirizadas/*
 omit = *migrations*, *tests*, *.html, *.txt
 plugins =
     django_coverage_plugin
