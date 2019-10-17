@@ -265,7 +265,8 @@ class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel):
 
     def suspensoes_cardapio_das_minhas_escolas(self, filtro_aplicado):
         return GrupoSuspensaoAlimentacao.objects.filter(
-            escola__lote__in=self.lotes.all()
+            escola__lote__in=self.lotes.all(),
+            status=GrupoSuspensaoAlimentacao.workflow_class.INFORMADO
         )
 
     @property
