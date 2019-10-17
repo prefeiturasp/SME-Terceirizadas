@@ -33,44 +33,6 @@ def nao_pode_existir_solicitacao_igual_para_mesma_escola(data_de: datetime.date,
     return True
 
 
-def existe_data_cadastrada(cardapio_de: Cardapio, cardapio_para: Cardapio, escola: Escola):
-    inversao_cardapio = InversaoCardapio.objects.filter(Q(cardapio_de=cardapio_de) | Q(cardapio_para=cardapio_para),
-                                                        escola=escola).exists()
-    if inversao_cardapio:
-        return False
-    return True
-
-
-def valida_tipo_cardapio_inteiro(cardapio, periodos, tipo, tipos_alimentacao):
-    if not cardapio:
-        raise serializers.ValidationError(
-            f'Quando tipo {tipo} (cardápio inteiro), deve ter cardápio')
-    if periodos or tipos_alimentacao:
-        raise serializers.ValidationError(
-            f'Quando tipo {tipo} (cardápio inteiro), não pode ter períodos ou tipos de alimentação')
-    return True
-
-
-def valida_tipo_periodo_escolar(cardapio, periodos, tipo, tipos_alimentacao):
-    if not periodos:
-        raise serializers.ValidationError(
-            f'Quando tipo {tipo} (periodo escolar), deve ter ao menos 1 periodo escolar')
-    if cardapio or tipos_alimentacao:
-        raise serializers.ValidationError(
-            f'Quando tipo {tipo} (periodo escolar), não pode ter cardapio ou tipos de alimentação')
-    return True
-
-
-def valida_tipo_alimentacao(cardapio, periodos, tipo, tipos_alimentacao):
-    if not tipos_alimentacao:
-        raise serializers.ValidationError(
-            f'Quando tipo {tipo} (tipo alimentação), deve ter ao menos 1 tipo de alimentação')
-    if cardapio or periodos:
-        raise serializers.ValidationError(
-            f'Quando tipo {tipo} (tipo alimentação), não pode ter cardapio ou períodos')
-    return True
-
-
 def deve_ser_no_mesmo_ano_corrente(data_inversao: datetime.date):
     ano_corrente = datetime.date.today().year
     if ano_corrente != data_inversao.year:
