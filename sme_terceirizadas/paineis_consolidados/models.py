@@ -243,7 +243,6 @@ class SolicitacoesTerceirizada(MoldeConsolidado):
         ).distinct('uuid')
         return sorted(s, key=operator.attrgetter('criado_em'), reverse=True)
 
-
     @classmethod
     def get_autorizados(cls, **kwargs):
         terceirizada_uuid = kwargs.get('terceirizada_uuid')
