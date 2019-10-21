@@ -107,9 +107,11 @@ class LoteSimplesSerializer(serializers.ModelSerializer):
 
 
 class LoteNomeSerializer(serializers.ModelSerializer):
+    tipo_gestao = serializers.CharField()
+
     class Meta:
         model = Lote
-        fields = ('uuid', 'nome')
+        fields = ('uuid', 'nome', 'tipo_gestao')
 
 
 class EscolaSimplesSerializer(serializers.ModelSerializer):
@@ -158,6 +160,7 @@ class TerceirizadaSerializer(serializers.ModelSerializer):
     endereco = EnderecoSerializer()
     contratos = ContratoSimplesSerializer(many=True)
     lotes = LoteNomeSerializer(many=True)
+    quantidade_alunos = serializers.IntegerField()
     id_externo = serializers.CharField()
 
     class Meta:

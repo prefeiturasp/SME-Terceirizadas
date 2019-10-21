@@ -4,7 +4,7 @@ import pytest
 from freezegun import freeze_time
 from model_mommy import mommy
 
-from ..models import AlteracaoCardapio, InversaoCardapio
+from ..models import AlteracaoCardapio, GrupoSuspensaoAlimentacao, InversaoCardapio, SuspensaoAlimentacao
 
 pytestmark = pytest.mark.django_db
 
@@ -95,3 +95,13 @@ def test_manager_alteracao_deste_mes(datas_alteracao_mes):
                                         status=status)
     assert alteracao_cardapio_mes not in AlteracaoCardapio.vencidos.all()
     assert alteracao_cardapio_mes in AlteracaoCardapio.deste_mes.all()
+
+
+@freeze_time('2019-10-4')
+def test_manager_inclusoes_normais_deste_mes(suspensao_alimentacao_parametros_mes):
+    data_evento, _ = suspensao_alimentacao_parametros_mes
+
+    grupo_suspensoes = mommy.make(GrupoSuspensaoAlimentacao)
+    mommy.make(SuspensaoAlimentacao, data=data_evento,
+               grupo_suspensao=grupo_suspensoes)
+    assert grupo_suspensoes in GrupoSuspensaoAlimentacao.deste_mes.all()

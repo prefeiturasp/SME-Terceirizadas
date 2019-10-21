@@ -294,7 +294,7 @@ class GrupoSuspensaoAlimentacaoSerializerViewSet(viewsets.ModelViewSet):
         usuario = request.user
         # TODO: aguardando definição de perfis pra saber
         terceirizada = usuario.terceirizadas.first()
-        suspensoes_cardapio = terceirizada.suspensoes_cardapio_das_minhas_escolas(
+        suspensoes_cardapio = terceirizada.suspensoes_alimentacao_das_minhas_escolas(
             filtro_aplicado
         )
 
