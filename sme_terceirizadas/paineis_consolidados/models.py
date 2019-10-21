@@ -1,4 +1,5 @@
 import datetime
+import operator
 
 from django.db import models
 from django.db.models import Q
@@ -227,18 +228,21 @@ class SolicitacoesDRE(MoldeConsolidado):
         ).distinct().order_by('-criado_em')
 
 
+# TODO: voltar quando tiver o Rastro implementado
 class SolicitacoesTerceirizada(MoldeConsolidado):
 
     @classmethod
     def get_pendentes_autorizacao(cls, **kwargs):
         terceirizada_uuid = kwargs.get('terceirizada_uuid')
-        return cls.objects.filter(
+        s = cls.objects.filter(
+            terceirizada_uuid=terceirizada_uuid,
             status__in=[PedidoAPartirDaDiretoriaRegionalWorkflow.CODAE_A_AUTORIZAR,
                         PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO],
             status_evento__in=[LogSolicitacoesUsuario.DRE_VALIDOU,
                                LogSolicitacoesUsuario.INICIO_FLUXO],
-            terceirizada_uuid=terceirizada_uuid
-        ).distinct().order_by('-criado_em')
+        ).distinct('uuid')
+        return sorted(s, key=operator.attrgetter('criado_em'), reverse=True)
+
 
     @classmethod
     def get_autorizados(cls, **kwargs):
@@ -269,7 +273,7 @@ class SolicitacoesTerceirizada(MoldeConsolidado):
             status__in=[PedidoAPartirDaEscolaWorkflow.ESCOLA_CANCELOU,
                         PedidoAPartirDaDiretoriaRegionalWorkflow.DRE_CANCELOU],
             terceirizada_uuid=terceirizada_uuid
-        ).distinct().order_by('-criado_em')
+        ).order_by('-criado_em').distinct()
 
     @classmethod
     def get_pendentes_ciencia(cls, **kwargs):
@@ -282,4 +286,4 @@ class SolicitacoesTerceirizada(MoldeConsolidado):
             status_evento__in=[LogSolicitacoesUsuario.CODAE_AUTORIZOU,
                                LogSolicitacoesUsuario.INICIO_FLUXO],
             terceirizada_uuid=terceirizada_uuid
-        ).distinct().order_by('-criado_em')
+        ).distinct('uuid')
