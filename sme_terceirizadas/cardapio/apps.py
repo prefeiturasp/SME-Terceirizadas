@@ -7,7 +7,7 @@ class CardapioConfig(AppConfig):
 
     def ready(self):
         from .models import InversaoCardapio, AlteracaoCardapio, GrupoSuspensaoAlimentacao
-        from .signals import salva_rastro_inversao_alteracao_suspensao
+        from ..dados_comuns.signals import salva_rastro_inversao_alteracao_suspensao
 
         post_save.connect(salva_rastro_inversao_alteracao_suspensao, sender=AlteracaoCardapio)
         post_save.connect(salva_rastro_inversao_alteracao_suspensao, sender=InversaoCardapio)
