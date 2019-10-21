@@ -37,7 +37,8 @@ class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
                 sumario[nome_objeto] = {'TOTAL': 0,
                                         'REGULAR': 0,
                                         'PRIORITARIO': 0,
-                                        'LIMITE': 0}
+                                        'LIMITE': 0,
+                                        'VENCIDO': 0}
             else:
                 sumario[nome_objeto][prioridade] += 1
                 sumario[nome_objeto]['TOTAL'] += 1
