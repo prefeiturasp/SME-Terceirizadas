@@ -630,6 +630,13 @@ class TemRastroInstituicaoPartindoDaEscola(models.Model):
                                             related_name='%(app_label)s_%(class)s_rastro_terceirizada',
                                             editable=False)
 
+    def salva_rastro_solicitacao(self):
+        self.rastro_escola = self.escola
+        self.rastro_dre = self.escola.diretoria_regional
+        self.rastro_lote = self.escola.lote
+        self.rastro_terceirizada = self.escola.lote.terceirizada
+        self.save()
+
     class Meta:
         abstract = True
 
@@ -657,6 +664,14 @@ class TemRastroInstituicaoPartindoDaDiretoriaRegional(models.Model):
                                             blank=True,
                                             related_name='%(app_label)s_%(class)s_rastro_terceirizada',
                                             editable=False)
+
+    def salva_rastro_solicitacao(self):
+        escolas = [i.escola for i in self.escolas_quantidades.all()]
+        self.rastro_escolas.set(escolas)
+        self.rastro_dre = self.diretoria_regional
+        self.rastro_lote = self.lote
+        self.rastro_terceirizada = self.lote.terceirizada
+        self.save()
 
     class Meta:
         abstract = True

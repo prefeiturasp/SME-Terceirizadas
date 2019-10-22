@@ -4,7 +4,6 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.db.models.functions import Coalesce
 
-
 from sme_terceirizadas.dados_comuns.models_abstract import TemRastroInstituicaoPartindoDaDiretoriaRegional
 from .managers import (
     SolicitacaoUnificadaDestaSemanaManager, SolicitacaoUnificadaDesteMesManager, SolicitacaoUnificadaVencidaManager,
@@ -165,6 +164,16 @@ class SolicitacaoKitLancheUnificada(CriadoPor, TemChaveExterna, TemIdentificador
         except ObjectDoesNotExist:
             lote_nome = 'Não tem lote'
         return lote_nome
+
+    @property
+    def lote(self):
+        """Solicitação unificada é somente de um lote.
+
+        Vide o  self.dividir_por_lote()
+        """
+        escola_quantidade = self.escolas_quantidades.first()
+        lote = escola_quantidade.escola.lote
+        return lote
 
     @property
     def quantidade_alimentacoes(self):
