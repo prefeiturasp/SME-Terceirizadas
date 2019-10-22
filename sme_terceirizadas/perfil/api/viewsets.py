@@ -8,7 +8,7 @@ from rest_framework.viewsets import GenericViewSet, ViewSet
 from .permissions import PodeMarcarDesmarcarComoLidaPermission
 from .serializers import (
     GrupoCompletoPerfilSerializer, GrupoPerfilCreateSerializer, NotificationSerializer, PerfilPermissaoCreateSerializer,
-    PerfilPermissaoSerializer, PerfilSerializer, PermissaoSerializer, UsuarioSerializer, UsuarioCreateSerializer
+    PerfilPermissaoSerializer, PerfilSerializer, PermissaoSerializer, UsuarioCreateSerializer, UsuarioSerializer
 )
 from ..models import GrupoPerfil, Perfil, PerfilPermissao, Permissao, Usuario
 from ...escola.api.serializers import UsuarioDetalheSerializer
