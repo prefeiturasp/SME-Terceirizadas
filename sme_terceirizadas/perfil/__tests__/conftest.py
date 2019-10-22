@@ -27,7 +27,7 @@ def grupo_perfil():
 
 @pytest.fixture
 def usuario():
-    return mommy.make(models.Usuario, nome="Fulano da Silva", email="fulano@teste.com")
+    return mommy.make(models.Usuario, nome='Fulano da Silva', email='fulano@teste.com')
 
 
 @pytest.fixture

@@ -21,6 +21,6 @@ def test_grupo_perfil(grupo_perfil):
 
 
 def test_usuario(usuario):
-    assert usuario.nome == "Fulano da Silva"
-    assert usuario.email == "fulano@teste.com"
+    assert usuario.nome == 'Fulano da Silva'
+    assert usuario.email == 'fulano@teste.com'
     assert usuario.tipo_usuario == 'indefinido'

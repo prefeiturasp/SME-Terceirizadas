@@ -1,6 +1,6 @@
 from django.contrib.auth.tokens import default_token_generator
 from notifications.models import Notification
-from rest_framework import viewsets, permissions
+from rest_framework import permissions, viewsets
 from rest_framework.decorators import action
 from rest_framework.mixins import RetrieveModelMixin
 from rest_framework.response import Response
@@ -9,7 +9,7 @@ from rest_framework.viewsets import GenericViewSet, ViewSet
 from .permissions import PodeMarcarDesmarcarComoLidaPermission
 from .serializers import (
     GrupoCompletoPerfilSerializer, GrupoPerfilCreateSerializer, NotificationSerializer, PerfilPermissaoCreateSerializer,
-    PerfilPermissaoSerializer, PerfilSerializer, PermissaoSerializer, UsuarioUpdateSerializer, UsuarioSerializer
+    PerfilPermissaoSerializer, PerfilSerializer, PermissaoSerializer, UsuarioUpdateSerializer
 )
 from ..models import GrupoPerfil, Perfil, PerfilPermissao, Permissao, Usuario
 from ...escola.api.serializers import UsuarioDetalheSerializer
