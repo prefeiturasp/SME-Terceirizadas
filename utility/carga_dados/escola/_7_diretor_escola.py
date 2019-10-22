@@ -51,12 +51,12 @@ def percorre_data_frame():
         nome='ESCOLA',
         ativo=True
     )
+    grupo_escola.save()
     perfil_usuario = Perfil(
         nome='DIRETOR',
         ativo=True,
         grupo=grupo_escola
     )
-    grupo_escola.save()
     perfil_usuario.save()
     for index, row in df.iterrows():
         diretores_contabilizados += 1
