@@ -604,13 +604,41 @@ class Logs(object):
         return LogSolicitacoesUsuario.objects.filter(uuid_original=self.uuid)
 
 
-class TemRastroInstituicao(models.Model):
+class TemRastroInstituicaoPartindoDaEscola(models.Model):
     rastro_escola = models.ForeignKey('escola.Escola',
                                       on_delete=models.DO_NOTHING,
                                       null=True,
                                       blank=True,
                                       related_name='%(app_label)s_%(class)s_rastro_escola',
                                       editable=False)
+    rastro_dre = models.ForeignKey('escola.DiretoriaRegional',
+                                   on_delete=models.DO_NOTHING,
+                                   null=True,
+                                   related_name='%(app_label)s_%(class)s_rastro_dre',
+                                   blank=True,
+                                   editable=False)
+    rastro_lote = models.ForeignKey('escola.Lote',
+                                    on_delete=models.DO_NOTHING,
+                                    null=True,
+                                    blank=True,
+                                    related_name='%(app_label)s_%(class)s_rastro_lote',
+                                    editable=False)
+    rastro_terceirizada = models.ForeignKey('terceirizada.Terceirizada',
+                                            on_delete=models.DO_NOTHING,
+                                            null=True,
+                                            blank=True,
+                                            related_name='%(app_label)s_%(class)s_rastro_terceirizada',
+                                            editable=False)
+
+    class Meta:
+        abstract = True
+
+
+class TemRastroInstituicaoPartindoDaDiretoriaRegional(models.Model):
+    rastro_escolas = models.ManyToManyField('escola.Escola',
+                                            blank=True,
+                                            related_name='%(app_label)s_%(class)s_rastro_escola',
+                                            editable=False)
     rastro_dre = models.ForeignKey('escola.DiretoriaRegional',
                                    on_delete=models.DO_NOTHING,
                                    null=True,

@@ -4,6 +4,8 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.db.models.functions import Coalesce
 
+
+from sme_terceirizadas.dados_comuns.models_abstract import TemRastroInstituicaoPartindoDaDiretoriaRegional
 from .managers import (
     SolicitacaoUnificadaDestaSemanaManager, SolicitacaoUnificadaDesteMesManager, SolicitacaoUnificadaVencidaManager,
     SolicitacoesKitLancheAvulsaDestaSemanaManager, SolicitacoesKitLancheAvulsaDesteMesManager,
@@ -12,8 +14,8 @@ from .managers import (
 from ..dados_comuns.models import LogSolicitacoesUsuario, TemplateMensagem
 from ..dados_comuns.models_abstract import (
     CriadoEm, CriadoPor, Descritivel, FluxoAprovacaoPartindoDaDiretoriaRegional, FluxoAprovacaoPartindoDaEscola, Logs,
-    Motivo, Nomeavel, TemChaveExterna, TemData, TemIdentificadorExternoAmigavel, TemPrioridade, TempoPasseio
-)
+    Motivo, Nomeavel, TemChaveExterna, TemData, TemIdentificadorExternoAmigavel, TemPrioridade, TempoPasseio,
+    TemRastroInstituicaoPartindoDaEscola)
 
 
 class ItemKitLanche(Nomeavel, TemChaveExterna):
@@ -61,7 +63,7 @@ class SolicitacaoKitLanche(TemData, Motivo, Descritivel, CriadoEm, TempoPasseio,
 
 
 class SolicitacaoKitLancheAvulsa(TemChaveExterna, FluxoAprovacaoPartindoDaEscola, TemIdentificadorExternoAmigavel,
-                                 CriadoPor, TemPrioridade, Logs):
+                                 CriadoPor, TemPrioridade, Logs, TemRastroInstituicaoPartindoDaEscola):
     # TODO: ao deletar este, deletar solicitacao_kit_lanche também que é uma tabela acessória
     # TODO: passar `local` para solicitacao_kit_lanche
     local = models.CharField(max_length=160)
@@ -120,7 +122,8 @@ class SolicitacaoKitLancheAvulsa(TemChaveExterna, FluxoAprovacaoPartindoDaEscola
 
 
 class SolicitacaoKitLancheUnificada(CriadoPor, TemChaveExterna, TemIdentificadorExternoAmigavel,
-                                    FluxoAprovacaoPartindoDaDiretoriaRegional, Logs, TemPrioridade):
+                                    FluxoAprovacaoPartindoDaDiretoriaRegional, Logs, TemPrioridade,
+                                    TemRastroInstituicaoPartindoDaDiretoriaRegional):
     """Uma DRE pede para as suas escolas.
 
     lista_kit_lanche_igual é a mesma lista de kit lanche pra todos.

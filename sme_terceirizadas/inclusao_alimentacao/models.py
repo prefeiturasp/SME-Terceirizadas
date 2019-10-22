@@ -12,7 +12,7 @@ from ..dados_comuns.models import (
 from ..dados_comuns.models_abstract import (
     CriadoEm, CriadoPor, Descritivel, DiasSemana, FluxoAprovacaoPartindoDaEscola, IntervaloDeDia, Logs, Nomeavel,
     TemChaveExterna, TemData, TemIdentificadorExternoAmigavel, TemPrioridade,
-    TemRastroInstituicao)
+    TemRastroInstituicaoPartindoDaEscola)
 
 
 class QuantidadePorPeriodo(TemChaveExterna):
@@ -57,7 +57,7 @@ class MotivoInclusaoContinua(Nomeavel, TemChaveExterna):
 class InclusaoAlimentacaoContinua(IntervaloDeDia, Descritivel, TemChaveExterna,
                                   DiasSemana, FluxoAprovacaoPartindoDaEscola,
                                   CriadoPor, TemIdentificadorExternoAmigavel,
-                                  CriadoEm, Logs, TemPrioridade, TemRastroInstituicao):
+                                  CriadoEm, Logs, TemPrioridade, TemRastroInstituicaoPartindoDaEscola):
     outro_motivo = models.CharField('Outro motivo', blank=True, max_length=50)
     motivo = models.ForeignKey(MotivoInclusaoContinua, on_delete=models.DO_NOTHING)
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING,
@@ -160,7 +160,7 @@ class InclusaoAlimentacaoNormal(TemData, TemChaveExterna):
 
 class GrupoInclusaoAlimentacaoNormal(Descritivel, TemChaveExterna, FluxoAprovacaoPartindoDaEscola, CriadoEm,
                                      CriadoPor, TemIdentificadorExternoAmigavel, Logs, TemPrioridade,
-                                     TemRastroInstituicao):
+                                     TemRastroInstituicaoPartindoDaEscola):
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING,
                                related_name='grupos_inclusoes_normais')
 

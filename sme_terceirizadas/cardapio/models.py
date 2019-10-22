@@ -10,7 +10,7 @@ from ..dados_comuns.models import TemplateMensagem  # noqa I202
 from ..dados_comuns.models_abstract import (
     Ativavel, CriadoEm, CriadoPor, Descritivel, FluxoAprovacaoPartindoDaEscola, FluxoInformativoPartindoDaEscola,
     IntervaloDeDia, LogSolicitacoesUsuario, Logs, Motivo, Nomeavel, TemChaveExterna, TemData,
-    TemIdentificadorExternoAmigavel, TemObservacao, TemPrioridade, TemRastroInstituicao)
+    TemIdentificadorExternoAmigavel, TemObservacao, TemPrioridade, TemRastroInstituicaoPartindoDaEscola)
 
 
 class TipoAlimentacao(Nomeavel, TemChaveExterna):
@@ -70,7 +70,7 @@ class Cardapio(Descritivel, Ativavel, TemData, TemChaveExterna, CriadoEm):
 
 class InversaoCardapio(CriadoEm, CriadoPor, TemObservacao, Motivo, TemChaveExterna,
                        TemIdentificadorExternoAmigavel, FluxoAprovacaoPartindoDaEscola,
-                       TemPrioridade, Logs, TemRastroInstituicao):
+                       TemPrioridade, Logs, TemRastroInstituicaoPartindoDaEscola):
     """Troca um cardápio de um dia por outro.
 
     servir o cardápio do dia 30 no dia 15, automaticamente o
@@ -199,7 +199,7 @@ class QuantidadePorPeriodoSuspensaoAlimentacao(TemChaveExterna):
 
 class GrupoSuspensaoAlimentacao(TemChaveExterna, CriadoPor, TemIdentificadorExternoAmigavel,
                                 CriadoEm, TemObservacao, FluxoInformativoPartindoDaEscola, Logs,
-                                TemPrioridade, TemRastroInstituicao):
+                                TemPrioridade, TemRastroInstituicaoPartindoDaEscola):
     """Serve para agrupar suspensões.
 
     Vide SuspensaoAlimentacao e QuantidadePorPeriodoSuspensaoAlimentacao
@@ -308,7 +308,7 @@ class MotivoAlteracaoCardapio(Nomeavel, TemChaveExterna):
 
 class AlteracaoCardapio(CriadoEm, CriadoPor, TemChaveExterna, IntervaloDeDia, TemObservacao,
                         FluxoAprovacaoPartindoDaEscola, TemIdentificadorExternoAmigavel, Logs,
-                        TemPrioridade, TemRastroInstituicao):
+                        TemPrioridade, TemRastroInstituicaoPartindoDaEscola):
     objects = models.Manager()  # Manager Padrão
     desta_semana = AlteracoesCardapioDestaSemanaManager()
     deste_mes = AlteracoesCardapioDesteMesManager()
