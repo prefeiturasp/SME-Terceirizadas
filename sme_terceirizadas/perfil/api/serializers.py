@@ -1,6 +1,7 @@
 from notifications.models import Notification
 from rest_framework import serializers
 
+from .validators import senha_deve_ser_igual_confirmar_senha
 from ..models import (GrupoPerfil, Perfil, PerfilPermissao, Permissao, Usuario)
 
 
@@ -40,20 +41,6 @@ class PerfilSerializer(serializers.ModelSerializer):
         exclude = ('id', 'ativo')
 
 
-class PerfilPermissaoCreateSerializer(serializers.ModelSerializer):
-    permissao = serializers.SlugRelatedField(slug_field='uuid', queryset=Permissao.objects.all())
-    perfil = serializers.SlugRelatedField(slug_field='uuid', queryset=Perfil.objects.all())
-
-    acoes_explicacao = serializers.CharField(
-        source='acoes_choices_array_display',
-        required=False,
-        read_only=True)
-
-    class Meta:
-        model = PerfilPermissao
-        exclude = ('id',)
-
-
 class PerfilPermissaoSerializer(serializers.ModelSerializer):
     permissao = PermissaoSerializer()
     perfil = PerfilSerializer()
@@ -86,3 +73,35 @@ class UsuarioSerializer(serializers.ModelSerializer):
     class Meta:
         model = Usuario
         fields = ('uuid', 'nome', 'email', 'date_joined')
+
+
+class PerfilPermissaoCreateSerializer(serializers.ModelSerializer):
+    permissao = serializers.SlugRelatedField(slug_field='uuid', queryset=Permissao.objects.all())
+    perfil = serializers.SlugRelatedField(slug_field='uuid', queryset=Perfil.objects.all())
+
+    acoes_explicacao = serializers.CharField(
+        source='acoes_choices_array_display',
+        required=False,
+        read_only=True)
+
+    class Meta:
+        model = PerfilPermissao
+        exclude = ('id',)
+
+
+class UsuarioUpdateSerializer(serializers.ModelSerializer):
+    confirmar_password = serializers.CharField()
+
+    def partial_update(self, validated_data, usuario):
+        password = validated_data.get('password')
+        confirmar_password = validated_data.pop('confirmar_password')
+        senha_deve_ser_igual_confirmar_senha(password, confirmar_password)
+        self.update(usuario, validated_data)
+        usuario.set_password(validated_data['password'])
+        usuario.save()
+        return usuario
+
+    class Meta:
+        model = Usuario
+        fields = ('email', 'registro_funcional', 'vinculo_funcional', 'password', 'confirmar_password', 'cpf')
+        write_only_fields = ('password',)
