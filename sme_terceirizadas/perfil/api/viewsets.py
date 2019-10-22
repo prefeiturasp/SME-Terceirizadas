@@ -8,16 +8,21 @@ from rest_framework.viewsets import GenericViewSet, ViewSet
 from .permissions import PodeMarcarDesmarcarComoLidaPermission
 from .serializers import (
     GrupoCompletoPerfilSerializer, GrupoPerfilCreateSerializer, NotificationSerializer, PerfilPermissaoCreateSerializer,
-    PerfilPermissaoSerializer, PerfilSerializer, PermissaoSerializer, UsuarioSerializer
+    PerfilPermissaoSerializer, PerfilSerializer, PermissaoSerializer, UsuarioSerializer, UsuarioCreateSerializer
 )
 from ..models import GrupoPerfil, Perfil, PerfilPermissao, Permissao, Usuario
 from ...escola.api.serializers import UsuarioDetalheSerializer
 
 
-class UsuarioViewSet(viewsets.ReadOnlyModelViewSet):
+class UsuarioViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
     queryset = Usuario.objects.all()
     serializer_class = UsuarioSerializer
+
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update']:
+            return UsuarioCreateSerializer
+        return UsuarioSerializer
 
     @action(detail=False, url_path='meus-dados')
     def meus_dados(self, request):
