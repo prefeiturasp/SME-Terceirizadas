@@ -58,16 +58,16 @@ def cardapio_invalido():
 
 @pytest.fixture
 def escola():
-    escola = mommy.prepare('Escola', _save_related=True)
+    lote = mommy.make('Lote')
+    escola = mommy.make('Escola', lote=lote)
     return escola
 
 
 @pytest.fixture
-def inversao_dia_cardapio(cardapio_valido2, cardapio_valido3):
+def inversao_dia_cardapio(cardapio_valido2, cardapio_valido3, escola):
     mommy.make(TemplateMensagem, assunto='TESTE INVERSAO CARDAPIO',
                tipo=TemplateMensagem.INVERSAO_CARDAPIO,
                template_html='@id @criado_em @status @link')
-    escola = mommy.make('escola.Escola')
     return mommy.make(InversaoCardapio,
                       uuid='98dc7cb7-7a38-408d-907c-c0f073ca2d13',
                       cardapio_de=cardapio_valido2,
@@ -76,11 +76,10 @@ def inversao_dia_cardapio(cardapio_valido2, cardapio_valido3):
 
 
 @pytest.fixture
-def inversao_dia_cardapio2(cardapio_valido, cardapio_valido2):
+def inversao_dia_cardapio2(cardapio_valido, cardapio_valido2, escola):
     mommy.make(TemplateMensagem, assunto='TESTE INVERSAO CARDAPIO',
                tipo=TemplateMensagem.INVERSAO_CARDAPIO,
                template_html='@id @criado_em @status @link')
-    escola = mommy.make('escola.Escola')
     return mommy.make(InversaoCardapio,
                       uuid='98dc7cb7-7a38-408d-907c-c0f073ca2d13',
                       cardapio_de=cardapio_valido,
@@ -89,10 +88,11 @@ def inversao_dia_cardapio2(cardapio_valido, cardapio_valido2):
 
 
 @pytest.fixture
-def inversao_cardapio_serializer():
+def inversao_cardapio_serializer(escola):
     cardapio_de = mommy.make('cardapio.Cardapio')
     cardapio_para = mommy.make('cardapio.Cardapio')
-    inversao_cardapio = mommy.make(InversaoCardapio, cardapio_de=cardapio_de, cardapio_para=cardapio_para)
+    inversao_cardapio = mommy.make(InversaoCardapio, cardapio_de=cardapio_de, cardapio_para=cardapio_para,
+                                   escola=escola)
     return InversaoCardapioSerializer(inversao_cardapio)
 
 
@@ -114,19 +114,19 @@ def motivo_alteracao_cardapio_serializer():
 
 
 @pytest.fixture
-def alteracao_cardapio():
-    return mommy.make(AlteracaoCardapio, observacao='teste')
+def alteracao_cardapio(escola):
+    return mommy.make(AlteracaoCardapio, escola=escola, observacao='teste')
 
 
 @pytest.fixture
-def substituicoes_alimentacao_periodo():
-    alteracao_cardapio = mommy.make(AlteracaoCardapio, observacao='teste')
+def substituicoes_alimentacao_periodo(escola):
+    alteracao_cardapio = mommy.make(AlteracaoCardapio, escola=escola, observacao='teste')
     return mommy.make(SubstituicoesAlimentacaoNoPeriodoEscolar, alteracao_cardapio=alteracao_cardapio)
 
 
 @pytest.fixture
-def alteracao_cardapio_serializer():
-    alteracao_cardapio = mommy.make(AlteracaoCardapio)
+def alteracao_cardapio_serializer(escola):
+    alteracao_cardapio = mommy.make(AlteracaoCardapio, escola=escola)
     return AlteracaoCardapioSerializer(alteracao_cardapio)
 
 
@@ -175,13 +175,13 @@ def data_inversao_mesmo_ano(request):
 
 @pytest.fixture(params=[
     # dia cardapio de, dia cardapio para, status
-    ((2019, 10, 1), (2019, 10, 5), PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR),
-    ((2019, 10, 2), (2019, 10, 6), PedidoAPartirDaEscolaWorkflow.RASCUNHO),
-    ((2019, 10, 3), (2019, 10, 7), PedidoAPartirDaEscolaWorkflow.DRE_PEDIU_ESCOLA_REVISAR),
+    (datetime.date(2019, 10, 1), datetime.date(2019, 10, 5), PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR),
+    (datetime.date(2019, 10, 2), datetime.date(2019, 10, 6), PedidoAPartirDaEscolaWorkflow.RASCUNHO),
+    (datetime.date(2019, 10, 3), datetime.date(2019, 10, 7), PedidoAPartirDaEscolaWorkflow.DRE_PEDIU_ESCOLA_REVISAR),
 
-    ((2019, 10, 5), (2019, 10, 1), PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR),
-    ((2019, 10, 6), (2019, 10, 2), PedidoAPartirDaEscolaWorkflow.RASCUNHO),
-    ((2019, 10, 7), (2019, 10, 3), PedidoAPartirDaEscolaWorkflow.DRE_PEDIU_ESCOLA_REVISAR),
+    (datetime.date(2019, 10, 5), datetime.date(2019, 10, 1), PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR),
+    (datetime.date(2019, 10, 6), datetime.date(2019, 10, 2), PedidoAPartirDaEscolaWorkflow.RASCUNHO),
+    (datetime.date(2019, 10, 7), datetime.date(2019, 10, 3), PedidoAPartirDaEscolaWorkflow.DRE_PEDIU_ESCOLA_REVISAR),
 ])
 def datas_inversao_vencida(request):
     return request.param
