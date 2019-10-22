@@ -1,0 +1,86 @@
+import environ
+import numpy as np
+import pandas as pd
+
+from sme_terceirizadas.perfil.models import GrupoPerfil, Perfil, Usuario
+from sme_terceirizadas.escola.models import Escola
+from .helper import coloca_zero_a_esquerda
+
+ROOT_DIR = environ.Path(__file__) - 1
+
+df = pd.read_csv(f'{ROOT_DIR}/planilhas_de_carga/diretores.csv',
+                 sep='¬',
+                 converters={'cd_unidade_base': str},
+                 engine='python')
+
+# exclui registros duplicados no arquivo csv
+df.drop_duplicates(subset="cd_cpf_pessoa",
+                   keep=False, inplace=True)
+
+# tira os NAN e troca por espaco vazio ''
+df = df.replace(np.nan, '', regex=True)
+
+# padroniza os dados
+df['cd_unidade_base'] = df['cd_unidade_base'].str.strip('.0')
+
+
+def busca_escola(eol):
+    try:
+        return Escola.objects.get(codigo_eol=eol)
+    except Escola.DoesNotExist:
+        return None
+
+
+def cria_usuario_diretor(cpf, registro_funcional, nome, perfil_usuario):
+    email = f'{cpf}@dev.prefeitura.sp.gov.br'
+    diretor = Usuario.objects.create_user(email, registro_funcional)
+    diretor.registro_funcional = registro_funcional
+    diretor.nome = nome
+    diretor.cpf = cpf
+    diretor.is_active = False
+    diretor.perfis.add(perfil_usuario)
+    diretor.save()
+    return diretor
+
+
+def percorre_data_frame():
+    diretores_criados = 0
+    diretores_contabilizados = 0
+    eol_zerado = 0
+    grupo_escola = GrupoPerfil(
+        nome='ESCOLA',
+        ativo=True
+    )
+    perfil_usuario = Perfil(
+        nome='DIRETOR',
+        ativo=True,
+        grupo=grupo_escola
+    )
+    grupo_escola.save()
+    perfil_usuario.save()
+    for index, row in df.iterrows():
+        diretores_contabilizados += 1
+        eol = coloca_zero_a_esquerda(row['cd_unidade_base'])
+        if eol == '000000':
+            eol_zerado += 1
+        escola = busca_escola(eol)
+        if escola is not None:
+            diretor = cria_usuario_diretor(
+                row['cd_cpf_pessoa'],
+                row['rf'],
+                row['nm_nome'],
+                perfil_usuario
+            )
+            escola.usuarios.add(diretor)
+            escola.save()
+            diretores_criados += 1
+            print(f'diretor(a): {diretor.nome} foi vinculado a escola: {escola.nome}')
+
+    print(f'foram contabilizados {diretores_contabilizados} diretores')
+    print(f'foram criadas {diretores_criados} contas de usuarios atreladas a diretor')
+    print(f'foram encontrados {eol_zerado} diretores sem estar atrelados a uma escola')
+    outras_gestoes = diretores_contabilizados - (diretores_criados + eol_zerado)
+    print(f'foram encontrados {outras_gestoes} diretores atrelados a escolas de outros tipos de gestao')
+
+
+percorre_data_frame()
