@@ -1,7 +1,8 @@
 from notifications.models import Notification
 from rest_framework import serializers
 
-from sme_terceirizadas.perfil.models import (GrupoPerfil, Perfil, PerfilPermissao, Permissao, Usuario)
+from .validators import senha_deve_ser_igual_confirmar_senha
+from ..models import (GrupoPerfil, Perfil, PerfilPermissao, Permissao, Usuario)
 
 
 class PermissaoSerializer(serializers.ModelSerializer):
@@ -88,14 +89,19 @@ class PerfilPermissaoCreateSerializer(serializers.ModelSerializer):
         exclude = ('id',)
 
 
-class UsuarioCreateSerializer(serializers.ModelSerializer):
-    def create(self, validated_data):
-        user = super().create(validated_data)
-        user.set_password(validated_data['password'])
-        user.save()
-        return user
+class UsuarioUpdateSerializer(serializers.ModelSerializer):
+    confirmar_password = serializers.CharField()
+
+    def partial_update(self, validated_data, usuario):
+        password = validated_data.get('password')
+        confirmar_password = validated_data.pop('confirmar_password')
+        senha_deve_ser_igual_confirmar_senha(password, confirmar_password)
+        self.update(usuario, validated_data)
+        usuario.set_password(validated_data['password'])
+        usuario.save()
+        return usuario
 
     class Meta:
         model = Usuario
-        fields = ('nome', 'email', 'registro_funcional', 'vinculo_funcional', 'password')
+        fields = ('email', 'registro_funcional', 'vinculo_funcional', 'password', 'confirmar_password', 'cpf')
         write_only_fields = ('password',)

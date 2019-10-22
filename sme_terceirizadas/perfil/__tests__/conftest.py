@@ -3,6 +3,7 @@ from faker import Faker
 from model_mommy import mommy
 
 from .. import models
+from ..api.serializers import UsuarioSerializer
 
 f = Faker(locale='pt-Br')
 
@@ -22,3 +23,13 @@ def permissao():
 def grupo_perfil():
     return mommy.make(models.GrupoPerfil, nome='Diretoria XYZ',
                       descricao='Esse grupo é de diretores...')
+
+
+@pytest.fixture
+def usuario():
+    return mommy.make(models.Usuario, nome="Fulano da Silva", email="fulano@teste.com")
+
+
+@pytest.fixture
+def usuario_serializer(usuario):
+    return UsuarioSerializer(usuario)

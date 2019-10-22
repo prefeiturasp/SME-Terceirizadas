@@ -18,3 +18,9 @@ def test_grupo_perfil(grupo_perfil):
     assert grupo_perfil.descricao == 'Esse grupo é de diretores...'
     assert grupo_perfil.nome == 'Diretoria XYZ'
     assert grupo_perfil.__str__() == 'Diretoria XYZ'
+
+
+def test_usuario(usuario):
+    assert usuario.nome == "Fulano da Silva"
+    assert usuario.email == "fulano@teste.com"
+    assert usuario.tipo_usuario == 'indefinido'
