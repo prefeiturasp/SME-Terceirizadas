@@ -4,6 +4,7 @@ from django.core.mail import send_mail
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
+from simple_email_confirmation.models import SimpleEmailConfirmationUserMixin
 
 from .perfil import Perfil
 from ...dados_comuns.models_abstract import TemChaveExterna
@@ -88,14 +89,13 @@ class CustomAbstractUser(AbstractBaseUser, PermissionsMixin):
         send_mail(subject, message, from_email, [self.email], **kwargs)
 
 
-class Usuario(CustomAbstractUser, TemChaveExterna):
+class Usuario(SimpleEmailConfirmationUserMixin, CustomAbstractUser, TemChaveExterna):
     """Classe de autenticacao do django, ela tem muitos perfis."""
 
     nome = models.CharField(_('name'), max_length=150)
     email = models.EmailField(_('email address'), unique=True)
     cpf = models.CharField(_('CPF'), max_length=11, default='')
     registro_funcional = models.CharField(_('RF'), max_length=10, default='')
-    vinculo_funcional = models.CharField(_('Vinculo'), max_length=2, default='')
     perfis = models.ManyToManyField(Perfil)
 
     USERNAME_FIELD = 'email'

@@ -1,4 +1,4 @@
-from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import send_mail
 from notifications.models import Notification
 from rest_framework import permissions, viewsets
 from rest_framework.decorators import action
@@ -30,11 +30,11 @@ class UsuarioViewSet(viewsets.ReadOnlyModelViewSet):
 class UsuarioUpdateViewSet(viewsets.GenericViewSet):
     permission_classes = (permissions.AllowAny,)
     serializer_class = UsuarioUpdateSerializer
-    token_generator = default_token_generator
 
-    def create(self, request, *args, **kwargs):
+    def create(self, request):
         usuario = Usuario.objects.get(registro_funcional=request.data.get('registro_funcional'))
         usuario = UsuarioUpdateSerializer(usuario).partial_update(request.data, usuario)
+        send_mail(usuario.email, 'Use %s to confirm your email' % usuario.confirmation_key)
         return Response(UsuarioDetalheSerializer(usuario).data)
 
 

@@ -103,5 +103,5 @@ class UsuarioUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Usuario
-        fields = ('email', 'registro_funcional', 'vinculo_funcional', 'password', 'confirmar_password', 'cpf')
+        fields = ('email', 'registro_funcional', 'password', 'confirmar_password', 'cpf')
         write_only_fields = ('password',)
