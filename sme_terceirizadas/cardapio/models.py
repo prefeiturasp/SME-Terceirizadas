@@ -28,7 +28,7 @@ class TipoAlimentacao(Nomeavel, TemChaveExterna):
     Merenda Seca
     """
 
-    substituicoes = models.ManyToManyField('TipoAlimentacao')
+    substituicoes = models.ManyToManyField('TipoAlimentacao', blank=True)
 
     @property
     def substituicoes_periodo_escolar(self):
