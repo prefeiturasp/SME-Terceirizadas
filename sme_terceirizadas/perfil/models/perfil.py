@@ -1,8 +1,8 @@
 from django.db import models
 
 from ...dados_comuns.behaviors import (
-    Ativavel, Descritivel, Nomeavel, TemChaveExterna,
-    IntervaloDeDia)
+    Ativavel, Descritivel, IntervaloDeDia, Nomeavel, TemChaveExterna
+)
 
 
 class Vinculo(IntervaloDeDia, Ativavel, TemChaveExterna):
@@ -10,6 +10,7 @@ class Vinculo(IntervaloDeDia, Ativavel, TemChaveExterna):
 
     Ex.: de jan a dez de 2018 (Intervalo) Ciclano (Usuário) foi Diretor (Perfil)
     """
+
     perfil = models.ForeignKey('Perfil', on_delete=models.PROTECT)
     usuario = models.ForeignKey('Usuario', on_delete=models.PROTECT)
 

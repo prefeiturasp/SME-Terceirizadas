@@ -14,8 +14,6 @@ from ..inclusao_alimentacao.models import (
     GrupoInclusaoAlimentacaoNormal, InclusaoAlimentacaoContinua
 )
 from ..kit_lanche.models import SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheUnificada
-from ..perfil.models import Usuario
-from ..perfil.models import Vinculo
 
 
 class DiretoriaRegional(Nomeavel, Iniciais, TemChaveExterna, TemCodigoEOL):
@@ -293,10 +291,6 @@ class Escola(Ativavel, TemChaveExterna, TemCodigoEOL):
     idades = models.ManyToManyField(FaixaIdadeEscolar, blank=True)
     periodos_escolares = models.ManyToManyField(PeriodoEscolar, blank=True)
     vinculos = models.ManyToManyField('perfil.Vinculo', related_name='escolas')
-
-    @property
-    def usuarios_diretoria_regional(self):
-        return self.diretoria_regional.usuarios.all() if self.diretoria_regional else Usuario.objects.none()
 
     @property
     def grupos_inclusoes(self):
