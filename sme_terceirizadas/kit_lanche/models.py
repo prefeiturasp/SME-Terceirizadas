@@ -4,18 +4,17 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.db.models.functions import Coalesce
 
-from sme_terceirizadas.dados_comuns.behaviors import TemRastroInstituicaoPartindoDaDiretoriaRegional
 from .managers import (
     SolicitacaoUnificadaDestaSemanaManager, SolicitacaoUnificadaDesteMesManager, SolicitacaoUnificadaVencidaManager,
     SolicitacoesKitLancheAvulsaDestaSemanaManager, SolicitacoesKitLancheAvulsaDesteMesManager,
     SolicitacoesKitLancheAvulsaVencidaDiasManager
 )
-from ..dados_comuns.fluxo_status import FluxoAprovacaoPartindoDaDiretoriaRegional, FluxoAprovacaoPartindoDaEscola
-from ..dados_comuns.models import LogSolicitacoesUsuario, TemplateMensagem
 from ..dados_comuns.behaviors import (
     CriadoEm, CriadoPor, Descritivel, Logs,
-    Motivo, Nomeavel, TemChaveExterna, TemData, TemIdentificadorExternoAmigavel, TemPrioridade, TempoPasseio,
-    TemRastroInstituicaoPartindoDaEscola)
+    Motivo, Nomeavel, TemChaveExterna, TemData, TemIdentificadorExternoAmigavel, TemPrioridade, TempoPasseio
+)
+from ..dados_comuns.fluxo_status import FluxoAprovacaoPartindoDaDiretoriaRegional, FluxoAprovacaoPartindoDaEscola
+from ..dados_comuns.models import LogSolicitacoesUsuario, TemplateMensagem
 
 
 class ItemKitLanche(Nomeavel, TemChaveExterna):
@@ -63,7 +62,7 @@ class SolicitacaoKitLanche(TemData, Motivo, Descritivel, CriadoEm, TempoPasseio,
 
 
 class SolicitacaoKitLancheAvulsa(TemChaveExterna, FluxoAprovacaoPartindoDaEscola, TemIdentificadorExternoAmigavel,
-                                 CriadoPor, TemPrioridade, Logs, TemRastroInstituicaoPartindoDaEscola):
+                                 CriadoPor, TemPrioridade, Logs):
     # TODO: ao deletar este, deletar solicitacao_kit_lanche também que é uma tabela acessória
     # TODO: passar `local` para solicitacao_kit_lanche
     local = models.CharField(max_length=160)
@@ -122,8 +121,7 @@ class SolicitacaoKitLancheAvulsa(TemChaveExterna, FluxoAprovacaoPartindoDaEscola
 
 
 class SolicitacaoKitLancheUnificada(CriadoPor, TemChaveExterna, TemIdentificadorExternoAmigavel,
-                                    FluxoAprovacaoPartindoDaDiretoriaRegional, Logs, TemPrioridade,
-                                    TemRastroInstituicaoPartindoDaDiretoriaRegional):
+                                    FluxoAprovacaoPartindoDaDiretoriaRegional, Logs, TemPrioridade):
     """Uma DRE pede para as suas escolas.
 
     lista_kit_lanche_igual é a mesma lista de kit lanche pra todos.

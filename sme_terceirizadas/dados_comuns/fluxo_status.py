@@ -131,6 +131,38 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
     status = xwf_models.StateField(workflow_class)
     DIAS_PARA_CANCELAR = 2
 
+    rastro_escola = models.ForeignKey('escola.Escola',
+                                      on_delete=models.DO_NOTHING,
+                                      null=True,
+                                      blank=True,
+                                      related_name='%(app_label)s_%(class)s_rastro_escola',
+                                      editable=False)
+    rastro_dre = models.ForeignKey('escola.DiretoriaRegional',
+                                   on_delete=models.DO_NOTHING,
+                                   null=True,
+                                   related_name='%(app_label)s_%(class)s_rastro_dre',
+                                   blank=True,
+                                   editable=False)
+    rastro_lote = models.ForeignKey('escola.Lote',
+                                    on_delete=models.DO_NOTHING,
+                                    null=True,
+                                    blank=True,
+                                    related_name='%(app_label)s_%(class)s_rastro_lote',
+                                    editable=False)
+    rastro_terceirizada = models.ForeignKey('terceirizada.Terceirizada',
+                                            on_delete=models.DO_NOTHING,
+                                            null=True,
+                                            blank=True,
+                                            related_name='%(app_label)s_%(class)s_rastro_terceirizada',
+                                            editable=False)
+
+    def salva_rastro_solicitacao(self):
+        self.rastro_escola = self.escola
+        self.rastro_dre = self.escola.diretoria_regional
+        self.rastro_lote = self.escola.lote
+        self.rastro_terceirizada = self.escola.lote.terceirizada
+        self.save()
+
     def cancelar_pedido(self, user, justificativa=''):
         """O objeto que herdar de FluxoAprovacaoPartindoDaEscola, deve ter um property data.
 
@@ -227,6 +259,7 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
                                    long_desc=corpo)
         self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.INICIO_FLUXO,
                                   usuario=user)
+        self.salva_rastro_solicitacao()
 
     @xworkflows.after_transition('dre_valida')
     def _dre_valida_hook(self, *args, **kwargs):
@@ -327,6 +360,37 @@ class FluxoAprovacaoPartindoDaDiretoriaRegional(xwf_models.WorkflowEnabled, mode
     status = xwf_models.StateField(workflow_class)
     DIAS_PARA_CANCELAR = 2
 
+    rastro_escolas = models.ManyToManyField('escola.Escola',
+                                            blank=True,
+                                            related_name='%(app_label)s_%(class)s_rastro_escola',
+                                            editable=False)
+    rastro_dre = models.ForeignKey('escola.DiretoriaRegional',
+                                   on_delete=models.DO_NOTHING,
+                                   null=True,
+                                   related_name='%(app_label)s_%(class)s_rastro_dre',
+                                   blank=True,
+                                   editable=False)
+    rastro_lote = models.ForeignKey('escola.Lote',
+                                    on_delete=models.DO_NOTHING,
+                                    null=True,
+                                    blank=True,
+                                    related_name='%(app_label)s_%(class)s_rastro_lote',
+                                    editable=False)
+    rastro_terceirizada = models.ForeignKey('terceirizada.Terceirizada',
+                                            on_delete=models.DO_NOTHING,
+                                            null=True,
+                                            blank=True,
+                                            related_name='%(app_label)s_%(class)s_rastro_terceirizada',
+                                            editable=False)
+
+    def salva_rastro_solicitacao(self):
+        escolas = [i.escola for i in self.escolas_quantidades.all()]
+        self.rastro_escolas.set(escolas)
+        self.rastro_dre = self.diretoria_regional
+        self.rastro_lote = self.lote
+        self.rastro_terceirizada = self.lote.terceirizada
+        self.save()
+
     def cancelar_pedido(self, user, justificativa=''):
         """O objeto que herdar de FluxoAprovacaoPartindoDaDiretoriaRegional, deve ter um property data.
 
@@ -410,6 +474,7 @@ class FluxoAprovacaoPartindoDaDiretoriaRegional(xwf_models.WorkflowEnabled, mode
                                    long_desc=corpo)
         self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.INICIO_FLUXO,
                                   usuario=user)
+        self.salva_rastro_solicitacao()
 
     @xworkflows.after_transition('codae_autoriza')
     def _codae_autoriza_hook(self, *args, **kwargs):

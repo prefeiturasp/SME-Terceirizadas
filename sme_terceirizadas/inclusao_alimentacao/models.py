@@ -6,14 +6,13 @@ from .managers import (
     GrupoInclusoesDeAlimentacaoNormalVencidosDiasManager, InclusoesDeAlimentacaoContinuaDestaSemanaManager,
     InclusoesDeAlimentacaoContinuaDesteMesManager, InclusoesDeAlimentacaoContinuaVencidaDiasManager
 )
+from ..dados_comuns.behaviors import (
+    CriadoEm, CriadoPor, Descritivel, DiasSemana, IntervaloDeDia, Logs, Nomeavel,
+    TemChaveExterna, TemData, TemIdentificadorExternoAmigavel, TemPrioridade)
 from ..dados_comuns.fluxo_status import FluxoAprovacaoPartindoDaEscola
 from ..dados_comuns.models import (
     LogSolicitacoesUsuario, TemplateMensagem
 )
-from ..dados_comuns.behaviors import (
-    CriadoEm, CriadoPor, Descritivel, DiasSemana, IntervaloDeDia, Logs, Nomeavel,
-    TemChaveExterna, TemData, TemIdentificadorExternoAmigavel, TemPrioridade,
-    TemRastroInstituicaoPartindoDaEscola)
 
 
 class QuantidadePorPeriodo(TemChaveExterna):
@@ -58,7 +57,7 @@ class MotivoInclusaoContinua(Nomeavel, TemChaveExterna):
 class InclusaoAlimentacaoContinua(IntervaloDeDia, Descritivel, TemChaveExterna,
                                   DiasSemana, FluxoAprovacaoPartindoDaEscola,
                                   CriadoPor, TemIdentificadorExternoAmigavel,
-                                  CriadoEm, Logs, TemPrioridade, TemRastroInstituicaoPartindoDaEscola):
+                                  CriadoEm, Logs, TemPrioridade):
     outro_motivo = models.CharField('Outro motivo', blank=True, max_length=50)
     motivo = models.ForeignKey(MotivoInclusaoContinua, on_delete=models.DO_NOTHING)
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING,
@@ -160,8 +159,7 @@ class InclusaoAlimentacaoNormal(TemData, TemChaveExterna):
 
 
 class GrupoInclusaoAlimentacaoNormal(Descritivel, TemChaveExterna, FluxoAprovacaoPartindoDaEscola, CriadoEm,
-                                     CriadoPor, TemIdentificadorExternoAmigavel, Logs, TemPrioridade,
-                                     TemRastroInstituicaoPartindoDaEscola):
+                                     CriadoPor, TemIdentificadorExternoAmigavel, Logs, TemPrioridade):
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING,
                                related_name='grupos_inclusoes_normais')
 

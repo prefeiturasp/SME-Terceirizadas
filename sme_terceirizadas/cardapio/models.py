@@ -6,12 +6,12 @@ from .managers import (
     GrupoSuspensaoAlimentacaoDesteMesManager, InversaoCardapioDestaSemanaManager,
     InversaoCardapioDesteMesManager, InversaoCardapioVencidaManager
 )
-from ..dados_comuns.fluxo_status import FluxoAprovacaoPartindoDaEscola, FluxoInformativoPartindoDaEscola
-from ..dados_comuns.models import TemplateMensagem  # noqa I202
 from ..dados_comuns.behaviors import (
     Ativavel, CriadoEm, CriadoPor, Descritivel, IntervaloDeDia, LogSolicitacoesUsuario, Logs, Motivo, Nomeavel,
     TemChaveExterna, TemData,
-    TemIdentificadorExternoAmigavel, TemObservacao, TemPrioridade, TemRastroInstituicaoPartindoDaEscola)
+    TemIdentificadorExternoAmigavel, TemObservacao, TemPrioridade)
+from ..dados_comuns.fluxo_status import FluxoAprovacaoPartindoDaEscola, FluxoInformativoPartindoDaEscola
+from ..dados_comuns.models import TemplateMensagem  # noqa I202
 
 
 class TipoAlimentacao(Nomeavel, TemChaveExterna):
@@ -71,7 +71,7 @@ class Cardapio(Descritivel, Ativavel, TemData, TemChaveExterna, CriadoEm):
 
 class InversaoCardapio(CriadoEm, CriadoPor, TemObservacao, Motivo, TemChaveExterna,
                        TemIdentificadorExternoAmigavel, FluxoAprovacaoPartindoDaEscola,
-                       TemPrioridade, Logs, TemRastroInstituicaoPartindoDaEscola):
+                       TemPrioridade, Logs):
     """Troca um cardápio de um dia por outro.
 
     servir o cardápio do dia 30 no dia 15, automaticamente o
@@ -200,7 +200,7 @@ class QuantidadePorPeriodoSuspensaoAlimentacao(TemChaveExterna):
 
 class GrupoSuspensaoAlimentacao(TemChaveExterna, CriadoPor, TemIdentificadorExternoAmigavel,
                                 CriadoEm, TemObservacao, FluxoInformativoPartindoDaEscola, Logs,
-                                TemPrioridade, TemRastroInstituicaoPartindoDaEscola):
+                                TemPrioridade):
     """Serve para agrupar suspensões.
 
     Vide SuspensaoAlimentacao e QuantidadePorPeriodoSuspensaoAlimentacao
@@ -309,7 +309,7 @@ class MotivoAlteracaoCardapio(Nomeavel, TemChaveExterna):
 
 class AlteracaoCardapio(CriadoEm, CriadoPor, TemChaveExterna, IntervaloDeDia, TemObservacao,
                         FluxoAprovacaoPartindoDaEscola, TemIdentificadorExternoAmigavel, Logs,
-                        TemPrioridade, TemRastroInstituicaoPartindoDaEscola):
+                        TemPrioridade):
     objects = models.Manager()  # Manager Padrão
     desta_semana = AlteracoesCardapioDestaSemanaManager()
     deste_mes = AlteracoesCardapioDesteMesManager()
