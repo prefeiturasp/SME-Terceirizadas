@@ -5,7 +5,6 @@ from django.db import models
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
-from .perfil import Perfil
 from ...dados_comuns.behaviors import TemChaveExterna
 
 
@@ -96,28 +95,6 @@ class Usuario(CustomAbstractUser, TemChaveExterna):
     cpf = models.CharField(_('CPF'), max_length=11, default='')
     registro_funcional = models.CharField(_('RF'), max_length=10, default='')
     vinculo_funcional = models.CharField(_('Vinculo'), max_length=2, default='')
-    perfis = models.ManyToManyField(Perfil)
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []  # type: ignore
-
-    @property
-    def escolas(self):
-        return self.escolas
-
-    @property
-    def diretorias_regionais(self):
-        return self.diretorias_regionais
-
-    @property  # noqa C901
-    def tipo_usuario(self):
-        if self.escolas.exists():
-            return 'escola'
-        elif self.diretorias_regionais.exists():
-            return 'diretoria_regional'
-        elif self.CODAE.exists():
-            return 'codae'
-        elif self.terceirizadas.exists():
-            return 'terceirizada'
-        else:
-            return 'indefinido'

@@ -6,19 +6,20 @@ from django.db.models import Q, Sum
 from ..cardapio.models import (
     AlteracaoCardapio, GrupoSuspensaoAlimentacao, InversaoCardapio
 )
-from ..dados_comuns.constants import DAQUI_A_30_DIAS, DAQUI_A_7_DIAS
 from ..dados_comuns.behaviors import (
     Ativavel, Iniciais, Nomeavel, TemChaveExterna,
     TemCodigoEOL)
+from ..dados_comuns.constants import DAQUI_A_30_DIAS, DAQUI_A_7_DIAS
 from ..inclusao_alimentacao.models import (
     GrupoInclusaoAlimentacaoNormal, InclusaoAlimentacaoContinua
 )
 from ..kit_lanche.models import SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheUnificada
 from ..perfil.models import Usuario
+from ..perfil.models import Vinculo
 
 
 class DiretoriaRegional(Nomeavel, Iniciais, TemChaveExterna, TemCodigoEOL):
-    usuarios = models.ManyToManyField(Usuario, related_name='diretorias_regionais', blank=True)
+    vinculos = models.ManyToManyField('perfil.Vinculo', related_name='diretorias_regionais', blank=True)
 
     @property
     def escolas(self):
@@ -291,7 +292,7 @@ class Escola(Ativavel, TemChaveExterna, TemCodigoEOL):
 
     idades = models.ManyToManyField(FaixaIdadeEscolar, blank=True)
     periodos_escolares = models.ManyToManyField(PeriodoEscolar, blank=True)
-    usuarios = models.ManyToManyField(Usuario, related_name='escolas')
+    vinculos = models.ManyToManyField('perfil.Vinculo', related_name='escolas')
 
     @property
     def usuarios_diretoria_regional(self):
@@ -375,7 +376,7 @@ class Subprefeitura(Nomeavel, TemChaveExterna):
 
 
 class Codae(Nomeavel, TemChaveExterna):
-    usuarios = models.ManyToManyField(Usuario, related_name='CODAE', blank=True)
+    vinculos = models.ManyToManyField('perfil.Vinculo', related_name='CODAE', blank=True)
 
     @property
     def quantidade_alunos(self):
