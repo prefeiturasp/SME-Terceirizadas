@@ -13,7 +13,7 @@ class BaseUserAdmin(DjangoUserAdmin):
             'fields': ('email', 'password')
         }),
         (_('Personal info'), {
-            'fields': ('nome', 'registro_funcional', 'vinculo_funcional')
+            'fields': ('nome', 'registro_funcional')
         }),
         (_('Permissions'), {
             'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')

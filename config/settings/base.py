@@ -292,3 +292,7 @@ JWT_AUTH = {
     'JWT_REFRESH_EXPIRATION_DELTA': datetime.timedelta(hours=100),
     'JWT_ALLOW_REFRESH': True,
 }
+
+URL_CONFIGS = {
+    'CONFIRMAR_EMAIL': '/confirmar-email?uuid={uuid}&confirmationKey={confirmation_key}'
+}

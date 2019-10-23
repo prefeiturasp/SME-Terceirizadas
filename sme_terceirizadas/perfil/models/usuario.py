@@ -6,6 +6,7 @@ from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from simple_email_confirmation.models import SimpleEmailConfirmationUserMixin
 
+from sme_terceirizadas.dados_comuns.utils import url_configs
 from .perfil import Perfil
 from ...dados_comuns.behaviors import TemChaveExterna
 
@@ -121,3 +122,9 @@ class Usuario(SimpleEmailConfirmationUserMixin, CustomAbstractUser, TemChaveExte
             return 'terceirizada'
         else:
             return 'indefinido'
+
+    def enviar_email_confirmacao(self):
+        content = {'uuid': self.uuid, 'confirmation_key': self.confirmation_key}
+        url_configs('CONFIRMAR_EMAIL', content)
+        self.email_user('teste', url_configs('CONFIRMAR_EMAIL', content),
+                        'calvin.masters@gmail.com')

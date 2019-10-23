@@ -13,7 +13,8 @@ router.register('permissoes', viewsets.PermissaoViewSet, 'Permissões')
 router.register('permissoes-acoes', viewsets.AcoesViewSet, 'Ações')
 router.register('perfis-permissoes', viewsets.PerfilPermissaoViewSet, 'Perfis permissões')
 router.register('notificacoes', viewsets.NotificationViewSet, 'Notificações')
-
+router.register('confirmar_email/(?P<uuid>[^/]+)/(?P<confirmation_key>[^/]+)',
+                viewsets.UsuarioConfirmaEmailViewSet, 'Confirmar E-mail')
 
 urlpatterns = [
     path('', include(router.urls))

@@ -1,6 +1,6 @@
-from django.core.mail import send_mail
+from django.core.exceptions import ObjectDoesNotExist
 from notifications.models import Notification
-from rest_framework import permissions, viewsets
+from rest_framework import permissions, viewsets, status
 from rest_framework.decorators import action
 from rest_framework.mixins import RetrieveModelMixin
 from rest_framework.response import Response
@@ -34,7 +34,7 @@ class UsuarioUpdateViewSet(viewsets.GenericViewSet):
     def create(self, request):
         usuario = Usuario.objects.get(registro_funcional=request.data.get('registro_funcional'))
         usuario = UsuarioUpdateSerializer(usuario).partial_update(request.data, usuario)
-        send_mail(usuario.email, 'Use %s to confirm your email' % usuario.confirmation_key)
+        usuario.enviar_email_confirmacao()
         return Response(UsuarioDetalheSerializer(usuario).data)
 
 
@@ -112,3 +112,19 @@ class NotificationViewSet(RetrieveModelMixin, GenericViewSet):
         notificacao.mark_as_unread()
         serializer = self.get_serializer(notificacao)
         return Response(serializer.data)
+
+
+class UsuarioConfirmaEmailViewSet(viewsets.GenericViewSet):
+    permission_classes = (permissions.AllowAny,)
+    serializer_class = UsuarioDetalheSerializer
+
+    def list(self, request, uuid, confirmation_key):
+        usuario = Usuario.objects.get(uuid=uuid)
+        try:
+            usuario.confirm_email(confirmation_key)
+        except ObjectDoesNotExist:
+            return Response({'detail': 'Erro ao confirmar email'},
+                            status=status.HTTP_400_BAD_REQUEST)
+        usuario.is_active = usuario.is_confirmed
+        usuario.save()
+        return Response(UsuarioDetalheSerializer(usuario).data)
