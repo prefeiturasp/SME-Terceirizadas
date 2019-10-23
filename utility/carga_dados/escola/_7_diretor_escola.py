@@ -2,14 +2,14 @@ import environ
 import numpy as np
 import pandas as pd
 
-from sme_terceirizadas.perfil.models import GrupoPerfil, Perfil, Usuario
 from sme_terceirizadas.escola.models import Escola
+from sme_terceirizadas.perfil.models import GrupoPerfil, Perfil, Usuario
 from .helper import coloca_zero_a_esquerda
 
 ROOT_DIR = environ.Path(__file__) - 1
 
 df = pd.read_csv(f'{ROOT_DIR}/planilhas_de_carga/diretores.csv',
-                 sep='¬',
+                 sep=',',
                  converters={'cd_unidade_base': str},
                  engine='python')
 
