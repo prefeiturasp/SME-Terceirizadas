@@ -6,7 +6,7 @@ from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from simple_email_confirmation.models import SimpleEmailConfirmationUserMixin
 
-from sme_terceirizadas.dados_comuns.utils import url_configs
+from ...dados_comuns.utils import url_configs
 from .perfil import Perfil
 from ...dados_comuns.behaviors import TemChaveExterna
 

@@ -1,6 +1,6 @@
 from django.core.exceptions import ObjectDoesNotExist
 from notifications.models import Notification
-from rest_framework import permissions, viewsets, status
+from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.mixins import RetrieveModelMixin
 from rest_framework.response import Response
