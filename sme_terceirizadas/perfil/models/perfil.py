@@ -11,15 +11,16 @@ class Vinculo(IntervaloDeDia, Ativavel, TemChaveExterna):
     Ex.: de jan a dez de 2018 (Intervalo) Ciclano (Usuário) foi Diretor (Perfil)
     """
 
+    data_final = models.DateField('Data final', null=True, blank=True)
     perfil = models.ForeignKey('Perfil', on_delete=models.PROTECT)
-    usuario = models.ForeignKey('Usuario', on_delete=models.PROTECT)
+    usuario = models.ForeignKey('Usuario', on_delete=models.PROTECT, related_name='vinculos')
 
     class Meta:
         verbose_name = 'Vínculo'
         verbose_name_plural = 'Vínculos'
 
     def __str__(self):
-        return ''
+        return f'{self.usuario} de {self.data_inicial} até {self.data_final}'
 
 
 class Perfil(Nomeavel, Descritivel, Ativavel, TemChaveExterna):
