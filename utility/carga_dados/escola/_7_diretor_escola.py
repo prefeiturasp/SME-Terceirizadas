@@ -10,7 +10,7 @@ ROOT_DIR = environ.Path(__file__) - 1
 
 df = pd.read_csv(f'{ROOT_DIR}/planilhas_de_carga/diretores.csv',
                  sep=',',
-                 converters={'cd_unidade_base': str},
+                 converters={'cd_unidade_base': str, 'rf': str},
                  engine='python')
 
 # exclui registros duplicados no arquivo csv
