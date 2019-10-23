@@ -13,3 +13,5 @@ echo "Criando CODAE admin"
 ./manage.py shell -c "from sme_terceirizadas.perfil.models import Usuario; Usuario.objects.create_superuser('codae@admin.com', 'adminadmin')"
 ./manage.py loaddata sme_terceirizadas/**/fixtures/*.json
 ./manage.py shell -c "from utility.carga_dados import run"
+./manage.py atualiza_dres
+./manage.py shell -c "from utility.carga_dados.escola import _8_co_gestores_dre"
