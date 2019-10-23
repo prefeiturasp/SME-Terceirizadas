@@ -3,11 +3,10 @@
     "model": "cardapio.tipoalimentacao",
     "pk": 1,
     "fields": {
-      "nome": "Dejejum",
-      "uuid": "ebbd73cb-fff8-491c-847e-4e001ea2c668",
+      "nome": "lanche",
+      "uuid": "5d1304c8-77a8-4c96-badb-dd2e8c1b76d5",
       "substituicoes": [
-        6,
-        7
+        2
       ]
     }
   },
@@ -15,12 +14,11 @@
     "model": "cardapio.tipoalimentacao",
     "pk": 2,
     "fields": {
-      "nome": "Cola\u00e7\u00e3o",
-      "uuid": "be72c853-37a9-46c5-8fac-9118b3d459d4",
+      "nome": "refei\u00e7\u00e3o/sobremesa",
+      "uuid": "65f11f11-630b-4629-bb17-07c875c548f1",
       "substituicoes": [
         1,
-        2,
-        6
+        3
       ]
     }
   },
@@ -28,24 +26,20 @@
     "model": "cardapio.tipoalimentacao",
     "pk": 3,
     "fields": {
-      "nome": "Almo\u00e7o",
-      "uuid": "15881951-e0d7-4393-b12f-807047b1879b",
-      "substituicoes": [
-        4,
-        5,
-        6
-      ]
+      "nome": "merenda seca",
+      "uuid": "c4255a14-85fd-412f-b35f-30828215e4d5",
+      "substituicoes": []
     }
   },
   {
     "model": "cardapio.tipoalimentacao",
     "pk": 4,
     "fields": {
-      "nome": "Refei\u00e7\u00e3o",
-      "uuid": "724331c9-19ba-4fe0-b43c-175f8198c62c",
+      "nome": "refei\u00e7\u00e3o/sobremesa e lanche",
+      "uuid": "5aa2c32b-1df2-46b6-b2e7-514b885fa9a4",
       "substituicoes": [
-        2,
-        4
+        3,
+        5
       ]
     }
   },
@@ -53,39 +47,9 @@
     "model": "cardapio.tipoalimentacao",
     "pk": 5,
     "fields": {
-      "nome": "Lanche 4 horas",
-      "uuid": "77a74b0b-fd25-4b82-b628-b5016052f9ae",
-      "substituicoes": [
-        4,
-        6,
-        7
-      ]
-    }
-  },
-  {
-    "model": "cardapio.tipoalimentacao",
-    "pk": 6,
-    "fields": {
-      "nome": "Lanche 5 horas",
-      "uuid": "8000c0bf-8272-4e33-a67e-ccfcb2963476",
-      "substituicoes": [
-        4,
-        6,
-        7
-      ]
-    }
-  },
-  {
-    "model": "cardapio.tipoalimentacao",
-    "pk": 7,
-    "fields": {
-      "nome": "Merenda Seca",
-      "uuid": "1fd727cd-2043-4d47-bcb1-e6f6f15aa6d5",
-      "substituicoes": [
-        2,
-        3,
-        5
-      ]
+      "nome": "merenda seca e sobremesa da refei\u00e7\u00e3o",
+      "uuid": "f567e8cb-855d-4cee-aa60-4af38b3a2a63",
+      "substituicoes": []
     }
   }
 ]
