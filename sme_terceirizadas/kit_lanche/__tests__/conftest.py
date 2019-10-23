@@ -7,7 +7,7 @@ from model_mommy import mommy
 from .. import models
 from ...dados_comuns.fluxo_status import PedidoAPartirDaDiretoriaRegionalWorkflow, PedidoAPartirDaEscolaWorkflow
 from ...dados_comuns.models import TemplateMensagem
-from ...dados_comuns.models_abstract import TempoPasseio
+from ...dados_comuns.behaviors import TempoPasseio
 
 fake = Faker('pt_BR')
 fake.seed(420)

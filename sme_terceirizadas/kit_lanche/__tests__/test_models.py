@@ -5,7 +5,7 @@ from freezegun import freeze_time
 from model_mommy import mommy
 from xworkflows import InvalidTransitionError
 
-from ...dados_comuns.models_abstract import TempoPasseio
+from ...dados_comuns.behaviors import TempoPasseio
 
 pytestmark = pytest.mark.django_db
 

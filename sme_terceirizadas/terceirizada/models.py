@@ -5,7 +5,7 @@ from ..cardapio.models import (
     AlteracaoCardapio, GrupoSuspensaoAlimentacao, InversaoCardapio
 )
 from ..dados_comuns.constants import DAQUI_A_30_DIAS, DAQUI_A_7_DIAS
-from ..dados_comuns.models_abstract import (
+from ..dados_comuns.behaviors import (
     Ativavel, IntervaloDeDia, Nomeavel, TemChaveExterna, TemIdentificadorExternoAmigavel
 )
 from ..escola.models import (

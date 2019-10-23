@@ -9,7 +9,7 @@ from ..dados_comuns.fluxo_status import (
     PedidoAPartirDaEscolaWorkflow
 )
 from ..dados_comuns.models import LogSolicitacoesUsuario
-from ..dados_comuns.models_abstract import TemPrioridade
+from ..dados_comuns.behaviors import TemPrioridade
 
 
 class SolicitacoesDestaSemanaManager(models.Manager):

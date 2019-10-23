@@ -6,11 +6,12 @@ from .managers import (
     GrupoInclusoesDeAlimentacaoNormalVencidosDiasManager, InclusoesDeAlimentacaoContinuaDestaSemanaManager,
     InclusoesDeAlimentacaoContinuaDesteMesManager, InclusoesDeAlimentacaoContinuaVencidaDiasManager
 )
+from ..dados_comuns.fluxo_status import FluxoAprovacaoPartindoDaEscola
 from ..dados_comuns.models import (
     LogSolicitacoesUsuario, TemplateMensagem
 )
-from ..dados_comuns.models_abstract import (
-    CriadoEm, CriadoPor, Descritivel, DiasSemana, FluxoAprovacaoPartindoDaEscola, IntervaloDeDia, Logs, Nomeavel,
+from ..dados_comuns.behaviors import (
+    CriadoEm, CriadoPor, Descritivel, DiasSemana, IntervaloDeDia, Logs, Nomeavel,
     TemChaveExterna, TemData, TemIdentificadorExternoAmigavel, TemPrioridade,
     TemRastroInstituicaoPartindoDaEscola)
 

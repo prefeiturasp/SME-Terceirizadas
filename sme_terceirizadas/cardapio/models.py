@@ -6,10 +6,11 @@ from .managers import (
     GrupoSuspensaoAlimentacaoDesteMesManager, InversaoCardapioDestaSemanaManager,
     InversaoCardapioDesteMesManager, InversaoCardapioVencidaManager
 )
+from ..dados_comuns.fluxo_status import FluxoAprovacaoPartindoDaEscola, FluxoInformativoPartindoDaEscola
 from ..dados_comuns.models import TemplateMensagem  # noqa I202
-from ..dados_comuns.models_abstract import (
-    Ativavel, CriadoEm, CriadoPor, Descritivel, FluxoAprovacaoPartindoDaEscola, FluxoInformativoPartindoDaEscola,
-    IntervaloDeDia, LogSolicitacoesUsuario, Logs, Motivo, Nomeavel, TemChaveExterna, TemData,
+from ..dados_comuns.behaviors import (
+    Ativavel, CriadoEm, CriadoPor, Descritivel, IntervaloDeDia, LogSolicitacoesUsuario, Logs, Motivo, Nomeavel,
+    TemChaveExterna, TemData,
     TemIdentificadorExternoAmigavel, TemObservacao, TemPrioridade, TemRastroInstituicaoPartindoDaEscola)
 
 

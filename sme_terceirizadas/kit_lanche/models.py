@@ -4,15 +4,16 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.db.models.functions import Coalesce
 
-from sme_terceirizadas.dados_comuns.models_abstract import TemRastroInstituicaoPartindoDaDiretoriaRegional
+from sme_terceirizadas.dados_comuns.behaviors import TemRastroInstituicaoPartindoDaDiretoriaRegional
 from .managers import (
     SolicitacaoUnificadaDestaSemanaManager, SolicitacaoUnificadaDesteMesManager, SolicitacaoUnificadaVencidaManager,
     SolicitacoesKitLancheAvulsaDestaSemanaManager, SolicitacoesKitLancheAvulsaDesteMesManager,
     SolicitacoesKitLancheAvulsaVencidaDiasManager
 )
+from ..dados_comuns.fluxo_status import FluxoAprovacaoPartindoDaDiretoriaRegional, FluxoAprovacaoPartindoDaEscola
 from ..dados_comuns.models import LogSolicitacoesUsuario, TemplateMensagem
-from ..dados_comuns.models_abstract import (
-    CriadoEm, CriadoPor, Descritivel, FluxoAprovacaoPartindoDaDiretoriaRegional, FluxoAprovacaoPartindoDaEscola, Logs,
+from ..dados_comuns.behaviors import (
+    CriadoEm, CriadoPor, Descritivel, Logs,
     Motivo, Nomeavel, TemChaveExterna, TemData, TemIdentificadorExternoAmigavel, TemPrioridade, TempoPasseio,
     TemRastroInstituicaoPartindoDaEscola)
 

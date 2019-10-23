@@ -6,7 +6,7 @@ from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
 from .perfil import Perfil
-from ...dados_comuns.models_abstract import TemChaveExterna
+from ...dados_comuns.behaviors import TemChaveExterna
 
 
 # Thanks to https://github.com/jmfederico/django-use-email-as-username
