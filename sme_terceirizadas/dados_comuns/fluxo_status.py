@@ -156,7 +156,7 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
                                             related_name='%(app_label)s_%(class)s_rastro_terceirizada',
                                             editable=False)
 
-    def salva_rastro_solicitacao(self):
+    def _salva_rastro_solicitacao(self):
         self.rastro_escola = self.escola
         self.rastro_dre = self.escola.diretoria_regional
         self.rastro_lote = self.escola.lote
@@ -259,7 +259,7 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
                                    long_desc=corpo)
         self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.INICIO_FLUXO,
                                   usuario=user)
-        self.salva_rastro_solicitacao()
+        self._salva_rastro_solicitacao()
 
     @xworkflows.after_transition('dre_valida')
     def _dre_valida_hook(self, *args, **kwargs):
@@ -383,7 +383,7 @@ class FluxoAprovacaoPartindoDaDiretoriaRegional(xwf_models.WorkflowEnabled, mode
                                             related_name='%(app_label)s_%(class)s_rastro_terceirizada',
                                             editable=False)
 
-    def salva_rastro_solicitacao(self):
+    def _salva_rastro_solicitacao(self):
         escolas = [i.escola for i in self.escolas_quantidades.all()]
         self.rastro_escolas.set(escolas)
         self.rastro_dre = self.diretoria_regional
@@ -474,7 +474,7 @@ class FluxoAprovacaoPartindoDaDiretoriaRegional(xwf_models.WorkflowEnabled, mode
                                    long_desc=corpo)
         self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.INICIO_FLUXO,
                                   usuario=user)
-        self.salva_rastro_solicitacao()
+        self._salva_rastro_solicitacao()
 
     @xworkflows.after_transition('codae_autoriza')
     def _codae_autoriza_hook(self, *args, **kwargs):
@@ -522,6 +522,38 @@ class FluxoInformativoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model)
     workflow_class = InformativoPartindoDaEscolaWorkflow
     status = xwf_models.StateField(workflow_class)
 
+    rastro_escola = models.ForeignKey('escola.Escola',
+                                      on_delete=models.DO_NOTHING,
+                                      null=True,
+                                      blank=True,
+                                      related_name='%(app_label)s_%(class)s_rastro_escola',
+                                      editable=False)
+    rastro_dre = models.ForeignKey('escola.DiretoriaRegional',
+                                   on_delete=models.DO_NOTHING,
+                                   null=True,
+                                   related_name='%(app_label)s_%(class)s_rastro_dre',
+                                   blank=True,
+                                   editable=False)
+    rastro_lote = models.ForeignKey('escola.Lote',
+                                    on_delete=models.DO_NOTHING,
+                                    null=True,
+                                    blank=True,
+                                    related_name='%(app_label)s_%(class)s_rastro_lote',
+                                    editable=False)
+    rastro_terceirizada = models.ForeignKey('terceirizada.Terceirizada',
+                                            on_delete=models.DO_NOTHING,
+                                            null=True,
+                                            blank=True,
+                                            related_name='%(app_label)s_%(class)s_rastro_terceirizada',
+                                            editable=False)
+
+    def _salva_rastro_solicitacao(self):
+        self.rastro_escola = self.escola
+        self.rastro_dre = self.escola.diretoria_regional
+        self.rastro_lote = self.escola.lote
+        self.rastro_terceirizada = self.escola.lote.terceirizada
+        self.save()
+
     @property
     def pode_excluir(self):
         return self.status == self.workflow_class.RASCUNHO
@@ -553,6 +585,7 @@ class FluxoInformativoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model)
                                    long_desc=corpo)
         self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.INICIO_FLUXO,
                                   usuario=user)
+        self._salva_rastro_solicitacao()
 
     @xworkflows.after_transition('terceirizada_toma_ciencia')
     def _terceirizada_toma_ciencia_hook(self, *args, **kwargs):

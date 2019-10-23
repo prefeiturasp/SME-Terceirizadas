@@ -34,10 +34,6 @@ def test_solicitacao_avulsa(solicitacao_avulsa):
 def test_solicitacao_unificada(solicitacao_unificada_lista_igual):
     assert isinstance(solicitacao_unificada_lista_igual.local, str)
     assert solicitacao_unificada_lista_igual.lista_kit_lanche_igual is True
-
-    escolas_quantidades = mommy.make('EscolaQuantidade', _quantity=10, quantidade_alunos=100)
-    assert solicitacao_unificada_lista_igual.vincula_escolas_quantidades(
-        escolas_quantidades) is None
     assert solicitacao_unificada_lista_igual.total_kit_lanche == 3000
 
 

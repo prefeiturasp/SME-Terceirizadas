@@ -260,12 +260,6 @@ class SolicitacaoKitLancheUnificada(CriadoPor, TemChaveExterna, TemIdentificador
                 total_kit_lanche += escola_quantidade.total_kit_lanche
             return total_kit_lanche
 
-    def vincula_escolas_quantidades(self, escolas_quantidades):
-        # TODO trocar isso, fazer backref
-        for escola_quantidade in escolas_quantidades:
-            escola_quantidade.solicitacao_unificada = self
-            escola_quantidade.save()
-
     def __str__(self):
         dre = self.diretoria_regional
         return f'{dre} pedindo passeio em {self.local} com kits iguais? {self.lista_kit_lanche_igual}'
