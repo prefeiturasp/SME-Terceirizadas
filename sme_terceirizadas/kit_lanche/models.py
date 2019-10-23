@@ -9,11 +9,12 @@ from .managers import (
     SolicitacoesKitLancheAvulsaDestaSemanaManager, SolicitacoesKitLancheAvulsaDesteMesManager,
     SolicitacoesKitLancheAvulsaVencidaDiasManager
 )
-from ..dados_comuns.models import LogSolicitacoesUsuario, TemplateMensagem
-from ..dados_comuns.models_abstract import (
-    CriadoEm, CriadoPor, Descritivel, FluxoAprovacaoPartindoDaDiretoriaRegional, FluxoAprovacaoPartindoDaEscola, Logs,
+from ..dados_comuns.behaviors import (
+    CriadoEm, CriadoPor, Descritivel, Logs,
     Motivo, Nomeavel, TemChaveExterna, TemData, TemIdentificadorExternoAmigavel, TemPrioridade, TempoPasseio
 )
+from ..dados_comuns.fluxo_status import FluxoAprovacaoPartindoDaDiretoriaRegional, FluxoAprovacaoPartindoDaEscola
+from ..dados_comuns.models import LogSolicitacoesUsuario, TemplateMensagem
 
 
 class ItemKitLanche(Nomeavel, TemChaveExterna):
@@ -164,6 +165,16 @@ class SolicitacaoKitLancheUnificada(CriadoPor, TemChaveExterna, TemIdentificador
         return lote_nome
 
     @property
+    def lote(self):
+        """Solicitação unificada é somente de um lote.
+
+        Vide o  self.dividir_por_lote()
+        """
+        escola_quantidade = self.escolas_quantidades.first()
+        lote = escola_quantidade.escola.lote
+        return lote
+
+    @property
     def quantidade_alimentacoes(self):
         # TODO: remover essa ou total_kit_lanche
         return self.total_kit_lanche
@@ -248,12 +259,6 @@ class SolicitacaoKitLancheUnificada(CriadoPor, TemChaveExterna, TemIdentificador
             for escola_quantidade in self.escolas_quantidades.all():
                 total_kit_lanche += escola_quantidade.total_kit_lanche
             return total_kit_lanche
-
-    def vincula_escolas_quantidades(self, escolas_quantidades):
-        # TODO trocar isso, fazer backref
-        for escola_quantidade in escolas_quantidades:
-            escola_quantidade.solicitacao_unificada = self
-            escola_quantidade.save()
 
     def __str__(self):
         dre = self.diretoria_regional

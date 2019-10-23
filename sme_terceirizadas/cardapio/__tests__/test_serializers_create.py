@@ -19,7 +19,8 @@ def test_inversao_serializer_validators(inversao_card_params):
     cardapio_de = mommy.make('cardapio.Cardapio', data=data_de)
     cardapio_para = mommy.make('cardapio.Cardapio', data=data_para)
     tipo_ue = mommy.make('escola.TipoUnidadeEscolar', cardapios=[cardapio_de, cardapio_para])
-    escola = mommy.make('escola.Escola', tipo_unidade=tipo_ue)
+    lote = mommy.make('Lote')
+    escola = mommy.make('escola.Escola', tipo_unidade=tipo_ue, lote=lote)
     attrs = dict(data_de=data_de, data_para=data_para, escola=escola)
 
     response_de = serializer_obj.validate_data_de(data_de=data_de)
@@ -37,7 +38,8 @@ def test_inversao_serializer_validators_case_error(inversao_card_params_error):
     cardapio_de = mommy.make('cardapio.Cardapio', data=data_de)
     cardapio_para = mommy.make('cardapio.Cardapio', data=data_para)
     tipo_ue = mommy.make('escola.TipoUnidadeEscolar', cardapios=[cardapio_de, cardapio_para])
-    escola = mommy.make('escola.Escola', tipo_unidade=tipo_ue)
+    lote = mommy.make('Lote')
+    escola = mommy.make('escola.Escola', tipo_unidade=tipo_ue, lote=lote)
     attrs = dict(data_de=data_de, data_para=data_para, escola=escola)
 
     error_regex = r'(Não pode ser no passado|Inversão de dia de cardapio deve ser solicitada no ano corrente|Diferença entre as datas não pode ultrapassar de 60 dias|Data de cardápio para troca é superior a data de inversão)'  # noqa E501
@@ -64,8 +66,9 @@ def test_inversao_serializer_creators(inversao_card_params):
     cardapio4 = mommy.make('cardapio.Cardapio', data=data_para_atualiza)
 
     tipo_ue = mommy.make('escola.TipoUnidadeEscolar', cardapios=[cardapio1, cardapio2, cardapio3, cardapio4])
-    escola1 = mommy.make('escola.Escola', tipo_unidade=tipo_ue)
-    escola2 = mommy.make('escola.Escola', tipo_unidade=tipo_ue)
+    lote = mommy.make('Lote')
+    escola1 = mommy.make('escola.Escola', tipo_unidade=tipo_ue, lote=lote)
+    escola2 = mommy.make('escola.Escola', tipo_unidade=tipo_ue, lote=lote)
 
     validated_data_create = dict(data_de=data_de_cria, data_para=data_para, escola=escola1)
     validated_data_update = dict(data_de=data_de_atualiza, data_para=data_para_atualiza, escola=escola2)
@@ -103,7 +106,7 @@ def test_alteracao_cardapio_validators(alteracao_card_params):
 
 
 @freeze_time('2019-10-15')
-def test_alteracao_cardapio_creators(alteracao_card_params):
+def test_alteracao_cardapio_creators(alteracao_card_params, escola):
     class FakeObject(object):
         user = mommy.make('perfil.Usuario')
 
@@ -125,6 +128,7 @@ def test_alteracao_cardapio_creators(alteracao_card_params):
 
     validated_data_create = dict(data_inicial=data_inicial,
                                  data_final=data_final,
+                                 escola=escola,
                                  substituicoes=substituicoes_dict)
 
     resp_create = serializer_obj.create(validated_data=validated_data_create)

@@ -7,7 +7,7 @@ from rest_framework.viewsets import ModelViewSet, ViewSet
 
 from .serializers import ConfiguracaoEmailSerializer, ConfiguracaoMensagemSerializer
 from ..models import TemplateMensagem
-from ..models_abstract import DiasSemana, TempoPasseio
+from ..behaviors import DiasSemana, TempoPasseio
 from ..utils import obter_dias_uteis_apos_hoje
 
 
