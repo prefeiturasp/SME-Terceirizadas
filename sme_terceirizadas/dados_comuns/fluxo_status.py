@@ -10,7 +10,6 @@ from django_xworkflows import models as xwf_models
 
 from .models import LogSolicitacoesUsuario
 from .utils import enviar_notificacao_e_email
-from ..perfil import models as models_perfil
 
 
 class PedidoAPartirDaEscolaWorkflow(xwf_models.Workflow):
@@ -220,21 +219,18 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
 
     @property
     def partes_interessadas_dre_valida(self):
-        # TODO: filtrar usuários CODAE
-        usuarios_codae = models_perfil.Usuario.objects.filter()
-        return usuarios_codae
+        # TODO: definir partes interessadas
+        return []
 
     @property
     def partes_interessadas_codae_autoriza(self):
-        # TODO: filtrar usuários Terceirizadas
-        usuarios_terceirizadas = models_perfil.Usuario.objects.filter()
-        return usuarios_terceirizadas
+        # TODO: definir partes interessadas
+        return []
 
     @property
     def partes_interessadas_terceirizadas_tomou_ciencia(self):
-        # TODO: filtrar usuários Escolas
-        usuarios_terceirizadas = models_perfil.Usuario.objects.filter()
-        return usuarios_terceirizadas
+        # TODO: definir partes interessadas
+        return []
 
     @property
     def template_mensagem(self):
@@ -433,28 +429,23 @@ class FluxoAprovacaoPartindoDaDiretoriaRegional(xwf_models.WorkflowEnabled, mode
 
     @property
     def partes_interessadas_codae_autoriza(self):
-        # TODO: filtrar usuários Terceirizadas
-        usuarios_terceirizadas = models_perfil.Usuario.objects.filter()
-        return usuarios_terceirizadas
+        # TODO: definir partes interessadas
+        return []
 
     @property
     def partes_interessadas_codae_nega(self):
-        # TODO: filtrar usuários
-        usuarios_terceirizadas = models_perfil.Usuario.objects.filter()
-        return usuarios_terceirizadas
+        # TODO: definir partes interessadas
+        return []
 
     @property
     def partes_interessadas_inicio_fluxo(self):
-        """TODO: retornar usuários CODAE, esse abaixo é so pra passar..."""
-        dre = self.diretoria_regional
-        usuarios_dre = dre.usuarios.all()
-        return usuarios_dre
+        # TODO: definir partes interessadas
+        return []
 
     @property
     def partes_interessadas_terceirizadas_tomou_ciencia(self):
-        # TODO: filtrar usuários Escolas
-        usuarios_terceirizadas = models_perfil.Usuario.objects.filter()
-        return usuarios_terceirizadas
+        # TODO: definir partes interessadas
+        return []
 
     @property
     def template_mensagem(self):
@@ -560,16 +551,13 @@ class FluxoInformativoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model)
 
     @property
     def partes_interessadas_informacao(self):
-        """TODO: retornar usuários DRE, esse abaixo é so pra passar..."""
-        dre = self.escola.diretoria_regional
-        usuarios_dre = dre.usuarios.all()
-        return usuarios_dre
+        # TODO: definir partes interessadas
+        return []
 
     @property
     def partes_interessadas_terceirizadas_tomou_ciencia(self):
-        # TODO: filtrar usuários Escolas
-        usuarios_terceirizadas = models_perfil.Usuario.objects.filter()
-        return usuarios_terceirizadas
+        # TODO: definir partes interessadas
+        return []
 
     @property
     def template_mensagem(self):
