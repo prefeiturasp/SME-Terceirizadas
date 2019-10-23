@@ -12,30 +12,31 @@ pytestmark = pytest.mark.django_db
 # Kit lanche avulso
 #
 
-def _monta_kit_lanche_avulso(kits_avulsos_datas, status=PedidoAPartirDaEscolaWorkflow.RASCUNHO):
+def _monta_kit_lanche_avulso(kits_avulsos_datas, escola, status=PedidoAPartirDaEscolaWorkflow.RASCUNHO):
     solicitacao_kit_lanche_base = mommy.make('SolicitacaoKitLanche', data=kits_avulsos_datas)
     solicitacao_kit_lanche_avulsa = mommy.make('SolicitacaoKitLancheAvulsa',
                                                status=status,
+                                               escola=escola,
                                                solicitacao_kit_lanche=solicitacao_kit_lanche_base)
     return solicitacao_kit_lanche_avulsa
 
 
 @freeze_time('2019-10-03')
-def test_manager_kit_lanche_avulso_vencido(kits_avulsos_datas_passado_parametros):
+def test_manager_kit_lanche_avulso_vencido(kits_avulsos_datas_passado_parametros, escola):
     kits_avulsos_datas, status = kits_avulsos_datas_passado_parametros
-    solicitacao_kit_lanche_avulsa = _monta_kit_lanche_avulso(kits_avulsos_datas, status)
+    solicitacao_kit_lanche_avulsa = _monta_kit_lanche_avulso(kits_avulsos_datas, escola, status)
     assert solicitacao_kit_lanche_avulsa in SolicitacaoKitLancheAvulsa.vencidos.all()
 
 
 @freeze_time('2019-10-03')
-def test_manager_kit_lanche_avulso_desta_semana(kits_avulsos_datas_semana):
-    solicitacao_kit_lanche_avulsa = _monta_kit_lanche_avulso(kits_avulsos_datas_semana)
+def test_manager_kit_lanche_avulso_desta_semana(kits_avulsos_datas_semana, escola):
+    solicitacao_kit_lanche_avulsa = _monta_kit_lanche_avulso(kits_avulsos_datas_semana, escola)
     assert solicitacao_kit_lanche_avulsa in SolicitacaoKitLancheAvulsa.desta_semana.all()
 
 
 @freeze_time('2019-10-03')
-def test_manager_kit_lanche_avulso_deste_mes(kits_avulsos_datas_mes):
-    solicitacao_kit_lanche_avulsa = _monta_kit_lanche_avulso(kits_avulsos_datas_mes)
+def test_manager_kit_lanche_avulso_deste_mes(kits_avulsos_datas_mes, escola):
+    solicitacao_kit_lanche_avulsa = _monta_kit_lanche_avulso(kits_avulsos_datas_mes, escola)
     assert solicitacao_kit_lanche_avulsa in SolicitacaoKitLancheAvulsa.deste_mes.all()
 
 

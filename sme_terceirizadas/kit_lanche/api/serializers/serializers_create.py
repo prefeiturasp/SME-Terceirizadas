@@ -201,7 +201,8 @@ class SolicitacaoKitLancheUnificadaCreationSerializer(serializers.ModelSerialize
         solicitacao_kit_unificada = SolicitacaoKitLancheUnificada.objects.create(
             solicitacao_kit_lanche=solicitacao_base, **validated_data
         )
-        solicitacao_kit_unificada.vincula_escolas_quantidades(lista_quantidade_escola)
+
+        solicitacao_kit_unificada.escolas_quantidades.set(lista_quantidade_escola)
         return solicitacao_kit_unificada
 
     def update(self, instance, validated_data):
@@ -219,7 +220,7 @@ class SolicitacaoKitLancheUnificadaCreationSerializer(serializers.ModelSerialize
 
         lista_quantidade_escola = self._gera_escolas_quantidades(escolas_quantidades)
 
-        instance.vincula_escolas_quantidades(lista_quantidade_escola)
+        instance.escolas_quantidades.set(lista_quantidade_escola)
 
         update_instance_from_dict(instance, validated_data)
         instance.save()

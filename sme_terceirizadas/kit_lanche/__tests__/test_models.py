@@ -5,7 +5,7 @@ from freezegun import freeze_time
 from model_mommy import mommy
 from xworkflows import InvalidTransitionError
 
-from ...dados_comuns.models_abstract import TempoPasseio
+from ...dados_comuns.behaviors import TempoPasseio
 
 pytestmark = pytest.mark.django_db
 
@@ -34,10 +34,6 @@ def test_solicitacao_avulsa(solicitacao_avulsa):
 def test_solicitacao_unificada(solicitacao_unificada_lista_igual):
     assert isinstance(solicitacao_unificada_lista_igual.local, str)
     assert solicitacao_unificada_lista_igual.lista_kit_lanche_igual is True
-
-    escolas_quantidades = mommy.make('EscolaQuantidade', _quantity=10, quantidade_alunos=100)
-    assert solicitacao_unificada_lista_igual.vincula_escolas_quantidades(
-        escolas_quantidades) is None
     assert solicitacao_unificada_lista_igual.total_kit_lanche == 3000
 
 
@@ -243,16 +239,16 @@ def test_solicitacao_unificada_lista_igual_workflow_partindo_da_escola_with_erro
 
 
 @freeze_time('2019-10-02')
-def test_tageamento_prioridade(kits_avulsos_parametros):
+def test_tageamento_prioridade(kits_avulsos_parametros, escola):
     data_tupla, esperado = kits_avulsos_parametros
     kit_lanche_base = mommy.make('SolicitacaoKitLanche', data=data_tupla)
-    kit_lanche_avulso = mommy.make('SolicitacaoKitLancheAvulsa', solicitacao_kit_lanche=kit_lanche_base)
+    kit_lanche_avulso = mommy.make('SolicitacaoKitLancheAvulsa', escola=escola, solicitacao_kit_lanche=kit_lanche_base)
     assert kit_lanche_avulso.prioridade == esperado
 
 
 @freeze_time('2019-12-20')
-def test_tageamento_prioridade_caso2(kits_avulsos_parametros2):
+def test_tageamento_prioridade_caso2(kits_avulsos_parametros2, escola):
     data_tupla, esperado = kits_avulsos_parametros2
     kit_lanche_base = mommy.make('SolicitacaoKitLanche', data=data_tupla)
-    kit_lanche_avulso = mommy.make('SolicitacaoKitLancheAvulsa', solicitacao_kit_lanche=kit_lanche_base)
+    kit_lanche_avulso = mommy.make('SolicitacaoKitLancheAvulsa', escola=escola, solicitacao_kit_lanche=kit_lanche_base)
     assert kit_lanche_avulso.prioridade == esperado

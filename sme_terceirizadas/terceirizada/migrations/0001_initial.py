@@ -4,7 +4,7 @@ from django.conf import settings
 import django.core.validators
 from django.db import migrations, models
 import django.db.models.deletion
-import sme_terceirizadas.dados_comuns.models_abstract
+import sme_terceirizadas.dados_comuns.behaviors
 import uuid
 
 
@@ -81,7 +81,7 @@ class Migration(migrations.Migration):
                 'verbose_name': 'Terceirizada',
                 'verbose_name_plural': 'Terceirizadas',
             },
-            bases=(models.Model, sme_terceirizadas.dados_comuns.models_abstract.TemIdentificadorExternoAmigavel),
+            bases=(models.Model, sme_terceirizadas.dados_comuns.behaviors.TemIdentificadorExternoAmigavel),
         ),
         migrations.CreateModel(
             name='VigenciaContrato',
