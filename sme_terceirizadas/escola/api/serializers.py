@@ -7,7 +7,6 @@ from ..models import (
 )
 from ...cardapio.models import TipoAlimentacao
 from ...dados_comuns.api.serializers import ContatoSerializer, EnderecoSerializer
-from ...perfil.api.serializers import PerfilSerializer
 from ...perfil.models import Usuario
 from ...terceirizada.api.serializers.serializers import (
     ContratoSimplesSerializer,
