@@ -42,4 +42,46 @@ CREATE OR REPLACE VIEW solicitacoes_consolidadas AS
                    on terceirizada.id = inversao_cardapio.rastro_terceirizada_id
          left join cardapio_cardapio as cardapio_de on cardapio_de.id = inversao_cardapio.cardapio_de_id
          left join cardapio_cardapio as cardapio_para on cardapio_para.id = inversao_cardapio.cardapio_para_id
+  union
 
+  SELECT inc_aliment_normal.id,
+         inc_aliment_normal.uuid,
+         min(inc_alimentacao_item.data) AS data_evento,
+         lote.nome                      as lote_nome,
+         dre.nome                       as dre_nome,
+         escola.nome                    as escola_nome,
+         'INC_ALIMENTA'                 AS tipo_doc,
+         'Inclusão de Alimentação'      AS desc_doc,
+         inc_aliment_normal.status      as status_atual,
+         logs.criado_em                 as data_log,
+         logs.status_evento
+  FROM inclusao_alimentacao_grupoinclusaoalimentacaonormal AS inc_aliment_normal
+         left join dados_comuns_logsolicitacoesusuario as logs on logs.uuid_original = inc_aliment_normal.uuid
+         left join escola_diretoriaregional as dre on dre.id = inc_aliment_normal.rastro_dre_id
+         left join escola_lote as lote on lote.id = inc_aliment_normal.rastro_lote_id
+         left join escola_escola as escola on escola.id = inc_aliment_normal.rastro_escola_id
+         left join terceirizada_terceirizada as terceirizada
+                   on terceirizada.id = inc_aliment_normal.rastro_terceirizada_id
+         left join inclusao_alimentacao_inclusaoalimentacaonormal AS inc_alimentacao_item
+                   on inc_alimentacao_item.grupo_inclusao_id = inc_aliment_normal.id
+
+  group by inc_aliment_normal.id, lote.nome, dre.nome, escola.nome, logs.criado_em, logs.status_evento
+  union
+  SELECT inc_aliment_continua.id,
+         inc_aliment_continua.uuid,
+         inc_aliment_continua.data_inicial  AS data_evento,
+         lote.nome                          as lote_nome,
+         dre.nome                           as dre_nome,
+         escola.nome                        as escola_nome,
+         'INC_ALIMENTA_CONTINUA'            AS tipo_doc,
+         'Inclusão de Alimentação Contínua' AS desc_doc,
+         inc_aliment_continua.status        as status_atual,
+         logs.criado_em                     as data_log,
+         logs.status_evento
+  FROM inclusao_alimentacao_inclusaoalimentacaocontinua AS inc_aliment_continua
+         left join dados_comuns_logsolicitacoesusuario as logs on logs.uuid_original = inc_aliment_continua.uuid
+         left join escola_diretoriaregional as dre on dre.id = inc_aliment_continua.rastro_dre_id
+         left join escola_lote as lote on lote.id = inc_aliment_continua.rastro_lote_id
+         left join escola_escola as escola on escola.id = inc_aliment_continua.rastro_escola_id
+         left join terceirizada_terceirizada as terceirizada
+                   on terceirizada.id = inc_aliment_continua.rastro_terceirizada_id
