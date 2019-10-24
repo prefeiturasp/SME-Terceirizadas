@@ -7,8 +7,8 @@ from rest_framework.test import APIClient
 
 from ..api.serializers.serializers import (
     AlteracaoCardapioSerializer, InversaoCardapioSerializer, MotivoAlteracaoCardapioSerializer,
-    SubstituicoesAlimentacaoNoPeriodoEscolarSerializer, SuspensaoAlimentacaoSerializer,
-    QuantidadePorPeriodoSuspensaoAlimentacao
+    QuantidadePorPeriodoSuspensaoAlimentacao, SubstituicoesAlimentacaoNoPeriodoEscolarSerializer,
+    SuspensaoAlimentacaoSerializer
 )
 from ..models import (
     AlteracaoCardapio, InversaoCardapio, MotivoAlteracaoCardapio, MotivoSuspensao,
