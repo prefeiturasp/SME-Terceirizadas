@@ -1,10 +1,10 @@
 from notifications.models import Notification
 from rest_framework import serializers
 
-from sme_terceirizadas.perfil.api.validators import (
-    registro_funcional_e_cpf_sao_da_mesma_pessoa, usuario_pode_efetuar_cadastro
+from .validators import (
+    registro_funcional_e_cpf_sao_da_mesma_pessoa, senha_deve_ser_igual_confirmar_senha,
+    usuario_pode_efetuar_cadastro
 )
-from .validators import senha_deve_ser_igual_confirmar_senha
 from ..models import (GrupoPerfil, Perfil, PerfilPermissao, Permissao, Usuario)
 
 

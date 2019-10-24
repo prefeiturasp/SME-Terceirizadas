@@ -35,6 +35,7 @@ def usuario():
         registro_funcional='1234567'
     )
 
+
 @pytest.fixture()
 def usuario_com_rf_de_diretor():
     return mommy.make(

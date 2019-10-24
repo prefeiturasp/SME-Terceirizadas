@@ -133,12 +133,12 @@ class Usuario(SimpleEmailConfirmationUserMixin, CustomAbstractUser, TemChaveExte
         headers = {'Authorization': f'Token {env("DJANGO_EOL_API_TOKEN")}'}
         r = requests.get(f'{env("DJANGO_EOL_API_URL")}/cargos/{self.registro_funcional}', headers=headers)
         response = r.json()
-        pode_efeturar_cadastro = False
+        pode_efetuar_cadastro = False
         for result in response['results']:
             if result['cargo'] == 'DIRETOR DE ESCOLA':
-                pode_efeturar_cadastro = True
+                pode_efetuar_cadastro = True
                 break
-        return pode_efeturar_cadastro
+        return pode_efetuar_cadastro
 
     def enviar_email_confirmacao(self):
         self.add_email_if_not_exists(self.email)

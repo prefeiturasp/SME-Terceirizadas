@@ -1,7 +1,7 @@
 import pytest
 from rest_framework.exceptions import ValidationError
 
-from ..api.validators import senha_deve_ser_igual_confirmar_senha, registro_funcional_e_cpf_sao_da_mesma_pessoa
+from ..api.validators import registro_funcional_e_cpf_sao_da_mesma_pessoa, senha_deve_ser_igual_confirmar_senha
 
 pytestmark = pytest.mark.django_db
 
