@@ -23,7 +23,6 @@ def client():
 @pytest.fixture
 def client_autenticado_terceiro(client_autenticado,):
     terceirizada = mommy.make(Terceirizada,
-                              usuarios=[mommy.make('perfil.Usuario')],
                               contatos=[mommy.make('dados_comuns.Contato')],
                               endereco=mommy.make('dados_comuns.Endereco'),
                               make_m2m=True
@@ -79,7 +78,6 @@ def terceirizada_simples_serializer():
 @pytest.fixture
 def terceirizada():
     return mommy.make(Terceirizada,
-                      usuarios=[mommy.make('perfil.Usuario')],
                       contatos=[mommy.make('dados_comuns.Contato')],
                       endereco=mommy.make('dados_comuns.Endereco'),
                       make_m2m=True

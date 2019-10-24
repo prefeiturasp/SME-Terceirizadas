@@ -102,31 +102,9 @@ class Usuario(SimpleEmailConfirmationUserMixin, CustomAbstractUser, TemChaveExte
     email = models.EmailField(_('email address'), unique=True)
     cpf = models.CharField(_('CPF'), max_length=11, default='')
     registro_funcional = models.CharField(_('RF'), max_length=10, default='')
-    perfis = models.ManyToManyField(Perfil)
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []  # type: ignore
-
-    @property
-    def escolas(self):
-        return self.escolas
-
-    @property
-    def diretorias_regionais(self):
-        return self.diretorias_regionais
-
-    @property  # noqa C901
-    def tipo_usuario(self):
-        if self.escolas.exists():
-            return 'escola'
-        elif self.diretorias_regionais.exists():
-            return 'diretoria_regional'
-        elif self.CODAE.exists():
-            return 'codae'
-        elif self.terceirizadas.exists():
-            return 'terceirizada'
-        else:
-            return 'indefinido'
 
     @property
     def pode_efetuar_cadastro(self):

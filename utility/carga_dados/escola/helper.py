@@ -1,6 +1,8 @@
 import json
 from unicodedata import normalize
 from django.conf import settings
+import datetime
+from sme_terceirizadas.perfil.models import Vinculo
 
 
 def normaliza_nome(nome):
@@ -44,3 +46,14 @@ def busca_sigla_lote(sigla):
         return _get_id('MP I')
     else:
         return _get_id(sigla.strip())
+
+
+def cria_vinculo_de_perfil_usuario(perfil, usuario, instituicao):
+    vinculo = Vinculo.objects.create(
+        data_inicial=datetime.date.today(),
+        instituicao=instituicao,
+        perfil=perfil,
+        usuario=usuario,
+        ativo=False
+    )
+    return vinculo
