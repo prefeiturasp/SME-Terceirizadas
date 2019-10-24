@@ -129,7 +129,7 @@ class Usuario(SimpleEmailConfirmationUserMixin, CustomAbstractUser, TemChaveExte
             return 'indefinido'
 
     @property
-    def pode_efeturar_cadastro(self):
+    def pode_efetuar_cadastro(self):
         headers = {'Authorization': f'Token {env("DJANGO_EOL_API_TOKEN")}'}
         r = requests.get(f'{env("DJANGO_EOL_API_URL")}/cargos/{self.registro_funcional}', headers=headers)
         response = r.json()
