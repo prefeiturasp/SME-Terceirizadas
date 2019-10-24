@@ -1,3 +1,6 @@
+import environ
+import requests
+
 from django.contrib.auth.base_user import AbstractBaseUser
 from django.contrib.auth.models import BaseUserManager, PermissionsMixin
 from django.core.mail import send_mail
@@ -10,6 +13,8 @@ from ...dados_comuns.utils import url_configs
 from .perfil import Perfil
 from ...dados_comuns.behaviors import TemChaveExterna
 
+
+env = environ.Env()
 
 # Thanks to https://github.com/jmfederico/django-use-email-as-username
 
@@ -122,6 +127,18 @@ class Usuario(SimpleEmailConfirmationUserMixin, CustomAbstractUser, TemChaveExte
             return 'terceirizada'
         else:
             return 'indefinido'
+
+    @property
+    def pode_efeturar_cadastro(self):
+        headers = {'Authorization': f'Token {env("DJANGO_EOL_API_TOKEN")}'}
+        r = requests.get(f'{env("DJANGO_EOL_API_URL")}/cargos/{self.registro_funcional}', headers=headers)
+        response = r.json()
+        pode_efeturar_cadastro = False
+        for result in response['results']:
+            if result['cargo'] == 'DIRETOR DE ESCOLA':
+                pode_efeturar_cadastro = True
+                break
+        return pode_efeturar_cadastro
 
     def enviar_email_confirmacao(self):
         self.add_email_if_not_exists(self.email)

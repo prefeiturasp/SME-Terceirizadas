@@ -37,8 +37,8 @@ class UsuarioUpdateViewSet(viewsets.GenericViewSet):
         except ObjectDoesNotExist:
             return Response({'detail': 'Erro ao cadastrar usuário'},
                             status=status.HTTP_400_BAD_REQUEST)
-        usuario = UsuarioUpdateSerializer(usuario).partial_update(request.data, usuario)
-        usuario.enviar_email_confirmacao()
+        usuario = UsuarioUpdateSerializer(usuario).partial_update(usuario, request.data)
+        #usuario.enviar_email_confirmacao()
         return Response(UsuarioDetalheSerializer(usuario).data)
 
 

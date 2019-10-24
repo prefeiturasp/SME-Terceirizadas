@@ -1,6 +1,9 @@
 from notifications.models import Notification
 from rest_framework import serializers
 
+from sme_terceirizadas.perfil.api.validators import (
+    registro_funcional_e_cpf_sao_da_mesma_pessoa, usuario_pode_efetuar_cadastro
+)
 from .validators import senha_deve_ser_igual_confirmar_senha
 from ..models import (GrupoPerfil, Perfil, PerfilPermissao, Permissao, Usuario)
 
@@ -92,15 +95,19 @@ class PerfilPermissaoCreateSerializer(serializers.ModelSerializer):
 class UsuarioUpdateSerializer(serializers.ModelSerializer):
     confirmar_password = serializers.CharField()
 
-    def partial_update(self, validated_data, usuario):
-        validated_data['email'] = validated_data['email'] + '@sme.prefeitura.sp.gov.br'
-        password = validated_data.get('password')
-        confirmar_password = validated_data.pop('confirmar_password')
-        senha_deve_ser_igual_confirmar_senha(password, confirmar_password)
-        self.update(usuario, validated_data)
-        usuario.set_password(validated_data['password'])
-        usuario.save()
-        return usuario
+    def validate(self, instance, attrs):
+        senha_deve_ser_igual_confirmar_senha(attrs['password'], attrs['confirmar_password'])
+        registro_funcional_e_cpf_sao_da_mesma_pessoa(instance, attrs['registro_funcional'], attrs['cpf'])
+        usuario_pode_efetuar_cadastro(instance)
+        attrs['email'] = attrs['email'] + '@sme.prefeitura.sp.gov.br'
+        return attrs
+
+    def partial_update(self, instance, validated_data):
+        validated_data = self.validate(instance, validated_data)
+        self.update(instance, validated_data)
+        instance.set_password(validated_data['password'])
+        instance.save()
+        return instance
 
     class Meta:
         model = Usuario
