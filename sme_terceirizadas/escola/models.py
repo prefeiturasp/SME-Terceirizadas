@@ -3,7 +3,6 @@ from django.core.validators import MinLengthValidator
 from django.db import models
 from django.db.models import Q, Sum
 
-from sme_terceirizadas.perfil.models import Vinculo
 from ..cardapio.models import (
     AlteracaoCardapio, GrupoSuspensaoAlimentacao, InversaoCardapio
 )
