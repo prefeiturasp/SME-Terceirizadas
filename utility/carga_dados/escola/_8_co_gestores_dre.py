@@ -1,8 +1,9 @@
 import environ
 import numpy as np
 import pandas as pd
+from .helper import cria_vinculo_de_perfil_usuario
 
-from sme_terceirizadas.perfil.models import GrupoPerfil, Perfil, Usuario
+from sme_terceirizadas.perfil.models import Perfil, Usuario
 from sme_terceirizadas.escola.models import DiretoriaRegional
 
 ROOT_DIR = environ.Path(__file__) - 1
@@ -32,9 +33,9 @@ df['CPF-SUPLENTE'] = df['CPF-SUPLENTE'].str.strip().str.upper()
 df['E-MAIL-SUPLENTE'] = df['E-MAIL-SUPLENTE'].str.strip()
 
 
-def busca_diretoria_regional(dre):
+def busca_diretoria_regional(nome_dre):
     try:
-        return DiretoriaRegional.objects.get(iniciais__icontains=dre)
+        return DiretoriaRegional.objects.get(iniciais__icontains=nome_dre)
     except DiretoriaRegional.DoesNotExist:
         return None
 
@@ -43,7 +44,7 @@ def retorna_apenas_numeros_registro_funcional(registro_funcional):
     return registro_funcional.replace('.', '').replace('-', '')
 
 
-def cria_usuario_gestor_ou_suplente(registro_funcional, nome, email, cpf, perfil_usuario):
+def cria_usuario_gestor_ou_suplente(registro_funcional, nome, email, cpf):
     if nome == 'SEM SUPLENTE':
         return None
     else:
@@ -54,35 +55,32 @@ def cria_usuario_gestor_ou_suplente(registro_funcional, nome, email, cpf, perfil
         usuario.nome = nome
         usuario.cpf = cpf
         usuario.is_active = False
-        usuario.perfis.add(perfil_usuario)
         usuario.save()
         return usuario
 
 
-def atribui_e_salva_usuarios_a_dre(dre, usuarios):
-    for usuario in usuarios:
-        if usuario is not None:
-            dre.usuarios.add(usuario)
-            print(f'usuario: {usuario.nome} foi criado e atribuido a DRE: {dre.nome}')
-    dre.save()
+def atribui_e_salva_cargos_a_dre(diretoria_regional, cargos):
+    for cargo in cargos:
+        if cargo['usuario'] is not None:
+            cria_vinculo_de_perfil_usuario(
+                cargo['perfil'],
+                cargo['usuario'],
+                diretoria_regional
+            )
+            print(f'usuario: {cargo["usuario"].nome} foi criado e atribuido a DRE: {diretoria_regional.nome}')
 
 
 def percorre_data_frame():
-    grupo_dre = GrupoPerfil(
-        nome='DIRETORIA REGIONAL',
-        ativo=True
-    )
-    grupo_dre.save()
     perfil_gestor = Perfil(
         nome='CO-GESTOR',
         ativo=True,
-        grupo=grupo_dre
+        super_usuario=True
     )
     perfil_gestor.save()
     perfil_suplente = Perfil(
         nome='SUPLENTE',
         ativo=True,
-        grupo=grupo_dre
+        super_usuario=True
     )
     perfil_suplente.save()
     for index, row in df.iterrows():
@@ -91,17 +89,27 @@ def percorre_data_frame():
             row['RF'],
             row['COGESTOR'],
             row['E-MAIL'],
-            row['CPF-COGESTOR'],
-            perfil_gestor
+            row['CPF-COGESTOR']
         )
         suplente = cria_usuario_gestor_ou_suplente(
             row['RF-SUPLENTE'],
             row['SUPLENTE'],
             row['E-MAIL-SUPLENTE'],
-            row['CPF-SUPLENTE'],
-            perfil_suplente
+            row['CPF-SUPLENTE']
         )
-        atribui_e_salva_usuarios_a_dre(dre, [cogestor, suplente])
+        atribui_e_salva_cargos_a_dre(
+            dre,
+            [
+                {
+                    'usuario': cogestor,
+                    'perfil': perfil_gestor
+                },
+                {
+                    'usuario': suplente,
+                    'perfil': perfil_suplente
+                },
+            ]
+        )
 
 
 percorre_data_frame()

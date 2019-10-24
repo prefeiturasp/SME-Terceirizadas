@@ -3,8 +3,8 @@ import numpy as np
 import pandas as pd
 
 from sme_terceirizadas.escola.models import Escola
-from sme_terceirizadas.perfil.models import GrupoPerfil, Perfil, Usuario
-from .helper import coloca_zero_a_esquerda
+from sme_terceirizadas.perfil.models import Perfil, Usuario, Vinculo
+from .helper import cria_vinculo_de_perfil_usuario, coloca_zero_a_esquerda
 
 ROOT_DIR = environ.Path(__file__) - 1
 
@@ -24,21 +24,20 @@ df = df.replace(np.nan, '', regex=True)
 df['cd_unidade_base'] = df['cd_unidade_base'].str.strip('.0')
 
 
-def busca_escola(eol):
+def busca_escola(codigo_eol):
     try:
-        return Escola.objects.get(codigo_eol=eol)
+        return Escola.objects.get(codigo_eol=codigo_eol)
     except Escola.DoesNotExist:
         return None
 
 
-def cria_usuario_diretor(cpf, registro_funcional, nome, perfil_usuario):
+def cria_usuario_diretor(cpf, registro_funcional, nome):
     email = f'{cpf}@dev.prefeitura.sp.gov.br'
     diretor = Usuario.objects.create_user(email, registro_funcional)
     diretor.registro_funcional = registro_funcional
     diretor.nome = nome
     diretor.cpf = cpf
     diretor.is_active = False
-    diretor.perfis.add(perfil_usuario)
     diretor.save()
     return diretor
 
@@ -47,33 +46,35 @@ def percorre_data_frame():
     diretores_criados = 0
     diretores_contabilizados = 0
     eol_zerado = 0
-    grupo_escola = GrupoPerfil(
-        nome='ESCOLA',
-        ativo=True
-    )
-    grupo_escola.save()
+
+
     perfil_usuario = Perfil(
         nome='DIRETOR',
         ativo=True,
-        grupo=grupo_escola
+        super_usuario=True
     )
+
     perfil_usuario.save()
     for index, row in df.iterrows():
         diretores_contabilizados += 1
-        eol = coloca_zero_a_esquerda(row['cd_unidade_base'])
-        if eol == '000000':
+        codigo_eol = coloca_zero_a_esquerda(row['cd_unidade_base'])
+        if codigo_eol == '000000':
             eol_zerado += 1
-        escola = busca_escola(eol)
+
+        escola = busca_escola(codigo_eol)
+
         if escola is not None:
             diretor = cria_usuario_diretor(
                 row['cd_cpf_pessoa'],
                 row['rf'],
-                row['nm_nome'],
-                perfil_usuario
+                row['nm_nome']
             )
-            escola.usuarios.add(diretor)
             escola.save()
+            cria_vinculo_de_perfil_usuario(
+                perfil_usuario, diretor, escola
+            )
             diretores_criados += 1
+
             print(f'diretor(a): {diretor.nome} foi vinculado a escola: {escola.nome}')
 
     print(f'foram contabilizados {diretores_contabilizados} diretores')

@@ -297,7 +297,7 @@ def cria_alteracoes_cardapio(qtd=50):
 QTD_PEDIDOS = 50
 
 print('-> vinculando escola dre e usuarios')
-vincula_dre_escola_usuario()
+# vincula_dre_escola_usuario()
 
 criar_pedidos = input('Criar pedidos do sistema? (S/N)?')
 if criar_pedidos.upper() == 'S':
