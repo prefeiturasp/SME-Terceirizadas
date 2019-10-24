@@ -10,7 +10,6 @@ from django.utils.translation import ugettext_lazy as _
 from simple_email_confirmation.models import SimpleEmailConfirmationUserMixin
 
 from ...dados_comuns.utils import url_configs
-from .perfil import Perfil
 from ...dados_comuns.behaviors import TemChaveExterna
 
 
@@ -105,6 +104,19 @@ class Usuario(SimpleEmailConfirmationUserMixin, CustomAbstractUser, TemChaveExte
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []  # type: ignore
+
+    @property
+    def vinculos(self):
+        return self.vinculos
+
+    @property
+    def tipo_usuario(self):
+        tipo_usuario = 'indefinido'
+        if self.vinculos.filter(ativo=True).exists():
+            tipo_usuario = self.vinculos.get(ativo=True).tipo_instituicao.model
+            if tipo_usuario == 'diretoriaregional':
+                return 'diretoria_regional'
+        return tipo_usuario
 
     @property
     def pode_efetuar_cadastro(self):

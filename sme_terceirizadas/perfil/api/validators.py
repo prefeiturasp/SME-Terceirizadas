@@ -16,6 +16,6 @@ def registro_funcional_e_cpf_sao_da_mesma_pessoa(usuario: Usuario, registro_func
 
 
 def usuario_pode_efetuar_cadastro(usuario: Usuario):
-    if not usuario.pode_efeturar_cadastro:
+    if not usuario.pode_efetuar_cadastro:
         raise serializers.ValidationError('Erro ao cadastrar usuário')
     return True

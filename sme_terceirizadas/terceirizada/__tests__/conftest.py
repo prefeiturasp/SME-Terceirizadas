@@ -38,7 +38,7 @@ def client_autenticado_terceiro(client_autenticado,):
 
 @pytest.fixture
 def edital():
-    return mommy.make(Edital)
+    return mommy.make(Edital, numero='1', objeto='lorem ipsum')
 
 
 @pytest.fixture

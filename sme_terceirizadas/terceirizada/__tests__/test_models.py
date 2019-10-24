@@ -11,6 +11,7 @@ def test_modelo_edital(edital):
     assert edital.numero is not None
     assert edital.objeto is not None
     assert edital.contratos is not None
+    assert edital.__str__() == '1 - lorem ipsum'
 
 
 def test_modelo_contrato(contrato):

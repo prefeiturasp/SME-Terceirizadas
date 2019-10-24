@@ -170,17 +170,11 @@ class TerceirizadaSerializer(serializers.ModelSerializer):
 
 
 class UsuarioDetalheSerializer(serializers.ModelSerializer):
-    perfis = PerfilSerializer(many=True, read_only=True)
-    escolas = EscolaSimplesSerializer(many=True)
-    diretorias_regionais = DiretoriaRegionalSimplesSerializer(many=True)
-    terceirizadas = TerceirizadaSerializer(many=True)
     tipo_usuario = serializers.CharField()
 
     class Meta:
         model = Usuario
-        fields = ('uuid', 'nome', 'email', 'registro_funcional', 'tipo_usuario',
-                  'date_joined', 'perfis', 'escolas', 'diretorias_regionais',
-                  'terceirizadas')
+        fields = ('uuid', 'nome', 'email', 'registro_funcional', 'tipo_usuario', 'date_joined')
 
 
 class CODAESerializer(serializers.ModelSerializer):
