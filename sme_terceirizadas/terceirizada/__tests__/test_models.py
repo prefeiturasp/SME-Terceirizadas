@@ -15,6 +15,7 @@ def test_modelo_edital(edital):
 
 
 def test_modelo_contrato(contrato):
+    assert contrato.__str__() == 'Contrato:1 Processo: 12345'
     assert contrato.uuid is not None
     assert contrato.numero is not None
     assert contrato.processo is not None
@@ -26,12 +27,14 @@ def test_modelo_contrato(contrato):
 
 
 def test_modelo_vigencia_contrato(vigencia_contrato):
+    assert vigencia_contrato.__str__() == 'Contrato:1 2019-01-01 a 2019-01-31'
     assert vigencia_contrato.uuid is not None
     assert vigencia_contrato.data_inicial is not None
     assert vigencia_contrato.data_final is not None
 
 
 def test_terceirizada(terceirizada):
+    assert terceirizada.__str__() == 'Alimentos SA'
     assert terceirizada.nutricionistas is not None
     assert terceirizada.inclusoes_continuas_autorizadas is not None
     assert terceirizada.inclusoes_normais_autorizadas is not None
@@ -60,3 +63,7 @@ def test_terceirizada(terceirizada):
     assert terceirizada.inversoes_cardapio_das_minhas_escolas(filtro) is not None
     assert terceirizada.solicitacoes_unificadas_das_minhas_escolas(filtro) is not None
     assert terceirizada.solicitacoes_kit_lanche_das_minhas_escolas_a_validar(filtro) is not None
+
+
+def test_nutricionista(nutricionista):
+    assert nutricionista.__str__() == 'nutri'

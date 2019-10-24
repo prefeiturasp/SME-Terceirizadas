@@ -18,6 +18,14 @@ def test_motivo_alteracao_cardapio(motivo_alteracao_cardapio):
     assert motivo_alteracao_cardapio.__str__() == 'Aniversariantes do mês'
 
 
+def test_motivo_suspensao_alimentacao(motivo_suspensao_alimentacao):
+    assert motivo_suspensao_alimentacao.__str__() == 'Não vai ter aula'
+
+
+def test_suspensao_alimentacao(suspensao_alimentacao):
+    assert suspensao_alimentacao.__str__() == 'Não vai ter aula'
+
+
 def test_alteracao_cardapio(alteracao_cardapio):
     assert alteracao_cardapio.data_inicial is not None
     assert alteracao_cardapio.data_final is not None

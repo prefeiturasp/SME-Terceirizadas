@@ -10,7 +10,7 @@ from ..api.serializers.serializers import (
     SubstituicoesAlimentacaoNoPeriodoEscolarSerializer, SuspensaoAlimentacaoSerializer
 )
 from ..models import (
-    AlteracaoCardapio, InversaoCardapio, MotivoAlteracaoCardapio,
+    AlteracaoCardapio, InversaoCardapio, MotivoAlteracaoCardapio, MotivoSuspensao,
     SubstituicoesAlimentacaoNoPeriodoEscolar, SuspensaoAlimentacao
 )
 from ...dados_comuns.fluxo_status import PedidoAPartirDaEscolaWorkflow
@@ -103,14 +103,23 @@ def inversao_cardapio_serializer(escola):
 
 
 @pytest.fixture
-def suspensao_alimentacao_serializer():
-    suspensao_alimentacao = mommy.make(SuspensaoAlimentacao)
+def suspensao_alimentacao(motivo_suspensao_alimentacao):
+    return mommy.make(SuspensaoAlimentacao, motivo=motivo_suspensao_alimentacao)
+
+
+@pytest.fixture
+def suspensao_alimentacao_serializer(suspensao_alimentacao):
     return SuspensaoAlimentacaoSerializer(suspensao_alimentacao)
 
 
 @pytest.fixture
 def motivo_alteracao_cardapio():
     return mommy.make(MotivoAlteracaoCardapio, nome='Aniversariantes do mês')
+
+
+@pytest.fixture
+def motivo_suspensao_alimentacao():
+    return mommy.make(MotivoSuspensao, nome='Não vai ter aula')
 
 
 @pytest.fixture
