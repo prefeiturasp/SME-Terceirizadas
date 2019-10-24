@@ -22,7 +22,8 @@ fake.seed(420)
 
 @pytest.fixture
 def tipo_alimentacao():
-    return mommy.make('cardapio.TipoAlimentacao', nome="Refeição")
+    return mommy.make('cardapio.TipoAlimentacao', nome='Refeição')
+
 
 @pytest.fixture
 def client():
