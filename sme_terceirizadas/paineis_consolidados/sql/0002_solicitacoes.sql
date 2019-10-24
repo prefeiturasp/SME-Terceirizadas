@@ -4,14 +4,15 @@ DROP VIEW IF EXISTS solicitacoes_consolidadas;
 CREATE OR REPLACE VIEW solicitacoes_consolidadas AS
   SELECT cardapio.id,
          cardapio.uuid,
-         cardapio.data_inicial   AS data_evento,
-         lote.nome               AS lote_nome,
-         dre.nome                AS dre_nome,
-         escola.nome             AS escola_nome,
-         'ALT_CARDAPIO'          AS tipo_doc,
-         'Alteração de Cardápio' AS desc_doc,
-         cardapio.status         AS status_atual,
-         logs.criado_em          AS data_log,
+         cardapio.data_inicial      AS data_evento,
+         lote.nome                  AS lote_nome,
+         terceirizada.nome_fantasia AS terceirizada_nome,
+         dre.nome                   AS dre_nome,
+         escola.nome                AS escola_nome,
+         'ALT_CARDAPIO'             AS tipo_doc,
+         'Alteração de Cardápio'    AS desc_doc,
+         cardapio.status            AS status_atual,
+         logs.criado_em             AS data_log,
          logs.status_evento
   FROM cardapio_alteracaocardapio AS cardapio
          LEFT JOIN dados_comuns_logsolicitacoesusuario AS logs ON logs.uuid_original = cardapio.uuid
@@ -27,6 +28,7 @@ CREATE OR REPLACE VIEW solicitacoes_consolidadas AS
            ELSE cardapio_para.data
            END                         AS data_evento,
          lote.nome                     AS lote_nome,
+         terceirizada.nome_fantasia    AS terceirizada_nome,
          dre.nome                      AS dre_nome,
          escola.nome                   AS escola_nome,
          'INV_CARDAPIO'                AS tipo_doc,
@@ -48,6 +50,7 @@ CREATE OR REPLACE VIEW solicitacoes_consolidadas AS
          inc_aliment_normal.uuid,
          min(inc_alimentacao_item.data) AS data_evento,
          lote.nome                      AS lote_nome,
+         terceirizada.nome_fantasia     AS terceirizada_nome,
          dre.nome                       AS dre_nome,
          escola.nome                    AS escola_nome,
          'INC_ALIMENTA'                 AS tipo_doc,
@@ -69,12 +72,14 @@ CREATE OR REPLACE VIEW solicitacoes_consolidadas AS
            dre.nome,
            escola.nome,
            logs.criado_em,
+           terceirizada.nome_fantasia,
            logs.status_evento
   UNION
   SELECT inc_aliment_continua.id,
          inc_aliment_continua.uuid,
          inc_aliment_continua.data_inicial  AS data_evento,
          lote.nome                          AS lote_nome,
+         terceirizada.nome_fantasia         AS terceirizada_nome,
          dre.nome                           AS dre_nome,
          escola.nome                        AS escola_nome,
          'INC_ALIMENTA_CONTINUA'            AS tipo_doc,
@@ -92,14 +97,15 @@ CREATE OR REPLACE VIEW solicitacoes_consolidadas AS
   UNION
   SELECT kit_lanche_avulso.id,
          kit_lanche_avulso.uuid,
-         kit_lanche_base.data     AS data_evento,
-         lote.nome                AS lote_nome,
-         dre.nome                 AS dre_nome,
-         escola.nome              AS escola_nome,
-         'KIT_LANCHE_AVULSA'      AS tipo_doc,
-         'Kit Lanche Passeio'     AS desc_doc,
-         kit_lanche_avulso.status AS status_atual,
-         logs.criado_em           AS data_log,
+         kit_lanche_base.data       AS data_evento,
+         lote.nome                  AS lote_nome,
+         terceirizada.nome_fantasia AS terceirizada_nome,
+         dre.nome                   AS dre_nome,
+         escola.nome                AS escola_nome,
+         'KIT_LANCHE_AVULSA'        AS tipo_doc,
+         'Kit Lanche Passeio'       AS desc_doc,
+         kit_lanche_avulso.status   AS status_atual,
+         logs.criado_em             AS data_log,
          logs.status_evento
   FROM kit_lanche_solicitacaokitlancheavulsa AS kit_lanche_avulso
          LEFT JOIN dados_comuns_logsolicitacoesusuario AS logs ON logs.uuid_original = kit_lanche_avulso.uuid
@@ -117,6 +123,7 @@ CREATE OR REPLACE VIEW solicitacoes_consolidadas AS
          lote.nome                       AS lote_nome,
          dre.nome                        AS dre_nome,
          escola.nome                     AS escola_nome,
+         terceirizada.nome_fantasia      AS terceirizada_nome,
          'SUSP_ALIMENTACAO'              AS tipo_doc,
          'Suspensão de Alimentação'      AS desc_doc,
          grupo_suspensao.status          AS status_atual,
@@ -133,6 +140,7 @@ CREATE OR REPLACE VIEW solicitacoes_consolidadas AS
   GROUP BY grupo_suspensao.id,
            lote.nome,
            escola.nome,
+           terceirizada.nome_fantasia,
            dre.nome,
            logs.criado_em,
            logs.status_evento
@@ -143,6 +151,7 @@ CREATE OR REPLACE VIEW solicitacoes_consolidadas AS
          lote.nome                      AS lote_nome,
          'VARIAS_ESCOLAS'               AS escola_nome,
          dre.nome                       AS dre_nome,
+         terceirizada.nome_fantasia     AS terceirizada_nome,
          'KIT_LANCHE_UNIFICADA'         AS tipo_doc,
          'Kit Lanche Passeio Unificado' AS desc_doc,
          kit_lanche_unificado.status    AS status_atual,
