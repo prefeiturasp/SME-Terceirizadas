@@ -85,3 +85,50 @@ CREATE OR REPLACE VIEW solicitacoes_consolidadas AS
          left join escola_escola as escola on escola.id = inc_aliment_continua.rastro_escola_id
          left join terceirizada_terceirizada as terceirizada
                    on terceirizada.id = inc_aliment_continua.rastro_terceirizada_id
+
+  union
+  SELECT kit_lanche_avulso.id,
+         kit_lanche_avulso.uuid,
+         min(kit_lanche_base.data) AS data_evento,
+         lote.nome                 as lote_nome,
+         dre.nome                  as dre_nome,
+         escola.nome               as escola_nome,
+         'KIT_LANCHE_AVULSA'       AS tipo_doc,
+         'Kit Lanche Passeio'      AS desc_doc,
+         kit_lanche_avulso.status  as status_atual,
+         logs.criado_em            as data_log,
+         logs.status_evento
+  FROM kit_lanche_solicitacaokitlancheavulsa AS kit_lanche_avulso
+         left join dados_comuns_logsolicitacoesusuario as logs on logs.uuid_original = kit_lanche_avulso.uuid
+         left join escola_diretoriaregional as dre on dre.id = kit_lanche_avulso.rastro_dre_id
+         left join escola_lote as lote on lote.id = kit_lanche_avulso.rastro_lote_id
+         left join escola_escola as escola on escola.id = kit_lanche_avulso.rastro_escola_id
+         left join terceirizada_terceirizada as terceirizada
+                   on terceirizada.id = kit_lanche_avulso.rastro_terceirizada_id
+         left join kit_lanche_solicitacaokitlanche AS kit_lanche_base
+                   on kit_lanche_base.id = kit_lanche_avulso.solicitacao_kit_lanche_id
+  group by kit_lanche_avulso.id, lote.nome, escola.nome, dre.nome, logs.criado_em, logs.status_evento
+
+  union
+  SELECT grupo_suspensao.id,
+         grupo_suspensao.uuid,
+         min(susp_alimentacao_item.data) AS data_evento,
+         lote.nome                       as lote_nome,
+         dre.nome                        as dre_nome,
+         escola.nome                     as escola_nome,
+         'SUSP_ALIMENTACAO'              AS tipo_doc,
+         'Suspensão de Alimentação'      AS desc_doc,
+         grupo_suspensao.status          as status_atual,
+         logs.criado_em                  as data_log,
+         logs.status_evento
+  FROM cardapio_gruposuspensaoalimentacao AS grupo_suspensao
+         left join dados_comuns_logsolicitacoesusuario as logs on logs.uuid_original = grupo_suspensao.uuid
+         left join escola_diretoriaregional as dre on dre.id = grupo_suspensao.rastro_dre_id
+         left join escola_lote as lote on lote.id = grupo_suspensao.rastro_lote_id
+         left join escola_escola as escola on escola.id = grupo_suspensao.rastro_escola_id
+         left join terceirizada_terceirizada as terceirizada
+                   on terceirizada.id = grupo_suspensao.rastro_terceirizada_id
+         left join cardapio_suspensaoalimentacao AS susp_alimentacao_item
+                   on susp_alimentacao_item.grupo_suspensao_id = grupo_suspensao.id
+  group by grupo_suspensao.id, lote.nome, escola.nome, dre.nome, logs.criado_em, logs.status_evento
+
