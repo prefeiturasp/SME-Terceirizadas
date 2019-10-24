@@ -305,6 +305,22 @@ def suspensao_alimentacao_parametros_mes(request):
 
 
 @pytest.fixture(params=[
+    # data_inicial, data_final
+    (datetime.date(2019, 10, 4), datetime.date(2019, 10, 4)),
+    (datetime.date(2019, 10, 4), datetime.date(2019, 10, 5)),
+    (datetime.date(2019, 10, 4), datetime.date(2019, 10, 6)),
+    (datetime.date(2019, 10, 4), datetime.date(2019, 10, 7)),
+    (datetime.date(2019, 10, 4), datetime.date(2019, 10, 8)),
+    (datetime.date(2019, 10, 4), datetime.date(2019, 10, 9)),
+    (datetime.date(2019, 10, 4), datetime.date(2019, 10, 10)),
+    (datetime.date(2019, 10, 4), datetime.date(2019, 10, 11)),
+
+])
+def suspensao_alimentacao_parametros_semana(request):
+    return request.param
+
+
+@pytest.fixture(params=[
     # data do teste 15 out 2019
     # data_inicial, data_final
     (datetime.date(2019, 10, 17), datetime.date(2019, 10, 26)),

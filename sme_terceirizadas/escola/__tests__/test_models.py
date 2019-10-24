@@ -64,9 +64,8 @@ def test_escola(escola):
     assert escola.lote is None
     assert escola.idades.all() is not None
     assert escola.periodos_escolares.all() is not None
-    assert escola.usuarios.all() is not None
+    assert escola.vinculos.all() is not None
 
-    assert escola.usuarios_diretoria_regional is not None
     assert escola.grupos_inclusoes is not None
     assert escola.inclusoes_continuas is not None
 

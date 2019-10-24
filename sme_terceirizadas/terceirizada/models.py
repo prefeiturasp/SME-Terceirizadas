@@ -62,7 +62,7 @@ class Nutricionista(TemChaveExterna, Nomeavel):
 
 
 class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel):
-    usuarios = models.ManyToManyField('perfil.Usuario', related_name='terceirizadas', blank=True)
+    vinculos = models.ManyToManyField('perfil.Vinculo', related_name='terceirizadas', blank=True)
     nome_fantasia = models.CharField('Nome fantasia', max_length=160, blank=True)
     razao_social = models.CharField('Razao social', max_length=160, blank=True)
     cnpj = models.CharField('CNPJ', validators=[MinLengthValidator(14)], max_length=14)

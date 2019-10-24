@@ -108,11 +108,18 @@ def test_manager_alteracao_deste_mes(datas_alteracao_mes):
 
 
 @freeze_time('2019-10-4')
-def test_manager_inclusoes_normais_deste_mes(suspensao_alimentacao_parametros_mes):
+def test_manager_inclusoes_normais_deste_mes(suspensao_alimentacao_parametros_mes, escola):
     data_evento, _ = suspensao_alimentacao_parametros_mes
-    lote = mommy.make('Lote')
-    escola = mommy.make('Escola', lote=lote)
     grupo_suspensoes = mommy.make(GrupoSuspensaoAlimentacao, escola=escola)
     mommy.make(SuspensaoAlimentacao, data=data_evento,
                grupo_suspensao=grupo_suspensoes)
     assert grupo_suspensoes in GrupoSuspensaoAlimentacao.deste_mes.all()
+
+
+@freeze_time('2019-10-4')
+def test_manager_inclusoes_normais_desta_semana(suspensao_alimentacao_parametros_semana, escola):
+    data_evento, _ = suspensao_alimentacao_parametros_semana
+    grupo_suspensoes = mommy.make(GrupoSuspensaoAlimentacao, escola=escola)
+    mommy.make(SuspensaoAlimentacao, data=data_evento,
+               grupo_suspensao=grupo_suspensoes)
+    assert grupo_suspensoes in GrupoSuspensaoAlimentacao.desta_semana.all()
