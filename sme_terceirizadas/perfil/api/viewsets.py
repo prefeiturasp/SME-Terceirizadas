@@ -94,5 +94,6 @@ class UsuarioConfirmaEmailViewSet(viewsets.GenericViewSet):
             return Response({'detail': 'Erro ao confirmar email'},
                             status=status.HTTP_400_BAD_REQUEST)
         usuario.is_active = usuario.is_confirmed
+        usuario.vinculos.update(ativo=True)
         usuario.save()
         return Response(UsuarioDetalheSerializer(usuario).data)

@@ -12,8 +12,8 @@ from simple_email_confirmation.models import SimpleEmailConfirmationUserMixin
 from ...dados_comuns.utils import url_configs
 from ...dados_comuns.behaviors import TemChaveExterna
 
-
 env = environ.Env()
+
 
 # Thanks to https://github.com/jmfederico/django-use-email-as-username
 
@@ -130,9 +130,14 @@ class Usuario(SimpleEmailConfirmationUserMixin, CustomAbstractUser, TemChaveExte
                 break
         return pode_efetuar_cadastro
 
+    # TODO: verificar o from_email
     def enviar_email_confirmacao(self):
         self.add_email_if_not_exists(self.email)
         content = {'uuid': self.uuid, 'confirmation_key': self.confirmation_key}
         url_configs('CONFIRMAR_EMAIL', content)
-        self.email_user('teste', url_configs('CONFIRMAR_EMAIL', content),
-                        'calvin.masters@gmail.com')
+        self.email_user(
+            subject='Confirme seu e-mail - SIGPAE',
+            message=f'Clique neste link para confirmar seu e-mail no SIGPAE \n'
+                    f': {url_configs("CONFIRMAR_EMAIL", content)}',
+            from_email='calvin.masters@gmail.com'
+        )
