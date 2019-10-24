@@ -1,16 +1,17 @@
 from django.db import models
 
 from ...dados_comuns.behaviors import (
-    Ativavel, Descritivel, IntervaloDeDia, Nomeavel, TemChaveExterna
+    Ativavel, Descritivel, Nomeavel, TemChaveExterna
 )
 
 
-class Vinculo(IntervaloDeDia, Ativavel, TemChaveExterna):
+class Vinculo(Ativavel, TemChaveExterna):
     """Para informar que tipo de funcao uma pessoa teve em um dado intervalo de tempo em uma instituição.
 
     Ex.: de jan a dez de 2018 (Intervalo) Ciclano (Usuário) foi Diretor (Perfil)
     """
 
+    data_inicial = models.DateField('Data inicial')
     data_final = models.DateField('Data final', null=True, blank=True)
     perfil = models.ForeignKey('Perfil', on_delete=models.PROTECT)
     usuario = models.ForeignKey('Usuario', on_delete=models.PROTECT, related_name='vinculos')

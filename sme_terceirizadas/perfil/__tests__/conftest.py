@@ -21,3 +21,8 @@ def usuario():
 @pytest.fixture
 def usuario_serializer(usuario):
     return UsuarioSerializer(usuario)
+
+
+@pytest.fixture
+def vinculo(perfil, usuario):
+    return mommy.make('Vinculo', perfil=perfil, usuario=usuario)
