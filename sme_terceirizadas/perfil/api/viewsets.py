@@ -32,7 +32,11 @@ class UsuarioUpdateViewSet(viewsets.GenericViewSet):
     serializer_class = UsuarioUpdateSerializer
 
     def create(self, request):
-        usuario = Usuario.objects.get(registro_funcional=request.data.get('registro_funcional'))
+        try:
+            usuario = Usuario.objects.get(registro_funcional=request.data.get('registro_funcional'))
+        except ObjectDoesNotExist:
+            return Response({'detail': 'Erro ao cadastrar usuário'},
+                            status=status.HTTP_400_BAD_REQUEST)
         usuario = UsuarioUpdateSerializer(usuario).partial_update(request.data, usuario)
         usuario.enviar_email_confirmacao()
         return Response(UsuarioDetalheSerializer(usuario).data)

@@ -93,6 +93,7 @@ class UsuarioUpdateSerializer(serializers.ModelSerializer):
     confirmar_password = serializers.CharField()
 
     def partial_update(self, validated_data, usuario):
+        validated_data['email'] = validated_data['email'] + '@sme.prefeitura.sp.gov.br'
         password = validated_data.get('password')
         confirmar_password = validated_data.pop('confirmar_password')
         senha_deve_ser_igual_confirmar_senha(password, confirmar_password)

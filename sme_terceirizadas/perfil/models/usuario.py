@@ -124,6 +124,7 @@ class Usuario(SimpleEmailConfirmationUserMixin, CustomAbstractUser, TemChaveExte
             return 'indefinido'
 
     def enviar_email_confirmacao(self):
+        self.add_email_if_not_exists(self.email)
         content = {'uuid': self.uuid, 'confirmation_key': self.confirmation_key}
         url_configs('CONFIRMAR_EMAIL', content)
         self.email_user('teste', url_configs('CONFIRMAR_EMAIL', content),
