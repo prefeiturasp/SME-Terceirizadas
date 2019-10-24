@@ -21,6 +21,10 @@ fake.seed(420)
 
 
 @pytest.fixture
+def tipo_alimentacao():
+    return mommy.make('cardapio.TipoAlimentacao', nome="Refeição")
+
+@pytest.fixture
 def client():
     client = APIClient()
     return client
@@ -30,7 +34,8 @@ def client():
 def cardapio_valido():
     data = datetime.datetime.now() + datetime.timedelta(days=2)
     cardapio_valido = mommy.make('Cardapio', id=1, data=data.date(),
-                                 uuid='7a4ec98a-18a8-4d0a-b722-1da8f99aaf4b')
+                                 uuid='7a4ec98a-18a8-4d0a-b722-1da8f99aaf4b',
+                                 descricao='lorem ipsum')
     return cardapio_valido
 
 
@@ -104,7 +109,7 @@ def suspensao_alimentacao_serializer():
 
 @pytest.fixture
 def motivo_alteracao_cardapio():
-    return mommy.make(MotivoAlteracaoCardapio, nome=fake.name())
+    return mommy.make(MotivoAlteracaoCardapio, nome='Aniversariantes do mês')
 
 
 @pytest.fixture

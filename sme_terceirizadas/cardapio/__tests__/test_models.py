@@ -9,8 +9,13 @@ from ...escola.models import Escola
 pytestmark = pytest.mark.django_db
 
 
+def test_tipo_alimentacao(tipo_alimentacao):
+    assert tipo_alimentacao.__str__() == 'Refeição'
+
+
 def test_motivo_alteracao_cardapio(motivo_alteracao_cardapio):
     assert motivo_alteracao_cardapio.nome is not None
+    assert motivo_alteracao_cardapio.__str__() == 'Aniversariantes do mês'
 
 
 def test_alteracao_cardapio(alteracao_cardapio):
