@@ -8,7 +8,7 @@ from rest_framework.test import APIClient
 from ..api.serializers.serializers import (
     AlteracaoCardapioSerializer, InversaoCardapioSerializer, MotivoAlteracaoCardapioSerializer,
     QuantidadePorPeriodoSuspensaoAlimentacao, SubstituicoesAlimentacaoNoPeriodoEscolarSerializer,
-    SuspensaoAlimentacaoSerializer
+    SuspensaoAlimentacaoNoPeriodoEscolar, SuspensaoAlimentacaoSerializer
 )
 from ..models import (
     AlteracaoCardapio, InversaoCardapio, MotivoAlteracaoCardapio, MotivoSuspensao,
@@ -106,6 +106,11 @@ def inversao_cardapio_serializer(escola):
 @pytest.fixture
 def suspensao_alimentacao(motivo_suspensao_alimentacao):
     return mommy.make(SuspensaoAlimentacao, motivo=motivo_suspensao_alimentacao)
+
+
+@pytest.fixture
+def suspensao_alimentacao_no_periodo_escolar(suspensao_alimentacao):
+    return mommy.make(SuspensaoAlimentacaoNoPeriodoEscolar, suspensao_alimentacao=suspensao_alimentacao)
 
 
 @pytest.fixture

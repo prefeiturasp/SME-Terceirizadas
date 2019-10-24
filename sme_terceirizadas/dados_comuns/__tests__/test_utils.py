@@ -24,11 +24,3 @@ def test_update_instance_from_dict():
     a = A()
     update_instance_from_dict(a, dict(attribute1='xxx', attribute2='yyy'))
     assert a.__str__() == 'xxx,yyy'
-
-
-def test_url_configs():
-    variable = 'CONFIRMAR_EMAIL'
-    content = {'uuid': '123', 'confirmation_key': '!@#$%'}
-    assert url_configs(variable, content) == (
-        env('REACT_APP_URL') + '/confirmar-email?uuid=123&confirmationKey=!@#$%'
-    )

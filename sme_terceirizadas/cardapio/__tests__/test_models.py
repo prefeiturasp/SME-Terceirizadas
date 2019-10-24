@@ -30,6 +30,10 @@ def test_suspensao_alimentacao(suspensao_alimentacao):
     assert suspensao_alimentacao.__str__() == 'Não vai ter aula'
 
 
+def test_suspensao_alimentacao_no_periodo_escolar(suspensao_alimentacao_no_periodo_escolar):
+    assert suspensao_alimentacao_no_periodo_escolar.__str__() == 'Suspensão de alimentação da Alteração de Cardápio: Não vai ter aula'
+
+
 def test_alteracao_cardapio(alteracao_cardapio):
     assert alteracao_cardapio.data_inicial is not None
     assert alteracao_cardapio.data_final is not None

@@ -32,8 +32,3 @@ def test_registro_funcional_e_cpf_sao_da_mesma_pessoa(usuario):
             registro_funcional='1234568',
             cpf='52347255100'
         )
-
-
-def test_usuario_pode_efetuar_cadastro(usuario, usuario_com_rf_de_diretor):
-    assert usuario.pode_efetuar_cadastro is False
-    assert usuario_com_rf_de_diretor.pode_efetuar_cadastro is True
