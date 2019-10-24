@@ -3,6 +3,7 @@ from django.core.validators import MinLengthValidator
 from django.db import models
 from django.db.models import Q, Sum
 
+from sme_terceirizadas.perfil.models import Vinculo
 from ..cardapio.models import (
     AlteracaoCardapio, GrupoSuspensaoAlimentacao, InversaoCardapio
 )
@@ -17,7 +18,6 @@ from ..kit_lanche.models import SolicitacaoKitLancheAvulsa, SolicitacaoKitLanche
 
 
 class DiretoriaRegional(Nomeavel, Iniciais, TemChaveExterna, TemCodigoEOL):
-    vinculos = models.ManyToManyField('perfil.Vinculo', related_name='diretorias_regionais', blank=True)
 
     @property
     def escolas(self):
@@ -290,7 +290,6 @@ class Escola(Ativavel, TemChaveExterna, TemCodigoEOL):
 
     idades = models.ManyToManyField(FaixaIdadeEscolar, blank=True)
     periodos_escolares = models.ManyToManyField(PeriodoEscolar, blank=True)
-    vinculos = models.ManyToManyField('perfil.Vinculo', related_name='escolas')
 
     @property
     def grupos_inclusoes(self):
@@ -370,7 +369,6 @@ class Subprefeitura(Nomeavel, TemChaveExterna):
 
 
 class Codae(Nomeavel, TemChaveExterna):
-    vinculos = models.ManyToManyField('perfil.Vinculo', related_name='CODAE', blank=True)
 
     @property
     def quantidade_alunos(self):
