@@ -89,4 +89,4 @@ def terceirizada():
 
 @pytest.fixture
 def nutricionista():
-    return mommy.make(Nutricionista, nome="nutri")
+    return mommy.make(Nutricionista, nome='nutri')

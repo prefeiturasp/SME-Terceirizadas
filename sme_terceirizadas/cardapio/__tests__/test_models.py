@@ -22,6 +22,10 @@ def test_motivo_suspensao_alimentacao(motivo_suspensao_alimentacao):
     assert motivo_suspensao_alimentacao.__str__() == 'Não vai ter aula'
 
 
+def test_quantidade_por_periodo_suspensao_alimentacao(quantidade_por_periodo_suspensao_alimentacao):
+    assert quantidade_por_periodo_suspensao_alimentacao.__str__() == 'Quantidade de alunos: 100'
+
+
 def test_suspensao_alimentacao(suspensao_alimentacao):
     assert suspensao_alimentacao.__str__() == 'Não vai ter aula'
 
