@@ -47,12 +47,12 @@ def test_nao_pode_ser_passado_raise_exception(dias_passados):
 
 def test_verificar_se_existe_return_false(validators_models_object):
     obj_model = validators_models_object.__class__
-    assert verificar_se_existe(obj_model, numero=11) is False
+    assert verificar_se_existe(obj_model, assunto='TESTEXXX') is False
 
 
 def test_verificar_se_existe_return_true(validators_models_object):
     obj_model = validators_models_object.__class__
-    assert verificar_se_existe(obj_model, numero=10) is True
+    assert verificar_se_existe(obj_model, assunto='TESTE') is True
 
 
 def test_verificar_se_existe_raise_exception(validators_models_object):
@@ -62,13 +62,13 @@ def test_verificar_se_existe_raise_exception(validators_models_object):
 
 def test_objeto_nao_deve_ter_duplicidade_return_none(validators_models_object):
     obj_model = validators_models_object.__class__
-    assert objeto_nao_deve_ter_duplicidade(obj_model, numero=11) is None
+    assert objeto_nao_deve_ter_duplicidade(obj_model, assunto='TESTEXXX') is None
 
 
 def test_objeto_nao_deve_ter_duplicidade_raise_error(validators_models_object):
     obj_model = validators_models_object.__class__
     with pytest.raises(ValidationError, match='Objeto já existe'):
-        objeto_nao_deve_ter_duplicidade(obj_model, numero=10)
+        objeto_nao_deve_ter_duplicidade(obj_model, assunto='TESTE')
 
 
 def test_nao_pode_ser_nulo_valor_none(validators_valor_str):

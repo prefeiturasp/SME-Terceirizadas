@@ -13,13 +13,13 @@ class SolicitacoesSerializer(serializers.ModelSerializer):
 
     def get_descricao(self, obj):
         uuid = str(obj.uuid)
-        return f'{uuid.upper()[:5]} - {obj.lote[:20]} - {obj.desc_doc}'
+        return f'{uuid.upper()[:5]} - {obj.lote_nome[:20]} - {obj.desc_doc}'
 
     def get_data_log(self, obj):
-        criado_em = obj.criado_em.astimezone(timezone.get_current_timezone())
-        if criado_em.date() == datetime.date.today():
-            return criado_em.strftime('%d/%m/%Y %H:%M')
-        return criado_em.strftime('%d/%m/%Y')
+        data_log = obj.data_log.astimezone(timezone.get_current_timezone())
+        if data_log.date() == datetime.date.today():
+            return data_log.strftime('%d/%m/%Y %H:%M')
+        return data_log.strftime('%d/%m/%Y')
 
     class Meta:
         fields = '__all__'

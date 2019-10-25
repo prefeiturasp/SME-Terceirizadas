@@ -105,8 +105,8 @@ class SolicitacoesCODAE(MoldeConsolidado):
         return cls.objects.filter(
             status_evento__in=[LogSolicitacoesUsuario.CODAE_AUTORIZOU,
                                LogSolicitacoesUsuario.TERCEIRIZADA_TOMOU_CIENCIA],
-            status__in=[PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO,
-                        PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_TOMOU_CIENCIA]
+            status_atual__in=[PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO,
+                              PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_TOMOU_CIENCIA]
         ).distinct().order_by('-data_log')
 
     @classmethod
@@ -121,8 +121,8 @@ class SolicitacoesCODAE(MoldeConsolidado):
         return cls.objects.filter(
             status_evento__in=[LogSolicitacoesUsuario.DRE_CANCELOU,
                                LogSolicitacoesUsuario.ESCOLA_CANCELOU],
-            status__in=[PedidoAPartirDaEscolaWorkflow.ESCOLA_CANCELOU,
-                        PedidoAPartirDaDiretoriaRegionalWorkflow.DRE_CANCELOU],
+            status_atual__in=[PedidoAPartirDaEscolaWorkflow.ESCOLA_CANCELOU,
+                              PedidoAPartirDaDiretoriaRegionalWorkflow.DRE_CANCELOU],
         ).distinct().order_by('-data_log')
 
 
@@ -134,9 +134,9 @@ class SolicitacoesEscola(MoldeConsolidado):
         return cls.objects.filter(
             escola_uuid=escola_uuid
         ).filter(
-            status__in=[PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR,
-                        PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO,
-                        InformativoPartindoDaEscolaWorkflow.INFORMADO],
+            status_atual__in=[PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR,
+                              PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO,
+                              InformativoPartindoDaEscolaWorkflow.INFORMADO],
             status_evento__in=[LogSolicitacoesUsuario.INICIO_FLUXO,
                                LogSolicitacoesUsuario.DRE_VALIDOU,
                                LogSolicitacoesUsuario.INICIO_FLUXO]

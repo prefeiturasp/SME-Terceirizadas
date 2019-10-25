@@ -6,7 +6,7 @@ from ..models import (
     TipoUnidadeEscolar
 )
 from ...cardapio.models import TipoAlimentacao
-from ...dados_comuns.api.serializers import ContatoSerializer, EnderecoSerializer
+from ...dados_comuns.api.serializers import ContatoSerializer
 from ...perfil.api.serializers import PerfilSerializer
 from ...perfil.models import Usuario
 from ...terceirizada.api.serializers.serializers import (
@@ -158,7 +158,6 @@ class DiretoriaRegionalCompletaSerializer(serializers.ModelSerializer):
 class TerceirizadaSerializer(serializers.ModelSerializer):
     nutricionistas = NutricionistaSerializer(many=True)
     contatos = ContatoSerializer(many=True)
-    endereco = EnderecoSerializer()
     contratos = ContratoSimplesSerializer(many=True)
     lotes = LoteNomeSerializer(many=True)
     quantidade_alunos = serializers.IntegerField()
