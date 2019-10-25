@@ -88,3 +88,7 @@ def test_inclusao_alimentacao_continua_fluxo_erro(inversao_dia_cardapio):
     with pytest.raises(InvalidTransitionError,
                        match="Transition 'dre_pede_revisao' isn't available from state 'RASCUNHO'."):
         inversao_dia_cardapio.dre_pede_revisao()
+
+
+def test_grupo_suspensao_alimentacao(grupo_suspensao_alimentacao):
+    assert grupo_suspensao_alimentacao.__str__() == 'lorem ipsum'

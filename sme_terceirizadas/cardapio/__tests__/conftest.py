@@ -6,9 +6,10 @@ from model_mommy import mommy
 from rest_framework.test import APIClient
 
 from ..api.serializers.serializers import (
-    AlteracaoCardapioSerializer, InversaoCardapioSerializer, MotivoAlteracaoCardapioSerializer,
-    QuantidadePorPeriodoSuspensaoAlimentacao, SubstituicoesAlimentacaoNoPeriodoEscolarSerializer,
-    SuspensaoAlimentacaoNoPeriodoEscolar, SuspensaoAlimentacaoSerializer
+    AlteracaoCardapioSerializer, GrupoSuspensaoAlimentacao, InversaoCardapioSerializer,
+    MotivoAlteracaoCardapioSerializer, QuantidadePorPeriodoSuspensaoAlimentacao,
+    SubstituicoesAlimentacaoNoPeriodoEscolarSerializer, SuspensaoAlimentacaoNoPeriodoEscolar,
+    SuspensaoAlimentacaoSerializer
 )
 from ..models import (
     AlteracaoCardapio, InversaoCardapio, MotivoAlteracaoCardapio, MotivoSuspensao,
@@ -111,6 +112,11 @@ def suspensao_alimentacao(motivo_suspensao_alimentacao):
 @pytest.fixture
 def suspensao_periodo_escolar(suspensao_alimentacao):
     return mommy.make(SuspensaoAlimentacaoNoPeriodoEscolar, suspensao_alimentacao=suspensao_alimentacao)
+
+
+@pytest.fixture
+def grupo_suspensao_alimentacao():
+    return mommy.make(GrupoSuspensaoAlimentacao, observacao='lorem ipsum')
 
 
 @pytest.fixture
