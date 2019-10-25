@@ -7,7 +7,7 @@ from ..models import (
 )
 from ...cardapio.models import TipoAlimentacao
 from ...dados_comuns.api.serializers import ContatoSerializer, EnderecoSerializer
-from ...perfil.models import Usuario
+from ...perfil.models import Usuario, Vinculo
 from ...terceirizada.api.serializers.serializers import (
     ContratoSimplesSerializer,
     NutricionistaSerializer
@@ -168,12 +168,26 @@ class TerceirizadaSerializer(serializers.ModelSerializer):
         exclude = ('id',)
 
 
+class VinculoSerializer(serializers.ModelSerializer):
+    instituicao = serializers.SerializerMethodField()
+
+    def get_instituicao(self, obj):
+        return {'nome': obj.instituicao.nome,
+                'uuid': obj.instituicao.uuid,
+                'quantidade_alunos': obj.instituicao.quantidade_alunos}
+
+    class Meta:
+        model = Vinculo
+        fields = ('instituicao',)
+
+
 class UsuarioDetalheSerializer(serializers.ModelSerializer):
     tipo_usuario = serializers.CharField()
+    vinculo_atual = VinculoSerializer()
 
     class Meta:
         model = Usuario
-        fields = ('uuid', 'nome', 'email', 'registro_funcional', 'tipo_usuario', 'date_joined')
+        fields = ('uuid', 'nome', 'email', 'registro_funcional', 'tipo_usuario', 'date_joined', 'vinculo_atual')
 
 
 class CODAESerializer(serializers.ModelSerializer):
