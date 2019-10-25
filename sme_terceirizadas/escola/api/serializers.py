@@ -7,8 +7,7 @@ from ..models import (
 )
 from ...cardapio.models import TipoAlimentacao
 from ...dados_comuns.api.serializers import ContatoSerializer
-from ...perfil.api.serializers import PerfilSerializer
-from ...perfil.models import Usuario
+from ...perfil.models import Usuario, Vinculo
 from ...terceirizada.api.serializers.serializers import (
     ContratoSimplesSerializer,
     NutricionistaSerializer
@@ -168,18 +167,27 @@ class TerceirizadaSerializer(serializers.ModelSerializer):
         exclude = ('id',)
 
 
+class VinculoSerializer(serializers.ModelSerializer):
+    instituicao = serializers.SerializerMethodField()
+
+    def get_instituicao(self, obj):
+        return {'nome': obj.instituicao.nome,
+                'uuid': obj.instituicao.uuid,
+                'quantidade_alunos': obj.instituicao.quantidade_alunos}
+
+    class Meta:
+        model = Vinculo
+        fields = ('instituicao',)
+
+
 class UsuarioDetalheSerializer(serializers.ModelSerializer):
-    perfis = PerfilSerializer(many=True, read_only=True)
-    escolas = EscolaSimplesSerializer(many=True)
-    diretorias_regionais = DiretoriaRegionalSimplesSerializer(many=True)
-    terceirizadas = TerceirizadaSerializer(many=True)
     tipo_usuario = serializers.CharField()
+    vinculo_atual = VinculoSerializer()
 
     class Meta:
         model = Usuario
-        fields = ('uuid', 'nome', 'email', 'registro_funcional', 'tipo_usuario',
-                  'date_joined', 'perfis', 'escolas', 'diretorias_regionais',
-                  'terceirizadas')
+
+        fields = ('uuid', 'nome', 'email', 'registro_funcional', 'tipo_usuario', 'date_joined', 'vinculo_atual')
 
 
 class CODAESerializer(serializers.ModelSerializer):

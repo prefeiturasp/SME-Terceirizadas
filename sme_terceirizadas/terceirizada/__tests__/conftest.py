@@ -1,3 +1,5 @@
+import datetime
+
 import pytest
 from faker import Faker
 from model_mommy import mommy
@@ -37,22 +39,23 @@ def client_autenticado_terceiro(client_autenticado, ):
 
 @pytest.fixture
 def edital():
-    return mommy.make(Edital)
+    return mommy.make(Edital, numero='1', objeto='lorem ipsum')
 
 
 @pytest.fixture
 def contrato():
-    return mommy.make(Contrato)
+    return mommy.make(Contrato, numero='1', processo='12345')
 
 
 @pytest.fixture
-def vigencia_contrato():
-    return mommy.make(VigenciaContrato)
+def vigencia_contrato(contrato):
+    data_inicial = datetime.date(2019, 1, 1)
+    data_final = datetime.date(2019, 1, 31)
+    return mommy.make(VigenciaContrato, contrato=contrato, data_inicial=data_inicial, data_final=data_final)
 
 
 @pytest.fixture
-def vigencia_contrato_serializer():
-    vigencia_contrato = mommy.make(VigenciaContrato)
+def vigencia_contrato_serializer(vigencia_contrato):
     return VigenciaContratoSerializer(vigencia_contrato)
 
 
@@ -78,5 +81,11 @@ def terceirizada_simples_serializer():
 def terceirizada():
     return mommy.make(Terceirizada,
                       contatos=[mommy.make('dados_comuns.Contato')],
-                      make_m2m=True
+                      make_m2m=True,
+                      nome_fantasia='Alimentos SA'
                       )
+
+
+@pytest.fixture
+def nutricionista():
+    return mommy.make(Nutricionista, nome='nutri')
