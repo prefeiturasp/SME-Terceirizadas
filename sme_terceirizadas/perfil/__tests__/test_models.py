@@ -15,6 +15,7 @@ def test_perfil(perfil):
 def test_usuario(usuario):
     assert usuario.nome == 'Fulano da Silva'
     assert usuario.email == 'fulano@teste.com'
+    assert usuario.tipo_usuario == 'indefinido'
 
 
 def test_vinculo(vinculo):
@@ -22,3 +23,7 @@ def test_vinculo(vinculo):
     assert (isinstance(vinculo.data_final, datetime.date) or vinculo.data_final is None)
     assert isinstance(vinculo.usuario, Usuario)
     assert isinstance(vinculo.perfil, Perfil)
+
+
+def test_vinculo_diretoria_regional(vinculo_diretoria_regional):
+    assert vinculo_diretoria_regional.usuario.tipo_usuario == 'diretoria_regional'

@@ -1,6 +1,9 @@
+import environ
 from freezegun import freeze_time
 
 from ..utils import obter_dias_uteis_apos_hoje, update_instance_from_dict
+
+env = environ.Env()
 
 
 @freeze_time('2019-07-10')

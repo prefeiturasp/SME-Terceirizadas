@@ -82,6 +82,10 @@ class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel):
         return quantidade_total
 
     @property
+    def nome(self):
+        return self.nome_fantasia
+
+    @property
     def nutricionistas(self):
         return self.nutricionistas
 

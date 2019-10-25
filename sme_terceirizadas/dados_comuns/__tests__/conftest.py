@@ -4,6 +4,7 @@ import pytest
 from faker import Faker
 from model_mommy import mommy
 
+from ..models import TemplateMensagem
 from ...escola import models
 
 fake = Faker('pt_BR')
@@ -117,6 +118,11 @@ def dias_uteis_apos(request):
 ])
 def template_mensagem(request):
     return request.param
+
+
+@pytest.fixture
+def template_mensagem_obj():
+    return mommy.make(TemplateMensagem, tipo=TemplateMensagem.ALTERACAO_CARDAPIO)
 
 
 @pytest.fixture(autouse=True)

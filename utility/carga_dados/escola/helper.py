@@ -53,6 +53,7 @@ def cria_vinculo_de_perfil_usuario(perfil, usuario, instituicao):
         data_inicial=datetime.date.today(),
         instituicao=instituicao,
         perfil=perfil,
-        usuario=usuario
+        usuario=usuario,
+        ativo=False
     )
     return vinculo

@@ -1,11 +1,18 @@
+import environ
+import requests
+
 from django.contrib.auth.base_user import AbstractBaseUser
 from django.contrib.auth.models import BaseUserManager, PermissionsMixin
 from django.core.mail import send_mail
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
+from simple_email_confirmation.models import SimpleEmailConfirmationUserMixin
 
+from ...dados_comuns.utils import url_configs
 from ...dados_comuns.behaviors import TemChaveExterna
+
+env = environ.Env()
 
 
 # Thanks to https://github.com/jmfederico/django-use-email-as-username
@@ -87,14 +94,56 @@ class CustomAbstractUser(AbstractBaseUser, PermissionsMixin):
         send_mail(subject, message, from_email, [self.email], **kwargs)
 
 
-class Usuario(CustomAbstractUser, TemChaveExterna):
+class Usuario(SimpleEmailConfirmationUserMixin, CustomAbstractUser, TemChaveExterna):
     """Classe de autenticacao do django, ela tem muitos perfis."""
 
     nome = models.CharField(_('name'), max_length=150)
     email = models.EmailField(_('email address'), unique=True)
     cpf = models.CharField(_('CPF'), max_length=11, default='')
     registro_funcional = models.CharField(_('RF'), max_length=10, default='')
-    vinculo_funcional = models.CharField(_('Vinculo'), max_length=2, default='')
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []  # type: ignore
+
+    @property
+    def vinculos(self):
+        return self.vinculos
+
+    @property
+    def vinculo_atual(self):
+        if self.vinculos.filter(ativo=True).exists():
+            return self.vinculos.get(ativo=True)
+        return None
+
+    @property
+    def tipo_usuario(self):
+        tipo_usuario = 'indefinido'
+        if self.vinculos.filter(ativo=True).exists():
+            tipo_usuario = self.vinculos.get(ativo=True).tipo_instituicao.model
+            if tipo_usuario == 'diretoriaregional':
+                return 'diretoria_regional'
+        return tipo_usuario
+
+    @property
+    def pode_efetuar_cadastro(self):
+        headers = {'Authorization': f'Token {env("DJANGO_EOL_API_TOKEN")}'}
+        r = requests.get(f'{env("DJANGO_EOL_API_URL")}/cargos/{self.registro_funcional}', headers=headers)
+        response = r.json()
+        pode_efetuar_cadastro = False
+        for result in response['results']:
+            if result['cargo'] == 'DIRETOR DE ESCOLA':
+                pode_efetuar_cadastro = True
+                break
+        return pode_efetuar_cadastro
+
+    # TODO: verificar o from_email
+    def enviar_email_confirmacao(self):
+        self.add_email_if_not_exists(self.email)
+        content = {'uuid': self.uuid, 'confirmation_key': self.confirmation_key}
+        url_configs('CONFIRMAR_EMAIL', content)
+        self.email_user(
+            subject='Confirme seu e-mail - SIGPAE',
+            message=f'Clique neste link para confirmar seu e-mail no SIGPAE \n'
+                    f': {url_configs("CONFIRMAR_EMAIL", content)}',
+            from_email='calvin.masters@gmail.com'
+        )

@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 
 from sme_terceirizadas.escola.models import Escola
-from sme_terceirizadas.perfil.models import Perfil, Usuario, Vinculo
+from sme_terceirizadas.perfil.models import Perfil, Usuario
 from .helper import cria_vinculo_de_perfil_usuario, coloca_zero_a_esquerda
 
 ROOT_DIR = environ.Path(__file__) - 1
@@ -48,13 +48,12 @@ def percorre_data_frame():
     eol_zerado = 0
 
 
-    perfil_usuario = Perfil(
+    perfil_usuario, created = Perfil.objects.get_or_create(
         nome='DIRETOR',
         ativo=True,
         super_usuario=True
     )
 
-    perfil_usuario.save()
     for index, row in df.iterrows():
         diretores_contabilizados += 1
         codigo_eol = coloca_zero_a_esquerda(row['cd_unidade_base'])

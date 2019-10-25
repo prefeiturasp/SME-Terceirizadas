@@ -80,7 +80,8 @@ THIRD_PARTY_APPS = [
     'notifications',
     'rest_framework_swagger',
     'des',  # for email configuration in database
-    'django_xworkflows'
+    'django_xworkflows',
+    'simple_email_confirmation',
 ]
 LOCAL_APPS = [
     'sme_terceirizadas.perfil.apps.PerfilConfig',
@@ -290,4 +291,8 @@ JWT_AUTH = {
     'JWT_EXPIRATION_DELTA': datetime.timedelta(hours=100),
     'JWT_REFRESH_EXPIRATION_DELTA': datetime.timedelta(hours=100),
     'JWT_ALLOW_REFRESH': True,
+}
+
+URL_CONFIGS = {
+    'CONFIRMAR_EMAIL': '/confirmar-email?uuid={uuid}&confirmationKey={confirmation_key}'
 }
