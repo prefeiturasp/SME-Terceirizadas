@@ -1,4 +1,5 @@
 import datetime
+
 import pytest
 from faker import Faker
 from model_mommy import mommy
@@ -22,10 +23,9 @@ def client():
 
 
 @pytest.fixture
-def client_autenticado_terceiro(client_autenticado,):
+def client_autenticado_terceiro(client_autenticado, ):
     terceirizada = mommy.make(Terceirizada,
                               contatos=[mommy.make('dados_comuns.Contato')],
-                              endereco=mommy.make('dados_comuns.Endereco'),
                               make_m2m=True
                               )
 
@@ -81,7 +81,6 @@ def terceirizada_simples_serializer():
 def terceirizada():
     return mommy.make(Terceirizada,
                       contatos=[mommy.make('dados_comuns.Contato')],
-                      endereco=mommy.make('dados_comuns.Endereco'),
                       make_m2m=True,
                       nome_fantasia='Alimentos SA'
                       )
