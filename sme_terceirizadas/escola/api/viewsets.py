@@ -1,8 +1,9 @@
-from rest_framework.decorators import action
-from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
-from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
+from sme_terceirizadas.escola.api.permissions import PodeCriarAdministradoresDaEscola
 from .serializers import (
     DiretoriaRegionalCompletaSerializer, DiretoriaRegionalSimplissimaSerializer, EscolaCompletaSerializer,
     EscolaSimplesSerializer, EscolaSimplissimaSerializer, PeriodoEscolarSerializer, SubprefeituraSerializer,
@@ -25,6 +26,10 @@ class EscolaViewSet(ReadOnlyModelViewSet):
     lookup_field = 'uuid'
     queryset = Escola.objects.all()
     serializer_class = EscolaCompletaSerializer
+
+    @action(detail=True, permission_classes=[PodeCriarAdministradoresDaEscola], methods=['post'])
+    def criar_equipe_administradora(self, request, uuid=None):
+        pass
 
     @action(detail=True)
     def meus_grupos_inclusao_normal(self, request, uuid=None):
