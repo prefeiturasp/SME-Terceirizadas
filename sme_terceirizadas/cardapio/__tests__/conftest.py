@@ -109,7 +109,7 @@ def suspensao_alimentacao(motivo_suspensao_alimentacao):
 
 
 @pytest.fixture
-def suspensao_alimentacao_no_periodo_escolar(suspensao_alimentacao):
+def suspensao_periodo_escolar(suspensao_alimentacao):
     return mommy.make(SuspensaoAlimentacaoNoPeriodoEscolar, suspensao_alimentacao=suspensao_alimentacao)
 
 
@@ -141,7 +141,11 @@ def motivo_alteracao_cardapio_serializer():
 
 @pytest.fixture
 def alteracao_cardapio(escola):
-    return mommy.make(AlteracaoCardapio, escola=escola, observacao='teste')
+    return mommy.make(AlteracaoCardapio,
+                      escola=escola,
+                      observacao='teste',
+                      data_inicial=datetime.date(2019, 10, 4),
+                      data_final=datetime.date(2019, 12, 31))
 
 
 @pytest.fixture

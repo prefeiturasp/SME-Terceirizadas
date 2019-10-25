@@ -40,3 +40,11 @@ def usuario_serializer(usuario):
 @pytest.fixture
 def vinculo(perfil, usuario):
     return mommy.make('Vinculo', perfil=perfil, usuario=usuario)
+
+
+@pytest.fixture
+def vinculo_diretoria_regional(usuario):
+    return mommy.make('Vinculo',
+                      ativo=True,
+                      usuario=usuario,
+                      tipo_instituicao=models.ContentType.objects.get(model='diretoriaregional'))

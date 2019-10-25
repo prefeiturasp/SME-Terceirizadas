@@ -6,13 +6,6 @@ from ..models import (
 )
 
 
-def deve_ter_1_kit_somente(lista_igual, numero_kits):
-    deve_ter_1_kit = lista_igual is True and numero_kits == 1
-    if not deve_ter_1_kit:
-        raise serializers.ValidationError(
-            'Em "solicitacao_kit_lanche", quando lista_kit_lanche é igual, deve ter somente 1 kit')
-
-
 def solicitacao_deve_ter_1_ou_mais_kits(numero_kits: int):
     deve_ter_1_ou_mais_kit = numero_kits >= 1
     if not deve_ter_1_ou_mais_kit:
