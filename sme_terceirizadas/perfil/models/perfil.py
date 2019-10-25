@@ -31,9 +31,9 @@ class Vinculo(Ativavel, TemChaveExterna):
     perfil = models.ForeignKey('Perfil', on_delete=models.PROTECT)
     usuario = models.ForeignKey('Usuario', on_delete=models.PROTECT, related_name='vinculos')
 
-    limit = (models.Q(app_label='escola', model='escola') | # noqa
-             models.Q(app_label='escola', model='diretoriaregional') | # noqa
-             models.Q(app_label='escola', model='codae') | # noqa
+    limit = (models.Q(app_label='escola', model='escola') |  # noqa W504
+             models.Q(app_label='escola', model='diretoriaregional') |  # noqa W504
+             models.Q(app_label='escola', model='codae') |  # noqa W504
              models.Q(app_label='terceirizada', model='terceirizada'))
 
     # https://docs.djangoproject.com/en/2.2/ref/contrib/contenttypes/#generic-relations

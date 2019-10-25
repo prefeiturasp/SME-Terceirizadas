@@ -281,9 +281,6 @@ class Escola(Ativavel, TemChaveExterna, TemCodigoEOL):
                              related_name='escolas',
                              blank=True, null=True,
                              on_delete=models.PROTECT)
-
-    endereco = models.ForeignKey('dados_comuns.Endereco', on_delete=models.DO_NOTHING,
-                                 blank=True, null=True)
     contato = models.ForeignKey('dados_comuns.Contato', on_delete=models.DO_NOTHING,
                                 blank=True, null=True)
 

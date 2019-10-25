@@ -1,4 +1,5 @@
 import datetime
+
 import pytest
 from faker import Faker
 from model_mommy import mommy
@@ -131,7 +132,7 @@ def enable_db_access_for_all_tests(db):
 
 @pytest.fixture
 def validators_models_object():
-    return mommy.make('dados_comuns.Endereco', numero=10)
+    return mommy.make('dados_comuns.TemplateMensagem', assunto='TESTE')
 
 
 @pytest.fixture
