@@ -15,7 +15,21 @@ def perfil():
 
 @pytest.fixture
 def usuario():
-    return mommy.make(models.Usuario, nome='Fulano da Silva', email='fulano@teste.com')
+    return mommy.make(
+        models.Usuario,
+        nome='Fulano da Silva',
+        email='fulano@teste.com',
+        cpf='52347255100',
+        registro_funcional='1234567'
+    )
+
+
+@pytest.fixture()
+def usuario_com_rf_de_diretor():
+    return mommy.make(
+        models.Usuario,
+        registro_funcional='6580157'
+    )
 
 
 @pytest.fixture
@@ -26,3 +40,11 @@ def usuario_serializer(usuario):
 @pytest.fixture
 def vinculo(perfil, usuario):
     return mommy.make('Vinculo', perfil=perfil, usuario=usuario)
+
+
+@pytest.fixture
+def vinculo_diretoria_regional(usuario):
+    return mommy.make('Vinculo',
+                      ativo=True,
+                      usuario=usuario,
+                      tipo_instituicao=models.ContentType.objects.get(model='diretoriaregional'))

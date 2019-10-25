@@ -1,6 +1,7 @@
 import asyncio
 import datetime
 
+import environ
 from des.models import DynamicEmailConfiguration
 from django.core.mail import EmailMultiAlternatives, get_connection
 from django.core.mail import send_mail
@@ -8,7 +9,11 @@ from django.db.models import QuerySet
 from notifications.signals import notify
 from workalendar.america import BrazilSaoPauloCity
 
+from config.settings.base import URL_CONFIGS
+
 calendar = BrazilSaoPauloCity()
+
+env = environ.Env()
 
 
 def enviar_notificacao(sender, recipients: QuerySet,
@@ -98,3 +103,7 @@ def enviar_notificacao_e_email(sender, recipients: QuerySet,
                                short_desc: str, long_desc: str):
     enviar_notificacao(sender, recipients, short_desc, long_desc)
     async_envio_email_html_em_massa(subject=short_desc, text='', html=long_desc, recipients=recipients)
+
+
+def url_configs(variable, content):
+    return env('REACT_APP_URL') + URL_CONFIGS[variable].format(**content)
