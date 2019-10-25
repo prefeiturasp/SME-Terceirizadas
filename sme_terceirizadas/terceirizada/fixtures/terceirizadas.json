@@ -10,8 +10,9 @@
       "representante_legal": "Celso Peretti Alves de Souza",
       "representante_telefone": "11950345921",
       "representante_email": "admin@admin.com.br",
-      "endereco_id": 1,
-      "contatos": [1]
+      "contatos": [
+        1
+      ]
     }
   },
   {
@@ -25,8 +26,9 @@
       "representante_legal": "Márcio Rodrigues Pereira",
       "representante_telefone": "11950345921",
       "representante_email": "admin@admin.com.br",
-      "endereco_id": 2,
-      "contatos": [1]
+      "contatos": [
+        1
+      ]
     }
   },
   {
@@ -40,8 +42,9 @@
       "representante_legal": "David Fernando dos Santos Azevedo",
       "representante_telefone": "11950345921",
       "representante_email": "admin@admin.com.br",
-      "endereco_id": 3,
-      "contatos": [1]
+      "contatos": [
+        1
+      ]
     }
   },
   {
@@ -55,8 +58,9 @@
       "representante_legal": "Luis Ricardo Ferri Botelho",
       "representante_telefone": "11950345921",
       "representante_email": "admin@admin.com.br",
-      "endereco_id": 4,
-      "contatos": [1]
+      "contatos": [
+        1
+      ]
     }
   },
   {
@@ -70,8 +74,9 @@
       "representante_legal": "Paulo Cesar Ribeiro Alves",
       "representante_telefone": "11950345921",
       "representante_email": "admin@admin.com.br",
-      "endereco_id": 5,
-      "contatos": [1]
+      "contatos": [
+        1
+      ]
     }
   }
 ]
