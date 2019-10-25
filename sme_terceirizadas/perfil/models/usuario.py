@@ -110,6 +110,12 @@ class Usuario(SimpleEmailConfirmationUserMixin, CustomAbstractUser, TemChaveExte
         return self.vinculos
 
     @property
+    def vinculo_atual(self):
+        if self.vinculos.filter(ativo=True).exists():
+            return self.vinculos.get(ativo=True)
+        return None
+
+    @property
     def tipo_usuario(self):
         tipo_usuario = 'indefinido'
         if self.vinculos.filter(ativo=True).exists():
