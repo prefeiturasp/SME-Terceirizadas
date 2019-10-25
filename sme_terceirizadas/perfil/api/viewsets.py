@@ -1,6 +1,6 @@
-from django.contrib.auth.tokens import default_token_generator
+from django.core.exceptions import ObjectDoesNotExist
 from notifications.models import Notification
-from rest_framework import permissions, viewsets
+from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.mixins import RetrieveModelMixin
 from rest_framework.response import Response
@@ -29,11 +29,15 @@ class UsuarioViewSet(viewsets.ReadOnlyModelViewSet):
 class UsuarioUpdateViewSet(viewsets.GenericViewSet):
     permission_classes = (permissions.AllowAny,)
     serializer_class = UsuarioUpdateSerializer
-    token_generator = default_token_generator
 
-    def create(self, request, *args, **kwargs):
-        usuario = Usuario.objects.get(registro_funcional=request.data.get('registro_funcional'))
-        usuario = UsuarioUpdateSerializer(usuario).partial_update(request.data, usuario)
+    def create(self, request):
+        try:
+            usuario = Usuario.objects.get(registro_funcional=request.data.get('registro_funcional'))
+        except ObjectDoesNotExist:
+            return Response({'detail': 'Erro ao cadastrar usuário'},
+                            status=status.HTTP_400_BAD_REQUEST)
+        usuario = UsuarioUpdateSerializer(usuario).partial_update(usuario, request.data)
+        usuario.enviar_email_confirmacao()
         return Response(UsuarioDetalheSerializer(usuario).data)
 
 
@@ -76,3 +80,20 @@ class NotificationViewSet(RetrieveModelMixin, GenericViewSet):
         notificacao.mark_as_unread()
         serializer = self.get_serializer(notificacao)
         return Response(serializer.data)
+
+
+class UsuarioConfirmaEmailViewSet(viewsets.GenericViewSet):
+    permission_classes = (permissions.AllowAny,)
+    serializer_class = UsuarioDetalheSerializer
+
+    def list(self, request, uuid, confirmation_key):
+        usuario = Usuario.objects.get(uuid=uuid)
+        try:
+            usuario.confirm_email(confirmation_key)
+        except ObjectDoesNotExist:
+            return Response({'detail': 'Erro ao confirmar email'},
+                            status=status.HTTP_400_BAD_REQUEST)
+        usuario.is_active = usuario.is_confirmed
+        usuario.vinculos.update(ativo=True)
+        usuario.save()
+        return Response(UsuarioDetalheSerializer(usuario).data)

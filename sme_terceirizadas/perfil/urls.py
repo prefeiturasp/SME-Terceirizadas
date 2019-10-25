@@ -9,7 +9,8 @@ router.register('cadastro', viewsets.UsuarioUpdateViewSet, 'Cadastro de Usuário
 router.register('usuarios', viewsets.UsuarioViewSet, 'Usuários')
 router.register('perfis', viewsets.PerfilViewSet, 'Perfis')
 router.register('notificacoes', viewsets.NotificationViewSet, 'Notificações')
-
+router.register('confirmar_email/(?P<uuid>[^/]+)/(?P<confirmation_key>[^/]+)',
+                viewsets.UsuarioConfirmaEmailViewSet, 'Confirmar E-mail')
 
 urlpatterns = [
     path('', include(router.urls))

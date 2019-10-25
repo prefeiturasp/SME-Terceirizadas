@@ -7,10 +7,11 @@ from rest_framework.test import APIClient
 
 from ..api.serializers.serializers import (
     AlteracaoCardapioSerializer, InversaoCardapioSerializer, MotivoAlteracaoCardapioSerializer,
-    SubstituicoesAlimentacaoNoPeriodoEscolarSerializer, SuspensaoAlimentacaoSerializer
+    QuantidadePorPeriodoSuspensaoAlimentacao, SubstituicoesAlimentacaoNoPeriodoEscolarSerializer,
+    SuspensaoAlimentacaoNoPeriodoEscolar, SuspensaoAlimentacaoSerializer
 )
 from ..models import (
-    AlteracaoCardapio, InversaoCardapio, MotivoAlteracaoCardapio,
+    AlteracaoCardapio, InversaoCardapio, MotivoAlteracaoCardapio, MotivoSuspensao,
     SubstituicoesAlimentacaoNoPeriodoEscolar, SuspensaoAlimentacao
 )
 from ...dados_comuns.fluxo_status import PedidoAPartirDaEscolaWorkflow
@@ -18,6 +19,11 @@ from ...dados_comuns.models import TemplateMensagem
 
 fake = Faker('pt_BR')
 fake.seed(420)
+
+
+@pytest.fixture
+def tipo_alimentacao():
+    return mommy.make('cardapio.TipoAlimentacao', nome='Refeição')
 
 
 @pytest.fixture
@@ -30,7 +36,8 @@ def client():
 def cardapio_valido():
     data = datetime.datetime.now() + datetime.timedelta(days=2)
     cardapio_valido = mommy.make('Cardapio', id=1, data=data.date(),
-                                 uuid='7a4ec98a-18a8-4d0a-b722-1da8f99aaf4b')
+                                 uuid='7a4ec98a-18a8-4d0a-b722-1da8f99aaf4b',
+                                 descricao='lorem ipsum')
     return cardapio_valido
 
 
@@ -97,14 +104,33 @@ def inversao_cardapio_serializer(escola):
 
 
 @pytest.fixture
-def suspensao_alimentacao_serializer():
-    suspensao_alimentacao = mommy.make(SuspensaoAlimentacao)
+def suspensao_alimentacao(motivo_suspensao_alimentacao):
+    return mommy.make(SuspensaoAlimentacao, motivo=motivo_suspensao_alimentacao)
+
+
+@pytest.fixture
+def suspensao_periodo_escolar(suspensao_alimentacao):
+    return mommy.make(SuspensaoAlimentacaoNoPeriodoEscolar, suspensao_alimentacao=suspensao_alimentacao)
+
+
+@pytest.fixture
+def quantidade_por_periodo_suspensao_alimentacao():
+    return mommy.make(QuantidadePorPeriodoSuspensaoAlimentacao, numero_alunos=100)
+
+
+@pytest.fixture
+def suspensao_alimentacao_serializer(suspensao_alimentacao):
     return SuspensaoAlimentacaoSerializer(suspensao_alimentacao)
 
 
 @pytest.fixture
 def motivo_alteracao_cardapio():
-    return mommy.make(MotivoAlteracaoCardapio, nome=fake.name())
+    return mommy.make(MotivoAlteracaoCardapio, nome='Aniversariantes do mês')
+
+
+@pytest.fixture
+def motivo_suspensao_alimentacao():
+    return mommy.make(MotivoSuspensao, nome='Não vai ter aula')
 
 
 @pytest.fixture
@@ -115,7 +141,11 @@ def motivo_alteracao_cardapio_serializer():
 
 @pytest.fixture
 def alteracao_cardapio(escola):
-    return mommy.make(AlteracaoCardapio, escola=escola, observacao='teste')
+    return mommy.make(AlteracaoCardapio,
+                      escola=escola,
+                      observacao='teste',
+                      data_inicial=datetime.date(2019, 10, 4),
+                      data_final=datetime.date(2019, 12, 31))
 
 
 @pytest.fixture
