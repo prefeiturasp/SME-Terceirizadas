@@ -14,6 +14,7 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
+        ('paineis_consolidados', '0001_initial'),
     ]
 
     operations = [
