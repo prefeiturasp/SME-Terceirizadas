@@ -3,7 +3,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
-from sme_terceirizadas.escola.api.permissions import PodeCriarAdministradoresDaEscola
+from sme_terceirizadas.escola.api.serializers import UsuarioDetalheSerializer
+from sme_terceirizadas.perfil.api.serializers import VinculoSerializer, UsuarioUpdateSerializer
 from .serializers import (
     DiretoriaRegionalCompletaSerializer, DiretoriaRegionalSimplissimaSerializer, EscolaCompletaSerializer,
     EscolaSimplesSerializer, EscolaSimplissimaSerializer, PeriodoEscolarSerializer, SubprefeituraSerializer,
@@ -12,44 +13,27 @@ from .serializers import (
 from ..models import (
     Codae, DiretoriaRegional, Escola, Lote, PeriodoEscolar, Subprefeitura, TipoGestao
 )
+from ...escola.api.permissions import PodeCriarAdministradoresDaEscola
 from ...escola.api.serializers import CODAESerializer, LoteSimplesSerializer
 from ...escola.api.serializers_create import LoteCreateSerializer
-from ...inclusao_alimentacao.api.serializers.serializers import (
-    GrupoInclusaoAlimentacaoNormalSerializer, InclusaoAlimentacaoContinuaSerializer
-)
+from ...perfil.models import Vinculo
 
 
 # https://www.django-rest-framework.org/api-guide/permissions/#custom-permissions
 
 
-class EscolaViewSet(ReadOnlyModelViewSet):
+class VinculoEscolaViewSet(ReadOnlyModelViewSet):
     lookup_field = 'uuid'
     queryset = Escola.objects.all()
-    serializer_class = EscolaCompletaSerializer
+    serializer_class = VinculoSerializer
 
     @action(detail=True, permission_classes=[PodeCriarAdministradoresDaEscola], methods=['post'])
     def criar_equipe_administradora(self, request, uuid=None):
-        pass
-
-    @action(detail=True)
-    def meus_grupos_inclusao_normal(self, request, uuid=None):
-        escola = self.get_object()
-        inclusoes = escola.grupos_inclusoes.all()
-        page = self.paginate_queryset(inclusoes)
-        serializer = GrupoInclusaoAlimentacaoNormalSerializer(
-            page, many=True
-        )
-        return self.get_paginated_response(serializer.data)
-
-    @action(detail=True)
-    def minhas_inclusoes_alimentacao_continua(self, request, uuid=None):
-        escola = self.get_object()
-        inclusoes = escola.inclusoes_continuas.all()
-        page = self.paginate_queryset(inclusoes)
-        serializer = InclusaoAlimentacaoContinuaSerializer(
-            page, many=True
-        )
-        return self.get_paginated_response(serializer.data)
+        registros_funcionais = request.data.get('registros_funcionais')
+        for registro_funcional in registros_funcionais:
+            request.data['registro_funcional'] = registro_funcional
+            serializer = UsuarioUpdateSerializer(request.data).create(validated_data=request.data)
+        return UsuarioDetalheSerializer(serializer).data
 
 
 class EscolaSimplesViewSet(ReadOnlyModelViewSet):

@@ -167,7 +167,7 @@ class TerceirizadaSerializer(serializers.ModelSerializer):
         exclude = ('id',)
 
 
-class VinculoSerializer(serializers.ModelSerializer):
+class VinculoInstituicaoSerializer(serializers.ModelSerializer):
     instituicao = serializers.SerializerMethodField()
 
     def get_instituicao(self, obj):
@@ -182,7 +182,7 @@ class VinculoSerializer(serializers.ModelSerializer):
 
 class UsuarioDetalheSerializer(serializers.ModelSerializer):
     tipo_usuario = serializers.CharField()
-    vinculo_atual = VinculoSerializer()
+    vinculo_atual = VinculoInstituicaoSerializer()
 
     class Meta:
         model = Usuario
