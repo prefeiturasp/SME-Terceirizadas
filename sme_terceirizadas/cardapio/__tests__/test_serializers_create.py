@@ -4,7 +4,7 @@ from model_mommy import mommy
 from rest_framework.exceptions import ValidationError
 
 from ...cardapio.api.serializers.serializers_create import (
-    AlteracaoCardapioSerializerCreate, InversaoCardapioSerializerCreate
+    AlteracaoCardapioSerializerCreate, GrupoSuspensaoAlimentacaoCreateSerializer, InversaoCardapioSerializerCreate
 )
 from ...cardapio.models import AlteracaoCardapio
 from ...cardapio.models import InversaoCardapio
@@ -154,3 +154,31 @@ def test_alteracao_cardapio_creators(alteracao_card_params, escola):
     assert resp_update.substituicoes.count() == 3
     assert resp_update.data_inicial == data_inicial
     assert resp_update.data_final == data_final
+
+
+def test_grupo_suspensao_alimentacao_serializer(grupo_suspensao_alimentacao_params):
+    class FakeObject(object):
+        user = mommy.make('perfil.Usuario')
+
+    serializer_obj = GrupoSuspensaoAlimentacaoCreateSerializer(context={'request': FakeObject})
+    quantidades_por_periodo = []
+    quantidades_periodo = mommy.make('QuantidadePorPeriodoSuspensaoAlimentacao', _quantity=3)
+    for quantidade_periodo in quantidades_periodo:
+        quantidades_por_periodo.append(dict(numero_alunos=quantidade_periodo.numero_alunos,
+                                            periodo_escolar=quantidade_periodo.periodo_escolar))
+
+    suspensoes_alimentacao = []
+    suspensoes = mommy.make('SuspensaoAlimentacao', _quantity=3)
+    for suspensao in suspensoes:
+        suspensoes_alimentacao.append(dict(prioritario=suspensao.prioritario,
+                                           motivo=suspensao.motivo,
+                                           data=suspensao.data,
+                                           outro_motivo=suspensao.outro_motivo))
+    validated_data = dict(quantidades_por_periodo=quantidades_por_periodo,
+                          suspensoes_alimentacao=suspensoes_alimentacao,
+                          escola=mommy.make('Escola'))
+    grupo_suspensao_created = serializer_obj.create(validated_data=validated_data)
+
+    assert grupo_suspensao_created.criado_por == FakeObject().user
+    assert grupo_suspensao_created.quantidades_por_periodo.count() == 3
+    assert grupo_suspensao_created.suspensoes_alimentacao.count() == 3
