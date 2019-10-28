@@ -252,3 +252,10 @@ def test_tageamento_prioridade_caso2(kits_avulsos_parametros2, escola):
     kit_lanche_base = mommy.make('SolicitacaoKitLanche', data=data_tupla)
     kit_lanche_avulso = mommy.make('SolicitacaoKitLancheAvulsa', escola=escola, solicitacao_kit_lanche=kit_lanche_base)
     assert kit_lanche_avulso.prioridade == esperado
+
+
+def test_escola_quantidade(escola_quantidade):
+    kit_lanche_personalizado = bool(escola_quantidade.kits.count())
+    tempo_passeio = escola_quantidade.get_tempo_passeio_display()
+    assert escola_quantidade.__str__() == (f'{tempo_passeio} para {escola_quantidade.quantidade_alunos} '
+                                           f'alunos, kits diferenciados? {kit_lanche_personalizado}')
