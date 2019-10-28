@@ -12,7 +12,9 @@ before_script:
   - export AUTHOR_NAME="$(git log -1 $TRAVIS_COMMIT --pretty="%aN")"
 
 install:
-  - pip install -r requirements/local.txt
+  - pip install pipenv
+  - pipenv install --dev
+  - pipenv shell
 script:
   - pytest
   - flake8

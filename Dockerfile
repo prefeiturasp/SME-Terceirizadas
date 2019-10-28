@@ -4,7 +4,6 @@ ENV PYTHONUNBUFFERED 1
 ADD ./config /code/config
 ADD ./sme_terceirizadas /code/sme_terceirizadas
 ADD ./manage.py /code
-ADD ./requirements /code/requirements
 ADD ./Pipfile /code/Pipfile
 ADD ./Pipfile.lock /code/Pipfile.lock
 
