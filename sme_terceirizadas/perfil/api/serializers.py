@@ -4,7 +4,7 @@ from rest_framework import serializers
 from ...eol_servico.utils import get_informacoes_usuario
 from .validators import (
     registro_funcional_e_cpf_sao_da_mesma_pessoa, senha_deve_ser_igual_confirmar_senha,
-    usuario_pode_efetuar_cadastro
+    #  usuario_pode_efetuar_cadastro
 )
 from ..models import Perfil, Usuario, Vinculo
 
@@ -61,7 +61,7 @@ class UsuarioUpdateSerializer(serializers.ModelSerializer):
     def validate(self, instance, attrs):
         senha_deve_ser_igual_confirmar_senha(attrs['password'], attrs['confirmar_password'])
         registro_funcional_e_cpf_sao_da_mesma_pessoa(instance, attrs['registro_funcional'], attrs['cpf'])
-        usuario_pode_efetuar_cadastro(instance)
+        #  usuario_pode_efetuar_cadastro(instance) # noqa
         attrs['email'] = attrs['email'] + '@sme.prefeitura.sp.gov.br'
         return attrs
 

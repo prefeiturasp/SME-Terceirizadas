@@ -3,7 +3,7 @@ from faker import Faker
 from model_mommy import mommy
 
 from .. import models
-from ..api.serializers import UsuarioSerializer
+from ..api.serializers import UsuarioSerializer, UsuarioUpdateSerializer
 
 f = Faker(locale='pt-Br')
 
@@ -20,6 +20,17 @@ def usuario():
         nome='Fulano da Silva',
         email='fulano@teste.com',
         cpf='52347255100',
+        registro_funcional='1234567'
+    )
+
+
+@pytest.fixture
+def usuario_2():
+    return mommy.make(
+        models.Usuario,
+        nome='Fulano da Silva',
+        email='fulano@teste.com',
+        cpf='11111111111',
         registro_funcional='1234567'
     )
 
@@ -48,3 +59,8 @@ def vinculo_diretoria_regional(usuario):
                       ativo=True,
                       usuario=usuario,
                       tipo_instituicao=models.ContentType.objects.get(model='diretoriaregional'))
+
+
+@pytest.fixture
+def usuario_update_serializer(usuario_2):
+    return UsuarioUpdateSerializer(usuario_2)

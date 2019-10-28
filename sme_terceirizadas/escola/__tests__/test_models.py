@@ -61,7 +61,7 @@ def test_escola(escola):
     assert isinstance(escola.diretoria_regional, DiretoriaRegional)
     assert isinstance(escola.tipo_unidade, TipoUnidadeEscolar)
     assert isinstance(escola.tipo_gestao, TipoGestao)
-    assert escola.lote is None
+    assert escola.lote is not None
     assert escola.idades.all() is not None
     assert escola.periodos_escolares.all() is not None
 

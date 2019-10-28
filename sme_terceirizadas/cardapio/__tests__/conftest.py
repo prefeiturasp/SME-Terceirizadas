@@ -157,7 +157,8 @@ def alteracao_cardapio(escola):
 @pytest.fixture
 def substituicoes_alimentacao_periodo(escola):
     alteracao_cardapio = mommy.make(AlteracaoCardapio, escola=escola, observacao='teste')
-    return mommy.make(SubstituicoesAlimentacaoNoPeriodoEscolar, alteracao_cardapio=alteracao_cardapio)
+    return mommy.make(SubstituicoesAlimentacaoNoPeriodoEscolar, uuid='59beb0ca-982a-49da-98b8-10a296f274ba',
+                      alteracao_cardapio=alteracao_cardapio)
 
 
 @pytest.fixture
