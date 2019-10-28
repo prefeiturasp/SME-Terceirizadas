@@ -1,8 +1,7 @@
 from notifications.models import Notification
 from rest_framework import serializers
 
-from sme_terceirizadas.eol_servico.utils import get_informacoes_usuario
-from utility.carga_dados.escola._8_co_gestores_dre import retorna_apenas_numeros_registro_funcional
+from ...eol_servico.utils import get_informacoes_usuario
 from .validators import (
     registro_funcional_e_cpf_sao_da_mesma_pessoa, senha_deve_ser_igual_confirmar_senha,
     usuario_pode_efetuar_cadastro
@@ -47,12 +46,12 @@ class UsuarioUpdateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         informacoes_usuario = get_informacoes_usuario(validated_data['registro_funcional'])
         cpf = informacoes_usuario['results'][0]['cd_cpf_pessoa']
-        email = f'{cpf}@dev.prefeitura.sp.gov.br'
-        print('email')
-        usuario = Usuario.objects.create_user(email, '123')
-        usuario.registro_funcional = retorna_apenas_numeros_registro_funcional(
-            validated_data['registro_funcional']
-        )
+        if Usuario.objects.filter(cpf=cpf).exists():
+            usuario = Usuario.objects.get(cpf=cpf)
+        else:
+            email = f'{cpf}@dev.prefeitura.sp.gov.br'
+            usuario = Usuario.objects.create_user(email, 'adminadmin')
+        usuario.registro_funcional = validated_data['registro_funcional']
         usuario.nome = informacoes_usuario['results'][0]['nm_pessoa']
         usuario.cpf = cpf
         usuario.is_active = False

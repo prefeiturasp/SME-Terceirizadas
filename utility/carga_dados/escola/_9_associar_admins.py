@@ -27,6 +27,13 @@ perfil_diretor_escola, created = Perfil.objects.get_or_create(
     ativo=True,
     super_usuario=True
 )
+
+perfil_administrador_escola, created = Perfil.objects.get_or_create(
+    nome='ADMINISTRADOR_ESCOLA',
+    ativo=True,
+    super_usuario=True
+)
+
 perfil_cogestor_dre, created = Perfil.objects.get_or_create(
     nome='COGESTOR',
     ativo=True,

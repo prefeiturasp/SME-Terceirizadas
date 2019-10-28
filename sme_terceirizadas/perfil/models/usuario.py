@@ -1,3 +1,4 @@
+import datetime
 import environ
 import requests
 
@@ -9,6 +10,7 @@ from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from simple_email_confirmation.models import SimpleEmailConfirmationUserMixin
 
+from ..models import Perfil, Vinculo
 from ...dados_comuns.utils import url_configs
 from ...dados_comuns.behaviors import TemChaveExterna
 
@@ -146,4 +148,13 @@ class Usuario(SimpleEmailConfirmationUserMixin, CustomAbstractUser, TemChaveExte
             message=f'Clique neste link para confirmar seu e-mail no SIGPAE \n'
                     f': {url_configs("CONFIRMAR_EMAIL", content)}',
             from_email='calvin.masters@gmail.com'
+        )
+
+    def criar_vinculo_administrador_escola(self, escola):
+        perfil = Perfil.objects.get(nome='ADMINISTRADOR_ESCOLA')
+        Vinculo.objects.create(
+            instituicao=escola,
+            perfil=perfil,
+            usuario=self,
+            data_inicial=datetime.datetime.utcnow().date()
         )

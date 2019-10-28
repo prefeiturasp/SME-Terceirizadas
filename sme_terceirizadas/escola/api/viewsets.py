@@ -3,10 +3,10 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
-from sme_terceirizadas.escola.api.serializers import UsuarioDetalheSerializer
-from sme_terceirizadas.perfil.api.serializers import VinculoSerializer, UsuarioUpdateSerializer
+from ...escola.api.serializers import UsuarioDetalheSerializer
+from ...perfil.api.serializers import UsuarioUpdateSerializer, VinculoSerializer
 from .serializers import (
-    DiretoriaRegionalCompletaSerializer, DiretoriaRegionalSimplissimaSerializer, EscolaCompletaSerializer,
+    DiretoriaRegionalCompletaSerializer, DiretoriaRegionalSimplissimaSerializer,
     EscolaSimplesSerializer, EscolaSimplissimaSerializer, PeriodoEscolarSerializer, SubprefeituraSerializer,
     TipoGestaoSerializer
 )
@@ -16,7 +16,6 @@ from ..models import (
 from ...escola.api.permissions import PodeCriarAdministradoresDaEscola
 from ...escola.api.serializers import CODAESerializer, LoteSimplesSerializer
 from ...escola.api.serializers_create import LoteCreateSerializer
-from ...perfil.models import Vinculo
 
 
 # https://www.django-rest-framework.org/api-guide/permissions/#custom-permissions
@@ -32,8 +31,9 @@ class VinculoEscolaViewSet(ReadOnlyModelViewSet):
         registros_funcionais = request.data.get('registros_funcionais')
         for registro_funcional in registros_funcionais:
             request.data['registro_funcional'] = registro_funcional
-            serializer = UsuarioUpdateSerializer(request.data).create(validated_data=request.data)
-        return UsuarioDetalheSerializer(serializer).data
+            usuario = UsuarioUpdateSerializer(request.data).create(validated_data=request.data)
+            usuario.criar_vinculo_administrador_escola(self.get_object())
+        return Response(UsuarioDetalheSerializer(usuario).data)
 
 
 class EscolaSimplesViewSet(ReadOnlyModelViewSet):
