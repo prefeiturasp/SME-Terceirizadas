@@ -147,7 +147,7 @@ class InversaoCardapio(CriadoEm, CriadoPor, TemObservacao, Motivo, TemChaveExter
 
     class Meta:
         verbose_name = 'Inversão de cardápio'
-        verbose_name_plural = 'Inversão de cardápios'
+        verbose_name_plural = 'Inversão$ProjectFileDir$ de cardápios'
 
 
 class MotivoSuspensao(Nomeavel, TemChaveExterna):

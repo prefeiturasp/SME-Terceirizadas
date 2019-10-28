@@ -26,16 +26,19 @@ def test_quantidade_por_periodo(quantidade_por_periodo):
     assert quantidade_por_periodo.tipos_alimentacao.all().count() == 5
 
 
-def test_inclusao_alimentacao_continua(inclusao_alimentacao_continua):
+def test_inclusao_alimentacao_continua(inclusao_alimentacao_continua_params):
+    inclusao_alimentacao_continua, esperado = inclusao_alimentacao_continua_params
     assert isinstance(inclusao_alimentacao_continua.escola, Escola)
     assert isinstance(inclusao_alimentacao_continua.motivo, MotivoInclusaoContinua)
     assunto, template_html = inclusao_alimentacao_continua.template_mensagem
     assert assunto == 'TESTE'
     assert '98DC7' in template_html
     assert 'RASCUNHO' in template_html
+    assert inclusao_alimentacao_continua.data == esperado
 
 
-def test_inclusao_alimentacao_continua_fluxo(inclusao_alimentacao_continua):
+def test_inclusao_alimentacao_continua_fluxo(inclusao_alimentacao_continua_params):
+    inclusao_alimentacao_continua, esperado = inclusao_alimentacao_continua_params
     fake_user = mommy.make('perfil.Usuario')
     inclusao_alimentacao_continua.inicia_fluxo(user=fake_user)
     assert inclusao_alimentacao_continua.ta_na_dre
@@ -45,7 +48,8 @@ def test_inclusao_alimentacao_continua_fluxo(inclusao_alimentacao_continua):
     assert inclusao_alimentacao_continua.ta_na_terceirizada
 
 
-def test_inclusao_alimentacao_continua_fluxo_erro(inclusao_alimentacao_continua):
+def test_inclusao_alimentacao_continua_fluxo_erro(inclusao_alimentacao_continua_params):
+    inclusao_alimentacao_continua, esperado = inclusao_alimentacao_continua_params
     # TODO: pedir incremento do fluxo para testá-lo por completo
     with pytest.raises(InvalidTransitionError,
                        match="Transition 'dre_pede_revisao' isn't available from state 'RASCUNHO'."):
