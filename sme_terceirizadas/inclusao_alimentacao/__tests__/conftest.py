@@ -102,3 +102,13 @@ def inclusao_alimentacao_continua_parametros_vencidos(request):
 ])
 def inclusao_alimentacao_continua_parametros(request):
     return request.param
+
+
+@pytest.fixture
+def motivo_inclusao_normal_nome():
+    return mommy.make(models.MotivoInclusaoNormal, nome='Passeio 5h')
+
+
+@pytest.fixture
+def grupo_inclusao_alimentacao_nome():
+    return mommy.make(models.GrupoInclusaoAlimentacaoNormal)
