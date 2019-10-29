@@ -2,7 +2,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.viewsets import ViewSet
 
-from sme_terceirizadas.eol_servico.utils import get_informacoes_usuario
+from ..utils import get_informacoes_usuario
 
 
 class DadosUsuarioEOLViewSet(ViewSet):
