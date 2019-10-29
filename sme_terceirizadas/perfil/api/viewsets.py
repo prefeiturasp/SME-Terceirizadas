@@ -30,9 +30,12 @@ class UsuarioUpdateViewSet(viewsets.GenericViewSet):
     permission_classes = (permissions.AllowAny,)
     serializer_class = UsuarioUpdateSerializer
 
+    def _get_usuario(self, request):
+        return Usuario.objects.get(registro_funcional=request.data.get('registro_funcional'))
+
     def create(self, request):
         try:
-            usuario = Usuario.objects.get(registro_funcional=request.data.get('registro_funcional'))
+            usuario = self._get_usuario(request)
         except ObjectDoesNotExist:
             return Response({'detail': 'Erro ao cadastrar usuário'},
                             status=status.HTTP_400_BAD_REQUEST)
