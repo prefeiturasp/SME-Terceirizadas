@@ -63,8 +63,7 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
     def pedidos_codae(self, request, filtro_aplicado=constants.SEM_FILTRO):
         # TODO: colocar regras de codae CODAE aqui...
         usuario = request.user
-        # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
-        codae = usuario.CODAE.first()
+        codae = usuario.vinculo_atual.instituicao
         inversoes_cardapio = codae.inversoes_cardapio_das_minhas_escolas(
             filtro_aplicado
         )
@@ -77,8 +76,7 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
     def pedidos_terceirizada(self, request, filtro_aplicado=constants.SEM_FILTRO):
         # TODO: colocar regras de Terceirizada aqui...
         usuario = request.user
-        # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
-        terceirizada = usuario.terceirizadas.first()
+        terceirizada = usuario.vinculo_atual.instituicao
         inversoes_cardapio = terceirizada.inversoes_cardapio_das_minhas_escolas(
             filtro_aplicado
         )
@@ -89,8 +87,7 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
     @action(detail=False, url_path='pedidos-autorizados-diretoria-regional')
     def pedidos_autorizados_diretoria_regional(self, request):
         usuario = request.user
-        # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
-        diretoria_regional = usuario.diretorias_regionais.first()
+        diretoria_regional = usuario.vinculo_atual.instituicao
         inversoes_cardapio = diretoria_regional.inversoes_cardapio_autorizadas
         page = self.paginate_queryset(inversoes_cardapio)
         serializer = self.get_serializer(page, many=True)
@@ -99,8 +96,7 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
     @action(detail=False, url_path='pedidos-reprovados-diretoria-regional')
     def pedidos_reprovados_diretoria_regional(self, request):
         usuario = request.user
-        # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
-        diretoria_regional = usuario.diretorias_regionais.first()
+        diretoria_regional = usuario.vinculo_atual.instituicao
         inversoes_cardapio = diretoria_regional.inversoes_cardapio_reprovados
         page = self.paginate_queryset(inversoes_cardapio)
         serializer = self.get_serializer(page, many=True)
@@ -109,8 +105,7 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
     @action(detail=False, url_path='pedidos-autorizados-codae')
     def pedidos_autorizados_codae(self, request):
         usuario = request.user
-        # TODO: aguardando definição de perfis pra saber em qual CODAE eu estou fazendo a requisição
-        codae = usuario.CODAE.first()
+        codae = usuario.vinculo_atual.instituicao
         inversoes_cardapio = codae.inversoes_cardapio_autorizadas
         page = self.paginate_queryset(inversoes_cardapio)
         serializer = self.get_serializer(page, many=True)
@@ -119,8 +114,7 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
     @action(detail=False, url_path='pedidos-reprovados-codae')
     def pedidos_reprovados_codae(self, request):
         usuario = request.user
-        # TODO: aguardando definição de perfis pra saber em qual CODAE eu estou fazendo a requisição
-        codae = usuario.CODAE.first()
+        codae = usuario.vinculo_atual.instituicao
         inversoes_cardapio = codae.inversoes_cardapio_reprovados
         page = self.paginate_queryset(inversoes_cardapio)
         serializer = self.get_serializer(page, many=True)
@@ -129,8 +123,7 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
     @action(detail=False, url_path='pedidos-autorizados-terceirizada')
     def pedidos_autorizados_terceirizada(self, request):
         usuario = request.user
-        # TODO: aguardando definição de perfis pra saber em qual TERCEIRIZADA eu estou fazendo a requisição
-        terceirizada = usuario.terceirizadas.first()
+        terceirizada = usuario.vinculo_atual.instituicao
         inversoes_cardapio = terceirizada.inversoes_cardapio_autorizadas
         page = self.paginate_queryset(inversoes_cardapio)
         serializer = self.get_serializer(page, many=True)
@@ -270,8 +263,7 @@ class GrupoSuspensaoAlimentacaoSerializerViewSet(viewsets.ModelViewSet):
     def pedidos_codae(self, request, filtro_aplicado=constants.SEM_FILTRO):
         # TODO: colocar regras de codae CODAE aqui...
         usuario = request.user
-        # TODO: aguardando definição de perfis pra saber
-        codae = usuario.CODAE.first()
+        codae = usuario.vinculo_atual.instituicao
         alteracoes_cardapio = codae.suspensoes_cardapio_das_minhas_escolas(
             filtro_aplicado
         )
@@ -291,8 +283,7 @@ class GrupoSuspensaoAlimentacaoSerializerViewSet(viewsets.ModelViewSet):
     def pedidos_terceirizada(self, request, filtro_aplicado='sem_filtro'):
         # TODO: colocar regras de Terceirizada aqui...
         usuario = request.user
-        # TODO: aguardando definição de perfis pra saber
-        terceirizada = usuario.terceirizadas.first()
+        terceirizada = usuario.vinculo_atual.instituicao
         suspensoes_cardapio = terceirizada.suspensoes_alimentacao_das_minhas_escolas(
             filtro_aplicado
         )
@@ -371,8 +362,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
     def pedidos_codae(self, request, filtro_aplicado=constants.SEM_FILTRO):
         # TODO: colocar regras de codae CODAE aqui...
         usuario = request.user
-        # TODO: aguardando definição de perfis pra saber
-        codae = usuario.CODAE.first()
+        codae = usuario.vinculo_atual.instituicao
         alteracoes_cardapio = codae.alteracoes_cardapio_das_minhas(
             filtro_aplicado
         )
@@ -386,7 +376,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
     def pedidos_dre(self, request, filtro_aplicado=constants.SEM_FILTRO):
         # TODO: colocar regras de DRE aqui...
         usuario = request.user
-        dre = usuario.diretorias_regionais.first()
+        dre = usuario.vinculo_atual.instituicao
         alteracoes_cardapio = dre.alteracoes_cardapio_das_minhas_escolas_a_validar(
             filtro_aplicado
         )
@@ -400,8 +390,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
     def pedidos_terceirizada(self, request, filtro_aplicado=constants.SEM_FILTRO):
         # TODO: colocar regras de Terceirizada aqui...
         usuario = request.user
-        # TODO: aguardando definição de perfis pra saber
-        terceirizada = usuario.terceirizadas.first()
+        terceirizada = usuario.vinculo_atual.instituicao
         alteracoes_cardapio = terceirizada.alteracoes_cardapio_das_minhas(
             filtro_aplicado
         )
@@ -540,8 +529,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
     @action(detail=False, url_path='pedidos-autorizados-diretoria-regional')
     def pedidos_autorizados_diretoria_regional(self, request):
         usuario = request.user
-        # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
-        diretoria_regional = usuario.diretorias_regionais.first()
+        diretoria_regional = usuario.vinculo_atual.instituicao
         alteracoes_cardapio = diretoria_regional.alteracoes_cardapio_autorizadas
         page = self.paginate_queryset(alteracoes_cardapio)
         serializer = self.get_serializer(page, many=True)
@@ -550,8 +538,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
     @action(detail=False, url_path='pedidos-reprovados-diretoria-regional')
     def pedidos_reprovados_diretoria_regional(self, request):
         usuario = request.user
-        # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
-        diretoria_regional = usuario.diretorias_regionais.first()
+        diretoria_regional = usuario.vinculo_atual.instituicao
         alteracoes_cardapio = diretoria_regional.alteracoes_cardapio_reprovadas
         page = self.paginate_queryset(alteracoes_cardapio)
         serializer = self.get_serializer(page, many=True)
@@ -560,8 +547,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
     @action(detail=False, url_path='pedidos-autorizados-codae')
     def pedidos_autorizados_codae(self, request):
         usuario = request.user
-        # TODO: aguardando definição de perfis pra saber em qual CODAE eu estou fazendo a requisição
-        codae = usuario.CODAE.first()
+        codae = usuario.vinculo_atual.instituicao
         alteracoes_cardapio = codae.alteracoes_cardapio_autorizadas
         page = self.paginate_queryset(alteracoes_cardapio)
         serializer = self.get_serializer(page, many=True)
@@ -570,8 +556,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
     @action(detail=False, url_path='pedidos-reprovados-codae')
     def pedidos_reprovados_codae(self, request):
         usuario = request.user
-        # TODO: aguardando definição de perfis pra saber em qual CODAE eu estou fazendo a requisição
-        codae = usuario.CODAE.first()
+        codae = usuario.vinculo_atual.instituicao
         alteracoes_cardapio = codae.alteracoes_cardapio_reprovadas
         page = self.paginate_queryset(alteracoes_cardapio)
         serializer = self.get_serializer(page, many=True)
@@ -580,8 +565,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
     @action(detail=False, url_path='pedidos-autorizados-terceirizada')
     def pedidos_autorizados_terceirizada(self, request):
         usuario = request.user
-        # TODO: aguardando definição de perfis pra saber em qual Terceirizada eu estou fazendo a requisição
-        terceirizada = usuario.terceirizadas.first()
+        terceirizada = usuario.vinculo_atual.instituicao
         alteracoes_cardapio = terceirizada.alteracoes_cardapio_autorizadas
         page = self.paginate_queryset(alteracoes_cardapio)
         serializer = self.get_serializer(page, many=True)
@@ -590,8 +574,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
     @action(detail=False, url_path='pedidos-reprovados-terceirizada')
     def pedidos_reprovados_terceirizada(self, request):
         usuario = request.user
-        # TODO: aguardando definição de perfis pra saber em qual Terceirizada eu estou fazendo a requisição
-        terceirizada = usuario.terceirizadas.first()
+        terceirizada = usuario.vinculo_atual.instituicao
         alteracoes_cardapio = terceirizada.alteracoes_cardapio_reprovadas
         page = self.paginate_queryset(alteracoes_cardapio)
         serializer = self.get_serializer(page, many=True)
