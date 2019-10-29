@@ -13,7 +13,7 @@ def test_usuario_update_serializer(monkeypatch, usuario_update_serializer, usuar
     dados_usuario = {
         'password': 'adminadmin',
         'confirmar_password': 'adminadmin',
-        'email': 'nome.completo',
+        'email': 'nome.completo@sme.prefeitura.sp.gov.br',
         'registro_funcional': '1234567',
         'cpf': '11111111111'
     }
