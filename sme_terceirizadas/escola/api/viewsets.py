@@ -28,11 +28,8 @@ class VinculoEscolaViewSet(ReadOnlyModelViewSet):
 
     @action(detail=True, permission_classes=[PodeCriarAdministradoresDaEscola], methods=['post'])
     def criar_equipe_administradora(self, request, uuid=None):
-        registros_funcionais = request.data.get('registros_funcionais')
-        for registro_funcional in registros_funcionais:
-            request.data['registro_funcional'] = registro_funcional
-            usuario = UsuarioUpdateSerializer(request.data).create(validated_data=request.data)
-            usuario.criar_vinculo_administrador_escola(self.get_object())
+        usuario = UsuarioUpdateSerializer(request.data).create(validated_data=request.data)
+        usuario.criar_vinculo_administrador_escola(self.get_object())
         return Response(UsuarioDetalheSerializer(usuario).data)
 
 

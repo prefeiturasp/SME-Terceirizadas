@@ -10,6 +10,7 @@ from rest_framework_swagger.views import get_swagger_view
 
 from sme_terceirizadas.cardapio.urls import urlpatterns as cardapio_urls
 from sme_terceirizadas.dados_comuns.urls import urlpatterns as comuns_urls
+from sme_terceirizadas.eol_servico.urls import urlpatterns as eol_servico_urls
 from sme_terceirizadas.escola.urls import urlpatterns as escola_urls
 from sme_terceirizadas.inclusao_alimentacao.urls import urlpatterns as inclusao_urls
 from sme_terceirizadas.kit_lanche.urls import urlpatterns as kit_lanche_urls
@@ -32,6 +33,7 @@ urlpatterns = [path('docs/', schema_view, name='docs'),
 
 # ADDING ROUTERS FROM ALL APPS
 urlpatterns += comuns_urls
+urlpatterns += eol_servico_urls
 urlpatterns += escola_urls
 urlpatterns += perfil_urls
 urlpatterns += inclusao_urls
