@@ -47,8 +47,7 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
     @action(detail=False, url_path='pedidos-autorizados-diretoria-regional')
     def pedidos_autorizados_diretoria_regional(self, request):
         usuario = request.user
-        # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
-        diretoria_regional = usuario.diretorias_regionais.first()
+        diretoria_regional = usuario.vinculo_atual.instituicao
         kit_lanche = diretoria_regional.solicitacao_kit_lanche_avulsa_autorizadas
         page = self.paginate_queryset(kit_lanche)
         serializer = self.get_serializer(page, many=True)
@@ -57,8 +56,7 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
     @action(detail=False, url_path='pedidos-reprovados-diretoria-regional')
     def pedidos_reprovados_diretoria_regional(self, request):
         usuario = request.user
-        # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
-        diretoria_regional = usuario.diretorias_regionais.first()
+        diretoria_regional = usuario.vinculo_atual.instituicao
         kit_lanche = diretoria_regional.solicitacao_kit_lanche_avulsa_reprovados
         page = self.paginate_queryset(kit_lanche)
         serializer = self.get_serializer(page, many=True)
@@ -67,8 +65,7 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
     @action(detail=False, url_path='pedidos-autorizados-codae')
     def pedidos_autorizados_codae(self, request):
         usuario = request.user
-        # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
-        codae = usuario.CODAE.first()
+        codae = usuario.vinculo_atual.instituicao
         kit_lanche = codae.solicitacao_kit_lanche_avulsa_autorizadas
         page = self.paginate_queryset(kit_lanche)
         serializer = self.get_serializer(page, many=True)
@@ -77,8 +74,7 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
     @action(detail=False, url_path='pedidos-reprovados-codae')
     def pedidos_reprovados_codae(self, request):
         usuario = request.user
-        # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
-        codae = usuario.CODAE.first()
+        codae = usuario.vinculo_atual.instituicao
         kit_lanche = codae.solicitacao_kit_lanche_avulsa_reprovadas
         page = self.paginate_queryset(kit_lanche)
         serializer = self.get_serializer(page, many=True)
@@ -87,8 +83,7 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
     @action(detail=False, url_path='pedidos-autorizados-terceirizadas')
     def pedidos_autorizados_terceirizadas(self, request):
         usuario = request.user
-        # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
-        terceirizadas = usuario.terceirizadas.first()
+        terceirizadas = usuario.vinculo_atual.instituicao
         kit_lanche = terceirizadas.solicitacao_kit_lanche_avulsa_autorizadas
         page = self.paginate_queryset(kit_lanche)
         serializer = self.get_serializer(page, many=True)
@@ -98,8 +93,7 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
             url_path=f'{constants.PEDIDOS_CODAE}/{constants.FILTRO_PADRAO_PEDIDOS}')
     def pedidos_codae(self, request, filtro_aplicado='sem_filtro'):
         usuario = request.user
-        # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
-        codae = usuario.CODAE.first()
+        codae = usuario.vinculo_atual.instituicao
         kit_lanches_avulso = codae.solicitacoes_kit_lanche_das_minhas_escolas_a_validar(
             filtro_aplicado
         )
@@ -111,8 +105,7 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
             url_path=f'{constants.PEDIDOS_TERCEIRIZADA}/{constants.FILTRO_PADRAO_PEDIDOS}')
     def pedidos_terceirizadas(self, request, filtro_aplicado='sem_filtro'):
         usuario = request.user
-        # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
-        terceirizadas = usuario.terceirizadas.first()
+        terceirizadas = usuario.vinculo_atual.instituicao
         kit_lanches_avulso = terceirizadas.solicitacoes_kit_lanche_das_minhas_escolas_a_validar(
             filtro_aplicado
         )
@@ -261,8 +254,7 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
     def pedidos_codae(self, request, filtro_aplicado=constants.SEM_FILTRO):
         # TODO: colocar regras de codae CODAE aqui...
         usuario = request.user
-        # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
-        codae = usuario.CODAE.first()
+        codae = usuario.vinculo_atual.instituicao
         solicitacoes_unificadas = codae.solicitacoes_unificadas(
             filtro_aplicado
         )
@@ -275,8 +267,7 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
     def pedidos_terceirizada(self, request, filtro_aplicado=constants.SEM_FILTRO):
         # TODO: colocar regras de Terceirizada aqui...
         usuario = request.user
-        # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
-        terceirizada = usuario.terceirizadas.first()
+        terceirizada = usuario.vinculo_atual.instituicao
         solicitacoes_unificadas = terceirizada.solicitacoes_unificadas_das_minhas_escolas(
             filtro_aplicado
         )
@@ -287,8 +278,7 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
     @action(detail=False, url_path='pedidos-autorizados-codae')
     def pedidos_autorizados_codae(self, request):
         usuario = request.user
-        # TODO: aguardando definição de perfis pra saber em qual CODAE eu estou fazendo a requisição
-        codae = usuario.CODAE.first()
+        codae = usuario.vinculo_atual.instituicao
         kit_lanche = codae.solicitacoes_unificadas_autorizadas
         page = self.paginate_queryset(kit_lanche)
         serializer = self.get_serializer(page, many=True)
@@ -297,8 +287,7 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
     @action(detail=False, url_path='pedidos-autorizados-terceirizada')
     def pedidos_autorizados_terceirizada(self, request):
         usuario = request.user
-        # TODO: aguardando definição de perfis pra saber em qual CODAE eu estou fazendo a requisição
-        terceirizada = usuario.terceirizadas.first()
+        terceirizada = usuario.vinculo_atual.instituicao
         kit_lanche = terceirizada.solicitacoes_unificadas_autorizadas
         page = self.paginate_queryset(kit_lanche)
         serializer = self.get_serializer(page, many=True)

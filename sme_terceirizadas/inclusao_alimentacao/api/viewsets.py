@@ -51,8 +51,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
     def solicitacoes_codae(self, request, filtro_aplicado=constants.SEM_FILTRO):
         # TODO: colocar regras de codae CODAE aqui...
         usuario = request.user
-        # TODO: aguardando definição de perfis pra saber
-        codae = usuario.CODAE.first()
+        codae = usuario.vinculo_atual.instituicao
         inclusoes_continuas = codae.grupos_inclusoes_alimentacao_normal_das_minhas_escolas(
             filtro_aplicado
         )
@@ -65,8 +64,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
     def solicitacoes_terceirizada(self, request, filtro_aplicado='sem_filtro'):
         # TODO: colocar regras de terceirizada aqui...
         usuario = request.user
-        # TODO: aguardando definição de perfis pra saber
-        terceirizada = usuario.terceirizadas.first()
+        terceirizada = usuario.vinculo_atual.instituicao
         inclusoes_continuas = terceirizada.grupos_inclusoes_alimentacao_normal_das_minhas_escolas(
             filtro_aplicado
         )
@@ -90,8 +88,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
     @action(detail=False, url_path='pedidos-autorizados-diretoria-regional')
     def solicitacoes_autorizados_diretoria_regional(self, request):
         usuario = request.user
-        # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
-        diretoria_regional = usuario.diretorias_regionais.first()
+        diretoria_regional = usuario.vinculo_atual.instituicao
         inclusoes_normais = diretoria_regional.inclusoes_normais_autorizadas
         page = self.paginate_queryset(inclusoes_normais)
         serializer = self.get_serializer(page, many=True)
@@ -100,8 +97,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
     @action(detail=False, url_path='pedidos-reprovados-diretoria-regional')
     def solicitacoes_reprovados_diretoria_regional(self, request):
         usuario = request.user
-        # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
-        diretoria_regional = usuario.diretorias_regionais.first()
+        diretoria_regional = usuario.vinculo_atual.instituicao
         inclusoes_normais = diretoria_regional.inclusoes_normais_reprovadas
         page = self.paginate_queryset(inclusoes_normais)
         serializer = self.get_serializer(page, many=True)
@@ -110,8 +106,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
     @action(detail=False, url_path='pedidos-autorizados-codae')
     def solicitacoes_autorizadas_codae(self, request):
         usuario = request.user
-        # TODO: aguardando definição de perfis pra saber em qual CODAE eu estou fazendo a requisição
-        codae = usuario.CODAE.first()
+        codae = usuario.vinculo_atual.instituicao
         inclusoes_normais = codae.inclusoes_normais_autorizadas
         page = self.paginate_queryset(inclusoes_normais)
         serializer = self.get_serializer(page, many=True)
@@ -120,8 +115,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
     @action(detail=False, url_path='pedidos-reprovados-codae')
     def solicitacoes_reprovados_codae(self, request):
         usuario = request.user
-        # TODO: aguardando definição de perfis pra saber em qual CODAE eu estou fazendo a requisição
-        codae = usuario.CODAE.first()
+        codae = usuario.vinculo_atual.instituicao
         inclusoes_normais = codae.inclusoes_normais_reprovadas
         page = self.paginate_queryset(inclusoes_normais)
         serializer = self.get_serializer(page, many=True)
@@ -130,8 +124,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
     @action(detail=False, url_path='pedidos-autorizados-terceirizada')
     def solicitacoes_autorizadas_terceirizada(self, request):
         usuario = request.user
-        # TODO: aguardando definição de perfis pra saber em qual Terceirizada eu estou fazendo a requisição
-        terceirizada = usuario.terceirizadas.first()
+        terceirizada = usuario.vinculo_atual.instituicao
         inclusoes_normais = terceirizada.inclusoes_normais_autorizadas
         page = self.paginate_queryset(inclusoes_normais)
         serializer = self.get_serializer(page, many=True)
@@ -140,8 +133,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
     @action(detail=False, url_path='pedidos-reprovados-terceirizada')
     def solicitacoes_reprovados_terceirizada(self, request):
         usuario = request.user
-        # TODO: aguardando definição de perfis pra saber em qual Terceirizada eu estou fazendo a requisição
-        terceirizada = usuario.terceirizadas.first()
+        terceirizada = usuario.vinculo_atual.instituicao
         inclusoes_normais = terceirizada.inclusoes_normais_reprovadas
         page = self.paginate_queryset(inclusoes_normais)
         serializer = self.get_serializer(page, many=True)
@@ -275,8 +267,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
     def solicitacoes_codae(self, request, filtro_aplicado=constants.SEM_FILTRO):
         # TODO: colocar regras de codae CODAE aqui...
         usuario = request.user
-        # TODO: aguardando definição de perfis pra saber
-        codae = usuario.CODAE.first()
+        codae = usuario.vinculo_atual.instituicao
         inclusoes_continuas = codae.inclusoes_alimentacao_continua_das_minhas_escolas(
             filtro_aplicado
         )
@@ -289,8 +280,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
     def solicitacoes_terceirizada(self, request, filtro_aplicado=constants.SEM_FILTRO):
         # TODO: colocar regras de terceirizada aqui...
         usuario = request.user
-        # TODO: aguardando definição de perfis pra saber
-        terceirizada = usuario.terceirizadas.first()
+        terceirizada = usuario.vinculo_atual.instituicao
         inclusoes_continuas = terceirizada.inclusoes_alimentacao_continua_das_minhas_escolas(
             filtro_aplicado
         )
@@ -313,8 +303,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
     @action(detail=False, url_path='pedidos-autorizados-diretoria-regional')
     def solicitacoes_autorizadas_diretoria_regional(self, request):
         usuario = request.user
-        # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
-        diretoria_regional = usuario.diretorias_regionais.first()
+        diretoria_regional = usuario.vinculo_atual.instituicao
         inclusoes_continuas = diretoria_regional.inclusoes_continuas_autorizadas
         page = self.paginate_queryset(inclusoes_continuas)
         serializer = self.get_serializer(page, many=True)
@@ -323,8 +312,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
     @action(detail=False, url_path='pedidos-reprovados-diretoria-regional')
     def solicitacoes_reprovados_diretoria_regional(self, request):
         usuario = request.user
-        # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
-        diretoria_regional = usuario.diretorias_regionais.first()
+        diretoria_regional = usuario.vinculo_atual.instituicao
         inclusoes_continuas = diretoria_regional.inclusoes_continuas_reprovadas
         page = self.paginate_queryset(inclusoes_continuas)
         serializer = self.get_serializer(page, many=True)
@@ -333,8 +321,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
     @action(detail=False, url_path='pedidos-autorizados-codae')
     def solicitacoes_autorizadas_codae(self, request):
         usuario = request.user
-        # TODO: aguardando definição de perfis pra saber em qual CODAE eu estou fazendo a requisição
-        codae = usuario.CODAE.first()
+        codae = usuario.vinculo_atual.instituicao
         inclusoes_continuas = codae.inclusoes_continuas_autorizadas
         page = self.paginate_queryset(inclusoes_continuas)
         serializer = self.get_serializer(page, many=True)
@@ -343,8 +330,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
     @action(detail=False, url_path='pedidos-reprovados-codae')
     def solicitacoes_reprovados_codae(self, request):
         usuario = request.user
-        # TODO: aguardando definição de perfis pra saber em qual CODAE eu estou fazendo a requisição
-        codae = usuario.CODAE.first()
+        codae = usuario.vinculo_atual.instituicao
         inclusoes_continuas = codae.inclusoes_continuas_reprovadas
         page = self.paginate_queryset(inclusoes_continuas)
         serializer = self.get_serializer(page, many=True)
@@ -353,8 +339,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
     @action(detail=False, url_path='pedidos-autorizados-terceirizada')
     def solicitacoes_autorizadas_terceirizada(self, request):
         usuario = request.user
-        # TODO: aguardando definição de perfis pra saber em qual Terceirizada eu estou fazendo a requisição
-        terceirizada = usuario.terceirizadas.first()
+        terceirizada = usuario.vinculo_atual.instituicao
         inclusoes_continuas = terceirizada.inclusoes_continuas_autorizadas
         page = self.paginate_queryset(inclusoes_continuas)
         serializer = self.get_serializer(page, many=True)
@@ -363,8 +348,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
     @action(detail=False, url_path='pedidos-reprovados-terceirizada')
     def solicitacoes_reprovados_terceirizada(self, request):
         usuario = request.user
-        # TODO: aguardando definição de perfis pra saber em qual Terceirizada eu estou fazendo a requisição
-        terceirizada = usuario.terceirizadas.first()
+        terceirizada = usuario.vinculo_atual.instituicao
         inclusoes_continuas = terceirizada.inclusoes_continuas_reprovadas
         page = self.paginate_queryset(inclusoes_continuas)
         serializer = self.get_serializer(page, many=True)

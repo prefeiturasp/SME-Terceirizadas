@@ -1,24 +1,6 @@
 from rest_framework import status
 
 
-def test_url_terceirizadas(client):
-    response = client.get('/terceirizadas/')
-    assert response.status_code == status.HTTP_401_UNAUTHORIZED
-    assert str(response.content, encoding='utf8') == '{"detail":"As credenciais de autenticação não foram fornecidas."}'
-
-
-def test_url_endpoint_editais(client):
-    response = client.get('/editais/')
-    assert response.status_code == status.HTTP_401_UNAUTHORIZED
-    assert str(response.content, encoding='utf8') == '{"detail":"As credenciais de autenticação não foram fornecidas."}'
-
-
-def test_url_endpoint_editais_contratos(client):
-    response = client.get('/editais-contratos/')
-    assert response.status_code == status.HTTP_401_UNAUTHORIZED
-    assert str(response.content, encoding='utf8') == '{"detail":"As credenciais de autenticação não foram fornecidas."}'
-
-
 def test_url_terceirizadas_autenticado(client_autenticado_terceiro):
     client = client_autenticado_terceiro
     response = client.get('/terceirizadas/')

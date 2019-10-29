@@ -169,6 +169,15 @@ class TerceirizadaSerializer(serializers.ModelSerializer):
 
 class VinculoInstituicaoSerializer(serializers.ModelSerializer):
     instituicao = serializers.SerializerMethodField()
+    lotes = serializers.SerializerMethodField()
+
+    def get_lotes(self, obj):
+        if isinstance(obj.instituicao, Terceirizada):
+            return LoteNomeSerializer(obj.instituicao.lotes.all(), many=True).data
+        else:
+            return {
+                'lotes': []
+            }
 
     def get_instituicao(self, obj):
         return {'nome': obj.instituicao.nome,
@@ -177,7 +186,7 @@ class VinculoInstituicaoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Vinculo
-        fields = ('instituicao',)
+        fields = ('instituicao', 'lotes',)
 
 
 class UsuarioDetalheSerializer(serializers.ModelSerializer):
@@ -186,7 +195,6 @@ class UsuarioDetalheSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Usuario
-
         fields = ('uuid', 'nome', 'email', 'registro_funcional', 'tipo_usuario', 'date_joined', 'vinculo_atual')
 
 

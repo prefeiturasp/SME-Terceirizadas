@@ -23,7 +23,7 @@ class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
             descricao_prioridade = [(solicitacao.desc_doc, solicitacao.prioridade) for solicitacao in query_set
                                     if solicitacao.prioridade != 'VENCIDO']
         elif tipo_visao == TIPO_VISAO_LOTE:
-            descricao_prioridade = [(solicitacao.lote, solicitacao.prioridade) for solicitacao in query_set
+            descricao_prioridade = [(solicitacao.lote_nome, solicitacao.prioridade) for solicitacao in query_set
                                     if solicitacao.prioridade != 'VENCIDO']
         else:
             descricao_prioridade = [(solicitacao.dre_nome, solicitacao.prioridade) for solicitacao in query_set
