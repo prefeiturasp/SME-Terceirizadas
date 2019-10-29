@@ -1,5 +1,0 @@
-[run]
-include = sme_terceirizadas/*
-omit = *migrations*, *tests*, *.html, *.txt
-plugins =
-    django_coverage_plugin

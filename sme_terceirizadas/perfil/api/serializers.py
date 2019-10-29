@@ -2,7 +2,7 @@ from notifications.models import Notification
 from rest_framework import serializers
 
 from .validators import (
-    registro_funcional_e_cpf_sao_da_mesma_pessoa, senha_deve_ser_igual_confirmar_senha,
+    deve_ser_email_sme, registro_funcional_e_cpf_sao_da_mesma_pessoa, senha_deve_ser_igual_confirmar_senha,
     usuario_pode_efetuar_cadastro
 )
 from ..models import (Perfil, Usuario)
@@ -36,15 +36,15 @@ class UsuarioSerializer(serializers.ModelSerializer):
 class UsuarioUpdateSerializer(serializers.ModelSerializer):
     confirmar_password = serializers.CharField()
 
-    def validate(self, instance, attrs):
+    def _validate(self, instance, attrs):
         senha_deve_ser_igual_confirmar_senha(attrs['password'], attrs['confirmar_password'])
         registro_funcional_e_cpf_sao_da_mesma_pessoa(instance, attrs['registro_funcional'], attrs['cpf'])
         usuario_pode_efetuar_cadastro(instance)
-        attrs['email'] = attrs['email'] + '@sme.prefeitura.sp.gov.br'
+        deve_ser_email_sme(attrs['email'])
         return attrs
 
     def partial_update(self, instance, validated_data):
-        validated_data = self.validate(instance, validated_data)
+        validated_data = self._validate(instance, validated_data)
         self.update(instance, validated_data)
         instance.set_password(validated_data['password'])
         instance.save()
