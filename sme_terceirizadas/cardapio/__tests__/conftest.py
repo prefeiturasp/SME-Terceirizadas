@@ -379,3 +379,16 @@ def alteracao_card_params(request):
 
     data_inicial, data_final = request.param
     return data_inicial, data_final, alimentacao1, alimentacao2, alimentacao3, alimentacao4, alimentacao5
+
+
+@pytest.fixture(params=[
+    # data do teste 14 out 2019
+    # data de, data para
+    (datetime.date(2019, 12, 25), datetime.date(2020, 1, 10)),  # deve ser no ano corrente
+    (datetime.date(2019, 10, 1), datetime.date(2019, 10, 20)),  # nao pode ser no passado
+    (datetime.date(2019, 10, 17), datetime.date(2019, 12, 20)),  # nao pode ter mais de 60 dias de intervalo
+    (datetime.date(2019, 10, 31), datetime.date(2019, 10, 15)),  # data de nao pode ser maior que data para
+
+])
+def grupo_suspensao_alimentacao_params(request):
+    return request.param

@@ -321,3 +321,8 @@ def kits_avulsos_param_serializer(request):
 ])
 def kits_unificados_param_serializer(request):
     return request.param
+
+
+@pytest.fixture
+def escola_quantidade():
+    return mommy.make(models.EscolaQuantidade)
