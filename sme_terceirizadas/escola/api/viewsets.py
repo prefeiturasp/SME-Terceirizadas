@@ -28,6 +28,7 @@ class VinculoEscolaViewSet(ReadOnlyModelViewSet):
 
     @action(detail=True, permission_classes=[PodeCriarAdministradoresDaEscola], methods=['post'])
     def criar_equipe_administradora(self, request, uuid=None):
+        request.data['escola'] = self.get_object().nome
         usuario = UsuarioUpdateSerializer(request.data).create(validated_data=request.data)
         usuario.criar_vinculo_administrador_escola(self.get_object())
         return Response(UsuarioDetalheSerializer(usuario).data)

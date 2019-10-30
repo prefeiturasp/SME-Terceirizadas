@@ -11,6 +11,10 @@ class DadosUsuarioEOLViewSet(ViewSet):
 
     def retrieve(self, request, registro_funcional=None):
         response = get_informacoes_usuario(registro_funcional)
-        for result in response['results']:
-            result.pop('cd_cpf_pessoa')
-        return Response(response['results'])
+        if response.status_code == 200:
+            response = response.json()
+            for result in response['results']:
+                result.pop('cd_cpf_pessoa')
+            return Response(response['results'])
+        else:
+            return Response({"detail": "Request de API externa falhou"})

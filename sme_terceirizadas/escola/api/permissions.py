@@ -1,5 +1,7 @@
 from rest_framework import permissions
 
+from ...dados_comuns.constants import DIRETOR
+
 
 class PodeCriarAdministradoresDaEscola(permissions.BasePermission):
     message = 'O seu perfil não tem permissao para criar administradores da escola'
@@ -7,7 +9,7 @@ class PodeCriarAdministradoresDaEscola(permissions.BasePermission):
     def has_permission(self, request, view):
         usuario = request.user
         if not usuario.is_anonymous:
-            perfil_diretor = usuario.vinculo_atual.perfil.nome == 'DIRETOR'
+            perfil_diretor = usuario.vinculo_atual.perfil.nome == DIRETOR
             return perfil_diretor
         return False
 

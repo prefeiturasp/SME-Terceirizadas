@@ -10,6 +10,7 @@ from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from simple_email_confirmation.models import SimpleEmailConfirmationUserMixin
 
+from ...dados_comuns.constants import DJANGO_EOL_API_TOKEN, DJANGO_EOL_API_URL
 from ..models import Perfil, Vinculo
 from ...dados_comuns.utils import url_configs
 from ...dados_comuns.behaviors import TemChaveExterna
@@ -128,8 +129,8 @@ class Usuario(SimpleEmailConfirmationUserMixin, CustomAbstractUser, TemChaveExte
 
     @property
     def pode_efetuar_cadastro(self):
-        headers = {'Authorization': f'Token {env("DJANGO_EOL_API_TOKEN")}'}
-        r = requests.get(f'{env("DJANGO_EOL_API_URL")}/cargos/{self.registro_funcional}', headers=headers)
+        headers = {'Authorization': f'Token {DJANGO_EOL_API_TOKEN}'}
+        r = requests.get(f'{DJANGO_EOL_API_URL}/cargos/{self.registro_funcional}', headers=headers)
         response = r.json()
         pode_efetuar_cadastro = False
         for result in response['results']:
