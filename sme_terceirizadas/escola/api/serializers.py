@@ -129,7 +129,7 @@ class EscolaSimplesSerializer(serializers.ModelSerializer):
 class EscolaListagemSimplesSelializer(serializers.ModelSerializer):
     class Meta:
         model = Escola
-        fields = ('uuid', 'nome', 'codigo_eol')
+        fields = ('uuid', 'nome', 'codigo_eol', 'quantidade_alunos')
 
 
 class EscolaCompletaSerializer(serializers.ModelSerializer):
@@ -169,24 +169,36 @@ class TerceirizadaSerializer(serializers.ModelSerializer):
 
 class VinculoSerializer(serializers.ModelSerializer):
     instituicao = serializers.SerializerMethodField()
-    lotes = serializers.SerializerMethodField()
+
+    def get_periodos_escolares(self, obj):
+        if isinstance(obj.instituicao, Escola):
+            return PeriodoEscolarSerializer(obj.instituicao.periodos_escolares.all(), many=True).data
+        else:
+            return []
 
     def get_lotes(self, obj):
         if isinstance(obj.instituicao, Terceirizada):
             return LoteNomeSerializer(obj.instituicao.lotes.all(), many=True).data
         else:
-            return {
-                'lotes': []
-            }
+            return []
+
+    def get_escolas(self, obj):
+        if isinstance(obj.instituicao, DiretoriaRegional):
+            return EscolaListagemSimplesSelializer(obj.instituicao.escolas.all(), many=True).data
+        else:
+            return []
 
     def get_instituicao(self, obj):
         return {'nome': obj.instituicao.nome,
                 'uuid': obj.instituicao.uuid,
-                'quantidade_alunos': obj.instituicao.quantidade_alunos}
+                'quantidade_alunos': obj.instituicao.quantidade_alunos,
+                'lotes': self.get_lotes(obj),
+                'periodos_escolares': self.get_periodos_escolares(obj),
+                'escolas': self.get_escolas(obj)}
 
     class Meta:
         model = Vinculo
-        fields = ('instituicao', 'lotes',)
+        fields = ('instituicao', )
 
 
 class UsuarioDetalheSerializer(serializers.ModelSerializer):
