@@ -26,3 +26,4 @@ services:
     environment:
       - DJANGO_SETTINGS_MODULE=config.settings.production
       - DJANGO_DEBUG=False
+      - DJANGO_READ_DOT_ENV_FILE=false
