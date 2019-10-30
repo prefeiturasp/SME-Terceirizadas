@@ -13,6 +13,7 @@ pytestmark = pytest.mark.django_db
 def test_motivo_inclusao_continua(motivo_inclusao_continua):
     assert isinstance(motivo_inclusao_continua.nome, str)
     assert isinstance(motivo_inclusao_continua.uuid, UUID)
+    assert motivo_inclusao_continua.__str__() == 'teste nome'
 
 
 def test_motivo_inclusao_normal(motivo_inclusao_normal):
