@@ -1,50 +1,56 @@
-from rest_framework.decorators import action
-from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
-from rest_framework.response import Response
+import datetime
+
 from rest_framework import status
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
 from .serializers import (
-    DiretoriaRegionalCompletaSerializer, DiretoriaRegionalSimplissimaSerializer, EscolaCompletaSerializer,
+    DiretoriaRegionalCompletaSerializer, DiretoriaRegionalSimplissimaSerializer,
     EscolaSimplesSerializer, EscolaSimplissimaSerializer, PeriodoEscolarSerializer, SubprefeituraSerializer,
     TipoGestaoSerializer
 )
 from ..models import (
     Codae, DiretoriaRegional, Escola, Lote, PeriodoEscolar, Subprefeitura, TipoGestao
 )
+from ...escola.api.permissions import PodeCriarAdministradoresDaEscola
 from ...escola.api.serializers import CODAESerializer, LoteSimplesSerializer
+from ...escola.api.serializers import UsuarioDetalheSerializer
 from ...escola.api.serializers_create import LoteCreateSerializer
-from ...inclusao_alimentacao.api.serializers.serializers import (
-    GrupoInclusaoAlimentacaoNormalSerializer, InclusaoAlimentacaoContinuaSerializer
-)
+from ...perfil.api.serializers import UsuarioUpdateSerializer, VinculoSerializer
 
 
 # https://www.django-rest-framework.org/api-guide/permissions/#custom-permissions
 
 
-class EscolaViewSet(ReadOnlyModelViewSet):
+class VinculoEscolaViewSet(ReadOnlyModelViewSet):
     lookup_field = 'uuid'
     queryset = Escola.objects.all()
-    serializer_class = EscolaCompletaSerializer
+    serializer_class = VinculoSerializer
 
-    @action(detail=True)
-    def meus_grupos_inclusao_normal(self, request, uuid=None):
+    @action(detail=True, permission_classes=[PodeCriarAdministradoresDaEscola], methods=['post'])
+    def criar_equipe_administradora(self, request, uuid=None):
         escola = self.get_object()
-        inclusoes = escola.grupos_inclusoes.all()
-        page = self.paginate_queryset(inclusoes)
-        serializer = GrupoInclusaoAlimentacaoNormalSerializer(
-            page, many=True
-        )
-        return self.get_paginated_response(serializer.data)
+        request.data['escola'] = escola.nome
+        usuario = UsuarioUpdateSerializer(request.data).create(validated_data=request.data)
+        usuario.criar_vinculo_administrador_escola(escola)
+        return Response(UsuarioDetalheSerializer(usuario).data)
 
-    @action(detail=True)
-    def minhas_inclusoes_alimentacao_continua(self, request, uuid=None):
+    @action(detail=True, permission_classes=[PodeCriarAdministradoresDaEscola])
+    def get_equipe_administradora(self, request, uuid=None):
         escola = self.get_object()
-        inclusoes = escola.inclusoes_continuas.all()
-        page = self.paginate_queryset(inclusoes)
-        serializer = InclusaoAlimentacaoContinuaSerializer(
-            page, many=True
-        )
-        return self.get_paginated_response(serializer.data)
+        vinculos = escola.vinculos_podem_ser_finalizados
+        return Response(self.get_serializer(vinculos, many=True).data)
+
+    @action(detail=True, permission_classes=[PodeCriarAdministradoresDaEscola], methods=['patch'])
+    def finalizar_vinculo(self, request, uuid=None):
+        escola = self.get_object()
+        vinculo_uuid = request.data.get('vinculo_uuid')
+        vinculo = escola.vinculos.get(uuid=vinculo_uuid)
+        vinculo.ativo = False
+        vinculo.data_final = datetime.date.today()
+        vinculo.save()
+        return Response(self.get_serializer(vinculo).data)
 
 
 class EscolaSimplesViewSet(ReadOnlyModelViewSet):

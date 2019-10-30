@@ -6,9 +6,10 @@ from model_mommy import mommy
 from rest_framework.test import APIClient
 
 from ..api.serializers.serializers import (
-    AlteracaoCardapioSerializer, InversaoCardapioSerializer, MotivoAlteracaoCardapioSerializer,
-    QuantidadePorPeriodoSuspensaoAlimentacao, SubstituicoesAlimentacaoNoPeriodoEscolarSerializer,
-    SuspensaoAlimentacaoNoPeriodoEscolar, SuspensaoAlimentacaoSerializer
+    AlteracaoCardapioSerializer, GrupoSuspensaoAlimentacao, InversaoCardapioSerializer,
+    MotivoAlteracaoCardapioSerializer, QuantidadePorPeriodoSuspensaoAlimentacao,
+    SubstituicoesAlimentacaoNoPeriodoEscolarSerializer, SuspensaoAlimentacaoNoPeriodoEscolar,
+    SuspensaoAlimentacaoSerializer
 )
 from ..models import (
     AlteracaoCardapio, InversaoCardapio, MotivoAlteracaoCardapio, MotivoSuspensao,
@@ -114,6 +115,11 @@ def suspensao_periodo_escolar(suspensao_alimentacao):
 
 
 @pytest.fixture
+def grupo_suspensao_alimentacao():
+    return mommy.make(GrupoSuspensaoAlimentacao, observacao='lorem ipsum')
+
+
+@pytest.fixture
 def quantidade_por_periodo_suspensao_alimentacao():
     return mommy.make(QuantidadePorPeriodoSuspensaoAlimentacao, numero_alunos=100)
 
@@ -151,7 +157,8 @@ def alteracao_cardapio(escola):
 @pytest.fixture
 def substituicoes_alimentacao_periodo(escola):
     alteracao_cardapio = mommy.make(AlteracaoCardapio, escola=escola, observacao='teste')
-    return mommy.make(SubstituicoesAlimentacaoNoPeriodoEscolar, alteracao_cardapio=alteracao_cardapio)
+    return mommy.make(SubstituicoesAlimentacaoNoPeriodoEscolar, uuid='59beb0ca-982a-49da-98b8-10a296f274ba',
+                      alteracao_cardapio=alteracao_cardapio)
 
 
 @pytest.fixture

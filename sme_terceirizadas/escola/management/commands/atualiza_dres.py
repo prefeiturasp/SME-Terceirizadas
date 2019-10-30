@@ -2,6 +2,7 @@ import environ
 import requests
 from django.core.management.base import BaseCommand
 
+from ....dados_comuns.constants import DJANGO_EOL_API_TOKEN, DJANGO_EOL_API_URL
 from ...models import DiretoriaRegional
 
 env = environ.Env()
@@ -11,9 +12,9 @@ class Command(BaseCommand):
     help = 'Atualiza os dados das Diretorias Regionais baseados na api do EOL'
 
     def handle(self, *args, **options):
-        headers = {'Authorization': f'Token {env("DJANGO_EOL_API_TOKEN")}'}
+        headers = {'Authorization': f'Token {DJANGO_EOL_API_TOKEN}'}
 
-        r = requests.get(f'{env("DJANGO_EOL_API_URL")}/dres/', headers=headers)
+        r = requests.get(f'{DJANGO_EOL_API_URL}/dres/', headers=headers)
         json = r.json()
 
         for diret in json['results']:

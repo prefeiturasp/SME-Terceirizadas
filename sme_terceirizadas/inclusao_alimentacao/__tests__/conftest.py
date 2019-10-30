@@ -20,7 +20,7 @@ def escola():
 
 @pytest.fixture
 def motivo_inclusao_continua():
-    return mommy.make(models.MotivoInclusaoContinua, nome=fake.name())
+    return mommy.make(models.MotivoInclusaoContinua, nome='teste nome')
 
 
 @pytest.fixture

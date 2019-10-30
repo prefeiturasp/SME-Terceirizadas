@@ -1,4 +1,10 @@
+import environ
 from .utils import obter_dias_uteis_apos_hoje
+
+env = environ.Env()
+
+DJANGO_EOL_API_TOKEN = env('DJANGO_EOL_API_TOKEN')
+DJANGO_EOL_API_URL = env('DJANGO_EOL_API_URL')
 
 PRIORITARIO = 2
 LIMITE_INFERIOR = 3
@@ -50,3 +56,10 @@ TERCEIRIZADA_TOMOU_CIENCIA = 'terceirizada-toma-ciencia'
 #
 
 SOLICITACOES_DO_USUARIO = 'minhas-solicitacoes'
+
+
+#
+# PERFIS
+#
+
+DIRETOR = 'DIRETOR'

@@ -1,6 +1,7 @@
 import datetime
 import uuid
 
+from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.postgres.fields import ArrayField
 from django.core.validators import MinLengthValidator
 from django.db import models
@@ -217,3 +218,10 @@ class Logs(object):
     @property
     def logs(self):
         return LogSolicitacoesUsuario.objects.filter(uuid_original=self.uuid)
+
+
+class TemVinculos(models.Model):
+    vinculos = GenericRelation('perfil.Vinculo')
+
+    class Meta:
+        abstract = True

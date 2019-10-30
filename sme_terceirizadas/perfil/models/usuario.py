@@ -8,7 +8,9 @@ from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from simple_email_confirmation.models import SimpleEmailConfirmationUserMixin
 
+from ..models import Perfil, Vinculo
 from ...dados_comuns.behaviors import TemChaveExterna
+from ...dados_comuns.constants import DJANGO_EOL_API_TOKEN, DJANGO_EOL_API_URL
 from ...dados_comuns.utils import url_configs
 
 env = environ.Env()
@@ -118,15 +120,15 @@ class Usuario(SimpleEmailConfirmationUserMixin, CustomAbstractUser, TemChaveExte
     def tipo_usuario(self):
         tipo_usuario = 'indefinido'
         if self.vinculos.filter(ativo=True).exists():
-            tipo_usuario = self.vinculos.get(ativo=True).tipo_instituicao.model
+            tipo_usuario = self.vinculos.get(ativo=True).content_type.model
             if tipo_usuario == 'diretoriaregional':
                 return 'diretoria_regional'
         return tipo_usuario
 
     @property
     def pode_efetuar_cadastro(self):
-        headers = {'Authorization': f'Token {env("DJANGO_EOL_API_TOKEN")}'}
-        r = requests.get(f'{env("DJANGO_EOL_API_URL")}/cargos/{self.registro_funcional}', headers=headers)
+        headers = {'Authorization': f'Token {DJANGO_EOL_API_TOKEN}'}
+        r = requests.get(f'{DJANGO_EOL_API_URL}/cargos/{self.registro_funcional}', headers=headers)
         response = r.json()
         pode_efetuar_cadastro = False
         for result in response['results']:
@@ -144,4 +146,13 @@ class Usuario(SimpleEmailConfirmationUserMixin, CustomAbstractUser, TemChaveExte
             subject='Confirme seu e-mail - SIGPAE',
             message=f'Clique neste link para confirmar seu e-mail no SIGPAE \n'
             f': {url_configs("CONFIRMAR_EMAIL", content)}',
+        )
+
+    def criar_vinculo_administrador_escola(self, escola):
+        perfil = Perfil.objects.get(nome='ADMINISTRADOR_ESCOLA')
+        Vinculo.objects.create(
+            instituicao=escola,
+            perfil=perfil,
+            usuario=self,
+            ativo=False
         )
