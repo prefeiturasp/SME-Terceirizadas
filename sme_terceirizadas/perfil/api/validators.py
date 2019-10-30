@@ -19,3 +19,9 @@ def usuario_pode_efetuar_cadastro(usuario: Usuario):
     if not usuario.pode_efetuar_cadastro:
         raise serializers.ValidationError('Erro ao cadastrar usuário')
     return True
+
+
+def deve_ser_email_sme(email):
+    if '@sme.prefeitura.sp.gov.br' not in email:
+        raise serializers.ValidationError('Deve ser email da SME')
+    return True
