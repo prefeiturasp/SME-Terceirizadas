@@ -5,7 +5,7 @@ from ..cardapio.models import (
     AlteracaoCardapio, GrupoSuspensaoAlimentacao, InversaoCardapio
 )
 from ..dados_comuns.behaviors import (
-    Ativavel, IntervaloDeDia, Nomeavel, TemChaveExterna, TemIdentificadorExternoAmigavel
+    Ativavel, IntervaloDeDia, Nomeavel, TemChaveExterna, TemIdentificadorExternoAmigavel, TemVinculos
 )
 from ..dados_comuns.constants import DAQUI_A_30_DIAS, DAQUI_A_7_DIAS
 from ..escola.models import (
@@ -61,7 +61,7 @@ class Nutricionista(TemChaveExterna, Nomeavel):
         verbose_name_plural = 'Nutricionistas'
 
 
-class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel):
+class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel, TemVinculos):
     nome_fantasia = models.CharField('Nome fantasia', max_length=160, blank=True)
     razao_social = models.CharField('Razao social', max_length=160, blank=True)
     cnpj = models.CharField('CNPJ', validators=[MinLengthValidator(14)], max_length=14)

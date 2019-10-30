@@ -1,6 +1,7 @@
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
+from django.db.utils import IntegrityError
 
 from ...dados_comuns.behaviors import (
     Ativavel, Descritivel, Nomeavel, TemChaveExterna
@@ -26,7 +27,11 @@ class Vinculo(Ativavel, TemChaveExterna):
     Ex.: de jan a dez de 2018 (Intervalo) Ciclano (Usuário) foi Diretor (Perfil) na instituição ESCOLA (instituicao)
     """
 
-    data_inicial = models.DateField('Data inicial')
+    (STATUS_AGUARDANDO_ATIVACAO,
+     STATUS_ATIVO,
+     STATUS_FINALIZADO) = range(3)
+
+    data_inicial = models.DateField('Data inicial', null=True, blank=True)
     data_final = models.DateField('Data final', null=True, blank=True)
     perfil = models.ForeignKey('Perfil', on_delete=models.PROTECT)
     usuario = models.ForeignKey('Usuario', on_delete=models.PROTECT, related_name='vinculos')
@@ -37,13 +42,25 @@ class Vinculo(Ativavel, TemChaveExterna):
              models.Q(app_label='terceirizada', model='terceirizada'))
 
     # https://docs.djangoproject.com/en/2.2/ref/contrib/contenttypes/#generic-relations
-    tipo_instituicao = models.ForeignKey(ContentType,
-                                         on_delete=models.CASCADE,
-                                         null=True,
-                                         blank=True,
-                                         limit_choices_to=limit)
-    instituicao_id = models.PositiveIntegerField(null=True, blank=True)
-    instituicao = GenericForeignKey('tipo_instituicao', 'instituicao_id')
+    content_type = models.ForeignKey(ContentType,
+                                     on_delete=models.CASCADE,
+                                     null=True,
+                                     blank=True,
+                                     limit_choices_to=limit)
+    object_id = models.PositiveIntegerField(null=True, blank=True)
+    instituicao = GenericForeignKey('content_type', 'object_id')
+
+    @property
+    def status(self):
+        if (not self.data_inicial) and (not self.data_final) and self.ativo is False:
+            status = self.STATUS_AGUARDANDO_ATIVACAO
+        elif self.data_inicial and self.ativo and not self.data_final:
+            status = self.STATUS_ATIVO
+        elif self.data_inicial and self.data_final and self.ativo is False:
+            status = self.STATUS_FINALIZADO
+        else:
+            raise IntegrityError('Status invalido')
+        return status
 
     class Meta:
         verbose_name = 'Vínculo'

@@ -19,7 +19,7 @@ def test_usuario(usuario):
 
 
 def test_vinculo(vinculo):
-    assert isinstance(vinculo.data_inicial, datetime.date)
+    assert vinculo.data_inicial is None
     assert (isinstance(vinculo.data_final, datetime.date) or vinculo.data_final is None)
     assert isinstance(vinculo.usuario, Usuario)
     assert isinstance(vinculo.perfil, Perfil)

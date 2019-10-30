@@ -8,7 +8,7 @@ from ..cardapio.models import (
 )
 from ..dados_comuns.behaviors import (
     Ativavel, Iniciais, Nomeavel, TemChaveExterna,
-    TemCodigoEOL)
+    TemCodigoEOL, TemVinculos)
 from ..dados_comuns.constants import DAQUI_A_30_DIAS, DAQUI_A_7_DIAS
 from ..inclusao_alimentacao.models import (
     GrupoInclusaoAlimentacaoNormal, InclusaoAlimentacaoContinua
@@ -16,7 +16,7 @@ from ..inclusao_alimentacao.models import (
 from ..kit_lanche.models import SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheUnificada
 
 
-class DiretoriaRegional(Nomeavel, Iniciais, TemChaveExterna, TemCodigoEOL):
+class DiretoriaRegional(Nomeavel, Iniciais, TemChaveExterna, TemCodigoEOL, TemVinculos):
 
     @property
     def escolas(self):
@@ -264,7 +264,7 @@ class PeriodoEscolar(Nomeavel, TemChaveExterna):
         return self.nome
 
 
-class Escola(Ativavel, TemChaveExterna, TemCodigoEOL):
+class Escola(Ativavel, TemChaveExterna, TemCodigoEOL, TemVinculos):
     nome = models.CharField('Nome', max_length=160, blank=True)
     codigo_eol = models.CharField('Código EOL', max_length=6, unique=True, validators=[MinLengthValidator(6)])
     # não ta sendo usado
@@ -286,6 +286,13 @@ class Escola(Ativavel, TemChaveExterna, TemCodigoEOL):
 
     idades = models.ManyToManyField(FaixaIdadeEscolar, blank=True)
     periodos_escolares = models.ManyToManyField(PeriodoEscolar, blank=True)
+
+    @property
+    def vinculos_podem_ser_finalizados(self):
+        return self.vinculos.filter(
+            Q(data_inicial=None, data_final=None, ativo=False) |  # noqa W504 esperando ativacao
+            Q(data_inicial__isnull=False, data_final=None, ativo=True)  # noqa W504 ativo
+        )
 
     @property
     def grupos_inclusoes(self):
@@ -364,7 +371,7 @@ class Subprefeitura(Nomeavel, TemChaveExterna):
         ordering = ('nome',)
 
 
-class Codae(Nomeavel, TemChaveExterna):
+class Codae(Nomeavel, TemChaveExterna, TemVinculos):
 
     @property
     def quantidade_alunos(self):

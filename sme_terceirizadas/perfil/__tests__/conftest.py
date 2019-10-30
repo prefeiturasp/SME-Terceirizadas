@@ -58,7 +58,7 @@ def vinculo_diretoria_regional(usuario):
     return mommy.make('Vinculo',
                       ativo=True,
                       usuario=usuario,
-                      tipo_instituicao=models.ContentType.objects.get(model='diretoriaregional'))
+                      content_type=models.ContentType.objects.get(model='diretoriaregional'))
 
 
 @pytest.fixture

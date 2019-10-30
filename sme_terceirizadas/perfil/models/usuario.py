@@ -1,4 +1,3 @@
-import datetime
 import environ
 import requests
 
@@ -122,7 +121,7 @@ class Usuario(SimpleEmailConfirmationUserMixin, CustomAbstractUser, TemChaveExte
     def tipo_usuario(self):
         tipo_usuario = 'indefinido'
         if self.vinculos.filter(ativo=True).exists():
-            tipo_usuario = self.vinculos.get(ativo=True).tipo_instituicao.model
+            tipo_usuario = self.vinculos.get(ativo=True).content_type.model
             if tipo_usuario == 'diretoriaregional':
                 return 'diretoria_regional'
         return tipo_usuario
@@ -157,5 +156,5 @@ class Usuario(SimpleEmailConfirmationUserMixin, CustomAbstractUser, TemChaveExte
             instituicao=escola,
             perfil=perfil,
             usuario=self,
-            data_inicial=datetime.datetime.utcnow().date()
+            ativo=False
         )

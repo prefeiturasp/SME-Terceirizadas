@@ -1,10 +1,10 @@
+import datetime
+
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
-from ...escola.api.serializers import UsuarioDetalheSerializer
-from ...perfil.api.serializers import UsuarioUpdateSerializer, VinculoSerializer
 from .serializers import (
     DiretoriaRegionalCompletaSerializer, DiretoriaRegionalSimplissimaSerializer,
     EscolaSimplesSerializer, EscolaSimplissimaSerializer, PeriodoEscolarSerializer, SubprefeituraSerializer,
@@ -13,9 +13,12 @@ from .serializers import (
 from ..models import (
     Codae, DiretoriaRegional, Escola, Lote, PeriodoEscolar, Subprefeitura, TipoGestao
 )
+from ...dados_comuns.constants import DIRETOR
 from ...escola.api.permissions import PodeCriarAdministradoresDaEscola
 from ...escola.api.serializers import CODAESerializer, LoteSimplesSerializer
+from ...escola.api.serializers import UsuarioDetalheSerializer
 from ...escola.api.serializers_create import LoteCreateSerializer
+from ...perfil.api.serializers import UsuarioUpdateSerializer, VinculoSerializer
 
 
 # https://www.django-rest-framework.org/api-guide/permissions/#custom-permissions
@@ -32,6 +35,22 @@ class VinculoEscolaViewSet(ReadOnlyModelViewSet):
         usuario = UsuarioUpdateSerializer(request.data).create(validated_data=request.data)
         usuario.criar_vinculo_administrador_escola(self.get_object())
         return Response(UsuarioDetalheSerializer(usuario).data)
+
+    @action(detail=True, permission_classes=[PodeCriarAdministradoresDaEscola])
+    def get_equipe_administradora(self, request, uuid=None):
+        escola = self.get_object()
+        vinculos = escola.vinculos_podem_ser_finalizados.exclude(perfil__nome=DIRETOR)
+        return Response(self.get_serializer(vinculos, many=True).data)
+
+    @action(detail=True, permission_classes=[PodeCriarAdministradoresDaEscola], methods=['patch'])
+    def finalizar_vinculo(self, request, uuid=None):
+        escola = self.get_object()
+        vinculo_uuid = request.data.get('vinculo_uuid')
+        vinculo = escola.vinculos.get(uuid=vinculo_uuid)
+        vinculo.ativo = False
+        vinculo.data_final = datetime.date.today()
+        vinculo.save()
+        return Response(self.get_serializer(vinculo).data)
 
 
 class EscolaSimplesViewSet(ReadOnlyModelViewSet):
