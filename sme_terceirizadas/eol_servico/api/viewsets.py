@@ -17,4 +17,4 @@ class DadosUsuarioEOLViewSet(ViewSet):
                 result.pop('cd_cpf_pessoa')
             return Response(response['results'])
         else:
-            return Response({"detail": "Request de API externa falhou"})
+            return Response({'detail': 'Request de API externa falhou'})
