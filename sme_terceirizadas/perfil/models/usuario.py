@@ -140,5 +140,8 @@ class Usuario(SimpleEmailConfirmationUserMixin, CustomAbstractUser, TemChaveExte
         self.add_email_if_not_exists(self.email)
         content = {'uuid': self.uuid, 'confirmation_key': self.confirmation_key}
         url_configs('CONFIRMAR_EMAIL', content)
-        message = f'Clique neste link para confirmar seu e-mail no SIGPAE: {url_configs("CONFIRMAR_EMAIL", content)}'
-        send_mail('Confirme seu e-mail - SIGPAE', message, 'teste@teste.com', ['brunshzl@gmail.com'])
+        self.email_user(
+            subject='Confirme seu e-mail - SIGPAE',
+            message=f'Clique neste link para confirmar seu e-mail no SIGPAE \n'
+            f': {url_configs("CONFIRMAR_EMAIL", content)}',
+        )

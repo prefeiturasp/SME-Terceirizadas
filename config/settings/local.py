@@ -8,7 +8,7 @@ DEBUG = env('DJANGO_DEBUG', default=True)
 # https://docs.djangoproject.com/en/dev/ref/settings/#secret-key
 SECRET_KEY = env('DJANGO_SECRET_KEY', default='6fEIQS2aeFhyGongtjqGdLNfjiIhmAdTE8q5UycOPMWbUEDbmiefODftEQBx1mPK')
 # https://docs.djangoproject.com/en/dev/ref/settings/#allowed-hosts
-ALLOWED_HOSTS = ['10.49.23.84', 'localhost']
+ALLOWED_HOSTS = env.list('DJANGO_ALLOWED_HOSTS', default=['terceirizadas.sme.prefeitura.sp.gov.br'])
 
 READ_DOT_ENV_FILE = env.bool('DJANGO_READ_DOT_ENV_FILE', default=True)
 if READ_DOT_ENV_FILE:
