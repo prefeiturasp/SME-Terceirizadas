@@ -1,3 +1,4 @@
+from rest_framework import status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.viewsets import ViewSet
@@ -11,7 +12,7 @@ class DadosUsuarioEOLViewSet(ViewSet):
 
     def retrieve(self, request, registro_funcional=None):
         response = get_informacoes_usuario(registro_funcional)
-        if response.status_code == 200:
+        if response.status_code == status.HTTP_200_OK:
             response = response.json()
             for result in response['results']:
                 result.pop('cd_cpf_pessoa')

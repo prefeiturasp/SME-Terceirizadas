@@ -9,7 +9,7 @@ from ..cardapio.models import (
 from ..dados_comuns.behaviors import (
     Ativavel, Iniciais, Nomeavel, TemChaveExterna,
     TemCodigoEOL, TemVinculos)
-from ..dados_comuns.constants import DAQUI_A_30_DIAS, DAQUI_A_7_DIAS
+from ..dados_comuns.constants import DAQUI_A_30_DIAS, DAQUI_A_7_DIAS, DIRETOR
 from ..inclusao_alimentacao.models import (
     GrupoInclusaoAlimentacaoNormal, InclusaoAlimentacaoContinua
 )
@@ -292,7 +292,7 @@ class Escola(Ativavel, TemChaveExterna, TemCodigoEOL, TemVinculos):
         return self.vinculos.filter(
             Q(data_inicial=None, data_final=None, ativo=False) |  # noqa W504 esperando ativacao
             Q(data_inicial__isnull=False, data_final=None, ativo=True)  # noqa W504 ativo
-        )
+        ).exclude(perfil__nome=DIRETOR)
 
     @property
     def grupos_inclusoes(self):

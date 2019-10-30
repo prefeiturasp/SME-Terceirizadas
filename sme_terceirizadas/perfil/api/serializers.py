@@ -52,7 +52,7 @@ class UsuarioUpdateSerializer(serializers.ModelSerializer):
         informacoes_usuario = informacoes_usuario.json()['results']
         nome_escola = validated_data.pop('escola')
         usuario_e_vinculado_a_aquela_instituicao(
-            instituicao_objeto=nome_escola,
+            descricao_instituicao=nome_escola,
             instituicoes_eol=informacoes_usuario
         )
         cpf = informacoes_usuario[0]['cd_cpf_pessoa']

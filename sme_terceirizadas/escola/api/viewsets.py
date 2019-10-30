@@ -13,7 +13,6 @@ from .serializers import (
 from ..models import (
     Codae, DiretoriaRegional, Escola, Lote, PeriodoEscolar, Subprefeitura, TipoGestao
 )
-from ...dados_comuns.constants import DIRETOR
 from ...escola.api.permissions import PodeCriarAdministradoresDaEscola
 from ...escola.api.serializers import CODAESerializer, LoteSimplesSerializer
 from ...escola.api.serializers import UsuarioDetalheSerializer
@@ -31,15 +30,16 @@ class VinculoEscolaViewSet(ReadOnlyModelViewSet):
 
     @action(detail=True, permission_classes=[PodeCriarAdministradoresDaEscola], methods=['post'])
     def criar_equipe_administradora(self, request, uuid=None):
-        request.data['escola'] = self.get_object().nome
+        escola = self.get_object()
+        request.data['escola'] = escola.nome
         usuario = UsuarioUpdateSerializer(request.data).create(validated_data=request.data)
-        usuario.criar_vinculo_administrador_escola(self.get_object())
+        usuario.criar_vinculo_administrador_escola(escola)
         return Response(UsuarioDetalheSerializer(usuario).data)
 
     @action(detail=True, permission_classes=[PodeCriarAdministradoresDaEscola])
     def get_equipe_administradora(self, request, uuid=None):
         escola = self.get_object()
-        vinculos = escola.vinculos_podem_ser_finalizados.exclude(perfil__nome=DIRETOR)
+        vinculos = escola.vinculos_podem_ser_finalizados
         return Response(self.get_serializer(vinculos, many=True).data)
 
     @action(detail=True, permission_classes=[PodeCriarAdministradoresDaEscola], methods=['patch'])
