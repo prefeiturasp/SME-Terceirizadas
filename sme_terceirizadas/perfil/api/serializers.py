@@ -1,7 +1,7 @@
 from notifications.models import Notification
 from rest_framework import serializers
 
-from sme_terceirizadas.escola.api.validators import deve_ser_mesma_instituicao
+from ...escola.api.validators import deve_ser_mesma_instituicao
 from ...eol_servico.utils import get_informacoes_usuario
 from .validators import (
     deve_ser_email_sme, registro_funcional_e_cpf_sao_da_mesma_pessoa, senha_deve_ser_igual_confirmar_senha,
