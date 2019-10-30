@@ -1,6 +1,5 @@
 import environ
 import requests
-
 from django.contrib.auth.base_user import AbstractBaseUser
 from django.contrib.auth.models import BaseUserManager, PermissionsMixin
 from django.core.mail import send_mail
@@ -9,10 +8,10 @@ from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from simple_email_confirmation.models import SimpleEmailConfirmationUserMixin
 
-from ...dados_comuns.constants import DJANGO_EOL_API_TOKEN, DJANGO_EOL_API_URL
 from ..models import Perfil, Vinculo
-from ...dados_comuns.utils import url_configs
 from ...dados_comuns.behaviors import TemChaveExterna
+from ...dados_comuns.constants import DJANGO_EOL_API_TOKEN, DJANGO_EOL_API_URL
+from ...dados_comuns.utils import url_configs
 
 env = environ.Env()
 
@@ -146,8 +145,7 @@ class Usuario(SimpleEmailConfirmationUserMixin, CustomAbstractUser, TemChaveExte
         self.email_user(
             subject='Confirme seu e-mail - SIGPAE',
             message=f'Clique neste link para confirmar seu e-mail no SIGPAE \n'
-                    f': {url_configs("CONFIRMAR_EMAIL", content)}',
-            from_email='calvin.masters@gmail.com'
+            f': {url_configs("CONFIRMAR_EMAIL", content)}',
         )
 
     def criar_vinculo_administrador_escola(self, escola):

@@ -1,7 +1,9 @@
 import datetime
 
-from sme_terceirizadas.perfil.models import Perfil, Usuario, Vinculo
+from des.models import DynamicEmailConfiguration
+
 from sme_terceirizadas.escola.models import Escola, DiretoriaRegional, Codae
+from sme_terceirizadas.perfil.models import Perfil, Usuario, Vinculo
 
 data_atual = datetime.date.today()
 
@@ -52,12 +54,10 @@ perfil_usuario_terceirizada, created = Perfil.objects.get_or_create(
     super_usuario=True
 )
 
-
 escola = Escola.objects.get(nome='EMEF JOSE ERMIRIO DE MORAIS, SEN.')
 diretoria_regional = DiretoriaRegional.objects.get(nome='DIRETORIA REGIONAL DE EDUCACAO SAO MIGUEL')
 codae, created = Codae.objects.get_or_create(nome='CODAE_ADMIN')
 terceirizada = escola.lote.terceirizada
-
 
 Vinculo.objects.create(
     instituicao=escola,
@@ -90,3 +90,14 @@ Vinculo.objects.create(
     data_inicial=data_atual
 )
 print(f'perfil {perfil_usuario_terceirizada.nome} vinculado a {terceirizada.nome_fantasia} com sucesso')
+
+print('Criando configuração default de email')
+DynamicEmailConfiguration.objects.create(
+    host='smtp.sendgrid.net',
+    port=587,
+    from_email='PrefeituraTeste@sme.gov.br',
+    username='calvinfr',
+    password='testingfreeemail123',
+    use_tls=True,
+    timeout=60
+)
