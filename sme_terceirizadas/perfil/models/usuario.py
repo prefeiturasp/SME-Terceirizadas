@@ -93,7 +93,6 @@ class CustomAbstractUser(AbstractBaseUser, PermissionsMixin):
 
     def email_user(self, subject, message, from_email=None, **kwargs):
         """Send an email to this user."""
-        print(subject, message, from_email, self.email)
         send_mail(subject, message, from_email, [self.email], **kwargs)
 
 
@@ -146,7 +145,6 @@ class Usuario(SimpleEmailConfirmationUserMixin, CustomAbstractUser, TemChaveExte
     def enviar_email_confirmacao(self):
         self.add_email_if_not_exists(self.email)
         content = {'uuid': self.uuid, 'confirmation_key': self.confirmation_key}
-        print(url_configs('CONFIRMAR_EMAIL', content))
         self.email_user(
             subject='Confirme seu e-mail - SIGPAE',
             message=f'Clique neste link para confirmar seu e-mail no SIGPAE \n'
