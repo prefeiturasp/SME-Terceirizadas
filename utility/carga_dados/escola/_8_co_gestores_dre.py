@@ -1,10 +1,11 @@
 import environ
 import numpy as np
 import pandas as pd
-from .helper import cria_vinculo_de_perfil_usuario
 
-from sme_terceirizadas.perfil.models import Perfil, Usuario
 from sme_terceirizadas.escola.models import DiretoriaRegional
+from sme_terceirizadas.perfil.models import Perfil, Usuario
+from utility.carga_dados.escola.helper import coloca_zero_a_esquerda
+from .helper import cria_vinculo_de_perfil_usuario
 
 ROOT_DIR = environ.Path(__file__) - 1
 
@@ -53,7 +54,7 @@ def cria_usuario_gestor_ou_suplente(registro_funcional, nome, email, cpf):
             registro_funcional
         )
         usuario.nome = nome
-        usuario.cpf = cpf
+        usuario.cpf = coloca_zero_a_esquerda(cpf, 11)
         usuario.is_active = False
         usuario.save()
         return usuario

@@ -3,6 +3,7 @@ import requests
 from django.contrib.auth.base_user import AbstractBaseUser
 from django.contrib.auth.models import BaseUserManager, PermissionsMixin
 from django.core.mail import send_mail
+from django.core.validators import MinLengthValidator
 from django.db import models
 from django.db.models import Q
 from django.utils import timezone
@@ -101,8 +102,8 @@ class Usuario(SimpleEmailConfirmationUserMixin, CustomAbstractUser, TemChaveExte
 
     nome = models.CharField(_('name'), max_length=150)
     email = models.EmailField(_('email address'), unique=True)
-    cpf = models.CharField(_('CPF'), max_length=11, default='')
-    registro_funcional = models.CharField(_('RF'), max_length=10, default='')
+    cpf = models.CharField(_('CPF'), max_length=11, unique=True, validators=[MinLengthValidator(11)])
+    registro_funcional = models.CharField(_('RF'), max_length=7, unique=True, validators=[MinLengthValidator(7)])
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []  # type: ignore
@@ -115,8 +116,9 @@ class Usuario(SimpleEmailConfirmationUserMixin, CustomAbstractUser, TemChaveExte
     def vinculo_atual(self):
         if self.vinculos.filter(Q(data_inicial=None, data_final=None, ativo=False) |  # noqa W504 esperando ativacao
                                 Q(data_inicial__isnull=False, data_final=None, ativo=True)).exists():
-            return self.vinculos.get(Q(data_inicial=None, data_final=None, ativo=False) |  # noqa W504 esperando ativacao
-                                Q(data_inicial__isnull=False, data_final=None, ativo=True))
+            return self.vinculos.get(
+                Q(data_inicial=None, data_final=None, ativo=False) |  # noqa W504 esperando ativacao
+                Q(data_inicial__isnull=False, data_final=None, ativo=True))
         return None
 
     @property

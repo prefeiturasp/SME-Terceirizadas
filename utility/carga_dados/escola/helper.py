@@ -17,13 +17,14 @@ def somente_digitos(palavra):
 
 
 def coloca_zero_a_esquerda(palavra, tam=6):
-    tam_palavra = len(palavra)
+    palavra_str = str(palavra)
+    tam_palavra = len(palavra_str)
     qtd_zeros = tam - tam_palavra
     zeros = '0' * qtd_zeros
     final = ''
     if tam_palavra < tam:
-        final = zeros + palavra
-    return final or palavra
+        final = zeros + palavra_str
+    return final or palavra_str
 
 
 def busca_sigla_lote(sigla):

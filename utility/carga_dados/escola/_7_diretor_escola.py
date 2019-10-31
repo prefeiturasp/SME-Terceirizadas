@@ -36,7 +36,7 @@ def cria_usuario_diretor(cpf, registro_funcional, nome):
     diretor = Usuario.objects.create_user(email, registro_funcional)
     diretor.registro_funcional = registro_funcional
     diretor.nome = nome
-    diretor.cpf = cpf
+    diretor.cpf = coloca_zero_a_esquerda(cpf, 11)
     diretor.is_active = False
     diretor.save()
     return diretor
@@ -46,7 +46,6 @@ def percorre_data_frame():
     diretores_criados = 0
     diretores_contabilizados = 0
     eol_zerado = 0
-
 
     perfil_usuario, created = Perfil.objects.get_or_create(
         nome='DIRETOR',
@@ -63,6 +62,10 @@ def percorre_data_frame():
         escola = busca_escola(codigo_eol)
 
         if escola is not None:
+            cpf = row['cd_cpf_pessoa']
+            if not cpf:
+                print('cpf vazio..........', row)
+                return
             diretor = cria_usuario_diretor(
                 row['cd_cpf_pessoa'],
                 row['rf'],
