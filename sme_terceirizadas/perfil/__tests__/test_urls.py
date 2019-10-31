@@ -30,8 +30,8 @@ def test_get_meus_dados_admin_escola(users_admin_escola):
     assert json['tipo_usuario'] == 'escola'
     assert json['vinculo_atual'] == {
         'instituicao': {'nome': 'Escola Teste', 'uuid': 'b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd',
-                        'quantidade_alunos': 420, 'lotes': [], 'periodos_escolares': [], 'escolas': []}}
-    assert user.vinculo_atual.perfil.nome == 'Admin'
+                        'quantidade_alunos': 420, 'lotes': [], 'periodos_escolares': [], 'escolas': []},
+        'perfil': {'nome': 'Admin', 'uuid': 'd6fd15cc-52c6-4db4-b604-018d22eeb3dd'}}
 
 
 def test_get_meus_dados_diretor_escola(users_diretor_escola):
@@ -48,9 +48,8 @@ def test_get_meus_dados_diretor_escola(users_diretor_escola):
     assert json['tipo_usuario'] == 'escola'
     assert json['vinculo_atual'] == {
         'instituicao': {'nome': 'Escola Teste', 'uuid': 'b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd',
-                        'quantidade_alunos': 420, 'lotes': [], 'periodos_escolares': [], 'escolas': []}}
-
-    assert user.vinculo_atual.perfil.nome == 'Diretor'
+                        'quantidade_alunos': 420, 'lotes': [], 'periodos_escolares': [], 'escolas': []},
+        'perfil': {'nome': 'Diretor', 'uuid': '41c20c8b-7e57-41ed-9433-ccb92e8afaf1'}}
 
 
 def test_cadastro_erro(client):
@@ -98,7 +97,8 @@ def test_cadastro_diretor(client, users_diretor_escola, monkeypatch):
     assert json['tipo_usuario'] == 'escola'
     assert json['vinculo_atual'] == {
         'instituicao': {'nome': 'Escola Teste', 'uuid': 'b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd',
-                        'quantidade_alunos': 420, 'lotes': [], 'periodos_escolares': [], 'escolas': []}}
+                        'quantidade_alunos': 420, 'lotes': [], 'periodos_escolares': [], 'escolas': []},
+        'perfil': {'nome': 'Diretor', 'uuid': '41c20c8b-7e57-41ed-9433-ccb92e8afaf1'}}
 
 
 def test_post_usuarios(client_autenticado):

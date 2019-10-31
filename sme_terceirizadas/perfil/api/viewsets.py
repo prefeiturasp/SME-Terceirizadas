@@ -1,3 +1,4 @@
+import datetime
 from django.core.exceptions import ObjectDoesNotExist
 from notifications.models import Notification
 from rest_framework import permissions, status, viewsets
@@ -97,6 +98,6 @@ class UsuarioConfirmaEmailViewSet(viewsets.GenericViewSet):
             return Response({'detail': 'Erro ao confirmar email'},
                             status=status.HTTP_400_BAD_REQUEST)
         usuario.is_active = usuario.is_confirmed
-        usuario.vinculos.update(ativo=True)
+        usuario.vinculos.update(ativo=True, data_inicial=datetime.date.today())
         usuario.save()
         return Response(UsuarioDetalheSerializer(usuario).data)

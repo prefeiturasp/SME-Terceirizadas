@@ -1,3 +1,5 @@
+import datetime
+
 import pytest
 from faker import Faker
 from model_mommy import mommy
@@ -80,10 +82,12 @@ def users_admin_escola(client, django_user_model, request):
     escola = mommy.make('Escola', nome='Escola Teste', quantidade_alunos=420,
                         uuid='b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd')
     perfil_professor = mommy.make('Perfil', nome='Professor', ativo=False)
-    perfil_admin = mommy.make('Perfil', nome='Admin', ativo=True)
-
-    mommy.make('Vinculo', usuario=user, instituicao=escola, perfil=perfil_professor, ativo=False)
-    mommy.make('Vinculo', usuario=user, instituicao=escola, perfil=perfil_admin, ativo=True)
+    perfil_admin = mommy.make('Perfil', nome='Admin', ativo=True, uuid='d6fd15cc-52c6-4db4-b604-018d22eeb3dd')
+    hoje = datetime.date.today()
+    mommy.make('Vinculo', usuario=user, instituicao=escola, perfil=perfil_professor,
+               data_inicial=hoje, data_final=hoje + datetime.timedelta(days=30), ativo=False)  # finalizado
+    mommy.make('Vinculo', usuario=user, instituicao=escola, perfil=perfil_admin,
+               data_inicial=hoje, ativo=True)  # ativo
 
     return client, email, password, rf, user
 
@@ -103,10 +107,14 @@ def users_diretor_escola(client, django_user_model, request):
     escola = mommy.make('Escola', nome='Escola Teste', quantidade_alunos=420,
                         uuid='b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd')
 
-    perfil_professor = mommy.make('Perfil', nome='Professor', ativo=False)
-    perfil_diretor = mommy.make('Perfil', nome='Diretor', ativo=True)
+    perfil_professor = mommy.make('Perfil', nome='Professor', ativo=False, uuid='48330a6f-c444-4462-971e-476452b328b2')
+    perfil_diretor = mommy.make('Perfil', nome='Diretor', ativo=True, uuid='41c20c8b-7e57-41ed-9433-ccb92e8afaf1')
 
-    mommy.make('Vinculo', usuario=user, instituicao=escola, perfil=perfil_professor, ativo=False)
-    mommy.make('Vinculo', usuario=user, instituicao=escola, perfil=perfil_diretor, ativo=True)
+    hoje = datetime.date.today()
+    mommy.make('Vinculo', usuario=user, instituicao=escola, perfil=perfil_professor,
+               ativo=False, data_inicial=hoje, data_final=hoje + datetime.timedelta(days=30)
+               )  # finalizado
+    mommy.make('Vinculo', usuario=user, instituicao=escola, perfil=perfil_diretor,
+               data_inicial=hoje, ativo=True)
 
     return client, email, password, rf, cpf, user

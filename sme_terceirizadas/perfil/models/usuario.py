@@ -4,6 +4,7 @@ from django.contrib.auth.base_user import AbstractBaseUser
 from django.contrib.auth.models import BaseUserManager, PermissionsMixin
 from django.core.mail import send_mail
 from django.db import models
+from django.db.models import Q
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from simple_email_confirmation.models import SimpleEmailConfirmationUserMixin
@@ -112,8 +113,10 @@ class Usuario(SimpleEmailConfirmationUserMixin, CustomAbstractUser, TemChaveExte
 
     @property
     def vinculo_atual(self):
-        if self.vinculos.filter(ativo=True).exists():
-            return self.vinculos.get(ativo=True)
+        if self.vinculos.filter(Q(data_inicial=None, data_final=None, ativo=False) |  # noqa W504 esperando ativacao
+                                Q(data_inicial__isnull=False, data_final=None, ativo=True)).exists():
+            return self.vinculos.get(Q(data_inicial=None, data_final=None, ativo=False) |  # noqa W504 esperando ativacao
+                                Q(data_inicial__isnull=False, data_final=None, ativo=True))
         return None
 
     @property
@@ -130,22 +133,23 @@ class Usuario(SimpleEmailConfirmationUserMixin, CustomAbstractUser, TemChaveExte
         headers = {'Authorization': f'Token {DJANGO_EOL_API_TOKEN}'}
         r = requests.get(f'{DJANGO_EOL_API_URL}/cargos/{self.registro_funcional}', headers=headers)
         response = r.json()
-        pode_efetuar_cadastro = False
+        diretor_de_escola = False
         for result in response['results']:
             if result['cargo'] == 'DIRETOR DE ESCOLA':
-                pode_efetuar_cadastro = True
+                diretor_de_escola = True
                 break
-        return pode_efetuar_cadastro
+        vinculo_aguardando_ativacao = self.vinculo_atual.status == Vinculo.STATUS_AGUARDANDO_ATIVACAO
+        return diretor_de_escola or vinculo_aguardando_ativacao
 
     # TODO: verificar o from_email
     def enviar_email_confirmacao(self):
         self.add_email_if_not_exists(self.email)
         content = {'uuid': self.uuid, 'confirmation_key': self.confirmation_key}
-        url_configs('CONFIRMAR_EMAIL', content)
         self.email_user(
             subject='Confirme seu e-mail - SIGPAE',
             message=f'Clique neste link para confirmar seu e-mail no SIGPAE \n'
-            f': {url_configs("CONFIRMAR_EMAIL", content)}',
+                    f': {url_configs("CONFIRMAR_EMAIL", content)}',
+            from_email='PrefeituraTeste@teste.com'
         )
 
     def criar_vinculo_administrador_escola(self, escola):

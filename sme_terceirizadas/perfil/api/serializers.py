@@ -1,13 +1,13 @@
 from notifications.models import Notification
 from rest_framework import serializers
 
-from ...escola.api.validators import usuario_e_vinculado_a_aquela_instituicao
-from ...eol_servico.utils import get_informacoes_usuario
 from .validators import (
-    deve_ser_email_sme, registro_funcional_e_cpf_sao_da_mesma_pessoa, senha_deve_ser_igual_confirmar_senha,
+    registro_funcional_e_cpf_sao_da_mesma_pessoa, senha_deve_ser_igual_confirmar_senha,
     usuario_pode_efetuar_cadastro
 )
 from ..models import Perfil, Usuario, Vinculo
+from ...eol_servico.utils import get_informacoes_usuario
+from ...escola.api.validators import usuario_e_vinculado_a_aquela_instituicao
 
 
 class PerfilSimplesSerializer(serializers.ModelSerializer):
@@ -72,7 +72,6 @@ class UsuarioUpdateSerializer(serializers.ModelSerializer):
         senha_deve_ser_igual_confirmar_senha(attrs['password'], attrs['confirmar_password'])
         registro_funcional_e_cpf_sao_da_mesma_pessoa(instance, attrs['registro_funcional'], attrs['cpf'])
         usuario_pode_efetuar_cadastro(instance)
-        deve_ser_email_sme(attrs['email'])
         return attrs
 
     def partial_update(self, instance, validated_data):
