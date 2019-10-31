@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from sme_terceirizadas.perfil.api.serializers import PerfilSimplesSerializer
 from ..models import (
     Codae, DiretoriaRegional, Escola, FaixaIdadeEscolar,
     Lote, PeriodoEscolar, Subprefeitura, TipoGestao,
@@ -169,6 +170,7 @@ class TerceirizadaSerializer(serializers.ModelSerializer):
 
 class VinculoInstituicaoSerializer(serializers.ModelSerializer):
     instituicao = serializers.SerializerMethodField()
+    perfil = PerfilSimplesSerializer()
 
     def get_periodos_escolares(self, obj):
         if isinstance(obj.instituicao, Escola):
@@ -198,7 +200,7 @@ class VinculoInstituicaoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Vinculo
-        fields = ('instituicao', )
+        fields = ('instituicao', 'perfil')
 
 
 class UsuarioDetalheSerializer(serializers.ModelSerializer):

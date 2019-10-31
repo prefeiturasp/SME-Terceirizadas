@@ -72,7 +72,7 @@ class UsuarioUpdateSerializer(serializers.ModelSerializer):
         senha_deve_ser_igual_confirmar_senha(attrs['password'], attrs['confirmar_password'])
         registro_funcional_e_cpf_sao_da_mesma_pessoa(instance, attrs['registro_funcional'], attrs['cpf'])
         usuario_pode_efetuar_cadastro(instance)
-        deve_ser_email_sme(attrs['email'])
+        # deve_ser_email_sme(attrs['email'])
         return attrs
 
     def partial_update(self, instance, validated_data):
