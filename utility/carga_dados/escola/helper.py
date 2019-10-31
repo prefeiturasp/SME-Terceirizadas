@@ -1,7 +1,8 @@
 import json
 from unicodedata import normalize
+
 from django.conf import settings
-import datetime
+
 from sme_terceirizadas.perfil.models import Vinculo
 
 
@@ -50,7 +51,8 @@ def busca_sigla_lote(sigla):
 
 def cria_vinculo_de_perfil_usuario(perfil, usuario, instituicao):
     vinculo = Vinculo.objects.create(
-        data_inicial=datetime.date.today(),
+        data_inicial=None,
+        data_final=None,
         instituicao=instituicao,
         perfil=perfil,
         usuario=usuario,
