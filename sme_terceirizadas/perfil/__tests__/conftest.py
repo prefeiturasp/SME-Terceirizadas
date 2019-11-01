@@ -147,6 +147,7 @@ def mocked_request_api_eol():
                                       'cd_cpf_pessoa': '95887745002',
                                       'coord': 'DIRETORIA REGIONAL DE EDUCACAO JACANA/TREMEMBE'}]}, 200)
 
+
 @pytest.fixture(params=[
     # nome, uuid
     (f.name(), f.uuid4()),
