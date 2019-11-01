@@ -51,9 +51,12 @@ class UsuarioUpdateSerializer(serializers.ModelSerializer):
         return get_informacoes_usuario(validated_data['registro_funcional'])
 
     def create(self, validated_data):
-        informacoes_usuario = self.get_informacoes_usuario(validated_data['registro_funcional'])
+        informacoes_usuario = self.get_informacoes_usuario(validated_data)
         informacoes_usuario = informacoes_usuario.json()['results']
-        nome_escola = validated_data.pop('escola')[0]
+        nome_escola = validated_data.pop('escola')
+        # TODO: ver o porque no teste vem como lista
+        if type(nome_escola) == list:
+            nome_escola = nome_escola[0]
         usuario_e_vinculado_a_aquela_instituicao(
             descricao_instituicao=nome_escola,
             instituicoes_eol=informacoes_usuario
