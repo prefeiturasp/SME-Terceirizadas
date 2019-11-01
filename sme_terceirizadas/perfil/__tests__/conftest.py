@@ -16,6 +16,11 @@ def perfil():
 
 
 @pytest.fixture
+def escola():
+    return mommy.make('Escola', nome='EscolaTeste', quantidade_alunos=421)
+
+
+@pytest.fixture
 def usuario():
     return mommy.make(
         models.Usuario,
@@ -94,6 +99,7 @@ def users_admin_escola(client, django_user_model, request):
 
 
 @pytest.fixture(params=[
+    # email, senha, rf, cpf
     ('diretor_1@sme.prefeitura.sp.gov.br', 'adminadmin', '0000001', '44426575052'),
     ('diretor_2@sme.prefeitura.sp.gov.br', 'aasdsadsadff', '0000002', '56789925031'),
     ('diretor_3@sme.prefeitura.sp.gov.br', '98as7d@@#', '0000147', '86880963099'),
@@ -122,7 +128,6 @@ def users_diretor_escola(client, django_user_model, request):
     return client, email, password, rf, cpf, user
 
 
-# This method will be used by the mock to replace requests.get
 def mocked_request_api_eol():
     class MockResponse:
         def __init__(self, json_data, status_code):
@@ -141,3 +146,25 @@ def mocked_request_api_eol():
                                       'divisao': 'NOE AZEVEDO, PROF',
                                       'cd_cpf_pessoa': '95887745002',
                                       'coord': 'DIRETORIA REGIONAL DE EDUCACAO JACANA/TREMEMBE'}]}, 200)
+
+@pytest.fixture(params=[
+    # nome, uuid
+    (f.name(), f.uuid4()),
+    (f.name(), f.uuid4()),
+    (f.name(), f.uuid4()),
+    (f.name(), f.uuid4()),
+    (f.name(), f.uuid4()),
+
+])
+def usuarios_pendentes_confirmacao(request, perfil, escola):
+    nome, uuid = request.param
+    usuario = mommy.make('Usuario', nome=nome, uuid=uuid, is_active=False)
+    hoje = datetime.date.today()
+    mommy.make('Vinculo', perfil=perfil, usuario=usuario, data_inicial=None, data_final=None, ativo=False,
+               instituicao=escola)  # vinculo esperando ativacao
+
+    mommy.make('Vinculo', perfil=perfil, usuario=usuario, data_inicial=hoje,
+               data_final=hoje + datetime.timedelta(days=100), ativo=False,
+               instituicao=escola)  # vinculo finalizado
+
+    return usuario

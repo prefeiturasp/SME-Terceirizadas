@@ -1,6 +1,5 @@
 from rest_framework import serializers
 
-from ...perfil.api.serializers import PerfilSimplesSerializer
 from ..models import (
     Codae, DiretoriaRegional, Escola, FaixaIdadeEscolar,
     Lote, PeriodoEscolar, Subprefeitura, TipoGestao,
@@ -8,6 +7,7 @@ from ..models import (
 )
 from ...cardapio.models import TipoAlimentacao
 from ...dados_comuns.api.serializers import ContatoSerializer
+from ...perfil.api.serializers import PerfilSimplesSerializer
 from ...perfil.models import Usuario, Vinculo
 from ...terceirizada.api.serializers.serializers import (
     ContratoSimplesSerializer,

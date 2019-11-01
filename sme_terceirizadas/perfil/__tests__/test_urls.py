@@ -1,3 +1,5 @@
+import uuid
+
 import pytest
 from rest_framework import status
 
@@ -144,3 +146,41 @@ def test_post_usuarios(client_autenticado):
     assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
     response = client_autenticado.put('/usuarios/')
     assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
+
+
+def test_confirmar_email(client, usuarios_pendentes_confirmacao):
+    usuario = usuarios_pendentes_confirmacao
+    assert usuario.is_active is False  # deve estar inativo no sistema
+    assert usuario.is_confirmed is False  # deve estar com email nao confirmado
+    response = client.get(f'/confirmar_email/{usuario.uuid}/{usuario.confirmation_key}/')  # ativacao endpoint
+
+    usuario_apos_ativacao = Usuario.objects.get(id=usuario.id)
+    assert usuario_apos_ativacao.is_confirmed is True  # apos a ativacao pelo link confirma email
+    assert usuario_apos_ativacao.is_active is True  # # apos a ativacao pelo link ativa no sistema
+
+    assert response.status_code == status.HTTP_200_OK
+    json = response.json()
+    keys = ['uuid', 'nome', 'email', 'registro_funcional', 'tipo_usuario', 'date_joined', 'vinculo_atual']
+    for key in keys:
+        assert key in json.keys()
+    assert len(json.keys()) == len(keys)
+    json.pop('date_joined')
+
+    assert json == {
+        'uuid': usuario.uuid, 'nome': usuario.nome, 'email': usuario.email,
+        'registro_funcional': usuario.registro_funcional, 'tipo_usuario': 'escola',
+        'vinculo_atual': {
+            'instituicao': {'nome': usuario.vinculo_atual.instituicao.nome,
+                            'uuid': str(usuario.vinculo_atual.instituicao.uuid),
+                            'quantidade_alunos': usuario.vinculo_atual.instituicao.quantidade_alunos,
+                            'lotes': [], 'periodos_escolares': [], 'escolas': []
+                            },
+            'perfil': {'nome': usuario.vinculo_atual.perfil.nome, 'uuid': str(usuario.vinculo_atual.perfil.uuid)}}}
+
+
+def test_confirmar_error(client, usuarios_pendentes_confirmacao):
+    usuario = usuarios_pendentes_confirmacao
+    respo = client.get(
+        f'/confirmar_email/{uuid.uuid4()}/{usuario.confirmation_key}/')  # chave email correta uuid errado
+    assert respo.status_code == status.HTTP_400_BAD_REQUEST
+    assert respo.json() == {'detail': 'Erro ao confirmar email'}
