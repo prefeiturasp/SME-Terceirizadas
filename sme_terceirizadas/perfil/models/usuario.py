@@ -124,8 +124,8 @@ class Usuario(SimpleEmailConfirmationUserMixin, CustomAbstractUser, TemChaveExte
     @property
     def tipo_usuario(self):
         tipo_usuario = 'indefinido'
-        if self.vinculos.filter(ativo=True).exists():
-            tipo_usuario = self.vinculos.get(ativo=True).content_type.model
+        if self.vinculo_atual:
+            tipo_usuario = self.vinculo_atual.content_type.model
             if tipo_usuario == 'diretoriaregional':
                 return 'diretoria_regional'
         return tipo_usuario

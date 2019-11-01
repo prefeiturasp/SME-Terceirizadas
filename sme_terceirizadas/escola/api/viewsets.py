@@ -1,6 +1,6 @@
 import datetime
 
-from rest_framework import status
+from rest_framework import serializers, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
@@ -30,11 +30,15 @@ class VinculoEscolaViewSet(ReadOnlyModelViewSet):
 
     @action(detail=True, permission_classes=[PodeCriarAdministradoresDaEscola], methods=['post'])
     def criar_equipe_administradora(self, request, uuid=None):
-        escola = self.get_object()
-        request.data['escola'] = escola.nome
-        usuario = UsuarioUpdateSerializer(request.data).create(validated_data=request.data)
-        usuario.criar_vinculo_administrador_escola(escola)
-        return Response(UsuarioDetalheSerializer(usuario).data)
+        try:
+            escola = self.get_object()
+            data = request.data.copy()
+            data['escola'] = escola.nome
+            usuario = UsuarioUpdateSerializer(request.data).create(validated_data=data)
+            usuario.criar_vinculo_administrador_escola(escola)
+            return Response(UsuarioDetalheSerializer(usuario).data)
+        except serializers.ValidationError as e:
+            return Response(data=dict(detail=e.args[0]), status=e.status_code)
 
     @action(detail=True, permission_classes=[PodeCriarAdministradoresDaEscola])
     def get_equipe_administradora(self, request, uuid=None):
@@ -47,6 +51,8 @@ class VinculoEscolaViewSet(ReadOnlyModelViewSet):
         escola = self.get_object()
         vinculo_uuid = request.data.get('vinculo_uuid')
         vinculo = escola.vinculos.get(uuid=vinculo_uuid)
+        vinculo.usuario.is_active = False
+        vinculo.usuario.save()
         vinculo.ativo = False
         vinculo.data_final = datetime.date.today()
         vinculo.save()

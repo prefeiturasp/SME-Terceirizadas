@@ -58,6 +58,7 @@ def vinculo(perfil, usuario):
 @pytest.fixture
 def vinculo_diretoria_regional(usuario):
     return mommy.make('Vinculo',
+                      data_inicial=datetime.date.today(),
                       ativo=True,
                       usuario=usuario,
                       content_type=models.ContentType.objects.get(model='diretoriaregional'))
@@ -71,17 +72,17 @@ def usuario_update_serializer(usuario_2):
 @pytest.fixture(params=[
     ('admin_1@sme.prefeitura.sp.gov.br', 'adminadmin', '0000002'),
     ('admin_2@sme.prefeitura.sp.gov.br', 'xxASD123@@', '0000013'),
-    ('admin_3@sme.prefeitura.sp.gov.br', '....!!!123213#$', '00440002'),
-    ('admin_4@sme.prefeitura.sp.gov.br', 'XXXDDxx@@@77', '00000552'),
+    ('admin_3@sme.prefeitura.sp.gov.br', '....!!!123213#$', '0044002'),
+    ('admin_4@sme.prefeitura.sp.gov.br', 'XXXDDxx@@@77', '0000552'),
 ])
 def users_admin_escola(client, django_user_model, request):
     email, password, rf = request.param
     user = django_user_model.objects.create_user(password=password, email=email, registro_funcional=rf)
     client.login(email=email, password=password)
 
-    escola = mommy.make('Escola', nome='Escola Teste', quantidade_alunos=420,
+    escola = mommy.make('Escola', nome='EMEI NOE AZEVEDO, PROF', quantidade_alunos=420,
                         uuid='b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd')
-    perfil_professor = mommy.make('Perfil', nome='Professor', ativo=False)
+    perfil_professor = mommy.make('Perfil', nome='ADMINISTRADOR_ESCOLA', ativo=False)
     perfil_admin = mommy.make('Perfil', nome='Admin', ativo=True, uuid='d6fd15cc-52c6-4db4-b604-018d22eeb3dd')
     hoje = datetime.date.today()
     mommy.make('Vinculo', usuario=user, instituicao=escola, perfil=perfil_professor,
@@ -95,20 +96,21 @@ def users_admin_escola(client, django_user_model, request):
 @pytest.fixture(params=[
     ('diretor_1@sme.prefeitura.sp.gov.br', 'adminadmin', '0000001', '44426575052'),
     ('diretor_2@sme.prefeitura.sp.gov.br', 'aasdsadsadff', '0000002', '56789925031'),
-    ('diretor_3@sme.prefeitura.sp.gov.br', '98as7d@@#', '000000123', '86880963099'),
+    ('diretor_3@sme.prefeitura.sp.gov.br', '98as7d@@#', '0000147', '86880963099'),
     ('diretor_4@sme.prefeitura.sp.gov.br', '##$$csazd@!', '0000441', '13151715036'),
-    ('diretor_5@sme.prefeitura.sp.gov.br', '!!@##FFG121', '0000005551', '40296233013')
+    ('diretor_5@sme.prefeitura.sp.gov.br', '!!@##FFG121', '0005551', '40296233013')
 ])
 def users_diretor_escola(client, django_user_model, request):
     email, password, rf, cpf = request.param
     user = django_user_model.objects.create_user(password=password, email=email, registro_funcional=rf, cpf=cpf)
     client.login(email=email, password=password)
 
-    escola = mommy.make('Escola', nome='Escola Teste', quantidade_alunos=420,
+    escola = mommy.make('Escola', nome='EMEI NOE AZEVEDO, PROF', quantidade_alunos=420,
                         uuid='b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd')
 
-    perfil_professor = mommy.make('Perfil', nome='Professor', ativo=False, uuid='48330a6f-c444-4462-971e-476452b328b2')
-    perfil_diretor = mommy.make('Perfil', nome='Diretor', ativo=True, uuid='41c20c8b-7e57-41ed-9433-ccb92e8afaf1')
+    perfil_professor = mommy.make('Perfil', nome='ADMINISTRADOR_ESCOLA', ativo=False,
+                                  uuid='48330a6f-c444-4462-971e-476452b328b2')
+    perfil_diretor = mommy.make('Perfil', nome='DIRETOR', ativo=True, uuid='41c20c8b-7e57-41ed-9433-ccb92e8afaf1')
 
     hoje = datetime.date.today()
     mommy.make('Vinculo', usuario=user, instituicao=escola, perfil=perfil_professor,
@@ -118,3 +120,24 @@ def users_diretor_escola(client, django_user_model, request):
                data_inicial=hoje, ativo=True)
 
     return client, email, password, rf, cpf, user
+
+
+# This method will be used by the mock to replace requests.get
+def mocked_request_api_eol():
+    class MockResponse:
+        def __init__(self, json_data, status_code):
+            self.json_data = json_data
+            self.status_code = status_code
+
+        def json(self):
+            return self.json_data
+
+    return MockResponse({'results': [{'nm_pessoa': 'IARA DAREZZO', 'cargo': 'PROF.ED.INF.E ENS.FUND.I',
+                                      'divisao': 'ODILIO DENYS, MAL.',
+                                      'cd_cpf_pessoa': '95887745002',
+                                      'coord': 'DIRETORIA REGIONAL DE EDUCACAO FREGUESIA/BRASILANDIA'},
+                                     {'nm_pessoa': 'IARA DAREZZO',
+                                      'cargo': 'PROF.ENS.FUND.II E MED.-PORTUGUES',
+                                      'divisao': 'NOE AZEVEDO, PROF',
+                                      'cd_cpf_pessoa': '95887745002',
+                                      'coord': 'DIRETORIA REGIONAL DE EDUCACAO JACANA/TREMEMBE'}]}, 200)

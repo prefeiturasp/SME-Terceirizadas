@@ -7,7 +7,7 @@ from .validators import (
 )
 from ..models import Perfil, Usuario, Vinculo
 from ...eol_servico.utils import get_informacoes_usuario
-from ...escola.api.validators import usuario_e_vinculado_a_aquela_instituicao
+from ...escola.api.validators import usuario_e_vinculado_a_aquela_instituicao, usuario_nao_possui_vinculo_valido
 
 
 class PerfilSimplesSerializer(serializers.ModelSerializer):
@@ -47,10 +47,13 @@ class VinculoSerializer(serializers.ModelSerializer):
 class UsuarioUpdateSerializer(serializers.ModelSerializer):
     confirmar_password = serializers.CharField()
 
+    def get_informacoes_usuario(self, validated_data):
+        return get_informacoes_usuario(validated_data['registro_funcional'])
+
     def create(self, validated_data):
-        informacoes_usuario = get_informacoes_usuario(validated_data['registro_funcional'])
+        informacoes_usuario = self.get_informacoes_usuario(validated_data['registro_funcional'])
         informacoes_usuario = informacoes_usuario.json()['results']
-        nome_escola = validated_data.pop('escola')
+        nome_escola = validated_data.pop('escola')[0]
         usuario_e_vinculado_a_aquela_instituicao(
             descricao_instituicao=nome_escola,
             instituicoes_eol=informacoes_usuario
@@ -58,14 +61,16 @@ class UsuarioUpdateSerializer(serializers.ModelSerializer):
         cpf = informacoes_usuario[0]['cd_cpf_pessoa']
         if Usuario.objects.filter(cpf=cpf).exists():
             usuario = Usuario.objects.get(cpf=cpf)
+            usuario_nao_possui_vinculo_valido(usuario)
+            usuario.enviar_email_confirmacao()
         else:
             email = f'{cpf}@dev.prefeitura.sp.gov.br'
             usuario = Usuario.objects.create_user(email, 'adminadmin')
-        usuario.registro_funcional = validated_data['registro_funcional']
-        usuario.nome = informacoes_usuario[0]['nm_pessoa']
-        usuario.cpf = cpf
-        usuario.is_active = False
-        usuario.save()
+            usuario.registro_funcional = validated_data['registro_funcional']
+            usuario.nome = informacoes_usuario[0]['nm_pessoa']
+            usuario.cpf = cpf
+            usuario.is_active = False
+            usuario.save()
         return usuario
 
     def _validate(self, instance, attrs):

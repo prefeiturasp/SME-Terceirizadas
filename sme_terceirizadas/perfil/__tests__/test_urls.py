@@ -1,6 +1,8 @@
 import pytest
 from rest_framework import status
 
+from .conftest import mocked_request_api_eol
+from ..api.serializers import UsuarioUpdateSerializer
 from ..api.viewsets import UsuarioUpdateViewSet
 from ..models import Usuario
 
@@ -29,7 +31,7 @@ def test_get_meus_dados_admin_escola(users_admin_escola):
     assert json['registro_funcional'] == rf
     assert json['tipo_usuario'] == 'escola'
     assert json['vinculo_atual'] == {
-        'instituicao': {'nome': 'Escola Teste', 'uuid': 'b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd',
+        'instituicao': {'nome': 'EMEI NOE AZEVEDO, PROF', 'uuid': 'b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd',
                         'quantidade_alunos': 420, 'lotes': [], 'periodos_escolares': [], 'escolas': []},
         'perfil': {'nome': 'Admin', 'uuid': 'd6fd15cc-52c6-4db4-b604-018d22eeb3dd'}}
 
@@ -47,9 +49,45 @@ def test_get_meus_dados_diretor_escola(users_diretor_escola):
     assert json['registro_funcional'] == rf
     assert json['tipo_usuario'] == 'escola'
     assert json['vinculo_atual'] == {
-        'instituicao': {'nome': 'Escola Teste', 'uuid': 'b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd',
+        'instituicao': {'nome': 'EMEI NOE AZEVEDO, PROF', 'uuid': 'b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd',
                         'quantidade_alunos': 420, 'lotes': [], 'periodos_escolares': [], 'escolas': []},
-        'perfil': {'nome': 'Diretor', 'uuid': '41c20c8b-7e57-41ed-9433-ccb92e8afaf1'}}
+        'perfil': {'nome': 'DIRETOR', 'uuid': '41c20c8b-7e57-41ed-9433-ccb92e8afaf1'}}
+
+
+def test_cadastro_vinculo_diretor_escola(users_diretor_escola, monkeypatch):
+    client, email, password, rf, cpf, user = users_diretor_escola
+    escola_ = user.vinculo_atual.instituicao
+    mimetype = 'application/json'
+    headers = {
+        'Content-Type': mimetype,
+        'Accept': mimetype
+    }
+    data = {
+        'registro_funcional': '5696569'
+    }
+
+    monkeypatch.setattr(UsuarioUpdateSerializer, 'get_informacoes_usuario',
+                        lambda p1, p2: mocked_request_api_eol())
+    response = client.post(f'/vinculos-escolas/{str(escola_.uuid)}/criar_equipe_administradora/', headers=headers,
+                           data=data)
+    assert response.status_code == status.HTTP_200_OK
+    response.json().pop('date_joined')
+    response.json().pop('uuid')
+    assert response.json() == {'nome': 'IARA DAREZZO',
+                               'email': '95887745002@dev.prefeitura.sp.gov.br', 'registro_funcional': '5696569',
+                               'tipo_usuario': 'escola',
+                               'vinculo_atual': {
+                                   'instituicao': {'nome': 'EMEI NOE AZEVEDO, PROF',
+                                                   'uuid': 'b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd',
+                                                   'quantidade_alunos': 420,
+                                                   'lotes': [],
+                                                   'periodos_escolares': [], 'escolas': []},
+                                   'perfil': {'nome': 'ADMINISTRADOR_ESCOLA',
+                                              'uuid': '48330a6f-c444-4462-971e-476452b328b2'}}}
+    usuario_novo = Usuario.objects.get(registro_funcional='5696569')
+    assert usuario_novo.is_active is False
+    assert usuario_novo.vinculo_atual is not None
+    assert usuario_novo.vinculo_atual.perfil.nome == 'ADMINISTRADOR_ESCOLA'
 
 
 def test_cadastro_erro(client):
@@ -96,9 +134,9 @@ def test_cadastro_diretor(client, users_diretor_escola, monkeypatch):
     assert json['registro_funcional'] == rf
     assert json['tipo_usuario'] == 'escola'
     assert json['vinculo_atual'] == {
-        'instituicao': {'nome': 'Escola Teste', 'uuid': 'b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd',
+        'instituicao': {'nome': 'EMEI NOE AZEVEDO, PROF', 'uuid': 'b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd',
                         'quantidade_alunos': 420, 'lotes': [], 'periodos_escolares': [], 'escolas': []},
-        'perfil': {'nome': 'Diretor', 'uuid': '41c20c8b-7e57-41ed-9433-ccb92e8afaf1'}}
+        'perfil': {'nome': 'DIRETOR', 'uuid': '41c20c8b-7e57-41ed-9433-ccb92e8afaf1'}}
 
 
 def test_post_usuarios(client_autenticado):

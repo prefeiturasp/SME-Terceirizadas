@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from sme_terceirizadas.perfil.api.serializers import PerfilSimplesSerializer
+from ...perfil.api.serializers import PerfilSimplesSerializer
 from ..models import (
     Codae, DiretoriaRegional, Escola, FaixaIdadeEscolar,
     Lote, PeriodoEscolar, Subprefeitura, TipoGestao,
