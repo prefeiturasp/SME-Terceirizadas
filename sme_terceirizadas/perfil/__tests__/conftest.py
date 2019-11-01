@@ -16,6 +16,11 @@ def perfil():
 
 
 @pytest.fixture
+def escola():
+    return mommy.make('Escola', nome='EscolaTeste', quantidade_alunos=421)
+
+
+@pytest.fixture
 def usuario():
     return mommy.make(
         models.Usuario,
@@ -71,8 +76,8 @@ def usuario_update_serializer(usuario_2):
 @pytest.fixture(params=[
     ('admin_1@sme.prefeitura.sp.gov.br', 'adminadmin', '0000002'),
     ('admin_2@sme.prefeitura.sp.gov.br', 'xxASD123@@', '0000013'),
-    ('admin_3@sme.prefeitura.sp.gov.br', '....!!!123213#$', '00440002'),
-    ('admin_4@sme.prefeitura.sp.gov.br', 'XXXDDxx@@@77', '00000552'),
+    ('admin_3@sme.prefeitura.sp.gov.br', '....!!!123213#$', '0044002'),
+    ('admin_4@sme.prefeitura.sp.gov.br', 'XXXDDxx@@@77', '0000552'),
 ])
 def users_admin_escola(client, django_user_model, request):
     email, password, rf = request.param
@@ -93,11 +98,12 @@ def users_admin_escola(client, django_user_model, request):
 
 
 @pytest.fixture(params=[
+    # email, senha, rf, cpf
     ('diretor_1@sme.prefeitura.sp.gov.br', 'adminadmin', '0000001', '44426575052'),
     ('diretor_2@sme.prefeitura.sp.gov.br', 'aasdsadsadff', '0000002', '56789925031'),
-    ('diretor_3@sme.prefeitura.sp.gov.br', '98as7d@@#', '000000123', '86880963099'),
+    ('diretor_3@sme.prefeitura.sp.gov.br', '98as7d@@#', '0000457', '86880963099'),
     ('diretor_4@sme.prefeitura.sp.gov.br', '##$$csazd@!', '0000441', '13151715036'),
-    ('diretor_5@sme.prefeitura.sp.gov.br', '!!@##FFG121', '0000005551', '40296233013')
+    ('diretor_5@sme.prefeitura.sp.gov.br', '!!@##FFG121', '0005551', '40296233013')
 ])
 def users_diretor_escola(client, django_user_model, request):
     email, password, rf, cpf = request.param
@@ -118,3 +124,26 @@ def users_diretor_escola(client, django_user_model, request):
                data_inicial=hoje, ativo=True)
 
     return client, email, password, rf, cpf, user
+
+
+@pytest.fixture(params=[
+    # nome, uuid
+    (f.name(), f.uuid4()),
+    (f.name(), f.uuid4()),
+    (f.name(), f.uuid4()),
+    (f.name(), f.uuid4()),
+    (f.name(), f.uuid4()),
+
+])
+def usuarios_pendentes_confirmacao(request, perfil, escola):
+    nome, uuid = request.param
+    usuario = mommy.make('Usuario', nome=nome, uuid=uuid, is_active=False)
+    hoje = datetime.date.today()
+    mommy.make('Vinculo', perfil=perfil, usuario=usuario, data_inicial=None, data_final=None, ativo=False,
+               instituicao=escola)  # vinculo esperando ativacao
+
+    mommy.make('Vinculo', perfil=perfil, usuario=usuario, data_inicial=hoje,
+               data_final=hoje + datetime.timedelta(days=100), ativo=False,
+               instituicao=escola)  # vinculo finalizado
+
+    return usuario
