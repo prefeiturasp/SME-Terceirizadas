@@ -11,7 +11,7 @@ def test_usuario_serializer(usuario_serializer):
     assert usuario_serializer.data is not None
 
 
-def test_usuario_update_serializer(monkeypatch, usuario_update_serializer, usuario_2):
+def test_usuario_update_serializer_partial_update(monkeypatch, usuario_update_serializer, usuario_2):
     dados_usuario = {
         'password': 'adminadmin',
         'confirmar_password': 'adminadmin',

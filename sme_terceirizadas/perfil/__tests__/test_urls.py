@@ -93,6 +93,38 @@ def test_cadastro_vinculo_diretor_escola(users_diretor_escola, monkeypatch):
     assert usuario_novo.vinculo_atual.perfil.nome == 'ADMINISTRADOR_ESCOLA'
 
 
+def test_erro_403_usuario_nao_pertence_a_escola_cadastro_vinculos_escola(escola, users_diretor_escola, monkeypatch):
+    client, email, password, rf, cpf, user = users_diretor_escola
+    mimetype = 'application/json'
+    headers = {
+        'Content-Type': mimetype,
+        'Accept': mimetype
+    }
+    data = {
+        'registro_funcional': '5696569'
+    }
+
+    monkeypatch.setattr(UsuarioUpdateSerializer, 'get_informacoes_usuario',
+                        lambda p1, p2: mocked_request_api_eol())
+    response = client.post(f'/vinculos-escolas/{str(escola.uuid)}/criar_equipe_administradora/', headers=headers,
+                           data=data)
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+def test_erro_401_usuario_nao_e_diretor_ou_nao_esta_logado_cadastro_vinculos_escola(client, escola):
+    mimetype = 'application/json'
+    headers = {
+        'Content-Type': mimetype,
+        'Accept': mimetype
+    }
+    data = {
+        'registro_funcional': '5696569'
+    }
+    response = client.post(f'/vinculos-escolas/{str(escola.uuid)}/criar_equipe_administradora/', headers=headers,
+                           data=data)
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
 def test_cadastro_erro(client):
     response = client.post('/cadastro/', data={
         'email': 'string',
