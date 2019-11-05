@@ -1,5 +1,7 @@
 import pytest
 
+from ..__tests__.conftest import mocked_request_api_eol
+from ..api.serializers import UsuarioUpdateSerializer
 from ..models import Usuario
 
 pytestmark = pytest.mark.django_db
@@ -22,3 +24,14 @@ def test_usuario_update_serializer(monkeypatch, usuario_update_serializer, usuar
     assert usuario.cpf == '11111111111'
     assert usuario.email == 'nome.completo@sme.prefeitura.sp.gov.br'
     assert usuario.registro_funcional == '1234567'
+
+
+def test_usuario_update_serializer_create(monkeypatch):
+    monkeypatch.setattr(UsuarioUpdateSerializer, 'get_informacoes_usuario',
+                        lambda p1, p2: mocked_request_api_eol())
+    data = {'registro_funcional': '5696569', 'escola': 'NOE AZEVEDO, PROF'}
+    usuario = UsuarioUpdateSerializer(data).create(validated_data=data)
+    assert isinstance(usuario, Usuario)
+    assert usuario.registro_funcional == '5696569'
+    assert usuario.is_active is False
+    assert usuario.cpf == '95887745002'

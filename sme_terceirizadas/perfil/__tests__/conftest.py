@@ -32,7 +32,7 @@ def usuario():
 
 
 @pytest.fixture
-def usuario_2():
+def usuario_2(escola):
     return mommy.make(
         models.Usuario,
         nome='Fulano da Silva',
@@ -43,11 +43,16 @@ def usuario_2():
 
 
 @pytest.fixture()
-def usuario_com_rf_de_diretor():
-    return mommy.make(
+def usuario_com_rf_de_diretor(escola):
+    hoje = datetime.date.today()
+    perfil_diretor = mommy.make('Perfil', nome='DIRETOR', ativo=True, uuid='41c20c8b-7e57-41ed-9433-ccb92e8afaf1')
+    user = mommy.make(
         models.Usuario,
         registro_funcional='6580157'
     )
+    mommy.make('Vinculo', usuario=user, instituicao=escola, perfil=perfil_diretor,
+               data_inicial=hoje, data_final=None, ativo=True)  # ativo
+    return user
 
 
 @pytest.fixture

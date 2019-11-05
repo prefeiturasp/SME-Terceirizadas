@@ -76,7 +76,8 @@ def test_cadastro_vinculo_diretor_escola(users_diretor_escola, monkeypatch):
     response.json().pop('date_joined')
     response.json().pop('uuid')
     assert response.json() == {'nome': 'IARA DAREZZO',
-                               'email': '95887745002@dev.prefeitura.sp.gov.br', 'registro_funcional': '5696569',
+                               'email': '95887745002@emailtemporario.prefeitura.sp.gov.br',
+                               'registro_funcional': '5696569',
                                'tipo_usuario': 'escola',
                                'vinculo_atual': {
                                    'instituicao': {'nome': 'EMEI NOE AZEVEDO, PROF',

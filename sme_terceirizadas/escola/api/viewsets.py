@@ -34,7 +34,7 @@ class VinculoEscolaViewSet(ReadOnlyModelViewSet):
             escola = self.get_object()
             data = request.data.copy()
             data['escola'] = escola.nome
-            usuario = UsuarioUpdateSerializer(request.data).create(validated_data=data)
+            usuario = UsuarioUpdateSerializer(data).create(validated_data=data)
             usuario.criar_vinculo_administrador_escola(escola)
             return Response(UsuarioDetalheSerializer(usuario).data)
         except serializers.ValidationError as e:

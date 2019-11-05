@@ -53,12 +53,8 @@ class UsuarioUpdateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         informacoes_usuario = self.get_informacoes_usuario(validated_data)
         informacoes_usuario = informacoes_usuario.json()['results']
-        nome_escola = validated_data.pop('escola')
-        # TODO: ver o porque no teste vem como lista
-        if type(nome_escola) == list:
-            nome_escola = nome_escola[0]
         usuario_e_vinculado_a_aquela_instituicao(
-            descricao_instituicao=nome_escola,
+            descricao_instituicao=validated_data['escola'],
             instituicoes_eol=informacoes_usuario
         )
         cpf = informacoes_usuario[0]['cd_cpf_pessoa']
@@ -67,7 +63,7 @@ class UsuarioUpdateSerializer(serializers.ModelSerializer):
             usuario_nao_possui_vinculo_valido(usuario)
             usuario.enviar_email_confirmacao()
         else:
-            email = f'{cpf}@dev.prefeitura.sp.gov.br'
+            email = f'{cpf}@emailtemporario.prefeitura.sp.gov.br'
             usuario = Usuario.objects.create_user(email, 'adminadmin')
             usuario.registro_funcional = validated_data['registro_funcional']
             usuario.nome = informacoes_usuario[0]['nm_pessoa']
