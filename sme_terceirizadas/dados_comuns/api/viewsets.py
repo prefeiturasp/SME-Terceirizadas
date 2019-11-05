@@ -1,19 +1,23 @@
 from des.models import DynamicEmailConfiguration
 from django.db import IntegrityError
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 from rest_framework import status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ViewSet
 
 from .serializers import ConfiguracaoEmailSerializer, ConfiguracaoMensagemSerializer
-from ..models import TemplateMensagem
 from ..behaviors import DiasSemana, TempoPasseio
+from ..constants import TEMPO_CACHE_LONGO
+from ..models import TemplateMensagem
 from ..utils import obter_dias_uteis_apos_hoje
 
 
 class DiasDaSemanaViewSet(ViewSet):
     permission_classes = (AllowAny,)
 
+    @method_decorator(cache_page(TEMPO_CACHE_LONGO))
     def list(self, request):
         return Response(dict(DiasSemana.DIAS))
 
@@ -21,6 +25,7 @@ class DiasDaSemanaViewSet(ViewSet):
 class TempoDePasseioViewSet(ViewSet):
     permission_classes = (AllowAny,)
 
+    @method_decorator(cache_page(TEMPO_CACHE_LONGO))
     def list(self, request):
         tempo_de_passeio_descricao = {
             TempoPasseio.QUATRO: {'quantidade_kits': 1, 'descricao': 'até 4 horas: 1 kit'},
@@ -35,6 +40,7 @@ class TempoDePasseioViewSet(ViewSet):
 class DiasUteisViewSet(ViewSet):
     permission_classes = (AllowAny,)
 
+    @method_decorator(cache_page(TEMPO_CACHE_LONGO))
     def list(self, request):
         dias_uteis = {
             'proximos_cinco_dias_uteis': obter_dias_uteis_apos_hoje(5),

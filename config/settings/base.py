@@ -315,10 +315,10 @@ CACHES = {
 
 # https://docs.celeryproject.org/en/latest/userguide/configuration.html
 CELERY_BROKER_URL = f'{REDIS_URL}/1'
-CELERY_BACKEND = f'{REDIS_URL}/2'
 CELERY_RESULT_BACKEND = f'{REDIS_URL}/2'
 
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_ENABLE_UTC = True
+CELERY_IGNORE_RESULT = True

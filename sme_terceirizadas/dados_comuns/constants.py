@@ -1,4 +1,5 @@
 import environ
+
 from .utils import obter_dias_uteis_apos_hoje
 
 env = environ.Env()
@@ -57,9 +58,11 @@ TERCEIRIZADA_TOMOU_CIENCIA = 'terceirizada-toma-ciencia'
 
 SOLICITACOES_DO_USUARIO = 'minhas-solicitacoes'
 
-
 #
 # PERFIS
 #
 
 DIRETOR = 'DIRETOR'
+
+# CACHE
+TEMPO_CACHE_LONGO = 60 * 60 * 6  # seis horas
