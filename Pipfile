@@ -44,7 +44,6 @@ django-extensions='==2.2.3'    # https://github.com/django-extensions/django-ext
 django-coverage-plugin='==1.6.0'  # https://github.com/nedbat/django_coverage_plugin
 pytest-django='==3.4.7'  # https://github.com/pytest-dev/pytest-django
 
-
 [packages]
 psycopg2='==2.7.4'  # https://github.com/psycopg/psycopg2  export PIP_NO_BINARY=:psycopg2:
 pytz= '==2018.9'  # https://github.com/stub42/pytz
@@ -66,7 +65,6 @@ django-cors-headers='==3.0.2'   # https://pypi.org/project/django-cors-headers/
 djangorestframework='==3.9.1'  # https://github.com/encode/django-rest-framework
 coreapi='==2.3.3'  # https://github.com/core-api/python-client
 djangorestframework-jwt='==1.11.0' # https://getblimp.github.io/django-rest-framework-jwt/
-django-notifications-hq='==1.5.0' # https://github.com/django-notifications/django-notifications
 workalendar='==4.3.1' # https://github.com/peopledoc/workalendar
 django-rest-swagger='==2.2.0' # https://github.com/marcgibbons/django-rest-swagger
 django-simple-email-confirmation='==0.6' # https://github.com/mfogel/django-simple-email-confirmation/

@@ -6,7 +6,6 @@ from des.models import DynamicEmailConfiguration
 from django.core.mail import EmailMultiAlternatives, get_connection
 from django.core.mail import send_mail
 from django.db.models import QuerySet
-from notifications.signals import notify
 from workalendar.america import BrazilSaoPauloCity
 
 from config.settings.base import URL_CONFIGS
@@ -14,25 +13,6 @@ from config.settings.base import URL_CONFIGS
 calendar = BrazilSaoPauloCity()
 
 env = environ.Env()
-
-
-def enviar_notificacao(sender, recipients: QuerySet,
-                       short_desc: str, long_desc: str):
-    """Trabalha com a biblioteca Notify.
-
-    :param sender: User instance
-    :param recipients: A Group or User QuerySet or User List
-    :param short_desc:
-    :param long_desc:
-    """
-    if not recipients:
-        return
-    notify.send(
-        sender=sender,
-        recipient=recipients,
-        verb=short_desc,
-        description=long_desc
-    )
 
 
 def send_email(subject, message_text, to_email):
@@ -101,7 +81,6 @@ def update_instance_from_dict(instance, attrs, save=False):
 
 def enviar_notificacao_e_email(sender, recipients: QuerySet,
                                short_desc: str, long_desc: str):
-    enviar_notificacao(sender, recipients, short_desc, long_desc)
     async_envio_email_html_em_massa(subject=short_desc, text='', html=long_desc, recipients=recipients)
 
 

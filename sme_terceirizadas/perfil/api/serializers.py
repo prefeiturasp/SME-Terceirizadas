@@ -1,4 +1,3 @@
-from notifications.models import Notification
 from rest_framework import serializers
 
 from .validators import (
@@ -20,13 +19,6 @@ class PerfilSerializer(serializers.ModelSerializer):
     class Meta:
         model = Perfil
         exclude = ('id', 'nome', 'ativo')
-
-
-class NotificationSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Notification
-        exclude = ('actor_object_id', 'target_object_id', 'action_object_object_id', 'recipient',
-                   'actor_content_type', 'target_content_type', 'action_object_content_type')
 
 
 class UsuarioSerializer(serializers.ModelSerializer):

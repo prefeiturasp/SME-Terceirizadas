@@ -1,16 +1,12 @@
 import datetime
 
 from django.core.exceptions import ObjectDoesNotExist
-from notifications.models import Notification
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.mixins import RetrieveModelMixin
 from rest_framework.response import Response
-from rest_framework.viewsets import GenericViewSet
 
-from .permissions import PodeMarcarDesmarcarComoLidaPermission
 from .serializers import (
-    NotificationSerializer, PerfilSerializer, UsuarioUpdateSerializer
+    PerfilSerializer, UsuarioUpdateSerializer
 )
 from ..models import Perfil, Usuario
 from ...escola.api.serializers import UsuarioDetalheSerializer
@@ -50,41 +46,6 @@ class PerfilViewSet(viewsets.ReadOnlyModelViewSet):
     lookup_field = 'uuid'
     queryset = Perfil.objects.all()
     serializer_class = PerfilSerializer
-
-
-class NotificationViewSet(RetrieveModelMixin, GenericViewSet):
-    queryset = Notification.objects.all()
-    serializer_class = NotificationSerializer
-
-    @action(detail=False)
-    def minhas_notificacoes_nao_lidas(self, request):
-        user = request.user
-        notifications = user.notifications.unread()
-        page = self.paginate_queryset(notifications)
-        serializer = self.get_serializer(page, many=True)
-        return self.get_paginated_response(serializer.data)
-
-    @action(detail=False)
-    def minhas_notificacoes_lidas(self, request):
-        user = request.user
-        notifications = user.notifications.read()
-        page = self.paginate_queryset(notifications)
-        serializer = self.get_serializer(page, many=True)
-        return self.get_paginated_response(serializer.data)
-
-    @action(detail=True, permission_classes=[PodeMarcarDesmarcarComoLidaPermission])
-    def marcar_lido(self, request, pk):
-        notificacao = self.get_object()
-        notificacao.mark_as_read()
-        serializer = self.get_serializer(notificacao)
-        return Response(serializer.data)
-
-    @action(detail=True, permission_classes=[PodeMarcarDesmarcarComoLidaPermission])
-    def desmarcar_lido(self, request, pk):
-        notificacao = self.get_object()
-        notificacao.mark_as_unread()
-        serializer = self.get_serializer(notificacao)
-        return Response(serializer.data)
 
 
 class UsuarioConfirmaEmailViewSet(viewsets.GenericViewSet):
