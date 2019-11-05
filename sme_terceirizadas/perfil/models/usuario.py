@@ -2,7 +2,6 @@ import environ
 import requests
 from django.contrib.auth.base_user import AbstractBaseUser
 from django.contrib.auth.models import BaseUserManager, PermissionsMixin
-from django.core.mail import send_mail
 from django.core.validators import MinLengthValidator
 from django.db import models
 from django.db.models import Q
@@ -13,6 +12,7 @@ from simple_email_confirmation.models import SimpleEmailConfirmationUserMixin
 from ..models import Perfil, Vinculo
 from ...dados_comuns.behaviors import TemChaveExterna
 from ...dados_comuns.constants import DJANGO_EOL_API_TOKEN, DJANGO_EOL_API_URL
+from ...dados_comuns.tasks import envia_email_unico_task
 from ...dados_comuns.utils import url_configs
 
 env = environ.Env()
@@ -94,7 +94,7 @@ class CustomAbstractUser(AbstractBaseUser, PermissionsMixin):
 
     def email_user(self, subject, message, from_email=None, **kwargs):
         """Send an email to this user."""
-        send_mail(subject, message, from_email, [self.email], **kwargs)
+        envia_email_unico_task.delay(assunto=subject, corpo=message, email=self.email)
 
 
 class Usuario(SimpleEmailConfirmationUserMixin, CustomAbstractUser, TemChaveExterna):
@@ -143,15 +143,13 @@ class Usuario(SimpleEmailConfirmationUserMixin, CustomAbstractUser, TemChaveExte
         vinculo_aguardando_ativacao = self.vinculo_atual.status == Vinculo.STATUS_AGUARDANDO_ATIVACAO
         return diretor_de_escola or vinculo_aguardando_ativacao
 
-    # TODO: verificar o from_email
     def enviar_email_confirmacao(self):
         self.add_email_if_not_exists(self.email)
         content = {'uuid': self.uuid, 'confirmation_key': self.confirmation_key}
         self.email_user(
             subject='Confirme seu e-mail - SIGPAE',
             message=f'Clique neste link para confirmar seu e-mail no SIGPAE \n'
-                    f': {url_configs("CONFIRMAR_EMAIL", content)}',
-            from_email='PrefeituraTeste@teste.com'
+            f': {url_configs("CONFIRMAR_EMAIL", content)}',
         )
 
     def criar_vinculo_administrador_escola(self, escola):

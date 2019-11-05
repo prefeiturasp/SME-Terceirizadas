@@ -8,9 +8,8 @@ import xworkflows
 from django.db import models
 from django_xworkflows import models as xwf_models
 
-from sme_terceirizadas.dados_comuns.tasks import envia_email_unico_task
 from .models import LogSolicitacoesUsuario
-from .tasks import envia_email_em_massa_task
+from .tasks import envia_email_em_massa_task, envia_email_unico_task
 
 
 class PedidoAPartirDaEscolaWorkflow(xwf_models.Workflow):
