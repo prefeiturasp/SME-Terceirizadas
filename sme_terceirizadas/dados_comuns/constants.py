@@ -65,4 +65,5 @@ SOLICITACOES_DO_USUARIO = 'minhas-solicitacoes'
 DIRETOR = 'DIRETOR'
 
 # CACHE
-TEMPO_CACHE_LONGO = 60 * 60 * 6  # seis horas
+TEMPO_CACHE_6H = 60 * 60 * 6
+TEMPO_CACHE_1H = 60 * 60 * 6

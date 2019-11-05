@@ -8,8 +8,9 @@ import xworkflows
 from django.db import models
 from django_xworkflows import models as xwf_models
 
+from sme_terceirizadas.dados_comuns.tasks import envia_email_unico_task
 from .models import LogSolicitacoesUsuario
-from .utils import enviar_notificacao_e_email
+from .tasks import envia_email_em_massa_task
 
 
 class PedidoAPartirDaEscolaWorkflow(xwf_models.Workflow):
@@ -249,10 +250,8 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
     def _inicia_fluxo_hook(self, *args, **kwargs):
         user = kwargs['user']
         assunto, corpo = self.template_mensagem
-        enviar_notificacao_e_email(sender=user,
-                                   recipients=self.partes_interessadas_inicio_fluxo,
-                                   short_desc=assunto,
-                                   long_desc=corpo)
+        envia_email_em_massa_task.delay(assunto=assunto, corpo=corpo, html=None, emails=['mmaia.cc@gmail.com'])
+        envia_email_unico_task.delay(assunto=assunto, corpo=corpo, html=None, email='mmaia.cc@gmail.com')
         self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.INICIO_FLUXO,
                                   usuario=user)
         self._salva_rastro_solicitacao()
@@ -262,10 +261,7 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
         user = kwargs['user']
         if user:
             assunto, corpo = self.template_mensagem
-            enviar_notificacao_e_email(sender=user,
-                                       recipients=self.partes_interessadas_dre_valida,
-                                       short_desc=assunto,
-                                       long_desc=corpo)
+
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.DRE_VALIDOU,
                                       usuario=user)
 
@@ -274,10 +270,6 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
         user = kwargs['user']
         if user:
             assunto, corpo = self.template_mensagem
-            enviar_notificacao_e_email(sender=user,
-                                       recipients=self.partes_interessadas_dre_valida,
-                                       short_desc=assunto,
-                                       long_desc=corpo)
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.DRE_PEDIU_REVISAO,
                                       usuario=user)
 
@@ -287,10 +279,6 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
         justificativa = kwargs.get('justificativa', '')
         if user:
             assunto, corpo = self.template_mensagem
-            enviar_notificacao_e_email(sender=user,
-                                       recipients=self.partes_interessadas_dre_valida,
-                                       short_desc=assunto,
-                                       long_desc=corpo)
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.DRE_NAO_VALIDOU,
                                       justificativa=justificativa,
                                       usuario=user)
@@ -300,10 +288,6 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
         user = kwargs['user']
         if user:
             assunto, corpo = self.template_mensagem
-            enviar_notificacao_e_email(sender=user,
-                                       recipients=self.partes_interessadas_dre_valida,
-                                       short_desc=assunto,
-                                       long_desc=corpo)
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.ESCOLA_REVISOU,
                                       usuario=user)
 
@@ -313,10 +297,6 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
         justificativa = kwargs.get('justificativa', '')
         if user:
             assunto, corpo = self.template_mensagem
-            enviar_notificacao_e_email(sender=user,
-                                       recipients=self.partes_interessadas_codae_autoriza,
-                                       short_desc=assunto,
-                                       long_desc=corpo)
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU,
                                       usuario=user,
                                       justificativa=justificativa)
@@ -327,10 +307,6 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
         justificativa = kwargs.get('justificativa', '')
         if user:
             assunto, corpo = self.template_mensagem
-            enviar_notificacao_e_email(sender=user,
-                                       recipients=self.partes_interessadas_dre_valida,
-                                       short_desc=assunto,
-                                       long_desc=corpo)
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_NEGOU,
                                       usuario=user,
                                       justificativa=justificativa)
@@ -340,10 +316,6 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
         user = kwargs['user']
         if user:
             assunto, corpo = self.template_mensagem
-            enviar_notificacao_e_email(sender=user,
-                                       recipients=self.partes_interessadas_terceirizadas_tomou_ciencia,
-                                       short_desc=assunto,
-                                       long_desc=corpo)
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_TOMOU_CIENCIA,
                                       usuario=user)
 
@@ -459,10 +431,6 @@ class FluxoAprovacaoPartindoDaDiretoriaRegional(xwf_models.WorkflowEnabled, mode
         user = kwargs['user']
         assunto, corpo = self.template_mensagem
 
-        enviar_notificacao_e_email(sender=user,
-                                   recipients=self.partes_interessadas_inicio_fluxo,
-                                   short_desc=assunto,
-                                   long_desc=corpo)
         self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.INICIO_FLUXO,
                                   usuario=user)
         self._salva_rastro_solicitacao()
@@ -472,10 +440,6 @@ class FluxoAprovacaoPartindoDaDiretoriaRegional(xwf_models.WorkflowEnabled, mode
         user = kwargs['user']
         if user:
             assunto, corpo = self.template_mensagem
-            enviar_notificacao_e_email(sender=user,
-                                       recipients=self.partes_interessadas_codae_autoriza,
-                                       short_desc=assunto,
-                                       long_desc=corpo)
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU,
                                       usuario=user)
 
@@ -484,10 +448,6 @@ class FluxoAprovacaoPartindoDaDiretoriaRegional(xwf_models.WorkflowEnabled, mode
         user = kwargs['user']
         if user:
             assunto, corpo = self.template_mensagem
-            enviar_notificacao_e_email(sender=user,
-                                       recipients=self.partes_interessadas_terceirizadas_tomou_ciencia,
-                                       short_desc=assunto,
-                                       long_desc=corpo)
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_TOMOU_CIENCIA,
                                       usuario=user)
 
@@ -497,10 +457,6 @@ class FluxoAprovacaoPartindoDaDiretoriaRegional(xwf_models.WorkflowEnabled, mode
         justificativa = kwargs.get('justificativa', '')
         if user:
             assunto, corpo = self.template_mensagem
-            enviar_notificacao_e_email(sender=user,
-                                       recipients=self.partes_interessadas_codae_nega,
-                                       short_desc=assunto,
-                                       long_desc=corpo)
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_NEGOU,
                                       usuario=user,
                                       justificativa=justificativa)
@@ -567,10 +523,6 @@ class FluxoInformativoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model)
     def _informa_hook(self, *args, **kwargs):
         user = kwargs['user']
         assunto, corpo = self.template_mensagem
-        enviar_notificacao_e_email(sender=user,
-                                   recipients=self.partes_interessadas_informacao,
-                                   short_desc=assunto,
-                                   long_desc=corpo)
         self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.INICIO_FLUXO,
                                   usuario=user)
         self._salva_rastro_solicitacao()
@@ -580,10 +532,6 @@ class FluxoInformativoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model)
         user = kwargs['user']
         if user:
             assunto, corpo = self.template_mensagem
-            enviar_notificacao_e_email(sender=user,
-                                       recipients=self.partes_interessadas_terceirizadas_tomou_ciencia,
-                                       short_desc=assunto,
-                                       long_desc=corpo)
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_TOMOU_CIENCIA,
                                       usuario=user)
 

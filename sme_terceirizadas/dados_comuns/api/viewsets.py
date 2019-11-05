@@ -9,7 +9,7 @@ from rest_framework.viewsets import ModelViewSet, ViewSet
 
 from .serializers import ConfiguracaoEmailSerializer, ConfiguracaoMensagemSerializer
 from ..behaviors import DiasSemana, TempoPasseio
-from ..constants import TEMPO_CACHE_LONGO
+from ..constants import TEMPO_CACHE_1H, TEMPO_CACHE_6H
 from ..models import TemplateMensagem
 from ..utils import obter_dias_uteis_apos_hoje
 
@@ -17,7 +17,7 @@ from ..utils import obter_dias_uteis_apos_hoje
 class DiasDaSemanaViewSet(ViewSet):
     permission_classes = (AllowAny,)
 
-    @method_decorator(cache_page(TEMPO_CACHE_LONGO))
+    @method_decorator(cache_page(TEMPO_CACHE_6H))
     def list(self, request):
         return Response(dict(DiasSemana.DIAS))
 
@@ -25,7 +25,7 @@ class DiasDaSemanaViewSet(ViewSet):
 class TempoDePasseioViewSet(ViewSet):
     permission_classes = (AllowAny,)
 
-    @method_decorator(cache_page(TEMPO_CACHE_LONGO))
+    @method_decorator(cache_page(TEMPO_CACHE_6H))
     def list(self, request):
         tempo_de_passeio_descricao = {
             TempoPasseio.QUATRO: {'quantidade_kits': 1, 'descricao': 'até 4 horas: 1 kit'},
@@ -40,7 +40,7 @@ class TempoDePasseioViewSet(ViewSet):
 class DiasUteisViewSet(ViewSet):
     permission_classes = (AllowAny,)
 
-    @method_decorator(cache_page(TEMPO_CACHE_LONGO))
+    @method_decorator(cache_page(TEMPO_CACHE_1H))
     def list(self, request):
         dias_uteis = {
             'proximos_cinco_dias_uteis': obter_dias_uteis_apos_hoje(5),
