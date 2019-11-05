@@ -185,7 +185,6 @@ def cria_solicitacoes_kit_lanche_unificada(qtd=50):
         unificada = SolicitacaoKitLancheUnificada.objects.create(
             criado_por=user,
             outro_motivo=f.text()[:40],
-            quantidade_max_alunos_por_escola=666,
             local=f.text()[:150],
             lista_kit_lanche_igual=True,
             diretoria_regional=_get_random_dre(),

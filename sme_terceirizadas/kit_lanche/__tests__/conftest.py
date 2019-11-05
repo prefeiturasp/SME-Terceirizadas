@@ -58,7 +58,6 @@ def solicitacao_unificada_lista_igual(escola):
     dre = mommy.make('escola.DiretoriaRegional')
     solicitacao_unificada = mommy.make(models.SolicitacaoKitLancheUnificada,
                                        local=fake.text()[:160],
-                                       quantidade_max_alunos_por_escola=999,
                                        lista_kit_lanche_igual=True,
                                        solicitacao_kit_lanche=solicitacao_kit_lanche,
                                        outro_motivo=fake.text(),
@@ -76,7 +75,6 @@ def solicitacao_unificada_lotes_diferentes():
     dre = mommy.make('escola.DiretoriaRegional', nome=fake.name())
     solicitacao_unificada = mommy.make(models.SolicitacaoKitLancheUnificada,
                                        local=fake.text()[:160],
-                                       quantidade_max_alunos_por_escola=999,
                                        lista_kit_lanche_igual=True,
                                        solicitacao_kit_lanche=solicitacao_kit_lanche,
                                        outro_motivo=fake.text(),
@@ -115,7 +113,6 @@ def solicitacao_unificada_lotes_iguais():
     dre = mommy.make('escola.DiretoriaRegional', nome=fake.name())
     solicitacao_unificada = mommy.make(models.SolicitacaoKitLancheUnificada,
                                        local=fake.text()[:160],
-                                       quantidade_max_alunos_por_escola=999,
                                        lista_kit_lanche_igual=True,
                                        solicitacao_kit_lanche=solicitacao_kit_lanche,
                                        outro_motivo=fake.text(),
