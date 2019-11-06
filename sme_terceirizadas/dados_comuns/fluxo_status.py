@@ -9,7 +9,7 @@ from django.db import models
 from django_xworkflows import models as xwf_models
 
 from .models import LogSolicitacoesUsuario
-from .tasks import envia_email_em_massa_task, envia_email_unico_task
+from .tasks import envia_email_em_massa_task
 
 
 class PedidoAPartirDaEscolaWorkflow(xwf_models.Workflow):
@@ -211,11 +211,15 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
         return self.status == self.workflow_class.CODAE_AUTORIZADO
 
     @property
-    def partes_interessadas_inicio_fluxo(self):
-        """
+    def _partes_interessadas_inicio_fluxo(self):
+        """Quando a escola faz a solicitação, as pessoas da DRE são as partes interessadas.
 
+        Será retornada uma lista de emails para envio via celery.
         """
-        return []
+        email_query_set = self.rastro_dre.vinculos.filter(
+            ativo=True
+        ).values_list('usuario__email', flat=False)
+        return [email for email in email_query_set]
 
     @property
     def partes_interessadas_dre_valida(self):
@@ -247,13 +251,17 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
 
     @xworkflows.after_transition('inicia_fluxo')
     def _inicia_fluxo_hook(self, *args, **kwargs):
+        self._salva_rastro_solicitacao()
         user = kwargs['user']
         assunto, corpo = self.template_mensagem
-        envia_email_em_massa_task.delay(assunto=assunto, corpo=corpo, html=None, emails=['mmaia.cc@gmail.com'])
-        envia_email_unico_task.delay(assunto=assunto, corpo=corpo, html=None, email='mmaia.cc@gmail.com')
+        envia_email_em_massa_task.delay(
+            assunto=assunto,
+            corpo=corpo,
+            emails=self._partes_interessadas_inicio_fluxo,
+            html=None
+        )
         self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.INICIO_FLUXO,
                                   usuario=user)
-        self._salva_rastro_solicitacao()
 
     @xworkflows.after_transition('dre_valida')
     def _dre_valida_hook(self, *args, **kwargs):
