@@ -1,6 +1,7 @@
 language: python
 services:
   - postgresql
+  - redis-server
 python:
   - "3.6"
 before_script:

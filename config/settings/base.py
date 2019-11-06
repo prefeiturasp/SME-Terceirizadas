@@ -77,7 +77,6 @@ DJANGO_APPS = [
 ]
 THIRD_PARTY_APPS = [
     'rest_framework',
-    'notifications',
     'rest_framework_swagger',
     'des',  # for email configuration in database
     'django_xworkflows',
@@ -296,3 +295,30 @@ JWT_AUTH = {
 URL_CONFIGS = {
     'CONFIRMAR_EMAIL': '/confirmar-email?uuid={uuid}&confirmationKey={confirmation_key}'
 }
+
+REDIS_URL = env('REDIS_URL')
+
+# CACHES
+# ------------------------------------------------------------------------------
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': f'{REDIS_URL}/0',
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+            # Mimicing memcache behavior.
+            # http://niwinz.github.io/django-redis/latest/#_memcached_exceptions_behavior
+            'IGNORE_EXCEPTIONS': True,
+        }
+    }
+}
+
+# https://docs.celeryproject.org/en/latest/userguide/configuration.html
+CELERY_BROKER_URL = f'{REDIS_URL}/1'
+CELERY_RESULT_BACKEND = f'{REDIS_URL}/2'
+
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_ENABLE_UTC = True
+CELERY_IGNORE_RESULT = True
