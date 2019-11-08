@@ -92,3 +92,14 @@ def test_inclusao_alimentacao_continua_fluxo_erro(inversao_dia_cardapio):
 
 def test_grupo_suspensao_alimentacao(grupo_suspensao_alimentacao):
     assert grupo_suspensao_alimentacao.__str__() == 'lorem ipsum'
+
+
+def test_vinculo_tipo_alimentacao_periodo_tipo_ue(vinculo_tipo_alimentacao_periodo_tipo_ue):
+    assert vinculo_tipo_alimentacao_periodo_tipo_ue
+    periodo_escolar = vinculo_tipo_alimentacao_periodo_tipo_ue.periodo_escolar
+    tipos_alim_desc = [nome for nome in
+                       vinculo_tipo_alimentacao_periodo_tipo_ue.tipos_alimentacao.values_list('nome', flat=True)]
+    tipo_unidade_escolar = vinculo_tipo_alimentacao_periodo_tipo_ue.tipo_unidade_escolar
+    assert vinculo_tipo_alimentacao_periodo_tipo_ue.__str__() == f'{periodo_escolar.nome} - {tipo_unidade_escolar.iniciais} {tipos_alim_desc}'  # noqa E501
+    assert vinculo_tipo_alimentacao_periodo_tipo_ue._meta.verbose_name == 'Vínculo tipo alimentação'
+    assert vinculo_tipo_alimentacao_periodo_tipo_ue._meta.verbose_name_plural == 'Vínculos tipo alimentação'

@@ -392,3 +392,15 @@ def alteracao_card_params(request):
 ])
 def grupo_suspensao_alimentacao_params(request):
     return request.param
+
+
+@pytest.fixture(params=[
+    # quantidade tipos alimentacao
+    3, 4, 5
+])
+def vinculo_tipo_alimentacao_periodo_tipo_ue(request):
+    quantidade_tipos_alimentacao = request.param
+    tipos_alimentacao = mommy.make('TipoAlimentacao', nome=fake.name()[:10], _quantity=quantidade_tipos_alimentacao)
+    vinculo_alimentacao = mommy.make('VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar',
+                                     tipos_alimentacao=tipos_alimentacao)
+    return vinculo_alimentacao
