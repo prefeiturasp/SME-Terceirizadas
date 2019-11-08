@@ -9,7 +9,7 @@ from ..cardapio.models import (
 from ..dados_comuns.behaviors import (
     Ativavel, Iniciais, Nomeavel, TemChaveExterna,
     TemCodigoEOL, TemVinculos)
-from ..dados_comuns.constants import DAQUI_A_30_DIAS, DAQUI_A_7_DIAS, DIRETOR
+from ..dados_comuns.constants import COGESTOR, DAQUI_A_30_DIAS, DAQUI_A_7_DIAS, DIRETOR, SUPLENTE
 from ..inclusao_alimentacao.models import (
     GrupoInclusaoAlimentacaoNormal, InclusaoAlimentacaoContinua
 )
@@ -17,6 +17,13 @@ from ..kit_lanche.models import SolicitacaoKitLancheAvulsa, SolicitacaoKitLanche
 
 
 class DiretoriaRegional(Nomeavel, Iniciais, TemChaveExterna, TemCodigoEOL, TemVinculos):
+
+    @property
+    def vinculos_podem_ser_finalizados(self):
+        return self.vinculos.filter(
+            Q(data_inicial=None, data_final=None, ativo=False) |  # noqa W504 esperando ativacao
+            Q(data_inicial__isnull=False, data_final=None, ativo=True)  # noqa W504 ativo
+        ).exclude(perfil__nome__in=[COGESTOR, SUPLENTE])
 
     @property
     def escolas(self):

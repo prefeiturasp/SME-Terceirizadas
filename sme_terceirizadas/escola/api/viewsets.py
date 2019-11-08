@@ -5,6 +5,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
+from ...dados_comuns.constants import ADMINISTRADOR_DRE, ADMINISTRADOR_ESCOLA
 from .serializers import (
     DiretoriaRegionalCompletaSerializer, DiretoriaRegionalSimplissimaSerializer,
     EscolaSimplesSerializer, EscolaSimplissimaSerializer, PeriodoEscolarSerializer, SubprefeituraSerializer,
@@ -13,7 +14,7 @@ from .serializers import (
 from ..models import (
     Codae, DiretoriaRegional, Escola, Lote, PeriodoEscolar, Subprefeitura, TipoGestao
 )
-from ...escola.api.permissions import PodeCriarAdministradoresDaEscola
+from ...escola.api.permissions import PodeCriarAdministradoresDaDiretoriaRegional, PodeCriarAdministradoresDaEscola
 from ...escola.api.serializers import CODAESerializer, LoteSimplesSerializer
 from ...escola.api.serializers import UsuarioDetalheSerializer
 from ...escola.api.serializers_create import LoteCreateSerializer
@@ -26,31 +27,69 @@ from ...perfil.api.serializers import UsuarioUpdateSerializer, VinculoSerializer
 class VinculoEscolaViewSet(ReadOnlyModelViewSet):
     lookup_field = 'uuid'
     queryset = Escola.objects.all()
+    permission_classes = [PodeCriarAdministradoresDaEscola]
     serializer_class = VinculoSerializer
 
-    @action(detail=True, permission_classes=[PodeCriarAdministradoresDaEscola], methods=['post'])
+    @action(detail=True, methods=['post'])
     def criar_equipe_administradora(self, request, uuid=None):
         try:
             escola = self.get_object()
             data = request.data.copy()
-            data['escola'] = escola.nome
+            data['instituicao'] = escola.nome
             usuario = UsuarioUpdateSerializer(data).create(validated_data=data)
-            usuario.criar_vinculo_administrador_escola(escola)
+            usuario.criar_vinculo_administrador(escola, nome_perfil=ADMINISTRADOR_ESCOLA)
             return Response(UsuarioDetalheSerializer(usuario).data)
         except serializers.ValidationError as e:
             return Response(data=dict(detail=e.args[0]), status=e.status_code)
 
-    @action(detail=True, permission_classes=[PodeCriarAdministradoresDaEscola])
+    @action(detail=True)
     def get_equipe_administradora(self, request, uuid=None):
         escola = self.get_object()
         vinculos = escola.vinculos_podem_ser_finalizados
         return Response(self.get_serializer(vinculos, many=True).data)
 
-    @action(detail=True, permission_classes=[PodeCriarAdministradoresDaEscola], methods=['patch'])
+    @action(detail=True, methods=['patch'])
     def finalizar_vinculo(self, request, uuid=None):
         escola = self.get_object()
         vinculo_uuid = request.data.get('vinculo_uuid')
         vinculo = escola.vinculos.get(uuid=vinculo_uuid)
+        vinculo.usuario.is_active = False
+        vinculo.usuario.save()
+        vinculo.ativo = False
+        vinculo.data_final = datetime.date.today()
+        vinculo.save()
+        return Response(self.get_serializer(vinculo).data)
+
+
+class VinculoDiretoriaRegionalViewSet(ReadOnlyModelViewSet):
+    lookup_field = 'uuid'
+    queryset = DiretoriaRegional.objects.all()
+    serializer_class = VinculoSerializer
+    permission_classes = [PodeCriarAdministradoresDaDiretoriaRegional]
+
+    @action(detail=True, methods=['post'])
+    def criar_equipe_administradora(self, request, uuid=None):
+        try:
+            diretoria_regional = self.get_object()
+            data = request.data.copy()
+            data['instituicao'] = diretoria_regional.nome
+            usuario = UsuarioUpdateSerializer(data).create(validated_data=data)
+            usuario.criar_vinculo_administrador(diretoria_regional, nome_perfil=ADMINISTRADOR_DRE)
+            return Response(UsuarioDetalheSerializer(usuario).data)
+        except serializers.ValidationError as e:
+            return Response(data=dict(detail=e.args[0]), status=e.status_code)
+
+    @action(detail=True)
+    def get_equipe_administradora(self, request, uuid=None):
+        diretoria_regional = self.get_object()
+        vinculos = diretoria_regional.vinculos_podem_ser_finalizados
+        return Response(self.get_serializer(vinculos, many=True).data)
+
+    @action(detail=True, methods=['patch'])
+    def finalizar_vinculo(self, request, uuid=None):
+        diretoria_regional = self.get_object()
+        vinculo_uuid = request.data.get('vinculo_uuid')
+        vinculo = diretoria_regional.vinculos.get(uuid=vinculo_uuid)
         vinculo.usuario.is_active = False
         vinculo.usuario.save()
         vinculo.ativo = False
