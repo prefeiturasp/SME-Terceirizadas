@@ -62,7 +62,22 @@ def usuario_serializer(usuario):
 
 @pytest.fixture
 def vinculo(perfil, usuario):
-    return mommy.make('Vinculo', perfil=perfil, usuario=usuario)
+    hoje = datetime.date.today()
+    return mommy.make('Vinculo', perfil=perfil, usuario=usuario, data_inicial=hoje,
+                      data_final=None, ativo=True)
+
+
+@pytest.fixture
+def vinculo_aguardando_ativacao(perfil, usuario):
+    return mommy.make('Vinculo', perfil=perfil, usuario=usuario, data_inicial=None,
+                      data_final=None, ativo=False)
+
+
+@pytest.fixture
+def vinculo_invalido(perfil, usuario):
+    hoje = datetime.date.today()
+    return mommy.make('Vinculo', perfil=perfil, usuario=usuario, data_inicial=hoje,
+                      data_final=hoje, ativo=True)
 
 
 @pytest.fixture
@@ -133,6 +148,36 @@ def users_diretor_escola(client, django_user_model, request):
     return client, email, password, rf, cpf, user
 
 
+@pytest.fixture(params=[
+    # email, senha, rf, cpf
+    ('cogestor_1@sme.prefeitura.sp.gov.br', 'adminadmin', '0000001', '44426575052'),
+    ('cogestor_2@sme.prefeitura.sp.gov.br', 'aasdsadsadff', '0000002', '56789925031'),
+    ('cogestor_3@sme.prefeitura.sp.gov.br', '98as7d@@#', '0000147', '86880963099'),
+    ('cogestor_4@sme.prefeitura.sp.gov.br', '##$$csazd@!', '0000441', '13151715036'),
+    ('cogestor_5@sme.prefeitura.sp.gov.br', '!!@##FFG121', '0005551', '40296233013')
+])
+def users_cogestor_diretoria_regional(client, django_user_model, request):
+    email, password, rf, cpf = request.param
+    user = django_user_model.objects.create_user(password=password, email=email, registro_funcional=rf, cpf=cpf)
+    client.login(email=email, password=password)
+
+    diretoria_regional = mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL DE EDUCACAO CAPELA DO SOCORRO',
+                                    uuid='b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd')
+
+    perfil_professor = mommy.make('Perfil', nome='ADMINISTRADOR_DRE', ativo=False,
+                                  uuid='48330a6f-c444-4462-971e-476452b328b2')
+    perfil_cogestor = mommy.make('Perfil', nome='COGESTOR', ativo=True, uuid='41c20c8b-7e57-41ed-9433-ccb92e8afaf1')
+
+    hoje = datetime.date.today()
+    mommy.make('Vinculo', usuario=user, instituicao=diretoria_regional, perfil=perfil_professor,
+               ativo=False, data_inicial=hoje, data_final=hoje + datetime.timedelta(days=30)
+               )  # finalizado
+    mommy.make('Vinculo', usuario=user, instituicao=diretoria_regional, perfil=perfil_cogestor,
+               data_inicial=hoje, ativo=True)
+
+    return client, email, password, rf, cpf, user
+
+
 def mocked_request_api_eol():
     class MockResponse:
         def __init__(self, json_data, status_code):
@@ -151,6 +196,21 @@ def mocked_request_api_eol():
                                       'divisao': 'NOE AZEVEDO, PROF',
                                       'cd_cpf_pessoa': '95887745002',
                                       'coord': 'DIRETORIA REGIONAL DE EDUCACAO JACANA/TREMEMBE'}]}, 200)
+
+
+def mocked_request_api_eol_usuario_diretoria_regional():
+    class MockResponse:
+        def __init__(self, json_data, status_code):
+            self.json_data = json_data
+            self.status_code = status_code
+
+        def json(self):
+            return self.json_data
+
+    return MockResponse({'results': [{'nm_pessoa': 'LUIZA MARIA BASTOS', 'cargo': 'AUXILIAR TECNICO DE EDUCACAO',
+                                      'divisao': 'DIRETORIA REGIONAL DE EDUCACAO CAPELA DO SOCORRO',
+                                      'cd_cpf_pessoa': '47088910080',
+                                      'coord': 'DIRETORIA REGIONAL DE EDUCACAO CAPELA DO SOCORRO'}]}, 200)
 
 
 @pytest.fixture(params=[

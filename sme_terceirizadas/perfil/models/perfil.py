@@ -1,3 +1,5 @@
+import datetime
+
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
@@ -61,6 +63,13 @@ class Vinculo(Ativavel, TemChaveExterna):
         else:
             raise IntegrityError('Status invalido')
         return status
+
+    def finalizar_vinculo(self):
+        self.usuario.is_active = False
+        self.usuario.save()
+        self.ativo = False
+        self.data_final = datetime.date.today()
+        self.save()
 
     class Meta:
         verbose_name = 'Vínculo'

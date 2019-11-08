@@ -1,5 +1,3 @@
-import datetime
-
 from rest_framework import serializers, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -53,11 +51,7 @@ class VinculoEscolaViewSet(ReadOnlyModelViewSet):
         escola = self.get_object()
         vinculo_uuid = request.data.get('vinculo_uuid')
         vinculo = escola.vinculos.get(uuid=vinculo_uuid)
-        vinculo.usuario.is_active = False
-        vinculo.usuario.save()
-        vinculo.ativo = False
-        vinculo.data_final = datetime.date.today()
-        vinculo.save()
+        vinculo.finalizar_finculo()
         return Response(self.get_serializer(vinculo).data)
 
 
@@ -90,11 +84,7 @@ class VinculoDiretoriaRegionalViewSet(ReadOnlyModelViewSet):
         diretoria_regional = self.get_object()
         vinculo_uuid = request.data.get('vinculo_uuid')
         vinculo = diretoria_regional.vinculos.get(uuid=vinculo_uuid)
-        vinculo.usuario.is_active = False
-        vinculo.usuario.save()
-        vinculo.ativo = False
-        vinculo.data_final = datetime.date.today()
-        vinculo.save()
+        vinculo.finalizar_vinculo()
         return Response(self.get_serializer(vinculo).data)
 
 

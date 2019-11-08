@@ -1,6 +1,7 @@
 import datetime
 
 import pytest
+from django.db.utils import IntegrityError
 
 from ..models import Perfil, Usuario
 
@@ -19,10 +20,23 @@ def test_usuario(usuario):
 
 
 def test_vinculo(vinculo):
-    assert vinculo.data_inicial is None
     assert (isinstance(vinculo.data_final, datetime.date) or vinculo.data_final is None)
     assert isinstance(vinculo.usuario, Usuario)
     assert isinstance(vinculo.perfil, Perfil)
+    assert vinculo.status is vinculo.STATUS_ATIVO
+    vinculo.finalizar_vinculo()
+    assert vinculo.status is vinculo.STATUS_FINALIZADO
+    assert vinculo.usuario.is_active is False
+    assert vinculo.data_final is not None
+
+
+def test_vinculo_aguardando_ativacao(vinculo_aguardando_ativacao):
+    assert vinculo_aguardando_ativacao.status is vinculo_aguardando_ativacao.STATUS_AGUARDANDO_ATIVACAO
+
+
+def test_vinculo_invalido(vinculo_invalido):
+    with pytest.raises(IntegrityError, match='Status invalido'):
+        vinculo_invalido.status
 
 
 def test_vinculo_diretoria_regional(vinculo_diretoria_regional):
