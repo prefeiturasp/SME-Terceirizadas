@@ -49,6 +49,7 @@ def cria_usuario_gestor_ou_suplente(registro_funcional, nome, email, cpf):
     if nome == 'SEM SUPLENTE':
         return None
     else:
+        email = f'{cpf}@emailteste.sme.prefeitura.sp.gov.br'
         usuario = Usuario.objects.create_user(email, registro_funcional)
         usuario.registro_funcional = retorna_apenas_numeros_registro_funcional(
             registro_funcional
