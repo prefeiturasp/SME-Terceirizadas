@@ -16,7 +16,8 @@ router.register('motivos-suspensao-cardapio', viewsets.MotivosSuspensaoCardapioV
                 'Motivos de suspensão de cardápio')
 router.register('alteracoes-cardapio-rascunho', viewsets.AlteracoesCardapioRascunhoViewSet,
                 'Alterações de Cardápio Rascunho')
-
+router.register('vinculos-tipo-alimentacao-u-e-periodo-escolar', viewsets.VinculoTipoAlimentacaoViewSet,
+                'Vínculos de tipo de alimentação no periodo escolar e tipo de u.e')
 urlpatterns = [
     path('', include(router.urls)),
 ]

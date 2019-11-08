@@ -1,16 +1,24 @@
 from django.contrib import admin
 
 from .models import (
-    AlteracaoCardapio, Cardapio, GrupoSuspensaoAlimentacao, InversaoCardapio, MotivoAlteracaoCardapio, MotivoSuspensao,
-    QuantidadePorPeriodoSuspensaoAlimentacao, SubstituicoesAlimentacaoNoPeriodoEscolar, SuspensaoAlimentacao,
-    TipoAlimentacao
-)
+    AlteracaoCardapio,
+    Cardapio,
+    GrupoSuspensaoAlimentacao,
+    InversaoCardapio,
+    MotivoAlteracaoCardapio,
+    MotivoSuspensao,
+    QuantidadePorPeriodoSuspensaoAlimentacao,
+    SubstituicoesAlimentacaoNoPeriodoEscolar,
+    SuspensaoAlimentacao,
+    TipoAlimentacao,
+    VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar)
 
 admin.site.register(TipoAlimentacao)
 admin.site.register(InversaoCardapio)
 admin.site.register(MotivoAlteracaoCardapio)
 admin.site.register(SubstituicoesAlimentacaoNoPeriodoEscolar)
 admin.site.register(MotivoSuspensao)
+admin.site.register(VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar)
 
 
 @admin.register(Cardapio)
