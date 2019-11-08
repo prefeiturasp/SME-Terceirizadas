@@ -73,11 +73,17 @@ def vinculo_aguardando_ativacao(perfil, usuario):
                       data_final=None, ativo=False)
 
 
-@pytest.fixture
-def vinculo_invalido(perfil, usuario):
-    hoje = datetime.date.today()
-    return mommy.make('Vinculo', perfil=perfil, usuario=usuario, data_inicial=hoje,
-                      data_final=hoje, ativo=True)
+@pytest.fixture(params=[
+    # dataini, datafim, ativo
+    (datetime.date(2000, 1, 12), datetime.date(2000, 1, 12), True),  # nao pode data final e ativo
+    (None, datetime.date(2000, 1, 12), True),  # nao pode data final sem data inicial
+    (None, datetime.date(2000, 1, 12), False),  # nao pode data final sem data inicial,
+    (datetime.date(2000, 1, 12), None, False)  # nao pode data inicio, sem data fim e inativo
+])
+def vinculo_invalido(perfil, usuario, request):
+    dataini, datafim, ativo = request.param
+    return mommy.make('Vinculo', perfil=perfil, usuario=usuario, data_inicial=dataini,
+                      data_final=datafim, ativo=ativo)
 
 
 @pytest.fixture
