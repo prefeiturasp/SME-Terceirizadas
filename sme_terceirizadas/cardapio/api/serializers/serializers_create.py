@@ -10,13 +10,14 @@ from ...models import (
     QuantidadePorPeriodoSuspensaoAlimentacao, SubstituicoesAlimentacaoNoPeriodoEscolar, SuspensaoAlimentacao,
     SuspensaoAlimentacaoNoPeriodoEscolar, TipoAlimentacao
 )
+from ...models import VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
 from ....dados_comuns.utils import update_instance_from_dict
 from ....dados_comuns.validators import (
     deve_existir_cardapio, deve_pedir_com_antecedencia,
     nao_pode_ser_feriado, nao_pode_ser_no_passado,
     objeto_nao_deve_ter_duplicidade
 )
-from ....escola.models import Escola, PeriodoEscolar
+from ....escola.models import Escola, PeriodoEscolar, TipoUnidadeEscolar
 from ....terceirizada.models import Edital
 
 
@@ -298,3 +299,24 @@ class GrupoSuspensaoAlimentacaoCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = GrupoSuspensaoAlimentacao
         exclude = ('id',)
+
+
+class VinculoTipoAlimentoCreateSerializer(serializers.ModelSerializer):
+    tipo_unidade_escolar = serializers.SlugRelatedField(
+        slug_field='uuid',
+        queryset=TipoUnidadeEscolar.objects.all()
+    )
+    periodo_escolar = serializers.SlugRelatedField(
+        slug_field='uuid',
+        queryset=PeriodoEscolar.objects.all()
+    )
+
+    tipos_alimentacao = serializers.SlugRelatedField(
+        many=True,
+        slug_field='uuid',
+        queryset=TipoAlimentacao.objects.all()
+    )
+
+    class Meta:
+        model = VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
+        fields = ('uuid', 'tipos_alimentacao', 'tipo_unidade_escolar', 'periodo_escolar')

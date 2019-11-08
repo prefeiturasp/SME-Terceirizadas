@@ -19,6 +19,7 @@ from .serializers.serializers import (
 from .serializers.serializers_create import (
     AlteracaoCardapioSerializerCreate, CardapioCreateSerializer,
     GrupoSuspensaoAlimentacaoCreateSerializer, InversaoCardapioSerializerCreate)
+from ..api.serializers.serializers_create import VinculoTipoAlimentoCreateSerializer
 from ..models import (AlteracaoCardapio, Cardapio, GrupoSuspensaoAlimentacao, InversaoCardapio, MotivoAlteracaoCardapio,
                       MotivoSuspensao, TipoAlimentacao, VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar)
 from ...dados_comuns import constants
@@ -45,6 +46,11 @@ class VinculoTipoAlimentacaoViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
     serializer_class = VinculoTipoAlimentoSimplesSerializer
     queryset = VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar.objects.all()
+
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update']:
+            return VinculoTipoAlimentoCreateSerializer
+        return VinculoTipoAlimentoSimplesSerializer
 
 
 class InversaoCardapioViewSet(viewsets.ModelViewSet):
