@@ -3,7 +3,7 @@ import uuid
 import pytest
 from rest_framework import status
 
-from .conftest import mocked_request_api_eol
+from .conftest import mocked_request_api_eol, mocked_request_api_eol_usuario_diretoria_regional
 from ..api.serializers import UsuarioUpdateSerializer
 from ..api.viewsets import UsuarioUpdateViewSet
 from ..models import Usuario
@@ -91,6 +91,44 @@ def test_cadastro_vinculo_diretor_escola(users_diretor_escola, monkeypatch):
     assert usuario_novo.is_active is False
     assert usuario_novo.vinculo_atual is not None
     assert usuario_novo.vinculo_atual.perfil.nome == 'ADMINISTRADOR_ESCOLA'
+
+
+def test_cadastro_vinculo_diretoria_regional(users_cogestor_diretoria_regional, monkeypatch):
+    client, email, password, rf, cpf, user = users_cogestor_diretoria_regional
+    diretoria_regional_ = user.vinculo_atual.instituicao
+    mimetype = 'application/json'
+    headers = {
+        'Content-Type': mimetype,
+        'Accept': mimetype
+    }
+    data = {
+        'registro_funcional': '6812805'
+    }
+
+    monkeypatch.setattr(UsuarioUpdateSerializer, 'get_informacoes_usuario',
+                        lambda p1, p2: mocked_request_api_eol_usuario_diretoria_regional())
+    response = client.post(
+        f'/vinculos-diretorias-regionais/{str(diretoria_regional_.uuid)}/criar_equipe_administradora/', headers=headers,
+        data=data)
+    assert response.status_code == status.HTTP_200_OK
+    response.json().pop('date_joined')
+    response.json().pop('uuid')
+    assert response.json() == {'nome': 'LUIZA MARIA BASTOS',
+                               'email': '47088910080@emailtemporario.prefeitura.sp.gov.br',
+                               'registro_funcional': '6812805',
+                               'tipo_usuario': 'diretoria_regional',
+                               'vinculo_atual': {
+                                   'instituicao': {'nome': 'DIRETORIA REGIONAL DE EDUCACAO CAPELA DO SOCORRO',
+                                                   'uuid': 'b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd',
+                                                   'quantidade_alunos': None,
+                                                   'lotes': [],
+                                                   'periodos_escolares': [], 'escolas': []},
+                                   'perfil': {'nome': 'ADMINISTRADOR_DRE',
+                                              'uuid': '48330a6f-c444-4462-971e-476452b328b2'}}}
+    usuario_novo = Usuario.objects.get(registro_funcional='6812805')
+    assert usuario_novo.is_active is False
+    assert usuario_novo.vinculo_atual is not None
+    assert usuario_novo.vinculo_atual.perfil.nome == 'ADMINISTRADOR_DRE'
 
 
 def test_erro_403_usuario_nao_pertence_a_escola_cadastro_vinculos_escola(escola, users_diretor_escola, monkeypatch):

@@ -48,6 +48,12 @@ perfil_usuario_codae, created = Perfil.objects.get_or_create(
     super_usuario=True
 )
 
+perfil_administrador_diretoria_regional, created = Perfil.objects.get_or_create(
+    nome='ADMINISTRADOR_DRE',
+    ativo=True,
+    super_usuario=True
+)
+
 perfil_usuario_terceirizada, created = Perfil.objects.get_or_create(
     nome='NUTRICIONISTA',
     ativo=True,

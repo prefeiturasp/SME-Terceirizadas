@@ -152,8 +152,8 @@ class Usuario(SimpleEmailConfirmationUserMixin, CustomAbstractUser, TemChaveExte
             f': {url_configs("CONFIRMAR_EMAIL", content)}',
         )
 
-    def criar_vinculo_administrador_escola(self, escola):
-        perfil = Perfil.objects.get(nome='ADMINISTRADOR_ESCOLA')
+    def criar_vinculo_administrador(self, escola, nome_perfil):
+        perfil = Perfil.objects.get(nome=nome_perfil)
         Vinculo.objects.create(
             instituicao=escola,
             perfil=perfil,

@@ -46,7 +46,7 @@ class UsuarioUpdateSerializer(serializers.ModelSerializer):
         informacoes_usuario = self.get_informacoes_usuario(validated_data)
         informacoes_usuario = informacoes_usuario.json()['results']
         usuario_e_vinculado_a_aquela_instituicao(
-            descricao_instituicao=validated_data['escola'],
+            descricao_instituicao=validated_data['instituicao'],
             instituicoes_eol=informacoes_usuario
         )
         cpf = informacoes_usuario[0]['cd_cpf_pessoa']
