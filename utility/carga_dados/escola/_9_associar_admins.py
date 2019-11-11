@@ -62,7 +62,7 @@ perfil_usuario_terceirizada, created = Perfil.objects.get_or_create(
 
 escola = Escola.objects.get(nome='EMEF JOSE ERMIRIO DE MORAIS, SEN.')
 diretoria_regional = DiretoriaRegional.objects.get(nome='DIRETORIA REGIONAL DE EDUCACAO SAO MIGUEL')
-codae, created = Codae.objects.get_or_create(nome='CODAE_ADMIN')
+codae, created = Codae.objects.get_or_create(nome='CODAE')
 terceirizada = escola.lote.terceirizada
 
 Vinculo.objects.create(
