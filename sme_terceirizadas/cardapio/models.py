@@ -42,6 +42,31 @@ class TipoAlimentacao(Nomeavel, TemChaveExterna):
         verbose_name_plural = 'Tipos de alimentação'
 
 
+class VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar(TemChaveExterna):
+    """Vincular vários tipos de alimentação a um periodo e tipo de U.E.
+
+    Dado o tipo_unidade_escolar (EMEI, EMEF...) e
+    em seguida o periodo_escolar(MANHA, TARDE..),
+    trazer os tipos de alimentação que podem ser servidos.
+    Ex.: Para CEI(creche) pela manhã (período) faz sentido ter mingau e não café da tarde.
+    """
+
+    periodo_escolar = models.ForeignKey('escola.PeriodoEscolar',
+                                        on_delete=models.DO_NOTHING)
+    tipo_unidade_escolar = models.ForeignKey('escola.TipoUnidadeEscolar',
+                                             on_delete=models.DO_NOTHING)
+    tipos_alimentacao = models.ManyToManyField('TipoAlimentacao',
+                                               blank=True)
+
+    def __str__(self):
+        tipos_alim_desc = [nome for nome in self.tipos_alimentacao.values_list('nome', flat=True)]
+        return f'{self.periodo_escolar.nome} - {self.tipo_unidade_escolar.iniciais} {tipos_alim_desc}'
+
+    class Meta:
+        verbose_name = 'Vínculo tipo alimentação'
+        verbose_name_plural = 'Vínculos tipo alimentação'
+
+
 class Cardapio(Descritivel, Ativavel, TemData, TemChaveExterna, CriadoEm):
     """Cardápio escolar.
 

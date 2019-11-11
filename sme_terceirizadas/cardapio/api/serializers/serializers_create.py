@@ -8,15 +8,17 @@ from ...api.validators import (
 from ...models import (
     AlteracaoCardapio, Cardapio, GrupoSuspensaoAlimentacao, InversaoCardapio, MotivoAlteracaoCardapio, MotivoSuspensao,
     QuantidadePorPeriodoSuspensaoAlimentacao, SubstituicoesAlimentacaoNoPeriodoEscolar, SuspensaoAlimentacao,
-    SuspensaoAlimentacaoNoPeriodoEscolar, TipoAlimentacao
+    SuspensaoAlimentacaoNoPeriodoEscolar, TipoAlimentacao, VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
 )
 from ....dados_comuns.utils import update_instance_from_dict
 from ....dados_comuns.validators import (
-    deve_existir_cardapio, deve_pedir_com_antecedencia,
-    nao_pode_ser_feriado, nao_pode_ser_no_passado,
-    objeto_nao_deve_ter_duplicidade
-)
-from ....escola.models import Escola, PeriodoEscolar
+    campo_nao_pode_ser_nulo,
+    deve_existir_cardapio,
+    deve_pedir_com_antecedencia,
+    nao_pode_ser_feriado,
+    nao_pode_ser_no_passado,
+    objeto_nao_deve_ter_duplicidade)
+from ....escola.models import Escola, PeriodoEscolar, TipoUnidadeEscolar
 from ....terceirizada.models import Edital
 
 
@@ -298,3 +300,28 @@ class GrupoSuspensaoAlimentacaoCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = GrupoSuspensaoAlimentacao
         exclude = ('id',)
+
+
+class VinculoTipoAlimentoCreateSerializer(serializers.ModelSerializer):
+    tipo_unidade_escolar = serializers.SlugRelatedField(
+        slug_field='uuid',
+        queryset=TipoUnidadeEscolar.objects.all()
+    )
+    periodo_escolar = serializers.SlugRelatedField(
+        slug_field='uuid',
+        queryset=PeriodoEscolar.objects.all()
+    )
+
+    tipos_alimentacao = serializers.SlugRelatedField(
+        many=True,
+        slug_field='uuid',
+        queryset=TipoAlimentacao.objects.all()
+    )
+
+    def validate_tipos_alimentacao(self, tipos_alimentacao):
+        campo_nao_pode_ser_nulo(tipos_alimentacao)
+        return tipos_alimentacao
+
+    class Meta:
+        model = VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
+        fields = ('uuid', 'tipos_alimentacao', 'tipo_unidade_escolar', 'periodo_escolar')

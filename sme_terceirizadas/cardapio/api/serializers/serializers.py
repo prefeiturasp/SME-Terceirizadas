@@ -3,7 +3,7 @@ from rest_framework import serializers
 from ...models import (
     AlteracaoCardapio, Cardapio, GrupoSuspensaoAlimentacao, InversaoCardapio, MotivoAlteracaoCardapio, MotivoSuspensao,
     QuantidadePorPeriodoSuspensaoAlimentacao, SubstituicoesAlimentacaoNoPeriodoEscolar, SuspensaoAlimentacao,
-    SuspensaoAlimentacaoNoPeriodoEscolar, TipoAlimentacao
+    SuspensaoAlimentacaoNoPeriodoEscolar, TipoAlimentacao, VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
 )
 from ....dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
 from ....escola.api.serializers import (
@@ -14,19 +14,33 @@ from ....terceirizada.api.serializers.serializers import EditalSerializer
 
 
 class SubstituicoesTipoAlimentacaoSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = TipoAlimentacao
         exclude = ('id', 'substituicoes',)
 
 
 class TipoAlimentacaoSerializer(serializers.ModelSerializer):
-
     substituicoes = SubstituicoesTipoAlimentacaoSerializer(many=True)
 
     class Meta:
         model = TipoAlimentacao
         exclude = ('id',)
+
+
+class TipoAlimentacaoSimplesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TipoAlimentacao
+        fields = ('uuid', 'nome',)
+
+
+class VinculoTipoAlimentoSimplesSerializer(serializers.ModelSerializer):
+    tipos_alimentacao = TipoAlimentacaoSimplesSerializer(many=True)
+    tipo_unidade_escolar = TipoUnidadeEscolarSerializer()
+    periodo_escolar = PeriodoEscolarSimplesSerializer()
+
+    class Meta:
+        model = VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
+        fields = ('uuid', 'tipos_alimentacao', 'tipo_unidade_escolar', 'periodo_escolar')
 
 
 class CardapioSimplesSerializer(serializers.ModelSerializer):
