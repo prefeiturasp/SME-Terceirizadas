@@ -15,5 +15,6 @@ echo "Criando CODAE admin"
 ./manage.py shell -c "from utility.carga_dados import run"
 ./manage.py atualiza_dres
 ./manage.py shell -c "from utility.carga_dados.escola import _8_co_gestores_dre"
+./manage.py shell -c "from utility.carga_dados.escola import _10_codae"
 ./manage.py shell -c "from utility.carga_dados.escola import _9_associar_admins"
 
