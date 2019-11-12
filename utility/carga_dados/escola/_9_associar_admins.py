@@ -42,14 +42,32 @@ perfil_cogestor_dre, created = Perfil.objects.get_or_create(
     super_usuario=True
 )
 
-perfil_usuario_codae, created = Perfil.objects.get_or_create(
-    nome='COORDENADOR',
+perfil_administrador_diretoria_regional, created = Perfil.objects.get_or_create(
+    nome='ADMINISTRADOR_DRE',
     ativo=True,
     super_usuario=True
 )
 
-perfil_administrador_diretoria_regional, created = Perfil.objects.get_or_create(
-    nome='ADMINISTRADOR_DRE',
+perfil_usuario_codae, created = Perfil.objects.get_or_create(
+    nome='COORDENADOR_DIETA_ESPECIAL',
+    ativo=True,
+    super_usuario=True
+)
+
+perfil_usuario_codae, created = Perfil.objects.get_or_create(
+    nome='COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA',
+    ativo=True,
+    super_usuario=True
+)
+
+Perfil.objects.get_or_create(
+    nome='ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA',
+    ativo=True,
+    super_usuario=True
+)
+
+Perfil.objects.get_or_create(
+    nome='ADMINISTRADOR_DIETA_ESPECIAL',
     ativo=True,
     super_usuario=True
 )
