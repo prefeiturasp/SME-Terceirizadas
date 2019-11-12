@@ -1,3 +1,4 @@
+import datetime
 import uuid
 
 import pytest
@@ -125,6 +126,21 @@ def test_erro_401_usuario_nao_e_diretor_ou_nao_esta_logado_cadastro_vinculos(cli
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
+def test_get_equipe_administradora_vinculos_escola(users_diretor_escola):
+    client, email, password, rf, cpf, user = users_diretor_escola
+    escola_ = user.vinculo_atual.instituicao
+    response = client.get(f'/vinculos-escolas/{str(escola_.uuid)}/get_equipe_administradora/')
+    assert response.status_code == status.HTTP_200_OK
+    response.json()[0].get('usuario').pop('date_joined')
+    response.json()[0].pop('data_final')
+    response.json()[0].pop('uuid')
+    assert response.json() == [
+        {'data_inicial': datetime.date.today().strftime('%d/%m/%Y'),
+         'perfil': {'nome': 'ADMINISTRADOR_ESCOLA', 'uuid': '48330a6f-c444-4462-971e-476452b328b2'},
+         'usuario': {'uuid': '8344f23a-95c4-4871-8f20-3880529767c0', 'nome': 'Fulano da Silva',
+                     'email': 'fulano@teste.com', 'registro_funcional': '1234567'}}]
+
+
 def test_cadastro_vinculo_diretoria_regional(users_cogestor_diretoria_regional, monkeypatch):
     client, email, password, rf, cpf, user = users_cogestor_diretoria_regional
     diretoria_regional_ = user.vinculo_atual.instituicao
@@ -161,6 +177,21 @@ def test_cadastro_vinculo_diretoria_regional(users_cogestor_diretoria_regional, 
     assert usuario_novo.is_active is False
     assert usuario_novo.vinculo_atual is not None
     assert usuario_novo.vinculo_atual.perfil.nome == 'ADMINISTRADOR_DRE'
+
+
+def test_get_equipe_administradora_vinculos_dre(users_cogestor_diretoria_regional):
+    client, email, password, rf, cpf, user = users_cogestor_diretoria_regional
+    diretoria_regional_ = user.vinculo_atual.instituicao
+    response = client.get(f'/vinculos-diretorias-regionais/{str(diretoria_regional_.uuid)}/get_equipe_administradora/')
+    assert response.status_code == status.HTTP_200_OK
+    response.json()[0].get('usuario').pop('date_joined')
+    response.json()[0].pop('data_final')
+    response.json()[0].pop('uuid')
+    assert response.json() == [
+        {'data_inicial': datetime.date.today().strftime('%d/%m/%Y'),
+         'perfil': {'nome': 'ADMINISTRADOR_DRE', 'uuid': '48330a6f-c444-4462-971e-476452b328b2'},
+         'usuario': {'uuid': '8344f23a-95c4-4871-8f20-3880529767c0', 'nome': 'Fulano da Silva',
+                     'email': 'fulano@teste.com', 'registro_funcional': '1234567'}}]
 
 
 def test_erro_403_usuario_nao_pertence_a_dre_cadastro_vinculos(diretoria_regional,
@@ -237,6 +268,23 @@ def test_cadastro_vinculo_codae_gestao_alimentacao(users_codae_gestao_alimentaca
     assert usuario_novo.is_active is False
     assert usuario_novo.vinculo_atual is not None
     assert usuario_novo.vinculo_atual.perfil.nome == 'ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA'
+
+
+def test_get_equipe_administradora_vinculos_codae(users_codae_gestao_alimentacao):
+    client, email, password, rf, cpf, user = users_codae_gestao_alimentacao
+    codae_ = user.vinculo_atual.instituicao
+    response = client.get(
+        f'/vinculos-codae-gestao-alimentacao-terceirizada/{str(codae_.uuid)}/get_equipe_administradora/')
+    assert response.status_code == status.HTTP_200_OK
+    response.json()[0].get('usuario').pop('date_joined')
+    response.json()[0].pop('data_final')
+    response.json()[0].pop('uuid')
+    assert response.json() == [
+        {'data_inicial': datetime.date.today().strftime('%d/%m/%Y'),
+         'perfil': {'nome': 'ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA',
+                    'uuid': '48330a6f-c444-4462-971e-476452b328b2'},
+         'usuario': {'uuid': '8344f23a-95c4-4871-8f20-3880529767c0', 'nome': 'Fulano da Silva',
+                     'email': 'fulano@teste.com', 'registro_funcional': '1234567'}}]
 
 
 def test_erro_401_usuario_nao_e_coordenador_ou_nao_esta_logado_cadastro_vinculos(client,

@@ -44,9 +44,10 @@ def usuario():
 
 
 @pytest.fixture
-def usuario_2(escola):
+def usuario_2():
     return mommy.make(
         models.Usuario,
+        uuid='8344f23a-95c4-4871-8f20-3880529767c0',
         nome='Fulano da Silva',
         email='fulano@teste.com',
         cpf='11111111111',
@@ -144,7 +145,7 @@ def users_admin_escola(client, django_user_model, request):
     ('diretor_4@sme.prefeitura.sp.gov.br', '##$$csazd@!', '0000441', '13151715036'),
     ('diretor_5@sme.prefeitura.sp.gov.br', '!!@##FFG121', '0005551', '40296233013')
 ])
-def users_diretor_escola(client, django_user_model, request):
+def users_diretor_escola(client, django_user_model, request, usuario_2):
     email, password, rf, cpf = request.param
     user = django_user_model.objects.create_user(password=password, email=email, registro_funcional=rf, cpf=cpf)
     client.login(email=email, password=password)
@@ -162,7 +163,8 @@ def users_diretor_escola(client, django_user_model, request):
                )  # finalizado
     mommy.make('Vinculo', usuario=user, instituicao=escola, perfil=perfil_diretor,
                data_inicial=hoje, ativo=True)
-
+    mommy.make('Vinculo', usuario=usuario_2, instituicao=escola, perfil=perfil_professor,
+               data_inicial=hoje, ativo=True)
     return client, email, password, rf, cpf, user
 
 
@@ -174,7 +176,7 @@ def users_diretor_escola(client, django_user_model, request):
     ('cogestor_4@sme.prefeitura.sp.gov.br', '##$$csazd@!', '0000441', '13151715036'),
     ('cogestor_5@sme.prefeitura.sp.gov.br', '!!@##FFG121', '0005551', '40296233013')
 ])
-def users_cogestor_diretoria_regional(client, django_user_model, request):
+def users_cogestor_diretoria_regional(client, django_user_model, request, usuario_2):
     email, password, rf, cpf = request.param
     user = django_user_model.objects.create_user(password=password, email=email, registro_funcional=rf, cpf=cpf)
     client.login(email=email, password=password)
@@ -192,6 +194,8 @@ def users_cogestor_diretoria_regional(client, django_user_model, request):
                )  # finalizado
     mommy.make('Vinculo', usuario=user, instituicao=diretoria_regional, perfil=perfil_cogestor,
                data_inicial=hoje, ativo=True)
+    mommy.make('Vinculo', usuario=usuario_2, instituicao=diretoria_regional, perfil=perfil_professor,
+               data_inicial=hoje, ativo=True)
 
     return client, email, password, rf, cpf, user
 
@@ -204,7 +208,7 @@ def users_cogestor_diretoria_regional(client, django_user_model, request):
     ('cogestor_4@sme.prefeitura.sp.gov.br', '##$$csazd@!', '0000441', '13151715036'),
     ('cogestor_5@sme.prefeitura.sp.gov.br', '!!@##FFG121', '0005551', '40296233013')
 ])
-def users_codae_gestao_alimentacao(client, django_user_model, request):
+def users_codae_gestao_alimentacao(client, django_user_model, request, usuario_2):
     email, password, rf, cpf = request.param
     user = django_user_model.objects.create_user(password=password, email=email, registro_funcional=rf, cpf=cpf)
     client.login(email=email, password=password)
@@ -221,6 +225,8 @@ def users_codae_gestao_alimentacao(client, django_user_model, request):
                ativo=False, data_inicial=hoje, data_final=hoje + datetime.timedelta(days=30)
                )  # finalizado
     mommy.make('Vinculo', usuario=user, instituicao=codae, perfil=perfil_coordenador,
+               data_inicial=hoje, ativo=True)
+    mommy.make('Vinculo', usuario=usuario_2, instituicao=codae, perfil=perfil_administrador_codae,
                data_inicial=hoje, ativo=True)
 
     return client, email, password, rf, cpf, user

@@ -2,7 +2,7 @@ import environ
 import numpy as np
 import pandas as pd
 
-from sme_terceirizadas.escola.models import DiretoriaRegional, Codae
+from sme_terceirizadas.escola.models import Codae
 from sme_terceirizadas.perfil.models import Perfil, Usuario
 from utility.carga_dados.escola.helper import coloca_zero_a_esquerda
 from .helper import cria_vinculo_de_perfil_usuario
