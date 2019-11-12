@@ -40,4 +40,4 @@ def test_vinculo_invalido(vinculo_invalido):
 
 
 def test_vinculo_diretoria_regional(vinculo_diretoria_regional):
-    assert vinculo_diretoria_regional.usuario.tipo_usuario == 'diretoria_regional'
+    assert vinculo_diretoria_regional.usuario.tipo_usuario == 'diretoriaregional'

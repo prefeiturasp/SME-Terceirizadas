@@ -116,7 +116,7 @@ def test_cadastro_vinculo_diretoria_regional(users_cogestor_diretoria_regional, 
     assert response.json() == {'nome': 'LUIZA MARIA BASTOS',
                                'email': '47088910080@emailtemporario.prefeitura.sp.gov.br',
                                'registro_funcional': '6812805',
-                               'tipo_usuario': 'diretoria_regional',
+                               'tipo_usuario': 'diretoriaregional',
                                'vinculo_atual': {
                                    'instituicao': {'nome': 'DIRETORIA REGIONAL DE EDUCACAO CAPELA DO SOCORRO',
                                                    'uuid': 'b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd',
