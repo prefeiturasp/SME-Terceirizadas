@@ -50,10 +50,3 @@ class PodeCriarAdministradoresDaCODAEGestaoAlimentacaoTerceirizada(permissions.B
             )
             return perfil_coordenador_gestao_alimentacao
         return False
-
-    def has_object_permission(self, request, view, obj):
-        user = request.user
-        tem_vinculo_que_pode_criar_administradores = user.vinculo_atual.instituicao == obj
-        if tem_vinculo_que_pode_criar_administradores:
-            return True
-        return False

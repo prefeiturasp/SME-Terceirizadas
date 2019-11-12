@@ -21,6 +21,18 @@ def escola():
 
 
 @pytest.fixture
+def diretoria_regional():
+    return mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL DE EDUCACAO ITAQUERA',
+                      uuid='7bb20934-e740-4621-a906-bccb8ea98414')
+
+
+@pytest.fixture
+def codae(escola):
+    return mommy.make('Codae',
+                      make_m2m=True)
+
+
+@pytest.fixture
 def usuario():
     return mommy.make(
         models.Usuario,
@@ -179,6 +191,36 @@ def users_cogestor_diretoria_regional(client, django_user_model, request):
                ativo=False, data_inicial=hoje, data_final=hoje + datetime.timedelta(days=30)
                )  # finalizado
     mommy.make('Vinculo', usuario=user, instituicao=diretoria_regional, perfil=perfil_cogestor,
+               data_inicial=hoje, ativo=True)
+
+    return client, email, password, rf, cpf, user
+
+
+@pytest.fixture(params=[
+    # email, senha, rf, cpf
+    ('cogestor_1@sme.prefeitura.sp.gov.br', 'adminadmin', '0000001', '44426575052'),
+    ('cogestor_2@sme.prefeitura.sp.gov.br', 'aasdsadsadff', '0000002', '56789925031'),
+    ('cogestor_3@sme.prefeitura.sp.gov.br', '98as7d@@#', '0000147', '86880963099'),
+    ('cogestor_4@sme.prefeitura.sp.gov.br', '##$$csazd@!', '0000441', '13151715036'),
+    ('cogestor_5@sme.prefeitura.sp.gov.br', '!!@##FFG121', '0005551', '40296233013')
+])
+def users_codae_gestao_alimentacao(client, django_user_model, request):
+    email, password, rf, cpf = request.param
+    user = django_user_model.objects.create_user(password=password, email=email, registro_funcional=rf, cpf=cpf)
+    client.login(email=email, password=password)
+
+    codae = mommy.make('Codae', nome='CODAE', uuid='b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd')
+
+    perfil_administrador_codae = mommy.make('Perfil', nome='ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA', ativo=True,
+                                            uuid='48330a6f-c444-4462-971e-476452b328b2')
+    perfil_coordenador = mommy.make('Perfil', nome='COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA', ativo=True,
+                                    uuid='41c20c8b-7e57-41ed-9433-ccb92e8afaf1')
+
+    hoje = datetime.date.today()
+    mommy.make('Vinculo', usuario=user, instituicao=codae, perfil=perfil_administrador_codae,
+               ativo=False, data_inicial=hoje, data_final=hoje + datetime.timedelta(days=30)
+               )  # finalizado
+    mommy.make('Vinculo', usuario=user, instituicao=codae, perfil=perfil_coordenador,
                data_inicial=hoje, ativo=True)
 
     return client, email, password, rf, cpf, user

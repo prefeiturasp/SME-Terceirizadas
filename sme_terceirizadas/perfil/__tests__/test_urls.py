@@ -93,6 +93,38 @@ def test_cadastro_vinculo_diretor_escola(users_diretor_escola, monkeypatch):
     assert usuario_novo.vinculo_atual.perfil.nome == 'ADMINISTRADOR_ESCOLA'
 
 
+def test_erro_403_usuario_nao_pertence_a_escola_cadastro_vinculos(escola, users_diretor_escola, monkeypatch):
+    client, email, password, rf, cpf, user = users_diretor_escola
+    mimetype = 'application/json'
+    headers = {
+        'Content-Type': mimetype,
+        'Accept': mimetype
+    }
+    data = {
+        'registro_funcional': '5696569'
+    }
+
+    monkeypatch.setattr(UsuarioUpdateSerializer, 'get_informacoes_usuario',
+                        lambda p1, p2: mocked_request_api_eol())
+    response = client.post(f'/vinculos-escolas/{str(escola.uuid)}/criar_equipe_administradora/', headers=headers,
+                           data=data)
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+def test_erro_401_usuario_nao_e_diretor_ou_nao_esta_logado_cadastro_vinculos(client, escola):
+    mimetype = 'application/json'
+    headers = {
+        'Content-Type': mimetype,
+        'Accept': mimetype
+    }
+    data = {
+        'registro_funcional': '5696569'
+    }
+    response = client.post(f'/vinculos-escolas/{str(escola.uuid)}/criar_equipe_administradora/', headers=headers,
+                           data=data)
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
 def test_cadastro_vinculo_diretoria_regional(users_cogestor_diretoria_regional, monkeypatch):
     client, email, password, rf, cpf, user = users_cogestor_diretoria_regional
     diretoria_regional_ = user.vinculo_atual.instituicao
@@ -131,8 +163,10 @@ def test_cadastro_vinculo_diretoria_regional(users_cogestor_diretoria_regional, 
     assert usuario_novo.vinculo_atual.perfil.nome == 'ADMINISTRADOR_DRE'
 
 
-def test_erro_403_usuario_nao_pertence_a_escola_cadastro_vinculos_escola(escola, users_diretor_escola, monkeypatch):
-    client, email, password, rf, cpf, user = users_diretor_escola
+def test_erro_403_usuario_nao_pertence_a_dre_cadastro_vinculos(diretoria_regional,
+                                                               users_cogestor_diretoria_regional,
+                                                               monkeypatch):
+    client, email, password, rf, cpf, user = users_cogestor_diretoria_regional
     mimetype = 'application/json'
     headers = {
         'Content-Type': mimetype,
@@ -143,13 +177,15 @@ def test_erro_403_usuario_nao_pertence_a_escola_cadastro_vinculos_escola(escola,
     }
 
     monkeypatch.setattr(UsuarioUpdateSerializer, 'get_informacoes_usuario',
-                        lambda p1, p2: mocked_request_api_eol())
-    response = client.post(f'/vinculos-escolas/{str(escola.uuid)}/criar_equipe_administradora/', headers=headers,
-                           data=data)
+                        lambda p1, p2: mocked_request_api_eol_usuario_diretoria_regional())
+    response = client.post(
+        f'/vinculos-diretorias-regionais/{str(diretoria_regional.uuid)}/criar_equipe_administradora/',
+        headers=headers, data=data)
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
-def test_erro_401_usuario_nao_e_diretor_ou_nao_esta_logado_cadastro_vinculos_escola(client, escola):
+def test_erro_401_usuario_nao_e_cogestor_nem_suplente_ou_nao_esta_logado_cadastro_vinculos(client,
+                                                                                           diretoria_regional):
     mimetype = 'application/json'
     headers = {
         'Content-Type': mimetype,
@@ -158,8 +194,64 @@ def test_erro_401_usuario_nao_e_diretor_ou_nao_esta_logado_cadastro_vinculos_esc
     data = {
         'registro_funcional': '5696569'
     }
-    response = client.post(f'/vinculos-escolas/{str(escola.uuid)}/criar_equipe_administradora/', headers=headers,
-                           data=data)
+    response = client.post(
+        f'/vinculos-diretorias-regionais/{str(diretoria_regional.uuid)}/criar_equipe_administradora/',
+        headers=headers, data=data)
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+def test_cadastro_vinculo_codae_gestao_alimentacao(users_codae_gestao_alimentacao, monkeypatch):
+    client, email, password, rf, cpf, user = users_codae_gestao_alimentacao
+    codae_ = user.vinculo_atual.instituicao
+    mimetype = 'application/json'
+    headers = {
+        'Content-Type': mimetype,
+        'Accept': mimetype
+    }
+    data = {
+        'registro_funcional': '6812805'
+    }
+
+    monkeypatch.setattr(UsuarioUpdateSerializer, 'get_informacoes_usuario',
+                        lambda p1, p2: mocked_request_api_eol_usuario_diretoria_regional())
+    response = client.post(
+        f'/vinculos-codae-gestao-alimentacao-terceirizada/{str(codae_.uuid)}/criar_equipe_administradora/',
+        headers=headers,
+        data=data)
+    assert response.status_code == status.HTTP_200_OK
+    response.json().pop('date_joined')
+    response.json().pop('uuid')
+    assert response.json() == {'nome': 'LUIZA MARIA BASTOS',
+                               'email': '47088910080@emailtemporario.prefeitura.sp.gov.br',
+                               'registro_funcional': '6812805',
+                               'tipo_usuario': 'gestao_alimentacao_terceirizada',
+                               'vinculo_atual': {
+                                   'instituicao': {'nome': 'CODAE',
+                                                   'uuid': 'b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd',
+                                                   'quantidade_alunos': None,
+                                                   'lotes': [],
+                                                   'periodos_escolares': [], 'escolas': []},
+                                   'perfil': {'nome': 'ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA',
+                                              'uuid': '48330a6f-c444-4462-971e-476452b328b2'}}}
+    usuario_novo = Usuario.objects.get(registro_funcional='6812805')
+    assert usuario_novo.is_active is False
+    assert usuario_novo.vinculo_atual is not None
+    assert usuario_novo.vinculo_atual.perfil.nome == 'ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA'
+
+
+def test_erro_401_usuario_nao_e_coordenador_ou_nao_esta_logado_cadastro_vinculos(client,
+                                                                                 codae):
+    mimetype = 'application/json'
+    headers = {
+        'Content-Type': mimetype,
+        'Accept': mimetype
+    }
+    data = {
+        'registro_funcional': '5696569'
+    }
+    response = client.post(
+        f'/vinculos-codae-gestao-alimentacao-terceirizada/{str(codae.uuid)}/criar_equipe_administradora/',
+        headers=headers, data=data)
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
