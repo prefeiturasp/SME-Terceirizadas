@@ -22,7 +22,7 @@ from ..kit_lanche.models import SolicitacaoKitLancheAvulsa, SolicitacaoKitLanche
 class DiretoriaRegional(Nomeavel, Iniciais, TemChaveExterna, TemCodigoEOL, TemVinculos):
 
     @property
-    def vinculos_podem_ser_finalizados(self):
+    def vinculos_que_podem_ser_finalizados(self):
         return self.vinculos.filter(
             Q(data_inicial=None, data_final=None, ativo=False) |  # noqa W504 esperando ativacao
             Q(data_inicial__isnull=False, data_final=None, ativo=True)  # noqa W504 ativo
@@ -298,7 +298,7 @@ class Escola(Ativavel, TemChaveExterna, TemCodigoEOL, TemVinculos):
     periodos_escolares = models.ManyToManyField(PeriodoEscolar, blank=True)
 
     @property
-    def vinculos_podem_ser_finalizados(self):
+    def vinculos_que_podem_ser_finalizados(self):
         return self.vinculos.filter(
             Q(data_inicial=None, data_final=None, ativo=False) |  # noqa W504 esperando ativacao
             Q(data_inicial__isnull=False, data_final=None, ativo=True)  # noqa W504 ativo
@@ -384,7 +384,7 @@ class Subprefeitura(Nomeavel, TemChaveExterna):
 class Codae(Nomeavel, TemChaveExterna, TemVinculos):
 
     @property
-    def vinculos_podem_ser_finalizados(self):
+    def vinculos_que_podem_ser_finalizados(self):
         return self.vinculos.filter(
             Q(data_inicial=None, data_final=None, ativo=False) |  # noqa W504 esperando ativacao
             Q(data_inicial__isnull=False, data_final=None, ativo=True)  # noqa W504 ativo

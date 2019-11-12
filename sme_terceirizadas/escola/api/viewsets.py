@@ -50,7 +50,7 @@ class VinculoEscolaViewSet(ReadOnlyModelViewSet):
     @action(detail=True)
     def get_equipe_administradora(self, request, uuid=None):
         escola = self.get_object()
-        vinculos = escola.vinculos_podem_ser_finalizados
+        vinculos = escola.vinculos_que_podem_ser_finalizados
         return Response(self.get_serializer(vinculos, many=True).data)
 
     @action(detail=True, methods=['patch'])
@@ -83,7 +83,7 @@ class VinculoDiretoriaRegionalViewSet(ReadOnlyModelViewSet):
     @action(detail=True)
     def get_equipe_administradora(self, request, uuid=None):
         diretoria_regional = self.get_object()
-        vinculos = diretoria_regional.vinculos_podem_ser_finalizados
+        vinculos = diretoria_regional.vinculos_que_podem_ser_finalizados
         return Response(self.get_serializer(vinculos, many=True).data)
 
     @action(detail=True, methods=['patch'])
@@ -116,7 +116,7 @@ class VinculoCODAEGestaoAlimentacaoTerceirizadaViewSet(ReadOnlyModelViewSet):
     @action(detail=True)
     def get_equipe_administradora(self, request, uuid=None):
         codae = self.get_object()
-        vinculos = codae.vinculos_podem_ser_finalizados
+        vinculos = codae.vinculos_que_podem_ser_finalizados
         return Response(self.get_serializer(vinculos, many=True).data)
 
     @action(detail=True, methods=['patch'])
