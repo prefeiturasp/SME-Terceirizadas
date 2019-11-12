@@ -8,10 +8,13 @@ from django.db.models import Q
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from simple_email_confirmation.models import SimpleEmailConfirmationUserMixin
-
 from ..models import Perfil, Vinculo
 from ...dados_comuns.behaviors import TemChaveExterna
-from ...dados_comuns.constants import DJANGO_EOL_API_TOKEN, DJANGO_EOL_API_URL
+from ...dados_comuns.constants import (
+    ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
+    COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
+    DJANGO_EOL_API_TOKEN, DJANGO_EOL_API_URL,
+)
 from ...dados_comuns.tasks import envia_email_unico_task
 from ...dados_comuns.utils import url_configs
 
@@ -126,8 +129,12 @@ class Usuario(SimpleEmailConfirmationUserMixin, CustomAbstractUser, TemChaveExte
         tipo_usuario = 'indefinido'
         if self.vinculo_atual:
             tipo_usuario = self.vinculo_atual.content_type.model
-            if tipo_usuario == 'diretoriaregional':
-                return 'diretoria_regional'
+            if tipo_usuario == 'codae':
+                if self.vinculo_atual.perfil.nome in [COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
+                                                      ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA]:
+                    tipo_usuario = 'gestao_alimentacao_terceirizada'
+                else:
+                    tipo_usuario = 'dieta_especial'
         return tipo_usuario
 
     @property
@@ -149,7 +156,7 @@ class Usuario(SimpleEmailConfirmationUserMixin, CustomAbstractUser, TemChaveExte
         self.email_user(
             subject='Confirme seu e-mail - SIGPAE',
             message=f'Clique neste link para confirmar seu e-mail no SIGPAE \n'
-            f': {url_configs("CONFIRMAR_EMAIL", content)}',
+                    f': {url_configs("CONFIRMAR_EMAIL", content)}',
         )
 
     def criar_vinculo_administrador(self, escola, nome_perfil):

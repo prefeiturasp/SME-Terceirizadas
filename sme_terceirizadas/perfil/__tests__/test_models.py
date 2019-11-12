@@ -28,6 +28,9 @@ def test_vinculo(vinculo):
     assert vinculo.status is vinculo.STATUS_FINALIZADO
     assert vinculo.usuario.is_active is False
     assert vinculo.data_final is not None
+    assert vinculo.ativo is False
+    assert vinculo.__str__() == (f'fulano@teste.com de {datetime.date.today().strftime("%Y-%m-%d")} até '
+                                 f'{datetime.date.today().strftime("%Y-%m-%d")}')
 
 
 def test_vinculo_aguardando_ativacao(vinculo_aguardando_ativacao):
@@ -40,4 +43,4 @@ def test_vinculo_invalido(vinculo_invalido):
 
 
 def test_vinculo_diretoria_regional(vinculo_diretoria_regional):
-    assert vinculo_diretoria_regional.usuario.tipo_usuario == 'diretoria_regional'
+    assert vinculo_diretoria_regional.usuario.tipo_usuario == 'diretoriaregional'

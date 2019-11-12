@@ -3,7 +3,10 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
-from ...dados_comuns.constants import ADMINISTRADOR_DRE, ADMINISTRADOR_ESCOLA
+from ...dados_comuns.constants import (
+    ADMINISTRADOR_DRE, ADMINISTRADOR_ESCOLA,
+    ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA
+)
 from .serializers import (
     DiretoriaRegionalCompletaSerializer, DiretoriaRegionalSimplissimaSerializer,
     EscolaSimplesSerializer, EscolaSimplissimaSerializer, PeriodoEscolarSerializer, SubprefeituraSerializer,
@@ -12,7 +15,11 @@ from .serializers import (
 from ..models import (
     Codae, DiretoriaRegional, Escola, Lote, PeriodoEscolar, Subprefeitura, TipoGestao
 )
-from ...escola.api.permissions import PodeCriarAdministradoresDaDiretoriaRegional, PodeCriarAdministradoresDaEscola
+from ...escola.api.permissions import (
+    PodeCriarAdministradoresDaCODAEGestaoAlimentacaoTerceirizada,
+    PodeCriarAdministradoresDaDiretoriaRegional,
+    PodeCriarAdministradoresDaEscola
+)
 from ...escola.api.serializers import CODAESerializer, LoteSimplesSerializer
 from ...escola.api.serializers import UsuarioDetalheSerializer
 from ...escola.api.serializers_create import LoteCreateSerializer
@@ -43,7 +50,7 @@ class VinculoEscolaViewSet(ReadOnlyModelViewSet):
     @action(detail=True)
     def get_equipe_administradora(self, request, uuid=None):
         escola = self.get_object()
-        vinculos = escola.vinculos_podem_ser_finalizados
+        vinculos = escola.vinculos_que_podem_ser_finalizados
         return Response(self.get_serializer(vinculos, many=True).data)
 
     @action(detail=True, methods=['patch'])
@@ -76,7 +83,7 @@ class VinculoDiretoriaRegionalViewSet(ReadOnlyModelViewSet):
     @action(detail=True)
     def get_equipe_administradora(self, request, uuid=None):
         diretoria_regional = self.get_object()
-        vinculos = diretoria_regional.vinculos_podem_ser_finalizados
+        vinculos = diretoria_regional.vinculos_que_podem_ser_finalizados
         return Response(self.get_serializer(vinculos, many=True).data)
 
     @action(detail=True, methods=['patch'])
@@ -84,6 +91,39 @@ class VinculoDiretoriaRegionalViewSet(ReadOnlyModelViewSet):
         diretoria_regional = self.get_object()
         vinculo_uuid = request.data.get('vinculo_uuid')
         vinculo = diretoria_regional.vinculos.get(uuid=vinculo_uuid)
+        vinculo.finalizar_vinculo()
+        return Response(self.get_serializer(vinculo).data)
+
+
+class VinculoCODAEGestaoAlimentacaoTerceirizadaViewSet(ReadOnlyModelViewSet):
+    lookup_field = 'uuid'
+    queryset = Codae.objects.all()
+    serializer_class = VinculoSerializer
+    permission_classes = [PodeCriarAdministradoresDaCODAEGestaoAlimentacaoTerceirizada]
+
+    @action(detail=True, methods=['post'])
+    def criar_equipe_administradora(self, request, uuid=None):
+        try:
+            codae = self.get_object()
+            data = request.data.copy()
+            data['instituicao'] = codae.nome
+            usuario = UsuarioUpdateSerializer(data).create(validated_data=data)
+            usuario.criar_vinculo_administrador(codae, nome_perfil=ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA)
+            return Response(UsuarioDetalheSerializer(usuario).data)
+        except serializers.ValidationError as e:
+            return Response(data=dict(detail=e.args[0]), status=e.status_code)
+
+    @action(detail=True)
+    def get_equipe_administradora(self, request, uuid=None):
+        codae = self.get_object()
+        vinculos = codae.vinculos_que_podem_ser_finalizados
+        return Response(self.get_serializer(vinculos, many=True).data)
+
+    @action(detail=True, methods=['patch'])
+    def finalizar_vinculo(self, request, uuid=None):
+        codae = self.get_object()
+        vinculo_uuid = request.data.get('vinculo_uuid')
+        vinculo = codae.vinculos.get(uuid=vinculo_uuid)
         vinculo.finalizar_vinculo()
         return Response(self.get_serializer(vinculo).data)
 

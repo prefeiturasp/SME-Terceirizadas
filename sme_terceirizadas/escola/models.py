@@ -9,7 +9,10 @@ from ..cardapio.models import (
 from ..dados_comuns.behaviors import (
     Ativavel, Iniciais, Nomeavel, TemChaveExterna,
     TemCodigoEOL, TemVinculos)
-from ..dados_comuns.constants import COGESTOR, DAQUI_A_30_DIAS, DAQUI_A_7_DIAS, DIRETOR, SUPLENTE
+from ..dados_comuns.constants import (
+    COGESTOR, COORDENADOR_DIETA_ESPECIAL, COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
+    DAQUI_A_30_DIAS, DAQUI_A_7_DIAS, DIRETOR, SUPLENTE
+)
 from ..inclusao_alimentacao.models import (
     GrupoInclusaoAlimentacaoNormal, InclusaoAlimentacaoContinua
 )
@@ -19,7 +22,7 @@ from ..kit_lanche.models import SolicitacaoKitLancheAvulsa, SolicitacaoKitLanche
 class DiretoriaRegional(Nomeavel, Iniciais, TemChaveExterna, TemCodigoEOL, TemVinculos):
 
     @property
-    def vinculos_podem_ser_finalizados(self):
+    def vinculos_que_podem_ser_finalizados(self):
         return self.vinculos.filter(
             Q(data_inicial=None, data_final=None, ativo=False) |  # noqa W504 esperando ativacao
             Q(data_inicial__isnull=False, data_final=None, ativo=True)  # noqa W504 ativo
@@ -295,7 +298,7 @@ class Escola(Ativavel, TemChaveExterna, TemCodigoEOL, TemVinculos):
     periodos_escolares = models.ManyToManyField(PeriodoEscolar, blank=True)
 
     @property
-    def vinculos_podem_ser_finalizados(self):
+    def vinculos_que_podem_ser_finalizados(self):
         return self.vinculos.filter(
             Q(data_inicial=None, data_final=None, ativo=False) |  # noqa W504 esperando ativacao
             Q(data_inicial__isnull=False, data_final=None, ativo=True)  # noqa W504 ativo
@@ -379,6 +382,13 @@ class Subprefeitura(Nomeavel, TemChaveExterna):
 
 
 class Codae(Nomeavel, TemChaveExterna, TemVinculos):
+
+    @property
+    def vinculos_que_podem_ser_finalizados(self):
+        return self.vinculos.filter(
+            Q(data_inicial=None, data_final=None, ativo=False) |  # noqa W504 esperando ativacao
+            Q(data_inicial__isnull=False, data_final=None, ativo=True)  # noqa W504 ativo
+        ).exclude(perfil__nome__in=[COORDENADOR_DIETA_ESPECIAL, COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA])
 
     @property
     def quantidade_alunos(self):

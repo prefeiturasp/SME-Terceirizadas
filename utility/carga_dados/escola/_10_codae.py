@@ -59,12 +59,12 @@ def atribui_e_salva_cargos_a_codae(cargos):
 
 def percorre_data_frame():
     gestao_alimentacao, created = Perfil.objects.get_or_create(
-        nome='GESTAO_ALIMENTACAO_TERCEIRIZADA',
+        nome='COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA',
         ativo=True,
         super_usuario=True
     )
     dieta_especial, created = Perfil.objects.get_or_create(
-        nome='DIETA_ESPECIAL',
+        nome='COORDENADOR_DIETA_ESPECIAL',
         ativo=True,
         super_usuario=True
     )

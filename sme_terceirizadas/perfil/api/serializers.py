@@ -45,10 +45,11 @@ class UsuarioUpdateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         informacoes_usuario = self.get_informacoes_usuario(validated_data)
         informacoes_usuario = informacoes_usuario.json()['results']
-        usuario_e_vinculado_a_aquela_instituicao(
-            descricao_instituicao=validated_data['instituicao'],
-            instituicoes_eol=informacoes_usuario
-        )
+        if validated_data['instituicao'] != 'CODAE':
+            usuario_e_vinculado_a_aquela_instituicao(
+                descricao_instituicao=validated_data['instituicao'],
+                instituicoes_eol=informacoes_usuario
+            )
         cpf = informacoes_usuario[0]['cd_cpf_pessoa']
         if Usuario.objects.filter(cpf=cpf).exists():
             usuario = Usuario.objects.get(cpf=cpf)

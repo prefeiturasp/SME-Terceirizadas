@@ -8,6 +8,9 @@ router = routers.DefaultRouter()
 router.register('vinculos-escolas', viewsets.VinculoEscolaViewSet, basename='vinculos-escolas')
 router.register('vinculos-diretorias-regionais', viewsets.VinculoDiretoriaRegionalViewSet,
                 basename='vinculos-diretorias-regionais')
+router.register('vinculos-codae-gestao-alimentacao-terceirizada',
+                viewsets.VinculoCODAEGestaoAlimentacaoTerceirizadaViewSet,
+                basename='vinculos-codae-gestao-alimentacao-terceirizada')
 router.register('escolas-simples', viewsets.EscolaSimplesViewSet, basename='escolas-simples')
 router.register('escolas-simplissima', viewsets.EscolaSimplissimaViewSet, basename='escolas-simplissima')
 router.register('periodos-escolares', viewsets.PeriodoEscolarViewSet, basename='periodos')
