@@ -1,6 +1,7 @@
 import datetime
 
 from django.core.exceptions import ObjectDoesNotExist
+from django.db.models.query_utils import Q
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -8,6 +9,7 @@ from rest_framework.response import Response
 from .serializers import (
     PerfilSerializer, UsuarioUpdateSerializer
 )
+from ..api.helpers import ofuscar_email
 from ..models import Perfil, Usuario
 from ...escola.api.serializers import UsuarioDetalheSerializer
 
@@ -40,6 +42,19 @@ class UsuarioUpdateViewSet(viewsets.GenericViewSet):
         usuario = UsuarioUpdateSerializer(usuario).partial_update(usuario, request.data)
         usuario.enviar_email_confirmacao()
         return Response(UsuarioDetalheSerializer(usuario).data)
+
+    @action(detail=False, url_path='recuperar-senha/(?P<registro_funcional_ou_email>.*)')
+    def recuperar_senha(self, request, registro_funcional_ou_email=None):
+        try:
+            usuario = Usuario.objects.get(
+                Q(registro_funcional=registro_funcional_ou_email) |  # noqa W504
+                Q(email=registro_funcional_ou_email)
+            )
+        except ObjectDoesNotExist:
+            return Response({'detail': 'Não existe usuário com este e-mail ou RF'},
+                            status=status.HTTP_400_BAD_REQUEST)
+        usuario.enviar_email_recuperacao_senha()
+        return Response({'email': f'{ofuscar_email(usuario.email)}'})
 
 
 class PerfilViewSet(viewsets.ReadOnlyModelViewSet):
