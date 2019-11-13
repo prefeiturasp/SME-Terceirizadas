@@ -5,6 +5,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.db.utils import IntegrityError
 
+from ...dados_comuns.tasks import envia_email_unico_task
 from ...dados_comuns.behaviors import (
     Ativavel, Descritivel, Nomeavel, TemChaveExterna
 )
@@ -70,6 +71,11 @@ class Vinculo(Ativavel, TemChaveExterna):
         self.ativo = False
         self.data_final = datetime.date.today()
         self.save()
+        envia_email_unico_task.delay(
+            assunto='Vínculo finalizado - SIGPAE',
+            corpo='Seu vínculo com o SIGPAE foi finalizado por seu superior.',
+            email=self.usuario.email
+        )
 
     class Meta:
         verbose_name = 'Vínculo'

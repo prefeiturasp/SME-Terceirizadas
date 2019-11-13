@@ -3,7 +3,6 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
-from ...dados_comuns.tasks import envia_email_unico_task
 from ...dados_comuns.constants import (
     ADMINISTRADOR_DRE, ADMINISTRADOR_ESCOLA,
     ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA
@@ -60,11 +59,6 @@ class VinculoEscolaViewSet(ReadOnlyModelViewSet):
         vinculo_uuid = request.data.get('vinculo_uuid')
         vinculo = escola.vinculos.get(uuid=vinculo_uuid)
         vinculo.finalizar_finculo()
-        envia_email_unico_task.delay(
-            assunto='Vínculo finalizado - SIGPAE',
-            corpo='Seu vínculo com o SIGPAE foi finalizado por seu superior.',
-            email=vinculo.usuario.email
-        )
         return Response(self.get_serializer(vinculo).data)
 
 
@@ -98,11 +92,6 @@ class VinculoDiretoriaRegionalViewSet(ReadOnlyModelViewSet):
         vinculo_uuid = request.data.get('vinculo_uuid')
         vinculo = diretoria_regional.vinculos.get(uuid=vinculo_uuid)
         vinculo.finalizar_vinculo()
-        envia_email_unico_task.delay(
-            assunto='Vínculo finalizado - SIGPAE',
-            corpo='Seu vínculo com o SIGPAE foi finalizado por seu superior.',
-            email=vinculo.usuario.email
-        )
         return Response(self.get_serializer(vinculo).data)
 
 
@@ -136,11 +125,6 @@ class VinculoCODAEGestaoAlimentacaoTerceirizadaViewSet(ReadOnlyModelViewSet):
         vinculo_uuid = request.data.get('vinculo_uuid')
         vinculo = codae.vinculos.get(uuid=vinculo_uuid)
         vinculo.finalizar_vinculo()
-        envia_email_unico_task.delay(
-            assunto='Vínculo finalizado - SIGPAE',
-            corpo='Seu vínculo com o SIGPAE foi finalizado por seu superior.',
-            email=vinculo.usuario.email
-        )
         return Response(self.get_serializer(vinculo).data)
 
 
