@@ -61,8 +61,8 @@ class VinculoEscolaViewSet(ReadOnlyModelViewSet):
         vinculo = escola.vinculos.get(uuid=vinculo_uuid)
         vinculo.finalizar_finculo()
         envia_email_unico_task.delay(
-            assunto="Vínculo finalizado - SIGPAE",
-            corpo="Seu vínculo com o SIGPAE foi finalizado por seu superior.",
+            assunto='Vínculo finalizado - SIGPAE',
+            corpo='Seu vínculo com o SIGPAE foi finalizado por seu superior.',
             email=vinculo.usuario.email
         )
         return Response(self.get_serializer(vinculo).data)
@@ -99,8 +99,8 @@ class VinculoDiretoriaRegionalViewSet(ReadOnlyModelViewSet):
         vinculo = diretoria_regional.vinculos.get(uuid=vinculo_uuid)
         vinculo.finalizar_vinculo()
         envia_email_unico_task.delay(
-            assunto="Vínculo finalizado - SIGPAE",
-            corpo="Seu vínculo com o SIGPAE foi finalizado por seu superior.",
+            assunto='Vínculo finalizado - SIGPAE',
+            corpo='Seu vínculo com o SIGPAE foi finalizado por seu superior.',
             email=vinculo.usuario.email
         )
         return Response(self.get_serializer(vinculo).data)
@@ -137,8 +137,8 @@ class VinculoCODAEGestaoAlimentacaoTerceirizadaViewSet(ReadOnlyModelViewSet):
         vinculo = codae.vinculos.get(uuid=vinculo_uuid)
         vinculo.finalizar_vinculo()
         envia_email_unico_task.delay(
-            assunto="Vínculo finalizado - SIGPAE",
-            corpo="Seu vínculo com o SIGPAE foi finalizado por seu superior.",
+            assunto='Vínculo finalizado - SIGPAE',
+            corpo='Seu vínculo com o SIGPAE foi finalizado por seu superior.',
             email=vinculo.usuario.email
         )
         return Response(self.get_serializer(vinculo).data)
