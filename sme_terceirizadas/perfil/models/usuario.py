@@ -163,6 +163,14 @@ class Usuario(SimpleEmailConfirmationUserMixin, CustomAbstractUser, TemChaveExte
             f': {url_configs("RECUPERAR_SENHA", content)}',
         )
 
+    def atualiza_senha(self, senha, token):
+        token_generator = PasswordResetTokenGenerator()
+        if token_generator.check_token(self, token):
+            self.set_password(senha)
+            self.save()
+            return True
+        return False
+
     def criar_vinculo_administrador(self, escola, nome_perfil):
         perfil = Perfil.objects.get(nome=nome_perfil)
         Vinculo.objects.create(
