@@ -33,6 +33,12 @@ class UsuarioUpdateViewSet(viewsets.GenericViewSet):
     def _get_usuario(self, request):
         return Usuario.objects.get(registro_funcional=request.data.get('registro_funcional'))
 
+    def _get_usuario_por_rf_email(self, registro_funcional_ou_email):
+        return Usuario.objects.get(
+            Q(registro_funcional=registro_funcional_ou_email) |  # noqa W504
+            Q(email=registro_funcional_ou_email)
+        )
+
     def create(self, request):
         try:
             usuario = self._get_usuario(request)
@@ -46,10 +52,7 @@ class UsuarioUpdateViewSet(viewsets.GenericViewSet):
     @action(detail=False, url_path='recuperar-senha/(?P<registro_funcional_ou_email>.*)')
     def recuperar_senha(self, request, registro_funcional_ou_email=None):
         try:
-            usuario = Usuario.objects.get(
-                Q(registro_funcional=registro_funcional_ou_email) |  # noqa W504
-                Q(email=registro_funcional_ou_email)
-            )
+            usuario = self._get_usuario_por_rf_email(registro_funcional_ou_email)
         except ObjectDoesNotExist:
             return Response({'detail': 'Não existe usuário com este e-mail ou RF'},
                             status=status.HTTP_400_BAD_REQUEST)

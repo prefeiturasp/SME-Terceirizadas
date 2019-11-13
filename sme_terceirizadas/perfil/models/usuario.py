@@ -160,7 +160,7 @@ class Usuario(SimpleEmailConfirmationUserMixin, CustomAbstractUser, TemChaveExte
         self.email_user(
             subject='Email de recuperação de senha',
             message=f'Clique neste link para criar uma nova senha no SIGPAE \n'
-            f': {url_configs("CONFIRMAR_EMAIL", content)}',
+            f': {url_configs("RECUPERAR_SENHA", content)}',
         )
 
     def criar_vinculo_administrador(self, escola, nome_perfil):
