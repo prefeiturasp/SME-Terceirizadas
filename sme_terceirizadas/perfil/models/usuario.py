@@ -2,6 +2,7 @@ import environ
 import requests
 from django.contrib.auth.base_user import AbstractBaseUser
 from django.contrib.auth.models import BaseUserManager, PermissionsMixin
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.core.validators import MinLengthValidator
 from django.db import models
 from django.db.models import Q
@@ -158,6 +159,24 @@ class Usuario(SimpleEmailConfirmationUserMixin, CustomAbstractUser, TemChaveExte
             message=f'Clique neste link para confirmar seu e-mail no SIGPAE \n'
                     f': {url_configs("CONFIRMAR_EMAIL", content)}',
         )
+
+    def enviar_email_recuperacao_senha(self):
+        token_generator = PasswordResetTokenGenerator()
+        token = token_generator.make_token(self)
+        content = {'uuid': self.uuid, 'confirmation_key': token}
+        self.email_user(
+            subject='Email de recuperação de senha',
+            message=f'Clique neste link para criar uma nova senha no SIGPAE \n'
+            f': {url_configs("RECUPERAR_SENHA", content)}',
+        )
+
+    def atualiza_senha(self, senha, token):
+        token_generator = PasswordResetTokenGenerator()
+        if token_generator.check_token(self, token):
+            self.set_password(senha)
+            self.save()
+            return True
+        return False
 
     def criar_vinculo_administrador(self, escola, nome_perfil):
         perfil = Perfil.objects.get(nome=nome_perfil)

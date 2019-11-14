@@ -288,3 +288,14 @@ def usuarios_pendentes_confirmacao(request, perfil, escola):
                instituicao=escola)  # vinculo finalizado
 
     return usuario
+
+
+@pytest.fixture(params=[
+    # email, esprado
+    ('tebohelleb-2297@sme.prefeitura.gov.br', 't*************7@sme.prefeitura.gov.br'),
+    ('surracecyss-9018@sme.prefeitura.gov.br', 's**************8@sme.prefeitura.gov.br'),
+    ('zoffexupi-7784@sme.prefeitura.gov.br', 'z************4@sme.prefeitura.gov.br'),
+    ('fulano157@sme.prefeitura.gov.br', 'f*******7@sme.prefeitura.gov.br')
+])
+def email_list(request):
+    return request.param

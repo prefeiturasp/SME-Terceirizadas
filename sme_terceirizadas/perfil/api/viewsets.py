@@ -1,6 +1,7 @@
 import datetime
 
 from django.core.exceptions import ObjectDoesNotExist
+from django.db.models.query_utils import Q
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -8,6 +9,7 @@ from rest_framework.response import Response
 from .serializers import (
     PerfilSerializer, UsuarioUpdateSerializer
 )
+from ..api.helpers import ofuscar_email
 from ..models import Perfil, Usuario
 from ...escola.api.serializers import UsuarioDetalheSerializer
 
@@ -31,6 +33,12 @@ class UsuarioUpdateViewSet(viewsets.GenericViewSet):
     def _get_usuario(self, request):
         return Usuario.objects.get(registro_funcional=request.data.get('registro_funcional'))
 
+    def _get_usuario_por_rf_email(self, registro_funcional_ou_email):
+        return Usuario.objects.get(
+            Q(registro_funcional=registro_funcional_ou_email) |  # noqa W504
+            Q(email=registro_funcional_ou_email)
+        )
+
     def create(self, request):
         try:
             usuario = self._get_usuario(request)
@@ -40,6 +48,33 @@ class UsuarioUpdateViewSet(viewsets.GenericViewSet):
         usuario = UsuarioUpdateSerializer(usuario).partial_update(usuario, request.data)
         usuario.enviar_email_confirmacao()
         return Response(UsuarioDetalheSerializer(usuario).data)
+
+    @action(detail=False, url_path='recuperar-senha/(?P<registro_funcional_ou_email>.*)')
+    def recuperar_senha(self, request, registro_funcional_ou_email=None):
+        try:
+            usuario = self._get_usuario_por_rf_email(registro_funcional_ou_email)
+        except ObjectDoesNotExist:
+            return Response({'detail': 'Não existe usuário com este e-mail ou RF'},
+                            status=status.HTTP_400_BAD_REQUEST)
+        usuario.enviar_email_recuperacao_senha()
+        return Response({'email': f'{ofuscar_email(usuario.email)}'})
+
+    @action(detail=False, methods=['POST'], url_path='atualizar-senha/(?P<usuario_uuid>.*)/(?P<token_reset>.*)')  # noqa
+    def atualizar_senha(self, request, usuario_uuid=None, token_reset=None):
+        # TODO: melhorar este método
+        senha1 = request.data.get('senha1')
+        senha2 = request.data.get('senha2')
+        if senha1 != senha2:
+            return Response({'detail': 'Senhas divergem'}, status.HTTP_400_BAD_REQUEST)
+        try:
+            usuario = Usuario.objects.get(uuid=usuario_uuid)
+        except ObjectDoesNotExist:
+            return Response({'detail': 'Não existe usuário com este e-mail ou RF'},
+                            status=status.HTTP_400_BAD_REQUEST)
+        if usuario.atualiza_senha(senha=senha1, token=token_reset):
+            return Response({'sucesso!': 'senha atualizada com sucesso'})
+        else:
+            return Response({'detail': 'Token inválido'}, status.HTTP_400_BAD_REQUEST)
 
 
 class PerfilViewSet(viewsets.ReadOnlyModelViewSet):

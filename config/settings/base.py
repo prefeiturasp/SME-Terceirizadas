@@ -293,7 +293,9 @@ JWT_AUTH = {
 }
 
 URL_CONFIGS = {
-    'CONFIRMAR_EMAIL': '/confirmar-email?uuid={uuid}&confirmationKey={confirmation_key}'
+    # TODO: rever essa logica de link para trabalhar no front, tá dando voltas
+    'CONFIRMAR_EMAIL': '/confirmar-email?uuid={uuid}&confirmationKey={confirmation_key}',
+    'RECUPERAR_SENHA': '/recuperar-senha?uuid={uuid}&confirmationKey={confirmation_key}',
 }
 
 REDIS_URL = env('REDIS_URL')
@@ -322,3 +324,6 @@ CELERY_RESULT_SERIALIZER = 'json'
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_ENABLE_UTC = True
 CELERY_IGNORE_RESULT = True
+
+# reset password
+PASSWORD_RESET_TIMEOUT_DAYS = 1
