@@ -19,6 +19,14 @@ class UsuarioViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Usuario.objects.all()
     serializer_class = UsuarioDetalheSerializer
 
+    @action(detail=False, url_path='atualizar-email', methods=['patch'])
+    def atualizar_email(self, request):
+        usuario = request.user
+        usuario.email = request.data.get('email')
+        usuario.save()
+        serializer = self.get_serializer(usuario)
+        return Response(serializer.data)
+
     @action(detail=False, url_path='meus-dados')
     def meus_dados(self, request):
         usuario = request.user
