@@ -5,6 +5,7 @@ import pytest
 from rest_framework import status
 
 from .conftest import mocked_request_api_eol, mocked_request_api_eol_usuario_diretoria_regional
+from ..api.helpers import ofuscar_email
 from ..api.serializers import UsuarioUpdateSerializer
 from ..api.viewsets import UsuarioUpdateViewSet
 from ..models import Usuario
@@ -395,3 +396,20 @@ def test_confirmar_error(client, usuarios_pendentes_confirmacao):
         f'/confirmar_email/{uuid.uuid4()}/{usuario.confirmation_key}/')  # chave email correta uuid errado
     assert respo.status_code == status.HTTP_400_BAD_REQUEST
     assert respo.json() == {'detail': 'Erro ao confirmar email'}
+
+
+def test_recuperar_senha(client, usuarios_pendentes_confirmacao):
+    usuario = usuarios_pendentes_confirmacao
+    response = client.get(f'/cadastro/recuperar-senha/{usuario.registro_funcional}/')
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == {'email': ofuscar_email(usuario.email)}
+
+    response2 = client.get(f'/cadastro/recuperar-senha/{usuario.email}/')
+    assert response2.status_code == status.HTTP_200_OK
+    assert response2.json() == {'email': ofuscar_email(usuario.email)}
+
+
+def test_recuperar_senha_invalido(client, usuarios_pendentes_confirmacao):
+    response = client.get(f'/cadastro/recuperar-senha/NAO-EXISTE/')
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {'detail': 'Não existe usuário com este e-mail ou RF'}
