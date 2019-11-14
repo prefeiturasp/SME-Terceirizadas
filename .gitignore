@@ -287,8 +287,11 @@ pip-selfcheck.json
 sme_terceirizadas/media/
 
 .pytest_cache/
+.testmondata
 
 # undesired files
 *.xlsx
 *.csv
 *.idea
+.tmontmp/
+

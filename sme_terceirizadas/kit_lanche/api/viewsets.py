@@ -133,7 +133,6 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
             methods=['patch'], url_path=constants.ESCOLA_INICIO_PEDIDO)
     def inicio_de_pedido(self, request, uuid=None):
         solicitacao_kit_lanche_avulsa = self.get_object()
-        solicitacao_kit_lanche_avulsa.status = None
         try:
             solicitacao_kit_lanche_avulsa.inicia_fluxo(user=request.user, )
             serializer = self.get_serializer(solicitacao_kit_lanche_avulsa)
