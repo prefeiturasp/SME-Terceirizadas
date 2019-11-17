@@ -3,32 +3,24 @@ from rest_framework import serializers
 from ...models import (Contrato, Edital, Nutricionista, Terceirizada, VigenciaContrato)
 from ....dados_comuns.utils import update_instance_from_dict
 from ....escola.models import DiretoriaRegional, Lote
+from ....dados_comuns.api.serializers import ContatoSerializer
 
 
 class NutricionistaCreateSerializer(serializers.ModelSerializer):
+    contatos = ContatoSerializer(many=True)
+
+    def create(self, validated_data):
+        contatos = validated_data.pop('contatos', [])
+        nutricionista = Nutricionista.objects.create(**validated_data)
+        for contato_json in contatos:
+            contato = ContatoSerializer().create(
+                validated_data=contato_json)
+            nutricionista.contatos.add(contato)
+        return nutricionista
+
     class Meta:
         model = Nutricionista
         exclude = ('id', 'terceirizada')
-
-
-class TerceirizadaCreateSerializer(serializers.ModelSerializer):
-    lotes = serializers.SlugRelatedField(slug_field='uuid', many=True, queryset=Lote.objects.all())
-    nutricionistas = NutricionistaCreateSerializer(many=True)
-
-    def create(self, validated_data):
-        nutricionistas_array = validated_data.pop('nutricionistas')
-        lotes = validated_data.pop('lotes', [])
-        terceirizada = Terceirizada.objects.create(**validated_data)
-        terceirizada.lotes.set(lotes)
-        for nutri_json in nutricionistas_array:
-            nutricionista = NutricionistaCreateSerializer().create(nutri_json)
-            nutricionista.terceirizada = terceirizada
-            nutricionista.save()
-        return terceirizada
-
-    class Meta:
-        model = Terceirizada
-        exclude = ('id',)
 
 
 class VigenciaContratoCreateSerializer(serializers.ModelSerializer):
@@ -100,6 +92,62 @@ class ContratoCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Contrato
+        exclude = ('id',)
+
+
+class TerceirizadaCreateSerializer(serializers.ModelSerializer):
+    lotes = serializers.SlugRelatedField(slug_field='uuid', many=True, queryset=Lote.objects.all())
+    nutricionistas = NutricionistaCreateSerializer(many=True)
+    contatos = ContatoSerializer(many=True)
+
+    def create(self, validated_data):
+        nutricionistas_array = validated_data.pop('nutricionistas')
+        lotes = validated_data.pop('lotes', [])
+        contatos = validated_data.pop('contatos', [])
+        terceirizada = Terceirizada.objects.create(**validated_data)
+        terceirizada.lotes.set(lotes)
+        for contato_json in contatos:
+            contato = ContatoSerializer().create(
+                validated_data=contato_json)
+            terceirizada.contatos.add(contato)
+        for nutri_json in nutricionistas_array:
+            nutricionista = NutricionistaCreateSerializer().create(nutri_json)
+            nutricionista.terceirizada = terceirizada
+            nutricionista.save()
+        return terceirizada
+
+    def update(self, instance, validated_data):
+        nutricionistas_array = validated_data.pop('nutricionistas', [])
+        lotes_array = validated_data.pop('lotes', [])
+        contato_array = validated_data.pop('contatos', [])
+
+        instance.contatos.all().delete()
+        instance.desvincular_lotes()
+
+        nutricionistas = instance.nutricionistas.all()
+        for nutricionista in nutricionistas:
+            nutricionista.contatos.all().delete()
+            nutricionista.delete()
+
+        for nutri_json in nutricionistas_array:
+            nutricionista = NutricionistaCreateSerializer().create(nutri_json)
+            nutricionista.terceirizada = instance
+            nutricionista.save()
+
+        contatos = []
+        for contato_json in contato_array:
+            contato = ContatoSerializer().create(contato_json)
+            contatos.append(contato)
+
+        update_instance_from_dict(instance, validated_data, save=True)
+
+        instance.contatos.set(contatos)
+        instance.lotes.set(lotes_array)
+
+        return instance
+
+    class Meta:
+        model = Terceirizada
         exclude = ('id',)
 
 

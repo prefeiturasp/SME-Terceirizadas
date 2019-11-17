@@ -86,7 +86,7 @@ class Meta:
 
 
 class Contato(models.Model):
-    telefone = models.CharField(max_length=10, validators=[MinLengthValidator(8)],
+    telefone = models.CharField(max_length=13, validators=[MinLengthValidator(8)],
                                 blank=True)
     telefone2 = models.CharField(max_length=10, validators=[MinLengthValidator(8)],
                                  blank=True)
