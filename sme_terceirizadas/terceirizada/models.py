@@ -69,7 +69,7 @@ class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel, T
     representante_telefone = models.CharField('Representante contato (telefone)', max_length=160, blank=True)
     representante_email = models.CharField('Representante contato (email)', max_length=160, blank=True)
     endereco = models.CharField('Endereco', max_length=160, blank=True)
-    cep = models.CharField('CEP', max_length=9, blank=True)
+    cep = models.CharField('CEP', max_length=8, blank=True)
 
     # TODO: criar uma tabela central (Instituição) para agregar Escola, DRE, Terc e CODAE???
     # e a partir dai a instituição que tem contatos e endereço?

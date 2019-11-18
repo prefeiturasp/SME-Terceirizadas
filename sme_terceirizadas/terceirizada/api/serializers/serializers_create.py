@@ -1,9 +1,9 @@
 from rest_framework import serializers
 
 from ...models import (Contrato, Edital, Nutricionista, Terceirizada, VigenciaContrato)
+from ....dados_comuns.api.serializers import ContatoSerializer
 from ....dados_comuns.utils import update_instance_from_dict
 from ....escola.models import DiretoriaRegional, Lote
-from ....dados_comuns.api.serializers import ContatoSerializer
 
 
 class NutricionistaCreateSerializer(serializers.ModelSerializer):
@@ -117,6 +117,8 @@ class TerceirizadaCreateSerializer(serializers.ModelSerializer):
         return terceirizada
 
     def update(self, instance, validated_data):
+        # TODO: voltar aqui quando uma terceirizada tiver seu painel admin para criar suas nutris
+        # aqui está tratando nutris como um dado escravo da Terceirizada
         nutricionistas_array = validated_data.pop('nutricionistas', [])
         lotes_array = validated_data.pop('lotes', [])
         contato_array = validated_data.pop('contatos', [])
