@@ -22,6 +22,17 @@ def test_get_usuarios(client_autenticado):
     assert json['results'][0]['email'] == 'test@test.com'
 
 
+def test_atualizar_email(users_admin_escola):
+    client, email, password, rf, user = users_admin_escola
+    data = {
+        'email': 'novoemail@email.com'
+    }
+    response = client.patch('/usuarios/atualizar-email/', content_type='application/json', data=data)
+    assert response.status_code == status.HTTP_200_OK
+    user = Usuario.objects.get(registro_funcional=rf)
+    assert user.email == 'novoemail@email.com'
+
+
 def test_atualizar_senha_logado(users_admin_escola):
     client, email, password, rf, user = users_admin_escola
     data = {
