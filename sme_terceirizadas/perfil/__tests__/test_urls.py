@@ -59,7 +59,6 @@ def test_atualizar_senha_logado_senha_e_confirmar_senha_divergem(users_admin_esc
     assert response.json() == {'detail': 'senha e confirmar senha divergem'}
 
 
-
 def test_get_meus_dados_admin_escola(users_admin_escola):
     client, email, password, rf, user = users_admin_escola
     response = client.get('/usuarios/meus-dados/')
