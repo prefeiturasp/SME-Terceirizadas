@@ -77,7 +77,7 @@ def test_cadastro_vinculo_diretor_escola(users_diretor_escola, monkeypatch):
     assert response.status_code == status.HTTP_200_OK
     response.json().pop('date_joined')
     response.json().pop('uuid')
-    assert response.json() == {'nome': 'IARA DAREZZO',
+    assert response.json() == {'cpf': '95887745002', 'nome': 'IARA DAREZZO',
                                'email': '95887745002@emailtemporario.prefeitura.sp.gov.br',
                                'registro_funcional': '5696569',
                                'tipo_usuario': 'escola',
@@ -162,7 +162,7 @@ def test_cadastro_vinculo_diretoria_regional(users_cogestor_diretoria_regional, 
     assert response.status_code == status.HTTP_200_OK
     response.json().pop('date_joined')
     response.json().pop('uuid')
-    assert response.json() == {'nome': 'LUIZA MARIA BASTOS',
+    assert response.json() == {'cpf': '47088910080', 'nome': 'LUIZA MARIA BASTOS',
                                'email': '47088910080@emailtemporario.prefeitura.sp.gov.br',
                                'registro_funcional': '6812805',
                                'tipo_usuario': 'diretoriaregional',
@@ -253,7 +253,7 @@ def test_cadastro_vinculo_codae_gestao_alimentacao(users_codae_gestao_alimentaca
     assert response.status_code == status.HTTP_200_OK
     response.json().pop('date_joined')
     response.json().pop('uuid')
-    assert response.json() == {'nome': 'LUIZA MARIA BASTOS',
+    assert response.json() == {'cpf': '47088910080', 'nome': 'LUIZA MARIA BASTOS',
                                'email': '47088910080@emailtemporario.prefeitura.sp.gov.br',
                                'registro_funcional': '6812805',
                                'tipo_usuario': 'gestao_alimentacao_terceirizada',
@@ -372,14 +372,14 @@ def test_confirmar_email(client, usuarios_pendentes_confirmacao):
 
     assert response.status_code == status.HTTP_200_OK
     json = response.json()
-    keys = ['uuid', 'nome', 'email', 'registro_funcional', 'tipo_usuario', 'date_joined', 'vinculo_atual']
+    keys = ['uuid', 'cpf', 'nome', 'email', 'registro_funcional', 'tipo_usuario', 'date_joined', 'vinculo_atual']
     for key in keys:
         assert key in json.keys()
     assert len(json.keys()) == len(keys)
     json.pop('date_joined')
 
     assert json == {
-        'uuid': usuario.uuid, 'nome': usuario.nome, 'email': usuario.email,
+        'cpf': usuario.cpf, 'uuid': usuario.uuid, 'nome': usuario.nome, 'email': usuario.email,
         'registro_funcional': usuario.registro_funcional, 'tipo_usuario': 'escola',
         'vinculo_atual': {
             'instituicao': {'nome': usuario.vinculo_atual.instituicao.nome,
