@@ -58,7 +58,7 @@ class VinculoEscolaViewSet(ReadOnlyModelViewSet):
         escola = self.get_object()
         vinculo_uuid = request.data.get('vinculo_uuid')
         vinculo = escola.vinculos.get(uuid=vinculo_uuid)
-        vinculo.finalizar_finculo()
+        vinculo.finalizar_vinculo()
         return Response(self.get_serializer(vinculo).data)
 
 

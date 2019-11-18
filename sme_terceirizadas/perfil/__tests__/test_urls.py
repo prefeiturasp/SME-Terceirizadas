@@ -190,6 +190,20 @@ def test_get_equipe_administradora_vinculos_escola(users_diretor_escola):
                      'email': 'fulano@teste.com', 'registro_funcional': '1234567'}}]
 
 
+def test_finalizar_vinculo_escola(users_diretor_escola):
+    client, email, password, rf, cpf, user = users_diretor_escola
+    escola_ = user.vinculo_atual.instituicao
+    data = {
+        'vinculo_uuid': user.vinculo_atual.uuid
+    }
+    response = client.patch(f'/vinculos-escolas/{str(escola_.uuid)}/finalizar_vinculo/',
+                            content_type='application/json', data=data)
+    assert response.status_code == status.HTTP_200_OK
+    user = Usuario.objects.get(registro_funcional=rf)
+    assert user.vinculo_atual is None
+    assert user.is_active is False
+
+
 def test_cadastro_vinculo_diretoria_regional(users_cogestor_diretoria_regional, monkeypatch):
     client, email, password, rf, cpf, user = users_cogestor_diretoria_regional
     diretoria_regional_ = user.vinculo_atual.instituicao
@@ -241,6 +255,20 @@ def test_get_equipe_administradora_vinculos_dre(users_cogestor_diretoria_regiona
          'perfil': {'nome': 'ADMINISTRADOR_DRE', 'uuid': '48330a6f-c444-4462-971e-476452b328b2'},
          'usuario': {'uuid': '8344f23a-95c4-4871-8f20-3880529767c0', 'nome': 'Fulano da Silva',
                      'email': 'fulano@teste.com', 'registro_funcional': '1234567'}}]
+
+
+def test_finalizar_vinculo_dre(users_cogestor_diretoria_regional):
+    client, email, password, rf, cpf, user = users_cogestor_diretoria_regional
+    escola_ = user.vinculo_atual.instituicao
+    data = {
+        'vinculo_uuid': user.vinculo_atual.uuid
+    }
+    response = client.patch(f'/vinculos-diretorias-regionais/{str(escola_.uuid)}/finalizar_vinculo/',
+                            content_type='application/json', data=data)
+    assert response.status_code == status.HTTP_200_OK
+    user = Usuario.objects.get(registro_funcional=rf)
+    assert user.vinculo_atual is None
+    assert user.is_active is False
 
 
 def test_erro_403_usuario_nao_pertence_a_dre_cadastro_vinculos(diretoria_regional,
@@ -334,6 +362,20 @@ def test_get_equipe_administradora_vinculos_codae(users_codae_gestao_alimentacao
                     'uuid': '48330a6f-c444-4462-971e-476452b328b2'},
          'usuario': {'uuid': '8344f23a-95c4-4871-8f20-3880529767c0', 'nome': 'Fulano da Silva',
                      'email': 'fulano@teste.com', 'registro_funcional': '1234567'}}]
+
+
+def test_finalizar_vinculo_codae(users_codae_gestao_alimentacao):
+    client, email, password, rf, cpf, user = users_codae_gestao_alimentacao
+    escola_ = user.vinculo_atual.instituicao
+    data = {
+        'vinculo_uuid': user.vinculo_atual.uuid
+    }
+    response = client.patch(f'/vinculos-codae-gestao-alimentacao-terceirizada/{str(escola_.uuid)}/finalizar_vinculo/',
+                            content_type='application/json', data=data)
+    assert response.status_code == status.HTTP_200_OK
+    user = Usuario.objects.get(registro_funcional=rf)
+    assert user.vinculo_atual is None
+    assert user.is_active is False
 
 
 def test_erro_401_usuario_nao_e_coordenador_ou_nao_esta_logado_cadastro_vinculos(client,
