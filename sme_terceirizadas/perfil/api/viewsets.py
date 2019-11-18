@@ -27,6 +27,21 @@ class UsuarioViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = self.get_serializer(usuario)
         return Response(serializer.data)
 
+    @action(detail=False, url_path='atualizar-senha', methods=['patch'])
+    def atualizar_senha(self, request):
+        try:
+            usuario = request.user
+            assert usuario.check_password(request.data.get('senha_atual')) is True, 'senha atual incorreta'
+            senha = request.data.get('senha')
+            confirmar_senha = request.data.get('confirmar_senha')
+            assert senha == confirmar_senha, 'senha e confirmar senha divergem'
+            usuario.set_password(senha)
+            usuario.save()
+            serializer = self.get_serializer(usuario)
+        except AssertionError as error:
+            return Response({'detail': str(error)}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.data)
+
     @action(detail=False, url_path='meus-dados')
     def meus_dados(self, request):
         usuario = request.user
