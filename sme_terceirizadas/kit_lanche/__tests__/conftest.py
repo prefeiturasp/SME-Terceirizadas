@@ -100,6 +100,13 @@ def solicitacao_unificada_lista_igual_codae_a_autorizar(solicitacao_unificada_li
 
 
 @pytest.fixture
+def solicitacao_unificada_lista_igual_codae_autorizado(solicitacao_unificada_lista_igual):
+    solicitacao_unificada_lista_igual.status = PedidoAPartirDaDiretoriaRegionalWorkflow.CODAE_AUTORIZADO
+    solicitacao_unificada_lista_igual.save()
+    return solicitacao_unificada_lista_igual
+
+
+@pytest.fixture
 def solicitacao_unificada_lotes_diferentes():
     kits = mommy.make(models.KitLanche, _quantity=3)
     solicitacao_kit_lanche = mommy.make(models.SolicitacaoKitLanche,

@@ -306,17 +306,6 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
-    @action(detail=True, url_path=constants.CODAE_PEDE_REVISAO,
-            permission_classes=[PodeIniciarSolicitacaoUnificadaPermission], methods=['patch'])
-    def codae_pede_revisao(self, request, uuid=None):
-        solicitacao_unificada = self.get_object()
-        try:
-            solicitacao_unificada.codae_pede_revisao(user=request.user, )
-            serializer = self.get_serializer(solicitacao_unificada)
-            return Response(serializer.data)
-        except InvalidTransitionError as e:
-            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
-
     @action(detail=True, url_path=constants.CODAE_NEGA_PEDIDO,
             permission_classes=[PodeIniciarSolicitacaoUnificadaPermission], methods=['patch'])
     def codae_nega_pedido(self, request, uuid=None):
@@ -324,17 +313,6 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
         justificativa = request.data.get('justificativa', '')
         try:
             solicitacao_unificada.codae_nega(user=request.user, justificativa=justificativa)
-            serializer = self.get_serializer(solicitacao_unificada)
-            return Response(serializer.data)
-        except InvalidTransitionError as e:
-            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
-
-    @action(detail=True, url_path=constants.DRE_REVISA_PEDIDO,
-            permission_classes=[PodeIniciarSolicitacaoUnificadaPermission], methods=['patch'])
-    def dre_revisa(self, request, uuid=None):
-        solicitacao_unificada = self.get_object()
-        try:
-            solicitacao_unificada.dre_revisa(user=request.user, )
             serializer = self.get_serializer(solicitacao_unificada)
             return Response(serializer.data)
         except InvalidTransitionError as e:

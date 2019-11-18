@@ -24,7 +24,7 @@ def test_url_endpoint_kit_lanches(client_autenticado):
 
 def test_url_endpoint_solicitacoes_kit_lanche_avulsa(client_autenticado, solicitacao_avulsa):
     # TODO: testar o POST também
-    response = client_autenticado.get('/{ENDPOINT_AVULSO}/')
+    response = client_autenticado.get(f'/{ENDPOINT_AVULSO}/')
     assert response.status_code == status.HTTP_200_OK
     json = response.json()
     assert json['count'] == 1
@@ -213,6 +213,62 @@ def test_url_endpoint_solicitacoes_kit_lanche_unificado_inicio(client_autenticad
     for json in json_list:
         assert isinstance(json, dict)
         assert json['status'] == PedidoAPartirDaDiretoriaRegionalWorkflow.CODAE_A_AUTORIZAR
+
+
+def test_url_endpoint_solicitacoes_kit_lanche_unificada_terceirizada_ciencia(
+    client_autenticado,
+    solicitacao_unificada_lista_igual_codae_autorizado
+):
+    solicacao = solicitacao_unificada_lista_igual_codae_autorizado
+    assert str(solicacao.status) == PedidoAPartirDaDiretoriaRegionalWorkflow.CODAE_AUTORIZADO
+    response = client_autenticado.patch(
+        f'/{ENDPOINT_UNIFICADO}/{solicacao.uuid}/{constants.TERCEIRIZADA_TOMOU_CIENCIA}/'
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    json = response.json()
+    assert json['status'] == PedidoAPartirDaDiretoriaRegionalWorkflow.TERCEIRIZADA_TOMOU_CIENCIA
+
+
+@freeze_time('2019-10-10')
+def test_url_endpoint_solicitacoes_kit_lanche_unificada_dre_cancela(
+    client_autenticado,
+    solicitacao_unificada_lista_igual_codae_autorizado
+):
+    # A solicitação é do dia 14/10/2019
+    solicacao = solicitacao_unificada_lista_igual_codae_autorizado
+    justificativa = 'CANCELA DRE'
+    assert str(solicacao.status) == PedidoAPartirDaDiretoriaRegionalWorkflow.CODAE_AUTORIZADO
+    response = client_autenticado.patch(
+        f'/{ENDPOINT_UNIFICADO}/{solicacao.uuid}/{constants.DRE_CANCELA}/',
+        data={'justificativa': justificativa},
+        content_type='application/json'
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    json = response.json()
+    assert json['status'] == PedidoAPartirDaDiretoriaRegionalWorkflow.DRE_CANCELOU
+    assert json['logs'][0]['justificativa'] == justificativa
+
+
+@freeze_time('2019-10-12')  # também dia 13 ou 14
+def test_url_endpoint_solicitacoes_kit_lanche_unificada_dre_cancela_em_cima_da_hora(
+    client_autenticado,
+    solicitacao_unificada_lista_igual_codae_autorizado
+):
+    # A solicitação é do dia 14/10/2019
+    solicacao = solicitacao_unificada_lista_igual_codae_autorizado
+    justificativa = 'CANCELA DRE'
+    assert str(solicacao.status) == PedidoAPartirDaDiretoriaRegionalWorkflow.CODAE_AUTORIZADO
+    response = client_autenticado.patch(
+        f'/{ENDPOINT_UNIFICADO}/{solicacao.uuid}/{constants.DRE_CANCELA}/',
+        data={'justificativa': justificativa},
+        content_type='application/json'
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    json = response.json()
+    assert json == {'detail': 'Erro de transição de estado: Só pode cancelar com no mínimo 2 dia(s) de antecedência'}
 
 
 def test_url_endpoint_solicitacoes_kit_lanche_unificado_deletar(client_autenticado, solicitacao_unificada_lista_igual):
