@@ -22,6 +22,44 @@ def test_get_usuarios(client_autenticado):
     assert json['results'][0]['email'] == 'test@test.com'
 
 
+def test_atualizar_senha_logado(users_admin_escola):
+    client, email, password, rf, user = users_admin_escola
+    data = {
+        'senha_atual': password,
+        'senha': 'adminadmin123',
+        'confirmar_senha': 'adminadmin123'
+    }
+    response = client.patch('/usuarios/atualizar-senha/', content_type='application/json', data=data)
+    assert response.status_code == status.HTTP_200_OK
+    user = Usuario.objects.get(registro_funcional=rf)
+    assert user.check_password('adminadmin123') is True
+
+
+def test_atualizar_senha_logado_senha_atual_incorreta(users_admin_escola):
+    client, email, password, rf, user = users_admin_escola
+    data = {
+        'senha_atual': 'senhaincorreta',
+        'senha': 'adminadmin123',
+        'confirmar_senha': 'adminadmin123'
+    }
+    response = client.patch('/usuarios/atualizar-senha/', content_type='application/json', data=data)
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {'detail': 'senha atual incorreta'}
+
+
+def test_atualizar_senha_logado_senha_e_confirmar_senha_divergem(users_admin_escola):
+    client, email, password, rf, user = users_admin_escola
+    data = {
+        'senha_atual': password,
+        'senha': 'adminadmin123',
+        'confirmar_senha': 'senhadiferente'
+    }
+    response = client.patch('/usuarios/atualizar-senha/', content_type='application/json', data=data)
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {'detail': 'senha e confirmar senha divergem'}
+
+
+
 def test_get_meus_dados_admin_escola(users_admin_escola):
     client, email, password, rf, user = users_admin_escola
     response = client.get('/usuarios/meus-dados/')
