@@ -64,6 +64,12 @@ def test_terceirizada(terceirizada):
     assert terceirizada.solicitacoes_unificadas_das_minhas_escolas(filtro) is not None
     assert terceirizada.solicitacoes_kit_lanche_das_minhas_escolas_a_validar(filtro) is not None
 
+    filtro = 'daqui_a_7_dias'
+    assert terceirizada.alteracoes_cardapio_das_minhas(filtro) is not None
+
+    filtro = 'daqui_a_30_dias'
+    assert terceirizada.alteracoes_cardapio_das_minhas(filtro) is not None
+
 
 def test_nutricionista(nutricionista):
     assert nutricionista.__str__() == 'nutri'
