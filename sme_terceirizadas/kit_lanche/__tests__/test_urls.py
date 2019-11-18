@@ -4,9 +4,12 @@ from rest_framework import status
 
 from ..models import SolicitacaoKitLancheAvulsa
 from ...dados_comuns import constants
-from ...dados_comuns.fluxo_status import PedidoAPartirDaEscolaWorkflow
+from ...dados_comuns.fluxo_status import PedidoAPartirDaDiretoriaRegionalWorkflow, PedidoAPartirDaEscolaWorkflow
 
 pytestmark = pytest.mark.django_db
+
+ENDPOINT_AVULSO = 'solicitacoes-kit-lanche-avulsa'
+ENDPOINT_UNIFICADO = 'solicitacoes-kit-lanche-unificada'
 
 
 def base_get_request(client_autenticado, resource):
@@ -21,7 +24,7 @@ def test_url_endpoint_kit_lanches(client_autenticado):
 
 def test_url_endpoint_solicitacoes_kit_lanche_avulsa(client_autenticado, solicitacao_avulsa):
     # TODO: testar o POST também
-    response = client_autenticado.get('/solicitacoes-kit-lanche-avulsa/')
+    response = client_autenticado.get('/{ENDPOINT_AVULSO}/')
     assert response.status_code == status.HTTP_200_OK
     json = response.json()
     assert json['count'] == 1
@@ -40,7 +43,7 @@ def test_url_endpoint_solicitacoes_kit_lanche_avulsa(client_autenticado, solicit
 def test_url_endpoint_solicitacoes_kit_lanche_avulsa_inicio_fluxo(client_autenticado, solicitacao_avulsa):
     assert str(solicitacao_avulsa.status) == PedidoAPartirDaEscolaWorkflow.RASCUNHO
     response = client_autenticado.patch(
-        f'/solicitacoes-kit-lanche-avulsa/{solicitacao_avulsa.uuid}/{constants.ESCOLA_INICIO_PEDIDO}/'
+        f'/{ENDPOINT_AVULSO}/{solicitacao_avulsa.uuid}/{constants.ESCOLA_INICIO_PEDIDO}/'
     )
 
     json = response.json()
@@ -55,7 +58,7 @@ def test_url_endpoint_solicitacoes_kit_lanche_avulsa_inicio_fluxo_exception(clie
     assert str(solicitacao_avulsa_dre_a_validar.status) == PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR
 
     response = client_autenticado.patch(
-        f'/solicitacoes-kit-lanche-avulsa/{solicitacao_avulsa_dre_a_validar.uuid}/{constants.ESCOLA_INICIO_PEDIDO}/'
+        f'/{ENDPOINT_AVULSO}/{solicitacao_avulsa_dre_a_validar.uuid}/{constants.ESCOLA_INICIO_PEDIDO}/'
     )
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json() == {
@@ -67,7 +70,7 @@ def test_url_endpoint_solicitacoes_kit_lanche_avulsa_dre_valida(client_autentica
     assert str(solicitacao_avulsa_dre_a_validar.status) == PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR
 
     response = client_autenticado.patch(
-        f'/solicitacoes-kit-lanche-avulsa/{solicitacao_avulsa_dre_a_validar.uuid}/{constants.DRE_VALIDA_PEDIDO}/'
+        f'/{ENDPOINT_AVULSO}/{solicitacao_avulsa_dre_a_validar.uuid}/{constants.DRE_VALIDA_PEDIDO}/'
     )
     assert response.status_code == status.HTTP_200_OK
     json = response.json()
@@ -79,7 +82,7 @@ def test_url_endpoint_solicitacoes_kit_lanche_avulsa_dre_nao_valida(client_auten
     assert str(solicitacao_avulsa_dre_a_validar.status) == PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR
     justificativa = 'TESTE@@@@'
     response = client_autenticado.patch(
-        f'/solicitacoes-kit-lanche-avulsa/{solicitacao_avulsa_dre_a_validar.uuid}/{constants.DRE_NAO_VALIDA_PEDIDO}/',
+        f'/{ENDPOINT_AVULSO}/{solicitacao_avulsa_dre_a_validar.uuid}/{constants.DRE_NAO_VALIDA_PEDIDO}/',
         data={'justificativa': justificativa},
         content_type='application/json'
     )
@@ -93,7 +96,7 @@ def test_url_endpoint_solicitacoes_kit_lanche_avulsa_codae_autoriza(client_auten
                                                                     solicitacao_avulsa_dre_validado):
     assert str(solicitacao_avulsa_dre_validado.status) == PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO
     response = client_autenticado.patch(
-        f'/solicitacoes-kit-lanche-avulsa/{solicitacao_avulsa_dre_validado.uuid}/{constants.CODAE_AUTORIZA_PEDIDO}/',
+        f'/{ENDPOINT_AVULSO}/{solicitacao_avulsa_dre_validado.uuid}/{constants.CODAE_AUTORIZA_PEDIDO}/',
     )
     assert response.status_code == status.HTTP_200_OK
     json = response.json()
@@ -105,7 +108,7 @@ def test_url_endpoint_solicitacoes_kit_lanche_avulsa_codae_nega(client_autentica
     assert str(solicitacao_avulsa_dre_validado.status) == PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO
     justificativa = 'TESTE_XxX'
     response = client_autenticado.patch(
-        f'/solicitacoes-kit-lanche-avulsa/{solicitacao_avulsa_dre_validado.uuid}/{constants.CODAE_NEGA_PEDIDO}/',
+        f'/{ENDPOINT_AVULSO}/{solicitacao_avulsa_dre_validado.uuid}/{constants.CODAE_NEGA_PEDIDO}/',
         data={'justificativa': justificativa},
         content_type='application/json'
     )
@@ -118,9 +121,9 @@ def test_url_endpoint_solicitacoes_kit_lanche_avulsa_codae_nega(client_autentica
 def test_url_endpoint_solicitacoes_kit_lanche_avulsa_terceirizada_ciencia(client_autenticado,
                                                                           solicitacao_avulsa_codae_autorizado):
     assert str(solicitacao_avulsa_codae_autorizado.status) == PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO
-    endpoint = 'solicitacoes-kit-lanche-avulsa'
+
     response = client_autenticado.patch(
-        f'/{endpoint}/{solicitacao_avulsa_codae_autorizado.uuid}/{constants.TERCEIRIZADA_TOMOU_CIENCIA}/',
+        f'/{ENDPOINT_AVULSO}/{solicitacao_avulsa_codae_autorizado.uuid}/{constants.TERCEIRIZADA_TOMOU_CIENCIA}/',
     )
     assert response.status_code == status.HTTP_200_OK
     json = response.json()
@@ -133,7 +136,7 @@ def test_url_endpoint_solicitacoes_kit_lanche_avulsa_escola_cancela(client_auten
     # A solicitação é do dia 18/11/2019
     assert str(solicitacao_avulsa_codae_autorizado.status) == PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO
     response = client_autenticado.patch(
-        f'/solicitacoes-kit-lanche-avulsa/{solicitacao_avulsa_codae_autorizado.uuid}/{constants.ESCOLA_CANCELA}/',
+        f'/{ENDPOINT_AVULSO}/{solicitacao_avulsa_codae_autorizado.uuid}/{constants.ESCOLA_CANCELA}/',
     )
     assert response.status_code == status.HTTP_200_OK
     json = response.json()
@@ -146,12 +149,79 @@ def test_url_endpoint_solicitacoes_kit_lanche_avulsa_escola_cancela_error(client
     # A solicitação é do dia 18/11/2019
     assert str(solicitacao_avulsa_codae_autorizado.status) == PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO
     response = client_autenticado.patch(
-        f'/solicitacoes-kit-lanche-avulsa/{solicitacao_avulsa_codae_autorizado.uuid}/{constants.ESCOLA_CANCELA}/',
+        f'/{ENDPOINT_AVULSO}/{solicitacao_avulsa_codae_autorizado.uuid}/{constants.ESCOLA_CANCELA}/',
     )
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json() == {
         'detail': 'Erro de transição de estado: Só pode cancelar com no mínimo 2 dia(s) de antecedência'}
+
+
+def test_url_endpoint_solicitacoes_kit_lanche_avulsa_deletar(client_autenticado, solicitacao_avulsa):
+    assert str(solicitacao_avulsa.status) == PedidoAPartirDaEscolaWorkflow.RASCUNHO
+    response = client_autenticado.delete(
+        f'/{ENDPOINT_AVULSO}/{solicitacao_avulsa.uuid}/'
+    )
+    assert response.status_code == status.HTTP_204_NO_CONTENT
+    assert response.data is None
+
+
+#
+# Unificado
+#
+# solicitacao_unificada_lista_igual_codae_a_autorizar
+
+def test_url_endpoint_solicitacoes_kit_lanche_unificada_codae_autoriza(
+    client_autenticado,
+    solicitacao_unificada_lista_igual_codae_a_autorizar
+):
+    solicacao = solicitacao_unificada_lista_igual_codae_a_autorizar
+    assert str(solicacao.status) == PedidoAPartirDaDiretoriaRegionalWorkflow.CODAE_A_AUTORIZAR
+    response = client_autenticado.patch(
+        f'/{ENDPOINT_UNIFICADO}/{solicacao.uuid}/{constants.CODAE_AUTORIZA_PEDIDO}/'
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    json = response.json()
+    assert json['status'] == PedidoAPartirDaDiretoriaRegionalWorkflow.CODAE_AUTORIZADO
+
+
+def test_url_endpoint_solicitacoes_kit_lanche_unificada_codae_autoriza_nega(
+    client_autenticado,
+    solicitacao_unificada_lista_igual_codae_a_autorizar
+):
+    solicacao = solicitacao_unificada_lista_igual_codae_a_autorizar
+    assert str(solicacao.status) == PedidoAPartirDaDiretoriaRegionalWorkflow.CODAE_A_AUTORIZAR
+    response = client_autenticado.patch(
+        f'/{ENDPOINT_UNIFICADO}/{solicacao.uuid}/{constants.CODAE_NEGA_PEDIDO}/'
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    json = response.json()
+    assert json['status'] == PedidoAPartirDaDiretoriaRegionalWorkflow.CODAE_NEGOU_PEDIDO
+
+
+def test_url_endpoint_solicitacoes_kit_lanche_unificado_inicio(client_autenticado, solicitacao_unificada_lista_igual):
+    """Uma solicitação unificada é dividida em duas ou mais em função dos lotes que ela tem."""
+    assert str(solicitacao_unificada_lista_igual.status) == PedidoAPartirDaDiretoriaRegionalWorkflow.RASCUNHO
+    response = client_autenticado.patch(
+        f'/{ENDPOINT_UNIFICADO}/{solicitacao_unificada_lista_igual.uuid}/{constants.DRE_INICIO_PEDIDO}/'
+    )
+    assert response.status_code == status.HTTP_200_OK
+    json_list = response.json()
+    assert isinstance(json_list, list)
+    for json in json_list:
+        assert isinstance(json, dict)
+        assert json['status'] == PedidoAPartirDaDiretoriaRegionalWorkflow.CODAE_A_AUTORIZAR
+
+
+def test_url_endpoint_solicitacoes_kit_lanche_unificado_deletar(client_autenticado, solicitacao_unificada_lista_igual):
+    assert str(solicitacao_unificada_lista_igual.status) == PedidoAPartirDaEscolaWorkflow.RASCUNHO
+    response = client_autenticado.delete(
+        f'/{ENDPOINT_UNIFICADO}/{solicitacao_unificada_lista_igual.uuid}/'
+    )
+    assert response.status_code == status.HTTP_204_NO_CONTENT
+    assert response.data is None
 
 
 def test_url_endpoint_solicitacoes_kit_lanche_unificada(client_autenticado):
