@@ -152,34 +152,12 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeIniciarSolicitacaoKitLancheAvulsaPermission],
-            methods=['patch'], url_path=constants.DRE_PEDE_REVISAO)
-    def diretoria_regional_pede_revisao(self, request, uuid=None):
-        solicitacao_kit_lanche_avulsa = self.get_object()
-        try:
-            solicitacao_kit_lanche_avulsa.dre_pede_revisao(user=request.user, )
-            serializer = self.get_serializer(solicitacao_kit_lanche_avulsa)
-            return Response(serializer.data)
-        except InvalidTransitionError as e:
-            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
-
-    @action(detail=True, permission_classes=[PodeIniciarSolicitacaoKitLancheAvulsaPermission],
             methods=['patch'], url_path=constants.DRE_NAO_VALIDA_PEDIDO)
     def diretoria_regional_nao_valida(self, request, uuid=None):
         solicitacao_kit_lanche_avulsa = self.get_object()
         justificativa = request.data.get('justificativa', '')
         try:
             solicitacao_kit_lanche_avulsa.dre_nao_valida(user=request.user, justificativa=justificativa)
-            serializer = self.get_serializer(solicitacao_kit_lanche_avulsa)
-            return Response(serializer.data)
-        except InvalidTransitionError as e:
-            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
-
-    @action(detail=True, permission_classes=[PodeIniciarSolicitacaoKitLancheAvulsaPermission],
-            methods=['patch'], url_path=constants.ESCOLA_REVISA_PEDIDO)
-    def escola_revisa_pedido(self, request, uuid=None):
-        solicitacao_kit_lanche_avulsa = self.get_object()
-        try:
-            solicitacao_kit_lanche_avulsa.escola_revisa(user=request.user, )
             serializer = self.get_serializer(solicitacao_kit_lanche_avulsa)
             return Response(serializer.data)
         except InvalidTransitionError as e:

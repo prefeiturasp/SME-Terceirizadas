@@ -1,4 +1,5 @@
 import pytest
+from freezegun import freeze_time
 from rest_framework import status
 
 from ..models import SolicitacaoKitLancheAvulsa
@@ -59,6 +60,98 @@ def test_url_endpoint_solicitacoes_kit_lanche_avulsa_inicio_fluxo_exception(clie
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json() == {
         'detail': "Erro de transição de estado: Transition 'inicia_fluxo' isn't available from state 'DRE_A_VALIDAR'."}
+
+
+def test_url_endpoint_solicitacoes_kit_lanche_avulsa_dre_valida(client_autenticado,
+                                                                solicitacao_avulsa_dre_a_validar):
+    assert str(solicitacao_avulsa_dre_a_validar.status) == PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR
+
+    response = client_autenticado.patch(
+        f'/solicitacoes-kit-lanche-avulsa/{solicitacao_avulsa_dre_a_validar.uuid}/{constants.DRE_VALIDA_PEDIDO}/'
+    )
+    assert response.status_code == status.HTTP_200_OK
+    json = response.json()
+    assert json['status'] == PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO
+
+
+def test_url_endpoint_solicitacoes_kit_lanche_avulsa_dre_nao_valida(client_autenticado,
+                                                                    solicitacao_avulsa_dre_a_validar):
+    assert str(solicitacao_avulsa_dre_a_validar.status) == PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR
+    justificativa = 'TESTE@@@@'
+    response = client_autenticado.patch(
+        f'/solicitacoes-kit-lanche-avulsa/{solicitacao_avulsa_dre_a_validar.uuid}/{constants.DRE_NAO_VALIDA_PEDIDO}/',
+        data={'justificativa': justificativa},
+        content_type='application/json'
+    )
+    json = response.json()
+    assert response.status_code == status.HTTP_200_OK
+    assert json['status'] == PedidoAPartirDaEscolaWorkflow.DRE_NAO_VALIDOU_PEDIDO_ESCOLA
+    assert json['logs'][0]['justificativa'] == justificativa
+
+
+def test_url_endpoint_solicitacoes_kit_lanche_avulsa_codae_autoriza(client_autenticado,
+                                                                    solicitacao_avulsa_dre_validado):
+    assert str(solicitacao_avulsa_dre_validado.status) == PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO
+    response = client_autenticado.patch(
+        f'/solicitacoes-kit-lanche-avulsa/{solicitacao_avulsa_dre_validado.uuid}/{constants.CODAE_AUTORIZA_PEDIDO}/',
+    )
+    assert response.status_code == status.HTTP_200_OK
+    json = response.json()
+    assert json['status'] == PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO
+
+
+def test_url_endpoint_solicitacoes_kit_lanche_avulsa_codae_nega(client_autenticado,
+                                                                solicitacao_avulsa_dre_validado):
+    assert str(solicitacao_avulsa_dre_validado.status) == PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO
+    justificativa = 'TESTE_XxX'
+    response = client_autenticado.patch(
+        f'/solicitacoes-kit-lanche-avulsa/{solicitacao_avulsa_dre_validado.uuid}/{constants.CODAE_NEGA_PEDIDO}/',
+        data={'justificativa': justificativa},
+        content_type='application/json'
+    )
+    assert response.status_code == status.HTTP_200_OK
+    json = response.json()
+    assert json['status'] == PedidoAPartirDaEscolaWorkflow.CODAE_NEGOU_PEDIDO
+    assert json['logs'][0]['justificativa'] == justificativa
+
+
+def test_url_endpoint_solicitacoes_kit_lanche_avulsa_terceirizada_ciencia(client_autenticado,
+                                                                          solicitacao_avulsa_codae_autorizado):
+    assert str(solicitacao_avulsa_codae_autorizado.status) == PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO
+    endpoint = 'solicitacoes-kit-lanche-avulsa'
+    response = client_autenticado.patch(
+        f'/{endpoint}/{solicitacao_avulsa_codae_autorizado.uuid}/{constants.TERCEIRIZADA_TOMOU_CIENCIA}/',
+    )
+    assert response.status_code == status.HTTP_200_OK
+    json = response.json()
+    assert json['status'] == PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_TOMOU_CIENCIA
+
+
+@freeze_time('2019-11-15')
+def test_url_endpoint_solicitacoes_kit_lanche_avulsa_escola_cancela(client_autenticado,
+                                                                    solicitacao_avulsa_codae_autorizado):
+    # A solicitação é do dia 18/11/2019
+    assert str(solicitacao_avulsa_codae_autorizado.status) == PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO
+    response = client_autenticado.patch(
+        f'/solicitacoes-kit-lanche-avulsa/{solicitacao_avulsa_codae_autorizado.uuid}/{constants.ESCOLA_CANCELA}/',
+    )
+    assert response.status_code == status.HTTP_200_OK
+    json = response.json()
+    assert json['status'] == PedidoAPartirDaEscolaWorkflow.ESCOLA_CANCELOU
+
+
+@freeze_time('2019-11-17')
+def test_url_endpoint_solicitacoes_kit_lanche_avulsa_escola_cancela_error(client_autenticado,
+                                                                          solicitacao_avulsa_codae_autorizado):
+    # A solicitação é do dia 18/11/2019
+    assert str(solicitacao_avulsa_codae_autorizado.status) == PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO
+    response = client_autenticado.patch(
+        f'/solicitacoes-kit-lanche-avulsa/{solicitacao_avulsa_codae_autorizado.uuid}/{constants.ESCOLA_CANCELA}/',
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {
+        'detail': 'Erro de transição de estado: Só pode cancelar com no mínimo 2 dia(s) de antecedência'}
 
 
 def test_url_endpoint_solicitacoes_kit_lanche_unificada(client_autenticado):
