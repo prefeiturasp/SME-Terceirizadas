@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 find . | grep -E "(__pycache__|\.pyc|\.pyo$)" | xargs rm -rf
+rm -rf .mypy_cache
+rm -rf .pytest_cache
+rm -rf .tmontmp
+rm .testmondata
+rm -r htmlcov
 
 echo "Verificando testes unitários e de integração..."
 pytest

@@ -21,6 +21,7 @@ model_mommy='==1.6.0'   # https://github.com/berinhard/model_mommy/
 Faker='==1.0.7'         # https://github.com/joke2k/faker
 pytest-cov='==2.7.1'    # https://pypi.org/project/pytest-cov/
 pytest-xdist='==1.29.0'
+pytest-testmon='==0.9.19' # https://testmon.org/
 # Code quality
 # ------------------------------------------------------------------------------
 flake8='==3.7.5'  # https://github.com/PyCQA/flake8

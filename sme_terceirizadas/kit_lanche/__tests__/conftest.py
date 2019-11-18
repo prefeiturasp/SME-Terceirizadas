@@ -47,6 +47,32 @@ def solicitacao_avulsa(escola):
 
 
 @pytest.fixture
+def solicitacao_avulsa_dre_a_validar(solicitacao_avulsa, escola):
+    solicitacao_avulsa = mommy.make('SolicitacaoKitLancheAvulsa',
+                                    status=PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR,
+                                    escola=escola)
+    return solicitacao_avulsa
+
+
+@pytest.fixture
+def solicitacao_avulsa_dre_validado(solicitacao_avulsa, escola):
+    solicitacao_avulsa = mommy.make('SolicitacaoKitLancheAvulsa',
+                                    status=PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO,
+                                    escola=escola)
+    return solicitacao_avulsa
+
+
+@pytest.fixture
+def solicitacao_avulsa_codae_autorizado(solicitacao_avulsa, escola):
+    solicitacao_kit_lanche = mommy.make(models.SolicitacaoKitLanche, data=datetime.datetime(2019, 11, 18))
+    solicitacao_avulsa = mommy.make('SolicitacaoKitLancheAvulsa',
+                                    solicitacao_kit_lanche=solicitacao_kit_lanche,
+                                    status=PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO,
+                                    escola=escola)
+    return solicitacao_avulsa
+
+
+@pytest.fixture
 def solicitacao_unificada_lista_igual(escola):
     mommy.make(TemplateMensagem, tipo=TemplateMensagem.SOLICITACAO_KIT_LANCHE_UNIFICADA)
     kits = mommy.make(models.KitLanche, _quantity=3)
