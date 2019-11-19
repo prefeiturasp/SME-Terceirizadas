@@ -14,6 +14,8 @@ class DadosUsuarioEOLViewSet(ViewSet):
         response = get_informacoes_usuario(registro_funcional)
         if response.status_code == status.HTTP_200_OK:
             response = response.json()
+            if not isinstance(response, dict):
+                return Response({'detail': f'{response}'})  # a API do eol retorna 200 e um array com str de erro
             for result in response['results']:
                 result.pop('cd_cpf_pessoa')
             return Response(response['results'])
