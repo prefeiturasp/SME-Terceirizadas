@@ -61,7 +61,7 @@ class UsuarioUpdateViewSet(viewsets.GenericViewSet):
             Q(email=registro_funcional_ou_email)
         )
 
-    def create(self, request):
+    def create(self, request):  # noqa C901
         try:
             usuario = self._get_usuario(request)
         except ObjectDoesNotExist:

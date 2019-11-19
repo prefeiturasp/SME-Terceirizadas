@@ -2,6 +2,7 @@ from rest_framework import serializers, status
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
+from sme_terceirizadas.eol_servico.utils import EolException
 from .validators import (
     registro_funcional_e_cpf_sao_da_mesma_pessoa,
     senha_deve_ser_igual_confirmar_senha,
@@ -45,12 +46,12 @@ class UsuarioUpdateSerializer(serializers.ModelSerializer):
     def get_informacoes_usuario(self, validated_data):
         return get_informacoes_usuario(validated_data['registro_funcional'])
 
-    def create(self, validated_data):
+    def create(self, validated_data):  # noqa C901
         # TODO: ajeitar isso aqui, criar um validator antes...
         try:
             informacoes_usuario = self.get_informacoes_usuario(validated_data)
-        except ValidationError as e:
-            return Response({'detail': e.detail[0].title()}, status=status.HTTP_400_BAD_REQUEST)
+        except EolException as e:
+            return Response({'detail': f'{e}'}, status=status.HTTP_400_BAD_REQUEST)
         informacoes_usuario = informacoes_usuario.json()['results']
         if validated_data['instituicao'] != 'CODAE':
             usuario_e_vinculado_a_aquela_instituicao(
