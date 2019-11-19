@@ -129,6 +129,7 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
     def inicio_de_pedido(self, request, uuid=None):
         solicitacao_kit_lanche_avulsa = self.get_object()
         try:
+            # TODO: ao iniciar fluxo fazer a verificação de estouro de quantidade de pedidos no dia para a escola
             solicitacao_kit_lanche_avulsa.inicia_fluxo(user=request.user, )
             serializer = self.get_serializer(solicitacao_kit_lanche_avulsa)
             return Response(serializer.data)

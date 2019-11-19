@@ -282,3 +282,54 @@ def test_url_endpoint_solicitacoes_kit_lanche_unificado_deletar(client_autentica
 
 def test_url_endpoint_solicitacoes_kit_lanche_unificada(client_autenticado):
     base_get_request(client_autenticado, 'solicitacoes-kit-lanche-unificada')
+
+
+def test_create_kit_lanche(client_autenticado, solicitacao_avulsa_xxx, escola, kit_lanche):
+    """Primeiro cria-se 3 rascunhos (POST) 200, 200, 200 totalizando 600 alunos que é mais que 500.
+
+    Após isso, vamos efetivar a solicitacao (PATCH), no qual sai de RASCUNHO para DRE_A_VALIDAR, deve-se
+    autorizar as duas primeiras 200+200=400 e a ultima deve dar problema por exceder a quantidade de alunos (600)
+    da escola"""
+    escola.quantidade_alunos = 500
+    escola.save()
+
+    data_teste = "27/11/2019"
+    step = 200
+    solicitacoes_avulsas = []
+    for _ in range(3):
+        response_criacao1 = client_autenticado.post(f'/{ENDPOINT_AVULSO}/',
+                                                    content_type='application/json',
+                                                    data={
+                                                        "solicitacao_kit_lanche": {
+                                                            "kits": [
+                                                                kit_lanche.uuid
+                                                            ],
+                                                            "descricao": "<p>123213213</p>\n",
+                                                            "data": data_teste,
+                                                            "tempo_passeio": 0
+                                                        },
+                                                        'local': 'TESTE!!!',
+                                                        'quantidade_alunos': step,
+                                                        'escola': escola.uuid, }
+                                                    )
+        # deve permitir todos sem problema pois são criados com status inicial RASCUNHO
+        assert response_criacao1.status_code == status.HTTP_201_CREATED
+        json = response_criacao1.json()
+        assert json['quantidade_alunos'] == step
+        assert json['status'] == PedidoAPartirDaEscolaWorkflow.RASCUNHO
+
+        solicitacao = SolicitacaoKitLancheAvulsa.objects.get(uuid=json['uuid'])
+        solicitacoes_avulsas.append(solicitacao)
+
+    for sol_index in range(len(solicitacoes_avulsas)):
+        response = client_autenticado.patch(
+            f'/{ENDPOINT_AVULSO}/{solicitacoes_avulsas[sol_index].uuid}/{constants.ESCOLA_INICIO_PEDIDO}/'
+        )
+        json = response.json()
+        xxx = response.data
+        # deve passar pra frente os dois primeiros, o terceiro deve dar problema
+        if sol_index < 2:
+            assert response.status_code == status.HTTP_200_OK
+            assert json['status'] == PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR
+        else:
+            assert json.get('detail') is not None

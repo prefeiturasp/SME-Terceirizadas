@@ -363,3 +363,28 @@ def kits_unificados_param_serializer(request):
 @pytest.fixture
 def escola_quantidade():
     return mommy.make(models.EscolaQuantidade)
+
+
+@pytest.fixture
+def solicitacao_avulsa_xxx(escola):
+    escola.quantidade_alunos = 500
+    escola.save()
+
+    mommy.make(TemplateMensagem, tipo=TemplateMensagem.SOLICITACAO_KIT_LANCHE_AVULSA)
+    kits = mommy.make(models.KitLanche, _quantity=3)
+    dia_evento = datetime.datetime(2000, 1, 1)
+
+    solicitacao_base = mommy.make(models.SolicitacaoKitLanche, kits=kits, data=dia_evento)
+    solicitacao_base2 = mommy.make(models.SolicitacaoKitLanche, kits=kits, data=dia_evento)
+
+    mommy.make(models.SolicitacaoKitLancheAvulsa,
+               local=fake.text()[:160],
+               quantidade_alunos=400,
+               solicitacao_kit_lanche=solicitacao_base,
+               escola=escola)
+
+    return mommy.make(models.SolicitacaoKitLancheAvulsa,
+                      local=fake.text()[:160],
+                      quantidade_alunos=200,
+                      solicitacao_kit_lanche=solicitacao_base2,
+                      escola=escola)
