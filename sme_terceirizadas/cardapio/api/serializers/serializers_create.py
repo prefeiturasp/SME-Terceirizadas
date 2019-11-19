@@ -1,15 +1,5 @@
 from rest_framework import serializers
 
-from ...api.validators import (
-    data_troca_nao_pode_ser_superior_a_data_inversao, deve_ser_no_mesmo_ano_corrente,
-    nao_pode_existir_solicitacao_igual_para_mesma_escola, nao_pode_ter_mais_que_60_dias_diferenca,
-    precisa_pertencer_a_um_tipo_de_alimentacao
-)
-from ...models import (
-    AlteracaoCardapio, Cardapio, GrupoSuspensaoAlimentacao, InversaoCardapio, MotivoAlteracaoCardapio, MotivoSuspensao,
-    QuantidadePorPeriodoSuspensaoAlimentacao, SubstituicoesAlimentacaoNoPeriodoEscolar, SuspensaoAlimentacao,
-    SuspensaoAlimentacaoNoPeriodoEscolar, TipoAlimentacao, VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
-)
 from ....dados_comuns.utils import update_instance_from_dict
 from ....dados_comuns.validators import (
     campo_nao_pode_ser_nulo,
@@ -17,9 +7,31 @@ from ....dados_comuns.validators import (
     deve_pedir_com_antecedencia,
     nao_pode_ser_feriado,
     nao_pode_ser_no_passado,
-    objeto_nao_deve_ter_duplicidade)
+    objeto_nao_deve_ter_duplicidade
+)
 from ....escola.models import Escola, PeriodoEscolar, TipoUnidadeEscolar
 from ....terceirizada.models import Edital
+from ...api.validators import (
+    data_troca_nao_pode_ser_superior_a_data_inversao,
+    deve_ser_no_mesmo_ano_corrente,
+    nao_pode_existir_solicitacao_igual_para_mesma_escola,
+    nao_pode_ter_mais_que_60_dias_diferenca,
+    precisa_pertencer_a_um_tipo_de_alimentacao
+)
+from ...models import (
+    AlteracaoCardapio,
+    Cardapio,
+    GrupoSuspensaoAlimentacao,
+    InversaoCardapio,
+    MotivoAlteracaoCardapio,
+    MotivoSuspensao,
+    QuantidadePorPeriodoSuspensaoAlimentacao,
+    SubstituicoesAlimentacaoNoPeriodoEscolar,
+    SuspensaoAlimentacao,
+    SuspensaoAlimentacaoNoPeriodoEscolar,
+    TipoAlimentacao,
+    VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
+)
 
 
 class InversaoCardapioSerializerCreate(serializers.ModelSerializer):

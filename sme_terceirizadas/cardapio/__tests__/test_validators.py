@@ -5,8 +5,11 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from ..api.validators import (
-    cardapio_antigo, data_troca_nao_pode_ser_superior_a_data_inversao, deve_ser_no_mesmo_ano_corrente,
-    nao_pode_existir_solicitacao_igual_para_mesma_escola, nao_pode_ter_mais_que_60_dias_diferenca
+    cardapio_antigo,
+    data_troca_nao_pode_ser_superior_a_data_inversao,
+    deve_ser_no_mesmo_ano_corrente,
+    nao_pode_existir_solicitacao_igual_para_mesma_escola,
+    nao_pode_ter_mais_que_60_dias_diferenca
 )
 from ..models import InversaoCardapio
 

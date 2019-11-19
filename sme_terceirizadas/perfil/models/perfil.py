@@ -5,10 +5,8 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.db.utils import IntegrityError
 
+from ...dados_comuns.behaviors import Ativavel, Descritivel, Nomeavel, TemChaveExterna
 from ...dados_comuns.tasks import envia_email_unico_task
-from ...dados_comuns.behaviors import (
-    Ativavel, Descritivel, Nomeavel, TemChaveExterna
-)
 
 
 class Perfil(Nomeavel, Descritivel, Ativavel, TemChaveExterna):

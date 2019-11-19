@@ -4,9 +4,9 @@ import pytest
 from faker import Faker
 from model_mommy import mommy
 
-from .. import models
 from ...dados_comuns.fluxo_status import PedidoAPartirDaEscolaWorkflow
 from ...dados_comuns.models import TemplateMensagem
+from .. import models
 
 fake = Faker('pt-Br')
 fake.seed(420)

@@ -1,8 +1,15 @@
 from django.contrib import admin
 
 from .models import (
-    Codae, DiretoriaRegional, Escola, FaixaIdadeEscolar, Lote,
-    PeriodoEscolar, Subprefeitura, TipoGestao, TipoUnidadeEscolar
+    Codae,
+    DiretoriaRegional,
+    Escola,
+    FaixaIdadeEscolar,
+    Lote,
+    PeriodoEscolar,
+    Subprefeitura,
+    TipoGestao,
+    TipoUnidadeEscolar
 )
 
 admin.site.register(DiretoriaRegional)

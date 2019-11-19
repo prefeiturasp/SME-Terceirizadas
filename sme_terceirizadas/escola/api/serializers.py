@@ -1,20 +1,26 @@
 from rest_framework import serializers
 
-from ..models import (
-    Codae, DiretoriaRegional, Escola, FaixaIdadeEscolar,
-    Lote, PeriodoEscolar, Subprefeitura, TipoGestao,
-    TipoUnidadeEscolar
-)
 from ...cardapio.models import TipoAlimentacao
 from ...dados_comuns.api.serializers import ContatoSerializer
 from ...perfil.api.serializers import PerfilSimplesSerializer
 from ...perfil.models import Usuario, Vinculo
 from ...terceirizada.api.serializers.serializers import (
     ContratoSimplesSerializer,
-    NutricionistaSerializer
+    NutricionistaSerializer,
+    TerceirizadaSimplesSerializer
 )
-from ...terceirizada.api.serializers.serializers import TerceirizadaSimplesSerializer
 from ...terceirizada.models import Terceirizada
+from ..models import (
+    Codae,
+    DiretoriaRegional,
+    Escola,
+    FaixaIdadeEscolar,
+    Lote,
+    PeriodoEscolar,
+    Subprefeitura,
+    TipoGestao,
+    TipoUnidadeEscolar
+)
 
 
 class SubsticuicoesTipoAlimentacaoSerializer(serializers.ModelSerializer):

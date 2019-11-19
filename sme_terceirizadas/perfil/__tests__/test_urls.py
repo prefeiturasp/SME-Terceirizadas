@@ -4,11 +4,11 @@ import uuid
 import pytest
 from rest_framework import status
 
-from .conftest import mocked_request_api_eol, mocked_request_api_eol_usuario_diretoria_regional
 from ..api.helpers import ofuscar_email
 from ..api.serializers import UsuarioUpdateSerializer
 from ..api.viewsets import UsuarioUpdateViewSet
 from ..models import Usuario
+from .conftest import mocked_request_api_eol, mocked_request_api_eol_usuario_diretoria_regional
 
 pytestmark = pytest.mark.django_db
 

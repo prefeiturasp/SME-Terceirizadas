@@ -5,9 +5,10 @@ from django.db import models
 from django.db.models import Q
 
 from ..dados_comuns.behaviors import TemPrioridade
-from ..dados_comuns.constants import DAQUI_A_30_DIAS, DAQUI_A_7_DIAS
+from ..dados_comuns.constants import DAQUI_A_SETE_DIAS, DAQUI_A_TRINTA_DIAS
 from ..dados_comuns.fluxo_status import (
-    InformativoPartindoDaEscolaWorkflow, PedidoAPartirDaDiretoriaRegionalWorkflow,
+    InformativoPartindoDaEscolaWorkflow,
+    PedidoAPartirDaDiretoriaRegionalWorkflow,
     PedidoAPartirDaEscolaWorkflow
 )
 from ..dados_comuns.models import LogSolicitacoesUsuario
@@ -78,9 +79,9 @@ class MoldeConsolidado(models.Model, TemPrioridade):
     def _get_manager(cls, kwargs):
         filtro = kwargs.get('filtro')
         manager = cls.objects
-        if filtro == DAQUI_A_7_DIAS:
+        if filtro == DAQUI_A_SETE_DIAS:
             manager = cls.filtro_7_dias
-        elif filtro == DAQUI_A_30_DIAS:
+        elif filtro == DAQUI_A_TRINTA_DIAS:
             manager = cls.filtro_30_dias
         return manager
 

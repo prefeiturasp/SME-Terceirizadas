@@ -11,7 +11,8 @@ from .models import (
     SubstituicoesAlimentacaoNoPeriodoEscolar,
     SuspensaoAlimentacao,
     TipoAlimentacao,
-    VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar)
+    VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
+)
 
 admin.site.register(TipoAlimentacao)
 admin.site.register(InversaoCardapio)

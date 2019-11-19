@@ -4,27 +4,28 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
 from ...dados_comuns.constants import (
-    ADMINISTRADOR_DRE, ADMINISTRADOR_ESCOLA,
+    ADMINISTRADOR_DRE,
+    ADMINISTRADOR_ESCOLA,
     ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA
-)
-from .serializers import (
-    DiretoriaRegionalCompletaSerializer, DiretoriaRegionalSimplissimaSerializer,
-    EscolaSimplesSerializer, EscolaSimplissimaSerializer, PeriodoEscolarSerializer, SubprefeituraSerializer,
-    TipoGestaoSerializer
-)
-from ..models import (
-    Codae, DiretoriaRegional, Escola, Lote, PeriodoEscolar, Subprefeitura, TipoGestao
 )
 from ...escola.api.permissions import (
     PodeCriarAdministradoresDaCODAEGestaoAlimentacaoTerceirizada,
     PodeCriarAdministradoresDaDiretoriaRegional,
     PodeCriarAdministradoresDaEscola
 )
-from ...escola.api.serializers import CODAESerializer, LoteSimplesSerializer
-from ...escola.api.serializers import UsuarioDetalheSerializer
+from ...escola.api.serializers import CODAESerializer, LoteSimplesSerializer, UsuarioDetalheSerializer
 from ...escola.api.serializers_create import LoteCreateSerializer
 from ...perfil.api.serializers import UsuarioUpdateSerializer, VinculoSerializer
-
+from ..models import Codae, DiretoriaRegional, Escola, Lote, PeriodoEscolar, Subprefeitura, TipoGestao
+from .serializers import (
+    DiretoriaRegionalCompletaSerializer,
+    DiretoriaRegionalSimplissimaSerializer,
+    EscolaSimplesSerializer,
+    EscolaSimplissimaSerializer,
+    PeriodoEscolarSerializer,
+    SubprefeituraSerializer,
+    TipoGestaoSerializer
+)
 
 # https://www.django-rest-framework.org/api-guide/permissions/#custom-permissions
 

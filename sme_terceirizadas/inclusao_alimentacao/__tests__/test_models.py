@@ -4,8 +4,8 @@ import pytest
 from model_mommy import mommy
 from xworkflows.base import InvalidTransitionError
 
-from ..models import MotivoInclusaoContinua
 from ...escola.models import Escola, PeriodoEscolar
+from ..models import MotivoInclusaoContinua
 
 pytestmark = pytest.mark.django_db
 

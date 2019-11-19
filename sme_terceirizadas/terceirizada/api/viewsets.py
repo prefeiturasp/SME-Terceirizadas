@@ -1,10 +1,9 @@
 from rest_framework import viewsets
-from .serializers.serializers import (
-    EditalContratosSerializer, EditalSerializer
-)
+
 from ...escola.api.serializers import TerceirizadaSerializer
-from .serializers.serializers_create import EditalContratosCreateSerializer, TerceirizadaCreateSerializer
 from ..models import Edital, Terceirizada
+from .serializers.serializers import EditalContratosSerializer, EditalSerializer
+from .serializers.serializers_create import EditalContratosCreateSerializer, TerceirizadaCreateSerializer
 
 
 class EditalViewSet(viewsets.ReadOnlyModelViewSet):

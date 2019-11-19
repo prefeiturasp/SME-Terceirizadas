@@ -5,18 +5,26 @@ from faker import Faker
 from model_mommy import mommy
 from rest_framework.test import APIClient
 
+from ...dados_comuns.fluxo_status import PedidoAPartirDaEscolaWorkflow
+from ...dados_comuns.models import TemplateMensagem
 from ..api.serializers.serializers import (
-    AlteracaoCardapioSerializer, GrupoSuspensaoAlimentacao, InversaoCardapioSerializer,
-    MotivoAlteracaoCardapioSerializer, QuantidadePorPeriodoSuspensaoAlimentacao,
-    SubstituicoesAlimentacaoNoPeriodoEscolarSerializer, SuspensaoAlimentacaoNoPeriodoEscolar,
+    AlteracaoCardapioSerializer,
+    GrupoSuspensaoAlimentacao,
+    InversaoCardapioSerializer,
+    MotivoAlteracaoCardapioSerializer,
+    QuantidadePorPeriodoSuspensaoAlimentacao,
+    SubstituicoesAlimentacaoNoPeriodoEscolarSerializer,
+    SuspensaoAlimentacaoNoPeriodoEscolar,
     SuspensaoAlimentacaoSerializer
 )
 from ..models import (
-    AlteracaoCardapio, InversaoCardapio, MotivoAlteracaoCardapio, MotivoSuspensao,
-    SubstituicoesAlimentacaoNoPeriodoEscolar, SuspensaoAlimentacao
+    AlteracaoCardapio,
+    InversaoCardapio,
+    MotivoAlteracaoCardapio,
+    MotivoSuspensao,
+    SubstituicoesAlimentacaoNoPeriodoEscolar,
+    SuspensaoAlimentacao
 )
-from ...dados_comuns.fluxo_status import PedidoAPartirDaEscolaWorkflow
-from ...dados_comuns.models import TemplateMensagem
 
 fake = Faker('pt_BR')
 fake.seed(420)
@@ -81,6 +89,27 @@ def inversao_dia_cardapio(cardapio_valido2, cardapio_valido3, escola):
                       cardapio_de=cardapio_valido2,
                       cardapio_para=cardapio_valido3,
                       escola=escola)
+
+
+@pytest.fixture
+def inversao_dia_cardapio_dre_validar(inversao_dia_cardapio):
+    inversao_dia_cardapio.status = PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR
+    inversao_dia_cardapio.save()
+    return inversao_dia_cardapio
+
+
+@pytest.fixture
+def inversao_dia_cardapio_dre_validado(inversao_dia_cardapio):
+    inversao_dia_cardapio.status = PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO
+    inversao_dia_cardapio.save()
+    return inversao_dia_cardapio
+
+
+@pytest.fixture
+def inversao_dia_cardapio_codae_autorizado(inversao_dia_cardapio):
+    inversao_dia_cardapio.status = PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO
+    inversao_dia_cardapio.save()
+    return inversao_dia_cardapio
 
 
 @pytest.fixture

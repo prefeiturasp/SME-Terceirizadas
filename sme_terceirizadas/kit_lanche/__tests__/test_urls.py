@@ -2,9 +2,9 @@ import pytest
 from freezegun import freeze_time
 from rest_framework import status
 
-from ..models import SolicitacaoKitLancheAvulsa
 from ...dados_comuns import constants
 from ...dados_comuns.fluxo_status import PedidoAPartirDaDiretoriaRegionalWorkflow, PedidoAPartirDaEscolaWorkflow
+from ..models import SolicitacaoKitLancheAvulsa
 
 pytestmark = pytest.mark.django_db
 

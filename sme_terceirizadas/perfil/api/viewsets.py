@@ -4,14 +4,13 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db.models.query_utils import Q
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
-from .serializers import (
-    PerfilSerializer, UsuarioUpdateSerializer
-)
+from ...escola.api.serializers import UsuarioDetalheSerializer
 from ..api.helpers import ofuscar_email
 from ..models import Perfil, Usuario
-from ...escola.api.serializers import UsuarioDetalheSerializer
+from .serializers import PerfilSerializer, UsuarioUpdateSerializer
 
 
 class UsuarioViewSet(viewsets.ReadOnlyModelViewSet):
@@ -62,15 +61,19 @@ class UsuarioUpdateViewSet(viewsets.GenericViewSet):
             Q(email=registro_funcional_ou_email)
         )
 
-    def create(self, request):
+    def create(self, request):  # noqa C901
         try:
             usuario = self._get_usuario(request)
         except ObjectDoesNotExist:
             return Response({'detail': 'Erro ao cadastrar usuário'},
                             status=status.HTTP_400_BAD_REQUEST)
-        usuario = UsuarioUpdateSerializer(usuario).partial_update(usuario, request.data)
-        usuario.enviar_email_confirmacao()
-        return Response(UsuarioDetalheSerializer(usuario).data)
+        # TODO: ajeitar isso aqui
+        try:
+            usuario = UsuarioUpdateSerializer(usuario).partial_update(usuario, request.data)
+            usuario.enviar_email_confirmacao()
+            return Response(UsuarioDetalheSerializer(usuario).data)
+        except ValidationError as e:
+            return Response({'detail': e.detail[0].title()}, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, url_path='recuperar-senha/(?P<registro_funcional_ou_email>.*)')
     def recuperar_senha(self, request, registro_funcional_ou_email=None):

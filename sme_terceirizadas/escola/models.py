@@ -3,19 +3,18 @@ from django.core.validators import MinLengthValidator
 from django.db import models
 from django.db.models import Q, Sum
 
-from ..cardapio.models import (
-    AlteracaoCardapio, GrupoSuspensaoAlimentacao, InversaoCardapio
-)
-from ..dados_comuns.behaviors import (
-    Ativavel, Iniciais, Nomeavel, TemChaveExterna,
-    TemCodigoEOL, TemVinculos)
+from ..cardapio.models import AlteracaoCardapio, GrupoSuspensaoAlimentacao, InversaoCardapio
+from ..dados_comuns.behaviors import Ativavel, Iniciais, Nomeavel, TemChaveExterna, TemCodigoEOL, TemVinculos
 from ..dados_comuns.constants import (
-    COGESTOR, COORDENADOR_DIETA_ESPECIAL, COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
-    DAQUI_A_30_DIAS, DAQUI_A_7_DIAS, DIRETOR, SUPLENTE
+    COGESTOR,
+    COORDENADOR_DIETA_ESPECIAL,
+    COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
+    DAQUI_A_SETE_DIAS,
+    DAQUI_A_TRINTA_DIAS,
+    DIRETOR,
+    SUPLENTE
 )
-from ..inclusao_alimentacao.models import (
-    GrupoInclusaoAlimentacaoNormal, InclusaoAlimentacaoContinua
-)
+from ..inclusao_alimentacao.models import GrupoInclusaoAlimentacaoNormal, InclusaoAlimentacaoContinua
 from ..kit_lanche.models import SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheUnificada
 
 
@@ -74,9 +73,9 @@ class DiretoriaRegional(Nomeavel, Iniciais, TemChaveExterna, TemCodigoEOL, TemVi
     # TODO: talvez fazer um manager genérico pra fazer esse filtro
 
     def solicitacoes_kit_lanche_das_minhas_escolas_a_validar(self, filtro_aplicado):
-        if filtro_aplicado == DAQUI_A_7_DIAS:
+        if filtro_aplicado == DAQUI_A_SETE_DIAS:
             solicitacoes_kit_lanche_avulsa = SolicitacaoKitLancheAvulsa.desta_semana
-        elif filtro_aplicado == DAQUI_A_30_DIAS:
+        elif filtro_aplicado == DAQUI_A_TRINTA_DIAS:
             solicitacoes_kit_lanche_avulsa = SolicitacaoKitLancheAvulsa.deste_mes  # type: ignore
         else:
             solicitacoes_kit_lanche_avulsa = SolicitacaoKitLancheAvulsa.objects  # type: ignore
@@ -86,9 +85,9 @@ class DiretoriaRegional(Nomeavel, Iniciais, TemChaveExterna, TemCodigoEOL, TemVi
         )
 
     def alteracoes_cardapio_das_minhas_escolas_a_validar(self, filtro_aplicado):
-        if filtro_aplicado == DAQUI_A_7_DIAS:
+        if filtro_aplicado == DAQUI_A_SETE_DIAS:
             inversoes_cardapio = AlteracaoCardapio.desta_semana
-        elif filtro_aplicado == DAQUI_A_30_DIAS:
+        elif filtro_aplicado == DAQUI_A_TRINTA_DIAS:
             inversoes_cardapio = AlteracaoCardapio.deste_mes  # type: ignore
         else:
             inversoes_cardapio = AlteracaoCardapio.objects  # type: ignore
@@ -99,9 +98,9 @@ class DiretoriaRegional(Nomeavel, Iniciais, TemChaveExterna, TemCodigoEOL, TemVi
 
     # TODO rever os demais métodos de alterações de cardápio, já que esse consolida todas as prioridades.
     def inclusoes_alimentacao_continua_das_minhas_escolas(self, filtro_aplicado):
-        if filtro_aplicado == DAQUI_A_7_DIAS:
+        if filtro_aplicado == DAQUI_A_SETE_DIAS:
             inclusoes_alimentacao_continuas = InclusaoAlimentacaoContinua.desta_semana
-        elif filtro_aplicado == DAQUI_A_30_DIAS:
+        elif filtro_aplicado == DAQUI_A_TRINTA_DIAS:
             inclusoes_alimentacao_continuas = InclusaoAlimentacaoContinua.deste_mes  # type: ignore
         else:
             inclusoes_alimentacao_continuas = InclusaoAlimentacaoContinua.objects  # type: ignore
@@ -111,9 +110,9 @@ class DiretoriaRegional(Nomeavel, Iniciais, TemChaveExterna, TemCodigoEOL, TemVi
         )
 
     def grupos_inclusoes_alimentacao_normal_das_minhas_escolas(self, filtro_aplicado):
-        if filtro_aplicado == DAQUI_A_7_DIAS:
+        if filtro_aplicado == DAQUI_A_SETE_DIAS:
             inclusoes_alimentacao_normais = GrupoInclusaoAlimentacaoNormal.desta_semana
-        elif filtro_aplicado == DAQUI_A_30_DIAS:
+        elif filtro_aplicado == DAQUI_A_TRINTA_DIAS:
             inclusoes_alimentacao_normais = GrupoInclusaoAlimentacaoNormal.deste_mes  # type: ignore
         else:
             inclusoes_alimentacao_normais = GrupoInclusaoAlimentacaoNormal.objects  # type: ignore
@@ -165,9 +164,9 @@ class DiretoriaRegional(Nomeavel, Iniciais, TemChaveExterna, TemCodigoEOL, TemVi
 
     # TODO rever os demais métodos de alterações de cardápio, já que esse consolida todas as prioridades.
     def alteracoes_cardapio_das_minhas_escolas(self, filtro_aplicado):
-        if filtro_aplicado == DAQUI_A_7_DIAS:
+        if filtro_aplicado == DAQUI_A_SETE_DIAS:
             alteracoes_cardapio = AlteracaoCardapio.desta_semana
-        elif filtro_aplicado == DAQUI_A_30_DIAS:
+        elif filtro_aplicado == DAQUI_A_TRINTA_DIAS:
             alteracoes_cardapio = AlteracaoCardapio.deste_mes  # type: ignore
         else:
             alteracoes_cardapio = AlteracaoCardapio.objects  # type: ignore
@@ -181,9 +180,9 @@ class DiretoriaRegional(Nomeavel, Iniciais, TemChaveExterna, TemCodigoEOL, TemVi
     #
 
     def inversoes_cardapio_das_minhas_escolas(self, filtro_aplicado):
-        if filtro_aplicado == DAQUI_A_7_DIAS:
+        if filtro_aplicado == DAQUI_A_SETE_DIAS:
             inversoes_cardapio = InversaoCardapio.desta_semana
-        elif filtro_aplicado == DAQUI_A_30_DIAS:
+        elif filtro_aplicado == DAQUI_A_TRINTA_DIAS:
             inversoes_cardapio = InversaoCardapio.deste_mes  # type: ignore
         else:
             inversoes_cardapio = InversaoCardapio.objects  # type: ignore
@@ -397,9 +396,9 @@ class Codae(Nomeavel, TemChaveExterna, TemVinculos):
         return quantidade_result.get('quantidade_alunos__sum', 0)
 
     def inversoes_cardapio_das_minhas_escolas(self, filtro_aplicado):
-        if filtro_aplicado == DAQUI_A_7_DIAS:
+        if filtro_aplicado == DAQUI_A_SETE_DIAS:
             inversoes_cardapio = InversaoCardapio.desta_semana
-        elif filtro_aplicado == DAQUI_A_30_DIAS:
+        elif filtro_aplicado == DAQUI_A_TRINTA_DIAS:
             inversoes_cardapio = InversaoCardapio.deste_mes  # type: ignore
         else:
             inversoes_cardapio = InversaoCardapio.objects  # type: ignore
@@ -408,9 +407,9 @@ class Codae(Nomeavel, TemChaveExterna, TemVinculos):
         )
 
     def grupos_inclusoes_alimentacao_normal_das_minhas_escolas(self, filtro_aplicado):
-        if filtro_aplicado == DAQUI_A_7_DIAS:
+        if filtro_aplicado == DAQUI_A_SETE_DIAS:
             inversoes_cardapio = GrupoInclusaoAlimentacaoNormal.desta_semana
-        elif filtro_aplicado == DAQUI_A_30_DIAS:
+        elif filtro_aplicado == DAQUI_A_TRINTA_DIAS:
             inversoes_cardapio = GrupoInclusaoAlimentacaoNormal.deste_mes  # type: ignore
         else:
             inversoes_cardapio = GrupoInclusaoAlimentacaoNormal.objects  # type: ignore
@@ -432,9 +431,9 @@ class Codae(Nomeavel, TemChaveExterna, TemVinculos):
         )
 
     def inclusoes_alimentacao_continua_das_minhas_escolas(self, filtro_aplicado):
-        if filtro_aplicado == DAQUI_A_7_DIAS:
+        if filtro_aplicado == DAQUI_A_SETE_DIAS:
             inversoes_cardapio = InclusaoAlimentacaoContinua.desta_semana
-        elif filtro_aplicado == DAQUI_A_30_DIAS:
+        elif filtro_aplicado == DAQUI_A_TRINTA_DIAS:
             inversoes_cardapio = InclusaoAlimentacaoContinua.deste_mes  # type: ignore
         else:
             inversoes_cardapio = InclusaoAlimentacaoContinua.objects  # type: ignore
@@ -443,9 +442,9 @@ class Codae(Nomeavel, TemChaveExterna, TemVinculos):
         )
 
     def alteracoes_cardapio_das_minhas(self, filtro_aplicado):
-        if filtro_aplicado == DAQUI_A_7_DIAS:
+        if filtro_aplicado == DAQUI_A_SETE_DIAS:
             alteracoes_cardapio = AlteracaoCardapio.desta_semana
-        elif filtro_aplicado == DAQUI_A_30_DIAS:
+        elif filtro_aplicado == DAQUI_A_TRINTA_DIAS:
             alteracoes_cardapio = AlteracaoCardapio.deste_mes  # type: ignore
         else:
             alteracoes_cardapio = AlteracaoCardapio.objects  # type: ignore
@@ -463,9 +462,9 @@ class Codae(Nomeavel, TemChaveExterna, TemVinculos):
         #
 
     def solicitacoes_unificadas(self, filtro_aplicado):
-        if filtro_aplicado == DAQUI_A_7_DIAS:
+        if filtro_aplicado == DAQUI_A_SETE_DIAS:
             solicitacoes_unificadas = SolicitacaoKitLancheUnificada.desta_semana
-        elif filtro_aplicado == DAQUI_A_30_DIAS:
+        elif filtro_aplicado == DAQUI_A_TRINTA_DIAS:
             solicitacoes_unificadas = SolicitacaoKitLancheUnificada.deste_mes  # type: ignore
         else:
             solicitacoes_unificadas = SolicitacaoKitLancheUnificada.objects  # type: ignore
@@ -522,9 +521,9 @@ class Codae(Nomeavel, TemChaveExterna, TemVinculos):
     # TODO: talvez fazer um manager genérico pra fazer esse filtro
 
     def solicitacoes_kit_lanche_das_minhas_escolas_a_validar(self, filtro_aplicado):
-        if filtro_aplicado == DAQUI_A_7_DIAS:
+        if filtro_aplicado == DAQUI_A_SETE_DIAS:
             solicitacoes_kit_lanche = SolicitacaoKitLancheAvulsa.desta_semana
-        elif filtro_aplicado == DAQUI_A_30_DIAS:
+        elif filtro_aplicado == DAQUI_A_TRINTA_DIAS:
             solicitacoes_kit_lanche = SolicitacaoKitLancheAvulsa.deste_mes  # type: ignore
         else:
             solicitacoes_kit_lanche = SolicitacaoKitLancheAvulsa.objects  # type: ignore

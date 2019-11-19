@@ -9,15 +9,18 @@ from django.db.models import Q
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from simple_email_confirmation.models import SimpleEmailConfirmationUserMixin
-from ..models import Perfil, Vinculo
+
 from ...dados_comuns.behaviors import TemChaveExterna
 from ...dados_comuns.constants import (
     ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
     COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
-    DJANGO_EOL_API_TOKEN, DJANGO_EOL_API_URL,
+    DJANGO_EOL_API_TOKEN,
+    DJANGO_EOL_API_URL
 )
 from ...dados_comuns.tasks import envia_email_unico_task
 from ...dados_comuns.utils import url_configs
+from ...eol_servico.utils import EolException
+from ..models import Perfil, Vinculo
 
 env = environ.Env()
 
@@ -140,9 +143,12 @@ class Usuario(SimpleEmailConfirmationUserMixin, CustomAbstractUser, TemChaveExte
 
     @property
     def pode_efetuar_cadastro(self):
+        # TODO: passar isso para o app EOL serviço
         headers = {'Authorization': f'Token {DJANGO_EOL_API_TOKEN}'}
         r = requests.get(f'{DJANGO_EOL_API_URL}/cargos/{self.registro_funcional}', headers=headers)
         response = r.json()
+        if not isinstance(response, dict):
+            raise EolException(f'{response}')
         diretor_de_escola = False
         for result in response['results']:
             if result['cargo'] == 'DIRETOR DE ESCOLA':
@@ -157,7 +163,7 @@ class Usuario(SimpleEmailConfirmationUserMixin, CustomAbstractUser, TemChaveExte
         self.email_user(
             subject='Confirme seu e-mail - SIGPAE',
             message=f'Clique neste link para confirmar seu e-mail no SIGPAE \n'
-                    f': {url_configs("CONFIRMAR_EMAIL", content)}',
+            f': {url_configs("CONFIRMAR_EMAIL", content)}',
         )
 
     def enviar_email_recuperacao_senha(self):

@@ -4,25 +4,44 @@ from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST
 from xworkflows import InvalidTransitionError
 
+from ...dados_comuns import constants
+from ..api.serializers.serializers_create import VinculoTipoAlimentoCreateSerializer
+from ..models import (
+    AlteracaoCardapio,
+    Cardapio,
+    GrupoSuspensaoAlimentacao,
+    InversaoCardapio,
+    MotivoAlteracaoCardapio,
+    MotivoSuspensao,
+    TipoAlimentacao,
+    VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
+)
 from .permissions import (
-    PodeAprovarPelaCODAEAlteracaoCardapioPermission, PodeIniciarAlteracaoCardapioPermission,
-    PodeIniciarSuspensaoDeAlimentacaoPermission, PodeRecusarPelaCODAEAlteracaoCardapioPermission,
+    PodeAprovarPelaCODAEAlteracaoCardapioPermission,
+    PodeIniciarAlteracaoCardapioPermission,
+    PodeIniciarSuspensaoDeAlimentacaoPermission,
+    PodeRecusarPelaCODAEAlteracaoCardapioPermission,
     PodeTomarCienciaSuspensaoDeAlimentacaoPermission
 )
 from .serializers.serializers import (
-    AlteracaoCardapioSerializer, AlteracaoCardapioSimplesSerializer,
-    CardapioSerializer, GrupoSupensaoAlimentacaoListagemSimplesSerializer,
-    GrupoSuspensaoAlimentacaoSerializer, GrupoSuspensaoAlimentacaoSimplesSerializer,
-    InversaoCardapioSerializer, MotivoAlteracaoCardapioSerializer,
-    MotivoSuspensaoSerializer, TipoAlimentacaoSerializer, VinculoTipoAlimentoSimplesSerializer
+    AlteracaoCardapioSerializer,
+    AlteracaoCardapioSimplesSerializer,
+    CardapioSerializer,
+    GrupoSupensaoAlimentacaoListagemSimplesSerializer,
+    GrupoSuspensaoAlimentacaoSerializer,
+    GrupoSuspensaoAlimentacaoSimplesSerializer,
+    InversaoCardapioSerializer,
+    MotivoAlteracaoCardapioSerializer,
+    MotivoSuspensaoSerializer,
+    TipoAlimentacaoSerializer,
+    VinculoTipoAlimentoSimplesSerializer
 )
 from .serializers.serializers_create import (
-    AlteracaoCardapioSerializerCreate, CardapioCreateSerializer,
-    GrupoSuspensaoAlimentacaoCreateSerializer, InversaoCardapioSerializerCreate)
-from ..api.serializers.serializers_create import VinculoTipoAlimentoCreateSerializer
-from ..models import (AlteracaoCardapio, Cardapio, GrupoSuspensaoAlimentacao, InversaoCardapio, MotivoAlteracaoCardapio,
-                      MotivoSuspensao, TipoAlimentacao, VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar)
-from ...dados_comuns import constants
+    AlteracaoCardapioSerializerCreate,
+    CardapioCreateSerializer,
+    GrupoSuspensaoAlimentacaoCreateSerializer,
+    InversaoCardapioSerializerCreate
+)
 
 
 class CardapioViewSet(viewsets.ModelViewSet):

@@ -1,8 +1,8 @@
 import datetime
 
+from django.db import models
 from rest_framework import serializers
 from workalendar.america import BrazilSaoPauloCity
-from django.db import models
 
 from .utils import eh_dia_util, obter_dias_uteis_apos_hoje
 

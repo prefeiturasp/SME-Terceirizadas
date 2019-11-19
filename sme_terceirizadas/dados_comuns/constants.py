@@ -22,13 +22,13 @@ DIAS_DE_PRAZO_REGULAR_EM_DIANTE = obter_dias_uteis_apos_hoje(REGULAR)
 #
 
 SEM_FILTRO = 'sem_filtro'
-DAQUI_A_7_DIAS = 'daqui_a_7_dias'
-DAQUI_A_30_DIAS = 'daqui_a_30_dias'
+DAQUI_A_SETE_DIAS = 'daqui_a_7_dias'
+DAQUI_A_TRINTA_DIAS = 'daqui_a_30_dias'
 
 PEDIDOS_CODAE = 'pedidos-codae'
 PEDIDOS_TERCEIRIZADA = 'pedidos-terceirizadas'
 PEDIDOS_DRE = 'pedidos-diretoria-regional'
-FILTRO_PADRAO_PEDIDOS = f'(?P<filtro_aplicado>({SEM_FILTRO}|{DAQUI_A_7_DIAS}|{DAQUI_A_30_DIAS})+)'
+FILTRO_PADRAO_PEDIDOS = f'(?P<filtro_aplicado>({SEM_FILTRO}|{DAQUI_A_SETE_DIAS}|{DAQUI_A_TRINTA_DIAS})+)'
 
 #
 # FLUXO, usados nas actions de transição de status nas viewsets dos pedidos/informações do sistema

@@ -1,9 +1,9 @@
 from rest_framework import serializers
 
-from ...models import (Contrato, Edital, Nutricionista, Terceirizada, VigenciaContrato)
 from ....dados_comuns.api.serializers import ContatoSerializer
 from ....dados_comuns.utils import update_instance_from_dict
 from ....escola.models import DiretoriaRegional, Lote
+from ...models import Contrato, Edital, Nutricionista, Terceirizada, VigenciaContrato
 
 
 class NutricionistaCreateSerializer(serializers.ModelSerializer):
