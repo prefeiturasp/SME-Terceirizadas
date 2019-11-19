@@ -1,13 +1,15 @@
-from rest_framework import serializers
+from rest_framework import serializers, status
+from rest_framework.exceptions import ValidationError
+from rest_framework.response import Response
 
-from ...eol_servico.utils import get_informacoes_usuario
-from ...escola.api.validators import usuario_e_vinculado_a_aquela_instituicao, usuario_nao_possui_vinculo_valido
-from ..models import Perfil, Usuario, Vinculo
 from .validators import (
     registro_funcional_e_cpf_sao_da_mesma_pessoa,
     senha_deve_ser_igual_confirmar_senha,
     usuario_pode_efetuar_cadastro
 )
+from ..models import Perfil, Usuario, Vinculo
+from ...eol_servico.utils import get_informacoes_usuario
+from ...escola.api.validators import usuario_e_vinculado_a_aquela_instituicao, usuario_nao_possui_vinculo_valido
 
 
 class PerfilSimplesSerializer(serializers.ModelSerializer):
@@ -44,7 +46,11 @@ class UsuarioUpdateSerializer(serializers.ModelSerializer):
         return get_informacoes_usuario(validated_data['registro_funcional'])
 
     def create(self, validated_data):
-        informacoes_usuario = self.get_informacoes_usuario(validated_data)
+        # TODO: ajeitar isso aqui, criar um validator antes...
+        try:
+            informacoes_usuario = self.get_informacoes_usuario(validated_data)
+        except ValidationError as e:
+            return Response({'detail': e.detail[0].title()}, status=status.HTTP_400_BAD_REQUEST)
         informacoes_usuario = informacoes_usuario.json()['results']
         if validated_data['instituicao'] != 'CODAE':
             usuario_e_vinculado_a_aquela_instituicao(
