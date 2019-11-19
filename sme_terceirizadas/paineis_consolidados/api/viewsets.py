@@ -49,6 +49,26 @@ class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
             sumario[nome_objeto]['TOTAL'] += 1
         return sumario
 
+    def _agrupa_por_mes_por_solicitacao(self, query_set: list) -> dict:
+        # TODO: melhorar performance
+        sumario = {'total': 0}  # type: dict
+        for solicitacao in query_set:
+            if solicitacao['desc_doc'] == 'Inclusão de Alimentação Contínua':
+                solicitacao['desc_doc'] = 'Inclusão de Alimentação'
+            if solicitacao['data_evento__month'] not in sumario:
+                sumario[solicitacao['data_evento__month']] = {
+                    'Inclusão de Alimentação': 0,
+                    'Alteração de Cardápio': 0,
+                    'Suspensão de Alimentação': 0,
+                    'Inversão de dia de Cardápio': 0,
+                    'Kit Lanche Passeio': 0,
+                    'total': 0
+                }
+            sumario[solicitacao['data_evento__month']][solicitacao['desc_doc']] += 1
+            sumario[solicitacao['data_evento__month']]['total'] += 1
+            sumario['total'] += 1
+        return sumario
+
 
 class CODAESolicitacoesViewSet(SolicitacoesViewSet):
     lookup_field = 'uuid'
@@ -110,6 +130,18 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
         page = self.paginate_queryset(query_set)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
+
+
+class EscolaRelatorioViewSet(SolicitacoesViewSet):
+    lookup_field = 'uuid'
+    queryset = SolicitacoesEscola.objects.all()
+    serializer_class = SolicitacoesSerializer
+
+    @action(detail=False, methods=['GET'], url_path=f'{FILTRO_ESCOLA_UUID}')
+    def evolucao_solicitacoes(self, request, escola_uuid=None):
+        query_set = SolicitacoesEscola.get_solicitacoes_ano_corrente(escola_uuid=escola_uuid)
+        response = {'results': self._agrupa_por_mes_por_solicitacao(query_set=query_set)}
+        return Response(response)
 
 
 class DRESolicitacoesViewSet(SolicitacoesViewSet):
