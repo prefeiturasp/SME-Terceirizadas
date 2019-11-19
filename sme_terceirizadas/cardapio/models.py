@@ -1,17 +1,33 @@
 from django.db import models
 
-from .managers import (
-    AlteracoesCardapioDestaSemanaManager, AlteracoesCardapioDesteMesManager,
-    AlteracoesCardapioVencidaManager, GrupoSuspensaoAlimentacaoDestaSemanaManager,
-    GrupoSuspensaoAlimentacaoDesteMesManager, InversaoCardapioDestaSemanaManager,
-    InversaoCardapioDesteMesManager, InversaoCardapioVencidaManager
+from ..dados_comuns.behaviors import (  # noqa I101
+    Ativavel,
+    CriadoEm,
+    CriadoPor,
+    Descritivel,
+    IntervaloDeDia,
+    Logs,
+    LogSolicitacoesUsuario,
+    Motivo,
+    Nomeavel,
+    TemChaveExterna,
+    TemData,
+    TemIdentificadorExternoAmigavel,
+    TemObservacao,
+    TemPrioridade
 )
-from ..dados_comuns.behaviors import (
-    Ativavel, CriadoEm, CriadoPor, Descritivel, IntervaloDeDia, LogSolicitacoesUsuario, Logs, Motivo, Nomeavel,
-    TemChaveExterna, TemData,
-    TemIdentificadorExternoAmigavel, TemObservacao, TemPrioridade)
 from ..dados_comuns.fluxo_status import FluxoAprovacaoPartindoDaEscola, FluxoInformativoPartindoDaEscola
 from ..dados_comuns.models import TemplateMensagem  # noqa I202
+from .managers import (
+    AlteracoesCardapioDestaSemanaManager,
+    AlteracoesCardapioDesteMesManager,
+    AlteracoesCardapioVencidaManager,
+    GrupoSuspensaoAlimentacaoDestaSemanaManager,
+    GrupoSuspensaoAlimentacaoDesteMesManager,
+    InversaoCardapioDestaSemanaManager,
+    InversaoCardapioDesteMesManager,
+    InversaoCardapioVencidaManager
+)
 
 
 class TipoAlimentacao(Nomeavel, TemChaveExterna):

@@ -4,17 +4,29 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.db.models.functions import Coalesce
 
-from .managers import (
-    SolicitacaoUnificadaDestaSemanaManager, SolicitacaoUnificadaDesteMesManager, SolicitacaoUnificadaVencidaManager,
-    SolicitacoesKitLancheAvulsaDestaSemanaManager, SolicitacoesKitLancheAvulsaDesteMesManager,
-    SolicitacoesKitLancheAvulsaVencidaDiasManager
-)
-from ..dados_comuns.behaviors import (
-    CriadoEm, CriadoPor, Descritivel, Logs,
-    Motivo, Nomeavel, TemChaveExterna, TemData, TemIdentificadorExternoAmigavel, TemPrioridade, TempoPasseio
+from ..dados_comuns.behaviors import (  # noqa I101
+    CriadoEm,
+    CriadoPor,
+    Descritivel,
+    Logs,
+    Motivo,
+    Nomeavel,
+    TemChaveExterna,
+    TemData,
+    TemIdentificadorExternoAmigavel,
+    TempoPasseio,
+    TemPrioridade
 )
 from ..dados_comuns.fluxo_status import FluxoAprovacaoPartindoDaDiretoriaRegional, FluxoAprovacaoPartindoDaEscola
 from ..dados_comuns.models import LogSolicitacoesUsuario, TemplateMensagem
+from .managers import (
+    SolicitacaoUnificadaDestaSemanaManager,
+    SolicitacaoUnificadaDesteMesManager,
+    SolicitacaoUnificadaVencidaManager,
+    SolicitacoesKitLancheAvulsaDestaSemanaManager,
+    SolicitacoesKitLancheAvulsaDesteMesManager,
+    SolicitacoesKitLancheAvulsaVencidaDiasManager
+)
 
 
 class ItemKitLanche(Nomeavel, TemChaveExterna):

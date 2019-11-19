@@ -3,14 +3,17 @@ from freezegun import freeze_time
 from model_mommy import mommy
 from rest_framework.exceptions import ValidationError
 
+from ...cardapio.models import (
+    AlteracaoCardapio,
+    GrupoSuspensaoAlimentacao,
+    InversaoCardapio,
+    VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
+)
 from ..api.serializers.serializers_create import (
     AlteracaoCardapioSerializerCreate,
     GrupoSuspensaoAlimentacaoCreateSerializer,
     InversaoCardapioSerializerCreate,
-    VinculoTipoAlimentoCreateSerializer)
-from ...cardapio.models import (
-    AlteracaoCardapio, GrupoSuspensaoAlimentacao, InversaoCardapio,
-    VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
+    VinculoTipoAlimentoCreateSerializer
 )
 
 pytestmark = pytest.mark.django_db

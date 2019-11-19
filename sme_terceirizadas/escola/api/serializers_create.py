@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from ..models import (DiretoriaRegional, Escola, Lote, Subprefeitura, TipoGestao)
+from ..models import DiretoriaRegional, Escola, Lote, Subprefeitura, TipoGestao
 
 
 class LoteCreateSerializer(serializers.ModelSerializer):

@@ -1,7 +1,7 @@
 from rest_framework import status
 
-from ..api.constants import AUTORIZADOS, CANCELADOS, NEGADOS, PENDENTES_AUTORIZACAO
 from ...dados_comuns.constants import SEM_FILTRO
+from ..api.constants import AUTORIZADOS, CANCELADOS, NEGADOS, PENDENTES_AUTORIZACAO
 
 
 def base_codae(client_autenticado, resource):

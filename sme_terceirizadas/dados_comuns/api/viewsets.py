@@ -7,11 +7,11 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ViewSet
 
-from .serializers import ConfiguracaoEmailSerializer, ConfiguracaoMensagemSerializer
 from ..behaviors import DiasSemana, TempoPasseio
 from ..constants import TEMPO_CACHE_1H, TEMPO_CACHE_6H
 from ..models import TemplateMensagem
 from ..utils import obter_dias_uteis_apos_hoje
+from .serializers import ConfiguracaoEmailSerializer, ConfiguracaoMensagemSerializer
 
 
 class DiasDaSemanaViewSet(ViewSet):

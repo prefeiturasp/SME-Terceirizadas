@@ -6,7 +6,6 @@ from .utils import envia_email_em_massa, envia_email_unico
 
 
 # https://docs.celeryproject.org/en/latest/userguide/tasks.html
-
 @shared_task(
     autoretry_for=(SMTPServerDisconnected,),
     retry_backoff=2,

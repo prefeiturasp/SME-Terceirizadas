@@ -1,9 +1,12 @@
 from django.contrib import admin
 
 from .models import (
-    GrupoInclusaoAlimentacaoNormal, InclusaoAlimentacaoContinua,
-    InclusaoAlimentacaoNormal, MotivoInclusaoContinua,
-    MotivoInclusaoNormal, QuantidadePorPeriodo
+    GrupoInclusaoAlimentacaoNormal,
+    InclusaoAlimentacaoContinua,
+    InclusaoAlimentacaoNormal,
+    MotivoInclusaoContinua,
+    MotivoInclusaoNormal,
+    QuantidadePorPeriodo
 )
 
 admin.site.register(QuantidadePorPeriodo)

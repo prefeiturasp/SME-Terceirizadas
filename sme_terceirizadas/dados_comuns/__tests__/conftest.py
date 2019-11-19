@@ -4,8 +4,8 @@ import pytest
 from faker import Faker
 from model_mommy import mommy
 
-from ..models import TemplateMensagem
 from ...escola import models
+from ..models import TemplateMensagem
 
 fake = Faker('pt_BR')
 fake.seed(420)

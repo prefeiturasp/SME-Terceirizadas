@@ -1,5 +1,5 @@
-from sme_terceirizadas.dados_comuns import constants
-from sme_terceirizadas.dados_comuns.fluxo_status import PedidoAPartirDaEscolaWorkflow
+from ...dados_comuns import constants
+from ...dados_comuns.fluxo_status import PedidoAPartirDaEscolaWorkflow
 
 ENRPOINT_INVERSOES = 'inversoes-dia-cardapio'
 

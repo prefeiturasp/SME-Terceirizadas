@@ -1,23 +1,19 @@
 from django.core.validators import MinLengthValidator
 from django.db import models
 
-from ..cardapio.models import (
-    AlteracaoCardapio, GrupoSuspensaoAlimentacao, InversaoCardapio
-)
+from ..cardapio.models import AlteracaoCardapio, GrupoSuspensaoAlimentacao, InversaoCardapio
 from ..dados_comuns.behaviors import (
-    Ativavel, IntervaloDeDia, Nomeavel, TemChaveExterna, TemIdentificadorExternoAmigavel, TemVinculos
+    Ativavel,
+    IntervaloDeDia,
+    Nomeavel,
+    TemChaveExterna,
+    TemIdentificadorExternoAmigavel,
+    TemVinculos
 )
-from ..dados_comuns.constants import DAQUI_A_30_DIAS, DAQUI_A_7_DIAS
-from ..escola.models import (
-    DiretoriaRegional, Lote
-)
-from ..inclusao_alimentacao.models import (
-    GrupoInclusaoAlimentacaoNormal, InclusaoAlimentacaoContinua
-)
-from ..kit_lanche.models import (
-    SolicitacaoKitLancheAvulsa,
-    SolicitacaoKitLancheUnificada
-)
+from ..dados_comuns.constants import DAQUI_A_SETE_DIAS, DAQUI_A_TRINTA_DIAS
+from ..escola.models import DiretoriaRegional, Lote
+from ..inclusao_alimentacao.models import GrupoInclusaoAlimentacaoNormal, InclusaoAlimentacaoContinua
+from ..kit_lanche.models import SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheUnificada
 
 
 class Edital(TemChaveExterna):
@@ -236,9 +232,9 @@ class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel, T
         )
 
     def alteracoes_cardapio_das_minhas(self, filtro_aplicado):
-        if filtro_aplicado == DAQUI_A_7_DIAS:
+        if filtro_aplicado == DAQUI_A_SETE_DIAS:
             alteracoes_cardapio = AlteracaoCardapio.desta_semana
-        elif filtro_aplicado == DAQUI_A_30_DIAS:
+        elif filtro_aplicado == DAQUI_A_TRINTA_DIAS:
             alteracoes_cardapio = AlteracaoCardapio.deste_mes  # type: ignore
         else:
             alteracoes_cardapio = AlteracaoCardapio.objects  # type: ignore
@@ -248,9 +244,9 @@ class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel, T
         )
 
     def grupos_inclusoes_alimentacao_normal_das_minhas_escolas(self, filtro_aplicado):
-        if filtro_aplicado == DAQUI_A_7_DIAS:
+        if filtro_aplicado == DAQUI_A_SETE_DIAS:
             inversoes_cardapio = GrupoInclusaoAlimentacaoNormal.desta_semana
-        elif filtro_aplicado == DAQUI_A_30_DIAS:
+        elif filtro_aplicado == DAQUI_A_TRINTA_DIAS:
             inversoes_cardapio = GrupoInclusaoAlimentacaoNormal.deste_mes  # type: ignore
         else:
             inversoes_cardapio = GrupoInclusaoAlimentacaoNormal.objects  # type: ignore
@@ -260,9 +256,9 @@ class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel, T
         )
 
     def inclusoes_alimentacao_continua_das_minhas_escolas(self, filtro_aplicado):
-        if filtro_aplicado == DAQUI_A_7_DIAS:
+        if filtro_aplicado == DAQUI_A_SETE_DIAS:
             inclusoes_alimentacao_continuas = InclusaoAlimentacaoContinua.desta_semana
-        elif filtro_aplicado == DAQUI_A_30_DIAS:
+        elif filtro_aplicado == DAQUI_A_TRINTA_DIAS:
             inclusoes_alimentacao_continuas = InclusaoAlimentacaoContinua.deste_mes  # type: ignore
         else:
             inclusoes_alimentacao_continuas = InclusaoAlimentacaoContinua.objects  # type: ignore
@@ -272,9 +268,9 @@ class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel, T
         )
 
     def suspensoes_alimentacao_das_minhas_escolas(self, filtro_aplicado):
-        if filtro_aplicado == DAQUI_A_7_DIAS:
+        if filtro_aplicado == DAQUI_A_SETE_DIAS:
             suspensoes_alimentacao = GrupoSuspensaoAlimentacao.desta_semana
-        elif filtro_aplicado == DAQUI_A_30_DIAS:
+        elif filtro_aplicado == DAQUI_A_TRINTA_DIAS:
             suspensoes_alimentacao = GrupoSuspensaoAlimentacao.deste_mes  # type: ignore
         else:
             suspensoes_alimentacao = GrupoSuspensaoAlimentacao.objects  # type: ignore

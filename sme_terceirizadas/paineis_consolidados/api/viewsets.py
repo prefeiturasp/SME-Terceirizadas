@@ -3,17 +3,21 @@ from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from .constants import (
-    AUTORIZADOS, CANCELADOS, FILTRO_DRE_UUID, FILTRO_ESCOLA_UUID,
-    FILTRO_TERCEIRIZADA_UUID, NEGADOS, PENDENTES_AUTORIZACAO, PENDENTES_CIENCIA
-)
-from ..api.constants import FILTRO_PERIOD_UUID_DRE, PENDENTES_VALIDACAO_DRE
-from ..models import (
-    SolicitacoesCODAE, SolicitacoesDRE, SolicitacoesEscola, SolicitacoesTerceirizada
-)
 from ...dados_comuns.constants import FILTRO_PADRAO_PEDIDOS, SEM_FILTRO
 from ...paineis_consolidados.api.constants import TIPO_VISAO, TIPO_VISAO_LOTE, TIPO_VISAO_SOLICITACOES
 from ...paineis_consolidados.api.serializers import SolicitacoesSerializer
+from ..api.constants import FILTRO_PERIOD_UUID_DRE, PENDENTES_VALIDACAO_DRE
+from ..models import SolicitacoesCODAE, SolicitacoesDRE, SolicitacoesEscola, SolicitacoesTerceirizada
+from .constants import (
+    AUTORIZADOS,
+    CANCELADOS,
+    FILTRO_DRE_UUID,
+    FILTRO_ESCOLA_UUID,
+    FILTRO_TERCEIRIZADA_UUID,
+    NEGADOS,
+    PENDENTES_AUTORIZACAO,
+    PENDENTES_CIENCIA
+)
 
 
 class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):

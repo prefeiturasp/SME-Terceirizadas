@@ -7,7 +7,8 @@ from model_mommy import mommy
 from rest_framework.exceptions import ValidationError
 
 from ..api.serializers.serializers_create import (
-    SolicitacaoKitLancheAvulsaCreationSerializer, SolicitacaoKitLancheUnificadaCreationSerializer
+    SolicitacaoKitLancheAvulsaCreationSerializer,
+    SolicitacaoKitLancheUnificadaCreationSerializer
 )
 from ..models import SolicitacaoKitLanche, SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheUnificada
 

@@ -9,15 +9,17 @@ from django.db.models import Q
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from simple_email_confirmation.models import SimpleEmailConfirmationUserMixin
-from ..models import Perfil, Vinculo
+
 from ...dados_comuns.behaviors import TemChaveExterna
 from ...dados_comuns.constants import (
     ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
     COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
-    DJANGO_EOL_API_TOKEN, DJANGO_EOL_API_URL,
+    DJANGO_EOL_API_TOKEN,
+    DJANGO_EOL_API_URL
 )
 from ...dados_comuns.tasks import envia_email_unico_task
 from ...dados_comuns.utils import url_configs
+from ..models import Perfil, Vinculo
 
 env = environ.Env()
 

@@ -2,8 +2,10 @@ import pytest
 from freezegun import freeze_time
 from model_mommy import mommy
 
-from ..api.serializers.serializers_create import (GrupoInclusaoAlimentacaoNormalCreationSerializer,
-                                                  InclusaoAlimentacaoContinuaCreationSerializer)
+from ..api.serializers.serializers_create import (
+    GrupoInclusaoAlimentacaoNormalCreationSerializer,
+    InclusaoAlimentacaoContinuaCreationSerializer
+)
 from ..models import GrupoInclusaoAlimentacaoNormal, InclusaoAlimentacaoContinua
 
 pytestmark = pytest.mark.django_db

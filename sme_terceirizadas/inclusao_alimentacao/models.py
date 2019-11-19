@@ -1,17 +1,28 @@
 from django.core.validators import MinValueValidator
 from django.db import models
 
-from .managers import (
-    GrupoInclusoesDeAlimentacaoNormalDestaSemanaManager, GrupoInclusoesDeAlimentacaoNormalDesteMesManager,
-    GrupoInclusoesDeAlimentacaoNormalVencidosDiasManager, InclusoesDeAlimentacaoContinuaDestaSemanaManager,
-    InclusoesDeAlimentacaoContinuaDesteMesManager, InclusoesDeAlimentacaoContinuaVencidaDiasManager
-)
 from ..dados_comuns.behaviors import (
-    CriadoEm, CriadoPor, Descritivel, DiasSemana, IntervaloDeDia, Logs, Nomeavel,
-    TemChaveExterna, TemData, TemIdentificadorExternoAmigavel, TemPrioridade)
+    CriadoEm,
+    CriadoPor,
+    Descritivel,
+    DiasSemana,
+    IntervaloDeDia,
+    Logs,
+    Nomeavel,
+    TemChaveExterna,
+    TemData,
+    TemIdentificadorExternoAmigavel,
+    TemPrioridade
+)
 from ..dados_comuns.fluxo_status import FluxoAprovacaoPartindoDaEscola
-from ..dados_comuns.models import (
-    LogSolicitacoesUsuario, TemplateMensagem
+from ..dados_comuns.models import LogSolicitacoesUsuario, TemplateMensagem
+from .managers import (
+    GrupoInclusoesDeAlimentacaoNormalDestaSemanaManager,
+    GrupoInclusoesDeAlimentacaoNormalDesteMesManager,
+    GrupoInclusoesDeAlimentacaoNormalVencidosDiasManager,
+    InclusoesDeAlimentacaoContinuaDestaSemanaManager,
+    InclusoesDeAlimentacaoContinuaDesteMesManager,
+    InclusoesDeAlimentacaoContinuaVencidaDiasManager
 )
 
 

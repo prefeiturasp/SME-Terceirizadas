@@ -1,12 +1,10 @@
 import datetime
 
 import environ
-from des.models import DynamicEmailConfiguration
-from django.core.mail import EmailMultiAlternatives, get_connection
-from django.core.mail import send_mail
-from workalendar.america import BrazilSaoPauloCity
-
 from config.settings.base import URL_CONFIGS
+from des.models import DynamicEmailConfiguration
+from django.core.mail import EmailMultiAlternatives, get_connection, send_mail
+from workalendar.america import BrazilSaoPauloCity
 
 calendar = BrazilSaoPauloCity()
 

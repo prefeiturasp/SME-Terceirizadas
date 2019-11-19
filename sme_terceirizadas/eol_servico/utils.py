@@ -1,5 +1,5 @@
-import requests
 import environ
+import requests
 
 from ..dados_comuns.constants import DJANGO_EOL_API_TOKEN, DJANGO_EOL_API_URL
 
