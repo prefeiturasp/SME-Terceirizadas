@@ -1,8 +1,7 @@
 from rest_framework import serializers, status
-from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
-from sme_terceirizadas.eol_servico.utils import EolException
+from ...eol_servico.utils import EolException
 from .validators import (
     registro_funcional_e_cpf_sao_da_mesma_pessoa,
     senha_deve_ser_igual_confirmar_senha,
