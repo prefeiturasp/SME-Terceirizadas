@@ -84,6 +84,27 @@ def inversao_dia_cardapio(cardapio_valido2, cardapio_valido3, escola):
 
 
 @pytest.fixture
+def inversao_dia_cardapio_dre_validar(inversao_dia_cardapio):
+    inversao_dia_cardapio.status = PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR
+    inversao_dia_cardapio.save()
+    return inversao_dia_cardapio
+
+
+@pytest.fixture
+def inversao_dia_cardapio_dre_validado(inversao_dia_cardapio):
+    inversao_dia_cardapio.status = PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO
+    inversao_dia_cardapio.save()
+    return inversao_dia_cardapio
+
+
+@pytest.fixture
+def inversao_dia_cardapio_codae_autorizado(inversao_dia_cardapio):
+    inversao_dia_cardapio.status = PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO
+    inversao_dia_cardapio.save()
+    return inversao_dia_cardapio
+
+
+@pytest.fixture
 def inversao_dia_cardapio2(cardapio_valido, cardapio_valido2, escola):
     mommy.make(TemplateMensagem, assunto='TESTE INVERSAO CARDAPIO',
                tipo=TemplateMensagem.INVERSAO_CARDAPIO,
