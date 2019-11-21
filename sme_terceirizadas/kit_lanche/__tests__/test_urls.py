@@ -284,7 +284,7 @@ def test_url_endpoint_solicitacoes_kit_lanche_unificada(client_autenticado):
     base_get_request(client_autenticado, 'solicitacoes-kit-lanche-unificada')
 
 
-def test_create_kit_lanche(client_autenticado, solicitacao_avulsa_xxx, escola, kit_lanche):
+def test_create_kit_lanche(client_autenticado, solicitacao_avulsa, escola, kit_lanche):
     """Primeiro cria-se 3 rascunhos (POST) 200, 200, 200 totalizando 600 alunos que é mais que 500.
 
     Após isso, vamos efetivar a solicitacao (PATCH), no qual sai de RASCUNHO para DRE_A_VALIDAR, deve-se
@@ -327,7 +327,7 @@ def test_create_kit_lanche(client_autenticado, solicitacao_avulsa_xxx, escola, k
             f'/{ENDPOINT_AVULSO}/{solicitacoes_avulsas[sol_index].uuid}/{constants.ESCOLA_INICIO_PEDIDO}/'
         )
         json = response.json()
-        # deve passar pra frente os dois primeiros, o terceiro deve dar problema
+        # deve passar pra frente os dois primeiros, o terceiro não deve ser permitido.
         if sol_index < 2:
             assert response.status_code == status.HTTP_200_OK
             assert json['status'] == PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR
