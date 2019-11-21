@@ -1,8 +1,8 @@
 from django.db.models import Sum
 from rest_framework import serializers
 
-from ..models import EscolaQuantidade, SolicitacaoKitLanche, SolicitacaoKitLancheAvulsa
 from ...dados_comuns.fluxo_status import PedidoAPartirDaEscolaWorkflow
+from ..models import EscolaQuantidade, SolicitacaoKitLanche, SolicitacaoKitLancheAvulsa
 
 
 def solicitacao_deve_ter_1_ou_mais_kits(numero_kits: int):
