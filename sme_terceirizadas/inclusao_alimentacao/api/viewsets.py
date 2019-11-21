@@ -168,33 +168,11 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'))
 
     @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
-            methods=['patch'], url_path=constants.DRE_PEDE_REVISAO)
-    def diretoria_regional_pede_revisao(self, request, uuid=None):
-        grupo_alimentacao_normal = self.get_object()
-        try:
-            grupo_alimentacao_normal.dre_pede_revisao(user=request.user, )
-            serializer = self.get_serializer(grupo_alimentacao_normal)
-            return Response(serializer.data)
-        except InvalidTransitionError as e:
-            return Response(dict(detail=f'Erro de transição de estado: {e}'))
-
-    @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
             methods=['patch'], url_path=constants.DRE_NAO_VALIDA_PEDIDO)
     def diretoria_cancela_pedido(self, request, uuid=None):
         grupo_alimentacao_normal = self.get_object()
         try:
             grupo_alimentacao_normal.dre_nao_valida(user=request.user, )
-            serializer = self.get_serializer(grupo_alimentacao_normal)
-            return Response(serializer.data)
-        except InvalidTransitionError as e:
-            return Response(dict(detail=f'Erro de transição de estado: {e}'))
-
-    @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
-            methods=['patch'], url_path=constants.ESCOLA_REVISA_PEDIDO)
-    def escola_revisa_pedido(self, request, uuid=None):
-        grupo_alimentacao_normal = self.get_object()
-        try:
-            grupo_alimentacao_normal.escola_revisa(user=request.user, )
             serializer = self.get_serializer(grupo_alimentacao_normal)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -377,28 +355,6 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
         inclusao_alimentacao_continua = self.get_object()
         try:
             inclusao_alimentacao_continua.dre_valida(user=request.user, )
-            serializer = self.get_serializer(inclusao_alimentacao_continua)
-            return Response(serializer.data)
-        except InvalidTransitionError as e:
-            return Response(dict(detail=f'Erro de transição de estado: {e}'))
-
-    @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
-            methods=['patch'], url_path=constants.DRE_PEDE_REVISAO)
-    def diretoria_regional_pede_revisao(self, request, uuid=None):
-        inclusao_alimentacao_continua = self.get_object()
-        try:
-            inclusao_alimentacao_continua.dre_pede_revisao(user=request.user, )
-            serializer = self.get_serializer(inclusao_alimentacao_continua)
-            return Response(serializer.data)
-        except InvalidTransitionError as e:
-            return Response(dict(detail=f'Erro de transição de estado: {e}'))
-
-    @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
-            methods=['patch'], url_path=constants.ESCOLA_REVISA_PEDIDO)
-    def escola_revisa_pedido(self, request, uuid=None):
-        inclusao_alimentacao_continua = self.get_object()
-        try:
-            inclusao_alimentacao_continua.escola_revisa(user=request.user, )
             serializer = self.get_serializer(inclusao_alimentacao_continua)
             return Response(serializer.data)
         except InvalidTransitionError as e:
