@@ -77,9 +77,11 @@ class SolicitacaoKitLancheAvulsaCreationSerializer(serializers.ModelSerializer):
         queryset=Escola.objects.all()
     )
 
-    # Parametro utilizado para confirmar mesmo com kit para o mesmo dia
-    confirmar = serializers.BooleanField(required=False)
-    status = serializers.CharField(required=False)
+    status_explicacao = serializers.CharField(
+        source='status',
+        required=False,
+        read_only=True
+    )
 
     def validate(self, attrs):
         quantidade_aluno_passeio = attrs.get('quantidade_alunos')
@@ -115,7 +117,7 @@ class SolicitacaoKitLancheAvulsaCreationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SolicitacaoKitLancheAvulsa
-        exclude = ('id',)
+        exclude = ('id', 'status')
 
 
 class EscolaQuantidadeCreationSerializer(serializers.ModelSerializer):

@@ -2,9 +2,9 @@ import pytest
 from freezegun import freeze_time
 from rest_framework import status
 
-from ..models import SolicitacaoKitLancheAvulsa
 from ...dados_comuns import constants
 from ...dados_comuns.fluxo_status import PedidoAPartirDaDiretoriaRegionalWorkflow, PedidoAPartirDaEscolaWorkflow
+from ..models import SolicitacaoKitLancheAvulsa
 
 pytestmark = pytest.mark.django_db
 
@@ -317,7 +317,7 @@ def test_create_kit_lanche(client_autenticado, solicitacao_avulsa_xxx, escola, k
         assert response_criacao1.status_code == status.HTTP_201_CREATED
         json = response_criacao1.json()
         assert json['quantidade_alunos'] == step
-        assert json['status'] == PedidoAPartirDaEscolaWorkflow.RASCUNHO
+        assert json['status_explicacao'] == PedidoAPartirDaEscolaWorkflow.RASCUNHO
 
         solicitacao = SolicitacaoKitLancheAvulsa.objects.get(uuid=json['uuid'])
         solicitacoes_avulsas.append(solicitacao)
