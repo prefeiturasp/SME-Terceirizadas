@@ -134,7 +134,7 @@ def nao_deve_ter_mais_solicitacoes_que_alunos(solicitacao_avulsa):
     if quantidade_alunos_total_passeio > escola.quantidade_alunos:
         raise serializers.ValidationError(
             'A quantidade de alunos informados para o evento excede a quantidade de alunos matriculados na escola.'
-            f' Na data {data} já tem pedidos para {quantidade_alunos} alunos')
+            f' Na data {data.strftime("%d-%m-%Y")} já tem pedidos para {quantidade_alunos} alunos')
 
 
 def valida_duplicidade_passeio_data_escola(data, escola, confirmar=False):

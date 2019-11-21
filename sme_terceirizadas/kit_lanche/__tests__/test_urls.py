@@ -333,5 +333,5 @@ def test_create_kit_lanche(client_autenticado, solicitacao_avulsa, escola, kit_l
             assert json['status'] == PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR
         else:
             assert json == {'detail': 'A quantidade de alunos informados para o evento excede a quantidade de alunos'
-                                      ' matriculados na escola. Na data 2019-11-27 já tem pedidos para 400 alunos'
+                                      ' matriculados na escola. Na data 27-11-2019 já tem pedidos para 400 alunos'
                             }
