@@ -195,6 +195,11 @@ class AlteracaoCardapioSerializerCreate(serializers.ModelSerializer):
         required=True,
         queryset=Escola.objects.all()
     )
+    status_explicacao = serializers.CharField(
+        source='status',
+        required=False,
+        read_only=True
+    )
 
     def validate_substituicoes(self, substituicoes):
         for substicuicao in substituicoes:
@@ -240,7 +245,7 @@ class AlteracaoCardapioSerializerCreate(serializers.ModelSerializer):
 
     class Meta:
         model = AlteracaoCardapio
-        exclude = ('id',)
+        exclude = ('id', 'status')
 
 
 class QuantidadePorPeriodoSuspensaoAlimentacaoCreateSerializer(serializers.ModelSerializer):

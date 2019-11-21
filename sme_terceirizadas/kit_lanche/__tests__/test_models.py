@@ -25,8 +25,8 @@ def test_item_kit_lanche(item_kit_lanche):
 
 def test_solicitacao_avulsa(solicitacao_avulsa):
     assert isinstance(solicitacao_avulsa.local, str)
-    assert solicitacao_avulsa.quantidade_alunos == 999
-    assert solicitacao_avulsa.quantidade_alimentacoes == 2997
+    assert solicitacao_avulsa.quantidade_alunos == 300
+    assert solicitacao_avulsa.quantidade_alimentacoes == 900
     assert solicitacao_avulsa.data == datetime.datetime(2000, 1, 1)
     assert 'Solicitação' in solicitacao_avulsa._meta.verbose_name
 

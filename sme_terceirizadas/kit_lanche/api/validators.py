@@ -1,6 +1,7 @@
 from django.db.models import Sum
 from rest_framework import serializers
 
+from ...dados_comuns.fluxo_status import PedidoAPartirDaEscolaWorkflow
 from ..models import EscolaQuantidade, SolicitacaoKitLanche, SolicitacaoKitLancheAvulsa
 
 
@@ -104,19 +105,36 @@ def valida_quantidade_kits_tempo_passeio(tempo_passeio, quantidade_kits):  # noq
     return True
 
 
-def valida_quantidades_alunos_e_escola(data, escola, quantidade_aluno_passeio):
-    solicitacoes = SolicitacaoKitLancheAvulsa.objects.filter(escola=escola,
-                                                             solicitacao_kit_lanche__data=data).aggregate(
-        Sum('quantidade_alunos'))
+def nao_deve_ter_mais_solicitacoes_que_alunos(solicitacao_avulsa):
+    """Impede solicitar mais do que a quantidade de alunos que a escola tem.
+
+    Quando a solicitação sai de rascunho para inicio de fluxo, não deve deixar passar
+    caso tenha mais  quantidade_aluno_passeio que a quantidade de alunos da escola.
+    """
+    data = solicitacao_avulsa.data
+    escola = solicitacao_avulsa.escola
+    quantidade_aluno_passeio = solicitacao_avulsa.quantidade_alunos
+
+    solicitacoes = SolicitacaoKitLancheAvulsa.objects.filter(
+        escola=escola,
+        status__in=[
+            PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR,
+            PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO,
+            PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO,
+            PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_TOMOU_CIENCIA,
+        ],
+        solicitacao_kit_lanche__data=data
+    ).aggregate(Sum('quantidade_alunos'))
+
     if solicitacoes.get('quantidade_alunos__sum') is None:
         quantidade_alunos = 0
     else:
         quantidade_alunos = int(solicitacoes.get('quantidade_alunos__sum'))  # type: ignore
     quantidade_alunos_total_passeio = quantidade_alunos + quantidade_aluno_passeio
     if quantidade_alunos_total_passeio > escola.quantidade_alunos:
-        raise serializers.ValidationError({
-            'details': 'A quantidade de alunos informados para o evento'
-                       ' excede a quantidade de alunos matriculados na escola', 'tipo_error': 1})
+        raise serializers.ValidationError(
+            'A quantidade de alunos informados para o evento excede a quantidade de alunos matriculados na escola.'
+            f' Na data {data} já tem pedidos para {quantidade_alunos} alunos')
 
 
 def valida_duplicidade_passeio_data_escola(data, escola, confirmar=False):
