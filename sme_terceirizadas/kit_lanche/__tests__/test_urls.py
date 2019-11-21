@@ -2,9 +2,9 @@ import pytest
 from freezegun import freeze_time
 from rest_framework import status
 
+from ..models import SolicitacaoKitLancheAvulsa
 from ...dados_comuns import constants
 from ...dados_comuns.fluxo_status import PedidoAPartirDaDiretoriaRegionalWorkflow, PedidoAPartirDaEscolaWorkflow
-from ..models import SolicitacaoKitLancheAvulsa
 
 pytestmark = pytest.mark.django_db
 
@@ -335,3 +335,29 @@ def test_create_kit_lanche(client_autenticado, solicitacao_avulsa, escola, kit_l
             assert json == {'detail': 'A quantidade de alunos informados para o evento excede a quantidade de alunos'
                                       ' matriculados na escola. Na data 27-11-2019 já tem pedidos para 400 alunos'
                             }
+
+
+def test_kit_lanche_nao_deve_permitir_editar_status_diretamente(client_autenticado, solicitacao_avulsa, escola,
+                                                                kit_lanche):
+    data_teste = '27/11/2019'
+    response_criacao1 = client_autenticado.post(f'/{ENDPOINT_AVULSO}/',
+                                                content_type='application/json',
+                                                data={
+                                                    # status não deve surtir efeito
+                                                    'status': PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO,
+                                                    'solicitacao_kit_lanche': {
+                                                        'kits': [
+                                                            kit_lanche.uuid
+                                                        ],
+                                                        'descricao': '<p>123213213</p>\n',
+                                                        'data': data_teste,
+                                                        'tempo_passeio': 0
+                                                    },
+                                                    'local': 'TESTE!!!',
+                                                    'quantidade_alunos': 100,
+                                                    'escola': escola.uuid, })
+    assert response_criacao1.status_code == status.HTTP_201_CREATED
+    json = response_criacao1.json()
+    # deve ser rascunho e não codae autorizado
+    assert json['status_explicacao'] == PedidoAPartirDaEscolaWorkflow.RASCUNHO
+    assert json.get('status') is None

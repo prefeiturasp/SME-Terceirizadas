@@ -1,8 +1,8 @@
 from django.db.models import Sum
 from rest_framework import serializers
 
-from ...dados_comuns.fluxo_status import PedidoAPartirDaEscolaWorkflow
 from ..models import EscolaQuantidade, SolicitacaoKitLanche, SolicitacaoKitLancheAvulsa
+from ...dados_comuns.fluxo_status import PedidoAPartirDaEscolaWorkflow
 
 
 def solicitacao_deve_ter_1_ou_mais_kits(numero_kits: int):
@@ -135,12 +135,3 @@ def nao_deve_ter_mais_solicitacoes_que_alunos(solicitacao_avulsa):
         raise serializers.ValidationError(
             'A quantidade de alunos informados para o evento excede a quantidade de alunos matriculados na escola.'
             f' Na data {data.strftime("%d-%m-%Y")} já tem pedidos para {quantidade_alunos} alunos')
-
-
-def valida_duplicidade_passeio_data_escola(data, escola, confirmar=False):
-    solicitacao = SolicitacaoKitLancheAvulsa.objects.filter(escola=escola,
-                                                            solicitacao_kit_lanche__data=data)
-    if not confirmar:
-        if solicitacao:
-            raise serializers.ValidationError(
-                {'details': 'Já existe um evento cadastrado para este dia', 'tipo_error': 2})
