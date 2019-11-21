@@ -1,7 +1,7 @@
 from django.db.models import Sum
 from rest_framework import serializers
 
-from sme_terceirizadas.dados_comuns.fluxo_status import PedidoAPartirDaEscolaWorkflow
+from ...dados_comuns.fluxo_status import PedidoAPartirDaEscolaWorkflow
 from ..models import EscolaQuantidade, SolicitacaoKitLanche, SolicitacaoKitLancheAvulsa
 
 
