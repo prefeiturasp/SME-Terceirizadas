@@ -82,23 +82,12 @@ class SolicitacaoKitLancheAvulsaCreationSerializer(serializers.ModelSerializer):
     status = serializers.CharField(required=False)
 
     def validate(self, attrs):
-        # TODO: revalidar essa regra, está esquisito
         quantidade_aluno_passeio = attrs.get('quantidade_alunos')
         data_evento = attrs.get('solicitacao_kit_lanche').get('data')
-        escola = attrs.get('escola')
-        confirmar = attrs.get('confirmar', False)
         campo_nao_pode_ser_nulo(quantidade_aluno_passeio, mensagem='O campo Quantidade de aluno não pode ser nulo')
         campo_deve_ser_deste_tipo(quantidade_aluno_passeio, tipo=int, mensagem='Quantidade de aluno de ser do tipo int')
         nao_pode_ser_no_passado(data_evento)
         deve_pedir_com_antecedencia(data_evento)
-        # if attrs.get('status') != SolicitacaoKitLancheAvulsa.workflow_class.RASCUNHO:
-        #     valida_quantidades_alunos_e_escola(data_evento, escola, quantidade_aluno_passeio)
-        #     valida_duplicidade_passeio_data_escola(data_evento, escola, confirmar)
-        # else:
-        #     # TODO: status e confirmar no parametro? verificar
-        #     attrs.pop('status')
-        # if attrs.get('confirmar'):
-        #     attrs.pop('confirmar')
         return attrs
 
     def create(self, validated_data):

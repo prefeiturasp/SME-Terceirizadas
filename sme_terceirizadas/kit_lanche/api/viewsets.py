@@ -1,14 +1,16 @@
 from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from xworkflows import InvalidTransitionError
 
-from ...dados_comuns import constants
-from .. import models
-from ..models import SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheUnificada
 from .permissions import PodeIniciarSolicitacaoKitLancheAvulsaPermission, PodeIniciarSolicitacaoUnificadaPermission
 from .serializers import serializers, serializers_create
+from .. import models
+from ..api.validators import nao_deve_ter_mais_solicitacoes_que_alunos
+from ..models import SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheUnificada
+from ...dados_comuns import constants
 
 
 class KitLancheViewSet(ReadOnlyModelViewSet):
@@ -129,12 +131,15 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
     def inicio_de_pedido(self, request, uuid=None):
         solicitacao_kit_lanche_avulsa = self.get_object()
         try:
-            # TODO: ao iniciar fluxo fazer a verificação de estouro de quantidade de pedidos no dia para a escola
+            nao_deve_ter_mais_solicitacoes_que_alunos(solicitacao_kit_lanche_avulsa)
+
             solicitacao_kit_lanche_avulsa.inicia_fluxo(user=request.user, )
             serializer = self.get_serializer(solicitacao_kit_lanche_avulsa)
             return Response(serializer.data)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+        except ValidationError as e:
+            return Response(dict(detail=f'{str(e.detail[0])}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeIniciarSolicitacaoKitLancheAvulsaPermission],
             methods=['patch'], url_path=constants.DRE_VALIDA_PEDIDO)
