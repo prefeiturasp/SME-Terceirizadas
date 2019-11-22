@@ -4,15 +4,28 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.db.models.functions import Coalesce
 
-from .managers import (
-    SolicitacaoUnificadaDestaSemanaManager, SolicitacaoUnificadaDesteMesManager, SolicitacaoUnificadaVencidaManager,
-    SolicitacoesKitLancheAvulsaDestaSemanaManager, SolicitacoesKitLancheAvulsaDesteMesManager,
-    SolicitacoesKitLancheAvulsaVencidaDiasManager
+from ..dados_comuns.behaviors import (  # noqa I101
+    CriadoEm,
+    CriadoPor,
+    Descritivel,
+    Logs,
+    Motivo,
+    Nomeavel,
+    TemChaveExterna,
+    TemData,
+    TemIdentificadorExternoAmigavel,
+    TempoPasseio,
+    TemPrioridade
 )
+from ..dados_comuns.fluxo_status import FluxoAprovacaoPartindoDaDiretoriaRegional, FluxoAprovacaoPartindoDaEscola
 from ..dados_comuns.models import LogSolicitacoesUsuario, TemplateMensagem
-from ..dados_comuns.models_abstract import (
-    CriadoEm, CriadoPor, Descritivel, FluxoAprovacaoPartindoDaDiretoriaRegional, FluxoAprovacaoPartindoDaEscola, Logs,
-    Motivo, Nomeavel, TemChaveExterna, TemData, TemIdentificadorExternoAmigavel, TemPrioridade, TempoPasseio
+from .managers import (
+    SolicitacaoUnificadaDestaSemanaManager,
+    SolicitacaoUnificadaDesteMesManager,
+    SolicitacaoUnificadaVencidaManager,
+    SolicitacoesKitLancheAvulsaDestaSemanaManager,
+    SolicitacoesKitLancheAvulsaDesteMesManager,
+    SolicitacoesKitLancheAvulsaVencidaDiasManager
 )
 
 
@@ -134,7 +147,6 @@ class SolicitacaoKitLancheUnificada(CriadoPor, TemChaveExterna, TemIdentificador
     # TODO: ao deletar este, deletar solicitacao_kit_lanche também que é uma tabela acessória
     # TODO: passar `local` para solicitacao_kit_lanche
     outro_motivo = models.TextField(blank=True)
-    quantidade_max_alunos_por_escola = models.PositiveSmallIntegerField(null=True, blank=True)
     local = models.CharField(max_length=160)
     lista_kit_lanche_igual = models.BooleanField(default=True)
 
@@ -162,6 +174,16 @@ class SolicitacaoKitLancheUnificada(CriadoPor, TemChaveExterna, TemIdentificador
         except ObjectDoesNotExist:
             lote_nome = 'Não tem lote'
         return lote_nome
+
+    @property
+    def lote(self):
+        """Solicitação unificada é somente de um lote.
+
+        Vide o  self.dividir_por_lote()
+        """
+        escola_quantidade = self.escolas_quantidades.first()
+        lote = escola_quantidade.escola.lote
+        return lote
 
     @property
     def quantidade_alimentacoes(self):
@@ -248,12 +270,6 @@ class SolicitacaoKitLancheUnificada(CriadoPor, TemChaveExterna, TemIdentificador
             for escola_quantidade in self.escolas_quantidades.all():
                 total_kit_lanche += escola_quantidade.total_kit_lanche
             return total_kit_lanche
-
-    def vincula_escolas_quantidades(self, escolas_quantidades):
-        # TODO trocar isso, fazer backref
-        for escola_quantidade in escolas_quantidades:
-            escola_quantidade.solicitacao_unificada = self
-            escola_quantidade.save()
 
     def __str__(self):
         dre = self.diretoria_regional

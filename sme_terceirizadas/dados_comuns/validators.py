@@ -1,8 +1,8 @@
 import datetime
 
+from django.db import models
 from rest_framework import serializers
 from workalendar.america import BrazilSaoPauloCity
-from django.db import models
 
 from .utils import eh_dia_util, obter_dias_uteis_apos_hoje
 
@@ -24,7 +24,7 @@ def deve_pedir_com_antecedencia(dia: datetime.date, dias: int = 2):
 
 def deve_existir_cardapio(escola, data: datetime.date):
     if not escola.get_cardapio(data):
-        raise serializers.ValidationError(f'Escola não possui cardápio para esse dia: {data}')
+        raise serializers.ValidationError(f'Escola não possui cardápio para esse dia: {data.strftime("%d-%m-%Y")}')
     return True
 
 

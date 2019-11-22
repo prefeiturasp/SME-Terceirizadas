@@ -3,11 +3,18 @@ from freezegun import freeze_time
 from model_mommy import mommy
 from rest_framework.exceptions import ValidationError
 
-from ...cardapio.api.serializers.serializers_create import (
-    AlteracaoCardapioSerializerCreate, InversaoCardapioSerializerCreate
+from ...cardapio.models import (
+    AlteracaoCardapio,
+    GrupoSuspensaoAlimentacao,
+    InversaoCardapio,
+    VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
 )
-from ...cardapio.models import AlteracaoCardapio
-from ...cardapio.models import InversaoCardapio
+from ..api.serializers.serializers_create import (
+    AlteracaoCardapioSerializerCreate,
+    GrupoSuspensaoAlimentacaoCreateSerializer,
+    InversaoCardapioSerializerCreate,
+    VinculoTipoAlimentoCreateSerializer
+)
 
 pytestmark = pytest.mark.django_db
 
@@ -19,7 +26,8 @@ def test_inversao_serializer_validators(inversao_card_params):
     cardapio_de = mommy.make('cardapio.Cardapio', data=data_de)
     cardapio_para = mommy.make('cardapio.Cardapio', data=data_para)
     tipo_ue = mommy.make('escola.TipoUnidadeEscolar', cardapios=[cardapio_de, cardapio_para])
-    escola = mommy.make('escola.Escola', tipo_unidade=tipo_ue)
+    lote = mommy.make('Lote')
+    escola = mommy.make('escola.Escola', tipo_unidade=tipo_ue, lote=lote)
     attrs = dict(data_de=data_de, data_para=data_para, escola=escola)
 
     response_de = serializer_obj.validate_data_de(data_de=data_de)
@@ -37,7 +45,8 @@ def test_inversao_serializer_validators_case_error(inversao_card_params_error):
     cardapio_de = mommy.make('cardapio.Cardapio', data=data_de)
     cardapio_para = mommy.make('cardapio.Cardapio', data=data_para)
     tipo_ue = mommy.make('escola.TipoUnidadeEscolar', cardapios=[cardapio_de, cardapio_para])
-    escola = mommy.make('escola.Escola', tipo_unidade=tipo_ue)
+    lote = mommy.make('Lote')
+    escola = mommy.make('escola.Escola', tipo_unidade=tipo_ue, lote=lote)
     attrs = dict(data_de=data_de, data_para=data_para, escola=escola)
 
     error_regex = r'(Não pode ser no passado|Inversão de dia de cardapio deve ser solicitada no ano corrente|Diferença entre as datas não pode ultrapassar de 60 dias|Data de cardápio para troca é superior a data de inversão)'  # noqa E501
@@ -64,8 +73,9 @@ def test_inversao_serializer_creators(inversao_card_params):
     cardapio4 = mommy.make('cardapio.Cardapio', data=data_para_atualiza)
 
     tipo_ue = mommy.make('escola.TipoUnidadeEscolar', cardapios=[cardapio1, cardapio2, cardapio3, cardapio4])
-    escola1 = mommy.make('escola.Escola', tipo_unidade=tipo_ue)
-    escola2 = mommy.make('escola.Escola', tipo_unidade=tipo_ue)
+    lote = mommy.make('Lote')
+    escola1 = mommy.make('escola.Escola', tipo_unidade=tipo_ue, lote=lote)
+    escola2 = mommy.make('escola.Escola', tipo_unidade=tipo_ue, lote=lote)
 
     validated_data_create = dict(data_de=data_de_cria, data_para=data_para, escola=escola1)
     validated_data_update = dict(data_de=data_de_atualiza, data_para=data_para_atualiza, escola=escola2)
@@ -103,7 +113,7 @@ def test_alteracao_cardapio_validators(alteracao_card_params):
 
 
 @freeze_time('2019-10-15')
-def test_alteracao_cardapio_creators(alteracao_card_params):
+def test_alteracao_cardapio_creators(alteracao_card_params, escola):
     class FakeObject(object):
         user = mommy.make('perfil.Usuario')
 
@@ -125,6 +135,7 @@ def test_alteracao_cardapio_creators(alteracao_card_params):
 
     validated_data_create = dict(data_inicial=data_inicial,
                                  data_final=data_final,
+                                 escola=escola,
                                  substituicoes=substituicoes_dict)
 
     resp_create = serializer_obj.create(validated_data=validated_data_create)
@@ -150,3 +161,70 @@ def test_alteracao_cardapio_creators(alteracao_card_params):
     assert resp_update.substituicoes.count() == 3
     assert resp_update.data_inicial == data_inicial
     assert resp_update.data_final == data_final
+
+
+def test_grupo_suspensao_alimentacao_serializer(grupo_suspensao_alimentacao_params):
+    class FakeObject(object):
+        user = mommy.make('perfil.Usuario')
+
+    serializer_obj = GrupoSuspensaoAlimentacaoCreateSerializer(context={'request': FakeObject})
+    quantidades_por_periodo = []
+    quantidades_periodo = mommy.make('QuantidadePorPeriodoSuspensaoAlimentacao', _quantity=3)
+    for quantidade_periodo in quantidades_periodo:
+        quantidades_por_periodo.append(dict(numero_alunos=quantidade_periodo.numero_alunos,
+                                            periodo_escolar=quantidade_periodo.periodo_escolar))
+
+    suspensoes_alimentacao = []
+    suspensoes = mommy.make('SuspensaoAlimentacao', _quantity=3)
+    for suspensao in suspensoes:
+        suspensoes_alimentacao.append(dict(prioritario=suspensao.prioritario,
+                                           motivo=suspensao.motivo,
+                                           data=suspensao.data,
+                                           outro_motivo=suspensao.outro_motivo))
+    validated_data_create = dict(quantidades_por_periodo=quantidades_por_periodo,
+                                 suspensoes_alimentacao=suspensoes_alimentacao,
+                                 escola=mommy.make('Escola'))
+    grupo_suspensao_created = serializer_obj.create(validated_data=validated_data_create)
+
+    assert grupo_suspensao_created.criado_por == FakeObject().user
+    assert grupo_suspensao_created.quantidades_por_periodo.count() == 3
+    assert grupo_suspensao_created.suspensoes_alimentacao.count() == 3
+    assert isinstance(grupo_suspensao_created, GrupoSuspensaoAlimentacao)
+
+    validated_data_update = dict(quantidades_por_periodo=quantidades_por_periodo[:2],
+                                 suspensoes_alimentacao=suspensoes_alimentacao[:1],
+                                 escola=mommy.make('Escola'))
+    grupo_suspensao_updated = serializer_obj.update(instance=grupo_suspensao_created,
+                                                    validated_data=validated_data_update)
+    assert grupo_suspensao_updated.criado_por == FakeObject().user
+    assert grupo_suspensao_updated.quantidades_por_periodo.count() == 2
+    assert grupo_suspensao_updated.suspensoes_alimentacao.count() == 1
+    assert isinstance(grupo_suspensao_updated, GrupoSuspensaoAlimentacao)
+
+
+@freeze_time('2019-11-8')
+def test_vinculo_tipo_alimentacao_periodo_serializer():
+    periodo = mommy.make('PeriodoEscolar')
+    tipo_ue = mommy.make('TipoUnidadeEscolar')
+    tipos_alimentacao = mommy.make('TipoAlimentacao', _quantity=3)
+    validated_data = {'tipo_unidade_escolar': tipo_ue, 'periodo_escolar': periodo,
+                      'tipos_alimentacao': tipos_alimentacao}
+
+    VinculoTipoAlimentoCreateSerializer().validate_tipos_alimentacao(validated_data['tipos_alimentacao'])
+
+    vinculo_created = VinculoTipoAlimentoCreateSerializer().create(validated_data=validated_data)
+    assert isinstance(vinculo_created, VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar)
+    assert vinculo_created.tipo_unidade_escolar == tipo_ue
+    assert vinculo_created.periodo_escolar == periodo
+    assert vinculo_created.tipos_alimentacao.count() == 3
+
+    periodo_updt = mommy.make('PeriodoEscolar')
+    tipo_ue_updt = mommy.make('TipoUnidadeEscolar')
+    validated_data_update = {'tipo_unidade_escolar': tipo_ue_updt, 'periodo_escolar': periodo_updt,
+                             'tipos_alimentacao': tipos_alimentacao[:1]}
+    vinculo_updated = VinculoTipoAlimentoCreateSerializer().update(instance=vinculo_created,
+                                                                   validated_data=validated_data_update)
+    assert isinstance(vinculo_updated, VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar)
+    assert vinculo_updated.tipo_unidade_escolar == tipo_ue_updt
+    assert vinculo_updated.periodo_escolar == periodo_updt
+    assert vinculo_updated.tipos_alimentacao.count() == 1

@@ -3,28 +3,35 @@ from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from .constants import (
-    AUTORIZADOS, CANCELADOS, FILTRO_DRE_UUID, FILTRO_ESCOLA_UUID,
-    FILTRO_TERCEIRIZADA_UUID, NEGADOS, PENDENTES_AUTORIZACAO, PENDENTES_CIENCIA
-)
-from ..api.constants import FILTRO_PERIOD_UUID_DRE, PENDENTES_VALIDACAO_DRE
-from ..models import (
-    SolicitacoesCODAE, SolicitacoesDRE, SolicitacoesEscola, SolicitacoesTerceirizada
-)
 from ...dados_comuns.constants import FILTRO_PADRAO_PEDIDOS, SEM_FILTRO
 from ...paineis_consolidados.api.constants import TIPO_VISAO, TIPO_VISAO_LOTE, TIPO_VISAO_SOLICITACOES
 from ...paineis_consolidados.api.serializers import SolicitacoesSerializer
+from ..api.constants import FILTRO_PERIOD_UUID_DRE, PENDENTES_VALIDACAO_DRE
+from ..models import SolicitacoesCODAE, SolicitacoesDRE, SolicitacoesEscola, SolicitacoesTerceirizada
+from .constants import (
+    AUTORIZADOS,
+    CANCELADOS,
+    FILTRO_DRE_UUID,
+    FILTRO_ESCOLA_UUID,
+    FILTRO_TERCEIRIZADA_UUID,
+    NEGADOS,
+    PENDENTES_AUTORIZACAO,
+    PENDENTES_CIENCIA
+)
 
 
 class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
 
     def _agrupar_solicitacoes(self, tipo_visao: str, query_set: QuerySet):
         if tipo_visao == TIPO_VISAO_SOLICITACOES:
-            descricao_prioridade = [(solicitacao.desc_doc, solicitacao.prioridade) for solicitacao in query_set]
+            descricao_prioridade = [(solicitacao.desc_doc, solicitacao.prioridade) for solicitacao in query_set
+                                    if solicitacao.prioridade != 'VENCIDO']
         elif tipo_visao == TIPO_VISAO_LOTE:
-            descricao_prioridade = [(solicitacao.lote, solicitacao.prioridade) for solicitacao in query_set]
+            descricao_prioridade = [(solicitacao.lote_nome, solicitacao.prioridade) for solicitacao in query_set
+                                    if solicitacao.prioridade != 'VENCIDO']
         else:
-            descricao_prioridade = [(solicitacao.dre_nome, solicitacao.prioridade) for solicitacao in query_set]
+            descricao_prioridade = [(solicitacao.dre_nome, solicitacao.prioridade) for solicitacao in query_set
+                                    if solicitacao.prioridade != 'VENCIDO']
         return descricao_prioridade
 
     def _agrupa_por_tipo_visao(self, tipo_visao: str, query_set: QuerySet) -> dict:
@@ -38,9 +45,8 @@ class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
                                         'REGULAR': 0,
                                         'PRIORITARIO': 0,
                                         'LIMITE': 0}
-            else:
-                sumario[nome_objeto][prioridade] += 1
-                sumario[nome_objeto]['TOTAL'] += 1
+            sumario[nome_objeto][prioridade] += 1
+            sumario[nome_objeto]['TOTAL'] += 1
         return sumario
 
 

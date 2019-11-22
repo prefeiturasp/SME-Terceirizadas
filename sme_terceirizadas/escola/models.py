@@ -3,22 +3,29 @@ from django.core.validators import MinLengthValidator
 from django.db import models
 from django.db.models import Q, Sum
 
-from ..cardapio.models import (
-    AlteracaoCardapio, GrupoSuspensaoAlimentacao, InversaoCardapio
+from ..cardapio.models import AlteracaoCardapio, GrupoSuspensaoAlimentacao, InversaoCardapio
+from ..dados_comuns.behaviors import Ativavel, Iniciais, Nomeavel, TemChaveExterna, TemCodigoEOL, TemVinculos
+from ..dados_comuns.constants import (
+    COGESTOR,
+    COORDENADOR_DIETA_ESPECIAL,
+    COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
+    DAQUI_A_SETE_DIAS,
+    DAQUI_A_TRINTA_DIAS,
+    DIRETOR,
+    SUPLENTE
 )
-from ..dados_comuns.constants import DAQUI_A_30_DIAS, DAQUI_A_7_DIAS
-from ..dados_comuns.models_abstract import (
-    Ativavel, Iniciais, Nomeavel, TemChaveExterna,
-    TemCodigoEOL)
-from ..inclusao_alimentacao.models import (
-    GrupoInclusaoAlimentacaoNormal, InclusaoAlimentacaoContinua
-)
+from ..inclusao_alimentacao.models import GrupoInclusaoAlimentacaoNormal, InclusaoAlimentacaoContinua
 from ..kit_lanche.models import SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheUnificada
-from ..perfil.models import Usuario
 
 
-class DiretoriaRegional(Nomeavel, Iniciais, TemChaveExterna, TemCodigoEOL):
-    usuarios = models.ManyToManyField(Usuario, related_name='diretorias_regionais', blank=True)
+class DiretoriaRegional(Nomeavel, Iniciais, TemChaveExterna, TemCodigoEOL, TemVinculos):
+
+    @property
+    def vinculos_que_podem_ser_finalizados(self):
+        return self.vinculos.filter(
+            Q(data_inicial=None, data_final=None, ativo=False) |  # noqa W504 esperando ativacao
+            Q(data_inicial__isnull=False, data_final=None, ativo=True)  # noqa W504 ativo
+        ).exclude(perfil__nome__in=[COGESTOR, SUPLENTE])
 
     @property
     def escolas(self):
@@ -66,9 +73,9 @@ class DiretoriaRegional(Nomeavel, Iniciais, TemChaveExterna, TemCodigoEOL):
     # TODO: talvez fazer um manager genérico pra fazer esse filtro
 
     def solicitacoes_kit_lanche_das_minhas_escolas_a_validar(self, filtro_aplicado):
-        if filtro_aplicado == DAQUI_A_7_DIAS:
+        if filtro_aplicado == DAQUI_A_SETE_DIAS:
             solicitacoes_kit_lanche_avulsa = SolicitacaoKitLancheAvulsa.desta_semana
-        elif filtro_aplicado == DAQUI_A_30_DIAS:
+        elif filtro_aplicado == DAQUI_A_TRINTA_DIAS:
             solicitacoes_kit_lanche_avulsa = SolicitacaoKitLancheAvulsa.deste_mes  # type: ignore
         else:
             solicitacoes_kit_lanche_avulsa = SolicitacaoKitLancheAvulsa.objects  # type: ignore
@@ -78,9 +85,9 @@ class DiretoriaRegional(Nomeavel, Iniciais, TemChaveExterna, TemCodigoEOL):
         )
 
     def alteracoes_cardapio_das_minhas_escolas_a_validar(self, filtro_aplicado):
-        if filtro_aplicado == DAQUI_A_7_DIAS:
+        if filtro_aplicado == DAQUI_A_SETE_DIAS:
             inversoes_cardapio = AlteracaoCardapio.desta_semana
-        elif filtro_aplicado == DAQUI_A_30_DIAS:
+        elif filtro_aplicado == DAQUI_A_TRINTA_DIAS:
             inversoes_cardapio = AlteracaoCardapio.deste_mes  # type: ignore
         else:
             inversoes_cardapio = AlteracaoCardapio.objects  # type: ignore
@@ -91,9 +98,9 @@ class DiretoriaRegional(Nomeavel, Iniciais, TemChaveExterna, TemCodigoEOL):
 
     # TODO rever os demais métodos de alterações de cardápio, já que esse consolida todas as prioridades.
     def inclusoes_alimentacao_continua_das_minhas_escolas(self, filtro_aplicado):
-        if filtro_aplicado == DAQUI_A_7_DIAS:
+        if filtro_aplicado == DAQUI_A_SETE_DIAS:
             inclusoes_alimentacao_continuas = InclusaoAlimentacaoContinua.desta_semana
-        elif filtro_aplicado == DAQUI_A_30_DIAS:
+        elif filtro_aplicado == DAQUI_A_TRINTA_DIAS:
             inclusoes_alimentacao_continuas = InclusaoAlimentacaoContinua.deste_mes  # type: ignore
         else:
             inclusoes_alimentacao_continuas = InclusaoAlimentacaoContinua.objects  # type: ignore
@@ -103,9 +110,9 @@ class DiretoriaRegional(Nomeavel, Iniciais, TemChaveExterna, TemCodigoEOL):
         )
 
     def grupos_inclusoes_alimentacao_normal_das_minhas_escolas(self, filtro_aplicado):
-        if filtro_aplicado == DAQUI_A_7_DIAS:
+        if filtro_aplicado == DAQUI_A_SETE_DIAS:
             inclusoes_alimentacao_normais = GrupoInclusaoAlimentacaoNormal.desta_semana
-        elif filtro_aplicado == DAQUI_A_30_DIAS:
+        elif filtro_aplicado == DAQUI_A_TRINTA_DIAS:
             inclusoes_alimentacao_normais = GrupoInclusaoAlimentacaoNormal.deste_mes  # type: ignore
         else:
             inclusoes_alimentacao_normais = GrupoInclusaoAlimentacaoNormal.objects  # type: ignore
@@ -157,9 +164,9 @@ class DiretoriaRegional(Nomeavel, Iniciais, TemChaveExterna, TemCodigoEOL):
 
     # TODO rever os demais métodos de alterações de cardápio, já que esse consolida todas as prioridades.
     def alteracoes_cardapio_das_minhas_escolas(self, filtro_aplicado):
-        if filtro_aplicado == DAQUI_A_7_DIAS:
+        if filtro_aplicado == DAQUI_A_SETE_DIAS:
             alteracoes_cardapio = AlteracaoCardapio.desta_semana
-        elif filtro_aplicado == DAQUI_A_30_DIAS:
+        elif filtro_aplicado == DAQUI_A_TRINTA_DIAS:
             alteracoes_cardapio = AlteracaoCardapio.deste_mes  # type: ignore
         else:
             alteracoes_cardapio = AlteracaoCardapio.objects  # type: ignore
@@ -173,9 +180,9 @@ class DiretoriaRegional(Nomeavel, Iniciais, TemChaveExterna, TemCodigoEOL):
     #
 
     def inversoes_cardapio_das_minhas_escolas(self, filtro_aplicado):
-        if filtro_aplicado == DAQUI_A_7_DIAS:
+        if filtro_aplicado == DAQUI_A_SETE_DIAS:
             inversoes_cardapio = InversaoCardapio.desta_semana
-        elif filtro_aplicado == DAQUI_A_30_DIAS:
+        elif filtro_aplicado == DAQUI_A_TRINTA_DIAS:
             inversoes_cardapio = InversaoCardapio.deste_mes  # type: ignore
         else:
             inversoes_cardapio = InversaoCardapio.objects  # type: ignore
@@ -266,7 +273,7 @@ class PeriodoEscolar(Nomeavel, TemChaveExterna):
         return self.nome
 
 
-class Escola(Ativavel, TemChaveExterna, TemCodigoEOL):
+class Escola(Ativavel, TemChaveExterna, TemCodigoEOL, TemVinculos):
     nome = models.CharField('Nome', max_length=160, blank=True)
     codigo_eol = models.CharField('Código EOL', max_length=6, unique=True, validators=[MinLengthValidator(6)])
     # não ta sendo usado
@@ -283,19 +290,18 @@ class Escola(Ativavel, TemChaveExterna, TemCodigoEOL):
                              related_name='escolas',
                              blank=True, null=True,
                              on_delete=models.PROTECT)
-
-    endereco = models.ForeignKey('dados_comuns.Endereco', on_delete=models.DO_NOTHING,
-                                 blank=True, null=True)
     contato = models.ForeignKey('dados_comuns.Contato', on_delete=models.DO_NOTHING,
                                 blank=True, null=True)
 
     idades = models.ManyToManyField(FaixaIdadeEscolar, blank=True)
     periodos_escolares = models.ManyToManyField(PeriodoEscolar, blank=True)
-    usuarios = models.ManyToManyField(Usuario, related_name='escolas')
 
     @property
-    def usuarios_diretoria_regional(self):
-        return self.diretoria_regional.usuarios.all() if self.diretoria_regional else Usuario.objects.none()
+    def vinculos_que_podem_ser_finalizados(self):
+        return self.vinculos.filter(
+            Q(data_inicial=None, data_final=None, ativo=False) |  # noqa W504 esperando ativacao
+            Q(data_inicial__isnull=False, data_final=None, ativo=True)  # noqa W504 ativo
+        ).exclude(perfil__nome=DIRETOR)
 
     @property
     def grupos_inclusoes(self):
@@ -343,7 +349,7 @@ class Lote(TemChaveExterna, Nomeavel, Iniciais):
     @property
     def quantidade_alunos(self):
         quantidade_result = self.escolas.aggregate(Sum('quantidade_alunos'))
-        return quantidade_result.get('quantidade_alunos__sum', 0)
+        return quantidade_result.get('quantidade_alunos__sum') or 0
 
     def __str__(self):
         nome_dre = self.diretoria_regional.nome if self.diretoria_regional else 'sem DRE definida'
@@ -374,8 +380,14 @@ class Subprefeitura(Nomeavel, TemChaveExterna):
         ordering = ('nome',)
 
 
-class Codae(Nomeavel, TemChaveExterna):
-    usuarios = models.ManyToManyField(Usuario, related_name='CODAE', blank=True)
+class Codae(Nomeavel, TemChaveExterna, TemVinculos):
+
+    @property
+    def vinculos_que_podem_ser_finalizados(self):
+        return self.vinculos.filter(
+            Q(data_inicial=None, data_final=None, ativo=False) |  # noqa W504 esperando ativacao
+            Q(data_inicial__isnull=False, data_final=None, ativo=True)  # noqa W504 ativo
+        ).exclude(perfil__nome__in=[COORDENADOR_DIETA_ESPECIAL, COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA])
 
     @property
     def quantidade_alunos(self):
@@ -384,9 +396,9 @@ class Codae(Nomeavel, TemChaveExterna):
         return quantidade_result.get('quantidade_alunos__sum', 0)
 
     def inversoes_cardapio_das_minhas_escolas(self, filtro_aplicado):
-        if filtro_aplicado == DAQUI_A_7_DIAS:
+        if filtro_aplicado == DAQUI_A_SETE_DIAS:
             inversoes_cardapio = InversaoCardapio.desta_semana
-        elif filtro_aplicado == DAQUI_A_30_DIAS:
+        elif filtro_aplicado == DAQUI_A_TRINTA_DIAS:
             inversoes_cardapio = InversaoCardapio.deste_mes  # type: ignore
         else:
             inversoes_cardapio = InversaoCardapio.objects  # type: ignore
@@ -395,9 +407,9 @@ class Codae(Nomeavel, TemChaveExterna):
         )
 
     def grupos_inclusoes_alimentacao_normal_das_minhas_escolas(self, filtro_aplicado):
-        if filtro_aplicado == DAQUI_A_7_DIAS:
+        if filtro_aplicado == DAQUI_A_SETE_DIAS:
             inversoes_cardapio = GrupoInclusaoAlimentacaoNormal.desta_semana
-        elif filtro_aplicado == DAQUI_A_30_DIAS:
+        elif filtro_aplicado == DAQUI_A_TRINTA_DIAS:
             inversoes_cardapio = GrupoInclusaoAlimentacaoNormal.deste_mes  # type: ignore
         else:
             inversoes_cardapio = GrupoInclusaoAlimentacaoNormal.objects  # type: ignore
@@ -419,9 +431,9 @@ class Codae(Nomeavel, TemChaveExterna):
         )
 
     def inclusoes_alimentacao_continua_das_minhas_escolas(self, filtro_aplicado):
-        if filtro_aplicado == DAQUI_A_7_DIAS:
+        if filtro_aplicado == DAQUI_A_SETE_DIAS:
             inversoes_cardapio = InclusaoAlimentacaoContinua.desta_semana
-        elif filtro_aplicado == DAQUI_A_30_DIAS:
+        elif filtro_aplicado == DAQUI_A_TRINTA_DIAS:
             inversoes_cardapio = InclusaoAlimentacaoContinua.deste_mes  # type: ignore
         else:
             inversoes_cardapio = InclusaoAlimentacaoContinua.objects  # type: ignore
@@ -430,9 +442,9 @@ class Codae(Nomeavel, TemChaveExterna):
         )
 
     def alteracoes_cardapio_das_minhas(self, filtro_aplicado):
-        if filtro_aplicado == DAQUI_A_7_DIAS:
+        if filtro_aplicado == DAQUI_A_SETE_DIAS:
             alteracoes_cardapio = AlteracaoCardapio.desta_semana
-        elif filtro_aplicado == DAQUI_A_30_DIAS:
+        elif filtro_aplicado == DAQUI_A_TRINTA_DIAS:
             alteracoes_cardapio = AlteracaoCardapio.deste_mes  # type: ignore
         else:
             alteracoes_cardapio = AlteracaoCardapio.objects  # type: ignore
@@ -450,9 +462,9 @@ class Codae(Nomeavel, TemChaveExterna):
         #
 
     def solicitacoes_unificadas(self, filtro_aplicado):
-        if filtro_aplicado == DAQUI_A_7_DIAS:
+        if filtro_aplicado == DAQUI_A_SETE_DIAS:
             solicitacoes_unificadas = SolicitacaoKitLancheUnificada.desta_semana
-        elif filtro_aplicado == DAQUI_A_30_DIAS:
+        elif filtro_aplicado == DAQUI_A_TRINTA_DIAS:
             solicitacoes_unificadas = SolicitacaoKitLancheUnificada.deste_mes  # type: ignore
         else:
             solicitacoes_unificadas = SolicitacaoKitLancheUnificada.objects  # type: ignore
@@ -509,9 +521,9 @@ class Codae(Nomeavel, TemChaveExterna):
     # TODO: talvez fazer um manager genérico pra fazer esse filtro
 
     def solicitacoes_kit_lanche_das_minhas_escolas_a_validar(self, filtro_aplicado):
-        if filtro_aplicado == DAQUI_A_7_DIAS:
+        if filtro_aplicado == DAQUI_A_SETE_DIAS:
             solicitacoes_kit_lanche = SolicitacaoKitLancheAvulsa.desta_semana
-        elif filtro_aplicado == DAQUI_A_30_DIAS:
+        elif filtro_aplicado == DAQUI_A_TRINTA_DIAS:
             solicitacoes_kit_lanche = SolicitacaoKitLancheAvulsa.deste_mes  # type: ignore
         else:
             solicitacoes_kit_lanche = SolicitacaoKitLancheAvulsa.objects  # type: ignore

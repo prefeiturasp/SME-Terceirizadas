@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 from django.utils.translation import ugettext_lazy as _
 
-from .models import (GrupoPerfil, Perfil, PerfilPermissao, Permissao, Usuario)
+from .models import Perfil, Usuario, Vinculo
 
 
 class BaseUserAdmin(DjangoUserAdmin):
@@ -10,10 +10,7 @@ class BaseUserAdmin(DjangoUserAdmin):
 
     fieldsets = (
         (None, {
-            'fields': ('email', 'password')
-        }),
-        (_('Personal info'), {
-            'fields': ('nome', 'registro_funcional')
+            'fields': ('email', 'password', 'cpf', 'registro_funcional', 'nome')
         }),
         (_('Permissions'), {
             'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')
@@ -24,7 +21,7 @@ class BaseUserAdmin(DjangoUserAdmin):
     )
     add_fieldsets = ((None, {
         'classes': ('wide',),
-        'fields': ('email', 'password1', 'password2'),
+        'fields': ('email', 'password1', 'password2', 'cpf', 'registro_funcional', 'nome'),
     }),)
     list_display = ('email', 'nome', 'is_staff', 'is_active')
     search_fields = ('email', 'nome')
@@ -33,6 +30,4 @@ class BaseUserAdmin(DjangoUserAdmin):
 
 admin.site.register(Usuario, BaseUserAdmin)
 admin.site.register(Perfil)
-admin.site.register(GrupoPerfil)
-admin.site.register(Permissao)
-admin.site.register(PerfilPermissao)
+admin.site.register(Vinculo)

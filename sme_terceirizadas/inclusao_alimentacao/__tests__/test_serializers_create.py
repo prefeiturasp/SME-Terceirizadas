@@ -2,8 +2,10 @@ import pytest
 from freezegun import freeze_time
 from model_mommy import mommy
 
-from ..api.serializers.serializers_create import (GrupoInclusaoAlimentacaoNormalCreationSerializer,
-                                                  InclusaoAlimentacaoContinuaCreationSerializer)
+from ..api.serializers.serializers_create import (
+    GrupoInclusaoAlimentacaoNormalCreationSerializer,
+    InclusaoAlimentacaoContinuaCreationSerializer
+)
 from ..models import GrupoInclusaoAlimentacaoNormal, InclusaoAlimentacaoContinua
 
 pytestmark = pytest.mark.django_db
@@ -36,11 +38,10 @@ def test_inclusao_continua_serializer_validators(inclusao_alimentacao_continua_p
 
 
 @freeze_time('2019-10-15')
-def test_inclusao_continua_serializer_creators(inclusao_alimentacao_continua_parametros):
+def test_inclusao_continua_serializer_creators(inclusao_alimentacao_continua_parametros, escola):
     class FakeObject(object):
         user = mommy.make('perfil.Usuario')
 
-    escola = mommy.make('escola.Escola')
     motivo = mommy.make('MotivoInclusaoContinua')
     data_inicial, data_final, dias_semana = inclusao_alimentacao_continua_parametros
     quantidades_por_periodo = []
@@ -80,12 +81,11 @@ def test_inclusao_continua_serializer_creators(inclusao_alimentacao_continua_par
 
 
 @freeze_time('2019-10-15')
-def test_grupo_inclusao_normal_serializer_creators(inclusao_alimentacao_continua_parametros):
+def test_grupo_inclusao_normal_serializer_creators(inclusao_alimentacao_continua_parametros, escola):
     class FakeObject(object):
         user = mommy.make('perfil.Usuario')
 
     data, _, _ = inclusao_alimentacao_continua_parametros
-    escola = mommy.make('escola.Escola')
     quantidades_por_periodo = []
     for _ in range(4):
         qtd = mommy.make('QuantidadePorPeriodo')

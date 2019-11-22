@@ -86,7 +86,7 @@ class Meta:
 
 
 class Contato(models.Model):
-    telefone = models.CharField(max_length=10, validators=[MinLengthValidator(8)],
+    telefone = models.CharField(max_length=13, validators=[MinLengthValidator(8)],
                                 blank=True)
     telefone2 = models.CharField(max_length=10, validators=[MinLengthValidator(8)],
                                  blank=True)
@@ -96,16 +96,6 @@ class Contato(models.Model):
 
     def __str__(self):
         return f'{self.telefone}, {self.email}'
-
-
-class Endereco(models.Model):
-    rua = models.CharField(max_length=200)
-    cep = models.CharField(max_length=8, validators=[MinLengthValidator(8)])
-    bairro = models.CharField(max_length=100)
-    numero = models.CharField(max_length=10, blank=True)
-
-    def __str__(self):
-        return f'{self.rua}, {self.numero}'
 
 
 class TemplateMensagem(models.Model):

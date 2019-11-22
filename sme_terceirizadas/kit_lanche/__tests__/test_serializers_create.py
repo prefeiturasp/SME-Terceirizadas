@@ -7,7 +7,8 @@ from model_mommy import mommy
 from rest_framework.exceptions import ValidationError
 
 from ..api.serializers.serializers_create import (
-    SolicitacaoKitLancheAvulsaCreationSerializer, SolicitacaoKitLancheUnificadaCreationSerializer
+    SolicitacaoKitLancheAvulsaCreationSerializer,
+    SolicitacaoKitLancheUnificadaCreationSerializer
 )
 from ..models import SolicitacaoKitLanche, SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheUnificada
 
@@ -17,7 +18,8 @@ pytestmark = pytest.mark.django_db
 @freeze_time('2019-10-16')
 def test_kit_lanche_avulso_serializer_validators():
     serializer_obj = SolicitacaoKitLancheAvulsaCreationSerializer()
-    escola = mommy.make('Escola', quantidade_alunos=778)
+    lote = mommy.make('Lote')
+    escola = mommy.make('Escola', quantidade_alunos=778, lote=lote)
     attrs = dict(quantidade_alunos=777,
                  escola=escola,
                  confirmar=True,
@@ -28,13 +30,13 @@ def test_kit_lanche_avulso_serializer_validators():
 
 @freeze_time('2019-10-16')
 def test_kit_lanche_avulso_serializer_validators_error(kits_avulsos_param_erro_serializer):
-    qtd_alunos_escola, qtd_alunos_pedido, dia, confirmar, erro_esperado = kits_avulsos_param_erro_serializer
+    qtd_alunos_escola, qtd_alunos_pedido, dia, erro_esperado = kits_avulsos_param_erro_serializer
     serializer_obj = SolicitacaoKitLancheAvulsaCreationSerializer()
-    escola = mommy.make('Escola', quantidade_alunos=qtd_alunos_escola)
+    lote = mommy.make('Lote')
+    escola = mommy.make('Escola', quantidade_alunos=qtd_alunos_escola, lote=lote)
 
     attrs = dict(quantidade_alunos=qtd_alunos_pedido,
                  escola=escola,
-                 confirmar=confirmar,
                  solicitacao_kit_lanche=dict(data=dia))
     with pytest.raises(ValidationError, match=erro_esperado):
         serializer_obj.validate(attrs=attrs)
@@ -48,7 +50,8 @@ def test_kit_lanche_avulso_serializer_creators(kits_avulsos_param_serializer):
         user = mommy.make('perfil.Usuario')
 
     serializer_obj = SolicitacaoKitLancheAvulsaCreationSerializer(context={'request': FakeObject})
-    escola = mommy.make('Escola', quantidade_alunos=qtd_alunos_escola)
+    lote = mommy.make('Lote')
+    escola = mommy.make('Escola', quantidade_alunos=qtd_alunos_escola, lote=lote)
     validated_data_create = dict(quantidade_alunos=quantidade_alunos_pedido,
                                  escola=escola,
                                  solicitacao_kit_lanche=dict(data=data))

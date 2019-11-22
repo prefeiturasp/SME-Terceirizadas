@@ -1,19 +1,26 @@
 from rest_framework import serializers
-from ...terceirizada.models import Terceirizada
+
+from ...cardapio.models import TipoAlimentacao
+from ...dados_comuns.api.serializers import ContatoSerializer
+from ...perfil.api.serializers import PerfilSimplesSerializer
+from ...perfil.models import Usuario, Vinculo
 from ...terceirizada.api.serializers.serializers import (
     ContratoSimplesSerializer,
-    NutricionistaSerializer
+    NutricionistaSerializer,
+    TerceirizadaSimplesSerializer
 )
-from ...dados_comuns.api.serializers import ContatoSerializer, EnderecoSerializer
+from ...terceirizada.models import Terceirizada
 from ..models import (
-    Codae, DiretoriaRegional, Escola, FaixaIdadeEscolar,
-    Lote, PeriodoEscolar, Subprefeitura, TipoGestao,
+    Codae,
+    DiretoriaRegional,
+    Escola,
+    FaixaIdadeEscolar,
+    Lote,
+    PeriodoEscolar,
+    Subprefeitura,
+    TipoGestao,
     TipoUnidadeEscolar
 )
-from ...cardapio.models import TipoAlimentacao
-from ...perfil.api.serializers import PerfilSerializer
-from ...perfil.models import Usuario
-from ...terceirizada.api.serializers.serializers import TerceirizadaSimplesSerializer
 
 
 class SubsticuicoesTipoAlimentacaoSerializer(serializers.ModelSerializer):
@@ -129,7 +136,7 @@ class EscolaSimplesSerializer(serializers.ModelSerializer):
 class EscolaListagemSimplesSelializer(serializers.ModelSerializer):
     class Meta:
         model = Escola
-        fields = ('uuid', 'nome', 'codigo_eol')
+        fields = ('uuid', 'nome', 'codigo_eol', 'quantidade_alunos')
 
 
 class EscolaCompletaSerializer(serializers.ModelSerializer):
@@ -157,7 +164,6 @@ class DiretoriaRegionalCompletaSerializer(serializers.ModelSerializer):
 class TerceirizadaSerializer(serializers.ModelSerializer):
     nutricionistas = NutricionistaSerializer(many=True)
     contatos = ContatoSerializer(many=True)
-    endereco = EnderecoSerializer()
     contratos = ContratoSimplesSerializer(many=True)
     lotes = LoteNomeSerializer(many=True)
     quantidade_alunos = serializers.IntegerField()
@@ -165,21 +171,51 @@ class TerceirizadaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Terceirizada
-        exclude = ('id', 'usuarios',)
+        exclude = ('id',)
+
+
+class VinculoInstituicaoSerializer(serializers.ModelSerializer):
+    instituicao = serializers.SerializerMethodField()
+    perfil = PerfilSimplesSerializer()
+
+    def get_periodos_escolares(self, obj):
+        if isinstance(obj.instituicao, Escola):
+            return PeriodoEscolarSerializer(obj.instituicao.periodos_escolares.all(), many=True).data
+        else:
+            return []
+
+    def get_lotes(self, obj):
+        if isinstance(obj.instituicao, Terceirizada):
+            return LoteNomeSerializer(obj.instituicao.lotes.all(), many=True).data
+        else:
+            return []
+
+    def get_escolas(self, obj):
+        if isinstance(obj.instituicao, DiretoriaRegional):
+            return EscolaListagemSimplesSelializer(obj.instituicao.escolas.all(), many=True).data
+        else:
+            return []
+
+    def get_instituicao(self, obj):
+        return {'nome': obj.instituicao.nome,
+                'uuid': obj.instituicao.uuid,
+                'quantidade_alunos': obj.instituicao.quantidade_alunos,
+                'lotes': self.get_lotes(obj),
+                'periodos_escolares': self.get_periodos_escolares(obj),
+                'escolas': self.get_escolas(obj)}
+
+    class Meta:
+        model = Vinculo
+        fields = ('instituicao', 'perfil')
 
 
 class UsuarioDetalheSerializer(serializers.ModelSerializer):
-    perfis = PerfilSerializer(many=True, read_only=True)
-    escolas = EscolaSimplesSerializer(many=True)
-    diretorias_regionais = DiretoriaRegionalSimplesSerializer(many=True)
-    terceirizadas = TerceirizadaSerializer(many=True)
     tipo_usuario = serializers.CharField()
+    vinculo_atual = VinculoInstituicaoSerializer()
 
     class Meta:
         model = Usuario
-        fields = ('uuid', 'nome', 'email', 'registro_funcional', 'tipo_usuario',
-                  'date_joined', 'perfis', 'escolas', 'diretorias_regionais',
-                  'terceirizadas')
+        fields = ('uuid', 'cpf', 'nome', 'email', 'registro_funcional', 'tipo_usuario', 'date_joined', 'vinculo_atual')
 
 
 class CODAESerializer(serializers.ModelSerializer):

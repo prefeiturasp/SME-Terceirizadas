@@ -1,23 +1,37 @@
 from rest_framework import serializers
 
+from ....dados_comuns.utils import update_instance_from_dict
+from ....dados_comuns.validators import (
+    campo_nao_pode_ser_nulo,
+    deve_existir_cardapio,
+    deve_pedir_com_antecedencia,
+    nao_pode_ser_feriado,
+    nao_pode_ser_no_passado,
+    objeto_nao_deve_ter_duplicidade
+)
+from ....escola.models import Escola, PeriodoEscolar, TipoUnidadeEscolar
+from ....terceirizada.models import Edital
 from ...api.validators import (
-    data_troca_nao_pode_ser_superior_a_data_inversao, deve_ser_no_mesmo_ano_corrente,
-    nao_pode_existir_solicitacao_igual_para_mesma_escola, nao_pode_ter_mais_que_60_dias_diferenca,
+    data_troca_nao_pode_ser_superior_a_data_inversao,
+    deve_ser_no_mesmo_ano_corrente,
+    nao_pode_existir_solicitacao_igual_para_mesma_escola,
+    nao_pode_ter_mais_que_60_dias_diferenca,
     precisa_pertencer_a_um_tipo_de_alimentacao
 )
 from ...models import (
-    AlteracaoCardapio, Cardapio, GrupoSuspensaoAlimentacao, InversaoCardapio, MotivoAlteracaoCardapio, MotivoSuspensao,
-    QuantidadePorPeriodoSuspensaoAlimentacao, SubstituicoesAlimentacaoNoPeriodoEscolar, SuspensaoAlimentacao,
-    SuspensaoAlimentacaoNoPeriodoEscolar, TipoAlimentacao
+    AlteracaoCardapio,
+    Cardapio,
+    GrupoSuspensaoAlimentacao,
+    InversaoCardapio,
+    MotivoAlteracaoCardapio,
+    MotivoSuspensao,
+    QuantidadePorPeriodoSuspensaoAlimentacao,
+    SubstituicoesAlimentacaoNoPeriodoEscolar,
+    SuspensaoAlimentacao,
+    SuspensaoAlimentacaoNoPeriodoEscolar,
+    TipoAlimentacao,
+    VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
 )
-from ....dados_comuns.utils import update_instance_from_dict
-from ....dados_comuns.validators import (
-    deve_existir_cardapio, deve_pedir_com_antecedencia,
-    nao_pode_ser_feriado, nao_pode_ser_no_passado,
-    objeto_nao_deve_ter_duplicidade
-)
-from ....escola.models import Escola, PeriodoEscolar
-from ....terceirizada.models import Edital
 
 
 class InversaoCardapioSerializerCreate(serializers.ModelSerializer):
@@ -181,6 +195,11 @@ class AlteracaoCardapioSerializerCreate(serializers.ModelSerializer):
         required=True,
         queryset=Escola.objects.all()
     )
+    status_explicacao = serializers.CharField(
+        source='status',
+        required=False,
+        read_only=True
+    )
 
     def validate_substituicoes(self, substituicoes):
         for substicuicao in substituicoes:
@@ -226,7 +245,7 @@ class AlteracaoCardapioSerializerCreate(serializers.ModelSerializer):
 
     class Meta:
         model = AlteracaoCardapio
-        exclude = ('id',)
+        exclude = ('id', 'status')
 
 
 class QuantidadePorPeriodoSuspensaoAlimentacaoCreateSerializer(serializers.ModelSerializer):
@@ -298,3 +317,28 @@ class GrupoSuspensaoAlimentacaoCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = GrupoSuspensaoAlimentacao
         exclude = ('id',)
+
+
+class VinculoTipoAlimentoCreateSerializer(serializers.ModelSerializer):
+    tipo_unidade_escolar = serializers.SlugRelatedField(
+        slug_field='uuid',
+        queryset=TipoUnidadeEscolar.objects.all()
+    )
+    periodo_escolar = serializers.SlugRelatedField(
+        slug_field='uuid',
+        queryset=PeriodoEscolar.objects.all()
+    )
+
+    tipos_alimentacao = serializers.SlugRelatedField(
+        many=True,
+        slug_field='uuid',
+        queryset=TipoAlimentacao.objects.all()
+    )
+
+    def validate_tipos_alimentacao(self, tipos_alimentacao):
+        campo_nao_pode_ser_nulo(tipos_alimentacao)
+        return tipos_alimentacao
+
+    class Meta:
+        model = VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
+        fields = ('uuid', 'tipos_alimentacao', 'tipo_unidade_escolar', 'periodo_escolar')

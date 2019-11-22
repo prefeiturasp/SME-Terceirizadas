@@ -24,23 +24,6 @@ f.seed(420)
 hoje = datetime.datetime.today()
 
 
-def vincula_dre_escola_usuario():
-    dre = DiretoriaRegional.objects.get(nome="SAO MIGUEL")
-    escola = dre.escolas.first()
-    lote = escola.lote
-    terceirizada = lote.terceirizada
-    codae, created = Codae.objects.get_or_create(nome='teste')
-
-    usuario_escola = Usuario.objects.get(email="escola@admin.com")
-    usuario_escola.escolas.add(escola)
-    usuario_dre = Usuario.objects.get(email="dre@admin.com")
-    usuario_dre.diretorias_regionais.add(dre)
-    usuario_codae = Usuario.objects.get(email="codae@admin.com")
-    codae.usuarios.set([usuario_codae])
-    usuario_terceirizada = Usuario.objects.get(email="terceirizada@admin.com")
-    usuario_terceirizada.terceirizadas.add(terceirizada)
-
-
 def _get_random_cardapio():
     return Cardapio.objects.order_by("?").first()
 
@@ -202,7 +185,6 @@ def cria_solicitacoes_kit_lanche_unificada(qtd=50):
         unificada = SolicitacaoKitLancheUnificada.objects.create(
             criado_por=user,
             outro_motivo=f.text()[:40],
-            quantidade_max_alunos_por_escola=666,
             local=f.text()[:150],
             lista_kit_lanche_igual=True,
             diretoria_regional=_get_random_dre(),
@@ -295,9 +277,6 @@ def cria_alteracoes_cardapio(qtd=50):
 
 
 QTD_PEDIDOS = 50
-
-print('-> vinculando escola dre e usuarios')
-vincula_dre_escola_usuario()
 
 criar_pedidos = input('Criar pedidos do sistema? (S/N)?')
 if criar_pedidos.upper() == 'S':

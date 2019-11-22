@@ -1,55 +1,18 @@
-from django.contrib.postgres.fields import ArrayField
+import datetime
+
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
 from django.db import models
+from django.db.utils import IntegrityError
 
-from ...dados_comuns.models_abstract import (
-    Ativavel, Descritivel, Nomeavel, TemChaveExterna
-)
-
-
-class GrupoPerfil(Nomeavel, Descritivel, Ativavel, TemChaveExterna):
-    """Para agupar perfis.
-
-    - grupo CODAE: tem os perfis gerente1, sup2, etc.
-    - grupo ESCOLA: tem os perfis prof, diretor, etc.
-    """
-
-    class Meta:
-        verbose_name = 'Grupo de perfil'
-        verbose_name_plural = 'Grupos de perfis'
-
-    def __str__(self):
-        return self.nome
-
-
-class Permissao(Nomeavel, Ativavel, TemChaveExterna):
-    """Permissões do usuário.
-
-    - pode fazer compra,
-    - pode abrir a escola,
-    - pode fazer merenda,
-    - pode dar aula,
-    - pode fechar a escola, etc.
-    """
-
-    class Meta:
-        verbose_name = 'Permissão'
-        verbose_name_plural = 'Permissões'
-
-    def __str__(self):
-        return self.nome
+from ...dados_comuns.behaviors import Ativavel, Descritivel, Nomeavel, TemChaveExterna
+from ...dados_comuns.tasks import envia_email_unico_task
 
 
 class Perfil(Nomeavel, Descritivel, Ativavel, TemChaveExterna):
-    """Perfil do usuário Ex: Cogestor, Nutricionista. Cada perfil tem uma série de permissoes.
+    """Perfil do usuário Ex: Cogestor, Nutricionista. Cada perfil tem uma série de permissoes."""
 
-    Ex:
-    - o perfil diretor tem as permissões: [abrir escola, fechar escola]
-    - o perfil professor pode [dar aula]
-    """
-
-    grupo = models.ForeignKey(GrupoPerfil, on_delete=models.DO_NOTHING,
-                              related_name='perfis',
-                              null=True, blank=True)
+    super_usuario = models.BooleanField('Super usuario na instiuição?', default=False)
 
     class Meta:
         verbose_name = 'Perfil'
@@ -59,49 +22,62 @@ class Perfil(Nomeavel, Descritivel, Ativavel, TemChaveExterna):
         return self.nome
 
 
-class PerfilPermissao(models.Model):
-    """Para uso em conjunto com Perfil.
+class Vinculo(Ativavel, TemChaveExterna):
+    """Para informar que tipo de funcao uma pessoa teve em um dado intervalo de tempo em uma instituição.
 
-    Permissões do usuário:
-    Ex. Pode fazer compra,
-    pode abrir a escola,
-    pode fazer merenda,
-    pode dar aula,
-    pode fechar a escola, etc.
+    Ex.: de jan a dez de 2018 (Intervalo) Ciclano (Usuário) foi Diretor (Perfil) na instituição ESCOLA (instituicao)
     """
 
-    CRIA = 0
-    VISUALIZA = 1
-    CANCELA = 2
-    EDITA = 3
-    RECEBE = 4
-    FICA_CIENTE = 5
-    CIENTE_APOS_AUTORIZACAO = 6
+    (STATUS_AGUARDANDO_ATIVACAO,
+     STATUS_ATIVO,
+     STATUS_FINALIZADO) = range(3)
 
-    ACOES = (
-        (CRIA, 'Cria'),
-        (VISUALIZA, 'Visualiza'),
-        (EDITA, 'Edita'),
-        (CANCELA, 'Cancela'),
-        (RECEBE, 'Recebe'),
-        (FICA_CIENTE, 'Fica ciente'),
-        (CIENTE_APOS_AUTORIZACAO, 'Ciente após autorização'),
-    )
+    data_inicial = models.DateField('Data inicial', null=True, blank=True)
+    data_final = models.DateField('Data final', null=True, blank=True)
+    perfil = models.ForeignKey('Perfil', on_delete=models.PROTECT)
+    usuario = models.ForeignKey('Usuario', on_delete=models.PROTECT, related_name='vinculos')
 
-    acoes = ArrayField(models.PositiveSmallIntegerField(choices=ACOES,
-                                                        default=[],
-                                                        null=True, blank=True))
-    permissao = models.ForeignKey(Permissao, on_delete=models.DO_NOTHING)
-    perfil = models.ForeignKey(Perfil, on_delete=models.DO_NOTHING)
+    limit = (models.Q(app_label='escola', model='escola') |  # noqa W504
+             models.Q(app_label='escola', model='diretoriaregional') |  # noqa W504
+             models.Q(app_label='escola', model='codae') |  # noqa W504
+             models.Q(app_label='terceirizada', model='terceirizada'))
 
-    def acoes_choices_array_display(self):
-        result = ''
-        choices = dict(self.ACOES)
-        for index, value in enumerate(self.acoes):
-            result += '{0}'.format(choices[value])
-            if not index == len(self.acoes) - 1:
-                result += ', '
-        return result
+    # https://docs.djangoproject.com/en/2.2/ref/contrib/contenttypes/#generic-relations
+    content_type = models.ForeignKey(ContentType,
+                                     on_delete=models.CASCADE,
+                                     null=True,
+                                     blank=True,
+                                     limit_choices_to=limit)
+    object_id = models.PositiveIntegerField(null=True, blank=True)
+    instituicao = GenericForeignKey('content_type', 'object_id')
+
+    @property
+    def status(self):
+        if (not self.data_inicial) and (not self.data_final) and self.ativo is False:
+            status = self.STATUS_AGUARDANDO_ATIVACAO
+        elif self.data_inicial and self.ativo and not self.data_final:
+            status = self.STATUS_ATIVO
+        elif self.data_inicial and self.data_final and self.ativo is False:
+            status = self.STATUS_FINALIZADO
+        else:
+            raise IntegrityError('Status invalido')
+        return status
+
+    def finalizar_vinculo(self):
+        self.usuario.is_active = False
+        self.usuario.save()
+        self.ativo = False
+        self.data_final = datetime.date.today()
+        self.save()
+        envia_email_unico_task.delay(
+            assunto='Vínculo finalizado - SIGPAE',
+            corpo='Seu vínculo com o SIGPAE foi finalizado por seu superior.',
+            email=self.usuario.email
+        )
+
+    class Meta:
+        verbose_name = 'Vínculo'
+        verbose_name_plural = 'Vínculos'
 
     def __str__(self):
-        return f'{self.perfil} Tem ações: ({self.acoes_choices_array_display()}) da permissão {self.permissao}'
+        return f'{self.usuario} de {self.data_inicial} até {self.data_final}'

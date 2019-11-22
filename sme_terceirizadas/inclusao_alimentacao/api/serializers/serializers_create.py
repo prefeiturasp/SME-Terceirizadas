@@ -1,14 +1,18 @@
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from ...models import (
-    GrupoInclusaoAlimentacaoNormal, InclusaoAlimentacaoContinua, InclusaoAlimentacaoNormal, MotivoInclusaoContinua,
-    MotivoInclusaoNormal, QuantidadePorPeriodo
-)
 from ....cardapio.models import TipoAlimentacao
 from ....dados_comuns.utils import update_instance_from_dict
 from ....dados_comuns.validators import deve_pedir_com_antecedencia, nao_pode_ser_no_passado
 from ....escola.models import Escola, PeriodoEscolar
+from ...models import (
+    GrupoInclusaoAlimentacaoNormal,
+    InclusaoAlimentacaoContinua,
+    InclusaoAlimentacaoNormal,
+    MotivoInclusaoContinua,
+    MotivoInclusaoNormal,
+    QuantidadePorPeriodo
+)
 
 
 class MotivoInclusaoContinuaSerializer(serializers.ModelSerializer):
@@ -86,6 +90,11 @@ class GrupoInclusaoAlimentacaoNormalCreationSerializer(serializers.ModelSerializ
         many=True,
         required=True
     )
+    status_explicacao = serializers.CharField(
+        source='status',
+        required=False,
+        read_only=True
+    )
 
     def validate_quantidades_periodo(self, quantidades_periodo):
         if not quantidades_periodo:
@@ -132,7 +141,7 @@ class GrupoInclusaoAlimentacaoNormalCreationSerializer(serializers.ModelSerializ
 
     class Meta:
         model = GrupoInclusaoAlimentacaoNormal
-        exclude = ('id',)
+        exclude = ('id', 'status')
 
 
 class InclusaoAlimentacaoContinuaCreationSerializer(serializers.ModelSerializer):

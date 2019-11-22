@@ -1,6 +1,9 @@
 import json
 from unicodedata import normalize
+
 from django.conf import settings
+
+from sme_terceirizadas.perfil.models import Vinculo
 
 
 def normaliza_nome(nome):
@@ -14,13 +17,14 @@ def somente_digitos(palavra):
 
 
 def coloca_zero_a_esquerda(palavra, tam=6):
-    tam_palavra = len(palavra)
+    palavra_str = str(palavra)
+    tam_palavra = len(palavra_str)
     qtd_zeros = tam - tam_palavra
     zeros = '0' * qtd_zeros
     final = ''
     if tam_palavra < tam:
-        final = zeros + palavra
-    return final or palavra
+        final = zeros + palavra_str
+    return final or palavra_str
 
 
 def busca_sigla_lote(sigla):
@@ -44,3 +48,15 @@ def busca_sigla_lote(sigla):
         return _get_id('MP I')
     else:
         return _get_id(sigla.strip())
+
+
+def cria_vinculo_de_perfil_usuario(perfil, usuario, instituicao):
+    vinculo = Vinculo.objects.create(
+        data_inicial=None,
+        data_final=None,
+        instituicao=instituicao,
+        perfil=perfil,
+        usuario=usuario,
+        ativo=False
+    )
+    return vinculo

@@ -1,23 +1,19 @@
 from django.core.validators import MinLengthValidator
 from django.db import models
 
-from ..cardapio.models import (
-    AlteracaoCardapio, GrupoSuspensaoAlimentacao, InversaoCardapio
+from ..cardapio.models import AlteracaoCardapio, GrupoSuspensaoAlimentacao, InversaoCardapio
+from ..dados_comuns.behaviors import (
+    Ativavel,
+    IntervaloDeDia,
+    Nomeavel,
+    TemChaveExterna,
+    TemIdentificadorExternoAmigavel,
+    TemVinculos
 )
-from ..dados_comuns.constants import DAQUI_A_30_DIAS, DAQUI_A_7_DIAS
-from ..dados_comuns.models_abstract import (
-    Ativavel, IntervaloDeDia, Nomeavel, TemChaveExterna, TemIdentificadorExternoAmigavel
-)
-from ..escola.models import (
-    DiretoriaRegional, Lote
-)
-from ..inclusao_alimentacao.models import (
-    GrupoInclusaoAlimentacaoNormal, InclusaoAlimentacaoContinua
-)
-from ..kit_lanche.models import (
-    SolicitacaoKitLancheAvulsa,
-    SolicitacaoKitLancheUnificada
-)
+from ..dados_comuns.constants import DAQUI_A_SETE_DIAS, DAQUI_A_TRINTA_DIAS
+from ..escola.models import DiretoriaRegional, Lote
+from ..inclusao_alimentacao.models import GrupoInclusaoAlimentacaoNormal, InclusaoAlimentacaoContinua
+from ..kit_lanche.models import SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheUnificada
 
 
 class Edital(TemChaveExterna):
@@ -61,21 +57,25 @@ class Nutricionista(TemChaveExterna, Nomeavel):
         verbose_name_plural = 'Nutricionistas'
 
 
-class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel):
-    usuarios = models.ManyToManyField('perfil.Usuario', related_name='terceirizadas', blank=True)
+class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel, TemVinculos):
     nome_fantasia = models.CharField('Nome fantasia', max_length=160, blank=True)
     razao_social = models.CharField('Razao social', max_length=160, blank=True)
     cnpj = models.CharField('CNPJ', validators=[MinLengthValidator(14)], max_length=14)
     representante_legal = models.CharField('Representante legal', max_length=160, blank=True)
     representante_telefone = models.CharField('Representante contato (telefone)', max_length=160, blank=True)
     representante_email = models.CharField('Representante contato (email)', max_length=160, blank=True)
-    endereco = models.ForeignKey('dados_comuns.Endereco', on_delete=models.CASCADE,
-                                 blank=True, null=True)
+    endereco = models.CharField('Endereco', max_length=160, blank=True)
+    cep = models.CharField('CEP', max_length=8, blank=True)
 
     # TODO: criar uma tabela central (Instituição) para agregar Escola, DRE, Terc e CODAE???
     # e a partir dai a instituição que tem contatos e endereço?
     # o mesmo para pessoa fisica talvez?
     contatos = models.ManyToManyField('dados_comuns.Contato', blank=True)
+
+    def desvincular_lotes(self):
+        for lote in self.lotes.all():
+            self.lotes.remove(lote)
+        self.save()
 
     @property
     def quantidade_alunos(self):
@@ -83,6 +83,10 @@ class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel):
         for lote in self.lotes.all():
             quantidade_total += lote.quantidade_alunos
         return quantidade_total
+
+    @property
+    def nome(self):
+        return self.nome_fantasia
 
     @property
     def nutricionistas(self):
@@ -228,9 +232,9 @@ class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel):
         )
 
     def alteracoes_cardapio_das_minhas(self, filtro_aplicado):
-        if filtro_aplicado == DAQUI_A_7_DIAS:
+        if filtro_aplicado == DAQUI_A_SETE_DIAS:
             alteracoes_cardapio = AlteracaoCardapio.desta_semana
-        elif filtro_aplicado == DAQUI_A_30_DIAS:
+        elif filtro_aplicado == DAQUI_A_TRINTA_DIAS:
             alteracoes_cardapio = AlteracaoCardapio.deste_mes  # type: ignore
         else:
             alteracoes_cardapio = AlteracaoCardapio.objects  # type: ignore
@@ -240,9 +244,9 @@ class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel):
         )
 
     def grupos_inclusoes_alimentacao_normal_das_minhas_escolas(self, filtro_aplicado):
-        if filtro_aplicado == DAQUI_A_7_DIAS:
+        if filtro_aplicado == DAQUI_A_SETE_DIAS:
             inversoes_cardapio = GrupoInclusaoAlimentacaoNormal.desta_semana
-        elif filtro_aplicado == DAQUI_A_30_DIAS:
+        elif filtro_aplicado == DAQUI_A_TRINTA_DIAS:
             inversoes_cardapio = GrupoInclusaoAlimentacaoNormal.deste_mes  # type: ignore
         else:
             inversoes_cardapio = GrupoInclusaoAlimentacaoNormal.objects  # type: ignore
@@ -252,9 +256,9 @@ class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel):
         )
 
     def inclusoes_alimentacao_continua_das_minhas_escolas(self, filtro_aplicado):
-        if filtro_aplicado == DAQUI_A_7_DIAS:
+        if filtro_aplicado == DAQUI_A_SETE_DIAS:
             inclusoes_alimentacao_continuas = InclusaoAlimentacaoContinua.desta_semana
-        elif filtro_aplicado == DAQUI_A_30_DIAS:
+        elif filtro_aplicado == DAQUI_A_TRINTA_DIAS:
             inclusoes_alimentacao_continuas = InclusaoAlimentacaoContinua.deste_mes  # type: ignore
         else:
             inclusoes_alimentacao_continuas = InclusaoAlimentacaoContinua.objects  # type: ignore
@@ -264,9 +268,9 @@ class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel):
         )
 
     def suspensoes_alimentacao_das_minhas_escolas(self, filtro_aplicado):
-        if filtro_aplicado == DAQUI_A_7_DIAS:
+        if filtro_aplicado == DAQUI_A_SETE_DIAS:
             suspensoes_alimentacao = GrupoSuspensaoAlimentacao.desta_semana
-        elif filtro_aplicado == DAQUI_A_30_DIAS:
+        elif filtro_aplicado == DAQUI_A_TRINTA_DIAS:
             suspensoes_alimentacao = GrupoSuspensaoAlimentacao.deste_mes  # type: ignore
         else:
             suspensoes_alimentacao = GrupoSuspensaoAlimentacao.objects  # type: ignore

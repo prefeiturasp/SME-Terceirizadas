@@ -1,20 +1,30 @@
 from rest_framework import serializers
 
-from ..validators import (
-    escola_quantidade_deve_ter_1_ou_mais_kits, escola_quantidade_nao_deve_ter_kits_e_tempo_passeio,
-    escola_quantidade_pedido_nao_pode_ser_mais_que_alunos, solicitacao_deve_ter_0_kit,
-    solicitacao_deve_ter_1_ou_mais_kits, valida_duplicidade_passeio_data_escola, valida_quantidade_kits_tempo_passeio,
-    valida_quantidades_alunos_e_escola, valida_tempo_passeio_lista_igual, valida_tempo_passeio_lista_nao_igual
-)
-from ...models import (
-    EscolaQuantidade, KitLanche, SolicitacaoKitLanche,
-    SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheUnificada
-)
 from ....dados_comuns.utils import update_instance_from_dict
 from ....dados_comuns.validators import (
-    campo_deve_ser_deste_tipo, campo_nao_pode_ser_nulo, deve_pedir_com_antecedencia, nao_pode_ser_no_passado
+    campo_deve_ser_deste_tipo,
+    campo_nao_pode_ser_nulo,
+    deve_pedir_com_antecedencia,
+    nao_pode_ser_no_passado
 )
 from ....escola.models import DiretoriaRegional, Escola
+from ...models import (
+    EscolaQuantidade,
+    KitLanche,
+    SolicitacaoKitLanche,
+    SolicitacaoKitLancheAvulsa,
+    SolicitacaoKitLancheUnificada
+)
+from ..validators import (
+    escola_quantidade_deve_ter_1_ou_mais_kits,
+    escola_quantidade_nao_deve_ter_kits_e_tempo_passeio,
+    escola_quantidade_pedido_nao_pode_ser_mais_que_alunos,
+    solicitacao_deve_ter_0_kit,
+    solicitacao_deve_ter_1_ou_mais_kits,
+    valida_quantidade_kits_tempo_passeio,
+    valida_tempo_passeio_lista_igual,
+    valida_tempo_passeio_lista_nao_igual
+)
 
 
 class SolicitacaoKitLancheCreationSerializer(serializers.ModelSerializer):
@@ -67,29 +77,19 @@ class SolicitacaoKitLancheAvulsaCreationSerializer(serializers.ModelSerializer):
         queryset=Escola.objects.all()
     )
 
-    # Parametro utilizado para confirmar mesmo com kit para o mesmo dia
-    confirmar = serializers.BooleanField(required=False)
-    status = serializers.CharField(required=False)
+    status_explicacao = serializers.CharField(
+        source='status',
+        required=False,
+        read_only=True
+    )
 
     def validate(self, attrs):
-        # TODO: revalidar essa regra, está esquisito
         quantidade_aluno_passeio = attrs.get('quantidade_alunos')
         data_evento = attrs.get('solicitacao_kit_lanche').get('data')
-        escola = attrs.get('escola')
-        confirmar = attrs.get('confirmar', False)
         campo_nao_pode_ser_nulo(quantidade_aluno_passeio, mensagem='O campo Quantidade de aluno não pode ser nulo')
         campo_deve_ser_deste_tipo(quantidade_aluno_passeio, tipo=int, mensagem='Quantidade de aluno de ser do tipo int')
         nao_pode_ser_no_passado(data_evento)
-
         deve_pedir_com_antecedencia(data_evento)
-        if attrs.get('status') != SolicitacaoKitLancheAvulsa.workflow_class.RASCUNHO:
-            valida_quantidades_alunos_e_escola(data_evento, escola, quantidade_aluno_passeio)
-            valida_duplicidade_passeio_data_escola(data_evento, escola, confirmar)
-        else:
-            # TODO: status e confirmar no parametro? verificar
-            attrs.pop('status')
-        if attrs.get('confirmar'):
-            attrs.pop('confirmar')
         return attrs
 
     def create(self, validated_data):
@@ -117,7 +117,7 @@ class SolicitacaoKitLancheAvulsaCreationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SolicitacaoKitLancheAvulsa
-        exclude = ('id',)
+        exclude = ('id', 'status')
 
 
 class EscolaQuantidadeCreationSerializer(serializers.ModelSerializer):
@@ -201,7 +201,8 @@ class SolicitacaoKitLancheUnificadaCreationSerializer(serializers.ModelSerialize
         solicitacao_kit_unificada = SolicitacaoKitLancheUnificada.objects.create(
             solicitacao_kit_lanche=solicitacao_base, **validated_data
         )
-        solicitacao_kit_unificada.vincula_escolas_quantidades(lista_quantidade_escola)
+
+        solicitacao_kit_unificada.escolas_quantidades.set(lista_quantidade_escola)
         return solicitacao_kit_unificada
 
     def update(self, instance, validated_data):
@@ -219,7 +220,7 @@ class SolicitacaoKitLancheUnificadaCreationSerializer(serializers.ModelSerialize
 
         lista_quantidade_escola = self._gera_escolas_quantidades(escolas_quantidades)
 
-        instance.vincula_escolas_quantidades(lista_quantidade_escola)
+        instance.escolas_quantidades.set(lista_quantidade_escola)
 
         update_instance_from_dict(instance, validated_data)
         instance.save()

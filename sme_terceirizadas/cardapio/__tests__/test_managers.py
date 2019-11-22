@@ -10,12 +10,12 @@ pytestmark = pytest.mark.django_db
 
 
 @freeze_time('2019-10-4')
-def test_manager_inversao_vencida(datas_inversao_vencida):
+def test_manager_inversao_vencida(datas_inversao_vencida, escola):
     dia_de, dia_para, status = datas_inversao_vencida
-
-    cardapio_de = mommy.make('cardapio.Cardapio', data=datetime.date(*dia_de))
-    cardapio_para = mommy.make('cardapio.Cardapio', data=datetime.date(*dia_para))
+    cardapio_de = mommy.make('cardapio.Cardapio', data=dia_de)
+    cardapio_para = mommy.make('cardapio.Cardapio', data=dia_para)
     inversao_cardapio_vencida = mommy.make(InversaoCardapio,
+                                           escola=escola,
                                            cardapio_de=cardapio_de,
                                            cardapio_para=cardapio_para,
                                            status=status)
@@ -27,10 +27,12 @@ def test_manager_inversao_vencida(datas_inversao_vencida):
 @freeze_time('2019-10-4')
 def test_manager_inversao_desta_semana(datas_inversao_desta_semana):
     dia_de, dia_para, status = datas_inversao_desta_semana
-
+    lote = mommy.make('Lote')
+    escola = mommy.make('Escola', lote=lote)
     cardapio_de = mommy.make('cardapio.Cardapio', data=datetime.date(*dia_de))
     cardapio_para = mommy.make('cardapio.Cardapio', data=datetime.date(*dia_para))
     inversao_cardapio_desta_semana = mommy.make(InversaoCardapio,
+                                                escola=escola,
                                                 cardapio_de=cardapio_de,
                                                 cardapio_para=cardapio_para,
                                                 status=status)
@@ -42,10 +44,12 @@ def test_manager_inversao_desta_semana(datas_inversao_desta_semana):
 @freeze_time('2019-10-4')
 def test_manager_inversao_deste_mes(datas_inversao_deste_mes):
     dia_de, dia_para, status = datas_inversao_deste_mes
-
+    lote = mommy.make('Lote')
+    escola = mommy.make('Escola', lote=lote)
     cardapio_de = mommy.make('cardapio.Cardapio', data=dia_de)
     cardapio_para = mommy.make('cardapio.Cardapio', data=dia_para)
     inversao_cardapio_desta_semana = mommy.make(InversaoCardapio,
+                                                escola=escola,
                                                 cardapio_de=cardapio_de,
                                                 cardapio_para=cardapio_para,
                                                 status=status)
@@ -56,10 +60,12 @@ def test_manager_inversao_deste_mes(datas_inversao_deste_mes):
 @freeze_time('2019-10-4')
 def test_manager_altercao_vencida(datas_alteracao_vencida):
     data_inicial, status = datas_alteracao_vencida
-
+    lote = mommy.make('Lote')
+    escola = mommy.make('Escola', lote=lote)
     data_inicial = datetime.date(*data_inicial)
     data_final = data_inicial + datetime.timedelta(days=10)
     alteracao_cardapio_vencida = mommy.make(AlteracaoCardapio,
+                                            escola=escola,
                                             data_inicial=data_inicial,
                                             data_final=data_final,
                                             status=status)
@@ -71,10 +77,12 @@ def test_manager_altercao_vencida(datas_alteracao_vencida):
 @freeze_time('2019-10-4')
 def test_manager_alteracao_desta_semana(datas_alteracao_semana):
     data_inicial, status = datas_alteracao_semana
-
+    lote = mommy.make('Lote')
+    escola = mommy.make('Escola', lote=lote)
     data_inicial = datetime.date(*data_inicial)
     data_final = data_inicial + datetime.timedelta(days=10)
     alteracao_cardapio_semana = mommy.make(AlteracaoCardapio,
+                                           escola=escola,
                                            data_inicial=data_inicial,
                                            data_final=data_final,
                                            status=status)
@@ -86,10 +94,12 @@ def test_manager_alteracao_desta_semana(datas_alteracao_semana):
 @freeze_time('2019-10-4')
 def test_manager_alteracao_deste_mes(datas_alteracao_mes):
     data_inicial, status = datas_alteracao_mes
-
+    lote = mommy.make('Lote')
+    escola = mommy.make('Escola', lote=lote)
     data_inicial = datetime.date(*data_inicial)
     data_final = data_inicial + datetime.timedelta(days=10)
     alteracao_cardapio_mes = mommy.make(AlteracaoCardapio,
+                                        escola=escola,
                                         data_inicial=data_inicial,
                                         data_final=data_final,
                                         status=status)
@@ -98,10 +108,18 @@ def test_manager_alteracao_deste_mes(datas_alteracao_mes):
 
 
 @freeze_time('2019-10-4')
-def test_manager_inclusoes_normais_deste_mes(suspensao_alimentacao_parametros_mes):
+def test_manager_inclusoes_normais_deste_mes(suspensao_alimentacao_parametros_mes, escola):
     data_evento, _ = suspensao_alimentacao_parametros_mes
-
-    grupo_suspensoes = mommy.make(GrupoSuspensaoAlimentacao)
+    grupo_suspensoes = mommy.make(GrupoSuspensaoAlimentacao, escola=escola)
     mommy.make(SuspensaoAlimentacao, data=data_evento,
                grupo_suspensao=grupo_suspensoes)
     assert grupo_suspensoes in GrupoSuspensaoAlimentacao.deste_mes.all()
+
+
+@freeze_time('2019-10-4')
+def test_manager_inclusoes_normais_desta_semana(suspensao_alimentacao_parametros_semana, escola):
+    data_evento, _ = suspensao_alimentacao_parametros_semana
+    grupo_suspensoes = mommy.make(GrupoSuspensaoAlimentacao, escola=escola)
+    mommy.make(SuspensaoAlimentacao, data=data_evento,
+               grupo_suspensao=grupo_suspensoes)
+    assert grupo_suspensoes in GrupoSuspensaoAlimentacao.desta_semana.all()

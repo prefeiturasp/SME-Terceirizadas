@@ -4,13 +4,19 @@ import pytest
 from faker import Faker
 from model_mommy import mommy
 
-from .. import models
+from ...dados_comuns.behaviors import TempoPasseio
 from ...dados_comuns.fluxo_status import PedidoAPartirDaDiretoriaRegionalWorkflow, PedidoAPartirDaEscolaWorkflow
 from ...dados_comuns.models import TemplateMensagem
-from ...dados_comuns.models_abstract import TempoPasseio
+from .. import models
 
 fake = Faker('pt_BR')
 fake.seed(420)
+
+
+@pytest.fixture
+def escola():
+    lote = mommy.make('Lote')
+    return mommy.make('Escola', lote=lote, quantidade_alunos=1001)
 
 
 @pytest.fixture
@@ -29,34 +35,76 @@ def item_kit_lanche():
 
 
 @pytest.fixture
-def solicitacao_avulsa():
+def solicitacao_avulsa(escola):
     mommy.make(TemplateMensagem, tipo=TemplateMensagem.SOLICITACAO_KIT_LANCHE_AVULSA)
     kits = mommy.make(models.KitLanche, _quantity=3)
     solicitacao_kit_lanche = mommy.make(models.SolicitacaoKitLanche, kits=kits, data=datetime.datetime(2000, 1, 1))
-    escola = mommy.make('escola.Escola')
     return mommy.make(models.SolicitacaoKitLancheAvulsa,
                       local=fake.text()[:160],
-                      quantidade_alunos=999,
+                      quantidade_alunos=300,
                       solicitacao_kit_lanche=solicitacao_kit_lanche,
                       escola=escola)
 
 
 @pytest.fixture
-def solicitacao_unificada_lista_igual():
+def solicitacao_avulsa_dre_a_validar(solicitacao_avulsa):
+    solicitacao_avulsa.status = PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR
+    solicitacao_avulsa.quantidade_alunos = 200
+    solicitacao_avulsa.save()
+
+    return solicitacao_avulsa
+
+
+@pytest.fixture
+def solicitacao_avulsa_dre_validado(solicitacao_avulsa):
+    solicitacao_avulsa.status = PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO
+    solicitacao_avulsa.quantidade_alunos = 200
+    solicitacao_avulsa.save()
+    return solicitacao_avulsa
+
+
+@pytest.fixture
+def solicitacao_avulsa_codae_autorizado(solicitacao_avulsa, escola):
+    solicitacao_kit_lanche = mommy.make(models.SolicitacaoKitLanche, data=datetime.datetime(2019, 11, 18))
+    solicitacao_avulsa.status = PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO
+    solicitacao_avulsa.solicitacao_kit_lanche = solicitacao_kit_lanche
+    solicitacao_avulsa.quantidade_alunos = 200
+    solicitacao_avulsa.save()
+    return solicitacao_avulsa
+
+
+@pytest.fixture
+def solicitacao_unificada_lista_igual(escola):
     mommy.make(TemplateMensagem, tipo=TemplateMensagem.SOLICITACAO_KIT_LANCHE_UNIFICADA)
     kits = mommy.make(models.KitLanche, _quantity=3)
     solicitacao_kit_lanche = mommy.make(models.SolicitacaoKitLanche,
                                         data=datetime.date(2019, 10, 14),
                                         tempo_passeio=models.SolicitacaoKitLanche.OITO_OU_MAIS,
                                         kits=kits)
+    escolas_quantidades = mommy.make('EscolaQuantidade', escola=escola, _quantity=10, quantidade_alunos=100)
     dre = mommy.make('escola.DiretoriaRegional')
-    return mommy.make(models.SolicitacaoKitLancheUnificada,
-                      local=fake.text()[:160],
-                      quantidade_max_alunos_por_escola=999,
-                      lista_kit_lanche_igual=True,
-                      solicitacao_kit_lanche=solicitacao_kit_lanche,
-                      outro_motivo=fake.text(),
-                      diretoria_regional=dre)
+    solicitacao_unificada = mommy.make(models.SolicitacaoKitLancheUnificada,
+                                       local=fake.text()[:160],
+                                       lista_kit_lanche_igual=True,
+                                       solicitacao_kit_lanche=solicitacao_kit_lanche,
+                                       outro_motivo=fake.text(),
+                                       diretoria_regional=dre)
+    solicitacao_unificada.escolas_quantidades.set(escolas_quantidades)
+    return solicitacao_unificada
+
+
+@pytest.fixture
+def solicitacao_unificada_lista_igual_codae_a_autorizar(solicitacao_unificada_lista_igual):
+    solicitacao_unificada_lista_igual.status = PedidoAPartirDaDiretoriaRegionalWorkflow.CODAE_A_AUTORIZAR
+    solicitacao_unificada_lista_igual.save()
+    return solicitacao_unificada_lista_igual
+
+
+@pytest.fixture
+def solicitacao_unificada_lista_igual_codae_autorizado(solicitacao_unificada_lista_igual):
+    solicitacao_unificada_lista_igual.status = PedidoAPartirDaDiretoriaRegionalWorkflow.CODAE_AUTORIZADO
+    solicitacao_unificada_lista_igual.save()
+    return solicitacao_unificada_lista_igual
 
 
 @pytest.fixture
@@ -68,7 +116,6 @@ def solicitacao_unificada_lotes_diferentes():
     dre = mommy.make('escola.DiretoriaRegional', nome=fake.name())
     solicitacao_unificada = mommy.make(models.SolicitacaoKitLancheUnificada,
                                        local=fake.text()[:160],
-                                       quantidade_max_alunos_por_escola=999,
                                        lista_kit_lanche_igual=True,
                                        solicitacao_kit_lanche=solicitacao_kit_lanche,
                                        outro_motivo=fake.text(),
@@ -107,7 +154,6 @@ def solicitacao_unificada_lotes_iguais():
     dre = mommy.make('escola.DiretoriaRegional', nome=fake.name())
     solicitacao_unificada = mommy.make(models.SolicitacaoKitLancheUnificada,
                                        local=fake.text()[:160],
-                                       quantidade_max_alunos_por_escola=999,
                                        lista_kit_lanche_igual=True,
                                        solicitacao_kit_lanche=solicitacao_kit_lanche,
                                        outro_motivo=fake.text(),
@@ -281,15 +327,11 @@ def kits_unificados_datas_passado_parametros(request):
 
 
 @pytest.fixture(params=[
-    # qtd_alunos_escola, qtd_alunos_pedido, dia, confirmar??? TODO ver esse confirmar... erro esperado
-    (100, 101, datetime.date(2019, 10, 18), True,
-     'A quantidade de alunos informados para o evento excede a quantidade de alunos matriculados na escola'),
-    (100, 100, datetime.date(2001, 1, 1), True, 'Não pode ser no passado'),
-    (100, 99, datetime.date(2019, 10, 16), False, 'Deve pedir com pelo menos 2 dias úteis de antecedência'),
-    (100, 99, datetime.date(2019, 10, 16), True, 'Deve pedir com pelo menos 2 dias úteis de antecedência'),
-    (100, 99, datetime.date(2019, 10, 17), True, 'Deve pedir com pelo menos 2 dias úteis de antecedência'),
-    (100, 400, datetime.date(2019, 10, 18), False,
-     'A quantidade de alunos informados para o evento excede a quantidade de alunos matriculados na escola'),
+    # qtd_alunos_escola, qtd_alunos_pedido, dia, erro esperado TODO ver esse confirmar... erro esperado
+    (100, 100, datetime.date(2001, 1, 1), 'Não pode ser no passado'),
+    (100, 99, datetime.date(2019, 10, 16), 'Deve pedir com pelo menos 2 dias úteis de antecedência'),
+    (100, 99, datetime.date(2019, 10, 16), 'Deve pedir com pelo menos 2 dias úteis de antecedência'),
+    (100, 99, datetime.date(2019, 10, 17), 'Deve pedir com pelo menos 2 dias úteis de antecedência'),
 ])
 def kits_avulsos_param_erro_serializer(request):
     return request.param
@@ -313,3 +355,8 @@ def kits_avulsos_param_serializer(request):
 ])
 def kits_unificados_param_serializer(request):
     return request.param
+
+
+@pytest.fixture
+def escola_quantidade():
+    return mommy.make(models.EscolaQuantidade)

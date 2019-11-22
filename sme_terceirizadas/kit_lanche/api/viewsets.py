@@ -1,19 +1,16 @@
 from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from xworkflows import InvalidTransitionError
 
-from .permissions import (
-    PodeIniciarSolicitacaoKitLancheAvulsaPermission, PodeIniciarSolicitacaoUnificadaPermission
-)
-from .serializers import serializers
-from .serializers import serializers_create
-from .. import models
-from ..models import (
-    SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheUnificada
-)
 from ...dados_comuns import constants
+from .. import models
+from ..api.validators import nao_deve_ter_mais_solicitacoes_que_alunos
+from ..models import SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheUnificada
+from .permissions import PodeIniciarSolicitacaoKitLancheAvulsaPermission, PodeIniciarSolicitacaoUnificadaPermission
+from .serializers import serializers, serializers_create
 
 
 class KitLancheViewSet(ReadOnlyModelViewSet):
@@ -36,8 +33,7 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
             url_path=f'{constants.PEDIDOS_DRE}/{constants.FILTRO_PADRAO_PEDIDOS}')
     def pedidos_diretoria_regional(self, request, filtro_aplicado='sem_filtro'):
         usuario = request.user
-        # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
-        diretoria_regional = usuario.diretorias_regionais.first()
+        diretoria_regional = usuario.vinculo_atual.instituicao
         kit_lanches_avulso = diretoria_regional.solicitacoes_kit_lanche_das_minhas_escolas_a_validar(
             filtro_aplicado
         )
@@ -48,8 +44,7 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
     @action(detail=False, url_path='pedidos-autorizados-diretoria-regional')
     def pedidos_autorizados_diretoria_regional(self, request):
         usuario = request.user
-        # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
-        diretoria_regional = usuario.diretorias_regionais.first()
+        diretoria_regional = usuario.vinculo_atual.instituicao
         kit_lanche = diretoria_regional.solicitacao_kit_lanche_avulsa_autorizadas
         page = self.paginate_queryset(kit_lanche)
         serializer = self.get_serializer(page, many=True)
@@ -58,8 +53,7 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
     @action(detail=False, url_path='pedidos-reprovados-diretoria-regional')
     def pedidos_reprovados_diretoria_regional(self, request):
         usuario = request.user
-        # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
-        diretoria_regional = usuario.diretorias_regionais.first()
+        diretoria_regional = usuario.vinculo_atual.instituicao
         kit_lanche = diretoria_regional.solicitacao_kit_lanche_avulsa_reprovados
         page = self.paginate_queryset(kit_lanche)
         serializer = self.get_serializer(page, many=True)
@@ -68,8 +62,7 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
     @action(detail=False, url_path='pedidos-autorizados-codae')
     def pedidos_autorizados_codae(self, request):
         usuario = request.user
-        # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
-        codae = usuario.CODAE.first()
+        codae = usuario.vinculo_atual.instituicao
         kit_lanche = codae.solicitacao_kit_lanche_avulsa_autorizadas
         page = self.paginate_queryset(kit_lanche)
         serializer = self.get_serializer(page, many=True)
@@ -78,8 +71,7 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
     @action(detail=False, url_path='pedidos-reprovados-codae')
     def pedidos_reprovados_codae(self, request):
         usuario = request.user
-        # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
-        codae = usuario.CODAE.first()
+        codae = usuario.vinculo_atual.instituicao
         kit_lanche = codae.solicitacao_kit_lanche_avulsa_reprovadas
         page = self.paginate_queryset(kit_lanche)
         serializer = self.get_serializer(page, many=True)
@@ -88,8 +80,7 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
     @action(detail=False, url_path='pedidos-autorizados-terceirizadas')
     def pedidos_autorizados_terceirizadas(self, request):
         usuario = request.user
-        # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
-        terceirizadas = usuario.terceirizadas.first()
+        terceirizadas = usuario.vinculo_atual.instituicao
         kit_lanche = terceirizadas.solicitacao_kit_lanche_avulsa_autorizadas
         page = self.paginate_queryset(kit_lanche)
         serializer = self.get_serializer(page, many=True)
@@ -99,8 +90,7 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
             url_path=f'{constants.PEDIDOS_CODAE}/{constants.FILTRO_PADRAO_PEDIDOS}')
     def pedidos_codae(self, request, filtro_aplicado='sem_filtro'):
         usuario = request.user
-        # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
-        codae = usuario.CODAE.first()
+        codae = usuario.vinculo_atual.instituicao
         kit_lanches_avulso = codae.solicitacoes_kit_lanche_das_minhas_escolas_a_validar(
             filtro_aplicado
         )
@@ -112,8 +102,7 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
             url_path=f'{constants.PEDIDOS_TERCEIRIZADA}/{constants.FILTRO_PADRAO_PEDIDOS}')
     def pedidos_terceirizadas(self, request, filtro_aplicado='sem_filtro'):
         usuario = request.user
-        # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
-        terceirizadas = usuario.terceirizadas.first()
+        terceirizadas = usuario.vinculo_atual.instituicao
         kit_lanches_avulso = terceirizadas.solicitacoes_kit_lanche_das_minhas_escolas_a_validar(
             filtro_aplicado
         )
@@ -141,13 +130,16 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
             methods=['patch'], url_path=constants.ESCOLA_INICIO_PEDIDO)
     def inicio_de_pedido(self, request, uuid=None):
         solicitacao_kit_lanche_avulsa = self.get_object()
-        solicitacao_kit_lanche_avulsa.status = None
         try:
+            nao_deve_ter_mais_solicitacoes_que_alunos(solicitacao_kit_lanche_avulsa)
+
             solicitacao_kit_lanche_avulsa.inicia_fluxo(user=request.user, )
             serializer = self.get_serializer(solicitacao_kit_lanche_avulsa)
             return Response(serializer.data)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+        except ValidationError as e:
+            return Response(dict(detail=f'{str(e.detail[0])}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeIniciarSolicitacaoKitLancheAvulsaPermission],
             methods=['patch'], url_path=constants.DRE_VALIDA_PEDIDO)
@@ -161,34 +153,12 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeIniciarSolicitacaoKitLancheAvulsaPermission],
-            methods=['patch'], url_path=constants.DRE_PEDE_REVISAO)
-    def diretoria_regional_pede_revisao(self, request, uuid=None):
-        solicitacao_kit_lanche_avulsa = self.get_object()
-        try:
-            solicitacao_kit_lanche_avulsa.dre_pede_revisao(user=request.user, )
-            serializer = self.get_serializer(solicitacao_kit_lanche_avulsa)
-            return Response(serializer.data)
-        except InvalidTransitionError as e:
-            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
-
-    @action(detail=True, permission_classes=[PodeIniciarSolicitacaoKitLancheAvulsaPermission],
             methods=['patch'], url_path=constants.DRE_NAO_VALIDA_PEDIDO)
     def diretoria_regional_nao_valida(self, request, uuid=None):
         solicitacao_kit_lanche_avulsa = self.get_object()
         justificativa = request.data.get('justificativa', '')
         try:
             solicitacao_kit_lanche_avulsa.dre_nao_valida(user=request.user, justificativa=justificativa)
-            serializer = self.get_serializer(solicitacao_kit_lanche_avulsa)
-            return Response(serializer.data)
-        except InvalidTransitionError as e:
-            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
-
-    @action(detail=True, permission_classes=[PodeIniciarSolicitacaoKitLancheAvulsaPermission],
-            methods=['patch'], url_path=constants.ESCOLA_REVISA_PEDIDO)
-    def escola_revisa_pedido(self, request, uuid=None):
-        solicitacao_kit_lanche_avulsa = self.get_object()
-        try:
-            solicitacao_kit_lanche_avulsa.escola_revisa(user=request.user, )
             serializer = self.get_serializer(solicitacao_kit_lanche_avulsa)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -262,8 +232,7 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
     def pedidos_codae(self, request, filtro_aplicado=constants.SEM_FILTRO):
         # TODO: colocar regras de codae CODAE aqui...
         usuario = request.user
-        # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
-        codae = usuario.CODAE.first()
+        codae = usuario.vinculo_atual.instituicao
         solicitacoes_unificadas = codae.solicitacoes_unificadas(
             filtro_aplicado
         )
@@ -276,8 +245,7 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
     def pedidos_terceirizada(self, request, filtro_aplicado=constants.SEM_FILTRO):
         # TODO: colocar regras de Terceirizada aqui...
         usuario = request.user
-        # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
-        terceirizada = usuario.terceirizadas.first()
+        terceirizada = usuario.vinculo_atual.instituicao
         solicitacoes_unificadas = terceirizada.solicitacoes_unificadas_das_minhas_escolas(
             filtro_aplicado
         )
@@ -288,8 +256,7 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
     @action(detail=False, url_path='pedidos-autorizados-codae')
     def pedidos_autorizados_codae(self, request):
         usuario = request.user
-        # TODO: aguardando definição de perfis pra saber em qual CODAE eu estou fazendo a requisição
-        codae = usuario.CODAE.first()
+        codae = usuario.vinculo_atual.instituicao
         kit_lanche = codae.solicitacoes_unificadas_autorizadas
         page = self.paginate_queryset(kit_lanche)
         serializer = self.get_serializer(page, many=True)
@@ -298,8 +265,7 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
     @action(detail=False, url_path='pedidos-autorizados-terceirizada')
     def pedidos_autorizados_terceirizada(self, request):
         usuario = request.user
-        # TODO: aguardando definição de perfis pra saber em qual CODAE eu estou fazendo a requisição
-        terceirizada = usuario.terceirizadas.first()
+        terceirizada = usuario.vinculo_atual.instituicao
         kit_lanche = terceirizada.solicitacoes_unificadas_autorizadas
         page = self.paginate_queryset(kit_lanche)
         serializer = self.get_serializer(page, many=True)
@@ -341,17 +307,6 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
-    @action(detail=True, url_path=constants.CODAE_PEDE_REVISAO,
-            permission_classes=[PodeIniciarSolicitacaoUnificadaPermission], methods=['patch'])
-    def codae_pede_revisao(self, request, uuid=None):
-        solicitacao_unificada = self.get_object()
-        try:
-            solicitacao_unificada.codae_pede_revisao(user=request.user, )
-            serializer = self.get_serializer(solicitacao_unificada)
-            return Response(serializer.data)
-        except InvalidTransitionError as e:
-            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
-
     @action(detail=True, url_path=constants.CODAE_NEGA_PEDIDO,
             permission_classes=[PodeIniciarSolicitacaoUnificadaPermission], methods=['patch'])
     def codae_nega_pedido(self, request, uuid=None):
@@ -359,17 +314,6 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
         justificativa = request.data.get('justificativa', '')
         try:
             solicitacao_unificada.codae_nega(user=request.user, justificativa=justificativa)
-            serializer = self.get_serializer(solicitacao_unificada)
-            return Response(serializer.data)
-        except InvalidTransitionError as e:
-            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
-
-    @action(detail=True, url_path=constants.DRE_REVISA_PEDIDO,
-            permission_classes=[PodeIniciarSolicitacaoUnificadaPermission], methods=['patch'])
-    def dre_revisa(self, request, uuid=None):
-        solicitacao_unificada = self.get_object()
-        try:
-            solicitacao_unificada.dre_revisa(user=request.user, )
             serializer = self.get_serializer(solicitacao_unificada)
             return Response(serializer.data)
         except InvalidTransitionError as e:

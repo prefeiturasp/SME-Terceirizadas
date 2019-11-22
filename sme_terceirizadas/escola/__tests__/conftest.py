@@ -4,6 +4,8 @@ import pytest
 from faker import Faker
 from model_mommy import mommy
 
+from ...escola.api.serializers import EscolaSimplissimaSerializer, VinculoInstituicaoSerializer
+from ...perfil.models import Vinculo
 from .. import models
 
 fake = Faker('pt_BR')
@@ -34,11 +36,22 @@ def diretoria_regional(escola):
 
 
 @pytest.fixture
-def escola():
+def lote():
+    return mommy.make(models.Lote, nome='lote', iniciais='lt')
+
+
+@pytest.fixture
+def escola(lote):
     return mommy.make(models.Escola,
                       nome=fake.name(),
                       codigo_eol=fake.name()[:6],
-                      quantidade_alunos=42)
+                      quantidade_alunos=42,
+                      lote=lote)
+
+
+@pytest.fixture
+def escola_simplissima_serializer(escola):
+    return EscolaSimplissimaSerializer(escola)
 
 
 @pytest.fixture
@@ -54,11 +67,6 @@ def codae(escola):
 
 
 @pytest.fixture
-def lote():
-    return mommy.make(models.Lote)
-
-
-@pytest.fixture
 def periodo_escolar():
     return mommy.make(models.PeriodoEscolar)
 
@@ -66,3 +74,13 @@ def periodo_escolar():
 @pytest.fixture
 def sub_prefeitura():
     return mommy.make(models.Subprefeitura)
+
+
+@pytest.fixture
+def vinculo(escola):
+    return mommy.make(Vinculo, uuid='a19baa09-f8cc-49a7-a38d-2a38270ddf45', instituicao=escola)
+
+
+@pytest.fixture
+def vinculo_instituto_serializer(vinculo):
+    return VinculoInstituicaoSerializer(vinculo)

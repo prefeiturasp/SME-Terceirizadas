@@ -1,16 +1,32 @@
 from django.db import models
 
-from .managers import (
-    AlteracoesCardapioDestaSemanaManager, AlteracoesCardapioDesteMesManager,
-    AlteracoesCardapioVencidaManager, GrupoSuspensaoAlimentacaoDestaSemanaManager,
-    GrupoSuspensaoAlimentacaoDesteMesManager, InversaoCardapioDestaSemanaManager,
-    InversaoCardapioDesteMesManager, InversaoCardapioVencidaManager
+from ..dados_comuns.behaviors import (  # noqa I101
+    Ativavel,
+    CriadoEm,
+    CriadoPor,
+    Descritivel,
+    IntervaloDeDia,
+    Logs,
+    LogSolicitacoesUsuario,
+    Motivo,
+    Nomeavel,
+    TemChaveExterna,
+    TemData,
+    TemIdentificadorExternoAmigavel,
+    TemObservacao,
+    TemPrioridade
 )
+from ..dados_comuns.fluxo_status import FluxoAprovacaoPartindoDaEscola, FluxoInformativoPartindoDaEscola
 from ..dados_comuns.models import TemplateMensagem  # noqa I202
-from ..dados_comuns.models_abstract import (
-    Ativavel, CriadoEm, CriadoPor, Descritivel, FluxoAprovacaoPartindoDaEscola, FluxoInformativoPartindoDaEscola,
-    IntervaloDeDia, LogSolicitacoesUsuario, Logs, Motivo, Nomeavel, TemChaveExterna, TemData,
-    TemIdentificadorExternoAmigavel, TemObservacao, TemPrioridade
+from .managers import (
+    AlteracoesCardapioDestaSemanaManager,
+    AlteracoesCardapioDesteMesManager,
+    AlteracoesCardapioVencidaManager,
+    GrupoSuspensaoAlimentacaoDestaSemanaManager,
+    GrupoSuspensaoAlimentacaoDesteMesManager,
+    InversaoCardapioDestaSemanaManager,
+    InversaoCardapioDesteMesManager,
+    InversaoCardapioVencidaManager
 )
 
 
@@ -28,7 +44,7 @@ class TipoAlimentacao(Nomeavel, TemChaveExterna):
     Merenda Seca
     """
 
-    substituicoes = models.ManyToManyField('TipoAlimentacao')
+    substituicoes = models.ManyToManyField('TipoAlimentacao', blank=True)
 
     @property
     def substituicoes_periodo_escolar(self):
@@ -40,6 +56,31 @@ class TipoAlimentacao(Nomeavel, TemChaveExterna):
     class Meta:
         verbose_name = 'Tipo de alimentação'
         verbose_name_plural = 'Tipos de alimentação'
+
+
+class VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar(TemChaveExterna):
+    """Vincular vários tipos de alimentação a um periodo e tipo de U.E.
+
+    Dado o tipo_unidade_escolar (EMEI, EMEF...) e
+    em seguida o periodo_escolar(MANHA, TARDE..),
+    trazer os tipos de alimentação que podem ser servidos.
+    Ex.: Para CEI(creche) pela manhã (período) faz sentido ter mingau e não café da tarde.
+    """
+
+    periodo_escolar = models.ForeignKey('escola.PeriodoEscolar',
+                                        on_delete=models.DO_NOTHING)
+    tipo_unidade_escolar = models.ForeignKey('escola.TipoUnidadeEscolar',
+                                             on_delete=models.DO_NOTHING)
+    tipos_alimentacao = models.ManyToManyField('TipoAlimentacao',
+                                               blank=True)
+
+    def __str__(self):
+        tipos_alim_desc = [nome for nome in self.tipos_alimentacao.values_list('nome', flat=True)]
+        return f'{self.periodo_escolar.nome} - {self.tipo_unidade_escolar.iniciais} {tipos_alim_desc}'
+
+    class Meta:
+        verbose_name = 'Vínculo tipo alimentação'
+        verbose_name_plural = 'Vínculos tipo alimentação'
 
 
 class Cardapio(Descritivel, Ativavel, TemData, TemChaveExterna, CriadoEm):
@@ -147,7 +188,7 @@ class InversaoCardapio(CriadoEm, CriadoPor, TemObservacao, Motivo, TemChaveExter
 
     class Meta:
         verbose_name = 'Inversão de cardápio'
-        verbose_name_plural = 'Inversão de cardápios'
+        verbose_name_plural = 'Inversão$ProjectFileDir$ de cardápios'
 
 
 class MotivoSuspensao(Nomeavel, TemChaveExterna):

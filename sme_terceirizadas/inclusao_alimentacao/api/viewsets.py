@@ -4,16 +4,18 @@ from rest_framework.status import HTTP_400_BAD_REQUEST
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from xworkflows import InvalidTransitionError
 
-from .permissions import (
-    PodeAprovarAlimentacaoContinuaDaEscolaPermission, PodeIniciarInclusaoAlimentacaoContinuaPermission
-)
-from .serializers import serializers, serializers_create
+from ...dados_comuns import constants
 from ..models import (
-    GrupoInclusaoAlimentacaoNormal, InclusaoAlimentacaoContinua,
+    GrupoInclusaoAlimentacaoNormal,
+    InclusaoAlimentacaoContinua,
     MotivoInclusaoContinua,
     MotivoInclusaoNormal
 )
-from ...dados_comuns import constants
+from .permissions import (
+    PodeAprovarAlimentacaoContinuaDaEscolaPermission,
+    PodeIniciarInclusaoAlimentacaoContinuaPermission
+)
+from .serializers import serializers, serializers_create
 
 
 class MotivoInclusaoContinuaViewSet(ReadOnlyModelViewSet):
@@ -51,8 +53,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
     def solicitacoes_codae(self, request, filtro_aplicado=constants.SEM_FILTRO):
         # TODO: colocar regras de codae CODAE aqui...
         usuario = request.user
-        # TODO: aguardando definição de perfis pra saber
-        codae = usuario.CODAE.first()
+        codae = usuario.vinculo_atual.instituicao
         inclusoes_continuas = codae.grupos_inclusoes_alimentacao_normal_das_minhas_escolas(
             filtro_aplicado
         )
@@ -65,8 +66,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
     def solicitacoes_terceirizada(self, request, filtro_aplicado='sem_filtro'):
         # TODO: colocar regras de terceirizada aqui...
         usuario = request.user
-        # TODO: aguardando definição de perfis pra saber
-        terceirizada = usuario.terceirizadas.first()
+        terceirizada = usuario.vinculo_atual.instituicao
         inclusoes_continuas = terceirizada.grupos_inclusoes_alimentacao_normal_das_minhas_escolas(
             filtro_aplicado
         )
@@ -79,8 +79,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
             url_path=f'{constants.PEDIDOS_DRE}/{constants.FILTRO_PADRAO_PEDIDOS}')
     def solicitacoes_diretoria_regional(self, request, filtro_aplicado=constants.SEM_FILTRO):
         usuario = request.user
-        # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
-        diretoria_regional = usuario.diretorias_regionais.first()
+        diretoria_regional = usuario.vinculo_atual.instituicao
         inclusoes_alimentacao_normal = diretoria_regional.grupos_inclusoes_alimentacao_normal_das_minhas_escolas(
             filtro_aplicado
         )
@@ -91,8 +90,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
     @action(detail=False, url_path='pedidos-autorizados-diretoria-regional')
     def solicitacoes_autorizados_diretoria_regional(self, request):
         usuario = request.user
-        # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
-        diretoria_regional = usuario.diretorias_regionais.first()
+        diretoria_regional = usuario.vinculo_atual.instituicao
         inclusoes_normais = diretoria_regional.inclusoes_normais_autorizadas
         page = self.paginate_queryset(inclusoes_normais)
         serializer = self.get_serializer(page, many=True)
@@ -101,8 +99,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
     @action(detail=False, url_path='pedidos-reprovados-diretoria-regional')
     def solicitacoes_reprovados_diretoria_regional(self, request):
         usuario = request.user
-        # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
-        diretoria_regional = usuario.diretorias_regionais.first()
+        diretoria_regional = usuario.vinculo_atual.instituicao
         inclusoes_normais = diretoria_regional.inclusoes_normais_reprovadas
         page = self.paginate_queryset(inclusoes_normais)
         serializer = self.get_serializer(page, many=True)
@@ -111,8 +108,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
     @action(detail=False, url_path='pedidos-autorizados-codae')
     def solicitacoes_autorizadas_codae(self, request):
         usuario = request.user
-        # TODO: aguardando definição de perfis pra saber em qual CODAE eu estou fazendo a requisição
-        codae = usuario.CODAE.first()
+        codae = usuario.vinculo_atual.instituicao
         inclusoes_normais = codae.inclusoes_normais_autorizadas
         page = self.paginate_queryset(inclusoes_normais)
         serializer = self.get_serializer(page, many=True)
@@ -121,8 +117,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
     @action(detail=False, url_path='pedidos-reprovados-codae')
     def solicitacoes_reprovados_codae(self, request):
         usuario = request.user
-        # TODO: aguardando definição de perfis pra saber em qual CODAE eu estou fazendo a requisição
-        codae = usuario.CODAE.first()
+        codae = usuario.vinculo_atual.instituicao
         inclusoes_normais = codae.inclusoes_normais_reprovadas
         page = self.paginate_queryset(inclusoes_normais)
         serializer = self.get_serializer(page, many=True)
@@ -131,8 +126,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
     @action(detail=False, url_path='pedidos-autorizados-terceirizada')
     def solicitacoes_autorizadas_terceirizada(self, request):
         usuario = request.user
-        # TODO: aguardando definição de perfis pra saber em qual Terceirizada eu estou fazendo a requisição
-        terceirizada = usuario.terceirizadas.first()
+        terceirizada = usuario.vinculo_atual.instituicao
         inclusoes_normais = terceirizada.inclusoes_normais_autorizadas
         page = self.paginate_queryset(inclusoes_normais)
         serializer = self.get_serializer(page, many=True)
@@ -141,8 +135,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
     @action(detail=False, url_path='pedidos-reprovados-terceirizada')
     def solicitacoes_reprovados_terceirizada(self, request):
         usuario = request.user
-        # TODO: aguardando definição de perfis pra saber em qual Terceirizada eu estou fazendo a requisição
-        terceirizada = usuario.terceirizadas.first()
+        terceirizada = usuario.vinculo_atual.instituicao
         inclusoes_normais = terceirizada.inclusoes_normais_reprovadas
         page = self.paginate_queryset(inclusoes_normais)
         serializer = self.get_serializer(page, many=True)
@@ -175,33 +168,11 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'))
 
     @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
-            methods=['patch'], url_path=constants.DRE_PEDE_REVISAO)
-    def diretoria_regional_pede_revisao(self, request, uuid=None):
-        grupo_alimentacao_normal = self.get_object()
-        try:
-            grupo_alimentacao_normal.dre_pede_revisao(user=request.user, )
-            serializer = self.get_serializer(grupo_alimentacao_normal)
-            return Response(serializer.data)
-        except InvalidTransitionError as e:
-            return Response(dict(detail=f'Erro de transição de estado: {e}'))
-
-    @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
             methods=['patch'], url_path=constants.DRE_NAO_VALIDA_PEDIDO)
     def diretoria_cancela_pedido(self, request, uuid=None):
         grupo_alimentacao_normal = self.get_object()
         try:
             grupo_alimentacao_normal.dre_nao_valida(user=request.user, )
-            serializer = self.get_serializer(grupo_alimentacao_normal)
-            return Response(serializer.data)
-        except InvalidTransitionError as e:
-            return Response(dict(detail=f'Erro de transição de estado: {e}'))
-
-    @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
-            methods=['patch'], url_path=constants.ESCOLA_REVISA_PEDIDO)
-    def escola_revisa_pedido(self, request, uuid=None):
-        grupo_alimentacao_normal = self.get_object()
-        try:
-            grupo_alimentacao_normal.escola_revisa(user=request.user, )
             serializer = self.get_serializer(grupo_alimentacao_normal)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -276,8 +247,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
     def solicitacoes_codae(self, request, filtro_aplicado=constants.SEM_FILTRO):
         # TODO: colocar regras de codae CODAE aqui...
         usuario = request.user
-        # TODO: aguardando definição de perfis pra saber
-        codae = usuario.CODAE.first()
+        codae = usuario.vinculo_atual.instituicao
         inclusoes_continuas = codae.inclusoes_alimentacao_continua_das_minhas_escolas(
             filtro_aplicado
         )
@@ -290,8 +260,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
     def solicitacoes_terceirizada(self, request, filtro_aplicado=constants.SEM_FILTRO):
         # TODO: colocar regras de terceirizada aqui...
         usuario = request.user
-        # TODO: aguardando definição de perfis pra saber
-        terceirizada = usuario.terceirizadas.first()
+        terceirizada = usuario.vinculo_atual.instituicao
         inclusoes_continuas = terceirizada.inclusoes_alimentacao_continua_das_minhas_escolas(
             filtro_aplicado
         )
@@ -303,8 +272,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
             url_path=f'{constants.PEDIDOS_DRE}/{constants.FILTRO_PADRAO_PEDIDOS}')
     def solicitacoes_diretoria_regional(self, request, filtro_aplicado=constants.SEM_FILTRO):
         usuario = request.user
-        # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
-        diretoria_regional = usuario.diretorias_regionais.first()
+        diretoria_regional = usuario.vinculo_atual.instituicao
         inclusoes_alimentacao_continua = diretoria_regional.inclusoes_alimentacao_continua_das_minhas_escolas(
             filtro_aplicado
         )
@@ -315,8 +283,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
     @action(detail=False, url_path='pedidos-autorizados-diretoria-regional')
     def solicitacoes_autorizadas_diretoria_regional(self, request):
         usuario = request.user
-        # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
-        diretoria_regional = usuario.diretorias_regionais.first()
+        diretoria_regional = usuario.vinculo_atual.instituicao
         inclusoes_continuas = diretoria_regional.inclusoes_continuas_autorizadas
         page = self.paginate_queryset(inclusoes_continuas)
         serializer = self.get_serializer(page, many=True)
@@ -325,8 +292,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
     @action(detail=False, url_path='pedidos-reprovados-diretoria-regional')
     def solicitacoes_reprovados_diretoria_regional(self, request):
         usuario = request.user
-        # TODO: aguardando definição de perfis pra saber em qual DRE eu estou fazendo a requisição
-        diretoria_regional = usuario.diretorias_regionais.first()
+        diretoria_regional = usuario.vinculo_atual.instituicao
         inclusoes_continuas = diretoria_regional.inclusoes_continuas_reprovadas
         page = self.paginate_queryset(inclusoes_continuas)
         serializer = self.get_serializer(page, many=True)
@@ -335,8 +301,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
     @action(detail=False, url_path='pedidos-autorizados-codae')
     def solicitacoes_autorizadas_codae(self, request):
         usuario = request.user
-        # TODO: aguardando definição de perfis pra saber em qual CODAE eu estou fazendo a requisição
-        codae = usuario.CODAE.first()
+        codae = usuario.vinculo_atual.instituicao
         inclusoes_continuas = codae.inclusoes_continuas_autorizadas
         page = self.paginate_queryset(inclusoes_continuas)
         serializer = self.get_serializer(page, many=True)
@@ -345,8 +310,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
     @action(detail=False, url_path='pedidos-reprovados-codae')
     def solicitacoes_reprovados_codae(self, request):
         usuario = request.user
-        # TODO: aguardando definição de perfis pra saber em qual CODAE eu estou fazendo a requisição
-        codae = usuario.CODAE.first()
+        codae = usuario.vinculo_atual.instituicao
         inclusoes_continuas = codae.inclusoes_continuas_reprovadas
         page = self.paginate_queryset(inclusoes_continuas)
         serializer = self.get_serializer(page, many=True)
@@ -355,8 +319,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
     @action(detail=False, url_path='pedidos-autorizados-terceirizada')
     def solicitacoes_autorizadas_terceirizada(self, request):
         usuario = request.user
-        # TODO: aguardando definição de perfis pra saber em qual Terceirizada eu estou fazendo a requisição
-        terceirizada = usuario.terceirizadas.first()
+        terceirizada = usuario.vinculo_atual.instituicao
         inclusoes_continuas = terceirizada.inclusoes_continuas_autorizadas
         page = self.paginate_queryset(inclusoes_continuas)
         serializer = self.get_serializer(page, many=True)
@@ -365,8 +328,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
     @action(detail=False, url_path='pedidos-reprovados-terceirizada')
     def solicitacoes_reprovados_terceirizada(self, request):
         usuario = request.user
-        # TODO: aguardando definição de perfis pra saber em qual Terceirizada eu estou fazendo a requisição
-        terceirizada = usuario.terceirizadas.first()
+        terceirizada = usuario.vinculo_atual.instituicao
         inclusoes_continuas = terceirizada.inclusoes_continuas_reprovadas
         page = self.paginate_queryset(inclusoes_continuas)
         serializer = self.get_serializer(page, many=True)
@@ -393,28 +355,6 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
         inclusao_alimentacao_continua = self.get_object()
         try:
             inclusao_alimentacao_continua.dre_valida(user=request.user, )
-            serializer = self.get_serializer(inclusao_alimentacao_continua)
-            return Response(serializer.data)
-        except InvalidTransitionError as e:
-            return Response(dict(detail=f'Erro de transição de estado: {e}'))
-
-    @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
-            methods=['patch'], url_path=constants.DRE_PEDE_REVISAO)
-    def diretoria_regional_pede_revisao(self, request, uuid=None):
-        inclusao_alimentacao_continua = self.get_object()
-        try:
-            inclusao_alimentacao_continua.dre_pede_revisao(user=request.user, )
-            serializer = self.get_serializer(inclusao_alimentacao_continua)
-            return Response(serializer.data)
-        except InvalidTransitionError as e:
-            return Response(dict(detail=f'Erro de transição de estado: {e}'))
-
-    @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
-            methods=['patch'], url_path=constants.ESCOLA_REVISA_PEDIDO)
-    def escola_revisa_pedido(self, request, uuid=None):
-        inclusao_alimentacao_continua = self.get_object()
-        try:
-            inclusao_alimentacao_continua.escola_revisa(user=request.user, )
             serializer = self.get_serializer(inclusao_alimentacao_continua)
             return Response(serializer.data)
         except InvalidTransitionError as e:

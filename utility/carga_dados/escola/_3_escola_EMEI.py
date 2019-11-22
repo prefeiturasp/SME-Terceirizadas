@@ -8,7 +8,7 @@ import environ
 import numpy as np
 import pandas as pd
 
-from sme_terceirizadas.dados_comuns.models import Endereco, Contato
+from sme_terceirizadas.dados_comuns.models import Contato
 from sme_terceirizadas.escola.models import (Lote, TipoUnidadeEscolar, TipoGestao, Escola,
                                              DiretoriaRegional)
 from utility.carga_dados.escola.helper import (
@@ -103,13 +103,6 @@ def cria_escola():
 
         lote_obj = Lote.objects.get(id=busca_sigla_lote(lote_sigla_str))
 
-        endereco_obj, created_endereco = Endereco.objects.get_or_create(
-            rua=row['ENDEREÇO'],
-            cep=row['CEP'],
-            bairro=row['BAIRRO'],
-            numero=row['Nº']
-        )
-
         contato_obj, created_contato = Contato.objects.get_or_create(
             telefone=t1,
             telefone2=t2,
@@ -126,7 +119,6 @@ def cria_escola():
             tipo_gestao=tipo_gestao,
             lote=lote_obj,
             quantidade_alunos=0,
-            endereco=endereco_obj,
             contato=contato_obj
         )
 

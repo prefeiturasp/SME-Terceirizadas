@@ -1,9 +1,11 @@
 import datetime
+
 import pytest
 from faker import Faker
 from model_mommy import mommy
 
 from ...escola import models
+from ..models import TemplateMensagem
 
 fake = Faker('pt_BR')
 fake.seed(420)
@@ -118,6 +120,11 @@ def template_mensagem(request):
     return request.param
 
 
+@pytest.fixture
+def template_mensagem_obj():
+    return mommy.make(TemplateMensagem, tipo=TemplateMensagem.ALTERACAO_CARDAPIO)
+
+
 @pytest.fixture(autouse=True)
 def enable_db_access_for_all_tests(db):
     pass
@@ -125,7 +132,7 @@ def enable_db_access_for_all_tests(db):
 
 @pytest.fixture
 def validators_models_object():
-    return mommy.make('dados_comuns.Endereco', numero=10)
+    return mommy.make('dados_comuns.TemplateMensagem', assunto='TESTE')
 
 
 @pytest.fixture

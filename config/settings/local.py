@@ -15,16 +15,6 @@ if READ_DOT_ENV_FILE:
     # OS environment variables take precedence over variables from .env.local
     env.read_env(str(ROOT_DIR.path('.env')))  # noqa F405
 
-# CACHES
-# ------------------------------------------------------------------------------
-# https://docs.djangoproject.com/en/dev/ref/settings/#caches
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'LOCATION': ''
-    }
-}
-
 # TEMPLATES
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#templates

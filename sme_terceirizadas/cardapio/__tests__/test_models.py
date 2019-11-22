@@ -9,8 +9,29 @@ from ...escola.models import Escola
 pytestmark = pytest.mark.django_db
 
 
+def test_tipo_alimentacao(tipo_alimentacao):
+    assert tipo_alimentacao.__str__() == 'Refeição'
+
+
 def test_motivo_alteracao_cardapio(motivo_alteracao_cardapio):
     assert motivo_alteracao_cardapio.nome is not None
+    assert motivo_alteracao_cardapio.__str__() == 'Aniversariantes do mês'
+
+
+def test_motivo_suspensao_alimentacao(motivo_suspensao_alimentacao):
+    assert motivo_suspensao_alimentacao.__str__() == 'Não vai ter aula'
+
+
+def test_quantidade_por_periodo_suspensao_alimentacao(quantidade_por_periodo_suspensao_alimentacao):
+    assert quantidade_por_periodo_suspensao_alimentacao.__str__() == 'Quantidade de alunos: 100'
+
+
+def test_suspensao_alimentacao(suspensao_alimentacao):
+    assert suspensao_alimentacao.__str__() == 'Não vai ter aula'
+
+
+def test_suspensao_alimentacao_no_periodo_escolar(suspensao_periodo_escolar):
+    assert suspensao_periodo_escolar.__str__() == 'Suspensão de alimentação da Alteração de Cardápio: Não vai ter aula'
 
 
 def test_alteracao_cardapio(alteracao_cardapio):
@@ -18,6 +39,7 @@ def test_alteracao_cardapio(alteracao_cardapio):
     assert alteracao_cardapio.data_final is not None
     assert alteracao_cardapio.observacao == 'teste'
     assert alteracao_cardapio.status is not None
+    assert alteracao_cardapio.__str__() == 'Alteração de cardápio de: 2019-10-04 para 2019-12-31'
 
 
 def test_substituicoes_alimentacao_periodo(substituicoes_alimentacao_periodo):
@@ -66,3 +88,19 @@ def test_inclusao_alimentacao_continua_fluxo_erro(inversao_dia_cardapio):
     with pytest.raises(InvalidTransitionError,
                        match="Transition 'dre_pede_revisao' isn't available from state 'RASCUNHO'."):
         inversao_dia_cardapio.dre_pede_revisao()
+
+
+def test_grupo_suspensao_alimentacao(grupo_suspensao_alimentacao):
+    assert grupo_suspensao_alimentacao.__str__() == 'lorem ipsum'
+
+
+def test_vinculo_tipo_alimentacao_periodo_tipo_ue(vinculo_tipo_alimentacao_periodo_tipo_ue):
+    vinculo, quantidade_tipos = vinculo_tipo_alimentacao_periodo_tipo_ue
+    periodo_escolar = vinculo.periodo_escolar
+    tipos_alim_desc = [nome for nome in
+                       vinculo.tipos_alimentacao.values_list('nome', flat=True)]
+    tipo_unidade_escolar = vinculo.tipo_unidade_escolar
+    assert vinculo.__str__() == f'{periodo_escolar.nome} - {tipo_unidade_escolar.iniciais} {tipos_alim_desc}'
+    assert vinculo._meta.verbose_name == 'Vínculo tipo alimentação'
+    assert vinculo._meta.verbose_name_plural == 'Vínculos tipo alimentação'
+    assert vinculo.tipos_alimentacao.count() == quantidade_tipos

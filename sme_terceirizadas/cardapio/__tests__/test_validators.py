@@ -5,8 +5,11 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from ..api.validators import (
-    cardapio_antigo, data_troca_nao_pode_ser_superior_a_data_inversao, deve_ser_no_mesmo_ano_corrente,
-    nao_pode_existir_solicitacao_igual_para_mesma_escola, nao_pode_ter_mais_que_60_dias_diferenca
+    cardapio_antigo,
+    data_troca_nao_pode_ser_superior_a_data_inversao,
+    deve_ser_no_mesmo_ano_corrente,
+    nao_pode_existir_solicitacao_igual_para_mesma_escola,
+    nao_pode_ter_mais_que_60_dias_diferenca
 )
 from ..models import InversaoCardapio
 
@@ -48,11 +51,10 @@ def test_valida_mesmo_ano(data_inversao_mesmo_ano):
     assert deve_ser_no_mesmo_ano_corrente(data_inversao) is esperado
 
 
-def test_nao_pode_existir_solicitacao_igual_para_mesma_escola_exceptio(datas_inversao_deste_mes):
+def test_nao_pode_existir_solicitacao_igual_para_mesma_escola_exceptio(datas_inversao_deste_mes, escola):
     data_de, data_para, _ = datas_inversao_deste_mes
     cardapio_de = mommy.make('Cardapio', data=data_de)
     cardapio_para = mommy.make('Cardapio', data=data_para)
-    escola = mommy.make('Escola')
     mommy.make(InversaoCardapio,
                cardapio_de=cardapio_de,
                cardapio_para=cardapio_para,

@@ -1,2 +1,2 @@
-from .perfil import Perfil, GrupoPerfil, Permissao, PerfilPermissao  # noqa F401
-from .usuario import Usuario, CustomUserManager  # noqa F401
+from .perfil import ContentType, Perfil, Vinculo  # noqa F401
+from .usuario import CustomUserManager, Usuario  # noqa F401
