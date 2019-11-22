@@ -16,7 +16,7 @@ fake.seed(420)
 @pytest.fixture
 def escola():
     lote = mommy.make('Lote')
-    return mommy.make('Escola', lote=lote)
+    return mommy.make('Escola', lote=lote, quantidade_alunos=1001)
 
 
 @pytest.fixture
@@ -41,34 +41,35 @@ def solicitacao_avulsa(escola):
     solicitacao_kit_lanche = mommy.make(models.SolicitacaoKitLanche, kits=kits, data=datetime.datetime(2000, 1, 1))
     return mommy.make(models.SolicitacaoKitLancheAvulsa,
                       local=fake.text()[:160],
-                      quantidade_alunos=999,
+                      quantidade_alunos=300,
                       solicitacao_kit_lanche=solicitacao_kit_lanche,
                       escola=escola)
 
 
 @pytest.fixture
-def solicitacao_avulsa_dre_a_validar(solicitacao_avulsa, escola):
-    solicitacao_avulsa = mommy.make('SolicitacaoKitLancheAvulsa',
-                                    status=PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR,
-                                    escola=escola)
+def solicitacao_avulsa_dre_a_validar(solicitacao_avulsa):
+    solicitacao_avulsa.status = PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR
+    solicitacao_avulsa.quantidade_alunos = 200
+    solicitacao_avulsa.save()
+
     return solicitacao_avulsa
 
 
 @pytest.fixture
-def solicitacao_avulsa_dre_validado(solicitacao_avulsa, escola):
-    solicitacao_avulsa = mommy.make('SolicitacaoKitLancheAvulsa',
-                                    status=PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO,
-                                    escola=escola)
+def solicitacao_avulsa_dre_validado(solicitacao_avulsa):
+    solicitacao_avulsa.status = PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO
+    solicitacao_avulsa.quantidade_alunos = 200
+    solicitacao_avulsa.save()
     return solicitacao_avulsa
 
 
 @pytest.fixture
 def solicitacao_avulsa_codae_autorizado(solicitacao_avulsa, escola):
     solicitacao_kit_lanche = mommy.make(models.SolicitacaoKitLanche, data=datetime.datetime(2019, 11, 18))
-    solicitacao_avulsa = mommy.make('SolicitacaoKitLancheAvulsa',
-                                    solicitacao_kit_lanche=solicitacao_kit_lanche,
-                                    status=PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO,
-                                    escola=escola)
+    solicitacao_avulsa.status = PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO
+    solicitacao_avulsa.solicitacao_kit_lanche = solicitacao_kit_lanche
+    solicitacao_avulsa.quantidade_alunos = 200
+    solicitacao_avulsa.save()
     return solicitacao_avulsa
 
 
@@ -326,15 +327,11 @@ def kits_unificados_datas_passado_parametros(request):
 
 
 @pytest.fixture(params=[
-    # qtd_alunos_escola, qtd_alunos_pedido, dia, confirmar??? TODO ver esse confirmar... erro esperado
-    (100, 101, datetime.date(2019, 10, 18), True,
-     'A quantidade de alunos informados para o evento excede a quantidade de alunos matriculados na escola'),
-    (100, 100, datetime.date(2001, 1, 1), True, 'Não pode ser no passado'),
-    (100, 99, datetime.date(2019, 10, 16), False, 'Deve pedir com pelo menos 2 dias úteis de antecedência'),
-    (100, 99, datetime.date(2019, 10, 16), True, 'Deve pedir com pelo menos 2 dias úteis de antecedência'),
-    (100, 99, datetime.date(2019, 10, 17), True, 'Deve pedir com pelo menos 2 dias úteis de antecedência'),
-    (100, 400, datetime.date(2019, 10, 18), False,
-     'A quantidade de alunos informados para o evento excede a quantidade de alunos matriculados na escola'),
+    # qtd_alunos_escola, qtd_alunos_pedido, dia, erro esperado TODO ver esse confirmar... erro esperado
+    (100, 100, datetime.date(2001, 1, 1), 'Não pode ser no passado'),
+    (100, 99, datetime.date(2019, 10, 16), 'Deve pedir com pelo menos 2 dias úteis de antecedência'),
+    (100, 99, datetime.date(2019, 10, 16), 'Deve pedir com pelo menos 2 dias úteis de antecedência'),
+    (100, 99, datetime.date(2019, 10, 17), 'Deve pedir com pelo menos 2 dias úteis de antecedência'),
 ])
 def kits_avulsos_param_erro_serializer(request):
     return request.param

@@ -45,6 +45,7 @@ django-extensions='==2.2.3'    # https://github.com/django-extensions/django-ext
 django-coverage-plugin='==1.6.0'  # https://github.com/nedbat/django_coverage_plugin
 pytest-django='==3.4.7'  # https://github.com/pytest-dev/pytest-django
 flower = "==0.9.3"
+isort = "==4.3.21"
 
 [packages]
 # The psycopg2-binary package is meant for beginners to start playing with

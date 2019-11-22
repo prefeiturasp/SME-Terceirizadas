@@ -90,6 +90,11 @@ class GrupoInclusaoAlimentacaoNormalCreationSerializer(serializers.ModelSerializ
         many=True,
         required=True
     )
+    status_explicacao = serializers.CharField(
+        source='status',
+        required=False,
+        read_only=True
+    )
 
     def validate_quantidades_periodo(self, quantidades_periodo):
         if not quantidades_periodo:
@@ -136,7 +141,7 @@ class GrupoInclusaoAlimentacaoNormalCreationSerializer(serializers.ModelSerializ
 
     class Meta:
         model = GrupoInclusaoAlimentacaoNormal
-        exclude = ('id',)
+        exclude = ('id', 'status')
 
 
 class InclusaoAlimentacaoContinuaCreationSerializer(serializers.ModelSerializer):

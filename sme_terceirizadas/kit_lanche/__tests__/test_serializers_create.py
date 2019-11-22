@@ -30,14 +30,13 @@ def test_kit_lanche_avulso_serializer_validators():
 
 @freeze_time('2019-10-16')
 def test_kit_lanche_avulso_serializer_validators_error(kits_avulsos_param_erro_serializer):
-    qtd_alunos_escola, qtd_alunos_pedido, dia, confirmar, erro_esperado = kits_avulsos_param_erro_serializer
+    qtd_alunos_escola, qtd_alunos_pedido, dia, erro_esperado = kits_avulsos_param_erro_serializer
     serializer_obj = SolicitacaoKitLancheAvulsaCreationSerializer()
     lote = mommy.make('Lote')
     escola = mommy.make('Escola', quantidade_alunos=qtd_alunos_escola, lote=lote)
 
     attrs = dict(quantidade_alunos=qtd_alunos_pedido,
                  escola=escola,
-                 confirmar=confirmar,
                  solicitacao_kit_lanche=dict(data=dia))
     with pytest.raises(ValidationError, match=erro_esperado):
         serializer_obj.validate(attrs=attrs)
