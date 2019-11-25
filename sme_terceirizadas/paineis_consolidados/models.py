@@ -307,14 +307,19 @@ class FiltrosConsolidados(MoldeConsolidado):
     @classmethod
     def filtros_escola(cls, **kwargs):
         escola_uuid = kwargs.get('escola_uuid')
-        data_inicial = kwargs.get('data_inicial')
-        data_final = kwargs.get('data_final')
-        solicitacao = kwargs.get('solicitacao')
+        data_inicial = kwargs.get('data_inicial', None)
+        data_final = kwargs.get('data_final', None)
+        tipo_solicitacao = kwargs.get('tipo_solicitacao', cls.TODOS)
 
         query_set = cls.objects.filter(
-            escola_uuid=escola_uuid,
-            data_evento__range=(data_inicial, data_final))
-        if solicitacao != cls.TODOS:
-            query_set = query_set.filter(solicitacao=solicitacao)
+            escola_uuid=escola_uuid
+        )
+
+        if data_inicial and data_final:
+            query_set.filter(
+                data_evento__range=(data_inicial, data_final)
+            )
+        if tipo_solicitacao != cls.TODOS:
+            query_set = query_set.filter(tipo_doc=tipo_solicitacao)
 
         return query_set
