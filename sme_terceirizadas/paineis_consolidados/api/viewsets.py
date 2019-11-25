@@ -4,10 +4,16 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from ...dados_comuns.constants import FILTRO_PADRAO_PEDIDOS, SEM_FILTRO
-from ...paineis_consolidados.api.constants import TIPO_VISAO, TIPO_VISAO_LOTE, TIPO_VISAO_SOLICITACOES
+from ...paineis_consolidados.api.constants import PESQUISA, TIPO_VISAO, TIPO_VISAO_LOTE, TIPO_VISAO_SOLICITACOES
 from ...paineis_consolidados.api.serializers import SolicitacoesSerializer
 from ..api.constants import FILTRO_PERIOD_UUID_DRE, PENDENTES_VALIDACAO_DRE
-from ..models import SolicitacoesCODAE, SolicitacoesDRE, SolicitacoesEscola, SolicitacoesTerceirizada
+from ..models import (
+    FiltrosConsolidados,
+    SolicitacoesCODAE,
+    SolicitacoesDRE,
+    SolicitacoesEscola,
+    SolicitacoesTerceirizada
+)
 from .constants import (
     AUTORIZADOS,
     CANCELADOS,
@@ -120,6 +126,12 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
     @action(detail=False, methods=['GET'], url_path=f'{CANCELADOS}/{FILTRO_ESCOLA_UUID}')
     def cancelados(self, request, escola_uuid=None):
         query_set = SolicitacoesEscola.get_cancelados(escola_uuid=escola_uuid)
+        return self._retorno_base(query_set)
+
+    @action(detail=False, methods=['GET'], url_path=f'{PESQUISA}/{FILTRO_ESCOLA_UUID}')
+    # TODO: colocar parametros na url de dataini, datafim e tipo_solicitacao
+    def filtro_periodo_tipo_solicitacao(self, request, escola_uuid=None):
+        query_set = FiltrosConsolidados.filtros_escola(escola_uuid=escola_uuid)
         return self._retorno_base(query_set)
 
     def _retorno_base(self, query_set):

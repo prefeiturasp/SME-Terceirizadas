@@ -300,3 +300,34 @@ class SolicitacoesTerceirizada(MoldeConsolidado):
                                LogSolicitacoesUsuario.INICIO_FLUXO],
             terceirizada_uuid=terceirizada_uuid
         ).distinct('uuid')
+
+
+class FiltrosConsolidados(MoldeConsolidado):
+    TODOS = 'TODOS'
+    ALT_CARDAPIO = 'ALT_CARDAPIO'
+    INV_CARDAPIO = 'INV_CARDAPIO'
+    INC_ALIMENTA = 'INC_ALIMENTA'
+    INC_ALIMENTA_CONTINUA = 'INC_ALIMENTA_CONTINUA'
+    KIT_LANCHE_AVULSA = 'KIT_LANCHE_AVULSA'
+    SUSP_ALIMENTACAO = 'SUSP_ALIMENTACAO'
+    KIT_LANCHE_UNIFICADA = 'KIT_LANCHE_UNIFICADA'
+
+    @classmethod
+    def filtros_escola(cls, **kwargs):
+        escola_uuid = kwargs.get('escola_uuid')
+        data_inicial = kwargs.get('data_inicial', None)
+        data_final = kwargs.get('data_final', None)
+        tipo_solicitacao = kwargs.get('tipo_solicitacao', cls.TODOS)
+
+        query_set = cls.objects.filter(
+            escola_uuid=escola_uuid
+        )
+
+        if data_inicial and data_final:
+            query_set.filter(
+                data_evento__range=(data_inicial, data_final)
+            )
+        if tipo_solicitacao != cls.TODOS:
+            query_set = query_set.filter(tipo_doc=tipo_solicitacao)
+
+        return query_set
