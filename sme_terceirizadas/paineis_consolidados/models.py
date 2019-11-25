@@ -173,6 +173,14 @@ class SolicitacoesEscola(MoldeConsolidado):
             escola_uuid=escola_uuid
         ).distinct().order_by('-data_log')
 
+    @classmethod
+    def get_solicitacoes_ano_corrente(cls, **kwargs):
+        escola_uuid = kwargs.get('escola_uuid')
+        return cls.objects.filter(
+            escola_uuid=escola_uuid,
+            data_evento__year=datetime.date.today().year
+        ).distinct().order_by('-data_log').values('data_evento__month', 'desc_doc')
+
 
 class SolicitacoesDRE(MoldeConsolidado):
 
