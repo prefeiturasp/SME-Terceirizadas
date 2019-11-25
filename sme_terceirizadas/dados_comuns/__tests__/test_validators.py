@@ -108,5 +108,6 @@ def test_nao_pode_ser_feriado_valor_valido(dias_uteis):
 
 
 def test_nao_existe_cardapio(dias_sem_cardapio, escola):
-    with pytest.raises(ValidationError, match=f'Escola não possui cardápio para esse dia: {dias_sem_cardapio}'):
+    with pytest.raises(ValidationError,
+                       match=f'Escola não possui cardápio para esse dia: {dias_sem_cardapio.strftime("%d-%m-%Y")}'):
         assert deve_existir_cardapio(escola, dias_sem_cardapio)

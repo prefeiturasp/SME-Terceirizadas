@@ -55,6 +55,22 @@ class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
             sumario[nome_objeto]['TOTAL'] += 1
         return sumario
 
+    def _agrupa_por_mes_por_solicitacao(self, query_set: list) -> dict:
+        # TODO: melhorar performance
+        sumario = {'total': 0}  # type: dict
+        for solicitacao in query_set:
+            if solicitacao['desc_doc'] == 'Inclusão de Alimentação Contínua':
+                solicitacao['desc_doc'] = 'Inclusão de Alimentação'
+            if solicitacao['desc_doc'] not in sumario:
+                sumario[solicitacao['desc_doc']] = {
+                    'quantidades': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    'total': 0
+                }
+            sumario[solicitacao['desc_doc']]['quantidades'][solicitacao['data_evento__month'] - 1] += 1
+            sumario[solicitacao['desc_doc']]['total'] += 1
+            sumario['total'] += 1
+        return sumario
+
 
 class CODAESolicitacoesViewSet(SolicitacoesViewSet):
     lookup_field = 'uuid'
@@ -122,6 +138,19 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
         page = self.paginate_queryset(query_set)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
+
+
+class EscolaRelatorioViewSet(SolicitacoesViewSet):
+    queryset = SolicitacoesEscola.objects.all()
+    serializer_class = SolicitacoesSerializer
+
+    @action(detail=False, methods=['GET'])
+    def evolucao_solicitacoes(self, request):
+        usuario = request.user
+        escola_uuid = usuario.vinculo_atual.instituicao.uuid
+        query_set = SolicitacoesEscola.get_solicitacoes_ano_corrente(escola_uuid=escola_uuid)
+        response = {'results': self._agrupa_por_mes_por_solicitacao(query_set=query_set)}
+        return Response(response)
 
 
 class DRESolicitacoesViewSet(SolicitacoesViewSet):

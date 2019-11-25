@@ -24,7 +24,7 @@ def deve_pedir_com_antecedencia(dia: datetime.date, dias: int = 2):
 
 def deve_existir_cardapio(escola, data: datetime.date):
     if not escola.get_cardapio(data):
-        raise serializers.ValidationError(f'Escola não possui cardápio para esse dia: {data}')
+        raise serializers.ValidationError(f'Escola não possui cardápio para esse dia: {data.strftime("%d-%m-%Y")}')
     return True
 
 
