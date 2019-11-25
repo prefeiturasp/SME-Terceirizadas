@@ -318,6 +318,7 @@ class FiltrosConsolidados(MoldeConsolidado):
         data_inicial = kwargs.get('data_inicial', None)
         data_final = kwargs.get('data_final', None)
         tipo_solicitacao = kwargs.get('tipo_solicitacao', cls.TODOS)
+        status_solicitacao = kwargs.get('status_solicitacao', cls.TODOS)
 
         query_set = cls.objects.filter(
             escola_uuid=escola_uuid
@@ -329,5 +330,8 @@ class FiltrosConsolidados(MoldeConsolidado):
             )
         if tipo_solicitacao != cls.TODOS:
             query_set = query_set.filter(tipo_doc=tipo_solicitacao)
+
+        if status_solicitacao != cls.TODOS:
+            query_set = query_set.filter(status_atual=status_solicitacao)
 
         return query_set

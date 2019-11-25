@@ -2,8 +2,8 @@ import environ
 import requests
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.management.base import BaseCommand
+from django.db.utils import IntegrityError
 from requests import ConnectionError
-from urllib3.exceptions import NewConnectionError
 
 from ....dados_comuns.constants import DJANGO_EOL_API_TOKEN, DJANGO_EOL_API_URL
 from ...models import Escola
@@ -36,7 +36,7 @@ class Command(BaseCommand):
         try:
             r = requests.get(f'{DJANGO_EOL_API_URL}/total_alunos/', headers=headers)
             json = r.json()
-        except (ConnectionError, NewConnectionError) as e:
+        except ConnectionError as e:
             self.stdout.write(self.style.ERROR(f'Erro de conexão na api do  EOL: {e}'))
             return
 
@@ -61,4 +61,7 @@ class Command(BaseCommand):
 
             except ObjectDoesNotExist:
                 self.stdout.write(self.style.ERROR(f'Escola código EOL: {codigo_eol} não existe no banco ainda'))
+                continue
+            except IntegrityError as e:
+                self.stdout.write(self.style.ERROR(f'Dados inconsistentes: {e}'))
                 continue
