@@ -35,18 +35,18 @@ def test_escola_relatorio_evolucao_solicitacoes(users_diretor_escola):
     assert response.status_code == status.HTTP_200_OK
     assert response.json() == {
         'results': {
-             'total': 8,
-             'Inclusão de Alimentação': {
-                 'quantidades': [0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0],  # [jan, fev, mar, abr...]
-                 'total': 3
-             },
-             'Kit Lanche Passeio': {
-                 'quantidades': [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                 'total': 2
-             },
-             'Alteração de Cardápio': {
-                 'quantidades': [0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0],
-                 'total': 3
-             }
+            'total': 8,
+            'Inclusão de Alimentação': {
+                'quantidades': [0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0],  # [jan, fev, mar, abr...]
+                'total': 3
+            },
+            'Kit Lanche Passeio': {
+                'quantidades': [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                'total': 2
+            },
+            'Alteração de Cardápio': {
+                'quantidades': [0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0],
+                'total': 3
+            }
         }
     }
