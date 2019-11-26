@@ -1,12 +1,13 @@
 import datetime
-from faker import Faker
+
 import pytest
+from faker import Faker
 from model_mommy import mommy
 
+from ...cardapio.models import AlteracaoCardapio
+from ...dados_comuns.models import TemplateMensagem
 from ...inclusao_alimentacao.models import InclusaoAlimentacaoContinua
 from ...kit_lanche.models import KitLanche, SolicitacaoKitLanche, SolicitacaoKitLancheAvulsa
-from ...dados_comuns.models import TemplateMensagem
-from ...cardapio.models import AlteracaoCardapio
 from ..models import SolicitacoesEscola
 
 fake = Faker('pt_BR')
