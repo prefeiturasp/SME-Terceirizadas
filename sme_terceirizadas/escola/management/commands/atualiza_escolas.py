@@ -30,7 +30,8 @@ env = environ.Env()
 class Command(BaseCommand):
     help = 'Atualiza os dados das Escolas baseados na api do EOL'
 
-    def handle(self, *args, **options):
+    # TODO: simplificar esse metodo, está complexo
+    def handle(self, *args, **options):  # noqa C901
         headers = {'Authorization': f'Token {DJANGO_EOL_API_TOKEN}'}
 
         try:

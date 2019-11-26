@@ -1,10 +1,10 @@
+import datetime
+
 from django.db.models.query import QuerySet
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from sme_terceirizadas.paineis_consolidados.api.constants import FILTRO_DATA_INICIAL, TIPO_SOLICITACAO, \
-    STATUS_SOLICITACAO, DATA_INICIAL, DATA_FINAL
 from ...dados_comuns.constants import FILTRO_PADRAO_PEDIDOS, SEM_FILTRO
 from ...paineis_consolidados.api.constants import PESQUISA, TIPO_VISAO, TIPO_VISAO_LOTE, TIPO_VISAO_SOLICITACOES
 from ...paineis_consolidados.api.serializers import SolicitacoesSerializer
@@ -130,13 +130,50 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
         query_set = SolicitacoesEscola.get_cancelados(escola_uuid=escola_uuid)
         return self._retorno_base(query_set)
 
+    def retorna_data_ou_falso(self, date_text):
+        try:
+            return datetime.datetime.strptime(date_text, '%d-%m-%Y')
+        except ValueError:
+            return False
+
     # TODO: achar uma forma melhor de estruturar isso. Ex: pesquisa/uuidEscola?tipo=XXX&status=zzz&data_inicial=DDDD
     @action(
         detail=False,
         methods=['GET'],
-        url_path=f'{PESQUISA}/{FILTRO_ESCOLA_UUID}/{TIPO_SOLICITACAO}/{STATUS_SOLICITACAO}/{DATA_INICIAL}/{DATA_FINAL}')
-    def filtro_periodo_tipo_solicitacao(self, request, escola_uuid=None, data_inicial=None, data_final=None,
-                                        tipo_solicitacao='TODOS', status_solicitacao='TODOS'):
+        url_path=f'{PESQUISA}/{FILTRO_ESCOLA_UUID}')
+    def filtro_periodo_tipo_solicitacao(self, request, escola_uuid=None):
+        # TODO: achar um jeito melhor de validar os parametros da url
+        """Filtro de todas as solicitações da escola.
+
+        ---
+        tipo_solicitacao -- ALT_CARDAPIO|INV_CARDAPIO|INC_ALIMENTA|INC_ALIMENTA_CONTINUA|
+        KIT_LANCHE_AVULSA|SUSP_ALIMENTACAO|KIT_LANCHE_UNIFICADA|TODOS
+        status_solicitacao -- AUTORIZADOS|NEGADOS|CANCELADOS|EM_ANDAMENTO|TODOS
+        data_inicial -- dd-mm-yyyy
+        data_final -- dd-mm-yyyy
+        """
+        request_params = request.GET
+        tipo_solicitacao = request_params.get('tipo_solicitacao', 'INVALIDO')
+        status_solicitacao = request_params.get('status_solicitacao', 'INVALIDO')
+        data_inicial = request_params.get('data_inicial', 'INVALIDO')
+        data_final = request_params.get('data_final', 'INVALIDO')
+
+        test1 = tipo_solicitacao in ['ALT_CARDAPIO',
+                                     'INV_CARDAPIO',
+                                     'INC_ALIMENTA',
+                                     'INC_ALIMENTA_CONTINUA',
+                                     'KIT_LANCHE_AVULSA',
+                                     'SUSP_ALIMENTACAO',
+                                     'KIT_LANCHE_UNIFICADA',
+                                     'TODOS']
+        test2 = status_solicitacao in ['AUTORIZADOS', 'NEGADOS', 'CANCELADOS', 'EM_ANDAMENTO', 'TODOS']
+        data_inicial = self.retorna_data_ou_falso(data_inicial)
+        data_final = self.retorna_data_ou_falso(data_final)
+
+        parametros_validos = test1 and test2 and data_inicial and data_final
+        if not parametros_validos:
+            return Response(data={'detail': 'Parâmetros de busca inválidos'}, status=400)
+
         query_set = FiltrosConsolidados.filtros_escola(
             escola_uuid=escola_uuid,
             data_inicial=data_inicial,
