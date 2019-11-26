@@ -312,22 +312,41 @@ class FiltrosConsolidados(MoldeConsolidado):
     SUSP_ALIMENTACAO = 'SUSP_ALIMENTACAO'
     KIT_LANCHE_UNIFICADA = 'KIT_LANCHE_UNIFICADA'
 
-    @classmethod
+    @classmethod  # noqa C901
     def filtros_escola(cls, **kwargs):
+        # TODO: melhorar esse código, está complexo.
         escola_uuid = kwargs.get('escola_uuid')
         data_inicial = kwargs.get('data_inicial', None)
         data_final = kwargs.get('data_final', None)
         tipo_solicitacao = kwargs.get('tipo_solicitacao', cls.TODOS)
+        status_solicitacao = kwargs.get('status_solicitacao', cls.TODOS)
 
         query_set = cls.objects.filter(
             escola_uuid=escola_uuid
         )
-
         if data_inicial and data_final:
-            query_set.filter(
-                data_evento__range=(data_inicial, data_final)
+            query_set = query_set.filter(
+                data_evento__gte=data_inicial,
+                data_evento__lte=data_final
             )
         if tipo_solicitacao != cls.TODOS:
             query_set = query_set.filter(tipo_doc=tipo_solicitacao)
+
+        if status_solicitacao != cls.TODOS:
+            # AUTORIZADOS|NEGADOS|CANCELADOS|EM_ANDAMENTO|TODOS
+            if status_solicitacao == 'AUTORIZADOS':
+                query_set = query_set.filter(status_atual__in=[
+                    PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO,
+                    PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_TOMOU_CIENCIA
+                ])
+            elif status_solicitacao == 'NEGADOS':
+                query_set = query_set.filter(status_atual=PedidoAPartirDaEscolaWorkflow.CODAE_NEGOU_PEDIDO)
+            elif status_solicitacao == 'CANCELADOS':
+                query_set = query_set.filter(status_atual=PedidoAPartirDaEscolaWorkflow.ESCOLA_CANCELOU)
+            elif status_solicitacao == 'EM_ANDAMENTO':
+                query_set = query_set.filter(status_atual__in=[
+                    PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO,
+                    PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR
+                ])
 
         return query_set
