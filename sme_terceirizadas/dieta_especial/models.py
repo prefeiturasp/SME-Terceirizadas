@@ -1,8 +1,7 @@
 from django.core.validators import MinLengthValidator
 from django.db import models
 
-# from ..dados_comuns.behaviors import TemChaveExterna
-from sme_terceirizadas.dados_comuns.behaviors import TemChaveExterna
+from ..dados_comuns.behaviors import TemChaveExterna
 
 
 class SolicitacaoDietaEspecial(TemChaveExterna):
@@ -20,7 +19,7 @@ class SolicitacaoDietaEspecial(TemChaveExterna):
                                                     max_length=200,
                                                     validators=[MinLengthValidator(6)])
     data_nascimento_aluno = models.DateField('Data de nascimento do aluno')
-    observacoes = models.TextField('Observações', null=True, blank=True)
+    observacoes = models.TextField('Observações', blank=True)
 
     class Meta:
         verbose_name = 'Solicitação de dieta especial'
