@@ -1,3 +1,4 @@
+from freezegun import freeze_time
 from rest_framework import status
 
 from ...dados_comuns.constants import SEM_FILTRO
@@ -24,3 +25,27 @@ def test_url_endpoint_painel_codae_cancelados(client_autenticado):
 
 def test_url_endpoint_painel_codae_negados(client_autenticado):
     base_codae(client_autenticado, NEGADOS)
+
+
+@freeze_time('2019-10-11')
+def test_get_equipe_administradora_vinculos_codae(users_diretor_escola):
+    client, email, password, rf, cpf, user = users_diretor_escola
+    response = client.get(
+        f'/escola-relatorio/evolucao_solicitacoes/')
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == {
+        'results':
+            {'total': 8,
+             'Inclusão de Alimentação': {
+                 'quantidades': [0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0],
+                 'total': 3
+             },
+             'Kit Lanche Passeio': {
+                 'quantidades': [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                 'total': 2
+             },
+             'Alteração de Cardápio': {
+                 'quantidades': [0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0],
+                 'total': 3}
+             }
+    }
