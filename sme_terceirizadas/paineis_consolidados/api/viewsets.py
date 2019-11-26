@@ -59,15 +59,32 @@ class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
 
     def _agrupa_por_mes_por_solicitacao(self, query_set: list) -> dict:
         # TODO: melhorar performance
-        sumario = {'total': 0}  # type: dict
+        sumario = {
+            'total': 0,
+            'Inclusão de Alimentação': {
+                'quantidades': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                'total': 0
+            },
+            'Alteração de Cardápio': {
+                'quantidades': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                'total': 0
+            },
+            'Inversão de dia de Cardápio': {
+                'quantidades': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                'total': 0
+            },
+            'Suspensão de Alimentação': {
+                'quantidades': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                'total': 0
+            },
+            'Kit Lanche Passeio': {
+                'quantidades': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                'total': 0
+            }
+        }  # type: dict
         for solicitacao in query_set:
             if solicitacao['desc_doc'] == 'Inclusão de Alimentação Contínua':
                 solicitacao['desc_doc'] = 'Inclusão de Alimentação'
-            if solicitacao['desc_doc'] not in sumario:
-                sumario[solicitacao['desc_doc']] = {
-                    'quantidades': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    'total': 0
-                }
             sumario[solicitacao['desc_doc']]['quantidades'][solicitacao['data_evento__month'] - 1] += 1
             sumario[solicitacao['desc_doc']]['total'] += 1
             sumario['total'] += 1

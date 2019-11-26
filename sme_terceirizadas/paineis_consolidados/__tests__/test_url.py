@@ -40,6 +40,14 @@ def test_escola_relatorio_evolucao_solicitacoes(users_diretor_escola):
                 'quantidades': [0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0],  # [jan, fev, mar, abr...]
                 'total': 3
             },
+            'Suspensão de Alimentação': {
+                'quantidades': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                'total': 0
+            },
+            'Inversão de dia de Cardápio': {
+                'quantidades': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                'total': 0
+            },
             'Kit Lanche Passeio': {
                 'quantidades': [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                 'total': 2
