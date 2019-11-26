@@ -1,7 +1,7 @@
 import json
 import os
 
-from ..atualiza_escolas import calcula_total_alunos_por_escola
+from ..helper import calcula_total_alunos_por_escola
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 

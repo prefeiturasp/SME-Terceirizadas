@@ -284,6 +284,7 @@ def test_url_endpoint_solicitacoes_kit_lanche_unificada(client_autenticado):
     base_get_request(client_autenticado, 'solicitacoes-kit-lanche-unificada')
 
 
+@freeze_time('2019-10-11')
 def test_create_kit_lanche(client_autenticado, solicitacao_avulsa, escola, kit_lanche):
     """Primeiro cria-se 3 rascunhos (POST) 200, 200, 200 totalizando 600 alunos que é mais que 500.
 
@@ -294,7 +295,7 @@ def test_create_kit_lanche(client_autenticado, solicitacao_avulsa, escola, kit_l
     escola.quantidade_alunos = 500
     escola.save()
 
-    data_teste = '27/11/2019'
+    data_do_evento = '27/11/2019'
     step = 200
     solicitacoes_avulsas = []
     for _ in range(3):
@@ -306,7 +307,7 @@ def test_create_kit_lanche(client_autenticado, solicitacao_avulsa, escola, kit_l
                                                                 kit_lanche.uuid
                                                             ],
                                                             'descricao': '<p>123213213</p>\n',
-                                                            'data': data_teste,
+                                                            'data': data_do_evento,
                                                             'tempo_passeio': 0
                                                         },
                                                         'local': 'TESTE!!!',
@@ -337,6 +338,7 @@ def test_create_kit_lanche(client_autenticado, solicitacao_avulsa, escola, kit_l
                             }
 
 
+@freeze_time('2019-10-11')
 def test_kit_lanche_nao_deve_permitir_editar_status_diretamente(client_autenticado, solicitacao_avulsa, escola,
                                                                 kit_lanche):
     data_teste = '27/11/2019'
