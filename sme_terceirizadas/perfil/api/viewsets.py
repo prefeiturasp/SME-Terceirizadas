@@ -21,6 +21,8 @@ class UsuarioViewSet(viewsets.ReadOnlyModelViewSet):
     @action(detail=False, url_path='atualizar-email', methods=['patch'])
     def atualizar_email(self, request):
         usuario = request.user
+        tipo_email = request.data.get('tipo_email')
+        usuario.tipo_email = tipo_email
         usuario.email = request.data.get('email')
         usuario.save()
         serializer = self.get_serializer(usuario)
