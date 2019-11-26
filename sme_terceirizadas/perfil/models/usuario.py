@@ -107,8 +107,17 @@ class CustomAbstractUser(AbstractBaseUser, PermissionsMixin):
 class Usuario(SimpleEmailConfirmationUserMixin, CustomAbstractUser, TemChaveExterna):
     """Classe de autenticacao do django, ela tem muitos perfis."""
 
+    SME = 0
+    PREFEITURA = 1
+
+    TIPOS_EMAIL = (
+        (SME, '@sme.prefeitura.sp.gov.br'),
+        (PREFEITURA, '@prefeitura.sp.gov.br')
+    )
     nome = models.CharField(_('name'), max_length=150)
     email = models.EmailField(_('email address'), unique=True)
+    tipo_email = models.PositiveSmallIntegerField(choices=TIPOS_EMAIL,
+                                                  null=True, blank=True)
     cpf = models.CharField(_('CPF'), max_length=11, unique=True, validators=[MinLengthValidator(11)])
     registro_funcional = models.CharField(_('RF'), max_length=7, unique=True, validators=[MinLengthValidator(7)])
 
@@ -163,7 +172,7 @@ class Usuario(SimpleEmailConfirmationUserMixin, CustomAbstractUser, TemChaveExte
         self.email_user(
             subject='Confirme seu e-mail - SIGPAE',
             message=f'Clique neste link para confirmar seu e-mail no SIGPAE \n'
-            f': {url_configs("CONFIRMAR_EMAIL", content)}',
+                    f': {url_configs("CONFIRMAR_EMAIL", content)}',
         )
 
     def enviar_email_recuperacao_senha(self):
@@ -173,7 +182,7 @@ class Usuario(SimpleEmailConfirmationUserMixin, CustomAbstractUser, TemChaveExte
         self.email_user(
             subject='Email de recuperação de senha',
             message=f'Clique neste link para criar uma nova senha no SIGPAE \n'
-            f': {url_configs("RECUPERAR_SENHA", content)}',
+                    f': {url_configs("RECUPERAR_SENHA", content)}',
         )
 
     def atualiza_senha(self, senha, token):
