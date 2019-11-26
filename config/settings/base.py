@@ -91,6 +91,7 @@ LOCAL_APPS = [
     'sme_terceirizadas.cardapio.apps.CardapioConfig',
     'sme_terceirizadas.terceirizada.apps.TerceirizadaConfig',
     'sme_terceirizadas.paineis_consolidados.apps.PaineisConsolidadosConfig',
+    'sme_terceirizadas.dieta_especial.apps.DietaEspecialConfig',
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
