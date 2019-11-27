@@ -18,6 +18,16 @@ def test_url_endpoint_solicitacoes_inversao_inicio_fluxo(client_autenticado, inv
     assert str(json['uuid']) == str(inversao_dia_cardapio.uuid)
 
 
+def test_url_endpoint_solicitacoes_inversao_inicio_fluxo_error(client_autenticado, inversao_dia_cardapio_dre_validar):
+    assert str(inversao_dia_cardapio_dre_validar.status) == PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR
+    response = client_autenticado.patch(
+        f'/{ENRPOINT_INVERSOES}/{inversao_dia_cardapio_dre_validar.uuid}/{constants.ESCOLA_INICIO_PEDIDO}/'
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {
+        'detail': "Erro de transição de estado: Transition 'inicia_fluxo' isn't available from state 'DRE_A_VALIDAR'."}
+
+
 def test_url_endpoint_solicitacoes_inversao_dre_valida(client_autenticado, inversao_dia_cardapio_dre_validar):
     assert str(inversao_dia_cardapio_dre_validar.status) == PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR
     response = client_autenticado.patch(
@@ -29,6 +39,16 @@ def test_url_endpoint_solicitacoes_inversao_dre_valida(client_autenticado, inver
     assert str(json['uuid']) == str(inversao_dia_cardapio_dre_validar.uuid)
 
 
+def test_url_endpoint_solicitacoes_inversao_dre_valida_error(client_autenticado, inversao_dia_cardapio_dre_validado):
+    assert str(inversao_dia_cardapio_dre_validado.status) == PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO
+    response = client_autenticado.patch(
+        f'/{ENRPOINT_INVERSOES}/{inversao_dia_cardapio_dre_validado.uuid}/{constants.DRE_VALIDA_PEDIDO}/'
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {
+        'detail': "Erro de transição de estado: Transition 'dre_valida' isn't available from state 'DRE_VALIDADO'."}
+
+
 def test_url_endpoint_solicitacoes_inversao_codae_autoriza(client_autenticado, inversao_dia_cardapio_dre_validado):
     assert str(inversao_dia_cardapio_dre_validado.status) == PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO
     response = client_autenticado.patch(
@@ -38,6 +58,17 @@ def test_url_endpoint_solicitacoes_inversao_codae_autoriza(client_autenticado, i
     json = response.json()
     assert json['status'] == PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO
     assert str(json['uuid']) == str(inversao_dia_cardapio_dre_validado.uuid)
+
+
+def test_url_endpoint_solicitacoes_inversao_codae_autoriza_error(client_autenticado, inversao_dia_cardapio_dre_validar):
+    assert str(inversao_dia_cardapio_dre_validar.status) == PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR
+    response = client_autenticado.patch(
+        f'/{ENRPOINT_INVERSOES}/{inversao_dia_cardapio_dre_validar.uuid}/{constants.CODAE_AUTORIZA_PEDIDO}/'
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {
+        'detail': "Erro de transição de estado: Transition 'codae_autoriza'"
+                  " isn't available from state 'DRE_A_VALIDAR'."}
 
 
 def test_url_endpoint_solicitacoes_inversao_codae_nega(client_autenticado, inversao_dia_cardapio_dre_validado):
@@ -81,7 +112,8 @@ def test_url_endpoint_solicitacoes_inversao_terceirizada_ciencia_error(client_au
     )
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json() == {
-        'detail': "Erro de transição de estado: Transition 'terceirizada_toma_ciencia' isn't available from state 'DRE_VALIDADO'."}
+        'detail': "Erro de transição de estado: Transition 'terceirizada_toma_ciencia' "
+                  "isn't available from state 'DRE_VALIDADO'."}
 
 
 @freeze_time('2019-10-11')
