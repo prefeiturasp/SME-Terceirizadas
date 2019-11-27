@@ -43,8 +43,7 @@ def client():
 
 @pytest.fixture
 def cardapio_valido():
-    data = datetime.datetime.now() + datetime.timedelta(days=2)
-    cardapio_valido = mommy.make('Cardapio', id=1, data=data.date(),
+    cardapio_valido = mommy.make('Cardapio', id=1, data=datetime.date(2019, 11, 29),
                                  uuid='7a4ec98a-18a8-4d0a-b722-1da8f99aaf4b',
                                  descricao='lorem ipsum')
     return cardapio_valido
@@ -52,8 +51,7 @@ def cardapio_valido():
 
 @pytest.fixture
 def cardapio_valido2():
-    data = datetime.datetime.now() + datetime.timedelta(days=4)
-    cardapio_valido2 = mommy.make('Cardapio', id=2, data=data.date(),
+    cardapio_valido2 = mommy.make('Cardapio', id=2, data=datetime.date(2019, 12, 2),
                                   uuid='7a4ec98a-18a8-4d0a-b722-1da8f99aaf4c')
     return cardapio_valido2
 

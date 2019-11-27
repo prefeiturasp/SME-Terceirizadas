@@ -44,6 +44,12 @@ class InversaoCardapioSerializerCreate(serializers.ModelSerializer):
         queryset=Escola.objects.all()
     )
 
+    status_explicacao = serializers.CharField(
+        source='status',
+        required=False,
+        read_only=True
+    )
+
     def validate_data_de(self, data_de):
         deve_ser_no_mesmo_ano_corrente(data_de)
         nao_pode_ser_no_passado(data_de)

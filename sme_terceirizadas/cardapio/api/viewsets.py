@@ -199,17 +199,6 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
-    @action(detail=True, permission_classes=[PodeIniciarSuspensaoDeAlimentacaoPermission],
-            methods=['patch'], url_path=constants.DRE_NAO_VALIDA_PEDIDO)
-    def diretoria_regional_nao_valida(self, request, uuid=None):
-        inversao_cardapio = self.get_object()
-        justificativa = request.data.get('justificativa', '')
-        try:
-            inversao_cardapio.dre_nao_valida(user=request.user, justificativa=justificativa)
-            serializer = self.get_serializer(inversao_cardapio)
-            return Response(serializer.data)
-        except InvalidTransitionError as e:
-            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeIniciarSuspensaoDeAlimentacaoPermission],
             methods=['patch'], url_path=constants.CODAE_AUTORIZA_PEDIDO)
