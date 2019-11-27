@@ -15,6 +15,12 @@ def nao_pode_ser_no_passado(data: datetime.date):
     return True
 
 
+def deve_ser_no_passado(data: datetime.date):
+    if data > datetime.date.today():
+        raise serializers.ValidationError('Deve ser data anterior a hoje')
+    return True
+
+
 def deve_pedir_com_antecedencia(dia: datetime.date, dias: int = 2):
     prox_dia_util = obter_dias_uteis_apos_hoje(quantidade_dias=dias)
     if dia < prox_dia_util:

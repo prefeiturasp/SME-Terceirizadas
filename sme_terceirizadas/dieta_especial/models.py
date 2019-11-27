@@ -1,10 +1,10 @@
 from django.core.validators import MinLengthValidator
 from django.db import models
 
-from ..dados_comuns.behaviors import TemChaveExterna
+from ..dados_comuns.behaviors import CriadoEm, CriadoPor, TemChaveExterna
 
 
-class SolicitacaoDietaEspecial(TemChaveExterna):
+class SolicitacaoDietaEspecial(TemChaveExterna, CriadoEm, CriadoPor):
     codigo_eol_aluno = models.CharField('Código EOL do aluno',
                                         max_length=6,
                                         validators=[MinLengthValidator(6)])
