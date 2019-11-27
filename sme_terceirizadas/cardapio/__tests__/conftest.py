@@ -5,8 +5,7 @@ from faker import Faker
 from model_mommy import mommy
 from rest_framework.test import APIClient
 
-from sme_terceirizadas.dados_comuns.fluxo_status import InformativoPartindoDaEscolaWorkflow
-from ...dados_comuns.fluxo_status import PedidoAPartirDaEscolaWorkflow
+from ...dados_comuns.fluxo_status import InformativoPartindoDaEscolaWorkflow, PedidoAPartirDaEscolaWorkflow
 from ...dados_comuns.models import TemplateMensagem
 from ..api.serializers.serializers import (
     AlteracaoCardapioSerializer,

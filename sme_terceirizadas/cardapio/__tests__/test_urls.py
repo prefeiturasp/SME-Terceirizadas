@@ -1,9 +1,8 @@
 from freezegun import freeze_time
 from rest_framework import status
 
-from sme_terceirizadas.dados_comuns.fluxo_status import InformativoPartindoDaEscolaWorkflow
 from ...dados_comuns import constants
-from ...dados_comuns.fluxo_status import PedidoAPartirDaEscolaWorkflow
+from ...dados_comuns.fluxo_status import InformativoPartindoDaEscolaWorkflow, PedidoAPartirDaEscolaWorkflow
 
 ENRPOINT_INVERSOES = 'inversoes-dia-cardapio'
 ENDPOINT_SUSPENSOES = 'grupos-suspensoes-alimentacao'
@@ -207,6 +206,17 @@ def test_url_endpoint_alt_card_inicio(client_autenticado, alteracao_cardapio):
     assert str(json['uuid']) == str(alteracao_cardapio.uuid)
 
 
+def test_url_endpoint_alt_card_inicio_error(client_autenticado, alteracao_cardapio_dre_validar):
+    assert str(alteracao_cardapio_dre_validar.status) == PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR
+    response = client_autenticado.patch(
+        f'/{ENDPOINT_ALTERACAO_CARD}/{alteracao_cardapio_dre_validar.uuid}/{constants.ESCOLA_INICIO_PEDIDO}/'
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {'detail': "Erro de transição de estado: Transition 'inicia_fluxo'"
+                                         " isn't available from state 'DRE_A_VALIDAR'."}
+
+
 def test_url_endpoint_alt_card_dre_valida(client_autenticado, alteracao_cardapio_dre_validar):
     assert str(alteracao_cardapio_dre_validar.status) == PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR
     response = client_autenticado.patch(
@@ -217,6 +227,17 @@ def test_url_endpoint_alt_card_dre_valida(client_autenticado, alteracao_cardapio
     json = response.json()
     assert json['status'] == PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO
     assert str(json['uuid']) == str(alteracao_cardapio_dre_validar.uuid)
+
+
+def test_url_endpoint_alt_card_dre_valida_error(client_autenticado, alteracao_cardapio):
+    assert str(alteracao_cardapio.status) == PedidoAPartirDaEscolaWorkflow.RASCUNHO
+    response = client_autenticado.patch(
+        f'/{ENDPOINT_ALTERACAO_CARD}/{alteracao_cardapio.uuid}/{constants.DRE_VALIDA_PEDIDO}/'
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {'detail': "Erro de transição de estado: Transition 'dre_valida'"
+                                         " isn't available from state 'RASCUNHO'."}
 
 
 def test_url_endpoint_alt_card_dre_nao_valida(client_autenticado, alteracao_cardapio_dre_validar):
@@ -231,6 +252,17 @@ def test_url_endpoint_alt_card_dre_nao_valida(client_autenticado, alteracao_card
     assert str(json['uuid']) == str(alteracao_cardapio_dre_validar.uuid)
 
 
+def test_url_endpoint_alt_card_dre_nao_valida_error(client_autenticado, alteracao_cardapio_dre_validado):
+    assert str(alteracao_cardapio_dre_validado.status) == PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO
+    response = client_autenticado.patch(
+        f'/{ENDPOINT_ALTERACAO_CARD}/{alteracao_cardapio_dre_validado.uuid}/{constants.DRE_NAO_VALIDA_PEDIDO}/'
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {'detail': "Erro de transição de estado: Transition 'dre_nao_valida' "
+                                         "isn't available from state 'DRE_VALIDADO'."}
+
+
 def test_url_endpoint_alt_card_codae_autoriza(client_autenticado, alteracao_cardapio_dre_validado):
     assert str(alteracao_cardapio_dre_validado.status) == PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO
     response = client_autenticado.patch(
@@ -243,7 +275,18 @@ def test_url_endpoint_alt_card_codae_autoriza(client_autenticado, alteracao_card
     assert str(json['uuid']) == str(alteracao_cardapio_dre_validado.uuid)
 
 
-def test_url_endpoint_alt_card_codae_nao_autoriza(client_autenticado, alteracao_cardapio_dre_validado):
+def test_url_endpoint_alt_card_codae_autoriza_error(client_autenticado, alteracao_cardapio):
+    assert str(alteracao_cardapio.status) == PedidoAPartirDaEscolaWorkflow.RASCUNHO
+    response = client_autenticado.patch(
+        f'/{ENDPOINT_ALTERACAO_CARD}/{alteracao_cardapio.uuid}/{constants.CODAE_AUTORIZA_PEDIDO}/'
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {'detail': "Erro de transição de estado: Transition 'codae_autoriza' "
+                                         "isn't available from state 'RASCUNHO'."}
+
+
+def test_url_endpoint_alt_card_codae_nega(client_autenticado, alteracao_cardapio_dre_validado):
     assert str(alteracao_cardapio_dre_validado.status) == PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO
     response = client_autenticado.patch(
         f'/{ENDPOINT_ALTERACAO_CARD}/{alteracao_cardapio_dre_validado.uuid}/{constants.CODAE_NEGA_PEDIDO}/'
@@ -253,6 +296,17 @@ def test_url_endpoint_alt_card_codae_nao_autoriza(client_autenticado, alteracao_
     json = response.json()
     assert json['status'] == PedidoAPartirDaEscolaWorkflow.CODAE_NEGOU_PEDIDO
     assert str(json['uuid']) == str(alteracao_cardapio_dre_validado.uuid)
+
+
+def test_url_endpoint_alt_card_codae_nega_error(client_autenticado, alteracao_cardapio_codae_autorizado):
+    assert str(alteracao_cardapio_codae_autorizado.status) == PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO
+    response = client_autenticado.patch(
+        f'/{ENDPOINT_ALTERACAO_CARD}/{alteracao_cardapio_codae_autorizado.uuid}/{constants.CODAE_NEGA_PEDIDO}/'
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {'detail': "Erro de transição de estado: Transition 'codae_nega'"
+                                         " isn't available from state 'CODAE_AUTORIZADO'."}
 
 
 def test_url_endpoint_alt_card_terceirizada_ciencia(client_autenticado, alteracao_cardapio_codae_autorizado):
@@ -266,4 +320,14 @@ def test_url_endpoint_alt_card_terceirizada_ciencia(client_autenticado, alteraca
     assert json['status'] == PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_TOMOU_CIENCIA
     assert str(json['uuid']) == str(alteracao_cardapio_codae_autorizado.uuid)
 
-# alteracao_cardapio_dre_validar
+
+def test_url_endpoint_alt_card_terceirizada_ciencia_error(client_autenticado, alteracao_cardapio):
+    assert str(alteracao_cardapio.status) == PedidoAPartirDaEscolaWorkflow.RASCUNHO
+    response = client_autenticado.patch(
+        f'/{ENDPOINT_ALTERACAO_CARD}/{alteracao_cardapio.uuid}/{constants.TERCEIRIZADA_TOMOU_CIENCIA}/'
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {
+        'detail': "Erro de transição de estado: Transition 'terceirizada_toma_ciencia'"
+                  " isn't available from state 'RASCUNHO'."}
