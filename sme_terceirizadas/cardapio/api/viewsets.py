@@ -424,7 +424,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, permission_classes=[PodeIniciarAlteracaoCardapioPermission],
             methods=['patch'], url_path=constants.DRE_NAO_VALIDA_PEDIDO)
-    def dre_cancela_solicitacao(self, request, uuid=None):
+    def dre_nao_valida_solicitacao(self, request, uuid=None):
         alteracao_cardapio = self.get_object()
         justificativa = request.data.get('justificativa', '')
         try:
@@ -436,7 +436,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, permission_classes=[PodeRecusarPelaCODAEAlteracaoCardapioPermission],
             methods=['patch'], url_path=constants.CODAE_NEGA_PEDIDO)
-    def codae_cancela_solicitacao(self, request, uuid=None):
+    def codae_nega_solicitacao(self, request, uuid=None):
         alteracao_cardapio = self.get_object()
         justificativa = request.data.get('justificativa', '')
         try:
@@ -479,27 +479,6 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
             return Response(serializer.data)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'))
-
-    @action(detail=False, methods=['GET'])
-    def prazo_vencendo(self, request):
-        query_set = AlteracaoCardapio.prazo_vencendo.all()
-        page = self.paginate_queryset(query_set)
-        serializer = AlteracaoCardapioSerializer(page, many=True)
-        return self.get_paginated_response(serializer.data)
-
-    @action(detail=False, methods=['GET'])
-    def prazo_limite(self, request):
-        query_set = AlteracaoCardapio.prazo_limite.all()
-        page = self.paginate_queryset(query_set)
-        serializer = AlteracaoCardapioSerializer(page, many=True)
-        return self.get_paginated_response(serializer.data)
-
-    @action(detail=False, methods=['GET'])
-    def prazo_regular(self, request):
-        query_set = AlteracaoCardapio.prazo_regular.all()
-        page = self.paginate_queryset(query_set)
-        serializer = AlteracaoCardapioSerializer(page, many=True)
-        return self.get_paginated_response(serializer.data)
 
     @action(detail=False, url_path='pedidos-autorizados-diretoria-regional')
     def pedidos_autorizados_diretoria_regional(self, request):

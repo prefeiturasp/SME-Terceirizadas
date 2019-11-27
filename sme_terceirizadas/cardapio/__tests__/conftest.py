@@ -183,11 +183,33 @@ def motivo_alteracao_cardapio_serializer():
 
 @pytest.fixture
 def alteracao_cardapio(escola):
+    mommy.make(TemplateMensagem, tipo=TemplateMensagem.ALTERACAO_CARDAPIO)
     return mommy.make(AlteracaoCardapio,
                       escola=escola,
                       observacao='teste',
                       data_inicial=datetime.date(2019, 10, 4),
                       data_final=datetime.date(2019, 12, 31))
+
+
+@pytest.fixture
+def alteracao_cardapio_dre_validar(alteracao_cardapio):
+    alteracao_cardapio.status = PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR
+    alteracao_cardapio.save()
+    return alteracao_cardapio
+
+
+@pytest.fixture
+def alteracao_cardapio_dre_validado(alteracao_cardapio):
+    alteracao_cardapio.status = PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO
+    alteracao_cardapio.save()
+    return alteracao_cardapio
+
+
+@pytest.fixture
+def alteracao_cardapio_codae_autorizado(alteracao_cardapio):
+    alteracao_cardapio.status = PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO
+    alteracao_cardapio.save()
+    return alteracao_cardapio
 
 
 @pytest.fixture

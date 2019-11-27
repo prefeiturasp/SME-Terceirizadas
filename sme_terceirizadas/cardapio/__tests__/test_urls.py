@@ -7,6 +7,7 @@ from ...dados_comuns.fluxo_status import PedidoAPartirDaEscolaWorkflow
 
 ENRPOINT_INVERSOES = 'inversoes-dia-cardapio'
 ENDPOINT_SUSPENSOES = 'grupos-suspensoes-alimentacao'
+ENDPOINT_ALTERACAO_CARD = 'alteracoes-cardapio'
 
 
 def test_url_endpoint_solicitacoes_inversao_inicio_fluxo(client_autenticado, inversao_dia_cardapio):
@@ -188,3 +189,81 @@ def test_url_endpoint_suspensoes_terc_ciencia_error(client_autenticado, grupo_su
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json() == {'detail': "Erro de transição de estado: Transition 'terceirizada_toma_ciencia'"
                                          " isn't available from state 'RASCUNHO'."}
+
+
+#
+# Alteração de cardápio
+#
+
+def test_url_endpoint_alt_card_inicio(client_autenticado, alteracao_cardapio):
+    assert str(alteracao_cardapio.status) == PedidoAPartirDaEscolaWorkflow.RASCUNHO
+    response = client_autenticado.patch(
+        f'/{ENDPOINT_ALTERACAO_CARD}/{alteracao_cardapio.uuid}/{constants.ESCOLA_INICIO_PEDIDO}/'
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    json = response.json()
+    assert json['status'] == PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR
+    assert str(json['uuid']) == str(alteracao_cardapio.uuid)
+
+
+def test_url_endpoint_alt_card_dre_valida(client_autenticado, alteracao_cardapio_dre_validar):
+    assert str(alteracao_cardapio_dre_validar.status) == PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR
+    response = client_autenticado.patch(
+        f'/{ENDPOINT_ALTERACAO_CARD}/{alteracao_cardapio_dre_validar.uuid}/{constants.DRE_VALIDA_PEDIDO}/'
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    json = response.json()
+    assert json['status'] == PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO
+    assert str(json['uuid']) == str(alteracao_cardapio_dre_validar.uuid)
+
+
+def test_url_endpoint_alt_card_dre_nao_valida(client_autenticado, alteracao_cardapio_dre_validar):
+    assert str(alteracao_cardapio_dre_validar.status) == PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR
+    response = client_autenticado.patch(
+        f'/{ENDPOINT_ALTERACAO_CARD}/{alteracao_cardapio_dre_validar.uuid}/{constants.DRE_NAO_VALIDA_PEDIDO}/'
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    json = response.json()
+    assert json['status'] == PedidoAPartirDaEscolaWorkflow.DRE_NAO_VALIDOU_PEDIDO_ESCOLA
+    assert str(json['uuid']) == str(alteracao_cardapio_dre_validar.uuid)
+
+
+def test_url_endpoint_alt_card_codae_autoriza(client_autenticado, alteracao_cardapio_dre_validado):
+    assert str(alteracao_cardapio_dre_validado.status) == PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO
+    response = client_autenticado.patch(
+        f'/{ENDPOINT_ALTERACAO_CARD}/{alteracao_cardapio_dre_validado.uuid}/{constants.CODAE_AUTORIZA_PEDIDO}/'
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    json = response.json()
+    assert json['status'] == PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO
+    assert str(json['uuid']) == str(alteracao_cardapio_dre_validado.uuid)
+
+
+def test_url_endpoint_alt_card_codae_nao_autoriza(client_autenticado, alteracao_cardapio_dre_validado):
+    assert str(alteracao_cardapio_dre_validado.status) == PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO
+    response = client_autenticado.patch(
+        f'/{ENDPOINT_ALTERACAO_CARD}/{alteracao_cardapio_dre_validado.uuid}/{constants.CODAE_NEGA_PEDIDO}/'
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    json = response.json()
+    assert json['status'] == PedidoAPartirDaEscolaWorkflow.CODAE_NEGOU_PEDIDO
+    assert str(json['uuid']) == str(alteracao_cardapio_dre_validado.uuid)
+
+
+def test_url_endpoint_alt_card_terceirizada_ciencia(client_autenticado, alteracao_cardapio_codae_autorizado):
+    assert str(alteracao_cardapio_codae_autorizado.status) == PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO
+    response = client_autenticado.patch(
+        f'/{ENDPOINT_ALTERACAO_CARD}/{alteracao_cardapio_codae_autorizado.uuid}/{constants.TERCEIRIZADA_TOMOU_CIENCIA}/'
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    json = response.json()
+    assert json['status'] == PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_TOMOU_CIENCIA
+    assert str(json['uuid']) == str(alteracao_cardapio_codae_autorizado.uuid)
+
+# alteracao_cardapio_dre_validar
