@@ -1,10 +1,12 @@
 from freezegun import freeze_time
 from rest_framework import status
 
+from sme_terceirizadas.dados_comuns.fluxo_status import InformativoPartindoDaEscolaWorkflow
 from ...dados_comuns import constants
 from ...dados_comuns.fluxo_status import PedidoAPartirDaEscolaWorkflow
 
 ENRPOINT_INVERSOES = 'inversoes-dia-cardapio'
+ENDPOINT_SUSPENSOES = 'grupos-suspensoes-alimentacao'
 
 
 def test_url_endpoint_solicitacoes_inversao_inicio_fluxo(client_autenticado, inversao_dia_cardapio):
@@ -139,3 +141,50 @@ def test_url_endpoint_solicitacoes_inversao_escola_cancela_error(client_autentic
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json() == {
         'detail': 'Erro de transição de estado: Só pode cancelar com no mínimo 2 dia(s) de antecedência'}
+
+
+#
+# Suspensão de alimentação
+#
+
+
+def test_url_endpoint_suspensoes_informa(client_autenticado, grupo_suspensao_alimentacao):
+    assert str(grupo_suspensao_alimentacao.status) == InformativoPartindoDaEscolaWorkflow.RASCUNHO
+    response = client_autenticado.patch(
+        f'/{ENDPOINT_SUSPENSOES}/{grupo_suspensao_alimentacao.uuid}/{constants.ESCOLA_INFORMA_SUSPENSAO}/'
+    )
+    assert response.status_code == status.HTTP_200_OK
+    json = response.json()
+    assert json['status'] == InformativoPartindoDaEscolaWorkflow.INFORMADO
+    assert str(json['uuid']) == str(grupo_suspensao_alimentacao.uuid)
+
+
+def test_url_endpoint_suspensoes_informa_error(client_autenticado, grupo_suspensao_alimentacao_informado):
+    assert str(grupo_suspensao_alimentacao_informado.status) == InformativoPartindoDaEscolaWorkflow.INFORMADO
+    response = client_autenticado.patch(
+        f'/{ENDPOINT_SUSPENSOES}/{grupo_suspensao_alimentacao_informado.uuid}/{constants.ESCOLA_INFORMA_SUSPENSAO}/'
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {'detail': "Erro de transição de estado: Transition 'informa' "
+                                         "isn't available from state 'INFORMADO'."}
+
+
+def test_url_endpoint_suspensoes_terc_ciencia(client_autenticado, grupo_suspensao_alimentacao_informado):
+    assert str(grupo_suspensao_alimentacao_informado.status) == InformativoPartindoDaEscolaWorkflow.INFORMADO
+    response = client_autenticado.patch(
+        f'/{ENDPOINT_SUSPENSOES}/{grupo_suspensao_alimentacao_informado.uuid}/{constants.TERCEIRIZADA_TOMOU_CIENCIA}/'
+    )
+    assert response.status_code == status.HTTP_200_OK
+    json = response.json()
+    assert json['status'] == InformativoPartindoDaEscolaWorkflow.TERCEIRIZADA_TOMOU_CIENCIA
+    assert str(json['uuid']) == str(grupo_suspensao_alimentacao_informado.uuid)
+
+
+def test_url_endpoint_suspensoes_terc_ciencia_error(client_autenticado, grupo_suspensao_alimentacao):
+    assert str(grupo_suspensao_alimentacao.status) == InformativoPartindoDaEscolaWorkflow.RASCUNHO
+    response = client_autenticado.patch(
+        f'/{ENDPOINT_SUSPENSOES}/{grupo_suspensao_alimentacao.uuid}/{constants.TERCEIRIZADA_TOMOU_CIENCIA}/'
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {'detail': "Erro de transição de estado: Transition 'terceirizada_toma_ciencia'"
+                                         " isn't available from state 'RASCUNHO'."}

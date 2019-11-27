@@ -5,6 +5,7 @@ from faker import Faker
 from model_mommy import mommy
 from rest_framework.test import APIClient
 
+from sme_terceirizadas.dados_comuns.fluxo_status import InformativoPartindoDaEscolaWorkflow
 from ...dados_comuns.fluxo_status import PedidoAPartirDaEscolaWorkflow
 from ...dados_comuns.models import TemplateMensagem
 from ..api.serializers.serializers import (
@@ -142,8 +143,16 @@ def suspensao_periodo_escolar(suspensao_alimentacao):
 
 
 @pytest.fixture
-def grupo_suspensao_alimentacao():
-    return mommy.make(GrupoSuspensaoAlimentacao, observacao='lorem ipsum')
+def grupo_suspensao_alimentacao(escola):
+    mommy.make(TemplateMensagem, tipo=TemplateMensagem.SUSPENSAO_ALIMENTACAO)
+    return mommy.make(GrupoSuspensaoAlimentacao, observacao='lorem ipsum', escola=escola)
+
+
+@pytest.fixture
+def grupo_suspensao_alimentacao_informado(grupo_suspensao_alimentacao):
+    grupo_suspensao_alimentacao.status = InformativoPartindoDaEscolaWorkflow.INFORMADO
+    grupo_suspensao_alimentacao.save()
+    return grupo_suspensao_alimentacao
 
 
 @pytest.fixture
