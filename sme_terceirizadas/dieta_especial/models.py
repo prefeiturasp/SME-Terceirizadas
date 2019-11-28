@@ -19,6 +19,7 @@ class SolicitacaoDietaEspecial(TemChaveExterna, CriadoEm, CriadoPor):
                                                     max_length=200,
                                                     validators=[MinLengthValidator(6)])
     data_nascimento_aluno = models.DateField('Data de nascimento do aluno')
+
     observacoes = models.TextField('Observações', blank=True)
 
     class Meta:
@@ -27,3 +28,8 @@ class SolicitacaoDietaEspecial(TemChaveExterna, CriadoEm, CriadoPor):
 
     def __str__(self):
         return f'{self.codigo_eol_aluno}: {self.nome_completo_aluno}'
+
+
+class Anexo(models.Model):
+    solicitacao_dieta_especial = models.ForeignKey(SolicitacaoDietaEspecial, on_delete=models.DO_NOTHING)
+    planta = models.FileField()
