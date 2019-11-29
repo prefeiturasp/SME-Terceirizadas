@@ -22,6 +22,10 @@ class SolicitacaoDietaEspecial(TemChaveExterna, CriadoEm, CriadoPor):
 
     observacoes = models.TextField('Observações', blank=True)
 
+    @property
+    def anexos(self):
+        return self.anexo_set.all()
+
     class Meta:
         verbose_name = 'Solicitação de dieta especial'
         verbose_name_plural = 'Solicitações de dieta especial'
@@ -32,4 +36,8 @@ class SolicitacaoDietaEspecial(TemChaveExterna, CriadoEm, CriadoPor):
 
 class Anexo(models.Model):
     solicitacao_dieta_especial = models.ForeignKey(SolicitacaoDietaEspecial, on_delete=models.DO_NOTHING)
-    planta = models.FileField()
+    arquivo = models.FileField()
+
+    @property
+    def nome(self):
+        return self.arquivo.url

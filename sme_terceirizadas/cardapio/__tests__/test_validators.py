@@ -16,6 +16,7 @@ from ..models import InversaoCardapio
 pytestmark = pytest.mark.django_db
 
 
+@freeze_time('2019-07-10')
 def test_valida_se_data_de_cardapio_eh_antiga(cardapio_valido, cardapio_invalido):
     assert cardapio_antigo(cardapio_valido)
     with pytest.raises(ValidationError, match='Não pode ser cardápio antigo'):
