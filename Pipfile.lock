@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "48ffd884124c8c96978ffd5e7fe73f55e3c794600f8864312f8b2ade784e2a33"
+            "sha256": "ae37cdc21c01021bef84cdfff903fbbe21fae2fb5333e8cb04e0f39c05335428"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -532,6 +532,13 @@
             "index": "pypi",
             "version": "==6.0.3"
         },
+        "unidecode": {
+            "hashes": [
+                "sha256:1d7a042116536098d05d599ef2b8616759f02985c85b4fef50c78a5aaf10822a",
+                "sha256:2b6aab710c2a1647e928e36d69c21e76b453cd455f4e2621000e54b2a9b8cce8"
+            ],
+            "version": "==1.1.1"
+        },
         "uritemplate": {
             "hashes": [
                 "sha256:01c69f4fe8ed503b2951bef85d996a9d22434d2431584b5b107b2981ff416fbd",
@@ -967,19 +974,11 @@
         },
         "ipython": {
             "hashes": [
-<<<<<<< HEAD
                 "sha256:c66c7e27239855828a764b1e8fc72c24a6f4498a2637572094a78c5551fb9d51",
                 "sha256:f186b01b36609e0c5d0de27c7ef8e80c990c70478f8c880863004b3489a9030e"
             ],
             "markers": "python_version >= '3.3'",
             "version": "==7.10.1"
-=======
-                "sha256:060d19feef09453d3375ab23c7295ed36cb59e5a3904598ab903f93ec45f1f63",
-                "sha256:e468b8f03a0168a667982b50f0b4e0828cc32721bbea32b23934e55b7970eb7a"
-            ],
-            "markers": "python_version >= '3.3'",
-            "version": "==7.10.0"
->>>>>>> 79ce29264c47a5b3166eef30e8d685c022d12183
         },
         "ipython-genutils": {
             "hashes": [
@@ -1189,17 +1188,10 @@
         },
         "prompt-toolkit": {
             "hashes": [
-<<<<<<< HEAD
                 "sha256:0278d2f51b5ceba6ea8da39f76d15684e84c996b325475f6e5720edc584326a7",
                 "sha256:63daee79aa8366c8f1c637f1a4876b890da5fc92a19ebd2f7080ebacb901e990"
             ],
             "version": "==3.0.2"
-=======
-                "sha256:456d2dca807ab39aef29be7a4e95fd20ae1e6765f077d0546a6ea82ebc4fd2d6",
-                "sha256:d612e4602756af01327b546bbb64ec0bcf08308beb8241b8fc6d2fb76ed91dce"
-            ],
-            "version": "==3.0.1"
->>>>>>> 79ce29264c47a5b3166eef30e8d685c022d12183
         },
         "ptyprocess": {
             "hashes": [
