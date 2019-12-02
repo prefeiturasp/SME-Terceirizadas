@@ -5,12 +5,5 @@
     "fields": {
       "nome": "Atividade Diferenciada"
     }
-  },
-  {
-    "model": "cardapio.motivoalteracaocardapio",
-    "id": 2,
-    "fields": {
-      "nome": "Aniversariante do Mês"
-    }
   }
 ]
