@@ -196,13 +196,24 @@ class VinculoInstituicaoSerializer(serializers.ModelSerializer):
         else:
             return []
 
+    def get_diretoria_regional(self, obj):
+        if isinstance(obj.instituicao, Escola):
+            return DiretoriaRegionalSimplissimaSerializer(obj.instituicao.diretoria_regional).data
+
+    def get_codigo_eol(self, obj):
+        if isinstance(obj.instituicao, Escola):
+            return obj.instituicao.codigo_eol
+
     def get_instituicao(self, obj):
+        self.get_diretoria_regional(obj)
         return {'nome': obj.instituicao.nome,
                 'uuid': obj.instituicao.uuid,
+                'codigo_eol': self.get_codigo_eol(obj),
                 'quantidade_alunos': obj.instituicao.quantidade_alunos,
                 'lotes': self.get_lotes(obj),
                 'periodos_escolares': self.get_periodos_escolares(obj),
-                'escolas': self.get_escolas(obj)}
+                'escolas': self.get_escolas(obj),
+                'diretoria_regional': self.get_diretoria_regional(obj)}
 
     class Meta:
         model = Vinculo
