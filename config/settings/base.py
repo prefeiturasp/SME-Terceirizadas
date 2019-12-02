@@ -4,6 +4,8 @@ import datetime
 import os
 
 import environ
+import sentry_sdk
+from sentry_sdk.integrations.django import DjangoIntegration
 
 # (sme_terceirizadas/config/settings/base.py - 3 = sme_terceirizadas/)
 ROOT_DIR = environ.Path(__file__) - 3
@@ -328,3 +330,8 @@ CELERY_IGNORE_RESULT = True
 
 # reset password
 PASSWORD_RESET_TIMEOUT_DAYS = 1
+
+sentry_sdk.init(
+    dsn=env('SENTRY_URL'),
+    integrations=[DjangoIntegration()]
+)

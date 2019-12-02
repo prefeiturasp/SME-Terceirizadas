@@ -1,4 +1,5 @@
 import pytest
+from freezegun import freeze_time
 from model_mommy import mommy
 from xworkflows.base import InvalidTransitionError
 
@@ -65,6 +66,7 @@ def test_inversao_dia_cardapio_fluxo(inversao_dia_cardapio):
     assert str(inversao_dia_cardapio.status) == PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO
 
 
+@freeze_time('2012-01-14')
 def test_inversao_dia_cardapio_fluxo_cancelamento(inversao_dia_cardapio):
     fake_user = mommy.make('perfil.Usuario')
     inversao_dia_cardapio.inicia_fluxo(user=fake_user)
@@ -92,15 +94,3 @@ def test_inclusao_alimentacao_continua_fluxo_erro(inversao_dia_cardapio):
 
 def test_grupo_suspensao_alimentacao(grupo_suspensao_alimentacao):
     assert grupo_suspensao_alimentacao.__str__() == 'lorem ipsum'
-
-
-def test_vinculo_tipo_alimentacao_periodo_tipo_ue(vinculo_tipo_alimentacao_periodo_tipo_ue):
-    vinculo, quantidade_tipos = vinculo_tipo_alimentacao_periodo_tipo_ue
-    periodo_escolar = vinculo.periodo_escolar
-    tipos_alim_desc = [nome for nome in
-                       vinculo.tipos_alimentacao.values_list('nome', flat=True)]
-    tipo_unidade_escolar = vinculo.tipo_unidade_escolar
-    assert vinculo.__str__() == f'{periodo_escolar.nome} - {tipo_unidade_escolar.iniciais} {tipos_alim_desc}'
-    assert vinculo._meta.verbose_name == 'Vínculo tipo alimentação'
-    assert vinculo._meta.verbose_name_plural == 'Vínculos tipo alimentação'
-    assert vinculo.tipos_alimentacao.count() == quantidade_tipos
