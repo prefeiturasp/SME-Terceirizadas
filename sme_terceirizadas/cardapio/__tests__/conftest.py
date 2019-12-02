@@ -51,7 +51,7 @@ def cardapio_valido():
 
 @pytest.fixture
 def cardapio_valido2():
-    cardapio_valido2 = mommy.make('Cardapio', id=2, data=datetime.date(2019, 12, 2),
+    cardapio_valido2 = mommy.make('Cardapio', id=2, data=datetime.date(2019, 12, 15),
                                   uuid='7a4ec98a-18a8-4d0a-b722-1da8f99aaf4c')
     return cardapio_valido2
 
