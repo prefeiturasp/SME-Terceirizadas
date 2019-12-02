@@ -83,8 +83,17 @@ def test_get_meus_dados_admin_escola(users_admin_escola):
     assert json['registro_funcional'] == rf
     assert json['tipo_usuario'] == 'escola'
     assert json['vinculo_atual'] == {
-        'instituicao': {'nome': 'EMEI NOE AZEVEDO, PROF', 'uuid': 'b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd',
-                        'quantidade_alunos': 420, 'lotes': [], 'periodos_escolares': [], 'escolas': []},
+        'instituicao': {
+            'nome': 'EMEI NOE AZEVEDO, PROF',
+            'uuid': 'b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd',
+            'codigo_eol': '256341',
+            'quantidade_alunos': 420,
+            'lotes': [],
+            'periodos_escolares': [],
+            'escolas': [],
+            'diretoria_regional': {'uuid': '7da9acec-48e1-430c-8a5c-1f1efc666fad',
+                                   'nome': 'DIRETORIA REGIONAL IPIRANGA'}
+        },
         'perfil': {'nome': 'Admin', 'uuid': 'd6fd15cc-52c6-4db4-b604-018d22eeb3dd'}}
 
 
@@ -101,8 +110,17 @@ def test_get_meus_dados_diretor_escola(users_diretor_escola):
     assert json['registro_funcional'] == rf
     assert json['tipo_usuario'] == 'escola'
     assert json['vinculo_atual'] == {
-        'instituicao': {'nome': 'EMEI NOE AZEVEDO, PROF', 'uuid': 'b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd',
-                        'quantidade_alunos': 420, 'lotes': [], 'periodos_escolares': [], 'escolas': []},
+        'instituicao': {
+            'nome': 'EMEI NOE AZEVEDO, PROF',
+            'uuid': 'b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd',
+            'codigo_eol': '256341',
+            'quantidade_alunos': 420,
+            'lotes': [],
+            'periodos_escolares': [],
+            'escolas': [],
+            'diretoria_regional': {'uuid': '7da9acec-48e1-430c-8a5c-1f1efc666fad',
+                                   'nome': 'DIRETORIA REGIONAL IPIRANGA'}
+        },
         'perfil': {'nome': 'DIRETOR', 'uuid': '41c20c8b-7e57-41ed-9433-ccb92e8afaf1'}}
 
 
@@ -131,11 +149,17 @@ def test_cadastro_vinculo_diretor_escola(users_diretor_escola, monkeypatch):
                                'registro_funcional': '5696569',
                                'tipo_usuario': 'escola',
                                'vinculo_atual': {
-                                   'instituicao': {'nome': 'EMEI NOE AZEVEDO, PROF',
-                                                   'uuid': 'b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd',
-                                                   'quantidade_alunos': 420,
-                                                   'lotes': [],
-                                                   'periodos_escolares': [], 'escolas': []},
+                                   'instituicao': {
+                                       'nome': 'EMEI NOE AZEVEDO, PROF',
+                                       'uuid': 'b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd',
+                                       'codigo_eol': '256341',
+                                       'quantidade_alunos': 420,
+                                       'lotes': [],
+                                       'periodos_escolares': [],
+                                       'escolas': [],
+                                       'diretoria_regional': {'uuid': '7da9acec-48e1-430c-8a5c-1f1efc666fad',
+                                                              'nome': 'DIRETORIA REGIONAL IPIRANGA'}
+                                   },
                                    'perfil': {'nome': 'ADMINISTRADOR_ESCOLA',
                                               'uuid': '48330a6f-c444-4462-971e-476452b328b2'}}}
     usuario_novo = Usuario.objects.get(registro_funcional='5696569')
@@ -232,10 +256,9 @@ def test_cadastro_vinculo_diretoria_regional(users_cogestor_diretoria_regional, 
                                'tipo_usuario': 'diretoriaregional',
                                'vinculo_atual': {
                                    'instituicao': {'nome': 'DIRETORIA REGIONAL DE EDUCACAO CAPELA DO SOCORRO',
-                                                   'uuid': 'b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd',
-                                                   'quantidade_alunos': None,
-                                                   'lotes': [],
-                                                   'periodos_escolares': [], 'escolas': []},
+                                                   'uuid': 'b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd', 'codigo_eol': None,
+                                                   'quantidade_alunos': None, 'lotes': [], 'periodos_escolares': [],
+                                                   'escolas': [], 'diretoria_regional': None},
                                    'perfil': {'nome': 'ADMINISTRADOR_DRE',
                                               'uuid': '48330a6f-c444-4462-971e-476452b328b2'}}}
     usuario_novo = Usuario.objects.get(registro_funcional='6812805')
@@ -337,11 +360,9 @@ def test_cadastro_vinculo_codae_gestao_alimentacao(users_codae_gestao_alimentaca
                                'registro_funcional': '6812805',
                                'tipo_usuario': 'gestao_alimentacao_terceirizada',
                                'vinculo_atual': {
-                                   'instituicao': {'nome': 'CODAE',
-                                                   'uuid': 'b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd',
-                                                   'quantidade_alunos': None,
-                                                   'lotes': [],
-                                                   'periodos_escolares': [], 'escolas': []},
+                                   'instituicao': {'nome': 'CODAE', 'uuid': 'b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd',
+                                                   'codigo_eol': None, 'quantidade_alunos': None, 'lotes': [],
+                                                   'periodos_escolares': [], 'escolas': [], 'diretoria_regional': None},
                                    'perfil': {'nome': 'ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA',
                                               'uuid': '48330a6f-c444-4462-971e-476452b328b2'}}}
     usuario_novo = Usuario.objects.get(registro_funcional='6812805')
@@ -442,7 +463,9 @@ def test_cadastro_diretor(client, users_diretor_escola, monkeypatch):
     assert json['tipo_usuario'] == 'escola'
     assert json['vinculo_atual'] == {
         'instituicao': {'nome': 'EMEI NOE AZEVEDO, PROF', 'uuid': 'b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd',
-                        'quantidade_alunos': 420, 'lotes': [], 'periodos_escolares': [], 'escolas': []},
+                        'codigo_eol': '256341', 'quantidade_alunos': 420, 'lotes': [], 'periodos_escolares': [],
+                        'escolas': [], 'diretoria_regional': {'uuid': '7da9acec-48e1-430c-8a5c-1f1efc666fad',
+                                                              'nome': 'DIRETORIA REGIONAL IPIRANGA'}},
         'perfil': {'nome': 'DIRETOR', 'uuid': '41c20c8b-7e57-41ed-9433-ccb92e8afaf1'}}
 
 
@@ -479,8 +502,13 @@ def test_confirmar_email(client, usuarios_pendentes_confirmacao):
         'vinculo_atual': {
             'instituicao': {'nome': usuario.vinculo_atual.instituicao.nome,
                             'uuid': str(usuario.vinculo_atual.instituicao.uuid),
+                            'codigo_eol': '256341',
                             'quantidade_alunos': usuario.vinculo_atual.instituicao.quantidade_alunos,
-                            'lotes': [], 'periodos_escolares': [], 'escolas': []
+                            'lotes': [],
+                            'periodos_escolares': [],
+                            'escolas': [],
+                            'diretoria_regional': {'uuid': '7da9acec-48e1-430c-8a5c-1f1efc666fad',
+                                                   'nome': 'DIRETORIA REGIONAL IPIRANGA'}
                             },
             'perfil': {'nome': usuario.vinculo_atual.perfil.nome, 'uuid': str(usuario.vinculo_atual.perfil.uuid)}}}
 
