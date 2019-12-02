@@ -65,7 +65,7 @@ def cardapio_valido3():
 
 @pytest.fixture
 def cardapio_invalido():
-    cardapio_invalido = mommy.prepare('Cardapio', _save_related=True, id=3, data=datetime.datetime(2019, 7, 2).date(),
+    cardapio_invalido = mommy.prepare('Cardapio', _save_related=True, id=3, data=datetime.date(2019, 7, 2),
                                       uuid='7a4ec98a-18a8-4d0a-b722-1da8f99aaf4d')
     return cardapio_invalido
 
@@ -449,17 +449,3 @@ def alteracao_card_params(request):
 ])
 def grupo_suspensao_alimentacao_params(request):
     return request.param
-
-
-@pytest.fixture(params=[
-    # quantidade tipos alimentacao
-    3,
-    4,
-    5
-])
-def vinculo_tipo_alimentacao_periodo_tipo_ue(request):
-    quantidade_tipos_alimentacao = request.param
-    tipos_alimentacao = mommy.make('TipoAlimentacao', nome=fake.name()[:10], _quantity=quantidade_tipos_alimentacao)
-    vinculo_alimentacao = mommy.make('VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar',
-                                     tipos_alimentacao=tipos_alimentacao)
-    return vinculo_alimentacao, quantidade_tipos_alimentacao

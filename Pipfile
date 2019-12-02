@@ -82,6 +82,7 @@ django-simple-email-confirmation='==0.6' # https://github.com/mfogel/django-simp
 # Produção
 gunicorn='==19.9.0'  # https://github.com/benoitc/gunicorn
 tornado='==6.0.3'    # http://www.tornadoweb.org/en/stable/
+sentry-sdk = "==0.10.2"
 
 [requires]
 python_version = "3.6"
