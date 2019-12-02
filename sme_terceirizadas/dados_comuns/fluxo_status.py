@@ -125,6 +125,34 @@ class InformativoPartindoDaEscolaWorkflow(xwf_models.Workflow):
     initial_state = RASCUNHO
 
 
+class DietaEspecialWorkflow(xwf_models.Workflow):
+    # leia com atenção: https://django-xworkflows.readthedocs.io/en/latest/index.html
+    log_model = ''  # Disable logging to database
+
+    RASCUNHO = 'RASCUNHO'
+    CODAE_A_AUTORIZAR = 'CODAE_A_AUTORIZAR'  # INICIO
+    CODAE_NEGOU_PEDIDO = 'CODAE_NEGOU_PEDIDO'
+    CODAE_AUTORIZADO = 'CODAE_AUTORIZADO'
+    TERCEIRIZADA_TOMOU_CIENCIA = 'TERCEIRIZADA_TOMOU_CIENCIA'
+
+    states = (
+        (RASCUNHO, 'Rascunho'),
+        (CODAE_A_AUTORIZAR, 'CODAE a autorizar'),
+        (CODAE_NEGOU_PEDIDO, 'CODAE negou a solicitação'),
+        (CODAE_AUTORIZADO, 'CODAE autorizou'),
+        (TERCEIRIZADA_TOMOU_CIENCIA, 'Terceirizada toma ciencia'),
+    )
+
+    transitions = (
+        ('inicia_fluxo', RASCUNHO, CODAE_A_AUTORIZAR),
+        ('codae_nega', CODAE_A_AUTORIZAR, CODAE_NEGOU_PEDIDO),
+        ('codae_autoriza', CODAE_A_AUTORIZAR, CODAE_AUTORIZADO),
+        ('terceirizada_toma_ciencia', CODAE_AUTORIZADO, TERCEIRIZADA_TOMOU_CIENCIA),
+    )
+
+    initial_state = RASCUNHO
+
+
 class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
     workflow_class = PedidoAPartirDaEscolaWorkflow
     status = xwf_models.StateField(workflow_class)
@@ -531,6 +559,115 @@ class FluxoInformativoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model)
         user = kwargs['user']
         assunto, corpo = self.template_mensagem
         self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.INICIO_FLUXO,
+                                  usuario=user)
+        self._salva_rastro_solicitacao()
+
+    @xworkflows.after_transition('terceirizada_toma_ciencia')
+    def _terceirizada_toma_ciencia_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        if user:
+            assunto, corpo = self.template_mensagem
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_TOMOU_CIENCIA,
+                                      usuario=user)
+
+    class Meta:
+        abstract = True
+
+
+class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
+    workflow_class = DietaEspecialWorkflow
+    status = xwf_models.StateField(workflow_class)
+
+    rastro_escola = models.ForeignKey('escola.Escola',
+                                      on_delete=models.DO_NOTHING,
+                                      null=True,
+                                      blank=True,
+                                      related_name='%(app_label)s_%(class)s_rastro_escola',
+                                      editable=False)
+    rastro_dre = models.ForeignKey('escola.DiretoriaRegional',
+                                   on_delete=models.DO_NOTHING,
+                                   null=True,
+                                   related_name='%(app_label)s_%(class)s_rastro_dre',
+                                   blank=True,
+                                   editable=False)
+    rastro_lote = models.ForeignKey('escola.Lote',
+                                    on_delete=models.DO_NOTHING,
+                                    null=True,
+                                    blank=True,
+                                    related_name='%(app_label)s_%(class)s_rastro_lote',
+                                    editable=False)
+    rastro_terceirizada = models.ForeignKey('terceirizada.Terceirizada',
+                                            on_delete=models.DO_NOTHING,
+                                            null=True,
+                                            blank=True,
+                                            related_name='%(app_label)s_%(class)s_rastro_terceirizada',
+                                            editable=False)
+
+    def _salva_rastro_solicitacao(self):
+        escola = self.criado_por.vinculo_atual.instituicao
+        self.rastro_escola = escola
+        self.rastro_dre = escola.diretoria_regional
+        self.rastro_lote = escola.lote
+        self.rastro_terceirizada = escola.lote.terceirizada
+        self.save()
+
+    @property
+    def _partes_interessadas_inicio_fluxo(self):
+        """Quando a escola faz a solicitação, as pessoas da DRE são as partes interessadas.
+
+        Será retornada uma lista de emails para envio via celery.
+        """
+        email_query_set = self.rastro_escola.vinculos.filter(
+            ativo=True
+        ).values_list('usuario__email', flat=False)
+        return [email for email in email_query_set]
+
+    @property
+    def partes_interessadas_codae_negou(self):
+        # TODO: definir partes interessadas
+        return []
+
+    @property
+    def partes_interessadas_codae_autorizou(self):
+        # TODO: definir partes interessadas
+        return []
+
+    @property
+    def partes_interessadas_terceirizadas_tomou_ciencia(self):
+        # TODO: definir partes interessadas
+        return []
+
+    @property
+    def template_mensagem(self):
+        raise NotImplementedError('Deve criar um property que recupera o assunto e corpo mensagem desse objeto')
+
+    @xworkflows.after_transition('inicia_fluxo')
+    def _inicia_fluxo_hook(self, *args, **kwargs):
+        self._salva_rastro_solicitacao()
+        user = kwargs['user']
+        assunto, corpo = self.template_mensagem
+        envia_email_em_massa_task.delay(
+            assunto=assunto,
+            corpo=corpo,
+            emails=self._partes_interessadas_inicio_fluxo,
+            html=None
+        )
+        self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.INICIO_FLUXO,
+                                  usuario=user)
+
+    @xworkflows.after_transition('codae_autoriza')
+    def _codae_autoriza_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        assunto, corpo = self.template_mensagem
+        self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU,
+                                  usuario=user)
+        self._salva_rastro_solicitacao()
+
+    @xworkflows.after_transition('codae_nega')
+    def _codae_nega_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        assunto, corpo = self.template_mensagem
+        self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_NEGOU,
                                   usuario=user)
         self._salva_rastro_solicitacao()
 
