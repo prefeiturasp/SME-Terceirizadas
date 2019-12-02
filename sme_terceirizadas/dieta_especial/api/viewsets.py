@@ -2,7 +2,7 @@ from rest_framework import mixins
 from rest_framework.viewsets import GenericViewSet
 
 from ..models import SolicitacaoDietaEspecial
-from .serializers import SolicitacaoDietaEspecialSerializer
+from .serializers import SolicitacaoDietaEspecialCreateSerializer, SolicitacaoDietaEspecialSerializer
 
 
 class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
@@ -11,4 +11,8 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
                                       GenericViewSet):
     lookup_field = 'uuid'
     queryset = SolicitacaoDietaEspecial.objects.all()
-    serializer_class = SolicitacaoDietaEspecialSerializer
+
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update']:
+            return SolicitacaoDietaEspecialCreateSerializer
+        return SolicitacaoDietaEspecialSerializer

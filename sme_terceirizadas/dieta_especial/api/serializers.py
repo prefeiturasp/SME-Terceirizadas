@@ -1,6 +1,8 @@
 from rest_framework import serializers
 from drf_base64.serializers import ModelSerializer
 
+from ...escola.api.serializers import EscolaSimplesSerializer
+from ...dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
 from .validators import deve_ter_extensao_valida
 from ...dados_comuns.validators import deve_ser_no_passado
 from ..models import Anexo, SolicitacaoDietaEspecial
@@ -18,7 +20,7 @@ class AnexoSerializer(ModelSerializer):
         fields = ('arquivo', 'nome')
 
 
-class SolicitacaoDietaEspecialSerializer(serializers.ModelSerializer):
+class SolicitacaoDietaEspecialCreateSerializer(serializers.ModelSerializer):
     anexos = serializers.ListField(
         child=AnexoSerializer(), required=True
     )
@@ -43,6 +45,7 @@ class SolicitacaoDietaEspecialSerializer(serializers.ModelSerializer):
                 solicitacao_dieta_especial=solicitacao, arquivo=anexo.get('arquivo')
             )
 
+        solicitacao.inicia_fluxo(user=self.context['request'].user)
         return solicitacao
 
     class Meta:
@@ -57,4 +60,36 @@ class SolicitacaoDietaEspecialSerializer(serializers.ModelSerializer):
             'observacoes',
             'criado_em',
             'anexos'
+        )
+
+
+class SolicitacaoDietaEspecialSerializer(serializers.ModelSerializer):
+    anexos = serializers.ListField(
+        child=AnexoSerializer(), required=True
+    )
+    escola = EscolaSimplesSerializer()
+    logs = LogSolicitacoesUsuarioSerializer(many=True)
+    status_solicitacao = serializers.CharField(
+        source='status',
+        required=False,
+        read_only=True
+    )
+    id_externo = serializers.CharField()
+
+    class Meta:
+        model = SolicitacaoDietaEspecial
+        fields = (
+            'uuid',
+            'codigo_eol_aluno',
+            'nome_completo_aluno',
+            'nome_completo_pescritor',
+            'registro_funcional_pescritor',
+            'data_nascimento_aluno',
+            'observacoes',
+            'criado_em',
+            'anexos',
+            'status_solicitacao',
+            'escola',
+            'logs',
+            'id_externo'
         )

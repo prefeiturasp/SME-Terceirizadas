@@ -53,9 +53,10 @@ class LogSolicitacoesUsuario(models.Model):
         INVERSAO_DE_CARDAPIO,
         INCLUSAO_ALIMENTACAO_NORMAL,
         INCLUSAO_ALIMENTACAO_CONTINUA,
+        DIETA_ESPECIAL,
         # DA DRE
         SOLICITACAO_KIT_LANCHE_UNIFICADA
-    ) = range(7)
+    ) = range(8)
 
     TIPOS_SOLICITACOES = (
         (SOLICITACAO_KIT_LANCHE_AVULSA, 'Solicitação de kit lanche avulsa'),
@@ -64,6 +65,7 @@ class LogSolicitacoesUsuario(models.Model):
         (INVERSAO_DE_CARDAPIO, 'Inversão de cardápio'),
         (INCLUSAO_ALIMENTACAO_NORMAL, 'Inclusão de alimentação normal'),
         (INCLUSAO_ALIMENTACAO_CONTINUA, 'Inclusão de alimentação contínua'),
+        (DIETA_ESPECIAL, 'Dieta Especial'),
         (SOLICITACAO_KIT_LANCHE_UNIFICADA, 'Solicitação de kit lanche unificada'),
     )
 
@@ -112,6 +114,7 @@ class TemplateMensagem(models.Model):
     SOLICITACAO_KIT_LANCHE_AVULSA = 4
     SOLICITACAO_KIT_LANCHE_UNIFICADA = 5
     INVERSAO_CARDAPIO = 6
+    DIETA_ESPECIAL = 7
 
     CHOICES = (
         (ALTERACAO_CARDAPIO, 'Alteração de cardápio'),
@@ -120,7 +123,8 @@ class TemplateMensagem(models.Model):
         (SUSPENSAO_ALIMENTACAO, 'Suspensão de alimentação'),
         (SOLICITACAO_KIT_LANCHE_AVULSA, 'Solicitação de kit lanche avulsa'),
         (SOLICITACAO_KIT_LANCHE_UNIFICADA, 'Solicitação de kit lanche unificada'),
-        (INVERSAO_CARDAPIO, 'Inversão de cardápio')
+        (INVERSAO_CARDAPIO, 'Inversão de cardápio'),
+        (DIETA_ESPECIAL, 'Dieta Especial')
     )
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     tipo = models.PositiveSmallIntegerField(choices=CHOICES, unique=True)

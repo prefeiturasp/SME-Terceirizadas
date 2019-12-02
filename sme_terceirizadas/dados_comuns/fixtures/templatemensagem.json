@@ -68,5 +68,15 @@
       "assunto": "Invers\u00e3o de card\u00e1pio",
       "template_html": "<p>Ola @nome, a Invers\u00e3o de card\u00e1pio #@id pedida por @criado_por est\u00e1 em @status. Acesse: @link</p>"
     }
+  },
+  {
+    "model": "dados_comuns.templatemensagem",
+    "pk": 8,
+    "fields": {
+      "uuid": "a6ab3af5-0e1b-4ce2-8565-7c382796f5f5",
+      "tipo": 7,
+      "assunto": "Dieta Especial",
+      "template_html": "<p>Ola @nome, a Dieta Especial #@id pedida por @criado_por est\u00e1 em @status. Acesse: @link</p>"
+    }
   }
 ]
