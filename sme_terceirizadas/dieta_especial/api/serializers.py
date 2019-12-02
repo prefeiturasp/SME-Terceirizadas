@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from drf_base64.serializers import ModelSerializer
 
-from sme_terceirizadas.escola.api.serializers import EscolaSimplesSerializer
+from ...escola.api.serializers import EscolaSimplesSerializer
 from ...dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
 from .validators import deve_ter_extensao_valida
 from ...dados_comuns.validators import deve_ser_no_passado
