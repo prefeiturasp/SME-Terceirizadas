@@ -1,16 +1,5 @@
 from rest_framework import serializers
 
-from ....dados_comuns.utils import update_instance_from_dict
-from ....dados_comuns.validators import (
-    campo_nao_pode_ser_nulo,
-    deve_existir_cardapio,
-    deve_pedir_com_antecedencia,
-    nao_pode_ser_feriado,
-    nao_pode_ser_no_passado,
-    objeto_nao_deve_ter_duplicidade
-)
-from ....escola.models import Escola, PeriodoEscolar, TipoUnidadeEscolar
-from ....terceirizada.models import Edital
 from ...api.validators import (
     data_troca_nao_pode_ser_superior_a_data_inversao,
     deve_ser_no_mesmo_ano_corrente,
@@ -30,8 +19,19 @@ from ...models import (
     SuspensaoAlimentacao,
     SuspensaoAlimentacaoNoPeriodoEscolar,
     TipoAlimentacao,
-    VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
+    VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar,
+    SubstituicoesDoVinculoTipoAlimentacaoPeriodoTipoUE)
+from ....dados_comuns.utils import update_instance_from_dict
+from ....dados_comuns.validators import (
+    campo_nao_pode_ser_nulo,
+    deve_existir_cardapio,
+    deve_pedir_com_antecedencia,
+    nao_pode_ser_feriado,
+    nao_pode_ser_no_passado,
+    objeto_nao_deve_ter_duplicidade
 )
+from ....escola.models import Escola, PeriodoEscolar, TipoUnidadeEscolar
+from ....terceirizada.models import Edital
 
 
 class InversaoCardapioSerializerCreate(serializers.ModelSerializer):
@@ -348,3 +348,64 @@ class VinculoTipoAlimentoCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
         fields = ('uuid', 'tipos_alimentacao', 'tipo_unidade_escolar', 'periodo_escolar')
+
+
+class SubstituicoesVinculoTipoAlimentoSimplesSerializerCreate(serializers.ModelSerializer):
+    tipo_alimentacao = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=TipoAlimentacao.objects.all()
+    )
+    substituicoes = serializers.SlugRelatedField(
+        many=True,
+        slug_field='uuid',
+        required=True,
+        queryset=TipoAlimentacao.objects.all()
+    )
+
+    class Meta:
+        model = SubstituicoesDoVinculoTipoAlimentacaoPeriodoTipoUE
+        fields = ('tipo_alimentacao', 'possibilidades')
+
+
+class VinculoTipoAlimentoSimplesSerializerCreate(serializers.ModelSerializer):
+    tipo_unidade_escolar = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=TipoUnidadeEscolar.objects.all()
+    )
+    periodo_escolar = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=PeriodoEscolar.objects.all()
+    )
+
+    substituicoes = SubstituicoesVinculoTipoAlimentoSimplesSerializerCreate(many=True)
+
+    def create(self, validated_data):
+        substituicoes_array = validated_data.pop('substituicoes')
+
+        suspensoes = []
+        for suspensao_json in substituicoes_array:
+            suspensao = SubstituicoesVinculoTipoAlimentoSimplesSerializerCreate().create(suspensao_json)
+            suspensoes.append(suspensao)
+
+        vinculo = VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar.objects.create(**validated_data)
+        vinculo.suspensoes.set(suspensoes)
+        return vinculo
+
+    def update(self, instance, validated_data):
+        substituicoes_array = validated_data.pop('substituicoes')
+
+        suspensoes = []
+        for suspensao_json in substituicoes_array:
+            suspensao = SubstituicoesVinculoTipoAlimentoSimplesSerializerCreate().update(suspensao_json)
+            suspensoes.append(suspensao)
+
+        vinculo = VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar.objects.create(**validated_data)
+        vinculo.suspensoes.set(suspensoes)
+        return vinculo
+
+    class Meta:
+        model = VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
+        fields = ('uuid', 'tipo_unidade_escolar', 'periodo_escolar')

@@ -2,20 +2,10 @@ from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST
+from rest_framework.viewsets import GenericViewSet
 from xworkflows import InvalidTransitionError
-
-from ...dados_comuns import constants
-from ..api.serializers.serializers_create import VinculoTipoAlimentoCreateSerializer
-from ..models import (
-    AlteracaoCardapio,
-    Cardapio,
-    GrupoSuspensaoAlimentacao,
-    InversaoCardapio,
-    MotivoAlteracaoCardapio,
-    MotivoSuspensao,
-    TipoAlimentacao,
-    VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
-)
+from rest_framework import generics, mixins, views
+from sme_terceirizadas.cardapio.api.serializers.serializers_create import VinculoTipoAlimentoSimplesSerializerCreate
 from .permissions import (
     PodeAprovarPelaCODAEAlteracaoCardapioPermission,
     PodeIniciarAlteracaoCardapioPermission,
@@ -42,6 +32,17 @@ from .serializers.serializers_create import (
     GrupoSuspensaoAlimentacaoCreateSerializer,
     InversaoCardapioSerializerCreate
 )
+from ..models import (
+    AlteracaoCardapio,
+    Cardapio,
+    GrupoSuspensaoAlimentacao,
+    InversaoCardapio,
+    MotivoAlteracaoCardapio,
+    MotivoSuspensao,
+    TipoAlimentacao,
+    VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
+)
+from ...dados_comuns import constants
 
 
 class CardapioViewSet(viewsets.ModelViewSet):
@@ -61,14 +62,18 @@ class TipoAlimentacaoViewSet(viewsets.ModelViewSet):
     queryset = TipoAlimentacao.objects.all()
 
 
-class VinculoTipoAlimentacaoViewSet(viewsets.ModelViewSet):
+class VinculoTipoAlimentacaoViewSet(mixins.CreateModelMixin,
+                                    mixins.RetrieveModelMixin,
+                                    mixins.UpdateModelMixin,
+                                    mixins.ListModelMixin,
+                                    GenericViewSet):
     lookup_field = 'uuid'
     serializer_class = VinculoTipoAlimentoSimplesSerializer
     queryset = VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar.objects.all()
 
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update']:
-            return VinculoTipoAlimentoCreateSerializer
+            return VinculoTipoAlimentoSimplesSerializerCreate
         return VinculoTipoAlimentoSimplesSerializer
 
 
