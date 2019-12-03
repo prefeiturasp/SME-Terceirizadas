@@ -185,7 +185,7 @@ class VinculoInstituicaoSerializer(serializers.ModelSerializer):
             return []
 
     def get_lotes(self, obj):
-        if isinstance(obj.instituicao, Terceirizada):
+        if isinstance(obj.instituicao, (Terceirizada, DiretoriaRegional)):
             return LoteNomeSerializer(obj.instituicao.lotes.all(), many=True).data
         else:
             return []
