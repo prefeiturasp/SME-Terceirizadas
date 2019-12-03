@@ -1,11 +1,21 @@
-from rest_framework import viewsets
+from rest_framework import mixins, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST
 from rest_framework.viewsets import GenericViewSet
 from xworkflows import InvalidTransitionError
-from rest_framework import generics, mixins, views
-from sme_terceirizadas.cardapio.api.serializers.serializers_create import VinculoTipoAlimentoSimplesSerializerCreate
+
+from ...dados_comuns import constants
+from ..models import (
+    AlteracaoCardapio,
+    Cardapio,
+    GrupoSuspensaoAlimentacao,
+    InversaoCardapio,
+    MotivoAlteracaoCardapio,
+    MotivoSuspensao,
+    TipoAlimentacao,
+    VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
+)
 from .permissions import (
     PodeAprovarPelaCODAEAlteracaoCardapioPermission,
     PodeIniciarAlteracaoCardapioPermission,
@@ -30,19 +40,9 @@ from .serializers.serializers_create import (
     AlteracaoCardapioSerializerCreate,
     CardapioCreateSerializer,
     GrupoSuspensaoAlimentacaoCreateSerializer,
-    InversaoCardapioSerializerCreate
+    InversaoCardapioSerializerCreate,
+    VinculoTipoAlimentoSimplesSerializerCreate
 )
-from ..models import (
-    AlteracaoCardapio,
-    Cardapio,
-    GrupoSuspensaoAlimentacao,
-    InversaoCardapio,
-    MotivoAlteracaoCardapio,
-    MotivoSuspensao,
-    TipoAlimentacao,
-    VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
-)
-from ...dados_comuns import constants
 
 
 class CardapioViewSet(viewsets.ModelViewSet):

@@ -95,8 +95,10 @@ class VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar(TemChaveExterna
     """
 
     tipo_unidade_escolar = models.ForeignKey('escola.TipoUnidadeEscolar',
+                                             null=True,
                                              on_delete=models.DO_NOTHING)
     periodo_escolar = models.ForeignKey('escola.PeriodoEscolar',
+                                        null=True,
                                         on_delete=models.DO_NOTHING)
     substituicoes = models.ManyToManyField('SubstituicoesDoVinculoTipoAlimentacaoPeriodoTipoUE',
                                            blank=True)
