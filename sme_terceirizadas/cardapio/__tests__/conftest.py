@@ -449,3 +449,30 @@ def alteracao_card_params(request):
 ])
 def grupo_suspensao_alimentacao_params(request):
     return request.param
+
+
+@pytest.fixture
+def tipo_unidade_escolar():
+    cardapio1 = mommy.make('cardapio.Cardapio', data=datetime.date(2019, 10, 11))
+    cardapio2 = mommy.make('cardapio.Cardapio', data=datetime.date(2019, 10, 15))
+    return mommy.make('TipoUnidadeEscolar',
+                      iniciais=fake.name()[:10],
+                      cardapios=[cardapio1, cardapio2])
+
+
+@pytest.fixture
+def periodo_escolar():
+    return mommy.make('PeriodoEscolar')
+
+
+@pytest.fixture
+def substituicies_vinculo_tipo_alimentacao(tipo_unidade_escolar, periodo_escolar):
+    return mommy.make('SubstituicoesDoVinculoTipoAlimentacaoPeriodoTipoUE', _quantity=3)
+
+
+@pytest.fixture
+def vinculo_tipo_alimentacao(tipo_unidade_escolar, periodo_escolar, substituicies_vinculo_tipo_alimentacao):
+    return mommy.make('VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar',
+                      tipo_unidade_escolar=tipo_unidade_escolar,
+                      periodo_escolar=periodo_escolar,
+                      substituicoes=substituicies_vinculo_tipo_alimentacao)

@@ -27,6 +27,7 @@ from ...models import (
     MotivoSuspensao,
     QuantidadePorPeriodoSuspensaoAlimentacao,
     SubstituicoesAlimentacaoNoPeriodoEscolar,
+    SubstituicoesDoVinculoTipoAlimentacaoPeriodoTipoUE,
     SuspensaoAlimentacao,
     SuspensaoAlimentacaoNoPeriodoEscolar,
     TipoAlimentacao,
@@ -348,3 +349,89 @@ class VinculoTipoAlimentoCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
         fields = ('uuid', 'tipos_alimentacao', 'tipo_unidade_escolar', 'periodo_escolar')
+
+
+class SubstituicoesVinculoTipoAlimentoSimplesSerializerCreate(serializers.ModelSerializer):
+    tipo_alimentacao = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=TipoAlimentacao.objects.all()
+    )
+
+    possibilidades = serializers.SlugRelatedField(
+        many=True,
+        slug_field='uuid',
+        required=True,
+        queryset=TipoAlimentacao.objects.all()
+    )
+
+    substituicoes = serializers.SlugRelatedField(
+        many=True,
+        slug_field='uuid',
+        required=True,
+        queryset=TipoAlimentacao.objects.all()
+    )
+
+    def validate(self, attrs):
+        possibilidades = attrs.get('possibilidades', [])
+        substituicoes = attrs.get('substituicoes', [])
+        if len(substituicoes) > len(possibilidades):
+            raise serializers.ValidationError('Não pode ter mais substituições que possibilidades')
+        for substituicao in substituicoes:
+            if substituicao not in possibilidades:
+                raise serializers.ValidationError(f'Substituição {substituicao} não faz parte das possibilidades')
+        return attrs
+
+    class Meta:
+        model = SubstituicoesDoVinculoTipoAlimentacaoPeriodoTipoUE
+        fields = ('tipo_alimentacao', 'possibilidades', 'substituicoes')
+
+
+class VinculoTipoAlimentoSimplesSerializerCreate(serializers.ModelSerializer):
+    tipo_unidade_escolar = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=TipoUnidadeEscolar.objects.all()
+    )
+    periodo_escolar = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=PeriodoEscolar.objects.all()
+    )
+
+    substituicoes = SubstituicoesVinculoTipoAlimentoSimplesSerializerCreate(many=True)
+
+    def validate_substituicoes(self, substituicoes):
+        campo_nao_pode_ser_nulo(substituicoes, mensagem='substituicoes deve ter ao menos um elemento')
+        return substituicoes
+
+    def create(self, validated_data):
+        substituicoes_array = validated_data.pop('substituicoes', [])
+
+        substituicoes = []
+        for suspensao_json in substituicoes_array:
+            suspensao = SubstituicoesVinculoTipoAlimentoSimplesSerializerCreate().create(suspensao_json)
+            substituicoes.append(suspensao)
+
+        vinculo = VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar.objects.create(**validated_data)
+        vinculo.substituicoes.set(substituicoes)
+        return vinculo
+
+    def update(self, instance, validated_data):
+        substituicoes_array = validated_data.pop('substituicoes')
+
+        instance.substituicoes.set([])
+
+        substituicoes = []
+        for suspensao_json in substituicoes_array:
+            # TODO: incrementar essa logica, está dropando e criando novamente as substituições
+            suspensao = SubstituicoesVinculoTipoAlimentoSimplesSerializerCreate().create(suspensao_json)
+            substituicoes.append(suspensao)
+
+        update_instance_from_dict(instance, validated_data, save=True)
+        instance.substituicoes.set(substituicoes)
+        return instance
+
+    class Meta:
+        model = VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
+        fields = ('uuid', 'tipo_unidade_escolar', 'periodo_escolar', 'substituicoes')

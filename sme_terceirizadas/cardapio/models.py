@@ -76,8 +76,9 @@ class SubstituicoesDoVinculoTipoAlimentacaoPeriodoTipoUE(TemChaveExterna):
                                            )
 
     def __str__(self):
+        possibilidades = [nome for nome in self.possibilidades.values_list('nome', flat=True)]
         substituicoes = [nome for nome in self.substituicoes.values_list('nome', flat=True)]
-        return f'{self.tipo_alimentacao.nome} -> {substituicoes}'
+        return f'{self.tipo_alimentacao.nome}  POS:{possibilidades} -> SUBS:{substituicoes}'
 
     class Meta:
         verbose_name = 'Substituição do vínculo tipo alimentação'
@@ -94,14 +95,16 @@ class VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar(TemChaveExterna
     """
 
     tipo_unidade_escolar = models.ForeignKey('escola.TipoUnidadeEscolar',
+                                             null=True,
                                              on_delete=models.DO_NOTHING)
     periodo_escolar = models.ForeignKey('escola.PeriodoEscolar',
+                                        null=True,
                                         on_delete=models.DO_NOTHING)
     substituicoes = models.ManyToManyField('SubstituicoesDoVinculoTipoAlimentacaoPeriodoTipoUE',
                                            blank=True)
 
     def __str__(self):
-        substituicoes_str = [str(sub) for sub in self.substituicoes.all()]
+        substituicoes_str = [f'{str(sub)} --- ' for sub in self.substituicoes.all()]
         return f'{self.tipo_unidade_escolar.iniciais} - {self.periodo_escolar.nome} - {substituicoes_str}'
 
     class Meta:
