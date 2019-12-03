@@ -1,14 +1,16 @@
-from rest_framework import serializers
 from drf_base64.serializers import ModelSerializer
+from rest_framework import serializers
 
-from ...escola.api.serializers import EscolaSimplesSerializer
-from ...dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
 from .validators import deve_ter_extensao_valida
-from ...dados_comuns.validators import deve_ser_no_passado
 from ..models import Anexo, SolicitacaoDietaEspecial
+from ...dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
+from ...dados_comuns.utils import convert_base64_to_contentfile
+from ...dados_comuns.validators import deve_ser_no_passado
+from ...escola.api.serializers import EscolaSimplesSerializer
 
 
-class AnexoSerializer(ModelSerializer):
+class AnexoCreateSerializer(serializers.ModelSerializer):
+    arquivo = serializers.CharField()
     nome = serializers.CharField()
 
     def validate_nome(self, nome):
@@ -20,9 +22,17 @@ class AnexoSerializer(ModelSerializer):
         fields = ('arquivo', 'nome')
 
 
+class AnexoSerializer(ModelSerializer):
+    nome = serializers.CharField()
+
+    class Meta:
+        model = Anexo
+        fields = ('arquivo', 'nome')
+
+
 class SolicitacaoDietaEspecialCreateSerializer(serializers.ModelSerializer):
     anexos = serializers.ListField(
-        child=AnexoSerializer(), required=True
+        child=AnexoCreateSerializer(), required=True
     )
 
     def validate_anexos(self, anexos):
@@ -40,9 +50,10 @@ class SolicitacaoDietaEspecialCreateSerializer(serializers.ModelSerializer):
         solicitacao = SolicitacaoDietaEspecial.objects.create(**validated_data)
 
         for anexo in anexos:
+            data = convert_base64_to_contentfile(anexo.get('arquivo'))
             anexo.pop('nome')
             Anexo.objects.create(
-                solicitacao_dieta_especial=solicitacao, arquivo=anexo.get('arquivo')
+                solicitacao_dieta_especial=solicitacao, arquivo=data
             )
 
         solicitacao.inicia_fluxo(user=self.context['request'].user)

@@ -1,7 +1,9 @@
 import pytest
 
-from sme_terceirizadas.cardapio.api.serializers.serializers import VinculoTipoAlimentoSimplesSerializer, \
-    SubstituicoesVinculoTipoAlimentoSimplesSerializer
+from ..api.serializers.serializers import (
+    SubstituicoesVinculoTipoAlimentoSimplesSerializer,
+    VinculoTipoAlimentoSimplesSerializer
+)
 
 pytestmark = pytest.mark.django_db
 

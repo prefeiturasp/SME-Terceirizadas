@@ -305,10 +305,21 @@ def usuarios_pendentes_confirmacao(request, perfil):
 
 @pytest.fixture(params=[
     # email, esprado
-    ('tebohelleb-2297@sme.prefeitura.gov.br', 't*************7@sme.prefeitura.gov.br'),
-    ('surracecyss-9018@sme.prefeitura.gov.br', 's**************8@sme.prefeitura.gov.br'),
-    ('zoffexupi-7784@sme.prefeitura.gov.br', 'z************4@sme.prefeitura.gov.br'),
-    ('fulano157@sme.prefeitura.gov.br', 'f*******7@sme.prefeitura.gov.br')
+    ('tebohelleb-2297@sme.prefeitura.sp.gov.br', 't*************7@sme.prefeitura.sp.gov.br'),
+    ('surracecyss-9018@sme.prefeitura.sp.gov.br', 's**************8@sme.prefeitura.sp.gov.br'),
+    ('zoffexupi-7784@sme.prefeitura.sp.gov.br', 'z************4@sme.prefeitura.sp.gov.br'),
+    ('fulano157@sme.prefeitura.sp.gov.br', 'f*******7@sme.prefeitura.sp.gov.br')
 ])
 def email_list(request):
+    return request.param
+
+
+@pytest.fixture(params=[
+    # email, esprado
+    ('tebohelleb-2297@smea.prefeitura.sp.gov.br', 't*************7@sme.prefeitura.sp.gov.br'),
+    ('surracecyss-9018@smes.prefeitura.sp.gov.br', 's**************8@sme.prefeitura.sp.gov.br'),
+    ('zoffexupi-7784@smed.prefeitura.sp.gov.br', 'z************4@sme.prefeitura.sp.gov.br'),
+    ('fulano157@smea.prefeitura.sp.gov.br', 'f*******7@sme.prefeitura.sp.gov.br')
+])
+def email_list_invalidos(request):
     return request.param

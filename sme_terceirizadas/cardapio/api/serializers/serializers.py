@@ -1,19 +1,5 @@
 from rest_framework import serializers
 
-from ...models import (
-    AlteracaoCardapio,
-    Cardapio,
-    GrupoSuspensaoAlimentacao,
-    InversaoCardapio,
-    MotivoAlteracaoCardapio,
-    MotivoSuspensao,
-    QuantidadePorPeriodoSuspensaoAlimentacao,
-    SubstituicoesAlimentacaoNoPeriodoEscolar,
-    SuspensaoAlimentacao,
-    SuspensaoAlimentacaoNoPeriodoEscolar,
-    TipoAlimentacao,
-    VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar,
-    SubstituicoesDoVinculoTipoAlimentacaoPeriodoTipoUE)
 from ....dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
 from ....escola.api.serializers import (
     EscolaListagemSimplesSelializer,
@@ -23,6 +9,21 @@ from ....escola.api.serializers import (
     TipoUnidadeEscolarSerializer
 )
 from ....terceirizada.api.serializers.serializers import EditalSerializer
+from ...models import (
+    AlteracaoCardapio,
+    Cardapio,
+    GrupoSuspensaoAlimentacao,
+    InversaoCardapio,
+    MotivoAlteracaoCardapio,
+    MotivoSuspensao,
+    QuantidadePorPeriodoSuspensaoAlimentacao,
+    SubstituicoesAlimentacaoNoPeriodoEscolar,
+    SubstituicoesDoVinculoTipoAlimentacaoPeriodoTipoUE,
+    SuspensaoAlimentacao,
+    SuspensaoAlimentacaoNoPeriodoEscolar,
+    TipoAlimentacao,
+    VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
+)
 
 
 class SubstituicoesTipoAlimentacaoSerializer(serializers.ModelSerializer):
