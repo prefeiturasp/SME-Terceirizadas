@@ -1,9 +1,9 @@
 from django.core.validators import MinLengthValidator
 from django.db import models
 
-from ..dados_comuns.models import LogSolicitacoesUsuario, TemplateMensagem
 from ..dados_comuns.behaviors import CriadoEm, CriadoPor, Logs, TemChaveExterna, TemIdentificadorExternoAmigavel
 from ..dados_comuns.fluxo_status import FluxoDietaEspecialPartindoDaEscola
+from ..dados_comuns.models import LogSolicitacoesUsuario, TemplateMensagem
 
 
 class SolicitacaoDietaEspecial(TemChaveExterna, CriadoEm, CriadoPor, FluxoDietaEspecialPartindoDaEscola,
