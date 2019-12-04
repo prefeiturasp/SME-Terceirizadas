@@ -348,7 +348,7 @@ class VinculoTipoAlimentoCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
-        fields = ('uuid', 'tipos_alimentacao', 'tipo_unidade_escolar', 'periodo_escolar')
+        fields = ('uuid', 'tipos_alimentacao', 'tipo_unidade_escolar', 'periodo_escolar',)
 
 
 class SubstituicoesVinculoTipoAlimentoSimplesSerializerCreate(serializers.ModelSerializer):
