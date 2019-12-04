@@ -1,8 +1,12 @@
+import base64
 import datetime
+import uuid
+from mimetypes import guess_extension
 
 import environ
 from config.settings.base import URL_CONFIGS
 from des.models import DynamicEmailConfiguration
+from django.core.files.base import ContentFile
 from django.core.mail import EmailMultiAlternatives, get_connection, send_mail
 from workalendar.america import BrazilSaoPauloCity
 
@@ -63,3 +67,10 @@ def update_instance_from_dict(instance, attrs, save=False):
 def url_configs(variable, content):
     # TODO: rever essa logica de link para trabalhar no front, tá dando voltas
     return env('REACT_APP_URL') + URL_CONFIGS[variable].format(**content)
+
+
+def convert_base64_to_contentfile(base64_str):
+    format, imgstr = base64_str.split(';base64,')
+    ext = guess_extension(format[5:]) or ''
+    data = ContentFile(base64.b64decode(imgstr), name=str(uuid.uuid4()) + ext)
+    return data

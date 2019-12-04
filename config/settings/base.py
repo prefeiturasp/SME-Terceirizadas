@@ -4,6 +4,8 @@ import datetime
 import os
 
 import environ
+import sentry_sdk
+from sentry_sdk.integrations.django import DjangoIntegration
 
 # (sme_terceirizadas/config/settings/base.py - 3 = sme_terceirizadas/)
 ROOT_DIR = environ.Path(__file__) - 3
@@ -91,6 +93,7 @@ LOCAL_APPS = [
     'sme_terceirizadas.cardapio.apps.CardapioConfig',
     'sme_terceirizadas.terceirizada.apps.TerceirizadaConfig',
     'sme_terceirizadas.paineis_consolidados.apps.PaineisConsolidadosConfig',
+    'sme_terceirizadas.dieta_especial.apps.DietaEspecialConfig',
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -327,3 +330,8 @@ CELERY_IGNORE_RESULT = True
 
 # reset password
 PASSWORD_RESET_TIMEOUT_DAYS = 1
+
+sentry_sdk.init(
+    dsn=env('SENTRY_URL'),
+    integrations=[DjangoIntegration()]
+)

@@ -4,7 +4,7 @@ import operator
 from django.db import models
 from django.db.models import Q
 
-from ..dados_comuns.behaviors import TemPrioridade
+from ..dados_comuns.behaviors import TemIdentificadorExternoAmigavel, TemPrioridade
 from ..dados_comuns.constants import DAQUI_A_SETE_DIAS, DAQUI_A_TRINTA_DIAS
 from ..dados_comuns.fluxo_status import (
     InformativoPartindoDaEscolaWorkflow,
@@ -32,9 +32,10 @@ class SolicitacoesDesteMesManager(models.Manager):
         ).filter(data_evento__range=(data_limite_inicial, data_limite_final))
 
 
-class MoldeConsolidado(models.Model, TemPrioridade):
+class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmigavel):
     uuid = models.UUIDField(editable=False)
     data_evento = models.DateField()
+    criado_em = models.DateTimeField()
     lote_nome = models.CharField(max_length=50)
     dre_nome = models.CharField(max_length=200)
     escola_nome = models.CharField(max_length=200)
@@ -49,6 +50,7 @@ class MoldeConsolidado(models.Model, TemPrioridade):
     desc_doc = models.CharField(max_length=50)
     data_log = models.DateTimeField()
     status_evento = models.PositiveSmallIntegerField()
+    numero_alunos = models.PositiveSmallIntegerField()
     status_atual = models.CharField(max_length=32)
 
     objects = models.Manager()
@@ -173,6 +175,14 @@ class SolicitacoesEscola(MoldeConsolidado):
             escola_uuid=escola_uuid
         ).distinct().order_by('-data_log')
 
+    @classmethod
+    def get_solicitacoes_ano_corrente(cls, **kwargs):
+        escola_uuid = kwargs.get('escola_uuid')
+        return cls.objects.filter(
+            escola_uuid=escola_uuid,
+            data_evento__year=datetime.date.today().year
+        ).distinct().order_by('-data_log').values('data_evento__month', 'desc_doc')
+
 
 class SolicitacoesDRE(MoldeConsolidado):
 
@@ -292,3 +302,50 @@ class SolicitacoesTerceirizada(MoldeConsolidado):
                                LogSolicitacoesUsuario.INICIO_FLUXO],
             terceirizada_uuid=terceirizada_uuid
         ).distinct('uuid')
+
+
+class FiltrosConsolidados(MoldeConsolidado):
+    TODOS = 'TODOS'
+    ALT_CARDAPIO = 'ALT_CARDAPIO'
+    INV_CARDAPIO = 'INV_CARDAPIO'
+    INC_ALIMENTA = 'INC_ALIMENTA'
+    INC_ALIMENTA_CONTINUA = 'INC_ALIMENTA_CONTINUA'
+    KIT_LANCHE_AVULSA = 'KIT_LANCHE_AVULSA'
+    SUSP_ALIMENTACAO = 'SUSP_ALIMENTACAO'
+    KIT_LANCHE_UNIFICADA = 'KIT_LANCHE_UNIFICADA'
+
+    @classmethod  # noqa C901
+    def filtros_escola(cls, **kwargs):
+        # TODO: melhorar esse código, está complexo.
+        escola_uuid = kwargs.get('escola_uuid')
+        data_inicial = kwargs.get('data_inicial', None)
+        data_final = kwargs.get('data_final', None)
+        tipo_solicitacao = kwargs.get('tipo_solicitacao', cls.TODOS)
+        status_solicitacao = kwargs.get('status_solicitacao', cls.TODOS)
+
+        query_set = cls.objects.filter(
+            escola_uuid=escola_uuid
+        )
+        if data_inicial and data_final:
+            query_set = query_set.filter(criado_em__date__range=(data_inicial, data_final))
+        if tipo_solicitacao != cls.TODOS:
+            query_set = query_set.filter(tipo_doc=tipo_solicitacao)
+
+        if status_solicitacao != cls.TODOS:
+            # AUTORIZADOS|NEGADOS|CANCELADOS|EM_ANDAMENTO|TODOS
+            if status_solicitacao == 'AUTORIZADOS':
+                query_set = query_set.filter(status_atual__in=[
+                    PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO,
+                    PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_TOMOU_CIENCIA
+                ])
+            elif status_solicitacao == 'NEGADOS':
+                query_set = query_set.filter(status_atual=PedidoAPartirDaEscolaWorkflow.CODAE_NEGOU_PEDIDO)
+            elif status_solicitacao == 'CANCELADOS':
+                query_set = query_set.filter(status_atual=PedidoAPartirDaEscolaWorkflow.ESCOLA_CANCELOU)
+            elif status_solicitacao == 'EM_ANDAMENTO':
+                query_set = query_set.filter(status_atual__in=[
+                    PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO,
+                    PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR
+                ])
+
+        return query_set.order_by('-criado_em')

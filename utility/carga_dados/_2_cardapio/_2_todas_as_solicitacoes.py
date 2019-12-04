@@ -21,7 +21,7 @@ from sme_terceirizadas.perfil.models import Usuario
 
 f = Faker('pt-br')
 f.seed(420)
-hoje = datetime.datetime.today()
+hoje = datetime.datetime.today() - datetime.timedelta(days=180)
 
 
 def _get_random_cardapio():
@@ -134,7 +134,7 @@ def cria_inclusoes_continuas(qtd=50):
             descricao=f.text()[:160], criado_por=user,
             dias_semana=list(np.random.randint(6, size=4)),
             data_inicial=hoje + datetime.timedelta(
-                days=random.randint(1, 30)),
+                days=random.randint(1, 180)),
             data_final=hoje + datetime.timedelta(
                 days=random.randint(100, 200)))
 
@@ -166,7 +166,7 @@ def cria_inclusoes_normais(qtd=50):
             motivo=_get_random_motivo_normal(),
             outro_motivo=f.text()[:40],
             grupo_inclusao=grupo_inclusao_normal,
-            data=hoje + datetime.timedelta(days=random.randint(1, 30))
+            data=hoje + datetime.timedelta(days=random.randint(1, 180))
         )
         fluxo_escola_felix(grupo_inclusao_normal, user)
 
@@ -175,7 +175,7 @@ def cria_solicitacoes_kit_lanche_unificada(qtd=50):
     user = Usuario.objects.get(email="dre@admin.com")
     for i in range(qtd):
         base = SolicitacaoKitLanche.objects.create(
-            data=hoje + datetime.timedelta(days=random.randint(1, 30)),
+            data=hoje + datetime.timedelta(days=random.randint(1, 180)),
             motivo=f.text()[:40],
             descricao=f.text()[:160],
             tempo_passeio=SolicitacaoKitLanche.QUATRO)
@@ -202,7 +202,7 @@ def cria_solicitacoes_kit_lanche_avulsa(qtd=50):
     user = Usuario.objects.get(email="escola@admin.com")
     for i in range(qtd):
         base = SolicitacaoKitLanche.objects.create(
-            data=hoje + datetime.timedelta(days=random.randint(1, 30)),
+            data=hoje + datetime.timedelta(days=random.randint(1, 180)),
             motivo=f.text()[:40],
             descricao=f.text()[:160],
             tempo_passeio=SolicitacaoKitLanche.QUATRO)
@@ -250,7 +250,7 @@ def cria_suspensoes_alimentacao(qtd=50):
             SuspensaoAlimentacao.objects.create(
                 outro_motivo=f.text()[:50],
                 grupo_suspensao=suspensao_grupo,
-                data=hoje + datetime.timedelta(days=random.randint(1, 30)),
+                data=hoje + datetime.timedelta(days=random.randint(1, 180)),
                 motivo=_get_random_motivo_suspensao()
             )
             q = QuantidadePorPeriodoSuspensaoAlimentacao.objects.create(

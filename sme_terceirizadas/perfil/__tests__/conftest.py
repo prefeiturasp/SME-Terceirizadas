@@ -124,8 +124,11 @@ def users_admin_escola(client, django_user_model, request):
     user = django_user_model.objects.create_user(password=password, email=email, registro_funcional=rf)
     client.login(email=email, password=password)
 
+    diretoria_regional = mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL IPIRANGA',
+                                    uuid='7da9acec-48e1-430c-8a5c-1f1efc666fad')
     escola = mommy.make('Escola', nome='EMEI NOE AZEVEDO, PROF', quantidade_alunos=420,
-                        uuid='b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd')
+                        uuid='b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd', diretoria_regional=diretoria_regional,
+                        codigo_eol='256341')
     perfil_professor = mommy.make('Perfil', nome='ADMINISTRADOR_ESCOLA', ativo=False)
     perfil_admin = mommy.make('Perfil', nome='Admin', ativo=True, uuid='d6fd15cc-52c6-4db4-b604-018d22eeb3dd')
     hoje = datetime.date.today()
@@ -150,8 +153,11 @@ def users_diretor_escola(client, django_user_model, request, usuario_2):
     user = django_user_model.objects.create_user(password=password, email=email, registro_funcional=rf, cpf=cpf)
     client.login(email=email, password=password)
 
+    diretoria_regional = mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL IPIRANGA',
+                                    uuid='7da9acec-48e1-430c-8a5c-1f1efc666fad')
     escola = mommy.make('Escola', nome='EMEI NOE AZEVEDO, PROF', quantidade_alunos=420,
-                        uuid='b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd')
+                        uuid='b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd', diretoria_regional=diretoria_regional,
+                        codigo_eol='256341')
 
     perfil_professor = mommy.make('Perfil', nome='ADMINISTRADOR_ESCOLA', ativo=False,
                                   uuid='48330a6f-c444-4462-971e-476452b328b2')
@@ -276,10 +282,17 @@ def mocked_request_api_eol_usuario_diretoria_regional():
     (f.name(), f.uuid4()),
 
 ])
-def usuarios_pendentes_confirmacao(request, perfil, escola):
+def usuarios_pendentes_confirmacao(request, perfil):
     nome, uuid = request.param
     usuario = mommy.make('Usuario', nome=nome, uuid=uuid, is_active=False)
     hoje = datetime.date.today()
+
+    diretoria_regional = mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL IPIRANGA',
+                                    uuid='7da9acec-48e1-430c-8a5c-1f1efc666fad')
+    escola = mommy.make('Escola', nome='EMEI NOE AZEVEDO, PROF', quantidade_alunos=420,
+                        uuid='b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd', diretoria_regional=diretoria_regional,
+                        codigo_eol='256341')
+
     mommy.make('Vinculo', perfil=perfil, usuario=usuario, data_inicial=None, data_final=None, ativo=False,
                instituicao=escola)  # vinculo esperando ativacao
 
@@ -292,10 +305,21 @@ def usuarios_pendentes_confirmacao(request, perfil, escola):
 
 @pytest.fixture(params=[
     # email, esprado
-    ('tebohelleb-2297@sme.prefeitura.gov.br', 't*************7@sme.prefeitura.gov.br'),
-    ('surracecyss-9018@sme.prefeitura.gov.br', 's**************8@sme.prefeitura.gov.br'),
-    ('zoffexupi-7784@sme.prefeitura.gov.br', 'z************4@sme.prefeitura.gov.br'),
-    ('fulano157@sme.prefeitura.gov.br', 'f*******7@sme.prefeitura.gov.br')
+    ('tebohelleb-2297@sme.prefeitura.sp.gov.br', 't*************7@sme.prefeitura.sp.gov.br'),
+    ('surracecyss-9018@sme.prefeitura.sp.gov.br', 's**************8@sme.prefeitura.sp.gov.br'),
+    ('zoffexupi-7784@sme.prefeitura.sp.gov.br', 'z************4@sme.prefeitura.sp.gov.br'),
+    ('fulano157@sme.prefeitura.sp.gov.br', 'f*******7@sme.prefeitura.sp.gov.br')
 ])
 def email_list(request):
+    return request.param
+
+
+@pytest.fixture(params=[
+    # email, esprado
+    ('tebohelleb-2297@smea.prefeitura.sp.gov.br', 't*************7@sme.prefeitura.sp.gov.br'),
+    ('surracecyss-9018@smes.prefeitura.sp.gov.br', 's**************8@sme.prefeitura.sp.gov.br'),
+    ('zoffexupi-7784@smed.prefeitura.sp.gov.br', 'z************4@sme.prefeitura.sp.gov.br'),
+    ('fulano157@smea.prefeitura.sp.gov.br', 'f*******7@sme.prefeitura.sp.gov.br')
+])
+def email_list_invalidos(request):
     return request.param

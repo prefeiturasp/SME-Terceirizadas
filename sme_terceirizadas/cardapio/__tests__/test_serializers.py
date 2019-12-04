@@ -1,6 +1,9 @@
 import pytest
 
-from ..api.serializers.serializers import VinculoTipoAlimentoSimplesSerializer
+from ..api.serializers.serializers import (
+    SubstituicoesVinculoTipoAlimentoSimplesSerializer,
+    VinculoTipoAlimentoSimplesSerializer
+)
 
 pytestmark = pytest.mark.django_db
 
@@ -36,10 +39,18 @@ def test_substituicoes_alimentacao_no_periodo_escolar_serializer(  # noqa
     assert 'tipo_alimentacao_para' in substituicoes_alimentacao_no_periodo_escolar_serializer.data
 
 
-def test_vinculo_tipo_alimentacao_periodo_tipo_ue(vinculo_tipo_alimentacao_periodo_tipo_ue):
-    vinculo, _ = vinculo_tipo_alimentacao_periodo_tipo_ue
-    serializer_vinculo = VinculoTipoAlimentoSimplesSerializer(vinculo)
-    assert 'tipos_alimentacao' in serializer_vinculo.data
-    assert 'tipo_unidade_escolar' in serializer_vinculo.data
-    assert 'periodo_escolar' in serializer_vinculo.data
-    assert len(serializer_vinculo.data.keys()) == 4
+def test_vinculo_tipo_alimentacao_serializer(vinculo_tipo_alimentacao):
+    vinculo_serializer = VinculoTipoAlimentoSimplesSerializer(vinculo_tipo_alimentacao)
+    assert 'periodo_escolar' in vinculo_serializer.data
+    assert 'tipo_unidade_escolar' in vinculo_serializer.data
+    assert 'substituicoes' in vinculo_serializer.data
+
+
+def test_substituicies_vinculo_tipo_alimentacao_serializer(substituicies_vinculo_tipo_alimentacao):
+    substituicoes_vinculo_serializer = SubstituicoesVinculoTipoAlimentoSimplesSerializer(
+        substituicies_vinculo_tipo_alimentacao,
+        many=True)
+    for substituicao in substituicoes_vinculo_serializer.data:
+        assert 'tipo_alimentacao' in substituicao
+        assert 'possibilidades' in substituicao
+        assert 'substituicoes' in substituicao

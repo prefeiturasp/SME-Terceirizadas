@@ -17,6 +17,7 @@ from sme_terceirizadas.kit_lanche.urls import urlpatterns as kit_lanche_urls
 from sme_terceirizadas.paineis_consolidados.urls import urlpatterns as paineis_consolidados_urls
 from sme_terceirizadas.perfil.urls import urlpatterns as perfil_urls
 from sme_terceirizadas.terceirizada.urls import urlpatterns as terceirizada_urls
+from sme_terceirizadas.dieta_especial.urls import urlpatterns as dieta_especial_urls
 
 env = environ.Env()
 
@@ -41,6 +42,7 @@ urlpatterns += kit_lanche_urls
 urlpatterns += cardapio_urls
 urlpatterns += terceirizada_urls
 urlpatterns += paineis_consolidados_urls
+urlpatterns += dieta_especial_urls
 
 if settings.DEBUG:
     # This allows the error pages to be debugged during development, just visit

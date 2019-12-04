@@ -61,6 +61,46 @@ def inclusao_alimentacao_continua_params(escola, motivo_inclusao_continua, reque
 
 
 @pytest.fixture(params=[
+    # data ini, data fim, esperado
+    (datetime.date(2019, 10, 1), datetime.date(2019, 10, 30), datetime.date(2019, 10, 1)),
+    (datetime.date(2019, 10, 1), datetime.date(2019, 9, 20), datetime.date(2019, 9, 20))]
+)
+def inclusao_alimentacao_continua(escola, motivo_inclusao_continua, request):
+    mommy.make(TemplateMensagem, assunto='TESTE',
+               tipo=TemplateMensagem.INCLUSAO_ALIMENTACAO_CONTINUA,
+               template_html='@id @criado_em @status @link')
+
+    data_inicial, data_final, esperado = request.param
+    return mommy.make(models.InclusaoAlimentacaoContinua,
+                      motivo=motivo_inclusao_continua,
+                      data_inicial=data_inicial,
+                      data_final=data_final,
+                      outro_motivo=fake.name(),
+                      escola=escola)
+
+
+@pytest.fixture
+def inclusao_alimentacao_continua_dre_validar(inclusao_alimentacao_continua):
+    inclusao_alimentacao_continua.status = PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR
+    inclusao_alimentacao_continua.save()
+    return inclusao_alimentacao_continua
+
+
+@pytest.fixture
+def inclusao_alimentacao_continua_dre_validado(inclusao_alimentacao_continua):
+    inclusao_alimentacao_continua.status = PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO
+    inclusao_alimentacao_continua.save()
+    return inclusao_alimentacao_continua
+
+
+@pytest.fixture
+def inclusao_alimentacao_continua_codae_autorizado(inclusao_alimentacao_continua):
+    inclusao_alimentacao_continua.status = PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO
+    inclusao_alimentacao_continua.save()
+    return inclusao_alimentacao_continua
+
+
+@pytest.fixture(params=[
     # data_inicial, data_final
     (datetime.date(2019, 10, 4), datetime.date(2019, 12, 31)),
     (datetime.date(2019, 10, 5), datetime.date(2019, 12, 31)),

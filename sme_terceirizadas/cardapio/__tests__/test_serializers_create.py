@@ -3,17 +3,11 @@ from freezegun import freeze_time
 from model_mommy import mommy
 from rest_framework.exceptions import ValidationError
 
-from ...cardapio.models import (
-    AlteracaoCardapio,
-    GrupoSuspensaoAlimentacao,
-    InversaoCardapio,
-    VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
-)
+from ...cardapio.models import AlteracaoCardapio, GrupoSuspensaoAlimentacao, InversaoCardapio
 from ..api.serializers.serializers_create import (
     AlteracaoCardapioSerializerCreate,
     GrupoSuspensaoAlimentacaoCreateSerializer,
-    InversaoCardapioSerializerCreate,
-    VinculoTipoAlimentoCreateSerializer
+    InversaoCardapioSerializerCreate
 )
 
 pytestmark = pytest.mark.django_db
@@ -200,31 +194,3 @@ def test_grupo_suspensao_alimentacao_serializer(grupo_suspensao_alimentacao_para
     assert grupo_suspensao_updated.quantidades_por_periodo.count() == 2
     assert grupo_suspensao_updated.suspensoes_alimentacao.count() == 1
     assert isinstance(grupo_suspensao_updated, GrupoSuspensaoAlimentacao)
-
-
-@freeze_time('2019-11-8')
-def test_vinculo_tipo_alimentacao_periodo_serializer():
-    periodo = mommy.make('PeriodoEscolar')
-    tipo_ue = mommy.make('TipoUnidadeEscolar')
-    tipos_alimentacao = mommy.make('TipoAlimentacao', _quantity=3)
-    validated_data = {'tipo_unidade_escolar': tipo_ue, 'periodo_escolar': periodo,
-                      'tipos_alimentacao': tipos_alimentacao}
-
-    VinculoTipoAlimentoCreateSerializer().validate_tipos_alimentacao(validated_data['tipos_alimentacao'])
-
-    vinculo_created = VinculoTipoAlimentoCreateSerializer().create(validated_data=validated_data)
-    assert isinstance(vinculo_created, VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar)
-    assert vinculo_created.tipo_unidade_escolar == tipo_ue
-    assert vinculo_created.periodo_escolar == periodo
-    assert vinculo_created.tipos_alimentacao.count() == 3
-
-    periodo_updt = mommy.make('PeriodoEscolar')
-    tipo_ue_updt = mommy.make('TipoUnidadeEscolar')
-    validated_data_update = {'tipo_unidade_escolar': tipo_ue_updt, 'periodo_escolar': periodo_updt,
-                             'tipos_alimentacao': tipos_alimentacao[:1]}
-    vinculo_updated = VinculoTipoAlimentoCreateSerializer().update(instance=vinculo_created,
-                                                                   validated_data=validated_data_update)
-    assert isinstance(vinculo_updated, VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar)
-    assert vinculo_updated.tipo_unidade_escolar == tipo_ue_updt
-    assert vinculo_updated.periodo_escolar == periodo_updt
-    assert vinculo_updated.tipos_alimentacao.count() == 1

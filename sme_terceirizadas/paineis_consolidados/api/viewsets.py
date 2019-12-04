@@ -1,13 +1,21 @@
+import datetime
+
 from django.db.models.query import QuerySet
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from ...dados_comuns.constants import FILTRO_PADRAO_PEDIDOS, SEM_FILTRO
-from ...paineis_consolidados.api.constants import TIPO_VISAO, TIPO_VISAO_LOTE, TIPO_VISAO_SOLICITACOES
+from ...paineis_consolidados.api.constants import PESQUISA, TIPO_VISAO, TIPO_VISAO_LOTE, TIPO_VISAO_SOLICITACOES
 from ...paineis_consolidados.api.serializers import SolicitacoesSerializer
 from ..api.constants import FILTRO_PERIOD_UUID_DRE, PENDENTES_VALIDACAO_DRE
-from ..models import SolicitacoesCODAE, SolicitacoesDRE, SolicitacoesEscola, SolicitacoesTerceirizada
+from ..models import (
+    FiltrosConsolidados,
+    SolicitacoesCODAE,
+    SolicitacoesDRE,
+    SolicitacoesEscola,
+    SolicitacoesTerceirizada
+)
 from .constants import (
     AUTORIZADOS,
     CANCELADOS,
@@ -47,6 +55,39 @@ class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
                                         'LIMITE': 0}
             sumario[nome_objeto][prioridade] += 1
             sumario[nome_objeto]['TOTAL'] += 1
+        return sumario
+
+    def _agrupa_por_mes_por_solicitacao(self, query_set: list) -> dict:
+        # TODO: melhorar performance
+        sumario = {
+            'total': 0,
+            'Inclusão de Alimentação': {
+                'quantidades': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                'total': 0
+            },
+            'Alteração de Cardápio': {
+                'quantidades': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                'total': 0
+            },
+            'Inversão de dia de Cardápio': {
+                'quantidades': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                'total': 0
+            },
+            'Suspensão de Alimentação': {
+                'quantidades': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                'total': 0
+            },
+            'Kit Lanche Passeio': {
+                'quantidades': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                'total': 0
+            }
+        }  # type: dict
+        for solicitacao in query_set:
+            if solicitacao['desc_doc'] == 'Inclusão de Alimentação Contínua':
+                solicitacao['desc_doc'] = 'Inclusão de Alimentação'
+            sumario[solicitacao['desc_doc']]['quantidades'][solicitacao['data_evento__month'] - 1] += 1
+            sumario[solicitacao['desc_doc']]['total'] += 1
+            sumario['total'] += 1
         return sumario
 
 
@@ -106,10 +147,77 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
         query_set = SolicitacoesEscola.get_cancelados(escola_uuid=escola_uuid)
         return self._retorno_base(query_set)
 
+    def retorna_data_ou_falso(self, date_text):
+        try:
+            return datetime.datetime.strptime(date_text, '%d-%m-%Y')
+        except ValueError:
+            return False
+
+    # TODO: achar uma forma melhor de estruturar isso. Ex: pesquisa/uuidEscola?tipo=XXX&status=zzz&data_inicial=DDDD
+    @action(
+        detail=False,
+        methods=['GET'],
+        url_path=f'{PESQUISA}/{FILTRO_ESCOLA_UUID}')
+    def filtro_periodo_tipo_solicitacao(self, request, escola_uuid=None):
+        # TODO: achar um jeito melhor de validar os parametros da url
+        """Filtro de todas as solicitações da escola.
+
+        ---
+        tipo_solicitacao -- ALT_CARDAPIO|INV_CARDAPIO|INC_ALIMENTA|INC_ALIMENTA_CONTINUA|
+        KIT_LANCHE_AVULSA|SUSP_ALIMENTACAO|KIT_LANCHE_UNIFICADA|TODOS
+        status_solicitacao -- AUTORIZADOS|NEGADOS|CANCELADOS|EM_ANDAMENTO|TODOS
+        data_inicial -- dd-mm-yyyy
+        data_final -- dd-mm-yyyy
+        """
+        request_params = request.GET
+        tipo_solicitacao = request_params.get('tipo_solicitacao', 'INVALIDO')
+        status_solicitacao = request_params.get('status_solicitacao', 'INVALIDO')
+        data_inicial = request_params.get('data_inicial', 'INVALIDO')
+        data_final = request_params.get('data_final', 'INVALIDO')
+
+        test1 = tipo_solicitacao in ['ALT_CARDAPIO',
+                                     'INV_CARDAPIO',
+                                     'INC_ALIMENTA',
+                                     'INC_ALIMENTA_CONTINUA',
+                                     'KIT_LANCHE_AVULSA',
+                                     'SUSP_ALIMENTACAO',
+                                     'KIT_LANCHE_UNIFICADA',
+                                     'TODOS']
+        test2 = status_solicitacao in ['AUTORIZADOS', 'NEGADOS', 'CANCELADOS', 'EM_ANDAMENTO', 'TODOS']
+        data_inicial = self.retorna_data_ou_falso(data_inicial)
+        data_final = self.retorna_data_ou_falso(data_final)
+
+        parametros_validos = test1 and test2 and data_inicial and data_final
+        if not parametros_validos:
+            return Response(data={'detail': 'Parâmetros de busca inválidos'}, status=400)
+
+        query_set = FiltrosConsolidados.filtros_escola(
+            escola_uuid=escola_uuid,
+            data_inicial=data_inicial,
+            data_final=data_final,
+            tipo_solicitacao=tipo_solicitacao,
+            status_solicitacao=status_solicitacao
+        )
+
+        return self._retorno_base(query_set)
+
     def _retorno_base(self, query_set):
         page = self.paginate_queryset(query_set)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
+
+
+class EscolaRelatorioViewSet(SolicitacoesViewSet):
+    queryset = SolicitacoesEscola.objects.all()
+    serializer_class = SolicitacoesSerializer
+
+    @action(detail=False, methods=['GET'])
+    def evolucao_solicitacoes(self, request):
+        usuario = request.user
+        escola_uuid = usuario.vinculo_atual.instituicao.uuid
+        query_set = SolicitacoesEscola.get_solicitacoes_ano_corrente(escola_uuid=escola_uuid)
+        response = {'results': self._agrupa_por_mes_por_solicitacao(query_set=query_set)}
+        return Response(response)
 
 
 class DRESolicitacoesViewSet(SolicitacoesViewSet):

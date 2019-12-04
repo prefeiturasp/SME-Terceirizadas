@@ -10,6 +10,7 @@ class SolicitacoesSerializer(serializers.ModelSerializer):
     data_log = serializers.SerializerMethodField()
     descricao = serializers.SerializerMethodField()
     prioridade = serializers.CharField()
+    id_externo = serializers.CharField()
 
     def get_descricao(self, obj):
         uuid = str(obj.uuid)

@@ -9,6 +9,7 @@ from .models import (
     MotivoSuspensao,
     QuantidadePorPeriodoSuspensaoAlimentacao,
     SubstituicoesAlimentacaoNoPeriodoEscolar,
+    SubstituicoesDoVinculoTipoAlimentacaoPeriodoTipoUE,
     SuspensaoAlimentacao,
     TipoAlimentacao,
     VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
@@ -20,6 +21,7 @@ admin.site.register(MotivoAlteracaoCardapio)
 admin.site.register(SubstituicoesAlimentacaoNoPeriodoEscolar)
 admin.site.register(MotivoSuspensao)
 admin.site.register(VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar)
+admin.site.register(SubstituicoesDoVinculoTipoAlimentacaoPeriodoTipoUE)
 
 
 @admin.register(Cardapio)

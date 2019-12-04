@@ -5,7 +5,7 @@ from faker import Faker
 from model_mommy import mommy
 from rest_framework.test import APIClient
 
-from ...dados_comuns.fluxo_status import PedidoAPartirDaEscolaWorkflow
+from ...dados_comuns.fluxo_status import InformativoPartindoDaEscolaWorkflow, PedidoAPartirDaEscolaWorkflow
 from ...dados_comuns.models import TemplateMensagem
 from ..api.serializers.serializers import (
     AlteracaoCardapioSerializer,
@@ -43,8 +43,7 @@ def client():
 
 @pytest.fixture
 def cardapio_valido():
-    data = datetime.datetime.now() + datetime.timedelta(days=2)
-    cardapio_valido = mommy.make('Cardapio', id=1, data=data.date(),
+    cardapio_valido = mommy.make('Cardapio', id=1, data=datetime.date(2019, 11, 29),
                                  uuid='7a4ec98a-18a8-4d0a-b722-1da8f99aaf4b',
                                  descricao='lorem ipsum')
     return cardapio_valido
@@ -52,8 +51,7 @@ def cardapio_valido():
 
 @pytest.fixture
 def cardapio_valido2():
-    data = datetime.datetime.now() + datetime.timedelta(days=4)
-    cardapio_valido2 = mommy.make('Cardapio', id=2, data=data.date(),
+    cardapio_valido2 = mommy.make('Cardapio', id=2, data=datetime.date(2019, 12, 15),
                                   uuid='7a4ec98a-18a8-4d0a-b722-1da8f99aaf4c')
     return cardapio_valido2
 
@@ -67,7 +65,7 @@ def cardapio_valido3():
 
 @pytest.fixture
 def cardapio_invalido():
-    cardapio_invalido = mommy.prepare('Cardapio', _save_related=True, id=3, data=datetime.datetime(2019, 7, 2).date(),
+    cardapio_invalido = mommy.prepare('Cardapio', _save_related=True, id=3, data=datetime.date(2019, 7, 2),
                                       uuid='7a4ec98a-18a8-4d0a-b722-1da8f99aaf4d')
     return cardapio_invalido
 
@@ -144,8 +142,16 @@ def suspensao_periodo_escolar(suspensao_alimentacao):
 
 
 @pytest.fixture
-def grupo_suspensao_alimentacao():
-    return mommy.make(GrupoSuspensaoAlimentacao, observacao='lorem ipsum')
+def grupo_suspensao_alimentacao(escola):
+    mommy.make(TemplateMensagem, tipo=TemplateMensagem.SUSPENSAO_ALIMENTACAO)
+    return mommy.make(GrupoSuspensaoAlimentacao, observacao='lorem ipsum', escola=escola)
+
+
+@pytest.fixture
+def grupo_suspensao_alimentacao_informado(grupo_suspensao_alimentacao):
+    grupo_suspensao_alimentacao.status = InformativoPartindoDaEscolaWorkflow.INFORMADO
+    grupo_suspensao_alimentacao.save()
+    return grupo_suspensao_alimentacao
 
 
 @pytest.fixture
@@ -176,11 +182,33 @@ def motivo_alteracao_cardapio_serializer():
 
 @pytest.fixture
 def alteracao_cardapio(escola):
+    mommy.make(TemplateMensagem, tipo=TemplateMensagem.ALTERACAO_CARDAPIO)
     return mommy.make(AlteracaoCardapio,
                       escola=escola,
                       observacao='teste',
                       data_inicial=datetime.date(2019, 10, 4),
                       data_final=datetime.date(2019, 12, 31))
+
+
+@pytest.fixture
+def alteracao_cardapio_dre_validar(alteracao_cardapio):
+    alteracao_cardapio.status = PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR
+    alteracao_cardapio.save()
+    return alteracao_cardapio
+
+
+@pytest.fixture
+def alteracao_cardapio_dre_validado(alteracao_cardapio):
+    alteracao_cardapio.status = PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO
+    alteracao_cardapio.save()
+    return alteracao_cardapio
+
+
+@pytest.fixture
+def alteracao_cardapio_codae_autorizado(alteracao_cardapio):
+    alteracao_cardapio.status = PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO
+    alteracao_cardapio.save()
+    return alteracao_cardapio
 
 
 @pytest.fixture
@@ -423,15 +451,28 @@ def grupo_suspensao_alimentacao_params(request):
     return request.param
 
 
-@pytest.fixture(params=[
-    # quantidade tipos alimentacao
-    3,
-    4,
-    5
-])
-def vinculo_tipo_alimentacao_periodo_tipo_ue(request):
-    quantidade_tipos_alimentacao = request.param
-    tipos_alimentacao = mommy.make('TipoAlimentacao', nome=fake.name()[:10], _quantity=quantidade_tipos_alimentacao)
-    vinculo_alimentacao = mommy.make('VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar',
-                                     tipos_alimentacao=tipos_alimentacao)
-    return vinculo_alimentacao, quantidade_tipos_alimentacao
+@pytest.fixture
+def tipo_unidade_escolar():
+    cardapio1 = mommy.make('cardapio.Cardapio', data=datetime.date(2019, 10, 11))
+    cardapio2 = mommy.make('cardapio.Cardapio', data=datetime.date(2019, 10, 15))
+    return mommy.make('TipoUnidadeEscolar',
+                      iniciais=fake.name()[:10],
+                      cardapios=[cardapio1, cardapio2])
+
+
+@pytest.fixture
+def periodo_escolar():
+    return mommy.make('PeriodoEscolar')
+
+
+@pytest.fixture
+def substituicies_vinculo_tipo_alimentacao(tipo_unidade_escolar, periodo_escolar):
+    return mommy.make('SubstituicoesDoVinculoTipoAlimentacaoPeriodoTipoUE', _quantity=3)
+
+
+@pytest.fixture
+def vinculo_tipo_alimentacao(tipo_unidade_escolar, periodo_escolar, substituicies_vinculo_tipo_alimentacao):
+    return mommy.make('VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar',
+                      tipo_unidade_escolar=tipo_unidade_escolar,
+                      periodo_escolar=periodo_escolar,
+                      substituicoes=substituicies_vinculo_tipo_alimentacao)

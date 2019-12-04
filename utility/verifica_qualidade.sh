@@ -21,6 +21,8 @@ bandit -r sme_terceirizadas -ll
 echo "Verificando tipagem estática..."
 mypy sme_terceirizadas
 
+echo "Gerando coverage html..."
+coverage html
 
 read -p "Deseja rodar o code climate?(S/N)" yn
     case $yn in

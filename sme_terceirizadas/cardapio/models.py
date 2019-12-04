@@ -58,6 +58,33 @@ class TipoAlimentacao(Nomeavel, TemChaveExterna):
         verbose_name_plural = 'Tipos de alimentação'
 
 
+class SubstituicoesDoVinculoTipoAlimentacaoPeriodoTipoUE(TemChaveExterna):
+    tipo_alimentacao = models.ForeignKey('TipoAlimentacao',
+                                         help_text='Tipo de alimentação.',
+                                         on_delete=models.DO_NOTHING,
+                                         related_name='%(app_label)s_%(class)s_tipo_alimentacao',
+                                         )
+    possibilidades = models.ManyToManyField('TipoAlimentacao',
+                                            related_name='%(app_label)s_%(class)s_possibilidades',
+                                            help_text='Possibilidades de substituicões para este tipo de alimentação.',
+                                            blank=True,
+                                            )
+    substituicoes = models.ManyToManyField('TipoAlimentacao',
+                                           related_name='%(app_label)s_%(class)s_substituicoes',
+                                           help_text='Substituições para este tipo de alimentação.',
+                                           blank=True,
+                                           )
+
+    def __str__(self):
+        possibilidades = [nome for nome in self.possibilidades.values_list('nome', flat=True)]
+        substituicoes = [nome for nome in self.substituicoes.values_list('nome', flat=True)]
+        return f'{self.tipo_alimentacao.nome}  POS:{possibilidades} -> SUBS:{substituicoes}'
+
+    class Meta:
+        verbose_name = 'Substituição do vínculo tipo alimentação'
+        verbose_name_plural = 'Substituições do vínculo tipo alimentação'
+
+
 class VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar(TemChaveExterna):
     """Vincular vários tipos de alimentação a um periodo e tipo de U.E.
 
@@ -67,18 +94,21 @@ class VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar(TemChaveExterna
     Ex.: Para CEI(creche) pela manhã (período) faz sentido ter mingau e não café da tarde.
     """
 
-    periodo_escolar = models.ForeignKey('escola.PeriodoEscolar',
-                                        on_delete=models.DO_NOTHING)
     tipo_unidade_escolar = models.ForeignKey('escola.TipoUnidadeEscolar',
+                                             null=True,
                                              on_delete=models.DO_NOTHING)
-    tipos_alimentacao = models.ManyToManyField('TipoAlimentacao',
-                                               blank=True)
+    periodo_escolar = models.ForeignKey('escola.PeriodoEscolar',
+                                        null=True,
+                                        on_delete=models.DO_NOTHING)
+    substituicoes = models.ManyToManyField('SubstituicoesDoVinculoTipoAlimentacaoPeriodoTipoUE',
+                                           blank=True)
 
     def __str__(self):
-        tipos_alim_desc = [nome for nome in self.tipos_alimentacao.values_list('nome', flat=True)]
-        return f'{self.periodo_escolar.nome} - {self.tipo_unidade_escolar.iniciais} {tipos_alim_desc}'
+        substituicoes_str = [f'{str(sub)} --- ' for sub in self.substituicoes.all()]
+        return f'{self.tipo_unidade_escolar.iniciais} - {self.periodo_escolar.nome} - {substituicoes_str}'
 
     class Meta:
+        unique_together = [['periodo_escolar', 'tipo_unidade_escolar']]
         verbose_name = 'Vínculo tipo alimentação'
         verbose_name_plural = 'Vínculos tipo alimentação'
 

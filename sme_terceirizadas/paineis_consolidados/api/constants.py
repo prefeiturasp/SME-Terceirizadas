@@ -7,6 +7,7 @@ AUTORIZADOS = 'autorizados'
 _NEGADOS = 'cancelados'
 NEGADOS = 'negados'
 CANCELADOS = 'cancelados'
+PESQUISA = 'pesquisa'
 
 FILTRO_ESCOLA_UUID = '(?P<escola_uuid>[^/.]+)'
 FILTRO_DRE_UUID = '(?P<dre_uuid>[^/.]+)'
@@ -19,3 +20,9 @@ TIPO_VISAO_LOTE = 'lote'
 TIPO_VISAO_SOLICITACOES = 'tipo_solicitacao'
 
 TIPO_VISAO = f'(?P<tipo_visao>({TIPO_VISAO_DRE}|{TIPO_VISAO_LOTE}|{TIPO_VISAO_SOLICITACOES})+)'
+
+FILTRO_DATA_INICIAL = '(?P<filtro_aplicado>(sem_filtro|daqui_a_7_dias|daqui_a_30_dias)+)'
+TIPO_SOLICITACAO = '(?P<tipo_solicitacao>(ALT_CARDAPIO|INV_CARDAPIO|INC_ALIMENTA|INC_ALIMENTA_CONTINUA|KIT_LANCHE_AVULSA|SUSP_ALIMENTACAO|KIT_LANCHE_UNIFICADA|TODOS)+)'  # noqa
+STATUS_SOLICITACAO = '(?P<status_solicitacao>(AUTORIZADOS|NEGADOS|CANCELADOS|EM_ANDAMENTO|TODOS)+)'
+DATA_INICIAL = '(?P<data_inicial>.*)'
+DATA_FINAL = '(?P<data_final>.*)'
