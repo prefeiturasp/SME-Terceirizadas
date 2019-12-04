@@ -16,7 +16,8 @@ from ...escola.api.permissions import (
 from ...escola.api.serializers import CODAESerializer, LoteSimplesSerializer, UsuarioDetalheSerializer
 from ...escola.api.serializers_create import LoteCreateSerializer
 from ...perfil.api.serializers import UsuarioUpdateSerializer, VinculoSerializer
-from ..models import Codae, DiretoriaRegional, Escola, Lote, PeriodoEscolar, Subprefeitura, TipoGestao
+from ..models import (Codae, DiretoriaRegional, Escola, Lote, PeriodoEscolar, Subprefeitura, TipoGestao,
+                      TipoUnidadeEscolar)
 from .serializers import (
     DiretoriaRegionalCompletaSerializer,
     DiretoriaRegionalSimplissimaSerializer,
@@ -24,8 +25,10 @@ from .serializers import (
     EscolaSimplissimaSerializer,
     PeriodoEscolarSerializer,
     SubprefeituraSerializer,
-    TipoGestaoSerializer
+    TipoGestaoSerializer,
+    TipoUnidadeEscolarSerializer
 )
+
 
 # https://www.django-rest-framework.org/api-guide/permissions/#custom-permissions
 
@@ -190,3 +193,9 @@ class CODAESimplesViewSet(ReadOnlyModelViewSet):
     lookup_field = 'uuid'
     queryset = Codae.objects.all()
     serializer_class = CODAESerializer
+
+
+class TipoUnidadeEscolarViewSet(ReadOnlyModelViewSet):
+    lookup_field = 'uuid'
+    serializer_class = TipoUnidadeEscolarSerializer
+    queryset = TipoUnidadeEscolar.objects.all()

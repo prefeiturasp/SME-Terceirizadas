@@ -1,0 +1,626 @@
+[
+  {
+    "model": "cardapio.vinculotipoalimentacaocomperiodoescolaretipounidadeescolar",
+    "pk": 1,
+    "fields": {
+      "tipo_unidade_escolar": 1,
+      "periodo_escolar": 1,
+      "substituicoes": [
+        1,
+        2,
+        3
+      ]
+    }
+  },
+  {
+    "model": "cardapio.vinculotipoalimentacaocomperiodoescolaretipounidadeescolar",
+    "pk": 2,
+    "fields": {
+      "tipo_unidade_escolar": 1,
+      "periodo_escolar": 2,
+      "substituicoes": [
+        1,
+        2,
+        3
+      ]
+    }
+  },
+  {
+    "model": "cardapio.vinculotipoalimentacaocomperiodoescolaretipounidadeescolar",
+    "pk": 3,
+    "fields": {
+      "tipo_unidade_escolar": 1,
+      "periodo_escolar": 3,
+      "substituicoes": [
+        1,
+        2,
+        3
+      ]
+    }
+  },
+  {
+    "model": "cardapio.vinculotipoalimentacaocomperiodoescolaretipounidadeescolar",
+    "pk": 4,
+    "fields": {
+      "tipo_unidade_escolar": 1,
+      "periodo_escolar": 4,
+      "substituicoes": [
+        1,
+        2,
+        3
+      ]
+    }
+  },
+  {
+    "model": "cardapio.vinculotipoalimentacaocomperiodoescolaretipounidadeescolar",
+    "pk": 5,
+    "fields": {
+      "tipo_unidade_escolar": 2,
+      "periodo_escolar": 1,
+      "substituicoes": [
+        1,
+        2,
+        3
+      ]
+    }
+  },
+  {
+    "model": "cardapio.vinculotipoalimentacaocomperiodoescolaretipounidadeescolar",
+    "pk": 6,
+    "fields": {
+      "tipo_unidade_escolar": 2,
+      "periodo_escolar": 2,
+      "substituicoes": [
+        1,
+        2,
+        3
+      ]
+    }
+  },
+  {
+    "model": "cardapio.vinculotipoalimentacaocomperiodoescolaretipounidadeescolar",
+    "pk": 7,
+    "fields": {
+      "tipo_unidade_escolar": 2,
+      "periodo_escolar": 3,
+      "substituicoes": [
+        1,
+        2,
+        3
+      ]
+    }
+  },
+  {
+    "model": "cardapio.vinculotipoalimentacaocomperiodoescolaretipounidadeescolar",
+    "pk": 8,
+    "fields": {
+      "tipo_unidade_escolar": 2,
+      "periodo_escolar": 4,
+      "substituicoes": [
+        1,
+        2,
+        3
+      ]
+    }
+  },
+  {
+    "model": "cardapio.vinculotipoalimentacaocomperiodoescolaretipounidadeescolar",
+    "pk": 9,
+    "fields": {
+      "tipo_unidade_escolar": 3,
+      "periodo_escolar": 1,
+      "substituicoes": [
+        1,
+        2,
+        3
+      ]
+    }
+  },
+  {
+    "model": "cardapio.vinculotipoalimentacaocomperiodoescolaretipounidadeescolar",
+    "pk": 10,
+    "fields": {
+      "tipo_unidade_escolar": 3,
+      "periodo_escolar": 2,
+      "substituicoes": [
+        1,
+        2,
+        3
+      ]
+    }
+  },
+  {
+    "model": "cardapio.vinculotipoalimentacaocomperiodoescolaretipounidadeescolar",
+    "pk": 11,
+    "fields": {
+      "tipo_unidade_escolar": 3,
+      "periodo_escolar": 3,
+      "substituicoes": [
+        1,
+        2,
+        3
+      ]
+    }
+  },
+  {
+    "model": "cardapio.vinculotipoalimentacaocomperiodoescolaretipounidadeescolar",
+    "pk": 12,
+    "fields": {
+      "tipo_unidade_escolar": 3,
+      "periodo_escolar": 4,
+      "substituicoes": [
+        1,
+        2,
+        3
+      ]
+    }
+  },
+  {
+    "model": "cardapio.vinculotipoalimentacaocomperiodoescolaretipounidadeescolar",
+    "pk": 13,
+    "fields": {
+      "tipo_unidade_escolar": 4,
+      "periodo_escolar": 1,
+      "substituicoes": [
+        1,
+        2,
+        3
+      ]
+    }
+  },
+  {
+    "model": "cardapio.vinculotipoalimentacaocomperiodoescolaretipounidadeescolar",
+    "pk": 14,
+    "fields": {
+      "tipo_unidade_escolar": 4,
+      "periodo_escolar": 2,
+      "substituicoes": [
+        1,
+        2,
+        3
+      ]
+    }
+  },
+  {
+    "model": "cardapio.vinculotipoalimentacaocomperiodoescolaretipounidadeescolar",
+    "pk": 15,
+    "fields": {
+      "tipo_unidade_escolar": 4,
+      "periodo_escolar": 3,
+      "substituicoes": [
+        1,
+        2,
+        3
+      ]
+    }
+  },
+  {
+    "model": "cardapio.vinculotipoalimentacaocomperiodoescolaretipounidadeescolar",
+    "pk": 16,
+    "fields": {
+      "tipo_unidade_escolar": 4,
+      "periodo_escolar": 4,
+      "substituicoes": [
+        1,
+        2,
+        3
+      ]
+    }
+  },
+  {
+    "model": "cardapio.vinculotipoalimentacaocomperiodoescolaretipounidadeescolar",
+    "pk": 17,
+    "fields": {
+      "tipo_unidade_escolar": 5,
+      "periodo_escolar": 1,
+      "substituicoes": [
+        1,
+        2,
+        3
+      ]
+    }
+  },
+  {
+    "model": "cardapio.vinculotipoalimentacaocomperiodoescolaretipounidadeescolar",
+    "pk": 18,
+    "fields": {
+      "tipo_unidade_escolar": 5,
+      "periodo_escolar": 2,
+      "substituicoes": [
+        1,
+        2,
+        3
+      ]
+    }
+  },
+  {
+    "model": "cardapio.vinculotipoalimentacaocomperiodoescolaretipounidadeescolar",
+    "pk": 19,
+    "fields": {
+      "tipo_unidade_escolar": 5,
+      "periodo_escolar": 3,
+      "substituicoes": [
+        1,
+        2,
+        3
+      ]
+    }
+  },
+  {
+    "model": "cardapio.vinculotipoalimentacaocomperiodoescolaretipounidadeescolar",
+    "pk": 20,
+    "fields": {
+      "tipo_unidade_escolar": 5,
+      "periodo_escolar": 4,
+      "substituicoes": [
+        1,
+        2,
+        3
+      ]
+    }
+  },
+  {
+    "model": "cardapio.vinculotipoalimentacaocomperiodoescolaretipounidadeescolar",
+    "pk": 21,
+    "fields": {
+      "tipo_unidade_escolar": 6,
+      "periodo_escolar": 1,
+      "substituicoes": [
+        1,
+        2,
+        3
+      ]
+    }
+  },
+  {
+    "model": "cardapio.vinculotipoalimentacaocomperiodoescolaretipounidadeescolar",
+    "pk": 22,
+    "fields": {
+      "tipo_unidade_escolar": 6,
+      "periodo_escolar": 2,
+      "substituicoes": [
+        1,
+        2,
+        3
+      ]
+    }
+  },
+  {
+    "model": "cardapio.vinculotipoalimentacaocomperiodoescolaretipounidadeescolar",
+    "pk": 23,
+    "fields": {
+      "tipo_unidade_escolar": 6,
+      "periodo_escolar": 3,
+      "substituicoes": [
+        1,
+        2,
+        3
+      ]
+    }
+  },
+  {
+    "model": "cardapio.vinculotipoalimentacaocomperiodoescolaretipounidadeescolar",
+    "pk": 24,
+    "fields": {
+      "tipo_unidade_escolar": 6,
+      "periodo_escolar": 4,
+      "substituicoes": [
+        1,
+        2,
+        3
+      ]
+    }
+  },
+  {
+    "model": "cardapio.vinculotipoalimentacaocomperiodoescolaretipounidadeescolar",
+    "pk": 25,
+    "fields": {
+      "tipo_unidade_escolar": 7,
+      "periodo_escolar": 1,
+      "substituicoes": [
+        1,
+        2,
+        3
+      ]
+    }
+  },
+  {
+    "model": "cardapio.vinculotipoalimentacaocomperiodoescolaretipounidadeescolar",
+    "pk": 26,
+    "fields": {
+      "tipo_unidade_escolar": 7,
+      "periodo_escolar": 2,
+      "substituicoes": [
+        1,
+        2,
+        3
+      ]
+    }
+  },
+  {
+    "model": "cardapio.vinculotipoalimentacaocomperiodoescolaretipounidadeescolar",
+    "pk": 27,
+    "fields": {
+      "tipo_unidade_escolar": 7,
+      "periodo_escolar": 3,
+      "substituicoes": [
+        1,
+        2,
+        3
+      ]
+    }
+  },
+  {
+    "model": "cardapio.vinculotipoalimentacaocomperiodoescolaretipounidadeescolar",
+    "pk": 28,
+    "fields": {
+      "tipo_unidade_escolar": 7,
+      "periodo_escolar": 4,
+      "substituicoes": [
+        1,
+        2,
+        3
+      ]
+    }
+  },
+  {
+    "model": "cardapio.vinculotipoalimentacaocomperiodoescolaretipounidadeescolar",
+    "pk": 29,
+    "fields": {
+      "tipo_unidade_escolar": 8,
+      "periodo_escolar": 1,
+      "substituicoes": [
+        1,
+        2,
+        3
+      ]
+    }
+  },
+  {
+    "model": "cardapio.vinculotipoalimentacaocomperiodoescolaretipounidadeescolar",
+    "pk": 30,
+    "fields": {
+      "tipo_unidade_escolar": 8,
+      "periodo_escolar": 2,
+      "substituicoes": [
+        1,
+        2,
+        3
+      ]
+    }
+  },
+  {
+    "model": "cardapio.vinculotipoalimentacaocomperiodoescolaretipounidadeescolar",
+    "pk": 31,
+    "fields": {
+      "tipo_unidade_escolar": 8,
+      "periodo_escolar": 3,
+      "substituicoes": [
+        1,
+        2,
+        3
+      ]
+    }
+  },
+  {
+    "model": "cardapio.vinculotipoalimentacaocomperiodoescolaretipounidadeescolar",
+    "pk": 32,
+    "fields": {
+      "tipo_unidade_escolar": 8,
+      "periodo_escolar": 4,
+      "substituicoes": [
+        1,
+        2,
+        3
+      ]
+    }
+  },
+  {
+    "model": "cardapio.vinculotipoalimentacaocomperiodoescolaretipounidadeescolar",
+    "pk": 33,
+    "fields": {
+      "tipo_unidade_escolar": 9,
+      "periodo_escolar": 1,
+      "substituicoes": [
+        1,
+        2,
+        3
+      ]
+    }
+  },
+  {
+    "model": "cardapio.vinculotipoalimentacaocomperiodoescolaretipounidadeescolar",
+    "pk": 34,
+    "fields": {
+      "tipo_unidade_escolar": 9,
+      "periodo_escolar": 2,
+      "substituicoes": [
+        1,
+        2,
+        3
+      ]
+    }
+  },
+  {
+    "model": "cardapio.vinculotipoalimentacaocomperiodoescolaretipounidadeescolar",
+    "pk": 35,
+    "fields": {
+      "tipo_unidade_escolar": 9,
+      "periodo_escolar": 3,
+      "substituicoes": [
+        1,
+        2,
+        3
+      ]
+    }
+  },
+  {
+    "model": "cardapio.vinculotipoalimentacaocomperiodoescolaretipounidadeescolar",
+    "pk": 36,
+    "fields": {
+      "tipo_unidade_escolar": 9,
+      "periodo_escolar": 4,
+      "substituicoes": [
+        1,
+        2,
+        3
+      ]
+    }
+  },
+  {
+    "model": "cardapio.vinculotipoalimentacaocomperiodoescolaretipounidadeescolar",
+    "pk": 37,
+    "fields": {
+      "tipo_unidade_escolar": 10,
+      "periodo_escolar": 1,
+      "substituicoes": [
+        1,
+        2,
+        3
+      ]
+    }
+  },
+  {
+    "model": "cardapio.vinculotipoalimentacaocomperiodoescolaretipounidadeescolar",
+    "pk": 38,
+    "fields": {
+      "tipo_unidade_escolar": 10,
+      "periodo_escolar": 2,
+      "substituicoes": [
+        1,
+        2,
+        3
+      ]
+    }
+  },
+  {
+    "model": "cardapio.vinculotipoalimentacaocomperiodoescolaretipounidadeescolar",
+    "pk": 39,
+    "fields": {
+      "tipo_unidade_escolar": 10,
+      "periodo_escolar": 3,
+      "substituicoes": [
+        1,
+        2,
+        3
+      ]
+    }
+  },
+  {
+    "model": "cardapio.vinculotipoalimentacaocomperiodoescolaretipounidadeescolar",
+    "pk": 40,
+    "fields": {
+      "tipo_unidade_escolar": 10,
+      "periodo_escolar": 4,
+      "substituicoes": [
+        1,
+        2,
+        3
+      ]
+    }
+  },
+  {
+    "model": "cardapio.vinculotipoalimentacaocomperiodoescolaretipounidadeescolar",
+    "pk": 41,
+    "fields": {
+      "tipo_unidade_escolar": 11,
+      "periodo_escolar": 1,
+      "substituicoes": [
+        1,
+        2,
+        3
+      ]
+    }
+  },
+  {
+    "model": "cardapio.vinculotipoalimentacaocomperiodoescolaretipounidadeescolar",
+    "pk": 42,
+    "fields": {
+      "tipo_unidade_escolar": 11,
+      "periodo_escolar": 2,
+      "substituicoes": [
+        1,
+        2,
+        3
+      ]
+    }
+  },
+  {
+    "model": "cardapio.vinculotipoalimentacaocomperiodoescolaretipounidadeescolar",
+    "pk": 43,
+    "fields": {
+      "tipo_unidade_escolar": 11,
+      "periodo_escolar": 3,
+      "substituicoes": [
+        1,
+        2,
+        3
+      ]
+    }
+  },
+  {
+    "model": "cardapio.vinculotipoalimentacaocomperiodoescolaretipounidadeescolar",
+    "pk": 44,
+    "fields": {
+      "tipo_unidade_escolar": 11,
+      "periodo_escolar": 4,
+      "substituicoes": [
+        1,
+        2,
+        3
+      ]
+    }
+  },
+  {
+    "model": "cardapio.vinculotipoalimentacaocomperiodoescolaretipounidadeescolar",
+    "pk": 45,
+    "fields": {
+      "tipo_unidade_escolar": 12,
+      "periodo_escolar": 1,
+      "substituicoes": [
+        1,
+        2,
+        3
+      ]
+    }
+  },
+  {
+    "model": "cardapio.vinculotipoalimentacaocomperiodoescolaretipounidadeescolar",
+    "pk": 46,
+    "fields": {
+      "tipo_unidade_escolar": 12,
+      "periodo_escolar": 2,
+      "substituicoes": [
+        1,
+        2,
+        3
+      ]
+    }
+  },
+  {
+    "model": "cardapio.vinculotipoalimentacaocomperiodoescolaretipounidadeescolar",
+    "pk": 47,
+    "fields": {
+      "tipo_unidade_escolar": 12,
+      "periodo_escolar": 3,
+      "substituicoes": [
+        1,
+        2,
+        3
+      ]
+    }
+  },
+  {
+    "model": "cardapio.vinculotipoalimentacaocomperiodoescolaretipounidadeescolar",
+    "pk": 48,
+    "fields": {
+      "tipo_unidade_escolar": 12,
+      "periodo_escolar": 4,
+      "substituicoes": [
+        1,
+        2,
+        3
+      ]
+    }
+  }
+]
