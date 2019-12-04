@@ -35,6 +35,7 @@ class SolicitacoesDesteMesManager(models.Manager):
 class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmigavel):
     uuid = models.UUIDField(editable=False)
     data_evento = models.DateField()
+    criado_em = models.DateField()
     lote_nome = models.CharField(max_length=50)
     dre_nome = models.CharField(max_length=200)
     escola_nome = models.CharField(max_length=200)
@@ -327,8 +328,8 @@ class FiltrosConsolidados(MoldeConsolidado):
         )
         if data_inicial and data_final:
             query_set = query_set.filter(
-                data_evento__gte=data_inicial,
-                data_evento__lte=data_final
+                criado_em__gte=data_inicial,
+                criado_em__lte=data_final
             )
         if tipo_solicitacao != cls.TODOS:
             query_set = query_set.filter(tipo_doc=tipo_solicitacao)
@@ -350,4 +351,4 @@ class FiltrosConsolidados(MoldeConsolidado):
                     PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR
                 ])
 
-        return query_set
+        return query_set.order_by('-criado_em')
