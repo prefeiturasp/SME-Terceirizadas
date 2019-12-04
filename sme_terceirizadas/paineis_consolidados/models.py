@@ -4,7 +4,7 @@ import operator
 from django.db import models
 from django.db.models import Q
 
-from ..dados_comuns.behaviors import TemPrioridade
+from ..dados_comuns.behaviors import TemPrioridade, TemIdentificadorExternoAmigavel
 from ..dados_comuns.constants import DAQUI_A_SETE_DIAS, DAQUI_A_TRINTA_DIAS
 from ..dados_comuns.fluxo_status import (
     InformativoPartindoDaEscolaWorkflow,
@@ -32,7 +32,7 @@ class SolicitacoesDesteMesManager(models.Manager):
         ).filter(data_evento__range=(data_limite_inicial, data_limite_final))
 
 
-class MoldeConsolidado(models.Model, TemPrioridade):
+class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmigavel):
     uuid = models.UUIDField(editable=False)
     data_evento = models.DateField()
     lote_nome = models.CharField(max_length=50)
