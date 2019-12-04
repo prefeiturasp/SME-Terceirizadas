@@ -1,12 +1,12 @@
 from drf_base64.serializers import ModelSerializer
 from rest_framework import serializers
 
-from .validators import deve_ter_extensao_valida
-from ..models import Anexo, SolicitacaoDietaEspecial
 from ...dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
 from ...dados_comuns.utils import convert_base64_to_contentfile
 from ...dados_comuns.validators import deve_ser_no_passado
 from ...escola.api.serializers import EscolaSimplesSerializer
+from ..models import Anexo, SolicitacaoDietaEspecial
+from .validators import deve_ter_extensao_valida
 
 
 class AnexoCreateSerializer(serializers.ModelSerializer):

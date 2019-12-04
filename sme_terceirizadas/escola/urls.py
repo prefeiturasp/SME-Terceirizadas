@@ -21,7 +21,7 @@ router.register('lotes', viewsets.LoteViewSet, basename='lotes')
 router.register('tipos-gestao', viewsets.TipoGestaoViewSet, basename='tipos-gestao')
 router.register('subprefeituras', viewsets.SubprefeituraViewSet, basename='subprefeituras')
 router.register('codae', viewsets.CODAESimplesViewSet, basename='codae')
-router.register('tipos-unidade-escolar', viewsets.TipoUnidadeEscolarViewSet, base_name='tipos-unidade-escolar')
+router.register('tipos-unidade-escolar', viewsets.TipoUnidadeEscolarViewSet, basename='tipos-unidade-escolar')
 
 urlpatterns = [
     path('', include(router.urls))

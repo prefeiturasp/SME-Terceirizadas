@@ -4,10 +4,9 @@ import uuid
 from mimetypes import guess_extension
 
 import environ
-from django.core.files.base import ContentFile
-
 from config.settings.base import URL_CONFIGS
 from des.models import DynamicEmailConfiguration
+from django.core.files.base import ContentFile
 from django.core.mail import EmailMultiAlternatives, get_connection, send_mail
 from workalendar.america import BrazilSaoPauloCity
 

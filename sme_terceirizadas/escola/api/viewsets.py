@@ -16,8 +16,16 @@ from ...escola.api.permissions import (
 from ...escola.api.serializers import CODAESerializer, LoteSimplesSerializer, UsuarioDetalheSerializer
 from ...escola.api.serializers_create import LoteCreateSerializer
 from ...perfil.api.serializers import UsuarioUpdateSerializer, VinculoSerializer
-from ..models import (Codae, DiretoriaRegional, Escola, Lote, PeriodoEscolar, Subprefeitura, TipoGestao,
-                      TipoUnidadeEscolar)
+from ..models import (
+    Codae,
+    DiretoriaRegional,
+    Escola,
+    Lote,
+    PeriodoEscolar,
+    Subprefeitura,
+    TipoGestao,
+    TipoUnidadeEscolar
+)
 from .serializers import (
     DiretoriaRegionalCompletaSerializer,
     DiretoriaRegionalSimplissimaSerializer,
@@ -28,7 +36,6 @@ from .serializers import (
     TipoGestaoSerializer,
     TipoUnidadeEscolarSerializer
 )
-
 
 # https://www.django-rest-framework.org/api-guide/permissions/#custom-permissions
 

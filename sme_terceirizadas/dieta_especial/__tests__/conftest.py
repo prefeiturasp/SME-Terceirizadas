@@ -2,9 +2,9 @@ import pytest
 from faker import Faker
 from model_mommy import mommy
 
-from ..models import Anexo, SolicitacaoDietaEspecial
 from ...dados_comuns.utils import convert_base64_to_contentfile
 from ...escola.models import Escola
+from ..models import Anexo, SolicitacaoDietaEspecial
 
 fake = Faker('pt_BR')
 fake.seed(420)

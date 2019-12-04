@@ -4,7 +4,7 @@ import operator
 from django.db import models
 from django.db.models import Q
 
-from ..dados_comuns.behaviors import TemPrioridade, TemIdentificadorExternoAmigavel
+from ..dados_comuns.behaviors import TemIdentificadorExternoAmigavel, TemPrioridade
 from ..dados_comuns.constants import DAQUI_A_SETE_DIAS, DAQUI_A_TRINTA_DIAS
 from ..dados_comuns.fluxo_status import (
     InformativoPartindoDaEscolaWorkflow,
@@ -49,6 +49,7 @@ class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmiga
     desc_doc = models.CharField(max_length=50)
     data_log = models.DateTimeField()
     status_evento = models.PositiveSmallIntegerField()
+    numero_alunos = models.PositiveSmallIntegerField()
     status_atual = models.CharField(max_length=32)
 
     objects = models.Manager()
