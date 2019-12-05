@@ -26,7 +26,7 @@ from ...models import (
     MotivoAlteracaoCardapio,
     MotivoSuspensao,
     QuantidadePorPeriodoSuspensaoAlimentacao,
-    SubstituicoesAlimentacaoNoPeriodoEscolar,
+    SubstituicaoAlimentacaoNoPeriodoEscolar,
     SubstituicoesDoVinculoTipoAlimentacaoPeriodoTipoUE,
     SuspensaoAlimentacao,
     SuspensaoAlimentacaoNoPeriodoEscolar,
@@ -181,11 +181,11 @@ class SubstituicoesAlimentacaoNoPeriodoEscolarSerializerCreate(serializers.Model
     )
 
     def create(self, validated_data):
-        substituicoes_alimentacao = SubstituicoesAlimentacaoNoPeriodoEscolar.objects.create(**validated_data)
+        substituicoes_alimentacao = SubstituicaoAlimentacaoNoPeriodoEscolar.objects.create(**validated_data)
         return substituicoes_alimentacao
 
     class Meta:
-        model = SubstituicoesAlimentacaoNoPeriodoEscolar
+        model = SubstituicaoAlimentacaoNoPeriodoEscolar
         exclude = ('id',)
 
 

@@ -22,7 +22,7 @@ from ..models import (
     InversaoCardapio,
     MotivoAlteracaoCardapio,
     MotivoSuspensao,
-    SubstituicoesAlimentacaoNoPeriodoEscolar,
+    SubstituicaoAlimentacaoNoPeriodoEscolar,
     SuspensaoAlimentacao
 )
 
@@ -214,7 +214,7 @@ def alteracao_cardapio_codae_autorizado(alteracao_cardapio):
 @pytest.fixture
 def substituicoes_alimentacao_periodo(escola):
     alteracao_cardapio = mommy.make(AlteracaoCardapio, escola=escola, observacao='teste')
-    return mommy.make(SubstituicoesAlimentacaoNoPeriodoEscolar, uuid='59beb0ca-982a-49da-98b8-10a296f274ba',
+    return mommy.make(SubstituicaoAlimentacaoNoPeriodoEscolar, uuid='59beb0ca-982a-49da-98b8-10a296f274ba',
                       alteracao_cardapio=alteracao_cardapio)
 
 
@@ -226,7 +226,7 @@ def alteracao_cardapio_serializer(escola):
 
 @pytest.fixture
 def substituicoes_alimentacao_no_periodo_escolar_serializer():
-    substituicoes_alimentacao_no_periodo_escolar = mommy.make(SubstituicoesAlimentacaoNoPeriodoEscolar)
+    substituicoes_alimentacao_no_periodo_escolar = mommy.make(SubstituicaoAlimentacaoNoPeriodoEscolar)
     return SubstituicoesAlimentacaoNoPeriodoEscolarSerializer(substituicoes_alimentacao_no_periodo_escolar)
 
 

@@ -1,5 +1,16 @@
 from django.db import models
+from django_prometheus.models import ExportModelOperationsMixin
 
+from .managers import (
+    AlteracoesCardapioDestaSemanaManager,
+    AlteracoesCardapioDesteMesManager,
+    AlteracoesCardapioVencidaManager,
+    GrupoSuspensaoAlimentacaoDestaSemanaManager,
+    GrupoSuspensaoAlimentacaoDesteMesManager,
+    InversaoCardapioDestaSemanaManager,
+    InversaoCardapioDesteMesManager,
+    InversaoCardapioVencidaManager
+)
 from ..dados_comuns.behaviors import (  # noqa I101
     Ativavel,
     CriadoEm,
@@ -18,19 +29,9 @@ from ..dados_comuns.behaviors import (  # noqa I101
 )
 from ..dados_comuns.fluxo_status import FluxoAprovacaoPartindoDaEscola, FluxoInformativoPartindoDaEscola
 from ..dados_comuns.models import TemplateMensagem  # noqa I202
-from .managers import (
-    AlteracoesCardapioDestaSemanaManager,
-    AlteracoesCardapioDesteMesManager,
-    AlteracoesCardapioVencidaManager,
-    GrupoSuspensaoAlimentacaoDestaSemanaManager,
-    GrupoSuspensaoAlimentacaoDesteMesManager,
-    InversaoCardapioDestaSemanaManager,
-    InversaoCardapioDesteMesManager,
-    InversaoCardapioVencidaManager
-)
 
 
-class TipoAlimentacao(Nomeavel, TemChaveExterna):
+class TipoAlimentacao(ExportModelOperationsMixin('tipo_alimentacao'), Nomeavel, TemChaveExterna):
     """Compõe parte do cardápio.
 
     Dejejum
@@ -58,7 +59,8 @@ class TipoAlimentacao(Nomeavel, TemChaveExterna):
         verbose_name_plural = 'Tipos de alimentação'
 
 
-class SubstituicoesDoVinculoTipoAlimentacaoPeriodoTipoUE(TemChaveExterna):
+class SubstituicoesDoVinculoTipoAlimentacaoPeriodoTipoUE(
+    ExportModelOperationsMixin('substituicoes_vinculo_alimentacao'), TemChaveExterna):
     tipo_alimentacao = models.ForeignKey('TipoAlimentacao',
                                          help_text='Tipo de alimentação.',
                                          on_delete=models.DO_NOTHING,
@@ -89,7 +91,8 @@ class SubstituicoesDoVinculoTipoAlimentacaoPeriodoTipoUE(TemChaveExterna):
         verbose_name_plural = 'Substituições do vínculo tipo alimentação'
 
 
-class VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar(TemChaveExterna):
+class VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar(
+    ExportModelOperationsMixin('vinculo_alimentacao_periodo_escolar_tipo_ue'), TemChaveExterna):
     """Vincular vários tipos de alimentação a um periodo e tipo de U.E.
 
     Dado o tipo_unidade_escolar (EMEI, EMEF...) e
@@ -115,7 +118,7 @@ class VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar(TemChaveExterna
         verbose_name_plural = 'Vínculos tipo alimentação'
 
 
-class Cardapio(Descritivel, Ativavel, TemData, TemChaveExterna, CriadoEm):
+class Cardapio(ExportModelOperationsMixin('cardapio'), Descritivel, Ativavel, TemData, TemChaveExterna, CriadoEm):
     """Cardápio escolar.
 
     tem 1 data pra acontecer ex (26/06)
@@ -142,7 +145,8 @@ class Cardapio(Descritivel, Ativavel, TemData, TemChaveExterna, CriadoEm):
         verbose_name_plural = 'Cardápios'
 
 
-class InversaoCardapio(CriadoEm, CriadoPor, TemObservacao, Motivo, TemChaveExterna,
+class InversaoCardapio(ExportModelOperationsMixin('inversao_cardapio'), CriadoEm, CriadoPor, TemObservacao, Motivo,
+                       TemChaveExterna,
                        TemIdentificadorExternoAmigavel, FluxoAprovacaoPartindoDaEscola,
                        TemPrioridade, Logs):
     """Troca um cardápio de um dia por outro.
@@ -223,7 +227,7 @@ class InversaoCardapio(CriadoEm, CriadoPor, TemObservacao, Motivo, TemChaveExter
         verbose_name_plural = 'Inversão$ProjectFileDir$ de cardápios'
 
 
-class MotivoSuspensao(Nomeavel, TemChaveExterna):
+class MotivoSuspensao(ExportModelOperationsMixin('motivo_suspensao'), Nomeavel, TemChaveExterna):
     """Trabalha em conjunto com SuspensaoAlimentacao.
 
     Exemplos:
@@ -239,7 +243,7 @@ class MotivoSuspensao(Nomeavel, TemChaveExterna):
         verbose_name_plural = 'Motivo de suspensão de alimentação'
 
 
-class SuspensaoAlimentacao(TemData, TemChaveExterna):
+class SuspensaoAlimentacao(ExportModelOperationsMixin('suspensao_alimentacao'), TemData, TemChaveExterna):
     """Trabalha em conjunto com GrupoSuspensaoAlimentacao."""
 
     prioritario = models.BooleanField(default=False)
@@ -256,7 +260,7 @@ class SuspensaoAlimentacao(TemData, TemChaveExterna):
         verbose_name_plural = 'Suspensões de alimentação'
 
 
-class QuantidadePorPeriodoSuspensaoAlimentacao(TemChaveExterna):
+class QuantidadePorPeriodoSuspensaoAlimentacao(ExportModelOperationsMixin('quantidade_periodo'), TemChaveExterna):
     numero_alunos = models.SmallIntegerField()
     periodo_escolar = models.ForeignKey('escola.PeriodoEscolar', on_delete=models.DO_NOTHING)
     grupo_suspensao = models.ForeignKey('GrupoSuspensaoAlimentacao', on_delete=models.CASCADE,
@@ -271,7 +275,8 @@ class QuantidadePorPeriodoSuspensaoAlimentacao(TemChaveExterna):
         verbose_name_plural = 'Quantidade por período de suspensão de alimentação'
 
 
-class GrupoSuspensaoAlimentacao(TemChaveExterna, CriadoPor, TemIdentificadorExternoAmigavel,
+class GrupoSuspensaoAlimentacao(ExportModelOperationsMixin('grupo_suspensao_alimentacao'), TemChaveExterna, CriadoPor,
+                                TemIdentificadorExternoAmigavel,
                                 CriadoEm, TemObservacao, FluxoInformativoPartindoDaEscola, Logs,
                                 TemPrioridade):
     """Serve para agrupar suspensões.
@@ -347,7 +352,7 @@ class GrupoSuspensaoAlimentacao(TemChaveExterna, CriadoPor, TemIdentificadorExte
         verbose_name_plural = 'Grupo de suspensão de alimentação'
 
 
-class SuspensaoAlimentacaoNoPeriodoEscolar(TemChaveExterna):
+class SuspensaoAlimentacaoNoPeriodoEscolar(ExportModelOperationsMixin('suspensao_periodo_escolar'), TemChaveExterna):
     suspensao_alimentacao = models.ForeignKey(SuspensaoAlimentacao, on_delete=models.CASCADE,
                                               null=True, blank=True,
                                               related_name='suspensoes_periodo_escolar')
@@ -364,7 +369,7 @@ class SuspensaoAlimentacaoNoPeriodoEscolar(TemChaveExterna):
         verbose_name_plural = 'Suspensões de alimentação no período'
 
 
-class MotivoAlteracaoCardapio(Nomeavel, TemChaveExterna):
+class MotivoAlteracaoCardapio(ExportModelOperationsMixin('motivo_alteracao_cardapio'), Nomeavel, TemChaveExterna):
     """Usado em conjunto com AlteracaoCardapio.
 
     Exemplos:
@@ -380,7 +385,8 @@ class MotivoAlteracaoCardapio(Nomeavel, TemChaveExterna):
         verbose_name_plural = 'Motivos de alteração de cardápio'
 
 
-class AlteracaoCardapio(CriadoEm, CriadoPor, TemChaveExterna, IntervaloDeDia, TemObservacao,
+class AlteracaoCardapio(ExportModelOperationsMixin('alteracao_cardapio'), CriadoEm, CriadoPor, TemChaveExterna,
+                        IntervaloDeDia, TemObservacao,
                         FluxoAprovacaoPartindoDaEscola, TemIdentificadorExternoAmigavel, Logs,
                         TemPrioridade):
     objects = models.Manager()  # Manager Padrão
@@ -434,8 +440,8 @@ class AlteracaoCardapio(CriadoEm, CriadoPor, TemChaveExterna, IntervaloDeDia, Te
         verbose_name_plural = 'Alterações de cardápio'
 
 
-# TODO: passar nome da classe para singular
-class SubstituicoesAlimentacaoNoPeriodoEscolar(TemChaveExterna):
+class SubstituicaoAlimentacaoNoPeriodoEscolar(ExportModelOperationsMixin('substituicao_alimentacao_periodo_escolar'),
+                                              TemChaveExterna):
     alteracao_cardapio = models.ForeignKey('AlteracaoCardapio', on_delete=models.CASCADE,
                                            null=True, blank=True,
                                            related_name='substituicoes_periodo_escolar')

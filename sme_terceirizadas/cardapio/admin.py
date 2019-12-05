@@ -8,7 +8,7 @@ from .models import (
     MotivoAlteracaoCardapio,
     MotivoSuspensao,
     QuantidadePorPeriodoSuspensaoAlimentacao,
-    SubstituicoesAlimentacaoNoPeriodoEscolar,
+    SubstituicaoAlimentacaoNoPeriodoEscolar,
     SubstituicoesDoVinculoTipoAlimentacaoPeriodoTipoUE,
     SuspensaoAlimentacao,
     TipoAlimentacao,
@@ -18,7 +18,7 @@ from .models import (
 admin.site.register(TipoAlimentacao)
 admin.site.register(InversaoCardapio)
 admin.site.register(MotivoAlteracaoCardapio)
-admin.site.register(SubstituicoesAlimentacaoNoPeriodoEscolar)
+admin.site.register(SubstituicaoAlimentacaoNoPeriodoEscolar)
 admin.site.register(MotivoSuspensao)
 
 
@@ -39,7 +39,7 @@ class CardapioAdmin(admin.ModelAdmin):
 
 
 class SubstituicoesInLine(admin.TabularInline):
-    model = SubstituicoesAlimentacaoNoPeriodoEscolar
+    model = SubstituicaoAlimentacaoNoPeriodoEscolar
     extra = 1
 
 

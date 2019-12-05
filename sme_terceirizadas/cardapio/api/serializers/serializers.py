@@ -17,7 +17,7 @@ from ...models import (
     MotivoAlteracaoCardapio,
     MotivoSuspensao,
     QuantidadePorPeriodoSuspensaoAlimentacao,
-    SubstituicoesAlimentacaoNoPeriodoEscolar,
+    SubstituicaoAlimentacaoNoPeriodoEscolar,
     SubstituicoesDoVinculoTipoAlimentacaoPeriodoTipoUE,
     SuspensaoAlimentacao,
     SuspensaoAlimentacaoNoPeriodoEscolar,
@@ -189,7 +189,7 @@ class SubstituicoesAlimentacaoNoPeriodoEscolarSerializer(serializers.ModelSerial
     tipo_alimentacao_para = TipoAlimentacaoSerializer()
 
     class Meta:
-        model = SubstituicoesAlimentacaoNoPeriodoEscolar
+        model = SubstituicaoAlimentacaoNoPeriodoEscolar
         exclude = ('id',)
 
 
