@@ -50,10 +50,15 @@ class SubstituicoesVinculoTipoAlimentoSimplesSerializer(serializers.ModelSeriali
     tipo_alimentacao = TipoAlimentacaoSimplesSerializer()
     possibilidades = TipoAlimentacaoSimplesSerializer(many=True)
     substituicoes = TipoAlimentacaoSimplesSerializer(many=True)
+    vinculo = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar.objects.all()
+    )
 
     class Meta:
         model = SubstituicoesDoVinculoTipoAlimentacaoPeriodoTipoUE
-        fields = ('uuid', 'tipo_alimentacao', 'possibilidades', 'substituicoes')
+        fields = ('uuid', 'tipo_alimentacao', 'possibilidades', 'substituicoes', 'vinculo')
 
 
 class VinculoTipoAlimentoSimplesSerializer(serializers.ModelSerializer):

@@ -5,6 +5,10 @@ from rest_framework.status import HTTP_400_BAD_REQUEST
 from rest_framework.viewsets import GenericViewSet
 from xworkflows import InvalidTransitionError
 
+from sme_terceirizadas.cardapio.api.serializers.serializers_create import (
+    SubstituicoesVinculoTipoAlimentoSimplesSerializerCreate
+)
+
 from ...dados_comuns import constants
 from ..models import (
     AlteracaoCardapio,
@@ -13,6 +17,7 @@ from ..models import (
     InversaoCardapio,
     MotivoAlteracaoCardapio,
     MotivoSuspensao,
+    SubstituicoesDoVinculoTipoAlimentacaoPeriodoTipoUE,
     TipoAlimentacao,
     VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
 )
@@ -33,6 +38,7 @@ from .serializers.serializers import (
     InversaoCardapioSerializer,
     MotivoAlteracaoCardapioSerializer,
     MotivoSuspensaoSerializer,
+    SubstituicoesVinculoTipoAlimentoSimplesSerializer,
     TipoAlimentacaoSerializer,
     VinculoTipoAlimentoSimplesSerializer
 )
@@ -40,8 +46,7 @@ from .serializers.serializers_create import (
     AlteracaoCardapioSerializerCreate,
     CardapioCreateSerializer,
     GrupoSuspensaoAlimentacaoCreateSerializer,
-    InversaoCardapioSerializerCreate,
-    VinculoTipoAlimentoSimplesSerializerCreate
+    InversaoCardapioSerializerCreate
 )
 
 
@@ -62,19 +67,35 @@ class TipoAlimentacaoViewSet(viewsets.ModelViewSet):
     queryset = TipoAlimentacao.objects.all()
 
 
-class VinculoTipoAlimentacaoViewSet(mixins.CreateModelMixin,
-                                    mixins.RetrieveModelMixin,
-                                    mixins.UpdateModelMixin,
+class VinculoTipoAlimentacaoViewSet(mixins.RetrieveModelMixin,
                                     mixins.ListModelMixin,
                                     GenericViewSet):
     lookup_field = 'uuid'
     serializer_class = VinculoTipoAlimentoSimplesSerializer
     queryset = VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar.objects.all()
 
+    @action(detail=False,
+            url_path='(?P<tipo_unidade_escolar_uuid>[^/.]+)')
+    def filtro_por_periodo_tipo_ue(self, request, tipo_unidade_escolar_uuid=None):
+        vinculos = VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar.objects.filter(
+            tipo_unidade_escolar__uuid=tipo_unidade_escolar_uuid)
+        page = self.paginate_queryset(vinculos)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+
+class SubstituicoesDoVinculoTipoAlimentacaoPeriodoTipoUEViewSet(mixins.RetrieveModelMixin,
+                                                                mixins.UpdateModelMixin,
+                                                                mixins.ListModelMixin,
+                                                                GenericViewSet):
+    lookup_field = 'uuid'
+    serializer_class = SubstituicoesVinculoTipoAlimentoSimplesSerializer
+    queryset = SubstituicoesDoVinculoTipoAlimentacaoPeriodoTipoUE.objects.all()
+
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update']:
-            return VinculoTipoAlimentoSimplesSerializerCreate
-        return VinculoTipoAlimentoSimplesSerializer
+            return SubstituicoesVinculoTipoAlimentoSimplesSerializerCreate
+        return SubstituicoesVinculoTipoAlimentoSimplesSerializer
 
 
 class InversaoCardapioViewSet(viewsets.ModelViewSet):

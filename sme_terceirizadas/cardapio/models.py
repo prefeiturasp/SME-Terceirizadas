@@ -74,6 +74,10 @@ class SubstituicoesDoVinculoTipoAlimentacaoPeriodoTipoUE(TemChaveExterna):
                                            help_text='Substituições para este tipo de alimentação.',
                                            blank=True,
                                            )
+    vinculo = models.ForeignKey('VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar',
+                                null=True,
+                                on_delete=models.CASCADE,
+                                related_name='substituicoes')
 
     def __str__(self):
         possibilidades = [nome for nome in self.possibilidades.values_list('nome', flat=True)]
@@ -100,8 +104,6 @@ class VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar(TemChaveExterna
     periodo_escolar = models.ForeignKey('escola.PeriodoEscolar',
                                         null=True,
                                         on_delete=models.DO_NOTHING)
-    substituicoes = models.ManyToManyField('SubstituicoesDoVinculoTipoAlimentacaoPeriodoTipoUE',
-                                           blank=True)
 
     def __str__(self):
         substituicoes_str = [f'{str(sub)} --- ' for sub in self.substituicoes.all()]

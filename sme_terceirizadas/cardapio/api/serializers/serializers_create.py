@@ -348,20 +348,20 @@ class VinculoTipoAlimentoCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
-        fields = ('uuid', 'tipos_alimentacao', 'tipo_unidade_escolar', 'periodo_escolar',)
+        fields = ('uuid', 'tipos_alimentacao', 'tipo_unidade_escolar', 'periodo_escolar')
 
 
 class SubstituicoesVinculoTipoAlimentoSimplesSerializerCreate(serializers.ModelSerializer):
     tipo_alimentacao = serializers.SlugRelatedField(
         slug_field='uuid',
-        required=True,
+        required=False,
         queryset=TipoAlimentacao.objects.all()
     )
 
     possibilidades = serializers.SlugRelatedField(
         many=True,
+        required=False,
         slug_field='uuid',
-        required=True,
         queryset=TipoAlimentacao.objects.all()
     )
 
@@ -371,16 +371,6 @@ class SubstituicoesVinculoTipoAlimentoSimplesSerializerCreate(serializers.ModelS
         required=True,
         queryset=TipoAlimentacao.objects.all()
     )
-
-    def validate(self, attrs):
-        possibilidades = attrs.get('possibilidades', [])
-        substituicoes = attrs.get('substituicoes', [])
-        if len(substituicoes) > len(possibilidades):
-            raise serializers.ValidationError('Não pode ter mais substituições que possibilidades')
-        for substituicao in substituicoes:
-            if substituicao not in possibilidades:
-                raise serializers.ValidationError(f'Substituição {substituicao} não faz parte das possibilidades')
-        return attrs
 
     class Meta:
         model = SubstituicoesDoVinculoTipoAlimentacaoPeriodoTipoUE

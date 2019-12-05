@@ -2,6 +2,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.validators import MinLengthValidator
 from django.db import models
 from django.db.models import Q, Sum
+from django_prometheus.models import ExportModelOperationsMixin
 
 from ..cardapio.models import AlteracaoCardapio, GrupoSuspensaoAlimentacao, InversaoCardapio
 from ..dados_comuns.behaviors import Ativavel, Iniciais, Nomeavel, TemChaveExterna, TemCodigoEOL, TemVinculos
@@ -260,7 +261,7 @@ class TipoGestao(Nomeavel, Ativavel, TemChaveExterna):
         verbose_name_plural = 'Tipos de gestão'
 
 
-class PeriodoEscolar(Nomeavel, TemChaveExterna):
+class PeriodoEscolar(ExportModelOperationsMixin('periodo_escolar'), Nomeavel, TemChaveExterna):
     """manhã, intermediário, tarde, vespertino, noturno, integral."""
 
     tipos_alimentacao = models.ManyToManyField('cardapio.TipoAlimentacao', related_name='periodos_escolares')
@@ -273,7 +274,7 @@ class PeriodoEscolar(Nomeavel, TemChaveExterna):
         return self.nome
 
 
-class Escola(Ativavel, TemChaveExterna, TemCodigoEOL, TemVinculos):
+class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, TemCodigoEOL, TemVinculos):
     nome = models.CharField('Nome', max_length=160, blank=True)
     codigo_eol = models.CharField('Código EOL', max_length=6, unique=True, validators=[MinLengthValidator(6)])
     # não ta sendo usado

@@ -20,8 +20,16 @@ admin.site.register(InversaoCardapio)
 admin.site.register(MotivoAlteracaoCardapio)
 admin.site.register(SubstituicoesAlimentacaoNoPeriodoEscolar)
 admin.site.register(MotivoSuspensao)
-admin.site.register(VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar)
-admin.site.register(SubstituicoesDoVinculoTipoAlimentacaoPeriodoTipoUE)
+
+
+class SubstituicoesVinculoInLine(admin.TabularInline):
+    model = SubstituicoesDoVinculoTipoAlimentacaoPeriodoTipoUE
+    extra = 1
+
+
+@admin.register(VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar)
+class VinculoTipoAlimentacaoModelAdmin(admin.ModelAdmin):
+    inlines = [SubstituicoesVinculoInLine]
 
 
 @admin.register(Cardapio)
