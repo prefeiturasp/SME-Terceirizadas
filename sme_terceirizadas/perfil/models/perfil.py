@@ -4,12 +4,13 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.db.utils import IntegrityError
+from django_prometheus.models import ExportModelOperationsMixin
 
 from ...dados_comuns.behaviors import Ativavel, Descritivel, Nomeavel, TemChaveExterna
 from ...dados_comuns.tasks import envia_email_unico_task
 
 
-class Perfil(Nomeavel, Descritivel, Ativavel, TemChaveExterna):
+class Perfil(ExportModelOperationsMixin('perfil'), Nomeavel, Descritivel, Ativavel, TemChaveExterna):
     """Perfil do usuário Ex: Cogestor, Nutricionista. Cada perfil tem uma série de permissoes."""
 
     super_usuario = models.BooleanField('Super usuario na instiuição?', default=False)
@@ -22,7 +23,7 @@ class Perfil(Nomeavel, Descritivel, Ativavel, TemChaveExterna):
         return self.nome
 
 
-class Vinculo(Ativavel, TemChaveExterna):
+class Vinculo(ExportModelOperationsMixin('vinculo_perfil'), Ativavel, TemChaveExterna):
     """Para informar que tipo de funcao uma pessoa teve em um dado intervalo de tempo em uma instituição.
 
     Ex.: de jan a dez de 2018 (Intervalo) Ciclano (Usuário) foi Diretor (Perfil) na instituição ESCOLA (instituicao)

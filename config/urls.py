@@ -29,7 +29,7 @@ urlpatterns = [path('docs/', schema_view, name='docs'),
                path(settings.ADMIN_URL, admin.site.urls),
                path('api-token-auth/', obtain_jwt_token),
                path('api-token-refresh/', refresh_jwt_token),
-               path('^prometheus/', include('django_prometheus.urls')),
+               path('', include('django_prometheus.urls')),
                ] + static(
     settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
 )
