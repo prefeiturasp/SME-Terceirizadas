@@ -21,13 +21,13 @@ from ...api.validators import (
 from ...models import (
     AlteracaoCardapio,
     Cardapio,
+    ComboDoVinculoTipoAlimentacaoPeriodoTipoUE,
     GrupoSuspensaoAlimentacao,
     InversaoCardapio,
     MotivoAlteracaoCardapio,
     MotivoSuspensao,
     QuantidadePorPeriodoSuspensaoAlimentacao,
     SubstituicaoAlimentacaoNoPeriodoEscolar,
-    SubstituicoesDoVinculoTipoAlimentacaoPeriodoTipoUE,
     SuspensaoAlimentacao,
     SuspensaoAlimentacaoNoPeriodoEscolar,
     TipoAlimentacao,
@@ -373,7 +373,7 @@ class SubstituicoesVinculoTipoAlimentoSimplesSerializerCreate(serializers.ModelS
     )
 
     class Meta:
-        model = SubstituicoesDoVinculoTipoAlimentacaoPeriodoTipoUE
+        model = ComboDoVinculoTipoAlimentacaoPeriodoTipoUE
         fields = ('tipo_alimentacao', 'possibilidades', 'substituicoes')
 
 

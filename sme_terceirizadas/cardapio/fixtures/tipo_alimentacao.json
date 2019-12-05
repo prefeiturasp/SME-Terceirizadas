@@ -14,7 +14,7 @@
     "model": "cardapio.tipoalimentacao",
     "pk": 2,
     "fields": {
-      "nome": "refei\u00e7\u00e3o/sobremesa",
+      "nome": "refeição",
       "uuid": "65f11f11-630b-4629-bb17-07c875c548f1",
       "substituicoes": [
         1,
@@ -35,21 +35,12 @@
     "model": "cardapio.tipoalimentacao",
     "pk": 4,
     "fields": {
-      "nome": "refei\u00e7\u00e3o/sobremesa e lanche",
+      "nome": "sobremesa",
       "uuid": "5aa2c32b-1df2-46b6-b2e7-514b885fa9a4",
       "substituicoes": [
         3,
-        5
+        1
       ]
-    }
-  },
-  {
-    "model": "cardapio.tipoalimentacao",
-    "pk": 5,
-    "fields": {
-      "nome": "merenda seca e sobremesa da refei\u00e7\u00e3o",
-      "uuid": "f567e8cb-855d-4cee-aa60-4af38b3a2a63",
-      "substituicoes": []
     }
   }
 ]

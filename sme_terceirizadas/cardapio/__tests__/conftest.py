@@ -463,16 +463,3 @@ def tipo_unidade_escolar():
 @pytest.fixture
 def periodo_escolar():
     return mommy.make('PeriodoEscolar')
-
-
-@pytest.fixture
-def substituicies_vinculo_tipo_alimentacao(tipo_unidade_escolar, periodo_escolar):
-    return mommy.make('SubstituicoesDoVinculoTipoAlimentacaoPeriodoTipoUE', _quantity=3)
-
-
-@pytest.fixture
-def vinculo_tipo_alimentacao(tipo_unidade_escolar, periodo_escolar, substituicies_vinculo_tipo_alimentacao):
-    return mommy.make('VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar',
-                      tipo_unidade_escolar=tipo_unidade_escolar,
-                      periodo_escolar=periodo_escolar,
-                      substituicoes=substituicies_vinculo_tipo_alimentacao)

@@ -3,13 +3,13 @@ from django.contrib import admin
 from .models import (
     AlteracaoCardapio,
     Cardapio,
+    ComboDoVinculoTipoAlimentacaoPeriodoTipoUE,
     GrupoSuspensaoAlimentacao,
     InversaoCardapio,
     MotivoAlteracaoCardapio,
     MotivoSuspensao,
     QuantidadePorPeriodoSuspensaoAlimentacao,
     SubstituicaoAlimentacaoNoPeriodoEscolar,
-    SubstituicoesDoVinculoTipoAlimentacaoPeriodoTipoUE,
     SuspensaoAlimentacao,
     TipoAlimentacao,
     VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
@@ -23,7 +23,7 @@ admin.site.register(MotivoSuspensao)
 
 
 class SubstituicoesVinculoInLine(admin.TabularInline):
-    model = SubstituicoesDoVinculoTipoAlimentacaoPeriodoTipoUE
+    model = ComboDoVinculoTipoAlimentacaoPeriodoTipoUE
     extra = 1
 
 

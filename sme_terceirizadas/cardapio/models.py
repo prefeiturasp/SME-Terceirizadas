@@ -45,6 +45,7 @@ class TipoAlimentacao(ExportModelOperationsMixin('tipo_alimentacao'), Nomeavel, 
     Merenda Seca
     """
 
+    # TODO: tirar substituicoes quando der, não é mais necessário
     substituicoes = models.ManyToManyField('TipoAlimentacao', blank=True)
 
     @property
@@ -59,36 +60,26 @@ class TipoAlimentacao(ExportModelOperationsMixin('tipo_alimentacao'), Nomeavel, 
         verbose_name_plural = 'Tipos de alimentação'
 
 
-class SubstituicoesDoVinculoTipoAlimentacaoPeriodoTipoUE(
+class ComboDoVinculoTipoAlimentacaoPeriodoTipoUE(
     ExportModelOperationsMixin('substituicoes_vinculo_alimentacao'), TemChaveExterna):  # noqa E125
-    tipo_alimentacao = models.ForeignKey('TipoAlimentacao',
-                                         help_text='Tipo de alimentação.',
-                                         on_delete=models.DO_NOTHING,
-                                         related_name='%(app_label)s_%(class)s_tipo_alimentacao',
-                                         )
-    possibilidades = models.ManyToManyField('TipoAlimentacao',
-                                            related_name='%(app_label)s_%(class)s_possibilidades',
-                                            help_text='Possibilidades de substituicões para este tipo de alimentação.',
-                                            blank=True,
-                                            )
-    substituicoes = models.ManyToManyField('TipoAlimentacao',
-                                           related_name='%(app_label)s_%(class)s_substituicoes',
-                                           help_text='Substituições para este tipo de alimentação.',
-                                           blank=True,
-                                           )
+
+    tipos_alimentacao = models.ManyToManyField('TipoAlimentacao',
+                                               related_name='%(app_label)s_%(class)s_possibilidades',
+                                               help_text='Tipos de alimentacao do combo.',
+                                               blank=True,
+                                               )
     vinculo = models.ForeignKey('VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar',
                                 null=True,
                                 on_delete=models.CASCADE,
-                                related_name='substituicoes')
+                                related_name='combos')
 
     def __str__(self):
-        possibilidades = [nome for nome in self.possibilidades.values_list('nome', flat=True)]
-        substituicoes = [nome for nome in self.substituicoes.values_list('nome', flat=True)]
-        return f'{self.tipo_alimentacao.nome}  POS:{possibilidades} -> SUBS:{substituicoes}'
+        tipos_alimentacao_nome = [nome for nome in self.tipos_alimentacao.values_list('nome', flat=True)]
+        return f'TiposAlim.:{tipos_alimentacao_nome}'
 
     class Meta:
-        verbose_name = 'Substituição do vínculo tipo alimentação'
-        verbose_name_plural = 'Substituições do vínculo tipo alimentação'
+        verbose_name = 'Combo do vínculo tipo alimentação'
+        verbose_name_plural = 'Combos do vínculo tipo alimentação'
 
 
 class VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar(
@@ -109,8 +100,8 @@ class VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar(
                                         on_delete=models.DO_NOTHING)
 
     def __str__(self):
-        substituicoes_str = [f'{str(sub)} --- ' for sub in self.substituicoes.all()]
-        return f'{self.tipo_unidade_escolar.iniciais} - {self.periodo_escolar.nome} - {substituicoes_str}'
+        combos = [f'{str(sub)} --- ' for sub in self.combos.all()]
+        return f'{self.tipo_unidade_escolar.iniciais} - {self.periodo_escolar.nome} - {combos}'
 
     class Meta:
         unique_together = [['periodo_escolar', 'tipo_unidade_escolar']]

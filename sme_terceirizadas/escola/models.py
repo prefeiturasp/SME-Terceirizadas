@@ -235,6 +235,8 @@ class TipoUnidadeEscolar(ExportModelOperationsMixin('tipo_ue'), Iniciais, Ativav
 
     cardapios = models.ManyToManyField('cardapio.Cardapio', blank=True,
                                        related_name='tipos_unidade_escolar')
+    periodos_escolares = models.ManyToManyField('escola.PeriodoEscolar', blank=True,
+                                                related_name='tipos_unidade_escolar')
 
     def get_cardapio(self, data):
         # TODO: ter certeza que tem so um cardapio por dia por tipo de u.e.
