@@ -5,10 +5,6 @@ from rest_framework.status import HTTP_400_BAD_REQUEST
 from rest_framework.viewsets import GenericViewSet
 from xworkflows import InvalidTransitionError
 
-from sme_terceirizadas.cardapio.api.serializers.serializers_create import (
-    SubstituicoesVinculoTipoAlimentoSimplesSerializerCreate
-)
-
 from ...dados_comuns import constants
 from ..models import (
     AlteracaoCardapio,
@@ -46,7 +42,8 @@ from .serializers.serializers_create import (
     AlteracaoCardapioSerializerCreate,
     CardapioCreateSerializer,
     GrupoSuspensaoAlimentacaoCreateSerializer,
-    InversaoCardapioSerializerCreate
+    InversaoCardapioSerializerCreate,
+    SubstituicoesVinculoTipoAlimentoSimplesSerializerCreate
 )
 
 

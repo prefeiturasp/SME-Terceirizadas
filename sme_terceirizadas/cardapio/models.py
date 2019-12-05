@@ -1,16 +1,6 @@
 from django.db import models
 from django_prometheus.models import ExportModelOperationsMixin
 
-from .managers import (
-    AlteracoesCardapioDestaSemanaManager,
-    AlteracoesCardapioDesteMesManager,
-    AlteracoesCardapioVencidaManager,
-    GrupoSuspensaoAlimentacaoDestaSemanaManager,
-    GrupoSuspensaoAlimentacaoDesteMesManager,
-    InversaoCardapioDestaSemanaManager,
-    InversaoCardapioDesteMesManager,
-    InversaoCardapioVencidaManager
-)
 from ..dados_comuns.behaviors import (  # noqa I101
     Ativavel,
     CriadoEm,
@@ -29,6 +19,16 @@ from ..dados_comuns.behaviors import (  # noqa I101
 )
 from ..dados_comuns.fluxo_status import FluxoAprovacaoPartindoDaEscola, FluxoInformativoPartindoDaEscola
 from ..dados_comuns.models import TemplateMensagem  # noqa I202
+from .managers import (
+    AlteracoesCardapioDestaSemanaManager,
+    AlteracoesCardapioDesteMesManager,
+    AlteracoesCardapioVencidaManager,
+    GrupoSuspensaoAlimentacaoDestaSemanaManager,
+    GrupoSuspensaoAlimentacaoDesteMesManager,
+    InversaoCardapioDestaSemanaManager,
+    InversaoCardapioDesteMesManager,
+    InversaoCardapioVencidaManager
+)
 
 
 class TipoAlimentacao(ExportModelOperationsMixin('tipo_alimentacao'), Nomeavel, TemChaveExterna):
