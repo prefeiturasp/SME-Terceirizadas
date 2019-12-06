@@ -2,6 +2,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.validators import MinLengthValidator
 from django.db import models
 from django.db.models import Q, Sum
+from django_prometheus.models import ExportModelOperationsMixin
 
 from ..cardapio.models import AlteracaoCardapio, GrupoSuspensaoAlimentacao, InversaoCardapio
 from ..dados_comuns.behaviors import Ativavel, Iniciais, Nomeavel, TemChaveExterna, TemCodigoEOL, TemVinculos
@@ -18,7 +19,8 @@ from ..inclusao_alimentacao.models import GrupoInclusaoAlimentacaoNormal, Inclus
 from ..kit_lanche.models import SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheUnificada
 
 
-class DiretoriaRegional(Nomeavel, Iniciais, TemChaveExterna, TemCodigoEOL, TemVinculos):
+class DiretoriaRegional(ExportModelOperationsMixin('diretoria_regional'), Nomeavel, Iniciais, TemChaveExterna,
+                        TemCodigoEOL, TemVinculos):
 
     @property
     def vinculos_que_podem_ser_finalizados(self):
@@ -216,7 +218,7 @@ class DiretoriaRegional(Nomeavel, Iniciais, TemChaveExterna, TemCodigoEOL, TemVi
         ordering = ('nome',)
 
 
-class FaixaIdadeEscolar(Nomeavel, Ativavel, TemChaveExterna):
+class FaixaIdadeEscolar(ExportModelOperationsMixin('faixa_idade'), Nomeavel, Ativavel, TemChaveExterna):
     """de 1 a 2 anos, de 2 a 5 anos, de 7 a 18 anos, etc."""
 
     def __str__(self):
@@ -228,11 +230,13 @@ class FaixaIdadeEscolar(Nomeavel, Ativavel, TemChaveExterna):
         ordering = ('nome',)
 
 
-class TipoUnidadeEscolar(Iniciais, Ativavel, TemChaveExterna):
+class TipoUnidadeEscolar(ExportModelOperationsMixin('tipo_ue'), Iniciais, Ativavel, TemChaveExterna):
     """EEMEF, CIEJA, EMEI, EMEBS, CEI, CEMEI..."""
 
     cardapios = models.ManyToManyField('cardapio.Cardapio', blank=True,
                                        related_name='tipos_unidade_escolar')
+    periodos_escolares = models.ManyToManyField('escola.PeriodoEscolar', blank=True,
+                                                related_name='tipos_unidade_escolar')
 
     def get_cardapio(self, data):
         # TODO: ter certeza que tem so um cardapio por dia por tipo de u.e.
@@ -249,7 +253,7 @@ class TipoUnidadeEscolar(Iniciais, Ativavel, TemChaveExterna):
         verbose_name_plural = 'Tipos de unidade escolar'
 
 
-class TipoGestao(Nomeavel, Ativavel, TemChaveExterna):
+class TipoGestao(ExportModelOperationsMixin('tipo_gestao'), Nomeavel, Ativavel, TemChaveExterna):
     """Terceirizada completa, tec mista."""
 
     def __str__(self):
@@ -260,7 +264,7 @@ class TipoGestao(Nomeavel, Ativavel, TemChaveExterna):
         verbose_name_plural = 'Tipos de gestão'
 
 
-class PeriodoEscolar(Nomeavel, TemChaveExterna):
+class PeriodoEscolar(ExportModelOperationsMixin('periodo_escolar'), Nomeavel, TemChaveExterna):
     """manhã, intermediário, tarde, vespertino, noturno, integral."""
 
     tipos_alimentacao = models.ManyToManyField('cardapio.TipoAlimentacao', related_name='periodos_escolares')
@@ -273,7 +277,7 @@ class PeriodoEscolar(Nomeavel, TemChaveExterna):
         return self.nome
 
 
-class Escola(Ativavel, TemChaveExterna, TemCodigoEOL, TemVinculos):
+class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, TemCodigoEOL, TemVinculos):
     nome = models.CharField('Nome', max_length=160, blank=True)
     codigo_eol = models.CharField('Código EOL', max_length=6, unique=True, validators=[MinLengthValidator(6)])
     # não ta sendo usado
@@ -323,7 +327,7 @@ class Escola(Ativavel, TemChaveExterna, TemCodigoEOL, TemVinculos):
         ordering = ('codigo_eol',)
 
 
-class Lote(TemChaveExterna, Nomeavel, Iniciais):
+class Lote(ExportModelOperationsMixin('lote'), TemChaveExterna, Nomeavel, Iniciais):
     """Lote de escolas."""
 
     tipo_gestao = models.ForeignKey(TipoGestao,
@@ -361,7 +365,7 @@ class Lote(TemChaveExterna, Nomeavel, Iniciais):
         ordering = ('nome',)
 
 
-class Subprefeitura(Nomeavel, TemChaveExterna):
+class Subprefeitura(ExportModelOperationsMixin('subprefeitura'), Nomeavel, TemChaveExterna):
     diretoria_regional = models.ManyToManyField(DiretoriaRegional,
                                                 related_name='subprefeituras',
                                                 blank=True)
@@ -380,7 +384,7 @@ class Subprefeitura(Nomeavel, TemChaveExterna):
         ordering = ('nome',)
 
 
-class Codae(Nomeavel, TemChaveExterna, TemVinculos):
+class Codae(ExportModelOperationsMixin('codae'), Nomeavel, TemChaveExterna, TemVinculos):
 
     @property
     def vinculos_que_podem_ser_finalizados(self):

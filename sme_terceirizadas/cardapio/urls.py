@@ -20,6 +20,9 @@ router.register('alteracoes-cardapio-rascunho', viewsets.AlteracoesCardapioRascu
                 'Alterações de Cardápio Rascunho')
 router.register('vinculos-tipo-alimentacao-u-e-periodo-escolar', viewsets.VinculoTipoAlimentacaoViewSet,
                 'Vínculos de tipo de alimentação no periodo escolar e tipo de u.e')
+router.register('substituicoes-vinculos-tipo-alimentacao-u-e-periodo-escolar',
+                viewsets.CombosDoVinculoTipoAlimentacaoPeriodoTipoUEViewSet,
+                'Substituições dos vínculos de tipo de alimentação no periodo escolar e tipo de u.e')
 urlpatterns = [
     path('', include(router.urls)),
 ]

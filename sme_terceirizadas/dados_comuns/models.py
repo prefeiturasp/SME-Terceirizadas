@@ -2,9 +2,10 @@ import uuid
 
 from django.core.validators import MinLengthValidator
 from django.db import models
+from django_prometheus.models import ExportModelOperationsMixin
 
 
-class LogSolicitacoesUsuario(models.Model):
+class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), models.Model):
     """Eventos de dados importantes para acompanhamento.
 
     Ex.: Fulano X  executou a atividade Y no objeto W no dia DDDDMMAA
@@ -91,7 +92,7 @@ class Meta:
     ordering = ('criado_em',)
 
 
-class Contato(models.Model):
+class Contato(ExportModelOperationsMixin('contato'), models.Model):
     telefone = models.CharField(max_length=13, validators=[MinLengthValidator(8)],
                                 blank=True)
     telefone2 = models.CharField(max_length=10, validators=[MinLengthValidator(8)],
@@ -104,7 +105,7 @@ class Contato(models.Model):
         return f'{self.telefone}, {self.email}'
 
 
-class TemplateMensagem(models.Model):
+class TemplateMensagem(ExportModelOperationsMixin('template_mensagem'), models.Model):
     """Tem um texto base e troca por campos do objeto que entra como parâmetro.
 
     Ex:

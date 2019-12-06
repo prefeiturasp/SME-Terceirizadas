@@ -46,6 +46,7 @@ class PeriodoEscolarSerializer(serializers.ModelSerializer):
 
 
 class PeriodoEscolarSimplesSerializer(serializers.ModelSerializer):
+    # TODO: tirar tipos de alimentacao daqui, tipos de alimentacao são relacionados a TIPOUE + PERIODOESCOLAR
     class Meta:
         model = PeriodoEscolar
         exclude = ('id', 'tipos_alimentacao')
@@ -64,6 +65,8 @@ class SubprefeituraSerializer(serializers.ModelSerializer):
 
 
 class TipoUnidadeEscolarSerializer(serializers.ModelSerializer):
+    periodos_escolares = PeriodoEscolarSimplesSerializer(many=True)
+
     class Meta:
         model = TipoUnidadeEscolar
         exclude = ('id', 'cardapios')

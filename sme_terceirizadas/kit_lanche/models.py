@@ -3,6 +3,7 @@ import uuid
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.db.models.functions import Coalesce
+from django_prometheus.models import ExportModelOperationsMixin
 
 from ..dados_comuns.behaviors import (  # noqa I101
     CriadoEm,
@@ -30,7 +31,7 @@ from .managers import (
 )
 
 
-class ItemKitLanche(Nomeavel, TemChaveExterna):
+class ItemKitLanche(ExportModelOperationsMixin('item_kit_lanche'), Nomeavel, TemChaveExterna):
     """Que compõe o KitLanche.
 
     - Barra de Cereal (20 a 25 g embalagem individual)
@@ -47,7 +48,7 @@ class ItemKitLanche(Nomeavel, TemChaveExterna):
         verbose_name_plural = 'Item do kit lanche'
 
 
-class KitLanche(Nomeavel, TemChaveExterna):
+class KitLanche(ExportModelOperationsMixin('kit_lanche'), Nomeavel, TemChaveExterna):
     """kit1, kit2, kit3."""
 
     itens = models.ManyToManyField(ItemKitLanche)
@@ -60,7 +61,8 @@ class KitLanche(Nomeavel, TemChaveExterna):
         verbose_name_plural = 'Kit lanches'
 
 
-class SolicitacaoKitLanche(TemData, Motivo, Descritivel, CriadoEm, TempoPasseio, TemChaveExterna):
+class SolicitacaoKitLanche(ExportModelOperationsMixin('kit_lanche_base'), TemData, Motivo, Descritivel, CriadoEm,
+                           TempoPasseio, TemChaveExterna):
     # TODO: implementar one to one, nas duas tabelas que apontam pra essa
     # https://docs.djangoproject.com/en/2.2/ref/models/fields/#django.db.models.OneToOneField
 
@@ -74,8 +76,8 @@ class SolicitacaoKitLanche(TemData, Motivo, Descritivel, CriadoEm, TempoPasseio,
         verbose_name_plural = 'Solicitações kit lanche base'
 
 
-class SolicitacaoKitLancheAvulsa(TemChaveExterna, FluxoAprovacaoPartindoDaEscola,  # type: ignore
-                                 TemIdentificadorExternoAmigavel,
+class SolicitacaoKitLancheAvulsa(ExportModelOperationsMixin('kit_lanche_avulsa'), TemChaveExterna,  # type: ignore
+                                 FluxoAprovacaoPartindoDaEscola, TemIdentificadorExternoAmigavel,
                                  CriadoPor, TemPrioridade, Logs, SolicitacaoForaDoPrazo):
     # TODO: ao deletar este, deletar solicitacao_kit_lanche também que é uma tabela acessória
     # TODO: passar `local` para solicitacao_kit_lanche
@@ -133,7 +135,8 @@ class SolicitacaoKitLancheAvulsa(TemChaveExterna, FluxoAprovacaoPartindoDaEscola
         verbose_name_plural = 'Solicitações de kit lanche avulsa'
 
 
-class SolicitacaoKitLancheUnificada(CriadoPor, TemChaveExterna, TemIdentificadorExternoAmigavel,
+class SolicitacaoKitLancheUnificada(ExportModelOperationsMixin('kit_lanche_unificada'), CriadoPor, TemChaveExterna,
+                                    TemIdentificadorExternoAmigavel,
                                     FluxoAprovacaoPartindoDaDiretoriaRegional, Logs, TemPrioridade):
     """Uma DRE pede para as suas escolas.
 
@@ -281,7 +284,7 @@ class SolicitacaoKitLancheUnificada(CriadoPor, TemChaveExterna, TemIdentificador
         verbose_name_plural = 'Solicitações de  kit lanche unificadas'
 
 
-class EscolaQuantidade(TemChaveExterna, TempoPasseio):
+class EscolaQuantidade(ExportModelOperationsMixin('escola_quantidade'), TemChaveExterna, TempoPasseio):
     quantidade_alunos = models.PositiveSmallIntegerField()
     solicitacao_unificada = models.ForeignKey(SolicitacaoKitLancheUnificada,
                                               on_delete=models.CASCADE,

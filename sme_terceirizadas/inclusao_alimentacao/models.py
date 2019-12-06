@@ -1,5 +1,6 @@
 from django.core.validators import MinValueValidator
 from django.db import models
+from django_prometheus.models import ExportModelOperationsMixin
 
 from ..dados_comuns.behaviors import (
     CriadoEm,
@@ -26,7 +27,7 @@ from .managers import (
 )
 
 
-class QuantidadePorPeriodo(TemChaveExterna):
+class QuantidadePorPeriodo(ExportModelOperationsMixin('quantidade_periodo'), TemChaveExterna):
     numero_alunos = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)])
     periodo_escolar = models.ForeignKey('escola.PeriodoEscolar', on_delete=models.DO_NOTHING)
     tipos_alimentacao = models.ManyToManyField('cardapio.TipoAlimentacao')
@@ -49,7 +50,7 @@ class Meta:
     verbose_name_plural = 'Quantidades por periodo'
 
 
-class MotivoInclusaoContinua(Nomeavel, TemChaveExterna):
+class MotivoInclusaoContinua(ExportModelOperationsMixin('motivo_inclusao_continua'), Nomeavel, TemChaveExterna):
     """Funciona em conjunto com InclusaoAlimentacaoContinua.
 
     - continuo -  mais educacao
@@ -65,7 +66,8 @@ class MotivoInclusaoContinua(Nomeavel, TemChaveExterna):
         verbose_name_plural = 'Motivos de inclusao contínua'
 
 
-class InclusaoAlimentacaoContinua(IntervaloDeDia, Descritivel, TemChaveExterna,
+class InclusaoAlimentacaoContinua(ExportModelOperationsMixin('inclusao_continua'), IntervaloDeDia, Descritivel,
+                                  TemChaveExterna,
                                   DiasSemana, FluxoAprovacaoPartindoDaEscola,
                                   CriadoPor, TemIdentificadorExternoAmigavel,
                                   CriadoEm, Logs, TemPrioridade):
@@ -134,7 +136,7 @@ class InclusaoAlimentacaoContinua(IntervaloDeDia, Descritivel, TemChaveExterna,
         ordering = ['data_inicial']
 
 
-class MotivoInclusaoNormal(Nomeavel, TemChaveExterna):
+class MotivoInclusaoNormal(ExportModelOperationsMixin('motivo_inclusao_normal'), Nomeavel, TemChaveExterna):
     """Funciona em conjunto com InclusaoAlimentacaoNormal.
 
     - reposicao de aula
@@ -150,7 +152,7 @@ class MotivoInclusaoNormal(Nomeavel, TemChaveExterna):
         verbose_name_plural = 'Motivos de inclusao normais'
 
 
-class InclusaoAlimentacaoNormal(TemData, TemChaveExterna):
+class InclusaoAlimentacaoNormal(ExportModelOperationsMixin('inclusao_normal'), TemData, TemChaveExterna):
     motivo = models.ForeignKey(MotivoInclusaoNormal, on_delete=models.DO_NOTHING)
     outro_motivo = models.CharField('Outro motivo', blank=True, max_length=50)
     grupo_inclusao = models.ForeignKey('GrupoInclusaoAlimentacaoNormal',
@@ -169,7 +171,8 @@ class InclusaoAlimentacaoNormal(TemData, TemChaveExterna):
         ordering = ('data',)
 
 
-class GrupoInclusaoAlimentacaoNormal(Descritivel, TemChaveExterna, FluxoAprovacaoPartindoDaEscola, CriadoEm,
+class GrupoInclusaoAlimentacaoNormal(ExportModelOperationsMixin('grupo_inclusao'), Descritivel, TemChaveExterna,
+                                     FluxoAprovacaoPartindoDaEscola, CriadoEm,
                                      CriadoPor, TemIdentificadorExternoAmigavel, Logs, TemPrioridade):
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING,
                                related_name='grupos_inclusoes_normais')

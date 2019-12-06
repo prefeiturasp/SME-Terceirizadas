@@ -5,7 +5,6 @@ import environ
 from sme_terceirizadas.escola.models import PeriodoEscolar, Escola
 from utility.carga_dados.escola.helper import coloca_zero_a_esquerda
 
-
 ROOT_DIR = environ.Path(__file__) - 1
 
 df = pd.read_excel(f'{ROOT_DIR}/planilhas_de_carga/CADASTRO ESCOLAS DIVULGACAO.xlsx',
@@ -104,6 +103,10 @@ def vincula_periodo_escolar_a_escola():
             print(f'{escola} -> {periodo_letra}')
             periodo_obj = PeriodoEscolar.objects.get(nome=depara.get(periodo_letra))
             periodo_escolar_lista.append(periodo_obj)
+
+        tipo_unidade_escolar = escola.tipo_unidade  # EMEF, CIEJA tem  os periodos padrao dela também
+        tipo_unidade_escolar.periodos_escolares.set(periodo_escolar_lista)
+
         escola.periodos_escolares.set(periodo_escolar_lista)
         escola.save()
         cont += 1
