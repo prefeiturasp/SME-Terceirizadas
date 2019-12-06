@@ -348,7 +348,7 @@ def test_url_endpoint_get_vinculos_tipo_alimentacao(client_autenticado, vinculo_
     # testa endpoint de filtro tipo_ue
     response = client_autenticado.get(
         f'/{ENDPOINT_VINCULOS_ALIMENTACAO}/tipo_unidade_escolar/{vinculo_tipo_alimentacao.tipo_unidade_escolar.uuid}/',
-        )
+    )
     json = response.json()['results']
     assert json[0]['uuid'] == str(vinculo_tipo_alimentacao.uuid)
     assert json[0]['periodo_escolar']['uuid'] == str(vinculo_tipo_alimentacao.periodo_escolar.uuid)
