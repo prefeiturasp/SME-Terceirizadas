@@ -49,6 +49,7 @@ class SolicitacaoKitLancheAvulsaSerializer(serializers.ModelSerializer):
                                      required=False)
     prioridade = serializers.CharField()
     id_externo = serializers.CharField()
+    foi_solicitado_fora_do_prazo = serializers.BooleanField()
     logs = LogSolicitacoesUsuarioSerializer(many=True)
     quantidade_alimentacoes = serializers.IntegerField()
     data = serializers.DateField()

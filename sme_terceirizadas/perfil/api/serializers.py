@@ -26,7 +26,7 @@ class PerfilSerializer(serializers.ModelSerializer):
 class UsuarioSerializer(serializers.ModelSerializer):
     class Meta:
         model = Usuario
-        fields = ('uuid', 'nome', 'email', 'date_joined', 'registro_funcional')
+        fields = ('uuid', 'nome', 'email', 'date_joined', 'registro_funcional', 'tipo_usuario')
 
 
 class VinculoSerializer(serializers.ModelSerializer):

@@ -212,7 +212,7 @@ def test_get_equipe_administradora_vinculos_escola(users_diretor_escola):
         {'data_inicial': datetime.date.today().strftime('%d/%m/%Y'),
          'perfil': {'nome': 'ADMINISTRADOR_ESCOLA', 'uuid': '48330a6f-c444-4462-971e-476452b328b2'},
          'usuario': {'uuid': '8344f23a-95c4-4871-8f20-3880529767c0', 'nome': 'Fulano da Silva',
-                     'email': 'fulano@teste.com', 'registro_funcional': '1234567'}}]
+                     'email': 'fulano@teste.com', 'registro_funcional': '1234567', 'tipo_usuario': 'escola'}}]
 
 
 def test_finalizar_vinculo_escola(users_diretor_escola):
@@ -279,7 +279,8 @@ def test_get_equipe_administradora_vinculos_dre(users_cogestor_diretoria_regiona
         {'data_inicial': datetime.date.today().strftime('%d/%m/%Y'),
          'perfil': {'nome': 'ADMINISTRADOR_DRE', 'uuid': '48330a6f-c444-4462-971e-476452b328b2'},
          'usuario': {'uuid': '8344f23a-95c4-4871-8f20-3880529767c0', 'nome': 'Fulano da Silva',
-                     'email': 'fulano@teste.com', 'registro_funcional': '1234567'}}]
+                     'email': 'fulano@teste.com', 'registro_funcional': '1234567',
+                     'tipo_usuario': 'diretoriaregional'}}]
 
 
 def test_finalizar_vinculo_dre(users_cogestor_diretoria_regional):
@@ -385,7 +386,8 @@ def test_get_equipe_administradora_vinculos_codae(users_codae_gestao_alimentacao
          'perfil': {'nome': 'ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA',
                     'uuid': '48330a6f-c444-4462-971e-476452b328b2'},
          'usuario': {'uuid': '8344f23a-95c4-4871-8f20-3880529767c0', 'nome': 'Fulano da Silva',
-                     'email': 'fulano@teste.com', 'registro_funcional': '1234567'}}]
+                     'email': 'fulano@teste.com', 'registro_funcional': '1234567',
+                     'tipo_usuario': 'gestao_alimentacao_terceirizada'}}]
 
 
 def test_finalizar_vinculo_codae(users_codae_gestao_alimentacao):

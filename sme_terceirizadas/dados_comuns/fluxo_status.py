@@ -22,7 +22,9 @@ class PedidoAPartirDaEscolaWorkflow(xwf_models.Workflow):
     DRE_PEDIU_ESCOLA_REVISAR = 'DRE_PEDIU_ESCOLA_REVISAR'  # PODE HAVER LOOP AQUI...
     DRE_NAO_VALIDOU_PEDIDO_ESCOLA = 'DRE_NAO_VALIDOU_PEDIDO_ESCOLA'  # FIM DE FLUXO
     CODAE_AUTORIZADO = 'CODAE_AUTORIZADO'
+    CODAE_QUESTIONADO = 'CODAE_QUESTIONADO'
     CODAE_NEGOU_PEDIDO = 'CODAE_NEGOU_PEDIDO'  # FIM, NOTIFICA ESCOLA E DRE
+    TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO = 'TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO'
     TERCEIRIZADA_TOMOU_CIENCIA = 'TERCEIRIZADA_TOMOU_CIENCIA'  # FIM, NOTIFICA ESCOLA, DRE E CODAE
 
     # UM STATUS POSSIVEL, QUE PODE SER ATIVADO PELA ESCOLA EM ATE X HORAS ANTES
@@ -40,7 +42,9 @@ class PedidoAPartirDaEscolaWorkflow(xwf_models.Workflow):
         (DRE_PEDIU_ESCOLA_REVISAR, 'Escola tem que revisar o pedido'),
         (DRE_NAO_VALIDOU_PEDIDO_ESCOLA, 'DRE não validou pedido da escola'),
         (CODAE_AUTORIZADO, 'CODAE autorizou pedido'),
+        (CODAE_QUESTIONADO, 'CODAE questionou terceirizada se é possível atender a solicitação'),
         (CODAE_NEGOU_PEDIDO, 'CODAE negou pedido'),
+        (TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO, 'Terceirizada respondeu se é possível atender a solicitação'),
         (TERCEIRIZADA_TOMOU_CIENCIA, 'Terceirizada tomou'),
         (ESCOLA_CANCELOU, 'Escola cancelou'),
         (CANCELADO_AUTOMATICAMENTE, 'Cancelamento automático'),
@@ -53,7 +57,11 @@ class PedidoAPartirDaEscolaWorkflow(xwf_models.Workflow):
         ('dre_nao_valida', DRE_A_VALIDAR, DRE_NAO_VALIDOU_PEDIDO_ESCOLA),
         ('escola_revisa', DRE_PEDIU_ESCOLA_REVISAR, DRE_A_VALIDAR),
         ('codae_autoriza', DRE_VALIDADO, CODAE_AUTORIZADO),
+        ('codae_questiona', DRE_VALIDADO, CODAE_QUESTIONADO),
+        ('codae_autoriza_questionamento', TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO, CODAE_AUTORIZADO),
+        ('codae_nega_questionamento', TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO, CODAE_NEGOU_PEDIDO),
         ('codae_nega', DRE_VALIDADO, CODAE_NEGOU_PEDIDO),
+        ('terceirizada_responde_questionamento', CODAE_QUESTIONADO, TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO),
         ('terceirizada_toma_ciencia', CODAE_AUTORIZADO, TERCEIRIZADA_TOMOU_CIENCIA),
     )
 
@@ -279,6 +287,7 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
 
     @xworkflows.after_transition('inicia_fluxo')
     def _inicia_fluxo_hook(self, *args, **kwargs):
+        self.foi_solicitado_fora_do_prazo = self.prioridade in ['PRIORITARIO', 'LIMITE']
         self._salva_rastro_solicitacao()
         user = kwargs['user']
         assunto, corpo = self.template_mensagem
@@ -324,6 +333,16 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
         if user:
             assunto, corpo = self.template_mensagem
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.ESCOLA_REVISOU,
+                                      usuario=user)
+
+    @xworkflows.after_transition('codae_questiona')
+    def _codae_questiona_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        justificativa = kwargs.get('justificativa', '')
+        if user:
+            assunto, corpo = self.template_mensagem
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_QUESTIONOU,
+                                      justificativa=justificativa,
                                       usuario=user)
 
     @xworkflows.after_transition('codae_autoriza')

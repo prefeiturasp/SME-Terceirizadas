@@ -21,7 +21,7 @@ from sme_terceirizadas.perfil.models import Usuario
 
 f = Faker('pt-br')
 f.seed(420)
-hoje = datetime.datetime.today() - datetime.timedelta(days=180)
+hoje = datetime.date.today() - datetime.timedelta(days=180)
 
 
 def _get_random_cardapio():

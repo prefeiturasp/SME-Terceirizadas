@@ -26,11 +26,13 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
         DRE_PEDIU_REVISAO,
         DRE_NAO_VALIDOU,
         ESCOLA_REVISOU,
+        CODAE_QUESTIONOU,
+        TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO,
 
         # "BURLADO DO FLUXO", PODE SER CHAMADO A QUALQUER MOMENTO COM AS DEVIDAS RESTRIÇÕES
         ESCOLA_CANCELOU,
         DRE_CANCELOU,
-    ) = range(13)
+    ) = range(15)
 
     STATUS_POSSIVEIS = (
         (INICIO_FLUXO, 'Solicitação Realizada'),
@@ -45,7 +47,9 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
         (DRE_NAO_VALIDOU, 'DRE não validou'),
         (ESCOLA_REVISOU, 'Escola revisou'),
         (ESCOLA_CANCELOU, 'Escola cancelou'),
-        (DRE_CANCELOU, 'DRE cancelou')
+        (DRE_CANCELOU, 'DRE cancelou'),
+        (CODAE_QUESTIONOU, 'Questionamento pela CODAE'),
+        (TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO, 'Questionamento pela CODAE')
     )
     (  # DA ESCOLA
         SOLICITACAO_KIT_LANCHE_AVULSA,
