@@ -1,5 +1,6 @@
 from django.core.validators import MinLengthValidator
 from django.db import models
+from django_prometheus.models import ExportModelOperationsMixin
 
 from ..cardapio.models import AlteracaoCardapio, GrupoSuspensaoAlimentacao, InversaoCardapio
 from ..dados_comuns.behaviors import (
@@ -16,7 +17,7 @@ from ..inclusao_alimentacao.models import GrupoInclusaoAlimentacaoNormal, Inclus
 from ..kit_lanche.models import SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheUnificada
 
 
-class Edital(TemChaveExterna):
+class Edital(ExportModelOperationsMixin('edital'), TemChaveExterna):
     numero = models.CharField('Edital No', max_length=100, help_text='Número do Edital', unique=True)
     tipo_contratacao = models.CharField('Tipo de contratação', max_length=100)
     processo = models.CharField('Processo Administrativo', max_length=100,
@@ -35,7 +36,7 @@ class Edital(TemChaveExterna):
         verbose_name_plural = 'Editais'
 
 
-class Nutricionista(TemChaveExterna, Nomeavel):
+class Nutricionista(ExportModelOperationsMixin('nutricionista'), TemChaveExterna, Nomeavel):
     # TODO: verificar a diferença dessa pra nutricionista da CODAE
 
     crn_numero = models.CharField('Nutricionista crn', max_length=160,
@@ -57,7 +58,8 @@ class Nutricionista(TemChaveExterna, Nomeavel):
         verbose_name_plural = 'Nutricionistas'
 
 
-class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel, TemVinculos):
+class Terceirizada(ExportModelOperationsMixin('terceirizada'), TemChaveExterna, Ativavel,
+                   TemIdentificadorExternoAmigavel, TemVinculos):
     nome_fantasia = models.CharField('Nome fantasia', max_length=160, blank=True)
     razao_social = models.CharField('Razao social', max_length=160, blank=True)
     cnpj = models.CharField('CNPJ', validators=[MinLengthValidator(14)], max_length=14)
@@ -362,7 +364,7 @@ class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel, T
         verbose_name_plural = 'Terceirizadas'
 
 
-class Contrato(TemChaveExterna):
+class Contrato(ExportModelOperationsMixin('contato'), TemChaveExterna):
     numero = models.CharField('No do contrato', max_length=100)
     processo = models.CharField('Processo Administrativo', max_length=100,
                                 help_text='Processo administrativo do contrato')
@@ -380,7 +382,7 @@ class Contrato(TemChaveExterna):
         verbose_name_plural = 'Contratos'
 
 
-class VigenciaContrato(TemChaveExterna, IntervaloDeDia):
+class VigenciaContrato(ExportModelOperationsMixin('vigencia_contrato'), TemChaveExterna, IntervaloDeDia):
     contrato = models.ForeignKey(Contrato, on_delete=models.CASCADE, related_name='vigencias', null=True, blank=True)
 
     def __str__(self):

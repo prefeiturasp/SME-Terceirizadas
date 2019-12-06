@@ -1,12 +1,14 @@
 from django.core.validators import MinLengthValidator
 from django.db import models
+from django_prometheus.models import ExportModelOperationsMixin
 
 from ..dados_comuns.behaviors import CriadoEm, CriadoPor, Logs, TemChaveExterna, TemIdentificadorExternoAmigavel
 from ..dados_comuns.fluxo_status import FluxoDietaEspecialPartindoDaEscola
 from ..dados_comuns.models import LogSolicitacoesUsuario, TemplateMensagem
 
 
-class SolicitacaoDietaEspecial(TemChaveExterna, CriadoEm, CriadoPor, FluxoDietaEspecialPartindoDaEscola,
+class SolicitacaoDietaEspecial(ExportModelOperationsMixin('dieta_especial'), TemChaveExterna, CriadoEm, CriadoPor,
+                               FluxoDietaEspecialPartindoDaEscola,
                                Logs, TemIdentificadorExternoAmigavel):
     codigo_eol_aluno = models.CharField('Código EOL do aluno',
                                         max_length=6,
@@ -70,7 +72,7 @@ class SolicitacaoDietaEspecial(TemChaveExterna, CriadoEm, CriadoPor, FluxoDietaE
         return f'{self.codigo_eol_aluno}: {self.nome_completo_aluno}'
 
 
-class Anexo(models.Model):
+class Anexo(ExportModelOperationsMixin('anexo'), models.Model):
     solicitacao_dieta_especial = models.ForeignKey(SolicitacaoDietaEspecial, on_delete=models.DO_NOTHING)
     arquivo = models.FileField()
 

@@ -8,6 +8,7 @@ from django.db import models
 from django.db.models import Q
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
+from django_prometheus.models import ExportModelOperationsMixin
 from simple_email_confirmation.models import SimpleEmailConfirmationUserMixin
 
 from ...dados_comuns.behaviors import TemChaveExterna
@@ -104,7 +105,8 @@ class CustomAbstractUser(AbstractBaseUser, PermissionsMixin):
         envia_email_unico_task.delay(assunto=subject, corpo=message, email=self.email)
 
 
-class Usuario(SimpleEmailConfirmationUserMixin, CustomAbstractUser, TemChaveExterna):
+class Usuario(ExportModelOperationsMixin('usuario'), SimpleEmailConfirmationUserMixin, CustomAbstractUser,
+              TemChaveExterna):
     """Classe de autenticacao do django, ela tem muitos perfis."""
 
     SME = 0

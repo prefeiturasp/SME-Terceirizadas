@@ -9,6 +9,7 @@ from ...dados_comuns import constants
 from ..models import (
     AlteracaoCardapio,
     Cardapio,
+    ComboDoVinculoTipoAlimentacaoPeriodoTipoUE,
     GrupoSuspensaoAlimentacao,
     InversaoCardapio,
     MotivoAlteracaoCardapio,
@@ -27,6 +28,7 @@ from .serializers.serializers import (
     AlteracaoCardapioSerializer,
     AlteracaoCardapioSimplesSerializer,
     CardapioSerializer,
+    CombosVinculoTipoAlimentoSimplesSerializer,
     GrupoSupensaoAlimentacaoListagemSimplesSerializer,
     GrupoSuspensaoAlimentacaoSerializer,
     GrupoSuspensaoAlimentacaoSimplesSerializer,
@@ -41,7 +43,7 @@ from .serializers.serializers_create import (
     CardapioCreateSerializer,
     GrupoSuspensaoAlimentacaoCreateSerializer,
     InversaoCardapioSerializerCreate,
-    VinculoTipoAlimentoSimplesSerializerCreate
+    SubstituicoesVinculoTipoAlimentoSimplesSerializerCreate
 )
 
 
@@ -62,19 +64,35 @@ class TipoAlimentacaoViewSet(viewsets.ModelViewSet):
     queryset = TipoAlimentacao.objects.all()
 
 
-class VinculoTipoAlimentacaoViewSet(mixins.CreateModelMixin,
-                                    mixins.RetrieveModelMixin,
-                                    mixins.UpdateModelMixin,
+class VinculoTipoAlimentacaoViewSet(mixins.RetrieveModelMixin,
                                     mixins.ListModelMixin,
                                     GenericViewSet):
     lookup_field = 'uuid'
     serializer_class = VinculoTipoAlimentoSimplesSerializer
     queryset = VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar.objects.all()
 
+    @action(detail=False,
+            url_path='tipo_unidade_escolar/(?P<tipo_unidade_escolar_uuid>[^/.]+)')
+    def filtro_por_periodo_tipo_ue(self, request, tipo_unidade_escolar_uuid=None):
+        vinculos = VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar.objects.filter(
+            tipo_unidade_escolar__uuid=tipo_unidade_escolar_uuid)
+        page = self.paginate_queryset(vinculos)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+
+class CombosDoVinculoTipoAlimentacaoPeriodoTipoUEViewSet(mixins.RetrieveModelMixin,
+                                                         mixins.UpdateModelMixin,
+                                                         mixins.ListModelMixin,
+                                                         GenericViewSet):
+    lookup_field = 'uuid'
+    serializer_class = CombosVinculoTipoAlimentoSimplesSerializer
+    queryset = ComboDoVinculoTipoAlimentacaoPeriodoTipoUE.objects.all()
+
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update']:
-            return VinculoTipoAlimentoSimplesSerializerCreate
-        return VinculoTipoAlimentoSimplesSerializer
+            return SubstituicoesVinculoTipoAlimentoSimplesSerializerCreate
+        return CombosVinculoTipoAlimentoSimplesSerializer
 
 
 class InversaoCardapioViewSet(viewsets.ModelViewSet):
