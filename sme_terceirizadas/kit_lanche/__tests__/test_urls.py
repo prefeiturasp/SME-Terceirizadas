@@ -77,6 +77,19 @@ def test_url_endpoint_solicitacoes_kit_lanche_avulsa_dre_valida(client_autentica
     assert json['status'] == PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO
 
 
+def test_url_endpoint_solicitacoes_kit_lanche_avulsa_dre_valida_erro(client_autenticado,
+                                                                     solicitacao_avulsa_rascunho):
+    assert str(solicitacao_avulsa_rascunho.status) == PedidoAPartirDaEscolaWorkflow.RASCUNHO
+
+    response = client_autenticado.patch(
+        f'/{ENDPOINT_AVULSO}/{solicitacao_avulsa_rascunho.uuid}/{constants.DRE_VALIDA_PEDIDO}/'
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {
+        'detail': ("Erro de transição de estado: Transition 'dre_valida' isn't available from state "
+                   + "'RASCUNHO'.")}
+
+
 def test_url_endpoint_solicitacoes_kit_lanche_avulsa_dre_nao_valida(client_autenticado,
                                                                     solicitacao_avulsa_dre_a_validar):
     assert str(solicitacao_avulsa_dre_a_validar.status) == PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR
@@ -92,6 +105,19 @@ def test_url_endpoint_solicitacoes_kit_lanche_avulsa_dre_nao_valida(client_auten
     assert json['logs'][0]['justificativa'] == justificativa
 
 
+def test_url_endpoint_solicitacoes_kit_lanche_avulsa_nao_dre_valida_erro(client_autenticado,
+                                                                         solicitacao_avulsa_rascunho):
+    assert str(solicitacao_avulsa_rascunho.status) == PedidoAPartirDaEscolaWorkflow.RASCUNHO
+
+    response = client_autenticado.patch(
+        f'/{ENDPOINT_AVULSO}/{solicitacao_avulsa_rascunho.uuid}/{constants.DRE_NAO_VALIDA_PEDIDO}/'
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {
+        'detail': ("Erro de transição de estado: Transition 'dre_nao_valida' isn't available from state " +
+                   "'RASCUNHO'.")}
+
+
 def test_url_endpoint_solicitacoes_kit_lanche_avulsa_codae_autoriza(client_autenticado,
                                                                     solicitacao_avulsa_dre_validado):
     assert str(solicitacao_avulsa_dre_validado.status) == PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO
@@ -101,6 +127,42 @@ def test_url_endpoint_solicitacoes_kit_lanche_avulsa_codae_autoriza(client_auten
     assert response.status_code == status.HTTP_200_OK
     json = response.json()
     assert json['status'] == PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO
+
+
+def test_url_endpoint_solicitacoes_kit_lanche_avulsa_codae_autoriza_erro(client_autenticado,
+                                                                         solicitacao_avulsa_dre_a_validar):
+    assert str(solicitacao_avulsa_dre_a_validar.status) == PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR
+
+    response = client_autenticado.patch(
+        f'/{ENDPOINT_AVULSO}/{solicitacao_avulsa_dre_a_validar.uuid}/{constants.CODAE_AUTORIZA_PEDIDO}/'
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {
+        'detail': ("Erro de transição de estado: Transition 'codae_autoriza' isn't available from state " +
+                   "'DRE_A_VALIDAR'.")}
+
+
+def test_url_endpoint_solicitacoes_kit_lanche_avulsa_codae_questiona(client_autenticado,
+                                                                     solicitacao_avulsa_dre_validado):
+    assert str(solicitacao_avulsa_dre_validado.status) == PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO
+    response = client_autenticado.patch(
+        f'/{ENDPOINT_AVULSO}/{solicitacao_avulsa_dre_validado.uuid}/{constants.CODAE_QUESTIONA_PEDIDO}/',
+    )
+    assert response.status_code == status.HTTP_200_OK
+    json = response.json()
+    assert json['status'] == PedidoAPartirDaEscolaWorkflow.CODAE_QUESTIONADO
+
+
+def test_url_endpoint_solicitacoes_kit_lanche_avulsa_codae_questiona_erro(client_autenticado,
+                                                                          solic_avulsa_terc_respondeu_questionamento):
+    assert str(solic_avulsa_terc_respondeu_questionamento.status) == PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO  # noqa
+    response = client_autenticado.patch(
+        f'/{ENDPOINT_AVULSO}/{solic_avulsa_terc_respondeu_questionamento.uuid}/{constants.CODAE_QUESTIONA_PEDIDO}/',
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {
+        'detail': ("Erro de transição de estado: Transition 'codae_questiona' isn't available from state " +
+                   "'TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO'.")}
 
 
 def test_url_endpoint_solicitacoes_kit_lanche_avulsa_codae_nega(client_autenticado,
@@ -118,6 +180,18 @@ def test_url_endpoint_solicitacoes_kit_lanche_avulsa_codae_nega(client_autentica
     assert json['logs'][0]['justificativa'] == justificativa
 
 
+def test_url_endpoint_solicitacoes_kit_lanche_avulsa_codae_nega_erro(client_autenticado,
+                                                                     solicitacao_avulsa_codae_autorizado):
+    assert str(solicitacao_avulsa_codae_autorizado.status) == PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO
+    response = client_autenticado.patch(
+        f'/{ENDPOINT_AVULSO}/{solicitacao_avulsa_codae_autorizado.uuid}/{constants.CODAE_NEGA_PEDIDO}/',
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {
+        'detail': ("Erro de transição de estado: Transition 'codae_nega' isn't available from state " +
+                   "'CODAE_AUTORIZADO'.")}
+
+
 def test_url_endpoint_solicitacoes_kit_lanche_avulsa_terceirizada_ciencia(client_autenticado,
                                                                           solicitacao_avulsa_codae_autorizado):
     assert str(solicitacao_avulsa_codae_autorizado.status) == PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO
@@ -128,6 +202,19 @@ def test_url_endpoint_solicitacoes_kit_lanche_avulsa_terceirizada_ciencia(client
     assert response.status_code == status.HTTP_200_OK
     json = response.json()
     assert json['status'] == PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_TOMOU_CIENCIA
+
+
+def test_url_endpoint_solicitacoes_kit_lanche_avulsa_terceirizada_ciencia_erro(client_autenticado,
+                                                                               solicitacao_avulsa_dre_validado):
+    assert str(solicitacao_avulsa_dre_validado.status) == PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO
+
+    response = client_autenticado.patch(
+        f'/{ENDPOINT_AVULSO}/{solicitacao_avulsa_dre_validado.uuid}/{constants.TERCEIRIZADA_TOMOU_CIENCIA}/',
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {
+        'detail': ("Erro de transição de estado: Transition 'terceirizada_toma_ciencia' isn't available from state " +
+                   "'DRE_VALIDADO'.")}
 
 
 @freeze_time('2019-11-15')

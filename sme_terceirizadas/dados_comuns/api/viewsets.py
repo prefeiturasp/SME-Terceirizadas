@@ -43,7 +43,7 @@ class DiasUteisViewSet(ViewSet):
     @method_decorator(cache_page(TEMPO_CACHE_1H))
     def list(self, request):
         dias_uteis = {
-            'proximos_cinco_dias_uteis': obter_dias_uteis_apos_hoje(5),
+            'proximos_cinco_dias_uteis': obter_dias_uteis_apos_hoje(6),
             'proximos_dois_dias_uteis': obter_dias_uteis_apos_hoje(2)
         }
 

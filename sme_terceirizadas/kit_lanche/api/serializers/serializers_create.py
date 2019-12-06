@@ -97,10 +97,10 @@ class SolicitacaoKitLancheAvulsaCreationSerializer(serializers.ModelSerializer):
         solicitacao_kit_lanche_json = validated_data.pop('solicitacao_kit_lanche')
         solicitacao_kit_lanche = SolicitacaoKitLancheCreationSerializer(
         ).create(solicitacao_kit_lanche_json)
-
         solicitacao_kit_avulsa = SolicitacaoKitLancheAvulsa.objects.create(
             solicitacao_kit_lanche=solicitacao_kit_lanche, **validated_data
         )
+        solicitacao_kit_avulsa.save()
         return solicitacao_kit_avulsa
 
     def update(self, instance, validated_data):

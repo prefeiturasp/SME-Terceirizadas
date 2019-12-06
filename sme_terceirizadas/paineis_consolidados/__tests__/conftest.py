@@ -44,25 +44,25 @@ def alteracoes_cardapio(escola):
 @pytest.fixture
 def solicitacoes_kit_lanche(escola):
     kits = mommy.make(KitLanche, _quantity=3)
-    solicitacao_kit_lanche = mommy.make(SolicitacaoKitLanche, kits=kits, data=datetime.datetime(2019, 1, 1))
+    solicitacao_kit_lanche = mommy.make(SolicitacaoKitLanche, kits=kits, data=datetime.date(2019, 1, 1))
     solicitacao_kit_lanche_avulsa_1 = mommy.make(SolicitacaoKitLancheAvulsa,
                                                  local=fake.text()[:160],
                                                  quantidade_alunos=300,
                                                  solicitacao_kit_lanche=solicitacao_kit_lanche,
                                                  escola=escola)
-    solicitacao_kit_lanche = mommy.make(SolicitacaoKitLanche, kits=kits, data=datetime.datetime(2019, 2, 1))
+    solicitacao_kit_lanche = mommy.make(SolicitacaoKitLanche, kits=kits, data=datetime.date(2019, 2, 1))
     solicitacao_kit_lanche_avulsa_2 = mommy.make(SolicitacaoKitLancheAvulsa,
                                                  local=fake.text()[:160],
                                                  quantidade_alunos=300,
                                                  solicitacao_kit_lanche=solicitacao_kit_lanche,
                                                  escola=escola)
-    solicitacao_kit_lanche = mommy.make(SolicitacaoKitLanche, kits=kits, data=datetime.datetime(2018, 2, 1))
+    solicitacao_kit_lanche = mommy.make(SolicitacaoKitLanche, kits=kits, data=datetime.date(2018, 2, 1))
     solicitacao_kit_lanche_avulsa_3 = mommy.make(SolicitacaoKitLancheAvulsa,
                                                  local=fake.text()[:160],
                                                  quantidade_alunos=300,
                                                  solicitacao_kit_lanche=solicitacao_kit_lanche,
                                                  escola=escola)
-    solicitacao_kit_lanche = mommy.make(SolicitacaoKitLanche, kits=kits, data=datetime.datetime(2020, 2, 1))
+    solicitacao_kit_lanche = mommy.make(SolicitacaoKitLanche, kits=kits, data=datetime.date(2020, 2, 1))
     solicitacao_kit_lanche_avulsa_4 = mommy.make(SolicitacaoKitLancheAvulsa,
                                                  local=fake.text()[:160],
                                                  quantidade_alunos=300,
@@ -75,16 +75,16 @@ def solicitacoes_kit_lanche(escola):
 @pytest.fixture
 def inclusoes_de_alimentacao_continua(escola):
     inclusao_continua_1 = mommy.make(InclusaoAlimentacaoContinua,
-                                     data_inicial=datetime.datetime(2019, 5, 1),
-                                     data_final=datetime.datetime(2019, 6, 1),
+                                     data_inicial=datetime.date(2019, 5, 1),
+                                     data_final=datetime.date(2019, 6, 1),
                                      escola=escola)
     inclusao_continua_2 = mommy.make(InclusaoAlimentacaoContinua,
-                                     data_inicial=datetime.datetime(2019, 6, 1),
-                                     data_final=datetime.datetime(2019, 7, 1),
+                                     data_inicial=datetime.date(2019, 6, 1),
+                                     data_final=datetime.date(2019, 7, 1),
                                      escola=escola)
     inclusao_continua_3 = mommy.make(InclusaoAlimentacaoContinua,
-                                     data_inicial=datetime.datetime(2019, 7, 1),
-                                     data_final=datetime.datetime(2019, 8, 1),
+                                     data_inicial=datetime.date(2019, 7, 1),
+                                     data_final=datetime.date(2019, 8, 1),
                                      escola=escola)
     return inclusao_continua_1, inclusao_continua_2, inclusao_continua_3
 

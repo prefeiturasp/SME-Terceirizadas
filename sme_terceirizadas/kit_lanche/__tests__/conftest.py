@@ -38,12 +38,21 @@ def item_kit_lanche():
 def solicitacao_avulsa(escola):
     mommy.make(TemplateMensagem, tipo=TemplateMensagem.SOLICITACAO_KIT_LANCHE_AVULSA)
     kits = mommy.make(models.KitLanche, _quantity=3)
-    solicitacao_kit_lanche = mommy.make(models.SolicitacaoKitLanche, kits=kits, data=datetime.datetime(2000, 1, 1))
+    solicitacao_kit_lanche = mommy.make(models.SolicitacaoKitLanche, kits=kits, data=datetime.date(2000, 1, 1))
     return mommy.make(models.SolicitacaoKitLancheAvulsa,
                       local=fake.text()[:160],
                       quantidade_alunos=300,
                       solicitacao_kit_lanche=solicitacao_kit_lanche,
                       escola=escola)
+
+
+@pytest.fixture
+def solicitacao_avulsa_rascunho(solicitacao_avulsa):
+    solicitacao_avulsa.status = PedidoAPartirDaEscolaWorkflow.RASCUNHO
+    solicitacao_avulsa.quantidade_alunos = 200
+    solicitacao_avulsa.save()
+
+    return solicitacao_avulsa
 
 
 @pytest.fixture
@@ -58,6 +67,14 @@ def solicitacao_avulsa_dre_a_validar(solicitacao_avulsa):
 @pytest.fixture
 def solicitacao_avulsa_dre_validado(solicitacao_avulsa):
     solicitacao_avulsa.status = PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO
+    solicitacao_avulsa.quantidade_alunos = 200
+    solicitacao_avulsa.save()
+    return solicitacao_avulsa
+
+
+@pytest.fixture
+def solic_avulsa_terc_respondeu_questionamento(solicitacao_avulsa):
+    solicitacao_avulsa.status = PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO
     solicitacao_avulsa.quantidade_alunos = 200
     solicitacao_avulsa.save()
     return solicitacao_avulsa
