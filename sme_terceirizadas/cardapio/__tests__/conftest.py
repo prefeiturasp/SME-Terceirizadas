@@ -463,3 +463,19 @@ def tipo_unidade_escolar():
 @pytest.fixture
 def periodo_escolar():
     return mommy.make('PeriodoEscolar')
+
+
+@pytest.fixture(params=[
+    # periodo escolar, tipo unidade escolar
+    ('MANHA', 'EMEF'),
+    ('MANHA', 'CIEJA'),
+])
+def vinculo_tipo_alimentacao(request):
+    nome_periodo, nome_ue = request.param
+    alimentacoes = mommy.make('TipoAlimentacao', _quantity=4)
+    combos = mommy.make('ComboDoVinculoTipoAlimentacaoPeriodoTipoUE', tipos_alimentacao=alimentacoes, _quantity=5)
+    tipo_unidade_escolar = mommy.make('TipoUnidadeEscolar', iniciais=nome_ue)
+    periodo_escolar = mommy.make('PeriodoEscolar', nome=nome_periodo)
+    return mommy.make('VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar', combos=combos,
+                      tipo_unidade_escolar=tipo_unidade_escolar,
+                      periodo_escolar=periodo_escolar)

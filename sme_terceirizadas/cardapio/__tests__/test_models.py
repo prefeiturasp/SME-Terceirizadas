@@ -94,3 +94,7 @@ def test_inclusao_alimentacao_continua_fluxo_erro(inversao_dia_cardapio):
 
 def test_grupo_suspensao_alimentacao(grupo_suspensao_alimentacao):
     assert grupo_suspensao_alimentacao.__str__() == 'lorem ipsum'
+
+
+def test_vinculo_tipo_alimentacao(vinculo_tipo_alimentacao):
+    assert vinculo_tipo_alimentacao.combos.count() == 5
