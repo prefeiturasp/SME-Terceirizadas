@@ -1,14 +1,5 @@
 from rest_framework import serializers
 
-from ....dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
-from ....escola.api.serializers import (
-    EscolaListagemSimplesSelializer,
-    EscolaSimplesSerializer,
-    PeriodoEscolarSerializer,
-    PeriodoEscolarSimplesSerializer,
-    TipoUnidadeEscolarSerializer
-)
-from ....terceirizada.api.serializers.serializers import EditalSerializer
 from ...models import (
     AlteracaoCardapio,
     Cardapio,
@@ -22,8 +13,17 @@ from ...models import (
     SuspensaoAlimentacao,
     SuspensaoAlimentacaoNoPeriodoEscolar,
     TipoAlimentacao,
-    VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
+    VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar,
+    SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE)
+from ....dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
+from ....escola.api.serializers import (
+    EscolaListagemSimplesSelializer,
+    EscolaSimplesSerializer,
+    PeriodoEscolarSerializer,
+    PeriodoEscolarSimplesSerializer,
+    TipoUnidadeEscolarSerializer
 )
+from ....terceirizada.api.serializers.serializers import EditalSerializer
 
 
 class SubstituicoesTipoAlimentacaoSerializer(serializers.ModelSerializer):
@@ -46,8 +46,22 @@ class TipoAlimentacaoSimplesSerializer(serializers.ModelSerializer):
         fields = ('uuid', 'nome',)
 
 
+class SubstituicaoDoComboVinculoTipoAlimentoSimplesSerializer(serializers.ModelSerializer):
+    tipos_alimentacao = TipoAlimentacaoSimplesSerializer(many=True)
+    combo = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=ComboDoVinculoTipoAlimentacaoPeriodoTipoUE.objects.all()
+    )
+
+    class Meta:
+        model = SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE
+        fields = ('uuid', 'tipos_alimentacao', 'combo')
+
+
 class CombosVinculoTipoAlimentoSimplesSerializer(serializers.ModelSerializer):
     tipos_alimentacao = TipoAlimentacaoSimplesSerializer(many=True)
+    substituicoes = SubstituicaoDoComboVinculoTipoAlimentoSimplesSerializer(many=True)
     vinculo = serializers.SlugRelatedField(
         slug_field='uuid',
         required=True,
@@ -56,7 +70,7 @@ class CombosVinculoTipoAlimentoSimplesSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ComboDoVinculoTipoAlimentacaoPeriodoTipoUE
-        fields = ('uuid', 'tipos_alimentacao', 'vinculo')
+        fields = ('uuid', 'tipos_alimentacao', 'vinculo', 'substituicoes')
 
 
 class VinculoTipoAlimentoSimplesSerializer(serializers.ModelSerializer):

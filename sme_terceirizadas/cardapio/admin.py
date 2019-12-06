@@ -10,6 +10,7 @@ from .models import (
     MotivoSuspensao,
     QuantidadePorPeriodoSuspensaoAlimentacao,
     SubstituicaoAlimentacaoNoPeriodoEscolar,
+    SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE,
     SuspensaoAlimentacao,
     TipoAlimentacao,
     VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
@@ -22,14 +23,24 @@ admin.site.register(SubstituicaoAlimentacaoNoPeriodoEscolar)
 admin.site.register(MotivoSuspensao)
 
 
-class SubstituicoesVinculoInLine(admin.TabularInline):
+class SubstituicaoComboInline(admin.TabularInline):
+    model = SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE
+    extra = 2
+
+
+@admin.register(ComboDoVinculoTipoAlimentacaoPeriodoTipoUE)
+class ComboDoVinculoTipoAlimentacaoPeriodoTipoUEModelAdmin(admin.ModelAdmin):
+    inlines = [SubstituicaoComboInline]
+
+
+class ComboVinculoLine(admin.TabularInline):
     model = ComboDoVinculoTipoAlimentacaoPeriodoTipoUE
     extra = 1
 
 
 @admin.register(VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar)
 class VinculoTipoAlimentacaoModelAdmin(admin.ModelAdmin):
-    inlines = [SubstituicoesVinculoInLine]
+    inlines = [ComboVinculoLine]
 
 
 @admin.register(Cardapio)

@@ -82,6 +82,27 @@ class ComboDoVinculoTipoAlimentacaoPeriodoTipoUE(
         verbose_name_plural = 'Combos do vínculo tipo alimentação'
 
 
+class SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE(TemChaveExterna):  # noqa E125
+
+    tipos_alimentacao = models.ManyToManyField('TipoAlimentacao',
+                                               related_name='%(app_label)s_%(class)s_possibilidades',
+                                               help_text='Tipos de alimentacao das substituições dos combos.',
+                                               blank=True,
+                                               )
+    combo = models.ForeignKey('ComboDoVinculoTipoAlimentacaoPeriodoTipoUE',
+                              null=True,
+                              on_delete=models.CASCADE,
+                              related_name='substituicoes')
+
+    def __str__(self):
+        tipos_alimentacao_nome = [nome for nome in self.tipos_alimentacao.values_list('nome', flat=True)]
+        return f'TiposAlim.:{tipos_alimentacao_nome}'
+
+    class Meta:
+        verbose_name = 'Substituição do combo do vínculo tipo alimentação'
+        verbose_name_plural = 'Substituições do  combos do vínculo tipo alimentação'
+
+
 class VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar(
     ExportModelOperationsMixin('vinculo_alimentacao_periodo_escolar_tipo_ue'), TemChaveExterna):  # noqa E125
     """Vincular vários tipos de alimentação a um periodo e tipo de U.E.
