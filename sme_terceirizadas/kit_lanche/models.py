@@ -12,6 +12,7 @@ from ..dados_comuns.behaviors import (  # noqa I101
     Logs,
     Motivo,
     Nomeavel,
+    SolicitacaoForaDoPrazo,
     TemChaveExterna,
     TemData,
     TemIdentificadorExternoAmigavel,
@@ -75,9 +76,9 @@ class SolicitacaoKitLanche(ExportModelOperationsMixin('kit_lanche_base'), TemDat
         verbose_name_plural = 'Solicitações kit lanche base'
 
 
-class SolicitacaoKitLancheAvulsa(ExportModelOperationsMixin('kit_lanche_avulsa'), TemChaveExterna,
+class SolicitacaoKitLancheAvulsa(ExportModelOperationsMixin('kit_lanche_avulsa'), TemChaveExterna,  # type: ignore
                                  FluxoAprovacaoPartindoDaEscola, TemIdentificadorExternoAmigavel,
-                                 CriadoPor, TemPrioridade, Logs):
+                                 CriadoPor, TemPrioridade, Logs, SolicitacaoForaDoPrazo):
     # TODO: ao deletar este, deletar solicitacao_kit_lanche também que é uma tabela acessória
     # TODO: passar `local` para solicitacao_kit_lanche
     local = models.CharField(max_length=160)
@@ -101,7 +102,6 @@ class SolicitacaoKitLancheAvulsa(ExportModelOperationsMixin('kit_lanche_avulsa')
 
     def salvar_log_transicao(self, status_evento, usuario, **kwargs):
         justificativa = kwargs.get('justificativa', '')
-
         LogSolicitacoesUsuario.objects.create(
             descricao=str(self),
             status_evento=status_evento,

@@ -165,6 +165,21 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeIniciarSolicitacaoKitLancheAvulsaPermission],
+            methods=['patch'], url_path=constants.CODAE_QUESTIONA_PEDIDO)
+    def codae_questiona_pedido(self, request, uuid=None):
+        solicitacao_kit_lanche_avulsa = self.get_object()
+        observacao_questionamento_codae = request.data.get('observacao_questionamento_codae', '')
+        try:
+            solicitacao_kit_lanche_avulsa.codae_questiona(
+                user=request.user,
+                justificativa=observacao_questionamento_codae
+            )
+            serializer = self.get_serializer(solicitacao_kit_lanche_avulsa)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, permission_classes=[PodeIniciarSolicitacaoKitLancheAvulsaPermission],
             methods=['patch'], url_path=constants.CODAE_AUTORIZA_PEDIDO)
     def codae_autoriza_pedido(self, request, uuid=None):
         solicitacao_kit_lanche_avulsa = self.get_object()
@@ -182,6 +197,17 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
         justificativa = request.data.get('justificativa', '')
         try:
             solicitacao_kit_lanche_avulsa.codae_nega(user=request.user, justificativa=justificativa)
+            serializer = self.get_serializer(solicitacao_kit_lanche_avulsa)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, permission_classes=[PodeIniciarSolicitacaoKitLancheAvulsaPermission],
+            methods=['patch'], url_path=constants.TERCEIRIZADA_RESPONDE_QUESTIONAMENTO)
+    def terceirizada_responde_questionamento(self, request, uuid=None):
+        solicitacao_kit_lanche_avulsa = self.get_object()
+        try:
+            solicitacao_kit_lanche_avulsa.terceirizada_responde_questionamento(user=request.user, )
             serializer = self.get_serializer(solicitacao_kit_lanche_avulsa)
             return Response(serializer.data)
         except InvalidTransitionError as e:
