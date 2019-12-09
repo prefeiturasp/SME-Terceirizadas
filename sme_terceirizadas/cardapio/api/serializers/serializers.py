@@ -7,7 +7,8 @@ from ....escola.api.serializers import (
     PeriodoEscolarSerializer,
     PeriodoEscolarSimplesSerializer,
     TipoUnidadeEscolarSerializer,
-    TipoUnidadeEscolarSerializerSimples)
+    TipoUnidadeEscolarSerializerSimples
+)
 from ....terceirizada.api.serializers.serializers import EditalSerializer
 from ...models import (
     AlteracaoCardapio,

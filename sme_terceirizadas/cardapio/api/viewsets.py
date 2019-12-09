@@ -1,11 +1,23 @@
-from rest_framework import mixins, viewsets
-from rest_framework import status
+from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST
 from rest_framework.viewsets import GenericViewSet
 from xworkflows import InvalidTransitionError
 
+from ...dados_comuns import constants
+from ..models import (
+    AlteracaoCardapio,
+    Cardapio,
+    ComboDoVinculoTipoAlimentacaoPeriodoTipoUE,
+    GrupoSuspensaoAlimentacao,
+    InversaoCardapio,
+    MotivoAlteracaoCardapio,
+    MotivoSuspensao,
+    SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE,
+    TipoAlimentacao,
+    VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
+)
 from .permissions import (
     PodeAprovarPelaCODAEAlteracaoCardapioPermission,
     PodeIniciarAlteracaoCardapioPermission,
@@ -24,28 +36,18 @@ from .serializers.serializers import (
     InversaoCardapioSerializer,
     MotivoAlteracaoCardapioSerializer,
     MotivoSuspensaoSerializer,
+    SubstituicaoDoComboVinculoTipoAlimentoSimplesSerializer,
     TipoAlimentacaoSerializer,
     VinculoTipoAlimentoSimplesSerializer
 )
 from .serializers.serializers_create import (
     AlteracaoCardapioSerializerCreate,
     CardapioCreateSerializer,
+    ComboDoVinculoTipoAlimentoSimplesSerializerCreate,
     GrupoSuspensaoAlimentacaoCreateSerializer,
     InversaoCardapioSerializerCreate,
-    ComboDoVinculoTipoAlimentoSimplesSerializerCreate
+    SubstituicaoDoComboVinculoTipoAlimentoSimplesSerializerCreate
 )
-from ..models import (
-    AlteracaoCardapio,
-    Cardapio,
-    ComboDoVinculoTipoAlimentacaoPeriodoTipoUE,
-    GrupoSuspensaoAlimentacao,
-    InversaoCardapio,
-    MotivoAlteracaoCardapio,
-    MotivoSuspensao,
-    TipoAlimentacao,
-    VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
-)
-from ...dados_comuns import constants
 
 
 class CardapioViewSet(viewsets.ModelViewSet):
@@ -95,6 +97,29 @@ class CombosDoVinculoTipoAlimentacaoPeriodoTipoUEViewSet(mixins.RetrieveModelMix
         if self.action == 'create':
             return ComboDoVinculoTipoAlimentoSimplesSerializerCreate
         return CombosVinculoTipoAlimentoSimplesSerializer
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if not instance.pode_excluir():
+            return Response(data={'detail': 'Não pode excluir, o combo já tem movimentação no sistema'},
+                            status=status.HTTP_403_FORBIDDEN)
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class SubstituicaoDoCombosDoVinculoTipoAlimentacaoPeriodoTipoUEViewSet(mixins.RetrieveModelMixin,
+                                                                       mixins.ListModelMixin,
+                                                                       mixins.CreateModelMixin,
+                                                                       mixins.DestroyModelMixin,
+                                                                       GenericViewSet):
+    lookup_field = 'uuid'
+    serializer_class = SubstituicaoDoComboVinculoTipoAlimentoSimplesSerializer
+    queryset = SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE.objects.all()
+
+    def get_serializer_class(self):
+        if self.action == 'create':
+            return SubstituicaoDoComboVinculoTipoAlimentoSimplesSerializerCreate
+        return SubstituicaoDoComboVinculoTipoAlimentoSimplesSerializer
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()

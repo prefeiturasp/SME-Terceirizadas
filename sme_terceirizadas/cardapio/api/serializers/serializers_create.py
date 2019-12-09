@@ -1,5 +1,16 @@
 from rest_framework import serializers
 
+from ....dados_comuns.utils import update_instance_from_dict
+from ....dados_comuns.validators import (
+    campo_nao_pode_ser_nulo,
+    deve_existir_cardapio,
+    deve_pedir_com_antecedencia,
+    nao_pode_ser_feriado,
+    nao_pode_ser_no_passado,
+    objeto_nao_deve_ter_duplicidade
+)
+from ....escola.models import Escola, PeriodoEscolar, TipoUnidadeEscolar
+from ....terceirizada.models import Edital
 from ...api.validators import (
     data_troca_nao_pode_ser_superior_a_data_inversao,
     deve_ser_no_mesmo_ano_corrente,
@@ -17,22 +28,12 @@ from ...models import (
     MotivoSuspensao,
     QuantidadePorPeriodoSuspensaoAlimentacao,
     SubstituicaoAlimentacaoNoPeriodoEscolar,
+    SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE,
     SuspensaoAlimentacao,
     SuspensaoAlimentacaoNoPeriodoEscolar,
     TipoAlimentacao,
     VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
 )
-from ....dados_comuns.utils import update_instance_from_dict
-from ....dados_comuns.validators import (
-    campo_nao_pode_ser_nulo,
-    deve_existir_cardapio,
-    deve_pedir_com_antecedencia,
-    nao_pode_ser_feriado,
-    nao_pode_ser_no_passado,
-    objeto_nao_deve_ter_duplicidade
-)
-from ....escola.models import Escola, PeriodoEscolar, TipoUnidadeEscolar
-from ....terceirizada.models import Edital
 
 
 class InversaoCardapioSerializerCreate(serializers.ModelSerializer):
@@ -372,3 +373,26 @@ class ComboDoVinculoTipoAlimentoSimplesSerializerCreate(serializers.ModelSeriali
     class Meta:
         model = ComboDoVinculoTipoAlimentacaoPeriodoTipoUE
         fields = ('uuid', 'tipos_alimentacao', 'vinculo')
+
+
+class SubstituicaoDoComboVinculoTipoAlimentoSimplesSerializerCreate(serializers.ModelSerializer):
+    tipos_alimentacao = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        many=True,
+        queryset=TipoAlimentacao.objects.all()
+    )
+
+    combo = serializers.SlugRelatedField(
+        required=False,
+        slug_field='uuid',
+        queryset=ComboDoVinculoTipoAlimentacaoPeriodoTipoUE.objects.all()
+    )
+
+    def validate_tipos_alimentacao(self, tipos_alimentacao):
+        campo_nao_pode_ser_nulo(tipos_alimentacao, mensagem='tipos_alimentacao deve ter ao menos um elemento')
+        return tipos_alimentacao
+
+    class Meta:
+        model = SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE
+        fields = ('uuid', 'tipos_alimentacao', 'combo')
