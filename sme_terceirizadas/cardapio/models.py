@@ -1,6 +1,16 @@
 from django.db import models
 from django_prometheus.models import ExportModelOperationsMixin
 
+from .managers import (
+    AlteracoesCardapioDestaSemanaManager,
+    AlteracoesCardapioDesteMesManager,
+    AlteracoesCardapioVencidaManager,
+    GrupoSuspensaoAlimentacaoDestaSemanaManager,
+    GrupoSuspensaoAlimentacaoDesteMesManager,
+    InversaoCardapioDestaSemanaManager,
+    InversaoCardapioDesteMesManager,
+    InversaoCardapioVencidaManager
+)
 from ..dados_comuns.behaviors import (  # noqa I101
     Ativavel,
     CriadoEm,
@@ -19,16 +29,6 @@ from ..dados_comuns.behaviors import (  # noqa I101
 )
 from ..dados_comuns.fluxo_status import FluxoAprovacaoPartindoDaEscola, FluxoInformativoPartindoDaEscola
 from ..dados_comuns.models import TemplateMensagem  # noqa I202
-from .managers import (
-    AlteracoesCardapioDestaSemanaManager,
-    AlteracoesCardapioDesteMesManager,
-    AlteracoesCardapioVencidaManager,
-    GrupoSuspensaoAlimentacaoDestaSemanaManager,
-    GrupoSuspensaoAlimentacaoDesteMesManager,
-    InversaoCardapioDestaSemanaManager,
-    InversaoCardapioDesteMesManager,
-    InversaoCardapioVencidaManager
-)
 
 
 class TipoAlimentacao(ExportModelOperationsMixin('tipo_alimentacao'), Nomeavel, TemChaveExterna):
@@ -72,6 +72,10 @@ class ComboDoVinculoTipoAlimentacaoPeriodoTipoUE(
                                 null=True,
                                 on_delete=models.CASCADE,
                                 related_name='combos')
+
+    def pode_excluir(self):
+        # TODO: incrementar esse método,  impedir exclusão se tiver solicitações em cima desse combo também.
+        return not self.substituicoes.exists()
 
     def __str__(self):
         tipos_alimentacao_nome = [nome for nome in self.tipos_alimentacao.values_list('nome', flat=True)]
