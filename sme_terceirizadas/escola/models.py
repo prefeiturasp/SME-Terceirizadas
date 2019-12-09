@@ -19,6 +19,13 @@ from ..inclusao_alimentacao.models import GrupoInclusaoAlimentacaoNormal, Inclus
 from ..kit_lanche.models import SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheUnificada
 
 
+def queryset_por_data(filtro_aplicado, model):
+    if filtro_aplicado == DAQUI_A_SETE_DIAS:
+        return model.desta_semana
+    elif filtro_aplicado == DAQUI_A_TRINTA_DIAS:
+        return model.deste_mes  # type: ignore
+    return model.objects  # type: ignore
+
 class DiretoriaRegional(ExportModelOperationsMixin('diretoria_regional'), Nomeavel, Iniciais, TemChaveExterna,
                         TemCodigoEOL, TemVinculos):
 
@@ -72,56 +79,24 @@ class DiretoriaRegional(ExportModelOperationsMixin('diretoria_regional'), Nomeav
             status=GrupoInclusaoAlimentacaoNormal.workflow_class.DRE_NAO_VALIDOU_PEDIDO_ESCOLA
         )
 
-    # TODO: talvez fazer um manager genérico pra fazer esse filtro
+    def filtra_solicitacoes_das_minhas_escolas_a_validar_por_data(self, filtro_aplicado, model):
+        queryset = queryset_por_data(filtro_aplicado, model)
+        return queryset.filter(
+            escola__in=self.escolas.all(),
+            status=InversaoCardapio.workflow_class.DRE_A_VALIDAR
+        )
 
     def solicitacoes_kit_lanche_das_minhas_escolas_a_validar(self, filtro_aplicado):
-        if filtro_aplicado == DAQUI_A_SETE_DIAS:
-            solicitacoes_kit_lanche_avulsa = SolicitacaoKitLancheAvulsa.desta_semana
-        elif filtro_aplicado == DAQUI_A_TRINTA_DIAS:
-            solicitacoes_kit_lanche_avulsa = SolicitacaoKitLancheAvulsa.deste_mes  # type: ignore
-        else:
-            solicitacoes_kit_lanche_avulsa = SolicitacaoKitLancheAvulsa.objects  # type: ignore
-        return solicitacoes_kit_lanche_avulsa.filter(
-            escola__in=self.escolas.all(),
-            status=InversaoCardapio.workflow_class.DRE_A_VALIDAR
-        )
+        return self.filtra_solicitacoes_das_minhas_escolas_a_validar_por_data(filtro_aplicado, SolicitacaoKitLancheAvulsa)
 
     def alteracoes_cardapio_das_minhas_escolas_a_validar(self, filtro_aplicado):
-        if filtro_aplicado == DAQUI_A_SETE_DIAS:
-            inversoes_cardapio = AlteracaoCardapio.desta_semana
-        elif filtro_aplicado == DAQUI_A_TRINTA_DIAS:
-            inversoes_cardapio = AlteracaoCardapio.deste_mes  # type: ignore
-        else:
-            inversoes_cardapio = AlteracaoCardapio.objects  # type: ignore
-        return inversoes_cardapio.filter(
-            escola__in=self.escolas.all(),
-            status=InversaoCardapio.workflow_class.DRE_A_VALIDAR
-        )
+        return self.filtra_solicitacoes_das_minhas_escolas_a_validar_por_data(filtro_aplicado, AlteracaoCardapio)
 
-    # TODO rever os demais métodos de alterações de cardápio, já que esse consolida todas as prioridades.
     def inclusoes_alimentacao_continua_das_minhas_escolas(self, filtro_aplicado):
-        if filtro_aplicado == DAQUI_A_SETE_DIAS:
-            inclusoes_alimentacao_continuas = InclusaoAlimentacaoContinua.desta_semana
-        elif filtro_aplicado == DAQUI_A_TRINTA_DIAS:
-            inclusoes_alimentacao_continuas = InclusaoAlimentacaoContinua.deste_mes  # type: ignore
-        else:
-            inclusoes_alimentacao_continuas = InclusaoAlimentacaoContinua.objects  # type: ignore
-        return inclusoes_alimentacao_continuas.filter(
-            escola__in=self.escolas.all(),
-            status=InclusaoAlimentacaoContinua.workflow_class.DRE_A_VALIDAR
-        )
+        return self.filtra_solicitacoes_das_minhas_escolas_a_validar_por_data(filtro_aplicado, InclusaoAlimentacaoContinua)
 
     def grupos_inclusoes_alimentacao_normal_das_minhas_escolas(self, filtro_aplicado):
-        if filtro_aplicado == DAQUI_A_SETE_DIAS:
-            inclusoes_alimentacao_normais = GrupoInclusaoAlimentacaoNormal.desta_semana
-        elif filtro_aplicado == DAQUI_A_TRINTA_DIAS:
-            inclusoes_alimentacao_normais = GrupoInclusaoAlimentacaoNormal.deste_mes  # type: ignore
-        else:
-            inclusoes_alimentacao_normais = GrupoInclusaoAlimentacaoNormal.objects  # type: ignore
-        return inclusoes_alimentacao_normais.filter(
-            escola__in=self.escolas.all(),
-            status=GrupoInclusaoAlimentacaoNormal.workflow_class.DRE_A_VALIDAR
-        )
+        return self.filtra_solicitacoes_das_minhas_escolas_a_validar_por_data(filtro_aplicado, GrupoInclusaoAlimentacaoNormal)
 
     #
     # Alterações de cardápio
@@ -164,7 +139,6 @@ class DiretoriaRegional(ExportModelOperationsMixin('diretoria_regional'), Nomeav
             status=AlteracaoCardapio.workflow_class.DRE_NAO_VALIDOU_PEDIDO_ESCOLA
         )
 
-    # TODO rever os demais métodos de alterações de cardápio, já que esse consolida todas as prioridades.
     def alteracoes_cardapio_das_minhas_escolas(self, filtro_aplicado):
         if filtro_aplicado == DAQUI_A_SETE_DIAS:
             alteracoes_cardapio = AlteracaoCardapio.desta_semana
@@ -522,16 +496,9 @@ class Codae(ExportModelOperationsMixin('codae'), Nomeavel, TemChaveExterna, TemV
             status=SolicitacaoKitLancheAvulsa.workflow_class.CODAE_NEGOU_PEDIDO
         )
 
-    # TODO: talvez fazer um manager genérico pra fazer esse filtro
-
     def solicitacoes_kit_lanche_das_minhas_escolas_a_validar(self, filtro_aplicado):
-        if filtro_aplicado == DAQUI_A_SETE_DIAS:
-            solicitacoes_kit_lanche = SolicitacaoKitLancheAvulsa.desta_semana
-        elif filtro_aplicado == DAQUI_A_TRINTA_DIAS:
-            solicitacoes_kit_lanche = SolicitacaoKitLancheAvulsa.deste_mes  # type: ignore
-        else:
-            solicitacoes_kit_lanche = SolicitacaoKitLancheAvulsa.objects  # type: ignore
-        return solicitacoes_kit_lanche.filter(
+        queryset = queryset_por_data(filtro_aplicado, SolicitacaoKitLancheAvulsa)
+        return queryset.filter(
             status=InversaoCardapio.workflow_class.DRE_VALIDADO
         )
 
