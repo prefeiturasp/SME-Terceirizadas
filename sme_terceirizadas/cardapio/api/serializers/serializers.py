@@ -6,7 +6,8 @@ from ....escola.api.serializers import (
     EscolaSimplesSerializer,
     PeriodoEscolarSerializer,
     PeriodoEscolarSimplesSerializer,
-    TipoUnidadeEscolarSerializer
+    TipoUnidadeEscolarSerializer,
+    TipoUnidadeEscolarSerializerSimples
 )
 from ....terceirizada.api.serializers.serializers import EditalSerializer
 from ...models import (
@@ -75,7 +76,7 @@ class CombosVinculoTipoAlimentoSimplesSerializer(serializers.ModelSerializer):
 
 
 class VinculoTipoAlimentoSimplesSerializer(serializers.ModelSerializer):
-    tipo_unidade_escolar = TipoUnidadeEscolarSerializer()
+    tipo_unidade_escolar = TipoUnidadeEscolarSerializerSimples()
     periodo_escolar = PeriodoEscolarSimplesSerializer()
     combos = CombosVinculoTipoAlimentoSimplesSerializer(many=True)
 

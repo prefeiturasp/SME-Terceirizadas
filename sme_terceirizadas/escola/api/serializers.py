@@ -72,6 +72,12 @@ class TipoUnidadeEscolarSerializer(serializers.ModelSerializer):
         exclude = ('id', 'cardapios')
 
 
+class TipoUnidadeEscolarSerializerSimples(serializers.ModelSerializer):
+    class Meta:
+        model = TipoUnidadeEscolar
+        exclude = ('id', 'cardapios', 'periodos_escolares')
+
+
 class FaixaIdadeEscolarSerializer(serializers.ModelSerializer):
     class Meta:
         model = FaixaIdadeEscolar
