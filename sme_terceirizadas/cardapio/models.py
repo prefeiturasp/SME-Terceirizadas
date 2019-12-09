@@ -207,7 +207,7 @@ class InversaoCardapio(ExportModelOperationsMixin('inversao_cardapio'), CriadoEm
 
     @property
     def data(self):
-        return self.data_para if self.data_para < self.data_de else self.data_de 
+        return self.data_para if self.data_para < self.data_de else self.data_de
 
     @property
     def template_mensagem(self):
