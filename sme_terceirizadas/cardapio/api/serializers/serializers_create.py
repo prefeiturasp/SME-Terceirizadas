@@ -28,6 +28,7 @@ from ...models import (
     MotivoSuspensao,
     QuantidadePorPeriodoSuspensaoAlimentacao,
     SubstituicaoAlimentacaoNoPeriodoEscolar,
+    SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE,
     SuspensaoAlimentacao,
     SuspensaoAlimentacaoNoPeriodoEscolar,
     TipoAlimentacao,
@@ -351,77 +352,47 @@ class VinculoTipoAlimentoCreateSerializer(serializers.ModelSerializer):
         fields = ('uuid', 'tipos_alimentacao', 'tipo_unidade_escolar', 'periodo_escolar')
 
 
-class SubstituicoesVinculoTipoAlimentoSimplesSerializerCreate(serializers.ModelSerializer):
-    tipo_alimentacao = serializers.SlugRelatedField(
-        slug_field='uuid',
-        required=False,
-        queryset=TipoAlimentacao.objects.all()
-    )
-
-    possibilidades = serializers.SlugRelatedField(
-        many=True,
-        required=False,
-        slug_field='uuid',
-        queryset=TipoAlimentacao.objects.all()
-    )
-
-    substituicoes = serializers.SlugRelatedField(
-        many=True,
+class ComboDoVinculoTipoAlimentoSimplesSerializerCreate(serializers.ModelSerializer):
+    tipos_alimentacao = serializers.SlugRelatedField(
         slug_field='uuid',
         required=True,
+        many=True,
         queryset=TipoAlimentacao.objects.all()
     )
+
+    vinculo = serializers.SlugRelatedField(
+        required=False,
+        slug_field='uuid',
+        queryset=VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar.objects.all()
+    )
+
+    def validate_tipos_alimentacao(self, tipos_alimentacao):
+        campo_nao_pode_ser_nulo(tipos_alimentacao, mensagem='tipos_alimentacao deve ter ao menos um elemento')
+        return tipos_alimentacao
 
     class Meta:
         model = ComboDoVinculoTipoAlimentacaoPeriodoTipoUE
-        fields = ('tipo_alimentacao', 'possibilidades', 'substituicoes')
+        fields = ('uuid', 'tipos_alimentacao', 'vinculo')
 
 
-class VinculoTipoAlimentoSimplesSerializerCreate(serializers.ModelSerializer):
-    tipo_unidade_escolar = serializers.SlugRelatedField(
+class SubstituicaoDoComboVinculoTipoAlimentoSimplesSerializerCreate(serializers.ModelSerializer):
+    tipos_alimentacao = serializers.SlugRelatedField(
         slug_field='uuid',
         required=True,
-        queryset=TipoUnidadeEscolar.objects.all()
+        many=True,
+        queryset=TipoAlimentacao.objects.all()
     )
-    periodo_escolar = serializers.SlugRelatedField(
+
+    combo = serializers.SlugRelatedField(
+        required=False,
         slug_field='uuid',
-        required=True,
-        queryset=PeriodoEscolar.objects.all()
+        queryset=ComboDoVinculoTipoAlimentacaoPeriodoTipoUE.objects.all()
     )
 
-    substituicoes = SubstituicoesVinculoTipoAlimentoSimplesSerializerCreate(many=True)
-
-    def validate_substituicoes(self, substituicoes):
-        campo_nao_pode_ser_nulo(substituicoes, mensagem='substituicoes deve ter ao menos um elemento')
-        return substituicoes
-
-    def create(self, validated_data):
-        substituicoes_array = validated_data.pop('substituicoes', [])
-
-        substituicoes = []
-        for suspensao_json in substituicoes_array:
-            suspensao = SubstituicoesVinculoTipoAlimentoSimplesSerializerCreate().create(suspensao_json)
-            substituicoes.append(suspensao)
-
-        vinculo = VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar.objects.create(**validated_data)
-        vinculo.substituicoes.set(substituicoes)
-        return vinculo
-
-    def update(self, instance, validated_data):
-        substituicoes_array = validated_data.pop('substituicoes')
-
-        instance.substituicoes.set([])
-
-        substituicoes = []
-        for suspensao_json in substituicoes_array:
-            # TODO: incrementar essa logica, está dropando e criando novamente as substituições
-            suspensao = SubstituicoesVinculoTipoAlimentoSimplesSerializerCreate().create(suspensao_json)
-            substituicoes.append(suspensao)
-
-        update_instance_from_dict(instance, validated_data, save=True)
-        instance.substituicoes.set(substituicoes)
-        return instance
+    def validate_tipos_alimentacao(self, tipos_alimentacao):
+        campo_nao_pode_ser_nulo(tipos_alimentacao, mensagem='tipos_alimentacao deve ter ao menos um elemento')
+        return tipos_alimentacao
 
     class Meta:
-        model = VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
-        fields = ('uuid', 'tipo_unidade_escolar', 'periodo_escolar', 'substituicoes')
+        model = SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE
+        fields = ('uuid', 'tipos_alimentacao', 'combo')

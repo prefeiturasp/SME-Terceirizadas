@@ -73,6 +73,10 @@ class ComboDoVinculoTipoAlimentacaoPeriodoTipoUE(
                                 on_delete=models.CASCADE,
                                 related_name='combos')
 
+    def pode_excluir(self):
+        # TODO: incrementar esse método,  impedir exclusão se tiver solicitações em cima desse combo também.
+        return not self.substituicoes.exists()
+
     def __str__(self):
         tipos_alimentacao_nome = [nome for nome in self.tipos_alimentacao.values_list('nome', flat=True)]
         return f'TiposAlim.:{tipos_alimentacao_nome}'
@@ -93,6 +97,10 @@ class SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE(TemChaveExterna):
                               null=True,
                               on_delete=models.CASCADE,
                               related_name='substituicoes')
+
+    def pode_excluir(self):
+        # TODO: incrementar esse método,  impedir exclusão se tiver solicitações em cima dessa substituição do combo.
+        return True
 
     def __str__(self):
         tipos_alimentacao_nome = [nome for nome in self.tipos_alimentacao.values_list('nome', flat=True)]

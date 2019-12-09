@@ -1,4 +1,4 @@
-from rest_framework import mixins, viewsets
+from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST
@@ -14,6 +14,7 @@ from ..models import (
     InversaoCardapio,
     MotivoAlteracaoCardapio,
     MotivoSuspensao,
+    SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE,
     TipoAlimentacao,
     VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
 )
@@ -35,15 +36,17 @@ from .serializers.serializers import (
     InversaoCardapioSerializer,
     MotivoAlteracaoCardapioSerializer,
     MotivoSuspensaoSerializer,
+    SubstituicaoDoComboVinculoTipoAlimentoSimplesSerializer,
     TipoAlimentacaoSerializer,
     VinculoTipoAlimentoSimplesSerializer
 )
 from .serializers.serializers_create import (
     AlteracaoCardapioSerializerCreate,
     CardapioCreateSerializer,
+    ComboDoVinculoTipoAlimentoSimplesSerializerCreate,
     GrupoSuspensaoAlimentacaoCreateSerializer,
     InversaoCardapioSerializerCreate,
-    SubstituicoesVinculoTipoAlimentoSimplesSerializerCreate
+    SubstituicaoDoComboVinculoTipoAlimentoSimplesSerializerCreate
 )
 
 
@@ -82,17 +85,49 @@ class VinculoTipoAlimentacaoViewSet(mixins.RetrieveModelMixin,
 
 
 class CombosDoVinculoTipoAlimentacaoPeriodoTipoUEViewSet(mixins.RetrieveModelMixin,
-                                                         mixins.UpdateModelMixin,
                                                          mixins.ListModelMixin,
+                                                         mixins.CreateModelMixin,
+                                                         mixins.DestroyModelMixin,
                                                          GenericViewSet):
     lookup_field = 'uuid'
     serializer_class = CombosVinculoTipoAlimentoSimplesSerializer
     queryset = ComboDoVinculoTipoAlimentacaoPeriodoTipoUE.objects.all()
 
     def get_serializer_class(self):
-        if self.action in ['create', 'update', 'partial_update']:
-            return SubstituicoesVinculoTipoAlimentoSimplesSerializerCreate
+        if self.action == 'create':
+            return ComboDoVinculoTipoAlimentoSimplesSerializerCreate
         return CombosVinculoTipoAlimentoSimplesSerializer
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if not instance.pode_excluir():
+            return Response(data={'detail': 'Não pode excluir, o combo já tem movimentação no sistema'},
+                            status=status.HTTP_403_FORBIDDEN)
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class SubstituicaoDoCombosDoVinculoTipoAlimentacaoPeriodoTipoUEViewSet(mixins.RetrieveModelMixin,
+                                                                       mixins.ListModelMixin,
+                                                                       mixins.CreateModelMixin,
+                                                                       mixins.DestroyModelMixin,
+                                                                       GenericViewSet):
+    lookup_field = 'uuid'
+    serializer_class = SubstituicaoDoComboVinculoTipoAlimentoSimplesSerializer
+    queryset = SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE.objects.all()
+
+    def get_serializer_class(self):
+        if self.action == 'create':
+            return SubstituicaoDoComboVinculoTipoAlimentoSimplesSerializerCreate
+        return SubstituicaoDoComboVinculoTipoAlimentoSimplesSerializer
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if not instance.pode_excluir():
+            return Response(data={'detail': 'Não pode excluir, o combo já tem movimentação no sistema'},
+                            status=status.HTTP_403_FORBIDDEN)
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class InversaoCardapioViewSet(viewsets.ModelViewSet):

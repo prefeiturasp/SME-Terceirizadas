@@ -58,3 +58,11 @@ Test coverage
 Para executar testes em modo daemon, use o pytest-watch::
 
     $ ptw
+
+
+Organizar imports
+^^^^^^^^^^^^^^^^^
+
+::
+
+ $ isort -rc --atomic sme_terceirizadas
