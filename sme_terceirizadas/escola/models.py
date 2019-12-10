@@ -303,6 +303,13 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
         return self.escolas_periodos.filter(quantidade_alunos__gte=1)
 
     @property
+    def periodos_escolares(self):
+        """Recupera periodos escolares da escola, desde que haja pelomenos um aluno para este período."""
+        # TODO: ver uma forma melhor de fazer essa query
+        periodos_ids = self.escolas_periodos.filter(quantidade_alunos__gte=1).values_list('periodo_escolar', flat=True)
+        return PeriodoEscolar.objects.filter(id__in=periodos_ids)
+
+    @property
     def vinculos_que_podem_ser_finalizados(self):
         return self.vinculos.filter(
             Q(data_inicial=None, data_final=None, ativo=False) |  # noqa W504 esperando ativacao

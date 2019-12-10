@@ -322,20 +322,30 @@ CACHES = {
     }
 }
 
-# https://docs.celeryproject.org/en/latest/userguide/configuration.html
+# http://docs.celeryproject.org/en/v4.3.0/userguide/configuration.html
 CELERY_BROKER_URL = f'{REDIS_URL}/1'
 CELERY_RESULT_BACKEND = f'{REDIS_URL}/2'
+
+# CELERY_ENABLE_UTC = False
+# CELERY_IGNORE_RESULT = True
 
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_ACCEPT_CONTENT = ['json']
-CELERY_ENABLE_UTC = True
-CELERY_IGNORE_RESULT = True
 CELERY_TIMEZONE = TIME_ZONE
+xxx = 8
+hora = 14
 CELERY_BEAT_SCHEDULE = {
     'atualiza-totais-das-escolas': {
         'task': 'sme_terceirizadas.escola.tasks.atualiza_total_alunos_escolas',
-        'schedule': crontab(minute=32, hour=12)
+        'schedule': crontab(minute=xxx, hour=hora)
+    }
+}
+
+CELERYBEAT_SCHEDULE = {
+    'atualiza-totais-das-escolas': {
+        'task': 'sme_terceirizadas.escola.tasks.atualiza_total_alunos_escolas',
+        'schedule': crontab(minute=xxx, hour=hora)
     }
 }
 
