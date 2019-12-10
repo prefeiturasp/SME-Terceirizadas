@@ -73,6 +73,10 @@ class ComboDoVinculoTipoAlimentacaoPeriodoTipoUE(
                                 on_delete=models.CASCADE,
                                 related_name='combos')
 
+    def pode_excluir(self):
+        # TODO: incrementar esse método,  impedir exclusão se tiver solicitações em cima desse combo também.
+        return not self.substituicoes.exists()
+
     def __str__(self):
         tipos_alimentacao_nome = [nome for nome in self.tipos_alimentacao.values_list('nome', flat=True)]
         return f'TiposAlim.:{tipos_alimentacao_nome}'
@@ -80,6 +84,31 @@ class ComboDoVinculoTipoAlimentacaoPeriodoTipoUE(
     class Meta:
         verbose_name = 'Combo do vínculo tipo alimentação'
         verbose_name_plural = 'Combos do vínculo tipo alimentação'
+
+
+class SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE(TemChaveExterna):  # noqa E125
+
+    tipos_alimentacao = models.ManyToManyField('TipoAlimentacao',
+                                               related_name='%(app_label)s_%(class)s_possibilidades',
+                                               help_text='Tipos de alimentacao das substituições dos combos.',
+                                               blank=True,
+                                               )
+    combo = models.ForeignKey('ComboDoVinculoTipoAlimentacaoPeriodoTipoUE',
+                              null=True,
+                              on_delete=models.CASCADE,
+                              related_name='substituicoes')
+
+    def pode_excluir(self):
+        # TODO: incrementar esse método,  impedir exclusão se tiver solicitações em cima dessa substituição do combo.
+        return True
+
+    def __str__(self):
+        tipos_alimentacao_nome = [nome for nome in self.tipos_alimentacao.values_list('nome', flat=True)]
+        return f'TiposAlim.:{tipos_alimentacao_nome}'
+
+    class Meta:
+        verbose_name = 'Substituição do combo do vínculo tipo alimentação'
+        verbose_name_plural = 'Substituições do  combos do vínculo tipo alimentação'
 
 
 class VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar(
@@ -178,10 +207,7 @@ class InversaoCardapio(ExportModelOperationsMixin('inversao_cardapio'), CriadoEm
 
     @property
     def data(self):
-        data = self.data_de
-        if self.data_para < self.data_de:
-            data = self.data_para
-        return data
+        return self.data_para if self.data_para < self.data_de else self.data_de
 
     @property
     def template_mensagem(self):
