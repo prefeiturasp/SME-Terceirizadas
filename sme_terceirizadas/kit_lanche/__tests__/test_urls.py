@@ -138,8 +138,9 @@ def test_url_endpoint_solicitacoes_kit_lanche_avulsa_codae_autoriza_erro(client_
     )
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json() == {
-        'detail': ("Erro de transição de estado: Transition 'codae_autoriza' isn't available from state " +
-                   "'DRE_A_VALIDAR'.")}
+        'detail': (
+            "Erro de transição de estado: Transition 'codae_autoriza_questionamento' isn't available from state " +
+            "'DRE_A_VALIDAR'.")}
 
 
 def test_url_endpoint_solicitacoes_kit_lanche_avulsa_codae_questiona(client_autenticado,
@@ -155,7 +156,8 @@ def test_url_endpoint_solicitacoes_kit_lanche_avulsa_codae_questiona(client_aute
 
 def test_url_endpoint_solicitacoes_kit_lanche_avulsa_codae_questiona_erro(client_autenticado,
                                                                           solic_avulsa_terc_respondeu_questionamento):
-    assert str(solic_avulsa_terc_respondeu_questionamento.status) == PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO  # noqa
+    assert str(
+        solic_avulsa_terc_respondeu_questionamento.status) == PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO  # noqa
     response = client_autenticado.patch(
         f'/{ENDPOINT_AVULSO}/{solic_avulsa_terc_respondeu_questionamento.uuid}/{constants.CODAE_QUESTIONA_PEDIDO}/',
     )
@@ -188,7 +190,7 @@ def test_url_endpoint_solicitacoes_kit_lanche_avulsa_codae_nega_erro(client_aute
     )
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json() == {
-        'detail': ("Erro de transição de estado: Transition 'codae_nega' isn't available from state " +
+        'detail': ("Erro de transição de estado: Transition 'codae_nega_questionamento' isn't available from state " +
                    "'CODAE_AUTORIZADO'.")}
 
 

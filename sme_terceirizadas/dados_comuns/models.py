@@ -49,7 +49,7 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
         (ESCOLA_CANCELOU, 'Escola cancelou'),
         (DRE_CANCELOU, 'DRE cancelou'),
         (CODAE_QUESTIONOU, 'Questionamento pela CODAE'),
-        (TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO, 'Questionamento pela CODAE')
+        (TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO, 'Terceirizada respondeu questionamento')
     )
     (  # DA ESCOLA
         SOLICITACAO_KIT_LANCHE_AVULSA,
@@ -78,6 +78,7 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
     criado_em = models.DateTimeField('Criado em', editable=False, auto_now_add=True)
     descricao = models.TextField('Descricao', blank=True)
     justificativa = models.TextField('Justificativa', blank=True)
+    resposta_sim_nao = models.BooleanField('Resposta - Sim ou Não', default=False)
     status_evento = models.PositiveSmallIntegerField(choices=STATUS_POSSIVEIS)
     solicitacao_tipo = models.PositiveSmallIntegerField(choices=TIPOS_SOLICITACOES)
     uuid_original = models.UUIDField()
