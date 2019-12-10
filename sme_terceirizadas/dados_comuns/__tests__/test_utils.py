@@ -1,8 +1,13 @@
 import environ
 from freezegun import freeze_time
 
-from ..constants import obter_dias_uteis_apos_hoje
-from ..utils import update_instance_from_dict
+from ..constants import (
+    DAQUI_A_SETE_DIAS,
+    DAQUI_A_TRINTA_DIAS,
+    obter_dias_uteis_apos_hoje,
+    SEM_FILTRO
+)
+from ..utils import queryset_por_data, update_instance_from_dict
 
 env = environ.Env()
 
@@ -25,3 +30,17 @@ def test_update_instance_from_dict():
     a = A()
     update_instance_from_dict(a, dict(attribute1='xxx', attribute2='yyy'))
     assert a.__str__() == 'xxx,yyy'
+
+
+class Model(object):
+    desta_semana = 0
+    deste_mes = 1
+    objects = 2
+
+
+def test_queryset_por_data():
+    model = Model()
+    assert queryset_por_data(DAQUI_A_SETE_DIAS, model) == model.desta_semana
+    assert queryset_por_data(DAQUI_A_TRINTA_DIAS, model) == model.deste_mes
+    assert queryset_por_data(SEM_FILTRO, model) == model.objects
+
