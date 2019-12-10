@@ -70,6 +70,7 @@ def convert_base64_to_contentfile(base64_str: str):
     data = ContentFile(base64.b64decode(imgstr), name=str(uuid.uuid4()) + ext)
     return data
 
+
 def queryset_por_data(filtro_aplicado, model):
     if filtro_aplicado == DAQUI_A_SETE_DIAS:
         return model.desta_semana

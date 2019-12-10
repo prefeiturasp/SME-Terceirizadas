@@ -17,6 +17,7 @@ from ..dados_comuns.utils import queryset_por_data
 from ..inclusao_alimentacao.models import GrupoInclusaoAlimentacaoNormal, InclusaoAlimentacaoContinua
 from ..kit_lanche.models import SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheUnificada
 
+
 class DiretoriaRegional(ExportModelOperationsMixin('diretoria_regional'), Nomeavel, Iniciais, TemChaveExterna,
                         TemCodigoEOL, TemVinculos):
 
@@ -70,7 +71,7 @@ class DiretoriaRegional(ExportModelOperationsMixin('diretoria_regional'), Nomeav
             status=GrupoInclusaoAlimentacaoNormal.workflow_class.DRE_NAO_VALIDOU_PEDIDO_ESCOLA
         )
 
-    def filtra_solicitacoes_das_minhas_escolas_a_validar_por_data(self, filtro_aplicado, model):
+    def filtra_solicitacoes_minhas_escolas_a_validar_por_data(self, filtro_aplicado, model):
         queryset = queryset_por_data(filtro_aplicado, model)
         return queryset.filter(
             escola__in=self.escolas.all(),
@@ -78,16 +79,28 @@ class DiretoriaRegional(ExportModelOperationsMixin('diretoria_regional'), Nomeav
         )
 
     def solicitacoes_kit_lanche_das_minhas_escolas_a_validar(self, filtro_aplicado):
-        return self.filtra_solicitacoes_das_minhas_escolas_a_validar_por_data(filtro_aplicado, SolicitacaoKitLancheAvulsa)
+        return self.filtra_solicitacoes_minhas_escolas_a_validar_por_data(
+            filtro_aplicado,
+            SolicitacaoKitLancheAvulsa
+        )
 
     def alteracoes_cardapio_das_minhas_escolas_a_validar(self, filtro_aplicado):
-        return self.filtra_solicitacoes_das_minhas_escolas_a_validar_por_data(filtro_aplicado, AlteracaoCardapio)
+        return self.filtra_solicitacoes_minhas_escolas_a_validar_por_data(
+            filtro_aplicado,
+            AlteracaoCardapio
+        )
 
     def inclusoes_alimentacao_continua_das_minhas_escolas(self, filtro_aplicado):
-        return self.filtra_solicitacoes_das_minhas_escolas_a_validar_por_data(filtro_aplicado, InclusaoAlimentacaoContinua)
+        return self.filtra_solicitacoes_minhas_escolas_a_validar_por_data(
+            filtro_aplicado,
+            InclusaoAlimentacaoContinua
+        )
 
     def grupos_inclusoes_alimentacao_normal_das_minhas_escolas(self, filtro_aplicado):
-        return self.filtra_solicitacoes_das_minhas_escolas_a_validar_por_data(filtro_aplicado, GrupoInclusaoAlimentacaoNormal)
+        return self.filtra_solicitacoes_minhas_escolas_a_validar_por_data(
+            filtro_aplicado,
+            GrupoInclusaoAlimentacaoNormal
+        )
 
     #
     # Alterações de cardápio
