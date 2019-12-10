@@ -14,7 +14,8 @@ def calcula_total_alunos_por_escola(request_json_data: dict) -> dict:
 
 
 def calcula_total_alunos_por_escola_por_periodo(request_json_data: dict) -> dict:
-    """
+    """Recebe requisição da api do eol e trata.
+
     :param request_json_data: retorno da api do EOL
     :return: dict com várias chaves assim: '000078': {'manha': 163, 'intermediario': 161,
     'tarde': 0, 'vespertino': 186, 'noite': 175, 'integral': 0, 'total': 685}

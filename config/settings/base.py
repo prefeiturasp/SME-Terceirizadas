@@ -1,6 +1,7 @@
 """Base settings to build other settings files upon."""
 
 import datetime
+import logging.config
 import os
 
 import environ
@@ -9,6 +10,7 @@ from celery.schedules import crontab
 from sentry_sdk.integrations.django import DjangoIntegration
 
 # (sme_terceirizadas/config/settings/base.py - 3 = sme_terceirizadas/)
+
 ROOT_DIR = environ.Path(__file__) - 3
 APPS_DIR = ROOT_DIR.path('sme_terceirizadas')
 
@@ -326,26 +328,15 @@ CACHES = {
 CELERY_BROKER_URL = f'{REDIS_URL}/1'
 CELERY_RESULT_BACKEND = f'{REDIS_URL}/2'
 
-# CELERY_ENABLE_UTC = False
-# CELERY_IGNORE_RESULT = True
-
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TIMEZONE = TIME_ZONE
-xxx = 8
-hora = 14
+
 CELERY_BEAT_SCHEDULE = {
     'atualiza-totais-das-escolas': {
         'task': 'sme_terceirizadas.escola.tasks.atualiza_total_alunos_escolas',
-        'schedule': crontab(minute=xxx, hour=hora)
-    }
-}
-
-CELERYBEAT_SCHEDULE = {
-    'atualiza-totais-das-escolas': {
-        'task': 'sme_terceirizadas.escola.tasks.atualiza_total_alunos_escolas',
-        'schedule': crontab(minute=xxx, hour=hora)
+        'schedule': crontab(hour=0, minute=0)
     }
 }
 
@@ -356,3 +347,29 @@ sentry_sdk.init(
     dsn=env('SENTRY_URL'),
     integrations=[DjangoIntegration()]
 )
+
+logging.config.dictConfig({
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '%(asctime)s %(name)-12s %(levelname)-8s %(message)s'
+        },
+    },
+    'handlers': {
+        'file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'formatter': 'verbose',
+            'filename': 'terceirizadas.log'
+        }
+    },
+    'loggers': {
+        'sigpae': {
+            'level': 'DEBUG',
+            'handlers': [
+                'file'
+            ],
+        }
+    }
+})

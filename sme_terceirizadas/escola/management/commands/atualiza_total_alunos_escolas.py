@@ -1,3 +1,5 @@
+import logging
+
 import environ
 import requests
 from django.core.exceptions import ObjectDoesNotExist
@@ -5,12 +7,13 @@ from django.core.management.base import BaseCommand
 from django.db.utils import IntegrityError
 from requests import ConnectionError
 
-from sme_terceirizadas.escola.management.commands.helper import calcula_total_alunos_por_escola_por_periodo
-from sme_terceirizadas.escola.models import EscolaPeriodoEscolar, PeriodoEscolar
-from ...models import Escola
+from .helper import calcula_total_alunos_por_escola_por_periodo
+from ...models import Escola, EscolaPeriodoEscolar, PeriodoEscolar
 from ....dados_comuns.constants import DJANGO_EOL_API_TOKEN, DJANGO_EOL_API_URL
 
 env = environ.Env()
+
+logger = logging.getLogger('sigpae.cmd_atualiza_total_alunos')
 
 
 class Command(BaseCommand):
@@ -22,13 +25,16 @@ class Command(BaseCommand):
         try:
             r = requests.get(f'{DJANGO_EOL_API_URL}/total_alunos/', headers=headers)
             json = r.json()
+            logger.debug(f'payload da resposta: {json}')
         except ConnectionError as e:
-            self.stdout.write(self.style.ERROR(f'Erro de conexão na api do  EOL: {e}'))
+            msg = f'Erro de conexão na api do  EOL: {e}'
+            logger.error(msg)
+            self.stdout.write(self.style.ERROR(msg))
             return
         escola_totais = calcula_total_alunos_por_escola_por_periodo(json)
         self._atualiza_totais_alunos_escola(escola_totais)
 
-    def _atualiza_totais_alunos_escola(self, escola_totais):
+    def _atualiza_totais_alunos_escola(self, escola_totais):  # noqa C901
         for codigo_eol, dados in escola_totais.items():
             total_alunos_periodo = dados.pop('total')
             try:
@@ -39,12 +45,14 @@ class Command(BaseCommand):
                         periodo_escolar=periodo_escolar_object, escola=escola_object
                     )
                     if escola_periodo.quantidade_alunos != quantidade_alunos_periodo:
-                        msg = f'Atualizando qtd alunos da escola {escola_object.nome} de {escola_periodo.quantidade_alunos} para {quantidade_alunos_periodo} no período da {periodo_escolar_object.nome}'
+                        msg = f'Atualizando qtd alunos da escola {escola_object.nome} de {escola_periodo.quantidade_alunos} para {quantidade_alunos_periodo} no período da {periodo_escolar_object.nome}'  # noqa
+                        logger.debug(msg)
                         self.stdout.write(self.style.SUCCESS(msg))
                         escola_periodo.quantidade_alunos = quantidade_alunos_periodo
                         escola_periodo.save()
                 if escola_object.quantidade_alunos != total_alunos_periodo:
-                    msg = f'Atualizando qtd TOTAL alunos da escola {escola_object.nome} de {escola_object.quantidade_alunos} para {total_alunos_periodo}'
+                    msg = f'Atualizando qtd TOTAL alunos da escola {escola_object.nome} de {escola_object.quantidade_alunos} para {total_alunos_periodo}'  # noqa
+                    logger.debug(msg)
                     self.stdout.write(self.style.SUCCESS(msg))
                     escola_object.quantidade_alunos = total_alunos_periodo
                     escola_object.save()
@@ -53,5 +61,7 @@ class Command(BaseCommand):
                 self.stdout.write(self.style.ERROR(f'Escola código EOL: {codigo_eol} não existe no banco ainda'))
                 continue
             except IntegrityError as e:
-                self.stdout.write(self.style.ERROR(f'Dados inconsistentes: {e}'))
+                msg = f'Dados inconsistentes: {e}'
+                logger.error(msg)
+                self.stdout.write(self.style.ERROR(msg))
                 continue

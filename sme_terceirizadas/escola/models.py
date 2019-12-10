@@ -351,8 +351,9 @@ class EscolaPeriodoEscolar(ExportModelOperationsMixin('escola_periodo'), Ativave
     quantidade_alunos = models.PositiveSmallIntegerField('Quantidade de alunos', default=0)
 
     def __str__(self):
-        return f'Escola {self.escola.nome} no periodo da {self.periodo_escolar.nome} ' \
-               f'tem {self.quantidade_alunos} alunos'
+        periodo_nome = self.periodo_escolar.nome
+
+        return f'Escola {self.escola.nome} no periodo da {periodo_nome} tem {self.quantidade_alunos} alunos'
 
     class Meta:
         verbose_name = 'Escola com período escolar'
