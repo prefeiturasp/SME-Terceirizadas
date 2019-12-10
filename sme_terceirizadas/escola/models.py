@@ -10,21 +10,12 @@ from ..dados_comuns.constants import (
     COGESTOR,
     COORDENADOR_DIETA_ESPECIAL,
     COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
-    DAQUI_A_SETE_DIAS,
-    DAQUI_A_TRINTA_DIAS,
     DIRETOR,
     SUPLENTE
 )
+from ..dados_comuns.utils import queryset_por_data
 from ..inclusao_alimentacao.models import GrupoInclusaoAlimentacaoNormal, InclusaoAlimentacaoContinua
 from ..kit_lanche.models import SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheUnificada
-
-
-def queryset_por_data(filtro_aplicado, model):
-    if filtro_aplicado == DAQUI_A_SETE_DIAS:
-        return model.desta_semana
-    elif filtro_aplicado == DAQUI_A_TRINTA_DIAS:
-        return model.deste_mes  # type: ignore
-    return model.objects  # type: ignore
 
 class DiretoriaRegional(ExportModelOperationsMixin('diretoria_regional'), Nomeavel, Iniciais, TemChaveExterna,
                         TemCodigoEOL, TemVinculos):
@@ -140,13 +131,8 @@ class DiretoriaRegional(ExportModelOperationsMixin('diretoria_regional'), Nomeav
         )
 
     def alteracoes_cardapio_das_minhas_escolas(self, filtro_aplicado):
-        if filtro_aplicado == DAQUI_A_SETE_DIAS:
-            alteracoes_cardapio = AlteracaoCardapio.desta_semana
-        elif filtro_aplicado == DAQUI_A_TRINTA_DIAS:
-            alteracoes_cardapio = AlteracaoCardapio.deste_mes  # type: ignore
-        else:
-            alteracoes_cardapio = AlteracaoCardapio.objects  # type: ignore
-        return alteracoes_cardapio.filter(
+        queryset = queryset_por_data(filtro_aplicado, AlteracaoCardapio)
+        return queryset.filter(
             escola__in=self.escolas.all(),
             status=AlteracaoCardapio.workflow_class.DRE_A_VALIDAR
         )
@@ -156,13 +142,8 @@ class DiretoriaRegional(ExportModelOperationsMixin('diretoria_regional'), Nomeav
     #
 
     def inversoes_cardapio_das_minhas_escolas(self, filtro_aplicado):
-        if filtro_aplicado == DAQUI_A_SETE_DIAS:
-            inversoes_cardapio = InversaoCardapio.desta_semana
-        elif filtro_aplicado == DAQUI_A_TRINTA_DIAS:
-            inversoes_cardapio = InversaoCardapio.deste_mes  # type: ignore
-        else:
-            inversoes_cardapio = InversaoCardapio.objects  # type: ignore
-        return inversoes_cardapio.filter(
+        queryset = queryset_por_data(filtro_aplicado, InversaoCardapio)
+        return queryset.filter(
             escola__in=self.escolas.all(),
             status=InversaoCardapio.workflow_class.DRE_A_VALIDAR
         )
@@ -374,24 +355,14 @@ class Codae(ExportModelOperationsMixin('codae'), Nomeavel, TemChaveExterna, TemV
         return quantidade_result.get('quantidade_alunos__sum', 0)
 
     def inversoes_cardapio_das_minhas_escolas(self, filtro_aplicado):
-        if filtro_aplicado == DAQUI_A_SETE_DIAS:
-            inversoes_cardapio = InversaoCardapio.desta_semana
-        elif filtro_aplicado == DAQUI_A_TRINTA_DIAS:
-            inversoes_cardapio = InversaoCardapio.deste_mes  # type: ignore
-        else:
-            inversoes_cardapio = InversaoCardapio.objects  # type: ignore
-        return inversoes_cardapio.filter(
+        queryset = queryset_por_data(filtro_aplicado, InversaoCardapio)
+        return queryset.filter(
             status=InversaoCardapio.workflow_class.DRE_VALIDADO
         )
 
     def grupos_inclusoes_alimentacao_normal_das_minhas_escolas(self, filtro_aplicado):
-        if filtro_aplicado == DAQUI_A_SETE_DIAS:
-            inversoes_cardapio = GrupoInclusaoAlimentacaoNormal.desta_semana
-        elif filtro_aplicado == DAQUI_A_TRINTA_DIAS:
-            inversoes_cardapio = GrupoInclusaoAlimentacaoNormal.deste_mes  # type: ignore
-        else:
-            inversoes_cardapio = GrupoInclusaoAlimentacaoNormal.objects  # type: ignore
-        return inversoes_cardapio.filter(
+        queryset = queryset_por_data(filtro_aplicado, GrupoInclusaoAlimentacaoNormal)
+        return queryset.filter(
             status=GrupoInclusaoAlimentacaoNormal.workflow_class.DRE_VALIDADO
         )
 
@@ -409,24 +380,14 @@ class Codae(ExportModelOperationsMixin('codae'), Nomeavel, TemChaveExterna, TemV
         )
 
     def inclusoes_alimentacao_continua_das_minhas_escolas(self, filtro_aplicado):
-        if filtro_aplicado == DAQUI_A_SETE_DIAS:
-            inversoes_cardapio = InclusaoAlimentacaoContinua.desta_semana
-        elif filtro_aplicado == DAQUI_A_TRINTA_DIAS:
-            inversoes_cardapio = InclusaoAlimentacaoContinua.deste_mes  # type: ignore
-        else:
-            inversoes_cardapio = InclusaoAlimentacaoContinua.objects  # type: ignore
-        return inversoes_cardapio.filter(
+        queryset = queryset_por_data(filtro_aplicado, InclusaoAlimentacaoContinua)
+        return queryset.filter(
             status=InclusaoAlimentacaoContinua.workflow_class.DRE_VALIDADO
         )
 
     def alteracoes_cardapio_das_minhas(self, filtro_aplicado):
-        if filtro_aplicado == DAQUI_A_SETE_DIAS:
-            alteracoes_cardapio = AlteracaoCardapio.desta_semana
-        elif filtro_aplicado == DAQUI_A_TRINTA_DIAS:
-            alteracoes_cardapio = AlteracaoCardapio.deste_mes  # type: ignore
-        else:
-            alteracoes_cardapio = AlteracaoCardapio.objects  # type: ignore
-        return alteracoes_cardapio.filter(
+        queryset = queryset_por_data(filtro_aplicado, AlteracaoCardapio)
+        return queryset.filter(
             status=AlteracaoCardapio.workflow_class.DRE_VALIDADO
         )
 
@@ -440,13 +401,8 @@ class Codae(ExportModelOperationsMixin('codae'), Nomeavel, TemChaveExterna, TemV
         #
 
     def solicitacoes_unificadas(self, filtro_aplicado):
-        if filtro_aplicado == DAQUI_A_SETE_DIAS:
-            solicitacoes_unificadas = SolicitacaoKitLancheUnificada.desta_semana
-        elif filtro_aplicado == DAQUI_A_TRINTA_DIAS:
-            solicitacoes_unificadas = SolicitacaoKitLancheUnificada.deste_mes  # type: ignore
-        else:
-            solicitacoes_unificadas = SolicitacaoKitLancheUnificada.objects  # type: ignore
-        return solicitacoes_unificadas.filter(
+        queryset = queryset_por_data(filtro_aplicado, SolicitacaoKitLancheUnificada)
+        return queryset.filter(
             status=SolicitacaoKitLancheUnificada.workflow_class.CODAE_A_AUTORIZAR
         )
 

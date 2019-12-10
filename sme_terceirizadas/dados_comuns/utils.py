@@ -74,3 +74,14 @@ def convert_base64_to_contentfile(base64_str: str):
     ext = guess_extension(format[5:]) or ''
     data = ContentFile(base64.b64decode(imgstr), name=str(uuid.uuid4()) + ext)
     return data
+
+def queryset_por_data(filtro_aplicado, model):
+    # TODO: Ver uma forma melhor de importar essas constantes,
+    #       no cabeçalho do arquivo não funcinou :(
+    from .constants import DAQUI_A_SETE_DIAS, DAQUI_A_TRINTA_DIAS
+
+    if filtro_aplicado == DAQUI_A_SETE_DIAS:
+        return model.desta_semana
+    elif filtro_aplicado == DAQUI_A_TRINTA_DIAS:
+        return model.deste_mes  # type: ignore
+    return model.objects  # type: ignore
