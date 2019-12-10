@@ -1,6 +1,6 @@
+import environ
 import numpy as np
 import pandas as pd
-import environ
 
 from sme_terceirizadas.escola.models import PeriodoEscolar, Escola
 from utility.carga_dados.escola.helper import coloca_zero_a_esquerda
@@ -76,45 +76,37 @@ depara = {'G': 'INTEGRAL',
 
 
 def cria_periodo_escolar():
+    periodos_str = ['manha', 'intermediario', 'tarde', 'vespertino', 'noite', 'integral']
     cont = 0
-    for periodo in depara.values():
-        obj, created = PeriodoEscolar.objects.get_or_create(nome=periodo)
+    for periodo in periodos_str:
+        obj, created = PeriodoEscolar.objects.get_or_create(nome=periodo.upper())
         if created:
             cont += 1
             print(f'PERIODO ESCOLAR {obj} CRIADO')
     print(f'qtd  criados... {cont}')
 
 
-def vincula_periodo_escolar_a_escola():
+def vincula_tipo_ue_a_periodos_escolares():
     cont = 0
     for index, row in df.iterrows():
         periodos_str = row.DTURNOS
         cod_eol = row.CODESC
-        total_alunos = row.TOTALU
         try:
             escola = Escola.objects.get(codigo_eol=cod_eol) or None
-            if total_alunos:
-                escola.quantidade_alunos = total_alunos
         except:
             continue
-
         periodo_escolar_lista = []
         for periodo_letra in periodos_str:
             print(f'{escola} -> {periodo_letra}')
             periodo_obj = PeriodoEscolar.objects.get(nome=depara.get(periodo_letra))
             periodo_escolar_lista.append(periodo_obj)
-
         tipo_unidade_escolar = escola.tipo_unidade  # EMEF, CIEJA tem  os periodos padrao dela também
         tipo_unidade_escolar.periodos_escolares.set(periodo_escolar_lista)
-
-        escola.periodos_escolares.set(periodo_escolar_lista)
-        escola.save()
         cont += 1
-        print(f'escola {escola} tem {len(periodo_escolar_lista)} periodos escolares')
-
+        print(f'tipo ue {tipo_unidade_escolar} tem {len(periodo_escolar_lista)} periodos escolares')
     print(f'qtd  vinculados... {cont}')
 
 
 print('Run script _5_periodo_escolar.py')
 cria_periodo_escolar()
-vincula_periodo_escolar_a_escola()
+vincula_tipo_ue_a_periodos_escolares()
