@@ -345,6 +345,7 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
                                       justificativa=justificativa,
                                       usuario=user)
 
+    @xworkflows.after_transition('codae_autoriza_questionamento')
     @xworkflows.after_transition('codae_autoriza')
     def _codae_autoriza_hook(self, *args, **kwargs):
         user = kwargs['user']
@@ -355,6 +356,7 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
                                       usuario=user,
                                       justificativa=justificativa)
 
+    @xworkflows.after_transition('codae_nega_questionamento')
     @xworkflows.after_transition('codae_nega')
     def _codae_recusou_hook(self, *args, **kwargs):
         user = kwargs['user']
@@ -371,6 +373,18 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
         if user:
             assunto, corpo = self.template_mensagem
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_TOMOU_CIENCIA,
+                                      usuario=user)
+
+    @xworkflows.after_transition('terceirizada_responde_questionamento')
+    def _terceirizada_responde_questionamento_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        justificativa = kwargs.get('justificativa', '')
+        resposta = kwargs.get('resposta', '')
+        if user:
+            assunto, corpo = self.template_mensagem
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO,
+                                      justificativa=justificativa,
+                                      resposta=resposta,
                                       usuario=user)
 
     class Meta:

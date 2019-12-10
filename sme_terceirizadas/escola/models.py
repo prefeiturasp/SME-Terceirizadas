@@ -83,7 +83,7 @@ class DiretoriaRegional(ExportModelOperationsMixin('diretoria_regional'), Nomeav
             solicitacoes_kit_lanche_avulsa = SolicitacaoKitLancheAvulsa.objects  # type: ignore
         return solicitacoes_kit_lanche_avulsa.filter(
             escola__in=self.escolas.all(),
-            status=InversaoCardapio.workflow_class.DRE_A_VALIDAR
+            status=SolicitacaoKitLancheAvulsa.workflow_class.DRE_A_VALIDAR
         )
 
     def alteracoes_cardapio_das_minhas_escolas_a_validar(self, filtro_aplicado):
@@ -532,7 +532,8 @@ class Codae(ExportModelOperationsMixin('codae'), Nomeavel, TemChaveExterna, TemV
         else:
             solicitacoes_kit_lanche = SolicitacaoKitLancheAvulsa.objects  # type: ignore
         return solicitacoes_kit_lanche.filter(
-            status=InversaoCardapio.workflow_class.DRE_VALIDADO
+            status__in=[SolicitacaoKitLancheAvulsa.workflow_class.DRE_VALIDADO,
+                        SolicitacaoKitLancheAvulsa.workflow_class.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO]
         )
 
     @property
