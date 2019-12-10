@@ -5,6 +5,7 @@ import os
 
 import environ
 import sentry_sdk
+from celery.schedules import crontab
 from sentry_sdk.integrations.django import DjangoIntegration
 
 # (sme_terceirizadas/config/settings/base.py - 3 = sme_terceirizadas/)
@@ -330,6 +331,13 @@ CELERY_RESULT_SERIALIZER = 'json'
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_ENABLE_UTC = True
 CELERY_IGNORE_RESULT = True
+CELERY_TIMEZONE = TIME_ZONE
+CELERY_BEAT_SCHEDULE = {
+    'atualiza-totais-das-escolas': {
+        'task': 'sme_terceirizadas.escola.tasks.atualiza_total_alunos_escolas',
+        'schedule': crontab(minute=32, hour=12)
+    }
+}
 
 # reset password
 PASSWORD_RESET_TIMEOUT_DAYS = 1
