@@ -10,6 +10,8 @@ from django.core.files.base import ContentFile
 from django.core.mail import EmailMultiAlternatives, get_connection, send_mail
 from workalendar.america import BrazilSaoPauloCity
 
+from .constants import DAQUI_A_SETE_DIAS, DAQUI_A_TRINTA_DIAS
+
 calendar = BrazilSaoPauloCity()
 
 env = environ.Env()
@@ -38,13 +40,6 @@ def envia_email_em_massa(assunto: str, corpo: str, emails: list, html: str = Non
                 message.attach_alternative(html, 'text/html')
             messages.append(message)
         return connection.send_messages(messages)
-
-
-def obter_dias_uteis_apos_hoje(quantidade_dias: int):
-    """Retorna o próximo dia útil após quantidade_dias."""
-    dia = datetime.date.today()
-
-    return calendar.add_working_days(dia, quantidade_dias)
 
 
 def obter_dias_uteis_apos(dia: datetime.date, quantidade_dias: int):
@@ -76,10 +71,6 @@ def convert_base64_to_contentfile(base64_str: str):
     return data
 
 def queryset_por_data(filtro_aplicado, model):
-    # TODO: Ver uma forma melhor de importar essas constantes,
-    #       no cabeçalho do arquivo não funcinou :(
-    from .constants import DAQUI_A_SETE_DIAS, DAQUI_A_TRINTA_DIAS
-
     if filtro_aplicado == DAQUI_A_SETE_DIAS:
         return model.desta_semana
     elif filtro_aplicado == DAQUI_A_TRINTA_DIAS:

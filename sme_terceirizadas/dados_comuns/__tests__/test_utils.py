@@ -1,7 +1,8 @@
 import environ
 from freezegun import freeze_time
 
-from ..utils import obter_dias_uteis_apos_hoje, update_instance_from_dict
+from ..constants import obter_dias_uteis_apos_hoje
+from ..utils import update_instance_from_dict
 
 env = environ.Env()
 

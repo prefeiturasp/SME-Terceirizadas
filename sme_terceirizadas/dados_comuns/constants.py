@@ -1,8 +1,16 @@
+import datetime
 import environ
 
-from .utils import obter_dias_uteis_apos_hoje
+from workalendar.america import BrazilSaoPauloCity
 
+calendar = BrazilSaoPauloCity()
 env = environ.Env()
+
+def obter_dias_uteis_apos_hoje(quantidade_dias: int):
+    """Retorna o próximo dia útil após quantidade_dias."""
+    dia = datetime.date.today()
+
+    return calendar.add_working_days(dia, quantidade_dias)
 
 DJANGO_EOL_API_TOKEN = env('DJANGO_EOL_API_TOKEN')
 DJANGO_EOL_API_URL = env('DJANGO_EOL_API_URL')
