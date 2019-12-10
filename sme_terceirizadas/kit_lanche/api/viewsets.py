@@ -213,11 +213,11 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
     def terceirizada_responde_questionamento(self, request, uuid=None):
         solicitacao_kit_lanche_avulsa = self.get_object()
         justificativa = request.data.get('justificativa', '')
-        resposta = request.data.get('resposta', False)
+        resposta_sim_nao = request.data.get('resposta_sim_nao', False)
         try:
             solicitacao_kit_lanche_avulsa.terceirizada_responde_questionamento(user=request.user,
                                                                                justificativa=justificativa,
-                                                                               resposta=resposta)
+                                                                               resposta_sim_nao=resposta_sim_nao)
             serializer = self.get_serializer(solicitacao_kit_lanche_avulsa)
             return Response(serializer.data)
         except InvalidTransitionError as e:
