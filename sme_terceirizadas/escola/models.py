@@ -280,7 +280,6 @@ class PeriodoEscolar(ExportModelOperationsMixin('periodo_escolar'), Nomeavel, Te
 class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, TemCodigoEOL, TemVinculos):
     nome = models.CharField('Nome', max_length=160, blank=True)
     codigo_eol = models.CharField('Código EOL', max_length=6, unique=True, validators=[MinLengthValidator(6)])
-    # não ta sendo usado
     quantidade_alunos = models.PositiveSmallIntegerField('Quantidade de alunos', default=1)
 
     diretoria_regional = models.ForeignKey(DiretoriaRegional,
@@ -298,7 +297,17 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
                                 blank=True, null=True)
 
     idades = models.ManyToManyField(FaixaIdadeEscolar, blank=True)
-    periodos_escolares = models.ManyToManyField(PeriodoEscolar, blank=True)
+
+    @property
+    def alunos_por_periodo_escolar(self):
+        return self.escolas_periodos.filter(quantidade_alunos__gte=1)
+
+    @property
+    def periodos_escolares(self):
+        """Recupera periodos escolares da escola, desde que haja pelomenos um aluno para este período."""
+        # TODO: ver uma forma melhor de fazer essa query
+        periodos_ids = self.escolas_periodos.filter(quantidade_alunos__gte=1).values_list('periodo_escolar', flat=True)
+        return PeriodoEscolar.objects.filter(id__in=periodos_ids)
 
     @property
     def vinculos_que_podem_ser_finalizados(self):
@@ -325,6 +334,31 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
         verbose_name = 'Escola'
         verbose_name_plural = 'Escolas'
         ordering = ('codigo_eol',)
+
+
+class EscolaPeriodoEscolar(ExportModelOperationsMixin('escola_periodo'), Ativavel, TemChaveExterna):
+    """Serve para guardar a quantidade de alunos da escola em um dado periodo escolar.
+
+    Ex: EMEI BLABLA pela manhã tem 55 alunos
+    """
+
+    escola = models.ForeignKey(Escola,
+                               related_name='escolas_periodos',
+                               on_delete=models.DO_NOTHING)
+    periodo_escolar = models.ForeignKey(PeriodoEscolar,
+                                        related_name='escolas_periodos',
+                                        on_delete=models.DO_NOTHING)
+    quantidade_alunos = models.PositiveSmallIntegerField('Quantidade de alunos', default=0)
+
+    def __str__(self):
+        periodo_nome = self.periodo_escolar.nome
+
+        return f'Escola {self.escola.nome} no periodo da {periodo_nome} tem {self.quantidade_alunos} alunos'
+
+    class Meta:
+        verbose_name = 'Escola com período escolar'
+        verbose_name_plural = 'Escola com períodos escolares'
+        unique_together = [['periodo_escolar', 'escola']]
 
 
 class Lote(ExportModelOperationsMixin('lote'), TemChaveExterna, Nomeavel, Iniciais):
