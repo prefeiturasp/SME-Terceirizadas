@@ -7,9 +7,9 @@ from django.core.management.base import BaseCommand
 from django.db.utils import IntegrityError
 from requests import ConnectionError
 
-from .helper import calcula_total_alunos_por_escola_por_periodo
-from ...models import Escola, EscolaPeriodoEscolar, PeriodoEscolar
 from ....dados_comuns.constants import DJANGO_EOL_API_TOKEN, DJANGO_EOL_API_URL
+from ...models import Escola, EscolaPeriodoEscolar, PeriodoEscolar
+from .helper import calcula_total_alunos_por_escola_por_periodo
 
 env = environ.Env()
 
@@ -17,7 +17,7 @@ logger = logging.getLogger('sigpae.cmd_atualiza_total_alunos')
 
 
 class Command(BaseCommand):
-    help = 'Atualiza os dados das Escolas baseados na api do EOL'
+    help = 'Atualiza os totais de alunos por período escolar das Escolas baseados na api do EOL'
 
     def handle(self, *args, **options):  # noqa C901
         headers = {'Authorization': f'Token {DJANGO_EOL_API_TOKEN}'}
