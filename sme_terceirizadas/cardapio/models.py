@@ -11,6 +11,7 @@ from ..dados_comuns.behaviors import (  # noqa I101
     LogSolicitacoesUsuario,
     Motivo,
     Nomeavel,
+    SolicitacaoForaDoPrazo,
     TemChaveExterna,
     TemData,
     TemIdentificadorExternoAmigavel,
@@ -402,10 +403,9 @@ class MotivoAlteracaoCardapio(ExportModelOperationsMixin('motivo_alteracao_carda
         verbose_name_plural = 'Motivos de alteração de cardápio'
 
 
-class AlteracaoCardapio(ExportModelOperationsMixin('alteracao_cardapio'), CriadoEm, CriadoPor, TemChaveExterna,
-                        IntervaloDeDia, TemObservacao,
-                        FluxoAprovacaoPartindoDaEscola, TemIdentificadorExternoAmigavel, Logs,
-                        TemPrioridade):
+class AlteracaoCardapio(ExportModelOperationsMixin('alteracao_cardapio'), CriadoEm, CriadoPor,
+                        TemChaveExterna, IntervaloDeDia, TemObservacao, FluxoAprovacaoPartindoDaEscola,
+                        TemIdentificadorExternoAmigavel, Logs, TemPrioridade, SolicitacaoForaDoPrazo):
     objects = models.Manager()  # Manager Padrão
     desta_semana = AlteracoesCardapioDestaSemanaManager()
     deste_mes = AlteracoesCardapioDesteMesManager()
