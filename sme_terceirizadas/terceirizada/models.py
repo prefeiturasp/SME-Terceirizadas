@@ -333,7 +333,8 @@ class Terceirizada(ExportModelOperationsMixin('terceirizada'), TemChaveExterna, 
             solicitacoes_kit_lanche = SolicitacaoKitLancheAvulsa.objects  # type: ignore
         return solicitacoes_kit_lanche.filter(
             escola__lote__in=self.lotes.all(),
-            status=InversaoCardapio.workflow_class.CODAE_AUTORIZADO
+            status__in=[SolicitacaoKitLancheAvulsa.workflow_class.CODAE_AUTORIZADO,
+                        SolicitacaoKitLancheAvulsa.workflow_class.CODAE_QUESTIONADO]
         )
 
     def __str__(self):
