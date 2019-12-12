@@ -88,14 +88,14 @@ class DiretoriaRegional(ExportModelOperationsMixin('diretoria_regional'), Nomeav
 
     def alteracoes_cardapio_das_minhas_escolas_a_validar(self, filtro_aplicado):
         if filtro_aplicado == DAQUI_A_SETE_DIAS:
-            inversoes_cardapio = AlteracaoCardapio.desta_semana
+            alteracoes_cardapio = AlteracaoCardapio.desta_semana
         elif filtro_aplicado == DAQUI_A_TRINTA_DIAS:
-            inversoes_cardapio = AlteracaoCardapio.deste_mes  # type: ignore
+            alteracoes_cardapio = AlteracaoCardapio.deste_mes  # type: ignore
         else:
-            inversoes_cardapio = AlteracaoCardapio.objects  # type: ignore
-        return inversoes_cardapio.filter(
+            alteracoes_cardapio = AlteracaoCardapio.objects  # type: ignore
+        return alteracoes_cardapio.filter(
             escola__in=self.escolas.all(),
-            status=InversaoCardapio.workflow_class.DRE_A_VALIDAR
+            status__in=[AlteracaoCardapio.workflow_class.DRE_A_VALIDAR]
         )
 
     # TODO rever os demais métodos de alterações de cardápio, já que esse consolida todas as prioridades.
@@ -487,7 +487,8 @@ class Codae(ExportModelOperationsMixin('codae'), Nomeavel, TemChaveExterna, TemV
         else:
             alteracoes_cardapio = AlteracaoCardapio.objects  # type: ignore
         return alteracoes_cardapio.filter(
-            status=AlteracaoCardapio.workflow_class.DRE_VALIDADO
+            status__in=[AlteracaoCardapio.workflow_class.DRE_VALIDADO,
+                        AlteracaoCardapio.workflow_class.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO]
         )
 
     def suspensoes_cardapio_das_minhas_escolas(self, filtro_aplicado):

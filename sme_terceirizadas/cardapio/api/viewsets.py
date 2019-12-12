@@ -498,7 +498,10 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
         alteracao_cardapio = self.get_object()
         justificativa = request.data.get('justificativa', '')
         try:
-            alteracao_cardapio.codae_nega(user=request.user, justificativa=justificativa)
+            if alteracao_cardapio.status == alteracao_cardapio.workflow_class.DRE_VALIDADO:
+                alteracao_cardapio.codae_nega(user=request.user)
+            else:
+                alteracao_cardapio.codae_nega_questionamento(user=request.user)
             serializer = self.get_serializer(alteracao_cardapio)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -509,7 +512,25 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
     def codae_autoriza(self, request, uuid=None):
         alteracao_cardapio = self.get_object()
         try:
-            alteracao_cardapio.codae_autoriza(user=request.user, )
+            if alteracao_cardapio.status == alteracao_cardapio.workflow_class.DRE_VALIDADO:
+                alteracao_cardapio.codae_autoriza(user=request.user)
+            else:
+                alteracao_cardapio.codae_autoriza_questionamento(user=request.user)
+            serializer = self.get_serializer(alteracao_cardapio)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, permission_classes=[PodeAprovarPelaCODAEAlteracaoCardapioPermission],
+            methods=['patch'], url_path=constants.CODAE_QUESTIONA_PEDIDO)
+    def codae_questiona_pedido(self, request, uuid=None):
+        alteracao_cardapio = self.get_object()
+        observacao_questionamento_codae = request.data.get('observacao_questionamento_codae', '')
+        try:
+            alteracao_cardapio.codae_questiona(
+                user=request.user,
+                justificativa=observacao_questionamento_codae
+            )
             serializer = self.get_serializer(alteracao_cardapio)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -527,6 +548,21 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeRecusarPelaCODAEAlteracaoCardapioPermission],
+            methods=['patch'], url_path=constants.TERCEIRIZADA_RESPONDE_QUESTIONAMENTO)
+    def terceirizada_responde_questionamento(self, request, uuid=None):
+        alteracao_cardapio = self.get_object()
+        justificativa = request.data.get('justificativa', '')
+        resposta_sim_nao = request.data.get('resposta_sim_nao', False)
+        try:
+            alteracao_cardapio.terceirizada_responde_questionamento(user=request.user,
+                                                                    justificativa=justificativa,
+                                                                    resposta_sim_nao=resposta_sim_nao)
+            serializer = self.get_serializer(alteracao_cardapio)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, permission_classes=[PodeRecusarPelaCODAEAlteracaoCardapioPermission],
             methods=['patch'], url_path=constants.ESCOLA_CANCELA)
     def escola_cancela_solicitacao(self, request, uuid=None):
         inclusao_alimentacao_continua = self.get_object()
@@ -536,7 +572,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
             serializer = self.get_serializer(inclusao_alimentacao_continua)
             return Response(serializer.data)
         except InvalidTransitionError as e:
-            return Response(dict(detail=f'Erro de transição de estado: {e}'))
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=False, url_path='pedidos-autorizados-diretoria-regional')
     def pedidos_autorizados_diretoria_regional(self, request):

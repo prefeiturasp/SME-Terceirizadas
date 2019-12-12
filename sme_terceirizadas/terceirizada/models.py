@@ -241,7 +241,8 @@ class Terceirizada(ExportModelOperationsMixin('terceirizada'), TemChaveExterna, 
         else:
             alteracoes_cardapio = AlteracaoCardapio.objects  # type: ignore
         return alteracoes_cardapio.filter(
-            status=AlteracaoCardapio.workflow_class.CODAE_AUTORIZADO,
+            status__in=[AlteracaoCardapio.workflow_class.CODAE_AUTORIZADO,
+                        AlteracaoCardapio.workflow_class.CODAE_QUESTIONADO],
             escola__lote__in=self.lotes.all()
         )
 
