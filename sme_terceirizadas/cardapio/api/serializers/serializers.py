@@ -211,6 +211,7 @@ class AlteracaoCardapioSerializer(serializers.ModelSerializer):
     escola = EscolaSimplesSerializer()
     motivo = MotivoAlteracaoCardapioSerializer()
     substituicoes = SubstituicoesAlimentacaoNoPeriodoEscolarSerializer(many=True)
+    foi_solicitado_fora_do_prazo = serializers.BooleanField()
     id_externo = serializers.CharField()
     logs = LogSolicitacoesUsuarioSerializer(many=True)
     prioridade = serializers.CharField()

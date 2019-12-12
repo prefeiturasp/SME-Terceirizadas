@@ -283,7 +283,7 @@ def test_url_endpoint_alt_card_codae_autoriza_error(client_autenticado, alteraca
     )
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.json() == {'detail': "Erro de transição de estado: Transition 'codae_autoriza' "
+    assert response.json() == {'detail': "Erro de transição de estado: Transition 'codae_autoriza_questionamento' "
                                          "isn't available from state 'RASCUNHO'."}
 
 
@@ -306,7 +306,7 @@ def test_url_endpoint_alt_card_codae_nega_error(client_autenticado, alteracao_ca
     )
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.json() == {'detail': "Erro de transição de estado: Transition 'codae_nega'"
+    assert response.json() == {'detail': "Erro de transição de estado: Transition 'codae_nega_questionamento'"
                                          " isn't available from state 'CODAE_AUTORIZADO'."}
 
 

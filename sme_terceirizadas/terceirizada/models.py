@@ -236,7 +236,8 @@ class Terceirizada(ExportModelOperationsMixin('terceirizada'), TemChaveExterna, 
     def alteracoes_cardapio_das_minhas(self, filtro_aplicado):
         queryset = queryset_por_data(filtro_aplicado, AlteracaoCardapio)
         return queryset.filter(
-            status=AlteracaoCardapio.workflow_class.CODAE_AUTORIZADO,
+            status__in=[AlteracaoCardapio.workflow_class.CODAE_AUTORIZADO,
+                        AlteracaoCardapio.workflow_class.CODAE_QUESTIONADO],
             escola__lote__in=self.lotes.all()
         )
 

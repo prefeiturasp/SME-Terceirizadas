@@ -435,7 +435,8 @@ class Codae(ExportModelOperationsMixin('codae'), Nomeavel, TemChaveExterna, TemV
     def alteracoes_cardapio_das_minhas(self, filtro_aplicado):
         queryset = queryset_por_data(filtro_aplicado, AlteracaoCardapio)
         return queryset.filter(
-            status=AlteracaoCardapio.workflow_class.DRE_VALIDADO
+            status__in=[AlteracaoCardapio.workflow_class.DRE_VALIDADO,
+                        AlteracaoCardapio.workflow_class.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO]
         )
 
     def suspensoes_cardapio_das_minhas_escolas(self, filtro_aplicado):

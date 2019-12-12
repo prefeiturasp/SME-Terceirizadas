@@ -379,7 +379,7 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
     def _terceirizada_responde_questionamento_hook(self, *args, **kwargs):
         user = kwargs['user']
         justificativa = kwargs.get('justificativa', '')
-        resposta_sim_nao = kwargs.get('resposta_sim_nao', '')
+        resposta_sim_nao = kwargs.get('resposta_sim_nao', False)
         if user:
             assunto, corpo = self.template_mensagem
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO,
