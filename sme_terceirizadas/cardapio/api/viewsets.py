@@ -499,9 +499,9 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
         justificativa = request.data.get('justificativa', '')
         try:
             if alteracao_cardapio.status == alteracao_cardapio.workflow_class.DRE_VALIDADO:
-                alteracao_cardapio.codae_nega(user=request.user)
+                alteracao_cardapio.codae_nega(user=request.user, justificativa=justificativa)
             else:
-                alteracao_cardapio.codae_nega_questionamento(user=request.user)
+                alteracao_cardapio.codae_nega_questionamento(user=request.user, justificativa=justificativa)
             serializer = self.get_serializer(alteracao_cardapio)
             return Response(serializer.data)
         except InvalidTransitionError as e:
