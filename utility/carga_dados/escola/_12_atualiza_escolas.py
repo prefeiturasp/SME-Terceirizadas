@@ -5,32 +5,70 @@ import environ
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import IntegrityError
 
-from sme_terceirizadas.escola.management.commands.helper import calcula_total_alunos_por_escola
+from sme_terceirizadas.escola.management.commands.helper import calcula_total_alunos_por_escola_por_periodo
 from sme_terceirizadas.escola.models import (
-    Escola)
+    Escola, PeriodoEscolar, EscolaPeriodoEscolar
+)
 
 ROOT_DIR = environ.Path(__file__) - 1
 with open(os.path.join(ROOT_DIR, 'planilhas_de_carga', 'total_alunos.json'), 'r') as f:
-    json_data = json.loads(f.read())
+    json_data_totais = json.loads(f.read())
+
+with open(os.path.join(ROOT_DIR, 'planilhas_de_carga', 'escolas.json'), 'r') as f:
+    json_data_escola = json.loads(f.read())
+
+escola_totais = calcula_total_alunos_por_escola_por_periodo(json_data_totais)
 
 
-escola_totais = calcula_total_alunos_por_escola(json_data)
+# TODO: isso ta duplicado do app escolas commands
+def _atualiza_totais_alunos_escola(escola_totais):  # noqa C901
+    for codigo_eol, dados in escola_totais.items():
+        total_alunos_periodo = dados.pop('total')
+        try:
+            escola_object = Escola.objects.get(codigo_eol=codigo_eol)
+            for periodo_escolar_str, quantidade_alunos_periodo in dados.items():
+                periodo_escolar_object = PeriodoEscolar.objects.get(nome=periodo_escolar_str.upper())
+                escola_periodo, created = EscolaPeriodoEscolar.objects.get_or_create(
+                    periodo_escolar=periodo_escolar_object, escola=escola_object
+                )
+                if escola_periodo.quantidade_alunos != quantidade_alunos_periodo:
+                    msg = f'Atualizando qtd alunos da escola {escola_object.nome} de {escola_periodo.quantidade_alunos} para {quantidade_alunos_periodo} no período da {periodo_escolar_object.nome}'  # noqa
+                    print(msg)
+                    escola_periodo.quantidade_alunos = quantidade_alunos_periodo
+                    escola_periodo.save()
+            if escola_object.quantidade_alunos != total_alunos_periodo:
+                msg = f'Atualizando qtd TOTAL alunos da escola {escola_object.nome} de {escola_object.quantidade_alunos} para {total_alunos_periodo}'  # noqa
+                print(msg)
+                escola_object.quantidade_alunos = total_alunos_periodo
+                escola_object.save()
 
-for codigo_eol, total in escola_totais.items():
-    try:
-        escola_object = Escola.objects.get(codigo_eol=codigo_eol)
-        if escola_object.quantidade_alunos != total:
-            print(f'Atualizando qtd alunos da escola {escola_object.nome} '
-                  f'de {escola_object.quantidade_alunos} para {total}')
+        except ObjectDoesNotExist:
+            continue
+        except IntegrityError as e:
+            msg = f'Dados inconsistentes: {e}'
+            print(msg)
+            continue
 
-            escola_object.quantidade_alunos = total
+
+# TODO: isso ta duplicado do app escolas commands
+def _atualiza_dados_da_escola(json):  # noqa C901
+    for escola_json in json['results']:
+        codigo_eol_escola = escola_json['cd_unidade_educacao'].strip()
+        nome_unidade_educacao = escola_json['nm_unidade_educacao'].strip()
+        tipo_ue = escola_json['sg_tp_escola'].strip()
+        nome_escola = f'{tipo_ue} {nome_unidade_educacao}'
+        try:
+            escola_object = Escola.objects.get(codigo_eol=codigo_eol_escola)
+        except ObjectDoesNotExist:
+            msg = f'Escola código EOL: {codigo_eol_escola} não existe no banco ainda'
+            # print(msg)
+            continue
+        if escola_object.nome != nome_escola:
+            msg = f'Atualizando nome da escola {escola_object} para {nome_escola}'
+            print(msg)
+            escola_object.nome = nome_escola
             escola_object.save()
-        else:
-            print(f'Nada a ser feito em {escola_object.nome}')
 
-    except ObjectDoesNotExist:
-        print(f'Escola código EOL: {codigo_eol} não existe no banco ainda')
-        continue
-    except IntegrityError as e:
-        print(f'Dados inconsistentes: {e}')
-        continue
+
+_atualiza_dados_da_escola(json_data_escola)
+_atualiza_totais_alunos_escola(escola_totais)
