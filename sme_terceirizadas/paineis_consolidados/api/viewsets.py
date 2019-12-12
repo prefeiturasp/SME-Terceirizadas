@@ -24,7 +24,8 @@ from .constants import (
     FILTRO_TERCEIRIZADA_UUID,
     NEGADOS,
     PENDENTES_AUTORIZACAO,
-    PENDENTES_CIENCIA
+    PENDENTES_CIENCIA,
+    RESUMO_MES
 )
 
 
@@ -147,13 +148,22 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
         query_set = SolicitacoesEscola.get_cancelados(escola_uuid=escola_uuid)
         return self._retorno_base(query_set)
 
-    def retorna_data_ou_falso(self, date_text):
+    def _retorna_data_ou_falso(self, date_text):
         try:
             return datetime.datetime.strptime(date_text, '%d-%m-%Y')
         except ValueError:
             return False
 
-    # TODO: achar uma forma melhor de estruturar isso. Ex: pesquisa/uuidEscola?tipo=XXX&status=zzz&data_inicial=DDDD
+    @action(
+        detail=False,
+        methods=['GET'],
+        url_path=f'{RESUMO_MES}/{FILTRO_ESCOLA_UUID}')
+    def resumo_mes(self, request, escola_uuid=None):
+        totais_dict = FiltrosConsolidados.resumo_totais_mes(
+            escola_uuid=escola_uuid,
+        )
+        return Response(totais_dict)
+
     @action(
         detail=False,
         methods=['GET'],
@@ -184,8 +194,8 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
                                      'KIT_LANCHE_UNIFICADA',
                                      'TODOS']
         test2 = status_solicitacao in ['AUTORIZADOS', 'NEGADOS', 'CANCELADOS', 'EM_ANDAMENTO', 'TODOS']
-        data_inicial = self.retorna_data_ou_falso(data_inicial)
-        data_final = self.retorna_data_ou_falso(data_final)
+        data_inicial = self._retorna_data_ou_falso(data_inicial)
+        data_final = self._retorna_data_ou_falso(data_final)
 
         parametros_validos = test1 and test2 and data_inicial and data_final
         if not parametros_validos:
