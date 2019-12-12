@@ -11,7 +11,7 @@ from ..dados_comuns.behaviors import (
     TemIdentificadorExternoAmigavel,
     TemVinculos
 )
-from ..dados_comuns.constants import DAQUI_A_SETE_DIAS, DAQUI_A_TRINTA_DIAS
+from ..dados_comuns.utils import queryset_por_data
 from ..escola.models import DiretoriaRegional, Lote
 from ..inclusao_alimentacao.models import GrupoInclusaoAlimentacaoNormal, InclusaoAlimentacaoContinua
 from ..kit_lanche.models import SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheUnificada
@@ -234,49 +234,29 @@ class Terceirizada(ExportModelOperationsMixin('terceirizada'), TemChaveExterna, 
         )
 
     def alteracoes_cardapio_das_minhas(self, filtro_aplicado):
-        if filtro_aplicado == DAQUI_A_SETE_DIAS:
-            alteracoes_cardapio = AlteracaoCardapio.desta_semana
-        elif filtro_aplicado == DAQUI_A_TRINTA_DIAS:
-            alteracoes_cardapio = AlteracaoCardapio.deste_mes  # type: ignore
-        else:
-            alteracoes_cardapio = AlteracaoCardapio.objects  # type: ignore
-        return alteracoes_cardapio.filter(
+        queryset = queryset_por_data(filtro_aplicado, AlteracaoCardapio)
+        return queryset.filter(
             status=AlteracaoCardapio.workflow_class.CODAE_AUTORIZADO,
             escola__lote__in=self.lotes.all()
         )
 
     def grupos_inclusoes_alimentacao_normal_das_minhas_escolas(self, filtro_aplicado):
-        if filtro_aplicado == DAQUI_A_SETE_DIAS:
-            inversoes_cardapio = GrupoInclusaoAlimentacaoNormal.desta_semana
-        elif filtro_aplicado == DAQUI_A_TRINTA_DIAS:
-            inversoes_cardapio = GrupoInclusaoAlimentacaoNormal.deste_mes  # type: ignore
-        else:
-            inversoes_cardapio = GrupoInclusaoAlimentacaoNormal.objects  # type: ignore
-        return inversoes_cardapio.filter(
+        queryset = queryset_por_data(filtro_aplicado, GrupoInclusaoAlimentacaoNormal)
+        return queryset.filter(
             status=AlteracaoCardapio.workflow_class.CODAE_AUTORIZADO,
             escola__lote__in=self.lotes.all()
         )
 
     def inclusoes_alimentacao_continua_das_minhas_escolas(self, filtro_aplicado):
-        if filtro_aplicado == DAQUI_A_SETE_DIAS:
-            inclusoes_alimentacao_continuas = InclusaoAlimentacaoContinua.desta_semana
-        elif filtro_aplicado == DAQUI_A_TRINTA_DIAS:
-            inclusoes_alimentacao_continuas = InclusaoAlimentacaoContinua.deste_mes  # type: ignore
-        else:
-            inclusoes_alimentacao_continuas = InclusaoAlimentacaoContinua.objects  # type: ignore
-        return inclusoes_alimentacao_continuas.filter(
+        queryset = queryset_por_data(filtro_aplicado, InclusaoAlimentacaoContinua)
+        return queryset.filter(
             status=AlteracaoCardapio.workflow_class.CODAE_AUTORIZADO,
             escola__lote__in=self.lotes.all()
         )
 
     def suspensoes_alimentacao_das_minhas_escolas(self, filtro_aplicado):
-        if filtro_aplicado == DAQUI_A_SETE_DIAS:
-            suspensoes_alimentacao = GrupoSuspensaoAlimentacao.desta_semana
-        elif filtro_aplicado == DAQUI_A_TRINTA_DIAS:
-            suspensoes_alimentacao = GrupoSuspensaoAlimentacao.deste_mes  # type: ignore
-        else:
-            suspensoes_alimentacao = GrupoSuspensaoAlimentacao.objects  # type: ignore
-        return suspensoes_alimentacao.filter(
+        queryset = queryset_por_data(filtro_aplicado, GrupoSuspensaoAlimentacao)
+        return queryset.filter(
             status=GrupoSuspensaoAlimentacao.workflow_class.INFORMADO,
             escola__lote__in=self.lotes.all()
         )
