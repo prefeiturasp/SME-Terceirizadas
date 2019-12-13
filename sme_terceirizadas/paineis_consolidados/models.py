@@ -368,12 +368,20 @@ class FiltrosConsolidados(MoldeConsolidado):
 
     @classmethod
     def resumo_totais_mes(cls, **kwargs):
+        # TODO: reduzir codigo duplicado aqui
         escola_uuid = kwargs.get('escola_uuid')
         hoje = datetime.date.today()
+        mes_passado = datetime.date(year=hoje.year, month=hoje.month, day=1) - datetime.timedelta(days=1)
         query_set = cls.objects.filter(
             escola_uuid=escola_uuid,
             criado_em__date__year=hoje.year,
             criado_em__date__month=hoje.month,
+
+        )
+        query_set_mes_passado = cls.objects.filter(
+            escola_uuid=escola_uuid,
+            criado_em__date__year=mes_passado.year,
+            criado_em__date__month=mes_passado.month,
 
         )
         total_autorizados = query_set.filter(status_atual__in=[
@@ -388,9 +396,31 @@ class FiltrosConsolidados(MoldeConsolidado):
             PedidoAPartirDaEscolaWorkflow.CODAE_QUESTIONADO,
             PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO
         ]).count()
+
+        total_autorizados_mes_passado = query_set_mes_passado.filter(status_atual__in=[
+            PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO,
+            PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_TOMOU_CIENCIA
+        ]).count()
+        total_negados_mes_passado = query_set_mes_passado.filter(
+            status_atual=PedidoAPartirDaEscolaWorkflow.CODAE_NEGOU_PEDIDO).count()
+        total_cancelados_mes_passado = query_set_mes_passado.filter(
+            status_atual=PedidoAPartirDaEscolaWorkflow.ESCOLA_CANCELOU).count()
+        total_pendentes_mes_passado = query_set_mes_passado.filter(status_atual__in=[
+            PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO,
+            PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR,
+            PedidoAPartirDaEscolaWorkflow.CODAE_QUESTIONADO,
+            PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO
+        ]).count()
+
         return dict(
             total_autorizados=total_autorizados,
             total_negados=total_negados,
             total_cancelados=total_cancelados,
-            total_pendentes=total_pendentes
+            total_pendentes=total_pendentes,
+
+            total_autorizados_mes_passado=total_autorizados_mes_passado,
+            total_negados_mes_passado=total_negados_mes_passado,
+            total_cancelados_mes_passado=total_cancelados_mes_passado,
+            total_pendentes_mes_passado=total_pendentes_mes_passado
+
         )
