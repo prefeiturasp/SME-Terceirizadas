@@ -4,7 +4,7 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
-Werkzeug='==0.14.1'  # https://github.com/pallets/werkzeug
+Werkzeug='==0.15.3'  # https://github.com/pallets/werkzeug
 ipdb='==0.11'  # https://github.com/gotcha/ipdb
 Sphinx='==1.8.4'  # https://github.com/sphinx-doc/sphinx
 pandas='==0.25.0' # https://github.com/pandas-dev/pandas/
@@ -58,14 +58,14 @@ psycopg2='==2.8.4'  # https://github.com/psycopg/psycopg2
 celery = "==4.3.0"   # http://www.celeryproject.org
 pytz= '==2018.9'  # https://github.com/stub42/pytz
 python-slugify= '==2.0.1'  # https://github.com/un33k/python-slugify
-Pillow= '==5.4.1'  # https://github.com/python-pillow/Pillow
+Pillow= '==6.2.0'  # https://github.com/python-pillow/Pillow
 argon2-cffi= '==19.1.0'  # https://github.com/hynek/argon2_cffi
 redis= '==3.2.0'  # https://github.com/antirez/redis
 django-xworkflows='==0.12.3' # https://github.com/rbarrois/django_xworkflows
 drf_base64='==2.0' # https://pypi.org/project/drf_base64/
 # Django
 # ------------------------------------------------------------------------------
-django='==2.2.6'          # https://www.djangoproject.com/
+django='==2.2.8'          # https://www.djangoproject.com/
 django-environ='==0.4.5'  # https://github.com/joke2k/django-environ
 django-model-utils='==3.1.2'  # https://github.com/jazzband/django-model-utils
 django-redis='==4.10.0'  # https://github.com/niwinz/django-redis
