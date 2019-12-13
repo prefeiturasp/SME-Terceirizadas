@@ -365,3 +365,32 @@ class FiltrosConsolidados(MoldeConsolidado):
                 ])
 
         return query_set.order_by('-criado_em')
+
+    @classmethod
+    def resumo_totais_mes(cls, **kwargs):
+        escola_uuid = kwargs.get('escola_uuid')
+        hoje = datetime.date.today()
+        query_set = cls.objects.filter(
+            escola_uuid=escola_uuid,
+            criado_em__date__year=hoje.year,
+            criado_em__date__month=hoje.month,
+
+        )
+        total_autorizados = query_set.filter(status_atual__in=[
+            PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO,
+            PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_TOMOU_CIENCIA
+        ]).count()
+        total_negados = query_set.filter(status_atual=PedidoAPartirDaEscolaWorkflow.CODAE_NEGOU_PEDIDO).count()
+        total_cancelados = query_set.filter(status_atual=PedidoAPartirDaEscolaWorkflow.ESCOLA_CANCELOU).count()
+        total_pendentes = query_set.filter(status_atual__in=[
+            PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO,
+            PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR,
+            PedidoAPartirDaEscolaWorkflow.CODAE_QUESTIONADO,
+            PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO
+        ]).count()
+        return dict(
+            total_autorizados=total_autorizados,
+            total_negados=total_negados,
+            total_cancelados=total_cancelados,
+            total_pendentes=total_pendentes
+        )
