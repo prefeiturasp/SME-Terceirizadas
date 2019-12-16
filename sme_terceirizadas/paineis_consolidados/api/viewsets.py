@@ -157,8 +157,10 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
     @action(
         detail=False,
         methods=['GET'],
-        url_path=f'{RESUMO_MES}/{FILTRO_ESCOLA_UUID}')
-    def resumo_mes(self, request, escola_uuid=None):
+        url_path=f'{RESUMO_MES}')
+    def resumo_mes(self, request):
+        usuario = request.user
+        escola_uuid = usuario.vinculo_atual.instituicao.uuid
         totais_dict = FiltrosConsolidados.resumo_totais_mes(
             escola_uuid=escola_uuid,
         )
