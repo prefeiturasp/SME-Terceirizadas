@@ -78,6 +78,19 @@ perfil_usuario_terceirizada, created = Perfil.objects.get_or_create(
     super_usuario=True
 )
 
+Perfil.objects.get_or_create(
+    nome='NUTRI_ADMIN_RESPONSAVEL',
+    ativo=True,
+    super_usuario=True
+)
+
+Perfil.objects.get_or_create(
+    nome='ADMINISTRADOR_TERCEIRIZADA',
+    ativo=True,
+    super_usuario=True
+)
+
+
 escola = Escola.objects.get(nome='EMEF JOSE ERMIRIO DE MORAIS, SEN.')
 diretoria_regional = DiretoriaRegional.objects.get(nome='DIRETORIA REGIONAL DE EDUCACAO SAO MIGUEL')
 codae, created = Codae.objects.get_or_create(nome='CODAE')

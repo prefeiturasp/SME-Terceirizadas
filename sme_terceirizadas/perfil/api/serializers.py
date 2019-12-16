@@ -1,14 +1,17 @@
 from rest_framework import serializers, status
+from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
-from ...eol_servico.utils import EolException, get_informacoes_usuario
-from ...escola.api.validators import usuario_e_vinculado_a_aquela_instituicao, usuario_nao_possui_vinculo_valido
-from ..models import Perfil, Usuario, Vinculo
 from .validators import (
     registro_funcional_e_cpf_sao_da_mesma_pessoa,
     senha_deve_ser_igual_confirmar_senha,
     usuario_pode_efetuar_cadastro
 )
+from ..models import Perfil, Usuario, Vinculo
+from ...dados_comuns.constants import ADMINISTRADOR_TERCEIRIZADA, NUTRI_ADMIN_RESPONSAVEL
+from ...dados_comuns.models import Contato
+from ...eol_servico.utils import EolException, get_informacoes_usuario
+from ...escola.api.validators import usuario_e_vinculado_a_aquela_instituicao, usuario_nao_possui_vinculo_valido
 
 
 class PerfilSimplesSerializer(serializers.ModelSerializer):
@@ -43,6 +46,53 @@ class UsuarioUpdateSerializer(serializers.ModelSerializer):
 
     def get_informacoes_usuario(self, validated_data):
         return get_informacoes_usuario(validated_data['registro_funcional'])
+
+    def atualizar_nutricionista(self, usuario, validated_data):
+        usuario.email = validated_data['contatos'][0]['email']
+        usuario.cpf = None
+        usuario.registro_funcional = None
+        usuario.nome = validated_data['nome']
+        usuario.crn_numero = validated_data['crn_numero']
+        usuario.super_admin_terceirizadas = validated_data['super_admin_terceirizadas']
+        usuario.save()
+        for contato_json in validated_data['contatos']:
+            contato = Contato(
+                email=contato_json['email'],
+                telefone=contato_json['telefone']
+            )
+            contato.save()
+            usuario.contatos.add(contato)
+        return usuario
+
+    def create_nutricionista(self, terceirizada, validated_data):
+        email = validated_data['contatos'][0]['email']
+        if Usuario.objects.filter(email=email).exists():
+            raise ValidationError('E-mail já cadastrado')
+        usuario = Usuario()
+        usuario = self.atualizar_nutricionista(usuario, validated_data)
+        usuario.is_active = False
+        usuario.save()
+        if usuario.super_admin_terceirizadas:
+            usuario.criar_vinculo_administrador(terceirizada, nome_perfil=NUTRI_ADMIN_RESPONSAVEL)
+            usuario.enviar_email_administrador()
+        else:
+            usuario.criar_vinculo_administrador(terceirizada, nome_perfil=ADMINISTRADOR_TERCEIRIZADA)
+
+    def update_nutricionista(self, terceirizada, validated_data):
+        email = validated_data['contatos'][0]['email']
+        if Usuario.objects.filter(email=email).exists():
+            usuario = Usuario.objects.get(email=email)
+            usuario.contatos.all().delete()
+        else:
+            usuario = Usuario()
+            usuario.is_active = False
+        usuario = self.atualizar_nutricionista(usuario, validated_data)
+        if not usuario.is_active:
+            if usuario.super_admin_terceirizadas:
+                usuario.criar_vinculo_administrador(terceirizada, nome_perfil=NUTRI_ADMIN_RESPONSAVEL)
+                usuario.enviar_email_administrador()
+            else:
+                usuario.criar_vinculo_administrador(terceirizada, nome_perfil=ADMINISTRADOR_TERCEIRIZADA)
 
     def create(self, validated_data):  # noqa C901
         # TODO: ajeitar isso aqui, criar um validator antes...

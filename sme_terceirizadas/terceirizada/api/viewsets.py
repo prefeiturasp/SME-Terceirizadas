@@ -14,7 +14,6 @@ class EditalViewSet(viewsets.ReadOnlyModelViewSet):
 
 class TerceirizadaViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
-    serializer_class = TerceirizadaSerializer
     queryset = Terceirizada.objects.all()
 
     def get_serializer_class(self):

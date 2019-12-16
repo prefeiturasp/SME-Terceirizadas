@@ -1,9 +1,11 @@
 from rest_framework import serializers
 
+from ...models import Contrato, Edital, Nutricionista, Terceirizada, VigenciaContrato
 from ....dados_comuns.api.serializers import ContatoSerializer
 from ....dados_comuns.utils import update_instance_from_dict
+from ....escola.api.serializers import UsuarioNutricionistaSerializer
 from ....escola.models import DiretoriaRegional, Lote
-from ...models import Contrato, Edital, Nutricionista, Terceirizada, VigenciaContrato
+from ....perfil.api.serializers import UsuarioUpdateSerializer
 
 
 class NutricionistaCreateSerializer(serializers.ModelSerializer):
@@ -97,7 +99,7 @@ class ContratoCreateSerializer(serializers.ModelSerializer):
 
 class TerceirizadaCreateSerializer(serializers.ModelSerializer):
     lotes = serializers.SlugRelatedField(slug_field='uuid', many=True, queryset=Lote.objects.all())
-    nutricionistas = NutricionistaCreateSerializer(many=True)
+    nutricionistas = UsuarioNutricionistaSerializer(many=True)
     contatos = ContatoSerializer(many=True)
 
     def create(self, validated_data):
@@ -111,9 +113,7 @@ class TerceirizadaCreateSerializer(serializers.ModelSerializer):
                 validated_data=contato_json)
             terceirizada.contatos.add(contato)
         for nutri_json in nutricionistas_array:
-            nutricionista = NutricionistaCreateSerializer().create(nutri_json)
-            nutricionista.terceirizada = terceirizada
-            nutricionista.save()
+            UsuarioUpdateSerializer().create_nutricionista(terceirizada, nutri_json)
         return terceirizada
 
     def update(self, instance, validated_data):
@@ -126,15 +126,8 @@ class TerceirizadaCreateSerializer(serializers.ModelSerializer):
         instance.contatos.all().delete()
         instance.desvincular_lotes()
 
-        nutricionistas = instance.nutricionistas.all()
-        for nutricionista in nutricionistas:
-            nutricionista.contatos.all().delete()
-            nutricionista.delete()
-
         for nutri_json in nutricionistas_array:
-            nutricionista = NutricionistaCreateSerializer().create(nutri_json)
-            nutricionista.terceirizada = instance
-            nutricionista.save()
+            UsuarioUpdateSerializer().update_nutricionista(instance, nutri_json)
 
         contatos = []
         for contato_json in contato_array:
