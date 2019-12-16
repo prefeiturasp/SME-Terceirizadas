@@ -305,6 +305,7 @@ URL_CONFIGS = {
     # TODO: rever essa logica de link para trabalhar no front, tá dando voltas
     'CONFIRMAR_EMAIL': '/confirmar-email?uuid={uuid}&confirmationKey={confirmation_key}',
     'RECUPERAR_SENHA': '/recuperar-senha?uuid={uuid}&confirmationKey={confirmation_key}',
+    'LOGIN_TERCEIRIZADAS': '/login?tab=terceirizadas'
 }
 
 REDIS_URL = env('REDIS_URL')
