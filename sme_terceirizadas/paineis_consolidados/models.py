@@ -366,6 +366,30 @@ class FiltrosConsolidados(MoldeConsolidado):
 
         return query_set.order_by('-criado_em')
 
+    @staticmethod
+    def _conta_autorizados(query_set):
+        return query_set.filter(status_atual__in=[
+            PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO,
+            PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_TOMOU_CIENCIA
+        ]).count()
+
+    @staticmethod
+    def _conta_negados(query_set):
+        return query_set.filter(status_atual=PedidoAPartirDaEscolaWorkflow.CODAE_NEGOU_PEDIDO).count()
+
+    @staticmethod
+    def _conta_cancelados(query_set):
+        return query_set.filter(status_atual=PedidoAPartirDaEscolaWorkflow.ESCOLA_CANCELOU).count()
+
+    @staticmethod
+    def _conta_pendentes(query_set):
+        return query_set.filter(status_atual__in=[
+            PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO,
+            PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR,
+            PedidoAPartirDaEscolaWorkflow.CODAE_QUESTIONADO,
+            PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO
+        ]).count()
+
     @classmethod
     def resumo_totais_mes(cls, **kwargs):
         # TODO: reduzir codigo duplicado aqui
@@ -384,43 +408,15 @@ class FiltrosConsolidados(MoldeConsolidado):
             criado_em__date__month=mes_passado.month,
 
         )
-        total_autorizados = query_set.filter(status_atual__in=[
-            PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO,
-            PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_TOMOU_CIENCIA
-        ]).count()
-        total_negados = query_set.filter(status_atual=PedidoAPartirDaEscolaWorkflow.CODAE_NEGOU_PEDIDO).count()
-        total_cancelados = query_set.filter(status_atual=PedidoAPartirDaEscolaWorkflow.ESCOLA_CANCELOU).count()
-        total_pendentes = query_set.filter(status_atual__in=[
-            PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO,
-            PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR,
-            PedidoAPartirDaEscolaWorkflow.CODAE_QUESTIONADO,
-            PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO
-        ]).count()
-
-        total_autorizados_mes_passado = query_set_mes_passado.filter(status_atual__in=[
-            PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO,
-            PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_TOMOU_CIENCIA
-        ]).count()
-        total_negados_mes_passado = query_set_mes_passado.filter(
-            status_atual=PedidoAPartirDaEscolaWorkflow.CODAE_NEGOU_PEDIDO).count()
-        total_cancelados_mes_passado = query_set_mes_passado.filter(
-            status_atual=PedidoAPartirDaEscolaWorkflow.ESCOLA_CANCELOU).count()
-        total_pendentes_mes_passado = query_set_mes_passado.filter(status_atual__in=[
-            PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO,
-            PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR,
-            PedidoAPartirDaEscolaWorkflow.CODAE_QUESTIONADO,
-            PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO
-        ]).count()
 
         return dict(
-            total_autorizados=total_autorizados,
-            total_negados=total_negados,
-            total_cancelados=total_cancelados,
-            total_pendentes=total_pendentes,
+            total_autorizados=cls._conta_autorizados(query_set),
+            total_negados=cls._conta_negados(query_set),
+            total_cancelados=cls._conta_cancelados(query_set),
+            total_pendentes=cls._conta_pendentes(query_set),
 
-            total_autorizados_mes_passado=total_autorizados_mes_passado,
-            total_negados_mes_passado=total_negados_mes_passado,
-            total_cancelados_mes_passado=total_cancelados_mes_passado,
-            total_pendentes_mes_passado=total_pendentes_mes_passado
-
+            total_autorizados_mes_passado=cls._conta_autorizados(query_set_mes_passado),
+            total_negados_mes_passado=cls._conta_negados(query_set_mes_passado),
+            total_cancelados_mes_passado=cls._conta_cancelados(query_set_mes_passado),
+            total_pendentes_mes_passado=cls._conta_pendentes(query_set_mes_passado)
         )
