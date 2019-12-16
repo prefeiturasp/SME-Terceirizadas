@@ -1,4 +1,5 @@
 import pytest
+from freezegun import freeze_time
 from rest_framework import status
 
 from ...dados_comuns.constants import (
@@ -7,6 +8,7 @@ from ...dados_comuns.constants import (
     DRE_INICIO_PEDIDO,
     DRE_NAO_VALIDA_PEDIDO,
     DRE_VALIDA_PEDIDO,
+    ESCOLA_CANCELA,
     TERCEIRIZADA_TOMOU_CIENCIA
 )
 from ...dados_comuns.fluxo_status import PedidoAPartirDaEscolaWorkflow
@@ -84,3 +86,14 @@ def test_url_endpoint_inclusao_continua_terc_ciencia(client_autenticado,
         f'{TERCEIRIZADA_TOMOU_CIENCIA}/')
     assert response.status_code == 200
     assert response.json()['status'] == PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_TOMOU_CIENCIA
+
+
+@freeze_time('2018-12-01')
+def test_url_endpoint_inclusao_continua_escola_cancela(client_autenticado,
+                                                       inclusao_alimentacao_continua_codae_autorizado):
+    assert inclusao_alimentacao_continua_codae_autorizado.status == PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO
+    response = client_autenticado.patch(
+        f'/inclusoes-alimentacao-continua/{inclusao_alimentacao_continua_codae_autorizado.uuid}/'
+        f'{ESCOLA_CANCELA}/')
+    assert response.status_code == 200
+    assert response.json()['status'] == PedidoAPartirDaEscolaWorkflow.ESCOLA_CANCELOU
