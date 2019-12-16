@@ -225,7 +225,6 @@ def users_codae_gestao_alimentacao(client, django_user_model, request, usuario_2
                                             uuid='48330a6f-c444-4462-971e-476452b328b2')
     perfil_coordenador = mommy.make('Perfil', nome='COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA', ativo=True,
                                     uuid='41c20c8b-7e57-41ed-9433-ccb92e8afaf1')
-
     hoje = datetime.date.today()
     mommy.make('Vinculo', usuario=user, instituicao=codae, perfil=perfil_administrador_codae,
                ativo=False, data_inicial=hoje, data_final=hoje + datetime.timedelta(days=30)
@@ -284,7 +283,7 @@ def mocked_request_api_eol_usuario_diretoria_regional():
 ])
 def usuarios_pendentes_confirmacao(request, perfil):
     nome, uuid = request.param
-    usuario = mommy.make('Usuario', nome=nome, uuid=uuid, is_active=False)
+    usuario = mommy.make('Usuario', nome=nome, uuid=uuid, is_active=False, registro_funcional='1234567')
     hoje = datetime.date.today()
 
     diretoria_regional = mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL IPIRANGA',

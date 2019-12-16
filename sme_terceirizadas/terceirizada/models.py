@@ -36,6 +36,7 @@ class Edital(ExportModelOperationsMixin('edital'), TemChaveExterna):
         verbose_name_plural = 'Editais'
 
 
+# TODO: remover esse modelo (deprecado)
 class Nutricionista(ExportModelOperationsMixin('nutricionista'), TemChaveExterna, Nomeavel):
     # TODO: verificar a diferença dessa pra nutricionista da CODAE
 
@@ -46,7 +47,7 @@ class Nutricionista(ExportModelOperationsMixin('nutricionista'), TemChaveExterna
                                      related_name='nutricionistas',
                                      blank=True,
                                      null=True)
-
+    admin = models.BooleanField('É Administrador por parte das Terceirizadas?', default=False)
     # TODO: retornar aqui quando tiver um perfil definido
     contatos = models.ManyToManyField('dados_comuns.Contato', blank=True)
 
@@ -56,6 +57,7 @@ class Nutricionista(ExportModelOperationsMixin('nutricionista'), TemChaveExterna
     class Meta:
         verbose_name = 'Nutricionista'
         verbose_name_plural = 'Nutricionistas'
+        ordering = ['-admin']
 
 
 class Terceirizada(ExportModelOperationsMixin('terceirizada'), TemChaveExterna, Ativavel,
