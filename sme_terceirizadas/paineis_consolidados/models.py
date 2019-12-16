@@ -392,7 +392,6 @@ class FiltrosConsolidados(MoldeConsolidado):
 
     @classmethod
     def resumo_totais_mes(cls, **kwargs):
-        # TODO: reduzir codigo duplicado aqui
         escola_uuid = kwargs.get('escola_uuid')
         hoje = datetime.date.today()
         mes_passado = datetime.date(year=hoje.year, month=hoje.month, day=1) - datetime.timedelta(days=1)
