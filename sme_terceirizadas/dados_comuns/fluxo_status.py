@@ -345,13 +345,17 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
                                       justificativa=justificativa,
                                       usuario=user)
 
-    @xworkflows.after_transition('codae_autoriza_questionamento')
-    @xworkflows.after_transition('codae_autoriza')
-    def _codae_autoriza_hook(self, *args, **kwargs):
+    @xworkflows.before_transition('codae_autoriza_questionamento')
+    @xworkflows.before_transition('codae_autoriza')
+    def _codae_autoriza_hook_antes(self, *args, **kwargs):
         if (self.foi_solicitado_fora_do_prazo and
             self.status != PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO):  # noqa #129
             raise xworkflows.InvalidTransitionError(
                 f'CODAE não pode autorizar direto caso seja em cima da hora, deve questionar')
+
+    @xworkflows.after_transition('codae_autoriza_questionamento')
+    @xworkflows.after_transition('codae_autoriza')
+    def _codae_autoriza_hook(self, *args, **kwargs):
         user = kwargs['user']
         justificativa = kwargs.get('justificativa', '')
         if user:

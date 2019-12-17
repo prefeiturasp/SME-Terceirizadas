@@ -70,6 +70,7 @@ def test_inversao_dia_cardapio_fluxo_codae_em_cima_da_hora_error(inversao_dia_ca
     inversao_dia_cardapio.inicia_fluxo(user=user)
     inversao_dia_cardapio.dre_valida(user=user)
     assert inversao_dia_cardapio.foi_solicitado_fora_do_prazo is True
+    assert inversao_dia_cardapio.status == 'DRE_VALIDADO'
     with pytest.raises(
         InvalidTransitionError,
         match='CODAE não pode autorizar direto caso seja em cima da hora, deve questionar'
