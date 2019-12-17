@@ -269,6 +269,18 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeIniciarSuspensaoDeAlimentacaoPermission],
+            methods=['patch'], url_path=constants.CODAE_QUESTIONA_PEDIDO)
+    def codae_questiona(self, request, uuid=None):
+        inversao_cardapio = self.get_object()
+        observacao_questionamento_codae = request.data.get('observacao_questionamento_codae', '')
+        try:
+            inversao_cardapio.codae_questiona(user=request.user, justificativa=observacao_questionamento_codae)
+            serializer = self.get_serializer(inversao_cardapio)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, permission_classes=[PodeIniciarSuspensaoDeAlimentacaoPermission],
             methods=['patch'], url_path=constants.CODAE_NEGA_PEDIDO)
     def codae_nega_solicitacao(self, request, uuid=None):
         inversao_cardapio = self.get_object()

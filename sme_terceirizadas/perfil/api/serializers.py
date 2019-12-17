@@ -2,16 +2,16 @@ from rest_framework import serializers, status
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
+from ...dados_comuns.constants import ADMINISTRADOR_TERCEIRIZADA, NUTRI_ADMIN_RESPONSAVEL
+from ...dados_comuns.models import Contato
+from ...eol_servico.utils import EolException, get_informacoes_usuario
+from ...escola.api.validators import usuario_e_vinculado_a_aquela_instituicao, usuario_nao_possui_vinculo_valido
+from ..models import Perfil, Usuario, Vinculo
 from .validators import (
     registro_funcional_e_cpf_sao_da_mesma_pessoa,
     senha_deve_ser_igual_confirmar_senha,
     usuario_pode_efetuar_cadastro
 )
-from ..models import Perfil, Usuario, Vinculo
-from ...dados_comuns.constants import ADMINISTRADOR_TERCEIRIZADA, NUTRI_ADMIN_RESPONSAVEL
-from ...dados_comuns.models import Contato
-from ...eol_servico.utils import EolException, get_informacoes_usuario
-from ...escola.api.validators import usuario_e_vinculado_a_aquela_instituicao, usuario_nao_possui_vinculo_valido
 
 
 class PerfilSimplesSerializer(serializers.ModelSerializer):

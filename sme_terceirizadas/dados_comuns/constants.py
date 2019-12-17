@@ -1,6 +1,6 @@
 import datetime
-import environ
 
+import environ
 from workalendar.america import BrazilSaoPauloCity
 
 calendar = BrazilSaoPauloCity()
