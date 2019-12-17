@@ -1,5 +1,3 @@
-import datetime
-
 from rest_framework import serializers, status
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
@@ -15,6 +13,7 @@ from ...dados_comuns.constants import ADMINISTRADOR_TERCEIRIZADA, NUTRI_ADMIN_RE
 from ...dados_comuns.models import Contato
 from ...eol_servico.utils import EolException, get_informacoes_usuario
 from ...escola.api.validators import usuario_e_vinculado_a_aquela_instituicao, usuario_nao_possui_vinculo_valido
+from ...terceirizada.models import Terceirizada
 
 
 class PerfilSimplesSerializer(serializers.ModelSerializer):
@@ -30,9 +29,16 @@ class PerfilSerializer(serializers.ModelSerializer):
 
 
 class UsuarioSerializer(serializers.ModelSerializer):
+    cpf = serializers.SerializerMethodField()
+
+    def get_cpf(self, obj):
+        if obj.vinculo_atual and isinstance(obj.vinculo_atual.instituicao, Terceirizada):
+            return obj.cpf
+        return None
+
     class Meta:
         model = Usuario
-        fields = ('uuid', 'nome', 'email', 'date_joined', 'registro_funcional', 'tipo_usuario')
+        fields = ('uuid', 'cpf', 'nome', 'email', 'date_joined', 'registro_funcional', 'tipo_usuario')
 
 
 class VinculoSerializer(serializers.ModelSerializer):
@@ -51,14 +57,17 @@ class UsuarioUpdateSerializer(serializers.ModelSerializer):
         return get_informacoes_usuario(validated_data['registro_funcional'])
 
     def atualizar_nutricionista(self, usuario, validated_data):
-        usuario.email = validated_data['contatos'][0]['email']
-        usuario.cpf = None
+        if validated_data.get('contatos', None):
+            usuario.email = validated_data['contatos'][0]['email']
+        else:
+            usuario.email = validated_data.get('email')
+        usuario.cpf = validated_data.get('cpf', None)
         usuario.registro_funcional = None
         usuario.nome = validated_data['nome']
-        usuario.crn_numero = validated_data['crn_numero']
-        usuario.super_admin_terceirizadas = validated_data['super_admin_terceirizadas']
+        usuario.crn_numero = validated_data.get('crn_numero', None)
+        usuario.super_admin_terceirizadas = validated_data.get('super_admin_terceirizadas', False)
         usuario.save()
-        for contato_json in validated_data['contatos']:
+        for contato_json in validated_data.get('contatos', []):
             contato = Contato(
                 email=contato_json['email'],
                 telefone=contato_json['telefone']
@@ -68,7 +77,10 @@ class UsuarioUpdateSerializer(serializers.ModelSerializer):
         return usuario
 
     def create_nutricionista(self, terceirizada, validated_data):
-        email = validated_data['contatos'][0]['email']
+        if validated_data.get('contatos', None):
+            email = validated_data['contatos'][0]['email']
+        else:
+            email = validated_data.get('email')
         if Usuario.objects.filter(email=email).exists():
             raise ValidationError('E-mail já cadastrado')
         usuario = Usuario()
@@ -82,23 +94,25 @@ class UsuarioUpdateSerializer(serializers.ModelSerializer):
         usuario.enviar_email_administrador()
 
     def update_nutricionista(self, terceirizada, validated_data):
+        novo_usuario = False
         email = validated_data['contatos'][0]['email']
         if Usuario.objects.filter(email=email).exists():
             usuario = Usuario.objects.get(email=email)
-            usuario.vinculo_atual.ativo = False
-            usuario.vinculo_atual.data_final = datetime.date.today()
-            usuario.vinculo_atual.save()
             usuario.contatos.all().delete()
         else:
             usuario = Usuario()
             usuario.is_active = False
+            novo_usuario = True
         usuario = self.atualizar_nutricionista(usuario, validated_data)
-        if not usuario.is_active:
-            if usuario.super_admin_terceirizadas:
-                usuario.criar_vinculo_administrador(terceirizada, nome_perfil=NUTRI_ADMIN_RESPONSAVEL)
-            else:
-                usuario.criar_vinculo_administrador(terceirizada, nome_perfil=ADMINISTRADOR_TERCEIRIZADA)
+        nome_perfil = NUTRI_ADMIN_RESPONSAVEL if validated_data.get(
+            'super_admin_terceirizadas') else ADMINISTRADOR_TERCEIRIZADA
+        if novo_usuario:
+            usuario.criar_vinculo_administrador(terceirizada, nome_perfil=nome_perfil)
             usuario.enviar_email_administrador()
+        else:
+            vinculo = usuario.vinculo_atual
+            vinculo.perfil = Perfil.objects.get(nome=nome_perfil)
+            vinculo.save()
 
     def create(self, validated_data):  # noqa C901
         # TODO: ajeitar isso aqui, criar um validator antes...

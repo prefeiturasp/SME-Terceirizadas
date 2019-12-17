@@ -132,8 +132,7 @@ class Usuario(ExportModelOperationsMixin('usuario'), SimpleEmailConfirmationUser
 
     # TODO: esses atributos devem pertencer somente a um model Nutricionista
     super_admin_terceirizadas = models.BooleanField('É Administrador por parte das Terceirizadas?', default=False)
-    crn_numero = models.CharField('Nutricionista crn', max_length=160,
-                                  blank=True)
+    crn_numero = models.CharField('Nutricionista crn', max_length=160, blank=True, null=True)  # noqa DJ01
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []  # type: ignore
@@ -200,7 +199,7 @@ class Usuario(ExportModelOperationsMixin('usuario'), SimpleEmailConfirmationUser
         )
 
     def enviar_email_administrador(self):
-        self.add_email_if_not_exists(self.contatos.get().email)
+        self.add_email_if_not_exists(self.email)
         self.email_user(
             subject='[SIGPAE] Novo cadastro de empresa',
             message=f'Seja bem vindo(a), {self.nome}\n\nSua empresa foi cadastrada no sistema SIGPAE e a partir ' +
