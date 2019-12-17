@@ -273,7 +273,11 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
     def codae_autoriza_solicitacao(self, request, uuid=None):
         inversao_cardapio = self.get_object()
         try:
-            inversao_cardapio.codae_autoriza(user=request.user, )
+            user = request.user
+            if inversao_cardapio.status == inversao_cardapio.workflow_class.DRE_VALIDADO:
+                inversao_cardapio.codae_autoriza(user=user)
+            else:
+                inversao_cardapio.codae_autoriza_questionamento(user=user)
             serializer = self.get_serializer(inversao_cardapio)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -283,9 +287,9 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
             methods=['patch'], url_path=constants.CODAE_QUESTIONA_PEDIDO)
     def codae_questiona(self, request, uuid=None):
         inversao_cardapio = self.get_object()
-        observacao_questionamento_codae = request.data.get('observacao_questionamento_codae', '')
+        justificativa = request.data.get('justificativa', '')
         try:
-            inversao_cardapio.codae_questiona(user=request.user, justificativa=observacao_questionamento_codae)
+            inversao_cardapio.codae_questiona(user=request.user, justificativa=justificativa)
             serializer = self.get_serializer(inversao_cardapio)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -297,7 +301,11 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
         inversao_cardapio = self.get_object()
         justificativa = request.data.get('justificativa', '')
         try:
-            inversao_cardapio.codae_nega(user=request.user, justificativa=justificativa)
+            user = request.user
+            if inversao_cardapio.status == inversao_cardapio.workflow_class.DRE_VALIDADO:
+                inversao_cardapio.codae_nega(user=user, justificativa=justificativa)
+            else:
+                inversao_cardapio.codae_nega_questionamento(user=user, justificativa=justificativa)
             serializer = self.get_serializer(inversao_cardapio)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -308,8 +316,10 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
     def terceirizada_responde_questionamento(self, request, uuid=None):
         inversao_cardapio = self.get_object()
         justificativa = request.data.get('justificativa', '')
+        resposta_sim_nao = request.data.get('resposta_sim_nao', False)
         try:
-            inversao_cardapio.terceirizada_responde_questionamento(user=request.user, justificativa=justificativa)
+            inversao_cardapio.terceirizada_responde_questionamento(user=request.user, justificativa=justificativa,
+                                                                   resposta_sim_nao=resposta_sim_nao)
             serializer = self.get_serializer(inversao_cardapio)
             return Response(serializer.data)
         except InvalidTransitionError as e:
