@@ -1,3 +1,5 @@
+import datetime
+
 from rest_framework import serializers, status
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
@@ -5,6 +7,7 @@ from rest_framework.response import Response
 from .validators import (
     registro_funcional_e_cpf_sao_da_mesma_pessoa,
     senha_deve_ser_igual_confirmar_senha,
+    terceirizada_tem_esse_cnpj,
     usuario_pode_efetuar_cadastro
 )
 from ..models import Perfil, Usuario, Vinculo
@@ -74,14 +77,17 @@ class UsuarioUpdateSerializer(serializers.ModelSerializer):
         usuario.save()
         if usuario.super_admin_terceirizadas:
             usuario.criar_vinculo_administrador(terceirizada, nome_perfil=NUTRI_ADMIN_RESPONSAVEL)
-            usuario.enviar_email_administrador()
         else:
             usuario.criar_vinculo_administrador(terceirizada, nome_perfil=ADMINISTRADOR_TERCEIRIZADA)
+        usuario.enviar_email_administrador()
 
     def update_nutricionista(self, terceirizada, validated_data):
         email = validated_data['contatos'][0]['email']
         if Usuario.objects.filter(email=email).exists():
             usuario = Usuario.objects.get(email=email)
+            usuario.vinculo_atual.ativo = False
+            usuario.vinculo_atual.data_final = datetime.date.today()
+            usuario.vinculo_atual.save()
             usuario.contatos.all().delete()
         else:
             usuario = Usuario()
@@ -90,9 +96,9 @@ class UsuarioUpdateSerializer(serializers.ModelSerializer):
         if not usuario.is_active:
             if usuario.super_admin_terceirizadas:
                 usuario.criar_vinculo_administrador(terceirizada, nome_perfil=NUTRI_ADMIN_RESPONSAVEL)
-                usuario.enviar_email_administrador()
             else:
                 usuario.criar_vinculo_administrador(terceirizada, nome_perfil=ADMINISTRADOR_TERCEIRIZADA)
+            usuario.enviar_email_administrador()
 
     def create(self, validated_data):  # noqa C901
         # TODO: ajeitar isso aqui, criar um validator antes...
@@ -123,14 +129,22 @@ class UsuarioUpdateSerializer(serializers.ModelSerializer):
 
     def _validate(self, instance, attrs):
         senha_deve_ser_igual_confirmar_senha(attrs['password'], attrs['confirmar_password'])
-        registro_funcional_e_cpf_sao_da_mesma_pessoa(instance, attrs['registro_funcional'], attrs['cpf'])
-        usuario_pode_efetuar_cadastro(instance)
+        cnpj = attrs.get('cnpj', None)
+        if cnpj:
+            terceirizada_tem_esse_cnpj(instance.vinculo_atual.instituicao, cnpj)
+        if 'tipo_email' in attrs:
+            registro_funcional_e_cpf_sao_da_mesma_pessoa(instance, attrs['registro_funcional'], attrs['cpf'])
+            usuario_pode_efetuar_cadastro(instance)
         return attrs
 
     def partial_update(self, instance, validated_data):
+        cnpj = validated_data.get('cnpj', None)
         validated_data = self._validate(instance, validated_data)
         self.update(instance, validated_data)
         instance.set_password(validated_data['password'])
+        if cnpj:
+            instance.vinculo_atual.ativar_vinculo()
+            instance.is_active = True
         instance.save()
         return instance
 

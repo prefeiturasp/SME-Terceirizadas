@@ -205,7 +205,7 @@ class Usuario(ExportModelOperationsMixin('usuario'), SimpleEmailConfirmationUser
             subject='[SIGPAE] Novo cadastro de empresa',
             message=f'Seja bem vindo(a), {self.nome}\n\nSua empresa foi cadastrada no sistema SIGPAE e a partir ' +
                     f'desse momento você terá acesso as suas funcionalidades.\n\nEfetue seu cadastro através do link ' +
-                    f'abaixo e acompanhe as suas solicitações.\n\n')
+                    f'abaixo e acompanhe as suas solicitações.\n\n{url_configs("LOGIN_TERCEIRIZADAS", {})}')
 
     def atualiza_senha(self, senha, token):
         token_generator = PasswordResetTokenGenerator()
