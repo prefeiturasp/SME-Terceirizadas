@@ -237,6 +237,38 @@ def users_codae_gestao_alimentacao(client, django_user_model, request, usuario_2
     return client, email, password, rf, cpf, user
 
 
+@pytest.fixture(params=[
+    # email, senha, rf, cpf
+    ('cogestor_1@sme.prefeitura.sp.gov.br', 'adminadmin', '0000001', '44426575052'),
+    ('cogestor_2@sme.prefeitura.sp.gov.br', 'aasdsadsadff', '0000002', '56789925031'),
+    ('cogestor_3@sme.prefeitura.sp.gov.br', '98as7d@@#', '0000147', '86880963099'),
+    ('cogestor_4@sme.prefeitura.sp.gov.br', '##$$csazd@!', '0000441', '13151715036'),
+    ('cogestor_5@sme.prefeitura.sp.gov.br', '!!@##FFG121', '0005551', '40296233013')
+])
+def users_terceirizada(client, django_user_model, request, usuario_2):
+    email, password, rf, cpf = request.param
+    user = django_user_model.objects.create_user(password=password, email=email, registro_funcional=rf, cpf=cpf)
+    client.login(email=email, password=password)
+
+    terceirizada = mommy.make('Terceirizada', nome_fantasia='Alimentos LTDA',
+                              uuid='b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd')
+
+    perfil_nutri_admin_responsavel = mommy.make('Perfil', nome='NUTRI_ADMIN_RESPONSAVEL', ativo=True,
+                                                uuid='48330a6f-c444-4462-971e-476452b328b2')
+    perfil_administrador_terceirizada = mommy.make('Perfil', nome='ADMINISTRADOR_TERCEIRIZADA',
+                                                   ativo=True, uuid='41c20c8b-7e57-41ed-9433-ccb92e8afaf1')
+    hoje = datetime.date.today()
+    mommy.make('Vinculo', usuario=user, instituicao=terceirizada, perfil=perfil_administrador_terceirizada,
+               ativo=False, data_inicial=hoje, data_final=hoje + datetime.timedelta(days=30)
+               )  # finalizado
+    mommy.make('Vinculo', usuario=user, instituicao=terceirizada, perfil=perfil_nutri_admin_responsavel,
+               data_inicial=hoje, ativo=True)
+    mommy.make('Vinculo', usuario=usuario_2, instituicao=terceirizada, perfil=perfil_administrador_terceirizada,
+               data_inicial=hoje, ativo=True)
+
+    return client, email, password, rf, cpf, user
+
+
 def mocked_request_api_eol():
     class MockResponse:
         def __init__(self, json_data, status_code):

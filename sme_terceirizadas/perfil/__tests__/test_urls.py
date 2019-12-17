@@ -211,7 +211,7 @@ def test_get_equipe_administradora_vinculos_escola(users_diretor_escola):
     assert response.json() == [
         {'data_inicial': datetime.date.today().strftime('%d/%m/%Y'),
          'perfil': {'nome': 'ADMINISTRADOR_ESCOLA', 'uuid': '48330a6f-c444-4462-971e-476452b328b2'},
-         'usuario': {'uuid': '8344f23a-95c4-4871-8f20-3880529767c0', 'nome': 'Fulano da Silva',
+         'usuario': {'uuid': '8344f23a-95c4-4871-8f20-3880529767c0', 'nome': 'Fulano da Silva', 'cpf': None,
                      'email': 'fulano@teste.com', 'registro_funcional': '1234567', 'tipo_usuario': 'escola'}}]
 
 
@@ -279,7 +279,7 @@ def test_get_equipe_administradora_vinculos_dre(users_cogestor_diretoria_regiona
         {'data_inicial': datetime.date.today().strftime('%d/%m/%Y'),
          'perfil': {'nome': 'ADMINISTRADOR_DRE', 'uuid': '48330a6f-c444-4462-971e-476452b328b2'},
          'usuario': {'uuid': '8344f23a-95c4-4871-8f20-3880529767c0', 'nome': 'Fulano da Silva',
-                     'email': 'fulano@teste.com', 'registro_funcional': '1234567',
+                     'email': 'fulano@teste.com', 'registro_funcional': '1234567', 'cpf': None,
                      'tipo_usuario': 'diretoriaregional'}}]
 
 
@@ -386,7 +386,7 @@ def test_get_equipe_administradora_vinculos_codae(users_codae_gestao_alimentacao
          'perfil': {'nome': 'ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA',
                     'uuid': '48330a6f-c444-4462-971e-476452b328b2'},
          'usuario': {'uuid': '8344f23a-95c4-4871-8f20-3880529767c0', 'nome': 'Fulano da Silva',
-                     'email': 'fulano@teste.com', 'registro_funcional': '1234567',
+                     'email': 'fulano@teste.com', 'registro_funcional': '1234567', 'cpf': None,
                      'tipo_usuario': 'gestao_alimentacao_terceirizada'}}]
 
 
@@ -400,6 +400,41 @@ def test_finalizar_vinculo_codae(users_codae_gestao_alimentacao):
                             content_type='application/json', data=data)
     assert response.status_code == status.HTTP_200_OK
     user = Usuario.objects.get(registro_funcional=rf)
+    assert user.vinculo_atual is None
+    assert user.is_active is False
+
+
+def test_get_equipe_administradora_vinculos_terceirizadas(users_terceirizada):
+    client, email, password, rf, cpf, user = users_terceirizada
+    terceirizada_ = user.vinculo_atual.instituicao
+    response = client.get(
+        f'/vinculos-terceirizadas/{str(terceirizada_.uuid)}/get_equipe_administradora/')
+    assert response.status_code == status.HTTP_200_OK
+    response.json()[0].get('usuario').pop('date_joined')
+    response.json()[0].get('usuario').pop('cpf')
+    response.json()[0].get('usuario').pop('registro_funcional')
+    response.json()[0].pop('data_final')
+    response.json()[0].pop('uuid')
+    assert response.json() == [
+        {'data_inicial': datetime.date.today().strftime('%d/%m/%Y'),
+         'perfil': {'nome': 'ADMINISTRADOR_TERCEIRIZADA',
+                    'uuid': '41c20c8b-7e57-41ed-9433-ccb92e8afaf1'},
+         'usuario': {'uuid': '8344f23a-95c4-4871-8f20-3880529767c0', 'nome': 'Fulano da Silva',
+                     'email': 'fulano@teste.com', 'tipo_usuario': 'terceirizada'}
+         }
+    ]
+
+
+def test_finalizar_vinculo_terceirizada(users_terceirizada):
+    client, email, password, rf, cpf, user = users_terceirizada
+    terceirizada_ = user.vinculo_atual.instituicao
+    data = {
+        'vinculo_uuid': user.vinculo_atual.uuid
+    }
+    response = client.patch(f'/vinculos-terceirizadas/{str(terceirizada_.uuid)}/finalizar_vinculo/',
+                            content_type='application/json', data=data)
+    assert response.status_code == status.HTTP_200_OK
+    user = Usuario.objects.get(email=email)
     assert user.vinculo_atual is None
     assert user.is_active is False
 

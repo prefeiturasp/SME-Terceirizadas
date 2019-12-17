@@ -181,7 +181,10 @@ class TerceirizadaSerializer(serializers.ModelSerializer):
     def get_nutricionistas(self, obj):
         content_type = ContentType.objects.get_for_model(Terceirizada)
         return UsuarioNutricionistaSerializer(
-            Usuario.objects.filter(vinculos__object_id=obj.id, vinculos__content_type=content_type).distinct(),
+            Usuario.objects.filter(vinculos__object_id=obj.id,
+                                   vinculos__content_type=content_type,
+                                   crn_numero__isnull=False
+                                   ).distinct(),
             many=True
         ).data
 
