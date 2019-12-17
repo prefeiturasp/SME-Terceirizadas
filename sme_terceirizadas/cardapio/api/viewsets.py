@@ -258,6 +258,17 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeIniciarSuspensaoDeAlimentacaoPermission],
+            methods=['patch'], url_path=constants.DRE_NAO_VALIDA_PEDIDO)
+    def diretoria_regional_nao_valida_solicitacao(self, request, uuid=None):
+        inversao_cardapio = self.get_object()
+        try:
+            inversao_cardapio.dre_nao_valida(user=request.user, )
+            serializer = self.get_serializer(inversao_cardapio)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, permission_classes=[PodeIniciarSuspensaoDeAlimentacaoPermission],
             methods=['patch'], url_path=constants.CODAE_AUTORIZA_PEDIDO)
     def codae_autoriza_solicitacao(self, request, uuid=None):
         inversao_cardapio = self.get_object()
@@ -287,6 +298,18 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
         justificativa = request.data.get('justificativa', '')
         try:
             inversao_cardapio.codae_nega(user=request.user, justificativa=justificativa)
+            serializer = self.get_serializer(inversao_cardapio)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, permission_classes=[PodeIniciarSuspensaoDeAlimentacaoPermission],
+            methods=['patch'], url_path=constants.TERCEIRIZADA_RESPONDE_QUESTIONAMENTO)
+    def terceirizada_responde_questionamento(self, request, uuid=None):
+        inversao_cardapio = self.get_object()
+        justificativa = request.data.get('justificativa', '')
+        try:
+            inversao_cardapio.terceirizada_responde_questionamento(user=request.user, justificativa=justificativa)
             serializer = self.get_serializer(inversao_cardapio)
             return Response(serializer.data)
         except InvalidTransitionError as e:
