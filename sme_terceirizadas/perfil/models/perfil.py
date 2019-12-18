@@ -76,6 +76,11 @@ class Vinculo(ExportModelOperationsMixin('vinculo_perfil'), Ativavel, TemChaveEx
             email=self.usuario.email
         )
 
+    def ativar_vinculo(self):
+        self.ativo = True
+        self.data_inicial = datetime.date.today()
+        self.save()
+
     class Meta:
         verbose_name = 'Vínculo'
         verbose_name_plural = 'Vínculos'

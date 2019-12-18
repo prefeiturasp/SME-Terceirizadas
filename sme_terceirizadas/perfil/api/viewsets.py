@@ -7,10 +7,11 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
-from ...escola.api.serializers import UsuarioDetalheSerializer
+from .serializers import PerfilSerializer, UsuarioUpdateSerializer
 from ..api.helpers import ofuscar_email
 from ..models import Perfil, Usuario
-from .serializers import PerfilSerializer, UsuarioUpdateSerializer
+from ...escola.api.serializers import UsuarioDetalheSerializer
+from ...terceirizada.models import Terceirizada
 
 
 class UsuarioViewSet(viewsets.ReadOnlyModelViewSet):
@@ -55,7 +56,10 @@ class UsuarioUpdateViewSet(viewsets.GenericViewSet):
     serializer_class = UsuarioUpdateSerializer
 
     def _get_usuario(self, request):
-        return Usuario.objects.get(registro_funcional=request.data.get('registro_funcional'))
+        if Usuario.objects.filter(email=request.data.get('email')).exists():
+            return Usuario.objects.get(email=request.data.get('email'))
+        else:
+            return Usuario.objects.get(registro_funcional=request.data.get('registro_funcional'))
 
     def _get_usuario_por_rf_email(self, registro_funcional_ou_email):
         return Usuario.objects.get(
@@ -72,7 +76,8 @@ class UsuarioUpdateViewSet(viewsets.GenericViewSet):
         # TODO: ajeitar isso aqui
         try:
             usuario = UsuarioUpdateSerializer(usuario).partial_update(usuario, request.data)
-            usuario.enviar_email_confirmacao()
+            if not isinstance(usuario.vinculo_atual.instituicao, Terceirizada):
+                usuario.enviar_email_confirmacao()
             return Response(UsuarioDetalheSerializer(usuario).data)
         except ValidationError as e:
             return Response({'detail': e.detail[0].title()}, status=status.HTTP_400_BAD_REQUEST)

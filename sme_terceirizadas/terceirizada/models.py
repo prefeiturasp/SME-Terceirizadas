@@ -1,5 +1,6 @@
 from django.core.validators import MinLengthValidator
 from django.db import models
+from django.db.models import Q
 from django_prometheus.models import ExportModelOperationsMixin
 
 from ..cardapio.models import AlteracaoCardapio, GrupoSuspensaoAlimentacao, InversaoCardapio
@@ -11,6 +12,7 @@ from ..dados_comuns.behaviors import (
     TemIdentificadorExternoAmigavel,
     TemVinculos
 )
+from ..dados_comuns.constants import NUTRI_ADMIN_RESPONSAVEL
 from ..dados_comuns.utils import queryset_por_data
 from ..escola.models import DiretoriaRegional, Lote
 from ..inclusao_alimentacao.models import GrupoInclusaoAlimentacaoNormal, InclusaoAlimentacaoContinua
@@ -75,6 +77,13 @@ class Terceirizada(ExportModelOperationsMixin('terceirizada'), TemChaveExterna, 
     # e a partir dai a instituição que tem contatos e endereço?
     # o mesmo para pessoa fisica talvez?
     contatos = models.ManyToManyField('dados_comuns.Contato', blank=True)
+
+    @property
+    def vinculos_que_podem_ser_finalizados(self):
+        return self.vinculos.filter(
+            Q(data_inicial=None, data_final=None, ativo=False) |  # noqa W504 esperando ativacao
+            Q(data_inicial__isnull=False, data_final=None, ativo=True)  # noqa W504 ativo
+        ).exclude(perfil__nome=NUTRI_ADMIN_RESPONSAVEL)
 
     def desvincular_lotes(self):
         for lote in self.lotes.all():
