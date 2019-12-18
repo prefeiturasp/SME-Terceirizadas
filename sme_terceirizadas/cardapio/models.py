@@ -167,9 +167,8 @@ class Cardapio(ExportModelOperationsMixin('cardapio'), Descritivel, Ativavel, Te
 
 
 class InversaoCardapio(ExportModelOperationsMixin('inversao_cardapio'), CriadoEm, CriadoPor, TemObservacao, Motivo,
-                       TemChaveExterna,
-                       TemIdentificadorExternoAmigavel, FluxoAprovacaoPartindoDaEscola,
-                       TemPrioridade, Logs):
+                       TemChaveExterna, TemIdentificadorExternoAmigavel, FluxoAprovacaoPartindoDaEscola,
+                       TemPrioridade, Logs, SolicitacaoForaDoPrazo):
     """Troca um cardápio de um dia por outro.
 
     servir o cardápio do dia 30 no dia 15, automaticamente o
@@ -228,11 +227,13 @@ class InversaoCardapio(ExportModelOperationsMixin('inversao_cardapio'), CriadoEm
 
     def salvar_log_transicao(self, status_evento, usuario, **kwargs):
         justificativa = kwargs.get('justificativa', '')
+        resposta_sim_nao = kwargs.get('resposta_sim_nao', False)
         LogSolicitacoesUsuario.objects.create(
             descricao=str(self),
             status_evento=status_evento,
             solicitacao_tipo=LogSolicitacoesUsuario.INVERSAO_DE_CARDAPIO,
             usuario=usuario,
+            resposta_sim_nao=resposta_sim_nao,
             uuid_original=self.uuid,
             justificativa=justificativa
         )
