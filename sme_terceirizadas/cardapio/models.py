@@ -169,7 +169,7 @@ class Cardapio(ExportModelOperationsMixin('cardapio'), Descritivel, Ativavel, Te
 class InversaoCardapio(ExportModelOperationsMixin('inversao_cardapio'), CriadoEm, CriadoPor, TemObservacao, Motivo,
                        TemChaveExterna,
                        TemIdentificadorExternoAmigavel, FluxoAprovacaoPartindoDaEscola,
-                       TemPrioridade, Logs):
+                       TemPrioridade, Logs, SolicitacaoForaDoPrazo):
     """Troca um cardápio de um dia por outro.
 
     servir o cardápio do dia 30 no dia 15, automaticamente o

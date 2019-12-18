@@ -362,6 +362,11 @@ logging.config.dictConfig({
         },
     },
     'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+            'level': 'DEBUG',
+        },
         'file': {
             'level': 'DEBUG',
             'class': 'logging.FileHandler',
@@ -373,7 +378,7 @@ logging.config.dictConfig({
         'sigpae': {
             'level': 'DEBUG',
             'handlers': [
-                'file'
+                'console'
             ],
         }
     }
