@@ -55,10 +55,20 @@ class SubstituicaoDoComboVinculoTipoAlimentoSimplesSerializer(serializers.ModelS
         required=True,
         queryset=ComboDoVinculoTipoAlimentacaoPeriodoTipoUE.objects.all()
     )
+    label = serializers.SerializerMethodField()
+
+    def get_label(self, obj):
+        label = ''
+        for tipo_alimentacao in obj.tipos_alimentacao.all():
+            if len(label) == 0:
+                label += tipo_alimentacao.nome
+            else:
+                label += f' e {tipo_alimentacao.nome}'
+        return label
 
     class Meta:
         model = SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE
-        fields = ('uuid', 'tipos_alimentacao', 'combo')
+        fields = ('uuid', 'tipos_alimentacao', 'combo', 'label',)
 
 
 class CombosVinculoTipoAlimentoSimplesSerializer(serializers.ModelSerializer):
@@ -69,10 +79,20 @@ class CombosVinculoTipoAlimentoSimplesSerializer(serializers.ModelSerializer):
         required=True,
         queryset=VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar.objects.all()
     )
+    label = serializers.SerializerMethodField()
+
+    def get_label(self, obj):
+        label = ''
+        for tipo_alimentacao in obj.tipos_alimentacao.all():
+            if len(label) == 0:
+                label += tipo_alimentacao.nome
+            else:
+                label += f' e {tipo_alimentacao.nome}'
+        return label
 
     class Meta:
         model = ComboDoVinculoTipoAlimentacaoPeriodoTipoUE
-        fields = ('uuid', 'tipos_alimentacao', 'vinculo', 'substituicoes')
+        fields = ('uuid', 'tipos_alimentacao', 'vinculo', 'substituicoes', 'label',)
 
 
 class VinculoTipoAlimentoSimplesSerializer(serializers.ModelSerializer):
