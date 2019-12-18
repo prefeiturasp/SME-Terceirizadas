@@ -10,6 +10,7 @@ from ..dados_comuns.behaviors import (
     IntervaloDeDia,
     Logs,
     Nomeavel,
+    SolicitacaoForaDoPrazo,
     TemChaveExterna,
     TemData,
     TemIdentificadorExternoAmigavel,
@@ -70,7 +71,7 @@ class InclusaoAlimentacaoContinua(ExportModelOperationsMixin('inclusao_continua'
                                   TemChaveExterna,
                                   DiasSemana, FluxoAprovacaoPartindoDaEscola,
                                   CriadoPor, TemIdentificadorExternoAmigavel,
-                                  CriadoEm, Logs, TemPrioridade):
+                                  CriadoEm, Logs, TemPrioridade, SolicitacaoForaDoPrazo):
     outro_motivo = models.CharField('Outro motivo', blank=True, max_length=50)
     motivo = models.ForeignKey(MotivoInclusaoContinua, on_delete=models.DO_NOTHING)
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING,

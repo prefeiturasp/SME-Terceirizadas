@@ -127,6 +127,7 @@ class InversaoCardapioSerializer(serializers.ModelSerializer):
     escola = EscolaSimplesSerializer()
     id_externo = serializers.CharField()
     prioridade = serializers.CharField()
+    data = serializers.DateField()  # representa data do objeto, a menor entre data_de e data_para
     data_de = serializers.DateField()
     data_para = serializers.DateField()
     logs = LogSolicitacoesUsuarioSerializer(many=True)

@@ -1,12 +1,7 @@
 import environ
 from freezegun import freeze_time
 
-from ..constants import (
-    DAQUI_A_SETE_DIAS,
-    DAQUI_A_TRINTA_DIAS,
-    SEM_FILTRO,
-    obter_dias_uteis_apos_hoje,
-)
+from ..constants import DAQUI_A_SETE_DIAS, DAQUI_A_TRINTA_DIAS, SEM_FILTRO, obter_dias_uteis_apos_hoje
 from ..utils import queryset_por_data, update_instance_from_dict
 
 env = environ.Env()
