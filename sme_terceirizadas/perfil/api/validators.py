@@ -23,6 +23,12 @@ def terceirizada_tem_esse_cnpj(terceirizada: Terceirizada, cnpj: str):
     return True
 
 
+def deve_ter_mesmo_cpf(cpf_request: str, cpf_instance: str):
+    if cpf_request != cpf_instance:
+        raise serializers.ValidationError('CPF incorreto')
+    return True
+
+
 def usuario_pode_efetuar_cadastro(usuario: Usuario):
     try:
         if not usuario.pode_efetuar_cadastro:
