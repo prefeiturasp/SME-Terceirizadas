@@ -145,9 +145,10 @@ class UsuarioUpdateSerializer(serializers.ModelSerializer):
         senha_deve_ser_igual_confirmar_senha(attrs['password'], attrs['confirmar_password'])
         cpf = attrs.get('cpf')
         cnpj = attrs.get('cnpj', None)
-        if cnpj and instance.cpf:
-            deve_ter_mesmo_cpf(cpf, instance.cpf)
+        if cnpj:
             terceirizada_tem_esse_cnpj(instance.vinculo_atual.instituicao, cnpj)
+        if instance.cpf:
+            deve_ter_mesmo_cpf(cpf, instance.cpf)
         if 'tipo_email' in attrs:
             registro_funcional_e_cpf_sao_da_mesma_pessoa(instance, attrs['registro_funcional'], attrs['cpf'])
             usuario_pode_efetuar_cadastro(instance)
