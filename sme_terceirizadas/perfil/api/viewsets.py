@@ -61,7 +61,6 @@ class UsuarioUpdateViewSet(viewsets.GenericViewSet):
         else:
             return Usuario.objects.get(email=request.data.get('email'))
 
-
     def _get_usuario_por_rf_email(self, registro_funcional_ou_email):
         return Usuario.objects.get(
             Q(registro_funcional=registro_funcional_ou_email) |  # noqa W504
