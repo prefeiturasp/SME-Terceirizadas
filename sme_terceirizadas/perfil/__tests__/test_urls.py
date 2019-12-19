@@ -466,7 +466,7 @@ def test_cadastro_erro(client):
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert isinstance(response.json(), dict)
     assert response.json() == {
-        'detail': 'Erro ao cadastrar usuário'
+        'detail': 'E-mail não cadastrado no sistema'
     }
 
 

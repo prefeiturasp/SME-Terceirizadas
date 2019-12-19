@@ -1,12 +1,14 @@
 from rest_framework import serializers, status
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
+
 from .validators import (
     deve_ter_mesmo_cpf,
     registro_funcional_e_cpf_sao_da_mesma_pessoa,
     senha_deve_ser_igual_confirmar_senha,
     terceirizada_tem_esse_cnpj,
-    usuario_pode_efetuar_cadastro,
+    usuario_e_das_terceirizadas,
+    usuario_pode_efetuar_cadastro
 )
 from ..models import Perfil, Usuario, Vinculo
 from ...dados_comuns.constants import ADMINISTRADOR_TERCEIRIZADA, NUTRI_ADMIN_RESPONSAVEL
@@ -146,6 +148,7 @@ class UsuarioUpdateSerializer(serializers.ModelSerializer):
         cpf = attrs.get('cpf')
         cnpj = attrs.get('cnpj', None)
         if cnpj:
+            usuario_e_das_terceirizadas(instance)
             terceirizada_tem_esse_cnpj(instance.vinculo_atual.instituicao, cnpj)
         if instance.cpf:
             deve_ter_mesmo_cpf(cpf, instance.cpf)
