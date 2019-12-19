@@ -8,6 +8,7 @@ from django.db import models
 from django.db.models import Q
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
+from django_prometheus.models import ExportModelOperationsMixin
 from simple_email_confirmation.models import SimpleEmailConfirmationUserMixin
 
 from ...dados_comuns.behaviors import TemChaveExterna
@@ -104,7 +105,9 @@ class CustomAbstractUser(AbstractBaseUser, PermissionsMixin):
         envia_email_unico_task.delay(assunto=subject, corpo=message, email=self.email)
 
 
-class Usuario(SimpleEmailConfirmationUserMixin, CustomAbstractUser, TemChaveExterna):
+# TODO: Refatorar classe Usuário para comportar classes Pessoa, Usuário, Nutricionista
+class Usuario(ExportModelOperationsMixin('usuario'), SimpleEmailConfirmationUserMixin, CustomAbstractUser,
+              TemChaveExterna):
     """Classe de autenticacao do django, ela tem muitos perfis."""
 
     SME = 0
@@ -118,8 +121,18 @@ class Usuario(SimpleEmailConfirmationUserMixin, CustomAbstractUser, TemChaveExte
     email = models.EmailField(_('email address'), unique=True)
     tipo_email = models.PositiveSmallIntegerField(choices=TIPOS_EMAIL,
                                                   null=True, blank=True)
-    cpf = models.CharField(_('CPF'), max_length=11, unique=True, validators=[MinLengthValidator(11)])
-    registro_funcional = models.CharField(_('RF'), max_length=7, unique=True, validators=[MinLengthValidator(7)])
+
+    registro_funcional = models.CharField(_('RF'), max_length=7, blank=True, null=True, unique=True,  # noqa DJ01
+                                          validators=[MinLengthValidator(7)])
+
+    # TODO: essew atributow deve pertencer somente a um model Pessoa
+    cpf = models.CharField(_('CPF'), max_length=11, blank=True, null=True, unique=True,  # noqa DJ01
+                           validators=[MinLengthValidator(11)])
+    contatos = models.ManyToManyField('dados_comuns.Contato', blank=True)
+
+    # TODO: esses atributos devem pertencer somente a um model Nutricionista
+    super_admin_terceirizadas = models.BooleanField('É Administrador por parte das Terceirizadas?', default=False)
+    crn_numero = models.CharField('Nutricionista crn', max_length=160, blank=True, null=True)  # noqa DJ01
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []  # type: ignore
@@ -185,6 +198,14 @@ class Usuario(SimpleEmailConfirmationUserMixin, CustomAbstractUser, TemChaveExte
                     f': {url_configs("RECUPERAR_SENHA", content)}',
         )
 
+    def enviar_email_administrador(self):
+        self.add_email_if_not_exists(self.email)
+        self.email_user(
+            subject='[SIGPAE] Novo cadastro de empresa',
+            message=f'Seja bem vindo(a), {self.nome}\n\nSua empresa foi cadastrada no sistema SIGPAE e a partir ' +
+                    f'desse momento você terá acesso as suas funcionalidades.\n\nEfetue seu cadastro através do link ' +
+                    f'abaixo e acompanhe as suas solicitações.\n\n{url_configs("LOGIN_TERCEIRIZADAS", {})}')
+
     def atualiza_senha(self, senha, token):
         token_generator = PasswordResetTokenGenerator()
         if token_generator.check_token(self, token):
@@ -193,11 +214,14 @@ class Usuario(SimpleEmailConfirmationUserMixin, CustomAbstractUser, TemChaveExte
             return True
         return False
 
-    def criar_vinculo_administrador(self, escola, nome_perfil):
+    def criar_vinculo_administrador(self, instituicao, nome_perfil):
         perfil = Perfil.objects.get(nome=nome_perfil)
         Vinculo.objects.create(
-            instituicao=escola,
+            instituicao=instituicao,
             perfil=perfil,
             usuario=self,
             ativo=False
         )
+
+    class Meta:
+        ordering = ('-super_admin_terceirizadas',)

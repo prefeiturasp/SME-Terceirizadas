@@ -1,4 +1,4 @@
-from rest_framework import mixins, viewsets
+from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST
@@ -9,10 +9,12 @@ from ...dados_comuns import constants
 from ..models import (
     AlteracaoCardapio,
     Cardapio,
+    ComboDoVinculoTipoAlimentacaoPeriodoTipoUE,
     GrupoSuspensaoAlimentacao,
     InversaoCardapio,
     MotivoAlteracaoCardapio,
     MotivoSuspensao,
+    SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE,
     TipoAlimentacao,
     VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
 )
@@ -27,21 +29,24 @@ from .serializers.serializers import (
     AlteracaoCardapioSerializer,
     AlteracaoCardapioSimplesSerializer,
     CardapioSerializer,
+    CombosVinculoTipoAlimentoSimplesSerializer,
     GrupoSupensaoAlimentacaoListagemSimplesSerializer,
     GrupoSuspensaoAlimentacaoSerializer,
     GrupoSuspensaoAlimentacaoSimplesSerializer,
     InversaoCardapioSerializer,
     MotivoAlteracaoCardapioSerializer,
     MotivoSuspensaoSerializer,
+    SubstituicaoDoComboVinculoTipoAlimentoSimplesSerializer,
     TipoAlimentacaoSerializer,
     VinculoTipoAlimentoSimplesSerializer
 )
 from .serializers.serializers_create import (
     AlteracaoCardapioSerializerCreate,
     CardapioCreateSerializer,
+    ComboDoVinculoTipoAlimentoSimplesSerializerCreate,
     GrupoSuspensaoAlimentacaoCreateSerializer,
     InversaoCardapioSerializerCreate,
-    VinculoTipoAlimentoSimplesSerializerCreate
+    SubstituicaoDoComboVinculoTipoAlimentoSimplesSerializerCreate
 )
 
 
@@ -62,19 +67,67 @@ class TipoAlimentacaoViewSet(viewsets.ModelViewSet):
     queryset = TipoAlimentacao.objects.all()
 
 
-class VinculoTipoAlimentacaoViewSet(mixins.CreateModelMixin,
-                                    mixins.RetrieveModelMixin,
-                                    mixins.UpdateModelMixin,
+class VinculoTipoAlimentacaoViewSet(mixins.RetrieveModelMixin,
                                     mixins.ListModelMixin,
                                     GenericViewSet):
     lookup_field = 'uuid'
     serializer_class = VinculoTipoAlimentoSimplesSerializer
-    queryset = VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar.objects.all()
+    queryset = VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar.objects.filter(ativo=True)
+
+    @action(detail=False,
+            url_path='tipo_unidade_escolar/(?P<tipo_unidade_escolar_uuid>[^/.]+)')
+    def filtro_por_periodo_tipo_ue(self, request, tipo_unidade_escolar_uuid=None):
+        vinculos = VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar.objects.filter(
+            tipo_unidade_escolar__uuid=tipo_unidade_escolar_uuid, ativo=True)
+        page = self.paginate_queryset(vinculos)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+
+class CombosDoVinculoTipoAlimentacaoPeriodoTipoUEViewSet(mixins.RetrieveModelMixin,
+                                                         mixins.ListModelMixin,
+                                                         mixins.CreateModelMixin,
+                                                         mixins.DestroyModelMixin,
+                                                         GenericViewSet):
+    lookup_field = 'uuid'
+    serializer_class = CombosVinculoTipoAlimentoSimplesSerializer
+    queryset = ComboDoVinculoTipoAlimentacaoPeriodoTipoUE.objects.all()
 
     def get_serializer_class(self):
-        if self.action in ['create', 'update', 'partial_update']:
-            return VinculoTipoAlimentoSimplesSerializerCreate
-        return VinculoTipoAlimentoSimplesSerializer
+        if self.action == 'create':
+            return ComboDoVinculoTipoAlimentoSimplesSerializerCreate
+        return CombosVinculoTipoAlimentoSimplesSerializer
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if not instance.pode_excluir():
+            return Response(data={'detail': 'Não pode excluir, o combo já tem movimentação no sistema'},
+                            status=status.HTTP_403_FORBIDDEN)
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class SubstituicaoDoCombosDoVinculoTipoAlimentacaoPeriodoTipoUEViewSet(mixins.RetrieveModelMixin,
+                                                                       mixins.ListModelMixin,
+                                                                       mixins.CreateModelMixin,
+                                                                       mixins.DestroyModelMixin,
+                                                                       GenericViewSet):
+    lookup_field = 'uuid'
+    serializer_class = SubstituicaoDoComboVinculoTipoAlimentoSimplesSerializer
+    queryset = SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE.objects.all()
+
+    def get_serializer_class(self):
+        if self.action == 'create':
+            return SubstituicaoDoComboVinculoTipoAlimentoSimplesSerializerCreate
+        return SubstituicaoDoComboVinculoTipoAlimentoSimplesSerializer
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if not instance.pode_excluir():
+            return Response(data={'detail': 'Não pode excluir, o combo já tem movimentação no sistema'},
+                            status=status.HTTP_403_FORBIDDEN)
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class InversaoCardapioViewSet(viewsets.ModelViewSet):
@@ -205,11 +258,38 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeIniciarSuspensaoDeAlimentacaoPermission],
+            methods=['patch'], url_path=constants.DRE_NAO_VALIDA_PEDIDO)
+    def diretoria_regional_nao_valida_solicitacao(self, request, uuid=None):
+        inversao_cardapio = self.get_object()
+        try:
+            inversao_cardapio.dre_nao_valida(user=request.user, )
+            serializer = self.get_serializer(inversao_cardapio)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, permission_classes=[PodeIniciarSuspensaoDeAlimentacaoPermission],
             methods=['patch'], url_path=constants.CODAE_AUTORIZA_PEDIDO)
     def codae_autoriza_solicitacao(self, request, uuid=None):
         inversao_cardapio = self.get_object()
         try:
-            inversao_cardapio.codae_autoriza(user=request.user, )
+            user = request.user
+            if inversao_cardapio.status == inversao_cardapio.workflow_class.DRE_VALIDADO:
+                inversao_cardapio.codae_autoriza(user=user)
+            else:
+                inversao_cardapio.codae_autoriza_questionamento(user=user)
+            serializer = self.get_serializer(inversao_cardapio)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, permission_classes=[PodeIniciarSuspensaoDeAlimentacaoPermission],
+            methods=['patch'], url_path=constants.CODAE_QUESTIONA_PEDIDO)
+    def codae_questiona(self, request, uuid=None):
+        inversao_cardapio = self.get_object()
+        justificativa = request.data.get('justificativa', '')
+        try:
+            inversao_cardapio.codae_questiona(user=request.user, justificativa=justificativa)
             serializer = self.get_serializer(inversao_cardapio)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -221,7 +301,25 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
         inversao_cardapio = self.get_object()
         justificativa = request.data.get('justificativa', '')
         try:
-            inversao_cardapio.codae_nega(user=request.user, justificativa=justificativa)
+            user = request.user
+            if inversao_cardapio.status == inversao_cardapio.workflow_class.DRE_VALIDADO:
+                inversao_cardapio.codae_nega(user=user, justificativa=justificativa)
+            else:
+                inversao_cardapio.codae_nega_questionamento(user=user, justificativa=justificativa)
+            serializer = self.get_serializer(inversao_cardapio)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, permission_classes=[PodeIniciarSuspensaoDeAlimentacaoPermission],
+            methods=['patch'], url_path=constants.TERCEIRIZADA_RESPONDE_QUESTIONAMENTO)
+    def terceirizada_responde_questionamento(self, request, uuid=None):
+        inversao_cardapio = self.get_object()
+        justificativa = request.data.get('justificativa', '')
+        resposta_sim_nao = request.data.get('resposta_sim_nao', False)
+        try:
+            inversao_cardapio.terceirizada_responde_questionamento(user=request.user, justificativa=justificativa,
+                                                                   resposta_sim_nao=resposta_sim_nao)
             serializer = self.get_serializer(inversao_cardapio)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -445,7 +543,10 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
         alteracao_cardapio = self.get_object()
         justificativa = request.data.get('justificativa', '')
         try:
-            alteracao_cardapio.codae_nega(user=request.user, justificativa=justificativa)
+            if alteracao_cardapio.status == alteracao_cardapio.workflow_class.DRE_VALIDADO:
+                alteracao_cardapio.codae_nega(user=request.user, justificativa=justificativa)
+            else:
+                alteracao_cardapio.codae_nega_questionamento(user=request.user, justificativa=justificativa)
             serializer = self.get_serializer(alteracao_cardapio)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -456,7 +557,25 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
     def codae_autoriza(self, request, uuid=None):
         alteracao_cardapio = self.get_object()
         try:
-            alteracao_cardapio.codae_autoriza(user=request.user, )
+            if alteracao_cardapio.status == alteracao_cardapio.workflow_class.DRE_VALIDADO:
+                alteracao_cardapio.codae_autoriza(user=request.user)
+            else:
+                alteracao_cardapio.codae_autoriza_questionamento(user=request.user)
+            serializer = self.get_serializer(alteracao_cardapio)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, permission_classes=[PodeAprovarPelaCODAEAlteracaoCardapioPermission],
+            methods=['patch'], url_path=constants.CODAE_QUESTIONA_PEDIDO)
+    def codae_questiona_pedido(self, request, uuid=None):
+        alteracao_cardapio = self.get_object()
+        observacao_questionamento_codae = request.data.get('observacao_questionamento_codae', '')
+        try:
+            alteracao_cardapio.codae_questiona(
+                user=request.user,
+                justificativa=observacao_questionamento_codae
+            )
             serializer = self.get_serializer(alteracao_cardapio)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -474,6 +593,21 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeRecusarPelaCODAEAlteracaoCardapioPermission],
+            methods=['patch'], url_path=constants.TERCEIRIZADA_RESPONDE_QUESTIONAMENTO)
+    def terceirizada_responde_questionamento(self, request, uuid=None):
+        alteracao_cardapio = self.get_object()
+        justificativa = request.data.get('justificativa', '')
+        resposta_sim_nao = request.data.get('resposta_sim_nao', False)
+        try:
+            alteracao_cardapio.terceirizada_responde_questionamento(user=request.user,
+                                                                    justificativa=justificativa,
+                                                                    resposta_sim_nao=resposta_sim_nao)
+            serializer = self.get_serializer(alteracao_cardapio)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, permission_classes=[PodeRecusarPelaCODAEAlteracaoCardapioPermission],
             methods=['patch'], url_path=constants.ESCOLA_CANCELA)
     def escola_cancela_solicitacao(self, request, uuid=None):
         inclusao_alimentacao_continua = self.get_object()
@@ -483,7 +617,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
             serializer = self.get_serializer(inclusao_alimentacao_continua)
             return Response(serializer.data)
         except InvalidTransitionError as e:
-            return Response(dict(detail=f'Erro de transição de estado: {e}'))
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=False, url_path='pedidos-autorizados-diretoria-regional')
     def pedidos_autorizados_diretoria_regional(self, request):

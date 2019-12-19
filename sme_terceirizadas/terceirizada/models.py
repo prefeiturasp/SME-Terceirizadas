@@ -1,5 +1,7 @@
 from django.core.validators import MinLengthValidator
 from django.db import models
+from django.db.models import Q
+from django_prometheus.models import ExportModelOperationsMixin
 
 from ..cardapio.models import AlteracaoCardapio, GrupoSuspensaoAlimentacao, InversaoCardapio
 from ..dados_comuns.behaviors import (
@@ -10,13 +12,14 @@ from ..dados_comuns.behaviors import (
     TemIdentificadorExternoAmigavel,
     TemVinculos
 )
-from ..dados_comuns.constants import DAQUI_A_SETE_DIAS, DAQUI_A_TRINTA_DIAS
+from ..dados_comuns.constants import NUTRI_ADMIN_RESPONSAVEL
+from ..dados_comuns.utils import queryset_por_data
 from ..escola.models import DiretoriaRegional, Lote
 from ..inclusao_alimentacao.models import GrupoInclusaoAlimentacaoNormal, InclusaoAlimentacaoContinua
 from ..kit_lanche.models import SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheUnificada
 
 
-class Edital(TemChaveExterna):
+class Edital(ExportModelOperationsMixin('edital'), TemChaveExterna):
     numero = models.CharField('Edital No', max_length=100, help_text='Número do Edital', unique=True)
     tipo_contratacao = models.CharField('Tipo de contratação', max_length=100)
     processo = models.CharField('Processo Administrativo', max_length=100,
@@ -35,7 +38,8 @@ class Edital(TemChaveExterna):
         verbose_name_plural = 'Editais'
 
 
-class Nutricionista(TemChaveExterna, Nomeavel):
+# TODO: remover esse modelo (deprecado)
+class Nutricionista(ExportModelOperationsMixin('nutricionista'), TemChaveExterna, Nomeavel):
     # TODO: verificar a diferença dessa pra nutricionista da CODAE
 
     crn_numero = models.CharField('Nutricionista crn', max_length=160,
@@ -45,7 +49,7 @@ class Nutricionista(TemChaveExterna, Nomeavel):
                                      related_name='nutricionistas',
                                      blank=True,
                                      null=True)
-
+    admin = models.BooleanField('É Administrador por parte das Terceirizadas?', default=False)
     # TODO: retornar aqui quando tiver um perfil definido
     contatos = models.ManyToManyField('dados_comuns.Contato', blank=True)
 
@@ -55,9 +59,11 @@ class Nutricionista(TemChaveExterna, Nomeavel):
     class Meta:
         verbose_name = 'Nutricionista'
         verbose_name_plural = 'Nutricionistas'
+        ordering = ['-admin']
 
 
-class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel, TemVinculos):
+class Terceirizada(ExportModelOperationsMixin('terceirizada'), TemChaveExterna, Ativavel,
+                   TemIdentificadorExternoAmigavel, TemVinculos):
     nome_fantasia = models.CharField('Nome fantasia', max_length=160, blank=True)
     razao_social = models.CharField('Razao social', max_length=160, blank=True)
     cnpj = models.CharField('CNPJ', validators=[MinLengthValidator(14)], max_length=14)
@@ -71,6 +77,13 @@ class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel, T
     # e a partir dai a instituição que tem contatos e endereço?
     # o mesmo para pessoa fisica talvez?
     contatos = models.ManyToManyField('dados_comuns.Contato', blank=True)
+
+    @property
+    def vinculos_que_podem_ser_finalizados(self):
+        return self.vinculos.filter(
+            Q(data_inicial=None, data_final=None, ativo=False) |  # noqa W504 esperando ativacao
+            Q(data_inicial__isnull=False, data_final=None, ativo=True)  # noqa W504 ativo
+        ).exclude(perfil__nome=NUTRI_ADMIN_RESPONSAVEL)
 
     def desvincular_lotes(self):
         for lote in self.lotes.all():
@@ -232,49 +245,30 @@ class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel, T
         )
 
     def alteracoes_cardapio_das_minhas(self, filtro_aplicado):
-        if filtro_aplicado == DAQUI_A_SETE_DIAS:
-            alteracoes_cardapio = AlteracaoCardapio.desta_semana
-        elif filtro_aplicado == DAQUI_A_TRINTA_DIAS:
-            alteracoes_cardapio = AlteracaoCardapio.deste_mes  # type: ignore
-        else:
-            alteracoes_cardapio = AlteracaoCardapio.objects  # type: ignore
-        return alteracoes_cardapio.filter(
-            status=AlteracaoCardapio.workflow_class.CODAE_AUTORIZADO,
+        queryset = queryset_por_data(filtro_aplicado, AlteracaoCardapio)
+        return queryset.filter(
+            status__in=[AlteracaoCardapio.workflow_class.CODAE_AUTORIZADO,
+                        AlteracaoCardapio.workflow_class.CODAE_QUESTIONADO],
             escola__lote__in=self.lotes.all()
         )
 
     def grupos_inclusoes_alimentacao_normal_das_minhas_escolas(self, filtro_aplicado):
-        if filtro_aplicado == DAQUI_A_SETE_DIAS:
-            inversoes_cardapio = GrupoInclusaoAlimentacaoNormal.desta_semana
-        elif filtro_aplicado == DAQUI_A_TRINTA_DIAS:
-            inversoes_cardapio = GrupoInclusaoAlimentacaoNormal.deste_mes  # type: ignore
-        else:
-            inversoes_cardapio = GrupoInclusaoAlimentacaoNormal.objects  # type: ignore
-        return inversoes_cardapio.filter(
+        queryset = queryset_por_data(filtro_aplicado, GrupoInclusaoAlimentacaoNormal)
+        return queryset.filter(
             status=AlteracaoCardapio.workflow_class.CODAE_AUTORIZADO,
             escola__lote__in=self.lotes.all()
         )
 
     def inclusoes_alimentacao_continua_das_minhas_escolas(self, filtro_aplicado):
-        if filtro_aplicado == DAQUI_A_SETE_DIAS:
-            inclusoes_alimentacao_continuas = InclusaoAlimentacaoContinua.desta_semana
-        elif filtro_aplicado == DAQUI_A_TRINTA_DIAS:
-            inclusoes_alimentacao_continuas = InclusaoAlimentacaoContinua.deste_mes  # type: ignore
-        else:
-            inclusoes_alimentacao_continuas = InclusaoAlimentacaoContinua.objects  # type: ignore
-        return inclusoes_alimentacao_continuas.filter(
+        queryset = queryset_por_data(filtro_aplicado, InclusaoAlimentacaoContinua)
+        return queryset.filter(
             status=AlteracaoCardapio.workflow_class.CODAE_AUTORIZADO,
             escola__lote__in=self.lotes.all()
         )
 
     def suspensoes_alimentacao_das_minhas_escolas(self, filtro_aplicado):
-        if filtro_aplicado == DAQUI_A_SETE_DIAS:
-            suspensoes_alimentacao = GrupoSuspensaoAlimentacao.desta_semana
-        elif filtro_aplicado == DAQUI_A_TRINTA_DIAS:
-            suspensoes_alimentacao = GrupoSuspensaoAlimentacao.deste_mes  # type: ignore
-        else:
-            suspensoes_alimentacao = GrupoSuspensaoAlimentacao.objects  # type: ignore
-        return suspensoes_alimentacao.filter(
+        queryset = queryset_por_data(filtro_aplicado, GrupoSuspensaoAlimentacao)
+        return queryset.filter(
             status=GrupoSuspensaoAlimentacao.workflow_class.INFORMADO,
             escola__lote__in=self.lotes.all()
         )
@@ -351,7 +345,8 @@ class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel, T
             solicitacoes_kit_lanche = SolicitacaoKitLancheAvulsa.objects  # type: ignore
         return solicitacoes_kit_lanche.filter(
             escola__lote__in=self.lotes.all(),
-            status=InversaoCardapio.workflow_class.CODAE_AUTORIZADO
+            status__in=[SolicitacaoKitLancheAvulsa.workflow_class.CODAE_AUTORIZADO,
+                        SolicitacaoKitLancheAvulsa.workflow_class.CODAE_QUESTIONADO]
         )
 
     def __str__(self):
@@ -362,7 +357,7 @@ class Terceirizada(TemChaveExterna, Ativavel, TemIdentificadorExternoAmigavel, T
         verbose_name_plural = 'Terceirizadas'
 
 
-class Contrato(TemChaveExterna):
+class Contrato(ExportModelOperationsMixin('contato'), TemChaveExterna):
     numero = models.CharField('No do contrato', max_length=100)
     processo = models.CharField('Processo Administrativo', max_length=100,
                                 help_text='Processo administrativo do contrato')
@@ -380,7 +375,7 @@ class Contrato(TemChaveExterna):
         verbose_name_plural = 'Contratos'
 
 
-class VigenciaContrato(TemChaveExterna, IntervaloDeDia):
+class VigenciaContrato(ExportModelOperationsMixin('vigencia_contrato'), TemChaveExterna, IntervaloDeDia):
     contrato = models.ForeignKey(Contrato, on_delete=models.CASCADE, related_name='vigencias', null=True, blank=True)
 
     def __str__(self):

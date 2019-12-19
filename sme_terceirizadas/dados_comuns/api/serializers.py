@@ -15,7 +15,7 @@ class LogSolicitacoesUsuarioSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = LogSolicitacoesUsuario
-        fields = ('status_evento_explicacao', 'usuario', 'criado_em', 'descricao', 'justificativa')
+        fields = ('status_evento_explicacao', 'usuario', 'criado_em', 'descricao', 'justificativa', 'resposta_sim_nao')
 
 
 class ConfiguracaoEmailSerializer(serializers.ModelSerializer):

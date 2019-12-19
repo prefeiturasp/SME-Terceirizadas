@@ -7,6 +7,7 @@ from ...dados_comuns.fluxo_status import InformativoPartindoDaEscolaWorkflow, Pe
 ENRPOINT_INVERSOES = 'inversoes-dia-cardapio'
 ENDPOINT_SUSPENSOES = 'grupos-suspensoes-alimentacao'
 ENDPOINT_ALTERACAO_CARD = 'alteracoes-cardapio'
+ENDPOINT_VINCULOS_ALIMENTACAO = 'vinculos-tipo-alimentacao-u-e-periodo-escolar'
 
 
 def test_url_endpoint_solicitacoes_inversao_inicio_fluxo(client_autenticado, inversao_dia_cardapio):
@@ -69,8 +70,8 @@ def test_url_endpoint_solicitacoes_inversao_codae_autoriza_error(client_autentic
     )
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json() == {
-        'detail': "Erro de transição de estado: Transition 'codae_autoriza'"
-                  " isn't available from state 'DRE_A_VALIDAR'."}
+        'detail': "Erro de transição de estado: Transition 'codae_autoriza_questionamento' "
+                  "isn't available from state 'DRE_A_VALIDAR'."}
 
 
 def test_url_endpoint_solicitacoes_inversao_codae_nega(client_autenticado, inversao_dia_cardapio_dre_validado):
@@ -91,7 +92,8 @@ def test_url_endpoint_solicitacoes_inversao_codae_nega_error(client_autenticado,
     )
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json() == {
-        'detail': "Erro de transição de estado: Transition 'codae_nega' isn't available from state 'DRE_A_VALIDAR'."}
+        'detail': "Erro de transição de estado: Transition 'codae_nega_questionamento'"
+                  " isn't available from state 'DRE_A_VALIDAR'."}
 
 
 def test_url_endpoint_solicitacoes_inversao_terceirizada_ciencia(client_autenticado,
@@ -141,6 +143,31 @@ def test_url_endpoint_solicitacoes_inversao_escola_cancela_error(client_autentic
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json() == {
         'detail': 'Erro de transição de estado: Só pode cancelar com no mínimo 2 dia(s) de antecedência'}
+
+
+def test_url_endpoint_solicitacoes_inversao_codae_questiona_error(client_autenticado,
+                                                                  inversao_dia_cardapio_codae_autorizado):
+    assert str(inversao_dia_cardapio_codae_autorizado.status) == PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO
+    response = client_autenticado.patch(
+        f'/{ENRPOINT_INVERSOES}/{inversao_dia_cardapio_codae_autorizado.uuid}/{constants.CODAE_QUESTIONA_PEDIDO}/'
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {
+        'detail':
+            "Erro de transição de estado: Transition 'codae_questiona' isn't available from state 'CODAE_AUTORIZADO'."
+    }
+
+
+def test_url_endpoint_solicitacoes_inversao_codae_questiona(client_autenticado,
+                                                            inversao_dia_cardapio_dre_validado):
+    assert str(inversao_dia_cardapio_dre_validado.status) == PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO
+    response = client_autenticado.patch(
+        f'/{ENRPOINT_INVERSOES}/{inversao_dia_cardapio_dre_validado.uuid}/{constants.CODAE_QUESTIONA_PEDIDO}/'
+    )
+    assert response.status_code == status.HTTP_200_OK
+    json = response.json()
+    assert json['status'] == PedidoAPartirDaEscolaWorkflow.CODAE_QUESTIONADO
+    assert str(json['uuid']) == str(inversao_dia_cardapio_dre_validado.uuid)
 
 
 #
@@ -282,7 +309,7 @@ def test_url_endpoint_alt_card_codae_autoriza_error(client_autenticado, alteraca
     )
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.json() == {'detail': "Erro de transição de estado: Transition 'codae_autoriza' "
+    assert response.json() == {'detail': "Erro de transição de estado: Transition 'codae_autoriza_questionamento' "
                                          "isn't available from state 'RASCUNHO'."}
 
 
@@ -305,7 +332,7 @@ def test_url_endpoint_alt_card_codae_nega_error(client_autenticado, alteracao_ca
     )
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.json() == {'detail': "Erro de transição de estado: Transition 'codae_nega'"
+    assert response.json() == {'detail': "Erro de transição de estado: Transition 'codae_nega_questionamento'"
                                          " isn't available from state 'CODAE_AUTORIZADO'."}
 
 
@@ -331,3 +358,25 @@ def test_url_endpoint_alt_card_terceirizada_ciencia_error(client_autenticado, al
     assert response.json() == {
         'detail': "Erro de transição de estado: Transition 'terceirizada_toma_ciencia'"
                   " isn't available from state 'RASCUNHO'."}
+
+
+def test_url_endpoint_get_vinculos_tipo_alimentacao(client_autenticado, vinculo_tipo_alimentacao):
+    response = client_autenticado.get(
+        f'/{ENDPOINT_VINCULOS_ALIMENTACAO}/'
+    )
+    assert response.status_code == status.HTTP_200_OK
+    json = response.json()['results']
+    assert json[0]['uuid'] == str(vinculo_tipo_alimentacao.uuid)
+    assert json[0]['periodo_escolar']['uuid'] == str(vinculo_tipo_alimentacao.periodo_escolar.uuid)
+    assert json[0]['tipo_unidade_escolar']['uuid'] == str(vinculo_tipo_alimentacao.tipo_unidade_escolar.uuid)
+    assert len(json[0]['combos']) == 5
+
+    # testa endpoint de filtro tipo_ue
+    response = client_autenticado.get(
+        f'/{ENDPOINT_VINCULOS_ALIMENTACAO}/tipo_unidade_escolar/{vinculo_tipo_alimentacao.tipo_unidade_escolar.uuid}/',
+    )
+    json = response.json()['results']
+    assert json[0]['uuid'] == str(vinculo_tipo_alimentacao.uuid)
+    assert json[0]['periodo_escolar']['uuid'] == str(vinculo_tipo_alimentacao.periodo_escolar.uuid)
+    assert json[0]['tipo_unidade_escolar']['uuid'] == str(vinculo_tipo_alimentacao.tipo_unidade_escolar.uuid)
+    assert len(json[0]['combos']) == 5

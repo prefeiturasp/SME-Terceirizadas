@@ -1,4 +1,5 @@
 from django.db import models
+from django_prometheus.models import ExportModelOperationsMixin
 
 from ..dados_comuns.behaviors import (  # noqa I101
     Ativavel,
@@ -10,6 +11,7 @@ from ..dados_comuns.behaviors import (  # noqa I101
     LogSolicitacoesUsuario,
     Motivo,
     Nomeavel,
+    SolicitacaoForaDoPrazo,
     TemChaveExterna,
     TemData,
     TemIdentificadorExternoAmigavel,
@@ -30,7 +32,7 @@ from .managers import (
 )
 
 
-class TipoAlimentacao(Nomeavel, TemChaveExterna):
+class TipoAlimentacao(ExportModelOperationsMixin('tipo_alimentacao'), Nomeavel, TemChaveExterna):
     """Compõe parte do cardápio.
 
     Dejejum
@@ -44,6 +46,7 @@ class TipoAlimentacao(Nomeavel, TemChaveExterna):
     Merenda Seca
     """
 
+    # TODO: tirar substituicoes quando der, não é mais necessário
     substituicoes = models.ManyToManyField('TipoAlimentacao', blank=True)
 
     @property
@@ -58,34 +61,59 @@ class TipoAlimentacao(Nomeavel, TemChaveExterna):
         verbose_name_plural = 'Tipos de alimentação'
 
 
-class SubstituicoesDoVinculoTipoAlimentacaoPeriodoTipoUE(TemChaveExterna):
-    tipo_alimentacao = models.ForeignKey('TipoAlimentacao',
-                                         help_text='Tipo de alimentação.',
-                                         on_delete=models.DO_NOTHING,
-                                         related_name='%(app_label)s_%(class)s_tipo_alimentacao',
-                                         )
-    possibilidades = models.ManyToManyField('TipoAlimentacao',
-                                            related_name='%(app_label)s_%(class)s_possibilidades',
-                                            help_text='Possibilidades de substituicões para este tipo de alimentação.',
-                                            blank=True,
-                                            )
-    substituicoes = models.ManyToManyField('TipoAlimentacao',
-                                           related_name='%(app_label)s_%(class)s_substituicoes',
-                                           help_text='Substituições para este tipo de alimentação.',
-                                           blank=True,
-                                           )
+class ComboDoVinculoTipoAlimentacaoPeriodoTipoUE(
+    ExportModelOperationsMixin('substituicoes_vinculo_alimentacao'), TemChaveExterna):  # noqa E125
+
+    tipos_alimentacao = models.ManyToManyField('TipoAlimentacao',
+                                               related_name='%(app_label)s_%(class)s_possibilidades',
+                                               help_text='Tipos de alimentacao do combo.',
+                                               blank=True,
+                                               )
+    vinculo = models.ForeignKey('VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar',
+                                null=True,
+                                on_delete=models.CASCADE,
+                                related_name='combos')
+
+    def pode_excluir(self):
+        # TODO: incrementar esse método,  impedir exclusão se tiver solicitações em cima desse combo também.
+        return not self.substituicoes.exists()
 
     def __str__(self):
-        possibilidades = [nome for nome in self.possibilidades.values_list('nome', flat=True)]
-        substituicoes = [nome for nome in self.substituicoes.values_list('nome', flat=True)]
-        return f'{self.tipo_alimentacao.nome}  POS:{possibilidades} -> SUBS:{substituicoes}'
+        tipos_alimentacao_nome = [nome for nome in self.tipos_alimentacao.values_list('nome', flat=True)]
+        return f'TiposAlim.:{tipos_alimentacao_nome}'
 
     class Meta:
-        verbose_name = 'Substituição do vínculo tipo alimentação'
-        verbose_name_plural = 'Substituições do vínculo tipo alimentação'
+        verbose_name = 'Combo do vínculo tipo alimentação'
+        verbose_name_plural = 'Combos do vínculo tipo alimentação'
 
 
-class VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar(TemChaveExterna):
+class SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE(TemChaveExterna):  # noqa E125
+
+    tipos_alimentacao = models.ManyToManyField('TipoAlimentacao',
+                                               related_name='%(app_label)s_%(class)s_possibilidades',
+                                               help_text='Tipos de alimentacao das substituições dos combos.',
+                                               blank=True,
+                                               )
+    combo = models.ForeignKey('ComboDoVinculoTipoAlimentacaoPeriodoTipoUE',
+                              null=True,
+                              on_delete=models.CASCADE,
+                              related_name='substituicoes')
+
+    def pode_excluir(self):
+        # TODO: incrementar esse método,  impedir exclusão se tiver solicitações em cima dessa substituição do combo.
+        return True
+
+    def __str__(self):
+        tipos_alimentacao_nome = [nome for nome in self.tipos_alimentacao.values_list('nome', flat=True)]
+        return f'TiposAlim.:{tipos_alimentacao_nome}'
+
+    class Meta:
+        verbose_name = 'Substituição do combo do vínculo tipo alimentação'
+        verbose_name_plural = 'Substituições do  combos do vínculo tipo alimentação'
+
+
+class VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar(
+    ExportModelOperationsMixin('vinculo_alimentacao_periodo_escolar_tipo_ue'), Ativavel, TemChaveExterna):  # noqa E125
     """Vincular vários tipos de alimentação a um periodo e tipo de U.E.
 
     Dado o tipo_unidade_escolar (EMEI, EMEF...) e
@@ -100,12 +128,10 @@ class VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar(TemChaveExterna
     periodo_escolar = models.ForeignKey('escola.PeriodoEscolar',
                                         null=True,
                                         on_delete=models.DO_NOTHING)
-    substituicoes = models.ManyToManyField('SubstituicoesDoVinculoTipoAlimentacaoPeriodoTipoUE',
-                                           blank=True)
 
     def __str__(self):
-        substituicoes_str = [f'{str(sub)} --- ' for sub in self.substituicoes.all()]
-        return f'{self.tipo_unidade_escolar.iniciais} - {self.periodo_escolar.nome} - {substituicoes_str}'
+        combos = [f'{str(sub)} --- ' for sub in self.combos.all()]
+        return f'{self.tipo_unidade_escolar.iniciais} - {self.periodo_escolar.nome} - {combos}'
 
     class Meta:
         unique_together = [['periodo_escolar', 'tipo_unidade_escolar']]
@@ -113,7 +139,7 @@ class VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar(TemChaveExterna
         verbose_name_plural = 'Vínculos tipo alimentação'
 
 
-class Cardapio(Descritivel, Ativavel, TemData, TemChaveExterna, CriadoEm):
+class Cardapio(ExportModelOperationsMixin('cardapio'), Descritivel, Ativavel, TemData, TemChaveExterna, CriadoEm):
     """Cardápio escolar.
 
     tem 1 data pra acontecer ex (26/06)
@@ -140,9 +166,10 @@ class Cardapio(Descritivel, Ativavel, TemData, TemChaveExterna, CriadoEm):
         verbose_name_plural = 'Cardápios'
 
 
-class InversaoCardapio(CriadoEm, CriadoPor, TemObservacao, Motivo, TemChaveExterna,
+class InversaoCardapio(ExportModelOperationsMixin('inversao_cardapio'), CriadoEm, CriadoPor, TemObservacao, Motivo,
+                       TemChaveExterna,
                        TemIdentificadorExternoAmigavel, FluxoAprovacaoPartindoDaEscola,
-                       TemPrioridade, Logs):
+                       TemPrioridade, Logs, SolicitacaoForaDoPrazo):
     """Troca um cardápio de um dia por outro.
 
     servir o cardápio do dia 30 no dia 15, automaticamente o
@@ -181,10 +208,7 @@ class InversaoCardapio(CriadoEm, CriadoPor, TemObservacao, Motivo, TemChaveExter
 
     @property
     def data(self):
-        data = self.data_de
-        if self.data_para < self.data_de:
-            data = self.data_para
-        return data
+        return self.data_para if self.data_para < self.data_de else self.data_de
 
     @property
     def template_mensagem(self):
@@ -221,7 +245,7 @@ class InversaoCardapio(CriadoEm, CriadoPor, TemObservacao, Motivo, TemChaveExter
         verbose_name_plural = 'Inversão$ProjectFileDir$ de cardápios'
 
 
-class MotivoSuspensao(Nomeavel, TemChaveExterna):
+class MotivoSuspensao(ExportModelOperationsMixin('motivo_suspensao'), Nomeavel, TemChaveExterna):
     """Trabalha em conjunto com SuspensaoAlimentacao.
 
     Exemplos:
@@ -237,7 +261,7 @@ class MotivoSuspensao(Nomeavel, TemChaveExterna):
         verbose_name_plural = 'Motivo de suspensão de alimentação'
 
 
-class SuspensaoAlimentacao(TemData, TemChaveExterna):
+class SuspensaoAlimentacao(ExportModelOperationsMixin('suspensao_alimentacao'), TemData, TemChaveExterna):
     """Trabalha em conjunto com GrupoSuspensaoAlimentacao."""
 
     prioritario = models.BooleanField(default=False)
@@ -254,7 +278,7 @@ class SuspensaoAlimentacao(TemData, TemChaveExterna):
         verbose_name_plural = 'Suspensões de alimentação'
 
 
-class QuantidadePorPeriodoSuspensaoAlimentacao(TemChaveExterna):
+class QuantidadePorPeriodoSuspensaoAlimentacao(ExportModelOperationsMixin('quantidade_periodo'), TemChaveExterna):
     numero_alunos = models.SmallIntegerField()
     periodo_escolar = models.ForeignKey('escola.PeriodoEscolar', on_delete=models.DO_NOTHING)
     grupo_suspensao = models.ForeignKey('GrupoSuspensaoAlimentacao', on_delete=models.CASCADE,
@@ -269,7 +293,8 @@ class QuantidadePorPeriodoSuspensaoAlimentacao(TemChaveExterna):
         verbose_name_plural = 'Quantidade por período de suspensão de alimentação'
 
 
-class GrupoSuspensaoAlimentacao(TemChaveExterna, CriadoPor, TemIdentificadorExternoAmigavel,
+class GrupoSuspensaoAlimentacao(ExportModelOperationsMixin('grupo_suspensao_alimentacao'), TemChaveExterna, CriadoPor,
+                                TemIdentificadorExternoAmigavel,
                                 CriadoEm, TemObservacao, FluxoInformativoPartindoDaEscola, Logs,
                                 TemPrioridade):
     """Serve para agrupar suspensões.
@@ -345,7 +370,7 @@ class GrupoSuspensaoAlimentacao(TemChaveExterna, CriadoPor, TemIdentificadorExte
         verbose_name_plural = 'Grupo de suspensão de alimentação'
 
 
-class SuspensaoAlimentacaoNoPeriodoEscolar(TemChaveExterna):
+class SuspensaoAlimentacaoNoPeriodoEscolar(ExportModelOperationsMixin('suspensao_periodo_escolar'), TemChaveExterna):
     suspensao_alimentacao = models.ForeignKey(SuspensaoAlimentacao, on_delete=models.CASCADE,
                                               null=True, blank=True,
                                               related_name='suspensoes_periodo_escolar')
@@ -362,7 +387,7 @@ class SuspensaoAlimentacaoNoPeriodoEscolar(TemChaveExterna):
         verbose_name_plural = 'Suspensões de alimentação no período'
 
 
-class MotivoAlteracaoCardapio(Nomeavel, TemChaveExterna):
+class MotivoAlteracaoCardapio(ExportModelOperationsMixin('motivo_alteracao_cardapio'), Nomeavel, TemChaveExterna):
     """Usado em conjunto com AlteracaoCardapio.
 
     Exemplos:
@@ -378,9 +403,9 @@ class MotivoAlteracaoCardapio(Nomeavel, TemChaveExterna):
         verbose_name_plural = 'Motivos de alteração de cardápio'
 
 
-class AlteracaoCardapio(CriadoEm, CriadoPor, TemChaveExterna, IntervaloDeDia, TemObservacao,
-                        FluxoAprovacaoPartindoDaEscola, TemIdentificadorExternoAmigavel, Logs,
-                        TemPrioridade):
+class AlteracaoCardapio(ExportModelOperationsMixin('alteracao_cardapio'), CriadoEm, CriadoPor,
+                        TemChaveExterna, IntervaloDeDia, TemObservacao, FluxoAprovacaoPartindoDaEscola,
+                        TemIdentificadorExternoAmigavel, Logs, TemPrioridade, SolicitacaoForaDoPrazo):
     objects = models.Manager()  # Manager Padrão
     desta_semana = AlteracoesCardapioDestaSemanaManager()
     deste_mes = AlteracoesCardapioDesteMesManager()
@@ -418,13 +443,15 @@ class AlteracaoCardapio(CriadoEm, CriadoPor, TemChaveExterna, IntervaloDeDia, Te
 
     def salvar_log_transicao(self, status_evento, usuario, **kwargs):
         justificativa = kwargs.get('justificativa', '')
+        resposta_sim_nao = kwargs.get('resposta_sim_nao', False)
         LogSolicitacoesUsuario.objects.create(
             descricao=str(self),
             status_evento=status_evento,
             solicitacao_tipo=LogSolicitacoesUsuario.ALTERACAO_DE_CARDAPIO,
             usuario=usuario,
             uuid_original=self.uuid,
-            justificativa=justificativa
+            justificativa=justificativa,
+            resposta_sim_nao=resposta_sim_nao
         )
 
     class Meta:
@@ -432,8 +459,8 @@ class AlteracaoCardapio(CriadoEm, CriadoPor, TemChaveExterna, IntervaloDeDia, Te
         verbose_name_plural = 'Alterações de cardápio'
 
 
-# TODO: passar nome da classe para singular
-class SubstituicoesAlimentacaoNoPeriodoEscolar(TemChaveExterna):
+class SubstituicaoAlimentacaoNoPeriodoEscolar(ExportModelOperationsMixin('substituicao_alimentacao_periodo_escolar'),
+                                              TemChaveExterna):
     alteracao_cardapio = models.ForeignKey('AlteracaoCardapio', on_delete=models.CASCADE,
                                            null=True, blank=True,
                                            related_name='substituicoes_periodo_escolar')

@@ -2,9 +2,10 @@ import uuid
 
 from django.core.validators import MinLengthValidator
 from django.db import models
+from django_prometheus.models import ExportModelOperationsMixin
 
 
-class LogSolicitacoesUsuario(models.Model):
+class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), models.Model):
     """Eventos de dados importantes para acompanhamento.
 
     Ex.: Fulano X  executou a atividade Y no objeto W no dia DDDDMMAA
@@ -25,11 +26,13 @@ class LogSolicitacoesUsuario(models.Model):
         DRE_PEDIU_REVISAO,
         DRE_NAO_VALIDOU,
         ESCOLA_REVISOU,
+        CODAE_QUESTIONOU,
+        TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO,
 
         # "BURLADO DO FLUXO", PODE SER CHAMADO A QUALQUER MOMENTO COM AS DEVIDAS RESTRIÇÕES
         ESCOLA_CANCELOU,
         DRE_CANCELOU,
-    ) = range(13)
+    ) = range(15)
 
     STATUS_POSSIVEIS = (
         (INICIO_FLUXO, 'Solicitação Realizada'),
@@ -44,7 +47,9 @@ class LogSolicitacoesUsuario(models.Model):
         (DRE_NAO_VALIDOU, 'DRE não validou'),
         (ESCOLA_REVISOU, 'Escola revisou'),
         (ESCOLA_CANCELOU, 'Escola cancelou'),
-        (DRE_CANCELOU, 'DRE cancelou')
+        (DRE_CANCELOU, 'DRE cancelou'),
+        (CODAE_QUESTIONOU, 'Questionamento pela CODAE'),
+        (TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO, 'Terceirizada respondeu questionamento')
     )
     (  # DA ESCOLA
         SOLICITACAO_KIT_LANCHE_AVULSA,
@@ -73,6 +78,7 @@ class LogSolicitacoesUsuario(models.Model):
     criado_em = models.DateTimeField('Criado em', editable=False, auto_now_add=True)
     descricao = models.TextField('Descricao', blank=True)
     justificativa = models.TextField('Justificativa', blank=True)
+    resposta_sim_nao = models.BooleanField('Resposta - Sim ou Não', default=False)
     status_evento = models.PositiveSmallIntegerField(choices=STATUS_POSSIVEIS)
     solicitacao_tipo = models.PositiveSmallIntegerField(choices=TIPOS_SOLICITACOES)
     uuid_original = models.UUIDField()
@@ -87,7 +93,7 @@ class Meta:
     ordering = ('criado_em',)
 
 
-class Contato(models.Model):
+class Contato(ExportModelOperationsMixin('contato'), models.Model):
     telefone = models.CharField(max_length=13, validators=[MinLengthValidator(8)],
                                 blank=True)
     telefone2 = models.CharField(max_length=10, validators=[MinLengthValidator(8)],
@@ -100,7 +106,7 @@ class Contato(models.Model):
         return f'{self.telefone}, {self.email}'
 
 
-class TemplateMensagem(models.Model):
+class TemplateMensagem(ExportModelOperationsMixin('template_mensagem'), models.Model):
     """Tem um texto base e troca por campos do objeto que entra como parâmetro.
 
     Ex:

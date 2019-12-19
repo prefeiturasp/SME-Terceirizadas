@@ -6,19 +6,21 @@ from ....escola.api.serializers import (
     EscolaSimplesSerializer,
     PeriodoEscolarSerializer,
     PeriodoEscolarSimplesSerializer,
-    TipoUnidadeEscolarSerializer
+    TipoUnidadeEscolarSerializer,
+    TipoUnidadeEscolarSerializerSimples
 )
 from ....terceirizada.api.serializers.serializers import EditalSerializer
 from ...models import (
     AlteracaoCardapio,
     Cardapio,
+    ComboDoVinculoTipoAlimentacaoPeriodoTipoUE,
     GrupoSuspensaoAlimentacao,
     InversaoCardapio,
     MotivoAlteracaoCardapio,
     MotivoSuspensao,
     QuantidadePorPeriodoSuspensaoAlimentacao,
-    SubstituicoesAlimentacaoNoPeriodoEscolar,
-    SubstituicoesDoVinculoTipoAlimentacaoPeriodoTipoUE,
+    SubstituicaoAlimentacaoNoPeriodoEscolar,
+    SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE,
     SuspensaoAlimentacao,
     SuspensaoAlimentacaoNoPeriodoEscolar,
     TipoAlimentacao,
@@ -46,24 +48,61 @@ class TipoAlimentacaoSimplesSerializer(serializers.ModelSerializer):
         fields = ('uuid', 'nome',)
 
 
-class SubstituicoesVinculoTipoAlimentoSimplesSerializer(serializers.ModelSerializer):
-    tipo_alimentacao = TipoAlimentacaoSimplesSerializer()
-    possibilidades = TipoAlimentacaoSimplesSerializer(many=True)
-    substituicoes = TipoAlimentacaoSimplesSerializer(many=True)
+class SubstituicaoDoComboVinculoTipoAlimentoSimplesSerializer(serializers.ModelSerializer):
+    tipos_alimentacao = TipoAlimentacaoSimplesSerializer(many=True)
+    combo = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=ComboDoVinculoTipoAlimentacaoPeriodoTipoUE.objects.all()
+    )
+    label = serializers.SerializerMethodField()
+
+    def get_label(self, obj):
+        label = ''
+        for tipo_alimentacao in obj.tipos_alimentacao.all():
+            if len(label) == 0:
+                label += tipo_alimentacao.nome
+            else:
+                label += f' e {tipo_alimentacao.nome}'
+        return label
 
     class Meta:
-        model = SubstituicoesDoVinculoTipoAlimentacaoPeriodoTipoUE
-        fields = ('uuid', 'tipo_alimentacao', 'possibilidades', 'substituicoes')
+        model = SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE
+        fields = ('uuid', 'tipos_alimentacao', 'combo', 'label',)
+
+
+class CombosVinculoTipoAlimentoSimplesSerializer(serializers.ModelSerializer):
+    tipos_alimentacao = TipoAlimentacaoSimplesSerializer(many=True)
+    substituicoes = SubstituicaoDoComboVinculoTipoAlimentoSimplesSerializer(many=True)
+    vinculo = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar.objects.all()
+    )
+    label = serializers.SerializerMethodField()
+
+    def get_label(self, obj):
+        label = ''
+        for tipo_alimentacao in obj.tipos_alimentacao.all():
+            if len(label) == 0:
+                label += tipo_alimentacao.nome
+            else:
+                label += f' e {tipo_alimentacao.nome}'
+        return label
+
+    class Meta:
+        model = ComboDoVinculoTipoAlimentacaoPeriodoTipoUE
+        fields = ('uuid', 'tipos_alimentacao', 'vinculo', 'substituicoes', 'label',)
 
 
 class VinculoTipoAlimentoSimplesSerializer(serializers.ModelSerializer):
-    tipo_unidade_escolar = TipoUnidadeEscolarSerializer()
+    tipo_unidade_escolar = TipoUnidadeEscolarSerializerSimples()
     periodo_escolar = PeriodoEscolarSimplesSerializer()
-    substituicoes = SubstituicoesVinculoTipoAlimentoSimplesSerializer(many=True)
+    combos = CombosVinculoTipoAlimentoSimplesSerializer(many=True)
 
     class Meta:
         model = VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
-        fields = ('uuid', 'tipo_unidade_escolar', 'periodo_escolar', 'substituicoes')
+        fields = ('uuid', 'tipo_unidade_escolar', 'periodo_escolar', 'combos')
 
 
 class CardapioSimplesSerializer(serializers.ModelSerializer):
@@ -88,6 +127,7 @@ class InversaoCardapioSerializer(serializers.ModelSerializer):
     escola = EscolaSimplesSerializer()
     id_externo = serializers.CharField()
     prioridade = serializers.CharField()
+    data = serializers.DateField()  # representa data do objeto, a menor entre data_de e data_para
     data_de = serializers.DateField()
     data_para = serializers.DateField()
     logs = LogSolicitacoesUsuarioSerializer(many=True)
@@ -184,7 +224,7 @@ class SubstituicoesAlimentacaoNoPeriodoEscolarSerializer(serializers.ModelSerial
     tipo_alimentacao_para = TipoAlimentacaoSerializer()
 
     class Meta:
-        model = SubstituicoesAlimentacaoNoPeriodoEscolar
+        model = SubstituicaoAlimentacaoNoPeriodoEscolar
         exclude = ('id',)
 
 
@@ -192,6 +232,7 @@ class AlteracaoCardapioSerializer(serializers.ModelSerializer):
     escola = EscolaSimplesSerializer()
     motivo = MotivoAlteracaoCardapioSerializer()
     substituicoes = SubstituicoesAlimentacaoNoPeriodoEscolarSerializer(many=True)
+    foi_solicitado_fora_do_prazo = serializers.BooleanField()
     id_externo = serializers.CharField()
     logs = LogSolicitacoesUsuarioSerializer(many=True)
     prioridade = serializers.CharField()

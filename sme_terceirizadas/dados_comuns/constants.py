@@ -1,8 +1,18 @@
+import datetime
+
 import environ
+from workalendar.america import BrazilSaoPauloCity
 
-from .utils import obter_dias_uteis_apos_hoje
-
+calendar = BrazilSaoPauloCity()
 env = environ.Env()
+
+
+def obter_dias_uteis_apos_hoje(quantidade_dias: int):
+    """Retorna o próximo dia útil após quantidade_dias."""
+    dia = datetime.date.today()
+
+    return calendar.add_working_days(dia, quantidade_dias)
+
 
 DJANGO_EOL_API_TOKEN = env('DJANGO_EOL_API_TOKEN')
 DJANGO_EOL_API_URL = env('DJANGO_EOL_API_URL')
@@ -49,7 +59,9 @@ DRE_CANCELA = 'diretoria-regional-cancela'
 CODAE_AUTORIZA_PEDIDO = 'codae-autoriza-pedido'
 CODAE_NEGA_PEDIDO = 'codae-cancela-pedido'
 CODAE_PEDE_REVISAO = 'codae-pediu-revisao'
+CODAE_QUESTIONA_PEDIDO = 'codae-questiona-pedido'
 
+TERCEIRIZADA_RESPONDE_QUESTIONAMENTO = 'terceirizada-responde-questionamento'
 TERCEIRIZADA_TOMOU_CIENCIA = 'terceirizada-toma-ciencia'
 
 #
@@ -70,6 +82,8 @@ COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA = 'COORDENADOR_GESTAO_ALIMENTACAO_TE
 ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA = 'ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA'
 COORDENADOR_DIETA_ESPECIAL = 'COORDENADOR_DIETA_ESPECIAL'
 ADMINISTRADOR_DIETA_ESPECIAL = 'ADMINISTRADOR_DIETA_ESPECIAL'
+NUTRI_ADMIN_RESPONSAVEL = 'NUTRI_ADMIN_RESPONSAVEL'
+ADMINISTRADOR_TERCEIRIZADA = 'ADMINISTRADOR_TERCEIRIZADA'
 
 # CACHE
 TEMPO_CACHE_6H = 60 * 60 * 6

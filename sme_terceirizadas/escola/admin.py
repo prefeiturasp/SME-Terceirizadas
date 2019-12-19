@@ -4,6 +4,7 @@ from .models import (
     Codae,
     DiretoriaRegional,
     Escola,
+    EscolaPeriodoEscolar,
     FaixaIdadeEscolar,
     Lote,
     PeriodoEscolar,
@@ -20,6 +21,7 @@ admin.site.register(Subprefeitura)
 admin.site.register(TipoGestao)
 admin.site.register(TipoUnidadeEscolar)
 admin.site.register(Codae)
+admin.site.register(EscolaPeriodoEscolar)
 
 
 @admin.register(Escola)

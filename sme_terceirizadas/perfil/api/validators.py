@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from ...eol_servico.utils import EolException
+from ...terceirizada.models import Terceirizada
 from ..models import Usuario
 
 
@@ -13,6 +14,24 @@ def senha_deve_ser_igual_confirmar_senha(senha: str, confirmar_senha: str):
 def registro_funcional_e_cpf_sao_da_mesma_pessoa(usuario: Usuario, registro_funcional: str, cpf: str):
     if usuario.cpf != cpf or usuario.registro_funcional != registro_funcional:
         raise serializers.ValidationError('Erro ao cadastrar usuário')
+    return True
+
+
+def terceirizada_tem_esse_cnpj(terceirizada: Terceirizada, cnpj: str):
+    if terceirizada.cnpj != cnpj:
+        raise serializers.ValidationError('CNPJ da Empresa inválido')
+    return True
+
+
+def usuario_e_das_terceirizadas(usuario: Usuario):
+    if not isinstance(usuario.vinculo_atual.instituicao, Terceirizada):
+        raise serializers.ValidationError('Usuario já existe e não é Perfil Terceirizadas')
+    return True
+
+
+def deve_ter_mesmo_cpf(cpf_request: str, cpf_instance: str):
+    if cpf_request != cpf_instance:
+        raise serializers.ValidationError('CPF incorreto')
     return True
 
 

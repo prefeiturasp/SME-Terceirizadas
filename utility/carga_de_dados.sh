@@ -13,9 +13,11 @@ echo "Criando CODAE admin"
 ./manage.py shell -c "from sme_terceirizadas.perfil.models import Usuario; Usuario.objects.create_superuser('codae@admin.com', 'adminadmin', cpf='11111111114', registro_funcional='1111114')"
 ./manage.py loaddata sme_terceirizadas/**/fixtures/*.json
 ./manage.py shell -c "from utility.carga_dados import run"
-./manage.py atualiza_dres
-./manage.py atualiza_escolas
+
+./manage.py shell -c "from utility.carga_dados.escola import _11_atualiza_dre"
+./manage.py shell -c "from utility.carga_dados.escola import _12_atualiza_escolas"
+
 ./manage.py shell -c "from utility.carga_dados.escola import _8_co_gestores_dre"
 ./manage.py shell -c "from utility.carga_dados.escola import _10_codae"
 ./manage.py shell -c "from utility.carga_dados.escola import _9_associar_admins"
-./manage.py loaddata sme_terceirizadas/cardapio/fixtures/pos_carga/*.json
+

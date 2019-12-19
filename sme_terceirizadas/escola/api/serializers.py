@@ -1,14 +1,11 @@
+from django.contrib.contenttypes.models import ContentType
 from rest_framework import serializers
 
 from ...cardapio.models import TipoAlimentacao
 from ...dados_comuns.api.serializers import ContatoSerializer
 from ...perfil.api.serializers import PerfilSimplesSerializer
 from ...perfil.models import Usuario, Vinculo
-from ...terceirizada.api.serializers.serializers import (
-    ContratoSimplesSerializer,
-    NutricionistaSerializer,
-    TerceirizadaSimplesSerializer
-)
+from ...terceirizada.api.serializers.serializers import ContratoSimplesSerializer, TerceirizadaSimplesSerializer
 from ...terceirizada.models import Terceirizada
 from ..models import (
     Codae,
@@ -46,6 +43,7 @@ class PeriodoEscolarSerializer(serializers.ModelSerializer):
 
 
 class PeriodoEscolarSimplesSerializer(serializers.ModelSerializer):
+    # TODO: tirar tipos de alimentacao daqui, tipos de alimentacao são relacionados a TIPOUE + PERIODOESCOLAR
     class Meta:
         model = PeriodoEscolar
         exclude = ('id', 'tipos_alimentacao')
@@ -64,9 +62,17 @@ class SubprefeituraSerializer(serializers.ModelSerializer):
 
 
 class TipoUnidadeEscolarSerializer(serializers.ModelSerializer):
+    periodos_escolares = PeriodoEscolarSimplesSerializer(many=True)
+
     class Meta:
         model = TipoUnidadeEscolar
         exclude = ('id', 'cardapios')
+
+
+class TipoUnidadeEscolarSerializerSimples(serializers.ModelSerializer):
+    class Meta:
+        model = TipoUnidadeEscolar
+        exclude = ('id', 'cardapios', 'periodos_escolares')
 
 
 class FaixaIdadeEscolarSerializer(serializers.ModelSerializer):
@@ -162,12 +168,22 @@ class DiretoriaRegionalCompletaSerializer(serializers.ModelSerializer):
 
 
 class TerceirizadaSerializer(serializers.ModelSerializer):
-    nutricionistas = NutricionistaSerializer(many=True)
+    nutricionistas = serializers.SerializerMethodField()
     contatos = ContatoSerializer(many=True)
     contratos = ContratoSimplesSerializer(many=True)
     lotes = LoteNomeSerializer(many=True)
     quantidade_alunos = serializers.IntegerField()
     id_externo = serializers.CharField()
+
+    def get_nutricionistas(self, obj):
+        content_type = ContentType.objects.get_for_model(Terceirizada)
+        return UsuarioNutricionistaSerializer(
+            Usuario.objects.filter(vinculos__object_id=obj.id,
+                                   vinculos__content_type=content_type,
+                                   crn_numero__isnull=False
+                                   ).distinct(),
+            many=True
+        ).data
 
     class Meta:
         model = Terceirizada
@@ -218,6 +234,14 @@ class VinculoInstituicaoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Vinculo
         fields = ('instituicao', 'perfil')
+
+
+class UsuarioNutricionistaSerializer(serializers.ModelSerializer):
+    contatos = ContatoSerializer(many=True)
+
+    class Meta:
+        model = Usuario
+        fields = ('nome', 'contatos', 'crn_numero', 'super_admin_terceirizadas')
 
 
 class UsuarioDetalheSerializer(serializers.ModelSerializer):

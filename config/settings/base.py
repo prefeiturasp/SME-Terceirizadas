@@ -1,13 +1,16 @@
 """Base settings to build other settings files upon."""
 
 import datetime
+import logging.config
 import os
 
 import environ
 import sentry_sdk
+from celery.schedules import crontab
 from sentry_sdk.integrations.django import DjangoIntegration
 
 # (sme_terceirizadas/config/settings/base.py - 3 = sme_terceirizadas/)
+
 ROOT_DIR = environ.Path(__file__) - 3
 APPS_DIR = ROOT_DIR.path('sme_terceirizadas')
 
@@ -46,7 +49,7 @@ LOCALE_PATHS = (
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
+        'ENGINE': 'django_prometheus.db.backends.postgresql',
         'NAME': env('POSTGRES_DB'),
         'USER': env('POSTGRES_USER'),
         'PASSWORD': env('POSTGRES_PASSWORD'),
@@ -78,6 +81,7 @@ DJANGO_APPS = [
     'django.contrib.admin',
 ]
 THIRD_PARTY_APPS = [
+    'django_prometheus',
     'rest_framework',
     'rest_framework_swagger',
     'des',  # for email configuration in database
@@ -151,6 +155,7 @@ AUTH_PASSWORD_VALIDATORS = [
 DEV_MIDDLEWARE = []
 
 MIDDLEWARE = [
+    'django_prometheus.middleware.PrometheusBeforeMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.BrokenLinkEmailsMiddleware',
     'django.middleware.security.SecurityMiddleware',
@@ -159,6 +164,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django_prometheus.middleware.PrometheusAfterMiddleware'
 ]
 
 # STATIC
@@ -299,6 +305,7 @@ URL_CONFIGS = {
     # TODO: rever essa logica de link para trabalhar no front, tá dando voltas
     'CONFIRMAR_EMAIL': '/confirmar-email?uuid={uuid}&confirmationKey={confirmation_key}',
     'RECUPERAR_SENHA': '/recuperar-senha?uuid={uuid}&confirmationKey={confirmation_key}',
+    'LOGIN_TERCEIRIZADAS': '/login?tab=terceirizadas'
 }
 
 REDIS_URL = env('REDIS_URL')
@@ -318,15 +325,29 @@ CACHES = {
     }
 }
 
-# https://docs.celeryproject.org/en/latest/userguide/configuration.html
+# http://docs.celeryproject.org/en/v4.3.0/userguide/configuration.html
 CELERY_BROKER_URL = f'{REDIS_URL}/1'
 CELERY_RESULT_BACKEND = f'{REDIS_URL}/2'
 
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_ACCEPT_CONTENT = ['json']
-CELERY_ENABLE_UTC = True
-CELERY_IGNORE_RESULT = True
+CELERY_TIMEZONE = TIME_ZONE
+
+CELERY_BEAT_SCHEDULE = {
+    'atualiza-totais-das-escolas': {
+        'task': 'sme_terceirizadas.escola.tasks.atualiza_total_alunos_escolas',
+        'schedule': crontab(hour=0, minute=0)
+    },
+    'atualiza-dados-das-escolas': {
+        'task': 'sme_terceirizadas.escola.tasks.atualiza_dados_escolas',
+        'schedule': crontab(hour=0, minute=30)
+    },
+    'ativa-desativa-vinculos-alimentacao': {
+        'task': 'sme_terceirizadas.cardapio.tasks.ativa_desativa_vinculos_alimentacao_com_periodo_escolar_e_tipo_unidade_escolar', # noqa E501
+        'schedule': crontab(hour=1, minute=0)
+    }
+}
 
 # reset password
 PASSWORD_RESET_TIMEOUT_DAYS = 1
@@ -335,3 +356,34 @@ sentry_sdk.init(
     dsn=env('SENTRY_URL'),
     integrations=[DjangoIntegration()]
 )
+
+logging.config.dictConfig({
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '%(asctime)s %(name)-12s %(levelname)-8s %(message)s'
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+            'level': 'DEBUG',
+        },
+        'file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'formatter': 'verbose',
+            'filename': 'terceirizadas.log'
+        }
+    },
+    'loggers': {
+        'sigpae': {
+            'level': 'DEBUG',
+            'handlers': [
+                'console'
+            ],
+        }
+    }
+})

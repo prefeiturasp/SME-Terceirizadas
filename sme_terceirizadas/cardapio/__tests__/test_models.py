@@ -1,3 +1,5 @@
+import datetime
+
 import pytest
 from freezegun import freeze_time
 from model_mommy import mommy
@@ -58,6 +60,24 @@ def test_inversao_dia_cardapio(inversao_dia_cardapio):
     assert 'RASCUNHO' in template_html
 
 
+@freeze_time('2019-12-12')
+def test_inversao_dia_cardapio_fluxo_codae_em_cima_da_hora_error(inversao_dia_cardapio):
+    # a data do evento é dia 15 de dez a solicitação foi pedida em 12 dez (ou seja em cima da hora)
+    # e no mesmo dia 12 a codae tenta autorizar, ela nao deve ser capaz de autorizar, deve questionar
+    user = mommy.make('Usuario')
+    assert inversao_dia_cardapio.data == datetime.date(2019, 12, 15)
+    assert inversao_dia_cardapio.prioridade == 'PRIORITARIO'
+    inversao_dia_cardapio.inicia_fluxo(user=user)
+    inversao_dia_cardapio.dre_valida(user=user)
+    assert inversao_dia_cardapio.foi_solicitado_fora_do_prazo is True
+    assert inversao_dia_cardapio.status == 'DRE_VALIDADO'
+    with pytest.raises(
+        InvalidTransitionError,
+        match='CODAE não pode autorizar direto caso seja em cima da hora, deve questionar'
+    ):
+        inversao_dia_cardapio.codae_autoriza(user=user)
+
+
 def test_inversao_dia_cardapio_fluxo(inversao_dia_cardapio):
     fake_user = mommy.make('perfil.Usuario')
     inversao_dia_cardapio.inicia_fluxo(user=fake_user)
@@ -94,3 +114,7 @@ def test_inclusao_alimentacao_continua_fluxo_erro(inversao_dia_cardapio):
 
 def test_grupo_suspensao_alimentacao(grupo_suspensao_alimentacao):
     assert grupo_suspensao_alimentacao.__str__() == 'lorem ipsum'
+
+
+def test_vinculo_tipo_alimentacao(vinculo_tipo_alimentacao):
+    assert vinculo_tipo_alimentacao.combos.count() == 5

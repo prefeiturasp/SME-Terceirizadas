@@ -225,3 +225,12 @@ class TemVinculos(models.Model):
 
     class Meta:
         abstract = True
+
+
+class SolicitacaoForaDoPrazo(models.Model):
+    foi_solicitado_fora_do_prazo = models.BooleanField(
+        'Solicitação foi criada em cima da hora (5 dias úteis ou menos)?',
+        default=False)
+
+    class Meta:
+        abstract = True

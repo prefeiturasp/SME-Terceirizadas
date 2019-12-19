@@ -3,13 +3,14 @@ from django.contrib import admin
 from .models import (
     AlteracaoCardapio,
     Cardapio,
+    ComboDoVinculoTipoAlimentacaoPeriodoTipoUE,
     GrupoSuspensaoAlimentacao,
     InversaoCardapio,
     MotivoAlteracaoCardapio,
     MotivoSuspensao,
     QuantidadePorPeriodoSuspensaoAlimentacao,
-    SubstituicoesAlimentacaoNoPeriodoEscolar,
-    SubstituicoesDoVinculoTipoAlimentacaoPeriodoTipoUE,
+    SubstituicaoAlimentacaoNoPeriodoEscolar,
+    SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE,
     SuspensaoAlimentacao,
     TipoAlimentacao,
     VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
@@ -18,10 +19,28 @@ from .models import (
 admin.site.register(TipoAlimentacao)
 admin.site.register(InversaoCardapio)
 admin.site.register(MotivoAlteracaoCardapio)
-admin.site.register(SubstituicoesAlimentacaoNoPeriodoEscolar)
+admin.site.register(SubstituicaoAlimentacaoNoPeriodoEscolar)
 admin.site.register(MotivoSuspensao)
-admin.site.register(VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar)
-admin.site.register(SubstituicoesDoVinculoTipoAlimentacaoPeriodoTipoUE)
+
+
+class SubstituicaoComboInline(admin.TabularInline):
+    model = SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE
+    extra = 2
+
+
+@admin.register(ComboDoVinculoTipoAlimentacaoPeriodoTipoUE)
+class ComboDoVinculoTipoAlimentacaoPeriodoTipoUEModelAdmin(admin.ModelAdmin):
+    inlines = [SubstituicaoComboInline]
+
+
+class ComboVinculoLine(admin.TabularInline):
+    model = ComboDoVinculoTipoAlimentacaoPeriodoTipoUE
+    extra = 1
+
+
+@admin.register(VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar)
+class VinculoTipoAlimentacaoModelAdmin(admin.ModelAdmin):
+    inlines = [ComboVinculoLine]
 
 
 @admin.register(Cardapio)
@@ -31,7 +50,7 @@ class CardapioAdmin(admin.ModelAdmin):
 
 
 class SubstituicoesInLine(admin.TabularInline):
-    model = SubstituicoesAlimentacaoNoPeriodoEscolar
+    model = SubstituicaoAlimentacaoNoPeriodoEscolar
     extra = 1
 
 

@@ -2,6 +2,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.validators import MinLengthValidator
 from django.db import models
 from django.db.models import Q, Sum
+from django_prometheus.models import ExportModelOperationsMixin
 
 from ..cardapio.models import AlteracaoCardapio, GrupoSuspensaoAlimentacao, InversaoCardapio
 from ..dados_comuns.behaviors import Ativavel, Iniciais, Nomeavel, TemChaveExterna, TemCodigoEOL, TemVinculos
@@ -9,16 +10,16 @@ from ..dados_comuns.constants import (
     COGESTOR,
     COORDENADOR_DIETA_ESPECIAL,
     COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
-    DAQUI_A_SETE_DIAS,
-    DAQUI_A_TRINTA_DIAS,
     DIRETOR,
     SUPLENTE
 )
+from ..dados_comuns.utils import queryset_por_data
 from ..inclusao_alimentacao.models import GrupoInclusaoAlimentacaoNormal, InclusaoAlimentacaoContinua
 from ..kit_lanche.models import SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheUnificada
 
 
-class DiretoriaRegional(Nomeavel, Iniciais, TemChaveExterna, TemCodigoEOL, TemVinculos):
+class DiretoriaRegional(ExportModelOperationsMixin('diretoria_regional'), Nomeavel, Iniciais, TemChaveExterna,
+                        TemCodigoEOL, TemVinculos):
 
     @property
     def vinculos_que_podem_ser_finalizados(self):
@@ -70,55 +71,35 @@ class DiretoriaRegional(Nomeavel, Iniciais, TemChaveExterna, TemCodigoEOL, TemVi
             status=GrupoInclusaoAlimentacaoNormal.workflow_class.DRE_NAO_VALIDOU_PEDIDO_ESCOLA
         )
 
-    # TODO: talvez fazer um manager genérico pra fazer esse filtro
+    def filtra_solicitacoes_minhas_escolas_a_validar_por_data(self, filtro_aplicado, model):
+        queryset = queryset_por_data(filtro_aplicado, model)
+        return queryset.filter(
+            escola__in=self.escolas.all(),
+            status=SolicitacaoKitLancheAvulsa.workflow_class.DRE_A_VALIDAR
+        )
 
     def solicitacoes_kit_lanche_das_minhas_escolas_a_validar(self, filtro_aplicado):
-        if filtro_aplicado == DAQUI_A_SETE_DIAS:
-            solicitacoes_kit_lanche_avulsa = SolicitacaoKitLancheAvulsa.desta_semana
-        elif filtro_aplicado == DAQUI_A_TRINTA_DIAS:
-            solicitacoes_kit_lanche_avulsa = SolicitacaoKitLancheAvulsa.deste_mes  # type: ignore
-        else:
-            solicitacoes_kit_lanche_avulsa = SolicitacaoKitLancheAvulsa.objects  # type: ignore
-        return solicitacoes_kit_lanche_avulsa.filter(
-            escola__in=self.escolas.all(),
-            status=InversaoCardapio.workflow_class.DRE_A_VALIDAR
+        return self.filtra_solicitacoes_minhas_escolas_a_validar_por_data(
+            filtro_aplicado,
+            SolicitacaoKitLancheAvulsa
         )
 
     def alteracoes_cardapio_das_minhas_escolas_a_validar(self, filtro_aplicado):
-        if filtro_aplicado == DAQUI_A_SETE_DIAS:
-            inversoes_cardapio = AlteracaoCardapio.desta_semana
-        elif filtro_aplicado == DAQUI_A_TRINTA_DIAS:
-            inversoes_cardapio = AlteracaoCardapio.deste_mes  # type: ignore
-        else:
-            inversoes_cardapio = AlteracaoCardapio.objects  # type: ignore
-        return inversoes_cardapio.filter(
-            escola__in=self.escolas.all(),
-            status=InversaoCardapio.workflow_class.DRE_A_VALIDAR
+        return self.filtra_solicitacoes_minhas_escolas_a_validar_por_data(
+            filtro_aplicado,
+            AlteracaoCardapio
         )
 
-    # TODO rever os demais métodos de alterações de cardápio, já que esse consolida todas as prioridades.
     def inclusoes_alimentacao_continua_das_minhas_escolas(self, filtro_aplicado):
-        if filtro_aplicado == DAQUI_A_SETE_DIAS:
-            inclusoes_alimentacao_continuas = InclusaoAlimentacaoContinua.desta_semana
-        elif filtro_aplicado == DAQUI_A_TRINTA_DIAS:
-            inclusoes_alimentacao_continuas = InclusaoAlimentacaoContinua.deste_mes  # type: ignore
-        else:
-            inclusoes_alimentacao_continuas = InclusaoAlimentacaoContinua.objects  # type: ignore
-        return inclusoes_alimentacao_continuas.filter(
-            escola__in=self.escolas.all(),
-            status=InclusaoAlimentacaoContinua.workflow_class.DRE_A_VALIDAR
+        return self.filtra_solicitacoes_minhas_escolas_a_validar_por_data(
+            filtro_aplicado,
+            InclusaoAlimentacaoContinua
         )
 
     def grupos_inclusoes_alimentacao_normal_das_minhas_escolas(self, filtro_aplicado):
-        if filtro_aplicado == DAQUI_A_SETE_DIAS:
-            inclusoes_alimentacao_normais = GrupoInclusaoAlimentacaoNormal.desta_semana
-        elif filtro_aplicado == DAQUI_A_TRINTA_DIAS:
-            inclusoes_alimentacao_normais = GrupoInclusaoAlimentacaoNormal.deste_mes  # type: ignore
-        else:
-            inclusoes_alimentacao_normais = GrupoInclusaoAlimentacaoNormal.objects  # type: ignore
-        return inclusoes_alimentacao_normais.filter(
-            escola__in=self.escolas.all(),
-            status=GrupoInclusaoAlimentacaoNormal.workflow_class.DRE_A_VALIDAR
+        return self.filtra_solicitacoes_minhas_escolas_a_validar_por_data(
+            filtro_aplicado,
+            GrupoInclusaoAlimentacaoNormal
         )
 
     #
@@ -162,15 +143,9 @@ class DiretoriaRegional(Nomeavel, Iniciais, TemChaveExterna, TemCodigoEOL, TemVi
             status=AlteracaoCardapio.workflow_class.DRE_NAO_VALIDOU_PEDIDO_ESCOLA
         )
 
-    # TODO rever os demais métodos de alterações de cardápio, já que esse consolida todas as prioridades.
     def alteracoes_cardapio_das_minhas_escolas(self, filtro_aplicado):
-        if filtro_aplicado == DAQUI_A_SETE_DIAS:
-            alteracoes_cardapio = AlteracaoCardapio.desta_semana
-        elif filtro_aplicado == DAQUI_A_TRINTA_DIAS:
-            alteracoes_cardapio = AlteracaoCardapio.deste_mes  # type: ignore
-        else:
-            alteracoes_cardapio = AlteracaoCardapio.objects  # type: ignore
-        return alteracoes_cardapio.filter(
+        queryset = queryset_por_data(filtro_aplicado, AlteracaoCardapio)
+        return queryset.filter(
             escola__in=self.escolas.all(),
             status=AlteracaoCardapio.workflow_class.DRE_A_VALIDAR
         )
@@ -180,13 +155,8 @@ class DiretoriaRegional(Nomeavel, Iniciais, TemChaveExterna, TemCodigoEOL, TemVi
     #
 
     def inversoes_cardapio_das_minhas_escolas(self, filtro_aplicado):
-        if filtro_aplicado == DAQUI_A_SETE_DIAS:
-            inversoes_cardapio = InversaoCardapio.desta_semana
-        elif filtro_aplicado == DAQUI_A_TRINTA_DIAS:
-            inversoes_cardapio = InversaoCardapio.deste_mes  # type: ignore
-        else:
-            inversoes_cardapio = InversaoCardapio.objects  # type: ignore
-        return inversoes_cardapio.filter(
+        queryset = queryset_por_data(filtro_aplicado, InversaoCardapio)
+        return queryset.filter(
             escola__in=self.escolas.all(),
             status=InversaoCardapio.workflow_class.DRE_A_VALIDAR
         )
@@ -216,7 +186,7 @@ class DiretoriaRegional(Nomeavel, Iniciais, TemChaveExterna, TemCodigoEOL, TemVi
         ordering = ('nome',)
 
 
-class FaixaIdadeEscolar(Nomeavel, Ativavel, TemChaveExterna):
+class FaixaIdadeEscolar(ExportModelOperationsMixin('faixa_idade'), Nomeavel, Ativavel, TemChaveExterna):
     """de 1 a 2 anos, de 2 a 5 anos, de 7 a 18 anos, etc."""
 
     def __str__(self):
@@ -228,11 +198,13 @@ class FaixaIdadeEscolar(Nomeavel, Ativavel, TemChaveExterna):
         ordering = ('nome',)
 
 
-class TipoUnidadeEscolar(Iniciais, Ativavel, TemChaveExterna):
+class TipoUnidadeEscolar(ExportModelOperationsMixin('tipo_ue'), Iniciais, Ativavel, TemChaveExterna):
     """EEMEF, CIEJA, EMEI, EMEBS, CEI, CEMEI..."""
 
     cardapios = models.ManyToManyField('cardapio.Cardapio', blank=True,
                                        related_name='tipos_unidade_escolar')
+    periodos_escolares = models.ManyToManyField('escola.PeriodoEscolar', blank=True,
+                                                related_name='tipos_unidade_escolar')
 
     def get_cardapio(self, data):
         # TODO: ter certeza que tem so um cardapio por dia por tipo de u.e.
@@ -249,7 +221,7 @@ class TipoUnidadeEscolar(Iniciais, Ativavel, TemChaveExterna):
         verbose_name_plural = 'Tipos de unidade escolar'
 
 
-class TipoGestao(Nomeavel, Ativavel, TemChaveExterna):
+class TipoGestao(ExportModelOperationsMixin('tipo_gestao'), Nomeavel, Ativavel, TemChaveExterna):
     """Terceirizada completa, tec mista."""
 
     def __str__(self):
@@ -260,7 +232,7 @@ class TipoGestao(Nomeavel, Ativavel, TemChaveExterna):
         verbose_name_plural = 'Tipos de gestão'
 
 
-class PeriodoEscolar(Nomeavel, TemChaveExterna):
+class PeriodoEscolar(ExportModelOperationsMixin('periodo_escolar'), Nomeavel, TemChaveExterna):
     """manhã, intermediário, tarde, vespertino, noturno, integral."""
 
     tipos_alimentacao = models.ManyToManyField('cardapio.TipoAlimentacao', related_name='periodos_escolares')
@@ -273,10 +245,9 @@ class PeriodoEscolar(Nomeavel, TemChaveExterna):
         return self.nome
 
 
-class Escola(Ativavel, TemChaveExterna, TemCodigoEOL, TemVinculos):
+class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, TemCodigoEOL, TemVinculos):
     nome = models.CharField('Nome', max_length=160, blank=True)
     codigo_eol = models.CharField('Código EOL', max_length=6, unique=True, validators=[MinLengthValidator(6)])
-    # não ta sendo usado
     quantidade_alunos = models.PositiveSmallIntegerField('Quantidade de alunos', default=1)
 
     diretoria_regional = models.ForeignKey(DiretoriaRegional,
@@ -294,7 +265,17 @@ class Escola(Ativavel, TemChaveExterna, TemCodigoEOL, TemVinculos):
                                 blank=True, null=True)
 
     idades = models.ManyToManyField(FaixaIdadeEscolar, blank=True)
-    periodos_escolares = models.ManyToManyField(PeriodoEscolar, blank=True)
+
+    @property
+    def alunos_por_periodo_escolar(self):
+        return self.escolas_periodos.filter(quantidade_alunos__gte=1)
+
+    @property
+    def periodos_escolares(self):
+        """Recupera periodos escolares da escola, desde que haja pelomenos um aluno para este período."""
+        # TODO: ver uma forma melhor de fazer essa query
+        periodos_ids = self.escolas_periodos.filter(quantidade_alunos__gte=1).values_list('periodo_escolar', flat=True)
+        return PeriodoEscolar.objects.filter(id__in=periodos_ids)
 
     @property
     def vinculos_que_podem_ser_finalizados(self):
@@ -323,7 +304,32 @@ class Escola(Ativavel, TemChaveExterna, TemCodigoEOL, TemVinculos):
         ordering = ('codigo_eol',)
 
 
-class Lote(TemChaveExterna, Nomeavel, Iniciais):
+class EscolaPeriodoEscolar(ExportModelOperationsMixin('escola_periodo'), Ativavel, TemChaveExterna):
+    """Serve para guardar a quantidade de alunos da escola em um dado periodo escolar.
+
+    Ex: EMEI BLABLA pela manhã tem 55 alunos
+    """
+
+    escola = models.ForeignKey(Escola,
+                               related_name='escolas_periodos',
+                               on_delete=models.DO_NOTHING)
+    periodo_escolar = models.ForeignKey(PeriodoEscolar,
+                                        related_name='escolas_periodos',
+                                        on_delete=models.DO_NOTHING)
+    quantidade_alunos = models.PositiveSmallIntegerField('Quantidade de alunos', default=0)
+
+    def __str__(self):
+        periodo_nome = self.periodo_escolar.nome
+
+        return f'Escola {self.escola.nome} no periodo da {periodo_nome} tem {self.quantidade_alunos} alunos'
+
+    class Meta:
+        verbose_name = 'Escola com período escolar'
+        verbose_name_plural = 'Escola com períodos escolares'
+        unique_together = [['periodo_escolar', 'escola']]
+
+
+class Lote(ExportModelOperationsMixin('lote'), TemChaveExterna, Nomeavel, Iniciais):
     """Lote de escolas."""
 
     tipo_gestao = models.ForeignKey(TipoGestao,
@@ -361,7 +367,7 @@ class Lote(TemChaveExterna, Nomeavel, Iniciais):
         ordering = ('nome',)
 
 
-class Subprefeitura(Nomeavel, TemChaveExterna):
+class Subprefeitura(ExportModelOperationsMixin('subprefeitura'), Nomeavel, TemChaveExterna):
     diretoria_regional = models.ManyToManyField(DiretoriaRegional,
                                                 related_name='subprefeituras',
                                                 blank=True)
@@ -380,7 +386,7 @@ class Subprefeitura(Nomeavel, TemChaveExterna):
         ordering = ('nome',)
 
 
-class Codae(Nomeavel, TemChaveExterna, TemVinculos):
+class Codae(ExportModelOperationsMixin('codae'), Nomeavel, TemChaveExterna, TemVinculos):
 
     @property
     def vinculos_que_podem_ser_finalizados(self):
@@ -396,24 +402,14 @@ class Codae(Nomeavel, TemChaveExterna, TemVinculos):
         return quantidade_result.get('quantidade_alunos__sum', 0)
 
     def inversoes_cardapio_das_minhas_escolas(self, filtro_aplicado):
-        if filtro_aplicado == DAQUI_A_SETE_DIAS:
-            inversoes_cardapio = InversaoCardapio.desta_semana
-        elif filtro_aplicado == DAQUI_A_TRINTA_DIAS:
-            inversoes_cardapio = InversaoCardapio.deste_mes  # type: ignore
-        else:
-            inversoes_cardapio = InversaoCardapio.objects  # type: ignore
-        return inversoes_cardapio.filter(
+        queryset = queryset_por_data(filtro_aplicado, InversaoCardapio)
+        return queryset.filter(
             status=InversaoCardapio.workflow_class.DRE_VALIDADO
         )
 
     def grupos_inclusoes_alimentacao_normal_das_minhas_escolas(self, filtro_aplicado):
-        if filtro_aplicado == DAQUI_A_SETE_DIAS:
-            inversoes_cardapio = GrupoInclusaoAlimentacaoNormal.desta_semana
-        elif filtro_aplicado == DAQUI_A_TRINTA_DIAS:
-            inversoes_cardapio = GrupoInclusaoAlimentacaoNormal.deste_mes  # type: ignore
-        else:
-            inversoes_cardapio = GrupoInclusaoAlimentacaoNormal.objects  # type: ignore
-        return inversoes_cardapio.filter(
+        queryset = queryset_por_data(filtro_aplicado, GrupoInclusaoAlimentacaoNormal)
+        return queryset.filter(
             status=GrupoInclusaoAlimentacaoNormal.workflow_class.DRE_VALIDADO
         )
 
@@ -431,25 +427,16 @@ class Codae(Nomeavel, TemChaveExterna, TemVinculos):
         )
 
     def inclusoes_alimentacao_continua_das_minhas_escolas(self, filtro_aplicado):
-        if filtro_aplicado == DAQUI_A_SETE_DIAS:
-            inversoes_cardapio = InclusaoAlimentacaoContinua.desta_semana
-        elif filtro_aplicado == DAQUI_A_TRINTA_DIAS:
-            inversoes_cardapio = InclusaoAlimentacaoContinua.deste_mes  # type: ignore
-        else:
-            inversoes_cardapio = InclusaoAlimentacaoContinua.objects  # type: ignore
-        return inversoes_cardapio.filter(
+        queryset = queryset_por_data(filtro_aplicado, InclusaoAlimentacaoContinua)
+        return queryset.filter(
             status=InclusaoAlimentacaoContinua.workflow_class.DRE_VALIDADO
         )
 
     def alteracoes_cardapio_das_minhas(self, filtro_aplicado):
-        if filtro_aplicado == DAQUI_A_SETE_DIAS:
-            alteracoes_cardapio = AlteracaoCardapio.desta_semana
-        elif filtro_aplicado == DAQUI_A_TRINTA_DIAS:
-            alteracoes_cardapio = AlteracaoCardapio.deste_mes  # type: ignore
-        else:
-            alteracoes_cardapio = AlteracaoCardapio.objects  # type: ignore
-        return alteracoes_cardapio.filter(
-            status=AlteracaoCardapio.workflow_class.DRE_VALIDADO
+        queryset = queryset_por_data(filtro_aplicado, AlteracaoCardapio)
+        return queryset.filter(
+            status__in=[AlteracaoCardapio.workflow_class.DRE_VALIDADO,
+                        AlteracaoCardapio.workflow_class.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO]
         )
 
     def suspensoes_cardapio_das_minhas_escolas(self, filtro_aplicado):
@@ -462,13 +449,8 @@ class Codae(Nomeavel, TemChaveExterna, TemVinculos):
         #
 
     def solicitacoes_unificadas(self, filtro_aplicado):
-        if filtro_aplicado == DAQUI_A_SETE_DIAS:
-            solicitacoes_unificadas = SolicitacaoKitLancheUnificada.desta_semana
-        elif filtro_aplicado == DAQUI_A_TRINTA_DIAS:
-            solicitacoes_unificadas = SolicitacaoKitLancheUnificada.deste_mes  # type: ignore
-        else:
-            solicitacoes_unificadas = SolicitacaoKitLancheUnificada.objects  # type: ignore
-        return solicitacoes_unificadas.filter(
+        queryset = queryset_por_data(filtro_aplicado, SolicitacaoKitLancheUnificada)
+        return queryset.filter(
             status=SolicitacaoKitLancheUnificada.workflow_class.CODAE_A_AUTORIZAR
         )
 
@@ -518,17 +500,11 @@ class Codae(Nomeavel, TemChaveExterna, TemVinculos):
             status=SolicitacaoKitLancheAvulsa.workflow_class.CODAE_NEGOU_PEDIDO
         )
 
-    # TODO: talvez fazer um manager genérico pra fazer esse filtro
-
     def solicitacoes_kit_lanche_das_minhas_escolas_a_validar(self, filtro_aplicado):
-        if filtro_aplicado == DAQUI_A_SETE_DIAS:
-            solicitacoes_kit_lanche = SolicitacaoKitLancheAvulsa.desta_semana
-        elif filtro_aplicado == DAQUI_A_TRINTA_DIAS:
-            solicitacoes_kit_lanche = SolicitacaoKitLancheAvulsa.deste_mes  # type: ignore
-        else:
-            solicitacoes_kit_lanche = SolicitacaoKitLancheAvulsa.objects  # type: ignore
-        return solicitacoes_kit_lanche.filter(
-            status=InversaoCardapio.workflow_class.DRE_VALIDADO
+        queryset = queryset_por_data(filtro_aplicado, SolicitacaoKitLancheAvulsa)
+        return queryset.filter(
+            status__in=[SolicitacaoKitLancheAvulsa.workflow_class.DRE_VALIDADO,
+                        SolicitacaoKitLancheAvulsa.workflow_class.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO]
         )
 
     @property

@@ -4,7 +4,8 @@ from django.db import models
 from rest_framework import serializers
 from workalendar.america import BrazilSaoPauloCity
 
-from .utils import eh_dia_util, obter_dias_uteis_apos_hoje
+from .constants import obter_dias_uteis_apos_hoje
+from .utils import eh_dia_util
 
 calendario = BrazilSaoPauloCity()
 

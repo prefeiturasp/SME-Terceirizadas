@@ -99,8 +99,10 @@ class SolicitacoesCODAE(MoldeConsolidado):
     def get_pendentes_autorizacao(cls, **kwargs):
         manager = cls._get_manager(kwargs)
         return manager.filter(
-            status_evento=LogSolicitacoesUsuario.DRE_VALIDOU,
-            status_atual=PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO
+            status_evento__in=[LogSolicitacoesUsuario.DRE_VALIDOU,
+                               LogSolicitacoesUsuario.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO],
+            status_atual__in=[PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO,
+                              PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO]
         ).distinct().order_by('-data_log')
 
     @classmethod
@@ -139,10 +141,13 @@ class SolicitacoesEscola(MoldeConsolidado):
         ).filter(
             status_atual__in=[PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR,
                               PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO,
+                              PedidoAPartirDaEscolaWorkflow.CODAE_QUESTIONADO,
+                              PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO,
                               InformativoPartindoDaEscolaWorkflow.INFORMADO],
             status_evento__in=[LogSolicitacoesUsuario.INICIO_FLUXO,
                                LogSolicitacoesUsuario.DRE_VALIDOU,
-                               LogSolicitacoesUsuario.INICIO_FLUXO]
+                               LogSolicitacoesUsuario.CODAE_QUESTIONOU,
+                               LogSolicitacoesUsuario.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO]
         ).distinct().order_by('-data_log')
 
     @classmethod
@@ -191,9 +196,13 @@ class SolicitacoesDRE(MoldeConsolidado):
         dre_uuid = kwargs.get('dre_uuid')
         return cls.objects.filter(
             status_atual__in=[PedidoAPartirDaDiretoriaRegionalWorkflow.CODAE_A_AUTORIZAR,
+                              PedidoAPartirDaEscolaWorkflow.CODAE_QUESTIONADO,
+                              PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO,
                               PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO],
             status_evento__in=[LogSolicitacoesUsuario.DRE_VALIDOU,
-                               LogSolicitacoesUsuario.INICIO_FLUXO],
+                               LogSolicitacoesUsuario.INICIO_FLUXO,
+                               LogSolicitacoesUsuario.CODAE_QUESTIONOU,
+                               LogSolicitacoesUsuario.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO],
             dre_uuid=dre_uuid
         ).distinct().order_by('-data_log')
 
@@ -253,9 +262,13 @@ class SolicitacoesTerceirizada(MoldeConsolidado):
         s = cls.objects.filter(
             terceirizada_uuid=terceirizada_uuid,
             status_atual__in=[PedidoAPartirDaDiretoriaRegionalWorkflow.CODAE_A_AUTORIZAR,
+                              PedidoAPartirDaEscolaWorkflow.CODAE_QUESTIONADO,
+                              PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO,
                               PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO],
             status_evento__in=[LogSolicitacoesUsuario.DRE_VALIDOU,
-                               LogSolicitacoesUsuario.INICIO_FLUXO],
+                               LogSolicitacoesUsuario.INICIO_FLUXO,
+                               LogSolicitacoesUsuario.CODAE_QUESTIONOU,
+                               LogSolicitacoesUsuario.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO],
         ).distinct('uuid')
         return sorted(s, key=operator.attrgetter('data_log'), reverse=True)
 
@@ -297,6 +310,7 @@ class SolicitacoesTerceirizada(MoldeConsolidado):
         return manager.filter(
             status_atual__in=[PedidoAPartirDaDiretoriaRegionalWorkflow.CODAE_AUTORIZADO,
                               PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO,
+                              PedidoAPartirDaEscolaWorkflow.CODAE_QUESTIONADO,
                               InformativoPartindoDaEscolaWorkflow.INFORMADO],
             status_evento__in=[LogSolicitacoesUsuario.CODAE_AUTORIZOU,
                                LogSolicitacoesUsuario.INICIO_FLUXO],
@@ -345,7 +359,63 @@ class FiltrosConsolidados(MoldeConsolidado):
             elif status_solicitacao == 'EM_ANDAMENTO':
                 query_set = query_set.filter(status_atual__in=[
                     PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO,
-                    PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR
+                    PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR,
+                    PedidoAPartirDaEscolaWorkflow.CODAE_QUESTIONADO,
+                    PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO
                 ])
 
         return query_set.order_by('-criado_em')
+
+    @staticmethod
+    def _conta_autorizados(query_set):
+        return query_set.filter(status_atual__in=[
+            PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO,
+            PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_TOMOU_CIENCIA
+        ]).count()
+
+    @staticmethod
+    def _conta_negados(query_set):
+        return query_set.filter(status_atual=PedidoAPartirDaEscolaWorkflow.CODAE_NEGOU_PEDIDO).count()
+
+    @staticmethod
+    def _conta_cancelados(query_set):
+        return query_set.filter(status_atual=PedidoAPartirDaEscolaWorkflow.ESCOLA_CANCELOU).count()
+
+    @staticmethod
+    def _conta_pendentes(query_set):
+        return query_set.filter(status_atual__in=[
+            PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO,
+            PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR,
+            PedidoAPartirDaEscolaWorkflow.CODAE_QUESTIONADO,
+            PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO
+        ]).count()
+
+    @classmethod
+    def resumo_totais_mes(cls, **kwargs):
+        escola_uuid = kwargs.get('escola_uuid')
+        hoje = datetime.date.today()
+        mes_passado = datetime.date(year=hoje.year, month=hoje.month, day=1) - datetime.timedelta(days=1)
+        query_set = cls.objects.filter(
+            escola_uuid=escola_uuid,
+            criado_em__date__year=hoje.year,
+            criado_em__date__month=hoje.month,
+
+        )
+        query_set_mes_passado = cls.objects.filter(
+            escola_uuid=escola_uuid,
+            criado_em__date__year=mes_passado.year,
+            criado_em__date__month=mes_passado.month,
+
+        )
+
+        return dict(
+            total_autorizados=cls._conta_autorizados(query_set),
+            total_negados=cls._conta_negados(query_set),
+            total_cancelados=cls._conta_cancelados(query_set),
+            total_pendentes=cls._conta_pendentes(query_set),
+
+            total_autorizados_mes_passado=cls._conta_autorizados(query_set_mes_passado),
+            total_negados_mes_passado=cls._conta_negados(query_set_mes_passado),
+            total_cancelados_mes_passado=cls._conta_cancelados(query_set_mes_passado),
+            total_pendentes_mes_passado=cls._conta_pendentes(query_set_mes_passado)
+        )
