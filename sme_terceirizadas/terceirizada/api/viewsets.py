@@ -3,12 +3,12 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
+from ...escola.api.serializers import TerceirizadaSerializer, UsuarioDetalheSerializer
+from ...perfil.api.serializers import UsuarioUpdateSerializer, VinculoSerializer
+from ..models import Edital, Terceirizada
 from .permissions import PodeCriarAdministradoresDaTerceirizada
 from .serializers.serializers import EditalContratosSerializer, EditalSerializer
 from .serializers.serializers_create import EditalContratosCreateSerializer, TerceirizadaCreateSerializer
-from ..models import Edital, Terceirizada
-from ...escola.api.serializers import TerceirizadaSerializer, UsuarioDetalheSerializer
-from ...perfil.api.serializers import UsuarioUpdateSerializer, VinculoSerializer
 
 
 class EditalViewSet(viewsets.ReadOnlyModelViewSet):
