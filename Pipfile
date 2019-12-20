@@ -85,5 +85,11 @@ tornado='==6.0.3'    # http://www.tornadoweb.org/en/stable/
 sentry-sdk = "==0.10.2"
 django-prometheus = "==1.1.0"
 
+# Relatórios
+weasyprint = "==50"
+libsass = ">=0.19.4"  # https://github.com/jrief/django-sass-processor
+django-compressor = ">=2.3" # https://github.com/jrief/django-sass-processor
+django-sass-processor = ">=0.7.5" # https://github.com/jrief/django-sass-processor
+
 [requires]
 python_version = "3.6"
