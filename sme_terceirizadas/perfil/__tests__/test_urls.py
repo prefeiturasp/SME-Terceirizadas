@@ -80,6 +80,7 @@ def test_get_meus_dados_admin_escola(users_admin_escola):
     for key in keys:
         assert key in json.keys()
     assert json['email'] == email
+    response.json().get('vinculo_atual').pop('uuid')
     assert json['registro_funcional'] == rf
     assert json['tipo_usuario'] == 'escola'
     assert json['vinculo_atual'] == {
@@ -106,6 +107,7 @@ def test_get_meus_dados_diretor_escola(users_diretor_escola):
     keys = ['uuid', 'nome', 'email', 'registro_funcional', 'date_joined', 'vinculo_atual', 'tipo_usuario']
     for key in keys:
         assert key in json.keys()
+    response.json().get('vinculo_atual').pop('uuid')
     assert json['email'] == email
     assert json['registro_funcional'] == rf
     assert json['tipo_usuario'] == 'escola'
@@ -142,6 +144,7 @@ def test_cadastro_vinculo_diretor_escola(users_diretor_escola, monkeypatch):
                            data=data)
     assert response.status_code == status.HTTP_200_OK
     response.json().pop('date_joined')
+    response.json().get('vinculo_atual').pop('uuid')
     response.json().pop('uuid')
     assert response.json() == {'cpf': '95887745002', 'nome': 'IARA DAREZZO',
                                'email': '95887745002@emailtemporario.prefeitura.sp.gov.br',
@@ -248,6 +251,7 @@ def test_cadastro_vinculo_diretoria_regional(users_cogestor_diretoria_regional, 
         data=data)
     assert response.status_code == status.HTTP_200_OK
     response.json().pop('date_joined')
+    response.json().get('vinculo_atual').pop('uuid')
     response.json().pop('uuid')
     assert response.json() == {'cpf': '47088910080', 'nome': 'LUIZA MARIA BASTOS',
                                'email': '47088910080@emailtemporario.prefeitura.sp.gov.br',
@@ -354,6 +358,7 @@ def test_cadastro_vinculo_codae_gestao_alimentacao(users_codae_gestao_alimentaca
         data=data)
     assert response.status_code == status.HTTP_200_OK
     response.json().pop('date_joined')
+    response.json().get('vinculo_atual').pop('uuid')
     response.json().pop('uuid')
     assert response.json() == {'cpf': '47088910080', 'nome': 'LUIZA MARIA BASTOS',
                                'email': '47088910080@emailtemporario.prefeitura.sp.gov.br',
@@ -497,6 +502,7 @@ def test_cadastro_diretor(client, users_diretor_escola, monkeypatch):
         assert key in json.keys()
     assert json['email'] == email
     assert json['registro_funcional'] == rf
+    response.json().get('vinculo_atual').pop('uuid')
     assert json['tipo_usuario'] == 'escola'
     assert json['vinculo_atual'] == {
         'instituicao': {'nome': 'EMEI NOE AZEVEDO, PROF', 'uuid': 'b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd',
@@ -531,7 +537,7 @@ def test_confirmar_email(client, usuarios_pendentes_confirmacao):
         assert key in json.keys()
     assert len(json.keys()) == len(keys)
     json.pop('date_joined')
-
+    json.get('vinculo_atual').pop('uuid')
     assert json == {
         'cpf': usuario.cpf, 'uuid': usuario.uuid, 'nome': usuario.nome, 'email': usuario.email,
         'tipo_email': None,
