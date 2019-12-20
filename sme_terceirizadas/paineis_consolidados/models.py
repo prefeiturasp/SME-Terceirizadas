@@ -257,6 +257,16 @@ class SolicitacoesDRE(MoldeConsolidado):
 class SolicitacoesTerceirizada(MoldeConsolidado):
 
     @classmethod
+    def get_questionamentos(cls, **kwargs):
+        terceirizada_uuid = kwargs.get('terceirizada_uuid')
+        s = cls.objects.filter(
+            terceirizada_uuid=terceirizada_uuid,
+            status_atual=PedidoAPartirDaEscolaWorkflow.CODAE_QUESTIONADO,
+            status_evento=LogSolicitacoesUsuario.CODAE_QUESTIONOU
+        )
+        return sorted(s, key=operator.attrgetter('data_log'), reverse=True)
+
+    @classmethod
     def get_pendentes_autorizacao(cls, **kwargs):
         terceirizada_uuid = kwargs.get('terceirizada_uuid')
         s = cls.objects.filter(
