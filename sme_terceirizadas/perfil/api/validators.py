@@ -1,8 +1,8 @@
 from rest_framework import serializers
 
 from ...eol_servico.utils import EolException
-from ..models import Usuario
 from ...terceirizada.models import Terceirizada
+from ..models import Usuario
 
 
 def senha_deve_ser_igual_confirmar_senha(senha: str, confirmar_senha: str):
