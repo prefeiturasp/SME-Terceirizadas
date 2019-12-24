@@ -13,7 +13,8 @@ from .models import (
     SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE,
     SuspensaoAlimentacao,
     TipoAlimentacao,
-    VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
+    VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar,
+    HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolar
 )
 
 admin.site.register(TipoAlimentacao)
@@ -21,6 +22,7 @@ admin.site.register(InversaoCardapio)
 admin.site.register(MotivoAlteracaoCardapio)
 admin.site.register(SubstituicaoAlimentacaoNoPeriodoEscolar)
 admin.site.register(MotivoSuspensao)
+admin.site.register(HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolar)
 
 
 class SubstituicaoComboInline(admin.TabularInline):

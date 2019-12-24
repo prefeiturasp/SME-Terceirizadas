@@ -16,7 +16,8 @@ from ..models import (
     MotivoSuspensao,
     SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE,
     TipoAlimentacao,
-    VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
+    VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar,
+    HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolar
 )
 from .permissions import (
     PodeAprovarPelaCODAEAlteracaoCardapioPermission,
@@ -38,7 +39,8 @@ from .serializers.serializers import (
     MotivoSuspensaoSerializer,
     SubstituicaoDoComboVinculoTipoAlimentoSimplesSerializer,
     TipoAlimentacaoSerializer,
-    VinculoTipoAlimentoSimplesSerializer
+    VinculoTipoAlimentoSimplesSerializer,
+    HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolarSerializer
 )
 from .serializers.serializers_create import (
     AlteracaoCardapioSerializerCreate,
@@ -46,7 +48,8 @@ from .serializers.serializers_create import (
     ComboDoVinculoTipoAlimentoSimplesSerializerCreate,
     GrupoSuspensaoAlimentacaoCreateSerializer,
     InversaoCardapioSerializerCreate,
-    SubstituicaoDoComboVinculoTipoAlimentoSimplesSerializerCreate
+    SubstituicaoDoComboVinculoTipoAlimentoSimplesSerializerCreate,
+    HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolarSerializerCreate
 )
 
 
@@ -65,6 +68,26 @@ class TipoAlimentacaoViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
     serializer_class = TipoAlimentacaoSerializer
     queryset = TipoAlimentacao.objects.all()
+
+
+class HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolarViewSet(viewsets.ModelViewSet):
+    lookup_field = 'uuid'
+    serializer_class = HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolarSerializer
+    queryset = HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolar.objects.all()
+
+    @action(detail=False, url_path='escola/(?P<escola_uuid>[^/.]+)')
+    def filtro_por_escola(self, request, escola_uuid=None):
+        combos = HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolar.objects.filter(
+            escola__uuid=escola_uuid
+        )
+        page = self.paginate_queryset(combos)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update']:
+            return HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolarSerializerCreate
+        return HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolarSerializer
 
 
 class VinculoTipoAlimentacaoViewSet(mixins.RetrieveModelMixin,

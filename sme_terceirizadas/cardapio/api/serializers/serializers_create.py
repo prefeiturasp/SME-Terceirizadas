@@ -32,8 +32,30 @@ from ...models import (
     SuspensaoAlimentacao,
     SuspensaoAlimentacaoNoPeriodoEscolar,
     TipoAlimentacao,
-    VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
+    VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar,
+    HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolar
 )
+
+
+class HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolarSerializerCreate(serializers.ModelSerializer):
+    hora_inicial = serializers.TimeField()
+    hora_final = serializers.TimeField()
+
+    escola = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=Escola.objects.all()
+    )
+
+    combo_tipos_alimentacao = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=ComboDoVinculoTipoAlimentacaoPeriodoTipoUE.objects.all()
+    )
+
+    class Meta:
+        model = HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolar
+        fields = ('uuid', 'hora_inicial', 'hora_final', 'escola', 'combo_tipos_alimentacao')
 
 
 class InversaoCardapioSerializerCreate(serializers.ModelSerializer):

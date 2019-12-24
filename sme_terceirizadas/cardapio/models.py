@@ -61,6 +61,21 @@ class TipoAlimentacao(ExportModelOperationsMixin('tipo_alimentacao'), Nomeavel, 
         verbose_name_plural = 'Tipos de alimentação'
 
 
+class HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolar(TemChaveExterna):
+    hora_inicial = models.TimeField(auto_now=False, auto_now_add=False)
+    hora_final = models.TimeField(auto_now=False, auto_now_add=False)
+    escola = models.ForeignKey('escola.Escola', blank=True, null=True,
+                               on_delete=models.DO_NOTHING)
+    combo_tipos_alimentacao = models.ForeignKey(
+        'cardapio.ComboDoVinculoTipoAlimentacaoPeriodoTipoUE', on_delete=models.DO_NOTHING)
+
+    def __str__(self):
+        return f'Escola {self.escola.nome} / {self.combo_tipos_alimentacao} ' \
+               f'/ Horario início: {self.hora_inicial} - Horario térimo: {self.hora_final}'
+
+
+
+
 class ComboDoVinculoTipoAlimentacaoPeriodoTipoUE(
     ExportModelOperationsMixin('substituicoes_vinculo_alimentacao'), TemChaveExterna):  # noqa E125
 

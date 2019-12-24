@@ -220,6 +220,10 @@ class VinculoInstituicaoSerializer(serializers.ModelSerializer):
         if isinstance(obj.instituicao, Escola):
             return obj.instituicao.codigo_eol
 
+    def get_tipo_unidade_escolar(self, obj):
+        if isinstance(obj.instituicao, Escola):
+            return obj.instituicao.tipo_unidade.uuid
+
     def get_instituicao(self, obj):
         self.get_diretoria_regional(obj)
         return {'nome': obj.instituicao.nome,
@@ -229,7 +233,8 @@ class VinculoInstituicaoSerializer(serializers.ModelSerializer):
                 'lotes': self.get_lotes(obj),
                 'periodos_escolares': self.get_periodos_escolares(obj),
                 'escolas': self.get_escolas(obj),
-                'diretoria_regional': self.get_diretoria_regional(obj)}
+                'diretoria_regional': self.get_diretoria_regional(obj),
+                'tipo_unidade_escolar': self.get_tipo_unidade_escolar(obj)}
 
     class Meta:
         model = Vinculo
