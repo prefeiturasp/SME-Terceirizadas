@@ -1,0 +1,92 @@
+.titulo h1{
+  font-style: normal;
+  font-weight: normal;
+  font-size: 18px;
+  line-height: 21px;
+  text-transform: uppercase;
+  color: #000000;
+}
+
+html, body {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  border-radius: 3px;
+  font-family: Roboto !important;
+  font-style: normal !important;
+}
+
+header {
+  background: #EEEEEE;
+  padding: 0.5em 4em;
+  font-weight: normal !important;
+  font-size: 18px !important;
+  line-height: 21px;
+  text-transform: uppercase;
+  color: #000000;
+}
+
+.titulo {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1em;
+}
+
+.titulo-detalhes, .titulo-escola, .detalhes {
+  display: grid;
+  width: 100%;
+
+}
+
+.titulo-detalhes {
+  background: #FFFFFF;
+  border: 1px solid #000000;
+  box-sizing: border-box;
+  border-radius: 4px;
+
+  text-transform: uppercase;
+
+  color: #000000;
+}
+
+.titulo-detalhes div{
+  padding: 0.3em;
+}
+
+.titulo-escola {
+  grid-template-columns: 1fr 1fr;
+  height: 40px;
+}
+
+.titulo-escola div {
+  border-left: 1px solid #000000;
+  border-bottom: 1px solid #000000;
+}
+
+.titulo-escola div:first-child {
+  border-left: 0px;
+}
+
+.detalhes div:first-child {
+  border-left: 0px;
+}
+
+.detalhes-itens:first-child {
+  border-right: 1px solid #000000;
+}
+
+.detalhes div {
+  border-left: 1px solid #000000;
+}
+
+
+.detalhes {
+  grid-template-columns: 1fr 1fr;
+  height: 40px;
+}
+
+.detalhes-itens {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
