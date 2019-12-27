@@ -25,6 +25,7 @@ from .constants import (
     NEGADOS,
     PENDENTES_AUTORIZACAO,
     PENDENTES_CIENCIA,
+    QUESTIONAMENTOS,
     RESUMO_MES
 )
 
@@ -272,6 +273,11 @@ class TerceirizadaSolicitacoesViewSet(SolicitacoesViewSet):
     lookup_field = 'uuid'
     queryset = SolicitacoesTerceirizada.objects.all()
     serializer_class = SolicitacoesSerializer
+
+    @action(detail=False, methods=['GET'], url_path=f'{QUESTIONAMENTOS}/{FILTRO_TERCEIRIZADA_UUID}')
+    def questionamentos(self, request, terceirizada_uuid=None):
+        query_set = SolicitacoesTerceirizada.get_questionamentos(terceirizada_uuid=terceirizada_uuid)
+        return self._retorno_base(query_set)
 
     @action(detail=False, methods=['GET'], url_path=f'{PENDENTES_AUTORIZACAO}/{FILTRO_TERCEIRIZADA_UUID}')
     def pendentes_autorizacao(self, request, terceirizada_uuid=None):

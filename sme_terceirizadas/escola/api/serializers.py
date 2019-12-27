@@ -1,4 +1,5 @@
 from django.contrib.contenttypes.models import ContentType
+from django.db.models import Q
 from rest_framework import serializers
 
 from ...cardapio.models import TipoAlimentacao
@@ -181,7 +182,12 @@ class TerceirizadaSerializer(serializers.ModelSerializer):
             Usuario.objects.filter(vinculos__object_id=obj.id,
                                    vinculos__content_type=content_type,
                                    crn_numero__isnull=False
-                                   ).distinct(),
+                                   ).filter(
+                Q(vinculos__data_inicial=None, vinculos__data_final=None,
+                  vinculos__ativo=False) |  # noqa W504 esperando ativacao
+                Q(vinculos__data_inicial__isnull=False, vinculos__data_final=None, vinculos__ativo=True)
+                # noqa W504 ativo
+            ).distinct(),
             many=True
         ).data
 
@@ -238,15 +244,16 @@ class VinculoInstituicaoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Vinculo
-        fields = ('instituicao', 'perfil')
+        fields = ('uuid', 'instituicao', 'perfil')
 
 
 class UsuarioNutricionistaSerializer(serializers.ModelSerializer):
+    vinculo_atual = VinculoInstituicaoSerializer(required=False)
     contatos = ContatoSerializer(many=True)
 
     class Meta:
         model = Usuario
-        fields = ('nome', 'contatos', 'crn_numero', 'super_admin_terceirizadas')
+        fields = ('nome', 'contatos', 'crn_numero', 'super_admin_terceirizadas', 'vinculo_atual')
 
 
 class UsuarioDetalheSerializer(serializers.ModelSerializer):
