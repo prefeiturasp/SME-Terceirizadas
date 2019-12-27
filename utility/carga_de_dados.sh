@@ -11,6 +11,8 @@ echo "Criando TERC admin"
 ./manage.py shell -c "from sme_terceirizadas.perfil.models import Usuario; Usuario.objects.create_superuser('terceirizada@admin.com', 'adminadmin', cpf='11111111113', registro_funcional='1111113')"
 echo "Criando CODAE admin"
 ./manage.py shell -c "from sme_terceirizadas.perfil.models import Usuario; Usuario.objects.create_superuser('codae@admin.com', 'adminadmin', cpf='11111111114', registro_funcional='1111114')"
+echo "Criando CODAE nutricionista"
+./manage.py shell -c "from sme_terceirizadas.perfil.models import Usuario; Usuario.objects.create_user('nutricodae@admin.com', 'adminadmin', cpf='11111111115', registro_funcional='1111115')"
 ./manage.py loaddata sme_terceirizadas/**/fixtures/*.json
 ./manage.py shell -c "from utility.carga_dados import run"
 
