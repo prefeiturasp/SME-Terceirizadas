@@ -1,20 +1,24 @@
+import os
+
 from django.http import HttpResponse
 from django.template.loader import render_to_string
-from weasyprint import HTML
+from weasyprint import CSS, HTML
 
 from sme_terceirizadas.perfil.models import Usuario
+
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 def generate_pdf(request):
     """Generate pdf."""
     # Model data
     people = Usuario.objects.all()[:50]
-    # import pdb
-    # pdb.set_trace()
 
     # Rendered
     html_string = render_to_string('test.html', {'usuarios': people})
-    html = HTML(string=html_string)
-    result = html.write_pdf()
-
-    return HttpResponse(html_string)
+    pdf_file = HTML(string=html_string).write_pdf(
+        stylesheets=[CSS(os.path.join(CURRENT_DIR, 'static', 'css/test.css'))])
+    response = HttpResponse(pdf_file, content_type='application/pdf')
+    response['Content-Disposition'] = 'filename="XXX.pdf"'
+    return response
+    # return HttpResponse(html_string)

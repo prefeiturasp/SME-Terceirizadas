@@ -7,11 +7,11 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
-from .serializers import PerfilSerializer, UsuarioUpdateSerializer
-from ..api.helpers import ofuscar_email
-from ..models import Perfil, Usuario
 from ...escola.api.serializers import UsuarioDetalheSerializer
 from ...terceirizada.models import Terceirizada
+from ..api.helpers import ofuscar_email
+from ..models import Perfil, Usuario
+from .serializers import PerfilSerializer, UsuarioUpdateSerializer
 
 
 class UsuarioViewSet(viewsets.ReadOnlyModelViewSet):
