@@ -4,18 +4,18 @@ from rest_framework.status import HTTP_400_BAD_REQUEST
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from xworkflows import InvalidTransitionError
 
-from ...dados_comuns import constants
+from .permissions import (
+    PodeAprovarAlimentacaoContinuaDaEscolaPermission,
+    PodeIniciarInclusaoAlimentacaoContinuaPermission
+)
+from .serializers import serializers, serializers_create
 from ..models import (
     GrupoInclusaoAlimentacaoNormal,
     InclusaoAlimentacaoContinua,
     MotivoInclusaoContinua,
     MotivoInclusaoNormal
 )
-from .permissions import (
-    PodeAprovarAlimentacaoContinuaDaEscolaPermission,
-    PodeIniciarInclusaoAlimentacaoContinuaPermission
-)
-from .serializers import serializers, serializers_create
+from ...dados_comuns import constants
 
 
 class MotivoInclusaoContinuaViewSet(ReadOnlyModelViewSet):
@@ -154,7 +154,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
             serializer = self.get_serializer(grupo_alimentacao_normal)
             return Response(serializer.data)
         except InvalidTransitionError as e:
-            return Response(dict(detail=f'Erro de transição de estado: {e}'))
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
             methods=['patch'], url_path=constants.DRE_VALIDA_PEDIDO)
@@ -165,7 +165,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
             serializer = self.get_serializer(grupo_alimentacao_normal)
             return Response(serializer.data)
         except InvalidTransitionError as e:
-            return Response(dict(detail=f'Erro de transição de estado: {e}'))
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
             methods=['patch'], url_path=constants.DRE_NAO_VALIDA_PEDIDO)
@@ -176,29 +176,50 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
             serializer = self.get_serializer(grupo_alimentacao_normal)
             return Response(serializer.data)
         except InvalidTransitionError as e:
-            return Response(dict(detail=f'Erro de transição de estado: {e}'))
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
             methods=['patch'], url_path=constants.CODAE_AUTORIZA_PEDIDO)
     def codae_autoriza_pedido(self, request, uuid=None):
         grupo_alimentacao_normal = self.get_object()
         try:
-            grupo_alimentacao_normal.codae_autoriza(user=request.user, )
+            if grupo_alimentacao_normal.status == grupo_alimentacao_normal.workflow_class.DRE_VALIDADO:
+                grupo_alimentacao_normal.codae_autoriza(user=request.user)
+            else:
+                grupo_alimentacao_normal.codae_autoriza_questionamento(user=request.user)
             serializer = self.get_serializer(grupo_alimentacao_normal)
             return Response(serializer.data)
         except InvalidTransitionError as e:
-            return Response(dict(detail=f'Erro de transição de estado: {e}'))
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
+            methods=['patch'], url_path=constants.CODAE_QUESTIONA_PEDIDO)
+    def codae_questiona_pedido(self, request, uuid=None):
+        grupo_alimentacao_normal = self.get_object()
+        observacao_questionamento_codae = request.data.get('observacao_questionamento_codae', '')
+        try:
+            grupo_alimentacao_normal.codae_questiona(
+                user=request.user,
+                justificativa=observacao_questionamento_codae
+            )
+            serializer = self.get_serializer(grupo_alimentacao_normal)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
             methods=['patch'], url_path=constants.CODAE_NEGA_PEDIDO)
-    def codae_cancela_pedido(self, request, uuid=None):
+    def codae_nega_pedido(self, request, uuid=None):
         grupo_alimentacao_normal = self.get_object()
         try:
-            grupo_alimentacao_normal.codae_nega(user=request.user, )
+            if grupo_alimentacao_normal.status == grupo_alimentacao_normal.workflow_class.DRE_VALIDADO:
+                grupo_alimentacao_normal.codae_nega(user=request.user)
+            else:
+                grupo_alimentacao_normal.codae_nega_questionamento(user=request.user)
             serializer = self.get_serializer(grupo_alimentacao_normal)
             return Response(serializer.data)
         except InvalidTransitionError as e:
-            return Response(dict(detail=f'Erro de transição de estado: {e}'))
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
             methods=['patch'], url_path=constants.TERCEIRIZADA_TOMOU_CIENCIA)
@@ -209,7 +230,22 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
             serializer = self.get_serializer(grupo_alimentacao_normal)
             return Response(serializer.data)
         except InvalidTransitionError as e:
-            return Response(dict(detail=f'Erro de transição de estado: {e}'))
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
+            methods=['patch'], url_path=constants.TERCEIRIZADA_RESPONDE_QUESTIONAMENTO)
+    def terceirizada_responde_questionamento(self, request, uuid=None):
+        grupo_alimentacao_normal = self.get_object()
+        justificativa = request.data.get('justificativa', '')
+        resposta_sim_nao = request.data.get('resposta_sim_nao', False)
+        try:
+            grupo_alimentacao_normal.terceirizada_responde_questionamento(user=request.user,
+                                                                          justificativa=justificativa,
+                                                                          resposta_sim_nao=resposta_sim_nao)
+            serializer = self.get_serializer(grupo_alimentacao_normal)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
             methods=['patch'], url_path=constants.ESCOLA_CANCELA)
@@ -341,82 +377,118 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
     @action(detail=True, permission_classes=[PodeIniciarInclusaoAlimentacaoContinuaPermission],
             methods=['patch'], url_path=constants.ESCOLA_INICIO_PEDIDO)
     def inicio_de_pedido(self, request, uuid=None):
-        inclusao_alimentacao_continua = self.get_object()
+        inclusoes_alimentacao_continua = self.get_object()
         try:
-            inclusao_alimentacao_continua.inicia_fluxo(user=request.user, )
-            serializer = self.get_serializer(inclusao_alimentacao_continua)
+            inclusoes_alimentacao_continua.inicia_fluxo(user=request.user, )
+            serializer = self.get_serializer(inclusoes_alimentacao_continua)
             return Response(serializer.data)
         except InvalidTransitionError as e:
-            return Response(dict(detail=f'Erro de transição de estado: {e}'))
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
             methods=['patch'], url_path=constants.DRE_VALIDA_PEDIDO)
     def diretoria_regional_valida(self, request, uuid=None):
-        inclusao_alimentacao_continua = self.get_object()
+        inclusoes_alimentacao_continua = self.get_object()
         try:
-            inclusao_alimentacao_continua.dre_valida(user=request.user, )
-            serializer = self.get_serializer(inclusao_alimentacao_continua)
+            inclusoes_alimentacao_continua.dre_valida(user=request.user, )
+            serializer = self.get_serializer(inclusoes_alimentacao_continua)
             return Response(serializer.data)
         except InvalidTransitionError as e:
-            return Response(dict(detail=f'Erro de transição de estado: {e}'))
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
             methods=['patch'], url_path=constants.CODAE_NEGA_PEDIDO)
-    def codae_cancela_pedido(self, request, uuid=None):
-        inclusao_alimentacao_continua = self.get_object()
+    def codae_nega_pedido(self, request, uuid=None):
+        inclusoes_alimentacao_continua = self.get_object()
         try:
-            inclusao_alimentacao_continua.codae_nega(user=request.user, )
-            serializer = self.get_serializer(inclusao_alimentacao_continua)
+            if inclusoes_alimentacao_continua.status == inclusoes_alimentacao_continua.workflow_class.DRE_VALIDADO:
+                inclusoes_alimentacao_continua.codae_nega(user=request.user)
+            else:
+                inclusoes_alimentacao_continua.codae_nega_questionamento(user=request.user)
+            serializer = self.get_serializer(inclusoes_alimentacao_continua)
             return Response(serializer.data)
         except InvalidTransitionError as e:
-            return Response(dict(detail=f'Erro de transição de estado: {e}'))
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
             methods=['patch'], url_path=constants.DRE_NAO_VALIDA_PEDIDO)
-    def diretoria_regional_cancela_pedido(self, request, uuid=None):
-        inclusao_alimentacao_continua = self.get_object()
+    def diretoria_regional_nao_valida_pedido(self, request, uuid=None):
+        inclusoes_alimentacao_continua = self.get_object()
         try:
-            inclusao_alimentacao_continua.dre_nao_valida(user=request.user, )
-            serializer = self.get_serializer(inclusao_alimentacao_continua)
+            inclusoes_alimentacao_continua.dre_nao_valida(user=request.user, )
+            serializer = self.get_serializer(inclusoes_alimentacao_continua)
             return Response(serializer.data)
         except InvalidTransitionError as e:
-            return Response(dict(detail=f'Erro de transição de estado: {e}'))
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
             methods=['patch'], url_path=constants.CODAE_AUTORIZA_PEDIDO)
     def codae_autoriza_pedido(self, request, uuid=None):
-        inclusao_alimentacao_continua = self.get_object()
+        inclusoes_alimentacao_continua = self.get_object()
         try:
-            inclusao_alimentacao_continua.codae_autoriza(user=request.user, )
-            serializer = self.get_serializer(inclusao_alimentacao_continua)
+            if inclusoes_alimentacao_continua.status == inclusoes_alimentacao_continua.workflow_class.DRE_VALIDADO:
+                inclusoes_alimentacao_continua.codae_autoriza(user=request.user)
+            else:
+                inclusoes_alimentacao_continua.codae_autoriza_questionamento(user=request.user)
+            serializer = self.get_serializer(inclusoes_alimentacao_continua)
             return Response(serializer.data)
         except InvalidTransitionError as e:
-            return Response(dict(detail=f'Erro de transição de estado: {e}'))
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
+            methods=['patch'], url_path=constants.CODAE_QUESTIONA_PEDIDO)
+    def codae_questiona_pedido(self, request, uuid=None):
+        inclusoes_alimentacao_continua = self.get_object()
+        observacao_questionamento_codae = request.data.get('observacao_questionamento_codae', '')
+        try:
+            inclusoes_alimentacao_continua.codae_questiona(
+                user=request.user,
+                justificativa=observacao_questionamento_codae
+            )
+            serializer = self.get_serializer(inclusoes_alimentacao_continua)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
             methods=['patch'], url_path=constants.TERCEIRIZADA_TOMOU_CIENCIA)
     def terceirizada_toma_ciencia(self, request, uuid=None):
-        inclusao_alimentacao_continua = self.get_object()
+        inclusoes_alimentacao_continua = self.get_object()
         try:
-            inclusao_alimentacao_continua.terceirizada_toma_ciencia(user=request.user, )
-            serializer = self.get_serializer(inclusao_alimentacao_continua)
+            inclusoes_alimentacao_continua.terceirizada_toma_ciencia(user=request.user, )
+            serializer = self.get_serializer(inclusoes_alimentacao_continua)
             return Response(serializer.data)
         except InvalidTransitionError as e:
-            return Response(dict(detail=f'Erro de transição de estado: {e}'))
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
+            methods=['patch'], url_path=constants.TERCEIRIZADA_RESPONDE_QUESTIONAMENTO)
+    def terceirizada_responde_questionamento(self, request, uuid=None):
+        inclusoes_alimentacao_continua = self.get_object()
+        justificativa = request.data.get('justificativa', '')
+        resposta_sim_nao = request.data.get('resposta_sim_nao', False)
+        try:
+            inclusoes_alimentacao_continua.terceirizada_responde_questionamento(user=request.user,
+                                                                                justificativa=justificativa,
+                                                                                resposta_sim_nao=resposta_sim_nao)
+            serializer = self.get_serializer(inclusoes_alimentacao_continua)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, permission_classes=[PodeAprovarAlimentacaoContinuaDaEscolaPermission],
             methods=['patch'], url_path=constants.ESCOLA_CANCELA)
     def escola_cancela_pedido(self, request, uuid=None):
-        inclusao_alimentacao_continua = self.get_object()
+        inclusoes_alimentacao_continua = self.get_object()
         justificativa = request.data.get('justificativa', '')
         try:
-            inclusao_alimentacao_continua.cancelar_pedido(user=request.user, justificativa=justificativa)
-            serializer = self.get_serializer(inclusao_alimentacao_continua)
+            inclusoes_alimentacao_continua.cancelar_pedido(user=request.user, justificativa=justificativa)
+            serializer = self.get_serializer(inclusoes_alimentacao_continua)
             return Response(serializer.data)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     def destroy(self, request, *args, **kwargs):
-        inclusao_alimentacao_continua = self.get_object()
-        if inclusao_alimentacao_continua.pode_excluir:
+        grupo_alimentacao_normal = self.get_object()
+        if grupo_alimentacao_normal.pode_excluir:
             return super().destroy(request, *args, **kwargs)
