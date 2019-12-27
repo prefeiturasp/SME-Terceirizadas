@@ -6,8 +6,10 @@ from model_mommy import mommy
 
 from ...cardapio.models import AlteracaoCardapio
 from ...dados_comuns.models import TemplateMensagem
+from ...dados_comuns.fluxo_status import DietaEspecialWorkflow
 from ...inclusao_alimentacao.models import InclusaoAlimentacaoContinua
 from ...kit_lanche.models import KitLanche, SolicitacaoKitLanche, SolicitacaoKitLancheAvulsa
+from ...dieta_especial.models import SolicitacaoDietaEspecial
 from ..models import SolicitacoesEscola
 
 fake = Faker('pt_BR')
@@ -156,3 +158,30 @@ def client_autenticado_painel_consolidados(client_autenticado, django_user_model
                escola=escola,
                status=AlteracaoCardapio.workflow_class.DRE_A_VALIDAR)
     return client_autenticado
+
+
+@pytest.fixture
+def solicitacoes_dieta_especial():
+    statuses = [
+        DietaEspecialWorkflow.CODAE_A_AUTORIZAR,
+        DietaEspecialWorkflow.CODAE_AUTORIZADO,
+        DietaEspecialWorkflow.CODAE_NEGOU_PEDIDO
+    ]
+    saida = []
+
+    for status in statuses:
+        saida += mommy.make(SolicitacaoDietaEspecial,
+                            status=status,
+                            _quantity=2)
+
+    return saida
+
+
+@pytest.fixture(params=[
+    [DietaEspecialWorkflow.CODAE_A_AUTORIZAR, 'pendentes-autorizacao'],
+    [DietaEspecialWorkflow.CODAE_AUTORIZADO, 'autorizados'],
+    [DietaEspecialWorkflow.CODAE_NEGOU_PEDIDO, 'negados'],
+])
+def status_and_endpoint(request):
+    return request.param
+
