@@ -11,12 +11,11 @@ CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 def generate_pdf(request):
     """Generate pdf."""
-    cabecalho = CSS(os.path.join(CURRENT_DIR, 'static', 'css/cabecalho.css'))
     # Model data
     people = Usuario.objects.all()[:50]
 
     # Rendered
-    html_string = render_to_string('cabecalho.html', {'usuarios': people})
+    html_string = render_to_string('test.html', {'usuarios': people})
     pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
     response = HttpResponse(pdf_file, content_type='application/pdf')
     response['Content-Disposition'] = 'filename="XXX.pdf"'

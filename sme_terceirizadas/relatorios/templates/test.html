@@ -1,29 +1,7 @@
-{% load static %}
-
+{% include 'cabecalho.html' %}
+{% include 'rodape.html' %}
 <html>
 <head>
   <title>Test</title>
-  <link rel="stylesheet" href="{% static 'css/test.css' %}">
 </head>
-<body>
-<h1>List of usuarios</h1>
-<table>
-  <thead>
-  <tr>
-    <th>Last Name</th>
-    <th>First Name</th>
-    <th>Email</th>
-  </tr>
-  </thead>
-  <tbody>
-  {% for person in usuarios %}
-    <tr>
-      <td>{{ person.nome }}</td>
-      <td>{{ person.registro_funcional }}</td>
-      <td>{{ person.email }}</td>
-    </tr>
-  {% endfor %}
-  </tbody>
-</table>
-</body>
 </html>
