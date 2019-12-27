@@ -1,13 +1,16 @@
+{% load static %}
+
 <html>
 <head>
   <title>Test</title>
-  <link rel="stylesheet"
-        href="/home/marcelo/git/SME-Terceirizadas/sme_terceirizadas/relatorios/static/css/cabecalho.css">
+  <link rel="stylesheet" href="{% static 'css/cabecalho.css' %}">
+  <link href='http://fonts.googleapis.com/css?family=Roboto' rel='stylesheet' type='text/css'>
+
 </head>
 <body>
 <header>
   <section class="titulo-e-logo">
-    <img src="/home/marcelo/git/SME-Terceirizadas/sme_terceirizadas/relatorios/static/images/logo_prefeitura.png">
+    <img src="{% static 'images/logo_prefeitura.svg' %}" alt=""/>
     <h1>Sistema de gestão do programa de alimentação escolar - 29/700</h1>
   </section>
   <div class="tabela">

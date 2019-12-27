@@ -17,8 +17,7 @@ def generate_pdf(request):
 
     # Rendered
     html_string = render_to_string('cabecalho.html', {'usuarios': people})
-    pdf_file = HTML(string=html_string).write_pdf(
-        stylesheets=[cabecalho])
+    pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
     response = HttpResponse(pdf_file, content_type='application/pdf')
     response['Content-Disposition'] = 'filename="XXX.pdf"'
     return response

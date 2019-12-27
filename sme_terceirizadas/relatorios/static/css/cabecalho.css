@@ -8,6 +8,7 @@ html, body {
   margin: 0;
   padding: 0;
   border-radius: 3px;
+  font-family: 'Roboto', sans-serif;
   font-style: normal !important;
 }
 
@@ -22,7 +23,6 @@ header {
 }
 
 .titulo-e-logo h1 {
-  font-family: Roboto;
   margin-left: 10%;
   font-style: normal;
   font-weight: normal;
