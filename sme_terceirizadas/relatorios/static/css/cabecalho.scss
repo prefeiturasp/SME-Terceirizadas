@@ -24,17 +24,28 @@ header {
   background: #EEEEEE;
 }
 
-table {
-  border-collapse: collapse;
-  background: #FFFFFF;
-  border: 1px solid #000000;
-  box-sizing: border-box !important;
-  border-radius: 10px !important;
-  padding: 5px !important;
-  width: 100%;
+.tabela-cabecalho {
+  background: #b94a48;
 }
 
-table, th, td {
-  border: 1px solid black;
-  padding: 0.3em;
+.tabela-arredondada {
+  border-radius: 10px;
+  border-collapse: collapse;
+  -webkit-box-shadow: 0px 0px 0px 1px rgba(0, 0, 0, 1);
+  -moz-box-shadow: 0px 0px 0px 1px rgba(0, 0, 0, 1);
+  box-shadow: 0px 0px 0px 1px rgba(0, 0, 0, 1);
+  border-spacing: 0;
+  width: 100%;
+
+  th, td {
+    padding: 0.3em;
+  }
+
+  td + td {
+    border-left: 1px solid;
+  }
+
+  tr + tr td {
+    border-top: 1px solid
+  }
 }
