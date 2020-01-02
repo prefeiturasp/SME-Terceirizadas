@@ -5,11 +5,13 @@ from rest_framework import status
 from ...dados_comuns.constants import (
     CODAE_AUTORIZA_PEDIDO,
     CODAE_NEGA_PEDIDO,
+    CODAE_QUESTIONA_PEDIDO,
     DRE_INICIO_PEDIDO,
     DRE_NAO_VALIDA_PEDIDO,
     DRE_VALIDA_PEDIDO,
     ESCOLA_CANCELA,
-    TERCEIRIZADA_TOMOU_CIENCIA
+    TERCEIRIZADA_RESPONDE_QUESTIONAMENTO,
+    TERCEIRIZADA_TOMOU_CIENCIA,
 )
 from ...dados_comuns.fluxo_status import PedidoAPartirDaEscolaWorkflow
 
@@ -128,6 +130,25 @@ def test_url_endpoint_inclusao_continua_codae_nega_erro(client_autenticado, incl
                   f"'DRE_A_VALIDAR'."}
 
 
+def test_url_endpoint_inclusao_continua_codae_questiona(client_autenticado, inclusao_alimentacao_continua_dre_validado):
+    assert inclusao_alimentacao_continua_dre_validado.status == PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO
+    response = client_autenticado.patch(
+        f'/inclusoes-alimentacao-continua/{inclusao_alimentacao_continua_dre_validado.uuid}/{CODAE_QUESTIONA_PEDIDO}/')
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()['status'] == PedidoAPartirDaEscolaWorkflow.CODAE_QUESTIONADO
+
+
+def test_url_endpoint_inclusao_continua_codae_questiona_erro(client_autenticado,
+                                                             inclusao_alimentacao_continua_dre_validar):
+    assert inclusao_alimentacao_continua_dre_validar.status == PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR
+    response = client_autenticado.patch(
+        f'/inclusoes-alimentacao-continua/{inclusao_alimentacao_continua_dre_validar.uuid}/{CODAE_QUESTIONA_PEDIDO}/')
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {
+        'detail': f"Erro de transição de estado: Transition 'codae_questiona' isn't available from state " +
+                  f"'DRE_A_VALIDAR'."}
+
+
 def test_url_endpoint_inclusao_continua_terc_ciencia(client_autenticado,
                                                      inclusao_alimentacao_continua_codae_autorizado):
     assert inclusao_alimentacao_continua_codae_autorizado.status == PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO
@@ -136,6 +157,40 @@ def test_url_endpoint_inclusao_continua_terc_ciencia(client_autenticado,
         f'{TERCEIRIZADA_TOMOU_CIENCIA}/')
     assert response.status_code == status.HTTP_200_OK
     assert response.json()['status'] == PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_TOMOU_CIENCIA
+
+
+def test_url_endpoint_inclusao_continua_terc_ciencia_erro(client_autenticado,
+                                                          inclusao_alimentacao_continua_dre_validar):
+    assert inclusao_alimentacao_continua_dre_validar.status == PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR
+    response = client_autenticado.patch(
+        f'/inclusoes-alimentacao-continua/{inclusao_alimentacao_continua_dre_validar.uuid}/' +
+        f'{TERCEIRIZADA_TOMOU_CIENCIA}/')
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {
+        'detail': f"Erro de transição de estado: Transition 'terceirizada_toma_ciencia' isn't available from state " +
+                  f"'DRE_A_VALIDAR'."}
+
+
+def test_url_endpoint_inclusao_continua_terc_responde_questionamento(client_autenticado,
+                                                                     inclusao_alimentacao_continua_codae_questionado):
+    assert inclusao_alimentacao_continua_codae_questionado.status == PedidoAPartirDaEscolaWorkflow.CODAE_QUESTIONADO
+    response = client_autenticado.patch(
+        f'/inclusoes-alimentacao-continua/{inclusao_alimentacao_continua_codae_questionado.uuid}/'
+        f'{TERCEIRIZADA_RESPONDE_QUESTIONAMENTO}/')
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()['status'] == PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO
+
+
+def test_url_endpoint_inclusao_continua_terc_responde_questionamento_erro(client_autenticado,
+                                                                          inclusao_alimentacao_continua_dre_validar):
+    assert inclusao_alimentacao_continua_dre_validar.status == PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR
+    response = client_autenticado.patch(
+        f'/inclusoes-alimentacao-continua/{inclusao_alimentacao_continua_dre_validar.uuid}/' +
+        f'{TERCEIRIZADA_RESPONDE_QUESTIONAMENTO}/')
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {
+        'detail': f"Erro de transição de estado: Transition 'terceirizada_responde_questionamento' isn't available " +
+                  f"from state 'DRE_A_VALIDAR'."}
 
 
 @freeze_time('2018-12-01')
