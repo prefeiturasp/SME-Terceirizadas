@@ -1,12 +1,3 @@
-.tabela {
-  background: #FFFFFF;
-  border: 2px solid #A8A8A8;
-  box-sizing: border-box;
-  border-radius: 4px;
-  width: 100%;
-
-}
-
 table {
   caption {
     font-size: 16px;
@@ -43,4 +34,8 @@ table {
 table, th, td {
   border: 1px solid black;
   padding: 0.3em;
+}
+
+.corpo-sumario{
+  padding-top: 2em;
 }
