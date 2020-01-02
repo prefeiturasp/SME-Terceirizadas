@@ -20,6 +20,12 @@
   box-sizing: border-box;
   border-radius: 4px;
   width: 100%; }
+  .tabela tr:first-child td {
+    border-bottom: 1px solid #000000; }
+    .tabela tr:first-child td:first-child {
+      border-right: 1px solid #000000; }
+  .tabela:last-child td:first-child {
+    border-right: 1px solid #000000; }
 
 header {
   padding: 2em 1em 1em 2em;
