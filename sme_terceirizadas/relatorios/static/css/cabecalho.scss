@@ -1,28 +1,32 @@
 * {
   margin: 0;
-  padding: 0; }
+  padding: 0;
+}
 
 .titulo-e-logo {
   display: flex;
   align-items: center;
-  justify-content: space-between; }
-  .titulo-e-logo h1 {
+  justify-content: space-between;
+
+  h1 {
     font-style: normal;
     font-weight: normal;
     font-size: 17px;
     line-height: 21px;
     text-transform: uppercase;
-    color: #000000; }
+    color: #000000;
+  }
+}
 
 .tabela {
   background: #FFFFFF;
   border: 1px solid #000000;
   box-sizing: border-box;
   border-radius: 4px;
-  width: 100%; }
+  width: 100%;
+}
 
 header {
   padding: 2em 1em 1em 2em;
-  background: #EEEEEE; }
-
-/*# sourceMappingURL=cabecalho.css.map */
+  background: #EEEEEE;
+}

@@ -87,6 +87,7 @@ THIRD_PARTY_APPS = [
     'des',  # for email configuration in database
     'django_xworkflows',
     'simple_email_confirmation',
+    'sass_processor'
 ]
 LOCAL_APPS = [
     'sme_terceirizadas.perfil.apps.PerfilConfig',
@@ -182,6 +183,7 @@ STATICFILES_DIRS = [
 STATICFILES_FINDERS = [
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+    'sass_processor.finders.CssFinder',
 ]
 # MEDIA
 # ------------------------------------------------------------------------------

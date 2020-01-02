@@ -1,26 +1,27 @@
 {% include 'relatorio_base.html' %}
 {% load static %}
+{% load sass_tags %}
 
 <html>
 <head>
-  <link rel="stylesheet" href="{% static 'css/cabecalho.css' %}">
+  <link rel="stylesheet" href="{% sass_src 'css/cabecalho.scss' %}" type="text/css">
 </head>
 <header>
   <section class="titulo-e-logo">
     <img src="{% static 'images/logo_prefeitura.svg' %}" alt=""/>
     <h1>Sistema de gestão do programa de alimentação escolar - 29/700</h1>
   </section>
-  <div class="tabela">
-    <div class="linha borda-div">
-      <div>Escola: 091847 ANGELO MARTINO EMEI</div>
-      <div>DRE: DRE IPIRANGA</div>
-    </div>
-    <div class="linha borda-div">
-      <div>De: 05/02/2019</div>
-      <div>Até: 05/02/2019</div>
-      <div>Tipo de solicitação: Todos</div>
-      <div>Status de solitação: Todos</div>
-    </div>
-  </div>
+  <table class="tabela">
+    <tr class="">
+      <td colspan="2">Escola: 091847 ANGELO MARTINO EMEI</td>
+      <td colspan="2">DRE: DRE IPIRANGA</td>
+    </tr>
+    <tr class="">
+      <td>De: 05/02/2019</td>
+      <td>Até: 05/02/2019</td>
+      <td>Tipo de solicitação: Todos</td>
+      <td>Status de solitação: Todos</td>
+    </tr>
+  </table>
 </header>
 </html>
