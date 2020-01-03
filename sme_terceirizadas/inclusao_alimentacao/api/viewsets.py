@@ -4,18 +4,18 @@ from rest_framework.status import HTTP_400_BAD_REQUEST
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from xworkflows import InvalidTransitionError
 
-from .permissions import (
-    PodeAprovarAlimentacaoContinuaDaEscolaPermission,
-    PodeIniciarInclusaoAlimentacaoContinuaPermission
-)
-from .serializers import serializers, serializers_create
+from ...dados_comuns import constants
 from ..models import (
     GrupoInclusaoAlimentacaoNormal,
     InclusaoAlimentacaoContinua,
     MotivoInclusaoContinua,
     MotivoInclusaoNormal
 )
-from ...dados_comuns import constants
+from .permissions import (
+    PodeAprovarAlimentacaoContinuaDaEscolaPermission,
+    PodeIniciarInclusaoAlimentacaoContinuaPermission
+)
+from .serializers import serializers, serializers_create
 
 
 class MotivoInclusaoContinuaViewSet(ReadOnlyModelViewSet):
