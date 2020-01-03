@@ -2,7 +2,7 @@ from django.core.validators import MinLengthValidator
 from django.db import models
 from django_prometheus.models import ExportModelOperationsMixin
 
-from ..dados_comuns.behaviors import CriadoEm, CriadoPor, Logs, TemChaveExterna, TemIdentificadorExternoAmigavel
+from ..dados_comuns.behaviors import CriadoEm, CriadoPor, Descritivel, Logs, Nomeavel, TemChaveExterna, TemIdentificadorExternoAmigavel
 from ..dados_comuns.fluxo_status import FluxoDietaEspecialPartindoDaEscola
 from ..dados_comuns.models import LogSolicitacoesUsuario, TemplateMensagem
 
@@ -10,6 +10,7 @@ from ..dados_comuns.models import LogSolicitacoesUsuario, TemplateMensagem
 class SolicitacaoDietaEspecial(ExportModelOperationsMixin('dieta_especial'), TemChaveExterna, CriadoEm, CriadoPor,
                                FluxoDietaEspecialPartindoDaEscola,
                                Logs, TemIdentificadorExternoAmigavel):
+
     codigo_eol_aluno = models.CharField('Código EOL do aluno',
                                         max_length=6,
                                         validators=[MinLengthValidator(6)])
@@ -28,6 +29,13 @@ class SolicitacaoDietaEspecial(ExportModelOperationsMixin('dieta_especial'), Tem
     data_nascimento_aluno = models.DateField('Data de nascimento do aluno')
 
     observacoes = models.TextField('Observações', blank=True)
+
+    tipos = models.ManyToManyField('TipoDieta')
+    classificacao = models.ManyToManyField('ClassificacaoDieta')
+    alergias_intolerancias = models.ManyToManyField('AlergiaIntolerancia')
+
+    # TODO: Confirmar se PROTECT é a melhor escolha para o campos abaixo
+    motivo_negacao = models.ForeignKey('MotivoNegacao', on_delete=models.PROTECT, null=True)
 
     @property
     def anexos(self):
@@ -75,7 +83,28 @@ class SolicitacaoDietaEspecial(ExportModelOperationsMixin('dieta_especial'), Tem
 class Anexo(ExportModelOperationsMixin('anexo'), models.Model):
     solicitacao_dieta_especial = models.ForeignKey(SolicitacaoDietaEspecial, on_delete=models.DO_NOTHING)
     arquivo = models.FileField()
+    eh_laudo_medico = models.BooleanField(default=False)
 
     @property
     def nome(self):
         return self.arquivo.url
+
+
+class AlergiaIntolerancia(Descritivel):
+    def __str__(self):
+        return self.descricao
+
+
+class ClassificacaoDieta(Descritivel, Nomeavel):
+    def __str__(self):
+        return self.nome
+
+
+class MotivoNegacao(Descritivel):
+    def __str__(self):
+        return self.descricao
+
+
+class TipoDieta(Descritivel):
+    def __str__(self):
+        return self.descricao

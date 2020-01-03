@@ -4,7 +4,14 @@ from model_mommy import mommy
 
 from ...dados_comuns.utils import convert_base64_to_contentfile
 from ...escola.models import Escola
-from ..models import Anexo, SolicitacaoDietaEspecial
+from ..models import (
+    AlergiaIntolerancia,
+    Anexo,
+    ClassificacaoDieta,
+    MotivoNegacao,
+    SolicitacaoDietaEspecial,
+    TipoDieta
+)
 
 fake = Faker('pt_BR')
 fake.seed(420)
@@ -51,3 +58,27 @@ def nomes_arquivos_validos(request):
 ])
 def nomes_arquivos_invalidos(request):
     return request.param
+
+
+@pytest.fixture
+def alergias_intolerancias():
+    mommy.make(AlergiaIntolerancia, _quantity=2)
+    return AlergiaIntolerancia.objects.all()
+
+
+@pytest.fixture
+def classificacoes_dieta():
+    mommy.make(ClassificacaoDieta, _quantity=3)
+    return ClassificacaoDieta.objects.all()
+
+
+@pytest.fixture
+def motivos_negacao():
+    mommy.make(MotivoNegacao, _quantity=4)
+    return MotivoNegacao.objects.all()
+
+
+@pytest.fixture
+def tipos_dieta():
+    mommy.make(TipoDieta, _quantity=5)
+    return TipoDieta.objects.all()

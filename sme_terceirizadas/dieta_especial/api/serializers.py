@@ -5,7 +5,14 @@ from ...dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
 from ...dados_comuns.utils import convert_base64_to_contentfile
 from ...dados_comuns.validators import deve_ser_no_passado
 from ...escola.api.serializers import EscolaSimplesSerializer
-from ..models import Anexo, SolicitacaoDietaEspecial
+from ..models import (
+    AlergiaIntolerancia,
+    Anexo,
+    ClassificacaoDieta,
+    MotivoNegacao,
+    SolicitacaoDietaEspecial,
+    TipoDieta
+)
 from .validators import deve_ter_extensao_valida
 
 
@@ -104,3 +111,23 @@ class SolicitacaoDietaEspecialSerializer(serializers.ModelSerializer):
             'logs',
             'id_externo'
         )
+
+class AlergiaIntoleranciaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AlergiaIntolerancia
+        fields = ['descricao']
+
+class ClassificacaoDietaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ClassificacaoDieta
+        fields = ['nome', 'descricao']
+
+class MotivoNegacaoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MotivoNegacao
+        fields = ['descricao']
+
+class TipoDietaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TipoDieta
+        fields = ['descricao']

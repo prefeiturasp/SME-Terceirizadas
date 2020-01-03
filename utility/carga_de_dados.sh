@@ -19,6 +19,8 @@ echo "Criando CODAE nutricionista"
 ./manage.py shell -c "from utility.carga_dados.escola import _11_atualiza_dre"
 ./manage.py shell -c "from utility.carga_dados.escola import _12_atualiza_escolas"
 
+./manage.py shell -c "from utility.carga_dados.dieta_especial import _13_dieta_especial"
+
 ./manage.py shell -c "from utility.carga_dados.escola import _8_co_gestores_dre"
 ./manage.py shell -c "from utility.carga_dados.escola import _10_codae"
 ./manage.py shell -c "from utility.carga_dados.escola import _9_associar_admins"
