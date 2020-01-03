@@ -11,13 +11,13 @@ from ..models import (
     Cardapio,
     ComboDoVinculoTipoAlimentacaoPeriodoTipoUE,
     GrupoSuspensaoAlimentacao,
+    HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolar,
     InversaoCardapio,
     MotivoAlteracaoCardapio,
     MotivoSuspensao,
     SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE,
     TipoAlimentacao,
-    VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar,
-    HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolar
+    VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
 )
 from .permissions import (
     PodeAprovarPelaCODAEAlteracaoCardapioPermission,
@@ -34,22 +34,22 @@ from .serializers.serializers import (
     GrupoSupensaoAlimentacaoListagemSimplesSerializer,
     GrupoSuspensaoAlimentacaoSerializer,
     GrupoSuspensaoAlimentacaoSimplesSerializer,
+    HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolarSerializer,
     InversaoCardapioSerializer,
     MotivoAlteracaoCardapioSerializer,
     MotivoSuspensaoSerializer,
     SubstituicaoDoComboVinculoTipoAlimentoSimplesSerializer,
     TipoAlimentacaoSerializer,
-    VinculoTipoAlimentoSimplesSerializer,
-    HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolarSerializer
+    VinculoTipoAlimentoSimplesSerializer
 )
 from .serializers.serializers_create import (
     AlteracaoCardapioSerializerCreate,
     CardapioCreateSerializer,
     ComboDoVinculoTipoAlimentoSimplesSerializerCreate,
     GrupoSuspensaoAlimentacaoCreateSerializer,
+    HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolarSerializerCreate,
     InversaoCardapioSerializerCreate,
-    SubstituicaoDoComboVinculoTipoAlimentoSimplesSerializerCreate,
-    HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolarSerializerCreate
+    SubstituicaoDoComboVinculoTipoAlimentoSimplesSerializerCreate
 )
 
 

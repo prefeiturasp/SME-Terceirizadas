@@ -15,6 +15,7 @@ from ...models import (
     Cardapio,
     ComboDoVinculoTipoAlimentacaoPeriodoTipoUE,
     GrupoSuspensaoAlimentacao,
+    HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolar,
     InversaoCardapio,
     MotivoAlteracaoCardapio,
     MotivoSuspensao,
@@ -24,8 +25,7 @@ from ...models import (
     SuspensaoAlimentacao,
     SuspensaoAlimentacaoNoPeriodoEscolar,
     TipoAlimentacao,
-    VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar,
-    HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolar
+    VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
 )
 
 

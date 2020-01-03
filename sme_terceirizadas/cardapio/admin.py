@@ -5,6 +5,7 @@ from .models import (
     Cardapio,
     ComboDoVinculoTipoAlimentacaoPeriodoTipoUE,
     GrupoSuspensaoAlimentacao,
+    HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolar,
     InversaoCardapio,
     MotivoAlteracaoCardapio,
     MotivoSuspensao,
@@ -13,8 +14,7 @@ from .models import (
     SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE,
     SuspensaoAlimentacao,
     TipoAlimentacao,
-    VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar,
-    HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolar
+    VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
 )
 
 admin.site.register(TipoAlimentacao)

@@ -70,10 +70,7 @@ class HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolar(TemChaveExterna):
         'cardapio.ComboDoVinculoTipoAlimentacaoPeriodoTipoUE', on_delete=models.DO_NOTHING)
 
     def __str__(self):
-        return f'Escola {self.escola.nome} / {self.combo_tipos_alimentacao} ' \
-               f'/ Horario início: {self.hora_inicial} - Horario térimo: {self.hora_final}'
-
-
+        return f'{self.combo_tipos_alimentacao} DE: {self.hora_inicial} ATE: {self.hora_final}'
 
 
 class ComboDoVinculoTipoAlimentacaoPeriodoTipoUE(
