@@ -1,5 +1,29 @@
 @import "variaveis";
 
+@page {
+  margin-bottom: 3em;
+  @bottom-left {
+    background: $cor-background-header;
+    color: $cor-texto-padrao;
+    content: 'TODO descobiri como passar mensagem dinamicamente...';
+    //content: {{ escola.nome }};
+    font-size: 10px;
+    width: 100%;
+    padding: 1em 2em 2em 2em;
+    margin-top: 1em;
+  }
+  @bottom-right {
+    background: $cor-background-header;
+    color: $cor-texto-padrao;
+    content: counter(page);
+    font-size: 10px;
+    //width: 5em;
+    padding: 1em 2em 2em 2em;
+    margin-top: 1em;
+  }
+
+}
+
 .tabela-sumario-totais {
   //margin-top: 10px;
 
@@ -9,6 +33,7 @@
     letter-spacing: 0.25px;
     color: $cor-texto-padrao;
     margin-bottom: 1em;
+    margin-top: 1em;
   }
 
   border-collapse: collapse;
@@ -32,5 +57,11 @@
 }
 
 .sumario-totais {
-  padding: 2em 1em 1em 2em;
+  padding: 0em 2em 0em 2em;
+
+  table, th, td {
+    border: $borda-tabela-padrao;
+    padding: 0.3em;
+  }
 }
+
