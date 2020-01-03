@@ -100,6 +100,13 @@ def inclusao_alimentacao_continua_codae_autorizado(inclusao_alimentacao_continua
     return inclusao_alimentacao_continua
 
 
+@pytest.fixture
+def inclusao_alimentacao_continua_codae_questionado(inclusao_alimentacao_continua):
+    inclusao_alimentacao_continua.status = PedidoAPartirDaEscolaWorkflow.CODAE_QUESTIONADO
+    inclusao_alimentacao_continua.save()
+    return inclusao_alimentacao_continua
+
+
 @pytest.fixture(params=[
     # data_inicial, data_final
     (datetime.date(2019, 10, 4), datetime.date(2019, 12, 31)),
