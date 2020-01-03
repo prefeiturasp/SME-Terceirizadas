@@ -182,11 +182,12 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
             methods=['patch'], url_path=constants.CODAE_AUTORIZA_PEDIDO)
     def codae_autoriza_pedido(self, request, uuid=None):
         grupo_alimentacao_normal = self.get_object()
+        justificativa = request.data.get('justificativa', '')
         try:
             if grupo_alimentacao_normal.status == grupo_alimentacao_normal.workflow_class.DRE_VALIDADO:
                 grupo_alimentacao_normal.codae_autoriza(user=request.user)
             else:
-                grupo_alimentacao_normal.codae_autoriza_questionamento(user=request.user)
+                grupo_alimentacao_normal.codae_autoriza_questionamento(user=request.user, justificativa=justificativa)
             serializer = self.get_serializer(grupo_alimentacao_normal)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -425,11 +426,13 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
             methods=['patch'], url_path=constants.CODAE_AUTORIZA_PEDIDO)
     def codae_autoriza_pedido(self, request, uuid=None):
         inclusoes_alimentacao_continua = self.get_object()
+        justificativa = request.data.get('justificativa', '')
         try:
             if inclusoes_alimentacao_continua.status == inclusoes_alimentacao_continua.workflow_class.DRE_VALIDADO:
                 inclusoes_alimentacao_continua.codae_autoriza(user=request.user)
             else:
-                inclusoes_alimentacao_continua.codae_autoriza_questionamento(user=request.user)
+                inclusoes_alimentacao_continua.codae_autoriza_questionamento(user=request.user,
+                                                                             justificativa=justificativa)
             serializer = self.get_serializer(inclusoes_alimentacao_continua)
             return Response(serializer.data)
         except InvalidTransitionError as e:
