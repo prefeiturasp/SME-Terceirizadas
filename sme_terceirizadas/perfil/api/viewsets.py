@@ -56,10 +56,10 @@ class UsuarioUpdateViewSet(viewsets.GenericViewSet):
     serializer_class = UsuarioUpdateSerializer
 
     def _get_usuario(self, request):
-        if Usuario.objects.filter(email=request.data.get('email')).exists():
-            return Usuario.objects.get(email=request.data.get('email'))
-        else:
+        if request.data.get('registro_funcional') is not None:
             return Usuario.objects.get(registro_funcional=request.data.get('registro_funcional'))
+        else:
+            return Usuario.objects.get(email=request.data.get('email'))
 
     def _get_usuario_por_rf_email(self, registro_funcional_ou_email):
         return Usuario.objects.get(
@@ -70,17 +70,15 @@ class UsuarioUpdateViewSet(viewsets.GenericViewSet):
     def create(self, request):  # noqa C901
         try:
             usuario = self._get_usuario(request)
-        except ObjectDoesNotExist:
-            return Response({'detail': 'Erro ao cadastrar usuário'},
-                            status=status.HTTP_400_BAD_REQUEST)
         # TODO: ajeitar isso aqui
-        try:
             usuario = UsuarioUpdateSerializer(usuario).partial_update(usuario, request.data)
             if not isinstance(usuario.vinculo_atual.instituicao, Terceirizada):
                 usuario.enviar_email_confirmacao()
             return Response(UsuarioDetalheSerializer(usuario).data)
         except ValidationError as e:
             return Response({'detail': e.detail[0].title()}, status=status.HTTP_400_BAD_REQUEST)
+        except ObjectDoesNotExist:
+            return Response({'detail': 'E-mail não cadastrado no sistema'}, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, url_path='recuperar-senha/(?P<registro_funcional_ou_email>.*)')
     def recuperar_senha(self, request, registro_funcional_ou_email=None):

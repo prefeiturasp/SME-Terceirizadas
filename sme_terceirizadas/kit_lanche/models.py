@@ -138,7 +138,7 @@ class SolicitacaoKitLancheAvulsa(ExportModelOperationsMixin('kit_lanche_avulsa')
 
 
 class SolicitacaoKitLancheUnificada(ExportModelOperationsMixin('kit_lanche_unificada'), CriadoPor, TemChaveExterna,
-                                    TemIdentificadorExternoAmigavel,
+                                    TemIdentificadorExternoAmigavel, SolicitacaoForaDoPrazo,
                                     FluxoAprovacaoPartindoDaDiretoriaRegional, Logs, TemPrioridade):
     """Uma DRE pede para as suas escolas.
 
@@ -206,14 +206,15 @@ class SolicitacaoKitLancheUnificada(ExportModelOperationsMixin('kit_lanche_unifi
 
     def salvar_log_transicao(self, status_evento, usuario, **kwargs):
         justificativa = kwargs.get('justificativa', '')
-
+        resposta_sim_nao = kwargs.get('resposta_sim_nao', False)
         LogSolicitacoesUsuario.objects.create(
             descricao=str(self),
             status_evento=status_evento,
             solicitacao_tipo=LogSolicitacoesUsuario.SOLICITACAO_KIT_LANCHE_UNIFICADA,
             usuario=usuario,
             uuid_original=self.uuid,
-            justificativa=justificativa
+            justificativa=justificativa,
+            resposta_sim_nao=resposta_sim_nao
         )
 
     @property

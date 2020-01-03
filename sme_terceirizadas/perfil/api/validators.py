@@ -23,6 +23,12 @@ def terceirizada_tem_esse_cnpj(terceirizada: Terceirizada, cnpj: str):
     return True
 
 
+def usuario_e_das_terceirizadas(usuario: Usuario):
+    if not isinstance(usuario.vinculo_atual.instituicao, Terceirizada):
+        raise serializers.ValidationError('Usuario já existe e não é Perfil Terceirizadas')
+    return True
+
+
 def deve_ter_mesmo_cpf(cpf_request: str, cpf_instance: str):
     if cpf_request != cpf_instance:
         raise serializers.ValidationError('CPF incorreto')

@@ -119,13 +119,15 @@ class InclusaoAlimentacaoContinua(ExportModelOperationsMixin('inclusao_continua'
 
     def salvar_log_transicao(self, status_evento, usuario, **kwargs):
         justificativa = kwargs.get('justificativa', '')
+        resposta_sim_nao = kwargs.get('resposta_sim_nao', False)
         LogSolicitacoesUsuario.objects.create(
             descricao=str(self),
             status_evento=status_evento,
             solicitacao_tipo=LogSolicitacoesUsuario.INCLUSAO_ALIMENTACAO_CONTINUA,
             usuario=usuario,
             uuid_original=self.uuid,
-            justificativa=justificativa
+            justificativa=justificativa,
+            resposta_sim_nao=resposta_sim_nao
         )
 
     def __str__(self):
@@ -173,7 +175,7 @@ class InclusaoAlimentacaoNormal(ExportModelOperationsMixin('inclusao_normal'), T
 
 
 class GrupoInclusaoAlimentacaoNormal(ExportModelOperationsMixin('grupo_inclusao'), Descritivel, TemChaveExterna,
-                                     FluxoAprovacaoPartindoDaEscola, CriadoEm,
+                                     FluxoAprovacaoPartindoDaEscola, CriadoEm, SolicitacaoForaDoPrazo,
                                      CriadoPor, TemIdentificadorExternoAmigavel, Logs, TemPrioridade):
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING,
                                related_name='grupos_inclusoes_normais')
@@ -213,13 +215,15 @@ class GrupoInclusaoAlimentacaoNormal(ExportModelOperationsMixin('grupo_inclusao'
 
     def salvar_log_transicao(self, status_evento, usuario, **kwargs):
         justificativa = kwargs.get('justificativa', '')
+        resposta_sim_nao = kwargs.get('resposta_sim_nao', False)
         LogSolicitacoesUsuario.objects.create(
             descricao=str(self),
             status_evento=status_evento,
             solicitacao_tipo=LogSolicitacoesUsuario.INCLUSAO_ALIMENTACAO_NORMAL,
             usuario=usuario,
             uuid_original=self.uuid,
-            justificativa=justificativa
+            justificativa=justificativa,
+            resposta_sim_nao=resposta_sim_nao
         )
 
     @property

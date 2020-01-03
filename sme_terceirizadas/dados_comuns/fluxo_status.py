@@ -78,7 +78,9 @@ class PedidoAPartirDaDiretoriaRegionalWorkflow(xwf_models.Workflow):
     CODAE_PEDIU_DRE_REVISAR = 'DRE_PEDE_ESCOLA_REVISAR'  # PODE HAVER LOOP AQUI...
     CODAE_NEGOU_PEDIDO = 'CODAE_NEGOU_PEDIDO'  # FIM DE FLUXO
     CODAE_AUTORIZADO = 'CODAE_AUTORIZADO'
+    CODAE_QUESTIONADO = 'CODAE_QUESTIONADO'
     TERCEIRIZADA_TOMOU_CIENCIA = 'TERCEIRIZADA_TOMOU_CIENCIA'  # FIM, NOTIFICA ESCOLA, DRE E CODAE
+    TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO = 'TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO'
 
     # UM STATUS POSSIVEL, QUE PODE SER ATIVADO PELA DRE EM ATE X HORAS ANTES
     # AS TRANSIÇÕES NÃO ENXERGAM ESSE STATUS
@@ -94,7 +96,9 @@ class PedidoAPartirDaDiretoriaRegionalWorkflow(xwf_models.Workflow):
         (CODAE_PEDIU_DRE_REVISAR, 'DRE tem que revisar o pedido'),
         (CODAE_NEGOU_PEDIDO, 'CODAE negou o pedido da DRE'),
         (CODAE_AUTORIZADO, 'CODAE autorizou'),
+        (CODAE_QUESTIONADO, 'CODAE questionou terceirizada se é possível atender a solicitação'),
         (TERCEIRIZADA_TOMOU_CIENCIA, 'Terceirizada tomou ciencia'),
+        (TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO, 'Terceirizada respondeu se é possível atender a solicitação'),
         (CANCELAMENTO_AUTOMATICO, 'Cancelamento automático'),
         (DRE_CANCELOU, 'DRE cancelou'),
     )
@@ -105,7 +109,11 @@ class PedidoAPartirDaDiretoriaRegionalWorkflow(xwf_models.Workflow):
         ('codae_nega', CODAE_A_AUTORIZAR, CODAE_NEGOU_PEDIDO),
         ('dre_revisa', CODAE_PEDIU_DRE_REVISAR, CODAE_A_AUTORIZAR),
         ('codae_autoriza', CODAE_A_AUTORIZAR, CODAE_AUTORIZADO),
+        ('codae_questiona', CODAE_A_AUTORIZAR, CODAE_QUESTIONADO),
+        ('codae_autoriza_questionamento', TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO, CODAE_AUTORIZADO),
+        ('codae_nega_questionamento', TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO, CODAE_NEGOU_PEDIDO),
         ('terceirizada_toma_ciencia', CODAE_AUTORIZADO, TERCEIRIZADA_TOMOU_CIENCIA),
+        ('terceirizada_responde_questionamento', CODAE_QUESTIONADO, TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO)
     )
 
     initial_state = RASCUNHO
@@ -504,6 +512,7 @@ class FluxoAprovacaoPartindoDaDiretoriaRegional(xwf_models.WorkflowEnabled, mode
 
     @xworkflows.after_transition('inicia_fluxo')
     def _inicia_fluxo_hook(self, *args, **kwargs):
+        self.foi_solicitado_fora_do_prazo = self.prioridade in ['PRIORITARIO', 'LIMITE']
         user = kwargs['user']
         assunto, corpo = self.template_mensagem
 
@@ -511,12 +520,23 @@ class FluxoAprovacaoPartindoDaDiretoriaRegional(xwf_models.WorkflowEnabled, mode
                                   usuario=user)
         self._salva_rastro_solicitacao()
 
+    @xworkflows.after_transition('codae_autoriza_questionamento')
     @xworkflows.after_transition('codae_autoriza')
     def _codae_autoriza_hook(self, *args, **kwargs):
         user = kwargs['user']
         if user:
             assunto, corpo = self.template_mensagem
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU,
+                                      usuario=user)
+
+    @xworkflows.after_transition('codae_questiona')
+    def _codae_questiona_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        justificativa = kwargs.get('justificativa', '')
+        if user:
+            assunto, corpo = self.template_mensagem
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_QUESTIONOU,
+                                      justificativa=justificativa,
                                       usuario=user)
 
     @xworkflows.after_transition('terceirizada_toma_ciencia')
@@ -527,6 +547,19 @@ class FluxoAprovacaoPartindoDaDiretoriaRegional(xwf_models.WorkflowEnabled, mode
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_TOMOU_CIENCIA,
                                       usuario=user)
 
+    @xworkflows.after_transition('terceirizada_responde_questionamento')
+    def _terceirizada_responde_questionamento_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        justificativa = kwargs.get('justificativa', '')
+        resposta_sim_nao = kwargs.get('resposta_sim_nao', False)
+        if user:
+            assunto, corpo = self.template_mensagem
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO,
+                                      justificativa=justificativa,
+                                      resposta_sim_nao=resposta_sim_nao,
+                                      usuario=user)
+
+    @xworkflows.after_transition('codae_nega_questionamento')
     @xworkflows.after_transition('codae_nega')
     def _codae_recusou_hook(self, *args, **kwargs):
         user = kwargs['user']

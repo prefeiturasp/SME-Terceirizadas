@@ -72,13 +72,13 @@ class VinculoTipoAlimentacaoViewSet(mixins.RetrieveModelMixin,
                                     GenericViewSet):
     lookup_field = 'uuid'
     serializer_class = VinculoTipoAlimentoSimplesSerializer
-    queryset = VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar.objects.all()
+    queryset = VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar.objects.filter(ativo=True)
 
     @action(detail=False,
             url_path='tipo_unidade_escolar/(?P<tipo_unidade_escolar_uuid>[^/.]+)')
     def filtro_por_periodo_tipo_ue(self, request, tipo_unidade_escolar_uuid=None):
         vinculos = VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar.objects.filter(
-            tipo_unidade_escolar__uuid=tipo_unidade_escolar_uuid)
+            tipo_unidade_escolar__uuid=tipo_unidade_escolar_uuid, ativo=True)
         page = self.paginate_queryset(vinculos)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)

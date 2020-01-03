@@ -4,8 +4,10 @@ from rest_framework.response import Response
 
 from ...dados_comuns.constants import ADMINISTRADOR_TERCEIRIZADA, NUTRI_ADMIN_RESPONSAVEL
 from ...dados_comuns.models import Contato
+from ...dados_comuns.tasks import envia_email_unico_task
 from ...eol_servico.utils import EolException, get_informacoes_usuario
 from ...escola.api.validators import usuario_e_vinculado_a_aquela_instituicao, usuario_nao_possui_vinculo_valido
+from ...perfil.api.validators import usuario_e_das_terceirizadas
 from ...terceirizada.models import Terceirizada
 from ..models import Perfil, Usuario, Vinculo
 from .validators import (
@@ -95,10 +97,12 @@ class UsuarioUpdateSerializer(serializers.ModelSerializer):
         usuario.enviar_email_administrador()
 
     def update_nutricionista(self, terceirizada, validated_data):
+        ja_e_administrador = False
         novo_usuario = False
         email = validated_data['contatos'][0]['email']
         if Usuario.objects.filter(email=email).exists():
             usuario = Usuario.objects.get(email=email)
+            ja_e_administrador = usuario.super_admin_terceirizadas
             usuario.contatos.all().delete()
         else:
             usuario = Usuario()
@@ -111,6 +115,15 @@ class UsuarioUpdateSerializer(serializers.ModelSerializer):
             usuario.criar_vinculo_administrador(terceirizada, nome_perfil=nome_perfil)
             usuario.enviar_email_administrador()
         else:
+            # TODO: não deve estar aqui esse método envia_email_unico_task() Remover.
+            if ja_e_administrador and not validated_data.get('super_admin_terceirizadas'):
+                envia_email_unico_task.delay(
+                    assunto='[SIGPAE] Alteração de funcionalidade',
+                    corpo=f'Olá {usuario.nome},\n\nSeu cadastro como nutricionista administrador foi alterado.\n\n'
+                          f'A partir desse momento você não terá acesso à funcionalidade de atribuição de usuários.'
+                          f'\n\nSeu acesso às demais funcionalidades continua ativo.',
+                    email=usuario.email
+                )
             vinculo = usuario.vinculo_atual
             vinculo.perfil = Perfil.objects.get(nome=nome_perfil)
             vinculo.save()
@@ -147,6 +160,7 @@ class UsuarioUpdateSerializer(serializers.ModelSerializer):
         cpf = attrs.get('cpf')
         cnpj = attrs.get('cnpj', None)
         if cnpj:
+            usuario_e_das_terceirizadas(instance)
             terceirizada_tem_esse_cnpj(instance.vinculo_atual.instituicao, cnpj)
         if instance.cpf:
             deve_ter_mesmo_cpf(cpf, instance.cpf)

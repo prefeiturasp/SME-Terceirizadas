@@ -341,9 +341,13 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'sme_terceirizadas.escola.tasks.atualiza_total_alunos_escolas',
         'schedule': crontab(hour=0, minute=0)
     },
-    'atualiza-dados-das-das-escolas': {
+    'atualiza-dados-das-escolas': {
         'task': 'sme_terceirizadas.escola.tasks.atualiza_dados_escolas',
         'schedule': crontab(hour=0, minute=30)
+    },
+    'ativa-desativa-vinculos-alimentacao': {
+        'task': 'sme_terceirizadas.cardapio.tasks.ativa_desativa_vinculos_alimentacao_com_periodo_escolar_e_tipo_unidade_escolar', # noqa E501
+        'schedule': crontab(hour=1, minute=0)
     }
 }
 

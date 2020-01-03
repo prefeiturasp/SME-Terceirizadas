@@ -113,7 +113,7 @@ class SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE(TemChaveExterna):
 
 
 class VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar(
-    ExportModelOperationsMixin('vinculo_alimentacao_periodo_escolar_tipo_ue'), TemChaveExterna):  # noqa E125
+    ExportModelOperationsMixin('vinculo_alimentacao_periodo_escolar_tipo_ue'), Ativavel, TemChaveExterna):  # noqa E125
     """Vincular vários tipos de alimentação a um periodo e tipo de U.E.
 
     Dado o tipo_unidade_escolar (EMEI, EMEF...) e
