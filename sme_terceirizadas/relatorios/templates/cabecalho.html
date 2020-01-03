@@ -6,21 +6,21 @@
 <head>
   <link rel="stylesheet" href="{% sass_src 'css/cabecalho.scss' %}" type="text/css">
 </head>
-<header>
+<header class="header">
   <section class="titulo-e-logo">
     <img src="{% static 'images/logo_prefeitura.svg' %}" alt=""/>
     <h1>Sistema de gestão do programa de alimentação escolar - 29/700</h1>
   </section>
   <table class="tabela-cabecalho tabela-arredondada">
     <tr class="">
-      <td colspan="2">Escola: 091847 ANGELO MARTINO EMEI</td>
-      <td colspan="2">DRE: DRE IPIRANGA</td>
+      <td colspan="2">{{ escola.nome }}</td>
+      <td colspan="2">{{ escola.diretoria_regional.nome }}</td>
     </tr>
     <tr class="">
-      <td>De: 05/02/2019</td>
-      <td>Até: 05/02/2019</td>
-      <td>Tipo de solicitação: Todos</td>
-      <td>Status de solitação: Todos</td>
+      <td>De: {{ filtro.data_de }}</td>
+      <td>Até: {{ filtro.data_para }}</td>
+      <td>Tipo de solicitação: {{ filtro.tipo_solicitacao }}</td>
+      <td>Status de solitação: {{ filtro.status }}</td>
     </tr>
   </table>
 </header>

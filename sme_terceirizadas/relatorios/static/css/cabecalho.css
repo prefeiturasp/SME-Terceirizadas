@@ -1,7 +1,3 @@
-* {
-  margin: 0;
-  padding: 0; }
-
 .titulo-e-logo {
   display: flex;
   align-items: center;
@@ -14,26 +10,19 @@
     text-transform: uppercase;
     color: #000000; }
 
-header {
+.header {
   padding: 2em 1em 1em 2em;
   background: #EEEEEE; }
 
 .tabela-cabecalho {
-  background: #b94a48; }
-
-.tabela-arredondada {
-  border-radius: 10px;
   border-collapse: collapse;
-  -webkit-box-shadow: 0px 0px 0px 1px black;
-  -moz-box-shadow: 0px 0px 0px 1px black;
-  box-shadow: 0px 0px 0px 1px black;
-  border-spacing: 0;
-  width: 100%; }
-  .tabela-arredondada th, .tabela-arredondada td {
+  background: #FFFFFF;
+  border-radius: 10px !important;
+  padding: 5px !important;
+  width: 100%;
+  overflow: hidden; }
+  .tabela-cabecalho table, .tabela-cabecalho th, .tabela-cabecalho td {
+    border: 1px solid black;
     padding: 0.3em; }
-  .tabela-arredondada td + td {
-    border-left: 1px solid; }
-  .tabela-arredondada tr + tr td {
-    border-top: 1px solid; }
 
 /*# sourceMappingURL=cabecalho.css.map */

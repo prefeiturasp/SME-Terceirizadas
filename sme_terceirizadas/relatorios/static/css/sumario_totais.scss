@@ -1,19 +1,19 @@
-table {
+@import "variaveis";
+
+.tabela-sumario-totais {
+  //margin-top: 10px;
+
   caption {
     font-size: 16px;
     line-height: 19px;
     letter-spacing: 0.25px;
-    color: #000000;
+    color: $cor-texto-padrao;
     margin-bottom: 1em;
   }
 
-  thead tr td {
-    padding: 0.7em 0.5em 0.7em 0.5em;
-  }
-
   border-collapse: collapse;
-  background: #FFFFFF;
-  border: 1px solid #000000;
+  background: $branco;
+  border: $borda-tabela-padrao;
   box-sizing: border-box !important;
   border-radius: 10px !important;
   padding: 0.5em 0.5em 0.5em 0.5em;
@@ -31,11 +31,6 @@ table {
 
 }
 
-table, th, td {
-  border: 1px solid black;
-  padding: 0.3em;
-}
-
-.corpo-sumario{
-  padding-top: 2em;
+.sumario-totais {
+  padding: 2em 1em 1em 2em;
 }
