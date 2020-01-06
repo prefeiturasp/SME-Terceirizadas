@@ -5,6 +5,11 @@ from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
+from ...dados_comuns.constants import FILTRO_PADRAO_PEDIDOS, SEM_FILTRO
+from ...paineis_consolidados.api.constants import PESQUISA, TIPO_VISAO, TIPO_VISAO_LOTE, TIPO_VISAO_SOLICITACOES
+from ...paineis_consolidados.api.serializers import SolicitacoesSerializer
+from ..api.constants import FILTRO_PERIOD_UUID_DRE, PENDENTES_VALIDACAO_DRE
+from ..models import SolicitacoesCODAE, SolicitacoesDRE, SolicitacoesEscola, SolicitacoesTerceirizada
 from .constants import (
     AUTORIZADOS,
     CANCELADOS,
@@ -17,11 +22,6 @@ from .constants import (
     QUESTIONAMENTOS,
     RESUMO_MES
 )
-from ..api.constants import FILTRO_PERIOD_UUID_DRE, PENDENTES_VALIDACAO_DRE
-from ..models import SolicitacoesCODAE, SolicitacoesDRE, SolicitacoesEscola, SolicitacoesTerceirizada
-from ...dados_comuns.constants import FILTRO_PADRAO_PEDIDOS, SEM_FILTRO
-from ...paineis_consolidados.api.constants import PESQUISA, TIPO_VISAO, TIPO_VISAO_LOTE, TIPO_VISAO_SOLICITACOES
-from ...paineis_consolidados.api.serializers import SolicitacoesSerializer
 
 
 class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
