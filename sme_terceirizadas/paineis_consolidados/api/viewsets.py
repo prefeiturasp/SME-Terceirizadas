@@ -121,6 +121,14 @@ class CODAESolicitacoesViewSet(SolicitacoesViewSet):
         totais_dict = SolicitacoesCODAE.resumo_totais_mes()
         return Response(totais_dict)
 
+    @action(detail=False, methods=['GET'])
+    def evolucao_solicitacoes(self, request):
+        # TODO: verificar se a pessoa é do lugar certo da codae
+        usuario = request.user
+        query_set = SolicitacoesCODAE.get_solicitacoes_ano_corrente()
+        response = {'results': self._agrupa_por_mes_por_solicitacao(query_set=query_set)}
+        return Response(response)
+
     def _retorno_base(self, query_set):
         page = self.paginate_queryset(query_set)
         serializer = self.get_serializer(page, many=True)
@@ -272,6 +280,14 @@ class DRESolicitacoesViewSet(SolicitacoesViewSet):
             dre_uuid=dre_uuid,
         )
         return Response(totais_dict)
+
+    @action(detail=False, methods=['GET'])
+    def evolucao_solicitacoes(self, request):
+        usuario = request.user
+        dre_uuid = usuario.vinculo_atual.instituicao.uuid
+        query_set = SolicitacoesDRE.get_solicitacoes_ano_corrente(dre_uuid=dre_uuid)
+        response = {'results': self._agrupa_por_mes_por_solicitacao(query_set=query_set)}
+        return Response(response)
 
     def _retorno_base(self, query_set):
         page = self.paginate_queryset(query_set)

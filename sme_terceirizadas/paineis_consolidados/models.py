@@ -41,6 +41,11 @@ class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmiga
     SUSP_ALIMENTACAO = 'SUSP_ALIMENTACAO'
     KIT_LANCHE_UNIFICADA = 'KIT_LANCHE_UNIFICADA'
 
+    AUTORIZADOS = 'AUTORIZADOS'
+    NEGADOS = 'NEGADOS'
+    CANCELADOS = 'CANCELADOS'
+    PENDENTES = 'EM_ANDAMENTO'
+
     uuid = models.UUIDField(editable=False)
     data_evento = models.DateField()
     criado_em = models.DateTimeField()
@@ -157,6 +162,14 @@ class SolicitacoesCODAE(MoldeConsolidado):
     #
     # Filtros consolidados
     #
+
+    @classmethod
+    def get_solicitacoes_ano_corrente(cls, **kwargs):
+        """Usado para geração do gráfico."""
+        return cls.objects.filter(
+            data_evento__year=datetime.date.today().year
+            # TODO: devemos filtrar por data do evento ou data em que foi criado?
+        ).distinct().order_by('-data_log').values('data_evento__month', 'desc_doc')
 
     @classmethod
     def resumo_totais_mes(cls, **kwargs):
@@ -309,22 +322,26 @@ class SolicitacoesEscola(MoldeConsolidado):
 
         if status_solicitacao != cls.TODOS:
             # AUTORIZADOS|NEGADOS|CANCELADOS|EM_ANDAMENTO|TODOS
-            if status_solicitacao == 'AUTORIZADOS':
-                query_set = query_set.filter(status_atual__in=[
-                    PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO,
-                    PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_TOMOU_CIENCIA
-                ])
-            elif status_solicitacao == 'NEGADOS':
-                query_set = query_set.filter(status_atual=PedidoAPartirDaEscolaWorkflow.CODAE_NEGOU_PEDIDO)
-            elif status_solicitacao == 'CANCELADOS':
-                query_set = query_set.filter(status_atual=PedidoAPartirDaEscolaWorkflow.ESCOLA_CANCELOU)
-            elif status_solicitacao == 'EM_ANDAMENTO':
-                query_set = query_set.filter(status_atual__in=[
-                    PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO,
-                    PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR,
-                    PedidoAPartirDaEscolaWorkflow.CODAE_QUESTIONADO,
-                    PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO
-                ])
+            if status_solicitacao == cls.AUTORIZADOS:
+                query_set = query_set.filter(
+                    status_atual__in=cls.AUTORIZADOS_STATUS,
+                    status_evento__in=cls.AUTORIZADOS_EVENTO,
+                )
+            elif status_solicitacao == cls.NEGADOS:
+                query_set = query_set.filter(
+                    status_evento=cls.NEGADOS_EVENTO,
+                    status_atual=cls.NEGADOS_STATUS,
+                )
+            elif status_solicitacao == cls.CANCELADOS:
+                query_set = query_set.filter(
+                    status_evento=cls.CANCELADOS_EVENTO,
+                    status_atual=cls.CANCELADOS_STATUS,
+                )
+            elif status_solicitacao == cls.PENDENTES:
+                query_set = query_set.filter(
+                    status_atual__in=cls.PENDENTES_STATUS,
+                    status_evento__in=cls.PENDENTES_EVENTO
+                )
 
         return query_set.order_by('-criado_em')
 
@@ -469,6 +486,16 @@ class SolicitacoesDRE(MoldeConsolidado):
     #
     # Filtros  consolidados
     #
+
+    @classmethod
+    def get_solicitacoes_ano_corrente(cls, **kwargs):
+        """Usado para geração do gráfico."""
+        dre_uuid = kwargs.get('dre_uuid')
+        return cls.objects.filter(
+            dre_uuid=dre_uuid,
+            data_evento__year=datetime.date.today().year
+            # TODO: devemos filtrar por data do evento ou data em que foi criado?
+        ).distinct().order_by('-data_log').values('data_evento__month', 'desc_doc')
 
     @classmethod
     def resumo_totais_mes(cls, **kwargs):
