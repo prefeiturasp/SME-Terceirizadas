@@ -14,11 +14,11 @@ from ....terceirizada.models import Edital
 from ...api.validators import (
     data_troca_nao_pode_ser_superior_a_data_inversao,
     deve_ser_no_mesmo_ano_corrente,
+    escola_nao_pode_cadastrar_dois_combos_iguais,
+    hora_inicio_nao_pode_ser_maior_que_hora_final,
     nao_pode_existir_solicitacao_igual_para_mesma_escola,
     nao_pode_ter_mais_que_60_dias_diferenca,
     precisa_pertencer_a_um_tipo_de_alimentacao,
-    hora_inicio_nao_pode_ser_maior_que_hora_final,
-    escola_nao_pode_cadastrar_dois_combos_iguais
 )
 from ...models import (
     AlteracaoCardapio,
