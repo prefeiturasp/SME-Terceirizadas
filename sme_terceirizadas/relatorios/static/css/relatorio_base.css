@@ -1,0 +1,11 @@
+@page {
+  size: A4;
+  margin: 0;
+}
+
+
+html, body {
+  font-family: Roboto;
+  margin: 0;
+  padding: 0;
+}

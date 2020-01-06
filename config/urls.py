@@ -18,6 +18,7 @@ from sme_terceirizadas.paineis_consolidados.urls import urlpatterns as paineis_c
 from sme_terceirizadas.perfil.urls import urlpatterns as perfil_urls
 from sme_terceirizadas.terceirizada.urls import urlpatterns as terceirizada_urls
 from sme_terceirizadas.dieta_especial.urls import urlpatterns as dieta_especial_urls
+from sme_terceirizadas.relatorios.urls import urlpatterns as relatorio_urls
 
 env = environ.Env()
 
@@ -45,6 +46,7 @@ urlpatterns += cardapio_urls
 urlpatterns += terceirizada_urls
 urlpatterns += paineis_consolidados_urls
 urlpatterns += dieta_especial_urls
+urlpatterns += relatorio_urls
 
 if settings.DEBUG:
     # This allows the error pages to be debugged during development, just visit
