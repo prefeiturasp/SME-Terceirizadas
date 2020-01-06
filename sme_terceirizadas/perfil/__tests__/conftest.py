@@ -126,12 +126,19 @@ def users_admin_escola(client, django_user_model, request):
 
     diretoria_regional = mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL IPIRANGA',
                                     uuid='7da9acec-48e1-430c-8a5c-1f1efc666fad')
+    cardapio1 = mommy.make('cardapio.Cardapio', data=datetime.date(2019, 10, 11))
+    cardapio2 = mommy.make('cardapio.Cardapio', data=datetime.date(2019, 10, 15))
+    tipo_unidade_escolar = mommy.make('escola.TipoUnidadeEscolar',
+                                      iniciais=f.name()[:10],
+                                      cardapios=[cardapio1, cardapio2],
+                                      uuid='56725de5-89d3-4edf-8633-3e0b5c99e9d4')
     escola = mommy.make('Escola', nome='EMEI NOE AZEVEDO, PROF', quantidade_alunos=420,
                         uuid='b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd', diretoria_regional=diretoria_regional,
-                        codigo_eol='256341')
+                        codigo_eol='256341', tipo_unidade=tipo_unidade_escolar)
     perfil_professor = mommy.make('Perfil', nome='ADMINISTRADOR_ESCOLA', ativo=False)
     perfil_admin = mommy.make('Perfil', nome='Admin', ativo=True, uuid='d6fd15cc-52c6-4db4-b604-018d22eeb3dd')
     hoje = datetime.date.today()
+
     mommy.make('Vinculo', usuario=user, instituicao=escola, perfil=perfil_professor,
                data_inicial=hoje, data_final=hoje + datetime.timedelta(days=30), ativo=False)  # finalizado
     mommy.make('Vinculo', usuario=user, instituicao=escola, perfil=perfil_admin,
@@ -155,9 +162,15 @@ def users_diretor_escola(client, django_user_model, request, usuario_2):
 
     diretoria_regional = mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL IPIRANGA',
                                     uuid='7da9acec-48e1-430c-8a5c-1f1efc666fad')
+    cardapio1 = mommy.make('cardapio.Cardapio', data=datetime.date(2019, 10, 11))
+    cardapio2 = mommy.make('cardapio.Cardapio', data=datetime.date(2019, 10, 15))
+    tipo_unidade_escolar = mommy.make('escola.TipoUnidadeEscolar',
+                                      iniciais=f.name()[:10],
+                                      cardapios=[cardapio1, cardapio2],
+                                      uuid='56725de5-89d3-4edf-8633-3e0b5c99e9d4')
     escola = mommy.make('Escola', nome='EMEI NOE AZEVEDO, PROF', quantidade_alunos=420,
                         uuid='b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd', diretoria_regional=diretoria_regional,
-                        codigo_eol='256341')
+                        codigo_eol='256341', tipo_unidade=tipo_unidade_escolar)
 
     perfil_professor = mommy.make('Perfil', nome='ADMINISTRADOR_ESCOLA', ativo=False,
                                   uuid='48330a6f-c444-4462-971e-476452b328b2')
@@ -320,9 +333,15 @@ def usuarios_pendentes_confirmacao(request, perfil):
 
     diretoria_regional = mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL IPIRANGA',
                                     uuid='7da9acec-48e1-430c-8a5c-1f1efc666fad')
+    cardapio1 = mommy.make('cardapio.Cardapio', data=datetime.date(2019, 10, 11))
+    cardapio2 = mommy.make('cardapio.Cardapio', data=datetime.date(2019, 10, 15))
+    tipo_unidade_escolar = mommy.make('escola.TipoUnidadeEscolar',
+                                      iniciais=f.name()[:10],
+                                      cardapios=[cardapio1, cardapio2],
+                                      uuid='56725de5-89d3-4edf-8633-3e0b5c99e9d4')
     escola = mommy.make('Escola', nome='EMEI NOE AZEVEDO, PROF', quantidade_alunos=420,
                         uuid='b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd', diretoria_regional=diretoria_regional,
-                        codigo_eol='256341')
+                        codigo_eol='256341', tipo_unidade=tipo_unidade_escolar)
 
     mommy.make('Vinculo', perfil=perfil, usuario=usuario, data_inicial=None, data_final=None, ativo=False,
                instituicao=escola)  # vinculo esperando ativacao
