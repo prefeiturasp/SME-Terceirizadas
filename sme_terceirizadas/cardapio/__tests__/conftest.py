@@ -10,6 +10,7 @@ from ...dados_comuns.models import TemplateMensagem
 from ..api.serializers.serializers import (
     AlteracaoCardapioSerializer,
     GrupoSuspensaoAlimentacao,
+    HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolarSerializer,
     InversaoCardapioSerializer,
     MotivoAlteracaoCardapioSerializer,
     QuantidadePorPeriodoSuspensaoAlimentacao,
@@ -19,6 +20,7 @@ from ..api.serializers.serializers import (
 )
 from ..models import (
     AlteracaoCardapio,
+    HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolar,
     InversaoCardapio,
     MotivoAlteracaoCardapio,
     MotivoSuspensao,
@@ -483,3 +485,21 @@ def vinculo_tipo_alimentacao(request):
     return mommy.make('VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar', combos=combos,
                       tipo_unidade_escolar=tipo_unidade_escolar,
                       periodo_escolar=periodo_escolar)
+
+
+@pytest.fixture(params=[
+    # hora inicio, hora fim
+    ('07:00:00', '07:30:00'),
+])
+def horario_combo_tipo_alimentacao(request):
+    hora_inicio, hora_fim = request.param
+    lote = mommy.make('Lote')
+    escola = mommy.make('Escola', lote=lote, nome="EMEF JOAO MENDES")
+    alimentacoes = mommy.make('TipoAlimentacao', _quantity=4)
+    combo = mommy.make('ComboDoVinculoTipoAlimentacaoPeriodoTipoUE', tipos_alimentacao=alimentacoes,
+                       uuid='9fe31f4a-716b-4677-9d7d-2868557cf954')
+    return mommy.make('HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolar',
+                      hora_inicial=hora_inicio,
+                      hora_final=hora_fim,
+                      escola=escola,
+                      combo_tipos_alimentacao=combo)

@@ -7,7 +7,7 @@ from ....dados_comuns.validators import (
     deve_pedir_com_antecedencia,
     nao_pode_ser_feriado,
     nao_pode_ser_no_passado,
-    objeto_nao_deve_ter_duplicidade
+    objeto_nao_deve_ter_duplicidade,
 )
 from ....escola.models import Escola, PeriodoEscolar, TipoUnidadeEscolar
 from ....terceirizada.models import Edital
@@ -16,7 +16,9 @@ from ...api.validators import (
     deve_ser_no_mesmo_ano_corrente,
     nao_pode_existir_solicitacao_igual_para_mesma_escola,
     nao_pode_ter_mais_que_60_dias_diferenca,
-    precisa_pertencer_a_um_tipo_de_alimentacao
+    precisa_pertencer_a_um_tipo_de_alimentacao,
+    hora_inicio_nao_pode_ser_maior_que_hora_final,
+    escola_nao_pode_cadastrar_dois_combos_iguais
 )
 from ...models import (
     AlteracaoCardapio,
@@ -52,6 +54,15 @@ class HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolarSerializerCreate(seriali
         required=True,
         queryset=ComboDoVinculoTipoAlimentacaoPeriodoTipoUE.objects.all()
     )
+
+    def validate(self, attrs):
+        hora_inicial = attrs['hora_inicial']
+        hora_final = attrs['hora_final']
+        escola = attrs['escola']
+        combo_tipos_alimentacao = attrs['combo_tipos_alimentacao']
+        hora_inicio_nao_pode_ser_maior_que_hora_final(hora_inicial, hora_final)
+        escola_nao_pode_cadastrar_dois_combos_iguais(escola, combo_tipos_alimentacao)
+        return attrs
 
     class Meta:
         model = HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolar
