@@ -46,6 +46,8 @@ django-coverage-plugin='==1.6.0'  # https://github.com/nedbat/django_coverage_pl
 pytest-django='==3.4.7'  # https://github.com/pytest-dev/pytest-django
 flower = "==0.9.3"
 isort = "==4.3.21"
+django-compressor = "==2.4"
+libsass = "==0.19.4"
 
 [packages]
 # The psycopg2-binary package is meant for beginners to start playing with
@@ -84,6 +86,9 @@ gunicorn='==19.9.0'  # https://github.com/benoitc/gunicorn
 tornado='==6.0.3'    # http://www.tornadoweb.org/en/stable/
 sentry-sdk = "==0.10.2"
 django-prometheus = "==1.1.0"
+# Relatórios
+weasyprint = "==50"
+django-sass-processor = "==0.8"
 
 [requires]
 python_version = "3.6"
