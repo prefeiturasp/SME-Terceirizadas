@@ -2,7 +2,6 @@ import datetime
 import operator
 
 from django.db import models
-from django.db.models import Q
 
 from ..dados_comuns.behaviors import TemIdentificadorExternoAmigavel, TemPrioridade
 from ..dados_comuns.constants import DAQUI_A_SETE_DIAS, DAQUI_A_TRINTA_DIAS
@@ -197,10 +196,30 @@ class SolicitacoesCODAE(MoldeConsolidado):
 
 
 class SolicitacoesEscola(MoldeConsolidado):
-
     #
     # Filtros padrão
     #
+
+    PENDENTES_STATUS = [PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR,
+                        PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO,
+                        PedidoAPartirDaEscolaWorkflow.CODAE_QUESTIONADO,
+                        PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO,
+                        InformativoPartindoDaEscolaWorkflow.INFORMADO]
+    PENDENTES_EVENTO = [LogSolicitacoesUsuario.INICIO_FLUXO,
+                        LogSolicitacoesUsuario.DRE_VALIDOU,
+                        LogSolicitacoesUsuario.CODAE_QUESTIONOU,
+                        LogSolicitacoesUsuario.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO]
+
+    AUTORIZADOS_STATUS = [PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO,
+                          PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_TOMOU_CIENCIA]
+    AUTORIZADOS_EVENTO = [LogSolicitacoesUsuario.TERCEIRIZADA_TOMOU_CIENCIA,
+                          LogSolicitacoesUsuario.CODAE_AUTORIZOU]
+
+    CANCELADOS_STATUS = PedidoAPartirDaEscolaWorkflow.ESCOLA_CANCELOU
+    CANCELADOS_EVENTO = LogSolicitacoesUsuario.ESCOLA_CANCELOU
+
+    NEGADOS_STATUS = PedidoAPartirDaEscolaWorkflow.CODAE_NEGOU_PEDIDO
+    NEGADOS_EVENTO = LogSolicitacoesUsuario.CODAE_NEGOU
 
     @classmethod
     def get_pendentes_autorizacao(cls, **kwargs):
@@ -208,15 +227,8 @@ class SolicitacoesEscola(MoldeConsolidado):
         return cls.objects.filter(
             escola_uuid=escola_uuid
         ).filter(
-            status_atual__in=[PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR,
-                              PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO,
-                              PedidoAPartirDaEscolaWorkflow.CODAE_QUESTIONADO,
-                              PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO,
-                              InformativoPartindoDaEscolaWorkflow.INFORMADO],
-            status_evento__in=[LogSolicitacoesUsuario.INICIO_FLUXO,
-                               LogSolicitacoesUsuario.DRE_VALIDOU,
-                               LogSolicitacoesUsuario.CODAE_QUESTIONOU,
-                               LogSolicitacoesUsuario.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO]
+            status_atual__in=cls.PENDENTES_STATUS,
+            status_evento__in=cls.PENDENTES_EVENTO
         ).distinct().order_by('-data_log')
 
     @classmethod
@@ -225,18 +237,16 @@ class SolicitacoesEscola(MoldeConsolidado):
         return cls.objects.filter(
             escola_uuid=escola_uuid
         ).filter(
-            Q(status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU,
-              status_atual=PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO) |  # noqa W504
-            Q(status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_TOMOU_CIENCIA,
-              status_atual=PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_TOMOU_CIENCIA)
+            status_atual__in=cls.AUTORIZADOS_STATUS,
+            status_evento__in=cls.AUTORIZADOS_EVENTO,
         ).distinct().order_by('-data_log')
 
     @classmethod
     def get_negados(cls, **kwargs):
         escola_uuid = kwargs.get('escola_uuid')
         return cls.objects.filter(
-            status_evento=LogSolicitacoesUsuario.CODAE_NEGOU,
-            status_atual=PedidoAPartirDaEscolaWorkflow.CODAE_NEGOU_PEDIDO,
+            status_evento=cls.NEGADOS_EVENTO,
+            status_atual=cls.NEGADOS_STATUS,
             escola_uuid=escola_uuid
         ).distinct().order_by('-data_log')
 
@@ -244,8 +254,8 @@ class SolicitacoesEscola(MoldeConsolidado):
     def get_cancelados(cls, **kwargs):
         escola_uuid = kwargs.get('escola_uuid')
         return cls.objects.filter(
-            status_evento=LogSolicitacoesUsuario.ESCOLA_CANCELOU,
-            status_atual=PedidoAPartirDaEscolaWorkflow.ESCOLA_CANCELOU,
+            status_evento=cls.CANCELADOS_EVENTO,
+            status_atual=cls.CANCELADOS_STATUS,
             escola_uuid=escola_uuid
         ).distinct().order_by('-data_log')
 
@@ -301,29 +311,33 @@ class SolicitacoesEscola(MoldeConsolidado):
 
         return query_set.order_by('-criado_em')
 
-    @staticmethod
-    def _conta_autorizados(query_set):
-        return query_set.filter(status_atual__in=[
-            PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO,
-            PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_TOMOU_CIENCIA
-        ]).count()
+    @classmethod
+    def _conta_autorizados(cls, query_set):
+        return query_set.filter(
+            status_atual__in=cls.AUTORIZADOS_STATUS,
+            status_evento__in=cls.AUTORIZADOS_EVENTO,
+        ).count()
 
-    @staticmethod
-    def _conta_negados(query_set):
-        return query_set.filter(status_atual=PedidoAPartirDaEscolaWorkflow.CODAE_NEGOU_PEDIDO).count()
+    @classmethod
+    def _conta_negados(cls, query_set):
+        return query_set.filter(
+            status_evento=cls.NEGADOS_EVENTO,
+            status_atual=cls.NEGADOS_STATUS,
+        ).count()
 
-    @staticmethod
-    def _conta_cancelados(query_set):
-        return query_set.filter(status_atual=PedidoAPartirDaEscolaWorkflow.ESCOLA_CANCELOU).count()
+    @classmethod
+    def _conta_cancelados(cls, query_set):
+        return query_set.filter(
+            status_evento=cls.CANCELADOS_EVENTO,
+            status_atual=cls.CANCELADOS_STATUS,
+        ).count()
 
-    @staticmethod
-    def _conta_pendentes(query_set):
-        return query_set.filter(status_atual__in=[
-            PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO,
-            PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR,
-            PedidoAPartirDaEscolaWorkflow.CODAE_QUESTIONADO,
-            PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO
-        ]).count()
+    @classmethod
+    def _conta_pendentes(cls, query_set):
+        return query_set.filter(
+            status_atual__in=cls.PENDENTES_STATUS,
+            status_evento__in=cls.PENDENTES_EVENTO
+        ).count()
 
     @classmethod
     def resumo_totais_mes(cls, **kwargs):
@@ -357,7 +371,6 @@ class SolicitacoesEscola(MoldeConsolidado):
 
 
 class SolicitacoesDRE(MoldeConsolidado):
-
     #
     # Filtros padrão
     #
