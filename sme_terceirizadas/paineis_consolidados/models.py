@@ -33,6 +33,15 @@ class SolicitacoesDesteMesManager(models.Manager):
 
 
 class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmigavel):
+    TODOS = 'TODOS'
+    ALT_CARDAPIO = 'ALT_CARDAPIO'
+    INV_CARDAPIO = 'INV_CARDAPIO'
+    INC_ALIMENTA = 'INC_ALIMENTA'
+    INC_ALIMENTA_CONTINUA = 'INC_ALIMENTA_CONTINUA'
+    KIT_LANCHE_AVULSA = 'KIT_LANCHE_AVULSA'
+    SUSP_ALIMENTACAO = 'SUSP_ALIMENTACAO'
+    KIT_LANCHE_UNIFICADA = 'KIT_LANCHE_UNIFICADA'
+
     uuid = models.UUIDField(editable=False)
     data_evento = models.DateField()
     criado_em = models.DateTimeField()
@@ -135,6 +144,10 @@ class SolicitacoesCODAE(MoldeConsolidado):
 
 class SolicitacoesEscola(MoldeConsolidado):
 
+    #
+    # Filtros padrão
+    #
+
     @classmethod
     def get_pendentes_autorizacao(cls, **kwargs):
         escola_uuid = kwargs.get('escola_uuid')
@@ -182,13 +195,111 @@ class SolicitacoesEscola(MoldeConsolidado):
             escola_uuid=escola_uuid
         ).distinct().order_by('-data_log')
 
+    #
+    # Filtros consolidados
+    #
+
     @classmethod
     def get_solicitacoes_ano_corrente(cls, **kwargs):
+        """Usado para geração do gráfico."""
         escola_uuid = kwargs.get('escola_uuid')
         return cls.objects.filter(
             escola_uuid=escola_uuid,
             data_evento__year=datetime.date.today().year
+            # TODO: devemos filtrar por data do evento ou data em que foi criado?
         ).distinct().order_by('-data_log').values('data_evento__month', 'desc_doc')
+
+    @classmethod  # noqa C901
+    def filtros_escola(cls, **kwargs):
+        # TODO: melhorar esse código, está complexo.
+        escola_uuid = kwargs.get('escola_uuid')
+        data_inicial = kwargs.get('data_inicial', None)
+        data_final = kwargs.get('data_final', None)
+        tipo_solicitacao = kwargs.get('tipo_solicitacao', cls.TODOS)
+        status_solicitacao = kwargs.get('status_solicitacao', cls.TODOS)
+
+        query_set = cls.objects.filter(
+            escola_uuid=escola_uuid
+        )
+        if data_inicial and data_final:
+            query_set = query_set.filter(criado_em__date__range=(data_inicial, data_final))
+        if tipo_solicitacao != cls.TODOS:
+            query_set = query_set.filter(tipo_doc=tipo_solicitacao)
+
+        if status_solicitacao != cls.TODOS:
+            # AUTORIZADOS|NEGADOS|CANCELADOS|EM_ANDAMENTO|TODOS
+            if status_solicitacao == 'AUTORIZADOS':
+                query_set = query_set.filter(status_atual__in=[
+                    PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO,
+                    PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_TOMOU_CIENCIA
+                ])
+            elif status_solicitacao == 'NEGADOS':
+                query_set = query_set.filter(status_atual=PedidoAPartirDaEscolaWorkflow.CODAE_NEGOU_PEDIDO)
+            elif status_solicitacao == 'CANCELADOS':
+                query_set = query_set.filter(status_atual=PedidoAPartirDaEscolaWorkflow.ESCOLA_CANCELOU)
+            elif status_solicitacao == 'EM_ANDAMENTO':
+                query_set = query_set.filter(status_atual__in=[
+                    PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO,
+                    PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR,
+                    PedidoAPartirDaEscolaWorkflow.CODAE_QUESTIONADO,
+                    PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO
+                ])
+
+        return query_set.order_by('-criado_em')
+
+    @staticmethod
+    def _conta_autorizados(query_set):
+        return query_set.filter(status_atual__in=[
+            PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO,
+            PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_TOMOU_CIENCIA
+        ]).count()
+
+    @staticmethod
+    def _conta_negados(query_set):
+        return query_set.filter(status_atual=PedidoAPartirDaEscolaWorkflow.CODAE_NEGOU_PEDIDO).count()
+
+    @staticmethod
+    def _conta_cancelados(query_set):
+        return query_set.filter(status_atual=PedidoAPartirDaEscolaWorkflow.ESCOLA_CANCELOU).count()
+
+    @staticmethod
+    def _conta_pendentes(query_set):
+        return query_set.filter(status_atual__in=[
+            PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO,
+            PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR,
+            PedidoAPartirDaEscolaWorkflow.CODAE_QUESTIONADO,
+            PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO
+        ]).count()
+
+    @classmethod
+    def resumo_totais_mes(cls, **kwargs):
+        escola_uuid = kwargs.get('escola_uuid')
+        hoje = datetime.date.today()
+        mes_passado = datetime.date(year=hoje.year, month=hoje.month, day=1) - datetime.timedelta(days=1)
+        query_set = cls.objects.filter(
+            escola_uuid=escola_uuid,
+            criado_em__date__year=hoje.year,
+            criado_em__date__month=hoje.month,
+
+        )
+        query_set_mes_passado = cls.objects.filter(
+            escola_uuid=escola_uuid,
+            criado_em__date__year=mes_passado.year,
+            criado_em__date__month=mes_passado.month,
+
+        )
+
+        return dict(
+            total_autorizados=cls._conta_autorizados(query_set),
+            total_negados=cls._conta_negados(query_set),
+            total_cancelados=cls._conta_cancelados(query_set),
+            total_pendentes=cls._conta_pendentes(query_set),
+
+            total_autorizados_mes_passado=cls._conta_autorizados(query_set_mes_passado),
+            total_negados_mes_passado=cls._conta_negados(query_set_mes_passado),
+            total_cancelados_mes_passado=cls._conta_cancelados(query_set_mes_passado),
+            total_pendentes_mes_passado=cls._conta_pendentes(query_set_mes_passado)
+        )
 
 
 class SolicitacoesDRE(MoldeConsolidado):
@@ -328,106 +439,3 @@ class SolicitacoesTerceirizada(MoldeConsolidado):
                                LogSolicitacoesUsuario.INICIO_FLUXO],
             terceirizada_uuid=terceirizada_uuid
         ).distinct('uuid')
-
-
-class FiltrosConsolidados(MoldeConsolidado):
-    TODOS = 'TODOS'
-    ALT_CARDAPIO = 'ALT_CARDAPIO'
-    INV_CARDAPIO = 'INV_CARDAPIO'
-    INC_ALIMENTA = 'INC_ALIMENTA'
-    INC_ALIMENTA_CONTINUA = 'INC_ALIMENTA_CONTINUA'
-    KIT_LANCHE_AVULSA = 'KIT_LANCHE_AVULSA'
-    SUSP_ALIMENTACAO = 'SUSP_ALIMENTACAO'
-    KIT_LANCHE_UNIFICADA = 'KIT_LANCHE_UNIFICADA'
-
-    @classmethod  # noqa C901
-    def filtros_escola(cls, **kwargs):
-        # TODO: melhorar esse código, está complexo.
-        escola_uuid = kwargs.get('escola_uuid')
-        data_inicial = kwargs.get('data_inicial', None)
-        data_final = kwargs.get('data_final', None)
-        tipo_solicitacao = kwargs.get('tipo_solicitacao', cls.TODOS)
-        status_solicitacao = kwargs.get('status_solicitacao', cls.TODOS)
-
-        query_set = cls.objects.filter(
-            escola_uuid=escola_uuid
-        )
-        if data_inicial and data_final:
-            query_set = query_set.filter(criado_em__date__range=(data_inicial, data_final))
-        if tipo_solicitacao != cls.TODOS:
-            query_set = query_set.filter(tipo_doc=tipo_solicitacao)
-
-        if status_solicitacao != cls.TODOS:
-            # AUTORIZADOS|NEGADOS|CANCELADOS|EM_ANDAMENTO|TODOS
-            if status_solicitacao == 'AUTORIZADOS':
-                query_set = query_set.filter(status_atual__in=[
-                    PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO,
-                    PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_TOMOU_CIENCIA
-                ])
-            elif status_solicitacao == 'NEGADOS':
-                query_set = query_set.filter(status_atual=PedidoAPartirDaEscolaWorkflow.CODAE_NEGOU_PEDIDO)
-            elif status_solicitacao == 'CANCELADOS':
-                query_set = query_set.filter(status_atual=PedidoAPartirDaEscolaWorkflow.ESCOLA_CANCELOU)
-            elif status_solicitacao == 'EM_ANDAMENTO':
-                query_set = query_set.filter(status_atual__in=[
-                    PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO,
-                    PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR,
-                    PedidoAPartirDaEscolaWorkflow.CODAE_QUESTIONADO,
-                    PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO
-                ])
-
-        return query_set.order_by('-criado_em')
-
-    @staticmethod
-    def _conta_autorizados(query_set):
-        return query_set.filter(status_atual__in=[
-            PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO,
-            PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_TOMOU_CIENCIA
-        ]).count()
-
-    @staticmethod
-    def _conta_negados(query_set):
-        return query_set.filter(status_atual=PedidoAPartirDaEscolaWorkflow.CODAE_NEGOU_PEDIDO).count()
-
-    @staticmethod
-    def _conta_cancelados(query_set):
-        return query_set.filter(status_atual=PedidoAPartirDaEscolaWorkflow.ESCOLA_CANCELOU).count()
-
-    @staticmethod
-    def _conta_pendentes(query_set):
-        return query_set.filter(status_atual__in=[
-            PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO,
-            PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR,
-            PedidoAPartirDaEscolaWorkflow.CODAE_QUESTIONADO,
-            PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO
-        ]).count()
-
-    @classmethod
-    def resumo_totais_mes(cls, **kwargs):
-        escola_uuid = kwargs.get('escola_uuid')
-        hoje = datetime.date.today()
-        mes_passado = datetime.date(year=hoje.year, month=hoje.month, day=1) - datetime.timedelta(days=1)
-        query_set = cls.objects.filter(
-            escola_uuid=escola_uuid,
-            criado_em__date__year=hoje.year,
-            criado_em__date__month=hoje.month,
-
-        )
-        query_set_mes_passado = cls.objects.filter(
-            escola_uuid=escola_uuid,
-            criado_em__date__year=mes_passado.year,
-            criado_em__date__month=mes_passado.month,
-
-        )
-
-        return dict(
-            total_autorizados=cls._conta_autorizados(query_set),
-            total_negados=cls._conta_negados(query_set),
-            total_cancelados=cls._conta_cancelados(query_set),
-            total_pendentes=cls._conta_pendentes(query_set),
-
-            total_autorizados_mes_passado=cls._conta_autorizados(query_set_mes_passado),
-            total_negados_mes_passado=cls._conta_negados(query_set_mes_passado),
-            total_cancelados_mes_passado=cls._conta_cancelados(query_set_mes_passado),
-            total_pendentes_mes_passado=cls._conta_pendentes(query_set_mes_passado)
-        )
