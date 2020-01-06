@@ -31,7 +31,7 @@ def test_url_endpoint_painel_codae_negados(client_autenticado):
 def test_escola_relatorio_evolucao_solicitacoes(users_diretor_escola):
     client, email, password, rf, cpf, user = users_diretor_escola
     response = client.get(
-        f'/escola-relatorio/evolucao_solicitacoes/')
+        f'/escola-solicitacoes/evolucao_solicitacoes/')
     assert response.status_code == status.HTTP_200_OK
     assert response.json() == {
         'results': {
