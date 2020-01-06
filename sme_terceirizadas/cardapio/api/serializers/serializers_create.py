@@ -7,7 +7,7 @@ from ....dados_comuns.validators import (
     deve_pedir_com_antecedencia,
     nao_pode_ser_feriado,
     nao_pode_ser_no_passado,
-    objeto_nao_deve_ter_duplicidade,
+    objeto_nao_deve_ter_duplicidade
 )
 from ....escola.models import Escola, PeriodoEscolar, TipoUnidadeEscolar
 from ....terceirizada.models import Edital
@@ -18,7 +18,7 @@ from ...api.validators import (
     hora_inicio_nao_pode_ser_maior_que_hora_final,
     nao_pode_existir_solicitacao_igual_para_mesma_escola,
     nao_pode_ter_mais_que_60_dias_diferenca,
-    precisa_pertencer_a_um_tipo_de_alimentacao,
+    precisa_pertencer_a_um_tipo_de_alimentacao
 )
 from ...models import (
     AlteracaoCardapio,
