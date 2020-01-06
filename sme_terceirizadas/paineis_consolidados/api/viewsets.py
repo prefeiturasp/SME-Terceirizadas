@@ -261,6 +261,18 @@ class DRESolicitacoesViewSet(SolicitacoesViewSet):
         query_set = SolicitacoesDRE.get_cancelados(dre_uuid=dre_uuid)
         return self._retorno_base(query_set)
 
+    @action(
+        detail=False,
+        methods=['GET'],
+        url_path=f'{RESUMO_MES}')
+    def resumo_mes(self, request):
+        usuario = request.user
+        dre_uuid = usuario.vinculo_atual.instituicao.uuid
+        totais_dict = SolicitacoesDRE.resumo_totais_mes(
+            dre_uuid=dre_uuid,
+        )
+        return Response(totais_dict)
+
     def _retorno_base(self, query_set):
         page = self.paginate_queryset(query_set)
         serializer = self.get_serializer(page, many=True)
