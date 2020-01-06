@@ -100,9 +100,11 @@ class SolicitacoesCODAE(MoldeConsolidado):
         manager = cls._get_manager(kwargs)
         return manager.filter(
             status_evento__in=[LogSolicitacoesUsuario.DRE_VALIDOU,
-                               LogSolicitacoesUsuario.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO],
+                               LogSolicitacoesUsuario.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO,
+                               LogSolicitacoesUsuario.INICIO_FLUXO],
             status_atual__in=[PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO,
-                              PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO]
+                              PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO,
+                              PedidoAPartirDaDiretoriaRegionalWorkflow.CODAE_A_AUTORIZAR]
         ).distinct().order_by('-data_log')
 
     @classmethod
