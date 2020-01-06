@@ -183,11 +183,13 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
             methods=['patch'], url_path=constants.CODAE_AUTORIZA_PEDIDO)
     def codae_autoriza_pedido(self, request, uuid=None):
         solicitacao_kit_lanche_avulsa = self.get_object()
+        justificativa = request.data.get('justificativa', '')
         try:
             if solicitacao_kit_lanche_avulsa.status == solicitacao_kit_lanche_avulsa.workflow_class.DRE_VALIDADO:
                 solicitacao_kit_lanche_avulsa.codae_autoriza(user=request.user)
             else:
-                solicitacao_kit_lanche_avulsa.codae_autoriza_questionamento(user=request.user)
+                solicitacao_kit_lanche_avulsa.codae_autoriza_questionamento(user=request.user,
+                                                                            justificativa=justificativa)
             serializer = self.get_serializer(solicitacao_kit_lanche_avulsa)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -336,11 +338,12 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
             permission_classes=[PodeIniciarSolicitacaoUnificadaPermission], methods=['patch'])
     def codae_autoriza(self, request, uuid=None):
         solicitacao_unificada = self.get_object()
+        justificativa = request.data.get('justificativa', '')
         try:
             if solicitacao_unificada.status == solicitacao_unificada.workflow_class.CODAE_A_AUTORIZAR:
                 solicitacao_unificada.codae_autoriza(user=request.user)
             else:
-                solicitacao_unificada.codae_autoriza_questionamento(user=request.user)
+                solicitacao_unificada.codae_autoriza_questionamento(user=request.user, justificativa=justificativa)
             serializer = self.get_serializer(solicitacao_unificada)
             return Response(serializer.data)
         except InvalidTransitionError as e:

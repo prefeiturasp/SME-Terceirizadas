@@ -2,21 +2,21 @@ from rest_framework import serializers, status
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
-from .validators import (
-    deve_ter_mesmo_cpf,
-    registro_funcional_e_cpf_sao_da_mesma_pessoa,
-    senha_deve_ser_igual_confirmar_senha,
-    terceirizada_tem_esse_cnpj,
-    usuario_e_das_terceirizadas,
-    usuario_pode_efetuar_cadastro
-)
-from ..models import Perfil, Usuario, Vinculo
 from ...dados_comuns.constants import ADMINISTRADOR_TERCEIRIZADA, NUTRI_ADMIN_RESPONSAVEL
 from ...dados_comuns.models import Contato
 from ...dados_comuns.tasks import envia_email_unico_task
 from ...eol_servico.utils import EolException, get_informacoes_usuario
 from ...escola.api.validators import usuario_e_vinculado_a_aquela_instituicao, usuario_nao_possui_vinculo_valido
+from ...perfil.api.validators import usuario_e_das_terceirizadas
 from ...terceirizada.models import Terceirizada
+from ..models import Perfil, Usuario, Vinculo
+from .validators import (
+    deve_ter_mesmo_cpf,
+    registro_funcional_e_cpf_sao_da_mesma_pessoa,
+    senha_deve_ser_igual_confirmar_senha,
+    terceirizada_tem_esse_cnpj,
+    usuario_pode_efetuar_cadastro
+)
 
 
 class PerfilSimplesSerializer(serializers.ModelSerializer):
@@ -115,6 +115,7 @@ class UsuarioUpdateSerializer(serializers.ModelSerializer):
             usuario.criar_vinculo_administrador(terceirizada, nome_perfil=nome_perfil)
             usuario.enviar_email_administrador()
         else:
+            # TODO: não deve estar aqui esse método envia_email_unico_task() Remover.
             if ja_e_administrador and not validated_data.get('super_admin_terceirizadas'):
                 envia_email_unico_task.delay(
                     assunto='[SIGPAE] Alteração de funcionalidade',

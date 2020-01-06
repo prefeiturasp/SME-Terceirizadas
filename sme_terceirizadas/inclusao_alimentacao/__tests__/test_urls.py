@@ -11,7 +11,7 @@ from ...dados_comuns.constants import (
     DRE_VALIDA_PEDIDO,
     ESCOLA_CANCELA,
     TERCEIRIZADA_RESPONDE_QUESTIONAMENTO,
-    TERCEIRIZADA_TOMOU_CIENCIA,
+    TERCEIRIZADA_TOMOU_CIENCIA
 )
 from ...dados_comuns.fluxo_status import PedidoAPartirDaEscolaWorkflow
 

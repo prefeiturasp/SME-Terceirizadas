@@ -87,6 +87,7 @@ THIRD_PARTY_APPS = [
     'des',  # for email configuration in database
     'django_xworkflows',
     'simple_email_confirmation',
+    'sass_processor'
 ]
 LOCAL_APPS = [
     'sme_terceirizadas.perfil.apps.PerfilConfig',
@@ -98,6 +99,7 @@ LOCAL_APPS = [
     'sme_terceirizadas.terceirizada.apps.TerceirizadaConfig',
     'sme_terceirizadas.paineis_consolidados.apps.PaineisConsolidadosConfig',
     'sme_terceirizadas.dieta_especial.apps.DietaEspecialConfig',
+    'sme_terceirizadas.relatorios.apps.RelatoriosConfig',
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -172,7 +174,7 @@ MIDDLEWARE = [
 # https://docs.djangoproject.com/en/dev/ref/settings/#static-root
 STATIC_ROOT = str(ROOT_DIR('staticfiles'))
 # https://docs.djangoproject.com/en/dev/ref/settings/#static-url
-STATIC_URL = '/django_static/'
+STATIC_URL = '/static/'
 # https://docs.djangoproject.com/en/dev/ref/contrib/staticfiles/#std:setting-STATICFILES_DIRS
 STATICFILES_DIRS = [
     str(APPS_DIR.path('static')),
@@ -181,8 +183,8 @@ STATICFILES_DIRS = [
 STATICFILES_FINDERS = [
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+    'sass_processor.finders.CssFinder',
 ]
-
 # MEDIA
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#media-root
