@@ -337,7 +337,10 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
     def codae_autoriza(self, request, uuid=None):
         solicitacao_unificada = self.get_object()
         try:
-            solicitacao_unificada.codae_autoriza(user=request.user, )
+            if solicitacao_unificada.status == solicitacao_unificada.workflow_class.CODAE_A_AUTORIZAR:
+                solicitacao_unificada.codae_autoriza(user=request.user)
+            else:
+                solicitacao_unificada.codae_autoriza_questionamento(user=request.user)
             serializer = self.get_serializer(solicitacao_unificada)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -349,7 +352,25 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
         solicitacao_unificada = self.get_object()
         justificativa = request.data.get('justificativa', '')
         try:
-            solicitacao_unificada.codae_nega(user=request.user, justificativa=justificativa)
+            if solicitacao_unificada.status == solicitacao_unificada.workflow_class.CODAE_A_AUTORIZAR:
+                solicitacao_unificada.codae_nega(user=request.user, justificativa=justificativa)
+            else:
+                solicitacao_unificada.codae_nega_questionamento(user=request.user, justificativa=justificativa)
+            serializer = self.get_serializer(solicitacao_unificada)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, permission_classes=[PodeIniciarSolicitacaoUnificadaPermission],
+            methods=['patch'], url_path=constants.CODAE_QUESTIONA_PEDIDO)
+    def codae_questiona_pedido(self, request, uuid=None):
+        solicitacao_unificada = self.get_object()
+        observacao_questionamento_codae = request.data.get('observacao_questionamento_codae', '')
+        try:
+            solicitacao_unificada.codae_questiona(
+                user=request.user,
+                justificativa=observacao_questionamento_codae
+            )
             serializer = self.get_serializer(solicitacao_unificada)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -361,6 +382,21 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
         solicitacao_unificada = self.get_object()
         try:
             solicitacao_unificada.terceirizada_toma_ciencia(user=request.user, )
+            serializer = self.get_serializer(solicitacao_unificada)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, permission_classes=[PodeIniciarSolicitacaoUnificadaPermission],
+            methods=['patch'], url_path=constants.TERCEIRIZADA_RESPONDE_QUESTIONAMENTO)
+    def terceirizada_responde_questionamento(self, request, uuid=None):
+        solicitacao_unificada = self.get_object()
+        justificativa = request.data.get('justificativa', '')
+        resposta_sim_nao = request.data.get('resposta_sim_nao', False)
+        try:
+            solicitacao_unificada.terceirizada_responde_questionamento(user=request.user,
+                                                                       justificativa=justificativa,
+                                                                       resposta_sim_nao=resposta_sim_nao)
             serializer = self.get_serializer(solicitacao_unificada)
             return Response(serializer.data)
         except InvalidTransitionError as e:

@@ -130,10 +130,10 @@ def users_diretor_escola(client, django_user_model, request, escola, templates, 
 
 @pytest.fixture(params=[
     # data evento
-    (datetime.date(2019, 10, 1)),
-    (datetime.date(2019, 10, 2)),
-    (datetime.date(2019, 10, 29)),
-    (datetime.date(2019, 10, 30))
+    (datetime.date(datetime.datetime.now().year, 10, 1)),
+    (datetime.date(datetime.datetime.now().year, 10, 2)),
+    (datetime.date(datetime.datetime.now().year, 10, 29)),
+    (datetime.date(datetime.datetime.now().year, 10, 30))
 ])
 def solicitacoes_escola_params(escola, request):
     data_evento = request.param

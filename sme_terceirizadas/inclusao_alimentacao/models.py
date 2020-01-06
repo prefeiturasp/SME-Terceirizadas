@@ -119,13 +119,15 @@ class InclusaoAlimentacaoContinua(ExportModelOperationsMixin('inclusao_continua'
 
     def salvar_log_transicao(self, status_evento, usuario, **kwargs):
         justificativa = kwargs.get('justificativa', '')
+        resposta_sim_nao = kwargs.get('resposta_sim_nao', False)
         LogSolicitacoesUsuario.objects.create(
             descricao=str(self),
             status_evento=status_evento,
             solicitacao_tipo=LogSolicitacoesUsuario.INCLUSAO_ALIMENTACAO_CONTINUA,
             usuario=usuario,
             uuid_original=self.uuid,
-            justificativa=justificativa
+            justificativa=justificativa,
+            resposta_sim_nao=resposta_sim_nao
         )
 
     def __str__(self):
@@ -213,13 +215,15 @@ class GrupoInclusaoAlimentacaoNormal(ExportModelOperationsMixin('grupo_inclusao'
 
     def salvar_log_transicao(self, status_evento, usuario, **kwargs):
         justificativa = kwargs.get('justificativa', '')
+        resposta_sim_nao = kwargs.get('resposta_sim_nao', False)
         LogSolicitacoesUsuario.objects.create(
             descricao=str(self),
             status_evento=status_evento,
             solicitacao_tipo=LogSolicitacoesUsuario.INCLUSAO_ALIMENTACAO_NORMAL,
             usuario=usuario,
             uuid_original=self.uuid,
-            justificativa=justificativa
+            justificativa=justificativa,
+            resposta_sim_nao=resposta_sim_nao
         )
 
     @property
