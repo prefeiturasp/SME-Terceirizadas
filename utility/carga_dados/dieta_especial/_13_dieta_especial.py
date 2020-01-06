@@ -39,8 +39,8 @@ def cria_classificacoes_dieta():
 
 def cria_tipos_dieta():
     descricoes = [
-        ['IL + Gluten (suco de fruta)'],
-        ['Diabetes Mellitus'],
+        'IL + Gluten (suco de fruta)',
+        'Diabetes Mellitus',
     ]
     for descricao in descricoes:
         print(f'TipoDieta(descricao={descricao})')
