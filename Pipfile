@@ -48,6 +48,7 @@ flower = "==0.9.3"
 isort = "==4.3.21"
 django-compressor = "==2.4"
 libsass = "==0.19.4"
+flake8-isort = "==2.8.0"
 
 [packages]
 # The psycopg2-binary package is meant for beginners to start playing with

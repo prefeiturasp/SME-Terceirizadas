@@ -9,13 +9,7 @@ from ...dados_comuns.constants import FILTRO_PADRAO_PEDIDOS, SEM_FILTRO
 from ...paineis_consolidados.api.constants import PESQUISA, TIPO_VISAO, TIPO_VISAO_LOTE, TIPO_VISAO_SOLICITACOES
 from ...paineis_consolidados.api.serializers import SolicitacoesSerializer
 from ..api.constants import FILTRO_PERIOD_UUID_DRE, PENDENTES_VALIDACAO_DRE
-from ..models import (
-    FiltrosConsolidados,
-    SolicitacoesCODAE,
-    SolicitacoesDRE,
-    SolicitacoesEscola,
-    SolicitacoesTerceirizada
-)
+from ..models import SolicitacoesCODAE, SolicitacoesDRE, SolicitacoesEscola, SolicitacoesTerceirizada
 from .constants import (
     AUTORIZADOS,
     CANCELADOS,
@@ -149,11 +143,13 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
         query_set = SolicitacoesEscola.get_cancelados(escola_uuid=escola_uuid)
         return self._retorno_base(query_set)
 
-    def _retorna_data_ou_falso(self, date_text):
-        try:
-            return datetime.datetime.strptime(date_text, '%d-%m-%Y')
-        except ValueError:
-            return False
+    @action(detail=False, methods=['GET'])
+    def evolucao_solicitacoes(self, request):
+        usuario = request.user
+        escola_uuid = usuario.vinculo_atual.instituicao.uuid
+        query_set = SolicitacoesEscola.get_solicitacoes_ano_corrente(escola_uuid=escola_uuid)
+        response = {'results': self._agrupa_por_mes_por_solicitacao(query_set=query_set)}
+        return Response(response)
 
     @action(
         detail=False,
@@ -162,7 +158,7 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
     def resumo_mes(self, request):
         usuario = request.user
         escola_uuid = usuario.vinculo_atual.instituicao.uuid
-        totais_dict = FiltrosConsolidados.resumo_totais_mes(
+        totais_dict = SolicitacoesEscola.resumo_totais_mes(
             escola_uuid=escola_uuid,
         )
         return Response(totais_dict)
@@ -204,7 +200,7 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
         if not parametros_validos:
             return Response(data={'detail': 'Parâmetros de busca inválidos'}, status=400)
 
-        query_set = FiltrosConsolidados.filtros_escola(
+        query_set = SolicitacoesEscola.filtros_escola(
             escola_uuid=escola_uuid,
             data_inicial=data_inicial,
             data_final=data_final,
@@ -214,23 +210,16 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
 
         return self._retorno_base(query_set)
 
+    def _retorna_data_ou_falso(self, date_text):
+        try:
+            return datetime.datetime.strptime(date_text, '%d-%m-%Y')
+        except ValueError:
+            return False
+
     def _retorno_base(self, query_set):
         page = self.paginate_queryset(query_set)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
-
-
-class EscolaRelatorioViewSet(SolicitacoesViewSet):
-    queryset = SolicitacoesEscola.objects.all()
-    serializer_class = SolicitacoesSerializer
-
-    @action(detail=False, methods=['GET'])
-    def evolucao_solicitacoes(self, request):
-        usuario = request.user
-        escola_uuid = usuario.vinculo_atual.instituicao.uuid
-        query_set = SolicitacoesEscola.get_solicitacoes_ano_corrente(escola_uuid=escola_uuid)
-        response = {'results': self._agrupa_por_mes_por_solicitacao(query_set=query_set)}
-        return Response(response)
 
 
 class DRESolicitacoesViewSet(SolicitacoesViewSet):
