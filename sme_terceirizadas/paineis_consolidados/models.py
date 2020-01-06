@@ -362,23 +362,45 @@ class SolicitacoesDRE(MoldeConsolidado):
     # Filtros padrão
     #
 
+    PENDENTES_STATUS = [PedidoAPartirDaDiretoriaRegionalWorkflow.CODAE_A_AUTORIZAR,
+                        PedidoAPartirDaEscolaWorkflow.CODAE_QUESTIONADO,
+                        PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO,
+                        PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO]
+    PENDENTES_EVENTO = [LogSolicitacoesUsuario.DRE_VALIDOU,
+                        LogSolicitacoesUsuario.INICIO_FLUXO,
+                        LogSolicitacoesUsuario.CODAE_QUESTIONOU,
+                        LogSolicitacoesUsuario.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO]
+
+    AUTORIZADOS_STATUS = [PedidoAPartirDaDiretoriaRegionalWorkflow.CODAE_AUTORIZADO,
+                          PedidoAPartirDaDiretoriaRegionalWorkflow.TERCEIRIZADA_TOMOU_CIENCIA,
+                          PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO,
+                          PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_TOMOU_CIENCIA]
+    AUTORIZADOS_EVENTO = [LogSolicitacoesUsuario.CODAE_AUTORIZOU,
+                          LogSolicitacoesUsuario.TERCEIRIZADA_TOMOU_CIENCIA]
+
+    CANCELADOS_STATUS = [PedidoAPartirDaDiretoriaRegionalWorkflow.DRE_CANCELOU,
+                         PedidoAPartirDaEscolaWorkflow.ESCOLA_CANCELOU]
+    CANCELADOS_EVENTO = [LogSolicitacoesUsuario.DRE_CANCELOU,
+                         LogSolicitacoesUsuario.ESCOLA_CANCELOU]
+
+    NEGADOS_STATUS = [PedidoAPartirDaDiretoriaRegionalWorkflow.CODAE_NEGOU_PEDIDO,
+                      PedidoAPartirDaEscolaWorkflow.CODAE_NEGOU_PEDIDO,
+                      PedidoAPartirDaEscolaWorkflow.DRE_NAO_VALIDOU_PEDIDO_ESCOLA]
+    NEGADOS_EVENTO = [LogSolicitacoesUsuario.CODAE_NEGOU,
+                      LogSolicitacoesUsuario.DRE_NAO_VALIDOU]
+
     @classmethod
     def get_pendentes_autorizacao(cls, **kwargs):
         dre_uuid = kwargs.get('dre_uuid')
         return cls.objects.filter(
-            status_atual__in=[PedidoAPartirDaDiretoriaRegionalWorkflow.CODAE_A_AUTORIZAR,
-                              PedidoAPartirDaEscolaWorkflow.CODAE_QUESTIONADO,
-                              PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO,
-                              PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO],
-            status_evento__in=[LogSolicitacoesUsuario.DRE_VALIDOU,
-                               LogSolicitacoesUsuario.INICIO_FLUXO,
-                               LogSolicitacoesUsuario.CODAE_QUESTIONOU,
-                               LogSolicitacoesUsuario.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO],
+            status_atual__in=cls.PENDENTES_STATUS,
+            status_evento__in=cls.PENDENTES_EVENTO,
             dre_uuid=dre_uuid
         ).distinct().order_by('-data_log')
 
     @classmethod
     def get_pendentes_validacao(cls, **kwargs):
+        # TODO: verificar se esse metodo esta realmente sendo usado pelo front.
         dre_uuid = kwargs.get('dre_uuid')
         manager = cls._get_manager(kwargs)
         return manager.filter(
@@ -391,12 +413,8 @@ class SolicitacoesDRE(MoldeConsolidado):
     def get_autorizados(cls, **kwargs):
         dre_uuid = kwargs.get('dre_uuid')
         return cls.objects.filter(
-            status_evento__in=[LogSolicitacoesUsuario.CODAE_AUTORIZOU,
-                               LogSolicitacoesUsuario.TERCEIRIZADA_TOMOU_CIENCIA],
-            status_atual__in=[PedidoAPartirDaDiretoriaRegionalWorkflow.CODAE_AUTORIZADO,
-                              PedidoAPartirDaDiretoriaRegionalWorkflow.TERCEIRIZADA_TOMOU_CIENCIA,
-                              PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO,
-                              PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_TOMOU_CIENCIA],
+            status_evento__in=cls.AUTORIZADOS_EVENTO,
+            status_atual__in=cls.AUTORIZADOS_STATUS,
             dre_uuid=dre_uuid
         ).distinct().order_by('-data_log')
 
@@ -404,11 +422,8 @@ class SolicitacoesDRE(MoldeConsolidado):
     def get_negados(cls, **kwargs):
         dre_uuid = kwargs.get('dre_uuid')
         return cls.objects.filter(
-            status_evento__in=[LogSolicitacoesUsuario.CODAE_NEGOU,
-                               LogSolicitacoesUsuario.DRE_NAO_VALIDOU],
-            status_atual__in=[PedidoAPartirDaDiretoriaRegionalWorkflow.CODAE_NEGOU_PEDIDO,
-                              PedidoAPartirDaEscolaWorkflow.CODAE_NEGOU_PEDIDO,
-                              PedidoAPartirDaEscolaWorkflow.DRE_NAO_VALIDOU_PEDIDO_ESCOLA, ],
+            status_evento__in=cls.NEGADOS_EVENTO,
+            status_atual__in=cls.NEGADOS_STATUS,
             dre_uuid=dre_uuid
         ).distinct().order_by('-data_log')
 
@@ -416,10 +431,8 @@ class SolicitacoesDRE(MoldeConsolidado):
     def get_cancelados(cls, **kwargs):
         dre_uuid = kwargs.get('dre_uuid')
         return cls.objects.filter(
-            status_evento__in=[LogSolicitacoesUsuario.DRE_CANCELOU,
-                               LogSolicitacoesUsuario.ESCOLA_CANCELOU],
-            status_atual__in=[PedidoAPartirDaDiretoriaRegionalWorkflow.DRE_CANCELOU,
-                              PedidoAPartirDaEscolaWorkflow.ESCOLA_CANCELOU],
+            status_evento__in=cls.CANCELADOS_EVENTO,
+            status_atual__in=cls.CANCELADOS_STATUS,
             dre_uuid=dre_uuid
         ).distinct().order_by('-data_log')
 
@@ -457,29 +470,33 @@ class SolicitacoesDRE(MoldeConsolidado):
             total_pendentes_mes_passado=cls._conta_pendentes(query_set_mes_passado)
         )
 
-    @staticmethod
-    def _conta_autorizados(query_set):
-        return query_set.filter(status_atual__in=[
-            PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO,
-            PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_TOMOU_CIENCIA
-        ]).count()
+    @classmethod
+    def _conta_autorizados(cls, query_set):
+        return query_set.filter(
+            status_evento__in=cls.AUTORIZADOS_EVENTO,
+            status_atual__in=cls.AUTORIZADOS_STATUS
+        ).count()
 
-    @staticmethod
-    def _conta_negados(query_set):
-        return query_set.filter(status_atual=PedidoAPartirDaEscolaWorkflow.CODAE_NEGOU_PEDIDO).count()
+    @classmethod
+    def _conta_negados(cls, query_set):
+        return query_set.filter(
+            status_evento__in=cls.NEGADOS_EVENTO,
+            status_atual__in=cls.NEGADOS_STATUS,
+        ).count()
 
-    @staticmethod
-    def _conta_cancelados(query_set):
-        return query_set.filter(status_atual=PedidoAPartirDaEscolaWorkflow.ESCOLA_CANCELOU).count()
+    @classmethod
+    def _conta_cancelados(cls, query_set):
+        return query_set.filter(
+            status_evento__in=cls.CANCELADOS_EVENTO,
+            status_atual__in=cls.CANCELADOS_STATUS,
+        ).count()
 
-    @staticmethod
-    def _conta_pendentes(query_set):
-        return query_set.filter(status_atual__in=[
-            PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO,
-            PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR,
-            PedidoAPartirDaEscolaWorkflow.CODAE_QUESTIONADO,
-            PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO
-        ]).count()
+    @classmethod
+    def _conta_pendentes(cls, query_set):
+        return query_set.filter(
+            status_atual__in=cls.PENDENTES_STATUS,
+            status_evento__in=cls.PENDENTES_EVENTO,
+        ).count()
 
 
 # TODO: voltar quando tiver o Rastro implementado
