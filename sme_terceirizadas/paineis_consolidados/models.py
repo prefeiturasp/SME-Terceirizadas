@@ -104,13 +104,16 @@ class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmiga
 
 class SolicitacoesCODAE(MoldeConsolidado):
 
+    #
+    # Filtros padrão
+    #
+
     @classmethod
     def get_pendentes_autorizacao(cls, **kwargs):
         manager = cls._get_manager(kwargs)
         return manager.filter(
             status_evento__in=[LogSolicitacoesUsuario.DRE_VALIDOU,
-                               LogSolicitacoesUsuario.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO,
-                               LogSolicitacoesUsuario.INICIO_FLUXO],
+                               LogSolicitacoesUsuario.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO],
             status_atual__in=[PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO,
                               PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO,
                               PedidoAPartirDaDiretoriaRegionalWorkflow.CODAE_A_AUTORIZAR]
@@ -140,6 +143,57 @@ class SolicitacoesCODAE(MoldeConsolidado):
             status_atual__in=[PedidoAPartirDaEscolaWorkflow.ESCOLA_CANCELOU,
                               PedidoAPartirDaDiretoriaRegionalWorkflow.DRE_CANCELOU],
         ).distinct().order_by('-data_log')
+
+    #
+    # Filtros consolidados
+    #
+
+    @classmethod
+    def resumo_totais_mes(cls, **kwargs):
+        hoje = datetime.date.today()
+        mes_passado = datetime.date(year=hoje.year, month=hoje.month, day=1) - datetime.timedelta(days=1)
+        query_set = cls.objects.filter(
+            criado_em__date__year=hoje.year,
+            criado_em__date__month=hoje.month,
+        )
+        query_set_mes_passado = cls.objects.filter(
+            criado_em__date__year=mes_passado.year,
+            criado_em__date__month=mes_passado.month,
+        )
+
+        return dict(
+            total_autorizados=cls._conta_autorizados(query_set),
+            total_negados=cls._conta_negados(query_set),
+            total_cancelados=cls._conta_cancelados(query_set),
+            total_pendentes=cls._conta_pendentes(query_set),
+
+            total_autorizados_mes_passado=cls._conta_autorizados(query_set_mes_passado),
+            total_negados_mes_passado=cls._conta_negados(query_set_mes_passado),
+            total_cancelados_mes_passado=cls._conta_cancelados(query_set_mes_passado),
+            total_pendentes_mes_passado=cls._conta_pendentes(query_set_mes_passado)
+        )
+
+    @staticmethod
+    def _conta_autorizados(query_set):
+        return query_set.filter(status_atual__in=[
+            PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO,
+            PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_TOMOU_CIENCIA
+        ]).count()
+
+    @staticmethod
+    def _conta_negados(query_set):
+        return query_set.filter(status_atual=PedidoAPartirDaEscolaWorkflow.CODAE_NEGOU_PEDIDO).count()
+
+    @staticmethod
+    def _conta_cancelados(query_set):
+        return query_set.filter(status_atual=PedidoAPartirDaEscolaWorkflow.ESCOLA_CANCELOU).count()
+
+    @staticmethod
+    def _conta_pendentes(query_set):
+        return query_set.filter(status_atual__in=[
+            PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO,
+            PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO,
+            PedidoAPartirDaDiretoriaRegionalWorkflow.CODAE_A_AUTORIZAR]).count()
 
 
 class SolicitacoesEscola(MoldeConsolidado):

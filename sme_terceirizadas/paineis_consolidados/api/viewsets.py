@@ -5,11 +5,6 @@ from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from ...dados_comuns.constants import FILTRO_PADRAO_PEDIDOS, SEM_FILTRO
-from ...paineis_consolidados.api.constants import PESQUISA, TIPO_VISAO, TIPO_VISAO_LOTE, TIPO_VISAO_SOLICITACOES
-from ...paineis_consolidados.api.serializers import SolicitacoesSerializer
-from ..api.constants import FILTRO_PERIOD_UUID_DRE, PENDENTES_VALIDACAO_DRE
-from ..models import SolicitacoesCODAE, SolicitacoesDRE, SolicitacoesEscola, SolicitacoesTerceirizada
 from .constants import (
     AUTORIZADOS,
     CANCELADOS,
@@ -22,6 +17,11 @@ from .constants import (
     QUESTIONAMENTOS,
     RESUMO_MES
 )
+from ..api.constants import FILTRO_PERIOD_UUID_DRE, PENDENTES_VALIDACAO_DRE
+from ..models import SolicitacoesCODAE, SolicitacoesDRE, SolicitacoesEscola, SolicitacoesTerceirizada
+from ...dados_comuns.constants import FILTRO_PADRAO_PEDIDOS, SEM_FILTRO
+from ...paineis_consolidados.api.constants import PESQUISA, TIPO_VISAO, TIPO_VISAO_LOTE, TIPO_VISAO_SOLICITACOES
+from ...paineis_consolidados.api.serializers import SolicitacoesSerializer
 
 
 class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
@@ -111,6 +111,15 @@ class CODAESolicitacoesViewSet(SolicitacoesViewSet):
     def cancelados(self, request):
         query_set = SolicitacoesCODAE.get_cancelados()
         return self._retorno_base(query_set)
+
+    @action(
+        detail=False,
+        methods=['GET'],
+        url_path=f'{RESUMO_MES}')
+    def resumo_mes(self, request):
+        # TODO: deve ter um permission class se a pessoa é da CODAE
+        totais_dict = SolicitacoesCODAE.resumo_totais_mes()
+        return Response(totais_dict)
 
     def _retorno_base(self, query_set):
         page = self.paginate_queryset(query_set)
