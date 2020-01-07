@@ -78,6 +78,10 @@ class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
             'Kit Lanche Passeio': {
                 'quantidades': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                 'total': 0
+            },
+            'Kit Lanche Passeio Unificado': {
+                'quantidades': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                'total': 0
             }
         }  # type: dict
         for solicitacao in query_set:
@@ -242,8 +246,8 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
     @action(
         detail=False,
         methods=['GET'],
-        url_path=f'{PESQUISA}/{FILTRO_ESCOLA_UUID}')
-    def filtro_periodo_tipo_solicitacao(self, request, escola_uuid=None):
+        url_path=f'{PESQUISA}')
+    def filtro_periodo_tipo_solicitacao(self, request):
         # TODO: achar um jeito melhor de validar os parametros da url
         """Filtro de todas as solicitações da escola.
 
@@ -255,6 +259,8 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
         data_final -- dd-mm-yyyy
         """
         request_params = request.GET
+        usuario = request.user
+        escola_uuid = usuario.vinculo_atual.instituicao.uuid
         tipo_solicitacao = request_params.get('tipo_solicitacao', 'INVALIDO')
         status_solicitacao = request_params.get('status_solicitacao', 'INVALIDO')
         data_inicial = request_params.get('data_inicial', 'INVALIDO')
@@ -332,8 +338,8 @@ class DRESolicitacoesViewSet(SolicitacoesViewSet):
     @action(
         detail=False,
         methods=['GET'],
-        url_path=f'{PESQUISA}/{FILTRO_DRE_UUID}/{FILTRO_ESCOLA_UUID}')
-    def filtro_periodo_tipo_solicitacao(self, request, escola_uuid=None, dre_uuid=None):
+        url_path=f'{PESQUISA}/{FILTRO_ESCOLA_UUID}')
+    def filtro_periodo_tipo_solicitacao(self, request, escola_uuid=None):
         # TODO: achar um jeito melhor de validar os parametros da url
         """Filtro de todas as solicitações da dre.
 
@@ -345,6 +351,8 @@ class DRESolicitacoesViewSet(SolicitacoesViewSet):
         data_final -- dd-mm-yyyy
         """
         request_params = request.GET
+        usuario = request.user
+        dre_uuid = usuario.vinculo_atual.instituicao.uuid
         tipo_solicitacao = request_params.get('tipo_solicitacao', 'INVALIDO')
         status_solicitacao = request_params.get('status_solicitacao', 'INVALIDO')
         data_inicial = request_params.get('data_inicial', 'INVALIDO')

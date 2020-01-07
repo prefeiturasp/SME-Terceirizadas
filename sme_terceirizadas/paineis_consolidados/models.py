@@ -532,13 +532,13 @@ class SolicitacoesDRE(MoldeConsolidado):
         data_inicial = kwargs.get('data_inicial', None)
         data_final = kwargs.get('data_final', None)
         tipo_solicitacao = kwargs.get('tipo_solicitacao', cls.TP_SOL_TODOS)
-        status_solicitacao = kwargs.get('status_solicitacao', cls.TP_SOL_TODOS)
-
-        query_set = cls.objects.filter(
-            escola_uuid=escola_uuid,
-            dre_uuid=dre_uuid
-        )
-
+        status_solicitacao = kwargs.get('status_solicitacao', cls.STATUS_TODOS)
+        query_set = cls.objects.filter(dre_uuid=dre_uuid)
+        if escola_uuid != 'TODOS':
+            query_set = query_set.filter(
+                escola_uuid=escola_uuid,
+                dre_uuid=dre_uuid
+            )
         return cls._filtro_data_status_tipo(data_final, data_inicial, query_set, status_solicitacao, tipo_solicitacao)
 
     @classmethod
@@ -557,7 +557,7 @@ class SolicitacoesDRE(MoldeConsolidado):
         hoje = datetime.date.today()
         mes_passado = datetime.date(year=hoje.year, month=hoje.month, day=1) - datetime.timedelta(days=1)
         query_set = cls.objects.filter(
-            escola_uuid=dre_uuid,
+            dre_uuid=dre_uuid,
             criado_em__date__year=hoje.year,
             criado_em__date__month=hoje.month,
 
