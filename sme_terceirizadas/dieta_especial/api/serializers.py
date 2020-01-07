@@ -115,19 +115,19 @@ class SolicitacaoDietaEspecialSerializer(serializers.ModelSerializer):
 class AlergiaIntoleranciaSerializer(serializers.ModelSerializer):
     class Meta:
         model = AlergiaIntolerancia
-        fields = ['descricao']
+        fields = '__all__'
 
 class ClassificacaoDietaSerializer(serializers.ModelSerializer):
     class Meta:
         model = ClassificacaoDieta
-        fields = ['nome', 'descricao']
+        fields = '__all__'
 
 class MotivoNegacaoSerializer(serializers.ModelSerializer):
     class Meta:
         model = MotivoNegacao
-        fields = ['descricao']
+        fields = '__all__'
 
 class TipoDietaSerializer(serializers.ModelSerializer):
     class Meta:
         model = TipoDieta
-        fields = ['descricao']
+        fields = '__all__'
