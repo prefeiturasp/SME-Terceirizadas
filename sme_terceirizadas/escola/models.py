@@ -5,7 +5,17 @@ from django.db.models import Q, Sum
 from django_prometheus.models import ExportModelOperationsMixin
 
 from ..cardapio.models import AlteracaoCardapio, GrupoSuspensaoAlimentacao, InversaoCardapio
-from ..dados_comuns.behaviors import Ativavel, Iniciais, Nomeavel, TemChaveExterna, TemCodigoEOL, TemVinculos
+from ..dados_comuns.behaviors import (
+    Ativavel,
+    Iniciais,
+    CriadoEm,
+    CriadoPor,
+    Justificativa,
+    Nomeavel,
+    TemChaveExterna,
+    TemCodigoEOL,
+    TemVinculos
+)
 from ..dados_comuns.constants import (
     COGESTOR,
     COORDENADOR_DIETA_ESPECIAL,
@@ -266,6 +276,11 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
 
     idades = models.ManyToManyField(FaixaIdadeEscolar, blank=True)
 
+    # @property
+    # def quantidade_alunos(self):
+    #     quantidade_result = self.escolas_periodos.aggregate(Sum('quantidade_alunos'))
+    #     return quantidade_result.get('quantidade_alunos__sum')
+
     @property
     def alunos_por_periodo_escolar(self):
         return self.escolas_periodos.filter(quantidade_alunos__gte=1)
@@ -327,6 +342,28 @@ class EscolaPeriodoEscolar(ExportModelOperationsMixin('escola_periodo'), Ativave
         verbose_name = 'Escola com período escolar'
         verbose_name_plural = 'Escola com períodos escolares'
         unique_together = [['periodo_escolar', 'escola']]
+
+
+class LogAlteracaoQuantidadeAlunosPorEscolaEPeriodoEscolar(TemChaveExterna, CriadoEm, Justificativa, CriadoPor):
+    escola = models.ForeignKey(Escola,
+                               related_name='log_alteracao_quantidade_alunos',
+                               on_delete=models.DO_NOTHING)
+    periodo_escolar = models.ForeignKey(PeriodoEscolar,
+                                        related_name='log_alteracao_quantidade_alunos',
+                                        on_delete=models.DO_NOTHING)
+    quantidade_alunos_atual = models.PositiveSmallIntegerField('Quantidade de alunos atual', default=0)
+    quantidade_alunos_alterada = models.PositiveSmallIntegerField('Quantidade de alunos alterada', default=0)
+
+    def __str__(self):
+        alunos_atual = self.quantidade_alunos_atual
+        alunos_alterada = self.quantidade_alunos_alterada
+        escola = self.escola.nome
+        return f'Alteração de: {alunos_atual} alunos, para: {alunos_alterada} alunos na escola: {escola}'
+
+    class Meta:
+        verbose_name = 'Log Alteração quantidade de alunos'
+        verbose_name_plural = 'Logs Alterações quantidade de alunos'
+        ordering = ('criado_em',)
 
 
 class Lote(ExportModelOperationsMixin('lote'), TemChaveExterna, Nomeavel, Iniciais):
