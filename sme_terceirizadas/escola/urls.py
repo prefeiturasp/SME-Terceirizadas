@@ -23,7 +23,7 @@ router.register('subprefeituras', viewsets.SubprefeituraViewSet, basename='subpr
 router.register('codae', viewsets.CODAESimplesViewSet, basename='codae')
 router.register('tipos-unidade-escolar', viewsets.TipoUnidadeEscolarViewSet, basename='tipos-unidade-escolar')
 router.register('quantidade-alunos-por-periodo', viewsets.EscolaPeriodoEscolarViewSet,
-                base_name='quantidade-alunos-por-periodo')
+                basename='quantidade-alunos-por-periodo')
 
 urlpatterns = [
     path('', include(router.urls))
