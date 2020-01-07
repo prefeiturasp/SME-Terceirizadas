@@ -36,6 +36,7 @@ class AlergiaIntoleranciaViewSet(mixins.ListModelMixin,
                                  GenericViewSet):
     queryset = AlergiaIntolerancia.objects.all()
     serializer_class = AlergiaIntoleranciaSerializer
+    pagination_class = None
 
 
 class ClassificacaoDietaViewSet(mixins.ListModelMixin,
@@ -43,6 +44,7 @@ class ClassificacaoDietaViewSet(mixins.ListModelMixin,
                                 GenericViewSet):
     queryset = ClassificacaoDieta.objects.all()
     serializer_class = ClassificacaoDietaSerializer
+    pagination_class = None
 
 
 class MotivoNegacaoViewSet(mixins.ListModelMixin,
@@ -50,6 +52,7 @@ class MotivoNegacaoViewSet(mixins.ListModelMixin,
                            GenericViewSet):
     queryset = MotivoNegacao.objects.all()
     serializer_class = MotivoNegacaoSerializer
+    pagination_class = None
 
 
 class TipoDietaViewSet(mixins.ListModelMixin,
@@ -57,3 +60,4 @@ class TipoDietaViewSet(mixins.ListModelMixin,
                        GenericViewSet):
     queryset = TipoDieta.objects.all()
     serializer_class = TipoDietaSerializer
+    pagination_class = None
