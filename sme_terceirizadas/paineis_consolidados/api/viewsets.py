@@ -123,16 +123,63 @@ class CODAESolicitacoesViewSet(SolicitacoesViewSet):
     @action(
         detail=False,
         methods=['GET'],
+        url_path=f'{PESQUISA}/{FILTRO_DRE_UUID}/{FILTRO_ESCOLA_UUID}')
+    def filtro_periodo_tipo_solicitacao(self, request, escola_uuid=None, dre_uuid=None):
+        # TODO: achar um jeito melhor de validar os parametros da url
+        """Filtro de todas as solicitações da codae.
+
+        ---
+        tipo_solicitacao -- ALT_CARDAPIO|INV_CARDAPIO|INC_ALIMENTA|INC_ALIMENTA_CONTINUA|
+        KIT_LANCHE_AVULSA|SUSP_ALIMENTACAO|KIT_LANCHE_UNIFICADA|TODOS
+        status_solicitacao -- AUTORIZADOS|NEGADOS|CANCELADOS|EM_ANDAMENTO|TODOS
+        data_inicial -- dd-mm-yyyy
+        data_final -- dd-mm-yyyy
+        """
+        request_params = request.GET
+        tipo_solicitacao = request_params.get('tipo_solicitacao', 'INVALIDO')
+        status_solicitacao = request_params.get('status_solicitacao', 'INVALIDO')
+        data_inicial = request_params.get('data_inicial', 'INVALIDO')
+        data_final = request_params.get('data_final', 'INVALIDO')
+
+        test1 = tipo_solicitacao in ['ALT_CARDAPIO',
+                                     'INV_CARDAPIO',
+                                     'INC_ALIMENTA',
+                                     'INC_ALIMENTA_CONTINUA',
+                                     'KIT_LANCHE_AVULSA',
+                                     'SUSP_ALIMENTACAO',
+                                     'KIT_LANCHE_UNIFICADA',
+                                     'TODOS']
+        test2 = status_solicitacao in ['AUTORIZADOS', 'NEGADOS', 'CANCELADOS', 'EM_ANDAMENTO', 'TODOS']
+        data_inicial = self._retorna_data_ou_falso(data_inicial)
+        data_final = self._retorna_data_ou_falso(data_final)
+
+        parametros_validos = test1 and test2 and data_inicial and data_final
+        if not parametros_validos:
+            return Response(data={'detail': 'Parâmetros de busca inválidos'}, status=400)
+
+        query_set = SolicitacoesCODAE.filtros_codae(
+            escola_uuid=escola_uuid,
+            dre_uuid=dre_uuid,
+            data_inicial=data_inicial,
+            data_final=data_final,
+            tipo_solicitacao=tipo_solicitacao,
+            status_solicitacao=status_solicitacao
+        )
+
+        return self._retorno_base(query_set)
+
+    @action(
+        detail=False,
+        methods=['GET'],
         url_path=f'{RESUMO_MES}')
     def resumo_mes(self, request):
         # TODO: deve ter um permission class se a pessoa é da CODAE
         totais_dict = SolicitacoesCODAE.resumo_totais_mes()
         return Response(totais_dict)
 
-    @action(detail=False, methods=['GET'],  url_path=f'{RESUMO_ANO}')
+    @action(detail=False, methods=['GET'], url_path=f'{RESUMO_ANO}')
     def evolucao_solicitacoes(self, request):
         # TODO: verificar se a pessoa é do lugar certo da codae
-        usuario = request.user
         query_set = SolicitacoesCODAE.get_solicitacoes_ano_corrente()
         response = {'results': self._agrupa_por_mes_por_solicitacao(query_set=query_set)}
         return Response(response)
@@ -235,7 +282,6 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
 
         return self._retorno_base(query_set)
 
-
     def _retorno_base(self, query_set):
         page = self.paginate_queryset(query_set)
         serializer = self.get_serializer(page, many=True)
@@ -331,7 +377,7 @@ class DRESolicitacoesViewSet(SolicitacoesViewSet):
 
         query_set = SolicitacoesDRE.filtros_dre(
             escola_uuid=escola_uuid,
-            dre_uuid=escola_uuid,
+            dre_uuid=dre_uuid,
             data_inicial=data_inicial,
             data_final=data_final,
             tipo_solicitacao=tipo_solicitacao,
