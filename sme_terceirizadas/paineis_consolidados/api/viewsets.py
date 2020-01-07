@@ -5,13 +5,11 @@ from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from sme_terceirizadas.paineis_consolidados.api.constants import RESUMO_ANO
-
 from ...dados_comuns.constants import FILTRO_PADRAO_PEDIDOS, SEM_FILTRO
 from ...paineis_consolidados.api.constants import PESQUISA, TIPO_VISAO, TIPO_VISAO_LOTE, TIPO_VISAO_SOLICITACOES
 from ...paineis_consolidados.api.serializers import SolicitacoesSerializer
 from ..api.constants import FILTRO_PERIOD_UUID_DRE, PENDENTES_VALIDACAO_DRE
-from ..models import SolicitacoesCODAE, SolicitacoesDRE, SolicitacoesEscola, SolicitacoesTerceirizada
+from ..models import MoldeConsolidado, SolicitacoesCODAE, SolicitacoesDRE, SolicitacoesEscola, SolicitacoesTerceirizada
 from .constants import (
     AUTORIZADOS,
     CANCELADOS,
@@ -22,6 +20,7 @@ from .constants import (
     PENDENTES_AUTORIZACAO,
     PENDENTES_CIENCIA,
     QUESTIONAMENTOS,
+    RESUMO_ANO,
     RESUMO_MES
 )
 
@@ -99,17 +98,17 @@ class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
             return False
 
     def parametros_validos(self, data_final, data_inicial, status_solicitacao, tipo_solicitacao):
-        test1 = tipo_solicitacao in [SolicitacoesCODAE.TP_SOL_ALT_CARDAPIO,
-                                     SolicitacoesCODAE.TP_SOL_INV_CARDAPIO,
-                                     SolicitacoesCODAE.TP_SOL_INC_ALIMENTA,
-                                     SolicitacoesCODAE.TP_SOL_INC_ALIMENTA_CONTINUA,
-                                     SolicitacoesCODAE.TP_SOL_KIT_LANCHE_AVULSA,
-                                     SolicitacoesCODAE.TP_SOL_SUSP_ALIMENTACAO,
-                                     SolicitacoesCODAE.TP_SOL_KIT_LANCHE_UNIFICADA,
-                                     SolicitacoesCODAE.TP_SOL_TODOS]
-        test2 = status_solicitacao in [SolicitacoesCODAE.STATUS_AUTORIZADOS, SolicitacoesCODAE.STATUS_NEGADOS,
-                                       SolicitacoesCODAE.STATUS_CANCELADOS, SolicitacoesCODAE.STATUS_PENDENTES,
-                                       SolicitacoesCODAE.STATUS_TODOS]
+        test1 = tipo_solicitacao in [MoldeConsolidado.TP_SOL_ALT_CARDAPIO,
+                                     MoldeConsolidado.TP_SOL_INV_CARDAPIO,
+                                     MoldeConsolidado.TP_SOL_INC_ALIMENTA,
+                                     MoldeConsolidado.TP_SOL_INC_ALIMENTA_CONTINUA,
+                                     MoldeConsolidado.TP_SOL_KIT_LANCHE_AVULSA,
+                                     MoldeConsolidado.TP_SOL_SUSP_ALIMENTACAO,
+                                     MoldeConsolidado.TP_SOL_KIT_LANCHE_UNIFICADA,
+                                     MoldeConsolidado.TP_SOL_TODOS]
+        test2 = status_solicitacao in [MoldeConsolidado.STATUS_AUTORIZADOS, MoldeConsolidado.STATUS_NEGADOS,
+                                       MoldeConsolidado.STATUS_CANCELADOS, MoldeConsolidado.STATUS_PENDENTES,
+                                       MoldeConsolidado.STATUS_TODOS]
         data_inicial = self._retorna_data_ou_falso(data_inicial)
         data_final = self._retorna_data_ou_falso(data_final)
         parametros_validos = test1 and test2 and data_inicial and data_final

@@ -147,6 +147,34 @@ class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmiga
                 )
         return query_set.order_by('-criado_em')
 
+    @classmethod
+    def _conta_autorizados(cls, query_set):
+        return query_set.filter(
+            status_evento__in=cls.AUTORIZADOS_EVENTO,
+            status_atual__in=cls.AUTORIZADOS_STATUS
+        ).distinct('uuid').count()
+
+    @classmethod
+    def _conta_negados(cls, query_set):
+        return query_set.filter(
+            status_evento__in=cls.NEGADOS_EVENTO,
+            status_atual__in=cls.NEGADOS_STATUS
+        ).distinct('uuid').count()
+
+    @classmethod
+    def _conta_cancelados(cls, query_set):
+        return query_set.filter(
+            status_evento__in=cls.CANCELADOS_EVENTO,
+            status_atual__in=cls.CANCELADOS_STATUS,
+        ).distinct('uuid').count()
+
+    @classmethod
+    def _conta_pendentes(cls, query_set):
+        return query_set.filter(
+            status_evento__in=cls.PENDENTES_EVENTO,
+            status_atual__in=cls.PENDENTES_STATUS
+        ).distinct('uuid').count()
+
     class Meta:
         managed = False
         db_table = 'solicitacoes_consolidadas'
@@ -260,34 +288,6 @@ class SolicitacoesCODAE(MoldeConsolidado):
             total_pendentes_mes_passado=cls._conta_pendentes(query_set_mes_passado)
         )
 
-    @classmethod
-    def _conta_autorizados(cls, query_set):
-        return query_set.filter(
-            status_evento__in=cls.AUTORIZADOS_EVENTO,
-            status_atual__in=cls.AUTORIZADOS_STATUS
-        ).count()
-
-    @classmethod
-    def _conta_negados(cls, query_set):
-        return query_set.filter(
-            status_evento__in=cls.NEGADOS_EVENTO,
-            status_atual__in=cls.NEGADOS_STATUS
-        ).count()
-
-    @classmethod
-    def _conta_cancelados(cls, query_set):
-        return query_set.filter(
-            status_evento__in=cls.CANCELADOS_EVENTO,
-            status_atual__in=cls.CANCELADOS_STATUS,
-        ).count()
-
-    @classmethod
-    def _conta_pendentes(cls, query_set):
-        return query_set.filter(
-            status_evento__in=cls.PENDENTES_EVENTO,
-            status_atual__in=cls.PENDENTES_STATUS
-        ).count()
-
 
 class SolicitacoesEscola(MoldeConsolidado):
     #
@@ -313,7 +313,7 @@ class SolicitacoesEscola(MoldeConsolidado):
     CANCELADOS_EVENTO = [LogSolicitacoesUsuario.ESCOLA_CANCELOU]
 
     NEGADOS_STATUS = [PedidoAPartirDaEscolaWorkflow.CODAE_NEGOU_PEDIDO]
-    NEGADOS_EVENTO = {LogSolicitacoesUsuario.CODAE_NEGOU}
+    NEGADOS_EVENTO = [LogSolicitacoesUsuario.CODAE_NEGOU]
 
     @classmethod
     def get_pendentes_autorizacao(cls, **kwargs):
@@ -329,10 +329,9 @@ class SolicitacoesEscola(MoldeConsolidado):
     def get_autorizados(cls, **kwargs):
         escola_uuid = kwargs.get('escola_uuid')
         return cls.objects.filter(
-            escola_uuid=escola_uuid
-        ).filter(
+            escola_uuid=escola_uuid,
             status_atual__in=cls.AUTORIZADOS_STATUS,
-            status_evento__in=cls.AUTORIZADOS_EVENTO,
+            status_evento__in=cls.AUTORIZADOS_EVENTO
         ).distinct().order_by('-data_log')
 
     @classmethod
@@ -381,34 +380,6 @@ class SolicitacoesEscola(MoldeConsolidado):
         )
 
         return cls._filtro_data_status_tipo(data_final, data_inicial, query_set, status_solicitacao, tipo_solicitacao)
-
-    @classmethod
-    def _conta_autorizados(cls, query_set):
-        return query_set.filter(
-            status_atual__in=cls.AUTORIZADOS_STATUS,
-            status_evento__in=cls.AUTORIZADOS_EVENTO,
-        ).count()
-
-    @classmethod
-    def _conta_negados(cls, query_set):
-        return query_set.filter(
-            status_evento__in=cls.NEGADOS_EVENTO,
-            status_atual__in=cls.NEGADOS_STATUS,
-        ).count()
-
-    @classmethod
-    def _conta_cancelados(cls, query_set):
-        return query_set.filter(
-            status_evento__in=cls.CANCELADOS_EVENTO,
-            status_atual__in=cls.CANCELADOS_STATUS,
-        ).count()
-
-    @classmethod
-    def _conta_pendentes(cls, query_set):
-        return query_set.filter(
-            status_atual__in=cls.PENDENTES_STATUS,
-            status_evento__in=cls.PENDENTES_EVENTO
-        ).count()
 
     @classmethod
     def resumo_totais_mes(cls, **kwargs):
@@ -580,34 +551,6 @@ class SolicitacoesDRE(MoldeConsolidado):
             total_cancelados_mes_passado=cls._conta_cancelados(query_set_mes_passado),
             total_pendentes_mes_passado=cls._conta_pendentes(query_set_mes_passado)
         )
-
-    @classmethod
-    def _conta_autorizados(cls, query_set):
-        return query_set.filter(
-            status_evento__in=cls.AUTORIZADOS_EVENTO,
-            status_atual__in=cls.AUTORIZADOS_STATUS
-        ).count()
-
-    @classmethod
-    def _conta_negados(cls, query_set):
-        return query_set.filter(
-            status_evento__in=cls.NEGADOS_EVENTO,
-            status_atual__in=cls.NEGADOS_STATUS,
-        ).count()
-
-    @classmethod
-    def _conta_cancelados(cls, query_set):
-        return query_set.filter(
-            status_evento__in=cls.CANCELADOS_EVENTO,
-            status_atual__in=cls.CANCELADOS_STATUS,
-        ).count()
-
-    @classmethod
-    def _conta_pendentes(cls, query_set):
-        return query_set.filter(
-            status_atual__in=cls.PENDENTES_STATUS,
-            status_evento__in=cls.PENDENTES_EVENTO,
-        ).count()
 
 
 # TODO: voltar quando tiver o Rastro implementado
