@@ -44,19 +44,20 @@ class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmiga
     NEGADOS_STATUS = []
     NEGADOS_EVENTO = []
 
-    TODOS = 'TODOS'
-    ALT_CARDAPIO = 'ALT_CARDAPIO'
-    INV_CARDAPIO = 'INV_CARDAPIO'
-    INC_ALIMENTA = 'INC_ALIMENTA'
-    INC_ALIMENTA_CONTINUA = 'INC_ALIMENTA_CONTINUA'
-    KIT_LANCHE_AVULSA = 'KIT_LANCHE_AVULSA'
-    SUSP_ALIMENTACAO = 'SUSP_ALIMENTACAO'
-    KIT_LANCHE_UNIFICADA = 'KIT_LANCHE_UNIFICADA'
+    TP_SOL_TODOS = 'TODOS'
+    TP_SOL_ALT_CARDAPIO = 'ALT_CARDAPIO'
+    TP_SOL_INV_CARDAPIO = 'INV_CARDAPIO'
+    TP_SOL_INC_ALIMENTA = 'INC_ALIMENTA'
+    TP_SOL_INC_ALIMENTA_CONTINUA = 'INC_ALIMENTA_CONTINUA'
+    TP_SOL_KIT_LANCHE_AVULSA = 'KIT_LANCHE_AVULSA'
+    TP_SOL_SUSP_ALIMENTACAO = 'SUSP_ALIMENTACAO'
+    TP_SOL_KIT_LANCHE_UNIFICADA = 'KIT_LANCHE_UNIFICADA'
 
-    AUTORIZADOS = 'AUTORIZADOS'
-    NEGADOS = 'NEGADOS'
-    CANCELADOS = 'CANCELADOS'
-    PENDENTES = 'EM_ANDAMENTO'
+    STATUS_TODOS = 'TODOS'
+    STATUS_AUTORIZADOS = 'AUTORIZADOS'
+    STATUS_NEGADOS = 'NEGADOS'
+    STATUS_CANCELADOS = 'CANCELADOS'
+    STATUS_PENDENTES = 'EM_ANDAMENTO'
 
     uuid = models.UUIDField(editable=False)
     data_evento = models.DateField()
@@ -120,26 +121,26 @@ class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmiga
                                  tipo_solicitacao):  # noqa C901
         if data_inicial and data_final:
             query_set = query_set.filter(criado_em__date__range=(data_inicial, data_final))
-        if tipo_solicitacao != cls.TODOS:
+        if tipo_solicitacao != cls.TP_SOL_TODOS:
             query_set = query_set.filter(tipo_doc=tipo_solicitacao)
-        if status_solicitacao != cls.TODOS:
+        if status_solicitacao != cls.STATUS_TODOS:
             # AUTORIZADOS|NEGADOS|CANCELADOS|EM_ANDAMENTO|TODOS
-            if status_solicitacao == cls.AUTORIZADOS:
+            if status_solicitacao == cls.STATUS_AUTORIZADOS:
                 query_set = query_set.filter(
                     status_atual__in=cls.AUTORIZADOS_STATUS,
                     status_evento__in=cls.AUTORIZADOS_EVENTO,
                 )
-            elif status_solicitacao == cls.NEGADOS:
+            elif status_solicitacao == cls.STATUS_NEGADOS:
                 query_set = query_set.filter(
                     status_evento__in=cls.NEGADOS_EVENTO,
                     status_atual__in=cls.NEGADOS_STATUS,
                 )
-            elif status_solicitacao == cls.CANCELADOS:
+            elif status_solicitacao == cls.STATUS_CANCELADOS:
                 query_set = query_set.filter(
                     status_evento__in=cls.CANCELADOS_EVENTO,
                     status_atual__in=cls.CANCELADOS_STATUS,
                 )
-            elif status_solicitacao == cls.PENDENTES:
+            elif status_solicitacao == cls.STATUS_PENDENTES:
                 query_set = query_set.filter(
                     status_atual__in=cls.PENDENTES_STATUS,
                     status_evento__in=cls.PENDENTES_EVENTO
@@ -216,8 +217,8 @@ class SolicitacoesCODAE(MoldeConsolidado):
         dre_uuid = kwargs.get('dre_uuid')
         data_inicial = kwargs.get('data_inicial', None)
         data_final = kwargs.get('data_final', None)
-        tipo_solicitacao = kwargs.get('tipo_solicitacao', cls.TODOS)
-        status_solicitacao = kwargs.get('status_solicitacao', cls.TODOS)
+        tipo_solicitacao = kwargs.get('tipo_solicitacao', cls.TP_SOL_TODOS)
+        status_solicitacao = kwargs.get('status_solicitacao', cls.STATUS_TODOS)
 
         query_set = cls.objects.filter(
             escola_uuid=escola_uuid,
@@ -372,8 +373,8 @@ class SolicitacoesEscola(MoldeConsolidado):
         escola_uuid = kwargs.get('escola_uuid')
         data_inicial = kwargs.get('data_inicial', None)
         data_final = kwargs.get('data_final', None)
-        tipo_solicitacao = kwargs.get('tipo_solicitacao', cls.TODOS)
-        status_solicitacao = kwargs.get('status_solicitacao', cls.TODOS)
+        tipo_solicitacao = kwargs.get('tipo_solicitacao', cls.TP_SOL_TODOS)
+        status_solicitacao = kwargs.get('status_solicitacao', cls.STATUS_TODOS)
 
         query_set = cls.objects.filter(
             escola_uuid=escola_uuid
@@ -530,8 +531,8 @@ class SolicitacoesDRE(MoldeConsolidado):
         escola_uuid = kwargs.get('escola_uuid')
         data_inicial = kwargs.get('data_inicial', None)
         data_final = kwargs.get('data_final', None)
-        tipo_solicitacao = kwargs.get('tipo_solicitacao', cls.TODOS)
-        status_solicitacao = kwargs.get('status_solicitacao', cls.TODOS)
+        tipo_solicitacao = kwargs.get('tipo_solicitacao', cls.TP_SOL_TODOS)
+        status_solicitacao = kwargs.get('status_solicitacao', cls.TP_SOL_TODOS)
 
         query_set = cls.objects.filter(
             escola_uuid=escola_uuid,

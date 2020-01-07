@@ -94,6 +94,23 @@ class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
         except ValueError:
             return False
 
+    def parametros_validos(self, data_final, data_inicial, status_solicitacao, tipo_solicitacao):
+        test1 = tipo_solicitacao in [SolicitacoesCODAE.TP_SOL_ALT_CARDAPIO,
+                                     SolicitacoesCODAE.TP_SOL_INV_CARDAPIO,
+                                     SolicitacoesCODAE.TP_SOL_INC_ALIMENTA,
+                                     SolicitacoesCODAE.TP_SOL_INC_ALIMENTA_CONTINUA,
+                                     SolicitacoesCODAE.TP_SOL_KIT_LANCHE_AVULSA,
+                                     SolicitacoesCODAE.TP_SOL_SUSP_ALIMENTACAO,
+                                     SolicitacoesCODAE.TP_SOL_KIT_LANCHE_UNIFICADA,
+                                     SolicitacoesCODAE.TP_SOL_TODOS]
+        test2 = status_solicitacao in [SolicitacoesCODAE.STATUS_AUTORIZADOS, SolicitacoesCODAE.STATUS_NEGADOS,
+                                       SolicitacoesCODAE.STATUS_CANCELADOS, SolicitacoesCODAE.STATUS_PENDENTES,
+                                       SolicitacoesCODAE.STATUS_TODOS]
+        data_inicial = self._retorna_data_ou_falso(data_inicial)
+        data_final = self._retorna_data_ou_falso(data_final)
+        parametros_validos = test1 and test2 and data_inicial and data_final
+        return data_final, data_inicial, parametros_validos
+
 
 class CODAESolicitacoesViewSet(SolicitacoesViewSet):
     lookup_field = 'uuid'
@@ -141,20 +158,7 @@ class CODAESolicitacoesViewSet(SolicitacoesViewSet):
         data_inicial = request_params.get('data_inicial', 'INVALIDO')
         data_final = request_params.get('data_final', 'INVALIDO')
 
-        test1 = tipo_solicitacao in ['ALT_CARDAPIO',
-                                     'INV_CARDAPIO',
-                                     'INC_ALIMENTA',
-                                     'INC_ALIMENTA_CONTINUA',
-                                     'KIT_LANCHE_AVULSA',
-                                     'SUSP_ALIMENTACAO',
-                                     'KIT_LANCHE_UNIFICADA',
-                                     'TODOS']
-        test2 = status_solicitacao in ['AUTORIZADOS', 'NEGADOS', 'CANCELADOS', 'EM_ANDAMENTO', 'TODOS']
-        data_inicial = self._retorna_data_ou_falso(data_inicial)
-        data_final = self._retorna_data_ou_falso(data_final)
-
-        parametros_validos = test1 and test2 and data_inicial and data_final
-        if not parametros_validos:
+        if not self.parametros_validos(data_final, data_inicial, status_solicitacao, tipo_solicitacao):
             return Response(data={'detail': 'Parâmetros de busca inválidos'}, status=400)
 
         query_set = SolicitacoesCODAE.filtros_codae(
@@ -256,20 +260,7 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
         data_inicial = request_params.get('data_inicial', 'INVALIDO')
         data_final = request_params.get('data_final', 'INVALIDO')
 
-        test1 = tipo_solicitacao in ['ALT_CARDAPIO',
-                                     'INV_CARDAPIO',
-                                     'INC_ALIMENTA',
-                                     'INC_ALIMENTA_CONTINUA',
-                                     'KIT_LANCHE_AVULSA',
-                                     'SUSP_ALIMENTACAO',
-                                     'KIT_LANCHE_UNIFICADA',
-                                     'TODOS']
-        test2 = status_solicitacao in ['AUTORIZADOS', 'NEGADOS', 'CANCELADOS', 'EM_ANDAMENTO', 'TODOS']
-        data_inicial = self._retorna_data_ou_falso(data_inicial)
-        data_final = self._retorna_data_ou_falso(data_final)
-
-        parametros_validos = test1 and test2 and data_inicial and data_final
-        if not parametros_validos:
+        if not self.parametros_validos(data_final, data_inicial, status_solicitacao, tipo_solicitacao):
             return Response(data={'detail': 'Parâmetros de busca inválidos'}, status=400)
 
         query_set = SolicitacoesEscola.filtros_escola(
@@ -359,20 +350,7 @@ class DRESolicitacoesViewSet(SolicitacoesViewSet):
         data_inicial = request_params.get('data_inicial', 'INVALIDO')
         data_final = request_params.get('data_final', 'INVALIDO')
 
-        test1 = tipo_solicitacao in ['ALT_CARDAPIO',
-                                     'INV_CARDAPIO',
-                                     'INC_ALIMENTA',
-                                     'INC_ALIMENTA_CONTINUA',
-                                     'KIT_LANCHE_AVULSA',
-                                     'SUSP_ALIMENTACAO',
-                                     'KIT_LANCHE_UNIFICADA',
-                                     'TODOS']
-        test2 = status_solicitacao in ['AUTORIZADOS', 'NEGADOS', 'CANCELADOS', 'EM_ANDAMENTO', 'TODOS']
-        data_inicial = self._retorna_data_ou_falso(data_inicial)
-        data_final = self._retorna_data_ou_falso(data_final)
-
-        parametros_validos = test1 and test2 and data_inicial and data_final
-        if not parametros_validos:
+        if not self.parametros_validos(data_final, data_inicial, status_solicitacao, tipo_solicitacao):
             return Response(data={'detail': 'Parâmetros de busca inválidos'}, status=400)
 
         query_set = SolicitacoesDRE.filtros_dre(
