@@ -58,11 +58,20 @@ class HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolarSerializerCreate(seriali
     def validate(self, attrs):
         hora_inicial = attrs['hora_inicial']
         hora_final = attrs['hora_final']
-        escola = attrs['escola']
-        combo_tipos_alimentacao = attrs['combo_tipos_alimentacao']
         hora_inicio_nao_pode_ser_maior_que_hora_final(hora_inicial, hora_final)
-        escola_nao_pode_cadastrar_dois_combos_iguais(escola, combo_tipos_alimentacao)
         return attrs
+
+    def create(self, validated_data):
+        escola = validated_data.get('escola')
+        combo_tipos_alimentacao = validated_data.get('combo_tipos_alimentacao')
+        escola_nao_pode_cadastrar_dois_combos_iguais(escola, combo_tipos_alimentacao)
+        horario_do_combo = HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolar.objects.create(**validated_data)
+        return horario_do_combo
+
+    def update(self, instance, validated_data):
+        update_instance_from_dict(instance, validated_data)
+        instance.save()
+        return instance
 
     class Meta:
         model = HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolar
