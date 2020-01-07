@@ -5,6 +5,8 @@ from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
+from sme_terceirizadas.paineis_consolidados.api.constants import RESUMO_ANO
+
 from ...dados_comuns.constants import FILTRO_PADRAO_PEDIDOS, SEM_FILTRO
 from ...paineis_consolidados.api.constants import PESQUISA, TIPO_VISAO, TIPO_VISAO_LOTE, TIPO_VISAO_SOLICITACOES
 from ...paineis_consolidados.api.serializers import SolicitacoesSerializer
@@ -86,6 +88,12 @@ class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
             sumario['total'] += 1
         return sumario
 
+    def _retorna_data_ou_falso(self, date_text):
+        try:
+            return datetime.datetime.strptime(date_text, '%d-%m-%Y')
+        except ValueError:
+            return False
+
 
 class CODAESolicitacoesViewSet(SolicitacoesViewSet):
     lookup_field = 'uuid'
@@ -121,7 +129,7 @@ class CODAESolicitacoesViewSet(SolicitacoesViewSet):
         totais_dict = SolicitacoesCODAE.resumo_totais_mes()
         return Response(totais_dict)
 
-    @action(detail=False, methods=['GET'])
+    @action(detail=False, methods=['GET'],  url_path=f'{RESUMO_ANO}')
     def evolucao_solicitacoes(self, request):
         # TODO: verificar se a pessoa é do lugar certo da codae
         usuario = request.user
@@ -160,7 +168,7 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
         query_set = SolicitacoesEscola.get_cancelados(escola_uuid=escola_uuid)
         return self._retorno_base(query_set)
 
-    @action(detail=False, methods=['GET'])
+    @action(detail=False, methods=['GET'], url_path=f'{RESUMO_ANO}')
     def evolucao_solicitacoes(self, request):
         usuario = request.user
         escola_uuid = usuario.vinculo_atual.instituicao.uuid
@@ -227,11 +235,6 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
 
         return self._retorno_base(query_set)
 
-    def _retorna_data_ou_falso(self, date_text):
-        try:
-            return datetime.datetime.strptime(date_text, '%d-%m-%Y')
-        except ValueError:
-            return False
 
     def _retorno_base(self, query_set):
         page = self.paginate_queryset(query_set)
@@ -281,13 +284,61 @@ class DRESolicitacoesViewSet(SolicitacoesViewSet):
         )
         return Response(totais_dict)
 
-    @action(detail=False, methods=['GET'])
+    @action(detail=False, methods=['GET'], url_path=f'{RESUMO_ANO}')
     def evolucao_solicitacoes(self, request):
         usuario = request.user
         dre_uuid = usuario.vinculo_atual.instituicao.uuid
         query_set = SolicitacoesDRE.get_solicitacoes_ano_corrente(dre_uuid=dre_uuid)
         response = {'results': self._agrupa_por_mes_por_solicitacao(query_set=query_set)}
         return Response(response)
+
+    @action(
+        detail=False,
+        methods=['GET'],
+        url_path=f'{PESQUISA}/{FILTRO_DRE_UUID}/{FILTRO_ESCOLA_UUID}')
+    def filtro_periodo_tipo_solicitacao(self, request, escola_uuid=None, dre_uuid=None):
+        # TODO: achar um jeito melhor de validar os parametros da url
+        """Filtro de todas as solicitações da dre.
+
+        ---
+        tipo_solicitacao -- ALT_CARDAPIO|INV_CARDAPIO|INC_ALIMENTA|INC_ALIMENTA_CONTINUA|
+        KIT_LANCHE_AVULSA|SUSP_ALIMENTACAO|KIT_LANCHE_UNIFICADA|TODOS
+        status_solicitacao -- AUTORIZADOS|NEGADOS|CANCELADOS|EM_ANDAMENTO|TODOS
+        data_inicial -- dd-mm-yyyy
+        data_final -- dd-mm-yyyy
+        """
+        request_params = request.GET
+        tipo_solicitacao = request_params.get('tipo_solicitacao', 'INVALIDO')
+        status_solicitacao = request_params.get('status_solicitacao', 'INVALIDO')
+        data_inicial = request_params.get('data_inicial', 'INVALIDO')
+        data_final = request_params.get('data_final', 'INVALIDO')
+
+        test1 = tipo_solicitacao in ['ALT_CARDAPIO',
+                                     'INV_CARDAPIO',
+                                     'INC_ALIMENTA',
+                                     'INC_ALIMENTA_CONTINUA',
+                                     'KIT_LANCHE_AVULSA',
+                                     'SUSP_ALIMENTACAO',
+                                     'KIT_LANCHE_UNIFICADA',
+                                     'TODOS']
+        test2 = status_solicitacao in ['AUTORIZADOS', 'NEGADOS', 'CANCELADOS', 'EM_ANDAMENTO', 'TODOS']
+        data_inicial = self._retorna_data_ou_falso(data_inicial)
+        data_final = self._retorna_data_ou_falso(data_final)
+
+        parametros_validos = test1 and test2 and data_inicial and data_final
+        if not parametros_validos:
+            return Response(data={'detail': 'Parâmetros de busca inválidos'}, status=400)
+
+        query_set = SolicitacoesDRE.filtros_dre(
+            escola_uuid=escola_uuid,
+            dre_uuid=escola_uuid,
+            data_inicial=data_inicial,
+            data_final=data_final,
+            tipo_solicitacao=tipo_solicitacao,
+            status_solicitacao=status_solicitacao
+        )
+
+        return self._retorno_base(query_set)
 
     def _retorno_base(self, query_set):
         page = self.paginate_queryset(query_set)

@@ -487,6 +487,51 @@ class SolicitacoesDRE(MoldeConsolidado):
     # Filtros  consolidados
     #
 
+    @classmethod  # noqa C901
+    def filtros_dre(cls, **kwargs):
+        # TODO: melhorar esse código, está complexo.
+        dre_uuid = kwargs.get('dre_uuid')
+        escola_uuid = kwargs.get('escola_uuid')
+        data_inicial = kwargs.get('data_inicial', None)
+        data_final = kwargs.get('data_final', None)
+        tipo_solicitacao = kwargs.get('tipo_solicitacao', cls.TODOS)
+        status_solicitacao = kwargs.get('status_solicitacao', cls.TODOS)
+
+        query_set = cls.objects.filter(
+            escola_uuid=escola_uuid,
+            dre_uuid=dre_uuid
+        )
+
+        if data_inicial and data_final:
+            query_set = query_set.filter(criado_em__date__range=(data_inicial, data_final))
+        if tipo_solicitacao != cls.TODOS:
+            query_set = query_set.filter(tipo_doc=tipo_solicitacao)
+
+        if status_solicitacao != cls.TODOS:
+            # AUTORIZADOS|NEGADOS|CANCELADOS|EM_ANDAMENTO|TODOS
+            if status_solicitacao == cls.AUTORIZADOS:
+                query_set = query_set.filter(
+                    status_atual__in=cls.AUTORIZADOS_STATUS,
+                    status_evento__in=cls.AUTORIZADOS_EVENTO,
+                )
+            elif status_solicitacao == cls.NEGADOS:
+                query_set = query_set.filter(
+                    status_evento__in=cls.NEGADOS_EVENTO,
+                    status_atual__in=cls.NEGADOS_STATUS,
+                )
+            elif status_solicitacao == cls.CANCELADOS:
+                query_set = query_set.filter(
+                    status_evento__in=cls.CANCELADOS_EVENTO,
+                    status_atual__in=cls.CANCELADOS_STATUS,
+                )
+            elif status_solicitacao == cls.PENDENTES:
+                query_set = query_set.filter(
+                    status_atual__in=cls.PENDENTES_STATUS,
+                    status_evento__in=cls.PENDENTES_EVENTO
+                )
+
+        return query_set.order_by('-criado_em')
+
     @classmethod
     def get_solicitacoes_ano_corrente(cls, **kwargs):
         """Usado para geração do gráfico."""
