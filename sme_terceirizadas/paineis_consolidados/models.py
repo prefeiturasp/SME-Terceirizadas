@@ -219,13 +219,12 @@ class SolicitacoesCODAE(MoldeConsolidado):
         data_final = kwargs.get('data_final', None)
         tipo_solicitacao = kwargs.get('tipo_solicitacao', cls.TP_SOL_TODOS)
         status_solicitacao = kwargs.get('status_solicitacao', cls.STATUS_TODOS)
-
-        query_set = cls.objects.filter(
-            escola_uuid=escola_uuid,
-            dre_uuid=dre_uuid
-        )
-
-        return cls._filtro_data_status_tipo(data_final, data_inicial, query_set, status_solicitacao, tipo_solicitacao)
+        queryset = cls.objects.all()
+        if escola_uuid != 'TODOS':
+            queryset = queryset.filter(escola_uuid=escola_uuid)
+        if dre_uuid != 'TODOS':
+            query_set = queryset.filter(dre_uuid=dre_uuid)
+        return cls._filtro_data_status_tipo(data_final, data_inicial, queryset, status_solicitacao, tipo_solicitacao)
 
     @classmethod
     def get_solicitacoes_ano_corrente(cls, **kwargs):
