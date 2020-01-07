@@ -34,7 +34,7 @@ class AnexoSerializer(ModelSerializer):
 
     class Meta:
         model = Anexo
-        fields = ('arquivo', 'nome')
+        fields = ('arquivo', 'nome', 'eh_laudo_medico')
 
 
 class SolicitacaoDietaEspecialCreateSerializer(serializers.ModelSerializer):
@@ -60,7 +60,7 @@ class SolicitacaoDietaEspecialCreateSerializer(serializers.ModelSerializer):
             data = convert_base64_to_contentfile(anexo.get('arquivo'))
             anexo.pop('nome')
             Anexo.objects.create(
-                solicitacao_dieta_especial=solicitacao, arquivo=data
+                solicitacao_dieta_especial=solicitacao, arquivo=data, eh_laudo_medico=True
             )
 
         solicitacao.inicia_fluxo(user=self.context['request'].user)
