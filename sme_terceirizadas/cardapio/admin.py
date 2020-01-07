@@ -5,6 +5,7 @@ from .models import (
     Cardapio,
     ComboDoVinculoTipoAlimentacaoPeriodoTipoUE,
     GrupoSuspensaoAlimentacao,
+    HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolar,
     InversaoCardapio,
     MotivoAlteracaoCardapio,
     MotivoSuspensao,
@@ -21,6 +22,7 @@ admin.site.register(InversaoCardapio)
 admin.site.register(MotivoAlteracaoCardapio)
 admin.site.register(SubstituicaoAlimentacaoNoPeriodoEscolar)
 admin.site.register(MotivoSuspensao)
+admin.site.register(HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolar)
 
 
 class SubstituicaoComboInline(admin.TabularInline):

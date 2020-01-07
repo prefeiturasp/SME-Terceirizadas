@@ -318,6 +318,34 @@ def datas_inversao_deste_mes(request):
 
 
 @pytest.fixture(params=[
+    # data inicio, data fim, esperado
+    (datetime.time(10, 29), datetime.time(11, 29), True),
+    (datetime.time(7, 10), datetime.time(7, 30), True),
+    (datetime.time(6, 0), datetime.time(6, 10), True),
+    (datetime.time(23, 30), datetime.time(23, 59), True),
+    (datetime.time(20, 0), datetime.time(20, 22), True),
+    (datetime.time(11, 0), datetime.time(13, 0), True),
+    (datetime.time(15, 3), datetime.time(15, 21), True),
+])
+def horarios_combos_tipo_alimentacao_validos(request):
+    return request.param
+
+
+@pytest.fixture(params=[
+    # data inicio, data fim, esperado
+    (datetime.time(10, 29), datetime.time(9, 29), 'Hora Inicio não pode ser maior do que hora final'),
+    (datetime.time(7, 10), datetime.time(6, 30), 'Hora Inicio não pode ser maior do que hora final'),
+    (datetime.time(6, 0), datetime.time(5, 59), 'Hora Inicio não pode ser maior do que hora final'),
+    (datetime.time(23, 30), datetime.time(22, 59), 'Hora Inicio não pode ser maior do que hora final'),
+    (datetime.time(20, 0), datetime.time(19, 22), 'Hora Inicio não pode ser maior do que hora final'),
+    (datetime.time(11, 0), datetime.time(11, 0), 'Hora Inicio não pode ser maior do que hora final'),
+    (datetime.time(15, 3), datetime.time(12, 21), 'Hora Inicio não pode ser maior do que hora final'),
+])
+def horarios_combos_tipo_alimentacao_invalidos(request):
+    return request.param
+
+
+@pytest.fixture(params=[
     # data inicial, status
     ((2019, 10, 1), PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR),
     ((2019, 10, 2), PedidoAPartirDaEscolaWorkflow.RASCUNHO),
@@ -483,3 +511,21 @@ def vinculo_tipo_alimentacao(request):
     return mommy.make('VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar', combos=combos,
                       tipo_unidade_escolar=tipo_unidade_escolar,
                       periodo_escolar=periodo_escolar)
+
+
+@pytest.fixture(params=[
+    # hora inicio, hora fim
+    ('07:00:00', '07:30:00'),
+])
+def horario_combo_tipo_alimentacao(request):
+    hora_inicio, hora_fim = request.param
+    lote = mommy.make('Lote')
+    escola = mommy.make('Escola', lote=lote, nome='EMEF JOAO MENDES')
+    alimentacoes = mommy.make('TipoAlimentacao', _quantity=4)
+    combo = mommy.make('ComboDoVinculoTipoAlimentacaoPeriodoTipoUE', tipos_alimentacao=alimentacoes,
+                       uuid='9fe31f4a-716b-4677-9d7d-2868557cf954')
+    return mommy.make('HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolar',
+                      hora_inicial=hora_inicio,
+                      hora_final=hora_fim,
+                      escola=escola,
+                      combo_tipos_alimentacao=combo)
