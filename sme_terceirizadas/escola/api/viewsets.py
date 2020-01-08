@@ -21,7 +21,6 @@ from ...escola.api.serializers import (
 )
 from ...escola.api.serializers_create import EscolaPeriodoEscolarCreateSerializer, LoteCreateSerializer
 from ...paineis_consolidados.api.constants import FILTRO_DRE_UUID
-
 from ...perfil.api.serializers import UsuarioUpdateSerializer, VinculoSerializer
 from ..models import (
     Codae,
