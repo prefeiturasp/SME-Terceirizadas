@@ -14,6 +14,7 @@ from ..models import (
     Escola,
     EscolaPeriodoEscolar,
     FaixaIdadeEscolar,
+    LogAlteracaoQuantidadeAlunosPorEscolaEPeriodoEscolar,
     Lote,
     PeriodoEscolar,
     Subprefeitura,
