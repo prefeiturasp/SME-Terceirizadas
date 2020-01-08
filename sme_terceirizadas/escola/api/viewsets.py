@@ -15,6 +15,7 @@ from ...escola.api.permissions import (
 )
 from ...escola.api.serializers import CODAESerializer, LoteSimplesSerializer, UsuarioDetalheSerializer
 from ...escola.api.serializers_create import LoteCreateSerializer
+from ...paineis_consolidados.api.constants import FILTRO_DRE_UUID
 from ...perfil.api.serializers import UsuarioUpdateSerializer, VinculoSerializer
 from ..models import (
     Codae,
@@ -149,6 +150,11 @@ class EscolaSimplissimaViewSet(ReadOnlyModelViewSet):
     lookup_field = 'uuid'
     queryset = Escola.objects.all()
     serializer_class = EscolaSimplissimaSerializer
+
+    @action(detail=False, methods=['GET'], url_path=f'{FILTRO_DRE_UUID}')
+    def filtro_por_diretoria_regional(self, request, dre_uuid=None):
+        escolas = Escola.objects.filter(diretoria_regional__uuid=dre_uuid)
+        return Response(self.get_serializer(escolas, many=True).data)
 
 
 class PeriodoEscolarViewSet(ReadOnlyModelViewSet):
