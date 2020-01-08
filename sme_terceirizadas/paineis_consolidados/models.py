@@ -251,7 +251,7 @@ class SolicitacoesCODAE(MoldeConsolidado):
         if escola_uuid != 'TODOS':
             queryset = queryset.filter(escola_uuid=escola_uuid)
         if dre_uuid != 'TODOS':
-            query_set = queryset.filter(dre_uuid=dre_uuid)
+            query_set = queryset.filter(dre_uuid=dre_uuid)  # noqa
         return cls._filtro_data_status_tipo(data_final, data_inicial, queryset, status_solicitacao, tipo_solicitacao)
 
     @classmethod
