@@ -38,7 +38,6 @@ from .serializers import (
     TipoUnidadeEscolarSerializer
 )
 
-
 # https://www.django-rest-framework.org/api-guide/permissions/#custom-permissions
 
 
