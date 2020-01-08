@@ -73,7 +73,24 @@ def cardapio_invalido():
 @pytest.fixture
 def escola():
     lote = mommy.make('Lote')
-    escola = mommy.make('Escola', lote=lote)
+    escola = mommy.make(
+        'Escola',
+        lote=lote,
+        nome='EMEF JOAO MENDES',
+        codigo_eol='000546',
+        uuid='a627fc63-16fd-482c-a877-16ebc1a82e57'
+    )
+    return escola
+
+
+@pytest.fixture
+def escola_com_periodos_e_horarios_combos(escola):
+    periodo_manha = mommy.make('escola.PeriodoEscolar', nome='MANHA', uuid='42325516-aebd-4a3d-97c0-2a77c317c6be')
+    periodo_tarde = mommy.make('escola.PeriodoEscolar', nome='TARDE', uuid='5d668346-ad83-4334-8fec-94c801198d99')
+    mommy.make('escola.EscolaPeriodoEscolar', quantidade_alunos=325, escola=escola,
+               periodo_escolar=periodo_manha)
+    mommy.make('escola.EscolaPeriodoEscolar', quantidade_alunos=418, escola=escola,
+               periodo_escolar=periodo_tarde)
     return escola
 
 
@@ -509,6 +526,7 @@ def vinculo_tipo_alimentacao(request):
     tipo_unidade_escolar = mommy.make('TipoUnidadeEscolar', iniciais=nome_ue)
     periodo_escolar = mommy.make('PeriodoEscolar', nome=nome_periodo)
     return mommy.make('VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar', combos=combos,
+                      uuid='3bdf8144-9b17-495a-8387-5ce0d2a6120a',
                       tipo_unidade_escolar=tipo_unidade_escolar,
                       periodo_escolar=periodo_escolar)
 
@@ -517,12 +535,14 @@ def vinculo_tipo_alimentacao(request):
     # hora inicio, hora fim
     ('07:00:00', '07:30:00'),
 ])
-def horario_combo_tipo_alimentacao(request):
+def horario_combo_tipo_alimentacao(request, vinculo_tipo_alimentacao, escola_com_periodos_e_horarios_combos):
     hora_inicio, hora_fim = request.param
-    lote = mommy.make('Lote')
-    escola = mommy.make('Escola', lote=lote, nome='EMEF JOAO MENDES')
-    alimentacoes = mommy.make('TipoAlimentacao', _quantity=4)
-    combo = mommy.make('ComboDoVinculoTipoAlimentacaoPeriodoTipoUE', tipos_alimentacao=alimentacoes,
+    escola = escola_com_periodos_e_horarios_combos
+    tp_alimentacao1 = mommy.make('TipoAlimentacao', nome='Lanche', uuid='c42a24bb-14f8-4871-9ee8-05bc42cf3061')
+    tp_alimentacao2 = mommy.make('TipoAlimentacao', nome='Refeição', uuid='22596464-271e-448d-bcb3-adaba43fffc8')
+    combo = mommy.make('ComboDoVinculoTipoAlimentacaoPeriodoTipoUE',
+                       tipos_alimentacao=[tp_alimentacao1, tp_alimentacao2],
+                       vinculo=vinculo_tipo_alimentacao,
                        uuid='9fe31f4a-716b-4677-9d7d-2868557cf954')
     return mommy.make('HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolar',
                       hora_inicial=hora_inicio,

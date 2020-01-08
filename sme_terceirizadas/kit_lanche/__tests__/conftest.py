@@ -16,7 +16,7 @@ fake.seed(420)
 @pytest.fixture
 def escola():
     lote = mommy.make('Lote')
-    return mommy.make('Escola', lote=lote, quantidade_alunos=1001)
+    return mommy.make('Escola', lote=lote)
 
 
 @pytest.fixture
@@ -36,6 +36,7 @@ def item_kit_lanche():
 
 @pytest.fixture
 def solicitacao_avulsa(escola):
+    mommy.make('escola.EscolaPeriodoEscolar', escola=escola, quantidade_alunos=500)
     mommy.make(TemplateMensagem, tipo=TemplateMensagem.SOLICITACAO_KIT_LANCHE_AVULSA)
     kits = mommy.make(models.KitLanche, _quantity=3)
     solicitacao_kit_lanche = mommy.make(models.SolicitacaoKitLanche, kits=kits, data=datetime.date(2000, 1, 1))

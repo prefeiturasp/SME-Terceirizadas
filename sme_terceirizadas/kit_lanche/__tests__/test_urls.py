@@ -381,9 +381,7 @@ def test_create_kit_lanche(client_autenticado, solicitacao_avulsa, escola, kit_l
     autorizar as duas primeiras 200+200=400 e a ultima deve dar problema por exceder a quantidade de alunos (600)
     da escola
     """
-    escola.quantidade_alunos = 500
     escola.save()
-
     data_do_evento = '27/11/2019'
     step = 200
     solicitacoes_avulsas = []

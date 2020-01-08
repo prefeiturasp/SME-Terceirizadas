@@ -39,6 +39,13 @@ class Motivo(models.Model):
         abstract = True
 
 
+class Justificativa(models.Model):
+    justificativa = models.TextField('Motivo', blank=False)
+
+    class Meta:
+        abstract = True
+
+
 class Ativavel(models.Model):
     ativo = models.BooleanField('Está ativo?', default=True)
 

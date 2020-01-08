@@ -147,8 +147,7 @@ def validators_valor_str():
 def escola():
     return mommy.make(models.Escola,
                       nome=fake.name(),
-                      codigo_eol=fake.name()[:6],
-                      quantidade_alunos=42)
+                      codigo_eol=fake.name()[:6])
 
 
 @pytest.fixture(scope='function', params=[

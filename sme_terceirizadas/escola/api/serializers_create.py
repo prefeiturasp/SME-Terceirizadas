@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from ..models import DiretoriaRegional, Escola, Lote, Subprefeitura, TipoGestao
+from ..models import DiretoriaRegional, Escola, EscolaPeriodoEscolar, Lote, PeriodoEscolar, Subprefeitura, TipoGestao
 
 
 class LoteCreateSerializer(serializers.ModelSerializer):
@@ -30,4 +30,20 @@ class LoteCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Lote
+        exclude = ('id',)
+
+
+class EscolaPeriodoEscolarCreateSerializer(serializers.ModelSerializer):
+    escola = serializers.SlugRelatedField(
+        slug_field='uuid',
+        queryset=Escola.objects.all()
+    )
+    periodo_escolar = serializers.SlugRelatedField(
+        slug_field='uuid',
+        queryset=PeriodoEscolar.objects.all()
+    )
+    quantidade_alunos = serializers.IntegerField()
+
+    class Meta:
+        model = EscolaPeriodoEscolar
         exclude = ('id',)

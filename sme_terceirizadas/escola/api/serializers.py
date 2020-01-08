@@ -12,6 +12,7 @@ from ..models import (
     Codae,
     DiretoriaRegional,
     Escola,
+    EscolaPeriodoEscolar,
     FaixaIdadeEscolar,
     Lote,
     PeriodoEscolar,
@@ -146,6 +147,12 @@ class EscolaListagemSimplesSelializer(serializers.ModelSerializer):
         fields = ('uuid', 'nome', 'codigo_eol', 'quantidade_alunos')
 
 
+class EscolaSimplissimaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Escola
+        fields = ('uuid', 'nome')
+
+
 class EscolaCompletaSerializer(serializers.ModelSerializer):
     diretoria_regional = DiretoriaRegionalSimplesSerializer()
     idades = FaixaIdadeEscolarSerializer(many=True)
@@ -272,3 +279,13 @@ class CODAESerializer(serializers.ModelSerializer):
     class Meta:
         model = Codae
         fields = '__all__'
+
+
+class EscolaPeriodoEscolarSerializer(serializers.ModelSerializer):
+    quantidade_alunos = serializers.IntegerField()
+    escola = EscolaSimplissimaSerializer()
+    periodo_escolar = PeriodoEscolarSimplesSerializer()
+
+    class Meta:
+        model = EscolaPeriodoEscolar
+        fields = ('uuid', 'quantidade_alunos', 'escola', 'periodo_escolar')
