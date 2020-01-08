@@ -8,8 +8,8 @@ from ..dados_comuns.constants import DAQUI_A_SETE_DIAS, DAQUI_A_TRINTA_DIAS
 from ..dados_comuns.fluxo_status import (
     InformativoPartindoDaEscolaWorkflow,
     PedidoAPartirDaDiretoriaRegionalWorkflow,
-    PedidoAPartirDaEscolaWorkflow
-)
+    PedidoAPartirDaEscolaWorkflow,
+    DietaEspecialWorkflow)
 from ..dados_comuns.models import LogSolicitacoesUsuario
 
 
@@ -52,6 +52,7 @@ class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmiga
     TP_SOL_KIT_LANCHE_AVULSA = 'KIT_LANCHE_AVULSA'
     TP_SOL_SUSP_ALIMENTACAO = 'SUSP_ALIMENTACAO'
     TP_SOL_KIT_LANCHE_UNIFICADA = 'KIT_LANCHE_UNIFICADA'
+    TP_SOL_DIETA_ESPECIAL = 'DIETA_ESPECIAL'
 
     STATUS_TODOS = 'TODOS'
     STATUS_AUTORIZADOS = 'AUTORIZADOS'
@@ -292,16 +293,24 @@ class SolicitacoesEscola(MoldeConsolidado):
     #
     # Filtros padrão
     #
+    PENDENTES_STATUS_DIETA_ESPECIAL = [DietaEspecialWorkflow.CODAE_A_AUTORIZAR]
+    PENDENTES_EVENTO_DIETA_ESPECIAL = [LogSolicitacoesUsuario.DIETA_ESPECIAL]
 
     PENDENTES_STATUS = [PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR,
                         PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO,
                         PedidoAPartirDaEscolaWorkflow.CODAE_QUESTIONADO,
                         PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO,
-                        InformativoPartindoDaEscolaWorkflow.INFORMADO]
+                        InformativoPartindoDaEscolaWorkflow.INFORMADO,
+                        # TODO: Bruno. remover essa parte de dieta especial depois
+                        DietaEspecialWorkflow.CODAE_A_AUTORIZAR
+                        ]
     PENDENTES_EVENTO = [LogSolicitacoesUsuario.INICIO_FLUXO,
                         LogSolicitacoesUsuario.DRE_VALIDOU,
                         LogSolicitacoesUsuario.CODAE_QUESTIONOU,
-                        LogSolicitacoesUsuario.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO]
+                        LogSolicitacoesUsuario.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO,
+                        # TODO: Bruno. remover essa parte de dieta especial depois
+                        LogSolicitacoesUsuario.DIETA_ESPECIAL
+                        ]
 
     AUTORIZADOS_STATUS = [PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO,
                           PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_TOMOU_CIENCIA]
@@ -322,6 +331,15 @@ class SolicitacoesEscola(MoldeConsolidado):
         ).filter(
             status_atual__in=cls.PENDENTES_STATUS,
             status_evento__in=cls.PENDENTES_EVENTO
+        ).distinct().order_by('-data_log')
+
+    @classmethod
+    def get_pendentes_dieta_especial(cls, **kwargs):
+        escola_uuid = kwargs.get('escola_uuid')
+        return cls.objects.filter(
+            escola_uuid=escola_uuid,
+            status_atual__in=cls.PENDENTES_STATUS_DIETA_ESPECIAL,
+            status_evento__in=cls.PENDENTES_EVENTO_DIETA_ESPECIAL
         ).distinct().order_by('-data_log')
 
     @classmethod
