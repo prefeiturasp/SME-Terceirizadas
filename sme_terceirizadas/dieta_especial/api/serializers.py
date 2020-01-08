@@ -4,7 +4,15 @@ from rest_framework import serializers
 from ...dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
 from ...dados_comuns.utils import convert_base64_to_contentfile
 from ...dados_comuns.validators import deve_ser_no_passado
-from ...escola.api.serializers import EscolaSimplesSerializer
+from ...dados_comuns.api.serializers import ContatoSerializer
+
+from ...escola.models import Escola
+from ...escola.api.serializers import (
+    DiretoriaRegionalSimplesSerializer,
+    TipoGestaoSerializer,
+    LoteSimplesSerializer
+)
+
 from ..models import (
     AlergiaIntolerancia,
     Anexo,
@@ -81,11 +89,22 @@ class SolicitacaoDietaEspecialCreateSerializer(serializers.ModelSerializer):
         )
 
 
+class EscolaSerializer(serializers.ModelSerializer):
+    diretoria_regional = DiretoriaRegionalSimplesSerializer()
+    tipo_gestao = TipoGestaoSerializer()
+    lote = LoteSimplesSerializer()
+    contato = ContatoSerializer()
+
+    class Meta:
+        model = Escola
+        fields = ('nome', 'diretoria_regional', 'tipo_gestao', 'lote', 'contato')
+
+
 class SolicitacaoDietaEspecialSerializer(serializers.ModelSerializer):
     anexos = serializers.ListField(
         child=AnexoSerializer(), required=True
     )
-    escola = EscolaSimplesSerializer()
+    escola = EscolaSerializer()
     logs = LogSolicitacoesUsuarioSerializer(many=True)
     status_solicitacao = serializers.CharField(
         source='status',
