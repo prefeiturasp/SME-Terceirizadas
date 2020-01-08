@@ -301,14 +301,14 @@ class SolicitacoesEscola(MoldeConsolidado):
                         PedidoAPartirDaEscolaWorkflow.CODAE_QUESTIONADO,
                         PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO,
                         InformativoPartindoDaEscolaWorkflow.INFORMADO,
-                        # TODO: Bruno. remover essa parte de dieta especial depois
+                        # TODO: Bruno. remover essa parte de dieta especial depois da entrega da sprint
                         DietaEspecialWorkflow.CODAE_A_AUTORIZAR
                         ]
     PENDENTES_EVENTO = [LogSolicitacoesUsuario.INICIO_FLUXO,
                         LogSolicitacoesUsuario.DRE_VALIDOU,
                         LogSolicitacoesUsuario.CODAE_QUESTIONOU,
                         LogSolicitacoesUsuario.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO,
-                        # TODO: Bruno. remover essa parte de dieta especial depois
+                        # TODO: Bruno. remover essa parte de dieta especial depois da entrega da sprint
                         LogSolicitacoesUsuario.DIETA_ESPECIAL
                         ]
 

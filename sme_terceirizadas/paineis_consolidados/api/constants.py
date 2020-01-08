@@ -2,6 +2,7 @@ from ...dados_comuns.constants import DAQUI_A_SETE_DIAS, DAQUI_A_TRINTA_DIAS, SE
 
 PENDENTES_CIENCIA = 'pendentes-ciencia'
 PENDENTES_AUTORIZACAO = 'pendentes-autorizacao'
+PENDENTES_AUTORIZACAO_DIETA_ESPECIAL = 'pendentes-autorizacao-dieta'
 PENDENTES_VALIDACAO_DRE = 'pendentes-validacao'
 AUTORIZADOS = 'autorizados'
 QUESTIONAMENTOS = 'questionamentos'

@@ -4,11 +4,11 @@ import pytest
 from faker import Faker
 from model_mommy import mommy
 
+from ..models import SolicitacoesEscola
 from ...cardapio.models import AlteracaoCardapio
 from ...dados_comuns.models import TemplateMensagem
 from ...inclusao_alimentacao.models import InclusaoAlimentacaoContinua
 from ...kit_lanche.models import KitLanche, SolicitacaoKitLanche, SolicitacaoKitLancheAvulsa
-from ..models import SolicitacoesEscola
 
 fake = Faker('pt_BR')
 fake.seed(420)
