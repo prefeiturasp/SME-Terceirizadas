@@ -550,14 +550,13 @@ class SolicitacoesDRE(MoldeConsolidado):
             criado_em__date__year=hoje.year,
             criado_em__date__month=hoje.month,
 
-        )
+        ).distinct('uuid')
         query_set_mes_passado = cls.objects.filter(
-            escola_uuid=dre_uuid,
+            dre_uuid=dre_uuid,
             criado_em__date__year=mes_passado.year,
             criado_em__date__month=mes_passado.month,
 
-        )
-
+        ).distinct('uuid')
         return dict(
             total_autorizados=cls._conta_autorizados(query_set),
             total_negados=cls._conta_negados(query_set),

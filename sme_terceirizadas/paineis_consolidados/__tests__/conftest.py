@@ -1,14 +1,15 @@
 import datetime
 
 import pytest
+import pytz
 from faker import Faker
 from model_mommy import mommy
 
+from ..models import SolicitacoesEscola
 from ...cardapio.models import AlteracaoCardapio
 from ...dados_comuns.models import TemplateMensagem
 from ...inclusao_alimentacao.models import InclusaoAlimentacaoContinua
 from ...kit_lanche.models import KitLanche, SolicitacaoKitLanche, SolicitacaoKitLancheAvulsa
-from ..models import SolicitacoesEscola
 
 fake = Faker('pt_BR')
 fake.seed(420)
@@ -228,15 +229,12 @@ def inclusoes_de_alimentacao_continua_dre(escola2):
     inclusao_continua_1 = mommy.make(InclusaoAlimentacaoContinua,
                                      data_inicial=datetime.date(2019, 5, 1),
                                      data_final=datetime.date(2019, 6, 1),
-                                     criado_em=datetime.date(2019, 8, 1),
                                      escola=escola2)
     inclusao_continua_2 = mommy.make(InclusaoAlimentacaoContinua,
                                      data_inicial=datetime.date(2019, 6, 1),
-                                     criado_em=datetime.date(2019, 8, 1),
                                      data_final=datetime.date(2019, 7, 1),
                                      escola=escola2)
     inclusao_continua_3 = mommy.make(InclusaoAlimentacaoContinua,
-                                     criado_em=datetime.date(2019, 8, 1),
                                      data_inicial=datetime.date(2019, 12, 1),
                                      data_final=datetime.date(2019, 12, 9),
                                      escola=escola2)
@@ -255,6 +253,8 @@ def solicitacoes_ano_dre(client, django_user_model, request, diretoria_regional2
                          solicitacoes_kit_lanche_dre, inclusoes_de_alimentacao_continua_dre):
     email, password, rf, cpf = request.param
     user_dre = django_user_model.objects.create_user(password=password, email=email, registro_funcional=rf, cpf=cpf)
+    user_codae = django_user_model.objects.create_user(password='xxx2', email='xxx@email.com',
+                                                       registro_funcional='9987634', cpf='12oiu3123')
     user_escola = django_user_model.objects.create_user(password='xxx', email='user@escola.com',
                                                         registro_funcional='123123', cpf='12312312332')
     client.login(email=email, password=password)
@@ -274,10 +274,38 @@ def solicitacoes_ano_dre(client, django_user_model, request, diretoria_regional2
     solkit2.inicia_fluxo(user=user_escola)
     solkit3.inicia_fluxo(user=user_escola)
     solkit4.inicia_fluxo(user=user_escola)
+
     inc_continua_1, inc_continua_2, inc_continua_3 = inclusoes_de_alimentacao_continua_dre
     inc_continua_1.inicia_fluxo(user=user_escola)
     inc_continua_2.inicia_fluxo(user=user_escola)
     inc_continua_3.inicia_fluxo(user=user_escola)
+
+    inc_continua_1.criado_em = datetime.datetime(year=2019, month=1, day=15, tzinfo=pytz.UTC)
+    inc_continua_1.save()
+    inc_continua_2.criado_em = datetime.datetime(year=2019, month=1, day=15, tzinfo=pytz.UTC)
+    inc_continua_2.save()
+    inc_continua_3.criado_em = datetime.datetime(year=2019, month=1, day=15, tzinfo=pytz.UTC)
+    inc_continua_3.save()
+
+    k1 = solkit1.solicitacao_kit_lanche
+    k1.criado_em = datetime.datetime(year=2019, month=2, day=15, tzinfo=pytz.UTC)
+    k1.save()
+    k2 = solkit2.solicitacao_kit_lanche
+    k2.criado_em = datetime.datetime(year=2019, month=2, day=15, tzinfo=pytz.UTC)
+    k2.save()
+    k3 = solkit3.solicitacao_kit_lanche
+    k3.criado_em = datetime.datetime(year=2019, month=4, day=15, tzinfo=pytz.UTC)
+    k3.save()
+    k4 = solkit4.solicitacao_kit_lanche
+    k4.criado_em = datetime.datetime(year=2019, month=4, day=15, tzinfo=pytz.UTC)
+    k4.save()
+
+    alt1.criado_em = datetime.datetime(year=2019, month=12, day=15, tzinfo=pytz.UTC)
+    alt1.save()
+    alt2.criado_em = datetime.datetime(year=2019, month=12, day=15, tzinfo=pytz.UTC)
+    alt2.save()
+    alt3.criado_em = datetime.datetime(year=2019, month=12, day=15, tzinfo=pytz.UTC)
+    alt3.save()
 
     alt1, alt2, alt3 = alteracoes_cardapio_dre
     alt1.dre_valida(user=user_dre)
@@ -292,6 +320,7 @@ def solicitacoes_ano_dre(client, django_user_model, request, diretoria_regional2
     inc_continua_1.dre_valida(user=user_dre)
     inc_continua_2.dre_valida(user=user_dre)
     inc_continua_3.dre_valida(user=user_dre)
+    inc_continua_1.codae_nega(user=user_codae)
     return client, email, password, rf, cpf, user_dre
 
 

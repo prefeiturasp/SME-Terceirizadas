@@ -1,8 +1,9 @@
 from freezegun import freeze_time
 from rest_framework import status
 
-from ...dados_comuns.constants import SEM_FILTRO
+from sme_terceirizadas.paineis_consolidados.api.constants import RESUMO_MES
 from ..api.constants import AUTORIZADOS, CANCELADOS, NEGADOS, PENDENTES_AUTORIZACAO, RESUMO_ANO
+from ...dados_comuns.constants import SEM_FILTRO
 
 
 def base_codae(client_autenticado, resource):
@@ -53,7 +54,7 @@ def test_escola_relatorio_evolucao_solicitacoes(users_diretor_escola):
 
 
 @freeze_time('2019-10-11')
-def test_escola_relatorio_evolucao_solicitacoes_dre(solicitacoes_ano_dre):
+def test_resumo_ano_dre(solicitacoes_ano_dre):
     client, email, password, rf, cpf, user = solicitacoes_ano_dre
     response = client.get(
         f'/diretoria-regional-solicitacoes/{RESUMO_ANO}/')
@@ -69,3 +70,14 @@ def test_escola_relatorio_evolucao_solicitacoes_dre(solicitacoes_ano_dre):
              'Kit Lanche Passeio Unificado': {'quantidades': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 'total': 0}
              }
     }
+
+
+@freeze_time('2019-02-11')
+def test_resumo_mes_dre(solicitacoes_ano_dre):
+    client, email, password, rf, cpf, user = solicitacoes_ano_dre
+    response = client.get(
+        f'/diretoria-regional-solicitacoes/{RESUMO_MES}/')
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == {'total_autorizados': 0, 'total_negados': 0, 'total_cancelados': 0, 'total_pendentes': 2,
+                               'total_autorizados_mes_passado': 0, 'total_negados_mes_passado': 1,
+                               'total_cancelados_mes_passado': 0, 'total_pendentes_mes_passado': 2}
