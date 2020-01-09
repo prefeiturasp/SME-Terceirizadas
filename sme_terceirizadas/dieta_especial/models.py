@@ -2,13 +2,20 @@ from django.core.validators import MinLengthValidator
 from django.db import models
 from django_prometheus.models import ExportModelOperationsMixin
 
-from ..dados_comuns.behaviors import CriadoEm, CriadoPor, Logs, TemChaveExterna, TemIdentificadorExternoAmigavel
+from ..dados_comuns.behaviors import (
+    CriadoEm,
+    CriadoPor,
+    Logs,
+    TemChaveExterna,
+    TemIdentificadorExternoAmigavel,
+    TemPrioridade
+)
 from ..dados_comuns.fluxo_status import FluxoDietaEspecialPartindoDaEscola
 from ..dados_comuns.models import LogSolicitacoesUsuario, TemplateMensagem
 
 
 class SolicitacaoDietaEspecial(ExportModelOperationsMixin('dieta_especial'), TemChaveExterna, CriadoEm, CriadoPor,
-                               FluxoDietaEspecialPartindoDaEscola,
+                               FluxoDietaEspecialPartindoDaEscola, TemPrioridade,
                                Logs, TemIdentificadorExternoAmigavel):
     codigo_eol_aluno = models.CharField('Código EOL do aluno',
                                         max_length=6,

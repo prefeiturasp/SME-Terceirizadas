@@ -6,6 +6,7 @@ from django.db import models
 from ..dados_comuns.behaviors import TemIdentificadorExternoAmigavel, TemPrioridade
 from ..dados_comuns.constants import DAQUI_A_SETE_DIAS, DAQUI_A_TRINTA_DIAS
 from ..dados_comuns.fluxo_status import (
+    DietaEspecialWorkflow,
     InformativoPartindoDaEscolaWorkflow,
     PedidoAPartirDaDiretoriaRegionalWorkflow,
     PedidoAPartirDaEscolaWorkflow
@@ -52,6 +53,7 @@ class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmiga
     TP_SOL_KIT_LANCHE_AVULSA = 'KIT_LANCHE_AVULSA'
     TP_SOL_SUSP_ALIMENTACAO = 'SUSP_ALIMENTACAO'
     TP_SOL_KIT_LANCHE_UNIFICADA = 'KIT_LANCHE_UNIFICADA'
+    TP_SOL_DIETA_ESPECIAL = 'DIETA_ESPECIAL'
 
     STATUS_TODOS = 'TODOS'
     STATUS_AUTORIZADOS = 'AUTORIZADOS'
@@ -145,6 +147,7 @@ class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmiga
                     status_atual__in=cls.PENDENTES_STATUS,
                     status_evento__in=cls.PENDENTES_EVENTO
                 )
+        # TODO: verificar distinct uuid junto com criado_em
         return query_set.order_by('-criado_em')
 
     @classmethod
@@ -292,16 +295,24 @@ class SolicitacoesEscola(MoldeConsolidado):
     #
     # Filtros padrão
     #
+    PENDENTES_STATUS_DIETA_ESPECIAL = [DietaEspecialWorkflow.CODAE_A_AUTORIZAR]
+    PENDENTES_EVENTO_DIETA_ESPECIAL = [LogSolicitacoesUsuario.DIETA_ESPECIAL]
 
     PENDENTES_STATUS = [PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR,
                         PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO,
                         PedidoAPartirDaEscolaWorkflow.CODAE_QUESTIONADO,
                         PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO,
-                        InformativoPartindoDaEscolaWorkflow.INFORMADO]
+                        InformativoPartindoDaEscolaWorkflow.INFORMADO,
+                        # TODO: Bruno. remover essa parte de dieta especial depois da entrega da sprint
+                        DietaEspecialWorkflow.CODAE_A_AUTORIZAR
+                        ]
     PENDENTES_EVENTO = [LogSolicitacoesUsuario.INICIO_FLUXO,
                         LogSolicitacoesUsuario.DRE_VALIDOU,
                         LogSolicitacoesUsuario.CODAE_QUESTIONOU,
-                        LogSolicitacoesUsuario.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO]
+                        LogSolicitacoesUsuario.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO,
+                        # TODO: Bruno. remover essa parte de dieta especial depois da entrega da sprint
+                        LogSolicitacoesUsuario.DIETA_ESPECIAL
+                        ]
 
     AUTORIZADOS_STATUS = [PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO,
                           PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_TOMOU_CIENCIA]
@@ -322,6 +333,15 @@ class SolicitacoesEscola(MoldeConsolidado):
         ).filter(
             status_atual__in=cls.PENDENTES_STATUS,
             status_evento__in=cls.PENDENTES_EVENTO
+        ).distinct().order_by('-data_log')
+
+    @classmethod
+    def get_pendentes_dieta_especial(cls, **kwargs):
+        escola_uuid = kwargs.get('escola_uuid')
+        return cls.objects.filter(
+            escola_uuid=escola_uuid,
+            status_atual__in=cls.PENDENTES_STATUS_DIETA_ESPECIAL,
+            status_evento__in=cls.PENDENTES_EVENTO_DIETA_ESPECIAL
         ).distinct().order_by('-data_log')
 
     @classmethod
@@ -507,7 +527,6 @@ class SolicitacoesDRE(MoldeConsolidado):
         if escola_uuid != 'TODOS':
             query_set = query_set.filter(
                 escola_uuid=escola_uuid,
-                dre_uuid=dre_uuid
             )
         return cls._filtro_data_status_tipo(data_final, data_inicial, query_set, status_solicitacao, tipo_solicitacao)
 
@@ -519,7 +538,7 @@ class SolicitacoesDRE(MoldeConsolidado):
             dre_uuid=dre_uuid,
             data_evento__year=datetime.date.today().year
             # TODO: devemos filtrar por data do evento ou data em que foi criado?
-        ).distinct().order_by('-data_log').values('data_evento__month', 'desc_doc')
+        ).distinct('uuid').values('data_evento__month', 'desc_doc')
 
     @classmethod
     def resumo_totais_mes(cls, **kwargs):
@@ -531,14 +550,13 @@ class SolicitacoesDRE(MoldeConsolidado):
             criado_em__date__year=hoje.year,
             criado_em__date__month=hoje.month,
 
-        )
+        ).distinct('uuid')
         query_set_mes_passado = cls.objects.filter(
-            escola_uuid=dre_uuid,
+            dre_uuid=dre_uuid,
             criado_em__date__year=mes_passado.year,
             criado_em__date__month=mes_passado.month,
 
-        )
-
+        ).distinct('uuid')
         return dict(
             total_autorizados=cls._conta_autorizados(query_set),
             total_negados=cls._conta_negados(query_set),

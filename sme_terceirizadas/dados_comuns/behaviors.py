@@ -213,11 +213,13 @@ class TemPrioridade(object):
 
         return descricao
 
-    def _get_ultimo_dia_util(self, data: datetime.date):
+    def _get_ultimo_dia_util(self, data: datetime.date) -> datetime.date:
         """Assumindo que é sab, dom ou feriado volta para o dia util anterior."""
         data_retorno = data
         while not eh_dia_util(data_retorno):
             data_retorno -= datetime.timedelta(days=1)
+        if isinstance(data_retorno, datetime.datetime):
+            return data_retorno.date()
         return data_retorno
 
 
