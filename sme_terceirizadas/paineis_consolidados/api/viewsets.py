@@ -5,8 +5,6 @@ from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from sme_terceirizadas.paineis_consolidados.api.constants import PENDENTES_AUTORIZACAO_DIETA_ESPECIAL
-
 from ...dados_comuns.constants import FILTRO_PADRAO_PEDIDOS, SEM_FILTRO
 from ...paineis_consolidados.api.constants import PESQUISA, TIPO_VISAO, TIPO_VISAO_LOTE, TIPO_VISAO_SOLICITACOES
 from ...paineis_consolidados.api.serializers import SolicitacoesSerializer
@@ -20,6 +18,7 @@ from .constants import (
     FILTRO_TERCEIRIZADA_UUID,
     NEGADOS,
     PENDENTES_AUTORIZACAO,
+    PENDENTES_AUTORIZACAO_DIETA_ESPECIAL,
     PENDENTES_CIENCIA,
     QUESTIONAMENTOS,
     RESUMO_ANO,

@@ -147,6 +147,7 @@ class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmiga
                     status_atual__in=cls.PENDENTES_STATUS,
                     status_evento__in=cls.PENDENTES_EVENTO
                 )
+        # TODO: verificar distinct uuid junto com criado_em
         return query_set.order_by('-criado_em')
 
     @classmethod
@@ -526,7 +527,6 @@ class SolicitacoesDRE(MoldeConsolidado):
         if escola_uuid != 'TODOS':
             query_set = query_set.filter(
                 escola_uuid=escola_uuid,
-                dre_uuid=dre_uuid
             )
         return cls._filtro_data_status_tipo(data_final, data_inicial, query_set, status_solicitacao, tipo_solicitacao)
 
