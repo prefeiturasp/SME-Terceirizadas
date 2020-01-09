@@ -1,6 +1,27 @@
 @import "variaveis";
 
 
+@page {
+  margin-bottom: 3em;
+  @bottom-left {
+    background: $cor-background-header;
+    color: $cor-texto-padrao;
+    content: 'TODO descobiri como passar mensagem dinamicamente...';
+    font-size: 10px;
+    width: 100%;
+    padding: 1em 2em 4em 2em;
+    margin-top: 1em;
+  }
+  @bottom-right {
+    background: $cor-background-header;
+    color: $cor-texto-padrao;
+    content: counter(page);
+    font-size: 10px;
+    padding: 1em 2em 4em 2em;
+    margin-top: 1em;
+  }
+}
+
 .titulo-e-logo {
   display: flex;
   align-items: center;
@@ -16,9 +37,8 @@
   }
 }
 
-
 .header {
-  padding: 2em 2em 1em 2em;
+  padding: 1em 2em 1em 2em;
   background: $cor-background-header;
 }
 

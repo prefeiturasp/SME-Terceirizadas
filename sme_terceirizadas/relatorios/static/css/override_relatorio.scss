@@ -1,0 +1,49 @@
+@import "variaveis";
+
+
+.thead-black {
+  thead {
+    font-weight: bold;
+    background-color: #000000;
+    color: #FFFFFF;
+  }
+
+}
+
+.conteudo {
+  padding: 0em 2em 0em 2em;
+
+  .tabela-sem-borda {
+    table {
+      font-size: 14px;
+      border-collapse: collapse;
+      width: 100%;
+
+    }
+
+    th, td {
+      padding: 0.5em;
+      text-align: left;
+      border-bottom: 1px solid #000000;
+    }
+  }
+
+  .total-unidades-kits {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+
+    .cabecalho {
+      color: #686868;
+      line-height: 16px;
+    }
+
+    .resultado {
+      font-weight: bold;
+      line-height: 16px;
+      color: #353535;
+    }
+  }
+}
+
+

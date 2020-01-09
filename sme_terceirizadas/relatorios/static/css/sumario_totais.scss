@@ -9,7 +9,7 @@
     //content: {{ escola.nome }};
     font-size: 10px;
     width: 100%;
-    padding: 1em 2em 2em 2em;
+    padding: 1em 2em 4em 2em;
     margin-top: 1em;
   }
   @bottom-right {
@@ -18,10 +18,9 @@
     content: counter(page);
     font-size: 10px;
     //width: 5em;
-    padding: 1em 2em 2em 2em;
+    padding: 1em 2em 4em 2em;
     margin-top: 1em;
   }
-
 }
 
 .tabela-sumario-totais {
