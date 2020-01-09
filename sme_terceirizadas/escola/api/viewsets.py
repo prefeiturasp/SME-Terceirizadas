@@ -19,7 +19,10 @@ from ...escola.api.serializers import (
     LoteSimplesSerializer,
     UsuarioDetalheSerializer
 )
-from ...escola.api.serializers_create import EscolaPeriodoEscolarCreateSerializer, LoteCreateSerializer
+from ...escola.api.serializers_create import (
+    EscolaPeriodoEscolarCreateSerializer,
+    LoteCreateSerializer
+)
 from ...paineis_consolidados.api.constants import FILTRO_DRE_UUID
 from ...perfil.api.serializers import UsuarioUpdateSerializer, VinculoSerializer
 from ..models import (
@@ -27,6 +30,7 @@ from ..models import (
     DiretoriaRegional,
     Escola,
     EscolaPeriodoEscolar,
+    LogAlteracaoQuantidadeAlunosPorEscolaEPeriodoEscolar,
     Lote,
     PeriodoEscolar,
     Subprefeitura,
@@ -43,6 +47,7 @@ from .serializers import (
     TipoGestaoSerializer,
     TipoUnidadeEscolarSerializer
 )
+
 
 # https://www.django-rest-framework.org/api-guide/permissions/#custom-permissions
 
