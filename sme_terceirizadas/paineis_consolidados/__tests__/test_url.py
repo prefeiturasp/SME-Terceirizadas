@@ -50,3 +50,22 @@ def test_escola_relatorio_evolucao_solicitacoes(users_diretor_escola):
                  {'quantidades': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 'total': 0}
              }
     }
+
+
+@freeze_time('2019-10-11')
+def test_escola_relatorio_evolucao_solicitacoes_dre(solicitacoes_ano_dre):
+    client, email, password, rf, cpf, user = solicitacoes_ano_dre
+    response = client.get(
+        f'/diretoria-regional-solicitacoes/{RESUMO_ANO}/')
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == {
+        'results':
+            {'total': 8,
+             'Inclusão de Alimentação': {'quantidades': [0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1], 'total': 3},
+             'Alteração de Cardápio': {'quantidades': [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0], 'total': 3},
+             'Inversão de dia de Cardápio': {'quantidades': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 'total': 0},
+             'Suspensão de Alimentação': {'quantidades': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 'total': 0},
+             'Kit Lanche Passeio': {'quantidades': [0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0], 'total': 2},
+             'Kit Lanche Passeio Unificado': {'quantidades': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 'total': 0}
+             }
+    }

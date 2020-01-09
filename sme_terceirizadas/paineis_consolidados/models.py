@@ -6,10 +6,11 @@ from django.db import models
 from ..dados_comuns.behaviors import TemIdentificadorExternoAmigavel, TemPrioridade
 from ..dados_comuns.constants import DAQUI_A_SETE_DIAS, DAQUI_A_TRINTA_DIAS
 from ..dados_comuns.fluxo_status import (
+    DietaEspecialWorkflow,
     InformativoPartindoDaEscolaWorkflow,
     PedidoAPartirDaDiretoriaRegionalWorkflow,
-    PedidoAPartirDaEscolaWorkflow,
-    DietaEspecialWorkflow)
+    PedidoAPartirDaEscolaWorkflow
+)
 from ..dados_comuns.models import LogSolicitacoesUsuario
 
 
@@ -537,7 +538,7 @@ class SolicitacoesDRE(MoldeConsolidado):
             dre_uuid=dre_uuid,
             data_evento__year=datetime.date.today().year
             # TODO: devemos filtrar por data do evento ou data em que foi criado?
-        ).distinct().order_by('-data_log').values('data_evento__month', 'desc_doc')
+        ).distinct('uuid').values('data_evento__month', 'desc_doc')
 
     @classmethod
     def resumo_totais_mes(cls, **kwargs):
