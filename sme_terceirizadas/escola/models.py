@@ -351,18 +351,18 @@ class LogAlteracaoQuantidadeAlunosPorEscolaEPeriodoEscolar(TemChaveExterna, Cria
     periodo_escolar = models.ForeignKey(PeriodoEscolar,
                                         related_name='log_alteracao_quantidade_alunos',
                                         on_delete=models.DO_NOTHING)
-    quantidade_alunos_atual = models.PositiveSmallIntegerField('Quantidade de alunos atual', default=0)
-    quantidade_alunos_alterada = models.PositiveSmallIntegerField('Quantidade de alunos alterada', default=0)
+    quantidade_alunos_de = models.PositiveSmallIntegerField('Quantidade de alunos anterior', default=0)
+    quantidade_alunos_para = models.PositiveSmallIntegerField('Quantidade de alunos alterada', default=0)
 
     def __str__(self):
-        alunos_atual = self.quantidade_alunos_atual
-        alunos_alterada = self.quantidade_alunos_alterada
+        qauntidade_anterior = self.quantidade_alunos_de
+        quantidade_atual = self.quantidade_alunos_para
         escola = self.escola.nome
-        return f'Alteração de: {alunos_atual} alunos, para: {alunos_alterada} alunos na escola: {escola}'
+        return f'Alteração de: {qauntidade_anterior} alunos, para: {quantidade_atual} alunos na escola: {escola}'
 
     class Meta:
         verbose_name = 'Log Alteração quantidade de alunos'
-        verbose_name_plural = 'Logs Alterações quantidade de alunos'
+        verbose_name_plural = 'Logs de Alteração quantidade de alunos'
         ordering = ('criado_em',)
 
 
