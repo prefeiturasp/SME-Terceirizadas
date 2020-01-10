@@ -9,7 +9,6 @@ from ...cardapio.models import AlteracaoCardapio
 from ...dados_comuns.models import TemplateMensagem
 from ...inclusao_alimentacao.models import InclusaoAlimentacaoContinua
 from ...kit_lanche.models import KitLanche, SolicitacaoKitLanche, SolicitacaoKitLancheAvulsa
-from ..models import SolicitacoesEscola
 
 fake = Faker('pt_BR')
 fake.seed(420)
@@ -150,6 +149,7 @@ def users_diretor_escola(client, django_user_model, request, escola, templates, 
                data_inicial=hoje, ativo=True)
     alt1, alt2, alt3 = alteracoes_cardapio
     alt1.inicia_fluxo(user=user)
+
     alt2.inicia_fluxo(user=user)
     alt3.inicia_fluxo(user=user)
     solkit1, solkit2, solkit3, solkit4 = solicitacoes_kit_lanche
@@ -322,22 +322,6 @@ def solicitacoes_ano_dre(client, django_user_model, request, diretoria_regional2
     inc_continua_3.dre_valida(user=user_dre)
     inc_continua_1.codae_nega(user=user_codae)
     return client, email, password, rf, cpf, user_dre
-
-
-@pytest.fixture(params=[
-    # data evento
-    (datetime.date(datetime.datetime.now().year, 10, 1)),
-    (datetime.date(datetime.datetime.now().year, 10, 2)),
-    (datetime.date(datetime.datetime.now().year, 10, 29)),
-    (datetime.date(datetime.datetime.now().year, 10, 30))
-])
-def solicitacoes_escola_params(escola, request):
-    data_evento = request.param
-    mommy.make(AlteracaoCardapio,
-               escola=escola,
-               data_inicial=data_evento,
-               status=AlteracaoCardapio.workflow_class.DRE_A_VALIDAR)
-    return SolicitacoesEscola.objects.all()
 
 
 @pytest.fixture
