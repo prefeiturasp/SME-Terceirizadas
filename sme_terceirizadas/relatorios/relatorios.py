@@ -5,7 +5,7 @@ from django.template.loader import render_to_string
 from weasyprint import HTML
 
 from ..escola.models import Escola
-from ..kit_lanche.models import SolicitacaoKitLancheUnificada, EscolaQuantidade
+from ..kit_lanche.models import EscolaQuantidade, SolicitacaoKitLancheUnificada
 
 
 def generate_pdf(request):
@@ -18,10 +18,9 @@ def generate_pdf(request):
               'tipo_solicitacao': 'TODOS', 'status': 'TODOS'}
     # Rendered
     html_string = render_to_string('relatorio2.html',
-                                   {'escola': escola, 'filtro': filtro, "solicitacao": sol, 'qtd_escolas': qtd_escolas
+                                   {'escola': escola, 'filtro': filtro, 'solicitacao': sol, 'qtd_escolas': qtd_escolas
                                     })
     pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
     response = HttpResponse(pdf_file, content_type='application/pdf')
     response['Content-Disposition'] = 'filename="XXX.pdf"'
     return response
-    #return HttpResponse(html_string)
