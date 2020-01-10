@@ -23,7 +23,7 @@ escola_totais = calcula_total_alunos_por_escola_por_periodo(json_data_totais)
 # TODO: isso ta duplicado do app escolas commands
 def _atualiza_totais_alunos_escola(escola_totais):  # noqa C901
     for codigo_eol, dados in escola_totais.items():
-        total_alunos_periodo = dados.pop('total')
+        # total_alunos_periodo = dados.pop('total')
         try:
             escola_object = Escola.objects.get(codigo_eol=codigo_eol)
             for periodo_escolar_str, quantidade_alunos_periodo in dados.items():
@@ -36,11 +36,11 @@ def _atualiza_totais_alunos_escola(escola_totais):  # noqa C901
                     print(msg)
                     escola_periodo.quantidade_alunos = quantidade_alunos_periodo
                     escola_periodo.save()
-            if escola_object.quantidade_alunos != total_alunos_periodo:
-                msg = f'Atualizando qtd TOTAL alunos da escola {escola_object.nome} de {escola_object.quantidade_alunos} para {total_alunos_periodo}'  # noqa
-                print(msg)
-                escola_object.quantidade_alunos = total_alunos_periodo
-                escola_object.save()
+            # if escola_object.quantidade_alunos != total_alunos_periodo:
+            #     msg = f'Atualizando qtd TOTAL alunos da escola {escola_object.nome} de {escola_object.quantidade_alunos} para {total_alunos_periodo}'  # noqa
+            #     print(msg)
+            #     escola_object.quantidade_alunos = total_alunos_periodo
+            #     escola_object.save()
 
         except ObjectDoesNotExist:
             continue

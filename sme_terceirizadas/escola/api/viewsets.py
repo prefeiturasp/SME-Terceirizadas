@@ -13,13 +13,20 @@ from ...escola.api.permissions import (
     PodeCriarAdministradoresDaDiretoriaRegional,
     PodeCriarAdministradoresDaEscola
 )
-from ...escola.api.serializers import CODAESerializer, LoteSimplesSerializer, UsuarioDetalheSerializer
-from ...escola.api.serializers_create import LoteCreateSerializer
+from ...escola.api.serializers import (
+    CODAESerializer,
+    EscolaPeriodoEscolarSerializer,
+    LoteSimplesSerializer,
+    UsuarioDetalheSerializer
+)
+from ...escola.api.serializers_create import EscolaPeriodoEscolarCreateSerializer, LoteCreateSerializer
+from ...paineis_consolidados.api.constants import FILTRO_DRE_UUID
 from ...perfil.api.serializers import UsuarioUpdateSerializer, VinculoSerializer
 from ..models import (
     Codae,
     DiretoriaRegional,
     Escola,
+    EscolaPeriodoEscolar,
     Lote,
     PeriodoEscolar,
     Subprefeitura,
@@ -150,6 +157,11 @@ class EscolaSimplissimaViewSet(ReadOnlyModelViewSet):
     queryset = Escola.objects.all()
     serializer_class = EscolaSimplissimaSerializer
 
+    @action(detail=False, methods=['GET'], url_path=f'{FILTRO_DRE_UUID}')
+    def filtro_por_diretoria_regional(self, request, dre_uuid=None):
+        escolas = Escola.objects.filter(diretoria_regional__uuid=dre_uuid)
+        return Response(self.get_serializer(escolas, many=True).data)
+
 
 class PeriodoEscolarViewSet(ReadOnlyModelViewSet):
     lookup_field = 'uuid'
@@ -206,3 +218,27 @@ class TipoUnidadeEscolarViewSet(ReadOnlyModelViewSet):
     lookup_field = 'uuid'
     serializer_class = TipoUnidadeEscolarSerializer
     queryset = TipoUnidadeEscolar.objects.all()
+
+
+class EscolaPeriodoEscolarViewSet(ModelViewSet):
+    lookup_field = 'uuid'
+    serializer_class = EscolaPeriodoEscolarSerializer
+    queryset = EscolaPeriodoEscolar.objects.all()
+
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update']:
+            return EscolaPeriodoEscolarCreateSerializer
+        return EscolaPeriodoEscolarSerializer
+
+    def destroy(self, request, *args, **kwargs):
+        return Response({'detail': 'Não é permitido excluir um periodo já existente'},
+                        status=status.HTTP_401_UNAUTHORIZED)
+
+    @action(detail=False, url_path='escola/(?P<escola_uuid>[^/.]+)')
+    def filtro_por_escola(self, request, escola_uuid=None):
+        periodos = EscolaPeriodoEscolar.objects.filter(
+            escola__uuid=escola_uuid
+        )
+        page = self.paginate_queryset(periodos)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)

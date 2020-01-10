@@ -118,7 +118,6 @@ def cria_escola():
             tipo_unidade=tipo_ue_obj,
             tipo_gestao=tipo_gestao,
             lote=lote_obj,
-            quantidade_alunos=0,
             contato=contato_obj
         )
 

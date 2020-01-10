@@ -8,6 +8,7 @@ from ..api.validators import (
     cardapio_antigo,
     data_troca_nao_pode_ser_superior_a_data_inversao,
     deve_ser_no_mesmo_ano_corrente,
+    hora_inicio_nao_pode_ser_maior_que_hora_final,
     nao_pode_existir_solicitacao_igual_para_mesma_escola,
     nao_pode_ter_mais_que_60_dias_diferenca
 )
@@ -63,3 +64,14 @@ def test_nao_pode_existir_solicitacao_igual_para_mesma_escola_exceptio(datas_inv
                escola=escola)
     with pytest.raises(ValidationError, match='Já existe uma solicitação de inversão com estes dados'):
         nao_pode_existir_solicitacao_igual_para_mesma_escola(data_de=data_de, data_para=data_para, escola=escola)
+
+
+def test_hora_inicio_nao_pode_ser_maior_que_hora_final(horarios_combos_tipo_alimentacao_validos):
+    data_inicial, data_final, esperado = horarios_combos_tipo_alimentacao_validos
+    assert hora_inicio_nao_pode_ser_maior_que_hora_final(data_inicial, data_final) is esperado
+
+
+def test_hora_inicio_nao_pode_ser_maior_que_hora_final_exception(horarios_combos_tipo_alimentacao_invalidos):
+    data_inicial, data_final, esperado = horarios_combos_tipo_alimentacao_invalidos
+    with pytest.raises(serializers.ValidationError, match=esperado):
+        hora_inicio_nao_pode_ser_maior_que_hora_final(data_inicial, data_final)
