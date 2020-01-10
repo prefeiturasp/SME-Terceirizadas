@@ -1,13 +1,7 @@
 from rest_framework import mixins
 from rest_framework.viewsets import GenericViewSet
 
-from ..models import (
-    AlergiaIntolerancia,
-    ClassificacaoDieta,
-    MotivoNegacao,
-    SolicitacaoDietaEspecial,
-    TipoDieta
-)
+from ..models import AlergiaIntolerancia, ClassificacaoDieta, MotivoNegacao, SolicitacaoDietaEspecial, TipoDieta
 from .serializers import (
     AlergiaIntoleranciaSerializer,
     ClassificacaoDietaSerializer,

@@ -1,20 +1,12 @@
 from rest_framework import status
 
-from ...dados_comuns import constants
-from ...dados_comuns.fluxo_status import InformativoPartindoDaEscolaWorkflow, PedidoAPartirDaEscolaWorkflow
-
 from ..constants import (
     ENDPOINT_ALERGIAS_INTOLERANCIAS,
     ENDPOINT_CLASSIFICACOES_DIETA,
     ENDPOINT_MOTIVOS_NEGACAO,
     ENDPOINT_TIPOS_DIETA_ESPECIAL
 )
-from ..models import (
-    AlergiaIntolerancia,
-    ClassificacaoDieta,
-    MotivoNegacao,
-    TipoDieta
-)
+from ..models import AlergiaIntolerancia, ClassificacaoDieta, MotivoNegacao, TipoDieta
 
 
 def testa_endpoint_lista(client_autenticado, endpoint, quantidade):
@@ -68,6 +60,7 @@ def testa_endpoint_detalhe(client_autenticado, endpoint, modelo, tem_nome=False)
     assert obj.descricao == json['descricao']
     if tem_nome:
         assert obj.nome == json['nome']
+
 
 def test_url_endpoint_detalhe_alergias_intolerancias(client_autenticado,
                                                      alergias_intolerancias):

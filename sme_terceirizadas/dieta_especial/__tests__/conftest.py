@@ -4,14 +4,7 @@ from model_mommy import mommy
 
 from ...dados_comuns.utils import convert_base64_to_contentfile
 from ...escola.models import Escola
-from ..models import (
-    AlergiaIntolerancia,
-    Anexo,
-    ClassificacaoDieta,
-    MotivoNegacao,
-    SolicitacaoDietaEspecial,
-    TipoDieta
-)
+from ..models import AlergiaIntolerancia, Anexo, ClassificacaoDieta, MotivoNegacao, SolicitacaoDietaEspecial, TipoDieta
 
 fake = Faker('pt_BR')
 fake.seed(420)

@@ -1,26 +1,12 @@
 from drf_base64.serializers import ModelSerializer
 from rest_framework import serializers
 
-from ...dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
+from ...dados_comuns.api.serializers import ContatoSerializer, LogSolicitacoesUsuarioSerializer
 from ...dados_comuns.utils import convert_base64_to_contentfile
 from ...dados_comuns.validators import deve_ser_no_passado
-from ...dados_comuns.api.serializers import ContatoSerializer
-
+from ...escola.api.serializers import DiretoriaRegionalSimplesSerializer, LoteSimplesSerializer, TipoGestaoSerializer
 from ...escola.models import Escola
-from ...escola.api.serializers import (
-    DiretoriaRegionalSimplesSerializer,
-    TipoGestaoSerializer,
-    LoteSimplesSerializer
-)
-
-from ..models import (
-    AlergiaIntolerancia,
-    Anexo,
-    ClassificacaoDieta,
-    MotivoNegacao,
-    SolicitacaoDietaEspecial,
-    TipoDieta
-)
+from ..models import AlergiaIntolerancia, Anexo, ClassificacaoDieta, MotivoNegacao, SolicitacaoDietaEspecial, TipoDieta
 from .validators import deve_ter_extensao_valida
 
 
@@ -131,20 +117,33 @@ class SolicitacaoDietaEspecialSerializer(serializers.ModelSerializer):
             'id_externo'
         )
 
+
+class SolicitacaoDietaEspecialLogSerializer(serializers.ModelSerializer):
+    logs = LogSolicitacoesUsuarioSerializer(many=True)
+    id_externo = serializers.CharField()
+
+    class Meta:
+        model = SolicitacaoDietaEspecial
+        fields = ('uuid', 'nome_completo_aluno', 'logs', 'id_externo')
+
+
 class AlergiaIntoleranciaSerializer(serializers.ModelSerializer):
     class Meta:
         model = AlergiaIntolerancia
         fields = '__all__'
+
 
 class ClassificacaoDietaSerializer(serializers.ModelSerializer):
     class Meta:
         model = ClassificacaoDieta
         fields = '__all__'
 
+
 class MotivoNegacaoSerializer(serializers.ModelSerializer):
     class Meta:
         model = MotivoNegacao
         fields = '__all__'
+
 
 class TipoDietaSerializer(serializers.ModelSerializer):
     class Meta:

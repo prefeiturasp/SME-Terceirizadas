@@ -7,8 +7,8 @@ from rest_framework.response import Response
 
 from ...dados_comuns.constants import FILTRO_PADRAO_PEDIDOS, SEM_FILTRO
 from ...dados_comuns.fluxo_status import DietaEspecialWorkflow
+from ...dieta_especial.api.serializers import SolicitacaoDietaEspecialLogSerializer, SolicitacaoDietaEspecialSerializer
 from ...dieta_especial.models import SolicitacaoDietaEspecial
-from ...dieta_especial.api.serializers import SolicitacaoDietaEspecialSerializer
 from ...paineis_consolidados.api.constants import PESQUISA, TIPO_VISAO, TIPO_VISAO_LOTE, TIPO_VISAO_SOLICITACOES
 from ...paineis_consolidados.api.serializers import SolicitacoesSerializer
 from ..api.constants import FILTRO_PERIOD_UUID_DRE, PENDENTES_VALIDACAO_DRE
@@ -451,5 +451,5 @@ class DietaEspecialSolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
     def _retorno_base(self, status):
         query_set = self.queryset.filter(status=status)
         page = self.paginate_queryset(query_set)
-        serializer = self.get_serializer(page, many=True)
+        serializer = SolicitacaoDietaEspecialLogSerializer(page, many=True)
         return self.get_paginated_response(serializer.data)

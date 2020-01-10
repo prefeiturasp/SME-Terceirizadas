@@ -6,11 +6,11 @@ from faker import Faker
 from model_mommy import mommy
 
 from ...cardapio.models import AlteracaoCardapio
-from ...dados_comuns.models import TemplateMensagem
 from ...dados_comuns.fluxo_status import DietaEspecialWorkflow
+from ...dados_comuns.models import TemplateMensagem
+from ...dieta_especial.models import SolicitacaoDietaEspecial
 from ...inclusao_alimentacao.models import InclusaoAlimentacaoContinua
 from ...kit_lanche.models import KitLanche, SolicitacaoKitLanche, SolicitacaoKitLancheAvulsa
-from ...dieta_especial.models import SolicitacaoDietaEspecial
 from ..models import SolicitacoesEscola
 
 fake = Faker('pt_BR')
@@ -380,4 +380,3 @@ def solicitacoes_dieta_especial():
 ])
 def status_and_endpoint(request):
     return request.param
-
