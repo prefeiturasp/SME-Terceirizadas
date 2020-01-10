@@ -1,7 +1,6 @@
 from rest_framework import serializers
-from ...dados_comuns.utils import update_instance_from_dict
-from sme_terceirizadas.perfil.models import Usuario
 
+from ...dados_comuns.utils import update_instance_from_dict
 from ..models import (
     DiretoriaRegional,
     Escola,
@@ -54,22 +53,22 @@ class EscolaPeriodoEscolarCreateSerializer(serializers.ModelSerializer):
         queryset=PeriodoEscolar.objects.all()
     )
     quantidade_alunos = serializers.IntegerField()
-    quantidade_alunos_atual = serializers.IntegerField(required=False)
+    quantidade_alunos_anterior = serializers.IntegerField(required=False)
     justificativa = serializers.CharField(required=False)
 
     def update(self, instance, validated_data):
         escola = validated_data.get('escola')
         periodo_escolar = validated_data.get('periodo_escolar')
-        quantidade_alunos_alterada = validated_data.get('quantidade_alunos')
-        quantidade_alunos_atual = validated_data.pop('quantidade_alunos_atual')
+        quantidade_alunos_para = validated_data.get('quantidade_alunos')
+        quantidade_alunos_de = validated_data.pop('quantidade_alunos_anterior')
         justificativa = validated_data.pop('justificativa')
         criado_por = self.context['request'].user
 
         log = LogAlteracaoQuantidadeAlunosPorEscolaEPeriodoEscolar(
             escola=escola,
             periodo_escolar=periodo_escolar,
-            quantidade_alunos_alterada=quantidade_alunos_alterada,
-            quantidade_alunos_atual=quantidade_alunos_atual,
+            quantidade_alunos_para=quantidade_alunos_para,
+            quantidade_alunos_de=quantidade_alunos_de,
             criado_por=criado_por,
             justificativa=justificativa
         )
