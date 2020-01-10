@@ -3,8 +3,29 @@
 
 {% block conteudo %}
   <div class="conteudo tabela-sem-borda">
-
     <h5>Relatório SIGPAE - Solicitações por status</h5>
+    <div class="id-pedido">
+      <div class="retangulo-id">
+        # {{ solicitacao.id_externo }} <br/> <span>Nº DA SOLICITAÇÃO</span>
+      </div>
+      <div class="info">
+        <div>Solicitante</div>
+        <div>{{ solicitacao.diretoria_regional.nome }}</div>
+      </div>
+      <div class="info">
+        <div>Lote</div>
+        <div>{{ solicitacao.lote_nome|slice:"5:15" }}</div>
+      </div>
+    </div>
+    <div>
+      <hr style="color: #EEEEEE; opacity: 0.3">
+    </div>
+    <div class="motivo-local">
+      <div class="info-motivo-local" style="margin-bottom: 0.3em">
+        <div>Local do passeio</div>
+        <div>{{ solicitacao.local }}</div>
+      </div>
+    </div>
     <div class="tabela-sem-borda">
       <table class="thead-black">
         <thead>
@@ -18,16 +39,29 @@
         </tr>
         </thead>
         <tbody>
-        {% for i in solicitacao.escolas_quantidades.all %}
-          <tr>
-            <td>{{ i.escola.codigo_eol }}</td>
-            <td>{{ i.escola.nome }}</td>
-            <td>{{ i.quantidade_alunos }}</td>
-            <td>{{ solicitacao.solicitacao_kit_lanche.get_tempo_passeio_display }}</td>
-            <td>{{ solicitacao.solicitacao_kit_lanche.kits.all |join:", " }}</td>
-            <td>{% widthratio solicitacao.solicitacao_kit_lanche.kits.count 1 i.quantidade_alunos %}</td>
-          </tr>
-        {% endfor %}
+        {% if solicitacao.lista_kit_lanche_igual %}
+          {% for i in solicitacao.escolas_quantidades.all %}
+            <tr>
+              <td>{{ i.escola.codigo_eol }}</td>
+              <td>{{ i.escola.nome }}</td>
+              <td>{{ i.quantidade_alunos }}</td>
+              <td>{{ solicitacao.solicitacao_kit_lanche.get_tempo_passeio_display }}</td>
+              <td>{{ solicitacao.solicitacao_kit_lanche.kits.all |join:", " }}</td>
+              <td>{% widthratio solicitacao.solicitacao_kit_lanche.kits.count 1 i.quantidade_alunos %}</td>
+            </tr>
+          {% endfor %}
+        {% else %}
+          {% for i in solicitacao.escolas_quantidades.all %}
+            <tr>
+              <td>{{ i.escola.codigo_eol }}</td>
+              <td>{{ i.escola.nome }}</td>
+              <td>{{ i.quantidade_alunos }}</td>
+              <td>{{ i.get_tempo_passeio_display }}</td>
+              <td>{{ i.kits.all |join:", " }}</td>
+              <td>{% widthratio i.kits.count 1 i.quantidade_alunos %}</td>
+            </tr>
+          {% endfor %}
+        {% endif %}
 
         </tbody>
       </table>
@@ -46,12 +80,13 @@
       </div>
 
     </div>
-
-    <div style="color: #686868">
-      <p>Observações</p>
-      <p>
-        {{ solicitacao.solicitacao_kit_lanche.descricao |safe }}
-      </p>
-    </div>
-  </div>
+    {% if solicitacao.solicitacao_kit_lanche.descricao.length > 0 %}
+      <div style="color: #686868">
+        <p>Observações</p>
+        <p>
+          {{ solicitacao.solicitacao_kit_lanche.descricao |safe }}
+        </p>
+      </div>
+      </div>
+    {% endif %}
 {% endblock %}

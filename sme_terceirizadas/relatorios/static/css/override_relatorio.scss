@@ -13,6 +13,65 @@
 .conteudo {
   padding: 0em 2em 0em 2em;
 
+  div.id-pedido {
+    padding-bottom: 1.5em;
+    display: flex;
+
+    .retangulo-id {
+      border-radius: 4px;
+      text-align: center;
+      font-weight: bold;
+      color: #353535;
+      background-color: #D9D8D8;
+      padding: 10px;
+      font-size: 20px;
+
+      span {
+        font-size: 14px;
+      }
+    }
+
+    .info {
+      margin-top: 2em;
+      padding-left: 1em;
+
+      div {
+        &:first-child {
+          font-weight: normal;
+          font-size: 14px;
+          color: #686868;
+        }
+
+        &:not(:first-child) {
+          font-size: 15px;
+          font-weight: bold;
+          color: #353535;
+        }
+      }
+    }
+  }
+
+  div.motivo-local {
+    padding-bottom: 1em;
+
+    .info-motivo-local {
+      div {
+        &:first-child {
+          font-weight: normal;
+          font-size: 14px;
+          color: #686868;
+        }
+
+        &:not(:first-child) {
+
+          font-size: 14px;
+          font-weight: bold;
+          color: #686868;
+        }
+      }
+    }
+  }
+
   .tabela-sem-borda {
     table {
       font-size: 14px;

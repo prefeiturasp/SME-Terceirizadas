@@ -24,3 +24,4 @@ def generate_pdf(request):
     response = HttpResponse(pdf_file, content_type='application/pdf')
     response['Content-Disposition'] = 'filename="XXX.pdf"'
     return response
+    #return HttpResponse(html_string)
