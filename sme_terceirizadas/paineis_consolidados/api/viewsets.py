@@ -18,6 +18,7 @@ from .constants import (
     FILTRO_TERCEIRIZADA_UUID,
     NEGADOS,
     PENDENTES_AUTORIZACAO,
+    PENDENTES_AUTORIZACAO_DIETA_ESPECIAL,
     PENDENTES_CIENCIA,
     QUESTIONAMENTOS,
     RESUMO_ANO,
@@ -205,6 +206,11 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
     @action(detail=False, methods=['GET'], url_path=f'{PENDENTES_AUTORIZACAO}/{FILTRO_ESCOLA_UUID}')
     def pendentes_autorizacao(self, request, escola_uuid=None):
         query_set = SolicitacoesEscola.get_pendentes_autorizacao(escola_uuid=escola_uuid)
+        return self._retorno_base(query_set)
+
+    @action(detail=False, methods=['GET'], url_path=f'{PENDENTES_AUTORIZACAO_DIETA_ESPECIAL}/{FILTRO_ESCOLA_UUID}')
+    def pendentes_autorizacao_dieta_especial(self, request, escola_uuid=None):
+        query_set = SolicitacoesEscola.get_pendentes_dieta_especial(escola_uuid=escola_uuid)
         return self._retorno_base(query_set)
 
     @action(detail=False, methods=['GET'], url_path=f'{AUTORIZADOS}/{FILTRO_ESCOLA_UUID}')
