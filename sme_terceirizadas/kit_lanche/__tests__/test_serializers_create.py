@@ -19,7 +19,7 @@ pytestmark = pytest.mark.django_db
 def test_kit_lanche_avulso_serializer_validators():
     serializer_obj = SolicitacaoKitLancheAvulsaCreationSerializer()
     lote = mommy.make('Lote')
-    escola = mommy.make('Escola', quantidade_alunos=778, lote=lote)
+    escola = mommy.make('Escola', lote=lote)
     attrs = dict(quantidade_alunos=777,
                  escola=escola,
                  confirmar=True,
@@ -33,7 +33,7 @@ def test_kit_lanche_avulso_serializer_validators_error(kits_avulsos_param_erro_s
     qtd_alunos_escola, qtd_alunos_pedido, dia, erro_esperado = kits_avulsos_param_erro_serializer
     serializer_obj = SolicitacaoKitLancheAvulsaCreationSerializer()
     lote = mommy.make('Lote')
-    escola = mommy.make('Escola', quantidade_alunos=qtd_alunos_escola, lote=lote)
+    escola = mommy.make('Escola', lote=lote)
 
     attrs = dict(quantidade_alunos=qtd_alunos_pedido,
                  escola=escola,
@@ -51,7 +51,7 @@ def test_kit_lanche_avulso_serializer_creators(kits_avulsos_param_serializer):
 
     serializer_obj = SolicitacaoKitLancheAvulsaCreationSerializer(context={'request': FakeObject})
     lote = mommy.make('Lote')
-    escola = mommy.make('Escola', quantidade_alunos=qtd_alunos_escola, lote=lote)
+    escola = mommy.make('Escola', lote=lote)
     validated_data_create = dict(quantidade_alunos=quantidade_alunos_pedido,
                                  escola=escola,
                                  solicitacao_kit_lanche=dict(data=data))
@@ -83,7 +83,8 @@ def test_kit_lanche_unificado_serializer_validators_lista_igual(kits_unificados_
     serializer_obj = SolicitacaoKitLancheUnificadaCreationSerializer()
     kits = mommy.make('KitLanche', _quantity=3)
     qtd_alunos_escola, quantidade_alunos_pedido, data = kits_unificados_param_serializer
-    escola = mommy.make('Escola', nome='teste', quantidade_alunos=qtd_alunos_escola)
+    escola = mommy.make('Escola', nome='teste')
+    mommy.make('escola.EscolaPeriodoEscolar', escola=escola, quantidade_alunos=800)
     escola_quantidades = []
     for _ in range(3):
         eq = mommy.make('EscolaQuantidade', quantidade_alunos=quantidade_alunos_pedido)
@@ -106,7 +107,7 @@ def test_kit_lanche_unificado_serializer_validators_lista_nao_igual(kits_unifica
     serializer_obj = SolicitacaoKitLancheUnificadaCreationSerializer()
     qtd_alunos_escola, quantidade_alunos_pedido, data = kits_unificados_param_serializer
 
-    escola = mommy.make('Escola', quantidade_alunos=qtd_alunos_escola)
+    escola = mommy.make('Escola')
     escola_quantidades = []
     for _ in range(3):
         kits = mommy.make('KitLanche', _quantity=random.randint(1, 3))
@@ -134,7 +135,7 @@ def test_kit_lanche_unificado_serializer_creators_lista_igual(kits_unificados_pa
 
     kits = mommy.make('KitLanche', _quantity=3)
     qtd_alunos_escola, quantidade_alunos_pedido, data = kits_unificados_param_serializer
-    escola = mommy.make('Escola', nome='teste', quantidade_alunos=qtd_alunos_escola)
+    escola = mommy.make('Escola', nome='teste')
     diretoria_regional = mommy.make('DiretoriaRegional', nome='teste')
 
     escola_quantidades = []

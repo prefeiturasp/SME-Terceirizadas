@@ -165,7 +165,6 @@ def monta_salva_objeto(escolas):
             codigo_codae=codae,
             diretoria_regional_id=id_dre,
             lote_id=escola['lote_id'],
-            quantidade_alunos=100,
             tipo_gestao=tipo_gestao,
             tipo_unidade=tipo_unidade
         )

@@ -45,7 +45,6 @@ def escola(lote):
     return mommy.make(models.Escola,
                       nome=fake.name(),
                       codigo_eol=fake.name()[:6],
-                      quantidade_alunos=42,
                       lote=lote)
 
 

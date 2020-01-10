@@ -7,6 +7,7 @@ from ...cardapio.models import AlteracaoCardapio, GrupoSuspensaoAlimentacao, Inv
 from ..api.serializers.serializers_create import (
     AlteracaoCardapioSerializerCreate,
     GrupoSuspensaoAlimentacaoCreateSerializer,
+    HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolarSerializerCreate,
     InversaoCardapioSerializerCreate
 )
 
@@ -29,6 +30,16 @@ def test_inversao_serializer_validators(inversao_card_params):
     response_geral = serializer_obj.validate(attrs=attrs)
     assert response_de == data_de
     assert response_para == data_para
+    assert response_geral == attrs
+
+
+def test_horario_do_combo_tipo_alimentacao_serializer_validators(horarios_combos_tipo_alimentacao_validos, escola):
+    hora_inicial, hora_final, _ = horarios_combos_tipo_alimentacao_validos
+    serializer_obj = HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolarSerializerCreate()
+    combo = mommy.make('ComboDoVinculoTipoAlimentacaoPeriodoTipoUE', uuid='9fe31f4a-716b-4677-9d7d-2868557cf954')
+    attrs = dict(hora_inicial=hora_inicial, hora_final=hora_final, escola=escola, combo_tipos_alimentacao=combo)
+
+    response_geral = serializer_obj.validate(attrs=attrs)
     assert response_geral == attrs
 
 

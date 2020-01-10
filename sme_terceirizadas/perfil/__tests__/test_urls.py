@@ -88,12 +88,16 @@ def test_get_meus_dados_admin_escola(users_admin_escola):
             'nome': 'EMEI NOE AZEVEDO, PROF',
             'uuid': 'b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd',
             'codigo_eol': '256341',
-            'quantidade_alunos': 420,
+            'quantidade_alunos': 450,
             'lotes': [],
-            'periodos_escolares': [],
+            'periodos_escolares': [
+                {'tipos_alimentacao': [], 'nome': 'TARDE', 'uuid': '57af972c-938f-4f6f-9f4b-cf7b983a10b7'},
+                {'tipos_alimentacao': [], 'nome': 'MANHA', 'uuid': 'd0c12dae-a215-41f6-af86-b7cd1838ba81'}
+            ],
             'escolas': [],
             'diretoria_regional': {'uuid': '7da9acec-48e1-430c-8a5c-1f1efc666fad',
-                                   'nome': 'DIRETORIA REGIONAL IPIRANGA'}
+                                   'nome': 'DIRETORIA REGIONAL IPIRANGA'},
+            'tipo_unidade_escolar': '56725de5-89d3-4edf-8633-3e0b5c99e9d4'
         },
         'perfil': {'nome': 'Admin', 'uuid': 'd6fd15cc-52c6-4db4-b604-018d22eeb3dd'}}
 
@@ -116,12 +120,16 @@ def test_get_meus_dados_diretor_escola(users_diretor_escola):
             'nome': 'EMEI NOE AZEVEDO, PROF',
             'uuid': 'b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd',
             'codigo_eol': '256341',
-            'quantidade_alunos': 420,
+            'quantidade_alunos': 450,
             'lotes': [],
-            'periodos_escolares': [],
+            'periodos_escolares': [
+                {'tipos_alimentacao': [], 'nome': 'TARDE', 'uuid': '57af972c-938f-4f6f-9f4b-cf7b983a10b7'},
+                {'tipos_alimentacao': [], 'nome': 'MANHA', 'uuid': 'd0c12dae-a215-41f6-af86-b7cd1838ba81'}
+            ],
             'escolas': [],
             'diretoria_regional': {'uuid': '7da9acec-48e1-430c-8a5c-1f1efc666fad',
-                                   'nome': 'DIRETORIA REGIONAL IPIRANGA'}
+                                   'nome': 'DIRETORIA REGIONAL IPIRANGA'},
+            'tipo_unidade_escolar': '56725de5-89d3-4edf-8633-3e0b5c99e9d4'
         },
         'perfil': {'nome': 'DIRETOR', 'uuid': '41c20c8b-7e57-41ed-9433-ccb92e8afaf1'}}
 
@@ -156,12 +164,18 @@ def test_cadastro_vinculo_diretor_escola(users_diretor_escola, monkeypatch):
                                        'nome': 'EMEI NOE AZEVEDO, PROF',
                                        'uuid': 'b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd',
                                        'codigo_eol': '256341',
-                                       'quantidade_alunos': 420,
+                                       'quantidade_alunos': 450,
                                        'lotes': [],
-                                       'periodos_escolares': [],
+                                       'periodos_escolares': [
+                                           {'tipos_alimentacao': [], 'nome': 'TARDE',
+                                            'uuid': '57af972c-938f-4f6f-9f4b-cf7b983a10b7'},
+                                           {'tipos_alimentacao': [], 'nome': 'MANHA',
+                                            'uuid': 'd0c12dae-a215-41f6-af86-b7cd1838ba81'}
+                                       ],
                                        'escolas': [],
                                        'diretoria_regional': {'uuid': '7da9acec-48e1-430c-8a5c-1f1efc666fad',
-                                                              'nome': 'DIRETORIA REGIONAL IPIRANGA'}
+                                                              'nome': 'DIRETORIA REGIONAL IPIRANGA'},
+                                       'tipo_unidade_escolar': '56725de5-89d3-4edf-8633-3e0b5c99e9d4'
                                    },
                                    'perfil': {'nome': 'ADMINISTRADOR_ESCOLA',
                                               'uuid': '48330a6f-c444-4462-971e-476452b328b2'}}}
@@ -261,8 +275,9 @@ def test_cadastro_vinculo_diretoria_regional(users_cogestor_diretoria_regional, 
                                'vinculo_atual': {
                                    'instituicao': {'nome': 'DIRETORIA REGIONAL DE EDUCACAO CAPELA DO SOCORRO',
                                                    'uuid': 'b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd', 'codigo_eol': None,
-                                                   'quantidade_alunos': None, 'lotes': [], 'periodos_escolares': [],
-                                                   'escolas': [], 'diretoria_regional': None},
+                                                   'quantidade_alunos': 0, 'lotes': [], 'periodos_escolares': [],
+                                                   'escolas': [], 'diretoria_regional': None,
+                                                   'tipo_unidade_escolar': None},
                                    'perfil': {'nome': 'ADMINISTRADOR_DRE',
                                               'uuid': '48330a6f-c444-4462-971e-476452b328b2'}}}
     usuario_novo = Usuario.objects.get(registro_funcional='6812805')
@@ -367,8 +382,9 @@ def test_cadastro_vinculo_codae_gestao_alimentacao(users_codae_gestao_alimentaca
                                'tipo_usuario': 'gestao_alimentacao_terceirizada',
                                'vinculo_atual': {
                                    'instituicao': {'nome': 'CODAE', 'uuid': 'b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd',
-                                                   'codigo_eol': None, 'quantidade_alunos': None, 'lotes': [],
-                                                   'periodos_escolares': [], 'escolas': [], 'diretoria_regional': None},
+                                                   'codigo_eol': None, 'quantidade_alunos': 0, 'lotes': [],
+                                                   'periodos_escolares': [], 'escolas': [], 'diretoria_regional': None,
+                                                   'tipo_unidade_escolar': None},
                                    'perfil': {'nome': 'ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA',
                                               'uuid': '48330a6f-c444-4462-971e-476452b328b2'}}}
     usuario_novo = Usuario.objects.get(registro_funcional='6812805')
@@ -505,10 +521,21 @@ def test_cadastro_diretor(client, users_diretor_escola, monkeypatch):
     response.json().get('vinculo_atual').pop('uuid')
     assert json['tipo_usuario'] == 'escola'
     assert json['vinculo_atual'] == {
-        'instituicao': {'nome': 'EMEI NOE AZEVEDO, PROF', 'uuid': 'b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd',
-                        'codigo_eol': '256341', 'quantidade_alunos': 420, 'lotes': [], 'periodos_escolares': [],
-                        'escolas': [], 'diretoria_regional': {'uuid': '7da9acec-48e1-430c-8a5c-1f1efc666fad',
-                                                              'nome': 'DIRETORIA REGIONAL IPIRANGA'}},
+        'instituicao': {
+            'nome': 'EMEI NOE AZEVEDO, PROF',
+            'uuid': 'b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd',
+            'codigo_eol': '256341',
+            'quantidade_alunos': 450,
+            'lotes': [],
+            'periodos_escolares': [
+                {'tipos_alimentacao': [], 'nome': 'TARDE', 'uuid': '57af972c-938f-4f6f-9f4b-cf7b983a10b7'},
+                {'tipos_alimentacao': [], 'nome': 'MANHA', 'uuid': 'd0c12dae-a215-41f6-af86-b7cd1838ba81'}
+            ],
+            'escolas': [],
+            'diretoria_regional': {'uuid': '7da9acec-48e1-430c-8a5c-1f1efc666fad',
+                                   'nome': 'DIRETORIA REGIONAL IPIRANGA'},
+            'tipo_unidade_escolar': '56725de5-89d3-4edf-8633-3e0b5c99e9d4'
+        },
         'perfil': {'nome': 'DIRETOR', 'uuid': '41c20c8b-7e57-41ed-9433-ccb92e8afaf1'}}
 
 
@@ -551,7 +578,8 @@ def test_confirmar_email(client, usuarios_pendentes_confirmacao):
                             'periodos_escolares': [],
                             'escolas': [],
                             'diretoria_regional': {'uuid': '7da9acec-48e1-430c-8a5c-1f1efc666fad',
-                                                   'nome': 'DIRETORIA REGIONAL IPIRANGA'}
+                                                   'nome': 'DIRETORIA REGIONAL IPIRANGA'},
+                            'tipo_unidade_escolar': '56725de5-89d3-4edf-8633-3e0b5c99e9d4'
                             },
             'perfil': {'nome': usuario.vinculo_atual.perfil.nome, 'uuid': str(usuario.vinculo_atual.perfil.uuid)}}}
 

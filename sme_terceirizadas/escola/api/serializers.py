@@ -12,6 +12,7 @@ from ..models import (
     Codae,
     DiretoriaRegional,
     Escola,
+    EscolaPeriodoEscolar,
     FaixaIdadeEscolar,
     Lote,
     PeriodoEscolar,
@@ -146,6 +147,12 @@ class EscolaListagemSimplesSelializer(serializers.ModelSerializer):
         fields = ('uuid', 'nome', 'codigo_eol', 'quantidade_alunos')
 
 
+class EscolaSimplissimaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Escola
+        fields = ('uuid', 'nome')
+
+
 class EscolaCompletaSerializer(serializers.ModelSerializer):
     diretoria_regional = DiretoriaRegionalSimplesSerializer()
     idades = FaixaIdadeEscolarSerializer(many=True)
@@ -226,6 +233,10 @@ class VinculoInstituicaoSerializer(serializers.ModelSerializer):
         if isinstance(obj.instituicao, Escola):
             return obj.instituicao.codigo_eol
 
+    def get_tipo_unidade_escolar(self, obj):
+        if isinstance(obj.instituicao, Escola):
+            return obj.instituicao.tipo_unidade.uuid
+
     def get_instituicao(self, obj):
         self.get_diretoria_regional(obj)
         return {'nome': obj.instituicao.nome,
@@ -235,7 +246,8 @@ class VinculoInstituicaoSerializer(serializers.ModelSerializer):
                 'lotes': self.get_lotes(obj),
                 'periodos_escolares': self.get_periodos_escolares(obj),
                 'escolas': self.get_escolas(obj),
-                'diretoria_regional': self.get_diretoria_regional(obj)}
+                'diretoria_regional': self.get_diretoria_regional(obj),
+                'tipo_unidade_escolar': self.get_tipo_unidade_escolar(obj)}
 
     class Meta:
         model = Vinculo
@@ -267,3 +279,13 @@ class CODAESerializer(serializers.ModelSerializer):
     class Meta:
         model = Codae
         fields = '__all__'
+
+
+class EscolaPeriodoEscolarSerializer(serializers.ModelSerializer):
+    quantidade_alunos = serializers.IntegerField()
+    escola = EscolaSimplissimaSerializer()
+    periodo_escolar = PeriodoEscolarSimplesSerializer()
+
+    class Meta:
+        model = EscolaPeriodoEscolar
+        fields = ('uuid', 'quantidade_alunos', 'escola', 'periodo_escolar')

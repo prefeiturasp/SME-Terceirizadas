@@ -5,7 +5,17 @@ from django.db.models import Q, Sum
 from django_prometheus.models import ExportModelOperationsMixin
 
 from ..cardapio.models import AlteracaoCardapio, GrupoSuspensaoAlimentacao, InversaoCardapio
-from ..dados_comuns.behaviors import Ativavel, Iniciais, Nomeavel, TemChaveExterna, TemCodigoEOL, TemVinculos
+from ..dados_comuns.behaviors import (
+    Ativavel,
+    CriadoEm,
+    CriadoPor,
+    Iniciais,
+    Justificativa,
+    Nomeavel,
+    TemChaveExterna,
+    TemCodigoEOL,
+    TemVinculos
+)
 from ..dados_comuns.constants import (
     COGESTOR,
     COORDENADOR_DIETA_ESPECIAL,
@@ -34,8 +44,10 @@ class DiretoriaRegional(ExportModelOperationsMixin('diretoria_regional'), Nomeav
 
     @property
     def quantidade_alunos(self):
-        quantidade_result = self.escolas.aggregate(Sum('quantidade_alunos'))
-        return quantidade_result.get('quantidade_alunos__sum', 0)
+        quantidade_result = EscolaPeriodoEscolar.objects.filter(
+            escola__in=self.escolas.all()
+        ).aggregate(Sum('quantidade_alunos'))
+        return quantidade_result.get('quantidade_alunos__sum') or 0
 
     #
     # Inclusões continuas e normais
@@ -248,8 +260,6 @@ class PeriodoEscolar(ExportModelOperationsMixin('periodo_escolar'), Nomeavel, Te
 class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, TemCodigoEOL, TemVinculos):
     nome = models.CharField('Nome', max_length=160, blank=True)
     codigo_eol = models.CharField('Código EOL', max_length=6, unique=True, validators=[MinLengthValidator(6)])
-    quantidade_alunos = models.PositiveSmallIntegerField('Quantidade de alunos', default=1)
-
     diretoria_regional = models.ForeignKey(DiretoriaRegional,
                                            related_name='escolas',
                                            on_delete=models.DO_NOTHING)
@@ -265,6 +275,11 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
                                 blank=True, null=True)
 
     idades = models.ManyToManyField(FaixaIdadeEscolar, blank=True)
+
+    @property
+    def quantidade_alunos(self):
+        quantidade_result = self.escolas_periodos.aggregate(Sum('quantidade_alunos'))
+        return quantidade_result.get('quantidade_alunos__sum') or 0
 
     @property
     def alunos_por_periodo_escolar(self):
@@ -329,6 +344,28 @@ class EscolaPeriodoEscolar(ExportModelOperationsMixin('escola_periodo'), Ativave
         unique_together = [['periodo_escolar', 'escola']]
 
 
+class LogAlteracaoQuantidadeAlunosPorEscolaEPeriodoEscolar(TemChaveExterna, CriadoEm, Justificativa, CriadoPor):
+    escola = models.ForeignKey(Escola,
+                               related_name='log_alteracao_quantidade_alunos',
+                               on_delete=models.DO_NOTHING)
+    periodo_escolar = models.ForeignKey(PeriodoEscolar,
+                                        related_name='log_alteracao_quantidade_alunos',
+                                        on_delete=models.DO_NOTHING)
+    quantidade_alunos_de = models.PositiveSmallIntegerField('Quantidade de alunos anterior', default=0)
+    quantidade_alunos_para = models.PositiveSmallIntegerField('Quantidade de alunos alterada', default=0)
+
+    def __str__(self):
+        qauntidade_anterior = self.quantidade_alunos_de
+        quantidade_atual = self.quantidade_alunos_para
+        escola = self.escola.nome
+        return f'Alteração de: {qauntidade_anterior} alunos, para: {quantidade_atual} alunos na escola: {escola}'
+
+    class Meta:
+        verbose_name = 'Log Alteração quantidade de alunos'
+        verbose_name_plural = 'Logs de Alteração quantidade de alunos'
+        ordering = ('criado_em',)
+
+
 class Lote(ExportModelOperationsMixin('lote'), TemChaveExterna, Nomeavel, Iniciais):
     """Lote de escolas."""
 
@@ -354,7 +391,9 @@ class Lote(ExportModelOperationsMixin('lote'), TemChaveExterna, Nomeavel, Inicia
 
     @property
     def quantidade_alunos(self):
-        quantidade_result = self.escolas.aggregate(Sum('quantidade_alunos'))
+        quantidade_result = EscolaPeriodoEscolar.objects.filter(
+            escola__in=self.escolas.all()
+        ).aggregate(Sum('quantidade_alunos'))
         return quantidade_result.get('quantidade_alunos__sum') or 0
 
     def __str__(self):
@@ -397,9 +436,10 @@ class Codae(ExportModelOperationsMixin('codae'), Nomeavel, TemChaveExterna, TemV
 
     @property
     def quantidade_alunos(self):
-        escolas = Escola.objects.all()
-        quantidade_result = escolas.aggregate(Sum('quantidade_alunos'))
-        return quantidade_result.get('quantidade_alunos__sum', 0)
+        quantidade_result = EscolaPeriodoEscolar.objects.filter(
+            escola__in=Escola.objects.all()
+        ).aggregate(Sum('quantidade_alunos'))
+        return quantidade_result.get('quantidade_alunos__sum') or 0
 
     def inversoes_cardapio_das_minhas_escolas(self, filtro_aplicado):
         queryset = queryset_por_data(filtro_aplicado, InversaoCardapio)

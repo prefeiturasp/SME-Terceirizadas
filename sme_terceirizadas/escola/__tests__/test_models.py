@@ -28,7 +28,6 @@ def test_diretoria_regional(diretoria_regional, escola):
     assert isinstance(str(diretoria_regional), str)
     assert diretoria_regional.nome is not None
     assert diretoria_regional.escolas is not None
-    assert diretoria_regional.quantidade_alunos is not None
     assert escola in diretoria_regional.escolas.all()
 
     assert diretoria_regional.inclusoes_normais_autorizadas is not None
@@ -55,7 +54,6 @@ def test_escola(escola):
     assert isinstance(str(escola), str)
     assert escola.nome is not None
     assert escola.codigo_eol is not None
-    assert escola.quantidade_alunos is not None
     assert isinstance(escola.diretoria_regional, DiretoriaRegional)
     assert isinstance(escola.tipo_unidade, TipoUnidadeEscolar)
     assert isinstance(escola.tipo_gestao, TipoGestao)
@@ -74,7 +72,6 @@ def test_faixa_idade_escolar(faixa_idade_escolar):
 
 def test_codae(codae):
     assert isinstance(str(codae), str)
-    assert codae.quantidade_alunos is not None
     assert codae.inversoes_cardapio_autorizadas is not None
     assert codae.inversoes_cardapio_reprovados is not None
     assert codae.solicitacoes_unificadas_autorizadas is not None

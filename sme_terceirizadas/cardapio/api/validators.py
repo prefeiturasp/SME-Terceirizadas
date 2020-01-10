@@ -3,7 +3,12 @@ import datetime
 from django.db.models import Q
 from rest_framework import serializers
 
-from ...cardapio.models import Cardapio, TipoAlimentacao
+from ...cardapio.models import (
+    Cardapio,
+    ComboDoVinculoTipoAlimentacaoPeriodoTipoUE,
+    HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolar,
+    TipoAlimentacao
+)
 from ...escola.models import Escola
 from ..models import InversaoCardapio
 
@@ -58,4 +63,28 @@ def precisa_pertencer_a_um_tipo_de_alimentacao(tipo_alimentacao_de: TipoAlimenta
             f'Tipo de alimentação {tipo_alimentacao_para.nome} não é substituível por {tipo_alimentacao_de.nome}'
 
         )
+    return True
+
+
+def hora_inicio_nao_pode_ser_maior_que_hora_final(hora_inicial: datetime.time, hora_final: datetime.time):
+    if hora_inicial >= hora_final:
+        raise serializers.ValidationError(
+            'Hora Inicio não pode ser maior do que hora final'
+        )
+    return True
+
+
+def escola_nao_pode_cadastrar_dois_combos_iguais(escola: Escola, combo: ComboDoVinculoTipoAlimentacaoPeriodoTipoUE):
+    """
+    Se o combo de tipo de alimentacao já estiver cadastrado para a Escola, deverá retornar um erro.
+
+    Pois para cada combo só é possivel registrar um intervalo de horario, caso o combo já estiver
+    cadastrado, só será possivel atualizar o objeto HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolar.
+    """
+    horario_combo_por_escola = HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolar.objects.filter(
+        escola=escola,
+        combo_tipos_alimentacao=combo
+    ).exists()
+    if horario_combo_por_escola:
+        raise serializers.ValidationError('Já existe um horario registrado para esse combo nesta escola')
     return True
