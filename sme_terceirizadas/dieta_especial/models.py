@@ -5,7 +5,9 @@ from django_prometheus.models import ExportModelOperationsMixin
 from ..dados_comuns.behaviors import (
     CriadoEm,
     CriadoPor,
+    Descritivel,
     Logs,
+    Nomeavel,
     TemChaveExterna,
     TemIdentificadorExternoAmigavel,
     TemPrioridade
