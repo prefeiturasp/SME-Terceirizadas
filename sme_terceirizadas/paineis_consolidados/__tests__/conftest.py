@@ -161,6 +161,34 @@ def users_diretor_escola(client, django_user_model, request, escola, templates, 
     inc_continua_1.inicia_fluxo(user=user)
     inc_continua_2.inicia_fluxo(user=user)
     inc_continua_3.inicia_fluxo(user=user)
+
+    inc_continua_1.criado_em = datetime.datetime(year=2019, month=1, day=15, tzinfo=pytz.UTC)
+    inc_continua_1.save()
+    inc_continua_2.criado_em = datetime.datetime(year=2019, month=2, day=15, tzinfo=pytz.UTC)
+    inc_continua_2.save()
+    inc_continua_3.criado_em = datetime.datetime(year=2019, month=3, day=15, tzinfo=pytz.UTC)
+    inc_continua_3.save()
+
+    k1 = solkit1.solicitacao_kit_lanche
+    k1.criado_em = datetime.datetime(year=2019, month=4, day=15, tzinfo=pytz.UTC)
+    k1.save()
+    k2 = solkit2.solicitacao_kit_lanche
+    k2.criado_em = datetime.datetime(year=2019, month=5, day=15, tzinfo=pytz.UTC)
+    k2.save()
+    k3 = solkit3.solicitacao_kit_lanche
+    k3.criado_em = datetime.datetime(year=2019, month=6, day=15, tzinfo=pytz.UTC)
+    k3.save()
+    k4 = solkit4.solicitacao_kit_lanche
+    k4.criado_em = datetime.datetime(year=2019, month=7, day=15, tzinfo=pytz.UTC)
+    k4.save()
+
+    alt1.criado_em = datetime.datetime(year=2019, month=12, day=15, tzinfo=pytz.UTC)
+    alt1.save()
+    alt2.criado_em = datetime.datetime(year=2019, month=12, day=15, tzinfo=pytz.UTC)
+    alt2.save()
+    alt3.criado_em = datetime.datetime(year=2019, month=12, day=15, tzinfo=pytz.UTC)
+    alt3.save()
+
     return client, email, password, rf, cpf, user
 
 
