@@ -13,7 +13,7 @@ def endpoint_lista(client_autenticado, endpoint, quantidade):
     response = client_autenticado.get(f'/{endpoint}/')
     assert response.status_code == status.HTTP_200_OK
     json = response.json()
-    assert len(json['results']) == quantidade
+    assert len(json) == quantidade
 
 
 def test_url_endpoint_lista_alergias_intolerancias(client_autenticado,

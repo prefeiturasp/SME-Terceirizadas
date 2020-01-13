@@ -37,8 +37,6 @@ def test_dieta_especial_solicitacoes_viewset_pendentes(client_autenticado,
     assert response.status_code == status.HTTP_200_OK
     json = response.json()
     assert json['count'] == 2
-    for solicitacao in json['results']:
-        assert solicitacao['status_solicitacao'] == wf_status
 
 
 @freeze_time('2019-10-11')
