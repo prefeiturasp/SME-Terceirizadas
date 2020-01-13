@@ -35,12 +35,18 @@ class SolicitacaoDietaEspecial(ExportModelOperationsMixin('dieta_especial'), Tem
                                                     max_length=200,
                                                     validators=[MinLengthValidator(6)],
                                                     blank=True)
+    registro_funcional_nutricionista = models.CharField('Nome completo do pescritor da receita',
+                                                        help_text='CRN/CRM/CRFa...',
+                                                        max_length=200,
+                                                        validators=[MinLengthValidator(6)],
+                                                        blank=True)
     data_nascimento_aluno = models.DateField('Data de nascimento do aluno')
 
     observacoes = models.TextField('Observações', blank=True)
 
     tipos = models.ManyToManyField('TipoDieta', blank=True)
-    classificacao = models.ManyToManyField('ClassificacaoDieta', blank=True)
+    # TODO: Confirmar se PROTECT é a melhor escolha para o campos abaixo
+    classificacao = models.ForeignKey('ClassificacaoDieta', blank=True, null=True, on_delete=models.PROTECT)
     alergias_intolerancias = models.ManyToManyField('AlergiaIntolerancia', blank=True)
 
     # TODO: Confirmar se PROTECT é a melhor escolha para o campos abaixo
