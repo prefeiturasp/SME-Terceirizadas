@@ -39,12 +39,13 @@ class SolicitacaoDietaEspecial(ExportModelOperationsMixin('dieta_especial'), Tem
 
     observacoes = models.TextField('Observações', blank=True)
 
-    tipos = models.ManyToManyField('TipoDieta')
-    classificacao = models.ManyToManyField('ClassificacaoDieta')
-    alergias_intolerancias = models.ManyToManyField('AlergiaIntolerancia')
+    tipos = models.ManyToManyField('TipoDieta', blank=True)
+    classificacao = models.ManyToManyField('ClassificacaoDieta', blank=True)
+    alergias_intolerancias = models.ManyToManyField('AlergiaIntolerancia', blank=True)
 
     # TODO: Confirmar se PROTECT é a melhor escolha para o campos abaixo
     motivo_negacao = models.ForeignKey('MotivoNegacao', on_delete=models.PROTECT, null=True)
+    justificativa_negacao = models.TextField(null=True, blank=True)
 
     @property
     def anexos(self):
