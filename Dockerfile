@@ -23,6 +23,7 @@ RUN apk update && apk add --no-cache \
       freetype-dev \
       lcms2-dev \
       openjpeg-dev \
+      libcairo-2 \
       tiff-dev \
       tk-dev \
       tcl-dev \
