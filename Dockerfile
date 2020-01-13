@@ -28,16 +28,16 @@ RUN apk update && apk add --no-cache \
       tcl-dev \
       harfbuzz-dev \
       fribidi-dev \
-      pango \
       pango-dev \
-      cairo \
+      libffi-dev \
+      gdk-pixbuf-dev \
       cairo-dev && \
     pip --no-cache-dir install -U pip && \
     pip --no-cache-dir install pipenv && \
     # https://stackoverflow.com/questions/46503947/how-to-get-pipenv-running-in-docker
     pipenv install --system --deploy --ignore-pipfile && \
     cp /usr/share/zoneinfo/America/Sao_Paulo /etc/localtime && \
-    apk add libpq && \
+    apk add libpq cairo-dev && \
     apk del --purge .build-dependencies && \
     rm -rf /var/cache/apk/* && \
     rm -rf /root/.cache
