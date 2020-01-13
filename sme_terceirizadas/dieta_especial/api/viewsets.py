@@ -1,5 +1,4 @@
-from rest_framework import mixins, status
-
+from rest_framework import mixins
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
@@ -48,7 +47,7 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
 
         solicitacao.save()
 
-        return Response({"mensagem": "Autorização de dieta especial realizada com sucesso"})
+        return Response({'mensagem': 'Autorização de dieta especial realizada com sucesso'})
 
     @action(detail=True, methods=['post'])
     def negar(self, request, uuid=None):
@@ -57,7 +56,7 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
         solicitacao.motivo_negacao_id = request.data['motivo']
         solicitacao.codae_nega(user=request.user)
         solicitacao.save()
-        return Response({"mensagem": "Solicitação de Dieta Especial Negada"})
+        return Response({'mensagem': 'Solicitação de Dieta Especial Negada'})
 
 
 class AlergiaIntoleranciaViewSet(mixins.ListModelMixin,

@@ -51,7 +51,7 @@ class SolicitacaoDietaEspecial(ExportModelOperationsMixin('dieta_especial'), Tem
 
     # TODO: Confirmar se PROTECT é a melhor escolha para o campos abaixo
     motivo_negacao = models.ForeignKey('MotivoNegacao', on_delete=models.PROTECT, null=True)
-    justificativa_negacao = models.TextField(null=True, blank=True)
+    justificativa_negacao = models.TextField(blank=True)
 
     @property
     def anexos(self):
