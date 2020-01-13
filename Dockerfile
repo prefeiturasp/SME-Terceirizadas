@@ -37,7 +37,7 @@ RUN apk update && apk add --no-cache \
     # https://stackoverflow.com/questions/46503947/how-to-get-pipenv-running-in-docker
     pipenv install --system --deploy --ignore-pipfile && \
     cp /usr/share/zoneinfo/America/Sao_Paulo /etc/localtime && \
-    apk add libpq cairo-dev && \
+    apk add libpq cairo-dev pango-dev jpeg-dev openjpeg tiff-dev terminus-font && \
     apk del --purge .build-dependencies && \
     rm -rf /var/cache/apk/* && \
     rm -rf /root/.cache
