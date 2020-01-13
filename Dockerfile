@@ -1,4 +1,4 @@
-FROM python:3.6-alpine3.8
+FROM python:3.6-buster
 ENV PYTHONUNBUFFERED 1
 
 ADD ./config /code/config
@@ -10,36 +10,11 @@ ADD ./Pipfile.lock /code/Pipfile.lock
 WORKDIR /code
 ENV PIP_NO_BINARY=:psycopg2:
 
-RUN apk update && apk add --no-cache \
-      --virtual=.build-dependencies \
-      postgresql-dev \
-      tzdata \
-      gcc \
-      musl-dev \
-      python3-dev \
-      jpeg-dev \
-      # Pillow
-      zlib-dev \
-      freetype-dev \
-      lcms2-dev \
-      openjpeg-dev \
-      tiff-dev \
-      tk-dev \
-      tcl-dev \
-      harfbuzz-dev \
-      fribidi-dev \
-      pango-dev \
-      libffi-dev \
-      gdk-pixbuf-dev \
-      cairo-dev && \
+RUN apt-get update && apt-get install \
+    libpq-dev && \
     pip --no-cache-dir install -U pip && \
     pip --no-cache-dir install pipenv && \
     # https://stackoverflow.com/questions/46503947/how-to-get-pipenv-running-in-docker
-    pipenv install --system --deploy --ignore-pipfile && \
-    cp /usr/share/zoneinfo/America/Sao_Paulo /etc/localtime && \
-    apk add libpq cairo-dev pango-dev jpeg-dev openjpeg tiff-dev terminus-font && \
-    apk del --purge .build-dependencies && \
-    rm -rf /var/cache/apk/* && \
-    rm -rf /root/.cache
+    pipenv install --system --deploy --ignore-pipfile
 
 EXPOSE 8000
