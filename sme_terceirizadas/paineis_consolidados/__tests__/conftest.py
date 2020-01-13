@@ -11,7 +11,6 @@ from ...dados_comuns.models import TemplateMensagem
 from ...dieta_especial.models import SolicitacaoDietaEspecial
 from ...inclusao_alimentacao.models import InclusaoAlimentacaoContinua
 from ...kit_lanche.models import KitLanche, SolicitacaoKitLanche, SolicitacaoKitLancheAvulsa
-from ..models import SolicitacoesEscola
 
 fake = Faker('pt_BR')
 fake.seed(420)
@@ -152,6 +151,7 @@ def users_diretor_escola(client, django_user_model, request, escola, templates, 
                data_inicial=hoje, ativo=True)
     alt1, alt2, alt3 = alteracoes_cardapio
     alt1.inicia_fluxo(user=user)
+
     alt2.inicia_fluxo(user=user)
     alt3.inicia_fluxo(user=user)
     solkit1, solkit2, solkit3, solkit4 = solicitacoes_kit_lanche
@@ -163,6 +163,34 @@ def users_diretor_escola(client, django_user_model, request, escola, templates, 
     inc_continua_1.inicia_fluxo(user=user)
     inc_continua_2.inicia_fluxo(user=user)
     inc_continua_3.inicia_fluxo(user=user)
+
+    inc_continua_1.criado_em = datetime.datetime(year=2019, month=1, day=15, tzinfo=pytz.UTC)
+    inc_continua_1.save()
+    inc_continua_2.criado_em = datetime.datetime(year=2019, month=2, day=15, tzinfo=pytz.UTC)
+    inc_continua_2.save()
+    inc_continua_3.criado_em = datetime.datetime(year=2019, month=3, day=15, tzinfo=pytz.UTC)
+    inc_continua_3.save()
+
+    k1 = solkit1.solicitacao_kit_lanche
+    k1.criado_em = datetime.datetime(year=2019, month=4, day=15, tzinfo=pytz.UTC)
+    k1.save()
+    k2 = solkit2.solicitacao_kit_lanche
+    k2.criado_em = datetime.datetime(year=2019, month=5, day=15, tzinfo=pytz.UTC)
+    k2.save()
+    k3 = solkit3.solicitacao_kit_lanche
+    k3.criado_em = datetime.datetime(year=2019, month=6, day=15, tzinfo=pytz.UTC)
+    k3.save()
+    k4 = solkit4.solicitacao_kit_lanche
+    k4.criado_em = datetime.datetime(year=2019, month=7, day=15, tzinfo=pytz.UTC)
+    k4.save()
+
+    alt1.criado_em = datetime.datetime(year=2019, month=12, day=15, tzinfo=pytz.UTC)
+    alt1.save()
+    alt2.criado_em = datetime.datetime(year=2019, month=12, day=15, tzinfo=pytz.UTC)
+    alt2.save()
+    alt3.criado_em = datetime.datetime(year=2019, month=12, day=15, tzinfo=pytz.UTC)
+    alt3.save()
+
     return client, email, password, rf, cpf, user
 
 
@@ -324,22 +352,6 @@ def solicitacoes_ano_dre(client, django_user_model, request, diretoria_regional2
     inc_continua_3.dre_valida(user=user_dre)
     inc_continua_1.codae_nega(user=user_codae)
     return client, email, password, rf, cpf, user_dre
-
-
-@pytest.fixture(params=[
-    # data evento
-    (datetime.date(datetime.datetime.now().year, 10, 1)),
-    (datetime.date(datetime.datetime.now().year, 10, 2)),
-    (datetime.date(datetime.datetime.now().year, 10, 29)),
-    (datetime.date(datetime.datetime.now().year, 10, 30))
-])
-def solicitacoes_escola_params(escola, request):
-    data_evento = request.param
-    mommy.make(AlteracaoCardapio,
-               escola=escola,
-               data_inicial=data_evento,
-               status=AlteracaoCardapio.workflow_class.DRE_A_VALIDAR)
-    return SolicitacoesEscola.objects.all()
 
 
 @pytest.fixture

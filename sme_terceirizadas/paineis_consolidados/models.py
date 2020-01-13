@@ -20,7 +20,7 @@ class SolicitacoesDestaSemanaManager(models.Manager):
         data_limite_inicial = hoje
         data_limite_final = hoje + datetime.timedelta(7)
         return super(SolicitacoesDestaSemanaManager, self).get_queryset(
-        ).filter(data_evento__range=(data_limite_inicial, data_limite_final))
+        ).filter(criado_em__range=(data_limite_inicial, data_limite_final))
 
 
 class SolicitacoesDesteMesManager(models.Manager):
@@ -29,7 +29,7 @@ class SolicitacoesDesteMesManager(models.Manager):
         data_limite_inicial = hoje
         data_limite_final = hoje + datetime.timedelta(31)
         return super(SolicitacoesDesteMesManager, self).get_queryset(
-        ).filter(data_evento__range=(data_limite_inicial, data_limite_final))
+        ).filter(criado_em__range=(data_limite_inicial, data_limite_final))
 
 
 class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmigavel):
@@ -103,7 +103,7 @@ class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmiga
 
     @property
     def data(self):
-        return self.data_evento
+        return self.criado_em
 
     @classmethod
     def _get_manager(cls, kwargs):
@@ -261,9 +261,8 @@ class SolicitacoesCODAE(MoldeConsolidado):
     def get_solicitacoes_ano_corrente(cls, **kwargs):
         """Usado para geração do gráfico."""
         return cls.objects.filter(
-            data_evento__year=datetime.date.today().year
-            # TODO: devemos filtrar por data do evento ou data em que foi criado?
-        ).distinct().order_by('-data_log').values('data_evento__month', 'desc_doc')
+            criado_em__year=datetime.date.today().year
+        ).distinct('uuid').values('criado_em__month', 'desc_doc')
 
     @classmethod
     def resumo_totais_mes(cls, **kwargs):
@@ -381,9 +380,8 @@ class SolicitacoesEscola(MoldeConsolidado):
         escola_uuid = kwargs.get('escola_uuid')
         return cls.objects.filter(
             escola_uuid=escola_uuid,
-            data_evento__year=datetime.date.today().year
-            # TODO: devemos filtrar por data do evento ou data em que foi criado?
-        ).distinct().order_by('-data_log').values('data_evento__month', 'desc_doc')
+            criado_em__year=datetime.date.today().year
+        ).distinct('uuid').values('criado_em__month', 'desc_doc')
 
     @classmethod  # noqa C901
     def filtros_escola(cls, **kwargs):
@@ -536,9 +534,8 @@ class SolicitacoesDRE(MoldeConsolidado):
         dre_uuid = kwargs.get('dre_uuid')
         return cls.objects.filter(
             dre_uuid=dre_uuid,
-            data_evento__year=datetime.date.today().year
-            # TODO: devemos filtrar por data do evento ou data em que foi criado?
-        ).distinct('uuid').values('data_evento__month', 'desc_doc')
+            criado_em__year=datetime.date.today().year
+        ).distinct('uuid').values('criado_em__month', 'desc_doc')
 
     @classmethod
     def resumo_totais_mes(cls, **kwargs):

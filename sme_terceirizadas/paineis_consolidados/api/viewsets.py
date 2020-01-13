@@ -31,6 +31,20 @@ from .constants import (
 
 class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
 
+    def _retorno_base(self, query_set):
+        """page_sem_uuid_repetido é criado por não ser possível juntar order_by e distinct na mesma query."""
+        # TODO: se alguém descobrir como ordenar a query e tirar os uuids repetidos, por favor melhore aqui
+        aux = []
+        page_sem_uuid_repetido = []
+        for resultado in query_set:
+            if resultado.uuid not in aux:
+                aux.append(resultado.uuid)
+                page_sem_uuid_repetido.append(resultado)
+
+        page = self.paginate_queryset(page_sem_uuid_repetido)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
     def _agrupar_solicitacoes(self, tipo_visao: str, query_set: QuerySet):
         if tipo_visao == TIPO_VISAO_SOLICITACOES:
             descricao_prioridade = [(solicitacao.desc_doc, solicitacao.prioridade) for solicitacao in query_set
@@ -85,12 +99,16 @@ class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
             'Kit Lanche Passeio Unificado': {
                 'quantidades': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                 'total': 0
-            }
+            },
+            'Dieta Especial': {
+                'quantidades': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                'total': 0
+            },
         }  # type: dict
         for solicitacao in query_set:
             if solicitacao['desc_doc'] == 'Inclusão de Alimentação Contínua':
                 solicitacao['desc_doc'] = 'Inclusão de Alimentação'
-            sumario[solicitacao['desc_doc']]['quantidades'][solicitacao['data_evento__month'] - 1] += 1
+            sumario[solicitacao['desc_doc']]['quantidades'][solicitacao['criado_em__month'] - 1] += 1
             sumario[solicitacao['desc_doc']]['total'] += 1
             sumario['total'] += 1
         return sumario
@@ -195,11 +213,6 @@ class CODAESolicitacoesViewSet(SolicitacoesViewSet):
         response = {'results': self._agrupa_por_mes_por_solicitacao(query_set=query_set)}
         return Response(response)
 
-    def _retorno_base(self, query_set):
-        page = self.paginate_queryset(query_set)
-        serializer = self.get_serializer(page, many=True)
-        return self.get_paginated_response(serializer.data)
-
 
 class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
     lookup_field = 'uuid'
@@ -286,11 +299,6 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
         )
 
         return self._retorno_base(query_set)
-
-    def _retorno_base(self, query_set):
-        page = self.paginate_queryset(query_set)
-        serializer = self.get_serializer(page, many=True)
-        return self.get_paginated_response(serializer.data)
 
 
 class DRESolicitacoesViewSet(SolicitacoesViewSet):
@@ -379,11 +387,6 @@ class DRESolicitacoesViewSet(SolicitacoesViewSet):
         )
 
         return self._retorno_base(query_set)
-
-    def _retorno_base(self, query_set):
-        page = self.paginate_queryset(query_set)
-        serializer = self.get_serializer(page, many=True)
-        return self.get_paginated_response(serializer.data)
 
 
 class TerceirizadaSolicitacoesViewSet(SolicitacoesViewSet):
