@@ -23,12 +23,15 @@ RUN apk update && apk add --no-cache \
       freetype-dev \
       lcms2-dev \
       openjpeg-dev \
-      libcairo-2 \
       tiff-dev \
       tk-dev \
       tcl-dev \
       harfbuzz-dev \
-      fribidi-dev && \
+      fribidi-dev \
+      pango \
+      pango-dev \
+      cairo \
+      cairo-dev && \
     pip --no-cache-dir install -U pip && \
     pip --no-cache-dir install pipenv && \
     # https://stackoverflow.com/questions/46503947/how-to-get-pipenv-running-in-docker
