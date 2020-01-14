@@ -1,14 +1,14 @@
 from datetime import date
+
 import pytest
 from faker import Faker
 from model_mommy import mommy
 
-from ...dados_comuns.utils import convert_base64_to_contentfile
 from ...dados_comuns.models import TemplateMensagem
-from ...escola.models import Escola
-from ..models import AlergiaIntolerancia, Anexo, ClassificacaoDieta, MotivoNegacao, SolicitacaoDietaEspecial, TipoDieta
+from ...dados_comuns.utils import convert_base64_to_contentfile
+from ...escola.models import Escola, Lote
 from ...perfil.models import Usuario
-from ...escola.models import Lote
+from ..models import AlergiaIntolerancia, Anexo, ClassificacaoDieta, MotivoNegacao, SolicitacaoDietaEspecial, TipoDieta
 
 fake = Faker('pt_BR')
 fake.seed(420)

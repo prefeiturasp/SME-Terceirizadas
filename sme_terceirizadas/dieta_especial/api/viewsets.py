@@ -4,8 +4,8 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from ...dados_comuns.utils import convert_base64_to_contentfile
-from ..models import AlergiaIntolerancia, Anexo, ClassificacaoDieta, MotivoNegacao, SolicitacaoDietaEspecial, TipoDieta
 from ..forms import AutorizaDietaEspecialForm, NegaDietaEspecialForm
+from ..models import AlergiaIntolerancia, Anexo, ClassificacaoDieta, MotivoNegacao, SolicitacaoDietaEspecial, TipoDieta
 from .serializers import (
     AlergiaIntoleranciaSerializer,
     ClassificacaoDietaSerializer,

@@ -1,20 +1,13 @@
 from rest_framework import status
 
+from ...dados_comuns.fluxo_status import DietaEspecialWorkflow
 from ..constants import (
     ENDPOINT_ALERGIAS_INTOLERANCIAS,
     ENDPOINT_CLASSIFICACOES_DIETA,
     ENDPOINT_MOTIVOS_NEGACAO,
     ENDPOINT_TIPOS_DIETA_ESPECIAL
 )
-from ..models import (
-    AlergiaIntolerancia,
-    Anexo,
-    ClassificacaoDieta,
-    MotivoNegacao,
-    SolicitacaoDietaEspecial,
-    TipoDieta
-)
-from ...dados_comuns.fluxo_status import DietaEspecialWorkflow
+from ..models import AlergiaIntolerancia, Anexo, ClassificacaoDieta, MotivoNegacao, SolicitacaoDietaEspecial, TipoDieta
 
 
 def endpoint_lista(client_autenticado, endpoint, quantidade):
