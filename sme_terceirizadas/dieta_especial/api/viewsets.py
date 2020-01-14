@@ -5,7 +5,7 @@ from rest_framework.viewsets import GenericViewSet
 
 from ...dados_comuns.utils import convert_base64_to_contentfile
 from ..models import AlergiaIntolerancia, Anexo, ClassificacaoDieta, MotivoNegacao, SolicitacaoDietaEspecial, TipoDieta
-from ..forms import AutorizaDietaEspecialForm
+from ..forms import AutorizaDietaEspecialForm, NegaDietaEspecialForm
 from .serializers import (
     AlergiaIntoleranciaSerializer,
     ClassificacaoDietaSerializer,
@@ -53,10 +53,13 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
     @action(detail=True, methods=['post'])
     def negar(self, request, uuid=None):
         solicitacao = self.get_object()
-        solicitacao.justificativa_negacao = request.data['justificativa']
-        solicitacao.motivo_negacao_id = request.data['motivo']
+        form = NegaDietaEspecialForm(request.data, instance=solicitacao)
+
+        if not form.is_valid():
+            return Response(form.errors)
+
         solicitacao.codae_nega(user=request.user)
-        solicitacao.save()
+
         return Response({'mensagem': 'Solicitação de Dieta Especial Negada'})
 
 

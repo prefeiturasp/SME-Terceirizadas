@@ -4,11 +4,10 @@ from faker import Faker
 from model_mommy import mommy
 
 from ...dados_comuns.utils import convert_base64_to_contentfile
-from ...dados_comuns.fluxo_status import DietaEspecialWorkflow
 from ...dados_comuns.models import TemplateMensagem
 from ...escola.models import Escola
 from ..models import AlergiaIntolerancia, Anexo, ClassificacaoDieta, MotivoNegacao, SolicitacaoDietaEspecial, TipoDieta
-from ...perfil.models import Usuario, Perfil, Vinculo
+from ...perfil.models import Usuario
 from ...escola.models import Lote
 
 fake = Faker('pt_BR')
@@ -84,16 +83,13 @@ def tipos_dieta():
 
 @pytest.fixture
 def solicitacao_dieta_especial_a_autorizar(client):
-    # import pdb
-    # pdb.set_trace()
-
-    email = "email@admin.com"
-    password = "adminadmin"
-    rf = "1545933"
+    email = 'email@admin.com'
+    password = 'adminadmin'
+    rf = '1545933'
     user = Usuario.objects.create_user(password=password, email=email, registro_funcional=rf)
     client.login(email=email, password=password)
 
-    perfil_professor = mommy.make('Perfil', nome='ADMINISTRADOR_ESCOLA', ativo=False)
+    perfil_professor = mommy.make('perfil.Perfil', nome='ADMINISTRADOR_ESCOLA', ativo=False)
 
     lote = mommy.make(Lote)
     escola = mommy.make(
@@ -102,15 +98,15 @@ def solicitacao_dieta_especial_a_autorizar(client):
         lote=lote
     )
 
-    mommy.make('Vinculo', usuario=user, instituicao=escola, perfil=perfil_professor,
+    mommy.make('perfil.Vinculo', usuario=user, instituicao=escola, perfil=perfil_professor,
                data_inicial=date.today(), ativo=True)  # ativo
 
     solic = mommy.make(SolicitacaoDietaEspecial,
-                      rastro_escola=escola,
-                      codigo_eol_aluno='123456',
-                      nome_completo_aluno='Roberto Alves da Silva',
-                      criado_por=user)
+                       rastro_escola=escola,
+                       codigo_eol_aluno='123456',
+                       nome_completo_aluno='Roberto Alves da Silva',
+                       criado_por=user)
 
-    template_mensagem = mommy.make(TemplateMensagem, tipo=TemplateMensagem.DIETA_ESPECIAL)
+    mommy.make(TemplateMensagem, tipo=TemplateMensagem.DIETA_ESPECIAL)
 
     solic.inicia_fluxo(user=user)
