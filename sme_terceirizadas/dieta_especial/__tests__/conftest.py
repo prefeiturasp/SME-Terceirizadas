@@ -8,6 +8,7 @@ from ...dados_comuns.models import TemplateMensagem
 from ...dados_comuns.utils import convert_base64_to_contentfile
 from ...escola.models import Escola, Lote
 from ...perfil.models import Usuario
+from ...terceirizada.models import Terceirizada
 from ..models import AlergiaIntolerancia, Anexo, ClassificacaoDieta, MotivoNegacao, SolicitacaoDietaEspecial, TipoDieta
 
 fake = Faker('pt_BR')
@@ -83,7 +84,7 @@ def tipos_dieta():
 
 @pytest.fixture
 def solicitacao_dieta_especial_a_autorizar(client):
-    email = 'email@admin.com'
+    email = 'escola@admin.com'
     password = 'adminadmin'
     rf = '1545933'
     user = Usuario.objects.create_user(password=password, email=email, registro_funcional=rf)
@@ -110,3 +111,24 @@ def solicitacao_dieta_especial_a_autorizar(client):
     mommy.make(TemplateMensagem, tipo=TemplateMensagem.DIETA_ESPECIAL)
 
     solic.inicia_fluxo(user=user)
+
+    return solic
+
+
+@pytest.fixture
+def solicitacao_dieta_especial_autorizada(client, solicitacao_dieta_especial_a_autorizar):
+    email = 'terceirizada@admin.com'
+    password = 'adminadmin'
+    rf = '4545454'
+    user = Usuario.objects.create_user(password=password, email=email, registro_funcional=rf)
+    client.login(email=email, password=password)
+
+    perfil = mommy.make('perfil.Perfil', nome='TERCEIRIZADA', ativo=False)
+    terceirizada = mommy.make(Terceirizada)
+
+    mommy.make('perfil.Vinculo', usuario=user, instituicao=terceirizada, perfil=perfil,
+               data_inicial=date.today(), ativo=True)
+
+    solicitacao_dieta_especial_a_autorizar.codae_autoriza(user=user)
+
+    return solicitacao_dieta_especial_a_autorizar

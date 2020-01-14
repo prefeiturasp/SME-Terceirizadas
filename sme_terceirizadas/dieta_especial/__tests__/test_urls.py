@@ -187,3 +187,20 @@ def test_url_endpoint_negar_dieta(client_autenticado,
     assert obj.status == DietaEspecialWorkflow.CODAE_NEGOU_PEDIDO
     assert obj.justificativa_negacao == data['justificativa_negacao']
     assert obj.motivo_negacao.id == data['motivo_negacao']
+
+
+def test_url_endpoint_tomar_ciencia_dieta(client_autenticado,
+                                          solicitacao_dieta_especial_autorizada):
+    obj = SolicitacaoDietaEspecial.objects.first()
+    response = client_autenticado.post(
+        f'/solicitacoes-dieta-especial/{obj.uuid}/tomar_ciencia/',
+        content_type='application/json'
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    json = response.json()
+    assert json['mensagem'] == 'Ciente da solicitação de dieta especial'
+
+    obj.refresh_from_db()
+
+    assert obj.status == DietaEspecialWorkflow.TERCEIRIZADA_TOMOU_CIENCIA

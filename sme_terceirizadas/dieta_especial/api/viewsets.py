@@ -62,6 +62,14 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
 
         return Response({'mensagem': 'Solicitação de Dieta Especial Negada'})
 
+    @action(detail=True, methods=['post'])
+    def tomar_ciencia(self, request, uuid=None):
+        solicitacao = self.get_object()
+
+        solicitacao.terceirizada_toma_ciencia(user=request.user)
+
+        return Response({'mensagem': 'Ciente da solicitação de dieta especial'})
+
 
 class AlergiaIntoleranciaViewSet(mixins.ListModelMixin,
                                  mixins.RetrieveModelMixin,
