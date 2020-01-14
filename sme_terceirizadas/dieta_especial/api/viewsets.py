@@ -5,6 +5,7 @@ from rest_framework.viewsets import GenericViewSet
 
 from ...dados_comuns.utils import convert_base64_to_contentfile
 from ..models import AlergiaIntolerancia, Anexo, ClassificacaoDieta, MotivoNegacao, SolicitacaoDietaEspecial, TipoDieta
+from ..forms import AutorizaDietaEspecialForm
 from .serializers import (
     AlergiaIntoleranciaSerializer,
     ClassificacaoDietaSerializer,
@@ -30,18 +31,18 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
     @action(detail=True, methods=['post'])
     def autoriza(self, request, uuid=None):
         solicitacao = self.get_object()
+        form = AutorizaDietaEspecialForm(request.data, instance=solicitacao)
 
-        for i in request.data['diagnosticosSelecionados']:
-            solicitacao.alergias_intolerancias.add(AlergiaIntolerancia.objects.get(pk=i))
+        if not form.is_valid():
+            return Response(form.errors)
+
+        form.save()
 
         for p in request.data['protocolos']:
             data = convert_base64_to_contentfile(p.get('base64'))
             Anexo.objects.create(
                 solicitacao_dieta_especial=solicitacao, arquivo=data, eh_laudo_medico=False
             )
-
-        solicitacao.classificacao_id = request.data['classificacaoDieta']
-        solicitacao.registro_funcional_nutricionista = request.data['identificacaoNutricionista']
 
         solicitacao.codae_autoriza(user=request.user)
 
