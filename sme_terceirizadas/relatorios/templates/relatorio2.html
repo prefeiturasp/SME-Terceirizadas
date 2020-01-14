@@ -1,8 +1,39 @@
 {% extends 'cabecalho_rodape_filtro.html' %}
+{% load index %}
 {% load static %}
 
 {% block conteudo %}
   <div class="conteudo tabela-sem-borda">
+    <div class="progress-bar-main-div">
+      <div>
+        <ul class="progressbar-titles">
+          {% for status in fluxo %}
+            <li>
+            {% if solicitacao.logs|index_exists:forloop.counter %}
+              {{ solicitacao.logs|get_element_by_index:forloop.counter0|get_attribute:'status_evento_explicacao' }}
+            {% else %}{{ status.titulo }}{% endif %}
+          {% endfor %}
+        </ul>
+        <ul class="progressbar">
+          {% for status in fluxo %}
+            <li class="{% if solicitacao.logs|index_exists:forloop.counter %}
+                {{ solicitacao.logs|get_element_by_index:forloop.counter0|get_attribute:'classe_estilo' }}
+                {% else %}{% if solicitacao.logs|fim_de_fluxo %} {% else %}pending{% endif %}{% endif %}"
+                style="width: {{ width }}">
+              {% if solicitacao.logs|index_exists:forloop.counter %}
+                {{ solicitacao.logs|get_element_by_index:forloop.counter0|get_attribute:'criado_em' }}
+                <br/>
+                <span>
+                  RF: {{ solicitacao.logs|get_element_by_index:forloop.counter0|get_attribute:'usuario'|get_attribute:'registro_funcional' }}
+                  <br/>
+                  {{ solicitacao.logs|get_element_by_index:forloop.counter0|get_attribute:'usuario'|get_attribute:'nome' }}
+                </span>
+              {% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
     <h5>Relatório SIGPAE - Solicitações por status</h5>
     <div class="id-pedido">
       <div class="retangulo-id">

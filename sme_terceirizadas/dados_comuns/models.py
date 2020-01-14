@@ -84,6 +84,24 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
     uuid_original = models.UUIDField()
     usuario = models.ForeignKey('perfil.Usuario', on_delete=models.DO_NOTHING)
 
+    @property
+    def status_evento_explicacao(self):
+        return self.get_status_evento_display()
+
+    @property
+    def classe_estilo(self):
+        if self.status_evento_explicacao in ["Solicitação Realizada", "Escola revisou", "DRE validou", "DRE revisou",
+                                             "CODAE autorizou", "Terceirizada tomou ciência"]:
+            return "active"
+        elif self.status_evento_explicacao in ["Escola cancelou", "DRE cancelou"]:
+            return "cancelled"
+        elif self.status_evento_explicacao in ["DRE não validou", "CODAE negou", "Terceirizada recusou"]:
+            return "disapproved"
+        elif self.status_evento_explicacao in ["Questionamento pela CODAE"]:
+            return "questioned"
+        else:
+            return "pending"
+
     def __str__(self):
         return (f'{self.usuario} executou {self.get_status_evento_display()} '
                 f'em {self.get_solicitacao_tipo_display()} no dia {self.criado_em}')
