@@ -2,8 +2,8 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <title>Title</title>
+  <meta charset="UTF-8">
+  <title>SIGPAE - Notificação</title>
 
   <!-- Bootstrap core CSS -->
   <link rel="stylesheet"
@@ -11,14 +11,31 @@
         integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO"
         crossorigin="anonymous"
   >
-  <link rel="stylesheet" href="{% static 'css/relatorio_base.css' %}">
+  <link rel="stylesheet" href="{% static 'css/email_base.css' %}">
   <link href="https://fonts.googleapis.com/css?family=Roboto&display=swap" rel="stylesheet">
 </head>
-<body>
-<div class="email-cabecalho">
-  <img src="{% static 'images/logo-sigpae.svg' %}" alt=""/>
-  <p>testes</p>
-</div>
+<body style="background: #F5F6F8">
+<div>
+  <div class="email-cabecalho">
+    <img src="{% static 'images/logo-sigpae.svg' %}" alt=""/>
+  </div>
+  <div>
+    <img src="{% static 'images/bg-email.svg' %}" alt=""/>
+  </div>
 
+</div>
 </body>
+<footer class="email-footer">
+  <div class="row">
+    <div class="col">
+      <img src="{% static 'images/logo-sp-color.svg' %}" alt=""/>
+    </div>
+    <div class="col">
+      <spam>contatodeemail@sigpae.sp.gov.br</spam>
+    </div>
+    <div class="col">
+      0800-123 4567
+    </div>
+  </div>
+</footer>
 </html>
