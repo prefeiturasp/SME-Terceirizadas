@@ -107,10 +107,10 @@ def test_url_endpoint_detalhe_tipos_dieta(client_autenticado,
     )
 
 
-def test_url_endpoint_autoriza_dieta(client_autenticado,
-                                     solicitacao_dieta_especial_a_autorizar,
-                                     alergias_intolerancias,
-                                     classificacoes_dieta):
+def test_url_endpoint_autorizar_dieta(client_autenticado,
+                                      solicitacao_dieta_especial_a_autorizar,
+                                      alergias_intolerancias,
+                                      classificacoes_dieta):
     obj = SolicitacaoDietaEspecial.objects.first()
     data = {
         'classificacao': classificacoes_dieta[0].id,
@@ -150,7 +150,7 @@ def test_url_endpoint_autoriza_dieta(client_autenticado,
         ]
     }
     response = client_autenticado.post(
-        f'/solicitacoes-dieta-especial/{obj.uuid}/autoriza/',
+        f'/solicitacoes-dieta-especial/{obj.uuid}/autorizar/',
         content_type='application/json',
         data=data
     )
@@ -171,9 +171,9 @@ def test_url_endpoint_autoriza_dieta(client_autenticado,
     assert anexos.count() == 1
 
 
-def test_url_endpoint_nega_dieta(client_autenticado,
-                                 solicitacao_dieta_especial_a_autorizar,
-                                 motivos_negacao):
+def test_url_endpoint_negar_dieta(client_autenticado,
+                                  solicitacao_dieta_especial_a_autorizar,
+                                  motivos_negacao):
     obj = SolicitacaoDietaEspecial.objects.first()
     data = {
         'justificativa_negacao': 'Uma justificativa fajuta',

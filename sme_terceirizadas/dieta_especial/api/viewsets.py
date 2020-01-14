@@ -29,7 +29,7 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
         return SolicitacaoDietaEspecialSerializer
 
     @action(detail=True, methods=['post'])
-    def autoriza(self, request, uuid=None):
+    def autorizar(self, request, uuid=None):
         solicitacao = self.get_object()
         form = AutorizaDietaEspecialForm(request.data, instance=solicitacao)
 
