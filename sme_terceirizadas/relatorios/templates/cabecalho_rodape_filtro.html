@@ -6,6 +6,43 @@
 <head>
   <link rel="stylesheet" href="{% sass_src 'css/cabecalho.scss' %}" type="text/css">
   <link rel="stylesheet" href="{% sass_src 'css/override_relatorio.scss' %}" type="text/css">
+  <style>
+    @page {
+      margin-bottom: 3em;
+      @bottom-left {
+        background: #EEEEEE;
+        color: #000000;
+        content: "Relatório #{{ solicitacao.id_externo }}." ;
+        font-size: 10px;
+        width: 100%;
+        padding: 1em 2em 4em 2em;
+        margin-top: 2em;
+      }
+      @bottom-right {
+        color: #000000;
+        content: "Página " counter(page) " de " counter(pages);
+        font-size: 10px;
+        width: 50%;
+        padding: 1em 2em 4em 2em;
+        margin-top: 2em;
+      }
+    }
+
+    .titulo-e-logo {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .titulo-e-logo h1 {
+      font-style: normal;
+      font-weight: normal;
+      font-size: 17px;
+      line-height: 21px;
+      text-transform: uppercase;
+      color: #000000;
+    }
+  </style>
 </head>
 <header class="header">
   <section class="titulo-e-logo">
