@@ -1,10 +1,14 @@
+from datetime import date
+
 import pytest
 from faker import Faker
 from model_mommy import mommy
 
+from ...dados_comuns.models import TemplateMensagem
 from ...dados_comuns.utils import convert_base64_to_contentfile
-from ...escola.models import Escola
-from ..models import Anexo, SolicitacaoDietaEspecial
+from ...escola.models import Escola, Lote
+from ...perfil.models import Usuario
+from ..models import AlergiaIntolerancia, Anexo, ClassificacaoDieta, MotivoNegacao, SolicitacaoDietaEspecial, TipoDieta
 
 fake = Faker('pt_BR')
 fake.seed(420)
@@ -51,3 +55,58 @@ def nomes_arquivos_validos(request):
 ])
 def nomes_arquivos_invalidos(request):
     return request.param
+
+
+@pytest.fixture
+def alergias_intolerancias():
+    mommy.make(AlergiaIntolerancia, _quantity=2)
+    return AlergiaIntolerancia.objects.all()
+
+
+@pytest.fixture
+def classificacoes_dieta():
+    mommy.make(ClassificacaoDieta, _quantity=3)
+    return ClassificacaoDieta.objects.all()
+
+
+@pytest.fixture
+def motivos_negacao():
+    mommy.make(MotivoNegacao, _quantity=4)
+    return MotivoNegacao.objects.all()
+
+
+@pytest.fixture
+def tipos_dieta():
+    mommy.make(TipoDieta, _quantity=5)
+    return TipoDieta.objects.all()
+
+
+@pytest.fixture
+def solicitacao_dieta_especial_a_autorizar(client):
+    email = 'email@admin.com'
+    password = 'adminadmin'
+    rf = '1545933'
+    user = Usuario.objects.create_user(password=password, email=email, registro_funcional=rf)
+    client.login(email=email, password=password)
+
+    perfil_professor = mommy.make('perfil.Perfil', nome='ADMINISTRADOR_ESCOLA', ativo=False)
+
+    lote = mommy.make(Lote)
+    escola = mommy.make(
+        Escola,
+        nome='EMEF Carlos da Silva',
+        lote=lote
+    )
+
+    mommy.make('perfil.Vinculo', usuario=user, instituicao=escola, perfil=perfil_professor,
+               data_inicial=date.today(), ativo=True)  # ativo
+
+    solic = mommy.make(SolicitacaoDietaEspecial,
+                       rastro_escola=escola,
+                       codigo_eol_aluno='123456',
+                       nome_completo_aluno='Roberto Alves da Silva',
+                       criado_por=user)
+
+    mommy.make(TemplateMensagem, tipo=TemplateMensagem.DIETA_ESPECIAL)
+
+    solic.inicia_fluxo(user=user)
