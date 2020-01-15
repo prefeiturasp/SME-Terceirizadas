@@ -4,8 +4,8 @@ from rest_framework import serializers
 from ...dados_comuns.api.serializers import ContatoSerializer, LogSolicitacoesUsuarioSerializer
 from ...dados_comuns.utils import convert_base64_to_contentfile
 from ...dados_comuns.validators import deve_ser_no_passado
-from ...escola.api.serializers import DiretoriaRegionalSimplesSerializer, LoteSimplesSerializer, TipoGestaoSerializer
-from ...escola.models import Escola
+from ...escola.api.serializers import LoteNomeSerializer, TipoGestaoSerializer
+from ...escola.models import DiretoriaRegional, Escola
 from ..models import AlergiaIntolerancia, Anexo, ClassificacaoDieta, MotivoNegacao, SolicitacaoDietaEspecial, TipoDieta
 from .validators import deve_ter_extensao_valida
 
@@ -21,6 +21,30 @@ class AnexoCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Anexo
         fields = ('arquivo', 'nome')
+
+
+class AlergiaIntoleranciaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AlergiaIntolerancia
+        fields = '__all__'
+
+
+class ClassificacaoDietaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ClassificacaoDieta
+        fields = '__all__'
+
+
+class MotivoNegacaoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MotivoNegacao
+        fields = '__all__'
+
+
+class TipoDietaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TipoDieta
+        fields = '__all__'
 
 
 class AnexoSerializer(ModelSerializer):
@@ -75,10 +99,16 @@ class SolicitacaoDietaEspecialCreateSerializer(serializers.ModelSerializer):
         )
 
 
+class DiretoriaRegionalSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DiretoriaRegional
+        fields = ['nome']
+
+
 class EscolaSerializer(serializers.ModelSerializer):
-    diretoria_regional = DiretoriaRegionalSimplesSerializer()
+    diretoria_regional = DiretoriaRegionalSerializer()
     tipo_gestao = TipoGestaoSerializer()
-    lote = LoteSimplesSerializer()
+    lote = LoteNomeSerializer()
     contato = ContatoSerializer()
 
     class Meta:
@@ -99,6 +129,10 @@ class SolicitacaoDietaEspecialSerializer(serializers.ModelSerializer):
     )
     id_externo = serializers.CharField()
 
+    classificacao = ClassificacaoDietaSerializer()
+    alergias_intolerancias = AlergiaIntoleranciaSerializer(many=True)
+    motivo_negacao = MotivoNegacaoSerializer()
+
     class Meta:
         model = SolicitacaoDietaEspecial
         fields = (
@@ -114,7 +148,12 @@ class SolicitacaoDietaEspecialSerializer(serializers.ModelSerializer):
             'status_solicitacao',
             'escola',
             'logs',
-            'id_externo'
+            'id_externo',
+            'classificacao',
+            'alergias_intolerancias',
+            'motivo_negacao',
+            'justificativa_negacao',
+            'registro_funcional_nutricionista'
         )
 
 
@@ -125,27 +164,3 @@ class SolicitacaoDietaEspecialLogSerializer(serializers.ModelSerializer):
     class Meta:
         model = SolicitacaoDietaEspecial
         fields = ('uuid', 'nome_completo_aluno', 'logs', 'id_externo')
-
-
-class AlergiaIntoleranciaSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = AlergiaIntolerancia
-        fields = '__all__'
-
-
-class ClassificacaoDietaSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ClassificacaoDieta
-        fields = '__all__'
-
-
-class MotivoNegacaoSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = MotivoNegacao
-        fields = '__all__'
-
-
-class TipoDietaSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = TipoDieta
-        fields = '__all__'
