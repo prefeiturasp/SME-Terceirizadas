@@ -295,7 +295,13 @@ class SolicitacoesEscola(MoldeConsolidado):
     # Filtros padrão
     #
     PENDENTES_STATUS_DIETA_ESPECIAL = [DietaEspecialWorkflow.CODAE_A_AUTORIZAR]
-    PENDENTES_EVENTO_DIETA_ESPECIAL = [LogSolicitacoesUsuario.DIETA_ESPECIAL]
+    PENDENTES_EVENTO_DIETA_ESPECIAL = [LogSolicitacoesUsuario.INICIO_FLUXO]
+
+    AUTORIZADO_STATUS_DIETA_ESPECIAL = [DietaEspecialWorkflow.CODAE_AUTORIZADO]
+    AUTORIZADO_EVENTO_DIETA_ESPECIAL = [LogSolicitacoesUsuario.CODAE_AUTORIZOU]
+
+    NEGADOS_STATUS_DIETA_ESPECIAL = [DietaEspecialWorkflow.CODAE_NEGOU_PEDIDO]
+    NEGADOS_EVENTO_DIETA_ESPECIAL = [LogSolicitacoesUsuario.CODAE_NEGOU]
 
     PENDENTES_STATUS = [PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR,
                         PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO,
@@ -325,16 +331,6 @@ class SolicitacoesEscola(MoldeConsolidado):
     NEGADOS_EVENTO = [LogSolicitacoesUsuario.CODAE_NEGOU]
 
     @classmethod
-    def get_pendentes_autorizacao(cls, **kwargs):
-        escola_uuid = kwargs.get('escola_uuid')
-        return cls.objects.filter(
-            escola_uuid=escola_uuid
-        ).filter(
-            status_atual__in=cls.PENDENTES_STATUS,
-            status_evento__in=cls.PENDENTES_EVENTO
-        ).distinct().order_by('-data_log')
-
-    @classmethod
     def get_pendentes_dieta_especial(cls, **kwargs):
         escola_uuid = kwargs.get('escola_uuid')
         return cls.objects.filter(
@@ -342,6 +338,36 @@ class SolicitacoesEscola(MoldeConsolidado):
             status_atual__in=cls.PENDENTES_STATUS_DIETA_ESPECIAL,
             status_evento__in=cls.PENDENTES_EVENTO_DIETA_ESPECIAL
         ).distinct().order_by('-data_log')
+
+    @classmethod
+    def get_autorizados_dieta_especial(cls, **kwargs):
+        escola_uuid = kwargs.get('escola_uuid')
+        return cls.objects.filter(
+            escola_uuid=escola_uuid,
+            status_atual__in=cls.AUTORIZADO_STATUS_DIETA_ESPECIAL,
+            status_evento__in=cls.AUTORIZADO_EVENTO_DIETA_ESPECIAL,
+            tipo_doc='DIETA_ESPECIAL'
+        ).distinct().order_by('-data_log')
+
+    @classmethod
+    def get_negados_dieta_especial(cls, **kwargs):
+        escola_uuid = kwargs.get('escola_uuid')
+        return cls.objects.filter(
+            escola_uuid=escola_uuid,
+            status_atual__in=cls.NEGADOS_STATUS_DIETA_ESPECIAL,
+            status_evento__in=cls.NEGADOS_EVENTO_DIETA_ESPECIAL,
+            tipo_doc='DIETA_ESPECIAL'
+        ).distinct().order_by('-data_log')
+
+    @classmethod
+    def get_pendentes_autorizacao(cls, **kwargs):
+        escola_uuid = kwargs.get('escola_uuid')
+        return cls.objects.filter(
+            escola_uuid=escola_uuid
+        ).filter(
+            status_atual__in=cls.PENDENTES_STATUS,
+            status_evento__in=cls.PENDENTES_EVENTO
+        ).exclude(tipo_doc='DIETA_ESPECIAL').distinct().order_by('-data_log')
 
     @classmethod
     def get_autorizados(cls, **kwargs):

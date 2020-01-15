@@ -3,6 +3,7 @@
 """
 import datetime
 import random
+import string
 
 import numpy as np
 from faker import Faker
@@ -11,20 +12,26 @@ from xworkflows import InvalidTransitionError
 from sme_terceirizadas.cardapio.models import TipoAlimentacao, InversaoCardapio, Cardapio, \
     GrupoSuspensaoAlimentacao, SuspensaoAlimentacao, MotivoSuspensao, QuantidadePorPeriodoSuspensaoAlimentacao, \
     AlteracaoCardapio, MotivoAlteracaoCardapio
-from sme_terceirizadas.escola.models import Escola, DiretoriaRegional, PeriodoEscolar, Codae
+from sme_terceirizadas.dieta_especial.models import Anexo, SolicitacaoDietaEspecial
+from sme_terceirizadas.escola.models import Escola, DiretoriaRegional, PeriodoEscolar
 from sme_terceirizadas.inclusao_alimentacao.models import InclusaoAlimentacaoContinua, \
     MotivoInclusaoContinua, GrupoInclusaoAlimentacaoNormal, QuantidadePorPeriodo, InclusaoAlimentacaoNormal, \
     MotivoInclusaoNormal
 from sme_terceirizadas.kit_lanche.models import SolicitacaoKitLancheUnificada, \
     SolicitacaoKitLanche, KitLanche, SolicitacaoKitLancheAvulsa, EscolaQuantidade
 from sme_terceirizadas.perfil.models import Usuario
+from .helper import base64_encode
 
 f = Faker('pt-br')
 f.seed(420)
 hoje = datetime.date.today() - datetime.timedelta(days=180)
 
 
-def _get_random_cardapio():
+def _get_random_cardapio(dias_pra_frente=None):
+    if dias_pra_frente:
+        hoje = datetime.date.today()
+        prox_dias = hoje + datetime.timedelta(days=dias_pra_frente)
+        return Cardapio.objects.filter(data__gte=prox_dias).order_by("?").first()
     return Cardapio.objects.order_by("?").first()
 
 
@@ -166,7 +173,7 @@ def cria_inclusoes_normais(qtd=50):
             motivo=_get_random_motivo_normal(),
             outro_motivo=f.text()[:40],
             grupo_inclusao=grupo_inclusao_normal,
-            data=hoje + datetime.timedelta(days=random.randint(1, 180))
+            data=hoje + datetime.timedelta(days=random.randint(10, 180))
         )
         fluxo_escola_felix(grupo_inclusao_normal, user)
 
@@ -175,7 +182,7 @@ def cria_solicitacoes_kit_lanche_unificada(qtd=50):
     user = Usuario.objects.get(email="dre@admin.com")
     for i in range(qtd):
         base = SolicitacaoKitLanche.objects.create(
-            data=hoje + datetime.timedelta(days=random.randint(1, 180)),
+            data=hoje + datetime.timedelta(days=random.randint(10, 180)),
             motivo=f.text()[:40],
             descricao=f.text()[:160],
             tempo_passeio=SolicitacaoKitLanche.QUATRO)
@@ -202,7 +209,7 @@ def cria_solicitacoes_kit_lanche_avulsa(qtd=50):
     user = Usuario.objects.get(email="escola@admin.com")
     for i in range(qtd):
         base = SolicitacaoKitLanche.objects.create(
-            data=hoje + datetime.timedelta(days=random.randint(1, 180)),
+            data=hoje + datetime.timedelta(days=random.randint(10, 180)),
             motivo=f.text()[:40],
             descricao=f.text()[:160],
             tempo_passeio=SolicitacaoKitLanche.QUATRO)
@@ -217,15 +224,6 @@ def cria_solicitacoes_kit_lanche_avulsa(qtd=50):
         fluxo_escola_felix(avulsa, user)
 
 
-# cardapio_de = models.ForeignKey(Cardapio, on_delete=models.DO_NOTHING,
-#                                     blank=True, null=True,
-#                                     related_name='cardapio_de')
-#     cardapio_para = models.ForeignKey(Cardapio, on_delete=models.DO_NOTHING,
-#                                       blank=True, null=True,
-#                                       related_name='cardapio_para')
-#     escola = models.ForeignKey('escola.Escola', blank=True, null=True,
-#                                on_delete=models.DO_NOTHING)
-
 def cria_inversoes_cardapio(qtd=50):
     user = Usuario.objects.get(email="escola@admin.com")
     for i in range(qtd):
@@ -234,8 +232,8 @@ def cria_inversoes_cardapio(qtd=50):
             observacao=f.text()[:100],
             motivo=f.text()[:40],
             escola=_get_random_escola(),
-            cardapio_de=_get_random_cardapio(),
-            cardapio_para=_get_random_cardapio())
+            cardapio_de=_get_random_cardapio(dias_pra_frente=1),
+            cardapio_para=_get_random_cardapio(dias_pra_frente=3))
         fluxo_escola_felix(inversao, user)
 
 
@@ -250,7 +248,7 @@ def cria_suspensoes_alimentacao(qtd=50):
             SuspensaoAlimentacao.objects.create(
                 outro_motivo=f.text()[:50],
                 grupo_suspensao=suspensao_grupo,
-                data=hoje + datetime.timedelta(days=random.randint(1, 180)),
+                data=hoje + datetime.timedelta(days=random.randint(10, 180)),
                 motivo=_get_random_motivo_suspensao()
             )
             q = QuantidadePorPeriodoSuspensaoAlimentacao.objects.create(
@@ -276,6 +274,24 @@ def cria_alteracoes_cardapio(qtd=50):
         fluxo_escola_felix(alteracao_cardapio, user)
 
 
+def cria_solicitacoes_dieta_especial(qtd=50):
+    user = Usuario.objects.get(email="escola@admin.com")
+    for i in range(qtd):
+        solicitacao_dieta_especial = SolicitacaoDietaEspecial.objects.create(
+            criado_por=user,
+            codigo_eol_aluno=''.join(random.choice(string.digits) for x in range(6)),
+            nome_completo_aluno=f.text()[:25],
+            nome_completo_pescritor=f.text()[:25],
+            registro_funcional_pescritor=''.join(random.choice(string.digits) for x in range(6)),
+            data_nascimento_aluno=datetime.date(2015, 10, 19)
+        )
+        Anexo.objects.create(
+            solicitacao_dieta_especial=solicitacao_dieta_especial,
+            arquivo=base64_encode(f.text()[:20])
+        )
+        solicitacao_dieta_especial.inicia_fluxo(user=user)
+
+
 QTD_PEDIDOS = 50
 
 criar_pedidos = input('Criar pedidos do sistema? (S/N)?')
@@ -295,3 +311,6 @@ if criar_pedidos.upper() == 'S':
 
     print('-> criando solicicitacoes kit lanche unificada')
     cria_solicitacoes_kit_lanche_unificada(QTD_PEDIDOS)
+
+    # print('-> criando solicitacoes dieta especial')
+    # cria_solicitacoes_dieta_especial(QTD_PEDIDOS)

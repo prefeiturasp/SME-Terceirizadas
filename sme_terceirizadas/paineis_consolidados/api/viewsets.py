@@ -12,11 +12,13 @@ from ..api.constants import FILTRO_PERIOD_UUID_DRE, PENDENTES_VALIDACAO_DRE
 from ..models import MoldeConsolidado, SolicitacoesCODAE, SolicitacoesDRE, SolicitacoesEscola, SolicitacoesTerceirizada
 from .constants import (
     AUTORIZADOS,
+    AUTORIZADOS_DIETA_ESPECIAL,
     CANCELADOS,
     FILTRO_DRE_UUID,
     FILTRO_ESCOLA_UUID,
     FILTRO_TERCEIRIZADA_UUID,
     NEGADOS,
+    NEGADOS_DIETA_ESPECIAL,
     PENDENTES_AUTORIZACAO,
     PENDENTES_AUTORIZACAO_DIETA_ESPECIAL,
     PENDENTES_CIENCIA,
@@ -224,6 +226,16 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
     @action(detail=False, methods=['GET'], url_path=f'{PENDENTES_AUTORIZACAO_DIETA_ESPECIAL}/{FILTRO_ESCOLA_UUID}')
     def pendentes_autorizacao_dieta_especial(self, request, escola_uuid=None):
         query_set = SolicitacoesEscola.get_pendentes_dieta_especial(escola_uuid=escola_uuid)
+        return self._retorno_base(query_set)
+
+    @action(detail=False, methods=['GET'], url_path=f'{AUTORIZADOS_DIETA_ESPECIAL}/{FILTRO_ESCOLA_UUID}')
+    def autorizados_dieta_especial(self, request, escola_uuid=None):
+        query_set = SolicitacoesEscola.get_autorizados_dieta_especial(escola_uuid=escola_uuid)
+        return self._retorno_base(query_set)
+
+    @action(detail=False, methods=['GET'], url_path=f'{NEGADOS_DIETA_ESPECIAL}/{FILTRO_ESCOLA_UUID}')
+    def negados_dieta_especial(self, request, escola_uuid=None):
+        query_set = SolicitacoesEscola.get_negados_dieta_especial(escola_uuid=escola_uuid)
         return self._retorno_base(query_set)
 
     @action(detail=False, methods=['GET'], url_path=f'{AUTORIZADOS}/{FILTRO_ESCOLA_UUID}')
