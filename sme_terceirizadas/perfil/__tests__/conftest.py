@@ -290,38 +290,22 @@ def users_terceirizada(client, django_user_model, request, usuario_2):
 
 
 def mocked_request_api_eol():
-    class MockResponse:
-        def __init__(self, json_data, status_code):
-            self.json_data = json_data
-            self.status_code = status_code
-
-        def json(self):
-            return self.json_data
-
-    return MockResponse({'results': [{'nm_pessoa': 'IARA DAREZZO', 'cargo': 'PROF.ED.INF.E ENS.FUND.I',
-                                      'divisao': 'ODILIO DENYS, MAL.',
-                                      'cd_cpf_pessoa': '95887745002',
-                                      'coord': 'DIRETORIA REGIONAL DE EDUCACAO FREGUESIA/BRASILANDIA'},
-                                     {'nm_pessoa': 'IARA DAREZZO',
-                                      'cargo': 'PROF.ENS.FUND.II E MED.-PORTUGUES',
-                                      'divisao': 'NOE AZEVEDO, PROF',
-                                      'cd_cpf_pessoa': '95887745002',
-                                      'coord': 'DIRETORIA REGIONAL DE EDUCACAO JACANA/TREMEMBE'}]}, 200)
+    return [{'nm_pessoa': 'IARA DAREZZO', 'cargo': 'PROF.ED.INF.E ENS.FUND.I',
+             'divisao': 'ODILIO DENYS, MAL.',
+             'cd_cpf_pessoa': '95887745002',
+             'coord': 'DIRETORIA REGIONAL DE EDUCACAO FREGUESIA/BRASILANDIA'},
+            {'nm_pessoa': 'IARA DAREZZO',
+             'cargo': 'PROF.ENS.FUND.II E MED.-PORTUGUES',
+             'divisao': 'NOE AZEVEDO, PROF',
+             'cd_cpf_pessoa': '95887745002',
+             'coord': 'DIRETORIA REGIONAL DE EDUCACAO JACANA/TREMEMBE'}]
 
 
 def mocked_request_api_eol_usuario_diretoria_regional():
-    class MockResponse:
-        def __init__(self, json_data, status_code):
-            self.json_data = json_data
-            self.status_code = status_code
-
-        def json(self):
-            return self.json_data
-
-    return MockResponse({'results': [{'nm_pessoa': 'LUIZA MARIA BASTOS', 'cargo': 'AUXILIAR TECNICO DE EDUCACAO',
-                                      'divisao': 'DIRETORIA REGIONAL DE EDUCACAO CAPELA DO SOCORRO',
-                                      'cd_cpf_pessoa': '47088910080',
-                                      'coord': 'DIRETORIA REGIONAL DE EDUCACAO CAPELA DO SOCORRO'}]}, 200)
+    return [{'nm_pessoa': 'LUIZA MARIA BASTOS', 'cargo': 'AUXILIAR TECNICO DE EDUCACAO',
+             'divisao': 'DIRETORIA REGIONAL DE EDUCACAO CAPELA DO SOCORRO',
+             'cd_cpf_pessoa': '47088910080',
+             'coord': 'DIRETORIA REGIONAL DE EDUCACAO CAPELA DO SOCORRO'}]
 
 
 @pytest.fixture(params=[
