@@ -4,36 +4,7 @@
 
 {% block conteudo %}
   <div class="conteudo tabela-sem-borda">
-    <div class="progress-bar-main-div">
-      <div>
-        <ul class="progressbar-titles">
-          {% for status in fluxo|or_logs:logs %}
-            <li>
-            {% if logs|index_exists:forloop.counter %}
-              {{ logs|get_element_by_index:forloop.counter0|get_attribute:'status_evento_explicacao' }}
-            {% else %}{{ status.titulo }}{% endif %}
-          {% endfor %}
-        </ul>
-        <ul class="progressbar">
-          {% for status in fluxo|or_logs:logs %}
-            <li class="{% if logs|index_exists:forloop.counter %}
-                {{ logs|get_element_by_index:forloop.counter0|class_css }}
-                {% else %}{% if logs|fim_de_fluxo %} {% else %}pending{% endif %}{% endif %}"
-                style="width: {{ width }}">
-              {% if logs|index_exists:forloop.counter %}
-                {{ logs|get_element_by_index:forloop.counter0|get_attribute:'criado_em' }}
-                <br/>
-                <span>
-                  RF: {{ logs|get_element_by_index:forloop.counter0|get_attribute:'usuario'|get_attribute:'registro_funcional' }}
-                  <br/>
-                  {{ logs|get_element_by_index:forloop.counter0|get_attribute:'usuario'|get_attribute:'nome' }}
-                </span>
-              {% endif %}
-            </li>
-          {% endfor %}
-        </ul>
-      </div>
-    </div>
+    {% include "fluxo_de_status.html" %}
     <h5>Relatório SIGPAE - Solicitações por status</h5>
     <div class="id-pedido">
       <div class="retangulo-id">

@@ -22,25 +22,25 @@ def index_exists(indexable, i):
 def fim_de_fluxo(logs):
     fim = False
     for log in logs:
-        if ("neg" in log.status_evento_explicacao or "não" in log.status_evento_explicacao or
-            "cancel" in log.status_evento_explicacao):  # noqa
+        if ('neg' in log.status_evento_explicacao or 'não' in log.status_evento_explicacao or
+            'cancel' in log.status_evento_explicacao):  # noqa
             fim = True
     return fim
 
 
-@register.filter
+@register.filter  # noqa
 def class_css(log):
-    if log.status_evento_explicacao in ["Solicitação Realizada", "Escola revisou", "DRE validou", "DRE revisou",
-                                         "CODAE autorizou", "Terceirizada tomou ciência"]:
-        return "active"
-    elif log.status_evento_explicacao in ["Escola cancelou", "DRE cancelou"]:
-        return "cancelled"
-    elif log.status_evento_explicacao in ["DRE não validou", "CODAE negou", "Terceirizada recusou"]:
-        return "disapproved"
-    elif log.status_evento_explicacao in ["Questionamento pela CODAE"]:
-        return "questioned"
+    if log.status_evento_explicacao in ['Solicitação Realizada', 'Escola revisou', 'DRE validou', 'DRE revisou',
+                                        'CODAE autorizou', 'Terceirizada tomou ciência']:
+        return 'active'
+    elif log.status_evento_explicacao in ['Escola cancelou', 'DRE cancelou']:
+        return 'cancelled'
+    elif log.status_evento_explicacao in ['DRE não validou', 'CODAE negou', 'Terceirizada recusou']:
+        return 'disapproved'
+    elif log.status_evento_explicacao in ['Questionamento pela CODAE']:
+        return 'questioned'
     else:
-        return "pending"
+        return 'pending'
 
 
 @register.filter

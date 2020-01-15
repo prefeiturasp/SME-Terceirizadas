@@ -13,5 +13,5 @@ def formata_logs(logs):
 
 
 def get_width(fluxo, logs):
-    fluxo_utilizado = logs if len(logs) > len(fluxo) else fluxo
+    fluxo_utilizado = formata_logs(logs) if len(logs) > len(formata_logs(logs)) else fluxo
     return str(math.floor(100 / len(fluxo_utilizado))) + '%'

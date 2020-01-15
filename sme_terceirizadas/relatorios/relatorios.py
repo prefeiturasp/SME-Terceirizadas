@@ -1,14 +1,13 @@
 import datetime
-import math
 
 from django.http import HttpResponse
 from django.template.loader import render_to_string
 from weasyprint import HTML
 
-from .utils import formata_logs, get_width
 from ..dados_comuns.constants import FLUXO_PARTINDO_DRE
 from ..escola.models import Escola
 from ..kit_lanche.models import EscolaQuantidade, SolicitacaoKitLancheUnificada
+from .utils import formata_logs, get_width
 
 
 def relatorio_kit_lanche_unificado(request):
@@ -34,4 +33,3 @@ def relatorio_kit_lanche_unificado(request):
     response = HttpResponse(pdf_file, content_type='application/pdf')
     response['Content-Disposition'] = f'filename="Soliciatao_unificada_{uuid_solicitacao}.pdf"'
     return response
-    # return HttpResponse(html_string)
