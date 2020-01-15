@@ -6,6 +6,8 @@ from weasyprint import HTML
 
 from ..escola.models import Escola
 from ..kit_lanche.models import EscolaQuantidade, SolicitacaoKitLancheUnificada
+from .constants import FLUXO_PARTINDO_DRE
+from .utils import formata_logs, get_width
 
 
 def relatorio_kit_lanche_unificado(request):
@@ -23,7 +25,9 @@ def relatorio_kit_lanche_unificado(request):
     # Rendered
     html_string = render_to_string(
         'relatorio2.html',
-        {'escola': escola, 'filtro': filtro, 'solicitacao': sol, 'qtd_escolas': qtd_escolas}
+        {'escola': escola, 'filtro': filtro, 'solicitacao': sol, 'qtd_escolas': qtd_escolas,
+         'fluxo': FLUXO_PARTINDO_DRE, 'width': get_width(FLUXO_PARTINDO_DRE, sol.logs),
+         'logs': formata_logs(sol.logs)}
     )
     pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
     response = HttpResponse(pdf_file, content_type='application/pdf')

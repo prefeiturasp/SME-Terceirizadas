@@ -1,0 +1,151 @@
+@import "variaveis";
+@import "../scss/fontawesome.scss";
+@import "../scss/solid.scss";
+@import "../scss/brands.scss";
+
+
+.progress-bar-main-div {
+  margin-bottom: 7em;
+  .progressbar-main-title {
+    font-size: 10px;
+    color: #353535;
+    margin-right: -15%;
+    margin-left: 2%;
+  }
+
+  .progressbar-titles {
+    color: $cor-cinza-placeholder;
+    display: inline-flex;
+    font-size: 9px;
+    font-weight: bold;
+    list-style-type: none;
+    margin-bottom: 0;
+    text-align: center;
+    width: 100%;
+    padding-left: 0;
+
+    li {
+      width: 33.3%;
+    }
+  }
+
+  .fluxos {
+    display: flex;
+    justify-content: space-around;
+  }
+
+  .progressbar {
+    margin-left: -35px;
+    li {
+      list-style-type: none;
+      font-weight: bold;
+      font-size: 7px;
+      float: left;
+      position: relative;
+      text-align: center;
+      z-index: 0;
+
+      &.active {
+        color: $cor-cinza-placeholder !important;
+
+        &:before {
+          content: fa-content($fa-var-check);
+          font-size: 18px;
+          font-weight: 900;
+          background-color: $cor-cinza-placeholder !important;
+          color: #fff;
+          border-color: $cor-cinza-placeholder !important;
+        }
+
+        + li.active:after {
+          background-color: $cor-cinza-placeholder !important;
+        }
+
+        + li.disapproved:after {
+          background-color: $cor-cinza-placeholder !important;
+        }
+
+        + li.cancelled:after {
+          background-color: $cor-cinza-placeholder !important;
+        }
+
+        + li.questioned:after {
+          background-color: $cor-cinza-placeholder !important;
+        }
+      }
+
+      &:first-child:after {
+        content: none;
+      }
+
+      &:before {
+        content: "";
+        width: 30px;
+        height: 30px;
+        line-height: 30px;
+        display: block;
+        font-weight: 900;
+        text-align: center;
+        margin: 0 auto 10px auto;
+        border-radius: 50%;
+        background-color: $cor-cinza-placeholder;
+      }
+
+      &.pending {
+        &:before {
+          color: $branco;
+          content: "\f04d";
+          font-family: "Font Awesome 5 Free";
+          font-size: 10px;
+        }
+      }
+
+      &:after {
+        content: "";
+        position: absolute;
+        margin-left: 14px;
+        width: 100%;
+        height: 5px;
+        background-color: $cor-cinza-placeholder;
+        top: 15px;
+        left: -50%;
+        z-index: -1;
+      }
+
+      &.disapproved {
+        color: $cor-cinza-placeholder;
+
+        &:before {
+          font-family: "Font Awesome 5 Free";
+          font-size: 18px;
+          content: "\f05e";
+          font-weight: 900;
+          background-color: $cor-cinza-placeholder;
+          color: #fff;
+        }
+      }
+
+      &.cancelled {
+        &:before {
+          font-family: "Font Awesome 5 Free";
+          font-size: 18px;
+          content: "\f057";
+          font-weight: 900;
+          background-color: $cor-cinza-placeholder;
+          color: #fff;
+        }
+      }
+
+      &.questioned {
+        &:before {
+          font-family: "Font Awesome 5 Free";
+          font-size: 18px;
+          content: "\f12a";
+          font-weight: 900;
+          background-color: $cor-cinza-placeholder;
+          color: #fff;
+        }
+      }
+    }
+  }
+}
