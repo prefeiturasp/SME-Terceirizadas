@@ -3,7 +3,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.viewsets import ViewSet
 
-from ..utils import get_informacoes_usuario
+from ..utils import EOLService, get_informacoes_usuario
 
 
 class DadosUsuarioEOLViewSet(ViewSet):
@@ -20,4 +20,17 @@ class DadosUsuarioEOLViewSet(ViewSet):
                 result.pop('cd_cpf_pessoa')
             return Response(response['results'])
         else:
-            return Response({'detail': 'Request de API externa falhou'})
+            return Response({'detail': 'Request de API externa falhou'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class DadosAlunoEOLViewSet(ViewSet):
+    lookup_field = 'codigo_eol'
+    permission_classes = (AllowAny,)
+
+    def retrieve(self, request, codigo_eol=None):
+        dados = EOLService.get_informacoes_aluno(codigo_eol)
+        if dados:
+            # TODO: apagar dados sensiveis? Quais?
+            return Response({'detail': f'{dados}'})
+        else:
+            return Response({'detail': 'Request de API externa falhou'}, status=status.HTTP_400_BAD_REQUEST)
