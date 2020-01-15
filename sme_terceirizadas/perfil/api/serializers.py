@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from ...dados_comuns.constants import ADMINISTRADOR_TERCEIRIZADA, NUTRI_ADMIN_RESPONSAVEL
 from ...dados_comuns.models import Contato
 from ...dados_comuns.tasks import envia_email_unico_task
-from ...eol_servico.utils import EolException, get_informacoes_usuario
+from ...eol_servico.utils import EOLException, EOLService
 from ...escola.api.validators import usuario_e_vinculado_a_aquela_instituicao, usuario_nao_possui_vinculo_valido
 from ...perfil.api.validators import usuario_e_das_terceirizadas
 from ...terceirizada.models import Terceirizada
@@ -57,7 +57,7 @@ class UsuarioUpdateSerializer(serializers.ModelSerializer):
     confirmar_password = serializers.CharField()
 
     def get_informacoes_usuario(self, validated_data):
-        return get_informacoes_usuario(validated_data['registro_funcional'])
+        return EOLService.get_informacoes_usuario(validated_data['registro_funcional'])
 
     def atualizar_nutricionista(self, usuario, validated_data):
         if validated_data.get('contatos', None):
@@ -131,16 +131,15 @@ class UsuarioUpdateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):  # noqa C901
         # TODO: ajeitar isso aqui, criar um validator antes...
         try:
-            informacoes_usuario = self.get_informacoes_usuario(validated_data)
-        except EolException as e:
+            informacoes_usuario_json = self.get_informacoes_usuario(validated_data)
+        except EOLException as e:
             return Response({'detail': f'{e}'}, status=status.HTTP_400_BAD_REQUEST)
-        informacoes_usuario = informacoes_usuario.json()['results']
         if validated_data['instituicao'] != 'CODAE':
             usuario_e_vinculado_a_aquela_instituicao(
                 descricao_instituicao=validated_data['instituicao'],
-                instituicoes_eol=informacoes_usuario
+                instituicoes_eol=informacoes_usuario_json
             )
-        cpf = informacoes_usuario[0]['cd_cpf_pessoa']
+        cpf = informacoes_usuario_json[0]['cd_cpf_pessoa']
         if Usuario.objects.filter(cpf=cpf).exists():
             usuario = Usuario.objects.get(cpf=cpf)
             usuario_nao_possui_vinculo_valido(usuario)
@@ -149,7 +148,7 @@ class UsuarioUpdateSerializer(serializers.ModelSerializer):
             email = f'{cpf}@emailtemporario.prefeitura.sp.gov.br'
             usuario = Usuario.objects.create_user(email, 'adminadmin')
             usuario.registro_funcional = validated_data['registro_funcional']
-            usuario.nome = informacoes_usuario[0]['nm_pessoa']
+            usuario.nome = informacoes_usuario_json[0]['nm_pessoa']
             usuario.cpf = cpf
             usuario.is_active = False
             usuario.save()

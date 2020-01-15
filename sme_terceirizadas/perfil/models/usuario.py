@@ -1,5 +1,6 @@
+import logging
+
 import environ
-import requests
 from django.contrib.auth.base_user import AbstractBaseUser
 from django.contrib.auth.models import BaseUserManager, PermissionsMixin
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
@@ -14,14 +15,14 @@ from simple_email_confirmation.models import SimpleEmailConfirmationUserMixin
 from ...dados_comuns.behaviors import TemChaveExterna
 from ...dados_comuns.constants import (
     ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
-    COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
-    DJANGO_EOL_API_TOKEN,
-    DJANGO_EOL_API_URL
+    COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA
 )
 from ...dados_comuns.tasks import envia_email_unico_task
 from ...dados_comuns.utils import url_configs
-from ...eol_servico.utils import EolException
+from ...eol_servico.utils import EOLService
 from ..models import Perfil, Vinculo
+
+log = logging.getLogger('sigpae.usuario')
 
 env = environ.Env()
 
@@ -165,15 +166,10 @@ class Usuario(ExportModelOperationsMixin('usuario'), SimpleEmailConfirmationUser
 
     @property
     def pode_efetuar_cadastro(self):
-        # TODO: passar isso para o app EOL serviço
-        headers = {'Authorization': f'Token {DJANGO_EOL_API_TOKEN}'}
-        r = requests.get(f'{DJANGO_EOL_API_URL}/cargos/{self.registro_funcional}', headers=headers)
-        response = r.json()
-        if not isinstance(response, dict):
-            raise EolException(f'{response}')
+        dados_usuario = EOLService.get_informacoes_usuario(self.registro_funcional)
         diretor_de_escola = False
-        for result in response['results']:
-            if result['cargo'] == 'DIRETOR DE ESCOLA':
+        for dado in dados_usuario:
+            if dado['cargo'] == 'DIRETOR DE ESCOLA':
                 diretor_de_escola = True
                 break
         vinculo_aguardando_ativacao = self.vinculo_atual.status == Vinculo.STATUS_AGUARDANDO_ATIVACAO

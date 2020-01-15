@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from ...eol_servico.utils import EolException
+from ...eol_servico.utils import EOLException
 from ...terceirizada.models import Terceirizada
 from ..models import Usuario
 
@@ -39,7 +39,7 @@ def usuario_pode_efetuar_cadastro(usuario: Usuario):
     try:
         if not usuario.pode_efetuar_cadastro:
             raise serializers.ValidationError('Erro ao cadastrar usuário')
-    except EolException as e:
+    except EOLException as e:
         raise serializers.ValidationError(f'{e}')
     return True
 
