@@ -41,7 +41,7 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
         for p in request.data['protocolos']:
             data = convert_base64_to_contentfile(p.get('base64'))
             Anexo.objects.create(
-                solicitacao_dieta_especial=solicitacao, arquivo=data, eh_laudo_medico=False
+                solicitacao_dieta_especial=solicitacao, arquivo=data, nome=p.get('nome', ''), eh_laudo_medico=False
             )
 
         solicitacao.codae_autoriza(user=request.user)

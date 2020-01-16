@@ -33,7 +33,8 @@ def solicitacao_dieta_especial():
 def anexo_docx(arquivo_docx_base64, solicitacao_dieta_especial):
     return mommy.make(Anexo,
                       solicitacao_dieta_especial=solicitacao_dieta_especial,
-                      arquivo=convert_base64_to_contentfile(arquivo_docx_base64))
+                      arquivo=convert_base64_to_contentfile(arquivo_docx_base64),
+                      nome='arquivo-supimpa.docx')
 
 
 @pytest.fixture(scope='function', params=[

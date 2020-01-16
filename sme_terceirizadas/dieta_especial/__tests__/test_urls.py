@@ -163,6 +163,9 @@ def test_url_endpoint_autorizar_dieta(client_autenticado,
     anexos = Anexo.objects.filter(solicitacao_dieta_especial=obj)
     assert anexos.count() == 1
 
+    anexo = anexos.first()
+    assert anexo.nome == data['protocolos'][0]['nome']
+
 
 def test_url_endpoint_negar_dieta(client_autenticado,
                                   solicitacao_dieta_especial_a_autorizar,
