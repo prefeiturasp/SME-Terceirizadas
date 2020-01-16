@@ -6,10 +6,11 @@ from weasyprint import HTML
 
 from sme_terceirizadas.cardapio.models import AlteracaoCardapio
 from sme_terceirizadas.dados_comuns.models import LogSolicitacoesUsuario
-from .constants import FLUXO_PARTINDO_DRE
-from .utils import formata_logs, get_width
+
 from ..escola.models import Escola
 from ..kit_lanche.models import EscolaQuantidade, SolicitacaoKitLancheUnificada
+from .constants import FLUXO_PARTINDO_DRE
+from .utils import formata_logs, get_width
 
 
 def relatorio_kit_lanche_unificado(request):

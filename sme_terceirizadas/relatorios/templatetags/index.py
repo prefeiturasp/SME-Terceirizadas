@@ -49,12 +49,12 @@ def or_logs(fluxo, logs):
 
 
 @register.filter
-def observacao_padrao(observacao, XXX="XXX"):
-    return observacao or f"Sem observações por parte da {XXX}"
+def observacao_padrao(observacao, palavra='...'):
+    return observacao or f'Sem observações por parte da {palavra}'
 
 
 @register.filter
 def aceita_nao_aceita_str(aceitou):
     if aceitou:
-        return "Aceitou"
-    return "Não aceitou"
+        return 'Aceitou'
+    return 'Não aceitou'

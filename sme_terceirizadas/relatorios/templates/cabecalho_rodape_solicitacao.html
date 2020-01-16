@@ -12,7 +12,7 @@
       @bottom-left {
         background: #EEEEEE;
         color: #000000;
-        content: "{{solicitacao.DESCRICAO}} #{{ solicitacao.id_externo }}." ;
+        content: "{{solicitacao.DESCRICAO}} #{{ solicitacao.id_externo }}, impresso em {% now "d/m/Y" %}" ;
         font-size: 11px;
         width: 100%;
         padding: 1em 2em 4em 2em;
@@ -54,10 +54,6 @@
     <tr class="">
       <td>{{ escola.nome }}</td>
       <td>{{ escola.diretoria_regional.nome }}</td>
-    </tr>
-    <tr class="">
-      <td>Criado em: {{ solicitacao.criado_em }}</td>
-      <td>Data do evento: {{ solicitacao.data }}</td>
     </tr>
   </table>
 </header>

@@ -4,28 +4,8 @@
 
 {% block conteudo %}
   <div class="conteudo tabela-sem-borda">
-      {% include "fluxo_de_status.html" %}
-    <h5>Relatório SIGPAE - {{ solicitacao.DESCRICAO }}</h5>
-    <div class="id-pedido">
-      <div class="retangulo-id">
-        # {{ solicitacao.id_externo }} <br/> <span>Nº DA SOLICITAÇÃO</span>
-      </div>
-      <div class="info">
-        <div>Solicitante</div>
-        <div>{{ solicitacao.rastro_escola.nome }}</div>
-      </div>
-      <div class="info">
-        <div>Lote</div>
-        <div>{{ solicitacao.rastro_lote.nome|slice:"5:15" }}</div>
-      </div>
-      <div class="info">
-        <div>Tipo de gestão</div>
-        <div>{{ escola.tipo_gestao.nome|slice:"5:15" }}</div>
-      </div>
-    </div>
-    <div>
-      <hr style="color: #EEEEEE; opacity: 0.3">
-    </div>
+      {% include "bloco_fluxo_de_status.html" %}
+      {% include "bloco_cabecalho_solicitacao_partindo_escola.html" %}
     <div class="motivo-local">
       <div class="info-motivo-alterar-dia" style="margin-bottom: 0.3em">
         <div>Motivo</div>
@@ -63,68 +43,7 @@
         </tbody>
       </table>
     </div>
-    <div class="observacoes">
-      <div>
-        <p class="cabecalho">Observacoes:</p>
-        <p class="resultado">{{ solicitacao.observacao | safe }}</p>
-      </div>
-    </div>
-    <div>
-      <hr style="color: #EEEEEE; opacity: 0.3">
-    </div>
-      {% if solicitacao.logs.all %}
-        <div class="question-history">
-          <h5 class="title">Histórico de questionamento</h5>
-          <div class='question-log'>
-              {% for log in solicitacao.logs.all %}
-                  {% if log.status_evento_explicacao == "Questionamento pela CODAE" %}
-                    <div class="is-it-possible">
-                      <div class="title">
-                        É possível atender a solicitação com todos os itens
-                        previstos no contrato?
-                      </div>
-                      <div class="obs">
-                        Observação da CODAE: {{ log.justificativa | observacao_padrao:"CODAE" }}
-                      </div>
-                    </div>
-                  {% endif %}
-                  {% if log.status_evento_explicacao == "Terceirizada respondeu questionamento" %}
-                    <div class="is-it-possible">
-                      <div class="title">
-                          {{ log.resposta_sim_nao |aceita_nao_aceita_str }}
-                      </div>
-                      <div class="obs">
-                        Observação da Terceirizada: {{ log.justificativa |observacao_padrao:"Terceirizads" }}
-                      </div>
-                    </div>
-                  {% endif %}
-                  {% if log.status_evento_explicacao == "CODAE autorizou" %}
-                    <div class="is-it-possible">
-                      <div class="title">Autorizou</div>
-                        {{ log.justificativa }}
-                        {% if log.justificativa %}
-                          <div class="obs">
-                            Observação da CODAE: {{ log.justificativa }}
-                          </div>
-                        {% endif %}
-                    </div>
-                  {% endif %}
-                  {% if log.status_evento_explicacao == "CODAE negou" %}
-                    <div class="is-it-possible">
-                      <div class="title">Negou</div>
-                        {{ log.justificativa }}
-                        {% if log.justificativa %}
-                          <div class="obs">
-                            Observação da CODAE: {{ log.justificativa }}
-                          </div>
-                        {% endif %}
-                    </div>
-                  {% endif %}
-              {% endfor %}
-          </div>
-
-        </div>
-      {% endif %}
-
+      {% include "bloco_observacoes.html" %}
+      {% include "bloco_historico_questionamento.html" %}
   </div>
 {% endblock %}
