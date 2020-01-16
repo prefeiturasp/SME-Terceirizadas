@@ -26,6 +26,7 @@ usuario_terceirizada.save()
 usuario_nutri_codae = Usuario.objects.get(email='nutricodae@admin.com')
 usuario_nutri_codae.registro_funcional = '0000101'
 usuario_nutri_codae.nome = 'USUARIO NUTRICIONISTA CODAE'
+usuario_nutri_codae.crn_numero = '15975364'
 usuario_nutri_codae.save()
 
 perfil_diretor_escola, created = Perfil.objects.get_or_create(

@@ -18,9 +18,6 @@ flake8
 echo "Verificando falhas de segurança média ou superior..."
 bandit -r sme_terceirizadas -ll
 
-echo "Verificando tipagem estática..."
-mypy sme_terceirizadas
-
 echo "Gerando coverage html..."
 coverage html
 

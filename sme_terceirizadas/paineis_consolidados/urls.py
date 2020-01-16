@@ -5,6 +5,7 @@ from .api import viewsets
 
 router = routers.DefaultRouter()
 router.register('codae-solicitacoes', viewsets.CODAESolicitacoesViewSet, 'codae_solicitacoes')
+router.register('dieta-especial', viewsets.DietaEspecialSolicitacoesViewSet, 'dieta_especial_solicitacoes')
 router.register('escola-solicitacoes', viewsets.EscolaSolicitacoesViewSet, 'escola_solicitacoes')
 router.register('diretoria-regional-solicitacoes', viewsets.DRESolicitacoesViewSet, 'dre_solicitacoes')
 router.register('terceirizada-solicitacoes', viewsets.TerceirizadaSolicitacoesViewSet, 'terceirizada_solicitacoes')

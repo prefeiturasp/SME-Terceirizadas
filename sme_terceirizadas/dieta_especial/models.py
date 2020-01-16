@@ -5,7 +5,9 @@ from django_prometheus.models import ExportModelOperationsMixin
 from ..dados_comuns.behaviors import (
     CriadoEm,
     CriadoPor,
+    Descritivel,
     Logs,
+    Nomeavel,
     TemChaveExterna,
     TemIdentificadorExternoAmigavel,
     TemPrioridade
@@ -17,6 +19,7 @@ from ..dados_comuns.models import LogSolicitacoesUsuario, TemplateMensagem
 class SolicitacaoDietaEspecial(ExportModelOperationsMixin('dieta_especial'), TemChaveExterna, CriadoEm, CriadoPor,
                                FluxoDietaEspecialPartindoDaEscola, TemPrioridade,
                                Logs, TemIdentificadorExternoAmigavel):
+
     codigo_eol_aluno = models.CharField('Código EOL do aluno',
                                         max_length=6,
                                         validators=[MinLengthValidator(6)])
@@ -32,9 +35,23 @@ class SolicitacaoDietaEspecial(ExportModelOperationsMixin('dieta_especial'), Tem
                                                     max_length=200,
                                                     validators=[MinLengthValidator(6)],
                                                     blank=True)
+    registro_funcional_nutricionista = models.CharField('Nome completo do pescritor da receita',
+                                                        help_text='CRN/CRM/CRFa...',
+                                                        max_length=200,
+                                                        validators=[MinLengthValidator(6)],
+                                                        blank=True)
     data_nascimento_aluno = models.DateField('Data de nascimento do aluno')
 
     observacoes = models.TextField('Observações', blank=True)
+
+    tipos = models.ManyToManyField('TipoDieta', blank=True)
+    # TODO: Confirmar se PROTECT é a melhor escolha para o campos abaixo
+    classificacao = models.ForeignKey('ClassificacaoDieta', blank=True, null=True, on_delete=models.PROTECT)
+    alergias_intolerancias = models.ManyToManyField('AlergiaIntolerancia', blank=True)
+
+    # TODO: Confirmar se PROTECT é a melhor escolha para o campos abaixo
+    motivo_negacao = models.ForeignKey('MotivoNegacao', on_delete=models.PROTECT, null=True)
+    justificativa_negacao = models.TextField(blank=True)
 
     @property
     def anexos(self):
@@ -82,7 +99,28 @@ class SolicitacaoDietaEspecial(ExportModelOperationsMixin('dieta_especial'), Tem
 class Anexo(ExportModelOperationsMixin('anexo'), models.Model):
     solicitacao_dieta_especial = models.ForeignKey(SolicitacaoDietaEspecial, on_delete=models.DO_NOTHING)
     arquivo = models.FileField()
+    eh_laudo_medico = models.BooleanField(default=False)
 
     @property
     def nome(self):
         return self.arquivo.url
+
+
+class AlergiaIntolerancia(Descritivel):
+    def __str__(self):
+        return self.descricao
+
+
+class ClassificacaoDieta(Descritivel, Nomeavel):
+    def __str__(self):
+        return self.nome
+
+
+class MotivoNegacao(Descritivel):
+    def __str__(self):
+        return self.descricao
+
+
+class TipoDieta(Descritivel):
+    def __str__(self):
+        return self.descricao
