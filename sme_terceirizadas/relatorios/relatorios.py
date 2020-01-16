@@ -4,9 +4,8 @@ from django.http import HttpResponse
 from django.template.loader import render_to_string
 from weasyprint import HTML
 
-from sme_terceirizadas.cardapio.models import AlteracaoCardapio
-from sme_terceirizadas.dados_comuns.models import LogSolicitacoesUsuario
-
+from ..cardapio.models import AlteracaoCardapio
+from ..dados_comuns.models import LogSolicitacoesUsuario
 from ..escola.models import Escola
 from ..kit_lanche.models import EscolaQuantidade, SolicitacaoKitLancheUnificada
 from .constants import FLUXO_PARTINDO_DRE
