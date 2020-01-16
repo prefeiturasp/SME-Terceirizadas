@@ -144,6 +144,21 @@ class CODAESolicitacoesViewSet(SolicitacoesViewSet):
     queryset = SolicitacoesCODAE.objects.all()
     serializer_class = SolicitacoesSerializer
 
+    @action(detail=False, methods=['GET'], url_path=PENDENTES_AUTORIZACAO_DIETA_ESPECIAL)
+    def pendentes_autorizacao_dieta_especial(self, request, escola_uuid=None):
+        query_set = SolicitacoesCODAE.get_pendentes_dieta_especial(escola_uuid=escola_uuid)
+        return self._retorno_base(query_set)
+
+    @action(detail=False, methods=['GET'], url_path=AUTORIZADOS_DIETA_ESPECIAL)
+    def autorizados_dieta_especial(self, request, escola_uuid=None):
+        query_set = SolicitacoesCODAE.get_autorizados_dieta_especial(escola_uuid=escola_uuid)
+        return self._retorno_base(query_set)
+
+    @action(detail=False, methods=['GET'], url_path=NEGADOS_DIETA_ESPECIAL)
+    def negados_dieta_especial(self, request, escola_uuid=None):
+        query_set = SolicitacoesCODAE.get_negados_dieta_especial(escola_uuid=escola_uuid)
+        return self._retorno_base(query_set)
+
     @action(detail=False, methods=['GET'], url_path=f'{PENDENTES_AUTORIZACAO}/{FILTRO_PADRAO_PEDIDOS}')
     def pendentes_autorizacao(self, request, filtro_aplicado=SEM_FILTRO):
         query_set = SolicitacoesCODAE.get_pendentes_autorizacao(filtro=filtro_aplicado)
@@ -318,6 +333,21 @@ class DRESolicitacoesViewSet(SolicitacoesViewSet):
     queryset = SolicitacoesDRE.objects.all()
     serializer_class = SolicitacoesSerializer
 
+    @action(detail=False, methods=['GET'], url_path=f'{PENDENTES_AUTORIZACAO_DIETA_ESPECIAL}/{FILTRO_DRE_UUID}')
+    def pendentes_autorizacao_dieta_especial(self, request, dre_uuid=None):
+        query_set = SolicitacoesDRE.get_pendentes_dieta_especial(dre_uuid=dre_uuid)
+        return self._retorno_base(query_set)
+
+    @action(detail=False, methods=['GET'], url_path=f'{AUTORIZADOS_DIETA_ESPECIAL}/{FILTRO_DRE_UUID}')
+    def autorizados_dieta_especial(self, request, dre_uuid=None):
+        query_set = SolicitacoesDRE.get_autorizados_dieta_especial(dre_uuid=dre_uuid)
+        return self._retorno_base(query_set)
+
+    @action(detail=False, methods=['GET'], url_path=f'{NEGADOS_DIETA_ESPECIAL}/{FILTRO_DRE_UUID}')
+    def negados_dieta_especial(self, request, dre_uuid=None):
+        query_set = SolicitacoesDRE.get_negados_dieta_especial(dre_uuid=dre_uuid)
+        return self._retorno_base(query_set)
+
     @action(detail=False, methods=['GET'], url_path=f'{PENDENTES_AUTORIZACAO}/{FILTRO_DRE_UUID}')
     def pendentes_autorizacao(self, request, dre_uuid=None):
         query_set = SolicitacoesDRE.get_pendentes_autorizacao(dre_uuid=dre_uuid)
@@ -405,6 +435,22 @@ class TerceirizadaSolicitacoesViewSet(SolicitacoesViewSet):
     lookup_field = 'uuid'
     queryset = SolicitacoesTerceirizada.objects.all()
     serializer_class = SolicitacoesSerializer
+
+    @action(detail=False, methods=['GET'],
+            url_path=f'{PENDENTES_AUTORIZACAO_DIETA_ESPECIAL}/{FILTRO_TERCEIRIZADA_UUID}')
+    def pendentes_autorizacao_dieta_especial(self, request, terceirizada_uuid=None):
+        query_set = SolicitacoesTerceirizada.get_pendentes_dieta_especial(terceirizada_uuid=terceirizada_uuid)
+        return self._retorno_base(query_set)
+
+    @action(detail=False, methods=['GET'], url_path=f'{AUTORIZADOS_DIETA_ESPECIAL}/{FILTRO_TERCEIRIZADA_UUID}')
+    def autorizados_dieta_especial(self, request, terceirizada_uuid=None):
+        query_set = SolicitacoesTerceirizada.get_autorizados_dieta_especial(terceirizada_uuid=terceirizada_uuid)
+        return self._retorno_base(query_set)
+
+    @action(detail=False, methods=['GET'], url_path=f'{NEGADOS_DIETA_ESPECIAL}/{FILTRO_TERCEIRIZADA_UUID}')
+    def negados_dieta_especial(self, request, terceirizada_uuid=None):
+        query_set = SolicitacoesTerceirizada.get_negados_dieta_especial(terceirizada_uuid=terceirizada_uuid)
+        return self._retorno_base(query_set)
 
     @action(detail=False, methods=['GET'], url_path=f'{QUESTIONAMENTOS}/{FILTRO_TERCEIRIZADA_UUID}')
     def questionamentos(self, request, terceirizada_uuid=None):
