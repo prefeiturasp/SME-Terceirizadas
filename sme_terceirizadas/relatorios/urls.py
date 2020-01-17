@@ -1,7 +1,8 @@
 from django.urls import path
 
-from .relatorios import relatorio_kit_lanche_unificado
+from . import relatorios
 
 urlpatterns = [
-    path(r'relatorio-kit-lanche-unificado', relatorio_kit_lanche_unificado, name='generate_pdf'),
+    path(r'relatorio-kit-lanche-unificado', relatorios.relatorio_kit_lanche_unificado, name='generate_pdf'),
+    path(r'relatorio-alteracao-cardapio', relatorios.relatorio_alteracao_cardapio, name='generate_pdf'),
 ]

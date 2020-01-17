@@ -59,16 +59,31 @@
         &:first-child {
           font-weight: normal;
           font-size: 14px;
-          color: #686868;
+          color: $fonte-cinza;
         }
 
         &:not(:first-child) {
-
           font-size: 14px;
           font-weight: bold;
-          color: #686868;
+          color: $fonte-cinza;
         }
       }
+    }
+
+    .info-motivo-alterar-dia {
+
+      :nth-child(even) {
+        font-weight: normal;
+        font-size: 14px;
+        color: $fonte-cinza;
+      }
+
+      :nth-child(odd) {
+        font-size: 14px;
+        font-weight: bold;
+        color: $fonte-cinza;
+      }
+
     }
   }
 
@@ -84,6 +99,24 @@
       padding: 0.5em;
       text-align: left;
       border-bottom: 1px solid #000000;
+    }
+  }
+
+  .observacoes {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    padding-top: 1em;
+
+    .cabecalho {
+      color: #686868;
+      line-height: 16px;
+    }
+
+    .resultado {
+      font-weight: bold;
+      line-height: 16px;
+      color: #353535;
     }
   }
 
@@ -106,3 +139,32 @@
 }
 
 
+.question-history {
+  font-size: 14px;
+
+  .title {
+    p {
+      color: $fonte-cinza;
+      font-weight: bold;
+    }
+  }
+
+  .question-log {
+    padding-top: 10px;
+
+    .is-it-possible {
+      padding-top: 5px;
+      color: $blackSubtle;
+
+      .title {
+        font-size: 14px;
+        font-weight: bold;
+      }
+
+      .obs {
+        padding-top: 10px;
+        font-size: 13px;
+      }
+    }
+  }
+}

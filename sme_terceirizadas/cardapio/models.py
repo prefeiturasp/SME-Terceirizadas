@@ -418,6 +418,8 @@ class MotivoAlteracaoCardapio(ExportModelOperationsMixin('motivo_alteracao_carda
 class AlteracaoCardapio(ExportModelOperationsMixin('alteracao_cardapio'), CriadoEm, CriadoPor,
                         TemChaveExterna, IntervaloDeDia, TemObservacao, FluxoAprovacaoPartindoDaEscola,
                         TemIdentificadorExternoAmigavel, Logs, TemPrioridade, SolicitacaoForaDoPrazo):
+    DESCRICAO = 'Alteração de Cardápio'
+
     objects = models.Manager()  # Manager Padrão
     desta_semana = AlteracoesCardapioDestaSemanaManager()
     deste_mes = AlteracoesCardapioDesteMesManager()
@@ -432,6 +434,10 @@ class AlteracaoCardapio(ExportModelOperationsMixin('alteracao_cardapio'), Criado
         if self.data_final < data:
             data = self.data_final
         return data
+
+    @property
+    def eh_unico_dia(self):
+        return self.data_inicial == self.data_final
 
     @property
     def substituicoes(self):
