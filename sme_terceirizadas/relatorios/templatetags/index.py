@@ -46,3 +46,15 @@ def class_css(log):
 @register.filter
 def or_logs(fluxo, logs):
     return logs if len(logs) > len(fluxo) else fluxo
+
+
+@register.filter
+def observacao_padrao(observacao, palavra='...'):
+    return observacao or f'Sem observações por parte da {palavra}'
+
+
+@register.filter
+def aceita_nao_aceita_str(aceitou):
+    if aceitou:
+        return 'Aceitou'
+    return 'Não aceitou'
