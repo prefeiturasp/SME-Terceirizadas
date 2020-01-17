@@ -19,6 +19,7 @@ from ..dados_comuns.models import LogSolicitacoesUsuario, TemplateMensagem
 class SolicitacaoDietaEspecial(ExportModelOperationsMixin('dieta_especial'), TemChaveExterna, CriadoEm, CriadoPor,
                                FluxoDietaEspecialPartindoDaEscola, TemPrioridade,
                                Logs, TemIdentificadorExternoAmigavel):
+    DESCRICAO = 'Dieta Especial'
 
     codigo_eol_aluno = models.CharField('Código EOL do aluno',
                                         max_length=6,

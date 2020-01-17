@@ -1,5 +1,7 @@
 from django import template
 
+from sme_terceirizadas.dados_comuns.models import LogSolicitacoesUsuario
+
 register = template.Library()
 
 
@@ -58,3 +60,8 @@ def aceita_nao_aceita_str(aceitou):
     if aceitou:
         return 'Aceitou'
     return 'Não aceitou'
+
+
+@register.filter
+def tem_questionamentos(logs):
+    return logs.filter(status_evento=LogSolicitacoesUsuario.CODAE_QUESTIONOU).exists()

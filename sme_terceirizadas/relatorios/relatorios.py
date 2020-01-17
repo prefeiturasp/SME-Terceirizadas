@@ -4,12 +4,12 @@ from django.http import HttpResponse
 from django.template.loader import render_to_string
 from weasyprint import HTML
 
+from sme_terceirizadas.dieta_especial.models import SolicitacaoDietaEspecial
+from . import constants
+from .utils import formata_logs, get_width
 from ..cardapio.models import AlteracaoCardapio
-from ..dados_comuns.models import LogSolicitacoesUsuario
 from ..escola.models import Escola
 from ..kit_lanche.models import EscolaQuantidade, SolicitacaoKitLancheUnificada
-from .constants import FLUXO_PARTINDO_DRE
-from .utils import formata_logs, get_width
 
 
 def relatorio_kit_lanche_unificado(request):
@@ -24,7 +24,7 @@ def relatorio_kit_lanche_unificado(request):
     html_string = render_to_string(
         'relatorio2.html',
         {'escola': escola, 'filtro': filtro, 'solicitacao': sol, 'qtd_escolas': qtd_escolas,
-         'fluxo': FLUXO_PARTINDO_DRE, 'width': get_width(FLUXO_PARTINDO_DRE, sol.logs),
+         'fluxo': constants.FLUXO_PARTINDO_DRE, 'width': get_width(constants.FLUXO_PARTINDO_DRE, sol.logs),
          'logs': formata_logs(sol.logs)}
     )
     pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
@@ -38,20 +38,33 @@ def relatorio_alteracao_cardapio(request):
     escola = sol.rastro_escola
     substituicoes = sol.substituicoes_periodo_escolar
     logs = sol.logs
-    questionamentos = logs.filter(
-        status_evento__in=[LogSolicitacoesUsuario.CODAE_QUESTIONOU,
-                           LogSolicitacoesUsuario.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO,
-                           LogSolicitacoesUsuario.CODAE_AUTORIZOU,
-                           LogSolicitacoesUsuario.CODAE_NEGOU]
-    ).order_by('criado_em')
-
     # Rendered
     html_string = render_to_string(
         'solicitacao_alteracao_cardapio.html',
         {'escola': escola, 'solicitacao': sol, 'qtd_escolas': 20, 'substituicoes': substituicoes,
-         'questionamentos': questionamentos,
-         'fluxo': FLUXO_PARTINDO_DRE, 'width': get_width(FLUXO_PARTINDO_DRE, sol.logs),
+         'fluxo': constants.FLUXO_PARTINDO_ESCOLA, 'width': get_width(constants.FLUXO_PARTINDO_ESCOLA, sol.logs),
          'logs': formata_logs(logs)}
+    )
+    pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
+    response = HttpResponse(pdf_file, content_type='application/pdf')
+    response['Content-Disposition'] = f'filename="Soliciatao_unificada_{sol.uuid}.pdf"'
+    return response
+
+
+def relatorio_dieta_especial(request):
+    sol = SolicitacaoDietaEspecial.objects.last()
+    escola = sol.rastro_escola
+    logs = sol.logs
+    # Rendered
+    html_string = render_to_string(
+        'solicitacao_dieta_especial.html',
+        {
+            'escola': escola,
+            'solicitacao': sol,
+            'fluxo': constants.FLUXO_DIETA_ESPECIAL,
+            'width': get_width(constants.FLUXO_DIETA_ESPECIAL, sol.logs),
+            'logs': formata_logs(logs)
+        }
     )
     pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
     response = HttpResponse(pdf_file, content_type='application/pdf')

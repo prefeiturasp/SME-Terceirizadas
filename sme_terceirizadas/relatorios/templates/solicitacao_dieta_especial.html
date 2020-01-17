@@ -1,0 +1,66 @@
+{% extends 'cabecalho_rodape_solicitacao.html' %}
+{% load index %}
+{% load static %}
+
+{% block conteudo %}
+  <div class="conteudo tabela-sem-borda">
+      {% include "bloco_fluxo_de_status.html" %}
+      {% include "bloco_cabecalho_solicitacao_partindo_escola.html" %}
+    <div class="bloco-descricao-dieta-especial">
+      <p>Descrição da solicitação</p>
+      <table>
+        <tr>
+          <th>Cód. EOL do Aluno</th>
+          <th>Nome completo do Aluno</th>
+          <th>Data de nascimento</th>
+        </tr>
+        <tr>
+          <td>{{ solicitacao.codigo_eol_aluno }}</td>
+          <td>{{ solicitacao.nome_completo_aluno }}</td>
+          <td>{{ solicitacao.data_nascimento_aluno }}</td>
+        </tr>
+      </table>
+    </div>
+    <div>
+      <hr style="color: #EEEEEE; opacity: 0.3">
+    </div>
+    <div class="bloco-pescritor-dieta-especial">
+      <table>
+        <tr>
+          <th>Nome do Pescritor</th>
+          <th>Registro Funcional</th>
+        </tr>
+        <tr>
+          <td>{{ solicitacao.nome_completo_pescritor }}</td>
+          <td>{{ solicitacao.registro_funcional_pescritor }}</td>
+        </tr>
+      </table>
+        {% if solicitacao.observacoes %}
+          <p>Observações</p>
+          <p>{{ solicitacao.observacoes|safe }}</p>
+        {% endif %}
+    </div>
+    <div>
+      <hr style="color: #EEEEEE; opacity: 0.3">
+    </div>
+    <div class="bloco-relacao-por-diagnostico">
+        {% if solicitacao.alergias_intolerancias.exists %}
+          <p>Relação por diagnóstico</p>
+            {% for alergia in solicitacao.alergias_intolerancias.all %}
+              <p>{{ alergia }}</p>
+              <div>
+                <hr style="color: #EEEEEE; opacity: 0.3">
+              </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+    <div class="classificacao-dieta">
+        {% if solicitacao.classificacao %}
+          <p>Classificação da Dieta</p>
+          <p>{{ solicitacao.classificacao.nome }}-{{ solicitacao.classificacao.descricao }}</p>
+        {% endif %}
+    </div>
+      {% include "bloco_observacoes.html" %}
+      {% include "bloco_historico_questionamento.html" %}
+  </div>
+{% endblock %}
