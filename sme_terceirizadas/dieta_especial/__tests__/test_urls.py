@@ -173,7 +173,9 @@ def test_url_endpoint_negar_dieta(client_autenticado,
     obj = SolicitacaoDietaEspecial.objects.first()
     data = {
         'justificativa_negacao': 'Uma justificativa fajuta',
-        'motivo_negacao': motivos_negacao[0].id
+        'motivo_negacao': motivos_negacao[0].id,
+        'registro_funcional_nutricionista':
+            'ELABORADO por USUARIO NUTRICIONISTA CODAE - CRN null'
     }
     response = client_autenticado.post(
         f'/solicitacoes-dieta-especial/{obj.uuid}/negar/',
@@ -190,6 +192,7 @@ def test_url_endpoint_negar_dieta(client_autenticado,
     assert obj.status == DietaEspecialWorkflow.CODAE_NEGOU_PEDIDO
     assert obj.justificativa_negacao == data['justificativa_negacao']
     assert obj.motivo_negacao.id == data['motivo_negacao']
+    assert obj.registro_funcional_nutricionista == data['registro_funcional_nutricionista']
 
 
 def test_url_endpoint_tomar_ciencia_dieta(client_autenticado,
