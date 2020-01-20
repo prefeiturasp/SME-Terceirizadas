@@ -1,13 +1,13 @@
 from drf_base64.serializers import ModelSerializer
 from rest_framework import serializers
 
+from .validators import deve_ter_extensao_valida
+from ..models import AlergiaIntolerancia, Anexo, ClassificacaoDieta, MotivoNegacao, SolicitacaoDietaEspecial, TipoDieta
 from ...dados_comuns.api.serializers import ContatoSerializer, LogSolicitacoesUsuarioSerializer
 from ...dados_comuns.utils import convert_base64_to_contentfile
 from ...dados_comuns.validators import deve_ser_no_passado
-from ...escola.api.serializers import LoteNomeSerializer, TipoGestaoSerializer
-from ...escola.models import DiretoriaRegional, Escola
-from ..models import AlergiaIntolerancia, Anexo, ClassificacaoDieta, MotivoNegacao, SolicitacaoDietaEspecial, TipoDieta
-from .validators import deve_ter_extensao_valida
+from ...escola.api.serializers import LoteNomeSerializer, TipoGestaoSerializer, AlunoSerializer
+from ...escola.models import Aluno, DiretoriaRegional, Escola
 
 
 class AnexoCreateSerializer(serializers.ModelSerializer):
@@ -56,6 +56,7 @@ class AnexoSerializer(ModelSerializer):
 
 
 class SolicitacaoDietaEspecialCreateSerializer(serializers.ModelSerializer):
+    aluno = AlunoSerializer()
     anexos = serializers.ListField(
         child=AnexoCreateSerializer(), required=True
     )
@@ -72,7 +73,14 @@ class SolicitacaoDietaEspecialCreateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         validated_data['criado_por'] = self.context['request'].user
         anexos = validated_data.pop('anexos', [])
+        aluno_data = validated_data.pop('aluno')
+        aluno, created = Aluno.objects.get_or_create(nome=aluno_data.get('nome'),
+                                                     data_nascimento=aluno_data.get('data_nascimento'),
+                                                     codigo_eol=aluno_data.get('codigo_eol'),
+                                                     defaults={'uuid': aluno_data.get('uuid')})
         solicitacao = SolicitacaoDietaEspecial.objects.create(**validated_data)
+        solicitacao.aluno = aluno
+        solicitacao.save()
 
         for anexo in anexos:
             data = convert_base64_to_contentfile(anexo.get('arquivo'))
@@ -86,12 +94,10 @@ class SolicitacaoDietaEspecialCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = SolicitacaoDietaEspecial
         fields = (
+            'aluno',
             'uuid',
-            'codigo_eol_aluno',
-            'nome_completo_aluno',
             'nome_completo_pescritor',
             'registro_funcional_pescritor',
-            'data_nascimento_aluno',
             'observacoes',
             'criado_em',
             'anexos'

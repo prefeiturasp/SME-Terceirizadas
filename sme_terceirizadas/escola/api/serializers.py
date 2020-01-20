@@ -9,6 +9,7 @@ from ...perfil.models import Usuario, Vinculo
 from ...terceirizada.api.serializers.serializers import ContratoSimplesSerializer, TerceirizadaSimplesSerializer
 from ...terceirizada.models import Terceirizada
 from ..models import (
+    Aluno,
     Codae,
     DiretoriaRegional,
     Escola,
@@ -289,3 +290,11 @@ class EscolaPeriodoEscolarSerializer(serializers.ModelSerializer):
     class Meta:
         model = EscolaPeriodoEscolar
         fields = ('uuid', 'quantidade_alunos', 'escola', 'periodo_escolar')
+
+
+class AlunoSerializer(serializers.ModelSerializer):
+    escola = EscolaSimplissimaSerializer(required=False)
+
+    class Meta:
+        model = Aluno
+        fields = ('uuid', 'nome', 'data_nascimento', 'codigo_eol', 'escola')

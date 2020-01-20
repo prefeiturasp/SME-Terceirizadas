@@ -20,13 +20,7 @@ class SolicitacaoDietaEspecial(ExportModelOperationsMixin('dieta_especial'), Tem
                                FluxoDietaEspecialPartindoDaEscola, TemPrioridade,
                                Logs, TemIdentificadorExternoAmigavel):
     DESCRICAO = 'Dieta Especial'
-
-    codigo_eol_aluno = models.CharField('Código EOL do aluno',
-                                        max_length=6,
-                                        validators=[MinLengthValidator(6)])
-    nome_completo_aluno = models.CharField('Nome completo do aluno',
-                                           max_length=200,
-                                           validators=[MinLengthValidator(6)])
+    aluno = models.ForeignKey('escola.Aluno', null=True, on_delete=models.PROTECT)
     nome_completo_pescritor = models.CharField('Nome completo do pescritor da receita',
                                                max_length=200,
                                                validators=[MinLengthValidator(6)],
@@ -41,8 +35,6 @@ class SolicitacaoDietaEspecial(ExportModelOperationsMixin('dieta_especial'), Tem
                                                         max_length=200,
                                                         validators=[MinLengthValidator(6)],
                                                         blank=True)
-    data_nascimento_aluno = models.DateField('Data de nascimento do aluno')
-
     observacoes = models.TextField('Observações', blank=True)
 
     tipos = models.ManyToManyField('TipoDieta', blank=True)
