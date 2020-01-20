@@ -168,3 +168,98 @@
     }
   }
 }
+
+.bloco-relacao-por-diagnostico {
+  h5 {
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 16px;
+    color: $fonte-cinza;
+
+  }
+
+  p {
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 16px;
+    color: $blackSubtle;
+  }
+
+  hr {
+    border: 1px solid #C0C0C0;
+    transform: matrix(1, 0, 0, -1, 0, 0);
+  }
+}
+
+.classificacao-dieta {
+  h5 {
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 16px;
+    color: #686868;
+  }
+}
+
+
+.bloco-pescritor-dieta-especial {
+  table {
+    width: 100%;
+
+    th {
+      font-weight: normal;
+      font-size: 14px;
+      line-height: 16px;
+      color: #686868;
+    }
+
+    td {
+      font-weight: 500;
+      font-size: 14px;
+      line-height: 16px;
+      color: #353535;
+    }
+  }
+
+  h5 {
+    font-weight: bold;
+    font-size: 14px;
+    line-height: 16px;
+    color: #686868;
+  }
+
+  p {
+    font-weight: normal;
+    font-size: 13px;
+    line-height: 15px;
+    color: #353535;
+  }
+
+  hr {
+    border: 1px solid #C0C0C0;
+    transform: matrix(1, 0, 0, -1, 0, 0);
+  }
+}
+
+.bloco-identificacao-nutri {
+  h5 {
+    font-weight: bold;
+    font-size: 14px;
+    line-height: 16px;
+    color: #686868;
+  }
+
+  div {
+    border: 1px solid #DADADA;
+    box-sizing: border-box;
+    border-radius: 4px;
+    width: 70%;
+  }
+
+  p {
+    margin-left: 1em;
+    font-weight: normal;
+    font-size: 13px;
+    line-height: 15px;
+    color: #353535;
+  }
+}

@@ -18,5 +18,6 @@ class NegaDietaEspecialForm(forms.ModelForm):
         model = SolicitacaoDietaEspecial
         fields = [
             'justificativa_negacao',
-            'motivo_negacao'
+            'motivo_negacao',
+            'registro_funcional_nutricionista'
         ]

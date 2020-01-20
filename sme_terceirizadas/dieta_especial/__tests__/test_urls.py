@@ -163,6 +163,9 @@ def test_url_endpoint_autorizar_dieta(client_autenticado,
     anexos = Anexo.objects.filter(solicitacao_dieta_especial=obj)
     assert anexos.count() == 1
 
+    anexo = anexos.first()
+    assert anexo.nome == data['protocolos'][0]['nome']
+
 
 def test_url_endpoint_negar_dieta(client_autenticado,
                                   solicitacao_dieta_especial_a_autorizar,
@@ -170,7 +173,9 @@ def test_url_endpoint_negar_dieta(client_autenticado,
     obj = SolicitacaoDietaEspecial.objects.first()
     data = {
         'justificativa_negacao': 'Uma justificativa fajuta',
-        'motivo_negacao': motivos_negacao[0].id
+        'motivo_negacao': motivos_negacao[0].id,
+        'registro_funcional_nutricionista':
+            'ELABORADO por USUARIO NUTRICIONISTA CODAE - CRN null'
     }
     response = client_autenticado.post(
         f'/solicitacoes-dieta-especial/{obj.uuid}/negar/',
@@ -187,3 +192,21 @@ def test_url_endpoint_negar_dieta(client_autenticado,
     assert obj.status == DietaEspecialWorkflow.CODAE_NEGOU_PEDIDO
     assert obj.justificativa_negacao == data['justificativa_negacao']
     assert obj.motivo_negacao.id == data['motivo_negacao']
+    assert obj.registro_funcional_nutricionista == data['registro_funcional_nutricionista']
+
+
+def test_url_endpoint_tomar_ciencia_dieta(client_autenticado,
+                                          solicitacao_dieta_especial_autorizada):
+    obj = SolicitacaoDietaEspecial.objects.first()
+    response = client_autenticado.post(
+        f'/solicitacoes-dieta-especial/{obj.uuid}/tomar_ciencia/',
+        content_type='application/json'
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    json = response.json()
+    assert json['mensagem'] == 'Ciente da solicitação de dieta especial'
+
+    obj.refresh_from_db()
+
+    assert obj.status == DietaEspecialWorkflow.TERCEIRIZADA_TOMOU_CIENCIA

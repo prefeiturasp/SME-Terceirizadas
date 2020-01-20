@@ -9,4 +9,4 @@ def test_solicitacao_dieta_especial_obj(solicitacao_dieta_especial):
 
 
 def test_anexo_obj(anexo_docx):
-    assert anexo_docx.nome == anexo_docx.arquivo.url
+    assert anexo_docx.nome == anexo_docx.nome

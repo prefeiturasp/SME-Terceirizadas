@@ -19,6 +19,7 @@ from ..dados_comuns.models import LogSolicitacoesUsuario, TemplateMensagem
 class SolicitacaoDietaEspecial(ExportModelOperationsMixin('dieta_especial'), TemChaveExterna, CriadoEm, CriadoPor,
                                FluxoDietaEspecialPartindoDaEscola, TemPrioridade,
                                Logs, TemIdentificadorExternoAmigavel):
+    DESCRICAO = 'Dieta Especial'
 
     codigo_eol_aluno = models.CharField('Código EOL do aluno',
                                         max_length=6,
@@ -98,12 +99,12 @@ class SolicitacaoDietaEspecial(ExportModelOperationsMixin('dieta_especial'), Tem
 
 class Anexo(ExportModelOperationsMixin('anexo'), models.Model):
     solicitacao_dieta_especial = models.ForeignKey(SolicitacaoDietaEspecial, on_delete=models.DO_NOTHING)
+    nome = models.CharField(max_length=100, blank=True)
     arquivo = models.FileField()
     eh_laudo_medico = models.BooleanField(default=False)
 
-    @property
-    def nome(self):
-        return self.arquivo.url
+    def __str__(self):
+        return self.nome
 
 
 class AlergiaIntolerancia(Descritivel):
