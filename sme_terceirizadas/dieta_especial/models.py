@@ -86,7 +86,9 @@ class SolicitacaoDietaEspecial(ExportModelOperationsMixin('dieta_especial'), Tem
         verbose_name_plural = 'Solicitações de dieta especial'
 
     def __str__(self):
-        return f'{self.codigo_eol_aluno}: {self.nome_completo_aluno}'
+        if self.aluno:
+            return f'{self.aluno.codigo_eol}: {self.aluno.nome}'
+        return f'Solicitação #{self.id_externo}'
 
 
 class Anexo(ExportModelOperationsMixin('anexo'), models.Model):

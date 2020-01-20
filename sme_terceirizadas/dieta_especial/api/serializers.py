@@ -1,3 +1,5 @@
+import uuid
+
 from drf_base64.serializers import ModelSerializer
 from rest_framework import serializers
 
@@ -77,7 +79,7 @@ class SolicitacaoDietaEspecialCreateSerializer(serializers.ModelSerializer):
         aluno, created = Aluno.objects.get_or_create(nome=aluno_data.get('nome'),
                                                      data_nascimento=aluno_data.get('data_nascimento'),
                                                      codigo_eol=aluno_data.get('codigo_eol'),
-                                                     defaults={'uuid': aluno_data.get('uuid')})
+                                                     defaults={'uuid': aluno_data.get('uuid', str(uuid.uuid4()))})
         solicitacao = SolicitacaoDietaEspecial.objects.create(**validated_data)
         solicitacao.aluno = aluno
         solicitacao.save()
