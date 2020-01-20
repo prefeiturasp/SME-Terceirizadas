@@ -586,6 +586,9 @@ class Aluno(TemChaveExterna):
     data_nascimento = models.DateField()
     escola = models.ForeignKey(Escola, blank=True, null=True, on_delete=models.SET_NULL)
 
+    def __str__(self):
+        return f'{self.nome} - {self.codigo_eol}'
+
     class Meta:
         verbose_name = 'Aluno'
         verbose_name_plural = 'Alunos'

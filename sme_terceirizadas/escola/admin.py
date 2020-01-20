@@ -1,6 +1,7 @@
 from django.contrib import admin
 
 from .models import (
+    Aluno,
     Codae,
     DiretoriaRegional,
     Escola,
@@ -14,6 +15,7 @@ from .models import (
     TipoUnidadeEscolar
 )
 
+admin.site.register(Aluno)
 admin.site.register(DiretoriaRegional)
 admin.site.register(FaixaIdadeEscolar)
 admin.site.register(Lote)

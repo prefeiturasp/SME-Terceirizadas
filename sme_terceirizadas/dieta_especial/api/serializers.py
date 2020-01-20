@@ -76,10 +76,16 @@ class SolicitacaoDietaEspecialCreateSerializer(serializers.ModelSerializer):
         validated_data['criado_por'] = self.context['request'].user
         anexos = validated_data.pop('anexos', [])
         aluno_data = validated_data.pop('aluno')
-        aluno, created = Aluno.objects.get_or_create(nome=aluno_data.get('nome'),
-                                                     data_nascimento=aluno_data.get('data_nascimento'),
-                                                     codigo_eol=aluno_data.get('codigo_eol'),
-                                                     defaults={'uuid': aluno_data.get('uuid', str(uuid.uuid4()))})
+        if Aluno.objects.filter(codigo_eol=aluno_data.get('codigo_eol')).exists():
+            print('OPAAA')
+            aluno = Aluno.objects.get(codigo_eol=aluno_data.get('codigo_eol'))
+        else:
+            print('else')
+            print(Aluno.objects.filter(codigo_eol=aluno_data.get('codigo_eol')))
+            aluno = Aluno.objects.create(nome=aluno_data.get('nome'),
+                                         data_nascimento=aluno_data.get('data_nascimento'),
+                                         uuid=aluno_data.get('uuid', str(uuid.uuid4())),
+                                         codigo_eol=aluno_data.get('codigo_eol'))
         solicitacao = SolicitacaoDietaEspecial.objects.create(**validated_data)
         solicitacao.aluno = aluno
         solicitacao.save()
@@ -87,7 +93,8 @@ class SolicitacaoDietaEspecialCreateSerializer(serializers.ModelSerializer):
         for anexo in anexos:
             data = convert_base64_to_contentfile(anexo.get('arquivo'))
             Anexo.objects.create(
-                solicitacao_dieta_especial=solicitacao, arquivo=data, nome=anexo.get('nome', ''), eh_laudo_medico=True
+                solicitacao_dieta_especial=solicitacao, arquivo=data, nome=anexo.get('nome', ''),
+                eh_laudo_medico=True
             )
 
         solicitacao.inicia_fluxo(user=self.context['request'].user)
@@ -124,6 +131,7 @@ class EscolaSerializer(serializers.ModelSerializer):
 
 
 class SolicitacaoDietaEspecialSerializer(serializers.ModelSerializer):
+    aluno = AlunoSerializer()
     anexos = serializers.ListField(
         child=AnexoSerializer(), required=True
     )
@@ -144,11 +152,9 @@ class SolicitacaoDietaEspecialSerializer(serializers.ModelSerializer):
         model = SolicitacaoDietaEspecial
         fields = (
             'uuid',
-            'codigo_eol_aluno',
-            'nome_completo_aluno',
+            'aluno',
             'nome_completo_pescritor',
             'registro_funcional_pescritor',
-            'data_nascimento_aluno',
             'observacoes',
             'criado_em',
             'anexos',
