@@ -1,5 +1,3 @@
-import datetime
-
 from django.http import HttpResponse
 from django.template.loader import render_to_string
 from weasyprint import HTML
@@ -12,12 +10,11 @@ from ..kit_lanche.models import EscolaQuantidade
 def relatorio_kit_lanche_unificado(request, solicitacao):
     qtd_escolas = EscolaQuantidade.objects.filter(solicitacao_unificada=solicitacao).count()
 
-    filtro = {'data_de': datetime.date.today(), 'data_para': datetime.date.today() + datetime.timedelta(days=30),
-              'tipo_solicitacao': 'TODOS', 'status': 'TODOS'}
     html_string = render_to_string(
         'solicitacao_kit_lanche_unificado.html',
-        {'filtro': filtro, 'solicitacao': solicitacao, 'qtd_escolas': qtd_escolas,
-         'fluxo': constants.FLUXO_PARTINDO_DRE, 'width': get_width(constants.FLUXO_PARTINDO_DRE, solicitacao.logs),
+        {'solicitacao': solicitacao, 'qtd_escolas': qtd_escolas,
+         'fluxo': constants.FLUXO_PARTINDO_DRE,
+         'width': get_width(constants.FLUXO_PARTINDO_DRE, solicitacao.logs),
          'logs': formata_logs(solicitacao.logs)}
     )
     pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
