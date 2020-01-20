@@ -27,6 +27,6 @@ class DadosAlunoEOLViewSet(ViewSet):
     def retrieve(self, request, codigo_eol=None):
         try:
             dados = EOLService.get_informacoes_aluno(codigo_eol)
-            return Response({'detail': f'{dados}'})
+            return Response({'detail': dados})
         except EOLException as e:
             return Response({'detail': f'{e}'}, status=status.HTTP_400_BAD_REQUEST)
