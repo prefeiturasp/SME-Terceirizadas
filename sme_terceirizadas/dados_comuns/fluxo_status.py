@@ -303,7 +303,8 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
             assunto=assunto,
             corpo=corpo,
             emails=self._partes_interessadas_inicio_fluxo,
-            html=None
+            template='email_base.html',
+            dados_template={'assunto': assunto},
         )
         self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.INICIO_FLUXO,
                                   usuario=user)
@@ -726,7 +727,8 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
             assunto=assunto,
             corpo=corpo,
             emails=self._partes_interessadas_inicio_fluxo,
-            html=None
+            template='email_base.html',
+            dados_template={'assunto': assunto},
         )
         self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.INICIO_FLUXO,
                                   usuario=user)

@@ -2,15 +2,16 @@ import base64
 import datetime
 import uuid
 from mimetypes import guess_extension
-import logging
+from typing import Any
+
 import environ
-from config.settings.base import URL_CONFIGS
 from des.models import DynamicEmailConfiguration
 from django.core.files.base import ContentFile
 from django.core.mail import EmailMultiAlternatives, get_connection, send_mail, EmailMessage
 from django.template.loader import render_to_string
 
-logger = logging.getLogger(__name__)
+from config.settings.base import URL_CONFIGS
+
 from workalendar.america import BrazilSaoPauloCity
 
 from .constants import DAQUI_A_SETE_DIAS, DAQUI_A_TRINTA_DIAS
@@ -20,8 +21,11 @@ calendar = BrazilSaoPauloCity()
 env = environ.Env()
 
 
-def envia_email_unico(assunto: str, corpo: str, email: str, html: str = None):
+def envia_email_unico(assunto: str, corpo: str, email: str, template: str, dados_template: Any):
     config = DynamicEmailConfiguration.get_solo()
+    html = None
+    if template and dados_template:
+        html = render_to_string(template, dados_template)
 
     return send_mail(
         assunto,
@@ -31,10 +35,12 @@ def envia_email_unico(assunto: str, corpo: str, email: str, html: str = None):
         html_message=html)
 
 
-def envia_email_em_massa(assunto: str, corpo: str, emails: list, html: str = None):
+def envia_email_em_massa(assunto: str, corpo: str, emails: list, template: str, dados_template: Any):
     config = DynamicEmailConfiguration.get_solo()
     from_email = config.from_email
-
+    html = None
+    if template and dados_template:
+        html = render_to_string(template, dados_template)
     with get_connection() as connection:
         messages = []
         for email in emails:
@@ -43,22 +49,6 @@ def envia_email_em_massa(assunto: str, corpo: str, emails: list, html: str = Non
                 message.attach_alternative(html, 'text/html')
             messages.append(message)
         return connection.send_messages(messages)
-
-
-def enviar_email_html(assunto, template, data, enviar_para):
-    try:
-        config = DynamicEmailConfiguration.get_solo()
-        msg_html = render_to_string(template, data)
-        msg = EmailMessage(
-            subject=assunto, body=msg_html,
-            from_email=config.from_email or None,
-            bcc=(enviar_para,),
-        )
-        msg.content_subtype = "html"  # Main content is now text/html
-        msg.send()
-
-    except Exception as err:
-        logger.error(str(err))
 
 
 def obter_dias_uteis_apos(dia: datetime.date, quantidade_dias: int):
