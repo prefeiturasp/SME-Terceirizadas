@@ -5,13 +5,11 @@ from mimetypes import guess_extension
 from typing import Any
 
 import environ
+from config.settings.base import URL_CONFIGS
 from des.models import DynamicEmailConfiguration
 from django.core.files.base import ContentFile
-from django.core.mail import EmailMultiAlternatives, get_connection, send_mail, EmailMessage
+from django.core.mail import EmailMultiAlternatives, get_connection, send_mail
 from django.template.loader import render_to_string
-
-from config.settings.base import URL_CONFIGS
-
 from workalendar.america import BrazilSaoPauloCity
 
 from .constants import DAQUI_A_SETE_DIAS, DAQUI_A_TRINTA_DIAS
