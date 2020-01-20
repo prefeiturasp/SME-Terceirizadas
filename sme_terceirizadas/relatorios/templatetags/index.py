@@ -65,3 +65,8 @@ def aceita_nao_aceita_str(aceitou):
 @register.filter
 def tem_questionamentos(logs):
     return logs.filter(status_evento=LogSolicitacoesUsuario.CODAE_QUESTIONOU).exists()
+
+
+@register.filter
+def concatena_str(query_set):
+    return ', '.join([p.nome for p in query_set])

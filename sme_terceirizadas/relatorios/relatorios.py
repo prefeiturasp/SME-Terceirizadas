@@ -4,12 +4,13 @@ from django.http import HttpResponse
 from django.template.loader import render_to_string
 from weasyprint import HTML
 
+from sme_terceirizadas.inclusao_alimentacao.models import InclusaoAlimentacaoContinua
+from . import constants
+from .utils import formata_logs, get_width
 from ..cardapio.models import AlteracaoCardapio
 from ..dieta_especial.models import SolicitacaoDietaEspecial
 from ..escola.models import Escola
 from ..kit_lanche.models import EscolaQuantidade, SolicitacaoKitLancheUnificada
-from . import constants
-from .utils import formata_logs, get_width
 
 
 def relatorio_kit_lanche_unificado(request):
@@ -63,6 +64,27 @@ def relatorio_dieta_especial(request):
             'solicitacao': sol,
             'fluxo': constants.FLUXO_DIETA_ESPECIAL,
             'width': get_width(constants.FLUXO_DIETA_ESPECIAL, sol.logs),
+            'logs': formata_logs(logs)
+        }
+    )
+    pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
+    response = HttpResponse(pdf_file, content_type='application/pdf')
+    response['Content-Disposition'] = f'filename="Soliciatao_unificada_{sol.uuid}.pdf"'
+    return response
+
+
+def relatorio_inclusao_alimentacao_continua(request):
+    sol = InclusaoAlimentacaoContinua.objects.last()
+    escola = sol.rastro_escola
+    logs = sol.logs
+    # Rendered
+    html_string = render_to_string(
+        'solicitacao_inclusao_alimentacao_continua.html',
+        {
+            'escola': escola,
+            'solicitacao': sol,
+            'fluxo': constants.FLUXO_PARTINDO_ESCOLA,
+            'width': get_width(constants.FLUXO_PARTINDO_ESCOLA, sol.logs),
             'logs': formata_logs(logs)
         }
     )

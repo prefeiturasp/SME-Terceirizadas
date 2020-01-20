@@ -72,6 +72,8 @@ class InclusaoAlimentacaoContinua(ExportModelOperationsMixin('inclusao_continua'
                                   DiasSemana, FluxoAprovacaoPartindoDaEscola,
                                   CriadoPor, TemIdentificadorExternoAmigavel,
                                   CriadoEm, Logs, TemPrioridade, SolicitacaoForaDoPrazo):
+    DESCRICAO = 'Inclusão alimentação contínua'
+
     outro_motivo = models.CharField('Outro motivo', blank=True, max_length=50)
     motivo = models.ForeignKey(MotivoInclusaoContinua, on_delete=models.DO_NOTHING)
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING,
