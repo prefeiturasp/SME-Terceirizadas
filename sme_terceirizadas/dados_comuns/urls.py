@@ -2,7 +2,7 @@ from django.urls import include, path
 from rest_framework import routers
 
 from .api import viewsets
-from .views import send_test_email
+from .views import send_test_email, test_visualiza_email
 
 router = routers.DefaultRouter()
 router.register('email', viewsets.ConfiguracaoEmailViewSet, basename='Email')
@@ -14,5 +14,6 @@ router.register('templates-mensagem', viewsets.TemplateMensagemViewSet,
 
 urlpatterns = [
     path('', include(router.urls)),
-    path('email-teste/', send_test_email, name='enviar_email_teste')
+    path('email-teste/', send_test_email, name='enviar_email_teste'),
+    path('visualiza-email/', test_visualiza_email, name='email_teste')
 ]

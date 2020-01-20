@@ -4,6 +4,7 @@ from des.models import DynamicEmailConfiguration
 from django.conf import settings
 from django.core.mail import send_mail
 from django.http import HttpResponse
+from django.shortcuts import render
 from django.template import loader
 from django.utils.translation import ugettext as _
 from django.views.decorators.http import require_http_methods
@@ -40,3 +41,7 @@ def send_test_email(request):
     else:
         response['error'] = _('You must provide an email address to test with.')
     return HttpResponse(json.dumps(response))
+
+
+def test_visualiza_email(request):
+    return render(request, 'email_base.html')
