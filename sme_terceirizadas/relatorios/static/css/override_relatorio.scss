@@ -4,8 +4,8 @@
 .thead-black {
   thead {
     font-weight: bold;
-    background-color: #000000;
-    color: #FFFFFF;
+    background-color: $preto;
+    color: $branco;
   }
 
 }
@@ -21,8 +21,8 @@
       border-radius: 4px;
       text-align: center;
       font-weight: bold;
-      color: #353535;
-      background-color: #D9D8D8;
+      color: $preto;
+      background-color: $cinza-claro;
       padding: 10px;
       font-size: 20px;
 
@@ -39,13 +39,13 @@
         &:first-child {
           font-weight: normal;
           font-size: 14px;
-          color: #686868;
+          color: $cinza-escuro;
         }
 
         &:not(:first-child) {
           font-size: 15px;
           font-weight: bold;
-          color: #353535;
+          color: $preto;
         }
       }
     }
@@ -59,13 +59,13 @@
         &:first-child {
           font-weight: normal;
           font-size: 14px;
-          color: $fonte-cinza;
+          color: $cinza;
         }
 
         &:not(:first-child) {
           font-size: 14px;
           font-weight: bold;
-          color: $fonte-cinza;
+          color: $cinza;
         }
       }
     }
@@ -75,19 +75,21 @@
       :nth-child(even) {
         font-weight: normal;
         font-size: 14px;
-        color: $fonte-cinza;
+        color: $cinza;
       }
 
       :nth-child(odd) {
         font-size: 14px;
         font-weight: bold;
-        color: $fonte-cinza;
+        color: $cinza;
       }
 
     }
   }
 
   .tabela-sem-borda {
+    margin-top: 1em;
+
     table {
       font-size: 14px;
       border-collapse: collapse;
@@ -98,7 +100,7 @@
     th, td {
       padding: 0.5em;
       text-align: left;
-      border-bottom: 1px solid #000000;
+      border-bottom: 1px solid $preto;
     }
   }
 
@@ -109,14 +111,14 @@
     padding-top: 1em;
 
     .cabecalho {
-      color: #686868;
+      color: $cinza;
       line-height: 16px;
     }
 
     .resultado {
       font-weight: bold;
       line-height: 16px;
-      color: #353535;
+      color: $cinza-escuro;
     }
   }
 
@@ -126,14 +128,14 @@
     font-size: 14px;
 
     .cabecalho {
-      color: #686868;
+      color: $cinza;
       line-height: 16px;
     }
 
     .resultado {
       font-weight: bold;
       line-height: 16px;
-      color: #353535;
+      color: $cinza-escuro;
     }
   }
 }
@@ -144,7 +146,7 @@
 
   .title {
     p {
-      color: $fonte-cinza;
+      color: $cinza;
       font-weight: bold;
     }
   }
@@ -154,7 +156,7 @@
 
     .is-it-possible {
       padding-top: 5px;
-      color: $blackSubtle;
+      color: $cinza-escuro;
 
       .title {
         font-size: 14px;
@@ -174,7 +176,7 @@
     font-weight: 500;
     font-size: 14px;
     line-height: 16px;
-    color: $fonte-cinza;
+    color: $cinza;
 
   }
 
@@ -182,11 +184,11 @@
     font-weight: 500;
     font-size: 14px;
     line-height: 16px;
-    color: $blackSubtle;
+    color: $cinza-escuro;
   }
 
   hr {
-    border: 1px solid #C0C0C0;
+    border: 1px solid $cinza-claro;
     transform: matrix(1, 0, 0, -1, 0, 0);
   }
 }
@@ -196,7 +198,7 @@
     font-weight: 500;
     font-size: 14px;
     line-height: 16px;
-    color: #686868;
+    color: $cinza;
   }
 }
 
@@ -209,14 +211,14 @@
       font-weight: normal;
       font-size: 14px;
       line-height: 16px;
-      color: #686868;
+      color: $cinza;
     }
 
     td {
       font-weight: 500;
       font-size: 14px;
       line-height: 16px;
-      color: #353535;
+      color: $cinza-escuro;
     }
   }
 
@@ -224,18 +226,18 @@
     font-weight: bold;
     font-size: 14px;
     line-height: 16px;
-    color: #686868;
+    color: $cinza;
   }
 
   p {
     font-weight: normal;
     font-size: 13px;
     line-height: 15px;
-    color: #353535;
+    color: $cinza-escuro;
   }
 
   hr {
-    border: 1px solid #C0C0C0;
+    border: 1px solid $cinza-claro;
     transform: matrix(1, 0, 0, -1, 0, 0);
   }
 }
@@ -245,11 +247,11 @@
     font-weight: bold;
     font-size: 14px;
     line-height: 16px;
-    color: #686868;
+    color: $cinza;
   }
 
   div {
-    border: 1px solid #DADADA;
+    border: 1px solid $cinza-claro;
     box-sizing: border-box;
     border-radius: 4px;
     width: 70%;
@@ -260,6 +262,10 @@
     font-weight: normal;
     font-size: 13px;
     line-height: 15px;
-    color: #353535;
+    color: $cinza-escuro;
   }
+}
+
+.info-geral-inclusao {
+  width: 100%;
 }
