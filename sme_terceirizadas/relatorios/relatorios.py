@@ -4,12 +4,12 @@ from django.http import HttpResponse
 from django.template.loader import render_to_string
 from weasyprint import HTML
 
-from sme_terceirizadas.dieta_especial.models import SolicitacaoDietaEspecial
-from . import constants
-from .utils import formata_logs, get_width
 from ..cardapio.models import AlteracaoCardapio
+from ..dieta_especial.models import SolicitacaoDietaEspecial
 from ..escola.models import Escola
 from ..kit_lanche.models import EscolaQuantidade, SolicitacaoKitLancheUnificada
+from . import constants
+from .utils import formata_logs, get_width
 
 
 def relatorio_kit_lanche_unificado(request):
