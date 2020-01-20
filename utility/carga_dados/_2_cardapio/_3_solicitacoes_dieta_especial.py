@@ -21,8 +21,9 @@ f.seed(420)
 
 def fluxo_escola_felix_dieta_especial(obj, user, index):
     obj.inicia_fluxo(user=user, notificar=True)
+    if index % 10 == 0:
+        print(f'{index / 10}% COMPLETO')
     if index % 7 == 0:
-        print(f'{index / 7}% COMPLETO')
         obj.codae_nega(user=user, notificar=True)
         return
     else:
@@ -77,7 +78,7 @@ def cria_solicitacoes_dieta_especial(qtd=50):
         fluxo_escola_felix_dieta_especial(solicitacao_dieta_especial, user, index)
 
 
-QTD_PEDIDOS = 700
+QTD_PEDIDOS = 1000
 
 criar_pedidos = input('Criar solicitacoes dieta especial? (S/N)?')
 if criar_pedidos.upper() == 'S':

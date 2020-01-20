@@ -77,6 +77,7 @@ class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmiga
     dre_nome = models.CharField(max_length=200)
     escola_nome = models.CharField(max_length=200)
     terceirizada_nome = models.CharField(max_length=200)
+    nome_aluno = models.CharField(max_length=200)
 
     lote_uuid = models.UUIDField(editable=False)
     escola_uuid = models.UUIDField(editable=False)
