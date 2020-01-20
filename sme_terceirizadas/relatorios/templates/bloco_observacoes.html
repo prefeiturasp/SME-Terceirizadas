@@ -1,12 +1,15 @@
 {% load index %}
 
 {% block observacoes %}
-  <div class="observacoes">
-    <div>
-      <p class="cabecalho">Observacoes:</p>
-      <p class="resultado">{{ solicitacao.observacao | safe }}</p>
-    </div>
-  </div>
-  <div>
-    <hr style="color: #EEEEEE; opacity: 0.3">
-  </div>{% endblock %}
+    {% if solicitacao.observacao %}
+      <div class="observacoes">
+        <div>
+          <p class="cabecalho">Observacoes:</p>
+          <p class="resultado">{{ solicitacao.observacao | safe }}</p>
+        </div>
+      </div>
+      <div>
+        <hr style="color: #EEEEEE; opacity: 0.3">
+      </div>
+    {% endif %}
+{% endblock %}

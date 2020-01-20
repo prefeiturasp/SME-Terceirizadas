@@ -22,6 +22,16 @@
   }
 }
 
+
+@page :nth(n+2) {
+  margin-top: 2em;
+}
+
+@page :nth(1) {
+  //WTF bug...
+  margin-top: 0;
+}
+
 .titulo-e-logo {
   display: flex;
   align-items: center;
@@ -36,6 +46,10 @@
     color: $cor-texto-padrao;
   }
 }
+
+//@page :not:first {
+//  margin-top: 2em;
+//}
 
 .header {
   padding: 1em 2em 1em 2em;
