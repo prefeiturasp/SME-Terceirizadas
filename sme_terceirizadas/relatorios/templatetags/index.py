@@ -1,6 +1,6 @@
 from django import template
 
-from sme_terceirizadas.dados_comuns.models import LogSolicitacoesUsuario
+from ...dados_comuns.models import LogSolicitacoesUsuario
 
 register = template.Library()
 
