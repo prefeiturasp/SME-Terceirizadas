@@ -8,8 +8,6 @@ from django.shortcuts import render
 from django.template import loader
 from django.utils.translation import ugettext as _
 from django.views.decorators.http import require_http_methods
-from ..dados_comuns.envia_email import enviar_email_html
-from premailer import transform
 
 subject = getattr(settings, 'DES_TEST_SUBJECT', _('Test Email'))
 text_template = getattr(settings, 'DES_TEST_TEXT_TEMPLATE', 'des/test_email.txt')
@@ -46,8 +44,4 @@ def send_test_email(request):
 
 
 def test_visualiza_email(request):
-    assunto = 'teste email html'
-    template = 'email_base.html'
-    # enviar_email_html(assunto=assunto, template=template, data={}, enviar_para='kelwyduarte@gmail.com')
-
     return render(request, 'email_base.html')

@@ -1,100 +1,85 @@
 {% load static %}
-<html lang="pt-br">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="pt-br">
 <head>
-  <meta charset="UTF-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
   <title>SIGPAE - Notificação</title>
-
-  <!-- Bootstrap core CSS -->
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
-        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
-
-  <link rel="stylesheet" href="{% static 'css/email_base.css' %}">
-{#  <link rel="stylesheet" href="http://localhost:8000/media/email/static/css/email_base.css">#}
-  <link href="https://fonts.googleapis.com/css?family=Roboto&display=swap" rel="stylesheet">
-
-{#  <style>#}
-{#    .conteiner-tex {#}
-{##}
-{#}#}
-{##}
-{#.email-cabecalho {#}
-{#  padding: 1em 1em 0.6em 1em;#}
-{#  background: #FFFFFF;#}
-{#}#}
-{##}
-{#.bg-email {#}
-{#  background: #F5F6F8;#}
-{#  height: 500px;#}
-{#  top: 0;#}
-{#}#}
-{##}
-{#.imagem-email {#}
-{#  position: absolute;#}
-{#}#}
-{##}
-{#.email-conteiner {#}
-{#  position: absolute;#}
-{#  align-content: center;#}
-{#  width: 610px;#}
-{#  background: #888888;#}
-{#}#}
-{##}
-{#.retangulo-conteudo {#}
-{##}
-{#  border-radius: 4px;#}
-{#  text-align: center;#}
-{#  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);#}
-{#  color: #42474A;#}
-{#  background-color: #FFFFFF;#}
-{#  padding: 5em;#}
-{#  margin-left: 3em;#}
-{#  margin-right: 3em;#}
-{#  font-size: 14px;#}
-{#  position: absolute;#}
-{#  z-index: 50;#}
-{#  margin-top: 6em;#}
-{#}#}
-{##}
-{#.email-footer {#}
-{#  padding: 2em 1em 0.5em 1em;#}
-{#  color: #198459;#}
-{#  background: #F5F6F8;#}
-{#}#}
-{##}
-{#  </style>#}
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 </head>
-<body class="email-conteiner conteiner-tex">
-<div>
-  <div >
-    <img src="{% static 'images/logo-sigpae.svg' %}" alt=""/>
-{#    <img src="http://localhost:8000/media/email/static/images/logo-sigpae.svg" alt=""/>#}
-  </div>
-  <div class="bg-email">
-{#    <img class="imagem-email" src="{% static 'images/bg-email.svg' %}" alt=""/>#}
-{#    <img src="http://localhost:8000/media/email/static/images/bg-email.svg" alt=""/>#}
-    <div class="retangulo-conteudo">
-      <p>Conteúdo de texto do e-mail - Lorem ipsum dolor sit amet, consectetur adipiscing elit. Iaculis sagittis ut
-        ullamcorper natoque praesent duis vulputate id magna. </p>
-      <p>O conteúdo que se encontra nesse layout é somente um Exemplo de Conteúdo. Lorem ut ullamcorper natoque praesent
-        duis vulputate id magna. </p>
-    </div>
-  </div>
+<body style="margin: 0; padding: 0;">
+<table border="0" cellpadding="0" cellspacing="0" width="100%">
+  <tr>
+    <td style="padding: 10px 0 30px 0;">
+      <table align="center" border="0" cellpadding="0" cellspacing="0" width="300"
+             style="border: 1px solid #cccccc; border-collapse: collapse;">
+        <tr>
+          <td align="center" bgcolor="#70bbd9">
+            <img src="https://hom-terceirizadas.sme.prefeitura.sp.gov.br/media/email/static/images/email-sigpae.png" alt="" style="display: block;"/>
+          </td>
+        </tr>
+        <tr>
+          <td bgcolor="#ffffff" style="padding: 40px 30px 40px 30px;">
+            <table border="0" cellpadding="0" cellspacing="0" width="100%">
+              <tr>
+                <td style="color: #0C6B45; font-size: 24px;  font-family: Roboto, sans-serif; font-weight: bold; font-style: normal;
+                 line-height: 28px; font-style: normal; font-size: 24px; text-align: center; ">
+                  <b>Título do e-mail</b>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding: 20px 0 30px 0; color: #42474A; font-family: Roboto, sans-serif; font-size: 14px; line-height: 16px; text-align: center;">
+                  Conteúdo de texto do e-mail - Lorem ipsum dolor sit amet, consectetur adipiscing elit. Iaculis
+                  sagittis ut ullamcorper
+                  natoque praesent duis vulputate id magna.
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                    <tr>
+                      <td align="center" width="100%">
+                        <table cellpadding="0" cellspacing="0" width="30%"
+                               style="border: 2px solid #0C6B45; border-radius: 4px; box-sizing: border-box;">
+                          <tr>
+                            <td style="padding: 15px 20px 15px 20px; color: #198459; font-family: Roboto, sans-serif; font-size: 24px; line-height: 28px; text-align: center">
+                              #297690
+                            </td>
+                          </tr>
+                        </table>
+                      </td>
+                      <td style="font-size: 0; line-height: 0;" width="20">
+                        &nbsp;
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 25px 0 30px 0; color: #42474A; font-family: Roboto, sans-serif; font-size: 14px; line-height: 16px; text-align: center;">
+                        Conteúdo de texto do e-mail - Lorem ipsum dolor sit amet, consectetur adipiscing elit. Iaculis
+                        sagittis ut ullamcorper
+                        natoque praesent duis vulputate id magna.
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        <tr>
+          <td bgcolor="#F5F6F8" style="padding: 30px 30px 30px 30px;">
+            <table border="0" cellpadding="0" cellspacing="0" width="100%">
+              <tr>
+                <td style="text-align: center; color: #198459; font-family: Roboto, sans-serif; font-size: 12px;">
+                  <p>smecodaeatendimento@sme.prefeitura.sp.gov.br</p>
+                </td>
 
-</div>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
 </body>
-<footer class="email-footer">
-  <div class="row">
-    <div class="col">
-      <img src="{% static 'images/logo-sp-color.svg' %}" alt=""/>
-{#      <img src="http://localhost:8000/media/email/static/images/logo-sp-color.svg" alt=""/>#}
-    </div>
-    <div class="col">
-      <span>contatodeemail@sigpae.sp.gov.br</span>
-    </div>
-    <div class="col">
-      0800-123 4567
-    </div>
-  </div>
-</footer>
 </html>

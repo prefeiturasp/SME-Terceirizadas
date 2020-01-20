@@ -2,12 +2,15 @@ import base64
 import datetime
 import uuid
 from mimetypes import guess_extension
-
+import logging
 import environ
 from config.settings.base import URL_CONFIGS
 from des.models import DynamicEmailConfiguration
 from django.core.files.base import ContentFile
-from django.core.mail import EmailMultiAlternatives, get_connection, send_mail
+from django.core.mail import EmailMultiAlternatives, get_connection, send_mail, EmailMessage
+from django.template.loader import render_to_string
+
+logger = logging.getLogger(__name__)
 from workalendar.america import BrazilSaoPauloCity
 
 from .constants import DAQUI_A_SETE_DIAS, DAQUI_A_TRINTA_DIAS
@@ -40,6 +43,22 @@ def envia_email_em_massa(assunto: str, corpo: str, emails: list, html: str = Non
                 message.attach_alternative(html, 'text/html')
             messages.append(message)
         return connection.send_messages(messages)
+
+
+def enviar_email_html(assunto, template, data, enviar_para):
+    try:
+        config = DynamicEmailConfiguration.get_solo()
+        msg_html = render_to_string(template, data)
+        msg = EmailMessage(
+            subject=assunto, body=msg_html,
+            from_email=config.from_email or None,
+            bcc=(enviar_para,),
+        )
+        msg.content_subtype = "html"  # Main content is now text/html
+        msg.send()
+
+    except Exception as err:
+        logger.error(str(err))
 
 
 def obter_dias_uteis_apos(dia: datetime.date, quantidade_dias: int):
