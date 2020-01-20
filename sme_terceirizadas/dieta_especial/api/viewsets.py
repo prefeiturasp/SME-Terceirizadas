@@ -41,7 +41,7 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
         for p in request.data['protocolos']:
             data = convert_base64_to_contentfile(p.get('base64'))
             Anexo.objects.create(
-                solicitacao_dieta_especial=solicitacao, arquivo=data, eh_laudo_medico=False
+                solicitacao_dieta_especial=solicitacao, arquivo=data, nome=p.get('nome', ''), eh_laudo_medico=False
             )
 
         solicitacao.codae_autoriza(user=request.user)
@@ -61,6 +61,14 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
         solicitacao.codae_nega(user=request.user)
 
         return Response({'mensagem': 'Solicitação de Dieta Especial Negada'})
+
+    @action(detail=True, methods=['post'])
+    def tomar_ciencia(self, request, uuid=None):
+        solicitacao = self.get_object()
+
+        solicitacao.terceirizada_toma_ciencia(user=request.user)
+
+        return Response({'mensagem': 'Ciente da solicitação de dieta especial'})
 
 
 class AlergiaIntoleranciaViewSet(mixins.ListModelMixin,
