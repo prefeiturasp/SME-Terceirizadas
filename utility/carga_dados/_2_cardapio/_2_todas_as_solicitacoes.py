@@ -11,7 +11,7 @@ from xworkflows import InvalidTransitionError
 from sme_terceirizadas.cardapio.models import TipoAlimentacao, InversaoCardapio, Cardapio, \
     GrupoSuspensaoAlimentacao, SuspensaoAlimentacao, MotivoSuspensao, QuantidadePorPeriodoSuspensaoAlimentacao, \
     AlteracaoCardapio, MotivoAlteracaoCardapio
-from sme_terceirizadas.escola.models import Escola, DiretoriaRegional, PeriodoEscolar, Codae
+from sme_terceirizadas.escola.models import Escola, DiretoriaRegional, PeriodoEscolar
 from sme_terceirizadas.inclusao_alimentacao.models import InclusaoAlimentacaoContinua, \
     MotivoInclusaoContinua, GrupoInclusaoAlimentacaoNormal, QuantidadePorPeriodo, InclusaoAlimentacaoNormal, \
     MotivoInclusaoNormal
@@ -24,7 +24,11 @@ f.seed(420)
 hoje = datetime.date.today() - datetime.timedelta(days=180)
 
 
-def _get_random_cardapio():
+def _get_random_cardapio(dias_pra_frente=None):
+    if dias_pra_frente:
+        hoje = datetime.date.today()
+        prox_dias = hoje + datetime.timedelta(days=dias_pra_frente)
+        return Cardapio.objects.filter(data__gte=prox_dias).order_by("?").first()
     return Cardapio.objects.order_by("?").first()
 
 
@@ -217,15 +221,6 @@ def cria_solicitacoes_kit_lanche_avulsa(qtd=50):
         fluxo_escola_felix(avulsa, user)
 
 
-# cardapio_de = models.ForeignKey(Cardapio, on_delete=models.DO_NOTHING,
-#                                     blank=True, null=True,
-#                                     related_name='cardapio_de')
-#     cardapio_para = models.ForeignKey(Cardapio, on_delete=models.DO_NOTHING,
-#                                       blank=True, null=True,
-#                                       related_name='cardapio_para')
-#     escola = models.ForeignKey('escola.Escola', blank=True, null=True,
-#                                on_delete=models.DO_NOTHING)
-
 def cria_inversoes_cardapio(qtd=50):
     user = Usuario.objects.get(email="escola@admin.com")
     for i in range(qtd):
@@ -234,8 +229,8 @@ def cria_inversoes_cardapio(qtd=50):
             observacao=f.text()[:100],
             motivo=f.text()[:40],
             escola=_get_random_escola(),
-            cardapio_de=_get_random_cardapio(),
-            cardapio_para=_get_random_cardapio())
+            cardapio_de=_get_random_cardapio(dias_pra_frente=1),
+            cardapio_para=_get_random_cardapio(dias_pra_frente=10))
         fluxo_escola_felix(inversao, user)
 
 

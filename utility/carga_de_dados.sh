@@ -25,3 +25,5 @@ echo "nutri"
 ./manage.py shell -c "from utility.carga_dados.escola import _10_codae"
 ./manage.py shell -c "from utility.carga_dados.escola import _9_associar_admins"
 
+./manage.py shell -c "from utility.carga_dados._2_cardapio import _3_solicitacoes_dieta_especial"
+
