@@ -5,9 +5,8 @@ from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from xworkflows import InvalidTransitionError
 
-from ...relatorios.relatorios import relatorio_kit_lanche_unificado
-
 from ...dados_comuns import constants
+from ...relatorios.relatorios import relatorio_kit_lanche_unificado
 from .. import models
 from ..api.validators import nao_deve_ter_mais_solicitacoes_que_alunos
 from ..models import SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheUnificada
