@@ -29,7 +29,7 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
             return SolicitacaoDietaEspecialCreateSerializer
         return SolicitacaoDietaEspecialSerializer
 
-    @action(detail=False, methods=['get'], url_path=f'{FILTRO_CODIGO_EOL_ALUNO}')
+    @action(detail=False, methods=['get'], url_path=f'solicitacoes-aluno/{FILTRO_CODIGO_EOL_ALUNO}')
     def solicitacoes_vigentes(self, request, codigo_eol_aluno=None):
         solicitacoes = SolicitacaoDietaEspecial.objects.filter(
             aluno__codigo_eol=codigo_eol_aluno,
