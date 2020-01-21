@@ -3,9 +3,6 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from ...dados_comuns.utils import convert_base64_to_contentfile
-from ..forms import AutorizaDietaEspecialForm, NegaDietaEspecialForm
-from ..models import AlergiaIntolerancia, Anexo, ClassificacaoDieta, MotivoNegacao, SolicitacaoDietaEspecial, TipoDieta
 from .serializers import (
     AlergiaIntoleranciaSerializer,
     ClassificacaoDietaSerializer,
@@ -14,6 +11,10 @@ from .serializers import (
     SolicitacaoDietaEspecialSerializer,
     TipoDietaSerializer
 )
+from ..forms import AutorizaDietaEspecialForm, NegaDietaEspecialForm
+from ..models import AlergiaIntolerancia, Anexo, ClassificacaoDieta, MotivoNegacao, SolicitacaoDietaEspecial, TipoDieta
+from ...dados_comuns.utils import convert_base64_to_contentfile
+from ...paineis_consolidados.api.constants import FILTRO_CODIGO_EOL_ALUNO
 
 
 class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
@@ -27,6 +28,16 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
         if self.action in ['create', 'update', 'partial_update']:
             return SolicitacaoDietaEspecialCreateSerializer
         return SolicitacaoDietaEspecialSerializer
+
+    @action(detail=False, methods=['get'], url_path=f'{FILTRO_CODIGO_EOL_ALUNO}')
+    def solicitacoes_vigentes(self, request, codigo_eol_aluno=None):
+        solicitacoes = SolicitacaoDietaEspecial.objects.filter(
+            aluno__codigo_eol=codigo_eol_aluno,
+            status=SolicitacaoDietaEspecial.workflow_class.CODAE_AUTORIZADO
+        )
+        page = self.paginate_queryset(solicitacoes)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
 
     @action(detail=True, methods=['post'])
     def autorizar(self, request, uuid=None):
