@@ -29,6 +29,9 @@ def fluxo_escola_felix_dieta_especial(obj, user, index):
     else:
         if index % 3 == 0:
             return
+        if index % 5 == 0:
+            obj.cancelar_pedido(user=user, justificativa='')
+            return
         if index % 2 == 1:
             obj.codae_autoriza(user=user, notificar=True)
             return
