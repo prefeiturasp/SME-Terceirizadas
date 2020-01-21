@@ -151,12 +151,15 @@ class DietaEspecialWorkflow(xwf_models.Workflow):
     CODAE_AUTORIZADO = 'CODAE_AUTORIZADO'
     TERCEIRIZADA_TOMOU_CIENCIA = 'TERCEIRIZADA_TOMOU_CIENCIA'
 
+    ESCOLA_CANCELOU = 'ESCOLA_CANCELOU'
+
     states = (
         (RASCUNHO, 'Rascunho'),
         (CODAE_A_AUTORIZAR, 'CODAE a autorizar'),
         (CODAE_NEGOU_PEDIDO, 'CODAE negou a solicitação'),
         (CODAE_AUTORIZADO, 'CODAE autorizou'),
         (TERCEIRIZADA_TOMOU_CIENCIA, 'Terceirizada toma ciencia'),
+        (ESCOLA_CANCELOU, 'Escola cancelou'),
     )
 
     transitions = (
@@ -164,6 +167,7 @@ class DietaEspecialWorkflow(xwf_models.Workflow):
         ('codae_nega', CODAE_A_AUTORIZAR, CODAE_NEGOU_PEDIDO),
         ('codae_autoriza', CODAE_A_AUTORIZAR, CODAE_AUTORIZADO),
         ('terceirizada_toma_ciencia', CODAE_AUTORIZADO, TERCEIRIZADA_TOMOU_CIENCIA),
+        ('cancelar_pedido', CODAE_A_AUTORIZAR, ESCOLA_CANCELOU)
     )
 
     initial_state = RASCUNHO
@@ -733,19 +737,27 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
         self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.INICIO_FLUXO,
                                   usuario=user)
 
-    @xworkflows.after_transition('codae_autoriza')
-    def _codae_autoriza_hook(self, *args, **kwargs):
+    @xworkflows.after_transition('cancelar_pedido')
+    def _cancelar_pedido_hook(self, *args, **kwargs):
         user = kwargs['user']
-        assunto, corpo = self.template_mensagem
-        self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU,
-                                  usuario=user)
-        self._salva_rastro_solicitacao()
+        justificativa = kwargs['justificativa']
+        self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.ESCOLA_CANCELOU,
+                                  usuario=user,
+                                  justificativa=justificativa)
 
     @xworkflows.after_transition('codae_nega')
     def _codae_nega_hook(self, *args, **kwargs):
         user = kwargs['user']
         assunto, corpo = self.template_mensagem
         self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_NEGOU,
+                                  usuario=user)
+        self._salva_rastro_solicitacao()
+
+    @xworkflows.after_transition('codae_autoriza')
+    def _codae_autoriza_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        assunto, corpo = self.template_mensagem
+        self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU,
                                   usuario=user)
         self._salva_rastro_solicitacao()
 
