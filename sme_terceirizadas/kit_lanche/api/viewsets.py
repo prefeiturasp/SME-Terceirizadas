@@ -5,12 +5,13 @@ from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from xworkflows import InvalidTransitionError
 
-from ...dados_comuns import constants
+from sme_terceirizadas.relatorios.relatorios import relatorio_kit_lanche_unificado
+from .permissions import PodeIniciarSolicitacaoKitLancheAvulsaPermission, PodeIniciarSolicitacaoUnificadaPermission
+from .serializers import serializers, serializers_create
 from .. import models
 from ..api.validators import nao_deve_ter_mais_solicitacoes_que_alunos
 from ..models import SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheUnificada
-from .permissions import PodeIniciarSolicitacaoKitLancheAvulsaPermission, PodeIniciarSolicitacaoUnificadaPermission
-from .serializers import serializers, serializers_create
+from ...dados_comuns import constants
 
 
 class KitLancheViewSet(ReadOnlyModelViewSet):
@@ -316,6 +317,11 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
         page = self.paginate_queryset(solicitacoes_unificadas)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
+
+    @action(detail=True, url_path=constants.RELATORIO,
+            methods=['get'])
+    def relatorio(self, request, uuid=None):
+        return relatorio_kit_lanche_unificado(request, solicitacao=self.get_object())
 
     #
     # IMPLEMENTAÇÃO DO FLUXO (PARTINDO DA DRE)

@@ -5,6 +5,7 @@ from rest_framework.status import HTTP_400_BAD_REQUEST
 from rest_framework.viewsets import GenericViewSet
 from xworkflows import InvalidTransitionError
 
+from sme_terceirizadas.relatorios.relatorios import relatorio_alteracao_cardapio
 from ...dados_comuns import constants
 from ..models import (
     AlteracaoCardapio,
@@ -522,6 +523,12 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
         page = self.paginate_queryset(alteracoes_cardapio)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
+
+    @action(detail=True,
+            methods=['GET'],
+            url_path=f'{constants.RELATORIO}')
+    def relatorio(self, request, uuid=None):
+        return relatorio_alteracao_cardapio(request, solicitacao=self.get_object())
 
     #
     # IMPLEMENTAÇÃO DO FLUXO (PARTINDO DA ESCOLA)

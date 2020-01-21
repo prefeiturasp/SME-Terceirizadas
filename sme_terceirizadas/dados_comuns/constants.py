@@ -40,6 +40,8 @@ PEDIDOS_TERCEIRIZADA = 'pedidos-terceirizadas'
 PEDIDOS_DRE = 'pedidos-diretoria-regional'
 FILTRO_PADRAO_PEDIDOS = f'(?P<filtro_aplicado>({SEM_FILTRO}|{DAQUI_A_SETE_DIAS}|{DAQUI_A_TRINTA_DIAS})+)'
 
+RELATORIO = 'relatorio'
+
 #
 # FLUXO, usados nas actions de transição de status nas viewsets dos pedidos/informações do sistema
 #

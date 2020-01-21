@@ -1,0 +1,44 @@
+{% extends 'cabecalho_rodape_solicitacao.html' %}
+{% load index %}
+{% load static %}
+
+{% block conteudo %}
+  <div class="conteudo tabela-sem-borda">
+      {% include "bloco_fluxo_de_status.html" %}
+      {% include "bloco_cabecalho_solicitacao_partindo_escola.html" %}
+    <table class='info-geral-inclusao'>
+      <tr>
+        <th>Período</th>
+        <th>Motivo</th>
+        <th>Dias da Semana</th>
+      </tr>
+      <tr>
+        <td>De {{ solicitacao.data_inicial }} até {{ solicitacao.final }}</td>
+        <td>{{ solicitacao.motivo.nome }}</td>
+        <td>{{ solicitacao.dias_semana_display }}</td>
+      </tr>
+    </table>
+    <div class="tabela-sem-borda">
+      <table class="thead-black">
+        <thead>
+        <tr>
+          <th>Período</th>
+          <th>Tipos de Alimentação</th>
+          <th>Nº de Alunos</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for  quantidade_periodo in solicitacao.quantidades_por_periodo.all %}
+          <tr>
+            <td>{{ quantidade_periodo.periodo_escolar }}</td>
+            <td>{{ quantidade_periodo.tipos_alimentacao.all | concatena_str }}</td>
+            <td>{{ quantidade_periodo.numero_alunos }}</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+      {% include "bloco_observacoes.html" %}
+      {% include "bloco_historico_questionamento.html" %}
+  </div>
+{% endblock %}

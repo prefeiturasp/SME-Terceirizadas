@@ -4,8 +4,8 @@
 @page {
   margin-bottom: 3em;
   @bottom-left {
-    background: $cor-background-header;
-    color: $cor-texto-padrao;
+    background: $cinza-claro;
+    color: $preto;
     content: '';
     font-size: 10px;
     width: 100%;
@@ -13,8 +13,8 @@
     margin-top: 1em;
   }
   @bottom-right {
-    background: $cor-background-header;
-    color: $cor-texto-padrao;
+    background: $cinza-claro;
+    color: $preto;
     content: counter(page);
     font-size: 10px;
     padding: 1em 2em 4em 2em;
@@ -43,17 +43,13 @@
     font-size: 17px;
     line-height: 21px;
     text-transform: uppercase;
-    color: $cor-texto-padrao;
+    color: $preto;
   }
 }
 
-//@page :not:first {
-//  margin-top: 2em;
-//}
-
 .header {
   padding: 1em 2em 1em 2em;
-  background: $cor-background-header;
+  background: $cinza-claro;
 }
 
 .tabela-cabecalho {

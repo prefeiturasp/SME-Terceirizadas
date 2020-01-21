@@ -72,6 +72,9 @@ class InclusaoAlimentacaoContinua(ExportModelOperationsMixin('inclusao_continua'
                                   DiasSemana, FluxoAprovacaoPartindoDaEscola,
                                   CriadoPor, TemIdentificadorExternoAmigavel,
                                   CriadoEm, Logs, TemPrioridade, SolicitacaoForaDoPrazo):
+    # TODO: noralizar campo de Descritivel: descricao -> observacao
+    DESCRICAO = 'Inclusão de Alimentação Contínua'
+
     outro_motivo = models.CharField('Outro motivo', blank=True, max_length=50)
     motivo = models.ForeignKey(MotivoInclusaoContinua, on_delete=models.DO_NOTHING)
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING,
@@ -177,6 +180,8 @@ class InclusaoAlimentacaoNormal(ExportModelOperationsMixin('inclusao_normal'), T
 class GrupoInclusaoAlimentacaoNormal(ExportModelOperationsMixin('grupo_inclusao'), Descritivel, TemChaveExterna,
                                      FluxoAprovacaoPartindoDaEscola, CriadoEm, SolicitacaoForaDoPrazo,
                                      CriadoPor, TemIdentificadorExternoAmigavel, Logs, TemPrioridade):
+    DESCRICAO = 'Inclusão de Alimentação'
+
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING,
                                related_name='grupos_inclusoes_normais')
 

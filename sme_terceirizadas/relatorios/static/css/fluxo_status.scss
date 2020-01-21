@@ -14,7 +14,7 @@
   }
 
   .progressbar-titles {
-    color: $cor-cinza-placeholder;
+    color: $preto;
     display: inline-flex;
     font-size: 9px;
     font-weight: bold;
@@ -46,32 +46,32 @@
       z-index: 0;
 
       &.active {
-        color: $cor-cinza-placeholder !important;
+        color: $preto !important;
 
         &:before {
           content: "\f00c";
           font-family: "Font Awesome 5 Free";
           font-size: 18px;
           font-weight: 900;
-          background-color: $cor-cinza-placeholder !important;
+          background-color: $preto !important;
           color: #fff;
-          border-color: $cor-cinza-placeholder !important;
+          border-color: $preto !important;
         }
 
         + li.active:after {
-          background-color: $cor-cinza-placeholder !important;
+          background-color: $preto !important;
         }
 
         + li.disapproved:after {
-          background-color: $cor-cinza-placeholder !important;
+          background-color: $preto !important;
         }
 
         + li.cancelled:after {
-          background-color: $cor-cinza-placeholder !important;
+          background-color: $preto !important;
         }
 
         + li.questioned:after {
-          background-color: $cor-cinza-placeholder !important;
+          background-color: $preto !important;
         }
       }
 
@@ -89,7 +89,7 @@
         text-align: center;
         margin: 0 auto 10px auto;
         border-radius: 50%;
-        background-color: $cor-cinza-placeholder;
+        background-color: $preto;
       }
 
       &.pending {
@@ -107,21 +107,21 @@
         margin-left: 14px;
         width: 100%;
         height: 5px;
-        background-color: $cor-cinza-placeholder;
+        background-color: $preto;
         top: 15px;
         left: -50%;
         z-index: -1;
       }
 
       &.disapproved {
-        color: $cor-cinza-placeholder;
+        color: $preto;
 
         &:before {
           font-family: "Font Awesome 5 Free";
           font-size: 18px;
           content: "\f05e";
           font-weight: 900;
-          background-color: $cor-cinza-placeholder;
+          background-color: $preto;
           color: #fff;
         }
       }
@@ -132,7 +132,7 @@
           font-size: 18px;
           content: "\f057";
           font-weight: 900;
-          background-color: $cor-cinza-placeholder;
+          background-color: $preto;
           color: #fff;
         }
       }
@@ -143,7 +143,7 @@
           font-size: 18px;
           content: "\f12a";
           font-weight: 900;
-          background-color: $cor-cinza-placeholder;
+          background-color: $preto;
           color: #fff;
         }
       }

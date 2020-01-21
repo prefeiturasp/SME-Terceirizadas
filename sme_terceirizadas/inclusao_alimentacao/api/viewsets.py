@@ -4,18 +4,20 @@ from rest_framework.status import HTTP_400_BAD_REQUEST
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from xworkflows import InvalidTransitionError
 
-from ...dados_comuns import constants
+from sme_terceirizadas.relatorios.relatorios import relatorio_inclusao_alimentacao_normal, \
+    relatorio_inclusao_alimentacao_continua
+from .permissions import (
+    PodeAprovarAlimentacaoContinuaDaEscolaPermission,
+    PodeIniciarInclusaoAlimentacaoContinuaPermission
+)
+from .serializers import serializers, serializers_create
 from ..models import (
     GrupoInclusaoAlimentacaoNormal,
     InclusaoAlimentacaoContinua,
     MotivoInclusaoContinua,
     MotivoInclusaoNormal
 )
-from .permissions import (
-    PodeAprovarAlimentacaoContinuaDaEscolaPermission,
-    PodeIniciarInclusaoAlimentacaoContinuaPermission
-)
-from .serializers import serializers, serializers_create
+from ...dados_comuns import constants
 
 
 class MotivoInclusaoContinuaViewSet(ReadOnlyModelViewSet):
@@ -140,6 +142,12 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
         page = self.paginate_queryset(inclusoes_normais)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
+
+    @action(detail=True,
+            methods=['GET'],
+            url_path=f'{constants.RELATORIO}')
+    def relatorio(self, request, uuid=None):
+        return relatorio_inclusao_alimentacao_normal(request, solicitacao=self.get_object())
 
     #
     # IMPLEMENTACAO DO FLUXO
@@ -370,6 +378,12 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
         page = self.paginate_queryset(inclusoes_continuas)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
+
+    @action(detail=True,
+            methods=['GET'],
+            url_path=f'{constants.RELATORIO}')
+    def relatorio(self, request, uuid=None):
+        return relatorio_inclusao_alimentacao_continua(request, solicitacao=self.get_object())
 
     #
     # IMPLEMENTACAO DO FLUXO
