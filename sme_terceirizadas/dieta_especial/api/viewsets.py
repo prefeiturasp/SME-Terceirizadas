@@ -3,7 +3,9 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
+from ...dados_comuns import constants
 from ...dados_comuns.utils import convert_base64_to_contentfile
+from ...relatorios.relatorios import relatorio_dieta_especial
 from ..forms import AutorizaDietaEspecialForm, NegaDietaEspecialForm
 from ..models import AlergiaIntolerancia, Anexo, ClassificacaoDieta, MotivoNegacao, SolicitacaoDietaEspecial, TipoDieta
 from .serializers import (
@@ -69,6 +71,11 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
         solicitacao.terceirizada_toma_ciencia(user=request.user)
 
         return Response({'mensagem': 'Ciente da solicitação de dieta especial'})
+
+    @action(detail=True, url_path=constants.RELATORIO,
+            methods=['get'])
+    def relatorio(self, request, uuid=None):
+        return relatorio_dieta_especial(request, solicitacao=self.get_object())
 
 
 class AlergiaIntoleranciaViewSet(mixins.ListModelMixin,

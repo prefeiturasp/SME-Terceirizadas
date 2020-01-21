@@ -5,8 +5,8 @@ from rest_framework.status import HTTP_400_BAD_REQUEST
 from rest_framework.viewsets import GenericViewSet
 from xworkflows import InvalidTransitionError
 
-from sme_terceirizadas.relatorios.relatorios import relatorio_alteracao_cardapio
 from ...dados_comuns import constants
+from ...relatorios.relatorios import relatorio_alteracao_cardapio
 from ..models import (
     AlteracaoCardapio,
     Cardapio,
