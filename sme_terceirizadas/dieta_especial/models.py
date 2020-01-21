@@ -14,6 +14,7 @@ from ..dados_comuns.behaviors import (
 )
 from ..dados_comuns.fluxo_status import FluxoDietaEspecialPartindoDaEscola
 from ..dados_comuns.models import LogSolicitacoesUsuario, TemplateMensagem
+from ..escola.api.serializers import AlunoSerializer
 
 
 class SolicitacaoDietaEspecial(ExportModelOperationsMixin('dieta_especial'), TemChaveExterna, CriadoEm, CriadoPor,
@@ -45,6 +46,10 @@ class SolicitacaoDietaEspecial(ExportModelOperationsMixin('dieta_especial'), Tem
     # TODO: Confirmar se PROTECT é a melhor escolha para o campos abaixo
     motivo_negacao = models.ForeignKey('MotivoNegacao', on_delete=models.PROTECT, null=True)
     justificativa_negacao = models.TextField(blank=True)
+
+    @property
+    def aluno_json(self):
+        return AlunoSerializer(self.aluno).data
 
     @property
     def anexos(self):
