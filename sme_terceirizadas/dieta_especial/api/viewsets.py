@@ -3,6 +3,10 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
+from ...dados_comuns.utils import convert_base64_to_contentfile
+from ...paineis_consolidados.api.constants import FILTRO_CODIGO_EOL_ALUNO
+from ..forms import AutorizaDietaEspecialForm, NegaDietaEspecialForm
+from ..models import AlergiaIntolerancia, Anexo, ClassificacaoDieta, MotivoNegacao, SolicitacaoDietaEspecial, TipoDieta
 from .serializers import (
     AlergiaIntoleranciaSerializer,
     ClassificacaoDietaSerializer,
@@ -11,10 +15,6 @@ from .serializers import (
     SolicitacaoDietaEspecialSerializer,
     TipoDietaSerializer
 )
-from ..forms import AutorizaDietaEspecialForm, NegaDietaEspecialForm
-from ..models import AlergiaIntolerancia, Anexo, ClassificacaoDieta, MotivoNegacao, SolicitacaoDietaEspecial, TipoDieta
-from ...dados_comuns.utils import convert_base64_to_contentfile
-from ...paineis_consolidados.api.constants import FILTRO_CODIGO_EOL_ALUNO
 
 
 class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
