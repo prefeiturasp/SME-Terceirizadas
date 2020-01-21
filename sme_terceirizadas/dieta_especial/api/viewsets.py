@@ -1,8 +1,11 @@
 from rest_framework import mixins
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.status import HTTP_400_BAD_REQUEST
 from rest_framework.viewsets import GenericViewSet
+from xworkflows import InvalidTransitionError
 
+from ...dados_comuns import constants
 from ...dados_comuns.utils import convert_base64_to_contentfile
 from ..forms import AutorizaDietaEspecialForm, NegaDietaEspecialForm
 from ..models import AlergiaIntolerancia, Anexo, ClassificacaoDieta, MotivoNegacao, SolicitacaoDietaEspecial, TipoDieta
@@ -69,6 +72,17 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
         solicitacao.terceirizada_toma_ciencia(user=request.user)
 
         return Response({'mensagem': 'Ciente da solicitação de dieta especial'})
+
+    @action(detail=True, methods=['post'], url_path=constants.ESCOLA_CANCELA_DIETA_ESPECIAL)
+    def escola_cancela_solicitacao(self, request, uuid=None):
+        justificativa = request.data.get('justificativa', '')
+        solicitacao = self.get_object()
+        try:
+            solicitacao.cancelar_pedido(user=request.user, justificativa=justificativa)
+            serializer = self.get_serializer(solicitacao)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
 
 class AlergiaIntoleranciaViewSet(mixins.ListModelMixin,
