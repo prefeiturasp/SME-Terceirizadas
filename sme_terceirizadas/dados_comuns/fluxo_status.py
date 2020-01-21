@@ -745,6 +745,14 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
                                   usuario=user,
                                   justificativa=justificativa)
 
+    @xworkflows.after_transition('codae_nega')
+    def _codae_nega_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        assunto, corpo = self.template_mensagem
+        self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_NEGOU,
+                                  usuario=user)
+        self._salva_rastro_solicitacao()
+
     @xworkflows.after_transition('codae_autoriza')
     def _codae_autoriza_hook(self, *args, **kwargs):
         user = kwargs['user']
