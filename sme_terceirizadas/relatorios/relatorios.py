@@ -2,9 +2,9 @@ from django.http import HttpResponse
 from django.template.loader import render_to_string
 from weasyprint import HTML
 
+from ..kit_lanche.models import EscolaQuantidade
 from . import constants
 from .utils import formata_logs, get_width
-from ..kit_lanche.models import EscolaQuantidade
 
 
 def relatorio_kit_lanche_unificado(request, solicitacao):

@@ -51,6 +51,8 @@ ESCOLA_REVISA_PEDIDO = 'escola-revisa-pedido'
 ESCOLA_CANCELA = 'escola-cancela-pedido-48h-antes'
 ESCOLA_INFORMA_SUSPENSAO = 'informa-suspensao'
 
+ESCOLA_CANCELA_DIETA_ESPECIAL = 'escola-cancela-dieta-especial'
+
 DRE_INICIO_PEDIDO = 'inicio-pedido'
 DRE_VALIDA_PEDIDO = 'diretoria-regional-valida-pedido'
 DRE_NAO_VALIDA_PEDIDO = 'diretoria-regional-nao-valida-pedido'
