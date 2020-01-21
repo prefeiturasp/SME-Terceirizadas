@@ -4,7 +4,7 @@ from rest_framework.status import HTTP_400_BAD_REQUEST
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from xworkflows import InvalidTransitionError
 
-from sme_terceirizadas.relatorios.relatorios import (
+from ...relatorios.relatorios import (
     relatorio_inclusao_alimentacao_continua,
     relatorio_inclusao_alimentacao_normal
 )

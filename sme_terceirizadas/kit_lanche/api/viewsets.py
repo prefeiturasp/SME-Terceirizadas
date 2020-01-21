@@ -5,7 +5,7 @@ from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from xworkflows import InvalidTransitionError
 
-from sme_terceirizadas.relatorios.relatorios import relatorio_kit_lanche_unificado
+from ...relatorios.relatorios import relatorio_kit_lanche_unificado
 
 from ...dados_comuns import constants
 from .. import models
