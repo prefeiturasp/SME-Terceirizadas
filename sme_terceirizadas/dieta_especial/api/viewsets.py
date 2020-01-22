@@ -1,4 +1,4 @@
-from rest_framework import mixins
+from rest_framework import generics, mixins
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
@@ -11,13 +11,22 @@ from ...dados_comuns.utils import convert_base64_to_contentfile
 from ...paineis_consolidados.api.constants import FILTRO_CODIGO_EOL_ALUNO
 from ...relatorios.relatorios import relatorio_dieta_especial
 from ..forms import AutorizaDietaEspecialForm, NegaDietaEspecialForm
-from ..models import AlergiaIntolerancia, Anexo, ClassificacaoDieta, MotivoNegacao, SolicitacaoDietaEspecial, TipoDieta
+from ..models import (
+    AlergiaIntolerancia,
+    Anexo,
+    ClassificacaoDieta,
+    MotivoNegacao,
+    SolicitacaoDietaEspecial,
+    SolicitacoesDietaEspecialAtivasInativasPorAluno,
+    TipoDieta
+)
 from .serializers import (
     AlergiaIntoleranciaSerializer,
     ClassificacaoDietaSerializer,
     MotivoNegacaoSerializer,
     SolicitacaoDietaEspecialCreateSerializer,
     SolicitacaoDietaEspecialSerializer,
+    SolicitacoesAtivasInativasPorAlunoSerializer,
     TipoDietaSerializer
 )
 
@@ -101,6 +110,11 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
             return Response(serializer.data)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+
+
+class SolicitacoesAtivasInativasPorAlunoView(generics.ListAPIView):
+    queryset = SolicitacoesDietaEspecialAtivasInativasPorAluno.objects.all()
+    serializer_class = SolicitacoesAtivasInativasPorAlunoSerializer
 
 
 class AlergiaIntoleranciaViewSet(mixins.ListModelMixin,

@@ -126,3 +126,17 @@ class MotivoNegacao(Descritivel):
 class TipoDieta(Descritivel):
     def __str__(self):
         return self.descricao
+
+
+class SolicitacoesDietaEspecialAtivasInativasPorAluno(models.Model):
+    codigo_eol = models.CharField('Código EOL do aluno',
+                                  max_length=6,
+                                  primary_key=True)
+    nome_aluno = models.CharField('Nome completo do aluno',
+                                  max_length=200)
+    ativas = models.IntegerField()
+    inativas = models.IntegerField()
+
+    class Meta:
+        managed = False
+        db_table = 'dietas_ativas_inativas_por_aluno'

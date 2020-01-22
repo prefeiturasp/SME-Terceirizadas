@@ -181,3 +181,10 @@ class SolicitacaoDietaEspecialLogSerializer(serializers.ModelSerializer):
     class Meta:
         model = SolicitacaoDietaEspecial
         fields = ('uuid', 'aluno', 'logs', 'id_externo')
+
+
+class SolicitacoesAtivasInativasPorAlunoSerializer(serializers.Serializer):
+    codigo_eol = serializers.CharField()
+    nome_aluno = serializers.CharField()
+    ativas = serializers.IntegerField()
+    inativas = serializers.IntegerField()
