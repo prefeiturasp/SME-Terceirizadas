@@ -1,5 +1,6 @@
 from django import forms
 
+from ..escola.models import DiretoriaRegional, Escola
 from .models import SolicitacaoDietaEspecial
 
 
@@ -21,3 +22,14 @@ class NegaDietaEspecialForm(forms.ModelForm):
             'motivo_negacao',
             'registro_funcional_nutricionista'
         ]
+
+
+class SolicitacoesAtivasInativasPorAlunoForm(forms.Form):
+    escola = forms.ModelChoiceField(
+        required=False,
+        queryset=Escola.objects.all()
+    )
+    dre = forms.ModelChoiceField(
+        required=False,
+        queryset=DiretoriaRegional.objects.all()
+    )

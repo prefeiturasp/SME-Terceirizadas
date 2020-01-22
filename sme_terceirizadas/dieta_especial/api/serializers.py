@@ -184,7 +184,7 @@ class SolicitacaoDietaEspecialLogSerializer(serializers.ModelSerializer):
 
 
 class SolicitacoesAtivasInativasPorAlunoSerializer(serializers.Serializer):
-    codigo_eol = serializers.CharField()
-    nome_aluno = serializers.CharField()
+    codigo_eol = serializers.CharField(source='aluno.codigo_eol')
+    nome = serializers.CharField(source='aluno.nome')
     ativas = serializers.IntegerField()
     inativas = serializers.IntegerField()

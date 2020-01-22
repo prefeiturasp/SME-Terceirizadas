@@ -1,3 +1,4 @@
+from django.forms import ValidationError
 from rest_framework import generics, mixins
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
@@ -10,7 +11,7 @@ from ...dados_comuns import constants
 from ...dados_comuns.utils import convert_base64_to_contentfile
 from ...paineis_consolidados.api.constants import FILTRO_CODIGO_EOL_ALUNO
 from ...relatorios.relatorios import relatorio_dieta_especial
-from ..forms import AutorizaDietaEspecialForm, NegaDietaEspecialForm
+from ..forms import AutorizaDietaEspecialForm, NegaDietaEspecialForm, SolicitacoesAtivasInativasPorAlunoForm
 from ..models import (
     AlergiaIntolerancia,
     Anexo,
@@ -113,8 +114,21 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
 
 
 class SolicitacoesAtivasInativasPorAlunoView(generics.ListAPIView):
-    queryset = SolicitacoesDietaEspecialAtivasInativasPorAluno.objects.all()
     serializer_class = SolicitacoesAtivasInativasPorAlunoSerializer
+
+    def get_queryset(self):
+        form = SolicitacoesAtivasInativasPorAlunoForm(self.request.GET)
+        if not form.is_valid():
+            raise ValidationError(form.errors)
+
+        qs = SolicitacoesDietaEspecialAtivasInativasPorAluno.objects.all()
+
+        if form.cleaned_data['escola']:
+            qs = qs.filter(aluno__escola=form.cleaned_data['escola'])
+        elif form.cleaned_data['dre']:
+            qs = qs.filter(aluno__escola__diretoria_regional=form.cleaned_data['dre'])
+
+        return qs
 
 
 class AlergiaIntoleranciaViewSet(mixins.ListModelMixin,

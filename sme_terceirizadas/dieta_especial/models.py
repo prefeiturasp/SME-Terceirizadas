@@ -16,6 +16,7 @@ from ..dados_comuns.behaviors import (
 from ..dados_comuns.fluxo_status import FluxoDietaEspecialPartindoDaEscola
 from ..dados_comuns.models import LogSolicitacoesUsuario, TemplateMensagem
 from ..escola.api.serializers import AlunoSerializer
+from ..escola.models import Aluno
 
 
 class SolicitacaoDietaEspecial(ExportModelOperationsMixin('dieta_especial'), TemChaveExterna, CriadoEm, CriadoPor,
@@ -129,11 +130,7 @@ class TipoDieta(Descritivel):
 
 
 class SolicitacoesDietaEspecialAtivasInativasPorAluno(models.Model):
-    codigo_eol = models.CharField('Código EOL do aluno',
-                                  max_length=6,
-                                  primary_key=True)
-    nome_aluno = models.CharField('Nome completo do aluno',
-                                  max_length=200)
+    aluno = models.OneToOneField(Aluno, on_delete=models.DO_NOTHING, primary_key=True)
     ativas = models.IntegerField()
     inativas = models.IntegerField()
 
