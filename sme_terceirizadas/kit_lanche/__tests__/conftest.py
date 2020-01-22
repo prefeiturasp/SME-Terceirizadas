@@ -16,7 +16,9 @@ fake.seed(420)
 @pytest.fixture
 def escola():
     lote = mommy.make('Lote')
-    return mommy.make('Escola', lote=lote)
+    diretoria_regional = mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL IPIRANGA',
+                                    uuid='71822846-196c-430f-9c19-a16454e607be')
+    return mommy.make('Escola', lote=lote, diretoria_regional=diretoria_regional)
 
 
 @pytest.fixture
@@ -44,7 +46,9 @@ def solicitacao_avulsa(escola):
                       local=fake.text()[:160],
                       quantidade_alunos=300,
                       solicitacao_kit_lanche=solicitacao_kit_lanche,
-                      escola=escola)
+                      escola=escola,
+                      rastro_escola=escola,
+                      rastro_dre=escola.diretoria_regional)
 
 
 @pytest.fixture
@@ -106,7 +110,8 @@ def solicitacao_unificada_lista_igual(escola):
                                        lista_kit_lanche_igual=True,
                                        solicitacao_kit_lanche=solicitacao_kit_lanche,
                                        outro_motivo=fake.text(),
-                                       diretoria_regional=dre)
+                                       diretoria_regional=dre,
+                                       rastro_dre=dre)
     solicitacao_unificada.escolas_quantidades.set(escolas_quantidades)
     return solicitacao_unificada
 

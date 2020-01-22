@@ -4,20 +4,23 @@ from rest_framework.status import HTTP_400_BAD_REQUEST
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from xworkflows import InvalidTransitionError
 
-from sme_terceirizadas.relatorios.relatorios import relatorio_inclusao_alimentacao_normal, \
-    relatorio_inclusao_alimentacao_continua
-from .permissions import (
-    PodeAprovarAlimentacaoContinuaDaEscolaPermission,
-    PodeIniciarInclusaoAlimentacaoContinuaPermission
+from sme_terceirizadas.relatorios.relatorios import (
+    relatorio_inclusao_alimentacao_continua,
+    relatorio_inclusao_alimentacao_normal
 )
-from .serializers import serializers, serializers_create
+
+from ...dados_comuns import constants
 from ..models import (
     GrupoInclusaoAlimentacaoNormal,
     InclusaoAlimentacaoContinua,
     MotivoInclusaoContinua,
     MotivoInclusaoNormal
 )
-from ...dados_comuns import constants
+from .permissions import (
+    PodeAprovarAlimentacaoContinuaDaEscolaPermission,
+    PodeIniciarInclusaoAlimentacaoContinuaPermission
+)
+from .serializers import serializers, serializers_create
 
 
 class MotivoInclusaoContinuaViewSet(ReadOnlyModelViewSet):
