@@ -7,6 +7,8 @@ from xworkflows import InvalidTransitionError
 
 from ...dados_comuns import constants
 from ...dados_comuns.utils import convert_base64_to_contentfile
+from ...paineis_consolidados.api.constants import FILTRO_CODIGO_EOL_ALUNO
+from ...relatorios.relatorios import relatorio_dieta_especial
 from ..forms import AutorizaDietaEspecialForm, NegaDietaEspecialForm
 from ..models import AlergiaIntolerancia, Anexo, ClassificacaoDieta, MotivoNegacao, SolicitacaoDietaEspecial, TipoDieta
 from .serializers import (
@@ -30,6 +32,16 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
         if self.action in ['create', 'update', 'partial_update']:
             return SolicitacaoDietaEspecialCreateSerializer
         return SolicitacaoDietaEspecialSerializer
+
+    @action(detail=False, methods=['get'], url_path=f'solicitacoes-aluno/{FILTRO_CODIGO_EOL_ALUNO}')
+    def solicitacoes_vigentes(self, request, codigo_eol_aluno=None):
+        solicitacoes = SolicitacaoDietaEspecial.objects.filter(
+            aluno__codigo_eol=codigo_eol_aluno,
+            status=SolicitacaoDietaEspecial.workflow_class.CODAE_AUTORIZADO
+        )
+        page = self.paginate_queryset(solicitacoes)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
 
     @action(detail=True, methods=['post'])
     def autorizar(self, request, uuid=None):
@@ -72,6 +84,11 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
         solicitacao.terceirizada_toma_ciencia(user=request.user)
 
         return Response({'mensagem': 'Ciente da solicitação de dieta especial'})
+
+    @action(detail=True, url_path=constants.RELATORIO,
+            methods=['get'])
+    def relatorio(self, request, uuid=None):
+        return relatorio_dieta_especial(request, solicitacao=self.get_object())
 
     @action(detail=True, methods=['post'], url_path=constants.ESCOLA_CANCELA_DIETA_ESPECIAL)
     def escola_cancela_solicitacao(self, request, uuid=None):
