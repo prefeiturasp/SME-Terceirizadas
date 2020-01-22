@@ -77,7 +77,8 @@ def cria_solicitacoes_dieta_especial(qtd=50):
             registro_funcional_nutricionista=''.join(random.choice(string.digits) for x in range(6)),
             observacoes=f.text()[:25],
             classificacao=_get_random_classificacao_de_dieta(),
-            aluno=aluno
+            aluno=aluno,
+            ativo=True if random.randint(0, 1) == 1 else False
         )
         solicitacao_dieta_especial.alergias_intolerancias.add(alergia_1, alergia_2)
         solicitacao_dieta_especial.tipos.add(tipo_dieta_1, tipo_dieta_2)

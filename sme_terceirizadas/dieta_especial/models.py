@@ -3,6 +3,7 @@ from django.db import models
 from django_prometheus.models import ExportModelOperationsMixin
 
 from ..dados_comuns.behaviors import (
+    Ativavel,
     CriadoEm,
     CriadoPor,
     Descritivel,
@@ -19,7 +20,7 @@ from ..escola.api.serializers import AlunoSerializer
 
 class SolicitacaoDietaEspecial(ExportModelOperationsMixin('dieta_especial'), TemChaveExterna, CriadoEm, CriadoPor,
                                FluxoDietaEspecialPartindoDaEscola, TemPrioridade,
-                               Logs, TemIdentificadorExternoAmigavel):
+                               Logs, TemIdentificadorExternoAmigavel, Ativavel):
     DESCRICAO = 'Dieta Especial'
     aluno = models.ForeignKey('escola.Aluno', null=True, on_delete=models.PROTECT)
     nome_completo_pescritor = models.CharField('Nome completo do pescritor da receita',
