@@ -6,7 +6,7 @@ from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from xworkflows import InvalidTransitionError
 
 from ...dados_comuns import constants
-from ...relatorios.relatorios import relatorio_kit_lanche_unificado
+from ...relatorios.relatorios import relatorio_kit_lanche_passeio, relatorio_kit_lanche_unificado
 from .. import models
 from ..api.validators import nao_deve_ter_mais_solicitacoes_que_alunos
 from ..models import SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheUnificada
@@ -254,6 +254,11 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
         solicitacao_kit_lanche_avulsa = self.get_object()
         if solicitacao_kit_lanche_avulsa.pode_excluir:
             return super().destroy(request, *args, **kwargs)
+
+    @action(detail=True, url_path=constants.RELATORIO,
+            methods=['get'])
+    def relatorio(self, request, uuid=None):
+        return relatorio_kit_lanche_passeio(request, solicitacao=self.get_object())
 
 
 class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
