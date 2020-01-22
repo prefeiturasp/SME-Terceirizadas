@@ -148,6 +148,14 @@ class EscolaListagemSimplesSelializer(serializers.ModelSerializer):
         fields = ('uuid', 'nome', 'codigo_eol', 'quantidade_alunos')
 
 
+class EscolaListagemSimplissimaComDRESelializer(serializers.ModelSerializer):
+    diretoria_regional = DiretoriaRegionalSimplissimaSerializer()
+
+    class Meta:
+        model = Escola
+        fields = ('uuid', 'nome', 'diretoria_regional')
+
+
 class EscolaSimplissimaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Escola
