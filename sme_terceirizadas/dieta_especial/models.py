@@ -47,6 +47,7 @@ class SolicitacaoDietaEspecial(ExportModelOperationsMixin('dieta_especial'), Tem
     motivo_negacao = models.ForeignKey('MotivoNegacao', on_delete=models.PROTECT, null=True)
     justificativa_negacao = models.TextField(blank=True)
 
+    # Property necessária para retornar dados no serializer de criação de Dieta Especial
     @property
     def aluno_json(self):
         return AlunoSerializer(self.aluno).data

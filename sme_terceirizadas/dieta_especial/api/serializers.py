@@ -78,7 +78,7 @@ class SolicitacaoDietaEspecialCreateSerializer(serializers.ModelSerializer):
         validated_data['criado_por'] = self.context['request'].user
         anexos = validated_data.pop('anexos', [])
         aluno_data = validated_data.pop('aluno_json')
-        aluno = self._create_or_update_aluno(aluno_data)
+        aluno = self._get_or_create_aluno(aluno_data)
         solicitacao = SolicitacaoDietaEspecial.objects.create(**validated_data)
         solicitacao.aluno = aluno
         solicitacao.save()
@@ -93,7 +93,7 @@ class SolicitacaoDietaEspecialCreateSerializer(serializers.ModelSerializer):
         solicitacao.inicia_fluxo(user=self.context['request'].user)
         return solicitacao
 
-    def _create_or_update_aluno(self, aluno_data):
+    def _get_or_create_aluno(self, aluno_data):
         codigo_eol_aluno = f"{int(aluno_data.get('codigo_eol')):06d}"
         nome_aluno = aluno_data.get('nome')
         data_nascimento_aluno = convert_date_format(
