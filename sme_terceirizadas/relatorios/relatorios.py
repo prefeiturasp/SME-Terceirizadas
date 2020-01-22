@@ -6,6 +6,8 @@ from ..kit_lanche.models import EscolaQuantidade
 from . import constants
 from .utils import formata_logs, get_width
 
+from ..kit_lanche.models import SolicitacaoKitLancheAvulsa
+
 
 def relatorio_kit_lanche_unificado(request, solicitacao):
     qtd_escolas = EscolaQuantidade.objects.filter(solicitacao_unificada=solicitacao).count()
@@ -97,3 +99,26 @@ def relatorio_inclusao_alimentacao_normal(request, solicitacao):
     response = HttpResponse(pdf_file, content_type='application/pdf')
     response['Content-Disposition'] = f'filename="inclusao_alimentacao_{solicitacao.id_externo}.pdf"'
     return response
+
+
+def relatorio_kit_lanche_passeio(request, solicitacao):
+    escola = solicitacao.rastro_escola
+    logs = solicitacao.logs
+    observacao = solicitacao.solicitacao_kit_lanche.descricao
+    solicitacao.observacao = observacao
+    html_string = render_to_string(
+        'solicitacao_kit_lanche_passeio.html',
+        {
+            'escola': escola,
+            'solicitacao': solicitacao,
+            'quantidade_kits': solicitacao.solicitacao_kit_lanche.kits.all().count() * solicitacao.quantidade_alunos,
+            'fluxo': constants.FLUXO_PARTINDO_ESCOLA,
+            'width': get_width(constants.FLUXO_PARTINDO_ESCOLA, solicitacao.logs),
+            'logs': formata_logs(logs)
+        }
+    )
+    pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
+    response = HttpResponse(pdf_file, content_type='application/pdf')
+    response['Content-Disposition'] = f'filename="solicitacao_avulsa_{solicitacao.id_externo}.pdf"'
+    return response
+
