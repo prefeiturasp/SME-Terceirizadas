@@ -1,9 +1,8 @@
 {% extends 'email_base.html' %}
-{% load index %}
+{% load email_templatetags %}
 
 {% block conteudo %}
-  <p>A sua solicitação de {{ tipo_solicitacao }} foi <strong>{{ movimentacao_realizada|translate_movimentacao }}</strong> por {{ perfil_que_autorizou }}.</p>
-  <p>Para acompanhar e visualizar todos os detalhes acesse o sistema.</p>
+  <p>A solicitação de {{ tipo_solicitacao }} <strong>{{ movimentacao_realizada | traduz_movimentacao }}</strong> por {{ perfil_que_autorizou }}.</p>
+  <p>Para acompanhar e visualizar todos os detalhes da solicitação, acesse o sistema.</p>
   <br/>
-  <p>link aqui</p>
 {% endblock %}

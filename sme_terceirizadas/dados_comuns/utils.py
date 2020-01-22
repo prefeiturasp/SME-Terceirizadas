@@ -77,3 +77,7 @@ def queryset_por_data(filtro_aplicado, model):
     elif filtro_aplicado == DAQUI_A_TRINTA_DIAS:
         return model.deste_mes  # type: ignore
     return model.objects  # type: ignore
+
+
+def convert_date_format(date, from_format, to_format):
+    return datetime.datetime.strftime(datetime.datetime.strptime(date, from_format), to_format)
