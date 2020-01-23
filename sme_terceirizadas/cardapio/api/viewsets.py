@@ -1,12 +1,13 @@
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST
 from rest_framework.viewsets import GenericViewSet
 from xworkflows import InvalidTransitionError
 
 from ...dados_comuns import constants
-from ...relatorios.relatorios import relatorio_alteracao_cardapio
+from ...relatorios.relatorios import relatorio_alteracao_cardapio, relatorio_inversao_dia_de_cardapio
 from ..models import (
     AlteracaoCardapio,
     Cardapio,
@@ -377,6 +378,11 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
         if inversao_cardapio.pode_excluir:
             return super().destroy(request, *args, **kwargs)
 
+    @action(detail=True, url_path=constants.RELATORIO, methods=['get'],
+            permission_classes=[AllowAny])
+    def relatorio(self, request, uuid=None):
+        return relatorio_inversao_dia_de_cardapio(request, solicitacao=self.get_object())
+
 
 class GrupoSuspensaoAlimentacaoSerializerViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
@@ -526,7 +532,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
 
     @action(detail=True,
             methods=['GET'],
-            url_path=f'{constants.RELATORIO}')
+            url_path=f'{constants.RELATORIO}', permission_classes=[AllowAny])
     def relatorio(self, request, uuid=None):
         return relatorio_alteracao_cardapio(request, solicitacao=self.get_object())
 
