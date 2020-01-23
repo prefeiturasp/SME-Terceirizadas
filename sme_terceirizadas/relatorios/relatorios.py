@@ -140,3 +140,28 @@ def relatorio_inversao_dia_de_cardapio(request, solicitacao):
     response = HttpResponse(pdf_file, content_type='application/pdf')
     response['Content-Disposition'] = f'filename="solicitacao_inversao_{solicitacao.id_externo}.pdf"'
     return response
+
+
+def relatorio_suspensao_de_alimentacao(request, solicitacao):
+    escola = solicitacao.rastro_escola
+    logs = solicitacao.logs
+    motivo = solicitacao.suspensoes_alimentacao.last().motivo.nome
+    suspensoes = solicitacao.suspensoes_alimentacao.all()
+    quantidades_por_periodo = solicitacao.quantidades_por_periodo.all()
+    html_string = render_to_string(
+        'solicitacao_suspensao_de_alimentacao.html',
+        {
+            'escola': escola,
+            'solicitacao': solicitacao,
+            'suspensoes': suspensoes,
+            'motivo': motivo,
+            'quantidades_por_periodo': quantidades_por_periodo,
+            'fluxo': constants.FLUXO_PARTINDO_ESCOLA,
+            'width': get_width(constants.FLUXO_PARTINDO_ESCOLA, solicitacao.logs),
+            'logs': formata_logs(logs)
+        }
+    )
+    pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
+    response = HttpResponse(pdf_file, content_type='application/pdf')
+    response['Content-Disposition'] = f'filename="solicitacao_suspensao_{solicitacao.id_externo}.pdf"'
+    return response
