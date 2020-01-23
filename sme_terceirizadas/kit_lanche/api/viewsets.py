@@ -1,5 +1,6 @@
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
@@ -324,7 +325,7 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=True, url_path=constants.RELATORIO,
-            methods=['get'])
+            methods=['get'], permission_classes=[AllowAny])
     def relatorio(self, request, uuid=None):
         return relatorio_kit_lanche_unificado(request, solicitacao=self.get_object())
 
