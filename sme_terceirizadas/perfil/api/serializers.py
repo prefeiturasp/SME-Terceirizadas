@@ -1,3 +1,4 @@
+from django.template.loader import render_to_string
 from rest_framework import serializers, status
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
@@ -117,12 +118,20 @@ class UsuarioUpdateSerializer(serializers.ModelSerializer):
         else:
             # TODO: não deve estar aqui esse método envia_email_unico_task() Remover.
             if ja_e_administrador and not validated_data.get('super_admin_terceirizadas'):
+                titulo = 'Alteração de funcionalidade'
+                conteudo = f'Olá, {usuario.nome} seu cadastro como nutricionista administrador foi alterado. ' \
+                           'A partir desse momento você não terá acesso à funcionalidade de atribuição de usuários. ' \
+                           'Seu acesso às demais funcionalidades continua ativo.'
+                template = 'email_conteudo_simples.html'
+                dados_template = {'titulo': titulo, 'conteudo': conteudo}
+                html = render_to_string(template, dados_template)
                 envia_email_unico_task.delay(
                     assunto='[SIGPAE] Alteração de funcionalidade',
-                    corpo=f'Olá {usuario.nome},\n\nSeu cadastro como nutricionista administrador foi alterado.\n\n'
-                          f'A partir desse momento você não terá acesso à funcionalidade de atribuição de usuários.'
-                          f'\n\nSeu acesso às demais funcionalidades continua ativo.',
-                    email=usuario.email
+                    corpo='',
+                    email=usuario.email,
+                    template=template,
+                    dados_template=dados_template,
+                    html=html
                 )
             vinculo = usuario.vinculo_atual
             vinculo.perfil = Perfil.objects.get(nome=nome_perfil)
