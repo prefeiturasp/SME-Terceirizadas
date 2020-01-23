@@ -181,7 +181,7 @@ class Usuario(ExportModelOperationsMixin('usuario'), SimpleEmailConfirmationUser
         self.add_email_if_not_exists(self.email)
         content = {'uuid': self.uuid, 'confirmation_key': self.confirmation_key}
         titulo = 'Confirmação de E-mail'
-        conteudo = 'Clique neste link para confirmar seu e-mail no SIGPAE: '+url_configs("CONFIRMAR_EMAIL", content)
+        conteudo = f'Clique neste link para confirmar seu e-mail no SIGPAE: {url_configs("CONFIRMAR_EMAIL", content)}'
         template = 'email_conteudo_simples.html'
         dados_template = {'titulo': titulo, 'conteudo': conteudo}
         html = render_to_string(template, dados_template)
@@ -199,7 +199,7 @@ class Usuario(ExportModelOperationsMixin('usuario'), SimpleEmailConfirmationUser
         token = token_generator.make_token(self)
         content = {'uuid': self.uuid, 'confirmation_key': token}
         titulo = 'Recuperação de senha'
-        conteudo = 'Clique neste link para criar uma nova senha no SIGPAE: '+url_configs("RECUPERAR_SENHA", content)
+        conteudo = f'Clique neste link para criar uma nova senha no SIGPAE: {url_configs("RECUPERAR_SENHA", content)}'
         template = 'email_conteudo_simples.html'
         dados_template = {'titulo': titulo, 'conteudo': conteudo}
         html = render_to_string(template, dados_template)

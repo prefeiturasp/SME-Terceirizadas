@@ -119,9 +119,9 @@ class UsuarioUpdateSerializer(serializers.ModelSerializer):
             # TODO: não deve estar aqui esse método envia_email_unico_task() Remover.
             if ja_e_administrador and not validated_data.get('super_admin_terceirizadas'):
                 titulo = 'Alteração de funcionalidade'
-                conteudo = f'Olá, {usuario.nome} seu cadastro como nutricionista administrador foi alterado. ' \
-                           'A partir desse momento você não terá acesso à funcionalidade de atribuição de usuários. ' \
-                           'Seu acesso às demais funcionalidades continua ativo.'
+                conteudo = f'Olá, {usuario.nome} seu cadastro como nutricionista administrador foi alterado. '
+                f'A partir desse momento você não terá acesso à funcionalidade de atribuição de usuários. '
+                f'Seu acesso às demais funcionalidades continua ativo.'
                 template = 'email_conteudo_simples.html'
                 dados_template = {'titulo': titulo, 'conteudo': conteudo}
                 html = render_to_string(template, dados_template)
