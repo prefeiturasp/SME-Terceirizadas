@@ -73,12 +73,15 @@ def cardapio_invalido():
 @pytest.fixture
 def escola():
     lote = mommy.make('Lote')
+    diretoria_regional = mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL IPIRANGA',
+                                    uuid='012f7722-9ab4-4e21-b0f6-85e17b58b0d1')
     escola = mommy.make(
         'Escola',
         lote=lote,
         nome='EMEF JOAO MENDES',
         codigo_eol='000546',
-        uuid='a627fc63-16fd-482c-a877-16ebc1a82e57'
+        uuid='a627fc63-16fd-482c-a877-16ebc1a82e57',
+        diretoria_regional=diretoria_regional
     )
     return escola
 
@@ -104,7 +107,9 @@ def inversao_dia_cardapio(cardapio_valido2, cardapio_valido3, escola):
                       uuid='98dc7cb7-7a38-408d-907c-c0f073ca2d13',
                       cardapio_de=cardapio_valido2,
                       cardapio_para=cardapio_valido3,
-                      escola=escola)
+                      escola=escola,
+                      rastro_escola=escola,
+                      rastro_dre=escola.diretoria_regional)
 
 
 @pytest.fixture
@@ -205,7 +210,9 @@ def alteracao_cardapio(escola):
                       escola=escola,
                       observacao='teste',
                       data_inicial=datetime.date(2019, 10, 4),
-                      data_final=datetime.date(2019, 12, 31))
+                      data_final=datetime.date(2019, 12, 31),
+                      rastro_escola=escola,
+                      rastro_dre=escola.diretoria_regional)
 
 
 @pytest.fixture

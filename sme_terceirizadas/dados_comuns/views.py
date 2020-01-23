@@ -44,4 +44,4 @@ def send_test_email(request):
 
 
 def test_visualiza_email(request):
-    return render(request, 'email_base.html')
+    return render(request, 'fluxo_autorizar_negar_cancelar.html')

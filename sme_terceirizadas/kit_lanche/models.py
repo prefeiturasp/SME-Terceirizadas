@@ -81,7 +81,7 @@ class SolicitacaoKitLancheAvulsa(ExportModelOperationsMixin('kit_lanche_avulsa')
                                  CriadoPor, TemPrioridade, Logs, SolicitacaoForaDoPrazo):
     # TODO: ao deletar este, deletar solicitacao_kit_lanche também que é uma tabela acessória
     # TODO: passar `local` para solicitacao_kit_lanche
-    DESCRICAO = 'Kit Lanche Avulso'
+    DESCRICAO = 'Kit Lanche'
     local = models.CharField(max_length=160)
     quantidade_alunos = models.PositiveSmallIntegerField()
     solicitacao_kit_lanche = models.ForeignKey(SolicitacaoKitLanche, on_delete=models.DO_NOTHING)
