@@ -6,7 +6,7 @@ from rest_framework.viewsets import GenericViewSet
 from xworkflows import InvalidTransitionError
 
 from ...dados_comuns import constants
-from ...relatorios.relatorios import relatorio_alteracao_cardapio
+from ...relatorios.relatorios import relatorio_alteracao_cardapio, relatorio_inversao_dia_de_cardapio
 from ..models import (
     AlteracaoCardapio,
     Cardapio,
@@ -376,6 +376,10 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
         inversao_cardapio = self.get_object()
         if inversao_cardapio.pode_excluir:
             return super().destroy(request, *args, **kwargs)
+
+    @action(detail=True, url_path=constants.RELATORIO, methods=['get'])
+    def relatorio(self, request, uuid=None):
+        return relatorio_inversao_dia_de_cardapio(request, solicitacao=self.get_object())
 
 
 class GrupoSuspensaoAlimentacaoSerializerViewSet(viewsets.ModelViewSet):
