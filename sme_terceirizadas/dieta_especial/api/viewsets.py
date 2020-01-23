@@ -116,7 +116,7 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
 class SolicitacoesAtivasInativasPorAlunoView(generics.ListAPIView):
     serializer_class = SolicitacoesAtivasInativasPorAlunoSerializer
 
-    def get_queryset(self):
+    def get_queryset(self):  # noqa C901
         form = SolicitacoesAtivasInativasPorAlunoForm(self.request.GET)
         if not form.is_valid():
             raise ValidationError(form.errors)
@@ -127,6 +127,11 @@ class SolicitacoesAtivasInativasPorAlunoView(generics.ListAPIView):
             qs = qs.filter(aluno__escola=form.cleaned_data['escola'])
         elif form.cleaned_data['dre']:
             qs = qs.filter(aluno__escola__diretoria_regional=form.cleaned_data['dre'])
+
+        if form.cleaned_data['codigo_eol']:
+            qs = qs.filter(aluno__codigo_eol=form.cleaned_data['codigo_eol'])
+        elif form.cleaned_data['nome_aluno']:
+            qs = qs.filter(aluno__nome__contains=form.cleaned_data['nome_aluno'])
 
         return qs
 

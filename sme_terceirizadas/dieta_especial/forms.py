@@ -25,6 +25,8 @@ class NegaDietaEspecialForm(forms.ModelForm):
 
 
 class SolicitacoesAtivasInativasPorAlunoForm(forms.Form):
+    codigo_eol = forms.CharField(required=False)
+    nome_aluno = forms.CharField(required=False)
     escola = forms.ModelChoiceField(
         required=False,
         queryset=Escola.objects.all()
