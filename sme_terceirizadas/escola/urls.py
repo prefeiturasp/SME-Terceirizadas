@@ -24,6 +24,8 @@ router.register('codae', viewsets.CODAESimplesViewSet, basename='codae')
 router.register('tipos-unidade-escolar', viewsets.TipoUnidadeEscolarViewSet, basename='tipos-unidade-escolar')
 router.register('quantidade-alunos-por-periodo', viewsets.EscolaPeriodoEscolarViewSet,
                 basename='quantidade-alunos-por-periodo')
+router.register('alunos', viewsets.AlunoViewSet,
+                basename='alunos')
 
 urlpatterns = [
     path('', include(router.urls))

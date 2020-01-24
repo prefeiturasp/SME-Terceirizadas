@@ -14,6 +14,7 @@ from ...escola.api.permissions import (
     PodeCriarAdministradoresDaEscola
 )
 from ...escola.api.serializers import (
+    AlunoSerializer,
     CODAESerializer,
     EscolaPeriodoEscolarSerializer,
     LoteSimplesSerializer,
@@ -23,6 +24,7 @@ from ...escola.api.serializers_create import EscolaPeriodoEscolarCreateSerialize
 from ...paineis_consolidados.api.constants import FILTRO_DRE_UUID
 from ...perfil.api.serializers import UsuarioUpdateSerializer, VinculoSerializer
 from ..models import (
+    Aluno,
     Codae,
     DiretoriaRegional,
     Escola,
@@ -242,3 +244,9 @@ class EscolaPeriodoEscolarViewSet(ModelViewSet):
         page = self.paginate_queryset(periodos)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
+
+
+class AlunoViewSet(ReadOnlyModelViewSet):
+    lookup_field = 'codigo_eol'
+    queryset = Aluno.objects.all()
+    serializer_class = AlunoSerializer
