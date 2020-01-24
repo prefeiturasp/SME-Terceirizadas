@@ -115,6 +115,13 @@ def inversao_dia_cardapio_dre_validar(inversao_dia_cardapio):
 
 
 @pytest.fixture
+def inversao_dia_cardapio_codae_questionado(inversao_dia_cardapio):
+    inversao_dia_cardapio.status = PedidoAPartirDaEscolaWorkflow.CODAE_QUESTIONADO
+    inversao_dia_cardapio.save()
+    return inversao_dia_cardapio
+
+
+@pytest.fixture
 def inversao_dia_cardapio_dre_validado(inversao_dia_cardapio):
     inversao_dia_cardapio.status = PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO
     inversao_dia_cardapio.save()

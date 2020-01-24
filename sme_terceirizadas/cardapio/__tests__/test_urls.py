@@ -64,6 +64,35 @@ def test_url_endpoint_solicitacoes_inversao_codae_autoriza(client_autenticado, i
     assert str(json['uuid']) == str(inversao_dia_cardapio_dre_validado.uuid)
 
 
+def test_url_endpoint_solicitacoes_inversao_dre_nao_valida(client_autenticado, inversao_dia_cardapio_dre_validar):
+    assert str(inversao_dia_cardapio_dre_validar.status) == PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR
+    response = client_autenticado.patch(
+        f'/{ENRPOINT_INVERSOES}/{inversao_dia_cardapio_dre_validar.uuid}/{constants.DRE_NAO_VALIDA_PEDIDO}/'
+    )
+    assert response.status_code == status.HTTP_200_OK
+    json = response.json()
+    assert json['status'] == PedidoAPartirDaEscolaWorkflow.DRE_NAO_VALIDOU_PEDIDO_ESCOLA
+    assert str(json['uuid']) == str(inversao_dia_cardapio_dre_validar.uuid)
+
+
+def test_url_endpoint_solicitacoes_inversao_terceirizada_responde_questioonamento(
+    client_autenticado,
+    inversao_dia_cardapio_codae_questionado):
+    justificativa = 'TESTE JUSTIFICATIVA'
+    resposta = True
+    assert str(inversao_dia_cardapio_codae_questionado.status) == PedidoAPartirDaEscolaWorkflow.CODAE_QUESTIONADO
+    response = client_autenticado.patch(
+        f'/{ENRPOINT_INVERSOES}/{inversao_dia_cardapio_codae_questionado.uuid}/{constants.TERCEIRIZADA_RESPONDE_QUESTIONAMENTO}/',
+        data={'justificativa': justificativa, 'resposta_sim_nao': resposta}
+    )
+    assert response.status_code == status.HTTP_200_OK
+    json = response.json()
+    assert json['status'] == PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO
+    assert json['logs'][0]['justificativa'] == justificativa
+    assert json['logs'][0]['resposta_sim_nao'] == resposta
+    assert str(json['uuid']) == str(inversao_dia_cardapio_codae_questionado.uuid)
+
+
 def test_url_endpoint_solicitacoes_inversao_codae_autoriza_error(client_autenticado, inversao_dia_cardapio_dre_validar):
     assert str(inversao_dia_cardapio_dre_validar.status) == PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR
     response = client_autenticado.patch(
@@ -255,6 +284,20 @@ def test_url_endpoint_alt_card_dre_valida(client_autenticado, alteracao_cardapio
     json = response.json()
     assert json['status'] == PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO
     assert str(json['uuid']) == str(alteracao_cardapio_dre_validar.uuid)
+
+
+def test_url_endpoint_alt_card_codae_questiona(client_autenticado, alteracao_cardapio_dre_validado):
+    assert str(alteracao_cardapio_dre_validado.status) == PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO
+    observacao_questionamento_codae = 'VAI_DAR?'
+    response = client_autenticado.patch(
+        f'/{ENDPOINT_ALTERACAO_CARD}/{alteracao_cardapio_dre_validado.uuid}/{constants.CODAE_QUESTIONA_PEDIDO}/',
+        data={'observacao_questionamento_codae': observacao_questionamento_codae},
+    )
+    assert response.status_code == status.HTTP_200_OK
+    json = response.json()
+    assert json['logs'][0]['observacao_questionamento_codae'] == observacao_questionamento_codae
+    assert json['status'] == PedidoAPartirDaEscolaWorkflow.CODAE_QUESTIONADO
+    assert str(json['uuid']) == str(alteracao_cardapio_dre_validado.uuid)
 
 
 def test_url_endpoint_alt_card_dre_valida_error(client_autenticado, alteracao_cardapio):
