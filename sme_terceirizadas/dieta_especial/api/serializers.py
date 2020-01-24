@@ -4,6 +4,7 @@ from drf_base64.serializers import ModelSerializer
 from rest_framework import serializers
 
 from ...dados_comuns.api.serializers import ContatoSerializer, LogSolicitacoesUsuarioSerializer
+from ...dados_comuns.constants import DEZ_MB
 from ...dados_comuns.utils import convert_base64_to_contentfile, convert_date_format, size
 from ...dados_comuns.validators import deve_ser_no_passado
 from ...escola.api.serializers import AlunoSerializer, LoteNomeSerializer, TipoGestaoSerializer
@@ -66,7 +67,7 @@ class SolicitacaoDietaEspecialCreateSerializer(serializers.ModelSerializer):
     def validate_anexos(self, anexos):
         for anexo in anexos:
             filesize = size(anexo['arquivo'])
-            if filesize > 10485760:
+            if filesize > DEZ_MB:
                 raise serializers.ValidationError('O tamanho máximo de um arquivo é 10MB')
         if not anexos:
             raise serializers.ValidationError('Anexos não pode ser vazio')
