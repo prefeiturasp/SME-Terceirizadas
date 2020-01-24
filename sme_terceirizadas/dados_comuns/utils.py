@@ -9,7 +9,6 @@ from config.settings.base import URL_CONFIGS
 from des.models import DynamicEmailConfiguration
 from django.core.files.base import ContentFile
 from django.core.mail import EmailMultiAlternatives, get_connection, send_mail
-from django.template.loader import render_to_string
 from workalendar.america import BrazilSaoPauloCity
 
 from .constants import DAQUI_A_SETE_DIAS, DAQUI_A_TRINTA_DIAS
@@ -19,11 +18,8 @@ calendar = BrazilSaoPauloCity()
 env = environ.Env()
 
 
-def envia_email_unico(assunto: str, corpo: str, email: str, template: str, dados_template: Any):
+def envia_email_unico(assunto: str, corpo: str, email: str, template: str, dados_template: Any, html=None):
     config = DynamicEmailConfiguration.get_solo()
-    html = None
-    if template and dados_template:
-        html = render_to_string(template, dados_template)
 
     return send_mail(
         assunto,
@@ -33,12 +29,9 @@ def envia_email_unico(assunto: str, corpo: str, email: str, template: str, dados
         html_message=html)
 
 
-def envia_email_em_massa(assunto: str, corpo: str, emails: list, template: str, dados_template: Any):
+def envia_email_em_massa(assunto: str, corpo: str, emails: list, template: str, dados_template: Any, html=None):
     config = DynamicEmailConfiguration.get_solo()
     from_email = config.from_email
-    html = None
-    if template and dados_template:
-        html = render_to_string(template, dados_template)
     with get_connection() as connection:
         messages = []
         for email in emails:

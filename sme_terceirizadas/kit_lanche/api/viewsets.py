@@ -1,12 +1,13 @@
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from xworkflows import InvalidTransitionError
 
 from ...dados_comuns import constants
-from ...relatorios.relatorios import relatorio_kit_lanche_unificado
+from ...relatorios.relatorios import relatorio_kit_lanche_passeio, relatorio_kit_lanche_unificado
 from .. import models
 from ..api.validators import nao_deve_ter_mais_solicitacoes_que_alunos
 from ..models import SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheUnificada
@@ -255,6 +256,11 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
         if solicitacao_kit_lanche_avulsa.pode_excluir:
             return super().destroy(request, *args, **kwargs)
 
+    @action(detail=True, url_path=constants.RELATORIO,
+            methods=['get'])
+    def relatorio(self, request, uuid=None):
+        return relatorio_kit_lanche_passeio(request, solicitacao=self.get_object())
+
 
 class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
     lookup_field = 'uuid'
@@ -319,7 +325,7 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=True, url_path=constants.RELATORIO,
-            methods=['get'])
+            methods=['get'], permission_classes=[AllowAny])
     def relatorio(self, request, uuid=None):
         return relatorio_kit_lanche_unificado(request, solicitacao=self.get_object())
 

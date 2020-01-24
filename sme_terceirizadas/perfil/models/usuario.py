@@ -7,6 +7,7 @@ from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.core.validators import MinLengthValidator
 from django.db import models
 from django.db.models import Q
+from django.template.loader import render_to_string
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from django_prometheus.models import ExportModelOperationsMixin
@@ -101,9 +102,10 @@ class CustomAbstractUser(AbstractBaseUser, PermissionsMixin):
         super().clean()
         self.email = self.__class__.objects.normalize_email(self.email)
 
-    def email_user(self, subject, message, from_email=None, **kwargs):
+    def email_user(self, subject, message, from_email=None, template=None, dados_template=None, html=None, **kwargs):
         """Send an email to this user."""
-        envia_email_unico_task.delay(assunto=subject, corpo=message, email=self.email)
+        envia_email_unico_task.delay(assunto=subject, corpo='', email=self.email, template=template,
+                                     dados_template=dados_template, html=html)
 
 
 # TODO: Refatorar classe Usuário para comportar classes Pessoa, Usuário, Nutricionista
@@ -178,20 +180,35 @@ class Usuario(ExportModelOperationsMixin('usuario'), SimpleEmailConfirmationUser
     def enviar_email_confirmacao(self):
         self.add_email_if_not_exists(self.email)
         content = {'uuid': self.uuid, 'confirmation_key': self.confirmation_key}
+        titulo = 'Confirmação de E-mail'
+        conteudo = f'Clique neste link para confirmar seu e-mail no SIGPAE: {url_configs("CONFIRMAR_EMAIL", content)}'
+        template = 'email_conteudo_simples.html'
+        dados_template = {'titulo': titulo, 'conteudo': conteudo}
+        html = render_to_string(template, dados_template)
         self.email_user(
             subject='Confirme seu e-mail - SIGPAE',
-            message=f'Clique neste link para confirmar seu e-mail no SIGPAE \n'
-                    f': {url_configs("CONFIRMAR_EMAIL", content)}',
+            message='',
+            template=template,
+            dados_template=dados_template,
+            html=html,
+
         )
 
     def enviar_email_recuperacao_senha(self):
         token_generator = PasswordResetTokenGenerator()
         token = token_generator.make_token(self)
         content = {'uuid': self.uuid, 'confirmation_key': token}
+        titulo = 'Recuperação de senha'
+        conteudo = f'Clique neste link para criar uma nova senha no SIGPAE: {url_configs("RECUPERAR_SENHA", content)}'
+        template = 'email_conteudo_simples.html'
+        dados_template = {'titulo': titulo, 'conteudo': conteudo}
+        html = render_to_string(template, dados_template)
         self.email_user(
-            subject='Email de recuperação de senha',
-            message=f'Clique neste link para criar uma nova senha no SIGPAE \n'
-                    f': {url_configs("RECUPERAR_SENHA", content)}',
+            subject='Email de recuperação de senha - SIGPAE',
+            message='',
+            template=template,
+            dados_template=dados_template,
+            html=html,
         )
 
     def enviar_email_administrador(self):
