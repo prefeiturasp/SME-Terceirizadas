@@ -104,6 +104,33 @@
     }
   }
 
+  .multiplos-motivos-solicitacao {
+      display: flex;
+      margin-bottom: 0.4em;
+
+      .coluna-esquerda {
+        width: 35%;
+      }
+
+      .coluna-direita {
+        width: 65%;
+      }
+
+      .titulo {
+        color: $cinza;
+        line-height: 16px;
+      }
+
+      .linha-com-datas {
+        display: flex;
+        margin-bottom: 1em;
+
+        .data-suspensao {
+          margin: 0 2em 0 0;
+        }
+      }
+  }
+
   .observacoes {
     display: flex;
     justify-content: space-between;
