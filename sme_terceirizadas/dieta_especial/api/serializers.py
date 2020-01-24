@@ -1,15 +1,10 @@
-import datetime
-
 from drf_base64.serializers import ModelSerializer
 from rest_framework import serializers
 
 from ...dados_comuns.api.serializers import ContatoSerializer, LogSolicitacoesUsuarioSerializer
-from ...dados_comuns.utils import convert_base64_to_contentfile, convert_date_format
-from ...dados_comuns.validators import deve_ser_no_passado
 from ...escola.api.serializers import AlunoSerializer, LoteNomeSerializer, TipoGestaoSerializer
-from ...escola.models import Aluno, DiretoriaRegional, Escola
+from ...escola.models import DiretoriaRegional, Escola
 from ..models import AlergiaIntolerancia, Anexo, ClassificacaoDieta, MotivoNegacao, SolicitacaoDietaEspecial, TipoDieta
-from .validators import deve_ter_extensao_valida
 
 
 class AlergiaIntoleranciaSerializer(serializers.ModelSerializer):
@@ -42,9 +37,6 @@ class AnexoSerializer(ModelSerializer):
     class Meta:
         model = Anexo
         fields = ('arquivo', 'nome', 'eh_laudo_medico')
-
-
-
 
 
 class DiretoriaRegionalSerializer(serializers.ModelSerializer):

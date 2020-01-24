@@ -237,6 +237,13 @@ def alteracao_cardapio_codae_autorizado(alteracao_cardapio):
 
 
 @pytest.fixture
+def alteracao_cardapio_codae_questionado(alteracao_cardapio):
+    alteracao_cardapio.status = PedidoAPartirDaEscolaWorkflow.CODAE_QUESTIONADO
+    alteracao_cardapio.save()
+    return alteracao_cardapio
+
+
+@pytest.fixture
 def substituicoes_alimentacao_periodo(escola):
     alteracao_cardapio = mommy.make(AlteracaoCardapio, escola=escola, observacao='teste')
     return mommy.make(SubstituicaoAlimentacaoNoPeriodoEscolar, uuid='59beb0ca-982a-49da-98b8-10a296f274ba',

@@ -74,6 +74,14 @@ def solicitacao_avulsa_dre_validado(solicitacao_avulsa):
 
 
 @pytest.fixture
+def solicitacao_avulsa_codae_questionado(solicitacao_avulsa):
+    solicitacao_avulsa.status = PedidoAPartirDaEscolaWorkflow.CODAE_QUESTIONADO
+    solicitacao_avulsa.quantidade_alunos = 200
+    solicitacao_avulsa.save()
+    return solicitacao_avulsa
+
+
+@pytest.fixture
 def solic_avulsa_terc_respondeu_questionamento(solicitacao_avulsa):
     solicitacao_avulsa.status = PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO
     solicitacao_avulsa.quantidade_alunos = 200
@@ -114,6 +122,13 @@ def solicitacao_unificada_lista_igual(escola):
 @pytest.fixture
 def solicitacao_unificada_lista_igual_codae_a_autorizar(solicitacao_unificada_lista_igual):
     solicitacao_unificada_lista_igual.status = PedidoAPartirDaDiretoriaRegionalWorkflow.CODAE_A_AUTORIZAR
+    solicitacao_unificada_lista_igual.save()
+    return solicitacao_unificada_lista_igual
+
+
+@pytest.fixture
+def solicitacao_unificada_lista_igual_codae_questionado(solicitacao_unificada_lista_igual):
+    solicitacao_unificada_lista_igual.status = PedidoAPartirDaDiretoriaRegionalWorkflow.CODAE_QUESTIONADO
     solicitacao_unificada_lista_igual.save()
     return solicitacao_unificada_lista_igual
 

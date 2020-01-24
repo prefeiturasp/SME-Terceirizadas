@@ -37,7 +37,7 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
     def solicitacoes_vigentes(self, request, codigo_eol_aluno=None):
         solicitacoes = SolicitacaoDietaEspecial.objects.filter(
             aluno__codigo_eol=codigo_eol_aluno,
-            # status=SolicitacaoDietaEspecial.workflow_class.CODAE_AUTORIZADO
+            status=SolicitacaoDietaEspecial.workflow_class.CODAE_AUTORIZADO
         )
         page = self.paginate_queryset(solicitacoes)
         serializer = self.get_serializer(page, many=True)
