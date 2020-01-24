@@ -4,7 +4,7 @@ from drf_base64.serializers import ModelSerializer
 from rest_framework import serializers
 
 from ...dados_comuns.api.serializers import ContatoSerializer, LogSolicitacoesUsuarioSerializer
-from ...dados_comuns.utils import convert_base64_to_contentfile, convert_date_format
+from ...dados_comuns.utils import convert_base64_to_contentfile, convert_date_format, size
 from ...dados_comuns.validators import deve_ser_no_passado
 from ...escola.api.serializers import AlunoSerializer, LoteNomeSerializer, TipoGestaoSerializer
 from ...escola.models import Aluno, DiretoriaRegional, Escola
@@ -64,6 +64,10 @@ class SolicitacaoDietaEspecialCreateSerializer(serializers.ModelSerializer):
     aluno_json = serializers.JSONField()
 
     def validate_anexos(self, anexos):
+        for anexo in anexos:
+            filesize = size(anexo['arquivo'])
+            if filesize > 10485760:
+                raise serializers.ValidationError('O tamanho máximo de um arquivo é 10MB')
         if not anexos:
             raise serializers.ValidationError('Anexos não pode ser vazio')
         return anexos
