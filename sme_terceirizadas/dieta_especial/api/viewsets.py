@@ -158,7 +158,11 @@ class SolicitacoesAtivasInativasPorAlunoView(generics.ListAPIView):
         elif form.cleaned_data['nome_aluno']:
             qs = qs.filter(aluno__nome__icontains=form.cleaned_data['nome_aluno'])
 
-        return qs
+        if self.request.user.tipo_usuario == 'dieta_especial':
+            return qs.order_by('aluno__escola__diretoria_regional__nome', 'aluno__escola__nome', 'aluno__nome')
+        elif self.request.user.tipo_usuario == 'diretoriaregional':
+            return qs.order_by('aluno__escola__nome', 'aluno__nome')
+        return qs.order_by('aluno__nome')
 
 
 class AlergiaIntoleranciaViewSet(mixins.ListModelMixin,
