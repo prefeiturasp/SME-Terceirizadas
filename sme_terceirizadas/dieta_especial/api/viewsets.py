@@ -148,8 +148,14 @@ class SolicitacoesAtivasInativasPorAlunoView(generics.ListAPIView):
 
         qs = SolicitacoesDietaEspecialAtivasInativasPorAluno.objects.all()
 
-        if form.cleaned_data['escola']:
+        user = self.request.user
+
+        if user.tipo_usuario == 'escola':
+            qs = qs.filter(aluno__escola=user.vinculo_atual.instituicao)
+        elif form.cleaned_data['escola']:
             qs = qs.filter(aluno__escola=form.cleaned_data['escola'])
+        elif user.tipo_usuario == 'diretoriaregional':
+            qs = qs.filter(aluno__escola__diretoria_regional=user.vinculo_atual.instituicao)
         elif form.cleaned_data['dre']:
             qs = qs.filter(aluno__escola__diretoria_regional=form.cleaned_data['dre'])
 
