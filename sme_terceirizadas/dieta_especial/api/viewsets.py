@@ -1,5 +1,5 @@
 from django.forms import ValidationError
-from rest_framework import generics, mixins
+from rest_framework import generics, mixins, pagination
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
@@ -113,8 +113,15 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
 
+class NineResultsSetPagination(pagination.PageNumberPagination):
+    page_size = 9
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
+
 class SolicitacoesAtivasInativasPorAlunoView(generics.ListAPIView):
     serializer_class = SolicitacoesAtivasInativasPorAlunoSerializer
+    pagination_class = NineResultsSetPagination
 
     def get_queryset(self):  # noqa C901
         form = SolicitacoesAtivasInativasPorAlunoForm(self.request.GET)

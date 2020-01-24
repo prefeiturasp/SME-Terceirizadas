@@ -29,9 +29,11 @@ class SolicitacoesAtivasInativasPorAlunoForm(forms.Form):
     nome_aluno = forms.CharField(required=False)
     escola = forms.ModelChoiceField(
         required=False,
-        queryset=Escola.objects.all()
+        queryset=Escola.objects.all(),
+        to_field_name='uuid'
     )
     dre = forms.ModelChoiceField(
         required=False,
-        queryset=DiretoriaRegional.objects.all()
+        queryset=DiretoriaRegional.objects.all(),
+        to_field_name='uuid'
     )
