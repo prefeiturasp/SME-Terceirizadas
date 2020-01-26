@@ -15,7 +15,9 @@ fake.seed(420)
 @pytest.fixture
 def escola():
     lote = mommy.make('Lote')
-    return mommy.make('Escola', lote=lote)
+    diretoria_regional = mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL IPIRANGA',
+                                    uuid='9640fef4-a068-474e-8979-2e1b2654357a')
+    return mommy.make('Escola', lote=lote, diretoria_regional=diretoria_regional)
 
 
 @pytest.fixture
@@ -76,7 +78,9 @@ def inclusao_alimentacao_continua(escola, motivo_inclusao_continua, request):
                       data_inicial=data_inicial,
                       data_final=data_final,
                       outro_motivo=fake.name(),
-                      escola=escola)
+                      escola=escola,
+                      rastro_escola=escola,
+                      rastro_dre=escola.diretoria_regional)
 
 
 @pytest.fixture
@@ -119,7 +123,9 @@ def grupo_inclusao_alimentacao_normal(escola, motivo_inclusao_normal, request):
 
     data_1, data_2 = request.param
     grupo_inclusao_normal = mommy.make(models.GrupoInclusaoAlimentacaoNormal,
-                                       escola=escola)
+                                       escola=escola,
+                                       rastro_escola=escola,
+                                       rastro_dre=escola.diretoria_regional)
     mommy.make(models.InclusaoAlimentacaoNormal,
                data=data_1,
                motivo=motivo_inclusao_normal,

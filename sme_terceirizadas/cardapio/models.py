@@ -188,6 +188,7 @@ class InversaoCardapio(ExportModelOperationsMixin('inversao_cardapio'), CriadoEm
     cardápio do dia 15 será servido no dia 30
     """
 
+    DESCRICAO = 'Inversão de Cardápio'
     objects = models.Manager()  # Manager Padrão
     desta_semana = InversaoCardapioDestaSemanaManager()
     deste_mes = InversaoCardapioDesteMesManager()
@@ -314,6 +315,7 @@ class GrupoSuspensaoAlimentacao(ExportModelOperationsMixin('grupo_suspensao_alim
     Vide SuspensaoAlimentacao e QuantidadePorPeriodoSuspensaoAlimentacao
     """
 
+    DESCRICAO = 'Suspensão de alimentação'
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING)
     objects = models.Manager()  # Manager Padrão
     desta_semana = GrupoSuspensaoAlimentacaoDestaSemanaManager()
