@@ -6,8 +6,6 @@ from ..kit_lanche.models import EscolaQuantidade
 from . import constants
 from .utils import formata_logs, get_width
 
-from ..kit_lanche.models import SolicitacaoKitLancheAvulsa
-
 
 def relatorio_kit_lanche_unificado(request, solicitacao):
     qtd_escolas = EscolaQuantidade.objects.filter(solicitacao_unificada=solicitacao).count()
