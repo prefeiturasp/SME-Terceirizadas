@@ -131,107 +131,122 @@ def fluxo_escola_loop(obj, user):
 def cria_inclusoes_continuas(qtd=50):
     user = Usuario.objects.get(email="escola@admin.com")
     for i in range(qtd):
-        inclusao_continua = InclusaoAlimentacaoContinua.objects.create(
-            motivo=_get_random_motivo_continuo(),
-            escola=_get_random_escola(),
-            outro_motivo=f.text()[:20],
-            descricao=f.text()[:160], criado_por=user,
-            dias_semana=list(np.random.randint(6, size=4)),
-            data_inicial=hoje + datetime.timedelta(
-                days=random.randint(1, 180)),
-            data_final=hoje + datetime.timedelta(
-                days=random.randint(100, 200)))
+        try:
+            inclusao_continua = InclusaoAlimentacaoContinua.objects.create(
+                motivo=_get_random_motivo_continuo(),
+                escola=_get_random_escola(),
+                outro_motivo=f.text()[:20],
+                descricao=f.text()[:160], criado_por=user,
+                dias_semana=list(np.random.randint(6, size=4)),
+                data_inicial=hoje + datetime.timedelta(
+                    days=random.randint(1, 180)),
+                data_final=hoje + datetime.timedelta(
+                    days=random.randint(100, 200)))
 
-        q = QuantidadePorPeriodo.objects.create(
-            periodo_escolar=_get_random_periodo_escolar(),
-            numero_alunos=random.randint(10, 200),
-            inclusao_alimentacao_continua=inclusao_continua
-        )
-        q.tipos_alimentacao.set(_get_random_tipos_alimentacao())
+            q = QuantidadePorPeriodo.objects.create(
+                periodo_escolar=_get_random_periodo_escolar(),
+                numero_alunos=random.randint(10, 200),
+                inclusao_alimentacao_continua=inclusao_continua
+            )
+            q.tipos_alimentacao.set(_get_random_tipos_alimentacao())
 
-        fluxo_escola_felix(inclusao_continua, user)
+            fluxo_escola_felix(inclusao_continua, user)
+        except InvalidTransitionError:
+            pass
 
 
 def cria_inclusoes_normais(qtd=50):
     user = Usuario.objects.get(email="escola@admin.com")
     for i in range(qtd):
-        grupo_inclusao_normal = GrupoInclusaoAlimentacaoNormal.objects.create(
-            descricao=f.text()[:160],
-            criado_por=user,
-            escola=_get_random_escola()
-        )
-        q = QuantidadePorPeriodo.objects.create(
-            periodo_escolar=_get_random_periodo_escolar(),
-            numero_alunos=random.randint(10, 200),
-            grupo_inclusao_normal=grupo_inclusao_normal
-        )
-        q.tipos_alimentacao.set(_get_random_tipos_alimentacao())
-        InclusaoAlimentacaoNormal.objects.create(
-            motivo=_get_random_motivo_normal(),
-            outro_motivo=f.text()[:40],
-            grupo_inclusao=grupo_inclusao_normal,
-            data=hoje + datetime.timedelta(days=random.randint(1, 180))
-        )
-        fluxo_escola_felix(grupo_inclusao_normal, user)
+        try:
+            grupo_inclusao_normal = GrupoInclusaoAlimentacaoNormal.objects.create(
+                descricao=f.text()[:160],
+                criado_por=user,
+                escola=_get_random_escola()
+            )
+            q = QuantidadePorPeriodo.objects.create(
+                periodo_escolar=_get_random_periodo_escolar(),
+                numero_alunos=random.randint(10, 200),
+                grupo_inclusao_normal=grupo_inclusao_normal
+            )
+            q.tipos_alimentacao.set(_get_random_tipos_alimentacao())
+            InclusaoAlimentacaoNormal.objects.create(
+                motivo=_get_random_motivo_normal(),
+                outro_motivo=f.text()[:40],
+                grupo_inclusao=grupo_inclusao_normal,
+                data=hoje + datetime.timedelta(days=random.randint(1, 180))
+            )
+            fluxo_escola_felix(grupo_inclusao_normal, user)
+        except InvalidTransitionError:
+            pass
 
 
 def cria_solicitacoes_kit_lanche_unificada(qtd=50):
     user = Usuario.objects.get(email="dre@admin.com")
     for i in range(qtd):
-        base = SolicitacaoKitLanche.objects.create(
-            data=hoje + datetime.timedelta(days=random.randint(1, 180)),
-            motivo=f.text()[:40],
-            descricao=f.text()[:160],
-            tempo_passeio=SolicitacaoKitLanche.QUATRO)
-        kits = _get_kit_lanches()[:2]
-        base.kits.set(kits)
+        try:
+            base = SolicitacaoKitLanche.objects.create(
+                data=hoje + datetime.timedelta(days=random.randint(1, 180)),
+                motivo=f.text()[:40],
+                descricao=f.text()[:160],
+                tempo_passeio=SolicitacaoKitLanche.QUATRO)
+            kits = _get_kit_lanches()[:2]
+            base.kits.set(kits)
 
-        unificada = SolicitacaoKitLancheUnificada.objects.create(
-            criado_por=user,
-            outro_motivo=f.text()[:40],
-            local=f.text()[:150],
-            lista_kit_lanche_igual=True,
-            diretoria_regional=_get_random_dre(),
-            solicitacao_kit_lanche=base,
-        )
-        for _ in range(2, 5):
-            EscolaQuantidade.objects.create(quantidade_alunos=random.randint(10, 100),
-                                            solicitacao_unificada=unificada,
-                                            escola=_get_random_escola())
+            unificada = SolicitacaoKitLancheUnificada.objects.create(
+                criado_por=user,
+                outro_motivo=f.text()[:40],
+                local=f.text()[:150],
+                lista_kit_lanche_igual=True,
+                diretoria_regional=_get_random_dre(),
+                solicitacao_kit_lanche=base,
+            )
+            for _ in range(2, 5):
+                EscolaQuantidade.objects.create(quantidade_alunos=random.randint(10, 100),
+                                                solicitacao_unificada=unificada,
+                                                escola=_get_random_escola())
 
-        fluxo_dre_felix(unificada, user)
+            fluxo_dre_felix(unificada, user)
+        except InvalidTransitionError:
+            pass
 
 
 def cria_solicitacoes_kit_lanche_avulsa(qtd=50):
     user = Usuario.objects.get(email="escola@admin.com")
     for i in range(qtd):
-        base = SolicitacaoKitLanche.objects.create(
-            data=hoje + datetime.timedelta(days=random.randint(1, 180)),
-            motivo=f.text()[:40],
-            descricao=f.text()[:160],
-            tempo_passeio=SolicitacaoKitLanche.QUATRO)
-        kits = _get_kit_lanches()[:2]
-        base.kits.set(kits)
-        avulsa = SolicitacaoKitLancheAvulsa.objects.create(
-            criado_por=user,
-            quantidade_alunos=random.randint(20, 200),
-            local=f.text()[:150],
-            escola=_get_random_escola(),
-            solicitacao_kit_lanche=base)
-        fluxo_escola_felix(avulsa, user)
+        try:
+            base = SolicitacaoKitLanche.objects.create(
+                data=hoje + datetime.timedelta(days=random.randint(1, 180)),
+                motivo=f.text()[:40],
+                descricao=f.text()[:160],
+                tempo_passeio=SolicitacaoKitLanche.QUATRO)
+            kits = _get_kit_lanches()[:2]
+            base.kits.set(kits)
+            avulsa = SolicitacaoKitLancheAvulsa.objects.create(
+                criado_por=user,
+                quantidade_alunos=random.randint(20, 200),
+                local=f.text()[:150],
+                escola=_get_random_escola(),
+                solicitacao_kit_lanche=base)
+            fluxo_escola_felix(avulsa, user)
+        except InvalidTransitionError:
+            pass
 
 
 def cria_inversoes_cardapio(qtd=50):
     user = Usuario.objects.get(email="escola@admin.com")
     for i in range(qtd):
-        inversao = InversaoCardapio.objects.create(
-            criado_por=user,
-            observacao=f.text()[:100],
-            motivo=f.text()[:40],
-            escola=_get_random_escola(),
-            cardapio_de=_get_random_cardapio(dias_pra_frente=1),
-            cardapio_para=_get_random_cardapio(dias_pra_frente=10))
-        fluxo_escola_felix(inversao, user)
+        try:
+            inversao = InversaoCardapio.objects.create(
+                criado_por=user,
+                observacao=f.text()[:100],
+                motivo=f.text()[:40],
+                escola=_get_random_escola(),
+                cardapio_de=_get_random_cardapio(dias_pra_frente=1),
+                cardapio_para=_get_random_cardapio(dias_pra_frente=10))
+            fluxo_escola_felix(inversao, user)
+        except InvalidTransitionError:
+            pass
 
 
 def cria_suspensoes_alimentacao(qtd=50):

@@ -33,7 +33,7 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
 
     @action(detail=False,
             url_path=f'{constants.PEDIDOS_DRE}/{constants.FILTRO_PADRAO_PEDIDOS}')
-    def pedidos_diretoria_regional(self, request, filtro_aplicado='sem_filtro'):
+    def solicitacoes_diretoria_regional(self, request, filtro_aplicado='sem_filtro'):
         usuario = request.user
         diretoria_regional = usuario.vinculo_atual.instituicao
         kit_lanches_avulso = diretoria_regional.solicitacoes_kit_lanche_das_minhas_escolas_a_validar(
@@ -44,7 +44,7 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False, url_path='pedidos-autorizados-diretoria-regional')
-    def pedidos_autorizados_diretoria_regional(self, request):
+    def solicitacoes_autorizados_diretoria_regional(self, request):
         usuario = request.user
         diretoria_regional = usuario.vinculo_atual.instituicao
         kit_lanche = diretoria_regional.solicitacao_kit_lanche_avulsa_autorizadas
@@ -53,7 +53,7 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False, url_path='pedidos-reprovados-diretoria-regional')
-    def pedidos_reprovados_diretoria_regional(self, request):
+    def solicitacoes_reprovados_diretoria_regional(self, request):
         usuario = request.user
         diretoria_regional = usuario.vinculo_atual.instituicao
         kit_lanche = diretoria_regional.solicitacao_kit_lanche_avulsa_reprovados
@@ -62,7 +62,7 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False, url_path='pedidos-autorizados-codae')
-    def pedidos_autorizados_codae(self, request):
+    def solicitacoes_autorizados_codae(self, request):
         usuario = request.user
         codae = usuario.vinculo_atual.instituicao
         kit_lanche = codae.solicitacao_kit_lanche_avulsa_autorizadas
@@ -71,7 +71,7 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False, url_path='pedidos-reprovados-codae')
-    def pedidos_reprovados_codae(self, request):
+    def solicitacoes_reprovados_codae(self, request):
         usuario = request.user
         codae = usuario.vinculo_atual.instituicao
         kit_lanche = codae.solicitacao_kit_lanche_avulsa_reprovadas
@@ -80,7 +80,7 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False, url_path='pedidos-autorizados-terceirizadas')
-    def pedidos_autorizados_terceirizadas(self, request):
+    def solicitacoes_autorizados_terceirizadas(self, request):
         usuario = request.user
         terceirizadas = usuario.vinculo_atual.instituicao
         kit_lanche = terceirizadas.solicitacao_kit_lanche_avulsa_autorizadas
@@ -90,7 +90,7 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
 
     @action(detail=False,
             url_path=f'{constants.PEDIDOS_CODAE}/{constants.FILTRO_PADRAO_PEDIDOS}')
-    def pedidos_codae(self, request, filtro_aplicado='sem_filtro'):
+    def solicitacoes_codae(self, request, filtro_aplicado='sem_filtro'):
         usuario = request.user
         codae = usuario.vinculo_atual.instituicao
         kit_lanches_avulso = codae.solicitacoes_kit_lanche_das_minhas_escolas_a_validar(
@@ -102,7 +102,7 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
 
     @action(detail=False,
             url_path=f'{constants.PEDIDOS_TERCEIRIZADA}/{constants.FILTRO_PADRAO_PEDIDOS}')
-    def pedidos_terceirizadas(self, request, filtro_aplicado='sem_filtro'):
+    def solicitacoes_terceirizadas(self, request, filtro_aplicado='sem_filtro'):
         usuario = request.user
         terceirizadas = usuario.vinculo_atual.instituicao
         kit_lanches_avulso = terceirizadas.solicitacoes_kit_lanche_das_minhas_escolas_a_validar(
@@ -274,7 +274,7 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
 
     @action(detail=False,
             url_path=f'{constants.PEDIDOS_CODAE}/{constants.FILTRO_PADRAO_PEDIDOS}')
-    def pedidos_codae(self, request, filtro_aplicado=constants.SEM_FILTRO):
+    def solicitacoes_codae(self, request, filtro_aplicado=constants.SEM_FILTRO):
         # TODO: colocar regras de codae CODAE aqui...
         usuario = request.user
         codae = usuario.vinculo_atual.instituicao
@@ -287,7 +287,7 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
 
     @action(detail=False,
             url_path=f'{constants.PEDIDOS_TERCEIRIZADA}/{constants.FILTRO_PADRAO_PEDIDOS}')
-    def pedidos_terceirizada(self, request, filtro_aplicado=constants.SEM_FILTRO):
+    def solicitacoes_terceirizada(self, request, filtro_aplicado=constants.SEM_FILTRO):
         # TODO: colocar regras de Terceirizada aqui...
         usuario = request.user
         terceirizada = usuario.vinculo_atual.instituicao
@@ -299,7 +299,7 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False, url_path='pedidos-autorizados-codae')
-    def pedidos_autorizados_codae(self, request):
+    def solicitacoes_autorizados_codae(self, request):
         usuario = request.user
         codae = usuario.vinculo_atual.instituicao
         kit_lanche = codae.solicitacoes_unificadas_autorizadas
@@ -308,7 +308,7 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False, url_path='pedidos-autorizados-terceirizada')
-    def pedidos_autorizados_terceirizada(self, request):
+    def solicitacoes_autorizados_terceirizada(self, request):
         usuario = request.user
         terceirizada = usuario.vinculo_atual.instituicao
         kit_lanche = terceirizada.solicitacoes_unificadas_autorizadas

@@ -154,6 +154,24 @@ def test_url_endpoint_solicitacoes_kit_lanche_avulsa_codae_questiona(client_aute
     assert json['status'] == PedidoAPartirDaEscolaWorkflow.CODAE_QUESTIONADO
 
 
+def test_url_endpoint_solicitacoes_kit_lanche_avulsa_terc_resp_quest(client_autenticado,
+                                                                     solicitacao_avulsa_codae_questionado):
+    justificativa = 'VAI DAR NÂO :('
+    resposta_sim_nao = False
+    assert str(solicitacao_avulsa_codae_questionado.status) == PedidoAPartirDaEscolaWorkflow.CODAE_QUESTIONADO
+    response = client_autenticado.patch(
+        f'/{ENDPOINT_AVULSO}/'
+        f'{solicitacao_avulsa_codae_questionado.uuid}/'
+        f'{constants.TERCEIRIZADA_RESPONDE_QUESTIONAMENTO}/',
+        data={'justificativa': justificativa, 'resposta_sim_nao': resposta_sim_nao},
+        content_type='application/json'
+    )
+    assert response.status_code == status.HTTP_200_OK
+    json = response.json()
+    assert json['logs'][0]['justificativa'] == justificativa
+    assert json['status'] == PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO
+
+
 def test_url_endpoint_solicitacoes_kit_lanche_avulsa_codae_questiona_erro(client_autenticado,
                                                                           solic_avulsa_terc_respondeu_questionamento):
     assert str(
@@ -273,6 +291,41 @@ def test_url_endpoint_solicitacoes_kit_lanche_unificada_codae_autoriza(
     assert response.status_code == status.HTTP_200_OK
     json = response.json()
     assert json['status'] == PedidoAPartirDaDiretoriaRegionalWorkflow.CODAE_AUTORIZADO
+
+
+def test_url_endpoint_solicitacoes_kit_lanche_unificada_codae_questiona(
+    client_autenticado,
+    solicitacao_unificada_lista_igual_codae_a_autorizar
+):
+    solicacao = solicitacao_unificada_lista_igual_codae_a_autorizar
+    assert str(solicacao.status) == PedidoAPartirDaDiretoriaRegionalWorkflow.CODAE_A_AUTORIZAR
+    response = client_autenticado.patch(
+        f'/{ENDPOINT_UNIFICADO}/{solicacao.uuid}/{constants.CODAE_QUESTIONA_PEDIDO}/',
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    json = response.json()
+    assert json['status'] == PedidoAPartirDaEscolaWorkflow.CODAE_QUESTIONADO
+
+
+def test_url_endpoint_solicitacoes_kit_lanche_unificada_terceirizada_responde(
+    client_autenticado,
+    solicitacao_unificada_lista_igual_codae_questionado
+):
+    justificativa = 'VAI DAR SIM, TENHO MUITO ESTOQUE EM CASA, MAS VOU TROCAR TODDYNHO POR CHOCOBOM OK? '
+    resposta_sim_nao = True
+    solicacao = solicitacao_unificada_lista_igual_codae_questionado
+    assert str(solicacao.status) == PedidoAPartirDaDiretoriaRegionalWorkflow.CODAE_QUESTIONADO
+    response = client_autenticado.patch(
+        f'/{ENDPOINT_UNIFICADO}/{solicacao.uuid}/{constants.TERCEIRIZADA_RESPONDE_QUESTIONAMENTO}/',
+        data={'justificativa': justificativa, 'resposta_sim_nao': resposta_sim_nao},
+        content_type='application/json'
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    json = response.json()
+    assert json['status'] == PedidoAPartirDaDiretoriaRegionalWorkflow.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO
+    assert json['logs'][0]['justificativa'] == justificativa
 
 
 def test_url_endpoint_solicitacoes_kit_lanche_unificada_codae_autoriza_nega(
