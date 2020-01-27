@@ -54,6 +54,9 @@ class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmiga
     NEGADOS_STATUS_DIETA_ESPECIAL = [DietaEspecialWorkflow.CODAE_NEGOU_PEDIDO]
     NEGADOS_EVENTO_DIETA_ESPECIAL = [LogSolicitacoesUsuario.CODAE_NEGOU]
 
+    CANCELADOS_STATUS_DIETA_ESPECIAL = [DietaEspecialWorkflow.ESCOLA_CANCELOU]
+    CANCELADOS_EVENTO_DIETA_ESPECIAL = [LogSolicitacoesUsuario.ESCOLA_CANCELOU]
+
     TP_SOL_TODOS = 'TODOS'
     TP_SOL_ALT_CARDAPIO = 'ALT_CARDAPIO'
     TP_SOL_INV_CARDAPIO = 'INV_CARDAPIO'
@@ -242,6 +245,14 @@ class SolicitacoesCODAE(MoldeConsolidado):
         ).distinct().order_by('-data_log')
 
     @classmethod
+    def get_cancelados_dieta_especial(cls, **kwargs):
+        return cls.objects.filter(
+            status_atual__in=cls.CANCELADOS_STATUS_DIETA_ESPECIAL,
+            status_evento__in=cls.CANCELADOS_EVENTO_DIETA_ESPECIAL,
+            tipo_doc=cls.TP_SOL_DIETA_ESPECIAL
+        ).distinct().order_by('-data_log')
+
+    @classmethod
     def get_pendentes_autorizacao(cls, **kwargs):
         manager = cls._get_manager(kwargs)
         return manager.filter(
@@ -381,6 +392,16 @@ class SolicitacoesEscola(MoldeConsolidado):
             escola_uuid=escola_uuid,
             status_atual__in=cls.NEGADOS_STATUS_DIETA_ESPECIAL,
             status_evento__in=cls.NEGADOS_EVENTO_DIETA_ESPECIAL,
+            tipo_doc=cls.TP_SOL_DIETA_ESPECIAL
+        ).distinct().order_by('-data_log')
+
+    @classmethod
+    def get_cancelados_dieta_especial(cls, **kwargs):
+        escola_uuid = kwargs.get('escola_uuid')
+        return cls.objects.filter(
+            escola_uuid=escola_uuid,
+            status_atual__in=cls.CANCELADOS_STATUS_DIETA_ESPECIAL,
+            status_evento__in=cls.CANCELADOS_EVENTO_DIETA_ESPECIAL,
             tipo_doc=cls.TP_SOL_DIETA_ESPECIAL
         ).distinct().order_by('-data_log')
 
@@ -542,6 +563,16 @@ class SolicitacoesDRE(MoldeConsolidado):
         ).distinct().order_by('-data_log')
 
     @classmethod
+    def get_cancelados_dieta_especial(cls, **kwargs):
+        dre_uuid = kwargs.get('dre_uuid')
+        return cls.objects.filter(
+            dre_uuid=dre_uuid,
+            status_atual__in=cls.CANCELADOS_STATUS_DIETA_ESPECIAL,
+            status_evento__in=cls.CANCELADOS_EVENTO_DIETA_ESPECIAL,
+            tipo_doc=cls.TP_SOL_DIETA_ESPECIAL
+        ).distinct().order_by('-data_log')
+
+    @classmethod
     def get_pendentes_autorizacao(cls, **kwargs):
         dre_uuid = kwargs.get('dre_uuid')
         return cls.objects.filter(
@@ -676,6 +707,16 @@ class SolicitacoesTerceirizada(MoldeConsolidado):
             terceirizada_uuid=terceirizada_uuid,
             status_atual__in=cls.NEGADOS_STATUS_DIETA_ESPECIAL,
             status_evento__in=cls.NEGADOS_EVENTO_DIETA_ESPECIAL,
+            tipo_doc=cls.TP_SOL_DIETA_ESPECIAL
+        ).distinct().order_by('-data_log')
+
+    @classmethod
+    def get_cancelados_dieta_especial(cls, **kwargs):
+        terceirizada_uuid = kwargs.get('terceirizada_uuid')
+        return cls.objects.filter(
+            terceirizada_uuid=terceirizada_uuid,
+            status_atual__in=cls.CANCELADOS_STATUS_DIETA_ESPECIAL,
+            status_evento__in=cls.CANCELADOS_EVENTO_DIETA_ESPECIAL,
             tipo_doc=cls.TP_SOL_DIETA_ESPECIAL
         ).distinct().order_by('-data_log')
 

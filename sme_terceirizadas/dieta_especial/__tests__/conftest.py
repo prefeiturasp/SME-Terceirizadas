@@ -6,7 +6,7 @@ from model_mommy import mommy
 
 from ...dados_comuns.models import TemplateMensagem
 from ...dados_comuns.utils import convert_base64_to_contentfile
-from ...escola.models import Escola, Lote
+from ...escola.models import Aluno, Escola, Lote
 from ...perfil.models import Usuario
 from ...terceirizada.models import Terceirizada
 from ..models import AlergiaIntolerancia, Anexo, ClassificacaoDieta, MotivoNegacao, SolicitacaoDietaEspecial, TipoDieta
@@ -23,10 +23,10 @@ def arquivo_docx_base64():
 @pytest.fixture
 def solicitacao_dieta_especial():
     escola = mommy.make(Escola, nome='EMEF Carlos da Silva')
+    aluno = mommy.make(Aluno, nome='Roberto Alves da Silva', codigo_eol='123456', data_nascimento='2000-01-01')
     return mommy.make(SolicitacaoDietaEspecial,
                       rastro_escola=escola,
-                      codigo_eol_aluno='123456',
-                      nome_completo_aluno='Roberto Alves da Silva')
+                      aluno=aluno)
 
 
 @pytest.fixture
@@ -103,10 +103,10 @@ def solicitacao_dieta_especial_a_autorizar(client):
     mommy.make('perfil.Vinculo', usuario=user, instituicao=escola, perfil=perfil_professor,
                data_inicial=date.today(), ativo=True)  # ativo
 
+    aluno = mommy.make(Aluno, nome='Roberto Alves da Silva', codigo_eol='123456', data_nascimento='2000-01-01')
     solic = mommy.make(SolicitacaoDietaEspecial,
                        rastro_escola=escola,
-                       codigo_eol_aluno='123456',
-                       nome_completo_aluno='Roberto Alves da Silva',
+                       aluno=aluno,
                        criado_por=user)
 
     mommy.make(TemplateMensagem, tipo=TemplateMensagem.DIETA_ESPECIAL)

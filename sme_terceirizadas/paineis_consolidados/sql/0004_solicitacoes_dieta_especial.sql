@@ -9,7 +9,7 @@ select dieta.id,
        lote.nome                  AS lote_nome,
        dre.nome                   AS dre_nome,
        escola.nome                AS escola_nome,
-       dieta.nome_completo_aluno  AS nome_aluno,
+       aluno.nome                 AS nome_aluno,
        terceirizada.nome_fantasia AS terceirizada_nome,
        lote.uuid                  as lote_uuid,
        dre.uuid                   as dre_uuid,
@@ -22,7 +22,8 @@ select dieta.id,
        logs.criado_em             AS data_log,
        logs.status_evento
 from dieta_especial_solicitacaodietaespecial as dieta
-         left join dados_comuns_logsolicitacoesusuario AS logs ON logs.uuid_original = dieta.uuid
+         LEFT JOIN dados_comuns_logsolicitacoesusuario AS logs ON logs.uuid_original = dieta.uuid
+         LEFT JOIN escola_aluno AS aluno ON aluno.id = dieta.aluno_id
          LEFT JOIN escola_diretoriaregional AS dre ON dre.id = dieta.rastro_dre_id
          LEFT JOIN escola_lote AS lote ON lote.id = dieta.rastro_lote_id
          LEFT JOIN escola_escola AS escola ON escola.id = dieta.rastro_escola_id

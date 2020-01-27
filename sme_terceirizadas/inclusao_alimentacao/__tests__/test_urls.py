@@ -14,6 +14,7 @@ from ...dados_comuns.constants import (
     TERCEIRIZADA_TOMOU_CIENCIA
 )
 from ...dados_comuns.fluxo_status import PedidoAPartirDaEscolaWorkflow
+from ..models import GrupoInclusaoAlimentacaoNormal
 
 pytestmark = pytest.mark.django_db
 
@@ -70,6 +71,8 @@ def test_url_endpoint_inclusao_normal_dre_valida(client_autenticado, grupo_inclu
 
 def test_url_endpoint_inclusao_normal_dre_valida_erro(client_autenticado, grupo_inclusao_alimentacao_normal):
     assert grupo_inclusao_alimentacao_normal.status == PedidoAPartirDaEscolaWorkflow.RASCUNHO
+    assert GrupoInclusaoAlimentacaoNormal.get_solicitacoes_rascunho(
+        grupo_inclusao_alimentacao_normal.criado_por).count() == 1
     response = client_autenticado.patch(
         f'/grupos-inclusao-alimentacao-normal/{grupo_inclusao_alimentacao_normal.uuid}/{DRE_VALIDA_PEDIDO}/')
     assert response.status_code == status.HTTP_400_BAD_REQUEST

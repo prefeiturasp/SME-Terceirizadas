@@ -578,3 +578,17 @@ class Codae(ExportModelOperationsMixin('codae'), Nomeavel, TemChaveExterna, TemV
     class Meta:
         verbose_name = 'CODAE'
         verbose_name_plural = 'CODAE'
+
+
+class Aluno(TemChaveExterna):
+    nome = models.CharField('Nome Completo do Aluno', max_length=100)
+    codigo_eol = models.CharField('Código EOL', max_length=6, unique=True, validators=[MinLengthValidator(6)])
+    data_nascimento = models.DateField()
+    escola = models.ForeignKey(Escola, blank=True, null=True, on_delete=models.SET_NULL)
+
+    def __str__(self):
+        return f'{self.nome} - {self.codigo_eol}'
+
+    class Meta:
+        verbose_name = 'Aluno'
+        verbose_name_plural = 'Alunos'

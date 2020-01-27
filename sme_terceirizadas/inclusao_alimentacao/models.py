@@ -168,8 +168,8 @@ class InclusaoAlimentacaoNormal(ExportModelOperationsMixin('inclusao_normal'), T
 
     def __str__(self):
         if self.outro_motivo:
-            return f'Dia {self.data} {self.outro_motivo}'
-        return f'Dia {self.data} {self.motivo} '
+            return f'Dia {self.data} - Outro motivo: {self.outro_motivo}'
+        return f'Dia {self.data} {self.motivo}'
 
     class Meta:
         verbose_name = 'Inclusão de alimentação normal'

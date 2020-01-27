@@ -188,6 +188,7 @@ class InversaoCardapio(ExportModelOperationsMixin('inversao_cardapio'), CriadoEm
     cardápio do dia 15 será servido no dia 30
     """
 
+    DESCRICAO = 'Inversão de Cardápio'
     objects = models.Manager()  # Manager Padrão
     desta_semana = InversaoCardapioDestaSemanaManager()
     deste_mes = InversaoCardapioDesteMesManager()
@@ -240,13 +241,15 @@ class InversaoCardapio(ExportModelOperationsMixin('inversao_cardapio'), CriadoEm
 
     def salvar_log_transicao(self, status_evento, usuario, **kwargs):
         justificativa = kwargs.get('justificativa', '')
+        resposta_sim_nao = kwargs.get('resposta_sim_nao', False)
         LogSolicitacoesUsuario.objects.create(
             descricao=str(self),
             status_evento=status_evento,
             solicitacao_tipo=LogSolicitacoesUsuario.INVERSAO_DE_CARDAPIO,
             usuario=usuario,
             uuid_original=self.uuid,
-            justificativa=justificativa
+            justificativa=justificativa,
+            resposta_sim_nao=resposta_sim_nao
         )
 
     def __str__(self):
@@ -314,6 +317,7 @@ class GrupoSuspensaoAlimentacao(ExportModelOperationsMixin('grupo_suspensao_alim
     Vide SuspensaoAlimentacao e QuantidadePorPeriodoSuspensaoAlimentacao
     """
 
+    DESCRICAO = 'Suspensão de alimentação'
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING)
     objects = models.Manager()  # Manager Padrão
     desta_semana = GrupoSuspensaoAlimentacaoDestaSemanaManager()

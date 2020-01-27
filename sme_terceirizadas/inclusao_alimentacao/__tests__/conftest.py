@@ -15,7 +15,9 @@ fake.seed(420)
 @pytest.fixture
 def escola():
     lote = mommy.make('Lote')
-    return mommy.make('Escola', lote=lote)
+    diretoria_regional = mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL IPIRANGA',
+                                    uuid='9640fef4-a068-474e-8979-2e1b2654357a')
+    return mommy.make('Escola', lote=lote, diretoria_regional=diretoria_regional)
 
 
 @pytest.fixture
@@ -76,7 +78,9 @@ def inclusao_alimentacao_continua(escola, motivo_inclusao_continua, request):
                       data_inicial=data_inicial,
                       data_final=data_final,
                       outro_motivo=fake.name(),
-                      escola=escola)
+                      escola=escola,
+                      rastro_escola=escola,
+                      rastro_dre=escola.diretoria_regional)
 
 
 @pytest.fixture
@@ -107,6 +111,21 @@ def inclusao_alimentacao_continua_codae_questionado(inclusao_alimentacao_continu
     return inclusao_alimentacao_continua
 
 
+@pytest.fixture
+def inclusao_alimentacao_normal(motivo_inclusao_normal):
+    return mommy.make(models.InclusaoAlimentacaoNormal,
+                      data=datetime.date(2019, 10, 1),
+                      motivo=motivo_inclusao_normal)
+
+
+@pytest.fixture
+def inclusao_alimentacao_normal_outro_motivo(motivo_inclusao_normal):
+    return mommy.make(models.InclusaoAlimentacaoNormal,
+                      data=datetime.date(2019, 10, 1),
+                      motivo=motivo_inclusao_normal,
+                      outro_motivo=fake.name())
+
+
 @pytest.fixture(params=[
     # data ini, data fim, esperado
     (datetime.date(2019, 10, 1), datetime.date(2019, 10, 30)),
@@ -119,7 +138,9 @@ def grupo_inclusao_alimentacao_normal(escola, motivo_inclusao_normal, request):
 
     data_1, data_2 = request.param
     grupo_inclusao_normal = mommy.make(models.GrupoInclusaoAlimentacaoNormal,
-                                       escola=escola)
+                                       escola=escola,
+                                       rastro_escola=escola,
+                                       rastro_dre=escola.diretoria_regional)
     mommy.make(models.InclusaoAlimentacaoNormal,
                data=data_1,
                motivo=motivo_inclusao_normal,
