@@ -84,60 +84,31 @@ def cria_solicitacoes_dieta_especial(qtd=50):
     for index in range(qtd):
         if index % 10 == 0:
             print(f'{index / 10}% COMPLETO')
-        tipo_dieta_1 = _get_random_tipo_de_dieta()
-        tipo_dieta_2 = _get_random_tipo_de_dieta()
-        alergia_1 = _get_random_alergia()
-        alergia_2 = _get_random_alergia()
-        try:
-            aluno = Aluno.objects.create(
-                nome=f.text()[:25],
-                codigo_eol=''.join(random.choice(string.digits) for x in range(6)),
-                data_nascimento=datetime.date(2015, 10, 19)
-            )
-        except IntegrityError:  # duplicate eol
-            return
-        solicitacao_dieta_especial = SolicitacaoDietaEspecial.objects.create(
-            criado_por=user,
-            nome_completo_pescritor=f.text()[:25],
-            registro_funcional_pescritor=''.join(random.choice(string.digits) for x in range(6)),
-            registro_funcional_nutricionista=''.join(random.choice(string.digits) for x in range(6)),
-            observacoes=f.text()[:25],
-            classificacao=_get_random_classificacao_de_dieta(),
-            aluno=aluno,
-            ativo=True if random.randint(0, 1) == 1 else False
-        )
-        solicitacao_dieta_especial.alergias_intolerancias.add(alergia_1, alergia_2)
-        solicitacao_dieta_especial.tipos.add(tipo_dieta_1, tipo_dieta_2)
 
-        for i in range(random.randint(1, 5)):
+        for i in range(random.randint(1, 7)):
             tipo_dieta_1 = _get_random_tipo_de_dieta()
             tipo_dieta_2 = _get_random_tipo_de_dieta()
             alergia_1 = _get_random_alergia()
             alergia_2 = _get_random_alergia()
-            for i in range(random.randint(1, 7)):
-                solicitacao_dieta_especial = SolicitacaoDietaEspecial.objects.create(
-                    criado_por=user,
-                    nome_completo_pescritor=f.text()[:25],
-                    registro_funcional_pescritor=''.join(random.choice(string.digits) for x in range(6)),
-                    registro_funcional_nutricionista=''.join(random.choice(string.digits) for x in range(6)),
-                    observacoes=f.text()[:25],
-                    classificacao=_get_random_classificacao_de_dieta(),
-                    aluno=alunos[index],
-                    ativo=True if random.randint(0, 1) == 1 else False
-                )
-                solicitacao_dieta_especial.alergias_intolerancias.add(alergia_1, alergia_2)
-                solicitacao_dieta_especial.tipos.add(tipo_dieta_1, tipo_dieta_2)
+            solicitacao_dieta_especial = SolicitacaoDietaEspecial.objects.create(
+                criado_por=user,
+                nome_completo_pescritor=f.text()[:25],
+                registro_funcional_pescritor=''.join(random.choice(string.digits) for x in range(6)),
+                registro_funcional_nutricionista=''.join(random.choice(string.digits) for x in range(6)),
+                observacoes=f.text()[:25],
+                classificacao=_get_random_classificacao_de_dieta(),
+                aluno=alunos[index],
+                ativo=True if random.randint(0, 1) == 1 else False
+            )
+            solicitacao_dieta_especial.alergias_intolerancias.add(alergia_1, alergia_2)
+            solicitacao_dieta_especial.tipos.add(tipo_dieta_1, tipo_dieta_2)
 
-                # Anexo.objects.create(
-                #     solicitacao_dieta_especial=solicitacao_dieta_especial,
-                #     arquivo=base64_encode(f.text()[:20])
-                # )
-                anexos.append(Anexo(
-                    solicitacao_dieta_especial=solicitacao_dieta_especial,
-                    arquivo=base64_encode(f.text()[:20])
-                ))
-                fluxo_escola_felix_dieta_especial(solicitacao_dieta_especial, user, index)
-                solicitacoes.append(solicitacao_dieta_especial)
+            anexos.append(Anexo(
+                solicitacao_dieta_especial=solicitacao_dieta_especial,
+                arquivo=base64_encode(f.text()[:20])
+            ))
+            fluxo_escola_felix_dieta_especial(solicitacao_dieta_especial, user, index)
+            solicitacoes.append(solicitacao_dieta_especial)
 
     Anexo.objects.bulk_create(anexos)
 
