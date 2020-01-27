@@ -5,6 +5,7 @@ import datetime
 import random
 import string
 
+from django.db import IntegrityError
 from faker import Faker
 
 from sme_terceirizadas.escola.models import Aluno
@@ -61,11 +62,14 @@ def cria_solicitacoes_dieta_especial(qtd=50):
         tipo_dieta_2 = _get_random_tipo_de_dieta()
         alergia_1 = _get_random_alergia()
         alergia_2 = _get_random_alergia()
-        aluno = Aluno.objects.create(
-            nome=f.text()[:25],
-            codigo_eol=''.join(random.choice(string.digits) for x in range(6)),
-            data_nascimento=datetime.date(2015, 10, 19)
-        )
+        try:
+            aluno = Aluno.objects.create(
+                nome=f.text()[:25],
+                codigo_eol=''.join(random.choice(string.digits) for x in range(6)),
+                data_nascimento=datetime.date(2015, 10, 19)
+            )
+        except IntegrityError:  # duplicate eol
+            return
         solicitacao_dieta_especial = SolicitacaoDietaEspecial.objects.create(
             criado_por=user,
             nome_completo_pescritor=f.text()[:25],

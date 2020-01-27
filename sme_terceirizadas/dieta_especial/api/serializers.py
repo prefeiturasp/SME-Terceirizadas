@@ -9,21 +9,8 @@ from ...dados_comuns.utils import convert_base64_to_contentfile, convert_date_fo
 from ...dados_comuns.validators import deve_ser_no_passado
 from ...escola.api.serializers import AlunoSerializer, LoteNomeSerializer, TipoGestaoSerializer
 from ...escola.models import Aluno, DiretoriaRegional, Escola
+from ..api.serializers_create import AnexoCreateSerializer
 from ..models import AlergiaIntolerancia, Anexo, ClassificacaoDieta, MotivoNegacao, SolicitacaoDietaEspecial, TipoDieta
-from .validators import deve_ter_extensao_valida
-
-
-class AnexoCreateSerializer(serializers.ModelSerializer):
-    arquivo = serializers.CharField()
-    nome = serializers.CharField()
-
-    def validate_nome(self, nome):
-        deve_ter_extensao_valida(nome)
-        return nome
-
-    class Meta:
-        model = Anexo
-        fields = ('arquivo', 'nome')
 
 
 class AlergiaIntoleranciaSerializer(serializers.ModelSerializer):

@@ -294,7 +294,15 @@ class EscolaPeriodoEscolarSerializer(serializers.ModelSerializer):
 
 class AlunoSerializer(serializers.ModelSerializer):
     escola = EscolaSimplissimaSerializer(required=False)
+    nome_escola = serializers.SerializerMethodField()
+    nome_dre = serializers.SerializerMethodField()
+
+    def get_nome_escola(self, obj):
+        return f'{obj.escola.nome}' if obj.escola else None
+
+    def get_nome_dre(self, obj):
+        return f'{obj.escola.diretoria_regional.nome}' if obj.escola else None
 
     class Meta:
         model = Aluno
-        fields = ('uuid', 'nome', 'data_nascimento', 'codigo_eol', 'escola')
+        fields = ('uuid', 'nome', 'data_nascimento', 'codigo_eol', 'escola', 'nome_escola', 'nome_dre')
