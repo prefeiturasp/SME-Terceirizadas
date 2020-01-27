@@ -118,7 +118,7 @@ def relatorio_kit_lanche_passeio(request, solicitacao):
     pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
     response = HttpResponse(pdf_file, content_type='application/pdf')
     response['Content-Disposition'] = f'filename="solicitacao_avulsa_{solicitacao.id_externo}.pdf"'
-    return response
+    return HttpResponse(html_string)
 
 
 def relatorio_inversao_dia_de_cardapio(request, solicitacao):

@@ -257,7 +257,7 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
             return super().destroy(request, *args, **kwargs)
 
     @action(detail=True, url_path=constants.RELATORIO,
-            methods=['get'])
+            methods=['get'], permission_classes=[AllowAny])
     def relatorio(self, request, uuid=None):
         return relatorio_kit_lanche_passeio(request, solicitacao=self.get_object())
 

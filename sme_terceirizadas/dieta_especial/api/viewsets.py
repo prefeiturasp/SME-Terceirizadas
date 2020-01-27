@@ -1,5 +1,6 @@
 from rest_framework import mixins
 from rest_framework.decorators import action
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST
 from rest_framework.viewsets import GenericViewSet
@@ -86,7 +87,7 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
         return Response({'mensagem': 'Ciente da solicitação de dieta especial'})
 
     @action(detail=True, url_path=constants.RELATORIO,
-            methods=['get'])
+            methods=['get'], permission_classes=[AllowAny])
     def relatorio(self, request, uuid=None):
         return relatorio_dieta_especial(request, solicitacao=self.get_object())
 

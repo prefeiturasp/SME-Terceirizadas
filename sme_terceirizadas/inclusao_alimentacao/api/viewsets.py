@@ -1,4 +1,5 @@
 from rest_framework.decorators import action
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
@@ -144,7 +145,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
 
     @action(detail=True,
             methods=['GET'],
-            url_path=f'{constants.RELATORIO}')
+            url_path=f'{constants.RELATORIO}', permission_classes=[AllowAny])
     def relatorio(self, request, uuid=None):
         return relatorio_inclusao_alimentacao_normal(request, solicitacao=self.get_object())
 
@@ -380,7 +381,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
 
     @action(detail=True,
             methods=['GET'],
-            url_path=f'{constants.RELATORIO}')
+            url_path=f'{constants.RELATORIO}', permission_classes=[AllowAny])
     def relatorio(self, request, uuid=None):
         return relatorio_inclusao_alimentacao_continua(request, solicitacao=self.get_object())
 
