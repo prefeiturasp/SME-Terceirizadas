@@ -81,3 +81,7 @@ def queryset_por_data(filtro_aplicado, model):
 
 def convert_date_format(date, from_format, to_format):
     return datetime.datetime.strftime(datetime.datetime.strptime(date, from_format), to_format)
+
+
+def size(b64string):
+    return (len(b64string) * 3) / 4 - b64string.count('=', -2)
