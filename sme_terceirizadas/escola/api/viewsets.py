@@ -38,6 +38,7 @@ from ..models import (
 from .serializers import (
     DiretoriaRegionalCompletaSerializer,
     DiretoriaRegionalSimplissimaSerializer,
+    EscolaListagemSimplissimaComDRESelializer,
     EscolaSimplesSerializer,
     EscolaSimplissimaSerializer,
     PeriodoEscolarSerializer,
@@ -163,6 +164,12 @@ class EscolaSimplissimaViewSet(ReadOnlyModelViewSet):
     def filtro_por_diretoria_regional(self, request, dre_uuid=None):
         escolas = Escola.objects.filter(diretoria_regional__uuid=dre_uuid)
         return Response(self.get_serializer(escolas, many=True).data)
+
+
+class EscolaSimplissimaComDREViewSet(ReadOnlyModelViewSet):
+    lookup_field = 'uuid'
+    queryset = Escola.objects.all()
+    serializer_class = EscolaListagemSimplissimaComDRESelializer
 
 
 class PeriodoEscolarViewSet(ReadOnlyModelViewSet):

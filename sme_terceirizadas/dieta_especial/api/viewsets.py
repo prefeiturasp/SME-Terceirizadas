@@ -1,5 +1,8 @@
-from rest_framework import mixins
+from django.db.models import Sum
+from django.forms import ValidationError
+from rest_framework import generics, mixins
 from rest_framework.decorators import action
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST
@@ -10,14 +13,23 @@ from ...dados_comuns import constants
 from ...dados_comuns.utils import convert_base64_to_contentfile
 from ...paineis_consolidados.api.constants import FILTRO_CODIGO_EOL_ALUNO
 from ...relatorios.relatorios import relatorio_dieta_especial
-from ..forms import AutorizaDietaEspecialForm, NegaDietaEspecialForm
-from ..models import AlergiaIntolerancia, Anexo, ClassificacaoDieta, MotivoNegacao, SolicitacaoDietaEspecial, TipoDieta
+from ..forms import AutorizaDietaEspecialForm, NegaDietaEspecialForm, SolicitacoesAtivasInativasPorAlunoForm
+from ..models import (
+    AlergiaIntolerancia,
+    Anexo,
+    ClassificacaoDieta,
+    MotivoNegacao,
+    SolicitacaoDietaEspecial,
+    SolicitacoesDietaEspecialAtivasInativasPorAluno,
+    TipoDieta
+)
 from .serializers import (
     AlergiaIntoleranciaSerializer,
     ClassificacaoDietaSerializer,
     MotivoNegacaoSerializer,
     SolicitacaoDietaEspecialCreateSerializer,
     SolicitacaoDietaEspecialSerializer,
+    SolicitacoesAtivasInativasPorAlunoSerializer,
     TipoDietaSerializer
 )
 
@@ -101,6 +113,62 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
             return Response(serializer.data)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+
+
+class SolicitacoesAtivasInativasPorAlunoView(generics.ListAPIView):
+    serializer_class = SolicitacoesAtivasInativasPorAlunoSerializer
+    pagination_class = PageNumberPagination
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        agregado = queryset.aggregate(Sum('ativas'), Sum('inativas'))
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            # TODO: Ver se tem como remover o UnorderedObjectListWarning
+            # que acontece por passarmos mais dados do que apenas o serializer.data
+            return self.get_paginated_response({
+                'total_ativas': agregado['ativas__sum'],
+                'total_inativas': agregado['inativas__sum'],
+                'solicitacoes': serializer.data
+            })
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({
+            'total_ativas': agregado['ativas__sum'],
+            'total_inativas': agregado['inativas__sum'],
+            'solicitacoes': serializer.data
+        })
+
+    def get_queryset(self):  # noqa C901
+        form = SolicitacoesAtivasInativasPorAlunoForm(self.request.GET)
+        if not form.is_valid():
+            raise ValidationError(form.errors)
+
+        qs = SolicitacoesDietaEspecialAtivasInativasPorAluno.objects.all()
+
+        user = self.request.user
+
+        if user.tipo_usuario == 'escola':
+            qs = qs.filter(aluno__escola=user.vinculo_atual.instituicao)
+        elif form.cleaned_data['escola']:
+            qs = qs.filter(aluno__escola=form.cleaned_data['escola'])
+        elif user.tipo_usuario == 'diretoriaregional':
+            qs = qs.filter(aluno__escola__diretoria_regional=user.vinculo_atual.instituicao)
+        elif form.cleaned_data['dre']:
+            qs = qs.filter(aluno__escola__diretoria_regional=form.cleaned_data['dre'])
+
+        if form.cleaned_data['codigo_eol']:
+            qs = qs.filter(aluno__codigo_eol=form.cleaned_data['codigo_eol'])
+        elif form.cleaned_data['nome_aluno']:
+            qs = qs.filter(aluno__nome__icontains=form.cleaned_data['nome_aluno'])
+
+        if self.request.user.tipo_usuario == 'dieta_especial':
+            return qs.order_by('aluno__escola__diretoria_regional__nome', 'aluno__escola__nome', 'aluno__nome')
+        elif self.request.user.tipo_usuario == 'diretoriaregional':
+            return qs.order_by('aluno__escola__nome', 'aluno__nome')
+        return qs.order_by('aluno__nome')
 
 
 class AlergiaIntoleranciaViewSet(mixins.ListModelMixin,
