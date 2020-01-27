@@ -3,6 +3,7 @@ from django.db import models
 from django_prometheus.models import ExportModelOperationsMixin
 
 from ..dados_comuns.behaviors import (
+    Ativavel,
     CriadoEm,
     CriadoPor,
     Descritivel,
@@ -15,11 +16,12 @@ from ..dados_comuns.behaviors import (
 from ..dados_comuns.fluxo_status import FluxoDietaEspecialPartindoDaEscola
 from ..dados_comuns.models import LogSolicitacoesUsuario, TemplateMensagem
 from ..escola.api.serializers import AlunoSerializer
+from ..escola.models import Aluno
 
 
 class SolicitacaoDietaEspecial(ExportModelOperationsMixin('dieta_especial'), TemChaveExterna, CriadoEm, CriadoPor,
                                FluxoDietaEspecialPartindoDaEscola, TemPrioridade,
-                               Logs, TemIdentificadorExternoAmigavel):
+                               Logs, TemIdentificadorExternoAmigavel, Ativavel):
     DESCRICAO = 'Dieta Especial'
     aluno = models.ForeignKey('escola.Aluno', null=True, on_delete=models.PROTECT)
     nome_completo_pescritor = models.CharField('Nome completo do pescritor da receita',
@@ -125,3 +127,13 @@ class MotivoNegacao(Descritivel):
 class TipoDieta(Descritivel):
     def __str__(self):
         return self.descricao
+
+
+class SolicitacoesDietaEspecialAtivasInativasPorAluno(models.Model):
+    aluno = models.OneToOneField(Aluno, on_delete=models.DO_NOTHING, primary_key=True)
+    ativas = models.IntegerField()
+    inativas = models.IntegerField()
+
+    class Meta:
+        managed = False
+        db_table = 'dietas_ativas_inativas_por_aluno'

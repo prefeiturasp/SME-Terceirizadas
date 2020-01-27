@@ -1,4 +1,4 @@
-from django.urls import include, path
+from django.urls import include, path, re_path
 from rest_framework import routers
 
 from .api import viewsets
@@ -23,5 +23,9 @@ router.register(ENDPOINT_TIPOS_DIETA_ESPECIAL, viewsets.TipoDietaViewSet,
                 basename='Tipos de dieta especial')
 
 urlpatterns = [
-    path('', include(router.urls))
+    path('', include(router.urls)),
+    re_path(
+        r'^solicitacoes-dieta-especial-ativas-inativas/$',
+        viewsets.SolicitacoesAtivasInativasPorAlunoView.as_view()
+    )
 ]
