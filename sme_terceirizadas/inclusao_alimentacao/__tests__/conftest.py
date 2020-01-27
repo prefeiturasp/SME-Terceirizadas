@@ -111,6 +111,21 @@ def inclusao_alimentacao_continua_codae_questionado(inclusao_alimentacao_continu
     return inclusao_alimentacao_continua
 
 
+@pytest.fixture
+def inclusao_alimentacao_normal(motivo_inclusao_normal):
+    return mommy.make(models.InclusaoAlimentacaoNormal,
+                      data=datetime.date(2019, 10, 1),
+                      motivo=motivo_inclusao_normal)
+
+
+@pytest.fixture
+def inclusao_alimentacao_normal_outro_motivo(motivo_inclusao_normal):
+    return mommy.make(models.InclusaoAlimentacaoNormal,
+                      data=datetime.date(2019, 10, 1),
+                      motivo=motivo_inclusao_normal,
+                      outro_motivo=fake.name())
+
+
 @pytest.fixture(params=[
     # data ini, data fim, esperado
     (datetime.date(2019, 10, 1), datetime.date(2019, 10, 30)),

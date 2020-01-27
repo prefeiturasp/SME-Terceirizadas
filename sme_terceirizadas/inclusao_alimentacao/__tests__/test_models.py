@@ -5,7 +5,7 @@ from model_mommy import mommy
 from xworkflows.base import InvalidTransitionError
 
 from ...escola.models import Escola, PeriodoEscolar
-from ..models import MotivoInclusaoContinua
+from ..models import InclusaoAlimentacaoContinua, MotivoInclusaoContinua
 
 pytestmark = pytest.mark.django_db
 
@@ -25,6 +25,10 @@ def test_quantidade_por_periodo(quantidade_por_periodo):
     assert isinstance(quantidade_por_periodo.numero_alunos, int)
     assert isinstance(quantidade_por_periodo.periodo_escolar, PeriodoEscolar)
     assert quantidade_por_periodo.tipos_alimentacao.all().count() == 5
+    assert quantidade_por_periodo.__str__() == (f'{quantidade_por_periodo.numero_alunos} alunos para ' +
+                                                f'{quantidade_por_periodo.periodo_escolar} com ' +
+                                                f'{quantidade_por_periodo.tipos_alimentacao.all().count()} '
+                                                f'tipo(s) de alimentação')
 
 
 def test_inclusao_alimentacao_continua(inclusao_alimentacao_continua_params):
@@ -51,6 +55,7 @@ def test_inclusao_alimentacao_continua_fluxo(inclusao_alimentacao_continua_param
 
 def test_inclusao_alimentacao_continua_fluxo_erro(inclusao_alimentacao_continua_params):
     inclusao_alimentacao_continua, esperado = inclusao_alimentacao_continua_params
+    assert InclusaoAlimentacaoContinua.get_solicitacoes_rascunho(inclusao_alimentacao_continua.criado_por).count() == 1
     # TODO: pedir incremento do fluxo para testá-lo por completo
     with pytest.raises(InvalidTransitionError,
                        match="Transition 'dre_pede_revisao' isn't available from state 'RASCUNHO'."):
@@ -65,3 +70,15 @@ def test_grupo_inclusao_alimentacao_normal_str(grupo_inclusao_alimentacao_nome):
     assert grupo_inclusao_alimentacao_nome.__str__() == (f'{grupo_inclusao_alimentacao_nome.escola} pedindo '
                                                          f'{grupo_inclusao_alimentacao_nome.inclusoes.count()} '
                                                          f'inclusoes')
+
+
+def test_inclusao_alimentacao_normal(inclusao_alimentacao_normal):
+    assert inclusao_alimentacao_normal.__str__() == (f'Dia {inclusao_alimentacao_normal.data} ' +
+                                                     f'{inclusao_alimentacao_normal.motivo}')
+
+
+def test_inclusao_alimentacao_normal_outro_motivo(inclusao_alimentacao_normal_outro_motivo):
+    assert inclusao_alimentacao_normal_outro_motivo.__str__() == (
+        f'Dia {inclusao_alimentacao_normal_outro_motivo.data} - Outro motivo: ' +
+        f'{inclusao_alimentacao_normal_outro_motivo.outro_motivo}'
+    )
