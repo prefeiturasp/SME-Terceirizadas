@@ -15,10 +15,10 @@ from .serializers import (
     AlergiaIntoleranciaSerializer,
     ClassificacaoDietaSerializer,
     MotivoNegacaoSerializer,
+    SolicitacaoDietaEspecialCreateSerializer,
     SolicitacaoDietaEspecialSerializer,
     TipoDietaSerializer
 )
-from .serializers_create import SolicitacaoDietaEspecialCreateSerializer
 
 
 class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,

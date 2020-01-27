@@ -23,6 +23,7 @@ class AnexoCreateSerializer(serializers.ModelSerializer):
 
 
 class SolicitacaoDietaEspecialCreateSerializer(serializers.ModelSerializer):
+    # TODO, passar isso pro arquivo create
     anexos = serializers.ListField(
         child=AnexoCreateSerializer(), required=True
     )
