@@ -156,8 +156,8 @@ def relatorio_suspensao_de_alimentacao(request, solicitacao):
             'suspensoes': suspensoes,
             'motivo': motivo,
             'quantidades_por_periodo': quantidades_por_periodo,
-            'fluxo': constants.FLUXO_PARTINDO_ESCOLA,
-            'width': get_width(constants.FLUXO_PARTINDO_ESCOLA, solicitacao.logs),
+            'fluxo': constants.FLUXO_INFORMATIVO,
+            'width': get_width(constants.FLUXO_INFORMATIVO, solicitacao.logs),
             'logs': formata_logs(logs)
         }
     )

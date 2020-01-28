@@ -9,7 +9,7 @@
     <div>
       <ul class="progressbar-titles">
         {% for status in fluxo|or_logs:logs %}
-          <li>
+          <li style="width: {{ width }}">
           {% if logs|index_exists:forloop.counter %}
             {{ logs|get_element_by_index:forloop.counter0|get_attribute:'status_evento_explicacao' }}
           {% else %}{{ status.titulo }}{% endif %}
