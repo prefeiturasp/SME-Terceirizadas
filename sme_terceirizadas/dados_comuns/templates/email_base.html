@@ -15,7 +15,7 @@
              style="border: 1px solid #cccccc; border-collapse: collapse;">
         <tr>
           <td align="center" bgcolor="#70bbd9">
-            <img src="https://hom-terceirizadas.sme.prefeitura.sp.gov.br/media/email/static/images/email-sigpae.png" alt="" style="display: block;"/>
+            <img src=href="{% static 'images/email/email-sigpae.png' %}" alt="" style="display: block;"/>
           </td>
         </tr>
         <tr>
@@ -30,8 +30,8 @@
               </tr>
               <tr>
                 <td style="padding: 20px 0 30px 0; color: #42474A; font-family: Roboto, sans-serif; font-size: 14px; line-height: 16px; text-align: center;">
-                  {% block conteudo %}
-                  {% endblock %}
+                    {% block conteudo %}
+                    {% endblock %}
                 </td>
               </tr>
             </table>
