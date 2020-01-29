@@ -225,7 +225,8 @@ class SolicitacoesCODAE(MoldeConsolidado):
     def get_pendentes_dieta_especial(cls, **kwargs):
         return cls.objects.filter(
             status_atual__in=cls.PENDENTES_STATUS_DIETA_ESPECIAL,
-            status_evento__in=cls.PENDENTES_EVENTO_DIETA_ESPECIAL
+            status_evento__in=cls.PENDENTES_EVENTO_DIETA_ESPECIAL,
+            tipo_doc=cls.TP_SOL_DIETA_ESPECIAL
         ).distinct().order_by('-data_log')
 
     @classmethod
@@ -372,7 +373,8 @@ class SolicitacoesEscola(MoldeConsolidado):
         return cls.objects.filter(
             escola_uuid=escola_uuid,
             status_atual__in=cls.PENDENTES_STATUS_DIETA_ESPECIAL,
-            status_evento__in=cls.PENDENTES_EVENTO_DIETA_ESPECIAL
+            status_evento__in=cls.PENDENTES_EVENTO_DIETA_ESPECIAL,
+            tipo_doc=cls.TP_SOL_DIETA_ESPECIAL
         ).distinct().order_by('-data_log')
 
     @classmethod
@@ -539,7 +541,8 @@ class SolicitacoesDRE(MoldeConsolidado):
         return cls.objects.filter(
             dre_uuid=dre_uuid,
             status_atual__in=cls.PENDENTES_STATUS_DIETA_ESPECIAL,
-            status_evento__in=cls.PENDENTES_EVENTO_DIETA_ESPECIAL
+            status_evento__in=cls.PENDENTES_EVENTO_DIETA_ESPECIAL,
+            tipo_doc=cls.TP_SOL_DIETA_ESPECIAL
         ).distinct().order_by('-data_log')
 
     @classmethod
@@ -687,7 +690,8 @@ class SolicitacoesTerceirizada(MoldeConsolidado):
         return cls.objects.filter(
             terceirizada_uuid=terceirizada_uuid,
             status_atual__in=cls.PENDENTES_STATUS_DIETA_ESPECIAL,
-            status_evento__in=cls.PENDENTES_EVENTO_DIETA_ESPECIAL
+            status_evento__in=cls.PENDENTES_EVENTO_DIETA_ESPECIAL,
+            tipo_doc=cls.TP_SOL_DIETA_ESPECIAL
         ).distinct().order_by('-data_log')
 
     @classmethod
