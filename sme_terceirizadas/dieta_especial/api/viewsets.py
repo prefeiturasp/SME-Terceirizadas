@@ -9,15 +9,10 @@ from rest_framework.status import HTTP_400_BAD_REQUEST
 from rest_framework.viewsets import GenericViewSet
 from xworkflows import InvalidTransitionError
 
-from .serializers import (
-    AlergiaIntoleranciaSerializer,
-    ClassificacaoDietaSerializer,
-    MotivoNegacaoSerializer,
-    SolicitacaoDietaEspecialSerializer,
-    SolicitacoesAtivasInativasPorAlunoSerializer,
-    TipoDietaSerializer
-)
-from .serializers_create import SolicitacaoDietaEspecialCreateSerializer
+from ...dados_comuns import constants
+from ...dados_comuns.utils import convert_base64_to_contentfile
+from ...paineis_consolidados.api.constants import FILTRO_CODIGO_EOL_ALUNO
+from ...relatorios.relatorios import relatorio_dieta_especial
 from ..forms import AutorizaDietaEspecialForm, NegaDietaEspecialForm, SolicitacoesAtivasInativasPorAlunoForm
 from ..models import (
     AlergiaIntolerancia,
@@ -28,10 +23,15 @@ from ..models import (
     SolicitacoesDietaEspecialAtivasInativasPorAluno,
     TipoDieta
 )
-from ...dados_comuns import constants
-from ...dados_comuns.utils import convert_base64_to_contentfile
-from ...paineis_consolidados.api.constants import FILTRO_CODIGO_EOL_ALUNO
-from ...relatorios.relatorios import relatorio_dieta_especial
+from .serializers import (
+    AlergiaIntoleranciaSerializer,
+    ClassificacaoDietaSerializer,
+    MotivoNegacaoSerializer,
+    SolicitacaoDietaEspecialSerializer,
+    SolicitacoesAtivasInativasPorAlunoSerializer,
+    TipoDietaSerializer
+)
+from .serializers_create import SolicitacaoDietaEspecialCreateSerializer
 
 
 class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,

@@ -2,12 +2,12 @@ import datetime
 
 from rest_framework import serializers
 
-from .validators import deve_ter_extensao_valida
-from ..models import Anexo, SolicitacaoDietaEspecial
 from ...dados_comuns.constants import DEZ_MB
 from ...dados_comuns.utils import convert_base64_to_contentfile, convert_date_format, size
 from ...dados_comuns.validators import deve_ser_no_passado
 from ...escola.models import Aluno
+from ..models import Anexo, SolicitacaoDietaEspecial
+from .validators import deve_ter_extensao_valida
 
 
 class AnexoCreateSerializer(serializers.ModelSerializer):

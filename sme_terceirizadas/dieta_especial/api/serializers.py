@@ -3,7 +3,7 @@ from rest_framework import serializers
 
 from ...dados_comuns.api.serializers import ContatoSerializer, LogSolicitacoesUsuarioSerializer
 from ...escola.api.serializers import AlunoSerializer, LoteNomeSerializer, TipoGestaoSerializer
-from ...escola.models import Aluno, DiretoriaRegional, Escola
+from ...escola.models import DiretoriaRegional, Escola
 from ..models import AlergiaIntolerancia, Anexo, ClassificacaoDieta, MotivoNegacao, SolicitacaoDietaEspecial, TipoDieta
 
 
