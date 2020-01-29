@@ -589,6 +589,15 @@ class Aluno(TemChaveExterna):
     def __str__(self):
         return f'{self.nome} - {self.codigo_eol}'
 
+    @property
+    def possui_dieta_especial_ativa(self):
+        return self.dietas_especiais.filter(ativo=True).exists()
+
+    def inativar_dieta_especial(self):
+        dieta_especial = self.dietas_especiais.get(ativo=True)
+        dieta_especial.ativo = False
+        dieta_especial.save()
+
     class Meta:
         verbose_name = 'Aluno'
         verbose_name_plural = 'Alunos'

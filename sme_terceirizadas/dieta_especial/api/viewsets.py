@@ -9,10 +9,15 @@ from rest_framework.status import HTTP_400_BAD_REQUEST
 from rest_framework.viewsets import GenericViewSet
 from xworkflows import InvalidTransitionError
 
-from ...dados_comuns import constants
-from ...dados_comuns.utils import convert_base64_to_contentfile
-from ...paineis_consolidados.api.constants import FILTRO_CODIGO_EOL_ALUNO
-from ...relatorios.relatorios import relatorio_dieta_especial
+from .serializers import (
+    AlergiaIntoleranciaSerializer,
+    ClassificacaoDietaSerializer,
+    MotivoNegacaoSerializer,
+    SolicitacaoDietaEspecialSerializer,
+    SolicitacoesAtivasInativasPorAlunoSerializer,
+    TipoDietaSerializer
+)
+from .serializers_create import SolicitacaoDietaEspecialCreateSerializer
 from ..forms import AutorizaDietaEspecialForm, NegaDietaEspecialForm, SolicitacoesAtivasInativasPorAlunoForm
 from ..models import (
     AlergiaIntolerancia,
@@ -23,15 +28,10 @@ from ..models import (
     SolicitacoesDietaEspecialAtivasInativasPorAluno,
     TipoDieta
 )
-from .serializers import (
-    AlergiaIntoleranciaSerializer,
-    ClassificacaoDietaSerializer,
-    MotivoNegacaoSerializer,
-    SolicitacaoDietaEspecialCreateSerializer,
-    SolicitacaoDietaEspecialSerializer,
-    SolicitacoesAtivasInativasPorAlunoSerializer,
-    TipoDietaSerializer
-)
+from ...dados_comuns import constants
+from ...dados_comuns.utils import convert_base64_to_contentfile
+from ...paineis_consolidados.api.constants import FILTRO_CODIGO_EOL_ALUNO
+from ...relatorios.relatorios import relatorio_dieta_especial
 
 
 class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
@@ -50,7 +50,8 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
     def solicitacoes_vigentes(self, request, codigo_eol_aluno=None):
         solicitacoes = SolicitacaoDietaEspecial.objects.filter(
             aluno__codigo_eol=codigo_eol_aluno,
-            status=SolicitacaoDietaEspecial.workflow_class.CODAE_AUTORIZADO
+            status__in=[SolicitacaoDietaEspecial.workflow_class.CODAE_AUTORIZADO,
+                        SolicitacaoDietaEspecial.workflow_class.TERCEIRIZADA_TOMOU_CIENCIA]
         )
         page = self.paginate_queryset(solicitacoes)
         serializer = self.get_serializer(page, many=True)
@@ -59,6 +60,8 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
     @action(detail=True, methods=['post'])
     def autorizar(self, request, uuid=None):
         solicitacao = self.get_object()
+        if solicitacao.aluno.possui_dieta_especial_ativa:
+            solicitacao.aluno.inativar_dieta_especial()
         form = AutorizaDietaEspecialForm(request.data, instance=solicitacao)
 
         if not form.is_valid():
@@ -73,7 +76,7 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
             )
 
         solicitacao.codae_autoriza(user=request.user)
-
+        solicitacao.ativo = True
         solicitacao.save()
 
         return Response({'mensagem': 'Autorização de dieta especial realizada com sucesso'})

@@ -23,7 +23,7 @@ class SolicitacaoDietaEspecial(ExportModelOperationsMixin('dieta_especial'), Tem
                                FluxoDietaEspecialPartindoDaEscola, TemPrioridade,
                                Logs, TemIdentificadorExternoAmigavel, Ativavel):
     DESCRICAO = 'Dieta Especial'
-    aluno = models.ForeignKey('escola.Aluno', null=True, on_delete=models.PROTECT)
+    aluno = models.ForeignKey('escola.Aluno', null=True, on_delete=models.PROTECT, related_name='dietas_especiais')
     nome_completo_pescritor = models.CharField('Nome completo do pescritor da receita',
                                                max_length=200,
                                                validators=[MinLengthValidator(6)],
