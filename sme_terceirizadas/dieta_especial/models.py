@@ -90,6 +90,7 @@ class SolicitacaoDietaEspecial(ExportModelOperationsMixin('dieta_especial'), Tem
         )
 
     class Meta:
+        ordering = ('-ativo', '-criado_em')
         verbose_name = 'Solicitação de dieta especial'
         verbose_name_plural = 'Solicitações de dieta especial'
 
