@@ -48,6 +48,9 @@ class SolicitacaoDietaEspecialCreateSerializer(serializers.ModelSerializer):
         validated_data['criado_por'] = self.context['request'].user
         anexos = validated_data.pop('anexos', [])
         aluno_data = validated_data.pop('aluno_json')
+        codigo_eol_aluno = f"{int(aluno_data.get('codigo_eol')):06d}"
+        if SolicitacaoDietaEspecial.aluno_possui_dieta_especial_pendente(codigo_eol_aluno):
+            raise serializers.ValidationError('Aluno já possui Solicitação de Dieta Especial pendente')
         aluno = self._get_or_create_aluno(aluno_data)
         solicitacao = SolicitacaoDietaEspecial.objects.create(**validated_data)
         solicitacao.aluno = aluno

@@ -49,6 +49,11 @@ class SolicitacaoDietaEspecial(ExportModelOperationsMixin('dieta_especial'), Tem
     motivo_negacao = models.ForeignKey('MotivoNegacao', on_delete=models.PROTECT, null=True)
     justificativa_negacao = models.TextField(blank=True)
 
+    @classmethod
+    def aluno_possui_dieta_especial_pendente(cls, codigo_eol_aluno):
+        return cls.objects.filter(aluno__codigo_eol=codigo_eol_aluno,
+                                  status=cls.workflow_class.CODAE_A_AUTORIZAR).exists()
+
     # Property necessária para retornar dados no serializer de criação de Dieta Especial
     @property
     def aluno_json(self):
