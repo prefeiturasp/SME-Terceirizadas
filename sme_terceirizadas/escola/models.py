@@ -1,4 +1,6 @@
-from django.core.exceptions import ObjectDoesNotExist
+import logging
+
+from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 from django.core.validators import MinLengthValidator
 from django.db import models
 from django.db.models import Q, Sum
@@ -26,6 +28,8 @@ from ..dados_comuns.constants import (
 from ..dados_comuns.utils import queryset_por_data
 from ..inclusao_alimentacao.models import GrupoInclusaoAlimentacaoNormal, InclusaoAlimentacaoContinua
 from ..kit_lanche.models import SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheUnificada
+
+logger = logging.getLogger('sigpae.EscolaModels')
 
 
 class DiretoriaRegional(ExportModelOperationsMixin('diretoria_regional'), Nomeavel, Iniciais, TemChaveExterna,
@@ -590,9 +594,12 @@ class Aluno(TemChaveExterna):
         return self.dietas_especiais.filter(ativo=True).exists()
 
     def inativar_dieta_especial(self):
-        dieta_especial = self.dietas_especiais.get(ativo=True)
-        dieta_especial.ativo = False
-        dieta_especial.save()
+        try:
+            dieta_especial = self.dietas_especiais.get(ativo=True)
+            dieta_especial.ativo = False
+            dieta_especial.save()
+        except MultipleObjectsReturned:
+            logger.critical(f'Aluno não deve possuir mais de uma Dieta Especial ativa')
 
     class Meta:
         verbose_name = 'Aluno'
