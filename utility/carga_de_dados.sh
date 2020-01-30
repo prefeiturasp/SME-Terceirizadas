@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+echo "Ao final do script, deseja criar solicitações de teste? (S/N)"
+read criar_solicitacoes
+
 echo "Script de carga de dados para DESENVOLVIMENTO SOMENTE"
 ./manage.py migrate
 
@@ -25,5 +28,10 @@ echo "nutri"
 ./manage.py shell -c "from utility.carga_dados.escola import _10_codae"
 ./manage.py shell -c "from utility.carga_dados.escola import _9_associar_admins"
 
-./manage.py shell -c "from utility.carga_dados._2_cardapio import _3_solicitacoes_dieta_especial"
+if [ "$criar_solicitacoes" != "${criar_solicitacoes#[Ss]}" ] ;then
+    echo "Criando solicitações..."
+    ./manage.py shell -c "from utility.carga_dados._2_cardapio import _1_cardapios"
+    ./manage.py shell -c "from utility.carga_dados._2_cardapio import _2_todas_as_solicitacoes"
+    ./manage.py shell -c "from utility.carga_dados._2_cardapio import _3_solicitacoes_dieta_especial"
+fi
 

@@ -72,10 +72,10 @@ def cria_solicitacoes_dieta_especial(qtd=50):
     user = Usuario.objects.get(email="escola@admin.com")
     codigos_eol = random.sample(range(100000, 999999), qtd)
     alunos = []
-    for index in range(qtd):
+    for cod_eol in codigos_eol:
         alunos.append(Aluno(
-            nome=f.text()[:25],
-            codigo_eol=''.join(random.choice(string.digits) for x in range(6)),
+            nome=f.name(),
+            codigo_eol=str(cod_eol),
             data_nascimento=datetime.date(2015, 10, 19),
             escola=_get_random_escola()
         ))
@@ -120,7 +120,5 @@ def cria_solicitacoes_dieta_especial(qtd=50):
 
 QTD_PEDIDOS = 1000
 
-criar_pedidos = input('Criar solicitacoes dieta especial? (S/N)?')
-if criar_pedidos.upper() == 'S':
-    print('-> criando solicitacoes dieta especial')
-    cria_solicitacoes_dieta_especial(QTD_PEDIDOS)
+print('-> criando solicitacoes dieta especial')
+cria_solicitacoes_dieta_especial(QTD_PEDIDOS)
