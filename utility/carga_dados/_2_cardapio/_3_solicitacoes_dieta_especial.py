@@ -1,11 +1,13 @@
 """
     Antes de rodar isso vc deve ter rodado as escolas e as fixtures e associar usuarios as instituicoes
 """
+from base64 import b64encode
 import datetime
 import random
 import string
 
 from django.db import IntegrityError, transaction
+from django.core.files.uploadedfile import SimpleUploadedFile
 from faker import Faker
 
 from sme_terceirizadas.escola.models import Aluno, Escola
@@ -79,8 +81,12 @@ def cria_solicitacoes_dieta_especial(qtd=50):
         ))
     Aluno.objects.bulk_create(alunos)
 
-    solicitacoes = []
-    anexos = []
+    with open('sme_terceirizadas/static/files/425-cuidado-area-de-teste.jpg', 'rb') as image_file:
+        test_file = SimpleUploadedFile(
+            f.file_name(extension="jpg"),
+            image_file.read()
+        )
+
     for index in range(qtd):
         if index % 10 == 0:
             print(f'{index / 10}% COMPLETO')
@@ -103,15 +109,14 @@ def cria_solicitacoes_dieta_especial(qtd=50):
             solicitacao_dieta_especial.alergias_intolerancias.add(alergia_1, alergia_2)
             solicitacao_dieta_especial.tipos.add(tipo_dieta_1, tipo_dieta_2)
 
-            anexos.append(Anexo(
-                solicitacao_dieta_especial=solicitacao_dieta_especial,
-                arquivo=base64_encode(f.text()[:20])
-            ))
+            for eh_laudo_medico in [True, False]:
+                Anexo.objects.create(
+                    solicitacao_dieta_especial=solicitacao_dieta_especial,
+                    arquivo=test_file,
+                    nome=f.file_name(extension="jpg"),
+                    eh_laudo_medico=eh_laudo_medico
+                )
             fluxo_escola_felix_dieta_especial(solicitacao_dieta_especial, user, index)
-            solicitacoes.append(solicitacao_dieta_especial)
-
-    Anexo.objects.bulk_create(anexos)
-
 
 QTD_PEDIDOS = 1000
 
