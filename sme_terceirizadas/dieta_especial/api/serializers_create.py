@@ -2,7 +2,8 @@ import datetime
 
 from rest_framework import serializers
 
-from ...dados_comuns.utils import convert_base64_to_contentfile, convert_date_format
+from ...dados_comuns.constants import DEZ_MB
+from ...dados_comuns.utils import convert_base64_to_contentfile, convert_date_format, size
 from ...dados_comuns.validators import deve_ser_no_passado
 from ...escola.models import Aluno
 from ..models import Anexo, SolicitacaoDietaEspecial
@@ -23,13 +24,16 @@ class AnexoCreateSerializer(serializers.ModelSerializer):
 
 
 class SolicitacaoDietaEspecialCreateSerializer(serializers.ModelSerializer):
-    # TODO, passar isso pro arquivo create
     anexos = serializers.ListField(
         child=AnexoCreateSerializer(), required=True
     )
     aluno_json = serializers.JSONField()
 
     def validate_anexos(self, anexos):
+        for anexo in anexos:
+            filesize = size(anexo['arquivo'])
+            if filesize > DEZ_MB:
+                raise serializers.ValidationError('O tamanho máximo de um arquivo é 10MB')
         if not anexos:
             raise serializers.ValidationError('Anexos não pode ser vazio')
         return anexos
@@ -44,9 +48,13 @@ class SolicitacaoDietaEspecialCreateSerializer(serializers.ModelSerializer):
         validated_data['criado_por'] = self.context['request'].user
         anexos = validated_data.pop('anexos', [])
         aluno_data = validated_data.pop('aluno_json')
+        codigo_eol_aluno = f"{int(aluno_data.get('codigo_eol')):06d}"
+        if SolicitacaoDietaEspecial.aluno_possui_dieta_especial_pendente(codigo_eol_aluno):
+            raise serializers.ValidationError('Aluno já possui Solicitação de Dieta Especial pendente')
         aluno = self._get_or_create_aluno(aluno_data)
         solicitacao = SolicitacaoDietaEspecial.objects.create(**validated_data)
         solicitacao.aluno = aluno
+        solicitacao.ativo = False
         solicitacao.save()
 
         for anexo in anexos:
@@ -60,6 +68,7 @@ class SolicitacaoDietaEspecialCreateSerializer(serializers.ModelSerializer):
         return solicitacao
 
     def _get_or_create_aluno(self, aluno_data):
+        escola = self.context['request'].user.vinculo_atual.instituicao
         codigo_eol_aluno = f"{int(aluno_data.get('codigo_eol')):06d}"
         nome_aluno = aluno_data.get('nome')
         data_nascimento_aluno = convert_date_format(
@@ -73,7 +82,8 @@ class SolicitacaoDietaEspecialCreateSerializer(serializers.ModelSerializer):
         except Aluno.DoesNotExist:
             aluno = Aluno(codigo_eol=codigo_eol_aluno,
                           nome=nome_aluno,
-                          data_nascimento=data_nascimento_aluno)
+                          data_nascimento=data_nascimento_aluno,
+                          escola=escola)
             aluno.save()
         return aluno
 

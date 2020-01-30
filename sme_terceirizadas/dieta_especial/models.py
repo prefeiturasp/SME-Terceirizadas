@@ -23,7 +23,7 @@ class SolicitacaoDietaEspecial(ExportModelOperationsMixin('dieta_especial'), Tem
                                FluxoDietaEspecialPartindoDaEscola, TemPrioridade,
                                Logs, TemIdentificadorExternoAmigavel, Ativavel):
     DESCRICAO = 'Dieta Especial'
-    aluno = models.ForeignKey('escola.Aluno', null=True, on_delete=models.PROTECT)
+    aluno = models.ForeignKey('escola.Aluno', null=True, on_delete=models.PROTECT, related_name='dietas_especiais')
     nome_completo_pescritor = models.CharField('Nome completo do pescritor da receita',
                                                max_length=200,
                                                validators=[MinLengthValidator(6)],
@@ -48,6 +48,11 @@ class SolicitacaoDietaEspecial(ExportModelOperationsMixin('dieta_especial'), Tem
     # TODO: Confirmar se PROTECT é a melhor escolha para o campos abaixo
     motivo_negacao = models.ForeignKey('MotivoNegacao', on_delete=models.PROTECT, null=True)
     justificativa_negacao = models.TextField(blank=True)
+
+    @classmethod
+    def aluno_possui_dieta_especial_pendente(cls, codigo_eol_aluno):
+        return cls.objects.filter(aluno__codigo_eol=codigo_eol_aluno,
+                                  status=cls.workflow_class.CODAE_A_AUTORIZAR).exists()
 
     # Property necessária para retornar dados no serializer de criação de Dieta Especial
     @property
@@ -90,6 +95,7 @@ class SolicitacaoDietaEspecial(ExportModelOperationsMixin('dieta_especial'), Tem
         )
 
     class Meta:
+        ordering = ('-ativo', '-criado_em')
         verbose_name = 'Solicitação de dieta especial'
         verbose_name_plural = 'Solicitações de dieta especial'
 

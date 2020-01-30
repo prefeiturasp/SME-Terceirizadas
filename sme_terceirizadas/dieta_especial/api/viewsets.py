@@ -27,11 +27,11 @@ from .serializers import (
     AlergiaIntoleranciaSerializer,
     ClassificacaoDietaSerializer,
     MotivoNegacaoSerializer,
-    SolicitacaoDietaEspecialCreateSerializer,
     SolicitacaoDietaEspecialSerializer,
     SolicitacoesAtivasInativasPorAlunoSerializer,
     TipoDietaSerializer
 )
+from .serializers_create import SolicitacaoDietaEspecialCreateSerializer
 
 
 class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
@@ -50,7 +50,8 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
     def solicitacoes_vigentes(self, request, codigo_eol_aluno=None):
         solicitacoes = SolicitacaoDietaEspecial.objects.filter(
             aluno__codigo_eol=codigo_eol_aluno,
-            status=SolicitacaoDietaEspecial.workflow_class.CODAE_AUTORIZADO
+            status__in=[SolicitacaoDietaEspecial.workflow_class.CODAE_AUTORIZADO,
+                        SolicitacaoDietaEspecial.workflow_class.TERCEIRIZADA_TOMOU_CIENCIA]
         )
         page = self.paginate_queryset(solicitacoes)
         serializer = self.get_serializer(page, many=True)
@@ -59,6 +60,8 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
     @action(detail=True, methods=['post'])
     def autorizar(self, request, uuid=None):
         solicitacao = self.get_object()
+        if solicitacao.aluno.possui_dieta_especial_ativa:
+            solicitacao.aluno.inativar_dieta_especial()
         form = AutorizaDietaEspecialForm(request.data, instance=solicitacao)
 
         if not form.is_valid():
@@ -73,7 +76,7 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
             )
 
         solicitacao.codae_autoriza(user=request.user)
-
+        solicitacao.ativo = True
         solicitacao.save()
 
         return Response({'mensagem': 'Autorização de dieta especial realizada com sucesso'})

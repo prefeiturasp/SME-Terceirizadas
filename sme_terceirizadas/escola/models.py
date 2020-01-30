@@ -1,4 +1,6 @@
-from django.core.exceptions import ObjectDoesNotExist
+import logging
+
+from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 from django.core.validators import MinLengthValidator
 from django.db import models
 from django.db.models import Q, Sum
@@ -27,6 +29,8 @@ from ..dados_comuns.utils import queryset_por_data
 from ..inclusao_alimentacao.models import GrupoInclusaoAlimentacaoNormal, InclusaoAlimentacaoContinua
 from ..kit_lanche.models import SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheUnificada
 
+logger = logging.getLogger('sigpae.EscolaModels')
+
 
 class DiretoriaRegional(ExportModelOperationsMixin('diretoria_regional'), Nomeavel, Iniciais, TemChaveExterna,
                         TemCodigoEOL, TemVinculos):
@@ -37,10 +41,6 @@ class DiretoriaRegional(ExportModelOperationsMixin('diretoria_regional'), Nomeav
             Q(data_inicial=None, data_final=None, ativo=False) |  # noqa W504 esperando ativacao
             Q(data_inicial__isnull=False, data_final=None, ativo=True)  # noqa W504 ativo
         ).exclude(perfil__nome__in=[COGESTOR, SUPLENTE])
-
-    @property
-    def escolas(self):
-        return self.escolas
 
     @property
     def quantidade_alunos(self):
@@ -355,10 +355,10 @@ class LogAlteracaoQuantidadeAlunosPorEscolaEPeriodoEscolar(TemChaveExterna, Cria
     quantidade_alunos_para = models.PositiveSmallIntegerField('Quantidade de alunos alterada', default=0)
 
     def __str__(self):
-        qauntidade_anterior = self.quantidade_alunos_de
+        quantidade_anterior = self.quantidade_alunos_de
         quantidade_atual = self.quantidade_alunos_para
         escola = self.escola.nome
-        return f'Alteração de: {qauntidade_anterior} alunos, para: {quantidade_atual} alunos na escola: {escola}'
+        return f'Alteração de: {quantidade_anterior} alunos, para: {quantidade_atual} alunos na escola: {escola}'
 
     class Meta:
         verbose_name = 'Log Alteração quantidade de alunos'
@@ -588,6 +588,18 @@ class Aluno(TemChaveExterna):
 
     def __str__(self):
         return f'{self.nome} - {self.codigo_eol}'
+
+    @property
+    def possui_dieta_especial_ativa(self):
+        return self.dietas_especiais.filter(ativo=True).exists()
+
+    def inativar_dieta_especial(self):
+        try:
+            dieta_especial = self.dietas_especiais.get(ativo=True)
+            dieta_especial.ativo = False
+            dieta_especial.save()
+        except MultipleObjectsReturned:
+            logger.critical(f'Aluno não deve possuir mais de uma Dieta Especial ativa')
 
     class Meta:
         verbose_name = 'Aluno'
