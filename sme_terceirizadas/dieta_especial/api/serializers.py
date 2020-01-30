@@ -86,6 +86,7 @@ class SolicitacaoDietaEspecialCreateSerializer(serializers.ModelSerializer):
         return solicitacao
 
     def _get_or_create_aluno(self, aluno_data):
+        escola = self.context['request'].user.vinculo_atual.instituicao
         codigo_eol_aluno = f"{int(aluno_data.get('codigo_eol')):06d}"
         nome_aluno = aluno_data.get('nome')
         data_nascimento_aluno = convert_date_format(
@@ -99,7 +100,8 @@ class SolicitacaoDietaEspecialCreateSerializer(serializers.ModelSerializer):
         except Aluno.DoesNotExist:
             aluno = Aluno(codigo_eol=codigo_eol_aluno,
                           nome=nome_aluno,
-                          data_nascimento=data_nascimento_aluno)
+                          data_nascimento=data_nascimento_aluno,
+                          escola=escola)
             aluno.save()
         return aluno
 
