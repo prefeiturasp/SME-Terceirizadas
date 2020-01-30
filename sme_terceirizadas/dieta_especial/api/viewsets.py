@@ -163,7 +163,8 @@ class SolicitacoesAtivasInativasPorAlunoView(generics.ListAPIView):
             qs = qs.filter(aluno__escola__diretoria_regional=form.cleaned_data['dre'])
 
         if form.cleaned_data['codigo_eol']:
-            qs = qs.filter(aluno__codigo_eol=form.cleaned_data['codigo_eol'])
+            codigo_eol = f"{int(form.cleaned_data['codigo_eol']):06d}"
+            qs = qs.filter(aluno__codigo_eol=codigo_eol)
         elif form.cleaned_data['nome_aluno']:
             qs = qs.filter(aluno__nome__icontains=form.cleaned_data['nome_aluno'])
 
