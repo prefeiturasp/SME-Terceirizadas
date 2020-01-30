@@ -105,3 +105,7 @@ def test_periodo_escolar(periodo_escolar):
 
 def test_sub_prefeitura(sub_prefeitura):
     assert isinstance(str(sub_prefeitura), str)
+
+
+def test_aluno(aluno):
+    assert aluno.__str__() == 'Fulano da Silva - 000001'

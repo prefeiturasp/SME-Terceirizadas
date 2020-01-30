@@ -121,6 +121,13 @@ def test_url_criar_dieta(client_autenticado_vinculo_escola):
         data=payload
     )
     assert response.status_code == status.HTTP_201_CREATED
+    response = client_autenticado_vinculo_escola.post(
+        f'/solicitacoes-dieta-especial/',
+        content_type='application/json',
+        data=payload
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == ['Aluno já possui Solicitação de Dieta Especial pendente']
 
 
 def test_url_criar_dieta_erro_sem_anexos(client_autenticado_vinculo_escola):

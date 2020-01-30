@@ -39,10 +39,6 @@ class DiretoriaRegional(ExportModelOperationsMixin('diretoria_regional'), Nomeav
         ).exclude(perfil__nome__in=[COGESTOR, SUPLENTE])
 
     @property
-    def escolas(self):
-        return self.escolas
-
-    @property
     def quantidade_alunos(self):
         quantidade_result = EscolaPeriodoEscolar.objects.filter(
             escola__in=self.escolas.all()
@@ -355,10 +351,10 @@ class LogAlteracaoQuantidadeAlunosPorEscolaEPeriodoEscolar(TemChaveExterna, Cria
     quantidade_alunos_para = models.PositiveSmallIntegerField('Quantidade de alunos alterada', default=0)
 
     def __str__(self):
-        qauntidade_anterior = self.quantidade_alunos_de
+        quantidade_anterior = self.quantidade_alunos_de
         quantidade_atual = self.quantidade_alunos_para
         escola = self.escola.nome
-        return f'Alteração de: {qauntidade_anterior} alunos, para: {quantidade_atual} alunos na escola: {escola}'
+        return f'Alteração de: {quantidade_anterior} alunos, para: {quantidade_atual} alunos na escola: {escola}'
 
     class Meta:
         verbose_name = 'Log Alteração quantidade de alunos'
