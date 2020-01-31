@@ -73,7 +73,27 @@ def cardapio_invalido():
 @pytest.fixture
 def escola():
     lote = mommy.make('Lote')
-    escola = mommy.make('Escola', lote=lote)
+    diretoria_regional = mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL IPIRANGA',
+                                    uuid='012f7722-9ab4-4e21-b0f6-85e17b58b0d1')
+    escola = mommy.make(
+        'Escola',
+        lote=lote,
+        nome='EMEF JOAO MENDES',
+        codigo_eol='000546',
+        uuid='a627fc63-16fd-482c-a877-16ebc1a82e57',
+        diretoria_regional=diretoria_regional
+    )
+    return escola
+
+
+@pytest.fixture
+def escola_com_periodos_e_horarios_combos(escola):
+    periodo_manha = mommy.make('escola.PeriodoEscolar', nome='MANHA', uuid='42325516-aebd-4a3d-97c0-2a77c317c6be')
+    periodo_tarde = mommy.make('escola.PeriodoEscolar', nome='TARDE', uuid='5d668346-ad83-4334-8fec-94c801198d99')
+    mommy.make('escola.EscolaPeriodoEscolar', quantidade_alunos=325, escola=escola,
+               periodo_escolar=periodo_manha)
+    mommy.make('escola.EscolaPeriodoEscolar', quantidade_alunos=418, escola=escola,
+               periodo_escolar=periodo_tarde)
     return escola
 
 
@@ -87,12 +107,21 @@ def inversao_dia_cardapio(cardapio_valido2, cardapio_valido3, escola):
                       uuid='98dc7cb7-7a38-408d-907c-c0f073ca2d13',
                       cardapio_de=cardapio_valido2,
                       cardapio_para=cardapio_valido3,
-                      escola=escola)
+                      escola=escola,
+                      rastro_escola=escola,
+                      rastro_dre=escola.diretoria_regional)
 
 
 @pytest.fixture
 def inversao_dia_cardapio_dre_validar(inversao_dia_cardapio):
     inversao_dia_cardapio.status = PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR
+    inversao_dia_cardapio.save()
+    return inversao_dia_cardapio
+
+
+@pytest.fixture
+def inversao_dia_cardapio_codae_questionado(inversao_dia_cardapio):
+    inversao_dia_cardapio.status = PedidoAPartirDaEscolaWorkflow.CODAE_QUESTIONADO
     inversao_dia_cardapio.save()
     return inversao_dia_cardapio
 
@@ -188,7 +217,9 @@ def alteracao_cardapio(escola):
                       escola=escola,
                       observacao='teste',
                       data_inicial=datetime.date(2019, 10, 4),
-                      data_final=datetime.date(2019, 12, 31))
+                      data_final=datetime.date(2019, 12, 31),
+                      rastro_escola=escola,
+                      rastro_dre=escola.diretoria_regional)
 
 
 @pytest.fixture
@@ -208,6 +239,13 @@ def alteracao_cardapio_dre_validado(alteracao_cardapio):
 @pytest.fixture
 def alteracao_cardapio_codae_autorizado(alteracao_cardapio):
     alteracao_cardapio.status = PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO
+    alteracao_cardapio.save()
+    return alteracao_cardapio
+
+
+@pytest.fixture
+def alteracao_cardapio_codae_questionado(alteracao_cardapio):
+    alteracao_cardapio.status = PedidoAPartirDaEscolaWorkflow.CODAE_QUESTIONADO
     alteracao_cardapio.save()
     return alteracao_cardapio
 
@@ -251,9 +289,12 @@ def datas_de_inversoes_intervalo_entre_60_dias(request):
 
 
 @pytest.fixture(params=[
-    (datetime.date(2018, 5, 26), 'Inversão de dia de cardapio deve ser solicitada no ano corrente'),
-    (datetime.date(2020, 1, 1), 'Inversão de dia de cardapio deve ser solicitada no ano corrente'),
-    (datetime.date(2021, 12, 1), 'Inversão de dia de cardapio deve ser solicitada no ano corrente')
+    (datetime.date(datetime.datetime.now().year - 1, 5, 26),
+     'Inversão de dia de cardapio deve ser solicitada no ano corrente'),
+    (datetime.date(datetime.datetime.now().year + 1, 1, 1),
+     'Inversão de dia de cardapio deve ser solicitada no ano corrente'),
+    (datetime.date(datetime.datetime.now().year + 2, 12, 1),
+     'Inversão de dia de cardapio deve ser solicitada no ano corrente')
 ])
 def data_inversao_ano_diferente(request):
     return request.param
@@ -311,6 +352,34 @@ def datas_inversao_desta_semana(request):
     (datetime.date(2019, 11, 4), datetime.date(2019, 10, 4), PedidoAPartirDaEscolaWorkflow.DRE_PEDIU_ESCOLA_REVISAR),
 ])
 def datas_inversao_deste_mes(request):
+    return request.param
+
+
+@pytest.fixture(params=[
+    # data inicio, data fim, esperado
+    (datetime.time(10, 29), datetime.time(11, 29), True),
+    (datetime.time(7, 10), datetime.time(7, 30), True),
+    (datetime.time(6, 0), datetime.time(6, 10), True),
+    (datetime.time(23, 30), datetime.time(23, 59), True),
+    (datetime.time(20, 0), datetime.time(20, 22), True),
+    (datetime.time(11, 0), datetime.time(13, 0), True),
+    (datetime.time(15, 3), datetime.time(15, 21), True),
+])
+def horarios_combos_tipo_alimentacao_validos(request):
+    return request.param
+
+
+@pytest.fixture(params=[
+    # data inicio, data fim, esperado
+    (datetime.time(10, 29), datetime.time(9, 29), 'Hora Inicio não pode ser maior do que hora final'),
+    (datetime.time(7, 10), datetime.time(6, 30), 'Hora Inicio não pode ser maior do que hora final'),
+    (datetime.time(6, 0), datetime.time(5, 59), 'Hora Inicio não pode ser maior do que hora final'),
+    (datetime.time(23, 30), datetime.time(22, 59), 'Hora Inicio não pode ser maior do que hora final'),
+    (datetime.time(20, 0), datetime.time(19, 22), 'Hora Inicio não pode ser maior do que hora final'),
+    (datetime.time(11, 0), datetime.time(11, 0), 'Hora Inicio não pode ser maior do que hora final'),
+    (datetime.time(15, 3), datetime.time(12, 21), 'Hora Inicio não pode ser maior do que hora final'),
+])
+def horarios_combos_tipo_alimentacao_invalidos(request):
     return request.param
 
 
@@ -478,5 +547,26 @@ def vinculo_tipo_alimentacao(request):
     tipo_unidade_escolar = mommy.make('TipoUnidadeEscolar', iniciais=nome_ue)
     periodo_escolar = mommy.make('PeriodoEscolar', nome=nome_periodo)
     return mommy.make('VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar', combos=combos,
+                      uuid='3bdf8144-9b17-495a-8387-5ce0d2a6120a',
                       tipo_unidade_escolar=tipo_unidade_escolar,
                       periodo_escolar=periodo_escolar)
+
+
+@pytest.fixture(params=[
+    # hora inicio, hora fim
+    ('07:00:00', '07:30:00'),
+])
+def horario_combo_tipo_alimentacao(request, vinculo_tipo_alimentacao, escola_com_periodos_e_horarios_combos):
+    hora_inicio, hora_fim = request.param
+    escola = escola_com_periodos_e_horarios_combos
+    tp_alimentacao1 = mommy.make('TipoAlimentacao', nome='Lanche', uuid='c42a24bb-14f8-4871-9ee8-05bc42cf3061')
+    tp_alimentacao2 = mommy.make('TipoAlimentacao', nome='Refeição', uuid='22596464-271e-448d-bcb3-adaba43fffc8')
+    combo = mommy.make('ComboDoVinculoTipoAlimentacaoPeriodoTipoUE',
+                       tipos_alimentacao=[tp_alimentacao1, tp_alimentacao2],
+                       vinculo=vinculo_tipo_alimentacao,
+                       uuid='9fe31f4a-716b-4677-9d7d-2868557cf954')
+    return mommy.make('HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolar',
+                      hora_inicial=hora_inicio,
+                      hora_final=hora_fim,
+                      escola=escola,
+                      combo_tipos_alimentacao=combo)

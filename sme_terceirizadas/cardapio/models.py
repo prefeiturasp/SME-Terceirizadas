@@ -61,6 +61,18 @@ class TipoAlimentacao(ExportModelOperationsMixin('tipo_alimentacao'), Nomeavel, 
         verbose_name_plural = 'Tipos de alimentação'
 
 
+class HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolar(TemChaveExterna):
+    hora_inicial = models.TimeField(auto_now=False, auto_now_add=False)
+    hora_final = models.TimeField(auto_now=False, auto_now_add=False)
+    escola = models.ForeignKey('escola.Escola', blank=True, null=True,
+                               on_delete=models.DO_NOTHING)
+    combo_tipos_alimentacao = models.ForeignKey(
+        'cardapio.ComboDoVinculoTipoAlimentacaoPeriodoTipoUE', on_delete=models.DO_NOTHING)
+
+    def __str__(self):
+        return f'{self.combo_tipos_alimentacao} DE: {self.hora_inicial} ATE: {self.hora_final}'
+
+
 class ComboDoVinculoTipoAlimentacaoPeriodoTipoUE(
     ExportModelOperationsMixin('substituicoes_vinculo_alimentacao'), TemChaveExterna):  # noqa E125
 
@@ -176,6 +188,7 @@ class InversaoCardapio(ExportModelOperationsMixin('inversao_cardapio'), CriadoEm
     cardápio do dia 15 será servido no dia 30
     """
 
+    DESCRICAO = 'Inversão de Cardápio'
     objects = models.Manager()  # Manager Padrão
     desta_semana = InversaoCardapioDestaSemanaManager()
     deste_mes = InversaoCardapioDesteMesManager()
@@ -228,13 +241,15 @@ class InversaoCardapio(ExportModelOperationsMixin('inversao_cardapio'), CriadoEm
 
     def salvar_log_transicao(self, status_evento, usuario, **kwargs):
         justificativa = kwargs.get('justificativa', '')
+        resposta_sim_nao = kwargs.get('resposta_sim_nao', False)
         LogSolicitacoesUsuario.objects.create(
             descricao=str(self),
             status_evento=status_evento,
             solicitacao_tipo=LogSolicitacoesUsuario.INVERSAO_DE_CARDAPIO,
             usuario=usuario,
             uuid_original=self.uuid,
-            justificativa=justificativa
+            justificativa=justificativa,
+            resposta_sim_nao=resposta_sim_nao
         )
 
     def __str__(self):
@@ -302,6 +317,7 @@ class GrupoSuspensaoAlimentacao(ExportModelOperationsMixin('grupo_suspensao_alim
     Vide SuspensaoAlimentacao e QuantidadePorPeriodoSuspensaoAlimentacao
     """
 
+    DESCRICAO = 'Suspensão de alimentação'
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING)
     objects = models.Manager()  # Manager Padrão
     desta_semana = GrupoSuspensaoAlimentacaoDestaSemanaManager()
@@ -406,6 +422,8 @@ class MotivoAlteracaoCardapio(ExportModelOperationsMixin('motivo_alteracao_carda
 class AlteracaoCardapio(ExportModelOperationsMixin('alteracao_cardapio'), CriadoEm, CriadoPor,
                         TemChaveExterna, IntervaloDeDia, TemObservacao, FluxoAprovacaoPartindoDaEscola,
                         TemIdentificadorExternoAmigavel, Logs, TemPrioridade, SolicitacaoForaDoPrazo):
+    DESCRICAO = 'Alteração de Cardápio'
+
     objects = models.Manager()  # Manager Padrão
     desta_semana = AlteracoesCardapioDestaSemanaManager()
     deste_mes = AlteracoesCardapioDesteMesManager()
@@ -420,6 +438,10 @@ class AlteracaoCardapio(ExportModelOperationsMixin('alteracao_cardapio'), Criado
         if self.data_final < data:
             data = self.data_final
         return data
+
+    @property
+    def eh_unico_dia(self):
+        return self.data_inicial == self.data_final
 
     @property
     def substituicoes(self):

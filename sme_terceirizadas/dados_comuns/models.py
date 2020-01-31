@@ -84,6 +84,10 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
     uuid_original = models.UUIDField()
     usuario = models.ForeignKey('perfil.Usuario', on_delete=models.DO_NOTHING)
 
+    @property
+    def status_evento_explicacao(self):
+        return self.get_status_evento_display()
+
     def __str__(self):
         return (f'{self.usuario} executou {self.get_status_evento_display()} '
                 f'em {self.get_solicitacao_tipo_display()} no dia {self.criado_em}')

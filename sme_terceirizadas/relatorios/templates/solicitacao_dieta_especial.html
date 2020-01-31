@@ -1,0 +1,79 @@
+{% extends 'cabecalho_rodape_solicitacao.html' %}
+{% load index %}
+{% load static %}
+
+{% block conteudo %}
+  <div class="conteudo tabela-sem-borda">
+      {% include "bloco_fluxo_de_status.html" %}
+      {% include "bloco_cabecalho_solicitacao_partindo_escola.html" %}
+    <div class="bloco-pescritor-dieta-especial">
+      <h5>Descrição da solicitação</h5>
+      <table>
+        <tr>
+          <th>Cód. EOL do Aluno</th>
+          <th colspan="2">Nome completo do Aluno</th>
+          <th>Data de nascimento</th>
+        </tr>
+        <tr>
+          <td>{{ solicitacao.aluno.codigo_eol }}</td>
+          <td colspan="2">{{ solicitacao.aluno.nome }}</td>
+          <td>{{ solicitacao.aluno.data_nascimento }}</td>
+        </tr>
+      </table>
+      <hr/>
+    </div>
+    <div class="bloco-pescritor-dieta-especial">
+      <table>
+        <tr>
+          <th>Nome do Pescritor</th>
+          <th>Registro Funcional</th>
+        </tr>
+        <tr>
+          <td>{{ solicitacao.nome_completo_pescritor }}</td>
+          <td>{{ solicitacao.registro_funcional_pescritor }}</td>
+        </tr>
+      </table>
+        {% if solicitacao.observacoes %}
+          <h5>Observações</h5>
+          <p>{{ solicitacao.observacoes|safe }}</p>
+        {% endif %}
+      <hr/>
+    </div>
+    <div class="bloco-relacao-por-diagnostico">
+        {% if solicitacao.alergias_intolerancias.exists %}
+          <h5>Relação por diagnóstico</h5>
+            {% for alergia in solicitacao.alergias_intolerancias.all %}
+              <p>{{ alergia }}</p>
+              <hr/>
+            {% endfor %}
+        {% endif %}
+    </div>
+    <div class="classificacao-dieta">
+        {% if solicitacao.classificacao %}
+          <h5>Classificação da Dieta</h5>
+          <label>
+            <i class="fa fa-fw fa-check-circle"></i>{{ solicitacao.classificacao.nome }}
+          </label>
+        {% endif %}
+    </div>
+    <div class="bloco-pescritor-dieta-especial">
+        {% if solicitacao.alergias_intolerancias.all %}
+          <h5>Protocolo da Dieta Especial</h5>
+            {% for alergia in solicitacao.alergias_intolerancias.all %}
+              <p style="text-transform: uppercase">{{ alergia.descricao }}</p>
+            {% endfor %}
+        {% endif %}
+    </div>
+    <div class="bloco-identificacao-nutri">
+        {% if solicitacao.registro_funcional_nutricionista %}
+          <h5>Identificação do Nutricionista</h5>
+          <div>
+            <p style="text-transform: uppercase">{{ solicitacao.registro_funcional_nutricionista }}</p>
+          </div>
+        {% endif %}
+    </div>
+
+
+      {% include "bloco_historico_questionamento.html" %}
+  </div>
+{% endblock %}

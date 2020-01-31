@@ -16,7 +16,9 @@ fake.seed(420)
 @pytest.fixture
 def escola():
     lote = mommy.make('Lote')
-    return mommy.make('Escola', lote=lote, quantidade_alunos=1001)
+    diretoria_regional = mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL IPIRANGA',
+                                    uuid='71822846-196c-430f-9c19-a16454e607be')
+    return mommy.make('Escola', lote=lote, diretoria_regional=diretoria_regional)
 
 
 @pytest.fixture
@@ -36,6 +38,7 @@ def item_kit_lanche():
 
 @pytest.fixture
 def solicitacao_avulsa(escola):
+    mommy.make('escola.EscolaPeriodoEscolar', escola=escola, quantidade_alunos=500)
     mommy.make(TemplateMensagem, tipo=TemplateMensagem.SOLICITACAO_KIT_LANCHE_AVULSA)
     kits = mommy.make(models.KitLanche, _quantity=3)
     solicitacao_kit_lanche = mommy.make(models.SolicitacaoKitLanche, kits=kits, data=datetime.date(2000, 1, 1))
@@ -43,7 +46,9 @@ def solicitacao_avulsa(escola):
                       local=fake.text()[:160],
                       quantidade_alunos=300,
                       solicitacao_kit_lanche=solicitacao_kit_lanche,
-                      escola=escola)
+                      escola=escola,
+                      rastro_escola=escola,
+                      rastro_dre=escola.diretoria_regional)
 
 
 @pytest.fixture
@@ -67,6 +72,14 @@ def solicitacao_avulsa_dre_a_validar(solicitacao_avulsa):
 @pytest.fixture
 def solicitacao_avulsa_dre_validado(solicitacao_avulsa):
     solicitacao_avulsa.status = PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO
+    solicitacao_avulsa.quantidade_alunos = 200
+    solicitacao_avulsa.save()
+    return solicitacao_avulsa
+
+
+@pytest.fixture
+def solicitacao_avulsa_codae_questionado(solicitacao_avulsa):
+    solicitacao_avulsa.status = PedidoAPartirDaEscolaWorkflow.CODAE_QUESTIONADO
     solicitacao_avulsa.quantidade_alunos = 200
     solicitacao_avulsa.save()
     return solicitacao_avulsa
@@ -105,7 +118,8 @@ def solicitacao_unificada_lista_igual(escola):
                                        lista_kit_lanche_igual=True,
                                        solicitacao_kit_lanche=solicitacao_kit_lanche,
                                        outro_motivo=fake.text(),
-                                       diretoria_regional=dre)
+                                       diretoria_regional=dre,
+                                       rastro_dre=dre)
     solicitacao_unificada.escolas_quantidades.set(escolas_quantidades)
     return solicitacao_unificada
 
@@ -113,6 +127,13 @@ def solicitacao_unificada_lista_igual(escola):
 @pytest.fixture
 def solicitacao_unificada_lista_igual_codae_a_autorizar(solicitacao_unificada_lista_igual):
     solicitacao_unificada_lista_igual.status = PedidoAPartirDaDiretoriaRegionalWorkflow.CODAE_A_AUTORIZAR
+    solicitacao_unificada_lista_igual.save()
+    return solicitacao_unificada_lista_igual
+
+
+@pytest.fixture
+def solicitacao_unificada_lista_igual_codae_questionado(solicitacao_unificada_lista_igual):
+    solicitacao_unificada_lista_igual.status = PedidoAPartirDaDiretoriaRegionalWorkflow.CODAE_QUESTIONADO
     solicitacao_unificada_lista_igual.save()
     return solicitacao_unificada_lista_igual
 

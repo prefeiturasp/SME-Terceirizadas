@@ -1,0 +1,3 @@
+#!/bin/sh
+
+./utility/verifica_qualidade.sh

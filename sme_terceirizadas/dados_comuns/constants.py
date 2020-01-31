@@ -40,6 +40,8 @@ PEDIDOS_TERCEIRIZADA = 'pedidos-terceirizadas'
 PEDIDOS_DRE = 'pedidos-diretoria-regional'
 FILTRO_PADRAO_PEDIDOS = f'(?P<filtro_aplicado>({SEM_FILTRO}|{DAQUI_A_SETE_DIAS}|{DAQUI_A_TRINTA_DIAS})+)'
 
+RELATORIO = 'relatorio'
+
 #
 # FLUXO, usados nas actions de transição de status nas viewsets dos pedidos/informações do sistema
 #
@@ -48,6 +50,8 @@ ESCOLA_INICIO_PEDIDO = 'inicio-pedido'
 ESCOLA_REVISA_PEDIDO = 'escola-revisa-pedido'
 ESCOLA_CANCELA = 'escola-cancela-pedido-48h-antes'
 ESCOLA_INFORMA_SUSPENSAO = 'informa-suspensao'
+
+ESCOLA_CANCELA_DIETA_ESPECIAL = 'escola-cancela-dieta-especial'
 
 DRE_INICIO_PEDIDO = 'inicio-pedido'
 DRE_VALIDA_PEDIDO = 'diretoria-regional-valida-pedido'
@@ -88,3 +92,5 @@ ADMINISTRADOR_TERCEIRIZADA = 'ADMINISTRADOR_TERCEIRIZADA'
 # CACHE
 TEMPO_CACHE_6H = 60 * 60 * 6
 TEMPO_CACHE_1H = 60 * 60 * 6
+
+DEZ_MB = 10485760

@@ -23,6 +23,11 @@ usuario_terceirizada = Usuario.objects.get(email='terceirizada@admin.com')
 usuario_terceirizada.registro_funcional = '0000100'
 usuario_terceirizada.nome = 'SUPER USUARIO TERCEIRIZADA'
 usuario_terceirizada.save()
+usuario_nutri_codae = Usuario.objects.get(email='nutricodae@admin.com')
+usuario_nutri_codae.registro_funcional = '0000101'
+usuario_nutri_codae.nome = 'USUARIO NUTRICIONISTA CODAE'
+usuario_nutri_codae.crn_numero = '15975364'
+usuario_nutri_codae.save()
 
 perfil_diretor_escola, created = Perfil.objects.get_or_create(
     nome='DIRETOR',
@@ -48,8 +53,14 @@ perfil_administrador_diretoria_regional, created = Perfil.objects.get_or_create(
     super_usuario=True
 )
 
-perfil_usuario_codae, created = Perfil.objects.get_or_create(
+perfil_usuario_nutri_codae, created = Perfil.objects.get_or_create(
     nome='COORDENADOR_DIETA_ESPECIAL',
+    ativo=True,
+    super_usuario=True
+)
+
+Perfil.objects.get_or_create(
+    nome='ADMINISTRADOR_DIETA_ESPECIAL',
     ativo=True,
     super_usuario=True
 )
@@ -62,12 +73,6 @@ perfil_usuario_codae, created = Perfil.objects.get_or_create(
 
 Perfil.objects.get_or_create(
     nome='ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA',
-    ativo=True,
-    super_usuario=True
-)
-
-Perfil.objects.get_or_create(
-    nome='ADMINISTRADOR_DIETA_ESPECIAL',
     ativo=True,
     super_usuario=True
 )
@@ -113,6 +118,14 @@ Vinculo.objects.create(
     data_inicial=data_atual
 )
 print(f'perfil {perfil_usuario_codae.nome} vinculado a {codae.nome} com sucesso')
+
+Vinculo.objects.create(
+    instituicao=codae,
+    perfil=perfil_usuario_nutri_codae,
+    usuario=usuario_nutri_codae,
+    data_inicial=data_atual
+)
+print(f'perfil {perfil_usuario_nutri_codae.nome} vinculado a {codae.nome} com sucesso')
 
 Vinculo.objects.create(
     instituicao=terceirizada,

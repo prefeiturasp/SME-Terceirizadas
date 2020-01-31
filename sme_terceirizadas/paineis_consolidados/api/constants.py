@@ -2,13 +2,21 @@ from ...dados_comuns.constants import DAQUI_A_SETE_DIAS, DAQUI_A_TRINTA_DIAS, SE
 
 PENDENTES_CIENCIA = 'pendentes-ciencia'
 PENDENTES_AUTORIZACAO = 'pendentes-autorizacao'
+PENDENTES_AUTORIZACAO_DIETA_ESPECIAL = 'pendentes-autorizacao-dieta'
+AUTORIZADOS_DIETA_ESPECIAL = 'autorizados-dieta'
+NEGADOS_DIETA_ESPECIAL = 'negados-dieta'
+CANCELADOS_DIETA_ESPECIAL = 'cancelados-dieta'
 PENDENTES_VALIDACAO_DRE = 'pendentes-validacao'
 AUTORIZADOS = 'autorizados'
+QUESTIONAMENTOS = 'questionamentos'
 _NEGADOS = 'cancelados'
 NEGADOS = 'negados'
 CANCELADOS = 'cancelados'
 PESQUISA = 'pesquisa'
 RESUMO_MES = 'resumo-mes'
+RESUMO_ANO = 'resumo-ano'
+
+FILTRO_CODIGO_EOL_ALUNO = '(?P<codigo_eol_aluno>[^/.]+)'
 
 FILTRO_ESCOLA_UUID = '(?P<escola_uuid>[^/.]+)'
 FILTRO_DRE_UUID = '(?P<dre_uuid>[^/.]+)'

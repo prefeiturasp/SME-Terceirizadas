@@ -35,6 +35,7 @@ def test_modelo_vigencia_contrato(vigencia_contrato):
 
 def test_terceirizada(terceirizada):
     assert terceirizada.__str__() == 'Alimentos SA'
+    assert terceirizada.nome is not None
     assert terceirizada.nutricionistas is not None
     assert terceirizada.inclusoes_continuas_autorizadas is not None
     assert terceirizada.inclusoes_normais_autorizadas is not None

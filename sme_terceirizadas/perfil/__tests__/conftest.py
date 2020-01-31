@@ -17,7 +17,7 @@ def perfil():
 
 @pytest.fixture
 def escola():
-    return mommy.make('Escola', nome='EscolaTeste', quantidade_alunos=421)
+    return mommy.make('Escola', nome='EscolaTeste')
 
 
 @pytest.fixture
@@ -126,12 +126,23 @@ def users_admin_escola(client, django_user_model, request):
 
     diretoria_regional = mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL IPIRANGA',
                                     uuid='7da9acec-48e1-430c-8a5c-1f1efc666fad')
-    escola = mommy.make('Escola', nome='EMEI NOE AZEVEDO, PROF', quantidade_alunos=420,
+    cardapio1 = mommy.make('cardapio.Cardapio', data=datetime.date(2019, 10, 11))
+    cardapio2 = mommy.make('cardapio.Cardapio', data=datetime.date(2019, 10, 15))
+    tipo_unidade_escolar = mommy.make('escola.TipoUnidadeEscolar',
+                                      iniciais=f.name()[:10],
+                                      cardapios=[cardapio1, cardapio2],
+                                      uuid='56725de5-89d3-4edf-8633-3e0b5c99e9d4')
+    escola = mommy.make('Escola', nome='EMEI NOE AZEVEDO, PROF',
                         uuid='b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd', diretoria_regional=diretoria_regional,
-                        codigo_eol='256341')
+                        codigo_eol='256341', tipo_unidade=tipo_unidade_escolar)
+    periodo_escolar_tarde = mommy.make('PeriodoEscolar', nome='TARDE', uuid='57af972c-938f-4f6f-9f4b-cf7b983a10b7')
+    periodo_escolar_manha = mommy.make('PeriodoEscolar', nome='MANHA', uuid='d0c12dae-a215-41f6-af86-b7cd1838ba81')
+    mommy.make('EscolaPeriodoEscolar', escola=escola, quantidade_alunos=230, periodo_escolar=periodo_escolar_tarde)
+    mommy.make('EscolaPeriodoEscolar', escola=escola, quantidade_alunos=220, periodo_escolar=periodo_escolar_manha)
     perfil_professor = mommy.make('Perfil', nome='ADMINISTRADOR_ESCOLA', ativo=False)
     perfil_admin = mommy.make('Perfil', nome='Admin', ativo=True, uuid='d6fd15cc-52c6-4db4-b604-018d22eeb3dd')
     hoje = datetime.date.today()
+
     mommy.make('Vinculo', usuario=user, instituicao=escola, perfil=perfil_professor,
                data_inicial=hoje, data_final=hoje + datetime.timedelta(days=30), ativo=False)  # finalizado
     mommy.make('Vinculo', usuario=user, instituicao=escola, perfil=perfil_admin,
@@ -155,10 +166,19 @@ def users_diretor_escola(client, django_user_model, request, usuario_2):
 
     diretoria_regional = mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL IPIRANGA',
                                     uuid='7da9acec-48e1-430c-8a5c-1f1efc666fad')
-    escola = mommy.make('Escola', nome='EMEI NOE AZEVEDO, PROF', quantidade_alunos=420,
+    cardapio1 = mommy.make('cardapio.Cardapio', data=datetime.date(2019, 10, 11))
+    cardapio2 = mommy.make('cardapio.Cardapio', data=datetime.date(2019, 10, 15))
+    tipo_unidade_escolar = mommy.make('escola.TipoUnidadeEscolar',
+                                      iniciais=f.name()[:10],
+                                      cardapios=[cardapio1, cardapio2],
+                                      uuid='56725de5-89d3-4edf-8633-3e0b5c99e9d4')
+    escola = mommy.make('Escola', nome='EMEI NOE AZEVEDO, PROF',
                         uuid='b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd', diretoria_regional=diretoria_regional,
-                        codigo_eol='256341')
-
+                        codigo_eol='256341', tipo_unidade=tipo_unidade_escolar)
+    periodo_escolar_tarde = mommy.make('PeriodoEscolar', nome='TARDE', uuid='57af972c-938f-4f6f-9f4b-cf7b983a10b7')
+    periodo_escolar_manha = mommy.make('PeriodoEscolar', nome='MANHA', uuid='d0c12dae-a215-41f6-af86-b7cd1838ba81')
+    mommy.make('EscolaPeriodoEscolar', escola=escola, quantidade_alunos=230, periodo_escolar=periodo_escolar_tarde)
+    mommy.make('EscolaPeriodoEscolar', escola=escola, quantidade_alunos=220, periodo_escolar=periodo_escolar_manha)
     perfil_professor = mommy.make('Perfil', nome='ADMINISTRADOR_ESCOLA', ativo=False,
                                   uuid='48330a6f-c444-4462-971e-476452b328b2')
     perfil_diretor = mommy.make('Perfil', nome='DIRETOR', ativo=True, uuid='41c20c8b-7e57-41ed-9433-ccb92e8afaf1')
@@ -249,7 +269,7 @@ def users_terceirizada(client, django_user_model, request, usuario_2):
     email, password, rf, cpf = request.param
     user = django_user_model.objects.create_user(password=password, email=email, registro_funcional=rf, cpf=cpf)
     client.login(email=email, password=password)
-
+    mommy.make('Codae')
     terceirizada = mommy.make('Terceirizada', nome_fantasia='Alimentos LTDA',
                               uuid='b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd')
 
@@ -270,38 +290,22 @@ def users_terceirizada(client, django_user_model, request, usuario_2):
 
 
 def mocked_request_api_eol():
-    class MockResponse:
-        def __init__(self, json_data, status_code):
-            self.json_data = json_data
-            self.status_code = status_code
-
-        def json(self):
-            return self.json_data
-
-    return MockResponse({'results': [{'nm_pessoa': 'IARA DAREZZO', 'cargo': 'PROF.ED.INF.E ENS.FUND.I',
-                                      'divisao': 'ODILIO DENYS, MAL.',
-                                      'cd_cpf_pessoa': '95887745002',
-                                      'coord': 'DIRETORIA REGIONAL DE EDUCACAO FREGUESIA/BRASILANDIA'},
-                                     {'nm_pessoa': 'IARA DAREZZO',
-                                      'cargo': 'PROF.ENS.FUND.II E MED.-PORTUGUES',
-                                      'divisao': 'NOE AZEVEDO, PROF',
-                                      'cd_cpf_pessoa': '95887745002',
-                                      'coord': 'DIRETORIA REGIONAL DE EDUCACAO JACANA/TREMEMBE'}]}, 200)
+    return [{'nm_pessoa': 'IARA DAREZZO', 'cargo': 'PROF.ED.INF.E ENS.FUND.I',
+             'divisao': 'ODILIO DENYS, MAL.',
+             'cd_cpf_pessoa': '95887745002',
+             'coord': 'DIRETORIA REGIONAL DE EDUCACAO FREGUESIA/BRASILANDIA'},
+            {'nm_pessoa': 'IARA DAREZZO',
+             'cargo': 'PROF.ENS.FUND.II E MED.-PORTUGUES',
+             'divisao': 'NOE AZEVEDO, PROF',
+             'cd_cpf_pessoa': '95887745002',
+             'coord': 'DIRETORIA REGIONAL DE EDUCACAO JACANA/TREMEMBE'}]
 
 
 def mocked_request_api_eol_usuario_diretoria_regional():
-    class MockResponse:
-        def __init__(self, json_data, status_code):
-            self.json_data = json_data
-            self.status_code = status_code
-
-        def json(self):
-            return self.json_data
-
-    return MockResponse({'results': [{'nm_pessoa': 'LUIZA MARIA BASTOS', 'cargo': 'AUXILIAR TECNICO DE EDUCACAO',
-                                      'divisao': 'DIRETORIA REGIONAL DE EDUCACAO CAPELA DO SOCORRO',
-                                      'cd_cpf_pessoa': '47088910080',
-                                      'coord': 'DIRETORIA REGIONAL DE EDUCACAO CAPELA DO SOCORRO'}]}, 200)
+    return [{'nm_pessoa': 'LUIZA MARIA BASTOS', 'cargo': 'AUXILIAR TECNICO DE EDUCACAO',
+             'divisao': 'DIRETORIA REGIONAL DE EDUCACAO CAPELA DO SOCORRO',
+             'cd_cpf_pessoa': '47088910080',
+             'coord': 'DIRETORIA REGIONAL DE EDUCACAO CAPELA DO SOCORRO'}]
 
 
 @pytest.fixture(params=[
@@ -320,9 +324,15 @@ def usuarios_pendentes_confirmacao(request, perfil):
 
     diretoria_regional = mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL IPIRANGA',
                                     uuid='7da9acec-48e1-430c-8a5c-1f1efc666fad')
-    escola = mommy.make('Escola', nome='EMEI NOE AZEVEDO, PROF', quantidade_alunos=420,
+    cardapio1 = mommy.make('cardapio.Cardapio', data=datetime.date(2019, 10, 11))
+    cardapio2 = mommy.make('cardapio.Cardapio', data=datetime.date(2019, 10, 15))
+    tipo_unidade_escolar = mommy.make('escola.TipoUnidadeEscolar',
+                                      iniciais=f.name()[:10],
+                                      cardapios=[cardapio1, cardapio2],
+                                      uuid='56725de5-89d3-4edf-8633-3e0b5c99e9d4')
+    escola = mommy.make('Escola', nome='EMEI NOE AZEVEDO, PROF',
                         uuid='b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd', diretoria_regional=diretoria_regional,
-                        codigo_eol='256341')
+                        codigo_eol='256341', tipo_unidade=tipo_unidade_escolar)
 
     mommy.make('Vinculo', perfil=perfil, usuario=usuario, data_inicial=None, data_final=None, ativo=False,
                instituicao=escola)  # vinculo esperando ativacao

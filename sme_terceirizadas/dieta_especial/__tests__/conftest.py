@@ -1,10 +1,15 @@
+from datetime import date
+
 import pytest
 from faker import Faker
 from model_mommy import mommy
 
+from ...dados_comuns.models import TemplateMensagem
 from ...dados_comuns.utils import convert_base64_to_contentfile
-from ...escola.models import Escola
-from ..models import Anexo, SolicitacaoDietaEspecial
+from ...escola.models import Aluno, Escola, Lote
+from ...perfil.models import Usuario
+from ...terceirizada.models import Terceirizada
+from ..models import AlergiaIntolerancia, Anexo, ClassificacaoDieta, MotivoNegacao, SolicitacaoDietaEspecial, TipoDieta
 
 fake = Faker('pt_BR')
 fake.seed(420)
@@ -18,17 +23,18 @@ def arquivo_docx_base64():
 @pytest.fixture
 def solicitacao_dieta_especial():
     escola = mommy.make(Escola, nome='EMEF Carlos da Silva')
+    aluno = mommy.make(Aluno, nome='Roberto Alves da Silva', codigo_eol='123456', data_nascimento='2000-01-01')
     return mommy.make(SolicitacaoDietaEspecial,
                       rastro_escola=escola,
-                      codigo_eol_aluno='123456',
-                      nome_completo_aluno='Roberto Alves da Silva')
+                      aluno=aluno)
 
 
 @pytest.fixture
 def anexo_docx(arquivo_docx_base64, solicitacao_dieta_especial):
     return mommy.make(Anexo,
                       solicitacao_dieta_especial=solicitacao_dieta_especial,
-                      arquivo=convert_base64_to_contentfile(arquivo_docx_base64))
+                      arquivo=convert_base64_to_contentfile(arquivo_docx_base64),
+                      nome='arquivo-supimpa.docx')
 
 
 @pytest.fixture(scope='function', params=[
@@ -51,3 +57,79 @@ def nomes_arquivos_validos(request):
 ])
 def nomes_arquivos_invalidos(request):
     return request.param
+
+
+@pytest.fixture
+def alergias_intolerancias():
+    mommy.make(AlergiaIntolerancia, _quantity=2)
+    return AlergiaIntolerancia.objects.all()
+
+
+@pytest.fixture
+def classificacoes_dieta():
+    mommy.make(ClassificacaoDieta, _quantity=3)
+    return ClassificacaoDieta.objects.all()
+
+
+@pytest.fixture
+def motivos_negacao():
+    mommy.make(MotivoNegacao, _quantity=4)
+    return MotivoNegacao.objects.all()
+
+
+@pytest.fixture
+def tipos_dieta():
+    mommy.make(TipoDieta, _quantity=5)
+    return TipoDieta.objects.all()
+
+
+@pytest.fixture
+def solicitacao_dieta_especial_a_autorizar(client):
+    email = 'escola@admin.com'
+    password = 'adminadmin'
+    rf = '1545933'
+    user = Usuario.objects.create_user(password=password, email=email, registro_funcional=rf)
+    client.login(email=email, password=password)
+
+    perfil_professor = mommy.make('perfil.Perfil', nome='ADMINISTRADOR_ESCOLA', ativo=False)
+
+    lote = mommy.make(Lote)
+    escola = mommy.make(
+        Escola,
+        nome='EMEF Carlos da Silva',
+        lote=lote
+    )
+
+    mommy.make('perfil.Vinculo', usuario=user, instituicao=escola, perfil=perfil_professor,
+               data_inicial=date.today(), ativo=True)  # ativo
+
+    aluno = mommy.make(Aluno, nome='Roberto Alves da Silva', codigo_eol='123456', data_nascimento='2000-01-01')
+    solic = mommy.make(SolicitacaoDietaEspecial,
+                       rastro_escola=escola,
+                       aluno=aluno,
+                       criado_por=user)
+
+    mommy.make(TemplateMensagem, tipo=TemplateMensagem.DIETA_ESPECIAL)
+
+    solic.inicia_fluxo(user=user)
+
+    return solic
+
+
+@pytest.fixture
+def solicitacao_dieta_especial_autorizada(client, solicitacao_dieta_especial_a_autorizar):
+    email = 'terceirizada@admin.com'
+    password = 'adminadmin'
+    rf = '4545454'
+    user = Usuario.objects.create_user(password=password, email=email, registro_funcional=rf)
+    client.login(email=email, password=password)
+
+    perfil = mommy.make('perfil.Perfil', nome='TERCEIRIZADA', ativo=False)
+    terceirizada = mommy.make(Terceirizada)
+
+    mommy.make('perfil.Vinculo', usuario=user, instituicao=terceirizada, perfil=perfil,
+               data_inicial=date.today(), ativo=True)
+
+    solicitacao_dieta_especial_a_autorizar.codae_autoriza(user=user)
+
+    return solicitacao_dieta_especial_a_autorizar

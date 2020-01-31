@@ -1,0 +1,26 @@
+{% load index %}
+
+{% block cabecalho_solicitacao_partindo_escola %}
+  <h5>Relatório SIGPAE - {{ solicitacao.DESCRICAO }}</h5>
+  <div class="id-pedido">
+    <div class="retangulo-id">
+      # {{ solicitacao.id_externo }} <br/> <span>Nº DA SOLICITAÇÃO</span>
+    </div>
+    <div class="info">
+      <div>Solicitante</div>
+      <div>{{ solicitacao.rastro_escola.nome }}</div>
+    </div>
+    <div class="info">
+      <div>Lote</div>
+      <div>{{ solicitacao.rastro_lote.nome|slice:"5:15" }}</div>
+    </div>
+    <div class="info">
+      <div>Tipo de gestão</div>
+      <div>{{ escola.tipo_gestao.nome|slice:"5:15" }}</div>
+    </div>
+  </div>
+  <div>
+    <hr style="color: #EEEEEE; opacity: 0.3">
+  </div>
+
+{% endblock %}

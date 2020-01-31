@@ -1,4 +1,4 @@
-from rest_framework import serializers, viewsets
+from rest_framework import serializers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
@@ -62,8 +62,12 @@ class VinculoTerceirizadaViewSet(ReadOnlyModelViewSet):
 
     @action(detail=True, methods=['patch'])
     def finalizar_vinculo(self, request, uuid=None):
-        terceirizada = self.get_object()
-        vinculo_uuid = request.data.get('vinculo_uuid')
-        vinculo = terceirizada.vinculos.get(uuid=vinculo_uuid)
-        vinculo.finalizar_vinculo()
-        return Response(self.get_serializer(vinculo).data)
+        try:
+            terceirizada = self.get_object()
+            vinculo_uuid = request.data.get('vinculo_uuid')
+            vinculo = terceirizada.vinculos.get(uuid=vinculo_uuid)
+            assert vinculo.usuario.super_admin_terceirizadas is False, 'Não pode excluir usuário Administrador'
+            vinculo.finalizar_vinculo()
+            return Response(self.get_serializer(vinculo).data)
+        except AssertionError as e:
+            return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)

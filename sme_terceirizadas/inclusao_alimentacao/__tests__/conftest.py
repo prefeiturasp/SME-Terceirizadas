@@ -15,7 +15,9 @@ fake.seed(420)
 @pytest.fixture
 def escola():
     lote = mommy.make('Lote')
-    return mommy.make('Escola', lote=lote)
+    diretoria_regional = mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL IPIRANGA',
+                                    uuid='9640fef4-a068-474e-8979-2e1b2654357a')
+    return mommy.make('Escola', lote=lote, diretoria_regional=diretoria_regional)
 
 
 @pytest.fixture
@@ -76,7 +78,9 @@ def inclusao_alimentacao_continua(escola, motivo_inclusao_continua, request):
                       data_inicial=data_inicial,
                       data_final=data_final,
                       outro_motivo=fake.name(),
-                      escola=escola)
+                      escola=escola,
+                      rastro_escola=escola,
+                      rastro_dre=escola.diretoria_regional)
 
 
 @pytest.fixture
@@ -98,6 +102,82 @@ def inclusao_alimentacao_continua_codae_autorizado(inclusao_alimentacao_continua
     inclusao_alimentacao_continua.status = PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO
     inclusao_alimentacao_continua.save()
     return inclusao_alimentacao_continua
+
+
+@pytest.fixture
+def inclusao_alimentacao_continua_codae_questionado(inclusao_alimentacao_continua):
+    inclusao_alimentacao_continua.status = PedidoAPartirDaEscolaWorkflow.CODAE_QUESTIONADO
+    inclusao_alimentacao_continua.save()
+    return inclusao_alimentacao_continua
+
+
+@pytest.fixture
+def inclusao_alimentacao_normal(motivo_inclusao_normal):
+    return mommy.make(models.InclusaoAlimentacaoNormal,
+                      data=datetime.date(2019, 10, 1),
+                      motivo=motivo_inclusao_normal)
+
+
+@pytest.fixture
+def inclusao_alimentacao_normal_outro_motivo(motivo_inclusao_normal):
+    return mommy.make(models.InclusaoAlimentacaoNormal,
+                      data=datetime.date(2019, 10, 1),
+                      motivo=motivo_inclusao_normal,
+                      outro_motivo=fake.name())
+
+
+@pytest.fixture(params=[
+    # data ini, data fim, esperado
+    (datetime.date(2019, 10, 1), datetime.date(2019, 10, 30)),
+    (datetime.date(2019, 10, 1), datetime.date(2019, 9, 20))]
+)
+def grupo_inclusao_alimentacao_normal(escola, motivo_inclusao_normal, request):
+    mommy.make(TemplateMensagem, assunto='TESTE',
+               tipo=TemplateMensagem.INCLUSAO_ALIMENTACAO,
+               template_html='@id @criado_em @status @link')
+
+    data_1, data_2 = request.param
+    grupo_inclusao_normal = mommy.make(models.GrupoInclusaoAlimentacaoNormal,
+                                       escola=escola,
+                                       rastro_escola=escola,
+                                       rastro_dre=escola.diretoria_regional)
+    mommy.make(models.InclusaoAlimentacaoNormal,
+               data=data_1,
+               motivo=motivo_inclusao_normal,
+               grupo_inclusao=grupo_inclusao_normal)
+    mommy.make(models.InclusaoAlimentacaoNormal,
+               data=data_2,
+               motivo=motivo_inclusao_normal,
+               grupo_inclusao=grupo_inclusao_normal)
+    return grupo_inclusao_normal
+
+
+@pytest.fixture
+def grupo_inclusao_alimentacao_normal_dre_validar(grupo_inclusao_alimentacao_normal):
+    grupo_inclusao_alimentacao_normal.status = PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR
+    grupo_inclusao_alimentacao_normal.save()
+    return grupo_inclusao_alimentacao_normal
+
+
+@pytest.fixture
+def grupo_inclusao_alimentacao_normal_dre_validado(grupo_inclusao_alimentacao_normal):
+    grupo_inclusao_alimentacao_normal.status = PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO
+    grupo_inclusao_alimentacao_normal.save()
+    return grupo_inclusao_alimentacao_normal
+
+
+@pytest.fixture
+def grupo_inclusao_alimentacao_normal_codae_autorizado(grupo_inclusao_alimentacao_normal):
+    grupo_inclusao_alimentacao_normal.status = PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO
+    grupo_inclusao_alimentacao_normal.save()
+    return grupo_inclusao_alimentacao_normal
+
+
+@pytest.fixture
+def grupo_inclusao_alimentacao_normal_codae_questionado(grupo_inclusao_alimentacao_normal):
+    grupo_inclusao_alimentacao_normal.status = PedidoAPartirDaEscolaWorkflow.CODAE_QUESTIONADO
+    grupo_inclusao_alimentacao_normal.save()
+    return grupo_inclusao_alimentacao_normal
 
 
 @pytest.fixture(params=[

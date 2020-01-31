@@ -81,6 +81,7 @@ class SolicitacaoKitLancheAvulsa(ExportModelOperationsMixin('kit_lanche_avulsa')
                                  CriadoPor, TemPrioridade, Logs, SolicitacaoForaDoPrazo):
     # TODO: ao deletar este, deletar solicitacao_kit_lanche também que é uma tabela acessória
     # TODO: passar `local` para solicitacao_kit_lanche
+    DESCRICAO = 'Kit Lanche'
     local = models.CharField(max_length=160)
     quantidade_alunos = models.PositiveSmallIntegerField()
     solicitacao_kit_lanche = models.ForeignKey(SolicitacaoKitLanche, on_delete=models.DO_NOTHING)
@@ -138,7 +139,7 @@ class SolicitacaoKitLancheAvulsa(ExportModelOperationsMixin('kit_lanche_avulsa')
 
 
 class SolicitacaoKitLancheUnificada(ExportModelOperationsMixin('kit_lanche_unificada'), CriadoPor, TemChaveExterna,
-                                    TemIdentificadorExternoAmigavel,
+                                    TemIdentificadorExternoAmigavel, SolicitacaoForaDoPrazo,
                                     FluxoAprovacaoPartindoDaDiretoriaRegional, Logs, TemPrioridade):
     """Uma DRE pede para as suas escolas.
 
@@ -152,6 +153,8 @@ class SolicitacaoKitLancheUnificada(ExportModelOperationsMixin('kit_lanche_unifi
 
     # TODO: ao deletar este, deletar solicitacao_kit_lanche também que é uma tabela acessória
     # TODO: passar `local` para solicitacao_kit_lanche
+    DESCRICAO = 'Kit Lanche Unificado'
+
     outro_motivo = models.TextField(blank=True)
     local = models.CharField(max_length=160)
     lista_kit_lanche_igual = models.BooleanField(default=True)
@@ -206,14 +209,15 @@ class SolicitacaoKitLancheUnificada(ExportModelOperationsMixin('kit_lanche_unifi
 
     def salvar_log_transicao(self, status_evento, usuario, **kwargs):
         justificativa = kwargs.get('justificativa', '')
-
+        resposta_sim_nao = kwargs.get('resposta_sim_nao', False)
         LogSolicitacoesUsuario.objects.create(
             descricao=str(self),
             status_evento=status_evento,
             solicitacao_tipo=LogSolicitacoesUsuario.SOLICITACAO_KIT_LANCHE_UNIFICADA,
             usuario=usuario,
             uuid_original=self.uuid,
-            justificativa=justificativa
+            justificativa=justificativa,
+            resposta_sim_nao=resposta_sim_nao
         )
 
     @property

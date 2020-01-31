@@ -1,0 +1,88 @@
+{% extends 'cabecalho_rodape_filtro.html' %}
+{% load static %}
+
+{% block conteudo %}
+  <div class="sumario-totais">
+
+    <table class="tabela-sumario-totais">
+      <caption>Relatório de terceirizadas - Solicitações por status</caption>
+      <thead>
+      <tr>
+        <td>Solicitações</td>
+        <td>Nº Pedidos</td>
+        <td>%</td>
+      </tr>
+      </thead>
+      <tbody>
+      {#      {% for i in solicitacoes %}#}
+      {#        <tr>#}
+      {#          <td>i.solicitacao</td>#}
+      {#          <td>i.pedidos</td>#}
+      {#          <td>i.percent</td>#}
+      {#        </tr>#}
+      {#      {% endfor %}#}
+
+      <tr>
+        <td>Autorizadas</td>
+        <td>700</td>
+        <td>XXXX</td>
+      </tr>
+      <tr>
+        <td>Negadas</td>
+        <td>700</td>
+        <td>XXXX</td>
+      </tr>
+      <tr>
+        <td>Pendentes</td>
+        <td>700</td>
+        <td>XXXX</td>
+      </tr>
+      <tr>
+        <td>Canceladsa</td>
+        <td>700</td>
+        <td>XXXX</td>
+      </tr>
+      <tr>
+        <td>TOTAL:</td>
+        <td>XXX Pedidos</td>
+        <td>+ 36%</td>
+      </tr>
+      </tbody>
+    </table>
+
+    <table class="tabela-sumario-totais">
+      <caption>Relatório de terceirizadas - Evolução das solicitações por tipo</caption>
+      <thead>
+      <tr>
+        <td></td>
+        <td>Alteração de Cardápio</td>
+        <td>Inclusão de Alimentação</td>
+        <td>Kit Lanche Passeio</td>
+        <td>Suspensão de Alimentação</td>
+        <td>Inversão de Dia de Cardápio</td>
+        <td>Solicitação Unificada</td>
+      </tr>
+      </thead>
+      <tbody>
+      <tr>
+        <td>Fev</td>
+        <td>700</td>
+        <td>700</td>
+        <td>700</td>
+        <td>700</td>
+        <td>700</td>
+        <td>XXXX</td>
+      </tr>
+      <tr>
+        <td>Total</td>
+        <td>700</td>
+        <td>700</td>
+        <td>700</td>
+        <td>700</td>
+        <td>700</td>
+        <td>XXXX</td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+{% endblock %}

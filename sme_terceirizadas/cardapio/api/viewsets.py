@@ -1,16 +1,23 @@
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST
 from rest_framework.viewsets import GenericViewSet
 from xworkflows import InvalidTransitionError
 
 from ...dados_comuns import constants
+from ...relatorios.relatorios import (
+    relatorio_alteracao_cardapio,
+    relatorio_inversao_dia_de_cardapio,
+    relatorio_suspensao_de_alimentacao
+)
 from ..models import (
     AlteracaoCardapio,
     Cardapio,
     ComboDoVinculoTipoAlimentacaoPeriodoTipoUE,
     GrupoSuspensaoAlimentacao,
+    HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolar,
     InversaoCardapio,
     MotivoAlteracaoCardapio,
     MotivoSuspensao,
@@ -33,6 +40,7 @@ from .serializers.serializers import (
     GrupoSupensaoAlimentacaoListagemSimplesSerializer,
     GrupoSuspensaoAlimentacaoSerializer,
     GrupoSuspensaoAlimentacaoSimplesSerializer,
+    HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolarSerializer,
     InversaoCardapioSerializer,
     MotivoAlteracaoCardapioSerializer,
     MotivoSuspensaoSerializer,
@@ -45,6 +53,7 @@ from .serializers.serializers_create import (
     CardapioCreateSerializer,
     ComboDoVinculoTipoAlimentoSimplesSerializerCreate,
     GrupoSuspensaoAlimentacaoCreateSerializer,
+    HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolarSerializerCreate,
     InversaoCardapioSerializerCreate,
     SubstituicaoDoComboVinculoTipoAlimentoSimplesSerializerCreate
 )
@@ -65,6 +74,26 @@ class TipoAlimentacaoViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
     serializer_class = TipoAlimentacaoSerializer
     queryset = TipoAlimentacao.objects.all()
+
+
+class HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolarViewSet(viewsets.ModelViewSet):
+    lookup_field = 'uuid'
+    serializer_class = HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolarSerializer
+    queryset = HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolar.objects.all()
+
+    @action(detail=False, url_path='escola/(?P<escola_uuid>[^/.]+)')
+    def filtro_por_escola(self, request, escola_uuid=None):
+        combos = HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolar.objects.filter(
+            escola__uuid=escola_uuid
+        )
+        page = self.paginate_queryset(combos)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update']:
+            return HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolarSerializerCreate
+        return HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolarSerializer
 
 
 class VinculoTipoAlimentacaoViewSet(mixins.RetrieveModelMixin,
@@ -137,7 +166,7 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
 
     @action(detail=False,
             url_path=f'{constants.PEDIDOS_DRE}/{constants.FILTRO_PADRAO_PEDIDOS}')
-    def pedidos_diretoria_regional(self, request, filtro_aplicado=constants.SEM_FILTRO):
+    def solicitacoes_diretoria_regional(self, request, filtro_aplicado=constants.SEM_FILTRO):
         usuario = request.user
         diretoria_regional = usuario.vinculo_atual.instituicao
         inversoes_cardapio = diretoria_regional.inversoes_cardapio_das_minhas_escolas(
@@ -149,7 +178,7 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
 
     @action(detail=False,
             url_path=f'{constants.PEDIDOS_CODAE}/{constants.FILTRO_PADRAO_PEDIDOS}')
-    def pedidos_codae(self, request, filtro_aplicado=constants.SEM_FILTRO):
+    def solicitacoes_codae(self, request, filtro_aplicado=constants.SEM_FILTRO):
         # TODO: colocar regras de codae CODAE aqui...
         usuario = request.user
         codae = usuario.vinculo_atual.instituicao
@@ -162,7 +191,7 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
 
     @action(detail=False,
             url_path=f'{constants.PEDIDOS_TERCEIRIZADA}/{constants.FILTRO_PADRAO_PEDIDOS}')
-    def pedidos_terceirizada(self, request, filtro_aplicado=constants.SEM_FILTRO):
+    def solicitacoes_terceirizada(self, request, filtro_aplicado=constants.SEM_FILTRO):
         # TODO: colocar regras de Terceirizada aqui...
         usuario = request.user
         terceirizada = usuario.vinculo_atual.instituicao
@@ -174,7 +203,7 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False, url_path='pedidos-autorizados-diretoria-regional')
-    def pedidos_autorizados_diretoria_regional(self, request):
+    def solicitacoes_autorizados_diretoria_regional(self, request):
         usuario = request.user
         diretoria_regional = usuario.vinculo_atual.instituicao
         inversoes_cardapio = diretoria_regional.inversoes_cardapio_autorizadas
@@ -183,7 +212,7 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False, url_path='pedidos-reprovados-diretoria-regional')
-    def pedidos_reprovados_diretoria_regional(self, request):
+    def solicitacoes_reprovados_diretoria_regional(self, request):
         usuario = request.user
         diretoria_regional = usuario.vinculo_atual.instituicao
         inversoes_cardapio = diretoria_regional.inversoes_cardapio_reprovados
@@ -192,7 +221,7 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False, url_path='pedidos-autorizados-codae')
-    def pedidos_autorizados_codae(self, request):
+    def solicitacoes_autorizados_codae(self, request):
         usuario = request.user
         codae = usuario.vinculo_atual.instituicao
         inversoes_cardapio = codae.inversoes_cardapio_autorizadas
@@ -201,7 +230,7 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False, url_path='pedidos-reprovados-codae')
-    def pedidos_reprovados_codae(self, request):
+    def solicitacoes_reprovados_codae(self, request):
         usuario = request.user
         codae = usuario.vinculo_atual.instituicao
         inversoes_cardapio = codae.inversoes_cardapio_reprovados
@@ -210,7 +239,7 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False, url_path='pedidos-autorizados-terceirizada')
-    def pedidos_autorizados_terceirizada(self, request):
+    def solicitacoes_autorizados_terceirizada(self, request):
         usuario = request.user
         terceirizada = usuario.vinculo_atual.instituicao
         inversoes_cardapio = terceirizada.inversoes_cardapio_autorizadas
@@ -272,12 +301,13 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
             methods=['patch'], url_path=constants.CODAE_AUTORIZA_PEDIDO)
     def codae_autoriza_solicitacao(self, request, uuid=None):
         inversao_cardapio = self.get_object()
+        justificativa = request.data.get('justificativa', '')
         try:
             user = request.user
             if inversao_cardapio.status == inversao_cardapio.workflow_class.DRE_VALIDADO:
                 inversao_cardapio.codae_autoriza(user=user)
             else:
-                inversao_cardapio.codae_autoriza_questionamento(user=user)
+                inversao_cardapio.codae_autoriza_questionamento(user=user, justificativa=justificativa)
             serializer = self.get_serializer(inversao_cardapio)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -352,6 +382,11 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
         if inversao_cardapio.pode_excluir:
             return super().destroy(request, *args, **kwargs)
 
+    @action(detail=True, url_path=constants.RELATORIO, methods=['get'],
+            permission_classes=[AllowAny])
+    def relatorio(self, request, uuid=None):
+        return relatorio_inversao_dia_de_cardapio(request, solicitacao=self.get_object())
+
 
 class GrupoSuspensaoAlimentacaoSerializerViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
@@ -360,7 +395,7 @@ class GrupoSuspensaoAlimentacaoSerializerViewSet(viewsets.ModelViewSet):
 
     @action(detail=False,
             url_path=f'{constants.PEDIDOS_CODAE}/{constants.FILTRO_PADRAO_PEDIDOS}')
-    def pedidos_codae(self, request, filtro_aplicado=constants.SEM_FILTRO):
+    def solicitacoes_codae(self, request, filtro_aplicado=constants.SEM_FILTRO):
         # TODO: colocar regras de codae CODAE aqui...
         usuario = request.user
         codae = usuario.vinculo_atual.instituicao
@@ -380,7 +415,7 @@ class GrupoSuspensaoAlimentacaoSerializerViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['GET'],
             url_path=f'{constants.PEDIDOS_TERCEIRIZADA}/{constants.FILTRO_PADRAO_PEDIDOS}')
-    def pedidos_terceirizada(self, request, filtro_aplicado='sem_filtro'):
+    def solicitacoes_terceirizada(self, request, filtro_aplicado='sem_filtro'):
         # TODO: colocar regras de Terceirizada aqui...
         usuario = request.user
         terceirizada = usuario.vinculo_atual.instituicao
@@ -443,6 +478,11 @@ class GrupoSuspensaoAlimentacaoSerializerViewSet(viewsets.ModelViewSet):
         if grupo_suspensao_de_alimentacao.pode_excluir:
             return super().destroy(request, *args, **kwargs)
 
+    @action(detail=True, url_path=constants.RELATORIO, methods=['get'],
+            permission_classes=[AllowAny])
+    def relatorio(self, request, uuid=None):
+        return relatorio_suspensao_de_alimentacao(request, solicitacao=self.get_object())
+
 
 class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
@@ -459,7 +499,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
 
     @action(detail=False,
             url_path=f'{constants.PEDIDOS_CODAE}/{constants.FILTRO_PADRAO_PEDIDOS}')
-    def pedidos_codae(self, request, filtro_aplicado=constants.SEM_FILTRO):
+    def solicitacoes_codae(self, request, filtro_aplicado=constants.SEM_FILTRO):
         # TODO: colocar regras de codae CODAE aqui...
         usuario = request.user
         codae = usuario.vinculo_atual.instituicao
@@ -473,7 +513,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
 
     @action(detail=False,
             url_path=f'{constants.PEDIDOS_DRE}/{constants.FILTRO_PADRAO_PEDIDOS}')
-    def pedidos_dre(self, request, filtro_aplicado=constants.SEM_FILTRO):
+    def solicitacoes_dre(self, request, filtro_aplicado=constants.SEM_FILTRO):
         # TODO: colocar regras de DRE aqui...
         usuario = request.user
         dre = usuario.vinculo_atual.instituicao
@@ -487,7 +527,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
 
     @action(detail=False,
             url_path=f'{constants.PEDIDOS_TERCEIRIZADA}/{constants.FILTRO_PADRAO_PEDIDOS}')
-    def pedidos_terceirizada(self, request, filtro_aplicado=constants.SEM_FILTRO):
+    def solicitacoes_terceirizada(self, request, filtro_aplicado=constants.SEM_FILTRO):
         # TODO: colocar regras de Terceirizada aqui...
         usuario = request.user
         terceirizada = usuario.vinculo_atual.instituicao
@@ -498,6 +538,12 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
         page = self.paginate_queryset(alteracoes_cardapio)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
+
+    @action(detail=True,
+            methods=['GET'],
+            url_path=f'{constants.RELATORIO}', permission_classes=[AllowAny])
+    def relatorio(self, request, uuid=None):
+        return relatorio_alteracao_cardapio(request, solicitacao=self.get_object())
 
     #
     # IMPLEMENTAÇÃO DO FLUXO (PARTINDO DA ESCOLA)
@@ -556,11 +602,12 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
             methods=['patch'], url_path=constants.CODAE_AUTORIZA_PEDIDO)
     def codae_autoriza(self, request, uuid=None):
         alteracao_cardapio = self.get_object()
+        justificativa = request.data.get('justificativa', '')
         try:
             if alteracao_cardapio.status == alteracao_cardapio.workflow_class.DRE_VALIDADO:
                 alteracao_cardapio.codae_autoriza(user=request.user)
             else:
-                alteracao_cardapio.codae_autoriza_questionamento(user=request.user)
+                alteracao_cardapio.codae_autoriza_questionamento(user=request.user, justificativa=justificativa)
             serializer = self.get_serializer(alteracao_cardapio)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -620,7 +667,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=False, url_path='pedidos-autorizados-diretoria-regional')
-    def pedidos_autorizados_diretoria_regional(self, request):
+    def solicitacoes_autorizados_diretoria_regional(self, request):
         usuario = request.user
         diretoria_regional = usuario.vinculo_atual.instituicao
         alteracoes_cardapio = diretoria_regional.alteracoes_cardapio_autorizadas
@@ -629,7 +676,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False, url_path='pedidos-reprovados-diretoria-regional')
-    def pedidos_reprovados_diretoria_regional(self, request):
+    def solicitacoes_reprovados_diretoria_regional(self, request):
         usuario = request.user
         diretoria_regional = usuario.vinculo_atual.instituicao
         alteracoes_cardapio = diretoria_regional.alteracoes_cardapio_reprovadas
@@ -638,7 +685,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False, url_path='pedidos-autorizados-codae')
-    def pedidos_autorizados_codae(self, request):
+    def solicitacoes_autorizados_codae(self, request):
         usuario = request.user
         codae = usuario.vinculo_atual.instituicao
         alteracoes_cardapio = codae.alteracoes_cardapio_autorizadas
@@ -647,7 +694,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False, url_path='pedidos-reprovados-codae')
-    def pedidos_reprovados_codae(self, request):
+    def solicitacoes_reprovados_codae(self, request):
         usuario = request.user
         codae = usuario.vinculo_atual.instituicao
         alteracoes_cardapio = codae.alteracoes_cardapio_reprovadas
@@ -656,7 +703,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False, url_path='pedidos-autorizados-terceirizada')
-    def pedidos_autorizados_terceirizada(self, request):
+    def solicitacoes_autorizados_terceirizada(self, request):
         usuario = request.user
         terceirizada = usuario.vinculo_atual.instituicao
         alteracoes_cardapio = terceirizada.alteracoes_cardapio_autorizadas
@@ -665,7 +712,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False, url_path='pedidos-reprovados-terceirizada')
-    def pedidos_reprovados_terceirizada(self, request):
+    def solicitacoes_reprovados_terceirizada(self, request):
         usuario = request.user
         terceirizada = usuario.vinculo_atual.instituicao
         alteracoes_cardapio = terceirizada.alteracoes_cardapio_reprovadas
@@ -676,7 +723,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
     # TODO rever os demais endpoints. Essa action consolida em uma única pesquisa as pesquisas por prioridade.
     @action(detail=False,
             url_path=f'{constants.PEDIDOS_DRE}/{constants.FILTRO_PADRAO_PEDIDOS}')
-    def pedidos_diretoria_regional(self, request, filtro_aplicado='sem_filtro'):
+    def solicitacoes_diretoria_regional(self, request, filtro_aplicado='sem_filtro'):
         usuario = request.user
         diretoria_regional = usuario.vinculo_atual.instituicao
         alteracoes_cardapio = diretoria_regional.alteracoes_cardapio_das_minhas_escolas_a_validar(

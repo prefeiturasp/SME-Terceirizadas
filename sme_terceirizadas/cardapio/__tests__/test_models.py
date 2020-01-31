@@ -118,3 +118,13 @@ def test_grupo_suspensao_alimentacao(grupo_suspensao_alimentacao):
 
 def test_vinculo_tipo_alimentacao(vinculo_tipo_alimentacao):
     assert vinculo_tipo_alimentacao.combos.count() == 5
+
+
+def test_horario_combo_tipo_alimentacao(horario_combo_tipo_alimentacao):
+    assert horario_combo_tipo_alimentacao.hora_inicial == '07:00:00'
+    assert horario_combo_tipo_alimentacao.hora_final == '07:30:00'
+    assert horario_combo_tipo_alimentacao.escola.nome == 'EMEF JOAO MENDES'
+    assert horario_combo_tipo_alimentacao.combo_tipos_alimentacao.uuid == '9fe31f4a-716b-4677-9d7d-2868557cf954'
+    assert horario_combo_tipo_alimentacao.__str__() == (f'{horario_combo_tipo_alimentacao.combo_tipos_alimentacao} '
+                                                        f'DE: {horario_combo_tipo_alimentacao.hora_inicial} '
+                                                        f'ATE: {horario_combo_tipo_alimentacao.hora_final}')
