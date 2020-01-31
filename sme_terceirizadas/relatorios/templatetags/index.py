@@ -70,3 +70,13 @@ def tem_questionamentos(logs):
 @register.filter
 def concatena_str(query_set):
     return ', '.join([p.nome for p in query_set])
+
+
+@register.filter
+def concatena_label(query_set):
+    label = ''
+    for item in query_set:
+        label += ' e '.join([tp.nome for tp in item.tipos_alimentacao.all()])
+        if item != list(query_set)[-1]:
+            label += ', '
+    return label
