@@ -109,12 +109,11 @@ def cria_solicitacoes_dieta_especial(qtd=50):
             solicitacao_dieta_especial.alergias_intolerancias.add(alergia_1, alergia_2)
             solicitacao_dieta_especial.tipos.add(tipo_dieta_1, tipo_dieta_2)
 
-            for eh_laudo_medico in [True, False]:
+            for _ in range(random.randint(2,4)):
                 Anexo.objects.create(
                     solicitacao_dieta_especial=solicitacao_dieta_especial,
                     arquivo=test_file,
-                    nome=f.file_name(extension="jpg"),
-                    eh_laudo_medico=eh_laudo_medico
+                    nome=f.file_name(extension="jpg")
                 )
             fluxo_escola_felix_dieta_especial(solicitacao_dieta_especial, user, index)
 

@@ -5,11 +5,20 @@ from rest_framework import status
 from ...dados_comuns.fluxo_status import DietaEspecialWorkflow
 from ..constants import (
     ENDPOINT_ALERGIAS_INTOLERANCIAS,
+    ENDPOINT_ALIMENTOS,
     ENDPOINT_CLASSIFICACOES_DIETA,
     ENDPOINT_MOTIVOS_NEGACAO,
+    ENDPOINT_SUBSTITUICOES,
     ENDPOINT_TIPOS_DIETA_ESPECIAL
 )
-from ..models import AlergiaIntolerancia, Anexo, ClassificacaoDieta, MotivoNegacao, SolicitacaoDietaEspecial, TipoDieta
+from ..models import (
+    AlergiaIntolerancia,
+    ClassificacaoDieta,
+    MotivoNegacao,
+    SolicitacaoDietaEspecial,
+    SubstituicaoAlimento,
+    TipoDieta
+)
 
 
 def endpoint_lista(client_autenticado, endpoint, quantidade):
@@ -28,6 +37,15 @@ def test_url_endpoint_lista_alergias_intolerancias(client_autenticado,
     )
 
 
+def test_url_endpoint_lista_alimentos(client_autenticado,
+                                      alimentos):
+    endpoint_lista(
+        client_autenticado,
+        ENDPOINT_ALIMENTOS,
+        quantidade=6
+    )
+
+
 def test_url_endpoint_lista_classificacoes_dieta(client_autenticado,
                                                  classificacoes_dieta):
     endpoint_lista(
@@ -43,6 +61,15 @@ def test_url_endpoint_lista_motivos_negacao(client_autenticado,
         client_autenticado,
         ENDPOINT_MOTIVOS_NEGACAO,
         quantidade=4
+    )
+
+
+def test_url_endpoint_lista_substitutos(client_autenticado,
+                                        substitutos):
+    endpoint_lista(
+        client_autenticado,
+        ENDPOINT_SUBSTITUICOES,
+        quantidade=7
     )
 
 
@@ -197,69 +224,144 @@ def test_url_criar_dieta_erro_aluno_falta_atributo(client_autenticado_vinculo_es
 
 def test_url_endpoint_autorizar_dieta(client_autenticado,
                                       solicitacao_dieta_especial_a_autorizar,
-                                      alergias_intolerancias,
-                                      classificacoes_dieta):
+                                      payload_autorizar):
     obj = SolicitacaoDietaEspecial.objects.first()
-    data = {
-        'classificacao': classificacoes_dieta[0].id,
-        'alergias_intolerancias': [
-            alergias_intolerancias[0].id
-        ],
-        'registro_funcional_nutricionista':
-            'ELABORADO por USUARIO NUTRICIONISTA CODAE - CRN null',
-        'protocolos': [
-            {
-                'nome': 'Teste',
-                'base64': 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAaQAAAGkCAIAAADxLsZiAAAFyklEQVR4nOzWUZHbYBA' +
-                          'GwThlHsYmEEIhEMImBgshJHL6rZtuAvs9Te17Zv4A/HZ/Vw8AuIPYAQliBySIHZAgdkCC2AEJYgckiB2QIHZAgtgB' +
-                          'CWIHJIgdkCB2QILYAQliBySIHZAgdkCC2AEJYgckiB2QIHZAgtgBCWIHJIgdkCB2QILYAQliBySIHZAgdkCC2AEJY' +
-                          'gckiB2QIHZAgtgBCe/VAx7svI7VEyjaPvvqCY/kswMSxA5IEDsgQeyABLEDEsQOSBA7IEHsgASxAxLEDkgQOyBB7I' +
-                          'AEsQMSxA5IEDsgQeyABLEDEsQOSBA7IEHsgASxAxLEDkgQOyBB7IAEsQMSxA5IEDsgQeyABLEDEsQOSBA7IEHsgAS' +
-                          'xAxLEDkgQOyBB7IAEsQMSxA5IEDsgQeyABLEDEsQOSBA7IEHsgASxAxLEDkgQOyBB7IAEsQMSxA5IEDsgQeyABLED' +
-                          'EsQOSBA7IEHsgASxAxLEDkgQOyBB7IAEsQMSxA5IEDsgQeyABLEDEsQOSBA7IEHsgASxAxJeM3PPpfM67jkEPMv22' +
-                          'W+44rMDEsQOSBA7IEHsgASxAxLEDkgQOyBB7IAEsQMSxA5IEDsgQeyABLEDEsQOSBA7IEHsgASxAxLEDkgQOyBB7I' +
-                          'AEsQMSxA5IEDsgQeyABLEDEsQOSBA7IEHsgASxAxLEDkgQOyBB7IAEsQMSxA5IEDsgQeyABLEDEsQOSBA7IEHsgAS' +
-                          'xAxLEDkgQOyBB7IAEsQMSxA5IEDsgQeyABLEDEsQOSBA7IEHsgASxAxLEDkgQOyBB7IAEsQMSxA5IEDsgQeyABLED' +
-                          'EsQOSBA7IEHsgASxAxLEDkgQOyBB7IAEsQMSxA5IeM3M6g1PdV7H6gkUbZ999YRH8tkBCWIHJIgdkCB2QILYAQliB' +
-                          'ySIHZAgdkCC2AEJYgckiB2QIHZAgtgBCWIHJIgdkCB2QILYAQliBySIHZAgdkCC2AEJYgckiB2QIHZAgtgBCWIHJI' +
-                          'gdkCB2QILYAQliBySIHZAgdkCC2AEJYgckiB2QIHZAgtgBCWIHJIgdkCB2QILYAQliBySIHZAgdkCC2AEJYgckiB2' +
-                          'QIHZAgtgBCWIHJIgdkCB2QILYAQliBySIHZAgdkCC2AEJYgckiB2QIHZAgtgBCWIHJIgdkCB2QILYAQliBySIHZAg' +
-                          'dkCC2AEJr5lZvQHgx/nsgASxAxLEDkgQOyBB7IAEsQMSxA5IEDsgQeyABLEDEsQOSBA7IEHsgASxAxLEDkgQOyBB7' +
-                          'IAEsQMSxA5IEDsgQeyABLEDEsQOSBA7IEHsgASxAxLEDkgQOyBB7IAEsQMSxA5IEDsgQeyABLEDEsQOSBA7IEHsgA' +
-                          'SxAxLEDkgQOyBB7IAEsQMSxA5IEDsgQeyABLEDEsQOSBA7IEHsgASxAxLEDkgQOyBB7IAEsQMSxA5IEDsgQeyABLE' +
-                          'DEsQOSBA7IEHsgASxAxLEDkgQOyBB7IAEsQMSxA5IEDsg4b16AF/kvI7VE/6/7bOvnsBX8NkBCWIHJIgdkCB2QILY' +
-                          'AQliBySIHZAgdkCC2AEJYgckiB2QIHZAgtgBCWIHJIgdkCB2QILYAQliBySIHZAgdkCC2AEJYgckiB2QIHZAgtgBC' +
-                          'WIHJIgdkCB2QILYAQliBySIHZAgdkCC2AEJYgckiB2QIHZAgtgBCWIHJIgdkCB2QILYAQliBySIHZAgdkCC2AEJYg' +
-                          'ckiB2QIHZAgtgBCWIHJIgdkCB2QILYAQliBySIHZAgdkCC2AEJYgckiB2QIHZAgtgBCWIHJIgdkCB2QILYAQliByS' +
-                          'IHZAgdkCC2AEJYgckvGZm9QaAH+ezAxLEDkgQOyBB7IAEsQMSxA5IEDsgQeyABLEDEsQOSBA7IEHsgASxAxLEDkgQ' +
-                          'OyBB7IAEsQMSxA5IEDsgQeyABLEDEsQOSBA7IEHsgASxAxLEDkgQOyBB7IAEsQMSxA5IEDsgQeyABLEDEv4FAAD//' +
-                          'xmNHVuA/EwlAAAAAElFTkSuQmCC'
-            }
-        ]
-    }
-    response = client_autenticado.post(
+
+    response = client_autenticado.patch(
         f'/solicitacoes-dieta-especial/{obj.uuid}/autorizar/',
         content_type='application/json',
-        data=data
+        data=payload_autorizar
     )
 
     assert response.status_code == status.HTTP_200_OK
     json = response.json()
-    assert json['mensagem'] == 'Autorização de dieta especial realizada com sucesso'
+    assert json['detail'] == 'Autorização de dieta especial realizada com sucesso'
 
     obj.refresh_from_db()
 
     assert obj.status == DietaEspecialWorkflow.CODAE_AUTORIZADO
-    assert obj.registro_funcional_nutricionista == data['registro_funcional_nutricionista']
+    assert obj.registro_funcional_nutricionista == payload_autorizar['registro_funcional_nutricionista']
     for ai in obj.alergias_intolerancias.all():
-        assert ai.id in data['alergias_intolerancias']
-    assert obj.classificacao.id == data['classificacao']
+        assert ai.id in payload_autorizar['alergias_intolerancias']
+    assert obj.classificacao.id == payload_autorizar['classificacao']
 
-    anexos = Anexo.objects.filter(solicitacao_dieta_especial=obj)
-    assert anexos.count() == 1
+    qs_substituicoes = SubstituicaoAlimento.objects.filter(solicitacao_dieta_especial=obj)
+    assert qs_substituicoes.count() == len(payload_autorizar['substituicoes'])
 
-    anexo = anexos.first()
-    assert anexo.nome == data['protocolos'][0]['nome']
+    for obj, substituicao in zip(qs_substituicoes, payload_autorizar['substituicoes']):
+        assert obj.alimento.id == substituicao['alimento']
+        assert obj.isento_substituto == substituicao['isento_substituto']
+        for obj_substituto in obj.substitutos.all():
+            assert obj_substituto.id in substituicao['substitutos']
+
+
+def test_url_endpoint_autorizar_dieta_transicao_invalida(client_autenticado,
+                                                         solicitacao_dieta_especial_autorizada,
+                                                         payload_autorizar):
+    obj = SolicitacaoDietaEspecial.objects.first()
+
+    assert obj.registro_funcional_nutricionista == ''
+
+    response = client_autenticado.patch(
+        f'/solicitacoes-dieta-especial/{obj.uuid}/autorizar/',
+        content_type='application/json',
+        data=payload_autorizar
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    json = response.json()
+    assert json['detail'].startswith('Erro na transição de estado')
+
+    obj2 = SolicitacaoDietaEspecial.objects.first()
+
+    assert obj.status == obj2.status
+    assert obj.registro_funcional_nutricionista == obj2.registro_funcional_nutricionista
+
+
+def test_url_endpoint_autorizar_dieta_atributos_obrigatorios(client_autenticado,
+                                                             solicitacao_dieta_especial_autorizada,
+                                                             payload_autorizar):
+    obj = SolicitacaoDietaEspecial.objects.first()
+
+    campos = [
+        'alergias_intolerancias',
+        'classificacao',
+        'registro_funcional_nutricionista',
+        'substituicoes'
+    ]
+    for campo in campos:
+        payload = payload_autorizar.copy()
+        payload.pop(campo)
+
+        response = client_autenticado.patch(
+            f'/solicitacoes-dieta-especial/{obj.uuid}/autorizar/',
+            content_type='application/json',
+            data=payload
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        json = response.json()
+        assert json['detail'].startswith('Dados inválidos')
+        assert json['detail'].find(f'deve ter atributo {campo}') > -1
+
+
+def test_url_endpoint_autorizar_dieta_atributos_lista_nao_vazios(client_autenticado,
+                                                                 solicitacao_dieta_especial_autorizada,
+                                                                 payload_autorizar):
+    obj = SolicitacaoDietaEspecial.objects.first()
+
+    campos = ['substituicoes', 'alergias_intolerancias']
+    for campo in campos:
+        payload = payload_autorizar.copy()
+        payload[campo] = []
+
+        response = client_autenticado.patch(
+            f'/solicitacoes-dieta-especial/{obj.uuid}/autorizar/',
+            content_type='application/json',
+            data=payload
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        json = response.json()
+        assert json['detail'].startswith('Dados inválidos')
+        assert json['detail'].find(f'atributo {campo} não pode ser vazio') > -1
+
+
+def test_url_endpoint_autorizar_dieta_atributos_string_nao_vazios(client_autenticado,
+                                                                  solicitacao_dieta_especial_autorizada,
+                                                                  payload_autorizar):
+    obj = SolicitacaoDietaEspecial.objects.first()
+
+    payload_autorizar['registro_funcional_nutricionista'] = ''
+
+    response = client_autenticado.patch(
+        f'/solicitacoes-dieta-especial/{obj.uuid}/autorizar/',
+        content_type='application/json',
+        data=payload_autorizar
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    json = response.json()
+    assert json['detail'].startswith('Dados inválidos')
+    assert json['detail'].find('atributo registro_funcional_nutricionista não pode ser vazio') > -1
+
+
+def test_url_endpoint_autorizar_dieta_atributos_string_vazios(client_autenticado,
+                                                              solicitacao_dieta_especial_a_autorizar,
+                                                              payload_autorizar):
+    obj = SolicitacaoDietaEspecial.objects.first()
+
+    payload_autorizar['informacoes_adicionais'] = ''
+
+    response = client_autenticado.patch(
+        f'/solicitacoes-dieta-especial/{obj.uuid}/autorizar/',
+        content_type='application/json',
+        data=payload_autorizar
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    json = response.json()
+    assert json['detail'] == 'Autorização de dieta especial realizada com sucesso'
 
 
 def test_url_endpoint_negar_dieta(client_autenticado,
