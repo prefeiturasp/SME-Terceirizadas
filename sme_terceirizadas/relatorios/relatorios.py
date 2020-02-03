@@ -1,3 +1,5 @@
+import datetime
+
 from django.http import HttpResponse
 from django.template.loader import render_to_string
 from weasyprint import HTML
@@ -5,10 +7,12 @@ from weasyprint import HTML
 from ..kit_lanche.models import EscolaQuantidade
 from . import constants
 from .utils import formata_logs, get_width
-import datetime
 
 
 def relatorio_filtro_periodo(request, query_set_consolidado):
+    # TODO: se query_set_consolidado tiver muitos resultados, pode demorar no front-end
+    # melhor mandar via celery pro email de quem solicitou
+    # ou por padrão manda tudo pro celery
     request_params = request.GET
 
     tipo_solicitacao = request_params.get('tipo_solicitacao', 'INVALIDO')
@@ -24,7 +28,7 @@ def relatorio_filtro_periodo(request, query_set_consolidado):
         'relatorio_filtro.html',
         {
             'diretoria_regional_nome': dre_nome, 'escola_nome': escola_nome, 'filtro': filtro,
-            'query_set_consolidado': query_set_consolidado[:5]
+            'query_set_consolidado': query_set_consolidado
         }
     )
     pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
