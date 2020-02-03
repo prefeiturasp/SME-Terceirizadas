@@ -11,7 +11,8 @@ from ...dieta_especial.api.serializers import SolicitacaoDietaEspecialLogSeriali
 from ...dieta_especial.models import SolicitacaoDietaEspecial
 from ...paineis_consolidados.api.constants import PESQUISA, TIPO_VISAO, TIPO_VISAO_LOTE, TIPO_VISAO_SOLICITACOES
 from ...paineis_consolidados.api.serializers import SolicitacoesSerializer
-from ..api.constants import FILTRO_PERIOD_UUID_DRE, PENDENTES_VALIDACAO_DRE
+from ...relatorios.relatorios import relatorio_filtro_periodo
+from ..api.constants import FILTRO_PERIOD_UUID_DRE, PENDENTES_VALIDACAO_DRE, RELATORIO_PERIODO
 from ..models import MoldeConsolidado, SolicitacoesCODAE, SolicitacoesDRE, SolicitacoesEscola, SolicitacoesTerceirizada
 from .constants import (
     AUTORIZADOS,
@@ -34,17 +35,20 @@ from .constants import (
 
 class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
 
-    def _retorno_base(self, query_set):
-        """page_sem_uuid_repetido é criado por não ser possível juntar order_by e distinct na mesma query."""
-        # TODO: se alguém descobrir como ordenar a query e tirar os uuids repetidos, por favor melhore aqui
+    def _remove_duplicados_do_query_set(self, query_set):
+        """_remove_duplicados_do_query_set é criado por não ser possível juntar order_by e distinct na mesma query."""
+        # TODO: se alguém descobrir como ordenar a query e tirar os uuids repetidos, por favor melhore
         aux = []
-        page_sem_uuid_repetido = []
+        sem_uuid_repetido = []
         for resultado in query_set:
             if resultado.uuid not in aux:
                 aux.append(resultado.uuid)
-                page_sem_uuid_repetido.append(resultado)
+                sem_uuid_repetido.append(resultado)
+        return sem_uuid_repetido
 
-        page = self.paginate_queryset(page_sem_uuid_repetido)
+    def _retorno_base(self, query_set):
+        sem_uuid_repetido = self._remove_duplicados_do_query_set(query_set)
+        page = self.paginate_queryset(sem_uuid_repetido)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
@@ -301,6 +305,36 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
             escola_uuid=escola_uuid,
         )
         return Response(totais_dict)
+
+    @action(
+        detail=False,
+        methods=['GET'],
+        url_path=f'{RELATORIO_PERIODO}',
+    )
+    def relatorio_filtro_periodo(self, request):
+        # TODO: achar um jeito melhor de validar os parametros da url
+        request_params = request.GET
+        usuario = request.user
+        escola_uuid = usuario.vinculo_atual.instituicao.uuid
+        tipo_solicitacao = request_params.get('tipo_solicitacao', 'INVALIDO')
+        status_solicitacao = request_params.get('status_solicitacao', 'INVALIDO')
+        data_inicial = request_params.get('data_inicial', 'INVALIDO')
+        data_final = request_params.get('data_final', 'INVALIDO')
+
+        if not self.parametros_validos(data_final, data_inicial, status_solicitacao, tipo_solicitacao):
+            return Response(data={'detail': 'Parâmetros de busca inválidos'}, status=400)
+
+        query_set = SolicitacoesEscola.filtros_escola(
+            escola_uuid=escola_uuid,
+            data_inicial=data_inicial,
+            data_final=data_final,
+            tipo_solicitacao=tipo_solicitacao,
+            status_solicitacao=status_solicitacao
+        )
+
+        query_set = self._remove_duplicados_do_query_set(query_set)
+
+        return relatorio_filtro_periodo(request, query_set)
 
     @action(
         detail=False,

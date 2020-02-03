@@ -12,7 +12,7 @@
       @bottom-left {
         background: #EEEEEE;
         color: #000000;
-        content: "Relatório #{{ solicitacao.id_externo }}." ;
+        content: "Relatório filtro por período. De: {{ filtro.data_inicial|date }} Até: {{ filtro.data_final|date }}" ;
         font-size: 10px;
         width: 100%;
         padding: 1em 2em 4em 2em;
@@ -22,7 +22,7 @@
         color: #000000;
         content: "Página " counter(page) " de " counter(pages);
         font-size: 10px;
-        width: 50%;
+        width: 30%;
         padding: 1em 2em 4em 2em;
         margin-top: 2em;
       }
@@ -52,12 +52,12 @@
   </section>
   <table class="tabela-cabecalho tabela-arredondada">
     <tr class="">
-      <td colspan="2">{{ escola.nome }}</td>
-      <td colspan="2">{{ escola.diretoria_regional.nome }}</td>
+      <td colspan="2">{{ escola_nome }}</td>
+      <td colspan="2">{{ diretoria_regional_nome }}</td>
     </tr>
     <tr class="">
-      <td>De: {{ filtro.data_de }}</td>
-      <td>Até: {{ filtro.data_para }}</td>
+      <td>De: {{ filtro.data_inicial|date }}</td>
+      <td>Até: {{ filtro.data_final|date }}</td>
       <td>Tipo de solicitação: {{ filtro.tipo_solicitacao }}</td>
       <td>Status de solitação: {{ filtro.status }}</td>
     </tr>

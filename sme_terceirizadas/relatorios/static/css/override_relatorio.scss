@@ -105,30 +105,30 @@
   }
 
   .multiplos-motivos-solicitacao {
+    display: flex;
+    margin-bottom: 0.4em;
+
+    .coluna-esquerda {
+      width: 35%;
+    }
+
+    .coluna-direita {
+      width: 65%;
+    }
+
+    .titulo {
+      color: $cinza;
+      line-height: 16px;
+    }
+
+    .linha-com-datas {
       display: flex;
-      margin-bottom: 0.4em;
+      margin-bottom: 1em;
 
-      .coluna-esquerda {
-        width: 35%;
+      .data-suspensao {
+        margin: 0 2em 0 0;
       }
-
-      .coluna-direita {
-        width: 65%;
-      }
-
-      .titulo {
-        color: $cinza;
-        line-height: 16px;
-      }
-
-      .linha-com-datas {
-        display: flex;
-        margin-bottom: 1em;
-
-        .data-suspensao {
-          margin: 0 2em 0 0;
-        }
-      }
+    }
   }
 
   .observacoes {
@@ -295,4 +295,41 @@
 
 .info-geral-inclusao {
   width: 100%;
+}
+
+.tabela-filtro {
+  padding: 0 2em 0 2em;
+  h5 {
+    font-size: 16px;
+    line-height: 19px;
+    align-items: center;
+    letter-spacing: 0.25px;
+    color: $preto;
+  }
+
+  table {
+    width: 100%;
+    caption {
+      margin-bottom: 1em;
+      font-size: 16px;
+      line-height: 19px;
+      color: $preto
+    }
+
+    thead {
+      th {
+        font-size: 14px;
+        line-height: 16px;
+        color: $cinza;
+        margin-bottom: 0.5em;
+      }
+    }
+
+    tbody {
+      td {
+        border-bottom: 1px solid $cinza-claro;
+      }
+    }
+  }
+
 }
