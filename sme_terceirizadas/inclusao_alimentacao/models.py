@@ -31,7 +31,7 @@ from .managers import (
 class QuantidadePorPeriodo(ExportModelOperationsMixin('quantidade_periodo'), TemChaveExterna):
     numero_alunos = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)])
     periodo_escolar = models.ForeignKey('escola.PeriodoEscolar', on_delete=models.DO_NOTHING)
-    tipos_alimentacao = models.ManyToManyField('cardapio.TipoAlimentacao')
+    tipos_alimentacao = models.ManyToManyField('cardapio.ComboDoVinculoTipoAlimentacaoPeriodoTipoUE')
     grupo_inclusao_normal = models.ForeignKey('GrupoInclusaoAlimentacaoNormal',
                                               on_delete=models.CASCADE,
                                               null=True, blank=True,

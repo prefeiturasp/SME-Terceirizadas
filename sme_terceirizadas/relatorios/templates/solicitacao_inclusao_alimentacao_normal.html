@@ -36,7 +36,7 @@
         {% for  quantidade_periodo in solicitacao.quantidades_por_periodo.all %}
           <tr>
             <td>{{ quantidade_periodo.periodo_escolar }}</td>
-            <td>{{ quantidade_periodo.tipos_alimentacao.all | concatena_str }}</td>
+            <td>{{ quantidade_periodo.tipos_alimentacao.all | concatena_label }}</td>
             <td>{{ quantidade_periodo.numero_alunos }}</td>
           </tr>
         {% endfor %}

@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from ....cardapio.models import TipoAlimentacao
+from ....cardapio.models import ComboDoVinculoTipoAlimentacaoPeriodoTipoUE
 from ....dados_comuns.utils import update_instance_from_dict
 from ....dados_comuns.validators import deve_pedir_com_antecedencia, nao_pode_ser_no_passado
 from ....escola.models import Escola, PeriodoEscolar
@@ -37,7 +37,7 @@ class QuantidadePorPeriodoCreationSerializer(serializers.ModelSerializer):
         slug_field='uuid',
         many=True,
         required=True,
-        queryset=TipoAlimentacao.objects.all())
+        queryset=ComboDoVinculoTipoAlimentacaoPeriodoTipoUE.objects.all())
 
     grupo_inclusao_normal = serializers.SlugRelatedField(
         slug_field='uuid',
