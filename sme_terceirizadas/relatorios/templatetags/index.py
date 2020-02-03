@@ -33,11 +33,13 @@ def fim_de_fluxo(logs):
 @register.filter  # noqa
 def class_css(log):
     if log.status_evento_explicacao in ['Solicitação Realizada', 'Escola revisou', 'DRE validou', 'DRE revisou',
-                                        'CODAE autorizou', 'Terceirizada tomou ciência']:
+                                        'CODAE autorizou', 'Terceirizada tomou ciência', 'Escola solicitou inativação',
+                                        'CODAE autorizou inativação']:
         return 'active'
     elif log.status_evento_explicacao in ['Escola cancelou', 'DRE cancelou']:
         return 'cancelled'
-    elif log.status_evento_explicacao in ['DRE não validou', 'CODAE negou', 'Terceirizada recusou']:
+    elif log.status_evento_explicacao in ['DRE não validou', 'CODAE negou', 'Terceirizada recusou',
+                                          'CODAE negou inativação']:
         return 'disapproved'
     elif log.status_evento_explicacao in ['Questionamento pela CODAE']:
         return 'questioned'

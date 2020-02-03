@@ -2,6 +2,7 @@ from django.http import HttpResponse
 from django.template.loader import render_to_string
 from weasyprint import HTML
 
+from ..dados_comuns.models import LogSolicitacoesUsuario
 from ..kit_lanche.models import EscolaQuantidade
 from . import constants
 from .utils import formata_logs, get_width
@@ -45,13 +46,17 @@ def relatorio_alteracao_cardapio(request, solicitacao):
 def relatorio_dieta_especial(request, solicitacao):
     escola = solicitacao.rastro_escola
     logs = solicitacao.logs
+    if solicitacao.logs.filter(status_evento=LogSolicitacoesUsuario.INICIO_FLUXO_INATIVACAO).exists():
+        fluxo = constants.FLUXO_DIETA_ESPECIAL_INATIVACAO
+    else:
+        fluxo = constants.FLUXO_DIETA_ESPECIAL
     html_string = render_to_string(
         'solicitacao_dieta_especial.html',
         {
             'escola': escola,
             'solicitacao': solicitacao,
-            'fluxo': constants.FLUXO_DIETA_ESPECIAL,
-            'width': get_width(constants.FLUXO_DIETA_ESPECIAL, solicitacao.logs),
+            'fluxo': fluxo,
+            'width': get_width(fluxo, solicitacao.logs),
             'logs': formata_logs(logs)
         }
     )
