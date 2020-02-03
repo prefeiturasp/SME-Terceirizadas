@@ -27,5 +27,5 @@ class Migration(migrations.Migration):
             name='status',
             field=django_xworkflows.models.StateField(max_length=27, workflow=django_xworkflows.models._SerializedWorkflow(initial_state='RASCUNHO', name='DietaEspecialWorkflow', states=['RASCUNHO', 'CODAE_A_AUTORIZAR', 'CODAE_NEGOU_PEDIDO', 'CODAE_AUTORIZADO', 'TERCEIRIZADA_TOMOU_CIENCIA', 'ESCOLA_CANCELOU', 'ESCOLA_SOLICITOU_INATIVACAO', 'CODAE_NEGOU_INATIVACAO', 'CODAE_AUTORIZOU_INATIVACAO'])),
         ),
-        # migrations.RunSQL(sql_recreate)
+        migrations.RunSQL(sql_recreate)
     ]
