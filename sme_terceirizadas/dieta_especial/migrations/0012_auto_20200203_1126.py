@@ -17,7 +17,9 @@ with open(sql_path_recreate, 'r') as f:
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('dieta_especial', '0011_merge_20200131_1449')
+        ('dieta_especial', '0011_merge_20200131_1449'),
+        ('inclusao_alimentacao', '0006_auto_20200129_1503'),
+        ('kit_lanche', '0005_auto_20200102_1102')
     ]
 
     operations = [
