@@ -3,8 +3,12 @@ import datetime
 from django.db.models.query import QuerySet
 from rest_framework import viewsets
 from rest_framework.decorators import action
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
+from sme_terceirizadas.paineis_consolidados.api.constants import RELATORIO_PERIODO
+from sme_terceirizadas.perfil.models import Usuario
+from sme_terceirizadas.relatorios.relatorios import relatorio_filtro_periodo
 from ...dados_comuns.constants import FILTRO_PADRAO_PEDIDOS, SEM_FILTRO
 from ...dados_comuns.fluxo_status import DietaEspecialWorkflow
 from ...dieta_especial.api.serializers import SolicitacaoDietaEspecialLogSerializer, SolicitacaoDietaEspecialSerializer
@@ -301,6 +305,34 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
             escola_uuid=escola_uuid,
         )
         return Response(totais_dict)
+
+    @action(
+        detail=False,
+        methods=['GET'],
+        url_path=f'{RELATORIO_PERIODO}',
+        permission_classes=[AllowAny]
+    )
+    def xxx(self, request):
+        request_params = request.GET
+        usuario = request.user
+        escola_uuid = usuario.vinculo_atual.instituicao.uuid
+        tipo_solicitacao = request_params.get('tipo_solicitacao', 'INVALIDO')
+        status_solicitacao = request_params.get('status_solicitacao', 'INVALIDO')
+        data_inicial = request_params.get('data_inicial', 'INVALIDO')
+        data_final = request_params.get('data_final', 'INVALIDO')
+
+        if not self.parametros_validos(data_final, data_inicial, status_solicitacao, tipo_solicitacao):
+            return Response(data={'detail': 'Parâmetros de busca inválidos'}, status=400)
+
+        query_set = SolicitacoesEscola.filtros_escola(
+            escola_uuid=escola_uuid,
+            data_inicial=data_inicial,
+            data_final=data_final,
+            tipo_solicitacao=tipo_solicitacao,
+            status_solicitacao=status_solicitacao
+        )
+
+        return relatorio_filtro_periodo(request, query_set)
 
     @action(
         detail=False,
