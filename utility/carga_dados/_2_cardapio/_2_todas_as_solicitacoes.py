@@ -148,7 +148,7 @@ def cria_inclusoes_continuas(qtd=50):
                 numero_alunos=random.randint(10, 200),
                 inclusao_alimentacao_continua=inclusao_continua
             )
-            q.tipos_alimentacao.set(_get_random_tipos_alimentacao())
+            # q.tipos_alimentacao.set(_get_random_tipos_alimentacao())
 
             fluxo_escola_felix(inclusao_continua, user)
         except InvalidTransitionError:
@@ -169,7 +169,7 @@ def cria_inclusoes_normais(qtd=50):
                 numero_alunos=random.randint(10, 200),
                 grupo_inclusao_normal=grupo_inclusao_normal
             )
-            q.tipos_alimentacao.set(_get_random_tipos_alimentacao())
+            # q.tipos_alimentacao.set(_get_random_tipos_alimentacao())
             InclusaoAlimentacaoNormal.objects.create(
                 motivo=_get_random_motivo_normal(),
                 outro_motivo=f.text()[:40],
@@ -268,7 +268,7 @@ def cria_suspensoes_alimentacao(qtd=50):
                 periodo_escolar=_get_random_periodo_escolar(),
                 grupo_suspensao=suspensao_grupo,
             )
-            q.tipos_alimentacao.set(_get_random_tipos_alimentacao())
+            # q.tipos_alimentacao.set(_get_random_tipos_alimentacao())
         fluxo_informativo_felix(suspensao_grupo, user)
 
 
