@@ -1,7 +1,7 @@
 import datetime
 
 from django.db.models.query import QuerySet
-from rest_framework import viewsets
+from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
@@ -14,6 +14,7 @@ from ...paineis_consolidados.api.serializers import SolicitacoesSerializer
 from ...relatorios.relatorios import relatorio_filtro_periodo, relatorio_resumo_anual_e_mensal
 from ..api.constants import FILTRO_PERIOD_UUID_DRE, PENDENTES_VALIDACAO_DRE, RELATORIO_PERIODO
 from ..models import MoldeConsolidado, SolicitacoesCODAE, SolicitacoesDRE, SolicitacoesEscola, SolicitacoesTerceirizada
+from ..validators import FiltroValidator
 from .constants import (
     AUTORIZADOS,
     AUTORIZADOS_DIETA_ESPECIAL,
@@ -195,8 +196,7 @@ class CODAESolicitacoesViewSet(SolicitacoesViewSet):
         methods=['GET'],
         url_path=f'{PESQUISA}/{FILTRO_DRE_UUID}/{FILTRO_ESCOLA_UUID}')
     def filtro_periodo_tipo_solicitacao(self, request, escola_uuid=None, dre_uuid=None):
-        # TODO: achar um jeito melhor de validar os parametros da url
-        """Filtro de todas as solicitações da codae.
+        """Filtro de todas as solicitações da  codae.
 
         ---
         tipo_solicitacao -- ALT_CARDAPIO|INV_CARDAPIO|INC_ALIMENTA|INC_ALIMENTA_CONTINUA|
@@ -205,25 +205,20 @@ class CODAESolicitacoesViewSet(SolicitacoesViewSet):
         data_inicial -- dd-mm-yyyy
         data_final -- dd-mm-yyyy
         """
-        request_params = request.GET
-        tipo_solicitacao = request_params.get('tipo_solicitacao', 'INVALIDO')
-        status_solicitacao = request_params.get('status_solicitacao', 'INVALIDO')
-        data_inicial = request_params.get('data_inicial', 'INVALIDO')
-        data_final = request_params.get('data_final', 'INVALIDO')
-
-        if not self.parametros_validos(data_final, data_inicial, status_solicitacao, tipo_solicitacao):
-            return Response(data={'detail': 'Parâmetros de busca inválidos'}, status=400)
-
-        query_set = SolicitacoesCODAE.filtros_codae(
-            escola_uuid=escola_uuid,
-            dre_uuid=dre_uuid,
-            data_inicial=data_inicial,
-            data_final=data_final,
-            tipo_solicitacao=tipo_solicitacao,
-            status_solicitacao=status_solicitacao
-        )
-
-        return self._retorno_base(query_set)
+        form = FiltroValidator(request.GET)
+        if form.is_valid():
+            cleaned_data = form.cleaned_data
+            query_set = SolicitacoesCODAE.filtros_codae(
+                escola_uuid=escola_uuid,
+                dre_uuid=dre_uuid,
+                data_inicial=cleaned_data.get('data_inicial'),
+                data_final=cleaned_data.get('data_final'),
+                tipo_solicitacao=cleaned_data.get('tipo_solicitacao'),
+                status_solicitacao=cleaned_data.get('status_solicitacao')
+            )
+            return self._retorno_base(query_set)
+        else:
+            return Response(form.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(
         detail=False,
@@ -409,26 +404,21 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
         data_inicial -- dd-mm-yyyy
         data_final -- dd-mm-yyyy
         """
-        request_params = request.GET
         usuario = request.user
         escola_uuid = usuario.vinculo_atual.instituicao.uuid
-        tipo_solicitacao = request_params.get('tipo_solicitacao', 'INVALIDO')
-        status_solicitacao = request_params.get('status_solicitacao', 'INVALIDO')
-        data_inicial = request_params.get('data_inicial', 'INVALIDO')
-        data_final = request_params.get('data_final', 'INVALIDO')
-
-        if not self.parametros_validos(data_final, data_inicial, status_solicitacao, tipo_solicitacao):
-            return Response(data={'detail': 'Parâmetros de busca inválidos'}, status=400)
-
-        query_set = SolicitacoesEscola.filtros_escola(
-            escola_uuid=escola_uuid,
-            data_inicial=data_inicial,
-            data_final=data_final,
-            tipo_solicitacao=tipo_solicitacao,
-            status_solicitacao=status_solicitacao
-        )
-
-        return self._retorno_base(query_set)
+        form = FiltroValidator(request.GET)
+        if form.is_valid():
+            cleaned_data = form.cleaned_data
+            query_set = SolicitacoesEscola.filtros_escola(
+                escola_uuid=escola_uuid,
+                data_inicial=cleaned_data.get('data_inicial'),
+                data_final=cleaned_data.get('data_final'),
+                tipo_solicitacao=cleaned_data.get('tipo_solicitacao'),
+                status_solicitacao=cleaned_data.get('status_solicitacao')
+            )
+            return self._retorno_base(query_set)
+        else:
+            return Response(form.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class DRESolicitacoesViewSet(SolicitacoesViewSet):
@@ -554,7 +544,6 @@ class DRESolicitacoesViewSet(SolicitacoesViewSet):
         methods=['GET'],
         url_path=f'{PESQUISA}/{FILTRO_ESCOLA_UUID}')
     def filtro_periodo_tipo_solicitacao(self, request, escola_uuid=None):
-        # TODO: achar um jeito melhor de validar os parametros da url
         """Filtro de todas as solicitações da dre.
 
         ---
@@ -564,27 +553,22 @@ class DRESolicitacoesViewSet(SolicitacoesViewSet):
         data_inicial -- dd-mm-yyyy
         data_final -- dd-mm-yyyy
         """
-        request_params = request.GET
         usuario = request.user
         dre_uuid = usuario.vinculo_atual.instituicao.uuid
-        tipo_solicitacao = request_params.get('tipo_solicitacao', 'INVALIDO')
-        status_solicitacao = request_params.get('status_solicitacao', 'INVALIDO')
-        data_inicial = request_params.get('data_inicial', 'INVALIDO')
-        data_final = request_params.get('data_final', 'INVALIDO')
-
-        if not self.parametros_validos(data_final, data_inicial, status_solicitacao, tipo_solicitacao):
-            return Response(data={'detail': 'Parâmetros de busca inválidos'}, status=400)
-
-        query_set = SolicitacoesDRE.filtros_dre(
-            escola_uuid=escola_uuid,
-            dre_uuid=dre_uuid,
-            data_inicial=data_inicial,
-            data_final=data_final,
-            tipo_solicitacao=tipo_solicitacao,
-            status_solicitacao=status_solicitacao
-        )
-
-        return self._retorno_base(query_set)
+        form = FiltroValidator(request.GET)
+        if form.is_valid():
+            cleaned_data = form.cleaned_data
+            query_set = SolicitacoesDRE.filtros_dre(
+                escola_uuid=escola_uuid,
+                dre_uuid=dre_uuid,
+                data_inicial=cleaned_data.get('data_inicial'),
+                data_final=cleaned_data.get('data_final'),
+                tipo_solicitacao=cleaned_data.get('tipo_solicitacao'),
+                status_solicitacao=cleaned_data.get('status_solicitacao')
+            )
+            return self._retorno_base(query_set)
+        else:
+            return Response(form.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class TerceirizadaSolicitacoesViewSet(SolicitacoesViewSet):
