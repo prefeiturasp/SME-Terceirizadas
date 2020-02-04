@@ -50,8 +50,10 @@ class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmiga
     PENDENTES_EVENTO_DIETA_ESPECIAL = [LogSolicitacoesUsuario.INICIO_FLUXO,
                                        LogSolicitacoesUsuario.INICIO_FLUXO_INATIVACAO]
 
-    AUTORIZADO_STATUS_DIETA_ESPECIAL = [DietaEspecialWorkflow.CODAE_AUTORIZADO]
-    AUTORIZADO_EVENTO_DIETA_ESPECIAL = [LogSolicitacoesUsuario.CODAE_AUTORIZOU]
+    AUTORIZADO_STATUS_DIETA_ESPECIAL = [DietaEspecialWorkflow.CODAE_AUTORIZADO,
+                                        DietaEspecialWorkflow.TERCEIRIZADA_TOMOU_CIENCIA]
+    AUTORIZADO_EVENTO_DIETA_ESPECIAL = [LogSolicitacoesUsuario.CODAE_AUTORIZOU,
+                                        LogSolicitacoesUsuario.TERCEIRIZADA_TOMOU_CIENCIA]
 
     NEGADOS_STATUS_DIETA_ESPECIAL = [DietaEspecialWorkflow.CODAE_NEGOU_PEDIDO]
     NEGADOS_EVENTO_DIETA_ESPECIAL = [LogSolicitacoesUsuario.CODAE_NEGOU]
