@@ -85,6 +85,12 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
     def inativar(self, request, uuid=None):
         solicitacao_dieta_especial = self.get_object()
         try:
+            for anexo in request.data['anexos']:
+                data = convert_base64_to_contentfile(anexo.get('arquivo'))
+                Anexo.objects.create(
+                    solicitacao_dieta_especial=solicitacao_dieta_especial, arquivo=data, nome=anexo.get('nome', ''),
+                    eh_laudo_alta=True
+                )
             solicitacao_dieta_especial.inicia_fluxo_inativacao(user=request.user)
             serializer = self.get_serializer(solicitacao_dieta_especial)
             return Response(serializer.data)
