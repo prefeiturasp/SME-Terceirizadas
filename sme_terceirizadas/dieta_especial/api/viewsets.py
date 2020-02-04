@@ -19,9 +19,7 @@ from ..models import (
     ClassificacaoDieta,
     MotivoNegacao,
     SolicitacaoDietaEspecial,
-    SolicitacoesDietaEspecialAtivasInativasPorAluno,
-    Substituto,
-    TipoDieta
+    SolicitacoesDietaEspecialAtivasInativasPorAluno
 )
 from .serializers import (
     AlergiaIntoleranciaSerializer,
@@ -31,9 +29,7 @@ from .serializers import (
     SolicitacaoDietaEspecialAutorizarSerializer,
     SolicitacaoDietaEspecialCreateSerializer,
     SolicitacaoDietaEspecialSerializer,
-    SolicitacoesAtivasInativasPorAlunoSerializer,
-    SubstitutoSerializer,
-    TipoDietaSerializer
+    SolicitacoesAtivasInativasPorAlunoSerializer
 )
 from .serializers_create import SolicitacaoDietaEspecialCreateSerializer
 
@@ -234,25 +230,9 @@ class MotivoNegacaoViewSet(mixins.ListModelMixin,
     pagination_class = None
 
 
-class TipoDietaViewSet(mixins.ListModelMixin,
-                       mixins.RetrieveModelMixin,
-                       GenericViewSet):
-    queryset = TipoDieta.objects.all()
-    serializer_class = TipoDietaSerializer
-    pagination_class = None
-
-
 class AlimentoViewSet(mixins.ListModelMixin,
                       mixins.RetrieveModelMixin,
                       GenericViewSet):
     queryset = Alimento.objects.all()
     serializer_class = AlimentoSerializer
-    pagination_class = None
-
-
-class SubstitutoViewSet(mixins.ListModelMixin,
-                        mixins.RetrieveModelMixin,
-                        GenericViewSet):
-    queryset = Substituto.objects.all()
-    serializer_class = SubstitutoSerializer
     pagination_class = None

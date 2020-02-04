@@ -15,7 +15,7 @@ from .helper import base64_encode
 
 from sme_terceirizadas.dieta_especial.models import (
     AlergiaIntolerancia, Anexo, ClassificacaoDieta,
-    SolicitacaoDietaEspecial, TipoDieta
+    SolicitacaoDietaEspecial
 )
 from sme_terceirizadas.perfil.models import Usuario
 
@@ -45,11 +45,6 @@ def fluxo_escola_felix_dieta_especial(obj, user, index):
 
 def _get_random_from_queryset(qs):
     return qs[random.randint(0, len(qs) - 1)]
-
-
-tipos_de_dieta = TipoDieta.objects.all()
-def _get_random_tipo_de_dieta():
-    return _get_random_from_queryset(tipos_de_dieta)
 
 
 classificacoes_dieta = ClassificacaoDieta.objects.all()
@@ -92,8 +87,6 @@ def cria_solicitacoes_dieta_especial(qtd=50):
             print(f'{index / 10}% COMPLETO')
 
         for i in range(random.randint(1, 7)):
-            tipo_dieta_1 = _get_random_tipo_de_dieta()
-            tipo_dieta_2 = _get_random_tipo_de_dieta()
             alergia_1 = _get_random_alergia()
             alergia_2 = _get_random_alergia()
             solicitacao_dieta_especial = SolicitacaoDietaEspecial.objects.create(
@@ -107,7 +100,6 @@ def cria_solicitacoes_dieta_especial(qtd=50):
                 ativo=True if random.randint(0, 1) == 1 else False
             )
             solicitacao_dieta_especial.alergias_intolerancias.add(alergia_1, alergia_2)
-            solicitacao_dieta_especial.tipos.add(tipo_dieta_1, tipo_dieta_2)
 
             for _ in range(random.randint(2,4)):
                 Anexo.objects.create(

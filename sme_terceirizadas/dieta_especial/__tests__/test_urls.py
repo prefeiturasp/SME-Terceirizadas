@@ -8,7 +8,6 @@ from ..constants import (
     ENDPOINT_ALIMENTOS,
     ENDPOINT_CLASSIFICACOES_DIETA,
     ENDPOINT_MOTIVOS_NEGACAO,
-    ENDPOINT_SUBSTITUICOES,
     ENDPOINT_TIPOS_DIETA_ESPECIAL
 )
 from ..models import (
@@ -16,8 +15,7 @@ from ..models import (
     ClassificacaoDieta,
     MotivoNegacao,
     SolicitacaoDietaEspecial,
-    SubstituicaoAlimento,
-    TipoDieta
+    SubstituicaoAlimento
 )
 
 
@@ -61,15 +59,6 @@ def test_url_endpoint_lista_motivos_negacao(client_autenticado,
         client_autenticado,
         ENDPOINT_MOTIVOS_NEGACAO,
         quantidade=4
-    )
-
-
-def test_url_endpoint_lista_substitutos(client_autenticado,
-                                        substitutos):
-    endpoint_lista(
-        client_autenticado,
-        ENDPOINT_SUBSTITUICOES,
-        quantidade=7
     )
 
 
@@ -117,15 +106,6 @@ def test_url_endpoint_detalhe_motivos_negacao(client_autenticado,
         client_autenticado,
         ENDPOINT_MOTIVOS_NEGACAO,
         MotivoNegacao
-    )
-
-
-def test_url_endpoint_detalhe_tipos_dieta(client_autenticado,
-                                          tipos_dieta):
-    endpoint_detalhe(
-        client_autenticado,
-        ENDPOINT_TIPOS_DIETA_ESPECIAL,
-        TipoDieta
     )
 
 
@@ -250,7 +230,7 @@ def test_url_endpoint_autorizar_dieta(client_autenticado,
 
     for obj, substituicao in zip(qs_substituicoes, payload_autorizar['substituicoes']):
         assert obj.alimento.id == substituicao['alimento']
-        assert obj.isento_substituto == substituicao['isento_substituto']
+        assert obj.tipo == substituicao['tipo']
         for obj_substituto in obj.substitutos.all():
             assert obj_substituto.id in substituicao['substitutos']
 

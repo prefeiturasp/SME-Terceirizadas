@@ -10,16 +10,7 @@ from ...dados_comuns.utils import convert_base64_to_contentfile
 from ...escola.models import Aluno, Escola, Lote
 from ...perfil.models import Usuario
 from ...terceirizada.models import Terceirizada
-from ..models import (
-    AlergiaIntolerancia,
-    Alimento,
-    Anexo,
-    ClassificacaoDieta,
-    MotivoNegacao,
-    SolicitacaoDietaEspecial,
-    Substituto,
-    TipoDieta
-)
+from ..models import AlergiaIntolerancia, Alimento, Anexo, ClassificacaoDieta, MotivoNegacao, SolicitacaoDietaEspecial
 
 fake = Faker('pt_BR')
 fake.seed(420)
@@ -88,32 +79,20 @@ def motivos_negacao():
 
 
 @pytest.fixture
-def tipos_dieta():
-    mommy.make(TipoDieta, _quantity=5)
-    return TipoDieta.objects.all()
-
-
-@pytest.fixture
 def alimentos():
     mommy.make(Alimento, _quantity=6)
     return Alimento.objects.all()
 
 
 @pytest.fixture
-def substitutos():
-    mommy.make(Substituto, _quantity=7)
-    return Substituto.objects.all()
-
-
-@pytest.fixture
-def substituicoes(substitutos, alimentos):
+def substituicoes(alimentos):
     substituicoes = []
-    ids_substitutos = [s.id for s in substitutos]
+    ids_alimentos = [a.id for a in alimentos]
     for _ in range(randint(3, 5)):
         substituicoes.append({
             'alimento': alimentos[randint(0, len(alimentos) - 1)].id,
-            'isento_substituto': 'I' if randint(0, 1) == 1 else 'S',
-            'substitutos': sample(ids_substitutos, randint(1, 4))
+            'tipo': 'I' if randint(0, 1) == 1 else 'S',
+            'substitutos': sample(ids_alimentos, randint(1, 4))
         })
     return substituicoes
 

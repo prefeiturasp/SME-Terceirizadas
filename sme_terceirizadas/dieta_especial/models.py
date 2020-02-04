@@ -44,7 +44,6 @@ class SolicitacaoDietaEspecial(ExportModelOperationsMixin('dieta_especial'), Tem
     # Preenchido pela CODAE ao autorizar a dieta
     informacoes_adicionais = models.TextField('Informações Adicionais', blank=True)
 
-    tipos = models.ManyToManyField('TipoDieta', blank=True)
     # TODO: Confirmar se PROTECT é a melhor escolha para o campos abaixo
     classificacao = models.ForeignKey('ClassificacaoDieta', blank=True, null=True, on_delete=models.PROTECT)
     alergias_intolerancias = models.ManyToManyField('AlergiaIntolerancia', blank=True)
@@ -147,11 +146,6 @@ class MotivoNegacao(Descritivel):
         return self.descricao
 
 
-class TipoDieta(Descritivel):
-    def __str__(self):
-        return self.descricao
-
-
 class SolicitacoesDietaEspecialAtivasInativasPorAluno(models.Model):
     aluno = models.OneToOneField(Aluno, on_delete=models.DO_NOTHING, primary_key=True)
     ativas = models.IntegerField()
@@ -167,18 +161,13 @@ class Alimento(Nomeavel):
         return self.nome
 
 
-class Substituto(Nomeavel):
-    def __str__(self):
-        return self.nome
-
-
 class SubstituicaoAlimento(models.Model):
-    ISENTO_SUBSTITUTO_CHOICES = [
+    TIPO_CHOICES = [
         ('I', 'Isento'),
         ('S', 'Substituir')
     ]
 
     solicitacao_dieta_especial = models.ForeignKey(SolicitacaoDietaEspecial, on_delete=models.PROTECT)
     alimento = models.ForeignKey(Alimento, on_delete=models.PROTECT)
-    isento_substituto = models.CharField(max_length=1, choices=ISENTO_SUBSTITUTO_CHOICES)
-    substitutos = models.ManyToManyField(Substituto)
+    tipo = models.CharField(max_length=1, choices=TIPO_CHOICES)
+    substitutos = models.ManyToManyField(Alimento, related_name='substitutos')

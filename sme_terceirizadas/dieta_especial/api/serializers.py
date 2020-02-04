@@ -12,9 +12,7 @@ from ..models import (
     ClassificacaoDieta,
     MotivoNegacao,
     SolicitacaoDietaEspecial,
-    SubstituicaoAlimento,
-    Substituto,
-    TipoDieta
+    SubstituicaoAlimento
 )
 from .validators import atributos_lista_nao_vazios, atributos_string_nao_vazios, deve_ter_atributos
 
@@ -37,21 +35,9 @@ class MotivoNegacaoSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class TipoDietaSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = TipoDieta
-        fields = '__all__'
-
-
 class AlimentoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Alimento
-        fields = '__all__'
-
-
-class SubstitutoSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Substituto
         fields = '__all__'
 
 
