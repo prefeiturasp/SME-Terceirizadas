@@ -236,6 +236,45 @@ class CODAESolicitacoesViewSet(SolicitacoesViewSet):
         totais_dict = SolicitacoesCODAE.resumo_totais_mes()
         return Response(totais_dict)
 
+    @action(
+        detail=False,
+        methods=['GET'],
+        url_path=f'{RELATORIO_RESUMO_MES_ANO}',
+    )
+    def relatorio_resumo_anual_e_mensal(self, request):
+        usuario = request.user
+
+        query_set = SolicitacoesCODAE.get_solicitacoes_ano_corrente()
+        resumo_do_ano = self._agrupa_por_mes_por_solicitacao(query_set=query_set)
+        resumo_do_mes = SolicitacoesCODAE.resumo_totais_mes()
+        return relatorio_resumo_anual_e_mensal(request, resumo_do_mes, resumo_do_ano)
+
+    @action(
+        detail=False,
+        methods=['GET'],
+        url_path=f'{RELATORIO_PERIODO}',
+    )
+    def relatorio_filtro_periodo(self, request):
+        request_params = request.GET
+        tipo_solicitacao = request_params.get('tipo_solicitacao', 'INVALIDO')
+        status_solicitacao = request_params.get('status_solicitacao', 'INVALIDO')
+        data_inicial = request_params.get('data_inicial', 'INVALIDO')
+        data_final = request_params.get('data_final', 'INVALIDO')
+
+        if not self.parametros_validos(data_final, data_inicial, status_solicitacao, tipo_solicitacao):
+            return Response(data={'detail': 'Parâmetros de busca inválidos'}, status=400)
+
+        query_set = SolicitacoesCODAE.filtros_codae(
+            data_inicial=data_inicial,
+            data_final=data_final,
+            tipo_solicitacao=tipo_solicitacao,
+            status_solicitacao=status_solicitacao
+        )
+
+        query_set = self._remove_duplicados_do_query_set(query_set)
+
+        return relatorio_filtro_periodo(request, query_set)
+
     @action(detail=False, methods=['GET'], url_path=f'{RESUMO_ANO}')
     def evolucao_solicitacoes(self, request):
         # TODO: verificar se a pessoa é do lugar certo da codae
@@ -334,7 +373,7 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
         # TODO: achar um jeito melhor de validar os parametros da url
         request_params = request.GET
         usuario = request.user
-        escola_uuid = usuario.vinculo_atual.instituicao.uuid
+        escola = usuario.vinculo_atual.instituicao
         tipo_solicitacao = request_params.get('tipo_solicitacao', 'INVALIDO')
         status_solicitacao = request_params.get('status_solicitacao', 'INVALIDO')
         data_inicial = request_params.get('data_inicial', 'INVALIDO')
@@ -344,7 +383,7 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
             return Response(data={'detail': 'Parâmetros de busca inválidos'}, status=400)
 
         query_set = SolicitacoesEscola.filtros_escola(
-            escola_uuid=escola_uuid,
+            escola_uuid=escola.uuid,
             data_inicial=data_inicial,
             data_final=data_final,
             tipo_solicitacao=tipo_solicitacao,
@@ -353,7 +392,7 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
 
         query_set = self._remove_duplicados_do_query_set(query_set)
 
-        return relatorio_filtro_periodo(request, query_set)
+        return relatorio_filtro_periodo(request, query_set, escola.nome, escola.diretoria_regional.nome)
 
     @action(
         detail=False,
@@ -453,6 +492,54 @@ class DRESolicitacoesViewSet(SolicitacoesViewSet):
             dre_uuid=dre_uuid,
         )
         return Response(totais_dict)
+
+    @action(
+        detail=False,
+        methods=['GET'],
+        url_path=f'{RELATORIO_RESUMO_MES_ANO}',
+    )
+    def relatorio_resumo_anual_e_mensal(self, request):
+        usuario = request.user
+        dre_uuid = usuario.vinculo_atual.instituicao.uuid
+
+        query_set = SolicitacoesDRE.get_solicitacoes_ano_corrente(dre_uuid=dre_uuid)
+        resumo_do_ano = self._agrupa_por_mes_por_solicitacao(query_set=query_set)
+        resumo_do_mes = SolicitacoesDRE.resumo_totais_mes(
+            dre_uuid=dre_uuid,
+        )
+        return relatorio_resumo_anual_e_mensal(request, resumo_do_mes, resumo_do_ano)
+
+    @action(
+        detail=False,
+        methods=['GET'],
+        url_path=f'{RELATORIO_PERIODO}',
+    )
+    def relatorio_filtro_periodo(self, request):
+        # TODO: achar um jeito melhor de validar os parametros da url
+        request_params = request.GET
+        usuario = request.user
+        dre = usuario.vinculo_atual.instituicao
+        escola_uuid = request_params.get('escola_uuid', 'TODOS')
+        tipo_solicitacao = request_params.get('tipo_solicitacao', 'INVALIDO')
+        status_solicitacao = request_params.get('status_solicitacao', 'INVALIDO')
+        data_inicial = request_params.get('data_inicial', 'INVALIDO')
+        data_final = request_params.get('data_final', 'INVALIDO')
+
+        if not self.parametros_validos(data_final, data_inicial, status_solicitacao, tipo_solicitacao):
+            return Response(data={'detail': 'Parâmetros de busca inválidos'}, status=400)
+
+        query_set = SolicitacoesDRE.filtros_dre(
+            dre_uuid=dre.uuid,
+            escola_uuid=escola_uuid,
+            data_inicial=data_inicial,
+            data_final=data_final,
+            tipo_solicitacao=tipo_solicitacao,
+            status_solicitacao=status_solicitacao
+        )
+
+        query_set = self._remove_duplicados_do_query_set(query_set)
+
+        return relatorio_filtro_periodo(request, query_set, dre.nome, escola_uuid)
 
     @action(detail=False, methods=['GET'], url_path=f'{RESUMO_ANO}')
     def evolucao_solicitacoes(self, request):

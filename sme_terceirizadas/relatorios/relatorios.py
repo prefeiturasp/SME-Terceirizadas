@@ -9,7 +9,7 @@ from . import constants
 from .utils import formata_logs, get_width
 
 
-def relatorio_filtro_periodo(request, query_set_consolidado):
+def relatorio_filtro_periodo(request, query_set_consolidado, escola_nome='', dre_nome=''):
     # TODO: se query_set_consolidado tiver muitos resultados, pode demorar no front-end
     # melhor mandar via celery pro email de quem solicitou
     # ou por padrão manda tudo pro celery
@@ -19,8 +19,6 @@ def relatorio_filtro_periodo(request, query_set_consolidado):
     status_solicitacao = request_params.get('status_solicitacao', 'INVALIDO')
     data_inicial = datetime.datetime.strptime(request_params.get('data_inicial'), '%Y-%m-%d')
     data_final = datetime.datetime.strptime(request_params.get('data_final'), '%Y-%m-%d')
-    escola_nome = 'ESCOLA'
-    dre_nome = 'DRE'
     filtro = {'tipo_solicitacao': tipo_solicitacao, 'status': status_solicitacao,
               'data_inicial': data_inicial, 'data_final': data_final}
 
