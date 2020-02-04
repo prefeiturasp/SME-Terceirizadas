@@ -299,6 +299,7 @@
 
 .tabela-filtro {
   padding: 0 2em 0 2em;
+
   h5 {
     font-size: 16px;
     line-height: 19px;
@@ -309,6 +310,7 @@
 
   table {
     width: 100%;
+
     caption {
       margin-bottom: 1em;
       font-size: 16px;
@@ -334,6 +336,62 @@
 
 }
 
-.tabela-resumo-mes{
-  width: 100%;
+.tabela-resumo-mes {
+  margin: 20px 20px 20px 20px;
+
+  h5 {
+    font-size: 16px;
+    line-height: 19px;
+    letter-spacing: 0.25px;
+    color: $preto;
+  }
+
+  table {
+    background: $branco;
+    border: 2px solid $cinza;
+    box-sizing: border-box;
+    border-radius: 4px;
+    width: 100%;
+
+    thead {
+      th {
+        font-size: 16px;
+        line-height: 108.98%;
+        letter-spacing: 0.25px;
+        color: $preto;
+      }
+
+    }
+
+    tbody {
+      td {
+        font-size: 14px;
+        line-height: 16px;
+        letter-spacing: 0.01em;
+        color: $cinza-escuro;
+      }
+
+      tr:last-child {
+        height: 35px;
+
+        td:nth-last-child(-n+2) {
+          background: $cinza-claro;
+        }
+      }
+    }
+  }
+}
+
+.tabela-resumo-mes {
+  &.evolucao-mensal {
+    table {
+      tbody {
+        tr:last-child {
+          td:nth-last-child(-n+7) {
+            background: $cinza-claro;
+          }
+        }
+      }
+    }
+  }
 }

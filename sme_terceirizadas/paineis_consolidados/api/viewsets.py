@@ -6,6 +6,17 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from sme_terceirizadas.paineis_consolidados.api.constants import RELATORIO_RESUMO_MES_ANO
+from sme_terceirizadas.relatorios.relatorios import relatorio_resumo_anual_e_mensal
+
+from ...dados_comuns.constants import FILTRO_PADRAO_PEDIDOS, SEM_FILTRO
+from ...dados_comuns.fluxo_status import DietaEspecialWorkflow
+from ...dieta_especial.api.serializers import SolicitacaoDietaEspecialLogSerializer, SolicitacaoDietaEspecialSerializer
+from ...dieta_especial.models import SolicitacaoDietaEspecial
+from ...paineis_consolidados.api.constants import PESQUISA, TIPO_VISAO, TIPO_VISAO_LOTE, TIPO_VISAO_SOLICITACOES
+from ...paineis_consolidados.api.serializers import SolicitacoesSerializer
+from ...relatorios.relatorios import relatorio_filtro_periodo
+from ..api.constants import FILTRO_PERIOD_UUID_DRE, PENDENTES_VALIDACAO_DRE, RELATORIO_PERIODO
+from ..models import MoldeConsolidado, SolicitacoesCODAE, SolicitacoesDRE, SolicitacoesEscola, SolicitacoesTerceirizada
 from .constants import (
     AUTORIZADOS,
     AUTORIZADOS_DIETA_ESPECIAL,
@@ -23,15 +34,6 @@ from .constants import (
     RESUMO_ANO,
     RESUMO_MES
 )
-from ..api.constants import FILTRO_PERIOD_UUID_DRE, PENDENTES_VALIDACAO_DRE, RELATORIO_PERIODO
-from ..models import MoldeConsolidado, SolicitacoesCODAE, SolicitacoesDRE, SolicitacoesEscola, SolicitacoesTerceirizada
-from ...dados_comuns.constants import FILTRO_PADRAO_PEDIDOS, SEM_FILTRO
-from ...dados_comuns.fluxo_status import DietaEspecialWorkflow
-from ...dieta_especial.api.serializers import SolicitacaoDietaEspecialLogSerializer, SolicitacaoDietaEspecialSerializer
-from ...dieta_especial.models import SolicitacaoDietaEspecial
-from ...paineis_consolidados.api.constants import PESQUISA, TIPO_VISAO, TIPO_VISAO_LOTE, TIPO_VISAO_SOLICITACOES
-from ...paineis_consolidados.api.serializers import SolicitacoesSerializer
-from ...relatorios.relatorios import relatorio_filtro_periodo
 
 
 class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
@@ -310,22 +312,18 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
     @action(
         detail=False,
         methods=['GET'],
-        # url_path=f'{RELATORIO_RESUMO_MES_ANO}',
         url_path=f'{RELATORIO_RESUMO_MES_ANO}',
     )
-    def xxx2(self, request):
+    def relatorio_resumo_anual_e_mensal(self, request):
         usuario = request.user
         escola_uuid = usuario.vinculo_atual.instituicao.uuid
 
         query_set = SolicitacoesEscola.get_solicitacoes_ano_corrente(escola_uuid=escola_uuid)
-        totais_do_ano = self._agrupa_por_mes_por_solicitacao(query_set=query_set)
-        totais_do_mes = SolicitacoesEscola.resumo_totais_mes(
+        resumo_do_ano = self._agrupa_por_mes_por_solicitacao(query_set=query_set)
+        resumo_do_mes = SolicitacoesEscola.resumo_totais_mes(
             escola_uuid=escola_uuid,
         )
-        print(totais_do_mes)
-        print('_______________-')
-        print(totais_do_ano)
-        return Response({'xxx': 'xxx'})
+        return relatorio_resumo_anual_e_mensal(request, resumo_do_mes, resumo_do_ano)
 
     @action(
         detail=False,
