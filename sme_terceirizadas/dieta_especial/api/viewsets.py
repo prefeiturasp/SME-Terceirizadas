@@ -49,9 +49,9 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
     @action(detail=False, methods=['get'], url_path=f'solicitacoes-aluno/{FILTRO_CODIGO_EOL_ALUNO}')
     def solicitacoes_vigentes(self, request, codigo_eol_aluno=None):
         solicitacoes = SolicitacaoDietaEspecial.objects.filter(
-            aluno__codigo_eol=codigo_eol_aluno,
-            status__in=[SolicitacaoDietaEspecial.workflow_class.CODAE_AUTORIZADO,
-                        SolicitacaoDietaEspecial.workflow_class.TERCEIRIZADA_TOMOU_CIENCIA]
+            aluno__codigo_eol=codigo_eol_aluno
+        ).exclude(
+            status=SolicitacaoDietaEspecial.workflow_class.CODAE_A_AUTORIZAR
         )
         page = self.paginate_queryset(solicitacoes)
         serializer = self.get_serializer(page, many=True)
@@ -80,6 +80,22 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
         solicitacao.save()
 
         return Response({'mensagem': 'Autorização de dieta especial realizada com sucesso'})
+
+    @action(detail=True, methods=['post'])
+    def inativar(self, request, uuid=None):
+        solicitacao_dieta_especial = self.get_object()
+        try:
+            for anexo in request.data['anexos']:
+                data = convert_base64_to_contentfile(anexo.get('arquivo'))
+                Anexo.objects.create(
+                    solicitacao_dieta_especial=solicitacao_dieta_especial, arquivo=data, nome=anexo.get('nome', ''),
+                    eh_laudo_alta=True
+                )
+            solicitacao_dieta_especial.inicia_fluxo_inativacao(user=request.user)
+            serializer = self.get_serializer(solicitacao_dieta_especial)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, methods=['post'])
     def negar(self, request, uuid=None):

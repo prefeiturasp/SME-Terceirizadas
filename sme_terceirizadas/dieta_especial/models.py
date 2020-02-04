@@ -110,6 +110,7 @@ class Anexo(ExportModelOperationsMixin('anexo'), models.Model):
     nome = models.CharField(max_length=100, blank=True)
     arquivo = models.FileField()
     eh_laudo_medico = models.BooleanField(default=False)
+    eh_laudo_alta = models.BooleanField(default=False)
 
     def __str__(self):
         return self.nome
