@@ -37,6 +37,41 @@ def relatorio_filtro_periodo(request, query_set_consolidado):
     return response
 
 
+def relatorio_resumo_anual_e_mensal(request):
+    resumos_mes = {'total_autorizados': 1821, 'total_negados': 556, 'total_cancelados': 466, 'total_pendentes': 1136,
+                   'total_autorizados_mes_passado': 0, 'total_negados_mes_passado': 0,
+                   'total_cancelados_mes_passado': 0,
+                   'total_pendentes_mes_passado': 0, 'total_mes_atual': 1234, 'total_mes_passado': 333}
+
+    resumo_ano = {'total': 3979,
+                  'Inclusão de Alimentação': {'quantidades': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 'total': 0},
+                  'Alteração de Cardápio': {'quantidades': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 'total': 0},
+                  'Inversão de dia de Cardápio': {'quantidades': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 'total': 0},
+                  'Suspensão de Alimentação': {'quantidades': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 'total': 0},
+                  'Kit Lanche Passeio': {'quantidades': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 'total': 0},
+                  'Kit Lanche Passeio Unificado': {'quantidades': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 'total': 0},
+                  'Dieta Especial': {'quantidades': [0, 3979, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 'total': 3979}}
+
+    meses = range(12)
+
+    escola_nome = 'ESCOLA'
+    dre_nome = 'DRE'
+    filtro = {'tipo_solicitacao': 'TODOS', 'status': 'TODOS',
+              'data_inicial': 'data_inicial', 'data_final': 'data_final'}
+
+    html_string = render_to_string(
+        'relatorio_resumo_mes_ano.html',
+        {
+            'diretoria_regional_nome': dre_nome, 'escola_nome': escola_nome, 'filtro': filtro,
+            'resumos_mes': resumos_mes, 'resumo_ano': resumo_ano, 'meses':meses
+        }
+    )
+    pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
+    response = HttpResponse(pdf_file, content_type='application/pdf')
+    response['Content-Disposition'] = f'filename="XXXX.pdf"'
+    return response
+
+
 def relatorio_kit_lanche_unificado(request, solicitacao):
     qtd_escolas = EscolaQuantidade.objects.filter(solicitacao_unificada=solicitacao).count()
 
