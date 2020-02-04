@@ -161,6 +161,7 @@ class DietaEspecialWorkflow(xwf_models.Workflow):
     ESCOLA_SOLICITOU_INATIVACAO = 'ESCOLA_SOLICITOU_INATIVACAO'
     CODAE_NEGOU_INATIVACAO = 'CODAE_NEGOU_INATIVACAO'
     CODAE_AUTORIZOU_INATIVACAO = 'CODAE_AUTORIZOU_INATIVACAO'
+    TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO = 'TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO'
 
     ESCOLA_CANCELOU = 'ESCOLA_CANCELOU'
 
@@ -172,8 +173,9 @@ class DietaEspecialWorkflow(xwf_models.Workflow):
         (TERCEIRIZADA_TOMOU_CIENCIA, 'Terceirizada toma ciencia'),
         (ESCOLA_CANCELOU, 'Escola cancelou'),
         (ESCOLA_SOLICITOU_INATIVACAO, 'Escola solicitou inativação'),
-        (CODAE_NEGOU_INATIVACAO, 'CODAE negou a inativação da solicitação'),
-        (CODAE_AUTORIZOU_INATIVACAO, 'CODAE autorizou a inativação da solicitação')
+        (CODAE_NEGOU_INATIVACAO, 'CODAE negou a inativação'),
+        (CODAE_AUTORIZOU_INATIVACAO, 'CODAE autorizou a inativação'),
+        (TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO, 'Terceirizada tomou ciência da inativação')
     )
 
     transitions = (
@@ -184,7 +186,8 @@ class DietaEspecialWorkflow(xwf_models.Workflow):
         ('cancelar_pedido', CODAE_A_AUTORIZAR, ESCOLA_CANCELOU),
         ('inicia_fluxo_inativacao', [CODAE_AUTORIZADO, TERCEIRIZADA_TOMOU_CIENCIA], ESCOLA_SOLICITOU_INATIVACAO),
         ('nega_inativacao', ESCOLA_SOLICITOU_INATIVACAO, CODAE_NEGOU_INATIVACAO),
-        ('autoriza_inativacao', ESCOLA_SOLICITOU_INATIVACAO, CODAE_AUTORIZOU_INATIVACAO)
+        ('autoriza_inativacao', ESCOLA_SOLICITOU_INATIVACAO, CODAE_AUTORIZOU_INATIVACAO),
+        ('toma_ciencia_inativacao', CODAE_AUTORIZOU_INATIVACAO, TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO)
     )
 
     initial_state = RASCUNHO

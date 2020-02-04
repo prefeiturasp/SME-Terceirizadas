@@ -112,5 +112,11 @@ FLUXO_DIETA_ESPECIAL_INATIVACAO = [
         'status': '',
         'criado_em': '',
         'usuario': None
+    },
+    {
+        'titulo': 'Terceirizada',
+        'status': '',
+        'criado_em': '',
+        'usuario': None
     }
 ]
