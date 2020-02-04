@@ -5,16 +5,13 @@ from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from sme_terceirizadas.paineis_consolidados.api.constants import RELATORIO_RESUMO_MES_ANO
-from sme_terceirizadas.relatorios.relatorios import relatorio_resumo_anual_e_mensal
-
 from ...dados_comuns.constants import FILTRO_PADRAO_PEDIDOS, SEM_FILTRO
 from ...dados_comuns.fluxo_status import DietaEspecialWorkflow
 from ...dieta_especial.api.serializers import SolicitacaoDietaEspecialLogSerializer, SolicitacaoDietaEspecialSerializer
 from ...dieta_especial.models import SolicitacaoDietaEspecial
 from ...paineis_consolidados.api.constants import PESQUISA, TIPO_VISAO, TIPO_VISAO_LOTE, TIPO_VISAO_SOLICITACOES
 from ...paineis_consolidados.api.serializers import SolicitacoesSerializer
-from ...relatorios.relatorios import relatorio_filtro_periodo
+from ...relatorios.relatorios import relatorio_filtro_periodo, relatorio_resumo_anual_e_mensal
 from ..api.constants import FILTRO_PERIOD_UUID_DRE, PENDENTES_VALIDACAO_DRE, RELATORIO_PERIODO
 from ..models import MoldeConsolidado, SolicitacoesCODAE, SolicitacoesDRE, SolicitacoesEscola, SolicitacoesTerceirizada
 from .constants import (
@@ -31,6 +28,7 @@ from .constants import (
     PENDENTES_AUTORIZACAO_DIETA_ESPECIAL,
     PENDENTES_CIENCIA,
     QUESTIONAMENTOS,
+    RELATORIO_RESUMO_MES_ANO,
     RESUMO_ANO,
     RESUMO_MES
 )
@@ -242,8 +240,6 @@ class CODAESolicitacoesViewSet(SolicitacoesViewSet):
         url_path=f'{RELATORIO_RESUMO_MES_ANO}',
     )
     def relatorio_resumo_anual_e_mensal(self, request):
-        usuario = request.user
-
         query_set = SolicitacoesCODAE.get_solicitacoes_ano_corrente()
         resumo_do_ano = self._agrupa_por_mes_por_solicitacao(query_set=query_set)
         resumo_do_mes = SolicitacoesCODAE.resumo_totais_mes()
@@ -260,6 +256,8 @@ class CODAESolicitacoesViewSet(SolicitacoesViewSet):
         status_solicitacao = request_params.get('status_solicitacao', 'INVALIDO')
         data_inicial = request_params.get('data_inicial', 'INVALIDO')
         data_final = request_params.get('data_final', 'INVALIDO')
+        escola_uuid = request_params.get('escola_uuid', 'TODOS')
+        dre_uuid = request_params.get('dre_uuid', 'TODOS')
 
         if not self.parametros_validos(data_final, data_inicial, status_solicitacao, tipo_solicitacao):
             return Response(data={'detail': 'Parâmetros de busca inválidos'}, status=400)
@@ -268,7 +266,9 @@ class CODAESolicitacoesViewSet(SolicitacoesViewSet):
             data_inicial=data_inicial,
             data_final=data_final,
             tipo_solicitacao=tipo_solicitacao,
-            status_solicitacao=status_solicitacao
+            status_solicitacao=status_solicitacao,
+            dre_uuid=dre_uuid,
+            escola_uuid=escola_uuid
         )
 
         query_set = self._remove_duplicados_do_query_set(query_set)
