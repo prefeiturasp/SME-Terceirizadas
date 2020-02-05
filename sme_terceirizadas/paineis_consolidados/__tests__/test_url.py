@@ -3,7 +3,7 @@ import datetime
 from freezegun import freeze_time
 from rest_framework import status
 
-from sme_terceirizadas.paineis_consolidados.api.constants import RELATORIO_RESUMO_MES_ANO
+from ...dados_comuns.constants import SEM_FILTRO
 from ..api.constants import (
     AUTORIZADOS,
     CANCELADOS,
@@ -11,10 +11,10 @@ from ..api.constants import (
     PENDENTES_AUTORIZACAO,
     PESQUISA,
     RELATORIO_PERIODO,
+    RELATORIO_RESUMO_MES_ANO,
     RESUMO_ANO,
     RESUMO_MES
 )
-from ...dados_comuns.constants import SEM_FILTRO
 
 
 def base_codae(client_autenticado, resource):
