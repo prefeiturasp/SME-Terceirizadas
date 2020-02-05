@@ -185,9 +185,9 @@ class DietaEspecialWorkflow(xwf_models.Workflow):
         ('terceirizada_toma_ciencia', CODAE_AUTORIZADO, TERCEIRIZADA_TOMOU_CIENCIA),
         ('cancelar_pedido', CODAE_A_AUTORIZAR, ESCOLA_CANCELOU),
         ('inicia_fluxo_inativacao', [CODAE_AUTORIZADO, TERCEIRIZADA_TOMOU_CIENCIA], ESCOLA_SOLICITOU_INATIVACAO),
-        ('nega_inativacao', ESCOLA_SOLICITOU_INATIVACAO, CODAE_NEGOU_INATIVACAO),
-        ('autoriza_inativacao', ESCOLA_SOLICITOU_INATIVACAO, CODAE_AUTORIZOU_INATIVACAO),
-        ('toma_ciencia_inativacao', CODAE_AUTORIZOU_INATIVACAO, TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO)
+        ('codae_nega_inativacao', ESCOLA_SOLICITOU_INATIVACAO, CODAE_NEGOU_INATIVACAO),
+        ('codae_autoriza_inativacao', ESCOLA_SOLICITOU_INATIVACAO, CODAE_AUTORIZOU_INATIVACAO),
+        ('terceirizada_toma_ciencia_inativacao', CODAE_AUTORIZOU_INATIVACAO, TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO)
     )
 
     initial_state = RASCUNHO
@@ -893,7 +893,16 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
     @xworkflows.after_transition('inicia_fluxo_inativacao')
     def _inicia_fluxo_inativacao_hook(self, *args, **kwargs):
         user = kwargs['user']
+        justificativa = kwargs['justificativa']
         self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.INICIO_FLUXO_INATIVACAO,
+                                  usuario=user,
+                                  justificativa=justificativa)
+        self._salva_rastro_solicitacao()
+
+    @xworkflows.after_transition('codae_autoriza_inativacao')
+    def _codae_autoriza_inativacao_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU_INATIVACAO,
                                   usuario=user)
         self._salva_rastro_solicitacao()
 

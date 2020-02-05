@@ -50,6 +50,7 @@ ESCOLA_INICIO_PEDIDO = 'inicio-pedido'
 ESCOLA_REVISA_PEDIDO = 'escola-revisa-pedido'
 ESCOLA_CANCELA = 'escola-cancela-pedido-48h-antes'
 ESCOLA_INFORMA_SUSPENSAO = 'informa-suspensao'
+ESCOLA_SOLICITA_INATIVACAO = 'escola-solicita-inativacao'
 
 ESCOLA_CANCELA_DIETA_ESPECIAL = 'escola-cancela-dieta-especial'
 
@@ -61,6 +62,7 @@ DRE_REVISA_PEDIDO = 'diretoria-regional-revisa'
 DRE_CANCELA = 'diretoria-regional-cancela'
 
 CODAE_AUTORIZA_PEDIDO = 'codae-autoriza-pedido'
+CODAE_AUTORIZA_INATIVACAO = 'codae-autoriza-inativacao'
 CODAE_NEGA_PEDIDO = 'codae-cancela-pedido'
 CODAE_PEDE_REVISAO = 'codae-pediu-revisao'
 CODAE_QUESTIONA_PEDIDO = 'codae-questiona-pedido'
