@@ -95,7 +95,10 @@ def relatorio_dieta_especial(request, solicitacao):
     escola = solicitacao.rastro_escola
     logs = solicitacao.logs
     if solicitacao.logs.filter(status_evento=LogSolicitacoesUsuario.INICIO_FLUXO_INATIVACAO).exists():
-        fluxo = constants.FLUXO_DIETA_ESPECIAL_INATIVACAO
+        if solicitacao.logs.filter(status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_TOMOU_CIENCIA).exists():
+            fluxo = constants.FLUXO_DIETA_ESPECIAL_INATIVACAO
+        else:
+            fluxo = constants.FLUXO_DIETA_ESPECIAL_INATIVACAO_INCOMPLETO
     else:
         fluxo = constants.FLUXO_DIETA_ESPECIAL
     html_string = render_to_string(

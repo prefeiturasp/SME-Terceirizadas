@@ -305,3 +305,91 @@ def test_url_endpoint_tomar_ciencia_dieta(client_autenticado,
     obj.refresh_from_db()
 
     assert obj.status == DietaEspecialWorkflow.TERCEIRIZADA_TOMOU_CIENCIA
+
+
+def test_url_endpoint_escola_solicita_inativacao_dieta(client_autenticado,
+                                                       solicitacao_dieta_especial_autorizada):
+    obj = SolicitacaoDietaEspecial.objects.first()
+    data = {
+        'justificativa': '<p>alta pelo médico</p>',
+        'anexos': []
+    }
+    response = client_autenticado.patch(
+        f'/solicitacoes-dieta-especial/{obj.uuid}/escola-solicita-inativacao/',
+        content_type='application/json',
+        data=data
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {'detail': f'anexos não pode ser vazio'}
+    data = {
+        'justificativa':
+            '<p>alta pelo médico</p>',
+        'anexos': [
+            {
+                'nome': 'Teste',
+                'arquivo': 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAaQAAAGkCAIAAADxLsZiAAAFyklEQVR4nOzWUZHbYBA' +
+                           'GwThlHsYmEEIhEMImBgshJHL6rZtuAvs9Te17Zv4A/HZ/Vw8AuIPYAQliBySIHZAgdkCC2AEJYgckiB2QIHZAgtgB' +
+                           'CWIHJIgdkCB2QILYAQliBySIHZAgdkCC2AEJYgckiB2QIHZAgtgBCWIHJIgdkCB2QILYAQliBySIHZAgdkCC2AEJY' +
+                           'gckiB2QIHZAgtgBCe/VAx7svI7VEyjaPvvqCY/kswMSxA5IEDsgQeyABLEDEsQOSBA7IEHsgASxAxLEDkgQOyBB7I' +
+                           'AEsQMSxA5IEDsgQeyABLEDEsQOSBA7IEHsgASxAxLEDkgQOyBB7IAEsQMSxA5IEDsgQeyABLEDEsQOSBA7IEHsgAS' +
+                           'xAxLEDkgQOyBB7IAEsQMSxA5IEDsgQeyABLEDEsQOSBA7IEHsgASxAxLEDkgQOyBB7IAEsQMSxA5IEDsgQeyABLED' +
+                           'EsQOSBA7IEHsgASxAxLEDkgQOyBB7IAEsQMSxA5IEDsgQeyABLEDEsQOSBA7IEHsgASxAxJeM3PPpfM67jkEPMv22' +
+                           'W+44rMDEsQOSBA7IEHsgASxAxLEDkgQOyBB7IAEsQMSxA5IEDsgQeyABLEDEsQOSBA7IEHsgASxAxLEDkgQOyBB7I' +
+                           'AEsQMSxA5IEDsgQeyABLEDEsQOSBA7IEHsgASxAxLEDkgQOyBB7IAEsQMSxA5IEDsgQeyABLEDEsQOSBA7IEHsgAS' +
+                           'xAxLEDkgQOyBB7IAEsQMSxA5IEDsgQeyABLEDEsQOSBA7IEHsgASxAxLEDkgQOyBB7IAEsQMSxA5IEDsgQeyABLED' +
+                           'EsQOSBA7IEHsgASxAxLEDkgQOyBB7IAEsQMSxA5IeM3M6g1PdV7H6gkUbZ999YRH8tkBCWIHJIgdkCB2QILYAQliB' +
+                           'ySIHZAgdkCC2AEJYgckiB2QIHZAgtgBCWIHJIgdkCB2QILYAQliBySIHZAgdkCC2AEJYgckiB2QIHZAgtgBCWIHJI' +
+                           'gdkCB2QILYAQliBySIHZAgdkCC2AEJYgckiB2QIHZAgtgBCWIHJIgdkCB2QILYAQliBySIHZAgdkCC2AEJYgckiB2' +
+                           'QIHZAgtgBCWIHJIgdkCB2QILYAQliBySIHZAgdkCC2AEJYgckiB2QIHZAgtgBCWIHJIgdkCB2QILYAQliBySIHZAg' +
+                           'dkCC2AEJr5lZvQHgx/nsgASxAxLEDkgQOyBB7IAEsQMSxA5IEDsgQeyABLEDEsQOSBA7IEHsgASxAxLEDkgQOyBB7' +
+                           'IAEsQMSxA5IEDsgQeyABLEDEsQOSBA7IEHsgASxAxLEDkgQOyBB7IAEsQMSxA5IEDsgQeyABLEDEsQOSBA7IEHsgA' +
+                           'SxAxLEDkgQOyBB7IAEsQMSxA5IEDsgQeyABLEDEsQOSBA7IEHsgASxAxLEDkgQOyBB7IAEsQMSxA5IEDsgQeyABLE' +
+                           'DEsQOSBA7IEHsgASxAxLEDkgQOyBB7IAEsQMSxA5IEDsg4b16AF/kvI7VE/6/7bOvnsBX8NkBCWIHJIgdkCB2QILY' +
+                           'AQliBySIHZAgdkCC2AEJYgckiB2QIHZAgtgBCWIHJIgdkCB2QILYAQliBySIHZAgdkCC2AEJYgckiB2QIHZAgtgBC' +
+                           'WIHJIgdkCB2QILYAQliBySIHZAgdkCC2AEJYgckiB2QIHZAgtgBCWIHJIgdkCB2QILYAQliBySIHZAgdkCC2AEJYg' +
+                           'ckiB2QIHZAgtgBCWIHJIgdkCB2QILYAQliBySIHZAgdkCC2AEJYgckiB2QIHZAgtgBCWIHJIgdkCB2QILYAQliByS' +
+                           'IHZAgdkCC2AEJYgckvGZm9QaAH+ezAxLEDkgQOyBB7IAEsQMSxA5IEDsgQeyABLEDEsQOSBA7IEHsgASxAxLEDkgQ' +
+                           'OyBB7IAEsQMSxA5IEDsgQeyABLEDEsQOSBA7IEHsgASxAxLEDkgQOyBB7IAEsQMSxA5IEDsgQeyABLEDEv4FAAD//' +
+                           'xmNHVuA/EwlAAAAAElFTkSuQmCC'
+            }
+        ]
+    }
+    response = client_autenticado.patch(
+        f'/solicitacoes-dieta-especial/{obj.uuid}/escola-solicita-inativacao/',
+        content_type='application/json',
+        data=data
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    obj.refresh_from_db()
+    assert obj.status == DietaEspecialWorkflow.ESCOLA_SOLICITOU_INATIVACAO
+    response = client_autenticado.patch(
+        f'/solicitacoes-dieta-especial/{obj.uuid}/escola-solicita-inativacao/',
+        content_type='application/json',
+        data=data
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {
+        'detail': f"Erro de transição de estado: Transition 'inicia_fluxo_inativacao' isn't available from state " +
+                  "'ESCOLA_SOLICITOU_INATIVACAO'."}
+
+
+def test_url_endpoint_codae_autoriza_inativacao_dieta(client_autenticado,
+                                                      solicitacao_dieta_especial_escola_solicitou_inativacao):
+    obj = SolicitacaoDietaEspecial.objects.first()
+    response = client_autenticado.patch(
+        f'/solicitacoes-dieta-especial/{obj.uuid}/codae-autoriza-inativacao/',
+        content_type='application/json'
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    obj.refresh_from_db()
+    assert obj.status == DietaEspecialWorkflow.CODAE_AUTORIZOU_INATIVACAO
+    response = client_autenticado.patch(
+        f'/solicitacoes-dieta-especial/{obj.uuid}/codae-autoriza-inativacao/',
+        content_type='application/json'
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {
+        'detail': f"Erro de transição de estado: Transition 'codae_autoriza_inativacao' isn't available from state " +
+                  "'CODAE_AUTORIZOU_INATIVACAO'."}
