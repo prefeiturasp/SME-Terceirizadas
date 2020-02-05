@@ -110,6 +110,17 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
+    @action(detail=True, methods=['patch'], url_path=constants.CODAE_NEGA_INATIVACAO)
+    def codae_nega_inativacao(self, request, uuid=None):
+        solicitacao_dieta_especial = self.get_object()
+        justificativa = request.data.get('justificativa_negacao', '')
+        try:
+            solicitacao_dieta_especial.codae_nega_inativacao(user=request.user, justificativa=justificativa)
+            serializer = self.get_serializer(solicitacao_dieta_especial)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+
     @action(detail=True, methods=['post'])
     def negar(self, request, uuid=None):
         solicitacao = self.get_object()

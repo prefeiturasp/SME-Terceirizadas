@@ -64,6 +64,7 @@ DRE_CANCELA = 'diretoria-regional-cancela'
 CODAE_AUTORIZA_PEDIDO = 'codae-autoriza-pedido'
 CODAE_AUTORIZA_INATIVACAO = 'codae-autoriza-inativacao'
 CODAE_NEGA_PEDIDO = 'codae-cancela-pedido'
+CODAE_NEGA_INATIVACAO = 'codae-nega-inativacao'
 CODAE_PEDE_REVISAO = 'codae-pediu-revisao'
 CODAE_QUESTIONA_PEDIDO = 'codae-questiona-pedido'
 
