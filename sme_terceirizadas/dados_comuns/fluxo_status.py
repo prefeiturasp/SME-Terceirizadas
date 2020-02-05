@@ -875,7 +875,6 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
         titulo = 'Status de solicitação - #' + self.id_externo
         self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_NEGOU,
                                   usuario=user)
-        self._salva_rastro_solicitacao()
         self._preenche_template_e_envia_email(assunto, titulo, user,
                                               self._partes_interessadas_codae_autoriza_ou_nega)
 
@@ -886,7 +885,6 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
         titulo = 'Status de solicitação - #' + self.id_externo
         self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU,
                                   usuario=user)
-        self._salva_rastro_solicitacao()
         self._preenche_template_e_envia_email(assunto, titulo, user,
                                               self._partes_interessadas_codae_autoriza_ou_nega)
 
@@ -897,14 +895,12 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
         self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.INICIO_FLUXO_INATIVACAO,
                                   usuario=user,
                                   justificativa=justificativa)
-        self._salva_rastro_solicitacao()
 
     @xworkflows.after_transition('codae_autoriza_inativacao')
     def _codae_autoriza_inativacao_hook(self, *args, **kwargs):
         user = kwargs['user']
         self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU_INATIVACAO,
                                   usuario=user)
-        self._salva_rastro_solicitacao()
 
     @xworkflows.after_transition('codae_nega_inativacao')
     def _codae_nega_inativacao_hook(self, *args, **kwargs):
@@ -913,7 +909,6 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
         self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_NEGOU_INATIVACAO,
                                   usuario=user,
                                   justificativa=justificativa)
-        self._salva_rastro_solicitacao()
 
     @xworkflows.after_transition('terceirizada_toma_ciencia')
     def _terceirizada_toma_ciencia_hook(self, *args, **kwargs):
