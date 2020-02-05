@@ -82,3 +82,36 @@ def concatena_label(query_set):
         if item != list(query_set)[-1]:
             label += ', '
     return label
+
+
+@register.filter
+def get_item(dictionary, key):
+    return dictionary.get(key)
+
+
+@register.filter
+def get_total(dictionary):
+    return dictionary.get('total')
+
+
+@register.filter
+def get_dado_mes(dictionary, index):
+    return dictionary.get('quantidades')[index]
+
+
+@register.filter
+def numero_pra_mes(indice):
+    return {
+        0: 'Janeiro',
+        1: 'Fevereiro',
+        2: 'Março',
+        3: 'Abril',
+        4: 'Maio',
+        5: 'Junho',
+        6: 'Julho',
+        7: 'Agosto',
+        8: 'Setembro',
+        9: 'Outubro',
+        10: 'Novembro',
+        11: 'Dezembro',
+    }[indice]

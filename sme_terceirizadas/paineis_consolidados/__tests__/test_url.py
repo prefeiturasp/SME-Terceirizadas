@@ -59,6 +59,18 @@ def test_escola_relatorio_evolucao_solicitacoes(users_diretor_escola):
     }
 
 
+@freeze_time('2019-02-11')
+def test_filtro_escola(users_diretor_escola):
+    client, email, password, rf, cpf, user = users_diretor_escola
+    tipo = 'INC_ALIMENTA_CONTINUA'
+    response = client.get(
+        f'/escola-solicitacoes/{PESQUISA}/?tipo_solicitacao={tipo}'
+        f'&data_inicial=2019-02-01&data_final=2019-02-28&status_solicitacao=TODOS')
+    assert response.status_code == status.HTTP_200_OK
+    for i in response.json()['results']:
+        assert i['tipo_doc'] == tipo
+
+
 @freeze_time('2019-10-11')
 def test_resumo_ano_dre(solicitacoes_ano_dre):
     client, email, password, rf, cpf, user = solicitacoes_ano_dre
@@ -92,16 +104,42 @@ def test_resumo_mes_dre(solicitacoes_ano_dre):
 @freeze_time('2019-02-11')
 def test_filtro_dre(solicitacoes_ano_dre):
     client, email, password, rf, cpf, user = solicitacoes_ano_dre
+    escola = 'TODOS'
     response = client.get(
-        f'/diretoria-regional-solicitacoes/{PESQUISA}/TODOS/?tipo_solicitacao=TODOS'
-        f'&data_inicial=2019-02-01&data_final=2019-02-28&status_solicitacao=TODOS/')
+        f'/diretoria-regional-solicitacoes/{PESQUISA}/{escola}/?tipo_solicitacao=TODOS'
+        f'&data_inicial=2019-02-01&data_final=2019-02-28&status_solicitacao=TODOS')
     assert response.status_code == status.HTTP_200_OK
     for i in response.json()['results']:
         assert datetime.datetime.strptime(i['criado_em'], '%d/%m/%Y %H:%M:%S').month == 2
     tipo_solicitacao = 'KIT_LANCHE_AVULSA'
     response = client.get(
-        f'/diretoria-regional-solicitacoes/{PESQUISA}/TODOS/?tipo_solicitacao={tipo_solicitacao}'
-        f'&data_inicial=2019-02-01&data_final=2019-02-28&status_solicitacao=TODOS/')
+        f'/diretoria-regional-solicitacoes/{PESQUISA}/{escola}/?tipo_solicitacao={tipo_solicitacao}'
+        f'&data_inicial=2019-02-01&data_final=2019-02-28&status_solicitacao=TODOS')
     assert response.status_code == status.HTTP_200_OK
     for i in response.json()['results']:
         assert i['tipo_doc'] == tipo_solicitacao
+
+
+@freeze_time('2019-02-11')
+def test_filtro_dre_error(solicitacoes_ano_dre):
+    client, email, password, rf, cpf, user = solicitacoes_ano_dre
+    escola = 'PARAMETRO_ERRADO'
+    data_inicial = '01/02/2020'
+    data_final = '2019/02/28'
+    status_solicitacao = 'URGENTE'
+    tipo = 'lanche pra funcionarios unificado'
+
+    response = client.get(
+        f'/diretoria-regional-solicitacoes/{PESQUISA}/{escola}/?tipo_solicitacao={tipo}'
+        f'&data_inicial={data_inicial}&data_final={data_final}&status_solicitacao={status_solicitacao}')
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {
+        'tipo_solicitacao': [
+            'tipo de solicitação lanche pra funcionarios unificado não permitida, deve ser um dos: '
+            "['ALT_CARDAPIO', 'INV_CARDAPIO', 'INC_ALIMENTA', 'INC_ALIMENTA_CONTINUA', 'KIT_LANCHE_AVULSA', "
+            "'SUSP_ALIMENTACAO', 'KIT_LANCHE_UNIFICADA', 'TODOS']"],
+        'status_solicitacao': [
+            'status de solicitação URGENTE não permitida, deve ser um dos: '
+            "['AUTORIZADOS', 'NEGADOS', 'CANCELADOS', 'EM_ANDAMENTO', 'TODOS']"],
+        'data_final': ['Informe uma data válida.']
+    }
