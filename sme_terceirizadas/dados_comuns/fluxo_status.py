@@ -893,7 +893,7 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
     @xworkflows.after_transition('inicia_fluxo_inativacao')
     def _inicia_fluxo_inativacao_hook(self, *args, **kwargs):
         user = kwargs['user']
-        justificativa = kwargs['justificativa']
+        justificativa = kwargs.get('justificativa', '')
         self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.INICIO_FLUXO_INATIVACAO,
                                   usuario=user,
                                   justificativa=justificativa)
@@ -909,7 +909,7 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
     @xworkflows.after_transition('codae_nega_inativacao')
     def _codae_nega_inativacao_hook(self, *args, **kwargs):
         user = kwargs['user']
-        justificativa = kwargs['justificativa']
+        justificativa = kwargs.get('justificativa', '')
         self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_NEGOU_INATIVACAO,
                                   usuario=user,
                                   justificativa=justificativa)
