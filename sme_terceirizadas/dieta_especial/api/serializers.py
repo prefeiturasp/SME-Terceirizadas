@@ -49,7 +49,16 @@ class AnexoSerializer(ModelSerializer):
         fields = ('arquivo', 'nome')
 
 
+class SubstituicaoAlimentoCreateSerializer(ModelSerializer):
+    class Meta:
+        model = SubstituicaoAlimento
+        fields = '__all__'
+
+
 class SubstituicaoAlimentoSerializer(ModelSerializer):
+    alimento = AlimentoSerializer()
+    substitutos = AlimentoSerializer(many=True)
+
     class Meta:
         model = SubstituicaoAlimento
         fields = '__all__'
@@ -149,6 +158,7 @@ class SolicitacaoDietaEspecialAutorizarSerializer(SolicitacaoDietaEspecialCreate
 
         instance.classificacao_id = validated_data['classificacao']
         instance.registro_funcional_nutricionista = validated_data['registro_funcional_nutricionista']
+        instance.informacoes_adicionais = validated_data['informacoes_adicionais']
 
         instance.alergias_intolerancias.all().delete()
         for ai in alergias_intolerancias:
@@ -157,7 +167,7 @@ class SolicitacaoDietaEspecialAutorizarSerializer(SolicitacaoDietaEspecialCreate
         instance.substituicaoalimento_set.all().delete()
         for substituicao in substituicoes:
             substituicao['solicitacao_dieta_especial'] = instance.id
-            ser = SubstituicaoAlimentoSerializer(data=substituicao)
+            ser = SubstituicaoAlimentoCreateSerializer(data=substituicao)
             ser.is_valid(raise_exception=True)
             instance.substituicaoalimento_set.add(ser.save())
 
@@ -199,28 +209,31 @@ class SolicitacaoDietaEspecialSerializer(serializers.ModelSerializer):
     alergias_intolerancias = AlergiaIntoleranciaSerializer(many=True)
     motivo_negacao = MotivoNegacaoSerializer()
 
+    substituicoes = SubstituicaoAlimentoSerializer(many=True)
+
     class Meta:
         model = SolicitacaoDietaEspecial
         ordering = ('ativo', '-criado_em')
         fields = (
             'uuid',
-            'ativo',
+            'id_externo',
+            'criado_em',
+            'status_solicitacao',
             'aluno',
+            'escola',
+            'anexos',
             'nome_completo_pescritor',
             'registro_funcional_pescritor',
             'observacoes',
-            'informacoes_adicionais',
-            'criado_em',
-            'anexos',
-            'status_solicitacao',
-            'escola',
-            'logs',
-            'id_externo',
-            'classificacao',
             'alergias_intolerancias',
+            'classificacao',
+            'nome_protocolo',
+            'substituicoes',
+            'informacoes_adicionais',
             'motivo_negacao',
             'justificativa_negacao',
-            'registro_funcional_nutricionista'
+            'registro_funcional_nutricionista',
+            'logs'
         )
 
 

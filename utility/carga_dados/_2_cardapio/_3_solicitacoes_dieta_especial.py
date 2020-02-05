@@ -14,8 +14,8 @@ from sme_terceirizadas.escola.models import Aluno, Escola
 from .helper import base64_encode
 
 from sme_terceirizadas.dieta_especial.models import (
-    AlergiaIntolerancia, Anexo, ClassificacaoDieta,
-    SolicitacaoDietaEspecial
+    AlergiaIntolerancia, Alimento, Anexo, ClassificacaoDieta, MotivoNegacao,
+    SolicitacaoDietaEspecial, SubstituicaoAlimento
 )
 from sme_terceirizadas.perfil.models import Usuario
 
@@ -25,22 +25,37 @@ f.seed(420)
 
 def fluxo_escola_felix_dieta_especial(obj, user, index):
     obj.inicia_fluxo(user=user, notificar=True)
-    if index % 7 == 0:
-        obj.codae_nega(user=user, notificar=True)
-        return
+    jogada_de_dado = random.randint(1,5)
+    if jogada_de_dado == 1:
+        pass #Mantém a solicitação em status "aguardando autorização"
+    elif jogada_de_dado == 2:
+        obj.cancelar_pedido(user=user, justificativa='')
     else:
-        if index % 3 == 0:
-            return
-        if index % 5 == 0:
-            obj.cancelar_pedido(user=user, justificativa='')
-            return
-        if index % 2 == 1:
+        obj.registro_funcional_nutricionista = f'Elaborado por {f.name()} - CRN {random.randint(10000000, 99999999)}'
+        if jogada_de_dado == 3:
+            obj.motivo_negacao = _get_random_motivo_negacao()
+            obj.justificativa_negacao = f.text()[:50]
+            obj.codae_nega(user=user, notificar=True)
+        else:
             obj.codae_autoriza(user=user, notificar=True)
-            return
-        if index % 2 == 0:
-            obj.codae_autoriza(user=user, notificar=True)
-            obj.terceirizada_toma_ciencia(user=user, notificar=True)
-            return
+            obj.nome_protocolo = f.text()[:25]
+            obj.informacoes_adicionais = f.text()[:100]
+            obj.classificacao =_get_random_classificacao_de_dieta()
+            obj.ativo = True if random.randint(0, 1) == 1 else False
+            for _ in range(random.randint(1,3)):
+                obj.alergias_intolerancias.add(_get_random_alergia())
+            for _ in range(random.randint(1,3)):
+                subst = SubstituicaoAlimento.objects.create(
+                    solicitacao_dieta_especial=obj,
+                    alimento=_get_random_alimento(),
+                    tipo="I" if random.randint(0,1) == 1 else "S"
+                )
+                for __ in range(random.randint(1,5)):
+                    subst.substitutos.add(_get_random_alimento())
+            if jogada_de_dado == 5:
+                obj.terceirizada_toma_ciencia(user=user, notificar=True)
+            obj.save()
+
 
 
 def _get_random_from_queryset(qs):
@@ -60,6 +75,16 @@ def _get_random_alergia():
 escola = Escola.objects.all()
 def _get_random_escola():
     return _get_random_from_queryset(escola)
+
+
+motivos_negacao = MotivoNegacao.objects.all()
+def _get_random_motivo_negacao():
+    return _get_random_from_queryset(motivos_negacao)
+
+
+alimentos = Alimento.objects.all()
+def _get_random_alimento():
+    return _get_random_from_queryset(alimentos)
 
 
 @transaction.atomic
@@ -87,19 +112,13 @@ def cria_solicitacoes_dieta_especial(qtd=50):
             print(f'{index / 10}% COMPLETO')
 
         for i in range(random.randint(1, 7)):
-            alergia_1 = _get_random_alergia()
-            alergia_2 = _get_random_alergia()
             solicitacao_dieta_especial = SolicitacaoDietaEspecial.objects.create(
                 criado_por=user,
-                nome_completo_pescritor=f.text()[:25],
+                nome_completo_pescritor=f.name(),
                 registro_funcional_pescritor=''.join(random.choice(string.digits) for x in range(6)),
-                registro_funcional_nutricionista=''.join(random.choice(string.digits) for x in range(6)),
-                observacoes=f.text()[:25],
-                classificacao=_get_random_classificacao_de_dieta(),
+                observacoes=f.text()[:50],
                 aluno=alunos[index],
-                ativo=True if random.randint(0, 1) == 1 else False
             )
-            solicitacao_dieta_especial.alergias_intolerancias.add(alergia_1, alergia_2)
 
             for _ in range(random.randint(2,4)):
                 Anexo.objects.create(
@@ -109,7 +128,8 @@ def cria_solicitacoes_dieta_especial(qtd=50):
                 )
             fluxo_escola_felix_dieta_especial(solicitacao_dieta_especial, user, index)
 
-QTD_PEDIDOS = 1000
+#QTD_PEDIDOS = 1000
+QTD_PEDIDOS = 50
 
 print('-> criando solicitacoes dieta especial')
 cria_solicitacoes_dieta_especial(QTD_PEDIDOS)

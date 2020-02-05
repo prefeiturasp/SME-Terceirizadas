@@ -43,6 +43,7 @@ class SolicitacaoDietaEspecial(ExportModelOperationsMixin('dieta_especial'), Tem
     observacoes = models.TextField('Observações', blank=True)
     # Preenchido pela CODAE ao autorizar a dieta
     informacoes_adicionais = models.TextField('Informações Adicionais', blank=True)
+    nome_protocolo = models.TextField('Nome do Protocolo', blank=True)
 
     # TODO: Confirmar se PROTECT é a melhor escolha para o campos abaixo
     classificacao = models.ForeignKey('ClassificacaoDieta', blank=True, null=True, on_delete=models.PROTECT)

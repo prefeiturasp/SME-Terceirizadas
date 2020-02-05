@@ -7,8 +7,7 @@ from ..constants import (
     ENDPOINT_ALERGIAS_INTOLERANCIAS,
     ENDPOINT_ALIMENTOS,
     ENDPOINT_CLASSIFICACOES_DIETA,
-    ENDPOINT_MOTIVOS_NEGACAO,
-    ENDPOINT_TIPOS_DIETA_ESPECIAL
+    ENDPOINT_MOTIVOS_NEGACAO
 )
 from ..models import (
     AlergiaIntolerancia,
@@ -59,15 +58,6 @@ def test_url_endpoint_lista_motivos_negacao(client_autenticado,
         client_autenticado,
         ENDPOINT_MOTIVOS_NEGACAO,
         quantidade=4
-    )
-
-
-def test_url_endpoint_lista_tipos_dieta(client_autenticado,
-                                        tipos_dieta):
-    endpoint_lista(
-        client_autenticado,
-        ENDPOINT_TIPOS_DIETA_ESPECIAL,
-        quantidade=5
     )
 
 
@@ -221,6 +211,7 @@ def test_url_endpoint_autorizar_dieta(client_autenticado,
 
     assert obj.status == DietaEspecialWorkflow.CODAE_AUTORIZADO
     assert obj.registro_funcional_nutricionista == payload_autorizar['registro_funcional_nutricionista']
+    assert obj.informacoes_adicionais == payload_autorizar['informacoes_adicionais']
     for ai in obj.alergias_intolerancias.all():
         assert ai.id in payload_autorizar['alergias_intolerancias']
     assert obj.classificacao.id == payload_autorizar['classificacao']
