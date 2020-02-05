@@ -3,7 +3,7 @@ import datetime
 from freezegun import freeze_time
 from rest_framework import status
 
-from ...dados_comuns.constants import SEM_FILTRO
+from sme_terceirizadas.paineis_consolidados.api.constants import RELATORIO_RESUMO_MES_ANO
 from ..api.constants import (
     AUTORIZADOS,
     CANCELADOS,
@@ -14,6 +14,7 @@ from ..api.constants import (
     RESUMO_ANO,
     RESUMO_MES
 )
+from ...dados_comuns.constants import SEM_FILTRO
 
 
 def base_codae(client_autenticado, resource):
@@ -91,6 +92,19 @@ def test_relatorio_filtro_escola(users_diretor_escola):
     assert response._headers['content-type'] == ('Content-Type', 'application/pdf')
     assert response._headers['content-disposition'] == (
         'Content-Disposition', 'filename="relatorio_filtro_de_2019-02-01 00:00:00_ate_2019-02-28 00:00:00.pdf"')
+    assert 'PDF-1.5' in str(response.content)
+    assert isinstance(response.content, bytes)
+
+
+@freeze_time('2019-02-11')
+def test_relatorio_mes_ano_escola(users_diretor_escola):
+    client, email, password, rf, cpf, user = users_diretor_escola
+    response = client.get(
+        f'/escola-solicitacoes/{RELATORIO_RESUMO_MES_ANO}/')
+    assert response.status_code == status.HTTP_200_OK
+    assert response._headers['content-type'] == ('Content-Type', 'application/pdf')
+    assert response._headers['content-disposition'] == (
+        'Content-Disposition', 'filename="relatorio_resumo_anual_e_mensal.pdf"')
     assert 'PDF-1.5' in str(response.content)
     assert isinstance(response.content, bytes)
 
@@ -179,6 +193,19 @@ def test_relatorio_filtro_dre(solicitacoes_ano_dre):
     assert response._headers['content-type'] == ('Content-Type', 'application/pdf')
     assert response._headers['content-disposition'] == (
         'Content-Disposition', 'filename="relatorio_filtro_de_2019-02-01 00:00:00_ate_2019-02-28 00:00:00.pdf"')
+    assert 'PDF-1.5' in str(response.content)
+    assert isinstance(response.content, bytes)
+
+
+@freeze_time('2019-02-11')
+def test_relatorio_mes_ano_dre(solicitacoes_ano_dre):
+    client, email, password, rf, cpf, user = solicitacoes_ano_dre
+    response = client.get(
+        f'/diretoria-regional-solicitacoes/{RELATORIO_RESUMO_MES_ANO}/')
+    assert response.status_code == status.HTTP_200_OK
+    assert response._headers['content-type'] == ('Content-Type', 'application/pdf')
+    assert response._headers['content-disposition'] == (
+        'Content-Disposition', 'filename="relatorio_resumo_anual_e_mensal.pdf"')
     assert 'PDF-1.5' in str(response.content)
     assert isinstance(response.content, bytes)
 
