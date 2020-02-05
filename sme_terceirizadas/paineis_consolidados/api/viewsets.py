@@ -226,11 +226,9 @@ class CODAESolicitacoesViewSet(SolicitacoesViewSet):
     @action(
         detail=False,
         methods=['GET'],
-        url_path=f'{RELATORIO_PERIODO}',
+        url_path=f'{RELATORIO_PERIODO}/{FILTRO_DRE_UUID}/{FILTRO_ESCOLA_UUID}',
     )
-    def relatorio_filtro_periodo(self, request):
-        escola_uuid = 'TODOS'
-        dre_uuid = 'TODOS'
+    def relatorio_filtro_periodo(self, request, escola_uuid=None, dre_uuid=None):
         form = FiltroValidator(request.GET)
         if form.is_valid():
             cleaned_data = form.cleaned_data
@@ -473,11 +471,10 @@ class DRESolicitacoesViewSet(SolicitacoesViewSet):
     @action(
         detail=False,
         methods=['GET'],
-        url_path=f'{RELATORIO_PERIODO}',
+        url_path=f'{RELATORIO_PERIODO}/{FILTRO_ESCOLA_UUID}',
     )
-    def relatorio_filtro_periodo(self, request):
+    def relatorio_filtro_periodo(self, request, escola_uuid=None):
         usuario = request.user
-        escola_uuid = 'TODOS'
         dre = usuario.vinculo_atual.instituicao
         dre_uuid = usuario.vinculo_atual.instituicao.uuid
         form = FiltroValidator(request.GET)
