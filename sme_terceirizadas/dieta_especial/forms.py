@@ -4,16 +4,6 @@ from ..escola.models import DiretoriaRegional, Escola
 from .models import SolicitacaoDietaEspecial
 
 
-class AutorizaDietaEspecialForm(forms.ModelForm):
-    class Meta:
-        model = SolicitacaoDietaEspecial
-        fields = [
-            'registro_funcional_nutricionista',
-            'classificacao',
-            'alergias_intolerancias'
-        ]
-
-
 class NegaDietaEspecialForm(forms.ModelForm):
     class Meta:
         model = SolicitacaoDietaEspecial

@@ -39,9 +39,12 @@ class SolicitacaoDietaEspecial(ExportModelOperationsMixin('dieta_especial'), Tem
                                                         max_length=200,
                                                         validators=[MinLengthValidator(6)],
                                                         blank=True)
+    # Preenchido pela Escola
     observacoes = models.TextField('Observações', blank=True)
+    # Preenchido pela CODAE ao autorizar a dieta
+    informacoes_adicionais = models.TextField('Informações Adicionais', blank=True)
+    nome_protocolo = models.TextField('Nome do Protocolo', blank=True)
 
-    tipos = models.ManyToManyField('TipoDieta', blank=True)
     # TODO: Confirmar se PROTECT é a melhor escolha para o campos abaixo
     classificacao = models.ForeignKey('ClassificacaoDieta', blank=True, null=True, on_delete=models.PROTECT)
     alergias_intolerancias = models.ManyToManyField('AlergiaIntolerancia', blank=True)
@@ -77,6 +80,10 @@ class SolicitacaoDietaEspecial(ExportModelOperationsMixin('dieta_especial'), Tem
                 solicitacao_dieta_especial=self, arquivo=data, nome=anexo.get('nome', ''),
                 eh_laudo_alta=True
             )
+
+    @property
+    def substituicoes(self):
+        return self.substituicaoalimento_set.all()
 
     @property
     def template_mensagem(self):
@@ -120,7 +127,6 @@ class Anexo(ExportModelOperationsMixin('anexo'), models.Model):
     solicitacao_dieta_especial = models.ForeignKey(SolicitacaoDietaEspecial, on_delete=models.DO_NOTHING)
     nome = models.CharField(max_length=100, blank=True)
     arquivo = models.FileField()
-    eh_laudo_medico = models.BooleanField(default=False)
     eh_laudo_alta = models.BooleanField(default=False)
 
     def __str__(self):
@@ -142,11 +148,6 @@ class MotivoNegacao(Descritivel):
         return self.descricao
 
 
-class TipoDieta(Descritivel):
-    def __str__(self):
-        return self.descricao
-
-
 class SolicitacoesDietaEspecialAtivasInativasPorAluno(models.Model):
     aluno = models.OneToOneField(Aluno, on_delete=models.DO_NOTHING, primary_key=True)
     ativas = models.IntegerField()
@@ -155,3 +156,20 @@ class SolicitacoesDietaEspecialAtivasInativasPorAluno(models.Model):
     class Meta:
         managed = False
         db_table = 'dietas_ativas_inativas_por_aluno'
+
+
+class Alimento(Nomeavel):
+    def __str__(self):
+        return self.nome
+
+
+class SubstituicaoAlimento(models.Model):
+    TIPO_CHOICES = [
+        ('I', 'Isento'),
+        ('S', 'Substituir')
+    ]
+
+    solicitacao_dieta_especial = models.ForeignKey(SolicitacaoDietaEspecial, on_delete=models.PROTECT)
+    alimento = models.ForeignKey(Alimento, on_delete=models.PROTECT)
+    tipo = models.CharField(max_length=1, choices=TIPO_CHOICES)
+    substitutos = models.ManyToManyField(Alimento, related_name='substitutos')

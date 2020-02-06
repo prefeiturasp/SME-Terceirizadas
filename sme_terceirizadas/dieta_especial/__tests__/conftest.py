@@ -1,4 +1,5 @@
 from datetime import date
+from random import randint, sample
 
 import pytest
 from faker import Faker
@@ -9,7 +10,7 @@ from ...dados_comuns.utils import convert_base64_to_contentfile
 from ...escola.models import Aluno, Escola, Lote
 from ...perfil.models import Usuario
 from ...terceirizada.models import Terceirizada
-from ..models import AlergiaIntolerancia, Anexo, ClassificacaoDieta, MotivoNegacao, SolicitacaoDietaEspecial, TipoDieta
+from ..models import AlergiaIntolerancia, Alimento, Anexo, ClassificacaoDieta, MotivoNegacao, SolicitacaoDietaEspecial
 
 fake = Faker('pt_BR')
 fake.seed(420)
@@ -78,9 +79,36 @@ def motivos_negacao():
 
 
 @pytest.fixture
-def tipos_dieta():
-    mommy.make(TipoDieta, _quantity=5)
-    return TipoDieta.objects.all()
+def alimentos():
+    mommy.make(Alimento, _quantity=6)
+    return Alimento.objects.all()
+
+
+@pytest.fixture
+def substituicoes(alimentos):
+    substituicoes = []
+    ids_alimentos = [a.id for a in alimentos]
+    for _ in range(randint(3, 5)):
+        substituicoes.append({
+            'alimento': alimentos[randint(0, len(alimentos) - 1)].id,
+            'tipo': 'I' if randint(0, 1) == 1 else 'S',
+            'substitutos': sample(ids_alimentos, randint(1, 4))
+        })
+    return substituicoes
+
+
+@pytest.fixture
+def payload_autorizar(alergias_intolerancias, classificacoes_dieta, substituicoes):
+    return {
+        'classificacao': classificacoes_dieta[0].id,
+        'alergias_intolerancias': [
+            alergias_intolerancias[0].id
+        ],
+        'registro_funcional_nutricionista':
+            'ELABORADO por USUARIO NUTRICIONISTA CODAE - CRN null',
+        'substituicoes': substituicoes,
+        'informacoes_adicionais': 'Um texto bem grandão'
+    }
 
 
 @pytest.fixture
