@@ -262,6 +262,31 @@ def test_url_endpoint_autorizar_dieta(client_autenticado,
     assert anexo.nome == data['protocolos'][0]['nome']
 
 
+def test_url_endpoint_cancelar_dieta(client_autenticado,
+                                     solicitacao_dieta_especial_a_autorizar):
+    obj = SolicitacaoDietaEspecial.objects.first()
+    data = {
+        'justificativa': 'Uma justificativa fajuta'
+    }
+    response = client_autenticado.post(
+        f'/solicitacoes-dieta-especial/{obj.uuid}/escola-cancela-dieta-especial/',
+        content_type='application/json',
+        data=data
+    )
+    obj.refresh_from_db()
+    assert response.status_code == status.HTTP_200_OK
+    assert obj.status == DietaEspecialWorkflow.ESCOLA_CANCELOU
+    response = client_autenticado.post(
+        f'/solicitacoes-dieta-especial/{obj.uuid}/escola-cancela-dieta-especial/',
+        content_type='application/json',
+        data=data
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {
+        'detail': f"Erro de transição de estado: Transition 'cancelar_pedido' isn't available from state " +
+                  "'ESCOLA_CANCELOU'."}
+
+
 def test_url_endpoint_negar_dieta(client_autenticado,
                                   solicitacao_dieta_especial_a_autorizar,
                                   motivos_negacao):
@@ -393,3 +418,24 @@ def test_url_endpoint_codae_autoriza_inativacao_dieta(client_autenticado,
     assert response.json() == {
         'detail': f"Erro de transição de estado: Transition 'codae_autoriza_inativacao' isn't available from state " +
                   "'CODAE_AUTORIZOU_INATIVACAO'."}
+
+
+def test_url_endpoint_terceirizada_toma_ciencia_inativacao_dieta(client_autenticado,
+                                                                 solicitacao_dieta_especial_codae_autorizou_inativacao):
+    obj = SolicitacaoDietaEspecial.objects.first()
+    response = client_autenticado.patch(
+        f'/solicitacoes-dieta-especial/{obj.uuid}/terceirizada-toma-ciencia-inativacao/',
+        content_type='application/json'
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    obj.refresh_from_db()
+    assert obj.status == DietaEspecialWorkflow.TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO
+    response = client_autenticado.patch(
+        f'/solicitacoes-dieta-especial/{obj.uuid}/terceirizada-toma-ciencia-inativacao/',
+        content_type='application/json'
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {
+        'detail': f"Erro de transição de estado: Transition 'terceirizada_toma_ciencia_inativacao' isn't available " +
+                  "from state 'TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO'."}

@@ -118,6 +118,16 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
+    @action(detail=True, methods=['patch'], url_path=constants.TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO)
+    def terceirizada_toma_ciencia_inativacao(self, request, uuid=None):
+        solicitacao_dieta_especial = self.get_object()
+        try:
+            solicitacao_dieta_especial.terceirizada_toma_ciencia_inativacao(user=request.user)
+            serializer = self.get_serializer(solicitacao_dieta_especial)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+
     @action(detail=True, methods=['post'])
     def negar(self, request, uuid=None):
         solicitacao = self.get_object()
@@ -133,10 +143,11 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
     @action(detail=True, methods=['post'])
     def tomar_ciencia(self, request, uuid=None):
         solicitacao = self.get_object()
-
-        solicitacao.terceirizada_toma_ciencia(user=request.user)
-
-        return Response({'mensagem': 'Ciente da solicitação de dieta especial'})
+        try:
+            solicitacao.terceirizada_toma_ciencia(user=request.user)
+            return Response({'mensagem': 'Ciente da solicitação de dieta especial'})
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, url_path=constants.RELATORIO,
             methods=['get'], permission_classes=[AllowAny])
