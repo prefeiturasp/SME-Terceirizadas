@@ -90,6 +90,7 @@ def label_alteracao(query_set):
     return label
 
 
+@register.filter
 def get_item(dictionary, key):
     return dictionary.get(key)
 
