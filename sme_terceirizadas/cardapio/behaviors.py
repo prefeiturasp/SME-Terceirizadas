@@ -2,8 +2,6 @@ from django.db import models
 
 
 class TemLabelDeTiposDeAlimentacao(models.Model):
-    pass
-
     @property
     def label(self):
         label = ''
@@ -13,3 +11,6 @@ class TemLabelDeTiposDeAlimentacao(models.Model):
             else:
                 label += f' e {tipo_alimentacao.nome}'
         return label
+
+    class Meta:
+        abstract = True
