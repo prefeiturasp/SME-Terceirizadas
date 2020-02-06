@@ -36,8 +36,8 @@
         {% for substituicao in substituicoes.all %}
           <tr>
             <td>{{ substituicao.periodo_escolar.nome }}</td>
-            <td>{{ substituicao.tipo_alimentacao_de.nome }}</td>
-            <td>{{ substituicao.tipo_alimentacao_para.nome }}</td>
+            <td>{{ substituicao.tipo_alimentacao_de.label }}</td>
+            <td>{{ substituicao.tipo_alimentacao_para.label }}</td>
           </tr>
         {% endfor %}
         </tbody>

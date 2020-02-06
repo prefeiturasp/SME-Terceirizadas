@@ -99,6 +99,7 @@ def test_inversao_serializer_creators(inversao_card_params):
     assert inversao_cardapio.escola == escola2
 
 
+# TODO: ZL1 PRECISO REFAZER ESTE TESTE ASSIM QUE ELIMINAR AS SUBSTITUICOES DO TIPO DE ALIMENTACAO
 @freeze_time('2019-10-15')
 def test_alteracao_cardapio_validators(alteracao_card_params):
     class FakeObject(object):
@@ -118,11 +119,11 @@ def test_alteracao_cardapio_validators(alteracao_card_params):
 
 
 @freeze_time('2019-10-15')
-def test_alteracao_cardapio_creators(alteracao_card_params, escola):
+def test_alteracao_cardapio_creators(alteracao_substituicoes_params, escola):
     class FakeObject(object):
         user = mommy.make('perfil.Usuario')
 
-    data_inicial, data_final, alm1, alm2, alm3, alm4, alm5 = alteracao_card_params
+    data_inicial, data_final, combo1, combo2, substituicao1, substituicao2 = alteracao_substituicoes_params
 
     serializer_obj = AlteracaoCardapioSerializerCreate(context={'request': FakeObject})
     periodo_escolar = mommy.make('escola.PeriodoEscolar')
@@ -130,12 +131,12 @@ def test_alteracao_cardapio_creators(alteracao_card_params, escola):
     substituicoes_dict = []
 
     substituicoes_dict.append(
-        dict(tipo_alimentacao_de=alm1,
-             tipo_alimentacao_para=alm4,
+        dict(tipo_alimentacao_de=combo1,
+             tipo_alimentacao_para=substituicao1,
              periodo_escolar=periodo_escolar))
     substituicoes_dict.append(
-        dict(tipo_alimentacao_de=alm2,
-             tipo_alimentacao_para=alm5,
+        dict(tipo_alimentacao_de=combo2,
+             tipo_alimentacao_para=substituicao2,
              periodo_escolar=periodo_escolar))
 
     validated_data_create = dict(data_inicial=data_inicial,
@@ -152,8 +153,8 @@ def test_alteracao_cardapio_creators(alteracao_card_params, escola):
     assert resp_create.data_final == data_final
 
     substituicoes_dict.append(
-        dict(tipo_alimentacao_de=alm3,
-             tipo_alimentacao_para=alm5,
+        dict(tipo_alimentacao_de=combo1,
+             tipo_alimentacao_para=substituicao1,
              periodo_escolar=periodo_escolar))
 
     validated_data_update = dict(data_inicial=data_inicial,
