@@ -34,7 +34,7 @@ def fim_de_fluxo(logs):
 def class_css(log):
     if log.status_evento_explicacao in ['Solicitação Realizada', 'Escola revisou', 'DRE validou', 'DRE revisou',
                                         'CODAE autorizou', 'Terceirizada tomou ciência', 'Escola solicitou inativação',
-                                        'CODAE autorizou inativação']:
+                                        'CODAE autorizou inativação', 'Terceirizada tomou ciência da inativação']:
         return 'active'
     elif log.status_evento_explicacao in ['Escola cancelou', 'DRE cancelou']:
         return 'cancelled'
