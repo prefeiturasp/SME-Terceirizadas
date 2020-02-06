@@ -80,3 +80,9 @@ def concatena_label(query_set):
         if item != list(query_set)[-1]:
             label += ', '
     return label
+
+
+@register.filter
+def label_alteracao(query_set):
+    label = ' e '.join([tp.nome for tp in query_set.tipos_alimentacao.all()])
+    return label

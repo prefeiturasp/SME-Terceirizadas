@@ -214,13 +214,13 @@ class SubstituicoesAlimentacaoNoPeriodoEscolarSerializerCreate(serializers.Model
     tipo_alimentacao_de = serializers.SlugRelatedField(
         slug_field='uuid',
         required=False,
-        queryset=TipoAlimentacao.objects.all()
+        queryset=ComboDoVinculoTipoAlimentacaoPeriodoTipoUE.objects.all()
     )
 
     tipo_alimentacao_para = serializers.SlugRelatedField(
         slug_field='uuid',
         required=False,
-        queryset=TipoAlimentacao.objects.all()
+        queryset=SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE.objects.all()
     )
 
     def create(self, validated_data):
