@@ -3,8 +3,7 @@ from rest_framework import serializers
 
 from ...dados_comuns.api.serializers import ContatoSerializer, LogSolicitacoesUsuarioSerializer
 from ...escola.api.serializers import AlunoSerializer, LoteNomeSerializer, TipoGestaoSerializer
-from ...escola.models import Aluno, DiretoriaRegional, Escola
-from ..api.serializers_create import AnexoCreateSerializer
+from ...escola.models import DiretoriaRegional, Escola
 from ..models import (
     AlergiaIntolerancia,
     Alimento,
@@ -14,6 +13,7 @@ from ..models import (
     SolicitacaoDietaEspecial,
     SubstituicaoAlimento
 )
+from .serializers_create import SolicitacaoDietaEspecialCreateSerializer
 from .validators import atributos_lista_nao_vazios, atributos_string_nao_vazios, deve_ter_atributos
 
 
@@ -46,7 +46,7 @@ class AnexoSerializer(ModelSerializer):
 
     class Meta:
         model = Anexo
-        fields = ('arquivo', 'nome')
+        fields = ('arquivo', 'nome', 'eh_laudo_alta')
 
 
 class SubstituicaoAlimentoCreateSerializer(ModelSerializer):
@@ -62,78 +62,6 @@ class SubstituicaoAlimentoSerializer(ModelSerializer):
     class Meta:
         model = SubstituicaoAlimento
         fields = '__all__'
-
-
-class SolicitacaoDietaEspecialCreateSerializer(serializers.ModelSerializer):
-    anexos = serializers.ListField(
-        child=AnexoCreateSerializer(), required=True
-    )
-    aluno_json = serializers.JSONField()
-
-    def validate_anexos(self, anexos):
-        for anexo in anexos:
-            filesize = size(anexo['arquivo'])
-            if filesize > DEZ_MB:
-                raise serializers.ValidationError('O tamanho máximo de um arquivo é 10MB')
-        if not anexos:
-            raise serializers.ValidationError('Anexos não pode ser vazio')
-        return anexos
-
-    def validate_aluno_json(self, aluno_json):
-        for value in ['codigo_eol', 'nome', 'data_nascimento']:
-            if value not in aluno_json:
-                raise serializers.ValidationError(f'deve ter atributo {value}')
-        return aluno_json
-
-    def create(self, validated_data):
-        validated_data['criado_por'] = self.context['request'].user
-        anexos = validated_data.pop('anexos', [])
-        aluno_data = validated_data.pop('aluno_json')
-        aluno = self._get_or_create_aluno(aluno_data)
-        solicitacao = SolicitacaoDietaEspecial.objects.create(**validated_data)
-        solicitacao.aluno = aluno
-        solicitacao.save()
-
-        for anexo in anexos:
-            data = convert_base64_to_contentfile(anexo.get('arquivo'))
-            Anexo.objects.create(
-                solicitacao_dieta_especial=solicitacao, arquivo=data, nome=anexo.get('nome', '')
-            )
-
-        solicitacao.inicia_fluxo(user=self.context['request'].user)
-        return solicitacao
-
-    def _get_or_create_aluno(self, aluno_data):
-        escola = self.context['request'].user.vinculo_atual.instituicao
-        codigo_eol_aluno = f"{int(aluno_data.get('codigo_eol')):06d}"
-        nome_aluno = aluno_data.get('nome')
-        data_nascimento_aluno = convert_date_format(
-            date=aluno_data.get('data_nascimento'),
-            from_format='%d/%m/%Y',
-            to_format='%Y-%m-%d'
-        )
-        deve_ser_no_passado(datetime.datetime.strptime(data_nascimento_aluno, '%Y-%m-%d').date())
-        try:
-            aluno = Aluno.objects.get(codigo_eol=codigo_eol_aluno)
-        except Aluno.DoesNotExist:
-            aluno = Aluno(codigo_eol=codigo_eol_aluno,
-                          nome=nome_aluno,
-                          data_nascimento=data_nascimento_aluno,
-                          escola=escola)
-            aluno.save()
-        return aluno
-
-    class Meta:
-        model = SolicitacaoDietaEspecial
-        fields = (
-            'aluno_json',
-            'uuid',
-            'nome_completo_pescritor',
-            'registro_funcional_pescritor',
-            'observacoes',
-            'criado_em',
-            'anexos'
-        )
 
 
 class SolicitacaoDietaEspecialAutorizarSerializer(SolicitacaoDietaEspecialCreateSerializer):
@@ -158,7 +86,8 @@ class SolicitacaoDietaEspecialAutorizarSerializer(SolicitacaoDietaEspecialCreate
 
         instance.classificacao_id = validated_data['classificacao']
         instance.registro_funcional_nutricionista = validated_data['registro_funcional_nutricionista']
-        instance.informacoes_adicionais = validated_data['informacoes_adicionais']
+        instance.informacoes_adicionais = validated_data.get('informacoes_adicionais', '')
+        instance.ativo = True
 
         instance.alergias_intolerancias.all().delete()
         for ai in alergias_intolerancias:
@@ -233,7 +162,8 @@ class SolicitacaoDietaEspecialSerializer(serializers.ModelSerializer):
             'motivo_negacao',
             'justificativa_negacao',
             'registro_funcional_nutricionista',
-            'logs'
+            'logs',
+            'ativo'
         )
 
 

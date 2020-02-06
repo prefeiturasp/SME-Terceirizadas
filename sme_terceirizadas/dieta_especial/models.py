@@ -127,6 +127,7 @@ class Anexo(ExportModelOperationsMixin('anexo'), models.Model):
     solicitacao_dieta_especial = models.ForeignKey(SolicitacaoDietaEspecial, on_delete=models.DO_NOTHING)
     nome = models.CharField(max_length=100, blank=True)
     arquivo = models.FileField()
+    eh_laudo_alta = models.BooleanField(default=False)
 
     def __str__(self):
         return self.nome

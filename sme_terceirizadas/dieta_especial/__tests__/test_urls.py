@@ -212,6 +212,7 @@ def test_url_endpoint_autorizar_dieta(client_autenticado,
     assert obj.status == DietaEspecialWorkflow.CODAE_AUTORIZADO
     assert obj.registro_funcional_nutricionista == payload_autorizar['registro_funcional_nutricionista']
     assert obj.informacoes_adicionais == payload_autorizar['informacoes_adicionais']
+    assert obj.ativo is True
     for ai in obj.alergias_intolerancias.all():
         assert ai.id in payload_autorizar['alergias_intolerancias']
     assert obj.classificacao.id == payload_autorizar['classificacao']

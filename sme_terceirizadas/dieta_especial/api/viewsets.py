@@ -27,7 +27,6 @@ from .serializers import (
     ClassificacaoDietaSerializer,
     MotivoNegacaoSerializer,
     SolicitacaoDietaEspecialAutorizarSerializer,
-    SolicitacaoDietaEspecialCreateSerializer,
     SolicitacaoDietaEspecialSerializer,
     SolicitacoesAtivasInativasPorAlunoSerializer
 )
@@ -59,7 +58,7 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
-    @action(detail=True, methods=['patch'])
+    @action(detail=True, methods=['patch'])  # noqa: C901
     def autorizar(self, request, uuid=None):
         solicitacao = self.get_object()
         if solicitacao.aluno.possui_dieta_especial_ativa:
@@ -73,7 +72,6 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
             return Response({'detail': f'Erro na transição de estado {e}'}, status=HTTP_400_BAD_REQUEST)
         except serializers.ValidationError as e:
             return Response({'detail': f'Dados inválidos {e}'}, status=HTTP_400_BAD_REQUEST)
-
 
     @action(detail=True, methods=['patch'], url_path=constants.ESCOLA_SOLICITA_INATIVACAO)
     def escola_solicita_inativacao(self, request, uuid=None):
