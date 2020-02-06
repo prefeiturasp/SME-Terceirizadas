@@ -56,16 +56,6 @@ class SubstituicaoDoComboVinculoTipoAlimentoSimplesSerializer(serializers.ModelS
         required=True,
         queryset=ComboDoVinculoTipoAlimentacaoPeriodoTipoUE.objects.all()
     )
-    label = serializers.SerializerMethodField()
-
-    def get_label(self, obj):
-        label = ''
-        for tipo_alimentacao in obj.tipos_alimentacao.all():
-            if len(label) == 0:
-                label += tipo_alimentacao.nome
-            else:
-                label += f' e {tipo_alimentacao.nome}'
-        return label
 
     class Meta:
         model = SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE

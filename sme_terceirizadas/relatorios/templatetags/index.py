@@ -85,12 +85,6 @@ def concatena_label(query_set):
 
 
 @register.filter
-def label_alteracao(query_set):
-    label = ' e '.join([tp.nome for tp in query_set.tipos_alimentacao.all()])
-    return label
-
-
-@register.filter
 def get_item(dictionary, key):
     return dictionary.get(key)
 
