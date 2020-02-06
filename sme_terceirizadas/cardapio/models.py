@@ -20,6 +20,7 @@ from ..dados_comuns.behaviors import (  # noqa I101
 )
 from ..dados_comuns.fluxo_status import FluxoAprovacaoPartindoDaEscola, FluxoInformativoPartindoDaEscola
 from ..dados_comuns.models import TemplateMensagem  # noqa I202
+from .behaviors import TemLabelDeTiposDeAlimentacao
 from .managers import (
     AlteracoesCardapioDestaSemanaManager,
     AlteracoesCardapioDesteMesManager,
@@ -74,7 +75,8 @@ class HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolar(TemChaveExterna):
 
 
 class ComboDoVinculoTipoAlimentacaoPeriodoTipoUE(
-    ExportModelOperationsMixin('substituicoes_vinculo_alimentacao'), TemChaveExterna):  # noqa E125
+    ExportModelOperationsMixin('substituicoes_vinculo_alimentacao'), TemChaveExterna,
+    TemLabelDeTiposDeAlimentacao):  # noqa E125
 
     tipos_alimentacao = models.ManyToManyField('TipoAlimentacao',
                                                related_name='%(app_label)s_%(class)s_possibilidades',
@@ -90,16 +92,6 @@ class ComboDoVinculoTipoAlimentacaoPeriodoTipoUE(
         # TODO: incrementar esse método,  impedir exclusão se tiver solicitações em cima desse combo também.
         return not self.substituicoes.exists()
 
-    @property
-    def label(self):
-        label = ''
-        for tipo_alimentacao in self.tipos_alimentacao.all():
-            if len(label) == 0:
-                label += tipo_alimentacao.nome
-            else:
-                label += f' e {tipo_alimentacao.nome}'
-        return label
-
     def __str__(self):
         tipos_alimentacao_nome = [nome for nome in self.tipos_alimentacao.values_list('nome', flat=True)]
         return f'TiposAlim.:{tipos_alimentacao_nome}'
@@ -109,7 +101,8 @@ class ComboDoVinculoTipoAlimentacaoPeriodoTipoUE(
         verbose_name_plural = 'Combos do vínculo tipo alimentação'
 
 
-class SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE(TemChaveExterna):  # noqa E125
+class SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE(TemChaveExterna,
+                                                               TemLabelDeTiposDeAlimentacao):  # noqa E125
 
     tipos_alimentacao = models.ManyToManyField('TipoAlimentacao',
                                                related_name='%(app_label)s_%(class)s_possibilidades',
@@ -120,16 +113,6 @@ class SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE(TemChaveExterna):
                               null=True,
                               on_delete=models.CASCADE,
                               related_name='substituicoes')
-
-    @property
-    def label(self):
-        label = ''
-        for tipo_alimentacao in self.tipos_alimentacao.all():
-            if len(label) == 0:
-                label += tipo_alimentacao.nome
-            else:
-                label += f' e {tipo_alimentacao.nome}'
-        return label
 
     def pode_excluir(self):
         # TODO: incrementar esse método,  impedir exclusão se tiver solicitações em cima dessa substituição do combo.
