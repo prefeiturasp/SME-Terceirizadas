@@ -32,7 +32,14 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
         # "BURLADO DO FLUXO", PODE SER CHAMADO A QUALQUER MOMENTO COM AS DEVIDAS RESTRIÇÕES
         ESCOLA_CANCELOU,
         DRE_CANCELOU,
-    ) = range(15)
+
+        # ESPECIFICA DIETA ESPECIAL
+        INICIO_FLUXO_INATIVACAO,
+        CODAE_AUTORIZOU_INATIVACAO,
+        CODAE_NEGOU_INATIVACAO,
+        TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO
+
+    ) = range(19)
 
     STATUS_POSSIVEIS = (
         (INICIO_FLUXO, 'Solicitação Realizada'),
@@ -49,7 +56,12 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
         (ESCOLA_CANCELOU, 'Escola cancelou'),
         (DRE_CANCELOU, 'DRE cancelou'),
         (CODAE_QUESTIONOU, 'Questionamento pela CODAE'),
-        (TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO, 'Terceirizada respondeu questionamento')
+        (TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO, 'Terceirizada respondeu questionamento'),
+        (INICIO_FLUXO_INATIVACAO, 'Escola solicitou inativação'),
+        (CODAE_AUTORIZOU_INATIVACAO, 'CODAE autorizou inativação'),
+        (CODAE_NEGOU_INATIVACAO, 'CODAE negou inativação'),
+        (TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO, 'Terceirizada tomou ciência da inativação')
+
     )
     (  # DA ESCOLA
         SOLICITACAO_KIT_LANCHE_AVULSA,

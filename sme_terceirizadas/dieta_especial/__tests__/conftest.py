@@ -133,3 +133,22 @@ def solicitacao_dieta_especial_autorizada(client, solicitacao_dieta_especial_a_a
     solicitacao_dieta_especial_a_autorizar.codae_autoriza(user=user)
 
     return solicitacao_dieta_especial_a_autorizar
+
+
+@pytest.fixture
+def solicitacao_dieta_especial_escola_solicitou_inativacao(client, solicitacao_dieta_especial_autorizada):
+    email = 'terceirizada2@admin.com'
+    password = 'adminadmin'
+    rf = '4545455'
+    user = Usuario.objects.create_user(password=password, email=email, registro_funcional=rf)
+    client.login(email=email, password=password)
+
+    perfil = mommy.make('perfil.Perfil', nome='TERCEIRIZADA', ativo=False)
+    terceirizada = mommy.make(Terceirizada)
+
+    mommy.make('perfil.Vinculo', usuario=user, instituicao=terceirizada, perfil=perfil,
+               data_inicial=date.today(), ativo=True)
+
+    solicitacao_dieta_especial_autorizada.inicia_fluxo_inativacao(user=user)
+
+    return solicitacao_dieta_especial_autorizada

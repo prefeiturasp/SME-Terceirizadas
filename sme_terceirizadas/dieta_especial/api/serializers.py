@@ -36,7 +36,7 @@ class AnexoSerializer(ModelSerializer):
 
     class Meta:
         model = Anexo
-        fields = ('arquivo', 'nome', 'eh_laudo_medico')
+        fields = ('arquivo', 'nome', 'eh_laudo_medico', 'eh_laudo_alta')
 
 
 class DiretoriaRegionalSerializer(serializers.ModelSerializer):

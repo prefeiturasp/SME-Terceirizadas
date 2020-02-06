@@ -3,7 +3,7 @@
 
 {% block conteudo %}
   <div class="tabela-filtro">
-    <h5>Relatório DIGPAE - Solicitações {{ filtro.status }} no período</h5>
+    <h5>Relatório SIGPAE - Solicitações {{ filtro.status }} no período</h5>
     <table>
       <caption>{{ query_set_consolidado.count }} solicitações {{ filtro.status }}</caption>
       <thead>
@@ -12,6 +12,8 @@
         <th>Nº da solicitação</th>
         <th>Tipo da solicitação</th>
         <th>Quantidade de alunos</th>
+        <th>Escola</th>
+        <th>DRE</th>
       </tr>
       </thead>
       <tbody>
@@ -21,6 +23,8 @@
           <td>{{ consolidado.id_externo }}</td>
           <td>{{ consolidado.desc_doc }}</td>
           <td>{{ consolidado.numero_alunos }}</td>
+          <td>{{ consolidado.escola_nome }}</td>
+          <td>{{ consolidado.dre_nome }}</td>
         </tr>
       {% endfor %}
       </tbody>

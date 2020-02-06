@@ -49,9 +49,9 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
     @action(detail=False, methods=['get'], url_path=f'solicitacoes-aluno/{FILTRO_CODIGO_EOL_ALUNO}')
     def solicitacoes_vigentes(self, request, codigo_eol_aluno=None):
         solicitacoes = SolicitacaoDietaEspecial.objects.filter(
-            aluno__codigo_eol=codigo_eol_aluno,
-            status__in=[SolicitacaoDietaEspecial.workflow_class.CODAE_AUTORIZADO,
-                        SolicitacaoDietaEspecial.workflow_class.TERCEIRIZADA_TOMOU_CIENCIA]
+            aluno__codigo_eol=codigo_eol_aluno
+        ).exclude(
+            status=SolicitacaoDietaEspecial.workflow_class.CODAE_A_AUTORIZAR
         )
         page = self.paginate_queryset(solicitacoes)
         serializer = self.get_serializer(page, many=True)
@@ -80,6 +80,43 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
         solicitacao.save()
 
         return Response({'mensagem': 'Autorização de dieta especial realizada com sucesso'})
+
+    @action(detail=True, methods=['patch'], url_path=constants.ESCOLA_SOLICITA_INATIVACAO)
+    def escola_solicita_inativacao(self, request, uuid=None):
+        solicitacao_dieta_especial = self.get_object()
+        justificativa = request.data.get('justificativa', '')
+        try:
+            solicitacao_dieta_especial.cria_anexos_inativacao(request.data.get('anexos'))
+            solicitacao_dieta_especial.inicia_fluxo_inativacao(user=request.user, justificativa=justificativa)
+            serializer = self.get_serializer(solicitacao_dieta_especial)
+            return Response(serializer.data)
+        except AssertionError as e:
+            return Response(dict(detail=str(e)), status=HTTP_400_BAD_REQUEST)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['patch'], url_path=constants.CODAE_AUTORIZA_INATIVACAO)
+    def codae_autoriza_inativacao(self, request, uuid=None):
+        solicitacao_dieta_especial = self.get_object()
+        try:
+            solicitacao_dieta_especial.codae_autoriza_inativacao(user=request.user)
+            solicitacao_dieta_especial.ativo = False
+            solicitacao_dieta_especial.save()
+            serializer = self.get_serializer(solicitacao_dieta_especial)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['patch'], url_path=constants.CODAE_NEGA_INATIVACAO)
+    def codae_nega_inativacao(self, request, uuid=None):
+        solicitacao_dieta_especial = self.get_object()
+        justificativa = request.data.get('justificativa_negacao', '')
+        try:
+            solicitacao_dieta_especial.codae_nega_inativacao(user=request.user, justificativa=justificativa)
+            serializer = self.get_serializer(solicitacao_dieta_especial)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, methods=['post'])
     def negar(self, request, uuid=None):

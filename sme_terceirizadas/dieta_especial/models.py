@@ -15,6 +15,7 @@ from ..dados_comuns.behaviors import (
 )
 from ..dados_comuns.fluxo_status import FluxoDietaEspecialPartindoDaEscola
 from ..dados_comuns.models import LogSolicitacoesUsuario, TemplateMensagem
+from ..dados_comuns.utils import convert_base64_to_contentfile
 from ..escola.api.serializers import AlunoSerializer
 from ..escola.models import Aluno
 
@@ -67,6 +68,16 @@ class SolicitacaoDietaEspecial(ExportModelOperationsMixin('dieta_especial'), Tem
     def escola(self):
         return self.rastro_escola
 
+    def cria_anexos_inativacao(self, anexos):
+        assert isinstance(anexos, list), 'anexos precisa ser uma lista'
+        assert len(anexos) > 0, 'anexos não pode ser vazio'
+        for anexo in anexos:
+            data = convert_base64_to_contentfile(anexo.get('arquivo'))
+            Anexo.objects.create(
+                solicitacao_dieta_especial=self, arquivo=data, nome=anexo.get('nome', ''),
+                eh_laudo_alta=True
+            )
+
     @property
     def template_mensagem(self):
         template = TemplateMensagem.objects.get(tipo=TemplateMensagem.DIETA_ESPECIAL)
@@ -110,6 +121,7 @@ class Anexo(ExportModelOperationsMixin('anexo'), models.Model):
     nome = models.CharField(max_length=100, blank=True)
     arquivo = models.FileField()
     eh_laudo_medico = models.BooleanField(default=False)
+    eh_laudo_alta = models.BooleanField(default=False)
 
     def __str__(self):
         return self.nome

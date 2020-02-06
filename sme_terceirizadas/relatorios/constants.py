@@ -81,3 +81,76 @@ FLUXO_DIETA_ESPECIAL = [
         'usuario': None
     }
 ]
+
+FLUXO_DIETA_ESPECIAL_INATIVACAO_INCOMPLETO = [
+    {
+        'titulo': 'Solicitação Realizada',
+        'status': '',
+        'criado_em': '',
+        'usuario': None
+    },
+    {
+        'titulo': 'CODAE',
+        'status': '',
+        'criado_em': '',
+        'usuario': None
+    },
+    {
+        'titulo': 'Escola solicitou inativação',
+        'status': '',
+        'criado_em': '',
+        'usuario': None
+    },
+    {
+        'titulo': 'CODAE',
+        'status': '',
+        'criado_em': '',
+        'usuario': None
+    },
+    {
+        'titulo': 'Terceirizada',
+        'status': '',
+        'criado_em': '',
+        'usuario': None
+    }
+]
+
+
+FLUXO_DIETA_ESPECIAL_INATIVACAO = [
+    {
+        'titulo': 'Solicitação Realizada',
+        'status': '',
+        'criado_em': '',
+        'usuario': None
+    },
+    {
+        'titulo': 'CODAE',
+        'status': '',
+        'criado_em': '',
+        'usuario': None
+    },
+    {
+        'titulo': 'Terceirizada',
+        'status': '',
+        'criado_em': '',
+        'usuario': None
+    },
+    {
+        'titulo': 'Escola solicitou inativação',
+        'status': '',
+        'criado_em': '',
+        'usuario': None
+    },
+    {
+        'titulo': 'CODAE',
+        'status': '',
+        'criado_em': '',
+        'usuario': None
+    },
+    {
+        'titulo': 'Terceirizada',
+        'status': '',
+        'criado_em': '',
+        'usuario': None
+    }
+]

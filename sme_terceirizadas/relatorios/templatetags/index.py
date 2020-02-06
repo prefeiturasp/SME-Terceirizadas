@@ -33,11 +33,13 @@ def fim_de_fluxo(logs):
 @register.filter  # noqa
 def class_css(log):
     if log.status_evento_explicacao in ['Solicitação Realizada', 'Escola revisou', 'DRE validou', 'DRE revisou',
-                                        'CODAE autorizou', 'Terceirizada tomou ciência']:
+                                        'CODAE autorizou', 'Terceirizada tomou ciência', 'Escola solicitou inativação',
+                                        'CODAE autorizou inativação']:
         return 'active'
     elif log.status_evento_explicacao in ['Escola cancelou', 'DRE cancelou']:
         return 'cancelled'
-    elif log.status_evento_explicacao in ['DRE não validou', 'CODAE negou', 'Terceirizada recusou']:
+    elif log.status_evento_explicacao in ['DRE não validou', 'CODAE negou', 'Terceirizada recusou',
+                                          'CODAE negou inativação']:
         return 'disapproved'
     elif log.status_evento_explicacao in ['Questionamento pela CODAE']:
         return 'questioned'
@@ -86,3 +88,35 @@ def concatena_label(query_set):
 def label_alteracao(query_set):
     label = ' e '.join([tp.nome for tp in query_set.tipos_alimentacao.all()])
     return label
+
+
+def get_item(dictionary, key):
+    return dictionary.get(key)
+
+
+@register.filter
+def get_total(dictionary):
+    return dictionary.get('total')
+
+
+@register.filter
+def get_dado_mes(dictionary, index):
+    return dictionary.get('quantidades')[index]
+
+
+@register.filter
+def numero_pra_mes(indice):
+    return {
+        0: 'Janeiro',
+        1: 'Fevereiro',
+        2: 'Março',
+        3: 'Abril',
+        4: 'Maio',
+        5: 'Junho',
+        6: 'Julho',
+        7: 'Agosto',
+        8: 'Setembro',
+        9: 'Outubro',
+        10: 'Novembro',
+        11: 'Dezembro',
+    }[indice]

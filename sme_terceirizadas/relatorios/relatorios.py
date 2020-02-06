@@ -4,12 +4,13 @@ from django.http import HttpResponse
 from django.template.loader import render_to_string
 from weasyprint import HTML
 
+from ..dados_comuns.models import LogSolicitacoesUsuario
 from ..kit_lanche.models import EscolaQuantidade
 from . import constants
 from .utils import formata_logs, get_width
 
 
-def relatorio_filtro_periodo(request, query_set_consolidado):
+def relatorio_filtro_periodo(request, query_set_consolidado, escola_nome='', dre_nome=''):
     # TODO: se query_set_consolidado tiver muitos resultados, pode demorar no front-end
     # melhor mandar via celery pro email de quem solicitou
     # ou por padrão manda tudo pro celery
@@ -19,8 +20,6 @@ def relatorio_filtro_periodo(request, query_set_consolidado):
     status_solicitacao = request_params.get('status_solicitacao', 'INVALIDO')
     data_inicial = datetime.datetime.strptime(request_params.get('data_inicial'), '%Y-%m-%d')
     data_final = datetime.datetime.strptime(request_params.get('data_final'), '%Y-%m-%d')
-    escola_nome = 'ESCOLA'
-    dre_nome = 'DRE'
     filtro = {'tipo_solicitacao': tipo_solicitacao, 'status': status_solicitacao,
               'data_inicial': data_inicial, 'data_final': data_final}
 
@@ -34,6 +33,26 @@ def relatorio_filtro_periodo(request, query_set_consolidado):
     pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
     response = HttpResponse(pdf_file, content_type='application/pdf')
     response['Content-Disposition'] = f'filename="relatorio_filtro_de_{data_inicial}_ate_{data_final}.pdf"'
+    return response
+
+
+def relatorio_resumo_anual_e_mensal(request, resumos_mes, resumo_ano):
+    meses = range(12)
+    escola_nome = 'ESCOLA'
+    dre_nome = 'DRE'
+    filtro = {'tipo_solicitacao': 'TODOS', 'status': 'TODOS',
+              'data_inicial': 'data_inicial', 'data_final': 'data_final'}
+
+    html_string = render_to_string(
+        'relatorio_resumo_mes_ano.html',
+        {
+            'diretoria_regional_nome': dre_nome, 'escola_nome': escola_nome, 'filtro': filtro,
+            'resumos_mes': resumos_mes, 'resumo_ano': resumo_ano, 'meses': meses
+        }
+    )
+    pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
+    response = HttpResponse(pdf_file, content_type='application/pdf')
+    response['Content-Disposition'] = f'filename="relatorio_resumo_anual_e_mensal.pdf"'
     return response
 
 
@@ -75,13 +94,20 @@ def relatorio_alteracao_cardapio(request, solicitacao):
 def relatorio_dieta_especial(request, solicitacao):
     escola = solicitacao.rastro_escola
     logs = solicitacao.logs
+    if solicitacao.logs.filter(status_evento=LogSolicitacoesUsuario.INICIO_FLUXO_INATIVACAO).exists():
+        if solicitacao.logs.filter(status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_TOMOU_CIENCIA).exists():
+            fluxo = constants.FLUXO_DIETA_ESPECIAL_INATIVACAO
+        else:
+            fluxo = constants.FLUXO_DIETA_ESPECIAL_INATIVACAO_INCOMPLETO
+    else:
+        fluxo = constants.FLUXO_DIETA_ESPECIAL
     html_string = render_to_string(
         'solicitacao_dieta_especial.html',
         {
             'escola': escola,
             'solicitacao': solicitacao,
-            'fluxo': constants.FLUXO_DIETA_ESPECIAL,
-            'width': get_width(constants.FLUXO_DIETA_ESPECIAL, solicitacao.logs),
+            'fluxo': fluxo,
+            'width': get_width(fluxo, solicitacao.logs),
             'logs': formata_logs(logs)
         }
     )

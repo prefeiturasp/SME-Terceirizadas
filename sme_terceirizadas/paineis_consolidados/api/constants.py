@@ -14,6 +14,7 @@ NEGADOS = 'negados'
 CANCELADOS = 'cancelados'
 PESQUISA = 'pesquisa'
 RELATORIO_PERIODO = 'relatorio-periodo'
+RELATORIO_RESUMO_MES_ANO = 'relatorio-resumo-mes-ano'
 RESUMO_MES = 'resumo-mes'
 RESUMO_ANO = 'resumo-ano'
 
