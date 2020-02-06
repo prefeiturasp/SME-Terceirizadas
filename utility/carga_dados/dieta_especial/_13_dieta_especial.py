@@ -1,7 +1,12 @@
 import environ
 import pandas as pd
 
-from sme_terceirizadas.dieta_especial.models import AlergiaIntolerancia, ClassificacaoDieta, MotivoNegacao, TipoDieta
+from sme_terceirizadas.dieta_especial.models import (
+    AlergiaIntolerancia,
+    Alimento,
+    ClassificacaoDieta,
+    MotivoNegacao
+)
 
 ROOT_DIR = environ.Path(__file__) - 1
 
@@ -13,6 +18,18 @@ def importa_alergias_intolerancias():
     for index, row in df.iterrows():
         print(f'AlergiaIntolerancia(descricao={row["Diagnóstico"]})')
         AlergiaIntolerancia.objects.create(descricao=row["Diagnóstico"])
+
+
+def importa_alimentos():
+    df = pd.read_excel(f'{ROOT_DIR}/planilhas_de_carga/alimentos.xlsx',
+                    sheet_name='Planilha1',
+                    header=1
+                    )
+    for index, row in df.iterrows():
+        value = row["Dieta Especial - PARA:"]
+        if pd.notna(value):
+            print(f'Alimento(nome={value})')
+            Alimento.objects.create(nome=value)
 
 
 def importa_motivos_negacao():
@@ -37,17 +54,7 @@ def cria_classificacoes_dieta():
         ClassificacaoDieta.objects.create(nome=nome, descricao=descricao)
 
 
-def cria_tipos_dieta():
-    descricoes = [
-        'IL + Gluten (suco de fruta)',
-        'Diabetes Mellitus',
-    ]
-    for descricao in descricoes:
-        print(f'TipoDieta(descricao={descricao})')
-        TipoDieta.objects.create(descricao=descricao)
-
-
 importa_alergias_intolerancias()
+importa_alimentos()
 importa_motivos_negacao()
 cria_classificacoes_dieta()
-cria_tipos_dieta()

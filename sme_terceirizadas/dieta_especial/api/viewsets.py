@@ -1,6 +1,6 @@
 from django.db.models import Sum
 from django.forms import ValidationError
-from rest_framework import generics, mixins
+from rest_framework import generics, mixins, serializers
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import AllowAny
@@ -10,26 +10,25 @@ from rest_framework.viewsets import GenericViewSet
 from xworkflows import InvalidTransitionError
 
 from ...dados_comuns import constants
-from ...dados_comuns.utils import convert_base64_to_contentfile
 from ...paineis_consolidados.api.constants import FILTRO_CODIGO_EOL_ALUNO
 from ...relatorios.relatorios import relatorio_dieta_especial
-from ..forms import AutorizaDietaEspecialForm, NegaDietaEspecialForm, SolicitacoesAtivasInativasPorAlunoForm
+from ..forms import NegaDietaEspecialForm, SolicitacoesAtivasInativasPorAlunoForm
 from ..models import (
     AlergiaIntolerancia,
-    Anexo,
+    Alimento,
     ClassificacaoDieta,
     MotivoNegacao,
     SolicitacaoDietaEspecial,
-    SolicitacoesDietaEspecialAtivasInativasPorAluno,
-    TipoDieta
+    SolicitacoesDietaEspecialAtivasInativasPorAluno
 )
 from .serializers import (
     AlergiaIntoleranciaSerializer,
+    AlimentoSerializer,
     ClassificacaoDietaSerializer,
     MotivoNegacaoSerializer,
+    SolicitacaoDietaEspecialAutorizarSerializer,
     SolicitacaoDietaEspecialSerializer,
-    SolicitacoesAtivasInativasPorAlunoSerializer,
-    TipoDietaSerializer
+    SolicitacoesAtivasInativasPorAlunoSerializer
 )
 from .serializers_create import SolicitacaoDietaEspecialCreateSerializer
 
@@ -44,6 +43,8 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update']:
             return SolicitacaoDietaEspecialCreateSerializer
+        elif self.action == 'autorizar':
+            return SolicitacaoDietaEspecialAutorizarSerializer
         return SolicitacaoDietaEspecialSerializer
 
     @action(detail=False, methods=['get'], url_path=f'solicitacoes-aluno/{FILTRO_CODIGO_EOL_ALUNO}')
@@ -57,29 +58,20 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
-    @action(detail=True, methods=['post'])
+    @action(detail=True, methods=['patch'])  # noqa: C901
     def autorizar(self, request, uuid=None):
         solicitacao = self.get_object()
         if solicitacao.aluno.possui_dieta_especial_ativa:
             solicitacao.aluno.inativar_dieta_especial()
-        form = AutorizaDietaEspecialForm(request.data, instance=solicitacao)
-
-        if not form.is_valid():
-            return Response(form.errors)
-
-        form.save()
-
-        for p in request.data['protocolos']:
-            data = convert_base64_to_contentfile(p.get('base64'))
-            Anexo.objects.create(
-                solicitacao_dieta_especial=solicitacao, arquivo=data, nome=p.get('nome', ''), eh_laudo_medico=False
-            )
-
-        solicitacao.codae_autoriza(user=request.user)
-        solicitacao.ativo = True
-        solicitacao.save()
-
-        return Response({'mensagem': 'Autorização de dieta especial realizada com sucesso'})
+        serializer = self.get_serializer()
+        try:
+            serializer.update(solicitacao, request.data)
+            solicitacao.codae_autoriza(user=request.user)
+            return Response({'detail': 'Autorização de dieta especial realizada com sucesso'})
+        except InvalidTransitionError as e:
+            return Response({'detail': f'Erro na transição de estado {e}'}, status=HTTP_400_BAD_REQUEST)
+        except serializers.ValidationError as e:
+            return Response({'detail': f'Dados inválidos {e}'}, status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True, methods=['patch'], url_path=constants.ESCOLA_SOLICITA_INATIVACAO)
     def escola_solicita_inativacao(self, request, uuid=None):
@@ -236,9 +228,9 @@ class MotivoNegacaoViewSet(mixins.ListModelMixin,
     pagination_class = None
 
 
-class TipoDietaViewSet(mixins.ListModelMixin,
-                       mixins.RetrieveModelMixin,
-                       GenericViewSet):
-    queryset = TipoDieta.objects.all()
-    serializer_class = TipoDietaSerializer
+class AlimentoViewSet(mixins.ListModelMixin,
+                      mixins.RetrieveModelMixin,
+                      GenericViewSet):
+    queryset = Alimento.objects.all()
+    serializer_class = AlimentoSerializer
     pagination_class = None

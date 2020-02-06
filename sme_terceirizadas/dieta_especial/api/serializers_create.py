@@ -60,8 +60,7 @@ class SolicitacaoDietaEspecialCreateSerializer(serializers.ModelSerializer):
         for anexo in anexos:
             data = convert_base64_to_contentfile(anexo.get('arquivo'))
             Anexo.objects.create(
-                solicitacao_dieta_especial=solicitacao, arquivo=data, nome=anexo.get('nome', ''),
-                eh_laudo_medico=True
+                solicitacao_dieta_especial=solicitacao, arquivo=data, nome=anexo.get('nome', '')
             )
 
         solicitacao.inicia_fluxo(user=self.context['request'].user)
