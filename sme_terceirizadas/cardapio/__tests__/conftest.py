@@ -484,6 +484,7 @@ def suspensao_alimentacao_parametros_semana(request):
     return request.param
 
 
+# TODO: ZL1 PRECISO APAGAR ESSA FIXTURE ASSIM QUE ELIMINAR AS SUBSTITUICOES DO TIPO DE ALIMENTACAO
 @pytest.fixture(params=[
     # data do teste 15 out 2019
     # data_inicial, data_final
@@ -506,6 +507,34 @@ def alteracao_card_params(request):
 
     data_inicial, data_final = request.param
     return data_inicial, data_final, alimentacao1, alimentacao2, alimentacao3, alimentacao4, alimentacao5
+
+
+@pytest.fixture(params=[
+    # data do teste 15 out 2019
+    # data_inicial, data_final
+    (datetime.date(2019, 10, 17), datetime.date(2019, 10, 26)),
+    (datetime.date(2019, 10, 18), datetime.date(2019, 10, 26)),
+    (datetime.date(2020, 10, 11), datetime.date(2019, 10, 26)),
+])
+def alteracao_substituicoes_params(request):
+    alimentacao1 = mommy.make('cardapio.TipoAlimentacao', nome='tp_alimentacao1')
+    alimentacao2 = mommy.make('cardapio.TipoAlimentacao', nome='tp_alimentacao2')
+    alimentacao3 = mommy.make('cardapio.TipoAlimentacao', nome='tp_alimentacao3')
+    alimentacao4 = mommy.make('cardapio.TipoAlimentacao', nome='tp_alimentacao4')
+    alimentacao5 = mommy.make('cardapio.TipoAlimentacao', nome='tp_alimentacao5')
+    combo1 = mommy.make('cardapio.ComboDoVinculoTipoAlimentacaoPeriodoTipoUE',
+                        tipos_alimentacao=[alimentacao1, alimentacao3, alimentacao5])
+    combo2 = mommy.make('cardapio.ComboDoVinculoTipoAlimentacaoPeriodoTipoUE',
+                        tipos_alimentacao=[alimentacao2, alimentacao3, alimentacao4])
+    substituicao1 = mommy.make('cardapio.SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE',
+                               tipos_alimentacao=[alimentacao2, alimentacao4],
+                               combo=combo1)
+    substituicao2 = mommy.make('cardapio.SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE',
+                               tipos_alimentacao=[alimentacao1, alimentacao5],
+                               combo=combo2)
+
+    data_inicial, data_final = request.param
+    return data_inicial, data_final, combo1, combo2, substituicao1, substituicao2
 
 
 @pytest.fixture(params=[

@@ -56,16 +56,6 @@ class SubstituicaoDoComboVinculoTipoAlimentoSimplesSerializer(serializers.ModelS
         required=True,
         queryset=ComboDoVinculoTipoAlimentacaoPeriodoTipoUE.objects.all()
     )
-    label = serializers.SerializerMethodField()
-
-    def get_label(self, obj):
-        label = ''
-        for tipo_alimentacao in obj.tipos_alimentacao.all():
-            if len(label) == 0:
-                label += tipo_alimentacao.nome
-            else:
-                label += f' e {tipo_alimentacao.nome}'
-        return label
 
     class Meta:
         model = SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE
@@ -234,8 +224,8 @@ class SubstituicoesAlimentacaoNoPeriodoEscolarSerializer(serializers.ModelSerial
         required=False,
         queryset=AlteracaoCardapio.objects.all()
     )
-    tipo_alimentacao_de = TipoAlimentacaoSerializer()
-    tipo_alimentacao_para = TipoAlimentacaoSerializer()
+    tipo_alimentacao_de = CombosVinculoTipoAlimentoSimplesSerializer()
+    tipo_alimentacao_para = SubstituicaoDoComboVinculoTipoAlimentoSimplesSerializer()
 
     class Meta:
         model = SubstituicaoAlimentacaoNoPeriodoEscolar

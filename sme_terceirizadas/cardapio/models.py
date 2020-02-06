@@ -20,6 +20,7 @@ from ..dados_comuns.behaviors import (  # noqa I101
 )
 from ..dados_comuns.fluxo_status import FluxoAprovacaoPartindoDaEscola, FluxoInformativoPartindoDaEscola
 from ..dados_comuns.models import TemplateMensagem  # noqa I202
+from .behaviors import TemLabelDeTiposDeAlimentacao
 from .managers import (
     AlteracoesCardapioDestaSemanaManager,
     AlteracoesCardapioDesteMesManager,
@@ -74,7 +75,8 @@ class HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolar(TemChaveExterna):
 
 
 class ComboDoVinculoTipoAlimentacaoPeriodoTipoUE(
-    ExportModelOperationsMixin('substituicoes_vinculo_alimentacao'), TemChaveExterna):  # noqa E125
+    ExportModelOperationsMixin('substituicoes_vinculo_alimentacao'), TemChaveExterna,
+    TemLabelDeTiposDeAlimentacao):  # noqa E125
 
     tipos_alimentacao = models.ManyToManyField('TipoAlimentacao',
                                                related_name='%(app_label)s_%(class)s_possibilidades',
@@ -99,7 +101,8 @@ class ComboDoVinculoTipoAlimentacaoPeriodoTipoUE(
         verbose_name_plural = 'Combos do vínculo tipo alimentação'
 
 
-class SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE(TemChaveExterna):  # noqa E125
+class SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE(TemChaveExterna,
+                                                               TemLabelDeTiposDeAlimentacao):  # noqa E125
 
     tipos_alimentacao = models.ManyToManyField('TipoAlimentacao',
                                                related_name='%(app_label)s_%(class)s_possibilidades',
@@ -488,9 +491,11 @@ class SubstituicaoAlimentacaoNoPeriodoEscolar(ExportModelOperationsMixin('substi
                                            related_name='substituicoes_periodo_escolar')
     periodo_escolar = models.ForeignKey('escola.PeriodoEscolar', on_delete=models.PROTECT,
                                         related_name='substituicoes_periodo_escolar')
-    tipo_alimentacao_de = models.ForeignKey('cardapio.TipoAlimentacao', on_delete=models.PROTECT,
+    tipo_alimentacao_de = models.ForeignKey('cardapio.ComboDoVinculoTipoAlimentacaoPeriodoTipoUE',
+                                            on_delete=models.PROTECT,
                                             related_name='substituicoes_tipo_alimentacao_de', blank=True, null=True)
-    tipo_alimentacao_para = models.ForeignKey('cardapio.TipoAlimentacao', on_delete=models.PROTECT,
+    tipo_alimentacao_para = models.ForeignKey('cardapio.SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE',
+                                              on_delete=models.PROTECT,
                                               related_name='substituicoes_tipo_alimentacao_para', blank=True, null=True)
 
     def __str__(self):
