@@ -11,7 +11,7 @@ from xworkflows import InvalidTransitionError
 
 from ...dados_comuns import constants
 from ...paineis_consolidados.api.constants import FILTRO_CODIGO_EOL_ALUNO
-from ...relatorios.relatorios import relatorio_dieta_especial
+from ...relatorios.relatorios import relatorio_dieta_especial, relatorio_dieta_especial_protocolo
 from ..forms import NegaDietaEspecialForm, SolicitacoesAtivasInativasPorAlunoForm
 from ..models import (
     AlergiaIntolerancia,
@@ -145,6 +145,11 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
             methods=['get'], permission_classes=[AllowAny])
     def relatorio(self, request, uuid=None):
         return relatorio_dieta_especial(request, solicitacao=self.get_object())
+
+    @action(detail=True, url_path=constants.PROTOCOLO,
+            methods=['get'], permission_classes=[AllowAny])
+    def protocolo(self, request, uuid=None):
+        return relatorio_dieta_especial_protocolo(request, solicitacao=self.get_object())
 
     @action(detail=True, methods=['post'], url_path=constants.ESCOLA_CANCELA_DIETA_ESPECIAL)
     def escola_cancela_solicitacao(self, request, uuid=None):

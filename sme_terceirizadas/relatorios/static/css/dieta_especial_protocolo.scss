@@ -1,0 +1,75 @@
+@import "./variaveis";
+.table-dieta-especial {
+  border-collapse: collapse;
+  width: 100%;
+  thead, tbody, tr {
+    width: 100%;
+  }
+  thead {
+    color: $branco;
+    background-color: $cinza;
+  }
+  th {
+    padding: 16px;
+    width: 50%;
+  }
+  td {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    padding-left: 16px;
+    padding-right: 16px;
+    border-top: 1px solid $cinza-escuro;
+    border-bottom: 1px solid $cinza-escuro;
+  }
+}
+
+.tabela-dados-solicitacao {
+  margin: 20px 20px 20px 20px;
+
+  table {
+    background: $branco;
+    border: 2px solid $cinza;
+    box-sizing: border-box;
+    border-radius: 4px;
+    width: 100%;
+
+    .th-eol {
+      width: 20%;
+    }
+    .th-nome {
+      width: 40%;
+    }
+    .th-nasc {
+      width: 20%;
+    }
+    .th-aceite {
+      width: 20%;
+    }
+
+    th {
+      color: $cinza;
+      font-weight: 500;
+      padding: 16px 16px 0px 16px;
+    }
+    td {
+      background-color: $branco;
+      color: $cinza-escuro;
+      font-weight: 800;
+      padding: 0px 16px 16px 16px;
+    }
+  }
+}
+
+.protocolo-dieta-informacoes-adicionais {
+  table {
+    border-collapse: collapse;
+  }
+  td {
+    padding: 0.5em;
+    border: 1px solid $preto;
+  }
+}
+
+.rodape {
+  font-size: 0.8em;
+}
