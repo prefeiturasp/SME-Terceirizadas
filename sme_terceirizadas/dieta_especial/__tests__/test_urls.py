@@ -513,3 +513,14 @@ def test_url_endpoint_terceirizada_toma_ciencia_inativacao_dieta(client_autentic
     assert response.json() == {
         'detail': f"Erro de transição de estado: Transition 'terceirizada_toma_ciencia_inativacao' isn't available " +
                   "from state 'TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO'."}
+
+
+def test_gerar_protocolo_dieta_especial_pdf(client_autenticado, solicitacao_dieta_especial_autorizada):
+    response = client_autenticado.get(
+        f'/solicitacoes-dieta-especial/{solicitacao_dieta_especial_autorizada.uuid}/protocolo/')
+    assert response.status_code == status.HTTP_200_OK
+    assert response._headers['content-type'] == ('Content-Type', 'application/pdf')
+    assert response._headers['content-disposition'] == (
+        'Content-Disposition', f'filename="dieta_especial_{solicitacao_dieta_especial_autorizada.id_externo}.pdf"')
+    assert 'PDF-1.5' in str(response.content)
+    assert isinstance(response.content, bytes)
