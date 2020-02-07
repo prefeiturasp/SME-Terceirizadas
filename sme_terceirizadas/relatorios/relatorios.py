@@ -117,6 +117,33 @@ def relatorio_dieta_especial(request, solicitacao):
     return response
 
 
+def relatorio_dieta_especial_protocolo(request, solicitacao):
+    escola = solicitacao.rastro_escola
+    logs = solicitacao.logs
+    if solicitacao.logs.filter(status_evento=LogSolicitacoesUsuario.INICIO_FLUXO_INATIVACAO).exists():
+        if solicitacao.logs.filter(status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_TOMOU_CIENCIA).exists():
+            fluxo = constants.FLUXO_DIETA_ESPECIAL_INATIVACAO
+        else:
+            fluxo = constants.FLUXO_DIETA_ESPECIAL_INATIVACAO_INCOMPLETO
+    else:
+        fluxo = constants.FLUXO_DIETA_ESPECIAL
+    html_string = render_to_string(
+        'solicitacao_dieta_especial_protocolo.html',
+        {
+            'escola': escola,
+            'solicitacao': solicitacao,
+            'fluxo': fluxo,
+            'width': get_width(fluxo, solicitacao.logs),
+            'logs': formata_logs(logs),
+            'log_autorizacao': solicitacao.logs.get(status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU)
+        }
+    )
+    pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
+    response = HttpResponse(pdf_file, content_type='application/pdf')
+    response['Content-Disposition'] = f'filename="dieta_especial_{solicitacao.id_externo}.pdf"'
+    return response
+
+
 def relatorio_inclusao_alimentacao_continua(request, solicitacao):
     escola = solicitacao.rastro_escola
     logs = solicitacao.logs
