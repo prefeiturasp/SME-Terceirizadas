@@ -60,6 +60,16 @@
   }
 }
 
+.protocolo-dieta-informacoes-adicionais {
+  table {
+    border-collapse: collapse;
+  }
+  td {
+    padding: 0.5em;
+    border: 1px solid $preto;
+  }
+}
+
 .rodape {
   font-size: 0.8em;
 }

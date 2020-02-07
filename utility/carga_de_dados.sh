@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
+echo "Script de carga de dados para DESENVOLVIMENTO SOMENTE"
 
 echo "Ao final do script, deseja criar solicitações de teste? (S/N)"
 read criar_solicitacoes
 
-echo "Script de carga de dados para DESENVOLVIMENTO SOMENTE"
 ./manage.py migrate
 
 echo "Criando Escola admin"

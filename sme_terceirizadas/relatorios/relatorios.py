@@ -118,23 +118,11 @@ def relatorio_dieta_especial(request, solicitacao):
 
 
 def relatorio_dieta_especial_protocolo(request, solicitacao):
-    escola = solicitacao.rastro_escola
-    logs = solicitacao.logs
-    if solicitacao.logs.filter(status_evento=LogSolicitacoesUsuario.INICIO_FLUXO_INATIVACAO).exists():
-        if solicitacao.logs.filter(status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_TOMOU_CIENCIA).exists():
-            fluxo = constants.FLUXO_DIETA_ESPECIAL_INATIVACAO
-        else:
-            fluxo = constants.FLUXO_DIETA_ESPECIAL_INATIVACAO_INCOMPLETO
-    else:
-        fluxo = constants.FLUXO_DIETA_ESPECIAL
     html_string = render_to_string(
         'solicitacao_dieta_especial_protocolo.html',
         {
-            'escola': escola,
+            'escola': solicitacao.rastro_escola,
             'solicitacao': solicitacao,
-            'fluxo': fluxo,
-            'width': get_width(fluxo, solicitacao.logs),
-            'logs': formata_logs(logs),
             'log_autorizacao': solicitacao.logs.get(status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU)
         }
     )
