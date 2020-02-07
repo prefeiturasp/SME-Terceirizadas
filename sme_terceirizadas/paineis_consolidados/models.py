@@ -51,13 +51,18 @@ class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmiga
                                        LogSolicitacoesUsuario.INICIO_FLUXO_INATIVACAO]
 
     AUTORIZADO_STATUS_DIETA_ESPECIAL = [DietaEspecialWorkflow.CODAE_AUTORIZADO,
-                                        DietaEspecialWorkflow.TERCEIRIZADA_TOMOU_CIENCIA]
+                                        DietaEspecialWorkflow.TERCEIRIZADA_TOMOU_CIENCIA,
+                                        DietaEspecialWorkflow.CODAE_AUTORIZOU_INATIVACAO,
+                                        DietaEspecialWorkflow.TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO]
     AUTORIZADO_EVENTO_DIETA_ESPECIAL = [LogSolicitacoesUsuario.CODAE_AUTORIZOU,
-                                        LogSolicitacoesUsuario.TERCEIRIZADA_TOMOU_CIENCIA]
+                                        LogSolicitacoesUsuario.TERCEIRIZADA_TOMOU_CIENCIA,
+                                        LogSolicitacoesUsuario.CODAE_AUTORIZOU_INATIVACAO,
+                                        LogSolicitacoesUsuario.TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO]
 
     NEGADOS_STATUS_DIETA_ESPECIAL = [DietaEspecialWorkflow.CODAE_NEGOU_PEDIDO,
                                      DietaEspecialWorkflow.CODAE_NEGOU_INATIVACAO]
-    NEGADOS_EVENTO_DIETA_ESPECIAL = [LogSolicitacoesUsuario.CODAE_NEGOU, LogSolicitacoesUsuario.CODAE_NEGOU_INATIVACAO]
+    NEGADOS_EVENTO_DIETA_ESPECIAL = [LogSolicitacoesUsuario.CODAE_NEGOU,
+                                     LogSolicitacoesUsuario.CODAE_NEGOU_INATIVACAO]
 
     CANCELADOS_STATUS_DIETA_ESPECIAL = [DietaEspecialWorkflow.ESCOLA_CANCELOU]
     CANCELADOS_EVENTO_DIETA_ESPECIAL = [LogSolicitacoesUsuario.ESCOLA_CANCELOU]

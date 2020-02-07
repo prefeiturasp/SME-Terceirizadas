@@ -70,6 +70,7 @@ CODAE_QUESTIONA_PEDIDO = 'codae-questiona-pedido'
 
 TERCEIRIZADA_RESPONDE_QUESTIONAMENTO = 'terceirizada-responde-questionamento'
 TERCEIRIZADA_TOMOU_CIENCIA = 'terceirizada-toma-ciencia'
+TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO = 'terceirizada-toma-ciencia-inativacao'
 
 #
 # FILTROS
