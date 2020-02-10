@@ -495,7 +495,7 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
             self.permission_classes = (IsAdminUser,)
         elif self.action == 'retrieve':
             self.permission_classes = (IsAuthenticated, PermissaoParaRecuperarObjeto)
-        if self.action in ['create', 'destroy']:
+        elif self.action in ['create', 'destroy']:
             self.permission_classes = (UsuarioEscola,)
         return super(AlteracoesCardapioViewSet, self).get_permissions()
 

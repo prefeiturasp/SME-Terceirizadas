@@ -77,6 +77,17 @@ def cardapio_invalido():
 
 
 @pytest.fixture
+def dre_guaianases():
+    return mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL GUAIANASES')
+
+
+@pytest.fixture
+def escola_dre_guaianases(dre_guaianases):
+    lote = mommy.make('Lote')
+    return mommy.make('Escola', lote=lote, diretoria_regional=dre_guaianases)
+
+
+@pytest.fixture
 def escola():
     terceirizada = mommy.make('Terceirizada')
     lote = mommy.make('Lote', terceirizada=terceirizada)
@@ -218,8 +229,12 @@ def motivo_alteracao_cardapio_serializer():
 
 
 @pytest.fixture
-def alteracao_cardapio(escola):
-    mommy.make(TemplateMensagem, tipo=TemplateMensagem.ALTERACAO_CARDAPIO)
+def template_mensagem_alteracao_cardapio():
+    return mommy.make(TemplateMensagem, tipo=TemplateMensagem.ALTERACAO_CARDAPIO)
+
+
+@pytest.fixture
+def alteracao_cardapio(escola, template_mensagem_alteracao_cardapio):
     return mommy.make(AlteracaoCardapio,
                       escola=escola,
                       observacao='teste',
@@ -227,6 +242,17 @@ def alteracao_cardapio(escola):
                       data_final=datetime.date(2019, 12, 31),
                       rastro_escola=escola,
                       rastro_dre=escola.diretoria_regional)
+
+
+@pytest.fixture
+def alteracao_cardapio_outra_dre(escola_dre_guaianases, template_mensagem_alteracao_cardapio):
+    return mommy.make(AlteracaoCardapio,
+                      escola=escola_dre_guaianases,
+                      observacao='teste',
+                      data_inicial=datetime.date(2019, 10, 4),
+                      data_final=datetime.date(2019, 12, 31),
+                      rastro_escola=escola_dre_guaianases,
+                      rastro_dre=escola_dre_guaianases.diretoria_regional)
 
 
 @pytest.fixture
@@ -609,35 +635,29 @@ def horario_combo_tipo_alimentacao(request, vinculo_tipo_alimentacao, escola_com
 
 
 @pytest.fixture
-def client_autenticado_vinculo_escola_cardapio(client, django_user_model, escola):
+def client_autenticado_vinculo_escola_cardapio(client, django_user_model, escola, template_mensagem_alteracao_cardapio):
     email = 'test@test.com'
     password = 'bar'
     user = django_user_model.objects.create_user(password=password, email=email,
                                                  registro_funcional='8888888')
-    perfil_diretor = mommy.make('Perfil', nome='DIRETOR', ativo=True, uuid='41c20c8b-7e57-41ed-9433-ccb92e8afaf1')
+    perfil_diretor = mommy.make('Perfil', nome='DIRETOR', ativo=True)
     hoje = datetime.date.today()
     mommy.make('Vinculo', usuario=user, instituicao=escola, perfil=perfil_diretor,
                data_inicial=hoje, ativo=True)
-    mommy.make(TemplateMensagem, assunto='TESTE',
-               tipo=TemplateMensagem.DIETA_ESPECIAL,
-               template_html='@id @criado_em @status @link')
     client.login(email=email, password=password)
     return client
 
 
 @pytest.fixture
-def client_autenticado_vinculo_dre_cardapio(client, django_user_model, escola):
-    email = 'test@test.com'
+def client_autenticado_vinculo_dre_cardapio(client, django_user_model, escola, template_mensagem_alteracao_cardapio):
+    email = 'test@test1.com'
     password = 'bar'
     user = django_user_model.objects.create_user(password=password, email=email,
-                                                 registro_funcional='8888888')
-    perfil_cogestor = mommy.make('Perfil', nome='COGESTOR', ativo=True, uuid='41c20c8b-7e57-41ed-9433-ccb92e8afaf1')
+                                                 registro_funcional='8888889')
+    perfil_cogestor = mommy.make('Perfil', nome='COGESTOR', ativo=True)
     hoje = datetime.date.today()
     mommy.make('Vinculo', usuario=user, instituicao=escola.diretoria_regional, perfil=perfil_cogestor,
                data_inicial=hoje, ativo=True)
-    mommy.make(TemplateMensagem, assunto='TESTE',
-               tipo=TemplateMensagem.DIETA_ESPECIAL,
-               template_html='@id @criado_em @status @link')
     client.login(email=email, password=password)
     return client
 

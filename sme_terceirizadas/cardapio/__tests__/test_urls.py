@@ -262,7 +262,49 @@ def test_url_endpoint_suspensoes_terc_ciencia_error(client_autenticado_vinculo_e
 # Alteração de cardápio
 #
 
-def test_url_endpoint_alt_card_inicio(client_autenticado_vinculo_escola_cardapio, alteracao_cardapio):
+def test_permissoes_alteracao_cardapio_viewset(client_autenticado_vinculo_escola_cardapio,
+                                               alteracao_cardapio,
+                                               alteracao_cardapio_outra_dre):
+    # pode ver os dados de uma alteração de cardápio da mesma escola
+    response = client_autenticado_vinculo_escola_cardapio.get(
+        f'/{ENDPOINT_ALTERACAO_CARD}/{alteracao_cardapio.uuid}/'
+    )
+    assert response.status_code == status.HTTP_200_OK
+    # Não pode ver dados de uma alteração de cardápio de outra escola
+    response = client_autenticado_vinculo_escola_cardapio.get(
+        f'/{ENDPOINT_ALTERACAO_CARD}/{alteracao_cardapio_outra_dre.uuid}/'
+    )
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+    # não pode ver os dados de TODAS as alterações de cardápio
+    response = client_autenticado_vinculo_escola_cardapio.get(
+        f'/{ENDPOINT_ALTERACAO_CARD}/'
+    )
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+    assert response.json() == {'detail': 'Você não tem permissão para executar essa ação.'}
+    # pode deletar somente se for escola e se estiver como rascunho
+    response = client_autenticado_vinculo_escola_cardapio.delete(
+        f'/{ENDPOINT_ALTERACAO_CARD}/{alteracao_cardapio.uuid}/'
+    )
+    assert response.status_code == status.HTTP_204_NO_CONTENT
+    response = client_autenticado_vinculo_escola_cardapio.delete(
+        f'/{ENDPOINT_ALTERACAO_CARD}/{alteracao_cardapio_outra_dre.uuid}/'
+    )
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+def test_url_endpoint_alt_card_inicio_403(client_autenticado_vinculo_dre_cardapio,
+                                          alteracao_cardapio):
+    assert str(alteracao_cardapio.status) == PedidoAPartirDaEscolaWorkflow.RASCUNHO
+    # somente escola pode iniciar fluxo
+    response = client_autenticado_vinculo_dre_cardapio.patch(
+        f'/{ENDPOINT_ALTERACAO_CARD}/{alteracao_cardapio.uuid}/{constants.ESCOLA_INICIO_PEDIDO}/'
+    )
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+    assert response.json() == {'detail': 'Você não tem permissão para executar essa ação.'}
+
+
+def test_url_endpoint_alt_card_inicio(client_autenticado_vinculo_escola_cardapio,
+                                      alteracao_cardapio):
     assert str(alteracao_cardapio.status) == PedidoAPartirDaEscolaWorkflow.RASCUNHO
     response = client_autenticado_vinculo_escola_cardapio.patch(
         f'/{ENDPOINT_ALTERACAO_CARD}/{alteracao_cardapio.uuid}/{constants.ESCOLA_INICIO_PEDIDO}/'
@@ -310,6 +352,13 @@ def test_url_endpoint_alt_card_codae_questiona(client_autenticado_vinculo_codae_
     assert json['logs'][0]['justificativa'] == observacao_questionamento_codae
     assert json['status'] == PedidoAPartirDaEscolaWorkflow.CODAE_QUESTIONADO
     assert str(json['uuid']) == str(alteracao_cardapio_dre_validado.uuid)
+    response = client_autenticado_vinculo_codae_cardapio.patch(
+        f'/{ENDPOINT_ALTERACAO_CARD}/{alteracao_cardapio_dre_validado.uuid}/{constants.CODAE_QUESTIONA_PEDIDO}/',
+        data={'observacao_questionamento_codae': observacao_questionamento_codae},
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {'detail': "Erro de transição de estado: Transition 'codae_questiona'"
+                                         " isn't available from state 'CODAE_QUESTIONADO'."}
 
 
 def test_url_endpoint_alt_card_terceirizada_responde_questionamento(client_autenticado_vinculo_terceirizada_cardapio,
@@ -328,6 +377,16 @@ def test_url_endpoint_alt_card_terceirizada_responde_questionamento(client_auten
     assert json['logs'][0]['justificativa'] == justificativa
     assert json['status'] == PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO
     assert str(json['uuid']) == str(alteracao_cardapio_codae_questionado.uuid)
+    response = client_autenticado_vinculo_terceirizada_cardapio.patch(
+        f'/{ENDPOINT_ALTERACAO_CARD}/'
+        f'{alteracao_cardapio_codae_questionado.uuid}/'
+        f'{constants.TERCEIRIZADA_RESPONDE_QUESTIONAMENTO}/',
+        data={'justificativa': justificativa, 'resposta_sim_nao': resposta_sim_nao},
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {'detail': 'Erro de transição de estado: Transition '
+                                         "'terceirizada_responde_questionamento' isn't available from state "
+                                         "'TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO'."}
 
 
 @freeze_time('2019-10-1')
@@ -341,6 +400,11 @@ def test_url_endpoint_alt_card_escola_cancela(client_autenticado_vinculo_escola_
     json = response.json()
     assert json['status'] == PedidoAPartirDaEscolaWorkflow.ESCOLA_CANCELOU
     assert str(json['uuid']) == str(alteracao_cardapio_codae_questionado.uuid)
+    response = client_autenticado_vinculo_escola_cardapio.patch(
+        f'/{ENDPOINT_ALTERACAO_CARD}/{alteracao_cardapio_codae_questionado.uuid}/{constants.ESCOLA_CANCELA}/',
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {'detail': 'Erro de transição de estado: Já está cancelada'}
 
 
 def test_url_endpoint_alt_card_dre_valida_error(client_autenticado_vinculo_dre_cardapio, alteracao_cardapio):
