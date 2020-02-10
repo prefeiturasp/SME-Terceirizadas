@@ -32,6 +32,7 @@ from .managers import (
     InversaoCardapioVencidaManager
 )
 
+
 class TipoAlimentacao(ExportModelOperationsMixin('tipo_alimentacao'), Nomeavel, TemChaveExterna):
     """Compõe parte do cardápio.
 
