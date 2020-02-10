@@ -11,7 +11,7 @@ WORKDIR /code
 ENV PIP_NO_BINARY=:psycopg2:
 
 RUN apt-get update && apt-get install \
-    libpq-dev && \
+    libpq-dev -y && \
     pip --no-cache-dir install -U pip && \
     pip --no-cache-dir install pipenv && \
     # https://stackoverflow.com/questions/46503947/how-to-get-pipenv-running-in-docker
