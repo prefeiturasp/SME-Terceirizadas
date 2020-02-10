@@ -401,6 +401,8 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
         inversao_cardapio = self.get_object()
         if inversao_cardapio.pode_excluir:
             return super().destroy(request, *args, **kwargs)
+        else:
+            return Response(dict(detail='Você não tem permissão para executar essa ação.'), status=status.HTTP_403_FORBIDDEN)
 
     @action(detail=True, url_path=constants.RELATORIO, methods=['get'],
             permission_classes=(AllowAny,))
@@ -772,6 +774,13 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
         page = self.paginate_queryset(alteracoes_cardapio)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
+
+    def destroy(self, request, *args, **kwargs):
+        alteracao_cardapio = self.get_object()
+        if alteracao_cardapio.pode_excluir:
+            return super().destroy(request, *args, **kwargs)
+        else:
+            return Response(dict(detail='Você não tem permissão para executar essa ação.'), status=status.HTTP_403_FORBIDDEN)
 
 
 class MotivosAlteracaoCardapioViewSet(viewsets.ReadOnlyModelViewSet):

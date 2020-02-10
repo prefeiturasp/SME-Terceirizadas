@@ -36,14 +36,23 @@ def test_permissoes_inversao_cardapio_viewset(client_autenticado_vinculo_escola_
     assert response.status_code == status.HTTP_403_FORBIDDEN
     assert response.json() == {'detail': 'Você não tem permissão para executar essa ação.'}
     # pode deletar somente se for escola e se estiver como rascunho
+    inversao_dia_cardapio.status = PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR
+    inversao_dia_cardapio.save()
     response = client_autenticado_vinculo_escola_cardapio.delete(
         f'/{ENDPOINT_INVERSOES}/{inversao_dia_cardapio.uuid}/'
     )
-    assert response.status_code == status.HTTP_204_NO_CONTENT
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+    assert response.json() == {'detail': 'Você não tem permissão para executar essa ação.'}
     response = client_autenticado_vinculo_escola_cardapio.delete(
         f'/{ENDPOINT_INVERSOES}/{inversao_dia_cardapio_outra_dre.uuid}/'
     )
     assert response.status_code == status.HTTP_403_FORBIDDEN
+    inversao_dia_cardapio.status = PedidoAPartirDaEscolaWorkflow.RASCUNHO
+    inversao_dia_cardapio.save()
+    response = client_autenticado_vinculo_escola_cardapio.delete(
+        f'/{ENDPOINT_INVERSOES}/{inversao_dia_cardapio.uuid}/'
+    )
+    assert response.status_code == status.HTTP_204_NO_CONTENT
 
 
 def test_url_endpoint_solicitacoes_inversao_inicio_fluxo(client_autenticado_vinculo_escola_cardapio,
@@ -338,15 +347,24 @@ def test_permissoes_alteracao_cardapio_viewset(client_autenticado_vinculo_escola
     )
     assert response.status_code == status.HTTP_403_FORBIDDEN
     assert response.json() == {'detail': 'Você não tem permissão para executar essa ação.'}
-    # pode deletar somente se for escola e se estiver como rascunho
+    alteracao_cardapio.status = PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR
+    alteracao_cardapio.save()
     response = client_autenticado_vinculo_escola_cardapio.delete(
         f'/{ENDPOINT_ALTERACAO_CARD}/{alteracao_cardapio.uuid}/'
     )
-    assert response.status_code == status.HTTP_204_NO_CONTENT
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+    assert response.json() == {'detail': 'Você não tem permissão para executar essa ação.'}
+    # pode deletar somente se for escola e se estiver como rascunho
     response = client_autenticado_vinculo_escola_cardapio.delete(
         f'/{ENDPOINT_ALTERACAO_CARD}/{alteracao_cardapio_outra_dre.uuid}/'
     )
     assert response.status_code == status.HTTP_403_FORBIDDEN
+    alteracao_cardapio.status = PedidoAPartirDaEscolaWorkflow.RASCUNHO
+    alteracao_cardapio.save()
+    response = client_autenticado_vinculo_escola_cardapio.delete(
+        f'/{ENDPOINT_ALTERACAO_CARD}/{alteracao_cardapio.uuid}/'
+    )
+    assert response.status_code == status.HTTP_204_NO_CONTENT
 
 
 def test_url_endpoint_alt_card_inicio_403(client_autenticado_vinculo_dre_cardapio,

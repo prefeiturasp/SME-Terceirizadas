@@ -129,7 +129,8 @@ def inversao_dia_cardapio(cardapio_valido2, cardapio_valido3, template_mensagem_
                       cardapio_para=cardapio_valido3,
                       escola=escola,
                       rastro_escola=escola,
-                      rastro_dre=escola.diretoria_regional)
+                      rastro_dre=escola.diretoria_regional,
+                      status=PedidoAPartirDaEscolaWorkflow.RASCUNHO)
 
 
 @pytest.fixture
