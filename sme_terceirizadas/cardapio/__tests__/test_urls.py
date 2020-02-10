@@ -42,7 +42,7 @@ def test_permissoes_inversao_cardapio_viewset(client_autenticado_vinculo_escola_
         f'/{ENDPOINT_INVERSOES}/{inversao_dia_cardapio.uuid}/'
     )
     assert response.status_code == status.HTTP_403_FORBIDDEN
-    assert response.json() == {'detail': 'Você não tem permissão para executar essa ação.'}
+    assert response.json() == {'detail': 'Você só pode excluir quando o status for RASCUNHO.'}
     response = client_autenticado_vinculo_escola_cardapio.delete(
         f'/{ENDPOINT_INVERSOES}/{inversao_dia_cardapio_outra_dre.uuid}/'
     )
@@ -353,7 +353,7 @@ def test_permissoes_alteracao_cardapio_viewset(client_autenticado_vinculo_escola
         f'/{ENDPOINT_ALTERACAO_CARD}/{alteracao_cardapio.uuid}/'
     )
     assert response.status_code == status.HTTP_403_FORBIDDEN
-    assert response.json() == {'detail': 'Você não tem permissão para executar essa ação.'}
+    assert response.json() == {'detail': 'Você só pode excluir quando o status for RASCUNHO.'}
     # pode deletar somente se for escola e se estiver como rascunho
     response = client_autenticado_vinculo_escola_cardapio.delete(
         f'/{ENDPOINT_ALTERACAO_CARD}/{alteracao_cardapio_outra_dre.uuid}/'
