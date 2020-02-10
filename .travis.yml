@@ -14,7 +14,7 @@ before_script:
 
 install:
   - pip install pipenv
-  - pipenv install --dev -y
+  - pipenv install --dev
 script:
   - pytest
   - flake8
