@@ -116,18 +116,33 @@ def escola_com_periodos_e_horarios_combos(escola):
 
 
 @pytest.fixture
-def inversao_dia_cardapio(cardapio_valido2, cardapio_valido3, escola):
-    mommy.make(TemplateMensagem, assunto='TESTE INVERSAO CARDAPIO',
-               tipo=TemplateMensagem.INVERSAO_CARDAPIO,
-               template_html='@id @criado_em @status @link')
+def template_mensagem_inversao_cardapio():
+    return mommy.make(TemplateMensagem, tipo=TemplateMensagem.INVERSAO_CARDAPIO, assunto='TESTE INVERSAO CARDAPIO',
+                      template_html='@id @criado_em @status @link')
+
+
+@pytest.fixture
+def inversao_dia_cardapio(cardapio_valido2, cardapio_valido3, template_mensagem_inversao_cardapio, escola):
     return mommy.make(InversaoCardapio,
                       criado_em=datetime.date(2019, 12, 12),
-                      uuid='98dc7cb7-7a38-408d-907c-c0f073ca2d13',
                       cardapio_de=cardapio_valido2,
                       cardapio_para=cardapio_valido3,
                       escola=escola,
                       rastro_escola=escola,
-                      rastro_dre=escola.diretoria_regional)
+                      rastro_dre=escola.diretoria_regional,
+                      status=PedidoAPartirDaEscolaWorkflow.RASCUNHO)
+
+
+@pytest.fixture
+def inversao_dia_cardapio_outra_dre(cardapio_valido2, cardapio_valido3, template_mensagem_inversao_cardapio,
+                                    escola_dre_guaianases):
+    return mommy.make(InversaoCardapio,
+                      criado_em=datetime.date(2019, 12, 12),
+                      cardapio_de=cardapio_valido2,
+                      cardapio_para=cardapio_valido3,
+                      escola=escola_dre_guaianases,
+                      rastro_escola=escola_dre_guaianases,
+                      rastro_dre=escola_dre_guaianases.diretoria_regional)
 
 
 @pytest.fixture

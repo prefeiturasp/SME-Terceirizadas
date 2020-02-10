@@ -56,7 +56,6 @@ def test_inversao_dia_cardapio(inversao_dia_cardapio):
     assert isinstance(inversao_dia_cardapio.cardapio_para, Cardapio)
     assunto, template_html = inversao_dia_cardapio.template_mensagem
     assert assunto == 'TESTE INVERSAO CARDAPIO'
-    assert '98DC7' in template_html
     assert 'RASCUNHO' in template_html
 
 
