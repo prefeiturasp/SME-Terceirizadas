@@ -301,7 +301,8 @@ class QuantidadePorPeriodoSuspensaoAlimentacao(ExportModelOperationsMixin('quant
     periodo_escolar = models.ForeignKey('escola.PeriodoEscolar', on_delete=models.DO_NOTHING)
     grupo_suspensao = models.ForeignKey('GrupoSuspensaoAlimentacao', on_delete=models.CASCADE,
                                         blank=True, null=True, related_name='quantidades_por_periodo')
-    tipos_alimentacao = models.ManyToManyField(TipoAlimentacao)
+    # TODO: SUBSTITUIR POR COMBOS DO TIPO DE ALIMENTACAO
+    tipos_alimentacao = models.ManyToManyField(ComboDoVinculoTipoAlimentacaoPeriodoTipoUE)
 
     def __str__(self):
         return f'Quantidade de alunos: {self.numero_alunos}'

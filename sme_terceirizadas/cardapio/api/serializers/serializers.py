@@ -177,7 +177,7 @@ class SuspensaoAlimentacaoSerializer(serializers.ModelSerializer):
 
 class QuantidadePorPeriodoSuspensaoAlimentacaoSerializer(serializers.ModelSerializer):
     periodo_escolar = PeriodoEscolarSimplesSerializer()
-    tipos_alimentacao = TipoAlimentacaoSerializer(many=True)
+    tipos_alimentacao = CombosVinculoTipoAlimentoSimplesSerializer(many=True)
 
     class Meta:
         model = QuantidadePorPeriodoSuspensaoAlimentacao
