@@ -205,9 +205,20 @@ def suspensao_periodo_escolar(suspensao_alimentacao):
 
 
 @pytest.fixture
-def grupo_suspensao_alimentacao(escola):
-    mommy.make(TemplateMensagem, tipo=TemplateMensagem.SUSPENSAO_ALIMENTACAO)
-    return mommy.make(GrupoSuspensaoAlimentacao, observacao='lorem ipsum', escola=escola)
+def template_mensagem_suspensao_alimentacao():
+    return mommy.make(TemplateMensagem, tipo=TemplateMensagem.SUSPENSAO_ALIMENTACAO)
+
+
+@pytest.fixture
+def grupo_suspensao_alimentacao(escola, template_mensagem_suspensao_alimentacao):
+    return mommy.make(GrupoSuspensaoAlimentacao, observacao='lorem ipsum', escola=escola,
+                      rastro_escola=escola)
+
+
+@pytest.fixture
+def grupo_suspensao_alimentacao_outra_dre(escola_dre_guaianases, template_mensagem_suspensao_alimentacao):
+    return mommy.make(GrupoSuspensaoAlimentacao, observacao='lorem ipsum', escola=escola_dre_guaianases,
+                      rastro_escola=escola_dre_guaianases)
 
 
 @pytest.fixture

@@ -14,11 +14,6 @@ router.register('motivos-alteracao-cardapio', viewsets.MotivosAlteracaoCardapioV
                 'Motivos de alteração de cardápio')
 router.register('motivos-suspensao-cardapio', viewsets.MotivosSuspensaoCardapioViewSet,
                 'Motivos de suspensão de cardápio')
-
-# TODO: TIRAR ESSE ENDPOINT DE RASCUNHO
-router.register('alteracoes-cardapio-rascunho', viewsets.AlteracoesCardapioRascunhoViewSet,
-                'Alterações de Cardápio Rascunho')
-
 router.register('vinculos-tipo-alimentacao-u-e-periodo-escolar', viewsets.VinculoTipoAlimentacaoViewSet,
                 'Vínculos de tipo de alimentação no periodo escolar e tipo de u.e')
 router.register('combos-vinculos-tipo-alimentacao-u-e-periodo-escolar',

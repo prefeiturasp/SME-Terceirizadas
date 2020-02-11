@@ -281,9 +281,48 @@ def test_url_endpoint_solicitacoes_inversao_escola_cancela_error(client_autentic
 #
 
 
-def test_url_endpoint_suspensoes_informa(client_autenticado_vinculo_escola, grupo_suspensao_alimentacao):
+def test_permissoes_suspensao_alimentacao_viewset(client_autenticado_vinculo_escola_cardapio,
+                                                  grupo_suspensao_alimentacao,
+                                                  grupo_suspensao_alimentacao_outra_dre):
+    # pode ver os dados de uma suspensão de alimentação da mesma escola
+    response = client_autenticado_vinculo_escola_cardapio.get(
+        f'/{ENDPOINT_SUSPENSOES}/{grupo_suspensao_alimentacao.uuid}/'
+    )
+    assert response.status_code == status.HTTP_200_OK
+    # Não pode ver dados de uma suspensão de alimentação de outra escola
+    response = client_autenticado_vinculo_escola_cardapio.get(
+        f'/{ENDPOINT_SUSPENSOES}/{grupo_suspensao_alimentacao_outra_dre.uuid}/'
+    )
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+    # não pode ver os dados de TODAS as suspensões de alimentação
+    response = client_autenticado_vinculo_escola_cardapio.get(
+        f'/{ENDPOINT_SUSPENSOES}/'
+    )
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+    assert response.json() == {'detail': 'Você não tem permissão para executar essa ação.'}
+    grupo_suspensao_alimentacao.status = InformativoPartindoDaEscolaWorkflow.INFORMADO
+    grupo_suspensao_alimentacao.save()
+    response = client_autenticado_vinculo_escola_cardapio.delete(
+        f'/{ENDPOINT_SUSPENSOES}/{grupo_suspensao_alimentacao.uuid}/'
+    )
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+    assert response.json() == {'detail': 'Você só pode excluir quando o status for RASCUNHO.'}
+    # pode deletar somente se for escola e se estiver como rascunho
+    response = client_autenticado_vinculo_escola_cardapio.delete(
+        f'/{ENDPOINT_SUSPENSOES}/{grupo_suspensao_alimentacao_outra_dre.uuid}/'
+    )
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+    grupo_suspensao_alimentacao.status = PedidoAPartirDaEscolaWorkflow.RASCUNHO
+    grupo_suspensao_alimentacao.save()
+    response = client_autenticado_vinculo_escola_cardapio.delete(
+        f'/{ENDPOINT_SUSPENSOES}/{grupo_suspensao_alimentacao.uuid}/'
+    )
+    assert response.status_code == status.HTTP_204_NO_CONTENT
+
+
+def test_url_endpoint_suspensoes_informa(client_autenticado_vinculo_escola_cardapio, grupo_suspensao_alimentacao):
     assert str(grupo_suspensao_alimentacao.status) == InformativoPartindoDaEscolaWorkflow.RASCUNHO
-    response = client_autenticado_vinculo_escola.patch(
+    response = client_autenticado_vinculo_escola_cardapio.patch(
         f'/{ENDPOINT_SUSPENSOES}/{grupo_suspensao_alimentacao.uuid}/{constants.ESCOLA_INFORMA_SUSPENSAO}/'
     )
     assert response.status_code == status.HTTP_200_OK
@@ -292,10 +331,10 @@ def test_url_endpoint_suspensoes_informa(client_autenticado_vinculo_escola, grup
     assert str(json['uuid']) == str(grupo_suspensao_alimentacao.uuid)
 
 
-def test_url_endpoint_suspensoes_informa_error(client_autenticado_vinculo_escola,
+def test_url_endpoint_suspensoes_informa_error(client_autenticado_vinculo_escola_cardapio,
                                                grupo_suspensao_alimentacao_informado):
     assert str(grupo_suspensao_alimentacao_informado.status) == InformativoPartindoDaEscolaWorkflow.INFORMADO
-    response = client_autenticado_vinculo_escola.patch(
+    response = client_autenticado_vinculo_escola_cardapio.patch(
         f'/{ENDPOINT_SUSPENSOES}/{grupo_suspensao_alimentacao_informado.uuid}/{constants.ESCOLA_INFORMA_SUSPENSAO}/'
     )
     assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -303,9 +342,10 @@ def test_url_endpoint_suspensoes_informa_error(client_autenticado_vinculo_escola
                                          "isn't available from state 'INFORMADO'."}
 
 
-def test_url_endpoint_suspensoes_terc_ciencia(client_autenticado_vinculo_escola, grupo_suspensao_alimentacao_informado):
+def test_url_endpoint_suspensoes_terc_ciencia(client_autenticado_vinculo_terceirizada_cardapio,
+                                              grupo_suspensao_alimentacao_informado):
     assert str(grupo_suspensao_alimentacao_informado.status) == InformativoPartindoDaEscolaWorkflow.INFORMADO
-    response = client_autenticado_vinculo_escola.patch(
+    response = client_autenticado_vinculo_terceirizada_cardapio.patch(
         f'/{ENDPOINT_SUSPENSOES}/{grupo_suspensao_alimentacao_informado.uuid}/{constants.TERCEIRIZADA_TOMOU_CIENCIA}/'
     )
     assert response.status_code == status.HTTP_200_OK
@@ -314,9 +354,10 @@ def test_url_endpoint_suspensoes_terc_ciencia(client_autenticado_vinculo_escola,
     assert str(json['uuid']) == str(grupo_suspensao_alimentacao_informado.uuid)
 
 
-def test_url_endpoint_suspensoes_terc_ciencia_error(client_autenticado_vinculo_escola, grupo_suspensao_alimentacao):
+def test_url_endpoint_suspensoes_terc_ciencia_error(client_autenticado_vinculo_terceirizada_cardapio,
+                                                    grupo_suspensao_alimentacao):
     assert str(grupo_suspensao_alimentacao.status) == InformativoPartindoDaEscolaWorkflow.RASCUNHO
-    response = client_autenticado_vinculo_escola.patch(
+    response = client_autenticado_vinculo_terceirizada_cardapio.patch(
         f'/{ENDPOINT_SUSPENSOES}/{grupo_suspensao_alimentacao.uuid}/{constants.TERCEIRIZADA_TOMOU_CIENCIA}/'
     )
     assert response.status_code == status.HTTP_400_BAD_REQUEST
