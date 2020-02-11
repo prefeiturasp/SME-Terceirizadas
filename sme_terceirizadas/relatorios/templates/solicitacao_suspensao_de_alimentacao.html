@@ -39,7 +39,7 @@
         {% for periodo in quantidades_por_periodo %}
           <tr>
             <td>{{  periodo.periodo_escolar }}</td>
-            <td>{{ periodo.tipos_alimentacao.all |join:", " }}</td>
+            <td>{{ periodo.tipos_alimentacao.all |concatena_label }}</td>
             <td></td>
             <td>{{ periodo.numero_alunos }}</td>
           </tr>
