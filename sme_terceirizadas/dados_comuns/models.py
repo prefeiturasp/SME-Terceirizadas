@@ -159,3 +159,8 @@ class TemplateMensagem(ExportModelOperationsMixin('template_mensagem'), models.M
     class Meta:
         verbose_name = 'Template de mensagem'
         verbose_name_plural = 'Template de mensagem'
+
+
+class FaixaEtaria(models.Model):
+    inicio = models.IntegerField()
+    fim = models.IntegerField()
