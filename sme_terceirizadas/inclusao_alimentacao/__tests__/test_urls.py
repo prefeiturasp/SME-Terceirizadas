@@ -25,34 +25,66 @@ def base_get_request(client_autenticado, resource):
     assert response.status_code == status.HTTP_200_OK
 
 
-def test_url_endpoint_grupos_inclusao_alimentacao_normal(client_autenticado):
-    base_get_request(client_autenticado, 'grupos-inclusao-alimentacao-normal')
+def test_permissoes_suspensao_alimentacao_viewset(client_autenticado_vinculo_escola_inclusao,
+                                                  grupo_inclusao_alimentacao_normal,
+                                                  grupo_inclusao_alimentacao_normal_outra_dre):
+    # pode ver os dados de uma suspensão de alimentação da mesma escola
+    response = client_autenticado_vinculo_escola_inclusao.get(
+        f'/grupos-inclusao-alimentacao-normal/{grupo_inclusao_alimentacao_normal.uuid}/'
+    )
+    assert response.status_code == status.HTTP_200_OK
+    # Não pode ver dados de uma suspensão de alimentação de outra escola
+    response = client_autenticado_vinculo_escola_inclusao.get(
+        f'/grupos-inclusao-alimentacao-normal/{grupo_inclusao_alimentacao_normal_outra_dre.uuid}/'
+    )
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+    # não pode ver os dados de TODAS as suspensões de alimentação
+    response = client_autenticado_vinculo_escola_inclusao.get(
+        f'/grupos-inclusao-alimentacao-normal/'
+    )
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+    assert response.json() == {'detail': 'Você não tem permissão para executar essa ação.'}
+    grupo_inclusao_alimentacao_normal.status = PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR
+    grupo_inclusao_alimentacao_normal.save()
+    response = client_autenticado_vinculo_escola_inclusao.delete(
+        f'/grupos-inclusao-alimentacao-normal/{grupo_inclusao_alimentacao_normal.uuid}/'
+    )
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+    assert response.json() == {'detail': 'Você só pode excluir quando o status for RASCUNHO.'}
+    # pode deletar somente se for escola e se estiver como rascunho
+    response = client_autenticado_vinculo_escola_inclusao.delete(
+        f'/grupos-inclusao-alimentacao-normal/{grupo_inclusao_alimentacao_normal_outra_dre.uuid}/'
+    )
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+    grupo_inclusao_alimentacao_normal.status = PedidoAPartirDaEscolaWorkflow.RASCUNHO
+    grupo_inclusao_alimentacao_normal.save()
+    response = client_autenticado_vinculo_escola_inclusao.delete(
+        f'/grupos-inclusao-alimentacao-normal/{grupo_inclusao_alimentacao_normal.uuid}/'
+    )
+    assert response.status_code == status.HTTP_204_NO_CONTENT
 
 
-def test_url_endpoint_grupos_inclusao_alimentacao_continua(client_autenticado):
-    base_get_request(client_autenticado, 'inclusoes-alimentacao-continua')
+def test_url_endpoint_grupos_inclusao_motivos_inclusao_normal(client_autenticado_vinculo_escola_inclusao):
+    base_get_request(client_autenticado_vinculo_escola_inclusao, 'motivos-inclusao-normal')
 
 
-def test_url_endpoint_grupos_inclusao_motivos_inclusao_normal(client_autenticado):
-    base_get_request(client_autenticado, 'motivos-inclusao-normal')
+def test_url_endpoint_grupos_inclusao_motivos_inclusao_continua(client_autenticado_vinculo_escola_inclusao):
+    base_get_request(client_autenticado_vinculo_escola_inclusao, 'motivos-inclusao-continua')
 
 
-def test_url_endpoint_grupos_inclusao_motivos_inclusao_continua(client_autenticado):
-    base_get_request(client_autenticado, 'motivos-inclusao-continua')
-
-
-def test_url_endpoint_inclusao_normal_inicio_fluxo(client_autenticado, grupo_inclusao_alimentacao_normal):
+def test_url_endpoint_inclusao_normal_inicio_fluxo(client_autenticado_vinculo_escola_inclusao,
+                                                   grupo_inclusao_alimentacao_normal):
     assert grupo_inclusao_alimentacao_normal.status == PedidoAPartirDaEscolaWorkflow.RASCUNHO
-    response = client_autenticado.patch(
+    response = client_autenticado_vinculo_escola_inclusao.patch(
         f'/grupos-inclusao-alimentacao-normal/{grupo_inclusao_alimentacao_normal.uuid}/{DRE_INICIO_PEDIDO}/')
     assert response.status_code == status.HTTP_200_OK
     assert response.json()['status'] == PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR
 
 
-def test_url_endpoint_inclusao_normal_inicio_fluxo_erro(client_autenticado,
+def test_url_endpoint_inclusao_normal_inicio_fluxo_erro(client_autenticado_vinculo_escola_inclusao,
                                                         grupo_inclusao_alimentacao_normal_dre_validar):
     assert grupo_inclusao_alimentacao_normal_dre_validar.status == PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR
-    response = client_autenticado.patch(
+    response = client_autenticado_vinculo_escola_inclusao.patch(
         f'/grupos-inclusao-alimentacao-normal/{grupo_inclusao_alimentacao_normal_dre_validar.uuid}/{DRE_INICIO_PEDIDO}/'
     )
     assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -60,29 +92,32 @@ def test_url_endpoint_inclusao_normal_inicio_fluxo_erro(client_autenticado,
         'detail': "Erro de transição de estado: Transition 'inicia_fluxo' isn't available from state 'DRE_A_VALIDAR'."}
 
 
-def test_url_endpoint_inclusao_normal_dre_valida(client_autenticado, grupo_inclusao_alimentacao_normal_dre_validar):
+def test_url_endpoint_inclusao_normal_dre_valida(client_autenticado_vinculo_dre_inclusao,
+                                                 grupo_inclusao_alimentacao_normal_dre_validar):
     assert grupo_inclusao_alimentacao_normal_dre_validar.status == PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR
-    response = client_autenticado.patch(
+    response = client_autenticado_vinculo_dre_inclusao.patch(
         f'/grupos-inclusao-alimentacao-normal/{grupo_inclusao_alimentacao_normal_dre_validar.uuid}/{DRE_VALIDA_PEDIDO}/'
     )
     assert response.status_code == status.HTTP_200_OK
     assert response.json()['status'] == PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO
 
 
-def test_url_endpoint_inclusao_normal_dre_valida_erro(client_autenticado, grupo_inclusao_alimentacao_normal):
+def test_url_endpoint_inclusao_normal_dre_valida_erro(client_autenticado_vinculo_dre_inclusao,
+                                                      grupo_inclusao_alimentacao_normal):
     assert grupo_inclusao_alimentacao_normal.status == PedidoAPartirDaEscolaWorkflow.RASCUNHO
     assert GrupoInclusaoAlimentacaoNormal.get_solicitacoes_rascunho(
         grupo_inclusao_alimentacao_normal.criado_por).count() == 1
-    response = client_autenticado.patch(
+    response = client_autenticado_vinculo_dre_inclusao.patch(
         f'/grupos-inclusao-alimentacao-normal/{grupo_inclusao_alimentacao_normal.uuid}/{DRE_VALIDA_PEDIDO}/')
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json() == {
         'detail': "Erro de transição de estado: Transition 'dre_valida' isn't available from state 'RASCUNHO'."}
 
 
-def test_url_endpoint_inclusao_normal_dre_nao_valida(client_autenticado, grupo_inclusao_alimentacao_normal_dre_validar):
+def test_url_endpoint_inclusao_normal_dre_nao_valida(client_autenticado_vinculo_dre_inclusao,
+                                                     grupo_inclusao_alimentacao_normal_dre_validar):
     assert grupo_inclusao_alimentacao_normal_dre_validar.status == PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR
-    response = client_autenticado.patch(
+    response = client_autenticado_vinculo_dre_inclusao.patch(
         f'/grupos-inclusao-alimentacao-normal/{grupo_inclusao_alimentacao_normal_dre_validar.uuid}/' +
         f'{DRE_NAO_VALIDA_PEDIDO}/'
     )
@@ -90,30 +125,30 @@ def test_url_endpoint_inclusao_normal_dre_nao_valida(client_autenticado, grupo_i
     assert response.json()['status'] == PedidoAPartirDaEscolaWorkflow.DRE_NAO_VALIDOU_PEDIDO_ESCOLA
 
 
-def test_url_endpoint_inclusao_normal_dre_nao_valida_erro(client_autenticado,
+def test_url_endpoint_inclusao_normal_dre_nao_valida_erro(client_autenticado_vinculo_dre_inclusao,
                                                           grupo_inclusao_alimentacao_normal):
     assert grupo_inclusao_alimentacao_normal.status == PedidoAPartirDaEscolaWorkflow.RASCUNHO
-    response = client_autenticado.patch(
+    response = client_autenticado_vinculo_dre_inclusao.patch(
         f'/grupos-inclusao-alimentacao-normal/{grupo_inclusao_alimentacao_normal.uuid}/{DRE_NAO_VALIDA_PEDIDO}/')
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json() == {
         'detail': "Erro de transição de estado: Transition 'dre_nao_valida' isn't available from state 'RASCUNHO'."}
 
 
-def test_url_endpoint_inclusao_normal_codae_autoriza(client_autenticado,
+def test_url_endpoint_inclusao_normal_codae_autoriza(client_autenticado_vinculo_codae_inclusao,
                                                      grupo_inclusao_alimentacao_normal_dre_validado):
     assert grupo_inclusao_alimentacao_normal_dre_validado.status == PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO
-    response = client_autenticado.patch(
+    response = client_autenticado_vinculo_codae_inclusao.patch(
         f'/grupos-inclusao-alimentacao-normal/{grupo_inclusao_alimentacao_normal_dre_validado.uuid}/' +
         f'{CODAE_AUTORIZA_PEDIDO}/')
     assert response.status_code == status.HTTP_200_OK
     assert response.json()['status'] == PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO
 
 
-def test_url_endpoint_inclusao_normal_codae_autoriza_erro(client_autenticado,
+def test_url_endpoint_inclusao_normal_codae_autoriza_erro(client_autenticado_vinculo_codae_inclusao,
                                                           grupo_inclusao_alimentacao_normal_dre_validar):
     assert grupo_inclusao_alimentacao_normal_dre_validar.status == PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR
-    response = client_autenticado.patch(
+    response = client_autenticado_vinculo_codae_inclusao.patch(
         f'/grupos-inclusao-alimentacao-normal/{grupo_inclusao_alimentacao_normal_dre_validar.uuid}/' +
         f'{CODAE_AUTORIZA_PEDIDO}/')
     assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -122,19 +157,20 @@ def test_url_endpoint_inclusao_normal_codae_autoriza_erro(client_autenticado,
                   f"state 'DRE_A_VALIDAR'."}
 
 
-def test_url_endpoint_inclusao_normal_codae_nega(client_autenticado, grupo_inclusao_alimentacao_normal_dre_validado):
+def test_url_endpoint_inclusao_normal_codae_nega(client_autenticado_vinculo_codae_inclusao,
+                                                 grupo_inclusao_alimentacao_normal_dre_validado):
     assert grupo_inclusao_alimentacao_normal_dre_validado.status == PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO
-    response = client_autenticado.patch(
+    response = client_autenticado_vinculo_codae_inclusao.patch(
         f'/grupos-inclusao-alimentacao-normal/{grupo_inclusao_alimentacao_normal_dre_validado.uuid}/' +
         f'{CODAE_NEGA_PEDIDO}/')
     assert response.status_code == status.HTTP_200_OK
     assert response.json()['status'] == PedidoAPartirDaEscolaWorkflow.CODAE_NEGOU_PEDIDO
 
 
-def test_url_endpoint_inclusao_normal_codae_nega_erro(client_autenticado,
+def test_url_endpoint_inclusao_normal_codae_nega_erro(client_autenticado_vinculo_codae_inclusao,
                                                       grupo_inclusao_alimentacao_normal_dre_validar):
     assert grupo_inclusao_alimentacao_normal_dre_validar.status == PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR
-    response = client_autenticado.patch(
+    response = client_autenticado_vinculo_codae_inclusao.patch(
         f'/grupos-inclusao-alimentacao-normal/{grupo_inclusao_alimentacao_normal_dre_validar.uuid}/' +
         f'{CODAE_NEGA_PEDIDO}/')
     assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -143,20 +179,20 @@ def test_url_endpoint_inclusao_normal_codae_nega_erro(client_autenticado,
                   f"'DRE_A_VALIDAR'."}
 
 
-def test_url_endpoint_inclusao_normal_codae_questiona(client_autenticado,
+def test_url_endpoint_inclusao_normal_codae_questiona(client_autenticado_vinculo_codae_inclusao,
                                                       grupo_inclusao_alimentacao_normal_dre_validado):
     assert grupo_inclusao_alimentacao_normal_dre_validado.status == PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO
-    response = client_autenticado.patch(
+    response = client_autenticado_vinculo_codae_inclusao.patch(
         f'/grupos-inclusao-alimentacao-normal/{grupo_inclusao_alimentacao_normal_dre_validado.uuid}/' +
         f'{CODAE_QUESTIONA_PEDIDO}/')
     assert response.status_code == status.HTTP_200_OK
     assert response.json()['status'] == PedidoAPartirDaEscolaWorkflow.CODAE_QUESTIONADO
 
 
-def test_url_endpoint_inclusao_normal_codae_questiona_erro(client_autenticado,
+def test_url_endpoint_inclusao_normal_codae_questiona_erro(client_autenticado_vinculo_codae_inclusao,
                                                            grupo_inclusao_alimentacao_normal_dre_validar):
     assert grupo_inclusao_alimentacao_normal_dre_validar.status == PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR
-    response = client_autenticado.patch(
+    response = client_autenticado_vinculo_codae_inclusao.patch(
         f'/grupos-inclusao-alimentacao-normal/{grupo_inclusao_alimentacao_normal_dre_validar.uuid}/' +
         f'{CODAE_QUESTIONA_PEDIDO}/')
     assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -165,20 +201,20 @@ def test_url_endpoint_inclusao_normal_codae_questiona_erro(client_autenticado,
                   f"'DRE_A_VALIDAR'."}
 
 
-def test_url_endpoint_inclusao_normal_terc_ciencia(client_autenticado,
+def test_url_endpoint_inclusao_normal_terc_ciencia(client_autenticado_vinculo_terceirizada_inclusao,
                                                    grupo_inclusao_alimentacao_normal_codae_autorizado):
     assert grupo_inclusao_alimentacao_normal_codae_autorizado.status == PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO
-    response = client_autenticado.patch(
+    response = client_autenticado_vinculo_terceirizada_inclusao.patch(
         f'/grupos-inclusao-alimentacao-normal/{grupo_inclusao_alimentacao_normal_codae_autorizado.uuid}/'
         f'{TERCEIRIZADA_TOMOU_CIENCIA}/')
     assert response.status_code == status.HTTP_200_OK
     assert response.json()['status'] == PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_TOMOU_CIENCIA
 
 
-def test_url_endpoint_inclusao_normal_terc_ciencia_erro(client_autenticado,
+def test_url_endpoint_inclusao_normal_terc_ciencia_erro(client_autenticado_vinculo_terceirizada_inclusao,
                                                         grupo_inclusao_alimentacao_normal_dre_validar):
     assert grupo_inclusao_alimentacao_normal_dre_validar.status == PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR
-    response = client_autenticado.patch(
+    response = client_autenticado_vinculo_terceirizada_inclusao.patch(
         f'/grupos-inclusao-alimentacao-normal/{grupo_inclusao_alimentacao_normal_dre_validar.uuid}/' +
         f'{TERCEIRIZADA_TOMOU_CIENCIA}/')
     assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -187,33 +223,28 @@ def test_url_endpoint_inclusao_normal_terc_ciencia_erro(client_autenticado,
                   f"'DRE_A_VALIDAR'."}
 
 
-def test_url_endpoint_inclusao_normal_terc_responde_questionamento(client_autenticado,
+def test_url_endpoint_inclusao_normal_terc_responde_questionamento(client_autenticado_vinculo_terceirizada_inclusao,
                                                                    grupo_inclusao_alimentacao_normal_codae_questionado):
     assert grupo_inclusao_alimentacao_normal_codae_questionado.status == PedidoAPartirDaEscolaWorkflow.CODAE_QUESTIONADO
-    response = client_autenticado.patch(
+    response = client_autenticado_vinculo_terceirizada_inclusao.patch(
         f'/grupos-inclusao-alimentacao-normal/{grupo_inclusao_alimentacao_normal_codae_questionado.uuid}/'
         f'{TERCEIRIZADA_RESPONDE_QUESTIONAMENTO}/')
     assert response.status_code == status.HTTP_200_OK
     assert response.json()['status'] == PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO
-
-
-def test_url_endpoint_inclusao_normal_terc_responde_questionamento_erro(client_autenticado,
-                                                                        grupo_inclusao_alimentacao_normal_dre_validar):
-    assert grupo_inclusao_alimentacao_normal_dre_validar.status == PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR
-    response = client_autenticado.patch(
-        f'/grupos-inclusao-alimentacao-normal/{grupo_inclusao_alimentacao_normal_dre_validar.uuid}/' +
+    response = client_autenticado_vinculo_terceirizada_inclusao.patch(
+        f'/grupos-inclusao-alimentacao-normal/{grupo_inclusao_alimentacao_normal_codae_questionado.uuid}/' +
         f'{TERCEIRIZADA_RESPONDE_QUESTIONAMENTO}/')
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json() == {
         'detail': f"Erro de transição de estado: Transition 'terceirizada_responde_questionamento' isn't available " +
-                  f"from state 'DRE_A_VALIDAR'."}
+                  f"from state 'TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO'."}
 
 
 @freeze_time('2018-12-01')
-def test_url_endpoint_inclusao_normal_escola_cancela(client_autenticado,
+def test_url_endpoint_inclusao_normal_escola_cancela(client_autenticado_vinculo_escola_inclusao,
                                                      grupo_inclusao_alimentacao_normal_codae_autorizado):
     assert grupo_inclusao_alimentacao_normal_codae_autorizado.status == PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO
-    response = client_autenticado.patch(
+    response = client_autenticado_vinculo_escola_inclusao.patch(
         f'/grupos-inclusao-alimentacao-normal/{grupo_inclusao_alimentacao_normal_codae_autorizado.uuid}/'
         f'{ESCOLA_CANCELA}/')
     assert response.status_code == status.HTTP_200_OK
