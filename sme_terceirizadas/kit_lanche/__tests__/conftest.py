@@ -5,6 +5,7 @@ from faker import Faker
 from model_mommy import mommy
 
 from ...dados_comuns.behaviors import TempoPasseio
+from ...dados_comuns.constants import COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA
 from ...dados_comuns.fluxo_status import PedidoAPartirDaDiretoriaRegionalWorkflow, PedidoAPartirDaEscolaWorkflow
 from ...dados_comuns.models import TemplateMensagem
 from .. import models
@@ -14,11 +15,85 @@ fake.seed(420)
 
 
 @pytest.fixture
-def escola():
-    lote = mommy.make('Lote')
-    diretoria_regional = mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL IPIRANGA',
-                                    uuid='71822846-196c-430f-9c19-a16454e607be')
+def lote():
+    return mommy.make('Lote')
+
+
+@pytest.fixture
+def terceirizada(lote):
+    return mommy.make('Terceirizada', lotes=[lote])
+
+
+@pytest.fixture
+def codae():
+    return mommy.make('CODAE')
+
+
+@pytest.fixture
+def diretoria_regional():
+    return mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL IPIRANGA')
+
+
+@pytest.fixture
+def escola(diretoria_regional, lote):
     return mommy.make('Escola', lote=lote, diretoria_regional=diretoria_regional)
+
+
+@pytest.fixture
+def client_autenticado_da_escola(client, django_user_model, escola):
+    email = 'user@escola.com'
+    password = 'bar'
+    perfil_diretor = mommy.make('Perfil', nome='DIRETOR', ativo=True)
+    usuario = django_user_model.objects.create_user(password=password, email=email,
+                                                    registro_funcional='123456',
+                                                    )
+    hoje = datetime.date.today()
+    mommy.make('Vinculo', usuario=usuario, instituicao=escola, perfil=perfil_diretor,
+               data_inicial=hoje, ativo=True)
+    client.login(email=email, password=password)
+    return client
+
+
+@pytest.fixture
+def client_autenticado_da_dre(client, django_user_model, diretoria_regional):
+    email = 'user@dre.com'
+    password = 'bar'
+    perfil_adm_dre = mommy.make('Perfil', nome='ADM_DRE', ativo=True)
+    usuario = django_user_model.objects.create_user(password=password, email=email,
+                                                    registro_funcional='123456')
+    hoje = datetime.date.today()
+    mommy.make('Vinculo', usuario=usuario, instituicao=diretoria_regional, perfil=perfil_adm_dre,
+               data_inicial=hoje, ativo=True)
+    client.login(email=email, password=password)
+    return client
+
+
+@pytest.fixture
+def client_autenticado_da_codae(client, django_user_model, codae):
+    email = 'foo@codae.com'
+    password = 'bar'
+    perfil_adm_codae = mommy.make('Perfil', nome=COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA, ativo=True)
+    usuario = django_user_model.objects.create_user(password=password, email=email,
+                                                    registro_funcional='123456')
+    hoje = datetime.date.today()
+    mommy.make('Vinculo', usuario=usuario, instituicao=codae, perfil=perfil_adm_codae,
+               data_inicial=hoje, ativo=True)
+    client.login(email=email, password=password)
+    return client
+
+
+@pytest.fixture
+def client_autenticado_da_terceirizada(client, django_user_model, terceirizada):
+    email = 'foo@codae.com'
+    password = 'bar'
+    perfil_adm_terc = mommy.make('Perfil', nome='TERCEIRIZADA', ativo=True)
+    usuario = django_user_model.objects.create_user(password=password, email=email,
+                                                    registro_funcional='123456')
+    hoje = datetime.date.today()
+    mommy.make('Vinculo', usuario=usuario, instituicao=terceirizada, perfil=perfil_adm_terc,
+               data_inicial=hoje, ativo=True)
+    client.login(email=email, password=password)
+    return client
 
 
 @pytest.fixture

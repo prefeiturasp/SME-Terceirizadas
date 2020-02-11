@@ -20,6 +20,17 @@ def client_autenticado(client, django_user_model):
 
 
 @pytest.fixture
+def client_admin_django(client, django_user_model):
+    email = 'admDoDjango@xxx.com'
+    password = 'XXX'
+    django_user_model.objects.create_user(password=password, email=email,
+                                          registro_funcional='8888888',
+                                          is_staff=True, )
+    client.login(email=email, password=password)
+    return client
+
+
+@pytest.fixture
 def client_autenticado_vinculo_escola(client, django_user_model):
     email = 'test@test.com'
     password = 'bar'
