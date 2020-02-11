@@ -479,6 +479,13 @@ class AlteracaoCardapio(ExportModelOperationsMixin('alteracao_cardapio'), Criado
             resposta_sim_nao=resposta_sim_nao
         )
 
+    @classmethod
+    def get_rascunhos_do_usuario(cls, usuario):
+        return cls.objects.filter(
+            criado_por=usuario,
+            status=cls.workflow_class.RASCUNHO
+        )
+
     class Meta:
         verbose_name = 'Alteração de cardápio'
         verbose_name_plural = 'Alterações de cardápio'
