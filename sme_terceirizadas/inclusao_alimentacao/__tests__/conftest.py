@@ -108,6 +108,24 @@ def inclusao_alimentacao_continua(escola, motivo_inclusao_continua, request, tem
                       rastro_dre=escola.diretoria_regional)
 
 
+@pytest.fixture(params=[
+    # data ini, data fim, esperado
+    (datetime.date(2019, 10, 1), datetime.date(2019, 10, 30), datetime.date(2019, 10, 1)),
+    (datetime.date(2019, 10, 1), datetime.date(2019, 9, 20), datetime.date(2019, 9, 20))]
+)
+def inclusao_alimentacao_continua_outra_dre(escola_dre_guaianases, motivo_inclusao_continua, request,
+                                            template_inclusao_continua):
+    data_inicial, data_final, esperado = request.param
+    return mommy.make(models.InclusaoAlimentacaoContinua,
+                      motivo=motivo_inclusao_continua,
+                      data_inicial=data_inicial,
+                      data_final=data_final,
+                      outro_motivo=fake.name(),
+                      escola=escola_dre_guaianases,
+                      rastro_escola=escola_dre_guaianases,
+                      rastro_dre=escola_dre_guaianases.diretoria_regional)
+
+
 @pytest.fixture
 def inclusao_alimentacao_continua_dre_validar(inclusao_alimentacao_continua):
     inclusao_alimentacao_continua.status = PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR
