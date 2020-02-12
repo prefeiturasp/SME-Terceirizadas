@@ -3,13 +3,19 @@ from django.forms import ValidationError
 from rest_framework import generics, mixins, serializers
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST
 from rest_framework.viewsets import GenericViewSet
 from xworkflows import InvalidTransitionError
 
 from ...dados_comuns import constants
+from ...dados_comuns.permissions import (
+    PermissaoParaRecuperarDietaEspecial,
+    UsuarioCODAEDietaEspecial,
+    UsuarioEscola,
+    UsuarioTerceirizada
+)
 from ...paineis_consolidados.api.constants import FILTRO_CODIGO_EOL_ALUNO
 from ...relatorios.relatorios import relatorio_dieta_especial, relatorio_dieta_especial_protocolo
 from ..forms import NegaDietaEspecialForm, SolicitacoesAtivasInativasPorAlunoForm
@@ -38,7 +44,17 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
                                       mixins.CreateModelMixin,
                                       GenericViewSet):
     lookup_field = 'uuid'
+    permission_classes = (IsAuthenticated,)
     queryset = SolicitacaoDietaEspecial.objects.all()
+
+    def get_permissions(self):
+        if self.action in ['list', 'update']:
+            self.permission_classes = (IsAdminUser,)
+        elif self.action == 'retrieve':
+            self.permission_classes = (IsAuthenticated, PermissaoParaRecuperarDietaEspecial)
+        elif self.action in ['create']:
+            self.permission_classes = (UsuarioEscola,)
+        return super(SolicitacaoDietaEspecialViewSet, self).get_permissions()
 
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update']:
@@ -58,7 +74,7 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
-    @action(detail=True, methods=['patch'])  # noqa: C901
+    @action(detail=True, methods=['patch'], permission_classes=(UsuarioCODAEDietaEspecial,))  # noqa: C901
     def autorizar(self, request, uuid=None):
         solicitacao = self.get_object()
         if solicitacao.aluno.possui_dieta_especial_ativa:
@@ -73,7 +89,10 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
         except serializers.ValidationError as e:
             return Response({'detail': f'Dados inválidos {e}'}, status=HTTP_400_BAD_REQUEST)
 
-    @action(detail=True, methods=['patch'], url_path=constants.ESCOLA_SOLICITA_INATIVACAO)
+    @action(detail=True,
+            methods=['patch'],
+            url_path=constants.ESCOLA_SOLICITA_INATIVACAO,
+            permission_classes=(UsuarioEscola,))
     def escola_solicita_inativacao(self, request, uuid=None):
         solicitacao_dieta_especial = self.get_object()
         justificativa = request.data.get('justificativa', '')
@@ -87,7 +106,10 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
-    @action(detail=True, methods=['patch'], url_path=constants.CODAE_AUTORIZA_INATIVACAO)
+    @action(detail=True,
+            methods=['patch'],
+            url_path=constants.CODAE_AUTORIZA_INATIVACAO,
+            permission_classes=(UsuarioCODAEDietaEspecial,))
     def codae_autoriza_inativacao(self, request, uuid=None):
         solicitacao_dieta_especial = self.get_object()
         try:
@@ -99,7 +121,10 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
-    @action(detail=True, methods=['patch'], url_path=constants.CODAE_NEGA_INATIVACAO)
+    @action(detail=True,
+            methods=['patch'],
+            url_path=constants.CODAE_NEGA_INATIVACAO,
+            permission_classes=(UsuarioCODAEDietaEspecial,))
     def codae_nega_inativacao(self, request, uuid=None):
         solicitacao_dieta_especial = self.get_object()
         justificativa = request.data.get('justificativa_negacao', '')
@@ -110,7 +135,10 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
-    @action(detail=True, methods=['patch'], url_path=constants.TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO)
+    @action(detail=True,
+            methods=['patch'],
+            url_path=constants.TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO,
+            permission_classes=(UsuarioTerceirizada,))
     def terceirizada_toma_ciencia_inativacao(self, request, uuid=None):
         solicitacao_dieta_especial = self.get_object()
         try:
@@ -120,7 +148,7 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
-    @action(detail=True, methods=['post'])
+    @action(detail=True, methods=['post'], permission_classes=(UsuarioCODAEDietaEspecial,))
     def negar(self, request, uuid=None):
         solicitacao = self.get_object()
         form = NegaDietaEspecialForm(request.data, instance=solicitacao)
@@ -132,7 +160,7 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
 
         return Response({'mensagem': 'Solicitação de Dieta Especial Negada'})
 
-    @action(detail=True, methods=['post'])
+    @action(detail=True, methods=['post'], permission_classes=(UsuarioTerceirizada,))
     def tomar_ciencia(self, request, uuid=None):
         solicitacao = self.get_object()
         try:

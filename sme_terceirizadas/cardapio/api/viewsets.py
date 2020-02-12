@@ -32,7 +32,6 @@ from ..models import (
     TipoAlimentacao,
     VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
 )
-from .permissions import PodeIniciarSuspensaoDeAlimentacaoPermission, PodeTomarCienciaSuspensaoDeAlimentacaoPermission
 from .serializers.serializers import (
     AlteracaoCardapioSerializer,
     AlteracaoCardapioSimplesSerializer,
@@ -272,7 +271,7 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False, url_path=constants.SOLICITACOES_DO_USUARIO,
-            permission_classes=(UsuarioTerceirizada,))
+            permission_classes=(UsuarioEscola,))
     def minhas_solicitacoes(self, request):
         usuario = request.user
         inversoes_rascunho = InversaoCardapio.get_solicitacoes_rascunho(usuario)
@@ -414,10 +413,26 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
 class GrupoSuspensaoAlimentacaoSerializerViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
     queryset = GrupoSuspensaoAlimentacao.objects.all()
+    permission_classes = (IsAuthenticated,)
     serializer_class = GrupoSuspensaoAlimentacaoSerializer
 
+    def get_permissions(self):
+        if self.action in ['list', 'update']:
+            self.permission_classes = (IsAdminUser,)
+        elif self.action == 'retrieve':
+            self.permission_classes = (IsAuthenticated, PermissaoParaRecuperarObjeto)
+        elif self.action in ['create', 'destroy']:
+            self.permission_classes = (UsuarioEscola,)
+        return super(GrupoSuspensaoAlimentacaoSerializerViewSet, self).get_permissions()
+
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update']:
+            return GrupoSuspensaoAlimentacaoCreateSerializer
+        return GrupoSuspensaoAlimentacaoSerializer
+
     @action(detail=False,
-            url_path=f'{constants.PEDIDOS_CODAE}/{constants.FILTRO_PADRAO_PEDIDOS}')
+            url_path=f'{constants.PEDIDOS_CODAE}/{constants.FILTRO_PADRAO_PEDIDOS}',
+            permission_classes=(UsuarioCODAEGestaoAlimentacao,))
     def solicitacoes_codae(self, request, filtro_aplicado=constants.SEM_FILTRO):
         # TODO: colocar regras de codae CODAE aqui...
         usuario = request.user
@@ -437,7 +452,8 @@ class GrupoSuspensaoAlimentacaoSerializerViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     @action(detail=False, methods=['GET'],
-            url_path=f'{constants.PEDIDOS_TERCEIRIZADA}/{constants.FILTRO_PADRAO_PEDIDOS}')
+            url_path=f'{constants.PEDIDOS_TERCEIRIZADA}/{constants.FILTRO_PADRAO_PEDIDOS}',
+            permission_classes=(UsuarioTerceirizada,))
     def solicitacoes_terceirizada(self, request, filtro_aplicado='sem_filtro'):
         # TODO: colocar regras de Terceirizada aqui...
         usuario = request.user
@@ -457,7 +473,7 @@ class GrupoSuspensaoAlimentacaoSerializerViewSet(viewsets.ModelViewSet):
         serializer = GrupoSuspensaoAlimentacaoSerializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
-    @action(detail=False, methods=['GET'])
+    @action(detail=False, methods=['GET'], permission_classes=(UsuarioEscola,))
     def meus_rascunhos(self, request):
         usuario = request.user
         grupos_suspensao = GrupoSuspensaoAlimentacao.get_rascunhos_do_usuario(usuario)
@@ -465,16 +481,11 @@ class GrupoSuspensaoAlimentacaoSerializerViewSet(viewsets.ModelViewSet):
         serializer = GrupoSuspensaoAlimentacaoSerializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
-    def get_serializer_class(self):
-        if self.action in ['create', 'update', 'partial_update']:
-            return GrupoSuspensaoAlimentacaoCreateSerializer
-        return GrupoSuspensaoAlimentacaoSerializer
-
     #
     # IMPLEMENTAÇÃO DO FLUXO (INFORMATIVO PARTINDO DA ESCOLA)
     #
 
-    @action(detail=True, permission_classes=[PodeIniciarSuspensaoDeAlimentacaoPermission],
+    @action(detail=True, permission_classes=(UsuarioEscola,),
             methods=['patch'], url_path=constants.ESCOLA_INFORMA_SUSPENSAO)
     def informa_suspensao(self, request, uuid=None):
         grupo_suspensao_de_alimentacao = self.get_object()
@@ -485,7 +496,7 @@ class GrupoSuspensaoAlimentacaoSerializerViewSet(viewsets.ModelViewSet):
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
-    @action(detail=True, permission_classes=[PodeTomarCienciaSuspensaoDeAlimentacaoPermission],
+    @action(detail=True, permission_classes=(UsuarioTerceirizada,),
             methods=['patch'], url_path=constants.TERCEIRIZADA_TOMOU_CIENCIA)
     def terceirizada_toma_ciencia(self, request, uuid=None):
         grupo_suspensao_de_alimentacao = self.get_object()
@@ -500,6 +511,9 @@ class GrupoSuspensaoAlimentacaoSerializerViewSet(viewsets.ModelViewSet):
         grupo_suspensao_de_alimentacao = self.get_object()
         if grupo_suspensao_de_alimentacao.pode_excluir:
             return super().destroy(request, *args, **kwargs)
+        else:
+            return Response(dict(detail='Você só pode excluir quando o status for RASCUNHO.'),
+                            status=status.HTTP_403_FORBIDDEN)
 
     @action(detail=True, url_path=constants.RELATORIO, methods=['get'],
             permission_classes=[AllowAny])
@@ -529,6 +543,15 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
     #
     # Pedidos
     #
+
+    @action(detail=False, url_path=constants.SOLICITACOES_DO_USUARIO,
+            permission_classes=(UsuarioEscola,))
+    def minhas_solicitacoes(self, request):
+        usuario = request.user
+        alteracoes_cardapio_rascunho = AlteracaoCardapio.get_rascunhos_do_usuario(usuario)
+        page = self.paginate_queryset(alteracoes_cardapio_rascunho)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
 
     @action(detail=False,
             url_path=f'{constants.PEDIDOS_CODAE}/{constants.FILTRO_PADRAO_PEDIDOS}',
@@ -789,12 +812,6 @@ class MotivosAlteracaoCardapioViewSet(viewsets.ReadOnlyModelViewSet):
     lookup_field = 'uuid'
     queryset = MotivoAlteracaoCardapio.objects.all()
     serializer_class = MotivoAlteracaoCardapioSerializer
-
-
-class AlteracoesCardapioRascunhoViewSet(viewsets.ReadOnlyModelViewSet):
-    lookup_field = 'uuid'
-    queryset = AlteracaoCardapio.objects.filter(status='RASCUNHO')
-    serializer_class = AlteracaoCardapioSerializer
 
 
 class MotivosSuspensaoCardapioViewSet(viewsets.ReadOnlyModelViewSet):

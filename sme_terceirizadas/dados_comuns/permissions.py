@@ -119,6 +119,30 @@ class PermissaoParaRecuperarObjeto(BasePermission):
             )
         elif isinstance(usuario.vinculo_atual.instituicao, Codae):
             return (
+                usuario.vinculo_atual.perfil.nome in [COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
+                                                      ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA]
+            )
+        elif isinstance(usuario.vinculo_atual.instituicao, Terceirizada):
+            return (
+                usuario.vinculo_atual.instituicao in [obj.escola.lote.terceirizada, obj.rastro_terceirizada]
+            )
+
+
+class PermissaoParaRecuperarDietaEspecial(BasePermission):
+    """Permite acesso ao objeto se a dieta especial pertence ao usuário."""
+
+    def has_object_permission(self, request, view, obj):  # noqa
+        usuario = request.user
+        if isinstance(usuario.vinculo_atual.instituicao, Escola):
+            return (
+                usuario.vinculo_atual.instituicao in [obj.escola, obj.rastro_escola]
+            )
+        elif isinstance(usuario.vinculo_atual.instituicao, DiretoriaRegional):
+            return (
+                usuario.vinculo_atual.instituicao in [obj.escola.diretoria_regional, obj.rastro_dre]
+            )
+        elif isinstance(usuario.vinculo_atual.instituicao, Codae):
+            return (
                 usuario.vinculo_atual.perfil.nome in [COORDENADOR_DIETA_ESPECIAL,
                                                       ADMINISTRADOR_DIETA_ESPECIAL]
             )

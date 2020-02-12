@@ -306,7 +306,7 @@ class QuantidadePorPeriodoSuspensaoAlimentacaoCreateSerializer(serializers.Model
     tipos_alimentacao = serializers.SlugRelatedField(
         slug_field='uuid',
         many=True,
-        queryset=TipoAlimentacao.objects.all()
+        queryset=ComboDoVinculoTipoAlimentacaoPeriodoTipoUE.objects.all()
     )
 
     class Meta:
