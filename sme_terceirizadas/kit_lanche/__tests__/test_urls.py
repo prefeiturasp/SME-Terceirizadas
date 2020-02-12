@@ -2,24 +2,14 @@ import pytest
 from freezegun import freeze_time
 from rest_framework import status
 
-from ..models import SolicitacaoKitLancheAvulsa
 from ...dados_comuns import constants
 from ...dados_comuns.fluxo_status import PedidoAPartirDaDiretoriaRegionalWorkflow, PedidoAPartirDaEscolaWorkflow
+from ..models import SolicitacaoKitLancheAvulsa
 
 pytestmark = pytest.mark.django_db
 
 ENDPOINT_AVULSO = 'solicitacoes-kit-lanche-avulsa'
 ENDPOINT_UNIFICADO = 'solicitacoes-kit-lanche-unificada'
-
-
-def base_get_request(client_autenticado, resource):
-    endpoint = f'/{resource}/'
-    response = client_autenticado.get(endpoint)
-    assert response.status_code == status.HTTP_200_OK
-
-
-def test_url_endpoint_kit_lanches(client_autenticado):
-    base_get_request(client_autenticado, 'kit-lanches')
 
 
 def test_url_endpoint_solicitacoes_kit_lanche_avulsa_nao_pode(
@@ -293,12 +283,12 @@ def test_url_endpoint_solicitacoes_kit_lanche_unificada_codae_autoriza(
 
 
 def test_url_endpoint_solicitacoes_kit_lanche_unificada_codae_questiona(
-    client_autenticado,
+    client_autenticado_da_codae,
     solicitacao_unificada_lista_igual_codae_a_autorizar
 ):
     solicacao = solicitacao_unificada_lista_igual_codae_a_autorizar
     assert str(solicacao.status) == PedidoAPartirDaDiretoriaRegionalWorkflow.CODAE_A_AUTORIZAR
-    response = client_autenticado.patch(
+    response = client_autenticado_da_codae.patch(
         f'/{ENDPOINT_UNIFICADO}/{solicacao.uuid}/{constants.CODAE_QUESTIONA_PEDIDO}/',
     )
 
@@ -342,10 +332,11 @@ def test_url_endpoint_solicitacoes_kit_lanche_unificada_codae_autoriza_nega(
     assert json['status'] == PedidoAPartirDaDiretoriaRegionalWorkflow.CODAE_NEGOU_PEDIDO
 
 
-def test_url_endpoint_solicitacoes_kit_lanche_unificado_inicio(client_autenticado, solicitacao_unificada_lista_igual):
+def test_url_endpoint_solicitacoes_kit_lanche_unificado_inicio(client_autenticado_da_dre,
+                                                               solicitacao_unificada_lista_igual):
     """Uma solicitação unificada é dividida em duas ou mais em função dos lotes que ela tem."""
     assert str(solicitacao_unificada_lista_igual.status) == PedidoAPartirDaDiretoriaRegionalWorkflow.RASCUNHO
-    response = client_autenticado.patch(
+    response = client_autenticado_da_dre.patch(
         f'/{ENDPOINT_UNIFICADO}/{solicitacao_unificada_lista_igual.uuid}/{constants.DRE_INICIO_PEDIDO}/'
     )
     assert response.status_code == status.HTTP_200_OK
@@ -357,12 +348,12 @@ def test_url_endpoint_solicitacoes_kit_lanche_unificado_inicio(client_autenticad
 
 
 def test_url_endpoint_solicitacoes_kit_lanche_unificada_terceirizada_ciencia(
-    client_autenticado,
+    client_autenticado_da_terceirizada,
     solicitacao_unificada_lista_igual_codae_autorizado
 ):
     solicacao = solicitacao_unificada_lista_igual_codae_autorizado
     assert str(solicacao.status) == PedidoAPartirDaDiretoriaRegionalWorkflow.CODAE_AUTORIZADO
-    response = client_autenticado.patch(
+    response = client_autenticado_da_terceirizada.patch(
         f'/{ENDPOINT_UNIFICADO}/{solicacao.uuid}/{constants.TERCEIRIZADA_TOMOU_CIENCIA}/'
     )
 
@@ -373,14 +364,14 @@ def test_url_endpoint_solicitacoes_kit_lanche_unificada_terceirizada_ciencia(
 
 @freeze_time('2019-10-10')
 def test_url_endpoint_solicitacoes_kit_lanche_unificada_dre_cancela(
-    client_autenticado,
+    client_autenticado_da_dre,
     solicitacao_unificada_lista_igual_codae_autorizado
 ):
     # A solicitação é do dia 14/10/2019
     solicacao = solicitacao_unificada_lista_igual_codae_autorizado
     justificativa = 'CANCELA DRE'
     assert str(solicacao.status) == PedidoAPartirDaDiretoriaRegionalWorkflow.CODAE_AUTORIZADO
-    response = client_autenticado.patch(
+    response = client_autenticado_da_dre.patch(
         f'/{ENDPOINT_UNIFICADO}/{solicacao.uuid}/{constants.DRE_CANCELA}/',
         data={'justificativa': justificativa},
         content_type='application/json'
@@ -394,14 +385,14 @@ def test_url_endpoint_solicitacoes_kit_lanche_unificada_dre_cancela(
 
 @freeze_time('2019-10-12')  # também dia 13 ou 14
 def test_url_endpoint_solicitacoes_kit_lanche_unificada_dre_cancela_em_cima_da_hora(
-    client_autenticado,
+    client_autenticado_da_dre,
     solicitacao_unificada_lista_igual_codae_autorizado
 ):
     # A solicitação é do dia 14/10/2019
     solicacao = solicitacao_unificada_lista_igual_codae_autorizado
     justificativa = 'CANCELA DRE'
     assert str(solicacao.status) == PedidoAPartirDaDiretoriaRegionalWorkflow.CODAE_AUTORIZADO
-    response = client_autenticado.patch(
+    response = client_autenticado_da_dre.patch(
         f'/{ENDPOINT_UNIFICADO}/{solicacao.uuid}/{constants.DRE_CANCELA}/',
         data={'justificativa': justificativa},
         content_type='application/json'
@@ -412,17 +403,14 @@ def test_url_endpoint_solicitacoes_kit_lanche_unificada_dre_cancela_em_cima_da_h
     assert json == {'detail': 'Erro de transição de estado: Só pode cancelar com no mínimo 2 dia(s) de antecedência'}
 
 
-def test_url_endpoint_solicitacoes_kit_lanche_unificado_deletar(client_autenticado, solicitacao_unificada_lista_igual):
+def test_url_endpoint_solicitacoes_kit_lanche_unificado_deletar(client_autenticado_da_dre,
+                                                                solicitacao_unificada_lista_igual):
     assert str(solicitacao_unificada_lista_igual.status) == PedidoAPartirDaEscolaWorkflow.RASCUNHO
-    response = client_autenticado.delete(
+    response = client_autenticado_da_dre.delete(
         f'/{ENDPOINT_UNIFICADO}/{solicitacao_unificada_lista_igual.uuid}/'
     )
     assert response.status_code == status.HTTP_204_NO_CONTENT
     assert response.data is None
-
-
-def test_url_endpoint_solicitacoes_kit_lanche_unificada(client_autenticado):
-    base_get_request(client_autenticado, 'solicitacoes-kit-lanche-unificada')
 
 
 @freeze_time('2019-10-11')

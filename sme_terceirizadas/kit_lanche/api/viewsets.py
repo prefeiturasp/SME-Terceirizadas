@@ -314,7 +314,7 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
         elif self.action == 'retrieve':
             self.permission_classes = (IsAuthenticated, PermissaoParaRecuperarObjeto)
         elif self.action in ['create', 'destroy']:
-            self.permission_classes = (UsuarioTerceirizada,)
+            self.permission_classes = (UsuarioDiretoriaRegional,)
         return super(SolicitacaoKitLancheUnificadaViewSet, self).get_permissions()
 
     def get_serializer_class(self):

@@ -1,13 +1,13 @@
 from rest_framework.permissions import BasePermission
 
+from ..escola.models import Codae, DiretoriaRegional, Escola
+from ..terceirizada.models import Terceirizada
 from .constants import (
     ADMINISTRADOR_DIETA_ESPECIAL,
     ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
     COORDENADOR_DIETA_ESPECIAL,
     COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA
 )
-from ..escola.models import Codae, DiretoriaRegional, Escola
-from ..terceirizada.models import Terceirizada
 
 
 class UsuarioEscola(BasePermission):
@@ -45,9 +45,12 @@ class UsuarioDiretoriaRegional(BasePermission):
 
     def has_object_permission(self, request, view, obj):
         usuario = request.user
-        return (
-            usuario.vinculo_atual.instituicao in [obj.escola.diretoria_regional, obj.rastro_dre]
-        )
+        # TODO: ver uma melhor forma de organizar esse try-except
+        try:  # solicitacoes normais
+            retorno = usuario.vinculo_atual.instituicao in [obj.escola.diretoria_regional, obj.rastro_dre]
+        except AttributeError:  # solicitacao unificada
+            retorno = usuario.vinculo_atual.instituicao in [obj.rastro_dre, obj.diretoria_regional]
+        return retorno
 
 
 class UsuarioCODAEGestaoAlimentacao(BasePermission):
@@ -93,9 +96,10 @@ class UsuarioTerceirizada(BasePermission):
 
     def has_object_permission(self, request, view, obj):
         usuario = request.user
-        try:
+        # TODO: ver uma melhor forma de organizar esse try-except
+        try:  # solicitacoes normais
             retorno = usuario.vinculo_atual.instituicao in [obj.escola.lote.terceirizada, obj.rastro_terceirizada]
-        except AttributeError:
+        except AttributeError:  # solicitacao unificada
             retorno = usuario.vinculo_atual.instituicao == obj.rastro_terceirizada
         return retorno
 
