@@ -1,13 +1,13 @@
 from rest_framework.permissions import BasePermission
 
-from ..escola.models import Codae, DiretoriaRegional, Escola
-from ..terceirizada.models import Terceirizada
 from .constants import (
     ADMINISTRADOR_DIETA_ESPECIAL,
     ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
     COORDENADOR_DIETA_ESPECIAL,
     COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA
 )
+from ..escola.models import Codae, DiretoriaRegional, Escola
+from ..terceirizada.models import Terceirizada
 
 
 class UsuarioEscola(BasePermission):
@@ -22,6 +22,7 @@ class UsuarioEscola(BasePermission):
         )
 
     """Permite acesso ao objeto se o objeto pertence a essa escola."""
+
     def has_object_permission(self, request, view, obj):
         usuario = request.user
         return (
@@ -41,6 +42,7 @@ class UsuarioDiretoriaRegional(BasePermission):
         )
 
     """Permite acesso ao objeto se o objeto pertence a essa Diretoria Regional."""
+
     def has_object_permission(self, request, view, obj):
         usuario = request.user
         return (
@@ -88,11 +90,14 @@ class UsuarioTerceirizada(BasePermission):
         )
 
     """Permite acesso ao objeto se o objeto pertence a essa Diretoria Regional"""
+
     def has_object_permission(self, request, view, obj):
         usuario = request.user
-        return (
-            usuario.vinculo_atual.instituicao in [obj.escola.lote.terceirizada, obj.rastro_terceirizada]
-        )
+        try:
+            retorno = usuario.vinculo_atual.instituicao in [obj.escola.lote.terceirizada, obj.rastro_terceirizada]
+        except AttributeError:
+            retorno = usuario.vinculo_atual.instituicao == obj.rastro_terceirizada
+        return retorno
 
 
 class PermissaoParaRecuperarObjeto(BasePermission):

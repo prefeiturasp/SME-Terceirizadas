@@ -1,6 +1,7 @@
+from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
-from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
+from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
@@ -18,7 +19,6 @@ from ...relatorios.relatorios import relatorio_kit_lanche_passeio, relatorio_kit
 from .. import models
 from ..api.validators import nao_deve_ter_mais_solicitacoes_que_alunos
 from ..models import SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheUnificada
-from .permissions import PodeIniciarSolicitacaoUnificadaPermission
 from .serializers import serializers, serializers_create
 
 
@@ -293,6 +293,9 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
         solicitacao_kit_lanche_avulsa = self.get_object()
         if solicitacao_kit_lanche_avulsa.pode_excluir:
             return super().destroy(request, *args, **kwargs)
+        else:
+            return Response(dict(detail='Você só pode excluir quando o status for RASCUNHO.'),
+                            status=status.HTTP_403_FORBIDDEN)
 
     @action(detail=True, url_path=constants.RELATORIO,
             methods=['get'])
@@ -305,13 +308,23 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
     queryset = SolicitacaoKitLancheUnificada.objects.all()
     serializer_class = serializers.SolicitacaoKitLancheUnificadaSerializer
 
+    def get_permissions(self):
+        if self.action in ['list', 'update']:
+            self.permission_classes = (IsAdminUser,)
+        elif self.action == 'retrieve':
+            self.permission_classes = (IsAuthenticated, PermissaoParaRecuperarObjeto)
+        elif self.action in ['create', 'destroy']:
+            self.permission_classes = (UsuarioTerceirizada,)
+        return super(SolicitacaoKitLancheUnificadaViewSet, self).get_permissions()
+
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update']:
             return serializers_create.SolicitacaoKitLancheUnificadaCreationSerializer
         return serializers.SolicitacaoKitLancheUnificadaSerializer
 
     @action(detail=False,
-            url_path=f'{constants.PEDIDOS_CODAE}/{constants.FILTRO_PADRAO_PEDIDOS}')
+            url_path=f'{constants.PEDIDOS_CODAE}/{constants.FILTRO_PADRAO_PEDIDOS}',
+            permission_classes=(UsuarioCODAEGestaoAlimentacao,))
     def solicitacoes_codae(self, request, filtro_aplicado=constants.SEM_FILTRO):
         # TODO: colocar regras de codae CODAE aqui...
         usuario = request.user
@@ -324,7 +337,8 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False,
-            url_path=f'{constants.PEDIDOS_TERCEIRIZADA}/{constants.FILTRO_PADRAO_PEDIDOS}')
+            url_path=f'{constants.PEDIDOS_TERCEIRIZADA}/{constants.FILTRO_PADRAO_PEDIDOS}',
+            permission_classes=(UsuarioTerceirizada,))
     def solicitacoes_terceirizada(self, request, filtro_aplicado=constants.SEM_FILTRO):
         # TODO: colocar regras de Terceirizada aqui...
         usuario = request.user
@@ -336,7 +350,8 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
-    @action(detail=False, url_path='pedidos-autorizados-codae')
+    @action(detail=False, url_path='pedidos-autorizados-codae',
+            permission_classes=(UsuarioCODAEGestaoAlimentacao,))
     def solicitacoes_autorizados_codae(self, request):
         usuario = request.user
         codae = usuario.vinculo_atual.instituicao
@@ -345,8 +360,10 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
-    @action(detail=False, url_path='pedidos-autorizados-terceirizada')
+    @action(detail=False, url_path='pedidos-autorizados-terceirizada',
+            permission_classes=(UsuarioTerceirizada,))
     def solicitacoes_autorizados_terceirizada(self, request):
+        # TODO retirar esses endpoints por que já tem a mesma informacao no painel do front
         usuario = request.user
         terceirizada = usuario.vinculo_atual.instituicao
         kit_lanche = terceirizada.solicitacoes_unificadas_autorizadas
@@ -354,7 +371,8 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
-    @action(detail=False, url_path=constants.SOLICITACOES_DO_USUARIO)
+    @action(detail=False, url_path=constants.SOLICITACOES_DO_USUARIO,
+            permission_classes=(UsuarioTerceirizada,))
     def minhas_solicitacoes(self, request):
         usuario = request.user
         solicitacoes_unificadas = SolicitacaoKitLancheUnificada.get_pedidos_rascunho(usuario)
@@ -363,7 +381,7 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=True, url_path=constants.RELATORIO,
-            methods=['get'], permission_classes=[AllowAny])
+            methods=['get'])
     def relatorio(self, request, uuid=None):
         return relatorio_kit_lanche_unificado(request, solicitacao=self.get_object())
 
@@ -371,8 +389,8 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
     # IMPLEMENTAÇÃO DO FLUXO (PARTINDO DA DRE)
     #
 
-    @action(detail=True, url_path=constants.DRE_INICIO_PEDIDO,
-            permission_classes=[PodeIniciarSolicitacaoUnificadaPermission], methods=['patch'])
+    @action(detail=True, url_path=constants.DRE_INICIO_PEDIDO, methods=['patch'],
+            permission_classes=(UsuarioDiretoriaRegional,))
     def inicio_de_solicitacao(self, request, uuid=None):
         solicitacao_unificada = self.get_object()
         try:
@@ -384,8 +402,8 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
-    @action(detail=True, url_path=constants.CODAE_AUTORIZA_PEDIDO,
-            permission_classes=[PodeIniciarSolicitacaoUnificadaPermission], methods=['patch'])
+    @action(detail=True, url_path=constants.CODAE_AUTORIZA_PEDIDO, methods=['patch'],
+            permission_classes=(UsuarioCODAEGestaoAlimentacao,))
     def codae_autoriza(self, request, uuid=None):
         solicitacao_unificada = self.get_object()
         justificativa = request.data.get('justificativa', '')
@@ -399,8 +417,8 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
-    @action(detail=True, url_path=constants.CODAE_NEGA_PEDIDO,
-            permission_classes=[PodeIniciarSolicitacaoUnificadaPermission], methods=['patch'])
+    @action(detail=True, url_path=constants.CODAE_NEGA_PEDIDO, methods=['patch'],
+            permission_classes=(UsuarioCODAEGestaoAlimentacao,))
     def codae_nega_solicitacao(self, request, uuid=None):
         solicitacao_unificada = self.get_object()
         justificativa = request.data.get('justificativa', '')
@@ -414,8 +432,8 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
-    @action(detail=True, permission_classes=[PodeIniciarSolicitacaoUnificadaPermission],
-            methods=['patch'], url_path=constants.CODAE_QUESTIONA_PEDIDO)
+    @action(detail=True, methods=['patch'], url_path=constants.CODAE_QUESTIONA_PEDIDO,
+            permission_classes=(UsuarioCODAEGestaoAlimentacao,))
     def codae_questiona_solicitacao(self, request, uuid=None):
         solicitacao_unificada = self.get_object()
         observacao_questionamento_codae = request.data.get('observacao_questionamento_codae', '')
@@ -429,8 +447,8 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
-    @action(detail=True, url_path=constants.TERCEIRIZADA_TOMOU_CIENCIA,
-            permission_classes=[PodeIniciarSolicitacaoUnificadaPermission], methods=['patch'])
+    @action(detail=True, url_path=constants.TERCEIRIZADA_TOMOU_CIENCIA, methods=['patch'],
+            permission_classes=(UsuarioTerceirizada,))
     def terceirizada_toma_ciencia(self, request, uuid=None):
         solicitacao_unificada = self.get_object()
         try:
@@ -440,8 +458,8 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
-    @action(detail=True, permission_classes=[PodeIniciarSolicitacaoUnificadaPermission],
-            methods=['patch'], url_path=constants.TERCEIRIZADA_RESPONDE_QUESTIONAMENTO)
+    @action(detail=True, methods=['patch'], url_path=constants.TERCEIRIZADA_RESPONDE_QUESTIONAMENTO,
+            permission_classes=(UsuarioTerceirizada,))
     def terceirizada_responde_questionamento(self, request, uuid=None):
         solicitacao_unificada = self.get_object()
         justificativa = request.data.get('justificativa', '')
@@ -455,8 +473,8 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
-    @action(detail=True, url_path=constants.DRE_CANCELA,
-            permission_classes=[PodeIniciarSolicitacaoUnificadaPermission], methods=['patch'])
+    @action(detail=True, url_path=constants.DRE_CANCELA, methods=['patch'],
+            permission_classes=(UsuarioDiretoriaRegional,))
     def diretoria_regional_cancela(self, request, uuid=None):
         justificativa = request.data.get('justificativa', '')
         solicitacao_unificada = self.get_object()
@@ -468,6 +486,9 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     def destroy(self, request, *args, **kwargs):
-        solicitacao_unificada = self.get_object()
-        if solicitacao_unificada.pode_excluir:
+        solicitacao_kit_lanche_unificada = self.get_object()
+        if solicitacao_kit_lanche_unificada.pode_excluir:
             return super().destroy(request, *args, **kwargs)
+        else:
+            return Response(dict(detail='Você só pode excluir quando o status for RASCUNHO.'),
+                            status=status.HTTP_403_FORBIDDEN)

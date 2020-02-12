@@ -2,9 +2,9 @@ import pytest
 from freezegun import freeze_time
 from rest_framework import status
 
+from ..models import SolicitacaoKitLancheAvulsa
 from ...dados_comuns import constants
 from ...dados_comuns.fluxo_status import PedidoAPartirDaDiretoriaRegionalWorkflow, PedidoAPartirDaEscolaWorkflow
-from ..models import SolicitacaoKitLancheAvulsa
 
 pytestmark = pytest.mark.django_db
 
@@ -278,12 +278,12 @@ def test_url_endpoint_solicitacoes_kit_lanche_avulsa_deletar(client_autenticado_
 # solicitacao_unificada_lista_igual_codae_a_autorizar
 
 def test_url_endpoint_solicitacoes_kit_lanche_unificada_codae_autoriza(
-    client_autenticado,
+    client_autenticado_da_codae,
     solicitacao_unificada_lista_igual_codae_a_autorizar
 ):
     solicacao = solicitacao_unificada_lista_igual_codae_a_autorizar
     assert str(solicacao.status) == PedidoAPartirDaDiretoriaRegionalWorkflow.CODAE_A_AUTORIZAR
-    response = client_autenticado.patch(
+    response = client_autenticado_da_codae.patch(
         f'/{ENDPOINT_UNIFICADO}/{solicacao.uuid}/{constants.CODAE_AUTORIZA_PEDIDO}/'
     )
 
@@ -308,14 +308,14 @@ def test_url_endpoint_solicitacoes_kit_lanche_unificada_codae_questiona(
 
 
 def test_url_endpoint_solicitacoes_kit_lanche_unificada_terceirizada_responde(
-    client_autenticado,
+    client_autenticado_da_terceirizada,
     solicitacao_unificada_lista_igual_codae_questionado
 ):
     justificativa = 'VAI DAR SIM, TENHO MUITO ESTOQUE EM CASA, MAS VOU TROCAR TODDYNHO POR CHOCOBOM OK? '
     resposta_sim_nao = True
     solicacao = solicitacao_unificada_lista_igual_codae_questionado
     assert str(solicacao.status) == PedidoAPartirDaDiretoriaRegionalWorkflow.CODAE_QUESTIONADO
-    response = client_autenticado.patch(
+    response = client_autenticado_da_terceirizada.patch(
         f'/{ENDPOINT_UNIFICADO}/{solicacao.uuid}/{constants.TERCEIRIZADA_RESPONDE_QUESTIONAMENTO}/',
         data={'justificativa': justificativa, 'resposta_sim_nao': resposta_sim_nao},
         content_type='application/json'
@@ -328,12 +328,12 @@ def test_url_endpoint_solicitacoes_kit_lanche_unificada_terceirizada_responde(
 
 
 def test_url_endpoint_solicitacoes_kit_lanche_unificada_codae_autoriza_nega(
-    client_autenticado,
+    client_autenticado_da_codae,
     solicitacao_unificada_lista_igual_codae_a_autorizar
 ):
     solicacao = solicitacao_unificada_lista_igual_codae_a_autorizar
     assert str(solicacao.status) == PedidoAPartirDaDiretoriaRegionalWorkflow.CODAE_A_AUTORIZAR
-    response = client_autenticado.patch(
+    response = client_autenticado_da_codae.patch(
         f'/{ENDPOINT_UNIFICADO}/{solicacao.uuid}/{constants.CODAE_NEGA_PEDIDO}/'
     )
 

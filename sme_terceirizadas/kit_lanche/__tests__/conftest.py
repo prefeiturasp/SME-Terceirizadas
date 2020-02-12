@@ -179,7 +179,7 @@ def solicitacao_avulsa_codae_autorizado(solicitacao_avulsa, escola):
 
 
 @pytest.fixture
-def solicitacao_unificada_lista_igual(escola):
+def solicitacao_unificada_lista_igual(escola, diretoria_regional, terceirizada):
     mommy.make(TemplateMensagem, tipo=TemplateMensagem.SOLICITACAO_KIT_LANCHE_UNIFICADA)
     kits = mommy.make(models.KitLanche, _quantity=3)
     solicitacao_kit_lanche = mommy.make(models.SolicitacaoKitLanche,
@@ -187,14 +187,15 @@ def solicitacao_unificada_lista_igual(escola):
                                         tempo_passeio=models.SolicitacaoKitLanche.OITO_OU_MAIS,
                                         kits=kits)
     escolas_quantidades = mommy.make('EscolaQuantidade', escola=escola, _quantity=10, quantidade_alunos=100)
-    dre = mommy.make('escola.DiretoriaRegional')
     solicitacao_unificada = mommy.make(models.SolicitacaoKitLancheUnificada,
                                        local=fake.text()[:160],
                                        lista_kit_lanche_igual=True,
                                        solicitacao_kit_lanche=solicitacao_kit_lanche,
                                        outro_motivo=fake.text(),
-                                       diretoria_regional=dre,
-                                       rastro_dre=dre)
+                                       diretoria_regional=diretoria_regional,
+                                       rastro_dre=diretoria_regional,
+                                       rastro_terceirizada=terceirizada,
+                                       )
     solicitacao_unificada.escolas_quantidades.set(escolas_quantidades)
     return solicitacao_unificada
 
