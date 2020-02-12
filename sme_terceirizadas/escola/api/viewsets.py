@@ -267,7 +267,7 @@ class AlunoViewSet(ReadOnlyModelViewSet):
 
 
 class FaixaEtariaViewSet(CreateModelMixin, ListModelMixin, GenericViewSet):
-    queryset = FaixaEtaria.objects.all()
+    queryset = FaixaEtaria.objects.filter(ativo=True)
 
     def get_serializer_class(self):
         if self.action == 'create':

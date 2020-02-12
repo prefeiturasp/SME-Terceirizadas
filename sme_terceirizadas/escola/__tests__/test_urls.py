@@ -95,8 +95,10 @@ def test_url_endpoint_lista_faixas_etarias(client_autenticado_coordenador_codae,
     assert response.status_code == status.HTTP_200_OK
     json = response.json()
 
-    assert json['count'] == 8
+    ativas = FaixaEtaria.objects.filter(ativo=True)
 
-    for (expected, actual) in zip(faixas_etarias, json['results']):
+    assert json['count'] == len(ativas)
+
+    for (expected, actual) in zip(ativas, json['results']):
         assert actual['inicio'] == expected.inicio
         assert actual['fim'] == expected.fim

@@ -114,4 +114,4 @@ def client_autenticado_coordenador_codae(client, django_user_model):
 
 @pytest.fixture
 def faixas_etarias():
-    return mommy.make('FaixaEtaria', _quantity=8)
+    return mommy.make('FaixaEtaria', _quantity=8) + mommy.make('FaixaEtaria', ativo=False, _quantity=8)
