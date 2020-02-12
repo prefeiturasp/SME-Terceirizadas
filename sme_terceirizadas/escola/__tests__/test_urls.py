@@ -1,5 +1,7 @@
 from rest_framework import status
 
+from ..models import FaixaEtaria
+
 ENDPOINT_ALUNOS_POR_PERIODO = 'quantidade-alunos-por-periodo'
 ENDPOINT_LOTES = 'lotes'
 
@@ -23,3 +25,69 @@ def test_url_endpoint_lotes_delete(client_autenticado, lote):
         f'/{ENDPOINT_LOTES}/{lote.uuid}/'
     )
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+def test_url_endpoint_cria_faixa_etaria(client_autenticado_coordenador_codae):
+    faixas_etarias = [
+        {'inicio': 1, 'fim': 4},
+        {'inicio': 4, 'fim': 8},
+        {'inicio': 8, 'fim': 12},
+        {'inicio': 12, 'fim': 17}
+    ]
+    response = client_autenticado_coordenador_codae.post(
+        '/faixas-etarias/',
+        content_type='application/json',
+        data={'faixas_etarias': faixas_etarias}
+    )
+    assert response.status_code == status.HTTP_201_CREATED
+
+    assert FaixaEtaria.objects.count() == 4
+
+    for (expected, actual) in zip(faixas_etarias, FaixaEtaria.objects.all()):
+        assert expected['inicio'] == actual.inicio
+        assert expected['fim'] == actual.fim
+
+
+def test_url_endpoint_cria_faixa_etaria_erro_fim_menor_igual_inicio(client_autenticado_coordenador_codae):
+    faixas_etarias = [
+        {'inicio': 10, 'fim': 5}
+    ]
+    response = client_autenticado_coordenador_codae.post(
+        '/faixas-etarias/',
+        content_type='application/json',
+        data={'faixas_etarias': faixas_etarias}
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert (str(response.data['faixas_etarias'][0]['non_field_errors'][0])
+            ==
+            'A faixa etária tem que terminar depois do início: inicio=10;fim=5')
+
+
+def test_url_endpoint_cria_faixa_etaria_erro_inicio_menor_zero(client_autenticado_coordenador_codae):
+    faixas_etarias = [
+        {'inicio': -10, 'fim': 5}
+    ]
+    response = client_autenticado_coordenador_codae.post(
+        '/faixas-etarias/',
+        content_type='application/json',
+        data={'faixas_etarias': faixas_etarias}
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    assert (str(response.data['faixas_etarias'][0]['inicio'][0])
+            ==
+            'Certifque-se de que este valor seja maior ou igual a 0.')
+
+
+def test_url_endpoint_lista_faixas_etarias(client_autenticado_coordenador_codae, faixas_etarias):
+    response = client_autenticado_coordenador_codae.get('/faixas-etarias/')
+    assert response.status_code == status.HTTP_200_OK
+    json = response.json()
+
+    assert json['count'] == 8
+
+    for (expected, actual) in zip(faixas_etarias, json['results']):
+        assert actual['inicio'] == expected.inicio
+        assert actual['fim'] == expected.fim

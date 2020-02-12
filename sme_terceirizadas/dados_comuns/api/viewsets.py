@@ -9,8 +9,8 @@ from rest_framework.viewsets import ModelViewSet, ViewSet
 
 from ..behaviors import DiasSemana, TempoPasseio
 from ..constants import TEMPO_CACHE_1H, TEMPO_CACHE_6H, obter_dias_uteis_apos_hoje
-from ..models import FaixaEtaria, TemplateMensagem
-from .serializers import ConfiguracaoEmailSerializer, ConfiguracaoMensagemSerializer, FaixaEtariaSerializer
+from ..models import TemplateMensagem
+from .serializers import ConfiguracaoEmailSerializer, ConfiguracaoMensagemSerializer
 
 
 class DiasDaSemanaViewSet(ViewSet):
@@ -66,9 +66,3 @@ class TemplateMensagemViewSet(ModelViewSet):
     lookup_field = 'uuid'
     queryset = TemplateMensagem.objects.all()
     serializer_class = ConfiguracaoMensagemSerializer
-
-
-class FaixaEtariaViewSet(ModelViewSet):
-    lookup_field = 'uuid'
-    queryset = FaixaEtaria.objects.all()
-    serializer_class = FaixaEtariaSerializer

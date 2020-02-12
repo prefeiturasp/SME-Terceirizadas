@@ -5,6 +5,7 @@ from ..models import (
     DiretoriaRegional,
     Escola,
     EscolaPeriodoEscolar,
+    FaixaEtaria,
     LogAlteracaoQuantidadeAlunosPorEscolaEPeriodoEscolar,
     Lote,
     PeriodoEscolar,
@@ -79,3 +80,34 @@ class EscolaPeriodoEscolarCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = EscolaPeriodoEscolar
         exclude = ('id',)
+
+
+class FaixaEtariaSerializer(serializers.ModelSerializer):
+    def validate(self, attrs):
+        if attrs['inicio'] >= attrs['fim']:
+            raise serializers.ValidationError(
+                f"A faixa etária tem que terminar depois do início: inicio={attrs['inicio']};fim={attrs['fim']}"
+            )
+        return attrs
+
+    class Meta:
+        model = FaixaEtaria
+        exclude = ('id',)
+
+
+class FaixaEtariaCreateManySerializer(serializers.Serializer):
+    faixas_etarias = FaixaEtariaSerializer(many=True, required=False)
+
+    # TODO: Ver se é possível eliminar esse método ou pelo menos usar bulk_create
+    def create(self, validated_data):
+        faixas_etarias = validated_data.pop('faixas_etarias', [])
+
+        fe_objs = []
+        for fe in faixas_etarias:
+            ser = FaixaEtariaSerializer(data=fe)
+            if ser.is_valid():
+                fe_objs.append(ser.save())
+            else:
+                raise serializers.ValidationError('Erro ao salvar faixa etária: ' + ser.errors)
+
+        return fe_objs

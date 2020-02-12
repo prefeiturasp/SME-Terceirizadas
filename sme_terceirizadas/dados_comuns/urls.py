@@ -7,7 +7,6 @@ from .views import send_test_email, test_visualiza_email
 router = routers.DefaultRouter()
 router.register('email', viewsets.ConfiguracaoEmailViewSet, basename='Email')
 router.register('dias-semana', viewsets.DiasDaSemanaViewSet, basename='Dias da semana')
-router.register('faixas-etarias', viewsets.FaixaEtariaViewSet, basename='Faixas Etárias')
 router.register('tempos-passeio', viewsets.TempoDePasseioViewSet, basename='Tempos de passeio')
 router.register('dias-uteis', viewsets.DiasUteisViewSet, basename='Dias úteis')
 router.register('templates-mensagem', viewsets.TemplateMensagemViewSet,
