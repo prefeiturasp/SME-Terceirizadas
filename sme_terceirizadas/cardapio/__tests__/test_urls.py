@@ -120,6 +120,15 @@ def test_url_endpoint_solicitacoes_inversao_dre_nao_valida(client_autenticado_vi
                   "'DRE_NAO_VALIDOU_PEDIDO_ESCOLA'."}
 
 
+def test_url_endpoint_solicitacoes_inversao_codae_autoriza_403(client_autenticado_vinculo_codae_dieta_cardapio,
+                                                               inversao_dia_cardapio_dre_validado):
+    assert str(inversao_dia_cardapio_dre_validado.status) == PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO
+    response = client_autenticado_vinculo_codae_dieta_cardapio.patch(
+        f'/{ENDPOINT_INVERSOES}/{inversao_dia_cardapio_dre_validado.uuid}/{constants.CODAE_AUTORIZA_PEDIDO}/'
+    )
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
 def test_url_endpoint_solicitacoes_inversao_codae_autoriza(client_autenticado_vinculo_codae_cardapio,
                                                            inversao_dia_cardapio_dre_validado):
     assert str(inversao_dia_cardapio_dre_validado.status) == PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO
