@@ -10,6 +10,7 @@ from xworkflows import InvalidTransitionError
 from ...dados_comuns import constants
 from ...dados_comuns.permissions import (
     PermissaoParaRecuperarObjeto,
+    PermissaoParaRecuperarSolicitacaoUnificada,
     UsuarioCODAEGestaoAlimentacao,
     UsuarioDiretoriaRegional,
     UsuarioEscola,
@@ -312,7 +313,7 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
         if self.action in ['list', 'update']:
             self.permission_classes = (IsAdminUser,)
         elif self.action == 'retrieve':
-            self.permission_classes = (IsAuthenticated, PermissaoParaRecuperarObjeto)
+            self.permission_classes = (IsAuthenticated, PermissaoParaRecuperarSolicitacaoUnificada)
         elif self.action in ['create', 'destroy']:
             self.permission_classes = (UsuarioDiretoriaRegional,)
         return super(SolicitacaoKitLancheUnificadaViewSet, self).get_permissions()
