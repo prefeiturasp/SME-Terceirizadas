@@ -99,6 +99,31 @@ def test_url_endpoint_detalhe_motivos_negacao(client_autenticado,
     )
 
 
+def test_permissoes_dieta_especial_viewset(client_autenticado_vinculo_escola_dieta,
+                                           solicitacao_dieta_especial,
+                                           solicitacao_dieta_especial_outra_dre):
+    # pode ver os dados de uma suspensão de alimentação da mesma escola
+    response = client_autenticado_vinculo_escola_dieta.get(
+        f'/solicitacoes-dieta-especial/{solicitacao_dieta_especial.uuid}/'
+    )
+    assert response.status_code == status.HTTP_200_OK
+    # Não pode ver dados de uma suspensão de alimentação de outra escola
+    response = client_autenticado_vinculo_escola_dieta.get(
+        f'/solicitacoes-dieta-especial/{solicitacao_dieta_especial_outra_dre.uuid}/'
+    )
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+    # não pode ver os dados de TODAS as suspensões de alimentação
+    response = client_autenticado_vinculo_escola_dieta.get(
+        f'/solicitacoes-dieta-especial/'
+    )
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+    assert response.json() == {'detail': 'Você não tem permissão para executar essa ação.'}
+    response = client_autenticado_vinculo_escola_dieta.delete(
+        f'/solicitacoes-dieta-especial/{solicitacao_dieta_especial.uuid}/'
+    )
+    assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
+
+
 def test_url_criar_dieta(client_autenticado_vinculo_escola):
     payload = {'observacoes': '<p>dsadsadasd</p>\n',
                'aluno_json': {
@@ -192,12 +217,13 @@ def test_url_criar_dieta_erro_aluno_falta_atributo(client_autenticado_vinculo_es
     assert response.json() == {'aluno_json': [f'deve ter atributo codigo_eol']}
 
 
-def test_url_endpoint_autorizar_dieta(client_autenticado,
-                                      solicitacao_dieta_especial_a_autorizar,
+def test_url_endpoint_autorizar_dieta(client_autenticado_vinculo_codae_dieta,
+                                      solicitacao_dieta_especial,
                                       payload_autorizar):
     obj = SolicitacaoDietaEspecial.objects.first()
-
-    response = client_autenticado.patch(
+    obj.status = SolicitacaoDietaEspecial.workflow_class.CODAE_A_AUTORIZAR
+    obj.save()
+    response = client_autenticado_vinculo_codae_dieta.patch(
         f'/solicitacoes-dieta-especial/{obj.uuid}/autorizar/',
         content_type='application/json',
         data=payload_autorizar
@@ -227,14 +253,28 @@ def test_url_endpoint_autorizar_dieta(client_autenticado,
             assert obj_substituto.id in substituicao['substitutos']
 
 
-def test_url_endpoint_autorizar_dieta_transicao_invalida(client_autenticado,
-                                                         solicitacao_dieta_especial_autorizada,
+def test_url_endpoint_autorizar_dieta_gestao_alimentacao(client_autenticado_vinculo_codae_gestao_alimentacao_dieta,
+                                                         solicitacao_dieta_especial,
+                                                         payload_autorizar):
+    obj = SolicitacaoDietaEspecial.objects.first()
+    obj.status = SolicitacaoDietaEspecial.workflow_class.CODAE_A_AUTORIZAR
+    obj.save()
+    response = client_autenticado_vinculo_codae_gestao_alimentacao_dieta.patch(
+        f'/solicitacoes-dieta-especial/{obj.uuid}/autorizar/',
+        content_type='application/json',
+        data=payload_autorizar
+    )
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+def test_url_endpoint_autorizar_dieta_transicao_invalida(client_autenticado_vinculo_codae_dieta,
+                                                         solicitacao_dieta_especial,
                                                          payload_autorizar):
     obj = SolicitacaoDietaEspecial.objects.first()
 
     assert obj.registro_funcional_nutricionista == ''
 
-    response = client_autenticado.patch(
+    response = client_autenticado_vinculo_codae_dieta.patch(
         f'/solicitacoes-dieta-especial/{obj.uuid}/autorizar/',
         content_type='application/json',
         data=payload_autorizar
@@ -250,8 +290,8 @@ def test_url_endpoint_autorizar_dieta_transicao_invalida(client_autenticado,
     assert obj.registro_funcional_nutricionista == obj2.registro_funcional_nutricionista
 
 
-def test_url_endpoint_autorizar_dieta_atributos_obrigatorios(client_autenticado,
-                                                             solicitacao_dieta_especial_autorizada,
+def test_url_endpoint_autorizar_dieta_atributos_obrigatorios(client_autenticado_vinculo_codae_dieta,
+                                                             solicitacao_dieta_especial,
                                                              payload_autorizar):
     obj = SolicitacaoDietaEspecial.objects.first()
 
@@ -265,7 +305,7 @@ def test_url_endpoint_autorizar_dieta_atributos_obrigatorios(client_autenticado,
         payload = payload_autorizar.copy()
         payload.pop(campo)
 
-        response = client_autenticado.patch(
+        response = client_autenticado_vinculo_codae_dieta.patch(
             f'/solicitacoes-dieta-especial/{obj.uuid}/autorizar/',
             content_type='application/json',
             data=payload
@@ -277,8 +317,8 @@ def test_url_endpoint_autorizar_dieta_atributos_obrigatorios(client_autenticado,
         assert json['detail'].find(f'deve ter atributo {campo}') > -1
 
 
-def test_url_endpoint_autorizar_dieta_atributos_lista_nao_vazios(client_autenticado,
-                                                                 solicitacao_dieta_especial_autorizada,
+def test_url_endpoint_autorizar_dieta_atributos_lista_nao_vazios(client_autenticado_vinculo_codae_dieta,
+                                                                 solicitacao_dieta_especial,
                                                                  payload_autorizar):
     obj = SolicitacaoDietaEspecial.objects.first()
 
@@ -287,7 +327,7 @@ def test_url_endpoint_autorizar_dieta_atributos_lista_nao_vazios(client_autentic
         payload = payload_autorizar.copy()
         payload[campo] = []
 
-        response = client_autenticado.patch(
+        response = client_autenticado_vinculo_codae_dieta.patch(
             f'/solicitacoes-dieta-especial/{obj.uuid}/autorizar/',
             content_type='application/json',
             data=payload
@@ -299,14 +339,14 @@ def test_url_endpoint_autorizar_dieta_atributos_lista_nao_vazios(client_autentic
         assert json['detail'].find(f'atributo {campo} não pode ser vazio') > -1
 
 
-def test_url_endpoint_autorizar_dieta_atributos_string_nao_vazios(client_autenticado,
-                                                                  solicitacao_dieta_especial_autorizada,
+def test_url_endpoint_autorizar_dieta_atributos_string_nao_vazios(client_autenticado_vinculo_codae_dieta,
+                                                                  solicitacao_dieta_especial,
                                                                   payload_autorizar):
     obj = SolicitacaoDietaEspecial.objects.first()
 
     payload_autorizar['registro_funcional_nutricionista'] = ''
 
-    response = client_autenticado.patch(
+    response = client_autenticado_vinculo_codae_dieta.patch(
         f'/solicitacoes-dieta-especial/{obj.uuid}/autorizar/',
         content_type='application/json',
         data=payload_autorizar
@@ -318,14 +358,15 @@ def test_url_endpoint_autorizar_dieta_atributos_string_nao_vazios(client_autenti
     assert json['detail'].find('atributo registro_funcional_nutricionista não pode ser vazio') > -1
 
 
-def test_url_endpoint_autorizar_dieta_atributos_string_vazios(client_autenticado,
-                                                              solicitacao_dieta_especial_a_autorizar,
+def test_url_endpoint_autorizar_dieta_atributos_string_vazios(client_autenticado_vinculo_codae_dieta,
+                                                              solicitacao_dieta_especial,
                                                               payload_autorizar):
     obj = SolicitacaoDietaEspecial.objects.first()
-
+    obj.status = SolicitacaoDietaEspecial.workflow_class.CODAE_A_AUTORIZAR
+    obj.save()
     payload_autorizar['informacoes_adicionais'] = ''
 
-    response = client_autenticado.patch(
+    response = client_autenticado_vinculo_codae_dieta.patch(
         f'/solicitacoes-dieta-especial/{obj.uuid}/autorizar/',
         content_type='application/json',
         data=payload_autorizar
@@ -336,13 +377,13 @@ def test_url_endpoint_autorizar_dieta_atributos_string_vazios(client_autenticado
     assert json['detail'] == 'Autorização de dieta especial realizada com sucesso'
 
 
-def test_url_endpoint_cancelar_dieta(client_autenticado,
+def test_url_endpoint_cancelar_dieta(client_autenticado_vinculo_escola_dieta,
                                      solicitacao_dieta_especial_a_autorizar):
     obj = SolicitacaoDietaEspecial.objects.first()
     data = {
         'justificativa': 'Uma justificativa fajuta'
     }
-    response = client_autenticado.post(
+    response = client_autenticado_vinculo_escola_dieta.post(
         f'/solicitacoes-dieta-especial/{obj.uuid}/escola-cancela-dieta-especial/',
         content_type='application/json',
         data=data
@@ -350,7 +391,7 @@ def test_url_endpoint_cancelar_dieta(client_autenticado,
     obj.refresh_from_db()
     assert response.status_code == status.HTTP_200_OK
     assert obj.status == DietaEspecialWorkflow.ESCOLA_CANCELOU
-    response = client_autenticado.post(
+    response = client_autenticado_vinculo_escola_dieta.post(
         f'/solicitacoes-dieta-especial/{obj.uuid}/escola-cancela-dieta-especial/',
         content_type='application/json',
         data=data
@@ -361,17 +402,19 @@ def test_url_endpoint_cancelar_dieta(client_autenticado,
                   "'ESCOLA_CANCELOU'."}
 
 
-def test_url_endpoint_negar_dieta(client_autenticado,
-                                  solicitacao_dieta_especial_a_autorizar,
+def test_url_endpoint_negar_dieta(client_autenticado_vinculo_codae_dieta,
+                                  solicitacao_dieta_especial,
                                   motivos_negacao):
     obj = SolicitacaoDietaEspecial.objects.first()
+    obj.status = SolicitacaoDietaEspecial.workflow_class.CODAE_A_AUTORIZAR
+    obj.save()
     data = {
         'justificativa_negacao': 'Uma justificativa fajuta',
         'motivo_negacao': motivos_negacao[0].id,
         'registro_funcional_nutricionista':
             'ELABORADO por USUARIO NUTRICIONISTA CODAE - CRN null'
     }
-    response = client_autenticado.post(
+    response = client_autenticado_vinculo_codae_dieta.post(
         f'/solicitacoes-dieta-especial/{obj.uuid}/negar/',
         content_type='application/json',
         data=data
@@ -389,10 +432,12 @@ def test_url_endpoint_negar_dieta(client_autenticado,
     assert obj.registro_funcional_nutricionista == data['registro_funcional_nutricionista']
 
 
-def test_url_endpoint_tomar_ciencia_dieta(client_autenticado,
-                                          solicitacao_dieta_especial_autorizada):
+def test_url_endpoint_tomar_ciencia_dieta(client_autenticado_vinculo_terceirizada_dieta,
+                                          solicitacao_dieta_especial):
     obj = SolicitacaoDietaEspecial.objects.first()
-    response = client_autenticado.post(
+    obj.status = SolicitacaoDietaEspecial.workflow_class.CODAE_AUTORIZADO
+    obj.save()
+    response = client_autenticado_vinculo_terceirizada_dieta.post(
         f'/solicitacoes-dieta-especial/{obj.uuid}/tomar_ciencia/',
         content_type='application/json'
     )
@@ -406,14 +451,16 @@ def test_url_endpoint_tomar_ciencia_dieta(client_autenticado,
     assert obj.status == DietaEspecialWorkflow.TERCEIRIZADA_TOMOU_CIENCIA
 
 
-def test_url_endpoint_escola_solicita_inativacao_dieta(client_autenticado,
-                                                       solicitacao_dieta_especial_autorizada):
+def test_url_endpoint_escola_solicita_inativacao_dieta(client_autenticado_vinculo_escola_dieta,
+                                                       solicitacao_dieta_especial):
     obj = SolicitacaoDietaEspecial.objects.first()
+    obj.status = SolicitacaoDietaEspecial.workflow_class.CODAE_AUTORIZADO
+    obj.save()
     data = {
         'justificativa': '<p>alta pelo médico</p>',
         'anexos': []
     }
-    response = client_autenticado.patch(
+    response = client_autenticado_vinculo_escola_dieta.patch(
         f'/solicitacoes-dieta-especial/{obj.uuid}/escola-solicita-inativacao/',
         content_type='application/json',
         data=data
@@ -453,7 +500,7 @@ def test_url_endpoint_escola_solicita_inativacao_dieta(client_autenticado,
             }
         ]
     }
-    response = client_autenticado.patch(
+    response = client_autenticado_vinculo_escola_dieta.patch(
         f'/solicitacoes-dieta-especial/{obj.uuid}/escola-solicita-inativacao/',
         content_type='application/json',
         data=data
@@ -462,7 +509,7 @@ def test_url_endpoint_escola_solicita_inativacao_dieta(client_autenticado,
     assert response.status_code == status.HTTP_200_OK
     obj.refresh_from_db()
     assert obj.status == DietaEspecialWorkflow.ESCOLA_SOLICITOU_INATIVACAO
-    response = client_autenticado.patch(
+    response = client_autenticado_vinculo_escola_dieta.patch(
         f'/solicitacoes-dieta-especial/{obj.uuid}/escola-solicita-inativacao/',
         content_type='application/json',
         data=data
@@ -473,10 +520,12 @@ def test_url_endpoint_escola_solicita_inativacao_dieta(client_autenticado,
                   "'ESCOLA_SOLICITOU_INATIVACAO'."}
 
 
-def test_url_endpoint_codae_autoriza_inativacao_dieta(client_autenticado,
-                                                      solicitacao_dieta_especial_escola_solicitou_inativacao):
+def test_url_endpoint_codae_autoriza_inativacao_dieta(client_autenticado_vinculo_codae_dieta,
+                                                      solicitacao_dieta_especial):
     obj = SolicitacaoDietaEspecial.objects.first()
-    response = client_autenticado.patch(
+    obj.status = SolicitacaoDietaEspecial.workflow_class.ESCOLA_SOLICITOU_INATIVACAO
+    obj.save()
+    response = client_autenticado_vinculo_codae_dieta.patch(
         f'/solicitacoes-dieta-especial/{obj.uuid}/codae-autoriza-inativacao/',
         content_type='application/json'
     )
@@ -484,7 +533,7 @@ def test_url_endpoint_codae_autoriza_inativacao_dieta(client_autenticado,
     assert response.status_code == status.HTTP_200_OK
     obj.refresh_from_db()
     assert obj.status == DietaEspecialWorkflow.CODAE_AUTORIZOU_INATIVACAO
-    response = client_autenticado.patch(
+    response = client_autenticado_vinculo_codae_dieta.patch(
         f'/solicitacoes-dieta-especial/{obj.uuid}/codae-autoriza-inativacao/',
         content_type='application/json'
     )
@@ -494,10 +543,12 @@ def test_url_endpoint_codae_autoriza_inativacao_dieta(client_autenticado,
                   "'CODAE_AUTORIZOU_INATIVACAO'."}
 
 
-def test_url_endpoint_terceirizada_toma_ciencia_inativacao_dieta(client_autenticado,
-                                                                 solicitacao_dieta_especial_codae_autorizou_inativacao):
+def test_url_endpoint_terceirizada_toma_ciencia_inativacao_dieta(client_autenticado_vinculo_terceirizada_dieta,
+                                                                 solicitacao_dieta_especial):
     obj = SolicitacaoDietaEspecial.objects.first()
-    response = client_autenticado.patch(
+    obj.status = SolicitacaoDietaEspecial.workflow_class.CODAE_AUTORIZOU_INATIVACAO
+    obj.save()
+    response = client_autenticado_vinculo_terceirizada_dieta.patch(
         f'/solicitacoes-dieta-especial/{obj.uuid}/terceirizada-toma-ciencia-inativacao/',
         content_type='application/json'
     )
@@ -505,7 +556,7 @@ def test_url_endpoint_terceirizada_toma_ciencia_inativacao_dieta(client_autentic
     assert response.status_code == status.HTTP_200_OK
     obj.refresh_from_db()
     assert obj.status == DietaEspecialWorkflow.TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO
-    response = client_autenticado.patch(
+    response = client_autenticado_vinculo_terceirizada_dieta.patch(
         f'/solicitacoes-dieta-especial/{obj.uuid}/terceirizada-toma-ciencia-inativacao/',
         content_type='application/json'
     )

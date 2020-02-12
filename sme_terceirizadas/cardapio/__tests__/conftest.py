@@ -708,6 +708,26 @@ def client_autenticado_vinculo_codae_cardapio(client, django_user_model, escola,
 
 
 @pytest.fixture
+def client_autenticado_vinculo_codae_dieta_cardapio(client, django_user_model, escola, codae):
+    email = 'test@test.com'
+    password = 'bar'
+    user = django_user_model.objects.create_user(password=password, email=email,
+                                                 registro_funcional='8888888')
+    perfil_dieta = mommy.make('Perfil',
+                              nome=constants.ADMINISTRADOR_DIETA_ESPECIAL,
+                              ativo=True,
+                              uuid='41c20c8b-7e57-41ed-9433-ccb92e8afaf1')
+    hoje = datetime.date.today()
+    mommy.make('Vinculo', usuario=user, instituicao=codae, perfil=perfil_dieta,
+               data_inicial=hoje, ativo=True)
+    mommy.make(TemplateMensagem, assunto='TESTE',
+               tipo=TemplateMensagem.DIETA_ESPECIAL,
+               template_html='@id @criado_em @status @link')
+    client.login(email=email, password=password)
+    return client
+
+
+@pytest.fixture
 def client_autenticado_vinculo_terceirizada_cardapio(client, django_user_model, escola, codae):
     email = 'test@test.com'
     password = 'bar'

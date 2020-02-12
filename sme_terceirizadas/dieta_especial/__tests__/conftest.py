@@ -1,19 +1,35 @@
-from datetime import date
+import datetime
 from random import randint, sample
 
 import pytest
 from faker import Faker
 from model_mommy import mommy
 
+from ...dados_comuns import constants
 from ...dados_comuns.models import TemplateMensagem
 from ...dados_comuns.utils import convert_base64_to_contentfile
-from ...escola.models import Aluno, Escola, Lote
+from ...escola.models import Aluno
 from ...perfil.models import Usuario
-from ...terceirizada.models import Terceirizada
 from ..models import AlergiaIntolerancia, Alimento, Anexo, ClassificacaoDieta, MotivoNegacao, SolicitacaoDietaEspecial
 
 fake = Faker('pt_BR')
 fake.seed(420)
+
+
+@pytest.fixture
+def codae():
+    return mommy.make('Codae')
+
+
+@pytest.fixture
+def dre_guaianases():
+    return mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL GUAIANASES')
+
+
+@pytest.fixture
+def escola_dre_guaianases(dre_guaianases):
+    lote = mommy.make('Lote')
+    return mommy.make('Escola', lote=lote, diretoria_regional=dre_guaianases)
 
 
 @pytest.fixture
@@ -22,11 +38,18 @@ def arquivo_docx_base64():
 
 
 @pytest.fixture
-def solicitacao_dieta_especial():
-    escola = mommy.make(Escola, nome='EMEF Carlos da Silva')
+def solicitacao_dieta_especial(escola):
     aluno = mommy.make(Aluno, nome='Roberto Alves da Silva', codigo_eol='123456', data_nascimento='2000-01-01')
     return mommy.make(SolicitacaoDietaEspecial,
                       rastro_escola=escola,
+                      aluno=aluno)
+
+
+@pytest.fixture
+def solicitacao_dieta_especial_outra_dre(escola_dre_guaianases):
+    aluno = mommy.make(Aluno, nome='Roberto Alves de Souza', codigo_eol='123457', data_nascimento='2000-01-01')
+    return mommy.make(SolicitacaoDietaEspecial,
+                      rastro_escola=escola_dre_guaianases,
                       aluno=aluno)
 
 
@@ -112,7 +135,7 @@ def payload_autorizar(alergias_intolerancias, classificacoes_dieta, substituicoe
 
 
 @pytest.fixture
-def solicitacao_dieta_especial_a_autorizar(client):
+def solicitacao_dieta_especial_a_autorizar(client, escola, template_mensagem_dieta_especial):
     email = 'escola@admin.com'
     password = 'adminadmin'
     rf = '1545933'
@@ -120,32 +143,21 @@ def solicitacao_dieta_especial_a_autorizar(client):
     client.login(email=email, password=password)
 
     perfil_professor = mommy.make('perfil.Perfil', nome='ADMINISTRADOR_ESCOLA', ativo=False)
-
-    lote = mommy.make(Lote)
-    escola = mommy.make(
-        Escola,
-        nome='EMEF Carlos da Silva',
-        lote=lote
-    )
-
     mommy.make('perfil.Vinculo', usuario=user, instituicao=escola, perfil=perfil_professor,
-               data_inicial=date.today(), ativo=True)  # ativo
+               data_inicial=datetime.date.today(), ativo=True)  # ativo
 
     aluno = mommy.make(Aluno, nome='Roberto Alves da Silva', codigo_eol='123456', data_nascimento='2000-01-01')
     solic = mommy.make(SolicitacaoDietaEspecial,
                        rastro_escola=escola,
                        aluno=aluno,
                        criado_por=user)
-
-    mommy.make(TemplateMensagem, tipo=TemplateMensagem.DIETA_ESPECIAL)
-
     solic.inicia_fluxo(user=user)
 
     return solic
 
 
 @pytest.fixture
-def solicitacao_dieta_especial_autorizada(client, solicitacao_dieta_especial_a_autorizar):
+def solicitacao_dieta_especial_autorizada(client, escola, solicitacao_dieta_especial_a_autorizar):
     email = 'terceirizada@admin.com'
     password = 'adminadmin'
     rf = '4545454'
@@ -153,10 +165,8 @@ def solicitacao_dieta_especial_autorizada(client, solicitacao_dieta_especial_a_a
     client.login(email=email, password=password)
 
     perfil = mommy.make('perfil.Perfil', nome='TERCEIRIZADA', ativo=False)
-    terceirizada = mommy.make(Terceirizada)
-
-    mommy.make('perfil.Vinculo', usuario=user, instituicao=terceirizada, perfil=perfil,
-               data_inicial=date.today(), ativo=True)
+    mommy.make('perfil.Vinculo', usuario=user, instituicao=escola.lote.terceirizada, perfil=perfil,
+               data_inicial=datetime.date.today(), ativo=True)
 
     solicitacao_dieta_especial_a_autorizar.codae_autoriza(user=user)
 
@@ -164,7 +174,7 @@ def solicitacao_dieta_especial_autorizada(client, solicitacao_dieta_especial_a_a
 
 
 @pytest.fixture
-def solicitacao_dieta_especial_escola_solicitou_inativacao(client, solicitacao_dieta_especial_autorizada):
+def solicitacao_dieta_especial_escola_solicitou_inativacao(client, escola, solicitacao_dieta_especial_autorizada):
     email = 'terceirizada2@admin.com'
     password = 'adminadmin'
     rf = '4545455'
@@ -172,10 +182,8 @@ def solicitacao_dieta_especial_escola_solicitou_inativacao(client, solicitacao_d
     client.login(email=email, password=password)
 
     perfil = mommy.make('perfil.Perfil', nome='TERCEIRIZADA', ativo=False)
-    terceirizada = mommy.make(Terceirizada)
-
-    mommy.make('perfil.Vinculo', usuario=user, instituicao=terceirizada, perfil=perfil,
-               data_inicial=date.today(), ativo=True)
+    mommy.make('perfil.Vinculo', usuario=user, instituicao=escola.lote.terceirizada, perfil=perfil,
+               data_inicial=datetime.date.today(), ativo=True)
 
     solicitacao_dieta_especial_autorizada.inicia_fluxo_inativacao(user=user)
 
@@ -184,6 +192,7 @@ def solicitacao_dieta_especial_escola_solicitou_inativacao(client, solicitacao_d
 
 @pytest.fixture
 def solicitacao_dieta_especial_codae_autorizou_inativacao(client,
+                                                          escola,
                                                           solicitacao_dieta_especial_escola_solicitou_inativacao):
     email = 'terceirizada3@admin.com'
     password = 'adminadmin'
@@ -192,11 +201,91 @@ def solicitacao_dieta_especial_codae_autorizou_inativacao(client,
     client.login(email=email, password=password)
 
     perfil = mommy.make('perfil.Perfil', nome='TERCEIRIZADA', ativo=False)
-    terceirizada = mommy.make(Terceirizada)
-
-    mommy.make('perfil.Vinculo', usuario=user, instituicao=terceirizada, perfil=perfil,
-               data_inicial=date.today(), ativo=True)
+    mommy.make('perfil.Vinculo', usuario=user, instituicao=escola.lote.terceirizada, perfil=perfil,
+               data_inicial=datetime.date.today(), ativo=True)
 
     solicitacao_dieta_especial_escola_solicitou_inativacao.codae_autoriza_inativacao(user=user)
 
     return solicitacao_dieta_especial_escola_solicitou_inativacao
+
+
+@pytest.fixture
+def template_mensagem_dieta_especial():
+    return mommy.make(TemplateMensagem, tipo=TemplateMensagem.DIETA_ESPECIAL, assunto='TESTE DIETA ESPECIAL',
+                      template_html='@id @criado_em @status @link')
+
+
+@pytest.fixture
+def escola():
+    terceirizada = mommy.make('Terceirizada')
+    lote = mommy.make('Lote', terceirizada=terceirizada)
+    diretoria_regional = mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL IPIRANGA')
+    escola = mommy.make(
+        'Escola',
+        lote=lote,
+        nome='EMEF JOAO MENDES',
+        codigo_eol='000546',
+        diretoria_regional=diretoria_regional
+    )
+    return escola
+
+
+@pytest.fixture
+def client_autenticado_vinculo_escola_dieta(client, django_user_model, escola, template_mensagem_dieta_especial):
+    email = 'test@test.com'
+    password = 'bar'
+    user = django_user_model.objects.create_user(password=password, email=email,
+                                                 registro_funcional='8888888')
+    perfil_diretor = mommy.make('Perfil', nome='DIRETOR', ativo=True)
+    hoje = datetime.date.today()
+    mommy.make('Vinculo', usuario=user, instituicao=escola, perfil=perfil_diretor,
+               data_inicial=hoje, ativo=True)
+    client.login(email=email, password=password)
+    return client
+
+
+@pytest.fixture
+def client_autenticado_vinculo_codae_dieta(client, django_user_model, escola, codae, template_mensagem_dieta_especial):
+    email = 'test@test.com'
+    password = 'bar'
+    user = django_user_model.objects.create_user(password=password, email=email,
+                                                 registro_funcional='8888888')
+    perfil_admin_dieta_especial = mommy.make('Perfil', nome=constants.ADMINISTRADOR_DIETA_ESPECIAL,
+                                             ativo=True)
+    hoje = datetime.date.today()
+    mommy.make('Vinculo', usuario=user, instituicao=codae, perfil=perfil_admin_dieta_especial,
+               data_inicial=hoje, ativo=True)
+    client.login(email=email, password=password)
+    return client
+
+
+@pytest.fixture
+def client_autenticado_vinculo_codae_gestao_alimentacao_dieta(client, django_user_model, escola, codae,
+                                                              template_mensagem_dieta_especial):
+    email = 'test@test.com'
+    password = 'bar'
+    user = django_user_model.objects.create_user(password=password, email=email,
+                                                 registro_funcional='8888888')
+    perfil_admin_gestao_alimentacao = mommy.make('Perfil', nome=constants.ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
+                                                 ativo=True)
+    hoje = datetime.date.today()
+    mommy.make('Vinculo', usuario=user, instituicao=codae, perfil=perfil_admin_gestao_alimentacao,
+               data_inicial=hoje, ativo=True)
+    client.login(email=email, password=password)
+    return client
+
+
+@pytest.fixture
+def client_autenticado_vinculo_terceirizada_dieta(client, django_user_model, escola, codae,
+                                                  template_mensagem_dieta_especial):
+    email = 'test@test.com'
+    password = 'bar'
+    user = django_user_model.objects.create_user(password=password, email=email,
+                                                 registro_funcional='8888888')
+    perfil_nutri_admin = mommy.make('Perfil', nome=constants.NUTRI_ADMIN_RESPONSAVEL,
+                                    ativo=True)
+    hoje = datetime.date.today()
+    mommy.make('Vinculo', usuario=user, instituicao=escola.lote.terceirizada, perfil=perfil_nutri_admin,
+               data_inicial=hoje, ativo=True)
+    client.login(email=email, password=password)
+    return client
