@@ -104,6 +104,11 @@ def vincula_tipo_ue_a_periodos_escolares():
             periodo_obj = PeriodoEscolar.objects.get(nome=depara.get(periodo_letra))
             periodo_escolar_lista.append(periodo_obj)
         tipo_unidade_escolar = escola.tipo_unidade  # EMEF, CIEJA tem  os periodos padrao dela também
+
+        if escola.tipo_unidade.iniciais in ['CCI', 'CEI', 'CEI CEU']:
+            tipo_unidade_escolar.tem_somente_integral_e_parcial = True
+            tipo_unidade_escolar.save()
+
         tipo_unidade_escolar.periodos_escolares.set(periodo_escolar_lista)
         cont += 1
         print(f'tipo ue {tipo_unidade_escolar} tem {len(periodo_escolar_lista)} periodos escolares')

@@ -293,6 +293,9 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
     def periodos_escolares(self):
         """Recupera periodos escolares da escola, desde que haja pelomenos um aluno para este período."""
         # TODO: ver uma forma melhor de fazer essa query
+        # TODO: caso self.tipo_ue.tem_somente_integral_e_parcial,
+        # deve retornar obrigatoriamente somente integral e parcial, ver onde isso afeta o sistema
+        # obs periodo parcial não tem a informação de quantos alunos tem pela api do EOL
         periodos_ids = self.escolas_periodos.filter(quantidade_alunos__gte=1).values_list('periodo_escolar', flat=True)
         return PeriodoEscolar.objects.filter(id__in=periodos_ids)
 
