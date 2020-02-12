@@ -8,6 +8,7 @@ from ..models import (
     FaixaEtaria,
     LogAlteracaoQuantidadeAlunosPorEscolaEPeriodoEscolar,
     Lote,
+    MudancaFaixasEtarias,
     PeriodoEscolar,
     Subprefeitura,
     TipoGestao
@@ -95,12 +96,14 @@ class FaixaEtariaSerializer(serializers.ModelSerializer):
         exclude = ('id',)
 
 
-class FaixaEtariaCreateManySerializer(serializers.Serializer):
-    faixas_etarias = FaixaEtariaSerializer(many=True, required=False)
+class MudancaFaixasEtariasCreateSerializer(serializers.Serializer):
+    justificativa = serializers.CharField()
+    faixas_etarias_ativadas = FaixaEtariaSerializer(many=True)
 
     # TODO: Ver se é possível eliminar esse método ou pelo menos usar bulk_create
     def create(self, validated_data):
-        faixas_etarias = validated_data.pop('faixas_etarias', [])
+        FaixaEtaria.objects.update(ativo=False)
+        faixas_etarias = validated_data.pop('faixas_etarias_ativadas', [])
 
         fe_objs = []
         for fe in faixas_etarias:
@@ -110,4 +113,8 @@ class FaixaEtariaCreateManySerializer(serializers.Serializer):
             else:
                 raise serializers.ValidationError('Erro ao salvar faixa etária: ' + ser.errors)
 
-        return fe_objs
+        mudanca = MudancaFaixasEtarias(justificativa=validated_data['justificativa'])
+        mudanca.save()
+        mudanca.faixas_etarias_ativadas.set(fe_objs)
+        mudanca.save()
+        return mudanca

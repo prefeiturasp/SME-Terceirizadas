@@ -618,8 +618,12 @@ class Aluno(TemChaveExterna):
         verbose_name_plural = 'Alunos'
 
 
-class FaixaEtaria(models.Model):
+class FaixaEtaria(Ativavel):
     inicio = models.IntegerField(validators=[
         MinValueValidator(0)
     ])
     fim = models.IntegerField()
+
+
+class MudancaFaixasEtarias(Justificativa):
+    faixas_etarias_ativadas = models.ManyToManyField(FaixaEtaria)
