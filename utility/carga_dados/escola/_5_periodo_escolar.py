@@ -76,7 +76,10 @@ depara = {'G': 'INTEGRAL',
 
 
 def cria_periodo_escolar():
-    periodos_str = ['manha', 'intermediario', 'tarde', 'vespertino', 'noite', 'integral']
+    periodos_str = [
+        'manha', 'intermediario', 'tarde', 'vespertino', 'noite', 'integral',
+        'parcial'  # funciona somente para CEI CEU, CEI e CCI, vide tem_somente_integral_e_parcial em TipoUnidadeEscolar
+    ]
     cont = 0
     for periodo in periodos_str:
         obj, created = PeriodoEscolar.objects.get_or_create(nome=periodo.upper())

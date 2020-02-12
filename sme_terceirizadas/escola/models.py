@@ -217,6 +217,10 @@ class TipoUnidadeEscolar(ExportModelOperationsMixin('tipo_ue'), Iniciais, Ativav
                                        related_name='tipos_unidade_escolar')
     periodos_escolares = models.ManyToManyField('escola.PeriodoEscolar', blank=True,
                                                 related_name='tipos_unidade_escolar')
+    tem_somente_integral_e_parcial = models.BooleanField(
+        help_text='Variável de controle para setar os períodos escolares na mão, válido para CEI CEU, CEI e CCI',
+        default=False
+    )
 
     def get_cardapio(self, data):
         # TODO: ter certeza que tem so um cardapio por dia por tipo de u.e.
