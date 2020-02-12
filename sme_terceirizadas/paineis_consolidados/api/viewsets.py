@@ -8,8 +8,13 @@ from rest_framework.response import Response
 
 from ...dados_comuns.constants import FILTRO_PADRAO_PEDIDOS, SEM_FILTRO
 from ...dados_comuns.fluxo_status import DietaEspecialWorkflow
-from ...dados_comuns.permissions import UsuarioCODAEDietaEspecial, UsuarioCODAEGestaoAlimentacao, UsuarioEscola, \
-    UsuarioDiretoriaRegional, UsuarioTerceirizada
+from ...dados_comuns.permissions import (
+    UsuarioCODAEDietaEspecial,
+    UsuarioCODAEGestaoAlimentacao,
+    UsuarioDiretoriaRegional,
+    UsuarioEscola,
+    UsuarioTerceirizada
+)
 from ...dieta_especial.api.serializers import SolicitacaoDietaEspecialLogSerializer, SolicitacaoDietaEspecialSerializer
 from ...dieta_especial.models import SolicitacaoDietaEspecial
 from ...paineis_consolidados.api.constants import PESQUISA, TIPO_VISAO, TIPO_VISAO_LOTE, TIPO_VISAO_SOLICITACOES
