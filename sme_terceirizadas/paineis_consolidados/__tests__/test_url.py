@@ -23,20 +23,20 @@ def base_codae(client_autenticado, resource):
     assert response.status_code == status.HTTP_200_OK
 
 
-def test_url_endpoint_painel_codae_pendentes_autorizacao(client_autenticado):
-    base_codae(client_autenticado, f'{PENDENTES_AUTORIZACAO}/{SEM_FILTRO}')
+def test_url_endpoint_painel_codae_pendentes_autorizacao(client_autenticado_codae_gestao_alimentacao):
+    base_codae(client_autenticado_codae_gestao_alimentacao, f'{PENDENTES_AUTORIZACAO}/{SEM_FILTRO}')
 
 
-def test_url_endpoint_painel_codae_aprovados(client_autenticado):
-    base_codae(client_autenticado, AUTORIZADOS)
+def test_url_endpoint_painel_codae_aprovados(client_autenticado_codae_gestao_alimentacao):
+    base_codae(client_autenticado_codae_gestao_alimentacao, AUTORIZADOS)
 
 
-def test_url_endpoint_painel_codae_cancelados(client_autenticado):
-    base_codae(client_autenticado, CANCELADOS)
+def test_url_endpoint_painel_codae_cancelados(client_autenticado_codae_gestao_alimentacao):
+    base_codae(client_autenticado_codae_gestao_alimentacao, CANCELADOS)
 
 
-def test_url_endpoint_painel_codae_negados(client_autenticado):
-    base_codae(client_autenticado, NEGADOS)
+def test_url_endpoint_painel_codae_negados(client_autenticado_codae_gestao_alimentacao):
+    base_codae(client_autenticado_codae_gestao_alimentacao, NEGADOS)
 
 
 def test_dieta_especial_solicitacoes_viewset_pendentes(client_autenticado,
