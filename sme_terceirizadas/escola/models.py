@@ -6,6 +6,7 @@ from django.db import models
 from django.db.models import Q, Sum
 from django_prometheus.models import ExportModelOperationsMixin
 
+from ..escola.constants import PERIODOS_ESPECIAIS_CEI_CEU_CCI
 from ..cardapio.models import AlteracaoCardapio, GrupoSuspensaoAlimentacao, InversaoCardapio
 from ..dados_comuns.behaviors import (
     Ativavel,
@@ -292,12 +293,16 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
     @property
     def periodos_escolares(self):
         """Recupera periodos escolares da escola, desde que haja pelomenos um aluno para este período."""
-        # TODO: ver uma forma melhor de fazer essa query
-        # TODO: caso self.tipo_ue.tem_somente_integral_e_parcial,
-        # deve retornar obrigatoriamente somente integral e parcial, ver onde isso afeta o sistema
-        # obs periodo parcial não tem a informação de quantos alunos tem pela api do EOL
-        periodos_ids = self.escolas_periodos.filter(quantidade_alunos__gte=1).values_list('periodo_escolar', flat=True)
-        return PeriodoEscolar.objects.filter(id__in=periodos_ids)
+        if self.tipo_unidade.tem_somente_integral_e_parcial:
+            periodos = PeriodoEscolar.objects.filter(nome__in=PERIODOS_ESPECIAIS_CEI_CEU_CCI)
+        else:
+            # TODO: ver uma forma melhor de fazer essa query
+            periodos_ids = self.escolas_periodos.filter(
+                quantidade_alunos__gte=1).values_list(
+                'periodo_escolar', flat=True
+            )
+            periodos = PeriodoEscolar.objects.filter(id__in=periodos_ids)
+        return periodos
 
     @property
     def vinculos_que_podem_ser_finalizados(self):

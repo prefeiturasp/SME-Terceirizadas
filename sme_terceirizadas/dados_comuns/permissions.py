@@ -123,9 +123,11 @@ class PermissaoParaRecuperarObjeto(BasePermission):
                                                       ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA]
             )
         elif isinstance(usuario.vinculo_atual.instituicao, Terceirizada):
-            return (
-                usuario.vinculo_atual.instituicao in [obj.escola.lote.terceirizada, obj.rastro_terceirizada]
-            )
+            try:  # solicitacoes normais
+                retorno = usuario.vinculo_atual.instituicao in [obj.escola.lote.terceirizada, obj.rastro_terceirizada]
+            except AttributeError:  # solicitacao unificada
+                retorno = usuario.vinculo_atual.instituicao == obj.rastro_terceirizada
+            return retorno
 
 
 class PermissaoParaRecuperarDietaEspecial(BasePermission):
