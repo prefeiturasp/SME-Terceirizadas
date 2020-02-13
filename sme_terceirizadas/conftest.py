@@ -61,6 +61,26 @@ def client_autenticado_vinculo_escola(client, django_user_model):
 
 
 @pytest.fixture
+def client_autenticado_diretoria_regional(client, django_user_model):
+    email = 'test@test.com'
+    password = 'bar'
+    user = django_user_model.objects.create_user(password=password, email=email, registro_funcional='8888888')
+    perfil_cogestor = mommy.make('Perfil',
+                                 nome=constants.COGESTOR,
+                                 ativo=True)
+    diretoria_regional = mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL IPIRANGA')
+    hoje = datetime.date.today()
+    mommy.make('Vinculo',
+               usuario=user,
+               instituicao=diretoria_regional,
+               perfil=perfil_cogestor,
+               data_inicial=hoje,
+               ativo=True)
+    client.login(email=email, password=password)
+    return client
+
+
+@pytest.fixture
 def client_autenticado_codae_gestao_alimentacao(client, django_user_model):
     email = 'test@test.com'
     password = 'bar'

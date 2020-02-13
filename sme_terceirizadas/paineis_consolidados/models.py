@@ -596,7 +596,6 @@ class SolicitacoesDRE(MoldeConsolidado):
 
     @classmethod
     def get_pendentes_validacao(cls, **kwargs):
-        # TODO: verificar se esse metodo esta realmente sendo usado pelo front.
         dre_uuid = kwargs.get('dre_uuid')
         manager = cls._get_manager(kwargs)
         return manager.filter(
