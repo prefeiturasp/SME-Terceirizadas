@@ -1,7 +1,7 @@
 import logging
 
 from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
-from django.core.validators import MinLengthValidator, MinValueValidator
+from django.core.validators import MinLengthValidator
 from django.db import models
 from django.db.models import Q, Sum
 from django_prometheus.models import ExportModelOperationsMixin
@@ -619,10 +619,8 @@ class Aluno(TemChaveExterna):
 
 
 class FaixaEtaria(Ativavel):
-    inicio = models.IntegerField(validators=[
-        MinValueValidator(0)
-    ])
-    fim = models.IntegerField()
+    inicio = models.PositiveSmallIntegerField()
+    fim = models.PositiveSmallIntegerField()
 
 
 class MudancaFaixasEtarias(Justificativa):
