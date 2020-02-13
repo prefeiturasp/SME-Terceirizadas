@@ -2,8 +2,6 @@ import pytest
 from freezegun import freeze_time
 from rest_framework import status
 
-from sme_terceirizadas.dados_comuns.constants import RELATORIO
-
 from ...dados_comuns import constants
 from ...dados_comuns.fluxo_status import PedidoAPartirDaDiretoriaRegionalWorkflow, PedidoAPartirDaEscolaWorkflow
 from ..models import SolicitacaoKitLancheAvulsa
@@ -233,7 +231,7 @@ def test_url_endpoint_solicitacoes_kit_lanche_avulsa_relatorio(
     solicitacao_avulsa_dre_validado
 ):
     response = client_autenticado.get(
-        f'/{ENDPOINT_AVULSO}/{solicitacao_avulsa_dre_validado.uuid}/{RELATORIO}/'
+        f'/{ENDPOINT_AVULSO}/{solicitacao_avulsa_dre_validado.uuid}/{constants.RELATORIO}/'
     )
     id_externo = solicitacao_avulsa_dre_validado.id_externo
     assert response.status_code == status.HTTP_200_OK
@@ -450,7 +448,7 @@ def test_url_endpoint_solicitacoes_kit_lanche_unificado_relatorio(
     solicitacao_unificada_lista_igual_codae_questionado
 ):
     response = client_autenticado.get(
-        f'/{ENDPOINT_UNIFICADO}/{solicitacao_unificada_lista_igual_codae_questionado.uuid}/{RELATORIO}/'
+        f'/{ENDPOINT_UNIFICADO}/{solicitacao_unificada_lista_igual_codae_questionado.uuid}/{constants.RELATORIO}/'
     )
     id_externo = solicitacao_unificada_lista_igual_codae_questionado.id_externo
     assert response.status_code == status.HTTP_200_OK
