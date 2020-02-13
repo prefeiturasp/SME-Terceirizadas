@@ -167,6 +167,9 @@ class SolicitacaoKitLancheUnificada(ExportModelOperationsMixin('kit_lanche_unifi
     deste_mes = SolicitacaoUnificadaDesteMesManager()
     vencidos = SolicitacaoUnificadaVencidaManager()
 
+    def possui_escola_na_solicitacao(self, escola):
+        return escola.nome in str(self.escolas_quantidades.all().values('escola__nome').distinct())
+
     @property
     def data(self):
         return self.solicitacao_kit_lanche.data

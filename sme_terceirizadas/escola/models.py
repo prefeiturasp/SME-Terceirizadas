@@ -26,6 +26,7 @@ from ..dados_comuns.constants import (
     SUPLENTE
 )
 from ..dados_comuns.utils import queryset_por_data
+from ..escola.constants import PERIODOS_ESPECIAIS_CEI_CEU_CCI
 from ..inclusao_alimentacao.models import GrupoInclusaoAlimentacaoNormal, InclusaoAlimentacaoContinua
 from ..kit_lanche.models import SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheUnificada
 
@@ -217,6 +218,10 @@ class TipoUnidadeEscolar(ExportModelOperationsMixin('tipo_ue'), Iniciais, Ativav
                                        related_name='tipos_unidade_escolar')
     periodos_escolares = models.ManyToManyField('escola.PeriodoEscolar', blank=True,
                                                 related_name='tipos_unidade_escolar')
+    tem_somente_integral_e_parcial = models.BooleanField(
+        help_text='Variável de controle para setar os períodos escolares na mão, válido para CEI CEU, CEI e CCI',
+        default=False
+    )
 
     def get_cardapio(self, data):
         # TODO: ter certeza que tem so um cardapio por dia por tipo de u.e.
@@ -288,9 +293,16 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
     @property
     def periodos_escolares(self):
         """Recupera periodos escolares da escola, desde que haja pelomenos um aluno para este período."""
-        # TODO: ver uma forma melhor de fazer essa query
-        periodos_ids = self.escolas_periodos.filter(quantidade_alunos__gte=1).values_list('periodo_escolar', flat=True)
-        return PeriodoEscolar.objects.filter(id__in=periodos_ids)
+        if self.tipo_unidade.tem_somente_integral_e_parcial:
+            periodos = PeriodoEscolar.objects.filter(nome__in=PERIODOS_ESPECIAIS_CEI_CEU_CCI)
+        else:
+            # TODO: ver uma forma melhor de fazer essa query
+            periodos_ids = self.escolas_periodos.filter(
+                quantidade_alunos__gte=1).values_list(
+                'periodo_escolar', flat=True
+            )
+            periodos = PeriodoEscolar.objects.filter(id__in=periodos_ids)
+        return periodos
 
     @property
     def vinculos_que_podem_ser_finalizados(self):

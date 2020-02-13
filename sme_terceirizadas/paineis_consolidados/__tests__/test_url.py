@@ -9,12 +9,21 @@ from ..api.constants import (
     CANCELADOS,
     NEGADOS,
     PENDENTES_AUTORIZACAO,
+    PENDENTES_VALIDACAO_DRE,
     PESQUISA,
     RELATORIO_PERIODO,
     RELATORIO_RESUMO_MES_ANO,
     RESUMO_ANO,
-    RESUMO_MES
+    RESUMO_MES,
+    TIPO_VISAO_SOLICITACOES
 )
+
+
+def base_diretoria_regional(client_autenticado_dre, resource):
+    endpoint = f'/diretoria-regional-solicitacoes/{resource}/'
+    response = client_autenticado_dre.get(endpoint)
+    assert response.status_code == status.HTTP_200_OK
+    return response
 
 
 def base_codae(client_autenticado, resource):
@@ -23,20 +32,28 @@ def base_codae(client_autenticado, resource):
     assert response.status_code == status.HTTP_200_OK
 
 
-def test_url_endpoint_painel_codae_pendentes_autorizacao(client_autenticado):
-    base_codae(client_autenticado, f'{PENDENTES_AUTORIZACAO}/{SEM_FILTRO}')
+def test_url_endpoint_painel_dre_pendentes_validacao(client_autenticado_dre_paineis_consolidados):
+    response = base_diretoria_regional(client_autenticado_dre_paineis_consolidados,
+                                       f'{PENDENTES_VALIDACAO_DRE}/{SEM_FILTRO}/{TIPO_VISAO_SOLICITACOES}')
+    assert response.json() == {
+        'results': {'Alteração de Cardápio': {'TOTAL': 3, 'REGULAR': 1, 'PRIORITARIO': 1, 'LIMITE': 1}}
+    }
 
 
-def test_url_endpoint_painel_codae_aprovados(client_autenticado):
-    base_codae(client_autenticado, AUTORIZADOS)
+def test_url_endpoint_painel_codae_pendentes_autorizacao(client_autenticado_codae_gestao_alimentacao):
+    base_codae(client_autenticado_codae_gestao_alimentacao, f'{PENDENTES_AUTORIZACAO}/{SEM_FILTRO}')
 
 
-def test_url_endpoint_painel_codae_cancelados(client_autenticado):
-    base_codae(client_autenticado, CANCELADOS)
+def test_url_endpoint_painel_codae_aprovados(client_autenticado_codae_gestao_alimentacao):
+    base_codae(client_autenticado_codae_gestao_alimentacao, AUTORIZADOS)
 
 
-def test_url_endpoint_painel_codae_negados(client_autenticado):
-    base_codae(client_autenticado, NEGADOS)
+def test_url_endpoint_painel_codae_cancelados(client_autenticado_codae_gestao_alimentacao):
+    base_codae(client_autenticado_codae_gestao_alimentacao, CANCELADOS)
+
+
+def test_url_endpoint_painel_codae_negados(client_autenticado_codae_gestao_alimentacao):
+    base_codae(client_autenticado_codae_gestao_alimentacao, NEGADOS)
 
 
 def test_dieta_especial_solicitacoes_viewset_pendentes(client_autenticado,

@@ -4,6 +4,7 @@ import pytest
 from faker import Faker
 from model_mommy import mommy
 
+from .dados_comuns import constants
 from .dados_comuns.models import TemplateMensagem
 
 f = Faker(locale='pt-Br')
@@ -55,5 +56,45 @@ def client_autenticado_vinculo_escola(client, django_user_model):
     mommy.make(TemplateMensagem, assunto='TESTE',
                tipo=TemplateMensagem.DIETA_ESPECIAL,
                template_html='@id @criado_em @status @link')
+    client.login(email=email, password=password)
+    return client
+
+
+@pytest.fixture
+def client_autenticado_diretoria_regional(client, django_user_model):
+    email = 'test@test.com'
+    password = 'bar'
+    user = django_user_model.objects.create_user(password=password, email=email, registro_funcional='8888888')
+    perfil_cogestor = mommy.make('Perfil',
+                                 nome=constants.COGESTOR,
+                                 ativo=True)
+    diretoria_regional = mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL IPIRANGA')
+    hoje = datetime.date.today()
+    mommy.make('Vinculo',
+               usuario=user,
+               instituicao=diretoria_regional,
+               perfil=perfil_cogestor,
+               data_inicial=hoje,
+               ativo=True)
+    client.login(email=email, password=password)
+    return client
+
+
+@pytest.fixture
+def client_autenticado_codae_gestao_alimentacao(client, django_user_model):
+    email = 'test@test.com'
+    password = 'bar'
+    user = django_user_model.objects.create_user(password=password, email=email, registro_funcional='8888888')
+    perfil_admin_gestao_alimentacao = mommy.make('Perfil',
+                                                 nome=constants.ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
+                                                 ativo=True)
+    codae = mommy.make('Codae')
+    hoje = datetime.date.today()
+    mommy.make('Vinculo',
+               usuario=user,
+               instituicao=codae,
+               perfil=perfil_admin_gestao_alimentacao,
+               data_inicial=hoje,
+               ativo=True)
     client.login(email=email, password=password)
     return client

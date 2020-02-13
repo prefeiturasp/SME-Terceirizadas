@@ -2,6 +2,8 @@ import pytest
 from freezegun import freeze_time
 from rest_framework import status
 
+from sme_terceirizadas.dados_comuns.constants import RELATORIO
+
 from ...dados_comuns import constants
 from ...dados_comuns.fluxo_status import PedidoAPartirDaDiretoriaRegionalWorkflow, PedidoAPartirDaEscolaWorkflow
 from ..models import SolicitacaoKitLancheAvulsa
@@ -143,12 +145,12 @@ def test_url_endpoint_solicitacoes_kit_lanche_avulsa_codae_questiona(client_aute
     assert json['status'] == PedidoAPartirDaEscolaWorkflow.CODAE_QUESTIONADO
 
 
-def test_url_endpoint_solicitacoes_kit_lanche_avulsa_terc_resp_quest(client_autenticado_da_codae,
+def test_url_endpoint_solicitacoes_kit_lanche_avulsa_terc_resp_quest(client_autenticado_da_terceirizada,
                                                                      solicitacao_avulsa_codae_questionado):
     justificativa = 'VAI DAR NÂO :('
     resposta_sim_nao = False
     assert str(solicitacao_avulsa_codae_questionado.status) == PedidoAPartirDaEscolaWorkflow.CODAE_QUESTIONADO
-    response = client_autenticado_da_codae.patch(
+    response = client_autenticado_da_terceirizada.patch(
         f'/{ENDPOINT_AVULSO}/'
         f'{solicitacao_avulsa_codae_questionado.uuid}/'
         f'{constants.TERCEIRIZADA_RESPONDE_QUESTIONAMENTO}/',
@@ -224,6 +226,22 @@ def test_url_endpoint_solicitacoes_kit_lanche_avulsa_terceirizada_ciencia_erro(c
     assert response.json() == {
         'detail': ("Erro de transição de estado: Transition 'terceirizada_toma_ciencia' isn't available from state " +
                    "'DRE_VALIDADO'.")}
+
+
+def test_url_endpoint_solicitacoes_kit_lanche_avulsa_relatorio(
+    client_autenticado,
+    solicitacao_avulsa_dre_validado
+):
+    response = client_autenticado.get(
+        f'/{ENDPOINT_AVULSO}/{solicitacao_avulsa_dre_validado.uuid}/{RELATORIO}/'
+    )
+    id_externo = solicitacao_avulsa_dre_validado.id_externo
+    assert response.status_code == status.HTTP_200_OK
+    assert response._headers['content-type'] == ('Content-Type', 'application/pdf')
+    assert response._headers['content-disposition'] == (
+        'Content-Disposition', f'filename="solicitacao_avulsa_{id_externo}.pdf"')
+    assert 'PDF-1.5' in str(response.content)
+    assert isinstance(response.content, bytes)
 
 
 @freeze_time('2019-11-15')
@@ -411,6 +429,36 @@ def test_url_endpoint_solicitacoes_kit_lanche_unificado_deletar(client_autentica
     )
     assert response.status_code == status.HTTP_204_NO_CONTENT
     assert response.data is None
+
+
+def test_url_endpoint_solicitacoes_kit_lanche_unificado_get_detalhe(
+    client_autenticado_da_terceirizada,
+    solicitacao_unificada_lista_igual_codae_questionado
+):
+    assert str(
+        solicitacao_unificada_lista_igual_codae_questionado.status
+    ) == PedidoAPartirDaDiretoriaRegionalWorkflow.CODAE_QUESTIONADO
+    response = client_autenticado_da_terceirizada.get(
+        f'/{ENDPOINT_UNIFICADO}/{solicitacao_unificada_lista_igual_codae_questionado.uuid}/'
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()['uuid'] == str(solicitacao_unificada_lista_igual_codae_questionado.uuid)
+
+
+def test_url_endpoint_solicitacoes_kit_lanche_unificado_relatorio(
+    client_autenticado,
+    solicitacao_unificada_lista_igual_codae_questionado
+):
+    response = client_autenticado.get(
+        f'/{ENDPOINT_UNIFICADO}/{solicitacao_unificada_lista_igual_codae_questionado.uuid}/{RELATORIO}/'
+    )
+    id_externo = solicitacao_unificada_lista_igual_codae_questionado.id_externo
+    assert response.status_code == status.HTTP_200_OK
+    assert response._headers['content-type'] == ('Content-Type', 'application/pdf')
+    assert response._headers['content-disposition'] == (
+        'Content-Disposition', f'filename="solicitacao_unificada_{id_externo}.pdf"')
+    assert 'PDF-1.5' in str(response.content)
+    assert isinstance(response.content, bytes)
 
 
 @freeze_time('2019-10-11')

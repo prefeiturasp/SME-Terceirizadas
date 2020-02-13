@@ -192,12 +192,14 @@ class TemPrioridade(object):
     def data(self):
         raise NotImplementedError('Deve implementar um property @data')
 
-    @property
+    @property  # noqa
     def prioridade(self):
         descricao = 'VENCIDO'
         hoje = datetime.date.today()
-        data_pedido = self.data
-
+        try:
+            data_pedido = self.data_evento
+        except AttributeError:
+            data_pedido = self.data
         ultimo_dia_util = self._get_ultimo_dia_util(data_pedido)
         minimo_dias_para_pedido = obter_dias_uteis_apos(hoje, PRIORITARIO)
         dias_uteis_limite_inferior = obter_dias_uteis_apos(hoje, LIMITE_INFERIOR)
@@ -210,7 +212,6 @@ class TemPrioridade(object):
             descricao = 'LIMITE'
         elif ultimo_dia_util >= dias_de_prazo_regular_em_diante:
             descricao = 'REGULAR'
-
         return descricao
 
     def _get_ultimo_dia_util(self, data: datetime.date) -> datetime.date:

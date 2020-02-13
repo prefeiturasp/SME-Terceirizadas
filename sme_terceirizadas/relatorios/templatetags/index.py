@@ -30,21 +30,21 @@ def fim_de_fluxo(logs):
     return fim
 
 
-@register.filter  # noqa
+@register.filter  # noqa C901
 def class_css(log):
+    classe_css = 'pending'
     if log.status_evento_explicacao in ['Solicitação Realizada', 'Escola revisou', 'DRE validou', 'DRE revisou',
                                         'CODAE autorizou', 'Terceirizada tomou ciência', 'Escola solicitou inativação',
                                         'CODAE autorizou inativação', 'Terceirizada tomou ciência da inativação']:
-        return 'active'
+        classe_css = 'active'
     elif log.status_evento_explicacao in ['Escola cancelou', 'DRE cancelou']:
-        return 'cancelled'
+        classe_css = 'cancelled'
     elif log.status_evento_explicacao in ['DRE não validou', 'CODAE negou', 'Terceirizada recusou',
                                           'CODAE negou inativação']:
-        return 'disapproved'
+        classe_css = 'disapproved'
     elif log.status_evento_explicacao in ['Questionamento pela CODAE']:
-        return 'questioned'
-    else:
-        return 'pending'
+        classe_css = 'questioned'
+    return classe_css
 
 
 @register.filter

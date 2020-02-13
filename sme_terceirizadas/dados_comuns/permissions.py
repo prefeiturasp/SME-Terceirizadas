@@ -123,8 +123,35 @@ class PermissaoParaRecuperarObjeto(BasePermission):
                                                       ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA]
             )
         elif isinstance(usuario.vinculo_atual.instituicao, Terceirizada):
+            try:  # solicitacoes normais
+                retorno = usuario.vinculo_atual.instituicao in [obj.escola.lote.terceirizada, obj.rastro_terceirizada]
+            except AttributeError:  # solicitacao unificada
+                retorno = usuario.vinculo_atual.instituicao == obj.rastro_terceirizada
+            return retorno
+
+
+class PermissaoParaRecuperarSolicitacaoUnificada(BasePermission):
+    """Permite acesso ao objeto se a solicitação unificada pertence ao usuário."""
+
+    def has_object_permission(self, request, view, obj):  # noqa
+        usuario = request.user
+        if isinstance(usuario.vinculo_atual.instituicao, Escola):
             return (
-                usuario.vinculo_atual.instituicao in [obj.escola.lote.terceirizada, obj.rastro_terceirizada]
+                obj.possui_escola_na_solicitacao(usuario.vinculo_atual.instituicao) or
+                usuario.vinculo_atual.instituicao in obj.rastro_escolas.all()
+            )
+        elif isinstance(usuario.vinculo_atual.instituicao, DiretoriaRegional):
+            return (
+                usuario.vinculo_atual.instituicao in [obj.diretoria_regional, obj.rastro_dre]
+            )
+        elif isinstance(usuario.vinculo_atual.instituicao, Codae):
+            return (
+                usuario.vinculo_atual.perfil.nome in [COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
+                                                      ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA]
+            )
+        elif isinstance(usuario.vinculo_atual.instituicao, Terceirizada):
+            return (
+                usuario.vinculo_atual.instituicao in [obj.lote, obj.rastro_terceirizada]
             )
 
 
