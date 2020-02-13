@@ -543,7 +543,6 @@ def suspensao_alimentacao_parametros_semana(request):
     return request.param
 
 
-# TODO: ZL1 PRECISO APAGAR ESSA FIXTURE ASSIM QUE ELIMINAR AS SUBSTITUICOES DO TIPO DE ALIMENTACAO
 @pytest.fixture(params=[
     # data do teste 15 out 2019
     # data_inicial, data_final
@@ -552,20 +551,22 @@ def suspensao_alimentacao_parametros_semana(request):
     (datetime.date(2020, 10, 11), datetime.date(2019, 10, 26)),
 ])
 def alteracao_card_params(request):
-    alimentacao1 = mommy.make('cardapio.TipoAlimentacao')
-    alimentacao2 = mommy.make('cardapio.TipoAlimentacao')
-    alimentacao3 = mommy.make('cardapio.TipoAlimentacao')
-    alimentacao4 = mommy.make('cardapio.TipoAlimentacao')
-    alimentacao5 = mommy.make('cardapio.TipoAlimentacao')
-
-    alimentacao1.substituicoes.set([alimentacao2, alimentacao3, alimentacao4, alimentacao5])
-    alimentacao2.substituicoes.set([alimentacao1, alimentacao3, alimentacao4, alimentacao5])
-    alimentacao3.substituicoes.set([alimentacao1, alimentacao2, alimentacao4, alimentacao5])
-    alimentacao4.substituicoes.set([alimentacao1, alimentacao2, alimentacao3, alimentacao5])
-    alimentacao5.substituicoes.set([])
+    alimentacao1 = mommy.make('cardapio.TipoAlimentacao', nome='tp_alimentacao1')
+    alimentacao2 = mommy.make('cardapio.TipoAlimentacao', nome='tp_alimentacao2')
+    alimentacao3 = mommy.make('cardapio.TipoAlimentacao', nome='tp_alimentacao3')
+    alimentacao4 = mommy.make('cardapio.TipoAlimentacao', nome='tp_alimentacao4')
+    alimentacao5 = mommy.make('cardapio.TipoAlimentacao', nome='tp_alimentacao5')
+    combo1 = mommy.make('cardapio.ComboDoVinculoTipoAlimentacaoPeriodoTipoUE',
+                        tipos_alimentacao=[alimentacao1, alimentacao5])
+    combo2 = mommy.make('cardapio.ComboDoVinculoTipoAlimentacaoPeriodoTipoUE',
+                        tipos_alimentacao=[alimentacao2, alimentacao4])
+    substituicao1 = mommy.make('cardapio.SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE',
+                               tipos_alimentacao=[alimentacao3, alimentacao1], combo=combo1)
+    substituicao2 = mommy.make('cardapio.SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE',
+                               tipos_alimentacao=[alimentacao5, alimentacao2], combo=combo2)
 
     data_inicial, data_final = request.param
-    return data_inicial, data_final, alimentacao1, alimentacao2, alimentacao3, alimentacao4, alimentacao5
+    return data_inicial, data_final, combo1, combo2, substituicao1, substituicao2
 
 
 @pytest.fixture(params=[
