@@ -20,7 +20,7 @@ from ...dieta_especial.models import SolicitacaoDietaEspecial
 from ...paineis_consolidados.api.constants import PESQUISA, TIPO_VISAO, TIPO_VISAO_LOTE, TIPO_VISAO_SOLICITACOES
 from ...paineis_consolidados.api.serializers import SolicitacoesSerializer
 from ...relatorios.relatorios import relatorio_filtro_periodo, relatorio_resumo_anual_e_mensal
-from ..api.constants import FILTRO_PERIOD_UUID_DRE, PENDENTES_VALIDACAO_DRE, RELATORIO_PERIODO
+from ..api.constants import PENDENTES_VALIDACAO_DRE, RELATORIO_PERIODO
 from ..models import SolicitacoesCODAE, SolicitacoesDRE, SolicitacoesEscola, SolicitacoesTerceirizada
 from ..validators import FiltroValidator
 from .constants import (
@@ -434,6 +434,17 @@ class DRESolicitacoesViewSet(SolicitacoesViewSet):
     permission_classes = (UsuarioDiretoriaRegional,)
     serializer_class = SolicitacoesSerializer
 
+    @action(detail=False,
+            methods=['GET'],
+            url_path=f'{PENDENTES_VALIDACAO_DRE}/{FILTRO_PADRAO_PEDIDOS}/{TIPO_VISAO}')
+    def pendentes_validacao(self, request, filtro_aplicado=SEM_FILTRO, tipo_visao=TIPO_VISAO_SOLICITACOES):
+        usuario = request.user
+        diretoria_regional = usuario.vinculo_atual.instituicao
+        query_set = SolicitacoesDRE.get_pendentes_validacao(dre_uuid=diretoria_regional.uuid,
+                                                            filtro=filtro_aplicado)
+        response = {'results': self._agrupa_por_tipo_visao(tipo_visao=tipo_visao, query_set=query_set)}
+        return Response(response)
+
     @action(detail=False, methods=['GET'], url_path=f'{PENDENTES_AUTORIZACAO_DIETA_ESPECIAL}/{FILTRO_DRE_UUID}')
     def pendentes_autorizacao_dieta_especial(self, request, dre_uuid=None):
         query_set = SolicitacoesDRE.get_pendentes_dieta_especial(dre_uuid=dre_uuid)
@@ -454,29 +465,32 @@ class DRESolicitacoesViewSet(SolicitacoesViewSet):
         query_set = SolicitacoesDRE.get_cancelados_dieta_especial(dre_uuid=dre_uuid)
         return self._retorno_base(query_set)
 
-    @action(detail=False, methods=['GET'], url_path=f'{PENDENTES_AUTORIZACAO}/{FILTRO_DRE_UUID}')
+    @action(detail=False, methods=['GET'], url_path=f'{PENDENTES_AUTORIZACAO}')
     def pendentes_autorizacao(self, request, dre_uuid=None):
-        query_set = SolicitacoesDRE.get_pendentes_autorizacao(dre_uuid=dre_uuid)
+        usuario = request.user
+        diretoria_regional = usuario.vinculo_atual.instituicao
+        query_set = SolicitacoesDRE.get_pendentes_autorizacao(dre_uuid=diretoria_regional.uuid)
         return self._retorno_base(query_set)
 
-    @action(detail=False, methods=['GET'], url_path=f'{PENDENTES_VALIDACAO_DRE}/{FILTRO_PERIOD_UUID_DRE}')
-    def pendentes_validacao(self, request, dre_uuid=None, filtro_aplicado=SEM_FILTRO):
-        query_set = SolicitacoesDRE.get_pendentes_validacao(dre_uuid=dre_uuid, filtro_aplicado=filtro_aplicado)
-        return self._retorno_base(query_set)
-
-    @action(detail=False, methods=['GET'], url_path=f'{AUTORIZADOS}/{FILTRO_DRE_UUID}')
+    @action(detail=False, methods=['GET'], url_path=f'{AUTORIZADOS}')
     def autorizados(self, request, dre_uuid=None):
-        query_set = SolicitacoesDRE.get_autorizados(dre_uuid=dre_uuid)
+        usuario = request.user
+        diretoria_regional = usuario.vinculo_atual.instituicao
+        query_set = SolicitacoesDRE.get_autorizados(dre_uuid=diretoria_regional.uuid)
         return self._retorno_base(query_set)
 
-    @action(detail=False, methods=['GET'], url_path=f'{NEGADOS}/{FILTRO_DRE_UUID}')
+    @action(detail=False, methods=['GET'], url_path=f'{NEGADOS}')
     def negados(self, request, dre_uuid=None):
-        query_set = SolicitacoesDRE.get_negados(dre_uuid=dre_uuid)
+        usuario = request.user
+        diretoria_regional = usuario.vinculo_atual.instituicao
+        query_set = SolicitacoesDRE.get_negados(dre_uuid=diretoria_regional.uuid)
         return self._retorno_base(query_set)
 
-    @action(detail=False, methods=['GET'], url_path=f'{CANCELADOS}/{FILTRO_DRE_UUID}')
+    @action(detail=False, methods=['GET'], url_path=f'{CANCELADOS}')
     def cancelados(self, request, dre_uuid=None):
-        query_set = SolicitacoesDRE.get_cancelados(dre_uuid=dre_uuid)
+        usuario = request.user
+        diretoria_regional = usuario.vinculo_atual.instituicao
+        query_set = SolicitacoesDRE.get_cancelados(dre_uuid=diretoria_regional.uuid)
         return self._retorno_base(query_set)
 
     @action(
@@ -515,13 +529,12 @@ class DRESolicitacoesViewSet(SolicitacoesViewSet):
     def relatorio_filtro_periodo(self, request, escola_uuid=None):
         usuario = request.user
         dre = usuario.vinculo_atual.instituicao
-        dre_uuid = usuario.vinculo_atual.instituicao.uuid
         form = FiltroValidator(request.GET)
         if form.is_valid():
             cleaned_data = form.cleaned_data
             query_set = SolicitacoesDRE.filtros_dre(
                 escola_uuid=escola_uuid,
-                dre_uuid=dre_uuid,
+                dre_uuid=dre.uuid,
                 data_inicial=cleaned_data.get('data_inicial'),
                 data_final=cleaned_data.get('data_final'),
                 tipo_solicitacao=cleaned_data.get('tipo_solicitacao'),

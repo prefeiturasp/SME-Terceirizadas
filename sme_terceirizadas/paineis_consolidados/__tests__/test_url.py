@@ -9,18 +9,35 @@ from ..api.constants import (
     CANCELADOS,
     NEGADOS,
     PENDENTES_AUTORIZACAO,
+    PENDENTES_VALIDACAO_DRE,
     PESQUISA,
     RELATORIO_PERIODO,
     RELATORIO_RESUMO_MES_ANO,
     RESUMO_ANO,
-    RESUMO_MES
+    RESUMO_MES,
+    TIPO_VISAO_SOLICITACOES
 )
+
+
+def base_diretoria_regional(client_autenticado_dre, resource):
+    endpoint = f'/diretoria-regional-solicitacoes/{resource}/'
+    response = client_autenticado_dre.get(endpoint)
+    assert response.status_code == status.HTTP_200_OK
+    return response
 
 
 def base_codae(client_autenticado, resource):
     endpoint = f'/codae-solicitacoes/{resource}/'
     response = client_autenticado.get(endpoint)
     assert response.status_code == status.HTTP_200_OK
+
+
+def test_url_endpoint_painel_dre_pendentes_validacao(client_autenticado_dre_paineis_consolidados):
+    response = base_diretoria_regional(client_autenticado_dre_paineis_consolidados,
+                                       f'{PENDENTES_VALIDACAO_DRE}/{SEM_FILTRO}/{TIPO_VISAO_SOLICITACOES}')
+    assert response.json() == {
+        'results': {'Alteração de Cardápio': {'TOTAL': 3, 'REGULAR': 1, 'PRIORITARIO': 1, 'LIMITE': 1}}
+    }
 
 
 def test_url_endpoint_painel_codae_pendentes_autorizacao(client_autenticado_codae_gestao_alimentacao):

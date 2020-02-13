@@ -3,9 +3,11 @@ import datetime
 import pytest
 import pytz
 from faker import Faker
+from freezegun import freeze_time
 from model_mommy import mommy
 
 from ...cardapio.models import AlteracaoCardapio
+from ...dados_comuns import constants
 from ...dados_comuns.fluxo_status import DietaEspecialWorkflow
 from ...dados_comuns.models import TemplateMensagem
 from ...dieta_especial.models import SolicitacaoDietaEspecial
@@ -211,6 +213,24 @@ def alteracoes_cardapio_dre(escola2):
     return alteracao_cardapio_1, alteracao_cardapio_2, alteracao_cardapio_3
 
 
+@freeze_time('2020-02-03')  # Segunda
+@pytest.fixture
+def alteracoes_cardapio_dre_atual(escola2):
+    alteracao_cardapio_1 = mommy.make(AlteracaoCardapio,
+                                      escola=escola2,
+                                      criado_em=datetime.date(2019, 3, 1),
+                                      data_inicial=datetime.date.today() + datetime.timedelta(days=1))
+    alteracao_cardapio_2 = mommy.make(AlteracaoCardapio,
+                                      escola=escola2,
+                                      criado_em=datetime.date(2019, 2, 10),
+                                      data_inicial=datetime.date.today() + datetime.timedelta(days=5))
+    alteracao_cardapio_3 = mommy.make(AlteracaoCardapio,
+                                      escola=escola2,
+                                      criado_em=datetime.date(2019, 1, 20),
+                                      data_inicial=datetime.date.today() + datetime.timedelta(days=20))
+    return alteracao_cardapio_1, alteracao_cardapio_2, alteracao_cardapio_3
+
+
 @pytest.fixture
 def solicitacoes_kit_lanche_dre(escola2):
     kits = mommy.make(KitLanche, _quantity=3)
@@ -392,3 +412,29 @@ def solicitacoes_dieta_especial():
 ])
 def status_and_endpoint(request):
     return request.param
+
+
+@pytest.fixture
+def client_autenticado_dre_paineis_consolidados(client, django_user_model, diretoria_regional2, templates,
+                                                alteracoes_cardapio_dre_atual):
+    email = 'test@test.com'
+    password = 'bar'
+    user = django_user_model.objects.create_user(password=password, email=email, registro_funcional='8888888')
+    user_escola = django_user_model.objects.create_user(password='xxx', email='user@escola.com',
+                                                        registro_funcional='123123', cpf='12312312332')
+    perfil_cogestor = mommy.make('Perfil',
+                                 nome=constants.COGESTOR,
+                                 ativo=True)
+    hoje = datetime.date.today()
+    mommy.make('Vinculo',
+               usuario=user,
+               instituicao=diretoria_regional2,
+               perfil=perfil_cogestor,
+               data_inicial=hoje,
+               ativo=True)
+    client.login(email=email, password=password)
+    alt1, alt2, alt3 = alteracoes_cardapio_dre_atual
+    alt1.inicia_fluxo(user=user_escola)
+    alt2.inicia_fluxo(user=user_escola)
+    alt3.inicia_fluxo(user=user_escola)
+    return client
