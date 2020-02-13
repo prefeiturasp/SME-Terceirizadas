@@ -47,9 +47,6 @@ class TipoAlimentacao(ExportModelOperationsMixin('tipo_alimentacao'), Nomeavel, 
     Merenda Seca
     """
 
-    # TODO: tirar substituicoes quando der, não é mais necessário
-    substituicoes = models.ManyToManyField('TipoAlimentacao', blank=True)
-
     @property
     def substituicoes_periodo_escolar(self):
         return self.substituicoes_periodo_escolar

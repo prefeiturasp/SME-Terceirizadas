@@ -30,7 +30,6 @@ class SubsticuicoesTipoAlimentacaoSerializer(serializers.ModelSerializer):
 
 
 class TipoAlimentacaoSerializer(serializers.ModelSerializer):
-    substituicoes = SubsticuicoesTipoAlimentacaoSerializer(many=True)
 
     class Meta:
         model = TipoAlimentacao

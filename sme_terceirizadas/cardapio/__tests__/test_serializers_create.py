@@ -102,15 +102,16 @@ def test_inversao_serializer_creators(inversao_card_params):
 # TODO: ZL1 PRECISO REFAZER ESTE TESTE ASSIM QUE ELIMINAR AS SUBSTITUICOES DO TIPO DE ALIMENTACAO
 @freeze_time('2019-10-15')
 def test_alteracao_cardapio_validators(alteracao_card_params):
+    # return data_inicial, data_final, combo1, combo2, substituicao1, substituicao2
     class FakeObject(object):
         user = mommy.make('perfil.Usuario')
 
-    data_inicial, data_final, alm1, alm2, alm3, alm4, alm5 = alteracao_card_params
+    data_inicial, data_final, combo1, combo2, sub1, sub2 = alteracao_card_params
 
     serializer_obj = AlteracaoCardapioSerializerCreate(context={'request': FakeObject})
     substituicoes_dict = []
-    substituicoes_dict.append(dict(tipo_alimentacao_de=alm1, tipo_alimentacao_para=alm4))
-    substituicoes_dict.append(dict(tipo_alimentacao_de=alm2, tipo_alimentacao_para=alm5))
+    substituicoes_dict.append(dict(tipo_alimentacao_de=combo1, tipo_alimentacao_para=sub1))
+    substituicoes_dict.append(dict(tipo_alimentacao_de=combo2, tipo_alimentacao_para=sub2))
     resp_dt_inicial = serializer_obj.validate_data_inicial(data_inicial=data_inicial)
     resp_substicuicoes = serializer_obj.validate_substituicoes(substituicoes=substituicoes_dict)
 
