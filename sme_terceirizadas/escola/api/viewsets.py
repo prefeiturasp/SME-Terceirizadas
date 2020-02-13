@@ -17,6 +17,7 @@ from ...escola.api.serializers import (
     AlunoSerializer,
     CODAESerializer,
     EscolaPeriodoEscolarSerializer,
+    LoteNomeSerializer,
     LoteSimplesSerializer,
     UsuarioDetalheSerializer
 )
@@ -215,6 +216,12 @@ class LoteViewSet(ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         return Response({'detail': 'Não é permitido excluir um Lote com escolas associadas'},
                         status=status.HTTP_401_UNAUTHORIZED)
+
+
+class LoteSimplesViewSet(ModelViewSet):
+    lookup_field = 'uuid'
+    serializer_class = LoteNomeSerializer
+    queryset = Lote.objects.all()
 
 
 class CODAESimplesViewSet(ReadOnlyModelViewSet):

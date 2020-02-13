@@ -123,11 +123,12 @@ class LoteSimplesSerializer(serializers.ModelSerializer):
 
 
 class LoteNomeSerializer(serializers.ModelSerializer):
+    diretoria_regional = DiretoriaRegionalSimplissimaSerializer()
     tipo_gestao = serializers.CharField()
 
     class Meta:
         model = Lote
-        fields = ('uuid', 'nome', 'tipo_gestao')
+        fields = ('uuid', 'nome', 'tipo_gestao', 'diretoria_regional')
 
 
 class EscolaSimplesSerializer(serializers.ModelSerializer):
