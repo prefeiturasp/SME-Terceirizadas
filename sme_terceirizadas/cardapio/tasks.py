@@ -4,9 +4,9 @@ import logging
 from celery import shared_task
 from django.db.models import Q
 
-from .models import VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
 from ..escola.constants import PERIODOS_ESPECIAIS_CEI_CEU_CCI
 from ..escola.models import EscolaPeriodoEscolar, PeriodoEscolar, TipoUnidadeEscolar
+from .models import VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
 
 logger = logging.getLogger('sigpae.taskCardapio')
 

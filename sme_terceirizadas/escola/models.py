@@ -6,7 +6,6 @@ from django.db import models
 from django.db.models import Q, Sum
 from django_prometheus.models import ExportModelOperationsMixin
 
-from ..escola.constants import PERIODOS_ESPECIAIS_CEI_CEU_CCI
 from ..cardapio.models import AlteracaoCardapio, GrupoSuspensaoAlimentacao, InversaoCardapio
 from ..dados_comuns.behaviors import (
     Ativavel,
@@ -27,6 +26,7 @@ from ..dados_comuns.constants import (
     SUPLENTE
 )
 from ..dados_comuns.utils import queryset_por_data
+from ..escola.constants import PERIODOS_ESPECIAIS_CEI_CEU_CCI
 from ..inclusao_alimentacao.models import GrupoInclusaoAlimentacaoNormal, InclusaoAlimentacaoContinua
 from ..kit_lanche.models import SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheUnificada
 

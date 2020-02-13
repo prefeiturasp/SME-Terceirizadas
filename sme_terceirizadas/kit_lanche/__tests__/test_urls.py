@@ -143,12 +143,12 @@ def test_url_endpoint_solicitacoes_kit_lanche_avulsa_codae_questiona(client_aute
     assert json['status'] == PedidoAPartirDaEscolaWorkflow.CODAE_QUESTIONADO
 
 
-def test_url_endpoint_solicitacoes_kit_lanche_avulsa_terc_resp_quest(client_autenticado_da_codae,
+def test_url_endpoint_solicitacoes_kit_lanche_avulsa_terc_resp_quest(client_autenticado_da_terceirizada,
                                                                      solicitacao_avulsa_codae_questionado):
     justificativa = 'VAI DAR NÂO :('
     resposta_sim_nao = False
     assert str(solicitacao_avulsa_codae_questionado.status) == PedidoAPartirDaEscolaWorkflow.CODAE_QUESTIONADO
-    response = client_autenticado_da_codae.patch(
+    response = client_autenticado_da_terceirizada.patch(
         f'/{ENDPOINT_AVULSO}/'
         f'{solicitacao_avulsa_codae_questionado.uuid}/'
         f'{constants.TERCEIRIZADA_RESPONDE_QUESTIONAMENTO}/',
@@ -411,6 +411,20 @@ def test_url_endpoint_solicitacoes_kit_lanche_unificado_deletar(client_autentica
     )
     assert response.status_code == status.HTTP_204_NO_CONTENT
     assert response.data is None
+
+
+def test_url_endpoint_solicitacoes_kit_lanche_unificado_get_detalhe(
+    client_autenticado_da_terceirizada,
+    solicitacao_unificada_lista_igual_codae_questionado
+):
+    assert str(
+        solicitacao_unificada_lista_igual_codae_questionado.status
+    ) == PedidoAPartirDaDiretoriaRegionalWorkflow.CODAE_QUESTIONADO
+    response = client_autenticado_da_terceirizada.get(
+        f'/{ENDPOINT_UNIFICADO}/{solicitacao_unificada_lista_igual_codae_questionado.uuid}/'
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()['uuid'] == str(solicitacao_unificada_lista_igual_codae_questionado.uuid)
 
 
 @freeze_time('2019-10-11')
