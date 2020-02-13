@@ -216,7 +216,8 @@ def relatorio_inversao_dia_de_cardapio(request, solicitacao):
 def relatorio_suspensao_de_alimentacao(request, solicitacao):
     escola = solicitacao.rastro_escola
     logs = solicitacao.logs
-    motivo = solicitacao.suspensoes_alimentacao.last().motivo.nome
+    # TODO: GrupoSuspensaoAlimentacaoSerializerViewSet não tem motivo, quem tem é cada suspensão do relacionamento
+    motivo = 'Deve ajustar aqui...'
     suspensoes = solicitacao.suspensoes_alimentacao.all()
     quantidades_por_periodo = solicitacao.quantidades_por_periodo.all()
     html_string = render_to_string(

@@ -2,6 +2,7 @@ import pytest
 from freezegun import freeze_time
 from rest_framework import status
 
+from ...dados_comuns import constants
 from ...dados_comuns.constants import (
     CODAE_AUTORIZA_PEDIDO,
     CODAE_NEGA_PEDIDO,
@@ -209,6 +210,20 @@ def test_url_endpoint_inclusao_normal_terc_ciencia(client_autenticado_vinculo_te
         f'{TERCEIRIZADA_TOMOU_CIENCIA}/')
     assert response.status_code == status.HTTP_200_OK
     assert response.json()['status'] == PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_TOMOU_CIENCIA
+
+
+def test_url_endpoint_inclusao_normal_relatorio(client_autenticado,
+                                                grupo_inclusao_alimentacao_normal_codae_autorizado):
+    response = client_autenticado.get(
+        f'/grupos-inclusao-alimentacao-normal/{grupo_inclusao_alimentacao_normal_codae_autorizado.uuid}/'
+        f'{constants.RELATORIO}/')
+    id_externo = grupo_inclusao_alimentacao_normal_codae_autorizado.id_externo
+    assert response.status_code == status.HTTP_200_OK
+    assert response._headers['content-type'] == ('Content-Type', 'application/pdf')
+    assert response._headers['content-disposition'] == (
+        'Content-Disposition', f'filename="inclusao_alimentacao_{id_externo}.pdf"')
+    assert 'PDF-1.5' in str(response.content)
+    assert isinstance(response.content, bytes)
 
 
 def test_url_endpoint_inclusao_normal_terc_ciencia_erro(client_autenticado_vinculo_terceirizada_inclusao,
@@ -465,3 +480,17 @@ def test_url_endpoint_inclusao_continua_escola_cancela(client_autenticado_vincul
         f'{ESCOLA_CANCELA}/')
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json() == {'detail': 'Erro de transição de estado: Já está cancelada'}
+
+
+def test_url_endpoint_inclusao_continua_relatorio(client_autenticado,
+                                                  inclusao_alimentacao_continua_codae_autorizado):
+    response = client_autenticado.get(
+        f'/inclusoes-alimentacao-continua/{inclusao_alimentacao_continua_codae_autorizado.uuid}/'
+        f'{constants.RELATORIO}/')
+    id_externo = inclusao_alimentacao_continua_codae_autorizado.id_externo
+    assert response.status_code == status.HTTP_200_OK
+    assert response._headers['content-type'] == ('Content-Type', 'application/pdf')
+    assert response._headers['content-disposition'] == (
+        'Content-Disposition', f'filename="inclusao_alimentacao_continua_{id_externo}.pdf"')
+    assert 'PDF-1.5' in str(response.content)
+    assert isinstance(response.content, bytes)
