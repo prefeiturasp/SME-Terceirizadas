@@ -250,7 +250,7 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
 
     @action(detail=True,
             methods=['patch'], url_path=constants.TERCEIRIZADA_RESPONDE_QUESTIONAMENTO,
-            permission_classes=(UsuarioCODAEGestaoAlimentacao,))
+            permission_classes=(UsuarioTerceirizada,))
     def terceirizada_responde_questionamento(self, request, uuid=None):
         solicitacao_kit_lanche_avulsa = self.get_object()
         justificativa = request.data.get('justificativa', '')
@@ -373,7 +373,7 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False, url_path=constants.SOLICITACOES_DO_USUARIO,
-            permission_classes=(UsuarioTerceirizada,))
+            permission_classes=(UsuarioDiretoriaRegional,))
     def minhas_solicitacoes(self, request):
         usuario = request.user
         solicitacoes_unificadas = SolicitacaoKitLancheUnificada.get_pedidos_rascunho(usuario)
