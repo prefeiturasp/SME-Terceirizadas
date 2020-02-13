@@ -102,7 +102,6 @@ def test_inversao_serializer_creators(inversao_card_params):
 # TODO: ZL1 PRECISO REFAZER ESTE TESTE ASSIM QUE ELIMINAR AS SUBSTITUICOES DO TIPO DE ALIMENTACAO
 @freeze_time('2019-10-15')
 def test_alteracao_cardapio_validators(alteracao_card_params):
-    # return data_inicial, data_final, combo1, combo2, substituicao1, substituicao2
     class FakeObject(object):
         user = mommy.make('perfil.Usuario')
 

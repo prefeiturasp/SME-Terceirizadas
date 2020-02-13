@@ -57,7 +57,8 @@ def nao_pode_ter_mais_que_60_dias_diferenca(data_de: datetime.date, data_para: d
 
 
 def precisa_pertencer_a_um_tipo_de_alimentacao(tipo_alimentacao_de: ComboDoVinculoTipoAlimentacaoPeriodoTipoUE,
-                                               tipo_alimentacao_para: SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE):
+                                               tipo_alimentacao_para:
+                                               SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE):
     if tipo_alimentacao_de != tipo_alimentacao_para.combo:
         raise serializers.ValidationError(
             f'Tipo de alimentação {tipo_alimentacao_para.label} não é substituível por {tipo_alimentacao_de.label}'
