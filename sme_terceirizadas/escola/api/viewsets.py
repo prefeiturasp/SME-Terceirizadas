@@ -1,7 +1,8 @@
 from rest_framework import serializers, status
 from rest_framework.decorators import action
+from rest_framework.mixins import CreateModelMixin, ListModelMixin
 from rest_framework.response import Response
-from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
+from rest_framework.viewsets import GenericViewSet, ModelViewSet, ReadOnlyModelViewSet
 
 from ...dados_comuns.constants import (
     ADMINISTRADOR_DRE,
@@ -21,7 +22,12 @@ from ...escola.api.serializers import (
     LoteSimplesSerializer,
     UsuarioDetalheSerializer
 )
-from ...escola.api.serializers_create import EscolaPeriodoEscolarCreateSerializer, LoteCreateSerializer
+from ...escola.api.serializers_create import (
+    EscolaPeriodoEscolarCreateSerializer,
+    FaixaEtariaSerializer,
+    LoteCreateSerializer,
+    MudancaFaixasEtariasCreateSerializer
+)
 from ...paineis_consolidados.api.constants import FILTRO_DRE_UUID
 from ...perfil.api.serializers import UsuarioUpdateSerializer, VinculoSerializer
 from ..models import (
@@ -30,6 +36,7 @@ from ..models import (
     DiretoriaRegional,
     Escola,
     EscolaPeriodoEscolar,
+    FaixaEtaria,
     Lote,
     PeriodoEscolar,
     Subprefeitura,
@@ -264,3 +271,12 @@ class AlunoViewSet(ReadOnlyModelViewSet):
     lookup_field = 'codigo_eol'
     queryset = Aluno.objects.all()
     serializer_class = AlunoSerializer
+
+
+class FaixaEtariaViewSet(CreateModelMixin, ListModelMixin, GenericViewSet):
+    queryset = FaixaEtaria.objects.filter(ativo=True)
+
+    def get_serializer_class(self):
+        if self.action == 'create':
+            return MudancaFaixasEtariasCreateSerializer
+        return FaixaEtariaSerializer

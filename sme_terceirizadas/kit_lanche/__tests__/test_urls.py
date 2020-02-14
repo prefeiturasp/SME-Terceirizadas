@@ -226,6 +226,22 @@ def test_url_endpoint_solicitacoes_kit_lanche_avulsa_terceirizada_ciencia_erro(c
                    "'DRE_VALIDADO'.")}
 
 
+def test_url_endpoint_solicitacoes_kit_lanche_avulsa_relatorio(
+    client_autenticado,
+    solicitacao_avulsa_dre_validado
+):
+    response = client_autenticado.get(
+        f'/{ENDPOINT_AVULSO}/{solicitacao_avulsa_dre_validado.uuid}/{constants.RELATORIO}/'
+    )
+    id_externo = solicitacao_avulsa_dre_validado.id_externo
+    assert response.status_code == status.HTTP_200_OK
+    assert response._headers['content-type'] == ('Content-Type', 'application/pdf')
+    assert response._headers['content-disposition'] == (
+        'Content-Disposition', f'filename="solicitacao_avulsa_{id_externo}.pdf"')
+    assert 'PDF-1.5' in str(response.content)
+    assert isinstance(response.content, bytes)
+
+
 @freeze_time('2019-11-15')
 def test_url_endpoint_solicitacoes_kit_lanche_avulsa_escola_cancela(client_autenticado_da_escola,
                                                                     solicitacao_avulsa_codae_autorizado):
@@ -425,6 +441,22 @@ def test_url_endpoint_solicitacoes_kit_lanche_unificado_get_detalhe(
     )
     assert response.status_code == status.HTTP_200_OK
     assert response.json()['uuid'] == str(solicitacao_unificada_lista_igual_codae_questionado.uuid)
+
+
+def test_url_endpoint_solicitacoes_kit_lanche_unificado_relatorio(
+    client_autenticado,
+    solicitacao_unificada_lista_igual_codae_questionado
+):
+    response = client_autenticado.get(
+        f'/{ENDPOINT_UNIFICADO}/{solicitacao_unificada_lista_igual_codae_questionado.uuid}/{constants.RELATORIO}/'
+    )
+    id_externo = solicitacao_unificada_lista_igual_codae_questionado.id_externo
+    assert response.status_code == status.HTTP_200_OK
+    assert response._headers['content-type'] == ('Content-Type', 'application/pdf')
+    assert response._headers['content-disposition'] == (
+        'Content-Disposition', f'filename="solicitacao_unificada_{id_externo}.pdf"')
+    assert 'PDF-1.5' in str(response.content)
+    assert isinstance(response.content, bytes)
 
 
 @freeze_time('2019-10-11')

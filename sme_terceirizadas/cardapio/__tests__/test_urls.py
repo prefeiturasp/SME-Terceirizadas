@@ -67,6 +67,20 @@ def test_url_endpoint_solicitacoes_inversao_inicio_fluxo(client_autenticado_vinc
     assert str(json['uuid']) == str(inversao_dia_cardapio.uuid)
 
 
+def test_url_endpoint_solicitacoes_inversao_relatorio(client_autenticado,
+                                                      inversao_dia_cardapio):
+    response = client_autenticado.get(
+        f'/{ENDPOINT_INVERSOES}/{inversao_dia_cardapio.uuid}/{constants.RELATORIO}/'
+    )
+    id_externo = inversao_dia_cardapio.id_externo
+    assert response.status_code == status.HTTP_200_OK
+    assert response._headers['content-type'] == ('Content-Type', 'application/pdf')
+    assert response._headers['content-disposition'] == (
+        'Content-Disposition', f'filename="solicitacao_inversao_{id_externo}.pdf"')
+    assert 'PDF-1.5' in str(response.content)
+    assert isinstance(response.content, bytes)
+
+
 def test_url_endpoint_solicitacoes_inversao_inicio_fluxo_error(client_autenticado_vinculo_escola_cardapio,
                                                                inversao_dia_cardapio_dre_validar):
     assert str(inversao_dia_cardapio_dre_validar.status) == PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR
@@ -349,6 +363,20 @@ def test_url_endpoint_suspensoes_informa_error(client_autenticado_vinculo_escola
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json() == {'detail': "Erro de transição de estado: Transition 'informa' "
                                          "isn't available from state 'INFORMADO'."}
+
+
+def test_url_endpoint_suspensoes_relatorio(client_autenticado,
+                                           grupo_suspensao_alimentacao_informado):
+    response = client_autenticado.get(
+        f'/{ENDPOINT_SUSPENSOES}/{grupo_suspensao_alimentacao_informado.uuid}/{constants.RELATORIO}/'
+    )
+    id_externo = grupo_suspensao_alimentacao_informado.id_externo
+    assert response.status_code == status.HTTP_200_OK
+    assert response._headers['content-type'] == ('Content-Type', 'application/pdf')
+    assert response._headers['content-disposition'] == (
+        'Content-Disposition', f'filename="solicitacao_suspensao_{id_externo}.pdf"')
+    assert 'PDF-1.5' in str(response.content)
+    assert isinstance(response.content, bytes)
 
 
 def test_url_endpoint_suspensoes_terc_ciencia(client_autenticado_vinculo_terceirizada_cardapio,
@@ -639,6 +667,19 @@ def test_url_endpoint_alt_card_terceirizada_ciencia_error(client_autenticado_vin
     assert response.json() == {
         'detail': "Erro de transição de estado: Transition 'terceirizada_toma_ciencia'"
                   " isn't available from state 'RASCUNHO'."}
+
+
+def test_url_endpoint_alt_card_relatorio(client_autenticado, alteracao_cardapio):
+    response = client_autenticado.get(
+        f'/{ENDPOINT_ALTERACAO_CARD}/{alteracao_cardapio.uuid}/{constants.RELATORIO}/'
+    )
+    id_externo = alteracao_cardapio.id_externo
+    assert response.status_code == status.HTTP_200_OK
+    assert response._headers['content-type'] == ('Content-Type', 'application/pdf')
+    assert response._headers['content-disposition'] == (
+        'Content-Disposition', f'filename="alteracao_cardapio_{id_externo}.pdf"')
+    assert 'PDF-1.5' in str(response.content)
+    assert isinstance(response.content, bytes)
 
 
 def test_url_endpoint_get_vinculos_tipo_alimentacao(client_autenticado_vinculo_escola, vinculo_tipo_alimentacao):
