@@ -351,6 +351,14 @@ def test_permissoes_suspensao_alimentacao_viewset(client_autenticado_vinculo_esc
     assert response.status_code == status.HTTP_204_NO_CONTENT
 
 
+def test_url_endpoint_suspensao_minhas_solicitacoes(client_autenticado_vinculo_escola_cardapio):
+    response = client_autenticado_vinculo_escola_cardapio.get(
+        f'/{ENDPOINT_SUSPENSOES}/meus_rascunhos/'
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()['results']) == 1
+
+
 def test_url_endpoint_suspensoes_informa(client_autenticado_vinculo_escola_cardapio, grupo_suspensao_alimentacao):
     assert str(grupo_suspensao_alimentacao.status) == InformativoPartindoDaEscolaWorkflow.RASCUNHO
     response = client_autenticado_vinculo_escola_cardapio.patch(
@@ -451,6 +459,14 @@ def test_permissoes_alteracao_cardapio_viewset(client_autenticado_vinculo_escola
         f'/{ENDPOINT_ALTERACAO_CARD}/{alteracao_cardapio.uuid}/'
     )
     assert response.status_code == status.HTTP_204_NO_CONTENT
+
+
+def test_url_endpoint_alteracao_minhas_solicitacoes(client_autenticado_vinculo_escola_cardapio):
+    response = client_autenticado_vinculo_escola_cardapio.get(
+        f'/{ENDPOINT_ALTERACAO_CARD}/{constants.SOLICITACOES_DO_USUARIO}/'
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()['results']) == 1
 
 
 def test_url_endpoint_alt_card_inicio_403(client_autenticado_vinculo_dre_cardapio,

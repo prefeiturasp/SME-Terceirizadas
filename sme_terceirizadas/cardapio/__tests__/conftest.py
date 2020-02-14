@@ -681,6 +681,17 @@ def client_autenticado_vinculo_escola_cardapio(client, django_user_model, escola
                rastro_escola=escola,
                rastro_dre=escola.diretoria_regional,
                status=PedidoAPartirDaEscolaWorkflow.RASCUNHO)
+    mommy.make(AlteracaoCardapio,
+               criado_por=user,
+               escola=escola,
+               data_inicial=datetime.date(2019, 10, 4),
+               data_final=datetime.date(2019, 12, 31),
+               rastro_escola=escola,
+               rastro_dre=escola.diretoria_regional)
+    mommy.make(GrupoSuspensaoAlimentacao,
+               criado_por=user,
+               escola=escola,
+               rastro_escola=escola)
     client.login(email=email, password=password)
     return client
 
