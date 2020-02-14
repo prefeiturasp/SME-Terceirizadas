@@ -4,10 +4,7 @@
     "pk": 1,
     "fields": {
       "nome": "lanche",
-      "uuid": "5d1304c8-77a8-4c96-badb-dd2e8c1b76d5",
-      "substituicoes": [
-        2
-      ]
+      "uuid": "5d1304c8-77a8-4c96-badb-dd2e8c1b76d5"
     }
   },
   {
@@ -15,11 +12,7 @@
     "pk": 2,
     "fields": {
       "nome": "refeição",
-      "uuid": "65f11f11-630b-4629-bb17-07c875c548f1",
-      "substituicoes": [
-        1,
-        3
-      ]
+      "uuid": "65f11f11-630b-4629-bb17-07c875c548f1"
     }
   },
   {
@@ -27,8 +20,7 @@
     "pk": 3,
     "fields": {
       "nome": "merenda seca",
-      "uuid": "c4255a14-85fd-412f-b35f-30828215e4d5",
-      "substituicoes": []
+      "uuid": "c4255a14-85fd-412f-b35f-30828215e4d5"
     }
   },
   {
@@ -36,11 +28,7 @@
     "pk": 4,
     "fields": {
       "nome": "sobremesa",
-      "uuid": "5aa2c32b-1df2-46b6-b2e7-514b885fa9a4",
-      "substituicoes": [
-        3,
-        1
-      ]
+      "uuid": "5aa2c32b-1df2-46b6-b2e7-514b885fa9a4"
     }
   }
 ]

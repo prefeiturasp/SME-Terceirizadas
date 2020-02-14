@@ -29,15 +29,7 @@ from ...models import (
 )
 
 
-class SubstituicoesTipoAlimentacaoSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = TipoAlimentacao
-        exclude = ('id',)
-
-
 class TipoAlimentacaoSerializer(serializers.ModelSerializer):
-    substituicoes = SubstituicoesTipoAlimentacaoSerializer(many=True)
-
     class Meta:
         model = TipoAlimentacao
         exclude = ('id',)
