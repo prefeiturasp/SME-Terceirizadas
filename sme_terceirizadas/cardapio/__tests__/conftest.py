@@ -662,7 +662,8 @@ def horario_combo_tipo_alimentacao(request, vinculo_tipo_alimentacao, escola_com
 
 
 @pytest.fixture
-def client_autenticado_vinculo_escola_cardapio(client, django_user_model, escola, template_mensagem_alteracao_cardapio):
+def client_autenticado_vinculo_escola_cardapio(client, django_user_model, escola, template_mensagem_alteracao_cardapio,
+                                               cardapio_valido2, cardapio_valido3):
     email = 'test@test.com'
     password = 'bar'
     user = django_user_model.objects.create_user(password=password, email=email,
@@ -671,6 +672,15 @@ def client_autenticado_vinculo_escola_cardapio(client, django_user_model, escola
     hoje = datetime.date.today()
     mommy.make('Vinculo', usuario=user, instituicao=escola, perfil=perfil_diretor,
                data_inicial=hoje, ativo=True)
+    mommy.make(InversaoCardapio,
+               cardapio_de=cardapio_valido2,
+               cardapio_para=cardapio_valido3,
+               criado_por=user,
+               criado_em=datetime.date(2019, 12, 12),
+               escola=escola,
+               rastro_escola=escola,
+               rastro_dre=escola.diretoria_regional,
+               status=PedidoAPartirDaEscolaWorkflow.RASCUNHO)
     client.login(email=email, password=password)
     return client
 
@@ -685,6 +695,7 @@ def client_autenticado_vinculo_dre_cardapio(client, django_user_model, escola, t
     hoje = datetime.date.today()
     mommy.make('Vinculo', usuario=user, instituicao=escola.diretoria_regional, perfil=perfil_cogestor,
                data_inicial=hoje, ativo=True)
+
     client.login(email=email, password=password)
     return client
 

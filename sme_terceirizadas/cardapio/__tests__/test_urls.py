@@ -55,6 +55,14 @@ def test_permissoes_inversao_cardapio_viewset(client_autenticado_vinculo_escola_
     assert response.status_code == status.HTTP_204_NO_CONTENT
 
 
+def test_url_endpoint_inversao_minhas_solicitacoes(client_autenticado_vinculo_escola_cardapio):
+    response = client_autenticado_vinculo_escola_cardapio.get(
+        f'/{ENDPOINT_INVERSOES}/{constants.SOLICITACOES_DO_USUARIO}/'
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()['results']) == 1
+
+
 def test_url_endpoint_solicitacoes_inversao_inicio_fluxo(client_autenticado_vinculo_escola_cardapio,
                                                          inversao_dia_cardapio):
     assert str(inversao_dia_cardapio.status) == PedidoAPartirDaEscolaWorkflow.RASCUNHO
