@@ -29,15 +29,7 @@ from ...models import (
 )
 
 
-class SubstituicoesTipoAlimentacaoSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = TipoAlimentacao
-        exclude = ('id',)
-
-
 class TipoAlimentacaoSerializer(serializers.ModelSerializer):
-    substituicoes = SubstituicoesTipoAlimentacaoSerializer(many=True)
-
     class Meta:
         model = TipoAlimentacao
         exclude = ('id',)
@@ -127,7 +119,7 @@ class CardapioSerializer(serializers.ModelSerializer):
 
 class InversaoCardapioSerializer(serializers.ModelSerializer):
     cardapio_de = CardapioSimplesSerializer()
-    cardapio_para = CardapioSimplesSerializer()
+    cardapio_para = CardapioSimplesSerializer
     escola = EscolaSimplesSerializer()
     id_externo = serializers.CharField()
     prioridade = serializers.CharField()
