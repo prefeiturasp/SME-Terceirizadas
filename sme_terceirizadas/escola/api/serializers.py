@@ -157,9 +157,14 @@ class EscolaListagemSimplissimaComDRESelializer(serializers.ModelSerializer):
 
 
 class EscolaSimplissimaSerializer(serializers.ModelSerializer):
+    lote = serializers.SerializerMethodField()
+
+    def get_lote(self, obj):
+        return f'{obj.lote.nome} - {obj.lote.iniciais}'
+
     class Meta:
         model = Escola
-        fields = ('uuid', 'nome')
+        fields = ('uuid', 'nome', 'codigo_eol', 'lote')
 
 
 class EscolaCompletaSerializer(serializers.ModelSerializer):
