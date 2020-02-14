@@ -7,7 +7,7 @@ from ...dados_comuns.utils import convert_base64_to_contentfile, convert_date_fo
 from ...dados_comuns.validators import deve_ser_no_passado
 from ...escola.models import Aluno
 from ..models import Anexo, SolicitacaoDietaEspecial
-from .validators import deve_ter_extensao_valida
+from .validators import AlunoSerializerValidator, deve_ter_extensao_valida
 
 
 class AnexoCreateSerializer(serializers.ModelSerializer):
@@ -42,7 +42,11 @@ class SolicitacaoDietaEspecialCreateSerializer(serializers.ModelSerializer):
         for value in ['codigo_eol', 'nome', 'data_nascimento']:
             if value not in aluno_json:
                 raise serializers.ValidationError(f'deve ter atributo {value}')
-        return aluno_json
+        validator = AlunoSerializerValidator(data=aluno_json)
+        if validator.is_valid():
+            return aluno_json
+        else:
+            raise serializers.ValidationError(f'{validator.errors}')
 
     def create(self, validated_data):
         validated_data['criado_por'] = self.context['request'].user
