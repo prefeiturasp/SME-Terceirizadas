@@ -32,7 +32,7 @@ from ...models import (
 class SubstituicoesTipoAlimentacaoSerializer(serializers.ModelSerializer):
     class Meta:
         model = TipoAlimentacao
-        exclude = ('id', 'substituicoes',)
+        exclude = ('id',)
 
 
 class TipoAlimentacaoSerializer(serializers.ModelSerializer):
