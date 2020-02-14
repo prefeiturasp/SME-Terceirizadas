@@ -119,7 +119,7 @@ class CardapioSerializer(serializers.ModelSerializer):
 
 class InversaoCardapioSerializer(serializers.ModelSerializer):
     cardapio_de = CardapioSimplesSerializer()
-    cardapio_para = CardapioSimplesSerializer
+    cardapio_para = CardapioSimplesSerializer()
     escola = EscolaSimplesSerializer()
     id_externo = serializers.CharField()
     prioridade = serializers.CharField()
