@@ -18,6 +18,7 @@ def validate_tipo_solicitacao(value):
 
 
 def validate_status(value):
+    value = value.replace('/', '')
     status_solicitacao = [MoldeConsolidado.STATUS_AUTORIZADOS, MoldeConsolidado.STATUS_NEGADOS,
                           MoldeConsolidado.STATUS_CANCELADOS, MoldeConsolidado.STATUS_PENDENTES,
                           MoldeConsolidado.STATUS_TODOS]
