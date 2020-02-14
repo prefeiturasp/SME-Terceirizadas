@@ -19,6 +19,7 @@ router.register('periodos-escolares', viewsets.PeriodoEscolarViewSet, basename='
 router.register('diretorias-regionais', viewsets.DiretoriaRegionalViewSet, basename='dres')
 router.register('diretorias-regionais-simplissima', viewsets.DiretoriaRegionalSimplissimaViewSet,
                 basename='dres-simplissima')
+router.register('lotes-simples', viewsets.LoteSimplesViewSet, basename='lotes-simples')
 router.register('lotes', viewsets.LoteViewSet, basename='lotes')
 router.register('tipos-gestao', viewsets.TipoGestaoViewSet, basename='tipos-gestao')
 router.register('subprefeituras', viewsets.SubprefeituraViewSet, basename='subprefeituras')

@@ -145,6 +145,19 @@ class CODAESolicitacoesViewSet(SolicitacoesViewSet):
 
     @action(detail=False,
             methods=['GET'],
+            url_path=f'{PENDENTES_AUTORIZACAO}/{FILTRO_PADRAO_PEDIDOS}/{TIPO_VISAO}')
+    def pendentes_autorizacao_secao_pendencias(self, request,
+                                               filtro_aplicado=SEM_FILTRO,
+                                               tipo_visao=TIPO_VISAO_SOLICITACOES):
+        usuario = request.user
+        diretoria_regional = usuario.vinculo_atual.instituicao
+        query_set = SolicitacoesCODAE.get_pendentes_autorizacao(dre_uuid=diretoria_regional.uuid,
+                                                                filtro=filtro_aplicado)
+        response = {'results': self._agrupa_por_tipo_visao(tipo_visao=tipo_visao, query_set=query_set)}
+        return Response(response)
+
+    @action(detail=False,
+            methods=['GET'],
             url_path=PENDENTES_AUTORIZACAO_DIETA_ESPECIAL,
             permission_classes=(UsuarioCODAEDietaEspecial,))
     def pendentes_autorizacao_dieta_especial(self, request):
