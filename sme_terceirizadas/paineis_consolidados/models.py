@@ -332,16 +332,30 @@ class SolicitacoesCODAE(MoldeConsolidado):
             criado_em__date__month=mes_passado.month,
         )
 
-        return dict(
-            total_autorizados=cls._conta_autorizados(query_set),
-            total_negados=cls._conta_negados(query_set),
-            total_cancelados=cls._conta_cancelados(query_set),
-            total_pendentes=cls._conta_pendentes(query_set),
+        tot_autorizados = cls._conta_autorizados(query_set)
+        tot_negados = cls._conta_negados(query_set)
+        tot_cancelados = cls._conta_cancelados(query_set)
+        tot_pendentes = cls._conta_pendentes(query_set)
+        total = tot_autorizados + tot_negados + tot_cancelados + tot_pendentes
 
-            total_autorizados_mes_passado=cls._conta_autorizados(query_set_mes_passado),
-            total_negados_mes_passado=cls._conta_negados(query_set_mes_passado),
-            total_cancelados_mes_passado=cls._conta_cancelados(query_set_mes_passado),
-            total_pendentes_mes_passado=cls._conta_pendentes(query_set_mes_passado)
+        tot_autorizados_mp = cls._conta_autorizados(query_set_mes_passado)
+        tot_negados_mp = cls._conta_negados(query_set_mes_passado)
+        tot_cancelados_mp = cls._conta_cancelados(query_set_mes_passado)
+        tot_pendentes_mp = cls._conta_pendentes(query_set_mes_passado)
+        total_mp = tot_autorizados_mp + tot_negados_mp + tot_cancelados_mp + tot_pendentes_mp
+
+        return dict(
+            total_autorizados=tot_autorizados,
+            total_negados=tot_negados,
+            total_cancelados=tot_cancelados,
+            total_pendentes=tot_pendentes,
+            total_mes_atual=total,
+
+            total_autorizados_mes_passado=tot_autorizados_mp,
+            total_negados_mes_passado=tot_negados_mp,
+            total_cancelados_mes_passado=tot_cancelados_mp,
+            total_pendentes_mes_passado=tot_pendentes_mp,
+            total_mes_passado=total_mp,
         )
 
 

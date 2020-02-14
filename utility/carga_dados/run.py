@@ -5,3 +5,4 @@ from utility.carga_dados.escola import (
     _7_diretor_escola
 )
 
+from utility.carga_dados._2_cardapio import (_1_cardapios, _2_todas_as_solicitacoes)
