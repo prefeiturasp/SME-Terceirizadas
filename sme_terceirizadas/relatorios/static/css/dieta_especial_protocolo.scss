@@ -21,6 +21,17 @@
     border-top: 1px solid $cinza-escuro;
     border-bottom: 1px solid $cinza-escuro;
   }
+  thead{
+    th:nth-child(1) {
+      width: 40%;
+    }
+    th:nth-child(2) {
+      width: 20%;
+    }
+    th:nth-child(3) {
+      width: 40%;
+    }
+  }
 }
 
 .tabela-dados-solicitacao {
