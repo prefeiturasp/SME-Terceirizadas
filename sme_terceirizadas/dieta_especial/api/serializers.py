@@ -87,6 +87,7 @@ class SolicitacaoDietaEspecialAutorizarSerializer(SolicitacaoDietaEspecialCreate
         instance.classificacao_id = validated_data['classificacao']
         instance.registro_funcional_nutricionista = validated_data['registro_funcional_nutricionista']
         instance.informacoes_adicionais = validated_data.get('informacoes_adicionais', '')
+        instance.nome_protocolo = validated_data.get('nome_protocolo', '')
         instance.ativo = True
 
         instance.alergias_intolerancias.all().delete()
