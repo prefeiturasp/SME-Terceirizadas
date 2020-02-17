@@ -176,8 +176,9 @@ def test_resumo_mes_dre(solicitacoes_ano_dre):
         f'/diretoria-regional-solicitacoes/{RESUMO_MES}/')
     assert response.status_code == status.HTTP_200_OK
     assert response.json() == {'total_autorizados': 0, 'total_negados': 0, 'total_cancelados': 0, 'total_pendentes': 2,
-                               'total_autorizados_mes_passado': 0, 'total_negados_mes_passado': 1,
-                               'total_cancelados_mes_passado': 0, 'total_pendentes_mes_passado': 2}
+                               'total_mes_atual': 2, 'total_autorizados_mes_passado': 0, 'total_negados_mes_passado': 1,
+                               'total_cancelados_mes_passado': 0, 'total_pendentes_mes_passado': 2,
+                               'total_mes_passado': 3}
 
 
 @freeze_time('2019-02-11')
