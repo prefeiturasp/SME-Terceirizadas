@@ -201,6 +201,32 @@ class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmiga
             status_atual__in=cls.PENDENTES_STATUS
         ).distinct('uuid').count()
 
+    @classmethod
+    def _conta_totais(cls, query_set, query_set_mes_passado):
+        tot_autorizados = cls._conta_autorizados(query_set)
+        tot_negados = cls._conta_negados(query_set)
+        tot_cancelados = cls._conta_cancelados(query_set)
+        tot_pendentes = cls._conta_pendentes(query_set)
+        total = tot_autorizados + tot_negados + tot_cancelados + tot_pendentes
+        tot_autorizados_mp = cls._conta_autorizados(query_set_mes_passado)
+        tot_negados_mp = cls._conta_negados(query_set_mes_passado)
+        tot_cancelados_mp = cls._conta_cancelados(query_set_mes_passado)
+        tot_pendentes_mp = cls._conta_pendentes(query_set_mes_passado)
+        total_mp = tot_autorizados_mp + tot_negados_mp + tot_cancelados_mp + tot_pendentes_mp
+        return dict(
+            total_autorizados=tot_autorizados,
+            total_negados=tot_negados,
+            total_cancelados=tot_cancelados,
+            total_pendentes=tot_pendentes,
+            total_mes_atual=total,
+
+            total_autorizados_mes_passado=tot_autorizados_mp,
+            total_negados_mes_passado=tot_negados_mp,
+            total_cancelados_mes_passado=tot_cancelados_mp,
+            total_pendentes_mes_passado=tot_pendentes_mp,
+            total_mes_passado=total_mp,
+        )
+
     class Meta:
         managed = False
         db_table = 'solicitacoes_consolidadas'
@@ -332,31 +358,7 @@ class SolicitacoesCODAE(MoldeConsolidado):
             criado_em__date__month=mes_passado.month,
         )
 
-        tot_autorizados = cls._conta_autorizados(query_set)
-        tot_negados = cls._conta_negados(query_set)
-        tot_cancelados = cls._conta_cancelados(query_set)
-        tot_pendentes = cls._conta_pendentes(query_set)
-        total = tot_autorizados + tot_negados + tot_cancelados + tot_pendentes
-
-        tot_autorizados_mp = cls._conta_autorizados(query_set_mes_passado)
-        tot_negados_mp = cls._conta_negados(query_set_mes_passado)
-        tot_cancelados_mp = cls._conta_cancelados(query_set_mes_passado)
-        tot_pendentes_mp = cls._conta_pendentes(query_set_mes_passado)
-        total_mp = tot_autorizados_mp + tot_negados_mp + tot_cancelados_mp + tot_pendentes_mp
-
-        return dict(
-            total_autorizados=tot_autorizados,
-            total_negados=tot_negados,
-            total_cancelados=tot_cancelados,
-            total_pendentes=tot_pendentes,
-            total_mes_atual=total,
-
-            total_autorizados_mes_passado=tot_autorizados_mp,
-            total_negados_mes_passado=tot_negados_mp,
-            total_cancelados_mes_passado=tot_cancelados_mp,
-            total_pendentes_mes_passado=tot_pendentes_mp,
-            total_mes_passado=total_mp,
-        )
+        return cls._conta_totais(query_set, query_set_mes_passado)
 
 
 class SolicitacoesEscola(MoldeConsolidado):
@@ -514,17 +516,7 @@ class SolicitacoesEscola(MoldeConsolidado):
 
         )
 
-        return dict(
-            total_autorizados=cls._conta_autorizados(query_set),
-            total_negados=cls._conta_negados(query_set),
-            total_cancelados=cls._conta_cancelados(query_set),
-            total_pendentes=cls._conta_pendentes(query_set),
-
-            total_autorizados_mes_passado=cls._conta_autorizados(query_set_mes_passado),
-            total_negados_mes_passado=cls._conta_negados(query_set_mes_passado),
-            total_cancelados_mes_passado=cls._conta_cancelados(query_set_mes_passado),
-            total_pendentes_mes_passado=cls._conta_pendentes(query_set_mes_passado)
-        )
+        return cls._conta_totais(query_set, query_set_mes_passado)
 
 
 class SolicitacoesDRE(MoldeConsolidado):
@@ -691,17 +683,8 @@ class SolicitacoesDRE(MoldeConsolidado):
             criado_em__date__month=mes_passado.month,
 
         ).distinct('uuid')
-        return dict(
-            total_autorizados=cls._conta_autorizados(query_set),
-            total_negados=cls._conta_negados(query_set),
-            total_cancelados=cls._conta_cancelados(query_set),
-            total_pendentes=cls._conta_pendentes(query_set),
 
-            total_autorizados_mes_passado=cls._conta_autorizados(query_set_mes_passado),
-            total_negados_mes_passado=cls._conta_negados(query_set_mes_passado),
-            total_cancelados_mes_passado=cls._conta_cancelados(query_set_mes_passado),
-            total_pendentes_mes_passado=cls._conta_pendentes(query_set_mes_passado)
-        )
+        return cls._conta_totais(query_set, query_set_mes_passado)
 
 
 # TODO: voltar quando tiver o Rastro implementado
