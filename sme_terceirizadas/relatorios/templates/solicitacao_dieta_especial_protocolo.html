@@ -44,13 +44,21 @@
       <thead>
         <tr>
           <th>Alimento</th>
-          <th>Substituto</th>
+          <th>Tipo</th>
+          <th>Isenção/Substituição</th>
         </tr>
       </thead>
       <tbody>
         {% for substituicao in solicitacao.substituicoes %}
           <tr>
             <td>{{ substituicao.alimento }}</td>
+            <td className="tipo">
+              {% if substituicao.tipo == 'I' %}
+                Isenção
+              {% elif substituicao.tipo == 'S' %}
+                Substituição
+              {% endif %}
+            </td>
             <td>
               {% for substituto in substituicao.substitutos.all %}
                 {{ substituto.nome }}
