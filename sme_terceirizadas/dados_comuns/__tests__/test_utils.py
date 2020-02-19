@@ -1,4 +1,5 @@
 from datetime import date
+
 import environ
 from freezegun import freeze_time
 

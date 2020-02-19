@@ -119,7 +119,7 @@ def faixas_etarias():
 
 # Data referencia = 2019-06-20
 @pytest.fixture(params=[
-    #(data, faixa, data_pertence_a_faixa)
+    # (data, faixa, data_pertence_a_faixa) E800 noqa
     (datetime.date(2019, 6, 15), 0, 1, True),
     (datetime.date(2019, 6, 20), 0, 1, False),
     (datetime.date(2019, 5, 20), 0, 1, True),

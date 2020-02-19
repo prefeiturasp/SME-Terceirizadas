@@ -93,7 +93,7 @@ def subtrai_meses_de_data(meses, data):
     if data.month < sub_meses:
         return datetime.date(
             data.year - (sub_anos + 1),
-            12 - (sub_meses - data.month ),
+            12 - (sub_meses - data.month),
             data.day
         )
     return datetime.date(
@@ -101,4 +101,3 @@ def subtrai_meses_de_data(meses, data):
         data.month - sub_meses,
         data.day
     )
-

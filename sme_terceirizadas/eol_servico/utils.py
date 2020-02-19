@@ -70,12 +70,11 @@ class EOLService(object):
         else:
             raise EOLException(f'API EOL com erro. Status: {response.status_code}')
 
-
     @classmethod
     def get_informacoes_escola_turma_aluno(cls, codigo_eol):
-        """Retorna uma lista de alunos da escola, com as seguintes informações:
+        """Retorna uma lista de alunos da escola.
 
-        A api do EOL retorna assim:
+        Exemplo de retorno:
         [
             {
                 "cod_dre": "109300",

@@ -1,5 +1,5 @@
-from datetime import date, timedelta
 import logging
+from datetime import date
 
 from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 from django.core.validators import MinLengthValidator
@@ -623,7 +623,8 @@ class FaixaEtaria(Ativavel, TemChaveExterna):
     inicio = models.PositiveSmallIntegerField()
     fim = models.PositiveSmallIntegerField()
 
-    def data_pertence_a_faixa(self, data_pesquisada, data_referencia=date.today()):
+    def data_pertence_a_faixa(self, data_pesquisada, data_referencia_arg=None):
+        data_referencia = date.today() if data_referencia_arg is None else data_referencia_arg
         data_inicio = subtrai_meses_de_data(self.fim, data_referencia)
         data_fim = subtrai_meses_de_data(self.inicio, data_referencia)
         return data_inicio <= data_pesquisada < data_fim
