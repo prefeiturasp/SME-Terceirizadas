@@ -255,3 +255,37 @@ class GrupoInclusaoAlimentacaoNormal(ExportModelOperationsMixin('grupo_inclusao'
     class Meta:
         verbose_name = 'Grupo de inclusão de alimentação normal'
         verbose_name_plural = 'Grupos de inclusão de alimentação normal'
+
+
+class InclusaoAlimentacaoDaCEI(Descritivel, TemData, TemChaveExterna, FluxoAprovacaoPartindoDaEscola, CriadoEm,
+                               SolicitacaoForaDoPrazo, CriadoPor, TemIdentificadorExternoAmigavel, Logs, TemPrioridade):
+    DESCRICAO = 'Inclusão de Alimentação Por CEI'
+
+    escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING,
+                               related_name='grupos_inclusoes_por_cei')
+    motivo = models.ForeignKey(MotivoInclusaoNormal, on_delete=models.DO_NOTHING)
+    periodo_escolar = models.ForeignKey('escola.PeriodoEscolar', on_delete=models.DO_NOTHING)
+    tipos_alimentacao = models.ManyToManyField('cardapio.ComboDoVinculoTipoAlimentacaoPeriodoTipoUE')
+
+    objects = models.Manager()  # Manager Padrão
+
+    def __str__(self):
+        return f'Inclusao da CEI cód: {self.id_externo}'
+
+    class Meta:
+        verbose_name = 'Inclusão de alimentação da CEI'
+        verbose_name_plural = 'Inclusões de alimentação da CEI'
+
+
+class QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEI(TemChaveExterna):
+    inclusao_alimentacao_da_cei = models.ForeignKey(InclusaoAlimentacaoDaCEI, on_delete=models.DO_NOTHING,
+                                                    related_name='quantidade_alunos_da_inclusao')
+    faixa_etaria = models.ForeignKey('escola.FaixaEtaria', on_delete=models.DO_NOTHING)
+    quantidade_alunos = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)])
+
+    def __str__(self):
+        return f'De: {self.faixa_etaria.inicio} até: {self.faixa_etaria.fim} meses - {self.quantidade_alunos} alunos'
+
+    class Meta:
+        verbose_name = 'Quantidade de alunos por faixa etária da inclusao de alimentação'
+        verbose_name_plural = 'Quantidade de alunos por faixa etária da inclusao de alimentação'
