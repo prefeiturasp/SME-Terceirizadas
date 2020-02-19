@@ -17,10 +17,22 @@ from ...relatorios.relatorios import relatorio_inclusao_alimentacao_continua, re
 from ..models import (
     GrupoInclusaoAlimentacaoNormal,
     InclusaoAlimentacaoContinua,
+    InclusaoAlimentacaoDaCEI,
     MotivoInclusaoContinua,
     MotivoInclusaoNormal
 )
 from .serializers import serializers, serializers_create
+
+
+class InclusaoAlimentacaoDaCEIViewSet(ModelViewSet):
+    lookup_field = 'uuid'
+    queryset = InclusaoAlimentacaoDaCEI.objects.all()
+    serializer_class = serializers.InclusaoAlimentacaoDaCEISerializer
+
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update']:
+            return serializers_create.GrupoInclusaoAlimentacaoNormalCreationSerializer
+        return serializers.InclusaoAlimentacaoDaCEISerializer
 
 
 class MotivoInclusaoContinuaViewSet(ReadOnlyModelViewSet):

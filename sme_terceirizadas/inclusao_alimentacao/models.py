@@ -269,6 +269,10 @@ class InclusaoAlimentacaoDaCEI(Descritivel, TemData, TemChaveExterna, FluxoAprov
 
     objects = models.Manager()  # Manager Padrão
 
+    @property
+    def faixas_etarias(self):
+        return self.quantidade_alunos_da_inclusao
+
     def __str__(self):
         return f'Inclusao da CEI cód: {self.id_externo}'
 
