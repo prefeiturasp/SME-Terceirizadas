@@ -1,3 +1,4 @@
+from datetime import date, timedelta
 import logging
 
 from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
@@ -25,7 +26,7 @@ from ..dados_comuns.constants import (
     DIRETOR,
     SUPLENTE
 )
-from ..dados_comuns.utils import queryset_por_data
+from ..dados_comuns.utils import queryset_por_data, subtrai_meses_de_data
 from ..escola.constants import PERIODOS_ESPECIAIS_CEI_CEU_CCI
 from ..inclusao_alimentacao.models import GrupoInclusaoAlimentacaoNormal, InclusaoAlimentacaoContinua
 from ..kit_lanche.models import SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheUnificada
@@ -621,6 +622,11 @@ class Aluno(TemChaveExterna):
 class FaixaEtaria(Ativavel, TemChaveExterna):
     inicio = models.PositiveSmallIntegerField()
     fim = models.PositiveSmallIntegerField()
+
+    def data_pertence_a_faixa(self, data_pesquisada, data_referencia=date.today()):
+        data_inicio = subtrai_meses_de_data(self.fim, data_referencia)
+        data_fim = subtrai_meses_de_data(self.inicio, data_referencia)
+        return data_inicio <= data_pesquisada < data_fim
 
 
 class MudancaFaixasEtarias(Justificativa, TemChaveExterna):

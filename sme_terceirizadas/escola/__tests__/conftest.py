@@ -115,3 +115,19 @@ def client_autenticado_coordenador_codae(client, django_user_model):
 @pytest.fixture
 def faixas_etarias():
     return mommy.make('FaixaEtaria', _quantity=8) + mommy.make('FaixaEtaria', ativo=False, _quantity=8)
+
+
+# Data referencia = 2019-06-20
+@pytest.fixture(params=[
+    #(data, faixa, data_pertence_a_faixa)
+    (datetime.date(2019, 6, 15), 0, 1, True),
+    (datetime.date(2019, 6, 20), 0, 1, False),
+    (datetime.date(2019, 5, 20), 0, 1, True),
+    (datetime.date(2019, 5, 19), 0, 1, False),
+    (datetime.date(2019, 4, 20), 0, 1, False),
+    (datetime.date(2019, 4, 20), 1, 3, True),
+    (datetime.date(2019, 2, 10), 1, 3, False),
+])
+def datas_e_faixas(request):
+    (data, inicio_faixa, fim_faixa, eh_pertencente) = request.param
+    return (data, mommy.make('FaixaEtaria', inicio=inicio_faixa, fim=fim_faixa, ativo=True), eh_pertencente)
