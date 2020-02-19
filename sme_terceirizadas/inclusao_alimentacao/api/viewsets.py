@@ -31,7 +31,7 @@ class InclusaoAlimentacaoDaCEIViewSet(ModelViewSet):
 
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update']:
-            return serializers_create.GrupoInclusaoAlimentacaoNormalCreationSerializer
+            return serializers_create.InclusaoAlimentacaoDaCEICreateSerializer
         return serializers.InclusaoAlimentacaoDaCEISerializer
 
 

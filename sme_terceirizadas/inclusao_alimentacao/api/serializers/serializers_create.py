@@ -8,11 +8,46 @@ from ....escola.models import Escola, PeriodoEscolar
 from ...models import (
     GrupoInclusaoAlimentacaoNormal,
     InclusaoAlimentacaoContinua,
+    InclusaoAlimentacaoDaCEI,
     InclusaoAlimentacaoNormal,
     MotivoInclusaoContinua,
     MotivoInclusaoNormal,
+    QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEI,
     QuantidadePorPeriodo
 )
+
+
+class QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEISerializer(serializers.ModelSerializer):
+    class Meta:
+        model = QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEI
+        exclude = ('id',)
+
+
+class InclusaoAlimentacaoDaCEICreateSerializer(serializers.ModelSerializer):
+    escola = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=Escola.objects.all())
+
+    periodo_escolar = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=PeriodoEscolar.objects.all())
+
+    tipos_alimentacao = serializers.SlugRelatedField(
+        slug_field='uuid',
+        many=True,
+        required=True,
+        queryset=ComboDoVinculoTipoAlimentacaoPeriodoTipoUE.objects.all())
+
+    motivo = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=MotivoInclusaoNormal.objects.all())
+
+    class Meta:
+        model = InclusaoAlimentacaoDaCEI
+        exclude = ('id',)
 
 
 class MotivoInclusaoContinuaSerializer(serializers.ModelSerializer):

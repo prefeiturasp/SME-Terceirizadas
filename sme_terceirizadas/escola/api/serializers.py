@@ -14,6 +14,7 @@ from ..models import (
     DiretoriaRegional,
     Escola,
     EscolaPeriodoEscolar,
+    FaixaEtaria,
     FaixaIdadeEscolar,
     Lote,
     PeriodoEscolar,
@@ -23,6 +24,12 @@ from ..models import (
 )
 
 
+class FaixaEtariaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FaixaEtaria
+        exclude = ('id', 'ativo')
+
+
 class SubsticuicoesTipoAlimentacaoSerializer(serializers.ModelSerializer):
     class Meta:
         model = TipoAlimentacao
@@ -30,7 +37,6 @@ class SubsticuicoesTipoAlimentacaoSerializer(serializers.ModelSerializer):
 
 
 class TipoAlimentacaoSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = TipoAlimentacao
         exclude = ('id',)

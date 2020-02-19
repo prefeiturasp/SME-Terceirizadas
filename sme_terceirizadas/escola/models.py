@@ -618,10 +618,10 @@ class Aluno(TemChaveExterna):
         verbose_name_plural = 'Alunos'
 
 
-class FaixaEtaria(Ativavel):
+class FaixaEtaria(Ativavel, TemChaveExterna):
     inicio = models.PositiveSmallIntegerField()
     fim = models.PositiveSmallIntegerField()
 
 
-class MudancaFaixasEtarias(Justificativa):
+class MudancaFaixasEtarias(Justificativa, TemChaveExterna):
     faixas_etarias_ativadas = models.ManyToManyField(FaixaEtaria)

@@ -1,12 +1,16 @@
 from rest_framework import serializers
 
-from .utils import monta_label_de_faixa_etaria
-
-from ....cardapio.api.serializers.serializers import CombosVinculoTipoAlimentoSimplesSerializer, \
+from ....cardapio.api.serializers.serializers import (
+    CombosVinculoTipoAlimentoSimplesSerializer,
     CombosVinculoTipoAlimentoSimplissimaSerializer
+)
 from ....dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
-from ....escola.api.serializers import EscolaSimplesSerializer, PeriodoEscolarSerializer, \
-    PeriodoEscolarSimplesSerializer, EscolaListagemSimplesSelializer
+from ....escola.api.serializers import (
+    EscolaSimplesSerializer,
+    FaixaEtariaSerializer,
+    PeriodoEscolarSerializer,
+    PeriodoEscolarSimplesSerializer
+)
 from ....inclusao_alimentacao.models import (
     GrupoInclusaoAlimentacaoNormal,
     InclusaoAlimentacaoContinua,
@@ -32,22 +36,19 @@ class MotivoInclusaoNormalSerializer(serializers.ModelSerializer):
 
 
 class QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEISerializer(serializers.ModelSerializer):
-    label = serializers.SerializerMethodField()
-
-    def get_label(self, obj):
-        faixa_etaria = obj.faixa_etaria
-        return monta_label_de_faixa_etaria(faixa_etaria.inicio, faixa_etaria.fim)
+    faixa_etaria = FaixaEtariaSerializer()
 
     class Meta:
         model = QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEI
-        exclude = ('id', 'inclusao_alimentacao_da_cei', 'faixa_etaria')
+        exclude = ('id', 'inclusao_alimentacao_da_cei')
 
 
 class InclusaoAlimentacaoDaCEISerializer(serializers.ModelSerializer):
     periodo_escolar = PeriodoEscolarSimplesSerializer()
     tipos_alimentacao = CombosVinculoTipoAlimentoSimplissimaSerializer(many=True, read_only=True)
     motivo = MotivoInclusaoNormalSerializer()
-    faixas_etarias = QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEISerializer(many=True, read_only=True)
+    quantidade_alunos_por_faixas_etarias = QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEISerializer(
+        many=True, read_only=True)
 
     class Meta:
         model = InclusaoAlimentacaoDaCEI
