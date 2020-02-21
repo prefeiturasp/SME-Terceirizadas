@@ -1,4 +1,6 @@
 import logging
+from collections import Counter
+from datetime import date
 
 from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 from django.core.validators import MinLengthValidator
@@ -25,7 +27,8 @@ from ..dados_comuns.constants import (
     DIRETOR,
     SUPLENTE
 )
-from ..dados_comuns.utils import queryset_por_data
+from ..dados_comuns.utils import queryset_por_data, subtrai_meses_de_data
+from ..eol_servico.utils import EOLService, dt_nascimento_from_api
 from ..escola.constants import PERIODOS_ESPECIAIS_CEI_CEU_CCI
 from ..inclusao_alimentacao.models import GrupoInclusaoAlimentacaoNormal, InclusaoAlimentacaoContinua
 from ..kit_lanche.models import SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheUnificada
@@ -350,6 +353,34 @@ class EscolaPeriodoEscolar(ExportModelOperationsMixin('escola_periodo'), Ativave
 
         return f'Escola {self.escola.nome} no periodo da {periodo_nome} tem {self.quantidade_alunos} alunos'
 
+    def alunos_por_faixa_etaria(self, data_referencia):  # noqa C901
+        """
+        Calcula quantos alunos existem em cada faixa etaria nesse período.
+
+        Retorna um collections.Counter, onde as chaves são o uuid das faixas etárias
+        e os valores os totais de alunos. Exemplo:
+        {
+            'asdf-1234': 25,
+            'qwer-5678': 42,
+            'zxcv-4567': 16
+        }
+        """
+        faixas_etarias = FaixaEtaria.objects.filter(ativo=True)
+        if faixas_etarias.count() == 0:
+            raise ObjectDoesNotExist()
+        lista_alunos = EOLService.get_informacoes_escola_turma_aluno(
+            self.escola.codigo_eol
+        )
+        faixa_alunos = Counter()
+        for aluno in lista_alunos:
+            if aluno['dc_tipo_turno'].strip().upper() == self.periodo_escolar.nome:
+                data_nascimento = dt_nascimento_from_api(aluno['dt_nascimento_aluno'])
+                for faixa_etaria in faixas_etarias:
+                    if faixa_etaria.data_pertence_a_faixa(data_nascimento, data_referencia):
+                        faixa_alunos[faixa_etaria.uuid] += 1
+
+        return faixa_alunos
+
     class Meta:
         verbose_name = 'Escola com período escolar'
         verbose_name_plural = 'Escola com períodos escolares'
@@ -621,6 +652,12 @@ class Aluno(TemChaveExterna):
 class FaixaEtaria(Ativavel, TemChaveExterna):
     inicio = models.PositiveSmallIntegerField()
     fim = models.PositiveSmallIntegerField()
+
+    def data_pertence_a_faixa(self, data_pesquisada, data_referencia_arg=None):
+        data_referencia = date.today() if data_referencia_arg is None else data_referencia_arg
+        data_inicio = subtrai_meses_de_data(self.fim, data_referencia)
+        data_fim = subtrai_meses_de_data(self.inicio, data_referencia)
+        return data_inicio <= data_pesquisada < data_fim
 
 
 class MudancaFaixasEtarias(Justificativa, TemChaveExterna):

@@ -109,3 +109,16 @@ def test_sub_prefeitura(sub_prefeitura):
 
 def test_aluno(aluno):
     assert aluno.__str__() == 'Fulano da Silva - 000001'
+
+
+@freeze_time('2019-06-20')
+def test_data_pertence_faixa_etaria_hoje(datas_e_faixas):
+    (data, faixa_etaria, eh_pertencente) = datas_e_faixas
+    assert faixa_etaria.data_pertence_a_faixa(data, datetime.date.today()) == eh_pertencente
+
+
+def test_escola_periodo_escolar_alunos_por_faixa_etaria(faixas_etarias,
+                                                        escola_periodo_escolar,
+                                                        eolservice_get_informacoes_escola_turma_aluno):
+    faixas_alunos = escola_periodo_escolar.alunos_por_faixa_etaria(datetime.date(2020, 10, 25))
+    assert [i for i in faixas_alunos.values()] == [94, 18, 26]

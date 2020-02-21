@@ -1,9 +1,11 @@
 import datetime
+import json
 
 import pytest
 from faker import Faker
 from model_mommy import mommy
 
+from ...eol_servico.utils import EOLService
 from ...escola.api.serializers import EscolaSimplissimaSerializer, VinculoInstituicaoSerializer
 from ...perfil.models import Vinculo
 from .. import models
@@ -67,7 +69,12 @@ def codae(escola):
 
 @pytest.fixture
 def periodo_escolar():
-    return mommy.make(models.PeriodoEscolar)
+    return mommy.make(models.PeriodoEscolar, nome='INTEGRAL')
+
+
+@pytest.fixture
+def escola_periodo_escolar(periodo_escolar):
+    return mommy.make(models.EscolaPeriodoEscolar, periodo_escolar=periodo_escolar)
 
 
 @pytest.fixture
@@ -113,5 +120,46 @@ def client_autenticado_coordenador_codae(client, django_user_model):
 
 
 @pytest.fixture
-def faixas_etarias():
-    return mommy.make('FaixaEtaria', _quantity=8) + mommy.make('FaixaEtaria', ativo=False, _quantity=8)
+def faixas_etarias_ativas():
+    faixas = [
+        (0, 1),
+        (1, 4),
+        (4, 6),
+        (6, 8),
+        (8, 12),
+        (12, 24),
+        (24, 48),
+        (48, 72),
+    ]
+    return [mommy.make('FaixaEtaria', inicio=inicio, fim=fim, ativo=True) for (inicio, fim) in faixas]
+
+
+@pytest.fixture
+def faixas_etarias(faixas_etarias_ativas):
+    return faixas_etarias_ativas + mommy.make('FaixaEtaria', ativo=False, _quantity=8)
+
+
+# Data referencia = 2019-06-20
+@pytest.fixture(params=[
+    # (data, faixa, data_pertence_a_faixa) E800 noqa
+    (datetime.date(2019, 6, 15), 0, 1, True),
+    (datetime.date(2019, 6, 20), 0, 1, False),
+    (datetime.date(2019, 5, 20), 0, 1, True),
+    (datetime.date(2019, 5, 19), 0, 1, False),
+    (datetime.date(2019, 4, 20), 0, 1, False),
+    (datetime.date(2019, 4, 20), 1, 3, True),
+    (datetime.date(2019, 2, 10), 1, 3, False),
+])
+def datas_e_faixas(request):
+    (data, inicio_faixa, fim_faixa, eh_pertencente) = request.param
+    return (data, mommy.make('FaixaEtaria', inicio=inicio_faixa, fim=fim_faixa, ativo=True), eh_pertencente)
+
+
+@pytest.fixture
+def eolservice_get_informacoes_escola_turma_aluno(monkeypatch):
+    js = json.load(open('sme_terceirizadas/escola/__tests__/massa_eolservice_get_informacoes_escola_turma_aluno.json'))
+    return monkeypatch.setattr(
+        EOLService,
+        'get_informacoes_escola_turma_aluno',
+        lambda x: js['results']
+    )
