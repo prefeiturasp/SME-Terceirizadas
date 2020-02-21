@@ -37,10 +37,19 @@ def test_url_endpoint_alunos_por_faixa_etaria_data_invalida(client_autenticado, 
     assert json['data_referencia'][0] == 'Informe uma data válida.'
 
 
-def test_url_endpoint_alunos_por_faixa_etaria_data_valida(client_autenticado, escola_periodo_escolar):
+def test_url_endpoint_alunos_por_faixa_etaria_faixas_nao_cadastradas(client_autenticado, escola_periodo_escolar):
     url = f'/quantidade-alunos-por-periodo/{escola_periodo_escolar.uuid}/alunos-por-faixa-etaria/2020-10-20/'
     response = client_autenticado.get(url)
     assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+    assert response.json()['detail'] == 'Não há faixas etárias cadastradas. Contate a coordenadoria CODAE.'
+
+
+def test_url_endpoint_alunos_por_faixa_etaria_periodo_invalido(client_autenticado,
+                                                               escola_periodo_escolar,
+                                                               faixas_etarias):
+    url = f'/quantidade-alunos-por-periodo/sou-um-uuid-invalido/alunos-por-faixa-etaria/2020-10-20/'
+    response = client_autenticado.get(url)
+    assert response.status_code == status.HTTP_404_NOT_FOUND
 
 
 def test_url_endpoint_cria_mudanca_faixa_etaria(client_autenticado_coordenador_codae):

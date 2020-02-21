@@ -1,5 +1,4 @@
-from collections import Counter
-
+from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import serializers, status
 from rest_framework.decorators import action
 from rest_framework.mixins import CreateModelMixin, ListModelMixin
@@ -11,7 +10,6 @@ from ...dados_comuns.constants import (
     ADMINISTRADOR_ESCOLA,
     ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA
 )
-from ...eol_servico.utils import EOLService, dt_nascimento_from_api
 from ...escola.api.permissions import (
     PodeCriarAdministradoresDaCODAEGestaoAlimentacaoTerceirizada,
     PodeCriarAdministradoresDaDiretoriaRegional,
@@ -280,33 +278,22 @@ class EscolaPeriodoEscolarViewSet(ModelViewSet):
         if not form.is_valid():
             return Response(form.errors)
 
-        faixas_etarias = FaixaEtaria.objects.filter(ativo=True)
-        if faixas_etarias.count() == 0:
+        escola_periodo = self.get_object()
+        data_referencia = form.cleaned_data['data_referencia']
+
+        try:
+            faixa_alunos = escola_periodo.alunos_por_faixa_etaria(data_referencia)
+        except ObjectDoesNotExist:
             return Response(
-                'Não há faixas etárias cadastradas. Contate a coordenadoria CODAE.',
+                {'detail': 'Não há faixas etárias cadastradas. Contate a coordenadoria CODAE.'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
-        escola_periodo = self.get_object()
-        periodo = escola_periodo.periodo_escolar.nome
-        lista_alunos = EOLService.get_informacoes_escola_turma_aluno(
-            escola_periodo.escola.codigo_eol
-        )
-        data_referencia = form.cleaned_data['data_referencia']
-
-        faixa_alunos = Counter()
-        for aluno in lista_alunos:
-            if aluno['dc_tipo_turno'].strip().upper() == periodo:
-                data_nascimento = dt_nascimento_from_api(aluno['dt_nascimento_aluno'])
-                for faixa_etaria in faixas_etarias:
-                    if faixa_etaria.data_pertence_a_faixa(data_nascimento, data_referencia):
-                        faixa_alunos[faixa_etaria.id] += 1
-
         results = []
-        for id_faixa_etaria in faixa_alunos:
+        for uuid_faixa_etaria in faixa_alunos:
             results.append({
-                'faixa_etaria': FaixaEtariaSerializer(faixas_etarias.get(id=id_faixa_etaria)).data,
-                'count': faixa_alunos[id_faixa_etaria]
+                'faixa_etaria': FaixaEtariaSerializer(FaixaEtaria.objects.get(uuid=uuid_faixa_etaria)).data,
+                'count': faixa_alunos[uuid_faixa_etaria]
             })
 
         return Response({
