@@ -71,6 +71,11 @@ def periodo_escolar():
 
 
 @pytest.fixture
+def escola_periodo_escolar():
+    return mommy.make(models.EscolaPeriodoEscolar)
+
+
+@pytest.fixture
 def sub_prefeitura():
     return mommy.make(models.Subprefeitura)
 

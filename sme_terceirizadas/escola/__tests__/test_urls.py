@@ -27,6 +27,22 @@ def test_url_endpoint_lotes_delete(client_autenticado, lote):
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
+def test_url_endpoint_alunos_por_faixa_etaria_data_invalida(client_autenticado, escola_periodo_escolar):
+    url = f'/quantidade-alunos-por-periodo/{escola_periodo_escolar.uuid}/alunos-por-faixa-etaria/2020-15-40/'
+    response = client_autenticado.get(url)
+    assert response.status_code == status.HTTP_200_OK
+
+    json = response.json()
+    assert 'data_referencia' in json
+    assert json['data_referencia'][0] == 'Informe uma data válida.'
+
+
+def test_url_endpoint_alunos_por_faixa_etaria_data_valida(client_autenticado, escola_periodo_escolar):
+    url = f'/quantidade-alunos-por-periodo/{escola_periodo_escolar.uuid}/alunos-por-faixa-etaria/2020-10-20/'
+    response = client_autenticado.get(url)
+    assert response.status_code == status.HTTP_200_OK
+
+
 def test_url_endpoint_cria_mudanca_faixa_etaria(client_autenticado_coordenador_codae):
     data = {
         'faixas_etarias_ativadas': [

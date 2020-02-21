@@ -1,3 +1,5 @@
+from collections import Counter
+
 from rest_framework import serializers, status
 from rest_framework.decorators import action
 from rest_framework.mixins import CreateModelMixin, ListModelMixin
@@ -9,6 +11,7 @@ from ...dados_comuns.constants import (
     ADMINISTRADOR_ESCOLA,
     ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA
 )
+from ...eol_servico.utils import EOLService, dt_nascimento_from_api
 from ...escola.api.permissions import (
     PodeCriarAdministradoresDaCODAEGestaoAlimentacaoTerceirizada,
     PodeCriarAdministradoresDaDiretoriaRegional,
@@ -30,6 +33,7 @@ from ...escola.api.serializers_create import (
 )
 from ...paineis_consolidados.api.constants import FILTRO_DRE_UUID
 from ...perfil.api.serializers import UsuarioUpdateSerializer, VinculoSerializer
+from ..forms import AlunosPorFaixaEtariaForm
 from ..models import (
     Aluno,
     Codae,
@@ -265,6 +269,50 @@ class EscolaPeriodoEscolarViewSet(ModelViewSet):
         page = self.paginate_queryset(periodos)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
+
+    #  TODO: Quebrar esse método um pouco, está complexo e sem teste
+    @action(detail=True, url_path='alunos-por-faixa-etaria/(?P<data_referencia_str>[^/.]+)')  # noqa C901
+    def alunos_por_faixa_etaria(self, request, uuid, data_referencia_str):
+        form = AlunosPorFaixaEtariaForm({
+            'data_referencia': data_referencia_str
+        })
+
+        if not form.is_valid():
+            return Response(form.errors)
+
+        faixas_etarias = FaixaEtaria.objects.filter(ativo=True)
+        if faixas_etarias.count() == 0:
+            return Response(
+                'Não há faixas etárias cadastradas. Contate a coordenadoria CODAE.',
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+        escola_periodo = self.get_object()
+        periodo = escola_periodo.periodo_escolar.nome
+        lista_alunos = EOLService.get_informacoes_escola_turma_aluno(
+            escola_periodo.escola.codigo_eol
+        )
+        data_referencia = form.cleaned_data['data_referencia']
+
+        faixa_alunos = Counter()
+        for aluno in lista_alunos:
+            if aluno['dc_tipo_turno'].strip().upper() == periodo:
+                data_nascimento = dt_nascimento_from_api(aluno['dt_nascimento_aluno'])
+                for faixa_etaria in faixas_etarias:
+                    if faixa_etaria.data_pertence_a_faixa(data_nascimento, data_referencia):
+                        faixa_alunos[faixa_etaria.id] += 1
+
+        results = []
+        for id_faixa_etaria in faixa_alunos:
+            results.append({
+                'faixa_etaria': FaixaEtariaSerializer(faixas_etarias.get(id=id_faixa_etaria)).data,
+                'count': faixa_alunos[id_faixa_etaria]
+            })
+
+        return Response({
+            'count': len(results),
+            'results': results
+        })
 
 
 class AlunoViewSet(ReadOnlyModelViewSet):
