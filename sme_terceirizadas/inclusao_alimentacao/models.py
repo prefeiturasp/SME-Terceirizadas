@@ -257,6 +257,22 @@ class GrupoInclusaoAlimentacaoNormal(ExportModelOperationsMixin('grupo_inclusao'
         verbose_name_plural = 'Grupos de inclusão de alimentação normal'
 
 
+class QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEI(TemChaveExterna):
+    inclusao_alimentacao_da_cei = models.ForeignKey('InclusaoAlimentacaoDaCEI',
+                                                    blank=True, null=True,
+                                                    on_delete=models.CASCADE,
+                                                    related_name='quantidade_alunos_da_inclusao')
+    faixa_etaria = models.ForeignKey('escola.FaixaEtaria', on_delete=models.DO_NOTHING)
+    quantidade_alunos = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)])
+
+    def __str__(self):
+        return f'De: {self.faixa_etaria.inicio} até: {self.faixa_etaria.fim} meses - {self.quantidade_alunos} alunos'
+
+    class Meta:
+        verbose_name = 'Quantidade de alunos por faixa etária da inclusao de alimentação'
+        verbose_name_plural = 'Quantidade de alunos por faixa etária da inclusao de alimentação'
+
+
 class InclusaoAlimentacaoDaCEI(Descritivel, TemData, TemChaveExterna, FluxoAprovacaoPartindoDaEscola, CriadoEm,
                                SolicitacaoForaDoPrazo, CriadoPor, TemIdentificadorExternoAmigavel, Logs, TemPrioridade):
     DESCRICAO = 'Inclusão de Alimentação Por CEI'
@@ -273,23 +289,14 @@ class InclusaoAlimentacaoDaCEI(Descritivel, TemData, TemChaveExterna, FluxoAprov
     def quantidade_alunos_por_faixas_etarias(self):
         return self.quantidade_alunos_da_inclusao
 
+    def adiciona_inclusao_a_quantidade_por_faixa_etaria(
+        self, quantidade_por_faixa_etaria: QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEI):
+        quantidade_por_faixa_etaria.inclusao_alimentacao_da_cei = self
+        quantidade_por_faixa_etaria.save()
+
     def __str__(self):
         return f'Inclusao da CEI cód: {self.id_externo}'
 
     class Meta:
         verbose_name = 'Inclusão de alimentação da CEI'
         verbose_name_plural = 'Inclusões de alimentação da CEI'
-
-
-class QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEI(TemChaveExterna):
-    inclusao_alimentacao_da_cei = models.ForeignKey(InclusaoAlimentacaoDaCEI, on_delete=models.DO_NOTHING,
-                                                    related_name='quantidade_alunos_da_inclusao')
-    faixa_etaria = models.ForeignKey('escola.FaixaEtaria', on_delete=models.DO_NOTHING)
-    quantidade_alunos = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)])
-
-    def __str__(self):
-        return f'De: {self.faixa_etaria.inicio} até: {self.faixa_etaria.fim} meses - {self.quantidade_alunos} alunos'
-
-    class Meta:
-        verbose_name = 'Quantidade de alunos por faixa etária da inclusao de alimentação'
-        verbose_name_plural = 'Quantidade de alunos por faixa etária da inclusao de alimentação'
