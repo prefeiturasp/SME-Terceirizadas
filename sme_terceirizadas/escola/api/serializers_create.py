@@ -93,7 +93,7 @@ class FaixaEtariaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = FaixaEtaria
-        exclude = ('id',)
+        exclude = ('id','ativo')
 
 
 class MudancaFaixasEtariasCreateSerializer(serializers.Serializer):

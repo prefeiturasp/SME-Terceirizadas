@@ -40,7 +40,7 @@ def test_url_endpoint_alunos_por_faixa_etaria_data_invalida(client_autenticado, 
 def test_url_endpoint_alunos_por_faixa_etaria_data_valida(client_autenticado, escola_periodo_escolar):
     url = f'/quantidade-alunos-por-periodo/{escola_periodo_escolar.uuid}/alunos-por-faixa-etaria/2020-10-20/'
     response = client_autenticado.get(url)
-    assert response.status_code == status.HTTP_200_OK
+    assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
 
 
 def test_url_endpoint_cria_mudanca_faixa_etaria(client_autenticado_coordenador_codae):
