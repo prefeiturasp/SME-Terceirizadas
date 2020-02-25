@@ -1,7 +1,9 @@
+from datetime import date
 from drf_base64.serializers import ModelSerializer
 from rest_framework import serializers
 
 from ...dados_comuns.api.serializers import ContatoSerializer, LogSolicitacoesUsuarioSerializer
+from ...dados_comuns.validators import nao_pode_ser_no_passado
 from ...escola.api.serializers import AlunoSerializer, LoteNomeSerializer, TipoGestaoSerializer
 from ...escola.models import DiretoriaRegional, Escola
 from ..models import (
@@ -75,6 +77,10 @@ class SolicitacaoDietaEspecialAutorizarSerializer(SolicitacaoDietaEspecialCreate
                 'substituicoes'
             ]
         )
+        if 'data_expiracao' in data:
+            (year, month, day) = data['data_expiracao'].split('-')
+            data_expiracao = date(int(year), int(month), int(day))
+            nao_pode_ser_no_passado(data_expiracao)
         atributos_lista_nao_vazios(data, ['substituicoes', 'alergias_intolerancias'])
         atributos_string_nao_vazios(data, ['registro_funcional_nutricionista'])
         return data
@@ -88,6 +94,9 @@ class SolicitacaoDietaEspecialAutorizarSerializer(SolicitacaoDietaEspecialCreate
         instance.registro_funcional_nutricionista = validated_data['registro_funcional_nutricionista']
         instance.informacoes_adicionais = validated_data.get('informacoes_adicionais', '')
         instance.nome_protocolo = validated_data.get('nome_protocolo', '')
+        data_expiracao = validated_data.get('data_expiracao', '')
+        if data_expiracao:
+            instance.data_expiracao = data_expiracao
         instance.ativo = True
 
         instance.alergias_intolerancias.all().delete()

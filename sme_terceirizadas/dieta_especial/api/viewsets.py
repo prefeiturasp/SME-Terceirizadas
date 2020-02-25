@@ -1,3 +1,4 @@
+from django.core import exceptions
 from django.db.models import Sum
 from django.forms import ValidationError
 from rest_framework import generics, mixins, serializers
@@ -87,6 +88,8 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
         except InvalidTransitionError as e:
             return Response({'detail': f'Erro na transição de estado {e}'}, status=HTTP_400_BAD_REQUEST)
         except serializers.ValidationError as e:
+            return Response({'detail': f'Dados inválidos {e}'}, status=HTTP_400_BAD_REQUEST)
+        except exceptions.ValidationError as e:
             return Response({'detail': f'Dados inválidos {e}'}, status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True,
