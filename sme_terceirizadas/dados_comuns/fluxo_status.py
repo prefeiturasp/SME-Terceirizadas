@@ -835,6 +835,27 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
         return [email for email in email_query_set]
 
     @property
+    def _partes_interessadas_termino(self):
+        """Quando a data de término é atingida, a Escola solicitante, Nutricionistas CODAE e Terceirizada que tomou ciência (se aplicável) são interessadas.
+
+        Será retornada uma lista de emails para envio via celery.
+        """
+        email_query_set_escola = self.rastro_escola.vinculos.filter(
+            ativo=True
+        ).values_list('usuario__email')
+        email_lista = [email for email in email_query_set_escola]
+        email_query_set_codae = Usuario.objects.filter(
+            vinculos__perfil__nome=COORDENADOR_DIETA_ESPECIAL).values_list(
+            'email')
+        email_lista += [email for email in email_query_set_codae]
+        if self.rastro_terceirizada:
+            email_query_set_terceirizada = self.rastro_terceirizada.vinculos.filter(
+                ativo=True
+            ).values_list('usuario__email', flat=False)
+            email_lista += [email for email in email_query_set_terceirizada]
+        return email_lista
+
+    @property
     def _partes_interessadas_codae_autoriza_ou_nega(self):
         email_query_set_escola = self.rastro_escola.vinculos.filter(
             ativo=True
