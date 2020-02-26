@@ -349,8 +349,8 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'sme_terceirizadas.cardapio.tasks.ativa_desativa_vinculos_alimentacao_com_periodo_escolar_e_tipo_unidade_escolar', # noqa E501
         'schedule': crontab(hour=1, minute=0)
     },
-    'expira-dietas-especiais': {
-        'task': 'sme_terceirizadas.dieta_especial.tasks.expira_dietas_especiais_task',
+    'termina-dietas-especiais': {
+        'task': 'sme_terceirizadas.dieta_especial.tasks.termina_dietas_especiais_task',
         'schedule': crontab(hour=1, minute=30)
     }
 }

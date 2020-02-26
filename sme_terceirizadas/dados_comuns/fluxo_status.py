@@ -162,7 +162,7 @@ class DietaEspecialWorkflow(xwf_models.Workflow):
     CODAE_NEGOU_INATIVACAO = 'CODAE_NEGOU_INATIVACAO'
     CODAE_AUTORIZOU_INATIVACAO = 'CODAE_AUTORIZOU_INATIVACAO'
     TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO = 'TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO'
-    EXPIRADA = 'EXPIRADA'
+    TERMINADA = 'TERMINADA'
 
     ESCOLA_CANCELOU = 'ESCOLA_CANCELOU'
 
@@ -177,7 +177,7 @@ class DietaEspecialWorkflow(xwf_models.Workflow):
         (CODAE_NEGOU_INATIVACAO, 'CODAE negou a inativação'),
         (CODAE_AUTORIZOU_INATIVACAO, 'CODAE autorizou a inativação'),
         (TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO, 'Terceirizada tomou ciência da inativação'),
-        (EXPIRADA, 'Data de expiração atingida')
+        (TERMINADA, 'Data de término atingida')
     )
 
     transitions = (
@@ -191,14 +191,14 @@ class DietaEspecialWorkflow(xwf_models.Workflow):
         ('codae_autoriza_inativacao', ESCOLA_SOLICITOU_INATIVACAO, CODAE_AUTORIZOU_INATIVACAO),
         ('terceirizada_toma_ciencia_inativacao', CODAE_AUTORIZOU_INATIVACAO, TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO),
         (
-            'expira',
+            'termina',
             [
                 CODAE_AUTORIZADO,
                 TERCEIRIZADA_TOMOU_CIENCIA,
                 ESCOLA_SOLICITOU_INATIVACAO,
                 CODAE_NEGOU_INATIVACAO
             ],
-            EXPIRADA
+            TERMINADA
         ),
     )
 

@@ -78,10 +78,10 @@ class SolicitacaoDietaEspecialAutorizarSerializer(SolicitacaoDietaEspecialCreate
                 'substituicoes'
             ]
         )
-        if 'data_expiracao' in data:
-            (year, month, day) = data['data_expiracao'].split('-')
-            data_expiracao = date(int(year), int(month), int(day))
-            nao_pode_ser_no_passado(data_expiracao)
+        if 'data_termino' in data:
+            (year, month, day) = data['data_termino'].split('-')
+            data_termino = date(int(year), int(month), int(day))
+            nao_pode_ser_no_passado(data_termino)
         atributos_lista_nao_vazios(data, ['substituicoes', 'alergias_intolerancias'])
         atributos_string_nao_vazios(data, ['registro_funcional_nutricionista'])
         return data
@@ -95,9 +95,9 @@ class SolicitacaoDietaEspecialAutorizarSerializer(SolicitacaoDietaEspecialCreate
         instance.registro_funcional_nutricionista = validated_data['registro_funcional_nutricionista']
         instance.informacoes_adicionais = validated_data.get('informacoes_adicionais', '')
         instance.nome_protocolo = validated_data.get('nome_protocolo', '')
-        data_expiracao = validated_data.get('data_expiracao', '')
-        if data_expiracao:
-            instance.data_expiracao = data_expiracao
+        data_termino = validated_data.get('data_termino', '')
+        if data_termino:
+            instance.data_termino = data_termino
         instance.ativo = True
 
         instance.alergias_intolerancias.all().delete()

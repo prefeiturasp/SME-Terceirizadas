@@ -54,7 +54,7 @@ class SolicitacaoDietaEspecial(ExportModelOperationsMixin('dieta_especial'), Tem
     motivo_negacao = models.ForeignKey('MotivoNegacao', on_delete=models.PROTECT, null=True)
     justificativa_negacao = models.TextField(blank=True)
 
-    data_expiracao = models.DateField(null=True, validators=[nao_pode_ser_no_passado])
+    data_termino = models.DateField(null=True, validators=[nao_pode_ser_no_passado])
 
     @classmethod
     def aluno_possui_dieta_especial_pendente(cls, codigo_eol_aluno):

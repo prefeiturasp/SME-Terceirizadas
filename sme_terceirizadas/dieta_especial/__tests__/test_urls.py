@@ -254,8 +254,8 @@ def test_url_endpoint_autorizar_dieta(client_autenticado_vinculo_codae_dieta,
     obj = SolicitacaoDietaEspecial.objects.first()
     obj.status = SolicitacaoDietaEspecial.workflow_class.CODAE_A_AUTORIZAR
     obj.save()
-    data_expiracao = datetime.date.today() + datetime.timedelta(days=60)
-    payload_autorizar['data_expiracao'] = data_expiracao.isoformat()
+    data_termino = datetime.date.today() + datetime.timedelta(days=60)
+    payload_autorizar['data_termino'] = data_termino.isoformat()
     response = client_autenticado_vinculo_codae_dieta.patch(
         f'/solicitacoes-dieta-especial/{obj.uuid}/autorizar/',
         content_type='application/json',
@@ -275,9 +275,9 @@ def test_url_endpoint_autorizar_dieta(client_autenticado_vinculo_codae_dieta,
     for ai in obj.alergias_intolerancias.all():
         assert ai.id in payload_autorizar['alergias_intolerancias']
     assert obj.classificacao.id == payload_autorizar['classificacao']
-    assert obj.data_expiracao.year == data_expiracao.year
-    assert obj.data_expiracao.month == data_expiracao.month
-    assert obj.data_expiracao.day == data_expiracao.day
+    assert obj.data_termino.year == data_termino.year
+    assert obj.data_termino.month == data_termino.month
+    assert obj.data_termino.day == data_termino.day
 
     qs_substituicoes = SubstituicaoAlimento.objects.filter(solicitacao_dieta_especial=obj)
     assert qs_substituicoes.count() == len(payload_autorizar['substituicoes'])
@@ -413,14 +413,14 @@ def test_url_endpoint_autorizar_dieta_atributos_string_vazios(client_autenticado
     assert json['detail'] == 'Autorização de dieta especial realizada com sucesso'
 
 
-def test_url_endpoint_autorizar_dieta_data_expiracao_no_passado(client_autenticado_vinculo_codae_dieta,
-                                                                solicitacao_dieta_especial,
-                                                                payload_autorizar):
+def test_url_endpoint_autorizar_dieta_data_termino_no_passado(client_autenticado_vinculo_codae_dieta,
+                                                              solicitacao_dieta_especial,
+                                                              payload_autorizar):
     obj = SolicitacaoDietaEspecial.objects.first()
     obj.status = SolicitacaoDietaEspecial.workflow_class.CODAE_A_AUTORIZAR
     obj.save()
-    data_expiracao = datetime.date.today() - datetime.timedelta(days=60)
-    payload_autorizar['data_expiracao'] = data_expiracao.isoformat()
+    data_termino = datetime.date.today() - datetime.timedelta(days=60)
+    payload_autorizar['data_termino'] = data_termino.isoformat()
     response = client_autenticado_vinculo_codae_dieta.patch(
         f'/solicitacoes-dieta-especial/{obj.uuid}/autorizar/',
         content_type='application/json',
