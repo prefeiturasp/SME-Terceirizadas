@@ -431,6 +431,7 @@ def test_url_endpoint_autorizar_dieta_data_expiracao_no_passado(client_autentica
     json = response.json()
     assert json['detail'] == "Dados inválidos [ErrorDetail(string='Não pode ser no passado', code='invalid')]"
 
+
 def test_url_endpoint_cancelar_dieta(client_autenticado_vinculo_escola_dieta,
                                      solicitacao_dieta_especial_a_autorizar):
     obj = SolicitacaoDietaEspecial.objects.first()

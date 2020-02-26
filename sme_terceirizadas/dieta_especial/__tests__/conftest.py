@@ -6,6 +6,7 @@ from faker import Faker
 from model_mommy import mommy
 
 from ...dados_comuns import constants
+from ...dados_comuns.fluxo_status import DietaEspecialWorkflow
 from ...dados_comuns.models import TemplateMensagem
 from ...dados_comuns.utils import convert_base64_to_contentfile
 from ...escola.models import Aluno
@@ -289,3 +290,45 @@ def client_autenticado_vinculo_terceirizada_dieta(client, django_user_model, esc
                data_inicial=hoje, ativo=True)
     client.login(email=email, password=password)
     return client
+
+
+@pytest.fixture
+def solicitacoes_dieta_especial_com_data_expiracao():
+    hoje = datetime.date.today()
+    ontem = hoje - datetime.timedelta(days=1)
+    amanha = hoje + datetime.timedelta(days=1)
+
+    return [
+        mommy.make(SolicitacaoDietaEspecial, status=DietaEspecialWorkflow.CODAE_A_AUTORIZAR),
+        mommy.make(SolicitacaoDietaEspecial, status=DietaEspecialWorkflow.CODAE_AUTORIZADO),
+        mommy.make(SolicitacaoDietaEspecial, status=DietaEspecialWorkflow.CODAE_NEGOU_PEDIDO),
+        mommy.make(SolicitacaoDietaEspecial, status=DietaEspecialWorkflow.CODAE_AUTORIZOU_INATIVACAO),
+        mommy.make(SolicitacaoDietaEspecial,
+                   status=DietaEspecialWorkflow.CODAE_AUTORIZOU_INATIVACAO,
+                   data_expiracao=ontem),
+        mommy.make(SolicitacaoDietaEspecial, status=DietaEspecialWorkflow.TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO),
+        mommy.make(SolicitacaoDietaEspecial,
+                   status=DietaEspecialWorkflow.TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO,
+                   data_expiracao=ontem),
+        mommy.make(SolicitacaoDietaEspecial, status=DietaEspecialWorkflow.CODAE_AUTORIZADO, data_expiracao=ontem),
+        mommy.make(SolicitacaoDietaEspecial,
+                   status=DietaEspecialWorkflow.TERCEIRIZADA_TOMOU_CIENCIA,
+                   data_expiracao=ontem),
+        mommy.make(SolicitacaoDietaEspecial,
+                   status=DietaEspecialWorkflow.ESCOLA_SOLICITOU_INATIVACAO,
+                   data_expiracao=ontem),
+        mommy.make(SolicitacaoDietaEspecial, status=DietaEspecialWorkflow.CODAE_AUTORIZADO, data_expiracao=hoje),
+        mommy.make(SolicitacaoDietaEspecial,
+                   status=DietaEspecialWorkflow.TERCEIRIZADA_TOMOU_CIENCIA,
+                   data_expiracao=hoje),
+        mommy.make(SolicitacaoDietaEspecial,
+                   status=DietaEspecialWorkflow.ESCOLA_SOLICITOU_INATIVACAO,
+                   data_expiracao=hoje),
+        mommy.make(SolicitacaoDietaEspecial, status=DietaEspecialWorkflow.CODAE_AUTORIZADO, data_expiracao=amanha),
+        mommy.make(SolicitacaoDietaEspecial,
+                   status=DietaEspecialWorkflow.TERCEIRIZADA_TOMOU_CIENCIA,
+                   data_expiracao=amanha),
+        mommy.make(SolicitacaoDietaEspecial,
+                   status=DietaEspecialWorkflow.ESCOLA_SOLICITOU_INATIVACAO,
+                   data_expiracao=amanha),
+    ]
