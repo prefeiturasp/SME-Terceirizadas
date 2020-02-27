@@ -190,16 +190,6 @@ class DietaEspecialWorkflow(xwf_models.Workflow):
         ('codae_nega_inativacao', ESCOLA_SOLICITOU_INATIVACAO, CODAE_NEGOU_INATIVACAO),
         ('codae_autoriza_inativacao', ESCOLA_SOLICITOU_INATIVACAO, CODAE_AUTORIZOU_INATIVACAO),
         ('terceirizada_toma_ciencia_inativacao', CODAE_AUTORIZOU_INATIVACAO, TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO),
-        (
-            'termina',
-            [
-                CODAE_AUTORIZADO,
-                TERCEIRIZADA_TOMOU_CIENCIA,
-                ESCOLA_SOLICITOU_INATIVACAO,
-                CODAE_NEGOU_INATIVACAO
-            ],
-            TERMINADA
-        ),
     )
 
     initial_state = RASCUNHO
@@ -823,6 +813,22 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
         self.rastro_terceirizada = escola.lote.terceirizada
         self.save()
 
+    def termina(self, usuario):
+        if self.status not in [self.workflow_class.CODAE_AUTORIZADO,
+                               self.workflow_class.TERCEIRIZADA_TOMOU_CIENCIA,
+                               self.workflow_class.ESCOLA_SOLICITOU_INATIVACAO,
+                               self.workflow_class.CODAE_NEGOU_INATIVACAO]:
+            raise xworkflows.InvalidTransitionError('Só é permitido terminar dietas autorizadas e ativas')
+        if self.data_termino is None:
+            raise xworkflows.InvalidTransitionError('Não pode terminar uma dieta sem data de término')
+        if self.data_termino and self.data_termino > datetime.date.today():
+            raise xworkflows.InvalidTransitionError('Não pode terminar uma dieta antes da data')
+        self.status = self.workflow_class.TERMINADA
+        self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.TERMINADA,
+                                  usuario=usuario,
+                                  justificativa='Atingiu data limite e foi terminada automaticamente')
+        self.save()
+
     @property
     def _partes_interessadas_inicio_fluxo(self):
         """Quando a escola faz a solicitação, as pessoas da DRE são as partes interessadas.
@@ -836,9 +842,13 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
 
     @property
     def _partes_interessadas_termino(self):
-        """Quando a data de término é atingida, a Escola solicitante, Nutricionistas CODAE e Terceirizada que tomou ciência (se aplicável) são interessadas.
+        """Obtém endereços de email das partes interessadas num término de dieta especial.
 
-        Será retornada uma lista de emails para envio via celery.
+        A dieta especial termina quando a data de término é atingida.
+        São as partes interessadas:
+            - A Escola solicitante
+            - Nutricionistas CODAE
+            - Terceirizada que tomou ciência (se aplicável)
         """
         email_query_set_escola = self.rastro_escola.vinculos.filter(
             ativo=True

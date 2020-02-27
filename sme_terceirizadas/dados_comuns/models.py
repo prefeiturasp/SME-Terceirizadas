@@ -37,9 +37,10 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
         INICIO_FLUXO_INATIVACAO,
         CODAE_AUTORIZOU_INATIVACAO,
         CODAE_NEGOU_INATIVACAO,
-        TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO
+        TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO,
+        TERMINADA
 
-    ) = range(19)
+    ) = range(20)
 
     STATUS_POSSIVEIS = (
         (INICIO_FLUXO, 'Solicitação Realizada'),
@@ -60,7 +61,8 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
         (INICIO_FLUXO_INATIVACAO, 'Escola solicitou inativação'),
         (CODAE_AUTORIZOU_INATIVACAO, 'CODAE autorizou inativação'),
         (CODAE_NEGOU_INATIVACAO, 'CODAE negou inativação'),
-        (TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO, 'Terceirizada tomou ciência da inativação')
+        (TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO, 'Terceirizada tomou ciência da inativação'),
+        (TERMINADA, 'Terminada por atingir data de término')
 
     )
     (  # DA ESCOLA

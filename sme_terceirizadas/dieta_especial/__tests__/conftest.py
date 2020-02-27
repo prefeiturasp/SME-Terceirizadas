@@ -18,6 +18,11 @@ fake.seed(420)
 
 
 @pytest.fixture
+def usuario_admin():
+    return mommy.make('Usuario', email='admin@admin.com')
+
+
+@pytest.fixture
 def codae():
     return mommy.make('Codae')
 
@@ -293,14 +298,12 @@ def client_autenticado_vinculo_terceirizada_dieta(client, django_user_model, esc
 
 
 @pytest.fixture
-def solicitacoes_dieta_especial_com_data_termino():
+def solicitacoes_dieta_especial_nao_autorizadas_e_nao_ativas():
     hoje = datetime.date.today()
     ontem = hoje - datetime.timedelta(days=1)
-    amanha = hoje + datetime.timedelta(days=1)
 
     return [
         mommy.make(SolicitacaoDietaEspecial, status=DietaEspecialWorkflow.CODAE_A_AUTORIZAR),
-        mommy.make(SolicitacaoDietaEspecial, status=DietaEspecialWorkflow.CODAE_AUTORIZADO),
         mommy.make(SolicitacaoDietaEspecial, status=DietaEspecialWorkflow.CODAE_NEGOU_PEDIDO),
         mommy.make(SolicitacaoDietaEspecial, status=DietaEspecialWorkflow.CODAE_AUTORIZOU_INATIVACAO),
         mommy.make(SolicitacaoDietaEspecial,
@@ -309,14 +312,25 @@ def solicitacoes_dieta_especial_com_data_termino():
         mommy.make(SolicitacaoDietaEspecial, status=DietaEspecialWorkflow.TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO),
         mommy.make(SolicitacaoDietaEspecial,
                    status=DietaEspecialWorkflow.TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO,
-                   data_termino=ontem),
-        mommy.make(SolicitacaoDietaEspecial, status=DietaEspecialWorkflow.CODAE_AUTORIZADO, data_termino=ontem),
-        mommy.make(SolicitacaoDietaEspecial,
-                   status=DietaEspecialWorkflow.TERCEIRIZADA_TOMOU_CIENCIA,
-                   data_termino=ontem),
-        mommy.make(SolicitacaoDietaEspecial,
-                   status=DietaEspecialWorkflow.ESCOLA_SOLICITOU_INATIVACAO,
-                   data_termino=ontem),
+                   data_termino=ontem)
+    ]
+
+
+@pytest.fixture(params=[
+    DietaEspecialWorkflow.CODAE_AUTORIZADO,
+    DietaEspecialWorkflow.TERCEIRIZADA_TOMOU_CIENCIA,
+    DietaEspecialWorkflow.ESCOLA_SOLICITOU_INATIVACAO,
+    DietaEspecialWorkflow.CODAE_NEGOU_INATIVACAO
+])
+def solicitacao_dieta_especial_autorizada_ativa(request):
+    return mommy.make(SolicitacaoDietaEspecial, status=request.param)
+
+
+@pytest.fixture
+def solicitacoes_dieta_especial_dt_termino_hoje_ou_posterior():
+    hoje = datetime.date.today()
+    amanha = hoje + datetime.timedelta(days=1)
+    return [
         mommy.make(SolicitacaoDietaEspecial, status=DietaEspecialWorkflow.CODAE_AUTORIZADO, data_termino=hoje),
         mommy.make(SolicitacaoDietaEspecial,
                    status=DietaEspecialWorkflow.TERCEIRIZADA_TOMOU_CIENCIA,
@@ -332,3 +346,27 @@ def solicitacoes_dieta_especial_com_data_termino():
                    status=DietaEspecialWorkflow.ESCOLA_SOLICITOU_INATIVACAO,
                    data_termino=amanha),
     ]
+
+
+@pytest.fixture
+def solicitacoes_dieta_especial_dt_termino_ontem():
+    ontem = datetime.date.today() - datetime.timedelta(days=1)
+    return [
+        mommy.make(SolicitacaoDietaEspecial, status=DietaEspecialWorkflow.CODAE_AUTORIZADO, data_termino=ontem),
+        mommy.make(SolicitacaoDietaEspecial,
+                   status=DietaEspecialWorkflow.TERCEIRIZADA_TOMOU_CIENCIA,
+                   data_termino=ontem),
+        mommy.make(SolicitacaoDietaEspecial,
+                   status=DietaEspecialWorkflow.ESCOLA_SOLICITOU_INATIVACAO,
+                   data_termino=ontem),
+    ]
+
+
+@pytest.fixture
+def solicitacoes_dieta_especial_com_data_termino(solicitacoes_dieta_especial_dt_termino_hoje_ou_posterior,
+                                                 solicitacoes_dieta_especial_nao_autorizadas_e_nao_ativas,
+                                                 solicitacoes_dieta_especial_dt_termino_ontem):
+    solicitacoes = [] + solicitacoes_dieta_especial_nao_autorizadas_e_nao_ativas
+    solicitacoes += solicitacoes_dieta_especial_dt_termino_hoje_ou_posterior
+    solicitacoes += solicitacoes_dieta_especial_dt_termino_ontem
+    return solicitacoes

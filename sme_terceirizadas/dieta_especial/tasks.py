@@ -1,5 +1,6 @@
 from celery import shared_task
 
+from ..dados_comuns.models import Usuario
 from .utils import termina_dietas_especiais
 
 
@@ -10,4 +11,5 @@ from .utils import termina_dietas_especiais
     retry_kwargs={'max_retries': 8},
 )
 def termina_dietas_especiais_task():
-    return termina_dietas_especiais()
+    usuario_admin = Usuario.objects.get(pk=1)
+    return termina_dietas_especiais(usuario=usuario_admin)

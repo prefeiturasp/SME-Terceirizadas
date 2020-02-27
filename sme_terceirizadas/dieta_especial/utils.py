@@ -15,6 +15,6 @@ def dietas_especiais_a_terminar():
     )
 
 
-def termina_dietas_especiais():
+def termina_dietas_especiais(usuario):
     for solicitacao in dietas_especiais_a_terminar():
-        solicitacao.termina()
+        solicitacao.termina(usuario)
