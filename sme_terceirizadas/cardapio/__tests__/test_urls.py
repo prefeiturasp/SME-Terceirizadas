@@ -1,3 +1,6 @@
+import datetime
+import json
+
 from freezegun import freeze_time
 from rest_framework import status
 
@@ -479,6 +482,42 @@ def test_url_endpoint_alt_card_inicio_403(client_autenticado_vinculo_dre_cardapi
     assert response.status_code == status.HTTP_403_FORBIDDEN
     assert response.json() == {'detail': 'Você não tem permissão para executar essa ação.'}
 
+
+def test_url_endpoint_alt_card_criar(client_autenticado_vinculo_escola_cardapio, motivo_alteracao_cardapio, escola,
+                                     tipo_alimentacao, alteracao_substituicoes_params, periodo_escolar):
+    dia_alteracao = datetime.date.today() + datetime.timedelta(days=10)
+    (data_inicial, data_final, combo1, combo2, substituicao1, substituicao2) = alteracao_substituicoes_params
+    data = {
+        'motivo': str(motivo_alteracao_cardapio.uuid),
+        'alterar_dia': dia_alteracao.isoformat(),
+        'data_inicial': dia_alteracao.isoformat(),
+        'data_final': dia_alteracao.isoformat(),
+        'escola': escola.uuid,
+        'substituicoes': [{
+            'periodo_escolar': str(periodo_escolar.uuid),
+            'tipo_alimentacao_de': str(combo1.uuid),
+            'tipo_alimentacao_para': str(substituicao1.uuid)
+        }]
+    }
+
+    response = client_autenticado_vinculo_escola_cardapio.post(f'/{ENDPOINT_ALTERACAO_CARD}/',
+                                                               content_type='application/json',
+                                                               data=json.dumps(data))
+    assert response.status_code == status.HTTP_201_CREATED
+    resp_json = response.json()
+
+    dia_alteracao_formatada = dia_alteracao.strftime('%d/%m/%Y')
+    assert resp_json['data_inicial'] == dia_alteracao_formatada
+    assert resp_json['data_final'] == dia_alteracao_formatada
+
+    assert resp_json['status_explicacao'] == 'RASCUNHO'
+    assert resp_json['escola'] == escola.uuid
+    assert resp_json['motivo'] == str(motivo_alteracao_cardapio.uuid)
+
+    substituicao = resp_json['substituicoes'][0]
+    assert substituicao['periodo_escolar'] == str(periodo_escolar.uuid)
+    assert substituicao['tipo_alimentacao_de'] == str(combo1.uuid)
+    assert substituicao['tipo_alimentacao_para'] == str(substituicao1.uuid)
 
 def test_url_endpoint_alt_card_inicio(client_autenticado_vinculo_escola_cardapio,
                                       alteracao_cardapio):
