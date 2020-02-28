@@ -66,13 +66,11 @@ class InclusaoAlimentacaoDaCEICreateSerializer(serializers.ModelSerializer):
         deve_pedir_com_antecedencia(data)
         return data
 
-    def validate(self, attrs):
-        return attrs
-
     def create(self, validated_data):
         quantidade_alunos_por_faixas_etarias = validated_data.pop('quantidade_alunos_por_faixas_etarias')
         validated_data['criado_por'] = self.context['request'].user
         tipos_alimentacao = validated_data.pop('tipos_alimentacao')
+
         inclusao_alimentacao_da_cei = InclusaoAlimentacaoDaCEI.objects.create(**validated_data)
         inclusao_alimentacao_da_cei.tipos_alimentacao.set(tipos_alimentacao)
         for quantidade_json in quantidade_alunos_por_faixas_etarias:
@@ -82,8 +80,20 @@ class InclusaoAlimentacaoDaCEICreateSerializer(serializers.ModelSerializer):
         return inclusao_alimentacao_da_cei
 
     def update(self, instance, validated_data):
-        import ipdb
-        ipdb.set_trace()
+        quantidade_alunos_por_faixas_etarias = validated_data.pop('quantidade_alunos_por_faixas_etarias')
+        tipos_alimentacao = validated_data.pop('tipos_alimentacao')
+
+        instance.quantidade_alunos_da_inclusao.all().delete()
+        instance.tipos_alimentacao.set([])
+        instance.tipos_alimentacao.set(tipos_alimentacao)
+
+        for quantidade_json in quantidade_alunos_por_faixas_etarias:
+            qtd = QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEISerializer().create(
+                validated_data=quantidade_json)
+            instance.adiciona_inclusao_a_quantidade_por_faixa_etaria(qtd)
+
+        update_instance_from_dict(instance, validated_data)
+        instance.save()
         return instance
 
     class Meta:

@@ -69,11 +69,12 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
         SUSPENSAO_DE_CARDAPIO,
         INVERSAO_DE_CARDAPIO,
         INCLUSAO_ALIMENTACAO_NORMAL,
+        INCLUSAO_ALIMENTACAO_CEI,
         INCLUSAO_ALIMENTACAO_CONTINUA,
         DIETA_ESPECIAL,
         # DA DRE
         SOLICITACAO_KIT_LANCHE_UNIFICADA
-    ) = range(8)
+    ) = range(9)
 
     TIPOS_SOLICITACOES = (
         (SOLICITACAO_KIT_LANCHE_AVULSA, 'Solicitação de kit lanche avulsa'),
@@ -81,6 +82,7 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
         (SUSPENSAO_DE_CARDAPIO, 'Suspensão de cardápio'),
         (INVERSAO_DE_CARDAPIO, 'Inversão de cardápio'),
         (INCLUSAO_ALIMENTACAO_NORMAL, 'Inclusão de alimentação normal'),
+        (INCLUSAO_ALIMENTACAO_CEI, 'Inclusão de alimentação da CEI'),
         (INCLUSAO_ALIMENTACAO_CONTINUA, 'Inclusão de alimentação contínua'),
         (DIETA_ESPECIAL, 'Dieta Especial'),
         (SOLICITACAO_KIT_LANCHE_UNIFICADA, 'Solicitação de kit lanche unificada'),
