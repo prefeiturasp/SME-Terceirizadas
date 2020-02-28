@@ -566,6 +566,19 @@ def test_url_endpoint_alt_card_inicio(client_autenticado_vinculo_escola_cardapio
     assert str(json['uuid']) == str(alteracao_cardapio.uuid)
 
 
+def test_url_endpoint_alt_card_cei_inicio(client_autenticado_vinculo_escola_cardapio,
+                                          alteracao_cardapio_cei):
+    assert str(alteracao_cardapio_cei.status) == PedidoAPartirDaEscolaWorkflow.RASCUNHO
+    response = client_autenticado_vinculo_escola_cardapio.patch(
+        f'/{ENDPOINT_ALTERACAO_CARD_CEI}/{alteracao_cardapio_cei.uuid}/{constants.ESCOLA_INICIO_PEDIDO}/'
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    json = response.json()
+    assert json['status'] == PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR
+    assert str(json['uuid']) == str(alteracao_cardapio_cei.uuid)
+
+
 def test_url_endpoint_alt_card_inicio_error(client_autenticado_vinculo_escola_cardapio, alteracao_cardapio_dre_validar):
     assert str(alteracao_cardapio_dre_validar.status) == PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR
     response = client_autenticado_vinculo_escola_cardapio.patch(

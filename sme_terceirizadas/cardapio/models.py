@@ -532,7 +532,7 @@ class AlteracaoCardapioCEI(ExportModelOperationsMixin('alteracao_cardapio_cei'),
         )
 
     def __str__(self):
-        return f'Alteração de cardápio CEI de: {self.data_inicial} para {self.data_final}'
+        return f'Alteração de cardápio CEI de {self.data}'
 
     class Meta:
         verbose_name = 'Alteração de cardápio CEI'
