@@ -12,6 +12,7 @@ from ....escola.api.serializers import (
 from ....terceirizada.api.serializers.serializers import EditalSerializer
 from ...models import (
     AlteracaoCardapio,
+    AlteracaoCardapioCEI,
     Cardapio,
     ComboDoVinculoTipoAlimentacaoPeriodoTipoUE,
     GrupoSuspensaoAlimentacao,
@@ -241,7 +242,7 @@ class SubstituicoesAlimentacaoNoPeriodoEscolarSerializer(serializers.ModelSerial
         exclude = ('id',)
 
 
-class AlteracaoCardapioSerializer(serializers.ModelSerializer):
+class AlteracaoCardapioSerializerBase(serializers.ModelSerializer):
     escola = EscolaSimplesSerializer()
     motivo = MotivoAlteracaoCardapioSerializer()
     substituicoes = SubstituicoesAlimentacaoNoPeriodoEscolarSerializer(many=True)
@@ -250,8 +251,16 @@ class AlteracaoCardapioSerializer(serializers.ModelSerializer):
     logs = LogSolicitacoesUsuarioSerializer(many=True)
     prioridade = serializers.CharField()
 
+
+class AlteracaoCardapioSerializer(AlteracaoCardapioSerializerBase):
     class Meta:
         model = AlteracaoCardapio
+        exclude = ('id',)
+
+
+class AlteracaoCardapioCEISerializer(AlteracaoCardapioSerializerBase):
+    class Meta:
+        model = AlteracaoCardapioCEI
         exclude = ('id',)
 
 

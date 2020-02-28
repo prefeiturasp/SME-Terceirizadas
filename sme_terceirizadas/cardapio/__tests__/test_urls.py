@@ -10,6 +10,7 @@ from ...dados_comuns.fluxo_status import InformativoPartindoDaEscolaWorkflow, Pe
 ENDPOINT_INVERSOES = 'inversoes-dia-cardapio'
 ENDPOINT_SUSPENSOES = 'grupos-suspensoes-alimentacao'
 ENDPOINT_ALTERACAO_CARD = 'alteracoes-cardapio'
+ENDPOINT_ALTERACAO_CARD_CEI = 'alteracoes-cardapio-cei'
 ENDPOINT_VINCULOS_ALIMENTACAO = 'vinculos-tipo-alimentacao-u-e-periodo-escolar'
 ENDPOINT_HORARIO_DO_COMBO = 'horario-do-combo-tipo-de-alimentacao-por-unidade-escolar'
 
@@ -518,6 +519,39 @@ def test_url_endpoint_alt_card_criar(client_autenticado_vinculo_escola_cardapio,
     assert substituicao['periodo_escolar'] == str(periodo_escolar.uuid)
     assert substituicao['tipo_alimentacao_de'] == str(combo1.uuid)
     assert substituicao['tipo_alimentacao_para'] == str(substituicao1.uuid)
+
+
+def test_url_endpoint_alt_card_cei_criar(client_autenticado_vinculo_escola_cardapio, motivo_alteracao_cardapio, escola,
+                                         tipo_alimentacao, alteracao_substituicoes_params, periodo_escolar):
+    dia_alteracao = datetime.date.today() + datetime.timedelta(days=10)
+    (data_inicial, data_final, combo1, combo2, substituicao1, substituicao2) = alteracao_substituicoes_params
+    data = {
+        'motivo': str(motivo_alteracao_cardapio.uuid),
+        'data': dia_alteracao.isoformat(),
+        'escola': escola.uuid,
+        'substituicoes': [{
+            'periodo_escolar': str(periodo_escolar.uuid),
+            'tipo_alimentacao_de': str(combo1.uuid),
+            'tipo_alimentacao_para': str(substituicao1.uuid)
+        }]
+    }
+
+    response = client_autenticado_vinculo_escola_cardapio.post(f'/{ENDPOINT_ALTERACAO_CARD_CEI}/',
+                                                               content_type='application/json',
+                                                               data=json.dumps(data))
+    assert response.status_code == status.HTTP_201_CREATED
+    resp_json = response.json()
+
+    assert resp_json['data'] == dia_alteracao.strftime('%d/%m/%Y')
+    assert resp_json['status_explicacao'] == 'RASCUNHO'
+    assert resp_json['escola'] == escola.uuid
+    assert resp_json['motivo'] == str(motivo_alteracao_cardapio.uuid)
+
+    substituicao = resp_json['substituicoes'][0]
+    assert substituicao['periodo_escolar'] == str(periodo_escolar.uuid)
+    assert substituicao['tipo_alimentacao_de'] == str(combo1.uuid)
+    assert substituicao['tipo_alimentacao_para'] == str(substituicao1.uuid)
+
 
 def test_url_endpoint_alt_card_inicio(client_autenticado_vinculo_escola_cardapio,
                                       alteracao_cardapio):
