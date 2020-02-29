@@ -828,6 +828,7 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
                                   usuario=usuario,
                                   justificativa='Atingiu data limite e foi terminada automaticamente')
         self.save()
+        self._envia_email_termino()
 
     @property
     def _partes_interessadas_inicio_fluxo(self):
@@ -966,6 +967,21 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
         if user:
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_TOMOU_CIENCIA,
                                       usuario=user)
+
+    def _envia_email_termino(self):
+        assunto = f'[SIGPAE] Prazo de fornecimento de dieta encerrado - Solicitação {self.id_externo}'
+        template = 'fluxo_dieta_especial_termina.html'
+        dados_template = {
+            'eol_aluno': self.aluno.codigo_eol,
+            'nome_aluno': self.aluno.nome
+        }
+        html = render_to_string(template, dados_template)
+        envia_email_em_massa_task.delay(
+            assunto=assunto,
+            corpo='',
+            emails=self._partes_interessadas_termino,
+            html=html
+        )
 
     class Meta:
         abstract = True

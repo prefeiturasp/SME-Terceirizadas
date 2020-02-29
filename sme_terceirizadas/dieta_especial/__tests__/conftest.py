@@ -44,16 +44,19 @@ def arquivo_docx_base64():
 
 
 @pytest.fixture
-def solicitacao_dieta_especial(escola):
-    aluno = mommy.make(Aluno, nome='Roberto Alves da Silva', codigo_eol='123456', data_nascimento='2000-01-01')
+def aluno():
+    return mommy.make(Aluno, nome='Roberto Alves da Silva', codigo_eol='123456', data_nascimento='2000-01-01')
+
+
+@pytest.fixture
+def solicitacao_dieta_especial(escola, aluno):
     return mommy.make(SolicitacaoDietaEspecial,
                       rastro_escola=escola,
                       aluno=aluno)
 
 
 @pytest.fixture
-def solicitacao_dieta_especial_outra_dre(escola_dre_guaianases):
-    aluno = mommy.make(Aluno, nome='Roberto Alves de Souza', codigo_eol='123457', data_nascimento='2000-01-01')
+def solicitacao_dieta_especial_outra_dre(escola_dre_guaianases, aluno):
     return mommy.make(SolicitacaoDietaEspecial,
                       rastro_escola=escola_dre_guaianases,
                       aluno=aluno)
@@ -298,20 +301,33 @@ def client_autenticado_vinculo_terceirizada_dieta(client, django_user_model, esc
 
 
 @pytest.fixture
-def solicitacoes_dieta_especial_nao_autorizadas_e_nao_ativas():
+def solicitacoes_dieta_especial_nao_autorizadas_e_nao_ativas(escola, aluno):
     hoje = datetime.date.today()
     ontem = hoje - datetime.timedelta(days=1)
 
     return [
-        mommy.make(SolicitacaoDietaEspecial, status=DietaEspecialWorkflow.CODAE_A_AUTORIZAR),
-        mommy.make(SolicitacaoDietaEspecial, status=DietaEspecialWorkflow.CODAE_NEGOU_PEDIDO),
-        mommy.make(SolicitacaoDietaEspecial, status=DietaEspecialWorkflow.CODAE_AUTORIZOU_INATIVACAO),
+        mommy.make(SolicitacaoDietaEspecial,
+                   status=DietaEspecialWorkflow.CODAE_A_AUTORIZAR,
+                   aluno=aluno,
+                   rastro_escola=escola),
+        mommy.make(SolicitacaoDietaEspecial, status=DietaEspecialWorkflow.CODAE_NEGOU_PEDIDO, rastro_escola=escola),
         mommy.make(SolicitacaoDietaEspecial,
                    status=DietaEspecialWorkflow.CODAE_AUTORIZOU_INATIVACAO,
+                   aluno=aluno,
+                   rastro_escola=escola),
+        mommy.make(SolicitacaoDietaEspecial,
+                   status=DietaEspecialWorkflow.CODAE_AUTORIZOU_INATIVACAO,
+                   rastro_escola=escola,
+                   aluno=aluno,
                    data_termino=ontem),
-        mommy.make(SolicitacaoDietaEspecial, status=DietaEspecialWorkflow.TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO),
+        mommy.make(SolicitacaoDietaEspecial,
+                   rastro_escola=escola,
+                   aluno=aluno,
+                   status=DietaEspecialWorkflow.TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO),
         mommy.make(SolicitacaoDietaEspecial,
                    status=DietaEspecialWorkflow.TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO,
+                   rastro_escola=escola,
+                   aluno=aluno,
                    data_termino=ontem)
     ]
 
@@ -322,42 +338,69 @@ def solicitacoes_dieta_especial_nao_autorizadas_e_nao_ativas():
     DietaEspecialWorkflow.ESCOLA_SOLICITOU_INATIVACAO,
     DietaEspecialWorkflow.CODAE_NEGOU_INATIVACAO
 ])
-def solicitacao_dieta_especial_autorizada_ativa(request):
-    return mommy.make(SolicitacaoDietaEspecial, status=request.param)
+def solicitacao_dieta_especial_autorizada_ativa(request, aluno, escola):
+    return mommy.make(SolicitacaoDietaEspecial,
+                      status=request.param,
+                      rastro_escola=escola,
+                      aluno=aluno)
 
 
 @pytest.fixture
-def solicitacoes_dieta_especial_dt_termino_hoje_ou_posterior():
+def solicitacoes_dieta_especial_dt_termino_hoje_ou_posterior(aluno, escola):
     hoje = datetime.date.today()
     amanha = hoje + datetime.timedelta(days=1)
     return [
-        mommy.make(SolicitacaoDietaEspecial, status=DietaEspecialWorkflow.CODAE_AUTORIZADO, data_termino=hoje),
+        mommy.make(SolicitacaoDietaEspecial,
+                   status=DietaEspecialWorkflow.CODAE_AUTORIZADO,
+                   aluno=aluno,
+                   rastro_escola=escola,
+                   data_termino=hoje),
         mommy.make(SolicitacaoDietaEspecial,
                    status=DietaEspecialWorkflow.TERCEIRIZADA_TOMOU_CIENCIA,
+                   aluno=aluno,
+                   rastro_escola=escola,
                    data_termino=hoje),
         mommy.make(SolicitacaoDietaEspecial,
                    status=DietaEspecialWorkflow.ESCOLA_SOLICITOU_INATIVACAO,
+                   aluno=aluno,
+                   rastro_escola=escola,
                    data_termino=hoje),
-        mommy.make(SolicitacaoDietaEspecial, status=DietaEspecialWorkflow.CODAE_AUTORIZADO, data_termino=amanha),
+        mommy.make(SolicitacaoDietaEspecial,
+                   status=DietaEspecialWorkflow.CODAE_AUTORIZADO,
+                   aluno=aluno,
+                   rastro_escola=escola,
+                   data_termino=amanha),
         mommy.make(SolicitacaoDietaEspecial,
                    status=DietaEspecialWorkflow.TERCEIRIZADA_TOMOU_CIENCIA,
+                   aluno=aluno,
+                   rastro_escola=escola,
                    data_termino=amanha),
         mommy.make(SolicitacaoDietaEspecial,
                    status=DietaEspecialWorkflow.ESCOLA_SOLICITOU_INATIVACAO,
+                   aluno=aluno,
+                   rastro_escola=escola,
                    data_termino=amanha),
     ]
 
 
 @pytest.fixture
-def solicitacoes_dieta_especial_dt_termino_ontem():
+def solicitacoes_dieta_especial_dt_termino_ontem(aluno, escola):
     ontem = datetime.date.today() - datetime.timedelta(days=1)
     return [
-        mommy.make(SolicitacaoDietaEspecial, status=DietaEspecialWorkflow.CODAE_AUTORIZADO, data_termino=ontem),
+        mommy.make(SolicitacaoDietaEspecial,
+                   status=DietaEspecialWorkflow.CODAE_AUTORIZADO,
+                   aluno=aluno,
+                   rastro_escola=escola,
+                   data_termino=ontem),
         mommy.make(SolicitacaoDietaEspecial,
                    status=DietaEspecialWorkflow.TERCEIRIZADA_TOMOU_CIENCIA,
+                   aluno=aluno,
+                   rastro_escola=escola,
                    data_termino=ontem),
         mommy.make(SolicitacaoDietaEspecial,
                    status=DietaEspecialWorkflow.ESCOLA_SOLICITOU_INATIVACAO,
+                   aluno=aluno,
+                   rastro_escola=escola,
                    data_termino=ontem),
     ]
 
