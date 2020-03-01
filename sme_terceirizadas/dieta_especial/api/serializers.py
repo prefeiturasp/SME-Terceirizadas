@@ -174,7 +174,8 @@ class SolicitacaoDietaEspecialSerializer(serializers.ModelSerializer):
             'justificativa_negacao',
             'registro_funcional_nutricionista',
             'logs',
-            'ativo'
+            'ativo',
+            'data_termino'
         )
 
 
