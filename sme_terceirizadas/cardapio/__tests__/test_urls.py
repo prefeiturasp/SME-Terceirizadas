@@ -532,7 +532,8 @@ def test_url_endpoint_alt_card_cei_criar(client_autenticado_vinculo_escola_carda
         'substituicoes': [{
             'periodo_escolar': str(periodo_escolar.uuid),
             'tipo_alimentacao_de': str(combo1.uuid),
-            'tipo_alimentacao_para': str(substituicao1.uuid)
+            'tipo_alimentacao_para': str(substituicao1.uuid),
+            'qtd_alunos': 42
         }]
     }
 
@@ -551,6 +552,7 @@ def test_url_endpoint_alt_card_cei_criar(client_autenticado_vinculo_escola_carda
     assert substituicao['periodo_escolar'] == str(periodo_escolar.uuid)
     assert substituicao['tipo_alimentacao_de'] == str(combo1.uuid)
     assert substituicao['tipo_alimentacao_para'] == str(substituicao1.uuid)
+    assert substituicao['qtd_alunos'] == 42
 
 
 def test_url_endpoint_alt_card_inicio(client_autenticado_vinculo_escola_cardapio,

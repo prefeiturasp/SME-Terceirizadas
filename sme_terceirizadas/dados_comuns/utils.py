@@ -90,7 +90,7 @@ def size(b64string):
 def subtrai_meses_de_data(meses, data):
     sub_anos = meses // 12
     sub_meses = meses % 12
-    if data.month < sub_meses:
+    if data.month <= sub_meses:
         return datetime.date(
             data.year - (sub_anos + 1),
             12 - (sub_meses - data.month),

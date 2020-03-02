@@ -553,6 +553,7 @@ class SubstituicaoAlimentacaoNoPeriodoEscolarCEI(ExportModelOperationsMixin('sub
                                               on_delete=models.PROTECT,
                                               related_name='substituicoes_cei_tipo_alimentacao_para',
                                               blank=True, null=True)
+    qtd_alunos = models.PositiveSmallIntegerField()
 
     def __str__(self):
         return f'Substituições de alimentação CEI: {self.uuid} da Alteração de Cardápio: {self.alteracao_cardapio.uuid}'

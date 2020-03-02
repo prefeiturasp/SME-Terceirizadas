@@ -47,3 +47,11 @@ def test_subtrai_meses_de_data():
     assert data_nova.year == 2019
     assert data_nova.month == 9
     assert data_nova.day == 15
+    data_nova = subtrai_meses_de_data(5, date(2020, 6, 15))
+    assert data_nova.year == 2020
+    assert data_nova.month == 1
+    assert data_nova.day == 15
+    data_nova = subtrai_meses_de_data(6, date(2020, 6, 15))
+    assert data_nova.year == 2019
+    assert data_nova.month == 12
+    assert data_nova.day == 15
