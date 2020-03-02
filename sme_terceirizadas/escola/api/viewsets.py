@@ -247,8 +247,12 @@ class TipoUnidadeEscolarViewSet(ReadOnlyModelViewSet):
 
 class EscolaPeriodoEscolarViewSet(ModelViewSet):
     lookup_field = 'uuid'
-    serializer_class = EscolaPeriodoEscolarSerializer
-    queryset = EscolaPeriodoEscolar.objects.all()
+
+    def get_queryset(self):
+        if self.request.user.tipo_usuario == 'escola':
+            escola = self.request.user.vinculos.get(ativo=True).instituicao
+            return EscolaPeriodoEscolar.objects.filter(escola=escola)
+        return EscolaPeriodoEscolar.objects.all()
 
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update']:
