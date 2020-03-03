@@ -7,6 +7,7 @@ from .models import SolicitacaoDietaEspecial
 def dietas_especiais_a_terminar():
     return SolicitacaoDietaEspecial.objects.filter(
         data_termino__lt=date.today(),
+        ativo=True,
         status__in=[
             DietaEspecialWorkflow.CODAE_AUTORIZADO,
             DietaEspecialWorkflow.TERCEIRIZADA_TOMOU_CIENCIA,

@@ -162,7 +162,7 @@ class DietaEspecialWorkflow(xwf_models.Workflow):
     CODAE_NEGOU_INATIVACAO = 'CODAE_NEGOU_INATIVACAO'
     CODAE_AUTORIZOU_INATIVACAO = 'CODAE_AUTORIZOU_INATIVACAO'
     TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO = 'TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO'
-    TERMINADA = 'TERMINADA'
+    TERMINADA_AUTOMATICAMENTE_SISTEMA = 'TERMINADA_AUTOMATICAMENTE_SISTEMA'
 
     ESCOLA_CANCELOU = 'ESCOLA_CANCELOU'
 
@@ -177,7 +177,7 @@ class DietaEspecialWorkflow(xwf_models.Workflow):
         (CODAE_NEGOU_INATIVACAO, 'CODAE negou a inativação'),
         (CODAE_AUTORIZOU_INATIVACAO, 'CODAE autorizou a inativação'),
         (TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO, 'Terceirizada tomou ciência da inativação'),
-        (TERMINADA, 'Data de término atingida')
+        (TERMINADA_AUTOMATICAMENTE_SISTEMA, 'Data de término atingida')
     )
 
     transitions = (
@@ -814,17 +814,17 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
         self.save()
 
     def termina(self, usuario):
-        if self.status not in [self.workflow_class.CODAE_AUTORIZADO,
-                               self.workflow_class.TERCEIRIZADA_TOMOU_CIENCIA,
-                               self.workflow_class.ESCOLA_SOLICITOU_INATIVACAO,
-                               self.workflow_class.CODAE_NEGOU_INATIVACAO]:
+        if not self.ativo or self.status not in [self.workflow_class.CODAE_AUTORIZADO,
+                                                 self.workflow_class.TERCEIRIZADA_TOMOU_CIENCIA,
+                                                 self.workflow_class.ESCOLA_SOLICITOU_INATIVACAO,
+                                                 self.workflow_class.CODAE_NEGOU_INATIVACAO]:
             raise xworkflows.InvalidTransitionError('Só é permitido terminar dietas autorizadas e ativas')
         if self.data_termino is None:
             raise xworkflows.InvalidTransitionError('Não pode terminar uma dieta sem data de término')
         if self.data_termino and self.data_termino > datetime.date.today():
             raise xworkflows.InvalidTransitionError('Não pode terminar uma dieta antes da data')
-        self.status = self.workflow_class.TERMINADA
-        self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.TERMINADA,
+        self.status = self.workflow_class.TERMINADA_AUTOMATICAMENTE_SISTEMA
+        self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.TERMINADA_AUTOMATICAMENTE_SISTEMA,
                                   usuario=usuario,
                                   justificativa='Atingiu data limite e foi terminada automaticamente')
         self.save()
@@ -969,7 +969,7 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
                                       usuario=user)
 
     def _envia_email_termino(self):
-        assunto = f'[SIGPAE] Prazo de fornecimento de dieta encerrado - Solicitação {self.id_externo}'
+        assunto = f'[SIGPAE] Prazo de fornecimento de dieta encerrado - Solicitação #{self.id_externo}'
         template = 'fluxo_dieta_especial_termina.html'
         dados_template = {
             'eol_aluno': self.aluno.codigo_eol,

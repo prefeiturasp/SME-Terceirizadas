@@ -38,7 +38,7 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
         CODAE_AUTORIZOU_INATIVACAO,
         CODAE_NEGOU_INATIVACAO,
         TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO,
-        TERMINADA
+        TERMINADA_AUTOMATICAMENTE_SISTEMA
 
     ) = range(20)
 
@@ -62,7 +62,7 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
         (CODAE_AUTORIZOU_INATIVACAO, 'CODAE autorizou inativação'),
         (CODAE_NEGOU_INATIVACAO, 'CODAE negou inativação'),
         (TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO, 'Terceirizada tomou ciência da inativação'),
-        (TERMINADA, 'Terminada por atingir data de término')
+        (TERMINADA_AUTOMATICAMENTE_SISTEMA, 'Terminada por atingir data de término')
 
     )
     (  # DA ESCOLA

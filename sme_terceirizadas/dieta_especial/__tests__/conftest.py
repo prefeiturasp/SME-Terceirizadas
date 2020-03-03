@@ -19,7 +19,7 @@ fake.seed(420)
 
 @pytest.fixture
 def usuario_admin():
-    return mommy.make('Usuario', email='admin@admin.com')
+    return mommy.make('Usuario', email='admin@admin.com', is_superuser=True)
 
 
 @pytest.fixture
@@ -384,25 +384,59 @@ def solicitacoes_dieta_especial_dt_termino_hoje_ou_posterior(aluno, escola):
 
 
 @pytest.fixture
-def solicitacoes_dieta_especial_dt_termino_ontem(aluno, escola):
+def solicitacoes_dieta_especial_dt_termino_ontem_ativas(aluno, escola):
     ontem = datetime.date.today() - datetime.timedelta(days=1)
     return [
         mommy.make(SolicitacaoDietaEspecial,
                    status=DietaEspecialWorkflow.CODAE_AUTORIZADO,
+                   ativo=True,
                    aluno=aluno,
                    rastro_escola=escola,
                    data_termino=ontem),
         mommy.make(SolicitacaoDietaEspecial,
                    status=DietaEspecialWorkflow.TERCEIRIZADA_TOMOU_CIENCIA,
+                   ativo=True,
                    aluno=aluno,
                    rastro_escola=escola,
                    data_termino=ontem),
         mommy.make(SolicitacaoDietaEspecial,
                    status=DietaEspecialWorkflow.ESCOLA_SOLICITOU_INATIVACAO,
+                   ativo=True,
                    aluno=aluno,
                    rastro_escola=escola,
                    data_termino=ontem),
     ]
+
+
+@pytest.fixture
+def solicitacoes_dieta_especial_dt_termino_ontem_inativas(aluno, escola):
+    ontem = datetime.date.today() - datetime.timedelta(days=1)
+    return [
+        mommy.make(SolicitacaoDietaEspecial,
+                   status=DietaEspecialWorkflow.CODAE_AUTORIZADO,
+                   ativo=False,
+                   aluno=aluno,
+                   rastro_escola=escola,
+                   data_termino=ontem),
+        mommy.make(SolicitacaoDietaEspecial,
+                   status=DietaEspecialWorkflow.TERCEIRIZADA_TOMOU_CIENCIA,
+                   ativo=False,
+                   aluno=aluno,
+                   rastro_escola=escola,
+                   data_termino=ontem),
+        mommy.make(SolicitacaoDietaEspecial,
+                   status=DietaEspecialWorkflow.ESCOLA_SOLICITOU_INATIVACAO,
+                   ativo=False,
+                   aluno=aluno,
+                   rastro_escola=escola,
+                   data_termino=ontem),
+    ]
+
+
+@pytest.fixture
+def solicitacoes_dieta_especial_dt_termino_ontem(solicitacoes_dieta_especial_dt_termino_ontem_ativas,
+                                                 solicitacoes_dieta_especial_dt_termino_ontem_inativas):
+    return solicitacoes_dieta_especial_dt_termino_ontem_ativas + solicitacoes_dieta_especial_dt_termino_ontem_inativas
 
 
 @pytest.fixture

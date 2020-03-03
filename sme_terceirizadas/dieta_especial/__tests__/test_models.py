@@ -39,9 +39,17 @@ def test_termina_dieta_especial_erro_dt_termino_posterior_hoje(solicitacoes_diet
             assert str(e) == 'Não pode terminar uma dieta antes da data'
 
 
-def test_termina_dieta_especial_erro_dt_termino_no_passado(solicitacoes_dieta_especial_dt_termino_ontem,
-                                                           usuario_admin):
-    for solicitacao in solicitacoes_dieta_especial_dt_termino_ontem:
+def test_termina_dieta_especial_erro_dieta_inativa(solicitacoes_dieta_especial_dt_termino_ontem_inativas,
+                                                   usuario_admin):
+    for solicitacao in solicitacoes_dieta_especial_dt_termino_ontem_inativas:
+        try:
+            solicitacao.termina(usuario_admin)
+        except xworkflows.InvalidTransitionError as e:
+            assert str(e) == 'Só é permitido terminar dietas autorizadas e ativas'
+
+
+def test_termina_dieta_especial(solicitacoes_dieta_especial_dt_termino_ontem_ativas, usuario_admin):
+    for solicitacao in solicitacoes_dieta_especial_dt_termino_ontem_ativas:
         solicitacao.termina(usuario_admin)
         ultimo_log = solicitacao.logs.last()
         assert ultimo_log.usuario_id == usuario_admin.id
