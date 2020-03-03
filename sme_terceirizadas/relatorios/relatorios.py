@@ -123,6 +123,7 @@ def relatorio_dieta_especial_protocolo(request, solicitacao):
         {
             'escola': solicitacao.rastro_escola,
             'solicitacao': solicitacao,
+            'data_termino': solicitacao.data_termino,
             'log_autorizacao': solicitacao.logs.get(status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU)
         }
     )

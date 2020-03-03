@@ -16,6 +16,7 @@ from ..dados_comuns.behaviors import (
 from ..dados_comuns.fluxo_status import FluxoDietaEspecialPartindoDaEscola
 from ..dados_comuns.models import LogSolicitacoesUsuario, TemplateMensagem
 from ..dados_comuns.utils import convert_base64_to_contentfile
+from ..dados_comuns.validators import nao_pode_ser_no_passado
 from ..escola.api.serializers import AlunoSerializer
 from ..escola.models import Aluno
 
@@ -52,6 +53,8 @@ class SolicitacaoDietaEspecial(ExportModelOperationsMixin('dieta_especial'), Tem
     # TODO: Confirmar se PROTECT é a melhor escolha para o campos abaixo
     motivo_negacao = models.ForeignKey('MotivoNegacao', on_delete=models.PROTECT, null=True)
     justificativa_negacao = models.TextField(blank=True)
+
+    data_termino = models.DateField(null=True, validators=[nao_pode_ser_no_passado])
 
     @classmethod
     def aluno_possui_dieta_especial_pendente(cls, codigo_eol_aluno):
