@@ -1,5 +1,6 @@
 import datetime
 import json
+import random
 
 from freezegun import freeze_time
 from rest_framework import status
@@ -522,7 +523,8 @@ def test_url_endpoint_alt_card_criar(client_autenticado_vinculo_escola_cardapio,
 
 
 def test_url_endpoint_alt_card_cei_criar(client_autenticado_vinculo_escola_cardapio, motivo_alteracao_cardapio, escola,
-                                         tipo_alimentacao, alteracao_substituicoes_params, periodo_escolar):
+                                         tipo_alimentacao, alteracao_substituicoes_params, periodo_escolar,
+                                         faixas_etarias_ativas):
     dia_alteracao = datetime.date.today() + datetime.timedelta(days=10)
     (data_inicial, data_final, combo1, combo2, substituicao1, substituicao2) = alteracao_substituicoes_params
     data = {
@@ -533,7 +535,10 @@ def test_url_endpoint_alt_card_cei_criar(client_autenticado_vinculo_escola_carda
             'periodo_escolar': str(periodo_escolar.uuid),
             'tipo_alimentacao_de': str(combo1.uuid),
             'tipo_alimentacao_para': str(substituicao1.uuid),
-            'qtd_alunos': 42
+            'faixas_etarias': [{
+                'faixa_etaria': str(fe.uuid),
+                'quantidade': random.randint(0, 50)
+            } for fe in faixas_etarias_ativas]
         }]
     }
 
@@ -552,7 +557,11 @@ def test_url_endpoint_alt_card_cei_criar(client_autenticado_vinculo_escola_carda
     assert substituicao['periodo_escolar'] == str(periodo_escolar.uuid)
     assert substituicao['tipo_alimentacao_de'] == str(combo1.uuid)
     assert substituicao['tipo_alimentacao_para'] == str(substituicao1.uuid)
-    assert substituicao['qtd_alunos'] == 42
+
+    for [enviado, recebido] in zip(data['substituicoes'][0]['faixas_etarias'],
+                                   resp_json['substituicoes'][0]['faixas_etarias']):
+        assert enviado['faixa_etaria'] == recebido['faixa_etaria']
+        assert enviado['quantidade'] == recebido['quantidade']
 
 
 def test_url_endpoint_alt_card_inicio(client_autenticado_vinculo_escola_cardapio,

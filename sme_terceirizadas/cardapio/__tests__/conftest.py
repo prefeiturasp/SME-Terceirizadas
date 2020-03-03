@@ -635,6 +635,21 @@ def periodo_escolar():
     return mommy.make('PeriodoEscolar')
 
 
+@pytest.fixture
+def faixas_etarias_ativas():
+    faixas = [
+        (0, 1),
+        (1, 4),
+        (4, 6),
+        (6, 8),
+        (8, 12),
+        (12, 24),
+        (24, 48),
+        (48, 72),
+    ]
+    return [mommy.make('FaixaEtaria', inicio=inicio, fim=fim, ativo=True) for (inicio, fim) in faixas]
+
+
 @pytest.fixture(params=[
     # periodo escolar, tipo unidade escolar
     ('MANHA', 'EMEF'),

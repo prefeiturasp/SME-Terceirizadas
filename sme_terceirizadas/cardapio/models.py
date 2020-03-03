@@ -553,7 +553,6 @@ class SubstituicaoAlimentacaoNoPeriodoEscolarCEI(ExportModelOperationsMixin('sub
                                               on_delete=models.PROTECT,
                                               related_name='substituicoes_cei_tipo_alimentacao_para',
                                               blank=True, null=True)
-    qtd_alunos = models.PositiveSmallIntegerField()
 
     def __str__(self):
         return f'Substituições de alimentação CEI: {self.uuid} da Alteração de Cardápio: {self.alteracao_cardapio.uuid}'
@@ -565,14 +564,14 @@ class SubstituicaoAlimentacaoNoPeriodoEscolarCEI(ExportModelOperationsMixin('sub
 
 class FaixaEtariaSubstituicaoAlimentacaoCEI(ExportModelOperationsMixin('faixa_etaria_substituicao_alimentacao_cei'),
                                             TemChaveExterna):
-    substituicao_cardapio = models.ForeignKey('SubstituicaoAlimentacaoNoPeriodoEscolarCEI', on_delete=models.CASCADE,
-                                              related_name='substituicoes_periodo_escolar')
+    substituicao_alimentacao = models.ForeignKey('SubstituicaoAlimentacaoNoPeriodoEscolarCEI',
+                                                 on_delete=models.CASCADE, related_name='faixas_etarias')
     faixa_etaria = models.ForeignKey('escola.FaixaEtaria', on_delete=models.DO_NOTHING)
     quantidade = models.PositiveSmallIntegerField()
 
     def __str__(self):
         retorno = f'Faixa Etária de substituição de alimentação CEI: {self.uuid}'
-        retorno += f' da Substituição: {self.substituicao_cardapio.uuid}'
+        retorno += f' da Substituição: {self.substituicao_alimentacao.uuid}'
         return retorno
 
     class Meta:
