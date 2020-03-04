@@ -6,6 +6,8 @@ read criar_solicitacoes
 
 ./manage.py migrate
 
+echo "Criando admin do sistema"
+./manage.py shell -c "from sme_terceirizadas.perfil.models import Usuario; Usuario.objects.create_superuser('admin@admin.com', 'adminadmin', cpf='11111111116', registro_funcional='1111116')"
 echo "Criando Escola admin"
 ./manage.py shell -c "from sme_terceirizadas.perfil.models import Usuario; Usuario.objects.create_superuser('escola@admin.com', 'adminadmin', cpf='11111111111', registro_funcional='1111111')"
 echo "Criando DRE admin"

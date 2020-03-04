@@ -1,0 +1,7 @@
+{% extends 'email_base.html' %}
+{% load email_templatetags %}
+
+{% block conteudo %}
+  <p>A dieta especial do aluno {{ eol_aluno }} - {{ nome_aluno }} foi inativada automaticamente por ter um prazo de finalização e não haverá mais fornecimento da alimentação.</p>
+  <p>Para maiores detalhes acesse o sistema e consulte a solicitação.</p>
+{% endblock %}

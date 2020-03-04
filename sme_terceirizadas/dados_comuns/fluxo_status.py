@@ -162,6 +162,7 @@ class DietaEspecialWorkflow(xwf_models.Workflow):
     CODAE_NEGOU_INATIVACAO = 'CODAE_NEGOU_INATIVACAO'
     CODAE_AUTORIZOU_INATIVACAO = 'CODAE_AUTORIZOU_INATIVACAO'
     TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO = 'TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO'
+    TERMINADA_AUTOMATICAMENTE_SISTEMA = 'TERMINADA_AUTOMATICAMENTE_SISTEMA'
 
     ESCOLA_CANCELOU = 'ESCOLA_CANCELOU'
 
@@ -175,7 +176,8 @@ class DietaEspecialWorkflow(xwf_models.Workflow):
         (ESCOLA_SOLICITOU_INATIVACAO, 'Escola solicitou inativação'),
         (CODAE_NEGOU_INATIVACAO, 'CODAE negou a inativação'),
         (CODAE_AUTORIZOU_INATIVACAO, 'CODAE autorizou a inativação'),
-        (TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO, 'Terceirizada tomou ciência da inativação')
+        (TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO, 'Terceirizada tomou ciência da inativação'),
+        (TERMINADA_AUTOMATICAMENTE_SISTEMA, 'Data de término atingida')
     )
 
     transitions = (
@@ -187,7 +189,7 @@ class DietaEspecialWorkflow(xwf_models.Workflow):
         ('inicia_fluxo_inativacao', [CODAE_AUTORIZADO, TERCEIRIZADA_TOMOU_CIENCIA], ESCOLA_SOLICITOU_INATIVACAO),
         ('codae_nega_inativacao', ESCOLA_SOLICITOU_INATIVACAO, CODAE_NEGOU_INATIVACAO),
         ('codae_autoriza_inativacao', ESCOLA_SOLICITOU_INATIVACAO, CODAE_AUTORIZOU_INATIVACAO),
-        ('terceirizada_toma_ciencia_inativacao', CODAE_AUTORIZOU_INATIVACAO, TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO)
+        ('terceirizada_toma_ciencia_inativacao', CODAE_AUTORIZOU_INATIVACAO, TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO),
     )
 
     initial_state = RASCUNHO
@@ -811,6 +813,23 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
         self.rastro_terceirizada = escola.lote.terceirizada
         self.save()
 
+    def termina(self, usuario):
+        if not self.ativo or self.status not in [self.workflow_class.CODAE_AUTORIZADO,
+                                                 self.workflow_class.TERCEIRIZADA_TOMOU_CIENCIA,
+                                                 self.workflow_class.ESCOLA_SOLICITOU_INATIVACAO,
+                                                 self.workflow_class.CODAE_NEGOU_INATIVACAO]:
+            raise xworkflows.InvalidTransitionError('Só é permitido terminar dietas autorizadas e ativas')
+        if self.data_termino is None:
+            raise xworkflows.InvalidTransitionError('Não pode terminar uma dieta sem data de término')
+        if self.data_termino and self.data_termino > datetime.date.today():
+            raise xworkflows.InvalidTransitionError('Não pode terminar uma dieta antes da data')
+        self.status = self.workflow_class.TERMINADA_AUTOMATICAMENTE_SISTEMA
+        self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.TERMINADA_AUTOMATICAMENTE_SISTEMA,
+                                  usuario=usuario,
+                                  justificativa='Atingiu data limite e foi terminada automaticamente')
+        self.save()
+        self._envia_email_termino()
+
     @property
     def _partes_interessadas_inicio_fluxo(self):
         """Quando a escola faz a solicitação, as pessoas da DRE são as partes interessadas.
@@ -821,6 +840,31 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
             ativo=True
         ).values_list('usuario__email', flat=False)
         return [email for email in email_query_set]
+
+    @property
+    def _partes_interessadas_termino(self):
+        """Obtém endereços de email das partes interessadas num término de dieta especial.
+
+        A dieta especial termina quando a data de término é atingida.
+        São as partes interessadas:
+            - A Escola solicitante
+            - Nutricionistas CODAE
+            - Terceirizada que tomou ciência (se aplicável)
+        """
+        email_query_set_escola = self.rastro_escola.vinculos.filter(
+            ativo=True
+        ).values_list('usuario__email')
+        email_lista = [email for email in email_query_set_escola]
+        email_query_set_codae = Usuario.objects.filter(
+            vinculos__perfil__nome=COORDENADOR_DIETA_ESPECIAL).values_list(
+            'email')
+        email_lista += [email for email in email_query_set_codae]
+        if self.rastro_terceirizada:
+            email_query_set_terceirizada = self.rastro_terceirizada.vinculos.filter(
+                ativo=True
+            ).values_list('usuario__email', flat=False)
+            email_lista += [email for email in email_query_set_terceirizada]
+        return email_lista
 
     @property
     def _partes_interessadas_codae_autoriza_ou_nega(self):
@@ -923,6 +967,21 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
         if user:
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_TOMOU_CIENCIA,
                                       usuario=user)
+
+    def _envia_email_termino(self):
+        assunto = f'[SIGPAE] Prazo de fornecimento de dieta encerrado - Solicitação #{self.id_externo}'
+        template = 'fluxo_dieta_especial_termina.html'
+        dados_template = {
+            'eol_aluno': self.aluno.codigo_eol,
+            'nome_aluno': self.aluno.nome
+        }
+        html = render_to_string(template, dados_template)
+        envia_email_em_massa_task.delay(
+            assunto=assunto,
+            corpo='',
+            emails=self._partes_interessadas_termino,
+            html=html
+        )
 
     class Meta:
         abstract = True
