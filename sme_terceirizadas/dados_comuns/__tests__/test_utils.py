@@ -1,8 +1,10 @@
+from datetime import date
+
 import environ
 from freezegun import freeze_time
 
 from ..constants import DAQUI_A_SETE_DIAS, DAQUI_A_TRINTA_DIAS, SEM_FILTRO, obter_dias_uteis_apos_hoje
-from ..utils import queryset_por_data, update_instance_from_dict
+from ..utils import queryset_por_data, subtrai_meses_de_data, update_instance_from_dict
 
 env = environ.Env()
 
@@ -38,3 +40,10 @@ def test_queryset_por_data():
     assert queryset_por_data(DAQUI_A_SETE_DIAS, model) == model.desta_semana
     assert queryset_por_data(DAQUI_A_TRINTA_DIAS, model) == model.deste_mes
     assert queryset_por_data(SEM_FILTRO, model) == model.objects
+
+
+def test_subtrai_meses_de_data():
+    data_nova = subtrai_meses_de_data(6, date(2020, 3, 15))
+    assert data_nova.year == 2019
+    assert data_nova.month == 9
+    assert data_nova.day == 15

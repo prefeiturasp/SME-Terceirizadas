@@ -85,3 +85,19 @@ def convert_date_format(date, from_format, to_format):
 
 def size(b64string):
     return (len(b64string) * 3) / 4 - b64string.count('=', -2)
+
+
+def subtrai_meses_de_data(meses, data):
+    sub_anos = meses // 12
+    sub_meses = meses % 12
+    if data.month < sub_meses:
+        return datetime.date(
+            data.year - (sub_anos + 1),
+            12 - (sub_meses - data.month),
+            data.day
+        )
+    return datetime.date(
+        data.year - sub_anos,
+        data.month - sub_meses,
+        data.day
+    )

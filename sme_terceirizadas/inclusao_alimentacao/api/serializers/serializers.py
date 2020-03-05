@@ -1,14 +1,24 @@
 from rest_framework import serializers
 
-from ....cardapio.api.serializers.serializers import CombosVinculoTipoAlimentoSimplesSerializer
+from ....cardapio.api.serializers.serializers import (
+    CombosVinculoTipoAlimentoSimplesSerializer,
+    CombosVinculoTipoAlimentoSimplissimaSerializer
+)
 from ....dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
-from ....escola.api.serializers import EscolaSimplesSerializer, PeriodoEscolarSerializer
+from ....escola.api.serializers import (
+    EscolaSimplesSerializer,
+    FaixaEtariaSerializer,
+    PeriodoEscolarSerializer,
+    PeriodoEscolarSimplesSerializer
+)
 from ....inclusao_alimentacao.models import (
     GrupoInclusaoAlimentacaoNormal,
     InclusaoAlimentacaoContinua,
+    InclusaoAlimentacaoDaCEI,
     InclusaoAlimentacaoNormal,
     MotivoInclusaoContinua,
     MotivoInclusaoNormal,
+    QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEI,
     QuantidadePorPeriodo
 )
 
@@ -23,6 +33,27 @@ class MotivoInclusaoNormalSerializer(serializers.ModelSerializer):
     class Meta:
         model = MotivoInclusaoNormal
         exclude = ('id',)
+
+
+class QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEISerializer(serializers.ModelSerializer):
+    faixa_etaria = FaixaEtariaSerializer()
+
+    class Meta:
+        model = QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEI
+        exclude = ('id', 'inclusao_alimentacao_da_cei')
+
+
+class InclusaoAlimentacaoDaCEISerializer(serializers.ModelSerializer):
+    periodo_escolar = PeriodoEscolarSimplesSerializer()
+    tipos_alimentacao = CombosVinculoTipoAlimentoSimplissimaSerializer(many=True, read_only=True)
+    motivo = MotivoInclusaoNormalSerializer()
+    quantidade_alunos_por_faixas_etarias = QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEISerializer(
+        many=True, read_only=True)
+    id_externo = serializers.CharField()
+
+    class Meta:
+        model = InclusaoAlimentacaoDaCEI
+        exclude = ('id', 'escola', 'criado_por')
 
 
 class QuantidadePorPeriodoSerializer(serializers.ModelSerializer):

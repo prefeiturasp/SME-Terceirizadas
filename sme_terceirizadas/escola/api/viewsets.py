@@ -1,3 +1,4 @@
+from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import serializers, status
 from rest_framework.decorators import action
 from rest_framework.mixins import CreateModelMixin, ListModelMixin
@@ -30,6 +31,7 @@ from ...escola.api.serializers_create import (
 )
 from ...paineis_consolidados.api.constants import FILTRO_DRE_UUID
 from ...perfil.api.serializers import UsuarioUpdateSerializer, VinculoSerializer
+from ..forms import AlunosPorFaixaEtariaForm
 from ..models import (
     Aluno,
     Codae,
@@ -265,6 +267,39 @@ class EscolaPeriodoEscolarViewSet(ModelViewSet):
         page = self.paginate_queryset(periodos)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
+
+    #  TODO: Quebrar esse método um pouco, está complexo e sem teste
+    @action(detail=True, url_path='alunos-por-faixa-etaria/(?P<data_referencia_str>[^/.]+)')  # noqa C901
+    def alunos_por_faixa_etaria(self, request, uuid, data_referencia_str):
+        form = AlunosPorFaixaEtariaForm({
+            'data_referencia': data_referencia_str
+        })
+
+        if not form.is_valid():
+            return Response(form.errors)
+
+        escola_periodo = self.get_object()
+        data_referencia = form.cleaned_data['data_referencia']
+
+        try:
+            faixa_alunos = escola_periodo.alunos_por_faixa_etaria(data_referencia)
+        except ObjectDoesNotExist:
+            return Response(
+                {'detail': 'Não há faixas etárias cadastradas. Contate a coordenadoria CODAE.'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+        results = []
+        for uuid_faixa_etaria in faixa_alunos:
+            results.append({
+                'faixa_etaria': FaixaEtariaSerializer(FaixaEtaria.objects.get(uuid=uuid_faixa_etaria)).data,
+                'count': faixa_alunos[uuid_faixa_etaria]
+            })
+
+        return Response({
+            'count': len(results),
+            'results': results
+        })
 
 
 class AlunoViewSet(ReadOnlyModelViewSet):

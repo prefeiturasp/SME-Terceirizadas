@@ -4,15 +4,101 @@ from rest_framework.exceptions import ValidationError
 from ....cardapio.models import ComboDoVinculoTipoAlimentacaoPeriodoTipoUE
 from ....dados_comuns.utils import update_instance_from_dict
 from ....dados_comuns.validators import deve_pedir_com_antecedencia, nao_pode_ser_no_passado
-from ....escola.models import Escola, PeriodoEscolar
+from ....escola.models import Escola, FaixaEtaria, PeriodoEscolar
 from ...models import (
     GrupoInclusaoAlimentacaoNormal,
     InclusaoAlimentacaoContinua,
+    InclusaoAlimentacaoDaCEI,
     InclusaoAlimentacaoNormal,
     MotivoInclusaoContinua,
     MotivoInclusaoNormal,
+    QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEI,
     QuantidadePorPeriodo
 )
+
+
+class QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEISerializer(serializers.ModelSerializer):
+    faixa_etaria = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=FaixaEtaria.objects.all())
+
+    def create(self, validated_data):
+        quantidade_alunos_faixa_etaria = QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEI.objects.create(
+            **validated_data
+        )
+        return quantidade_alunos_faixa_etaria
+
+    class Meta:
+        model = QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEI
+        exclude = ('id', 'inclusao_alimentacao_da_cei',)
+
+
+class InclusaoAlimentacaoDaCEICreateSerializer(serializers.ModelSerializer):
+    escola = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=Escola.objects.all())
+
+    periodo_escolar = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=PeriodoEscolar.objects.all())
+
+    tipos_alimentacao = serializers.SlugRelatedField(
+        slug_field='uuid',
+        many=True,
+        required=True,
+        queryset=ComboDoVinculoTipoAlimentacaoPeriodoTipoUE.objects.all())
+
+    motivo = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=MotivoInclusaoNormal.objects.all())
+
+    quantidade_alunos_por_faixas_etarias = QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEISerializer(
+        many=True,
+        required=True
+    )
+
+    def validate_data(self, data):
+        nao_pode_ser_no_passado(data)
+        deve_pedir_com_antecedencia(data)
+        return data
+
+    def create(self, validated_data):
+        quantidade_alunos_por_faixas_etarias = validated_data.pop('quantidade_alunos_por_faixas_etarias')
+        validated_data['criado_por'] = self.context['request'].user
+        tipos_alimentacao = validated_data.pop('tipos_alimentacao')
+
+        inclusao_alimentacao_da_cei = InclusaoAlimentacaoDaCEI.objects.create(**validated_data)
+        inclusao_alimentacao_da_cei.tipos_alimentacao.set(tipos_alimentacao)
+        for quantidade_json in quantidade_alunos_por_faixas_etarias:
+            qtd = QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEISerializer().create(
+                validated_data=quantidade_json)
+            inclusao_alimentacao_da_cei.adiciona_inclusao_a_quantidade_por_faixa_etaria(qtd)
+        return inclusao_alimentacao_da_cei
+
+    def update(self, instance, validated_data):
+        quantidade_alunos_por_faixas_etarias = validated_data.pop('quantidade_alunos_por_faixas_etarias')
+        tipos_alimentacao = validated_data.pop('tipos_alimentacao')
+
+        instance.quantidade_alunos_da_inclusao.all().delete()
+        instance.tipos_alimentacao.set([])
+        instance.tipos_alimentacao.set(tipos_alimentacao)
+
+        for quantidade_json in quantidade_alunos_por_faixas_etarias:
+            qtd = QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEISerializer().create(
+                validated_data=quantidade_json)
+            instance.adiciona_inclusao_a_quantidade_por_faixa_etaria(qtd)
+
+        update_instance_from_dict(instance, validated_data)
+        instance.save()
+        return instance
+
+    class Meta:
+        model = InclusaoAlimentacaoDaCEI
+        exclude = ('id',)
 
 
 class MotivoInclusaoContinuaSerializer(serializers.ModelSerializer):

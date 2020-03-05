@@ -17,10 +17,56 @@ from ...relatorios.relatorios import relatorio_inclusao_alimentacao_continua, re
 from ..models import (
     GrupoInclusaoAlimentacaoNormal,
     InclusaoAlimentacaoContinua,
+    InclusaoAlimentacaoDaCEI,
     MotivoInclusaoContinua,
     MotivoInclusaoNormal
 )
 from .serializers import serializers, serializers_create
+
+
+class InclusaoAlimentacaoDaCEIViewSet(ModelViewSet):
+    lookup_field = 'uuid'
+    queryset = InclusaoAlimentacaoDaCEI.objects.all()
+    permission_classes = (IsAuthenticated,)
+    serializer_class = serializers.InclusaoAlimentacaoDaCEISerializer
+
+    def get_permissions(self):
+        if self.action in ['list', 'update']:
+            self.permission_classes = (IsAdminUser,)
+        elif self.action == 'retrieve':
+            self.permission_classes = (IsAuthenticated, PermissaoParaRecuperarObjeto)
+        elif self.action in ['create', 'destroy']:
+            self.permission_classes = (UsuarioEscola,)
+        return super(InclusaoAlimentacaoDaCEIViewSet, self).get_permissions()
+
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update']:
+            return serializers_create.InclusaoAlimentacaoDaCEICreateSerializer
+        return serializers.InclusaoAlimentacaoDaCEISerializer
+
+    @action(detail=False, url_path=constants.SOLICITACOES_DO_USUARIO, permission_classes=(UsuarioEscola,))
+    def minhas_solicitacoes(self, request):
+        usuario = request.user
+        alimentacoes_normais = InclusaoAlimentacaoDaCEI.get_solicitacoes_rascunho(usuario)
+        page = self.paginate_queryset(alimentacoes_normais)
+        serializer = serializers.InclusaoAlimentacaoDaCEISerializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    #
+    # IMPLEMENTACAO DO FLUXO
+    #
+
+    @action(detail=True,
+            methods=['patch'],
+            url_path=constants.ESCOLA_INICIO_PEDIDO)
+    def inicio_de_pedido(self, request, uuid=None):
+        grupo_alimentacao_normal = self.get_object()
+        try:
+            grupo_alimentacao_normal.inicia_fluxo(user=request.user, )
+            serializer = self.get_serializer(grupo_alimentacao_normal)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
 
 
 class MotivoInclusaoContinuaViewSet(ReadOnlyModelViewSet):

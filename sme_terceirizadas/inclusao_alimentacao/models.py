@@ -255,3 +255,69 @@ class GrupoInclusaoAlimentacaoNormal(ExportModelOperationsMixin('grupo_inclusao'
     class Meta:
         verbose_name = 'Grupo de inclusão de alimentação normal'
         verbose_name_plural = 'Grupos de inclusão de alimentação normal'
+
+
+class QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEI(TemChaveExterna):
+    inclusao_alimentacao_da_cei = models.ForeignKey('InclusaoAlimentacaoDaCEI',
+                                                    blank=True, null=True,
+                                                    on_delete=models.CASCADE,
+                                                    related_name='quantidade_alunos_da_inclusao')
+    faixa_etaria = models.ForeignKey('escola.FaixaEtaria', on_delete=models.DO_NOTHING)
+    quantidade_alunos = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)])
+
+    def __str__(self):
+        return f'De: {self.faixa_etaria.inicio} até: {self.faixa_etaria.fim} meses - {self.quantidade_alunos} alunos'
+
+    class Meta:
+        verbose_name = 'Quantidade de alunos por faixa etária da inclusao de alimentação'
+        verbose_name_plural = 'Quantidade de alunos por faixa etária da inclusao de alimentação'
+
+
+class InclusaoAlimentacaoDaCEI(Descritivel, TemData, TemChaveExterna, FluxoAprovacaoPartindoDaEscola, CriadoEm,
+                               SolicitacaoForaDoPrazo, CriadoPor, TemIdentificadorExternoAmigavel, Logs, TemPrioridade):
+    DESCRICAO = 'Inclusão de Alimentação Por CEI'
+
+    escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING,
+                               related_name='grupos_inclusoes_por_cei')
+    motivo = models.ForeignKey(MotivoInclusaoNormal, on_delete=models.DO_NOTHING)
+    periodo_escolar = models.ForeignKey('escola.PeriodoEscolar', on_delete=models.DO_NOTHING)
+    tipos_alimentacao = models.ManyToManyField('cardapio.ComboDoVinculoTipoAlimentacaoPeriodoTipoUE')
+
+    objects = models.Manager()  # Manager Padrão
+
+    @property
+    def quantidade_alunos_por_faixas_etarias(self):
+        return self.quantidade_alunos_da_inclusao
+
+    def adiciona_inclusao_a_quantidade_por_faixa_etaria(
+        self, quantidade_por_faixa_etaria: QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEI):  # noqa E128
+        quantidade_por_faixa_etaria.inclusao_alimentacao_da_cei = self
+        quantidade_por_faixa_etaria.save()
+
+    @classmethod
+    def get_solicitacoes_rascunho(cls, usuario):
+        alimentacao_normal = cls.objects.filter(
+            criado_por=usuario,
+            status=InclusaoAlimentacaoDaCEI.workflow_class.RASCUNHO
+        )
+        return alimentacao_normal
+
+    def salvar_log_transicao(self, status_evento, usuario, **kwargs):
+        justificativa = kwargs.get('justificativa', '')
+        resposta_sim_nao = kwargs.get('resposta_sim_nao', False)
+        LogSolicitacoesUsuario.objects.create(
+            descricao=str(self),
+            status_evento=status_evento,
+            solicitacao_tipo=LogSolicitacoesUsuario.INCLUSAO_ALIMENTACAO_CEI,
+            usuario=usuario,
+            uuid_original=self.uuid,
+            justificativa=justificativa,
+            resposta_sim_nao=resposta_sim_nao
+        )
+
+    def __str__(self):
+        return f'Inclusao da CEI cód: {self.id_externo}'
+
+    class Meta:
+        verbose_name = 'Inclusão de alimentação da CEI'
+        verbose_name_plural = 'Inclusões de alimentação da CEI'

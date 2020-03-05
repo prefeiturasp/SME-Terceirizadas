@@ -28,9 +28,19 @@ usuario_nutri_codae.registro_funcional = '0000101'
 usuario_nutri_codae.nome = 'USUARIO NUTRICIONISTA CODAE'
 usuario_nutri_codae.crn_numero = '15975364'
 usuario_nutri_codae.save()
+usuario_escola_cei = Usuario.objects.get(email='escolacei@admin.com')
+usuario_escola_cei.registro_funcional = '0000110'
+usuario_escola_cei.nome = 'SUPER USUARIO ESCOLA CEI'
+usuario_escola_cei.save()
 
 perfil_diretor_escola, created = Perfil.objects.get_or_create(
     nome='DIRETOR',
+    ativo=True,
+    super_usuario=True
+)
+
+perfil_diretor_escola_cei, created = Perfil.objects.get_or_create(
+    nome='DIRETOR CEI',
     ativo=True,
     super_usuario=True
 )
@@ -91,6 +101,7 @@ Perfil.objects.get_or_create(
 
 
 escola = Escola.objects.get(nome='EMEF JOSE ERMIRIO DE MORAIS, SEN.')
+escola_cei = Escola.objects.get(nome='CEI DIRET AMERICO DE SOUZA')
 diretoria_regional = DiretoriaRegional.objects.get(nome='DIRETORIA REGIONAL DE EDUCACAO SAO MIGUEL')
 codae, created = Codae.objects.get_or_create(nome='CODAE')
 terceirizada = escola.lote.terceirizada
@@ -102,6 +113,14 @@ Vinculo.objects.create(
     data_inicial=data_atual
 )
 print(f'perfil {perfil_diretor_escola.nome} vinculado a {escola.nome} com sucesso')
+
+Vinculo.objects.create(
+    instituicao=escola_cei,
+    perfil=perfil_diretor_escola_cei,
+    usuario=usuario_escola_cei,
+    data_inicial=data_atual
+)
+print(f'perfil {perfil_diretor_escola_cei.nome} vinculado a {escola_cei.nome} com sucesso')
 
 Vinculo.objects.create(
     instituicao=diretoria_regional,
