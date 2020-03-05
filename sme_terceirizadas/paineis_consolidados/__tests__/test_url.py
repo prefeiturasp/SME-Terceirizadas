@@ -36,7 +36,7 @@ def test_url_endpoint_painel_dre_pendentes_validacao(client_autenticado_dre_pain
     response = base_diretoria_regional(client_autenticado_dre_paineis_consolidados,
                                        f'{PENDENTES_VALIDACAO_DRE}/{SEM_FILTRO}/{TIPO_VISAO_SOLICITACOES}')
     assert response.json() == {
-        'results': {'Alteração de Cardápio': {'TOTAL': 3, 'REGULAR': 1, 'PRIORITARIO': 2, 'LIMITE': 0}}
+        'results': {'Alteração de Cardápio': {'TOTAL': 3, 'REGULAR': 1, 'PRIORITARIO': 1, 'LIMITE': 1}}
     }
 
 
