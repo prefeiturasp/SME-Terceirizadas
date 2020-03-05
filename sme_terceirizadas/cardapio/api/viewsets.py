@@ -817,6 +817,15 @@ class AlteracoesCardapioCEIViewSet(AlteracoesCardapioViewSet):
             return AlteracaoCardapioCEISerializerCreate
         return AlteracaoCardapioCEISerializer
 
+    @action(detail=False, url_path=constants.SOLICITACOES_DO_USUARIO,
+            permission_classes=(UsuarioEscola,))
+    def minhas_solicitacoes(self, request):
+        usuario = request.user
+        alteracoes_cardapio_rascunho = AlteracaoCardapioCEI.get_rascunhos_do_usuario(usuario)
+        page = self.paginate_queryset(alteracoes_cardapio_rascunho)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
     queryset = AlteracaoCardapioCEI.objects.all()
 
 

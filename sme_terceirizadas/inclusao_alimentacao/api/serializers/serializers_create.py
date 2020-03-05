@@ -81,11 +81,6 @@ class InclusaoAlimentacaoDaCEICreateSerializer(serializers.ModelSerializer):
             inclusao_alimentacao_da_cei.adiciona_inclusao_a_quantidade_por_faixa_etaria(qtd)
         return inclusao_alimentacao_da_cei
 
-    def update(self, instance, validated_data):
-        import ipdb
-        ipdb.set_trace()
-        return instance
-
     class Meta:
         model = InclusaoAlimentacaoDaCEI
         exclude = ('id',)

@@ -531,6 +531,7 @@ def test_url_endpoint_alt_card_cei_criar(client_autenticado_vinculo_escola_carda
         'motivo': str(motivo_alteracao_cardapio.uuid),
         'data': dia_alteracao.isoformat(),
         'escola': escola.uuid,
+        'observacao': 'Alteração por causa do feriado',
         'substituicoes': [{
             'periodo_escolar': str(periodo_escolar.uuid),
             'tipo_alimentacao_de': str(combo1.uuid),
@@ -552,6 +553,7 @@ def test_url_endpoint_alt_card_cei_criar(client_autenticado_vinculo_escola_carda
     assert resp_json['status_explicacao'] == 'RASCUNHO'
     assert resp_json['escola'] == escola.uuid
     assert resp_json['motivo'] == str(motivo_alteracao_cardapio.uuid)
+    assert resp_json['observacao'] == 'Alteração por causa do feriado'
 
     substituicao = resp_json['substituicoes'][0]
     assert substituicao['periodo_escolar'] == str(periodo_escolar.uuid)
