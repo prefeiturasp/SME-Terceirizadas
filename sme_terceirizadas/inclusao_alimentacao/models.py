@@ -289,8 +289,7 @@ class InclusaoAlimentacaoDaCEI(Descritivel, TemData, TemChaveExterna, FluxoAprov
     def quantidade_alunos_por_faixas_etarias(self):
         return self.quantidade_alunos_da_inclusao
 
-    def adiciona_inclusao_a_quantidade_por_faixa_etaria(
-        self, quantidade_por_faixa_etaria: QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEI):
+    def adiciona_inclusao_a_quantidade_por_faixa_etaria(self, quantidade_por_faixa_etaria: QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEI):  # noqa E125
         quantidade_por_faixa_etaria.inclusao_alimentacao_da_cei = self
         quantidade_por_faixa_etaria.save()
 
