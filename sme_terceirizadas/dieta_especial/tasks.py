@@ -1,6 +1,6 @@
 from celery import shared_task
 
-from ..dados_comuns.models import Usuario
+from ..perfil.models import Usuario
 from .utils import termina_dietas_especiais
 
 

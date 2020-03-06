@@ -14,6 +14,7 @@ from ...dados_comuns.permissions import (
     UsuarioEscola,
     UsuarioTerceirizada
 )
+from ...escola.models import Escola
 from ...relatorios.relatorios import (
     relatorio_alteracao_cardapio,
     relatorio_inversao_dia_de_cardapio,
@@ -105,9 +106,22 @@ class VinculoTipoAlimentacaoViewSet(mixins.RetrieveModelMixin,
 
     @action(detail=False,
             url_path='tipo_unidade_escolar/(?P<tipo_unidade_escolar_uuid>[^/.]+)')
-    def filtro_por_periodo_tipo_ue(self, request, tipo_unidade_escolar_uuid=None):
+    def filtro_por_tipo_ue(self, request, tipo_unidade_escolar_uuid=None):
         vinculos = VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar.objects.filter(
             tipo_unidade_escolar__uuid=tipo_unidade_escolar_uuid, ativo=True)
+        page = self.paginate_queryset(vinculos)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False,
+            url_path='escola/(?P<escola_uuid>[^/.]+)')
+    def filtro_por_escola(self, request, escola_uuid=None):
+        escola = Escola.objects.get(uuid=escola_uuid)
+        vinculos = VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar.objects.filter(
+            tipo_unidade_escolar=escola.tipo_unidade,
+            periodo_escolar__in=escola.periodos_escolares,
+            ativo=True
+        )
         page = self.paginate_queryset(vinculos)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
