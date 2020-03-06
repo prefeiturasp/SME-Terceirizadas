@@ -187,6 +187,46 @@ class PeriodoEscolarViewSet(ReadOnlyModelViewSet):
     queryset = PeriodoEscolar.objects.all()
     serializer_class = PeriodoEscolarSerializer
 
+    #  TODO: Quebrar esse método um pouco, está complexo e sem teste
+    @action(detail=True, url_path='alunos-por-faixa-etaria/(?P<data_referencia_str>[^/.]+)')  # noqa C901
+    def alunos_por_faixa_etaria(self, request, uuid, data_referencia_str):
+        form = AlunosPorFaixaEtariaForm({
+            'data_referencia': data_referencia_str
+        })
+
+        if not form.is_valid():
+            return Response(form.errors)
+
+        periodo_escolar = self.get_object()
+        if periodo_escolar.nome == "PARCIAL":
+            periodo_escolar = PeriodoEscolar.objects.get(nome="INTEGRAL")
+        escola = self.request.user.vinculos.get(ativo=True).instituicao
+        escola_periodo, created = EscolaPeriodoEscolar.objects.get_or_create(
+            escola=escola,
+            periodo_escolar=periodo_escolar
+        )
+        data_referencia = form.cleaned_data['data_referencia']
+
+        try:
+            faixa_alunos = escola_periodo.alunos_por_faixa_etaria(data_referencia)
+        except ObjectDoesNotExist:
+            return Response(
+                {'detail': 'Não há faixas etárias cadastradas. Contate a coordenadoria CODAE.'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+        results = []
+        for uuid_faixa_etaria in faixa_alunos:
+            results.append({
+                'faixa_etaria': FaixaEtariaSerializer(FaixaEtaria.objects.get(uuid=uuid_faixa_etaria)).data,
+                'count': faixa_alunos[uuid_faixa_etaria]
+            })
+
+        return Response({
+            'count': len(results),
+            'results': results
+        })
+
 
 class DiretoriaRegionalViewSet(ReadOnlyModelViewSet):
     lookup_field = 'uuid'
