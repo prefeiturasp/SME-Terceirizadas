@@ -289,9 +289,31 @@ class InclusaoAlimentacaoDaCEI(Descritivel, TemData, TemChaveExterna, FluxoAprov
     def quantidade_alunos_por_faixas_etarias(self):
         return self.quantidade_alunos_da_inclusao
 
-    def adiciona_inclusao_a_quantidade_por_faixa_etaria(self, quantidade_por_faixa_etaria: QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEI):  # noqa E125
+    def adiciona_inclusao_a_quantidade_por_faixa_etaria(
+        self, quantidade_por_faixa_etaria: QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEI):  # noqa E128
         quantidade_por_faixa_etaria.inclusao_alimentacao_da_cei = self
         quantidade_por_faixa_etaria.save()
+
+    @classmethod
+    def get_solicitacoes_rascunho(cls, usuario):
+        alimentacao_normal = cls.objects.filter(
+            criado_por=usuario,
+            status=InclusaoAlimentacaoDaCEI.workflow_class.RASCUNHO
+        )
+        return alimentacao_normal
+
+    def salvar_log_transicao(self, status_evento, usuario, **kwargs):
+        justificativa = kwargs.get('justificativa', '')
+        resposta_sim_nao = kwargs.get('resposta_sim_nao', False)
+        LogSolicitacoesUsuario.objects.create(
+            descricao=str(self),
+            status_evento=status_evento,
+            solicitacao_tipo=LogSolicitacoesUsuario.INCLUSAO_ALIMENTACAO_CEI,
+            usuario=usuario,
+            uuid_original=self.uuid,
+            justificativa=justificativa,
+            resposta_sim_nao=resposta_sim_nao
+        )
 
     def __str__(self):
         return f'Inclusao da CEI cód: {self.id_externo}'

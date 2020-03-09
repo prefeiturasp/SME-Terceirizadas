@@ -61,61 +61,6 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
-    @action(detail=False, url_path='pedidos-autorizados-diretoria-regional',
-            permission_classes=(UsuarioDiretoriaRegional,))
-    def solicitacoes_autorizados_diretoria_regional(self, request):
-        # TODO: tentar tirar isso depois, acredito que não tenha utilidade mais por já ter no card principal
-        usuario = request.user
-        diretoria_regional = usuario.vinculo_atual.instituicao
-        kit_lanche = diretoria_regional.solicitacao_kit_lanche_avulsa_autorizadas
-        page = self.paginate_queryset(kit_lanche)
-        serializer = self.get_serializer(page, many=True)
-        return self.get_paginated_response(serializer.data)
-
-    @action(detail=False, url_path='pedidos-reprovados-diretoria-regional',
-            permission_classes=(UsuarioDiretoriaRegional,))
-    def solicitacoes_reprovados_diretoria_regional(self, request):
-        # TODO: tentar tirar isso depois, acredito que não tenha utilidade mais por já ter no card principal
-        usuario = request.user
-        diretoria_regional = usuario.vinculo_atual.instituicao
-        kit_lanche = diretoria_regional.solicitacao_kit_lanche_avulsa_reprovados
-        page = self.paginate_queryset(kit_lanche)
-        serializer = self.get_serializer(page, many=True)
-        return self.get_paginated_response(serializer.data)
-
-    @action(detail=False, url_path='pedidos-autorizados-codae',
-            permission_classes=(UsuarioCODAEGestaoAlimentacao,))
-    def solicitacoes_autorizados_codae(self, request):
-        # TODO: tentar tirar isso depois, acredito que não tenha utilidade mais por já ter no card principal
-        usuario = request.user
-        codae = usuario.vinculo_atual.instituicao
-        kit_lanche = codae.solicitacao_kit_lanche_avulsa_autorizadas
-        page = self.paginate_queryset(kit_lanche)
-        serializer = self.get_serializer(page, many=True)
-        return self.get_paginated_response(serializer.data)
-
-    @action(detail=False, url_path='pedidos-reprovados-codae',
-            permission_classes=(UsuarioCODAEGestaoAlimentacao,))
-    def solicitacoes_reprovados_codae(self, request):
-        # TODO: tentar tirar isso depois, acredito que não tenha utilidade mais por já ter no card principal
-        usuario = request.user
-        codae = usuario.vinculo_atual.instituicao
-        kit_lanche = codae.solicitacao_kit_lanche_avulsa_reprovadas
-        page = self.paginate_queryset(kit_lanche)
-        serializer = self.get_serializer(page, many=True)
-        return self.get_paginated_response(serializer.data)
-
-    @action(detail=False, url_path='pedidos-autorizados-terceirizadas',
-            permission_classes=(UsuarioTerceirizada,))
-    def solicitacoes_autorizados_terceirizadas(self, request):
-        # TODO: tentar tirar isso depois, acredito que não tenha utilidade mais por já ter no card principal
-        usuario = request.user
-        terceirizadas = usuario.vinculo_atual.instituicao
-        kit_lanche = terceirizadas.solicitacao_kit_lanche_avulsa_autorizadas
-        page = self.paginate_queryset(kit_lanche)
-        serializer = self.get_serializer(page, many=True)
-        return self.get_paginated_response(serializer.data)
-
     @action(detail=False,
             url_path=f'{constants.PEDIDOS_CODAE}/{constants.FILTRO_PADRAO_PEDIDOS}',
             permission_classes=(UsuarioCODAEGestaoAlimentacao,))
@@ -348,27 +293,6 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
             filtro_aplicado
         )
         page = self.paginate_queryset(solicitacoes_unificadas)
-        serializer = self.get_serializer(page, many=True)
-        return self.get_paginated_response(serializer.data)
-
-    @action(detail=False, url_path='pedidos-autorizados-codae',
-            permission_classes=(UsuarioCODAEGestaoAlimentacao,))
-    def solicitacoes_autorizados_codae(self, request):
-        usuario = request.user
-        codae = usuario.vinculo_atual.instituicao
-        kit_lanche = codae.solicitacoes_unificadas_autorizadas
-        page = self.paginate_queryset(kit_lanche)
-        serializer = self.get_serializer(page, many=True)
-        return self.get_paginated_response(serializer.data)
-
-    @action(detail=False, url_path='pedidos-autorizados-terceirizada',
-            permission_classes=(UsuarioTerceirizada,))
-    def solicitacoes_autorizados_terceirizada(self, request):
-        # TODO retirar esses endpoints por que já tem a mesma informacao no painel do front
-        usuario = request.user
-        terceirizada = usuario.vinculo_atual.instituicao
-        kit_lanche = terceirizada.solicitacoes_unificadas_autorizadas
-        page = self.paginate_queryset(kit_lanche)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 

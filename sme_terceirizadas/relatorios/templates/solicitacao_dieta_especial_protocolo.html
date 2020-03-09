@@ -31,6 +31,9 @@
     </h5>
     <p><strong>1. Orientações</strong></p>
     <p>O Diretor da U.E. e a Empresa devem verificar:</p>
+    {% if data_termino %}
+      <p>- Esta dieta especial terá seu fornecimento encerrado em {{ data_termino }}</p>
+    {% endif %}
     <p>- Substituição de{{" "}}
       {% for substituicao in solicitacao.substituicoes %}
         {{ substituicao.alimento }}{{ ", " }}

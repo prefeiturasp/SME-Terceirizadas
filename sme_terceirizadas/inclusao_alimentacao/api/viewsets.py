@@ -27,12 +27,46 @@ from .serializers import serializers, serializers_create
 class InclusaoAlimentacaoDaCEIViewSet(ModelViewSet):
     lookup_field = 'uuid'
     queryset = InclusaoAlimentacaoDaCEI.objects.all()
+    permission_classes = (IsAuthenticated,)
     serializer_class = serializers.InclusaoAlimentacaoDaCEISerializer
+
+    def get_permissions(self):
+        if self.action in ['list', 'update']:
+            self.permission_classes = (IsAdminUser,)
+        elif self.action == 'retrieve':
+            self.permission_classes = (IsAuthenticated, PermissaoParaRecuperarObjeto)
+        elif self.action in ['create', 'destroy']:
+            self.permission_classes = (UsuarioEscola,)
+        return super(InclusaoAlimentacaoDaCEIViewSet, self).get_permissions()
 
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update']:
             return serializers_create.InclusaoAlimentacaoDaCEICreateSerializer
         return serializers.InclusaoAlimentacaoDaCEISerializer
+
+    @action(detail=False, url_path=constants.SOLICITACOES_DO_USUARIO, permission_classes=(UsuarioEscola,))
+    def minhas_solicitacoes(self, request):
+        usuario = request.user
+        alimentacoes_normais = InclusaoAlimentacaoDaCEI.get_solicitacoes_rascunho(usuario)
+        page = self.paginate_queryset(alimentacoes_normais)
+        serializer = serializers.InclusaoAlimentacaoDaCEISerializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    #
+    # IMPLEMENTACAO DO FLUXO
+    #
+
+    @action(detail=True,
+            methods=['patch'],
+            url_path=constants.ESCOLA_INICIO_PEDIDO)
+    def inicio_de_pedido(self, request, uuid=None):
+        grupo_alimentacao_normal = self.get_object()
+        try:
+            grupo_alimentacao_normal.inicia_fluxo(user=request.user, )
+            serializer = self.get_serializer(grupo_alimentacao_normal)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
 
 
 class MotivoInclusaoContinuaViewSet(ReadOnlyModelViewSet):
@@ -114,72 +148,6 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
             filtro_aplicado
         )
         page = self.paginate_queryset(inclusoes_alimentacao_normal)
-        serializer = self.get_serializer(page, many=True)
-        return self.get_paginated_response(serializer.data)
-
-    @action(detail=False,
-            url_path='pedidos-autorizados-diretoria-regional',
-            permission_classes=(UsuarioDiretoriaRegional,))
-    def solicitacoes_autorizados_diretoria_regional(self, request):
-        usuario = request.user
-        diretoria_regional = usuario.vinculo_atual.instituicao
-        inclusoes_normais = diretoria_regional.inclusoes_normais_autorizadas
-        page = self.paginate_queryset(inclusoes_normais)
-        serializer = self.get_serializer(page, many=True)
-        return self.get_paginated_response(serializer.data)
-
-    @action(detail=False,
-            url_path='pedidos-reprovados-diretoria-regional',
-            permission_classes=(UsuarioDiretoriaRegional,))
-    def solicitacoes_reprovados_diretoria_regional(self, request):
-        usuario = request.user
-        diretoria_regional = usuario.vinculo_atual.instituicao
-        inclusoes_normais = diretoria_regional.inclusoes_normais_reprovadas
-        page = self.paginate_queryset(inclusoes_normais)
-        serializer = self.get_serializer(page, many=True)
-        return self.get_paginated_response(serializer.data)
-
-    @action(detail=False,
-            url_path='pedidos-autorizados-codae',
-            permission_classes=(UsuarioCODAEGestaoAlimentacao,))
-    def solicitacoes_autorizadas_codae(self, request):
-        usuario = request.user
-        codae = usuario.vinculo_atual.instituicao
-        inclusoes_normais = codae.inclusoes_normais_autorizadas
-        page = self.paginate_queryset(inclusoes_normais)
-        serializer = self.get_serializer(page, many=True)
-        return self.get_paginated_response(serializer.data)
-
-    @action(detail=False,
-            url_path='pedidos-reprovados-codae',
-            permission_classes=(UsuarioCODAEGestaoAlimentacao,))
-    def solicitacoes_reprovados_codae(self, request):
-        usuario = request.user
-        codae = usuario.vinculo_atual.instituicao
-        inclusoes_normais = codae.inclusoes_normais_reprovadas
-        page = self.paginate_queryset(inclusoes_normais)
-        serializer = self.get_serializer(page, many=True)
-        return self.get_paginated_response(serializer.data)
-
-    @action(detail=False,
-            url_path='pedidos-autorizados-terceirizada',
-            permission_classes=(UsuarioTerceirizada,))
-    def solicitacoes_autorizadas_terceirizada(self, request):
-        usuario = request.user
-        terceirizada = usuario.vinculo_atual.instituicao
-        inclusoes_normais = terceirizada.inclusoes_normais_autorizadas
-        page = self.paginate_queryset(inclusoes_normais)
-        serializer = self.get_serializer(page, many=True)
-        return self.get_paginated_response(serializer.data)
-
-    @action(detail=False,
-            url_path='pedidos-reprovados-terceirizada',
-            permission_classes=(UsuarioTerceirizada,))
-    def solicitacoes_reprovados_terceirizada(self, request):
-        usuario = request.user
-        terceirizada = usuario.vinculo_atual.instituicao
-        inclusoes_normais = terceirizada.inclusoes_normais_reprovadas
-        page = self.paginate_queryset(inclusoes_normais)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
@@ -402,72 +370,6 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet):
             filtro_aplicado
         )
         page = self.paginate_queryset(inclusoes_alimentacao_continua)
-        serializer = self.get_serializer(page, many=True)
-        return self.get_paginated_response(serializer.data)
-
-    @action(detail=False,
-            url_path='pedidos-autorizados-diretoria-regional',
-            permission_classes=(UsuarioDiretoriaRegional,))
-    def solicitacoes_autorizadas_diretoria_regional(self, request):
-        usuario = request.user
-        diretoria_regional = usuario.vinculo_atual.instituicao
-        inclusoes_continuas = diretoria_regional.inclusoes_continuas_autorizadas
-        page = self.paginate_queryset(inclusoes_continuas)
-        serializer = self.get_serializer(page, many=True)
-        return self.get_paginated_response(serializer.data)
-
-    @action(detail=False,
-            url_path='pedidos-reprovados-diretoria-regional',
-            permission_classes=(UsuarioDiretoriaRegional,))
-    def solicitacoes_reprovados_diretoria_regional(self, request):
-        usuario = request.user
-        diretoria_regional = usuario.vinculo_atual.instituicao
-        inclusoes_continuas = diretoria_regional.inclusoes_continuas_reprovadas
-        page = self.paginate_queryset(inclusoes_continuas)
-        serializer = self.get_serializer(page, many=True)
-        return self.get_paginated_response(serializer.data)
-
-    @action(detail=False,
-            url_path='pedidos-autorizados-codae',
-            permission_classes=(UsuarioCODAEGestaoAlimentacao,))
-    def solicitacoes_autorizadas_codae(self, request):
-        usuario = request.user
-        codae = usuario.vinculo_atual.instituicao
-        inclusoes_continuas = codae.inclusoes_continuas_autorizadas
-        page = self.paginate_queryset(inclusoes_continuas)
-        serializer = self.get_serializer(page, many=True)
-        return self.get_paginated_response(serializer.data)
-
-    @action(detail=False,
-            url_path='pedidos-reprovados-codae',
-            permission_classes=(UsuarioCODAEGestaoAlimentacao,))
-    def solicitacoes_reprovados_codae(self, request):
-        usuario = request.user
-        codae = usuario.vinculo_atual.instituicao
-        inclusoes_continuas = codae.inclusoes_continuas_reprovadas
-        page = self.paginate_queryset(inclusoes_continuas)
-        serializer = self.get_serializer(page, many=True)
-        return self.get_paginated_response(serializer.data)
-
-    @action(detail=False,
-            url_path='pedidos-autorizados-terceirizada',
-            permission_classes=(UsuarioTerceirizada,))
-    def solicitacoes_autorizadas_terceirizada(self, request):
-        usuario = request.user
-        terceirizada = usuario.vinculo_atual.instituicao
-        inclusoes_continuas = terceirizada.inclusoes_continuas_autorizadas
-        page = self.paginate_queryset(inclusoes_continuas)
-        serializer = self.get_serializer(page, many=True)
-        return self.get_paginated_response(serializer.data)
-
-    @action(detail=False,
-            url_path='pedidos-reprovados-terceirizada',
-            permission_classes=(UsuarioTerceirizada,))
-    def solicitacoes_reprovados_terceirizada(self, request):
-        usuario = request.user
-        terceirizada = usuario.vinculo_atual.instituicao
-        inclusoes_continuas = terceirizada.inclusoes_continuas_reprovadas
-        page = self.paginate_queryset(inclusoes_continuas)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 

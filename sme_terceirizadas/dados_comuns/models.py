@@ -37,9 +37,10 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
         INICIO_FLUXO_INATIVACAO,
         CODAE_AUTORIZOU_INATIVACAO,
         CODAE_NEGOU_INATIVACAO,
-        TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO
+        TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO,
+        TERMINADA_AUTOMATICAMENTE_SISTEMA
 
-    ) = range(19)
+    ) = range(20)
 
     STATUS_POSSIVEIS = (
         (INICIO_FLUXO, 'Solicitação Realizada'),
@@ -60,7 +61,8 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
         (INICIO_FLUXO_INATIVACAO, 'Escola solicitou inativação'),
         (CODAE_AUTORIZOU_INATIVACAO, 'CODAE autorizou inativação'),
         (CODAE_NEGOU_INATIVACAO, 'CODAE negou inativação'),
-        (TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO, 'Terceirizada tomou ciência da inativação')
+        (TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO, 'Terceirizada tomou ciência da inativação'),
+        (TERMINADA_AUTOMATICAMENTE_SISTEMA, 'Terminada por atingir data de término')
 
     )
     (  # DA ESCOLA
@@ -69,11 +71,12 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
         SUSPENSAO_DE_CARDAPIO,
         INVERSAO_DE_CARDAPIO,
         INCLUSAO_ALIMENTACAO_NORMAL,
+        INCLUSAO_ALIMENTACAO_CEI,
         INCLUSAO_ALIMENTACAO_CONTINUA,
         DIETA_ESPECIAL,
         # DA DRE
         SOLICITACAO_KIT_LANCHE_UNIFICADA
-    ) = range(8)
+    ) = range(9)
 
     TIPOS_SOLICITACOES = (
         (SOLICITACAO_KIT_LANCHE_AVULSA, 'Solicitação de kit lanche avulsa'),
@@ -81,6 +84,7 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
         (SUSPENSAO_DE_CARDAPIO, 'Suspensão de cardápio'),
         (INVERSAO_DE_CARDAPIO, 'Inversão de cardápio'),
         (INCLUSAO_ALIMENTACAO_NORMAL, 'Inclusão de alimentação normal'),
+        (INCLUSAO_ALIMENTACAO_CEI, 'Inclusão de alimentação da CEI'),
         (INCLUSAO_ALIMENTACAO_CONTINUA, 'Inclusão de alimentação contínua'),
         (DIETA_ESPECIAL, 'Dieta Especial'),
         (SOLICITACAO_KIT_LANCHE_UNIFICADA, 'Solicitação de kit lanche unificada'),

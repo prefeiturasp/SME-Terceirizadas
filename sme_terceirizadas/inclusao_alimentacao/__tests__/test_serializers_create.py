@@ -4,9 +4,10 @@ from model_mommy import mommy
 
 from ..api.serializers.serializers_create import (
     GrupoInclusaoAlimentacaoNormalCreationSerializer,
-    InclusaoAlimentacaoContinuaCreationSerializer
+    InclusaoAlimentacaoContinuaCreationSerializer,
+    InclusaoAlimentacaoDaCEICreateSerializer
 )
-from ..models import GrupoInclusaoAlimentacaoNormal, InclusaoAlimentacaoContinua
+from ..models import GrupoInclusaoAlimentacaoNormal, InclusaoAlimentacaoContinua, InclusaoAlimentacaoDaCEI
 
 pytestmark = pytest.mark.django_db
 
@@ -113,5 +114,52 @@ def test_grupo_inclusao_normal_serializer_creators(inclusao_alimentacao_continua
                                  inclusoes=inclusoes[:2])
     response_inclusao_updated = serializer_obj.update(instance=response_inclusao_created,
                                                       validated_data=validated_data_update)
+
     assert response_inclusao_updated.inclusoes.count() == 2
     assert response_inclusao_updated.quantidades_periodo.count() == 1
+
+
+@freeze_time('2019-10-15')
+def test_grupo_inclusao_alimentacao_cei(inclusao_alimentacao_continua_parametros, escola):
+    class FakeObject(object):
+        user = mommy.make('perfil.Usuario')
+
+    data, _, _ = inclusao_alimentacao_continua_parametros
+    quantidade_alunos_por_faixas_etarias = []
+    for _ in range(5):
+        quantidade = mommy.make('QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEI')
+        quantidade_alunos_por_faixas_etarias.append(dict(
+            faixa_etaria=quantidade.faixa_etaria,
+            quantidade_alunos=quantidade.quantidade_alunos))
+
+    tipos_alimentacao = []
+    for _ in range(3):
+        combo = mommy.make('cardapio.ComboDoVinculoTipoAlimentacaoPeriodoTipoUE')
+        tipos_alimentacao.append(combo)
+
+    periodo_escolar = mommy.make('escola.PeriodoEscolar')
+    motivo = mommy.make('MotivoInclusaoNormal')
+
+    serializer_obj = InclusaoAlimentacaoDaCEICreateSerializer(context={'request': FakeObject})
+    validated_data = dict(
+        quantidade_alunos_por_faixas_etarias=quantidade_alunos_por_faixas_etarias,
+        escola=escola,
+        tipos_alimentacao=tipos_alimentacao,
+        periodo_escolar=periodo_escolar,
+        motivo=motivo,
+        data=data
+    )
+    response_inclusao_created = serializer_obj.create(validated_data=validated_data)
+    assert isinstance(response_inclusao_created, InclusaoAlimentacaoDaCEI)
+
+    validated_data_update = dict(quantidade_alunos_por_faixas_etarias=quantidade_alunos_por_faixas_etarias,
+                                 escola=escola,
+                                 tipos_alimentacao=tipos_alimentacao,
+                                 periodo_escolar=periodo_escolar,
+                                 motivo=motivo,
+                                 data=data)
+
+    response_inclusao_updated = serializer_obj.update(instance=response_inclusao_created,
+                                                      validated_data=validated_data_update)
+
+    assert response_inclusao_updated.quantidade_alunos_por_faixas_etarias.count() == 5

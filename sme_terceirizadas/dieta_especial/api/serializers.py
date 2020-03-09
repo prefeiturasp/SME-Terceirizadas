@@ -1,7 +1,10 @@
+from datetime import datetime
+
 from drf_base64.serializers import ModelSerializer
 from rest_framework import serializers
 
 from ...dados_comuns.api.serializers import ContatoSerializer, LogSolicitacoesUsuarioSerializer
+from ...dados_comuns.validators import nao_pode_ser_no_passado
 from ...escola.api.serializers import AlunoSerializer, LoteNomeSerializer, TipoGestaoSerializer
 from ...escola.models import DiretoriaRegional, Escola
 from ..models import (
@@ -65,9 +68,9 @@ class SubstituicaoAlimentoSerializer(ModelSerializer):
 
 
 class SolicitacaoDietaEspecialAutorizarSerializer(SolicitacaoDietaEspecialCreateSerializer):
-    def validate(self, data):
+    def validate(self, dados_a_validar):
         deve_ter_atributos(
-            data,
+            dados_a_validar,
             [
                 'alergias_intolerancias',
                 'classificacao',
@@ -75,9 +78,12 @@ class SolicitacaoDietaEspecialAutorizarSerializer(SolicitacaoDietaEspecialCreate
                 'substituicoes'
             ]
         )
-        atributos_lista_nao_vazios(data, ['substituicoes', 'alergias_intolerancias'])
-        atributos_string_nao_vazios(data, ['registro_funcional_nutricionista'])
-        return data
+        if 'data_termino' in dados_a_validar:
+            data_termino = datetime.strptime(dados_a_validar['data_termino'], '%Y-%m-%d').date()
+            nao_pode_ser_no_passado(data_termino)
+        atributos_lista_nao_vazios(dados_a_validar, ['substituicoes', 'alergias_intolerancias'])
+        atributos_string_nao_vazios(dados_a_validar, ['registro_funcional_nutricionista'])
+        return dados_a_validar
 
     def update(self, instance, data):
         validated_data = self.validate(data)
@@ -88,6 +94,9 @@ class SolicitacaoDietaEspecialAutorizarSerializer(SolicitacaoDietaEspecialCreate
         instance.registro_funcional_nutricionista = validated_data['registro_funcional_nutricionista']
         instance.informacoes_adicionais = validated_data.get('informacoes_adicionais', '')
         instance.nome_protocolo = validated_data.get('nome_protocolo', '')
+        data_termino = validated_data.get('data_termino', '')
+        if data_termino:
+            instance.data_termino = data_termino
         instance.ativo = True
 
         instance.alergias_intolerancias.all().delete()
@@ -164,7 +173,8 @@ class SolicitacaoDietaEspecialSerializer(serializers.ModelSerializer):
             'justificativa_negacao',
             'registro_funcional_nutricionista',
             'logs',
-            'ativo'
+            'ativo',
+            'data_termino'
         )
 
 

@@ -4,8 +4,8 @@
 
 {% block conteudo %}
   <div class="conteudo tabela-sem-borda">
-      {% include "bloco_fluxo_de_status.html" %}
-      {% include "bloco_cabecalho_solicitacao_partindo_escola.html" %}
+    {% include "bloco_fluxo_de_status.html" %}
+    {% include "bloco_cabecalho_solicitacao_partindo_escola.html" %}
     <div class="bloco-pescritor-dieta-especial">
       <h5>Descrição da solicitação</h5>
       <table>
@@ -33,6 +33,10 @@
           <td>{{ solicitacao.registro_funcional_pescritor }}</td>
         </tr>
       </table>
+        {% if solicitacao.data_termino %}
+          <h5>Data de término</h5>
+          <p>{{ solicitacao.data_termino }}</p>
+        {% endif %}
         {% if solicitacao.observacoes %}
           <h5>Observações</h5>
           <p>{{ solicitacao.observacoes|safe }}</p>

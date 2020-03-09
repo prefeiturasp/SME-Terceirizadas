@@ -14,6 +14,7 @@ from ...dados_comuns.permissions import (
     UsuarioEscola,
     UsuarioTerceirizada
 )
+from ...escola.models import Escola
 from ...relatorios.relatorios import (
     relatorio_alteracao_cardapio,
     relatorio_inversao_dia_de_cardapio,
@@ -108,9 +109,22 @@ class VinculoTipoAlimentacaoViewSet(mixins.RetrieveModelMixin,
 
     @action(detail=False,
             url_path='tipo_unidade_escolar/(?P<tipo_unidade_escolar_uuid>[^/.]+)')
-    def filtro_por_periodo_tipo_ue(self, request, tipo_unidade_escolar_uuid=None):
+    def filtro_por_tipo_ue(self, request, tipo_unidade_escolar_uuid=None):
         vinculos = VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar.objects.filter(
             tipo_unidade_escolar__uuid=tipo_unidade_escolar_uuid, ativo=True)
+        page = self.paginate_queryset(vinculos)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False,
+            url_path='escola/(?P<escola_uuid>[^/.]+)')
+    def filtro_por_escola(self, request, escola_uuid=None):
+        escola = Escola.objects.get(uuid=escola_uuid)
+        vinculos = VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar.objects.filter(
+            tipo_unidade_escolar=escola.tipo_unidade,
+            periodo_escolar__in=escola.periodos_escolares,
+            ativo=True
+        )
         page = self.paginate_queryset(vinculos)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
@@ -219,56 +233,6 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
         inversoes_cardapio = terceirizada.inversoes_cardapio_das_minhas_escolas(
             filtro_aplicado
         )
-        page = self.paginate_queryset(inversoes_cardapio)
-        serializer = self.get_serializer(page, many=True)
-        return self.get_paginated_response(serializer.data)
-
-    @action(detail=False, url_path='pedidos-autorizados-diretoria-regional',
-            permission_classes=(UsuarioDiretoriaRegional,))
-    def solicitacoes_autorizados_diretoria_regional(self, request):
-        usuario = request.user
-        diretoria_regional = usuario.vinculo_atual.instituicao
-        inversoes_cardapio = diretoria_regional.inversoes_cardapio_autorizadas
-        page = self.paginate_queryset(inversoes_cardapio)
-        serializer = self.get_serializer(page, many=True)
-        return self.get_paginated_response(serializer.data)
-
-    @action(detail=False, url_path='pedidos-reprovados-diretoria-regional',
-            permission_classes=(UsuarioDiretoriaRegional,))
-    def solicitacoes_reprovados_diretoria_regional(self, request):
-        usuario = request.user
-        diretoria_regional = usuario.vinculo_atual.instituicao
-        inversoes_cardapio = diretoria_regional.inversoes_cardapio_reprovados
-        page = self.paginate_queryset(inversoes_cardapio)
-        serializer = self.get_serializer(page, many=True)
-        return self.get_paginated_response(serializer.data)
-
-    @action(detail=False, url_path='pedidos-autorizados-codae',
-            permission_classes=(UsuarioCODAEGestaoAlimentacao,))
-    def solicitacoes_autorizados_codae(self, request):
-        usuario = request.user
-        codae = usuario.vinculo_atual.instituicao
-        inversoes_cardapio = codae.inversoes_cardapio_autorizadas
-        page = self.paginate_queryset(inversoes_cardapio)
-        serializer = self.get_serializer(page, many=True)
-        return self.get_paginated_response(serializer.data)
-
-    @action(detail=False, url_path='pedidos-reprovados-codae',
-            permission_classes=(UsuarioCODAEGestaoAlimentacao,))
-    def solicitacoes_reprovados_codae(self, request):
-        usuario = request.user
-        codae = usuario.vinculo_atual.instituicao
-        inversoes_cardapio = codae.inversoes_cardapio_reprovados
-        page = self.paginate_queryset(inversoes_cardapio)
-        serializer = self.get_serializer(page, many=True)
-        return self.get_paginated_response(serializer.data)
-
-    @action(detail=False, url_path='pedidos-autorizados-terceirizada',
-            permission_classes=(UsuarioTerceirizada,))
-    def solicitacoes_autorizados_terceirizada(self, request):
-        usuario = request.user
-        terceirizada = usuario.vinculo_atual.instituicao
-        inversoes_cardapio = terceirizada.inversoes_cardapio_autorizadas
         page = self.paginate_queryset(inversoes_cardapio)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
@@ -727,66 +691,6 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
             return Response(serializer.data)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
-
-    @action(detail=False, methods=['get'], url_path='pedidos-autorizados-diretoria-regional',
-            permission_classes=[UsuarioDiretoriaRegional])
-    def solicitacoes_autorizados_diretoria_regional(self, request):
-        usuario = request.user
-        diretoria_regional = usuario.vinculo_atual.instituicao
-        alteracoes_cardapio = diretoria_regional.alteracoes_cardapio_autorizadas
-        page = self.paginate_queryset(alteracoes_cardapio)
-        serializer = self.get_serializer(page, many=True)
-        return self.get_paginated_response(serializer.data)
-
-    @action(detail=False, methods=['get'], url_path='pedidos-reprovados-diretoria-regional',
-            permission_classes=[UsuarioDiretoriaRegional])
-    def solicitacoes_reprovados_diretoria_regional(self, request):
-        usuario = request.user
-        diretoria_regional = usuario.vinculo_atual.instituicao
-        alteracoes_cardapio = diretoria_regional.alteracoes_cardapio_reprovadas
-        page = self.paginate_queryset(alteracoes_cardapio)
-        serializer = self.get_serializer(page, many=True)
-        return self.get_paginated_response(serializer.data)
-
-    @action(detail=False, methods=['get'], url_path='pedidos-autorizados-codae',
-            permission_classes=[UsuarioCODAEGestaoAlimentacao])
-    def solicitacoes_autorizados_codae(self, request):
-        usuario = request.user
-        codae = usuario.vinculo_atual.instituicao
-        alteracoes_cardapio = codae.alteracoes_cardapio_autorizadas
-        page = self.paginate_queryset(alteracoes_cardapio)
-        serializer = self.get_serializer(page, many=True)
-        return self.get_paginated_response(serializer.data)
-
-    @action(detail=False, methods=['get'], url_path='pedidos-reprovados-codae',
-            permission_classes=[UsuarioCODAEGestaoAlimentacao])
-    def solicitacoes_reprovados_codae(self, request):
-        usuario = request.user
-        codae = usuario.vinculo_atual.instituicao
-        alteracoes_cardapio = codae.alteracoes_cardapio_reprovadas
-        page = self.paginate_queryset(alteracoes_cardapio)
-        serializer = self.get_serializer(page, many=True)
-        return self.get_paginated_response(serializer.data)
-
-    @action(detail=False, methods=['get'], url_path='pedidos-autorizados-terceirizada',
-            permission_classes=[UsuarioTerceirizada])
-    def solicitacoes_autorizados_terceirizada(self, request):
-        usuario = request.user
-        terceirizada = usuario.vinculo_atual.instituicao
-        alteracoes_cardapio = terceirizada.alteracoes_cardapio_autorizadas
-        page = self.paginate_queryset(alteracoes_cardapio)
-        serializer = self.get_serializer(page, many=True)
-        return self.get_paginated_response(serializer.data)
-
-    @action(detail=False, methods=['get'], url_path='pedidos-reprovados-terceirizada',
-            permission_classes=[UsuarioTerceirizada])
-    def solicitacoes_reprovados_terceirizada(self, request):
-        usuario = request.user
-        terceirizada = usuario.vinculo_atual.instituicao
-        alteracoes_cardapio = terceirizada.alteracoes_cardapio_reprovadas
-        page = self.paginate_queryset(alteracoes_cardapio)
-        serializer = self.get_serializer(page, many=True)
-        return self.get_paginated_response(serializer.data)
 
     # TODO rever os demais endpoints. Essa action consolida em uma única pesquisa as pesquisas por prioridade.
     @action(detail=False,
