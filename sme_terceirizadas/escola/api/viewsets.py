@@ -198,8 +198,8 @@ class PeriodoEscolarViewSet(ReadOnlyModelViewSet):
             return Response(form.errors)
 
         periodo_escolar = self.get_object()
-        if periodo_escolar.nome == "PARCIAL":
-            periodo_escolar = PeriodoEscolar.objects.get(nome="INTEGRAL")
+        if periodo_escolar.nome == 'PARCIAL':
+            periodo_escolar = PeriodoEscolar.objects.get(nome='INTEGRAL')
         escola = self.request.user.vinculos.get(ativo=True).instituicao
         escola_periodo, created = EscolaPeriodoEscolar.objects.get_or_create(
             escola=escola,
