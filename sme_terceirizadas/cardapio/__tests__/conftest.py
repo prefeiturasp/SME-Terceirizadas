@@ -20,6 +20,7 @@ from ..api.serializers.serializers import (
 )
 from ..models import (
     AlteracaoCardapio,
+    AlteracaoCardapioCEI,
     InversaoCardapio,
     MotivoAlteracaoCardapio,
     MotivoSuspensao,
@@ -266,6 +267,16 @@ def alteracao_cardapio(escola, template_mensagem_alteracao_cardapio):
                       observacao='teste',
                       data_inicial=datetime.date(2019, 10, 4),
                       data_final=datetime.date(2019, 12, 31),
+                      rastro_escola=escola,
+                      rastro_dre=escola.diretoria_regional)
+
+
+@pytest.fixture
+def alteracao_cardapio_cei(escola, template_mensagem_alteracao_cardapio):
+    return mommy.make(AlteracaoCardapioCEI,
+                      escola=escola,
+                      observacao='teste',
+                      data=datetime.date(2019, 12, 31),
                       rastro_escola=escola,
                       rastro_dre=escola.diretoria_regional)
 
@@ -622,6 +633,21 @@ def tipo_unidade_escolar():
 @pytest.fixture
 def periodo_escolar():
     return mommy.make('PeriodoEscolar')
+
+
+@pytest.fixture
+def faixas_etarias_ativas():
+    faixas = [
+        (0, 1),
+        (1, 4),
+        (4, 6),
+        (6, 8),
+        (8, 12),
+        (12, 24),
+        (24, 48),
+        (48, 72),
+    ]
+    return [mommy.make('FaixaEtaria', inicio=inicio, fim=fim, ativo=True) for (inicio, fim) in faixas]
 
 
 @pytest.fixture(params=[

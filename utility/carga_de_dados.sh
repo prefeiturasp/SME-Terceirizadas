@@ -31,6 +31,7 @@ echo "Criando Escola CEI admin"
 ./manage.py shell -c "from utility.carga_dados.escola import _8_co_gestores_dre"
 ./manage.py shell -c "from utility.carga_dados.escola import _10_codae"
 ./manage.py shell -c "from utility.carga_dados.escola import _9_associar_admins"
+./manage.py shell -c "from utility.carga_dados.escola import _14_faixas_etarias"
 
 if [ "$criar_solicitacoes" != "${criar_solicitacoes#[Ss]}" ] ;then
     echo "Criando solicitações..."
