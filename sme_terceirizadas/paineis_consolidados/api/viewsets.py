@@ -660,11 +660,6 @@ class TerceirizadaSolicitacoesViewSet(SolicitacoesViewSet):
         response = {'results': self._agrupa_por_tipo_visao(tipo_visao=tipo_visao, query_set=query_set)}
         return Response(response)
 
-    def _retorno_base(self, query_set):
-        page = self.paginate_queryset(query_set)
-        serializer = self.get_serializer(page, many=True)
-        return self.get_paginated_response(serializer.data)
-
 
 class DietaEspecialSolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
     lookup_field = 'uuid'
