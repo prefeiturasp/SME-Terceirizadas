@@ -356,8 +356,9 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
             methods=['patch'], url_path=constants.ESCOLA_CANCELA)
     def escola_cancela_solicitacao(self, request, uuid=None):
         inversao_cardapio = self.get_object()
+        justificativa = request.data.get('justificativa', '')
         try:
-            inversao_cardapio.cancelar_pedido(user=request.user, )
+            inversao_cardapio.cancelar_pedido(user=request.user, justificativa=justificativa)
             serializer = self.get_serializer(inversao_cardapio)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -684,9 +685,9 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
             methods=['patch'], url_path=constants.ESCOLA_CANCELA)
     def escola_cancela_solicitacao(self, request, uuid=None):
         inclusao_alimentacao_continua = self.get_object()
-
+        justificativa = request.data.get('justificativa', '')
         try:
-            inclusao_alimentacao_continua.cancelar_pedido(user=request.user, )
+            inclusao_alimentacao_continua.cancelar_pedido(user=request.user, justificativa=justificativa)
             serializer = self.get_serializer(inclusao_alimentacao_continua)
             return Response(serializer.data)
         except InvalidTransitionError as e:
