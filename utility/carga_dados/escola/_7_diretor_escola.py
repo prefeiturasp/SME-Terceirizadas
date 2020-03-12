@@ -4,6 +4,7 @@ import pandas as pd
 
 from sme_terceirizadas.escola.models import Escola
 from sme_terceirizadas.perfil.models import Perfil, Usuario
+from utility.carga_dados.escola.helper import bcolors, printa_pontinhos
 from .helper import cria_vinculo_de_perfil_usuario, coloca_zero_a_esquerda
 
 ROOT_DIR = environ.Path(__file__) - 1
@@ -77,13 +78,16 @@ def percorre_data_frame():
             )
             diretores_criados += 1
 
-            print(f'diretor(a): {diretor.nome} foi vinculado a escola: {escola.nome}')
+            print(f'<Usuario>: {diretor.nome} foi vinculado a <Escola>: {escola.nome}')
 
-    print(f'foram contabilizados {diretores_contabilizados} diretores')
-    print(f'foram criadas {diretores_criados} contas de usuarios atreladas a diretor')
-    print(f'foram encontrados {eol_zerado} diretores sem estar atrelados a uma escola')
+    print(f'{bcolors.OKBLUE}foram contabilizados {diretores_contabilizados} <Usuario> <Perfil> diretor{bcolors.ENDC}')
+    print(
+        f'{bcolors.OKBLUE}foram criadas {diretores_criados} contas de <Usuario> atreladas a <Perfil> diretor{bcolors.ENDC}')
+    print(f'{bcolors.WARNING}foram encontrados {eol_zerado} diretores sem estar atrelados a uma escola{bcolors.ENDC}')
     outras_gestoes = diretores_contabilizados - (diretores_criados + eol_zerado)
-    print(f'foram encontrados {outras_gestoes} diretores atrelados a escolas de outros tipos de gestao')
+    print(
+        f'{bcolors.WARNING}foram encontrados {outras_gestoes} diretores atrelados a escolas de outros tipos de gestao{bcolors.ENDC}')
 
 
 percorre_data_frame()
+printa_pontinhos()

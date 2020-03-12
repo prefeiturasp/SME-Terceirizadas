@@ -32,13 +32,13 @@ fi
 ./manage.py shell -c "from utility.carga_dados.escola import _3_escola_EMEI"
 ./manage.py shell -c "from utility.carga_dados.escola import _4_escola_CEI"
 ./manage.py shell -c "from utility.carga_dados.escola import _5_periodo_escolar"
-#./manage.py shell -c "from utility.carga_dados.escola import _6_periodo_escolar_tipo_alimentacao"
-#./manage.py shell -c "from utility.carga_dados.escola import _7_diretor_escola"
+./manage.py shell -c "from utility.carga_dados.escola import _6_periodo_escolar_tipo_alimentacao"
+./manage.py shell -c "from utility.carga_dados.escola import _7_diretor_escola"
 #
-#./manage.py shell -c "from utility.carga_dados.escola import _11_atualiza_dre"
-#./manage.py shell -c "from utility.carga_dados.escola import _12_atualiza_escolas"
+./manage.py shell -c "from utility.carga_dados.escola import _11_atualiza_dre"
+./manage.py shell -c "from utility.carga_dados.escola import _12_atualiza_escolas"
 #
-#./manage.py shell -c "from utility.carga_dados.dieta_especial import _13_dieta_especial"
+./manage.py shell -c "from utility.carga_dados.dieta_especial import _13_dieta_especial"
 #
 #./manage.py shell -c "from utility.carga_dados.escola import _8_co_gestores_dre"
 #./manage.py shell -c "from utility.carga_dados.escola import _10_codae"
@@ -48,9 +48,9 @@ fi
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
-echo -e "${RED}Criando cardápios... Devemos criar cardápipos pelo sistema esses aqui são TEMPORÁRIOS${NC}"
+echo -e "${RED}Criando cardápios... Devemos criar uma funcionalidade de criação de cardápipos. Esses aqui são TEMPORÁRIOS${NC}"
 
-./manage.py shell -c "from utility.carga_dados._2_cardapio import _1_cardapios"
+#./manage.py shell -c "from utility.carga_dados._2_cardapio import _1_cardapios"
 
 if [ "$criar_solicitacoes" != "${criar_solicitacoes#[Ss]}" ]; then
   echo "Criando solicitações..."
