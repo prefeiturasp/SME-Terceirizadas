@@ -4,7 +4,7 @@ import pandas as pd
 
 from sme_terceirizadas.escola.models import Codae
 from sme_terceirizadas.perfil.models import Perfil, Usuario
-from utility.carga_dados.escola.helper import coloca_zero_a_esquerda
+from utility.carga_dados.escola.helper import coloca_zero_a_esquerda, printa_pontinhos, bcolors
 from .helper import cria_vinculo_de_perfil_usuario
 
 ROOT_DIR = environ.Path(__file__) - 1
@@ -54,7 +54,7 @@ def atribui_e_salva_cargos_a_codae(cargos):
             cargo['usuario'],
             codae
         )
-        print(f'usuario: {cargo["usuario"].nome} foi criado e atribuido ao perfil CODAE: {cargo["perfil"].nome}')
+        print(f'{bcolors.OKBLUE}<Usuario>: {cargo["usuario"].nome} foi criado e atribuido ao <Perfil> CODAE: {cargo["perfil"].nome}{bcolors.ENDC}')
 
 
 def percorre_data_frame():
@@ -85,3 +85,4 @@ def percorre_data_frame():
 
 
 percorre_data_frame()
+printa_pontinhos()

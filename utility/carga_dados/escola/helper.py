@@ -18,7 +18,7 @@ class bcolors:
 
 
 def printa_pontinhos():
-    pontos = '...' * 100
+    pontos = '...' * 70
     print(f"{bcolors.OKBLUE}{pontos}{bcolors.ENDC}")
 
 

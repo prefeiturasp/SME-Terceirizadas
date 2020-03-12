@@ -1,3 +1,5 @@
+import time
+
 import environ
 import numpy as np
 import pandas as pd
@@ -91,3 +93,4 @@ def percorre_data_frame():
 
 percorre_data_frame()
 printa_pontinhos()
+time.sleep(4)
