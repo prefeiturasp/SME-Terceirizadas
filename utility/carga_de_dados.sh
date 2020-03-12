@@ -59,8 +59,8 @@ echo -e "${RED}Criando cardápios... Devemos criar uma funcionalidade de criaç�
 
 if [ "$criar_solicitacoes" != "${criar_solicitacoes#[Ss]}" ]; then
   echo "Criando solicitações..."
-  ./manage.py shell -c "from utility.carga_dados._2_cardapio import _2_todas_as_solicitacoes"
-  ./manage.py shell -c "from utility.carga_dados._2_cardapio import _3_solicitacoes_dieta_especial"
+  ./manage.py shell -c "from utility.carga_dados.cardapio import _2_todas_as_solicitacoes"
+  ./manage.py shell -c "from utility.carga_dados.cardapio import _3_solicitacoes_dieta_especial"
 fi
 
 if [ "$associa_admins" != "${associa_admins#[Ss]}" ]; then
@@ -68,7 +68,7 @@ if [ "$associa_admins" != "${associa_admins#[Ss]}" ]; then
   ./manage.py shell -c "from utility.carga_dados.escola import _9_associar_admins"
 fi
 
-./manage.py shell -c "from utility.carga_dados._2_cardapio import _1_cardapios"
+./manage.py shell -c "from utility.carga_dados.cardapio import _1_cardapios"
 
 ./manage.py shell -c "from utility.carga_dados import email"
 

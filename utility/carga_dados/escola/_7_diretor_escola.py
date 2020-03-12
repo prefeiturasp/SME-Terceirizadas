@@ -13,7 +13,7 @@ ROOT_DIR = environ.Path(__file__) - 1
 
 df = pd.read_csv(f'{ROOT_DIR}/planilhas_de_carga/diretores.csv',
                  sep=',',
-                 converters={'cd_unidade_base': str, 'rf': str},
+                 converters={'cd_unidade_base': str, 'rf': str, 'cd_cpf_pessoa': str},
                  engine='python')
 
 # exclui registros duplicados no arquivo csv
@@ -61,7 +61,6 @@ def percorre_data_frame():
         codigo_eol = coloca_zero_a_esquerda(row['cd_unidade_base'])
         if codigo_eol == '000000':
             eol_zerado += 1
-
         escola = busca_escola(codigo_eol)
 
         if escola is not None:
