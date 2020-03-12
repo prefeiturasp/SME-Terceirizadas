@@ -12,6 +12,9 @@ read criar_usuarios
 echo "Associar admins à escola | dre | codae | terceirizada? VALIDO PARA DESENVOLVIMENTO / HOMOLOGAÇÃO (S/N)"
 read associa_admins
 
+echo "Atualizar dados com base na API do EOL em tempo real? (S/N)"
+read atualizacao_tempo_real
+
 ./manage.py migrate
 ./manage.py loaddata sme_terceirizadas/**/fixtures/*.json
 
@@ -68,3 +71,13 @@ fi
 ./manage.py shell -c "from utility.carga_dados._2_cardapio import _1_cardapios"
 
 ./manage.py shell -c "from utility.carga_dados import email"
+
+if [ "$atualizacao_tempo_real" != "${atualizacao_tempo_real#[Ss]}" ]; then
+  echo -e "${RED}Atualização com dados em tempo real da api do EOL${NC}"
+  ./manage.py atualiza_dados_escolas
+  ./manage.py atualiza_dres
+  ./manage.py atualiza_total_alunos_escolas
+fi
+
+echo -e "${RED}Ativando/desativando dinamicamente o vínculo entre TipoUE e Períodos escolares${NC}"
+./manage.py shell -c "from sme_terceirizadas.cardapio.tasks import ativa_desativa_vinculos_alimentacao_com_periodo_escolar_e_tipo_unidade_escolar; ativa_desativa_vinculos_alimentacao_com_periodo_escolar_e_tipo_unidade_escolar()"
