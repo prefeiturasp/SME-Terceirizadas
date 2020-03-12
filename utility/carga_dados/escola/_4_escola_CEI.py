@@ -4,6 +4,8 @@ Diretoria regional:
     nome, descricao, codigo
 """
 
+import time
+
 import environ
 import numpy as np
 import pandas as pd
@@ -13,8 +15,8 @@ from sme_terceirizadas.escola.models import (Lote, TipoUnidadeEscolar, TipoGesta
                                              DiretoriaRegional)
 from utility.carga_dados.escola.helper import (
     coloca_zero_a_esquerda, normaliza_nome,
-    somente_digitos, busca_sigla_lote
-)
+    somente_digitos, busca_sigla_lote,
+    bcolors, printa_pontinhos)
 
 ROOT_DIR = environ.Path(__file__) - 1
 
@@ -70,15 +72,13 @@ def cria_tipo_unidade_escolar():
         obj, created = TipoUnidadeEscolar.objects.get_or_create(iniciais=iniciais)
         if created:
             cont += 1
-            print('UNIDADE ESCOLAR {} CRIADO'.format(obj))
-    print('qtd ue criados... {}'.format(cont))
+            print(f'<TipoUnidadeEscolar> {obj.iniciais} criado.')
+    if cont >= 1:
+        print(f'{bcolors.OKBLUE}Foram criados {cont} <TipoUnidadeEscolar>...{bcolors.ENDC}')
+    time.sleep(3)
 
 
 def cria_escola():
-    #     idades = models.ManyToManyField(FaixaIdadeEscolar, blank=True)
-    #     periodos = models.ManyToManyField(PeriodoEscolar, blank=True)
-    #     cardapios = models.ManyToManyField('cardapio.Cardapio', blank=True)
-
     cont = 0
     for index, row in df.iterrows():
         dre_str = row['DRE']
@@ -124,10 +124,11 @@ def cria_escola():
 
         if created:
             cont += 1
-            print('UNIDADE ESCOLAR {} CRIADO'.format(escola_obj))
-    print('qtd escolas criadas... {}'.format(cont))
+            print(f'<Escola> {escola_obj.nome} criada.')
+    print(f'{bcolors.OKBLUE}Criadas {cont} <Escola> do tipo CEI...{bcolors.ENDC}')
+    time.sleep(4)
 
 
-print('Run script _4_escola_CEI.py')
 cria_tipo_unidade_escolar()
 cria_escola()
+printa_pontinhos()
