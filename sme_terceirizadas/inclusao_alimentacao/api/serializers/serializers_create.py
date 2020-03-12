@@ -1,5 +1,8 @@
+from datetime import timedelta
+
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
+from workalendar.america import BrazilSaoPauloCity
 
 from ....cardapio.models import ComboDoVinculoTipoAlimentacaoPeriodoTipoUE
 from ....dados_comuns.utils import update_instance_from_dict
@@ -15,6 +18,8 @@ from ...models import (
     QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEI,
     QuantidadePorPeriodo
 )
+
+calendario = BrazilSaoPauloCity()
 
 
 class QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEISerializer(serializers.ModelSerializer):
@@ -266,11 +271,27 @@ class InclusaoAlimentacaoContinuaCreationSerializer(serializers.ModelSerializer)
             raise ValidationError('Deve possuir quantidades_periodo')
         return quantidades_periodo
 
+    def validate_feriados_no_periodo(self, data_inicial, data_final, dias_semana):
+        # Valida se a faixa de datas não contém feriado
+        data_atual = data_inicial
+        while data_atual <= data_final:
+            if dias_semana and data_atual.weekday() not in dias_semana:
+                pass
+            elif calendario.is_holiday(data_atual):
+                data_formatada = data_atual.strftime('%d/%m/%Y')
+                raise ValidationError(
+                    f'Não pode haver feriado na faixa escolhida. Feriado encontrado: {data_formatada}')
+            data_atual += timedelta(days=1)
+
     def validate(self, attrs):
         data_inicial = attrs.get('data_inicial', None)
         data_final = attrs.get('data_final', None)
+        dias_semana = attrs.get('dias_semana', None)
         if data_inicial > data_final:
             raise ValidationError('data inicial não pode ser maior que data final')
+
+        self.validate_feriados_no_periodo(data_inicial, data_final, dias_semana)
+
         return attrs
 
     def create(self, validated_data):
