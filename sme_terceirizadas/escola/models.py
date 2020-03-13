@@ -625,7 +625,7 @@ class Codae(ExportModelOperationsMixin('codae'), Nomeavel, TemChaveExterna, TemV
 
 class Aluno(TemChaveExterna):
     nome = models.CharField('Nome Completo do Aluno', max_length=100)
-    codigo_eol = models.CharField('Código EOL', max_length=6, unique=True, validators=[MinLengthValidator(6)])
+    codigo_eol = models.CharField('Código EOL', max_length=7, unique=True, validators=[MinLengthValidator(7)])
     data_nascimento = models.DateField()
     escola = models.ForeignKey(Escola, blank=True, null=True, on_delete=models.SET_NULL)
 

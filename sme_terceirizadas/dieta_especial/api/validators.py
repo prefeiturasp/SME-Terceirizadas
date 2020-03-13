@@ -41,6 +41,6 @@ def somente_digitos(codigo_eol):
 
 
 class AlunoSerializerValidator(serializers.Serializer):
-    codigo_eol = serializers.CharField(max_length=6, validators=[somente_digitos])
+    codigo_eol = serializers.CharField(max_length=7, validators=[somente_digitos])
     nome = serializers.CharField(max_length=100)
     data_nascimento = serializers.CharField(max_length=10, validators=[masca_data_valida])
