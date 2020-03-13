@@ -52,6 +52,31 @@ def test_url_endpoint_alunos_por_faixa_etaria_periodo_invalido(client_autenticad
     assert response.status_code == status.HTTP_404_NOT_FOUND
 
 
+def test_url_endpoint_alunos_por_faixa_etaria(client_autenticado,
+                                              escola_periodo_escolar,
+                                              eolservice_get_informacoes_escola_turma_aluno,
+                                              faixas_etarias):
+    url = f'/quantidade-alunos-por-periodo/{escola_periodo_escolar.uuid}/alunos-por-faixa-etaria/2020-10-20/'
+    response = client_autenticado.get(url)
+    assert response.status_code == status.HTTP_200_OK
+
+    json = response.json()
+
+    assert json['count'] == 3
+    result0 = json['results'][0]
+    assert result0['faixa_etaria']['inicio'] == 24
+    assert result0['faixa_etaria']['fim'] == 48
+    assert result0['count'] == 95
+    result1 = json['results'][1]
+    assert result1['faixa_etaria']['inicio'] == 12
+    assert result1['faixa_etaria']['fim'] == 24
+    assert result1['count'] == 18
+    result2 = json['results'][2]
+    assert result2['faixa_etaria']['inicio'] == 48
+    assert result2['faixa_etaria']['fim'] == 72
+    assert result2['count'] == 25
+
+
 def test_url_endpoint_cria_mudanca_faixa_etaria(client_autenticado_coordenador_codae):
     data = {
         'faixas_etarias_ativadas': [

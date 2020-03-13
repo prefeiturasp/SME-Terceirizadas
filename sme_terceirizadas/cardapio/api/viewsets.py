@@ -22,6 +22,7 @@ from ...relatorios.relatorios import (
 )
 from ..models import (
     AlteracaoCardapio,
+    AlteracaoCardapioCEI,
     Cardapio,
     ComboDoVinculoTipoAlimentacaoPeriodoTipoUE,
     GrupoSuspensaoAlimentacao,
@@ -34,6 +35,7 @@ from ..models import (
     VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
 )
 from .serializers.serializers import (
+    AlteracaoCardapioCEISerializer,
     AlteracaoCardapioSerializer,
     AlteracaoCardapioSimplesSerializer,
     CardapioSerializer,
@@ -50,6 +52,7 @@ from .serializers.serializers import (
     VinculoTipoAlimentoSimplesSerializer
 )
 from .serializers.serializers_create import (
+    AlteracaoCardapioCEISerializerCreate,
     AlteracaoCardapioSerializerCreate,
     CardapioCreateSerializer,
     ComboDoVinculoTipoAlimentoSimplesSerializerCreate,
@@ -710,6 +713,24 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
         else:
             return Response(dict(detail='Você só pode excluir quando o status for RASCUNHO.'),
                             status=status.HTTP_403_FORBIDDEN)
+
+
+class AlteracoesCardapioCEIViewSet(AlteracoesCardapioViewSet):
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update']:
+            return AlteracaoCardapioCEISerializerCreate
+        return AlteracaoCardapioCEISerializer
+
+    @action(detail=False, url_path=constants.SOLICITACOES_DO_USUARIO,
+            permission_classes=(UsuarioEscola,))
+    def minhas_solicitacoes(self, request):
+        usuario = request.user
+        alteracoes_cardapio_rascunho = AlteracaoCardapioCEI.get_rascunhos_do_usuario(usuario)
+        page = self.paginate_queryset(alteracoes_cardapio_rascunho)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    queryset = AlteracaoCardapioCEI.objects.all()
 
 
 class MotivosAlteracaoCardapioViewSet(viewsets.ReadOnlyModelViewSet):

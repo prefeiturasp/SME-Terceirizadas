@@ -1,9 +1,11 @@
+import time
+
 import environ
 import numpy as np
 import pandas as pd
 
 from sme_terceirizadas.escola.models import PeriodoEscolar, Escola
-from utility.carga_dados.escola.helper import coloca_zero_a_esquerda
+from utility.carga_dados.escola.helper import coloca_zero_a_esquerda, bcolors, printa_pontinhos
 
 ROOT_DIR = environ.Path(__file__) - 1
 
@@ -85,8 +87,9 @@ def cria_periodo_escolar():
         obj, created = PeriodoEscolar.objects.get_or_create(nome=periodo.upper())
         if created:
             cont += 1
-            print(f'PERIODO ESCOLAR {obj} CRIADO')
-    print(f'qtd  criados... {cont}')
+            print(f'<PeriodoEscolar> {obj.nome} criado.')
+    print(f'{bcolors.OKBLUE}Foram criados {cont} <PeriodoEscolar>...{bcolors.ENDC}')
+    time.sleep(3)
 
 
 def vincula_tipo_ue_a_periodos_escolares():
@@ -111,10 +114,11 @@ def vincula_tipo_ue_a_periodos_escolares():
 
         tipo_unidade_escolar.periodos_escolares.set(periodo_escolar_lista)
         cont += 1
-        print(f'tipo ue {tipo_unidade_escolar} tem {len(periodo_escolar_lista)} periodos escolares')
-    print(f'qtd  vinculados... {cont}')
+        print(
+            f'{bcolors.OKBLUE}<TipoUnidadeEscolar> {tipo_unidade_escolar.iniciais} tem {len(periodo_escolar_lista)} periodos escolares{bcolors.ENDC}')
+    print(f'{cont} vínculos entre <TipoUnidadeEscolar> e <PeriodoEscolar> ')
 
 
-print('Run script _5_periodo_escolar.py')
 cria_periodo_escolar()
 vincula_tipo_ue_a_periodos_escolares()
+printa_pontinhos()

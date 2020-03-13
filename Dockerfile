@@ -17,8 +17,4 @@ RUN apt-get update && apt-get install \
     # https://stackoverflow.com/questions/46503947/how-to-get-pipenv-running-in-docker
     pipenv install --system --deploy --ignore-pipfile
 
-CMD gunicorn config.wsgi:application --bind=0.0.0.0:8000 -w 8 && \
-    celery -A config worker --loglevel=info --concurrency=3 -n worker1@%h && \
-    celery -A config beat --loglevel=info --pidfile=/tmp/celeryd.pid
-
 EXPOSE 8000

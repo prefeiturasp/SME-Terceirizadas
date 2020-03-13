@@ -10,6 +10,7 @@ router.register('inversoes-dia-cardapio', viewsets.InversaoCardapioViewSet, 'Inv
 router.register('grupos-suspensoes-alimentacao', viewsets.GrupoSuspensaoAlimentacaoSerializerViewSet,
                 'Grupos de suspensão de alimentação.')
 router.register('alteracoes-cardapio', viewsets.AlteracoesCardapioViewSet, 'Alterações de Cardápio')
+router.register('alteracoes-cardapio-cei', viewsets.AlteracoesCardapioCEIViewSet, 'Alterações de Cardápio CEI')
 router.register('motivos-alteracao-cardapio', viewsets.MotivosAlteracaoCardapioViewSet,
                 'Motivos de alteração de cardápio')
 router.register('motivos-suspensao-cardapio', viewsets.MotivosSuspensaoCardapioViewSet,

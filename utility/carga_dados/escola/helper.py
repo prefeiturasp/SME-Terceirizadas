@@ -6,6 +6,22 @@ from django.conf import settings
 from sme_terceirizadas.perfil.models import Vinculo
 
 
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+
+
+def printa_pontinhos():
+    pontos = '...' * 70
+    print(f"{bcolors.OKBLUE}{pontos}{bcolors.ENDC}")
+
+
 def normaliza_nome(nome):
     nome = nome.replace(' / ', '/')
     nome = normalize('NFKD', nome).encode('ASCII', 'ignore').decode('ASCII')
@@ -42,7 +58,7 @@ def busca_sigla_lote(sigla):
                 filter(lambda item: item["fields"]["iniciais"] == data, fixture_data)
             )[0]["id"]
         except (IndexError, TypeError) as ex:
-            raise Exception("Siga do Lote Nao Encontrado, %s" % str(ex)) from None
+            raise Exception(f"Siga do Lote Nao Encontrado, {ex}") from None
 
     if sigla.strip() == 'MP':
         return _get_id('MP I')
