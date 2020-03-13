@@ -1,10 +1,12 @@
+import time
+
 import environ
 import numpy as np
 import pandas as pd
 
 from sme_terceirizadas.escola.models import DiretoriaRegional
 from sme_terceirizadas.perfil.models import Perfil, Usuario
-from utility.carga_dados.escola.helper import coloca_zero_a_esquerda
+from utility.carga_dados.escola.helper import coloca_zero_a_esquerda, bcolors, printa_pontinhos
 from .helper import cria_vinculo_de_perfil_usuario
 
 ROOT_DIR = environ.Path(__file__) - 1
@@ -69,7 +71,8 @@ def atribui_e_salva_cargos_a_dre(diretoria_regional, cargos):
                 cargo['usuario'],
                 diretoria_regional
             )
-            print(f'usuario: {cargo["usuario"].nome} foi criado e atribuido a DRE: {diretoria_regional.nome}')
+            print(
+                f'{bcolors.OKBLUE}<Usuario>: {cargo["usuario"].nome} foi criado e atribuido a <DiretoriaRegional>: {diretoria_regional.nome}{bcolors.ENDC}')
 
 
 def percorre_data_frame():
@@ -113,3 +116,5 @@ def percorre_data_frame():
 
 
 percorre_data_frame()
+printa_pontinhos()
+time.sleep(4)

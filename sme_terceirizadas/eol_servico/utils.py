@@ -41,7 +41,7 @@ class EOLService(object):
             results = response.json()['results']
             if len(results) >= 1:
                 return results
-            raise EOLException(f'Resultados para o RF: {registro_funcional} vazios')
+            raise EOLException(f'API do EOL não retornou nada para o RF: {registro_funcional}')
         else:
             raise EOLException(f'API EOL com erro. Status: {response.status_code}')
 
