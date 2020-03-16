@@ -9,7 +9,7 @@ from .helper import cria_vinculo_de_perfil_usuario
 
 ROOT_DIR = environ.Path(__file__) - 1
 
-df = pd.read_excel(f'{ROOT_DIR}/planilhas_de_carga/CODAE_RF_CPF.xlsx',
+df = pd.read_excel(f'{ROOT_DIR}/planilhas_de_carga/CODAE_RF_CPF2020.xlsx',
                    converters={
                        'Nome': str,
                        'RF': str,
@@ -63,6 +63,20 @@ def percorre_data_frame():
         ativo=True,
         super_usuario=True
     )
+    # DIFIR - Divisão Financeira
+    # GTIC - Gestão de Tecnologia e Informação
+
+    gestao_financeira, created = Perfil.objects.get_or_create(
+        nome='COORDENADOR_GESTAO_FINANCEIRA',
+        ativo=True,
+        super_usuario=True
+    )
+    gestao_tecnologia_informacao, created = Perfil.objects.get_or_create(
+        nome='COORDENADOR_TERCNOLOGIA_INFORMACAO',
+        ativo=True,
+        super_usuario=True
+    )
+
     dieta_especial, created = Perfil.objects.get_or_create(
         nome='COORDENADOR_DIETA_ESPECIAL',
         ativo=True,
@@ -74,11 +88,20 @@ def percorre_data_frame():
             row['Nome'],
             row['CPF']
         )
+        if row['Núcleo da CODAE'] == 'DIETA ESPECIAL':
+            perfil = dieta_especial
+        elif row['Núcleo da CODAE'] == 'GTIC':
+            perfil = gestao_tecnologia_informacao
+        elif row['Núcleo da CODAE'] == 'DIFIR':
+            perfil = gestao_financeira
+        else:
+            perfil = gestao_alimentacao
+
         atribui_e_salva_cargos_a_codae(
             [
                 {
                     'usuario': gestor_de_alimentacao_ou_dieta,
-                    'perfil': dieta_especial if row['Núcleo da CODAE'] == 'DIETA ESPECIAL' else gestao_alimentacao
+                    'perfil': perfil
                 },
             ]
         )

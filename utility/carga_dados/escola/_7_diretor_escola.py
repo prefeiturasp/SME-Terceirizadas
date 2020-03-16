@@ -11,7 +11,7 @@ from .helper import cria_vinculo_de_perfil_usuario, coloca_zero_a_esquerda
 
 ROOT_DIR = environ.Path(__file__) - 1
 
-df = pd.read_csv(f'{ROOT_DIR}/planilhas_de_carga/diretores.csv',
+df = pd.read_csv(f'{ROOT_DIR}/planilhas_de_carga/diretores2020.csv',
                  sep=',',
                  converters={'cd_unidade_base': str, 'rf': str, 'cd_cpf_pessoa': str},
                  engine='python')
