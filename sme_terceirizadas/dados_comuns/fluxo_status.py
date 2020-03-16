@@ -232,7 +232,7 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
         self.rastro_terceirizada = self.escola.lote.terceirizada
         self.save()
 
-    def cancelar_pedido(self, user, justificativa=''):
+    def cancelar_pedido(self, user, justificativa):
         """O objeto que herdar de FluxoAprovacaoPartindoDaEscola, deve ter um property data.
 
         Dado dias de antecedencia de prazo, verifica se pode e altera o estado

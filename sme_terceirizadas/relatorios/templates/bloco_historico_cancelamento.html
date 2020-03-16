@@ -1,0 +1,30 @@
+{% load index %}
+
+{% block historico_cancelamento %}
+    {% if solicitacao.logs %}
+      <div class="observacoes">
+        <div>
+          <p class="cabecalho">Histórico de justificativas:</p>
+          {% for log in solicitacao.logs%}
+            {% if log.status_evento_explicacao == "Escola cancelou" %}
+              <div>{{ log.criado_em }} - ESCOLA CANCELOU</div>
+              <div class="justificativa-cancelamento-escola-dre">
+                Observação do Cancelamento:
+                {{ log.justificativa }}
+              </div>
+            {% endif %}
+            {% if log.status_evento_explicacao == "DRE cancelou" %}
+              <div>{{ log.criado_em }} - DRE CANCELOU</div>
+              <div class="justificativa-cancelamento-escola-dre">
+                Observação do Cancelamento:
+                {{ log.justificativa }}
+              </div>
+            {% endif %}
+          {% endfor %}
+        </div>
+      </div>
+      <div>
+        <hr style="color: #EEEEEE; opacity: 0.3">
+      </div>
+    {% endif %}
+{% endblock %}

@@ -87,21 +87,23 @@ def test_inversao_dia_cardapio_fluxo(inversao_dia_cardapio):
 
 @freeze_time('2012-01-14')
 def test_inversao_dia_cardapio_fluxo_cancelamento(inversao_dia_cardapio):
+    justificativa = 'este e um cancelamento'
     fake_user = mommy.make('perfil.Usuario')
     inversao_dia_cardapio.inicia_fluxo(user=fake_user)
     assert str(inversao_dia_cardapio.status) == PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR
-    inversao_dia_cardapio.cancelar_pedido(user=fake_user)
+    inversao_dia_cardapio.cancelar_pedido(user=fake_user, justificativa=justificativa)
     assert str(inversao_dia_cardapio.status) == PedidoAPartirDaEscolaWorkflow.ESCOLA_CANCELOU
 
 
 def test_inversao_dia_cardapio_fluxo_cancelamento_erro(inversao_dia_cardapio2):
+    justificativa = 'este e um cancelamento'
     fake_user = mommy.make('perfil.Usuario')
     with pytest.raises(
         InvalidTransitionError,
         match=r'.*Só pode cancelar com no mínimo 2 dia\(s\) de antecedência.*'
     ):
         inversao_dia_cardapio2.inicia_fluxo(user=fake_user)
-        inversao_dia_cardapio2.cancelar_pedido(user=fake_user)
+        inversao_dia_cardapio2.cancelar_pedido(user=fake_user, justificativa=justificativa)
 
 
 def test_inclusao_alimentacao_continua_fluxo_erro(inversao_dia_cardapio):
