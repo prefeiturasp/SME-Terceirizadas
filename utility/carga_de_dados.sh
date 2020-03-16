@@ -81,3 +81,5 @@ fi
 
 echo -e "${RED}Ativando/desativando dinamicamente o vínculo entre TipoUE e Períodos escolares${NC}"
 ./manage.py shell -c "from sme_terceirizadas.cardapio.tasks import ativa_desativa_vinculos_alimentacao_com_periodo_escolar_e_tipo_unidade_escolar; ativa_desativa_vinculos_alimentacao_com_periodo_escolar_e_tipo_unidade_escolar()"
+
+./manage.py shell -c "from utility.carga_dados.escola import _15_cria_adms"
