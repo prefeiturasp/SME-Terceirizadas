@@ -4,7 +4,7 @@ import pandas as pd
 
 from sme_terceirizadas.escola.models import Codae
 from sme_terceirizadas.perfil.models import Perfil, Usuario
-from utility.carga_dados.escola.helper import coloca_zero_a_esquerda, printa_pontinhos, bcolors
+from utility.carga_dados.escola.helper import coloca_zero_a_esquerda, printa_pontinhos, bcolors, somente_digitos
 from .helper import cria_vinculo_de_perfil_usuario
 
 ROOT_DIR = environ.Path(__file__) - 1
@@ -40,6 +40,7 @@ def cria_usuario_gestor_alimentacao_ou_dieta_especial(registro_funcional, nome, 
         registro_funcional
     )
     usuario.nome = nome
+    cpf = somente_digitos(cpf)
     usuario.cpf = coloca_zero_a_esquerda(cpf, 11)
     usuario.is_active = False
     usuario.save()
@@ -90,10 +91,10 @@ def percorre_data_frame():
         )
         if row['Núcleo da CODAE'] == 'DIETA ESPECIAL':
             perfil = dieta_especial
-        elif row['Núcleo da CODAE'] == 'GTIC':
-            perfil = gestao_tecnologia_informacao
-        elif row['Núcleo da CODAE'] == 'DIFIR':
-            perfil = gestao_financeira
+        # elif row['Núcleo da CODAE'] == 'GTIC':
+        #     perfil = gestao_tecnologia_informacao
+        # elif row['Núcleo da CODAE'] == 'DIFIR':
+        #     perfil = gestao_financeira
         else:
             perfil = gestao_alimentacao
 
