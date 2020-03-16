@@ -288,9 +288,9 @@ def inclusao_alimentacao_continua_parametros_vencidos(request):
 @pytest.fixture(params=[
     # data_inicial, data_final, dias semana,
     (datetime.date(2019, 10, 20), datetime.date(2019, 10, 30), [1, 2, 3, 4, 5, 6]),
-    (datetime.date(2019, 10, 17), datetime.date(2020, 10, 30), [1, 2, 3]),
-    (datetime.date(2020, 1, 1), datetime.date(2020, 2, 28), [1, 2, 3, 4]),
-    (datetime.date(2019, 10, 17), datetime.date(2020, 12, 30), [1, 4])
+    (datetime.date(2020, 10, 17), datetime.date(2020, 10, 30), [1, 2, 3]),
+    (datetime.date(2020, 3, 1), datetime.date(2020, 3, 31), [1, 2, 3, 4]),
+    (datetime.date(2020, 8, 17), datetime.date(2020, 9, 30), [1, 4])
 ])
 def inclusao_alimentacao_continua_parametros(request):
     return request.param

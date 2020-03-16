@@ -76,6 +76,7 @@ class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
 
     def _agrupa_por_tipo_visao(self, tipo_visao: str, query_set: QuerySet) -> dict:
         sumario = {}  # type: dict
+        query_set = self._remove_duplicados_do_query_set(query_set)
         descricao_prioridade = self._agrupar_solicitacoes(tipo_visao, query_set)
         for nome_objeto, prioridade in descricao_prioridade:
             if nome_objeto == 'Inclusão de Alimentação Contínua':

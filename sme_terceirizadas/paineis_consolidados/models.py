@@ -295,7 +295,7 @@ class SolicitacoesCODAE(MoldeConsolidado):
         return manager.filter(
             status_evento__in=cls.PENDENTES_EVENTO,
             status_atual__in=cls.PENDENTES_STATUS
-        ).exclude(tipo_doc=cls.TP_SOL_DIETA_ESPECIAL).distinct().order_by('-data_log')
+        ).exclude(tipo_doc=cls.TP_SOL_DIETA_ESPECIAL).distinct('data_log').order_by('-data_log')
 
     @classmethod
     def get_autorizados(cls, **kwargs):
