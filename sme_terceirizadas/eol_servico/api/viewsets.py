@@ -15,7 +15,7 @@ class DadosUsuarioEOLViewSet(ViewSet):
             dados = EOLService.get_informacoes_usuario(registro_funcional)
             for dado in dados:
                 dado.pop('cd_cpf_pessoa')  # retira cpf por ser dado sensivel
-            return Response({'detail': f'{dados}'})
+            return Response({'detail': dados})
         except EOLException as e:
             return Response({'detail': f'{e}'}, status=status.HTTP_400_BAD_REQUEST)
 
