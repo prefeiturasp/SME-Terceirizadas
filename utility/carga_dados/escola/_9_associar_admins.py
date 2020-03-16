@@ -153,16 +153,3 @@ Vinculo.objects.create(
     data_inicial=data_atual
 )
 print(f'perfil {perfil_usuario_terceirizada.nome} vinculado a {terceirizada.nome_fantasia} com sucesso')
-
-print('Criando configuração default de email')
-
-import os
-DynamicEmailConfiguration.objects.create(
-    host=os.environ['EMAIL_HOST'],
-    port=os.environ['EMAIL_PORT'],
-    from_email=os.environ['EMAIL_HOST_USER'],
-    username=os.environ['EMAIL_HOST_USER'],
-    password=os.environ['EMAIL_HOST_PASSWORD'],
-    use_tls=os.environ['EMAIL_USE_TLS'],
-    timeout=60
-)
