@@ -275,6 +275,6 @@ class MotivoNegacaoViewSet(mixins.ListModelMixin,
 class AlimentoViewSet(mixins.ListModelMixin,
                       mixins.RetrieveModelMixin,
                       GenericViewSet):
-    queryset = Alimento.objects.all()
+    queryset = Alimento.objects.all().order_by('nome')
     serializer_class = AlimentoSerializer
     pagination_class = None
