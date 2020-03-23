@@ -34,12 +34,6 @@
     {% if data_termino %}
       <p>- Esta dieta especial terá seu fornecimento encerrado em {{ data_termino }}</p>
     {% endif %}
-    <p>- Substituição de{{" "}}
-      {% for substituicao in solicitacao.substituicoes %}
-        {{ substituicao.alimento }}{{ ", " }}
-      {% endfor %}
-      bem como preparações contendo estes alimentos.</p>
-    <p>- É importante observar sempre os rótulos dos alimentos, tendo em vista que a composição do produto pode ser alterada pela empresa fabricante a qualquer tempo.</p>
     <p>- A Unidade Educacional deverá acompanhar se o cardápio publicado está de acordo com a relação de alimentos substitutos a seguir levando em consideração os alimentos recebidos pela unidade de acordo com a faixa etária. Em caso de dúvida, solicitar auxílio ao Nutricionista RT e ao Nutricionista Supervisor.</p>
     <p><strong>2. Relação de Alimentos para Substituição</strong></p>
     <p>A empresa deverá compor o cardápio de acordo com a relação de alimentos substitutos.</p>
@@ -63,10 +57,7 @@
               {% endif %}
             </td>
             <td>
-              {% for substituto in substituicao.substitutos.all %}
-                {{ substituto.nome }}
-                {% if not forloop.first %}, {% endif %}
-              {% endfor %}
+              {{ substituicao.substitutos.all|join:", " }}
             </td>
           </tr>
         {% endfor %}
