@@ -15,6 +15,8 @@ from .models import (
     SubstituicaoAlimentacaoNoPeriodoEscolarCEI,
     SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE,
     SuspensaoAlimentacao,
+    SuspensaoAlimentacaoDaCEI,
+    SuspensaoAlimentacaoNoPeriodoEscolarDeCEI,
     TipoAlimentacao,
     VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
 )
@@ -23,6 +25,7 @@ admin.site.register(TipoAlimentacao)
 admin.site.register(InversaoCardapio)
 admin.site.register(MotivoAlteracaoCardapio)
 admin.site.register(SubstituicaoAlimentacaoNoPeriodoEscolar)
+admin.site.register(SuspensaoAlimentacaoNoPeriodoEscolarDeCEI)
 admin.site.register(MotivoSuspensao)
 admin.site.register(HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolar)
 
@@ -68,6 +71,18 @@ class AlteracaoCardapioModelAdmin(admin.ModelAdmin):
 class SubstituicoesCEIInLine(admin.TabularInline):
     model = SubstituicaoAlimentacaoNoPeriodoEscolarCEI
     extra = 1
+
+
+class SuspensoesCEIInline(admin.TabularInline):
+    model = SuspensaoAlimentacaoNoPeriodoEscolarDeCEI
+    extra = 1
+
+
+@admin.register(SuspensaoAlimentacaoDaCEI)
+class SuspensaoAlimentacaoDaCEIModelAdmin(admin.ModelAdmin):
+    inlines = [SuspensoesCEIInline]
+    list_display = ['uuid', 'data', 'status']
+    list_filter = ['status']
 
 
 @admin.register(AlteracaoCardapioCEI)
