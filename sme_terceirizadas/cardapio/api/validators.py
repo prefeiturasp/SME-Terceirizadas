@@ -38,15 +38,6 @@ def nao_pode_existir_solicitacao_igual_para_mesma_escola(data_de: datetime.date,
     return True
 
 
-def deve_ser_no_mesmo_ano_corrente(data_inversao: datetime.date):
-    ano_corrente = datetime.date.today().year
-    if ano_corrente != data_inversao.year:
-        raise serializers.ValidationError(
-            'Inversão de dia de cardapio deve ser solicitada no ano corrente'
-        )
-    return True
-
-
 def nao_pode_ter_mais_que_60_dias_diferenca(data_de: datetime.date, data_para: datetime.date):
     diferenca = abs((data_para - data_de).days)
     if diferenca > 60:
