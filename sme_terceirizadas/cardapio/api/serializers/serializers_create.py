@@ -36,6 +36,7 @@ from ...models import (
     SubstituicaoAlimentacaoNoPeriodoEscolarCEI,
     SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE,
     SuspensaoAlimentacao,
+    SuspensaoAlimentacaoDaCEI,
     SuspensaoAlimentacaoNoPeriodoEscolar,
     TipoAlimentacao,
     VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
@@ -202,6 +203,42 @@ class SuspensaoAlimentacaoCreateSerializer(serializers.ModelSerializer):
         exclude = ('id',)
 
 
+class SuspensaoAlimentacaodeCEICreateSerializer(serializers.ModelSerializer):
+    escola = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=Escola.objects.all()
+    )
+
+    motivo = serializers.SlugRelatedField(
+        slug_field='uuid',
+        queryset=MotivoSuspensao.objects.all()
+    )
+
+    outro_motivo = serializers.CharField(required=False)
+
+    periodos_escolares = serializers.SlugRelatedField(
+        slug_field='uuid',
+        many=True,
+        queryset=PeriodoEscolar.objects.all()
+    )
+
+    def create(self, validated_data):
+        validated_data['criado_por'] = self.context['request'].user
+        suspensao_alimentacao = SuspensaoAlimentacaoDaCEI.objects.create(**validated_data)
+        suspensao_alimentacao.save()
+        return suspensao_alimentacao
+
+    def update(self, instance, validated_data):
+        update_instance_from_dict(instance, validated_data)
+        instance.save()
+        return instance
+
+    class Meta:
+        model = SuspensaoAlimentacaoDaCEI
+        exclude = ('id',)
+
+
 class FaixaEtariaSubstituicaoAlimentacaoCEISerializerCreate(serializers.ModelSerializer):
     substituicao_alimentacao = serializers.SlugRelatedField(
         slug_field='uuid',
@@ -240,7 +277,8 @@ class SubstituicoesAlimentacaoNoPeriodoEscolarSerializerCreateBase(serializers.M
     )
 
 
-class SubstituicoesAlimentacaoNoPeriodoEscolarSerializerCreate(SubstituicoesAlimentacaoNoPeriodoEscolarSerializerCreateBase):  # noqa E501
+class SubstituicoesAlimentacaoNoPeriodoEscolarSerializerCreate(
+    SubstituicoesAlimentacaoNoPeriodoEscolarSerializerCreateBase):  # noqa E501
     alteracao_cardapio = serializers.SlugRelatedField(
         slug_field='uuid',
         required=False,
@@ -256,7 +294,8 @@ class SubstituicoesAlimentacaoNoPeriodoEscolarSerializerCreate(SubstituicoesAlim
         exclude = ('id',)
 
 
-class SubstituicoesAlimentacaoNoPeriodoEscolarCEISerializerCreate(SubstituicoesAlimentacaoNoPeriodoEscolarSerializerCreateBase):  # noqa E501
+class SubstituicoesAlimentacaoNoPeriodoEscolarCEISerializerCreate(
+    SubstituicoesAlimentacaoNoPeriodoEscolarSerializerCreateBase):  # noqa E501
 
     alteracao_cardapio = serializers.SlugRelatedField(
         slug_field='uuid',

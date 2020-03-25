@@ -31,6 +31,7 @@ from ..models import (
     MotivoAlteracaoCardapio,
     MotivoSuspensao,
     SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE,
+    SuspensaoAlimentacaoDaCEI,
     TipoAlimentacao,
     VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
 )
@@ -48,6 +49,7 @@ from .serializers.serializers import (
     MotivoAlteracaoCardapioSerializer,
     MotivoSuspensaoSerializer,
     SubstituicaoDoComboVinculoTipoAlimentoSimplesSerializer,
+    SuspensaoAlimentacaoDaCEISerializer,
     TipoAlimentacaoSerializer,
     VinculoTipoAlimentoSimplesSerializer
 )
@@ -59,7 +61,8 @@ from .serializers.serializers_create import (
     GrupoSuspensaoAlimentacaoCreateSerializer,
     HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolarSerializerCreate,
     InversaoCardapioSerializerCreate,
-    SubstituicaoDoComboVinculoTipoAlimentoSimplesSerializerCreate
+    SubstituicaoDoComboVinculoTipoAlimentoSimplesSerializerCreate,
+    SuspensaoAlimentacaodeCEICreateSerializer
 )
 
 
@@ -376,6 +379,46 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
             permission_classes=(AllowAny,))
     def relatorio(self, request, uuid=None):
         return relatorio_inversao_dia_de_cardapio(request, solicitacao=self.get_object())
+
+
+class SuspensaoAlimentacaoDaCEIViewSet(viewsets.ModelViewSet):
+    lookup_field = 'uuid'
+    queryset = SuspensaoAlimentacaoDaCEI.objects.all()
+    permission_classes = (IsAuthenticated,)
+    serializer_class = SuspensaoAlimentacaoDaCEISerializer
+
+    def get_permissions(self):
+        if self.action in ['list', 'update']:
+            self.permission_classes = (IsAdminUser,)
+        elif self.action == 'retrieve':
+            self.permission_classes = (IsAuthenticated, PermissaoParaRecuperarObjeto)
+        elif self.action in ['create', 'destroy']:
+            self.permission_classes = (UsuarioEscola,)
+        return super(SuspensaoAlimentacaoDaCEIViewSet, self).get_permissions()
+
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update']:
+            return SuspensaoAlimentacaodeCEICreateSerializer
+        return SuspensaoAlimentacaoDaCEISerializer
+
+    @action(detail=False, methods=['GET'], permission_classes=(UsuarioEscola,))
+    def meus_rascunhos(self, request):
+        usuario = request.user
+        suspensoes = SuspensaoAlimentacaoDaCEI.get_rascunhos_do_usuario(usuario)
+        page = self.paginate_queryset(suspensoes)
+        serializer = SuspensaoAlimentacaoDaCEISerializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=True, permission_classes=(UsuarioEscola,),
+            methods=['patch'], url_path=constants.ESCOLA_INFORMA_SUSPENSAO)
+    def informa_suspensao(self, request, uuid=None):
+        suspensao_de_alimentacao = self.get_object()
+        try:
+            suspensao_de_alimentacao.informa(user=request.user, )
+            serializer = self.get_serializer(suspensao_de_alimentacao)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
 
 class GrupoSuspensaoAlimentacaoSerializerViewSet(viewsets.ModelViewSet):

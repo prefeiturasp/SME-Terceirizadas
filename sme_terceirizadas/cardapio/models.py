@@ -408,11 +408,11 @@ class SuspensaoAlimentacaoDaCEI(ExportModelOperationsMixin('suspensao_alimentaca
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING)
     motivo = models.ForeignKey(MotivoSuspensao, on_delete=models.DO_NOTHING)
     outro_motivo = models.CharField('Outro motivo', blank=True, max_length=50)
-
-    @property
-    def periodos_escolares(self):
-        return self.suspensoes_da_cei_periodo_escolar
-
+    periodos_escolares = models.ManyToManyField('escola.PeriodoEscolar',
+                                                related_name='%(app_label)s_%(class)s_periodos',
+                                                help_text='Periodos escolares da suspensão',
+                                                blank=True,
+                                                )
 
     @classmethod
     def get_rascunhos_do_usuario(cls, usuario):
@@ -450,22 +450,6 @@ class SuspensaoAlimentacaoDaCEI(ExportModelOperationsMixin('suspensao_alimentaca
     class Meta:
         verbose_name = 'Suspensão de Alimentação de CEI'
         verbose_name_plural = 'Suspensões de Alimentação de CEI'
-
-
-class SuspensaoAlimentacaoNoPeriodoEscolarDeCEI(ExportModelOperationsMixin('suspensao_alimentacao_cei_periodo_escolar'),
-                                                TemChaveExterna):
-    suspensao_alimentacao = models.ForeignKey(SuspensaoAlimentacaoDaCEI, on_delete=models.CASCADE,
-                                              null=True, blank=True,
-                                              related_name='suspensoes_da_cei_periodo_escolar')
-    periodo_escolar = models.ForeignKey('escola.PeriodoEscolar', on_delete=models.PROTECT,
-                                        related_name='suspensoes_da_cei_periodo_escolar')
-
-    def __str__(self):
-        return f'Suspensão de alimentação: {self.suspensao_alimentacao}'
-
-    class Meta:
-        verbose_name = 'Suspensão de alimentação no período da CEI'
-        verbose_name_plural = 'Suspensões de alimentação no período da CEI'
 
 
 class MotivoAlteracaoCardapio(ExportModelOperationsMixin('motivo_alteracao_cardapio'), Nomeavel, TemChaveExterna):

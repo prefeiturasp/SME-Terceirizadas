@@ -26,6 +26,9 @@ router.register('substituicoes-combos-vinculos-tipo-alimentacao-u-e-periodo-esco
 router.register('horario-do-combo-tipo-de-alimentacao-por-unidade-escolar',
                 viewsets.HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolarViewSet,
                 'horario-do-combo-tipo-de-alimentacao-por-unidade-escolar')
+router.register('suspensao-alimentacao-de-cei',
+                viewsets.SuspensaoAlimentacaoDaCEIViewSet,
+                'suspensao-alimentacao-de-cei')
 urlpatterns = [
     path('', include(router.urls)),
 ]

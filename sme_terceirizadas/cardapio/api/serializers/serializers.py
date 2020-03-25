@@ -27,6 +27,7 @@ from ...models import (
     SubstituicaoAlimentacaoNoPeriodoEscolarCEI,
     SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE,
     SuspensaoAlimentacao,
+    SuspensaoAlimentacaoDaCEI,
     SuspensaoAlimentacaoNoPeriodoEscolar,
     TipoAlimentacao,
     VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
@@ -168,6 +169,16 @@ class InversaoCardapioSimpleserializer(serializers.ModelSerializer):
 class MotivoSuspensaoSerializer(serializers.ModelSerializer):
     class Meta:
         model = MotivoSuspensao
+        exclude = ('id',)
+
+
+class SuspensaoAlimentacaoDaCEISerializer(serializers.ModelSerializer):
+    escola = EscolaListagemSimplesSelializer()
+    motivo = MotivoSuspensaoSerializer()
+    periodos_escolares = PeriodoEscolarSimplesSerializer(many=True)
+
+    class Meta:
+        model = SuspensaoAlimentacaoDaCEI
         exclude = ('id',)
 
 
