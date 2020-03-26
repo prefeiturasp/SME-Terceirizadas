@@ -223,6 +223,12 @@ class SuspensaoAlimentacaodeCEICreateSerializer(serializers.ModelSerializer):
         queryset=PeriodoEscolar.objects.all()
     )
 
+    def validate(self, attrs):
+        data = attrs['data']
+        nao_pode_ser_no_passado(data)
+        deve_pedir_com_antecedencia(data)
+        return attrs
+
     def create(self, validated_data):
         periodos_escolares = validated_data.pop('periodos_escolares', '')
         validated_data['criado_por'] = self.context['request'].user
