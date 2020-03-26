@@ -15,6 +15,7 @@ from ..dados_comuns.behaviors import (  # noqa I101
     SolicitacaoForaDoPrazo,
     TemChaveExterna,
     TemData,
+    TemFaixaEtariaEQuantidade,
     TemIdentificadorExternoAmigavel,
     TempoPasseio,
     TemPrioridade
@@ -76,17 +77,14 @@ class SolicitacaoKitLanche(ExportModelOperationsMixin('kit_lanche_base'), TemDat
         verbose_name_plural = 'Solicitações kit lanche base'
 
 
-class SolicitacaoKitLancheAvulsa(ExportModelOperationsMixin('kit_lanche_avulsa'), TemChaveExterna,  # type: ignore
-                                 FluxoAprovacaoPartindoDaEscola, TemIdentificadorExternoAmigavel,
-                                 CriadoPor, TemPrioridade, Logs, SolicitacaoForaDoPrazo):
+class SolicitacaoKitLancheAvulsaBase(TemChaveExterna,  # type: ignore
+                                     FluxoAprovacaoPartindoDaEscola, TemIdentificadorExternoAmigavel,
+                                     CriadoPor, TemPrioridade, Logs, SolicitacaoForaDoPrazo):
     # TODO: ao deletar este, deletar solicitacao_kit_lanche também que é uma tabela acessória
     # TODO: passar `local` para solicitacao_kit_lanche
     DESCRICAO = 'Kit Lanche'
     local = models.CharField(max_length=160)
-    quantidade_alunos = models.PositiveSmallIntegerField()
     solicitacao_kit_lanche = models.ForeignKey(SolicitacaoKitLanche, on_delete=models.DO_NOTHING)
-    escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING,
-                               related_name='solicitacoes_kit_lanche_avulsa')
 
     objects = models.Manager()  # Manager Padrão
     desta_semana = SolicitacoesKitLancheAvulsaDestaSemanaManager()
@@ -130,12 +128,49 @@ class SolicitacaoKitLancheAvulsa(ExportModelOperationsMixin('kit_lanche_avulsa')
             corpo = corpo.replace(chave, valor)
         return template.assunto, corpo
 
+    class Meta:
+        abstract = True
+
+
+class SolicitacaoKitLancheAvulsa(ExportModelOperationsMixin('kit_lanche_avulsa'), SolicitacaoKitLancheAvulsaBase):
+    quantidade_alunos = models.PositiveSmallIntegerField()
+    escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING,
+                               related_name='solicitacoes_kit_lanche_avulsa')
+
     def __str__(self):
         return f'{self.escola} SOLICITA PARA {self.quantidade_alunos} ALUNOS EM {self.local}'
 
     class Meta:
         verbose_name = 'Solicitação de kit lanche avulsa'
         verbose_name_plural = 'Solicitações de kit lanche avulsa'
+
+
+class SolicitacaoKitLancheCEIAvulsa(ExportModelOperationsMixin('kit_lanche_cei_avulsa'),
+                                    SolicitacaoKitLancheAvulsaBase):
+    escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING,
+                               related_name='solicitacoes_kit_lanche_cei_avulsa')
+    alunos_com_dieta_especial_participantes = models.ManyToManyField('escola.Aluno')
+
+    def __str__(self):
+        return f'{self.escola} SOLICITA EM {self.local}'
+
+    class Meta:
+        verbose_name = 'Solicitação de kit lanche CEI avulsa'
+        verbose_name_plural = 'Solicitações de kit lanche CEI avulsa'
+
+
+class FaixaEtariaSolicitacaoKitLancheCEIAvulsa(TemChaveExterna, TemFaixaEtariaEQuantidade):
+    solicitacao_kit_lanche_avulsa = models.ForeignKey('SolicitacaoKitLancheCEIAvulsa',
+                                                      on_delete=models.CASCADE, related_name='faixas_etarias')
+
+    def __str__(self):
+        retorno = f'Faixa Etária de solicitação de kit lanche CEI avulsa {self.uuid}'
+        retorno += f' da solicitação: {self.solicitacao_kit_lanche_avulsa.uuid}'
+        return retorno
+
+    class Meta:
+        verbose_name = 'Faixa Etária de solicitação de kit lanche CEI avulsa'
+        verbose_name_plural = 'Faixas Etárias de solicitação de kit lanche CEI avulsa'
 
 
 class SolicitacaoKitLancheUnificada(ExportModelOperationsMixin('kit_lanche_unificada'), CriadoPor, TemChaveExterna,
