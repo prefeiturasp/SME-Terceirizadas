@@ -429,7 +429,7 @@ class SuspensaoAlimentacaoDaCEI(ExportModelOperationsMixin('suspensao_alimentaca
 
     @property
     def template_mensagem(self):
-        template = TemplateMensagem.objects.get(tipo=TemplateMensagem.SUSPENSAO_ALIMENTACAO)
+        template = TemplateMensagem.objects.get(tipo=TemplateMensagem.ALTERACAO_CARDAPIO)
         template_troca = {  # noqa
             '@id': self.id,
             '@criado_em': str(self.criado_em),

@@ -319,8 +319,8 @@ def test_url_endpoint_solicitacoes_inversao_escola_cancela_error(client_autentic
 # Suspensão de alimentação
 #
 
-def test_perimoes_suspensao_alimentacao_cei_viewset(client_autenticado_vinculo_escola_cardapio,
-                                                    suspensao_alimentacao_de_cei):
+def test_permissoes_suspensao_alimentacao_cei_viewset(client_autenticado_vinculo_escola_cardapio,
+                                                      suspensao_alimentacao_de_cei):
     response = client_autenticado_vinculo_escola_cardapio.get(
         f'/{ENDPOINT_SUSPENSOES_DE_CEI}/{suspensao_alimentacao_de_cei.uuid}/'
     )
@@ -336,18 +336,16 @@ def test_perimoes_suspensao_alimentacao_cei_viewset(client_autenticado_vinculo_e
 
     suspensao_alimentacao_de_cei.status = PedidoAPartirDaEscolaWorkflow.RASCUNHO
     suspensao_alimentacao_de_cei.save()
-    response = client_autenticado_vinculo_escola_cardapio.delete(
-        f'/{ENDPOINT_SUSPENSOES_DE_CEI}/{suspensao_alimentacao_de_cei.uuid}/'
-    )
-    assert response.status_code == status.HTTP_204_NO_CONTENT
-
 
     response = client_autenticado_vinculo_escola_cardapio.patch(
-        f'/{ENDPOINT_SUSPENSOES_DE_CEI}/{suspensao_alimentacao_de_cei.uuid}/{ESCOLA_INFORMA_SUSPENSAO}'
-    )
-    import pdb
-    pdb.set_trace()
+        f'/{ENDPOINT_SUSPENSOES_DE_CEI}/{suspensao_alimentacao_de_cei.uuid}/{ESCOLA_INFORMA_SUSPENSAO}/')
+    assert response.status_code == status.HTTP_200_OK
 
+    suspensao_alimentacao_de_cei.status = PedidoAPartirDaEscolaWorkflow.RASCUNHO
+    suspensao_alimentacao_de_cei.save()
+    response = client_autenticado_vinculo_escola_cardapio.delete(
+        f'/{ENDPOINT_SUSPENSOES_DE_CEI}/{suspensao_alimentacao_de_cei.uuid}/')
+    assert response.status_code == status.HTTP_204_NO_CONTENT
 
 
 def test_permissoes_suspensao_alimentacao_viewset(client_autenticado_vinculo_escola_cardapio,

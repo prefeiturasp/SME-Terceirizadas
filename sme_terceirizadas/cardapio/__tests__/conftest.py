@@ -625,11 +625,11 @@ def alteracao_substituicoes_params(request):
     (datetime.date(2019, 10, 17), datetime.date(2019, 10, 18)),
 ])
 def suspensao_alimentacao_cei_params(request):
-
     motivo = mommy.make('cardapio.MotivoSuspensao', nome='outro', uuid='478b09e1-4c14-4e50-a446-fbc0af727a08')
 
     data_create, data_update = request.param
     return motivo, data_create, data_update
+
 
 @pytest.fixture(params=[
     # data do teste 14 out 2019
