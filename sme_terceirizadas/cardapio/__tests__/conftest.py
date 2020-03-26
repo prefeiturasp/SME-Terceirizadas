@@ -25,7 +25,8 @@ from ..models import (
     MotivoAlteracaoCardapio,
     MotivoSuspensao,
     SubstituicaoAlimentacaoNoPeriodoEscolar,
-    SuspensaoAlimentacao
+    SuspensaoAlimentacao,
+    SuspensaoAlimentacaoDaCEI
 )
 
 fake = Faker('pt_BR')
@@ -214,6 +215,17 @@ def template_mensagem_suspensao_alimentacao():
 def grupo_suspensao_alimentacao(escola, template_mensagem_suspensao_alimentacao):
     return mommy.make(GrupoSuspensaoAlimentacao, observacao='lorem ipsum', escola=escola,
                       rastro_escola=escola)
+
+
+@pytest.fixture
+def suspensao_alimentacao_de_cei(escola):
+    motivo = mommy.make(MotivoSuspensao, nome='Suspensão de aula')
+    periodos_escolares = mommy.make('escola.PeriodoEscolar', _quantity=2)
+    return mommy.make(SuspensaoAlimentacaoDaCEI,
+                      escola=escola,
+                      motivo=motivo,
+                      periodos_escolares=periodos_escolares,
+                      data=datetime.date(2020, 4, 20), )
 
 
 @pytest.fixture
