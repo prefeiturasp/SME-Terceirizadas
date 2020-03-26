@@ -415,6 +415,12 @@ class SuspensaoAlimentacaoDaCEI(ExportModelOperationsMixin('suspensao_alimentaca
                                                 )
 
     @classmethod
+    def get_informados(cls):
+        return cls.objects.filter(
+            status=cls.workflow_class.INFORMADO
+        )
+
+    @classmethod
     def get_rascunhos_do_usuario(cls, usuario):
         return cls.objects.filter(
             criado_por=usuario,

@@ -34,6 +34,16 @@ if [ "$criar_usuarios" != "${criar_usuarios#[Ss]}" ]; then
   ./manage.py shell -c "from sme_terceirizadas.perfil.models import Usuario; Usuario.objects.create_superuser('nutricodae@admin.com', 'adminadmin', cpf='11111111115', registro_funcional='1111115')"
   echo "Criando Escola CEI admin"
   ./manage.py shell -c "from sme_terceirizadas.perfil.models import Usuario; Usuario.objects.create_superuser('escolacei@admin.com', 'adminadmin', cpf='11111111116', registro_funcional='1111116')"
+
+
+  ./manage.py shell -c "from sme_terceirizadas.perfil.models import Usuario; Usuario.objects.create_superuser('escolaceiceu@admin.com', 'adminadmin', cpf='11111111117', registro_funcional='1111117')"
+  ./manage.py shell -c "from sme_terceirizadas.perfil.models import Usuario; Usuario.objects.create_superuser('escolacci@admin.com', 'adminadmin', cpf='11111111118', registro_funcional='1111118')"
+  ./manage.py shell -c "from sme_terceirizadas.perfil.models import Usuario; Usuario.objects.create_superuser('escolaemef@admin.com', 'adminadmin', cpf='11111111119', registro_funcional='1111119')"
+  ./manage.py shell -c "from sme_terceirizadas.perfil.models import Usuario; Usuario.objects.create_superuser('escolaemebs@admin.com', 'adminadmin', cpf='11111111120', registro_funcional='1111120')"
+  ./manage.py shell -c "from sme_terceirizadas.perfil.models import Usuario; Usuario.objects.create_superuser('escolacieja@admin.com', 'adminadmin', cpf='11111111121', registro_funcional='1111121')"
+  ./manage.py shell -c "from sme_terceirizadas.perfil.models import Usuario; Usuario.objects.create_superuser('escolaemei@admin.com', 'adminadmin', cpf='11111111122', registro_funcional='1111122')"
+  ./manage.py shell -c "from sme_terceirizadas.perfil.models import Usuario; Usuario.objects.create_superuser('escolaceuemei@admin.com', 'adminadmin', cpf='11111111123', registro_funcional='1111123')"
+  ./manage.py shell -c "from sme_terceirizadas.perfil.models import Usuario; Usuario.objects.create_superuser('escolaceuemef@admin.com', 'adminadmin', cpf='11111111124', registro_funcional='1111124')"
 fi
 
 ./manage.py shell -c "from utility.carga_dados.escola import _2_escola_EMEF_EMEFM_EMEBS_CIEJA"

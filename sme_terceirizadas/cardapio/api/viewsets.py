@@ -401,6 +401,12 @@ class SuspensaoAlimentacaoDaCEIViewSet(viewsets.ModelViewSet):
             return SuspensaoAlimentacaodeCEICreateSerializer
         return SuspensaoAlimentacaoDaCEISerializer
 
+    @action(detail=False, methods=['GET'])
+    def informadas(self, request):
+        informados = SuspensaoAlimentacaoDaCEI.get_informados().order_by('-id')
+        serializer = SuspensaoAlimentacaoDaCEISerializer(informados, many=True)
+        return Response(serializer.data)
+
     @action(detail=False, methods=['GET'], permission_classes=(UsuarioEscola,))
     def meus_rascunhos(self, request):
         usuario = request.user
