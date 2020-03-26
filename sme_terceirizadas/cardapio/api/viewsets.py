@@ -420,6 +420,14 @@ class SuspensaoAlimentacaoDaCEIViewSet(viewsets.ModelViewSet):
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
+    def destroy(self, request, *args, **kwargs):
+        suspensao_de_alimentacao = self.get_object()
+        if suspensao_de_alimentacao.pode_excluir:
+            return super().destroy(request, *args, **kwargs)
+        else:
+            return Response(dict(detail='Você só pode excluir quando o status for RASCUNHO.'),
+                            status=status.HTTP_403_FORBIDDEN)
+
 
 class GrupoSuspensaoAlimentacaoSerializerViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'

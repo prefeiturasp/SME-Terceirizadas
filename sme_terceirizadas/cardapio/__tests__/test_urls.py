@@ -16,6 +16,8 @@ ENDPOINT_ALTERACAO_CARD_CEI = 'alteracoes-cardapio-cei'
 ENDPOINT_VINCULOS_ALIMENTACAO = 'vinculos-tipo-alimentacao-u-e-periodo-escolar'
 ENDPOINT_HORARIO_DO_COMBO = 'horario-do-combo-tipo-de-alimentacao-por-unidade-escolar'
 
+ESCOLA_INFORMA_SUSPENSAO = 'informa-suspensao'
+
 
 #
 # Inversão de dia de Cardápio
@@ -331,6 +333,21 @@ def test_perimoes_suspensao_alimentacao_cei_viewset(client_autenticado_vinculo_e
     )
     assert response.status_code == status.HTTP_403_FORBIDDEN
     assert response.json() == {'detail': 'Você só pode excluir quando o status for RASCUNHO.'}
+
+    suspensao_alimentacao_de_cei.status = PedidoAPartirDaEscolaWorkflow.RASCUNHO
+    suspensao_alimentacao_de_cei.save()
+    response = client_autenticado_vinculo_escola_cardapio.delete(
+        f'/{ENDPOINT_SUSPENSOES_DE_CEI}/{suspensao_alimentacao_de_cei.uuid}/'
+    )
+    assert response.status_code == status.HTTP_204_NO_CONTENT
+
+
+    response = client_autenticado_vinculo_escola_cardapio.patch(
+        f'/{ENDPOINT_SUSPENSOES_DE_CEI}/{suspensao_alimentacao_de_cei.uuid}/{ESCOLA_INFORMA_SUSPENSAO}'
+    )
+    import pdb
+    pdb.set_trace()
+
 
 
 def test_permissoes_suspensao_alimentacao_viewset(client_autenticado_vinculo_escola_cardapio,
