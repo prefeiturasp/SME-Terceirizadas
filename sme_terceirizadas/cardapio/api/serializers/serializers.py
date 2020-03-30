@@ -176,6 +176,7 @@ class SuspensaoAlimentacaoDaCEISerializer(serializers.ModelSerializer):
     escola = EscolaListagemSimplesSelializer()
     motivo = MotivoSuspensaoSerializer()
     periodos_escolares = PeriodoEscolarSimplesSerializer(many=True)
+    id_externo = serializers.CharField()
 
     class Meta:
         model = SuspensaoAlimentacaoDaCEI
