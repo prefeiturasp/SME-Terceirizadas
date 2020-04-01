@@ -480,6 +480,18 @@ class AlteracaoCardapio(ExportModelOperationsMixin('alteracao_cardapio'), Criado
                         EhAlteracaoCardapio):
     DESCRICAO = 'Alteração de Cardápio'
 
+    @classmethod
+    def com_lanche_do_mes_corrente(cls, escola_uuid):
+        lanche = TipoAlimentacao.objects.get(nome__icontains='lanche')
+        substituicoes = SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE.objects.filter(
+            tipos_alimentacao=lanche
+        )
+        alteracoes_da_escola = cls.do_mes_corrente.all().filter(
+            escola__uuid=escola_uuid,
+            substituicoes_periodo_escolar__tipo_alimentacao_para__in=substituicoes
+        )
+        return alteracoes_da_escola
+
     @property
     def data(self):
         data = self.data_inicial
