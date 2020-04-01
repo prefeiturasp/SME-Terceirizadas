@@ -480,6 +480,8 @@ class AlteracaoCardapio(ExportModelOperationsMixin('alteracao_cardapio'), Criado
                         EhAlteracaoCardapio):
     DESCRICAO = 'Alteração de Cardápio'
 
+    eh_alteracao_com_lanche_repetida = models.BooleanField(default=False)
+
     @classmethod
     def com_lanche_do_mes_corrente(cls, escola_uuid):
         lanche = TipoAlimentacao.objects.get(nome__icontains='lanche')
@@ -568,6 +570,8 @@ class AlteracaoCardapioCEI(ExportModelOperationsMixin('alteracao_cardapio_cei'),
                            TemIdentificadorExternoAmigavel, Logs, TemPrioridade, SolicitacaoForaDoPrazo,
                            EhAlteracaoCardapio):
     DESCRICAO = 'Alteração de Cardápio CEI'
+
+    eh_alteracao_com_lanche_repetida = models.BooleanField(default=False)
 
     @property
     def substituicoes(self):
