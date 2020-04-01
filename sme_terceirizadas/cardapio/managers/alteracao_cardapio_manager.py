@@ -41,10 +41,10 @@ class AlteracoesCardapioVencidaManager(models.Manager):
 class AlteracoesCardapioDoMesCorrenteManager(models.Manager):
     def get_queryset(self):
         hoje = datetime.date.today()
-        data_limite_inicial = hoje
-        data_limite_final = hoje.replace(month=hoje.month + 1, day=1) - datetime.timedelta(days=1)
+        primeiro_dia_do_mes = hoje.replace(month=hoje.month, day=1)
+        ultimo_dia_do_mes = hoje.replace(month=hoje.month + 1, day=1) - datetime.timedelta(days=1)
         return super(AlteracoesCardapioDoMesCorrenteManager, self).get_queryset().filter(
-            data_inicial__range=(data_limite_inicial, data_limite_final)
+            data_inicial__range=(primeiro_dia_do_mes, ultimo_dia_do_mes)
         ).filter(
             status__in=[PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR,
                         PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO,
