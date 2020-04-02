@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from ....dados_comuns.utils import update_instance_from_dict
 from ....dados_comuns.validators import deve_pedir_com_antecedencia, nao_pode_ser_no_passado
 from ....escola.models import Aluno, Escola, FaixaEtaria
 from ...models import FaixaEtariaSolicitacaoKitLancheCEIAvulsa, SolicitacaoKitLancheCEIAvulsa
@@ -64,7 +65,24 @@ class SolicitacaoKitLancheCEIAvulsaCreationSerializer(serializers.ModelSerialize
         return solic
 
     def update(self, instance, validated_data):
-        raise NotImplementedError()
+        solicitacao_kit_lanche_data = validated_data.pop('solicitacao_kit_lanche')
+        SolicitacaoKitLancheCreationSerializer().update(instance.solicitacao_kit_lanche, solicitacao_kit_lanche_data)
+
+        alunos_com_dieta = validated_data.pop('alunos_com_dieta_especial_participantes')
+        faixas_etarias = validated_data.pop('faixas_etarias')
+
+        update_instance_from_dict(instance, validated_data, save=True)
+
+        instance.alunos_com_dieta_especial_participantes.set(alunos_com_dieta)
+
+        instance.faixas_etarias.all().delete()
+
+        for linha in faixas_etarias:
+            faixa = FaixaEtariaSolicitacaoKitLancheCEIAvulsa.objects.create(
+                solicitacao_kit_lanche_avulsa=instance, **linha)
+            instance.faixas_etarias.add(faixa)
+
+        return instance
 
     class Meta:
         model = SolicitacaoKitLancheCEIAvulsa
