@@ -30,7 +30,7 @@ def test_kit_lanche_cei_avulsa_serializer_create():
         user = mommy.make('perfil.Usuario')
 
     alunos = mommy.make('escola.Aluno', _quantity=4)
-    alunos_com_dieta = [aluno.uuid for aluno in alunos]
+    alunos_com_dieta = [aluno.codigo_eol for aluno in alunos]
 
     escola = mommy.make('escola.Escola')
     data = datetime.date(2020, 9, 1)

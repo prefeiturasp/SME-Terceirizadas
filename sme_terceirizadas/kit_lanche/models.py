@@ -151,6 +151,10 @@ class SolicitacaoKitLancheCEIAvulsa(ExportModelOperationsMixin('kit_lanche_cei_a
                                related_name='solicitacoes_kit_lanche_cei_avulsa')
     alunos_com_dieta_especial_participantes = models.ManyToManyField('escola.Aluno')
 
+    @property
+    def quantidade_alunos(self):
+        return self.faixas_etarias.all().aggregate(models.Sum('quantidade'))['quantidade__sum']
+
     def __str__(self):
         return f'{self.escola} SOLICITA EM {self.local}'
 

@@ -91,7 +91,7 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
             permission_classes=(UsuarioEscola,))
     def minhas_solicitacoes(self, request):
         usuario = request.user
-        solicitacoes_unificadas = SolicitacaoKitLancheAvulsa.objects.filter(
+        solicitacoes_unificadas = self.get_queryset().filter(
             criado_por=usuario,
             status=SolicitacaoKitLancheAvulsa.workflow_class.RASCUNHO
         )
@@ -419,7 +419,11 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
                             status=status.HTTP_403_FORBIDDEN)
 
 
-class SolicitacaoKitLancheCEIAvulsaViewSet(ModelViewSet):
+class SolicitacaoKitLancheCEIAvulsaViewSet(SolicitacaoKitLancheAvulsaViewSet):
     lookup_field = 'uuid'
     queryset = SolicitacaoKitLancheCEIAvulsa.objects.all()
-    serializer_class = serializers_create_cei.SolicitacaoKitLancheCEIAvulsaCreationSerializer
+
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update']:
+            return serializers_create_cei.SolicitacaoKitLancheCEIAvulsaCreationSerializer
+        return serializers.SolicitacaoKitLancheCEIAvulsaSerializer

@@ -33,8 +33,8 @@ class SolicitacaoKitLancheCEIAvulsaCreationSerializer(serializers.ModelSerialize
         queryset=Escola.objects.all()
     )
     alunos_com_dieta_especial_participantes = serializers.SlugRelatedField(
-        slug_field='uuid', many=True,
-        required=True,
+        slug_field='codigo_eol',
+        many=True,
         queryset=Aluno.objects.all())
     faixas_etarias = FaixaEtariaSolicitacaoKitLancheCEIAvulsaCreateSerializer(many=True)
 
@@ -62,6 +62,9 @@ class SolicitacaoKitLancheCEIAvulsaCreationSerializer(serializers.ModelSerialize
             solic.faixas_etarias.add(faixa)
 
         return solic
+
+    def update(self, instance, validated_data):
+        raise NotImplementedError()
 
     class Meta:
         model = SolicitacaoKitLancheCEIAvulsa

@@ -1,13 +1,20 @@
 from rest_framework import serializers
 
 from ....dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
-from ....escola.api.serializers import DiretoriaRegionalSimplissimaSerializer, EscolaSimplesSerializer
+from ....escola.api.serializers import (
+    AlunoSerializer,
+    DiretoriaRegionalSimplissimaSerializer,
+    EscolaSimplesSerializer,
+    FaixaEtariaSerializer
+)
 from ...models import (
     EscolaQuantidade,
+    FaixaEtariaSolicitacaoKitLancheCEIAvulsa,
     ItemKitLanche,
     KitLanche,
     SolicitacaoKitLanche,
     SolicitacaoKitLancheAvulsa,
+    SolicitacaoKitLancheCEIAvulsa,
     SolicitacaoKitLancheUnificada
 )
 
@@ -117,3 +124,23 @@ class EscolaQuantidadeSerializer(serializers.ModelSerializer):
     class Meta:
         model = EscolaQuantidade
         exclude = ('id',)
+
+
+class FaixaEtariaSolicitacaoKitLancheCEIAvulsaSerializer(serializers.ModelSerializer):
+    faixa_etaria = FaixaEtariaSerializer()
+
+    class Meta:
+        model = FaixaEtariaSolicitacaoKitLancheCEIAvulsa
+        exclude = ('id', 'solicitacao_kit_lanche_avulsa')
+
+
+class SolicitacaoKitLancheCEIAvulsaSerializer(serializers.ModelSerializer):
+    solicitacao_kit_lanche = SolicitacaoKitLancheSimplesSerializer()
+    faixas_etarias = FaixaEtariaSolicitacaoKitLancheCEIAvulsaSerializer(many=True)
+    quantidade_alunos = serializers.IntegerField()
+    id_externo = serializers.CharField()
+    alunos_com_dieta_especial_participantes = AlunoSerializer(many=True)
+
+    class Meta:
+        model = SolicitacaoKitLancheCEIAvulsa
+        exclude = ('id', 'escola', 'criado_por')
