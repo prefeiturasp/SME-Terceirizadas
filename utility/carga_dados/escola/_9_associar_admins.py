@@ -32,6 +32,38 @@ usuario_escola_cei = Usuario.objects.get(email='escolacei@admin.com')
 usuario_escola_cei.registro_funcional = '0000110'
 usuario_escola_cei.nome = 'SUPER USUARIO ESCOLA CEI'
 usuario_escola_cei.save()
+usuario_escola_cei_ceu = Usuario.objects.get(email='escolaceiceu@admin.com')
+usuario_escola_cei_ceu.registro_funcional = '0000111'
+usuario_escola_cei_ceu.nome = 'SUPER USUARIO ESCOLA CEI CEU'
+usuario_escola_cei_ceu.save()
+usuario_escola_cci = Usuario.objects.get(email='escolacci@admin.com')
+usuario_escola_cci.registro_funcional = '0001000'
+usuario_escola_cci.nome = 'SUPER USUARIO ESCOLA CCI'
+usuario_escola_cci.save()
+usuario_escola_emef = Usuario.objects.get(email='escolaemef@admin.com')
+usuario_escola_emef.registro_funcional = '0001001'
+usuario_escola_emef.nome = 'SUPER USUARIO ESCOLA EMEF'
+usuario_escola_emef.save()
+usuario_escola_emebs = Usuario.objects.get(email='escolaemebs@admin.com')
+usuario_escola_emebs.registro_funcional = '0001010'
+usuario_escola_emebs.nome = 'SUPER USUARIO ESCOLA EMEBS'
+usuario_escola_emebs.save()
+usuario_escola_cieja = Usuario.objects.get(email='escolacieja@admin.com')
+usuario_escola_cieja.registro_funcional = '0001011'
+usuario_escola_cieja.nome = 'SUPER USUARIO ESCOLA CIEJA'
+usuario_escola_cieja.save()
+usuario_escola_emei = Usuario.objects.get(email='escolaemei@admin.com')
+usuario_escola_emei.registro_funcional = '0001100'
+usuario_escola_emei.nome = 'SUPER USUARIO ESCOLA EMEI'
+usuario_escola_emei.save()
+usuario_escola_ceu_emei = Usuario.objects.get(email='escolaceuemei@admin.com')
+usuario_escola_ceu_emei.registro_funcional = '0001101'
+usuario_escola_ceu_emei.nome = 'SUPER USUARIO ESCOLA CEU EMEI'
+usuario_escola_ceu_emei.save()
+usuario_escola_ceu_emef = Usuario.objects.get(email='escolaceuemef@admin.com')
+usuario_escola_ceu_emef.registro_funcional = '0001111'
+usuario_escola_ceu_emef.nome = 'SUPER USUARIO ESCOLA CEU EMEF'
+usuario_escola_ceu_emef.save()
 
 perfil_diretor_escola, created = Perfil.objects.get_or_create(
     nome='DIRETOR',
@@ -101,8 +133,16 @@ Perfil.objects.get_or_create(
 
 
 escola = Escola.objects.get(nome='EMEF JOSE ERMIRIO DE MORAIS, SEN.')
-escola_cei = Escola.objects.get(nome='CEI DIRET AMERICO DE SOUZA')
-diretoria_regional = DiretoriaRegional.objects.get(nome='DIRETORIA REGIONAL DE EDUCACAO SAO MIGUEL')
+escola_cei = Escola.objects.get(nome='CEI DIRET ENEDINA DE SOUSA CARVALHO')
+escola_cei_ceu = Escola.objects.get(nome='CEU CEI MENINOS')
+escola_cci = Escola.objects.get(nome='CCI/CIPS CAMARA MUNICIPAL DE SAO PAULO')
+escola_emef = Escola.objects.get(nome='EMEF PERICLES EUGENIO DA SILVA RAMOS')
+escola_emebs = Escola.objects.get(nome='EMEBS HELEN KELLER')
+escola_cieja = Escola.objects.get(nome='CIEJA CLOVIS CAITANO MIQUELAZZO - IPIRANGA')
+escola_emei = Escola.objects.get(nome='EMEI SENA MADUREIRA')
+escola_ceu_emei = Escola.objects.get(nome='CEU EMEI BENNO HUBERT STOLLENWERK, PE.')
+escola_ceu_emef = Escola.objects.get(nome='CEU EMEF MARA CRISTINA TARTAGLIA SENA, PROFA.')
+diretoria_regional = DiretoriaRegional.objects.get(nome='DIRETORIA REGIONAL DE EDUCACAO IPIRANGA')
 codae, created = Codae.objects.get_or_create(nome='CODAE')
 terceirizada = escola.lote.terceirizada
 
@@ -121,6 +161,70 @@ Vinculo.objects.create(
     data_inicial=data_atual
 )
 print(f'perfil {perfil_diretor_escola_cei.nome} vinculado a {escola_cei.nome} com sucesso')
+
+Vinculo.objects.create(
+    instituicao=escola_cei_ceu,
+    perfil=perfil_diretor_escola_cei,
+    usuario=usuario_escola_cei_ceu,
+    data_inicial=data_atual
+)
+print(f'perfil {perfil_diretor_escola_cei.nome} vinculado a {escola_cei_ceu.nome} com sucesso')
+
+Vinculo.objects.create(
+    instituicao=escola_cci,
+    perfil=perfil_diretor_escola_cei,
+    usuario=usuario_escola_cci,
+    data_inicial=data_atual
+)
+print(f'perfil {perfil_diretor_escola_cei.nome} vinculado a {escola_cci.nome} com sucesso')
+
+Vinculo.objects.create(
+    instituicao=escola_emef,
+    perfil=perfil_diretor_escola,
+    usuario=usuario_escola_emef,
+    data_inicial=data_atual
+)
+print(f'perfil {perfil_diretor_escola.nome} vinculado a {escola_emef.nome} com sucesso')
+
+Vinculo.objects.create(
+    instituicao=escola_emebs,
+    perfil=perfil_diretor_escola,
+    usuario=usuario_escola_emebs,
+    data_inicial=data_atual
+)
+print(f'perfil {perfil_diretor_escola.nome} vinculado a {escola_emebs.nome} com sucesso')
+
+Vinculo.objects.create(
+    instituicao=escola_cieja,
+    perfil=perfil_diretor_escola,
+    usuario=usuario_escola_cieja,
+    data_inicial=data_atual
+)
+print(f'perfil {perfil_diretor_escola.nome} vinculado a {escola_cieja.nome} com sucesso')
+
+Vinculo.objects.create(
+    instituicao=escola_emei,
+    perfil=perfil_diretor_escola,
+    usuario=usuario_escola_emei,
+    data_inicial=data_atual
+)
+print(f'perfil {perfil_diretor_escola.nome} vinculado a {escola_emei.nome} com sucesso')
+
+Vinculo.objects.create(
+    instituicao=escola_ceu_emei,
+    perfil=perfil_diretor_escola,
+    usuario=usuario_escola_ceu_emei,
+    data_inicial=data_atual
+)
+print(f'perfil {perfil_diretor_escola.nome} vinculado a {escola_ceu_emei.nome} com sucesso')
+
+Vinculo.objects.create(
+    instituicao=escola_ceu_emef,
+    perfil=perfil_diretor_escola,
+    usuario=usuario_escola_ceu_emef,
+    data_inicial=data_atual
+)
+print(f'perfil {perfil_diretor_escola.nome} vinculado a {escola_ceu_emef.nome} com sucesso')
 
 Vinculo.objects.create(
     instituicao=diretoria_regional,
