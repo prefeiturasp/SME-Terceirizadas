@@ -11,6 +11,9 @@ router.register('kit-lanches', viewsets.KitLancheViewSet,
 router.register('solicitacoes-kit-lanche-avulsa', viewsets.SolicitacaoKitLancheAvulsaViewSet,
                 basename='solicitacao-kit-lanche-avulsa')
 
+router.register('solicitacoes-kit-lanche-cei-avulsa', viewsets.SolicitacaoKitLancheCEIAvulsaViewSet,
+                basename='solicitacao-kit-lanche-cei-avulsa')
+
 router.register('solicitacoes-kit-lanche-unificada', viewsets.SolicitacaoKitLancheUnificadaViewSet,
                 basename='solicitacao-kit-lanche-unificada')
 

@@ -244,3 +244,11 @@ class SolicitacaoForaDoPrazo(models.Model):
 
     class Meta:
         abstract = True
+
+
+class TemFaixaEtariaEQuantidade(models.Model):
+    faixa_etaria = models.ForeignKey('escola.FaixaEtaria', on_delete=models.DO_NOTHING)
+    quantidade = models.PositiveSmallIntegerField()
+
+    class Meta:
+        abstract = True

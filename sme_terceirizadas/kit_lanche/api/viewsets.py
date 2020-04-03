@@ -19,8 +19,8 @@ from ...dados_comuns.permissions import (
 from ...relatorios.relatorios import relatorio_kit_lanche_passeio, relatorio_kit_lanche_unificado
 from .. import models
 from ..api.validators import nao_deve_ter_mais_solicitacoes_que_alunos
-from ..models import SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheUnificada
-from .serializers import serializers, serializers_create
+from ..models import SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheCEIAvulsa, SolicitacaoKitLancheUnificada
+from .serializers import serializers, serializers_create, serializers_create_cei
 
 
 class KitLancheViewSet(ReadOnlyModelViewSet):
@@ -91,7 +91,7 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
             permission_classes=(UsuarioEscola,))
     def minhas_solicitacoes(self, request):
         usuario = request.user
-        solicitacoes_unificadas = SolicitacaoKitLancheAvulsa.objects.filter(
+        solicitacoes_unificadas = self.get_queryset().filter(
             criado_por=usuario,
             status=SolicitacaoKitLancheAvulsa.workflow_class.RASCUNHO
         )
@@ -417,3 +417,13 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
         else:
             return Response(dict(detail='Você só pode excluir quando o status for RASCUNHO.'),
                             status=status.HTTP_403_FORBIDDEN)
+
+
+class SolicitacaoKitLancheCEIAvulsaViewSet(SolicitacaoKitLancheAvulsaViewSet):
+    lookup_field = 'uuid'
+    queryset = SolicitacaoKitLancheCEIAvulsa.objects.all()
+
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update']:
+            return serializers_create_cei.SolicitacaoKitLancheCEIAvulsaCreationSerializer
+        return serializers.SolicitacaoKitLancheCEIAvulsaSerializer

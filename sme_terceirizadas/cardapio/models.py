@@ -14,6 +14,7 @@ from ..dados_comuns.behaviors import (  # noqa I101
     SolicitacaoForaDoPrazo,
     TemChaveExterna,
     TemData,
+    TemFaixaEtariaEQuantidade,
     TemIdentificadorExternoAmigavel,
     TemObservacao,
     TemPrioridade
@@ -636,11 +637,9 @@ class SubstituicaoAlimentacaoNoPeriodoEscolarCEI(
 
 
 class FaixaEtariaSubstituicaoAlimentacaoCEI(ExportModelOperationsMixin('faixa_etaria_substituicao_alimentacao_cei'),
-                                            TemChaveExterna):
+                                            TemChaveExterna, TemFaixaEtariaEQuantidade):
     substituicao_alimentacao = models.ForeignKey('SubstituicaoAlimentacaoNoPeriodoEscolarCEI',
                                                  on_delete=models.CASCADE, related_name='faixas_etarias')
-    faixa_etaria = models.ForeignKey('escola.FaixaEtaria', on_delete=models.DO_NOTHING)
-    quantidade = models.PositiveSmallIntegerField()
 
     def __str__(self):
         retorno = f'Faixa Etária de substituição de alimentação CEI: {self.uuid}'
