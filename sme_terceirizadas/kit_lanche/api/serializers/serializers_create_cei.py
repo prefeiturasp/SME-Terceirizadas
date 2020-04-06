@@ -1,7 +1,11 @@
 from rest_framework import serializers
 
 from ....dados_comuns.utils import update_instance_from_dict
-from ....dados_comuns.validators import deve_pedir_com_antecedencia, nao_pode_ser_no_passado
+from ....dados_comuns.validators import (
+    deve_pedir_com_antecedencia,
+    deve_ser_no_mesmo_ano_corrente,
+    nao_pode_ser_no_passado
+)
 from ....escola.models import Aluno, Escola, FaixaEtaria
 from ...models import FaixaEtariaSolicitacaoKitLancheCEIAvulsa, SolicitacaoKitLancheCEIAvulsa
 from .serializers_create import SolicitacaoKitLancheCreationSerializer

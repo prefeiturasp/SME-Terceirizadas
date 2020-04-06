@@ -6,7 +6,12 @@ from workalendar.america import BrazilSaoPauloCity
 
 from ....cardapio.models import ComboDoVinculoTipoAlimentacaoPeriodoTipoUE
 from ....dados_comuns.utils import update_instance_from_dict
-from ....dados_comuns.validators import deve_pedir_com_antecedencia, deve_ser_no_mesmo_ano_corrente, nao_pode_ser_feriado, nao_pode_ser_no_passado
+from ....dados_comuns.validators import (
+    deve_pedir_com_antecedencia,
+    deve_ser_no_mesmo_ano_corrente,
+    nao_pode_ser_feriado,
+    nao_pode_ser_no_passado
+)
 from ....escola.models import Escola, FaixaEtaria, PeriodoEscolar
 from ...models import (
     GrupoInclusaoAlimentacaoNormal,
