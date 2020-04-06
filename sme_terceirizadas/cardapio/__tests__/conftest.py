@@ -550,7 +550,7 @@ def suspensao_alimentacao_parametros_semana(request):
     # data_inicial, data_final
     (datetime.date(2019, 10, 17), datetime.date(2019, 10, 26)),
     (datetime.date(2019, 10, 18), datetime.date(2019, 10, 26)),
-    (datetime.date(2020, 10, 11), datetime.date(2019, 10, 26)),
+    (datetime.date(2019, 10, 19), datetime.date(2019, 10, 26)),
 ])
 def alteracao_card_params(request):
     alimentacao1 = mommy.make('cardapio.TipoAlimentacao', nome='tp_alimentacao1')

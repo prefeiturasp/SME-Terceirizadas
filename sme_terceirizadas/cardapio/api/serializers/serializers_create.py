@@ -196,6 +196,7 @@ class SuspensaoAlimentacaoCreateSerializer(serializers.ModelSerializer):
 
     def validate_data(self, data):
         nao_pode_ser_no_passado(data)
+        deve_ser_no_mesmo_ano_corrente(data)
         return data
 
     class Meta:
@@ -227,6 +228,7 @@ class SuspensaoAlimentacaodeCEICreateSerializer(serializers.ModelSerializer):
         data = attrs['data']
         nao_pode_ser_no_passado(data)
         deve_pedir_com_antecedencia(data)
+        deve_ser_no_mesmo_ano_corrente(data)
         return attrs
 
     def create(self, validated_data):
@@ -392,6 +394,7 @@ class AlteracaoCardapioSerializerCreate(AlteracaoCardapioSerializerCreateBase):
     def validate_data_inicial(self, data_inicial):
         nao_pode_ser_no_passado(data_inicial)
         deve_pedir_com_antecedencia(data_inicial)
+        deve_ser_no_mesmo_ano_corrente(data_inicial)
         return data_inicial
 
     class Meta:
@@ -406,6 +409,7 @@ class AlteracaoCardapioCEISerializerCreate(AlteracaoCardapioSerializerCreateBase
     def validate_data(self, data):
         nao_pode_ser_no_passado(data)
         deve_pedir_com_antecedencia(data)
+        deve_ser_no_mesmo_ano_corrente(data)
         return data
 
     class Meta:
