@@ -42,7 +42,7 @@ def test_kit_lanche_avulso_serializer_validators_error(kits_avulsos_param_erro_s
         serializer_obj.validate(attrs=attrs)
 
 
-@freeze_time('2019-10-16')
+@freeze_time('2019-7-16')
 def test_kit_lanche_avulso_serializer_creators(kits_avulsos_param_serializer):
     qtd_alunos_escola, quantidade_alunos_pedido, data = kits_avulsos_param_serializer
 

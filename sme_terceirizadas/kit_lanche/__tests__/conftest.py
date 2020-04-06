@@ -453,7 +453,7 @@ def kits_avulsos_param_erro_serializer(request):
 
 @pytest.fixture(params=[
     # qtd_alunos_escola, qtd_alunos_pedido, dia
-    (100, 100, datetime.date(2020, 1, 1)),
+    (100, 100, datetime.date(2019, 8, 1)),
     (1000, 77, datetime.date(2019, 10, 20)),
     (1000, 700, datetime.date(2019, 10, 20)),
 ])
@@ -463,9 +463,9 @@ def kits_avulsos_param_serializer(request):
 
 @pytest.fixture(params=[
     # qtd_alunos_escola, qtd_alunos_pedido, dia
-    (100, 100, datetime.date(2020, 1, 1)),
     (1000, 77, datetime.date(2019, 10, 20)),
     (1000, 700, datetime.date(2019, 10, 20)),
+    (100, 100, datetime.date(2019, 12, 1)),
 ])
 def kits_unificados_param_serializer(request):
     return request.param
