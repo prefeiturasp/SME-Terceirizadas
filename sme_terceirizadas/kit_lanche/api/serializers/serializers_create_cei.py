@@ -42,6 +42,7 @@ class SolicitacaoKitLancheCEIAvulsaCreationSerializer(serializers.ModelSerialize
     def validate_data(self, data_evento):
         nao_pode_ser_no_passado(data_evento)
         deve_pedir_com_antecedencia(data_evento)
+        deve_ser_no_mesmo_ano_corrente(data_evento)
 
     def create(self, validated_data):
         validated_data['criado_por'] = self.context['request'].user
