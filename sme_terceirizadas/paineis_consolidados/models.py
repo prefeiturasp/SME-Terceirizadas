@@ -770,7 +770,6 @@ class SolicitacoesTerceirizada(MoldeConsolidado):
             terceirizada_uuid=terceirizada_uuid
         ).exclude(tipo_doc=cls.TP_SOL_DIETA_ESPECIAL).distinct().order_by('-data_log')
 
-
     @classmethod
     def get_negados(cls, **kwargs):
         terceirizada_uuid = kwargs.get('terceirizada_uuid')
