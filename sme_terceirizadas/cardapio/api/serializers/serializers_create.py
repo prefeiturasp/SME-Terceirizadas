@@ -5,6 +5,7 @@ from ....dados_comuns.validators import (
     campo_nao_pode_ser_nulo,
     deve_existir_cardapio,
     deve_pedir_com_antecedencia,
+    deve_ser_no_mesmo_ano_corrente,
     nao_pode_ser_feriado,
     nao_pode_ser_no_passado,
     objeto_nao_deve_ter_duplicidade
@@ -13,7 +14,6 @@ from ....escola.models import Escola, FaixaEtaria, PeriodoEscolar, TipoUnidadeEs
 from ....terceirizada.models import Edital
 from ...api.validators import (
     data_troca_nao_pode_ser_superior_a_data_inversao,
-    deve_ser_no_mesmo_ano_corrente,
     escola_nao_pode_cadastrar_dois_combos_iguais,
     hora_inicio_nao_pode_ser_maior_que_hora_final,
     nao_pode_existir_solicitacao_igual_para_mesma_escola,
@@ -196,6 +196,7 @@ class SuspensaoAlimentacaoCreateSerializer(serializers.ModelSerializer):
 
     def validate_data(self, data):
         nao_pode_ser_no_passado(data)
+        deve_ser_no_mesmo_ano_corrente(data)
         return data
 
     class Meta:
@@ -227,6 +228,7 @@ class SuspensaoAlimentacaodeCEICreateSerializer(serializers.ModelSerializer):
         data = attrs['data']
         nao_pode_ser_no_passado(data)
         deve_pedir_com_antecedencia(data)
+        deve_ser_no_mesmo_ano_corrente(data)
         return attrs
 
     def create(self, validated_data):
@@ -392,6 +394,7 @@ class AlteracaoCardapioSerializerCreate(AlteracaoCardapioSerializerCreateBase):
     def validate_data_inicial(self, data_inicial):
         nao_pode_ser_no_passado(data_inicial)
         deve_pedir_com_antecedencia(data_inicial)
+        deve_ser_no_mesmo_ano_corrente(data_inicial)
         return data_inicial
 
     class Meta:
@@ -406,6 +409,7 @@ class AlteracaoCardapioCEISerializerCreate(AlteracaoCardapioSerializerCreateBase
     def validate_data(self, data):
         nao_pode_ser_no_passado(data)
         deve_pedir_com_antecedencia(data)
+        deve_ser_no_mesmo_ano_corrente(data)
         return data
 
     class Meta:

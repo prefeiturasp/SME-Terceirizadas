@@ -371,27 +371,6 @@ def datas_de_inversoes_intervalo_entre_60_dias(request):
 
 
 @pytest.fixture(params=[
-    (datetime.date(datetime.datetime.now().year - 1, 5, 26),
-     'Inversão de dia de cardapio deve ser solicitada no ano corrente'),
-    (datetime.date(datetime.datetime.now().year + 1, 1, 1),
-     'Inversão de dia de cardapio deve ser solicitada no ano corrente'),
-    (datetime.date(datetime.datetime.now().year + 2, 12, 1),
-     'Inversão de dia de cardapio deve ser solicitada no ano corrente')
-])
-def data_inversao_ano_diferente(request):
-    return request.param
-
-
-@pytest.fixture(params=[
-    (datetime.date(2019, 5, 26), True),
-    (datetime.date(2019, 1, 1), True),
-    (datetime.date(2019, 12, 31), True)
-])
-def data_inversao_mesmo_ano(request):
-    return request.param
-
-
-@pytest.fixture(params=[
     # dia cardapio de, dia cardapio para, status
     (datetime.date(2019, 10, 1), datetime.date(2019, 10, 5), PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR),
     (datetime.date(2019, 10, 2), datetime.date(2019, 10, 6), PedidoAPartirDaEscolaWorkflow.RASCUNHO),
@@ -571,7 +550,7 @@ def suspensao_alimentacao_parametros_semana(request):
     # data_inicial, data_final
     (datetime.date(2019, 10, 17), datetime.date(2019, 10, 26)),
     (datetime.date(2019, 10, 18), datetime.date(2019, 10, 26)),
-    (datetime.date(2020, 10, 11), datetime.date(2019, 10, 26)),
+    (datetime.date(2019, 10, 19), datetime.date(2019, 10, 26)),
 ])
 def alteracao_card_params(request):
     alimentacao1 = mommy.make('cardapio.TipoAlimentacao', nome='tp_alimentacao1')

@@ -1,7 +1,11 @@
 from rest_framework import serializers
 
 from ....dados_comuns.utils import update_instance_from_dict
-from ....dados_comuns.validators import deve_pedir_com_antecedencia, nao_pode_ser_no_passado
+from ....dados_comuns.validators import (
+    deve_pedir_com_antecedencia,
+    deve_ser_no_mesmo_ano_corrente,
+    nao_pode_ser_no_passado
+)
 from ....escola.models import Aluno, Escola, FaixaEtaria
 from ...models import FaixaEtariaSolicitacaoKitLancheCEIAvulsa, SolicitacaoKitLancheCEIAvulsa
 from .serializers_create import SolicitacaoKitLancheCreationSerializer
@@ -42,6 +46,7 @@ class SolicitacaoKitLancheCEIAvulsaCreationSerializer(serializers.ModelSerialize
     def validate_data(self, data_evento):
         nao_pode_ser_no_passado(data_evento)
         deve_pedir_com_antecedencia(data_evento)
+        deve_ser_no_mesmo_ano_corrente(data_evento)
 
     def create(self, validated_data):
         validated_data['criado_por'] = self.context['request'].user
