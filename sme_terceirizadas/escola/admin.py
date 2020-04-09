@@ -1,11 +1,13 @@
 from django.contrib import admin
 
 from .models import (
+    Aluno,
     Codae,
     DiretoriaRegional,
     Escola,
     EscolaPeriodoEscolar,
     FaixaIdadeEscolar,
+    LogAlteracaoQuantidadeAlunosPorEscolaEPeriodoEscolar,
     Lote,
     PeriodoEscolar,
     Subprefeitura,
@@ -13,6 +15,7 @@ from .models import (
     TipoUnidadeEscolar
 )
 
+admin.site.register(Aluno)
 admin.site.register(DiretoriaRegional)
 admin.site.register(FaixaIdadeEscolar)
 admin.site.register(Lote)
@@ -22,6 +25,7 @@ admin.site.register(TipoGestao)
 admin.site.register(TipoUnidadeEscolar)
 admin.site.register(Codae)
 admin.site.register(EscolaPeriodoEscolar)
+admin.site.register(LogAlteracaoQuantidadeAlunosPorEscolaEPeriodoEscolar)
 
 
 @admin.register(Escola)

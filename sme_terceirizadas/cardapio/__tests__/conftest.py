@@ -5,6 +5,7 @@ from faker import Faker
 from model_mommy import mommy
 from rest_framework.test import APIClient
 
+from ...dados_comuns import constants
 from ...dados_comuns.fluxo_status import InformativoPartindoDaEscolaWorkflow, PedidoAPartirDaEscolaWorkflow
 from ...dados_comuns.models import TemplateMensagem
 from ..api.serializers.serializers import (
@@ -19,15 +20,22 @@ from ..api.serializers.serializers import (
 )
 from ..models import (
     AlteracaoCardapio,
+    AlteracaoCardapioCEI,
     InversaoCardapio,
     MotivoAlteracaoCardapio,
     MotivoSuspensao,
     SubstituicaoAlimentacaoNoPeriodoEscolar,
-    SuspensaoAlimentacao
+    SuspensaoAlimentacao,
+    SuspensaoAlimentacaoDaCEI
 )
 
 fake = Faker('pt_BR')
 fake.seed(420)
+
+
+@pytest.fixture
+def codae():
+    return mommy.make('Codae')
 
 
 @pytest.fixture
@@ -71,28 +79,84 @@ def cardapio_invalido():
 
 
 @pytest.fixture
-def escola():
+def dre_guaianases():
+    return mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL GUAIANASES')
+
+
+@pytest.fixture
+def escola_dre_guaianases(dre_guaianases):
     lote = mommy.make('Lote')
-    escola = mommy.make('Escola', lote=lote)
+    return mommy.make('Escola', lote=lote, diretoria_regional=dre_guaianases)
+
+
+@pytest.fixture
+def escola():
+    terceirizada = mommy.make('Terceirizada')
+    lote = mommy.make('Lote', terceirizada=terceirizada)
+    diretoria_regional = mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL IPIRANGA',
+                                    uuid='012f7722-9ab4-4e21-b0f6-85e17b58b0d1')
+    escola = mommy.make(
+        'Escola',
+        lote=lote,
+        nome='EMEF JOAO MENDES',
+        codigo_eol='000546',
+        uuid='a627fc63-16fd-482c-a877-16ebc1a82e57',
+        diretoria_regional=diretoria_regional
+    )
     return escola
 
 
 @pytest.fixture
-def inversao_dia_cardapio(cardapio_valido2, cardapio_valido3, escola):
-    mommy.make(TemplateMensagem, assunto='TESTE INVERSAO CARDAPIO',
-               tipo=TemplateMensagem.INVERSAO_CARDAPIO,
-               template_html='@id @criado_em @status @link')
+def escola_com_periodos_e_horarios_combos(escola):
+    periodo_manha = mommy.make('escola.PeriodoEscolar', nome='MANHA', uuid='42325516-aebd-4a3d-97c0-2a77c317c6be')
+    periodo_tarde = mommy.make('escola.PeriodoEscolar', nome='TARDE', uuid='5d668346-ad83-4334-8fec-94c801198d99')
+    mommy.make('escola.EscolaPeriodoEscolar', quantidade_alunos=325, escola=escola,
+               periodo_escolar=periodo_manha)
+    mommy.make('escola.EscolaPeriodoEscolar', quantidade_alunos=418, escola=escola,
+               periodo_escolar=periodo_tarde)
+    return escola
+
+
+@pytest.fixture
+def template_mensagem_inversao_cardapio():
+    return mommy.make(TemplateMensagem, tipo=TemplateMensagem.INVERSAO_CARDAPIO, assunto='TESTE INVERSAO CARDAPIO',
+                      template_html='@id @criado_em @status @link')
+
+
+@pytest.fixture
+def inversao_dia_cardapio(cardapio_valido2, cardapio_valido3, template_mensagem_inversao_cardapio, escola):
     return mommy.make(InversaoCardapio,
                       criado_em=datetime.date(2019, 12, 12),
-                      uuid='98dc7cb7-7a38-408d-907c-c0f073ca2d13',
                       cardapio_de=cardapio_valido2,
                       cardapio_para=cardapio_valido3,
-                      escola=escola)
+                      escola=escola,
+                      rastro_escola=escola,
+                      rastro_dre=escola.diretoria_regional,
+                      status=PedidoAPartirDaEscolaWorkflow.RASCUNHO)
+
+
+@pytest.fixture
+def inversao_dia_cardapio_outra_dre(cardapio_valido2, cardapio_valido3, template_mensagem_inversao_cardapio,
+                                    escola_dre_guaianases):
+    return mommy.make(InversaoCardapio,
+                      criado_em=datetime.date(2019, 12, 12),
+                      cardapio_de=cardapio_valido2,
+                      cardapio_para=cardapio_valido3,
+                      escola=escola_dre_guaianases,
+                      rastro_escola=escola_dre_guaianases,
+                      rastro_dre=escola_dre_guaianases.diretoria_regional)
 
 
 @pytest.fixture
 def inversao_dia_cardapio_dre_validar(inversao_dia_cardapio):
     inversao_dia_cardapio.status = PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR
+    inversao_dia_cardapio.save()
+    return inversao_dia_cardapio
+
+
+@pytest.fixture
+def inversao_dia_cardapio_codae_questionado(inversao_dia_cardapio):
+    inversao_dia_cardapio.status = PedidoAPartirDaEscolaWorkflow.CODAE_QUESTIONADO
     inversao_dia_cardapio.save()
     return inversao_dia_cardapio
 
@@ -143,9 +207,31 @@ def suspensao_periodo_escolar(suspensao_alimentacao):
 
 
 @pytest.fixture
-def grupo_suspensao_alimentacao(escola):
-    mommy.make(TemplateMensagem, tipo=TemplateMensagem.SUSPENSAO_ALIMENTACAO)
-    return mommy.make(GrupoSuspensaoAlimentacao, observacao='lorem ipsum', escola=escola)
+def template_mensagem_suspensao_alimentacao():
+    return mommy.make(TemplateMensagem, tipo=TemplateMensagem.SUSPENSAO_ALIMENTACAO)
+
+
+@pytest.fixture
+def grupo_suspensao_alimentacao(escola, template_mensagem_suspensao_alimentacao):
+    return mommy.make(GrupoSuspensaoAlimentacao, observacao='lorem ipsum', escola=escola,
+                      rastro_escola=escola)
+
+
+@pytest.fixture
+def suspensao_alimentacao_de_cei(escola):
+    motivo = mommy.make(MotivoSuspensao, nome='Suspensão de aula')
+    periodos_escolares = mommy.make('escola.PeriodoEscolar', _quantity=2)
+    return mommy.make(SuspensaoAlimentacaoDaCEI,
+                      escola=escola,
+                      motivo=motivo,
+                      periodos_escolares=periodos_escolares,
+                      data=datetime.date(2020, 4, 20), )
+
+
+@pytest.fixture
+def grupo_suspensao_alimentacao_outra_dre(escola_dre_guaianases, template_mensagem_suspensao_alimentacao):
+    return mommy.make(GrupoSuspensaoAlimentacao, observacao='lorem ipsum', escola=escola_dre_guaianases,
+                      rastro_escola=escola_dre_guaianases)
 
 
 @pytest.fixture
@@ -182,13 +268,40 @@ def motivo_alteracao_cardapio_serializer():
 
 
 @pytest.fixture
-def alteracao_cardapio(escola):
-    mommy.make(TemplateMensagem, tipo=TemplateMensagem.ALTERACAO_CARDAPIO)
+def template_mensagem_alteracao_cardapio():
+    return mommy.make(TemplateMensagem, tipo=TemplateMensagem.ALTERACAO_CARDAPIO)
+
+
+@pytest.fixture
+def alteracao_cardapio(escola, template_mensagem_alteracao_cardapio):
     return mommy.make(AlteracaoCardapio,
                       escola=escola,
                       observacao='teste',
                       data_inicial=datetime.date(2019, 10, 4),
-                      data_final=datetime.date(2019, 12, 31))
+                      data_final=datetime.date(2019, 12, 31),
+                      rastro_escola=escola,
+                      rastro_dre=escola.diretoria_regional)
+
+
+@pytest.fixture
+def alteracao_cardapio_cei(escola, template_mensagem_alteracao_cardapio):
+    return mommy.make(AlteracaoCardapioCEI,
+                      escola=escola,
+                      observacao='teste',
+                      data=datetime.date(2019, 12, 31),
+                      rastro_escola=escola,
+                      rastro_dre=escola.diretoria_regional)
+
+
+@pytest.fixture
+def alteracao_cardapio_outra_dre(escola_dre_guaianases, template_mensagem_alteracao_cardapio):
+    return mommy.make(AlteracaoCardapio,
+                      escola=escola_dre_guaianases,
+                      observacao='teste',
+                      data_inicial=datetime.date(2019, 10, 4),
+                      data_final=datetime.date(2019, 12, 31),
+                      rastro_escola=escola_dre_guaianases,
+                      rastro_dre=escola_dre_guaianases.diretoria_regional)
 
 
 @pytest.fixture
@@ -208,6 +321,13 @@ def alteracao_cardapio_dre_validado(alteracao_cardapio):
 @pytest.fixture
 def alteracao_cardapio_codae_autorizado(alteracao_cardapio):
     alteracao_cardapio.status = PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO
+    alteracao_cardapio.save()
+    return alteracao_cardapio
+
+
+@pytest.fixture
+def alteracao_cardapio_codae_questionado(alteracao_cardapio):
+    alteracao_cardapio.status = PedidoAPartirDaEscolaWorkflow.CODAE_QUESTIONADO
     alteracao_cardapio.save()
     return alteracao_cardapio
 
@@ -247,24 +367,6 @@ def datas_de_inversoes_intervalo_maior_60_dias(request):
     (datetime.date(2019, 1, 1), datetime.date(2019, 3, 2), True),
 ])
 def datas_de_inversoes_intervalo_entre_60_dias(request):
-    return request.param
-
-
-@pytest.fixture(params=[
-    (datetime.date(2018, 5, 26), 'Inversão de dia de cardapio deve ser solicitada no ano corrente'),
-    (datetime.date(2020, 1, 1), 'Inversão de dia de cardapio deve ser solicitada no ano corrente'),
-    (datetime.date(2021, 12, 1), 'Inversão de dia de cardapio deve ser solicitada no ano corrente')
-])
-def data_inversao_ano_diferente(request):
-    return request.param
-
-
-@pytest.fixture(params=[
-    (datetime.date(2019, 5, 26), True),
-    (datetime.date(2019, 1, 1), True),
-    (datetime.date(2019, 12, 31), True)
-])
-def data_inversao_mesmo_ano(request):
     return request.param
 
 
@@ -311,6 +413,34 @@ def datas_inversao_desta_semana(request):
     (datetime.date(2019, 11, 4), datetime.date(2019, 10, 4), PedidoAPartirDaEscolaWorkflow.DRE_PEDIU_ESCOLA_REVISAR),
 ])
 def datas_inversao_deste_mes(request):
+    return request.param
+
+
+@pytest.fixture(params=[
+    # data inicio, data fim, esperado
+    (datetime.time(10, 29), datetime.time(11, 29), True),
+    (datetime.time(7, 10), datetime.time(7, 30), True),
+    (datetime.time(6, 0), datetime.time(6, 10), True),
+    (datetime.time(23, 30), datetime.time(23, 59), True),
+    (datetime.time(20, 0), datetime.time(20, 22), True),
+    (datetime.time(11, 0), datetime.time(13, 0), True),
+    (datetime.time(15, 3), datetime.time(15, 21), True),
+])
+def horarios_combos_tipo_alimentacao_validos(request):
+    return request.param
+
+
+@pytest.fixture(params=[
+    # data inicio, data fim, esperado
+    (datetime.time(10, 29), datetime.time(9, 29), 'Hora Inicio não pode ser maior do que hora final'),
+    (datetime.time(7, 10), datetime.time(6, 30), 'Hora Inicio não pode ser maior do que hora final'),
+    (datetime.time(6, 0), datetime.time(5, 59), 'Hora Inicio não pode ser maior do que hora final'),
+    (datetime.time(23, 30), datetime.time(22, 59), 'Hora Inicio não pode ser maior do que hora final'),
+    (datetime.time(20, 0), datetime.time(19, 22), 'Hora Inicio não pode ser maior do que hora final'),
+    (datetime.time(11, 0), datetime.time(11, 0), 'Hora Inicio não pode ser maior do que hora final'),
+    (datetime.time(15, 3), datetime.time(12, 21), 'Hora Inicio não pode ser maior do que hora final'),
+])
+def horarios_combos_tipo_alimentacao_invalidos(request):
     return request.param
 
 
@@ -420,23 +550,64 @@ def suspensao_alimentacao_parametros_semana(request):
     # data_inicial, data_final
     (datetime.date(2019, 10, 17), datetime.date(2019, 10, 26)),
     (datetime.date(2019, 10, 18), datetime.date(2019, 10, 26)),
-    (datetime.date(2020, 10, 11), datetime.date(2019, 10, 26)),
+    (datetime.date(2019, 10, 19), datetime.date(2019, 10, 26)),
 ])
 def alteracao_card_params(request):
-    alimentacao1 = mommy.make('cardapio.TipoAlimentacao')
-    alimentacao2 = mommy.make('cardapio.TipoAlimentacao')
-    alimentacao3 = mommy.make('cardapio.TipoAlimentacao')
-    alimentacao4 = mommy.make('cardapio.TipoAlimentacao')
-    alimentacao5 = mommy.make('cardapio.TipoAlimentacao')
-
-    alimentacao1.substituicoes.set([alimentacao2, alimentacao3, alimentacao4, alimentacao5])
-    alimentacao2.substituicoes.set([alimentacao1, alimentacao3, alimentacao4, alimentacao5])
-    alimentacao3.substituicoes.set([alimentacao1, alimentacao2, alimentacao4, alimentacao5])
-    alimentacao4.substituicoes.set([alimentacao1, alimentacao2, alimentacao3, alimentacao5])
-    alimentacao5.substituicoes.set([])
+    alimentacao1 = mommy.make('cardapio.TipoAlimentacao', nome='tp_alimentacao1')
+    alimentacao2 = mommy.make('cardapio.TipoAlimentacao', nome='tp_alimentacao2')
+    alimentacao3 = mommy.make('cardapio.TipoAlimentacao', nome='tp_alimentacao3')
+    alimentacao4 = mommy.make('cardapio.TipoAlimentacao', nome='tp_alimentacao4')
+    alimentacao5 = mommy.make('cardapio.TipoAlimentacao', nome='tp_alimentacao5')
+    combo1 = mommy.make('cardapio.ComboDoVinculoTipoAlimentacaoPeriodoTipoUE',
+                        tipos_alimentacao=[alimentacao1, alimentacao5])
+    combo2 = mommy.make('cardapio.ComboDoVinculoTipoAlimentacaoPeriodoTipoUE',
+                        tipos_alimentacao=[alimentacao2, alimentacao4])
+    substituicao1 = mommy.make('cardapio.SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE',
+                               tipos_alimentacao=[alimentacao3, alimentacao1], combo=combo1)
+    substituicao2 = mommy.make('cardapio.SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE',
+                               tipos_alimentacao=[alimentacao5, alimentacao2], combo=combo2)
 
     data_inicial, data_final = request.param
-    return data_inicial, data_final, alimentacao1, alimentacao2, alimentacao3, alimentacao4, alimentacao5
+    return data_inicial, data_final, combo1, combo2, substituicao1, substituicao2
+
+
+@pytest.fixture(params=[
+    # data do teste 15 out 2019
+    # data_inicial, data_final
+    (datetime.date(2019, 10, 17), datetime.date(2019, 10, 26)),
+    (datetime.date(2019, 10, 18), datetime.date(2019, 10, 26)),
+    (datetime.date(2020, 10, 11), datetime.date(2019, 10, 26)),
+])
+def alteracao_substituicoes_params(request):
+    alimentacao1 = mommy.make('cardapio.TipoAlimentacao', nome='tp_alimentacao1')
+    alimentacao2 = mommy.make('cardapio.TipoAlimentacao', nome='tp_alimentacao2')
+    alimentacao3 = mommy.make('cardapio.TipoAlimentacao', nome='tp_alimentacao3')
+    alimentacao4 = mommy.make('cardapio.TipoAlimentacao', nome='tp_alimentacao4')
+    alimentacao5 = mommy.make('cardapio.TipoAlimentacao', nome='tp_alimentacao5')
+    combo1 = mommy.make('cardapio.ComboDoVinculoTipoAlimentacaoPeriodoTipoUE',
+                        tipos_alimentacao=[alimentacao1, alimentacao3, alimentacao5])
+    combo2 = mommy.make('cardapio.ComboDoVinculoTipoAlimentacaoPeriodoTipoUE',
+                        tipos_alimentacao=[alimentacao2, alimentacao3, alimentacao4])
+    substituicao1 = mommy.make('cardapio.SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE',
+                               tipos_alimentacao=[alimentacao2, alimentacao4],
+                               combo=combo1)
+    substituicao2 = mommy.make('cardapio.SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE',
+                               tipos_alimentacao=[alimentacao1, alimentacao5],
+                               combo=combo2)
+
+    data_inicial, data_final = request.param
+    return data_inicial, data_final, combo1, combo2, substituicao1, substituicao2
+
+
+@pytest.fixture(params=[
+    # data_create , data_update
+    (datetime.date(2019, 10, 17), datetime.date(2019, 10, 18)),
+])
+def suspensao_alimentacao_cei_params(request):
+    motivo = mommy.make('cardapio.MotivoSuspensao', nome='outro', uuid='478b09e1-4c14-4e50-a446-fbc0af727a08')
+
+    data_create, data_update = request.param
+    return motivo, data_create, data_update
 
 
 @pytest.fixture(params=[
@@ -466,6 +637,21 @@ def periodo_escolar():
     return mommy.make('PeriodoEscolar')
 
 
+@pytest.fixture
+def faixas_etarias_ativas():
+    faixas = [
+        (0, 1),
+        (1, 4),
+        (4, 6),
+        (6, 8),
+        (8, 12),
+        (12, 24),
+        (24, 48),
+        (48, 72),
+    ]
+    return [mommy.make('FaixaEtaria', inicio=inicio, fim=fim, ativo=True) for (inicio, fim) in faixas]
+
+
 @pytest.fixture(params=[
     # periodo escolar, tipo unidade escolar
     ('MANHA', 'EMEF'),
@@ -478,5 +664,134 @@ def vinculo_tipo_alimentacao(request):
     tipo_unidade_escolar = mommy.make('TipoUnidadeEscolar', iniciais=nome_ue)
     periodo_escolar = mommy.make('PeriodoEscolar', nome=nome_periodo)
     return mommy.make('VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar', combos=combos,
+                      uuid='3bdf8144-9b17-495a-8387-5ce0d2a6120a',
                       tipo_unidade_escolar=tipo_unidade_escolar,
                       periodo_escolar=periodo_escolar)
+
+
+@pytest.fixture(params=[
+    # hora inicio, hora fim
+    ('07:00:00', '07:30:00'),
+])
+def horario_combo_tipo_alimentacao(request, vinculo_tipo_alimentacao, escola_com_periodos_e_horarios_combos):
+    hora_inicio, hora_fim = request.param
+    escola = escola_com_periodos_e_horarios_combos
+    tp_alimentacao1 = mommy.make('TipoAlimentacao', nome='Lanche', uuid='c42a24bb-14f8-4871-9ee8-05bc42cf3061')
+    tp_alimentacao2 = mommy.make('TipoAlimentacao', nome='Refeição', uuid='22596464-271e-448d-bcb3-adaba43fffc8')
+    combo = mommy.make('ComboDoVinculoTipoAlimentacaoPeriodoTipoUE',
+                       tipos_alimentacao=[tp_alimentacao1, tp_alimentacao2],
+                       vinculo=vinculo_tipo_alimentacao,
+                       uuid='9fe31f4a-716b-4677-9d7d-2868557cf954')
+    return mommy.make('HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolar',
+                      hora_inicial=hora_inicio,
+                      hora_final=hora_fim,
+                      escola=escola,
+                      combo_tipos_alimentacao=combo)
+
+
+@pytest.fixture
+def client_autenticado_vinculo_escola_cardapio(client, django_user_model, escola, template_mensagem_alteracao_cardapio,
+                                               cardapio_valido2, cardapio_valido3):
+    email = 'test@test.com'
+    password = 'bar'
+    user = django_user_model.objects.create_user(password=password, email=email,
+                                                 registro_funcional='8888888')
+    perfil_diretor = mommy.make('Perfil', nome='DIRETOR', ativo=True)
+    hoje = datetime.date.today()
+    mommy.make('Vinculo', usuario=user, instituicao=escola, perfil=perfil_diretor,
+               data_inicial=hoje, ativo=True)
+    mommy.make(InversaoCardapio,
+               cardapio_de=cardapio_valido2,
+               cardapio_para=cardapio_valido3,
+               criado_por=user,
+               criado_em=datetime.date(2019, 12, 12),
+               escola=escola,
+               rastro_escola=escola,
+               rastro_dre=escola.diretoria_regional,
+               status=PedidoAPartirDaEscolaWorkflow.RASCUNHO)
+    mommy.make(AlteracaoCardapio,
+               criado_por=user,
+               escola=escola,
+               data_inicial=datetime.date(2019, 10, 4),
+               data_final=datetime.date(2019, 12, 31),
+               rastro_escola=escola,
+               rastro_dre=escola.diretoria_regional)
+    mommy.make(GrupoSuspensaoAlimentacao,
+               criado_por=user,
+               escola=escola,
+               rastro_escola=escola)
+    client.login(email=email, password=password)
+    return client
+
+
+@pytest.fixture
+def client_autenticado_vinculo_dre_cardapio(client, django_user_model, escola, template_mensagem_alteracao_cardapio):
+    email = 'test@test1.com'
+    password = 'bar'
+    user = django_user_model.objects.create_user(password=password, email=email,
+                                                 registro_funcional='8888889')
+    perfil_cogestor = mommy.make('Perfil', nome='COGESTOR', ativo=True)
+    hoje = datetime.date.today()
+    mommy.make('Vinculo', usuario=user, instituicao=escola.diretoria_regional, perfil=perfil_cogestor,
+               data_inicial=hoje, ativo=True)
+
+    client.login(email=email, password=password)
+    return client
+
+
+@pytest.fixture
+def client_autenticado_vinculo_codae_cardapio(client, django_user_model, escola, codae):
+    email = 'test@test.com'
+    password = 'bar'
+    user = django_user_model.objects.create_user(password=password, email=email,
+                                                 registro_funcional='8888888')
+    perfil_admin_gestao_alimentacao = mommy.make('Perfil', nome=constants.ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
+                                                 ativo=True,
+                                                 uuid='41c20c8b-7e57-41ed-9433-ccb92e8afaf1')
+    hoje = datetime.date.today()
+    mommy.make('Vinculo', usuario=user, instituicao=codae, perfil=perfil_admin_gestao_alimentacao,
+               data_inicial=hoje, ativo=True)
+    mommy.make(TemplateMensagem, assunto='TESTE',
+               tipo=TemplateMensagem.DIETA_ESPECIAL,
+               template_html='@id @criado_em @status @link')
+    client.login(email=email, password=password)
+    return client
+
+
+@pytest.fixture
+def client_autenticado_vinculo_codae_dieta_cardapio(client, django_user_model, escola, codae):
+    email = 'test@test.com'
+    password = 'bar'
+    user = django_user_model.objects.create_user(password=password, email=email,
+                                                 registro_funcional='8888888')
+    perfil_dieta = mommy.make('Perfil',
+                              nome=constants.ADMINISTRADOR_DIETA_ESPECIAL,
+                              ativo=True,
+                              uuid='41c20c8b-7e57-41ed-9433-ccb92e8afaf1')
+    hoje = datetime.date.today()
+    mommy.make('Vinculo', usuario=user, instituicao=codae, perfil=perfil_dieta,
+               data_inicial=hoje, ativo=True)
+    mommy.make(TemplateMensagem, assunto='TESTE',
+               tipo=TemplateMensagem.DIETA_ESPECIAL,
+               template_html='@id @criado_em @status @link')
+    client.login(email=email, password=password)
+    return client
+
+
+@pytest.fixture
+def client_autenticado_vinculo_terceirizada_cardapio(client, django_user_model, escola, codae):
+    email = 'test@test.com'
+    password = 'bar'
+    user = django_user_model.objects.create_user(password=password, email=email,
+                                                 registro_funcional='8888888')
+    perfil_nutri_admin = mommy.make('Perfil', nome=constants.NUTRI_ADMIN_RESPONSAVEL,
+                                    ativo=True,
+                                    uuid='41c20c8b-7e57-41ed-9433-ccb92e8afaf1')
+    hoje = datetime.date.today()
+    mommy.make('Vinculo', usuario=user, instituicao=escola.lote.terceirizada, perfil=perfil_nutri_admin,
+               data_inicial=hoje, ativo=True)
+    mommy.make(TemplateMensagem, assunto='TESTE',
+               tipo=TemplateMensagem.DIETA_ESPECIAL,
+               template_html='@id @criado_em @status @link')
+    client.login(email=email, password=password)
+    return client

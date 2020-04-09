@@ -1,4 +1,5 @@
 from django.contrib.contenttypes.models import ContentType
+from django.db.models import Q
 from rest_framework import serializers
 
 from ...cardapio.models import TipoAlimentacao
@@ -8,9 +9,12 @@ from ...perfil.models import Usuario, Vinculo
 from ...terceirizada.api.serializers.serializers import ContratoSimplesSerializer, TerceirizadaSimplesSerializer
 from ...terceirizada.models import Terceirizada
 from ..models import (
+    Aluno,
     Codae,
     DiretoriaRegional,
     Escola,
+    EscolaPeriodoEscolar,
+    FaixaEtaria,
     FaixaIdadeEscolar,
     Lote,
     PeriodoEscolar,
@@ -20,6 +24,12 @@ from ..models import (
 )
 
 
+class FaixaEtariaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FaixaEtaria
+        exclude = ('id', 'ativo')
+
+
 class SubsticuicoesTipoAlimentacaoSerializer(serializers.ModelSerializer):
     class Meta:
         model = TipoAlimentacao
@@ -27,8 +37,6 @@ class SubsticuicoesTipoAlimentacaoSerializer(serializers.ModelSerializer):
 
 
 class TipoAlimentacaoSerializer(serializers.ModelSerializer):
-    substituicoes = SubsticuicoesTipoAlimentacaoSerializer(many=True)
-
     class Meta:
         model = TipoAlimentacao
         exclude = ('id',)
@@ -120,11 +128,12 @@ class LoteSimplesSerializer(serializers.ModelSerializer):
 
 
 class LoteNomeSerializer(serializers.ModelSerializer):
+    diretoria_regional = DiretoriaRegionalSimplissimaSerializer()
     tipo_gestao = serializers.CharField()
 
     class Meta:
         model = Lote
-        fields = ('uuid', 'nome', 'tipo_gestao')
+        fields = ('uuid', 'nome', 'tipo_gestao', 'diretoria_regional')
 
 
 class EscolaSimplesSerializer(serializers.ModelSerializer):
@@ -143,6 +152,25 @@ class EscolaListagemSimplesSelializer(serializers.ModelSerializer):
     class Meta:
         model = Escola
         fields = ('uuid', 'nome', 'codigo_eol', 'quantidade_alunos')
+
+
+class EscolaListagemSimplissimaComDRESelializer(serializers.ModelSerializer):
+    diretoria_regional = DiretoriaRegionalSimplissimaSerializer()
+
+    class Meta:
+        model = Escola
+        fields = ('uuid', 'nome', 'diretoria_regional')
+
+
+class EscolaSimplissimaSerializer(serializers.ModelSerializer):
+    lote = serializers.SerializerMethodField()
+
+    def get_lote(self, obj):
+        return f'{obj.lote.nome} - {obj.lote.iniciais}'
+
+    class Meta:
+        model = Escola
+        fields = ('uuid', 'nome', 'codigo_eol', 'lote')
 
 
 class EscolaCompletaSerializer(serializers.ModelSerializer):
@@ -181,7 +209,12 @@ class TerceirizadaSerializer(serializers.ModelSerializer):
             Usuario.objects.filter(vinculos__object_id=obj.id,
                                    vinculos__content_type=content_type,
                                    crn_numero__isnull=False
-                                   ).distinct(),
+                                   ).filter(
+                Q(vinculos__data_inicial=None, vinculos__data_final=None,
+                  vinculos__ativo=False) |  # noqa W504 esperando ativacao
+                Q(vinculos__data_inicial__isnull=False, vinculos__data_final=None, vinculos__ativo=True)
+                # noqa W504 ativo
+            ).distinct(),
             many=True
         ).data
 
@@ -220,6 +253,10 @@ class VinculoInstituicaoSerializer(serializers.ModelSerializer):
         if isinstance(obj.instituicao, Escola):
             return obj.instituicao.codigo_eol
 
+    def get_tipo_unidade_escolar(self, obj):
+        if isinstance(obj.instituicao, Escola):
+            return obj.instituicao.tipo_unidade.uuid
+
     def get_instituicao(self, obj):
         self.get_diretoria_regional(obj)
         return {'nome': obj.instituicao.nome,
@@ -229,19 +266,21 @@ class VinculoInstituicaoSerializer(serializers.ModelSerializer):
                 'lotes': self.get_lotes(obj),
                 'periodos_escolares': self.get_periodos_escolares(obj),
                 'escolas': self.get_escolas(obj),
-                'diretoria_regional': self.get_diretoria_regional(obj)}
+                'diretoria_regional': self.get_diretoria_regional(obj),
+                'tipo_unidade_escolar': self.get_tipo_unidade_escolar(obj)}
 
     class Meta:
         model = Vinculo
-        fields = ('instituicao', 'perfil')
+        fields = ('uuid', 'instituicao', 'perfil')
 
 
 class UsuarioNutricionistaSerializer(serializers.ModelSerializer):
+    vinculo_atual = VinculoInstituicaoSerializer(required=False)
     contatos = ContatoSerializer(many=True)
 
     class Meta:
         model = Usuario
-        fields = ('nome', 'contatos', 'crn_numero', 'super_admin_terceirizadas')
+        fields = ('nome', 'contatos', 'crn_numero', 'super_admin_terceirizadas', 'vinculo_atual')
 
 
 class UsuarioDetalheSerializer(serializers.ModelSerializer):
@@ -251,7 +290,7 @@ class UsuarioDetalheSerializer(serializers.ModelSerializer):
     class Meta:
         model = Usuario
         fields = ('uuid', 'cpf', 'nome', 'email', 'tipo_email', 'registro_funcional', 'tipo_usuario', 'date_joined',
-                  'vinculo_atual')
+                  'vinculo_atual', 'crn_numero')
 
 
 class CODAESerializer(serializers.ModelSerializer):
@@ -260,3 +299,29 @@ class CODAESerializer(serializers.ModelSerializer):
     class Meta:
         model = Codae
         fields = '__all__'
+
+
+class EscolaPeriodoEscolarSerializer(serializers.ModelSerializer):
+    quantidade_alunos = serializers.IntegerField()
+    escola = EscolaSimplissimaSerializer()
+    periodo_escolar = PeriodoEscolarSimplesSerializer()
+
+    class Meta:
+        model = EscolaPeriodoEscolar
+        fields = ('uuid', 'quantidade_alunos', 'escola', 'periodo_escolar')
+
+
+class AlunoSerializer(serializers.ModelSerializer):
+    escola = EscolaSimplissimaSerializer(required=False)
+    nome_escola = serializers.SerializerMethodField()
+    nome_dre = serializers.SerializerMethodField()
+
+    def get_nome_escola(self, obj):
+        return f'{obj.escola.nome}' if obj.escola else None
+
+    def get_nome_dre(self, obj):
+        return f'{obj.escola.diretoria_regional.nome}' if obj.escola else None
+
+    class Meta:
+        model = Aluno
+        fields = ('uuid', 'nome', 'data_nascimento', 'codigo_eol', 'escola', 'nome_escola', 'nome_dre')

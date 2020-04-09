@@ -1,12 +1,16 @@
+import datetime
+
 import pytest
 from freezegun import freeze_time
 from model_mommy import mommy
+from rest_framework.exceptions import ValidationError
 
 from ..api.serializers.serializers_create import (
     GrupoInclusaoAlimentacaoNormalCreationSerializer,
-    InclusaoAlimentacaoContinuaCreationSerializer
+    InclusaoAlimentacaoContinuaCreationSerializer,
+    InclusaoAlimentacaoDaCEICreateSerializer
 )
-from ..models import GrupoInclusaoAlimentacaoNormal, InclusaoAlimentacaoContinua
+from ..models import GrupoInclusaoAlimentacaoNormal, InclusaoAlimentacaoContinua, InclusaoAlimentacaoDaCEI
 
 pytestmark = pytest.mark.django_db
 
@@ -17,7 +21,7 @@ def test_inclusao_continua_serializer_validators(inclusao_alimentacao_continua_p
         user = mommy.make('perfil.Usuario')
 
     data_inicial, data_final, dias_semana = inclusao_alimentacao_continua_parametros
-    attrs = dict(data_inicial=data_inicial, data_final=data_final)
+    attrs = dict(data_inicial=data_inicial, data_final=data_final, dias_semana=dias_semana)
     quantidades_por_periodo = []
     for _ in range(4):
         qtd = mommy.make('QuantidadePorPeriodo')
@@ -35,6 +39,21 @@ def test_inclusao_continua_serializer_validators(inclusao_alimentacao_continua_p
     assert resp_final == data_final
     assert resp_attrs == attrs
     assert resp_qtd_periodo == quantidades_por_periodo
+
+
+@freeze_time('2019-10-15')
+def test_inclusao_continua_serializer_validate_feriado():
+    data_inicial = datetime.date(2020, 9, 2)
+    data_final = datetime.date(2020, 9, 12)
+    dias_semana = [0, 1]
+    attrs = dict(data_inicial=data_inicial, data_final=data_final, dias_semana=dias_semana)
+
+    serializer_obj = InclusaoAlimentacaoContinuaCreationSerializer()
+    try:
+        serializer_obj.validate(attrs=attrs)
+        pytest.fail('Deveria ter subido uma exceção')
+    except ValidationError as e:
+        assert str(e) == "[ErrorDetail(string='Não pode haver feriado na faixa escolhida. Feriado encontrado: 07/09/2020', code='invalid')]"  # noqa E501
 
 
 @freeze_time('2019-10-15')
@@ -113,5 +132,52 @@ def test_grupo_inclusao_normal_serializer_creators(inclusao_alimentacao_continua
                                  inclusoes=inclusoes[:2])
     response_inclusao_updated = serializer_obj.update(instance=response_inclusao_created,
                                                       validated_data=validated_data_update)
+
     assert response_inclusao_updated.inclusoes.count() == 2
     assert response_inclusao_updated.quantidades_periodo.count() == 1
+
+
+@freeze_time('2019-10-15')
+def test_grupo_inclusao_alimentacao_cei(inclusao_alimentacao_continua_parametros, escola):
+    class FakeObject(object):
+        user = mommy.make('perfil.Usuario')
+
+    data, _, _ = inclusao_alimentacao_continua_parametros
+    quantidade_alunos_por_faixas_etarias = []
+    for _ in range(5):
+        quantidade = mommy.make('QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEI')
+        quantidade_alunos_por_faixas_etarias.append(dict(
+            faixa_etaria=quantidade.faixa_etaria,
+            quantidade_alunos=quantidade.quantidade_alunos))
+
+    tipos_alimentacao = []
+    for _ in range(3):
+        combo = mommy.make('cardapio.ComboDoVinculoTipoAlimentacaoPeriodoTipoUE')
+        tipos_alimentacao.append(combo)
+
+    periodo_escolar = mommy.make('escola.PeriodoEscolar')
+    motivo = mommy.make('MotivoInclusaoNormal')
+
+    serializer_obj = InclusaoAlimentacaoDaCEICreateSerializer(context={'request': FakeObject})
+    validated_data = dict(
+        quantidade_alunos_por_faixas_etarias=quantidade_alunos_por_faixas_etarias,
+        escola=escola,
+        tipos_alimentacao=tipos_alimentacao,
+        periodo_escolar=periodo_escolar,
+        motivo=motivo,
+        data=data
+    )
+    response_inclusao_created = serializer_obj.create(validated_data=validated_data)
+    assert isinstance(response_inclusao_created, InclusaoAlimentacaoDaCEI)
+
+    validated_data_update = dict(quantidade_alunos_por_faixas_etarias=quantidade_alunos_por_faixas_etarias,
+                                 escola=escola,
+                                 tipos_alimentacao=tipos_alimentacao,
+                                 periodo_escolar=periodo_escolar,
+                                 motivo=motivo,
+                                 data=data)
+
+    response_inclusao_updated = serializer_obj.update(instance=response_inclusao_created,
+                                                      validated_data=validated_data_update)
+
+    assert response_inclusao_updated.quantidade_alunos_por_faixas_etarias.count() == 5

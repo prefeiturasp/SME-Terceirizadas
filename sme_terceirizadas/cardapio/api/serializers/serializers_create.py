@@ -5,35 +5,81 @@ from ....dados_comuns.validators import (
     campo_nao_pode_ser_nulo,
     deve_existir_cardapio,
     deve_pedir_com_antecedencia,
+    deve_ser_no_mesmo_ano_corrente,
     nao_pode_ser_feriado,
     nao_pode_ser_no_passado,
     objeto_nao_deve_ter_duplicidade
 )
-from ....escola.models import Escola, PeriodoEscolar, TipoUnidadeEscolar
+from ....escola.models import Escola, FaixaEtaria, PeriodoEscolar, TipoUnidadeEscolar
 from ....terceirizada.models import Edital
 from ...api.validators import (
     data_troca_nao_pode_ser_superior_a_data_inversao,
-    deve_ser_no_mesmo_ano_corrente,
+    escola_nao_pode_cadastrar_dois_combos_iguais,
+    hora_inicio_nao_pode_ser_maior_que_hora_final,
     nao_pode_existir_solicitacao_igual_para_mesma_escola,
     nao_pode_ter_mais_que_60_dias_diferenca,
     precisa_pertencer_a_um_tipo_de_alimentacao
 )
 from ...models import (
     AlteracaoCardapio,
+    AlteracaoCardapioCEI,
     Cardapio,
     ComboDoVinculoTipoAlimentacaoPeriodoTipoUE,
+    FaixaEtariaSubstituicaoAlimentacaoCEI,
     GrupoSuspensaoAlimentacao,
+    HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolar,
     InversaoCardapio,
     MotivoAlteracaoCardapio,
     MotivoSuspensao,
     QuantidadePorPeriodoSuspensaoAlimentacao,
     SubstituicaoAlimentacaoNoPeriodoEscolar,
+    SubstituicaoAlimentacaoNoPeriodoEscolarCEI,
     SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE,
     SuspensaoAlimentacao,
+    SuspensaoAlimentacaoDaCEI,
     SuspensaoAlimentacaoNoPeriodoEscolar,
     TipoAlimentacao,
     VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
 )
+
+
+class HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolarSerializerCreate(serializers.ModelSerializer):
+    hora_inicial = serializers.TimeField()
+    hora_final = serializers.TimeField()
+
+    escola = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=Escola.objects.all()
+    )
+
+    combo_tipos_alimentacao = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=ComboDoVinculoTipoAlimentacaoPeriodoTipoUE.objects.all()
+    )
+
+    def validate(self, attrs):
+        hora_inicial = attrs['hora_inicial']
+        hora_final = attrs['hora_final']
+        hora_inicio_nao_pode_ser_maior_que_hora_final(hora_inicial, hora_final)
+        return attrs
+
+    def create(self, validated_data):
+        escola = validated_data.get('escola')
+        combo_tipos_alimentacao = validated_data.get('combo_tipos_alimentacao')
+        escola_nao_pode_cadastrar_dois_combos_iguais(escola, combo_tipos_alimentacao)
+        horario_do_combo = HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolar.objects.create(**validated_data)
+        return horario_do_combo
+
+    def update(self, instance, validated_data):
+        update_instance_from_dict(instance, validated_data)
+        instance.save()
+        return instance
+
+    class Meta:
+        model = HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolar
+        fields = ('uuid', 'hora_inicial', 'hora_final', 'escola', 'combo_tipos_alimentacao')
 
 
 class InversaoCardapioSerializerCreate(serializers.ModelSerializer):
@@ -150,6 +196,7 @@ class SuspensaoAlimentacaoCreateSerializer(serializers.ModelSerializer):
 
     def validate_data(self, data):
         nao_pode_ser_no_passado(data)
+        deve_ser_no_mesmo_ano_corrente(data)
         return data
 
     class Meta:
@@ -157,41 +204,135 @@ class SuspensaoAlimentacaoCreateSerializer(serializers.ModelSerializer):
         exclude = ('id',)
 
 
-class SubstituicoesAlimentacaoNoPeriodoEscolarSerializerCreate(serializers.ModelSerializer):
+class SuspensaoAlimentacaodeCEICreateSerializer(serializers.ModelSerializer):
+    escola = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=Escola.objects.all()
+    )
+
+    motivo = serializers.SlugRelatedField(
+        slug_field='uuid',
+        queryset=MotivoSuspensao.objects.all()
+    )
+
+    outro_motivo = serializers.CharField(required=False)
+
+    periodos_escolares = serializers.SlugRelatedField(
+        slug_field='uuid',
+        many=True,
+        queryset=PeriodoEscolar.objects.all()
+    )
+
+    def validate(self, attrs):
+        data = attrs['data']
+        nao_pode_ser_no_passado(data)
+        deve_pedir_com_antecedencia(data)
+        deve_ser_no_mesmo_ano_corrente(data)
+        return attrs
+
+    def create(self, validated_data):
+        periodos_escolares = validated_data.pop('periodos_escolares', '')
+        validated_data['criado_por'] = self.context['request'].user
+        suspensao_alimentacao = SuspensaoAlimentacaoDaCEI.objects.create(**validated_data)
+        suspensao_alimentacao.periodos_escolares.set(periodos_escolares)
+        suspensao_alimentacao.save()
+        return suspensao_alimentacao
+
+    def update(self, instance, validated_data):
+        periodos_escolares = validated_data.pop('periodos_escolares', '')
+        update_instance_from_dict(instance, validated_data)
+        instance.periodos_escolares.set([])
+        instance.periodos_escolares.set(periodos_escolares)
+        instance.save()
+        return instance
+
+    class Meta:
+        model = SuspensaoAlimentacaoDaCEI
+        exclude = ('id', 'status', 'criado_por')
+
+
+class FaixaEtariaSubstituicaoAlimentacaoCEISerializerCreate(serializers.ModelSerializer):
+    substituicao_alimentacao = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=SubstituicaoAlimentacaoNoPeriodoEscolarCEI.objects.all()
+    )
+
+    faixa_etaria = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=FaixaEtaria.objects.all()
+    )
+
+    class Meta:
+        model = FaixaEtariaSubstituicaoAlimentacaoCEI
+        exclude = ('id',)
+
+
+class SubstituicoesAlimentacaoNoPeriodoEscolarSerializerCreateBase(serializers.ModelSerializer):
     periodo_escolar = serializers.SlugRelatedField(
         slug_field='uuid',
         required=True,
         queryset=PeriodoEscolar.objects.all()
     )
+
+    tipo_alimentacao_de = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=ComboDoVinculoTipoAlimentacaoPeriodoTipoUE.objects.all()
+    )
+
+    tipo_alimentacao_para = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE.objects.all()
+    )
+
+
+class SubstituicoesAlimentacaoNoPeriodoEscolarSerializerCreate(
+    SubstituicoesAlimentacaoNoPeriodoEscolarSerializerCreateBase):  # noqa E501
     alteracao_cardapio = serializers.SlugRelatedField(
         slug_field='uuid',
         required=False,
         queryset=AlteracaoCardapio.objects.all()
     )
 
-    tipo_alimentacao_de = serializers.SlugRelatedField(
-        slug_field='uuid',
-        required=False,
-        queryset=TipoAlimentacao.objects.all()
-    )
-
-    tipo_alimentacao_para = serializers.SlugRelatedField(
-        slug_field='uuid',
-        required=False,
-        queryset=TipoAlimentacao.objects.all()
-    )
-
     def create(self, validated_data):
-        substituicoes_alimentacao = SubstituicaoAlimentacaoNoPeriodoEscolar.objects.create(**validated_data)
-        return substituicoes_alimentacao
+        substituicao_alimentacao = SubstituicaoAlimentacaoNoPeriodoEscolar.objects.create(**validated_data)
+        return substituicao_alimentacao
 
     class Meta:
         model = SubstituicaoAlimentacaoNoPeriodoEscolar
         exclude = ('id',)
 
 
-class AlteracaoCardapioSerializerCreate(serializers.ModelSerializer):
-    substituicoes = SubstituicoesAlimentacaoNoPeriodoEscolarSerializerCreate(many=True)
+class SubstituicoesAlimentacaoNoPeriodoEscolarCEISerializerCreate(
+    SubstituicoesAlimentacaoNoPeriodoEscolarSerializerCreateBase):  # noqa E501
+
+    alteracao_cardapio = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=AlteracaoCardapioCEI.objects.all()
+    )
+
+    faixas_etarias = FaixaEtariaSubstituicaoAlimentacaoCEISerializerCreate(many=True)
+
+    def create(self, validated_data):
+        faixas_etarias = validated_data.pop('faixas_etarias', '')
+        substituicao_alimentacao = SubstituicaoAlimentacaoNoPeriodoEscolarCEI.objects.create(**validated_data)
+        substituicao_alimentacao.save()
+        for faixa_etaria_dados in faixas_etarias:
+            FaixaEtariaSubstituicaoAlimentacaoCEI.objects.create(
+                substituicao_alimentacao=substituicao_alimentacao, **faixa_etaria_dados)
+        return substituicao_alimentacao
+
+    class Meta:
+        model = SubstituicaoAlimentacaoNoPeriodoEscolarCEI
+        exclude = ('id',)
+
+
+class AlteracaoCardapioSerializerCreateBase(serializers.ModelSerializer):
     motivo = serializers.SlugRelatedField(
         slug_field='uuid',
         required=True,
@@ -216,21 +357,16 @@ class AlteracaoCardapioSerializerCreate(serializers.ModelSerializer):
             precisa_pertencer_a_um_tipo_de_alimentacao(tipo_alimentacao_de, tipo_alimentacao_para)
         return substituicoes
 
-    def validate_data_inicial(self, data_inicial):
-        nao_pode_ser_no_passado(data_inicial)
-        deve_pedir_com_antecedencia(data_inicial)
-        return data_inicial
-
     def create(self, validated_data):
         substituicoes = validated_data.pop('substituicoes')
         validated_data['criado_por'] = self.context['request'].user
 
         substituicoes_lista = []
         for substituicao in substituicoes:
-            substituicoes_object = SubstituicoesAlimentacaoNoPeriodoEscolarSerializerCreate(
+            substituicoes_object = self.Meta.serializer_substituicao(
             ).create(substituicao)
             substituicoes_lista.append(substituicoes_object)
-        alteracao_cardapio = AlteracaoCardapio.objects.create(**validated_data)
+        alteracao_cardapio = self.Meta.model.objects.create(**validated_data)
         alteracao_cardapio.substituicoes.set(substituicoes_lista)
 
         return alteracao_cardapio
@@ -241,7 +377,7 @@ class AlteracaoCardapioSerializerCreate(serializers.ModelSerializer):
 
         substituicoes_lista = []
         for substituicao_json in substituicoes_json:
-            substituicoes_object = SubstituicoesAlimentacaoNoPeriodoEscolarSerializerCreate(
+            substituicoes_object = self.Meta.serializer_substituicao(
             ).create(substituicao_json)
             substituicoes_lista.append(substituicoes_object)
 
@@ -251,8 +387,34 @@ class AlteracaoCardapioSerializerCreate(serializers.ModelSerializer):
 
         return instance
 
+
+class AlteracaoCardapioSerializerCreate(AlteracaoCardapioSerializerCreateBase):
+    substituicoes = SubstituicoesAlimentacaoNoPeriodoEscolarSerializerCreate(many=True)
+
+    def validate_data_inicial(self, data_inicial):
+        nao_pode_ser_no_passado(data_inicial)
+        deve_pedir_com_antecedencia(data_inicial)
+        deve_ser_no_mesmo_ano_corrente(data_inicial)
+        return data_inicial
+
     class Meta:
         model = AlteracaoCardapio
+        serializer_substituicao = SubstituicoesAlimentacaoNoPeriodoEscolarSerializerCreate
+        exclude = ('id', 'status')
+
+
+class AlteracaoCardapioCEISerializerCreate(AlteracaoCardapioSerializerCreateBase):
+    substituicoes = SubstituicoesAlimentacaoNoPeriodoEscolarCEISerializerCreate(many=True)
+
+    def validate_data(self, data):
+        nao_pode_ser_no_passado(data)
+        deve_pedir_com_antecedencia(data)
+        deve_ser_no_mesmo_ano_corrente(data)
+        return data
+
+    class Meta:
+        model = AlteracaoCardapioCEI
+        serializer_substituicao = SubstituicoesAlimentacaoNoPeriodoEscolarCEISerializerCreate
         exclude = ('id', 'status')
 
 
@@ -264,7 +426,7 @@ class QuantidadePorPeriodoSuspensaoAlimentacaoCreateSerializer(serializers.Model
     tipos_alimentacao = serializers.SlugRelatedField(
         slug_field='uuid',
         many=True,
-        queryset=TipoAlimentacao.objects.all()
+        queryset=ComboDoVinculoTipoAlimentacaoPeriodoTipoUE.objects.all()
     )
 
     class Meta:

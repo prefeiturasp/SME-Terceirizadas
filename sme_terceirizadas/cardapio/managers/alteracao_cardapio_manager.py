@@ -36,3 +36,21 @@ class AlteracoesCardapioVencidaManager(models.Manager):
                         PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR,
                         PedidoAPartirDaEscolaWorkflow.DRE_PEDIU_ESCOLA_REVISAR]
         )
+
+
+class AlteracoesCardapioDoMesCorrenteManager(models.Manager):
+    def get_queryset(self):
+        hoje = datetime.date.today()
+        primeiro_dia_do_mes = hoje.replace(month=hoje.month, day=1)
+        ultimo_dia_do_mes = hoje.replace(month=hoje.month + 1, day=1) - datetime.timedelta(days=1)
+        return super(AlteracoesCardapioDoMesCorrenteManager, self).get_queryset().filter(
+            data_inicial__range=(primeiro_dia_do_mes, ultimo_dia_do_mes)
+        ).filter(
+            status__in=[PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR,
+                        PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO,
+                        PedidoAPartirDaEscolaWorkflow.DRE_PEDIU_ESCOLA_REVISAR,
+                        PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO,
+                        PedidoAPartirDaEscolaWorkflow.CODAE_QUESTIONADO,
+                        PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO,
+                        PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_TOMOU_CIENCIA]
+        )

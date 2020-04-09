@@ -4,6 +4,8 @@ Diretoria regional:
     nome, descricao, codigo
 """
 
+import time
+
 import environ
 import numpy as np
 import pandas as pd
@@ -12,8 +14,8 @@ from sme_terceirizadas.dados_comuns.models import Contato
 from sme_terceirizadas.escola.models import (Lote, TipoUnidadeEscolar, TipoGestao, Escola,
                                              DiretoriaRegional)
 from utility.carga_dados.escola.helper import (
-    coloca_zero_a_esquerda, normaliza_nome, somente_digitos, busca_sigla_lote
-)
+    coloca_zero_a_esquerda, normaliza_nome, somente_digitos, busca_sigla_lote,
+    bcolors, printa_pontinhos)
 
 ROOT_DIR = environ.Path(__file__) - 1
 
@@ -62,22 +64,20 @@ df['EMPRESA'] = df['EMPRESA'].str.strip().str.upper()
 df['COD. CODAE'] = df['COD. CODAE'].str.strip().str.upper()
 
 
-def cria_tipo_unidade_escolar():
+def cria_tipos_unidade_escolar():
     cont = 0
     for index, row in df.iterrows():
         iniciais = row['TIPO DE U.E']
         obj, created = TipoUnidadeEscolar.objects.get_or_create(iniciais=iniciais)
         if created:
             cont += 1
-            print('UNIDADE ESCOLAR {} CRIADO'.format(obj))
-    print('qtd ue criados... {}'.format(cont))
+            print(f'<TipoUnidadeEscolar> {obj.iniciais} criado.')
+    print(f'{bcolors.OKBLUE}Foram criados {cont} <TipoUnidadeEscolar>...{bcolors.ENDC}')
+    if cont >= 1:
+        time.sleep(3)
 
 
-def cria_escola():
-    #     idades = models.ManyToManyField(FaixaIdadeEscolar, blank=True)
-    #     periodos = models.ManyToManyField(PeriodoEscolar, blank=True)
-    #     cardapios = models.ManyToManyField('cardapio.Cardapio', blank=True)
-
+def cria_escolas():
     cont = 0
     for index, row in df.iterrows():
         dre_str = row['DRE']
@@ -118,16 +118,16 @@ def cria_escola():
             tipo_unidade=tipo_ue_obj,
             tipo_gestao=tipo_gestao,
             lote=lote_obj,
-            quantidade_alunos=0,
             contato=contato_obj
         )
 
         if created:
             cont += 1
-            print('UNIDADE ESCOLAR {} CRIADO'.format(escola_obj))
-    print('qtd escolas criadas... {}'.format(cont))
+            print(f'<Escola> {escola_obj.nome} criada.')
+    print(f'{bcolors.OKBLUE}Criadas {cont} <Escola> do tipo EMEI...{bcolors.ENDC}')
+    time.sleep(4)
 
 
-print('Run script _3_escola_EMEI.py')
-cria_tipo_unidade_escolar()
-cria_escola()
+cria_tipos_unidade_escolar()
+cria_escolas()
+printa_pontinhos()

@@ -1,9 +1,11 @@
 import datetime
+import json
 
 import pytest
 from faker import Faker
 from model_mommy import mommy
 
+from ...eol_servico.utils import EOLService
 from ...escola.api.serializers import EscolaSimplissimaSerializer, VinculoInstituicaoSerializer
 from ...perfil.models import Vinculo
 from .. import models
@@ -45,7 +47,6 @@ def escola(lote):
     return mommy.make(models.Escola,
                       nome=fake.name(),
                       codigo_eol=fake.name()[:6],
-                      quantidade_alunos=42,
                       lote=lote)
 
 
@@ -68,7 +69,12 @@ def codae(escola):
 
 @pytest.fixture
 def periodo_escolar():
-    return mommy.make(models.PeriodoEscolar)
+    return mommy.make(models.PeriodoEscolar, nome='INTEGRAL')
+
+
+@pytest.fixture
+def escola_periodo_escolar(periodo_escolar):
+    return mommy.make(models.EscolaPeriodoEscolar, periodo_escolar=periodo_escolar)
 
 
 @pytest.fixture
@@ -84,3 +90,76 @@ def vinculo(escola):
 @pytest.fixture
 def vinculo_instituto_serializer(vinculo):
     return VinculoInstituicaoSerializer(vinculo)
+
+
+@pytest.fixture
+def aluno(escola):
+    return mommy.make(models.Aluno,
+                      nome='Fulano da Silva',
+                      codigo_eol='000001',
+                      data_nascimento=datetime.date(2000, 1, 1),
+                      escola=escola)
+
+
+@pytest.fixture
+def client_autenticado_coordenador_codae(client, django_user_model):
+    email, password, rf, cpf = ('cogestor_1@sme.prefeitura.sp.gov.br', 'adminadmin', '0000001', '44426575052')
+    user = django_user_model.objects.create_user(password=password, email=email, registro_funcional=rf, cpf=cpf)
+    client.login(email=email, password=password)
+
+    codae = mommy.make('Codae', nome='CODAE', uuid='b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd')
+
+    perfil_coordenador = mommy.make('Perfil', nome='COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA', ativo=True,
+                                    uuid='41c20c8b-7e57-41ed-9433-ccb92e8afaf1')
+    mommy.make('Lote', uuid='143c2550-8bf0-46b4-b001-27965cfcd107')
+    hoje = datetime.date.today()
+    mommy.make('Vinculo', usuario=user, instituicao=codae, perfil=perfil_coordenador,
+               data_inicial=hoje, ativo=True)
+
+    return client
+
+
+@pytest.fixture
+def faixas_etarias_ativas():
+    faixas = [
+        (0, 1),
+        (1, 4),
+        (4, 6),
+        (6, 8),
+        (8, 12),
+        (12, 24),
+        (24, 48),
+        (48, 72),
+    ]
+    return [mommy.make('FaixaEtaria', inicio=inicio, fim=fim, ativo=True) for (inicio, fim) in faixas]
+
+
+@pytest.fixture
+def faixas_etarias(faixas_etarias_ativas):
+    return faixas_etarias_ativas + mommy.make('FaixaEtaria', ativo=False, _quantity=8)
+
+
+# Data referencia = 2019-06-20
+@pytest.fixture(params=[
+    # (data, faixa, data_pertence_a_faixa) E800 noqa
+    (datetime.date(2019, 6, 15), 0, 1, True),
+    (datetime.date(2019, 6, 20), 0, 1, False),
+    (datetime.date(2019, 5, 20), 0, 1, True),
+    (datetime.date(2019, 5, 19), 0, 1, False),
+    (datetime.date(2019, 4, 20), 0, 1, False),
+    (datetime.date(2019, 4, 20), 1, 3, True),
+    (datetime.date(2019, 2, 10), 1, 3, False),
+])
+def datas_e_faixas(request):
+    (data, inicio_faixa, fim_faixa, eh_pertencente) = request.param
+    return (data, mommy.make('FaixaEtaria', inicio=inicio_faixa, fim=fim_faixa, ativo=True), eh_pertencente)
+
+
+@pytest.fixture
+def eolservice_get_informacoes_escola_turma_aluno(monkeypatch):
+    js = json.load(open('sme_terceirizadas/escola/__tests__/massa_eolservice_get_informacoes_escola_turma_aluno.json'))
+    return monkeypatch.setattr(
+        EOLService,
+        'get_informacoes_escola_turma_aluno',
+        lambda x: js['results']
+    )

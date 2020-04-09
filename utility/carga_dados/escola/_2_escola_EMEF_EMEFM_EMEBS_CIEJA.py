@@ -4,6 +4,8 @@ Diretoria regional:
     nome, descricao, codigo
 """
 
+import time
+
 import environ
 import numpy as np
 import pandas as pd
@@ -12,8 +14,8 @@ from sme_terceirizadas.dados_comuns.models import Contato
 from sme_terceirizadas.escola.models import (
     TipoUnidadeEscolar, TipoGestao, Escola, DiretoriaRegional, Lote)
 from utility.carga_dados.escola.helper import (
-    coloca_zero_a_esquerda, normaliza_nome, somente_digitos, busca_sigla_lote
-)
+    coloca_zero_a_esquerda, normaliza_nome, somente_digitos, busca_sigla_lote,
+    bcolors, printa_pontinhos)
 
 ROOT_DIR = environ.Path(__file__) - 1
 
@@ -70,35 +72,31 @@ def cria_tipo_unidade_escolar():
         obj, created = TipoUnidadeEscolar.objects.get_or_create(iniciais=iniciais)
         if created:
             cont += 1
-            print('UNIDADE ESCOLAR {} CRIADO'.format(obj))
-    print('qtd ue criados... {}'.format(cont))
+            print(f'<TipoUnidadeEscolar> {obj.iniciais} criado.')
+    print(f'{bcolors.OKBLUE}Foram criados {cont} <TipoUnidadeEscolar>...{bcolors.ENDC}')
+    time.sleep(3)
 
 
-def cria_escola():
-    #     idades = models.ManyToManyField(FaixaIdadeEscolar, blank=True)
-    #     periodos = models.ManyToManyField(PeriodoEscolar, blank=True)
-    #     cardapios = models.ManyToManyField('cardapio.Cardapio', blank=True)
-
+def cria_escolas():
     cont = 0
     for index, row in df.iterrows():
         dre_str = row['DRE']
         tipo_ue_str = row['TIPO DE U.E']
         lote_sigla_str = row['SIGLA/LOTE']
-        # cod_codae = row['COD. CODAE']
         t1 = row['TELEFONE']
         if 8 < len(t1) > 10:
             t1 = None
         t2 = row['TELEFONE2']
         if 8 < len(t2) > 10:
             t2 = None
-        # if not cod_codae:
-        #     cod_codae = None
 
         dre_obj, created_dre = DiretoriaRegional.objects.get_or_create(
-            nome=dre_str)
+            nome=dre_str
+        )
 
         tipo_ue_obj, created_ue = TipoUnidadeEscolar.objects.get_or_create(
-            iniciais=tipo_ue_str)
+            iniciais=tipo_ue_str
+        )
 
         tipo_gestao = TipoGestao.objects.get(id=1)  # so tem um...
 
@@ -118,16 +116,16 @@ def cria_escola():
             tipo_unidade=tipo_ue_obj,
             tipo_gestao=tipo_gestao,
             lote=lote_obj,
-            quantidade_alunos=0,
             contato=contato_obj
         )
 
         if created:
             cont += 1
-            print('UNIDADE ESCOLAR {} CRIADO'.format(escola_obj))
-    print('qtd escolas criadas... {}'.format(cont))
+            print(f'<Escola> {escola_obj.nome} criada.')
+    print(f'{bcolors.OKBLUE}Criadas {cont} <Escola> do tipo EMEF_EMEFM_EMEBS_CIEJA...{bcolors.ENDC}')
+    time.sleep(4)
 
 
-print('Run script _2_escola_EMEF_EMEFM_EMEBS_CIEJA.py')
 cria_tipo_unidade_escolar()
-cria_escola()
+cria_escolas()
+printa_pontinhos()

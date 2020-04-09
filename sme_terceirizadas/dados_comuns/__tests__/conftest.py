@@ -147,8 +147,7 @@ def validators_valor_str():
 def escola():
     return mommy.make(models.Escola,
                       nome=fake.name(),
-                      codigo_eol=fake.name()[:6],
-                      quantidade_alunos=42)
+                      codigo_eol=fake.name()[:6])
 
 
 @pytest.fixture(scope='function', params=[
@@ -160,4 +159,25 @@ def escola():
     (datetime.date(2018, 6, 1)),
 ])
 def dias_sem_cardapio(request):
+    return request.param
+
+
+@pytest.fixture(params=[
+    (datetime.date(datetime.datetime.now().year - 1, 5, 26),
+     'Inversão de dia de cardapio deve ser solicitada no ano corrente'),
+    (datetime.date(datetime.datetime.now().year + 1, 1, 1),
+     'Inversão de dia de cardapio deve ser solicitada no ano corrente'),
+    (datetime.date(datetime.datetime.now().year + 2, 12, 1),
+     'Inversão de dia de cardapio deve ser solicitada no ano corrente')
+])
+def data_inversao_ano_diferente(request):
+    return request.param
+
+
+@pytest.fixture(params=[
+    (datetime.date(2019, 5, 26), True),
+    (datetime.date(2019, 1, 1), True),
+    (datetime.date(2019, 12, 31), True)
+])
+def data_inversao_mesmo_ano(request):
     return request.param

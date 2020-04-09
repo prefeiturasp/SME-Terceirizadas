@@ -1,0 +1,7 @@
+#!/bin/bash
+
+read -p "Atualizar dependencias do projeto (y/n)? " -n 1 -r
+echo
+if [[ $REPLY =~ ^[Yy]$ ]]; then
+  pipenv install && pipenv install --dev
+fi

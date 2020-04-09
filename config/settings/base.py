@@ -87,6 +87,7 @@ THIRD_PARTY_APPS = [
     'des',  # for email configuration in database
     'django_xworkflows',
     'simple_email_confirmation',
+    'sass_processor'
 ]
 LOCAL_APPS = [
     'sme_terceirizadas.perfil.apps.PerfilConfig',
@@ -98,6 +99,7 @@ LOCAL_APPS = [
     'sme_terceirizadas.terceirizada.apps.TerceirizadaConfig',
     'sme_terceirizadas.paineis_consolidados.apps.PaineisConsolidadosConfig',
     'sme_terceirizadas.dieta_especial.apps.DietaEspecialConfig',
+    'sme_terceirizadas.relatorios.apps.RelatoriosConfig',
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -181,8 +183,8 @@ STATICFILES_DIRS = [
 STATICFILES_FINDERS = [
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+    'sass_processor.finders.CssFinder',
 ]
-
 # MEDIA
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#media-root
@@ -346,6 +348,10 @@ CELERY_BEAT_SCHEDULE = {
     'ativa-desativa-vinculos-alimentacao': {
         'task': 'sme_terceirizadas.cardapio.tasks.ativa_desativa_vinculos_alimentacao_com_periodo_escolar_e_tipo_unidade_escolar', # noqa E501
         'schedule': crontab(hour=1, minute=0)
+    },
+    'termina-dietas-especiais': {
+        'task': 'sme_terceirizadas.dieta_especial.tasks.termina_dietas_especiais_task',
+        'schedule': crontab(hour=1, minute=30)
     }
 }
 

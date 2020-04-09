@@ -1,5 +1,6 @@
 import json
 import os
+import time
 
 import environ
 from django.core.exceptions import ObjectDoesNotExist
@@ -9,6 +10,7 @@ from sme_terceirizadas.escola.management.commands.helper import calcula_total_al
 from sme_terceirizadas.escola.models import (
     Escola, PeriodoEscolar, EscolaPeriodoEscolar
 )
+from utility.carga_dados.escola.helper import printa_pontinhos, bcolors
 
 ROOT_DIR = environ.Path(__file__) - 1
 with open(os.path.join(ROOT_DIR, 'planilhas_de_carga', 'total_alunos.json'), 'r') as f:
@@ -20,10 +22,8 @@ with open(os.path.join(ROOT_DIR, 'planilhas_de_carga', 'escolas.json'), 'r') as 
 escola_totais = calcula_total_alunos_por_escola_por_periodo(json_data_totais)
 
 
-# TODO: isso ta duplicado do app escolas commands
 def _atualiza_totais_alunos_escola(escola_totais):  # noqa C901
     for codigo_eol, dados in escola_totais.items():
-        total_alunos_periodo = dados.pop('total')
         try:
             escola_object = Escola.objects.get(codigo_eol=codigo_eol)
             for periodo_escolar_str, quantidade_alunos_periodo in dados.items():
@@ -36,21 +36,15 @@ def _atualiza_totais_alunos_escola(escola_totais):  # noqa C901
                     print(msg)
                     escola_periodo.quantidade_alunos = quantidade_alunos_periodo
                     escola_periodo.save()
-            if escola_object.quantidade_alunos != total_alunos_periodo:
-                msg = f'Atualizando qtd TOTAL alunos da escola {escola_object.nome} de {escola_object.quantidade_alunos} para {total_alunos_periodo}'  # noqa
-                print(msg)
-                escola_object.quantidade_alunos = total_alunos_periodo
-                escola_object.save()
 
         except ObjectDoesNotExist:
             continue
         except IntegrityError as e:
-            msg = f'Dados inconsistentes: {e}'
+            msg = f'{bcolors.FAIL}Dados inconsistentes: {e}{bcolors.ENDC}'
             print(msg)
             continue
 
 
-# TODO: isso ta duplicado do app escolas commands
 def _atualiza_dados_da_escola(json):  # noqa C901
     for escola_json in json['results']:
         codigo_eol_escola = escola_json['cd_unidade_educacao'].strip()
@@ -70,5 +64,9 @@ def _atualiza_dados_da_escola(json):  # noqa C901
             escola_object.save()
 
 
+print(
+    f'{bcolors.WARNING}Atualiza os dados das escolas (nome e totais de alunos por período escolar) baseado num dump da api do EOL..{bcolors.ENDC}')
+time.sleep(4)
 _atualiza_dados_da_escola(json_data_escola)
 _atualiza_totais_alunos_escola(escola_totais)
+printa_pontinhos()

@@ -56,7 +56,6 @@ def test_inversao_dia_cardapio(inversao_dia_cardapio):
     assert isinstance(inversao_dia_cardapio.cardapio_para, Cardapio)
     assunto, template_html = inversao_dia_cardapio.template_mensagem
     assert assunto == 'TESTE INVERSAO CARDAPIO'
-    assert '98DC7' in template_html
     assert 'RASCUNHO' in template_html
 
 
@@ -88,21 +87,23 @@ def test_inversao_dia_cardapio_fluxo(inversao_dia_cardapio):
 
 @freeze_time('2012-01-14')
 def test_inversao_dia_cardapio_fluxo_cancelamento(inversao_dia_cardapio):
+    justificativa = 'este e um cancelamento'
     fake_user = mommy.make('perfil.Usuario')
     inversao_dia_cardapio.inicia_fluxo(user=fake_user)
     assert str(inversao_dia_cardapio.status) == PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR
-    inversao_dia_cardapio.cancelar_pedido(user=fake_user)
+    inversao_dia_cardapio.cancelar_pedido(user=fake_user, justificativa=justificativa)
     assert str(inversao_dia_cardapio.status) == PedidoAPartirDaEscolaWorkflow.ESCOLA_CANCELOU
 
 
 def test_inversao_dia_cardapio_fluxo_cancelamento_erro(inversao_dia_cardapio2):
+    justificativa = 'este e um cancelamento'
     fake_user = mommy.make('perfil.Usuario')
     with pytest.raises(
         InvalidTransitionError,
         match=r'.*Só pode cancelar com no mínimo 2 dia\(s\) de antecedência.*'
     ):
         inversao_dia_cardapio2.inicia_fluxo(user=fake_user)
-        inversao_dia_cardapio2.cancelar_pedido(user=fake_user)
+        inversao_dia_cardapio2.cancelar_pedido(user=fake_user, justificativa=justificativa)
 
 
 def test_inclusao_alimentacao_continua_fluxo_erro(inversao_dia_cardapio):
@@ -118,3 +119,13 @@ def test_grupo_suspensao_alimentacao(grupo_suspensao_alimentacao):
 
 def test_vinculo_tipo_alimentacao(vinculo_tipo_alimentacao):
     assert vinculo_tipo_alimentacao.combos.count() == 5
+
+
+def test_horario_combo_tipo_alimentacao(horario_combo_tipo_alimentacao):
+    assert horario_combo_tipo_alimentacao.hora_inicial == '07:00:00'
+    assert horario_combo_tipo_alimentacao.hora_final == '07:30:00'
+    assert horario_combo_tipo_alimentacao.escola.nome == 'EMEF JOAO MENDES'
+    assert horario_combo_tipo_alimentacao.combo_tipos_alimentacao.uuid == '9fe31f4a-716b-4677-9d7d-2868557cf954'
+    assert horario_combo_tipo_alimentacao.__str__() == (f'{horario_combo_tipo_alimentacao.combo_tipos_alimentacao} '
+                                                        f'DE: {horario_combo_tipo_alimentacao.hora_inicial} '
+                                                        f'ATE: {horario_combo_tipo_alimentacao.hora_final}')

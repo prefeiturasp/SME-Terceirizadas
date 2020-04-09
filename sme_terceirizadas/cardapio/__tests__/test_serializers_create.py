@@ -3,11 +3,13 @@ from freezegun import freeze_time
 from model_mommy import mommy
 from rest_framework.exceptions import ValidationError
 
-from ...cardapio.models import AlteracaoCardapio, GrupoSuspensaoAlimentacao, InversaoCardapio
+from ...cardapio.models import AlteracaoCardapio, GrupoSuspensaoAlimentacao, InversaoCardapio, SuspensaoAlimentacaoDaCEI
 from ..api.serializers.serializers_create import (
     AlteracaoCardapioSerializerCreate,
     GrupoSuspensaoAlimentacaoCreateSerializer,
-    InversaoCardapioSerializerCreate
+    HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolarSerializerCreate,
+    InversaoCardapioSerializerCreate,
+    SuspensaoAlimentacaodeCEICreateSerializer
 )
 
 pytestmark = pytest.mark.django_db
@@ -29,6 +31,16 @@ def test_inversao_serializer_validators(inversao_card_params):
     response_geral = serializer_obj.validate(attrs=attrs)
     assert response_de == data_de
     assert response_para == data_para
+    assert response_geral == attrs
+
+
+def test_horario_do_combo_tipo_alimentacao_serializer_validators(horarios_combos_tipo_alimentacao_validos, escola):
+    hora_inicial, hora_final, _ = horarios_combos_tipo_alimentacao_validos
+    serializer_obj = HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolarSerializerCreate()
+    combo = mommy.make('ComboDoVinculoTipoAlimentacaoPeriodoTipoUE', uuid='9fe31f4a-716b-4677-9d7d-2868557cf954')
+    attrs = dict(hora_inicial=hora_inicial, hora_final=hora_final, escola=escola, combo_tipos_alimentacao=combo)
+
+    response_geral = serializer_obj.validate(attrs=attrs)
     assert response_geral == attrs
 
 
@@ -88,17 +100,18 @@ def test_inversao_serializer_creators(inversao_card_params):
     assert inversao_cardapio.escola == escola2
 
 
+# TODO: ZL1 PRECISO REFAZER ESTE TESTE ASSIM QUE ELIMINAR AS SUBSTITUICOES DO TIPO DE ALIMENTACAO
 @freeze_time('2019-10-15')
 def test_alteracao_cardapio_validators(alteracao_card_params):
     class FakeObject(object):
         user = mommy.make('perfil.Usuario')
 
-    data_inicial, data_final, alm1, alm2, alm3, alm4, alm5 = alteracao_card_params
+    data_inicial, data_final, combo1, combo2, sub1, sub2 = alteracao_card_params
 
     serializer_obj = AlteracaoCardapioSerializerCreate(context={'request': FakeObject})
     substituicoes_dict = []
-    substituicoes_dict.append(dict(tipo_alimentacao_de=alm1, tipo_alimentacao_para=alm4))
-    substituicoes_dict.append(dict(tipo_alimentacao_de=alm2, tipo_alimentacao_para=alm5))
+    substituicoes_dict.append(dict(tipo_alimentacao_de=combo1, tipo_alimentacao_para=sub1))
+    substituicoes_dict.append(dict(tipo_alimentacao_de=combo2, tipo_alimentacao_para=sub2))
     resp_dt_inicial = serializer_obj.validate_data_inicial(data_inicial=data_inicial)
     resp_substicuicoes = serializer_obj.validate_substituicoes(substituicoes=substituicoes_dict)
 
@@ -106,12 +119,54 @@ def test_alteracao_cardapio_validators(alteracao_card_params):
     assert resp_substicuicoes == substituicoes_dict
 
 
-@freeze_time('2019-10-15')
-def test_alteracao_cardapio_creators(alteracao_card_params, escola):
+def test_suspensao_alimentacao_cei_creators(suspensao_alimentacao_cei_params, escola):
     class FakeObject(object):
         user = mommy.make('perfil.Usuario')
 
-    data_inicial, data_final, alm1, alm2, alm3, alm4, alm5 = alteracao_card_params
+    motivo, data_create, data_update = suspensao_alimentacao_cei_params
+
+    serializer_obj = SuspensaoAlimentacaodeCEICreateSerializer(context={'request': FakeObject})
+
+    validated_data_create = dict(
+        escola=escola,
+        motivo=motivo,
+        outro_motivo='xxx',
+        data=data_create
+    )
+
+    resp_create = serializer_obj.create(validated_data=validated_data_create)
+
+    assert isinstance(resp_create, SuspensaoAlimentacaoDaCEI)
+    assert resp_create.periodos_escolares.count() == 0
+    assert resp_create.criado_por == FakeObject.user
+    assert resp_create.data == data_create
+    assert resp_create.motivo.nome == 'outro'
+
+    motivo = mommy.make('cardapio.MotivoSuspensao', nome='motivo')
+
+    validated_data_update = dict(
+        escola=escola,
+        motivo=motivo,
+        outro_motivo='',
+        data=data_update
+    )
+
+    resp_update = serializer_obj.update(instance=resp_create,
+                                        validated_data=validated_data_update)
+
+    assert isinstance(resp_update, SuspensaoAlimentacaoDaCEI)
+    assert resp_create.periodos_escolares.count() == 0
+    assert resp_create.criado_por == FakeObject.user
+    assert resp_create.data == data_update
+    assert resp_create.motivo.nome == 'motivo'
+
+
+@freeze_time('2019-10-15')
+def test_alteracao_cardapio_creators(alteracao_substituicoes_params, escola):
+    class FakeObject(object):
+        user = mommy.make('perfil.Usuario')
+
+    data_inicial, data_final, combo1, combo2, substituicao1, substituicao2 = alteracao_substituicoes_params
 
     serializer_obj = AlteracaoCardapioSerializerCreate(context={'request': FakeObject})
     periodo_escolar = mommy.make('escola.PeriodoEscolar')
@@ -119,12 +174,12 @@ def test_alteracao_cardapio_creators(alteracao_card_params, escola):
     substituicoes_dict = []
 
     substituicoes_dict.append(
-        dict(tipo_alimentacao_de=alm1,
-             tipo_alimentacao_para=alm4,
+        dict(tipo_alimentacao_de=combo1,
+             tipo_alimentacao_para=substituicao1,
              periodo_escolar=periodo_escolar))
     substituicoes_dict.append(
-        dict(tipo_alimentacao_de=alm2,
-             tipo_alimentacao_para=alm5,
+        dict(tipo_alimentacao_de=combo2,
+             tipo_alimentacao_para=substituicao2,
              periodo_escolar=periodo_escolar))
 
     validated_data_create = dict(data_inicial=data_inicial,
@@ -141,8 +196,8 @@ def test_alteracao_cardapio_creators(alteracao_card_params, escola):
     assert resp_create.data_final == data_final
 
     substituicoes_dict.append(
-        dict(tipo_alimentacao_de=alm3,
-             tipo_alimentacao_para=alm5,
+        dict(tipo_alimentacao_de=combo1,
+             tipo_alimentacao_para=substituicao1,
              periodo_escolar=periodo_escolar))
 
     validated_data_update = dict(data_inicial=data_inicial,

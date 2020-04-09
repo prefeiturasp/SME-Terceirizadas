@@ -1,18 +1,116 @@
+from datetime import timedelta
+
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
+from workalendar.america import BrazilSaoPauloCity
 
-from ....cardapio.models import TipoAlimentacao
+from ....cardapio.models import ComboDoVinculoTipoAlimentacaoPeriodoTipoUE
 from ....dados_comuns.utils import update_instance_from_dict
-from ....dados_comuns.validators import deve_pedir_com_antecedencia, nao_pode_ser_no_passado
-from ....escola.models import Escola, PeriodoEscolar
+from ....dados_comuns.validators import (
+    deve_pedir_com_antecedencia,
+    deve_ser_no_mesmo_ano_corrente,
+    nao_pode_ser_feriado,
+    nao_pode_ser_no_passado
+)
+from ....escola.models import Escola, FaixaEtaria, PeriodoEscolar
 from ...models import (
     GrupoInclusaoAlimentacaoNormal,
     InclusaoAlimentacaoContinua,
+    InclusaoAlimentacaoDaCEI,
     InclusaoAlimentacaoNormal,
     MotivoInclusaoContinua,
     MotivoInclusaoNormal,
+    QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEI,
     QuantidadePorPeriodo
 )
+
+calendario = BrazilSaoPauloCity()
+
+
+class QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEISerializer(serializers.ModelSerializer):
+    faixa_etaria = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=FaixaEtaria.objects.all())
+
+    def create(self, validated_data):
+        quantidade_alunos_faixa_etaria = QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEI.objects.create(
+            **validated_data
+        )
+        return quantidade_alunos_faixa_etaria
+
+    class Meta:
+        model = QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEI
+        exclude = ('id', 'inclusao_alimentacao_da_cei',)
+
+
+class InclusaoAlimentacaoDaCEICreateSerializer(serializers.ModelSerializer):
+    escola = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=Escola.objects.all())
+
+    periodo_escolar = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=PeriodoEscolar.objects.all())
+
+    tipos_alimentacao = serializers.SlugRelatedField(
+        slug_field='uuid',
+        many=True,
+        required=True,
+        queryset=ComboDoVinculoTipoAlimentacaoPeriodoTipoUE.objects.all())
+
+    motivo = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=MotivoInclusaoNormal.objects.all())
+
+    quantidade_alunos_por_faixas_etarias = QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEISerializer(
+        many=True,
+        required=True
+    )
+
+    def validate_data(self, data):
+        nao_pode_ser_no_passado(data)
+        deve_pedir_com_antecedencia(data)
+        nao_pode_ser_feriado(data)
+        deve_ser_no_mesmo_ano_corrente(data)
+        return data
+
+    def create(self, validated_data):
+        quantidade_alunos_por_faixas_etarias = validated_data.pop('quantidade_alunos_por_faixas_etarias')
+        validated_data['criado_por'] = self.context['request'].user
+        tipos_alimentacao = validated_data.pop('tipos_alimentacao')
+
+        inclusao_alimentacao_da_cei = InclusaoAlimentacaoDaCEI.objects.create(**validated_data)
+        inclusao_alimentacao_da_cei.tipos_alimentacao.set(tipos_alimentacao)
+        for quantidade_json in quantidade_alunos_por_faixas_etarias:
+            qtd = QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEISerializer().create(
+                validated_data=quantidade_json)
+            inclusao_alimentacao_da_cei.adiciona_inclusao_a_quantidade_por_faixa_etaria(qtd)
+        return inclusao_alimentacao_da_cei
+
+    def update(self, instance, validated_data):
+        quantidade_alunos_por_faixas_etarias = validated_data.pop('quantidade_alunos_por_faixas_etarias')
+        tipos_alimentacao = validated_data.pop('tipos_alimentacao')
+
+        instance.quantidade_alunos_da_inclusao.all().delete()
+        instance.tipos_alimentacao.set([])
+        instance.tipos_alimentacao.set(tipos_alimentacao)
+
+        for quantidade_json in quantidade_alunos_por_faixas_etarias:
+            qtd = QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEISerializer().create(
+                validated_data=quantidade_json)
+            instance.adiciona_inclusao_a_quantidade_por_faixa_etaria(qtd)
+
+        update_instance_from_dict(instance, validated_data)
+        instance.save()
+        return instance
+
+    class Meta:
+        model = InclusaoAlimentacaoDaCEI
+        exclude = ('id',)
 
 
 class MotivoInclusaoContinuaSerializer(serializers.ModelSerializer):
@@ -37,7 +135,7 @@ class QuantidadePorPeriodoCreationSerializer(serializers.ModelSerializer):
         slug_field='uuid',
         many=True,
         required=True,
-        queryset=TipoAlimentacao.objects.all())
+        queryset=ComboDoVinculoTipoAlimentacaoPeriodoTipoUE.objects.all())
 
     grupo_inclusao_normal = serializers.SlugRelatedField(
         slug_field='uuid',
@@ -69,6 +167,7 @@ class InclusaoAlimentacaoNormalCreationSerializer(serializers.ModelSerializer):
     def validate_data(self, data):
         nao_pode_ser_no_passado(data)
         deve_pedir_com_antecedencia(data)
+        nao_pode_ser_feriado(data)
         return data
 
     class Meta:
@@ -180,11 +279,27 @@ class InclusaoAlimentacaoContinuaCreationSerializer(serializers.ModelSerializer)
             raise ValidationError('Deve possuir quantidades_periodo')
         return quantidades_periodo
 
+    def validate_feriados_no_periodo(self, data_inicial, data_final, dias_semana):
+        # Valida se a faixa de datas não contém feriado
+        data_atual = data_inicial
+        while data_atual <= data_final:
+            if dias_semana and data_atual.weekday() not in dias_semana:
+                pass
+            elif calendario.is_holiday(data_atual):
+                data_formatada = data_atual.strftime('%d/%m/%Y')
+                raise ValidationError(
+                    f'Não pode haver feriado na faixa escolhida. Feriado encontrado: {data_formatada}')
+            data_atual += timedelta(days=1)
+
     def validate(self, attrs):
         data_inicial = attrs.get('data_inicial', None)
         data_final = attrs.get('data_final', None)
+        dias_semana = attrs.get('dias_semana', None)
         if data_inicial > data_final:
             raise ValidationError('data inicial não pode ser maior que data final')
+
+        self.validate_feriados_no_periodo(data_inicial, data_final, dias_semana)
+
         return attrs
 
     def create(self, validated_data):

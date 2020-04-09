@@ -5,6 +5,7 @@ from faker import Faker
 from model_mommy import mommy
 
 from ...dados_comuns.behaviors import TempoPasseio
+from ...dados_comuns.constants import COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA
 from ...dados_comuns.fluxo_status import PedidoAPartirDaDiretoriaRegionalWorkflow, PedidoAPartirDaEscolaWorkflow
 from ...dados_comuns.models import TemplateMensagem
 from .. import models
@@ -14,9 +15,85 @@ fake.seed(420)
 
 
 @pytest.fixture
-def escola():
-    lote = mommy.make('Lote')
-    return mommy.make('Escola', lote=lote, quantidade_alunos=1001)
+def lote():
+    return mommy.make('Lote')
+
+
+@pytest.fixture
+def terceirizada(lote):
+    return mommy.make('Terceirizada', lotes=[lote])
+
+
+@pytest.fixture
+def codae():
+    return mommy.make('CODAE')
+
+
+@pytest.fixture
+def diretoria_regional():
+    return mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL IPIRANGA')
+
+
+@pytest.fixture
+def escola(diretoria_regional, lote):
+    return mommy.make('Escola', lote=lote, diretoria_regional=diretoria_regional)
+
+
+@pytest.fixture
+def client_autenticado_da_escola(client, django_user_model, escola):
+    email = 'user@escola.com'
+    password = 'bar'
+    perfil_diretor = mommy.make('Perfil', nome='DIRETOR', ativo=True)
+    usuario = django_user_model.objects.create_user(password=password, email=email,
+                                                    registro_funcional='123456',
+                                                    )
+    hoje = datetime.date.today()
+    mommy.make('Vinculo', usuario=usuario, instituicao=escola, perfil=perfil_diretor,
+               data_inicial=hoje, ativo=True)
+    client.login(email=email, password=password)
+    return client
+
+
+@pytest.fixture
+def client_autenticado_da_dre(client, django_user_model, diretoria_regional):
+    email = 'user@dre.com'
+    password = 'bar'
+    perfil_adm_dre = mommy.make('Perfil', nome='ADM_DRE', ativo=True)
+    usuario = django_user_model.objects.create_user(password=password, email=email,
+                                                    registro_funcional='123456')
+    hoje = datetime.date.today()
+    mommy.make('Vinculo', usuario=usuario, instituicao=diretoria_regional, perfil=perfil_adm_dre,
+               data_inicial=hoje, ativo=True)
+    client.login(email=email, password=password)
+    return client
+
+
+@pytest.fixture
+def client_autenticado_da_codae(client, django_user_model, codae):
+    email = 'foo@codae.com'
+    password = 'bar'
+    perfil_adm_codae = mommy.make('Perfil', nome=COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA, ativo=True)
+    usuario = django_user_model.objects.create_user(password=password, email=email,
+                                                    registro_funcional='123456')
+    hoje = datetime.date.today()
+    mommy.make('Vinculo', usuario=usuario, instituicao=codae, perfil=perfil_adm_codae,
+               data_inicial=hoje, ativo=True)
+    client.login(email=email, password=password)
+    return client
+
+
+@pytest.fixture
+def client_autenticado_da_terceirizada(client, django_user_model, terceirizada):
+    email = 'foo@codae.com'
+    password = 'bar'
+    perfil_adm_terc = mommy.make('Perfil', nome='TERCEIRIZADA', ativo=True)
+    usuario = django_user_model.objects.create_user(password=password, email=email,
+                                                    registro_funcional='123456')
+    hoje = datetime.date.today()
+    mommy.make('Vinculo', usuario=usuario, instituicao=terceirizada, perfil=perfil_adm_terc,
+               data_inicial=hoje, ativo=True)
+    client.login(email=email, password=password)
+    return client
 
 
 @pytest.fixture
@@ -36,6 +113,7 @@ def item_kit_lanche():
 
 @pytest.fixture
 def solicitacao_avulsa(escola):
+    mommy.make('escola.EscolaPeriodoEscolar', escola=escola, quantidade_alunos=500)
     mommy.make(TemplateMensagem, tipo=TemplateMensagem.SOLICITACAO_KIT_LANCHE_AVULSA)
     kits = mommy.make(models.KitLanche, _quantity=3)
     solicitacao_kit_lanche = mommy.make(models.SolicitacaoKitLanche, kits=kits, data=datetime.date(2000, 1, 1))
@@ -43,7 +121,9 @@ def solicitacao_avulsa(escola):
                       local=fake.text()[:160],
                       quantidade_alunos=300,
                       solicitacao_kit_lanche=solicitacao_kit_lanche,
-                      escola=escola)
+                      escola=escola,
+                      rastro_escola=escola,
+                      rastro_dre=escola.diretoria_regional)
 
 
 @pytest.fixture
@@ -73,6 +153,14 @@ def solicitacao_avulsa_dre_validado(solicitacao_avulsa):
 
 
 @pytest.fixture
+def solicitacao_avulsa_codae_questionado(solicitacao_avulsa):
+    solicitacao_avulsa.status = PedidoAPartirDaEscolaWorkflow.CODAE_QUESTIONADO
+    solicitacao_avulsa.quantidade_alunos = 200
+    solicitacao_avulsa.save()
+    return solicitacao_avulsa
+
+
+@pytest.fixture
 def solic_avulsa_terc_respondeu_questionamento(solicitacao_avulsa):
     solicitacao_avulsa.status = PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO
     solicitacao_avulsa.quantidade_alunos = 200
@@ -91,7 +179,7 @@ def solicitacao_avulsa_codae_autorizado(solicitacao_avulsa, escola):
 
 
 @pytest.fixture
-def solicitacao_unificada_lista_igual(escola):
+def solicitacao_unificada_lista_igual(escola, diretoria_regional, terceirizada):
     mommy.make(TemplateMensagem, tipo=TemplateMensagem.SOLICITACAO_KIT_LANCHE_UNIFICADA)
     kits = mommy.make(models.KitLanche, _quantity=3)
     solicitacao_kit_lanche = mommy.make(models.SolicitacaoKitLanche,
@@ -99,13 +187,15 @@ def solicitacao_unificada_lista_igual(escola):
                                         tempo_passeio=models.SolicitacaoKitLanche.OITO_OU_MAIS,
                                         kits=kits)
     escolas_quantidades = mommy.make('EscolaQuantidade', escola=escola, _quantity=10, quantidade_alunos=100)
-    dre = mommy.make('escola.DiretoriaRegional')
     solicitacao_unificada = mommy.make(models.SolicitacaoKitLancheUnificada,
                                        local=fake.text()[:160],
                                        lista_kit_lanche_igual=True,
                                        solicitacao_kit_lanche=solicitacao_kit_lanche,
                                        outro_motivo=fake.text(),
-                                       diretoria_regional=dre)
+                                       diretoria_regional=diretoria_regional,
+                                       rastro_dre=diretoria_regional,
+                                       rastro_terceirizada=terceirizada,
+                                       )
     solicitacao_unificada.escolas_quantidades.set(escolas_quantidades)
     return solicitacao_unificada
 
@@ -113,6 +203,13 @@ def solicitacao_unificada_lista_igual(escola):
 @pytest.fixture
 def solicitacao_unificada_lista_igual_codae_a_autorizar(solicitacao_unificada_lista_igual):
     solicitacao_unificada_lista_igual.status = PedidoAPartirDaDiretoriaRegionalWorkflow.CODAE_A_AUTORIZAR
+    solicitacao_unificada_lista_igual.save()
+    return solicitacao_unificada_lista_igual
+
+
+@pytest.fixture
+def solicitacao_unificada_lista_igual_codae_questionado(solicitacao_unificada_lista_igual):
+    solicitacao_unificada_lista_igual.status = PedidoAPartirDaDiretoriaRegionalWorkflow.CODAE_QUESTIONADO
     solicitacao_unificada_lista_igual.save()
     return solicitacao_unificada_lista_igual
 
@@ -356,7 +453,7 @@ def kits_avulsos_param_erro_serializer(request):
 
 @pytest.fixture(params=[
     # qtd_alunos_escola, qtd_alunos_pedido, dia
-    (100, 100, datetime.date(2020, 1, 1)),
+    (100, 100, datetime.date(2019, 8, 1)),
     (1000, 77, datetime.date(2019, 10, 20)),
     (1000, 700, datetime.date(2019, 10, 20)),
 ])
@@ -366,9 +463,9 @@ def kits_avulsos_param_serializer(request):
 
 @pytest.fixture(params=[
     # qtd_alunos_escola, qtd_alunos_pedido, dia
-    (100, 100, datetime.date(2020, 1, 1)),
     (1000, 77, datetime.date(2019, 10, 20)),
     (1000, 700, datetime.date(2019, 10, 20)),
+    (100, 100, datetime.date(2019, 12, 1)),
 ])
 def kits_unificados_param_serializer(request):
     return request.param

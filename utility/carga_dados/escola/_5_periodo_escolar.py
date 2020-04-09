@@ -1,9 +1,11 @@
+import time
+
 import environ
 import numpy as np
 import pandas as pd
 
 from sme_terceirizadas.escola.models import PeriodoEscolar, Escola
-from utility.carga_dados.escola.helper import coloca_zero_a_esquerda
+from utility.carga_dados.escola.helper import coloca_zero_a_esquerda, bcolors, printa_pontinhos
 
 ROOT_DIR = environ.Path(__file__) - 1
 
@@ -76,14 +78,18 @@ depara = {'G': 'INTEGRAL',
 
 
 def cria_periodo_escolar():
-    periodos_str = ['manha', 'intermediario', 'tarde', 'vespertino', 'noite', 'integral']
+    periodos_str = [
+        'manha', 'intermediario', 'tarde', 'vespertino', 'noite', 'integral',
+        'parcial'  # funciona somente para CEI CEU, CEI e CCI, vide tem_somente_integral_e_parcial em TipoUnidadeEscolar
+    ]
     cont = 0
     for periodo in periodos_str:
         obj, created = PeriodoEscolar.objects.get_or_create(nome=periodo.upper())
         if created:
             cont += 1
-            print(f'PERIODO ESCOLAR {obj} CRIADO')
-    print(f'qtd  criados... {cont}')
+            print(f'<PeriodoEscolar> {obj.nome} criado.')
+    print(f'{bcolors.OKBLUE}Foram criados {cont} <PeriodoEscolar>...{bcolors.ENDC}')
+    time.sleep(3)
 
 
 def vincula_tipo_ue_a_periodos_escolares():
@@ -101,12 +107,18 @@ def vincula_tipo_ue_a_periodos_escolares():
             periodo_obj = PeriodoEscolar.objects.get(nome=depara.get(periodo_letra))
             periodo_escolar_lista.append(periodo_obj)
         tipo_unidade_escolar = escola.tipo_unidade  # EMEF, CIEJA tem  os periodos padrao dela também
+
+        if escola.tipo_unidade.iniciais in ['CCI', 'CEI', 'CEI CEU']:
+            tipo_unidade_escolar.tem_somente_integral_e_parcial = True
+            tipo_unidade_escolar.save()
+
         tipo_unidade_escolar.periodos_escolares.set(periodo_escolar_lista)
         cont += 1
-        print(f'tipo ue {tipo_unidade_escolar} tem {len(periodo_escolar_lista)} periodos escolares')
-    print(f'qtd  vinculados... {cont}')
+        print(
+            f'{bcolors.OKBLUE}<TipoUnidadeEscolar> {tipo_unidade_escolar.iniciais} tem {len(periodo_escolar_lista)} periodos escolares{bcolors.ENDC}')
+    print(f'{cont} vínculos entre <TipoUnidadeEscolar> e <PeriodoEscolar> ')
 
 
-print('Run script _5_periodo_escolar.py')
 cria_periodo_escolar()
 vincula_tipo_ue_a_periodos_escolares()
+printa_pontinhos()

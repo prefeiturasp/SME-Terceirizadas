@@ -32,7 +32,15 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
         # "BURLADO DO FLUXO", PODE SER CHAMADO A QUALQUER MOMENTO COM AS DEVIDAS RESTRIÇÕES
         ESCOLA_CANCELOU,
         DRE_CANCELOU,
-    ) = range(15)
+
+        # ESPECIFICA DIETA ESPECIAL
+        INICIO_FLUXO_INATIVACAO,
+        CODAE_AUTORIZOU_INATIVACAO,
+        CODAE_NEGOU_INATIVACAO,
+        TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO,
+        TERMINADA_AUTOMATICAMENTE_SISTEMA
+
+    ) = range(20)
 
     STATUS_POSSIVEIS = (
         (INICIO_FLUXO, 'Solicitação Realizada'),
@@ -49,7 +57,13 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
         (ESCOLA_CANCELOU, 'Escola cancelou'),
         (DRE_CANCELOU, 'DRE cancelou'),
         (CODAE_QUESTIONOU, 'Questionamento pela CODAE'),
-        (TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO, 'Terceirizada respondeu questionamento')
+        (TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO, 'Terceirizada respondeu questionamento'),
+        (INICIO_FLUXO_INATIVACAO, 'Escola solicitou inativação'),
+        (CODAE_AUTORIZOU_INATIVACAO, 'CODAE autorizou inativação'),
+        (CODAE_NEGOU_INATIVACAO, 'CODAE negou inativação'),
+        (TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO, 'Terceirizada tomou ciência da inativação'),
+        (TERMINADA_AUTOMATICAMENTE_SISTEMA, 'Terminada por atingir data de término')
+
     )
     (  # DA ESCOLA
         SOLICITACAO_KIT_LANCHE_AVULSA,
@@ -57,11 +71,13 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
         SUSPENSAO_DE_CARDAPIO,
         INVERSAO_DE_CARDAPIO,
         INCLUSAO_ALIMENTACAO_NORMAL,
+        INCLUSAO_ALIMENTACAO_CEI,
+        SUSPENSAO_ALIMENTACAO_CEI,
         INCLUSAO_ALIMENTACAO_CONTINUA,
         DIETA_ESPECIAL,
         # DA DRE
         SOLICITACAO_KIT_LANCHE_UNIFICADA
-    ) = range(8)
+    ) = range(10)
 
     TIPOS_SOLICITACOES = (
         (SOLICITACAO_KIT_LANCHE_AVULSA, 'Solicitação de kit lanche avulsa'),
@@ -69,6 +85,8 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
         (SUSPENSAO_DE_CARDAPIO, 'Suspensão de cardápio'),
         (INVERSAO_DE_CARDAPIO, 'Inversão de cardápio'),
         (INCLUSAO_ALIMENTACAO_NORMAL, 'Inclusão de alimentação normal'),
+        (INCLUSAO_ALIMENTACAO_CEI, 'Inclusão de alimentação da CEI'),
+        (SUSPENSAO_ALIMENTACAO_CEI, 'Suspensão de alimentação da CEI'),
         (INCLUSAO_ALIMENTACAO_CONTINUA, 'Inclusão de alimentação contínua'),
         (DIETA_ESPECIAL, 'Dieta Especial'),
         (SOLICITACAO_KIT_LANCHE_UNIFICADA, 'Solicitação de kit lanche unificada'),
@@ -83,6 +101,10 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
     solicitacao_tipo = models.PositiveSmallIntegerField(choices=TIPOS_SOLICITACOES)
     uuid_original = models.UUIDField()
     usuario = models.ForeignKey('perfil.Usuario', on_delete=models.DO_NOTHING)
+
+    @property
+    def status_evento_explicacao(self):
+        return self.get_status_evento_display()
 
     def __str__(self):
         return (f'{self.usuario} executou {self.get_status_evento_display()} '

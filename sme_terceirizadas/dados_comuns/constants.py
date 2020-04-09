@@ -40,6 +40,9 @@ PEDIDOS_TERCEIRIZADA = 'pedidos-terceirizadas'
 PEDIDOS_DRE = 'pedidos-diretoria-regional'
 FILTRO_PADRAO_PEDIDOS = f'(?P<filtro_aplicado>({SEM_FILTRO}|{DAQUI_A_SETE_DIAS}|{DAQUI_A_TRINTA_DIAS})+)'
 
+RELATORIO = 'relatorio'
+PROTOCOLO = 'protocolo'
+
 #
 # FLUXO, usados nas actions de transição de status nas viewsets dos pedidos/informações do sistema
 #
@@ -48,6 +51,9 @@ ESCOLA_INICIO_PEDIDO = 'inicio-pedido'
 ESCOLA_REVISA_PEDIDO = 'escola-revisa-pedido'
 ESCOLA_CANCELA = 'escola-cancela-pedido-48h-antes'
 ESCOLA_INFORMA_SUSPENSAO = 'informa-suspensao'
+ESCOLA_SOLICITA_INATIVACAO = 'escola-solicita-inativacao'
+
+ESCOLA_CANCELA_DIETA_ESPECIAL = 'escola-cancela-dieta-especial'
 
 DRE_INICIO_PEDIDO = 'inicio-pedido'
 DRE_VALIDA_PEDIDO = 'diretoria-regional-valida-pedido'
@@ -57,12 +63,15 @@ DRE_REVISA_PEDIDO = 'diretoria-regional-revisa'
 DRE_CANCELA = 'diretoria-regional-cancela'
 
 CODAE_AUTORIZA_PEDIDO = 'codae-autoriza-pedido'
+CODAE_AUTORIZA_INATIVACAO = 'codae-autoriza-inativacao'
 CODAE_NEGA_PEDIDO = 'codae-cancela-pedido'
+CODAE_NEGA_INATIVACAO = 'codae-nega-inativacao'
 CODAE_PEDE_REVISAO = 'codae-pediu-revisao'
 CODAE_QUESTIONA_PEDIDO = 'codae-questiona-pedido'
 
 TERCEIRIZADA_RESPONDE_QUESTIONAMENTO = 'terceirizada-responde-questionamento'
 TERCEIRIZADA_TOMOU_CIENCIA = 'terceirizada-toma-ciencia'
+TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO = 'terceirizada-toma-ciencia-inativacao'
 
 #
 # FILTROS
@@ -88,3 +97,5 @@ ADMINISTRADOR_TERCEIRIZADA = 'ADMINISTRADOR_TERCEIRIZADA'
 # CACHE
 TEMPO_CACHE_6H = 60 * 60 * 6
 TEMPO_CACHE_1H = 60 * 60 * 6
+
+DEZ_MB = 10485760

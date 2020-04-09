@@ -1,6 +1,11 @@
 from rest_framework import permissions
 
-from ...dados_comuns.constants import NUTRI_ADMIN_RESPONSAVEL
+from ...dados_comuns.constants import (
+    COORDENADOR_DIETA_ESPECIAL,
+    COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
+    NUTRI_ADMIN_RESPONSAVEL
+)
+from ...escola.models import Codae
 
 
 class PodeAlterarTerceirizadasPermission(permissions.BasePermission):
@@ -19,13 +24,15 @@ class PodeCriarAdministradoresDaTerceirizada(permissions.BasePermission):
     def has_permission(self, request, view):
         usuario = request.user
         if not usuario.is_anonymous:
-            perfil_nutri_admin = usuario.vinculo_atual.perfil.nome == NUTRI_ADMIN_RESPONSAVEL
+            perfil_nutri_admin = usuario.vinculo_atual.perfil.nome in [NUTRI_ADMIN_RESPONSAVEL,
+                                                                       COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
+                                                                       COORDENADOR_DIETA_ESPECIAL]
             return perfil_nutri_admin
         return False
 
     def has_object_permission(self, request, view, obj):
         user = request.user
-        tem_vinculo_que_pode_criar_administradores = user.vinculo_atual.instituicao == obj
+        tem_vinculo_que_pode_criar_administradores = user.vinculo_atual.instituicao in [obj, Codae.objects.get()]
         if tem_vinculo_que_pode_criar_administradores:
             return True
         return False

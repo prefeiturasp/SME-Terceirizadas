@@ -2,16 +2,20 @@ from django.contrib import admin
 
 from .models import (
     AlteracaoCardapio,
+    AlteracaoCardapioCEI,
     Cardapio,
     ComboDoVinculoTipoAlimentacaoPeriodoTipoUE,
     GrupoSuspensaoAlimentacao,
+    HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolar,
     InversaoCardapio,
     MotivoAlteracaoCardapio,
     MotivoSuspensao,
     QuantidadePorPeriodoSuspensaoAlimentacao,
     SubstituicaoAlimentacaoNoPeriodoEscolar,
+    SubstituicaoAlimentacaoNoPeriodoEscolarCEI,
     SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE,
     SuspensaoAlimentacao,
+    SuspensaoAlimentacaoDaCEI,
     TipoAlimentacao,
     VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
 )
@@ -20,7 +24,9 @@ admin.site.register(TipoAlimentacao)
 admin.site.register(InversaoCardapio)
 admin.site.register(MotivoAlteracaoCardapio)
 admin.site.register(SubstituicaoAlimentacaoNoPeriodoEscolar)
+admin.site.register(SuspensaoAlimentacaoDaCEI)
 admin.site.register(MotivoSuspensao)
+admin.site.register(HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolar)
 
 
 class SubstituicaoComboInline(admin.TabularInline):
@@ -58,6 +64,18 @@ class SubstituicoesInLine(admin.TabularInline):
 class AlteracaoCardapioModelAdmin(admin.ModelAdmin):
     inlines = [SubstituicoesInLine]
     list_display = ['uuid', 'data_inicial', 'data_final', 'status']
+    list_filter = ['status']
+
+
+class SubstituicoesCEIInLine(admin.TabularInline):
+    model = SubstituicaoAlimentacaoNoPeriodoEscolarCEI
+    extra = 1
+
+
+@admin.register(AlteracaoCardapioCEI)
+class AlteracaoCardapioCEIModelAdmin(admin.ModelAdmin):
+    inlines = [SubstituicoesCEIInLine]
+    list_display = ['uuid', 'data', 'status']
     list_filter = ['status']
 
 

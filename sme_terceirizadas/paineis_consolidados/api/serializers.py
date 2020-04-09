@@ -9,8 +9,13 @@ from ..models import SolicitacoesCODAE
 class SolicitacoesSerializer(serializers.ModelSerializer):
     data_log = serializers.SerializerMethodField()
     descricao = serializers.SerializerMethodField()
+    descricao_dieta_especial = serializers.SerializerMethodField()
     prioridade = serializers.CharField()
     id_externo = serializers.CharField()
+
+    def get_descricao_dieta_especial(self, obj):
+        uuid = str(obj.uuid)
+        return f'{uuid.upper()[:5]} - {obj.lote_nome[:20]} - {obj.nome_aluno}/{obj.escola_nome}'
 
     def get_descricao(self, obj):
         uuid = str(obj.uuid)

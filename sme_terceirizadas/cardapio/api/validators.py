@@ -3,7 +3,12 @@ import datetime
 from django.db.models import Q
 from rest_framework import serializers
 
-from ...cardapio.models import Cardapio, TipoAlimentacao
+from ...cardapio.models import (
+    Cardapio,
+    ComboDoVinculoTipoAlimentacaoPeriodoTipoUE,
+    HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolar,
+    SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE
+)
 from ...escola.models import Escola
 from ..models import InversaoCardapio
 
@@ -33,15 +38,6 @@ def nao_pode_existir_solicitacao_igual_para_mesma_escola(data_de: datetime.date,
     return True
 
 
-def deve_ser_no_mesmo_ano_corrente(data_inversao: datetime.date):
-    ano_corrente = datetime.date.today().year
-    if ano_corrente != data_inversao.year:
-        raise serializers.ValidationError(
-            'Inversão de dia de cardapio deve ser solicitada no ano corrente'
-        )
-    return True
-
-
 def nao_pode_ter_mais_que_60_dias_diferenca(data_de: datetime.date, data_para: datetime.date):
     diferenca = abs((data_para - data_de).days)
     if diferenca > 60:
@@ -51,11 +47,36 @@ def nao_pode_ter_mais_que_60_dias_diferenca(data_de: datetime.date, data_para: d
     return True
 
 
-def precisa_pertencer_a_um_tipo_de_alimentacao(tipo_alimentacao_de: TipoAlimentacao,
-                                               tipo_alimentacao_para: TipoAlimentacao):
-    if tipo_alimentacao_para not in tipo_alimentacao_de.substituicoes.all():
+def precisa_pertencer_a_um_tipo_de_alimentacao(tipo_alimentacao_de: ComboDoVinculoTipoAlimentacaoPeriodoTipoUE,
+                                               tipo_alimentacao_para:
+                                               SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE):
+    if tipo_alimentacao_de != tipo_alimentacao_para.combo:
         raise serializers.ValidationError(
-            f'Tipo de alimentação {tipo_alimentacao_para.nome} não é substituível por {tipo_alimentacao_de.nome}'
+            f'Tipo de alimentação {tipo_alimentacao_para.label} não é substituível por {tipo_alimentacao_de.label}'
 
         )
+    return True
+
+
+def hora_inicio_nao_pode_ser_maior_que_hora_final(hora_inicial: datetime.time, hora_final: datetime.time):
+    if hora_inicial >= hora_final:
+        raise serializers.ValidationError(
+            'Hora Inicio não pode ser maior do que hora final'
+        )
+    return True
+
+
+def escola_nao_pode_cadastrar_dois_combos_iguais(escola: Escola, combo: ComboDoVinculoTipoAlimentacaoPeriodoTipoUE):
+    """
+    Se o combo de tipo de alimentacao já estiver cadastrado para a Escola, deverá retornar um erro.
+
+    Pois para cada combo só é possivel registrar um intervalo de horario, caso o combo já estiver
+    cadastrado, só será possivel atualizar o objeto HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolar.
+    """
+    horario_combo_por_escola = HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolar.objects.filter(
+        escola=escola,
+        combo_tipos_alimentacao=combo
+    ).exists()
+    if horario_combo_por_escola:
+        raise serializers.ValidationError('Já existe um horario registrado para esse combo nesta escola')
     return True

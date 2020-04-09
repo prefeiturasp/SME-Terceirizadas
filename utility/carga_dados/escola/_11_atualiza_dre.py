@@ -5,6 +5,7 @@ import environ
 
 from sme_terceirizadas.escola.models import (
     DiretoriaRegional)
+from utility.carga_dados.escola.helper import printa_pontinhos, bcolors
 
 ROOT_DIR = environ.Path(__file__) - 1
 with open(os.path.join(ROOT_DIR, 'planilhas_de_carga', 'dres.json'), 'r') as f:
@@ -21,6 +22,8 @@ for diret in json_data['results']:
     dre_object.save()
 
     if created:
-        print(f'Diretoria regional criada.. {dre_object}"' % diret)
+        print(f'{bcolors.OKBLUE}<DiretoriaRegional> criada.. {dre_object.nome}{bcolors.ENDC}')
     else:
-        print(f'Diretoria regional atualizada.. {dre_object}"' % diret)
+        print(f'{bcolors.OKBLUE}<DiretoriaRegional> atualizada.. {dre_object.nome}{bcolors.ENDC}')
+
+printa_pontinhos()

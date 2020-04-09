@@ -23,9 +23,56 @@ usuario_terceirizada = Usuario.objects.get(email='terceirizada@admin.com')
 usuario_terceirizada.registro_funcional = '0000100'
 usuario_terceirizada.nome = 'SUPER USUARIO TERCEIRIZADA'
 usuario_terceirizada.save()
+usuario_nutri_codae = Usuario.objects.get(email='nutricodae@admin.com')
+usuario_nutri_codae.registro_funcional = '0000101'
+usuario_nutri_codae.nome = 'USUARIO NUTRICIONISTA CODAE'
+usuario_nutri_codae.crn_numero = '15975364'
+usuario_nutri_codae.save()
+usuario_escola_cei = Usuario.objects.get(email='escolacei@admin.com')
+usuario_escola_cei.registro_funcional = '0000110'
+usuario_escola_cei.nome = 'SUPER USUARIO ESCOLA CEI'
+usuario_escola_cei.save()
+usuario_escola_cei_ceu = Usuario.objects.get(email='escolaceiceu@admin.com')
+usuario_escola_cei_ceu.registro_funcional = '0000111'
+usuario_escola_cei_ceu.nome = 'SUPER USUARIO ESCOLA CEI CEU'
+usuario_escola_cei_ceu.save()
+usuario_escola_cci = Usuario.objects.get(email='escolacci@admin.com')
+usuario_escola_cci.registro_funcional = '0001000'
+usuario_escola_cci.nome = 'SUPER USUARIO ESCOLA CCI'
+usuario_escola_cci.save()
+usuario_escola_emef = Usuario.objects.get(email='escolaemef@admin.com')
+usuario_escola_emef.registro_funcional = '0001001'
+usuario_escola_emef.nome = 'SUPER USUARIO ESCOLA EMEF'
+usuario_escola_emef.save()
+usuario_escola_emebs = Usuario.objects.get(email='escolaemebs@admin.com')
+usuario_escola_emebs.registro_funcional = '0001010'
+usuario_escola_emebs.nome = 'SUPER USUARIO ESCOLA EMEBS'
+usuario_escola_emebs.save()
+usuario_escola_cieja = Usuario.objects.get(email='escolacieja@admin.com')
+usuario_escola_cieja.registro_funcional = '0001011'
+usuario_escola_cieja.nome = 'SUPER USUARIO ESCOLA CIEJA'
+usuario_escola_cieja.save()
+usuario_escola_emei = Usuario.objects.get(email='escolaemei@admin.com')
+usuario_escola_emei.registro_funcional = '0001100'
+usuario_escola_emei.nome = 'SUPER USUARIO ESCOLA EMEI'
+usuario_escola_emei.save()
+usuario_escola_ceu_emei = Usuario.objects.get(email='escolaceuemei@admin.com')
+usuario_escola_ceu_emei.registro_funcional = '0001101'
+usuario_escola_ceu_emei.nome = 'SUPER USUARIO ESCOLA CEU EMEI'
+usuario_escola_ceu_emei.save()
+usuario_escola_ceu_emef = Usuario.objects.get(email='escolaceuemef@admin.com')
+usuario_escola_ceu_emef.registro_funcional = '0001111'
+usuario_escola_ceu_emef.nome = 'SUPER USUARIO ESCOLA CEU EMEF'
+usuario_escola_ceu_emef.save()
 
 perfil_diretor_escola, created = Perfil.objects.get_or_create(
     nome='DIRETOR',
+    ativo=True,
+    super_usuario=True
+)
+
+perfil_diretor_escola_cei, created = Perfil.objects.get_or_create(
+    nome='DIRETOR CEI',
     ativo=True,
     super_usuario=True
 )
@@ -48,8 +95,14 @@ perfil_administrador_diretoria_regional, created = Perfil.objects.get_or_create(
     super_usuario=True
 )
 
-perfil_usuario_codae, created = Perfil.objects.get_or_create(
+perfil_usuario_nutri_codae, created = Perfil.objects.get_or_create(
     nome='COORDENADOR_DIETA_ESPECIAL',
+    ativo=True,
+    super_usuario=True
+)
+
+Perfil.objects.get_or_create(
+    nome='ADMINISTRADOR_DIETA_ESPECIAL',
     ativo=True,
     super_usuario=True
 )
@@ -62,12 +115,6 @@ perfil_usuario_codae, created = Perfil.objects.get_or_create(
 
 Perfil.objects.get_or_create(
     nome='ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA',
-    ativo=True,
-    super_usuario=True
-)
-
-Perfil.objects.get_or_create(
-    nome='ADMINISTRADOR_DIETA_ESPECIAL',
     ativo=True,
     super_usuario=True
 )
@@ -86,7 +133,16 @@ Perfil.objects.get_or_create(
 
 
 escola = Escola.objects.get(nome='EMEF JOSE ERMIRIO DE MORAIS, SEN.')
-diretoria_regional = DiretoriaRegional.objects.get(nome='DIRETORIA REGIONAL DE EDUCACAO SAO MIGUEL')
+escola_cei = Escola.objects.get(nome='CEI DIRET ENEDINA DE SOUSA CARVALHO')
+escola_cei_ceu = Escola.objects.get(nome='CEU CEI MENINOS')
+escola_cci = Escola.objects.get(nome='CCI/CIPS CAMARA MUNICIPAL DE SAO PAULO')
+escola_emef = Escola.objects.get(nome='EMEF PERICLES EUGENIO DA SILVA RAMOS')
+escola_emebs = Escola.objects.get(nome='EMEBS HELEN KELLER')
+escola_cieja = Escola.objects.get(nome='CIEJA CLOVIS CAITANO MIQUELAZZO - IPIRANGA')
+escola_emei = Escola.objects.get(nome='EMEI SENA MADUREIRA')
+escola_ceu_emei = Escola.objects.get(nome='CEU EMEI BENNO HUBERT STOLLENWERK, PE.')
+escola_ceu_emef = Escola.objects.get(nome='CEU EMEF MARA CRISTINA TARTAGLIA SENA, PROFA.')
+diretoria_regional = DiretoriaRegional.objects.get(nome='DIRETORIA REGIONAL DE EDUCACAO IPIRANGA')
 codae, created = Codae.objects.get_or_create(nome='CODAE')
 terceirizada = escola.lote.terceirizada
 
@@ -97,6 +153,78 @@ Vinculo.objects.create(
     data_inicial=data_atual
 )
 print(f'perfil {perfil_diretor_escola.nome} vinculado a {escola.nome} com sucesso')
+
+Vinculo.objects.create(
+    instituicao=escola_cei,
+    perfil=perfil_diretor_escola_cei,
+    usuario=usuario_escola_cei,
+    data_inicial=data_atual
+)
+print(f'perfil {perfil_diretor_escola_cei.nome} vinculado a {escola_cei.nome} com sucesso')
+
+Vinculo.objects.create(
+    instituicao=escola_cei_ceu,
+    perfil=perfil_diretor_escola_cei,
+    usuario=usuario_escola_cei_ceu,
+    data_inicial=data_atual
+)
+print(f'perfil {perfil_diretor_escola_cei.nome} vinculado a {escola_cei_ceu.nome} com sucesso')
+
+Vinculo.objects.create(
+    instituicao=escola_cci,
+    perfil=perfil_diretor_escola_cei,
+    usuario=usuario_escola_cci,
+    data_inicial=data_atual
+)
+print(f'perfil {perfil_diretor_escola_cei.nome} vinculado a {escola_cci.nome} com sucesso')
+
+Vinculo.objects.create(
+    instituicao=escola_emef,
+    perfil=perfil_diretor_escola,
+    usuario=usuario_escola_emef,
+    data_inicial=data_atual
+)
+print(f'perfil {perfil_diretor_escola.nome} vinculado a {escola_emef.nome} com sucesso')
+
+Vinculo.objects.create(
+    instituicao=escola_emebs,
+    perfil=perfil_diretor_escola,
+    usuario=usuario_escola_emebs,
+    data_inicial=data_atual
+)
+print(f'perfil {perfil_diretor_escola.nome} vinculado a {escola_emebs.nome} com sucesso')
+
+Vinculo.objects.create(
+    instituicao=escola_cieja,
+    perfil=perfil_diretor_escola,
+    usuario=usuario_escola_cieja,
+    data_inicial=data_atual
+)
+print(f'perfil {perfil_diretor_escola.nome} vinculado a {escola_cieja.nome} com sucesso')
+
+Vinculo.objects.create(
+    instituicao=escola_emei,
+    perfil=perfil_diretor_escola,
+    usuario=usuario_escola_emei,
+    data_inicial=data_atual
+)
+print(f'perfil {perfil_diretor_escola.nome} vinculado a {escola_emei.nome} com sucesso')
+
+Vinculo.objects.create(
+    instituicao=escola_ceu_emei,
+    perfil=perfil_diretor_escola,
+    usuario=usuario_escola_ceu_emei,
+    data_inicial=data_atual
+)
+print(f'perfil {perfil_diretor_escola.nome} vinculado a {escola_ceu_emei.nome} com sucesso')
+
+Vinculo.objects.create(
+    instituicao=escola_ceu_emef,
+    perfil=perfil_diretor_escola,
+    usuario=usuario_escola_ceu_emef,
+    data_inicial=data_atual
+)
+print(f'perfil {perfil_diretor_escola.nome} vinculado a {escola_ceu_emef.nome} com sucesso')
 
 Vinculo.objects.create(
     instituicao=diretoria_regional,
@@ -115,22 +243,17 @@ Vinculo.objects.create(
 print(f'perfil {perfil_usuario_codae.nome} vinculado a {codae.nome} com sucesso')
 
 Vinculo.objects.create(
+    instituicao=codae,
+    perfil=perfil_usuario_nutri_codae,
+    usuario=usuario_nutri_codae,
+    data_inicial=data_atual
+)
+print(f'perfil {perfil_usuario_nutri_codae.nome} vinculado a {codae.nome} com sucesso')
+
+Vinculo.objects.create(
     instituicao=terceirizada,
     perfil=perfil_usuario_terceirizada,
     usuario=usuario_terceirizada,
     data_inicial=data_atual
 )
 print(f'perfil {perfil_usuario_terceirizada.nome} vinculado a {terceirizada.nome_fantasia} com sucesso')
-
-print('Criando configuração default de email')
-
-import os
-DynamicEmailConfiguration.objects.create(
-    host=os.environ['EMAIL_HOST'],
-    port=os.environ['EMAIL_PORT'],
-    from_email=os.environ['EMAIL_HOST_USER'],
-    username=os.environ['EMAIL_HOST_USER'],
-    password=os.environ['EMAIL_HOST_PASSWORD'],
-    use_tls=os.environ['EMAIL_USE_TLS'],
-    timeout=60
-)

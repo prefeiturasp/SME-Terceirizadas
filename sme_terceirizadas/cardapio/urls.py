@@ -10,15 +10,11 @@ router.register('inversoes-dia-cardapio', viewsets.InversaoCardapioViewSet, 'Inv
 router.register('grupos-suspensoes-alimentacao', viewsets.GrupoSuspensaoAlimentacaoSerializerViewSet,
                 'Grupos de suspensão de alimentação.')
 router.register('alteracoes-cardapio', viewsets.AlteracoesCardapioViewSet, 'Alterações de Cardápio')
+router.register('alteracoes-cardapio-cei', viewsets.AlteracoesCardapioCEIViewSet, 'Alterações de Cardápio CEI')
 router.register('motivos-alteracao-cardapio', viewsets.MotivosAlteracaoCardapioViewSet,
                 'Motivos de alteração de cardápio')
 router.register('motivos-suspensao-cardapio', viewsets.MotivosSuspensaoCardapioViewSet,
                 'Motivos de suspensão de cardápio')
-
-# TODO: TIRAR ESSE ENDPOINT DE RASCUNHO
-router.register('alteracoes-cardapio-rascunho', viewsets.AlteracoesCardapioRascunhoViewSet,
-                'Alterações de Cardápio Rascunho')
-
 router.register('vinculos-tipo-alimentacao-u-e-periodo-escolar', viewsets.VinculoTipoAlimentacaoViewSet,
                 'Vínculos de tipo de alimentação no periodo escolar e tipo de u.e')
 router.register('combos-vinculos-tipo-alimentacao-u-e-periodo-escolar',
@@ -27,6 +23,12 @@ router.register('combos-vinculos-tipo-alimentacao-u-e-periodo-escolar',
 router.register('substituicoes-combos-vinculos-tipo-alimentacao-u-e-periodo-escolar',
                 viewsets.SubstituicaoDoCombosDoVinculoTipoAlimentacaoPeriodoTipoUEViewSet,
                 'Substituições dos combos dos vínculos de tipo de alimentação no periodo escolar e tipo de u.e')
+router.register('horario-do-combo-tipo-de-alimentacao-por-unidade-escolar',
+                viewsets.HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolarViewSet,
+                'horario-do-combo-tipo-de-alimentacao-por-unidade-escolar')
+router.register('suspensao-alimentacao-de-cei',
+                viewsets.SuspensaoAlimentacaoDaCEIViewSet,
+                'suspensao-alimentacao-de-cei')
 urlpatterns = [
     path('', include(router.urls)),
 ]
