@@ -49,6 +49,7 @@ class InclusaoAlimentacaoDaCEISerializer(serializers.ModelSerializer):
     motivo = MotivoInclusaoNormalSerializer()
     quantidade_alunos_por_faixas_etarias = QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEISerializer(
         many=True, read_only=True)
+    logs = LogSolicitacoesUsuarioSerializer(many=True)
     id_externo = serializers.CharField()
 
     class Meta:
