@@ -17,7 +17,7 @@ from ..models import (
     SolicitacaoDietaEspecial,
     SubstituicaoAlimento
 )
-from .serializers_create import SolicitacaoDietaEspecialCreateSerializer
+from .serializers_create import SolicitacaoDietaEspecialCreateSerializer, SubstituicaoAlimentoCreateSerializer
 from .validators import atributos_lista_nao_vazios, atributos_string_nao_vazios, deve_ter_atributos
 
 
@@ -51,12 +51,6 @@ class AnexoSerializer(ModelSerializer):
     class Meta:
         model = Anexo
         fields = ('arquivo', 'nome', 'eh_laudo_alta')
-
-
-class SubstituicaoAlimentoCreateSerializer(ModelSerializer):
-    class Meta:
-        model = SubstituicaoAlimento
-        fields = '__all__'
 
 
 class SubstituicaoAlimentoSerializer(ModelSerializer):
