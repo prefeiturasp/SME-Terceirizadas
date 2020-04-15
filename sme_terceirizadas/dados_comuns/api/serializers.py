@@ -2,7 +2,7 @@ from des.models import DynamicEmailConfiguration
 from rest_framework import serializers
 
 from ...perfil.api.serializers import UsuarioSerializer
-from ..models import Contato, LogSolicitacoesUsuario, TemplateMensagem
+from ..models import Contato, LogSolicitacoesUsuario, PerguntaFrequente, TemplateMensagem
 
 
 class LogSolicitacoesUsuarioSerializer(serializers.ModelSerializer):
@@ -34,4 +34,10 @@ class ConfiguracaoMensagemSerializer(serializers.ModelSerializer):
 class ContatoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Contato
+        exclude = ('id',)
+
+
+class PerguntaFrequenteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PerguntaFrequente
         exclude = ('id',)

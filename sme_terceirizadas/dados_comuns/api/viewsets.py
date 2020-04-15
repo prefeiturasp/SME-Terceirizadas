@@ -9,8 +9,9 @@ from rest_framework.viewsets import ModelViewSet, ViewSet
 
 from ..behaviors import DiasSemana, TempoPasseio
 from ..constants import TEMPO_CACHE_1H, TEMPO_CACHE_6H, obter_dias_uteis_apos_hoje
-from ..models import TemplateMensagem
-from .serializers import ConfiguracaoEmailSerializer, ConfiguracaoMensagemSerializer
+from ..models import PerguntaFrequente, TemplateMensagem
+from ..permissions import UsuarioCODAEGestaoAlimentacao
+from .serializers import ConfiguracaoEmailSerializer, ConfiguracaoMensagemSerializer, PerguntaFrequenteSerializer
 
 
 class DiasDaSemanaViewSet(ViewSet):
@@ -66,3 +67,14 @@ class TemplateMensagemViewSet(ModelViewSet):
     lookup_field = 'uuid'
     queryset = TemplateMensagem.objects.all()
     serializer_class = ConfiguracaoMensagemSerializer
+
+
+class PerguntaFrequenteViewSet(ModelViewSet):
+    lookup_field = 'uuid'
+    queryset = PerguntaFrequente.objects.all()
+    serializer_class = PerguntaFrequenteSerializer
+
+    def get_permissions(self):
+        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+            self.permission_classes = (UsuarioCODAEGestaoAlimentacao,)
+        return super(PerguntaFrequenteViewSet, self).get_permissions()
