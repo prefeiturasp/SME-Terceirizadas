@@ -34,6 +34,7 @@ from .serializers import (
     MotivoNegacaoSerializer,
     SolicitacaoDietaEspecialAutorizarSerializer,
     SolicitacaoDietaEspecialSerializer,
+    SolicitacaoDietaEspecialUpdateSerializer,
     SolicitacoesAtivasInativasPorAlunoSerializer
 )
 from .serializers_create import SolicitacaoDietaEspecialCreateSerializer
@@ -42,25 +43,30 @@ from .serializers_create import SolicitacaoDietaEspecialCreateSerializer
 class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
                                       mixins.ListModelMixin,
                                       mixins.CreateModelMixin,
+                                      mixins.UpdateModelMixin,
                                       GenericViewSet):
     lookup_field = 'uuid'
     permission_classes = (IsAuthenticated,)
     queryset = SolicitacaoDietaEspecial.objects.all()
 
-    def get_permissions(self):
-        if self.action in ['list', 'update']:
+    def get_permissions(self):  # noqa C901
+        if self.action == 'list':
             self.permission_classes = (IsAdminUser,)
+        elif self.action == 'update':
+            self.permission_classes = (IsAdminUser, UsuarioCODAEDietaEspecial)
         elif self.action == 'retrieve':
             self.permission_classes = (IsAuthenticated, PermissaoParaRecuperarDietaEspecial)
-        elif self.action in ['create']:
+        elif self.action == 'create':
             self.permission_classes = (UsuarioEscola,)
         return super(SolicitacaoDietaEspecialViewSet, self).get_permissions()
 
     def get_serializer_class(self):
-        if self.action in ['create', 'update', 'partial_update']:
+        if self.action == 'create':
             return SolicitacaoDietaEspecialCreateSerializer
         elif self.action == 'autorizar':
             return SolicitacaoDietaEspecialAutorizarSerializer
+        elif self.action in ['update', 'partial_update']:
+            return SolicitacaoDietaEspecialUpdateSerializer
         return SolicitacaoDietaEspecialSerializer
 
     @action(detail=False, methods=['get'], url_path=f'solicitacoes-aluno/{FILTRO_CODIGO_EOL_ALUNO}')
