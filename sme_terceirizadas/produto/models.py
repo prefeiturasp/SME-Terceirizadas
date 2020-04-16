@@ -29,7 +29,7 @@ class Marca(Nomeavel, TemChaveExterna):
 
 
 class ImagemDoProduto(models.Model):
-    fabricante = models.ForeignKey('Produto', on_delete=models.DO_NOTHING)
+    produto = models.ForeignKey('Produto', on_delete=models.DO_NOTHING)
     arquivo = models.FileField()
 
 
