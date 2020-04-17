@@ -49,45 +49,6 @@ GROUP BY
   logs.status_evento,
   escola.diretoria_regional_id
 UNION
-  -- INC_ALIMENTACAO_CEI
-SELECT
-  inc_alimentacao_cei.id,
-  inc_alimentacao_cei.uuid,
-  lote.nome AS lote,
-  min(inc_alimentacao_cei.data) AS data_doc,
-  dre.uuid AS dre_uuid,
-  dre.nome AS dre_nome,
-  escola.uuid AS escola_uuid,
-  terceirizada.uuid AS terceirizada_uuid,
-  logs.criado_em,
-  'INC_ALIMENTA_CEI' AS tipo_doc,
-  'Inclusão de Alimentacao de Cei' AS desc_doc,
-  logs.status_evento,
-  inc_alimentacao_cei.status AS status
-FROM
-  inclusao_alimentacao_da_cei AS inc_alimentacao_cei,
-  escola_escola AS escola,
-  escola_lote AS lote,
-  escola_diretoriaregional AS dre,
-  dados_comuns_logsolicitacoesusuario AS logs,
-  terceirizada_terceirizada AS terceirizada
-WHERE
-  escola.id = inc_alimentacao_cei.escola_id
-  AND lote.id = escola.lote_id
-  AND dre.id = escola.diretoria_regional_id
-  AND inc_alimentacao_cei.uuid = logs.uuid_original
-  AND terceirizada.id = lote.terceirizada_id
-GROUP BY
-  inc_alimentacao_cei.id,
-  lote.nome,
-  escola_uuid,
-  dre_uuid,
-  dre_nome,
-  terceirizada_uuid
-  logs.criado_em,
-  logs.status_evento,
-  escola.diretoria_regional_id
-UNION
   -- INC_ALIMENTA
 SELECT
   inc_alimentacao.id,
