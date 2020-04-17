@@ -1,12 +1,11 @@
 from django.db import models
 
-from ..dados_comuns.behaviors import (  # noqa I101
+from sme_terceirizadas.dados_comuns.behaviors import (
     Ativavel,
     CriadoEm,
     CriadoPor,
     Nomeavel,
-    TemChaveExterna,
-    TemIdentificadorExternoAmigavel
+    TemChaveExterna
 )
 
 
@@ -28,14 +27,26 @@ class Marca(Nomeavel, TemChaveExterna):
         return self.nome
 
 
+class TipoDeInformacaoNutricional(Nomeavel, TemChaveExterna):
+    def __str__(self):
+        return self.nome
+
+
+class InformacaoNutricional(TemChaveExterna, Nomeavel):
+    tipo_nutricional = models.ForeignKey(TipoDeInformacaoNutricional, on_delete=models.DO_NOTHING)
+
+    def __str__(self):
+        return self.nome
+
+
 class ImagemDoProduto(models.Model):
-    produto = models.ForeignKey('Produto', on_delete=models.DO_NOTHING)
+    produto = models.ForeignKey('Produto', on_delete=models.CASCADE)
     arquivo = models.FileField()
 
 
 class Produto(Ativavel, CriadoEm, CriadoPor, Nomeavel, TemChaveExterna):
     eh_para_alunos_com_dieta = models.BooleanField(default=False)
-    protocolos = models.ManyToManyField('ProtocoloDeDietaEspecial',
+    protocolos = models.ManyToManyField(ProtocoloDeDietaEspecial,
                                         related_name='protocolos',
                                         help_text='Protocolos do produto.',
                                         blank=True,
@@ -57,21 +68,15 @@ class Produto(Ativavel, CriadoEm, CriadoPor, Nomeavel, TemChaveExterna):
     outras_informacoes = models.TextField()
     numero_registro = models.CharField('Registro do órgão competente', blank=True, max_length=100)
 
+    porcao = models.CharField('Porção nutricional', blank=True, max_length=50)
+    unidade_caseira = models.CharField('Unidade nutricional', blank=True, max_length=50)
 
-class TipoDeInformacaoNutricional(Nomeavel, TemChaveExterna):
     def __str__(self):
         return self.nome
 
 
-class InformacaoNutricional(TemChaveExterna, Nomeavel):
+class InformacoesNutricionaisDoProduto(TemChaveExterna):
+    produto = models.ForeignKey(Produto, on_delete=models.CASCADE)
+    informacao_nutricional = models.ForeignKey(InformacaoNutricional, on_delete=models.DO_NOTHING)
     quantidade_porcao = models.CharField('Quantidade por Porção', blank=True, max_length=10)
     valor_diario = models.CharField('%VD(*)', blank=True, max_length=3)
-    tipo_nutricional = models.ForeignKey(TipoDeInformacaoNutricional, on_delete=models.DO_NOTHING)
-
-
-class InformacoesNutricionaisDoProduto(TemChaveExterna):
-    produto = models.ForeignKey(Produto, on_delete=models.DO_NOTHING)
-    informacoes_nutricionais = models.ManyToManyField(InformacaoNutricional,
-                                                      related_name='informacoes_nutricionais')
-    porcao = models.CharField(blank=True, max_length=50)
-    unidade_caseira = models.CharField(blank=True, max_length=50)
