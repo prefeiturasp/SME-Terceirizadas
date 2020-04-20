@@ -15,7 +15,7 @@ from ..dados_comuns.behaviors import (
 from ..dados_comuns.constants import NUTRI_ADMIN_RESPONSAVEL
 from ..dados_comuns.utils import queryset_por_data
 from ..escola.models import DiretoriaRegional, Lote
-from ..inclusao_alimentacao.models import GrupoInclusaoAlimentacaoNormal, InclusaoAlimentacaoContinua
+from ..inclusao_alimentacao.models import GrupoInclusaoAlimentacaoNormal, InclusaoAlimentacaoContinua, InclusaoAlimentacaoDaCEI
 from ..kit_lanche.models import SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheUnificada
 
 
@@ -257,6 +257,12 @@ class Terceirizada(ExportModelOperationsMixin('terceirizada'), TemChaveExterna, 
         return queryset.filter(
             status=AlteracaoCardapio.workflow_class.CODAE_AUTORIZADO,
             escola__lote__in=self.lotes.all()
+        )
+
+    def inclusoes_alimentacao_de_cei_das_minhas_escolas(self, filtro_aplicado):
+        return self.filtra_solicitacoes_minhas_escolas_a_validar_por_data(
+            filtro_aplicado,
+            InclusaoAlimentacaoDaCEI
         )
 
     def inclusoes_alimentacao_continua_das_minhas_escolas(self, filtro_aplicado):

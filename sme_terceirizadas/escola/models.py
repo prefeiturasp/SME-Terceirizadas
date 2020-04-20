@@ -503,6 +503,12 @@ class Codae(ExportModelOperationsMixin('codae'), Nomeavel, TemChaveExterna, TemV
                         GrupoInclusaoAlimentacaoNormal.workflow_class.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO]
         )
 
+    def inclusoes_alimentacao_de_cei_das_minhas_escolas(self, filtro_aplicado):
+        return self.filtra_solicitacoes_minhas_escolas_a_validar_por_data(
+            filtro_aplicado,
+            InclusaoAlimentacaoDaCEI
+        )
+
     @property
     def inversoes_cardapio_autorizadas(self):
         return InversaoCardapio.objects.filter(
