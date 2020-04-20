@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from ..validators import deve_ter_extensao_valida
-from sme_terceirizadas.dados_comuns.utils import convert_base64_to_contentfile
+from sme_terceirizadas.dados_comuns.utils import convert_base64_to_contentfile, update_instance_from_dict
 
 from ...models import (
     Fabricante,
@@ -62,6 +62,9 @@ class ProdutoSerializerCreate(serializers.ModelSerializer):
     imagens = ImagemDoProdutoSerializerCreate(many=True)
     informacoes_nutricionais = InformacoesNutricionaisDoProdutoSerializerCreate(many=True)
 
+    def validate(self, attrs):
+        return attrs
+
     def create(self, validated_data):
         validated_data['criado_por'] = self.context['request'].user
         imagens = validated_data.pop('imagens', [])
@@ -86,6 +89,34 @@ class ProdutoSerializerCreate(serializers.ModelSerializer):
 
         produto.protocolos.set(protocolos)
         return produto
+
+    def update(self, instance, validated_data):
+        imagens = validated_data.pop('imagens', [])
+        protocolos = validated_data.pop('protocolos', [])
+        informacoes_nutricionais = validated_data.pop('informacoes_nutricionais', [])
+
+        update_instance_from_dict(instance, validated_data, save=True)
+
+        instance.imagens.all().delete()
+        instance.informacoes_nutricionais.all().delete()
+
+        for imagem in imagens:
+            data = convert_base64_to_contentfile(imagem.get('arquivo'))
+            ImagemDoProduto.objects.create(
+                produto=instance, arquivo=data, nome=imagem.get('nome', '')
+            )
+
+        for informacao in informacoes_nutricionais:
+            InformacoesNutricionaisDoProduto.objects.create(
+                produto=instance,
+                informacao_nutricional=informacao.get('informacao_nutricional', ''),
+                quantidade_porcao=informacao.get('quantidade_porcao', ''),
+                valor_diario=informacao.get('valor_diario', '')
+            )
+
+        instance.protocolos.set([])
+        instance.protocolos.set(protocolos)
+        return instance
 
     class Meta:
         model = Produto

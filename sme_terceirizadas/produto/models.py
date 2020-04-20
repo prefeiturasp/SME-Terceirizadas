@@ -39,7 +39,7 @@ class InformacaoNutricional(TemChaveExterna, Nomeavel):
         return self.nome
 
 
-class ImagemDoProduto(models.Model):
+class ImagemDoProduto(TemChaveExterna):
     produto = models.ForeignKey('Produto', on_delete=models.CASCADE, related_name='imagens')
     arquivo = models.FileField(blank=True, null=True)
     nome = models.CharField(max_length=100, blank=True)
