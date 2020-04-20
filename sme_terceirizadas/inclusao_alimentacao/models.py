@@ -24,7 +24,10 @@ from .managers import (
     GrupoInclusoesDeAlimentacaoNormalVencidosDiasManager,
     InclusoesDeAlimentacaoContinuaDestaSemanaManager,
     InclusoesDeAlimentacaoContinuaDesteMesManager,
-    InclusoesDeAlimentacaoContinuaVencidaDiasManager
+    InclusoesDeAlimentacaoContinuaVencidaDiasManager,
+    InclusaoDeAlimentacaoDeCeiDestaSemanaManager,
+    InclusaoDeAlimentacaoDeCeiDesteMesManager,
+    InclusaoDeAlimentacaoDeCeiVencidosDiasManager
 )
 
 
@@ -284,6 +287,10 @@ class InclusaoAlimentacaoDaCEI(Descritivel, TemData, TemChaveExterna, FluxoAprov
     tipos_alimentacao = models.ManyToManyField('cardapio.ComboDoVinculoTipoAlimentacaoPeriodoTipoUE')
 
     objects = models.Manager()  # Manager Padrão
+    desta_semana = InclusaoDeAlimentacaoDeCeiDestaSemanaManager()
+    deste_mes = InclusaoDeAlimentacaoDeCeiDesteMesManager()
+    vencidos = InclusaoDeAlimentacaoDeCeiVencidosDiasManager()
+
 
     @property
     def quantidade_alunos_por_faixas_etarias(self):
