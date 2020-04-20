@@ -63,9 +63,6 @@ class ProdutoSerializerCreate(serializers.ModelSerializer):
     imagens = ImagemDoProdutoSerializerCreate(many=True)
     informacoes_nutricionais = InformacoesNutricionaisDoProdutoSerializerCreate(many=True)
 
-    def validate(self, attrs):
-        return attrs
-
     def create(self, validated_data):
         validated_data['criado_por'] = self.context['request'].user
         imagens = validated_data.pop('imagens', [])
