@@ -1,0 +1,92 @@
+from rest_framework import serializers
+from ..validators import deve_ter_extensao_valida
+from sme_terceirizadas.dados_comuns.utils import convert_base64_to_contentfile
+
+from ...models import (
+    Fabricante,
+    ImagemDoProduto,
+    InformacaoNutricional,
+    InformacoesNutricionaisDoProduto,
+    Marca,
+    Produto,
+    ProtocoloDeDietaEspecial
+)
+
+
+class ImagemDoProdutoSerializerCreate(serializers.ModelSerializer):
+    arquivo = serializers.CharField()
+    nome = serializers.CharField()
+
+    def validate_nome(self, nome):
+        deve_ter_extensao_valida(nome)
+        return nome
+
+    class Meta:
+        model = ImagemDoProduto
+        exclude = ('id', 'produto',)
+
+
+class InformacoesNutricionaisDoProdutoSerializerCreate(serializers.ModelSerializer):
+    informacao_nutricional = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=InformacaoNutricional.objects.all()
+    )
+
+    quantidade_porcao = serializers.CharField(required=True)
+    valor_diario = serializers.CharField(required=True)
+
+    class Meta:
+        model = InformacoesNutricionaisDoProduto
+        exclude = ('id', 'produto',)
+
+
+class ProdutoSerializerCreate(serializers.ModelSerializer):
+    protocolos = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=ProtocoloDeDietaEspecial.objects.all(),
+        many=True
+    )
+    marca = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=Marca.objects.all()
+    )
+    fabricante = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=Fabricante.objects.all()
+    )
+
+    imagens = ImagemDoProdutoSerializerCreate(many=True)
+    informacoes_nutricionais = InformacoesNutricionaisDoProdutoSerializerCreate(many=True)
+
+    def create(self, validated_data):
+        validated_data['criado_por'] = self.context['request'].user
+        imagens = validated_data.pop('imagens', [])
+        protocolos = validated_data.pop('protocolos', [])
+        informacoes_nutricionais = validated_data.pop('informacoes_nutricionais', [])
+
+        produto = Produto.objects.create(**validated_data)
+
+        for imagem in imagens:
+            data = convert_base64_to_contentfile(imagem.get('arquivo'))
+            ImagemDoProduto.objects.create(
+                produto=produto, arquivo=data, nome=imagem.get('nome', '')
+            )
+
+        for informacao in informacoes_nutricionais:
+            InformacoesNutricionaisDoProduto.objects.create(
+                produto=produto,
+                informacao_nutricional=informacao.get('informacao_nutricional', ''),
+                quantidade_porcao=informacao.get('quantidade_porcao', ''),
+                valor_diario=informacao.get('valor_diario', '')
+            )
+
+        produto.protocolos.set(protocolos)
+        return produto
+
+    class Meta:
+        model = Produto
+        exclude = ('id', 'criado_por', 'ativo',)

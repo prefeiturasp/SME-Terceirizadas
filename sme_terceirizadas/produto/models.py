@@ -40,8 +40,9 @@ class InformacaoNutricional(TemChaveExterna, Nomeavel):
 
 
 class ImagemDoProduto(models.Model):
-    produto = models.ForeignKey('Produto', on_delete=models.CASCADE)
-    arquivo = models.FileField()
+    produto = models.ForeignKey('Produto', on_delete=models.CASCADE, related_name='imagens')
+    arquivo = models.FileField(blank=True, null=True)
+    nome = models.CharField(max_length=100, blank=True)
 
 
 class Produto(Ativavel, CriadoEm, CriadoPor, Nomeavel, TemChaveExterna):
@@ -71,12 +72,20 @@ class Produto(Ativavel, CriadoEm, CriadoPor, Nomeavel, TemChaveExterna):
     porcao = models.CharField('Porção nutricional', blank=True, max_length=50)
     unidade_caseira = models.CharField('Unidade nutricional', blank=True, max_length=50)
 
+    @property
+    def imagens(self):
+        return self.imagens.all()
+
+    @property
+    def informacoes_nutricionais(self):
+        return self.informacoes_nutricionais.all()
+
     def __str__(self):
         return self.nome
 
 
 class InformacoesNutricionaisDoProduto(TemChaveExterna):
-    produto = models.ForeignKey(Produto, on_delete=models.CASCADE)
+    produto = models.ForeignKey(Produto, on_delete=models.CASCADE, related_name='informacoes_nutricionais')
     informacao_nutricional = models.ForeignKey(InformacaoNutricional, on_delete=models.DO_NOTHING)
     quantidade_porcao = models.CharField('Quantidade por Porção', blank=True, max_length=10)
     valor_diario = models.CharField('%VD(*)', blank=True, max_length=3)

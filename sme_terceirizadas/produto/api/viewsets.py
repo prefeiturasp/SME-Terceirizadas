@@ -15,6 +15,10 @@ from .serializers.serializers import (
     ProtocoloDeDietaEspecialSerializer
 )
 
+from .serializers.serializers_create import (
+    ProdutoSerializerCreate
+)
+
 
 class InformacaoNutricionalBaseViewSet(viewsets.ReadOnlyModelViewSet):
 
@@ -59,6 +63,11 @@ class ProdutoViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
     serializer_class = ProdutoSerializer
     queryset = Produto.objects.all()
+
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update']:
+            return ProdutoSerializerCreate
+        return ProdutoSerializer
 
 
 class ProtocoloDeDietaEspecialViewSet(viewsets.ModelViewSet):
