@@ -54,7 +54,7 @@ class InclusaoAlimentacaoDaCEISerializer(serializers.ModelSerializer):
 
     class Meta:
         model = InclusaoAlimentacaoDaCEI
-        exclude = ('id', 'escola', 'criado_por')
+        exclude = ('id',)
 
 
 class QuantidadePorPeriodoSerializer(serializers.ModelSerializer):
