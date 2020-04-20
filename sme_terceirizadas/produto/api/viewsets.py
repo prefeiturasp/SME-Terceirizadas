@@ -1,23 +1,16 @@
-from rest_framework import mixins, status, viewsets
+from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from ..models import (
-    Fabricante,
-    InformacaoNutricional,
-    Marca,
-    Produto,
-    ProtocoloDeDietaEspecial,
-)
-
+from ..models import Fabricante, InformacaoNutricional, Marca, Produto, ProtocoloDeDietaEspecial
 from .serializers.serializers import (
-    ProdutoSerializer, InformacaoNutricionalSerializer, FabricanteSerializer, MarcaSerializer,
+    FabricanteSerializer,
+    InformacaoNutricionalSerializer,
+    MarcaSerializer,
+    ProdutoSerializer,
     ProtocoloDeDietaEspecialSerializer
 )
-
-from .serializers.serializers_create import (
-    ProdutoSerializerCreate
-)
+from .serializers.serializers_create import ProdutoSerializerCreate
 
 
 class InformacaoNutricionalBaseViewSet(viewsets.ReadOnlyModelViewSet):

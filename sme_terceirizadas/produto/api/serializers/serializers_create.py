@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from ..validators import deve_ter_extensao_valida
+
 from sme_terceirizadas.dados_comuns.utils import convert_base64_to_contentfile, update_instance_from_dict
 
 from ...models import (
@@ -11,6 +11,7 @@ from ...models import (
     Produto,
     ProtocoloDeDietaEspecial
 )
+from ..validators import deve_ter_extensao_valida
 
 
 class ImagemDoProdutoSerializerCreate(serializers.ModelSerializer):

@@ -17,6 +17,7 @@ admin.site.register(Marca)
 admin.site.register(ProtocoloDeDietaEspecial)
 admin.site.register(TipoDeInformacaoNutricional)
 
+
 class InformacoesNutricionaisDoProdutoInline(admin.TabularInline):
     model = InformacoesNutricionaisDoProduto
     extra = 1

@@ -8,8 +8,9 @@ from ...models import (
     Marca,
     Produto,
     ProtocoloDeDietaEspecial,
-    TipoDeInformacaoNutricional,
+    TipoDeInformacaoNutricional
 )
+
 
 class FabricanteSerializer(serializers.ModelSerializer):
     class Meta:

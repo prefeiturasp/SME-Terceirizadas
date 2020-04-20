@@ -77,7 +77,6 @@ class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmiga
     TP_SOL_KIT_LANCHE_UNIFICADA = 'KIT_LANCHE_UNIFICADA'
     TP_SOL_DIETA_ESPECIAL = 'DIETA_ESPECIAL'
 
-
     STATUS_TODOS = 'TODOS'
     STATUS_AUTORIZADOS = 'AUTORIZADOS'
     STATUS_NEGADOS = 'NEGADOS'

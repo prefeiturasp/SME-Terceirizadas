@@ -1,12 +1,6 @@
 from django.db import models
 
-from sme_terceirizadas.dados_comuns.behaviors import (
-    Ativavel,
-    CriadoEm,
-    CriadoPor,
-    Nomeavel,
-    TemChaveExterna
-)
+from sme_terceirizadas.dados_comuns.behaviors import Ativavel, CriadoEm, CriadoPor, Nomeavel, TemChaveExterna
 
 
 class ProtocoloDeDietaEspecial(Ativavel, CriadoEm, CriadoPor, Nomeavel, TemChaveExterna):
@@ -41,7 +35,7 @@ class InformacaoNutricional(TemChaveExterna, Nomeavel):
 
 class ImagemDoProduto(TemChaveExterna):
     produto = models.ForeignKey('Produto', on_delete=models.CASCADE, related_name='imagens')
-    arquivo = models.FileField(blank=True, null=True)
+    arquivo = models.FileField()
     nome = models.CharField(max_length=100, blank=True)
 
 
