@@ -15,7 +15,11 @@ from ..dados_comuns.behaviors import (
 from ..dados_comuns.constants import NUTRI_ADMIN_RESPONSAVEL
 from ..dados_comuns.utils import queryset_por_data
 from ..escola.models import DiretoriaRegional, Lote
-from ..inclusao_alimentacao.models import GrupoInclusaoAlimentacaoNormal, InclusaoAlimentacaoContinua, InclusaoAlimentacaoDaCEI
+from ..inclusao_alimentacao.models import (
+    GrupoInclusaoAlimentacaoNormal,
+    InclusaoAlimentacaoContinua,
+    InclusaoAlimentacaoDaCEI
+)
 from ..kit_lanche.models import SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheUnificada
 
 

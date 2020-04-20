@@ -30,7 +30,11 @@ from ..dados_comuns.constants import (
 from ..dados_comuns.utils import queryset_por_data, subtrai_meses_de_data
 from ..eol_servico.utils import EOLService, dt_nascimento_from_api
 from ..escola.constants import PERIODOS_ESPECIAIS_CEI_CEU_CCI
-from ..inclusao_alimentacao.models import GrupoInclusaoAlimentacaoNormal, InclusaoAlimentacaoContinua, InclusaoAlimentacaoDaCEI
+from ..inclusao_alimentacao.models import (
+    GrupoInclusaoAlimentacaoNormal,
+    InclusaoAlimentacaoContinua,
+    InclusaoAlimentacaoDaCEI
+)
 from ..kit_lanche.models import SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheUnificada
 
 logger = logging.getLogger('sigpae.EscolaModels')
