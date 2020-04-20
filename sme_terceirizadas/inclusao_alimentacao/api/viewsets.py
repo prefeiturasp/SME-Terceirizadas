@@ -52,6 +52,19 @@ class InclusaoAlimentacaoDaCEIViewSet(ModelViewSet):
         serializer = serializers.InclusaoAlimentacaoDaCEISerializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
+    @action(detail=False,
+            url_path=f'{constants.PEDIDOS_DRE}/{constants.FILTRO_PADRAO_PEDIDOS}',
+            permission_classes=(UsuarioDiretoriaRegional,))
+    def solicitacoes_diretoria_regional(self, request, filtro_aplicado=constants.SEM_FILTRO):
+        usuario = request.user
+        diretoria_regional = usuario.vinculo_atual.instituicao
+        inclusoes_alimentacao_cei = diretoria_regional.grupos_inclusoes_alimentacao_normal_das_minhas_escolas(
+            filtro_aplicado
+        )
+        page = self.paginate_queryset(inclusoes_alimentacao_cei)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
     #
     # IMPLEMENTACAO DO FLUXO
     #

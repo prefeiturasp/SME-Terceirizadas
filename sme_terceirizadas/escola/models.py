@@ -30,7 +30,7 @@ from ..dados_comuns.constants import (
 from ..dados_comuns.utils import queryset_por_data, subtrai_meses_de_data
 from ..eol_servico.utils import EOLService, dt_nascimento_from_api
 from ..escola.constants import PERIODOS_ESPECIAIS_CEI_CEU_CCI
-from ..inclusao_alimentacao.models import GrupoInclusaoAlimentacaoNormal, InclusaoAlimentacaoContinua
+from ..inclusao_alimentacao.models import GrupoInclusaoAlimentacaoNormal, InclusaoAlimentacaoContinua, InclusaoAlimentacaoDaCEI
 from ..kit_lanche.models import SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheUnificada
 
 logger = logging.getLogger('sigpae.EscolaModels')
@@ -116,6 +116,12 @@ class DiretoriaRegional(ExportModelOperationsMixin('diretoria_regional'), Nomeav
         return self.filtra_solicitacoes_minhas_escolas_a_validar_por_data(
             filtro_aplicado,
             GrupoInclusaoAlimentacaoNormal
+        )
+
+    def inclusoes_alimentacao_de_cei_das_minhas_escolas(self, filtro_aplicado):
+        return self.filtra_solicitacoes_minhas_escolas_a_validar_por_data(
+            filtro_aplicado,
+            InclusaoAlimentacaoDaCEI
         )
 
     #
