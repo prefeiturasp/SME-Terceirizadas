@@ -58,7 +58,7 @@ class InclusaoAlimentacaoDaCEIViewSet(ModelViewSet):
     def solicitacoes_diretoria_regional(self, request, filtro_aplicado=constants.SEM_FILTRO):
         usuario = request.user
         diretoria_regional = usuario.vinculo_atual.instituicao
-        inclusoes_alimentacao_cei = diretoria_regional.grupos_inclusoes_alimentacao_normal_das_minhas_escolas(
+        inclusoes_alimentacao_cei = diretoria_regional.inclusoes_alimentacao_de_cei_das_minhas_escolas(
             filtro_aplicado
         )
         page = self.paginate_queryset(inclusoes_alimentacao_cei)
