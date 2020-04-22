@@ -31,10 +31,9 @@ class ProtocoloDeDietaEspecialSerializer(serializers.ModelSerializer):
 
 
 class ImagemDoProdutoSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = ImagemDoProduto
-        exclude = ('id', 'produto', )
+        exclude = ('id', 'produto',)
 
 
 class TipoDeInformacaoNutricionalSerializer(serializers.ModelSerializer):
@@ -80,3 +79,27 @@ class ProdutoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Produto
         exclude = ('id',)
+
+
+class ProdutoSimplesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Produto
+        fields = ('uuid', 'nome',)
+
+
+class MarcaSimplesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Marca
+        fields = ('uuid', 'nome',)
+
+
+class FabricanteSimplesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Fabricante
+        fields = ('uuid', 'nome',)
+
+
+class ProtocoloSimplesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProtocoloDeDietaEspecial
+        fields = ('uuid', 'nome',)

@@ -5,10 +5,14 @@ from rest_framework.response import Response
 from ..models import Fabricante, InformacaoNutricional, Marca, Produto, ProtocoloDeDietaEspecial
 from .serializers.serializers import (
     FabricanteSerializer,
+    FabricanteSimplesSerializer,
     InformacaoNutricionalSerializer,
     MarcaSerializer,
+    MarcaSimplesSerializer,
     ProdutoSerializer,
-    ProtocoloDeDietaEspecialSerializer
+    ProdutoSimplesSerializer,
+    ProtocoloDeDietaEspecialSerializer,
+    ProtocoloSimplesSerializer
 )
 from .serializers.serializers_create import ProdutoSerializerCreate
 
@@ -62,11 +66,23 @@ class ProdutoViewSet(viewsets.ModelViewSet):
             return ProdutoSerializerCreate
         return ProdutoSerializer
 
+    @action(detail=False, methods=['GET'], url_path='lista-nomes')
+    def lista_produtos(self, request):
+        query_set = Produto.objects.filter(ativo=True)
+        response = {'results': ProdutoSimplesSerializer(query_set, many=True).data}
+        return Response(response)
+
 
 class ProtocoloDeDietaEspecialViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
     serializer_class = ProtocoloDeDietaEspecialSerializer
     queryset = ProtocoloDeDietaEspecial.objects.all()
+
+    @action(detail=False, methods=['GET'], url_path='lista-nomes')
+    def lista_protocolos(self, request):
+        query_set = ProtocoloDeDietaEspecial.objects.filter(ativo=True)
+        response = {'results': ProtocoloSimplesSerializer(query_set, many=True).data}
+        return Response(response)
 
 
 class FabricanteViewSet(viewsets.ModelViewSet):
@@ -74,11 +90,23 @@ class FabricanteViewSet(viewsets.ModelViewSet):
     serializer_class = FabricanteSerializer
     queryset = Fabricante.objects.all()
 
+    @action(detail=False, methods=['GET'], url_path='lista-nomes')
+    def lista_fabricantes(self, request):
+        query_set = Fabricante.objects.all()
+        response = {'results': FabricanteSimplesSerializer(query_set, many=True).data}
+        return Response(response)
+
 
 class MarcaViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
     serializer_class = MarcaSerializer
     queryset = Marca.objects.all()
+
+    @action(detail=False, methods=['GET'], url_path='lista-nomes')
+    def lista_marcas(self, request):
+        query_set = Marca.objects.all()
+        response = {'results': MarcaSimplesSerializer(query_set, many=True).data}
+        return Response(response)
 
 
 class InformacaoNutricionalViewSet(InformacaoNutricionalBaseViewSet):
