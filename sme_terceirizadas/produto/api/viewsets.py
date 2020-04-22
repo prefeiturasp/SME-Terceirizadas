@@ -72,6 +72,33 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         response = {'results': ProdutoSimplesSerializer(query_set, many=True).data}
         return Response(response)
 
+    @action(detail=False,
+            methods=['GET'],
+            url_path='filtro-por-nome/(?P<produto_nome>[^/.]+)')
+    def filtro_por_nome(self, request, produto_nome=None):
+        query_set = Produto.filtrar_por_nome(nome=produto_nome)
+        page = self.paginate_queryset(query_set)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False,
+            methods=['GET'],
+            url_path='filtro-por-fabricante/(?P<fabricante_nome>[^/.]+)')
+    def filtro_por_fabricante(self, request, fabricante_nome=None):
+        query_set = Produto.filtrar_por_fabricante(nome=fabricante_nome)
+        page = self.paginate_queryset(query_set)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False,
+            methods=['GET'],
+            url_path='filtro-por-marca/(?P<marca_nome>[^/.]+)')
+    def filtro_por_marca(self, request, marca_nome=None):
+        query_set = Produto.filtrar_por_marca(nome=marca_nome)
+        page = self.paginate_queryset(query_set)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
 
 class ProtocoloDeDietaEspecialViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
