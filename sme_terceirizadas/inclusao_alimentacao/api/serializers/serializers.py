@@ -44,6 +44,7 @@ class QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEISerializer(ser
 
 
 class InclusaoAlimentacaoDaCEISerializer(serializers.ModelSerializer):
+    escola = EscolaSimplesSerializer()
     prioridade = serializers.CharField()
     periodo_escolar = PeriodoEscolarSimplesSerializer()
     tipos_alimentacao = CombosVinculoTipoAlimentoSimplissimaSerializer(many=True, read_only=True)
