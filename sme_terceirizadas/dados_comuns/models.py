@@ -180,7 +180,15 @@ class TemplateMensagem(ExportModelOperationsMixin('template_mensagem'), models.M
         verbose_name_plural = 'Template de mensagem'
 
 
+class CategoriaPerguntaFrequente(ExportModelOperationsMixin('cat_faq'), models.Model):
+    nome = models.CharField('Nome', blank=True, max_length=100)
+
+    def __str__(self):
+        return self.nome
+
+
 class PerguntaFrequente(ExportModelOperationsMixin('faq'), models.Model):
+    categoria = models.ForeignKey('CategoriaPerguntaFrequente', on_delete=models.PROTECT)
     pergunta = models.TextField('Pergunta')
     resposta = models.TextField('Resposta')
     criado_em = models.DateTimeField('Criado em', editable=False, auto_now_add=True)
