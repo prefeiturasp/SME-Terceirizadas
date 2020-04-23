@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from sme_terceirizadas.terceirizada.api.serializers.serializers import TerceirizadaSimplesSerializer
+from ....terceirizada.api.serializers.serializers import TerceirizadaSimplesSerializer
 from ...models import (
     Fabricante,
     ImagemDoProduto,

@@ -1,7 +1,6 @@
 from rest_framework import serializers
 
-from sme_terceirizadas.dados_comuns.utils import convert_base64_to_contentfile, update_instance_from_dict
-
+from ....dados_comuns.utils import convert_base64_to_contentfile, update_instance_from_dict
 from ...models import (
     Fabricante,
     ImagemDoProduto,

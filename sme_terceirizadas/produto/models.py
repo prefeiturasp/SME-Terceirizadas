@@ -1,6 +1,6 @@
 from django.db import models
 
-from sme_terceirizadas.dados_comuns.behaviors import Ativavel, CriadoEm, CriadoPor, Nomeavel, TemChaveExterna
+from ..dados_comuns.behaviors import Ativavel, CriadoEm, CriadoPor, Nomeavel, TemChaveExterna
 
 
 class ProtocoloDeDietaEspecial(Ativavel, CriadoEm, CriadoPor, Nomeavel, TemChaveExterna):
