@@ -8,6 +8,10 @@ class ProtocoloDeDietaEspecial(Ativavel, CriadoEm, CriadoPor, Nomeavel, TemChave
     def __str__(self):
         return self.nome
 
+    class Meta:
+        verbose_name = 'Protocolo de Dieta Especial'
+        verbose_name_plural = 'Protocolos de Dieta Especial'
+
 
 class Fabricante(Nomeavel, TemChaveExterna):
 
@@ -32,11 +36,19 @@ class InformacaoNutricional(TemChaveExterna, Nomeavel):
     def __str__(self):
         return self.nome
 
+    class Meta:
+        verbose_name = 'Informação Nutricional'
+        verbose_name_plural = 'Informações Nutricionais'
+
 
 class ImagemDoProduto(TemChaveExterna):
     produto = models.ForeignKey('Produto', on_delete=models.CASCADE)
     arquivo = models.FileField()
     nome = models.CharField(max_length=100, blank=True)
+
+    class Meta:
+        verbose_name = 'Imagem do Produto'
+        verbose_name_plural = 'Imagens do Produto'
 
 
 class Produto(Ativavel, CriadoEm, CriadoPor, Nomeavel, TemChaveExterna):
@@ -74,8 +86,27 @@ class Produto(Ativavel, CriadoEm, CriadoPor, Nomeavel, TemChaveExterna):
     def informacoes_nutricionais(self):
         return self.informacoes_nutricionais.all()
 
+    @classmethod
+    def filtrar_por_nome(cls, **kwargs):
+        nome = kwargs.get('nome')
+        return cls.objects.filter(nome__icontains=nome)
+
+    @classmethod
+    def filtrar_por_marca(cls, **kwargs):
+        nome = kwargs.get('nome')
+        return cls.objects.filter(marca__nome__icontains=nome)
+
+    @classmethod
+    def filtrar_por_fabricante(cls, **kwargs):
+        nome = kwargs.get('nome')
+        return cls.objects.filter(fabricante__nome__icontains=nome)
+
     def __str__(self):
         return self.nome
+
+    class Meta:
+        verbose_name = 'Produto'
+        verbose_name_plural = 'Produtos'
 
 
 class InformacoesNutricionaisDoProduto(TemChaveExterna):
@@ -83,3 +114,14 @@ class InformacoesNutricionaisDoProduto(TemChaveExterna):
     informacao_nutricional = models.ForeignKey(InformacaoNutricional, on_delete=models.DO_NOTHING)
     quantidade_porcao = models.CharField('Quantidade por Porção', blank=True, max_length=10)
     valor_diario = models.CharField('%VD(*)', blank=True, max_length=3)
+
+    def __str__(self):
+        nome_produto = self.produto.nome
+        informacao_nutricional = self.informacao_nutricional.nome
+        porcao = self.quantidade_porcao
+        valor = self.valor_diario
+        return f'{nome_produto} - {informacao_nutricional} => quantidade: {porcao} valor diario: {valor}'
+
+    class Meta:
+        verbose_name = 'Informação Nutricional do Produto'
+        verbose_name_plural = 'Informações Nutricionais do Produto'

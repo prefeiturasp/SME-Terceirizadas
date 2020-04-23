@@ -5,10 +5,14 @@ from rest_framework.response import Response
 from ..models import Fabricante, InformacaoNutricional, Marca, Produto, ProtocoloDeDietaEspecial
 from .serializers.serializers import (
     FabricanteSerializer,
+    FabricanteSimplesSerializer,
     InformacaoNutricionalSerializer,
     MarcaSerializer,
+    MarcaSimplesSerializer,
     ProdutoSerializer,
-    ProtocoloDeDietaEspecialSerializer
+    ProdutoSimplesSerializer,
+    ProtocoloDeDietaEspecialSerializer,
+    ProtocoloSimplesSerializer
 )
 from .serializers.serializers_create import ProdutoSerializerCreate
 
@@ -62,11 +66,50 @@ class ProdutoViewSet(viewsets.ModelViewSet):
             return ProdutoSerializerCreate
         return ProdutoSerializer
 
+    @action(detail=False, methods=['GET'], url_path='lista-nomes')
+    def lista_produtos(self, request):
+        query_set = Produto.objects.filter(ativo=True)
+        response = {'results': ProdutoSimplesSerializer(query_set, many=True).data}
+        return Response(response)
+
+    @action(detail=False,
+            methods=['GET'],
+            url_path='filtro-por-nome/(?P<produto_nome>[^/.]+)')
+    def filtro_por_nome(self, request, produto_nome=None):
+        query_set = Produto.filtrar_por_nome(nome=produto_nome)
+        page = self.paginate_queryset(query_set)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False,
+            methods=['GET'],
+            url_path='filtro-por-fabricante/(?P<fabricante_nome>[^/.]+)')
+    def filtro_por_fabricante(self, request, fabricante_nome=None):
+        query_set = Produto.filtrar_por_fabricante(nome=fabricante_nome)
+        page = self.paginate_queryset(query_set)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False,
+            methods=['GET'],
+            url_path='filtro-por-marca/(?P<marca_nome>[^/.]+)')
+    def filtro_por_marca(self, request, marca_nome=None):
+        query_set = Produto.filtrar_por_marca(nome=marca_nome)
+        page = self.paginate_queryset(query_set)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
 
 class ProtocoloDeDietaEspecialViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
     serializer_class = ProtocoloDeDietaEspecialSerializer
     queryset = ProtocoloDeDietaEspecial.objects.all()
+
+    @action(detail=False, methods=['GET'], url_path='lista-nomes')
+    def lista_protocolos(self, request):
+        query_set = ProtocoloDeDietaEspecial.objects.filter(ativo=True)
+        response = {'results': ProtocoloSimplesSerializer(query_set, many=True).data}
+        return Response(response)
 
 
 class FabricanteViewSet(viewsets.ModelViewSet):
@@ -74,11 +117,23 @@ class FabricanteViewSet(viewsets.ModelViewSet):
     serializer_class = FabricanteSerializer
     queryset = Fabricante.objects.all()
 
+    @action(detail=False, methods=['GET'], url_path='lista-nomes')
+    def lista_fabricantes(self, request):
+        query_set = Fabricante.objects.all()
+        response = {'results': FabricanteSimplesSerializer(query_set, many=True).data}
+        return Response(response)
+
 
 class MarcaViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
     serializer_class = MarcaSerializer
     queryset = Marca.objects.all()
+
+    @action(detail=False, methods=['GET'], url_path='lista-nomes')
+    def lista_marcas(self, request):
+        query_set = Marca.objects.all()
+        response = {'results': MarcaSimplesSerializer(query_set, many=True).data}
+        return Response(response)
 
 
 class InformacaoNutricionalViewSet(InformacaoNutricionalBaseViewSet):
