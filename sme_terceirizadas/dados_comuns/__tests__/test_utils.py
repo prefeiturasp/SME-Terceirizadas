@@ -4,7 +4,12 @@ import environ
 from freezegun import freeze_time
 
 from ..constants import DAQUI_A_SETE_DIAS, DAQUI_A_TRINTA_DIAS, SEM_FILTRO, obter_dias_uteis_apos_hoje
-from ..utils import queryset_por_data, subtrai_meses_de_data, update_instance_from_dict
+from ..utils import (
+    ordena_dias_semana_comeca_domingo,
+    queryset_por_data,
+    subtrai_meses_de_data,
+    update_instance_from_dict
+)
 
 env = environ.Env()
 
@@ -71,3 +76,17 @@ def test_subtrai_meses_de_data():
     assert data_nova.year == 2020
     assert data_nova.month == 4
     assert data_nova.day == 30
+
+
+def test_ordena_dias_semana_comeca_domingo():
+    dias1 = [3, 0, 5, 2]
+    resultado1 = ordena_dias_semana_comeca_domingo(dias1)
+    assert resultado1 == [0, 2, 3, 5]
+
+    dias2 = [0, 4, 6, 2]
+    resultado2 = ordena_dias_semana_comeca_domingo(dias2)
+    assert resultado2 == [6, 0, 2, 4]
+
+    dias3 = [5, 3, 6, 2]
+    resultado3 = ordena_dias_semana_comeca_domingo(dias3)
+    assert resultado3 == [6, 2, 3, 5]
