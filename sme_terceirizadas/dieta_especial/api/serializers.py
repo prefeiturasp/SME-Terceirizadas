@@ -198,16 +198,19 @@ class SolicitacaoDietaEspecialUpdateSerializer(serializers.ModelSerializer):
                 ser.is_valid(raise_exception=True)
                 Anexo.objects.create(**anexo)
 
-        instance.alergias_intolerancias.all().delete()
-        for ai in alergias_intolerancias:
-            instance.alergias_intolerancias.add(ai)
+        if alergias_intolerancias:
+            instance.alergias_intolerancias.set([])
+            for ai in alergias_intolerancias:
+                instance.alergias_intolerancias.add(ai)
 
-        instance.substituicaoalimento_set.all().delete()
-        for substituicao in substituicoes:
-            substitutos = substituicao.pop('substitutos')
-            substituicao['solicitacao_dieta_especial'] = instance
-            subst_obj = SubstituicaoAlimento.objects.create(**substituicao)
-            subst_obj.substitutos.set(substitutos)
+        if substituicoes:
+            instance.substituicaoalimento_set.all().delete()
+            for substituicao in substituicoes:
+                substitutos = substituicao.pop('substitutos', None)
+                substituicao['solicitacao_dieta_especial'] = instance
+                subst_obj = SubstituicaoAlimento.objects.create(**substituicao)
+                if substitutos:
+                    subst_obj.substitutos.set(substitutos)
 
         instance.save()
         return instance

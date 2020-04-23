@@ -1,3 +1,4 @@
+from django.db import transaction
 from django.db.models import Sum
 from django.forms import ValidationError
 from rest_framework import generics, mixins, serializers
@@ -80,6 +81,7 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
+    @transaction.atomic  # noqa C901
     @action(detail=True, methods=['patch'], permission_classes=(UsuarioCODAEDietaEspecial,))  # noqa: C901
     def autorizar(self, request, uuid=None):
         solicitacao = self.get_object()
