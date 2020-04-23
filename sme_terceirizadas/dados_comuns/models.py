@@ -88,8 +88,10 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
         INCLUSAO_ALIMENTACAO_CONTINUA,
         DIETA_ESPECIAL,
         # DA DRE
-        SOLICITACAO_KIT_LANCHE_UNIFICADA
-    ) = range(10)
+        SOLICITACAO_KIT_LANCHE_UNIFICADA,
+        # DA TERCEIRIZADA
+        HOMOLOGACAO_PRODUTO
+    ) = range(11)
 
     TIPOS_SOLICITACOES = (
         (SOLICITACAO_KIT_LANCHE_AVULSA, 'Solicitação de kit lanche avulsa'),
@@ -102,6 +104,7 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
         (INCLUSAO_ALIMENTACAO_CONTINUA, 'Inclusão de alimentação contínua'),
         (DIETA_ESPECIAL, 'Dieta Especial'),
         (SOLICITACAO_KIT_LANCHE_UNIFICADA, 'Solicitação de kit lanche unificada'),
+        (HOMOLOGACAO_PRODUTO, 'Homologação de Produto')
     )
 
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
@@ -155,6 +158,7 @@ class TemplateMensagem(ExportModelOperationsMixin('template_mensagem'), models.M
     SOLICITACAO_KIT_LANCHE_UNIFICADA = 5
     INVERSAO_CARDAPIO = 6
     DIETA_ESPECIAL = 7
+    HOMOLOGACAO_PRODUTO = 8
 
     CHOICES = (
         (ALTERACAO_CARDAPIO, 'Alteração de cardápio'),
@@ -164,7 +168,8 @@ class TemplateMensagem(ExportModelOperationsMixin('template_mensagem'), models.M
         (SOLICITACAO_KIT_LANCHE_AVULSA, 'Solicitação de kit lanche avulsa'),
         (SOLICITACAO_KIT_LANCHE_UNIFICADA, 'Solicitação de kit lanche unificada'),
         (INVERSAO_CARDAPIO, 'Inversão de cardápio'),
-        (DIETA_ESPECIAL, 'Dieta Especial')
+        (DIETA_ESPECIAL, 'Dieta Especial'),
+        (HOMOLOGACAO_PRODUTO, 'Homologação de Produto')
     )
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     tipo = models.PositiveSmallIntegerField(choices=CHOICES, unique=True)

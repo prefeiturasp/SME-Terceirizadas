@@ -2,7 +2,7 @@ from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from ..models import Fabricante, InformacaoNutricional, Marca, Produto, ProtocoloDeDietaEspecial
+from ..models import Fabricante, HomologacaoDoProduto, InformacaoNutricional, Marca, Produto, ProtocoloDeDietaEspecial
 from .serializers.serializers import (
     FabricanteSerializer,
     FabricanteSimplesSerializer,
@@ -12,7 +12,7 @@ from .serializers.serializers import (
     ProdutoSerializer,
     ProdutoSimplesSerializer,
     ProtocoloDeDietaEspecialSerializer,
-    ProtocoloSimplesSerializer
+    ProtocoloSimplesSerializer, HomologacaoProdutoSerializer
 )
 from .serializers.serializers_create import ProdutoSerializerCreate
 
@@ -54,6 +54,12 @@ class InformacaoNutricionalBaseViewSet(viewsets.ReadOnlyModelViewSet):
                 }
                 infos_nutricionais.append(info_nutricional)
         return infos_nutricionais
+
+
+class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
+    lookup_field = 'uuid'
+    serializer_class = HomologacaoProdutoSerializer
+    queryset = HomologacaoDoProduto.objects.all()
 
 
 class ProdutoViewSet(viewsets.ModelViewSet):

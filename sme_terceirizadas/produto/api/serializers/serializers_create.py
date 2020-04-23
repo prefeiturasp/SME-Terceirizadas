@@ -8,7 +8,7 @@ from ...models import (
     InformacoesNutricionaisDoProduto,
     Marca,
     Produto,
-    ProtocoloDeDietaEspecial
+    ProtocoloDeDietaEspecial, HomologacaoDoProduto
 )
 from ..validators import deve_ter_extensao_valida
 
@@ -85,6 +85,12 @@ class ProdutoSerializerCreate(serializers.ModelSerializer):
             )
 
         produto.protocolos.set(protocolos)
+        homologacao = HomologacaoDoProduto(
+            produto=produto,
+            criado_por=self.context['request'].user
+        )
+        homologacao.save()
+        homologacao.inicia_fluxo(user=self.context['request'].user)
         return produto
 
     def update(self, instance, validated_data):

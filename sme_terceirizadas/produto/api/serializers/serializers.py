@@ -9,7 +9,7 @@ from ...models import (
     Marca,
     Produto,
     ProtocoloDeDietaEspecial,
-    TipoDeInformacaoNutricional
+    TipoDeInformacaoNutricional, HomologacaoDoProduto
 )
 
 
@@ -107,3 +107,11 @@ class ProtocoloSimplesSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProtocoloDeDietaEspecial
         fields = ('uuid', 'nome',)
+
+
+class HomologacaoProdutoSerializer(serializers.ModelSerializer):
+    produto = ProdutoSerializer()
+
+    class Meta:
+        model = HomologacaoDoProduto
+        fields = ('uuid', 'produto', 'status', 'id_externo')
