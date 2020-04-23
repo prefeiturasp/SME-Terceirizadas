@@ -34,7 +34,7 @@ class InformacaoNutricional(TemChaveExterna, Nomeavel):
 
 
 class ImagemDoProduto(TemChaveExterna):
-    produto = models.ForeignKey('Produto', on_delete=models.CASCADE, related_name='imagens')
+    produto = models.ForeignKey('Produto', on_delete=models.CASCADE)
     arquivo = models.FileField()
     nome = models.CharField(max_length=100, blank=True)
 
@@ -68,7 +68,7 @@ class Produto(Ativavel, CriadoEm, CriadoPor, Nomeavel, TemChaveExterna):
 
     @property
     def imagens(self):
-        return self.imagens.all()
+        return self.imagemdoproduto_set.all()
 
     @property
     def informacoes_nutricionais(self):

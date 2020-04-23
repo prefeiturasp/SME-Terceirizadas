@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from sme_terceirizadas.terceirizada.api.serializers.serializers import TerceirizadaSimplesSerializer
 from ...models import (
     Fabricante,
     ImagemDoProduto,
@@ -34,7 +35,7 @@ class ImagemDoProdutoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ImagemDoProduto
-        exclude = ('id', 'produto', )
+        fields = ('arquivo', 'nome')
 
 
 class TipoDeInformacaoNutricionalSerializer(serializers.ModelSerializer):
@@ -63,12 +64,12 @@ class ProdutoSerializer(serializers.ModelSerializer):
     protocolos = ProtocoloDeDietaEspecialSerializer(many=True)
     marca = MarcaSerializer()
     fabricante = FabricanteSerializer()
-    imagens = serializers.SerializerMethodField()
-    informacoes_nutricionais = serializers.SerializerMethodField()
+    imagens = serializers.ListField(
+        child=ImagemDoProdutoSerializer(), required=True
+    )
 
-    def get_imagens(self, obj):
-        return ImagemDoProdutoSerializer(ImagemDoProduto.objects.filter(
-            produto=obj), many=True).data
+    informacoes_nutricionais = serializers.SerializerMethodField()
+    terceirizada = serializers.SerializerMethodField()
 
     def get_informacoes_nutricionais(self, obj):
         return InformacoesNutricionaisDoProdutoSerializer(
@@ -76,6 +77,9 @@ class ProdutoSerializer(serializers.ModelSerializer):
                 produto=obj
             ), many=True
         ).data
+
+    def get_terceirizada(self, obj):
+        return TerceirizadaSimplesSerializer(obj.criado_por.vinculo_atual.instituicao).data
 
     class Meta:
         model = Produto
