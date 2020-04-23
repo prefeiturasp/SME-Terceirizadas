@@ -16,7 +16,7 @@ from simple_email_confirmation.models import SimpleEmailConfirmationUserMixin
 from ...dados_comuns.behaviors import TemChaveExterna
 from ...dados_comuns.constants import (
     ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
-    COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA
+    COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA, COORDENADOR_GESTAO_PRODUTO, ADMINISTRADOR_GESTAO_PRODUTO
 )
 from ...dados_comuns.tasks import envia_email_unico_task
 from ...dados_comuns.utils import url_configs
@@ -162,6 +162,9 @@ class Usuario(ExportModelOperationsMixin('usuario'), SimpleEmailConfirmationUser
                 if self.vinculo_atual.perfil.nome in [COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
                                                       ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA]:
                     tipo_usuario = 'gestao_alimentacao_terceirizada'
+                elif self.vinculo_atual.perfil.nome in [COORDENADOR_GESTAO_PRODUTO,
+                                                        ADMINISTRADOR_GESTAO_PRODUTO]:
+                    tipo_usuario = 'gestao_produto'
                 else:
                     tipo_usuario = 'dieta_especial'
         return tipo_usuario

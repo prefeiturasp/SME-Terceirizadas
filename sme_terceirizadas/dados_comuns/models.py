@@ -38,9 +38,16 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
         CODAE_AUTORIZOU_INATIVACAO,
         CODAE_NEGOU_INATIVACAO,
         TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO,
-        TERMINADA_AUTOMATICAMENTE_SISTEMA
+        TERMINADA_AUTOMATICAMENTE_SISTEMA,
 
-    ) = range(20)
+        # ESPECIFICA HOMOLOGACAO DE PRODUTO
+        CODAE_PENDENTE_HOMOLOGACAO,
+        CODAE_HOMOLOGADO,
+        CODAE_NAO_HOMOLOGADO,
+        CODAE_PEDIU_ANALISE_SENSORIAL,
+        TERCEIRIZADA_CANCELOU,
+
+    ) = range(25)
 
     STATUS_POSSIVEIS = (
         (INICIO_FLUXO, 'Solicitação Realizada'),
@@ -62,7 +69,12 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
         (CODAE_AUTORIZOU_INATIVACAO, 'CODAE autorizou inativação'),
         (CODAE_NEGOU_INATIVACAO, 'CODAE negou inativação'),
         (TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO, 'Terceirizada tomou ciência da inativação'),
-        (TERMINADA_AUTOMATICAMENTE_SISTEMA, 'Terminada por atingir data de término')
+        (TERMINADA_AUTOMATICAMENTE_SISTEMA, 'Terminada por atingir data de término'),
+        (CODAE_PENDENTE_HOMOLOGACAO, "Pendente homologação da CODAE"),
+        (CODAE_HOMOLOGADO, "CODAE homologou"),
+        (CODAE_NAO_HOMOLOGADO, "CODAE não homologou"),
+        (CODAE_PEDIU_ANALISE_SENSORIAL, "CODAE pediu análise sensorial"),
+        (TERCEIRIZADA_CANCELOU, "Terceirizada cancelou homologação"),
 
     )
     (  # DA ESCOLA
