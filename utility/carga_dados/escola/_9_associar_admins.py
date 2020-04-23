@@ -19,6 +19,10 @@ usuario_codae = Usuario.objects.get(email='codae@admin.com')
 usuario_codae.registro_funcional = '0000011'
 usuario_codae.nome = 'SUPER USUARIO CODAE'
 usuario_codae.save()
+usuario_gestao_produto_codae = Usuario.objects.get(email='gpcodae@admin.com')
+usuario_gestao_produto_codae.registro_funcional = '1000011'
+usuario_gestao_produto_codae.nome = 'USUARIO GESTAO PRODUTO CODAE'
+usuario_gestao_produto_codae.save()
 usuario_terceirizada = Usuario.objects.get(email='terceirizada@admin.com')
 usuario_terceirizada.registro_funcional = '0000100'
 usuario_terceirizada.nome = 'SUPER USUARIO TERCEIRIZADA'
@@ -130,6 +134,19 @@ Perfil.objects.get_or_create(
     ativo=True,
     super_usuario=True
 )
+
+perfil_coordenador_gestao_produto, created = Perfil.objects.get_or_create(
+    nome='COORDENADOR_GESTAO_PRODUTO',
+    ativo=True,
+    super_usuario=True
+)
+
+perfil_administrador_gestao_produto, created = Perfil.objects.get_or_create(
+    nome='ADMINISTRADOR_GESTAO_PRODUTO',
+    ativo=True,
+    super_usuario=True
+)
+
 
 
 escola = Escola.objects.get(nome='EMEF JOSE ERMIRIO DE MORAIS, SEN.')
@@ -249,6 +266,14 @@ Vinculo.objects.create(
     data_inicial=data_atual
 )
 print(f'perfil {perfil_usuario_nutri_codae.nome} vinculado a {codae.nome} com sucesso')
+
+Vinculo.objects.create(
+    instituicao=codae,
+    perfil=perfil_coordenador_gestao_produto,
+    usuario=usuario_gestao_produto_codae,
+    data_inicial=data_atual
+)
+print(f'perfil {perfil_coordenador_gestao_produto.nome} vinculado a {codae.nome} com sucesso')
 
 Vinculo.objects.create(
     instituicao=terceirizada,
