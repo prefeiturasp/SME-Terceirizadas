@@ -280,6 +280,27 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
         self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.INICIO_FLUXO,
                                   usuario=user)
 
+    @xworkflows.after_transition('codae_homologa')
+    def _codae_homologa_hook(self, *args, **kwargs):
+        self._salva_rastro_solicitacao()
+        user = kwargs['user']
+        self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_HOMOLOGADO,
+                                  usuario=user)
+
+    @xworkflows.after_transition('codae_nao_homologa')
+    def _codae_nao_homologa_hook(self, *args, **kwargs):
+        self._salva_rastro_solicitacao()
+        user = kwargs['user']
+        self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_NAO_HOMOLOGADO,
+                                  usuario=user)
+
+    @xworkflows.after_transition('codae_pede_analise_sensorial')
+    def _codae_pede_analise_sensorial_hook(self, *args, **kwargs):
+        self._salva_rastro_solicitacao()
+        user = kwargs['user']
+        self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_PEDIU_ANALISE_SENSORIAL,
+                                  usuario=user)
+
     class Meta:
         abstract = True
 

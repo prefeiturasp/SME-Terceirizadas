@@ -1,7 +1,9 @@
-from rest_framework import viewsets
+from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from xworkflows import InvalidTransitionError
 
+from ...dados_comuns import constants
 from ..models import Fabricante, HomologacaoDoProduto, InformacaoNutricional, Marca, Produto, ProtocoloDeDietaEspecial
 from .serializers.serializers import (
     FabricanteSerializer,
@@ -15,6 +17,7 @@ from .serializers.serializers import (
     ProtocoloSimplesSerializer, HomologacaoProdutoSerializer
 )
 from .serializers.serializers_create import ProdutoSerializerCreate
+from ...dados_comuns.permissions import UsuarioCODAEGestaoProduto
 
 
 class InformacaoNutricionalBaseViewSet(viewsets.ReadOnlyModelViewSet):
@@ -60,6 +63,50 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
     serializer_class = HomologacaoProdutoSerializer
     queryset = HomologacaoDoProduto.objects.all()
+
+    @action(detail=True,
+            permission_classes=(UsuarioCODAEGestaoProduto,),
+            methods=['patch'],
+            url_path=constants.CODAE_HOMOLOGA)
+    def codae_homologa(self, request, uuid=None):
+        homologacao_produto = self.get_object()
+        try:
+            homologacao_produto.codae_homologa(user=request.user)
+            serializer = self.get_serializer(homologacao_produto)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'),
+                            status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True,
+            permission_classes=(UsuarioCODAEGestaoProduto,),
+            methods=['patch'],
+            url_path=constants.CODAE_NAO_HOMOLOGA)
+    def codae_nao_homologa(self, request, uuid=None):
+        homologacao_produto = self.get_object()
+        try:
+            homologacao_produto.codae_nao_homologa(user=request.user)
+            serializer = self.get_serializer(homologacao_produto)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'),
+                            status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True,
+            permission_classes=(UsuarioCODAEGestaoProduto,),
+            methods=['patch'],
+            url_path=constants.CODAE_PEDE_ANALISE_SENSORIAL)
+    def codae_pede_analise_sensorial(self, request, uuid=None):
+        homologacao_produto = self.get_object()
+        try:
+            homologacao_produto.codae_pede_analise_sensorial(user=request.user)
+            homologacao_produto.necessita_analise_sensorial = True
+            homologacao_produto.save()
+            serializer = self.get_serializer(homologacao_produto)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'),
+                            status=status.HTTP_400_BAD_REQUEST)
 
 
 class ProdutoViewSet(viewsets.ModelViewSet):
