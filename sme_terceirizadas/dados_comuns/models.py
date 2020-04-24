@@ -182,6 +182,7 @@ class TemplateMensagem(ExportModelOperationsMixin('template_mensagem'), models.M
 
 class CategoriaPerguntaFrequente(ExportModelOperationsMixin('cat_faq'), models.Model):
     nome = models.CharField('Nome', blank=True, max_length=100)
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
 
     def __str__(self):
         return self.nome

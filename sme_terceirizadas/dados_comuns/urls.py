@@ -12,6 +12,8 @@ router.register('dias-uteis', viewsets.DiasUteisViewSet, basename='Dias úteis')
 router.register('templates-mensagem', viewsets.TemplateMensagemViewSet,
                 basename='Configuração de mensagem')
 router.register('perguntas-frequentes', viewsets.PerguntaFrequenteViewSet, basename='Perguntas Frequentes')
+router.register('categorias-pergunta-frequente', viewsets.CategoriaPerguntaFrequenteViewSet,
+                basename='Categorias de Pergunta Frequente')
 
 urlpatterns = [
     path('', include(router.urls)),

@@ -3,15 +3,22 @@ from django.db import IntegrityError
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from rest_framework import status
+from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ViewSet
 
 from ..behaviors import DiasSemana, TempoPasseio
 from ..constants import TEMPO_CACHE_1H, TEMPO_CACHE_6H, obter_dias_uteis_apos_hoje
-from ..models import PerguntaFrequente, TemplateMensagem
+from ..models import CategoriaPerguntaFrequente, PerguntaFrequente, TemplateMensagem
 from ..permissions import UsuarioCODAEGestaoAlimentacao
-from .serializers import ConfiguracaoEmailSerializer, ConfiguracaoMensagemSerializer, PerguntaFrequenteSerializer
+from .serializers import (
+    CategoriaPerguntaFrequenteSerializer,
+    ConfiguracaoEmailSerializer,
+    ConfiguracaoMensagemSerializer,
+    ConsultaPerguntasFrequentesSerializer,
+    PerguntaFrequenteSerializer
+)
 
 
 class DiasDaSemanaViewSet(ViewSet):
@@ -67,6 +74,21 @@ class TemplateMensagemViewSet(ModelViewSet):
     lookup_field = 'uuid'
     queryset = TemplateMensagem.objects.all()
     serializer_class = ConfiguracaoMensagemSerializer
+
+
+class CategoriaPerguntaFrequenteViewSet(ModelViewSet):
+    lookup_field = 'uuid'
+    queryset = CategoriaPerguntaFrequente.objects.all()
+
+    def get_serializer_class(self):
+        if self.action == 'perguntas_por_categoria':
+            return ConsultaPerguntasFrequentesSerializer
+        return CategoriaPerguntaFrequenteSerializer
+
+    @action(detail=False, url_path='perguntas-por-categoria')
+    def perguntas_por_categoria(self, request):
+        serializer = self.get_serializer(self.get_queryset(), many=True)
+        return Response(serializer.data)
 
 
 class PerguntaFrequenteViewSet(ModelViewSet):
