@@ -1,23 +1,24 @@
-from rest_framework import viewsets, status
+from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from xworkflows import InvalidTransitionError
 
 from ...dados_comuns import constants
+from ...dados_comuns.permissions import UsuarioCODAEGestaoProduto
 from ..models import Fabricante, HomologacaoDoProduto, InformacaoNutricional, Marca, Produto, ProtocoloDeDietaEspecial
 from .serializers.serializers import (
     FabricanteSerializer,
     FabricanteSimplesSerializer,
+    HomologacaoProdutoSerializer,
     InformacaoNutricionalSerializer,
     MarcaSerializer,
     MarcaSimplesSerializer,
     ProdutoSerializer,
     ProdutoSimplesSerializer,
     ProtocoloDeDietaEspecialSerializer,
-    ProtocoloSimplesSerializer, HomologacaoProdutoSerializer
+    ProtocoloSimplesSerializer
 )
 from .serializers.serializers_create import ProdutoSerializerCreate
-from ...dados_comuns.permissions import UsuarioCODAEGestaoProduto
 
 
 class InformacaoNutricionalBaseViewSet(viewsets.ReadOnlyModelViewSet):

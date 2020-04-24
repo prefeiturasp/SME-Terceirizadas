@@ -1,18 +1,17 @@
-from distutils.log import Log
-
 from rest_framework import serializers
 
 from ....dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
 from ....terceirizada.api.serializers.serializers import TerceirizadaSimplesSerializer
 from ...models import (
     Fabricante,
+    HomologacaoDoProduto,
     ImagemDoProduto,
     InformacaoNutricional,
     InformacoesNutricionaisDoProduto,
     Marca,
     Produto,
     ProtocoloDeDietaEspecial,
-    TipoDeInformacaoNutricional, HomologacaoDoProduto
+    TipoDeInformacaoNutricional
 )
 
 

@@ -3,12 +3,13 @@ from rest_framework import serializers
 from ....dados_comuns.utils import convert_base64_to_contentfile, update_instance_from_dict
 from ...models import (
     Fabricante,
+    HomologacaoDoProduto,
     ImagemDoProduto,
     InformacaoNutricional,
     InformacoesNutricionaisDoProduto,
     Marca,
     Produto,
-    ProtocoloDeDietaEspecial, HomologacaoDoProduto
+    ProtocoloDeDietaEspecial
 )
 from ..validators import deve_ter_extensao_valida
 

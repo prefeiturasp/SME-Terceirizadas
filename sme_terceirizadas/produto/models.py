@@ -1,10 +1,16 @@
 from django.db import models
-from django_prometheus.models import ExportModelOperationsMixin
 
-from ..dados_comuns.behaviors import Ativavel, CriadoEm, CriadoPor, Nomeavel, TemChaveExterna, Logs, \
+from ..dados_comuns.behaviors import (
+    Ativavel,
+    CriadoEm,
+    CriadoPor,
+    Logs,
+    Nomeavel,
+    TemChaveExterna,
     TemIdentificadorExternoAmigavel
+)
 from ..dados_comuns.fluxo_status import FluxoHomologacaoProduto
-from ..dados_comuns.models import TemplateMensagem, LogSolicitacoesUsuario
+from ..dados_comuns.models import LogSolicitacoesUsuario, TemplateMensagem
 
 
 class ProtocoloDeDietaEspecial(Ativavel, CriadoEm, CriadoPor, Nomeavel, TemChaveExterna):

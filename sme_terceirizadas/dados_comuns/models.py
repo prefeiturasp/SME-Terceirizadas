@@ -70,11 +70,11 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
         (CODAE_NEGOU_INATIVACAO, 'CODAE negou inativação'),
         (TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO, 'Terceirizada tomou ciência da inativação'),
         (TERMINADA_AUTOMATICAMENTE_SISTEMA, 'Terminada por atingir data de término'),
-        (CODAE_PENDENTE_HOMOLOGACAO, "Pendente homologação da CODAE"),
-        (CODAE_HOMOLOGADO, "CODAE homologou"),
-        (CODAE_NAO_HOMOLOGADO, "CODAE não homologou"),
-        (CODAE_PEDIU_ANALISE_SENSORIAL, "CODAE pediu análise sensorial"),
-        (TERCEIRIZADA_CANCELOU, "Terceirizada cancelou homologação"),
+        (CODAE_PENDENTE_HOMOLOGACAO, 'Pendente homologação da CODAE'),
+        (CODAE_HOMOLOGADO, 'CODAE homologou'),
+        (CODAE_NAO_HOMOLOGADO, 'CODAE não homologou'),
+        (CODAE_PEDIU_ANALISE_SENSORIAL, 'CODAE pediu análise sensorial'),
+        (TERCEIRIZADA_CANCELOU, 'Terceirizada cancelou homologação'),
 
     )
     (  # DA ESCOLA
