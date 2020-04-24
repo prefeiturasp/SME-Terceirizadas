@@ -2,6 +2,7 @@ from django.contrib import admin
 
 from .models import (
     Fabricante,
+    HomologacaoDoProduto,
     ImagemDoProduto,
     InformacaoNutricional,
     InformacoesNutricionaisDoProduto,
@@ -16,6 +17,7 @@ admin.site.register(InformacaoNutricional)
 admin.site.register(Marca)
 admin.site.register(ProtocoloDeDietaEspecial)
 admin.site.register(TipoDeInformacaoNutricional)
+admin.site.register(HomologacaoDoProduto)
 
 
 class InformacoesNutricionaisDoProdutoInline(admin.TabularInline):
