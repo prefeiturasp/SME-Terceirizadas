@@ -202,7 +202,7 @@ class HomologacaoProdutoWorkflow(xwf_models.Workflow):
     RASCUNHO = 'RASCUNHO'
     CODAE_PENDENTE_HOMOLOGACAO = 'CODAE_PENDENTE_HOMOLOGACAO'  # INICIO
     CODAE_HOMOLOGADO = 'CODAE_HOMOLOGADO'
-    CODAE_NAO_HOMOLOGADO = 'CODAE_AUTORIZADO'
+    CODAE_NAO_HOMOLOGADO = 'CODAE_NAO_HOMOLOGADO'
     CODAE_QUESTIONADO = 'CODAE_QUESTIONADO'
     CODAE_PEDIU_ANALISE_SENSORIAL = 'CODAE_PEDIU_ANALISE_SENSORIAL'
     TERCEIRIZADA_CANCELOU = 'TERCEIRIZADA_CANCELOU'
@@ -242,7 +242,7 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
                                             editable=False)
 
     def _salva_rastro_solicitacao(self):
-        self.rastro_terceirizada = self.rastro_lote = self.criado_por.vinculo_atual.instituicao
+        self.rastro_terceirizada = self.criado_por.vinculo_atual.instituicao
         self.save()
 
     @property
