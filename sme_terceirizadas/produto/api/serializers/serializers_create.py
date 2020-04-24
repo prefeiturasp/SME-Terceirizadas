@@ -3,6 +3,7 @@ from rest_framework import serializers
 from ....dados_comuns.utils import convert_base64_to_contentfile, update_instance_from_dict
 from ...models import (
     Fabricante,
+    HomologacaoDoProduto,
     ImagemDoProduto,
     InformacaoNutricional,
     InformacoesNutricionaisDoProduto,
@@ -85,6 +86,12 @@ class ProdutoSerializerCreate(serializers.ModelSerializer):
             )
 
         produto.protocolos.set(protocolos)
+        homologacao = HomologacaoDoProduto(
+            produto=produto,
+            criado_por=self.context['request'].user
+        )
+        homologacao.save()
+        homologacao.inicia_fluxo(user=self.context['request'].user)
         return produto
 
     def update(self, instance, validated_data):

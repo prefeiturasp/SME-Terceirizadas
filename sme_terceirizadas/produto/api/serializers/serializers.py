@@ -1,8 +1,10 @@
 from rest_framework import serializers
 
+from ....dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
 from ....terceirizada.api.serializers.serializers import TerceirizadaSimplesSerializer
 from ...models import (
     Fabricante,
+    HomologacaoDoProduto,
     ImagemDoProduto,
     InformacaoNutricional,
     InformacoesNutricionaisDoProduto,
@@ -68,7 +70,6 @@ class ProdutoSerializer(serializers.ModelSerializer):
     )
 
     informacoes_nutricionais = serializers.SerializerMethodField()
-    terceirizada = serializers.SerializerMethodField()
 
     def get_informacoes_nutricionais(self, obj):
         return InformacoesNutricionaisDoProdutoSerializer(
@@ -76,9 +77,6 @@ class ProdutoSerializer(serializers.ModelSerializer):
                 produto=obj
             ), many=True
         ).data
-
-    def get_terceirizada(self, obj):
-        return TerceirizadaSimplesSerializer(obj.criado_por.vinculo_atual.instituicao).data
 
     class Meta:
         model = Produto
@@ -107,3 +105,13 @@ class ProtocoloSimplesSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProtocoloDeDietaEspecial
         fields = ('uuid', 'nome',)
+
+
+class HomologacaoProdutoSerializer(serializers.ModelSerializer):
+    produto = ProdutoSerializer()
+    logs = LogSolicitacoesUsuarioSerializer(many=True)
+    rastro_terceirizada = TerceirizadaSimplesSerializer()
+
+    class Meta:
+        model = HomologacaoDoProduto
+        fields = ('uuid', 'produto', 'status', 'id_externo', 'logs', 'rastro_terceirizada')

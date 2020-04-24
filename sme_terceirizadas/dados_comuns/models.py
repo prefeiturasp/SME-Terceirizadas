@@ -38,9 +38,16 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
         CODAE_AUTORIZOU_INATIVACAO,
         CODAE_NEGOU_INATIVACAO,
         TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO,
-        TERMINADA_AUTOMATICAMENTE_SISTEMA
+        TERMINADA_AUTOMATICAMENTE_SISTEMA,
 
-    ) = range(20)
+        # ESPECIFICA HOMOLOGACAO DE PRODUTO
+        CODAE_PENDENTE_HOMOLOGACAO,
+        CODAE_HOMOLOGADO,
+        CODAE_NAO_HOMOLOGADO,
+        CODAE_PEDIU_ANALISE_SENSORIAL,
+        TERCEIRIZADA_CANCELOU,
+
+    ) = range(25)
 
     STATUS_POSSIVEIS = (
         (INICIO_FLUXO, 'Solicitação Realizada'),
@@ -62,7 +69,12 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
         (CODAE_AUTORIZOU_INATIVACAO, 'CODAE autorizou inativação'),
         (CODAE_NEGOU_INATIVACAO, 'CODAE negou inativação'),
         (TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO, 'Terceirizada tomou ciência da inativação'),
-        (TERMINADA_AUTOMATICAMENTE_SISTEMA, 'Terminada por atingir data de término')
+        (TERMINADA_AUTOMATICAMENTE_SISTEMA, 'Terminada por atingir data de término'),
+        (CODAE_PENDENTE_HOMOLOGACAO, 'Pendente homologação da CODAE'),
+        (CODAE_HOMOLOGADO, 'CODAE homologou'),
+        (CODAE_NAO_HOMOLOGADO, 'CODAE não homologou'),
+        (CODAE_PEDIU_ANALISE_SENSORIAL, 'CODAE pediu análise sensorial'),
+        (TERCEIRIZADA_CANCELOU, 'Terceirizada cancelou homologação'),
 
     )
     (  # DA ESCOLA
@@ -76,8 +88,10 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
         INCLUSAO_ALIMENTACAO_CONTINUA,
         DIETA_ESPECIAL,
         # DA DRE
-        SOLICITACAO_KIT_LANCHE_UNIFICADA
-    ) = range(10)
+        SOLICITACAO_KIT_LANCHE_UNIFICADA,
+        # DA TERCEIRIZADA
+        HOMOLOGACAO_PRODUTO
+    ) = range(11)
 
     TIPOS_SOLICITACOES = (
         (SOLICITACAO_KIT_LANCHE_AVULSA, 'Solicitação de kit lanche avulsa'),
@@ -90,6 +104,7 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
         (INCLUSAO_ALIMENTACAO_CONTINUA, 'Inclusão de alimentação contínua'),
         (DIETA_ESPECIAL, 'Dieta Especial'),
         (SOLICITACAO_KIT_LANCHE_UNIFICADA, 'Solicitação de kit lanche unificada'),
+        (HOMOLOGACAO_PRODUTO, 'Homologação de Produto')
     )
 
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
@@ -143,6 +158,7 @@ class TemplateMensagem(ExportModelOperationsMixin('template_mensagem'), models.M
     SOLICITACAO_KIT_LANCHE_UNIFICADA = 5
     INVERSAO_CARDAPIO = 6
     DIETA_ESPECIAL = 7
+    HOMOLOGACAO_PRODUTO = 8
 
     CHOICES = (
         (ALTERACAO_CARDAPIO, 'Alteração de cardápio'),
@@ -152,7 +168,8 @@ class TemplateMensagem(ExportModelOperationsMixin('template_mensagem'), models.M
         (SOLICITACAO_KIT_LANCHE_AVULSA, 'Solicitação de kit lanche avulsa'),
         (SOLICITACAO_KIT_LANCHE_UNIFICADA, 'Solicitação de kit lanche unificada'),
         (INVERSAO_CARDAPIO, 'Inversão de cardápio'),
-        (DIETA_ESPECIAL, 'Dieta Especial')
+        (DIETA_ESPECIAL, 'Dieta Especial'),
+        (HOMOLOGACAO_PRODUTO, 'Homologação de Produto')
     )
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     tipo = models.PositiveSmallIntegerField(choices=CHOICES, unique=True)

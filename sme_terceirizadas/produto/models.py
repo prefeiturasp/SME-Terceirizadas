@@ -1,6 +1,16 @@
 from django.db import models
 
-from ..dados_comuns.behaviors import Ativavel, CriadoEm, CriadoPor, Nomeavel, TemChaveExterna
+from ..dados_comuns.behaviors import (
+    Ativavel,
+    CriadoEm,
+    CriadoPor,
+    Logs,
+    Nomeavel,
+    TemChaveExterna,
+    TemIdentificadorExternoAmigavel
+)
+from ..dados_comuns.fluxo_status import FluxoHomologacaoProduto
+from ..dados_comuns.models import LogSolicitacoesUsuario, TemplateMensagem
 
 
 class ProtocoloDeDietaEspecial(Ativavel, CriadoEm, CriadoPor, Nomeavel, TemChaveExterna):
@@ -125,3 +135,45 @@ class InformacoesNutricionaisDoProduto(TemChaveExterna):
     class Meta:
         verbose_name = 'Informação Nutricional do Produto'
         verbose_name_plural = 'Informações Nutricionais do Produto'
+
+
+class HomologacaoDoProduto(TemChaveExterna, CriadoEm, CriadoPor, FluxoHomologacaoProduto,
+                           Logs, TemIdentificadorExternoAmigavel, Ativavel):
+    DESCRICAO = 'Homologação de Produto'
+    produto = models.ForeignKey(Produto, on_delete=models.CASCADE, related_name='homologacoes')
+    necessita_analise_sensorial = models.BooleanField(default=False)
+
+    @property
+    def template_mensagem(self):
+        template = TemplateMensagem.objects.get(tipo=TemplateMensagem.HOMOLOGACAO_PRODUTO)
+        template_troca = {
+            '@id': self.id_externo,
+            '@criado_em': str(self.criado_em),
+            '@criado_por': str(self.criado_por),
+            '@status': str(self.status),
+            # TODO: verificar a url padrão do pedido
+            '@link': 'http://teste.com',
+        }
+        corpo = template.template_html
+        for chave, valor in template_troca.items():
+            corpo = corpo.replace(chave, valor)
+        return template.assunto, corpo
+
+    def salvar_log_transicao(self, status_evento, usuario, **kwargs):
+        justificativa = kwargs.get('justificativa', '')
+        LogSolicitacoesUsuario.objects.create(
+            descricao=str(self),
+            status_evento=status_evento,
+            solicitacao_tipo=LogSolicitacoesUsuario.HOMOLOGACAO_PRODUTO,
+            usuario=usuario,
+            uuid_original=self.uuid,
+            justificativa=justificativa
+        )
+
+    class Meta:
+        ordering = ('-ativo', '-criado_em')
+        verbose_name = 'Homologação de Produto'
+        verbose_name_plural = 'Homologações de Produto'
+
+    def __str__(self):
+        return f'Homologação #{self.id_externo}'

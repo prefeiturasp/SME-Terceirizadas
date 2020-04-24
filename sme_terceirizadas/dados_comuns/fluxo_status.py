@@ -195,6 +195,127 @@ class DietaEspecialWorkflow(xwf_models.Workflow):
     initial_state = RASCUNHO
 
 
+class HomologacaoProdutoWorkflow(xwf_models.Workflow):
+    # leia com atenção: https://django-xworkflows.readthedocs.io/en/latest/index.html
+    log_model = ''  # Disable logging to database
+
+    RASCUNHO = 'RASCUNHO'
+    CODAE_PENDENTE_HOMOLOGACAO = 'CODAE_PENDENTE_HOMOLOGACAO'  # INICIO
+    CODAE_HOMOLOGADO = 'CODAE_HOMOLOGADO'
+    CODAE_NAO_HOMOLOGADO = 'CODAE_NAO_HOMOLOGADO'
+    CODAE_QUESTIONADO = 'CODAE_QUESTIONADO'
+    CODAE_PEDIU_ANALISE_SENSORIAL = 'CODAE_PEDIU_ANALISE_SENSORIAL'
+    TERCEIRIZADA_CANCELOU = 'TERCEIRIZADA_CANCELOU'
+
+    states = (
+        (RASCUNHO, 'Rascunho'),
+        (CODAE_PENDENTE_HOMOLOGACAO, 'Pendente homologação da CODAE'),
+        (CODAE_HOMOLOGADO, 'CODAE homologou'),
+        (CODAE_NAO_HOMOLOGADO, 'CODAE não homologou'),
+        (CODAE_QUESTIONADO, 'CODAE pediu correção'),
+        (CODAE_PEDIU_ANALISE_SENSORIAL, 'CODAE pediu análise sensorial'),
+        (TERCEIRIZADA_CANCELOU, 'Terceirizada cancelou homologação'),
+    )
+
+    transitions = (
+        ('inicia_fluxo', RASCUNHO, CODAE_PENDENTE_HOMOLOGACAO),
+        ('codae_homologa', [CODAE_PENDENTE_HOMOLOGACAO, CODAE_PEDIU_ANALISE_SENSORIAL], CODAE_HOMOLOGADO),
+        ('codae_nao_homologa', [CODAE_PENDENTE_HOMOLOGACAO, CODAE_PEDIU_ANALISE_SENSORIAL], CODAE_NAO_HOMOLOGADO),
+        ('codae_questiona', CODAE_PENDENTE_HOMOLOGACAO, CODAE_QUESTIONADO),
+        ('terceirizada_responde_questionamento', CODAE_QUESTIONADO, CODAE_PENDENTE_HOMOLOGACAO),
+        ('codae_pede_analise_sensorial', CODAE_PENDENTE_HOMOLOGACAO, CODAE_PEDIU_ANALISE_SENSORIAL),
+    )
+
+    initial_state = RASCUNHO
+
+
+class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
+    workflow_class = HomologacaoProdutoWorkflow
+    status = xwf_models.StateField(workflow_class)
+    DIAS_PARA_CANCELAR = 2
+
+    rastro_terceirizada = models.ForeignKey('terceirizada.Terceirizada',
+                                            on_delete=models.DO_NOTHING,
+                                            null=True,
+                                            blank=True,
+                                            related_name='%(app_label)s_%(class)s_rastro_terceirizada',
+                                            editable=False)
+
+    def _salva_rastro_solicitacao(self):
+        self.rastro_terceirizada = self.criado_por.vinculo_atual.instituicao
+        self.save()
+
+    @property
+    def template_mensagem(self):
+        raise NotImplementedError('Deve criar um property que recupera o assunto e corpo mensagem desse objeto')
+
+    def salvar_log_transicao(self, status_evento, usuario, **kwargs):
+        raise NotImplementedError('Deve criar um método salvar_log_transicao')
+
+    #
+    # Esses hooks são chamados automaticamente após a
+    # transition do status ser chamada.
+    # Ex. >>> alimentacao_continua.inicia_fluxo(param1, param2, key1='val')
+    #
+
+    def _preenche_template_e_envia_email(self, assunto, titulo, user, partes_interessadas):
+        template = 'fluxo_autorizar_negar_cancelar.html'
+        dados_template = {'titulo': titulo, 'tipo_solicitacao': self.DESCRICAO,
+                          'movimentacao_realizada': str(self.status), 'perfil_que_autorizou': user.nome}
+        html = render_to_string(template, dados_template)
+        envia_email_em_massa_task.delay(
+            assunto=assunto,
+            corpo='',
+            emails=partes_interessadas,
+            template='fluxo_autorizar_negar_cancelar.html',
+            dados_template={'titulo': titulo, 'tipo_solicitacao': self.DESCRICAO,
+                            'movimentacao_realizada': str(self.status), 'perfil_que_autorizou': user.nome},
+            html=html
+        )
+
+    @xworkflows.after_transition('inicia_fluxo')
+    def _inicia_fluxo_hook(self, *args, **kwargs):
+        self._salva_rastro_solicitacao()
+        user = kwargs['user']
+        self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.INICIO_FLUXO,
+                                  usuario=user)
+
+    @xworkflows.after_transition('codae_homologa')
+    def _codae_homologa_hook(self, *args, **kwargs):
+        self._salva_rastro_solicitacao()
+        user = kwargs['user']
+        self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_HOMOLOGADO,
+                                  usuario=user)
+
+    @xworkflows.after_transition('codae_nao_homologa')
+    def _codae_nao_homologa_hook(self, *args, **kwargs):
+        self._salva_rastro_solicitacao()
+        user = kwargs['user']
+        justificativa = kwargs.get('justificativa', '')
+        self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_NAO_HOMOLOGADO,
+                                  usuario=user,
+                                  justificativa=justificativa)
+
+    @xworkflows.after_transition('codae_questiona')
+    def _codae_questiona_hook(self, *args, **kwargs):
+        self._salva_rastro_solicitacao()
+        user = kwargs['user']
+        justificativa = kwargs.get('justificativa', '')
+        self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_QUESTIONOU,
+                                  usuario=user,
+                                  justificativa=justificativa)
+
+    @xworkflows.after_transition('codae_pede_analise_sensorial')
+    def _codae_pede_analise_sensorial_hook(self, *args, **kwargs):
+        self._salva_rastro_solicitacao()
+        user = kwargs['user']
+        self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_PEDIU_ANALISE_SENSORIAL,
+                                  usuario=user)
+
+    class Meta:
+        abstract = True
+
+
 class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
     workflow_class = PedidoAPartirDaEscolaWorkflow
     status = xwf_models.StateField(workflow_class)

@@ -1,11 +1,15 @@
-from rest_framework import viewsets
+from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from xworkflows import InvalidTransitionError
 
-from ..models import Fabricante, InformacaoNutricional, Marca, Produto, ProtocoloDeDietaEspecial
+from ...dados_comuns import constants
+from ...dados_comuns.permissions import UsuarioCODAEGestaoProduto
+from ..models import Fabricante, HomologacaoDoProduto, InformacaoNutricional, Marca, Produto, ProtocoloDeDietaEspecial
 from .serializers.serializers import (
     FabricanteSerializer,
     FabricanteSimplesSerializer,
+    HomologacaoProdutoSerializer,
     InformacaoNutricionalSerializer,
     MarcaSerializer,
     MarcaSimplesSerializer,
@@ -54,6 +58,72 @@ class InformacaoNutricionalBaseViewSet(viewsets.ReadOnlyModelViewSet):
                 }
                 infos_nutricionais.append(info_nutricional)
         return infos_nutricionais
+
+
+class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
+    lookup_field = 'uuid'
+    serializer_class = HomologacaoProdutoSerializer
+    queryset = HomologacaoDoProduto.objects.all()
+
+    @action(detail=True,
+            permission_classes=(UsuarioCODAEGestaoProduto,),
+            methods=['patch'],
+            url_path=constants.CODAE_HOMOLOGA)
+    def codae_homologa(self, request, uuid=None):
+        homologacao_produto = self.get_object()
+        try:
+            homologacao_produto.codae_homologa(user=request.user)
+            serializer = self.get_serializer(homologacao_produto)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'),
+                            status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True,
+            permission_classes=(UsuarioCODAEGestaoProduto,),
+            methods=['patch'],
+            url_path=constants.CODAE_NAO_HOMOLOGA)
+    def codae_nao_homologa(self, request, uuid=None):
+        homologacao_produto = self.get_object()
+        try:
+            justificativa = request.data.get('justificativa', '')
+            homologacao_produto.codae_nao_homologa(user=request.user, justificativa=justificativa)
+            serializer = self.get_serializer(homologacao_produto)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'),
+                            status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True,
+            permission_classes=(UsuarioCODAEGestaoProduto,),
+            methods=['patch'],
+            url_path=constants.CODAE_QUESTIONA_PEDIDO)
+    def codae_questiona(self, request, uuid=None):
+        homologacao_produto = self.get_object()
+        try:
+            justificativa = request.data.get('justificativa', '')
+            homologacao_produto.codae_questiona(user=request.user, justificativa=justificativa)
+            serializer = self.get_serializer(homologacao_produto)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'),
+                            status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True,
+            permission_classes=(UsuarioCODAEGestaoProduto,),
+            methods=['patch'],
+            url_path=constants.CODAE_PEDE_ANALISE_SENSORIAL)
+    def codae_pede_analise_sensorial(self, request, uuid=None):
+        homologacao_produto = self.get_object()
+        try:
+            homologacao_produto.codae_pede_analise_sensorial(user=request.user)
+            homologacao_produto.necessita_analise_sensorial = True
+            homologacao_produto.save()
+            serializer = self.get_serializer(homologacao_produto)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'),
+                            status=status.HTTP_400_BAD_REQUEST)
 
 
 class ProdutoViewSet(viewsets.ModelViewSet):

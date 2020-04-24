@@ -6,6 +6,7 @@ from .api import viewsets
 router = routers.DefaultRouter()
 
 router.register('produtos', viewsets.ProdutoViewSet, 'Produtos')
+router.register('homologacoes-produtos', viewsets.HomologacaoProdutoViewSet, 'Homologação de Produtos')
 router.register('informacoes-nutricionais', viewsets.InformacaoNutricionalViewSet, 'Informações Nutricionais')
 router.register('protocolo-dieta-especial', viewsets.ProtocoloDeDietaEspecialViewSet, 'Protocolo Dieta Especial')
 router.register('fabricantes', viewsets.FabricanteViewSet, 'Fabricantes')
