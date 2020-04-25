@@ -43,6 +43,18 @@ class CategoriaPerguntaFrequenteSerializer(serializers.ModelSerializer):
         exclude = ('id',)
 
 
+class PerguntaFrequenteCreateSerializer(serializers.ModelSerializer):
+    categoria = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=CategoriaPerguntaFrequente.objects.all()
+    )
+
+    class Meta:
+        model = PerguntaFrequente
+        exclude = ('id', 'criado_em')
+
+
 class PerguntaFrequenteSerializer(serializers.ModelSerializer):
     class Meta:
         model = PerguntaFrequente

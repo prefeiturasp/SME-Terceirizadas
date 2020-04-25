@@ -17,6 +17,7 @@ from .serializers import (
     ConfiguracaoEmailSerializer,
     ConfiguracaoMensagemSerializer,
     ConsultaPerguntasFrequentesSerializer,
+    PerguntaFrequenteCreateSerializer,
     PerguntaFrequenteSerializer
 )
 
@@ -94,7 +95,11 @@ class CategoriaPerguntaFrequenteViewSet(ModelViewSet):
 class PerguntaFrequenteViewSet(ModelViewSet):
     lookup_field = 'uuid'
     queryset = PerguntaFrequente.objects.all()
-    serializer_class = PerguntaFrequenteSerializer
+
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update']:
+            return PerguntaFrequenteCreateSerializer
+        return PerguntaFrequenteSerializer
 
     def get_permissions(self):
         if self.action in ['create', 'update', 'partial_update', 'destroy']:
