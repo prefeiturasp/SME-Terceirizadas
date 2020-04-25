@@ -126,10 +126,6 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
                 f'em {self.get_solicitacao_tipo_display()} no dia {self.criado_em}')
 
 
-class Meta:
-    ordering = ('criado_em',)
-
-
 class Contato(ExportModelOperationsMixin('contato'), models.Model):
     telefone = models.CharField(max_length=13, validators=[MinLengthValidator(8)],
                                 blank=True)
@@ -182,3 +178,22 @@ class TemplateMensagem(ExportModelOperationsMixin('template_mensagem'), models.M
     class Meta:
         verbose_name = 'Template de mensagem'
         verbose_name_plural = 'Template de mensagem'
+
+
+class CategoriaPerguntaFrequente(ExportModelOperationsMixin('cat_faq'), models.Model):
+    nome = models.CharField('Nome', blank=True, max_length=100)
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+
+    def __str__(self):
+        return self.nome
+
+
+class PerguntaFrequente(ExportModelOperationsMixin('faq'), models.Model):
+    categoria = models.ForeignKey('CategoriaPerguntaFrequente', on_delete=models.PROTECT)
+    pergunta = models.TextField('Pergunta')
+    resposta = models.TextField('Resposta')
+    criado_em = models.DateTimeField('Criado em', editable=False, auto_now_add=True)
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+
+    def __str__(self):
+        return self.pergunta
