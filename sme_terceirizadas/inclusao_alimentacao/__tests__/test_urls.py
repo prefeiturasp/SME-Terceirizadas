@@ -1,3 +1,4 @@
+from model_mommy import mommy
 import pytest
 from freezegun import freeze_time
 from rest_framework import status
@@ -15,7 +16,7 @@ from ...dados_comuns.constants import (
     TERCEIRIZADA_TOMOU_CIENCIA
 )
 from ...dados_comuns.fluxo_status import PedidoAPartirDaEscolaWorkflow
-from ..models import GrupoInclusaoAlimentacaoNormal
+from ..models import GrupoInclusaoAlimentacaoNormal, InclusaoAlimentacaoDaCEI
 
 pytestmark = pytest.mark.django_db
 
@@ -492,5 +493,18 @@ def test_url_endpoint_inclusao_continua_relatorio(client_autenticado,
     assert response._headers['content-type'] == ('Content-Type', 'application/pdf')
     assert response._headers['content-disposition'] == (
         'Content-Disposition', f'filename="inclusao_alimentacao_continua_{id_externo}.pdf"')
+    assert 'PDF-1.5' in str(response.content)
+    assert isinstance(response.content, bytes)
+
+
+def test_url_endpoint_inclusao_cei_relatorio(client_autenticado_vinculo_escola_cei_inclusao):
+    inclusao_alimentacao = mommy.make(InclusaoAlimentacaoDaCEI)
+    response = client_autenticado_vinculo_escola_cei_inclusao.get(
+        f'/inclusoes-alimentacao-da-cei/{inclusao_alimentacao.uuid}/{constants.RELATORIO}/')
+    id_externo = inclusao_alimentacao.id_externo
+    assert response.status_code == status.HTTP_200_OK
+    assert response._headers['content-type'] == ('Content-Type', 'application/pdf')
+    assert response._headers['content-disposition'] == (
+        'Content-Disposition', f'filename="inclusao_alimentacao_{id_externo}.pdf"')
     assert 'PDF-1.5' in str(response.content)
     assert isinstance(response.content, bytes)

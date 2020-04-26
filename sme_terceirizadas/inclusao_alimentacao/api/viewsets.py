@@ -13,7 +13,7 @@ from ...dados_comuns.permissions import (
     UsuarioEscola,
     UsuarioTerceirizada
 )
-from ...relatorios.relatorios import relatorio_inclusao_alimentacao_continua, relatorio_inclusao_alimentacao_normal
+from ...relatorios.relatorios import relatorio_inclusao_alimentacao_cei, relatorio_inclusao_alimentacao_continua, relatorio_inclusao_alimentacao_normal
 from ..models import (
     GrupoInclusaoAlimentacaoNormal,
     InclusaoAlimentacaoContinua,
@@ -67,6 +67,14 @@ class InclusaoAlimentacaoDaCEIViewSet(ModelViewSet):
             return Response(serializer.data)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True,
+            methods=['GET'],
+            url_path=f'{constants.RELATORIO}',
+            permission_classes=[AllowAny])
+    def relatorio(self, request, uuid=None):
+        # TODO: essa função parece ser bem genérica, talvez possa ser incluida por composição
+        return relatorio_inclusao_alimentacao_cei(request, solicitacao=self.get_object())
 
 
 class MotivoInclusaoContinuaViewSet(ReadOnlyModelViewSet):
@@ -151,6 +159,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
+    # TODO: AllowAny não é a permissão correta
     @action(detail=True,
             methods=['GET'],
             url_path=f'{constants.RELATORIO}',
