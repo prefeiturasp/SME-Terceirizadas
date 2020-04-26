@@ -836,6 +836,19 @@ def test_url_endpoint_alt_card_relatorio(client_autenticado, alteracao_cardapio)
     assert isinstance(response.content, bytes)
 
 
+def test_url_endpoint_alt_card_cei_relatorio(client_autenticado, alteracao_cardapio_cei):
+    response = client_autenticado.get(
+        f'/{ENDPOINT_ALTERACAO_CARD_CEI}/{alteracao_cardapio_cei.uuid}/{constants.RELATORIO}/'
+    )
+    id_externo = alteracao_cardapio_cei.id_externo
+    assert response.status_code == status.HTTP_200_OK
+    assert response._headers['content-type'] == ('Content-Type', 'application/pdf')
+    assert response._headers['content-disposition'] == (
+        'Content-Disposition', f'filename="alteracao_cardapio_{id_externo}.pdf"')
+    assert 'PDF-1.5' in str(response.content)
+    assert isinstance(response.content, bytes)
+
+
 def test_url_endpoint_get_vinculos_tipo_alimentacao(client_autenticado_vinculo_escola, vinculo_tipo_alimentacao):
     response = client_autenticado_vinculo_escola.get(
         f'/{ENDPOINT_VINCULOS_ALIMENTACAO}/'

@@ -92,6 +92,25 @@ def relatorio_alteracao_cardapio(request, solicitacao):
     return response
 
 
+def relatorio_alteracao_cardapio_cei(request, solicitacao):
+    escola = solicitacao.rastro_escola
+    substituicoes = solicitacao.substituicoes_cei_periodo_escolar
+    logs = solicitacao.logs
+    html_string = render_to_string(
+        'solicitacao_alteracao_cardapio_cei.html',
+        {'escola': escola,
+         'solicitacao': solicitacao,
+         'substituicoes': substituicoes,
+         'fluxo': constants.FLUXO_PARTINDO_ESCOLA,
+         'width': get_width(constants.FLUXO_PARTINDO_ESCOLA, solicitacao.logs),
+         'logs': formata_logs(logs)}
+    )
+    pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
+    response = HttpResponse(pdf_file, content_type='application/pdf')
+    response['Content-Disposition'] = f'filename="alteracao_cardapio_{solicitacao.id_externo}.pdf"'
+    return response
+
+
 def relatorio_dieta_especial(request, solicitacao):
     escola = solicitacao.rastro_escola
     logs = solicitacao.logs
