@@ -1,6 +1,6 @@
-from model_mommy import mommy
 import pytest
 from freezegun import freeze_time
+from model_mommy import mommy
 from rest_framework import status
 
 from ...dados_comuns import constants

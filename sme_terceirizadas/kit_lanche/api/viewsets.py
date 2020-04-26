@@ -16,7 +16,11 @@ from ...dados_comuns.permissions import (
     UsuarioEscola,
     UsuarioTerceirizada
 )
-from ...relatorios.relatorios import relatorio_kit_lanche_passeio, relatorio_kit_lanche_unificado
+from ...relatorios.relatorios import (
+    relatorio_kit_lanche_passeio,
+    relatorio_kit_lanche_passeio_cei,
+    relatorio_kit_lanche_unificado
+)
 from .. import models
 from ..api.validators import nao_deve_ter_mais_solicitacoes_que_alunos
 from ..models import SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheCEIAvulsa, SolicitacaoKitLancheUnificada
@@ -427,3 +431,8 @@ class SolicitacaoKitLancheCEIAvulsaViewSet(SolicitacaoKitLancheAvulsaViewSet):
         if self.action in ['create', 'update', 'partial_update']:
             return serializers_create_cei.SolicitacaoKitLancheCEIAvulsaCreationSerializer
         return serializers.SolicitacaoKitLancheCEIAvulsaSerializer
+
+    @action(detail=True, url_path=constants.RELATORIO,
+            methods=['get'])
+    def relatorio(self, request, uuid=None):
+        return relatorio_kit_lanche_passeio_cei(request, solicitacao=self.get_object())

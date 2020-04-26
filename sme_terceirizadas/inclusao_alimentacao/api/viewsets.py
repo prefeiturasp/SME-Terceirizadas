@@ -13,7 +13,11 @@ from ...dados_comuns.permissions import (
     UsuarioEscola,
     UsuarioTerceirizada
 )
-from ...relatorios.relatorios import relatorio_inclusao_alimentacao_cei, relatorio_inclusao_alimentacao_continua, relatorio_inclusao_alimentacao_normal
+from ...relatorios.relatorios import (
+    relatorio_inclusao_alimentacao_cei,
+    relatorio_inclusao_alimentacao_continua,
+    relatorio_inclusao_alimentacao_normal
+)
 from ..models import (
     GrupoInclusaoAlimentacaoNormal,
     InclusaoAlimentacaoContinua,

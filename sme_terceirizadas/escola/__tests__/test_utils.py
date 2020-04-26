@@ -1,5 +1,6 @@
 from ..utils import meses_para_mes_e_ano_string
 
+
 def test_meses_para_mes_e_ano_string():
     assert meses_para_mes_e_ano_string(0) == '0 meses'
     assert meses_para_mes_e_ano_string(1) == '1 mês'

@@ -384,4 +384,3 @@ def client_autenticado_vinculo_terceirizada_inclusao(client, django_user_model, 
                template_html='@id @criado_em @status @link')
     client.login(email=email, password=password)
     return client
-

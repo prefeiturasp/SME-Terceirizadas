@@ -127,6 +127,20 @@ def solicitacao_avulsa(escola):
 
 
 @pytest.fixture
+def solicitacao_cei(escola):
+    mommy.make('escola.EscolaPeriodoEscolar', escola=escola, quantidade_alunos=500)
+    mommy.make(TemplateMensagem, tipo=TemplateMensagem.SOLICITACAO_KIT_LANCHE_AVULSA)
+    kits = mommy.make(models.KitLanche, _quantity=3)
+    solicitacao_kit_lanche = mommy.make(models.SolicitacaoKitLanche, kits=kits, data=datetime.date(2000, 1, 1))
+    return mommy.make(models.SolicitacaoKitLancheCEIAvulsa,
+                      local=fake.text()[:160],
+                      solicitacao_kit_lanche=solicitacao_kit_lanche,
+                      escola=escola,
+                      rastro_escola=escola,
+                      rastro_dre=escola.diretoria_regional)
+
+
+@pytest.fixture
 def solicitacao_avulsa_rascunho(solicitacao_avulsa):
     solicitacao_avulsa.status = PedidoAPartirDaEscolaWorkflow.RASCUNHO
     solicitacao_avulsa.quantidade_alunos = 200
