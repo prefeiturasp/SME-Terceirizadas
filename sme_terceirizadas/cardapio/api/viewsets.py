@@ -17,6 +17,7 @@ from ...dados_comuns.permissions import (
 from ...escola.models import Escola
 from ...relatorios.relatorios import (
     relatorio_alteracao_cardapio,
+    relatorio_alteracao_cardapio_cei,
     relatorio_inversao_dia_de_cardapio,
     relatorio_suspensao_de_alimentacao
 )
@@ -784,6 +785,8 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
 
 
 class AlteracoesCardapioCEIViewSet(AlteracoesCardapioViewSet):
+    queryset = AlteracaoCardapioCEI.objects.all()
+
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update']:
             return AlteracaoCardapioCEISerializerCreate
@@ -798,7 +801,11 @@ class AlteracoesCardapioCEIViewSet(AlteracoesCardapioViewSet):
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
-    queryset = AlteracaoCardapioCEI.objects.all()
+    @action(detail=True,
+            methods=['GET'],
+            url_path=f'{constants.RELATORIO}')
+    def relatorio(self, request, uuid=None):
+        return relatorio_alteracao_cardapio_cei(request, solicitacao=self.get_object())
 
 
 class MotivosAlteracaoCardapioViewSet(viewsets.ReadOnlyModelViewSet):
