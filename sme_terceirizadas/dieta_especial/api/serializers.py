@@ -4,6 +4,7 @@ from drf_base64.serializers import ModelSerializer
 from rest_framework import serializers
 
 from ...dados_comuns.api.serializers import ContatoSerializer, LogSolicitacoesUsuarioSerializer
+from ...dados_comuns.utils import update_instance_from_dict
 from ...dados_comuns.validators import nao_pode_ser_no_passado
 from ...escola.api.serializers import AlunoSerializer, LoteNomeSerializer, TipoGestaoSerializer
 from ...escola.models import DiretoriaRegional, Escola
@@ -16,7 +17,7 @@ from ..models import (
     SolicitacaoDietaEspecial,
     SubstituicaoAlimento
 )
-from .serializers_create import SolicitacaoDietaEspecialCreateSerializer
+from .serializers_create import SolicitacaoDietaEspecialCreateSerializer, SubstituicaoAlimentoCreateSerializer
 from .validators import atributos_lista_nao_vazios, atributos_string_nao_vazios, deve_ter_atributos
 
 
@@ -50,12 +51,6 @@ class AnexoSerializer(ModelSerializer):
     class Meta:
         model = Anexo
         fields = ('arquivo', 'nome', 'eh_laudo_alta')
-
-
-class SubstituicaoAlimentoCreateSerializer(ModelSerializer):
-    class Meta:
-        model = SubstituicaoAlimento
-        fields = '__all__'
 
 
 class SubstituicaoAlimentoSerializer(ModelSerializer):
@@ -176,6 +171,53 @@ class SolicitacaoDietaEspecialSerializer(serializers.ModelSerializer):
             'ativo',
             'data_termino'
         )
+
+
+class SolicitacaoDietaEspecialUpdateSerializer(serializers.ModelSerializer):
+    anexos = serializers.ListField(
+        child=AnexoSerializer(), required=True
+    )
+
+    classificacao = serializers.PrimaryKeyRelatedField(queryset=ClassificacaoDieta.objects.all())
+    alergias_intolerancias = serializers.PrimaryKeyRelatedField(queryset=AlergiaIntolerancia.objects.all(), many=True)
+
+    substituicoes = SubstituicaoAlimentoCreateSerializer(many=True)
+
+    def update(self, instance, data):  # noqa C901
+        anexos = data.pop('anexos', [])
+        alergias_intolerancias = data.pop('alergias_intolerancias', None)
+        substituicoes = data.pop('substituicoes', None)
+
+        update_instance_from_dict(instance, data)
+
+        if anexos:
+            instance.anexo_set.all().delete()
+            for anexo in anexos:
+                anexo['solicitacao_dieta_especial_id'] = instance.id
+                ser = AnexoSerializer(data=anexo)
+                ser.is_valid(raise_exception=True)
+                Anexo.objects.create(**anexo)
+
+        if alergias_intolerancias:
+            instance.alergias_intolerancias.set([])
+            for ai in alergias_intolerancias:
+                instance.alergias_intolerancias.add(ai)
+
+        if substituicoes:
+            instance.substituicaoalimento_set.all().delete()
+            for substituicao in substituicoes:
+                substitutos = substituicao.pop('substitutos', None)
+                substituicao['solicitacao_dieta_especial'] = instance
+                subst_obj = SubstituicaoAlimento.objects.create(**substituicao)
+                if substitutos:
+                    subst_obj.substitutos.set(substitutos)
+
+        instance.save()
+        return instance
+
+    class Meta:
+        model = SolicitacaoDietaEspecial
+        exclude = ('id',)
 
 
 class SolicitacaoDietaEspecialLogSerializer(serializers.ModelSerializer):
