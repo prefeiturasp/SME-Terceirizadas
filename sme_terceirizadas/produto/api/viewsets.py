@@ -116,7 +116,8 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
     def codae_pede_analise_sensorial(self, request, uuid=None):
         homologacao_produto = self.get_object()
         try:
-            homologacao_produto.codae_pede_analise_sensorial(user=request.user)
+            justificativa = request.data.get('justificativa', '')
+            homologacao_produto.codae_pede_analise_sensorial(user=request.user, justificativa=justificativa)
             homologacao_produto.necessita_analise_sensorial = True
             homologacao_produto.save()
             serializer = self.get_serializer(homologacao_produto)

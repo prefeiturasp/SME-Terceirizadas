@@ -309,8 +309,10 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
     def _codae_pede_analise_sensorial_hook(self, *args, **kwargs):
         self._salva_rastro_solicitacao()
         user = kwargs['user']
+        justificativa = kwargs.get('justificativa', '')
         self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_PEDIU_ANALISE_SENSORIAL,
-                                  usuario=user)
+                                  usuario=user,
+                                  justificativa=justificativa)
 
     class Meta:
         abstract = True
