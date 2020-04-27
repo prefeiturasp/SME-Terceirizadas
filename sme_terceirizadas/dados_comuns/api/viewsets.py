@@ -2,14 +2,14 @@ from des.models import DynamicEmailConfiguration
 from django.db import IntegrityError
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
-from rest_framework import status
+from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ViewSet
 
 from ..behaviors import DiasSemana, TempoPasseio
-from ..constants import TEMPO_CACHE_1H, TEMPO_CACHE_6H, obter_dias_uteis_apos_hoje
+from ..constants import API_VERSION, TEMPO_CACHE_1H, TEMPO_CACHE_6H, obter_dias_uteis_apos_hoje
 from ..models import CategoriaPerguntaFrequente, PerguntaFrequente, TemplateMensagem
 from ..permissions import UsuarioCODAEGestaoAlimentacao
 from .serializers import (
@@ -20,6 +20,13 @@ from .serializers import (
     PerguntaFrequenteCreateSerializer,
     PerguntaFrequenteSerializer
 )
+
+
+class ApiVersion(viewsets.ViewSet):
+    permission_classes = [AllowAny]
+
+    def list(self, request):
+        return Response({'API_Version': API_VERSION})
 
 
 class DiasDaSemanaViewSet(ViewSet):
