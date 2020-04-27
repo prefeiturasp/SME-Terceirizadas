@@ -427,3 +427,54 @@ class SolicitacaoKitLancheCEIAvulsaViewSet(SolicitacaoKitLancheAvulsaViewSet):
         if self.action in ['create', 'update', 'partial_update']:
             return serializers_create_cei.SolicitacaoKitLancheCEIAvulsaCreationSerializer
         return serializers.SolicitacaoKitLancheCEIAvulsaSerializer
+
+    @action(detail=False,
+            url_path=f'{constants.PEDIDOS_DRE}/{constants.FILTRO_PADRAO_PEDIDOS}',
+            permission_classes=(UsuarioDiretoriaRegional,))
+    def solicitacoes_diretoria_regional(self, request, filtro_aplicado='sem_filtro'):
+        usuario = request.user
+        diretoria_regional = usuario.vinculo_atual.instituicao
+        kit_lanches_avulso = diretoria_regional.solicitacoes_kit_lanche_cei_das_minhas_escolas_a_validar(
+            filtro_aplicado
+        )
+        page = self.paginate_queryset(kit_lanches_avulso)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False,
+            url_path=f'{constants.PEDIDOS_CODAE}/{constants.FILTRO_PADRAO_PEDIDOS}',
+            permission_classes=(UsuarioCODAEGestaoAlimentacao,))
+    def solicitacoes_codae(self, request, filtro_aplicado='sem_filtro'):
+        usuario = request.user
+        codae = usuario.vinculo_atual.instituicao
+        kit_lanches_avulso = codae.solicitacoes_kit_lanche_cei_das_minhas_escolas_a_validar(
+            filtro_aplicado
+        )
+        page = self.paginate_queryset(kit_lanches_avulso)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False,
+            url_path=f'{constants.PEDIDOS_TERCEIRIZADA}/{constants.FILTRO_PADRAO_PEDIDOS}',
+            permission_classes=(UsuarioTerceirizada,))
+    def solicitacoes_terceirizadas(self, request, filtro_aplicado='sem_filtro'):
+        usuario = request.user
+        terceirizadas = usuario.vinculo_atual.instituicao
+        kit_lanches_avulso = terceirizadas.solicitacoes_kit_lanche_cei_das_minhas_escolas_a_validar(
+            filtro_aplicado
+        )
+        page = self.paginate_queryset(kit_lanches_avulso)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False, url_path=constants.SOLICITACOES_DO_USUARIO,
+            permission_classes=(UsuarioEscola,))
+    def minhas_solicitacoes(self, request):
+        usuario = request.user
+        solicitacoes_unificadas = self.get_queryset().filter(
+            criado_por=usuario,
+            status=SolicitacaoKitLancheAvulsa.workflow_class.RASCUNHO
+        )
+        page = self.paginate_queryset(solicitacoes_unificadas)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)

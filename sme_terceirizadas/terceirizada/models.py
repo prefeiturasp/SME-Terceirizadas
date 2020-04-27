@@ -20,7 +20,7 @@ from ..inclusao_alimentacao.models import (
     InclusaoAlimentacaoContinua,
     InclusaoAlimentacaoDaCEI
 )
-from ..kit_lanche.models import SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheUnificada
+from ..kit_lanche.models import SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheCEIAvulsa, SolicitacaoKitLancheUnificada
 
 
 class Edital(ExportModelOperationsMixin('edital'), TemChaveExterna):
@@ -365,6 +365,19 @@ class Terceirizada(ExportModelOperationsMixin('terceirizada'), TemChaveExterna, 
             escola__lote__in=self.lotes.all(),
             status__in=[SolicitacaoKitLancheAvulsa.workflow_class.CODAE_AUTORIZADO,
                         SolicitacaoKitLancheAvulsa.workflow_class.CODAE_QUESTIONADO]
+        )
+
+    def solicitacoes_kit_lanche_cei_das_minhas_escolas_a_validar(self, filtro_aplicado):
+        if filtro_aplicado == 'daqui_a_7_dias':
+            solicitacoes_kit_lanche = SolicitacaoKitLancheCEIAvulsa.desta_semana
+        elif filtro_aplicado == 'daqui_a_30_dias':
+            solicitacoes_kit_lanche = SolicitacaoKitLancheCEIAvulsa.deste_mes  # type: ignore
+        else:
+            solicitacoes_kit_lanche = SolicitacaoKitLancheCEIAvulsa.objects  # type: ignore
+        return solicitacoes_kit_lanche.filter(
+            escola__lote__in=self.lotes.all(),
+            status__in=[SolicitacaoKitLancheCEIAvulsa.workflow_class.CODAE_AUTORIZADO,
+                        SolicitacaoKitLancheCEIAvulsa.workflow_class.CODAE_QUESTIONADO]
         )
 
     def __str__(self):

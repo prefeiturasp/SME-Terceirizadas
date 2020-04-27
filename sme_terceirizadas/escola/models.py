@@ -35,7 +35,7 @@ from ..inclusao_alimentacao.models import (
     InclusaoAlimentacaoContinua,
     InclusaoAlimentacaoDaCEI
 )
-from ..kit_lanche.models import SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheUnificada
+from ..kit_lanche.models import SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheCEIAvulsa, SolicitacaoKitLancheUnificada
 
 logger = logging.getLogger('sigpae.EscolaModels')
 
@@ -102,6 +102,12 @@ class DiretoriaRegional(ExportModelOperationsMixin('diretoria_regional'), Nomeav
         return self.filtra_solicitacoes_minhas_escolas_a_validar_por_data(
             filtro_aplicado,
             SolicitacaoKitLancheAvulsa
+        )
+
+    def solicitacoes_kit_lanche_cei_das_minhas_escolas_a_validar(self, filtro_aplicado):
+        return self.filtra_solicitacoes_minhas_escolas_a_validar_por_data(
+            filtro_aplicado,
+            SolicitacaoKitLancheCEIAvulsa
         )
 
     def alteracoes_cardapio_das_minhas_escolas_a_validar(self, filtro_aplicado):
@@ -620,6 +626,13 @@ class Codae(ExportModelOperationsMixin('codae'), Nomeavel, TemChaveExterna, TemV
         return queryset.filter(
             status__in=[SolicitacaoKitLancheAvulsa.workflow_class.DRE_VALIDADO,
                         SolicitacaoKitLancheAvulsa.workflow_class.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO]
+        )
+
+    def solicitacoes_kit_lanche_cei_das_minhas_escolas_a_validar(self, filtro_aplicado):
+        queryset = queryset_por_data(filtro_aplicado, SolicitacaoKitLancheCEIAvulsa)
+        return queryset.filter(
+            status__in=[SolicitacaoKitLancheCEIAvulsa.workflow_class.DRE_VALIDADO,
+                        SolicitacaoKitLancheCEIAvulsa.workflow_class.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO]
         )
 
     @property

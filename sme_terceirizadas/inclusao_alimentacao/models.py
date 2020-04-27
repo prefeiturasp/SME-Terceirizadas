@@ -291,7 +291,6 @@ class InclusaoAlimentacaoDaCEI(Descritivel, TemData, TemChaveExterna, FluxoAprov
     deste_mes = InclusaoDeAlimentacaoDeCeiDesteMesManager()
     vencidos = InclusaoDeAlimentacaoDeCeiVencidosDiasManager()
 
-
     @property
     def quantidade_alunos_por_faixas_etarias(self):
         return self.quantidade_alunos_da_inclusao
