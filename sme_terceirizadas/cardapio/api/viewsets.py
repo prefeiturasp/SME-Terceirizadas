@@ -817,16 +817,18 @@ class AlteracoesCardapioCEIViewSet(AlteracoesCardapioViewSet):
     @action(detail=False,
             url_path=f'{constants.PEDIDOS_DRE}/{constants.FILTRO_PADRAO_PEDIDOS}',
             permission_classes=[UsuarioDiretoriaRegional])
-    def solicitacoes_dre(self, request, filtro_aplicado=constants.SEM_FILTRO):
+    def solicitacoes_diretoria_regional(self, request, filtro_aplicado=constants.SEM_FILTRO):
         # TODO: colocar regras de DRE aqui...
         usuario = request.user
         dre = usuario.vinculo_atual.instituicao
         alteracoes_cardapio = dre.alteracoes_cardapio_cei_das_minhas_escolas(
             filtro_aplicado
         )
+        import pdb
+        pdb.set_trace()
 
         page = self.paginate_queryset(alteracoes_cardapio)
-        serializer = AlteracaoCardapioSimplesSerializer(page, many=True)
+        serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False,
