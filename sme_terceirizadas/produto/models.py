@@ -52,7 +52,7 @@ class InformacaoNutricional(TemChaveExterna, Nomeavel):
 
 
 class ImagemDoProduto(TemChaveExterna):
-    produto = models.ForeignKey('Produto', on_delete=models.CASCADE)
+    produto = models.ForeignKey('Produto', on_delete=models.CASCADE, blank=True)
     arquivo = models.FileField()
     nome = models.CharField(max_length=100, blank=True)
 
@@ -68,20 +68,20 @@ class Produto(Ativavel, CriadoEm, CriadoPor, Nomeavel, TemChaveExterna):
                                         help_text='Protocolos do produto.',
                                         blank=True,
                                         )
-    detalhes_da_dieta = models.TextField()
+    detalhes_da_dieta = models.TextField(blank=True, null=True)
 
     marca = models.ForeignKey(Marca, on_delete=models.DO_NOTHING)
     fabricante = models.ForeignKey(Fabricante, on_delete=models.DO_NOTHING)
-    componentes = models.CharField('Componentes do Produto', blank=True, max_length=100)
+    componentes = models.CharField('Componentes do Produto', blank=True, max_length=500)
 
     tem_aditivos_alergenicos = models.BooleanField(default=False)
-    aditivos = models.TextField()
+    aditivos = models.TextField(blank=True, null=True)
 
-    tipo = models.CharField('Tipo do Produto', blank=True, max_length=50)
+    tipo = models.CharField('Tipo do Produto', blank=True, max_length=250)
     embalagem = models.CharField('Embalagem Primária', blank=True, max_length=100)
     prazo_validade = models.CharField('Prazo de validade', blank=True, max_length=100)
     info_armazenamento = models.CharField('Informações de Armazenamento',
-                                          blank=True, max_length=100)
+                                          blank=True, max_length=500)
     outras_informacoes = models.TextField()
     numero_registro = models.CharField('Registro do órgão competente', blank=True, max_length=100)
 
@@ -122,8 +122,8 @@ class Produto(Ativavel, CriadoEm, CriadoPor, Nomeavel, TemChaveExterna):
 class InformacoesNutricionaisDoProduto(TemChaveExterna):
     produto = models.ForeignKey(Produto, on_delete=models.CASCADE, related_name='informacoes_nutricionais')
     informacao_nutricional = models.ForeignKey(InformacaoNutricional, on_delete=models.DO_NOTHING)
-    quantidade_porcao = models.CharField('Quantidade por Porção', blank=True, max_length=10)
-    valor_diario = models.CharField('%VD(*)', blank=True, max_length=3)
+    quantidade_porcao = models.CharField('Quantidade por Porção', blank=True, max_length=15)
+    valor_diario = models.CharField('%VD(*)', blank=True, max_length=15)
 
     def __str__(self):
         nome_produto = self.produto.nome
