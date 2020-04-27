@@ -68,14 +68,14 @@ class Produto(Ativavel, CriadoEm, CriadoPor, Nomeavel, TemChaveExterna):
                                         help_text='Protocolos do produto.',
                                         blank=True,
                                         )
-    detalhes_da_dieta = models.TextField(blank=True, null=True)
+    detalhes_da_dieta = models.TextField()
 
     marca = models.ForeignKey(Marca, on_delete=models.DO_NOTHING)
     fabricante = models.ForeignKey(Fabricante, on_delete=models.DO_NOTHING)
     componentes = models.CharField('Componentes do Produto', blank=True, max_length=500)
 
     tem_aditivos_alergenicos = models.BooleanField(default=False)
-    aditivos = models.TextField(blank=True, null=True)
+    aditivos = models.TextField()
 
     tipo = models.CharField('Tipo do Produto', blank=True, max_length=250)
     embalagem = models.CharField('Embalagem Primária', blank=True, max_length=100)
