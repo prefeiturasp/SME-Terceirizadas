@@ -824,8 +824,6 @@ class AlteracoesCardapioCEIViewSet(AlteracoesCardapioViewSet):
         alteracoes_cardapio = dre.alteracoes_cardapio_cei_das_minhas_escolas(
             filtro_aplicado
         )
-        import pdb
-        pdb.set_trace()
 
         page = self.paginate_queryset(alteracoes_cardapio)
         serializer = self.get_serializer(page, many=True)

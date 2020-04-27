@@ -22,12 +22,12 @@ from .managers import (
     GrupoInclusoesDeAlimentacaoNormalDestaSemanaManager,
     GrupoInclusoesDeAlimentacaoNormalDesteMesManager,
     GrupoInclusoesDeAlimentacaoNormalVencidosDiasManager,
-    InclusoesDeAlimentacaoContinuaDestaSemanaManager,
-    InclusoesDeAlimentacaoContinuaDesteMesManager,
-    InclusoesDeAlimentacaoContinuaVencidaDiasManager,
     InclusaoDeAlimentacaoDeCeiDestaSemanaManager,
     InclusaoDeAlimentacaoDeCeiDesteMesManager,
-    InclusaoDeAlimentacaoDeCeiVencidosDiasManager
+    InclusaoDeAlimentacaoDeCeiVencidosDiasManager,
+    InclusoesDeAlimentacaoContinuaDestaSemanaManager,
+    InclusoesDeAlimentacaoContinuaDesteMesManager,
+    InclusoesDeAlimentacaoContinuaVencidaDiasManager
 )
 
 

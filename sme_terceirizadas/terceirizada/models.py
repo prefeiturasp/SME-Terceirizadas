@@ -3,7 +3,7 @@ from django.db import models
 from django.db.models import Q
 from django_prometheus.models import ExportModelOperationsMixin
 
-from ..cardapio.models import AlteracaoCardapio, GrupoSuspensaoAlimentacao, InversaoCardapio
+from ..cardapio.models import AlteracaoCardapio, AlteracaoCardapioCEI, GrupoSuspensaoAlimentacao, InversaoCardapio
 from ..dados_comuns.behaviors import (
     Ativavel,
     IntervaloDeDia,
