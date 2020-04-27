@@ -140,6 +140,7 @@ class SolicitacaoKitLancheCEIAvulsaSerializer(serializers.ModelSerializer):
     quantidade_alunos = serializers.IntegerField()
     id_externo = serializers.CharField()
     alunos_com_dieta_especial_participantes = AlunoSerializer(many=True)
+    prioridade = serializers.CharField()
 
     class Meta:
         model = SolicitacaoKitLancheCEIAvulsa
