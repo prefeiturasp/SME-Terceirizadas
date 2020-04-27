@@ -141,7 +141,9 @@ class SolicitacaoKitLancheCEIAvulsaSerializer(serializers.ModelSerializer):
     id_externo = serializers.CharField()
     alunos_com_dieta_especial_participantes = AlunoSerializer(many=True)
     prioridade = serializers.CharField()
+    logs = LogSolicitacoesUsuarioSerializer(many=True)
+    escola = EscolaSimplesSerializer()
 
     class Meta:
         model = SolicitacaoKitLancheCEIAvulsa
-        exclude = ('id', 'escola', 'criado_por')
+        exclude = ('id', 'criado_por')
