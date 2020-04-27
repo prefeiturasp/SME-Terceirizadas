@@ -256,6 +256,14 @@ class Terceirizada(ExportModelOperationsMixin('terceirizada'), TemChaveExterna, 
             escola__lote__in=self.lotes.all()
         )
 
+    def alteracoes_cardapio_cei_das_minhas(self, filtro_aplicado):
+        queryset = queryset_por_data(filtro_aplicado, AlteracaoCardapioCEI)
+        return queryset.filter(
+            status__in=[AlteracaoCardapioCEI.workflow_class.CODAE_AUTORIZADO,
+                        AlteracaoCardapioCEI.workflow_class.CODAE_QUESTIONADO],
+            escola__lote__in=self.lotes.all()
+        )
+
     def grupos_inclusoes_alimentacao_normal_das_minhas_escolas(self, filtro_aplicado):
         queryset = queryset_por_data(filtro_aplicado, GrupoInclusaoAlimentacaoNormal)
         return queryset.filter(

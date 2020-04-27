@@ -8,7 +8,7 @@ from django.db import models
 from django.db.models import Q, Sum
 from django_prometheus.models import ExportModelOperationsMixin
 
-from ..cardapio.models import AlteracaoCardapio, GrupoSuspensaoAlimentacao, InversaoCardapio
+from ..cardapio.models import AlteracaoCardapio, AlteracaoCardapioCEI, GrupoSuspensaoAlimentacao, InversaoCardapio
 from ..dados_comuns.behaviors import (
     Ativavel,
     CriadoEm,
@@ -174,6 +174,13 @@ class DiretoriaRegional(ExportModelOperationsMixin('diretoria_regional'), Nomeav
         return queryset.filter(
             escola__in=self.escolas.all(),
             status=AlteracaoCardapio.workflow_class.DRE_A_VALIDAR
+        )
+
+    def alteracoes_cardapio_cei_das_minhas_escolas(self, filtro_aplicado):
+        queryset = queryset_por_data(filtro_aplicado, AlteracaoCardapioCEI)
+        return queryset.filter(
+            escola__in=self.escolas.all(),
+            status=AlteracaoCardapioCEI.workflow_class.DRE_A_VALIDAR
         )
 
     #
@@ -538,6 +545,13 @@ class Codae(ExportModelOperationsMixin('codae'), Nomeavel, TemChaveExterna, TemV
         return queryset.filter(
             status__in=[AlteracaoCardapio.workflow_class.DRE_VALIDADO,
                         AlteracaoCardapio.workflow_class.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO]
+        )
+
+    def alteracoes_cardapio_cei_das_minhas(self, filtro_aplicado):
+        queryset = queryset_por_data(filtro_aplicado, AlteracaoCardapioCEI)
+        return queryset.filter(
+            status__in=[AlteracaoCardapioCEI.workflow_class.DRE_VALIDADO,
+                        AlteracaoCardapioCEI.workflow_class.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO]
         )
 
     def suspensoes_cardapio_das_minhas_escolas(self, filtro_aplicado):
