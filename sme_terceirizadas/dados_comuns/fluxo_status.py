@@ -206,6 +206,10 @@ class HomologacaoProdutoWorkflow(xwf_models.Workflow):
     CODAE_QUESTIONADO = 'CODAE_QUESTIONADO'
     CODAE_PEDIU_ANALISE_SENSORIAL = 'CODAE_PEDIU_ANALISE_SENSORIAL'
     TERCEIRIZADA_CANCELOU = 'TERCEIRIZADA_CANCELOU'
+    CODAE_SUSPENDEU = 'CODAE_SUSPENDEU'
+    ESCOLA_OU_NUTRICIONISTA_RECLAMOU = 'ESCOLA_OU_NUTRICIONISTA_RECLAMOU'
+    CODAE_PEDIU_ANALISE_RECLAMACAO = 'CODAE_PEDIU_ANALISE_RECLAMACAO'
+    CODAE_AUTORIZOU_RECLAMACAO = 'CODAE_AUTORIZOU_RECLAMACAO'
 
     states = (
         (RASCUNHO, 'Rascunho'),
@@ -215,15 +219,29 @@ class HomologacaoProdutoWorkflow(xwf_models.Workflow):
         (CODAE_QUESTIONADO, 'CODAE pediu correção'),
         (CODAE_PEDIU_ANALISE_SENSORIAL, 'CODAE pediu análise sensorial'),
         (TERCEIRIZADA_CANCELOU, 'Terceirizada cancelou homologação'),
+        (CODAE_SUSPENDEU, 'CODAE suspendeu o produto'),
+        (ESCOLA_OU_NUTRICIONISTA_RECLAMOU, 'Escola/Nutricionista reclamou do produto'),
+        (CODAE_PEDIU_ANALISE_RECLAMACAO, 'CODAE pediu análise da reclamação'),
+        (CODAE_AUTORIZOU_RECLAMACAO, 'CODAE autorizou reclamação')
     )
 
     transitions = (
         ('inicia_fluxo', RASCUNHO, CODAE_PENDENTE_HOMOLOGACAO),
-        ('codae_homologa', [CODAE_PENDENTE_HOMOLOGACAO, CODAE_PEDIU_ANALISE_SENSORIAL], CODAE_HOMOLOGADO),
+        ('codae_homologa', [CODAE_PENDENTE_HOMOLOGACAO, CODAE_PEDIU_ANALISE_SENSORIAL,
+                            CODAE_PEDIU_ANALISE_RECLAMACAO, CODAE_SUSPENDEU,
+                            ESCOLA_OU_NUTRICIONISTA_RECLAMOU],
+         CODAE_HOMOLOGADO),
         ('codae_nao_homologa', [CODAE_PENDENTE_HOMOLOGACAO, CODAE_PEDIU_ANALISE_SENSORIAL], CODAE_NAO_HOMOLOGADO),
         ('codae_questiona', CODAE_PENDENTE_HOMOLOGACAO, CODAE_QUESTIONADO),
         ('terceirizada_responde_questionamento', CODAE_QUESTIONADO, CODAE_PENDENTE_HOMOLOGACAO),
         ('codae_pede_analise_sensorial', CODAE_PENDENTE_HOMOLOGACAO, CODAE_PEDIU_ANALISE_SENSORIAL),
+        ('codae_suspende', CODAE_HOMOLOGADO, CODAE_SUSPENDEU),
+        ('escola_ou_nutricionista_reclamou', CODAE_HOMOLOGADO, ESCOLA_OU_NUTRICIONISTA_RECLAMOU),
+        ('codae_pediu_analise_reclamacao', ESCOLA_OU_NUTRICIONISTA_RECLAMOU, CODAE_PEDIU_ANALISE_RECLAMACAO),
+        ('codae_autorizou_reclamacao',
+         [ESCOLA_OU_NUTRICIONISTA_RECLAMOU, CODAE_PEDIU_ANALISE_RECLAMACAO],
+         CODAE_AUTORIZOU_RECLAMACAO)
+
     )
 
     initial_state = RASCUNHO
