@@ -226,7 +226,7 @@ class HomologacaoProdutoWorkflow(xwf_models.Workflow):
     )
 
     transitions = (
-        ('inicia_fluxo', RASCUNHO, CODAE_PENDENTE_HOMOLOGACAO),
+        ('inicia_fluxo', [RASCUNHO, CODAE_AUTORIZOU_RECLAMACAO], CODAE_PENDENTE_HOMOLOGACAO),
         ('codae_homologa', [CODAE_PENDENTE_HOMOLOGACAO, CODAE_PEDIU_ANALISE_SENSORIAL,
                             CODAE_PEDIU_ANALISE_RECLAMACAO, CODAE_SUSPENDEU,
                             ESCOLA_OU_NUTRICIONISTA_RECLAMOU],

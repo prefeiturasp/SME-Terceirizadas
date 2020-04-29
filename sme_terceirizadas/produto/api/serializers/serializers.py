@@ -115,3 +115,18 @@ class HomologacaoProdutoSerializer(serializers.ModelSerializer):
     class Meta:
         model = HomologacaoDoProduto
         fields = ('uuid', 'produto', 'status', 'id_externo', 'logs', 'rastro_terceirizada')
+
+
+class HomologacaoProdutoPainelGerencialSerializer(serializers.ModelSerializer):
+    nome_produto = serializers.SerializerMethodField()
+    log_mais_recente = serializers.SerializerMethodField()
+
+    def get_log_mais_recente(self, obj):
+        return obj.log_mais_recente.criado_em
+
+    def get_nome_produto(self, obj):
+        return obj.produto.nome
+
+    class Meta:
+        model = HomologacaoDoProduto
+        fields = ('uuid', 'nome_produto', 'status', 'id_externo', 'log_mais_recente')
