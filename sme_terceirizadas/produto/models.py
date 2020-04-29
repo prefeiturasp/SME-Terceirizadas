@@ -123,7 +123,7 @@ class InformacoesNutricionaisDoProduto(TemChaveExterna):
     produto = models.ForeignKey(Produto, on_delete=models.CASCADE, related_name='informacoes_nutricionais')
     informacao_nutricional = models.ForeignKey(InformacaoNutricional, on_delete=models.DO_NOTHING)
     quantidade_porcao = models.CharField(max_length=10)
-    valor_diario = models.IntegerField()
+    valor_diario = models.CharField(max_length=10)
 
     def __str__(self):
         nome_produto = self.produto.nome
