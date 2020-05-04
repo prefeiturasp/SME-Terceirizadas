@@ -13,7 +13,11 @@ from ...dados_comuns.permissions import (
     UsuarioEscola,
     UsuarioTerceirizada
 )
-from ...relatorios.relatorios import relatorio_inclusao_alimentacao_continua, relatorio_inclusao_alimentacao_normal
+from ...relatorios.relatorios import (
+    relatorio_inclusao_alimentacao_cei,
+    relatorio_inclusao_alimentacao_continua,
+    relatorio_inclusao_alimentacao_normal
+)
 from ..models import (
     GrupoInclusaoAlimentacaoNormal,
     InclusaoAlimentacaoContinua,
@@ -36,6 +40,121 @@ class InclusaoAlimentacaoViewSetBase(ModelViewSet):
         elif self.action in ['create', 'destroy']:
             self.permission_classes = (UsuarioEscola,)
         return super(InclusaoAlimentacaoViewSetBase, self).get_permissions()
+
+    #
+    # IMPLEMENTACAO DO FLUXO
+    #
+
+    @action(detail=True,
+            methods=['patch'],
+            url_path=constants.ESCOLA_INICIO_PEDIDO)
+    def inicio_de_pedido(self, request, uuid=None):
+        grupo_alimentacao_normal = self.get_object()
+        try:
+            grupo_alimentacao_normal.inicia_fluxo(user=request.user, )
+            serializer = self.get_serializer(grupo_alimentacao_normal)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True,
+            methods=['GET'],
+            url_path=f'{constants.RELATORIO}',
+            permission_classes=[AllowAny])
+    def relatorio(self, request, uuid=None):
+        # TODO: essa função parece ser bem genérica, talvez possa ser incluida por composição
+        return relatorio_inclusao_alimentacao_cei(request, solicitacao=self.get_object())
+
+
+class MotivoInclusaoContinuaViewSet(ReadOnlyModelViewSet):
+    lookup_field = 'uuid'
+    queryset = MotivoInclusaoContinua.objects.all()
+    serializer_class = serializers.MotivoInclusaoContinuaSerializer
+
+
+class MotivoInclusaoNormalViewSet(ReadOnlyModelViewSet):
+    lookup_field = 'uuid'
+    queryset = MotivoInclusaoNormal.objects.all()
+    serializer_class = serializers.MotivoInclusaoNormalSerializer
+
+
+class GrupoInclusaoAlimentacaoNormalViewSet(ModelViewSet):
+    lookup_field = 'uuid'
+    queryset = GrupoInclusaoAlimentacaoNormal.objects.all()
+    permission_classes = (IsAuthenticated,)
+    serializer_class = serializers.GrupoInclusaoAlimentacaoNormalSerializer
+
+    def get_permissions(self):
+        if self.action in ['list', 'update']:
+            self.permission_classes = (IsAdminUser,)
+        elif self.action == 'retrieve':
+            self.permission_classes = (IsAuthenticated, PermissaoParaRecuperarObjeto)
+        elif self.action in ['create', 'destroy']:
+            self.permission_classes = (UsuarioEscola,)
+        return super(GrupoInclusaoAlimentacaoNormalViewSet, self).get_permissions()
+
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update']:
+            return serializers_create.GrupoInclusaoAlimentacaoNormalCreationSerializer
+        return serializers.GrupoInclusaoAlimentacaoNormalSerializer
+
+    @action(detail=False, url_path=constants.SOLICITACOES_DO_USUARIO, permission_classes=(UsuarioEscola,))
+    def minhas_solicitacoes(self, request):
+        usuario = request.user
+        alimentacoes_normais = GrupoInclusaoAlimentacaoNormal.get_solicitacoes_rascunho(usuario)
+        page = self.paginate_queryset(alimentacoes_normais)
+        serializer = serializers.GrupoInclusaoAlimentacaoNormalSerializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False,
+            url_path=f'{constants.PEDIDOS_CODAE}/{constants.FILTRO_PADRAO_PEDIDOS}',
+            permission_classes=(UsuarioCODAEGestaoAlimentacao,))
+    def solicitacoes_codae(self, request, filtro_aplicado=constants.SEM_FILTRO):
+        # TODO: colocar regras de codae CODAE aqui...
+        usuario = request.user
+        codae = usuario.vinculo_atual.instituicao
+        inclusoes_continuas = codae.grupos_inclusoes_alimentacao_normal_das_minhas_escolas(
+            filtro_aplicado
+        )
+        page = self.paginate_queryset(inclusoes_continuas)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False,
+            url_path=f'{constants.PEDIDOS_TERCEIRIZADA}/{constants.FILTRO_PADRAO_PEDIDOS}',
+            permission_classes=(UsuarioTerceirizada,))
+    def solicitacoes_terceirizada(self, request, filtro_aplicado='sem_filtro'):
+        # TODO: colocar regras de terceirizada aqui...
+        usuario = request.user
+        terceirizada = usuario.vinculo_atual.instituicao
+        inclusoes_continuas = terceirizada.grupos_inclusoes_alimentacao_normal_das_minhas_escolas(
+            filtro_aplicado
+        )
+        page = self.paginate_queryset(inclusoes_continuas)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    # TODO rever os demais endpoints. Essa action consolida em uma única pesquisa as pesquisas por prioridade.
+    @action(detail=False,
+            url_path=f'{constants.PEDIDOS_DRE}/{constants.FILTRO_PADRAO_PEDIDOS}',
+            permission_classes=(UsuarioDiretoriaRegional,))
+    def solicitacoes_diretoria_regional(self, request, filtro_aplicado=constants.SEM_FILTRO):
+        usuario = request.user
+        diretoria_regional = usuario.vinculo_atual.instituicao
+        inclusoes_alimentacao_normal = diretoria_regional.grupos_inclusoes_alimentacao_normal_das_minhas_escolas(
+            filtro_aplicado
+        )
+        page = self.paginate_queryset(inclusoes_alimentacao_normal)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    # TODO: AllowAny não é a permissão correta
+    @action(detail=True,
+            methods=['GET'],
+            url_path=f'{constants.RELATORIO}',
+            permission_classes=[AllowAny])
+    def relatorio(self, request, uuid=None):
+        return relatorio_inclusao_alimentacao_normal(request, solicitacao=self.get_object())
 
     #
     # IMPLEMENTACAO DO FLUXO

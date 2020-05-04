@@ -8,7 +8,7 @@ from django.db import models
 
 from .constants import LIMITE_INFERIOR, LIMITE_SUPERIOR, PRIORITARIO, REGULAR
 from .models import LogSolicitacoesUsuario
-from .utils import eh_dia_util, obter_dias_uteis_apos
+from .utils import eh_dia_util, obter_dias_uteis_apos, ordena_dias_semana_comeca_domingo
 
 
 class Iniciais(models.Model):
@@ -109,8 +109,8 @@ class DiasSemana(models.Model):
     DIAS = (
         (SEGUNDA, 'Segunda'),
         (TERCA, 'Terça'),
-        (QUINTA, 'Quarta'),
-        (QUARTA, 'Quinta'),
+        (QUARTA, 'Quarta'),
+        (QUINTA, 'Quinta'),
         (SEXTA, 'Sexta'),
         (SABADO, 'Sábado'),
         (DOMINGO, 'Domingo'),
@@ -126,7 +126,7 @@ class DiasSemana(models.Model):
     def dias_semana_display(self):
         result = ''
         choices = dict(self.DIAS)
-        for index, value in enumerate(self.dias_semana):
+        for index, value in enumerate(ordena_dias_semana_comeca_domingo(self.dias_semana)):
             result += '{0}'.format(choices[value])
             if not index == len(self.dias_semana) - 1:
                 result += ', '

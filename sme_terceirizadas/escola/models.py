@@ -36,6 +36,7 @@ from ..inclusao_alimentacao.models import (
     InclusaoAlimentacaoDaCEI
 )
 from ..kit_lanche.models import SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheCEIAvulsa, SolicitacaoKitLancheUnificada
+from .utils import meses_para_mes_e_ano_string
 
 logger = logging.getLogger('sigpae.EscolaModels')
 
@@ -709,6 +710,12 @@ class FaixaEtaria(Ativavel, TemChaveExterna):
         data_inicio = subtrai_meses_de_data(self.fim, data_referencia)
         data_fim = subtrai_meses_de_data(self.inicio, data_referencia)
         return data_inicio <= data_pesquisada < data_fim
+
+    def __str__(self):
+        saida = meses_para_mes_e_ano_string(self.inicio)
+        if self.fim - self.inicio != 1:
+            saida += ' - ' + meses_para_mes_e_ano_string(self.fim)
+        return saida
 
 
 class MudancaFaixasEtarias(Justificativa, TemChaveExterna):

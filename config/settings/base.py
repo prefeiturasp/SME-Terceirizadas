@@ -100,6 +100,7 @@ LOCAL_APPS = [
     'sme_terceirizadas.paineis_consolidados.apps.PaineisConsolidadosConfig',
     'sme_terceirizadas.dieta_especial.apps.DietaEspecialConfig',
     'sme_terceirizadas.relatorios.apps.RelatoriosConfig',
+    'sme_terceirizadas.produto.apps.ProdutoConfig',
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS

@@ -52,6 +52,7 @@ class SolicitacaoDietaEspecial(ExportModelOperationsMixin('dieta_especial'), Tem
 
     # TODO: Confirmar se PROTECT é a melhor escolha para o campos abaixo
     motivo_negacao = models.ForeignKey('MotivoNegacao', on_delete=models.PROTECT, null=True)
+    # TODO: Mover essa justificativa para o log de transição de status
     justificativa_negacao = models.TextField(blank=True)
 
     data_termino = models.DateField(null=True, validators=[nao_pode_ser_no_passado])
@@ -173,6 +174,6 @@ class SubstituicaoAlimento(models.Model):
     ]
 
     solicitacao_dieta_especial = models.ForeignKey(SolicitacaoDietaEspecial, on_delete=models.PROTECT)
-    alimento = models.ForeignKey(Alimento, on_delete=models.PROTECT)
-    tipo = models.CharField(max_length=1, choices=TIPO_CHOICES)
+    alimento = models.ForeignKey(Alimento, on_delete=models.PROTECT, blank=True, null=True)
+    tipo = models.CharField(max_length=1, choices=TIPO_CHOICES, blank=True)
     substitutos = models.ManyToManyField(Alimento, related_name='substitutos')

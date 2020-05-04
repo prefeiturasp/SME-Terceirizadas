@@ -5,7 +5,7 @@ from freezegun import freeze_time
 
 from ...cardapio.models import Cardapio
 from ...dados_comuns.constants import DAQUI_A_SETE_DIAS, DAQUI_A_TRINTA_DIAS, SEM_FILTRO
-from ..models import DiretoriaRegional, TipoGestao, TipoUnidadeEscolar
+from ..models import DiretoriaRegional, FaixaEtaria, TipoGestao, TipoUnidadeEscolar
 
 pytestmark = pytest.mark.django_db
 
@@ -122,3 +122,8 @@ def test_escola_periodo_escolar_alunos_por_faixa_etaria(faixas_etarias,
                                                         eolservice_get_informacoes_escola_turma_aluno):
     faixas_alunos = escola_periodo_escolar.alunos_por_faixa_etaria(datetime.date(2020, 10, 25))
     assert [i for i in faixas_alunos.values()] == [94, 18, 26]
+
+
+def test_faixa_str():
+    faixa = FaixaEtaria.objects.create(inicio=24, fim=48)
+    assert str(faixa) == '2 anos - 4 anos'
