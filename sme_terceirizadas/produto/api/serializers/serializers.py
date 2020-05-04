@@ -1,3 +1,4 @@
+import datetime
 from rest_framework import serializers
 
 from ....dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
@@ -122,7 +123,9 @@ class HomologacaoProdutoPainelGerencialSerializer(serializers.ModelSerializer):
     log_mais_recente = serializers.SerializerMethodField()
 
     def get_log_mais_recente(self, obj):
-        return obj.log_mais_recente.criado_em
+        if obj.log_mais_recente.criado_em.date() == datetime.date.today():
+            return datetime.datetime.strftime(obj.log_mais_recente.criado_em, "%d/%m/%Y %H:%M")
+        return datetime.datetime.strftime(obj.log_mais_recente.criado_em, "%d/%m/%Y")
 
     def get_nome_produto(self, obj):
         return obj.produto.nome
