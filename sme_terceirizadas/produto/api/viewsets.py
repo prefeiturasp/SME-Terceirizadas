@@ -9,6 +9,7 @@ from ..models import Fabricante, HomologacaoDoProduto, InformacaoNutricional, Ma
 from .serializers.serializers import (
     FabricanteSerializer,
     FabricanteSimplesSerializer,
+    HomologacaoProdutoPainelGerencialSerializer,
     HomologacaoProdutoSerializer,
     InformacaoNutricionalSerializer,
     MarcaSerializer,
@@ -16,7 +17,7 @@ from .serializers.serializers import (
     ProdutoSerializer,
     ProdutoSimplesSerializer,
     ProtocoloDeDietaEspecialSerializer,
-    ProtocoloSimplesSerializer, HomologacaoProdutoPainelGerencialSerializer
+    ProtocoloSimplesSerializer
 )
 from .serializers.serializers_create import ProdutoSerializerCreate
 
