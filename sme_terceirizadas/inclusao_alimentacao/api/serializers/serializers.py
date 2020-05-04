@@ -51,10 +51,11 @@ class InclusaoAlimentacaoDaCEISerializer(serializers.ModelSerializer):
         many=True, read_only=True)
     logs = LogSolicitacoesUsuarioSerializer(many=True)
     id_externo = serializers.CharField()
+    escola = EscolaSimplesSerializer()
 
     class Meta:
         model = InclusaoAlimentacaoDaCEI
-        exclude = ('id', 'escola', 'criado_por')
+        exclude = ('id', 'criado_por')
 
 
 class QuantidadePorPeriodoSerializer(serializers.ModelSerializer):
