@@ -53,6 +53,7 @@ class InclusaoAlimentacaoDaCEISerializer(serializers.ModelSerializer):
         many=True, read_only=True)
     logs = LogSolicitacoesUsuarioSerializer(many=True)
     id_externo = serializers.CharField()
+    escola = EscolaSimplesSerializer()
 
     class Meta:
         model = InclusaoAlimentacaoDaCEI
