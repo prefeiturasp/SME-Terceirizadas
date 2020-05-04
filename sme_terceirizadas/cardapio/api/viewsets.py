@@ -845,6 +845,20 @@ class AlteracoesCardapioCEIViewSet(AlteracoesCardapioViewSet):
 
     queryset = AlteracaoCardapioCEI.objects.all()
 
+    # TODO rever os demais endpoints. Essa action consolida em uma única pesquisa as pesquisas por prioridade.
+    @action(detail=False,
+            url_path=f'{constants.PEDIDOS_DRE}/{constants.FILTRO_PADRAO_PEDIDOS}',
+            permission_classes=[UsuarioDiretoriaRegional])
+    def solicitacoes_diretoria_regional(self, request, filtro_aplicado='sem_filtro'):
+        usuario = request.user
+        diretoria_regional = usuario.vinculo_atual.instituicao
+        alteracoes_cardapio = diretoria_regional.alteracoes_cardapio_cei_das_minhas_escolas_a_validar(
+            filtro_aplicado
+        )
+        page = self.paginate_queryset(alteracoes_cardapio)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
 
 class MotivosAlteracaoCardapioViewSet(viewsets.ReadOnlyModelViewSet):
     lookup_field = 'uuid'

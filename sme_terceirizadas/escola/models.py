@@ -116,6 +116,12 @@ class DiretoriaRegional(ExportModelOperationsMixin('diretoria_regional'), Nomeav
             AlteracaoCardapio
         )
 
+    def alteracoes_cardapio_cei_das_minhas_escolas_a_validar(self, filtro_aplicado):
+        return self.filtra_solicitacoes_minhas_escolas_a_validar_por_data(
+            filtro_aplicado,
+            AlteracaoCardapioCEI
+        )
+
     def inclusoes_alimentacao_continua_das_minhas_escolas(self, filtro_aplicado):
         return self.filtra_solicitacoes_minhas_escolas_a_validar_por_data(
             filtro_aplicado,
