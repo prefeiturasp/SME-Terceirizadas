@@ -37,7 +37,8 @@ class InformacaoNutricionalBaseViewSet(viewsets.ReadOnlyModelViewSet):
             if item['nome'] == tipo_nutricional:
                 item['informacoes_nutricionais'].append({
                     'nome': objeto.nome,
-                    'uuid': objeto.uuid
+                    'uuid': objeto.uuid,
+                    'medida': objeto.medida
                 })
         return infos_nutricionais
 
@@ -53,7 +54,8 @@ class InformacaoNutricionalBaseViewSet(viewsets.ReadOnlyModelViewSet):
                     'nome': tipo_nutricional,
                     'informacoes_nutricionais': [{
                         'nome': objeto.nome,
-                        'uuid': objeto.uuid
+                        'uuid': objeto.uuid,
+                        'medida': objeto.medida
                     }]
                 }
                 infos_nutricionais.append(info_nutricional)
