@@ -21,7 +21,7 @@ def test_url_endpoint_homologacao_produto_codae_homologa(client_autenticado_vinc
         'detail': "Erro de transição de estado: Transition 'codae_homologa' isn't available from state "
                   "'CODAE_HOMOLOGADO'."}
     response = client_autenticado_vinculo_codae_produto.get(
-        f'/painel-gerencial-homologacoes-produtos/homologados/')
+        f'/painel-gerencial-homologacoes-produtos/filtro-por-status/codae_homologado/')
     assert response.status_code == status.HTTP_200_OK
     assert len(response.json().get('results')) == 1
 
@@ -40,7 +40,7 @@ def test_url_endpoint_homologacao_produto_codae_nao_homologa(client_autenticado_
         'detail': "Erro de transição de estado: Transition 'codae_nao_homologa' isn't available from state "
                   "'CODAE_NAO_HOMOLOGADO'."}
     response = client_autenticado_vinculo_codae_produto.get(
-        f'/painel-gerencial-homologacoes-produtos/nao-homologados/')
+        f'/painel-gerencial-homologacoes-produtos/filtro-por-status/codae_nao_homologado/')
     assert response.status_code == status.HTTP_200_OK
     assert len(response.json().get('results')) == 1
 
@@ -61,7 +61,7 @@ def test_url_endpoint_homologacao_produto_codae_questiona(client_autenticado_vin
         'detail': "Erro de transição de estado: Transition 'codae_questiona' isn't available from state "
                   "'CODAE_QUESTIONADO'."}
     response = client_autenticado_vinculo_codae_produto.get(
-        f'/painel-gerencial-homologacoes-produtos/correcao-de-produto/')
+        f'/painel-gerencial-homologacoes-produtos/filtro-por-status/codae_questionado/')
     assert response.status_code == status.HTTP_200_OK
     assert len(response.json().get('results')) == 1
 
@@ -82,6 +82,6 @@ def test_url_endpoint_homologacao_produto_codae_pede_analise_sensorial(client_au
         'detail': "Erro de transição de estado: Transition 'codae_pede_analise_sensorial' isn't available from state "
                   "'CODAE_PEDIU_ANALISE_SENSORIAL'."}
     response = client_autenticado_vinculo_codae_produto.get(
-        f'/painel-gerencial-homologacoes-produtos/aguardando-analise-sensorial/')
+        f'/painel-gerencial-homologacoes-produtos/filtro-por-status/codae_pediu_analise_sensorial/')
     assert response.status_code == status.HTTP_200_OK
     assert len(response.json().get('results')) == 1

@@ -106,72 +106,14 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
         response = {'results': self.dados_dashboard(query_set=query_set)}
         return Response(response)
 
-    @action(detail=False, methods=['GET'], url_path='reclamacao-de-produto')
-    def reclamacao_de_produto(self, request):
+    @action(detail=False,
+            methods=['GET'],
+            url_path=f'filtro-por-status/{constants.FILTRO_STATUS_HOMOLOGACAO}')
+    def solicitacoes_homologacao_por_status(self, request, filtro_aplicado=constants.RASCUNHO):
         query_set = self.get_queryset_dashboard()
-        reclamacao_de_produto = query_set.filter(
-            status=HomologacaoDoProduto.workflow_class.CODAE_AUTORIZOU_RECLAMACAO)
-        response = {'results': self.get_serializer(reclamacao_de_produto, many=True).data}
-        return Response(response)
-
-    @action(detail=False, methods=['GET'], url_path='produtos-suspensos')
-    def produtos_suspensos(self, request):
-        query_set = self.get_queryset_dashboard()
-        produtos_suspensos = query_set.filter(
-            status=HomologacaoDoProduto.workflow_class.CODAE_SUSPENDEU)
-        response = {'results': self.get_serializer(produtos_suspensos, many=True).data}
-        return Response(response)
-
-    @action(detail=False, methods=['GET'], url_path='correcao-de-produto')
-    def correcao_de_produto(self, request):
-        query_set = self.get_queryset_dashboard()
-        correcao_de_produto = query_set.filter(
-            status=HomologacaoDoProduto.workflow_class.CODAE_QUESTIONADO)
-        response = {'results': self.get_serializer(correcao_de_produto, many=True).data}
-        return Response(response)
-
-    @action(detail=False, methods=['GET'], url_path='aguardando-analise-reclamacao')
-    def agurdardando_analise_reclamacao(self, request):
-        query_set = self.get_queryset_dashboard()
-        aguardando_analise_reclamacao = query_set.filter(
-            status=HomologacaoDoProduto.workflow_class.CODAE_PEDIU_ANALISE_RECLAMACAO)
-        response = {
-            'results': self.get_serializer(aguardando_analise_reclamacao, many=True).data
-        }
-        return Response(response)
-
-    @action(detail=False, methods=['GET'], url_path='aguardando-analise-sensorial')
-    def agurdardando_analise_sensorial(self, request):
-        query_set = self.get_queryset_dashboard()
-        aguardando_analise_sensorial = query_set.filter(
-            status=HomologacaoDoProduto.workflow_class.CODAE_PEDIU_ANALISE_SENSORIAL)
-        response = {
-            'results': self.get_serializer(aguardando_analise_sensorial, many=True).data
-        }
-        return Response(response)
-
-    @action(detail=False, methods=['GET'], url_path='pendente-homologacao')
-    def pendente_homologacao(self, request):
-        query_set = self.get_queryset_dashboard()
-        pendente_homologacao = query_set.filter(
-            status=HomologacaoDoProduto.workflow_class.CODAE_PENDENTE_HOMOLOGACAO)
-        response = {
-            'results': self.get_serializer(pendente_homologacao, many=True).data
-        }
-        return Response(response)
-
-    @action(detail=False, methods=['GET'], url_path='homologados')
-    def homologados(self, request):
-        query_set = self.get_queryset_dashboard()
-        homologados = query_set.filter(status=HomologacaoDoProduto.workflow_class.CODAE_HOMOLOGADO)
-        response = {'results': self.get_serializer(homologados, many=True).data}
-        return Response(response)
-
-    @action(detail=False, methods=['GET'], url_path='nao-homologados')
-    def nao_homologados(self, request):
-        query_set = self.get_queryset_dashboard()
-        nao_homologados = query_set.filter(status=HomologacaoDoProduto.workflow_class.CODAE_NAO_HOMOLOGADO)
-        response = {'results': self.get_serializer(nao_homologados, many=True).data}
+        if filtro_aplicado:
+            query_set = query_set.filter(status=filtro_aplicado.upper())
+        response = {'results': self.get_serializer(query_set, many=True).data}
         return Response(response)
 
 
