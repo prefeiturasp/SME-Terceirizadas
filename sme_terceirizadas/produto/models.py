@@ -85,8 +85,8 @@ class Produto(Ativavel, CriadoEm, CriadoPor, Nomeavel, TemChaveExterna):
     outras_informacoes = models.TextField(blank=True)
     numero_registro = models.CharField('Registro do órgão competente', blank=True, max_length=100)
 
-    porcao = models.CharField('Porção nutricional', blank=True, max_length=50)
-    unidade_caseira = models.CharField('Unidade nutricional', blank=True, max_length=50)
+    porcao = models.CharField('Porção nutricional', null=True, blank=True, max_length=50)
+    unidade_caseira = models.CharField('Unidade nutricional', null=True, blank=True, max_length=50)
 
     @property
     def imagens(self):

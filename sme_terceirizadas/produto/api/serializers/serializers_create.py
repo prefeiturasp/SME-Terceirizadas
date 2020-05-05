@@ -91,7 +91,8 @@ class ProdutoSerializerCreate(serializers.ModelSerializer):
             criado_por=self.context['request'].user
         )
         homologacao.save()
-        homologacao.inicia_fluxo(user=self.context['request'].user)
+        if validated_data.get('cadastro_finalizado', False):
+            homologacao.inicia_fluxo(user=self.context['request'].user)
         return produto
 
     def update(self, instance, validated_data):
