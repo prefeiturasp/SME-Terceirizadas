@@ -62,6 +62,7 @@ class ProdutoSerializerCreate(serializers.ModelSerializer):
 
     imagens = ImagemDoProdutoSerializerCreate(many=True)
     informacoes_nutricionais = InformacoesNutricionaisDoProdutoSerializerCreate(many=True)
+    cadastro_finalizado = serializers.BooleanField(required=False)
 
     def create(self, validated_data):
         validated_data['criado_por'] = self.context['request'].user
@@ -86,11 +87,14 @@ class ProdutoSerializerCreate(serializers.ModelSerializer):
             )
 
         produto.protocolos.set(protocolos)
-        homologacao = HomologacaoDoProduto(
-            produto=produto,
-            criado_por=self.context['request'].user
-        )
-        homologacao.save()
+        if produto.homologacoes.exists():
+            homologacao = produto.homologacoes.get()
+        else:
+            homologacao = HomologacaoDoProduto(
+                produto=produto,
+                criado_por=self.context['request'].user
+            )
+            homologacao.save()
         if validated_data.get('cadastro_finalizado', False):
             homologacao.inicia_fluxo(user=self.context['request'].user)
         return produto
@@ -121,6 +125,9 @@ class ProdutoSerializerCreate(serializers.ModelSerializer):
 
         instance.protocolos.set([])
         instance.protocolos.set(protocolos)
+        if validated_data.get('cadastro_finalizado', False):
+            homologacao = instance.homologacoes.get()
+            homologacao.inicia_fluxo(user=self.context['request'].user)
         return instance
 
     class Meta:
