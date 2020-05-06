@@ -358,6 +358,35 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
     def __str__(self):
         return f'{self.codigo_eol}: {self.nome}'
 
+    def alunos_por_faixa_etaria(self, data_referencia=None):  # noqa C901
+        """
+        Calcula quantos alunos existem em cada faixa etaria nesse período.
+
+        Retorna um collections.Counter, onde as chaves são o uuid das faixas etárias
+        e os valores os totais de alunos. Exemplo:
+        {
+            'asdf-1234': 25,
+            'qwer-5678': 42,
+            'zxcv-4567': 16
+        }
+        """
+        if data_referencia is None:
+            data_referencia = date.today()
+        faixas_etarias = FaixaEtaria.objects.filter(ativo=True)
+        if faixas_etarias.count() == 0:
+            raise ObjectDoesNotExist()
+        lista_alunos = EOLService.get_informacoes_escola_turma_aluno(
+            self.codigo_eol
+        )
+        faixa_alunos = Counter()
+        for aluno in lista_alunos:
+            data_nascimento = dt_nascimento_from_api(aluno['dt_nascimento_aluno'])
+            for faixa_etaria in faixas_etarias:
+                if faixa_etaria.data_pertence_a_faixa(data_nascimento, data_referencia):
+                    faixa_alunos[faixa_etaria.uuid] += 1
+
+        return faixa_alunos
+
     class Meta:
         verbose_name = 'Escola'
         verbose_name_plural = 'Escolas'

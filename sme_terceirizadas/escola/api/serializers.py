@@ -173,6 +173,32 @@ class EscolaSimplissimaSerializer(serializers.ModelSerializer):
         fields = ('uuid', 'nome', 'codigo_eol', 'lote')
 
 
+class FaixaEtariaCounterSerializer(serializers.BaseSerializer):
+    def to_representation(self, counter):
+        """
+        Retorna a informação de faixas etárias e quantidade.
+
+        Transforma um objeto do tipo collections.Counter,
+        onde as chaves são o uuid da faixa etária e
+        o valor é a quantidade de alunos naquela faixa etária,
+        e retorna uma lista onde cada elemento é um dicionário
+        no seguinte formato:
+        {
+            'faixa_etaria': {'uuid': '1234-qwer', 'inicio': 12, 'fim': 24},
+            'quantidade': 42
+        }
+        """
+        retorno = []
+        for (uuid_faixa, quantidade) in counter.items():
+            faixa_etaria = FaixaEtaria.objects.get(uuid=uuid_faixa)
+            retorno.append({
+                'faixa_etaria': FaixaEtariaSerializer(faixa_etaria).data,
+                'quantidade': quantidade
+            })
+
+        return retorno
+
+
 class EscolaCompletaSerializer(serializers.ModelSerializer):
     diretoria_regional = DiretoriaRegionalSimplesSerializer()
     idades = FaixaIdadeEscolarSerializer(many=True)
