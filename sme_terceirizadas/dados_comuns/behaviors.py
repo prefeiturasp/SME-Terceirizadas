@@ -229,6 +229,10 @@ class Logs(object):
     def logs(self):
         return LogSolicitacoesUsuario.objects.filter(uuid_original=self.uuid)
 
+    @property
+    def log_mais_recente(self):
+        return self.logs.last()
+
 
 class TemVinculos(models.Model):
     vinculos = GenericRelation('perfil.Vinculo')

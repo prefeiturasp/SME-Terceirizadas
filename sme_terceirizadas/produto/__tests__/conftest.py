@@ -64,12 +64,20 @@ def homologacao_produto(escola, django_user_model, template_homologacao_produto)
     homologacao_produto = mommy.make('HomologacaoDoProduto',
                                      produto=produto,
                                      rastro_terceirizada=escola.lote.terceirizada,
-                                     criado_por=user)
+                                     criado_por=user,
+                                     criado_em=datetime.datetime.utcnow())
     return homologacao_produto
 
 
 @pytest.fixture
 def homologacao_produto_pendente_homologacao(homologacao_produto):
     homologacao_produto.status = HomologacaoProdutoWorkflow.CODAE_PENDENTE_HOMOLOGACAO
+    homologacao_produto.save()
+    return homologacao_produto
+
+
+@pytest.fixture
+def homologacao_produto_homologado(homologacao_produto):
+    homologacao_produto.status = HomologacaoProdutoWorkflow.CODAE_HOMOLOGADO
     homologacao_produto.save()
     return homologacao_produto
