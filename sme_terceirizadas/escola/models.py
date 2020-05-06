@@ -569,6 +569,13 @@ class Codae(ExportModelOperationsMixin('codae'), Nomeavel, TemChaveExterna, TemV
                         GrupoInclusaoAlimentacaoNormal.workflow_class.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO]
         )
 
+    def filtra_solicitacoes_minhas_escolas_a_validar_por_data(self, filtro_aplicado, model):
+        queryset = queryset_por_data(filtro_aplicado, model)
+        return queryset.filter(
+            escola__in=Escola.objects.all(),
+            status=SolicitacaoKitLancheAvulsa.workflow_class.DRE_A_VALIDAR
+        )
+
     def inclusoes_alimentacao_de_cei_das_minhas_escolas(self, filtro_aplicado):
         return self.filtra_solicitacoes_minhas_escolas_a_validar_por_data(
             filtro_aplicado,
