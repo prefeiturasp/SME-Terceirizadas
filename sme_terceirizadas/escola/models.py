@@ -358,7 +358,7 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
     def __str__(self):
         return f'{self.codigo_eol}: {self.nome}'
 
-    def alunos_por_faixa_etaria(self, data_referencia=None):  # noqa C901
+    def alunos_por_periodo_e_faixa_etaria(self, data_referencia=None):  # noqa C901
         """
         Calcula quantos alunos existem em cada faixa etaria nesse período.
 
@@ -378,14 +378,18 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
         lista_alunos = EOLService.get_informacoes_escola_turma_aluno(
             self.codigo_eol
         )
-        faixa_alunos = Counter()
+
+        resultados = {}
         for aluno in lista_alunos:
+            periodo = aluno['dc_tipo_turno'].strip().upper()
+            if periodo not in resultados:
+                resultados[periodo] = Counter()
             data_nascimento = dt_nascimento_from_api(aluno['dt_nascimento_aluno'])
             for faixa_etaria in faixas_etarias:
                 if faixa_etaria.data_pertence_a_faixa(data_nascimento, data_referencia):
-                    faixa_alunos[faixa_etaria.uuid] += 1
+                    resultados[periodo][str(faixa_etaria.uuid)] += 1
 
-        return faixa_alunos
+        return resultados
 
     class Meta:
         verbose_name = 'Escola'

@@ -173,28 +173,44 @@ class EscolaSimplissimaSerializer(serializers.ModelSerializer):
         fields = ('uuid', 'nome', 'codigo_eol', 'lote')
 
 
-class FaixaEtariaCounterSerializer(serializers.BaseSerializer):
-    def to_representation(self, counter):
+class PeriodoEFaixaEtariaCounterSerializer(serializers.BaseSerializer):
+    def to_representation(self, dados_entrada):
         """
-        Retorna a informação de faixas etárias e quantidade.
+        Retorna a quantidade de alunos por período e faixa etária.
 
-        Transforma um objeto do tipo collections.Counter,
-        onde as chaves são o uuid da faixa etária e
-        o valor é a quantidade de alunos naquela faixa etária,
-        e retorna uma lista onde cada elemento é um dicionário
-        no seguinte formato:
+        Transforma um objeto no seguinte formato:
         {
-            'faixa_etaria': {'uuid': '1234-qwer', 'inicio': 12, 'fim': 24},
-            'quantidade': 42
+            'INTEGRAL': {
+                '1234-qwer': 42
+                '5678-asdf': 51
+            },
+            'PARCIAL': ...
+        }
+        em um dicionário no seguinte formato:
+        {
+            'INTEGRAL': [
+                {
+                    'faixa_etaria': {'uuid': '1234-qwer', 'inicio': 12, 'fim': 24},
+                    'quantidade': 42
+                },
+                {
+                    'faixa_etaria': {'uuid': '5678-asdf', 'inicio': 24, 'fim': 48},
+                    'quantidade': 51
+                },
+            ]
+            'PARCIAL': ...
         }
         """
-        retorno = []
-        for (uuid_faixa, quantidade) in counter.items():
-            faixa_etaria = FaixaEtaria.objects.get(uuid=uuid_faixa)
-            retorno.append({
-                'faixa_etaria': FaixaEtariaSerializer(faixa_etaria).data,
-                'quantidade': quantidade
-            })
+        retorno = {}
+        for (periodo, counter) in dados_entrada.items():
+            if periodo not in retorno:
+                retorno[periodo] = []
+            for (uuid_faixa, quantidade) in counter.items():
+                faixa_etaria = FaixaEtaria.objects.get(uuid=uuid_faixa)
+                retorno[periodo].append({
+                    'faixa_etaria': FaixaEtariaSerializer(faixa_etaria).data,
+                    'quantidade': quantidade
+                })
 
         return retorno
 
