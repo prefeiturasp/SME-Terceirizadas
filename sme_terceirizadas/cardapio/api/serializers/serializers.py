@@ -270,6 +270,20 @@ class SubstituicoesAlimentacaoNoPeriodoEscolarSerializer(SubstituicoesAlimentaca
 class SubstituicoesAlimentacaoNoPeriodoEscolarCEISerializer(SubstituicoesAlimentacaoNoPeriodoEscolarSerializerBase):
     faixas_etarias = FaixaEtariaSubstituicaoAlimentacaoCEISerializer(many=True)
 
+    def to_representation(self, instance):
+        retorno = super().to_representation(instance)
+
+        # Inclui o total de alunos nas faixas etárias num período
+        qtde_alunos = instance.alteracao_cardapio.escola.alunos_por_periodo_e_faixa_etaria(
+            instance.alteracao_cardapio.data
+        )
+        nome_periodo = 'INTEGRAL' if instance.periodo_escolar.nome == 'PARCIAL' else instance.periodo_escolar.nome
+        for faixa_etaria in retorno['faixas_etarias']:
+            uuid_faixa_etaria = faixa_etaria['faixa_etaria']['uuid']
+            faixa_etaria['total_alunos_no_periodo'] = qtde_alunos[nome_periodo][uuid_faixa_etaria]
+
+        return retorno
+
     class Meta:
         model = SubstituicaoAlimentacaoNoPeriodoEscolarCEI
         exclude = ('id',)
