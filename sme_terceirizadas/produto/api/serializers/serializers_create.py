@@ -91,6 +91,7 @@ class ProdutoSerializerCreate(serializers.ModelSerializer):
             homologacao = produto.homologacoes.get()
         else:
             homologacao = HomologacaoDoProduto(
+                rastro_terceirizada=self.context['request'].user.vinculo_atual.instituicao,
                 produto=produto,
                 criado_por=self.context['request'].user
             )

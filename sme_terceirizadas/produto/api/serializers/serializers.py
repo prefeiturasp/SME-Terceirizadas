@@ -70,6 +70,7 @@ class ProdutoSerializer(serializers.ModelSerializer):
     imagens = serializers.ListField(
         child=ImagemDoProdutoSerializer(), required=True
     )
+    id_externo = serializers.CharField()
 
     informacoes_nutricionais = serializers.SerializerMethodField()
 
@@ -124,9 +125,12 @@ class HomologacaoProdutoPainelGerencialSerializer(serializers.ModelSerializer):
     log_mais_recente = serializers.SerializerMethodField()
 
     def get_log_mais_recente(self, obj):
-        if obj.log_mais_recente.criado_em.date() == datetime.date.today():
-            return datetime.datetime.strftime(obj.log_mais_recente.criado_em, '%d/%m/%Y %H:%M')
-        return datetime.datetime.strftime(obj.log_mais_recente.criado_em, '%d/%m/%Y')
+        if obj.log_mais_recente:
+            if obj.log_mais_recente.criado_em.date() == datetime.date.today():
+                return datetime.datetime.strftime(obj.log_mais_recente.criado_em, '%d/%m/%Y %H:%M')
+            return datetime.datetime.strftime(obj.log_mais_recente.criado_em, '%d/%m/%Y')
+        else:
+            return datetime.datetime.strftime(obj.criado_em, '%d/%m/%Y')
 
     def get_nome_produto(self, obj):
         return obj.produto.nome

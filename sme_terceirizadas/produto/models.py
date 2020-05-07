@@ -62,7 +62,7 @@ class ImagemDoProduto(TemChaveExterna):
         verbose_name_plural = 'Imagens do Produto'
 
 
-class Produto(Ativavel, CriadoEm, CriadoPor, Nomeavel, TemChaveExterna):
+class Produto(Ativavel, CriadoEm, CriadoPor, Nomeavel, TemChaveExterna, TemIdentificadorExternoAmigavel):
     eh_para_alunos_com_dieta = models.BooleanField(default=False)
     protocolos = models.ManyToManyField(ProtocoloDeDietaEspecial,
                                         related_name='protocolos',

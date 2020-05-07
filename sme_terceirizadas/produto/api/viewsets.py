@@ -113,7 +113,8 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
         query_set = self.get_queryset_dashboard()
         if filtro_aplicado:
             query_set = query_set.filter(status=filtro_aplicado.upper())
-        response = {'results': self.get_serializer(query_set, many=True).data}
+        serializer = self.get_serializer if filtro_aplicado != constants.RASCUNHO else HomologacaoProdutoSerializer
+        response = {'results': serializer(query_set, many=True).data}
         return Response(response)
 
 
@@ -182,6 +183,14 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'),
                             status=status.HTTP_400_BAD_REQUEST)
+
+    def destroy(self, request, *args, **kwargs):
+        homologacao_produto = self.get_object()
+        if homologacao_produto.pode_excluir:
+            return super().destroy(request, *args, **kwargs)
+        else:
+            return Response(dict(detail='Você só pode excluir quando o status for RASCUNHO.'),
+                            status=status.HTTP_403_FORBIDDEN)
 
 
 class ProdutoViewSet(viewsets.ModelViewSet):
