@@ -3,7 +3,7 @@ from django.db import models
 from django.db.models import Q
 from django_prometheus.models import ExportModelOperationsMixin
 
-from ..cardapio.models import AlteracaoCardapio, GrupoSuspensaoAlimentacao, InversaoCardapio
+from ..cardapio.models import AlteracaoCardapio, AlteracaoCardapioCEI, GrupoSuspensaoAlimentacao, InversaoCardapio
 from ..dados_comuns.behaviors import (
     Ativavel,
     IntervaloDeDia,
@@ -15,8 +15,12 @@ from ..dados_comuns.behaviors import (
 from ..dados_comuns.constants import NUTRI_ADMIN_RESPONSAVEL
 from ..dados_comuns.utils import queryset_por_data
 from ..escola.models import DiretoriaRegional, Lote
-from ..inclusao_alimentacao.models import GrupoInclusaoAlimentacaoNormal, InclusaoAlimentacaoContinua
-from ..kit_lanche.models import SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheUnificada
+from ..inclusao_alimentacao.models import (
+    GrupoInclusaoAlimentacaoNormal,
+    InclusaoAlimentacaoContinua,
+    InclusaoAlimentacaoDaCEI
+)
+from ..kit_lanche.models import SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheCEIAvulsa, SolicitacaoKitLancheUnificada
 
 
 class Edital(ExportModelOperationsMixin('edital'), TemChaveExterna):
@@ -252,11 +256,25 @@ class Terceirizada(ExportModelOperationsMixin('terceirizada'), TemChaveExterna, 
             escola__lote__in=self.lotes.all()
         )
 
+    def alteracoes_cardapio_cei_das_minhas(self, filtro_aplicado):
+        queryset = queryset_por_data(filtro_aplicado, AlteracaoCardapioCEI)
+        return queryset.filter(
+            status__in=[AlteracaoCardapioCEI.workflow_class.CODAE_AUTORIZADO,
+                        AlteracaoCardapioCEI.workflow_class.CODAE_QUESTIONADO],
+            escola__lote__in=self.lotes.all()
+        )
+
     def grupos_inclusoes_alimentacao_normal_das_minhas_escolas(self, filtro_aplicado):
         queryset = queryset_por_data(filtro_aplicado, GrupoInclusaoAlimentacaoNormal)
         return queryset.filter(
             status=AlteracaoCardapio.workflow_class.CODAE_AUTORIZADO,
             escola__lote__in=self.lotes.all()
+        )
+
+    def inclusoes_alimentacao_de_cei_das_minhas_escolas(self, filtro_aplicado):
+        return self.filtra_solicitacoes_minhas_escolas_a_validar_por_data(
+            filtro_aplicado,
+            InclusaoAlimentacaoDaCEI
         )
 
     def inclusoes_alimentacao_continua_das_minhas_escolas(self, filtro_aplicado):
@@ -347,6 +365,19 @@ class Terceirizada(ExportModelOperationsMixin('terceirizada'), TemChaveExterna, 
             escola__lote__in=self.lotes.all(),
             status__in=[SolicitacaoKitLancheAvulsa.workflow_class.CODAE_AUTORIZADO,
                         SolicitacaoKitLancheAvulsa.workflow_class.CODAE_QUESTIONADO]
+        )
+
+    def solicitacoes_kit_lanche_cei_das_minhas_escolas_a_validar(self, filtro_aplicado):
+        if filtro_aplicado == 'daqui_a_7_dias':
+            solicitacoes_kit_lanche = SolicitacaoKitLancheCEIAvulsa.desta_semana
+        elif filtro_aplicado == 'daqui_a_30_dias':
+            solicitacoes_kit_lanche = SolicitacaoKitLancheCEIAvulsa.deste_mes  # type: ignore
+        else:
+            solicitacoes_kit_lanche = SolicitacaoKitLancheCEIAvulsa.objects  # type: ignore
+        return solicitacoes_kit_lanche.filter(
+            escola__lote__in=self.lotes.all(),
+            status__in=[SolicitacaoKitLancheCEIAvulsa.workflow_class.CODAE_AUTORIZADO,
+                        SolicitacaoKitLancheCEIAvulsa.workflow_class.CODAE_QUESTIONADO]
         )
 
     def __str__(self):
