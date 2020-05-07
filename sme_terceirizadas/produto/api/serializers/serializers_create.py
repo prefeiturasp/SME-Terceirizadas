@@ -64,7 +64,7 @@ class ProdutoSerializerCreate(serializers.ModelSerializer):
     informacoes_nutricionais = InformacoesNutricionaisDoProdutoSerializerCreate(many=True)
     cadastro_finalizado = serializers.BooleanField(required=False)
 
-    def create(self, validated_data):
+    def create(self, validated_data):  # noqa C901
         validated_data['criado_por'] = self.context['request'].user
         imagens = validated_data.pop('imagens', [])
         protocolos = validated_data.pop('protocolos', [])
