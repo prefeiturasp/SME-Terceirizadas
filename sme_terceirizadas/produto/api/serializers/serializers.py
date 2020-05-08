@@ -36,9 +36,16 @@ class ProtocoloDeDietaEspecialSerializer(serializers.ModelSerializer):
 
 
 class ImagemDoProdutoSerializer(serializers.ModelSerializer):
+    arquivo = serializers.SerializerMethodField()
+
+    def get_arquivo(self, obj):
+        request = self.context.get('request')
+        arquivo = obj.arquivo.url
+        return request.build_absolute_uri(arquivo)
+
     class Meta:
         model = ImagemDoProduto
-        fields = ('arquivo', 'nome')
+        fields = ('arquivo', 'nome', 'uuid')
 
 
 class TipoDeInformacaoNutricionalSerializer(serializers.ModelSerializer):

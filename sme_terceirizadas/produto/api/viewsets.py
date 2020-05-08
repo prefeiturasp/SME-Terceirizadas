@@ -1,11 +1,12 @@
-from rest_framework import status, viewsets
+from rest_framework import status, viewsets, mixins
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from xworkflows import InvalidTransitionError
 
 from ...dados_comuns import constants
 from ...dados_comuns.permissions import UsuarioCODAEGestaoProduto
-from ..models import Fabricante, HomologacaoDoProduto, InformacaoNutricional, Marca, Produto, ProtocoloDeDietaEspecial
+from ..models import Fabricante, HomologacaoDoProduto, InformacaoNutricional, Marca, Produto, ProtocoloDeDietaEspecial, \
+    ImagemDoProduto
 from .serializers.serializers import (
     FabricanteSerializer,
     FabricanteSimplesSerializer,
@@ -17,7 +18,7 @@ from .serializers.serializers import (
     ProdutoSerializer,
     ProdutoSimplesSerializer,
     ProtocoloDeDietaEspecialSerializer,
-    ProtocoloSimplesSerializer
+    ProtocoloSimplesSerializer, ImagemDoProdutoSerializer
 )
 from .serializers.serializers_create import ProdutoSerializerCreate
 
@@ -61,6 +62,13 @@ class InformacaoNutricionalBaseViewSet(viewsets.ReadOnlyModelViewSet):
                 }
                 infos_nutricionais.append(info_nutricional)
         return infos_nutricionais
+
+
+class ImagensViewset(mixins.DestroyModelMixin,
+                     viewsets.GenericViewSet):
+    lookup_field = 'uuid'
+    queryset = ImagemDoProduto.objects.all()
+    serializer_class = ImagemDoProdutoSerializer
 
 
 class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
@@ -114,7 +122,7 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
         if filtro_aplicado:
             query_set = query_set.filter(status=filtro_aplicado.upper())
         serializer = self.get_serializer if filtro_aplicado != constants.RASCUNHO else HomologacaoProdutoSerializer
-        response = {'results': serializer(query_set, many=True).data}
+        response = {'results': serializer(query_set, context={"request": request}, many=True).data}
         return Response(response)
 
 

@@ -13,6 +13,7 @@ router.register('informacoes-nutricionais', viewsets.InformacaoNutricionalViewSe
 router.register('protocolo-dieta-especial', viewsets.ProtocoloDeDietaEspecialViewSet, 'Protocolo Dieta Especial')
 router.register('fabricantes', viewsets.FabricanteViewSet, 'Fabricantes')
 router.register('marcas', viewsets.MarcaViewSet, 'Marcas')
+router.register('produto-imagens', viewsets.ImagensViewset, 'Imagens')
 
 urlpatterns = [
     path('', include(router.urls)),

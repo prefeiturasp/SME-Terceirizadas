@@ -107,7 +107,6 @@ class ProdutoSerializerCreate(serializers.ModelSerializer):
 
         update_instance_from_dict(instance, validated_data, save=True)
 
-        instance.imagens.all().delete()
         instance.informacoes_nutricionais.all().delete()
 
         for imagem in imagens:
