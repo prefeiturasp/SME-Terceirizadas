@@ -264,6 +264,10 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
         self.save()
 
     @property
+    def pode_excluir(self):
+        return self.status == self.workflow_class.RASCUNHO
+
+    @property
     def template_mensagem(self):
         raise NotImplementedError('Deve criar um property que recupera o assunto e corpo mensagem desse objeto')
 
@@ -300,14 +304,12 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
 
     @xworkflows.after_transition('codae_homologa')
     def _codae_homologa_hook(self, *args, **kwargs):
-        self._salva_rastro_solicitacao()
         user = kwargs['user']
         self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_HOMOLOGADO,
                                   usuario=user)
 
     @xworkflows.after_transition('codae_nao_homologa')
     def _codae_nao_homologa_hook(self, *args, **kwargs):
-        self._salva_rastro_solicitacao()
         user = kwargs['user']
         justificativa = kwargs.get('justificativa', '')
         self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_NAO_HOMOLOGADO,
@@ -316,7 +318,6 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
 
     @xworkflows.after_transition('codae_questiona')
     def _codae_questiona_hook(self, *args, **kwargs):
-        self._salva_rastro_solicitacao()
         user = kwargs['user']
         justificativa = kwargs.get('justificativa', '')
         self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_QUESTIONOU,
@@ -325,7 +326,6 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
 
     @xworkflows.after_transition('codae_pede_analise_sensorial')
     def _codae_pede_analise_sensorial_hook(self, *args, **kwargs):
-        self._salva_rastro_solicitacao()
         user = kwargs['user']
         justificativa = kwargs.get('justificativa', '')
         self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_PEDIU_ANALISE_SENSORIAL,

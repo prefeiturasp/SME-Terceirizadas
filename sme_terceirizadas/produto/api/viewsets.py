@@ -1,16 +1,25 @@
-from rest_framework import status, viewsets
+from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from xworkflows import InvalidTransitionError
 
 from ...dados_comuns import constants
 from ...dados_comuns.permissions import UsuarioCODAEGestaoProduto
-from ..models import Fabricante, HomologacaoDoProduto, InformacaoNutricional, Marca, Produto, ProtocoloDeDietaEspecial
+from ..models import (
+    Fabricante,
+    HomologacaoDoProduto,
+    ImagemDoProduto,
+    InformacaoNutricional,
+    Marca,
+    Produto,
+    ProtocoloDeDietaEspecial
+)
 from .serializers.serializers import (
     FabricanteSerializer,
     FabricanteSimplesSerializer,
     HomologacaoProdutoPainelGerencialSerializer,
     HomologacaoProdutoSerializer,
+    ImagemDoProdutoSerializer,
     InformacaoNutricionalSerializer,
     MarcaSerializer,
     MarcaSimplesSerializer,
@@ -63,6 +72,13 @@ class InformacaoNutricionalBaseViewSet(viewsets.ReadOnlyModelViewSet):
         return infos_nutricionais
 
 
+class ImagensViewset(mixins.DestroyModelMixin,
+                     viewsets.GenericViewSet):
+    lookup_field = 'uuid'
+    queryset = ImagemDoProduto.objects.all()
+    serializer_class = ImagemDoProdutoSerializer
+
+
 class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
     serializer_class = HomologacaoProdutoPainelGerencialSerializer
@@ -113,7 +129,8 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
         query_set = self.get_queryset_dashboard()
         if filtro_aplicado:
             query_set = query_set.filter(status=filtro_aplicado.upper())
-        response = {'results': self.get_serializer(query_set, many=True).data}
+        serializer = self.get_serializer if filtro_aplicado != constants.RASCUNHO else HomologacaoProdutoSerializer
+        response = {'results': serializer(query_set, context={'request': request}, many=True).data}
         return Response(response)
 
 
@@ -182,6 +199,14 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'),
                             status=status.HTTP_400_BAD_REQUEST)
+
+    def destroy(self, request, *args, **kwargs):
+        homologacao_produto = self.get_object()
+        if homologacao_produto.pode_excluir:
+            return super().destroy(request, *args, **kwargs)
+        else:
+            return Response(dict(detail='Você só pode excluir quando o status for RASCUNHO.'),
+                            status=status.HTTP_403_FORBIDDEN)
 
 
 class ProdutoViewSet(viewsets.ModelViewSet):
