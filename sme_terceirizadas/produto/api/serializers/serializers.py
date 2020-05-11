@@ -70,6 +70,15 @@ class InformacoesNutricionaisDoProdutoSerializer(serializers.ModelSerializer):
         exclude = ('id', 'produto')
 
 
+class HomologacaoProdutoSimplesSerializer(serializers.ModelSerializer):
+    rastro_terceirizada = TerceirizadaSimplesSerializer()
+    logs = LogSolicitacoesUsuarioSerializer(many=True)
+
+    class Meta:
+        model = HomologacaoDoProduto
+        fields = ('uuid', 'status', 'id_externo', 'rastro_terceirizada', 'logs', 'criado_em')
+
+
 class ProdutoSerializer(serializers.ModelSerializer):
     protocolos = ProtocoloDeDietaEspecialSerializer(many=True)
     marca = MarcaSerializer()
@@ -80,6 +89,15 @@ class ProdutoSerializer(serializers.ModelSerializer):
     id_externo = serializers.CharField()
 
     informacoes_nutricionais = serializers.SerializerMethodField()
+
+    homologacoes = serializers.SerializerMethodField()
+
+    def get_homologacoes(self, obj):
+        return HomologacaoProdutoSimplesSerializer(
+            HomologacaoDoProduto.objects.filter(
+                produto=obj
+            ), many=True
+        ).data
 
     def get_informacoes_nutricionais(self, obj):
         return InformacoesNutricionaisDoProdutoSerializer(

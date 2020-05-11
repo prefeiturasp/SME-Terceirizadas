@@ -96,6 +96,10 @@ class Produto(Ativavel, CriadoEm, CriadoPor, Nomeavel, TemChaveExterna, TemIdent
     def informacoes_nutricionais(self):
         return self.informacoes_nutricionais.all()
 
+    @property
+    def homologacoes(self):
+        return self.homologacoes.all()
+
     @classmethod
     def filtrar_por_nome(cls, **kwargs):
         nome = kwargs.get('nome')

@@ -252,6 +252,14 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
+    @action(detail=False,
+            methods=['GET'],
+            url_path='todos-produtos')
+    def filtro_consolidado(self, request):
+        query_set = Produto.objects.all()
+        response = {'results': self.get_serializer(query_set, many=True).data}
+        return Response(response)
+
 
 class ProtocoloDeDietaEspecialViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
