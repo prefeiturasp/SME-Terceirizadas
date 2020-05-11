@@ -40,6 +40,23 @@ PEDIDOS_TERCEIRIZADA = 'pedidos-terceirizadas'
 PEDIDOS_DRE = 'pedidos-diretoria-regional'
 FILTRO_PADRAO_PEDIDOS = f'(?P<filtro_aplicado>({SEM_FILTRO}|{DAQUI_A_SETE_DIAS}|{DAQUI_A_TRINTA_DIAS})+)'
 
+RASCUNHO = 'rascunho'
+CODAE_PENDENTE_HOMOLOGACAO = 'codae_pendente_homologacao'  # INICIO
+CODAE_HOMOLOGADO = 'codae_homologado'
+CODAE_NAO_HOMOLOGADO = 'codae_nao_homologado'
+CODAE_QUESTIONADO = 'codae_questionado'
+CODAE_PEDIU_ANALISE_SENSORIAL = 'codae_pediu_analise_sensorial'
+TERCEIRIZADA_CANCELOU = 'terceirizada_cancelou'
+CODAE_SUSPENDEU = 'codae_suspendeu'
+ESCOLA_OU_NUTRICIONISTA_RECLAMOU = 'escola_ou_nutricionista_reclamou'
+CODAE_PEDIU_ANALISE_RECLAMACAO = 'codae_pediu_analise_reclamacao'
+CODAE_AUTORIZOU_RECLAMACAO = 'codae_autorizou_reclamacao'
+
+FILTRO_STATUS_HOMOLOGACAO = (f'(?P<filtro_aplicado>({RASCUNHO}|{CODAE_PENDENTE_HOMOLOGACAO}|{CODAE_HOMOLOGADO}|'
+                             f'{CODAE_NAO_HOMOLOGADO}|{CODAE_QUESTIONADO}|{CODAE_PEDIU_ANALISE_SENSORIAL}|'
+                             f'{TERCEIRIZADA_CANCELOU}|{CODAE_SUSPENDEU}|{ESCOLA_OU_NUTRICIONISTA_RECLAMOU}|'
+                             f'{CODAE_PEDIU_ANALISE_RECLAMACAO}|{CODAE_AUTORIZOU_RECLAMACAO})+)')
+
 RELATORIO = 'relatorio'
 PROTOCOLO = 'protocolo'
 

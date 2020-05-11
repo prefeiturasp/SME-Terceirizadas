@@ -44,6 +44,8 @@ class QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEISerializer(ser
 
 
 class InclusaoAlimentacaoDaCEISerializer(serializers.ModelSerializer):
+    escola = EscolaSimplesSerializer()
+    prioridade = serializers.CharField()
     periodo_escolar = PeriodoEscolarSimplesSerializer()
     tipos_alimentacao = CombosVinculoTipoAlimentoSimplissimaSerializer(many=True, read_only=True)
     motivo = MotivoInclusaoNormalSerializer()
@@ -51,10 +53,25 @@ class InclusaoAlimentacaoDaCEISerializer(serializers.ModelSerializer):
         many=True, read_only=True)
     logs = LogSolicitacoesUsuarioSerializer(many=True)
     id_externo = serializers.CharField()
+    escola = EscolaSimplesSerializer()
+
+    def to_representation(self, instance):
+        retorno = super().to_representation(instance)
+
+        # Inclui o total de alunos nas faixas etárias num período
+        qtde_alunos = instance.escola.alunos_por_periodo_e_faixa_etaria(
+            instance.data
+        )
+        nome_periodo = 'INTEGRAL' if instance.periodo_escolar.nome == 'PARCIAL' else instance.periodo_escolar.nome
+        for faixa_etaria in retorno['quantidade_alunos_por_faixas_etarias']:
+            uuid_faixa_etaria = faixa_etaria['faixa_etaria']['uuid']
+            faixa_etaria['total_alunos_no_periodo'] = qtde_alunos[nome_periodo][uuid_faixa_etaria]
+
+        return retorno
 
     class Meta:
         model = InclusaoAlimentacaoDaCEI
-        exclude = ('id', 'escola', 'criado_por')
+        exclude = ('id',)
 
 
 class QuantidadePorPeriodoSerializer(serializers.ModelSerializer):

@@ -1,15 +1,25 @@
-from rest_framework import status, viewsets
+from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from xworkflows import InvalidTransitionError
 
 from ...dados_comuns import constants
 from ...dados_comuns.permissions import UsuarioCODAEGestaoProduto
-from ..models import Fabricante, HomologacaoDoProduto, InformacaoNutricional, Marca, Produto, ProtocoloDeDietaEspecial
+from ..models import (
+    Fabricante,
+    HomologacaoDoProduto,
+    ImagemDoProduto,
+    InformacaoNutricional,
+    Marca,
+    Produto,
+    ProtocoloDeDietaEspecial
+)
 from .serializers.serializers import (
     FabricanteSerializer,
     FabricanteSimplesSerializer,
+    HomologacaoProdutoPainelGerencialSerializer,
     HomologacaoProdutoSerializer,
+    ImagemDoProdutoSerializer,
     InformacaoNutricionalSerializer,
     MarcaSerializer,
     MarcaSimplesSerializer,
@@ -60,6 +70,68 @@ class InformacaoNutricionalBaseViewSet(viewsets.ReadOnlyModelViewSet):
                 }
                 infos_nutricionais.append(info_nutricional)
         return infos_nutricionais
+
+
+class ImagensViewset(mixins.DestroyModelMixin,
+                     viewsets.GenericViewSet):
+    lookup_field = 'uuid'
+    queryset = ImagemDoProduto.objects.all()
+    serializer_class = ImagemDoProdutoSerializer
+
+
+class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
+    lookup_field = 'uuid'
+    serializer_class = HomologacaoProdutoPainelGerencialSerializer
+    queryset = HomologacaoDoProduto.objects.all()
+
+    def dados_dashboard(self, query_set: list) -> dict:
+        reclamacao_de_produto = query_set.filter(status=HomologacaoDoProduto.workflow_class.CODAE_AUTORIZOU_RECLAMACAO)
+        suspensos = query_set.filter(status=HomologacaoDoProduto.workflow_class.CODAE_SUSPENDEU)
+        correcao_de_produto = query_set.filter(status=HomologacaoDoProduto.workflow_class.CODAE_QUESTIONADO)
+        aguardando_analise_reclamacao = query_set.filter(
+            status=HomologacaoDoProduto.workflow_class.CODAE_PEDIU_ANALISE_RECLAMACAO)
+        aguardando_analise_sensorial = query_set.filter(
+            status=HomologacaoDoProduto.workflow_class.CODAE_PEDIU_ANALISE_SENSORIAL)
+        pendente_homologacao = query_set.filter(status=HomologacaoDoProduto.workflow_class.CODAE_PENDENTE_HOMOLOGACAO)
+        homologados = query_set.filter(status=HomologacaoDoProduto.workflow_class.CODAE_HOMOLOGADO)
+        nao_homologados = query_set.filter(status=HomologacaoDoProduto.workflow_class.CODAE_NAO_HOMOLOGADO)
+
+        sumario = {
+            'Reclamação de produto': self.get_serializer(reclamacao_de_produto, many=True).data,
+            'Produtos suspensos': self.get_serializer(suspensos, many=True).data,
+            'Correção de produto': self.get_serializer(correcao_de_produto, many=True).data,
+            'Aguardando análise de reclamação': self.get_serializer(aguardando_analise_reclamacao, many=True).data,
+            'Aguardando análise sensorial': self.get_serializer(aguardando_analise_sensorial, many=True).data,
+            'Pendente homologação': self.get_serializer(pendente_homologacao, many=True).data,
+            'Homologados': self.get_serializer(homologados, many=True).data,
+            'Não homologados': self.get_serializer(nao_homologados, many=True).data
+        }
+
+        return sumario
+
+    def get_queryset_dashboard(self):
+        query_set = self.get_queryset()
+        user = self.request.user
+        if user.tipo_usuario == 'terceirizada':
+            query_set = query_set.filter(rastro_terceirizada=user.vinculo_atual.instituicao)
+        return query_set
+
+    @action(detail=False, methods=['GET'], url_path='dashboard')
+    def dashboard(self, request):
+        query_set = self.get_queryset_dashboard()
+        response = {'results': self.dados_dashboard(query_set=query_set)}
+        return Response(response)
+
+    @action(detail=False,
+            methods=['GET'],
+            url_path=f'filtro-por-status/{constants.FILTRO_STATUS_HOMOLOGACAO}')
+    def solicitacoes_homologacao_por_status(self, request, filtro_aplicado=constants.RASCUNHO):
+        query_set = self.get_queryset_dashboard()
+        if filtro_aplicado:
+            query_set = query_set.filter(status=filtro_aplicado.upper())
+        serializer = self.get_serializer if filtro_aplicado != constants.RASCUNHO else HomologacaoProdutoSerializer
+        response = {'results': serializer(query_set, context={'request': request}, many=True).data}
+        return Response(response)
 
 
 class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
@@ -127,6 +199,14 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'),
                             status=status.HTTP_400_BAD_REQUEST)
+
+    def destroy(self, request, *args, **kwargs):
+        homologacao_produto = self.get_object()
+        if homologacao_produto.pode_excluir:
+            return super().destroy(request, *args, **kwargs)
+        else:
+            return Response(dict(detail='Você só pode excluir quando o status for RASCUNHO.'),
+                            status=status.HTTP_403_FORBIDDEN)
 
 
 class ProdutoViewSet(viewsets.ModelViewSet):

@@ -1,3 +1,5 @@
+import datetime
+
 from rest_framework import serializers
 
 from ....dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
@@ -34,9 +36,16 @@ class ProtocoloDeDietaEspecialSerializer(serializers.ModelSerializer):
 
 
 class ImagemDoProdutoSerializer(serializers.ModelSerializer):
+    arquivo = serializers.SerializerMethodField()
+
+    def get_arquivo(self, obj):
+        request = self.context.get('request')
+        arquivo = obj.arquivo.url
+        return request.build_absolute_uri(arquivo)
+
     class Meta:
         model = ImagemDoProduto
-        fields = ('arquivo', 'nome')
+        fields = ('arquivo', 'nome', 'uuid')
 
 
 class TipoDeInformacaoNutricionalSerializer(serializers.ModelSerializer):
@@ -77,6 +86,7 @@ class ProdutoSerializer(serializers.ModelSerializer):
     imagens = serializers.ListField(
         child=ImagemDoProdutoSerializer(), required=True
     )
+    id_externo = serializers.CharField()
 
     informacoes_nutricionais = serializers.SerializerMethodField()
 
@@ -133,3 +143,23 @@ class HomologacaoProdutoSerializer(serializers.ModelSerializer):
     class Meta:
         model = HomologacaoDoProduto
         fields = ('uuid', 'produto', 'status', 'id_externo', 'logs', 'rastro_terceirizada')
+
+
+class HomologacaoProdutoPainelGerencialSerializer(serializers.ModelSerializer):
+    nome_produto = serializers.SerializerMethodField()
+    log_mais_recente = serializers.SerializerMethodField()
+
+    def get_log_mais_recente(self, obj):
+        if obj.log_mais_recente:
+            if obj.log_mais_recente.criado_em.date() == datetime.date.today():
+                return datetime.datetime.strftime(obj.log_mais_recente.criado_em, '%d/%m/%Y %H:%M')
+            return datetime.datetime.strftime(obj.log_mais_recente.criado_em, '%d/%m/%Y')
+        else:
+            return datetime.datetime.strftime(obj.criado_em, '%d/%m/%Y')
+
+    def get_nome_produto(self, obj):
+        return obj.produto.nome
+
+    class Meta:
+        model = HomologacaoDoProduto
+        fields = ('uuid', 'nome_produto', 'status', 'id_externo', 'log_mais_recente')
