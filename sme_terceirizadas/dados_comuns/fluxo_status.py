@@ -244,7 +244,7 @@ class HomologacaoProdutoWorkflow(xwf_models.Workflow):
 
     )
 
-    initial_state = RASCUNHO
+    initial_state = CODAE_PENDENTE_HOMOLOGACAO
 
 
 class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
