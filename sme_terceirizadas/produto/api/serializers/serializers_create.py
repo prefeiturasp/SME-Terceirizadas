@@ -69,6 +69,7 @@ class ProdutoSerializerCreate(serializers.ModelSerializer):
         imagens = validated_data.pop('imagens', [])
         protocolos = validated_data.pop('protocolos', [])
         informacoes_nutricionais = validated_data.pop('informacoes_nutricionais', [])
+        cadastro_finalizado = validated_data.pop('cadastro_finalizado', False)
 
         produto = Produto.objects.create(**validated_data)
 
@@ -96,7 +97,7 @@ class ProdutoSerializerCreate(serializers.ModelSerializer):
                 criado_por=self.context['request'].user
             )
             homologacao.save()
-        if validated_data.get('cadastro_finalizado', False):
+        if cadastro_finalizado:
             homologacao.inicia_fluxo(user=self.context['request'].user)
         return produto
 
