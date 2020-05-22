@@ -40,6 +40,39 @@ class InclusoesDeAlimentacaoContinuaVencidaDiasManager(models.Manager):
         ])
 
 
+class InclusaoDeAlimentacaoDeCeiDesteMesManager(models.Manager):
+    def get_queryset(self):
+        hoje = datetime.date.today()
+        data_limite_inicial = hoje
+        data_limite_final = hoje + datetime.timedelta(days=31)
+        return super(InclusaoDeAlimentacaoDeCeiDesteMesManager, self).get_queryset().filter(
+            data_inicial__range=(data_limite_inicial, data_limite_final)
+        )
+
+
+class InclusaoDeAlimentacaoDeCeiDestaSemanaManager(models.Manager):
+    def get_queryset(self):
+        hoje = datetime.date.today()
+        data_limite_inicial = hoje
+        data_limite_final = hoje + datetime.timedelta(days=7)
+        return super(InclusaoDeAlimentacaoDeCeiDestaSemanaManager, self).get_queryset().filter(
+            inclusoes_normais__data__range=(data_limite_inicial, data_limite_final)
+        )
+
+
+class InclusaoDeAlimentacaoDeCeiVencidosDiasManager(models.Manager):
+    def get_queryset(self):
+        hoje = datetime.date.today()
+        return super(InclusaoDeAlimentacaoDeCeiVencidosDiasManager, self).get_queryset(
+        ).filter(
+            inclusoes_normais__data__lt=hoje
+        ).filter(
+            ~Q(status__in=[PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_TOMOU_CIENCIA,
+                           PedidoAPartirDaEscolaWorkflow.ESCOLA_CANCELOU,
+                           PedidoAPartirDaEscolaWorkflow.CANCELADO_AUTOMATICAMENTE])
+        )
+
+
 class GrupoInclusoesDeAlimentacaoNormalDestaSemanaManager(models.Manager):
     def get_queryset(self):
         hoje = datetime.date.today()

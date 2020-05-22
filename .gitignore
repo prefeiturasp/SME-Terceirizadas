@@ -156,6 +156,7 @@ typings/
 
 
 ### VisualStudioCode template
+.vscode/
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
@@ -295,4 +296,3 @@ sme_terceirizadas/media/
 *.csv
 *.idea
 .tmontmp/
-

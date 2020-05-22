@@ -32,6 +32,8 @@ if [ "$criar_usuarios" != "${criar_usuarios#[Ss]}" ]; then
   ./manage.py shell -c "from sme_terceirizadas.perfil.models import Usuario; Usuario.objects.create_superuser('codae@admin.com', 'adminadmin', cpf='11111111114', registro_funcional='1111114')"
   echo "Criando CODAE Nutricionista admin"
   ./manage.py shell -c "from sme_terceirizadas.perfil.models import Usuario; Usuario.objects.create_superuser('nutricodae@admin.com', 'adminadmin', cpf='11111111115', registro_funcional='1111115')"
+  echo "Criando CODAE - Gestao de Produtos - admin"
+  ./manage.py shell -c "from sme_terceirizadas.perfil.models import Usuario; Usuario.objects.create_superuser('gpcodae@admin.com', 'adminadmin', cpf='21111111114', registro_funcional='2111114')"
   echo "Criando Escola CEI admin"
   ./manage.py shell -c "from sme_terceirizadas.perfil.models import Usuario; Usuario.objects.create_superuser('escolacei@admin.com', 'adminadmin', cpf='11111111116', registro_funcional='1111116')"
   echo "Criando Escola CEI CEU admin"
@@ -62,6 +64,7 @@ fi
 ./manage.py shell -c "from utility.carga_dados.escola import _12_atualiza_escolas"
 ./manage.py shell -c "from utility.carga_dados.dieta_especial import _13_dieta_especial"
 ./manage.py shell -c "from utility.carga_dados.dieta_especial import _16_dieta_especial_carga_alimentos"
+./manage.py shell -c "from utility.carga_dados.produto import _1_carrega_diagnosticos"
 
 echo -e "${RED}--------CRIANDO GESTORES DAS ESCOLAS----------${NC}"
 ./manage.py shell -c "from utility.carga_dados.escola import _7_diretor_escola"

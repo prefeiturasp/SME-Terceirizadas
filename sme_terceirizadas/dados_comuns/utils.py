@@ -119,3 +119,18 @@ def subtrai_meses_de_data(meses, data):
     else:
         novo_dia = data.day
     return datetime.date(novo_ano, novo_mes, novo_dia)
+
+
+def ordena_dias_semana_comeca_domingo(dias_semana):
+    """
+    Obtém uma lista de inteiros onde cada inteiro representa um dia da semana.
+
+    No python, os dias da semana são
+    - 0 = Segunda-feira
+    - 1 = Terça-feira
+    - ...
+    - 6 = Domingo
+
+    A função retorna uma lista de inteiros ordenados sendo que o número 6 sempre será o primeiro número.
+    """
+    return sorted(dias_semana, key=lambda x: -1 if x == 6 else x)

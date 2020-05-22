@@ -17,6 +17,7 @@ from ...dados_comuns.permissions import (
 from ...escola.models import Escola
 from ...relatorios.relatorios import (
     relatorio_alteracao_cardapio,
+    relatorio_alteracao_cardapio_cei,
     relatorio_inversao_dia_de_cardapio,
     relatorio_suspensao_de_alimentacao
 )
@@ -784,6 +785,8 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
 
 
 class AlteracoesCardapioCEIViewSet(AlteracoesCardapioViewSet):
+    queryset = AlteracaoCardapioCEI.objects.all()
+
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update']:
             return AlteracaoCardapioCEISerializerCreate
@@ -798,7 +801,56 @@ class AlteracoesCardapioCEIViewSet(AlteracoesCardapioViewSet):
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
-    queryset = AlteracaoCardapioCEI.objects.all()
+    @action(detail=False,
+            url_path=f'{constants.PEDIDOS_CODAE}/{constants.FILTRO_PADRAO_PEDIDOS}',
+            permission_classes=[UsuarioCODAEGestaoAlimentacao])
+    def solicitacoes_codae(self, request, filtro_aplicado=constants.SEM_FILTRO):
+        # TODO: colocar regras de codae CODAE aqui...
+        usuario = request.user
+        codae = usuario.vinculo_atual.instituicao
+        alteracoes_cardapio = codae.alteracoes_cardapio_cei_das_minhas(
+            filtro_aplicado
+        )
+
+        page = self.paginate_queryset(alteracoes_cardapio)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False,
+            url_path=f'{constants.PEDIDOS_DRE}/{constants.FILTRO_PADRAO_PEDIDOS}',
+            permission_classes=[UsuarioDiretoriaRegional])
+    def solicitacoes_diretoria_regional(self, request, filtro_aplicado=constants.SEM_FILTRO):
+        # TODO: colocar regras de DRE aqui...
+        usuario = request.user
+        dre = usuario.vinculo_atual.instituicao
+        alteracoes_cardapio = dre.alteracoes_cardapio_cei_das_minhas_escolas(
+            filtro_aplicado
+        )
+
+        page = self.paginate_queryset(alteracoes_cardapio)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False,
+            url_path=f'{constants.PEDIDOS_TERCEIRIZADA}/{constants.FILTRO_PADRAO_PEDIDOS}',
+            permission_classes=[UsuarioTerceirizada])
+    def solicitacoes_terceirizada(self, request, filtro_aplicado=constants.SEM_FILTRO):
+        # TODO: colocar regras de Terceirizada aqui...
+        usuario = request.user
+        terceirizada = usuario.vinculo_atual.instituicao
+        alteracoes_cardapio = terceirizada.alteracoes_cardapio_cei_das_minhas(
+            filtro_aplicado
+        )
+
+        page = self.paginate_queryset(alteracoes_cardapio)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=True,
+            methods=['GET'],
+            url_path=f'{constants.RELATORIO}')
+    def relatorio(self, request, uuid=None):
+        return relatorio_alteracao_cardapio_cei(request, solicitacao=self.get_object())
 
 
 class MotivosAlteracaoCardapioViewSet(viewsets.ReadOnlyModelViewSet):

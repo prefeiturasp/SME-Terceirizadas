@@ -8,7 +8,7 @@ from django.db import models
 from django.db.models import Q, Sum
 from django_prometheus.models import ExportModelOperationsMixin
 
-from ..cardapio.models import AlteracaoCardapio, GrupoSuspensaoAlimentacao, InversaoCardapio
+from ..cardapio.models import AlteracaoCardapio, AlteracaoCardapioCEI, GrupoSuspensaoAlimentacao, InversaoCardapio
 from ..dados_comuns.behaviors import (
     Ativavel,
     CriadoEm,
@@ -30,8 +30,13 @@ from ..dados_comuns.constants import (
 from ..dados_comuns.utils import queryset_por_data, subtrai_meses_de_data
 from ..eol_servico.utils import EOLService, dt_nascimento_from_api
 from ..escola.constants import PERIODOS_ESPECIAIS_CEI_CEU_CCI
-from ..inclusao_alimentacao.models import GrupoInclusaoAlimentacaoNormal, InclusaoAlimentacaoContinua
-from ..kit_lanche.models import SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheUnificada
+from ..inclusao_alimentacao.models import (
+    GrupoInclusaoAlimentacaoNormal,
+    InclusaoAlimentacaoContinua,
+    InclusaoAlimentacaoDaCEI
+)
+from ..kit_lanche.models import SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheCEIAvulsa, SolicitacaoKitLancheUnificada
+from .utils import meses_para_mes_e_ano_string
 
 logger = logging.getLogger('sigpae.EscolaModels')
 
@@ -100,10 +105,22 @@ class DiretoriaRegional(ExportModelOperationsMixin('diretoria_regional'), Nomeav
             SolicitacaoKitLancheAvulsa
         )
 
+    def solicitacoes_kit_lanche_cei_das_minhas_escolas_a_validar(self, filtro_aplicado):
+        return self.filtra_solicitacoes_minhas_escolas_a_validar_por_data(
+            filtro_aplicado,
+            SolicitacaoKitLancheCEIAvulsa
+        )
+
     def alteracoes_cardapio_das_minhas_escolas_a_validar(self, filtro_aplicado):
         return self.filtra_solicitacoes_minhas_escolas_a_validar_por_data(
             filtro_aplicado,
             AlteracaoCardapio
+        )
+
+    def alteracoes_cardapio_cei_das_minhas_escolas_a_validar(self, filtro_aplicado):
+        return self.filtra_solicitacoes_minhas_escolas_a_validar_por_data(
+            filtro_aplicado,
+            AlteracaoCardapioCEI
         )
 
     def inclusoes_alimentacao_continua_das_minhas_escolas(self, filtro_aplicado):
@@ -116,6 +133,12 @@ class DiretoriaRegional(ExportModelOperationsMixin('diretoria_regional'), Nomeav
         return self.filtra_solicitacoes_minhas_escolas_a_validar_por_data(
             filtro_aplicado,
             GrupoInclusaoAlimentacaoNormal
+        )
+
+    def inclusoes_alimentacao_de_cei_das_minhas_escolas(self, filtro_aplicado):
+        return self.filtra_solicitacoes_minhas_escolas_a_validar_por_data(
+            filtro_aplicado,
+            InclusaoAlimentacaoDaCEI
         )
 
     #
@@ -164,6 +187,13 @@ class DiretoriaRegional(ExportModelOperationsMixin('diretoria_regional'), Nomeav
         return queryset.filter(
             escola__in=self.escolas.all(),
             status=AlteracaoCardapio.workflow_class.DRE_A_VALIDAR
+        )
+
+    def alteracoes_cardapio_cei_das_minhas_escolas(self, filtro_aplicado):
+        queryset = queryset_por_data(filtro_aplicado, AlteracaoCardapioCEI)
+        return queryset.filter(
+            escola__in=self.escolas.all(),
+            status=AlteracaoCardapioCEI.workflow_class.DRE_A_VALIDAR
         )
 
     #
@@ -327,6 +357,48 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
 
     def __str__(self):
         return f'{self.codigo_eol}: {self.nome}'
+
+    def alunos_por_periodo_e_faixa_etaria(self, data_referencia=None):  # noqa C901
+        if data_referencia is None:
+            data_referencia = date.today()
+        faixas_etarias = FaixaEtaria.objects.filter(ativo=True)
+        if faixas_etarias.count() == 0:
+            raise ObjectDoesNotExist()
+        lista_alunos = EOLService.get_informacoes_escola_turma_aluno(
+            self.codigo_eol
+        )
+
+        resultados = {}
+        for aluno in lista_alunos:
+            periodo = aluno['dc_tipo_turno'].strip().upper()
+            if periodo not in resultados:
+                resultados[periodo] = Counter()
+            data_nascimento = dt_nascimento_from_api(aluno['dt_nascimento_aluno'])
+            for faixa_etaria in faixas_etarias:
+                if faixa_etaria.data_pertence_a_faixa(data_nascimento, data_referencia):
+                    resultados[periodo][str(faixa_etaria.uuid)] += 1
+
+        return resultados
+
+
+    def alunos_por_faixa_etaria(self, data_referencia=None):  # noqa C901
+        if data_referencia is None:
+            data_referencia = date.today()
+        faixas_etarias = FaixaEtaria.objects.filter(ativo=True)
+        if faixas_etarias.count() == 0:
+            raise ObjectDoesNotExist()
+        lista_alunos = EOLService.get_informacoes_escola_turma_aluno(
+            self.codigo_eol
+        )
+
+        resultados = Counter()
+        for aluno in lista_alunos:
+            data_nascimento = dt_nascimento_from_api(aluno['dt_nascimento_aluno'])
+            for faixa_etaria in faixas_etarias:
+                if faixa_etaria.data_pertence_a_faixa(data_nascimento, data_referencia):
+                    resultados[str(faixa_etaria.uuid)] += 1
+
+        return resultados
 
     class Meta:
         verbose_name = 'Escola'
@@ -497,6 +569,20 @@ class Codae(ExportModelOperationsMixin('codae'), Nomeavel, TemChaveExterna, TemV
                         GrupoInclusaoAlimentacaoNormal.workflow_class.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO]
         )
 
+    def filtra_solicitacoes_minhas_escolas_a_validar_por_data(self, filtro_aplicado, model):
+        queryset = queryset_por_data(filtro_aplicado, model)
+        return queryset.filter(
+            escola__in=Escola.objects.all(),
+            status=SolicitacaoKitLancheAvulsa.workflow_class.DRE_A_VALIDAR
+        )
+
+    def inclusoes_alimentacao_de_cei_das_minhas_escolas(self, filtro_aplicado):
+        queryset = queryset_por_data(filtro_aplicado, InclusaoAlimentacaoDaCEI)
+        return queryset.filter(
+            escola__in=Escola.objects.all(),
+            status=InclusaoAlimentacaoDaCEI.workflow_class.DRE_VALIDADO
+        )
+
     @property
     def inversoes_cardapio_autorizadas(self):
         return InversaoCardapio.objects.filter(
@@ -522,6 +608,13 @@ class Codae(ExportModelOperationsMixin('codae'), Nomeavel, TemChaveExterna, TemV
         return queryset.filter(
             status__in=[AlteracaoCardapio.workflow_class.DRE_VALIDADO,
                         AlteracaoCardapio.workflow_class.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO]
+        )
+
+    def alteracoes_cardapio_cei_das_minhas(self, filtro_aplicado):
+        queryset = queryset_por_data(filtro_aplicado, AlteracaoCardapioCEI)
+        return queryset.filter(
+            status__in=[AlteracaoCardapioCEI.workflow_class.DRE_VALIDADO,
+                        AlteracaoCardapioCEI.workflow_class.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO]
         )
 
     def suspensoes_cardapio_das_minhas_escolas(self, filtro_aplicado):
@@ -592,6 +685,13 @@ class Codae(ExportModelOperationsMixin('codae'), Nomeavel, TemChaveExterna, TemV
                         SolicitacaoKitLancheAvulsa.workflow_class.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO]
         )
 
+    def solicitacoes_kit_lanche_cei_das_minhas_escolas_a_validar(self, filtro_aplicado):
+        queryset = queryset_por_data(filtro_aplicado, SolicitacaoKitLancheCEIAvulsa)
+        return queryset.filter(
+            status__in=[SolicitacaoKitLancheCEIAvulsa.workflow_class.DRE_VALIDADO,
+                        SolicitacaoKitLancheCEIAvulsa.workflow_class.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO]
+        )
+
     @property
     def alteracoes_cardapio_autorizadas(self):
         return AlteracaoCardapio.objects.filter(
@@ -660,6 +760,12 @@ class FaixaEtaria(Ativavel, TemChaveExterna):
         data_inicio = subtrai_meses_de_data(self.fim, data_referencia)
         data_fim = subtrai_meses_de_data(self.inicio, data_referencia)
         return data_inicio <= data_pesquisada < data_fim
+
+    def __str__(self):
+        saida = meses_para_mes_e_ano_string(self.inicio)
+        if self.fim - self.inicio != 1:
+            saida += ' - ' + meses_para_mes_e_ano_string(self.fim)
+        return saida
 
 
 class MudancaFaixasEtarias(Justificativa, TemChaveExterna):

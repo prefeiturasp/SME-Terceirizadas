@@ -51,6 +51,7 @@ from .serializers import (
     EscolaListagemSimplissimaComDRESelializer,
     EscolaSimplesSerializer,
     EscolaSimplissimaSerializer,
+    PeriodoEFaixaEtariaCounterSerializer,
     PeriodoEscolarSerializer,
     SubprefeituraSerializer,
     TipoGestaoSerializer,
@@ -180,6 +181,28 @@ class EscolaSimplissimaComDREViewSet(ReadOnlyModelViewSet):
     lookup_field = 'uuid'
     queryset = Escola.objects.all()
     serializer_class = EscolaListagemSimplissimaComDRESelializer
+
+
+class EscolaQuantidadeAlunosPorPeriodoEFaixaViewSet(GenericViewSet):
+    lookup_field = 'uuid'
+    queryset = Escola.objects.all()
+    serializer_class = PeriodoEFaixaEtariaCounterSerializer
+
+    @action(detail=True, url_path='(?P<data_referencia_str>[^/.]+)')  # noqa C901
+    def alunos_por_faixa_etaria(self, request, uuid, data_referencia_str):
+        form = AlunosPorFaixaEtariaForm({
+            'data_referencia': data_referencia_str
+        })
+
+        if not form.is_valid():
+            return Response(form.errors)
+
+        escola = self.get_object()
+        data_referencia = form.cleaned_data['data_referencia']
+
+        counter_faixas_etarias = escola.alunos_por_periodo_e_faixa_etaria(data_referencia)
+        serializer = PeriodoEFaixaEtariaCounterSerializer(counter_faixas_etarias)
+        return Response(serializer.data)
 
 
 class PeriodoEscolarViewSet(ReadOnlyModelViewSet):

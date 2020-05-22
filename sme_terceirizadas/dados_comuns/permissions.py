@@ -5,8 +5,10 @@ from ..terceirizada.models import Terceirizada
 from .constants import (
     ADMINISTRADOR_DIETA_ESPECIAL,
     ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
+    ADMINISTRADOR_GESTAO_PRODUTO,
     COORDENADOR_DIETA_ESPECIAL,
-    COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA
+    COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
+    COORDENADOR_GESTAO_PRODUTO
 )
 
 
@@ -78,6 +80,20 @@ class UsuarioCODAEDietaEspecial(BasePermission):
             isinstance(usuario.vinculo_atual.instituicao, Codae) and
             usuario.vinculo_atual.perfil.nome in [COORDENADOR_DIETA_ESPECIAL,
                                                   ADMINISTRADOR_DIETA_ESPECIAL]
+        )
+
+
+class UsuarioCODAEGestaoProduto(BasePermission):
+    """Permite acesso a usuários com vinculo a CODAE - Gestão de Produto."""
+
+    def has_permission(self, request, view):
+        usuario = request.user
+        return (
+            not usuario.is_anonymous and
+            usuario.vinculo_atual and
+            isinstance(usuario.vinculo_atual.instituicao, Codae) and
+            usuario.vinculo_atual.perfil.nome in [COORDENADOR_GESTAO_PRODUTO,
+                                                  ADMINISTRADOR_GESTAO_PRODUTO]
         )
 
 
