@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from xworkflows import InvalidTransitionError
 
 from ...dados_comuns import constants
-from ...dados_comuns.permissions import UsuarioCODAEGestaoProduto
+from ...dados_comuns.permissions import UsuarioCODAEGestaoProduto, UsuarioTerceirizada
 from ..models import (
     Fabricante,
     HomologacaoDoProduto,
