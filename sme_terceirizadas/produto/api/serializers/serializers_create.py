@@ -102,7 +102,7 @@ class ProdutoSerializerCreate(serializers.ModelSerializer):
             homologacao.inicia_fluxo(user=self.context['request'].user)
         return produto
 
-    def update(self, instance, validated_data):
+    def update(self, instance, validated_data): # noqa C901
         imagens = validated_data.pop('imagens', [])
         protocolos = validated_data.pop('protocolos', [])
         informacoes_nutricionais = validated_data.pop('informacoes_nutricionais', [])
