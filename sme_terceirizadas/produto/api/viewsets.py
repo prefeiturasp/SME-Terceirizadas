@@ -4,8 +4,10 @@ from rest_framework.response import Response
 from xworkflows import InvalidTransitionError
 
 from ...dados_comuns import constants
-from ...dados_comuns.permissions import UsuarioCODAEGestaoProduto
+from ...dados_comuns.fluxo_status import HomologacaoProdutoWorkflow
+from ...dados_comuns.permissions import UsuarioCODAEDietaEspecial, UsuarioCODAEGestaoProduto, UsuarioEscola
 from ...relatorios.relatorios import relatorio_produto_homologacao
+from ..forms import ProdutoPorParametrosForm
 from ..models import (
     Fabricante,
     HomologacaoDoProduto,
@@ -29,7 +31,7 @@ from .serializers.serializers import (
     ProtocoloDeDietaEspecialSerializer,
     ProtocoloSimplesSerializer
 )
-from .serializers.serializers_create import ProdutoSerializerCreate
+from .serializers.serializers_create import ProdutoSerializerCreate, ReclamacaoDeProdutoSerializerCreate
 
 
 class InformacaoNutricionalBaseViewSet(viewsets.ReadOnlyModelViewSet):
@@ -203,6 +205,27 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'),
                             status=status.HTTP_400_BAD_REQUEST)
 
+    @action(detail=True,
+            permission_classes=(UsuarioCODAEDietaEspecial, UsuarioEscola),
+            methods=['patch'],
+            url_path=constants.ESCOLA_OU_NUTRI_RECLAMA)
+    def escola_ou_nutricodae_reclama(self, request, uuid=None):
+        homologacao_produto = self.get_object()
+        data = request.data.copy()
+        data['homologacao_de_produto'] = homologacao_produto.id
+        data['vinculo'] = request.user.vinculo_atual.id
+        data['criado_por'] = request.user
+        try:
+            serializer_reclamacao = ReclamacaoDeProdutoSerializerCreate(data=data)
+            if not serializer_reclamacao.is_valid():
+                return Response(serializer_reclamacao.errors)
+            serializer_reclamacao.save()
+            homologacao_produto.escola_ou_nutricionista_reclamou(user=request.user)
+            return Response(serializer_reclamacao.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'),
+                            status=status.HTTP_400_BAD_REQUEST)
+
     def destroy(self, request, *args, **kwargs):
         homologacao_produto = self.get_object()
         if homologacao_produto.pode_excluir:
@@ -267,6 +290,34 @@ class ProdutoViewSet(viewsets.ModelViewSet):
             methods=['get'])
     def relatorio(self, request, uuid=None):
         return relatorio_produto_homologacao(request, produto=self.get_object())
+
+    @action(detail=False,  # noqa C901
+            methods=['POST'],
+            url_path='filtro-homologados-por-parametros')
+    def filtro_homologados_por_parametros(self, request):
+        request.data
+        form = ProdutoPorParametrosForm(request.data)
+
+        if not form.is_valid():
+            return Response(form.errors)
+
+        campos_a_pesquisar = {}
+        for (chave, valor) in form.cleaned_data.items():
+            if valor != '':
+                if chave == 'nome_fabricante':
+                    campos_a_pesquisar['fabricante__nome__icontains'] = valor
+                elif chave == 'nome_marca':
+                    campos_a_pesquisar['marca__nome__icontains'] = valor
+                elif chave == 'nome_produto':
+                    campos_a_pesquisar['nome__icontains'] = valor
+
+        queryset = self.get_queryset().filter(
+            homologacoes__status=HomologacaoProdutoWorkflow.CODAE_HOMOLOGADO,
+            **campos_a_pesquisar
+        )
+        page = self.paginate_queryset(queryset)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
 
 
 class ProtocoloDeDietaEspecialViewSet(viewsets.ModelViewSet):
