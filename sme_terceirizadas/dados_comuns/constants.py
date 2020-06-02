@@ -88,6 +88,7 @@ CODAE_QUESTIONA_PEDIDO = 'codae-questiona-pedido'
 CODAE_HOMOLOGA = 'codae-homologa'
 CODAE_NAO_HOMOLOGA = 'codae-nao-homologa'
 CODAE_PEDE_ANALISE_SENSORIAL = 'codae-pede-analise-sensorial'
+TERCEIRIZADA_INATIVA_HOMOLOGACAO = 'terceirizada-inativa'
 
 TERCEIRIZADA_RESPONDE_QUESTIONAMENTO = 'terceirizada-responde-questionamento'
 TERCEIRIZADA_TOMOU_CIENCIA = 'terceirizada-toma-ciencia'

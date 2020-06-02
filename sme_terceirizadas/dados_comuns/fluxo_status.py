@@ -206,6 +206,7 @@ class HomologacaoProdutoWorkflow(xwf_models.Workflow):
     CODAE_QUESTIONADO = 'CODAE_QUESTIONADO'
     CODAE_PEDIU_ANALISE_SENSORIAL = 'CODAE_PEDIU_ANALISE_SENSORIAL'
     TERCEIRIZADA_CANCELOU = 'TERCEIRIZADA_CANCELOU'
+    INATIVA = 'HOMOLOGACAO_INATIVA'
     CODAE_SUSPENDEU = 'CODAE_SUSPENDEU'
     ESCOLA_OU_NUTRICIONISTA_RECLAMOU = 'ESCOLA_OU_NUTRICIONISTA_RECLAMOU'
     CODAE_PEDIU_ANALISE_RECLAMACAO = 'CODAE_PEDIU_ANALISE_RECLAMACAO'
@@ -219,6 +220,7 @@ class HomologacaoProdutoWorkflow(xwf_models.Workflow):
         (CODAE_QUESTIONADO, 'CODAE pediu correção'),
         (CODAE_PEDIU_ANALISE_SENSORIAL, 'CODAE pediu análise sensorial'),
         (TERCEIRIZADA_CANCELOU, 'Terceirizada cancelou homologação'),
+        (INATIVA, 'Homologação inativada'),
         (CODAE_SUSPENDEU, 'CODAE suspendeu o produto'),
         (ESCOLA_OU_NUTRICIONISTA_RECLAMOU, 'Escola/Nutricionista reclamou do produto'),
         (CODAE_PEDIU_ANALISE_RECLAMACAO, 'CODAE pediu análise da reclamação'),
@@ -240,8 +242,10 @@ class HomologacaoProdutoWorkflow(xwf_models.Workflow):
         ('codae_pediu_analise_reclamacao', ESCOLA_OU_NUTRICIONISTA_RECLAMOU, CODAE_PEDIU_ANALISE_RECLAMACAO),
         ('codae_autorizou_reclamacao',
          [ESCOLA_OU_NUTRICIONISTA_RECLAMOU, CODAE_PEDIU_ANALISE_RECLAMACAO],
-         CODAE_AUTORIZOU_RECLAMACAO)
-
+         CODAE_AUTORIZOU_RECLAMACAO),
+        ('inativa_homologacao',
+         [CODAE_SUSPENDEU, ESCOLA_OU_NUTRICIONISTA_RECLAMOU, CODAE_QUESTIONADO, CODAE_HOMOLOGADO, CODAE_NAO_HOMOLOGADO],
+         INATIVA),
     )
 
     initial_state = RASCUNHO
@@ -306,6 +310,12 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
     def _codae_homologa_hook(self, *args, **kwargs):
         user = kwargs['user']
         self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_HOMOLOGADO,
+                                  usuario=user)
+
+    @xworkflows.after_transition('terceirizada_inativa')
+    def _inativa_homologacao_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.INATIVA,
                                   usuario=user)
 
     @xworkflows.after_transition('codae_nao_homologa')
