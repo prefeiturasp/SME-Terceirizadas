@@ -193,3 +193,22 @@ class PermissaoParaRecuperarDietaEspecial(BasePermission):
             return (
                 usuario.vinculo_atual.instituicao in [obj.escola.lote.terceirizada, obj.rastro_terceirizada]
             )
+
+
+class PermissaoParaReclamarDeProduto(BasePermission):
+    """Permite acesso a usuários com vinculo a uma Escola ou Nutricionistas CODAE."""
+
+    def has_permission(self, request, view):
+        usuario = request.user
+        return (
+            not usuario.is_anonymous and
+            usuario.vinculo_atual and
+            (
+                isinstance(usuario.vinculo_atual.instituicao, Escola) or
+                (
+                    isinstance(usuario.vinculo_atual.instituicao, Codae) and
+                    usuario.vinculo_atual.perfil.nome in [COORDENADOR_DIETA_ESPECIAL,
+                                                          ADMINISTRADOR_DIETA_ESPECIAL]
+                )
+            )
+        )

@@ -5,7 +5,7 @@ from xworkflows import InvalidTransitionError
 
 from ...dados_comuns import constants
 from ...dados_comuns.fluxo_status import HomologacaoProdutoWorkflow
-from ...dados_comuns.permissions import UsuarioCODAEDietaEspecial, UsuarioCODAEGestaoProduto, UsuarioEscola
+from ...dados_comuns.permissions import PermissaoParaReclamarDeProduto, UsuarioCODAEDietaEspecial, UsuarioCODAEGestaoProduto, UsuarioEscola
 from ...relatorios.relatorios import relatorio_produto_homologacao
 from ..forms import ProdutoPorParametrosForm
 from ..models import (
@@ -206,7 +206,7 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
                             status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=True,
-            permission_classes=(UsuarioCODAEDietaEspecial, UsuarioEscola),
+            permission_classes=[PermissaoParaReclamarDeProduto],
             methods=['patch'],
             url_path=constants.ESCOLA_OU_NUTRI_RECLAMA)
     def escola_ou_nutricodae_reclama(self, request, uuid=None):
@@ -312,7 +312,10 @@ class ProdutoViewSet(viewsets.ModelViewSet):
                     campos_a_pesquisar['nome__icontains'] = valor
 
         queryset = self.get_queryset().filter(
-            homologacoes__status=HomologacaoProdutoWorkflow.CODAE_HOMOLOGADO,
+            homologacoes__status__in=[
+                HomologacaoProdutoWorkflow.CODAE_HOMOLOGADO,
+                HomologacaoProdutoWorkflow.ESCOLA_OU_NUTRICIONISTA_RECLAMOU
+            ],
             **campos_a_pesquisar
         )
         page = self.paginate_queryset(queryset)

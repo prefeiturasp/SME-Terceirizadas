@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from ....dados_comuns.constants import DEZ_MB
 from ....dados_comuns.utils import convert_base64_to_contentfile, update_instance_from_dict
 from ...models import (
     AnexoReclamacaoDeProduto,
@@ -150,10 +151,9 @@ class ProdutoSerializerCreate(serializers.ModelSerializer):
         exclude = ('id', 'criado_por', 'ativo',)
 
 
-class AnexoReclamacaoDeProdutoCreateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = AnexoReclamacaoDeProduto
-        exclude = ('id', 'reclamacao_de_produto')
+class AnexoReclamacaoDeProdutoCreateSerializer(serializers.Serializer):
+    base64 = serializers.CharField(max_length=DEZ_MB, write_only=True)
+    nome = serializers.CharField(max_length=255)
 
 
 class ReclamacaoDeProdutoSerializerCreate(serializers.ModelSerializer):
@@ -165,9 +165,11 @@ class ReclamacaoDeProdutoSerializerCreate(serializers.ModelSerializer):
         reclamacao = ReclamacaoDeProduto.objects.create(**validated_data)
 
         for anexo in anexos:
+            arquivo = convert_base64_to_contentfile(anexo.pop('base64'))
             AnexoReclamacaoDeProduto.objects.create(
                 reclamacao_de_produto=reclamacao,
-                **anexo
+                arquivo=arquivo,
+                nome=anexo['nome']
             )
 
         return reclamacao
