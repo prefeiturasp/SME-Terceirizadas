@@ -250,6 +250,34 @@ class HomologacaoProdutoWorkflow(xwf_models.Workflow):
 
     initial_state = RASCUNHO
 
+    @staticmethod
+    def _partes_interessadas_codae_homologa():
+        queryset = Usuario.objects.filter(vinculos__perfil__nome__in=[
+            'DIRETOR',
+            'DIRETOR_CEI',
+            'COORDENADOR_DIETA_ESPECIAL',
+            'NUTRI_ADMIN_RESPONSAVEL',  # Terceirizada?
+        ])
+        return [usuario.email for usuario in queryset]
+
+    @classmethod
+    def envia_email_codae_homologa(self, homologacao_produto):
+        log_homologacao = [log for log in homologacao_produto.logs if log.status_evento_explicacao == 'CODAE homologou']
+        html = render_to_string(
+            template_name='produto_codae_homologa.html',
+            context={
+                'titulo': 'Produto Homologado com sucesso',
+                'homologacao_produto': homologacao_produto,
+                'log_homologacao': log_homologacao[0]
+            }
+        )
+        envia_email_em_massa_task.delay(
+            assunto='Produto Homologado com sucesso',
+            emails=self._partes_interessadas_codae_homologa(),
+            corpo='',
+            html=html
+        )
+
 
 class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
     workflow_class = HomologacaoProdutoWorkflow
