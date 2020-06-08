@@ -173,7 +173,11 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
         homologacao_produto = self.get_object()
         try:
             justificativa = request.data.get('justificativa', '')
-            homologacao_produto.codae_nao_homologa(user=request.user, justificativa=justificativa)
+            homologacao_produto.codae_nao_homologa(
+                user=request.user,
+                justificativa=justificativa,
+                homologacao_produto=homologacao_produto
+            )
             serializer = self.get_serializer(homologacao_produto)
             return Response(serializer.data)
         except InvalidTransitionError as e:

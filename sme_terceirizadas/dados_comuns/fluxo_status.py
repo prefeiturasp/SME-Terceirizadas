@@ -276,6 +276,7 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
         raise NotImplementedError('Deve criar um property que recupera o assunto e corpo mensagem desse objeto')
 
     def salvar_log_transicao(self, status_evento, usuario, **kwargs):
+        print(f'salvar_log_transicao(status_evento={status_evento}, usuario={usuario}, kwargs={kwargs})')
         raise NotImplementedError('Deve criar um método salvar_log_transicao')
 
     #
@@ -331,7 +332,7 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
             context={
                 'titulo': 'Produto não homologado',
                 'produto': self.produto,
-                'log_homologacao': log_transicao
+                'log_transicao': log_transicao
             }
         )
         envia_email_em_massa_task.delay(
@@ -350,6 +351,7 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
 
     @xworkflows.after_transition('codae_homologa')
     def _codae_homologa_hook(self, *args, **kwargs):
+        print('_codae_homologa_hook')
         user = kwargs['user']
         log_transicao = self.salvar_log_transicao(
             status_evento=LogSolicitacoesUsuario.CODAE_HOMOLOGADO,
@@ -365,6 +367,7 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
 
     @xworkflows.after_transition('codae_nao_homologa')
     def _codae_nao_homologa_hook(self, *args, **kwargs):
+        print('_codae_nao_homologa_hook')
         user = kwargs['user']
         justificativa = kwargs.get('justificativa', '')
         log_transicao = self.salvar_log_transicao(
