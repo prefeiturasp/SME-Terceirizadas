@@ -1,0 +1,17 @@
+{% extends 'email_base.html' %}
+{% load email_templatetags %}
+
+{% block style_override %}
+<style>
+  .titulo {
+    color: #e21017;
+  }
+</style>
+{% endblock %}
+
+{% block conteudo %}
+  <p>Produto {{ produto.nome }} - {{ produto.marca }} teve sua homologação recusada em {{ log_transicao.criado_em }}.</p>
+  {# TODO: Colocar link para PDF da homologação quando ficar disponível #}
+  <p><a href="#">Clique para acessar detalhes do cadastro</a></p>
+  <br/>
+{% endblock %}

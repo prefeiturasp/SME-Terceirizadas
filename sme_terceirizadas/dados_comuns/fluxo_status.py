@@ -325,6 +325,22 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
             html=html
         )
 
+    def _envia_email_codae_nao_homologa(self, log_transicao):
+        html = render_to_string(
+            template_name='produto_codae_nao_homologa.html',
+            context={
+                'titulo': 'Produto não homologado',
+                'produto': self.produto,
+                'log_homologacao': log_transicao
+            }
+        )
+        envia_email_em_massa_task.delay(
+            assunto='Produto não homologado',
+            emails=self._partes_interessadas_codae_homologa(),
+            corpo='',
+            html=html
+        )
+
     @xworkflows.after_transition('inicia_fluxo')
     def _inicia_fluxo_hook(self, *args, **kwargs):
         self._salva_rastro_solicitacao()
@@ -351,9 +367,12 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
     def _codae_nao_homologa_hook(self, *args, **kwargs):
         user = kwargs['user']
         justificativa = kwargs.get('justificativa', '')
-        self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_NAO_HOMOLOGADO,
-                                  usuario=user,
-                                  justificativa=justificativa)
+        log_transicao = self.salvar_log_transicao(
+            status_evento=LogSolicitacoesUsuario.CODAE_NAO_HOMOLOGADO,
+            usuario=user,
+            justificativa=justificativa
+        )
+        self._envia_email_codae_nao_homologa(log_transicao)
 
     @xworkflows.after_transition('codae_questiona')
     def _codae_questiona_hook(self, *args, **kwargs):
