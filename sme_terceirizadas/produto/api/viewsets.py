@@ -4,7 +4,6 @@ from rest_framework.response import Response
 from xworkflows import InvalidTransitionError
 
 from ...dados_comuns import constants
-from ...dados_comuns.fluxo_status import HomologacaoProdutoWorkflow
 from ...dados_comuns.permissions import UsuarioCODAEGestaoProduto
 from ...relatorios.relatorios import relatorio_produto_homologacao
 from ..models import (
@@ -152,8 +151,6 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
         try:
             homologacao_produto.codae_homologa(user=request.user)
             serializer = self.get_serializer(homologacao_produto)
-            # TODO: Deve ter um jeito melhor, algo como hook no event codae_homologa
-            HomologacaoProdutoWorkflow.envia_email_codae_homologa(homologacao_produto)
             return Response(serializer.data)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'),
