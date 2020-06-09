@@ -7,7 +7,7 @@ from weasyprint import HTML
 from ..dados_comuns.models import LogSolicitacoesUsuario
 from ..kit_lanche.models import EscolaQuantidade
 from . import constants
-from .utils import formata_logs, get_width, get_diretorias_regionais
+from .utils import formata_logs, get_diretorias_regionais, get_width
 
 
 def relatorio_filtro_periodo(request, query_set_consolidado, escola_nome='', dre_nome=''):

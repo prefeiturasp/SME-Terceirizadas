@@ -5,11 +5,7 @@ from xworkflows import InvalidTransitionError
 
 from ...dados_comuns import constants
 from ...dados_comuns.permissions import UsuarioCODAEGestaoProduto
-
-from ...relatorios.relatorios import (
-    relatorio_produto_homologacao
-)
-
+from ...relatorios.relatorios import relatorio_produto_homologacao
 from ..models import (
     Fabricante,
     HomologacaoDoProduto,
