@@ -5,6 +5,11 @@ from xworkflows import InvalidTransitionError
 
 from ...dados_comuns import constants
 from ...dados_comuns.permissions import UsuarioCODAEGestaoProduto
+
+from ...relatorios.relatorios import (
+    relatorio_produto_homologacao
+)
+
 from ..models import (
     Fabricante,
     HomologacaoDoProduto,
@@ -261,6 +266,11 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         query_set = Produto.objects.all()
         response = {'results': self.get_serializer(query_set, many=True).data}
         return Response(response)
+
+    @action(detail=True, url_path=constants.RELATORIO,
+            methods=['get'])
+    def relatorio(self, request, uuid=None):
+        return relatorio_produto_homologacao(request, produto=self.get_object())
 
 
 class ProtocoloDeDietaEspecialViewSet(viewsets.ModelViewSet):
