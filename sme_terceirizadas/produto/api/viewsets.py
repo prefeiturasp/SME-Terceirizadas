@@ -176,7 +176,11 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
             homologacao_produto.codae_nao_homologa(
                 user=request.user,
                 justificativa=justificativa,
-                homologacao_produto=homologacao_produto
+                link_pdf=reverse(
+                    'Produtos-relatorio',
+                    args=[homologacao_produto.produto.uuid],
+                    request=request
+                )
             )
             serializer = self.get_serializer(homologacao_produto)
             return Response(serializer.data)
