@@ -308,13 +308,14 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
         ])
         return [usuario.email for usuario in queryset]
 
-    def _envia_email_codae_homologa(self, log_transicao):
+    def _envia_email_codae_homologa(self, log_transicao, link_pdf):
         html = render_to_string(
             template_name='produto_codae_homologa.html',
             context={
                 'titulo': 'Produto Homologado com sucesso',
                 'produto': self.produto,
-                'log_transicao': log_transicao
+                'log_transicao': log_transicao,
+                'link_pdf': link_pdf
             }
         )
         envia_email_em_massa_task.delay(
@@ -338,7 +339,7 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
             status_evento=LogSolicitacoesUsuario.CODAE_HOMOLOGADO,
             usuario=user
         )
-        self._envia_email_codae_homologa(log_transicao=log_transicao)
+        self._envia_email_codae_homologa(log_transicao=log_transicao, link_pdf=kwargs['link_pdf'])
 
     @xworkflows.after_transition('terceirizada_inativa')
     def _inativa_homologacao_hook(self, *args, **kwargs):

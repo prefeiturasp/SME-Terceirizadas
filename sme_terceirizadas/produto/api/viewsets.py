@@ -1,6 +1,7 @@
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.reverse import reverse
 from xworkflows import InvalidTransitionError
 
 from ...dados_comuns import constants
@@ -149,7 +150,13 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
     def codae_homologa(self, request, uuid=None):
         homologacao_produto = self.get_object()
         try:
-            homologacao_produto.codae_homologa(user=request.user)
+            homologacao_produto.codae_homologa(
+                user=request.user,
+                link_pdf=reverse(
+                    'Produtos-relatorio',
+                    args=[homologacao_produto.produto.uuid],
+                    request=request
+                ))
             serializer = self.get_serializer(homologacao_produto)
             return Response(serializer.data)
         except InvalidTransitionError as e:
