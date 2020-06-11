@@ -334,6 +334,8 @@ class ProdutoViewSet(viewsets.ModelViewSet):
                     campos_a_pesquisar['marca__nome__icontains'] = valor
                 elif chave == 'nome_produto':
                     campos_a_pesquisar['nome__icontains'] = valor
+                elif chave == 'nome_terceirizada':
+                    campos_a_pesquisar['homologacoes__rastro_terceirizada__nome_fantasia__icontains'] = valor
 
         queryset = self.get_queryset().filter(
             homologacoes__status__in=[
