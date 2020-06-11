@@ -11,6 +11,7 @@ from ..dados_comuns.behaviors import (
 )
 from ..dados_comuns.fluxo_status import FluxoHomologacaoProduto
 from ..dados_comuns.models import LogSolicitacoesUsuario, TemplateMensagem
+from ..perfil.models.perfil import Vinculo
 
 
 class ProtocoloDeDietaEspecial(Ativavel, CriadoEm, CriadoPor, Nomeavel, TemChaveExterna):
@@ -181,3 +182,24 @@ class HomologacaoDoProduto(TemChaveExterna, CriadoEm, CriadoPor, FluxoHomologaca
 
     def __str__(self):
         return f'Homologação #{self.id_externo}'
+
+
+class ReclamacaoDeProduto(TemChaveExterna, CriadoEm, CriadoPor):
+    homologacao_de_produto = models.ForeignKey('HomologacaoDoProduto', on_delete=models.DO_NOTHING)
+    reclamante_registro_funcional = models.CharField('RF/CRN/CRF', max_length=50)
+    reclamante_cargo = models.CharField('Cargo', max_length=100)
+    reclamante_nome = models.CharField('Nome', max_length=255)
+    reclamacao = models.TextField('Reclamação')
+    vinculo = models.ForeignKey(Vinculo, on_delete=models.DO_NOTHING)
+
+    def __str__(self):
+        return f'Reclamação {self.uuid} feita por {self.reclamante_nome} em {self.criado_em}'
+
+
+class AnexoReclamacaoDeProduto(TemChaveExterna):
+    reclamacao_de_produto = models.ForeignKey(ReclamacaoDeProduto, related_name='anexos', on_delete=models.DO_NOTHING)
+    nome = models.CharField(max_length=255, blank=True)
+    arquivo = models.FileField()
+
+    def __str__(self):
+        return f'Anexo {self.uuid} - {self.nome}'

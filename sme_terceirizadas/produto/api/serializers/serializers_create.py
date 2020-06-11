@@ -1,7 +1,9 @@
 from rest_framework import serializers
 
+from ....dados_comuns.constants import DEZ_MB
 from ....dados_comuns.utils import convert_base64_to_contentfile, update_instance_from_dict
 from ...models import (
+    AnexoReclamacaoDeProduto,
     Fabricante,
     HomologacaoDoProduto,
     ImagemDoProduto,
@@ -9,7 +11,8 @@ from ...models import (
     InformacoesNutricionaisDoProduto,
     Marca,
     Produto,
-    ProtocoloDeDietaEspecial
+    ProtocoloDeDietaEspecial,
+    ReclamacaoDeProduto
 )
 from ..validators import deve_ter_extensao_valida
 
@@ -146,3 +149,31 @@ class ProdutoSerializerCreate(serializers.ModelSerializer):
     class Meta:
         model = Produto
         exclude = ('id', 'criado_por', 'ativo',)
+
+
+class AnexoReclamacaoDeProdutoCreateSerializer(serializers.Serializer):
+    base64 = serializers.CharField(max_length=DEZ_MB, write_only=True)
+    nome = serializers.CharField(max_length=255)
+
+
+class ReclamacaoDeProdutoSerializerCreate(serializers.ModelSerializer):
+    anexos = AnexoReclamacaoDeProdutoCreateSerializer(many=True)
+
+    def create(self, validated_data):  # noqa C901
+        anexos = validated_data.pop('anexos', [])
+
+        reclamacao = ReclamacaoDeProduto.objects.create(**validated_data)
+
+        for anexo in anexos:
+            arquivo = convert_base64_to_contentfile(anexo.pop('base64'))
+            AnexoReclamacaoDeProduto.objects.create(
+                reclamacao_de_produto=reclamacao,
+                arquivo=arquivo,
+                nome=anexo['nome']
+            )
+
+        return reclamacao
+
+    class Meta:
+        model = ReclamacaoDeProduto
+        exclude = ('id', 'uuid', 'criado_por', 'criado_em')
