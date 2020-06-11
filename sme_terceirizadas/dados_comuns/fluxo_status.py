@@ -359,6 +359,26 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
             html=html
         )
 
+    def _envia_email_escola_ou_nutricionista_reclamou(self, reclamacao):
+        html = render_to_string(
+            template_name='produto_escola_ou_nutricionista_reclamou.html',
+            context={
+                'titulo': 'Nova reclamação de produto',
+                'produto': self.produto,
+                'reclamacao': reclamacao
+            }
+        )
+        partes_interessadas = Usuario.objects.filter(vinculos__perfil__nome__in=[
+            'COORDENADOR_GESTAO_PRODUTO',
+            'ADMINISTRADOR_GESTAO_PRODUTO'
+        ])
+        envia_email_em_massa_task.delay(
+            assunto='Nova reclamação de produto requer análise',
+            emails=[usuario.email for usuario in partes_interessadas],
+            corpo='',
+            html=html
+        )
+
     @xworkflows.after_transition('inicia_fluxo')
     def _inicia_fluxo_hook(self, *args, **kwargs):
         self._salva_rastro_solicitacao()
@@ -410,6 +430,13 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
         self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_PEDIU_ANALISE_SENSORIAL,
                                   usuario=user,
                                   justificativa=justificativa)
+
+    @xworkflows.after_transition('escola_ou_nutricionista_reclamou')
+    def _escola_ou_nutricionista_reclamou_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
+                                  usuario=user)
+        self._envia_email_escola_ou_nutricionista_reclamou(kwargs['reclamacao'])
 
     class Meta:
         abstract = True
