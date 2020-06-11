@@ -157,7 +157,7 @@ class AnexoReclamacaoDeProdutoCreateSerializer(serializers.Serializer):
 
 
 class ReclamacaoDeProdutoSerializerCreate(serializers.ModelSerializer):
-    anexos = AnexoReclamacaoDeProdutoCreateSerializer(many=True)
+    anexos = AnexoReclamacaoDeProdutoCreateSerializer(many=True, required=False)
 
     def create(self, validated_data):  # noqa C901
         anexos = validated_data.pop('anexos', [])

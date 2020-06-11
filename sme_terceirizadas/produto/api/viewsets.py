@@ -242,7 +242,9 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
             if not serializer_reclamacao.is_valid():
                 return Response(serializer_reclamacao.errors)
             serializer_reclamacao.save()
-            homologacao_produto.escola_ou_nutricionista_reclamou(user=request.user)
+            homologacao_produto.escola_ou_nutricionista_reclamou(
+                user=request.user,
+                reclamacao=serializer_reclamacao.data)
             return Response(serializer_reclamacao.data)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'),
