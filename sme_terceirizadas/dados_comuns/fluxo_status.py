@@ -342,6 +342,23 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
             html=html
         )
 
+    def _envia_email_codae_questiona(self, log_transicao, link_pdf):
+        html = render_to_string(
+            template_name='produto_codae_questiona.html',
+            context={
+                'titulo': 'Produto Cadastrado Exige Correção',
+                'produto': self.produto,
+                'log_transicao': log_transicao,
+                'link_pdf': link_pdf
+            }
+        )
+        envia_email_em_massa_task.delay(
+            assunto='Produto Cadastrado Exige Correção',
+            emails=[self.produto.criado_por.email],
+            corpo='',
+            html=html
+        )
+
     @xworkflows.after_transition('inicia_fluxo')
     def _inicia_fluxo_hook(self, *args, **kwargs):
         self._salva_rastro_solicitacao()
@@ -379,9 +396,12 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
     def _codae_questiona_hook(self, *args, **kwargs):
         user = kwargs['user']
         justificativa = kwargs.get('justificativa', '')
-        self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_QUESTIONOU,
-                                  usuario=user,
-                                  justificativa=justificativa)
+        log_transicao = self.salvar_log_transicao(
+            status_evento=LogSolicitacoesUsuario.CODAE_QUESTIONOU,
+            usuario=user,
+            justificativa=justificativa
+        )
+        self._envia_email_codae_questiona(log_transicao, link_pdf=kwargs['link_pdf'])
 
     @xworkflows.after_transition('codae_pede_analise_sensorial')
     def _codae_pede_analise_sensorial_hook(self, *args, **kwargs):
