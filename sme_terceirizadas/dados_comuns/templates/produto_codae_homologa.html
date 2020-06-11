@@ -1,0 +1,9 @@
+{% extends 'email_base.html' %}
+{% load email_templatetags %}
+
+{% block conteudo %}
+  <p>Produto {{ produto.nome }} - {{ produto.marca }} homologado em {{ log_transicao.criado_em }}.</p>
+  {# TODO: Colocar link para PDF da homologação quando ficar disponível #}
+  <p><a href="{{ link_pdf }}">Clique para acessar detalhes do cadastro</a></p>
+  <br/>
+{% endblock %}
