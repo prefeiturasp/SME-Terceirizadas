@@ -101,6 +101,10 @@ class Produto(Ativavel, CriadoEm, CriadoPor, Nomeavel, TemChaveExterna, TemIdent
     def homologacoes(self):
         return self.homologacoes.all()
 
+    @property
+    def ultima_homologacao(self):
+        return self.homologacoes.order_by('criado_em').last()
+
     @classmethod
     def filtrar_por_nome(cls, **kwargs):
         nome = kwargs.get('nome')

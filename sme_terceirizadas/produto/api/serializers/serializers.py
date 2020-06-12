@@ -92,6 +92,8 @@ class ProdutoSerializer(serializers.ModelSerializer):
 
     homologacoes = serializers.SerializerMethodField()
 
+    ultima_homologacao = HomologacaoProdutoSimplesSerializer()
+
     def get_homologacoes(self, obj):
         return HomologacaoProdutoSimplesSerializer(
             HomologacaoDoProduto.objects.filter(

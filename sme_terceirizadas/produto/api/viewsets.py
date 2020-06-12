@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -327,13 +329,19 @@ class ProdutoViewSet(viewsets.ModelViewSet):
 
         campos_a_pesquisar = {}
         for (chave, valor) in form.cleaned_data.items():
-            if valor != '':
+            if valor != '' and valor is not None:
                 if chave == 'nome_fabricante':
                     campos_a_pesquisar['fabricante__nome__icontains'] = valor
                 elif chave == 'nome_marca':
                     campos_a_pesquisar['marca__nome__icontains'] = valor
                 elif chave == 'nome_produto':
                     campos_a_pesquisar['nome__icontains'] = valor
+                elif chave == 'nome_terceirizada':
+                    campos_a_pesquisar['homologacoes__rastro_terceirizada__nome_fantasia__icontains'] = valor
+                elif chave == 'data_inicial':
+                    campos_a_pesquisar['homologacoes__criado_em__gte'] = valor
+                elif chave == 'data_final':
+                    campos_a_pesquisar['homologacoes__criado_em__lt'] = valor + timedelta(days=1)
 
         queryset = self.get_queryset().filter(
             homologacoes__status__in=[
