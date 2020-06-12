@@ -92,6 +92,7 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
 
     def get_lista_status(self):
         lista_status = [
+            HomologacaoDoProduto.workflow_class.ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
             HomologacaoDoProduto.workflow_class.CODAE_PEDIU_ANALISE_RECLAMACAO,
             HomologacaoDoProduto.workflow_class.CODAE_SUSPENDEU,
             HomologacaoDoProduto.workflow_class.CODAE_HOMOLOGADO,
