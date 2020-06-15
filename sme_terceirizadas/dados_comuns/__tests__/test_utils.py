@@ -5,8 +5,10 @@ from freezegun import freeze_time
 
 from ..constants import DAQUI_A_SETE_DIAS, DAQUI_A_TRINTA_DIAS, SEM_FILTRO, obter_dias_uteis_apos_hoje
 from ..utils import (
+    eh_email_dev,
     ordena_dias_semana_comeca_domingo,
     queryset_por_data,
+    remove_emails_dev,
     subtrai_meses_de_data,
     update_instance_from_dict
 )
@@ -90,3 +92,26 @@ def test_ordena_dias_semana_comeca_domingo():
     dias3 = [5, 3, 6, 2]
     resultado3 = ordena_dias_semana_comeca_domingo(dias3)
     assert resultado3 == [6, 2, 3, 5]
+
+
+def test_eh_email_dev():
+    assert eh_email_dev('test@admin.com')
+    assert eh_email_dev('12345@dev.prefeitura.sp.gov.br')
+    assert eh_email_dev('zvcxzvc@emailteste.sme.prefeitura.sp.gov.br')
+    assert eh_email_dev('test@example.com') is False
+
+
+def test_remove_emails_dev():
+    emails = [
+        'test@admin.com',
+        '12345@dev.prefeitura.sp.gov.br',
+        'zvcxzvc@emailteste.sme.prefeitura.sp.gov.br',
+        'test@example.com'
+    ]
+
+    nova_lista = remove_emails_dev(emails, True)
+    assert len(nova_lista) == 4
+
+    nova_lista = remove_emails_dev(emails, False)
+    assert len(nova_lista) == 1
+    assert nova_lista[0] == 'test@example.com'

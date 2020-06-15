@@ -125,6 +125,15 @@ ADMINISTRADOR_TERCEIRIZADA = 'ADMINISTRADOR_TERCEIRIZADA'
 TIPO_USUARIO_TERCEIRIZADA = 'terceirizada'
 TIPO_USUARIO_GESTAO_PRODUTO = 'gestao_produto'
 
+#
+# DOMINIOS USADOS APENAS EM DESENVOLVIMENTO
+#
+DOMINIOS_DEV = [
+    '@admin.com',
+    '@dev.prefeitura.sp.gov.br',
+    '@emailteste.sme.prefeitura.sp.gov.br',
+]
+
 # CACHE
 TEMPO_CACHE_6H = 60 * 60 * 6
 TEMPO_CACHE_1H = 60 * 60 * 6
