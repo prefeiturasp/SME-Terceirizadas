@@ -320,8 +320,8 @@ class ProdutoViewSet(viewsets.ModelViewSet):
 
     @action(detail=False,  # noqa C901
             methods=['POST'],
-            url_path='filtro-homologados-por-parametros')
-    def filtro_homologados_por_parametros(self, request):
+            url_path='filtro-por-parametros')
+    def filtro_por_parametros(self, request):
         request.data
         form = ProdutoPorParametrosForm(request.data)
 
@@ -343,14 +343,16 @@ class ProdutoViewSet(viewsets.ModelViewSet):
                     campos_a_pesquisar['homologacoes__criado_em__gte'] = valor
                 elif chave == 'data_final':
                     campos_a_pesquisar['homologacoes__criado_em__lt'] = valor + timedelta(days=1)
+                elif chave == 'status':
+                    if valor == 'ativo':
+                        campos_a_pesquisar['homologacoes__status__in'] = [
+                            HomologacaoProdutoWorkflow.CODAE_HOMOLOGADO,
+                            HomologacaoProdutoWorkflow.ESCOLA_OU_NUTRICIONISTA_RECLAMOU
+                        ]
+                    elif valor == 'suspenso':
+                        campos_a_pesquisar['homologacoes__status'] = HomologacaoProdutoWorkflow.CODAE_SUSPENDEU
 
-        queryset = self.get_queryset().filter(
-            homologacoes__status__in=[
-                HomologacaoProdutoWorkflow.CODAE_HOMOLOGADO,
-                HomologacaoProdutoWorkflow.ESCOLA_OU_NUTRICIONISTA_RECLAMOU
-            ],
-            **campos_a_pesquisar
-        )
+        queryset = self.get_queryset().filter(**campos_a_pesquisar)
         page = self.paginate_queryset(queryset)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
