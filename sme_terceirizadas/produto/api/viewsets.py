@@ -318,11 +318,22 @@ class ProdutoViewSet(viewsets.ModelViewSet):
     def relatorio(self, request, uuid=None):
         return relatorio_produto_homologacao(request, produto=self.get_object())
 
+    def filtrar_por_status(self, queryset, status_homologacao='HOMOLOGADOS'):
+        print(status_homologacao)
+        if status_homologacao == 'HOMOLOGADOS':
+            return queryset.filter(
+                homologacoes__status__in=[
+                    HomologacaoProdutoWorkflow.CODAE_HOMOLOGADO,
+                    HomologacaoProdutoWorkflow.ESCOLA_OU_NUTRICIONISTA_RECLAMOU
+                ])
+        elif status_homologacao == 'Aguardando resposta terceirizada':
+            return queryset.filter(
+                homologacoes__status=HomologacaoProdutoWorkflow.CODAE_PEDIU_ANALISE_RECLAMACAO)
+
     @action(detail=False,  # noqa C901
             methods=['POST'],
-            url_path='filtro-homologados-por-parametros')
-    def filtro_homologados_por_parametros(self, request):
-        request.data
+            url_path='filtro-por-parametros')
+    def filtro_por_parametros(self, request):
         form = ProdutoPorParametrosForm(request.data)
 
         if not form.is_valid():
@@ -344,13 +355,10 @@ class ProdutoViewSet(viewsets.ModelViewSet):
                 elif chave == 'data_final':
                     campos_a_pesquisar['homologacoes__criado_em__lt'] = valor + timedelta(days=1)
 
-        queryset = self.get_queryset().filter(
-            homologacoes__status__in=[
-                HomologacaoProdutoWorkflow.CODAE_HOMOLOGADO,
-                HomologacaoProdutoWorkflow.ESCOLA_OU_NUTRICIONISTA_RECLAMOU
-            ],
-            **campos_a_pesquisar
-        )
+        queryset = self.filtrar_por_status(
+            self.get_queryset(), form.cleaned_data.get('nome_status', 'HOMOLOGADOS')
+        ).filter(**campos_a_pesquisar)
+
         page = self.paginate_queryset(queryset)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
