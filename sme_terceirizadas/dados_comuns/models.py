@@ -135,6 +135,15 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
                 f'em {self.get_solicitacao_tipo_display()} no dia {self.criado_em}')
 
 
+class AnexoLogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes_anexo'), models.Model):
+    log = models.ForeignKey(LogSolicitacoesUsuario, related_name='anexos', on_delete=models.DO_NOTHING)
+    nome = models.CharField(max_length=255, blank=True)
+    arquivo = models.FileField()
+
+    def __str__(self):
+        return f'Anexo {self.uuid} - {self.nome}'
+
+
 class Contato(ExportModelOperationsMixin('contato'), models.Model):
     telefone = models.CharField(max_length=13, validators=[MinLengthValidator(8)],
                                 blank=True)
