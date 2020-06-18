@@ -237,6 +237,7 @@ class HomologacaoProdutoWorkflow(xwf_models.Workflow):
         ('codae_questiona', CODAE_PENDENTE_HOMOLOGACAO, CODAE_QUESTIONADO),
         ('terceirizada_responde_questionamento', CODAE_QUESTIONADO, CODAE_PENDENTE_HOMOLOGACAO),
         ('codae_pede_analise_sensorial', CODAE_PENDENTE_HOMOLOGACAO, CODAE_PEDIU_ANALISE_SENSORIAL),
+        ('terceirizada_responde_analise_sensorial', CODAE_PEDIU_ANALISE_SENSORIAL, CODAE_PENDENTE_HOMOLOGACAO),
         ('codae_suspende', CODAE_HOMOLOGADO, CODAE_SUSPENDEU),
         ('escola_ou_nutricionista_reclamou', CODAE_HOMOLOGADO, ESCOLA_OU_NUTRICIONISTA_RECLAMOU),
         ('codae_pediu_analise_reclamacao', ESCOLA_OU_NUTRICIONISTA_RECLAMOU, CODAE_PEDIU_ANALISE_RECLAMACAO),
@@ -428,6 +429,14 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
         user = kwargs['user']
         justificativa = kwargs.get('justificativa', '')
         self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_PEDIU_ANALISE_SENSORIAL,
+                                  usuario=user,
+                                  justificativa=justificativa)
+
+    @xworkflows.after_transition('terceirizada_responde_analise_sensorial')
+    def _terceirizada_responde_analise_sensorial_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        justificativa = kwargs.get('justificativa', '')
+        self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_RESPONDEU_ANALISE_SENSORIAL,
                                   usuario=user,
                                   justificativa=justificativa)
 
