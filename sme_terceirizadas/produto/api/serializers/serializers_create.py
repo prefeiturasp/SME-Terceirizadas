@@ -193,7 +193,6 @@ class RespostaAnaliseSensorialSearilzerCreate(serializers.ModelSerializer):
 
     def create(self, validated_data):
         anexos = validated_data.pop('anexos', [])
-
         resposta = RespostaAnaliseSensorial.objects.create(**validated_data)
 
         for anexo in anexos:

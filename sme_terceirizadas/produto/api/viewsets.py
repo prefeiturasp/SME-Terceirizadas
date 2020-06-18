@@ -424,12 +424,12 @@ class RespostaAnaliseSensorialViewSet(viewsets.ModelViewSet):
             methods=['post'],
             url_path=constants.TERCEIRIZADA_RESPONDE_ANALISE_SENSORIAL)
     def terceirizada_responde(self, request):
-        data = request.data
+        data = request.data.copy()
         serializer = self.get_serializer(data=data)
         if not serializer.is_valid():
             return Response(serializer.errors)
 
-        uuid_homologacao = data.get('homologacao_de_produto')
+        uuid_homologacao = data.get('homologacao_de_produto', None)
         homologacao = HomologacaoDoProduto.objects.get(uuid=uuid_homologacao)
         data['homologacao_de_produto'] = homologacao
         try:
