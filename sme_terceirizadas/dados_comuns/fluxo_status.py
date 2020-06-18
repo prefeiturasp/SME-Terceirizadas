@@ -446,7 +446,7 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
             usuario=request.user,
             justificativa=request.data['justificativa']
         )
-        for anexo in request.data['anexos']:
+        for anexo in request.data.pop('anexos', []):
             arquivo = convert_base64_to_contentfile(anexo.pop('base64'))
             AnexoLogSolicitacoesUsuario.objects.create(
                 log=log_transicao,
