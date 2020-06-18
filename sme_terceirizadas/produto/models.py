@@ -181,7 +181,20 @@ class HomologacaoDoProduto(TemChaveExterna, CriadoEm, CriadoPor, FluxoHomologaca
         serial = serial + str(id_sequecial)
         self.protocolo_analise_sensorial = f'AS{serial}'
         self.necessita_analise_sensorial = True
-        super(HomologacaoDoProduto, self).save()
+        self.save()
+
+    @classmethod
+    def retorna_numero_do_protocolo(cls):
+        id_sequecial = str(protocolo_analise_sensorial_id.get_last_value())
+        serial = ''
+        if id_sequecial is None:
+            id_sequecial = str(protocolo_analise_sensorial_id.get_next_value())
+        else:
+            id_sequecial = str(protocolo_analise_sensorial_id.get_last_value() + 1)
+        for _ in range(MAX_NUMERO_PROTOCOLO - len(id_sequecial)):
+            serial = serial + '0'
+        serial = serial + str(id_sequecial)
+        return f'AS{serial}'
 
     def salvar_log_transicao(self, status_evento, usuario, **kwargs):
         justificativa = kwargs.get('justificativa', '')

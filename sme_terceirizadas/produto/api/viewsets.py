@@ -252,6 +252,12 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'),
                             status=status.HTTP_400_BAD_REQUEST)
 
+    @action(detail=False, methods=['get'], url_path='numero_protocolo')
+    def numero_relatorio_analise_sensorial(self, request):
+        homologacao = HomologacaoDoProduto()
+        protocolo = homologacao.retorna_numero_do_protocolo()
+        return Response(protocolo)
+
     def destroy(self, request, *args, **kwargs):
         homologacao_produto = self.get_object()
         if homologacao_produto.pode_excluir:
