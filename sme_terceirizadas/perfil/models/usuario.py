@@ -129,6 +129,7 @@ class Usuario(ExportModelOperationsMixin('usuario'), SimpleEmailConfirmationUser
 
     registro_funcional = models.CharField(_('RF'), max_length=7, blank=True, null=True, unique=True,  # noqa DJ01
                                           validators=[MinLengthValidator(7)])
+    cargo = models.CharField(max_length=50, blank=True)
 
     # TODO: essew atributow deve pertencer somente a um model Pessoa
     cpf = models.CharField(_('CPF'), max_length=11, blank=True, null=True, unique=True,  # noqa DJ01
