@@ -253,6 +253,32 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'),
                             status=status.HTTP_400_BAD_REQUEST)
 
+    @action(detail=True,
+            permission_classes=[UsuarioCODAEGestaoProduto],
+            methods=['patch'],
+            url_path=constants.SUSPENDER_PRODUTO)
+    def suspender(self, request, uuid=None):
+        homologacao_produto = self.get_object()
+        try:
+            homologacao_produto.codae_suspende(request=request)
+            return Response('Homologação suspensa')
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'),
+                            status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True,
+            permission_classes=[UsuarioCODAEGestaoProduto],
+            methods=['patch'],
+            url_path=constants.ATIVAR_PRODUTO)
+    def ativar(self, request, uuid=None):
+        homologacao_produto = self.get_object()
+        try:
+            homologacao_produto.codae_ativa(request=request)
+            return Response('Homologação ativada')
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'),
+                            status=status.HTTP_400_BAD_REQUEST)
+
     def destroy(self, request, *args, **kwargs):
         homologacao_produto = self.get_object()
         if homologacao_produto.pode_excluir:
