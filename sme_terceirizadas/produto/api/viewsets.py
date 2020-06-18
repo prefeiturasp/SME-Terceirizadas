@@ -222,8 +222,7 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
         try:
             justificativa = request.data.get('justificativa', '')
             homologacao_produto.codae_pede_analise_sensorial(user=request.user, justificativa=justificativa)
-            homologacao_produto.necessita_analise_sensorial = True
-            homologacao_produto.save()
+            homologacao_produto.gera_protocolo_analise_sensorial()
             serializer = self.get_serializer(homologacao_produto)
             return Response(serializer.data)
         except InvalidTransitionError as e:

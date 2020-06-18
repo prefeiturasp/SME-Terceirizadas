@@ -73,6 +73,7 @@ django-model-utils='==3.1.2'  # https://github.com/jazzband/django-model-utils
 django-redis='==4.10.0'  # https://github.com/niwinz/django-redis
 django-des='==2.4.1' # https://github.com/jamiecounsell/django-des
 django-cors-headers='==3.0.2'   # https://pypi.org/project/django-cors-headers/
+django-sequences='==2.5'  # https://pypi.org/project/django-sequences/
 # Django REST Framework
 # ------------------------------------------------------------------------------
 djangorestframework='==3.9.1'  # https://github.com/encode/django-rest-framework

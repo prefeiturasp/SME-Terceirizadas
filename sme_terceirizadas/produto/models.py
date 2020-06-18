@@ -1,4 +1,5 @@
 from django.db import models
+from sequences import Sequence
 
 from ..dados_comuns.behaviors import (
     Ativavel,
@@ -12,6 +13,9 @@ from ..dados_comuns.behaviors import (
 from ..dados_comuns.fluxo_status import FluxoHomologacaoProduto
 from ..dados_comuns.models import LogSolicitacoesUsuario, TemplateMensagem
 from ..perfil.models.perfil import Vinculo
+
+protocolo_analise_sensorial_id = Sequence('protocolo_analise_sensorial')
+MAX_NUMERO_PROTOCOLO = 6
 
 
 class ProtocoloDeDietaEspecial(Ativavel, CriadoEm, CriadoPor, Nomeavel, TemChaveExterna):
@@ -151,6 +155,7 @@ class HomologacaoDoProduto(TemChaveExterna, CriadoEm, CriadoPor, FluxoHomologaca
     DESCRICAO = 'Homologação de Produto'
     produto = models.ForeignKey(Produto, on_delete=models.CASCADE, related_name='homologacoes')
     necessita_analise_sensorial = models.BooleanField(default=False)
+    protocolo_analise_sensorial = models.CharField(max_length=8, blank=True)
 
     @property
     def template_mensagem(self):
@@ -167,6 +172,16 @@ class HomologacaoDoProduto(TemChaveExterna, CriadoEm, CriadoPor, FluxoHomologaca
         for chave, valor in template_troca.items():
             corpo = corpo.replace(chave, valor)
         return template.assunto, corpo
+
+    def gera_protocolo_analise_sensorial(self):
+        id_sequecial = str(protocolo_analise_sensorial_id.get_next_value())
+        serial = ''
+        for _ in range(MAX_NUMERO_PROTOCOLO - len(id_sequecial)):
+            serial = serial + '0'
+        serial = serial + str(id_sequecial)
+        self.protocolo_analise_sensorial = f'AS{serial}'
+        self.necessita_analise_sensorial = True
+        super(HomologacaoDoProduto, self).save()
 
     def salvar_log_transicao(self, status_evento, usuario, **kwargs):
         justificativa = kwargs.get('justificativa', '')

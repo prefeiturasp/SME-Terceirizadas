@@ -87,7 +87,8 @@ THIRD_PARTY_APPS = [
     'des',  # for email configuration in database
     'django_xworkflows',
     'simple_email_confirmation',
-    'sass_processor'
+    'sass_processor',
+    'sequences.apps.SequencesConfig'
 ]
 LOCAL_APPS = [
     'sme_terceirizadas.perfil.apps.PerfilConfig',
