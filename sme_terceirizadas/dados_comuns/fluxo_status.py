@@ -492,9 +492,9 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
                                   usuario=user)
         self._envia_email_escola_ou_nutricionista_reclamou(kwargs['reclamacao'])
 
-    def salva_log_com_justificativa_e_anexos(self, request):
+    def salva_log_com_justificativa_e_anexos(self, evento, request):
         log_transicao = self.salvar_log_transicao(
-            status_evento=LogSolicitacoesUsuario.CODAE_SUSPENDEU,
+            status_evento=evento,
             usuario=request.user,
             justificativa=request.data['justificativa']
         )
@@ -508,11 +508,24 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
 
     @xworkflows.after_transition('codae_suspende')
     def _codae_suspende_hook(self, *args, **kwargs):
-        self.salva_log_com_justificativa_e_anexos(kwargs['request'])
+        self.salva_log_com_justificativa_e_anexos(
+            LogSolicitacoesUsuario.CODAE_SUSPENDEU,
+            kwargs['request']
+        )
 
     @xworkflows.after_transition('codae_ativa')
     def _codae_ativa_hook(self, *args, **kwargs):
-        self.salva_log_com_justificativa_e_anexos(kwargs['request'])
+        self.salva_log_com_justificativa_e_anexos(
+            LogSolicitacoesUsuario.CODAE_HOMOLOGADO,
+            kwargs['request']
+        )
+
+    @xworkflows.after_transition('terceirizada_responde_reclamacao')
+    def _terceirizada_responde_reclamacao_hook(self, *args, **kwargs):
+        self.salva_log_com_justificativa_e_anexos(
+            LogSolicitacoesUsuario.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO,
+            kwargs['request']
+        )
 
     class Meta:
         abstract = True
