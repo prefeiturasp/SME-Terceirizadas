@@ -90,6 +90,8 @@ CODAE_NAO_HOMOLOGA = 'codae-nao-homologa'
 CODAE_PEDE_ANALISE_SENSORIAL = 'codae-pede-analise-sensorial'
 TERCEIRIZADA_INATIVA_HOMOLOGACAO = 'terceirizada-inativa'
 ESCOLA_OU_NUTRI_RECLAMA = 'escola-ou-nutri-reclama'
+SUSPENDER_PRODUTO = 'suspender'
+ATIVAR_PRODUTO = 'ativar'
 TERCEIRIZADA_RESPONDE_ANALISE_SENSORIAL = 'terceirizada-responde-analise-sensorial'
 
 TERCEIRIZADA_RESPONDE_QUESTIONAMENTO = 'terceirizada-responde-questionamento'

@@ -257,6 +257,32 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'),
                             status=status.HTTP_400_BAD_REQUEST)
 
+    @action(detail=True,
+            permission_classes=[UsuarioCODAEGestaoProduto],
+            methods=['patch'],
+            url_path=constants.SUSPENDER_PRODUTO)
+    def suspender(self, request, uuid=None):
+        homologacao_produto = self.get_object()
+        try:
+            homologacao_produto.codae_suspende(request=request)
+            return Response('Homologação suspensa')
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'),
+                            status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True,
+            permission_classes=[UsuarioCODAEGestaoProduto],
+            methods=['patch'],
+            url_path=constants.ATIVAR_PRODUTO)
+    def ativar(self, request, uuid=None):
+        homologacao_produto = self.get_object()
+        try:
+            homologacao_produto.codae_ativa(request=request)
+            return Response('Homologação ativada')
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'),
+                            status=status.HTTP_400_BAD_REQUEST)
+
     @action(detail=False, methods=['get'], url_path='numero_protocolo')
     def numero_relatorio_analise_sensorial(self, request):
         homologacao = HomologacaoDoProduto()
@@ -328,18 +354,9 @@ class ProdutoViewSet(viewsets.ModelViewSet):
     def relatorio(self, request, uuid=None):
         return relatorio_produto_homologacao(request, produto=self.get_object())
 
-    @action(detail=False,  # noqa C901
-            methods=['POST'],
-            url_path='filtro-homologados-por-parametros')
-    def filtro_homologados_por_parametros(self, request):
-        request.data
-        form = ProdutoPorParametrosForm(request.data)
-
-        if not form.is_valid():
-            return Response(form.errors)
-
+    def filtra_por_parametros(self, cleaned_data):  # noqa C901
         campos_a_pesquisar = {}
-        for (chave, valor) in form.cleaned_data.items():
+        for (chave, valor) in cleaned_data.items():
             if valor != '' and valor is not None:
                 if chave == 'nome_fabricante':
                     campos_a_pesquisar['fabricante__nome__icontains'] = valor
@@ -353,17 +370,42 @@ class ProdutoViewSet(viewsets.ModelViewSet):
                     campos_a_pesquisar['homologacoes__criado_em__gte'] = valor
                 elif chave == 'data_final':
                     campos_a_pesquisar['homologacoes__criado_em__lt'] = valor + timedelta(days=1)
+                elif chave == 'status':
+                    campos_a_pesquisar['homologacoes__status__in'] = valor
 
-        queryset = self.get_queryset().filter(
-            homologacoes__status__in=[
-                HomologacaoProdutoWorkflow.CODAE_HOMOLOGADO,
-                HomologacaoProdutoWorkflow.ESCOLA_OU_NUTRICIONISTA_RECLAMOU
-            ],
-            **campos_a_pesquisar
-        )
+        queryset = self.get_queryset().filter(**campos_a_pesquisar)
         page = self.paginate_queryset(queryset)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
+
+    @action(detail=False,
+            methods=['POST'],
+            url_path='filtro-por-parametros')
+    def filtro_por_parametros(self, request):
+        form = ProdutoPorParametrosForm(request.data)
+
+        if not form.is_valid():
+            return Response(form.errors)
+
+        return self.filtra_por_parametros(form.cleaned_data)
+
+    # TODO: Remover esse endpoint legado refatorando o frontend
+    @action(detail=False,
+            methods=['POST'],
+            url_path='filtro-homologados-por-parametros')
+    def filtro_homologados_por_parametros(self, request):
+        form = ProdutoPorParametrosForm(request.data)
+
+        if not form.is_valid():
+            return Response(form.errors)
+
+        form_data = form.cleaned_data.copy()
+        form_data['status'] = [
+            HomologacaoProdutoWorkflow.CODAE_HOMOLOGADO,
+            HomologacaoProdutoWorkflow.ESCOLA_OU_NUTRICIONISTA_RECLAMOU
+        ]
+
+        return self.filtra_por_parametros(form_data)
 
 
 class ProtocoloDeDietaEspecialViewSet(viewsets.ModelViewSet):
