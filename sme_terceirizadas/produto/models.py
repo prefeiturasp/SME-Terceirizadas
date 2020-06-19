@@ -1,4 +1,5 @@
 from django.db import models
+from sequences import Sequence
 
 from ..dados_comuns.behaviors import (
     Ativavel,
@@ -12,6 +13,9 @@ from ..dados_comuns.behaviors import (
 from ..dados_comuns.fluxo_status import FluxoHomologacaoProduto
 from ..dados_comuns.models import LogSolicitacoesUsuario, TemplateMensagem
 from ..perfil.models.perfil import Vinculo
+
+protocolo_analise_sensorial_id = Sequence('protocolo_analise_sensorial')
+MAX_NUMERO_PROTOCOLO = 6
 
 
 class ProtocoloDeDietaEspecial(Ativavel, CriadoEm, CriadoPor, Nomeavel, TemChaveExterna):
@@ -151,6 +155,7 @@ class HomologacaoDoProduto(TemChaveExterna, CriadoEm, CriadoPor, FluxoHomologaca
     DESCRICAO = 'Homologação de Produto'
     produto = models.ForeignKey(Produto, on_delete=models.CASCADE, related_name='homologacoes')
     necessita_analise_sensorial = models.BooleanField(default=False)
+    protocolo_analise_sensorial = models.CharField(max_length=8, blank=True)
 
     @property
     def template_mensagem(self):
@@ -167,6 +172,29 @@ class HomologacaoDoProduto(TemChaveExterna, CriadoEm, CriadoPor, FluxoHomologaca
         for chave, valor in template_troca.items():
             corpo = corpo.replace(chave, valor)
         return template.assunto, corpo
+
+    def gera_protocolo_analise_sensorial(self):
+        id_sequecial = str(protocolo_analise_sensorial_id.get_next_value())
+        serial = ''
+        for _ in range(MAX_NUMERO_PROTOCOLO - len(id_sequecial)):
+            serial = serial + '0'
+        serial = serial + str(id_sequecial)
+        self.protocolo_analise_sensorial = f'AS{serial}'
+        self.necessita_analise_sensorial = True
+        self.save()
+
+    @classmethod
+    def retorna_numero_do_protocolo(cls):
+        id_sequecial = str(protocolo_analise_sensorial_id.get_last_value())
+        serial = ''
+        if id_sequecial is None:
+            id_sequecial = str(protocolo_analise_sensorial_id.get_next_value())
+        else:
+            id_sequecial = str(protocolo_analise_sensorial_id.get_last_value() + 1)
+        for _ in range(MAX_NUMERO_PROTOCOLO - len(id_sequecial)):
+            serial = serial + '0'
+        serial = serial + str(id_sequecial)
+        return f'AS{serial}'
 
     def salvar_log_transicao(self, status_evento, usuario, **kwargs):
         justificativa = kwargs.get('justificativa', '')
@@ -202,6 +230,33 @@ class ReclamacaoDeProduto(TemChaveExterna, CriadoEm, CriadoPor):
 
 class AnexoReclamacaoDeProduto(TemChaveExterna):
     reclamacao_de_produto = models.ForeignKey(ReclamacaoDeProduto, related_name='anexos', on_delete=models.DO_NOTHING)
+    nome = models.CharField(max_length=255, blank=True)
+    arquivo = models.FileField()
+
+    def __str__(self):
+        return f'Anexo {self.uuid} - {self.nome}'
+
+
+class RespostaAnaliseSensorial(TemChaveExterna, TemIdentificadorExternoAmigavel, CriadoEm, CriadoPor):
+    homologacao_de_produto = models.ForeignKey('HomologacaoDoProduto', on_delete=models.DO_NOTHING,
+                                               related_name='respostas_analise')
+    responsavel_produto = models.CharField(max_length=150)
+    registro_funcional = models.CharField(max_length=10)
+    data = models.DateField(auto_now=False, auto_now_add=False)
+    hora = models.TimeField(auto_now=False, auto_now_add=False)
+    observacao = models.TextField(blank=True)
+
+    @property
+    def numero_protocolo(self):
+        return self.homologacao_de_produto.protocolo_analise_sensorial
+
+    def __str__(self):
+        return f'Resposta {self.id_externo} de protocolo {self.numero_protocolo} criada em: {self.criado_em}'
+
+
+class AnexoRespostaAnaliseSensorial(TemChaveExterna):
+    resposta_analise_sensorial = models.ForeignKey(RespostaAnaliseSensorial, related_name='anexos',
+                                                   on_delete=models.DO_NOTHING)
     nome = models.CharField(max_length=255, blank=True)
     arquivo = models.FileField()
 

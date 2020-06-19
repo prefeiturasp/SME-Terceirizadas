@@ -99,8 +99,9 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
         # DA DRE
         SOLICITACAO_KIT_LANCHE_UNIFICADA,
         # DA TERCEIRIZADA
-        HOMOLOGACAO_PRODUTO
-    ) = range(11)
+        HOMOLOGACAO_PRODUTO,
+        TERCEIRIZADA_RESPONDEU_ANALISE_SENSORIAL,
+    ) = range(12)
 
     TIPOS_SOLICITACOES = (
         (SOLICITACAO_KIT_LANCHE_AVULSA, 'Solicitação de kit lanche avulsa'),
@@ -113,7 +114,8 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
         (INCLUSAO_ALIMENTACAO_CONTINUA, 'Inclusão de alimentação contínua'),
         (DIETA_ESPECIAL, 'Dieta Especial'),
         (SOLICITACAO_KIT_LANCHE_UNIFICADA, 'Solicitação de kit lanche unificada'),
-        (HOMOLOGACAO_PRODUTO, 'Homologação de Produto')
+        (HOMOLOGACAO_PRODUTO, 'Homologação de Produto'),
+        (TERCEIRIZADA_RESPONDEU_ANALISE_SENSORIAL, 'Responde Análise Sensorial')
     )
 
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
