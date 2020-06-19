@@ -1,6 +1,8 @@
 from django import forms
 from ..dados_comuns.fluxo_status import HomologacaoProdutoWorkflow
 
+from ..dados_comuns.fluxo_status import HomologacaoProdutoWorkflow
+
 
 class ProdutoPorParametrosForm(forms.Form):
     nome_fabricante = forms.CharField(required=False)

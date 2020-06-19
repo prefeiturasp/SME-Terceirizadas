@@ -16,8 +16,9 @@ from .constants import (
     COORDENADOR_DIETA_ESPECIAL,
     COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA
 )
-from .models import LogSolicitacoesUsuario
+from .models import AnexoLogSolicitacoesUsuario, LogSolicitacoesUsuario
 from .tasks import envia_email_em_massa_task
+from .utils import convert_base64_to_contentfile
 
 
 class PedidoAPartirDaEscolaWorkflow(xwf_models.Workflow):
@@ -237,7 +238,9 @@ class HomologacaoProdutoWorkflow(xwf_models.Workflow):
         ('codae_questiona', CODAE_PENDENTE_HOMOLOGACAO, CODAE_QUESTIONADO),
         ('terceirizada_responde_questionamento', CODAE_QUESTIONADO, CODAE_PENDENTE_HOMOLOGACAO),
         ('codae_pede_analise_sensorial', CODAE_PENDENTE_HOMOLOGACAO, CODAE_PEDIU_ANALISE_SENSORIAL),
+        ('terceirizada_responde_analise_sensorial', CODAE_PEDIU_ANALISE_SENSORIAL, CODAE_PENDENTE_HOMOLOGACAO),
         ('codae_suspende', CODAE_HOMOLOGADO, CODAE_SUSPENDEU),
+        ('codae_ativa', CODAE_SUSPENDEU, CODAE_HOMOLOGADO),
         ('escola_ou_nutricionista_reclamou', CODAE_HOMOLOGADO, ESCOLA_OU_NUTRICIONISTA_RECLAMOU),
         ('codae_pediu_analise_reclamacao', ESCOLA_OU_NUTRICIONISTA_RECLAMOU, CODAE_PEDIU_ANALISE_RECLAMACAO),
         ('codae_autorizou_reclamacao',
@@ -431,12 +434,42 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
                                   usuario=user,
                                   justificativa=justificativa)
 
+    @xworkflows.after_transition('terceirizada_responde_analise_sensorial')
+    def _terceirizada_responde_analise_sensorial_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        justificativa = kwargs.get('justificativa', '')
+        self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_RESPONDEU_ANALISE_SENSORIAL,
+                                  usuario=user,
+                                  justificativa=justificativa)
+
     @xworkflows.after_transition('escola_ou_nutricionista_reclamou')
     def _escola_ou_nutricionista_reclamou_hook(self, *args, **kwargs):
         user = kwargs['user']
         self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
                                   usuario=user)
         self._envia_email_escola_ou_nutricionista_reclamou(kwargs['reclamacao'])
+
+    def salva_log_com_justificativa_e_anexos(self, request):
+        log_transicao = self.salvar_log_transicao(
+            status_evento=LogSolicitacoesUsuario.CODAE_SUSPENDEU,
+            usuario=request.user,
+            justificativa=request.data['justificativa']
+        )
+        for anexo in request.data.pop('anexos', []):
+            arquivo = convert_base64_to_contentfile(anexo.pop('base64'))
+            AnexoLogSolicitacoesUsuario.objects.create(
+                log=log_transicao,
+                arquivo=arquivo,
+                nome=anexo['nome']
+            )
+
+    @xworkflows.after_transition('codae_suspende')
+    def _codae_suspende_hook(self, *args, **kwargs):
+        self.salva_log_com_justificativa_e_anexos(kwargs['request'])
+
+    @xworkflows.after_transition('codae_ativa')
+    def _codae_ativa_hook(self, *args, **kwargs):
+        self.salva_log_com_justificativa_e_anexos(kwargs['request'])
 
     class Meta:
         abstract = True

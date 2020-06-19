@@ -99,8 +99,9 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
         # DA DRE
         SOLICITACAO_KIT_LANCHE_UNIFICADA,
         # DA TERCEIRIZADA
-        HOMOLOGACAO_PRODUTO
-    ) = range(11)
+        HOMOLOGACAO_PRODUTO,
+        TERCEIRIZADA_RESPONDEU_ANALISE_SENSORIAL,
+    ) = range(12)
 
     TIPOS_SOLICITACOES = (
         (SOLICITACAO_KIT_LANCHE_AVULSA, 'Solicitação de kit lanche avulsa'),
@@ -113,7 +114,8 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
         (INCLUSAO_ALIMENTACAO_CONTINUA, 'Inclusão de alimentação contínua'),
         (DIETA_ESPECIAL, 'Dieta Especial'),
         (SOLICITACAO_KIT_LANCHE_UNIFICADA, 'Solicitação de kit lanche unificada'),
-        (HOMOLOGACAO_PRODUTO, 'Homologação de Produto')
+        (HOMOLOGACAO_PRODUTO, 'Homologação de Produto'),
+        (TERCEIRIZADA_RESPONDEU_ANALISE_SENSORIAL, 'Responde Análise Sensorial')
     )
 
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
@@ -133,6 +135,15 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
     def __str__(self):
         return (f'{self.usuario} executou {self.get_status_evento_display()} '
                 f'em {self.get_solicitacao_tipo_display()} no dia {self.criado_em}')
+
+
+class AnexoLogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes_anexo'), models.Model):
+    log = models.ForeignKey(LogSolicitacoesUsuario, related_name='anexos', on_delete=models.DO_NOTHING)
+    nome = models.CharField(max_length=255, blank=True)
+    arquivo = models.FileField()
+
+    def __str__(self):
+        return f'Anexo {self.uuid} - {self.nome}'
 
 
 class Contato(ExportModelOperationsMixin('contato'), models.Model):

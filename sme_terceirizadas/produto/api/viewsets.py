@@ -8,7 +8,7 @@ from xworkflows import InvalidTransitionError
 
 from ...dados_comuns import constants
 from ...dados_comuns.fluxo_status import HomologacaoProdutoWorkflow
-from ...dados_comuns.permissions import PermissaoParaReclamarDeProduto, UsuarioCODAEGestaoProduto
+from ...dados_comuns.permissions import PermissaoParaReclamarDeProduto, UsuarioCODAEGestaoProduto, UsuarioTerceirizada
 from ...relatorios.relatorios import relatorio_produto_homologacao
 from ..forms import ProdutoPorParametrosForm
 from ..models import (
@@ -18,7 +18,8 @@ from ..models import (
     InformacaoNutricional,
     Marca,
     Produto,
-    ProtocoloDeDietaEspecial
+    ProtocoloDeDietaEspecial,
+    RespostaAnaliseSensorial
 )
 from .serializers.serializers import (
     FabricanteSerializer,
@@ -34,7 +35,11 @@ from .serializers.serializers import (
     ProtocoloDeDietaEspecialSerializer,
     ProtocoloSimplesSerializer
 )
-from .serializers.serializers_create import ProdutoSerializerCreate, ReclamacaoDeProdutoSerializerCreate
+from .serializers.serializers_create import (
+    ProdutoSerializerCreate,
+    ReclamacaoDeProdutoSerializerCreate,
+    RespostaAnaliseSensorialSearilzerCreate
+)
 
 
 class InformacaoNutricionalBaseViewSet(viewsets.ReadOnlyModelViewSet):
@@ -223,8 +228,7 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
         try:
             justificativa = request.data.get('justificativa', '')
             homologacao_produto.codae_pede_analise_sensorial(user=request.user, justificativa=justificativa)
-            homologacao_produto.necessita_analise_sensorial = True
-            homologacao_produto.save()
+            homologacao_produto.gera_protocolo_analise_sensorial()
             serializer = self.get_serializer(homologacao_produto)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -253,6 +257,38 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'),
                             status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True,
+            permission_classes=[UsuarioCODAEGestaoProduto],
+            methods=['patch'],
+            url_path=constants.SUSPENDER_PRODUTO)
+    def suspender(self, request, uuid=None):
+        homologacao_produto = self.get_object()
+        try:
+            homologacao_produto.codae_suspende(request=request)
+            return Response('Homologação suspensa')
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'),
+                            status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True,
+            permission_classes=[UsuarioCODAEGestaoProduto],
+            methods=['patch'],
+            url_path=constants.ATIVAR_PRODUTO)
+    def ativar(self, request, uuid=None):
+        homologacao_produto = self.get_object()
+        try:
+            homologacao_produto.codae_ativa(request=request)
+            return Response('Homologação ativada')
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'),
+                            status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['get'], url_path='numero_protocolo')
+    def numero_relatorio_analise_sensorial(self, request):
+        homologacao = HomologacaoDoProduto()
+        protocolo = homologacao.retorna_numero_do_protocolo()
+        return Response(protocolo)
 
     def destroy(self, request, *args, **kwargs):
         homologacao_produto = self.get_object()
@@ -419,3 +455,34 @@ class InformacaoNutricionalViewSet(InformacaoNutricionalBaseViewSet):
         query_set = InformacaoNutricional.objects.all()
         response = {'results': self._agrupa_informacoes_por_tipo(query_set)}
         return Response(response)
+
+
+class RespostaAnaliseSensorialViewSet(viewsets.ModelViewSet):
+    lookup_field = 'uuid'
+    serializer_class = RespostaAnaliseSensorialSearilzerCreate
+    queryset = RespostaAnaliseSensorial.objects.all()
+
+    @action(detail=False,
+            permission_classes=[UsuarioTerceirizada],
+            methods=['post'],
+            url_path=constants.TERCEIRIZADA_RESPONDE_ANALISE_SENSORIAL)
+    def terceirizada_responde(self, request):
+        data = request.data.copy()
+        serializer = self.get_serializer(data=data)
+        if not serializer.is_valid():
+            return Response(serializer.errors)
+
+        uuid_homologacao = data.get('homologacao_de_produto', None)
+        homologacao = HomologacaoDoProduto.objects.get(uuid=uuid_homologacao)
+        data['homologacao_de_produto'] = homologacao
+        try:
+            serializer.create(data)
+            justificativa = request.data.get('justificativa', '')
+            homologacao.terceirizada_responde_analise_sensorial(
+                user=request.user, justificativa=justificativa
+            )
+            serializer.save()
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'),
+                            status=status.HTTP_400_BAD_REQUEST)
