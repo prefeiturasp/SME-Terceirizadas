@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='homologacaodoproduto',
             name='protocolo_analise_sensorial',
-            field=models.CharField(blank=True, max_length=8, null=True),
+            field=models.CharField(blank=True, max_length=8),
         ),
     ]

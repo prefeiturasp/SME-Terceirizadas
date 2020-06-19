@@ -93,6 +93,7 @@ ESCOLA_OU_NUTRI_RECLAMA = 'escola-ou-nutri-reclama'
 SUSPENDER_PRODUTO = 'suspender'
 ATIVAR_PRODUTO = 'ativar'
 TERCEIRIZADA_RESPONDE_ANALISE_SENSORIAL = 'terceirizada-responde-analise-sensorial'
+CODAE_PEDE_ANALISE_RECLAMACAO = 'codae-pede-analise-reclamacao'
 
 TERCEIRIZADA_RESPONDE_QUESTIONAMENTO = 'terceirizada-responde-questionamento'
 TERCEIRIZADA_TOMOU_CIENCIA = 'terceirizada-toma-ciencia'

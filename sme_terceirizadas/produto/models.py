@@ -207,6 +207,7 @@ class HomologacaoDoProduto(TemChaveExterna, CriadoEm, CriadoPor, FluxoHomologaca
             justificativa=justificativa
         )
 
+
     class Meta:
         ordering = ('-ativo', '-criado_em')
         verbose_name = 'Homologação de Produto'

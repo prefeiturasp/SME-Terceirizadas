@@ -211,6 +211,7 @@ class HomologacaoProdutoWorkflow(xwf_models.Workflow):
     CODAE_SUSPENDEU = 'CODAE_SUSPENDEU'
     ESCOLA_OU_NUTRICIONISTA_RECLAMOU = 'ESCOLA_OU_NUTRICIONISTA_RECLAMOU'
     CODAE_PEDIU_ANALISE_RECLAMACAO = 'CODAE_PEDIU_ANALISE_RECLAMACAO'
+    TERCEIRIZADA_RESPONDEU_RECLAMACAO = 'TERCEIRIZADA_RESPONDEU_RECLAMACAO'
     CODAE_AUTORIZOU_RECLAMACAO = 'CODAE_AUTORIZOU_RECLAMACAO'
 
     states = (
@@ -225,6 +226,7 @@ class HomologacaoProdutoWorkflow(xwf_models.Workflow):
         (CODAE_SUSPENDEU, 'CODAE suspendeu o produto'),
         (ESCOLA_OU_NUTRICIONISTA_RECLAMOU, 'Escola/Nutricionista reclamou do produto'),
         (CODAE_PEDIU_ANALISE_RECLAMACAO, 'CODAE pediu análise da reclamação'),
+        (TERCEIRIZADA_RESPONDEU_RECLAMACAO, 'Terceirizada respondeu a reclamação'),
         (CODAE_AUTORIZOU_RECLAMACAO, 'CODAE autorizou reclamação')
     )
 
@@ -243,9 +245,8 @@ class HomologacaoProdutoWorkflow(xwf_models.Workflow):
         ('codae_ativa', CODAE_SUSPENDEU, CODAE_HOMOLOGADO),
         ('escola_ou_nutricionista_reclamou', CODAE_HOMOLOGADO, ESCOLA_OU_NUTRICIONISTA_RECLAMOU),
         ('codae_pediu_analise_reclamacao', ESCOLA_OU_NUTRICIONISTA_RECLAMOU, CODAE_PEDIU_ANALISE_RECLAMACAO),
-        ('codae_autorizou_reclamacao',
-         [ESCOLA_OU_NUTRICIONISTA_RECLAMOU, CODAE_PEDIU_ANALISE_RECLAMACAO],
-         CODAE_AUTORIZOU_RECLAMACAO),
+        ('terceirizada_respondeu_reclamacao', CODAE_PEDIU_ANALISE_RECLAMACAO, TERCEIRIZADA_RESPONDEU_RECLAMACAO),
+        ('codae_autorizou_reclamacao', ESCOLA_OU_NUTRICIONISTA_RECLAMOU, CODAE_AUTORIZOU_RECLAMACAO),
         ('inativa_homologacao',
          [CODAE_SUSPENDEU, ESCOLA_OU_NUTRICIONISTA_RECLAMOU, CODAE_QUESTIONADO, CODAE_HOMOLOGADO, CODAE_NAO_HOMOLOGADO],
          INATIVA),
@@ -441,6 +442,23 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
         self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_RESPONDEU_ANALISE_SENSORIAL,
                                   usuario=user,
                                   justificativa=justificativa)
+
+    @xworkflows.after_transition('codae_pediu_analise_reclamacao')
+    def _codae_pediu_analise_reclamacao_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        justificativa = kwargs.get('justificativa', '')
+        log_transicao = self.salvar_log_transicao(
+            status_evento=LogSolicitacoesUsuario.CODAE_PEDIU_ANALISE_RECLAMACAO,
+            usuario=user,
+            justificativa=justificativa,
+        )
+        for anexo in kwargs.get('anexos'):
+            arquivo = convert_base64_to_contentfile(anexo.pop('base64'))
+            AnexoLogSolicitacoesUsuario.objects.create(
+                log=log_transicao,
+                arquivo=arquivo,
+                nome=anexo['nome']
+            )
 
     @xworkflows.after_transition('escola_ou_nutricionista_reclamou')
     def _escola_ou_nutricionista_reclamou_hook(self, *args, **kwargs):

@@ -261,6 +261,27 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
     @action(detail=True,
             permission_classes=[UsuarioCODAEGestaoProduto],
             methods=['patch'],
+            url_path=constants.CODAE_PEDE_ANALISE_RECLAMACAO)
+    def codae_pede_analise_reclamacao(self, request, uuid=None):
+        anexos = request.data.get('anexos', [])
+        justificativa = request.data.get('justificativa', '')
+        homologacao_produto = self.get_object()
+        try:
+            homologacao_produto.codae_pediu_analise_reclamacao(
+                user=request.user,
+                anexos=anexos,
+                justificativa=justificativa
+            )
+            serializer = self.get_serializer(homologacao_produto)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'),
+                            status=status.HTTP_400_BAD_REQUEST)
+
+
+    @action(detail=True,
+            permission_classes=[UsuarioCODAEGestaoProduto],
+            methods=['patch'],
             url_path=constants.SUSPENDER_PRODUTO)
     def suspender(self, request, uuid=None):
         homologacao_produto = self.get_object()

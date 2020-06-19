@@ -51,8 +51,9 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
         CODAE_PEDIU_ANALISE_RECLAMACAO,
         CODAE_AUTORIZOU_RECLAMACAO,
         INATIVA,
+        TERCEIRIZADA_RESPONDEU_RECLAMACAO,
 
-    ) = range(30)
+    ) = range(31)
 
     STATUS_POSSIVEIS = (
         (INICIO_FLUXO, 'Solicitação Realizada'),
@@ -85,6 +86,7 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
         (ESCOLA_OU_NUTRICIONISTA_RECLAMOU, 'Escola/Nutricionista reclamou do produto'),
         (CODAE_PEDIU_ANALISE_RECLAMACAO, 'CODAE pediu análise da reclamação'),
         (CODAE_AUTORIZOU_RECLAMACAO, 'CODAE autorizou reclamação'),
+        (TERCEIRIZADA_RESPONDEU_RECLAMACAO, 'Terceirizada respondeu a reclamação')
     )
     (  # DA ESCOLA
         SOLICITACAO_KIT_LANCHE_AVULSA,
@@ -138,6 +140,7 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
 
 
 class AnexoLogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes_anexo'), models.Model):
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     log = models.ForeignKey(LogSolicitacoesUsuario, related_name='anexos', on_delete=models.DO_NOTHING)
     nome = models.CharField(max_length=255, blank=True)
     arquivo = models.FileField()
