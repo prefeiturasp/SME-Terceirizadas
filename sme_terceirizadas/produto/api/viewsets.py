@@ -282,6 +282,7 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'),
                             status=status.HTTP_400_BAD_REQUEST)
+
     @action(detail=False, methods=['get'], url_path='numero_protocolo')
     def numero_relatorio_analise_sensorial(self, request):
         homologacao = HomologacaoDoProduto()
