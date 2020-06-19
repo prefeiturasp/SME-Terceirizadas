@@ -187,7 +187,7 @@ class HomologacaoDoProduto(TemChaveExterna, CriadoEm, CriadoPor, FluxoHomologaca
         id_sequecial = get_last_value('protocolo_analise_sensorial')
         serial = ''
         if id_sequecial is None:
-            id_sequecial = str(get_next_value('protocolo_analise_sensorial'))
+            id_sequecial = '1'
         else:
             id_sequecial = str(get_last_value('protocolo_analise_sensorial') + 1)
         for _ in range(MAX_NUMERO_PROTOCOLO - len(id_sequecial)):
