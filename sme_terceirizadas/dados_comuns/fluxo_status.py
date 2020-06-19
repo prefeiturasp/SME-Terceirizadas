@@ -233,7 +233,7 @@ class HomologacaoProdutoWorkflow(xwf_models.Workflow):
     transitions = (
         ('inicia_fluxo', [RASCUNHO, CODAE_AUTORIZOU_RECLAMACAO], CODAE_PENDENTE_HOMOLOGACAO),
         ('codae_homologa', [CODAE_PENDENTE_HOMOLOGACAO, CODAE_PEDIU_ANALISE_SENSORIAL,
-                            CODAE_PEDIU_ANALISE_RECLAMACAO, CODAE_SUSPENDEU,
+                            TERCEIRIZADA_RESPONDEU_RECLAMACAO, CODAE_SUSPENDEU,
                             ESCOLA_OU_NUTRICIONISTA_RECLAMOU],
          CODAE_HOMOLOGADO),
         ('codae_nao_homologa', [CODAE_PENDENTE_HOMOLOGACAO, CODAE_PEDIU_ANALISE_SENSORIAL], CODAE_NAO_HOMOLOGADO),
@@ -397,7 +397,15 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
             status_evento=LogSolicitacoesUsuario.CODAE_HOMOLOGADO,
             usuario=user
         )
-        self._envia_email_codae_homologa(log_transicao=log_transicao, link_pdf=kwargs['link_pdf'])
+        for anexo in kwargs.get('anexos', []):
+            arquivo = convert_base64_to_contentfile(anexo.pop('base64'))
+            AnexoLogSolicitacoesUsuario.objects.create(
+                log=log_transicao,
+                arquivo=arquivo,
+                nome=anexo['nome']
+            )
+        if not kwargs.get('nao_enviar_email', False):
+            self._envia_email_codae_homologa(log_transicao=log_transicao, link_pdf=kwargs['link_pdf'])
 
     @xworkflows.after_transition('terceirizada_inativa')
     def _inativa_homologacao_hook(self, *args, **kwargs):
@@ -449,6 +457,23 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
         justificativa = kwargs.get('justificativa', '')
         log_transicao = self.salvar_log_transicao(
             status_evento=LogSolicitacoesUsuario.CODAE_PEDIU_ANALISE_RECLAMACAO,
+            usuario=user,
+            justificativa=justificativa,
+        )
+        for anexo in kwargs.get('anexos'):
+            arquivo = convert_base64_to_contentfile(anexo.pop('base64'))
+            AnexoLogSolicitacoesUsuario.objects.create(
+                log=log_transicao,
+                arquivo=arquivo,
+                nome=anexo['nome']
+            )
+
+    @xworkflows.after_transition('codae_autorizou_reclamacao')
+    def _codae_autorizou_reclamacao_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        justificativa = kwargs.get('justificativa', '')
+        log_transicao = self.salvar_log_transicao(
+            status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU_RECLAMACAO,
             usuario=user,
             justificativa=justificativa,
         )

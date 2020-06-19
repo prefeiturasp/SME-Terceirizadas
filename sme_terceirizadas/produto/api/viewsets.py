@@ -278,6 +278,47 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'),
                             status=status.HTTP_400_BAD_REQUEST)
 
+    @action(detail=True,
+            permission_classes=[UsuarioCODAEGestaoProduto],
+            methods=['patch'],
+            url_path=constants.CODAE_ACEITA_RECLAMACAO)
+    def codae_aceita_reclamacao(self, request, uuid=None):
+        anexos = request.data.get('anexos', [])
+        justificativa = request.data.get('justificativa', '')
+        homologacao_produto = self.get_object()
+        try:
+            homologacao_produto.codae_autorizou_reclamacao(
+                user=request.user,
+                anexos=anexos,
+                justificativa=justificativa,
+                nao_enviar_email=True
+            )
+            serializer = self.get_serializer(homologacao_produto)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'),
+                            status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True,
+            permission_classes=[UsuarioCODAEGestaoProduto],
+            methods=['patch'],
+            url_path=constants.CODAE_RECUSA_RECLAMACAO)
+    def codae_recusa_reclamacao(self, request, uuid=None):
+        anexos = request.data.get('anexos', [])
+        justificativa = request.data.get('justificativa', '')
+        homologacao_produto = self.get_object()
+        try:
+            homologacao_produto.codae_homologa(
+                user=request.user,
+                anexos=anexos,
+                justificativa=justificativa,
+                nao_enviar_email=True
+            )
+            serializer = self.get_serializer(homologacao_produto)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'),
+                            status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=True,
             permission_classes=[UsuarioCODAEGestaoProduto],
