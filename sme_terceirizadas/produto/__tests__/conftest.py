@@ -101,6 +101,13 @@ def homologacao_produto_homologado(homologacao_produto):
 
 
 @pytest.fixture
+def homologacao_produto_escola_ou_nutri_reclamou(homologacao_produto):
+    homologacao_produto.status = HomologacaoProdutoWorkflow.ESCOLA_OU_NUTRICIONISTA_RECLAMOU
+    homologacao_produto.save()
+    return homologacao_produto
+
+
+@pytest.fixture
 def client_autenticado_vinculo_terceirizada_homologacao(client, django_user_model, escola):
     email = 'test@test.com'
     password = 'bar'

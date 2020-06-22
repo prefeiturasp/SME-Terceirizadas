@@ -101,13 +101,14 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
             HomologacaoDoProduto.workflow_class.CODAE_PEDIU_ANALISE_RECLAMACAO,
             HomologacaoDoProduto.workflow_class.CODAE_SUSPENDEU,
             HomologacaoDoProduto.workflow_class.CODAE_HOMOLOGADO,
-            HomologacaoDoProduto.workflow_class.CODAE_NAO_HOMOLOGADO
+            HomologacaoDoProduto.workflow_class.CODAE_NAO_HOMOLOGADO,
+            HomologacaoDoProduto.workflow_class.CODAE_AUTORIZOU_RECLAMACAO
         ]
 
         if self.request.user.tipo_usuario in [constants.TIPO_USUARIO_TERCEIRIZADA,
                                               constants.TIPO_USUARIO_GESTAO_PRODUTO]:
             lista_status.append(HomologacaoDoProduto.workflow_class.CODAE_QUESTIONADO)
-            lista_status.append(HomologacaoDoProduto.workflow_class.CODAE_AUTORIZOU_RECLAMACAO)
+            lista_status.append(HomologacaoDoProduto.workflow_class.TERCEIRIZADA_RESPONDEU_RECLAMACAO)
             lista_status.append(HomologacaoDoProduto.workflow_class.CODAE_PEDIU_ANALISE_SENSORIAL)
             lista_status.append(HomologacaoDoProduto.workflow_class.CODAE_PENDENTE_HOMOLOGACAO)
 
@@ -118,7 +119,8 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
         for workflow_status in self.get_lista_status():
             sumario.append({
                 'status': workflow_status,
-                'dados': self.get_serializer(query_set.filter(status=workflow_status), many=True).data
+                'dados': self.get_serializer(query_set.filter(status=workflow_status),
+                                             context={'request': self.request}, many=True).data
             })
 
         return sumario
@@ -260,6 +262,68 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
     @action(detail=True,
             permission_classes=[UsuarioCODAEGestaoProduto],
             methods=['patch'],
+            url_path=constants.CODAE_PEDE_ANALISE_RECLAMACAO)
+    def codae_pede_analise_reclamacao(self, request, uuid=None):
+        anexos = request.data.get('anexos', [])
+        justificativa = request.data.get('justificativa', '')
+        homologacao_produto = self.get_object()
+        try:
+            homologacao_produto.codae_pediu_analise_reclamacao(
+                user=request.user,
+                anexos=anexos,
+                justificativa=justificativa
+            )
+            serializer = self.get_serializer(homologacao_produto)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'),
+                            status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True,
+            permission_classes=[UsuarioCODAEGestaoProduto],
+            methods=['patch'],
+            url_path=constants.CODAE_ACEITA_RECLAMACAO)
+    def codae_aceita_reclamacao(self, request, uuid=None):
+        anexos = request.data.get('anexos', [])
+        justificativa = request.data.get('justificativa', '')
+        homologacao_produto = self.get_object()
+        try:
+            homologacao_produto.codae_autorizou_reclamacao(
+                user=request.user,
+                anexos=anexos,
+                justificativa=justificativa,
+                nao_enviar_email=True
+            )
+            serializer = self.get_serializer(homologacao_produto)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'),
+                            status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True,
+            permission_classes=[UsuarioCODAEGestaoProduto],
+            methods=['patch'],
+            url_path=constants.CODAE_RECUSA_RECLAMACAO)
+    def codae_recusa_reclamacao(self, request, uuid=None):
+        anexos = request.data.get('anexos', [])
+        justificativa = request.data.get('justificativa', '')
+        homologacao_produto = self.get_object()
+        try:
+            homologacao_produto.codae_homologa(
+                user=request.user,
+                anexos=anexos,
+                justificativa=justificativa,
+                nao_enviar_email=True
+            )
+            serializer = self.get_serializer(homologacao_produto)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'),
+                            status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True,
+            permission_classes=[UsuarioCODAEGestaoProduto],
+            methods=['patch'],
             url_path=constants.SUSPENDER_PRODUTO)
     def suspender(self, request, uuid=None):
         homologacao_produto = self.get_object()
@@ -354,7 +418,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
     def relatorio(self, request, uuid=None):
         return relatorio_produto_homologacao(request, produto=self.get_object())
 
-    def filtra_por_parametros(self, cleaned_data):  # noqa C901
+    def filtra_por_parametros(self, cleaned_data, request):  # noqa C901
         campos_a_pesquisar = {}
         for (chave, valor) in cleaned_data.items():
             if valor != '' and valor is not None:
@@ -375,7 +439,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
 
         queryset = self.get_queryset().filter(**campos_a_pesquisar)
         page = self.paginate_queryset(queryset)
-        serializer = self.get_serializer(page, many=True)
+        serializer = self.get_serializer(page, context={'request': request}, many=True)
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False,
@@ -387,7 +451,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         if not form.is_valid():
             return Response(form.errors)
 
-        return self.filtra_por_parametros(form.cleaned_data)
+        return self.filtra_por_parametros(form.cleaned_data, request)
 
     # TODO: Remover esse endpoint legado refatorando o frontend
     @action(detail=False,
@@ -405,7 +469,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
             HomologacaoProdutoWorkflow.ESCOLA_OU_NUTRICIONISTA_RECLAMOU
         ]
 
-        return self.filtra_por_parametros(form_data)
+        return self.filtra_por_parametros(form_data, request)
 
 
 class ProtocoloDeDietaEspecialViewSet(viewsets.ModelViewSet):

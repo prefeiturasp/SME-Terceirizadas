@@ -216,7 +216,8 @@ class HomologacaoDoProduto(TemChaveExterna, CriadoEm, CriadoPor, FluxoHomologaca
 
 
 class ReclamacaoDeProduto(TemChaveExterna, CriadoEm, CriadoPor):
-    homologacao_de_produto = models.ForeignKey('HomologacaoDoProduto', on_delete=models.DO_NOTHING)
+    homologacao_de_produto = models.ForeignKey('HomologacaoDoProduto', on_delete=models.DO_NOTHING,
+                                               related_name='reclamacoes')
     reclamante_registro_funcional = models.CharField('RF/CRN/CRF', max_length=50)
     reclamante_cargo = models.CharField('Cargo', max_length=100)
     reclamante_nome = models.CharField('Nome', max_length=255)
