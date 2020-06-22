@@ -2,7 +2,7 @@ import datetime
 
 from rest_framework import serializers
 
-from ....dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
+from ....dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer, LogSolicitacoesUsuarioComVinculoSerializer
 from ....escola.api.serializers import VinculoInstituicaoSerializer
 from ....terceirizada.api.serializers.serializers import TerceirizadaSimplesSerializer
 from ...models import (
@@ -104,7 +104,7 @@ class ReclamacaoDeProdutoSerializer(serializers.ModelSerializer):
 class HomologacaoProdutoSimplesSerializer(serializers.ModelSerializer):
     reclamacoes = serializers.SerializerMethodField()
     rastro_terceirizada = TerceirizadaSimplesSerializer()
-    logs = LogSolicitacoesUsuarioSerializer(many=True)
+    logs = LogSolicitacoesUsuarioComVinculoSerializer(many=True)
 
     def get_reclamacoes(self, obj):
         return ReclamacaoDeProdutoSerializer(

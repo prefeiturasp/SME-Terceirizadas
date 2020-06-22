@@ -446,7 +446,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
                     campos_a_pesquisar['homologacoes__criado_em__gte'] = valor
                 elif chave == 'data_final':
                     campos_a_pesquisar['homologacoes__criado_em__lt'] = valor + timedelta(days=1)
-                elif chave == 'status':
+                elif chave == 'status' and len(valor) > 0:
                     campos_a_pesquisar['homologacoes__status__in'] = valor
 
         queryset = self.get_queryset().filter(**campos_a_pesquisar)
