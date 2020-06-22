@@ -1,5 +1,5 @@
 from django.db import models
-from sequences import Sequence
+from sequences import get_last_value, get_next_value
 
 from ..dados_comuns.behaviors import (
     Ativavel,
@@ -14,7 +14,6 @@ from ..dados_comuns.fluxo_status import FluxoHomologacaoProduto
 from ..dados_comuns.models import LogSolicitacoesUsuario, TemplateMensagem
 from ..perfil.models.perfil import Vinculo
 
-protocolo_analise_sensorial_id = Sequence('protocolo_analise_sensorial')
 MAX_NUMERO_PROTOCOLO = 6
 
 
@@ -174,7 +173,7 @@ class HomologacaoDoProduto(TemChaveExterna, CriadoEm, CriadoPor, FluxoHomologaca
         return template.assunto, corpo
 
     def gera_protocolo_analise_sensorial(self):
-        id_sequecial = str(protocolo_analise_sensorial_id.get_next_value())
+        id_sequecial = str(get_next_value('protocolo_analise_sensorial'))
         serial = ''
         for _ in range(MAX_NUMERO_PROTOCOLO - len(id_sequecial)):
             serial = serial + '0'
@@ -185,12 +184,12 @@ class HomologacaoDoProduto(TemChaveExterna, CriadoEm, CriadoPor, FluxoHomologaca
 
     @classmethod
     def retorna_numero_do_protocolo(cls):
-        id_sequecial = str(protocolo_analise_sensorial_id.get_last_value())
+        id_sequecial = get_last_value('protocolo_analise_sensorial')
         serial = ''
         if id_sequecial is None:
-            id_sequecial = str(protocolo_analise_sensorial_id.get_next_value())
+            id_sequecial = '1'
         else:
-            id_sequecial = str(protocolo_analise_sensorial_id.get_last_value() + 1)
+            id_sequecial = str(get_last_value('protocolo_analise_sensorial') + 1)
         for _ in range(MAX_NUMERO_PROTOCOLO - len(id_sequecial)):
             serial = serial + '0'
         serial = serial + str(id_sequecial)
