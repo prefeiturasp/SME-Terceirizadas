@@ -23,8 +23,8 @@ class LogSolicitacoesUsuarioComVinculoSerializer(LogSolicitacoesUsuarioSerialize
 
     class Meta:
         model = LogSolicitacoesUsuario
-        fields = ('status_evento_explicacao', 'usuario', 'criado_em', 'descricao', 'justificativa', 'resposta_sim_nao', 'nome_instituicao')
-
+        fields = ('status_evento_explicacao', 'usuario', 'criado_em', 'descricao',
+                  'justificativa', 'resposta_sim_nao', 'nome_instituicao')
 
 
 class ConfiguracaoEmailSerializer(serializers.ModelSerializer):

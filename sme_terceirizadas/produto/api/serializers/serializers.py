@@ -2,7 +2,10 @@ import datetime
 
 from rest_framework import serializers
 
-from ....dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer, LogSolicitacoesUsuarioComVinculoSerializer
+from ....dados_comuns.api.serializers import (
+    LogSolicitacoesUsuarioComVinculoSerializer,
+    LogSolicitacoesUsuarioSerializer
+)
 from ....escola.api.serializers import VinculoInstituicaoSerializer
 from ....terceirizada.api.serializers.serializers import TerceirizadaSimplesSerializer
 from ...models import (
