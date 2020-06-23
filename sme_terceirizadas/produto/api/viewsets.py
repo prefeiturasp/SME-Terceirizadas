@@ -101,13 +101,14 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
             HomologacaoDoProduto.workflow_class.CODAE_PEDIU_ANALISE_RECLAMACAO,
             HomologacaoDoProduto.workflow_class.CODAE_SUSPENDEU,
             HomologacaoDoProduto.workflow_class.CODAE_HOMOLOGADO,
-            HomologacaoDoProduto.workflow_class.CODAE_NAO_HOMOLOGADO
+            HomologacaoDoProduto.workflow_class.CODAE_NAO_HOMOLOGADO,
+            HomologacaoDoProduto.workflow_class.CODAE_AUTORIZOU_RECLAMACAO
         ]
 
         if self.request.user.tipo_usuario in [constants.TIPO_USUARIO_TERCEIRIZADA,
                                               constants.TIPO_USUARIO_GESTAO_PRODUTO]:
             lista_status.append(HomologacaoDoProduto.workflow_class.CODAE_QUESTIONADO)
-            lista_status.append(HomologacaoDoProduto.workflow_class.CODAE_AUTORIZOU_RECLAMACAO)
+            lista_status.append(HomologacaoDoProduto.workflow_class.TERCEIRIZADA_RESPONDEU_RECLAMACAO)
             lista_status.append(HomologacaoDoProduto.workflow_class.CODAE_PEDIU_ANALISE_SENSORIAL)
             lista_status.append(HomologacaoDoProduto.workflow_class.CODAE_PENDENTE_HOMOLOGACAO)
 

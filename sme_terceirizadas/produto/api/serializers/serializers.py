@@ -6,6 +6,7 @@ from ....dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer, L
 from ....escola.api.serializers import VinculoInstituicaoSerializer
 from ....terceirizada.api.serializers.serializers import TerceirizadaSimplesSerializer
 from ...models import (
+    AnexoReclamacaoDeProduto,
     Fabricante,
     HomologacaoDoProduto,
     ImagemDoProduto,
@@ -14,7 +15,8 @@ from ...models import (
     Marca,
     Produto,
     ProtocoloDeDietaEspecial,
-    TipoDeInformacaoNutricional, ReclamacaoDeProduto, AnexoReclamacaoDeProduto
+    ReclamacaoDeProduto,
+    TipoDeInformacaoNutricional
 )
 
 
