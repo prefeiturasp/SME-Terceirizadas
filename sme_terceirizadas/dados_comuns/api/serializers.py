@@ -18,6 +18,15 @@ class LogSolicitacoesUsuarioSerializer(serializers.ModelSerializer):
         fields = ('status_evento_explicacao', 'usuario', 'criado_em', 'descricao', 'justificativa', 'resposta_sim_nao')
 
 
+class LogSolicitacoesUsuarioComVinculoSerializer(LogSolicitacoesUsuarioSerializer):
+    nome_instituicao = serializers.CharField(source='usuario.vinculo_atual.instituicao.nome')
+
+    class Meta:
+        model = LogSolicitacoesUsuario
+        fields = ('status_evento_explicacao', 'usuario', 'criado_em', 'descricao',
+                  'justificativa', 'resposta_sim_nao', 'nome_instituicao')
+
+
 class ConfiguracaoEmailSerializer(serializers.ModelSerializer):
     class Meta:
         model = DynamicEmailConfiguration

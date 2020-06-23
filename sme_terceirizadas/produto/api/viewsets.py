@@ -347,6 +347,19 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'),
                             status=status.HTTP_400_BAD_REQUEST)
 
+    @action(detail=True,
+            permission_classes=[UsuarioTerceirizada],
+            methods=['patch'],
+            url_path=constants.TERCEIRIZADA_RESPONDE_RECLAMACAO)
+    def terceirizada_responde_reclamacao(self, request, uuid=None):
+        homologacao_produto = self.get_object()
+        try:
+            homologacao_produto.terceirizada_responde_reclamacao(request=request)
+            return Response('Reclamação respondida')
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'),
+                            status=status.HTTP_400_BAD_REQUEST)
+
     @action(detail=False, methods=['get'], url_path='numero_protocolo')
     def numero_relatorio_analise_sensorial(self, request):
         homologacao = HomologacaoDoProduto()
@@ -434,7 +447,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
                     campos_a_pesquisar['homologacoes__criado_em__gte'] = valor
                 elif chave == 'data_final':
                     campos_a_pesquisar['homologacoes__criado_em__lt'] = valor + timedelta(days=1)
-                elif chave == 'status':
+                elif chave == 'status' and len(valor) > 0:
                     campos_a_pesquisar['homologacoes__status__in'] = valor
 
         queryset = self.get_queryset().filter(**campos_a_pesquisar)
