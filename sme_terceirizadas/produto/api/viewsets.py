@@ -388,6 +388,12 @@ class ProdutoViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['GET'], url_path='lista-nomes')
     def lista_produtos(self, request):
         query_set = Produto.objects.filter(ativo=True)
+        filtrar_por = request.query_params.get('filtrar_por', None)
+        if filtrar_por == 'reclamacoes/':
+            query_set = query_set.filter(homologacoes__reclamacoes__isnull=False,
+                                         homologacoes__status__in=['CODAE_PEDIU_ANALISE_RECLAMACAO',
+                                                                            'TERCEIRIZADA_RESPONDEU_RECLAMACAO',
+                                                                            'ESCOLA_OU_NUTRICIONISTA_RECLAMOU'])
         response = {'results': ProdutoSimplesSerializer(query_set, many=True).data}
         return Response(response)
 
@@ -505,6 +511,12 @@ class FabricanteViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['GET'], url_path='lista-nomes')
     def lista_fabricantes(self, request):
         query_set = Fabricante.objects.all()
+        filtrar_por = request.query_params.get('filtrar_por', None)
+        if filtrar_por == 'reclamacoes/':
+            query_set = query_set.filter(produto__homologacoes__reclamacoes__isnull=False,
+                                         produto__homologacoes__status__in=['CODAE_PEDIU_ANALISE_RECLAMACAO',
+                                                                            'TERCEIRIZADA_RESPONDEU_RECLAMACAO',
+                                                                            'ESCOLA_OU_NUTRICIONISTA_RECLAMOU'])
         response = {'results': FabricanteSimplesSerializer(query_set, many=True).data}
         return Response(response)
 
@@ -517,6 +529,12 @@ class MarcaViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['GET'], url_path='lista-nomes')
     def lista_marcas(self, request):
         query_set = Marca.objects.all()
+        filtrar_por = request.query_params.get('filtrar_por', None)
+        if filtrar_por == 'reclamacoes/':
+            query_set = query_set.filter(produto__homologacoes__reclamacoes__isnull=False,
+                                         produto__homologacoes__status__in=['CODAE_PEDIU_ANALISE_RECLAMACAO',
+                                                                            'TERCEIRIZADA_RESPONDEU_RECLAMACAO',
+                                                                            'ESCOLA_OU_NUTRICIONISTA_RECLAMOU'])
         response = {'results': MarcaSimplesSerializer(query_set, many=True).data}
         return Response(response)
 
