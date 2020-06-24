@@ -216,7 +216,7 @@ class HomologacaoDoProduto(TemChaveExterna, CriadoEm, CriadoPor, FluxoHomologaca
 
 
 class ReclamacaoDeProduto(TemChaveExterna, CriadoEm, CriadoPor):
-    homologacao_de_produto = models.ForeignKey('HomologacaoDoProduto', on_delete=models.DO_NOTHING,
+    homologacao_de_produto = models.ForeignKey('HomologacaoDoProduto', on_delete=models.CASCADE,
                                                related_name='reclamacoes')
     reclamante_registro_funcional = models.CharField('RF/CRN/CRF', max_length=50)
     reclamante_cargo = models.CharField('Cargo', max_length=100)
@@ -229,7 +229,7 @@ class ReclamacaoDeProduto(TemChaveExterna, CriadoEm, CriadoPor):
 
 
 class AnexoReclamacaoDeProduto(TemChaveExterna):
-    reclamacao_de_produto = models.ForeignKey(ReclamacaoDeProduto, related_name='anexos', on_delete=models.DO_NOTHING)
+    reclamacao_de_produto = models.ForeignKey(ReclamacaoDeProduto, related_name='anexos', on_delete=models.CASCADE)
     nome = models.CharField(max_length=255, blank=True)
     arquivo = models.FileField()
 
