@@ -392,8 +392,8 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         if filtrar_por == 'reclamacoes/':
             query_set = query_set.filter(homologacoes__reclamacoes__isnull=False,
                                          homologacoes__status__in=['CODAE_PEDIU_ANALISE_RECLAMACAO',
-                                                                            'TERCEIRIZADA_RESPONDEU_RECLAMACAO',
-                                                                            'ESCOLA_OU_NUTRICIONISTA_RECLAMOU'])
+                                                                   'TERCEIRIZADA_RESPONDEU_RECLAMACAO',
+                                                                   'ESCOLA_OU_NUTRICIONISTA_RECLAMOU'])
         response = {'results': ProdutoSimplesSerializer(query_set, many=True).data}
         return Response(response)
 
