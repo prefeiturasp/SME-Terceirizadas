@@ -68,6 +68,7 @@ class ImagemDoProduto(TemChaveExterna):
 
 class Produto(Ativavel, CriadoEm, CriadoPor, Nomeavel, TemChaveExterna, TemIdentificadorExternoAmigavel):
     eh_para_alunos_com_dieta = models.BooleanField(default=False)
+
     protocolos = models.ManyToManyField(ProtocoloDeDietaEspecial,
                                         related_name='protocolos',
                                         help_text='Protocolos do produto.',
@@ -155,6 +156,7 @@ class HomologacaoDoProduto(TemChaveExterna, CriadoEm, CriadoPor, FluxoHomologaca
     produto = models.ForeignKey(Produto, on_delete=models.CASCADE, related_name='homologacoes')
     necessita_analise_sensorial = models.BooleanField(default=False)
     protocolo_analise_sensorial = models.CharField(max_length=8, blank=True)
+    pdf_gerado = models.BooleanField(default=False)
 
     @property
     def template_mensagem(self):

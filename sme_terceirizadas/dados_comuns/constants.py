@@ -58,6 +58,7 @@ FILTRO_STATUS_HOMOLOGACAO = (f'(?P<filtro_aplicado>({RASCUNHO}|{CODAE_PENDENTE_H
                              f'{CODAE_PEDIU_ANALISE_RECLAMACAO}|{CODAE_AUTORIZOU_RECLAMACAO})+)')
 
 RELATORIO = 'relatorio'
+RELATORIO_ANALISE = 'relatorio-analise-sensorial'
 PROTOCOLO = 'protocolo'
 
 #
@@ -92,6 +93,8 @@ TERCEIRIZADA_INATIVA_HOMOLOGACAO = 'terceirizada-inativa'
 ESCOLA_OU_NUTRI_RECLAMA = 'escola-ou-nutri-reclama'
 SUSPENDER_PRODUTO = 'suspender'
 ATIVAR_PRODUTO = 'ativar'
+GERAR_PDF = 'gerar-pdf'
+AGUARDANDO_ANALISE_SENSORIAL = 'aguardando-analise-sensorial'
 TERCEIRIZADA_RESPONDE_ANALISE_SENSORIAL = 'terceirizada-responde-analise-sensorial'
 TERCEIRIZADA_RESPONDE_RECLAMACAO = 'terceirizada-responde-reclamacao'
 CODAE_PEDE_ANALISE_RECLAMACAO = 'codae-pede-analise-reclamacao'
