@@ -9,8 +9,8 @@ from xworkflows import InvalidTransitionError
 from ...dados_comuns import constants
 from ...dados_comuns.fluxo_status import HomologacaoProdutoWorkflow
 from ...dados_comuns.permissions import PermissaoParaReclamarDeProduto, UsuarioCODAEGestaoProduto, UsuarioTerceirizada
-from ...perfil.api.serializers import UsuarioSerializer
 from ...relatorios.relatorios import relatorio_produto_homologacao
+from ...terceirizada.api.serializers.serializers import TerceirizadaSimplesSerializer
 from ..forms import ProdutoPorParametrosForm
 from ..models import (
     Fabricante,
@@ -498,7 +498,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
                 produtos_atual = [produto]
             elif ultima_terceirizada != produto.criado_por:
                 agrupado.append({
-                    'terceirizada': UsuarioSerializer(ultima_terceirizada).data,
+                    'terceirizada': TerceirizadaSimplesSerializer(ultima_terceirizada.vinculo_atual.instituicao).data,
                     'produtos': [
                         self.get_serializer(prod, context={'request': request}).data for prod in produtos_atual
                     ]
@@ -510,7 +510,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
 
         if len(produtos_atual) > 0:
             agrupado.append({
-                'terceirizada': UsuarioSerializer(ultima_terceirizada).data,
+                'terceirizada': TerceirizadaSimplesSerializer(ultima_terceirizada.vinculo_atual.instituicao).data,
                 'produtos': [self.get_serializer(prod, context={'request': request}).data for prod in produtos_atual]
             })
 
