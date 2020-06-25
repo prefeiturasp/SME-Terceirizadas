@@ -144,7 +144,12 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
     def solicitacoes_homologacao_por_status(self, request, filtro_aplicado=constants.RASCUNHO):
         query_set = self.get_queryset_dashboard()
         if filtro_aplicado:
-            query_set = query_set.filter(status=filtro_aplicado.upper())
+            if filtro_aplicado == 'codae_pediu_analise_reclamacao':
+                query_set = query_set.filter(status__in=['ESCOLA_OU_NUTRICIONISTA_RECLAMOU',
+                                                         'CODAE_PEDIU_ANALISE_RECLAMACAO',
+                                                         'TERCEIRIZADA_RESPONDEU_RECLAMACAO'])
+            else:
+                query_set = query_set.filter(status=filtro_aplicado.upper())
         serializer = self.get_serializer if filtro_aplicado != constants.RASCUNHO else HomologacaoProdutoSerializer
         response = {'results': serializer(query_set, context={'request': request}, many=True).data}
         return Response(response)
