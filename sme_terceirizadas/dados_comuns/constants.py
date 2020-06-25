@@ -59,6 +59,7 @@ FILTRO_STATUS_HOMOLOGACAO = (f'(?P<filtro_aplicado>({RASCUNHO}|{CODAE_PENDENTE_H
 
 RELATORIO = 'relatorio'
 RELATORIO_ANALISE = 'relatorio-analise-sensorial'
+RELATORIO_RECEBIMENTO = 'relatorio-analise-sensorial-recebimento'
 PROTOCOLO = 'protocolo'
 
 #

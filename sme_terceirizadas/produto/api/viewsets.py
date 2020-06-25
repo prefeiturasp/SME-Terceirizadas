@@ -9,7 +9,11 @@ from xworkflows import InvalidTransitionError
 from ...dados_comuns import constants
 from ...dados_comuns.fluxo_status import HomologacaoProdutoWorkflow
 from ...dados_comuns.permissions import PermissaoParaReclamarDeProduto, UsuarioCODAEGestaoProduto, UsuarioTerceirizada
-from ...relatorios.relatorios import relatorio_produto_analise_sensorial, relatorio_produto_homologacao
+from ...relatorios.relatorios import (
+    relatorio_produto_analise_sensorial,
+    relatorio_produto_analise_sensorial_recebimento,
+    relatorio_produto_homologacao
+)
 from ..forms import ProdutoPorParametrosForm
 from ..models import (
     Fabricante,
@@ -462,6 +466,11 @@ class ProdutoViewSet(viewsets.ModelViewSet):
             methods=['get'])
     def relatorio_analise_sensorial(self, request, uuid=None):
         return relatorio_produto_analise_sensorial(request, produto=self.get_object())
+
+    @action(detail=True, url_path=constants.RELATORIO_RECEBIMENTO,
+            methods=['get'])
+    def relatorio_analise_sensorial_recebimento(self, request, uuid=None):
+        return relatorio_produto_analise_sensorial_recebimento(request, produto=self.get_object())
 
     def filtra_por_parametros(self, cleaned_data, request):  # noqa C901
         campos_a_pesquisar = {}
