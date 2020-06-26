@@ -45,8 +45,6 @@ django-coverage-plugin='==1.6.0'  # https://github.com/nedbat/django_coverage_pl
 pytest-django='==3.4.7'  # https://github.com/pytest-dev/pytest-django
 flower = "==0.9.3"
 isort = "==4.3.21"
-django-compressor = "==2.4"
-libsass = "==0.19.4"
 flake8-isort = "==2.8.0"
 
 [packages]
@@ -90,6 +88,8 @@ django-prometheus = "==1.1.0"
 # Relatórios
 weasyprint = "==50"
 django-sass-processor = "==0.8"
+django-compressor = "==2.4"
+libsass = "==0.19.4"
 
 [requires]
 python_version = "3.6"
