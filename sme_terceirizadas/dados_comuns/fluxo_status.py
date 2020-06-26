@@ -405,7 +405,7 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
             html=html
         )
 
-    def _partes_interessadas_codae_ativa(self):
+    def _partes_interessadas_codae_ativa_ou_suspende(self):
         queryset = Usuario.objects.filter(
             vinculos__ativo=True,
             vinculos__perfil__nome__in=[
@@ -417,44 +417,17 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
         )
         return [usuario.email for usuario in queryset]
 
-    def _envia_email_codae_ativa(self, log_transicao):
+    def _envia_email_codae_ativa_ou_suspende(self, log_transicao, template_name, assunto):
         html = render_to_string(
-            template_name='produto_codae_ativa.html',
+            template_name=template_name,
             context={
                 'produto': self.produto,
                 'log_transicao': log_transicao,
             }
         )
         envia_email_em_massa_task.delay(
-            assunto='[SIGPAE] Ativação de Produto',
-            emails=self._partes_interessadas_codae_ativa(),
-            corpo='',
-            html=html
-        )
-
-    def _partes_interessadas_codae_suspende(self):
-        queryset = Usuario.objects.filter(
-            vinculos__ativo=True,
-            vinculos__perfil__nome__in=[
-                'ADMINISTRADOR_ESCOLA',
-                'DIRETOR',
-                'DIRETOR CEI',
-                'ADMINISTRADOR_TERCEIRIZADA',
-                'NUTRI_ADMIN_RESPONSAVEL']
-        )
-        return [usuario.email for usuario in queryset]
-
-    def _envia_email_codae_suspende(self, log_transicao):
-        html = render_to_string(
-            template_name='produto_codae_suspende.html',
-            context={
-                'produto': self.produto,
-                'log_transicao': log_transicao,
-            }
-        )
-        envia_email_em_massa_task.delay(
-            assunto='[SIGPAE] Suspensão de Produto',
-            emails=self._partes_interessadas_codae_suspende(),
+            assunto=assunto,
+            emails=self._partes_interessadas_codae_ativa_ou_suspende(),
             corpo='',
             html=html
         )
@@ -591,7 +564,11 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
             LogSolicitacoesUsuario.CODAE_SUSPENDEU,
             kwargs['request']
         )
-        self._envia_email_codae_suspende(log_suspensao)
+        self._envia_email_codae_ativa_ou_suspende(
+            log_suspensao,
+            template_name='produto_codae_suspende.html',
+            assunto='[SIGPAE] Suspensão de Produto'
+        )
 
     @xworkflows.after_transition('codae_ativa')
     def _codae_ativa_hook(self, *args, **kwargs):
@@ -599,7 +576,11 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
             LogSolicitacoesUsuario.CODAE_HOMOLOGADO,
             kwargs['request']
         )
-        self._envia_email_codae_ativa(log_ativacao)
+        self._envia_email_codae_ativa_ou_suspende(
+            log_ativacao,
+            template_name='produto_codae_ativa.html',
+            assunto='[SIGPAE] Ativação de Produto'
+        )
 
     @xworkflows.after_transition('terceirizada_responde_reclamacao')
     def _terceirizada_responde_reclamacao_hook(self, *args, **kwargs):
