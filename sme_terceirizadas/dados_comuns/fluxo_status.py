@@ -385,7 +385,7 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
         )
 
     def _partes_interessadas_codae_pede_analise_sensorial(self):
-        return [self.logs.first().usuario.email]
+        return [self.criado_por.email]
 
     def _envia_email_codae_pede_analise_sensorial(self, log_transicao, link_pdf):
         html = render_to_string(
