@@ -480,7 +480,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
     def serializa_agrupamento(self, agrupamento):
         serializado = []
 
-        for grupo in agrupamento:
+        for grupo in agrupamento['results']:
             serializado.append({
                 'terceirizada': TerceirizadaSimplesSerializer(grupo['terceirizada']).data,
                 'produtos': [
@@ -516,9 +516,6 @@ class ProdutoViewSet(viewsets.ModelViewSet):
             return Response(form.errors)
 
         queryset = self.get_queryset_filtrado(form.cleaned_data, request)
-        queryset = sorted(
-            queryset,
-            key=lambda i: i.criado_por.vinculo_atual.instituicao.nome.lower())
 
         dados_agrupados = agrupa_por_terceirizada(queryset)
 

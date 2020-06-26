@@ -4,7 +4,11 @@ def agrupa_por_terceirizada(queryset):  # noqa C901
     total_produtos = 0
     ultima_terceirizada = None
 
-    for produto in queryset:
+    sorted_queryset = sorted(
+        queryset,
+        key=lambda i: i.criado_por.vinculo_atual.instituicao.nome.lower())
+
+    for produto in sorted_queryset:
         if ultima_terceirizada is None:
             ultima_terceirizada = produto.criado_por.vinculo_atual.instituicao
             produtos_atual = [produto]
