@@ -1,0 +1,13 @@
+{% extends 'email_base.html' %}
+{% load email_templatetags %}
+
+{% block conteudo %}
+  <div>Caros,</div>
+  <br/>
+  <div>Informo que o produto {{ produto.nome }} foi suspenso.</div>
+  <br/>
+  <p><b>Justificativa:</b></p>
+  <div>{{ log_transicao.justificativa | safe }}</div>
+  <div>Atenciosamente,</div>
+  <div>Coordenadoria de Alimentação Escolar - CODAE.</div>
+{% endblock %}
