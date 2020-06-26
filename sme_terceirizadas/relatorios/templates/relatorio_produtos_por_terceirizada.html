@@ -1,0 +1,97 @@
+{% include 'relatorio_base.html' %}
+{% load static %}
+{% load sass_tags %}
+
+<html>
+<head>
+  <link rel="stylesheet" href="{% sass_src 'css/cabecalho.scss' %}" type="text/css">
+  <link rel="stylesheet" href="{% sass_src 'css/produtos_terceirizada.scss' %}" type="text/css">
+</head>
+<header class="header">
+  <section class="titulo-e-logo">
+    <img src="{% static 'images/LOGO_PB_POSITIVO.png' %}" alt=""/>
+    <h1>SIGPAE - RELATÓRIO DE PRODUTO</h1>
+  </section>
+  <table class="tabela-cabecalho tabela-arredondada">
+    {% if filtros.data_inicial or filtros.data_final %}
+      <tr>
+        {% if filtros.data_inicial and filtros.data_final %}
+          <td rowspan="2">PERÍODO PESQUISADO:</td>
+          <td>De: {{ filtros.data_inicial|date:"d/m/Y" }}</td>
+        {% else %}
+          <td>PERÍODO PESQUISADO:</td>
+          {% if filtros.data_inicial %}
+            <td>A partir de: {{ filtros.data_inicial|date:"d/m/Y" }}</td>
+          {% elif filtros.data_final %}
+            <td>Antes de e até: {{ filtros.data_final|date:"d/m/Y" }}</td>
+          {% endif %}
+        {% endif %}
+      </tr>
+      {% if filtros.data_inicial and filtros.data_final %}
+        <tr>
+          <td>Até: {{ filtros.data_final|date:"d/m/Y" }}</td>
+        </tr>
+      {% endif %}
+    {% endif %}
+    {% if filtros.nome_fabricante %}
+      <tr>
+        <td>Fabricante: {{ filtros.nome_fabricante }}</td>
+      </tr>
+    {% endif %}
+    {% if filtros.nome_marca %}
+      <tr>
+        <td>Marca: {{ filtros.nome_marca }}</td>
+      </tr>
+    {% endif %}
+    {% if filtros.nome_produto %}
+      <tr>
+        <td>Produto: {{ filtros.nome_produto }}</td>
+      </tr>
+    {% endif %}
+    {% if filtros.nome_terceirizada %}
+      <tr>
+        <td>Terceirizada: {{ filtros.nome_terceirizada }}</td>
+      </tr>
+    {% endif %}
+  </table>
+</header>
+<body>
+  <div class="tabela-filtro">
+    <h5>Relatório de produto</h5>
+    <table>
+      <thead>
+        <tr>
+          <th>Terceirizada</th>
+          <th>Nome do produto</th>
+          <th>Marca</th>
+          <th>Dieta Especial</th>
+          <th>Contém Alergênicos</th>
+          <th>Data de cadastro</th>
+          <th>Data de homologação</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for grupo in dados_agrupados.results %}
+          {% for produto in grupo.produtos %}
+            <tr>
+              <td>{{ grupo.terceirizada.nome }}</td>
+              <td>{{ produto.nome }}</td>
+              <td>{{ produto.marca.nome }}</td>
+              <td>{{ produto.eh_para_alunos_com_dieta|yesno:"Sim,Não" }}</td>
+              <td>{{ produto.tem_aditivos_alergenicos|yesno:"Sim,Não" }}</td>
+              <td>{{ produto.criado_em|date:"d/m/Y" }}</td>
+              <td>{{ produto.data_homologacao|date:"d/m/Y" }}</td>
+            </tr>
+          {% endfor %}
+          <tr>
+            <td class="total-grupo" colspan="7">Total de produtos cadastrados por {{ grupo.terceirizada.nome }}: {{ grupo.produtos|length }}</td>
+          </tr>
+        {% endfor %}
+        <tr>
+          <td class="total-geral" colspan="7">Total de produtos cadastrados no período: {{ dados_agrupados.total_produtos }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</body>
+</html>

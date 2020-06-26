@@ -1,0 +1,49 @@
+@import "variaveis";
+
+.tabela-filtro {
+  padding: 0 2em 0 2em;
+
+  h5 {
+    font-size: 16px;
+    line-height: 19px;
+    align-items: center;
+    letter-spacing: 0.25px;
+    color: $preto;
+  }
+
+  table {
+    width: 100%;
+    border: 1px solid $cinza-claro;
+    font-size: 14px;
+    line-height: 16px;
+    color: $cinza;
+    margin-bottom: 0.5em;
+    border-collapse: collapse;
+
+    thead {
+      th {
+        font-weight: bold;
+      }
+    }
+
+    th, td {
+      border: 1px solid $cinza-meio-claro;
+      padding: 0.75em;
+    }
+
+    .total-grupo, .total-geral {
+      text-align: right;
+      padding-right: 28px;
+    }
+
+    .total-grupo {
+      color: $cinza-meio-claro;
+    }
+
+    .total-geral {
+      font-weight: bolder;
+      font-size: 16px;
+    }
+  }
+
+}

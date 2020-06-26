@@ -9,7 +9,7 @@ from xworkflows import InvalidTransitionError
 from ...dados_comuns import constants
 from ...dados_comuns.fluxo_status import HomologacaoProdutoWorkflow
 from ...dados_comuns.permissions import PermissaoParaReclamarDeProduto, UsuarioCODAEGestaoProduto, UsuarioTerceirizada
-from ...relatorios.relatorios import relatorio_produto_homologacao
+from ...relatorios.relatorios import relatorio_produto_homologacao, relatorio_produtos_agrupado_terceirizada
 from ...terceirizada.api.serializers.serializers import TerceirizadaSimplesSerializer
 from ..forms import ProdutoPorParametrosForm
 from ..models import (
@@ -22,6 +22,7 @@ from ..models import (
     ProtocoloDeDietaEspecial,
     RespostaAnaliseSensorial
 )
+from ..utils import agrupa_por_terceirizada
 from .serializers.serializers import (
     FabricanteSerializer,
     FabricanteSimplesSerializer,
@@ -476,7 +477,20 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         queryset = self.get_queryset_filtrado(form.cleaned_data, request)
         return self.paginated_response(queryset)
 
-    @action(detail=False,  # noqa C901
+    def serializa_agrupamento(self, agrupamento):
+        serializado = []
+
+        for grupo in agrupamento:
+            serializado.append({
+                'terceirizada': TerceirizadaSimplesSerializer(grupo['terceirizada']).data,
+                'produtos': [
+                    self.get_serializer(prod, context={'request': self.request}).data for prod in grupo['produtos']
+                ]
+            })
+
+        return serializado
+
+    @action(detail=False,
             methods=['POST'],
             url_path='filtro-por-parametros-agrupado-terceirizada')
     def filtro_por_parametros_agrupado_terceirizada(self, request):
@@ -488,33 +502,28 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         queryset = self.get_queryset_filtrado(form.cleaned_data, request)
         queryset.order_by('criado_por')
 
-        agrupado = []
-        produtos_atual = []
-        ultima_terceirizada = None
+        dados_agrupados = agrupa_por_terceirizada(queryset)
 
-        for produto in queryset:
-            if ultima_terceirizada is None:
-                ultima_terceirizada = produto.criado_por
-                produtos_atual = [produto]
-            elif ultima_terceirizada != produto.criado_por:
-                agrupado.append({
-                    'terceirizada': TerceirizadaSimplesSerializer(ultima_terceirizada.vinculo_atual.instituicao).data,
-                    'produtos': [
-                        self.get_serializer(prod, context={'request': request}).data for prod in produtos_atual
-                    ]
-                })
-                ultima_terceirizada = produto.criado_por
-                produtos_atual = [produto]
-            else:
-                produtos_atual.append(produto)
+        return Response(self.serializa_agrupamento(dados_agrupados))
 
-        if len(produtos_atual) > 0:
-            agrupado.append({
-                'terceirizada': TerceirizadaSimplesSerializer(ultima_terceirizada.vinculo_atual.instituicao).data,
-                'produtos': [self.get_serializer(prod, context={'request': request}).data for prod in produtos_atual]
-            })
+    @action(detail=False,
+            methods=['GET'],
+            url_path='relatorio-por-parametros-agrupado-terceirizada')
+    def relatorio_por_parametros_agrupado_terceirizada(self, request):
+        form = ProdutoPorParametrosForm(request.GET)
 
-        return Response(agrupado)
+        if not form.is_valid():
+            return Response(form.errors)
+
+        queryset = self.get_queryset_filtrado(form.cleaned_data, request)
+        queryset = sorted(
+            queryset,
+            key=lambda i: i.criado_por.vinculo_atual.instituicao.nome.lower())
+
+        dados_agrupados = agrupa_por_terceirizada(queryset)
+
+        return relatorio_produtos_agrupado_terceirizada(
+            request, dados_agrupados, form.cleaned_data)
 
     # TODO: Remover esse endpoint legado refatorando o frontend
     @action(detail=False,
