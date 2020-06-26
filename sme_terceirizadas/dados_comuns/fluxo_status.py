@@ -405,6 +405,33 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
             html=html
         )
 
+    def _partes_interessadas_codae_ativa(self):
+        queryset = Usuario.objects.filter(
+            vinculos__ativo=True,
+            vinculos__perfil__nome__in=[
+                'ADMINISTRADOR_ESCOLA',
+                'DIRETOR',
+                'DIRETOR CEI',
+                'ADMINISTRADOR_TERCEIRIZADA',
+                'NUTRI_ADMIN_RESPONSAVEL']
+        )
+        return [usuario.email for usuario in queryset]
+
+    def _envia_email_codae_ativa(self, log_transicao):
+        html = render_to_string(
+            template_name='produto_codae_ativa.html',
+            context={
+                'produto': self.produto,
+                'log_transicao': log_transicao,
+            }
+        )
+        envia_email_em_massa_task.delay(
+            assunto='[SIGPAE] Ativação de Produto',
+            emails=self._partes_interessadas_codae_ativa(),
+            corpo='',
+            html=html
+        )
+
     @xworkflows.after_transition('inicia_fluxo')
     def _inicia_fluxo_hook(self, *args, **kwargs):
         self._salva_rastro_solicitacao()
@@ -529,6 +556,7 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
                 arquivo=arquivo,
                 nome=anexo['nome']
             )
+        return log_transicao
 
     @xworkflows.after_transition('codae_suspende')
     def _codae_suspende_hook(self, *args, **kwargs):
@@ -539,10 +567,11 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
 
     @xworkflows.after_transition('codae_ativa')
     def _codae_ativa_hook(self, *args, **kwargs):
-        self.salva_log_com_justificativa_e_anexos(
+        log_ativacao = self.salva_log_com_justificativa_e_anexos(
             LogSolicitacoesUsuario.CODAE_HOMOLOGADO,
             kwargs['request']
         )
+        self._envia_email_codae_ativa(log_ativacao)
 
     @xworkflows.after_transition('terceirizada_responde_reclamacao')
     def _terceirizada_responde_reclamacao_hook(self, *args, **kwargs):
