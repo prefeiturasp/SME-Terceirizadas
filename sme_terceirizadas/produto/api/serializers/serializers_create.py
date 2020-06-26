@@ -198,7 +198,7 @@ class RespostaAnaliseSensorialSearilzerCreate(serializers.ModelSerializer):
         for anexo in anexos:
             arquivo = convert_base64_to_contentfile(anexo.pop('base64'))
             AnexoRespostaAnaliseSensorial.objects.create(
-                reclamacao_de_produto=resposta,
+                resposta_analise_sensorial=resposta,
                 arquivo=arquivo,
                 nome=anexo['nome']
             )

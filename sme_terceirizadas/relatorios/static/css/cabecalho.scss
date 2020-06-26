@@ -253,6 +253,37 @@
       width: 215px;
     }
   }
+
+  .assinaturas{
+    margin-top: 1.5em;
+    div{
+      padding-bottom: 1.5em;
+      display: flex;
+      p{
+        margin: 0px;
+        padding: 0px;
+        font-style: normal;
+        font-weight: normal;
+        font-size: 12px;
+        line-height: 14px;
+        display: flex;
+        align-items: center;
+        color: #686868;
+      }
+
+      p:first-child{
+        width: 170px;
+      }
+      p:last-child{
+        width: 560px
+      }
+
+      .assinatura{
+        border-bottom: 1px solid #686868;
+        width: 32px;
+      }
+    }
+  }
 }
 
 .mt{
@@ -376,5 +407,112 @@
     line-height: 13px;
     color: #A4A4A4;
     padding: 0.3em 1em;
+  }
+}
+
+.conteudo-titulo-analise-recebimento{
+  height: 80px;
+  background: #FFFFFF;
+  border: 1px solid #000000;
+  box-sizing: border-box;
+  border-radius: 4px;
+
+  display: flex;
+  justify-content: space-around;
+
+  article{
+    display: flex;
+    flex-direction: column;
+
+    div{
+      height: 39px;
+      display: flex;
+      align-items: center;
+      padding-left: 10px;
+
+      font-size: 12px;
+      line-height: 14px;
+      color: #000000;
+    }
+  }
+
+  article:first-child{
+    width: 449px;
+
+    div:first-child{
+      border-right: 1px solid #000000;
+    }
+    div:last-child{
+      border-right: 1px solid #000000;
+      border-top: 1px solid #000000;
+
+      display: flex;
+      justify-content: space-between;
+
+      p{
+        width: 224px;
+        height: 39px;
+        display: flex;
+        align-items: center;
+      }
+
+      p:last-child{
+        border-left: 1px solid #000000;
+        padding-left: 10px;
+      }
+    }
+  }
+  article:last-child{
+    width: 280px;
+
+    div:last-child{
+      border-top: 1px solid #000000;
+    }
+  }
+}
+
+.conteudo-titulo-analise{
+  height: 80px;
+  background: #FFFFFF;
+  border: 1px solid #000000;
+  box-sizing: border-box;
+  border-radius: 4px;
+
+  display: flex;
+  justify-content: space-around;
+
+  article{
+    display: flex;
+    flex-direction: column;
+
+    div{
+      height: 39px;
+      display: flex;
+      align-items: center;
+      padding-left: 10px;
+
+      font-size: 12px;
+      line-height: 14px;
+      color: #000000;
+    }
+  }
+
+  article:first-child{
+    width: 449px;
+
+    div:first-child{
+      border-right: 1px solid #000000;
+    }
+    div:last-child{
+      border-right: 1px solid #000000;
+      border-top: 1px solid #000000;
+    }
+  }
+  article:last-child{
+    width: 280px;
+
+    div:last-child{
+      border-top: 1px solid #000000;
+    }
   }
 }

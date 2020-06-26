@@ -324,6 +324,30 @@ def relatorio_produto_homologacao(request, produto):
     return response
 
 
+def relatorio_produto_analise_sensorial(request, produto):
+    homologacao = produto.homologacoes.first()
+    terceirizada = homologacao.rastro_terceirizada
+    logs = homologacao.logs
+    lotes = terceirizada.lotes.all()
+    html_string = render_to_string(
+        'homologacao_analise_sensorial.html',
+        {
+            'terceirizada': terceirizada,
+            'homologacao': homologacao,
+            'fluxo': constants.FLUXO_HOMOLOGACAO_PRODUTO,
+            'width': get_width(constants.FLUXO_HOMOLOGACAO_PRODUTO, logs),
+            'produto': produto,
+            'diretorias_regionais': get_diretorias_regionais(lotes),
+            'logs': formata_logs(logs),
+            'ultimo_log': homologacao.logs.last()
+        }
+    )
+    pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
+    response = HttpResponse(pdf_file, content_type='application/pdf')
+    response['Content-Disposition'] = f'filename="produto_homologacao_{produto.id_externo}.pdf"'
+    return response
+
+
 def relatorio_produtos_agrupado_terceirizada(request, dados_agrupados, filtros):
     html_string = render_to_string(
         'relatorio_produtos_por_terceirizada.html',
@@ -335,4 +359,28 @@ def relatorio_produtos_agrupado_terceirizada(request, dados_agrupados, filtros):
     pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
     response = HttpResponse(pdf_file, content_type='application/pdf')
     response['Content-Disposition'] = 'filename="produtos_homologados_por_terceirizada.pdf"'
+    return response
+
+
+def relatorio_produto_analise_sensorial_recebimento(request, produto):
+    homologacao = produto.homologacoes.first()
+    terceirizada = homologacao.rastro_terceirizada
+    logs = homologacao.logs
+    lotes = terceirizada.lotes.all()
+    html_string = render_to_string(
+        'homologacao_analise_sensorial_recebimento.html',
+        {
+            'terceirizada': terceirizada,
+            'homologacao': homologacao,
+            'fluxo': constants.FLUXO_HOMOLOGACAO_PRODUTO,
+            'width': get_width(constants.FLUXO_HOMOLOGACAO_PRODUTO, logs),
+            'produto': produto,
+            'diretorias_regionais': get_diretorias_regionais(lotes),
+            'logs': formata_logs(logs),
+            'ultimo_log': homologacao.logs.last()
+        }
+    )
+    pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
+    response = HttpResponse(pdf_file, content_type='application/pdf')
+    response['Content-Disposition'] = f'filename="produto_homologacao_{produto.id_externo}.pdf"'
     return response

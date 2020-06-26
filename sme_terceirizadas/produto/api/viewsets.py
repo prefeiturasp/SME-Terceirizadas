@@ -9,7 +9,12 @@ from xworkflows import InvalidTransitionError
 from ...dados_comuns import constants
 from ...dados_comuns.fluxo_status import HomologacaoProdutoWorkflow
 from ...dados_comuns.permissions import PermissaoParaReclamarDeProduto, UsuarioCODAEGestaoProduto, UsuarioTerceirizada
-from ...relatorios.relatorios import relatorio_produto_homologacao, relatorio_produtos_agrupado_terceirizada
+from ...relatorios.relatorios import (
+    relatorio_produto_analise_sensorial,
+    relatorio_produto_analise_sensorial_recebimento,
+    relatorio_produto_homologacao,
+    relatorio_produtos_agrupado_terceirizada
+)
 from ...terceirizada.api.serializers.serializers import TerceirizadaSimplesSerializer
 from ..forms import ProdutoPorParametrosForm
 from ..models import (
@@ -373,6 +378,27 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
         protocolo = homologacao.retorna_numero_do_protocolo()
         return Response(protocolo)
 
+    @action(detail=True,
+            permission_classes=[UsuarioTerceirizada],
+            methods=['post'],
+            url_path=constants.GERAR_PDF)
+    def gerar_pdf_homologacao(self, request, uuid=None):
+        homologacao_produto = self.get_object()
+        homologacao_produto.pdf_gerado = True
+        homologacao_produto.save()
+        return Response('PDF Homologação gerado')
+
+    @action(detail=False,
+            permission_classes=[UsuarioTerceirizada],
+            methods=['get'],
+            url_path=constants.AGUARDANDO_ANALISE_SENSORIAL)
+    def homolocoes_aguardando_analise_sensorial(self, request):
+        homologacoes = HomologacaoDoProduto.objects.filter(
+            status=HomologacaoProdutoWorkflow.CODAE_PEDIU_ANALISE_SENSORIAL
+        )
+        serializer = self.get_serializer(homologacoes, many=True)
+        return Response(serializer.data)
+
     def destroy(self, request, *args, **kwargs):
         homologacao_produto = self.get_object()
         if homologacao_produto.pode_excluir:
@@ -448,6 +474,16 @@ class ProdutoViewSet(viewsets.ModelViewSet):
             methods=['get'])
     def relatorio(self, request, uuid=None):
         return relatorio_produto_homologacao(request, produto=self.get_object())
+
+    @action(detail=True, url_path=constants.RELATORIO_ANALISE,
+            methods=['get'])
+    def relatorio_analise_sensorial(self, request, uuid=None):
+        return relatorio_produto_analise_sensorial(request, produto=self.get_object())
+
+    @action(detail=True, url_path=constants.RELATORIO_RECEBIMENTO,
+            methods=['get'])
+    def relatorio_analise_sensorial_recebimento(self, request, uuid=None):
+        return relatorio_produto_analise_sensorial_recebimento(request, produto=self.get_object())
 
     def get_queryset_filtrado(self, cleaned_data, request):  # noqa C901
         campos_a_pesquisar = {}

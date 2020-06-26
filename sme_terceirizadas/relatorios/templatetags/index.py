@@ -119,3 +119,10 @@ def numero_pra_mes(indice):
         10: 'Novembro',
         11: 'Dezembro',
     }[indice]
+
+
+@register.filter
+def retira_p_texto(texto):
+    texto_sem_primeira_tag = texto[3:]
+    texto_sem_tag = texto_sem_primeira_tag[:-5]
+    return texto_sem_tag
