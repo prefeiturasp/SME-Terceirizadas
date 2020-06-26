@@ -9,7 +9,8 @@ from xworkflows import InvalidTransitionError
 from ...dados_comuns import constants
 from ...dados_comuns.fluxo_status import HomologacaoProdutoWorkflow
 from ...dados_comuns.permissions import PermissaoParaReclamarDeProduto, UsuarioCODAEGestaoProduto, UsuarioTerceirizada
-from ...relatorios.relatorios import relatorio_produto_homologacao
+from ...relatorios.relatorios import relatorio_produto_homologacao, relatorio_produtos_agrupado_terceirizada
+from ...terceirizada.api.serializers.serializers import TerceirizadaSimplesSerializer
 from ..forms import ProdutoPorParametrosForm
 from ..models import (
     Fabricante,
@@ -21,6 +22,7 @@ from ..models import (
     ProtocoloDeDietaEspecial,
     RespostaAnaliseSensorial
 )
+from ..utils import agrupa_por_terceirizada
 from .serializers.serializers import (
     FabricanteSerializer,
     FabricanteSimplesSerializer,
@@ -385,6 +387,11 @@ class ProdutoViewSet(viewsets.ModelViewSet):
     serializer_class = ProdutoSerializer
     queryset = Produto.objects.all()
 
+    def paginated_response(self, queryset):
+        page = self.paginate_queryset(queryset)
+        serializer = self.get_serializer(page, context={'request': self.request}, many=True)
+        return self.get_paginated_response(serializer.data)
+
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update']:
             return ProdutoSerializerCreate
@@ -442,7 +449,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
     def relatorio(self, request, uuid=None):
         return relatorio_produto_homologacao(request, produto=self.get_object())
 
-    def filtra_por_parametros(self, cleaned_data, request):  # noqa C901
+    def get_queryset_filtrado(self, cleaned_data, request):  # noqa C901
         campos_a_pesquisar = {}
         for (chave, valor) in cleaned_data.items():
             if valor != '' and valor is not None:
@@ -461,10 +468,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
                 elif chave == 'status' and len(valor) > 0:
                     campos_a_pesquisar['homologacoes__status__in'] = valor
 
-        queryset = self.get_queryset().filter(**campos_a_pesquisar)
-        page = self.paginate_queryset(queryset)
-        serializer = self.get_serializer(page, context={'request': request}, many=True)
-        return self.get_paginated_response(serializer.data)
+        return self.get_queryset().filter(**campos_a_pesquisar)
 
     @action(detail=False,
             methods=['POST'],
@@ -475,7 +479,53 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         if not form.is_valid():
             return Response(form.errors)
 
-        return self.filtra_por_parametros(form.cleaned_data, request)
+        queryset = self.get_queryset_filtrado(form.cleaned_data, request)
+        return self.paginated_response(queryset)
+
+    def serializa_agrupamento(self, agrupamento):
+        serializado = []
+
+        for grupo in agrupamento['results']:
+            serializado.append({
+                'terceirizada': TerceirizadaSimplesSerializer(grupo['terceirizada']).data,
+                'produtos': [
+                    self.get_serializer(prod, context={'request': self.request}).data for prod in grupo['produtos']
+                ]
+            })
+
+        return serializado
+
+    @action(detail=False,
+            methods=['POST'],
+            url_path='filtro-por-parametros-agrupado-terceirizada')
+    def filtro_por_parametros_agrupado_terceirizada(self, request):
+        form = ProdutoPorParametrosForm(request.data)
+
+        if not form.is_valid():
+            return Response(form.errors)
+
+        queryset = self.get_queryset_filtrado(form.cleaned_data, request)
+        queryset.order_by('criado_por')
+
+        dados_agrupados = agrupa_por_terceirizada(queryset)
+
+        return Response(self.serializa_agrupamento(dados_agrupados))
+
+    @action(detail=False,
+            methods=['GET'],
+            url_path='relatorio-por-parametros-agrupado-terceirizada')
+    def relatorio_por_parametros_agrupado_terceirizada(self, request):
+        form = ProdutoPorParametrosForm(request.GET)
+
+        if not form.is_valid():
+            return Response(form.errors)
+
+        queryset = self.get_queryset_filtrado(form.cleaned_data, request)
+
+        dados_agrupados = agrupa_por_terceirizada(queryset)
+
+        return relatorio_produtos_agrupado_terceirizada(
+            request, dados_agrupados, form.cleaned_data)
 
     # TODO: Remover esse endpoint legado refatorando o frontend
     @action(detail=False,
@@ -493,7 +543,8 @@ class ProdutoViewSet(viewsets.ModelViewSet):
             HomologacaoProdutoWorkflow.ESCOLA_OU_NUTRICIONISTA_RECLAMOU
         ]
 
-        return self.filtra_por_parametros(form_data, request)
+        queryset = self.get_queryset_filtrado(form_data, request)
+        return self.paginated_response(queryset)
 
 
 class ProtocoloDeDietaEspecialViewSet(viewsets.ModelViewSet):

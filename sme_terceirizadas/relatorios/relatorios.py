@@ -322,3 +322,17 @@ def relatorio_produto_homologacao(request, produto):
     response = HttpResponse(pdf_file, content_type='application/pdf')
     response['Content-Disposition'] = f'filename="produto_homologacao_{produto.id_externo}.pdf"'
     return response
+
+
+def relatorio_produtos_agrupado_terceirizada(request, dados_agrupados, filtros):
+    html_string = render_to_string(
+        'relatorio_produtos_por_terceirizada.html',
+        {
+            'dados_agrupados': dados_agrupados,
+            'filtros': filtros
+        }
+    )
+    pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
+    response = HttpResponse(pdf_file, content_type='application/pdf')
+    response['Content-Disposition'] = 'filename="produtos_homologados_por_terceirizada.pdf"'
+    return response
