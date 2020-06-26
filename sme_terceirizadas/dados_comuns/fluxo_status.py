@@ -384,6 +384,27 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
             html=html
         )
 
+    def _partes_interessadas_codae_pede_analise_sensorial(self):
+        return [self.criado_por.email]
+
+    def _envia_email_codae_pede_analise_sensorial(self, log_transicao, link_pdf):
+        html = render_to_string(
+            template_name='produto_codae_pede_analise_sensorial.html',
+            context={
+                'titulo': 'Solicitação de Análise Sensorial',
+                'produto': self.produto,
+                'protocolo': self.protocolo_analise_sensorial,
+                'log_transicao': log_transicao,
+                'link_pdf': link_pdf
+            }
+        )
+        envia_email_em_massa_task.delay(
+            assunto='[SIGPAE] Solicitação de Análise Sensorial',
+            emails=self._partes_interessadas_codae_pede_analise_sensorial(),
+            corpo='',
+            html=html
+        )
+
     @xworkflows.after_transition('inicia_fluxo')
     def _inicia_fluxo_hook(self, *args, **kwargs):
         self._salva_rastro_solicitacao()
@@ -440,9 +461,11 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
     def _codae_pede_analise_sensorial_hook(self, *args, **kwargs):
         user = kwargs['user']
         justificativa = kwargs.get('justificativa', '')
-        self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_PEDIU_ANALISE_SENSORIAL,
-                                  usuario=user,
-                                  justificativa=justificativa)
+        log_transicao = self.salvar_log_transicao(
+            status_evento=LogSolicitacoesUsuario.CODAE_PEDIU_ANALISE_SENSORIAL,
+            usuario=user,
+            justificativa=justificativa)
+        self._envia_email_codae_pede_analise_sensorial(log_transicao=log_transicao, link_pdf=kwargs['link_pdf'])
 
     @xworkflows.after_transition('terceirizada_responde_analise_sensorial')
     def _terceirizada_responde_analise_sensorial_hook(self, *args, **kwargs):

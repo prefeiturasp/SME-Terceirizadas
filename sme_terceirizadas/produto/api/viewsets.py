@@ -240,7 +240,13 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
         homologacao_produto = self.get_object()
         try:
             justificativa = request.data.get('justificativa', '')
-            homologacao_produto.codae_pede_analise_sensorial(user=request.user, justificativa=justificativa)
+            homologacao_produto.codae_pede_analise_sensorial(
+                user=request.user, justificativa=justificativa,
+                link_pdf=reverse(
+                    'Produtos-relatorio',
+                    args=[homologacao_produto.produto.uuid],
+                    request=request
+                ))
             homologacao_produto.gera_protocolo_analise_sensorial()
             serializer = self.get_serializer(homologacao_produto)
             return Response(serializer.data)
