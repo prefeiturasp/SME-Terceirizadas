@@ -81,9 +81,6 @@ DJANGO_APPS = [
     'django.contrib.admin',
 ]
 THIRD_PARTY_APPS = [
-    'allauth',
-    # 'allauth.account',
-    # 'allauth.socialaccount',
     'crispy_forms',
     'django_prometheus',
     'rest_framework',

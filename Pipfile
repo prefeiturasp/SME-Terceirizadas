@@ -90,7 +90,6 @@ weasyprint = "==50"
 django-sass-processor = "==0.8"
 django-compressor = "==2.4"
 libsass = "==0.19.4"
-django-allauth = "*"
 django-crispy-forms = "*"
 
 [requires]
