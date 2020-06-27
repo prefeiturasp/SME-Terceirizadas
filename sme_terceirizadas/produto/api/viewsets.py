@@ -546,7 +546,13 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         if not form.is_valid():
             return Response(form.errors)
 
-        queryset = self.get_queryset_filtrado(form.cleaned_data, request)
+        form_data = form.cleaned_data.copy()
+        form_data['status'] = [
+            HomologacaoProdutoWorkflow.CODAE_HOMOLOGADO,
+            HomologacaoProdutoWorkflow.ESCOLA_OU_NUTRICIONISTA_RECLAMOU
+        ]
+
+        queryset = self.get_queryset_filtrado(form_data, request)
         queryset.order_by('criado_por')
 
         dados_agrupados = agrupa_por_terceirizada(queryset)
@@ -562,12 +568,18 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         if not form.is_valid():
             return Response(form.errors)
 
-        queryset = self.get_queryset_filtrado(form.cleaned_data, request)
+        form_data = form.cleaned_data.copy()
+        form_data['status'] = [
+            HomologacaoProdutoWorkflow.CODAE_HOMOLOGADO,
+            HomologacaoProdutoWorkflow.ESCOLA_OU_NUTRICIONISTA_RECLAMOU
+        ]
+
+        queryset = self.get_queryset_filtrado(form_data, request)
 
         dados_agrupados = agrupa_por_terceirizada(queryset)
 
         return relatorio_produtos_agrupado_terceirizada(
-            request, dados_agrupados, form.cleaned_data)
+            request, dados_agrupados, form_data)
 
     # TODO: Remover esse endpoint legado refatorando o frontend
     @action(detail=False,
