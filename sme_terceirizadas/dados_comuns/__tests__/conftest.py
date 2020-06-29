@@ -160,3 +160,42 @@ def escola():
 ])
 def dias_sem_cardapio(request):
     return request.param
+
+
+@pytest.fixture(params=[
+    (datetime.date(datetime.datetime.now().year - 1, 5, 26),
+     'Inversão de dia de cardapio deve ser solicitada no ano corrente'),
+    (datetime.date(datetime.datetime.now().year + 1, 1, 1),
+     'Inversão de dia de cardapio deve ser solicitada no ano corrente'),
+    (datetime.date(datetime.datetime.now().year + 2, 12, 1),
+     'Inversão de dia de cardapio deve ser solicitada no ano corrente')
+])
+def data_inversao_ano_diferente(request):
+    return request.param
+
+
+@pytest.fixture(params=[
+    (datetime.date(2019, 5, 26), True),
+    (datetime.date(2019, 1, 1), True),
+    (datetime.date(2019, 12, 31), True)
+])
+def data_inversao_mesmo_ano(request):
+    return request.param
+
+
+@pytest.fixture
+def client_autenticado_coordenador_codae(client, django_user_model):
+    email, password, rf, cpf = ('cogestor_1@sme.prefeitura.sp.gov.br', 'adminadmin', '0000001', '44426575052')
+    user = django_user_model.objects.create_user(password=password, email=email, registro_funcional=rf, cpf=cpf)
+    client.login(email=email, password=password)
+
+    codae = mommy.make('Codae', nome='CODAE', uuid='b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd')
+
+    perfil_coordenador = mommy.make('Perfil', nome='COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA', ativo=True,
+                                    uuid='41c20c8b-7e57-41ed-9433-ccb92e8afaf1')
+    mommy.make('Lote', uuid='143c2550-8bf0-46b4-b001-27965cfcd107')
+    hoje = datetime.date.today()
+    mommy.make('Vinculo', usuario=user, instituicao=codae, perfil=perfil_coordenador,
+               data_inicial=hoje, ativo=True)
+
+    return client

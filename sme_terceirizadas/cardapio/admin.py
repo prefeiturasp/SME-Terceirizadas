@@ -15,6 +15,7 @@ from .models import (
     SubstituicaoAlimentacaoNoPeriodoEscolarCEI,
     SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE,
     SuspensaoAlimentacao,
+    SuspensaoAlimentacaoDaCEI,
     TipoAlimentacao,
     VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
 )
@@ -23,6 +24,7 @@ admin.site.register(TipoAlimentacao)
 admin.site.register(InversaoCardapio)
 admin.site.register(MotivoAlteracaoCardapio)
 admin.site.register(SubstituicaoAlimentacaoNoPeriodoEscolar)
+admin.site.register(SuspensaoAlimentacaoDaCEI)
 admin.site.register(MotivoSuspensao)
 admin.site.register(HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolar)
 

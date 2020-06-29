@@ -7,7 +7,7 @@ from weasyprint import HTML
 from ..dados_comuns.models import LogSolicitacoesUsuario
 from ..kit_lanche.models import EscolaQuantidade
 from . import constants
-from .utils import formata_logs, get_width
+from .utils import formata_logs, get_diretorias_regionais, get_width
 
 
 def relatorio_filtro_periodo(request, query_set_consolidado, escola_nome='', dre_nome=''):
@@ -30,6 +30,7 @@ def relatorio_filtro_periodo(request, query_set_consolidado, escola_nome='', dre
             'query_set_consolidado': query_set_consolidado
         }
     )
+    # TODO: unificar as próximas quatro linhas em uma função
     pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
     response = HttpResponse(pdf_file, content_type='application/pdf')
     response['Content-Disposition'] = f'filename="relatorio_filtro_de_{data_inicial}_ate_{data_final}.pdf"'
@@ -78,6 +79,25 @@ def relatorio_alteracao_cardapio(request, solicitacao):
     logs = solicitacao.logs
     html_string = render_to_string(
         'solicitacao_alteracao_cardapio.html',
+        {'escola': escola,
+         'solicitacao': solicitacao,
+         'substituicoes': substituicoes,
+         'fluxo': constants.FLUXO_PARTINDO_ESCOLA,
+         'width': get_width(constants.FLUXO_PARTINDO_ESCOLA, solicitacao.logs),
+         'logs': formata_logs(logs)}
+    )
+    pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
+    response = HttpResponse(pdf_file, content_type='application/pdf')
+    response['Content-Disposition'] = f'filename="alteracao_cardapio_{solicitacao.id_externo}.pdf"'
+    return response
+
+
+def relatorio_alteracao_cardapio_cei(request, solicitacao):
+    escola = solicitacao.rastro_escola
+    substituicoes = solicitacao.substituicoes_cei_periodo_escolar
+    logs = solicitacao.logs
+    html_string = render_to_string(
+        'solicitacao_alteracao_cardapio_cei.html',
         {'escola': escola,
          'solicitacao': solicitacao,
          'substituicoes': substituicoes,
@@ -171,6 +191,25 @@ def relatorio_inclusao_alimentacao_normal(request, solicitacao):
     return response
 
 
+def relatorio_inclusao_alimentacao_cei(request, solicitacao):
+    escola = solicitacao.rastro_escola
+    logs = solicitacao.logs
+    html_string = render_to_string(
+        'solicitacao_inclusao_alimentacao_cei.html',
+        {
+            'escola': escola,
+            'solicitacao': solicitacao,
+            'fluxo': constants.FLUXO_PARTINDO_ESCOLA,
+            'width': get_width(constants.FLUXO_PARTINDO_ESCOLA, solicitacao.logs),
+            'logs': formata_logs(logs)
+        }
+    )
+    pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
+    response = HttpResponse(pdf_file, content_type='application/pdf')
+    response['Content-Disposition'] = f'filename="inclusao_alimentacao_{solicitacao.id_externo}.pdf"'
+    return response
+
+
 def relatorio_kit_lanche_passeio(request, solicitacao):
     escola = solicitacao.rastro_escola
     logs = solicitacao.logs
@@ -178,6 +217,28 @@ def relatorio_kit_lanche_passeio(request, solicitacao):
     solicitacao.observacao = observacao
     html_string = render_to_string(
         'solicitacao_kit_lanche_passeio.html',
+        {
+            'escola': escola,
+            'solicitacao': solicitacao,
+            'quantidade_kits': solicitacao.solicitacao_kit_lanche.kits.all().count() * solicitacao.quantidade_alunos,
+            'fluxo': constants.FLUXO_PARTINDO_ESCOLA,
+            'width': get_width(constants.FLUXO_PARTINDO_ESCOLA, solicitacao.logs),
+            'logs': formata_logs(logs)
+        }
+    )
+    pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
+    response = HttpResponse(pdf_file, content_type='application/pdf')
+    response['Content-Disposition'] = f'filename="solicitacao_avulsa_{solicitacao.id_externo}.pdf"'
+    return response
+
+
+def relatorio_kit_lanche_passeio_cei(request, solicitacao):
+    escola = solicitacao.rastro_escola
+    logs = solicitacao.logs
+    observacao = solicitacao.solicitacao_kit_lanche.descricao
+    solicitacao.observacao = observacao
+    html_string = render_to_string(
+        'solicitacao_kit_lanche_passeio_cei.html',
         {
             'escola': escola,
             'solicitacao': solicitacao,
@@ -237,4 +298,89 @@ def relatorio_suspensao_de_alimentacao(request, solicitacao):
     pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
     response = HttpResponse(pdf_file, content_type='application/pdf')
     response['Content-Disposition'] = f'filename="solicitacao_suspensao_{solicitacao.id_externo}.pdf"'
+    return response
+
+
+def relatorio_produto_homologacao(request, produto):
+    homologacao = produto.homologacoes.first()
+    terceirizada = homologacao.rastro_terceirizada
+    logs = homologacao.logs
+    lotes = terceirizada.lotes.all()
+    html_string = render_to_string(
+        'homologacao_produto.html',
+        {
+            'terceirizada': terceirizada,
+            'homologacao': homologacao,
+            'fluxo': constants.FLUXO_HOMOLOGACAO_PRODUTO,
+            'width': get_width(constants.FLUXO_HOMOLOGACAO_PRODUTO, logs),
+            'produto': produto,
+            'diretorias_regionais': get_diretorias_regionais(lotes),
+            'logs': formata_logs(logs)
+        }
+    )
+    pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
+    response = HttpResponse(pdf_file, content_type='application/pdf')
+    response['Content-Disposition'] = f'filename="produto_homologacao_{produto.id_externo}.pdf"'
+    return response
+
+
+def relatorio_produto_analise_sensorial(request, produto):
+    homologacao = produto.homologacoes.first()
+    terceirizada = homologacao.rastro_terceirizada
+    logs = homologacao.logs
+    lotes = terceirizada.lotes.all()
+    html_string = render_to_string(
+        'homologacao_analise_sensorial.html',
+        {
+            'terceirizada': terceirizada,
+            'homologacao': homologacao,
+            'fluxo': constants.FLUXO_HOMOLOGACAO_PRODUTO,
+            'width': get_width(constants.FLUXO_HOMOLOGACAO_PRODUTO, logs),
+            'produto': produto,
+            'diretorias_regionais': get_diretorias_regionais(lotes),
+            'logs': formata_logs(logs),
+            'ultimo_log': homologacao.logs.last()
+        }
+    )
+    pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
+    response = HttpResponse(pdf_file, content_type='application/pdf')
+    response['Content-Disposition'] = f'filename="produto_homologacao_{produto.id_externo}.pdf"'
+    return response
+
+
+def relatorio_produtos_agrupado_terceirizada(request, dados_agrupados, filtros):
+    html_string = render_to_string(
+        'relatorio_produtos_por_terceirizada.html',
+        {
+            'dados_agrupados': dados_agrupados,
+            'filtros': filtros
+        }
+    )
+    pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
+    response = HttpResponse(pdf_file, content_type='application/pdf')
+    response['Content-Disposition'] = 'filename="produtos_homologados_por_terceirizada.pdf"'
+    return response
+
+
+def relatorio_produto_analise_sensorial_recebimento(request, produto):
+    homologacao = produto.homologacoes.first()
+    terceirizada = homologacao.rastro_terceirizada
+    logs = homologacao.logs
+    lotes = terceirizada.lotes.all()
+    html_string = render_to_string(
+        'homologacao_analise_sensorial_recebimento.html',
+        {
+            'terceirizada': terceirizada,
+            'homologacao': homologacao,
+            'fluxo': constants.FLUXO_HOMOLOGACAO_PRODUTO,
+            'width': get_width(constants.FLUXO_HOMOLOGACAO_PRODUTO, logs),
+            'produto': produto,
+            'diretorias_regionais': get_diretorias_regionais(lotes),
+            'logs': formata_logs(logs),
+            'ultimo_log': homologacao.logs.last()
+        }
+    )
+    pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
+    response = HttpResponse(pdf_file, content_type='application/pdf')
+    response['Content-Disposition'] = f'filename="produto_homologacao_{produto.id_externo}.pdf"'
     return response

@@ -127,6 +127,20 @@ def solicitacao_avulsa(escola):
 
 
 @pytest.fixture
+def solicitacao_cei(escola):
+    mommy.make('escola.EscolaPeriodoEscolar', escola=escola, quantidade_alunos=500)
+    mommy.make(TemplateMensagem, tipo=TemplateMensagem.SOLICITACAO_KIT_LANCHE_AVULSA)
+    kits = mommy.make(models.KitLanche, _quantity=3)
+    solicitacao_kit_lanche = mommy.make(models.SolicitacaoKitLanche, kits=kits, data=datetime.date(2000, 1, 1))
+    return mommy.make(models.SolicitacaoKitLancheCEIAvulsa,
+                      local=fake.text()[:160],
+                      solicitacao_kit_lanche=solicitacao_kit_lanche,
+                      escola=escola,
+                      rastro_escola=escola,
+                      rastro_dre=escola.diretoria_regional)
+
+
+@pytest.fixture
 def solicitacao_avulsa_rascunho(solicitacao_avulsa):
     solicitacao_avulsa.status = PedidoAPartirDaEscolaWorkflow.RASCUNHO
     solicitacao_avulsa.quantidade_alunos = 200
@@ -453,7 +467,7 @@ def kits_avulsos_param_erro_serializer(request):
 
 @pytest.fixture(params=[
     # qtd_alunos_escola, qtd_alunos_pedido, dia
-    (100, 100, datetime.date(2020, 1, 1)),
+    (100, 100, datetime.date(2019, 8, 1)),
     (1000, 77, datetime.date(2019, 10, 20)),
     (1000, 700, datetime.date(2019, 10, 20)),
 ])
@@ -463,9 +477,9 @@ def kits_avulsos_param_serializer(request):
 
 @pytest.fixture(params=[
     # qtd_alunos_escola, qtd_alunos_pedido, dia
-    (100, 100, datetime.date(2020, 1, 1)),
     (1000, 77, datetime.date(2019, 10, 20)),
     (1000, 700, datetime.date(2019, 10, 20)),
+    (100, 100, datetime.date(2019, 12, 1)),
 ])
 def kits_unificados_param_serializer(request):
     return request.param

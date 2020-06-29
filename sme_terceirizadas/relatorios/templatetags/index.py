@@ -35,14 +35,18 @@ def class_css(log):
     classe_css = 'pending'
     if log.status_evento_explicacao in ['Solicitação Realizada', 'Escola revisou', 'DRE validou', 'DRE revisou',
                                         'CODAE autorizou', 'Terceirizada tomou ciência', 'Escola solicitou inativação',
-                                        'CODAE autorizou inativação', 'Terceirizada tomou ciência da inativação']:
+                                        'CODAE autorizou inativação', 'Terceirizada tomou ciência da inativação',
+                                        'CODAE homologou', 'CODAE autorizou reclamação']:
         classe_css = 'active'
-    elif log.status_evento_explicacao in ['Escola cancelou', 'DRE cancelou']:
+    elif log.status_evento_explicacao in ['Escola cancelou', 'DRE cancelou', 'Terceirizada cancelou homologação',
+                                          'CODAE suspendeu o produto']:
         classe_css = 'cancelled'
     elif log.status_evento_explicacao in ['DRE não validou', 'CODAE negou', 'Terceirizada recusou',
-                                          'CODAE negou inativação']:
+                                          'CODAE negou inativação', 'CODAE não homologou']:
         classe_css = 'disapproved'
-    elif log.status_evento_explicacao in ['Questionamento pela CODAE']:
+    elif log.status_evento_explicacao in ['Questionamento pela CODAE', 'CODAE pediu correção',
+                                          'CODAE pediu análise sensorial', 'Escola/Nutricionista reclamou do produto',
+                                          'CODAE pediu análise da reclamação']:
         classe_css = 'questioned'
     return classe_css
 
@@ -115,3 +119,10 @@ def numero_pra_mes(indice):
         10: 'Novembro',
         11: 'Dezembro',
     }[indice]
+
+
+@register.filter
+def retira_p_texto(texto):
+    texto_sem_primeira_tag = texto[3:]
+    texto_sem_tag = texto_sem_primeira_tag[:-5]
+    return texto_sem_tag

@@ -1,5 +1,6 @@
 import pytest
 from freezegun import freeze_time
+from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from ..validators import (
@@ -7,6 +8,7 @@ from ..validators import (
     campo_nao_pode_ser_nulo,
     deve_existir_cardapio,
     deve_pedir_com_antecedencia,
+    deve_ser_no_mesmo_ano_corrente,
     dia_util,
     nao_pode_ser_feriado,
     nao_pode_ser_no_passado,
@@ -111,3 +113,15 @@ def test_nao_existe_cardapio(dias_sem_cardapio, escola):
     with pytest.raises(ValidationError,
                        match=f'Escola não possui cardápio para esse dia: {dias_sem_cardapio.strftime("%d-%m-%Y")}'):
         assert deve_existir_cardapio(escola, dias_sem_cardapio)
+
+
+def test_valida_ano_diferente_exception(data_inversao_ano_diferente):
+    data_inversao, esperado = data_inversao_ano_diferente
+    with pytest.raises(serializers.ValidationError, match=esperado):
+        deve_ser_no_mesmo_ano_corrente(data_inversao)
+
+
+@freeze_time('2019-07-10')
+def test_valida_mesmo_ano(data_inversao_mesmo_ano):
+    data_inversao, esperado = data_inversao_mesmo_ano
+    assert deve_ser_no_mesmo_ano_corrente(data_inversao) is esperado

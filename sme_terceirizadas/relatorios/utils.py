@@ -15,3 +15,11 @@ def formata_logs(logs):
 def get_width(fluxo, logs):
     fluxo_utilizado = formata_logs(logs) if len(logs) > len(formata_logs(logs)) else fluxo
     return str(math.floor(99 / len(fluxo_utilizado))) + '%'
+
+
+def get_diretorias_regionais(lotes):
+    diretorias_regionais = []
+    for lote in lotes:
+        if lote.diretoria_regional not in diretorias_regionais:
+            diretorias_regionais.append(lote.diretoria_regional)
+    return diretorias_regionais

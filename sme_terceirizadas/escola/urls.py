@@ -12,6 +12,9 @@ router.register('vinculos-codae-gestao-alimentacao-terceirizada',
                 viewsets.VinculoCODAEGestaoAlimentacaoTerceirizadaViewSet,
                 basename='vinculos-codae-gestao-alimentacao-terceirizada')
 router.register('faixas-etarias', viewsets.FaixaEtariaViewSet, basename='Faixas Etárias')
+router.register('escola-quantidade-alunos-por-periodo-e-faixa-etaria',
+                viewsets.EscolaQuantidadeAlunosPorPeriodoEFaixaViewSet,
+                basename='escola-quantidade-alunos-por-periodo-e-faixa-etaria')
 router.register('escolas-simples', viewsets.EscolaSimplesViewSet, basename='escolas-simples')
 router.register('escolas-simplissima', viewsets.EscolaSimplissimaViewSet, basename='escolas-simplissima')
 router.register('escolas-simplissima-com-dre', viewsets.EscolaSimplissimaComDREViewSet, basename='escolas-simplissima')

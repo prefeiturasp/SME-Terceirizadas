@@ -82,6 +82,21 @@ FLUXO_DIETA_ESPECIAL = [
     }
 ]
 
+FLUXO_HOMOLOGACAO_PRODUTO = [
+    {
+        'titulo': 'Empresa terceirizada',
+        'status': '',
+        'criado_em': '',
+        'usuario': None
+    },
+    {
+        'titulo': 'CODAE',
+        'status': '',
+        'criado_em': '',
+        'usuario': None
+    }
+]
+
 FLUXO_DIETA_ESPECIAL_INATIVACAO_INCOMPLETO = [
     {
         'titulo': 'Solicitação Realizada',

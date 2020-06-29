@@ -173,6 +173,48 @@ class EscolaSimplissimaSerializer(serializers.ModelSerializer):
         fields = ('uuid', 'nome', 'codigo_eol', 'lote')
 
 
+class PeriodoEFaixaEtariaCounterSerializer(serializers.BaseSerializer):
+    def to_representation(self, dados_entrada):
+        """
+        Retorna a quantidade de alunos por período e faixa etária.
+
+        Transforma um objeto no seguinte formato:
+        {
+            'INTEGRAL': {
+                '1234-qwer': 42
+                '5678-asdf': 51
+            },
+            'PARCIAL': ...
+        }
+        em um dicionário no seguinte formato:
+        {
+            'INTEGRAL': [
+                {
+                    'faixa_etaria': {'uuid': '1234-qwer', 'inicio': 12, 'fim': 24},
+                    'quantidade': 42
+                },
+                {
+                    'faixa_etaria': {'uuid': '5678-asdf', 'inicio': 24, 'fim': 48},
+                    'quantidade': 51
+                },
+            ]
+            'PARCIAL': ...
+        }
+        """
+        retorno = {}
+        for (periodo, counter) in dados_entrada.items():
+            if periodo not in retorno:
+                retorno[periodo] = []
+            for (uuid_faixa, quantidade) in counter.items():
+                faixa_etaria = FaixaEtaria.objects.get(uuid=uuid_faixa)
+                retorno[periodo].append({
+                    'faixa_etaria': FaixaEtariaSerializer(faixa_etaria).data,
+                    'quantidade': quantidade
+                })
+
+        return retorno
+
+
 class EscolaCompletaSerializer(serializers.ModelSerializer):
     diretoria_regional = DiretoriaRegionalSimplesSerializer()
     idades = FaixaIdadeEscolarSerializer(many=True)
@@ -290,7 +332,7 @@ class UsuarioDetalheSerializer(serializers.ModelSerializer):
     class Meta:
         model = Usuario
         fields = ('uuid', 'cpf', 'nome', 'email', 'tipo_email', 'registro_funcional', 'tipo_usuario', 'date_joined',
-                  'vinculo_atual', 'crn_numero')
+                  'vinculo_atual', 'crn_numero', 'cargo')
 
 
 class CODAESerializer(serializers.ModelSerializer):

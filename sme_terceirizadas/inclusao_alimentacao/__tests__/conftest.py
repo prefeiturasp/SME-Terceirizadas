@@ -312,7 +312,21 @@ def client_autenticado_vinculo_escola_inclusao(client, django_user_model, escola
     password = 'bar'
     user = django_user_model.objects.create_user(password=password, email=email,
                                                  registro_funcional='8888888')
-    perfil_diretor = mommy.make('Perfil', nome='DIRETOR', ativo=True)
+    perfil_diretor = mommy.make('Perfil', nome=constants.DIRETOR, ativo=True)
+    hoje = datetime.date.today()
+    mommy.make('Vinculo', usuario=user, instituicao=escola, perfil=perfil_diretor,
+               data_inicial=hoje, ativo=True)
+    client.login(email=email, password=password)
+    return client
+
+
+@pytest.fixture
+def client_autenticado_vinculo_escola_cei_inclusao(client, django_user_model, escola, template_inclusao_normal):
+    email = 'test@test.com'
+    password = 'bar'
+    user = django_user_model.objects.create_user(password=password, email=email,
+                                                 registro_funcional='8888888')
+    perfil_diretor = mommy.make('Perfil', nome=constants.DIRETOR_CEI, ativo=True)
     hoje = datetime.date.today()
     mommy.make('Vinculo', usuario=user, instituicao=escola, perfil=perfil_diretor,
                data_inicial=hoje, ativo=True)

@@ -17,6 +17,7 @@ from ...dados_comuns.permissions import (
 from ...escola.models import Escola
 from ...relatorios.relatorios import (
     relatorio_alteracao_cardapio,
+    relatorio_alteracao_cardapio_cei,
     relatorio_inversao_dia_de_cardapio,
     relatorio_suspensao_de_alimentacao
 )
@@ -31,6 +32,7 @@ from ..models import (
     MotivoAlteracaoCardapio,
     MotivoSuspensao,
     SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE,
+    SuspensaoAlimentacaoDaCEI,
     TipoAlimentacao,
     VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
 )
@@ -48,6 +50,7 @@ from .serializers.serializers import (
     MotivoAlteracaoCardapioSerializer,
     MotivoSuspensaoSerializer,
     SubstituicaoDoComboVinculoTipoAlimentoSimplesSerializer,
+    SuspensaoAlimentacaoDaCEISerializer,
     TipoAlimentacaoSerializer,
     VinculoTipoAlimentoSimplesSerializer
 )
@@ -59,7 +62,8 @@ from .serializers.serializers_create import (
     GrupoSuspensaoAlimentacaoCreateSerializer,
     HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolarSerializerCreate,
     InversaoCardapioSerializerCreate,
-    SubstituicaoDoComboVinculoTipoAlimentoSimplesSerializerCreate
+    SubstituicaoDoComboVinculoTipoAlimentoSimplesSerializerCreate,
+    SuspensaoAlimentacaodeCEICreateSerializer
 )
 
 
@@ -378,6 +382,60 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
         return relatorio_inversao_dia_de_cardapio(request, solicitacao=self.get_object())
 
 
+class SuspensaoAlimentacaoDaCEIViewSet(viewsets.ModelViewSet):
+    lookup_field = 'uuid'
+    queryset = SuspensaoAlimentacaoDaCEI.objects.all()
+    permission_classes = (IsAuthenticated,)
+    serializer_class = SuspensaoAlimentacaoDaCEISerializer
+
+    def get_permissions(self):
+        if self.action in ['list', 'update']:
+            self.permission_classes = (IsAdminUser,)
+        elif self.action == 'retrieve':
+            self.permission_classes = (IsAuthenticated, PermissaoParaRecuperarObjeto)
+        elif self.action in ['create', 'destroy']:
+            self.permission_classes = (UsuarioEscola,)
+        return super(SuspensaoAlimentacaoDaCEIViewSet, self).get_permissions()
+
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update']:
+            return SuspensaoAlimentacaodeCEICreateSerializer
+        return SuspensaoAlimentacaoDaCEISerializer
+
+    @action(detail=False, methods=['GET'])
+    def informadas(self, request):
+        informados = SuspensaoAlimentacaoDaCEI.get_informados().order_by('-id')
+        serializer = SuspensaoAlimentacaoDaCEISerializer(informados, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['GET'], permission_classes=(UsuarioEscola,))
+    def meus_rascunhos(self, request):
+        usuario = request.user
+        suspensoes = SuspensaoAlimentacaoDaCEI.get_rascunhos_do_usuario(usuario)
+        page = self.paginate_queryset(suspensoes)
+        serializer = SuspensaoAlimentacaoDaCEISerializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=True, permission_classes=(UsuarioEscola,),
+            methods=['patch'], url_path=constants.ESCOLA_INFORMA_SUSPENSAO)
+    def informa_suspensao(self, request, uuid=None):
+        suspensao_de_alimentacao = self.get_object()
+        try:
+            suspensao_de_alimentacao.informa(user=request.user, )
+            serializer = self.get_serializer(suspensao_de_alimentacao)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+
+    def destroy(self, request, *args, **kwargs):
+        suspensao_de_alimentacao = self.get_object()
+        if suspensao_de_alimentacao.pode_excluir:
+            return super().destroy(request, *args, **kwargs)
+        else:
+            return Response(dict(detail='Você só pode excluir quando o status for RASCUNHO.'),
+                            status=status.HTTP_403_FORBIDDEN)
+
+
 class GrupoSuspensaoAlimentacaoSerializerViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
     queryset = GrupoSuspensaoAlimentacao.objects.all()
@@ -518,6 +576,16 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
         usuario = request.user
         alteracoes_cardapio_rascunho = AlteracaoCardapio.get_rascunhos_do_usuario(usuario)
         page = self.paginate_queryset(alteracoes_cardapio_rascunho)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False, url_path='com-lanche-do-mes-corrente/(?P<escola_uuid>[^/.]+)',
+            permission_classes=(UsuarioEscola,))
+    def minhas_solicitacoes_do_mes_com_lanches(self, request, escola_uuid):
+        alteracoes_cardapio = AlteracaoCardapio.com_lanche_do_mes_corrente(
+            escola_uuid
+        )
+        page = self.paginate_queryset(alteracoes_cardapio)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
@@ -717,6 +785,8 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
 
 
 class AlteracoesCardapioCEIViewSet(AlteracoesCardapioViewSet):
+    queryset = AlteracaoCardapioCEI.objects.all()
+
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update']:
             return AlteracaoCardapioCEISerializerCreate
@@ -731,7 +801,56 @@ class AlteracoesCardapioCEIViewSet(AlteracoesCardapioViewSet):
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
-    queryset = AlteracaoCardapioCEI.objects.all()
+    @action(detail=False,
+            url_path=f'{constants.PEDIDOS_CODAE}/{constants.FILTRO_PADRAO_PEDIDOS}',
+            permission_classes=[UsuarioCODAEGestaoAlimentacao])
+    def solicitacoes_codae(self, request, filtro_aplicado=constants.SEM_FILTRO):
+        # TODO: colocar regras de codae CODAE aqui...
+        usuario = request.user
+        codae = usuario.vinculo_atual.instituicao
+        alteracoes_cardapio = codae.alteracoes_cardapio_cei_das_minhas(
+            filtro_aplicado
+        )
+
+        page = self.paginate_queryset(alteracoes_cardapio)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False,
+            url_path=f'{constants.PEDIDOS_DRE}/{constants.FILTRO_PADRAO_PEDIDOS}',
+            permission_classes=[UsuarioDiretoriaRegional])
+    def solicitacoes_diretoria_regional(self, request, filtro_aplicado=constants.SEM_FILTRO):
+        # TODO: colocar regras de DRE aqui...
+        usuario = request.user
+        dre = usuario.vinculo_atual.instituicao
+        alteracoes_cardapio = dre.alteracoes_cardapio_cei_das_minhas_escolas(
+            filtro_aplicado
+        )
+
+        page = self.paginate_queryset(alteracoes_cardapio)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False,
+            url_path=f'{constants.PEDIDOS_TERCEIRIZADA}/{constants.FILTRO_PADRAO_PEDIDOS}',
+            permission_classes=[UsuarioTerceirizada])
+    def solicitacoes_terceirizada(self, request, filtro_aplicado=constants.SEM_FILTRO):
+        # TODO: colocar regras de Terceirizada aqui...
+        usuario = request.user
+        terceirizada = usuario.vinculo_atual.instituicao
+        alteracoes_cardapio = terceirizada.alteracoes_cardapio_cei_das_minhas(
+            filtro_aplicado
+        )
+
+        page = self.paginate_queryset(alteracoes_cardapio)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=True,
+            methods=['GET'],
+            url_path=f'{constants.RELATORIO}')
+    def relatorio(self, request, uuid=None):
+        return relatorio_alteracao_cardapio_cei(request, solicitacao=self.get_object())
 
 
 class MotivosAlteracaoCardapioViewSet(viewsets.ReadOnlyModelViewSet):

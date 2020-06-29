@@ -5,6 +5,7 @@ from ....dados_comuns.validators import (
     campo_deve_ser_deste_tipo,
     campo_nao_pode_ser_nulo,
     deve_pedir_com_antecedencia,
+    deve_ser_no_mesmo_ano_corrente,
     nao_pode_ser_no_passado
 )
 from ....escola.models import DiretoriaRegional, Escola
@@ -40,6 +41,7 @@ class SolicitacaoKitLancheCreationSerializer(serializers.ModelSerializer):
     def validate_data(self, data):
         nao_pode_ser_no_passado(data)
         deve_pedir_com_antecedencia(data)
+        deve_ser_no_mesmo_ano_corrente(data)
         return data
 
     def validate(self, attrs):
@@ -90,6 +92,7 @@ class SolicitacaoKitLancheAvulsaCreationSerializer(serializers.ModelSerializer):
         campo_deve_ser_deste_tipo(quantidade_aluno_passeio, tipo=int, mensagem='Quantidade de aluno de ser do tipo int')
         nao_pode_ser_no_passado(data_evento)
         deve_pedir_com_antecedencia(data_evento)
+        deve_ser_no_mesmo_ano_corrente(data_evento)
         return attrs
 
     def create(self, validated_data):

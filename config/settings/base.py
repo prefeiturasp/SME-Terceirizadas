@@ -81,13 +81,15 @@ DJANGO_APPS = [
     'django.contrib.admin',
 ]
 THIRD_PARTY_APPS = [
+    'crispy_forms',
     'django_prometheus',
     'rest_framework',
     'rest_framework_swagger',
     'des',  # for email configuration in database
     'django_xworkflows',
     'simple_email_confirmation',
-    'sass_processor'
+    'sass_processor',
+    'sequences.apps.SequencesConfig'
 ]
 LOCAL_APPS = [
     'sme_terceirizadas.perfil.apps.PerfilConfig',
@@ -100,6 +102,7 @@ LOCAL_APPS = [
     'sme_terceirizadas.paineis_consolidados.apps.PaineisConsolidadosConfig',
     'sme_terceirizadas.dieta_especial.apps.DietaEspecialConfig',
     'sme_terceirizadas.relatorios.apps.RelatoriosConfig',
+    'sme_terceirizadas.produto.apps.ProdutoConfig',
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS

@@ -1,0 +1,44 @@
+{% extends 'cabecalho_rodape_solicitacao.html' %}
+{% load index %}
+{% load static %}
+
+{% block conteudo %}
+  <div class="conteudo tabela-sem-borda">
+    {% include "bloco_fluxo_de_status.html" %}
+    {% include "bloco_cabecalho_solicitacao_partindo_escola.html" %}
+    <div class="motivo-local">
+      <div class="info-motivo-alterar-dia" style="margin-bottom: 0.3em">
+        <div>Motivo</div>
+        <div>{{ solicitacao.motivo.nome }}</div>
+        <div>Alterar dia:</div>
+        <div>{{ solicitacao.data }}</div>
+      </div>
+    </div>
+    {% for solicitacao_periodo in solicitacao.substituicoes_cei_periodo_escolar.all %}
+      <h5>Período: {{ solicitacao_periodo.periodo_escolar.nome }}</h5>
+      <p>De: {{ solicitacao_periodo.tipo_alimentacao_de.label }}</p>
+      <p>Para: {{ solicitacao_periodo.tipo_alimentacao_para.label }}</p>
+      <div class="tabela-sem-borda">
+        <table class="">
+          <thead>
+            <tr>
+              <th>Faixa</th>
+              <th>Quantidade</th>
+            </tr>
+          </thead>
+          <tbody>
+          {% for faixa_etaria  in solicitacao_periodo.faixas_etarias.all %}
+            <tr>
+              <td>{{ faixa_etaria.faixa_etaria }}</td>
+              <td>{{ faixa_etaria.quantidade }}</td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% endfor %}
+    {% include "bloco_observacoes.html" %}
+    {% include "bloco_historico_questionamento.html" %}
+    {% include "bloco_historico_cancelamento.html" %}
+  </div>
+{% endblock %}

@@ -7,15 +7,36 @@ from typing import Any
 import environ
 from config.settings.base import URL_CONFIGS
 from des.models import DynamicEmailConfiguration
+from django.conf import settings
 from django.core.files.base import ContentFile
 from django.core.mail import EmailMultiAlternatives, get_connection, send_mail
 from workalendar.america import BrazilSaoPauloCity
 
-from .constants import DAQUI_A_SETE_DIAS, DAQUI_A_TRINTA_DIAS
+from .constants import DAQUI_A_SETE_DIAS, DAQUI_A_TRINTA_DIAS, DOMINIOS_DEV
 
 calendar = BrazilSaoPauloCity()
 
 env = environ.Env()
+
+
+def eh_email_dev(email):
+    for dominio in DOMINIOS_DEV:
+        if email.endswith(dominio):
+            return True
+    return False
+
+
+def remove_emails_dev(lista_emails, modo_debug=settings.DEBUG):
+    """Remove emails que sao usados apenas em desenvolvimento quando a aplicação está em modo produção."""
+    if modo_debug:
+        return lista_emails
+
+    nova_lista = []
+    for email in lista_emails:
+        if not eh_email_dev(email):
+            nova_lista.append(email)
+
+    return nova_lista
 
 
 def envia_email_unico(assunto: str, corpo: str, email: str, template: str, dados_template: Any, html=None):
@@ -34,7 +55,7 @@ def envia_email_em_massa(assunto: str, corpo: str, emails: list, template: str, 
     from_email = config.from_email
     with get_connection() as connection:
         messages = []
-        for email in emails:
+        for email in remove_emails_dev(emails):
             message = EmailMultiAlternatives(assunto, corpo, from_email, [email])
             if html:
                 message.attach_alternative(html, 'text/html')
@@ -119,3 +140,18 @@ def subtrai_meses_de_data(meses, data):
     else:
         novo_dia = data.day
     return datetime.date(novo_ano, novo_mes, novo_dia)
+
+
+def ordena_dias_semana_comeca_domingo(dias_semana):
+    """
+    Obtém uma lista de inteiros onde cada inteiro representa um dia da semana.
+
+    No python, os dias da semana são
+    - 0 = Segunda-feira
+    - 1 = Terça-feira
+    - ...
+    - 6 = Domingo
+
+    A função retorna uma lista de inteiros ordenados sendo que o número 6 sempre será o primeiro número.
+    """
+    return sorted(dias_semana, key=lambda x: -1 if x == 6 else x)

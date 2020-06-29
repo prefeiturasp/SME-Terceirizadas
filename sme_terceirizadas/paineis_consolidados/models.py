@@ -370,7 +370,6 @@ class SolicitacoesEscola(MoldeConsolidado):
                         PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO,
                         PedidoAPartirDaEscolaWorkflow.CODAE_QUESTIONADO,
                         PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO,
-                        InformativoPartindoDaEscolaWorkflow.INFORMADO,
                         # TODO: Bruno. remover essa parte de dieta especial depois da entrega da sprint
                         DietaEspecialWorkflow.CODAE_A_AUTORIZAR
                         ]
@@ -383,8 +382,10 @@ class SolicitacoesEscola(MoldeConsolidado):
                         ]
 
     AUTORIZADOS_STATUS = [PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO,
-                          PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_TOMOU_CIENCIA]
+                          PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_TOMOU_CIENCIA,
+                          InformativoPartindoDaEscolaWorkflow.INFORMADO]
     AUTORIZADOS_EVENTO = [LogSolicitacoesUsuario.TERCEIRIZADA_TOMOU_CIENCIA,
+                          LogSolicitacoesUsuario.INICIO_FLUXO,
                           LogSolicitacoesUsuario.CODAE_AUTORIZOU]
 
     CANCELADOS_STATUS = [PedidoAPartirDaEscolaWorkflow.ESCOLA_CANCELOU]
@@ -761,9 +762,11 @@ class SolicitacoesTerceirizada(MoldeConsolidado):
         terceirizada_uuid = kwargs.get('terceirizada_uuid')
         return cls.objects.filter(
             status_evento__in=[LogSolicitacoesUsuario.CODAE_AUTORIZOU,
+                               LogSolicitacoesUsuario.INICIO_FLUXO,
                                LogSolicitacoesUsuario.TERCEIRIZADA_TOMOU_CIENCIA],
             status_atual__in=[PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO,
-                              PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_TOMOU_CIENCIA],
+                              PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_TOMOU_CIENCIA,
+                              InformativoPartindoDaEscolaWorkflow.INFORMADO],
             terceirizada_uuid=terceirizada_uuid
         ).exclude(tipo_doc=cls.TP_SOL_DIETA_ESPECIAL).distinct().order_by('-data_log')
 
