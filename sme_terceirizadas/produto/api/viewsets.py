@@ -2,6 +2,7 @@ from datetime import timedelta
 
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from xworkflows import InvalidTransitionError
@@ -477,17 +478,17 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         return Response(response)
 
     @action(detail=True, url_path=constants.RELATORIO,
-            methods=['get'])
+            methods=['get'], permission_classes=(AllowAny,))
     def relatorio(self, request, uuid=None):
         return relatorio_produto_homologacao(request, produto=self.get_object())
 
     @action(detail=True, url_path=constants.RELATORIO_ANALISE,
-            methods=['get'])
+            methods=['get'], permission_classes=(AllowAny,))
     def relatorio_analise_sensorial(self, request, uuid=None):
         return relatorio_produto_analise_sensorial(request, produto=self.get_object())
 
     @action(detail=True, url_path=constants.RELATORIO_RECEBIMENTO,
-            methods=['get'])
+            methods=['get'], permission_classes=(AllowAny,))
     def relatorio_analise_sensorial_recebimento(self, request, uuid=None):
         return relatorio_produto_analise_sensorial_recebimento(request, produto=self.get_object())
 
@@ -561,7 +562,8 @@ class ProdutoViewSet(viewsets.ModelViewSet):
 
     @action(detail=False,
             methods=['GET'],
-            url_path='relatorio-por-parametros-agrupado-terceirizada')
+            url_path='relatorio-por-parametros-agrupado-terceirizada',
+            permission_classes=(AllowAny,))
     def relatorio_por_parametros_agrupado_terceirizada(self, request):
         form = ProdutoPorParametrosForm(request.GET)
 
