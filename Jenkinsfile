@@ -136,7 +136,7 @@ pipeline {
         } 
        }
        
-       stage('Build homologacao') {
+       stage('Build HOM') {
          when {
            branch 'homolog'
          }
@@ -170,7 +170,7 @@ pipeline {
         }
        } 
           
-        stage('Deploy homologacao') {
+        stage('Deploy HOM') {
          when {
            branch 'homolog'
          }
