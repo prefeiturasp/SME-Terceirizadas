@@ -229,7 +229,7 @@ pipeline {
         }
        } 
           
-        stage('Build PROD') {
+        stage('Deploy PROD') {
          when {
            branch 'master'
          }
