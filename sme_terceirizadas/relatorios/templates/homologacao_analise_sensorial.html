@@ -28,10 +28,9 @@
       Identificação do Produto
     </h4>
 
-    <article class="duas-informacoes">
+    <article class="uma-informacao">
       <header>
         <p>O produto se destina a alimentação de alunos com dieta especial?</p>
-        <p>Nome do protocolo de dieta especial</p>
       </header>
       <main>
         {% if produto.eh_para_alunos_com_dieta %}
@@ -39,8 +38,6 @@
         {% else %}
         <p>NÃO</p>
         {% endif %}
-
-        <p>{{ homologacao.protocolo_analise_sensorial }}</p>
       </main>
     </article>
 
