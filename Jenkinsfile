@@ -108,7 +108,7 @@ pipeline {
         }
        }        
        
-       stage('Build DEV') {
+       stage('Deploy DEV') {
          when {
            branch 'development'
          }
