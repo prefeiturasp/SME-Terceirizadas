@@ -268,7 +268,7 @@ class RespostaAnaliseSensorial(TemChaveExterna, TemIdentificadorExternoAmigavel,
 
 class AnexoRespostaAnaliseSensorial(TemChaveExterna):
     resposta_analise_sensorial = models.ForeignKey(RespostaAnaliseSensorial, related_name='anexos',
-                                                   on_delete=models.DO_NOTHING)
+                                                   on_delete=models.CASCADE)
     nome = models.CharField(max_length=255, blank=True)
     arquivo = models.FileField()
 
