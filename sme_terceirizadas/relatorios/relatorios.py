@@ -344,7 +344,7 @@ def relatorio_produto_analise_sensorial(request, produto):
     )
     pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
     response = HttpResponse(pdf_file, content_type='application/pdf')
-    response['Content-Disposition'] = f'filename="produto_homologacao_{produto.id_externo}.pdf"'
+    response['Content-Disposition'] = f'filename="produto_homologacao_relatorio_{produto.id_externo}.pdf"'
     return response
 
 
