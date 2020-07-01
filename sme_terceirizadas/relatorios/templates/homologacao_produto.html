@@ -6,8 +6,8 @@
 <section class="corpo-relatorio-produto">
   {% if homologacao.status == 'CODAE_NAO_HOMOLOGADO' %}
     <div class="label">Motivo da recusa de homologação (Data: {{ homologacao.logs.last.criado_em|date:'d/m/Y' }})</div>
-    <article class="detalhes-empresa detalhes-nao-homologacao">
-      <div class="value justificativa">{{ homologacao.logs.last.justificativa|safe }}</div>
+    <article class="detalhes-empresa" style="margin-bottom: 1em;">
+      <div class="value" style="padding: 0.25em;padding-left: 0.75em">{{ homologacao.logs.last.justificativa|safe }}</div>
     </article>
   {% endif %}
   <article class="detalhes-empresa">
