@@ -41,7 +41,8 @@ from .serializers.serializers import (
     ProdutoSerializer,
     ProdutoSimplesSerializer,
     ProtocoloDeDietaEspecialSerializer,
-    ProtocoloSimplesSerializer
+    ProtocoloSimplesSerializer,
+    ReclamacaoDeProdutoSimplesSerializer
 )
 from .serializers.serializers_create import (
     ProdutoSerializerCreate,
@@ -378,6 +379,13 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'),
                             status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['GET'], url_path='reclamacao')
+    def reclamacao_homologao(self, request, uuid=None):
+        homologacao_produto = self.get_object()
+        reclamacao = homologacao_produto.reclamacoes.last()
+        serializer = ReclamacaoDeProdutoSimplesSerializer(reclamacao)
+        return Response(serializer.data)
 
     @action(detail=False, methods=['get'], url_path='numero_protocolo')
     def numero_relatorio_analise_sensorial(self, request):
