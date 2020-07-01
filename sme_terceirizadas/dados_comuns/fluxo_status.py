@@ -388,12 +388,13 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
         return [self.criado_por.email]
 
     def _envia_email_codae_pede_analise_sensorial(self, log_transicao, link_pdf):
+        homologacao = self.produto.homologacoes.last()
         html = render_to_string(
             template_name='produto_codae_pede_analise_sensorial.html',
             context={
                 'titulo': 'Solicitação de Análise Sensorial',
                 'produto': self.produto,
-                'protocolo': self.protocolo_analise_sensorial,
+                'protocolo': homologacao.protocolo_analise_sensorial,
                 'log_transicao': log_transicao,
                 'link_pdf': link_pdf
             }
