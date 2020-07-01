@@ -10,6 +10,7 @@ from .models import (
     Produto,
     ProtocoloDeDietaEspecial,
     ReclamacaoDeProduto,
+    RespostaAnaliseSensorial,
     TipoDeInformacaoNutricional
 )
 
@@ -18,6 +19,7 @@ admin.site.register(InformacaoNutricional)
 admin.site.register(Marca)
 admin.site.register(ProtocoloDeDietaEspecial)
 admin.site.register(ReclamacaoDeProduto)
+admin.site.register(RespostaAnaliseSensorial)
 admin.site.register(TipoDeInformacaoNutricional)
 admin.site.register(HomologacaoDoProduto)
 
