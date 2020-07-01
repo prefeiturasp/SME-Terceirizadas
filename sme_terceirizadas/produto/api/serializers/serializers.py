@@ -106,6 +106,12 @@ class ReclamacaoDeProdutoSerializer(serializers.ModelSerializer):
                   'reclamacao', 'vinculo', 'anexos')
 
 
+class ReclamacaoDeProdutoSimplesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ReclamacaoDeProduto
+        fields = ('reclamacao', 'criado_em')
+
+
 class HomologacaoProdutoSimplesSerializer(serializers.ModelSerializer):
     reclamacoes = serializers.SerializerMethodField()
     rastro_terceirizada = TerceirizadaSimplesSerializer()
