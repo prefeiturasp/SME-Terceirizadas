@@ -141,10 +141,7 @@ pipeline {
            branch 'homolog'
          }
         steps {
-          timeout(time: 24, unit: "HOURS") {
-          // telegramSend("${JOB_NAME}...O Build ${BUILD_DISPLAY_NAME} - Requer uma aprovação para deploy !!!\n Consulte o log para detalhes -> [Job logs](${env.BUILD_URL}console)\n")
-            input message: 'Deseja realizar o deploy?', ok: 'SIM', submitter: 'marcos_nastri, calvin_rossinhole, ollyver_ottoboni, kelwy_oliveira, pedro_walter'
-          }
+          
          sh 'echo Deploying ambiente homologacao'
                 
           // Start JOB para build das imagens Docker e push SME Registry
@@ -175,7 +172,10 @@ pipeline {
            branch 'homolog'
          }
         steps {  
-          //Start JOB deploy Kubernetes 
+          timeout(time: 24, unit: "HOURS") {
+          // telegramSend("${JOB_NAME}...O Build ${BUILD_DISPLAY_NAME} - Requer uma aprovação para deploy !!!\n Consulte o log para detalhes -> [Job logs](${env.BUILD_URL}console)\n")
+            input message: 'Deseja realizar o deploy?', ok: 'SIM', submitter: 'marcos_nastri, calvin_rossinhole, ollyver_ottoboni, kelwy_oliveira, pedro_walter'
+          } 
          
           script {
             step([$class: "RundeckNotifier",
@@ -201,10 +201,7 @@ pipeline {
            branch 'master'
          }
         steps {
-          timeout(time: 24, unit: "HOURS") {
-          // telegramSend("${JOB_NAME}...O Build ${BUILD_DISPLAY_NAME} - Requer uma aprovação para deploy !!!\n Consulte o log para detalhes -> [Job logs](${env.BUILD_URL}console)\n")
-            input message: 'Deseja realizar o deploy?', ok: 'SIM', submitter: 'marcos_nastri, calvin_rossinhole, ollyver_ottoboni, kelwy_oliveira, pedro_walter'
-          }
+          
             sh 'echo Build image docker Produção'
           // Start JOB para build das imagens Docker e push SME Registry
       
@@ -234,6 +231,10 @@ pipeline {
            branch 'master'
          }
         steps {
+          timeout(time: 24, unit: "HOURS") {
+          // telegramSend("${JOB_NAME}...O Build ${BUILD_DISPLAY_NAME} - Requer uma aprovação para deploy !!!\n Consulte o log para detalhes -> [Job logs](${env.BUILD_URL}console)\n")
+            input message: 'Deseja realizar o deploy?', ok: 'SIM', submitter: 'marcos_nastri, calvin_rossinhole, ollyver_ottoboni, kelwy_oliveira, pedro_walter'
+          }
         
           script {
             step([$class: "RundeckNotifier",
