@@ -151,14 +151,18 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
             methods=['GET'],
             url_path=f'filtro-por-status/{constants.FILTRO_STATUS_HOMOLOGACAO}')
     def solicitacoes_homologacao_por_status(self, request, filtro_aplicado=constants.RASCUNHO):
-        query_set = self.get_queryset_dashboard()
+        filtros = {}
         if filtro_aplicado:
             if filtro_aplicado == 'codae_pediu_analise_reclamacao':
-                query_set = query_set.filter(status__in=['ESCOLA_OU_NUTRICIONISTA_RECLAMOU',
-                                                         'CODAE_PEDIU_ANALISE_RECLAMACAO',
-                                                         'TERCEIRIZADA_RESPONDEU_RECLAMACAO'])
+                status__in = ['ESCOLA_OU_NUTRICIONISTA_RECLAMOU',
+                              'CODAE_PEDIU_ANALISE_RECLAMACAO']
+                if request.user.vinculo_atual.perfil.nome in [constants.COORDENADOR_GESTAO_PRODUTO,
+                                                              constants.ADMINISTRADOR_GESTAO_PRODUTO]:
+                    status__in.append('TERCEIRIZADA_RESPONDEU_RECLAMACAO')
+                filtros['status__in'] = status__in
             else:
-                query_set = query_set.filter(status=filtro_aplicado.upper())
+                filtros['status'] = filtro_aplicado.upper()
+        query_set = self.get_queryset_dashboard().filter(**filtros)
         serializer = self.get_serializer if filtro_aplicado != constants.RASCUNHO else HomologacaoProdutoSerializer
         response = {'results': serializer(query_set, context={'request': request}, many=True).data}
         return Response(response)
