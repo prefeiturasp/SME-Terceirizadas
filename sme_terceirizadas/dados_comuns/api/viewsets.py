@@ -8,8 +8,9 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ViewSet
 
+from ... import __version__
 from ..behaviors import DiasSemana, TempoPasseio
-from ..constants import API_VERSION, TEMPO_CACHE_1H, TEMPO_CACHE_6H, obter_dias_uteis_apos_hoje
+from ..constants import TEMPO_CACHE_1H, TEMPO_CACHE_6H, obter_dias_uteis_apos_hoje
 from ..models import CategoriaPerguntaFrequente, PerguntaFrequente, TemplateMensagem
 from ..permissions import UsuarioCODAEGestaoAlimentacao
 from .serializers import (
@@ -26,7 +27,7 @@ class ApiVersion(viewsets.ViewSet):
     permission_classes = [AllowAny]
 
     def list(self, request):
-        return Response({'API_Version': API_VERSION})
+        return Response({'API_Version': __version__})
 
 
 class DiasDaSemanaViewSet(ViewSet):
