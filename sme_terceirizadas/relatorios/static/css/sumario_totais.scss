@@ -3,8 +3,6 @@
 @page {
   margin-bottom: 3em;
   @bottom-left {
-    background: $cor-background-header;
-    color: $cor-texto-padrao;
     content: 'TODO descobiri como passar mensagem dinamicamente...';
     //content: {{ escola.nome }};
     font-size: 10px;
@@ -13,8 +11,6 @@
     margin-top: 1em;
   }
   @bottom-right {
-    background: $cor-background-header;
-    color: $cor-texto-padrao;
     content: counter(page);
     font-size: 10px;
     //width: 5em;
@@ -30,7 +26,6 @@
     font-size: 16px;
     line-height: 19px;
     letter-spacing: 0.25px;
-    color: $cor-texto-padrao;
     margin-bottom: 1em;
     margin-top: 1em;
   }

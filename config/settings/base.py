@@ -81,13 +81,15 @@ DJANGO_APPS = [
     'django.contrib.admin',
 ]
 THIRD_PARTY_APPS = [
+    'crispy_forms',
     'django_prometheus',
     'rest_framework',
     'rest_framework_swagger',
     'des',  # for email configuration in database
     'django_xworkflows',
     'simple_email_confirmation',
-    'sass_processor'
+    'sass_processor',
+    'sequences.apps.SequencesConfig'
 ]
 LOCAL_APPS = [
     'sme_terceirizadas.perfil.apps.PerfilConfig',

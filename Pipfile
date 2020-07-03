@@ -45,8 +45,6 @@ django-coverage-plugin='==1.6.0'  # https://github.com/nedbat/django_coverage_pl
 pytest-django='==3.4.7'  # https://github.com/pytest-dev/pytest-django
 flower = "==0.9.3"
 isort = "==4.3.21"
-django-compressor = "==2.4"
-libsass = "==0.19.4"
 flake8-isort = "==2.8.0"
 
 [packages]
@@ -73,6 +71,7 @@ django-model-utils='==3.1.2'  # https://github.com/jazzband/django-model-utils
 django-redis='==4.10.0'  # https://github.com/niwinz/django-redis
 django-des='==2.4.1' # https://github.com/jamiecounsell/django-des
 django-cors-headers='==3.0.2'   # https://pypi.org/project/django-cors-headers/
+django-sequences='==2.5'  # https://pypi.org/project/django-sequences/
 # Django REST Framework
 # ------------------------------------------------------------------------------
 djangorestframework='==3.9.1'  # https://github.com/encode/django-rest-framework
@@ -89,6 +88,9 @@ django-prometheus = "==1.1.0"
 # Relatórios
 weasyprint = "==50"
 django-sass-processor = "==0.8"
+django-compressor = "==2.4"
+libsass = "==0.19.4"
+django-crispy-forms = "*"
 
 [requires]
 python_version = "3.6"

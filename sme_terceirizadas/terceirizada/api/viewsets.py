@@ -7,7 +7,7 @@ from ...escola.api.serializers import TerceirizadaSerializer, UsuarioDetalheSeri
 from ...perfil.api.serializers import UsuarioUpdateSerializer, VinculoSerializer
 from ..models import Edital, Terceirizada
 from .permissions import PodeCriarAdministradoresDaTerceirizada
-from .serializers.serializers import EditalContratosSerializer, EditalSerializer
+from .serializers.serializers import EditalContratosSerializer, EditalSerializer, TerceirizadaSimplesSerializer
 from .serializers.serializers_create import EditalContratosCreateSerializer, TerceirizadaCreateSerializer
 
 
@@ -25,6 +25,11 @@ class TerceirizadaViewSet(viewsets.ModelViewSet):
         if self.action in ['create', 'update', 'partial_update']:
             return TerceirizadaCreateSerializer
         return TerceirizadaSerializer
+
+    @action(detail=False, methods=['GET'], url_path='lista-nomes')
+    def lista_nomes(self, request):
+        response = {'results': TerceirizadaSimplesSerializer(self.get_queryset(), many=True).data}
+        return Response(response)
 
 
 class EditalContratosViewSet(viewsets.ModelViewSet):

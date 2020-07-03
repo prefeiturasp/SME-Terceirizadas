@@ -16,8 +16,9 @@ from .constants import (
     COORDENADOR_DIETA_ESPECIAL,
     COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA
 )
-from .models import LogSolicitacoesUsuario
+from .models import AnexoLogSolicitacoesUsuario, LogSolicitacoesUsuario
 from .tasks import envia_email_em_massa_task
+from .utils import convert_base64_to_contentfile
 
 
 class PedidoAPartirDaEscolaWorkflow(xwf_models.Workflow):
@@ -206,9 +207,11 @@ class HomologacaoProdutoWorkflow(xwf_models.Workflow):
     CODAE_QUESTIONADO = 'CODAE_QUESTIONADO'
     CODAE_PEDIU_ANALISE_SENSORIAL = 'CODAE_PEDIU_ANALISE_SENSORIAL'
     TERCEIRIZADA_CANCELOU = 'TERCEIRIZADA_CANCELOU'
+    INATIVA = 'HOMOLOGACAO_INATIVA'
     CODAE_SUSPENDEU = 'CODAE_SUSPENDEU'
     ESCOLA_OU_NUTRICIONISTA_RECLAMOU = 'ESCOLA_OU_NUTRICIONISTA_RECLAMOU'
     CODAE_PEDIU_ANALISE_RECLAMACAO = 'CODAE_PEDIU_ANALISE_RECLAMACAO'
+    TERCEIRIZADA_RESPONDEU_RECLAMACAO = 'TERCEIRIZADA_RESPONDEU_RECLAMACAO'
     CODAE_AUTORIZOU_RECLAMACAO = 'CODAE_AUTORIZOU_RECLAMACAO'
 
     states = (
@@ -219,29 +222,35 @@ class HomologacaoProdutoWorkflow(xwf_models.Workflow):
         (CODAE_QUESTIONADO, 'CODAE pediu correção'),
         (CODAE_PEDIU_ANALISE_SENSORIAL, 'CODAE pediu análise sensorial'),
         (TERCEIRIZADA_CANCELOU, 'Terceirizada cancelou homologação'),
+        (INATIVA, 'Homologação inativada'),
         (CODAE_SUSPENDEU, 'CODAE suspendeu o produto'),
         (ESCOLA_OU_NUTRICIONISTA_RECLAMOU, 'Escola/Nutricionista reclamou do produto'),
         (CODAE_PEDIU_ANALISE_RECLAMACAO, 'CODAE pediu análise da reclamação'),
+        (TERCEIRIZADA_RESPONDEU_RECLAMACAO, 'Terceirizada respondeu a reclamação'),
         (CODAE_AUTORIZOU_RECLAMACAO, 'CODAE autorizou reclamação')
     )
 
     transitions = (
         ('inicia_fluxo', [RASCUNHO, CODAE_AUTORIZOU_RECLAMACAO], CODAE_PENDENTE_HOMOLOGACAO),
         ('codae_homologa', [CODAE_PENDENTE_HOMOLOGACAO, CODAE_PEDIU_ANALISE_SENSORIAL,
-                            CODAE_PEDIU_ANALISE_RECLAMACAO, CODAE_SUSPENDEU,
+                            TERCEIRIZADA_RESPONDEU_RECLAMACAO, CODAE_SUSPENDEU,
                             ESCOLA_OU_NUTRICIONISTA_RECLAMOU],
          CODAE_HOMOLOGADO),
         ('codae_nao_homologa', [CODAE_PENDENTE_HOMOLOGACAO, CODAE_PEDIU_ANALISE_SENSORIAL], CODAE_NAO_HOMOLOGADO),
         ('codae_questiona', CODAE_PENDENTE_HOMOLOGACAO, CODAE_QUESTIONADO),
         ('terceirizada_responde_questionamento', CODAE_QUESTIONADO, CODAE_PENDENTE_HOMOLOGACAO),
         ('codae_pede_analise_sensorial', CODAE_PENDENTE_HOMOLOGACAO, CODAE_PEDIU_ANALISE_SENSORIAL),
+        ('terceirizada_responde_analise_sensorial', CODAE_PEDIU_ANALISE_SENSORIAL, CODAE_PENDENTE_HOMOLOGACAO),
         ('codae_suspende', CODAE_HOMOLOGADO, CODAE_SUSPENDEU),
+        ('codae_ativa', CODAE_SUSPENDEU, CODAE_HOMOLOGADO),
         ('escola_ou_nutricionista_reclamou', CODAE_HOMOLOGADO, ESCOLA_OU_NUTRICIONISTA_RECLAMOU),
         ('codae_pediu_analise_reclamacao', ESCOLA_OU_NUTRICIONISTA_RECLAMOU, CODAE_PEDIU_ANALISE_RECLAMACAO),
-        ('codae_autorizou_reclamacao',
-         [ESCOLA_OU_NUTRICIONISTA_RECLAMOU, CODAE_PEDIU_ANALISE_RECLAMACAO],
-         CODAE_AUTORIZOU_RECLAMACAO)
-
+        ('terceirizada_responde_reclamacao', CODAE_PEDIU_ANALISE_RECLAMACAO, TERCEIRIZADA_RESPONDEU_RECLAMACAO),
+        ('codae_autorizou_reclamacao', [ESCOLA_OU_NUTRICIONISTA_RECLAMOU, TERCEIRIZADA_RESPONDEU_RECLAMACAO],
+         CODAE_AUTORIZOU_RECLAMACAO),
+        ('inativa_homologacao',
+         [CODAE_SUSPENDEU, ESCOLA_OU_NUTRICIONISTA_RECLAMOU, CODAE_QUESTIONADO, CODAE_HOMOLOGADO, CODAE_NAO_HOMOLOGADO],
+         INATIVA),
     )
 
     initial_state = RASCUNHO
@@ -295,6 +304,134 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
             html=html
         )
 
+    def _partes_interessadas_codae_homologa(self):
+        queryset = Usuario.objects.filter(vinculos__perfil__nome__in=[
+            'DIRETOR',
+            'DIRETOR_CEI',
+            'COORDENADOR_DIETA_ESPECIAL',
+            'NUTRI_ADMIN_RESPONSAVEL',  # Terceirizada?
+        ])
+        return [usuario.email for usuario in queryset]
+
+    def _envia_email_codae_homologa(self, log_transicao, link_pdf):
+        html = render_to_string(
+            template_name='produto_codae_homologa.html',
+            context={
+                'titulo': 'Produto Homologado com sucesso',
+                'produto': self.produto,
+                'log_transicao': log_transicao,
+                'link_pdf': link_pdf
+            }
+        )
+        envia_email_em_massa_task.delay(
+            assunto='Produto Homologado com sucesso',
+            emails=self._partes_interessadas_codae_homologa(),
+            corpo='',
+            html=html
+        )
+
+    def _envia_email_codae_nao_homologa(self, log_transicao, link_pdf):
+        html = render_to_string(
+            template_name='produto_codae_nao_homologa.html',
+            context={
+                'titulo': 'Produto não homologado',
+                'produto': self.produto,
+                'log_transicao': log_transicao,
+                'link_pdf': link_pdf
+            }
+        )
+        envia_email_em_massa_task.delay(
+            assunto='Produto não homologado',
+            emails=self._partes_interessadas_codae_homologa(),
+            corpo='',
+            html=html
+        )
+
+    def _envia_email_codae_questiona(self, log_transicao, link_pdf):
+        html = render_to_string(
+            template_name='produto_codae_questiona.html',
+            context={
+                'titulo': 'Produto Cadastrado Exige Correção',
+                'produto': self.produto,
+                'log_transicao': log_transicao,
+                'link_pdf': link_pdf
+            }
+        )
+        envia_email_em_massa_task.delay(
+            assunto='Produto Cadastrado Exige Correção',
+            emails=[self.produto.criado_por.email],
+            corpo='',
+            html=html
+        )
+
+    def _envia_email_escola_ou_nutricionista_reclamou(self, reclamacao):
+        html = render_to_string(
+            template_name='produto_escola_ou_nutricionista_reclamou.html',
+            context={
+                'titulo': 'Nova reclamação de produto',
+                'produto': self.produto,
+                'reclamacao': reclamacao
+            }
+        )
+        partes_interessadas = Usuario.objects.filter(vinculos__perfil__nome__in=[
+            'COORDENADOR_GESTAO_PRODUTO',
+            'ADMINISTRADOR_GESTAO_PRODUTO'
+        ])
+        envia_email_em_massa_task.delay(
+            assunto='Nova reclamação de produto requer análise',
+            emails=[usuario.email for usuario in partes_interessadas],
+            corpo='',
+            html=html
+        )
+
+    def _partes_interessadas_codae_pede_analise_sensorial(self):
+        return [self.criado_por.email]
+
+    def _envia_email_codae_pede_analise_sensorial(self, log_transicao, link_pdf):
+        html = render_to_string(
+            template_name='produto_codae_pede_analise_sensorial.html',
+            context={
+                'titulo': 'Solicitação de Análise Sensorial',
+                'produto': self.produto,
+                'protocolo': self.protocolo_analise_sensorial,
+                'log_transicao': log_transicao,
+                'link_pdf': link_pdf
+            }
+        )
+        envia_email_em_massa_task.delay(
+            assunto='[SIGPAE] Solicitação de Análise Sensorial',
+            emails=self._partes_interessadas_codae_pede_analise_sensorial(),
+            corpo='',
+            html=html
+        )
+
+    def _partes_interessadas_codae_ativa_ou_suspende(self):
+        queryset = Usuario.objects.filter(
+            vinculos__ativo=True,
+            vinculos__perfil__nome__in=[
+                'ADMINISTRADOR_ESCOLA',
+                'DIRETOR',
+                'DIRETOR CEI',
+                'ADMINISTRADOR_TERCEIRIZADA',
+                'NUTRI_ADMIN_RESPONSAVEL']
+        )
+        return [usuario.email for usuario in queryset]
+
+    def _envia_email_codae_ativa_ou_suspende(self, log_transicao, template_name, assunto):
+        html = render_to_string(
+            template_name=template_name,
+            context={
+                'produto': self.produto,
+                'log_transicao': log_transicao,
+            }
+        )
+        envia_email_em_massa_task.delay(
+            assunto=assunto,
+            emails=self._partes_interessadas_codae_ativa_ou_suspende(),
+            corpo='',
+            html=html
+        )
+
     @xworkflows.after_transition('inicia_fluxo')
     def _inicia_fluxo_hook(self, *args, **kwargs):
         self._salva_rastro_solicitacao()
@@ -305,32 +442,152 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
     @xworkflows.after_transition('codae_homologa')
     def _codae_homologa_hook(self, *args, **kwargs):
         user = kwargs['user']
-        self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_HOMOLOGADO,
+        log_transicao = self.salvar_log_transicao(
+            status_evento=LogSolicitacoesUsuario.CODAE_HOMOLOGADO,
+            usuario=user
+        )
+        for anexo in kwargs.get('anexos', []):
+            arquivo = convert_base64_to_contentfile(anexo.pop('base64'))
+            AnexoLogSolicitacoesUsuario.objects.create(
+                log=log_transicao,
+                arquivo=arquivo,
+                nome=anexo['nome']
+            )
+        if not kwargs.get('nao_enviar_email', False):
+            self._envia_email_codae_homologa(log_transicao=log_transicao, link_pdf=kwargs['link_pdf'])
+
+    @xworkflows.after_transition('terceirizada_inativa')
+    def _inativa_homologacao_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.INATIVA,
                                   usuario=user)
 
     @xworkflows.after_transition('codae_nao_homologa')
     def _codae_nao_homologa_hook(self, *args, **kwargs):
         user = kwargs['user']
         justificativa = kwargs.get('justificativa', '')
-        self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_NAO_HOMOLOGADO,
-                                  usuario=user,
-                                  justificativa=justificativa)
+        log_transicao = self.salvar_log_transicao(
+            status_evento=LogSolicitacoesUsuario.CODAE_NAO_HOMOLOGADO,
+            usuario=user,
+            justificativa=justificativa
+        )
+        self._envia_email_codae_nao_homologa(log_transicao, kwargs['link_pdf'])
 
     @xworkflows.after_transition('codae_questiona')
     def _codae_questiona_hook(self, *args, **kwargs):
         user = kwargs['user']
         justificativa = kwargs.get('justificativa', '')
-        self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_QUESTIONOU,
-                                  usuario=user,
-                                  justificativa=justificativa)
+        log_transicao = self.salvar_log_transicao(
+            status_evento=LogSolicitacoesUsuario.CODAE_QUESTIONOU,
+            usuario=user,
+            justificativa=justificativa
+        )
+        self._envia_email_codae_questiona(log_transicao, link_pdf=kwargs['link_pdf'])
 
     @xworkflows.after_transition('codae_pede_analise_sensorial')
     def _codae_pede_analise_sensorial_hook(self, *args, **kwargs):
         user = kwargs['user']
         justificativa = kwargs.get('justificativa', '')
-        self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_PEDIU_ANALISE_SENSORIAL,
+        log_transicao = self.salvar_log_transicao(
+            status_evento=LogSolicitacoesUsuario.CODAE_PEDIU_ANALISE_SENSORIAL,
+            usuario=user,
+            justificativa=justificativa)
+        self._envia_email_codae_pede_analise_sensorial(log_transicao=log_transicao, link_pdf=kwargs['link_pdf'])
+
+    @xworkflows.after_transition('terceirizada_responde_analise_sensorial')
+    def _terceirizada_responde_analise_sensorial_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        justificativa = kwargs.get('justificativa', '')
+        self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_RESPONDEU_ANALISE_SENSORIAL,
                                   usuario=user,
                                   justificativa=justificativa)
+
+    @xworkflows.after_transition('codae_pediu_analise_reclamacao')
+    def _codae_pediu_analise_reclamacao_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        justificativa = kwargs.get('justificativa', '')
+        log_transicao = self.salvar_log_transicao(
+            status_evento=LogSolicitacoesUsuario.CODAE_PEDIU_ANALISE_RECLAMACAO,
+            usuario=user,
+            justificativa=justificativa,
+        )
+        for anexo in kwargs.get('anexos'):
+            arquivo = convert_base64_to_contentfile(anexo.pop('base64'))
+            AnexoLogSolicitacoesUsuario.objects.create(
+                log=log_transicao,
+                arquivo=arquivo,
+                nome=anexo['nome']
+            )
+
+    @xworkflows.after_transition('codae_autorizou_reclamacao')
+    def _codae_autorizou_reclamacao_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        justificativa = kwargs.get('justificativa', '')
+        log_transicao = self.salvar_log_transicao(
+            status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU_RECLAMACAO,
+            usuario=user,
+            justificativa=justificativa,
+        )
+        for anexo in kwargs.get('anexos'):
+            arquivo = convert_base64_to_contentfile(anexo.pop('base64'))
+            AnexoLogSolicitacoesUsuario.objects.create(
+                log=log_transicao,
+                arquivo=arquivo,
+                nome=anexo['nome']
+            )
+
+    @xworkflows.after_transition('escola_ou_nutricionista_reclamou')
+    def _escola_ou_nutricionista_reclamou_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
+                                  usuario=user)
+        self._envia_email_escola_ou_nutricionista_reclamou(kwargs['reclamacao'])
+
+    def salva_log_com_justificativa_e_anexos(self, evento, request):
+        log_transicao = self.salvar_log_transicao(
+            status_evento=evento,
+            usuario=request.user,
+            justificativa=request.data['justificativa']
+        )
+        for anexo in request.data.pop('anexos', []):
+            arquivo = convert_base64_to_contentfile(anexo.pop('base64'))
+            AnexoLogSolicitacoesUsuario.objects.create(
+                log=log_transicao,
+                arquivo=arquivo,
+                nome=anexo['nome']
+            )
+        return log_transicao
+
+    @xworkflows.after_transition('codae_suspende')
+    def _codae_suspende_hook(self, *args, **kwargs):
+        log_suspensao = self.salva_log_com_justificativa_e_anexos(
+            LogSolicitacoesUsuario.CODAE_SUSPENDEU,
+            kwargs['request']
+        )
+        self._envia_email_codae_ativa_ou_suspende(
+            log_suspensao,
+            template_name='produto_codae_suspende.html',
+            assunto='[SIGPAE] Suspensão de Produto'
+        )
+
+    @xworkflows.after_transition('codae_ativa')
+    def _codae_ativa_hook(self, *args, **kwargs):
+        log_ativacao = self.salva_log_com_justificativa_e_anexos(
+            LogSolicitacoesUsuario.CODAE_HOMOLOGADO,
+            kwargs['request']
+        )
+        self._envia_email_codae_ativa_ou_suspende(
+            log_ativacao,
+            template_name='produto_codae_ativa.html',
+            assunto='[SIGPAE] Ativação de Produto'
+        )
+
+    @xworkflows.after_transition('terceirizada_responde_reclamacao')
+    def _terceirizada_responde_reclamacao_hook(self, *args, **kwargs):
+        self.salva_log_com_justificativa_e_anexos(
+            LogSolicitacoesUsuario.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO,
+            kwargs['request']
+        )
 
     class Meta:
         abstract = True

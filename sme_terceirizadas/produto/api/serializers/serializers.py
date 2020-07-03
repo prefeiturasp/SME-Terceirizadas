@@ -2,9 +2,14 @@ import datetime
 
 from rest_framework import serializers
 
-from ....dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
+from ....dados_comuns.api.serializers import (
+    LogSolicitacoesUsuarioComVinculoSerializer,
+    LogSolicitacoesUsuarioSerializer
+)
+from ....escola.api.serializers import VinculoInstituicaoSerializer
 from ....terceirizada.api.serializers.serializers import TerceirizadaSimplesSerializer
 from ...models import (
+    AnexoReclamacaoDeProduto,
     Fabricante,
     HomologacaoDoProduto,
     ImagemDoProduto,
@@ -13,6 +18,7 @@ from ...models import (
     Marca,
     Produto,
     ProtocoloDeDietaEspecial,
+    ReclamacaoDeProduto,
     TipoDeInformacaoNutricional
 )
 
@@ -33,6 +39,19 @@ class ProtocoloDeDietaEspecialSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProtocoloDeDietaEspecial
         exclude = ('id', 'ativo', 'criado_em', 'criado_por',)
+
+
+class AnexoReclamacaoDeProdutoSerializer(serializers.ModelSerializer):
+    arquivo = serializers.SerializerMethodField()
+
+    def get_arquivo(self, obj):
+        request = self.context.get('request')
+        arquivo = obj.arquivo.url
+        return request.build_absolute_uri(arquivo)
+
+    class Meta:
+        model = AnexoReclamacaoDeProduto
+        fields = ('arquivo', 'nome', 'uuid')
 
 
 class ImagemDoProdutoSerializer(serializers.ModelSerializer):
@@ -70,13 +89,44 @@ class InformacoesNutricionaisDoProdutoSerializer(serializers.ModelSerializer):
         exclude = ('id', 'produto')
 
 
+class ReclamacaoDeProdutoSerializer(serializers.ModelSerializer):
+    vinculo = VinculoInstituicaoSerializer()
+    anexos = serializers.SerializerMethodField()
+
+    def get_anexos(self, obj):
+        return AnexoReclamacaoDeProdutoSerializer(
+            obj.anexos.all(),
+            context=self.context,
+            many=True
+        ).data
+
+    class Meta:
+        model = ReclamacaoDeProduto
+        fields = ('reclamante_registro_funcional', 'reclamante_cargo', 'reclamante_nome',
+                  'reclamacao', 'vinculo', 'anexos')
+
+
+class ReclamacaoDeProdutoSimplesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ReclamacaoDeProduto
+        fields = ('reclamacao', 'criado_em')
+
+
 class HomologacaoProdutoSimplesSerializer(serializers.ModelSerializer):
+    reclamacoes = serializers.SerializerMethodField()
     rastro_terceirizada = TerceirizadaSimplesSerializer()
-    logs = LogSolicitacoesUsuarioSerializer(many=True)
+    logs = LogSolicitacoesUsuarioComVinculoSerializer(many=True)
+
+    def get_reclamacoes(self, obj):
+        return ReclamacaoDeProdutoSerializer(
+            obj.reclamacoes.all(), context=self.context,
+            many=True
+        ).data
 
     class Meta:
         model = HomologacaoDoProduto
-        fields = ('uuid', 'status', 'id_externo', 'rastro_terceirizada', 'logs', 'criado_em')
+        fields = ('uuid', 'status', 'id_externo', 'rastro_terceirizada', 'logs',
+                  'criado_em', 'reclamacoes')
 
 
 class ProdutoSerializer(serializers.ModelSerializer):
@@ -92,11 +142,14 @@ class ProdutoSerializer(serializers.ModelSerializer):
 
     homologacoes = serializers.SerializerMethodField()
 
+    ultima_homologacao = HomologacaoProdutoSimplesSerializer()
+
     def get_homologacoes(self, obj):
         return HomologacaoProdutoSimplesSerializer(
             HomologacaoDoProduto.objects.filter(
                 produto=obj
-            ), many=True
+            ), context=self.context,
+            many=True
         ).data
 
     def get_informacoes_nutricionais(self, obj):
@@ -142,7 +195,8 @@ class HomologacaoProdutoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = HomologacaoDoProduto
-        fields = ('uuid', 'produto', 'status', 'id_externo', 'logs', 'rastro_terceirizada')
+        fields = ('uuid', 'produto', 'status', 'id_externo', 'logs', 'rastro_terceirizada', 'pdf_gerado',
+                  'protocolo_analise_sensorial')
 
 
 class HomologacaoProdutoPainelGerencialSerializer(serializers.ModelSerializer):

@@ -1,7 +1,10 @@
 from rest_framework import serializers
 
+from ....dados_comuns.constants import DEZ_MB
 from ....dados_comuns.utils import convert_base64_to_contentfile, update_instance_from_dict
 from ...models import (
+    AnexoReclamacaoDeProduto,
+    AnexoRespostaAnaliseSensorial,
     Fabricante,
     HomologacaoDoProduto,
     ImagemDoProduto,
@@ -9,7 +12,9 @@ from ...models import (
     InformacoesNutricionaisDoProduto,
     Marca,
     Produto,
-    ProtocoloDeDietaEspecial
+    ProtocoloDeDietaEspecial,
+    ReclamacaoDeProduto,
+    RespostaAnaliseSensorial
 )
 from ..validators import deve_ter_extensao_valida
 
@@ -63,6 +68,7 @@ class ProdutoSerializerCreate(serializers.ModelSerializer):
     imagens = ImagemDoProdutoSerializerCreate(many=True)
     informacoes_nutricionais = InformacoesNutricionaisDoProdutoSerializerCreate(many=True)
     cadastro_finalizado = serializers.BooleanField(required=False)
+    cadastro_atualizado = serializers.BooleanField(required=False)
 
     def create(self, validated_data):  # noqa C901
         validated_data['criado_por'] = self.context['request'].user
@@ -89,7 +95,7 @@ class ProdutoSerializerCreate(serializers.ModelSerializer):
 
         produto.protocolos.set(protocolos)
         if produto.homologacoes.exists():
-            homologacao = produto.homologacoes.get()
+            homologacao = produto.homologacoes.first()
         else:
             homologacao = HomologacaoDoProduto(
                 rastro_terceirizada=self.context['request'].user.vinculo_atual.instituicao,
@@ -101,7 +107,7 @@ class ProdutoSerializerCreate(serializers.ModelSerializer):
             homologacao.inicia_fluxo(user=self.context['request'].user)
         return produto
 
-    def update(self, instance, validated_data):
+    def update(self, instance, validated_data):  # noqa C901
         imagens = validated_data.pop('imagens', [])
         protocolos = validated_data.pop('protocolos', [])
         informacoes_nutricionais = validated_data.pop('informacoes_nutricionais', [])
@@ -126,11 +132,79 @@ class ProdutoSerializerCreate(serializers.ModelSerializer):
 
         instance.protocolos.set([])
         instance.protocolos.set(protocolos)
+        usuario = self.context['request'].user
+        if validated_data.get('cadastro_atualizado', False):
+            ultima_homologacao = instance.homologacoes.first()
+            ultima_homologacao.inativa_homologacao(user=usuario)
+            homologacao = HomologacaoDoProduto(
+                rastro_terceirizada=usuario.vinculo_atual.instituicao,
+                produto=instance,
+                criado_por=usuario
+            )
+            homologacao.save()
+            homologacao.inicia_fluxo(user=usuario)
         if validated_data.get('cadastro_finalizado', False):
-            homologacao = instance.homologacoes.get()
-            homologacao.inicia_fluxo(user=self.context['request'].user)
+            homologacao = instance.homologacoes.first()
+            homologacao.inicia_fluxo(user=usuario)
         return instance
 
     class Meta:
         model = Produto
         exclude = ('id', 'criado_por', 'ativo',)
+
+
+class AnexoCreateSerializer(serializers.Serializer):
+    base64 = serializers.CharField(max_length=DEZ_MB, write_only=True)
+    nome = serializers.CharField(max_length=255)
+
+
+class ReclamacaoDeProdutoSerializerCreate(serializers.ModelSerializer):
+    anexos = AnexoCreateSerializer(many=True, required=False)
+
+    def create(self, validated_data):  # noqa C901
+        anexos = validated_data.pop('anexos', [])
+
+        reclamacao = ReclamacaoDeProduto.objects.create(**validated_data)
+
+        for anexo in anexos:
+            arquivo = convert_base64_to_contentfile(anexo.pop('base64'))
+            AnexoReclamacaoDeProduto.objects.create(
+                reclamacao_de_produto=reclamacao,
+                arquivo=arquivo,
+                nome=anexo['nome']
+            )
+
+        return reclamacao
+
+    class Meta:
+        model = ReclamacaoDeProduto
+        exclude = ('id', 'uuid', 'criado_por', 'criado_em')
+
+
+class RespostaAnaliseSensorialSearilzerCreate(serializers.ModelSerializer):
+    homologacao_de_produto = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=HomologacaoDoProduto.objects.all()
+    )
+    data = serializers.DateField()
+    hora = serializers.TimeField()
+    anexos = AnexoCreateSerializer(many=True, required=False)
+
+    def create(self, validated_data):
+        anexos = validated_data.pop('anexos', [])
+        resposta = RespostaAnaliseSensorial.objects.create(**validated_data)
+
+        for anexo in anexos:
+            arquivo = convert_base64_to_contentfile(anexo.pop('base64'))
+            AnexoRespostaAnaliseSensorial.objects.create(
+                resposta_analise_sensorial=resposta,
+                arquivo=arquivo,
+                nome=anexo['nome']
+            )
+
+        return resposta
+
+    class Meta:
+        model = RespostaAnaliseSensorial
+        exclude = ('id', 'uuid', 'criado_por', 'criado_em')

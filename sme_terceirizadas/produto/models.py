@@ -1,4 +1,5 @@
 from django.db import models
+from sequences import get_last_value, get_next_value
 
 from ..dados_comuns.behaviors import (
     Ativavel,
@@ -11,6 +12,9 @@ from ..dados_comuns.behaviors import (
 )
 from ..dados_comuns.fluxo_status import FluxoHomologacaoProduto
 from ..dados_comuns.models import LogSolicitacoesUsuario, TemplateMensagem
+from ..perfil.models.perfil import Vinculo
+
+MAX_NUMERO_PROTOCOLO = 6
 
 
 class ProtocoloDeDietaEspecial(Ativavel, CriadoEm, CriadoPor, Nomeavel, TemChaveExterna):
@@ -64,6 +68,7 @@ class ImagemDoProduto(TemChaveExterna):
 
 class Produto(Ativavel, CriadoEm, CriadoPor, Nomeavel, TemChaveExterna, TemIdentificadorExternoAmigavel):
     eh_para_alunos_com_dieta = models.BooleanField(default=False)
+
     protocolos = models.ManyToManyField(ProtocoloDeDietaEspecial,
                                         related_name='protocolos',
                                         help_text='Protocolos do produto.',
@@ -99,6 +104,20 @@ class Produto(Ativavel, CriadoEm, CriadoPor, Nomeavel, TemChaveExterna, TemIdent
     @property
     def homologacoes(self):
         return self.homologacoes.all()
+
+    @property
+    def ultima_homologacao(self):
+        return self.homologacoes.order_by('criado_em').last()
+
+    @property
+    def data_homologacao(self):
+        homologacao = self.homologacoes.order_by('criado_em').last()
+        log_homologacao = (
+            homologacao.logs
+            .filter(status_evento=LogSolicitacoesUsuario.CODAE_HOMOLOGADO)
+            .order_by('criado_em')
+            .last())
+        return log_homologacao.criado_em
 
     @classmethod
     def filtrar_por_nome(cls, **kwargs):
@@ -146,6 +165,8 @@ class HomologacaoDoProduto(TemChaveExterna, CriadoEm, CriadoPor, FluxoHomologaca
     DESCRICAO = 'Homologação de Produto'
     produto = models.ForeignKey(Produto, on_delete=models.CASCADE, related_name='homologacoes')
     necessita_analise_sensorial = models.BooleanField(default=False)
+    protocolo_analise_sensorial = models.CharField(max_length=8, blank=True)
+    pdf_gerado = models.BooleanField(default=False)
 
     @property
     def template_mensagem(self):
@@ -163,9 +184,32 @@ class HomologacaoDoProduto(TemChaveExterna, CriadoEm, CriadoPor, FluxoHomologaca
             corpo = corpo.replace(chave, valor)
         return template.assunto, corpo
 
+    def gera_protocolo_analise_sensorial(self):
+        id_sequecial = str(get_next_value('protocolo_analise_sensorial'))
+        serial = ''
+        for _ in range(MAX_NUMERO_PROTOCOLO - len(id_sequecial)):
+            serial = serial + '0'
+        serial = serial + str(id_sequecial)
+        self.protocolo_analise_sensorial = f'AS{serial}'
+        self.necessita_analise_sensorial = True
+        self.save()
+
+    @classmethod
+    def retorna_numero_do_protocolo(cls):
+        id_sequecial = get_last_value('protocolo_analise_sensorial')
+        serial = ''
+        if id_sequecial is None:
+            id_sequecial = '1'
+        else:
+            id_sequecial = str(get_last_value('protocolo_analise_sensorial') + 1)
+        for _ in range(MAX_NUMERO_PROTOCOLO - len(id_sequecial)):
+            serial = serial + '0'
+        serial = serial + str(id_sequecial)
+        return f'AS{serial}'
+
     def salvar_log_transicao(self, status_evento, usuario, **kwargs):
         justificativa = kwargs.get('justificativa', '')
-        LogSolicitacoesUsuario.objects.create(
+        return LogSolicitacoesUsuario.objects.create(
             descricao=str(self),
             status_evento=status_evento,
             solicitacao_tipo=LogSolicitacoesUsuario.HOMOLOGACAO_PRODUTO,
@@ -181,3 +225,52 @@ class HomologacaoDoProduto(TemChaveExterna, CriadoEm, CriadoPor, FluxoHomologaca
 
     def __str__(self):
         return f'Homologação #{self.id_externo}'
+
+
+class ReclamacaoDeProduto(TemChaveExterna, CriadoEm, CriadoPor):
+    homologacao_de_produto = models.ForeignKey('HomologacaoDoProduto', on_delete=models.CASCADE,
+                                               related_name='reclamacoes')
+    reclamante_registro_funcional = models.CharField('RF/CRN/CRF', max_length=50)
+    reclamante_cargo = models.CharField('Cargo', max_length=100)
+    reclamante_nome = models.CharField('Nome', max_length=255)
+    reclamacao = models.TextField('Reclamação')
+    vinculo = models.ForeignKey(Vinculo, on_delete=models.DO_NOTHING)
+
+    def __str__(self):
+        return f'Reclamação {self.uuid} feita por {self.reclamante_nome} em {self.criado_em}'
+
+
+class AnexoReclamacaoDeProduto(TemChaveExterna):
+    reclamacao_de_produto = models.ForeignKey(ReclamacaoDeProduto, related_name='anexos', on_delete=models.CASCADE)
+    nome = models.CharField(max_length=255, blank=True)
+    arquivo = models.FileField()
+
+    def __str__(self):
+        return f'Anexo {self.uuid} - {self.nome}'
+
+
+class RespostaAnaliseSensorial(TemChaveExterna, TemIdentificadorExternoAmigavel, CriadoEm, CriadoPor):
+    homologacao_de_produto = models.ForeignKey('HomologacaoDoProduto', on_delete=models.CASCADE,
+                                               related_name='respostas_analise')
+    responsavel_produto = models.CharField(max_length=150)
+    registro_funcional = models.CharField(max_length=10)
+    data = models.DateField(auto_now=False, auto_now_add=False)
+    hora = models.TimeField(auto_now=False, auto_now_add=False)
+    observacao = models.TextField(blank=True)
+
+    @property
+    def numero_protocolo(self):
+        return self.homologacao_de_produto.protocolo_analise_sensorial
+
+    def __str__(self):
+        return f'Resposta {self.id_externo} de protocolo {self.numero_protocolo} criada em: {self.criado_em}'
+
+
+class AnexoRespostaAnaliseSensorial(TemChaveExterna):
+    resposta_analise_sensorial = models.ForeignKey(RespostaAnaliseSensorial, related_name='anexos',
+                                                   on_delete=models.CASCADE)
+    nome = models.CharField(max_length=255, blank=True)
+    arquivo = models.FileField()
+
+    def __str__(self):
+        return f'Anexo {self.uuid} - {self.nome}'

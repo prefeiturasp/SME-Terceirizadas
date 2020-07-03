@@ -58,6 +58,8 @@ FILTRO_STATUS_HOMOLOGACAO = (f'(?P<filtro_aplicado>({RASCUNHO}|{CODAE_PENDENTE_H
                              f'{CODAE_PEDIU_ANALISE_RECLAMACAO}|{CODAE_AUTORIZOU_RECLAMACAO})+)')
 
 RELATORIO = 'relatorio'
+RELATORIO_ANALISE = 'relatorio-analise-sensorial'
+RELATORIO_RECEBIMENTO = 'relatorio-analise-sensorial-recebimento'
 PROTOCOLO = 'protocolo'
 
 #
@@ -88,6 +90,17 @@ CODAE_QUESTIONA_PEDIDO = 'codae-questiona-pedido'
 CODAE_HOMOLOGA = 'codae-homologa'
 CODAE_NAO_HOMOLOGA = 'codae-nao-homologa'
 CODAE_PEDE_ANALISE_SENSORIAL = 'codae-pede-analise-sensorial'
+TERCEIRIZADA_INATIVA_HOMOLOGACAO = 'terceirizada-inativa'
+ESCOLA_OU_NUTRI_RECLAMA = 'escola-ou-nutri-reclama'
+SUSPENDER_PRODUTO = 'suspender'
+ATIVAR_PRODUTO = 'ativar'
+GERAR_PDF = 'gerar-pdf'
+AGUARDANDO_ANALISE_SENSORIAL = 'aguardando-analise-sensorial'
+TERCEIRIZADA_RESPONDE_ANALISE_SENSORIAL = 'terceirizada-responde-analise-sensorial'
+TERCEIRIZADA_RESPONDE_RECLAMACAO = 'terceirizada-responde-reclamacao'
+CODAE_PEDE_ANALISE_RECLAMACAO = 'codae-pede-analise-reclamacao'
+CODAE_RECUSA_RECLAMACAO = 'codae-recusa-reclamacao'
+CODAE_ACEITA_RECLAMACAO = 'codae-aceita-reclamacao'
 
 TERCEIRIZADA_RESPONDE_QUESTIONAMENTO = 'terceirizada-responde-questionamento'
 TERCEIRIZADA_TOMOU_CIENCIA = 'terceirizada-toma-ciencia'
@@ -123,10 +136,17 @@ ADMINISTRADOR_TERCEIRIZADA = 'ADMINISTRADOR_TERCEIRIZADA'
 TIPO_USUARIO_TERCEIRIZADA = 'terceirizada'
 TIPO_USUARIO_GESTAO_PRODUTO = 'gestao_produto'
 
+#
+# DOMINIOS USADOS APENAS EM DESENVOLVIMENTO
+#
+DOMINIOS_DEV = [
+    '@admin.com',
+    '@dev.prefeitura.sp.gov.br',
+    '@emailteste.sme.prefeitura.sp.gov.br',
+]
+
 # CACHE
 TEMPO_CACHE_6H = 60 * 60 * 6
 TEMPO_CACHE_1H = 60 * 60 * 6
 
 DEZ_MB = 10485760
-
-API_VERSION = '0.1.9'

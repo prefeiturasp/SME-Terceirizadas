@@ -50,8 +50,10 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
         ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
         CODAE_PEDIU_ANALISE_RECLAMACAO,
         CODAE_AUTORIZOU_RECLAMACAO,
+        INATIVA,
+        TERCEIRIZADA_RESPONDEU_RECLAMACAO,
 
-    ) = range(29)
+    ) = range(31)
 
     STATUS_POSSIVEIS = (
         (INICIO_FLUXO, 'Solicitação Realizada'),
@@ -79,10 +81,12 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
         (CODAE_NAO_HOMOLOGADO, 'CODAE não homologou'),
         (CODAE_PEDIU_ANALISE_SENSORIAL, 'CODAE pediu análise sensorial'),
         (TERCEIRIZADA_CANCELOU, 'Terceirizada cancelou homologação'),
+        (INATIVA, 'Homologação inativa'),
         (CODAE_SUSPENDEU, 'CODAE suspendeu o produto'),
         (ESCOLA_OU_NUTRICIONISTA_RECLAMOU, 'Escola/Nutricionista reclamou do produto'),
         (CODAE_PEDIU_ANALISE_RECLAMACAO, 'CODAE pediu análise da reclamação'),
         (CODAE_AUTORIZOU_RECLAMACAO, 'CODAE autorizou reclamação'),
+        (TERCEIRIZADA_RESPONDEU_RECLAMACAO, 'Terceirizada respondeu a reclamação')
     )
     (  # DA ESCOLA
         SOLICITACAO_KIT_LANCHE_AVULSA,
@@ -97,8 +101,9 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
         # DA DRE
         SOLICITACAO_KIT_LANCHE_UNIFICADA,
         # DA TERCEIRIZADA
-        HOMOLOGACAO_PRODUTO
-    ) = range(11)
+        HOMOLOGACAO_PRODUTO,
+        TERCEIRIZADA_RESPONDEU_ANALISE_SENSORIAL,
+    ) = range(12)
 
     TIPOS_SOLICITACOES = (
         (SOLICITACAO_KIT_LANCHE_AVULSA, 'Solicitação de kit lanche avulsa'),
@@ -111,7 +116,8 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
         (INCLUSAO_ALIMENTACAO_CONTINUA, 'Inclusão de alimentação contínua'),
         (DIETA_ESPECIAL, 'Dieta Especial'),
         (SOLICITACAO_KIT_LANCHE_UNIFICADA, 'Solicitação de kit lanche unificada'),
-        (HOMOLOGACAO_PRODUTO, 'Homologação de Produto')
+        (HOMOLOGACAO_PRODUTO, 'Homologação de Produto'),
+        (TERCEIRIZADA_RESPONDEU_ANALISE_SENSORIAL, 'Responde Análise Sensorial')
     )
 
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
@@ -131,6 +137,16 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
     def __str__(self):
         return (f'{self.usuario} executou {self.get_status_evento_display()} '
                 f'em {self.get_solicitacao_tipo_display()} no dia {self.criado_em}')
+
+
+class AnexoLogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes_anexo'), models.Model):
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    log = models.ForeignKey(LogSolicitacoesUsuario, related_name='anexos', on_delete=models.DO_NOTHING)
+    nome = models.CharField(max_length=255, blank=True)
+    arquivo = models.FileField()
+
+    def __str__(self):
+        return f'Anexo {self.uuid} - {self.nome}'
 
 
 class Contato(ExportModelOperationsMixin('contato'), models.Model):

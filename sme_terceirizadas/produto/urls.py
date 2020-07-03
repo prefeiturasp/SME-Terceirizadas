@@ -14,6 +14,8 @@ router.register('protocolo-dieta-especial', viewsets.ProtocoloDeDietaEspecialVie
 router.register('fabricantes', viewsets.FabricanteViewSet, 'Fabricantes')
 router.register('marcas', viewsets.MarcaViewSet, 'Marcas')
 router.register('produto-imagens', viewsets.ImagensViewset, 'Imagens')
+router.register('analise-sensorial', viewsets.RespostaAnaliseSensorialViewSet,
+                basename='analise-sensorial')
 
 urlpatterns = [
     path('', include(router.urls)),

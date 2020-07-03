@@ -1,0 +1,9 @@
+{% extends 'email_base.html' %}
+{% load email_templatetags %}
+
+{% block conteudo %}
+  <p>Produto {{ produto.nome }} - {{ produto.marca }}.</p>
+  <p><b>Reclamação: </b></p>
+  {{ reclamacao.reclamacao|safe }}
+  <br/>
+{% endblock %}
