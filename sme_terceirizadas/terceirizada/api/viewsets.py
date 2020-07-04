@@ -5,7 +5,9 @@ from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from ...escola.api.serializers import TerceirizadaSerializer, UsuarioDetalheSerializer
 from ...perfil.api.serializers import UsuarioUpdateSerializer, VinculoSerializer
+from ..forms import RelatorioQuantitativoForm
 from ..models import Edital, Terceirizada
+from ..utils import obtem_dados_relatorio_quantitativo
 from .permissions import PodeCriarAdministradoresDaTerceirizada
 from .serializers.serializers import EditalContratosSerializer, EditalSerializer, TerceirizadaSimplesSerializer
 from .serializers.serializers_create import EditalContratosCreateSerializer, TerceirizadaCreateSerializer
@@ -30,6 +32,15 @@ class TerceirizadaViewSet(viewsets.ModelViewSet):
     def lista_nomes(self, request):
         response = {'results': TerceirizadaSimplesSerializer(self.get_queryset(), many=True).data}
         return Response(response)
+
+    @action(detail=False, methods=['GET'], url_path='relatorio-quantitativo')
+    def relatorio_quantitativo(self, request):
+        form = RelatorioQuantitativoForm(request.GET)
+
+        if not form.is_valid():
+            return Response(form.errors)
+
+        return Response(obtem_dados_relatorio_quantitativo(form.cleaned_data))
 
 
 class EditalContratosViewSet(viewsets.ModelViewSet):
