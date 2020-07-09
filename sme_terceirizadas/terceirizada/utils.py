@@ -72,4 +72,8 @@ def obtem_dados_relatorio_quantitativo(form_data):  # noqa C901
     if dados_terc_atual != {}:
         lista_dados.append(dados_terc_atual)
 
-    return {'results': lista_dados}
+    retorno = {'results': lista_dados}
+
+    if form_data['data_inicial'] is not None and form_data['data_final'] is not None:
+        retorno['dias'] = (form_data['data_final'] - form_data['data_inicial']).days
+    return retorno
