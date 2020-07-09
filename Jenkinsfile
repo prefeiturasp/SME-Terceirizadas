@@ -63,14 +63,14 @@ pipeline {
 
        stage('Analise codigo') {
 	     when {
-           branch 'developmet'
+           branch 'development'
          }
         steps {
           sh 'sonar-scanner \
             -Dsonar.projectKey=SME-Terceirizadas-DEV \
             -Dsonar.projectBaseDir=sme_terceirizadas \
             -Dsonar.exclusions=dados_comuns \
-            -Dsonar.host.url=http:\\sonar.sme.prefeitura.sp.gov.br \
+            -Dsonar.host.url=http://sonar.sme.prefeitura.sp.gov.br \
             -Dsonar.login=3dabbba51bfc86a65466516576e60156cd06274d \
             -Dsonar.language=py \
             -Dsonar.sourceEncoding=UTF-8 \
@@ -141,10 +141,7 @@ pipeline {
            branch 'homolog'
          }
         steps {
-          timeout(time: 24, unit: "HOURS") {
-          // telegramSend("${JOB_NAME}...O Build ${BUILD_DISPLAY_NAME} - Requer uma aprovação para deploy !!!\n Consulte o log para detalhes -> [Job logs](${env.BUILD_URL}console)\n")
-            input message: 'Deseja realizar o deploy?', ok: 'SIM', submitter: 'marcos_nastri, calvin_rossinhole, ollyver_ottoboni, kelwy_oliveira, pedro_walter'
-          }
+          
          sh 'echo Deploying ambiente homologacao'
                 
           // Start JOB para build das imagens Docker e push SME Registry
@@ -175,7 +172,10 @@ pipeline {
            branch 'homolog'
          }
         steps {  
-          //Start JOB deploy Kubernetes 
+          timeout(time: 24, unit: "HOURS") {
+          // telegramSend("${JOB_NAME}...O Build ${BUILD_DISPLAY_NAME} - Requer uma aprovação para deploy !!!\n Consulte o log para detalhes -> [Job logs](${env.BUILD_URL}console)\n")
+            input message: 'Deseja realizar o deploy?', ok: 'SIM', submitter: 'marcos_nastri, calvin_rossinhole, ollyver_ottoboni, kelwy_oliveira, pedro_walter'
+          } 
          
           script {
             step([$class: "RundeckNotifier",
@@ -201,10 +201,7 @@ pipeline {
            branch 'master'
          }
         steps {
-          timeout(time: 24, unit: "HOURS") {
-          // telegramSend("${JOB_NAME}...O Build ${BUILD_DISPLAY_NAME} - Requer uma aprovação para deploy !!!\n Consulte o log para detalhes -> [Job logs](${env.BUILD_URL}console)\n")
-            input message: 'Deseja realizar o deploy?', ok: 'SIM', submitter: 'marcos_nastri, calvin_rossinhole, ollyver_ottoboni, kelwy_oliveira, pedro_walter'
-          }
+          
             sh 'echo Build image docker Produção'
           // Start JOB para build das imagens Docker e push SME Registry
       
@@ -234,6 +231,10 @@ pipeline {
            branch 'master'
          }
         steps {
+          timeout(time: 24, unit: "HOURS") {
+          // telegramSend("${JOB_NAME}...O Build ${BUILD_DISPLAY_NAME} - Requer uma aprovação para deploy !!!\n Consulte o log para detalhes -> [Job logs](${env.BUILD_URL}console)\n")
+            input message: 'Deseja realizar o deploy?', ok: 'SIM', submitter: 'marcos_nastri, calvin_rossinhole, ollyver_ottoboni, kelwy_oliveira, pedro_walter'
+          }
         
           script {
             step([$class: "RundeckNotifier",
