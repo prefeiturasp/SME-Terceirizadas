@@ -2,8 +2,28 @@
 {% load index %}
 {% load static %}
 
+{% block css %}
+<style>
+  .justificativa-recusa {
+    margin-bottom: 1em;
+    border: 1px solid black;
+    border-radius: 4px;
+    padding: 0.25em;
+    padding-left: 0.75em;
+    padding-top: 0em;
+    line-height: 10px;
+  }
+</style>
+{% endblock %}
+
 {% block conteudo %}
 <section class="corpo-relatorio-produto">
+  {% if homologacao.status == 'CODAE_NAO_HOMOLOGADO' %}
+    <div class="label">Motivo da recusa de homologação (Data: {{ homologacao.logs.last.criado_em|date:'d/m/Y' }})</div>
+    <article class="justificativa-recusa">
+      {{ homologacao.logs.last.justificativa|safe }}
+    </article>
+  {% endif %}
   <article class="detalhes-empresa">
     <div class="nome">
       <div class="label">Empresa solicitante (Terceirizada)</div>

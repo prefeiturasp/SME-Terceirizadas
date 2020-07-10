@@ -52,8 +52,9 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
         CODAE_AUTORIZOU_RECLAMACAO,
         INATIVA,
         TERCEIRIZADA_RESPONDEU_RECLAMACAO,
+        TERCEIRIZADA_RESPONDEU_ANALISE_SENSORIAL,
 
-    ) = range(31)
+    ) = range(32)
 
     STATUS_POSSIVEIS = (
         (INICIO_FLUXO, 'Solicitação Realizada'),
@@ -86,7 +87,8 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
         (ESCOLA_OU_NUTRICIONISTA_RECLAMOU, 'Escola/Nutricionista reclamou do produto'),
         (CODAE_PEDIU_ANALISE_RECLAMACAO, 'CODAE pediu análise da reclamação'),
         (CODAE_AUTORIZOU_RECLAMACAO, 'CODAE autorizou reclamação'),
-        (TERCEIRIZADA_RESPONDEU_RECLAMACAO, 'Terceirizada respondeu a reclamação')
+        (TERCEIRIZADA_RESPONDEU_RECLAMACAO, 'Terceirizada respondeu a reclamação'),
+        (TERCEIRIZADA_RESPONDEU_ANALISE_SENSORIAL, 'Terceirizada respondeu a análise')
     )
     (  # DA ESCOLA
         SOLICITACAO_KIT_LANCHE_AVULSA,
@@ -101,9 +103,8 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
         # DA DRE
         SOLICITACAO_KIT_LANCHE_UNIFICADA,
         # DA TERCEIRIZADA
-        HOMOLOGACAO_PRODUTO,
-        TERCEIRIZADA_RESPONDEU_ANALISE_SENSORIAL,
-    ) = range(12)
+        HOMOLOGACAO_PRODUTO
+    ) = range(11)
 
     TIPOS_SOLICITACOES = (
         (SOLICITACAO_KIT_LANCHE_AVULSA, 'Solicitação de kit lanche avulsa'),

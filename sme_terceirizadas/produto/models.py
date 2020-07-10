@@ -250,7 +250,7 @@ class AnexoReclamacaoDeProduto(TemChaveExterna):
 
 
 class RespostaAnaliseSensorial(TemChaveExterna, TemIdentificadorExternoAmigavel, CriadoEm, CriadoPor):
-    homologacao_de_produto = models.ForeignKey('HomologacaoDoProduto', on_delete=models.DO_NOTHING,
+    homologacao_de_produto = models.ForeignKey('HomologacaoDoProduto', on_delete=models.CASCADE,
                                                related_name='respostas_analise')
     responsavel_produto = models.CharField(max_length=150)
     registro_funcional = models.CharField(max_length=10)
@@ -268,7 +268,7 @@ class RespostaAnaliseSensorial(TemChaveExterna, TemIdentificadorExternoAmigavel,
 
 class AnexoRespostaAnaliseSensorial(TemChaveExterna):
     resposta_analise_sensorial = models.ForeignKey(RespostaAnaliseSensorial, related_name='anexos',
-                                                   on_delete=models.DO_NOTHING)
+                                                   on_delete=models.CASCADE)
     nome = models.CharField(max_length=255, blank=True)
     arquivo = models.FileField()
 
