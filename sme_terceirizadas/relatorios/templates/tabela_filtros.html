@@ -1,0 +1,42 @@
+<table class="tabela-cabecalho tabela-arredondada">
+  {% if filtros.data_inicial or filtros.data_final %}
+    <tr>
+      {% if filtros.data_inicial and filtros.data_final %}
+        <td rowspan="2">PERÍODO PESQUISADO:</td>
+        <td>De: {{ filtros.data_inicial|date:"d/m/Y" }}</td>
+      {% else %}
+        <td>PERÍODO PESQUISADO:</td>
+        {% if filtros.data_inicial %}
+          <td>A partir de: {{ filtros.data_inicial|date:"d/m/Y" }}</td>
+        {% elif filtros.data_final %}
+          <td>Antes de e até: {{ filtros.data_final|date:"d/m/Y" }}</td>
+        {% endif %}
+      {% endif %}
+    </tr>
+    {% if filtros.data_inicial and filtros.data_final %}
+      <tr>
+        <td>Até: {{ filtros.data_final|date:"d/m/Y" }}</td>
+      </tr>
+    {% endif %}
+  {% endif %}
+  {% if filtros.nome_fabricante %}
+    <tr>
+      <td>Fabricante: {{ filtros.nome_fabricante }}</td>
+    </tr>
+  {% endif %}
+  {% if filtros.nome_marca %}
+    <tr>
+      <td>Marca: {{ filtros.nome_marca }}</td>
+    </tr>
+  {% endif %}
+  {% if filtros.nome_produto %}
+    <tr>
+      <td>Produto: {{ filtros.nome_produto }}</td>
+    </tr>
+  {% endif %}
+  {% if filtros.nome_terceirizada %}
+    <tr>
+      <td>Terceirizada: {{ filtros.nome_terceirizada }}</td>
+    </tr>
+  {% endif %}
+</table>

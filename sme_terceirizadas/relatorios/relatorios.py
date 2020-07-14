@@ -6,6 +6,7 @@ from weasyprint import HTML
 
 from ..dados_comuns.models import LogSolicitacoesUsuario
 from ..kit_lanche.models import EscolaQuantidade
+from ..terceirizada.utils import transforma_dados_relatorio_quantitativo
 from . import constants
 from .utils import formata_logs, get_diretorias_regionais, get_width
 
@@ -321,6 +322,21 @@ def relatorio_produto_homologacao(request, produto):
     pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
     response = HttpResponse(pdf_file, content_type='application/pdf')
     response['Content-Disposition'] = f'filename="produto_homologacao_{produto.id_externo}.pdf"'
+    return response
+
+
+def relatorio_quantitativo_por_terceirizada(request, filtros, dados_relatorio):
+    dados_relatorio_transformados = transforma_dados_relatorio_quantitativo(dados_relatorio)
+    html_string = render_to_string(
+        'relatorio_quantitativo_por_terceirizada.html',
+        {
+            'filtros': filtros,
+            'dados_relatorio': dados_relatorio_transformados,
+        }
+    )
+    pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
+    response = HttpResponse(pdf_file, content_type='application/pdf')
+    response['Content-Disposition'] = f'filename="relatorio_quantitativo_por_terceirizada.pdf"'
     return response
 
 

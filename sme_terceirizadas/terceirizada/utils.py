@@ -1,5 +1,16 @@
 from django.db import connection
 
+MAPEAMENTO_STATUS_LABEL = {'CODAE_AUTORIZOU_RECLAMACAO': 'RECLAMACAO_DE_PRODUTO',
+                           'CODAE_SUSPENDEU': 'PRODUTOS_SUSPENSOS',
+                           'CODAE_QUESTIONADO': 'PRODUTOS_AGUARDANDO_CORRECAO',
+                           'CODAE_PEDIU_ANALISE_RECLAMACAO': 'PRODUTOS_ANALISE_RECLAMACAO',
+                           'CODAE_PEDIU_ANALISE_SENSORIAL': 'PRODUTOS_AGUARDANDO_ANALISE_SENSORIAL',
+                           'CODAE_PENDENTE_HOMOLOGACAO': 'PRODUTOS_PENDENTES_HOMOLOGACAO',
+                           'CODAE_HOMOLOGADO': 'PRODUTOS_HOMOLOGADOS',
+                           'CODAE_NAO_HOMOLOGADO': 'PRODUTOS_NAO_HOMOLOGADOS',
+                           'ESCOLA_OU_NUTRICIONISTA_RECLAMOU': 'PRODUTOS_ANALISE_RECLAMACAO',
+                           'TERCEIRIZADA_RESPONDEU_RECLAMACAO': 'PRODUTOS_ANALISE_RECLAMACAO'}
+
 SQL_RELATORIO_QUANTITATIVO = """
     SELECT terceirizada_terceirizada.nome_fantasia nome_terceirizada,
        produto_homologacaodoproduto.status,
@@ -49,11 +60,14 @@ def obtem_dados_relatorio_quantitativo(form_data):  # noqa C901
     ultima_terceirizada = None
     lista_dados = []
     dados_terc_atual = {}
+    total_produtos_terc_atual = 0
 
     for row in rows:
         if ultima_terceirizada is not None and row[0] != ultima_terceirizada:
+            dados_terc_atual['total_produtos'] = total_produtos_terc_atual
             lista_dados.append(dados_terc_atual)
             ultima_terceirizada = None
+            total_produtos_terc_atual = 0
         if ultima_terceirizada is None:
             dados_terc_atual = {
                 'nome_terceirizada': row[0],
@@ -63,17 +77,51 @@ def obtem_dados_relatorio_quantitativo(form_data):  # noqa C901
                 }]
             }
             ultima_terceirizada = row[0]
+            total_produtos_terc_atual += row[2]
         elif row[0] == ultima_terceirizada:
             dados_terc_atual['qtde_por_status'].append({
                 'status': row[1],
                 'qtde': row[2]
             })
+            total_produtos_terc_atual += row[2]
 
     if dados_terc_atual != {}:
+        dados_terc_atual['total_produtos'] = total_produtos_terc_atual
         lista_dados.append(dados_terc_atual)
 
     retorno = {'results': lista_dados}
 
     if form_data['data_inicial'] is not None and form_data['data_final'] is not None:
         retorno['dias'] = (form_data['data_final'] - form_data['data_inicial']).days
+    return retorno
+
+
+def transforma_dados_relatorio_quantitativo(dados):  # noqa C901
+    qtde_por_status_zerado = {}
+    relatorio = []
+    total_produtos = 0
+
+    for status in MAPEAMENTO_STATUS_LABEL.values():
+        qtde_por_status_zerado[status] = 0
+
+    for dados_terceirizada in dados['results']:
+        qtde_por_status = qtde_por_status_zerado.copy()
+        total_produtos_terceirizada = 0
+        for status_e_qtde in dados_terceirizada['qtde_por_status']:
+            qtde = status_e_qtde['qtde']
+            total_produtos_terceirizada += qtde
+            total_produtos += qtde
+            qtde_por_status[MAPEAMENTO_STATUS_LABEL[status_e_qtde['status']]] += qtde
+        relatorio.append({
+            'nomeTerceirizada': dados_terceirizada['nome_terceirizada'],
+            'qtdePorStatus': qtde_por_status,
+            'totalProdutos': total_produtos_terceirizada
+        })
+
+    retorno = {
+        'totalProdutos': total_produtos,
+        'detalhes': relatorio,
+    }
+    if 'dias' in dados:
+        retorno['qtdeDias'] = dados['dias']
     return retorno
