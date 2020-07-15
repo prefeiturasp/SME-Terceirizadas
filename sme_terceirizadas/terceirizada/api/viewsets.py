@@ -5,6 +5,7 @@ from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from ...escola.api.serializers import TerceirizadaSerializer, UsuarioDetalheSerializer
 from ...perfil.api.serializers import UsuarioUpdateSerializer, VinculoSerializer
+from ...relatorios.relatorios import relatorio_quantitativo_por_terceirizada
 from ..forms import RelatorioQuantitativoForm
 from ..models import Edital, Terceirizada
 from ..utils import obtem_dados_relatorio_quantitativo
@@ -41,6 +42,18 @@ class TerceirizadaViewSet(viewsets.ModelViewSet):
             return Response(form.errors)
 
         return Response(obtem_dados_relatorio_quantitativo(form.cleaned_data))
+
+    @action(detail=False, methods=['GET'], url_path='imprimir-relatorio-quantitativo')
+    def imprimir_relatorio_quantitativo(self, request):
+        form = RelatorioQuantitativoForm(request.GET)
+
+        if not form.is_valid():
+            return Response(form.errors)
+
+        dados_relatorio = obtem_dados_relatorio_quantitativo(form.cleaned_data)
+
+        return relatorio_quantitativo_por_terceirizada(
+            self.request, form.cleaned_data, dados_relatorio)
 
 
 class EditalContratosViewSet(viewsets.ModelViewSet):
