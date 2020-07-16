@@ -28,6 +28,7 @@ SQL_RELATORIO_QUANTITATIVO = """
       AND produto_homologacaodoproduto.produto_id = produto_produto.id
       AND django_content_type.app_label = 'terceirizada'
       AND django_content_type.model = 'terceirizada'
+      AND status != 'HOMOLOGACAO_INATIVA'
       {0}
     GROUP BY nome_terceirizada, status
     ORDER BY nome_terceirizada
