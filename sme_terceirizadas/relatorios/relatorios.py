@@ -2,6 +2,7 @@ import datetime
 
 from django.http import HttpResponse
 from django.template.loader import render_to_string
+from django_weasyprint.utils import django_url_fetcher
 from weasyprint import HTML
 
 from ..dados_comuns.models import LogSolicitacoesUsuario
@@ -334,9 +335,9 @@ def relatorio_quantitativo_por_terceirizada(request, filtros, dados_relatorio):
             'dados_relatorio': dados_relatorio_transformados,
         }
     )
-    pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
+    pdf_file = HTML(string=html_string, url_fetcher=django_url_fetcher, base_url='file://abobrinha').write_pdf()
     response = HttpResponse(pdf_file, content_type='application/pdf')
-    response['Content-Disposition'] = f'filename="relatorio_quantitativo_por_terceirizada.pdf"'
+    response['Content-Disposition'] = 'filename="relatorio_quantitativo_por_terceirizada.pdf"'
     return response
 
 
