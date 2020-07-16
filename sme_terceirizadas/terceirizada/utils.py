@@ -35,7 +35,7 @@ SQL_RELATORIO_QUANTITATIVO = """
 
 SQL_RELATORIO_QUANTITATIVO_POR_NOME = 'AND LOWER(terceirizada_terceirizada.nome_fantasia) LIKE %s'
 SQL_RELATORIO_QUANTITATIVO_A_PARTIR_DE = 'AND produto_produto.criado_em >= %s'
-SQL_RELATORIO_QUANTITATIVO_ATE = 'AND produto_produto.criado_em < %s + 1'
+SQL_RELATORIO_QUANTITATIVO_ATE = "AND produto_produto.criado_em < (to_date(%s, 'YYYY-MM-DD') + 1)"
 
 
 def obtem_dados_relatorio_quantitativo(form_data):  # noqa C901
