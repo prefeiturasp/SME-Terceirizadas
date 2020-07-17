@@ -1,11 +1,10 @@
 import datetime
 
-from django.http import HttpResponse
 from django.template.loader import render_to_string
-from weasyprint import HTML
 
 from ..dados_comuns.models import LogSolicitacoesUsuario
 from ..kit_lanche.models import EscolaQuantidade
+from ..relatorios.utils import html_to_pdf_response
 from ..terceirizada.utils import transforma_dados_relatorio_quantitativo
 from . import constants
 from .utils import formata_logs, get_diretorias_regionais, get_width
@@ -31,11 +30,7 @@ def relatorio_filtro_periodo(request, query_set_consolidado, escola_nome='', dre
             'query_set_consolidado': query_set_consolidado
         }
     )
-    # TODO: unificar as próximas quatro linhas em uma função
-    pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
-    response = HttpResponse(pdf_file, content_type='application/pdf')
-    response['Content-Disposition'] = f'filename="relatorio_filtro_de_{data_inicial}_ate_{data_final}.pdf"'
-    return response
+    return html_to_pdf_response(html_string, f'relatorio_filtro_de_{data_inicial}_ate_{data_final}.pdf')
 
 
 def relatorio_resumo_anual_e_mensal(request, resumos_mes, resumo_ano):
@@ -52,10 +47,7 @@ def relatorio_resumo_anual_e_mensal(request, resumos_mes, resumo_ano):
             'resumos_mes': resumos_mes, 'resumo_ano': resumo_ano, 'meses': meses
         }
     )
-    pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
-    response = HttpResponse(pdf_file, content_type='application/pdf')
-    response['Content-Disposition'] = f'filename="relatorio_resumo_anual_e_mensal.pdf"'
-    return response
+    return html_to_pdf_response(html_string, f'relatorio_resumo_anual_e_mensal.pdf')
 
 
 def relatorio_kit_lanche_unificado(request, solicitacao):
@@ -68,10 +60,7 @@ def relatorio_kit_lanche_unificado(request, solicitacao):
          'width': get_width(constants.FLUXO_PARTINDO_DRE, solicitacao.logs),
          'logs': formata_logs(solicitacao.logs)}
     )
-    pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
-    response = HttpResponse(pdf_file, content_type='application/pdf')
-    response['Content-Disposition'] = f'filename="solicitacao_unificada_{solicitacao.id_externo}.pdf"'
-    return response
+    return html_to_pdf_response(html_string, f'solicitacao_unificada_{solicitacao.id_externo}.pdf')
 
 
 def relatorio_alteracao_cardapio(request, solicitacao):
@@ -87,10 +76,7 @@ def relatorio_alteracao_cardapio(request, solicitacao):
          'width': get_width(constants.FLUXO_PARTINDO_ESCOLA, solicitacao.logs),
          'logs': formata_logs(logs)}
     )
-    pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
-    response = HttpResponse(pdf_file, content_type='application/pdf')
-    response['Content-Disposition'] = f'filename="alteracao_cardapio_{solicitacao.id_externo}.pdf"'
-    return response
+    return html_to_pdf_response(html_string, f'alteracao_cardapio_{solicitacao.id_externo}.pdf')
 
 
 def relatorio_alteracao_cardapio_cei(request, solicitacao):
@@ -106,10 +92,7 @@ def relatorio_alteracao_cardapio_cei(request, solicitacao):
          'width': get_width(constants.FLUXO_PARTINDO_ESCOLA, solicitacao.logs),
          'logs': formata_logs(logs)}
     )
-    pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
-    response = HttpResponse(pdf_file, content_type='application/pdf')
-    response['Content-Disposition'] = f'filename="alteracao_cardapio_{solicitacao.id_externo}.pdf"'
-    return response
+    return html_to_pdf_response(html_string, f'alteracao_cardapio_{solicitacao.id_externo}.pdf')
 
 
 def relatorio_dieta_especial(request, solicitacao):
@@ -132,10 +115,7 @@ def relatorio_dieta_especial(request, solicitacao):
             'logs': formata_logs(logs)
         }
     )
-    pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
-    response = HttpResponse(pdf_file, content_type='application/pdf')
-    response['Content-Disposition'] = f'filename="dieta_especial_{solicitacao.id_externo}.pdf"'
-    return response
+    return html_to_pdf_response(html_string, f'dieta_especial_{solicitacao.id_externo}.pdf')
 
 
 def relatorio_dieta_especial_protocolo(request, solicitacao):
@@ -148,10 +128,7 @@ def relatorio_dieta_especial_protocolo(request, solicitacao):
             'log_autorizacao': solicitacao.logs.get(status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU)
         }
     )
-    pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
-    response = HttpResponse(pdf_file, content_type='application/pdf')
-    response['Content-Disposition'] = f'filename="dieta_especial_{solicitacao.id_externo}.pdf"'
-    return response
+    return html_to_pdf_response(html_string, f'dieta_especial_{solicitacao.id_externo}.pdf')
 
 
 def relatorio_inclusao_alimentacao_continua(request, solicitacao):
@@ -167,10 +144,7 @@ def relatorio_inclusao_alimentacao_continua(request, solicitacao):
             'logs': formata_logs(logs)
         }
     )
-    pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
-    response = HttpResponse(pdf_file, content_type='application/pdf')
-    response['Content-Disposition'] = f'filename="inclusao_alimentacao_continua_{solicitacao.id_externo}.pdf"'
-    return response
+    return html_to_pdf_response(html_string, f'inclusao_alimentacao_continua_{solicitacao.id_externo}.pdf')
 
 
 def relatorio_inclusao_alimentacao_normal(request, solicitacao):
@@ -186,10 +160,7 @@ def relatorio_inclusao_alimentacao_normal(request, solicitacao):
             'logs': formata_logs(logs)
         }
     )
-    pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
-    response = HttpResponse(pdf_file, content_type='application/pdf')
-    response['Content-Disposition'] = f'filename="inclusao_alimentacao_{solicitacao.id_externo}.pdf"'
-    return response
+    return html_to_pdf_response(html_string, f'inclusao_alimentacao_{solicitacao.id_externo}.pdf')
 
 
 def relatorio_inclusao_alimentacao_cei(request, solicitacao):
@@ -205,10 +176,7 @@ def relatorio_inclusao_alimentacao_cei(request, solicitacao):
             'logs': formata_logs(logs)
         }
     )
-    pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
-    response = HttpResponse(pdf_file, content_type='application/pdf')
-    response['Content-Disposition'] = f'filename="inclusao_alimentacao_{solicitacao.id_externo}.pdf"'
-    return response
+    return html_to_pdf_response(html_string, f'inclusao_alimentacao_{solicitacao.id_externo}.pdf')
 
 
 def relatorio_kit_lanche_passeio(request, solicitacao):
@@ -227,10 +195,7 @@ def relatorio_kit_lanche_passeio(request, solicitacao):
             'logs': formata_logs(logs)
         }
     )
-    pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
-    response = HttpResponse(pdf_file, content_type='application/pdf')
-    response['Content-Disposition'] = f'filename="solicitacao_avulsa_{solicitacao.id_externo}.pdf"'
-    return response
+    return html_to_pdf_response(html_string, f'solicitacao_avulsa_{solicitacao.id_externo}.pdf')
 
 
 def relatorio_kit_lanche_passeio_cei(request, solicitacao):
@@ -249,10 +214,7 @@ def relatorio_kit_lanche_passeio_cei(request, solicitacao):
             'logs': formata_logs(logs)
         }
     )
-    pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
-    response = HttpResponse(pdf_file, content_type='application/pdf')
-    response['Content-Disposition'] = f'filename="solicitacao_avulsa_{solicitacao.id_externo}.pdf"'
-    return response
+    return html_to_pdf_response(html_string, f'solicitacao_avulsa_{solicitacao.id_externo}.pdf')
 
 
 def relatorio_inversao_dia_de_cardapio(request, solicitacao):
@@ -270,10 +232,7 @@ def relatorio_inversao_dia_de_cardapio(request, solicitacao):
             'logs': formata_logs(logs)
         }
     )
-    pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
-    response = HttpResponse(pdf_file, content_type='application/pdf')
-    response['Content-Disposition'] = f'filename="solicitacao_inversao_{solicitacao.id_externo}.pdf"'
-    return response
+    return html_to_pdf_response(html_string, f'solicitacao_inversao_{solicitacao.id_externo}.pdf')
 
 
 def relatorio_suspensao_de_alimentacao(request, solicitacao):
@@ -296,10 +255,7 @@ def relatorio_suspensao_de_alimentacao(request, solicitacao):
             'logs': formata_logs(logs)
         }
     )
-    pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
-    response = HttpResponse(pdf_file, content_type='application/pdf')
-    response['Content-Disposition'] = f'filename="solicitacao_suspensao_{solicitacao.id_externo}.pdf"'
-    return response
+    return html_to_pdf_response(html_string, f'solicitacao_suspensao_{solicitacao.id_externo}.pdf')
 
 
 def relatorio_produto_homologacao(request, produto):
@@ -319,10 +275,7 @@ def relatorio_produto_homologacao(request, produto):
             'logs': formata_logs(logs)
         }
     )
-    pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
-    response = HttpResponse(pdf_file, content_type='application/pdf')
-    response['Content-Disposition'] = f'filename="produto_homologacao_{produto.id_externo}.pdf"'
-    return response
+    return html_to_pdf_response(html_string, f'produto_homologacao_{produto.id_externo}.pdf')
 
 
 def relatorio_quantitativo_por_terceirizada(request, filtros, dados_relatorio):
@@ -334,10 +287,7 @@ def relatorio_quantitativo_por_terceirizada(request, filtros, dados_relatorio):
             'dados_relatorio': dados_relatorio_transformados,
         }
     )
-    pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
-    response = HttpResponse(pdf_file, content_type='application/pdf')
-    response['Content-Disposition'] = f'filename="relatorio_quantitativo_por_terceirizada.pdf"'
-    return response
+    return html_to_pdf_response(html_string, 'relatorio_quantitativo_por_terceirizada.pdf')
 
 
 def relatorio_produto_analise_sensorial(request, produto):
@@ -358,10 +308,7 @@ def relatorio_produto_analise_sensorial(request, produto):
             'ultimo_log': homologacao.logs.last()
         }
     )
-    pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
-    response = HttpResponse(pdf_file, content_type='application/pdf')
-    response['Content-Disposition'] = f'filename="produto_homologacao_relatorio_{produto.id_externo}.pdf"'
-    return response
+    return html_to_pdf_response(html_string, f'produto_homologacao_relatorio_{produto.id_externo}.pdf')
 
 
 def relatorio_produtos_agrupado_terceirizada(request, dados_agrupados, filtros):
@@ -372,10 +319,7 @@ def relatorio_produtos_agrupado_terceirizada(request, dados_agrupados, filtros):
             'filtros': filtros
         }
     )
-    pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
-    response = HttpResponse(pdf_file, content_type='application/pdf')
-    response['Content-Disposition'] = 'filename="produtos_homologados_por_terceirizada.pdf"'
-    return response
+    return html_to_pdf_response(html_string, 'produtos_homologados_por_terceirizada.pdf')
 
 
 def relatorio_produto_analise_sensorial_recebimento(request, produto):
@@ -396,7 +340,4 @@ def relatorio_produto_analise_sensorial_recebimento(request, produto):
             'ultimo_log': homologacao.logs.last()
         }
     )
-    pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
-    response = HttpResponse(pdf_file, content_type='application/pdf')
-    response['Content-Disposition'] = f'filename="produto_homologacao_{produto.id_externo}.pdf"'
-    return response
+    return html_to_pdf_response(html_string, f'produto_homologacao_{produto.id_externo}.pdf')

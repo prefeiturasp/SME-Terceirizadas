@@ -1,5 +1,9 @@
 import math
 
+from django.http import HttpResponse
+from django_weasyprint.utils import django_url_fetcher
+from weasyprint import HTML
+
 from ..dados_comuns.models import LogSolicitacoesUsuario
 
 
@@ -23,3 +27,13 @@ def get_diretorias_regionais(lotes):
         if lote.diretoria_regional not in diretorias_regionais:
             diretorias_regionais.append(lote.diretoria_regional)
     return diretorias_regionais
+
+
+def html_to_pdf_response(html_string, pdf_filename):
+    pdf_file = HTML(
+        string=html_string,
+        url_fetcher=django_url_fetcher,
+        base_url='file://abobrinha').write_pdf()
+    response = HttpResponse(pdf_file, content_type='application/pdf')
+    response['Content-Disposition'] = f'filename="{pdf_filename}"'
+    return response
