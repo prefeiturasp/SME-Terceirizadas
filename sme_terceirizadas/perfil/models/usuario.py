@@ -18,7 +18,8 @@ from ...dados_comuns.constants import (
     ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
     ADMINISTRADOR_GESTAO_PRODUTO,
     COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
-    COORDENADOR_GESTAO_PRODUTO
+    COORDENADOR_GESTAO_PRODUTO,
+    SUPERVISAO_NUTRICAO
 )
 from ...dados_comuns.tasks import envia_email_unico_task
 from ...dados_comuns.utils import url_configs
@@ -168,6 +169,8 @@ class Usuario(ExportModelOperationsMixin('usuario'), SimpleEmailConfirmationUser
                 elif self.vinculo_atual.perfil.nome in [COORDENADOR_GESTAO_PRODUTO,
                                                         ADMINISTRADOR_GESTAO_PRODUTO]:
                     tipo_usuario = 'gestao_produto'
+                elif self.vinculo_atual.perfil.nome == SUPERVISAO_NUTRICAO:
+                    tipo_usuario = 'supervisao_nutricao'
                 else:
                     tipo_usuario = 'dieta_especial'
         return tipo_usuario

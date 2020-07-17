@@ -32,6 +32,8 @@ if [ "$criar_usuarios" != "${criar_usuarios#[Ss]}" ]; then
   ./manage.py shell -c "from sme_terceirizadas.perfil.models import Usuario; Usuario.objects.create_superuser('codae@admin.com', 'adminadmin', cpf='11111111114', registro_funcional='1111114')"
   echo "Criando CODAE Nutricionista admin"
   ./manage.py shell -c "from sme_terceirizadas.perfil.models import Usuario; Usuario.objects.create_superuser('nutricodae@admin.com', 'adminadmin', cpf='11111111115', registro_funcional='1111115')"
+  echo "Criando Nutricionista Supervisao admin"
+  ./manage.py shell -c "from sme_terceirizadas.perfil.models import Usuario; Usuario.objects.create_superuser('nutrisupervisao@admin.com', 'adminadmin', cpf='11111111125', registro_funcional='1111125')"
   echo "Criando CODAE - Gestao de Produtos - admin"
   ./manage.py shell -c "from sme_terceirizadas.perfil.models import Usuario; Usuario.objects.create_superuser('gpcodae@admin.com', 'adminadmin', cpf='21111111114', registro_funcional='2111114')"
   echo "Criando Escola CEI admin"
