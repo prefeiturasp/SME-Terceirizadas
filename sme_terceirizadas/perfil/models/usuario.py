@@ -1,3 +1,4 @@
+import datetime
 import logging
 
 import environ
@@ -13,7 +14,7 @@ from django.utils.translation import ugettext_lazy as _
 from django_prometheus.models import ExportModelOperationsMixin
 from simple_email_confirmation.models import SimpleEmailConfirmationUserMixin
 
-from ...dados_comuns.behaviors import TemChaveExterna
+from ...dados_comuns.behaviors import Ativavel, Nomeavel, TemChaveExterna
 from ...dados_comuns.constants import (
     ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
     ADMINISTRADOR_GESTAO_PRODUTO,
@@ -143,6 +144,16 @@ class Usuario(ExportModelOperationsMixin('usuario'), SimpleEmailConfirmationUser
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []  # type: ignore
 
+    def atualizar_cargo(self):
+        cargo = self.cargos.filter(ativo=True).last()
+        self.cargo = cargo.nome
+        self.save()
+
+    def desativa_cargo(self):
+        cargo = self.cargos.last()
+        if cargo is not None:
+            cargo.finalizar_cargo()
+
     @property
     def vinculos(self):
         return self.vinculos
@@ -244,3 +255,26 @@ class Usuario(ExportModelOperationsMixin('usuario'), SimpleEmailConfirmationUser
 
     class Meta:
         ordering = ('-super_admin_terceirizadas',)
+
+
+class Cargo(TemChaveExterna, Nomeavel, Ativavel):
+    data_inicial = models.DateField('Data inicial', null=True, blank=True)
+    data_final = models.DateField('Data final', null=True, blank=True)
+    usuario = models.ForeignKey(Usuario, related_name='cargos', on_delete=models.CASCADE)
+
+    def finalizar_cargo(self):
+        self.ativo = False
+        self.data_final = datetime.date.today()
+        self.save()
+
+    def ativar_cargo(self):
+        self.ativo = True
+        self.data_inicial = datetime.date.today()
+        self.save()
+
+    class Meta:
+        verbose_name = 'Cargo'
+        verbose_name_plural = 'Cargos'
+
+    def __str__(self):
+        return f'{self.usuario} de {self.data_inicial} até {self.data_final}'

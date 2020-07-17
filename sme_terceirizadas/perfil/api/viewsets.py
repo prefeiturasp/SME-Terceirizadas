@@ -11,10 +11,12 @@ from ...escola.api.serializers import UsuarioDetalheSerializer
 from ...terceirizada.models import Terceirizada
 from ..api.helpers import ofuscar_email
 from ..models import Perfil, Usuario
+from ..tasks import busca_cargo_de_usuario
 from .serializers import PerfilSerializer, UsuarioUpdateSerializer
 
 
 class UsuarioViewSet(viewsets.ReadOnlyModelViewSet):
+    permission_classes = (permissions.AllowAny,)
     lookup_field = 'uuid'
     queryset = Usuario.objects.all()
     serializer_class = UsuarioDetalheSerializer
@@ -28,6 +30,13 @@ class UsuarioViewSet(viewsets.ReadOnlyModelViewSet):
         usuario.save()
         serializer = self.get_serializer(usuario)
         return Response(serializer.data)
+
+    @action(detail=False, url_path='atualizar-cargo', methods=['get'])
+    def atualizar_cargo(self, request):
+        usuario = request.user
+        registro_funcional = usuario.registro_funcional
+        busca_cargo_de_usuario.delay(registro_funcional)
+        return Response({'detail': 'sucesso'}, status=status.HTTP_200_OK)
 
     @action(detail=False, url_path='atualizar-senha', methods=['patch'])
     def atualizar_senha(self, request):
@@ -70,7 +79,7 @@ class UsuarioUpdateViewSet(viewsets.GenericViewSet):
     def create(self, request):  # noqa C901
         try:
             usuario = self._get_usuario(request)
-        # TODO: ajeitar isso aqui
+            # TODO: ajeitar isso aqui
             usuario = UsuarioUpdateSerializer(usuario).partial_update(usuario, request.data)
             if not isinstance(usuario.vinculo_atual.instituicao, Terceirizada):
                 usuario.enviar_email_confirmacao()
