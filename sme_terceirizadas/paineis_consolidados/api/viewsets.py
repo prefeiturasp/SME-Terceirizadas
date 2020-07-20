@@ -13,6 +13,7 @@ from ...dados_comuns.permissions import (
     UsuarioCODAEGestaoAlimentacao,
     UsuarioDiretoriaRegional,
     UsuarioEscola,
+    UsuarioNutricionista,
     UsuarioTerceirizada
 )
 from ...dieta_especial.api.serializers import SolicitacaoDietaEspecialLogSerializer, SolicitacaoDietaEspecialSerializer
@@ -160,7 +161,7 @@ class CODAESolicitacoesViewSet(SolicitacoesViewSet):
     @action(detail=False,
             methods=['GET'],
             url_path=PENDENTES_AUTORIZACAO_DIETA_ESPECIAL,
-            permission_classes=(UsuarioCODAEDietaEspecial,))
+            permission_classes=(UsuarioNutricionista,))
     def pendentes_autorizacao_dieta_especial(self, request):
         query_set = SolicitacoesCODAE.get_pendentes_dieta_especial()
         return self._retorno_base(query_set)
@@ -168,7 +169,7 @@ class CODAESolicitacoesViewSet(SolicitacoesViewSet):
     @action(detail=False,
             methods=['GET'],
             url_path=AUTORIZADOS_DIETA_ESPECIAL,
-            permission_classes=(UsuarioCODAEDietaEspecial,))
+            permission_classes=(UsuarioNutricionista,))
     def autorizados_dieta_especial(self, request):
         query_set = SolicitacoesCODAE.get_autorizados_dieta_especial()
         return self._retorno_base(query_set)
@@ -176,7 +177,7 @@ class CODAESolicitacoesViewSet(SolicitacoesViewSet):
     @action(detail=False,
             methods=['GET'],
             url_path=NEGADOS_DIETA_ESPECIAL,
-            permission_classes=(UsuarioCODAEDietaEspecial,))
+            permission_classes=(UsuarioNutricionista,))
     def negados_dieta_especial(self, request):
         query_set = SolicitacoesCODAE.get_negados_dieta_especial()
         return self._retorno_base(query_set)
@@ -184,7 +185,7 @@ class CODAESolicitacoesViewSet(SolicitacoesViewSet):
     @action(detail=False,
             methods=['GET'],
             url_path=CANCELADOS_DIETA_ESPECIAL,
-            permission_classes=(UsuarioCODAEDietaEspecial,))
+            permission_classes=(UsuarioNutricionista,))
     def cancelados_dieta_especial(self, request):
         query_set = SolicitacoesCODAE.get_cancelados_dieta_especial()
         return self._retorno_base(query_set)
