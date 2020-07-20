@@ -8,7 +8,8 @@ from .constants import (
     ADMINISTRADOR_GESTAO_PRODUTO,
     COORDENADOR_DIETA_ESPECIAL,
     COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
-    COORDENADOR_GESTAO_PRODUTO
+    COORDENADOR_GESTAO_PRODUTO,
+    SUPERVISAO_NUTRICAO
 )
 
 
@@ -80,6 +81,21 @@ class UsuarioCODAEDietaEspecial(BasePermission):
             isinstance(usuario.vinculo_atual.instituicao, Codae) and
             usuario.vinculo_atual.perfil.nome in [COORDENADOR_DIETA_ESPECIAL,
                                                   ADMINISTRADOR_DIETA_ESPECIAL]
+        )
+
+
+class UsuarioNutricionista(BasePermission):
+    """Permite acesso a usuários com vinculo a CODAE - Dieta Especial."""
+
+    def has_permission(self, request, view):
+        usuario = request.user
+        return (
+            not usuario.is_anonymous and
+            usuario.vinculo_atual and
+            isinstance(usuario.vinculo_atual.instituicao, Codae) and
+            usuario.vinculo_atual.perfil.nome in [COORDENADOR_DIETA_ESPECIAL,
+                                                  ADMINISTRADOR_DIETA_ESPECIAL,
+                                                  SUPERVISAO_NUTRICAO]
         )
 
 
@@ -208,7 +224,8 @@ class PermissaoParaReclamarDeProduto(BasePermission):
                 (
                     isinstance(usuario.vinculo_atual.instituicao, Codae) and
                     usuario.vinculo_atual.perfil.nome in [COORDENADOR_DIETA_ESPECIAL,
-                                                          ADMINISTRADOR_DIETA_ESPECIAL]
+                                                          ADMINISTRADOR_DIETA_ESPECIAL,
+                                                          SUPERVISAO_NUTRICAO]
                 )
             )
         )

@@ -2,6 +2,7 @@ from rest_framework import serializers
 
 from ....dados_comuns.constants import DEZ_MB
 from ....dados_comuns.utils import convert_base64_to_contentfile, update_instance_from_dict
+from ....escola.models import Escola
 from ...models import (
     AnexoReclamacaoDeProduto,
     AnexoRespostaAnaliseSensorial,
@@ -160,6 +161,11 @@ class AnexoCreateSerializer(serializers.Serializer):
 
 class ReclamacaoDeProdutoSerializerCreate(serializers.ModelSerializer):
     anexos = AnexoCreateSerializer(many=True, required=False)
+    escola = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=Escola.objects.all()
+    )
 
     def create(self, validated_data):  # noqa C901
         anexos = validated_data.pop('anexos', [])
