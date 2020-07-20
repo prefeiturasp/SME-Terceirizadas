@@ -6,7 +6,7 @@ from ....dados_comuns.api.serializers import (
     LogSolicitacoesUsuarioComVinculoSerializer,
     LogSolicitacoesUsuarioSerializer
 )
-from ....escola.api.serializers import VinculoInstituicaoSerializer
+from ....escola.api.serializers import EscolaSimplissimaSerializer
 from ....terceirizada.api.serializers.serializers import TerceirizadaSimplesSerializer
 from ...models import (
     AnexoReclamacaoDeProduto,
@@ -90,7 +90,7 @@ class InformacoesNutricionaisDoProdutoSerializer(serializers.ModelSerializer):
 
 
 class ReclamacaoDeProdutoSerializer(serializers.ModelSerializer):
-    vinculo = VinculoInstituicaoSerializer()
+    escola = EscolaSimplissimaSerializer()
     anexos = serializers.SerializerMethodField()
 
     def get_anexos(self, obj):
@@ -103,7 +103,7 @@ class ReclamacaoDeProdutoSerializer(serializers.ModelSerializer):
     class Meta:
         model = ReclamacaoDeProduto
         fields = ('reclamante_registro_funcional', 'reclamante_cargo', 'reclamante_nome',
-                  'reclamacao', 'vinculo', 'anexos')
+                  'reclamacao', 'escola', 'anexos')
 
 
 class ReclamacaoDeProdutoSimplesSerializer(serializers.ModelSerializer):

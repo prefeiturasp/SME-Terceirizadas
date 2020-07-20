@@ -268,7 +268,6 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
         homologacao_produto = self.get_object()
         data = request.data.copy()
         data['homologacao_de_produto'] = homologacao_produto.id
-        data['vinculo'] = request.user.vinculo_atual.id
         data['criado_por'] = request.user
         try:
             serializer_reclamacao = ReclamacaoDeProdutoSerializerCreate(data=data)

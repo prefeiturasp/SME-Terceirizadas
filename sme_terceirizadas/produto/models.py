@@ -12,7 +12,7 @@ from ..dados_comuns.behaviors import (
 )
 from ..dados_comuns.fluxo_status import FluxoHomologacaoProduto
 from ..dados_comuns.models import LogSolicitacoesUsuario, TemplateMensagem
-from ..perfil.models.perfil import Vinculo
+from ..escola.models import Escola
 
 MAX_NUMERO_PROTOCOLO = 6
 
@@ -234,7 +234,7 @@ class ReclamacaoDeProduto(TemChaveExterna, CriadoEm, CriadoPor):
     reclamante_cargo = models.CharField('Cargo', max_length=100)
     reclamante_nome = models.CharField('Nome', max_length=255)
     reclamacao = models.TextField('Reclamação')
-    vinculo = models.ForeignKey(Vinculo, on_delete=models.DO_NOTHING)
+    escola = models.ForeignKey(Escola, null=True, on_delete=models.PROTECT, related_name='reclamacoes')
 
     def __str__(self):
         return f'Reclamação {self.uuid} feita por {self.reclamante_nome} em {self.criado_em}'
