@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 from django.utils.translation import ugettext_lazy as _
 
-from .models import Perfil, Usuario, Vinculo
+from .models import Cargo, Perfil, Usuario, Vinculo
 
 
 class BaseUserAdmin(DjangoUserAdmin):
@@ -31,3 +31,4 @@ class BaseUserAdmin(DjangoUserAdmin):
 admin.site.register(Usuario, BaseUserAdmin)
 admin.site.register(Perfil)
 admin.site.register(Vinculo)
+admin.site.register(Cargo)
