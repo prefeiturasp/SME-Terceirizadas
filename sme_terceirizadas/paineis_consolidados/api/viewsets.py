@@ -9,7 +9,6 @@ from rest_framework.response import Response
 from ...dados_comuns.constants import FILTRO_PADRAO_PEDIDOS, SEM_FILTRO
 from ...dados_comuns.fluxo_status import DietaEspecialWorkflow
 from ...dados_comuns.permissions import (
-    UsuarioCODAEDietaEspecial,
     UsuarioCODAEGestaoAlimentacao,
     UsuarioDiretoriaRegional,
     UsuarioEscola,
