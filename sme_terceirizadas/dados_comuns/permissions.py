@@ -203,7 +203,8 @@ class PermissaoParaRecuperarDietaEspecial(BasePermission):
         elif isinstance(usuario.vinculo_atual.instituicao, Codae):
             return (
                 usuario.vinculo_atual.perfil.nome in [COORDENADOR_DIETA_ESPECIAL,
-                                                      ADMINISTRADOR_DIETA_ESPECIAL]
+                                                      ADMINISTRADOR_DIETA_ESPECIAL,
+                                                      SUPERVISAO_NUTRICAO]
             )
         elif isinstance(usuario.vinculo_atual.instituicao, Terceirizada):
             return (
