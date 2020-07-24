@@ -119,9 +119,12 @@ class ProdutoSerializerCreate(serializers.ModelSerializer):
 
         for imagem in imagens:
             data = convert_base64_to_contentfile(imagem.get('arquivo'))
-            ImagemDoProduto.objects.create(
-                produto=instance, arquivo=data, nome=imagem.get('nome', '')
+            imagem, nova_imagem = ImagemDoProduto.objects.update_or_create(
+                produto=instance, nome=imagem.get('nome', '')
             )
+            if nova_imagem:
+                nova_imagem.arquivo = data
+                nova_imagem.save()
 
         for informacao in informacoes_nutricionais:
             InformacoesNutricionaisDoProduto.objects.create(
