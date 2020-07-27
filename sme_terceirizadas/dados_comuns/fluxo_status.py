@@ -1384,7 +1384,8 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
     class Meta:
         abstract = True
 
-class FluxoReclamacaoProduto(xwf_models.WorkflowEnabled, models.Model):
+
+class ReclamacaoProdutoWorkflow(xwf_models.Workflow):
     log_model = ''  # Disable logging to database
 
     AGUARDANDO_AVALIACAO = 'AGUARDANDO_AVALIACAO'  # INICIO
@@ -1409,3 +1410,11 @@ class FluxoReclamacaoProduto(xwf_models.WorkflowEnabled, models.Model):
     )
 
     initial_state = AGUARDANDO_AVALIACAO
+
+
+class FluxoReclamacaoProduto(xwf_models.WorkflowEnabled, models.Model):
+    workflow_class = ReclamacaoProdutoWorkflow
+    status = xwf_models.StateField(workflow_class)
+
+    class Meta:
+        abstract = True

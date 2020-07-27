@@ -10,7 +10,7 @@ from ..dados_comuns.behaviors import (
     TemChaveExterna,
     TemIdentificadorExternoAmigavel
 )
-from ..dados_comuns.fluxo_status import FluxoHomologacaoProduto
+from ..dados_comuns.fluxo_status import FluxoHomologacaoProduto, FluxoReclamacaoProduto
 from ..dados_comuns.models import LogSolicitacoesUsuario, TemplateMensagem
 from ..escola.models import Escola
 
@@ -227,7 +227,7 @@ class HomologacaoDoProduto(TemChaveExterna, CriadoEm, CriadoPor, FluxoHomologaca
         return f'Homologação #{self.id_externo}'
 
 
-class ReclamacaoDeProduto(TemChaveExterna, CriadoEm, CriadoPor):
+class ReclamacaoDeProduto(FluxoReclamacaoProduto, TemChaveExterna, CriadoEm, CriadoPor):
     homologacao_de_produto = models.ForeignKey('HomologacaoDoProduto', on_delete=models.CASCADE,
                                                related_name='reclamacoes')
     reclamante_registro_funcional = models.CharField('RF/CRN/CRF', max_length=50)

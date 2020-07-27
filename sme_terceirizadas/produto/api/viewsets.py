@@ -260,7 +260,7 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'),
                             status=status.HTTP_400_BAD_REQUEST)
 
-    @action(detail=True,
+    @action(detail=True,  # noqa C901
             permission_classes=[PermissaoParaReclamarDeProduto],
             methods=['patch'],
             url_path=constants.ESCOLA_OU_NUTRI_RECLAMA)
@@ -274,9 +274,10 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
             if not serializer_reclamacao.is_valid():
                 return Response(serializer_reclamacao.errors)
             serializer_reclamacao.save()
-            homologacao_produto.escola_ou_nutricionista_reclamou(
-                user=request.user,
-                reclamacao=serializer_reclamacao.data)
+            if homologacao_produto.status == HomologacaoDoProduto.workflow_class.CODAE_HOMOLOGADO:
+                homologacao_produto.escola_ou_nutricionista_reclamou(
+                    user=request.user,
+                    reclamacao=serializer_reclamacao.data)
             return Response(serializer_reclamacao.data)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'),
