@@ -516,7 +516,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
             return Response(form.errors)
 
         queryset = self.get_queryset_filtrado(form.cleaned_data)
-        return self.paginated_response(queryset)
+        return self.paginated_response(queryset.order_by('criado_em'))
 
     def serializa_agrupamento(self, agrupamento):
         serializado = []
@@ -593,7 +593,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         ]
 
         queryset = self.get_queryset_filtrado(form_data)
-        return self.paginated_response(queryset)
+        return self.paginated_response(queryset.order_by('criado_em'))
 
 
 class ProtocoloDeDietaEspecialViewSet(viewsets.ModelViewSet):
