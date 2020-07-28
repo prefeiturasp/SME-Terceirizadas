@@ -1,5 +1,3 @@
-from datetime import timedelta
-
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
@@ -28,7 +26,7 @@ from ..models import (
     ProtocoloDeDietaEspecial,
     RespostaAnaliseSensorial
 )
-from ..utils import agrupa_por_terceirizada
+from ..utils import agrupa_por_terceirizada, cria_filtro_produto_por_parametros_form
 from .serializers.serializers import (
     FabricanteSerializer,
     FabricanteSimplesSerializer,
@@ -504,25 +502,8 @@ class ProdutoViewSet(viewsets.ModelViewSet):
     def relatorio_analise_sensorial_recebimento(self, request, uuid=None):
         return relatorio_produto_analise_sensorial_recebimento(request, produto=self.get_object())
 
-    def get_queryset_filtrado(self, cleaned_data, request):  # noqa C901
-        campos_a_pesquisar = {}
-        for (chave, valor) in cleaned_data.items():
-            if valor != '' and valor is not None:
-                if chave == 'nome_fabricante':
-                    campos_a_pesquisar['fabricante__nome__icontains'] = valor
-                elif chave == 'nome_marca':
-                    campos_a_pesquisar['marca__nome__icontains'] = valor
-                elif chave == 'nome_produto':
-                    campos_a_pesquisar['nome__icontains'] = valor
-                elif chave == 'nome_terceirizada':
-                    campos_a_pesquisar['homologacoes__rastro_terceirizada__nome_fantasia__icontains'] = valor
-                elif chave == 'data_inicial':
-                    campos_a_pesquisar['homologacoes__criado_em__gte'] = valor
-                elif chave == 'data_final':
-                    campos_a_pesquisar['homologacoes__criado_em__lt'] = valor + timedelta(days=1)
-                elif chave == 'status' and len(valor) > 0:
-                    campos_a_pesquisar['homologacoes__status__in'] = valor
-
+    def get_queryset_filtrado(self, cleaned_data):
+        campos_a_pesquisar = cria_filtro_produto_por_parametros_form(cleaned_data)
         return self.get_queryset().filter(**campos_a_pesquisar)
 
     @action(detail=False,
@@ -534,7 +515,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         if not form.is_valid():
             return Response(form.errors)
 
-        queryset = self.get_queryset_filtrado(form.cleaned_data, request)
+        queryset = self.get_queryset_filtrado(form.cleaned_data)
         return self.paginated_response(queryset)
 
     def serializa_agrupamento(self, agrupamento):
@@ -565,7 +546,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
             HomologacaoProdutoWorkflow.ESCOLA_OU_NUTRICIONISTA_RECLAMOU
         ]
 
-        queryset = self.get_queryset_filtrado(form_data, request)
+        queryset = self.get_queryset_filtrado(form_data)
         queryset.order_by('criado_por')
 
         dados_agrupados = agrupa_por_terceirizada(queryset)
@@ -588,7 +569,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
             HomologacaoProdutoWorkflow.ESCOLA_OU_NUTRICIONISTA_RECLAMOU
         ]
 
-        queryset = self.get_queryset_filtrado(form_data, request)
+        queryset = self.get_queryset_filtrado(form_data)
 
         dados_agrupados = agrupa_por_terceirizada(queryset)
 
@@ -611,7 +592,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
             HomologacaoProdutoWorkflow.ESCOLA_OU_NUTRICIONISTA_RECLAMOU
         ]
 
-        queryset = self.get_queryset_filtrado(form_data, request)
+        queryset = self.get_queryset_filtrado(form_data)
         return self.paginated_response(queryset)
 
 
