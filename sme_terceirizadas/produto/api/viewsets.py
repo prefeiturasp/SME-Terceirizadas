@@ -1,5 +1,3 @@
-from datetime import timedelta
-
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
@@ -28,7 +26,7 @@ from ..models import (
     ProtocoloDeDietaEspecial,
     RespostaAnaliseSensorial
 )
-from ..utils import agrupa_por_terceirizada
+from ..utils import agrupa_por_terceirizada, cria_filtro_produto_por_parametros_form
 from .serializers.serializers import (
     FabricanteSerializer,
     FabricanteSimplesSerializer,
@@ -260,7 +258,7 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'),
                             status=status.HTTP_400_BAD_REQUEST)
 
-    @action(detail=True,
+    @action(detail=True,  # noqa C901
             permission_classes=[PermissaoParaReclamarDeProduto],
             methods=['patch'],
             url_path=constants.ESCOLA_OU_NUTRI_RECLAMA)
@@ -274,9 +272,10 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
             if not serializer_reclamacao.is_valid():
                 return Response(serializer_reclamacao.errors)
             serializer_reclamacao.save()
-            homologacao_produto.escola_ou_nutricionista_reclamou(
-                user=request.user,
-                reclamacao=serializer_reclamacao.data)
+            if homologacao_produto.status == HomologacaoDoProduto.workflow_class.CODAE_HOMOLOGADO:
+                homologacao_produto.escola_ou_nutricionista_reclamou(
+                    user=request.user,
+                    reclamacao=serializer_reclamacao.data)
             return Response(serializer_reclamacao.data)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'),
@@ -503,25 +502,8 @@ class ProdutoViewSet(viewsets.ModelViewSet):
     def relatorio_analise_sensorial_recebimento(self, request, uuid=None):
         return relatorio_produto_analise_sensorial_recebimento(request, produto=self.get_object())
 
-    def get_queryset_filtrado(self, cleaned_data, request):  # noqa C901
-        campos_a_pesquisar = {}
-        for (chave, valor) in cleaned_data.items():
-            if valor != '' and valor is not None:
-                if chave == 'nome_fabricante':
-                    campos_a_pesquisar['fabricante__nome__icontains'] = valor
-                elif chave == 'nome_marca':
-                    campos_a_pesquisar['marca__nome__icontains'] = valor
-                elif chave == 'nome_produto':
-                    campos_a_pesquisar['nome__icontains'] = valor
-                elif chave == 'nome_terceirizada':
-                    campos_a_pesquisar['homologacoes__rastro_terceirizada__nome_fantasia__icontains'] = valor
-                elif chave == 'data_inicial':
-                    campos_a_pesquisar['homologacoes__criado_em__gte'] = valor
-                elif chave == 'data_final':
-                    campos_a_pesquisar['homologacoes__criado_em__lt'] = valor + timedelta(days=1)
-                elif chave == 'status' and len(valor) > 0:
-                    campos_a_pesquisar['homologacoes__status__in'] = valor
-
+    def get_queryset_filtrado(self, cleaned_data):
+        campos_a_pesquisar = cria_filtro_produto_por_parametros_form(cleaned_data)
         return self.get_queryset().filter(**campos_a_pesquisar)
 
     @action(detail=False,
@@ -533,7 +515,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         if not form.is_valid():
             return Response(form.errors)
 
-        queryset = self.get_queryset_filtrado(form.cleaned_data, request)
+        queryset = self.get_queryset_filtrado(form.cleaned_data)
         return self.paginated_response(queryset)
 
     def serializa_agrupamento(self, agrupamento):
@@ -564,7 +546,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
             HomologacaoProdutoWorkflow.ESCOLA_OU_NUTRICIONISTA_RECLAMOU
         ]
 
-        queryset = self.get_queryset_filtrado(form_data, request)
+        queryset = self.get_queryset_filtrado(form_data)
         queryset.order_by('criado_por')
 
         dados_agrupados = agrupa_por_terceirizada(queryset)
@@ -587,7 +569,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
             HomologacaoProdutoWorkflow.ESCOLA_OU_NUTRICIONISTA_RECLAMOU
         ]
 
-        queryset = self.get_queryset_filtrado(form_data, request)
+        queryset = self.get_queryset_filtrado(form_data)
 
         dados_agrupados = agrupa_por_terceirizada(queryset)
 
@@ -610,7 +592,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
             HomologacaoProdutoWorkflow.ESCOLA_OU_NUTRICIONISTA_RECLAMOU
         ]
 
-        queryset = self.get_queryset_filtrado(form_data, request)
+        queryset = self.get_queryset_filtrado(form_data)
         return self.paginated_response(queryset)
 
 

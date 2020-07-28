@@ -92,6 +92,7 @@ class InformacoesNutricionaisDoProdutoSerializer(serializers.ModelSerializer):
 class ReclamacaoDeProdutoSerializer(serializers.ModelSerializer):
     escola = EscolaSimplissimaSerializer()
     anexos = serializers.SerializerMethodField()
+    status_titulo = serializers.CharField(source='status.state.title')
 
     def get_anexos(self, obj):
         return AnexoReclamacaoDeProdutoSerializer(
@@ -103,7 +104,7 @@ class ReclamacaoDeProdutoSerializer(serializers.ModelSerializer):
     class Meta:
         model = ReclamacaoDeProduto
         fields = ('reclamante_registro_funcional', 'reclamante_cargo', 'reclamante_nome',
-                  'reclamacao', 'escola', 'anexos')
+                  'reclamacao', 'escola', 'anexos', 'status', 'status_titulo', 'criado_em')
 
 
 class ReclamacaoDeProdutoSimplesSerializer(serializers.ModelSerializer):
