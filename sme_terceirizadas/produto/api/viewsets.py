@@ -1,4 +1,5 @@
-from datetime import timedelta, datetime
+from datetime import datetime, timedelta
+
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
@@ -399,10 +400,10 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
         return Response(protocolo)
 
     def retorna_datetime(self, data):
-        data = datetime.strptime(data, "%d/%m/%Y")
+        data = datetime.strptime(data, '%d/%m/%Y')
         return data
 
-    def retorna_filtro_por_data(self, request):
+    def retorna_filtro_por_data(self, request): # noqa C901
         condicao = request.data.get('condicao')
         lista = []
         homologacoes = HomologacaoDoProduto.objects.filter(
@@ -441,7 +442,7 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
         else:
             return homologacoes
 
-    def get_parametros_filtro(self, request):
+    def get_parametros_filtro(self, request): # noqa C901
         campos_a_pesquisar = {}
         for (chave, valor) in request.data.items():
             if valor != '' and valor is not None:

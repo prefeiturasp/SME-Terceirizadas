@@ -164,5 +164,5 @@ def retorna_justificativa_ultimo_log(logs):
 @register.filter
 def retorn_se_tem_anexo(imagens):
     if len(imagens) > 0:
-        return "Sim"
-    return "Não"
+        return 'Sim'
+    return 'Não'
