@@ -1,0 +1,51 @@
+{% extends 'cabecalho_relatorio_suspensoes_produto.html' %}
+{% load index %}
+{% load static %}
+
+
+{% block conteudo %}
+<section class="corpo-relatorio-produto-suspensos">
+  <div class="sessao-detalhes-suspensoes">
+    <div class="item-suspensao">
+      <div class="item-prod um">Nome do produto</div>
+      <div class="item-prod um">Marca</div>
+      <div class="item-prod dois">Fabricante</div>
+      <div class="item-prod tres">Data cadastro</div>
+      <div class="item-prod tres">Data suspensão produto</div>
+    </div>
+    {% for homologacao in homologacoes %}
+    <div class="item-suspensao-detalhe">
+      <div class="item-prod-detalhe um">{{homologacao.produto.nome}}</div>
+      <div class="item-prod-detalhe um">{{homologacao.produto.marca.nome}}</div>
+      <div class="item-prod-detalhe dois">{{homologacao.produto.fabricante.nome}}</div>
+      <div class="item-prod-detalhe tres">{{homologacao.produto.criado_em|formata_data}}</div>
+      <div class="item-prod-detalhe tres">{{homologacao.logs|retorna_data_do_ultimo_log}}</div>
+    </div>
+    <div class="visao-geral-produto">
+      <div class="tres-informacoes">
+        <div class="informacao">
+          <label>Nome</label>
+          <p>{{homologacao.logs|retorna_nome_ultimo_log}}</p>
+          <p>RF: {{homologacao.logs|retorna_rf_ultimo_log}}</p>
+        </div>
+        <div class="informacao">
+          <label>Cargo</label>
+          <p>{{homologacao.logs|retorna_cargo_ultimo_log}}</p>
+        </div>
+        <div class="informacao">
+          <label>Justificativa de suspensão de produto</label>
+          <p>{{homologacao.logs|retorna_justificativa_ultimo_log}}</p>
+        </div>
+      </div>
+
+      <div class="uma-informacao">
+        <div class="informacao">
+          <label>Anexo</label>
+          <p>{{homologacao.produto.imagens|retorn_se_tem_anexo}}</p>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

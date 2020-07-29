@@ -278,6 +278,23 @@ def relatorio_produto_homologacao(request, produto):
     return html_to_pdf_response(html_string, f'produto_homologacao_{produto.id_externo}.pdf')
 
 
+def relatorio_produtos_suspensos(request, payload):
+    dado = {
+        'homologacoes': payload.get('response', ''),
+        'eh_relatorio_por_data': payload.get('eh_por_data', False)
+    }
+    len_produtos = len(dado['homologacoes'])
+    dado['len_produtos'] = len_produtos
+    if dado['eh_relatorio_por_data']:
+        dado['data_inicio'] = payload.get('data_inicio', '')
+        dado['data_fim'] = payload.get('data_fim', '')
+    html_string = render_to_string(
+        'relatorio_suspensoes_produto.html',
+        dado
+    )
+    return html_to_pdf_response(html_string, 'relatorio_suspensoes_produto.pdf')
+
+
 def relatorio_quantitativo_por_terceirizada(request, filtros, dados_relatorio):
     dados_relatorio_transformados = transforma_dados_relatorio_quantitativo(dados_relatorio)
     html_string = render_to_string(
