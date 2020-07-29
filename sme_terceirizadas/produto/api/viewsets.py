@@ -24,6 +24,7 @@ from ..models import (
     Marca,
     Produto,
     ProtocoloDeDietaEspecial,
+    ReclamacaoDeProduto,
     RespostaAnaliseSensorial
 )
 from ..utils import agrupa_por_terceirizada, cria_filtro_produto_por_parametros_form
@@ -40,6 +41,7 @@ from .serializers.serializers import (
     ProdutoSimplesSerializer,
     ProtocoloDeDietaEspecialSerializer,
     ProtocoloSimplesSerializer,
+    ReclamacaoDeProdutoSerializer,
     ReclamacaoDeProdutoSimplesSerializer
 )
 from .serializers.serializers_create import (
@@ -681,6 +683,33 @@ class RespostaAnaliseSensorialViewSet(viewsets.ModelViewSet):
                 user=request.user, justificativa=justificativa
             )
             serializer.save()
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'),
+                            status=status.HTTP_400_BAD_REQUEST)
+
+
+class ReclamacaoProdutoViewSet(viewsets.ModelViewSet):
+    lookup_field = 'uuid'
+    serializer_class = ReclamacaoDeProdutoSerializer
+    queryset = ReclamacaoDeProduto.objects.all()
+
+    @action(detail=True,
+            permission_classes=[UsuarioCODAEGestaoProduto],
+            methods=['patch'],
+            url_path=constants.CODAE_ACEITA)
+    def codae_aceita(self, request, uuid=None):
+        anexos = request.data.get('anexos', [])
+        justificativa = request.data.get('justificativa', '')
+        reclamacao_produto = self.get_object()
+        try:
+            reclamacao_produto.codae_autorizou_reclamacao(
+                user=request.user,
+                anexos=anexos,
+                justificativa=justificativa,
+                nao_enviar_email=True
+            )
+            serializer = self.get_serializer(reclamacao_produto)
             return Response(serializer.data)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'),
