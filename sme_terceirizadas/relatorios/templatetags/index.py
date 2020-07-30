@@ -166,3 +166,10 @@ def retorn_se_tem_anexo(imagens):
     if len(imagens) > 0:
         return 'Sim'
     return 'Não'
+
+
+@register.filter
+def verifica_se_tem_anexos(logs):
+    if len(logs[-1]['anexos']) > 0:
+        return 'Sim'
+    return 'Não'
