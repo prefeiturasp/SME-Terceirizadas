@@ -34,6 +34,7 @@ from ..utils import agrupa_por_terceirizada, cria_filtro_produto_por_parametros_
 from .serializers.serializers import (
     FabricanteSerializer,
     FabricanteSimplesSerializer,
+    HomologacaoProdutoComLogsDetalhadosSerializer,
     HomologacaoProdutoPainelGerencialSerializer,
     HomologacaoProdutoSerializer,
     ImagemDoProdutoSerializer,
@@ -460,13 +461,13 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
         eh_por_data = request.data.get('filtro_por_data')
         if eh_por_data:
             queryset = self.retorna_filtro_por_data(request).order_by('produto__nome')
-            serializer = self.get_serializer(queryset, many=True)
+            serializer = HomologacaoProdutoComLogsDetalhadosSerializer(queryset, many=True)
             return Response(serializer.data)
         else:
             parametros = self.get_parametros_filtro(request)
             queryset = self.retorna_filtro_por_data(request).filter(
                 **parametros).order_by('produto__nome')
-            serializer = self.get_serializer(queryset, many=True)
+            serializer = HomologacaoProdutoComLogsDetalhadosSerializer(queryset, many=True)
             return Response(serializer.data)
 
     @action(detail=False, url_path=constants.RELATORIO_SUSPENSOS,
