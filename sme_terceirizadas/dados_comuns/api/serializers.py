@@ -2,7 +2,14 @@ from des.models import DynamicEmailConfiguration
 from rest_framework import serializers
 
 from ...perfil.api.serializers import UsuarioSerializer
-from ..models import AnexoLogSolicitacoesUsuario, CategoriaPerguntaFrequente, Contato, LogSolicitacoesUsuario, PerguntaFrequente, TemplateMensagem
+from ..models import (
+    AnexoLogSolicitacoesUsuario,
+    CategoriaPerguntaFrequente,
+    Contato,
+    LogSolicitacoesUsuario,
+    PerguntaFrequente,
+    TemplateMensagem
+)
 
 
 class AnexoLogSolicitacoesUsuarioSerializer(serializers.ModelSerializer):
@@ -13,16 +20,25 @@ class AnexoLogSolicitacoesUsuarioSerializer(serializers.ModelSerializer):
 
 class LogSolicitacoesUsuarioComAnexosSerializer(serializers.ModelSerializer):
     usuario = UsuarioSerializer()
-    anexos = AnexoLogSolicitacoesUsuarioSerializer(many=True)
+    anexos = serializers.SerializerMethodField()
     status_evento_explicacao = serializers.CharField(
         source='get_status_evento_display',
         required=False,
         read_only=True
     )
 
+    def get_anexos(self, obj):
+        return AnexoLogSolicitacoesUsuarioSerializer(
+            AnexoLogSolicitacoesUsuario.objects.filter(
+                log=obj
+            ), many=True
+        ).data
+
     class Meta:
         model = LogSolicitacoesUsuario
-        fields = ('status_evento_explicacao', 'usuario', 'criado_em', 'descricao', 'justificativa', 'resposta_sim_nao')
+        fields = (
+            'anexos', 'status_evento_explicacao', 'usuario', 'criado_em', 'descricao', 'justificativa',
+            'resposta_sim_nao')
 
 
 class LogSolicitacoesUsuarioSerializer(serializers.ModelSerializer):

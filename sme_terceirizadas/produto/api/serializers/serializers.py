@@ -5,7 +5,7 @@ from rest_framework import serializers
 from ....dados_comuns.api.serializers import (
     LogSolicitacoesUsuarioComAnexosSerializer,
     LogSolicitacoesUsuarioComVinculoSerializer,
-    LogSolicitacoesUsuarioSerializer,
+    LogSolicitacoesUsuarioSerializer
 )
 from ....escola.api.serializers import EscolaSimplissimaSerializer
 from ....terceirizada.api.serializers.serializers import TerceirizadaSimplesSerializer
@@ -253,7 +253,7 @@ class HomologacaoProdutoPainelGerencialSerializer(serializers.ModelSerializer):
         fields = ('uuid', 'nome_produto', 'status', 'id_externo', 'log_mais_recente')
 
 
-class HomologacaoprodutoComLogsDetalhadosSerializer(serializers.ModelSerializer):
+class HomologacaoProdutoComLogsDetalhadosSerializer(serializers.ModelSerializer):
     produto = ProdutoSemAnexoSerializer()
     logs = LogSolicitacoesUsuarioComAnexosSerializer(many=True)
     rastro_terceirizada = TerceirizadaSimplesSerializer()
