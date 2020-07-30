@@ -3,8 +3,9 @@ import datetime
 from rest_framework import serializers
 
 from ....dados_comuns.api.serializers import (
+    LogSolicitacoesUsuarioComAnexosSerializer,
     LogSolicitacoesUsuarioComVinculoSerializer,
-    LogSolicitacoesUsuarioSerializer
+    LogSolicitacoesUsuarioSerializer,
 )
 from ....escola.api.serializers import EscolaSimplissimaSerializer
 from ....terceirizada.api.serializers.serializers import TerceirizadaSimplesSerializer
@@ -165,6 +166,38 @@ class ProdutoSerializer(serializers.ModelSerializer):
         exclude = ('id',)
 
 
+class ProdutoSemAnexoSerializer(serializers.ModelSerializer):
+    protocolos = ProtocoloDeDietaEspecialSerializer(many=True)
+    marca = MarcaSerializer()
+    fabricante = FabricanteSerializer()
+    id_externo = serializers.CharField()
+
+    informacoes_nutricionais = serializers.SerializerMethodField()
+
+    homologacoes = serializers.SerializerMethodField()
+
+    ultima_homologacao = HomologacaoProdutoSimplesSerializer()
+
+    def get_homologacoes(self, obj):
+        return HomologacaoProdutoSimplesSerializer(
+            HomologacaoDoProduto.objects.filter(
+                produto=obj
+            ), context=self.context,
+            many=True
+        ).data
+
+    def get_informacoes_nutricionais(self, obj):
+        return InformacoesNutricionaisDoProdutoSerializer(
+            InformacoesNutricionaisDoProduto.objects.filter(
+                produto=obj
+            ), many=True
+        ).data
+
+    class Meta:
+        model = Produto
+        exclude = ('id',)
+
+
 class ProdutoSimplesSerializer(serializers.ModelSerializer):
     class Meta:
         model = Produto
@@ -218,3 +251,14 @@ class HomologacaoProdutoPainelGerencialSerializer(serializers.ModelSerializer):
     class Meta:
         model = HomologacaoDoProduto
         fields = ('uuid', 'nome_produto', 'status', 'id_externo', 'log_mais_recente')
+
+
+class HomologacaoprodutoComLogsDetalhadosSerializer(serializers.ModelSerializer):
+    produto = ProdutoSemAnexoSerializer()
+    logs = LogSolicitacoesUsuarioComAnexosSerializer(many=True)
+    rastro_terceirizada = TerceirizadaSimplesSerializer()
+
+    class Meta:
+        model = HomologacaoDoProduto
+        fields = ('uuid', 'produto', 'status', 'id_externo', 'logs', 'rastro_terceirizada', 'pdf_gerado',
+                  'protocolo_analise_sensorial')
