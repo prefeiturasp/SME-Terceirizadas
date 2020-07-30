@@ -1,68 +1,177 @@
 SME-Terceirizadas
 =============================
 
-.. image:: https://api.codeclimate.com/v1/badges/54aa60bc6a18ecb32662/maintainability
-   :target: https://codeclimate.com/github/prefeiturasp/SME-Terceirizadas/maintainability
-   :alt: Maintainability
-.. image:: https://api.codeclimate.com/v1/badges/54aa60bc6a18ecb32662/test_coverage
-   :target: https://codeclimate.com/github/prefeiturasp/SME-Terceirizadas/test_coverage
-   :alt: Test Coverage
-.. image:: https://travis-ci.org/prefeiturasp/SME-Terceirizadas.svg?branch=development
-   :target: https://travis-ci.org/prefeiturasp/SME-Terceirizadas
+# Ateliê do Software
 
-Sistema de alimentação focado em terceirizadas
+_“Recurso público retorna ao público”._
+
+O Ateliê do Software da SME tem o objetivo de garantir a manutenção e evolução dos sistemas em operação e construir sistemas novos sob demanda, possibilitado a partir do Edital nº 33/SME/2017.  
+Baseados em um modelo de contratação baseado pelos movimentos ágil e de Software Craftsmanship, trabalhamos com equipes multidisciplinares para o desenvolvimento de produtos que beneficiam toda a comunidade escolar (técnicos da SME e DREs, gestores, professores, alunos e famílias).
+
+# Alimentação
+
+Para as **unidades escolares da rede municipal de educação da cidade de São Paulo** que **precisam acompanhar com segurança o fornecimento de alimentação escolar** o **SIGPAE (Sistema de Gestão  do Programa para Alimentação Escolar)**  É uma **plataforma**  que **gerencia todas as etapas de solicitações de alimentação, cadastro de produtos e controles internos**  diferentemente de **solicitações através de planilhas, e-mails e telefonemas**  o nosso produto **garante mais agilidade, confiabilidade e segurança para os processos**
+
+**Conteúdo:**
+
+1. [Sobre o Time](#sobre-o-time)  
+2. [Sobre o Produto](#sobre-o-produto)  
+3. [Como surgiu](#como-surgiu)  
+4. [Links Úteis](#links-úteis)  
+5. [Comunicação](#comunicação)  
+6. [Como contribuir](#como-contribuir)  
+7. [Repositórios](#repositórios)  
+8. [Documentações Auxiliares](#documentações-auxiliares)  
+9. [Instalação e Configuração](#instalação-e-configuração)
+
+----------
+
+## [](#sobre-o-time)Sobre o Time:
+
+| Papel | Titular | Suplente  
+|--|--|--|  
+| Product Owner | Elisete Pereira |  |  
+| Agente de Governança | Vítor Ferragini | Ronaldo Silveira |  
+| Gerente de Projeto | Aline Freitas | |  
+| Scrum Master | Marcos Nastri |  | 
+| Designer de Serviços | Cíntia Ramos |Caio Dib  |  
+| Analista de negócios | Fabrício Ramalho |  |  
+| Analista UX/UI | Igor Leão |  |  
+| Analista Programador | Bruno Buzzo, Pedro Walter, Rodolpho Lima |  |
+| Analista de teste |Paula Pimentel|  |
+
+## [](#sobre-o-produto)Sobre o Produto
+
+### [](#objetivos-de-negócio)Objetivos de Negócio
+
+O SIGPAE tem como objetivo automatizar os processos internos de fornecimento e distribuição de alimentação escolar. Como principais funcionalidades temos: cadastro e acompanhamento de solicitações de alimentação, solicitação de dieta especial, gestão de produtos, medição inicial e faturamento.
+
+### [](#personas)Personas
+
+**Direção escolar:**  responsável pela gestão da escola, com necessidade de otimização de tempo. O sistema é essencial para melhor controle das ações realizadas para a escola.
+
+**Assistente Técnico de Educação e Nutricionista:**  responsável pela gestão das solicitações de alimentação no núcleo de gestão de contratos na  coordenadoria de alimentação escolar, com necessidade de organização do recebimento das diversas solicitações das escolas.
+
+**Contador:** liquidação de todos os pagamentos efetuados pela coordenadoria de alimentação escolar 
+
+**Nutricionista de Dieta Especial:** responsável pela validação de solicitações e prescrição da dieta especial, tem necessidade de otimização do processo para revisão, encaminhamento e fornecimento da dieta nas escolas. Processos burocráticos, dolorosos e com decisões de alto impacto para os estudantes.
+
+**Nutricionista P&D:** responsável pela gestão de produtos (homologação, correção, suspensão e avaliação de reclamação e solicitação de análise sensorial) solicitados pelas empresas terceirizadas, com a necessidade de controle do que pode ser utilizados nas unidades escolares. 
+
+**Diretoria Regional de Educação:** responsável pelo gerenciamento das solicitações realizadas pelas escolas que administra, com a necessidade de otimizar e controlar as diversas solicitações das unidades escolares. Para fiscalização e controle das solicitações geradas.
+
+**Estudantes:** participação nas aulas, com garantia de recebimento de alimentação durante todo o período em que estiver na unidade escolar, assim como o recebimento de alimentação para as atividades externas. 
+
+**Família:** responsável por acompanhar o cardápio diário das alimentações e por realizar a entrega de documentação para solicitação de Dieta Especial na unidade escolar, quando necessário, com a necessidade de atendimento ágil.
+  
+### [](#funcionalidades)Funcionalidades
+Escola
+- Solicitações
+	-  Cadastro/ Edição/ Cancelamento/ Acompanhamento de solicitações para Inclusão de alimentação
+	- Cadastro/ Edição/ Cancelamento/ Acompanhamento de solicitações Alteração de alimentação
+	- inversão
+	- Suspensão
+	- Kit
+	Relatórios por tipo de solicitação
+	Relatórios por status
+	Relatório por evolução das solicitações por tipo
+    Portal administrativo
+
+Dieta Especial
+	Relatórios
+
+Gestão de Produtos
+	Relatórios por de produto
+	Relatório por reclamação
+
+### [](#jornadas)Jornadas
 
 
-:License: GPLv3
+
+### [](#roadmap)Roadmap
+
+Release 1  - Solicitações de alimentações
+
+Release 2 - Relatórios de solicitações
+
+Release 3 - Dieta Especial:
+
+Release 4 - Relatório de Dieta Especial
+
+Release 5- Homologação de produtos
+
+Release 6-  Cardápio
+
+Release 6 - Medicação inicial
+
+Release 7 - Faturamento
+
+## [](#como-surgiu)Como surgiu
+
+### [](#fase-de-descoberta)Fase de Descoberta:
+
+**Oficina sobre Homologação de Produtos:**
 
 
-Comandos Básicos
-----------------
 
-Carga inicial de dados
-^^^^^^^^^^^^^^^^^^^^^^
-* Rodar as migrations::
+### [](#Protótipos)Protótipos:
 
-    $ ./manage.py migrate
+**Protótipo Navegável:**
 
-* Criar os super usuários::
+Visão Escola:
+https://www.figma.com/file/52MKvjiFFjoy7WLuvLLjAi/Spt_13-ALIMENTA%C3%87%C3%83O-Terceirizadas_sprint13-230719?node-id=0%3A25539
 
-    $ ./manage.py shell -c "from sme_terceirizadas.perfil.models import Usuario; Usuario.objects.create_superuser('escola@admin.com', 'adminadmin')"
-    $ ./manage.py shell -c "from sme_terceirizadas.perfil.models import Usuario; Usuario.objects.create_superuser('dre@admin.com', 'adminadmin')"
-    $ ./manage.py shell -c "from sme_terceirizadas.perfil.models import Usuario; Usuario.objects.create_superuser('terceirizada@admin.com', 'adminadmin')"
-    $ ./manage.py shell -c "from sme_terceirizadas.perfil.models import Usuario; Usuario.objects.create_superuser('codae@admin.com', 'adminadmin')"
+Visão CODAE:
+https://www.figma.com/file/52MKvjiFFjoy7WLuvLLjAi/Spt_13-ALIMENTA%C3%87%C3%83O-Terceirizadas_sprint13-230719?node-id=0%3A36995
 
-* Carregar as fixtures::
+Visão DRE: https://www.figma.com/file/52MKvjiFFjoy7WLuvLLjAi/Spt_13-ALIMENTA%C3%87%C3%83O-Terceirizadas_sprint13-230719?node-id=0%3A43643
 
-    $ ./manage.py loaddata sme_terceirizadas/**/fixtures/*.json
+### [](#testes-de-usabilidade)Testes de Usabilidade:
 
-* Carregar dados de planilhas excel junto com pedidos fake::
+Não realizados.
 
-    $ ./manage.py shell -c "from utility.carga_dados import run"
+## [](#links-úteis)Links Úteis:
 
+**Homologação:**
 
-* Ou rodar script de conveniência::
+[https://hom-sigpae.sme.prefeitura.sp.gov.br/](https://hom-sigpae.sme.prefeitura.sp.gov.br/)
 
-    $ ./utility/carga_de_dados.sh
+**Produção:**
 
-Verificação de tipos de dados
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[https://sigpae.sme.prefeitura.sp.gov.br/](https://sigpae.sme.prefeitura.sp.gov.br/)
 
-::
+## [](#comunicação)Comunicação:
 
-  $ mypy sme_terceirizadas
+Canal de comunicação
 
-Test coverage
-^^^^^^^^^^^^^
+Objetivos
 
-Para executar testes em modo daemon, use o pytest-watch::
+[Issues do Github](https://github.com/prefeiturasp/SME-terceirizadas/issues)
 
-    $ ptw
+- Sugestão de novas funcionalidades  
+- Reportar bugs  
+- Discussões técnicas
 
 
-Organizar imports
-^^^^^^^^^^^^^^^^^
+## [](#como-contribuir)Como contribuir
 
-::
+Contribuições são **super bem vindas**! Se você tem vontade de construir o curriculo digital conosco, veja o nosso [guia de contribuição](https://github.com/prefeiturasp/SME/blob/master/docs/CONTRIBUTING.md) onde explicamos detalhadamente como trabalhamos e de que formas você pode nos ajudar a alcançar nossos objetivos. Lembrando que todos devem seguir nosso [código de conduta](https://github.com/prefeiturasp/SME/blob/master/docs/CODEOFCONDUCT.md).
 
- $ isort -rc --atomic sme_terceirizadas
+## [](#repositórios)Repositórios:
+
+Informar os repositórios de código que envolvem a solução:
+
+[SME-TERCEIRIZADAS] [https://github.com/prefeiturasp/SME-Terceirizadas](https://github.com/prefeiturasp/SME-Terceirizadas)
+
+[SME-TERCEIRIZADAS-FRONTEND]
+[https://github.com/prefeiturasp/SME-Terceirizadas-Frontend](https://github.com/prefeiturasp/SME-Terceirizadas-Frontend)
+
+
+## [](#documentações-auxiliares)Documentações Auxiliares:
+
+Em desenvolvimento.
+
+ 
+## [](#instalação-e-configuração)Instalação e Configuração:
+
+Em desenvolvimento.
