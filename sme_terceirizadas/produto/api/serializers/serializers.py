@@ -19,7 +19,8 @@ from ...models import (
     Produto,
     ProtocoloDeDietaEspecial,
     ReclamacaoDeProduto,
-    TipoDeInformacaoNutricional
+    TipoDeInformacaoNutricional,
+    LogSolicitacoesUsuario
 )
 
 
@@ -93,6 +94,7 @@ class ReclamacaoDeProdutoSerializer(serializers.ModelSerializer):
     escola = EscolaSimplissimaSerializer()
     anexos = serializers.SerializerMethodField()
     status_titulo = serializers.CharField(source='status.state.title')
+    logs = serializers.SerializerMethodField()
 
     def get_anexos(self, obj):
         return AnexoReclamacaoDeProdutoSerializer(
@@ -101,9 +103,14 @@ class ReclamacaoDeProdutoSerializer(serializers.ModelSerializer):
             many=True
         ).data
 
+    def get_logs(self, obj):
+        return LogSolicitacoesUsuarioSerializer(
+            LogSolicitacoesUsuario.objects.filter(uuid_original=obj.uuid),
+            many=True).data
+
     class Meta:
         model = ReclamacaoDeProduto
-        fields = ('reclamante_registro_funcional', 'reclamante_cargo', 'reclamante_nome',
+        fields = ('uuid', 'reclamante_registro_funcional', 'logs', 'reclamante_cargo', 'reclamante_nome',
                   'reclamacao', 'escola', 'anexos', 'status', 'status_titulo', 'criado_em')
 
 
