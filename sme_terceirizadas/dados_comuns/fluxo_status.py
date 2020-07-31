@@ -582,7 +582,7 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
             assunto='[SIGPAE] Ativação de Produto'
         )
 
-    @xworkflows.after_transition('terceirizada_responde_reclamacao')
+ @xworkflows.after_transition('terceirizada_responde_reclamacao')
     def _terceirizada_responde_reclamacao_hook(self, *args, **kwargs):
         self.salva_log_com_justificativa_e_anexos(
             LogSolicitacoesUsuario.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO,
@@ -592,7 +592,7 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
     class Meta:
         abstract = True
 
-
+        
 class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
     workflow_class = PedidoAPartirDaEscolaWorkflow
     status = xwf_models.StateField(workflow_class)
@@ -1422,6 +1422,20 @@ class FluxoReclamacaoProduto(xwf_models.WorkflowEnabled, models.Model):
         if user:
             self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU_RECLAMACAO,
                                       usuario=user)
+
+    @xworkflows.after_transition('terceirizada_responde')
+    def _terceirizada_responde_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        if user:
+            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_RESPONDEU_RECLAMACAO,
+                                      usuario=user, **kwargs)
+        for anexo in kwargs.get('anexos'):
+            arquivo = convert_base64_to_contentfile(anexo.pop('base64'))
+            AnexoLogSolicitacoesUsuario.objects.create(
+                log=log_transicao,
+                arquivo=arquivo,
+                nome=anexo['nome']
+            )
 
     class Meta:
         abstract = True
