@@ -1418,26 +1418,15 @@ class FluxoReclamacaoProduto(xwf_models.WorkflowEnabled, models.Model):
 
     @xworkflows.after_transition('codae_aceita')
     def _codae_aceita_hook(self, *args, **kwargs):
-        user = kwargs['user']
-        if user:
-            self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU_RECLAMACAO,
-                                      usuario=user)
+        self.salvar_log_transicao(
+            status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU_RECLAMACAO,
+            **kwargs)
 
     @xworkflows.after_transition('terceirizada_responde')
     def _terceirizada_responde_hook(self, *args, **kwargs):
-        user = kwargs['user']
-        if user:
-            log_transicao = self.salvar_log_transicao(
-                status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_RESPONDEU_RECLAMACAO,
-                usuario=user,
-                **kwargs)
-            for anexo in kwargs.get('anexos'):
-                arquivo = convert_base64_to_contentfile(anexo.pop('base64'))
-                AnexoLogSolicitacoesUsuario.objects.create(
-                    log=log_transicao,
-                    arquivo=arquivo,
-                    nome=anexo['nome']
-                )
+        self.salvar_log_transicao(
+            status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_RESPONDEU_RECLAMACAO,
+            **kwargs)
 
     class Meta:
         abstract = True

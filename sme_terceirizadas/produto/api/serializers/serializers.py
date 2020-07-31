@@ -15,12 +15,12 @@ from ...models import (
     ImagemDoProduto,
     InformacaoNutricional,
     InformacoesNutricionaisDoProduto,
+    LogSolicitacoesUsuario,
     Marca,
     Produto,
     ProtocoloDeDietaEspecial,
     ReclamacaoDeProduto,
-    TipoDeInformacaoNutricional,
-    LogSolicitacoesUsuario
+    TipoDeInformacaoNutricional
 )
 
 

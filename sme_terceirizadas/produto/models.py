@@ -11,7 +11,8 @@ from ..dados_comuns.behaviors import (
     TemIdentificadorExternoAmigavel
 )
 from ..dados_comuns.fluxo_status import FluxoHomologacaoProduto, FluxoReclamacaoProduto
-from ..dados_comuns.models import LogSolicitacoesUsuario, TemplateMensagem
+from ..dados_comuns.models import AnexoLogSolicitacoesUsuario, LogSolicitacoesUsuario, TemplateMensagem
+from ..dados_comuns.utils import convert_base64_to_contentfile
 from ..escola.models import Escola
 
 MAX_NUMERO_PROTOCOLO = 6
@@ -236,16 +237,25 @@ class ReclamacaoDeProduto(FluxoReclamacaoProduto, TemChaveExterna, CriadoEm, Cri
     reclamacao = models.TextField('Reclamação')
     escola = models.ForeignKey(Escola, null=True, on_delete=models.PROTECT, related_name='reclamacoes')
 
-    def salvar_log_transicao(self, status_evento, usuario, **kwargs):
+    def salvar_log_transicao(self, status_evento, **kwargs):
         justificativa = kwargs.get('justificativa', '')
-        return LogSolicitacoesUsuario.objects.create(
-            descricao=str(self),
-            status_evento=status_evento,
-            solicitacao_tipo=LogSolicitacoesUsuario.RECLAMACAO_PRODUTO,
-            usuario=usuario,
-            uuid_original=self.uuid,
-            justificativa=justificativa
-        )
+        user = kwargs['user']
+        if user:
+            log_transicao = LogSolicitacoesUsuario.objects.create(
+                descricao=str(self),
+                status_evento=status_evento,
+                solicitacao_tipo=LogSolicitacoesUsuario.RECLAMACAO_PRODUTO,
+                usuario=user,
+                uuid_original=self.uuid,
+                justificativa=justificativa
+            )
+            for anexo in kwargs.get('anexos', []):
+                arquivo = convert_base64_to_contentfile(anexo.pop('base64'))
+                AnexoLogSolicitacoesUsuario.objects.create(
+                    log=log_transicao,
+                    arquivo=arquivo,
+                    nome=anexo['nome']
+                )
 
     def __str__(self):
         return f'Reclamação {self.uuid} feita por {self.reclamante_nome} em {self.criado_em}'
