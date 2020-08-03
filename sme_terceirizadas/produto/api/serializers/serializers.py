@@ -16,6 +16,7 @@ from ...models import (
     ImagemDoProduto,
     InformacaoNutricional,
     InformacoesNutricionaisDoProduto,
+    LogSolicitacoesUsuario,
     Marca,
     Produto,
     ProtocoloDeDietaEspecial,
@@ -94,6 +95,7 @@ class ReclamacaoDeProdutoSerializer(serializers.ModelSerializer):
     escola = EscolaSimplissimaSerializer()
     anexos = serializers.SerializerMethodField()
     status_titulo = serializers.CharField(source='status.state.title')
+    logs = serializers.SerializerMethodField()
 
     def get_anexos(self, obj):
         return AnexoReclamacaoDeProdutoSerializer(
@@ -102,9 +104,15 @@ class ReclamacaoDeProdutoSerializer(serializers.ModelSerializer):
             many=True
         ).data
 
+    def get_logs(self, obj):
+        return LogSolicitacoesUsuarioSerializer(
+            LogSolicitacoesUsuario.objects.filter(uuid_original=obj.uuid).order_by('criado_em'),
+            many=True
+        ).data
+
     class Meta:
         model = ReclamacaoDeProduto
-        fields = ('reclamante_registro_funcional', 'reclamante_cargo', 'reclamante_nome',
+        fields = ('uuid', 'reclamante_registro_funcional', 'logs', 'reclamante_cargo', 'reclamante_nome',
                   'reclamacao', 'escola', 'anexos', 'status', 'status_titulo', 'criado_em')
 
 
@@ -236,6 +244,7 @@ class HomologacaoProdutoSerializer(serializers.ModelSerializer):
 class HomologacaoProdutoPainelGerencialSerializer(serializers.ModelSerializer):
     nome_produto = serializers.SerializerMethodField()
     log_mais_recente = serializers.SerializerMethodField()
+    qtde_reclamacoes = serializers.SerializerMethodField()
 
     def get_log_mais_recente(self, obj):
         if obj.log_mais_recente:
@@ -248,9 +257,12 @@ class HomologacaoProdutoPainelGerencialSerializer(serializers.ModelSerializer):
     def get_nome_produto(self, obj):
         return obj.produto.nome
 
+    def get_qtde_reclamacoes(self, obj):
+        return ReclamacaoDeProduto.objects.filter(homologacao_de_produto=obj).count()
+
     class Meta:
         model = HomologacaoDoProduto
-        fields = ('uuid', 'nome_produto', 'status', 'id_externo', 'log_mais_recente')
+        fields = ('uuid', 'nome_produto', 'status', 'id_externo', 'log_mais_recente', 'qtde_reclamacoes')
 
 
 class HomologacaoProdutoComLogsDetalhadosSerializer(serializers.ModelSerializer):

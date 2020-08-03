@@ -1416,5 +1416,17 @@ class FluxoReclamacaoProduto(xwf_models.WorkflowEnabled, models.Model):
     workflow_class = ReclamacaoProdutoWorkflow
     status = xwf_models.StateField(workflow_class)
 
+    @xworkflows.after_transition('codae_aceita')
+    def _codae_aceita_hook(self, *args, **kwargs):
+        self.salvar_log_transicao(
+            status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU_RECLAMACAO,
+            **kwargs)
+
+    @xworkflows.after_transition('terceirizada_responde')
+    def _terceirizada_responde_hook(self, *args, **kwargs):
+        self.salvar_log_transicao(
+            status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_RESPONDEU_RECLAMACAO,
+            **kwargs)
+
     class Meta:
         abstract = True
