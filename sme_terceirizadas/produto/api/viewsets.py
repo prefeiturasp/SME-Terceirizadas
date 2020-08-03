@@ -613,7 +613,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
             return Response(form.errors)
 
         form_data = form.cleaned_data.copy()
-        form_data['status'] = status_homologacao
+        form_data['homologacoes__status__in'] = status_homologacao
         campos_a_pesquisar = cria_filtro_produto_por_parametros_form(form_data)
         campos_a_pesquisar['homologacoes__reclamacoes__status__in'] = status_reclamacao
 

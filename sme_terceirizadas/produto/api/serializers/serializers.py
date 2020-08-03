@@ -105,8 +105,9 @@ class ReclamacaoDeProdutoSerializer(serializers.ModelSerializer):
 
     def get_logs(self, obj):
         return LogSolicitacoesUsuarioSerializer(
-            LogSolicitacoesUsuario.objects.filter(uuid_original=obj.uuid),
-            many=True).data
+            LogSolicitacoesUsuario.objects.filter(
+                uuid_original=obj.uuid).order_by('criado_em'),
+                many=True).data
 
     class Meta:
         model = ReclamacaoDeProduto
@@ -210,6 +211,7 @@ class HomologacaoProdutoSerializer(serializers.ModelSerializer):
 class HomologacaoProdutoPainelGerencialSerializer(serializers.ModelSerializer):
     nome_produto = serializers.SerializerMethodField()
     log_mais_recente = serializers.SerializerMethodField()
+    qtde_reclamacoes = serializers.SerializerMethodField()
 
     def get_log_mais_recente(self, obj):
         if obj.log_mais_recente:
@@ -222,6 +224,9 @@ class HomologacaoProdutoPainelGerencialSerializer(serializers.ModelSerializer):
     def get_nome_produto(self, obj):
         return obj.produto.nome
 
+    def get_qtde_reclamacoes(self, obj):
+        return ReclamacaoDeProduto.objects.filter(homologacao_de_produto=obj).count()
+
     class Meta:
         model = HomologacaoDoProduto
-        fields = ('uuid', 'nome_produto', 'status', 'id_externo', 'log_mais_recente')
+        fields = ('uuid', 'nome_produto', 'status', 'id_externo', 'log_mais_recente', 'qtde_reclamacoes')
