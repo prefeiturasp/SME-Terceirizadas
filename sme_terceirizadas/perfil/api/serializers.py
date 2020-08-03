@@ -42,7 +42,7 @@ class UsuarioSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Usuario
-        fields = ('uuid', 'cpf', 'nome', 'email', 'date_joined', 'registro_funcional', 'tipo_usuario')
+        fields = ('uuid', 'cpf', 'nome', 'email', 'date_joined', 'registro_funcional', 'tipo_usuario', 'cargo')
 
 
 class VinculoSerializer(serializers.ModelSerializer):

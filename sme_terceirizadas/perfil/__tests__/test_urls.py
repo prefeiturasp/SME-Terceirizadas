@@ -237,7 +237,8 @@ def test_get_equipe_administradora_vinculos_escola(users_diretor_escola):
         {'data_inicial': datetime.date.today().strftime('%d/%m/%Y'),
          'perfil': {'nome': 'ADMINISTRADOR_ESCOLA', 'uuid': '48330a6f-c444-4462-971e-476452b328b2'},
          'usuario': {'uuid': '8344f23a-95c4-4871-8f20-3880529767c0', 'nome': 'Fulano da Silva', 'cpf': None,
-                     'email': 'fulano@teste.com', 'registro_funcional': '1234567', 'tipo_usuario': 'escola'}}]
+                     'email': 'fulano@teste.com', 'registro_funcional': '1234567', 'tipo_usuario': 'escola',
+                     'cargo': ''}}]
 
 
 def test_finalizar_vinculo_escola(users_diretor_escola):
@@ -321,7 +322,7 @@ def test_get_equipe_administradora_vinculos_dre(users_cogestor_diretoria_regiona
          'perfil': {'nome': 'ADMINISTRADOR_DRE', 'uuid': '48330a6f-c444-4462-971e-476452b328b2'},
          'usuario': {'uuid': '8344f23a-95c4-4871-8f20-3880529767c0', 'nome': 'Fulano da Silva',
                      'email': 'fulano@teste.com', 'registro_funcional': '1234567', 'cpf': None,
-                     'tipo_usuario': 'diretoriaregional'}}]
+                     'tipo_usuario': 'diretoriaregional', 'cargo': ''}}]
 
 
 def test_finalizar_vinculo_dre(users_cogestor_diretoria_regional):
@@ -445,7 +446,7 @@ def test_get_equipe_administradora_vinculos_codae(users_codae_gestao_alimentacao
                     'uuid': '48330a6f-c444-4462-971e-476452b328b2'},
          'usuario': {'uuid': '8344f23a-95c4-4871-8f20-3880529767c0', 'nome': 'Fulano da Silva',
                      'email': 'fulano@teste.com', 'registro_funcional': '1234567', 'cpf': None,
-                     'tipo_usuario': 'gestao_alimentacao_terceirizada'}}]
+                     'tipo_usuario': 'gestao_alimentacao_terceirizada', 'cargo': ''}}]
 
 
 def test_finalizar_vinculo_codae(users_codae_gestao_alimentacao):
@@ -478,7 +479,7 @@ def test_get_equipe_administradora_vinculos_terceirizadas(users_terceirizada):
          'perfil': {'nome': 'ADMINISTRADOR_TERCEIRIZADA',
                     'uuid': '41c20c8b-7e57-41ed-9433-ccb92e8afaf1'},
          'usuario': {'uuid': '8344f23a-95c4-4871-8f20-3880529767c0', 'nome': 'Fulano da Silva',
-                     'email': 'fulano@teste.com', 'tipo_usuario': 'terceirizada'}
+                     'email': 'fulano@teste.com', 'tipo_usuario': 'terceirizada', 'cargo': ''}
          }
     ]
 
