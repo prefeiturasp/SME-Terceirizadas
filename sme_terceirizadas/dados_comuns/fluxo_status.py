@@ -1393,6 +1393,7 @@ class ReclamacaoProdutoWorkflow(xwf_models.Workflow):
     RESPONDIDO_TERCEIRIZADA = 'RESPONDIDO_TERCEIRIZADA'
     CODAE_ACEITOU = 'CODAE_ACEITOU'
     CODAE_RECUSOU = 'CODAE_RECUSOU'
+    CODAE_RESPONDEU = 'CODAE_RESPONDEU'
 
     states = (
         (AGUARDANDO_AVALIACAO, 'Aguardando avaliação da CODAE'),
@@ -1400,6 +1401,7 @@ class ReclamacaoProdutoWorkflow(xwf_models.Workflow):
         (RESPONDIDO_TERCEIRIZADA, 'Respondido pela terceirizada'),
         (CODAE_ACEITOU, 'CODAE aceitou'),
         (CODAE_RECUSOU, 'CODAE recusou'),
+        (CODAE_RESPONDEU, 'CODAE respondeu ao reclamante'),
     )
 
     transitions = (
@@ -1407,6 +1409,7 @@ class ReclamacaoProdutoWorkflow(xwf_models.Workflow):
         ('terceirizada_responde', AGUARDANDO_RESPOSTA_TERCEIRIZADA, RESPONDIDO_TERCEIRIZADA),
         ('codae_aceita', [AGUARDANDO_AVALIACAO, RESPONDIDO_TERCEIRIZADA], CODAE_ACEITOU),
         ('codae_recusa', [AGUARDANDO_AVALIACAO, RESPONDIDO_TERCEIRIZADA], CODAE_RECUSOU),
+        ('codae_responde', [AGUARDANDO_AVALIACAO, RESPONDIDO_TERCEIRIZADA], CODAE_RESPONDEU),
     )
 
     initial_state = AGUARDANDO_AVALIACAO
@@ -1420,6 +1423,24 @@ class FluxoReclamacaoProduto(xwf_models.WorkflowEnabled, models.Model):
     def _codae_aceita_hook(self, *args, **kwargs):
         self.salvar_log_transicao(
             status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU_RECLAMACAO,
+            **kwargs)
+
+    @xworkflows.after_transition('codae_recusa')
+    def _codae_recusa_hook(self, *args, **kwargs):
+        self.salvar_log_transicao(
+            status_evento=LogSolicitacoesUsuario.CODAE_RECUSOU_RECLAMACAO,
+            **kwargs)
+
+    @xworkflows.after_transition('codae_questiona')
+    def _codae_questiona_hook(self, *args, **kwargs):
+        self.salvar_log_transicao(
+            status_evento=LogSolicitacoesUsuario.CODAE_QUESTIONOU_TERCEIRIZADA,
+            **kwargs)
+
+    @xworkflows.after_transition('codae_responde')
+    def _codae_responde_hook(self, *args, **kwargs):
+        self.salvar_log_transicao(
+            status_evento=LogSolicitacoesUsuario.CODAE_RESPONDEU_RECLAMACAO,
             **kwargs)
 
     @xworkflows.after_transition('terceirizada_responde')

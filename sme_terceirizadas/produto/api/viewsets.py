@@ -717,42 +717,66 @@ class ReclamacaoProdutoViewSet(viewsets.ModelViewSet):
     serializer_class = ReclamacaoDeProdutoSerializer
     queryset = ReclamacaoDeProduto.objects.all()
 
-    @action(detail=True,
-            permission_classes=[UsuarioCODAEGestaoProduto],
-            methods=['patch'],
-            url_path=constants.CODAE_ACEITA)
-    def codae_aceita(self, request, uuid=None):
+    def muda_status_com_justificativa_e_anexo(self, request, metodo_transicao):
         anexos = request.data.get('anexos', [])
         justificativa = request.data.get('justificativa', '')
-        reclamacao_produto = self.get_object()
         try:
-            reclamacao_produto.codae_aceita(
+            metodo_transicao(
                 user=request.user,
                 anexos=anexos,
                 justificativa=justificativa
             )
-            serializer = self.get_serializer(reclamacao_produto)
+            serializer = self.get_serializer(self.get_object())
             return Response(serializer.data)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'),
                             status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=True,
+            permission_classes=[UsuarioCODAEGestaoProduto],
+            methods=['patch'],
+            url_path=constants.CODAE_ACEITA)
+    def codae_aceita(self, request, uuid=None):
+        reclamacao_produto = self.get_object()
+        return self.muda_status_com_justificativa_e_anexo(
+            request,
+            reclamacao_produto.codae_aceita)
+
+    @action(detail=True,
+            permission_classes=[UsuarioCODAEGestaoProduto],
+            methods=['patch'],
+            url_path=constants.CODAE_RECUSA)
+    def codae_recusa(self, request, uuid=None):
+        reclamacao_produto = self.get_object()
+        return self.muda_status_com_justificativa_e_anexo(
+            request,
+            reclamacao_produto.codae_recusa)
+
+    @action(detail=True,
+            permission_classes=[UsuarioCODAEGestaoProduto],
+            methods=['patch'],
+            url_path=constants.CODAE_QUESTIONA)
+    def codae_questiona(self, request, uuid=None):
+        reclamacao_produto = self.get_object()
+        return self.muda_status_com_justificativa_e_anexo(
+            request,
+            reclamacao_produto.codae_questiona)
+
+    @action(detail=True,
+            permission_classes=[UsuarioCODAEGestaoProduto],
+            methods=['patch'],
+            url_path=constants.CODAE_RESPONDE)
+    def codae_responde(self, request, uuid=None):
+        reclamacao_produto = self.get_object()
+        return self.muda_status_com_justificativa_e_anexo(
+            request,
+            reclamacao_produto.codae_responde)
+
+    @action(detail=True,
             methods=['patch'],
             url_path=constants.TERCEIRIZADA_RESPONDE)
     def terceirizada_responde(self, request, uuid=None):
-        anexos = request.data.get('anexos', [])
-        justificativa = request.data.get('justificativa', '')
         reclamacao_produto = self.get_object()
-        try:
-            reclamacao_produto.terceirizada_responde(
-                user=request.user,
-                anexos=anexos,
-                justificativa=justificativa,
-                nao_enviar_email=True
-            )
-            serializer = self.get_serializer(reclamacao_produto)
-            return Response(serializer.data)
-        except InvalidTransitionError as e:
-            return Response(dict(detail=f'Erro de transição de estado: {e}'),
-                            status=status.HTTP_400_BAD_REQUEST)
+        return self.muda_status_com_justificativa_e_anexo(
+            request,
+            reclamacao_produto.terceirizada_responde)
