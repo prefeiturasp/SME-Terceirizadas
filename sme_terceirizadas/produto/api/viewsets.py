@@ -1,3 +1,5 @@
+from datetime import datetime, timedelta
+
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
@@ -7,12 +9,14 @@ from xworkflows import InvalidTransitionError
 
 from ...dados_comuns import constants
 from ...dados_comuns.fluxo_status import HomologacaoProdutoWorkflow, ReclamacaoProdutoWorkflow
+from ...dados_comuns.models import LogSolicitacoesUsuario
 from ...dados_comuns.permissions import PermissaoParaReclamarDeProduto, UsuarioCODAEGestaoProduto, UsuarioTerceirizada
 from ...relatorios.relatorios import (
     relatorio_produto_analise_sensorial,
     relatorio_produto_analise_sensorial_recebimento,
     relatorio_produto_homologacao,
-    relatorio_produtos_agrupado_terceirizada
+    relatorio_produtos_agrupado_terceirizada,
+    relatorio_produtos_suspensos
 )
 from ...terceirizada.api.serializers.serializers import TerceirizadaSimplesSerializer
 from ..forms import ProdutoPorParametrosForm
@@ -31,6 +35,7 @@ from ..utils import agrupa_por_terceirizada, cria_filtro_produto_por_parametros_
 from .serializers.serializers import (
     FabricanteSerializer,
     FabricanteSimplesSerializer,
+    HomologacaoProdutoComLogsDetalhadosSerializer,
     HomologacaoProdutoPainelGerencialSerializer,
     HomologacaoProdutoSerializer,
     ImagemDoProdutoSerializer,
@@ -397,6 +402,82 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
         protocolo = homologacao.retorna_numero_do_protocolo()
         return Response(protocolo)
 
+    def retorna_datetime(self, data):
+        data = datetime.strptime(data, '%d/%m/%Y')
+        return data
+
+    def retorna_filtro_por_data(self, request): # noqa C901
+        condicao = request.data.get('condicao')
+        lista = []
+        homologacoes = HomologacaoDoProduto.objects.filter(
+            status=HomologacaoDoProduto.workflow_class.CODAE_SUSPENDEU,
+            ativo=True
+        )
+        if condicao == 'range':
+            data_inicial = request.data.get('data_inicial')
+            data_final = request.data.get('data_final')
+            data_de = self.retorna_datetime(data_inicial)
+            data_ate = self.retorna_datetime(data_final)
+            for homologacao in homologacoes:
+                hom = homologacao.logs.filter(status_evento=LogSolicitacoesUsuario.CODAE_SUSPENDEU,
+                                              criado_em__range=[data_de, data_ate + timedelta(days=1)])
+                if len(hom) > 0:
+                    lista.append(homologacao)
+            return HomologacaoDoProduto.objects.filter(pk__in=[x.pk for x in lista])
+        elif condicao == 'ate_data':
+            data_final = request.data.get('data_final')
+            data_ate = self.retorna_datetime(data_final)
+            for homologacao in homologacoes:
+                hom = homologacao.logs.filter(status_evento=LogSolicitacoesUsuario.CODAE_SUSPENDEU,
+                                              criado_em__lte=data_ate + timedelta(days=1))
+                if len(hom) > 0:
+                    lista.append(homologacao)
+            return HomologacaoDoProduto.objects.filter(pk__in=[x.pk for x in lista])
+        elif condicao == 'de_data':
+            data_inicial = request.data.get('data_inicial')
+            data_de = self.retorna_datetime(data_inicial)
+            for homologacao in homologacoes:
+                hom = homologacao.logs.filter(status_evento=LogSolicitacoesUsuario.CODAE_SUSPENDEU,
+                                              criado_em__gte=data_de)
+                if len(hom) > 0:
+                    lista.append(homologacao)
+            return HomologacaoDoProduto.objects.filter(pk__in=[x.pk for x in lista])
+        else:
+            return homologacoes
+
+    def get_parametros_filtro(self, request): # noqa C901
+        campos_a_pesquisar = {}
+        for (chave, valor) in request.data.items():
+            if valor != '' and valor is not None:
+                if chave == 'produto':
+                    campos_a_pesquisar['produto__nome__icontains'] = valor
+                elif chave == 'marca':
+                    campos_a_pesquisar['produto__marca__nome__icontains'] = valor
+                elif chave == 'fabricante':
+                    campos_a_pesquisar['produto__fabricante__nome__icontains'] = valor
+
+        return campos_a_pesquisar
+
+    @action(detail=False, methods=['post'], url_path='homologacoes_suspensas')
+    def homologacoes_suspensas(self, request):
+        eh_por_data = request.data.get('filtro_por_data')
+        if eh_por_data:
+            queryset = self.retorna_filtro_por_data(request).order_by('produto__nome')
+            serializer = HomologacaoProdutoComLogsDetalhadosSerializer(queryset, many=True)
+            return Response(serializer.data)
+        else:
+            parametros = self.get_parametros_filtro(request)
+            queryset = self.retorna_filtro_por_data(request).filter(
+                **parametros).order_by('produto__nome')
+            serializer = HomologacaoProdutoComLogsDetalhadosSerializer(queryset, many=True)
+            return Response(serializer.data)
+
+    @action(detail=False, url_path=constants.RELATORIO_SUSPENSOS,
+            methods=['post'], permission_classes=(AllowAny,))
+    def relatorio_produtos_suspensos(self, request):
+        payload = request.data
+        return relatorio_produtos_suspensos(request, payload)
+
     @action(detail=True,
             permission_classes=[UsuarioTerceirizada],
             methods=['post'],
@@ -613,7 +694,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
             return Response(form.errors)
 
         form_data = form.cleaned_data.copy()
-        form_data['status'] = status_homologacao
+        form_data['homologacoes__status__in'] = status_homologacao
         campos_a_pesquisar = cria_filtro_produto_por_parametros_form(form_data)
         campos_a_pesquisar['homologacoes__reclamacoes__status__in'] = status_reclamacao
 

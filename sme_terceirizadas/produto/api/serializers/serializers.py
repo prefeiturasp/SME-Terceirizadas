@@ -3,6 +3,7 @@ import datetime
 from rest_framework import serializers
 
 from ....dados_comuns.api.serializers import (
+    LogSolicitacoesUsuarioComAnexosSerializer,
     LogSolicitacoesUsuarioComVinculoSerializer,
     LogSolicitacoesUsuarioSerializer
 )
@@ -105,8 +106,9 @@ class ReclamacaoDeProdutoSerializer(serializers.ModelSerializer):
 
     def get_logs(self, obj):
         return LogSolicitacoesUsuarioSerializer(
-            LogSolicitacoesUsuario.objects.filter(uuid_original=obj.uuid),
-            many=True).data
+            LogSolicitacoesUsuario.objects.filter(uuid_original=obj.uuid).order_by('criado_em'),
+            many=True
+        ).data
 
     class Meta:
         model = ReclamacaoDeProduto
@@ -144,6 +146,38 @@ class ProdutoSerializer(serializers.ModelSerializer):
     imagens = serializers.ListField(
         child=ImagemDoProdutoSerializer(), required=True
     )
+    id_externo = serializers.CharField()
+
+    informacoes_nutricionais = serializers.SerializerMethodField()
+
+    homologacoes = serializers.SerializerMethodField()
+
+    ultima_homologacao = HomologacaoProdutoSimplesSerializer()
+
+    def get_homologacoes(self, obj):
+        return HomologacaoProdutoSimplesSerializer(
+            HomologacaoDoProduto.objects.filter(
+                produto=obj
+            ), context=self.context,
+            many=True
+        ).data
+
+    def get_informacoes_nutricionais(self, obj):
+        return InformacoesNutricionaisDoProdutoSerializer(
+            InformacoesNutricionaisDoProduto.objects.filter(
+                produto=obj
+            ), many=True
+        ).data
+
+    class Meta:
+        model = Produto
+        exclude = ('id',)
+
+
+class ProdutoSemAnexoSerializer(serializers.ModelSerializer):
+    protocolos = ProtocoloDeDietaEspecialSerializer(many=True)
+    marca = MarcaSerializer()
+    fabricante = FabricanteSerializer()
     id_externo = serializers.CharField()
 
     informacoes_nutricionais = serializers.SerializerMethodField()
@@ -210,6 +244,7 @@ class HomologacaoProdutoSerializer(serializers.ModelSerializer):
 class HomologacaoProdutoPainelGerencialSerializer(serializers.ModelSerializer):
     nome_produto = serializers.SerializerMethodField()
     log_mais_recente = serializers.SerializerMethodField()
+    qtde_reclamacoes = serializers.SerializerMethodField()
 
     def get_log_mais_recente(self, obj):
         if obj.log_mais_recente:
@@ -222,6 +257,20 @@ class HomologacaoProdutoPainelGerencialSerializer(serializers.ModelSerializer):
     def get_nome_produto(self, obj):
         return obj.produto.nome
 
+    def get_qtde_reclamacoes(self, obj):
+        return ReclamacaoDeProduto.objects.filter(homologacao_de_produto=obj).count()
+
     class Meta:
         model = HomologacaoDoProduto
-        fields = ('uuid', 'nome_produto', 'status', 'id_externo', 'log_mais_recente')
+        fields = ('uuid', 'nome_produto', 'status', 'id_externo', 'log_mais_recente', 'qtde_reclamacoes')
+
+
+class HomologacaoProdutoComLogsDetalhadosSerializer(serializers.ModelSerializer):
+    produto = ProdutoSemAnexoSerializer()
+    logs = LogSolicitacoesUsuarioComAnexosSerializer(many=True)
+    rastro_terceirizada = TerceirizadaSimplesSerializer()
+
+    class Meta:
+        model = HomologacaoDoProduto
+        fields = ('uuid', 'produto', 'status', 'id_externo', 'logs', 'rastro_terceirizada', 'pdf_gerado',
+                  'protocolo_analise_sensorial')

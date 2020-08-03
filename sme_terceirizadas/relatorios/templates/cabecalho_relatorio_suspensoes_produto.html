@@ -1,0 +1,46 @@
+{% include 'relatorio_base.html' %}
+{% load static %}
+{% load sass_tags %}
+
+
+<html>
+<head>
+  <link rel="stylesheet" href="{% sass_src 'css/cabecalho.scss' %}" type="text/css">
+  <link rel="stylesheet" href="{% sass_src 'css/override_relatorio.scss' %}" type="text/css">
+  <link rel="stylesheet" href="{% sass_src 'css/fluxo_status.scss' %}" type="text/css">
+</head>
+<header class="header">
+  <figure class="logo-titulo">
+    <img src="{% static 'images/LOGO_PB_POSITIVO.png' %}" alt=""/>
+    <h1>SIGPAE - RELATÓRIO DE ANÁLISE DE PRODUTOS SUSPENSOS</h1>
+  </figure>
+  {% if eh_relatorio_por_data %}
+  <section class="conteudo-titulo-suspensoes-produto">
+    <article>
+      RESULTADOS DATA SUSPENSÃO
+    </article>
+    <article>
+      <div>DE: {{data_inicio}}</div>
+      <div>ATÉ: {{data_fim}}</div>
+    </article>
+  </section>
+  {% else %}
+  <section class="conteudo-titulo-suspensoes-produto-reduzido">
+    {% if len_produtos > 1 %}
+      <article>
+        VEJA OS RESULTADOS PARA A BUSCA
+      </article>
+    {% else %}
+      <article>
+        VEJA OS RESULTADOS PARA A BUSCA
+      </article>
+    {% endif %}
+  </section>
+  {% endif %}
+
+</header>
+<body>
+{% block conteudo %}
+
+{% endblock %}
+</body>
