@@ -105,9 +105,9 @@ class ReclamacaoDeProdutoSerializer(serializers.ModelSerializer):
 
     def get_logs(self, obj):
         return LogSolicitacoesUsuarioSerializer(
-            LogSolicitacoesUsuario.objects.filter(
-                uuid_original=obj.uuid).order_by('criado_em'),
-                many=True).data
+            LogSolicitacoesUsuario.objects.filter(uuid_original=obj.uuid).order_by('criado_em'),
+            many=True
+        ).data
 
     class Meta:
         model = ReclamacaoDeProduto
