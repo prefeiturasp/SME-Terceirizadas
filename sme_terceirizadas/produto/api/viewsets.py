@@ -679,26 +679,14 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         return self.paginated_response(queryset.order_by('criado_em'))
 
     @action(detail=False,
-            methods=['POST'],
+            methods=['GET'],
             url_path='filtro-reclamacoes-terceirizada',
             permission_classes=[UsuarioTerceirizada])
     def filtro_reclamacoes_terceirizada(self, request):
-        form = ProdutoPorParametrosForm(request.data)
         status_reclamacao = [ReclamacaoProdutoWorkflow.AGUARDANDO_RESPOSTA_TERCEIRIZADA,
                              ReclamacaoProdutoWorkflow.RESPONDIDO_TERCEIRIZADA]
-        status_homologacao = [
-            HomologacaoProdutoWorkflow.CODAE_PEDIU_ANALISE_RECLAMACAO,
-        ]
 
-        if not form.is_valid():
-            return Response(form.errors)
-
-        form_data = form.cleaned_data.copy()
-        form_data['homologacoes__status__in'] = status_homologacao
-        campos_a_pesquisar = cria_filtro_produto_por_parametros_form(form_data)
-        campos_a_pesquisar['homologacoes__reclamacoes__status__in'] = status_reclamacao
-
-        queryset = self.get_queryset().filter(**campos_a_pesquisar).distinct()
+        queryset = self.get_queryset().filter(homologacoes__reclamacoes__status__in=status_reclamacao).distinct()
         return self.paginated_response(queryset.order_by('criado_em'))
 
 
@@ -819,6 +807,13 @@ class ReclamacaoProdutoViewSet(viewsets.ModelViewSet):
             url_path=constants.CODAE_ACEITA)
     def codae_aceita(self, request, uuid=None):
         reclamacao_produto = self.get_object()
+        anexos = request.data.get('anexos', [])
+        justificativa = request.data.get('justificativa', '')
+        reclamacao_produto.homologacao_de_produto.codae_autorizou_reclamacao(
+            user=request.user,
+            anexos=anexos,
+            justificativa=justificativa
+        )
         return self.muda_status_com_justificativa_e_anexo(
             request,
             reclamacao_produto.codae_aceita)
@@ -829,9 +824,22 @@ class ReclamacaoProdutoViewSet(viewsets.ModelViewSet):
             url_path=constants.CODAE_RECUSA)
     def codae_recusa(self, request, uuid=None):
         reclamacao_produto = self.get_object()
-        return self.muda_status_com_justificativa_e_anexo(
+        resposta = self.muda_status_com_justificativa_e_anexo(
             request,
             reclamacao_produto.codae_recusa)
+        reclamacoes_ativas = reclamacao_produto.homologacao_de_produto.reclamacoes.filter(
+            status__in=[
+                ReclamacaoProdutoWorkflow.AGUARDANDO_AVALIACAO,
+                ReclamacaoProdutoWorkflow.AGUARDANDO_RESPOSTA_TERCEIRIZADA,
+                ReclamacaoProdutoWorkflow.RESPONDIDO_TERCEIRIZADA
+            ]
+        )
+        if reclamacoes_ativas.count() == 0:
+            reclamacao_produto.homologacao_de_produto.codae_recusou_reclamacao(
+                user=request.user,
+                justificativa="Recusa automática por não haver mais reclamações"
+            )
+        return resposta
 
     @action(detail=True,
             permission_classes=[UsuarioCODAEGestaoProduto],
