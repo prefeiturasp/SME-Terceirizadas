@@ -42,6 +42,7 @@ from .serializers.serializers import (
     InformacaoNutricionalSerializer,
     MarcaSerializer,
     MarcaSimplesSerializer,
+    ProdutoResponderReclamacaoTerceirizadaSerializer,
     ProdutoSerializer,
     ProdutoSimplesSerializer,
     ProtocoloDeDietaEspecialSerializer,
@@ -521,6 +522,8 @@ class ProdutoViewSet(viewsets.ModelViewSet):
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update']:
             return ProdutoSerializerCreate
+        if self.action == 'filtro_reclamacoes_terceirizada':
+            return ProdutoResponderReclamacaoTerceirizadaSerializer
         return ProdutoSerializer
 
     @action(detail=False, methods=['GET'], url_path='lista-nomes')
@@ -679,14 +682,27 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         return self.paginated_response(queryset.order_by('criado_em'))
 
     @action(detail=False,
-            methods=['GET'],
+            methods=['POST'],
             url_path='filtro-reclamacoes-terceirizada',
             permission_classes=[UsuarioTerceirizada])
     def filtro_reclamacoes_terceirizada(self, request):
+        form = ProdutoPorParametrosForm(request.data)
         status_reclamacao = [ReclamacaoProdutoWorkflow.AGUARDANDO_RESPOSTA_TERCEIRIZADA,
                              ReclamacaoProdutoWorkflow.RESPONDIDO_TERCEIRIZADA]
 
-        queryset = self.get_queryset().filter(homologacoes__reclamacoes__status__in=status_reclamacao).distinct()
+        status_homologacao = [
+            HomologacaoProdutoWorkflow.CODAE_PEDIU_ANALISE_RECLAMACAO,
+            HomologacaoProdutoWorkflow.TERCEIRIZADA_RESPONDEU_RECLAMACAO
+        ]
+
+        if not form.is_valid():
+            return Response(form.errors)
+
+        form_data = form.cleaned_data.copy()
+        form_data['status'] = status_homologacao
+
+        queryset = self.get_queryset_filtrado(form_data).filter(
+            homologacoes__reclamacoes__status__in=status_reclamacao).distinct()
         return self.paginated_response(queryset.order_by('criado_em'))
 
 
@@ -866,6 +882,13 @@ class ReclamacaoProdutoViewSet(viewsets.ModelViewSet):
             url_path=constants.TERCEIRIZADA_RESPONDE)
     def terceirizada_responde(self, request, uuid=None):
         reclamacao_produto = self.get_object()
+        anexos = request.data.get('anexos', [])
+        justificativa = request.data.get('justificativa', '')
+        reclamacao_produto.homologacao_de_produto.terceirizada_responde_reclamacao(
+            user=request.user,
+            anexos=anexos,
+            justificativa=justificativa
+        )
         return self.muda_status_com_justificativa_e_anexo(
             request,
             reclamacao_produto.terceirizada_responde)
