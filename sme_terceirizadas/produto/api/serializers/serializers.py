@@ -7,6 +7,7 @@ from ....dados_comuns.api.serializers import (
     LogSolicitacoesUsuarioComVinculoSerializer,
     LogSolicitacoesUsuarioSerializer
 )
+from ....dados_comuns.fluxo_status import ReclamacaoProdutoWorkflow
 from ....escola.api.serializers import EscolaSimplissimaSerializer
 from ....terceirizada.api.serializers.serializers import TerceirizadaSimplesSerializer
 from ...models import (
@@ -258,7 +259,9 @@ class HomologacaoProdutoPainelGerencialSerializer(serializers.ModelSerializer):
         return obj.produto.nome
 
     def get_qtde_reclamacoes(self, obj):
-        return ReclamacaoDeProduto.objects.filter(homologacao_de_produto=obj).count()
+        return ReclamacaoDeProduto.objects.filter(
+            homologacao_de_produto=obj,
+            status=ReclamacaoProdutoWorkflow.AGUARDANDO_RESPOSTA_TERCEIRIZADA).count()
 
     class Meta:
         model = HomologacaoDoProduto
@@ -274,3 +277,30 @@ class HomologacaoProdutoComLogsDetalhadosSerializer(serializers.ModelSerializer)
         model = HomologacaoDoProduto
         fields = ('uuid', 'produto', 'status', 'id_externo', 'logs', 'rastro_terceirizada', 'pdf_gerado',
                   'protocolo_analise_sensorial')
+
+
+class HomologacaoProdutoResponderReclamacaoTerceirizadaSerializer(serializers.ModelSerializer):
+    reclamacoes = serializers.SerializerMethodField()
+
+    def get_reclamacoes(self, obj):
+        return ReclamacaoDeProdutoSerializer(
+            obj.reclamacoes.filter(
+                status__in=[ReclamacaoProdutoWorkflow.AGUARDANDO_RESPOSTA_TERCEIRIZADA,
+                            ReclamacaoProdutoWorkflow.RESPONDIDO_TERCEIRIZADA]), context=self.context,
+            many=True
+        ).data
+
+    class Meta:
+        model = HomologacaoDoProduto
+        fields = ('uuid', 'status', 'id_externo', 'criado_em', 'reclamacoes')
+
+
+class ProdutoResponderReclamacaoTerceirizadaSerializer(serializers.ModelSerializer):
+    marca = MarcaSerializer()
+    fabricante = FabricanteSerializer()
+    id_externo = serializers.CharField()
+    ultima_homologacao = HomologacaoProdutoResponderReclamacaoTerceirizadaSerializer()
+
+    class Meta:
+        model = Produto
+        exclude = ('id',)
