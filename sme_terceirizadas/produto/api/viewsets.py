@@ -273,7 +273,7 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
         homologacao_produto = self.get_object()
         data = request.data.copy()
         data['homologacao_de_produto'] = homologacao_produto.id
-        data['criado_por'] = request.user
+        data['criado_por'] = request.user.id
         try:
             serializer_reclamacao = ReclamacaoDeProdutoSerializerCreate(data=data)
             if not serializer_reclamacao.is_valid():
@@ -837,7 +837,7 @@ class ReclamacaoProdutoViewSet(viewsets.ModelViewSet):
         if reclamacoes_ativas.count() == 0:
             reclamacao_produto.homologacao_de_produto.codae_recusou_reclamacao(
                 user=request.user,
-                justificativa="Recusa automática por não haver mais reclamações"
+                justificativa='Recusa automática por não haver mais reclamações'
             )
         return resposta
 

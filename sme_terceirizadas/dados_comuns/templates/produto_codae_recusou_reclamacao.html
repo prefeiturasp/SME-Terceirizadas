@@ -1,0 +1,16 @@
+{% extends 'email_base.html' %}
+{% load email_templatetags %}
+
+{% block conteudo %}
+  <div>Caros,</div>
+  <br/>
+  <div>Informo que a reclamação feita para o produto {{ reclamacao.homologacao_de_produto.produto.nome }} foi recusada.</div>
+  <br/>
+  <p><b>Reclamação:</b></p>
+  <div>{{ reclamacao.reclamacao | safe }}</div>
+  <br/>
+  <p><b>Justificativa da recusa:</b></p>
+  <div>{{ log_recusa.justificativa | safe }}</div>
+  <div>Atenciosamente,</div>
+  <div>Coordenadoria de Alimentação Escolar - CODAE.</div>
+{% endblock %}
