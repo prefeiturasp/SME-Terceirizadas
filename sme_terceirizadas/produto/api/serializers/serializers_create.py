@@ -188,7 +188,7 @@ class ReclamacaoDeProdutoSerializerCreate(serializers.ModelSerializer):
 
     class Meta:
         model = ReclamacaoDeProduto
-        exclude = ('id', 'uuid', 'criado_por', 'criado_em')
+        exclude = ('id', 'uuid', 'criado_em')
 
 
 class RespostaAnaliseSensorialSearilzerCreate(serializers.ModelSerializer):

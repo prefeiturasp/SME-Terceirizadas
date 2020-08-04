@@ -228,7 +228,7 @@ class HomologacaoDoProduto(TemChaveExterna, CriadoEm, CriadoPor, FluxoHomologaca
         return f'Homologação #{self.id_externo}'
 
 
-class ReclamacaoDeProduto(FluxoReclamacaoProduto, TemChaveExterna, CriadoEm, CriadoPor):
+class ReclamacaoDeProduto(FluxoReclamacaoProduto, TemChaveExterna, CriadoEm, CriadoPor, Logs):
     homologacao_de_produto = models.ForeignKey('HomologacaoDoProduto', on_delete=models.CASCADE,
                                                related_name='reclamacoes')
     reclamante_registro_funcional = models.CharField('RF/CRN/CRF', max_length=50)
@@ -256,6 +256,7 @@ class ReclamacaoDeProduto(FluxoReclamacaoProduto, TemChaveExterna, CriadoEm, Cri
                     arquivo=arquivo,
                     nome=anexo['nome']
                 )
+        return log_transicao
 
     def __str__(self):
         return f'Reclamação {self.uuid} feita por {self.reclamante_nome} em {self.criado_em}'
