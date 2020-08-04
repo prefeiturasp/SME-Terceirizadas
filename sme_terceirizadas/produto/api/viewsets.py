@@ -687,8 +687,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
             permission_classes=[UsuarioTerceirizada])
     def filtro_reclamacoes_terceirizada(self, request):
         form = ProdutoPorParametrosForm(request.data)
-        status_reclamacao = [ReclamacaoProdutoWorkflow.AGUARDANDO_RESPOSTA_TERCEIRIZADA,
-                             ReclamacaoProdutoWorkflow.RESPONDIDO_TERCEIRIZADA]
+        status_reclamacao = [ReclamacaoProdutoWorkflow.AGUARDANDO_RESPOSTA_TERCEIRIZADA]
 
         status_homologacao = [
             HomologacaoProdutoWorkflow.CODAE_PEDIU_ANALISE_RECLAMACAO,
@@ -863,6 +862,15 @@ class ReclamacaoProdutoViewSet(viewsets.ModelViewSet):
             url_path=constants.CODAE_QUESTIONA)
     def codae_questiona(self, request, uuid=None):
         reclamacao_produto = self.get_object()
+        anexos = request.data.get('anexos', [])
+        justificativa = request.data.get('justificativa', '')
+        status_homologacao = reclamacao_produto.homologacao_de_produto.status
+        if status_homologacao == HomologacaoProdutoWorkflow.ESCOLA_OU_NUTRICIONISTA_RECLAMOU:
+            reclamacao_produto.homologacao_de_produto.codae_pediu_analise_reclamacao(
+                user=request.user,
+                anexos=anexos,
+                justificativa=justificativa
+            )
         return self.muda_status_com_justificativa_e_anexo(
             request,
             reclamacao_produto.codae_questiona)
@@ -887,7 +895,8 @@ class ReclamacaoProdutoViewSet(viewsets.ModelViewSet):
         reclamacao_produto.homologacao_de_produto.terceirizada_responde_reclamacao(
             user=request.user,
             anexos=anexos,
-            justificativa=justificativa
+            justificativa=justificativa,
+            request=request
         )
         return self.muda_status_com_justificativa_e_anexo(
             request,
