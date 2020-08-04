@@ -273,7 +273,7 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
         homologacao_produto = self.get_object()
         data = request.data.copy()
         data['homologacao_de_produto'] = homologacao_produto.id
-        data['criado_por'] = request.user
+        data['criado_por'] = request.user.id
         try:
             serializer_reclamacao = ReclamacaoDeProdutoSerializerCreate(data=data)
             if not serializer_reclamacao.is_valid():
@@ -679,26 +679,14 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         return self.paginated_response(queryset.order_by('criado_em'))
 
     @action(detail=False,
-            methods=['POST'],
+            methods=['GET'],
             url_path='filtro-reclamacoes-terceirizada',
             permission_classes=[UsuarioTerceirizada])
     def filtro_reclamacoes_terceirizada(self, request):
-        form = ProdutoPorParametrosForm(request.data)
         status_reclamacao = [ReclamacaoProdutoWorkflow.AGUARDANDO_RESPOSTA_TERCEIRIZADA,
                              ReclamacaoProdutoWorkflow.RESPONDIDO_TERCEIRIZADA]
-        status_homologacao = [
-            HomologacaoProdutoWorkflow.CODAE_PEDIU_ANALISE_RECLAMACAO,
-        ]
 
-        if not form.is_valid():
-            return Response(form.errors)
-
-        form_data = form.cleaned_data.copy()
-        form_data['homologacoes__status__in'] = status_homologacao
-        campos_a_pesquisar = cria_filtro_produto_por_parametros_form(form_data)
-        campos_a_pesquisar['homologacoes__reclamacoes__status__in'] = status_reclamacao
-
-        queryset = self.get_queryset().filter(**campos_a_pesquisar).distinct()
+        queryset = self.get_queryset().filter(homologacoes__reclamacoes__status__in=status_reclamacao).distinct()
         return self.paginated_response(queryset.order_by('criado_em'))
 
 
@@ -798,42 +786,86 @@ class ReclamacaoProdutoViewSet(viewsets.ModelViewSet):
     serializer_class = ReclamacaoDeProdutoSerializer
     queryset = ReclamacaoDeProduto.objects.all()
 
-    @action(detail=True,
-            permission_classes=[UsuarioCODAEGestaoProduto],
-            methods=['patch'],
-            url_path=constants.CODAE_ACEITA)
-    def codae_aceita(self, request, uuid=None):
+    def muda_status_com_justificativa_e_anexo(self, request, metodo_transicao):
         anexos = request.data.get('anexos', [])
         justificativa = request.data.get('justificativa', '')
-        reclamacao_produto = self.get_object()
         try:
-            reclamacao_produto.codae_aceita(
+            metodo_transicao(
                 user=request.user,
                 anexos=anexos,
                 justificativa=justificativa
             )
-            serializer = self.get_serializer(reclamacao_produto)
+            serializer = self.get_serializer(self.get_object())
             return Response(serializer.data)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'),
                             status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=True,
+            permission_classes=[UsuarioCODAEGestaoProduto],
+            methods=['patch'],
+            url_path=constants.CODAE_ACEITA)
+    def codae_aceita(self, request, uuid=None):
+        reclamacao_produto = self.get_object()
+        anexos = request.data.get('anexos', [])
+        justificativa = request.data.get('justificativa', '')
+        reclamacao_produto.homologacao_de_produto.codae_autorizou_reclamacao(
+            user=request.user,
+            anexos=anexos,
+            justificativa=justificativa
+        )
+        return self.muda_status_com_justificativa_e_anexo(
+            request,
+            reclamacao_produto.codae_aceita)
+
+    @action(detail=True,
+            permission_classes=[UsuarioCODAEGestaoProduto],
+            methods=['patch'],
+            url_path=constants.CODAE_RECUSA)
+    def codae_recusa(self, request, uuid=None):
+        reclamacao_produto = self.get_object()
+        resposta = self.muda_status_com_justificativa_e_anexo(
+            request,
+            reclamacao_produto.codae_recusa)
+        reclamacoes_ativas = reclamacao_produto.homologacao_de_produto.reclamacoes.filter(
+            status__in=[
+                ReclamacaoProdutoWorkflow.AGUARDANDO_AVALIACAO,
+                ReclamacaoProdutoWorkflow.AGUARDANDO_RESPOSTA_TERCEIRIZADA,
+                ReclamacaoProdutoWorkflow.RESPONDIDO_TERCEIRIZADA
+            ]
+        )
+        if reclamacoes_ativas.count() == 0:
+            reclamacao_produto.homologacao_de_produto.codae_recusou_reclamacao(
+                user=request.user,
+                justificativa='Recusa automática por não haver mais reclamações'
+            )
+        return resposta
+
+    @action(detail=True,
+            permission_classes=[UsuarioCODAEGestaoProduto],
+            methods=['patch'],
+            url_path=constants.CODAE_QUESTIONA)
+    def codae_questiona(self, request, uuid=None):
+        reclamacao_produto = self.get_object()
+        return self.muda_status_com_justificativa_e_anexo(
+            request,
+            reclamacao_produto.codae_questiona)
+
+    @action(detail=True,
+            permission_classes=[UsuarioCODAEGestaoProduto],
+            methods=['patch'],
+            url_path=constants.CODAE_RESPONDE)
+    def codae_responde(self, request, uuid=None):
+        reclamacao_produto = self.get_object()
+        return self.muda_status_com_justificativa_e_anexo(
+            request,
+            reclamacao_produto.codae_responde)
+
+    @action(detail=True,
             methods=['patch'],
             url_path=constants.TERCEIRIZADA_RESPONDE)
     def terceirizada_responde(self, request, uuid=None):
-        anexos = request.data.get('anexos', [])
-        justificativa = request.data.get('justificativa', '')
         reclamacao_produto = self.get_object()
-        try:
-            reclamacao_produto.terceirizada_responde(
-                user=request.user,
-                anexos=anexos,
-                justificativa=justificativa,
-                nao_enviar_email=True
-            )
-            serializer = self.get_serializer(reclamacao_produto)
-            return Response(serializer.data)
-        except InvalidTransitionError as e:
-            return Response(dict(detail=f'Erro de transição de estado: {e}'),
-                            status=status.HTTP_400_BAD_REQUEST)
+        return self.muda_status_com_justificativa_e_anexo(
+            request,
+            reclamacao_produto.terceirizada_responde)

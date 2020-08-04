@@ -51,10 +51,15 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
         CODAE_PEDIU_ANALISE_RECLAMACAO,
         CODAE_AUTORIZOU_RECLAMACAO,
         INATIVA,
+
+        # ESPECIFICA RECLAMAÇÃO DE PRODUTO
         TERCEIRIZADA_RESPONDEU_RECLAMACAO,
         TERCEIRIZADA_RESPONDEU_ANALISE_SENSORIAL,
+        CODAE_RECUSOU_RECLAMACAO,
+        CODAE_QUESTIONOU_TERCEIRIZADA,
+        CODAE_RESPONDEU_RECLAMACAO
 
-    ) = range(32)
+    ) = range(35)
 
     STATUS_POSSIVEIS = (
         (INICIO_FLUXO, 'Solicitação Realizada'),
@@ -87,6 +92,9 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
         (ESCOLA_OU_NUTRICIONISTA_RECLAMOU, 'Escola/Nutricionista reclamou do produto'),
         (CODAE_PEDIU_ANALISE_RECLAMACAO, 'CODAE pediu análise da reclamação'),
         (CODAE_AUTORIZOU_RECLAMACAO, 'CODAE autorizou reclamação'),
+        (CODAE_RECUSOU_RECLAMACAO, 'CODAE recusou reclamação'),
+        (CODAE_QUESTIONOU_TERCEIRIZADA, 'CODAE questionou terceirizada sobre reclamação'),
+        (CODAE_RESPONDEU_RECLAMACAO, 'CODAE respondeu ao reclamante da reclamação'),
         (TERCEIRIZADA_RESPONDEU_RECLAMACAO, 'Terceirizada respondeu a reclamação'),
         (TERCEIRIZADA_RESPONDEU_ANALISE_SENSORIAL, 'Terceirizada respondeu a análise')
     )
