@@ -114,7 +114,7 @@ class ReclamacaoDeProdutoSerializer(serializers.ModelSerializer):
     class Meta:
         model = ReclamacaoDeProduto
         fields = ('uuid', 'reclamante_registro_funcional', 'logs', 'reclamante_cargo', 'reclamante_nome',
-                  'reclamacao', 'escola', 'anexos', 'status', 'status_titulo', 'criado_em')
+                  'reclamacao', 'escola', 'anexos', 'status', 'status_titulo', 'criado_em', 'id_externo')
 
 
 class ReclamacaoDeProdutoSimplesSerializer(serializers.ModelSerializer):
@@ -246,6 +246,7 @@ class HomologacaoProdutoPainelGerencialSerializer(serializers.ModelSerializer):
     nome_produto = serializers.SerializerMethodField()
     log_mais_recente = serializers.SerializerMethodField()
     qtde_reclamacoes = serializers.SerializerMethodField()
+    qtde_questionamentos = serializers.SerializerMethodField()
 
     def get_log_mais_recente(self, obj):
         if obj.log_mais_recente:
@@ -261,11 +262,20 @@ class HomologacaoProdutoPainelGerencialSerializer(serializers.ModelSerializer):
     def get_qtde_reclamacoes(self, obj):
         return ReclamacaoDeProduto.objects.filter(
             homologacao_de_produto=obj,
+            status__in=[
+                ReclamacaoProdutoWorkflow.AGUARDANDO_AVALIACAO,
+                ReclamacaoProdutoWorkflow.RESPONDIDO_TERCEIRIZADA
+            ]).count()
+
+    def get_qtde_questionamentos(self, obj):
+        return ReclamacaoDeProduto.objects.filter(
+            homologacao_de_produto=obj,
             status=ReclamacaoProdutoWorkflow.AGUARDANDO_RESPOSTA_TERCEIRIZADA).count()
 
     class Meta:
         model = HomologacaoDoProduto
-        fields = ('uuid', 'nome_produto', 'status', 'id_externo', 'log_mais_recente', 'qtde_reclamacoes')
+        fields = ('uuid', 'nome_produto', 'status', 'id_externo', 'log_mais_recente',
+                  'qtde_reclamacoes', 'qtde_questionamentos')
 
 
 class HomologacaoProdutoComLogsDetalhadosSerializer(serializers.ModelSerializer):
