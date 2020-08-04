@@ -228,7 +228,8 @@ class HomologacaoDoProduto(TemChaveExterna, CriadoEm, CriadoPor, FluxoHomologaca
         return f'Homologação #{self.id_externo}'
 
 
-class ReclamacaoDeProduto(FluxoReclamacaoProduto, TemChaveExterna, CriadoEm, CriadoPor, Logs):
+class ReclamacaoDeProduto(FluxoReclamacaoProduto, TemChaveExterna, CriadoEm, CriadoPor,
+                          Logs, TemIdentificadorExternoAmigavel):
     homologacao_de_produto = models.ForeignKey('HomologacaoDoProduto', on_delete=models.CASCADE,
                                                related_name='reclamacoes')
     reclamante_registro_funcional = models.CharField('RF/CRN/CRF', max_length=50)

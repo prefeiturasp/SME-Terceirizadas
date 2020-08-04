@@ -114,7 +114,7 @@ class ReclamacaoDeProdutoSerializer(serializers.ModelSerializer):
     class Meta:
         model = ReclamacaoDeProduto
         fields = ('uuid', 'reclamante_registro_funcional', 'logs', 'reclamante_cargo', 'reclamante_nome',
-                  'reclamacao', 'escola', 'anexos', 'status', 'status_titulo', 'criado_em')
+                  'reclamacao', 'escola', 'anexos', 'status', 'status_titulo', 'criado_em', 'id_externo')
 
 
 class ReclamacaoDeProdutoSimplesSerializer(serializers.ModelSerializer):
