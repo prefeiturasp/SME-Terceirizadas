@@ -264,6 +264,7 @@ class HomologacaoProdutoPainelGerencialSerializer(serializers.ModelSerializer):
             homologacao_de_produto=obj,
             status__in=[
                 ReclamacaoProdutoWorkflow.AGUARDANDO_AVALIACAO,
+                ReclamacaoProdutoWorkflow.AGUARDANDO_RESPOSTA_TERCEIRIZADA,
                 ReclamacaoProdutoWorkflow.RESPONDIDO_TERCEIRIZADA
             ]).count()
 

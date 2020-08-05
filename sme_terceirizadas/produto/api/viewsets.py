@@ -892,12 +892,18 @@ class ReclamacaoProdutoViewSet(viewsets.ModelViewSet):
         reclamacao_produto = self.get_object()
         anexos = request.data.get('anexos', [])
         justificativa = request.data.get('justificativa', '')
-        reclamacao_produto.homologacao_de_produto.terceirizada_responde_reclamacao(
-            user=request.user,
-            anexos=anexos,
-            justificativa=justificativa,
-            request=request
+        questionamentos_ativas = reclamacao_produto.homologacao_de_produto.reclamacoes.filter(
+            status__in=[
+                ReclamacaoProdutoWorkflow.AGUARDANDO_RESPOSTA_TERCEIRIZADA,
+            ]
         )
+        if questionamentos_ativas.count() == 0:
+            reclamacao_produto.homologacao_de_produto.terceirizada_responde_reclamacao(
+                user=request.user,
+                anexos=anexos,
+                justificativa=justificativa,
+                request=request
+            )
         return self.muda_status_com_justificativa_e_anexo(
             request,
             reclamacao_produto.terceirizada_responde)
