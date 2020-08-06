@@ -4,6 +4,7 @@ from ..dados_comuns.fluxo_status import HomologacaoProdutoWorkflow
 
 
 class ProdutoPorParametrosForm(forms.Form):
+    uuid = forms.UUIDField(required=False)
     nome_fabricante = forms.CharField(required=False)
     nome_marca = forms.CharField(required=False)
     nome_produto = forms.CharField(required=False)
