@@ -675,7 +675,8 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         form_data = form.cleaned_data.copy()
         form_data['status'] = [
             HomologacaoProdutoWorkflow.CODAE_HOMOLOGADO,
-            HomologacaoProdutoWorkflow.ESCOLA_OU_NUTRICIONISTA_RECLAMOU
+            HomologacaoProdutoWorkflow.ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
+            HomologacaoProdutoWorkflow.CODAE_PEDIU_ANALISE_RECLAMACAO
         ]
 
         queryset = self.get_queryset_filtrado(form_data)
@@ -865,7 +866,7 @@ class ReclamacaoProdutoViewSet(viewsets.ModelViewSet):
         anexos = request.data.get('anexos', [])
         justificativa = request.data.get('justificativa', '')
         status_homologacao = reclamacao_produto.homologacao_de_produto.status
-        if status_homologacao == HomologacaoProdutoWorkflow.ESCOLA_OU_NUTRICIONISTA_RECLAMOU:
+        if status_homologacao != HomologacaoProdutoWorkflow.CODAE_PEDIU_ANALISE_RECLAMACAO:
             reclamacao_produto.homologacao_de_produto.codae_pediu_analise_reclamacao(
                 user=request.user,
                 anexos=anexos,
@@ -892,6 +893,9 @@ class ReclamacaoProdutoViewSet(viewsets.ModelViewSet):
         reclamacao_produto = self.get_object()
         anexos = request.data.get('anexos', [])
         justificativa = request.data.get('justificativa', '')
+        resposta = self.muda_status_com_justificativa_e_anexo(
+            request,
+            reclamacao_produto.terceirizada_responde)
         questionamentos_ativas = reclamacao_produto.homologacao_de_produto.reclamacoes.filter(
             status__in=[
                 ReclamacaoProdutoWorkflow.AGUARDANDO_RESPOSTA_TERCEIRIZADA,
@@ -904,6 +908,4 @@ class ReclamacaoProdutoViewSet(viewsets.ModelViewSet):
                 justificativa=justificativa,
                 request=request
             )
-        return self.muda_status_com_justificativa_e_anexo(
-            request,
-            reclamacao_produto.terceirizada_responde)
+        return resposta

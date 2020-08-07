@@ -260,13 +260,7 @@ class HomologacaoProdutoPainelGerencialSerializer(serializers.ModelSerializer):
         return obj.produto.nome
 
     def get_qtde_reclamacoes(self, obj):
-        return ReclamacaoDeProduto.objects.filter(
-            homologacao_de_produto=obj,
-            status__in=[
-                ReclamacaoProdutoWorkflow.AGUARDANDO_AVALIACAO,
-                ReclamacaoProdutoWorkflow.AGUARDANDO_RESPOSTA_TERCEIRIZADA,
-                ReclamacaoProdutoWorkflow.RESPONDIDO_TERCEIRIZADA
-            ]).count()
+        return ReclamacaoDeProduto.objects.filter(homologacao_de_produto=obj).count()
 
     def get_qtde_questionamentos(self, obj):
         return ReclamacaoDeProduto.objects.filter(
