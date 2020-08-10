@@ -4,7 +4,7 @@
 
 {% block css %}
 <style>
-  .justificativa-recusa {
+  .justificativa-motivo {
     margin-bottom: 1em;
     border: 1px solid black;
     border-radius: 4px;
@@ -12,6 +12,7 @@
     padding-left: 0.75em;
     padding-top: 0em;
     line-height: 10px;
+    }
   }
 </style>
 {% endblock %}
@@ -19,10 +20,17 @@
 <section class="corpo-relatorio-produto">
   {% if homologacao.status == 'CODAE_NAO_HOMOLOGADO' %}
     <div class="label">Motivo da recusa de homologação (Data: {{ homologacao.logs.last.criado_em|date:'d/m/Y' }})</div>
-    <article class="justificativa-recusa">
+    <article class="justificativa-motivo">
       {{ homologacao.logs.last.justificativa|safe }}
     </article>
   {% endif %}
+  {% if homologacao.status == 'CODAE_SUSPENDEU' %}
+    <div class="label">Motivo da suspensão (Data: {{ homologacao.logs.last.criado_em|date:'d/m/Y' }})</div>
+    <article class="justificativa-motivo">
+      {{ homologacao.logs.last.justificativa|safe }}
+    </article>
+  {% endif %}
+
   <article class="detalhes-empresa">
     <div class="nome">
       <div class="label">Empresa solicitante (Terceirizada)</div>
@@ -41,21 +49,6 @@
   <article>
     {% include "bloco_fluxo_status_homologacao.html" %}
   </article>
-
-  {% if homologacao.status == 'CODAE_SUSPENDEU' %}
-  <section class="identificacao-produto">
-    <article class="duas-informacoes">
-      <header>
-        <p>Motivo da suspensão</p>
-        <p>Data</p>
-      </header>
-      <main>
-        {{ homologacao.logs.last.justificativa|safe}}
-        <p>{{ homologacao.logs.last.criado_em|date:'d/m/Y' }}</p>
-      </main>
-    </article>
-  </section>
-  {% endif %}
 
   <section class="identificacao-produto">
     <h4>
