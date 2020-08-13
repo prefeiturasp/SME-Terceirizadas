@@ -199,8 +199,11 @@ class HomologacaoDoProduto(TemChaveExterna, CriadoEm, CriadoPor, FluxoHomologaca
         ]:
             intervalo = datetime.today() - self.ultimo_log.criado_em
         else:
-            penultimo_log = self.logs.order_by('-criado_em')[1]
-            intervalo = self.ultimo_log.criado_em - penultimo_log.criado_em
+            try:
+                penultimo_log = self.logs.order_by('-criado_em')[1]
+                intervalo = self.ultimo_log.criado_em - penultimo_log.criado_em
+            except IndexError:
+                intervalo = datetime.today() - self.ultimo_log.criado_em
         return intervalo.days
 
     @property
