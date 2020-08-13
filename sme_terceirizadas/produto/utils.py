@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 
 def agrupa_por_terceirizada(queryset):  # noqa C901
@@ -60,3 +60,19 @@ def cria_filtro_produto_por_parametros_form(cleaned_data):  # noqa C901
                 campos_a_pesquisar['homologacoes__status__in'] = valor
 
     return campos_a_pesquisar
+
+
+def converte_para_datetime(data):
+    if data:
+        return datetime.strptime(data, '%d/%m/%Y')
+    return None
+
+
+def get_filtros_data_em_analise_sensorial(data_analise_inicial, data_analise_final):
+    filtros_data = {}
+    if data_analise_inicial:
+        filtros_data['criado_em__gte'] = data_analise_inicial
+
+    if data_analise_final:
+        filtros_data['criado_em__lt'] = data_analise_final
+    return filtros_data

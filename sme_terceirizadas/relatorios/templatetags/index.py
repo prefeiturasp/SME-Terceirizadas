@@ -134,6 +134,18 @@ def formata_data(data):
 
 
 @register.filter
+def formata_hora(data):
+    return data[10:]
+
+
+@register.filter
+def formata_telefone(telefone):
+    ddd = telefone[:2]
+    numero = telefone[2:]
+    return '(' + ddd + ')' + ' ' + numero
+
+
+@register.filter
 def retorna_data_do_ultimo_log(logs):
     return logs[-1]['criado_em'][:10]
 
