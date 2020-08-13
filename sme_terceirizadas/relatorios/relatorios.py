@@ -7,7 +7,7 @@ from ..kit_lanche.models import EscolaQuantidade
 from ..relatorios.utils import html_to_pdf_response
 from ..terceirizada.utils import transforma_dados_relatorio_quantitativo
 from . import constants
-from .utils import formata_logs, get_diretorias_regionais, get_width
+from .utils import formata_logs, get_config_cabecario_relatorio_analise, get_diretorias_regionais, get_width
 
 
 def relatorio_filtro_periodo(request, query_set_consolidado, escola_nome='', dre_nome=''):
@@ -293,6 +293,23 @@ def relatorio_produtos_suspensos(request, payload):
         dado
     )
     return html_to_pdf_response(html_string, 'relatorio_suspensoes_produto.pdf')
+
+
+def relatorio_produtos_em_analise_sensorial(request, payload):
+    data_incial_analise_padrao = payload['produtos'][0]['ultima_homologacao']['log_solicitacao_analise']['criado_em']
+    contatos_terceirizada = payload['produtos'][0]['ultima_homologacao']['rastro_terceirizada']['contatos']
+    config = get_config_cabecario_relatorio_analise(
+        payload['filtros'],
+        data_incial_analise_padrao,
+        contatos_terceirizada)
+    html_string = render_to_string(
+        'relatorio_produto_em_analise_sensorial.html',
+        {
+            'produtos': payload['produtos'],
+            'config': config
+        }
+    )
+    return html_to_pdf_response(html_string, 'relatorio_produtos_em_analise_sensorial.pdf')
 
 
 def relatorio_quantitativo_por_terceirizada(request, filtros, dados_relatorio):
