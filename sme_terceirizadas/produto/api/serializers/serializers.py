@@ -141,6 +141,26 @@ class HomologacaoProdutoSimplesSerializer(serializers.ModelSerializer):
                   'criado_em', 'reclamacoes')
 
 
+class HomologacaoProdutoComUltimoLogSerializer(serializers.ModelSerializer):
+    reclamacoes = serializers.SerializerMethodField()
+    rastro_terceirizada = TerceirizadaSimplesSerializer()
+    logs = LogSolicitacoesUsuarioComVinculoSerializer(many=True)
+    ultimo_log = LogSolicitacoesUsuarioComVinculoSerializer()
+    status_titulo = serializers.CharField(source='status.state.title')
+
+    def get_reclamacoes(self, obj):
+        return ReclamacaoDeProdutoSerializer(
+            obj.reclamacoes.all(), context=self.context,
+            many=True
+        ).data
+
+    class Meta:
+        model = HomologacaoDoProduto
+        fields = ('uuid', 'status', 'id_externo', 'rastro_terceirizada', 'logs',
+                  'criado_em', 'reclamacoes', 'ultimo_log', 'tempo_aguardando_acao_em_dias',
+                  'status_titulo')
+
+
 class ProdutoSerializer(serializers.ModelSerializer):
     protocolos = ProtocoloDeDietaEspecialSerializer(many=True)
     marca = MarcaSerializer()
@@ -154,10 +174,10 @@ class ProdutoSerializer(serializers.ModelSerializer):
 
     homologacoes = serializers.SerializerMethodField()
 
-    ultima_homologacao = HomologacaoProdutoSimplesSerializer()
+    ultima_homologacao = HomologacaoProdutoComUltimoLogSerializer()
 
     def get_homologacoes(self, obj):
-        return HomologacaoProdutoSimplesSerializer(
+        return HomologacaoProdutoComUltimoLogSerializer(
             HomologacaoDoProduto.objects.filter(
                 produto=obj
             ), context=self.context,

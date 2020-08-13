@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.db import models
 from sequences import get_last_value, get_next_value
 
@@ -10,7 +12,7 @@ from ..dados_comuns.behaviors import (
     TemChaveExterna,
     TemIdentificadorExternoAmigavel
 )
-from ..dados_comuns.fluxo_status import FluxoHomologacaoProduto, FluxoReclamacaoProduto
+from ..dados_comuns.fluxo_status import FluxoHomologacaoProduto, FluxoReclamacaoProduto, HomologacaoProdutoWorkflow
 from ..dados_comuns.models import AnexoLogSolicitacoesUsuario, LogSolicitacoesUsuario, TemplateMensagem
 from ..dados_comuns.utils import convert_base64_to_contentfile
 from ..escola.models import Escola
@@ -184,6 +186,26 @@ class HomologacaoDoProduto(TemChaveExterna, CriadoEm, CriadoPor, FluxoHomologaca
         for chave, valor in template_troca.items():
             corpo = corpo.replace(chave, valor)
         return template.assunto, corpo
+
+    @property
+    def tempo_aguardando_acao_em_dias(self):
+        if self.status in [
+            HomologacaoProdutoWorkflow.CODAE_PENDENTE_HOMOLOGACAO,
+            HomologacaoProdutoWorkflow.CODAE_QUESTIONADO,
+            HomologacaoProdutoWorkflow.CODAE_PEDIU_ANALISE_SENSORIAL,
+            HomologacaoProdutoWorkflow.ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
+            HomologacaoProdutoWorkflow.CODAE_PEDIU_ANALISE_RECLAMACAO,
+            HomologacaoProdutoWorkflow.TERCEIRIZADA_RESPONDEU_RECLAMACAO
+        ]:
+            intervalo = datetime.today() - self.ultimo_log.criado_em
+        else:
+            penultimo_log = self.logs.order_by('-criado_em')[1]
+            intervalo = self.ultimo_log.criado_em - penultimo_log.criado_em
+        return intervalo.days
+
+    @property
+    def ultimo_log(self):
+        return self.logs.order_by('-criado_em').first()
 
     def gera_protocolo_analise_sensorial(self):
         id_sequecial = str(get_next_value('protocolo_analise_sensorial'))

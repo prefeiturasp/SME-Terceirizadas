@@ -67,11 +67,15 @@ def client_autenticado_vinculo_terceirizada(client, django_user_model, escola, t
 
 
 @pytest.fixture
-def homologacao_produto(escola, django_user_model, template_homologacao_produto):
+def user(django_user_model):
     email = 'test@test1.com'
     password = 'bar'
-    user = django_user_model.objects.create_user(password=password, email=email,
+    return django_user_model.objects.create_user(password=password, email=email,
                                                  registro_funcional='8888881')
+
+
+@pytest.fixture
+def homologacao_produto(escola, template_homologacao_produto, user):
     perfil_admin_terceirizada = mommy.make('Perfil', nome=constants.ADMINISTRADOR_TERCEIRIZADA,
                                            ativo=True)
     hoje = datetime.date.today()

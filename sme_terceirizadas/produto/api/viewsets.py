@@ -17,6 +17,7 @@ from ...relatorios.relatorios import (
     relatorio_produto_homologacao,
     relatorio_produtos_agrupado_terceirizada,
     relatorio_produtos_em_analise_sensorial,
+    relatorio_produtos_situacao,
     relatorio_produtos_suspensos
 )
 from ...terceirizada.api.serializers.serializers import TerceirizadaSimplesSerializer
@@ -650,8 +651,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
 
     @action(detail=False,
             methods=['GET'],
-            url_path='relatorio-por-parametros-agrupado-terceirizada',
-            permission_classes=(AllowAny,))
+            url_path='relatorio-por-parametros-agrupado-terceirizada')
     def relatorio_por_parametros_agrupado_terceirizada(self, request):
         form = ProdutoPorParametrosForm(request.GET)
 
@@ -670,6 +670,19 @@ class ProdutoViewSet(viewsets.ModelViewSet):
 
         return relatorio_produtos_agrupado_terceirizada(
             request, dados_agrupados, form_data)
+
+    @action(detail=False,
+            methods=['GET'],
+            url_path='relatorio-situacao-produto',
+            permission_classes=(AllowAny,))
+    def relatorio_situacao_produto(self, request):
+        form = ProdutoPorParametrosForm(request.GET)
+
+        if not form.is_valid():
+            return Response(form.errors)
+
+        return relatorio_produtos_situacao(
+            request, self.get_queryset(), form.cleaned_data)
 
     # TODO: Remover esse endpoint legado refatorando o frontend
     @action(detail=False,
