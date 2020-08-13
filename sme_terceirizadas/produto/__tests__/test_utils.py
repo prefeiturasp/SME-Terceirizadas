@@ -42,7 +42,6 @@ def test_get_filtros_data_em_analise_sensorial_sem_data_final():
     data_analise_incial = date(2020, 8, 13)
     filtros_data = get_filtros_data_em_analise_sensorial(data_analise_incial, None)
     assert filtros_data['criado_em__gte'] == date(2020, 8, 13)
-    assert filtros_data['criado_em__lt'] is None
 
 
 def test_converte_para_datetime():
