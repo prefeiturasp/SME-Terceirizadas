@@ -189,7 +189,7 @@ class HomologacaoDoProduto(TemChaveExterna, CriadoEm, CriadoPor, FluxoHomologaca
 
     @property
     def tempo_aguardando_acao_em_dias(self):
-        if self.status not in [
+        if self.status in [
             HomologacaoProdutoWorkflow.CODAE_PENDENTE_HOMOLOGACAO,
             HomologacaoProdutoWorkflow.CODAE_QUESTIONADO,
             HomologacaoProdutoWorkflow.CODAE_PEDIU_ANALISE_SENSORIAL,
@@ -197,8 +197,10 @@ class HomologacaoDoProduto(TemChaveExterna, CriadoEm, CriadoPor, FluxoHomologaca
             HomologacaoProdutoWorkflow.CODAE_PEDIU_ANALISE_RECLAMACAO,
             HomologacaoProdutoWorkflow.TERCEIRIZADA_RESPONDEU_RECLAMACAO
         ]:
-            return None
-        intervalo = datetime.today() - self.ultimo_log.criado_em
+            intervalo = datetime.today() - self.ultimo_log.criado_em
+        else:
+            penultimo_log = self.logs.order_by('-criado_em')[1]
+            intervalo = self.ultimo_log.criado_em - penultimo_log.criado_em
         return intervalo.days
 
     @property

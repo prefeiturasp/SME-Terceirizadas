@@ -55,7 +55,7 @@
                   <div class="status-flex-container">
                     <div>Tempo aguardando ação</div>
                     <div>
-                      {% if produto.ultima_homologacao.tempo_aguardando_acao_em_dias %}{{produto.ultima_homologacao.tempo_aguardando_acao_em_dias}} dias{% endif %}
+                      {{produto.ultima_homologacao.tempo_aguardando_acao_em_dias}} dia{{produto.ultima_homologacao.tempo_aguardando_acao_em_dias|pluralize:",s"}}
                     </div>
                   </div>
                 </div>
