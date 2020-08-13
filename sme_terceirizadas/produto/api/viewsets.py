@@ -16,6 +16,7 @@ from ...relatorios.relatorios import (
     relatorio_produto_analise_sensorial_recebimento,
     relatorio_produto_homologacao,
     relatorio_produtos_agrupado_terceirizada,
+    relatorio_produtos_em_analise_sensorial,
     relatorio_produtos_suspensos
 )
 from ...terceirizada.api.serializers.serializers import TerceirizadaSimplesSerializer
@@ -31,7 +32,12 @@ from ..models import (
     ReclamacaoDeProduto,
     RespostaAnaliseSensorial
 )
-from ..utils import agrupa_por_terceirizada, cria_filtro_produto_por_parametros_form
+from ..utils import (
+    agrupa_por_terceirizada,
+    converte_para_datetime,
+    cria_filtro_produto_por_parametros_form,
+    get_filtros_data_em_analise_sensorial
+)
 from .serializers.serializers import (
     FabricanteSerializer,
     FabricanteSimplesSerializer,
@@ -42,6 +48,7 @@ from .serializers.serializers import (
     InformacaoNutricionalSerializer,
     MarcaSerializer,
     MarcaSimplesSerializer,
+    ProdutoRelatorioAnaliseSensorialSerializer,
     ProdutoResponderReclamacaoTerceirizadaSerializer,
     ProdutoSerializer,
     ProdutoSimplesSerializer,
@@ -524,6 +531,8 @@ class ProdutoViewSet(viewsets.ModelViewSet):
             return ProdutoSerializerCreate
         if self.action == 'filtro_reclamacoes_terceirizada':
             return ProdutoResponderReclamacaoTerceirizadaSerializer
+        if self.action == 'filtro_relatorio_em_analise_sensorial':
+            return ProdutoRelatorioAnaliseSensorialSerializer
         return ProdutoSerializer
 
     @action(detail=False, methods=['GET'], url_path='lista-nomes')
@@ -703,6 +712,47 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         queryset = self.get_queryset_filtrado(form_data).filter(
             homologacoes__reclamacoes__status__in=status_reclamacao).distinct()
         return self.paginated_response(queryset.order_by('criado_em'))
+
+    def filtra_produtos_em_analise_sensorial(self, request, form_data):
+        queryset = self.get_queryset_filtrado(form_data).exclude(homologacoes__respostas_analise__exact=None)
+        data_analise_inicial = converte_para_datetime(request.data.get('data_analise_inicial', None))
+        data_analise_final = converte_para_datetime(request.data.get('data_analise_final', None))
+        para_excluir = []
+        if data_analise_inicial or data_analise_final:
+            filtros_data = get_filtros_data_em_analise_sensorial(data_analise_inicial, data_analise_final)
+            for produto in queryset:
+                ultima_homologacao = produto.homologacoes.last()
+                resultado = ultima_homologacao.logs.filter(
+                    status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_RESPONDEU_ANALISE_SENSORIAL,
+                    **filtros_data
+                ).last()
+
+                if resultado is None:
+                    para_excluir.append(produto.id)
+        return queryset.exclude(id__in=para_excluir)
+
+    @action(detail=False,
+            methods=['POST'],
+            url_path='filtro-relatorio-em-analise-sensorial',
+            permission_classes=[UsuarioTerceirizada | UsuarioCODAEGestaoProduto])
+    def filtro_relatorio_em_analise_sensorial(self, request):
+        form = ProdutoPorParametrosForm(request.data)
+
+        if not form.is_valid():
+            return Response(form.errors)
+
+        form_data = form.cleaned_data.copy()
+        queryset = self.filtra_produtos_em_analise_sensorial(request, form_data)
+
+        return self.paginated_response(queryset.order_by('criado_em'))
+
+    @action(detail=False,
+            methods=['POST'],
+            url_path='relatorio-em-analise-sensorial',
+            permission_classes=[UsuarioTerceirizada | UsuarioCODAEGestaoProduto])
+    def relatorio_em_analise_sensorial(self, request):
+        payload = request.data
+        return relatorio_produtos_em_analise_sensorial(request, payload)
 
 
 class ProtocoloDeDietaEspecialViewSet(viewsets.ModelViewSet):
