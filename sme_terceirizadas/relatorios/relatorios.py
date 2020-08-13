@@ -356,6 +356,17 @@ def relatorio_produtos_agrupado_terceirizada(request, dados_agrupados, filtros):
     return html_to_pdf_response(html_string, 'produtos_homologados_por_terceirizada.pdf')
 
 
+def relatorio_produtos_situacao(request, queryset, filtros):
+    html_string = render_to_string(
+        'relatorio_produtos_situacao.html',
+        {
+            'queryset': queryset,
+            'filtros': filtros
+        }
+    )
+    return html_to_pdf_response(html_string, 'produtos_situacao.pdf')
+
+
 def relatorio_produto_analise_sensorial_recebimento(request, produto):
     homologacao = produto.homologacoes.first()
     terceirizada = homologacao.rastro_terceirizada
