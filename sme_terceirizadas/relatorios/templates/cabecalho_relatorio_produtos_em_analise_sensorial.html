@@ -17,7 +17,13 @@
     <h1>SIGPAE - Relatório de PROUTOS EM ANÁLISE SENSORIAL</h1>
   </figure>
 
-  {% if config.cabecario_tipo == "CABECARIO_REDUZIDO"%}
+  {% if config.cabecario_tipo == "CABECARIO_POR_NOME"%}
+  <section class="cabecario-analise-sensorial-reduzido">
+    <article>
+      VEJA OS RESULTADOS PARA "{{ config.nome_busca }}"
+    </article>
+  </section>
+  {% elif config.cabecario_tipo == "CABECARIO_REDUZIDO"%}
   <section class="cabecario-analise-sensorial-reduzido">
     <article>
       VEJA OS RESULTADOS PARA A BUSCA
@@ -26,7 +32,7 @@
   {% elif config.cabecario_tipo == "CABECARIO_POR_DATA" %}
   <section class="cabecario-analise-sensorial-data">
     <article>
-      RESULTADOS DATA ANÁLISE SENSORIAL
+      RESULTADOS DO PERÍODO
     </article>
     <article>
       <div>DE: {{ config.data_analise_inicial|formata_data }}</div>

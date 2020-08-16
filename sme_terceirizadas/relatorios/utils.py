@@ -47,10 +47,12 @@ def get_config_cabecario_relatorio_analise(filtros, data_incial_analise_padrao, 
     tipos_cabecario = (
         'CABECARIO_POR_DATA',
         'CABECARIO_POR_NOME_TERCEIRIZADA',
-        'CABECARIO_REDUZIDO')
+        'CABECARIO_REDUZIDO',
+        'CABECARIO_POR_NOME')
 
     config = {
         'cabecario_tipo': None,
+        'nome_busca': None,
         'nome_terceirizada': None,
         'email_terceirizada': None,
         'telefone_terceirizada': None,
@@ -60,27 +62,43 @@ def get_config_cabecario_relatorio_analise(filtros, data_incial_analise_padrao, 
 
     if len(filtros) > 2 or len(filtros) == 0:
         config['cabecario_tipo'] = tipos_cabecario[2]
-    else:
-        nome_terceirizada = filtros.pop('nome_terceirizada', None)
-        if nome_terceirizada and len(filtros) == 0:
+
+    if len(filtros) == 1:
+
+        if 'nome_produto' in filtros:
+            config['cabecario_tipo'] = tipos_cabecario[3]
+            config['nome_busca'] = filtros.get('nome_produto')
+
+        if 'nome_fabricante' in filtros:
+            config['cabecario_tipo'] = tipos_cabecario[3]
+            config['nome_busca'] = filtros.get('nome_fabricante')
+
+        if 'nome_marca' in filtros:
+            config['cabecario_tipo'] = tipos_cabecario[3]
+            config['nome_busca'] = filtros.get('nome_marca')
+
+        if 'nome_terceirizada' in filtros:
             config['cabecario_tipo'] = tipos_cabecario[1]
-            config['nome_terceirizada'] = nome_terceirizada
+            config['nome_terceirizada'] = filtros.get('nome_terceirizada')
             config['email_terceirizada'] = contatos_terceirizada[0]['email']
             config['telefone_terceirizada'] = contatos_terceirizada[0]['telefone']
-        elif nome_terceirizada and len(filtros) > 0:
-            config['cabecario_tipo'] = tipos_cabecario[2]
-        else:
-            data_analise_inicial = filtros.pop('data_analise_inicial', None)
-            data_analise_final = filtros.pop('data_analise_final', None)
 
-            if data_analise_inicial or data_analise_final:
-                config['cabecario_tipo'] = tipos_cabecario[0]
-                if not data_analise_inicial:
-                    data_analise_inicial = data_incial_analise_padrao
-                if not data_analise_final:
-                    data_analise_final = date.today().strftime('%d/%m/%Y')
+        if 'data_analise_inicial' in filtros:
+            config['cabecario_tipo'] = tipos_cabecario[0]
+            config['data_analise_inicial'] = filtros.get('data_analise_inicial')
+            config['data_analise_final'] = date.today().strftime('%d/%m/%Y')
 
-                config['data_analise_inicial'] = data_analise_inicial
-                config['data_analise_final'] = data_analise_final
+        if 'data_analise_final' in filtros:
+            config['cabecario_tipo'] = tipos_cabecario[0]
+            config['data_analise_inicial'] = data_incial_analise_padrao
+            config['data_analise_final'] = filtros.get('data_analise_final')
+
+    elif(['data_analise_inicial', 'data_analise_final'] in filtros):
+        config['cabecario_tipo'] = tipos_cabecario[0]
+        config['data_analise_inicial'] = filtros.get('data_analise_inicial')
+        config['data_analise_final'] = filtros.get('data_analise_final')
+
+    else:
+        config['cabecario_tipo'] = tipos_cabecario[2]
 
     return config

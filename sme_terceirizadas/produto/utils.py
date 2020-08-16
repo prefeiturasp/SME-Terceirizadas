@@ -68,11 +68,25 @@ def converte_para_datetime(data):
     return None
 
 
-def get_filtros_data_em_analise_sensorial(data_analise_inicial, data_analise_final):
+def get_filtros_data_range(data_analise_inicial, data_analise_final):
     filtros_data = {}
-    if data_analise_inicial:
-        filtros_data['criado_em__gte'] = data_analise_inicial
+    if data_analise_inicial == data_analise_final:
+        filtros_data['criado_em__date'] = data_analise_inicial
+    else:
+        filtros_data['criado_em__range'] = (data_analise_inicial, data_analise_final + timedelta(days=1))
+    return filtros_data
 
-    if data_analise_final:
-        filtros_data['criado_em__lt'] = data_analise_final
+
+def get_filtros_data_em_analise_sensorial(data_analise_inicial, data_analise_final):
+
+    if data_analise_inicial and data_analise_final:
+        filtros_data = get_filtros_data_range(data_analise_inicial, data_analise_final)
+
+    else:
+        filtros_data = {}
+        if data_analise_inicial:
+            filtros_data['criado_em__gte'] = data_analise_inicial
+
+        if data_analise_final:
+            filtros_data['criado_em__lte'] = data_analise_final + timedelta(days=1)
     return filtros_data

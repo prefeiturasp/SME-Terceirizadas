@@ -365,7 +365,8 @@ class HomologacaoRelatorioAnaliseSensorialSerializer(serializers.ModelSerializer
         return LogSolicitacoesUsuarioSerializer(
             LogSolicitacoesUsuario.objects.filter(
                 uuid_original=obj.uuid,
-                status_evento=LogSolicitacoesUsuario.CODAE_PEDIU_ANALISE_SENSORIAL
+                status_evento=LogSolicitacoesUsuario.CODAE_PEDIU_ANALISE_SENSORIAL,
+                criado_em__lte=obj.respostas_analise.last().criado_em
             ).order_by('criado_em').last()).data
 
     class Meta:

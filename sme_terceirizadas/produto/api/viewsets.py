@@ -736,12 +736,13 @@ class ProdutoViewSet(viewsets.ModelViewSet):
             filtros_data = get_filtros_data_em_analise_sensorial(data_analise_inicial, data_analise_final)
             for produto in queryset:
                 ultima_homologacao = produto.homologacoes.last()
-                resultado = ultima_homologacao.logs.filter(
-                    status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_RESPONDEU_ANALISE_SENSORIAL,
+                ultima_resposta = ultima_homologacao.respostas_analise.last()
+                log_analise = ultima_homologacao.logs.filter(
+                    status_evento=LogSolicitacoesUsuario.CODAE_PEDIU_ANALISE_SENSORIAL,
                     **filtros_data
-                ).last()
+                ).filter(criado_em__lte=ultima_resposta.criado_em).order_by('criado_em').last()
 
-                if resultado is None:
+                if log_analise is None:
                     para_excluir.append(produto.id)
         return queryset.exclude(id__in=para_excluir)
 
@@ -758,7 +759,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         form_data = form.cleaned_data.copy()
         queryset = self.filtra_produtos_em_analise_sensorial(request, form_data)
 
-        return self.paginated_response(queryset.order_by('criado_em'))
+        return self.paginated_response(queryset.order_by('nome', 'homologacoes__rastro_terceirizada__nome_fantasia'))
 
     @action(detail=False,
             methods=['POST'],
