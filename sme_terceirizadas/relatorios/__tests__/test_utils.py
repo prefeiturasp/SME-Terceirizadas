@@ -40,6 +40,6 @@ def test_config_cabecario_obter_cabecario_por_nome_fabricante():
 
 def test_config_cabecario_obter_cabecario_por_nome_terceirizada():
     filtros = {'nome_terceirizada': 'Teste'}
-    contatos_terceirizada = {'email': 'teste@teste.com', 'telefone': '1199999999'}
+    contatos_terceirizada = [{'email': 'teste@teste.com', 'telefone': '1199999999'}]
     config = get_config_cabecario_relatorio_analise(filtros, None, contatos_terceirizada)
     assert config['cabecario_tipo'] == 'CABECARIO_POR_NOME_TERCEIRIZADA'
