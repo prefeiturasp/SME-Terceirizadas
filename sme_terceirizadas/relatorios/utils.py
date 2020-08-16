@@ -93,7 +93,7 @@ def get_config_cabecario_relatorio_analise(filtros, data_incial_analise_padrao, 
             config['data_analise_inicial'] = data_incial_analise_padrao
             config['data_analise_final'] = filtros.get('data_analise_final')
 
-    elif(['data_analise_inicial', 'data_analise_final'] in filtros):
+    elif('data_analise_inicial' in filtros and 'data_analise_final' in filtros):
         config['cabecario_tipo'] = tipos_cabecario[0]
         config['data_analise_inicial'] = filtros.get('data_analise_inicial')
         config['data_analise_final'] = filtros.get('data_analise_final')
