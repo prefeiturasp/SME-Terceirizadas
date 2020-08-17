@@ -388,10 +388,25 @@ class ProdutoRelatorioAnaliseSensorialSerializer(serializers.ModelSerializer):
         exclude = ('id',)
 
 
+class UltimoLogRelatorioSituacaoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LogSolicitacoesUsuario
+        fields = ('criado_em')
+
+
+class HomologacaoRelatorioSituacaoSerializer(serializers.ModelSerializer):
+    ultimo_log = UltimoLogRelatorioSituacaoSerializer()
+    status_titulo = serializers.CharField(source='status.state.title')
+
+    class Meta:
+        model = HomologacaoDoProduto
+        fields = ('tempo_aguardando_acao_em_dias', 'ultimo_log', 'status_titulo')
+
+
 class ProdutoRelatorioSituacaoSerializer(serializers.ModelSerializer):
     marca = MarcaSerializer()
     fabricante = FabricanteSerializer()
-    ultima_homologacao = HomologacaoProdutoComUltimoLogSerializer()
+    ultima_homologacao = HomologacaoRelatorioSituacaoSerializer()
 
     class Meta:
         model = Produto
