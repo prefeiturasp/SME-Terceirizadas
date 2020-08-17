@@ -386,3 +386,14 @@ class ProdutoRelatorioAnaliseSensorialSerializer(serializers.ModelSerializer):
     class Meta:
         model = Produto
         exclude = ('id',)
+
+
+class ProdutoRelatorioSituacaoSerializer(serializers.ModelSerializer):
+    marca = MarcaSerializer()
+    fabricante = FabricanteSerializer()
+    ultima_homologacao = HomologacaoProdutoComUltimoLogSerializer()
+
+    class Meta:
+        model = Produto
+        include = ('nome', 'marca', 'fabricante', 'criado_em', 'ultima_homologacao',
+                   'eh_para_alunos_com_dieta', 'tem_aditivos_alergenicos')

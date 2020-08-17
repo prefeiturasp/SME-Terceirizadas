@@ -50,6 +50,7 @@ from .serializers.serializers import (
     MarcaSerializer,
     MarcaSimplesSerializer,
     ProdutoRelatorioAnaliseSensorialSerializer,
+    ProdutoRelatorioSituacaoSerializer,
     ProdutoResponderReclamacaoTerceirizadaSerializer,
     ProdutoSerializer,
     ProdutoSimplesSerializer,
@@ -527,13 +528,15 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(page, context={'request': self.request}, many=True)
         return self.get_paginated_response(serializer.data)
 
-    def get_serializer_class(self):
+    def get_serializer_class(self):  # noqa C901
         if self.action in ['create', 'update', 'partial_update']:
             return ProdutoSerializerCreate
         if self.action == 'filtro_reclamacoes_terceirizada':
             return ProdutoResponderReclamacaoTerceirizadaSerializer
         if self.action == 'filtro_relatorio_em_analise_sensorial':
             return ProdutoRelatorioAnaliseSensorialSerializer
+        if self.action == 'relatorio_situacao_produto':
+            return ProdutoRelatorioSituacaoSerializer
         return ProdutoSerializer
 
     @action(detail=False, methods=['GET'], url_path='lista-nomes')
@@ -682,7 +685,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
             return Response(form.errors)
 
         return relatorio_produtos_situacao(
-            request, self.get_queryset(), form.cleaned_data)
+            request, self.get_queryset_filtrado(form.cleaned_data), form.cleaned_data)
 
     # TODO: Remover esse endpoint legado refatorando o frontend
     @action(detail=False,
