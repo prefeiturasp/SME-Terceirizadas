@@ -696,8 +696,10 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         if not form.is_valid():
             return Response(form.errors)
 
+        queryset = self.get_queryset_filtrado(form.cleaned_data)
+
         return relatorio_produtos_situacao(
-            request, self.get_queryset_filtrado(form.cleaned_data), form.cleaned_data)
+            request, queryset.order_by('criado_em'), form.cleaned_data)
 
     # TODO: Remover esse endpoint legado refatorando o frontend
     @action(detail=False,
