@@ -15,3 +15,7 @@ class ProdutoPorParametrosForm(forms.Form):
         required=False,
         choices=[(str(state), state) for state in HomologacaoProdutoWorkflow.states]
     )
+
+
+class RelatorioSituacaoForm(ProdutoPorParametrosForm):
+    situacao = forms.CharField(required=False)

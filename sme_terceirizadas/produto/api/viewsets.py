@@ -21,7 +21,7 @@ from ...relatorios.relatorios import (
     relatorio_produtos_suspensos
 )
 from ...terceirizada.api.serializers.serializers import TerceirizadaSimplesSerializer
-from ..forms import ProdutoPorParametrosForm
+from ..forms import ProdutoPorParametrosForm, RelatorioSituacaoForm
 from ..models import (
     Fabricante,
     HomologacaoDoProduto,
@@ -679,7 +679,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
             url_path='relatorio-situacao-produto',
             permission_classes=(AllowAny,))
     def relatorio_situacao_produto(self, request):
-        form = ProdutoPorParametrosForm(request.GET)
+        form = RelatorioSituacaoForm(request.GET)
 
         if not form.is_valid():
             return Response(form.errors)

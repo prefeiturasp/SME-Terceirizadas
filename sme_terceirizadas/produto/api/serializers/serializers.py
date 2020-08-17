@@ -396,6 +396,12 @@ class HomologacaoRelatorioSituacaoSerializer(serializers.ModelSerializer):
     ultimo_log = UltimoLogRelatorioSituacaoSerializer()
     status_titulo = serializers.CharField(source='status.state.title')
 
+    @staticmethod
+    def setup_eager_loading(queryset):
+        queryset = queryset.select_related('ultimo_log')
+
+        return queryset
+
     class Meta:
         model = HomologacaoDoProduto
         fields = ('tempo_aguardando_acao_em_dias', 'ultimo_log', 'status_titulo')
@@ -405,6 +411,12 @@ class ProdutoRelatorioSituacaoSerializer(serializers.ModelSerializer):
     marca = MarcaSerializer()
     fabricante = FabricanteSerializer()
     ultima_homologacao = HomologacaoRelatorioSituacaoSerializer()
+
+    @staticmethod
+    def setup_eager_loading(queryset):
+        queryset = queryset.select_related('marca', 'fabricante', 'ultima_homogacao')
+
+        return queryset
 
     class Meta:
         model = Produto
