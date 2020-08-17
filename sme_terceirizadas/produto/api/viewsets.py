@@ -535,7 +535,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
             return ProdutoResponderReclamacaoTerceirizadaSerializer
         if self.action == 'filtro_relatorio_em_analise_sensorial':
             return ProdutoRelatorioAnaliseSensorialSerializer
-        if self.action == 'relatorio_situacao_produto':
+        if self.action == 'filtro_relatorio_situacao_produto':
             return ProdutoRelatorioSituacaoSerializer
         return ProdutoSerializer
 
@@ -673,6 +673,18 @@ class ProdutoViewSet(viewsets.ModelViewSet):
 
         return relatorio_produtos_agrupado_terceirizada(
             request, dados_agrupados, form_data)
+
+    @action(detail=False,
+            methods=['POST'],
+            url_path='filtro-relatorio-situacao-produto')
+    def filtro_relatorio_situacao_produto(self, request):
+        form = ProdutoPorParametrosForm(request.data)
+
+        if not form.is_valid():
+            return Response(form.errors)
+
+        queryset = self.get_queryset_filtrado(form.cleaned_data)
+        return self.paginated_response(queryset.order_by('criado_em'))
 
     @action(detail=False,
             methods=['GET'],

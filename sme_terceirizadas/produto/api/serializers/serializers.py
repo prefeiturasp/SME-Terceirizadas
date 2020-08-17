@@ -389,7 +389,7 @@ class ProdutoRelatorioAnaliseSensorialSerializer(serializers.ModelSerializer):
 class UltimoLogRelatorioSituacaoSerializer(serializers.ModelSerializer):
     class Meta:
         model = LogSolicitacoesUsuario
-        fields = ('criado_em')
+        fields = ('criado_em',)
 
 
 class HomologacaoRelatorioSituacaoSerializer(serializers.ModelSerializer):
@@ -420,5 +420,5 @@ class ProdutoRelatorioSituacaoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Produto
-        include = ('nome', 'marca', 'fabricante', 'criado_em', 'ultima_homologacao',
-                   'eh_para_alunos_com_dieta', 'tem_aditivos_alergenicos')
+        fields = ('nome', 'marca', 'fabricante', 'criado_em', 'ultima_homologacao',
+                  'eh_para_alunos_com_dieta', 'tem_aditivos_alergenicos')
