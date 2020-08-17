@@ -394,7 +394,6 @@ class UltimoLogRelatorioSituacaoSerializer(serializers.ModelSerializer):
 
 class HomologacaoRelatorioSituacaoSerializer(serializers.ModelSerializer):
     ultimo_log = UltimoLogRelatorioSituacaoSerializer()
-    status_titulo = serializers.CharField(source='status.state.title')
 
     @staticmethod
     def setup_eager_loading(queryset):
@@ -404,7 +403,7 @@ class HomologacaoRelatorioSituacaoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = HomologacaoDoProduto
-        fields = ('tempo_aguardando_acao_em_dias', 'ultimo_log', 'status_titulo')
+        fields = ('ultimo_log', 'status')
 
 
 class ProdutoRelatorioSituacaoSerializer(serializers.ModelSerializer):
