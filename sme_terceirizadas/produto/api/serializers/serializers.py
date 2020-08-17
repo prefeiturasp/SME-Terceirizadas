@@ -381,8 +381,6 @@ class ProdutoRelatorioAnaliseSensorialSerializer(serializers.ModelSerializer):
     id_externo = serializers.CharField()
     ultima_homologacao = HomologacaoRelatorioAnaliseSensorialSerializer()
 
-    HomologacaoRelatorioAnaliseSensorialSerializer()
-
     class Meta:
         model = Produto
         exclude = ('id',)
