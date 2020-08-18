@@ -687,11 +687,11 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         return self.paginated_response(queryset.order_by('criado_em'))
 
     @action(detail=False,
-            methods=['GET'],
+            methods=['POST'],
             url_path='relatorio-situacao-produto',
             permission_classes=(AllowAny,))
     def relatorio_situacao_produto(self, request):
-        form = RelatorioSituacaoForm(request.GET)
+        form = RelatorioSituacaoForm(request.data)
 
         if not form.is_valid():
             return Response(form.errors)
