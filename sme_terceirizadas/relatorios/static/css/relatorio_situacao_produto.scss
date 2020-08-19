@@ -17,6 +17,10 @@
   background-color: $cinza-quase-claro;
 }
 
+.row-inner {
+  page-break-before: avoid;
+}
+
 .row-inner-header {
   background-color: $cinza-claro;
 }
