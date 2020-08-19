@@ -22,7 +22,7 @@ from ...relatorios.relatorios import (
     relatorio_produtos_suspensos
 )
 from ...terceirizada.api.serializers.serializers import TerceirizadaSimplesSerializer
-from ..forms import ProdutoPorParametrosForm
+from ..forms import ProdutoPorParametrosForm, RelatorioSituacaoForm
 from ..models import (
     Fabricante,
     HomologacaoDoProduto,
@@ -54,6 +54,7 @@ from .serializers.serializers import (
     MarcaSimplesSerializer,
     ProdutoListagemSerializer,
     ProdutoRelatorioAnaliseSensorialSerializer,
+    ProdutoRelatorioSituacaoSerializer,
     ProdutoResponderReclamacaoTerceirizadaSerializer,
     ProdutoSerializer,
     ProdutoSimplesSerializer,
@@ -551,13 +552,15 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(page, context={'request': self.request}, many=True)
         return self.get_paginated_response(serializer.data)
 
-    def get_serializer_class(self):
+    def get_serializer_class(self):  # noqa C901
         if self.action in ['create', 'update', 'partial_update']:
             return ProdutoSerializerCreate
         if self.action == 'filtro_reclamacoes_terceirizada':
             return ProdutoResponderReclamacaoTerceirizadaSerializer
         if self.action == 'filtro_relatorio_em_analise_sensorial':
             return ProdutoRelatorioAnaliseSensorialSerializer
+        if self.action == 'filtro_relatorio_situacao_produto':
+            return ProdutoRelatorioSituacaoSerializer
         return ProdutoSerializer
 
     @action(detail=False, methods=['GET'], url_path='lista-nomes')
@@ -700,17 +703,31 @@ class ProdutoViewSet(viewsets.ModelViewSet):
             request, dados_agrupados, form_data)
 
     @action(detail=False,
-            methods=['GET'],
-            url_path='relatorio-situacao-produto',
-            permission_classes=(AllowAny,))
-    def relatorio_situacao_produto(self, request):
-        form = ProdutoPorParametrosForm(request.GET)
+            methods=['POST'],
+            url_path='filtro-relatorio-situacao-produto')
+    def filtro_relatorio_situacao_produto(self, request):
+        form = ProdutoPorParametrosForm(request.data)
 
         if not form.is_valid():
             return Response(form.errors)
 
+        queryset = self.get_queryset_filtrado(form.cleaned_data)
+        return self.paginated_response(queryset.order_by('criado_em'))
+
+    @action(detail=False,
+            methods=['POST'],
+            url_path='relatorio-situacao-produto',
+            permission_classes=(AllowAny,))
+    def relatorio_situacao_produto(self, request):
+        form = RelatorioSituacaoForm(request.data)
+
+        if not form.is_valid():
+            return Response(form.errors)
+
+        queryset = self.get_queryset_filtrado(form.cleaned_data)
+
         return relatorio_produtos_situacao(
-            request, self.get_queryset(), form.cleaned_data)
+            request, queryset.order_by('criado_em'), form.cleaned_data)
 
     # TODO: Remover esse endpoint legado refatorando o frontend
     @action(detail=False,

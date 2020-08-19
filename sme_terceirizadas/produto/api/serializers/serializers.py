@@ -381,8 +381,6 @@ class ProdutoRelatorioAnaliseSensorialSerializer(serializers.ModelSerializer):
     id_externo = serializers.CharField()
     ultima_homologacao = HomologacaoRelatorioAnaliseSensorialSerializer()
 
-    HomologacaoRelatorioAnaliseSensorialSerializer()
-
     class Meta:
         model = Produto
         exclude = ('id',)
@@ -405,3 +403,40 @@ class ProdutoListagemSerializer(serializers.ModelSerializer):
     class Meta:
         model = Produto
         exclude = ('id',)
+
+
+class UltimoLogRelatorioSituacaoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LogSolicitacoesUsuario
+        fields = ('criado_em',)
+
+
+class HomologacaoRelatorioSituacaoSerializer(serializers.ModelSerializer):
+    ultimo_log = UltimoLogRelatorioSituacaoSerializer()
+
+    @staticmethod
+    def setup_eager_loading(queryset):
+        queryset = queryset.select_related('ultimo_log')
+
+        return queryset
+
+    class Meta:
+        model = HomologacaoDoProduto
+        fields = ('ultimo_log', 'status')
+
+
+class ProdutoRelatorioSituacaoSerializer(serializers.ModelSerializer):
+    marca = MarcaSerializer()
+    fabricante = FabricanteSerializer()
+    ultima_homologacao = HomologacaoRelatorioSituacaoSerializer()
+
+    @staticmethod
+    def setup_eager_loading(queryset):
+        queryset = queryset.select_related('marca', 'fabricante', 'ultima_homogacao')
+
+        return queryset
+
+    class Meta:
+        model = Produto
+        fields = ('nome', 'marca', 'fabricante', 'criado_em', 'ultima_homologacao',
+                  'eh_para_alunos_com_dieta', 'tem_aditivos_alergenicos')

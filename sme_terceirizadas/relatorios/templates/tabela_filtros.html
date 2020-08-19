@@ -21,22 +21,27 @@
   {% endif %}
   {% if filtros.nome_fabricante %}
     <tr>
-      <td colspan="2">Fabricante: {{ filtros.nome_fabricante }}</td>
+      <td colspan="2">Fabricante do produto: {{ filtros.nome_fabricante }}</td>
     </tr>
   {% endif %}
   {% if filtros.nome_marca %}
     <tr>
-      <td colspan="2">Marca: {{ filtros.nome_marca }}</td>
+      <td colspan="2">Marca do produto: {{ filtros.nome_marca }}</td>
     </tr>
   {% endif %}
   {% if filtros.nome_produto %}
     <tr>
-      <td colspan="2">Produto: {{ filtros.nome_produto }}</td>
+      <td colspan="2">Nome do produto: {{ filtros.nome_produto }}</td>
     </tr>
   {% endif %}
   {% if filtros.nome_terceirizada %}
     <tr>
-      <td colspan="2">Terceirizada: {{ filtros.nome_terceirizada }}</td>
+      <td colspan="2">Nome da terceirizada: {{ filtros.nome_terceirizada }}</td>
+    </tr>
+  {% endif %}
+  {% if filtros.situacao %}
+    <tr>
+      <td colspan="2">Situação: {{ filtros.situacao }}</td>
     </tr>
   {% endif %}
 </table>
