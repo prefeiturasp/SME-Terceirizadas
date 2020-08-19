@@ -106,6 +106,7 @@ def get_config_cabecario_relatorio_analise(filtros, data_incial_analise_padrao, 
 
 def conta_filtros(filtros):
     qtde_filtros = 0
+    filtros.pop('status')
     for valor in filtros.values():
         if valor:
             qtde_filtros += 1
