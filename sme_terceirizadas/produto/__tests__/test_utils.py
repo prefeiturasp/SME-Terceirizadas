@@ -2,6 +2,7 @@ from datetime import date, datetime
 
 from ..utils import (
     converte_para_datetime,
+    cria_filtro_aditivos,
     cria_filtro_produto_por_parametros_form,
     get_filtros_data_em_analise_sensorial
 )
@@ -51,3 +52,8 @@ def test_converte_para_datetime():
     data_datetime = converte_para_datetime(data_str)
     data_datetime_aux = datetime.strptime(data_str, '%d/%m/%Y')
     assert data_datetime == data_datetime_aux
+
+
+def test_cria_filtro_aditivos():
+    filtro = cria_filtro_aditivos('aditivo01, aditivo02')
+    assert len(filtro) == 2
