@@ -19,7 +19,9 @@ def test_cria_filtro_produto_por_parametros_form_parametros():
         'nome_produto': 'nome__icontains',
         'nome_terceirizada': 'homologacoes__rastro_terceirizada__nome_fantasia__icontains',
         'data_inicial': 'homologacoes__criado_em__gte',
-        'status': 'homologacoes__status__in'
+        'status': 'homologacoes__status__in',
+        'tem_aditivos_alergenicos': 'tem_aditivos_alergenicos',
+        'eh_para_alunos_com_dieta': 'eh_para_alunos_com_dieta'
     }
     VALOR = 'qualquer coisa'
     for parametro_form, parametro_filtro in parametros.items():
