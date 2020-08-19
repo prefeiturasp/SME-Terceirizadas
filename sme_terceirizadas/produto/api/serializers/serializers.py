@@ -386,3 +386,22 @@ class ProdutoRelatorioAnaliseSensorialSerializer(serializers.ModelSerializer):
     class Meta:
         model = Produto
         exclude = ('id',)
+
+
+class HomologacaoListagemSerializer(serializers.ModelSerializer):
+    rastro_terceirizada = TerceirizadaSimplesSerializer()
+
+    class Meta:
+        model = HomologacaoDoProduto
+        fields = ('uuid', 'status', 'id_externo', 'rastro_terceirizada', 'criado_em')
+
+
+class ProdutoListagemSerializer(serializers.ModelSerializer):
+    marca = MarcaSerializer()
+    fabricante = FabricanteSerializer()
+    id_externo = serializers.CharField()
+    ultima_homologacao = HomologacaoListagemSerializer()
+
+    class Meta:
+        model = Produto
+        exclude = ('id',)
