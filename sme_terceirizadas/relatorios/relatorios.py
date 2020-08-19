@@ -7,7 +7,13 @@ from ..kit_lanche.models import EscolaQuantidade
 from ..relatorios.utils import html_to_pdf_response
 from ..terceirizada.utils import transforma_dados_relatorio_quantitativo
 from . import constants
-from .utils import formata_logs, get_config_cabecario_relatorio_analise, get_diretorias_regionais, get_width
+from .utils import (
+    conta_filtros,
+    formata_logs,
+    get_config_cabecario_relatorio_analise,
+    get_diretorias_regionais,
+    get_width
+)
 
 
 def relatorio_filtro_periodo(request, query_set_consolidado, escola_nome='', dre_nome=''):
@@ -319,6 +325,7 @@ def relatorio_quantitativo_por_terceirizada(request, filtros, dados_relatorio):
         {
             'filtros': filtros,
             'dados_relatorio': dados_relatorio_transformados,
+            'qtde_filtros': conta_filtros(filtros)
         }
     )
     return html_to_pdf_response(html_string, 'relatorio_quantitativo_por_terceirizada.pdf')
@@ -350,7 +357,8 @@ def relatorio_produtos_agrupado_terceirizada(request, dados_agrupados, filtros):
         'relatorio_produtos_por_terceirizada.html',
         {
             'dados_agrupados': dados_agrupados,
-            'filtros': filtros
+            'filtros': filtros,
+            'qtde_filtros': conta_filtros(filtros)
         }
     )
     return html_to_pdf_response(html_string, 'produtos_homologados_por_terceirizada.pdf')
@@ -361,7 +369,8 @@ def relatorio_produtos_situacao(request, queryset, filtros):
         'relatorio_produtos_situacao.html',
         {
             'queryset': queryset,
-            'filtros': filtros
+            'filtros': filtros,
+            'qtde_filtros': conta_filtros(filtros)
         }
     )
     return html_to_pdf_response(html_string, 'produtos_situacao.pdf')

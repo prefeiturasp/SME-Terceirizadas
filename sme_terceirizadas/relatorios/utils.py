@@ -102,3 +102,11 @@ def get_config_cabecario_relatorio_analise(filtros, data_incial_analise_padrao, 
         config['cabecario_tipo'] = tipos_cabecario[2]
 
     return config
+
+
+def conta_filtros(filtros):
+    qtde_filtros = 0
+    for valor in filtros.values():
+        if valor:
+            qtde_filtros += 1
+    return qtde_filtros
