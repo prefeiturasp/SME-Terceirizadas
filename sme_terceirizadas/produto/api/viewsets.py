@@ -1,3 +1,4 @@
+import json
 from datetime import datetime, timedelta
 
 from rest_framework import mixins, status, viewsets
@@ -34,8 +35,10 @@ from ..models import (
     RespostaAnaliseSensorial
 )
 from ..utils import (
+    StandardResultsSetPagination,
     agrupa_por_terceirizada,
     converte_para_datetime,
+    cria_filtro_aditivos,
     cria_filtro_produto_por_parametros_form,
     get_filtros_data_em_analise_sensorial
 )
@@ -49,6 +52,7 @@ from .serializers.serializers import (
     InformacaoNutricionalSerializer,
     MarcaSerializer,
     MarcaSimplesSerializer,
+    ProdutoListagemSerializer,
     ProdutoRelatorioAnaliseSensorialSerializer,
     ProdutoRelatorioSituacaoSerializer,
     ProdutoResponderReclamacaoTerceirizadaSerializer,
@@ -522,6 +526,26 @@ class ProdutoViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
     serializer_class = ProdutoSerializer
     queryset = Produto.objects.all()
+    pagination_class = StandardResultsSetPagination
+
+    def list(self, request, *args, **kwargs):
+        filtros = request.query_params.dict()
+        filtros['status'] = request.query_params.getlist('status[]')
+        filtros['data_inicial'] = converte_para_datetime(request.query_params.get('data_inicial'))
+        filtros['data_final'] = converte_para_datetime(request.query_params.get('data_final'))
+
+        if 'tem_aditivos_alergenicos' in filtros:
+            filtros['tem_aditivos_alergenicos'] = json.loads(filtros['tem_aditivos_alergenicos'])
+        if 'eh_para_alunos_com_dieta' in filtros:
+            filtros['eh_para_alunos_com_dieta'] = json.loads(filtros['eh_para_alunos_com_dieta'])
+
+        queryset = self.get_queryset_filtrado(filtros).order_by('criado_em')
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = ProdutoListagemSerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = ProdutoListagemSerializer(queryset, many=True)
+        return Response(serializer.data)
 
     def paginated_response(self, queryset):
         page = self.paginate_queryset(queryset)
@@ -603,7 +627,11 @@ class ProdutoViewSet(viewsets.ModelViewSet):
 
     def get_queryset_filtrado(self, cleaned_data):
         campos_a_pesquisar = cria_filtro_produto_por_parametros_form(cleaned_data)
-        return self.get_queryset().filter(**campos_a_pesquisar)
+        if 'aditivos' in cleaned_data:
+            filtro_aditivos = cria_filtro_aditivos(cleaned_data['aditivos'])
+            return self.get_queryset().filter(**campos_a_pesquisar).filter(filtro_aditivos)
+        else:
+            return self.get_queryset().filter(**campos_a_pesquisar)
 
     @action(detail=False,
             methods=['POST'],
