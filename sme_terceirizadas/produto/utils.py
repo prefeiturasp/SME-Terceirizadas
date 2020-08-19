@@ -1,4 +1,3 @@
-import json
 import operator
 from datetime import datetime, timedelta
 from functools import reduce
@@ -65,9 +64,9 @@ def cria_filtro_produto_por_parametros_form(cleaned_data):  # noqa C901
             elif chave == 'status' and len(valor) > 0:
                 campos_a_pesquisar['homologacoes__status__in'] = valor
             elif chave == 'tem_aditivos_alergenicos':
-                campos_a_pesquisar['tem_aditivos_alergenicos'] = json.loads(valor)
+                campos_a_pesquisar['tem_aditivos_alergenicos'] = valor
             elif chave == 'eh_para_alunos_com_dieta':
-                campos_a_pesquisar['eh_para_alunos_com_dieta'] = json.loads(valor)
+                campos_a_pesquisar['eh_para_alunos_com_dieta'] = valor
 
     return campos_a_pesquisar
 
