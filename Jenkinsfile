@@ -1,21 +1,21 @@
 pipeline {
     agent {
-      node { 
+      node {
         label 'py36-terceirizadas'
 	    }
     }
-    
+
     options {
       buildDiscarder(logRotator(numToKeepStr: '5', artifactNumToKeepStr: '5'))
       disableConcurrentBuilds()
-      skipDefaultCheckout()  
+      skipDefaultCheckout()
     }
-           
+
     stages {
         stage('BD') {
         agent {
         label 'master'
-        }  
+        }
         steps {
           script {
             CONTAINER_ID = sh (
@@ -27,7 +27,7 @@ pipeline {
                sh "docker rm -f ${CONTAINER_ID}"
                sh 'docker run -d --rm --cap-add SYS_TIME --name terceirizadas-db --network python-network -p 5432 -e TZ="America/Sao_Paulo" -e POSTGRES_DB=terceirizadas -e POSTGRES_PASSWORD=adminadmin -e POSTGRES_USER=postgres postgres:9-alpine'
             } else {
-        
+
                 sh 'docker run -d --rm --cap-add SYS_TIME --name terceirizadas-db --network python-network -p 5432 -e TZ="America/Sao_Paulo" -e POSTGRES_DB=terceirizadas -e POSTGRES_PASSWORD=adminadmin -e POSTGRES_USER=postgres postgres:9-alpine'
             }
           }
@@ -37,21 +37,21 @@ pipeline {
 
        stage('CheckOut') {
         steps {
-          checkout scm	
+          checkout scm
         }
        }
 
        stage('Testes') {
         steps {
-          
+
           sh 'pip install --user pipenv'
           sh 'pipenv install --dev'
           sh 'pipenv install pytest'
           sh 'pipenv install pytest-cov'
           sh 'pipenv run pytest'
           sh 'pipenv run flake8'
-          
-        
+
+
         }
         post {
             success{
@@ -81,7 +81,7 @@ pipeline {
             -Dsonar.python.bandit.reportPaths=../bandit.json'
         }
        }
-      
+
        stage('Build DEV') {
          when {
            branch 'development'
@@ -106,16 +106,16 @@ pipeline {
               tailLog: true])
            }
         }
-       }        
-       
+       }
+
        stage('Deploy DEV') {
          when {
            branch 'development'
          }
         steps {
-       
-       
-           //Start JOB de deploy Kubernetes 
+
+
+           //Start JOB de deploy Kubernetes
           sh 'echo Deploy ambiente desenvolvimento'
           script {
             step([$class: "RundeckNotifier",
@@ -133,23 +133,23 @@ pipeline {
               tags: "",
               tailLog: true])
           }
-        } 
+        }
        }
-       
+
        stage('Build HOM') {
          when {
            branch 'homolog'
          }
         steps {
-          
+
          sh 'echo Deploying ambiente homologacao'
-                
+
           // Start JOB para build das imagens Docker e push SME Registry
-      
+
           script {
             step([$class: "RundeckNotifier",
               includeRundeckLogs: true,
-                             
+
               //JOB DE BUILD
               jobId: "744a2c35-d0f9-47f6-bfe4-3176897a670e",
               nodeFilters: "",
@@ -165,18 +165,18 @@ pipeline {
               tailLog: true])
           }
         }
-       } 
-          
+       }
+
         stage('Deploy HOM') {
          when {
            branch 'homolog'
          }
-        steps {  
+        steps {
           timeout(time: 24, unit: "HOURS") {
           // telegramSend("${JOB_NAME}...O Build ${BUILD_DISPLAY_NAME} - Requer uma aprovação para deploy !!!\n Consulte o log para detalhes -> [Job logs](${env.BUILD_URL}console)\n")
-            input message: 'Deseja realizar o deploy?', ok: 'SIM', submitter: 'marcos_nastri, calvin_rossinhole, ollyver_ottoboni, kelwy_oliveira, pedro_walter'
-          } 
-         
+            input message: 'Deseja realizar o deploy?', ok: 'SIM', submitter: 'marcos_nastri, calvin_rossinhole, ollyver_ottoboni, kelwy_oliveira, pedro_walter, rodolfo_lima'
+          }
+
           script {
             step([$class: "RundeckNotifier",
               includeRundeckLogs: true,
@@ -201,14 +201,14 @@ pipeline {
            branch 'master'
          }
         steps {
-          
+
             sh 'echo Build image docker Produção'
           // Start JOB para build das imagens Docker e push SME Registry
-      
+
           script {
             step([$class: "RundeckNotifier",
               includeRundeckLogs: true,
-                             
+
               //JOB DE BUILD
               jobId: "7c4beb8a-4a3a-416c-addb-a6b8dbed08bf",
               nodeFilters: "",
@@ -224,8 +224,8 @@ pipeline {
               tailLog: true])
           }
         }
-       } 
-          
+       }
+
         stage('Deploy PROD') {
          when {
            branch 'master'
@@ -233,9 +233,9 @@ pipeline {
         steps {
           timeout(time: 24, unit: "HOURS") {
           // telegramSend("${JOB_NAME}...O Build ${BUILD_DISPLAY_NAME} - Requer uma aprovação para deploy !!!\n Consulte o log para detalhes -> [Job logs](${env.BUILD_URL}console)\n")
-            input message: 'Deseja realizar o deploy?', ok: 'SIM', submitter: 'marcos_nastri, calvin_rossinhole, ollyver_ottoboni, kelwy_oliveira, pedro_walter'
+            input message: 'Deseja realizar o deploy?', ok: 'SIM', submitter: 'marcos_nastri, calvin_rossinhole, ollyver_ottoboni, kelwy_oliveira, pedro_walter, rodolfo_lima'
           }
-        
+
           script {
             step([$class: "RundeckNotifier",
               includeRundeckLogs: true,
@@ -254,8 +254,8 @@ pipeline {
           }
         }
        }
-    } 
-  	   
+    }
+
   post {
     always {
       echo 'One way or another, I have finished'
