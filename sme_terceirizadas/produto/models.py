@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.db import models
 from sequences import get_last_value, get_next_value
 
@@ -10,9 +12,10 @@ from ..dados_comuns.behaviors import (
     TemChaveExterna,
     TemIdentificadorExternoAmigavel
 )
-from ..dados_comuns.fluxo_status import FluxoHomologacaoProduto
-from ..dados_comuns.models import LogSolicitacoesUsuario, TemplateMensagem
-from ..perfil.models.perfil import Vinculo
+from ..dados_comuns.fluxo_status import FluxoHomologacaoProduto, FluxoReclamacaoProduto, HomologacaoProdutoWorkflow
+from ..dados_comuns.models import AnexoLogSolicitacoesUsuario, LogSolicitacoesUsuario, TemplateMensagem
+from ..dados_comuns.utils import convert_base64_to_contentfile
+from ..escola.models import Escola
 
 MAX_NUMERO_PROTOCOLO = 6
 
@@ -184,6 +187,29 @@ class HomologacaoDoProduto(TemChaveExterna, CriadoEm, CriadoPor, FluxoHomologaca
             corpo = corpo.replace(chave, valor)
         return template.assunto, corpo
 
+    @property
+    def tempo_aguardando_acao_em_dias(self):
+        if self.status in [
+            HomologacaoProdutoWorkflow.CODAE_PENDENTE_HOMOLOGACAO,
+            HomologacaoProdutoWorkflow.CODAE_QUESTIONADO,
+            HomologacaoProdutoWorkflow.CODAE_PEDIU_ANALISE_SENSORIAL,
+            HomologacaoProdutoWorkflow.ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
+            HomologacaoProdutoWorkflow.CODAE_PEDIU_ANALISE_RECLAMACAO,
+            HomologacaoProdutoWorkflow.TERCEIRIZADA_RESPONDEU_RECLAMACAO
+        ]:
+            intervalo = datetime.today() - self.ultimo_log.criado_em
+        else:
+            try:
+                penultimo_log = self.logs.order_by('-criado_em')[1]
+                intervalo = self.ultimo_log.criado_em - penultimo_log.criado_em
+            except IndexError:
+                intervalo = datetime.today() - self.ultimo_log.criado_em
+        return intervalo.days
+
+    @property
+    def ultimo_log(self):
+        return self.log_mais_recente
+
     def gera_protocolo_analise_sensorial(self):
         id_sequecial = str(get_next_value('protocolo_analise_sensorial'))
         serial = ''
@@ -227,14 +253,36 @@ class HomologacaoDoProduto(TemChaveExterna, CriadoEm, CriadoPor, FluxoHomologaca
         return f'Homologação #{self.id_externo}'
 
 
-class ReclamacaoDeProduto(TemChaveExterna, CriadoEm, CriadoPor):
+class ReclamacaoDeProduto(FluxoReclamacaoProduto, TemChaveExterna, CriadoEm, CriadoPor,
+                          Logs, TemIdentificadorExternoAmigavel):
     homologacao_de_produto = models.ForeignKey('HomologacaoDoProduto', on_delete=models.CASCADE,
                                                related_name='reclamacoes')
     reclamante_registro_funcional = models.CharField('RF/CRN/CRF', max_length=50)
     reclamante_cargo = models.CharField('Cargo', max_length=100)
     reclamante_nome = models.CharField('Nome', max_length=255)
     reclamacao = models.TextField('Reclamação')
-    vinculo = models.ForeignKey(Vinculo, on_delete=models.DO_NOTHING)
+    escola = models.ForeignKey(Escola, null=True, on_delete=models.PROTECT, related_name='reclamacoes')
+
+    def salvar_log_transicao(self, status_evento, **kwargs):
+        justificativa = kwargs.get('justificativa', '')
+        user = kwargs['user']
+        if user:
+            log_transicao = LogSolicitacoesUsuario.objects.create(
+                descricao=str(self),
+                status_evento=status_evento,
+                solicitacao_tipo=LogSolicitacoesUsuario.RECLAMACAO_PRODUTO,
+                usuario=user,
+                uuid_original=self.uuid,
+                justificativa=justificativa
+            )
+            for anexo in kwargs.get('anexos', []):
+                arquivo = convert_base64_to_contentfile(anexo.pop('base64'))
+                AnexoLogSolicitacoesUsuario.objects.create(
+                    log=log_transicao,
+                    arquivo=arquivo,
+                    nome=anexo['nome']
+                )
+        return log_transicao
 
     def __str__(self):
         return f'Reclamação {self.uuid} feita por {self.reclamante_nome} em {self.criado_em}'

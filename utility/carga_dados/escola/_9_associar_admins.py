@@ -24,7 +24,7 @@ usuario_codae.cargo = 'Coordenador'
 usuario_codae.save()
 usuario_gestao_produto_codae = Usuario.objects.get(email='gpcodae@admin.com')
 usuario_gestao_produto_codae.registro_funcional = '1000011'
-usuario_gestao_produto_codae.nome = 'USUARIO GESTAO PRODUTO CODAE'
+usuario_gestao_produto_codae.nome = 'SUPER USUARIO GESTAO PRODUTO CODAE'
 usuario_gestao_produto_codae.cargo = 'Nutricionista'
 usuario_gestao_produto_codae.save()
 usuario_terceirizada = Usuario.objects.get(email='terceirizada@admin.com')
@@ -34,10 +34,16 @@ usuario_terceirizada.cargo = 'Gerente'
 usuario_terceirizada.save()
 usuario_nutri_codae = Usuario.objects.get(email='nutricodae@admin.com')
 usuario_nutri_codae.registro_funcional = '0000101'
-usuario_nutri_codae.nome = 'USUARIO NUTRICIONISTA CODAE'
+usuario_nutri_codae.nome = 'SUPER USUARIO NUTRICIONISTA CODAE'
 usuario_nutri_codae.crn_numero = '15975364'
 usuario_nutri_codae.cargo = 'Nutricionista'
 usuario_nutri_codae.save()
+usuario_nutri_supervisao = Usuario.objects.get(email='nutrisupervisao@admin.com')
+usuario_nutri_supervisao.registro_funcional = '0010000'
+usuario_nutri_supervisao.nome = 'SUPER USUARIO NUTRICIONISTA SUPERVISAO'
+usuario_nutri_supervisao.crn_numero = '47135859'
+usuario_nutri_supervisao.cargo = 'Nutricionista'
+usuario_nutri_supervisao.save()
 usuario_escola_cei = Usuario.objects.get(email='escolacei@admin.com')
 usuario_escola_cei.registro_funcional = '0000110'
 usuario_escola_cei.nome = 'SUPER USUARIO ESCOLA CEI'
@@ -116,6 +122,12 @@ perfil_administrador_diretoria_regional, created = Perfil.objects.get_or_create(
 
 perfil_usuario_nutri_codae, created = Perfil.objects.get_or_create(
     nome='COORDENADOR_DIETA_ESPECIAL',
+    ativo=True,
+    super_usuario=True
+)
+
+perfil_usuario_nutri_supervisao, created = Perfil.objects.get_or_create(
+    nome='SUPERVISAO_NUTRICAO',
     ativo=True,
     super_usuario=True
 )
@@ -281,6 +293,14 @@ Vinculo.objects.create(
     data_inicial=data_atual
 )
 print(f'perfil {perfil_usuario_nutri_codae.nome} vinculado a {codae.nome} com sucesso')
+
+Vinculo.objects.create(
+    instituicao=codae,
+    perfil=perfil_usuario_nutri_supervisao,
+    usuario=usuario_nutri_supervisao,
+    data_inicial=data_atual
+)
+print(f'perfil {usuario_nutri_supervisao.nome} vinculado a {codae.nome} com sucesso')
 
 Vinculo.objects.create(
     instituicao=codae,

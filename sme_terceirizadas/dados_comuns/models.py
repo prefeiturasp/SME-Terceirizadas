@@ -51,9 +51,15 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
         CODAE_PEDIU_ANALISE_RECLAMACAO,
         CODAE_AUTORIZOU_RECLAMACAO,
         INATIVA,
-        TERCEIRIZADA_RESPONDEU_RECLAMACAO,
 
-    ) = range(31)
+        # ESPECIFICA RECLAMAÇÃO DE PRODUTO
+        TERCEIRIZADA_RESPONDEU_RECLAMACAO,
+        TERCEIRIZADA_RESPONDEU_ANALISE_SENSORIAL,
+        CODAE_RECUSOU_RECLAMACAO,
+        CODAE_QUESTIONOU_TERCEIRIZADA,
+        CODAE_RESPONDEU_RECLAMACAO
+
+    ) = range(35)
 
     STATUS_POSSIVEIS = (
         (INICIO_FLUXO, 'Solicitação Realizada'),
@@ -86,7 +92,11 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
         (ESCOLA_OU_NUTRICIONISTA_RECLAMOU, 'Escola/Nutricionista reclamou do produto'),
         (CODAE_PEDIU_ANALISE_RECLAMACAO, 'CODAE pediu análise da reclamação'),
         (CODAE_AUTORIZOU_RECLAMACAO, 'CODAE autorizou reclamação'),
-        (TERCEIRIZADA_RESPONDEU_RECLAMACAO, 'Terceirizada respondeu a reclamação')
+        (CODAE_RECUSOU_RECLAMACAO, 'CODAE recusou reclamação'),
+        (CODAE_QUESTIONOU_TERCEIRIZADA, 'CODAE questionou terceirizada sobre reclamação'),
+        (CODAE_RESPONDEU_RECLAMACAO, 'CODAE respondeu ao reclamante da reclamação'),
+        (TERCEIRIZADA_RESPONDEU_RECLAMACAO, 'Terceirizada respondeu a reclamação'),
+        (TERCEIRIZADA_RESPONDEU_ANALISE_SENSORIAL, 'Terceirizada respondeu a análise')
     )
     (  # DA ESCOLA
         SOLICITACAO_KIT_LANCHE_AVULSA,
@@ -102,7 +112,8 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
         SOLICITACAO_KIT_LANCHE_UNIFICADA,
         # DA TERCEIRIZADA
         HOMOLOGACAO_PRODUTO,
-        TERCEIRIZADA_RESPONDEU_ANALISE_SENSORIAL,
+        # PRODUTOS
+        RECLAMACAO_PRODUTO
     ) = range(12)
 
     TIPOS_SOLICITACOES = (
@@ -117,6 +128,7 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
         (DIETA_ESPECIAL, 'Dieta Especial'),
         (SOLICITACAO_KIT_LANCHE_UNIFICADA, 'Solicitação de kit lanche unificada'),
         (HOMOLOGACAO_PRODUTO, 'Homologação de Produto'),
+        (RECLAMACAO_PRODUTO, 'Reclamação de Produto'),
         (TERCEIRIZADA_RESPONDEU_ANALISE_SENSORIAL, 'Responde Análise Sensorial')
     )
 

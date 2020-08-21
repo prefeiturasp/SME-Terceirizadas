@@ -17,7 +17,7 @@ from .constants import (
     COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA
 )
 from .models import AnexoLogSolicitacoesUsuario, LogSolicitacoesUsuario
-from .tasks import envia_email_em_massa_task
+from .tasks import envia_email_em_massa_task, envia_email_unico_task
 from .utils import convert_base64_to_contentfile
 
 
@@ -244,10 +244,20 @@ class HomologacaoProdutoWorkflow(xwf_models.Workflow):
         ('codae_suspende', CODAE_HOMOLOGADO, CODAE_SUSPENDEU),
         ('codae_ativa', CODAE_SUSPENDEU, CODAE_HOMOLOGADO),
         ('escola_ou_nutricionista_reclamou', CODAE_HOMOLOGADO, ESCOLA_OU_NUTRICIONISTA_RECLAMOU),
-        ('codae_pediu_analise_reclamacao', ESCOLA_OU_NUTRICIONISTA_RECLAMOU, CODAE_PEDIU_ANALISE_RECLAMACAO),
+        ('codae_pediu_analise_reclamacao',
+            [ESCOLA_OU_NUTRICIONISTA_RECLAMOU, TERCEIRIZADA_RESPONDEU_RECLAMACAO],
+            CODAE_PEDIU_ANALISE_RECLAMACAO),
         ('terceirizada_responde_reclamacao', CODAE_PEDIU_ANALISE_RECLAMACAO, TERCEIRIZADA_RESPONDEU_RECLAMACAO),
-        ('codae_autorizou_reclamacao', [ESCOLA_OU_NUTRICIONISTA_RECLAMOU, TERCEIRIZADA_RESPONDEU_RECLAMACAO],
+        ('codae_autorizou_reclamacao',
+            [CODAE_PEDIU_ANALISE_RECLAMACAO,
+             ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
+             TERCEIRIZADA_RESPONDEU_RECLAMACAO],
          CODAE_AUTORIZOU_RECLAMACAO),
+        ('codae_recusou_reclamacao',
+            [CODAE_PEDIU_ANALISE_RECLAMACAO,
+             ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
+             TERCEIRIZADA_RESPONDEU_RECLAMACAO],
+            CODAE_HOMOLOGADO),
         ('inativa_homologacao',
          [CODAE_SUSPENDEU, ESCOLA_OU_NUTRICIONISTA_RECLAMOU, CODAE_QUESTIONADO, CODAE_HOMOLOGADO, CODAE_NAO_HOMOLOGADO],
          INATIVA),
@@ -1380,6 +1390,138 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
             emails=self._partes_interessadas_termino,
             html=html
         )
+
+    class Meta:
+        abstract = True
+
+
+class ReclamacaoProdutoWorkflow(xwf_models.Workflow):
+    log_model = ''  # Disable logging to database
+
+    AGUARDANDO_AVALIACAO = 'AGUARDANDO_AVALIACAO'  # INICIO
+    AGUARDANDO_RESPOSTA_TERCEIRIZADA = 'AGUARDANDO_RESPOSTA_TERCEIRIZADA'
+    RESPONDIDO_TERCEIRIZADA = 'RESPONDIDO_TERCEIRIZADA'
+    CODAE_ACEITOU = 'CODAE_ACEITOU'
+    CODAE_RECUSOU = 'CODAE_RECUSOU'
+    CODAE_RESPONDEU = 'CODAE_RESPONDEU'
+
+    states = (
+        (AGUARDANDO_AVALIACAO, 'Aguardando avaliação da CODAE'),
+        (AGUARDANDO_RESPOSTA_TERCEIRIZADA, 'Aguardando resposta da terceirizada'),
+        (RESPONDIDO_TERCEIRIZADA, 'Respondido pela terceirizada'),
+        (CODAE_ACEITOU, 'CODAE aceitou'),
+        (CODAE_RECUSOU, 'CODAE recusou'),
+        (CODAE_RESPONDEU, 'CODAE respondeu ao reclamante'),
+    )
+
+    transitions = (
+        ('codae_questiona', AGUARDANDO_AVALIACAO, AGUARDANDO_RESPOSTA_TERCEIRIZADA),
+        ('terceirizada_responde', AGUARDANDO_RESPOSTA_TERCEIRIZADA, RESPONDIDO_TERCEIRIZADA),
+        ('codae_aceita', [AGUARDANDO_AVALIACAO, RESPONDIDO_TERCEIRIZADA], CODAE_ACEITOU),
+        ('codae_recusa', [AGUARDANDO_AVALIACAO, RESPONDIDO_TERCEIRIZADA], CODAE_RECUSOU),
+        ('codae_responde', [AGUARDANDO_AVALIACAO, RESPONDIDO_TERCEIRIZADA], CODAE_RESPONDEU),
+    )
+
+    initial_state = AGUARDANDO_AVALIACAO
+
+
+class FluxoReclamacaoProduto(xwf_models.WorkflowEnabled, models.Model):
+    workflow_class = ReclamacaoProdutoWorkflow
+    status = xwf_models.StateField(workflow_class)
+
+    def _partes_interessadas_suspensao_por_reclamacao(self):
+        queryset = Usuario.objects.filter(
+            vinculos__ativo=True,
+            vinculos__perfil__nome__in=[
+                'ADMINISTRADOR_ESCOLA',
+                'DIRETOR',
+                'DIRETOR CEI',
+                'ADMINISTRADOR_TERCEIRIZADA',
+                'NUTRI_ADMIN_RESPONSAVEL',
+                'SUPERVISAO_NUTRICAO']
+        )
+        return [usuario.email for usuario in queryset]
+
+    def _envia_email_recusa_reclamacao(self, log_recusa):
+        html = render_to_string(
+            template_name='produto_codae_recusou_reclamacao.html',
+            context={
+                'titulo': 'Reclamação recusada',
+                'reclamacao': self,
+                'log_recusa': log_recusa
+            }
+        )
+        envia_email_unico_task.delay(
+            assunto='[SIGPAE] Reclamação recusada',
+            email=self.criado_por.email,
+            corpo='',
+            html=html
+        )
+
+    def _envia_email_resposta_reclamacao(self, log_resposta):
+        html = render_to_string(
+            template_name='produto_codae_responde_reclamacao.html',
+            context={
+                'titulo': 'Resposta a reclamação realizada',
+                'reclamacao': self,
+                'log_resposta': log_resposta
+            }
+        )
+        envia_email_unico_task.delay(
+            assunto='[SIGPAE] Resposta a reclamação realizada',
+            email=self.criado_por.email,
+            corpo='',
+            html=html
+        )
+
+    def _envia_email_aceite_reclamacao(self, log_aceite):
+        html = render_to_string(
+            template_name='produto_codae_aceitou_reclamacao.html',
+            context={
+                'titulo': 'Produto suspenso por reclamação',
+                'reclamacao': self,
+                'log_aceite': log_aceite
+            }
+        )
+        envia_email_em_massa_task.delay(
+            assunto='[SIGPAE] Produto suspenso por reclamação',
+            emails=self._partes_interessadas_suspensao_por_reclamacao(),
+            corpo='',
+            html=html
+        )
+
+    @xworkflows.after_transition('codae_aceita')
+    def _codae_aceita_hook(self, *args, **kwargs):
+        log_aceite = self.salvar_log_transicao(
+            status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU_RECLAMACAO,
+            **kwargs)
+        self._envia_email_aceite_reclamacao(log_aceite)
+
+    @xworkflows.after_transition('codae_recusa')
+    def _codae_recusa_hook(self, *args, **kwargs):
+        log_recusa = self.salvar_log_transicao(
+            status_evento=LogSolicitacoesUsuario.CODAE_RECUSOU_RECLAMACAO,
+            **kwargs)
+        self._envia_email_recusa_reclamacao(log_recusa)
+
+    @xworkflows.after_transition('codae_questiona')
+    def _codae_questiona_hook(self, *args, **kwargs):
+        self.salvar_log_transicao(
+            status_evento=LogSolicitacoesUsuario.CODAE_QUESTIONOU_TERCEIRIZADA,
+            **kwargs)
+
+    @xworkflows.after_transition('codae_responde')
+    def _codae_responde_hook(self, *args, **kwargs):
+        log_resposta = self.salvar_log_transicao(
+            status_evento=LogSolicitacoesUsuario.CODAE_RESPONDEU_RECLAMACAO,
+            **kwargs)
+        self._envia_email_resposta_reclamacao(log_resposta)
+
+    @xworkflows.after_transition('terceirizada_responde')
+    def _terceirizada_responde_hook(self, *args, **kwargs):
+        self.salvar_log_transicao(
+            status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_RESPONDEU_RECLAMACAO,
+            **kwargs)
 
     class Meta:
         abstract = True

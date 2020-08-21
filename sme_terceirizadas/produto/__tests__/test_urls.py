@@ -212,3 +212,9 @@ def test_url_endpoint_resposta_analise_sensorial(client_autenticado_vinculo_terc
     response = client.post(f'/{ENDPOINT_ANALISE_SENSORIAL}/{TERCEIRIZADA_RESPONDE}/', data=json.dumps(body_content),
                            content_type='application/json')
     assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+def test_url_endpoint_produtos_listagem(client_autenticado_vinculo_terceirizada):
+    client = client_autenticado_vinculo_terceirizada
+    response = client.get(f'/produtos/')
+    assert response.status_code == status.HTTP_200_OK

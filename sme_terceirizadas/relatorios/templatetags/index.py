@@ -126,3 +126,62 @@ def retira_p_texto(texto):
     texto_sem_primeira_tag = texto[3:]
     texto_sem_tag = texto_sem_primeira_tag[:-5]
     return texto_sem_tag
+
+
+@register.filter
+def formata_data(data):
+    return data[:10]
+
+
+@register.filter
+def formata_hora(data):
+    return data[10:]
+
+
+@register.filter
+def formata_telefone(telefone):
+    ddd = telefone[:2]
+    numero = telefone[2:]
+    return '(' + ddd + ')' + ' ' + numero
+
+
+@register.filter
+def retorna_data_do_ultimo_log(logs):
+    return logs[-1]['criado_em'][:10]
+
+
+@register.filter
+def retorna_nome_ultimo_log(logs):
+    return logs[-1]['usuario']['nome']
+
+
+@register.filter
+def retorna_rf_ultimo_log(logs):
+    return logs[-1]['usuario']['registro_funcional']
+
+
+@register.filter
+def retorna_cargo_ultimo_log(logs):
+    return logs[-1]['usuario']['cargo']
+
+
+@register.filter
+def retorna_justificativa_ultimo_log(logs):
+    justificativa = logs[-1]['justificativa']
+    texto_sem_primeira_tag = justificativa[3:]
+    texto_sem_tag = texto_sem_primeira_tag[:-5]
+    return texto_sem_tag
+
+
+@register.filter
+def retorn_se_tem_anexo(imagens):
+    if len(imagens) > 0:
+        return 'Sim'
+    return 'Não'
+
+
+@register.filter
+def verifica_se_tem_anexos(logs):
+    if len(logs[-1]['anexos']) > 0:
+        return 'Sim'
+    return 'Não'

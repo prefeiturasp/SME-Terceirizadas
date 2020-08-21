@@ -59,6 +59,7 @@ FILTRO_STATUS_HOMOLOGACAO = (f'(?P<filtro_aplicado>({RASCUNHO}|{CODAE_PENDENTE_H
 
 RELATORIO = 'relatorio'
 RELATORIO_ANALISE = 'relatorio-analise-sensorial'
+RELATORIO_SUSPENSOS = 'relatorio-produtos-suspensos'
 RELATORIO_RECEBIMENTO = 'relatorio-analise-sensorial-recebimento'
 PROTOCOLO = 'protocolo'
 
@@ -98,9 +99,14 @@ GERAR_PDF = 'gerar-pdf'
 AGUARDANDO_ANALISE_SENSORIAL = 'aguardando-analise-sensorial'
 TERCEIRIZADA_RESPONDE_ANALISE_SENSORIAL = 'terceirizada-responde-analise-sensorial'
 TERCEIRIZADA_RESPONDE_RECLAMACAO = 'terceirizada-responde-reclamacao'
+TERCEIRIZADA_RESPONDE = 'terceirizada-responde'
 CODAE_PEDE_ANALISE_RECLAMACAO = 'codae-pede-analise-reclamacao'
 CODAE_RECUSA_RECLAMACAO = 'codae-recusa-reclamacao'
 CODAE_ACEITA_RECLAMACAO = 'codae-aceita-reclamacao'
+CODAE_ACEITA = 'codae-aceita'
+CODAE_RECUSA = 'codae-recusa'
+CODAE_QUESTIONA = 'codae-questiona'
+CODAE_RESPONDE = 'codae-responde'
 
 TERCEIRIZADA_RESPONDE_QUESTIONAMENTO = 'terceirizada-responde-questionamento'
 TERCEIRIZADA_TOMOU_CIENCIA = 'terceirizada-toma-ciencia'
@@ -129,6 +135,7 @@ COORDENADOR_GESTAO_PRODUTO = 'COORDENADOR_GESTAO_PRODUTO'
 ADMINISTRADOR_GESTAO_PRODUTO = 'ADMINISTRADOR_GESTAO_PRODUTO'
 NUTRI_ADMIN_RESPONSAVEL = 'NUTRI_ADMIN_RESPONSAVEL'
 ADMINISTRADOR_TERCEIRIZADA = 'ADMINISTRADOR_TERCEIRIZADA'
+SUPERVISAO_NUTRICAO = 'SUPERVISAO_NUTRICAO'
 
 #
 # TIPOS DE USUARIO

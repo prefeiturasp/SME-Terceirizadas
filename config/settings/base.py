@@ -39,7 +39,7 @@ USE_I18N = True
 # https://docs.djangoproject.com/en/dev/ref/settings/#use-l10n
 USE_L10N = True
 # https://docs.djangoproject.com/en/dev/ref/settings/#use-tz
-USE_TZ = True
+USE_TZ = False
 LOCALE_PATHS = (
     os.path.join(ROOT_DIR, 'locale'),
 )

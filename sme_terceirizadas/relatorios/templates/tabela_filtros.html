@@ -1,0 +1,53 @@
+<table class="tabela-cabecalho tabela-arredondada">
+  {% if qtde_filtros != 1 %}
+    <tr>
+      <td>Veja os resultados para a busca</td>
+    </tr>
+  {% else %}
+    {% if filtros.data_inicial or filtros.data_final %}
+      <tr>
+        {% if filtros.data_inicial and filtros.data_final %}
+          <td rowspan="2">PERÍODO PESQUISADO:</td>
+          <td>De: {{ filtros.data_inicial|date:"d/m/Y" }}</td>
+        {% else %}
+          <td>PERÍODO PESQUISADO:</td>
+          {% if filtros.data_inicial %}
+            <td>A partir de: {{ filtros.data_inicial|date:"d/m/Y" }}</td>
+          {% elif filtros.data_final %}
+            <td>Antes de e até: {{ filtros.data_final|date:"d/m/Y" }}</td>
+          {% endif %}
+        {% endif %}
+      </tr>
+      {% if filtros.data_inicial and filtros.data_final %}
+        <tr>
+          <td>Até: {{ filtros.data_final|date:"d/m/Y" }}</td>
+        </tr>
+      {% endif %}
+    {% endif %}
+    {% if filtros.nome_fabricante %}
+      <tr>
+        <td colspan="2">Fabricante do produto: {{ filtros.nome_fabricante }}</td>
+      </tr>
+    {% endif %}
+    {% if filtros.nome_marca %}
+      <tr>
+        <td colspan="2">Marca do produto: {{ filtros.nome_marca }}</td>
+      </tr>
+    {% endif %}
+    {% if filtros.nome_produto %}
+      <tr>
+        <td colspan="2">Nome do produto: {{ filtros.nome_produto }}</td>
+      </tr>
+    {% endif %}
+    {% if filtros.nome_terceirizada %}
+      <tr>
+        <td colspan="2">Nome da terceirizada: {{ filtros.nome_terceirizada }}</td>
+      </tr>
+    {% endif %}
+    {% if filtros.situacao %}
+      <tr>
+        <td colspan="2">Situação: {{ filtros.situacao }}</td>
+      </tr>
+    {% endif %}
+  {% endif %}
+</table>
