@@ -144,3 +144,106 @@ def client_autenticado_vinculo_terceirizada_homologacao(client, django_user_mode
     homologacao_produto1.save()
     client.login(email=email, password=password)
     return client, homologacao_produto, homologacao_produto1
+
+
+@pytest.fixture
+def protocolo1():
+    return mommy.make('ProtocoloDeDietaEspecial', nome='Protocolo1')
+
+
+@pytest.fixture
+def protocolo2():
+    return mommy.make('ProtocoloDeDietaEspecial', nome='Protocolo2')
+
+
+@pytest.fixture
+def protocolo3():
+    return mommy.make('ProtocoloDeDietaEspecial', nome='Protocolo3')
+
+
+@pytest.fixture
+def marca1():
+    return mommy.make('Marca', nome='Marca1')
+
+
+@pytest.fixture
+def marca2():
+    return mommy.make('Marca', nome='Marca2')
+
+
+@pytest.fixture
+def produto(user, protocolo1, protocolo2, marca1):
+    return mommy.make('Produto',
+                      criado_por=user,
+                      eh_para_alunos_com_dieta=True,
+                      componentes='Componente1, Componente2',
+                      tem_aditivos_alergenicos=False,
+                      tipo='Tipo1',
+                      embalagem='Embalagem X',
+                      prazo_validade='Alguns dias',
+                      info_armazenamento='Guardem bem',
+                      outras_informacoes='Produto do bom',
+                      numero_registro='123123123',
+                      porcao='5 cuias',
+                      unidade_caseira='Unidade3',
+                      fabricante=mommy.make('Fabricante'),
+                      marca=marca1,
+                      protocolos=[
+                          protocolo1,
+                          protocolo2,
+                      ])
+
+
+@pytest.fixture
+def info_nutricional1():
+    return mommy.make('InformacaoNutricional', nome='CALORIAS')
+
+
+@pytest.fixture
+def info_nutricional2():
+    return mommy.make('InformacaoNutricional', nome='LACTOSE')
+
+
+@pytest.fixture
+def info_nutricional3():
+    return mommy.make('InformacaoNutricional', nome='COLESTEROL')
+
+
+@pytest.fixture
+def info_nutricional_produto1(produto, info_nutricional1):
+    return mommy.make(
+        'InformacoesNutricionaisDoProduto',
+        produto=produto,
+        informacao_nutricional=info_nutricional1,
+        quantidade_porcao='1',
+        valor_diario='2')
+
+
+@pytest.fixture
+def info_nutricional_produto2(produto, info_nutricional2):
+    return mommy.make(
+        'InformacoesNutricionaisDoProduto',
+        produto=produto,
+        informacao_nutricional=info_nutricional2,
+        quantidade_porcao='3',
+        valor_diario='4')
+
+
+@pytest.fixture
+def info_nutricional_produto3(produto, info_nutricional3):
+    return mommy.make(
+        'InformacoesNutricionaisDoProduto',
+        produto=produto,
+        informacao_nutricional=info_nutricional3,
+        quantidade_porcao='5',
+        valor_diario='6')
+
+
+@pytest.fixture
+def imagem_produto1(produto):
+    return mommy.make('ImagemDoProduto', produto=produto, nome='Imagem1')
+
+
+@pytest.fixture
+def imagem_produto2(produto):
+    return mommy.make('ImagemDoProduto', produto=produto, nome='Imagem2')
