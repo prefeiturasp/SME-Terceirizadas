@@ -447,7 +447,8 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
         self._salva_rastro_solicitacao()
         user = kwargs['user']
         self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.INICIO_FLUXO,
-                                  usuario=user)
+                                  usuario=user,
+                                  justificativa=kwargs.get('justificativa', ''))
 
     @xworkflows.after_transition('codae_homologa')
     def _codae_homologa_hook(self, *args, **kwargs):

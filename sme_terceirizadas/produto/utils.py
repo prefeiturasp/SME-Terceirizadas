@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 from functools import reduce
 
 from django.db.models import Q
+from django.template.loader import render_to_string
 from rest_framework.pagination import PageNumberPagination
 
 
@@ -112,7 +113,35 @@ class StandardResultsSetPagination(PageNumberPagination):
     max_page_size = 100
 
 
-def compara_lista_protocolos(anterior, proxima):
+def compara_lista_imagens(anterior, proxima):  # noqa C901
+    adicoes = []
+    exclusoes = []
+
+    for imagem_p in proxima:
+        for imagem_a in anterior:
+            if imagem_a.nome == imagem_p['nome']:
+                break
+        else:
+            adicoes.append(imagem_p)
+
+    for imagem_a in anterior:
+        for imagem_p in proxima:
+            if imagem_a.nome == imagem_p['nome']:
+                break
+        else:
+            exclusoes.append(imagem_a)
+
+    retorno = {}
+
+    if len(adicoes) > 0:
+        retorno['adicoes'] = adicoes
+    if len(exclusoes) > 0:
+        retorno['exclusoes'] = exclusoes
+
+    return retorno
+
+
+def compara_lista_protocolos(anterior, proxima):  # noqa C901
     adicoes = []
     exclusoes = []
 
@@ -134,26 +163,91 @@ def compara_lista_protocolos(anterior, proxima):
     return retorno
 
 
-def changes_between(produto, validated_data):
-    changes = {}
+def compara_lista_informacoes_nutricionais(anterior, proxima):  # noqa C901
+    adicoes = []
+    modificacoes = []
+
+    for info_nutricional in proxima:
+        for info_anterior in anterior:
+            if info_anterior.informacao_nutricional.nome == info_nutricional['informacao_nutricional'].nome:
+                if info_anterior.quantidade_porcao != info_nutricional['quantidade_porcao']:
+                    modificacoes.append({
+                        'informacao_nutricional': info_anterior.informacao_nutricional,
+                        'valor': 'quantidade_porcao',
+                        'de': info_anterior.quantidade_porcao,
+                        'para': info_nutricional['quantidade_porcao']
+                    })
+                if info_anterior.valor_diario != info_nutricional['valor_diario']:
+                    modificacoes.append({
+                        'informacao_nutricional': info_anterior.informacao_nutricional,
+                        'valor': 'valor_diario',
+                        'de': info_anterior.valor_diario,
+                        'para': info_nutricional['valor_diario']
+                    })
+                break
+        else:
+            adicoes.append(info_nutricional)
+
+    retorno = {}
+
+    if len(adicoes) > 0:
+        retorno['adicoes'] = adicoes
+    if len(modificacoes) > 0:
+        retorno['modificacoes'] = modificacoes
+
+    return retorno
+
+
+def changes_between(produto, validated_data):  # noqa C901
+    mudancas = {}
 
     for field in produto._meta.get_fields():
         if field.name == 'protocolos':
-            mudancas = compara_lista_protocolos(produto.protocolos.all(), validated_data['protocolos'])
-            if mudancas.keys():
-                changes['protocolos'] = mudancas
+            mudancas_protocolos = compara_lista_protocolos(
+                produto.protocolos.all(),
+                validated_data['protocolos'])
+            if mudancas_protocolos.keys():
+                mudancas['protocolos'] = mudancas_protocolos
+        elif field.name == 'informacoes_nutricionais':
+            mudancas_info_nutricionais = compara_lista_informacoes_nutricionais(
+                produto.informacoes_nutricionais.all(),
+                validated_data['informacoes_nutricionais'])
+            if mudancas_info_nutricionais.keys():
+                mudancas['informacoes_nutricionais'] = mudancas_info_nutricionais
         elif field.is_relation:
-            key_to_search = field.name
             if field.many_to_one and field.name in validated_data:
-                valor_original = getattr(produto, field.name).uuid
-                valor_novo = validated_data[field.name].uuid
+                valor_original = getattr(produto, field.name)
+                valor_novo = validated_data[field.name]
                 if valor_original != valor_novo:
-                    changes[field.name] = {'de':valor_original,'para':valor_novo}
+                    mudancas[field.name] = {'de': valor_original, 'para': valor_novo}
         else:
             if field.name in validated_data:
                 valor_original = getattr(produto, field.name)
                 valor_novo = validated_data[field.name]
                 if valor_original != valor_novo:
-                    changes[field.name] = {'de':valor_original,'para':valor_novo}
+                    mudancas[field.name] = {'de': valor_original, 'para': valor_novo}
 
-    return changes
+    if 'imagens' in validated_data:
+        mudancas_imagens = compara_lista_imagens(
+            produto.imagens.all(),
+            validated_data['imagens'])
+        if mudancas_imagens.keys():
+            mudancas['imagens'] = mudancas_imagens
+
+    return mudancas
+
+
+def mudancas_para_justificativa_html(mudancas, fields_produto):
+    for field in fields_produto:
+        if field.name in mudancas:
+            if hasattr(field, 'verbose_name'):
+                mudancas[field.name]['nome_campo'] = field.verbose_name.capitalize()
+            else:
+                mudancas[field.name]['nome_campo'] = field.name.capitalize()
+
+    return render_to_string(
+        'produto/justificativa_mudancas_produto.html',
+        {
+            'mudancas': mudancas.items()
+        }
+    )

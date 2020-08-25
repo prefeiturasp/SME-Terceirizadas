@@ -17,6 +17,7 @@ from ...models import (
     ReclamacaoDeProduto,
     RespostaAnaliseSensorial
 )
+from ...utils import changes_between, mudancas_para_justificativa_html
 from ..validators import deve_ter_extensao_valida
 
 
@@ -109,6 +110,8 @@ class ProdutoSerializerCreate(serializers.ModelSerializer):
         return produto
 
     def update(self, instance, validated_data):  # noqa C901
+        mudancas = changes_between(instance, validated_data)
+        justificativa = mudancas_para_justificativa_html(mudancas, instance._meta.get_fields())
         imagens = validated_data.pop('imagens', [])
         protocolos = validated_data.pop('protocolos', [])
         informacoes_nutricionais = validated_data.pop('informacoes_nutricionais', [])
@@ -147,10 +150,10 @@ class ProdutoSerializerCreate(serializers.ModelSerializer):
                 criado_por=usuario
             )
             homologacao.save()
-            homologacao.inicia_fluxo(user=usuario)
+            homologacao.inicia_fluxo(user=usuario, justificativa=justificativa)
         if validated_data.get('cadastro_finalizado', False):
             homologacao = instance.homologacoes.first()
-            homologacao.inicia_fluxo(user=usuario)
+            homologacao.inicia_fluxo(user=usuario, justificativa=justificativa)
         return instance
 
     class Meta:

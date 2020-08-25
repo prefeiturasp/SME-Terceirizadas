@@ -1,15 +1,17 @@
 from datetime import date, datetime
 
 import pytest
-from model_mommy import mommy
 
 from ..utils import (
     changes_between,
+    compara_lista_imagens,
+    compara_lista_informacoes_nutricionais,
     compara_lista_protocolos,
     converte_para_datetime,
     cria_filtro_aditivos,
     cria_filtro_produto_por_parametros_form,
-    get_filtros_data_em_analise_sensorial
+    get_filtros_data_em_analise_sensorial,
+    mudancas_para_justificativa_html
 )
 
 pytestmark = pytest.mark.django_db
@@ -66,6 +68,51 @@ def test_cria_filtro_aditivos():
     assert len(filtro) == 2
 
 
+def test_compara_lista_informacoes_nutricionais(info_nutricional1,
+                                                info_nutricional2,
+                                                info_nutricional3,
+                                                info_nutricional_produto1,
+                                                info_nutricional_produto2,
+                                                info_nutricional_produto3):
+
+    anterior = [info_nutricional_produto1, info_nutricional_produto2]
+    proxima = [{
+        'informacao_nutricional': info_nutricional1,
+        'quantidade_porcao': '1',
+        'valor_diario': '9',
+    }, {
+        'informacao_nutricional': info_nutricional2,
+        'quantidade_porcao': '8',
+        'valor_diario': '4',
+    }, {
+        'informacao_nutricional': info_nutricional3,
+        'quantidade_porcao': '5',
+        'valor_diario': '6',
+    }]
+
+    resultado = compara_lista_informacoes_nutricionais(anterior, proxima)
+
+    assert len(resultado['adicoes']) == 1
+    adicao = resultado['adicoes'][0]
+    assert adicao['informacao_nutricional'] == info_nutricional3
+    assert adicao['quantidade_porcao'] == '5'
+    assert adicao['valor_diario'] == '6'
+
+    assert len(resultado['modificacoes']) == 2
+
+    modif1 = resultado['modificacoes'][0]
+    assert modif1['informacao_nutricional'] == info_nutricional1
+    assert modif1['valor'] == 'valor_diario'
+    assert modif1['de'] == '2'
+    assert modif1['para'] == '9'
+
+    modif2 = resultado['modificacoes'][1]
+    assert modif2['informacao_nutricional'] == info_nutricional2
+    assert modif2['valor'] == 'quantidade_porcao'
+    assert modif2['de'] == '3'
+    assert modif2['para'] == '8'
+
+
 def test_compara_lista_protocolos(protocolo1, protocolo2, protocolo3):
     anterior = [protocolo1, protocolo2]
     proxima = [protocolo2, protocolo3]
@@ -79,32 +126,133 @@ def test_compara_lista_protocolos(protocolo1, protocolo2, protocolo3):
     assert resultado['exclusoes'][0] == protocolo1
 
 
-def test_changes_between(produto, protocolo1, protocolo2, protocolo3):
-    validated_data = {
-        'eh_para_alunos_com_dieta':False,
-        'componentes':"Componente3, Componente4",
-        'tem_aditivos_alergenicos':False,
-        'tipo':"Tipo1",
-        'embalagem':"Embalagem X",
-        'prazo_validade':"Alguns dias",
-        'info_armazenamento':"Bote na geladeira",
-        'outras_informacoes':"Produto do bom",
-        'numero_registro':"123123123",
-        'porcao':"5 cuias",
-        'unidade_caseira':"Unidade3",
-        'marca': mommy.make('Marca'),
-        'protocolos': [protocolo1, protocolo3]
-    }
-    changes = changes_between(produto, validated_data)
-    assert changes['componentes'] == {'de':'Componente1, Componente2','para':'Componente3, Componente4'}
-    assert changes['info_armazenamento'] == {'de':'Guardem bem','para':'Bote na geladeira'}
-    assert changes['eh_para_alunos_com_dieta'] == {'de':True,'para':False}
-    assert changes['marca'] == {'de':produto.marca.uuid,'para':validated_data['marca'].uuid}
+def test_compara_lista_imagens(imagem_produto1, imagem_produto2):
+    anterior = [imagem_produto1, imagem_produto2]
+    proxima = [{'nome': imagem_produto1.nome}, {'nome': 'Imagem3'}]
 
-    resultado = changes['protocolos']
+    resultado = compara_lista_imagens(anterior, proxima)
 
     assert len(resultado['adicoes']) == 1
-    assert resultado['adicoes'][0] == protocolo3
+    assert resultado['adicoes'][0] == {'nome': 'Imagem3'}
 
     assert len(resultado['exclusoes']) == 1
-    assert resultado['exclusoes'][0] == protocolo2
+    assert resultado['exclusoes'][0] == imagem_produto2
+
+
+def test_changes_between(produto, protocolo1, protocolo2, protocolo3,
+                         info_nutricional1, info_nutricional2, info_nutricional3,
+                         info_nutricional_produto1, info_nutricional_produto2,
+                         imagem_produto1, imagem_produto2, marca2):
+    validated_data = {
+        'eh_para_alunos_com_dieta': False,
+        'componentes': 'Componente3, Componente4',
+        'tem_aditivos_alergenicos': False,
+        'tipo': 'Tipo1',
+        'embalagem': 'Embalagem X',
+        'prazo_validade': 'Alguns dias',
+        'info_armazenamento': 'Bote na geladeira',
+        'outras_informacoes': 'Produto do bom',
+        'numero_registro': '123123123',
+        'porcao': '5 cuias',
+        'unidade_caseira': 'Unidade3',
+        'marca': marca2,
+        'protocolos': [protocolo1, protocolo3],
+        'informacoes_nutricionais': [{
+            'informacao_nutricional': info_nutricional1,
+            'quantidade_porcao': '1',
+            'valor_diario': '9',
+        }, {
+            'informacao_nutricional': info_nutricional2,
+            'quantidade_porcao': '8',
+            'valor_diario': '4',
+        }, {
+            'informacao_nutricional': info_nutricional3,
+            'quantidade_porcao': '5',
+            'valor_diario': '6',
+        }],
+        'imagens': [{'nome': imagem_produto1.nome}, {'nome': 'Imagem3'}]
+    }
+    changes = changes_between(produto, validated_data)
+
+    assert changes['componentes'] == {'de': 'Componente1, Componente2', 'para': 'Componente3, Componente4'}
+    assert changes['info_armazenamento'] == {'de': 'Guardem bem', 'para': 'Bote na geladeira'}
+    assert changes['eh_para_alunos_com_dieta'] == {'de': True, 'para': False}
+    assert changes['marca'] == {'de': produto.marca, 'para': validated_data['marca']}
+
+    assert len(changes['protocolos']['adicoes']) == 1
+    assert changes['protocolos']['adicoes'][0] == protocolo3
+
+    assert len(changes['protocolos']['exclusoes']) == 1
+    assert changes['protocolos']['exclusoes'][0] == protocolo2
+
+    assert len(changes['informacoes_nutricionais']['adicoes']) == 1
+    adicao = changes['informacoes_nutricionais']['adicoes'][0]
+    assert adicao['informacao_nutricional'] == info_nutricional3
+    assert adicao['quantidade_porcao'] == '5'
+    assert adicao['valor_diario'] == '6'
+
+    assert len(changes['informacoes_nutricionais']['modificacoes']) == 2
+
+    modif1 = changes['informacoes_nutricionais']['modificacoes'][0]
+    assert modif1['informacao_nutricional'] == info_nutricional1
+    assert modif1['valor'] == 'valor_diario'
+    assert modif1['de'] == '2'
+    assert modif1['para'] == '9'
+
+    modif2 = changes['informacoes_nutricionais']['modificacoes'][1]
+    assert modif2['informacao_nutricional'] == info_nutricional2
+    assert modif2['valor'] == 'quantidade_porcao'
+    assert modif2['de'] == '3'
+    assert modif2['para'] == '8'
+
+    assert len(changes['imagens']['adicoes']) == 1
+    assert changes['imagens']['adicoes'][0] == {'nome': 'Imagem3'}
+
+    assert len(changes['imagens']['exclusoes']) == 1
+    assert changes['imagens']['exclusoes'][0] == imagem_produto2
+
+
+def test_mudancas_para_justificativa(info_nutricional1, info_nutricional2, info_nutricional3,
+                                     protocolo2, protocolo3, imagem_produto1, marca1, marca2,
+                                     produto):
+    mudancas = {
+        'informacoes_nutricionais': {
+            'adicoes': [
+                {
+                    'informacao_nutricional': info_nutricional1,
+                    'quantidade_porcao': '5',
+                    'valor_diario': '6'
+                }
+            ],
+            'modificacoes': [
+                {
+                    'informacao_nutricional': info_nutricional2,
+                    'valor': 'valor_diario',
+                    'de': '2',
+                    'para': '9'
+                },
+                {
+                    'informacao_nutricional': info_nutricional3,
+                    'valor': 'quantidade_porcao',
+                    'de': '3',
+                    'para': '8'
+                }
+            ]
+        },
+        'eh_para_alunos_com_dieta': {'de': True, 'para': False},
+        'marca': {'de': marca1, 'para': marca2},
+        'componentes': {'de': 'Componente1, Componente2', 'para': 'Componente3, Componente4'},
+        'info_armazenamento': {'de': 'Guardem bem', 'para': 'Bote na geladeira'},
+        'protocolos': {
+            'adicoes': [protocolo3],
+            'exclusoes': [protocolo2]
+        },
+        'imagens': {
+            'adicoes': [{'nome': 'Imagem3'}],
+            'exclusoes': [imagem_produto1]
+        }
+    }
+
+    justificativa = mudancas_para_justificativa_html(mudancas, produto._meta.get_fields())
+
+    assert len(justificativa) == 1313
