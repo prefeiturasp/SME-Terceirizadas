@@ -2,6 +2,7 @@ from rest_framework import serializers
 
 from ....dados_comuns.constants import DEZ_MB
 from ....dados_comuns.utils import convert_base64_to_contentfile, update_instance_from_dict
+from ....dados_comuns.validators import deve_ter_extensao_valida
 from ....escola.models import Escola
 from ...models import (
     AnexoReclamacaoDeProduto,
@@ -18,7 +19,6 @@ from ...models import (
     RespostaAnaliseSensorial
 )
 from ...utils import changes_between, mudancas_para_justificativa_html
-from ..validators import deve_ter_extensao_valida
 
 
 class ImagemDoProdutoSerializerCreate(serializers.ModelSerializer):
