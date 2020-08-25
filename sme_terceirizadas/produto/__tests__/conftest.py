@@ -144,3 +144,41 @@ def client_autenticado_vinculo_terceirizada_homologacao(client, django_user_mode
     homologacao_produto1.save()
     client.login(email=email, password=password)
     return client, homologacao_produto, homologacao_produto1
+
+
+@pytest.fixture
+def protocolo1():
+    return mommy.make('ProtocoloDeDietaEspecial', nome="Protocolo1")
+
+
+@pytest.fixture
+def protocolo2():
+    return mommy.make('ProtocoloDeDietaEspecial', nome="Protocolo2")
+
+
+@pytest.fixture
+def protocolo3():
+    return mommy.make('ProtocoloDeDietaEspecial', nome="Protocolo3")
+
+
+@pytest.fixture
+def produto(user, protocolo1, protocolo2):
+    return mommy.make('Produto',
+                      criado_por=user,
+                      eh_para_alunos_com_dieta=True,
+                      componentes="Componente1, Componente2",
+                      tem_aditivos_alergenicos=False,
+                      tipo="Tipo1",
+                      embalagem="Embalagem X",
+                      prazo_validade="Alguns dias",
+                      info_armazenamento="Guardem bem",
+                      outras_informacoes="Produto do bom",
+                      numero_registro="123123123",
+                      porcao="5 cuias",
+                      unidade_caseira="Unidade3",
+                      fabricante=mommy.make('Fabricante'),
+                      marca=mommy.make('Marca'),
+                      protocolos=[
+                          protocolo1,
+                          protocolo2,
+                      ])

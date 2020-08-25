@@ -110,3 +110,50 @@ class StandardResultsSetPagination(PageNumberPagination):
     page_size = 100
     page_size_query_param = 'page_size'
     max_page_size = 100
+
+
+def compara_lista_protocolos(anterior, proxima):
+    adicoes = []
+    exclusoes = []
+
+    for protocolo in anterior:
+        if protocolo not in proxima:
+            exclusoes.append(protocolo)
+
+    for protocolo in proxima:
+        if protocolo not in anterior:
+            adicoes.append(protocolo)
+
+    retorno = {}
+
+    if len(adicoes) > 0:
+        retorno['adicoes'] = adicoes
+    if len(exclusoes) > 0:
+        retorno['exclusoes'] = exclusoes
+
+    return retorno
+
+
+def changes_between(produto, validated_data):
+    changes = {}
+
+    for field in produto._meta.get_fields():
+        if field.name == 'protocolos':
+            mudancas = compara_lista_protocolos(produto.protocolos.all(), validated_data['protocolos'])
+            if mudancas.keys():
+                changes['protocolos'] = mudancas
+        elif field.is_relation:
+            key_to_search = field.name
+            if field.many_to_one and field.name in validated_data:
+                valor_original = getattr(produto, field.name).uuid
+                valor_novo = validated_data[field.name].uuid
+                if valor_original != valor_novo:
+                    changes[field.name] = {'de':valor_original,'para':valor_novo}
+        else:
+            if field.name in validated_data:
+                valor_original = getattr(produto, field.name)
+                valor_novo = validated_data[field.name]
+                if valor_original != valor_novo:
+                    changes[field.name] = {'de':valor_original,'para':valor_novo}
+
+    return changes
