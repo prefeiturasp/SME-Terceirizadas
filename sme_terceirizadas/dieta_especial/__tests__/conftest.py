@@ -11,6 +11,7 @@ from ...dados_comuns.models import TemplateMensagem
 from ...dados_comuns.utils import convert_base64_to_contentfile
 from ...escola.models import Aluno
 from ...perfil.models import Usuario
+from ...produto.models import Produto
 from ..models import AlergiaIntolerancia, Alimento, Anexo, ClassificacaoDieta, MotivoNegacao, SolicitacaoDietaEspecial
 
 fake = Faker('pt_BR')
@@ -117,14 +118,20 @@ def alimentos():
 
 
 @pytest.fixture
-def substituicoes(alimentos):
+def produtos():
+    mommy.make(Produto, _quantity=6)
+    return Produto.objects.all()
+
+
+@pytest.fixture
+def substituicoes(alimentos, produtos):
     substituicoes = []
-    ids_alimentos = [a.id for a in alimentos]
+    ids_produtos = [p.id for p in produtos]
     for _ in range(randint(3, 5)):
         substituicoes.append({
             'alimento': alimentos[randint(0, len(alimentos) - 1)].id,
             'tipo': 'I' if randint(0, 1) == 1 else 'S',
-            'substitutos': sample(ids_alimentos, randint(1, 4))
+            'substitutos': sample(ids_produtos, randint(1, 4))
         })
     return substituicoes
 
