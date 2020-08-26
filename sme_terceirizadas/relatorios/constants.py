@@ -73,12 +73,6 @@ FLUXO_DIETA_ESPECIAL = [
         'status': '',
         'criado_em': '',
         'usuario': None
-    },
-    {
-        'titulo': 'Terceirizada',
-        'status': '',
-        'criado_em': '',
-        'usuario': None
     }
 ]
 
