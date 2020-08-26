@@ -4,11 +4,11 @@ from rest_framework import serializers
 
 from ...dados_comuns.constants import DEZ_MB
 from ...dados_comuns.utils import convert_base64_to_contentfile, convert_date_format, size
-from ...dados_comuns.validators import deve_ser_no_passado
+from ...dados_comuns.validators import deve_ser_no_passado, deve_ter_extensao_valida
 from ...escola.models import Aluno
 from ...produto.models import Produto
 from ..models import Anexo, SolicitacaoDietaEspecial, SubstituicaoAlimento
-from .validators import AlunoSerializerValidator, deve_ter_extensao_valida
+from .validators import AlunoSerializerValidator
 
 
 class AnexoCreateSerializer(serializers.ModelSerializer):

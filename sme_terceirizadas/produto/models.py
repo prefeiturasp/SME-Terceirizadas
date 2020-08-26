@@ -77,7 +77,7 @@ class ImagemDoProduto(TemChaveExterna):
 
 
 class Produto(Ativavel, CriadoEm, CriadoPor, Nomeavel, TemChaveExterna, TemIdentificadorExternoAmigavel):
-    eh_para_alunos_com_dieta = models.BooleanField(default=False)
+    eh_para_alunos_com_dieta = models.BooleanField('É para alunos com dieta especial', default=False)
 
     protocolos = models.ManyToManyField(ProtocoloDeDietaEspecial,
                                         related_name='protocolos',
@@ -89,15 +89,15 @@ class Produto(Ativavel, CriadoEm, CriadoPor, Nomeavel, TemChaveExterna, TemIdent
     fabricante = models.ForeignKey(Fabricante, on_delete=models.DO_NOTHING)
     componentes = models.CharField('Componentes do Produto', blank=True, max_length=500)
 
-    tem_aditivos_alergenicos = models.BooleanField(default=False)
-    aditivos = models.TextField(blank=True)
+    tem_aditivos_alergenicos = models.BooleanField('Tem aditivos alergênicos', default=False)
+    aditivos = models.TextField('Aditivos', blank=True)
 
     tipo = models.CharField('Tipo do Produto', blank=True, max_length=250)
     embalagem = models.CharField('Embalagem Primária', blank=True, max_length=100)
     prazo_validade = models.CharField('Prazo de validade', blank=True, max_length=100)
     info_armazenamento = models.CharField('Informações de Armazenamento',
                                           blank=True, max_length=500)
-    outras_informacoes = models.TextField(blank=True)
+    outras_informacoes = models.TextField('Outras Informações', blank=True)
     numero_registro = models.CharField('Registro do órgão competente', blank=True, max_length=100)
 
     porcao = models.CharField('Porção nutricional', blank=True, max_length=50)

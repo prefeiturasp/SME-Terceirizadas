@@ -79,3 +79,9 @@ def deve_ser_no_mesmo_ano_corrente(data_inversao: datetime.date):
             'Inversão de dia de cardapio deve ser solicitada no ano corrente'
         )
     return True
+
+
+def deve_ter_extensao_valida(nome: str):
+    if nome.split('.')[len(nome.split('.')) - 1].lower() not in ['doc', 'docx', 'pdf', 'png', 'jpg', 'jpeg']:
+        raise serializers.ValidationError('Extensão inválida')
+    return nome

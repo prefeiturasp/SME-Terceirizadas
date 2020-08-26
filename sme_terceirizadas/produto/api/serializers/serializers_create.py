@@ -2,6 +2,7 @@ from rest_framework import serializers
 
 from ....dados_comuns.constants import DEZ_MB
 from ....dados_comuns.utils import convert_base64_to_contentfile, update_instance_from_dict
+from ....dados_comuns.validators import deve_ter_extensao_valida
 from ....dieta_especial.models import SolicitacaoDietaEspecial
 from ....escola.models import Aluno, Escola
 from ....terceirizada.models import Terceirizada
@@ -20,7 +21,7 @@ from ...models import (
     RespostaAnaliseSensorial,
     SolicitacaoCadastroProdutoDieta
 )
-from ..validators import deve_ter_extensao_valida
+from ...utils import changes_between, mudancas_para_justificativa_html
 
 
 class ImagemDoProdutoSerializerCreate(serializers.ModelSerializer):
@@ -112,6 +113,8 @@ class ProdutoSerializerCreate(serializers.ModelSerializer):
         return produto
 
     def update(self, instance, validated_data):  # noqa C901
+        mudancas = changes_between(instance, validated_data)
+        justificativa = mudancas_para_justificativa_html(mudancas, instance._meta.get_fields())
         imagens = validated_data.pop('imagens', [])
         protocolos = validated_data.pop('protocolos', [])
         informacoes_nutricionais = validated_data.pop('informacoes_nutricionais', [])
@@ -150,10 +153,10 @@ class ProdutoSerializerCreate(serializers.ModelSerializer):
                 criado_por=usuario
             )
             homologacao.save()
-            homologacao.inicia_fluxo(user=usuario)
+            homologacao.inicia_fluxo(user=usuario, justificativa=justificativa)
         if validated_data.get('cadastro_finalizado', False):
             homologacao = instance.homologacoes.first()
-            homologacao.inicia_fluxo(user=usuario)
+            homologacao.inicia_fluxo(user=usuario, justificativa=justificativa)
         return instance
 
     class Meta:
