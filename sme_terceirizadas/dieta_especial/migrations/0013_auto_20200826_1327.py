@@ -7,6 +7,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('dieta_especial', '0012_auto_20200423_1505'),
+        ('produto', '__first__'),
     ]
 
     operations = [
