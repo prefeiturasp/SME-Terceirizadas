@@ -2,7 +2,9 @@ from rest_framework import serializers
 
 from ....dados_comuns.constants import DEZ_MB
 from ....dados_comuns.utils import convert_base64_to_contentfile, update_instance_from_dict
-from ....escola.models import Escola
+from ....dieta_especial.models import SolicitacaoDietaEspecial
+from ....escola.models import Aluno, Escola
+from ....terceirizada.models import Terceirizada
 from ...models import (
     AnexoReclamacaoDeProduto,
     AnexoRespostaAnaliseSensorial,
@@ -15,7 +17,8 @@ from ...models import (
     Produto,
     ProtocoloDeDietaEspecial,
     ReclamacaoDeProduto,
-    RespostaAnaliseSensorial
+    RespostaAnaliseSensorial,
+    SolicitacaoCadastroProdutoDieta
 )
 from ..validators import deve_ter_extensao_valida
 
@@ -218,3 +221,38 @@ class RespostaAnaliseSensorialSearilzerCreate(serializers.ModelSerializer):
     class Meta:
         model = RespostaAnaliseSensorial
         exclude = ('id', 'uuid', 'criado_por', 'criado_em')
+
+
+class SolicitacaoCadastroProdutoDietaSerializerCreate(serializers.ModelSerializer):
+
+    aluno = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=Aluno.objects.all()
+    )
+    escola = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=Escola.objects.all()
+    )
+    terceirizada = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=Terceirizada.objects.all()
+    )
+
+    solicitacao_dieta_especial = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=SolicitacaoDietaEspecial.objects.all()
+    )
+
+    class Meta:
+        model = SolicitacaoCadastroProdutoDieta
+        exclude = ('id', 'uuid', 'criado_por', 'criado_em')
+
+    def create(self, validated_data):
+        usuario = self.context['request'].user
+        solicitacao = SolicitacaoCadastroProdutoDieta.objects.create(**validated_data, criado_por=usuario)
+        solicitacao._envia_email_solicitacao_realizada()
+        return solicitacao

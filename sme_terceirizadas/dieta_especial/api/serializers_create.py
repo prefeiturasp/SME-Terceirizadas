@@ -6,6 +6,7 @@ from ...dados_comuns.constants import DEZ_MB
 from ...dados_comuns.utils import convert_base64_to_contentfile, convert_date_format, size
 from ...dados_comuns.validators import deve_ser_no_passado
 from ...escola.models import Aluno
+from ...produto.models import Produto
 from ..models import Anexo, SolicitacaoDietaEspecial, SubstituicaoAlimento
 from .validators import AlunoSerializerValidator, deve_ter_extensao_valida
 
@@ -24,6 +25,13 @@ class AnexoCreateSerializer(serializers.ModelSerializer):
 
 
 class SubstituicaoAlimentoCreateSerializer(serializers.ModelSerializer):
+    substitutos = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=Produto.objects.all(),
+        many=True
+    )
+
     class Meta:
         model = SubstituicaoAlimento
         fields = '__all__'

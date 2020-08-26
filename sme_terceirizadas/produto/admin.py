@@ -11,6 +11,7 @@ from .models import (
     ProtocoloDeDietaEspecial,
     ReclamacaoDeProduto,
     RespostaAnaliseSensorial,
+    SolicitacaoCadastroProdutoDieta,
     TipoDeInformacaoNutricional
 )
 
@@ -22,6 +23,7 @@ admin.site.register(ReclamacaoDeProduto)
 admin.site.register(RespostaAnaliseSensorial)
 admin.site.register(TipoDeInformacaoNutricional)
 admin.site.register(HomologacaoDoProduto)
+admin.site.register(SolicitacaoCadastroProdutoDieta)
 
 
 class InformacoesNutricionaisDoProdutoInline(admin.TabularInline):
