@@ -12,7 +12,12 @@ from ..dados_comuns.behaviors import (
     TemChaveExterna,
     TemIdentificadorExternoAmigavel
 )
-from ..dados_comuns.fluxo_status import FluxoHomologacaoProduto, FluxoReclamacaoProduto, HomologacaoProdutoWorkflow
+from ..dados_comuns.fluxo_status import (
+    FluxoHomologacaoProduto,
+    FluxoReclamacaoProduto,
+    FluxoSolicitacaoCadastroProduto,
+    HomologacaoProdutoWorkflow
+)
 from ..dados_comuns.models import AnexoLogSolicitacoesUsuario, LogSolicitacoesUsuario, TemplateMensagem
 from ..dados_comuns.utils import convert_base64_to_contentfile
 from ..escola.models import Escola
@@ -20,7 +25,9 @@ from ..escola.models import Escola
 MAX_NUMERO_PROTOCOLO = 6
 
 
-class ProtocoloDeDietaEspecial(Ativavel, CriadoEm, CriadoPor, Nomeavel, TemChaveExterna):
+class ProtocoloDeDietaEspecial(Ativavel, CriadoEm, CriadoPor, TemChaveExterna):
+
+    nome = models.CharField('Nome', blank=True, max_length=100, unique=True)
 
     def __str__(self):
         return self.nome
@@ -322,3 +329,23 @@ class AnexoRespostaAnaliseSensorial(TemChaveExterna):
 
     def __str__(self):
         return f'Anexo {self.uuid} - {self.nome}'
+
+
+class SolicitacaoCadastroProdutoDieta(FluxoSolicitacaoCadastroProduto, TemChaveExterna,
+                                      TemIdentificadorExternoAmigavel, CriadoEm,
+                                      CriadoPor):
+    solicitacao_dieta_especial = models.ForeignKey('dieta_especial.SolicitacaoDietaEspecial', on_delete=models.CASCADE,
+                                                   related_name='solicitacoes_cadastro_produto')
+    aluno = models.ForeignKey('escola.Aluno', on_delete=models.CASCADE,
+                              related_name='solicitacoes_cadastro_produto', null=True)
+    escola = models.ForeignKey('escola.Escola', on_delete=models.CASCADE,
+                               related_name='solicitacoes_cadastro_produto', null=True)
+    terceirizada = models.ForeignKey('terceirizada.Terceirizada', on_delete=models.CASCADE,
+                                     related_name='solicitacoes_cadastro_produto', null=True)
+    nome_produto = models.CharField(max_length=150)
+    marca_produto = models.CharField(max_length=150, blank=True)
+    fabricante_produto = models.CharField(max_length=150, blank=True)
+    info_produto = models.TextField()
+
+    def __str__(self):
+        return f'Solicitacao cadastro produto {self.nome_produto}'

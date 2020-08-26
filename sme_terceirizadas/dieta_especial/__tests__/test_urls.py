@@ -296,7 +296,7 @@ def test_url_atualizar_dieta(client_autenticado_vinculo_escola,  # noqa C901
         assert obj.alimento.id == substituicao['alimento']
         assert obj.tipo == substituicao['tipo']
         for obj_substituto in obj.substitutos.all():
-            assert obj_substituto.id in substituicao['substitutos']
+            assert obj_substituto.uuid in substituicao['substitutos']
 
 
 def test_url_endpoint_autorizar_dieta(client_autenticado_vinculo_codae_dieta,
@@ -337,7 +337,7 @@ def test_url_endpoint_autorizar_dieta(client_autenticado_vinculo_codae_dieta,
         assert obj.alimento.id == substituicao['alimento']
         assert obj.tipo == substituicao['tipo']
         for obj_substituto in obj.substitutos.all():
-            assert obj_substituto.id in substituicao['substitutos']
+            assert obj_substituto.uuid in substituicao['substitutos']
 
 
 def test_url_endpoint_autorizar_dieta_gestao_alimentacao(client_autenticado_vinculo_codae_gestao_alimentacao_dieta,

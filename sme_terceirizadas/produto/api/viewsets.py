@@ -32,7 +32,8 @@ from ..models import (
     Produto,
     ProtocoloDeDietaEspecial,
     ReclamacaoDeProduto,
-    RespostaAnaliseSensorial
+    RespostaAnaliseSensorial,
+    SolicitacaoCadastroProdutoDieta
 )
 from ..utils import (
     StandardResultsSetPagination,
@@ -66,7 +67,8 @@ from .serializers.serializers import (
 from .serializers.serializers_create import (
     ProdutoSerializerCreate,
     ReclamacaoDeProdutoSerializerCreate,
-    RespostaAnaliseSensorialSearilzerCreate
+    RespostaAnaliseSensorialSearilzerCreate,
+    SolicitacaoCadastroProdutoDietaSerializerCreate
 )
 
 
@@ -575,6 +577,13 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         response = {'results': ProdutoSimplesSerializer(query_set, many=True).data}
         return Response(response)
 
+    @action(detail=False, methods=['GET'], url_path='lista-nomes-homologados')
+    def lista_produtos_homologados(self, request):
+        status = 'CODAE_HOMOLOGADO'
+        query_set = Produto.objects.filter(ativo=True, homologacoes__status=status)
+        response = {'results': ProdutoSimplesSerializer(query_set, many=True).data}
+        return Response(response)
+
     @action(detail=False,
             methods=['GET'],
             url_path='filtro-por-nome/(?P<produto_nome>[^/.]+)')
@@ -1018,3 +1027,11 @@ class ReclamacaoProdutoViewSet(viewsets.ModelViewSet):
                 request=request
             )
         return resposta
+
+
+class SolicitacaoCadastroProdutoDietaViewSet(viewsets.ModelViewSet):
+    lookup_field = 'uuid'
+    queryset = SolicitacaoCadastroProdutoDieta.objects.all()
+
+    def get_serializer_class(self):
+        return SolicitacaoCadastroProdutoDietaSerializerCreate

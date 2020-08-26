@@ -176,4 +176,4 @@ class SubstituicaoAlimento(models.Model):
     solicitacao_dieta_especial = models.ForeignKey(SolicitacaoDietaEspecial, on_delete=models.PROTECT)
     alimento = models.ForeignKey(Alimento, on_delete=models.PROTECT, blank=True, null=True)
     tipo = models.CharField(max_length=1, choices=TIPO_CHOICES, blank=True)
-    substitutos = models.ManyToManyField(Alimento, related_name='substitutos')
+    substitutos = models.ManyToManyField('produto.Produto', related_name='substitutos', blank=True)

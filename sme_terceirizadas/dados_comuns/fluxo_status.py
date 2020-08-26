@@ -1526,3 +1526,58 @@ class FluxoReclamacaoProduto(xwf_models.WorkflowEnabled, models.Model):
 
     class Meta:
         abstract = True
+
+
+class SolicitacaoCadastroProdutoWorkflow(xwf_models.Workflow):
+    log_model = ''  # Disable logging to database
+
+    SOLICITACAO_REALIZADA = 'SOLICITACAO_REALIZADA'  # INICIO
+    SOLICITACAO_ATENDIDA = 'SOLICITACAO_ATENDIDA'
+
+    states = (
+        (SOLICITACAO_REALIZADA, 'Solicitacão realizada'),
+        (SOLICITACAO_ATENDIDA, 'Solicitacão atendida'),
+    )
+
+    transitions = (
+        ('terceirizada_atende_solicitacao', SOLICITACAO_REALIZADA, SOLICITACAO_ATENDIDA),
+    )
+
+    initial_state = SOLICITACAO_REALIZADA
+
+
+class FluxoSolicitacaoCadastroProduto(xwf_models.WorkflowEnabled, models.Model):
+    workflow_class = SolicitacaoCadastroProdutoWorkflow
+    status = xwf_models.StateField(workflow_class)
+
+    def _partes_interessadas_solicitacao_cadastro_produto(self):
+        queryset = Usuario.objects.filter(
+            vinculos__ativo=True,
+            vinculos__perfil__nome__in=[
+                'ADMINISTRADOR_GESTAO_PRODUTO',
+                'COORDENADOR_GESTAO_PRODUTO',
+                'COORDENADOR_DIETA_ESPECIAL']
+        )
+        return [usuario.email for usuario in queryset]
+
+    def _envia_email_solicitacao_realizada(self):
+
+        html = render_to_string(
+            template_name='dieta_especial_solicitou_cadastro_produto.html',
+            context={
+                'titulo': 'Solicitação de cadastro de novo produto realizada',
+                'solicitacao': self
+            }
+        )
+
+        assunto = '[SIGPAE] Solicitação de cadastro de novo produto realizada'
+        emails = self._partes_interessadas_solicitacao_cadastro_produto()
+        emails.append(self.terceirizada.contatos.last().email)
+        corpo = ''
+
+        envia_email_em_massa_task.delay(
+            assunto=assunto,
+            emails=emails,
+            corpo=corpo,
+            html=html
+        )
