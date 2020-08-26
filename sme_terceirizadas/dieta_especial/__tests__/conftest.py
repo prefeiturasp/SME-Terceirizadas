@@ -126,7 +126,7 @@ def produtos():
 @pytest.fixture
 def substituicoes(alimentos, produtos):
     substituicoes = []
-    ids_produtos = [p.id for p in produtos]
+    ids_produtos = [p.uuid for p in produtos]
     for _ in range(randint(3, 5)):
         substituicoes.append({
             'alimento': alimentos[randint(0, len(alimentos) - 1)].id,
