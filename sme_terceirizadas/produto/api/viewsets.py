@@ -1,6 +1,7 @@
 import json
 from datetime import datetime, timedelta
 
+from django_filters import rest_framework as filters
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
@@ -62,7 +63,8 @@ from .serializers.serializers import (
     ProtocoloDeDietaEspecialSerializer,
     ProtocoloSimplesSerializer,
     ReclamacaoDeProdutoSerializer,
-    ReclamacaoDeProdutoSimplesSerializer
+    ReclamacaoDeProdutoSimplesSerializer,
+    SolicitacaoCadastroProdutoDietaSerializer
 )
 from .serializers.serializers_create import (
     ProdutoSerializerCreate,
@@ -1029,9 +1031,28 @@ class ReclamacaoProdutoViewSet(viewsets.ModelViewSet):
         return resposta
 
 
+class SolicitacaoCadastroProdutoDietaFilter(filters.FilterSet):
+    nome_produto = filters.CharFilter(field_name='nome_produto', lookup_expr='icontains')
+    data_inicial = filters.DateFilter(field_name='criado_em', lookup_expr='gte')
+    data_final = filters.DateFilter(field_name='criado_em', lookup_expr='lte')
+    status = filters.CharFilter(field_name='status')
+
+    class Meta:
+        model = SolicitacaoCadastroProdutoDieta
+        fields = ['nome_produto', 'data_inicial', 'data_final', 'status']
+
+
 class SolicitacaoCadastroProdutoDietaViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
     queryset = SolicitacaoCadastroProdutoDieta.objects.all()
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = SolicitacaoCadastroProdutoDietaFilter
 
     def get_serializer_class(self):
-        return SolicitacaoCadastroProdutoDietaSerializerCreate
+        if self.action in ['create', 'update', 'partial_update']:
+            return SolicitacaoCadastroProdutoDietaSerializerCreate
+        return SolicitacaoCadastroProdutoDietaSerializer
+
+    @action(detail=False, methods=['GET'], url_path='nomes-produtos')
+    def nomes_produtos(self, request):
+        return Response([s.nome_produto for s in SolicitacaoCadastroProdutoDieta.objects.only('nome_produto')])
