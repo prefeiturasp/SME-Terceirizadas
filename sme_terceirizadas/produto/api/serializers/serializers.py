@@ -8,6 +8,7 @@ from ....dados_comuns.api.serializers import (
     LogSolicitacoesUsuarioSerializer
 )
 from ....dados_comuns.fluxo_status import ReclamacaoProdutoWorkflow
+from ....dados_comuns.validators import objeto_nao_deve_ter_duplicidade
 from ....escola.api.serializers import EscolaSimplissimaSerializer
 from ....terceirizada.api.serializers.serializers import TerceirizadaSimplesSerializer
 from ...models import (
@@ -40,6 +41,15 @@ class MarcaSerializer(serializers.ModelSerializer):
 
 
 class ProtocoloDeDietaEspecialSerializer(serializers.ModelSerializer):
+    nome = serializers.CharField()
+
+    def validate_nome(self, nome):
+        filtro = {'nome__iexact': nome}
+        objeto_nao_deve_ter_duplicidade(ProtocoloDeDietaEspecial,
+                                        'Protocolo de Dieta Especial com este Nome já existe.',
+                                        **filtro)
+        return nome
+
     class Meta:
         model = ProtocoloDeDietaEspecial
         exclude = ('id', 'ativo', 'criado_em', 'criado_por',)
