@@ -8,7 +8,7 @@
   <br>
   <br/>
   <p style="text-align: left">
-  <b>Dados empresa terceirizada</b>
+  <b>Dados da empresa terceirizada</b>
   <br/>
   Nome: {{solicitacao.terceirizada.nome_fantasia}}
   <br/>
@@ -18,7 +18,7 @@
   </p>
 
   <p style="text-align: left">
-  <b>Dados Escola</b>
+  <b>Dados da Escola</b>
   <br/>
   Nome: {{solicitacao.escola.nome}}
   <br/>
@@ -36,12 +36,22 @@
   </p>
 
   <p style="text-align: left">
-  <b>Dados Aluno</b>
+  <b>Dados do Aluno</b>
   <br/>
   Código EOL: {{solicitacao.aluno.codigo_eol}}
   <br/>
   Nome: {{solicitacao.aluno.nome}}
   <br/>
   Data de nascimento: {{solicitacao.aluno.data_nascimento}}
+  </p>
+
+  <p style="text-align: left">
+  <b>Dados do Produto</b>
+  <br/>
+  Nome: {{solicitacao.nome_produto}}
+  <br/>
+  Marca: {{solicitacao.marca_produto}}
+  <br/>
+  Fabricante: {{solicitacao.fabricante_produto}}s
   </p>
 {% endblock %}
