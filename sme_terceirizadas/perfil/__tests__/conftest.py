@@ -125,7 +125,7 @@ def users_admin_escola(client, django_user_model, request):
     client.login(email=email, password=password)
 
     diretoria_regional = mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL IPIRANGA',
-                                    uuid='7da9acec-48e1-430c-8a5c-1f1efc666fad')
+                                    uuid='7da9acec-48e1-430c-8a5c-1f1efc666fad', codigo_eol=987656)
     cardapio1 = mommy.make('cardapio.Cardapio', data=datetime.date(2019, 10, 11))
     cardapio2 = mommy.make('cardapio.Cardapio', data=datetime.date(2019, 10, 15))
     tipo_unidade_escolar = mommy.make('escola.TipoUnidadeEscolar',
@@ -165,7 +165,7 @@ def users_diretor_escola(client, django_user_model, request, usuario_2):
     client.login(email=email, password=password)
 
     diretoria_regional = mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL IPIRANGA',
-                                    uuid='7da9acec-48e1-430c-8a5c-1f1efc666fad')
+                                    uuid='7da9acec-48e1-430c-8a5c-1f1efc666fad', codigo_eol=987656)
     cardapio1 = mommy.make('cardapio.Cardapio', data=datetime.date(2019, 10, 11))
     cardapio2 = mommy.make('cardapio.Cardapio', data=datetime.date(2019, 10, 15))
     tipo_unidade_escolar = mommy.make('escola.TipoUnidadeEscolar',
@@ -323,7 +323,7 @@ def usuarios_pendentes_confirmacao(request, perfil):
     hoje = datetime.date.today()
 
     diretoria_regional = mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL IPIRANGA',
-                                    uuid='7da9acec-48e1-430c-8a5c-1f1efc666fad')
+                                    uuid='7da9acec-48e1-430c-8a5c-1f1efc666fad', codigo_eol=987656)
     cardapio1 = mommy.make('cardapio.Cardapio', data=datetime.date(2019, 10, 11))
     cardapio2 = mommy.make('cardapio.Cardapio', data=datetime.date(2019, 10, 15))
     tipo_unidade_escolar = mommy.make('escola.TipoUnidadeEscolar',

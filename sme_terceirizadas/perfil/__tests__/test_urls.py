@@ -83,8 +83,6 @@ def test_get_meus_dados_admin_escola(users_admin_escola):
     response.json().get('vinculo_atual').pop('uuid')
     assert json['registro_funcional'] == rf
     assert json['tipo_usuario'] == 'escola'
-    #  Solução temporária por erro na API do EOL
-    json.get('vinculo_atual').get('instituicao').get('diretoria_regional').pop('codigo_eol')
     assert json['vinculo_atual'] == {
         'instituicao': {
             'nome': 'EMEI NOE AZEVEDO, PROF',
@@ -98,7 +96,8 @@ def test_get_meus_dados_admin_escola(users_admin_escola):
             ],
             'escolas': [],
             'diretoria_regional': {'uuid': '7da9acec-48e1-430c-8a5c-1f1efc666fad',
-                                   'nome': 'DIRETORIA REGIONAL IPIRANGA'},
+                                   'nome': 'DIRETORIA REGIONAL IPIRANGA',
+                                   'codigo_eol': '987656'},
             'tipo_unidade_escolar': '56725de5-89d3-4edf-8633-3e0b5c99e9d4'
         },
         'perfil': {'nome': 'Admin', 'uuid': 'd6fd15cc-52c6-4db4-b604-018d22eeb3dd'}}
@@ -117,8 +116,6 @@ def test_get_meus_dados_diretor_escola(users_diretor_escola):
     assert json['email'] == email
     assert json['registro_funcional'] == rf
     assert json['tipo_usuario'] == 'escola'
-    #  Solução temporária por erro na API do EOL
-    json.get('vinculo_atual').get('instituicao').get('diretoria_regional').pop('codigo_eol')
     assert json['vinculo_atual'] == {
         'instituicao': {
             'nome': 'EMEI NOE AZEVEDO, PROF',
@@ -132,7 +129,8 @@ def test_get_meus_dados_diretor_escola(users_diretor_escola):
             ],
             'escolas': [],
             'diretoria_regional': {'uuid': '7da9acec-48e1-430c-8a5c-1f1efc666fad',
-                                   'nome': 'DIRETORIA REGIONAL IPIRANGA'},
+                                   'nome': 'DIRETORIA REGIONAL IPIRANGA',
+                                   'codigo_eol': '987656'},
             'tipo_unidade_escolar': '56725de5-89d3-4edf-8633-3e0b5c99e9d4'
         },
         'perfil': {'nome': 'DIRETOR', 'uuid': '41c20c8b-7e57-41ed-9433-ccb92e8afaf1'}}
@@ -157,8 +155,6 @@ def test_cadastro_vinculo_diretor_escola(users_diretor_escola, monkeypatch):
     assert response.status_code == status.HTTP_200_OK
     response.json().pop('date_joined')
     response.json().get('vinculo_atual').pop('uuid')
-    #  Solução temporária por erro na API do EOL
-    response.json().get('vinculo_atual').get('instituicao').get('diretoria_regional').pop('codigo_eol')
     response.json().pop('uuid')
     assert response.json() == {
         'cpf': '95887745002',
@@ -183,7 +179,8 @@ def test_cadastro_vinculo_diretor_escola(users_diretor_escola, monkeypatch):
                 'escolas': [],
                 'diretoria_regional': {
                     'uuid': '7da9acec-48e1-430c-8a5c-1f1efc666fad',
-                    'nome': 'DIRETORIA REGIONAL IPIRANGA'
+                    'nome': 'DIRETORIA REGIONAL IPIRANGA',
+                    'codigo_eol': '987656'
                 },
                 'tipo_unidade_escolar': '56725de5-89d3-4edf-8633-3e0b5c99e9d4'
             },
@@ -564,8 +561,6 @@ def test_cadastro_diretor(client, users_diretor_escola, monkeypatch):
     assert json['registro_funcional'] == rf
     response.json().get('vinculo_atual').pop('uuid')
     assert json['tipo_usuario'] == 'escola'
-    #  Solução temporária por erro na API do EOL
-    json.get('vinculo_atual').get('instituicao').get('diretoria_regional').pop('codigo_eol')
     assert json['vinculo_atual'] == {
         'instituicao': {
             'nome': 'EMEI NOE AZEVEDO, PROF',
@@ -579,7 +574,8 @@ def test_cadastro_diretor(client, users_diretor_escola, monkeypatch):
             ],
             'escolas': [],
             'diretoria_regional': {'uuid': '7da9acec-48e1-430c-8a5c-1f1efc666fad',
-                                   'nome': 'DIRETORIA REGIONAL IPIRANGA'},
+                                   'nome': 'DIRETORIA REGIONAL IPIRANGA',
+                                   'codigo_eol': '987656'},
             'tipo_unidade_escolar': '56725de5-89d3-4edf-8633-3e0b5c99e9d4'
         },
         'perfil': {'nome': 'DIRETOR', 'uuid': '41c20c8b-7e57-41ed-9433-ccb92e8afaf1'}}
@@ -611,8 +607,6 @@ def test_confirmar_email(client, usuarios_pendentes_confirmacao):
     assert len(json.keys()) == len(keys)
     json.pop('date_joined')
     json.get('vinculo_atual').pop('uuid')
-    #  Solução temporária por erro na API do EOL
-    json.get('vinculo_atual').get('instituicao').get('diretoria_regional').pop('codigo_eol')
     assert json == {
         'cpf': usuario.cpf,
         'uuid': usuario.uuid,
@@ -634,7 +628,8 @@ def test_confirmar_email(client, usuarios_pendentes_confirmacao):
                 'escolas': [],
                 'diretoria_regional': {
                     'uuid': '7da9acec-48e1-430c-8a5c-1f1efc666fad',
-                    'nome': 'DIRETORIA REGIONAL IPIRANGA'
+                    'nome': 'DIRETORIA REGIONAL IPIRANGA',
+                    'codigo_eol': '987656'
                 },
                 'tipo_unidade_escolar': '56725de5-89d3-4edf-8633-3e0b5c99e9d4'
             },
