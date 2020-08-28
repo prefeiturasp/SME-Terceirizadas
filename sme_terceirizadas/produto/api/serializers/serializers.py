@@ -9,6 +9,7 @@ from ....dados_comuns.api.serializers import (
     LogSolicitacoesUsuarioSerializer
 )
 from ....dados_comuns.fluxo_status import ReclamacaoProdutoWorkflow
+from ....dados_comuns.validators import objeto_nao_deve_ter_duplicidade
 from ....escola.api.serializers import (
     AlunoSimplesSerializer,
     DiretoriaRegionalSimplissimaSerializer,

@@ -83,6 +83,8 @@ def test_get_meus_dados_admin_escola(users_admin_escola):
     response.json().get('vinculo_atual').pop('uuid')
     assert json['registro_funcional'] == rf
     assert json['tipo_usuario'] == 'escola'
+    #  Solução temporária por erro na API do EOL
+    json.get('vinculo_atual').get('instituicao').get('diretoria_regional').pop('codigo_eol')
     assert json['vinculo_atual'] == {
         'instituicao': {
             'nome': 'EMEI NOE AZEVEDO, PROF',
@@ -115,6 +117,8 @@ def test_get_meus_dados_diretor_escola(users_diretor_escola):
     assert json['email'] == email
     assert json['registro_funcional'] == rf
     assert json['tipo_usuario'] == 'escola'
+    #  Solução temporária por erro na API do EOL
+    json.get('vinculo_atual').get('instituicao').get('diretoria_regional').pop('codigo_eol')
     assert json['vinculo_atual'] == {
         'instituicao': {
             'nome': 'EMEI NOE AZEVEDO, PROF',
@@ -153,6 +157,8 @@ def test_cadastro_vinculo_diretor_escola(users_diretor_escola, monkeypatch):
     assert response.status_code == status.HTTP_200_OK
     response.json().pop('date_joined')
     response.json().get('vinculo_atual').pop('uuid')
+    #  Solução temporária por erro na API do EOL
+    response.json().get('vinculo_atual').get('instituicao').get('diretoria_regional').pop('codigo_eol')
     response.json().pop('uuid')
     assert response.json() == {
         'cpf': '95887745002',
@@ -558,6 +564,8 @@ def test_cadastro_diretor(client, users_diretor_escola, monkeypatch):
     assert json['registro_funcional'] == rf
     response.json().get('vinculo_atual').pop('uuid')
     assert json['tipo_usuario'] == 'escola'
+    #  Solução temporária por erro na API do EOL
+    json.get('vinculo_atual').get('instituicao').get('diretoria_regional').pop('codigo_eol')
     assert json['vinculo_atual'] == {
         'instituicao': {
             'nome': 'EMEI NOE AZEVEDO, PROF',
@@ -603,6 +611,8 @@ def test_confirmar_email(client, usuarios_pendentes_confirmacao):
     assert len(json.keys()) == len(keys)
     json.pop('date_joined')
     json.get('vinculo_atual').pop('uuid')
+    #  Solução temporária por erro na API do EOL
+    json.get('vinculo_atual').get('instituicao').get('diretoria_regional').pop('codigo_eol')
     assert json == {
         'cpf': usuario.cpf,
         'uuid': usuario.uuid,
