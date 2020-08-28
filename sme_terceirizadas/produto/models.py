@@ -346,6 +346,8 @@ class SolicitacaoCadastroProdutoDieta(FluxoSolicitacaoCadastroProduto, TemChaveE
     marca_produto = models.CharField(max_length=150, blank=True)
     fabricante_produto = models.CharField(max_length=150, blank=True)
     info_produto = models.TextField()
+    data_previsao_cadastro = models.DateField(null=True)
+    justificativa_previsao_cadastro = models.TextField(blank=True)
 
     def __str__(self):
         return f'Solicitacao cadastro produto {self.nome_produto}'

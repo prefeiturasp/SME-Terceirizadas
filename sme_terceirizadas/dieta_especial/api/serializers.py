@@ -151,7 +151,7 @@ class SolicitacaoDietaEspecialSerializer(serializers.ModelSerializer):
 
     def get_tem_solicitacao_cadastro_produto(self, obj):
         return SolicitacaoCadastroProdutoDieta.objects.filter(solicitacao_dieta_especial=obj,
-                                                              status='SOLICITACAO_REALIZADA').exists()
+                                                              status='AGUARDANDO_CONFIRMACAO').exists()
 
     class Meta:
         model = SolicitacaoDietaEspecial

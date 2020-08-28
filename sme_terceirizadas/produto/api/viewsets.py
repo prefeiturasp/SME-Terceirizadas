@@ -1,12 +1,14 @@
 import json
 from datetime import datetime, timedelta
 
+from django.db import transaction
 from django_filters import rest_framework as filters
-from rest_framework import mixins, status, viewsets
+from rest_framework import mixins, serializers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
+from rest_framework.status import HTTP_400_BAD_REQUEST
 from xworkflows import InvalidTransitionError
 
 from ...dados_comuns import constants
@@ -1033,8 +1035,8 @@ class ReclamacaoProdutoViewSet(viewsets.ModelViewSet):
 
 class SolicitacaoCadastroProdutoDietaFilter(filters.FilterSet):
     nome_produto = filters.CharFilter(field_name='nome_produto', lookup_expr='icontains')
-    data_inicial = filters.DateFilter(field_name='criado_em', lookup_expr='gte')
-    data_final = filters.DateFilter(field_name='criado_em', lookup_expr='lte')
+    data_inicial = filters.DateFilter(field_name='criado_em', lookup_expr='date__gte')
+    data_final = filters.DateFilter(field_name='criado_em', lookup_expr='date__lte')
     status = filters.CharFilter(field_name='status')
 
     class Meta:
@@ -1044,7 +1046,7 @@ class SolicitacaoCadastroProdutoDietaFilter(filters.FilterSet):
 
 class SolicitacaoCadastroProdutoDietaViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
-    queryset = SolicitacaoCadastroProdutoDieta.objects.all()
+    queryset = SolicitacaoCadastroProdutoDieta.objects.all().order_by('-criado_em')
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = SolicitacaoCadastroProdutoDietaFilter
 
@@ -1056,3 +1058,17 @@ class SolicitacaoCadastroProdutoDietaViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['GET'], url_path='nomes-produtos')
     def nomes_produtos(self, request):
         return Response([s.nome_produto for s in SolicitacaoCadastroProdutoDieta.objects.only('nome_produto')])
+
+    @transaction.atomic
+    @action(detail=True, methods=['patch'], url_path='confirma-previsao')
+    def confirma_previsao(self, request, uuid=None):
+        solicitacao = self.get_object()
+        serializer = self.get_serializer()
+        try:
+            serializer.update(solicitacao, request.data)
+            solicitacao.terceirizada_atende_solicitacao(user=request.user)
+            return Response({'detail': 'Confirmação de previsão de cadastro realizada com sucesso'})
+        except InvalidTransitionError as e:
+            return Response({'detail': f'Erro na transição de estado {e}'}, status=HTTP_400_BAD_REQUEST)
+        except serializers.ValidationError as e:
+            return Response({'detail': f'Dados inválidos {e}'}, status=HTTP_400_BAD_REQUEST)
