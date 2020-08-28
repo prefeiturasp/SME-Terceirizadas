@@ -3,13 +3,19 @@ import datetime
 from rest_framework import serializers
 
 from ....dados_comuns.api.serializers import (
+    ContatoSerializer,
     LogSolicitacoesUsuarioComAnexosSerializer,
     LogSolicitacoesUsuarioComVinculoSerializer,
     LogSolicitacoesUsuarioSerializer
 )
 from ....dados_comuns.fluxo_status import ReclamacaoProdutoWorkflow
-from ....dados_comuns.validators import objeto_nao_deve_ter_duplicidade
-from ....escola.api.serializers import EscolaSimplissimaSerializer
+from ....escola.api.serializers import (
+    AlunoSimplesSerializer,
+    DiretoriaRegionalSimplissimaSerializer,
+    EscolaSimplissimaSerializer,
+    TipoGestaoSerializer
+)
+from ....escola.models import Escola
 from ....terceirizada.api.serializers.serializers import TerceirizadaSimplesSerializer
 from ...models import (
     AnexoReclamacaoDeProduto,
@@ -24,6 +30,7 @@ from ...models import (
     ProtocoloDeDietaEspecial,
     ReclamacaoDeProduto,
     RespostaAnaliseSensorial,
+    SolicitacaoCadastroProdutoDieta,
     TipoDeInformacaoNutricional
 )
 
@@ -450,3 +457,34 @@ class ProdutoRelatorioSituacaoSerializer(serializers.ModelSerializer):
         model = Produto
         fields = ('nome', 'marca', 'fabricante', 'criado_em', 'ultima_homologacao',
                   'eh_para_alunos_com_dieta', 'tem_aditivos_alergenicos')
+
+
+class EscolaSolicitacaoCadastroProdutoDietaSerializer(serializers.ModelSerializer):
+    tipo_gestao = TipoGestaoSerializer()
+    lote = serializers.CharField(source='lote.nome')
+    diretoria_regional = DiretoriaRegionalSimplissimaSerializer()
+    contato = ContatoSerializer()
+
+    class Meta:
+        model = Escola
+        fields = ('tipo_gestao', 'lote', 'diretoria_regional', 'contato', 'nome')
+
+
+class SolicitacaoCadastroProdutoDietaSerializer(serializers.ModelSerializer):
+    aluno = AlunoSimplesSerializer()
+    escola = EscolaSolicitacaoCadastroProdutoDietaSerializer()
+    status_title = serializers.CharField(source='status.state.title')
+
+    class Meta:
+        model = SolicitacaoCadastroProdutoDieta
+        fields = ('uuid', 'criado_em', 'aluno', 'escola', 'nome_produto',
+                  'marca_produto', 'fabricante_produto', 'info_produto', 'status', 'status_title')
+
+
+class SolicitacaoCadastroProdutoDietaConfirmarSerializer(SolicitacaoCadastroProdutoDietaSerializer):
+    data_previsao_cadastro = serializers.DateField(required=True)
+    justificativa_previsao_cadastro = serializers.CharField(allow_blank=True, required=False)
+
+    class Meta:
+        model = SolicitacaoCadastroProdutoDieta
+        fields = ('data_previsao_cadastro', 'justificativa_previsao_cadastro')

@@ -1531,19 +1531,19 @@ class FluxoReclamacaoProduto(xwf_models.WorkflowEnabled, models.Model):
 class SolicitacaoCadastroProdutoWorkflow(xwf_models.Workflow):
     log_model = ''  # Disable logging to database
 
-    SOLICITACAO_REALIZADA = 'SOLICITACAO_REALIZADA'  # INICIO
-    SOLICITACAO_ATENDIDA = 'SOLICITACAO_ATENDIDA'
+    AGUARDANDO_CONFIRMACAO = 'AGUARDANDO_CONFIRMACAO'  # INICIO
+    CONFIRMADA = 'CONFIRMADA'
 
     states = (
-        (SOLICITACAO_REALIZADA, 'Solicitacão realizada'),
-        (SOLICITACAO_ATENDIDA, 'Solicitacão atendida'),
+        (AGUARDANDO_CONFIRMACAO, 'Aguardando confirmação'),
+        (CONFIRMADA, 'Confirmada'),
     )
 
     transitions = (
-        ('terceirizada_atende_solicitacao', SOLICITACAO_REALIZADA, SOLICITACAO_ATENDIDA),
+        ('terceirizada_atende_solicitacao', AGUARDANDO_CONFIRMACAO, CONFIRMADA),
     )
 
-    initial_state = SOLICITACAO_REALIZADA
+    initial_state = AGUARDANDO_CONFIRMACAO
 
 
 class FluxoSolicitacaoCadastroProduto(xwf_models.WorkflowEnabled, models.Model):

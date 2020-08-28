@@ -82,6 +82,7 @@ DJANGO_APPS = [
 ]
 THIRD_PARTY_APPS = [
     'crispy_forms',
+    'django_filters',
     'django_prometheus',
     'rest_framework',
     'rest_framework_swagger',
