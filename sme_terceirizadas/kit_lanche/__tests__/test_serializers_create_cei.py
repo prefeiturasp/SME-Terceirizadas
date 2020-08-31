@@ -33,7 +33,9 @@ def test_kit_lanche_cei_avulsa_serializer_create_create():
     alunos_com_dieta = [aluno.codigo_eol for aluno in alunos]
 
     escola = mommy.make('escola.Escola')
-    data = datetime.date(2020, 9, 1)
+    # TODO: Achar uma forma de esse teste travar a data atual do sistema,
+    #       se rodar dia 25/12 pra frente, vai dar problema
+    data = datetime.date.today() + datetime.timedelta(days=7)
     local = 'Tão-tão distante'
 
     kits_lanche = mommy.make('kit_lanche.KitLanche', _quantity=2)
@@ -68,7 +70,9 @@ def test_kit_lanche_cei_avulsa_serializer_create_update():
     alunos_com_dieta = [aluno.codigo_eol for aluno in alunos]
 
     escola = mommy.make('escola.Escola')
-    data = datetime.date(2020, 9, 1)
+    # TODO: Achar uma forma de esse teste travar a data atual do sistema,
+    #       se rodar dia 25/12 pra frente, vai dar problema
+    data = datetime.date.today() + datetime.timedelta(days=7)
     local = 'Tão-tão distante'
     descricao = 'Um texto aleatório'
 
