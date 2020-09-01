@@ -123,13 +123,18 @@ class ProdutoSerializerCreate(serializers.ModelSerializer):
 
         instance.informacoes_nutricionais.all().delete()
 
+        if 'imagens' in mudancas and 'exclusoes' in mudancas['imagens']:
+            for imagem in mudancas['imagens']['exclusoes']:
+                imagem.delete()
+
         for imagem in imagens:
-            data = convert_base64_to_contentfile(imagem.get('arquivo'))
+            if imagem.get('arquivo', '').startswith('http'):
+                continue
             ImagemDoProduto.objects.update_or_create(
                 produto=instance,
                 nome=imagem.get('nome', ''),
                 defaults={
-                    'arquivo': data
+                    'arquivo': convert_base64_to_contentfile(imagem.get('arquivo'))
                 }
             )
 
