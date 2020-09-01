@@ -14,8 +14,8 @@ from .constants import (
 
 
 def usuario_eh_nutricodae(user):
-    return user.vinculo_atual.perfil.nome in [COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
-                                              ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA]
+    return user.vinculo_atual.perfil.nome in [COORDENADOR_DIETA_ESPECIAL,
+                                              ADMINISTRADOR_DIETA_ESPECIAL]
 
 
 class UsuarioEscola(BasePermission):
