@@ -1,4 +1,4 @@
-from django.core.validators import MinLengthValidator
+from django.core.validators import MaxLengthValidator, MinLengthValidator
 from django.db import models
 from django_prometheus.models import ExportModelOperationsMixin
 
@@ -33,7 +33,7 @@ class SolicitacaoDietaEspecial(ExportModelOperationsMixin('dieta_especial'), Tem
     registro_funcional_pescritor = models.CharField('Nome completo do pescritor da receita',
                                                     help_text='CRN/CRM/CRFa...',
                                                     max_length=200,
-                                                    validators=[MinLengthValidator(6)],
+                                                    validators=[MinLengthValidator(4), MaxLengthValidator(6)],
                                                     blank=True)
     registro_funcional_nutricionista = models.CharField('Nome completo do pescritor da receita',
                                                         help_text='CRN/CRM/CRFa...',

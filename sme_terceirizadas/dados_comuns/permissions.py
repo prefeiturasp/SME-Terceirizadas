@@ -13,6 +13,11 @@ from .constants import (
 )
 
 
+def usuario_eh_nutricodae(user):
+    return user.vinculo_atual.perfil.nome in [COORDENADOR_DIETA_ESPECIAL,
+                                              ADMINISTRADOR_DIETA_ESPECIAL]
+
+
 class UsuarioEscola(BasePermission):
     """Permite acesso a usuários com vinculo a uma Escola."""
 

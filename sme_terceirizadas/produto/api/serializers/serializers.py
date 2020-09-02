@@ -471,6 +471,16 @@ class EscolaSolicitacaoCadastroProdutoDietaSerializer(serializers.ModelSerialize
         fields = ('tipo_gestao', 'lote', 'diretoria_regional', 'contato', 'nome')
 
 
+class SolicitacaoCadastroProdutoDietaSimplesSerializer(serializers.ModelSerializer):
+    status_title = serializers.CharField(source='status.state.title')
+
+    class Meta:
+        model = SolicitacaoCadastroProdutoDieta
+        fields = ('uuid', 'criado_em', 'nome_produto',
+                  'marca_produto', 'fabricante_produto', 'status',
+                  'status_title', 'data_previsao_cadastro')
+
+
 class SolicitacaoCadastroProdutoDietaSerializer(serializers.ModelSerializer):
     aluno = AlunoSimplesSerializer()
     escola = EscolaSolicitacaoCadastroProdutoDietaSerializer()
@@ -479,7 +489,8 @@ class SolicitacaoCadastroProdutoDietaSerializer(serializers.ModelSerializer):
     class Meta:
         model = SolicitacaoCadastroProdutoDieta
         fields = ('uuid', 'criado_em', 'aluno', 'escola', 'nome_produto',
-                  'marca_produto', 'fabricante_produto', 'info_produto', 'status', 'status_title')
+                  'marca_produto', 'fabricante_produto', 'info_produto', 'status',
+                  'status_title', 'data_previsao_cadastro', 'justificativa_previsao_cadastro')
 
 
 class SolicitacaoCadastroProdutoDietaConfirmarSerializer(SolicitacaoCadastroProdutoDietaSerializer):
