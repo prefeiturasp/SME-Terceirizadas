@@ -218,3 +218,9 @@ def test_url_endpoint_produtos_listagem(client_autenticado_vinculo_terceirizada)
     client = client_autenticado_vinculo_terceirizada
     response = client.get(f'/produtos/')
     assert response.status_code == status.HTTP_200_OK
+
+
+def test_url_endpoint_produtos_filtro_relatorio_reclamacoes(client_autenticado_vinculo_terceirizada):
+    client = client_autenticado_vinculo_terceirizada
+    response = client.get(f'/produtos/filtro-relatorio-reclamacoes/')
+    assert response.status_code == status.HTTP_200_OK
