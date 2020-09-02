@@ -1,3 +1,4 @@
+from ...dados_comuns import constants
 from ...dados_comuns.models import LogSolicitacoesUsuario
 
 
@@ -46,3 +47,33 @@ def test_fim_de_fluxo():
     solicitacao_dre_revisou = FakeSolicitacao(status_dic.get(LogSolicitacoesUsuario.DRE_REVISOU))
     assert fim_de_fluxo([solicitacao_codae_negado]) is True
     assert fim_de_fluxo([solicitacao_dre_revisou]) is False
+
+
+def test_obter_titulo_log_reclamacao():
+    from ..templatetags.index import obter_titulo_log_reclamacao
+
+    titulo_log = obter_titulo_log_reclamacao(constants.TERCEIRIZADA_RESPONDEU_RECLAMACAO)
+    assert titulo_log == 'Resposta terceirizada'
+    titulo_log = obter_titulo_log_reclamacao(constants.CODAE_QUESTIONOU_TERCEIRIZADA)
+    assert titulo_log == 'Questionamento CODAE'
+    titulo_log = obter_titulo_log_reclamacao(constants.CODAE_AUTORIZOU_RECLAMACAO)
+    assert titulo_log == 'Justificativa avaliação CODAE'
+    titulo_log = obter_titulo_log_reclamacao(constants.CODAE_RECUSOU_RECLAMACAO)
+    assert titulo_log == 'Justificativa avaliação CODAE'
+    titulo_log = obter_titulo_log_reclamacao(constants.CODAE_RESPONDEU_RECLAMACAO)
+    assert titulo_log == 'Resposta CODAE'
+
+
+def obter_rotulo_data_log():
+    from ..templatetags.index import obter_rotulo_data_log
+
+    rotulo_data_log = obter_rotulo_data_log(constants.TERCEIRIZADA_RESPONDEU_RECLAMACAO)
+    assert rotulo_data_log == 'Data resposta terc.'
+    rotulo_data_log = obter_rotulo_data_log(constants.CODAE_QUESTIONOU_TERCEIRIZADA)
+    assert rotulo_data_log == 'Data quest. CODAE'
+    rotulo_data_log = obter_rotulo_data_log(constants.CODAE_AUTORIZOU_RECLAMACAO)
+    assert rotulo_data_log == 'Data avaliação CODAE'
+    rotulo_data_log = obter_rotulo_data_log(constants.CODAE_RECUSOU_RECLAMACAO)
+    assert rotulo_data_log == 'Data avaliação CODAE'
+    rotulo_data_log = obter_rotulo_data_log(constants.CODAE_RESPONDEU_RECLAMACAO)
+    assert rotulo_data_log == 'Data resposta CODAE'
