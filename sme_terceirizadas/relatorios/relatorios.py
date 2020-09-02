@@ -318,6 +318,17 @@ def relatorio_produtos_em_analise_sensorial(request, payload):
     return html_to_pdf_response(html_string, 'relatorio_produtos_em_analise_sensorial.pdf')
 
 
+def relatorio_reclamacao(request, payload):
+    html_string = render_to_string(
+        'relatorio_reclamacao.html',
+        {
+            'produtos': payload['produtos'],
+            'config': payload['config_cabecario']
+        }
+    )
+    return html_to_pdf_response(html_string, 'relatorio_reclamacao.pdf')
+
+
 def relatorio_quantitativo_por_terceirizada(request, filtros, dados_relatorio):
     dados_relatorio_transformados = transforma_dados_relatorio_quantitativo(dados_relatorio)
     html_string = render_to_string(

@@ -1,7 +1,7 @@
-import json
 from datetime import datetime, timedelta
 
 from django.db import transaction
+from django.db.models import Count, Prefetch
 from django_filters import rest_framework as filters
 from rest_framework import mixins, serializers, status, viewsets
 from rest_framework.decorators import action
@@ -27,7 +27,8 @@ from ...relatorios.relatorios import (
     relatorio_produtos_agrupado_terceirizada,
     relatorio_produtos_em_analise_sensorial,
     relatorio_produtos_situacao,
-    relatorio_produtos_suspensos
+    relatorio_produtos_suspensos,
+    relatorio_reclamacao
 )
 from ...terceirizada.api.serializers.serializers import TerceirizadaSimplesSerializer
 from ..forms import ProdutoPorParametrosForm, RelatorioSituacaoForm
@@ -51,6 +52,7 @@ from ..utils import (
     cria_filtro_produto_por_parametros_form,
     get_filtros_data_em_analise_sensorial
 )
+from .filters import ProdutoFilter
 from .serializers.serializers import (
     FabricanteSerializer,
     FabricanteSimplesSerializer,
@@ -63,6 +65,7 @@ from .serializers.serializers import (
     MarcaSimplesSerializer,
     ProdutoListagemSerializer,
     ProdutoRelatorioAnaliseSensorialSerializer,
+    ProdutoRelatorioReclamacaoSerializer,
     ProdutoRelatorioSituacaoSerializer,
     ProdutoResponderReclamacaoTerceirizadaSerializer,
     ProdutoSerializer,
@@ -539,19 +542,11 @@ class ProdutoViewSet(viewsets.ModelViewSet):
     serializer_class = ProdutoSerializer
     queryset = Produto.objects.all()
     pagination_class = StandardResultsSetPagination
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = ProdutoFilter
 
     def list(self, request, *args, **kwargs):
-        filtros = request.query_params.dict()
-        filtros['status'] = request.query_params.getlist('status[]')
-        filtros['data_inicial'] = converte_para_datetime(request.query_params.get('data_inicial'))
-        filtros['data_final'] = converte_para_datetime(request.query_params.get('data_final'))
-
-        if 'tem_aditivos_alergenicos' in filtros:
-            filtros['tem_aditivos_alergenicos'] = json.loads(filtros['tem_aditivos_alergenicos'])
-        if 'eh_para_alunos_com_dieta' in filtros:
-            filtros['eh_para_alunos_com_dieta'] = json.loads(filtros['eh_para_alunos_com_dieta'])
-
-        queryset = self.get_queryset_filtrado(filtros).order_by('criado_em')
+        queryset = self.filter_queryset(self.get_queryset()).order_by('criado_em')
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = ProdutoListagemSerializer(page, many=True)
@@ -832,6 +827,42 @@ class ProdutoViewSet(viewsets.ModelViewSet):
     def relatorio_em_analise_sensorial(self, request):
         payload = request.data
         return relatorio_produtos_em_analise_sensorial(request, payload)
+
+    @action(detail=False,
+            methods=['GET'],
+            url_path='filtro-relatorio-reclamacoes')
+    def filtro_relatorio_reclamacoes(self, request):
+        status_reclamacao = self.request.query_params.getlist('status_reclamacao')
+        data_inicial_reclamacao = self.request.query_params.get('data_inicial_reclamacao')
+        data_final_reclamacao = self.request.query_params.get('data_final_reclamacao')
+        filtro_homologacao = {}
+        filtro_reclamacao = {}
+
+        if status_reclamacao:
+            filtro_homologacao['homologacoes__reclamacoes__status__in'] = status_reclamacao
+            filtro_reclamacao['status__in'] = status_reclamacao
+        if data_inicial_reclamacao:
+            data_inicial_reclamacao = converte_para_datetime(data_inicial_reclamacao)
+            filtro_homologacao['homologacoes__reclamacoes__criado_em__gte'] = data_inicial_reclamacao
+            filtro_reclamacao['criado_em__gte'] = data_inicial_reclamacao
+        if data_final_reclamacao:
+            data_final_reclamacao = converte_para_datetime(data_final_reclamacao) + timedelta(days=1)
+            filtro_homologacao['homologacoes__reclamacoes__criado_em__lte'] = data_final_reclamacao
+            filtro_reclamacao['criado_em__lte'] = data_final_reclamacao
+
+        queryset = self.filter_queryset(
+            self.get_queryset()).filter(**filtro_homologacao).prefetch_related(
+                Prefetch('homologacoes__reclamacoes', queryset=ReclamacaoDeProduto.objects.filter(
+                    **filtro_reclamacao))).annotate(qtde_reclamacoes=Count('homologacoes__reclamacoes')).order_by(
+                        'nome')
+        return Response(ProdutoRelatorioReclamacaoSerializer(queryset, many=True).data)
+
+    @action(detail=False,
+            methods=['POST'],
+            url_path='relatorio-reclamacao')
+    def relatorio_reclamacao(self, request):
+        payload = request.data
+        return relatorio_reclamacao(request, payload)
 
 
 class ProtocoloDeDietaEspecialViewSet(viewsets.ModelViewSet):
