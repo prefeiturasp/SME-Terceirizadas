@@ -17,7 +17,7 @@
     "model": "produto.tipodeinformacaonutricional",
     "id": 3,
     "fields": {
-      "nome": "PROTEINAS"
+      "nome": "PROTEÍNAS"
     }
   },
   {

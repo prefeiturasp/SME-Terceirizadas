@@ -102,13 +102,13 @@ def test_compara_lista_informacoes_nutricionais(info_nutricional1,
 
     modif1 = resultado['modificacoes'][0]
     assert modif1['informacao_nutricional'] == info_nutricional1
-    assert modif1['valor'] == 'valor_diario'
+    assert modif1['valor'] == 'Valor diário'
     assert modif1['de'] == '2'
     assert modif1['para'] == '9'
 
     modif2 = resultado['modificacoes'][1]
     assert modif2['informacao_nutricional'] == info_nutricional2
-    assert modif2['valor'] == 'quantidade_porcao'
+    assert modif2['valor'] == 'Quantidade porção'
     assert modif2['de'] == '3'
     assert modif2['para'] == '8'
 
@@ -195,13 +195,13 @@ def test_changes_between(produto, protocolo1, protocolo2, protocolo3,
 
     modif1 = changes['informacoes_nutricionais']['modificacoes'][0]
     assert modif1['informacao_nutricional'] == info_nutricional1
-    assert modif1['valor'] == 'valor_diario'
+    assert modif1['valor'] == 'Valor diário'
     assert modif1['de'] == '2'
     assert modif1['para'] == '9'
 
     modif2 = changes['informacoes_nutricionais']['modificacoes'][1]
     assert modif2['informacao_nutricional'] == info_nutricional2
-    assert modif2['valor'] == 'quantidade_porcao'
+    assert modif2['valor'] == 'Quantidade porção'
     assert modif2['de'] == '3'
     assert modif2['para'] == '8'
 

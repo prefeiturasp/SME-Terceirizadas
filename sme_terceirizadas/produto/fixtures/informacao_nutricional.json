@@ -3,7 +3,7 @@
     "model": "produto.informacaonutricional",
     "id": 1,
     "fields": {
-      "nome": "VALOR ENERGETICO",
+      "nome": "VALOR ENERGÉTICO",
       "tipo_nutricional": 1,
       "medida": "KCAL"
     }
@@ -48,7 +48,7 @@
     "model": "produto.informacaonutricional",
     "id": 6,
     "fields": {
-      "nome": "PROTEINAS TOTAIS",
+      "nome": "PROTEÍNAS TOTAIS",
       "tipo_nutricional": 3,
       "medida": "G"
     }

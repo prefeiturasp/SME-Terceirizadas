@@ -920,7 +920,7 @@ class InformacaoNutricionalViewSet(InformacaoNutricionalBaseViewSet):
 
     @action(detail=False, methods=['GET'], url_path=f'agrupadas')
     def informacoes_nutricionais_agrupadas(self, request):
-        query_set = InformacaoNutricional.objects.all()
+        query_set = InformacaoNutricional.objects.all().order_by('id')
         response = {'results': self._agrupa_informacoes_por_tipo(query_set)}
         return Response(response)
 
