@@ -858,6 +858,16 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         return Response(ProdutoRelatorioReclamacaoSerializer(queryset, many=True).data)
 
     @action(detail=False,
+            methods=['GET'],
+            url_path='filtro-avaliar-reclamacoes',
+            permission_classes=[UsuarioCODAEGestaoProduto])
+    def filtro_avaliar_reclamacoes(self, request):
+        status_reclamacao = self.request.query_params.getlist('status_reclamacao')
+        queryset = self.filter_queryset(self.get_queryset()).filter(
+            homologacoes__reclamacoes__status__in=status_reclamacao)
+        return Response(self.get_serializer(queryset, many=True).data)
+
+    @action(detail=False,
             methods=['POST'],
             url_path='relatorio-reclamacao')
     def relatorio_reclamacao(self, request):
