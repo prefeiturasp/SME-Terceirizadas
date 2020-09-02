@@ -830,8 +830,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
 
     @action(detail=False,
             methods=['GET'],
-            url_path='filtro-relatorio-reclamacoes',
-            permission_classes=[AllowAny])
+            url_path='filtro-relatorio-reclamacoes')
     def filtro_relatorio_reclamacoes(self, request):
         status_reclamacao = self.request.query_params.getlist('status_reclamacao')
         data_inicial_reclamacao = self.request.query_params.get('data_inicial_reclamacao')
