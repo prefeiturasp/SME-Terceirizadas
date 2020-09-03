@@ -864,7 +864,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
     def filtro_avaliar_reclamacoes(self, request):
         status_reclamacao = self.request.query_params.getlist('status_reclamacao')
         queryset = self.filter_queryset(self.get_queryset()).filter(
-            homologacoes__reclamacoes__status__in=status_reclamacao)
+            homologacoes__reclamacoes__status__in=status_reclamacao).distinct()
         return Response(self.get_serializer(queryset, many=True).data)
 
     @action(detail=False,
