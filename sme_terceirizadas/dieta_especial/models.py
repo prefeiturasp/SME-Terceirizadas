@@ -128,7 +128,7 @@ class SolicitacaoDietaEspecial(ExportModelOperationsMixin('dieta_especial'), Tem
 
 
 class Anexo(ExportModelOperationsMixin('anexo'), models.Model):
-    solicitacao_dieta_especial = models.ForeignKey(SolicitacaoDietaEspecial, on_delete=models.DO_NOTHING)
+    solicitacao_dieta_especial = models.ForeignKey(SolicitacaoDietaEspecial, on_delete=models.CASCADE)
     nome = models.CharField(max_length=100, blank=True)
     arquivo = models.FileField()
     eh_laudo_alta = models.BooleanField(default=False)
@@ -173,7 +173,7 @@ class SubstituicaoAlimento(models.Model):
         ('S', 'Substituir')
     ]
 
-    solicitacao_dieta_especial = models.ForeignKey(SolicitacaoDietaEspecial, on_delete=models.PROTECT)
+    solicitacao_dieta_especial = models.ForeignKey(SolicitacaoDietaEspecial, on_delete=models.CASCADE)
     alimento = models.ForeignKey(Alimento, on_delete=models.PROTECT, blank=True, null=True)
     tipo = models.CharField(max_length=1, choices=TIPO_CHOICES, blank=True)
     substitutos = models.ManyToManyField('produto.Produto', related_name='substitutos', blank=True)
