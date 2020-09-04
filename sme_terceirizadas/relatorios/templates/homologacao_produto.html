@@ -13,6 +13,24 @@
     padding-top: 0em;
     line-height: 10px;
     }
+
+    .justificativa-motivo .label{
+      height: 20px;
+      display: flex;
+      font-style: normal;
+      font-weight: normal;
+      font-size: 12px;
+      color: #686868;
+    }
+
+    .justificativa-motivo .value{
+      height: 20px;
+      display: flex;
+      font-weight: 500;
+      font-size: 12px;
+      color: #000000;
+      margin-top: 7px;
+    }
   .nova-pagina-bloco {
     display: inline-block !important;
   }
@@ -30,6 +48,13 @@
     <div class="label">Motivo da suspensão (Data: {{ homologacao.logs.last.criado_em|date:'d/m/Y' }})</div>
     <article class="justificativa-motivo">
       {{ homologacao.logs.last.justificativa|safe }}
+    </article>
+  {% endif %}
+
+   {% if homologacao.status == 'CODAE_AUTORIZOU_RECLAMACAO' %}
+    <article class="justificativa-motivo">
+        <div class="value">Reclamação aceita pela equipe de gestão de produto CODAE em {{ reclamacao.ultimo_log.criado_em|date:'d/m/Y' }} </div>
+       <div class="label">Para mais detalhes favor extrair o relatório de reclamação de produto</div>
     </article>
   {% endif %}
 

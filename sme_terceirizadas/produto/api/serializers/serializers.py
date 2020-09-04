@@ -137,9 +137,11 @@ class ReclamacaoDeProdutoSerializer(serializers.ModelSerializer):
 
 
 class ReclamacaoDeProdutoSimplesSerializer(serializers.ModelSerializer):
+    ultimo_log = LogSolicitacoesUsuarioSerializer()
+
     class Meta:
         model = ReclamacaoDeProduto
-        fields = ('reclamacao', 'criado_em')
+        fields = ('reclamacao', 'criado_em', 'ultimo_log')
 
 
 class HomologacaoProdutoSimplesSerializer(serializers.ModelSerializer):
