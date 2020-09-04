@@ -11,6 +11,7 @@ from ..utils import (
     cria_filtro_aditivos,
     cria_filtro_produto_por_parametros_form,
     get_filtros_data_em_analise_sensorial,
+    get_filtros_data_range,
     mudancas_para_justificativa_html
 )
 
@@ -61,6 +62,13 @@ def test_converte_para_datetime():
     data_datetime = converte_para_datetime(data_str)
     data_datetime_aux = datetime.strptime(data_str, '%d/%m/%Y')
     assert data_datetime == data_datetime_aux
+
+
+def test_filtros_data_range():
+    data_analise_inicial = date(2020, 8, 13)
+    data_analise_final = date(2020, 8, 13)
+    data_range = get_filtros_data_range(data_analise_inicial, data_analise_final)
+    assert data_range['criado_em__date'] == data_analise_inicial
 
 
 def test_cria_filtro_aditivos():
