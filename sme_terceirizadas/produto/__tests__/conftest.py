@@ -172,7 +172,12 @@ def marca2():
 
 
 @pytest.fixture
-def produto(user, protocolo1, protocolo2, marca1):
+def fabricante():
+    return mommy.make('Fabricante')
+
+
+@pytest.fixture
+def produto(user, protocolo1, protocolo2, marca1, fabricante):
     return mommy.make('Produto',
                       criado_por=user,
                       eh_para_alunos_com_dieta=True,
@@ -186,7 +191,8 @@ def produto(user, protocolo1, protocolo2, marca1):
                       numero_registro='123123123',
                       porcao='5 cuias',
                       unidade_caseira='Unidade3',
-                      fabricante=mommy.make('Fabricante'),
+                      nome='Produto1',
+                      fabricante=fabricante,
                       marca=marca1,
                       protocolos=[
                           protocolo1,

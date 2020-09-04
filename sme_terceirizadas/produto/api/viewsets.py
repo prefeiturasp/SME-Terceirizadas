@@ -31,7 +31,7 @@ from ...relatorios.relatorios import (
     relatorio_reclamacao
 )
 from ...terceirizada.api.serializers.serializers import TerceirizadaSimplesSerializer
-from ..forms import ProdutoPorParametrosForm, RelatorioSituacaoForm
+from ..forms import ProdutoJaExisteForm, ProdutoPorParametrosForm, RelatorioSituacaoForm
 from ..models import (
     Fabricante,
     HomologacaoDoProduto,
@@ -873,6 +873,21 @@ class ProdutoViewSet(viewsets.ModelViewSet):
     def relatorio_reclamacao(self, request):
         payload = request.data
         return relatorio_reclamacao(request, payload)
+
+    @action(detail=False,
+            methods=['GET'],
+            url_path='ja-existe')
+    def ja_existe(self, request):
+        form = ProdutoJaExisteForm(request.GET)
+
+        if not form.is_valid():
+            return Response(form.errors)
+
+        queryset = self.get_queryset().filter(**form.cleaned_data)
+
+        return Response({
+            'produto_existe': queryset.count() > 0
+        })
 
 
 class ProtocoloDeDietaEspecialViewSet(viewsets.ModelViewSet):
