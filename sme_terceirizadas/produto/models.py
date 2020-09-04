@@ -291,6 +291,10 @@ class ReclamacaoDeProduto(FluxoReclamacaoProduto, TemChaveExterna, CriadoEm, Cri
                 )
         return log_transicao
 
+    @property
+    def ultimo_log(self):
+        return self.log_mais_recente
+
     def __str__(self):
         return f'Reclamação {self.uuid} feita por {self.reclamante_nome} em {self.criado_em}'
 

@@ -421,7 +421,8 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['GET'], url_path='reclamacao')
     def reclamacao_homologao(self, request, uuid=None):
         homologacao_produto = self.get_object()
-        reclamacao = homologacao_produto.reclamacoes.last()
+        reclamacao = homologacao_produto.reclamacoes.filter(
+            status=ReclamacaoProdutoWorkflow.CODAE_ACEITOU).first()
         serializer = ReclamacaoDeProdutoSimplesSerializer(reclamacao)
         return Response(serializer.data)
 
@@ -967,6 +968,7 @@ class RespostaAnaliseSensorialViewSet(viewsets.ModelViewSet):
 
 
 class ReclamacaoProdutoViewSet(viewsets.ModelViewSet):
+    lookup_field = 'uuid'
     lookup_field = 'uuid'
     serializer_class = ReclamacaoDeProdutoSerializer
     queryset = ReclamacaoDeProduto.objects.all()
