@@ -37,6 +37,7 @@
 </style>
 {% endblock %}
 {% block conteudo %}
+<p style="page-break-before: avoid;"></p>
 <section class="corpo-relatorio-produto">
   {% if homologacao.status == 'CODAE_NAO_HOMOLOGADO' %}
     <div class="label">Motivo da recusa de homologação (Data: {{ homologacao.logs.last.criado_em|date:'d/m/Y' }})</div>
@@ -146,10 +147,8 @@
       </main>
     </article>
     {% endif %}
-
-
   </section>
-
+  <p style="page-break-before: avoid;"></p>
   <section class="identificacao-produto mt">
     <h4>
       Informações nutricionais
