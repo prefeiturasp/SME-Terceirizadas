@@ -150,6 +150,7 @@ class Produto(Ativavel, CriadoEm, CriadoPor, Nomeavel, TemChaveExterna, TemIdent
     class Meta:
         verbose_name = 'Produto'
         verbose_name_plural = 'Produtos'
+        unique_together = [['nome', 'marca', 'fabricante']]
 
 
 class InformacoesNutricionaisDoProduto(TemChaveExterna):
