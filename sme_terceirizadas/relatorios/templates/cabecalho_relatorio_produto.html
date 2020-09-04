@@ -11,36 +11,6 @@
   {% block css %}{% endblock %}
 </head>
 <body>
-<header class="header">
-  <figure class="logo-titulo">
-    <img src="{% static 'images/LOGO_PB_POSITIVO.png' %}" alt=""/>
-    <h1>SISTEMA GESTÃO DO PROGRAMA DE ALIMENTAÇÃO ESCOLAR</h1>
-  </figure>
-  <section class="conteudo-titulo">
-    <article class="article-pedido-lote">
-      <h2>N° PEDIDO: {{ homologacao.id_externo }}</h2>
-      <section class="">
-        <h3>LOTE:</h3>
-        <ul class="lista-lotes">
-          {% for lote in terceirizada.lotes.all %}
-          <li>{{ lote.nome }};</li>
-          {% endfor %}
-        </ul>
-      </section>
-    </article>
-    <article class="article-dre">
-      <section>
-        <h3 class="dre-header">DRE:</h3>
-        <ul>
-          {% for diretoria_regional in diretorias_regionais %}
-          <li>{{ diretoria_regional.nome }}</li>
-          {% endfor %}
-        </ul>
-      </section>
-    </article>
-  </section>
-</header>
-<p style="page-break-before: avoid;"></p>
 {% block conteudo %}
 
 {% endblock %}

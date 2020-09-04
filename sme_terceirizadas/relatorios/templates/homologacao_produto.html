@@ -37,6 +37,35 @@
 </style>
 {% endblock %}
 {% block conteudo %}
+<header class="header">
+  <figure class="logo-titulo">
+    <img src="{% static 'images/LOGO_PB_POSITIVO.png' %}" alt=""/>
+    <h1>SISTEMA GESTÃO DO PROGRAMA DE ALIMENTAÇÃO ESCOLAR</h1>
+  </figure>
+  <section class="conteudo-titulo">
+    <article class="article-pedido-lote">
+      <h2>N° PEDIDO: {{ homologacao.id_externo }}</h2>
+      <section class="">
+        <h3>LOTE:</h3>
+        <ul class="lista-lotes">
+          {% for lote in terceirizada.lotes.all %}
+          <li>{{ lote.nome }};</li>
+          {% endfor %}
+        </ul>
+      </section>
+    </article>
+    <article class="article-dre">
+      <section>
+        <h3 class="dre-header">DRE:</h3>
+        <ul>
+          {% for diretoria_regional in diretorias_regionais %}
+          <li>{{ diretoria_regional.nome }}</li>
+          {% endfor %}
+        </ul>
+      </section>
+    </article>
+  </section>
+</header>
 <p style="page-break-before: avoid;"></p>
 <section class="corpo-relatorio-produto">
   {% if homologacao.status == 'CODAE_NAO_HOMOLOGADO' %}
@@ -77,8 +106,8 @@
   <article>
     {% include "bloco_fluxo_status_homologacao.html" %}
   </article>
-
-  <section class="identificacao-produto">
+  <p style="page-break-before: avoid;"></p>
+  <section class="identificacao-produto nova-pagina-bloco">
     <h4>
       Identificação do Produto
     </h4>
@@ -164,7 +193,7 @@
       </main>
     </article>
   </section>
-  <section class="tabela-informacoes-nutricionais nova-pagina-bloco">
+  <section class="tabela-informacoes-nutricionais">
     <header>
       <p>Quantidade por porção</p>
       <p>% VD</p>
@@ -206,7 +235,7 @@
         <p>{{ produto.prazo_validade }}</p>
       </main>
     </article>
-
+    <p style="page-break-before: aways;"></p>
     <article class="uma-informacao">
       <header>
         <p>Condições de armazenamento, conservação e prazo máximo para consumo após abertura da embalagem </p>
