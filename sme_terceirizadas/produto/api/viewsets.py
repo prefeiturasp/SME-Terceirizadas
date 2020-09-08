@@ -63,6 +63,7 @@ from .serializers.serializers import (
     InformacaoNutricionalSerializer,
     MarcaSerializer,
     MarcaSimplesSerializer,
+    ProdutoHomologadosPorParametrosSerializer,
     ProdutoListagemSerializer,
     ProdutoRelatorioAnaliseSensorialSerializer,
     ProdutoRelatorioReclamacaoSerializer,
@@ -557,8 +558,11 @@ class ProdutoViewSet(viewsets.ModelViewSet):
 
     def paginated_response(self, queryset):
         page = self.paginate_queryset(queryset)
-        serializer = self.get_serializer(page, context={'request': self.request}, many=True)
-        return self.get_paginated_response(serializer.data)
+        if page is not None:
+            serializer = self.get_serializer(page, context={'request': self.request}, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_paginated_response(queryset, context={'request': self.request}, many=True)
+        return Response(serializer.data)
 
     def get_serializer_class(self):  # noqa C901
         if self.action in ['create', 'update', 'partial_update']:
@@ -569,6 +573,8 @@ class ProdutoViewSet(viewsets.ModelViewSet):
             return ProdutoRelatorioAnaliseSensorialSerializer
         if self.action == 'filtro_relatorio_situacao_produto':
             return ProdutoRelatorioSituacaoSerializer
+        if self.action == 'filtro_homologados_por_parametros':
+            return ProdutoHomologadosPorParametrosSerializer
         return ProdutoSerializer
 
     @action(detail=False, methods=['GET'], url_path='lista-nomes')
