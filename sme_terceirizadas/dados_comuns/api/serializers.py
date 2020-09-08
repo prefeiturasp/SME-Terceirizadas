@@ -53,6 +53,7 @@ class LogSolicitacoesUsuarioSerializer(serializers.ModelSerializer):
         model = LogSolicitacoesUsuario
         fields = ('status_evento_explicacao', 'usuario', 'criado_em', 'descricao', 'justificativa', 'resposta_sim_nao')
 
+
 class LogSolicitacoesSerializer(serializers.ModelSerializer):
     status_evento_explicacao = serializers.CharField(
         source='get_status_evento_display',

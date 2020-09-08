@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 
 from django.db import transaction
-from django.db.models import Count, Prefetch
+from django.db.models import Prefetch
 from django_filters import rest_framework as filters
 from rest_framework import mixins, serializers, status, viewsets
 from rest_framework.decorators import action
