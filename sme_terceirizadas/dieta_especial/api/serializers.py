@@ -8,6 +8,8 @@ from ...dados_comuns.utils import update_instance_from_dict
 from ...dados_comuns.validators import nao_pode_ser_no_passado
 from ...escola.api.serializers import AlunoSerializer, LoteNomeSerializer, TipoGestaoSerializer
 from ...escola.models import DiretoriaRegional, Escola
+from ...produto.api.serializers.serializers import ProdutoSimplesSerializer
+from ...produto.models import SolicitacaoCadastroProdutoDieta
 from ..models import (
     AlergiaIntolerancia,
     Alimento,
@@ -55,7 +57,7 @@ class AnexoSerializer(ModelSerializer):
 
 class SubstituicaoAlimentoSerializer(ModelSerializer):
     alimento = AlimentoSerializer()
-    substitutos = AlimentoSerializer(many=True)
+    substitutos = ProdutoSimplesSerializer(many=True)
 
     class Meta:
         model = SubstituicaoAlimento
@@ -111,7 +113,7 @@ class SolicitacaoDietaEspecialAutorizarSerializer(SolicitacaoDietaEspecialCreate
 class DiretoriaRegionalSerializer(serializers.ModelSerializer):
     class Meta:
         model = DiretoriaRegional
-        fields = ['nome']
+        fields = ['nome', 'codigo_eol']
 
 
 class EscolaSerializer(serializers.ModelSerializer):
@@ -122,7 +124,7 @@ class EscolaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Escola
-        fields = ('nome', 'diretoria_regional', 'tipo_gestao', 'lote', 'contato')
+        fields = ('uuid', 'nome', 'diretoria_regional', 'tipo_gestao', 'lote', 'contato')
 
 
 class SolicitacaoDietaEspecialSerializer(serializers.ModelSerializer):
@@ -144,6 +146,12 @@ class SolicitacaoDietaEspecialSerializer(serializers.ModelSerializer):
     motivo_negacao = MotivoNegacaoSerializer()
 
     substituicoes = SubstituicaoAlimentoSerializer(many=True)
+
+    tem_solicitacao_cadastro_produto = serializers.SerializerMethodField()
+
+    def get_tem_solicitacao_cadastro_produto(self, obj):
+        return SolicitacaoCadastroProdutoDieta.objects.filter(solicitacao_dieta_especial=obj,
+                                                              status='AGUARDANDO_CONFIRMACAO').exists()
 
     class Meta:
         model = SolicitacaoDietaEspecial
@@ -169,7 +177,8 @@ class SolicitacaoDietaEspecialSerializer(serializers.ModelSerializer):
             'registro_funcional_nutricionista',
             'logs',
             'ativo',
-            'data_termino'
+            'data_termino',
+            'tem_solicitacao_cadastro_produto'
         )
 
 

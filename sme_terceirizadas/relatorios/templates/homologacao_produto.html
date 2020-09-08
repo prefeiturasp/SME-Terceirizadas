@@ -13,12 +13,60 @@
     padding-top: 0em;
     line-height: 10px;
     }
+
+    .justificativa-motivo .label{
+      height: 20px;
+      display: flex;
+      font-style: normal;
+      font-weight: normal;
+      font-size: 12px;
+      color: #686868;
+    }
+
+    .justificativa-motivo .value{
+      height: 20px;
+      display: flex;
+      font-weight: 500;
+      font-size: 12px;
+      color: #000000;
+      margin-top: 7px;
+    }
   .nova-pagina-bloco {
     display: inline-block !important;
   }
 </style>
 {% endblock %}
 {% block conteudo %}
+<header class="header">
+  <figure class="logo-titulo">
+    <img src="{% static 'images/LOGO_PB_POSITIVO.png' %}" alt=""/>
+    <h1>SISTEMA GESTÃO DO PROGRAMA DE ALIMENTAÇÃO ESCOLAR</h1>
+  </figure>
+  <section class="conteudo-titulo">
+    <article class="article-pedido-lote">
+      <h2>N° PEDIDO: {{ homologacao.id_externo }}</h2>
+      <section class="">
+        <h3>LOTE:</h3>
+        <ul class="lista-lotes">
+          {% for lote in terceirizada.lotes.all %}
+          <li>{{ lote.nome }};</li>
+          {% endfor %}
+        </ul>
+      </section>
+    </article>
+    <article class="article-dre">
+      <section>
+        <h3 class="dre-header">DRE:</h3>
+        <ul>
+          {% for diretoria_regional in diretorias_regionais %}
+          <li>{{ diretoria_regional.nome }}</li>
+          {% endfor %}
+        </ul>
+      </section>
+    </article>
+  </section>
+</header>
+<p style="page-break-before: avoid;"></p>
 <section class="corpo-relatorio-produto">
   {% if homologacao.status == 'CODAE_NAO_HOMOLOGADO' %}
     <div class="label">Motivo da recusa de homologação (Data: {{ homologacao.logs.last.criado_em|date:'d/m/Y' }})</div>
@@ -30,6 +78,13 @@
     <div class="label">Motivo da suspensão (Data: {{ homologacao.logs.last.criado_em|date:'d/m/Y' }})</div>
     <article class="justificativa-motivo">
       {{ homologacao.logs.last.justificativa|safe }}
+    </article>
+  {% endif %}
+
+   {% if homologacao.status == 'CODAE_AUTORIZOU_RECLAMACAO' %}
+    <article class="justificativa-motivo">
+        <div class="value">Reclamação aceita pela equipe de gestão de produto CODAE em {{ reclamacao.ultimo_log.criado_em|date:'d/m/Y' }} </div>
+       <div class="label">Para mais detalhes favor extrair o relatório de reclamação de produto</div>
     </article>
   {% endif %}
 
@@ -51,8 +106,8 @@
   <article>
     {% include "bloco_fluxo_status_homologacao.html" %}
   </article>
-
-  <section class="identificacao-produto">
+  <p style="page-break-before: avoid;"></p>
+  <section class="identificacao-produto nova-pagina-bloco">
     <h4>
       Identificação do Produto
     </h4>
@@ -121,10 +176,8 @@
       </main>
     </article>
     {% endif %}
-
-
   </section>
-
+  <p style="page-break-before: avoid;"></p>
   <section class="identificacao-produto mt">
     <h4>
       Informações nutricionais
@@ -140,7 +193,6 @@
       </main>
     </article>
   </section>
-
   <section class="tabela-informacoes-nutricionais">
     <header>
       <p>Quantidade por porção</p>
@@ -161,7 +213,6 @@
       menores dependendo de suas necessidades energéticas. (**) VD não estabelecidos
     </footer>
   </section>
-
   <section class="identificacao-produto nova-pagina-bloco">
     <h4>
       Informação do Produto (Classificação)
@@ -184,7 +235,7 @@
         <p>{{ produto.prazo_validade }}</p>
       </main>
     </article>
-
+    <p style="page-break-before: aways;"></p>
     <article class="uma-informacao">
       <header>
         <p>Condições de armazenamento, conservação e prazo máximo para consumo após abertura da embalagem </p>

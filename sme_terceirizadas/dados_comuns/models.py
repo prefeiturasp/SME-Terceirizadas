@@ -57,9 +57,12 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
         TERCEIRIZADA_RESPONDEU_ANALISE_SENSORIAL,
         CODAE_RECUSOU_RECLAMACAO,
         CODAE_QUESTIONOU_TERCEIRIZADA,
-        CODAE_RESPONDEU_RECLAMACAO
+        CODAE_RESPONDEU_RECLAMACAO,
 
-    ) = range(35)
+        # ESPECIFICA SOLICITAÇÂO CADASTRO PRODUTO
+        TERCEIRIZADA_ATENDE_SOLICITACAO_CADASTRO
+
+    ) = range(36)
 
     STATUS_POSSIVEIS = (
         (INICIO_FLUXO, 'Solicitação Realizada'),

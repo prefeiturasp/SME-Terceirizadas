@@ -1,5 +1,6 @@
 from django import template
 
+from ...dados_comuns import constants
 from ...dados_comuns.models import LogSolicitacoesUsuario
 
 register = template.Library()
@@ -185,3 +186,27 @@ def verifica_se_tem_anexos(logs):
     if len(logs[-1]['anexos']) > 0:
         return 'Sim'
     return 'Não'
+
+
+@register.filter
+def obter_titulo_log_reclamacao(status_evento):
+    titulo_log = {
+        constants.TERCEIRIZADA_RESPONDEU_RECLAMACAO: 'Resposta terceirizada',
+        constants.CODAE_QUESTIONOU_TERCEIRIZADA: 'Questionamento CODAE',
+        constants.CODAE_AUTORIZOU_RECLAMACAO: 'Justificativa avaliação CODAE',
+        constants.CODAE_RECUSOU_RECLAMACAO: 'Justificativa avaliação CODAE',
+        constants.CODAE_RESPONDEU_RECLAMACAO: 'Resposta CODAE'
+    }
+    return titulo_log.get(status_evento, 'Justificativa')
+
+
+@register.filter
+def obter_rotulo_data_log(status_evento):
+    rotulo_data_log = {
+        constants.TERCEIRIZADA_RESPONDEU_RECLAMACAO: 'Data resposta terc.',
+        constants.CODAE_QUESTIONOU_TERCEIRIZADA: 'Data quest. CODAE',
+        constants.CODAE_AUTORIZOU_RECLAMACAO: 'Data avaliação CODAE',
+        constants.CODAE_RECUSOU_RECLAMACAO: 'Data avaliação CODAE',
+        constants.CODAE_RESPONDEU_RECLAMACAO: 'Data resposta CODAE'
+    }
+    return rotulo_data_log.get(status_evento, 'Data reclamação')

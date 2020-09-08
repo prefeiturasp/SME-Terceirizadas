@@ -1,6 +1,7 @@
 from django import forms
 
 from ..dados_comuns.fluxo_status import HomologacaoProdutoWorkflow
+from .models import Fabricante, Marca
 
 
 class ProdutoPorParametrosForm(forms.Form):
@@ -19,3 +20,9 @@ class ProdutoPorParametrosForm(forms.Form):
 
 class RelatorioSituacaoForm(ProdutoPorParametrosForm):
     situacao = forms.CharField(required=False)
+
+
+class ProdutoJaExisteForm(forms.Form):
+    fabricante = forms.ModelChoiceField(Fabricante.objects.all(), to_field_name='uuid')
+    marca = forms.ModelChoiceField(Marca.objects.all(), to_field_name='uuid')
+    nome = forms.CharField()

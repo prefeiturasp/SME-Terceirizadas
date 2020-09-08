@@ -157,3 +157,10 @@ TEMPO_CACHE_6H = 60 * 60 * 6
 TEMPO_CACHE_1H = 60 * 60 * 6
 
 DEZ_MB = 10485760
+
+
+CODAE_AUTORIZOU_RECLAMACAO = 'CODAE autorizou reclamação'
+CODAE_RECUSOU_RECLAMACAO = 'CODAE recusou reclamação'
+CODAE_QUESTIONOU_TERCEIRIZADA = 'CODAE questionou terceirizada sobre reclamação'
+CODAE_RESPONDEU_RECLAMACAO = 'CODAE respondeu ao reclamante da reclamação'
+TERCEIRIZADA_RESPONDEU_RECLAMACAO = 'Terceirizada respondeu a reclamação'

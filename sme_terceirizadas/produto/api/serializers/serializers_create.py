@@ -2,7 +2,10 @@ from rest_framework import serializers
 
 from ....dados_comuns.constants import DEZ_MB
 from ....dados_comuns.utils import convert_base64_to_contentfile, update_instance_from_dict
-from ....escola.models import Escola
+from ....dados_comuns.validators import deve_ter_extensao_valida
+from ....dieta_especial.models import SolicitacaoDietaEspecial
+from ....escola.models import Aluno, Escola
+from ....terceirizada.models import Terceirizada
 from ...models import (
     AnexoReclamacaoDeProduto,
     AnexoRespostaAnaliseSensorial,
@@ -15,9 +18,10 @@ from ...models import (
     Produto,
     ProtocoloDeDietaEspecial,
     ReclamacaoDeProduto,
-    RespostaAnaliseSensorial
+    RespostaAnaliseSensorial,
+    SolicitacaoCadastroProdutoDieta
 )
-from ..validators import deve_ter_extensao_valida
+from ...utils import changes_between, mudancas_para_justificativa_html
 
 
 class ImagemDoProdutoSerializerCreate(serializers.ModelSerializer):
@@ -109,6 +113,8 @@ class ProdutoSerializerCreate(serializers.ModelSerializer):
         return produto
 
     def update(self, instance, validated_data):  # noqa C901
+        mudancas = changes_between(instance, validated_data)
+        justificativa = mudancas_para_justificativa_html(mudancas, instance._meta.get_fields())
         imagens = validated_data.pop('imagens', [])
         protocolos = validated_data.pop('protocolos', [])
         informacoes_nutricionais = validated_data.pop('informacoes_nutricionais', [])
@@ -117,13 +123,18 @@ class ProdutoSerializerCreate(serializers.ModelSerializer):
 
         instance.informacoes_nutricionais.all().delete()
 
+        if 'imagens' in mudancas and 'exclusoes' in mudancas['imagens']:
+            for imagem in mudancas['imagens']['exclusoes']:
+                imagem.delete()
+
         for imagem in imagens:
-            data = convert_base64_to_contentfile(imagem.get('arquivo'))
+            if imagem.get('arquivo', '').startswith('http'):
+                continue
             ImagemDoProduto.objects.update_or_create(
                 produto=instance,
                 nome=imagem.get('nome', ''),
                 defaults={
-                    'arquivo': data
+                    'arquivo': convert_base64_to_contentfile(imagem.get('arquivo'))
                 }
             )
 
@@ -147,10 +158,10 @@ class ProdutoSerializerCreate(serializers.ModelSerializer):
                 criado_por=usuario
             )
             homologacao.save()
-            homologacao.inicia_fluxo(user=usuario)
+            homologacao.inicia_fluxo(user=usuario, justificativa=justificativa)
         if validated_data.get('cadastro_finalizado', False):
             homologacao = instance.homologacoes.first()
-            homologacao.inicia_fluxo(user=usuario)
+            homologacao.inicia_fluxo(user=usuario, justificativa=justificativa)
         return instance
 
     class Meta:
@@ -218,3 +229,38 @@ class RespostaAnaliseSensorialSearilzerCreate(serializers.ModelSerializer):
     class Meta:
         model = RespostaAnaliseSensorial
         exclude = ('id', 'uuid', 'criado_por', 'criado_em')
+
+
+class SolicitacaoCadastroProdutoDietaSerializerCreate(serializers.ModelSerializer):
+
+    aluno = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=Aluno.objects.all()
+    )
+    escola = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=Escola.objects.all()
+    )
+    terceirizada = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=Terceirizada.objects.all()
+    )
+
+    solicitacao_dieta_especial = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=SolicitacaoDietaEspecial.objects.all()
+    )
+
+    class Meta:
+        model = SolicitacaoCadastroProdutoDieta
+        exclude = ('id', 'uuid', 'criado_por', 'criado_em')
+
+    def create(self, validated_data):
+        usuario = self.context['request'].user
+        solicitacao = SolicitacaoCadastroProdutoDieta.objects.create(**validated_data, criado_por=usuario)
+        solicitacao._envia_email_solicitacao_realizada()
+        return solicitacao

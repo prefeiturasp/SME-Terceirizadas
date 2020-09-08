@@ -259,8 +259,8 @@ class HomologacaoProdutoWorkflow(xwf_models.Workflow):
              TERCEIRIZADA_RESPONDEU_RECLAMACAO],
             CODAE_HOMOLOGADO),
         ('inativa_homologacao',
-         [CODAE_SUSPENDEU, ESCOLA_OU_NUTRICIONISTA_RECLAMOU, CODAE_QUESTIONADO, CODAE_HOMOLOGADO, CODAE_NAO_HOMOLOGADO],
-         INATIVA),
+         [CODAE_SUSPENDEU, ESCOLA_OU_NUTRICIONISTA_RECLAMOU, CODAE_QUESTIONADO, CODAE_HOMOLOGADO,
+          CODAE_NAO_HOMOLOGADO, CODAE_AUTORIZOU_RECLAMACAO], INATIVA),
     )
 
     initial_state = RASCUNHO
@@ -447,7 +447,8 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
         self._salva_rastro_solicitacao()
         user = kwargs['user']
         self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.INICIO_FLUXO,
-                                  usuario=user)
+                                  usuario=user,
+                                  justificativa=kwargs.get('justificativa', ''))
 
     @xworkflows.after_transition('codae_homologa')
     def _codae_homologa_hook(self, *args, **kwargs):
@@ -1525,3 +1526,58 @@ class FluxoReclamacaoProduto(xwf_models.WorkflowEnabled, models.Model):
 
     class Meta:
         abstract = True
+
+
+class SolicitacaoCadastroProdutoWorkflow(xwf_models.Workflow):
+    log_model = ''  # Disable logging to database
+
+    AGUARDANDO_CONFIRMACAO = 'AGUARDANDO_CONFIRMACAO'  # INICIO
+    CONFIRMADA = 'CONFIRMADA'
+
+    states = (
+        (AGUARDANDO_CONFIRMACAO, 'Aguardando confirmação'),
+        (CONFIRMADA, 'Confirmada'),
+    )
+
+    transitions = (
+        ('terceirizada_atende_solicitacao', AGUARDANDO_CONFIRMACAO, CONFIRMADA),
+    )
+
+    initial_state = AGUARDANDO_CONFIRMACAO
+
+
+class FluxoSolicitacaoCadastroProduto(xwf_models.WorkflowEnabled, models.Model):
+    workflow_class = SolicitacaoCadastroProdutoWorkflow
+    status = xwf_models.StateField(workflow_class)
+
+    def _partes_interessadas_solicitacao_cadastro_produto(self):
+        queryset = Usuario.objects.filter(
+            vinculos__ativo=True,
+            vinculos__perfil__nome__in=[
+                'ADMINISTRADOR_GESTAO_PRODUTO',
+                'COORDENADOR_GESTAO_PRODUTO',
+                'COORDENADOR_DIETA_ESPECIAL']
+        )
+        return [usuario.email for usuario in queryset]
+
+    def _envia_email_solicitacao_realizada(self):
+
+        html = render_to_string(
+            template_name='dieta_especial_solicitou_cadastro_produto.html',
+            context={
+                'titulo': 'Solicitação de cadastro de novo produto realizada',
+                'solicitacao': self
+            }
+        )
+
+        assunto = '[SIGPAE] Solicitação de cadastro de novo produto realizada'
+        emails = self._partes_interessadas_solicitacao_cadastro_produto()
+        emails.append(self.terceirizada.contatos.last().email)
+        corpo = ''
+
+        envia_email_em_massa_task.delay(
+            assunto=assunto,
+            emails=emails,
+            corpo=corpo,
+            html=html
+        )

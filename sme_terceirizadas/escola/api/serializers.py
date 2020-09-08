@@ -92,7 +92,7 @@ class FaixaIdadeEscolarSerializer(serializers.ModelSerializer):
 class DiretoriaRegionalSimplissimaSerializer(serializers.ModelSerializer):
     class Meta:
         model = DiretoriaRegional
-        fields = ('uuid', 'nome')
+        fields = ('uuid', 'nome', 'codigo_eol')
 
 
 class EscolaSimplissimaSerializer(serializers.ModelSerializer):
@@ -130,10 +130,11 @@ class LoteSimplesSerializer(serializers.ModelSerializer):
 class LoteNomeSerializer(serializers.ModelSerializer):
     diretoria_regional = DiretoriaRegionalSimplissimaSerializer()
     tipo_gestao = serializers.CharField()
+    terceirizada = TerceirizadaSimplesSerializer()
 
     class Meta:
         model = Lote
-        fields = ('uuid', 'nome', 'tipo_gestao', 'diretoria_regional')
+        fields = ('uuid', 'nome', 'tipo_gestao', 'diretoria_regional', 'terceirizada')
 
 
 class EscolaSimplesSerializer(serializers.ModelSerializer):
@@ -367,3 +368,9 @@ class AlunoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Aluno
         fields = ('uuid', 'nome', 'data_nascimento', 'codigo_eol', 'escola', 'nome_escola', 'nome_dre')
+
+
+class AlunoSimplesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Aluno
+        fields = ('uuid', 'nome', 'data_nascimento', 'codigo_eol')

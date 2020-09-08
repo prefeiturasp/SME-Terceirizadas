@@ -1,17 +1,25 @@
-import json
 from datetime import datetime, timedelta
 
-from rest_framework import mixins, status, viewsets
+from django.db import transaction
+from django.db.models import Count, Prefetch
+from django_filters import rest_framework as filters
+from rest_framework import mixins, serializers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
+from rest_framework.status import HTTP_400_BAD_REQUEST
 from xworkflows import InvalidTransitionError
 
 from ...dados_comuns import constants
 from ...dados_comuns.fluxo_status import HomologacaoProdutoWorkflow, ReclamacaoProdutoWorkflow
 from ...dados_comuns.models import LogSolicitacoesUsuario
-from ...dados_comuns.permissions import PermissaoParaReclamarDeProduto, UsuarioCODAEGestaoProduto, UsuarioTerceirizada
+from ...dados_comuns.permissions import (
+    PermissaoParaReclamarDeProduto,
+    UsuarioCODAEGestaoProduto,
+    UsuarioTerceirizada,
+    usuario_eh_nutricodae
+)
 from ...relatorios.relatorios import (
     relatorio_produto_analise_sensorial,
     relatorio_produto_analise_sensorial_recebimento,
@@ -19,10 +27,11 @@ from ...relatorios.relatorios import (
     relatorio_produtos_agrupado_terceirizada,
     relatorio_produtos_em_analise_sensorial,
     relatorio_produtos_situacao,
-    relatorio_produtos_suspensos
+    relatorio_produtos_suspensos,
+    relatorio_reclamacao
 )
 from ...terceirizada.api.serializers.serializers import TerceirizadaSimplesSerializer
-from ..forms import ProdutoPorParametrosForm, RelatorioSituacaoForm
+from ..forms import ProdutoJaExisteForm, ProdutoPorParametrosForm, RelatorioSituacaoForm
 from ..models import (
     Fabricante,
     HomologacaoDoProduto,
@@ -32,7 +41,8 @@ from ..models import (
     Produto,
     ProtocoloDeDietaEspecial,
     ReclamacaoDeProduto,
-    RespostaAnaliseSensorial
+    RespostaAnaliseSensorial,
+    SolicitacaoCadastroProdutoDieta
 )
 from ..utils import (
     StandardResultsSetPagination,
@@ -42,6 +52,7 @@ from ..utils import (
     cria_filtro_produto_por_parametros_form,
     get_filtros_data_em_analise_sensorial
 )
+from .filters import ProdutoFilter
 from .serializers.serializers import (
     FabricanteSerializer,
     FabricanteSimplesSerializer,
@@ -54,6 +65,7 @@ from .serializers.serializers import (
     MarcaSimplesSerializer,
     ProdutoListagemSerializer,
     ProdutoRelatorioAnaliseSensorialSerializer,
+    ProdutoRelatorioReclamacaoSerializer,
     ProdutoRelatorioSituacaoSerializer,
     ProdutoResponderReclamacaoTerceirizadaSerializer,
     ProdutoSerializer,
@@ -61,12 +73,15 @@ from .serializers.serializers import (
     ProtocoloDeDietaEspecialSerializer,
     ProtocoloSimplesSerializer,
     ReclamacaoDeProdutoSerializer,
-    ReclamacaoDeProdutoSimplesSerializer
+    ReclamacaoDeProdutoSimplesSerializer,
+    SolicitacaoCadastroProdutoDietaSerializer,
+    SolicitacaoCadastroProdutoDietaSimplesSerializer
 )
 from .serializers.serializers_create import (
     ProdutoSerializerCreate,
     ReclamacaoDeProdutoSerializerCreate,
-    RespostaAnaliseSensorialSearilzerCreate
+    RespostaAnaliseSensorialSearilzerCreate,
+    SolicitacaoCadastroProdutoDietaSerializerCreate
 )
 
 
@@ -406,7 +421,8 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['GET'], url_path='reclamacao')
     def reclamacao_homologao(self, request, uuid=None):
         homologacao_produto = self.get_object()
-        reclamacao = homologacao_produto.reclamacoes.last()
+        reclamacao = homologacao_produto.reclamacoes.filter(
+            status=ReclamacaoProdutoWorkflow.CODAE_ACEITOU).first()
         serializer = ReclamacaoDeProdutoSimplesSerializer(reclamacao)
         return Response(serializer.data)
 
@@ -527,19 +543,11 @@ class ProdutoViewSet(viewsets.ModelViewSet):
     serializer_class = ProdutoSerializer
     queryset = Produto.objects.all()
     pagination_class = StandardResultsSetPagination
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = ProdutoFilter
 
     def list(self, request, *args, **kwargs):
-        filtros = request.query_params.dict()
-        filtros['status'] = request.query_params.getlist('status[]')
-        filtros['data_inicial'] = converte_para_datetime(request.query_params.get('data_inicial'))
-        filtros['data_final'] = converte_para_datetime(request.query_params.get('data_final'))
-
-        if 'tem_aditivos_alergenicos' in filtros:
-            filtros['tem_aditivos_alergenicos'] = json.loads(filtros['tem_aditivos_alergenicos'])
-        if 'eh_para_alunos_com_dieta' in filtros:
-            filtros['eh_para_alunos_com_dieta'] = json.loads(filtros['eh_para_alunos_com_dieta'])
-
-        queryset = self.get_queryset_filtrado(filtros).order_by('criado_em')
+        queryset = self.filter_queryset(self.get_queryset()).order_by('criado_em')
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = ProdutoListagemSerializer(page, many=True)
@@ -572,6 +580,13 @@ class ProdutoViewSet(viewsets.ModelViewSet):
                                          homologacoes__status__in=['CODAE_PEDIU_ANALISE_RECLAMACAO',
                                                                    'TERCEIRIZADA_RESPONDEU_RECLAMACAO',
                                                                    'ESCOLA_OU_NUTRICIONISTA_RECLAMOU'])
+        response = {'results': ProdutoSimplesSerializer(query_set, many=True).data}
+        return Response(response)
+
+    @action(detail=False, methods=['GET'], url_path='lista-nomes-homologados')
+    def lista_produtos_homologados(self, request):
+        status = 'CODAE_HOMOLOGADO'
+        query_set = Produto.objects.filter(ativo=True, homologacoes__status=status)
         response = {'results': ProdutoSimplesSerializer(query_set, many=True).data}
         return Response(response)
 
@@ -814,6 +829,67 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         payload = request.data
         return relatorio_produtos_em_analise_sensorial(request, payload)
 
+    @action(detail=False,
+            methods=['GET'],
+            url_path='filtro-relatorio-reclamacoes')
+    def filtro_relatorio_reclamacoes(self, request):
+        status_reclamacao = self.request.query_params.getlist('status_reclamacao')
+        data_inicial_reclamacao = self.request.query_params.get('data_inicial_reclamacao')
+        data_final_reclamacao = self.request.query_params.get('data_final_reclamacao')
+        filtro_homologacao = {}
+        filtro_reclamacao = {}
+
+        if status_reclamacao:
+            filtro_homologacao['homologacoes__reclamacoes__status__in'] = status_reclamacao
+            filtro_reclamacao['status__in'] = status_reclamacao
+        if data_inicial_reclamacao:
+            data_inicial_reclamacao = converte_para_datetime(data_inicial_reclamacao)
+            filtro_homologacao['homologacoes__reclamacoes__criado_em__gte'] = data_inicial_reclamacao
+            filtro_reclamacao['criado_em__gte'] = data_inicial_reclamacao
+        if data_final_reclamacao:
+            data_final_reclamacao = converte_para_datetime(data_final_reclamacao) + timedelta(days=1)
+            filtro_homologacao['homologacoes__reclamacoes__criado_em__lte'] = data_final_reclamacao
+            filtro_reclamacao['criado_em__lte'] = data_final_reclamacao
+
+        queryset = self.filter_queryset(
+            self.get_queryset()).filter(**filtro_homologacao).prefetch_related(
+                Prefetch('homologacoes__reclamacoes', queryset=ReclamacaoDeProduto.objects.filter(
+                    **filtro_reclamacao))).annotate(qtde_reclamacoes=Count('homologacoes__reclamacoes')).order_by(
+                        'nome')
+        return Response(ProdutoRelatorioReclamacaoSerializer(queryset, many=True).data)
+
+    @action(detail=False,
+            methods=['GET'],
+            url_path='filtro-avaliar-reclamacoes',
+            permission_classes=[UsuarioCODAEGestaoProduto])
+    def filtro_avaliar_reclamacoes(self, request):
+        status_reclamacao = self.request.query_params.getlist('status_reclamacao')
+        queryset = self.filter_queryset(self.get_queryset()).filter(
+            homologacoes__reclamacoes__status__in=status_reclamacao).distinct()
+        return Response(self.get_serializer(queryset, many=True).data)
+
+    @action(detail=False,
+            methods=['POST'],
+            url_path='relatorio-reclamacao')
+    def relatorio_reclamacao(self, request):
+        payload = request.data
+        return relatorio_reclamacao(request, payload)
+
+    @action(detail=False,
+            methods=['GET'],
+            url_path='ja-existe')
+    def ja_existe(self, request):
+        form = ProdutoJaExisteForm(request.GET)
+
+        if not form.is_valid():
+            return Response(form.errors)
+
+        queryset = self.get_queryset().filter(**form.cleaned_data)
+
+        return Response({
+            'produto_existe': queryset.count() > 0
+        })
+
 
 class ProtocoloDeDietaEspecialViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
@@ -870,7 +946,7 @@ class InformacaoNutricionalViewSet(InformacaoNutricionalBaseViewSet):
 
     @action(detail=False, methods=['GET'], url_path=f'agrupadas')
     def informacoes_nutricionais_agrupadas(self, request):
-        query_set = InformacaoNutricional.objects.all()
+        query_set = InformacaoNutricional.objects.all().order_by('id')
         response = {'results': self._agrupa_informacoes_por_tipo(query_set)}
         return Response(response)
 
@@ -907,6 +983,7 @@ class RespostaAnaliseSensorialViewSet(viewsets.ModelViewSet):
 
 
 class ReclamacaoProdutoViewSet(viewsets.ModelViewSet):
+    lookup_field = 'uuid'
     lookup_field = 'uuid'
     serializer_class = ReclamacaoDeProdutoSerializer
     queryset = ReclamacaoDeProduto.objects.all()
@@ -1018,3 +1095,46 @@ class ReclamacaoProdutoViewSet(viewsets.ModelViewSet):
                 request=request
             )
         return resposta
+
+
+class SolicitacaoCadastroProdutoDietaFilter(filters.FilterSet):
+    nome_produto = filters.CharFilter(field_name='nome_produto', lookup_expr='icontains')
+    data_inicial = filters.DateFilter(field_name='criado_em', lookup_expr='date__gte')
+    data_final = filters.DateFilter(field_name='criado_em', lookup_expr='date__lte')
+    status = filters.CharFilter(field_name='status')
+
+    class Meta:
+        model = SolicitacaoCadastroProdutoDieta
+        fields = ['nome_produto', 'data_inicial', 'data_final', 'status']
+
+
+class SolicitacaoCadastroProdutoDietaViewSet(viewsets.ModelViewSet):
+    lookup_field = 'uuid'
+    queryset = SolicitacaoCadastroProdutoDieta.objects.all().order_by('-criado_em')
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = SolicitacaoCadastroProdutoDietaFilter
+
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update']:
+            return SolicitacaoCadastroProdutoDietaSerializerCreate
+        elif self.action == 'list' and usuario_eh_nutricodae(self.request.user):
+            return SolicitacaoCadastroProdutoDietaSimplesSerializer
+        return SolicitacaoCadastroProdutoDietaSerializer
+
+    @action(detail=False, methods=['GET'], url_path='nomes-produtos')
+    def nomes_produtos(self, request):
+        return Response([s.nome_produto for s in SolicitacaoCadastroProdutoDieta.objects.only('nome_produto')])
+
+    @transaction.atomic
+    @action(detail=True, methods=['patch'], url_path='confirma-previsao')
+    def confirma_previsao(self, request, uuid=None):
+        solicitacao = self.get_object()
+        serializer = self.get_serializer()
+        try:
+            serializer.update(solicitacao, request.data)
+            solicitacao.terceirizada_atende_solicitacao(user=request.user)
+            return Response({'detail': 'Confirmação de previsão de cadastro realizada com sucesso'})
+        except InvalidTransitionError as e:
+            return Response({'detail': f'Erro na transição de estado {e}'}, status=HTTP_400_BAD_REQUEST)
+        except serializers.ValidationError as e:
+            return Response({'detail': f'Dados inválidos {e}'}, status=HTTP_400_BAD_REQUEST)

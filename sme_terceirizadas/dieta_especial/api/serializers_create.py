@@ -4,10 +4,11 @@ from rest_framework import serializers
 
 from ...dados_comuns.constants import DEZ_MB
 from ...dados_comuns.utils import convert_base64_to_contentfile, convert_date_format, size
-from ...dados_comuns.validators import deve_ser_no_passado
+from ...dados_comuns.validators import deve_ser_no_passado, deve_ter_extensao_valida
 from ...escola.models import Aluno
+from ...produto.models import Produto
 from ..models import Anexo, SolicitacaoDietaEspecial, SubstituicaoAlimento
-from .validators import AlunoSerializerValidator, deve_ter_extensao_valida
+from .validators import AlunoSerializerValidator
 
 
 class AnexoCreateSerializer(serializers.ModelSerializer):
@@ -24,6 +25,13 @@ class AnexoCreateSerializer(serializers.ModelSerializer):
 
 
 class SubstituicaoAlimentoCreateSerializer(serializers.ModelSerializer):
+    substitutos = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=Produto.objects.all(),
+        many=True
+    )
+
     class Meta:
         model = SubstituicaoAlimento
         fields = '__all__'
@@ -58,8 +66,7 @@ class SolicitacaoDietaEspecialCreateSerializer(serializers.ModelSerializer):
         validated_data['criado_por'] = self.context['request'].user
         anexos = validated_data.pop('anexos', [])
         aluno_data = validated_data.pop('aluno_json')
-        codigo_eol_aluno = f"{int(aluno_data.get('codigo_eol')):06d}"
-        if SolicitacaoDietaEspecial.aluno_possui_dieta_especial_pendente(codigo_eol_aluno):
+        if SolicitacaoDietaEspecial.aluno_possui_dieta_especial_pendente(aluno_data.get('codigo_eol')):
             raise serializers.ValidationError('Aluno já possui Solicitação de Dieta Especial pendente')
         aluno = self._get_or_create_aluno(aluno_data)
         solicitacao = SolicitacaoDietaEspecial.objects.create(**validated_data)
@@ -70,7 +77,9 @@ class SolicitacaoDietaEspecialCreateSerializer(serializers.ModelSerializer):
         for anexo in anexos:
             data = convert_base64_to_contentfile(anexo.get('arquivo'))
             Anexo.objects.create(
-                solicitacao_dieta_especial=solicitacao, arquivo=data, nome=anexo.get('nome', '')
+                solicitacao_dieta_especial=solicitacao,
+                arquivo=data,
+                nome=anexo.get('nome', '')
             )
 
         solicitacao.inicia_fluxo(user=self.context['request'].user)
@@ -78,7 +87,7 @@ class SolicitacaoDietaEspecialCreateSerializer(serializers.ModelSerializer):
 
     def _get_or_create_aluno(self, aluno_data):
         escola = self.context['request'].user.vinculo_atual.instituicao
-        codigo_eol_aluno = f"{int(aluno_data.get('codigo_eol')):06d}"
+        codigo_eol_aluno = aluno_data.get('codigo_eol')
         nome_aluno = aluno_data.get('nome')
         data_nascimento_aluno = convert_date_format(
             date=aluno_data.get('data_nascimento'),

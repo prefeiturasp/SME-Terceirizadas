@@ -1,0 +1,57 @@
+{% include 'relatorio_base.html' %}
+{% load index %}
+{% load static %}
+{% load sass_tags %}
+
+<html>
+<head>
+  <link rel="stylesheet" href="{% sass_src 'css/cabecalho.scss' %}" type="text/css">
+  <link rel="stylesheet" href="{% sass_src 'css/override_relatorio.scss' %}" type="text/css">
+   <link rel="stylesheet" href="{% sass_src 'css/relatorio_reclamacao.scss' %}" type="text/css">
+  {% block css %}{% endblock %}
+</head>
+<body>
+<header class="header">
+  <figure class="logo-titulo">
+    <img src="{% static 'images/LOGO_PB_POSITIVO.png' %}" alt=""/>
+    <h1>SIGPAE - RELATÓRIO DE ACOMPANHAMENTO DE RECLAMAÇÃO DE PRODUTO</h1>
+  </figure>
+
+  {% if config.cabecario_tipo == "CABECARIO_POR_NOME"%}
+  <section class="cabecario-reclamacao-reduzido">
+    <article>
+      VEJA OS RESULTADOS PARA "{{ config.nome_busca }}"
+    </article>
+  </section>
+  {% elif config.cabecario_tipo == "CABECARIO_REDUZIDO"%}
+  <section class="cabecario-reclamacao-reduzido">
+    <article>
+      VEJA OS RESULTADOS PARA A BUSCA
+    </article>
+  </section>
+  {% elif config.cabecario_tipo == "CABECARIO_POR_DATA" %}
+  <section class="cabecario-reclamacao-data">
+    <article>
+      RESULTADOS DO PERÍODO
+    </article>
+    <article>
+      <div>DE: {{ config.data_inicial|formata_data }}</div>
+      <div>ATÉ: {{ config.data_final|formata_data }}</div>
+    </article>
+  </section>
+  {% elif config.cabecario_tipo == "CABECARIO_POR_STATUS"%}
+  <section class="cabecario-reclamacao-status">
+    <article>
+      STATUS
+    </article>
+    <article>
+      {{ config.status }}
+    </article>
+  </section>
+  {% endif %}
+</header>
+<p style="page-break-before: avoid;"></p>
+{% block conteudo %}
+{% endblock %}
+</body>
+</html>

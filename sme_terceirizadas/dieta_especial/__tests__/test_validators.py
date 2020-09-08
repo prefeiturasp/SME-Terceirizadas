@@ -1,7 +1,7 @@
 import pytest
 from rest_framework.exceptions import ValidationError
 
-from ..api.validators import deve_ter_extensao_valida
+from ...dados_comuns.validators import deve_ter_extensao_valida
 
 pytestmark = pytest.mark.django_db
 

@@ -3,12 +3,20 @@ import datetime
 from rest_framework import serializers
 
 from ....dados_comuns.api.serializers import (
+    ContatoSerializer,
     LogSolicitacoesUsuarioComAnexosSerializer,
     LogSolicitacoesUsuarioComVinculoSerializer,
     LogSolicitacoesUsuarioSerializer
 )
 from ....dados_comuns.fluxo_status import ReclamacaoProdutoWorkflow
-from ....escola.api.serializers import EscolaSimplissimaSerializer
+from ....dados_comuns.validators import objeto_nao_deve_ter_duplicidade
+from ....escola.api.serializers import (
+    AlunoSimplesSerializer,
+    DiretoriaRegionalSimplissimaSerializer,
+    EscolaSimplissimaSerializer,
+    TipoGestaoSerializer
+)
+from ....escola.models import Escola
 from ....terceirizada.api.serializers.serializers import TerceirizadaSimplesSerializer
 from ...models import (
     AnexoReclamacaoDeProduto,
@@ -23,6 +31,7 @@ from ...models import (
     ProtocoloDeDietaEspecial,
     ReclamacaoDeProduto,
     RespostaAnaliseSensorial,
+    SolicitacaoCadastroProdutoDieta,
     TipoDeInformacaoNutricional
 )
 
@@ -40,6 +49,15 @@ class MarcaSerializer(serializers.ModelSerializer):
 
 
 class ProtocoloDeDietaEspecialSerializer(serializers.ModelSerializer):
+    nome = serializers.CharField()
+
+    def validate_nome(self, nome):
+        filtro = {'nome__iexact': nome}
+        objeto_nao_deve_ter_duplicidade(ProtocoloDeDietaEspecial,
+                                        'Protocolo de Dieta Especial com este Nome já existe.',
+                                        **filtro)
+        return nome
+
     class Meta:
         model = ProtocoloDeDietaEspecial
         exclude = ('id', 'ativo', 'criado_em', 'criado_por',)
@@ -119,9 +137,11 @@ class ReclamacaoDeProdutoSerializer(serializers.ModelSerializer):
 
 
 class ReclamacaoDeProdutoSimplesSerializer(serializers.ModelSerializer):
+    ultimo_log = LogSolicitacoesUsuarioSerializer()
+
     class Meta:
         model = ReclamacaoDeProduto
-        fields = ('reclamacao', 'criado_em')
+        fields = ('reclamacao', 'criado_em', 'ultimo_log')
 
 
 class HomologacaoProdutoSimplesSerializer(serializers.ModelSerializer):
@@ -440,3 +460,82 @@ class ProdutoRelatorioSituacaoSerializer(serializers.ModelSerializer):
         model = Produto
         fields = ('nome', 'marca', 'fabricante', 'criado_em', 'ultima_homologacao',
                   'eh_para_alunos_com_dieta', 'tem_aditivos_alergenicos')
+
+
+class EscolaSolicitacaoCadastroProdutoDietaSerializer(serializers.ModelSerializer):
+    tipo_gestao = TipoGestaoSerializer()
+    lote = serializers.CharField(source='lote.nome')
+    diretoria_regional = DiretoriaRegionalSimplissimaSerializer()
+    contato = ContatoSerializer()
+
+    class Meta:
+        model = Escola
+        fields = ('tipo_gestao', 'lote', 'diretoria_regional', 'contato', 'nome')
+
+
+class SolicitacaoCadastroProdutoDietaSimplesSerializer(serializers.ModelSerializer):
+    status_title = serializers.CharField(source='status.state.title')
+
+    class Meta:
+        model = SolicitacaoCadastroProdutoDieta
+        fields = ('uuid', 'criado_em', 'nome_produto',
+                  'marca_produto', 'fabricante_produto', 'status',
+                  'status_title', 'data_previsao_cadastro')
+
+
+class SolicitacaoCadastroProdutoDietaSerializer(serializers.ModelSerializer):
+    aluno = AlunoSimplesSerializer()
+    escola = EscolaSolicitacaoCadastroProdutoDietaSerializer()
+    status_title = serializers.CharField(source='status.state.title')
+
+    class Meta:
+        model = SolicitacaoCadastroProdutoDieta
+        fields = ('uuid', 'criado_em', 'aluno', 'escola', 'nome_produto',
+                  'marca_produto', 'fabricante_produto', 'info_produto', 'status',
+                  'status_title', 'data_previsao_cadastro', 'justificativa_previsao_cadastro')
+
+
+class SolicitacaoCadastroProdutoDietaConfirmarSerializer(SolicitacaoCadastroProdutoDietaSerializer):
+    data_previsao_cadastro = serializers.DateField(required=True)
+    justificativa_previsao_cadastro = serializers.CharField(allow_blank=True, required=False)
+
+    class Meta:
+        model = SolicitacaoCadastroProdutoDieta
+        fields = ('data_previsao_cadastro', 'justificativa_previsao_cadastro')
+
+
+class ReclamacaoDeProdutoRelatorioSerializer(serializers.ModelSerializer):
+    escola = EscolaSimplissimaSerializer()
+    status_titulo = serializers.CharField(source='status.state.title')
+    logs = serializers.SerializerMethodField()
+
+    def get_logs(self, obj):
+        return LogSolicitacoesUsuarioSerializer(
+            LogSolicitacoesUsuario.objects.filter(uuid_original=obj.uuid).order_by('criado_em'),
+            many=True
+        ).data
+
+    class Meta:
+        model = ReclamacaoDeProduto
+        fields = ('uuid', 'reclamante_registro_funcional', 'logs', 'reclamante_cargo', 'reclamante_nome',
+                  'reclamacao', 'escola', 'status', 'status_titulo', 'criado_em', 'id_externo')
+
+
+class HomologacaoRelatorioReclamacaoSerializer(serializers.ModelSerializer):
+    reclamacoes = ReclamacaoDeProdutoRelatorioSerializer(many=True)
+
+    class Meta:
+        model = HomologacaoDoProduto
+        fields = ('uuid', 'status', 'id_externo', 'criado_em', 'reclamacoes')
+
+
+class ProdutoRelatorioReclamacaoSerializer(serializers.ModelSerializer):
+    marca = MarcaSerializer()
+    fabricante = FabricanteSerializer()
+    id_externo = serializers.CharField()
+    homologacoes = HomologacaoRelatorioReclamacaoSerializer(many=True)
+    qtde_reclamacoes = serializers.CharField()
+
+    class Meta:
+        model = Produto
+        exclude = ('id',)

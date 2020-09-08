@@ -92,6 +92,7 @@ django-compressor = "==2.4"
 libsass = "==0.19.4"
 django-crispy-forms = "*"
 django-weasyprint = "*"
+django-filter = "*"
 
 [requires]
 python_version = "3.6"

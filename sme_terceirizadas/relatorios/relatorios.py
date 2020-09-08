@@ -2,6 +2,7 @@ import datetime
 
 from django.template.loader import render_to_string
 
+from ..dados_comuns.fluxo_status import ReclamacaoProdutoWorkflow
 from ..dados_comuns.models import LogSolicitacoesUsuario
 from ..kit_lanche.models import EscolaQuantidade
 from ..relatorios.utils import html_to_pdf_response
@@ -267,12 +268,15 @@ def relatorio_suspensao_de_alimentacao(request, solicitacao):
 def relatorio_produto_homologacao(request, produto):
     homologacao = produto.homologacoes.first()
     terceirizada = homologacao.rastro_terceirizada
+    reclamacao = homologacao.reclamacoes.filter(
+        status=ReclamacaoProdutoWorkflow.CODAE_ACEITOU).first()
     logs = homologacao.logs
     lotes = terceirizada.lotes.all()
     html_string = render_to_string(
         'homologacao_produto.html',
         {
             'terceirizada': terceirizada,
+            'reclamacao': reclamacao,
             'homologacao': homologacao,
             'fluxo': constants.FLUXO_HOMOLOGACAO_PRODUTO,
             'width': get_width(constants.FLUXO_HOMOLOGACAO_PRODUTO, logs),
@@ -316,6 +320,17 @@ def relatorio_produtos_em_analise_sensorial(request, payload):
         }
     )
     return html_to_pdf_response(html_string, 'relatorio_produtos_em_analise_sensorial.pdf')
+
+
+def relatorio_reclamacao(request, payload):
+    html_string = render_to_string(
+        'relatorio_reclamacao.html',
+        {
+            'produtos': payload['produtos'],
+            'config': payload['config_cabecario']
+        }
+    )
+    return html_to_pdf_response(html_string, 'relatorio_reclamacao.pdf')
 
 
 def relatorio_quantitativo_por_terceirizada(request, filtros, dados_relatorio):

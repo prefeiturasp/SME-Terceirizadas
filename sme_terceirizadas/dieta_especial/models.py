@@ -1,4 +1,4 @@
-from django.core.validators import MinLengthValidator
+from django.core.validators import MaxLengthValidator, MinLengthValidator
 from django.db import models
 from django_prometheus.models import ExportModelOperationsMixin
 
@@ -33,7 +33,7 @@ class SolicitacaoDietaEspecial(ExportModelOperationsMixin('dieta_especial'), Tem
     registro_funcional_pescritor = models.CharField('Nome completo do pescritor da receita',
                                                     help_text='CRN/CRM/CRFa...',
                                                     max_length=200,
-                                                    validators=[MinLengthValidator(6)],
+                                                    validators=[MinLengthValidator(4), MaxLengthValidator(6)],
                                                     blank=True)
     registro_funcional_nutricionista = models.CharField('Nome completo do pescritor da receita',
                                                         help_text='CRN/CRM/CRFa...',
@@ -128,7 +128,7 @@ class SolicitacaoDietaEspecial(ExportModelOperationsMixin('dieta_especial'), Tem
 
 
 class Anexo(ExportModelOperationsMixin('anexo'), models.Model):
-    solicitacao_dieta_especial = models.ForeignKey(SolicitacaoDietaEspecial, on_delete=models.DO_NOTHING)
+    solicitacao_dieta_especial = models.ForeignKey(SolicitacaoDietaEspecial, on_delete=models.CASCADE)
     nome = models.CharField(max_length=100, blank=True)
     arquivo = models.FileField()
     eh_laudo_alta = models.BooleanField(default=False)
@@ -173,7 +173,7 @@ class SubstituicaoAlimento(models.Model):
         ('S', 'Substituir')
     ]
 
-    solicitacao_dieta_especial = models.ForeignKey(SolicitacaoDietaEspecial, on_delete=models.PROTECT)
+    solicitacao_dieta_especial = models.ForeignKey(SolicitacaoDietaEspecial, on_delete=models.CASCADE)
     alimento = models.ForeignKey(Alimento, on_delete=models.PROTECT, blank=True, null=True)
     tipo = models.CharField(max_length=1, choices=TIPO_CHOICES, blank=True)
-    substitutos = models.ManyToManyField(Alimento, related_name='substitutos')
+    substitutos = models.ManyToManyField('produto.Produto', related_name='substitutos', blank=True)
