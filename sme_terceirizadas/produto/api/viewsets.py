@@ -854,8 +854,8 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         queryset = self.filter_queryset(
             self.get_queryset()).filter(**filtro_homologacao).prefetch_related(
                 Prefetch('homologacoes__reclamacoes', queryset=ReclamacaoDeProduto.objects.filter(
-                    **filtro_reclamacao))).annotate(qtde_reclamacoes=Count('homologacoes__reclamacoes')).order_by(
-                        'nome')
+                    **filtro_reclamacao))).order_by(
+                        'nome').distinct()
         return Response(ProdutoRelatorioReclamacaoSerializer(queryset, many=True).data)
 
     @action(detail=False,
@@ -864,9 +864,14 @@ class ProdutoViewSet(viewsets.ModelViewSet):
             permission_classes=[UsuarioCODAEGestaoProduto])
     def filtro_avaliar_reclamacoes(self, request):
         status_reclamacao = self.request.query_params.getlist('status_reclamacao')
-        queryset = self.filter_queryset(self.get_queryset()).filter(
-            homologacoes__reclamacoes__status__in=status_reclamacao).distinct()
-        return Response(self.get_serializer(queryset, many=True).data)
+        queryset = self.filter_queryset(self.get_queryset()).prefetch_related('homologacoes__reclamacoes').filter(
+            homologacoes__reclamacoes__status__in=status_reclamacao).order_by('nome').distinct()
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = ProdutoRelatorioReclamacaoSerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = ProdutoRelatorioReclamacaoSerializer(queryset, many=True)
+        return Response(serializer.data)
 
     @action(detail=False,
             methods=['POST'],

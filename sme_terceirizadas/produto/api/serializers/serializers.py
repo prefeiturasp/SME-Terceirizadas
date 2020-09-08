@@ -4,6 +4,7 @@ from rest_framework import serializers
 
 from ....dados_comuns.api.serializers import (
     ContatoSerializer,
+    LogSolicitacoesSerializer,
     LogSolicitacoesUsuarioComAnexosSerializer,
     LogSolicitacoesUsuarioComVinculoSerializer,
     LogSolicitacoesUsuarioSerializer
@@ -507,13 +508,7 @@ class SolicitacaoCadastroProdutoDietaConfirmarSerializer(SolicitacaoCadastroProd
 class ReclamacaoDeProdutoRelatorioSerializer(serializers.ModelSerializer):
     escola = EscolaSimplissimaSerializer()
     status_titulo = serializers.CharField(source='status.state.title')
-    logs = serializers.SerializerMethodField()
-
-    def get_logs(self, obj):
-        return LogSolicitacoesUsuarioSerializer(
-            LogSolicitacoesUsuario.objects.filter(uuid_original=obj.uuid).order_by('criado_em'),
-            many=True
-        ).data
+    logs = LogSolicitacoesSerializer(many=True)
 
     class Meta:
         model = ReclamacaoDeProduto
@@ -534,8 +529,9 @@ class ProdutoRelatorioReclamacaoSerializer(serializers.ModelSerializer):
     fabricante = FabricanteSerializer()
     id_externo = serializers.CharField()
     homologacoes = HomologacaoRelatorioReclamacaoSerializer(many=True)
-    qtde_reclamacoes = serializers.CharField()
+    ultima_homologacao = HomologacaoRelatorioReclamacaoSerializer()
 
     class Meta:
         model = Produto
-        exclude = ('id',)
+        fields = ('uuid', 'nome', 'marca', 'fabricante', 'id_externo', 'homologacoes',
+                  'ultima_homologacao', 'criado_em')
