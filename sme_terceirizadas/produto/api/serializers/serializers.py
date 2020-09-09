@@ -535,3 +535,44 @@ class ProdutoRelatorioReclamacaoSerializer(serializers.ModelSerializer):
         model = Produto
         fields = ('uuid', 'nome', 'marca', 'fabricante', 'id_externo', 'homologacoes',
                   'ultima_homologacao', 'criado_em')
+
+
+
+class ReclamacoesUltimaHomologacaoHomologadosPorParametrosSerializer(serializers.ModelSerializer):
+    escola = EscolaSimplissimaSerializer()
+    status_titulo = serializers.CharField(source='status.state.title')
+    logs = serializers.SerializerMethodField()
+
+    def get_logs(self, obj):
+        return LogSolicitacoesUsuarioSerializer(
+            LogSolicitacoesUsuario.objects.filter(uuid_original=obj.uuid).order_by('criado_em'),
+            many=True
+        ).data
+
+    class Meta:
+        model = ReclamacaoDeProduto
+        fields = ('logs', 'id_externo', 'status_titulo', 'reclamante_nome', 'reclamante_registro_funcional',
+                  'escola', 'criado_em', 'reclamacao', 'uuid', 'reclamante_cargo', 'status_titulo')
+
+
+class UltimaHomologacaoHomologadosPorParametrosSerializer(serializers.ModelSerializer):
+    reclamacoes = serializers.SerializerMethodField()
+
+    def get_reclamacoes(self, obj):
+        return ReclamacoesUltimaHomologacaoHomologadosPorParametrosSerializer(
+            obj.reclamacoes.all(), context=self.context,
+            many=True
+        ).data
+
+    class Meta:
+        model = HomologacaoDoProduto
+        fields = ('uuid', 'reclamacoes')
+
+
+class ProdutoHomologadosPorParametrosSerializer(serializers.ModelSerializer):
+    marca = MarcaSerializer()
+    ultima_homologacao = UltimaHomologacaoHomologadosPorParametrosSerializer()
+
+    class Meta:
+        model = Produto
+        fields = ('nome', 'marca', 'eh_para_alunos_com_dieta', 'ultima_homologacao', 'criado_em')
