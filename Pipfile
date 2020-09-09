@@ -93,6 +93,7 @@ libsass = "==0.19.4"
 django-crispy-forms = "*"
 django-weasyprint = "*"
 django-filter = "*"
+psycopg2-binary = "*"
 
 [requires]
 python_version = "3.6"

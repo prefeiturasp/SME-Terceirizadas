@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 
 from django.db import transaction
-from django.db.models import Prefetch
+from django.db.models import Prefetch, Q, Count
 from django_filters import rest_framework as filters
 from rest_framework import mixins, serializers, status, viewsets
 from rest_framework.decorators import action
@@ -66,9 +66,9 @@ from .serializers.serializers import (
     ProdutoHomologadosPorParametrosSerializer,
     ProdutoListagemSerializer,
     ProdutoRelatorioAnaliseSensorialSerializer,
-    ProdutoRelatorioReclamacaoSerializer,
+    ProdutoReclamacaoSerializer,
     ProdutoRelatorioSituacaoSerializer,
-    ProdutoResponderReclamacaoTerceirizadaSerializer,
+    # ProdutoResponderReclamacaoTerceirizadaSerializer,
     ProdutoSerializer,
     ProdutoSimplesSerializer,
     ProtocoloDeDietaEspecialSerializer,
@@ -771,27 +771,30 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         return self.paginated_response(queryset.order_by('criado_em'))
 
     @action(detail=False,
-            methods=['POST'],
+            methods=['GET'],
             url_path='filtro-reclamacoes-terceirizada',
             permission_classes=[UsuarioTerceirizada])
     def filtro_reclamacoes_terceirizada(self, request):
-        form = ProdutoPorParametrosForm(request.data)
-        status_reclamacao = [ReclamacaoProdutoWorkflow.AGUARDANDO_RESPOSTA_TERCEIRIZADA]
+        filtro_homologacao = {'homologacoes__reclamacoes__status': ReclamacaoProdutoWorkflow.AGUARDANDO_RESPOSTA_TERCEIRIZADA}
+        filtro_reclamacao = {'status__in': [
+                                            ReclamacaoProdutoWorkflow.AGUARDANDO_RESPOSTA_TERCEIRIZADA,
+                                            ReclamacaoProdutoWorkflow.RESPONDIDO_TERCEIRIZADA
+                                            ]
+                            }
+        qtde_questionamentos = Count('homologacoes__reclamacoes', filter=Q(
+            homologacoes__reclamacoes__status=ReclamacaoProdutoWorkflow.AGUARDANDO_RESPOSTA_TERCEIRIZADA))
 
-        status_homologacao = [
-            HomologacaoProdutoWorkflow.CODAE_PEDIU_ANALISE_RECLAMACAO,
-            HomologacaoProdutoWorkflow.TERCEIRIZADA_RESPONDEU_RECLAMACAO
-        ]
+        queryset = self.filter_queryset(self.get_queryset()).filter(
+            **filtro_homologacao).prefetch_related(
+                Prefetch('homologacoes__reclamacoes', queryset=ReclamacaoDeProduto.objects.filter(
+                    **filtro_reclamacao))).annotate(qtde_questionamentos=qtde_questionamentos).order_by('criado_em').distinct()
 
-        if not form.is_valid():
-            return Response(form.errors)
-
-        form_data = form.cleaned_data.copy()
-        form_data['status'] = status_homologacao
-
-        queryset = self.get_queryset_filtrado(form_data).filter(
-            homologacoes__reclamacoes__status__in=status_reclamacao).distinct()
-        return self.paginated_response(queryset.order_by('criado_em'))
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = ProdutoReclamacaoSerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = ProdutoReclamacaoSerializer(queryset, many=True)
+        return Response(serializer.data)
 
     def filtra_produtos_em_analise_sensorial(self, request, form_data):
         queryset = self.get_queryset_filtrado(form_data).exclude(homologacoes__respostas_analise__exact=None)
@@ -862,7 +865,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
                 Prefetch('homologacoes__reclamacoes', queryset=ReclamacaoDeProduto.objects.filter(
                     **filtro_reclamacao))).order_by(
                         'nome').distinct()
-        return Response(ProdutoRelatorioReclamacaoSerializer(queryset, many=True).data)
+        return Response(ProdutoReclamacaoSerializer(queryset, many=True).data)
 
     @action(detail=False,
             methods=['GET'],
@@ -874,9 +877,9 @@ class ProdutoViewSet(viewsets.ModelViewSet):
             homologacoes__reclamacoes__status__in=status_reclamacao).order_by('nome').distinct()
         page = self.paginate_queryset(queryset)
         if page is not None:
-            serializer = ProdutoRelatorioReclamacaoSerializer(page, many=True)
+            serializer = ProdutoReclamacaoSerializer(page, many=True)
             return self.get_paginated_response(serializer.data)
-        serializer = ProdutoRelatorioReclamacaoSerializer(queryset, many=True)
+        serializer = ProdutoReclamacaoSerializer(queryset, many=True)
         return Response(serializer.data)
 
     @action(detail=False,
