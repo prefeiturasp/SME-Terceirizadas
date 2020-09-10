@@ -509,7 +509,6 @@ class ProdutoReclamacaoSerializer(serializers.ModelSerializer):
                   'criado_em', 'qtde_questionamentos')
 
 
-
 class ReclamacoesUltimaHomologacaoHomologadosPorParametrosSerializer(serializers.ModelSerializer):
     escola = EscolaSimplissimaSerializer()
     status_titulo = serializers.CharField(source='status.state.title')
