@@ -1,5 +1,5 @@
 from django.db import transaction
-from django.db.models import Sum
+from django.db.models import Sum, Case, Count, When, CharField, Value
 from django.forms import ValidationError
 from rest_framework import generics, mixins, serializers
 from rest_framework.decorators import action
@@ -19,7 +19,11 @@ from ...dados_comuns.permissions import (
 )
 from ...paineis_consolidados.api.constants import FILTRO_CODIGO_EOL_ALUNO
 from ...relatorios.relatorios import relatorio_dieta_especial, relatorio_dieta_especial_protocolo
-from ..forms import NegaDietaEspecialForm, SolicitacoesAtivasInativasPorAlunoForm
+from ..forms import (
+    NegaDietaEspecialForm,
+    SolicitacoesAtivasInativasPorAlunoForm,
+    RelatorioQuantitativoSolicDietaEspForm
+)
 from ..models import (
     AlergiaIntolerancia,
     Alimento,
@@ -197,6 +201,62 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
             return Response(serializer.data)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['POST'], url_path='relatorio-quantitativo-solic-dieta-esp')
+    def relatorio_quantitativo_solic_dieta_esp(self, request):
+        form = RelatorioQuantitativoSolicDietaEspForm(self.request.data)
+        if not form.is_valid():
+            raise ValidationError(form.errors)
+
+        user = self.request.user
+        qs = self.get_queryset()
+
+        if user.tipo_usuario == 'escola':
+            qs = qs.filter(aluno__escola=user.vinculo_atual.instituicao)
+            campos = ['status_simples']
+        elif form.cleaned_data['escola']:
+            qs = qs.filter(aluno__escola__in=form.cleaned_data['escola'])
+            campos = ['aluno__escola__nome', 'status_simples']
+        elif user.tipo_usuario == 'diretoriaregional':
+            qs = qs.filter(aluno__escola__diretoria_regional=user.vinculo_atual.instituicao)
+            campos = ['aluno__escola__nome', 'status_simples']
+        elif form.cleaned_data['dre']:
+            qs = qs.filter(aluno__escola__diretoria_regional__in=form.cleaned_data['dre'])
+            campos = ['aluno__escola__diretoria_regional__nome', 'aluno__escola__nome', 'status_simples']
+        else:
+            campos = ['aluno__escola__diretoria_regional__nome', 'aluno__escola__nome', 'status_simples']
+
+        if form.cleaned_data['data_inicial']:
+            qs = qs.filter(criado_em__date__gte=form.cleaned_data['data_inicial'])
+        if form.cleaned_data['data_final']:
+            qs = qs.filter(criado_em__date__lte=form.cleaned_data['data_final'])
+
+        print(form.cleaned_data)
+
+        STATUS_PENDENTE = ['CODAE_A_AUTORIZAR']
+        STATUS_ATIVA = ['CODAE_AUTORIZADO', 'TERCEIRIZADA_TOMOU_CIENCIA', 'ESCOLA_SOLICITOU_INATIVACAO', 'CODAE_NEGOU_INATIVACAO']
+        STATUS_INATIVA = ['CODAE_AUTORIZOU_INATIVACAO', 'TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO', 'TERMINADA_AUTOMATICAMENTE_SISTEMA']
+
+        when_data = {
+            'ativas': When(status__in=STATUS_ATIVA, then=Value('Ativa')),
+            'inativas': When(status__in=STATUS_INATIVA, then=Value('Inativa')),
+            'pendentes': When(status__in=STATUS_PENDENTE, then=Value('Pendente'))
+        }
+
+        if form.cleaned_data['status'] == '':
+            whens = when_data.values()
+        else:
+            whens = [when_data[form.cleaned_data['status']]]
+
+        qs = qs.annotate(
+            status_simples=Case(
+                *whens,
+                default=Value('Outros'),
+                output_field=CharField()
+            )
+        ).exclude(status_simples='Outros').values(*campos).annotate(qtde=Count('status_simples')).order_by(*campos)
+
+        return Response(qs)
 
 
 class SolicitacoesAtivasInativasPorAlunoView(generics.ListAPIView):
