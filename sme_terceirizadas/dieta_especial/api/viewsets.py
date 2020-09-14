@@ -1,5 +1,5 @@
 from django.db import transaction
-from django.db.models import Sum, Case, Count, When, CharField, Value
+from django.db.models import Sum, Case, Count, When, CharField, Value, Q
 from django.forms import ValidationError
 from rest_framework import generics, mixins, serializers
 from rest_framework.decorators import action
@@ -213,18 +213,19 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
 
         if user.tipo_usuario == 'escola':
             qs = qs.filter(aluno__escola=user.vinculo_atual.instituicao)
-            campos = ['status_simples']
         elif form.cleaned_data['escola']:
             qs = qs.filter(aluno__escola__in=form.cleaned_data['escola'])
-            campos = ['aluno__escola__nome', 'status_simples']
         elif user.tipo_usuario == 'diretoriaregional':
             qs = qs.filter(aluno__escola__diretoria_regional=user.vinculo_atual.instituicao)
-            campos = ['aluno__escola__nome', 'status_simples']
         elif form.cleaned_data['dre']:
             qs = qs.filter(aluno__escola__diretoria_regional__in=form.cleaned_data['dre'])
-            campos = ['aluno__escola__diretoria_regional__nome', 'aluno__escola__nome', 'status_simples']
+
+        if user.tipo_usuario == 'escola':
+            campos = []
+        elif user.tipo_usuario == 'diretoriaregional':
+            campos = ['aluno__escola__nome']
         else:
-            campos = ['aluno__escola__diretoria_regional__nome', 'aluno__escola__nome', 'status_simples']
+            campos = ['aluno__escola__diretoria_regional__nome', 'aluno__escola__nome']
 
         if form.cleaned_data['data_inicial']:
             qs = qs.filter(criado_em__date__gte=form.cleaned_data['data_inicial'])
@@ -254,7 +255,11 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
                 default=Value('Outros'),
                 output_field=CharField()
             )
-        ).exclude(status_simples='Outros').values(*campos).annotate(qtde=Count('status_simples')).order_by(*campos)
+        ).exclude(status_simples='Outros').values(*campos).annotate(
+            qtde_ativas=Count('status_simples', filter=Q(status_simples='Ativa')),
+            qtde_inativas=Count('status_simples', filter=Q(status_simples='Inativa')),
+            qtde_pendentes=Count('status_simples', filter=Q(status_simples='Pendente'))
+        ).order_by(*campos)
 
         return Response(qs)
 
