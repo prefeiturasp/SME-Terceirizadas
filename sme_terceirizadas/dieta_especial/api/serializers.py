@@ -246,3 +246,11 @@ class SolicitacoesAtivasInativasPorAlunoSerializer(serializers.Serializer):
     nome = serializers.CharField(source='aluno.nome')
     ativas = serializers.IntegerField()
     inativas = serializers.IntegerField()
+
+
+class RelatorioQuantitativoSolicDietaEspSerializer(serializers.Serializer):
+    dre = serializers.CharField(source='aluno__escola__diretoria_regional__nome', required=False)
+    escola = serializers.CharField(source='aluno__escola__nome', required=False)
+    qtde_ativas = serializers.IntegerField()
+    qtde_inativas = serializers.IntegerField()
+    qtde_pendentes = serializers.IntegerField()
