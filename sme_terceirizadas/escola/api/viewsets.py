@@ -45,6 +45,7 @@ from ..models import (
     TipoGestao,
     TipoUnidadeEscolar
 )
+from .filters import DiretoriaRegionalFilter
 from .serializers import (
     DiretoriaRegionalCompletaSerializer,
     DiretoriaRegionalSimplissimaSerializer,
@@ -179,8 +180,13 @@ class EscolaSimplissimaViewSet(ReadOnlyModelViewSet):
 
 class EscolaSimplissimaComDREViewSet(ReadOnlyModelViewSet):
     lookup_field = 'uuid'
-    queryset = Escola.objects.all()
+    queryset = Escola.objects.all().prefetch_related('diretoria_regional')
     serializer_class = EscolaListagemSimplissimaComDRESelializer
+
+
+class EscolaSimplissimaComDREUnpaginatedViewSet(EscolaSimplissimaComDREViewSet):
+    pagination_class = None
+    filterset_class = DiretoriaRegionalFilter
 
 
 class EscolaQuantidadeAlunosPorPeriodoEFaixaViewSet(GenericViewSet):

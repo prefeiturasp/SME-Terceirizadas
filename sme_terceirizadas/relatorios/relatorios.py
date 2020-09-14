@@ -410,3 +410,16 @@ def relatorio_produto_analise_sensorial_recebimento(request, produto):
         }
     )
     return html_to_pdf_response(html_string, f'produto_homologacao_{produto.id_externo}.pdf')
+
+
+def relatorio_quantitativo_solic_dieta_especial(campos, filtros, queryset, user):
+    html_string = render_to_string(
+        'relatorio_quantitativo_solicitacoes_dieta_especial.html',
+        {
+            'campos': campos,
+            'filtros': filtros,
+            'queryset': queryset,
+            'user': user
+        }
+    )
+    return html_to_pdf_response(html_string, f'relatorio_quantitativo_solicitacoes_dieta_especial.pdf')

@@ -1,5 +1,5 @@
 from django.db import transaction
-from django.db.models import Sum
+from django.db.models import Case, CharField, Count, Q, Sum, Value, When
 from django.forms import ValidationError
 from rest_framework import generics, mixins, serializers
 from rest_framework.decorators import action
@@ -18,8 +18,16 @@ from ...dados_comuns.permissions import (
     UsuarioTerceirizada
 )
 from ...paineis_consolidados.api.constants import FILTRO_CODIGO_EOL_ALUNO
-from ...relatorios.relatorios import relatorio_dieta_especial, relatorio_dieta_especial_protocolo
-from ..forms import NegaDietaEspecialForm, SolicitacoesAtivasInativasPorAlunoForm
+from ...relatorios.relatorios import (
+    relatorio_dieta_especial,
+    relatorio_dieta_especial_protocolo,
+    relatorio_quantitativo_solic_dieta_especial
+)
+from ..forms import (
+    NegaDietaEspecialForm,
+    RelatorioQuantitativoSolicDietaEspForm,
+    SolicitacoesAtivasInativasPorAlunoForm
+)
 from ..models import (
     AlergiaIntolerancia,
     Alimento,
@@ -28,11 +36,13 @@ from ..models import (
     SolicitacaoDietaEspecial,
     SolicitacoesDietaEspecialAtivasInativasPorAluno
 )
+from ..utils import RelatorioPagination
 from .serializers import (
     AlergiaIntoleranciaSerializer,
     AlimentoSerializer,
     ClassificacaoDietaSerializer,
     MotivoNegacaoSerializer,
+    RelatorioQuantitativoSolicDietaEspSerializer,
     SolicitacaoDietaEspecialAutorizarSerializer,
     SolicitacaoDietaEspecialSerializer,
     SolicitacaoDietaEspecialUpdateSerializer,
@@ -61,13 +71,15 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
             self.permission_classes = (UsuarioEscola,)
         return super(SolicitacaoDietaEspecialViewSet, self).get_permissions()
 
-    def get_serializer_class(self):
+    def get_serializer_class(self):  # noqa C901
         if self.action == 'create':
             return SolicitacaoDietaEspecialCreateSerializer
         elif self.action == 'autorizar':
             return SolicitacaoDietaEspecialAutorizarSerializer
         elif self.action in ['update', 'partial_update']:
             return SolicitacaoDietaEspecialUpdateSerializer
+        elif self.action == 'relatorio_quantitativo_solic_dieta_esp':
+            return RelatorioQuantitativoSolicDietaEspSerializer
         return SolicitacaoDietaEspecialSerializer
 
     @action(detail=False, methods=['get'], url_path=f'solicitacoes-aluno/{FILTRO_CODIGO_EOL_ALUNO}')
@@ -197,6 +209,86 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
             return Response(serializer.data)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+
+    def get_queryset_relatorio_quantitativo_solic_dieta_esp(self, request, form):  # noqa C901
+        user = self.request.user
+        qs = self.get_queryset()
+
+        if user.tipo_usuario == 'escola':
+            qs = qs.filter(aluno__escola=user.vinculo_atual.instituicao)
+        elif form.cleaned_data['escola']:
+            qs = qs.filter(aluno__escola__in=form.cleaned_data['escola'])
+        elif user.tipo_usuario == 'diretoriaregional':
+            qs = qs.filter(aluno__escola__diretoria_regional=user.vinculo_atual.instituicao)
+        elif form.cleaned_data['dre']:
+            qs = qs.filter(aluno__escola__diretoria_regional__in=form.cleaned_data['dre'])
+
+        if user.tipo_usuario == 'escola':
+            campos = []
+        elif user.tipo_usuario == 'diretoriaregional':
+            campos = ['aluno__escola__nome']
+        else:
+            campos = ['aluno__escola__diretoria_regional__nome', 'aluno__escola__nome']
+
+        if form.cleaned_data['data_inicial']:
+            qs = qs.filter(criado_em__date__gte=form.cleaned_data['data_inicial'])
+        if form.cleaned_data['data_final']:
+            qs = qs.filter(criado_em__date__lte=form.cleaned_data['data_final'])
+
+        STATUS_PENDENTE = ['CODAE_A_AUTORIZAR']
+        STATUS_ATIVA = ['CODAE_AUTORIZADO', 'TERCEIRIZADA_TOMOU_CIENCIA', 'ESCOLA_SOLICITOU_INATIVACAO',
+                        'CODAE_NEGOU_INATIVACAO']
+        STATUS_INATIVA = ['CODAE_AUTORIZOU_INATIVACAO', 'TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO',
+                          'TERMINADA_AUTOMATICAMENTE_SISTEMA']
+
+        when_data = {
+            'ativas': When(status__in=STATUS_ATIVA, then=Value('Ativa')),
+            'inativas': When(status__in=STATUS_INATIVA, then=Value('Inativa')),
+            'pendentes': When(status__in=STATUS_PENDENTE, then=Value('Pendente'))
+        }
+
+        if form.cleaned_data['status'] == '':
+            whens = when_data.values()
+        else:
+            whens = [when_data[form.cleaned_data['status']]]
+
+        qs = qs.annotate(
+            status_simples=Case(
+                *whens,
+                default=Value('Outros'),
+                output_field=CharField()
+            )
+        ).exclude(status_simples='Outros').values(*campos).annotate(
+            qtde_ativas=Count('status_simples', filter=Q(status_simples='Ativa')),
+            qtde_inativas=Count('status_simples', filter=Q(status_simples='Inativa')),
+            qtde_pendentes=Count('status_simples', filter=Q(status_simples='Pendente'))
+        ).order_by(*campos)
+
+        return [campos, qs]
+
+    @action(detail=False, methods=['POST'], url_path='relatorio-quantitativo-solic-dieta-esp')
+    def relatorio_quantitativo_solic_dieta_esp(self, request):
+        form = RelatorioQuantitativoSolicDietaEspForm(self.request.data)
+        if not form.is_valid():
+            raise ValidationError(form.errors)
+
+        [campos, qs] = self.get_queryset_relatorio_quantitativo_solic_dieta_esp(request, form)
+
+        self.pagination_class = RelatorioPagination
+        page = self.paginate_queryset(qs)
+        serializer = self.get_serializer(page if page is not None else qs, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False, methods=['POST'], url_path='imprime-relatorio-quantitativo-solic-dieta-esp')
+    def imprime_relatorio_quantitativo_solic_dieta_esp(self, request):
+        form = RelatorioQuantitativoSolicDietaEspForm(self.request.data)
+        if not form.is_valid():
+            raise ValidationError(form.errors)
+
+        [campos, queryset] = self.get_queryset_relatorio_quantitativo_solic_dieta_esp(request, form)
+        user = self.request.user
+
+        return relatorio_quantitativo_solic_dieta_especial(campos, form.cleaned_data, queryset, user)
 
 
 class SolicitacoesAtivasInativasPorAlunoView(generics.ListAPIView):

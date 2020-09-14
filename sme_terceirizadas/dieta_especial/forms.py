@@ -27,3 +27,24 @@ class SolicitacoesAtivasInativasPorAlunoForm(forms.Form):
         queryset=DiretoriaRegional.objects.all(),
         to_field_name='uuid'
     )
+
+
+class RelatorioQuantitativoSolicDietaEspForm(forms.Form):
+    dre = forms.ModelMultipleChoiceField(
+        required=False,
+        queryset=DiretoriaRegional.objects.all(),
+        to_field_name='uuid'
+    )
+    escola = forms.ModelMultipleChoiceField(
+        required=False,
+        queryset=Escola.objects.all(),
+        to_field_name='uuid'
+    )
+    status = forms.ChoiceField(required=False, choices=(
+        ('', 'Todos'),
+        ('ativas', 'Ativas'),
+        ('inativas', 'Inativas'),
+        ('pendentes', 'Pendentes'),
+    ))
+    data_inicial = forms.DateField(required=False)
+    data_final = forms.DateField(required=False)
