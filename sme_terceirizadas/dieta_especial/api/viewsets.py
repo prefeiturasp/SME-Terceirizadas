@@ -276,7 +276,7 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
 
         self.pagination_class = RelatorioPagination
         page = self.paginate_queryset(qs)
-        serializer = self.get_serializer(page, many=True)
+        serializer = self.get_serializer(page if page is not None else qs, many=True)
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False, methods=['POST'], url_path='imprime-relatorio-quantitativo-solic-dieta-esp')
