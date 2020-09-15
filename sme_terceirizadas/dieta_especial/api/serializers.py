@@ -251,6 +251,8 @@ class SolicitacoesAtivasInativasPorAlunoSerializer(serializers.Serializer):
 class RelatorioQuantitativoSolicDietaEspSerializer(serializers.Serializer):
     dre = serializers.CharField(source='aluno__escola__diretoria_regional__nome', required=False)
     escola = serializers.CharField(source='aluno__escola__nome', required=False)
+    diagnostico = serializers.CharField(source='alergias_intolerancias__descricao', required=False)
+    ano_nasc_aluno = serializers.CharField(source='aluno__data_nascimento__year', required=False)
     qtde_ativas = serializers.IntegerField()
     qtde_inativas = serializers.IntegerField()
     qtde_pendentes = serializers.IntegerField()
