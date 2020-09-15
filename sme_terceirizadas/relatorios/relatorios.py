@@ -13,7 +13,8 @@ from .utils import (
     formata_logs,
     get_config_cabecario_relatorio_analise,
     get_diretorias_regionais,
-    get_width
+    get_width,
+    get_width2
 )
 
 
@@ -157,13 +158,15 @@ def relatorio_inclusao_alimentacao_continua(request, solicitacao):
 def relatorio_inclusao_alimentacao_normal(request, solicitacao):
     escola = solicitacao.rastro_escola
     logs = solicitacao.logs
+    # Removendo Terceirizada do fluxo
+    fluxo = constants.FLUXO_PARTINDO_ESCOLA[:-1]
     html_string = render_to_string(
         'solicitacao_inclusao_alimentacao_normal.html',
         {
             'escola': escola,
             'solicitacao': solicitacao,
-            'fluxo': constants.FLUXO_PARTINDO_ESCOLA,
-            'width': get_width(constants.FLUXO_PARTINDO_ESCOLA, solicitacao.logs),
+            'fluxo': fluxo,
+            'width': get_width2(constants.FLUXO_PARTINDO_ESCOLA, solicitacao.logs),
             'logs': formata_logs(logs)
         }
     )

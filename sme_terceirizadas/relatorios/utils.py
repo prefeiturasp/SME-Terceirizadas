@@ -25,6 +25,12 @@ def get_width(fluxo, logs):
         return str(44) + '%'
     return str(math.floor(99 / len(fluxo_utilizado))) + '%'
 
+def get_width2(fluxo, logs):
+    fluxo_utilizado = formata_logs(logs) if len(logs) > len(formata_logs(logs)) else logs
+    if not fluxo_utilizado:
+        return str(55) + '%'
+    return '33%'
+
 
 def get_diretorias_regionais(lotes):
     diretorias_regionais = []
