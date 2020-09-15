@@ -174,4 +174,78 @@ Em desenvolvimento.
  
 ## [](#instalação-e-configuração)Instalação e Configuração:
 
-Em desenvolvimento.
+### Pré-requisitos
+
+* git
+* Docker
+* Docker compose
+
+### Banco de dados no Docker
+
+Vamos rodar apenas o banco de dados em Docker, para isto crie uma pasta fora do projeto com o nome `sme-docker`.
+
+```
+mkdir sme-docker
+cd sme-docker
+```
+
+E dentro da pasta crie um arquivo `docker-postgres.yml`
+
+**Importante:** se você já estiver usando a porta 5432 na sua máquina, então mude a porta do host, ex. 5433.
+
+E troque `HOME` para o path absoluto do projeto SME-Terceirizadas.
+
+```yml
+version: '3.1'
+
+services: 
+  db:
+    image: postgres:11.2-alpine
+    restart: always
+    env_file:
+      - HOME/SME-Terceirizadas/.env
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
+    ports:
+      - 5433:5432
+
+  pgadmin4:
+    image: dpage/pgadmin4
+    restart: always
+    ports:
+      - 9090:9090
+    volumes:
+      - ./pgbkp:/var/lib/pgadmin/storage/
+```
+
+
+### Build da imagem do banco de dados
+
+Para buildar as imagens do projeto, executar o comando abaixo
+
+```
+$ docker-compose -f docker-postgres.yml build
+```
+
+### Execução da imagem do banco de dados
+
+Abra um terminal na raiz do projeto e execute o seguinte para o desenvolvimento local:
+
+```
+$ docker-compose -f docker-postgres.yml up -d
+```
+
+### Rodando o backend
+
+Pré-requisitos:
+
+* pipenv
+
+```
+pipenv install --dev
+pipenv shell
+
+python manage.py migrate
+
+./utility/carga_de_dados.sh
+```
