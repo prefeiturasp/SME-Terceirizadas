@@ -18,18 +18,13 @@ def formata_logs(logs):
 
 
 def get_width(fluxo, logs):
-    fluxo_utilizado = formata_logs(logs) if len(logs) > len(formata_logs(logs)) else logs
+    logs_formatado = formata_logs(logs)
+    fluxo_utilizado = fluxo if len(fluxo) > len(logs_formatado) else logs_formatado
     if not fluxo_utilizado:
         return str(55) + '%'
     if len(fluxo_utilizado) == 1:
         return str(44) + '%'
     return str(math.floor(99 / len(fluxo_utilizado))) + '%'
-
-def get_width2(fluxo, logs):
-    fluxo_utilizado = formata_logs(logs) if len(logs) > len(formata_logs(logs)) else logs
-    if not fluxo_utilizado:
-        return str(55) + '%'
-    return '33%'
 
 
 def get_diretorias_regionais(lotes):
@@ -89,11 +84,13 @@ def get_config_cabecario_relatorio_analise(filtros, data_incial_analise_padrao, 
             config['cabecario_tipo'] = tipos_cabecario[1]
             config['nome_terceirizada'] = filtros.get('nome_terceirizada')
             config['email_terceirizada'] = contatos_terceirizada[0]['email']
-            config['telefone_terceirizada'] = contatos_terceirizada[0]['telefone']
+            config['telefone_terceirizada'] = contatos_terceirizada[
+                0]['telefone']
 
         if 'data_analise_inicial' in filtros:
             config['cabecario_tipo'] = tipos_cabecario[0]
-            config['data_analise_inicial'] = filtros.get('data_analise_inicial')
+            config['data_analise_inicial'] = filtros.get(
+                'data_analise_inicial')
             config['data_analise_final'] = date.today().strftime('%d/%m/%Y')
 
         if 'data_analise_final' in filtros:

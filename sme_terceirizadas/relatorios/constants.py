@@ -46,6 +46,27 @@ FLUXO_PARTINDO_ESCOLA = [
     }
 ]
 
+FLUXO_INCLUSAO_ALIMENTACAO = [
+    {
+        'titulo': 'Solicitação Realizada',
+        'status': '',
+        'criado_em': '',
+        'usuario': None
+    },
+    {
+        'titulo': 'DRE',
+        'status': '',
+        'criado_em': '',
+        'usuario': None
+    },
+    {
+        'titulo': 'CODAE',
+        'status': '',
+        'criado_em': '',
+        'usuario': None
+    }
+]
+
 FLUXO_INFORMATIVO = [
     {
         'titulo': 'Solicitação Realizada',
