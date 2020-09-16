@@ -423,3 +423,16 @@ def relatorio_quantitativo_solic_dieta_especial(campos, filtros, queryset, user)
         }
     )
     return html_to_pdf_response(html_string, f'relatorio_quantitativo_solicitacoes_dieta_especial.pdf')
+
+
+def relatorio_quantitativo_diag_dieta_especial(campos, filtros, queryset, user):
+    html_string = render_to_string(
+        'relatorio_quantitativo_diagnostico_dieta_especial.html',
+        {
+            'campos': campos,
+            'filtros': filtros,
+            'queryset': queryset,
+            'user': user
+        }
+    )
+    return html_to_pdf_response(html_string, f'relatorio_quantitativo_diagnostico_dieta_especial.pdf')
