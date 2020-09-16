@@ -288,46 +288,55 @@ def relatorio_produto_homologacao(request, produto):
     return html_to_pdf_response(html_string, f'produto_homologacao_{produto.id_externo}.pdf')
 
 
-def relatorio_produtos_suspensos(request, payload):
-    dado = {
-        'homologacoes': payload.get('response', ''),
-        'eh_relatorio_por_data': payload.get('eh_por_data', False)
-    }
-    len_produtos = len(dado['homologacoes'])
-    dado['len_produtos'] = len_produtos
-    if dado['eh_relatorio_por_data']:
-        dado['data_inicio'] = payload.get('data_inicio', '')
-        dado['data_fim'] = payload.get('data_fim', '')
+def relatorio_produtos_suspensos(produtos, filtros):
+    if filtros['cabecario_tipo'] == 'CABECARIO_POR_DATA' and 'data_suspensao_inicial' not in filtros:
+        data_suspensao_inicial = datetime.datetime.today()
+        for produto in produtos:
+            ultimo_log = produto.ultima_homologacao.ultimo_log
+            if ultimo_log.criado_em < data_suspensao_inicial:
+                data_suspensao_inicial = ultimo_log.criado_em
+        filtros['data_suspensao_inicial'] = data_suspensao_inicial.strftime('%d/%m/%Y')
+
     html_string = render_to_string(
         'relatorio_suspensoes_produto.html',
-        dado
+        {
+            'produtos': produtos,
+            'config': filtros
+        }
     )
     return html_to_pdf_response(html_string, 'relatorio_suspensoes_produto.pdf')
 
 
-def relatorio_produtos_em_analise_sensorial(request, payload):
-    data_incial_analise_padrao = payload['produtos'][0]['ultima_homologacao']['log_solicitacao_analise']['criado_em']
-    contatos_terceirizada = payload['produtos'][0]['ultima_homologacao']['rastro_terceirizada']['contatos']
+def relatorio_produtos_em_analise_sensorial(produtos, filtros):
+    data_incial_analise_padrao = produtos[0]['ultima_homologacao']['log_solicitacao_analise']['criado_em']
+    contatos_terceirizada = produtos[0]['ultima_homologacao']['rastro_terceirizada']['contatos']
     config = get_config_cabecario_relatorio_analise(
-        payload['filtros'],
+        filtros,
         data_incial_analise_padrao,
         contatos_terceirizada)
     html_string = render_to_string(
         'relatorio_produto_em_analise_sensorial.html',
         {
-            'produtos': payload['produtos'],
+            'produtos': produtos,
             'config': config
         }
     )
     return html_to_pdf_response(html_string, 'relatorio_produtos_em_analise_sensorial.pdf')
 
 
-def relatorio_reclamacao(request, payload):
+def relatorio_reclamacao(produtos, filtros):
+    if filtros['cabecario_tipo'] == 'CABECARIO_POR_DATA' and 'data_inicial_reclamacao' not in filtros:
+        data_inicial_reclamacao = datetime.datetime.today()
+        for produto in produtos:
+            reclamacao = produto.ultima_homologacao.reclamacoes.first()
+            if reclamacao.criado_em < data_inicial_reclamacao:
+                data_inicial_reclamacao = reclamacao.criado_em
+        filtros['data_inicial_reclamacao'] = data_inicial_reclamacao.strftime('%d/%m/%Y')
     html_string = render_to_string(
         'relatorio_reclamacao.html',
         {
-            'produtos': payload['produtos'],
-            'config': payload['config_cabecario']
+            'produtos': produtos,
+            'config': filtros
         }
     )
     return html_to_pdf_response(html_string, 'relatorio_reclamacao.pdf')

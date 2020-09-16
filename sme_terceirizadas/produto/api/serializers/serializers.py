@@ -4,6 +4,7 @@ from rest_framework import serializers
 
 from ....dados_comuns.api.serializers import (
     ContatoSerializer,
+    LogSolicitacoesSerializer,
     LogSolicitacoesUsuarioComAnexosSerializer,
     LogSolicitacoesUsuarioComVinculoSerializer,
     LogSolicitacoesUsuarioSerializer
@@ -283,6 +284,12 @@ class HomologacaoProdutoSerializer(serializers.ModelSerializer):
                   'protocolo_analise_sensorial')
 
 
+class ProdutoBaseSerializer(serializers.ModelSerializer):
+    marca = MarcaSerializer()
+    fabricante = FabricanteSerializer()
+    id_externo = serializers.CharField()
+
+
 class HomologacaoProdutoBase(serializers.ModelSerializer):
     qtde_reclamacoes = serializers.SerializerMethodField()
     qtde_questionamentos = serializers.SerializerMethodField()
@@ -326,34 +333,6 @@ class HomologacaoProdutoComLogsDetalhadosSerializer(serializers.ModelSerializer)
         model = HomologacaoDoProduto
         fields = ('uuid', 'produto', 'status', 'id_externo', 'logs', 'rastro_terceirizada', 'pdf_gerado',
                   'protocolo_analise_sensorial')
-
-
-class HomologacaoProdutoResponderReclamacaoTerceirizadaSerializer(HomologacaoProdutoBase):
-    reclamacoes = serializers.SerializerMethodField()
-
-    def get_reclamacoes(self, obj):
-        return ReclamacaoDeProdutoSerializer(
-            obj.reclamacoes.filter(
-                status__in=[ReclamacaoProdutoWorkflow.AGUARDANDO_RESPOSTA_TERCEIRIZADA,
-                            ReclamacaoProdutoWorkflow.RESPONDIDO_TERCEIRIZADA]), context=self.context,
-            many=True
-        ).data
-
-    class Meta:
-        model = HomologacaoDoProduto
-        fields = ('uuid', 'status', 'id_externo', 'criado_em', 'reclamacoes',
-                  'qtde_reclamacoes', 'qtde_questionamentos')
-
-
-class ProdutoResponderReclamacaoTerceirizadaSerializer(serializers.ModelSerializer):
-    marca = MarcaSerializer()
-    fabricante = FabricanteSerializer()
-    id_externo = serializers.CharField()
-    ultima_homologacao = HomologacaoProdutoResponderReclamacaoTerceirizadaSerializer()
-
-    class Meta:
-        model = Produto
-        exclude = ('id',)
 
 
 class RespostaAnaliseSensorialSerializer(serializers.ModelSerializer):
@@ -433,6 +412,7 @@ class UltimoLogRelatorioSituacaoSerializer(serializers.ModelSerializer):
 
 class HomologacaoRelatorioSituacaoSerializer(serializers.ModelSerializer):
     ultimo_log = UltimoLogRelatorioSituacaoSerializer()
+    status_titulo = serializers.CharField(source='status.state.title')
 
     @staticmethod
     def setup_eager_loading(queryset):
@@ -442,7 +422,7 @@ class HomologacaoRelatorioSituacaoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = HomologacaoDoProduto
-        fields = ('ultimo_log', 'status')
+        fields = ('ultimo_log', 'status', 'status_titulo')
 
 
 class ProdutoRelatorioSituacaoSerializer(serializers.ModelSerializer):
@@ -507,6 +487,38 @@ class SolicitacaoCadastroProdutoDietaConfirmarSerializer(SolicitacaoCadastroProd
 class ReclamacaoDeProdutoRelatorioSerializer(serializers.ModelSerializer):
     escola = EscolaSimplissimaSerializer()
     status_titulo = serializers.CharField(source='status.state.title')
+    logs = LogSolicitacoesSerializer(many=True)
+
+    class Meta:
+        model = ReclamacaoDeProduto
+        fields = ('uuid', 'reclamante_registro_funcional', 'logs', 'reclamante_cargo', 'reclamante_nome',
+                  'reclamacao', 'escola', 'status', 'status_titulo', 'criado_em', 'id_externo')
+
+
+class HomologacaoReclamacaoSerializer(serializers.ModelSerializer):
+    reclamacoes = ReclamacaoDeProdutoRelatorioSerializer(many=True)
+
+    class Meta:
+        model = HomologacaoDoProduto
+        fields = ('id', 'uuid', 'status', 'id_externo', 'criado_em', 'reclamacoes')
+
+
+class ProdutoReclamacaoSerializer(serializers.ModelSerializer):
+    marca = MarcaSerializer()
+    fabricante = FabricanteSerializer()
+    id_externo = serializers.CharField()
+    qtde_questionamentos = serializers.IntegerField(default=None)
+    ultima_homologacao = HomologacaoReclamacaoSerializer()
+
+    class Meta:
+        model = Produto
+        fields = ('uuid', 'nome', 'marca', 'fabricante', 'id_externo',
+                  'ultima_homologacao', 'criado_em', 'qtde_questionamentos')
+
+
+class ReclamacoesUltimaHomologacaoHomologadosPorParametrosSerializer(serializers.ModelSerializer):
+    escola = EscolaSimplissimaSerializer()
+    status_titulo = serializers.CharField(source='status.state.title')
     logs = serializers.SerializerMethodField()
 
     def get_logs(self, obj):
@@ -517,25 +529,44 @@ class ReclamacaoDeProdutoRelatorioSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ReclamacaoDeProduto
-        fields = ('uuid', 'reclamante_registro_funcional', 'logs', 'reclamante_cargo', 'reclamante_nome',
-                  'reclamacao', 'escola', 'status', 'status_titulo', 'criado_em', 'id_externo')
+        fields = ('logs', 'id_externo', 'status_titulo', 'reclamante_nome', 'reclamante_registro_funcional',
+                  'escola', 'criado_em', 'reclamacao', 'uuid', 'reclamante_cargo', 'status_titulo')
 
 
-class HomologacaoRelatorioReclamacaoSerializer(serializers.ModelSerializer):
-    reclamacoes = ReclamacaoDeProdutoRelatorioSerializer(many=True)
+class UltimaHomologacaoHomologadosPorParametrosSerializer(serializers.ModelSerializer):
+    reclamacoes = serializers.SerializerMethodField()
+
+    def get_reclamacoes(self, obj):
+        return ReclamacoesUltimaHomologacaoHomologadosPorParametrosSerializer(
+            obj.reclamacoes.all(), context=self.context,
+            many=True
+        ).data
 
     class Meta:
         model = HomologacaoDoProduto
-        fields = ('uuid', 'status', 'id_externo', 'criado_em', 'reclamacoes')
+        fields = ('uuid', 'reclamacoes')
 
 
-class ProdutoRelatorioReclamacaoSerializer(serializers.ModelSerializer):
+class ProdutoHomologadosPorParametrosSerializer(serializers.ModelSerializer):
     marca = MarcaSerializer()
-    fabricante = FabricanteSerializer()
-    id_externo = serializers.CharField()
-    homologacoes = HomologacaoRelatorioReclamacaoSerializer(many=True)
-    qtde_reclamacoes = serializers.CharField()
+    ultima_homologacao = UltimaHomologacaoHomologadosPorParametrosSerializer()
 
     class Meta:
         model = Produto
-        exclude = ('id',)
+        fields = ('nome', 'marca', 'eh_para_alunos_com_dieta', 'ultima_homologacao', 'criado_em')
+
+
+class HomologacaoProdutoSuspensoSerializer(serializers.ModelSerializer):
+    ultimo_log = LogSolicitacoesUsuarioComAnexosSerializer()
+
+    class Meta:
+        model = HomologacaoDoProduto
+        fields = ('uuid', 'ultimo_log')
+
+
+class ProdutoSuspensoSerializer(ProdutoBaseSerializer):
+    ultima_homologacao = HomologacaoProdutoSuspensoSerializer()
+
+    class Meta:
+        model = Produto
+        fields = ('id_externo', 'nome', 'marca', 'fabricante', 'ultima_homologacao', 'criado_em')

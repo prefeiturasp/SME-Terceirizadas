@@ -10,7 +10,7 @@ from ..utils import (
     converte_para_datetime,
     cria_filtro_aditivos,
     cria_filtro_produto_por_parametros_form,
-    get_filtros_data_em_analise_sensorial,
+    get_filtros_data,
     get_filtros_data_range,
     mudancas_para_justificativa_html
 )
@@ -53,7 +53,7 @@ def test_cria_filtro_produto_por_parametros_form_data_final():
 
 def test_get_filtros_data_em_analise_sensorial_sem_data_final():
     data_analise_incial = date(2020, 8, 13)
-    filtros_data = get_filtros_data_em_analise_sensorial(data_analise_incial, None)
+    filtros_data = get_filtros_data(data_analise_incial, None)
     assert filtros_data['criado_em__gte'] == date(2020, 8, 13)
 
 

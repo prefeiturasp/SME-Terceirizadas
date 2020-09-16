@@ -92,18 +92,18 @@ def get_filtros_data_range(data_analise_inicial, data_analise_final):
     return filtros_data
 
 
-def get_filtros_data_em_analise_sensorial(data_analise_inicial, data_analise_final):
+def get_filtros_data(data_inicial, data_final):
 
-    if data_analise_inicial and data_analise_final:
-        filtros_data = get_filtros_data_range(data_analise_inicial, data_analise_final)
+    if data_inicial and data_final:
+        filtros_data = get_filtros_data_range(data_inicial, data_final)
 
     else:
         filtros_data = {}
-        if data_analise_inicial:
-            filtros_data['criado_em__gte'] = data_analise_inicial
+        if data_inicial:
+            filtros_data['criado_em__gte'] = data_inicial
 
-        if data_analise_final:
-            filtros_data['criado_em__lte'] = data_analise_final + timedelta(days=1)
+        if data_final:
+            filtros_data['criado_em__lte'] = data_final + timedelta(days=1)
     return filtros_data
 
 

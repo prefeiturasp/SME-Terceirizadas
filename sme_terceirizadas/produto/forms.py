@@ -18,10 +18,6 @@ class ProdutoPorParametrosForm(forms.Form):
     )
 
 
-class RelatorioSituacaoForm(ProdutoPorParametrosForm):
-    situacao = forms.CharField(required=False)
-
-
 class ProdutoJaExisteForm(forms.Form):
     fabricante = forms.ModelChoiceField(Fabricante.objects.all(), to_field_name='uuid')
     marca = forms.ModelChoiceField(Marca.objects.all(), to_field_name='uuid')
