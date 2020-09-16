@@ -1,7 +1,7 @@
 from django import forms
 
 from ..escola.models import DiretoriaRegional, Escola
-from .models import SolicitacaoDietaEspecial
+from .models import AlergiaIntolerancia, SolicitacaoDietaEspecial
 
 
 class NegaDietaEspecialForm(forms.ModelForm):
@@ -39,6 +39,10 @@ class RelatorioQuantitativoSolicDietaEspForm(forms.Form):
         required=False,
         queryset=Escola.objects.all(),
         to_field_name='uuid'
+    )
+    diagnostico = forms.ModelMultipleChoiceField(
+        required=False,
+        queryset=AlergiaIntolerancia.objects.all()
     )
     status = forms.ChoiceField(required=False, choices=(
         ('', 'Todos'),
