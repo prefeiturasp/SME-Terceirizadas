@@ -117,7 +117,7 @@ class Produto(Ativavel, CriadoEm, CriadoPor, Nomeavel, TemChaveExterna, TemIdent
 
     @property
     def ultima_homologacao(self):
-        return self.homologacoes.order_by('criado_em').last()
+        return self.homologacoes.first()
 
     @property
     def data_homologacao(self):

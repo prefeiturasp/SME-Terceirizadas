@@ -284,6 +284,12 @@ class HomologacaoProdutoSerializer(serializers.ModelSerializer):
                   'protocolo_analise_sensorial')
 
 
+class ProdutoBaseSerializer(serializers.ModelSerializer):
+    marca = MarcaSerializer()
+    fabricante = FabricanteSerializer()
+    id_externo = serializers.CharField()
+
+
 class HomologacaoProdutoBase(serializers.ModelSerializer):
     qtde_reclamacoes = serializers.SerializerMethodField()
     qtde_questionamentos = serializers.SerializerMethodField()
@@ -406,6 +412,7 @@ class UltimoLogRelatorioSituacaoSerializer(serializers.ModelSerializer):
 
 class HomologacaoRelatorioSituacaoSerializer(serializers.ModelSerializer):
     ultimo_log = UltimoLogRelatorioSituacaoSerializer()
+    status_titulo = serializers.CharField(source='status.state.title')
 
     @staticmethod
     def setup_eager_loading(queryset):
@@ -415,7 +422,7 @@ class HomologacaoRelatorioSituacaoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = HomologacaoDoProduto
-        fields = ('ultimo_log', 'status')
+        fields = ('ultimo_log', 'status', 'status_titulo')
 
 
 class ProdutoRelatorioSituacaoSerializer(serializers.ModelSerializer):
@@ -493,20 +500,20 @@ class HomologacaoReclamacaoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = HomologacaoDoProduto
-        fields = ('uuid', 'status', 'id_externo', 'criado_em', 'reclamacoes')
+        fields = ('id', 'uuid', 'status', 'id_externo', 'criado_em', 'reclamacoes')
 
 
 class ProdutoReclamacaoSerializer(serializers.ModelSerializer):
     marca = MarcaSerializer()
     fabricante = FabricanteSerializer()
     id_externo = serializers.CharField()
-    homologacoes = HomologacaoReclamacaoSerializer(many=True)
     qtde_questionamentos = serializers.IntegerField(default=None)
+    ultima_homologacao = HomologacaoReclamacaoSerializer()
 
     class Meta:
         model = Produto
-        fields = ('uuid', 'nome', 'marca', 'fabricante', 'id_externo', 'homologacoes',
-                  'criado_em', 'qtde_questionamentos')
+        fields = ('uuid', 'nome', 'marca', 'fabricante', 'id_externo',
+                  'ultima_homologacao', 'criado_em', 'qtde_questionamentos')
 
 
 class ReclamacoesUltimaHomologacaoHomologadosPorParametrosSerializer(serializers.ModelSerializer):
@@ -548,3 +555,18 @@ class ProdutoHomologadosPorParametrosSerializer(serializers.ModelSerializer):
         model = Produto
         fields = ('nome', 'marca', 'eh_para_alunos_com_dieta', 'ultima_homologacao', 'criado_em')
 
+
+class HomologacaoProdutoSuspensoSerializer(serializers.ModelSerializer):
+    ultimo_log = LogSolicitacoesUsuarioComAnexosSerializer()
+
+    class Meta:
+        model = HomologacaoDoProduto
+        fields = ('uuid', 'ultimo_log')
+
+
+class ProdutoSuspensoSerializer(ProdutoBaseSerializer):
+    ultima_homologacao = HomologacaoProdutoSuspensoSerializer()
+
+    class Meta:
+        model = Produto
+        fields = ('id_externo', 'nome', 'marca', 'fabricante', 'ultima_homologacao', 'criado_em')
