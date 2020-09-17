@@ -769,9 +769,9 @@ class ProdutoViewSet(viewsets.ModelViewSet):
             permission_classes=[UsuarioTerceirizada | UsuarioCODAEGestaoProduto])
     def filtro_relatorio_em_analise_sensorial(self, request):
         queryset = self.filter_queryset(
-            self.get_queryset()).exclude(homologacoes__respostas_analise__isnull=True).prefetch_related(
+            self.get_queryset()).filter(homologacoes__respostas_analise__isnull=False).prefetch_related(
                 Prefetch('homologacoes', queryset=HomologacaoDoProduto.objects.all().exclude(
-                    respostas_analise__exact=None)))
+                    respostas_analise__exact=None))).distinct()
         queryset = self.filtra_produtos_em_analise_sensorial(request, queryset).select_related('marca', 'fabricante')
         return self.paginated_response(queryset)
 
@@ -781,9 +781,9 @@ class ProdutoViewSet(viewsets.ModelViewSet):
             permission_classes=[UsuarioTerceirizada | UsuarioCODAEGestaoProduto])
     def relatorio_em_analise_sensorial(self, request):
         queryset = self.filter_queryset(
-            self.get_queryset()).exclude(homologacoes__respostas_analise__isnull=True).prefetch_related(
+            self.get_queryset()).exclude(homologacoes__respostas_analise__isnull=False).prefetch_related(
                 Prefetch('homologacoes', queryset=HomologacaoDoProduto.objects.all().exclude(
-                    respostas_analise__exact=None)))
+                    respostas_analise__exact=None))).distinct()
         queryset = self.filtra_produtos_em_analise_sensorial(request, queryset).select_related('marca', 'fabricante')
         filtros = self.request.query_params.dict()
         produtos = ProdutoRelatorioAnaliseSensorialSerializer(queryset, many=True).data
