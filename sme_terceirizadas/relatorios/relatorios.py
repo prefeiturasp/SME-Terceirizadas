@@ -25,8 +25,10 @@ def relatorio_filtro_periodo(request, query_set_consolidado, escola_nome='', dre
 
     tipo_solicitacao = request_params.get('tipo_solicitacao', 'INVALIDO')
     status_solicitacao = request_params.get('status_solicitacao', 'INVALIDO')
-    data_inicial = datetime.datetime.strptime(request_params.get('data_inicial'), '%Y-%m-%d')
-    data_final = datetime.datetime.strptime(request_params.get('data_final'), '%Y-%m-%d')
+    data_inicial = datetime.datetime.strptime(
+        request_params.get('data_inicial'), '%Y-%m-%d')
+    data_final = datetime.datetime.strptime(
+        request_params.get('data_final'), '%Y-%m-%d')
     filtro = {'tipo_solicitacao': tipo_solicitacao, 'status': status_solicitacao,
               'data_inicial': data_inicial, 'data_final': data_final}
 
@@ -58,7 +60,8 @@ def relatorio_resumo_anual_e_mensal(request, resumos_mes, resumo_ano):
 
 
 def relatorio_kit_lanche_unificado(request, solicitacao):
-    qtd_escolas = EscolaQuantidade.objects.filter(solicitacao_unificada=solicitacao).count()
+    qtd_escolas = EscolaQuantidade.objects.filter(
+        solicitacao_unificada=solicitacao).count()
 
     html_string = render_to_string(
         'solicitacao_kit_lanche_unificado.html',
@@ -160,10 +163,9 @@ def relatorio_inclusao_alimentacao_normal(request, solicitacao):
     html_string = render_to_string(
         'solicitacao_inclusao_alimentacao_normal.html',
         {
-            'escola': escola,
-            'solicitacao': solicitacao,
-            'fluxo': constants.FLUXO_PARTINDO_ESCOLA,
-            'width': get_width(constants.FLUXO_PARTINDO_ESCOLA, solicitacao.logs),
+            'escola': escola, 'solicitacao': solicitacao,
+            'fluxo': constants.FLUXO_INCLUSAO_ALIMENTACAO,
+            'width': get_width(constants.FLUXO_INCLUSAO_ALIMENTACAO, solicitacao.logs),
             'logs': formata_logs(logs)
         }
     )
@@ -245,7 +247,8 @@ def relatorio_inversao_dia_de_cardapio(request, solicitacao):
 def relatorio_suspensao_de_alimentacao(request, solicitacao):
     escola = solicitacao.rastro_escola
     logs = solicitacao.logs
-    # TODO: GrupoSuspensaoAlimentacaoSerializerViewSet não tem motivo, quem tem é cada suspensão do relacionamento
+    # TODO: GrupoSuspensaoAlimentacaoSerializerViewSet não tem motivo, quem
+    # tem é cada suspensão do relacionamento
     motivo = 'Deve ajustar aqui...'
     suspensoes = solicitacao.suspensoes_alimentacao.all()
     quantidades_por_periodo = solicitacao.quantidades_por_periodo.all()
@@ -343,7 +346,8 @@ def relatorio_reclamacao(produtos, filtros):
 
 
 def relatorio_quantitativo_por_terceirizada(request, filtros, dados_relatorio):
-    dados_relatorio_transformados = transforma_dados_relatorio_quantitativo(dados_relatorio)
+    dados_relatorio_transformados = transforma_dados_relatorio_quantitativo(
+        dados_relatorio)
     html_string = render_to_string(
         'relatorio_quantitativo_por_terceirizada.html',
         {
