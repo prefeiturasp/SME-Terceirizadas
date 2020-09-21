@@ -90,9 +90,20 @@ def test_get_meus_dados_admin_escola(users_admin_escola):
             'codigo_eol': '256341',
             'quantidade_alunos': 450,
             'lotes': [],
+            'tipo_contagem': {'uuid': '', 'nome': ''},
             'periodos_escolares': [
-                {'tipos_alimentacao': [], 'nome': 'TARDE', 'uuid': '57af972c-938f-4f6f-9f4b-cf7b983a10b7'},
-                {'tipos_alimentacao': [], 'nome': 'MANHA', 'uuid': 'd0c12dae-a215-41f6-af86-b7cd1838ba81'}
+                {
+                    'tipos_alimentacao': [],
+                    'nome': 'TARDE',
+                    'uuid': '57af972c-938f-4f6f-9f4b-cf7b983a10b7',
+                    'horas_atendimento': None
+                },
+                {
+                    'tipos_alimentacao': [],
+                    'nome': 'MANHA',
+                    'uuid': 'd0c12dae-a215-41f6-af86-b7cd1838ba81',
+                    'horas_atendimento': None
+                }
             ],
             'escolas': [],
             'diretoria_regional': {'uuid': '7da9acec-48e1-430c-8a5c-1f1efc666fad',
@@ -123,9 +134,20 @@ def test_get_meus_dados_diretor_escola(users_diretor_escola):
             'codigo_eol': '256341',
             'quantidade_alunos': 450,
             'lotes': [],
+            'tipo_contagem': {'uuid': '', 'nome': ''},
             'periodos_escolares': [
-                {'tipos_alimentacao': [], 'nome': 'TARDE', 'uuid': '57af972c-938f-4f6f-9f4b-cf7b983a10b7'},
-                {'tipos_alimentacao': [], 'nome': 'MANHA', 'uuid': 'd0c12dae-a215-41f6-af86-b7cd1838ba81'}
+                {
+                    'tipos_alimentacao': [],
+                    'nome': 'TARDE',
+                    'uuid': '57af972c-938f-4f6f-9f4b-cf7b983a10b7',
+                    'horas_atendimento': None
+                },
+                {
+                    'tipos_alimentacao': [],
+                    'nome': 'MANHA',
+                    'uuid': 'd0c12dae-a215-41f6-af86-b7cd1838ba81',
+                    'horas_atendimento': None
+                }
             ],
             'escolas': [],
             'diretoria_regional': {'uuid': '7da9acec-48e1-430c-8a5c-1f1efc666fad',
@@ -172,9 +194,20 @@ def test_cadastro_vinculo_diretor_escola(users_diretor_escola, monkeypatch):
                 'codigo_eol': '256341',
                 'quantidade_alunos': 450,
                 'lotes': [],
+                'tipo_contagem': {'uuid': '', 'nome': ''},
                 'periodos_escolares': [
-                    {'tipos_alimentacao': [], 'nome': 'TARDE', 'uuid': '57af972c-938f-4f6f-9f4b-cf7b983a10b7'},
-                    {'tipos_alimentacao': [], 'nome': 'MANHA', 'uuid': 'd0c12dae-a215-41f6-af86-b7cd1838ba81'}
+                    {
+                        'tipos_alimentacao': [],
+                        'nome': 'TARDE',
+                        'uuid': '57af972c-938f-4f6f-9f4b-cf7b983a10b7',
+                        'horas_atendimento': None
+                    },
+                    {
+                        'tipos_alimentacao': [],
+                        'nome': 'MANHA',
+                        'uuid': 'd0c12dae-a215-41f6-af86-b7cd1838ba81',
+                        'horas_atendimento': None
+                    }
                 ],
                 'escolas': [],
                 'diretoria_regional': {
@@ -295,6 +328,7 @@ def test_cadastro_vinculo_diretoria_regional(users_cogestor_diretoria_regional, 
                 'codigo_eol': None,
                 'quantidade_alunos': 0,
                 'lotes': [],
+                'tipo_contagem': None,
                 'periodos_escolares': [],
                 'escolas': [],
                 'diretoria_regional': None,
@@ -417,6 +451,7 @@ def test_cadastro_vinculo_codae_gestao_alimentacao(users_codae_gestao_alimentaca
                 'codigo_eol': None,
                 'quantidade_alunos': 0,
                 'lotes': [],
+                'tipo_contagem': None,
                 'periodos_escolares': [],
                 'escolas': [],
                 'diretoria_regional': None,
@@ -568,9 +603,20 @@ def test_cadastro_diretor(client, users_diretor_escola, monkeypatch):
             'codigo_eol': '256341',
             'quantidade_alunos': 450,
             'lotes': [],
+            'tipo_contagem': {'uuid': '', 'nome': ''},
             'periodos_escolares': [
-                {'tipos_alimentacao': [], 'nome': 'TARDE', 'uuid': '57af972c-938f-4f6f-9f4b-cf7b983a10b7'},
-                {'tipos_alimentacao': [], 'nome': 'MANHA', 'uuid': 'd0c12dae-a215-41f6-af86-b7cd1838ba81'}
+                {
+                    'tipos_alimentacao': [],
+                    'nome': 'TARDE',
+                    'uuid': '57af972c-938f-4f6f-9f4b-cf7b983a10b7',
+                    'horas_atendimento': None
+                },
+                {
+                    'tipos_alimentacao': [],
+                    'nome': 'MANHA',
+                    'uuid': 'd0c12dae-a215-41f6-af86-b7cd1838ba81',
+                    'horas_atendimento': None
+                }
             ],
             'escolas': [],
             'diretoria_regional': {'uuid': '7da9acec-48e1-430c-8a5c-1f1efc666fad',
@@ -624,6 +670,7 @@ def test_confirmar_email(client, usuarios_pendentes_confirmacao):
                 'codigo_eol': '256341',
                 'quantidade_alunos': usuario.vinculo_atual.instituicao.quantidade_alunos,
                 'lotes': [],
+                'tipo_contagem': {'uuid': '', 'nome': ''},
                 'periodos_escolares': [],
                 'escolas': [],
                 'diretoria_regional': {

@@ -286,6 +286,7 @@ class PeriodoEscolar(ExportModelOperationsMixin('periodo_escolar'), Nomeavel, Te
     """manhã, intermediário, tarde, vespertino, noturno, integral."""
 
     tipos_alimentacao = models.ManyToManyField('cardapio.TipoAlimentacao', related_name='periodos_escolares')
+    horas_atendimento = models.IntegerField(null=True)
 
     class Meta:
         verbose_name = 'Período escolar'
@@ -313,6 +314,11 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
                                 blank=True, null=True)
 
     idades = models.ManyToManyField(FaixaIdadeEscolar, blank=True)
+
+    tipo_contagem = models.ForeignKey('dieta_especial.TipoContagem',
+                                      related_name='escolas',
+                                      blank=True, null=True,
+                                      on_delete=models.DO_NOTHING)
 
     @property
     def quantidade_alunos(self):

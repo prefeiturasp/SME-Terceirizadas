@@ -146,7 +146,7 @@ class EscolaSimplesSerializer(serializers.ModelSerializer):
     class Meta:
         model = Escola
         fields = ('uuid', 'nome', 'codigo_eol', 'quantidade_alunos', 'periodos_escolares', 'lote', 'tipo_gestao',
-                  'diretoria_regional')
+                  'diretoria_regional', 'tipo_contagem')
 
 
 class EscolaListagemSimplesSelializer(serializers.ModelSerializer):
@@ -266,6 +266,11 @@ class TerceirizadaSerializer(serializers.ModelSerializer):
         exclude = ('id',)
 
 
+class TipoContagemSerializer(serializers.Serializer):
+    uuid = serializers.CharField()
+    nome = serializers.CharField()
+
+
 class VinculoInstituicaoSerializer(serializers.ModelSerializer):
     instituicao = serializers.SerializerMethodField()
     perfil = PerfilSimplesSerializer()
@@ -300,6 +305,10 @@ class VinculoInstituicaoSerializer(serializers.ModelSerializer):
         if isinstance(obj.instituicao, Escola):
             return obj.instituicao.tipo_unidade.uuid
 
+    def get_tipo_contagem(self, obj):
+        if isinstance(obj.instituicao, Escola):
+            return TipoContagemSerializer(obj.instituicao.tipo_contagem).data
+
     def get_instituicao(self, obj):
         return {'nome': obj.instituicao.nome,
                 'uuid': obj.instituicao.uuid,
@@ -309,7 +318,8 @@ class VinculoInstituicaoSerializer(serializers.ModelSerializer):
                 'periodos_escolares': self.get_periodos_escolares(obj),
                 'escolas': self.get_escolas(obj),
                 'diretoria_regional': self.get_diretoria_regional(obj),
-                'tipo_unidade_escolar': self.get_tipo_unidade_escolar(obj)}
+                'tipo_unidade_escolar': self.get_tipo_unidade_escolar(obj),
+                'tipo_contagem': self.get_tipo_contagem(obj)}
 
     class Meta:
         model = Vinculo

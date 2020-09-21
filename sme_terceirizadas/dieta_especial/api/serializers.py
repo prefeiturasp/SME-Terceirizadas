@@ -17,7 +17,8 @@ from ..models import (
     ClassificacaoDieta,
     MotivoNegacao,
     SolicitacaoDietaEspecial,
-    SubstituicaoAlimento
+    SubstituicaoAlimento,
+    TipoContagem
 )
 from .serializers_create import SolicitacaoDietaEspecialCreateSerializer, SubstituicaoAlimentoCreateSerializer
 from .validators import atributos_lista_nao_vazios, atributos_string_nao_vazios, deve_ter_atributos
@@ -45,6 +46,12 @@ class AlimentoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Alimento
         fields = '__all__'
+
+
+class TipoContagemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TipoContagem
+        exclude = ('id',)
 
 
 class AnexoSerializer(ModelSerializer):
@@ -292,3 +299,14 @@ class SolicitacaoDietaEspecialSimplesSerializer(serializers.ModelSerializer):
             'data_termino',
             'status_titulo'
         )
+
+
+class PanoramaSerializer(serializers.Serializer):
+    periodo = serializers.CharField(source='aluno__escola__escolas_periodos__periodo_escolar__nome', required=False)
+    horas_atendimento = serializers.IntegerField(
+        source='aluno__escola__escolas_periodos__periodo_escolar__horas_atendimento',
+        required=False)
+    qtde_alunos = serializers.IntegerField(source='aluno__escola__escolas_periodos__quantidade_alunos', required=False)
+    qtde_tipo_a = serializers.IntegerField()
+    qtde_enteral = serializers.IntegerField()
+    qtde_tipo_b = serializers.IntegerField()
