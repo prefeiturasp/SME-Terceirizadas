@@ -199,8 +199,8 @@ def relatorio_kit_lanche_passeio(request, solicitacao):
             'escola': escola,
             'solicitacao': solicitacao,
             'quantidade_kits': solicitacao.solicitacao_kit_lanche.kits.all().count() * solicitacao.quantidade_alunos,
-            'fluxo': constants.FLUXO_PARTINDO_ESCOLA,
-            'width': get_width(constants.FLUXO_PARTINDO_ESCOLA, solicitacao.logs),
+            'fluxo': constants.FLUXO_KIT_LANCHE_PASSEIO,
+            'width': get_width(constants.FLUXO_KIT_LANCHE_PASSEIO, solicitacao.logs),
             'logs': formata_logs(logs)
         }
     )
@@ -298,7 +298,8 @@ def relatorio_produtos_suspensos(produtos, filtros):
             ultimo_log = produto.ultima_homologacao.ultimo_log
             if ultimo_log.criado_em < data_suspensao_inicial:
                 data_suspensao_inicial = ultimo_log.criado_em
-        filtros['data_suspensao_inicial'] = data_suspensao_inicial.strftime('%d/%m/%Y')
+        filtros['data_suspensao_inicial'] = data_suspensao_inicial.strftime(
+            '%d/%m/%Y')
 
     html_string = render_to_string(
         'relatorio_suspensoes_produto.html',
@@ -311,8 +312,10 @@ def relatorio_produtos_suspensos(produtos, filtros):
 
 
 def relatorio_produtos_em_analise_sensorial(produtos, filtros):
-    data_incial_analise_padrao = produtos[0]['ultima_homologacao']['log_solicitacao_analise']['criado_em']
-    contatos_terceirizada = produtos[0]['ultima_homologacao']['rastro_terceirizada']['contatos']
+    data_incial_analise_padrao = produtos[0]['ultima_homologacao'][
+        'log_solicitacao_analise']['criado_em']
+    contatos_terceirizada = produtos[0]['ultima_homologacao'][
+        'rastro_terceirizada']['contatos']
     config = get_config_cabecario_relatorio_analise(
         filtros,
         data_incial_analise_padrao,
@@ -334,7 +337,8 @@ def relatorio_reclamacao(produtos, filtros):
             reclamacao = produto.ultima_homologacao.reclamacoes.first()
             if reclamacao.criado_em < data_inicial_reclamacao:
                 data_inicial_reclamacao = reclamacao.criado_em
-        filtros['data_inicial_reclamacao'] = data_inicial_reclamacao.strftime('%d/%m/%Y')
+        filtros['data_inicial_reclamacao'] = data_inicial_reclamacao.strftime(
+            '%d/%m/%Y')
     html_string = render_to_string(
         'relatorio_reclamacao.html',
         {
