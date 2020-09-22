@@ -21,7 +21,8 @@ def cardapio_antigo(cardapio: Cardapio):
 
 def data_troca_nao_pode_ser_superior_a_data_inversao(data_de: datetime.date, data_para: datetime.date):
     if data_de >= data_para:
-        raise serializers.ValidationError('Data de cardápio para troca é superior a data de inversão')
+        raise serializers.ValidationError(
+            'Data da referência deve ser anterior a data aplicar em')
     return True
 
 
@@ -34,7 +35,8 @@ def nao_pode_existir_solicitacao_igual_para_mesma_escola(data_de: datetime.date,
         ~Q(status=InversaoCardapio.workflow_class.RASCUNHO)
     ).exists()
     if inversao_cardapio:
-        raise serializers.ValidationError('Já existe uma solicitação de inversão com estes dados')
+        raise serializers.ValidationError(
+            'Já existe uma solicitação de inversão com estes dados')
     return True
 
 
@@ -78,5 +80,6 @@ def escola_nao_pode_cadastrar_dois_combos_iguais(escola: Escola, combo: ComboDoV
         combo_tipos_alimentacao=combo
     ).exists()
     if horario_combo_por_escola:
-        raise serializers.ValidationError('Já existe um horario registrado para esse combo nesta escola')
+        raise serializers.ValidationError(
+            'Já existe um horario registrado para esse combo nesta escola')
     return True
