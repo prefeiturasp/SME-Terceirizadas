@@ -114,12 +114,6 @@ def test_permissoes_dieta_especial_viewset(client_autenticado_vinculo_escola_die
         f'/solicitacoes-dieta-especial/{solicitacao_dieta_especial_outra_dre.uuid}/'
     )
     assert response.status_code == status.HTTP_403_FORBIDDEN
-    # não pode ver os dados de TODAS as suspensões de alimentação
-    response = client_autenticado_vinculo_escola_dieta.get(
-        f'/solicitacoes-dieta-especial/'
-    )
-    assert response.status_code == status.HTTP_403_FORBIDDEN
-    assert response.json() == {'detail': 'Você não tem permissão para executar essa ação.'}
     response = client_autenticado_vinculo_escola_dieta.delete(
         f'/solicitacoes-dieta-especial/{solicitacao_dieta_especial.uuid}/'
     )
