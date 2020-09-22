@@ -256,3 +256,39 @@ class RelatorioQuantitativoSolicDietaEspSerializer(serializers.Serializer):
     qtde_ativas = serializers.IntegerField()
     qtde_inativas = serializers.IntegerField()
     qtde_pendentes = serializers.IntegerField()
+
+
+class SolicitacaoDietaEspecialSimplesSerializer(serializers.ModelSerializer):
+    aluno = AlunoSerializer()
+    rastro_escola = EscolaSerializer()
+    status_titulo = serializers.CharField(source='status.state.title')
+    logs = LogSolicitacoesUsuarioSerializer(many=True)
+    status_solicitacao = serializers.CharField(
+        source='status',
+        required=False,
+        read_only=True
+    )
+    classificacao = ClassificacaoDietaSerializer()
+    alergias_intolerancias = AlergiaIntoleranciaSerializer(many=True)
+    motivo_negacao = MotivoNegacaoSerializer()
+
+    class Meta:
+        model = SolicitacaoDietaEspecial
+        ordering = ('rastro_escola__diretoria_regional__nome', 'criado_em')
+        fields = (
+            'uuid',
+            'criado_em',
+            'status_solicitacao',
+            'aluno',
+            'rastro_escola',
+            'alergias_intolerancias',
+            'classificacao',
+            'nome_protocolo',
+            'motivo_negacao',
+            'justificativa_negacao',
+            'registro_funcional_nutricionista',
+            'logs',
+            'ativo',
+            'data_termino',
+            'status_titulo'
+        )

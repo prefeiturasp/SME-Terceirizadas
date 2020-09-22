@@ -449,3 +449,15 @@ def relatorio_quantitativo_diag_dieta_especial(campos, filtros, queryset, user):
         }
     )
     return html_to_pdf_response(html_string, f'relatorio_quantitativo_diagnostico_dieta_especial.pdf')
+
+
+def relatorio_geral_dieta_especial(filtros, queryset, user):
+    html_string = render_to_string(
+        'relatorio_dieta_especial.html',
+        {
+            'filtros': filtros,
+            'queryset': queryset,
+            'user': user
+        }
+    )
+    return html_to_pdf_response(html_string, f'relatorio_dieta_especial.pdf')

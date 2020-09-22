@@ -1,6 +1,7 @@
 from django.db import transaction
 from django.db.models import Case, CharField, Count, Q, Sum, Value, When
 from django.forms import ValidationError
+from django_filters import rest_framework as filters
 from rest_framework import generics, mixins, serializers
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
@@ -21,11 +22,13 @@ from ...paineis_consolidados.api.constants import FILTRO_CODIGO_EOL_ALUNO
 from ...relatorios.relatorios import (
     relatorio_dieta_especial,
     relatorio_dieta_especial_protocolo,
+    relatorio_geral_dieta_especial,
     relatorio_quantitativo_diag_dieta_especial,
     relatorio_quantitativo_solic_dieta_especial
 )
 from ..forms import (
     NegaDietaEspecialForm,
+    RelatorioDietaForm,
     RelatorioQuantitativoSolicDietaEspForm,
     SolicitacoesAtivasInativasPorAlunoForm
 )
@@ -38,6 +41,7 @@ from ..models import (
     SolicitacoesDietaEspecialAtivasInativasPorAluno
 )
 from ..utils import RelatorioPagination
+from .filters import DietaEspecialFilter
 from .serializers import (
     AlergiaIntoleranciaSerializer,
     AlimentoSerializer,
@@ -46,6 +50,7 @@ from .serializers import (
     RelatorioQuantitativoSolicDietaEspSerializer,
     SolicitacaoDietaEspecialAutorizarSerializer,
     SolicitacaoDietaEspecialSerializer,
+    SolicitacaoDietaEspecialSimplesSerializer,
     SolicitacaoDietaEspecialUpdateSerializer,
     SolicitacoesAtivasInativasPorAlunoSerializer
 )
@@ -60,10 +65,21 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
     lookup_field = 'uuid'
     permission_classes = (IsAuthenticated,)
     queryset = SolicitacaoDietaEspecial.objects.all()
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = DietaEspecialFilter
+
+    def get_queryset(self):
+        if self.action in ['list', 'imprime_relatoio_dieta_especial']:
+            return self.queryset.select_related('rastro_escola__diretoria_regional')
+        return super().get_queryset()
+
+    def list(self, request, *args, **kwargs):
+        self.pagination_class = RelatorioPagination
+        return super().list(request, args, kwargs)
 
     def get_permissions(self):  # noqa C901
         if self.action == 'list':
-            self.permission_classes = (IsAdminUser,)
+            self.permission_classes = (IsAuthenticated, PermissaoParaRecuperarDietaEspecial)
         elif self.action == 'update':
             self.permission_classes = (IsAdminUser, UsuarioCODAEDietaEspecial)
         elif self.action == 'retrieve':
@@ -81,6 +97,8 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
             return SolicitacaoDietaEspecialUpdateSerializer
         elif self.action in ['relatorio_quantitativo_solic_dieta_esp', 'relatorio_quantitativo_diag_dieta_esp']:
             return RelatorioQuantitativoSolicDietaEspSerializer
+        elif self.action == 'list':
+            return SolicitacaoDietaEspecialSimplesSerializer
         return SolicitacaoDietaEspecialSerializer
 
     @action(detail=False, methods=['get'], url_path=f'solicitacoes-aluno/{FILTRO_CODIGO_EOL_ALUNO}')
@@ -336,6 +354,15 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
         user = self.request.user
 
         return relatorio_quantitativo_diag_dieta_especial(campos, form.cleaned_data, qs, user)
+
+    @action(detail=False, methods=['GET'], url_path='imprime-relatorio-dieta-especial')
+    def imprime_relatorio_dieta_especial(self, request):
+        form = RelatorioDietaForm(self.request.query_params)
+        if not form.is_valid():
+            raise ValidationError(form.errors)
+        queryset = self.filter_queryset(self.get_queryset())
+        user = self.request.user
+        return relatorio_geral_dieta_especial(form.cleaned_data, queryset, user)
 
 
 class SolicitacoesAtivasInativasPorAlunoView(generics.ListAPIView):
