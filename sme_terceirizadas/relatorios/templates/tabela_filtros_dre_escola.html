@@ -19,7 +19,7 @@
       </tr>
     {% endif %}
   {% endif %}
-  {% if user.tipo_usuario == 'diretoriaregional' or user.tipo_usuario == 'escola' %}
+  {% if user.tipo_usuario == 'diretoriaregional' %}
     <tr>
       <td>DIRETORIA REGIONAL:</td>
       <td>
@@ -29,19 +29,9 @@
       </td>
     </tr>
   {% endif %}
-  {% if user.tipo_usuario == 'escola' %}
-    <tr>
-      <td>ESCOLA:</td>
-      <td>
-        {% for escola in filtros.escola %}
-          {{escola.nome}}
-        {% endfor %}
-      </td>
-    </tr>
-  {% endif %}
   {% if filtros.status %}
     <tr>
-      <td colspan="2">Status: {{ filtros.status }}</td>
+      <td colspan="2">Status: {{ status }}</td>
     </tr>
   {% endif %}
 </table>

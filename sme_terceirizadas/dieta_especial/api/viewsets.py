@@ -262,23 +262,21 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
 
         return qs
 
-    def get_campos_relatorio_quantitativo_solic_dieta_esp(self):
-        user = self.request.user
-        if user.tipo_usuario == 'escola':
-            campos = []
-        elif user.tipo_usuario == 'diretoriaregional':
-            campos = ['aluno__escola__nome']
-        else:
-            campos = ['aluno__escola__diretoria_regional__nome', 'aluno__escola__nome']
-
+    def get_campos_relatorio_quantitativo_solic_dieta_esp(self, filtros):
+        campos = ['aluno__escola__diretoria_regional__nome']
+        if len(filtros['escola']) > 0:
+            campos.append('aluno__escola__nome')
         return campos
 
-    def get_campos_relatorio_quantitativo_diag_dieta_esp(self):
+    def get_campos_relatorio_quantitativo_diag_dieta_esp(self, filtros):
         user = self.request.user
         campos = []
-        if user.tipo_usuario != 'escola' and user.tipo_usuario != 'diretoriaregional':
+        if user.tipo_usuario != 'diretoriaregional' and len(filtros['escola']) == 0:
             campos.append('aluno__escola__diretoria_regional__nome')
-        if user.tipo_usuario != 'escola':
+        else:
+            if user.tipo_usuario != 'diretoriaregional':
+                campos.append('aluno__escola__diretoria_regional__nome')
+        if len(filtros['escola']) > 0:
             campos.append('aluno__escola__nome')
         campos.append('alergias_intolerancias__descricao')
         campos.append('aluno__data_nascimento__year')
@@ -291,7 +289,7 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
         if not form.is_valid():
             raise ValidationError(form.errors)
 
-        campos = self.get_campos_relatorio_quantitativo_solic_dieta_esp()
+        campos = self.get_campos_relatorio_quantitativo_solic_dieta_esp(form.cleaned_data)
         qs = self.get_queryset_relatorio_quantitativo_solic_dieta_esp(form, campos)
 
         self.pagination_class = RelatorioPagination
@@ -305,7 +303,7 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
         if not form.is_valid():
             raise ValidationError(form.errors)
 
-        campos = self.get_campos_relatorio_quantitativo_diag_dieta_esp()
+        campos = self.get_campos_relatorio_quantitativo_diag_dieta_esp(form.cleaned_data)
         qs = self.get_queryset_relatorio_quantitativo_solic_dieta_esp(form, campos)
 
         self.pagination_class = RelatorioPagination
@@ -319,11 +317,11 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
         if not form.is_valid():
             raise ValidationError(form.errors)
 
-        campos = self.get_campos_relatorio_quantitativo_solic_dieta_esp()
+        campos = self.get_campos_relatorio_quantitativo_solic_dieta_esp(form.cleaned_data)
         qs = self.get_queryset_relatorio_quantitativo_solic_dieta_esp(form, campos)
         user = self.request.user
 
-        return relatorio_quantitativo_solic_dieta_especial(campos, form.cleaned_data, qs, user)
+        return relatorio_quantitativo_solic_dieta_especial(campos, form, qs, user)
 
     @action(detail=False, methods=['POST'], url_path='imprime-relatorio-quantitativo-diag-dieta-esp')
     def imprime_relatorio_quantitativo_diag_dieta_esp(self, request):
@@ -331,11 +329,11 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
         if not form.is_valid():
             raise ValidationError(form.errors)
 
-        campos = self.get_campos_relatorio_quantitativo_diag_dieta_esp()
+        campos = self.get_campos_relatorio_quantitativo_diag_dieta_esp(form.cleaned_data)
         qs = self.get_queryset_relatorio_quantitativo_solic_dieta_esp(form, campos)
         user = self.request.user
 
-        return relatorio_quantitativo_diag_dieta_especial(campos, form.cleaned_data, qs, user)
+        return relatorio_quantitativo_diag_dieta_especial(campos, form, qs, user)
 
 
 class SolicitacoesAtivasInativasPorAlunoView(generics.ListAPIView):

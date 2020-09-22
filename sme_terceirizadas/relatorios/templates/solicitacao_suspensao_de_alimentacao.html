@@ -15,7 +15,13 @@
     <div class="coluna-direita titulo">Dia(s) de suspensão</div>
   </div>
   <div class="multiplos-motivos-solicitacao">
-    <div class="coluna-esquerda">{{ motivo }}</div>
+    <div class="coluna-esquerda">
+      {% if motivo == 'Outro' %}
+        {{ motivo }} - {{ outro_motivo }}
+      {% else %}
+        {{ motivo }}
+      {% endif %}
+    </div>
     <div class="coluna-direita linha-com-datas">
       {% for i in suspensoes.all %}
       <div class="data-suspensao">{{ i.data|date:"d/m/Y" }}</div>

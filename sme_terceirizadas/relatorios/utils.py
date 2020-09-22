@@ -13,17 +13,19 @@ def formata_logs(logs):
         LogSolicitacoesUsuario.CODAE_AUTORIZOU,
         LogSolicitacoesUsuario.CODAE_NEGOU]
     ).exists():
-        logs = logs.exclude(status_evento=LogSolicitacoesUsuario.CODAE_QUESTIONOU)
+        logs = logs.exclude(
+            status_evento=LogSolicitacoesUsuario.CODAE_QUESTIONOU)
     return logs.exclude(status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO)
 
 
 def get_width(fluxo, logs):
     logs_formatado = formata_logs(logs)
-    fluxo_utilizado = fluxo if len(fluxo) > len(logs_formatado) else logs_formatado
+    fluxo_utilizado = fluxo if len(fluxo) > len(
+        logs_formatado) else logs_formatado
     if not fluxo_utilizado:
-        return str(55) + '%'
+        return '55%'
     if len(fluxo_utilizado) == 1:
-        return str(44) + '%'
+        return '100%'
     return str(math.floor(99 / len(fluxo_utilizado))) + '%'
 
 

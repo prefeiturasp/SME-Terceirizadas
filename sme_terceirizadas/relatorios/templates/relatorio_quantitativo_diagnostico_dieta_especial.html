@@ -11,7 +11,7 @@
 <header class="header">
   <section class="titulo-e-logo">
     <img src="{% static 'images/LOGO_PB_POSITIVO.png' %}" alt=""/>
-    <h1>SIGPAE - RELATÓRIO QUANTITATIVO DE SOLICITAÇÕES DE DIETA ESPECIAL</h1>
+    <h1>SIGPAE - RELATÓRIO QUANTITATIVO DE DIAGNÓSTICO DE DIETA ESPECIAL</h1>
   </section>
   {% include "tabela_filtros_dre_escola.html" with filtros=filtros %}
 </header>
@@ -20,11 +20,11 @@
     <table>
       <thead>
         <tr class="row-header">
-          {% if 'aluno__escola__diretoria_regional__nome' in campos %}
-            <th>Diretoria Regional</th>
+          {% if user.tipo_usuario != 'diretoriaregional' %}
+            <th>Diretoria Regional de Educação</th>
           {% endif %}
           {% if 'aluno__escola__nome' in campos %}
-            <th>Escola</th>
+            <th>Unidade Escolar</th>
             {% endif %}
           <th>Diagnóstico</th>
           <th>Ano Nasc. Aluno</th>
@@ -42,7 +42,7 @@
       <tbody>
         {% for resultado in queryset %}
           <tr class="row-inner-header">
-            {% if 'aluno__escola__diretoria_regional__nome' in campos %}
+            {% if user.tipo_usuario != 'diretoriaregional' %}
               <td>{{ resultado.aluno__escola__diretoria_regional__nome }}</td>
             {% endif %}
             {% if 'aluno__escola__nome' in campos %}

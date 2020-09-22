@@ -199,8 +199,8 @@ def relatorio_kit_lanche_passeio(request, solicitacao):
             'escola': escola,
             'solicitacao': solicitacao,
             'quantidade_kits': solicitacao.solicitacao_kit_lanche.kits.all().count() * solicitacao.quantidade_alunos,
-            'fluxo': constants.FLUXO_PARTINDO_ESCOLA,
-            'width': get_width(constants.FLUXO_PARTINDO_ESCOLA, solicitacao.logs),
+            'fluxo': constants.FLUXO_KIT_LANCHE_PASSEIO,
+            'width': get_width(constants.FLUXO_KIT_LANCHE_PASSEIO, solicitacao.logs),
             'logs': formata_logs(logs)
         }
     )
@@ -249,8 +249,9 @@ def relatorio_suspensao_de_alimentacao(request, solicitacao):
     logs = solicitacao.logs
     # TODO: GrupoSuspensaoAlimentacaoSerializerViewSet não tem motivo, quem
     # tem é cada suspensão do relacionamento
-    motivo = 'Deve ajustar aqui...'
     suspensoes = solicitacao.suspensoes_alimentacao.all()
+    motivo = suspensoes.first().motivo.nome if suspensoes else None
+    outro_motivo = suspensoes.first().outro_motivo if suspensoes else None
     quantidades_por_periodo = solicitacao.quantidades_por_periodo.all()
     html_string = render_to_string(
         'solicitacao_suspensao_de_alimentacao.html',
@@ -259,9 +260,10 @@ def relatorio_suspensao_de_alimentacao(request, solicitacao):
             'solicitacao': solicitacao,
             'suspensoes': suspensoes,
             'motivo': motivo,
+            'outro_motivo': outro_motivo,
             'quantidades_por_periodo': quantidades_por_periodo,
-            'fluxo': constants.FLUXO_INFORMATIVO,
-            'width': get_width(constants.FLUXO_INFORMATIVO, solicitacao.logs),
+            'fluxo': constants.FLUXO_SUSPENSAO_ALIMENTACAO,
+            'width': get_width(constants.FLUXO_SUSPENSAO_ALIMENTACAO, solicitacao.logs),
             'logs': formata_logs(logs)
         }
     )
@@ -298,7 +300,8 @@ def relatorio_produtos_suspensos(produtos, filtros):
             ultimo_log = produto.ultima_homologacao.ultimo_log
             if ultimo_log.criado_em < data_suspensao_inicial:
                 data_suspensao_inicial = ultimo_log.criado_em
-        filtros['data_suspensao_inicial'] = data_suspensao_inicial.strftime('%d/%m/%Y')
+        filtros['data_suspensao_inicial'] = data_suspensao_inicial.strftime(
+            '%d/%m/%Y')
 
     html_string = render_to_string(
         'relatorio_suspensoes_produto.html',
@@ -311,8 +314,10 @@ def relatorio_produtos_suspensos(produtos, filtros):
 
 
 def relatorio_produtos_em_analise_sensorial(produtos, filtros):
-    data_incial_analise_padrao = produtos[0]['ultima_homologacao']['log_solicitacao_analise']['criado_em']
-    contatos_terceirizada = produtos[0]['ultima_homologacao']['rastro_terceirizada']['contatos']
+    data_incial_analise_padrao = produtos[0]['ultima_homologacao'][
+        'log_solicitacao_analise']['criado_em']
+    contatos_terceirizada = produtos[0]['ultima_homologacao'][
+        'rastro_terceirizada']['contatos']
     config = get_config_cabecario_relatorio_analise(
         filtros,
         data_incial_analise_padrao,
@@ -334,7 +339,8 @@ def relatorio_reclamacao(produtos, filtros):
             reclamacao = produto.ultima_homologacao.reclamacoes.first()
             if reclamacao.criado_em < data_inicial_reclamacao:
                 data_inicial_reclamacao = reclamacao.criado_em
-        filtros['data_inicial_reclamacao'] = data_inicial_reclamacao.strftime('%d/%m/%Y')
+        filtros['data_inicial_reclamacao'] = data_inicial_reclamacao.strftime(
+            '%d/%m/%Y')
     html_string = render_to_string(
         'relatorio_reclamacao.html',
         {
@@ -425,27 +431,29 @@ def relatorio_produto_analise_sensorial_recebimento(request, produto):
     return html_to_pdf_response(html_string, f'produto_homologacao_{produto.id_externo}.pdf')
 
 
-def relatorio_quantitativo_solic_dieta_especial(campos, filtros, queryset, user):
+def get_relatorio_dieta_especial(campos, form, queryset, user, nome_relatorio):
+    status = None
+    if form.cleaned_data['status']:
+        status = dict(form.fields['status'].choices).get(
+            form.cleaned_data['status'], '')
     html_string = render_to_string(
-        'relatorio_quantitativo_solicitacoes_dieta_especial.html',
+        f'{nome_relatorio}.html',
         {
             'campos': campos,
-            'filtros': filtros,
+            'status': status,
+            'filtros': form.cleaned_data,
             'queryset': queryset,
             'user': user
         }
     )
-    return html_to_pdf_response(html_string, f'relatorio_quantitativo_solicitacoes_dieta_especial.pdf')
+    return html_to_pdf_response(html_string, f'{nome_relatorio}.pdf')
 
 
-def relatorio_quantitativo_diag_dieta_especial(campos, filtros, queryset, user):
-    html_string = render_to_string(
-        'relatorio_quantitativo_diagnostico_dieta_especial.html',
-        {
-            'campos': campos,
-            'filtros': filtros,
-            'queryset': queryset,
-            'user': user
-        }
-    )
-    return html_to_pdf_response(html_string, f'relatorio_quantitativo_diagnostico_dieta_especial.pdf')
+def relatorio_quantitativo_solic_dieta_especial(campos, form, queryset, user):
+    return get_relatorio_dieta_especial(
+        campos, form, queryset, user, 'relatorio_quantitativo_solicitacoes_dieta_especial')
+
+
+def relatorio_quantitativo_diag_dieta_especial(campos, form, queryset, user):
+    return get_relatorio_dieta_especial(
+        campos, form, queryset, user, 'relatorio_quantitativo_diagnostico_dieta_especial')

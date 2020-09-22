@@ -46,9 +46,9 @@ class RelatorioQuantitativoSolicDietaEspForm(forms.Form):
     )
     status = forms.ChoiceField(required=False, choices=(
         ('', 'Todos'),
-        ('ativas', 'Ativas'),
-        ('inativas', 'Inativas'),
-        ('pendentes', 'Pendentes'),
+        ('ativas', 'Ativa'),
+        ('inativas', 'Inativa'),
+        ('pendentes', 'Pendente de aprovação'),
     ))
     data_inicial = forms.DateField(required=False)
     data_final = forms.DateField(required=False)
