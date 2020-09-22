@@ -431,27 +431,28 @@ def relatorio_produto_analise_sensorial_recebimento(request, produto):
     return html_to_pdf_response(html_string, f'produto_homologacao_{produto.id_externo}.pdf')
 
 
-def relatorio_quantitativo_solic_dieta_especial(campos, filtros, queryset, user):
+def get_relatorio_dieta_especial(campos, form, queryset, user, nome_relatorio):
+    status = None
+    if form.cleaned_data['status']:
+        status = dict(form.fields['status'].choices).get(form.cleaned_data['status'], '')
     html_string = render_to_string(
-        'relatorio_quantitativo_solicitacoes_dieta_especial.html',
+        f'{nome_relatorio}.html',
         {
             'campos': campos,
-            'filtros': filtros,
+            'status': status,
+            'filtros': form.cleaned_data,
             'queryset': queryset,
             'user': user
         }
     )
-    return html_to_pdf_response(html_string, f'relatorio_quantitativo_solicitacoes_dieta_especial.pdf')
+    return html_to_pdf_response(html_string, f'{nome_relatorio}.pdf')
 
 
-def relatorio_quantitativo_diag_dieta_especial(campos, filtros, queryset, user):
-    html_string = render_to_string(
-        'relatorio_quantitativo_diagnostico_dieta_especial.html',
-        {
-            'campos': campos,
-            'filtros': filtros,
-            'queryset': queryset,
-            'user': user
-        }
-    )
-    return html_to_pdf_response(html_string, f'relatorio_quantitativo_diagnostico_dieta_especial.pdf')
+def relatorio_quantitativo_solic_dieta_especial(campos, form, queryset, user):
+    return get_relatorio_dieta_especial(
+        campos, form, queryset, user, 'relatorio_quantitativo_solicitacoes_dieta_especial')
+
+
+def relatorio_quantitativo_diag_dieta_especial(campos, form, queryset, user):
+    return get_relatorio_dieta_especial(
+        campos, form, queryset, user, 'relatorio_quantitativo_diagnostico_dieta_especial')

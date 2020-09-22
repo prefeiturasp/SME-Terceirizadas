@@ -321,7 +321,7 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
         qs = self.get_queryset_relatorio_quantitativo_solic_dieta_esp(form, campos)
         user = self.request.user
 
-        return relatorio_quantitativo_solic_dieta_especial(campos, form.cleaned_data, qs, user)
+        return relatorio_quantitativo_solic_dieta_especial(campos, form, qs, user)
 
     @action(detail=False, methods=['POST'], url_path='imprime-relatorio-quantitativo-diag-dieta-esp')
     def imprime_relatorio_quantitativo_diag_dieta_esp(self, request):
@@ -333,7 +333,7 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
         qs = self.get_queryset_relatorio_quantitativo_solic_dieta_esp(form, campos)
         user = self.request.user
 
-        return relatorio_quantitativo_diag_dieta_especial(campos, form.cleaned_data, qs, user)
+        return relatorio_quantitativo_diag_dieta_especial(campos, form, qs, user)
 
 
 class SolicitacoesAtivasInativasPorAlunoView(generics.ListAPIView):
