@@ -250,8 +250,8 @@ def relatorio_suspensao_de_alimentacao(request, solicitacao):
     # TODO: GrupoSuspensaoAlimentacaoSerializerViewSet não tem motivo, quem
     # tem é cada suspensão do relacionamento
     suspensoes = solicitacao.suspensoes_alimentacao.all()
-    motivo = [item.motivo.nome for item in suspensoes][0]
-    outro_motivo = [item.outro_motivo for item in suspensoes][0]
+    motivo = suspensoes.first().motivo.nome if suspensoes else None
+    outro_motivo = suspensoes.first().outro_motivo if suspensoes else None
     quantidades_por_periodo = solicitacao.quantidades_por_periodo.all()
     html_string = render_to_string(
         'solicitacao_suspensao_de_alimentacao.html',
@@ -434,7 +434,8 @@ def relatorio_produto_analise_sensorial_recebimento(request, produto):
 def get_relatorio_dieta_especial(campos, form, queryset, user, nome_relatorio):
     status = None
     if form.cleaned_data['status']:
-        status = dict(form.fields['status'].choices).get(form.cleaned_data['status'], '')
+        status = dict(form.fields['status'].choices).get(
+            form.cleaned_data['status'], '')
     html_string = render_to_string(
         f'{nome_relatorio}.html',
         {
