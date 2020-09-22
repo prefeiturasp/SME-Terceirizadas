@@ -360,7 +360,7 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
             raise ValidationError(form.errors)
         queryset = self.filter_queryset(self.get_queryset())
         user = self.request.user
-        return relatorio_geral_dieta_especial(form.cleaned_data, queryset, user)
+        return relatorio_geral_dieta_especial(form, queryset, user)
 
 
 class SolicitacoesAtivasInativasPorAlunoView(generics.ListAPIView):
