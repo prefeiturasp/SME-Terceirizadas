@@ -69,7 +69,7 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
     filterset_class = DietaEspecialFilter
 
     def get_queryset(self):
-        if self.action in ['list', 'imprime_relatoio_dieta_especial']:
+        if self.action in ['list', 'imprime_relatorio_dieta_especial']:
             return self.queryset.select_related('rastro_escola__diretoria_regional')
         return super().get_queryset()
 
