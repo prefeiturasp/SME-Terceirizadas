@@ -249,8 +249,9 @@ def relatorio_suspensao_de_alimentacao(request, solicitacao):
     logs = solicitacao.logs
     # TODO: GrupoSuspensaoAlimentacaoSerializerViewSet não tem motivo, quem
     # tem é cada suspensão do relacionamento
-    motivo = 'Deve ajustar aqui...'
     suspensoes = solicitacao.suspensoes_alimentacao.all()
+    motivo = [item.motivo.nome for item in suspensoes][0]
+    outro_motivo = [item.outro_motivo for item in suspensoes][0]
     quantidades_por_periodo = solicitacao.quantidades_por_periodo.all()
     html_string = render_to_string(
         'solicitacao_suspensao_de_alimentacao.html',
@@ -259,6 +260,7 @@ def relatorio_suspensao_de_alimentacao(request, solicitacao):
             'solicitacao': solicitacao,
             'suspensoes': suspensoes,
             'motivo': motivo,
+            'outro_motivo': outro_motivo,
             'quantidades_por_periodo': quantidades_por_periodo,
             'fluxo': constants.FLUXO_INFORMATIVO,
             'width': get_width(constants.FLUXO_INFORMATIVO, solicitacao.logs),
@@ -298,7 +300,8 @@ def relatorio_produtos_suspensos(produtos, filtros):
             ultimo_log = produto.ultima_homologacao.ultimo_log
             if ultimo_log.criado_em < data_suspensao_inicial:
                 data_suspensao_inicial = ultimo_log.criado_em
-        filtros['data_suspensao_inicial'] = data_suspensao_inicial.strftime('%d/%m/%Y')
+        filtros['data_suspensao_inicial'] = data_suspensao_inicial.strftime(
+            '%d/%m/%Y')
 
     html_string = render_to_string(
         'relatorio_suspensoes_produto.html',
@@ -311,8 +314,10 @@ def relatorio_produtos_suspensos(produtos, filtros):
 
 
 def relatorio_produtos_em_analise_sensorial(produtos, filtros):
-    data_incial_analise_padrao = produtos[0]['ultima_homologacao']['log_solicitacao_analise']['criado_em']
-    contatos_terceirizada = produtos[0]['ultima_homologacao']['rastro_terceirizada']['contatos']
+    data_incial_analise_padrao = produtos[0]['ultima_homologacao'][
+        'log_solicitacao_analise']['criado_em']
+    contatos_terceirizada = produtos[0]['ultima_homologacao'][
+        'rastro_terceirizada']['contatos']
     config = get_config_cabecario_relatorio_analise(
         filtros,
         data_incial_analise_padrao,
@@ -334,7 +339,8 @@ def relatorio_reclamacao(produtos, filtros):
             reclamacao = produto.ultima_homologacao.reclamacoes.first()
             if reclamacao.criado_em < data_inicial_reclamacao:
                 data_inicial_reclamacao = reclamacao.criado_em
-        filtros['data_inicial_reclamacao'] = data_inicial_reclamacao.strftime('%d/%m/%Y')
+        filtros['data_inicial_reclamacao'] = data_inicial_reclamacao.strftime(
+            '%d/%m/%Y')
     html_string = render_to_string(
         'relatorio_reclamacao.html',
         {
