@@ -55,7 +55,7 @@ def test_inversao_serializer_validators_case_error(inversao_card_params_error):
     escola = mommy.make('escola.Escola', tipo_unidade=tipo_ue, lote=lote)
     attrs = dict(data_de=data_de, data_para=data_para, escola=escola)
 
-    error_regex = r'(Não pode ser no passado|Inversão de dia de cardapio deve ser solicitada no ano corrente|Diferença entre as datas não pode ultrapassar de 60 dias|Data de cardápio para troca é superior a data de inversão)'  # noqa E501
+    error_regex = r'(Não pode ser no passado|Inversão de dia de cardapio deve ser solicitada no ano corrente|Diferença entre as datas não pode ultrapassar de 60 dias|Data da referência deve ser anterior a data aplicar em)'  # noqa E501
     with pytest.raises(ValidationError, match=error_regex):
         response_de = serializer_obj.validate_data_de(data_de=data_de)
         response_para = serializer_obj.validate_data_para(data_para=data_para)

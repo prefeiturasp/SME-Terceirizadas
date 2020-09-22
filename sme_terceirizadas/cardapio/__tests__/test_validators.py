@@ -25,7 +25,7 @@ def test_valida_se_data_de_cardapio_eh_antiga(cardapio_valido, cardapio_invalido
 
 def test_valida_se_as_datas_se_convergem(cardapio_valido, cardapio_valido2):
     assert data_troca_nao_pode_ser_superior_a_data_inversao(cardapio_valido.data, cardapio_valido2.data)
-    with pytest.raises(ValidationError, match='Data de cardápio para troca é superior a data de inversão'):
+    with pytest.raises(ValidationError, match='Data da referência deve ser anterior a data aplicar em'):
         data_troca_nao_pode_ser_superior_a_data_inversao(cardapio_valido2.data, cardapio_valido.data)
 
 
