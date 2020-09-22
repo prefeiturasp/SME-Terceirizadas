@@ -52,3 +52,22 @@ class RelatorioQuantitativoSolicDietaEspForm(forms.Form):
     ))
     data_inicial = forms.DateField(required=False)
     data_final = forms.DateField(required=False)
+
+
+class RelatorioDietaForm(forms.Form):
+    dre = forms.ModelMultipleChoiceField(
+        required=False,
+        queryset=DiretoriaRegional.objects.all(),
+        to_field_name='uuid'
+    )
+    escola = forms.ModelMultipleChoiceField(
+        required=False,
+        queryset=Escola.objects.all(),
+        to_field_name='uuid'
+    )
+    diagnostico = forms.ModelMultipleChoiceField(
+        required=False,
+        queryset=AlergiaIntolerancia.objects.all()
+    )
+    data_inicial = forms.DateField(required=False)
+    data_final = forms.DateField(required=False)

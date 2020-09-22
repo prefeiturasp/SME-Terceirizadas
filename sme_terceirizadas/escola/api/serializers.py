@@ -301,7 +301,6 @@ class VinculoInstituicaoSerializer(serializers.ModelSerializer):
             return obj.instituicao.tipo_unidade.uuid
 
     def get_instituicao(self, obj):
-        self.get_diretoria_regional(obj)
         return {'nome': obj.instituicao.nome,
                 'uuid': obj.instituicao.uuid,
                 'codigo_eol': self.get_codigo_eol(obj),
@@ -355,7 +354,7 @@ class EscolaPeriodoEscolarSerializer(serializers.ModelSerializer):
 
 
 class AlunoSerializer(serializers.ModelSerializer):
-    escola = EscolaSimplissimaSerializer(required=False)
+    escola = EscolaSimplesSerializer(required=False)
     nome_escola = serializers.SerializerMethodField()
     nome_dre = serializers.SerializerMethodField()
 

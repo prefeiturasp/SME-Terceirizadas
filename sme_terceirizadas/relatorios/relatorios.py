@@ -433,7 +433,7 @@ def relatorio_produto_analise_sensorial_recebimento(request, produto):
 
 def get_relatorio_dieta_especial(campos, form, queryset, user, nome_relatorio):
     status = None
-    if form.cleaned_data['status']:
+    if 'status' in form.cleaned_data:
         status = dict(form.fields['status'].choices).get(
             form.cleaned_data['status'], '')
     html_string = render_to_string(
@@ -457,3 +457,8 @@ def relatorio_quantitativo_solic_dieta_especial(campos, form, queryset, user):
 def relatorio_quantitativo_diag_dieta_especial(campos, form, queryset, user):
     return get_relatorio_dieta_especial(
         campos, form, queryset, user, 'relatorio_quantitativo_diagnostico_dieta_especial')
+
+
+def relatorio_geral_dieta_especial(form, queryset, user):
+    return get_relatorio_dieta_especial(
+        None, form, queryset, user, 'relatorio_dieta_especial')
