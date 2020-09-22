@@ -249,8 +249,9 @@ def relatorio_suspensao_de_alimentacao(request, solicitacao):
     logs = solicitacao.logs
     # TODO: GrupoSuspensaoAlimentacaoSerializerViewSet não tem motivo, quem
     # tem é cada suspensão do relacionamento
-    motivo = 'Deve ajustar aqui...'
     suspensoes = solicitacao.suspensoes_alimentacao.all()
+    motivo = [item.motivo.nome for item in suspensoes][0]
+    outro_motivo = [item.outro_motivo for item in suspensoes][0]
     quantidades_por_periodo = solicitacao.quantidades_por_periodo.all()
     html_string = render_to_string(
         'solicitacao_suspensao_de_alimentacao.html',
@@ -259,9 +260,10 @@ def relatorio_suspensao_de_alimentacao(request, solicitacao):
             'solicitacao': solicitacao,
             'suspensoes': suspensoes,
             'motivo': motivo,
+            'outro_motivo': outro_motivo,
             'quantidades_por_periodo': quantidades_por_periodo,
-            'fluxo': constants.FLUXO_INFORMATIVO,
-            'width': get_width(constants.FLUXO_INFORMATIVO, solicitacao.logs),
+            'fluxo': constants.FLUXO_SUSPENSAO_ALIMENTACAO,
+            'width': get_width(constants.FLUXO_SUSPENSAO_ALIMENTACAO, solicitacao.logs),
             'logs': formata_logs(logs)
         }
     )

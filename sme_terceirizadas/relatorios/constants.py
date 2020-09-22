@@ -103,6 +103,15 @@ FLUXO_INFORMATIVO = [
     }
 ]
 
+FLUXO_SUSPENSAO_ALIMENTACAO = [
+    {
+        'titulo': 'Solicitação Realizada',
+        'status': '',
+        'criado_em': '',
+        'usuario': None
+    }
+]
+
 FLUXO_DIETA_ESPECIAL = [
     {
         'titulo': 'Solicitação Realizada',
