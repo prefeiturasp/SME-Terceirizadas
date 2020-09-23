@@ -209,7 +209,9 @@ class PermissaoParaRecuperarDietaEspecial(BasePermission):
             return (
                 usuario.vinculo_atual.perfil.nome in [COORDENADOR_DIETA_ESPECIAL,
                                                       ADMINISTRADOR_DIETA_ESPECIAL,
-                                                      SUPERVISAO_NUTRICAO]
+                                                      SUPERVISAO_NUTRICAO,
+                                                      COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
+                                                      ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA]
             )
         elif isinstance(usuario.vinculo_atual.instituicao, Terceirizada):
             return (

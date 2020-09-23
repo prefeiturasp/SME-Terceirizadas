@@ -9,10 +9,10 @@ from rest_framework.response import Response
 from ...dados_comuns.constants import FILTRO_PADRAO_PEDIDOS, SEM_FILTRO
 from ...dados_comuns.fluxo_status import DietaEspecialWorkflow
 from ...dados_comuns.permissions import (
+    PermissaoParaRecuperarDietaEspecial,
     UsuarioCODAEGestaoAlimentacao,
     UsuarioDiretoriaRegional,
     UsuarioEscola,
-    UsuarioNutricionista,
     UsuarioTerceirizada
 )
 from ...dieta_especial.api.serializers import SolicitacaoDietaEspecialLogSerializer, SolicitacaoDietaEspecialSerializer
@@ -160,7 +160,7 @@ class CODAESolicitacoesViewSet(SolicitacoesViewSet):
     @action(detail=False,
             methods=['GET'],
             url_path=PENDENTES_AUTORIZACAO_DIETA_ESPECIAL,
-            permission_classes=(UsuarioNutricionista,))
+            permission_classes=(PermissaoParaRecuperarDietaEspecial,))
     def pendentes_autorizacao_dieta_especial(self, request):
         query_set = SolicitacoesCODAE.get_pendentes_dieta_especial()
         return self._retorno_base(query_set)
@@ -168,7 +168,7 @@ class CODAESolicitacoesViewSet(SolicitacoesViewSet):
     @action(detail=False,
             methods=['GET'],
             url_path=AUTORIZADOS_DIETA_ESPECIAL,
-            permission_classes=(UsuarioNutricionista,))
+            permission_classes=(PermissaoParaRecuperarDietaEspecial,))
     def autorizados_dieta_especial(self, request):
         query_set = SolicitacoesCODAE.get_autorizados_dieta_especial()
         return self._retorno_base(query_set)
@@ -176,7 +176,7 @@ class CODAESolicitacoesViewSet(SolicitacoesViewSet):
     @action(detail=False,
             methods=['GET'],
             url_path=NEGADOS_DIETA_ESPECIAL,
-            permission_classes=(UsuarioNutricionista,))
+            permission_classes=(PermissaoParaRecuperarDietaEspecial,))
     def negados_dieta_especial(self, request):
         query_set = SolicitacoesCODAE.get_negados_dieta_especial()
         return self._retorno_base(query_set)
@@ -184,7 +184,7 @@ class CODAESolicitacoesViewSet(SolicitacoesViewSet):
     @action(detail=False,
             methods=['GET'],
             url_path=CANCELADOS_DIETA_ESPECIAL,
-            permission_classes=(UsuarioNutricionista,))
+            permission_classes=(PermissaoParaRecuperarDietaEspecial,))
     def cancelados_dieta_especial(self, request):
         query_set = SolicitacoesCODAE.get_cancelados_dieta_especial()
         return self._retorno_base(query_set)
