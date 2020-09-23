@@ -168,6 +168,14 @@ class AnexoLogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes_a
         return f'Anexo {self.uuid} - {self.nome}'
 
 
+class Endereco(ExportModelOperationsMixin('endereco'), models.Model):
+    logradouro = models.CharField(max_length=255, validators=[MinLengthValidator(5)])
+    numero = models.IntegerField(null=True)
+    complemento = models.CharField(max_length=50, blank=True)
+    bairro = models.CharField(max_length=50)
+    cep = models.IntegerField()
+
+
 class Contato(ExportModelOperationsMixin('contato'), models.Model):
     telefone = models.CharField(max_length=13, validators=[MinLengthValidator(8)],
                                 blank=True)

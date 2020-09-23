@@ -7,6 +7,7 @@ from django.core.management.base import BaseCommand
 from requests import ConnectionError
 
 from ....dados_comuns.constants import DJANGO_EOL_API_TOKEN, DJANGO_EOL_API_URL
+from ....dados_comuns.models import Contato, Endereco
 from ...models import DiretoriaRegional, Escola
 
 env = environ.Env()
@@ -51,7 +52,41 @@ class Command(BaseCommand):
                 self.stdout.write(self.style.SUCCESS(msg))
                 logger.debug(msg)
                 escola_object.nome = nome_escola
-                escola_object.save()
+
+            msg = f'Escola código EOL: {codigo_eol_escola} atualizando...'
+            self.stdout.write(self.style.SUCCESS(msg))
+
+            if escola_object.endereco:
+                endereco = escola_object.endereco
+            else:
+                endereco = Endereco()
+            endereco.logradouro = escola_json['dc_tp_logradouro'].strip() + ' ' + escola_json['nm_logradouro'].strip()
+            if escola_json['cd_nr_endereco'] and escola_json['cd_nr_endereco'].strip() != 'S/N':
+                endereco.numero = escola_json['cd_nr_endereco'].strip()
+            if escola_json['dc_complemento_endereco']:
+                endereco.complemento = escola_json['dc_complemento_endereco'].strip()
+            endereco.bairro = escola_json['nm_bairro'].strip()
+            endereco.cep = escola_json['cd_cep']
+            endereco.save()
+            if escola_object.endereco is None:
+                escola_object.endereco = endereco
+
+            if escola_object.contato:
+                contato = escola_object.contato
+            else:
+                contato = Contato()
+            if escola_json['email']:
+                contato.email = escola_json['email'].strip()
+            if escola_json['tel1']:
+                contato.telefone = escola_json['tel1'].strip()
+            if escola_json['tel2']:
+                contato.telefone2 = escola_json['tel2'].strip()
+            contato.save()
+            if escola_object.contato is None:
+                escola_object.contato = contato
+
+            escola_object.save()
+
 
     def _atualiza_dre_da_escola(self, json):  # noqa C901
         for escola_json in json['results']:

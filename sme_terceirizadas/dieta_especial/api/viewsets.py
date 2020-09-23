@@ -1,5 +1,5 @@
 from django.db import transaction
-from django.db.models import Case, CharField, Count, Q, Sum, Value, When
+from django.db.models import Case, CharField, Count, F, Q, Sum, Value, When
 from django.forms import ValidationError
 from django_filters import rest_framework as filters
 from rest_framework import generics, mixins, serializers
@@ -12,6 +12,7 @@ from rest_framework.viewsets import GenericViewSet
 from xworkflows import InvalidTransitionError
 
 from ...dados_comuns import constants
+from ...dados_comuns.fluxo_status import DietaEspecialWorkflow
 from ...dados_comuns.permissions import (
     PermissaoParaRecuperarDietaEspecial,
     UsuarioCODAEDietaEspecial,
@@ -28,6 +29,7 @@ from ...relatorios.relatorios import (
 )
 from ..forms import (
     NegaDietaEspecialForm,
+    PanoramaForm,
     RelatorioDietaForm,
     RelatorioQuantitativoSolicDietaEspForm,
     SolicitacoesAtivasInativasPorAlunoForm
@@ -38,7 +40,8 @@ from ..models import (
     ClassificacaoDieta,
     MotivoNegacao,
     SolicitacaoDietaEspecial,
-    SolicitacoesDietaEspecialAtivasInativasPorAluno
+    SolicitacoesDietaEspecialAtivasInativasPorAluno,
+    TipoContagem
 )
 from ..utils import RelatorioPagination
 from .filters import DietaEspecialFilter
@@ -47,12 +50,14 @@ from .serializers import (
     AlimentoSerializer,
     ClassificacaoDietaSerializer,
     MotivoNegacaoSerializer,
+    PanoramaSerializer,
     RelatorioQuantitativoSolicDietaEspSerializer,
     SolicitacaoDietaEspecialAutorizarSerializer,
     SolicitacaoDietaEspecialSerializer,
     SolicitacaoDietaEspecialSimplesSerializer,
     SolicitacaoDietaEspecialUpdateSerializer,
-    SolicitacoesAtivasInativasPorAlunoSerializer
+    SolicitacoesAtivasInativasPorAlunoSerializer,
+    TipoContagemSerializer
 )
 from .serializers_create import SolicitacaoDietaEspecialCreateSerializer
 
@@ -97,6 +102,8 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
             return RelatorioQuantitativoSolicDietaEspSerializer
         elif self.action == 'relatorio_dieta_especial':
             return SolicitacaoDietaEspecialSimplesSerializer
+        elif self.action == 'panorama_escola':
+            return PanoramaSerializer
         return SolicitacaoDietaEspecialSerializer
 
     @action(detail=False, methods=['get'], url_path=f'solicitacoes-aluno/{FILTRO_CODIGO_EOL_ALUNO}')
@@ -380,6 +387,35 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
         user = self.request.user
         return relatorio_geral_dieta_especial(form, queryset, user)
 
+    @action(detail=False, methods=['POST'], url_path='panorama-escola')
+    def panorama_escola(self, request):
+        form = PanoramaForm(self.request.data)
+        if not form.is_valid():
+            raise ValidationError(form.errors)
+
+        periodo_escolar_igual = Q(aluno__periodo_escolar=F('aluno__escola__escolas_periodos__periodo_escolar'))
+
+        campos = [
+            'aluno__escola__escolas_periodos__periodo_escolar__nome',
+            'aluno__escola__escolas_periodos__periodo_escolar__horas_atendimento',
+            'aluno__escola__escolas_periodos__quantidade_alunos'
+        ]
+        qs = SolicitacaoDietaEspecial.objects.filter(
+            aluno__escola__escolas_periodos__quantidade_alunos__gt=0,
+            aluno__escola=form.cleaned_data['escola'],
+            status__in=[DietaEspecialWorkflow.CODAE_AUTORIZADO,
+                        DietaEspecialWorkflow.TERCEIRIZADA_TOMOU_CIENCIA,
+                        DietaEspecialWorkflow.ESCOLA_SOLICITOU_INATIVACAO]
+        ).values(*campos).annotate(
+            qtde_tipo_a=(Count('id', filter=Q(classificacao__nome='Tipo A') & periodo_escolar_igual)),
+            qtde_enteral=(Count('id', filter=Q(classificacao__nome='Tipo A Enteral') & periodo_escolar_igual)),
+            qtde_tipo_b=(Count('id', filter=Q(classificacao__nome='Tipo B') & periodo_escolar_igual)),
+        ).order_by(*campos)
+
+        serializer = self.get_serializer(qs, many=True)
+
+        return Response(serializer.data)
+
 
 class SolicitacoesAtivasInativasPorAlunoView(generics.ListAPIView):
     serializer_class = SolicitacoesAtivasInativasPorAlunoSerializer
@@ -468,3 +504,11 @@ class AlimentoViewSet(mixins.ListModelMixin,
     queryset = Alimento.objects.all().order_by('nome')
     serializer_class = AlimentoSerializer
     pagination_class = None
+
+
+class TipoContagemViewSet(mixins.ListModelMixin, GenericViewSet):
+    queryset = TipoContagem.objects.all().order_by('nome')
+    serializer_class = TipoContagemSerializer
+    pagination_class = None
+    verbose_name = 'Tipo de Contagem'
+    verbose_name_plural = 'Tipos de Contagem'

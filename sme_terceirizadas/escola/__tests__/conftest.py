@@ -157,7 +157,8 @@ def datas_e_faixas(request):
 
 @pytest.fixture
 def eolservice_get_informacoes_escola_turma_aluno(monkeypatch):
-    js = json.load(open('sme_terceirizadas/escola/__tests__/massa_eolservice_get_informacoes_escola_turma_aluno.json'))
+    with open('sme_terceirizadas/escola/__tests__/massa_eolservice_get_informacoes_escola_turma_aluno.json') as jsfile:
+        js = json.load(jsfile)
     return monkeypatch.setattr(
         EOLService,
         'get_informacoes_escola_turma_aluno',

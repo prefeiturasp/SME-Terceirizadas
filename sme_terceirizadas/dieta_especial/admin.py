@@ -6,7 +6,8 @@ from .models import (
     ClassificacaoDieta,
     MotivoNegacao,
     SolicitacaoDietaEspecial,
-    SubstituicaoAlimento
+    SubstituicaoAlimento,
+    TipoContagem
 )
 
 admin.site.register(AlergiaIntolerancia)
@@ -15,3 +16,4 @@ admin.site.register(ClassificacaoDieta)
 admin.site.register(MotivoNegacao)
 admin.site.register(SolicitacaoDietaEspecial)
 admin.site.register(SubstituicaoAlimento)
+admin.site.register(TipoContagem)
