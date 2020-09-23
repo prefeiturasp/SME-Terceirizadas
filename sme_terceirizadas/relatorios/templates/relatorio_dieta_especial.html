@@ -65,7 +65,7 @@
             {{alergia}}
           {% endfor %}
         </div>
-        <div class="informacao">
+        <div class="informacao-tres">
           <label>Nome do protocolo</label>
           {{dieta.nome_protocolo}}
         </div>
@@ -79,7 +79,7 @@
           <label>Motivo da Negação</label>
           {{dieta.motivo_negacao|default:""}}
         </div>
-        <div class="informacao">
+        <div class="informacao-tres">
           <label>Justificativa</label>
           {{dieta.justificativa_negacao|safe|default:""}}
         </div>
