@@ -1,5 +1,5 @@
 from django.db import transaction
-from django.db.models import Case, CharField, Count, Q, Sum, Value, When
+from django.db.models import Case, CharField, Count, F, Q, Sum, Value, When
 from django.forms import ValidationError
 from django_filters import rest_framework as filters
 from rest_framework import generics, mixins, serializers
@@ -12,6 +12,7 @@ from rest_framework.viewsets import GenericViewSet
 from xworkflows import InvalidTransitionError
 
 from ...dados_comuns import constants
+from ...dados_comuns.fluxo_status import DietaEspecialWorkflow
 from ...dados_comuns.permissions import (
     PermissaoParaRecuperarDietaEspecial,
     UsuarioCODAEDietaEspecial,
@@ -374,6 +375,8 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
         if not form.is_valid():
             raise ValidationError(form.errors)
 
+        periodo_escolar_igual = Q(aluno__periodo_escolar=F('aluno__escola__escolas_periodos__periodo_escolar'))
+
         campos = [
             'aluno__escola__escolas_periodos__periodo_escolar__nome',
             'aluno__escola__escolas_periodos__periodo_escolar__horas_atendimento',
@@ -381,11 +384,14 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
         ]
         qs = SolicitacaoDietaEspecial.objects.filter(
             aluno__escola__escolas_periodos__quantidade_alunos__gt=0,
-            aluno__escola=form.cleaned_data['escola']
+            aluno__escola=form.cleaned_data['escola'],
+            status__in=[DietaEspecialWorkflow.CODAE_AUTORIZADO,
+                        DietaEspecialWorkflow.TERCEIRIZADA_TOMOU_CIENCIA,
+                        DietaEspecialWorkflow.ESCOLA_SOLICITOU_INATIVACAO]
         ).values(*campos).annotate(
-            qtde_tipo_a=(Count('id', filter=Q(classificacao__nome='Tipo A'))),
-            qtde_enteral=(Count('id', filter=Q(classificacao__nome='Tipo C'))),
-            qtde_tipo_b=(Count('id', filter=Q(classificacao__nome='Tipo B'))),
+            qtde_tipo_a=(Count('id', filter=Q(classificacao__nome='Tipo A') & periodo_escolar_igual)),
+            qtde_enteral=(Count('id', filter=Q(classificacao__nome='Tipo A Enteral') & periodo_escolar_igual)),
+            qtde_tipo_b=(Count('id', filter=Q(classificacao__nome='Tipo B') & periodo_escolar_igual)),
         ).order_by(*campos)
 
         serializer = self.get_serializer(qs, many=True)

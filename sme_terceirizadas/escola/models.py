@@ -736,6 +736,7 @@ class Aluno(TemChaveExterna):
     codigo_eol = models.CharField('Código EOL', max_length=7, unique=True, validators=[MinLengthValidator(7)])
     data_nascimento = models.DateField()
     escola = models.ForeignKey(Escola, blank=True, null=True, on_delete=models.SET_NULL)
+    periodo_escolar = models.ForeignKey(PeriodoEscolar, blank=True, null=True, on_delete=models.SET_NULL)
 
     def __str__(self):
         return f'{self.nome} - {self.codigo_eol}'
