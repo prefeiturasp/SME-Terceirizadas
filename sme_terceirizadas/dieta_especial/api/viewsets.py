@@ -70,7 +70,7 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
 
     def get_queryset(self):
         if self.action in ['list', 'imprime_relatorio_dieta_especial']:
-            return self.queryset.select_related('rastro_escola__diretoria_regional')
+            return self.queryset.select_related('rastro_escola__diretoria_regional').order_by('criado_em')
         return super().get_queryset()
 
     def list(self, request, *args, **kwargs):

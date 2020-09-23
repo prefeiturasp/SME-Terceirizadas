@@ -274,7 +274,6 @@ class SolicitacaoDietaEspecialSimplesSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SolicitacaoDietaEspecial
-        ordering = ('rastro_escola__diretoria_regional__nome', 'criado_em')
         fields = (
             'uuid',
             'criado_em',
