@@ -250,8 +250,6 @@ def relatorio_suspensao_de_alimentacao(request, solicitacao):
     # TODO: GrupoSuspensaoAlimentacaoSerializerViewSet não tem motivo, quem
     # tem é cada suspensão do relacionamento
     suspensoes = solicitacao.suspensoes_alimentacao.all()
-    motivo = suspensoes.first().motivo.nome if suspensoes else None
-    outro_motivo = suspensoes.first().outro_motivo if suspensoes else None
     quantidades_por_periodo = solicitacao.quantidades_por_periodo.all()
     html_string = render_to_string(
         'solicitacao_suspensao_de_alimentacao.html',
@@ -259,8 +257,6 @@ def relatorio_suspensao_de_alimentacao(request, solicitacao):
             'escola': escola,
             'solicitacao': solicitacao,
             'suspensoes': suspensoes,
-            'motivo': motivo,
-            'outro_motivo': outro_motivo,
             'quantidades_por_periodo': quantidades_por_periodo,
             'fluxo': constants.FLUXO_SUSPENSAO_ALIMENTACAO,
             'width': get_width(constants.FLUXO_SUSPENSAO_ALIMENTACAO, solicitacao.logs),
