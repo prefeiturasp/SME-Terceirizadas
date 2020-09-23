@@ -286,6 +286,7 @@ class PeriodoEscolar(ExportModelOperationsMixin('periodo_escolar'), Nomeavel, Te
     """manhã, intermediário, tarde, vespertino, noturno, integral."""
 
     tipos_alimentacao = models.ManyToManyField('cardapio.TipoAlimentacao', related_name='periodos_escolares')
+    horas_atendimento = models.IntegerField(null=True)
 
     class Meta:
         verbose_name = 'Período escolar'
@@ -313,6 +314,12 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
                                 blank=True, null=True)
 
     idades = models.ManyToManyField(FaixaIdadeEscolar, blank=True)
+
+    tipos_contagem = models.ManyToManyField('dieta_especial.TipoContagem', blank=True)
+
+    endereco = models.ForeignKey('dados_comuns.Endereco',
+                                 blank=True, null=True,
+                                 on_delete=models.DO_NOTHING)
 
     @property
     def quantidade_alunos(self):
@@ -730,6 +737,7 @@ class Aluno(TemChaveExterna):
     codigo_eol = models.CharField('Código EOL', max_length=7, unique=True, validators=[MinLengthValidator(7)])
     data_nascimento = models.DateField()
     escola = models.ForeignKey(Escola, blank=True, null=True, on_delete=models.SET_NULL)
+    periodo_escolar = models.ForeignKey(PeriodoEscolar, blank=True, null=True, on_delete=models.SET_NULL)
 
     def __str__(self):
         return f'{self.nome} - {self.codigo_eol}'

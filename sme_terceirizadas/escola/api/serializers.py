@@ -3,7 +3,7 @@ from django.db.models import Q
 from rest_framework import serializers
 
 from ...cardapio.models import TipoAlimentacao
-from ...dados_comuns.api.serializers import ContatoSerializer
+from ...dados_comuns.api.serializers import ContatoSerializer, EnderecoSerializer
 from ...perfil.api.serializers import PerfilSimplesSerializer
 from ...perfil.models import Usuario, Vinculo
 from ...terceirizada.api.serializers.serializers import ContratoSimplesSerializer, TerceirizadaSimplesSerializer
@@ -146,7 +146,7 @@ class EscolaSimplesSerializer(serializers.ModelSerializer):
     class Meta:
         model = Escola
         fields = ('uuid', 'nome', 'codigo_eol', 'quantidade_alunos', 'periodos_escolares', 'lote', 'tipo_gestao',
-                  'diretoria_regional')
+                  'diretoria_regional', 'tipos_contagem')
 
 
 class EscolaListagemSimplesSelializer(serializers.ModelSerializer):
@@ -266,6 +266,11 @@ class TerceirizadaSerializer(serializers.ModelSerializer):
         exclude = ('id',)
 
 
+class TipoContagemSerializer(serializers.Serializer):
+    uuid = serializers.CharField()
+    nome = serializers.CharField()
+
+
 class VinculoInstituicaoSerializer(serializers.ModelSerializer):
     instituicao = serializers.SerializerMethodField()
     perfil = PerfilSimplesSerializer()
@@ -300,6 +305,18 @@ class VinculoInstituicaoSerializer(serializers.ModelSerializer):
         if isinstance(obj.instituicao, Escola):
             return obj.instituicao.tipo_unidade.uuid
 
+    def get_tipos_contagem(self, obj):
+        if isinstance(obj.instituicao, Escola):
+            return TipoContagemSerializer(obj.instituicao.tipos_contagem, many=True).data
+
+    def get_endereco(self, obj):
+        if isinstance(obj.instituicao, Escola):
+            return EnderecoSerializer(obj.instituicao.endereco).data
+
+    def get_contato(self, obj):
+        if isinstance(obj.instituicao, Escola):
+            return ContatoSerializer(obj.instituicao.contato).data
+
     def get_instituicao(self, obj):
         return {'nome': obj.instituicao.nome,
                 'uuid': obj.instituicao.uuid,
@@ -309,7 +326,10 @@ class VinculoInstituicaoSerializer(serializers.ModelSerializer):
                 'periodos_escolares': self.get_periodos_escolares(obj),
                 'escolas': self.get_escolas(obj),
                 'diretoria_regional': self.get_diretoria_regional(obj),
-                'tipo_unidade_escolar': self.get_tipo_unidade_escolar(obj)}
+                'tipo_unidade_escolar': self.get_tipo_unidade_escolar(obj),
+                'tipos_contagem': self.get_tipos_contagem(obj),
+                'endereco': self.get_endereco(obj),
+                'contato': self.get_contato(obj)}
 
     class Meta:
         model = Vinculo

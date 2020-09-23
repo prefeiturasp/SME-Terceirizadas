@@ -88,11 +88,31 @@ def test_get_meus_dados_admin_escola(users_admin_escola):
             'nome': 'EMEI NOE AZEVEDO, PROF',
             'uuid': 'b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd',
             'codigo_eol': '256341',
+            'contato': {'celular': '',
+                        'email': '',
+                        'telefone': '',
+                        'telefone2': ''},
+            'endereco': {'bairro': '',
+                         'cep': None,
+                         'complemento': '',
+                         'logradouro': '',
+                         'numero': None},
             'quantidade_alunos': 450,
             'lotes': [],
+            'tipos_contagem': [],
             'periodos_escolares': [
-                {'tipos_alimentacao': [], 'nome': 'TARDE', 'uuid': '57af972c-938f-4f6f-9f4b-cf7b983a10b7'},
-                {'tipos_alimentacao': [], 'nome': 'MANHA', 'uuid': 'd0c12dae-a215-41f6-af86-b7cd1838ba81'}
+                {
+                    'tipos_alimentacao': [],
+                    'nome': 'TARDE',
+                    'uuid': '57af972c-938f-4f6f-9f4b-cf7b983a10b7',
+                    'horas_atendimento': None
+                },
+                {
+                    'tipos_alimentacao': [],
+                    'nome': 'MANHA',
+                    'uuid': 'd0c12dae-a215-41f6-af86-b7cd1838ba81',
+                    'horas_atendimento': None
+                }
             ],
             'escolas': [],
             'diretoria_regional': {'uuid': '7da9acec-48e1-430c-8a5c-1f1efc666fad',
@@ -123,9 +143,29 @@ def test_get_meus_dados_diretor_escola(users_diretor_escola):
             'codigo_eol': '256341',
             'quantidade_alunos': 450,
             'lotes': [],
+            'contato': {'celular': '',
+                        'email': '',
+                        'telefone': '',
+                        'telefone2': ''},
+            'endereco': {'bairro': '',
+                         'cep': None,
+                         'complemento': '',
+                         'logradouro': '',
+                         'numero': None},
+            'tipos_contagem': [],
             'periodos_escolares': [
-                {'tipos_alimentacao': [], 'nome': 'TARDE', 'uuid': '57af972c-938f-4f6f-9f4b-cf7b983a10b7'},
-                {'tipos_alimentacao': [], 'nome': 'MANHA', 'uuid': 'd0c12dae-a215-41f6-af86-b7cd1838ba81'}
+                {
+                    'tipos_alimentacao': [],
+                    'nome': 'TARDE',
+                    'uuid': '57af972c-938f-4f6f-9f4b-cf7b983a10b7',
+                    'horas_atendimento': None
+                },
+                {
+                    'tipos_alimentacao': [],
+                    'nome': 'MANHA',
+                    'uuid': 'd0c12dae-a215-41f6-af86-b7cd1838ba81',
+                    'horas_atendimento': None
+                }
             ],
             'escolas': [],
             'diretoria_regional': {'uuid': '7da9acec-48e1-430c-8a5c-1f1efc666fad',
@@ -172,9 +212,29 @@ def test_cadastro_vinculo_diretor_escola(users_diretor_escola, monkeypatch):
                 'codigo_eol': '256341',
                 'quantidade_alunos': 450,
                 'lotes': [],
+                'contato': {'celular': '',
+                            'email': '',
+                            'telefone': '',
+                            'telefone2': ''},
+                'endereco': {'bairro': '',
+                             'cep': None,
+                             'complemento': '',
+                             'logradouro': '',
+                             'numero': None},
+                'tipos_contagem': [],
                 'periodos_escolares': [
-                    {'tipos_alimentacao': [], 'nome': 'TARDE', 'uuid': '57af972c-938f-4f6f-9f4b-cf7b983a10b7'},
-                    {'tipos_alimentacao': [], 'nome': 'MANHA', 'uuid': 'd0c12dae-a215-41f6-af86-b7cd1838ba81'}
+                    {
+                        'tipos_alimentacao': [],
+                        'nome': 'TARDE',
+                        'uuid': '57af972c-938f-4f6f-9f4b-cf7b983a10b7',
+                        'horas_atendimento': None
+                    },
+                    {
+                        'tipos_alimentacao': [],
+                        'nome': 'MANHA',
+                        'uuid': 'd0c12dae-a215-41f6-af86-b7cd1838ba81',
+                        'horas_atendimento': None
+                    }
                 ],
                 'escolas': [],
                 'diretoria_regional': {
@@ -280,25 +340,29 @@ def test_cadastro_vinculo_diretoria_regional(users_cogestor_diretoria_regional, 
     response.json().get('vinculo_atual').pop('uuid')
     response.json().pop('uuid')
     assert response.json() == {
-        'cpf': '47088910080',
-        'nome': 'LUIZA MARIA BASTOS',
-        'email': '47088910080@emailtemporario.prefeitura.sp.gov.br',
-        'tipo_email': None,
-        'crn_numero': None,
-        'registro_funcional': '6812805',
-        'tipo_usuario': 'diretoriaregional',
         'cargo': '',
+        'cpf': '47088910080',
+        'crn_numero': None,
+        'email': '47088910080@emailtemporario.prefeitura.sp.gov.br',
+        'nome': 'LUIZA MARIA BASTOS',
+        'registro_funcional': '6812805',
+        'tipo_email': None,
+        'tipo_usuario': 'diretoriaregional',
         'vinculo_atual': {
             'instituicao': {
-                'nome': 'DIRETORIA REGIONAL DE EDUCACAO CAPELA DO SOCORRO',
-                'uuid': 'b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd',
                 'codigo_eol': None,
-                'quantidade_alunos': 0,
-                'lotes': [],
-                'periodos_escolares': [],
-                'escolas': [],
+                'contato': None,
                 'diretoria_regional': None,
-                'tipo_unidade_escolar': None
+                'endereco': None,
+                'escolas': [],
+                'lotes': [],
+                'nome': 'DIRETORIA REGIONAL DE EDUCACAO '
+                        'CAPELA DO SOCORRO',
+                'periodos_escolares': [],
+                'quantidade_alunos': 0,
+                'tipo_unidade_escolar': None,
+                'tipos_contagem': None,
+                'uuid': 'b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd'
             },
             'perfil': {
                 'nome': 'ADMINISTRADOR_DRE',
@@ -402,25 +466,28 @@ def test_cadastro_vinculo_codae_gestao_alimentacao(users_codae_gestao_alimentaca
     response.json().get('vinculo_atual').pop('uuid')
     response.json().pop('uuid')
     assert response.json() == {
-        'cpf': '47088910080',
-        'nome': 'LUIZA MARIA BASTOS',
-        'email': '47088910080@emailtemporario.prefeitura.sp.gov.br',
-        'crn_numero': None,
-        'tipo_email': None,
-        'registro_funcional': '6812805',
-        'tipo_usuario': 'gestao_alimentacao_terceirizada',
         'cargo': '',
+        'cpf': '47088910080',
+        'crn_numero': None,
+        'email': '47088910080@emailtemporario.prefeitura.sp.gov.br',
+        'nome': 'LUIZA MARIA BASTOS',
+        'registro_funcional': '6812805',
+        'tipo_email': None,
+        'tipo_usuario': 'gestao_alimentacao_terceirizada',
         'vinculo_atual': {
             'instituicao': {
-                'nome': 'CODAE',
-                'uuid': 'b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd',
                 'codigo_eol': None,
-                'quantidade_alunos': 0,
-                'lotes': [],
-                'periodos_escolares': [],
-                'escolas': [],
+                'contato': None,
                 'diretoria_regional': None,
-                'tipo_unidade_escolar': None
+                'endereco': None,
+                'escolas': [],
+                'lotes': [],
+                'nome': 'CODAE',
+                'periodos_escolares': [],
+                'quantidade_alunos': 0,
+                'tipo_unidade_escolar': None,
+                'tipos_contagem': None,
+                'uuid': 'b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd'
             },
             'perfil': {
                 'nome': 'ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA',
@@ -568,9 +635,29 @@ def test_cadastro_diretor(client, users_diretor_escola, monkeypatch):
             'codigo_eol': '256341',
             'quantidade_alunos': 450,
             'lotes': [],
+            'contato': {'celular': '',
+                        'email': '',
+                        'telefone': '',
+                        'telefone2': ''},
+            'endereco': {'bairro': '',
+                         'cep': None,
+                         'complemento': '',
+                         'logradouro': '',
+                         'numero': None},
+            'tipos_contagem': [],
             'periodos_escolares': [
-                {'tipos_alimentacao': [], 'nome': 'TARDE', 'uuid': '57af972c-938f-4f6f-9f4b-cf7b983a10b7'},
-                {'tipos_alimentacao': [], 'nome': 'MANHA', 'uuid': 'd0c12dae-a215-41f6-af86-b7cd1838ba81'}
+                {
+                    'tipos_alimentacao': [],
+                    'nome': 'TARDE',
+                    'uuid': '57af972c-938f-4f6f-9f4b-cf7b983a10b7',
+                    'horas_atendimento': None
+                },
+                {
+                    'tipos_alimentacao': [],
+                    'nome': 'MANHA',
+                    'uuid': 'd0c12dae-a215-41f6-af86-b7cd1838ba81',
+                    'horas_atendimento': None
+                }
             ],
             'escolas': [],
             'diretoria_regional': {'uuid': '7da9acec-48e1-430c-8a5c-1f1efc666fad',
@@ -624,6 +711,16 @@ def test_confirmar_email(client, usuarios_pendentes_confirmacao):
                 'codigo_eol': '256341',
                 'quantidade_alunos': usuario.vinculo_atual.instituicao.quantidade_alunos,
                 'lotes': [],
+                'contato': {'celular': '',
+                            'email': '',
+                            'telefone': '',
+                            'telefone2': ''},
+                'endereco': {'bairro': '',
+                             'cep': None,
+                             'complemento': '',
+                             'logradouro': '',
+                             'numero': None},
+                'tipos_contagem': [],
                 'periodos_escolares': [],
                 'escolas': [],
                 'diretoria_regional': {

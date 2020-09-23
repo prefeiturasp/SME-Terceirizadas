@@ -6,6 +6,7 @@ from ..models import (
     AnexoLogSolicitacoesUsuario,
     CategoriaPerguntaFrequente,
     Contato,
+    Endereco,
     LogSolicitacoesUsuario,
     PerguntaFrequente,
     TemplateMensagem
@@ -123,4 +124,10 @@ class ConsultaPerguntasFrequentesSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CategoriaPerguntaFrequente
+        exclude = ('id',)
+
+
+class EnderecoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Endereco
         exclude = ('id',)

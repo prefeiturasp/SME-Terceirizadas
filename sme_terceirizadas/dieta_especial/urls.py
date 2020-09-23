@@ -6,7 +6,8 @@ from .constants import (
     ENDPOINT_ALERGIAS_INTOLERANCIAS,
     ENDPOINT_ALIMENTOS,
     ENDPOINT_CLASSIFICACOES_DIETA,
-    ENDPOINT_MOTIVOS_NEGACAO
+    ENDPOINT_MOTIVOS_NEGACAO,
+    ENDPOINT_TIPO_CONTAGEM
 )
 
 router = routers.DefaultRouter()
@@ -21,6 +22,10 @@ router.register(ENDPOINT_CLASSIFICACOES_DIETA, viewsets.ClassificacaoDietaViewSe
                 basename='Classificação de dieta especial')
 router.register(ENDPOINT_MOTIVOS_NEGACAO, viewsets.MotivoNegacaoViewSet,
                 basename='Motivos de negação de dieta especial')
+router.register(ENDPOINT_MOTIVOS_NEGACAO, viewsets.MotivoNegacaoViewSet,
+                basename='Motivos de negação de dieta especial')
+router.register(ENDPOINT_TIPO_CONTAGEM, viewsets.TipoContagemViewSet,
+                basename='Tipos de contagem de refeições')
 
 urlpatterns = [
     path('', include(router.urls)),

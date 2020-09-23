@@ -177,3 +177,8 @@ class SubstituicaoAlimento(models.Model):
     alimento = models.ForeignKey(Alimento, on_delete=models.PROTECT, blank=True, null=True)
     tipo = models.CharField(max_length=1, choices=TIPO_CHOICES, blank=True)
     substitutos = models.ManyToManyField('produto.Produto', related_name='substitutos', blank=True)
+
+
+class TipoContagem(Nomeavel, TemChaveExterna):
+    def __str__(self):
+        return self.nome

@@ -2,7 +2,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django_filters import rest_framework as filters
 from rest_framework import serializers, status
 from rest_framework.decorators import action
-from rest_framework.mixins import CreateModelMixin, ListModelMixin, RetrieveModelMixin
+from rest_framework.mixins import CreateModelMixin, ListModelMixin, RetrieveModelMixin, UpdateModelMixin
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, ModelViewSet, ReadOnlyModelViewSet
 
@@ -27,6 +27,7 @@ from ...escola.api.serializers import (
 )
 from ...escola.api.serializers_create import (
     EscolaPeriodoEscolarCreateSerializer,
+    EscolaSimplesUpdateSerializer,
     FaixaEtariaSerializer,
     LoteCreateSerializer,
     MudancaFaixasEtariasCreateSerializer
@@ -163,10 +164,14 @@ class VinculoCODAEGestaoAlimentacaoTerceirizadaViewSet(ReadOnlyModelViewSet):
         return Response(self.get_serializer(vinculo).data)
 
 
-class EscolaSimplesViewSet(ReadOnlyModelViewSet):
+class EscolaSimplesViewSet(ListModelMixin, RetrieveModelMixin, UpdateModelMixin, GenericViewSet):
     lookup_field = 'uuid'
     queryset = Escola.objects.all()
-    serializer_class = EscolaSimplesSerializer
+
+    def get_serializer_class(self):
+        if self.action in ['update', 'partial_update']:
+            return EscolaSimplesUpdateSerializer
+        return EscolaSimplesSerializer
 
 
 class EscolaSimplissimaViewSet(ReadOnlyModelViewSet):
