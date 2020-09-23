@@ -13,6 +13,7 @@
       <div class="item-prod dois">Fabricante</div>
       <div class="item-prod tres">Qtde. reclamações</div>
       <div class="item-prod quatro">Data cadastro</div>
+      <div class="item-prod dois">Status do produto</div>
     </div>
     {% for produto in produtos %}
     <div class="item-reclamacao-detalhe">
@@ -21,6 +22,7 @@
       <div class="item-prod-detalhe dois">{{produto.fabricante.nome}}</div>
       <div class="item-prod-detalhe tres">{{produto.ultima_homologacao.reclamacoes.all|length}}</div>
       <div class="item-prod-detalhe quatro">{{produto.criado_em|date:'d/m/Y'}}</div>
+      <div class="item-prod-detalhe dois">{{produto.ultima_homologacao.status.state.title }}</div>
     </div>
 
       {% for reclamacao in produto.ultima_homologacao.reclamacoes.all%}
@@ -57,7 +59,7 @@
           {{reclamacao.criado_em|date:'d/m/Y'}}
         </div>
         <div class="informacao-dois">
-          <label>justificativa</label>
+          <label>Justificativa</label>
           <p>{{reclamacao.justificativa|safe}}</p>
         </div>
         </div>
@@ -74,7 +76,7 @@
       </div>
       {% endfor %}
         </div>
-      <hr />
+      {% comment %} <hr /> {% endcomment %}
       {% endfor %}
 
 
