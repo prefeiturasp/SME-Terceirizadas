@@ -320,6 +320,10 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
                                       blank=True, null=True,
                                       on_delete=models.DO_NOTHING)
 
+    endereco = models.ForeignKey('dados_comuns.Endereco',
+                                 blank=True, null=True,
+                                 on_delete=models.DO_NOTHING)
+
     @property
     def quantidade_alunos(self):
         quantidade_result = self.escolas_periodos.aggregate(Sum('quantidade_alunos'))
