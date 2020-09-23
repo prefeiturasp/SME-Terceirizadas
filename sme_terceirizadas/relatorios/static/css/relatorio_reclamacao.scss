@@ -539,7 +539,7 @@ hr {
 			background: #f9f9f9;
 			display: flex;
 			flex-direction: row;
-			height: 36px;
+			height: max-content;
 			border: 1px solid #C0C0C0;
 			.item-prod-detalhe {
 				display: flex;
@@ -576,10 +576,10 @@ hr {
 	}
 }
 .um {
-	width: 175px;
+	width: 180px;
 }
 .dois {
-	width: 165px;
+	width: 160px;
 }
 .tres {
 	width: 105px;
