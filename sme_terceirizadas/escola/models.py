@@ -315,10 +315,7 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
 
     idades = models.ManyToManyField(FaixaIdadeEscolar, blank=True)
 
-    tipo_contagem = models.ForeignKey('dieta_especial.TipoContagem',
-                                      related_name='escolas',
-                                      blank=True, null=True,
-                                      on_delete=models.DO_NOTHING)
+    tipos_contagem = models.ManyToManyField('dieta_especial.TipoContagem', blank=True)
 
     endereco = models.ForeignKey('dados_comuns.Endereco',
                                  blank=True, null=True,

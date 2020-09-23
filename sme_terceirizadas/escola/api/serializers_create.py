@@ -122,11 +122,12 @@ class MudancaFaixasEtariasCreateSerializer(serializers.Serializer):
 
 
 class EscolaSimplesUpdateSerializer(serializers.ModelSerializer):
-    tipo_contagem = serializers.SlugRelatedField(
+    tipos_contagem = serializers.SlugRelatedField(
         slug_field='uuid',
+        many=True,
         queryset=TipoContagem.objects.all()
     )
 
     class Meta:
         model = Escola
-        fields = ('tipo_contagem',)
+        fields = ('tipos_contagem',)
