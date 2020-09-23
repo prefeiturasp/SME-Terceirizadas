@@ -66,13 +66,15 @@ hr {
 	padding: 1em 2em 1em 2em;
 	.sessao-detalhes-reclamacao {
 		background: #fff;
-		border: 1px solid #dfdfdf;
-		border-radius: 4px;
 		width: 730px;
 		.visao-geral-produto {
 			height: auto;
 			max-height: 100%;
-			font-size: 12px;
+      font-size: 12px;
+      page-break-inside: avoid;
+      padding-bottom: 10px;
+      border: 1px solid #dfdfdf;
+
 			.uma-informacao {
 				display: flex;
 				flex-direction: row;
