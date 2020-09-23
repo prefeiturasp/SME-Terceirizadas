@@ -367,8 +367,10 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
 
         queryset = self.filter_queryset(self.get_queryset())
         data = form.cleaned_data
-        page = self.paginate_queryset(
-            queryset.filter(rastro_escola__uuid__in=[escola.uuid for escola in data['escola']]))
+        filtros = {}
+        if 'escola' in data:
+            filtros['rastro_escola__uuid__in'] = [escola.uuid for escola in data['escola']]
+        page = self.paginate_queryset(queryset.filter(**filtros))
         if page is not None:
             serializer = self.get_serializer(page, many=True)
             return self.get_paginated_response(serializer.data)
