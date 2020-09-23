@@ -74,13 +74,9 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
     filterset_class = DietaEspecialFilter
 
     def get_queryset(self):
-        if self.action in ['list', 'imprime_relatorio_dieta_especial']:
+        if self.action in ['relatorio_dieta_especial', 'imprime_relatorio_dieta_especial']:
             return self.queryset.select_related('rastro_escola__diretoria_regional').order_by('criado_em')
         return super().get_queryset()
-
-    def list(self, request, *args, **kwargs):
-        self.pagination_class = RelatorioPagination
-        return super().list(request, args, kwargs)
 
     def get_permissions(self):  # noqa C901
         if self.action == 'list':
@@ -91,6 +87,8 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
             self.permission_classes = (IsAuthenticated, PermissaoParaRecuperarDietaEspecial)
         elif self.action == 'create':
             self.permission_classes = (UsuarioEscola,)
+        elif self.action in ['imprime_relatorio_dieta_especial', 'relatorio_dieta_especial']:
+            self.permission_classes = (IsAuthenticated, PermissaoParaRecuperarDietaEspecial)
         return super(SolicitacaoDietaEspecialViewSet, self).get_permissions()
 
     def get_serializer_class(self):  # noqa C901
@@ -102,7 +100,7 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
             return SolicitacaoDietaEspecialUpdateSerializer
         elif self.action in ['relatorio_quantitativo_solic_dieta_esp', 'relatorio_quantitativo_diag_dieta_esp']:
             return RelatorioQuantitativoSolicDietaEspSerializer
-        elif self.action == 'list':
+        elif self.action == 'relatorio_dieta_especial':
             return SolicitacaoDietaEspecialSimplesSerializer
         elif self.action == 'panorama_escola':
             return PanoramaSerializer
@@ -360,12 +358,32 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
 
         return relatorio_quantitativo_diag_dieta_especial(campos, form, qs, user)
 
-    @action(detail=False, methods=['GET'], url_path='imprime-relatorio-dieta-especial')
+    @action(detail=False, methods=['POST'], url_path='relatorio-dieta-especial')
+    def relatorio_dieta_especial(self, request):
+        self.pagination_class = RelatorioPagination
+        form = RelatorioDietaForm(self.request.data)
+        if not form.is_valid():
+            raise ValidationError(form.errors)
+
+        queryset = self.filter_queryset(self.get_queryset())
+        data = form.cleaned_data
+        page = self.paginate_queryset(
+            queryset.filter(rastro_escola__uuid__in=[escola.uuid for escola in data['escola']]))
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['POST'], url_path='imprime-relatorio-dieta-especial')
     def imprime_relatorio_dieta_especial(self, request):
-        form = RelatorioDietaForm(self.request.query_params)
+        form = RelatorioDietaForm(self.request.data)
         if not form.is_valid():
             raise ValidationError(form.errors)
         queryset = self.filter_queryset(self.get_queryset())
+        data = form.cleaned_data
+        if 'escola' in data:
+            queryset.filter(rastro_escola__uuid__in=[escola.uuid for escola in data['escola']])
         user = self.request.user
         return relatorio_geral_dieta_especial(form, queryset, user)
 

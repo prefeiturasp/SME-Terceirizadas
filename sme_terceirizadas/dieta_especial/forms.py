@@ -55,7 +55,7 @@ class RelatorioQuantitativoSolicDietaEspForm(forms.Form):
 
 
 class RelatorioDietaForm(forms.Form):
-    dre = forms.ModelMultipleChoiceField(
+    dre = forms.ModelChoiceField(
         required=False,
         queryset=DiretoriaRegional.objects.all(),
         to_field_name='uuid'
