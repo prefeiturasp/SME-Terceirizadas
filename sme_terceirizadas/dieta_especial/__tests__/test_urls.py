@@ -120,7 +120,9 @@ def test_permissoes_dieta_especial_viewset(client_autenticado_vinculo_escola_die
     assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
 
 
-def test_url_criar_dieta(client_autenticado_vinculo_escola):
+def test_url_criar_dieta(client_autenticado_vinculo_escola,
+                         periodo_escolar_integral,
+                         eolservice_get_informacoes_escola_turma_aluno):
     payload = {'observacoes': '<p>dsadsadasd</p>\n',
                'aluno_json': {
                    'codigo_eol': '6',

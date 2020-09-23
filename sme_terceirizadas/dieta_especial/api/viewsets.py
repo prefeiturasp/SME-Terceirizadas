@@ -29,8 +29,8 @@ from ...relatorios.relatorios import (
 )
 from ..forms import (
     NegaDietaEspecialForm,
-    RelatorioDietaForm,
     PanoramaForm,
+    RelatorioDietaForm,
     RelatorioQuantitativoSolicDietaEspForm,
     SolicitacoesAtivasInativasPorAlunoForm
 )
