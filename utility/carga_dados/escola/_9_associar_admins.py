@@ -19,7 +19,7 @@ usuario_dre.cargo = 'Coordenador'
 usuario_dre.save()
 usuario_codae = Usuario.objects.get(email='codae@admin.com')
 usuario_codae.registro_funcional = '0000011'
-usuario_codae.nome = 'SUPER USUARIO CODAE'
+usuario_codae.nome = 'Gestão de Terceirizadas'
 usuario_codae.cargo = 'Coordenador'
 usuario_codae.save()
 usuario_gestao_produto_codae = Usuario.objects.get(email='gpcodae@admin.com')
