@@ -358,7 +358,7 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
 
         return relatorio_quantitativo_diag_dieta_especial(campos, form, qs, user)
 
-    @action(detail=False, methods=['POST'], url_path='relatorio-dieta-especial')
+    @action(detail=False, methods=['POST'], url_path='relatorio-dieta-especial') # noqa C901
     def relatorio_dieta_especial(self, request):
         self.pagination_class = RelatorioPagination
         form = RelatorioDietaForm(self.request.data)
@@ -370,6 +370,8 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
         filtros = {}
         if data['escola']:
             filtros['rastro_escola__uuid__in'] = [escola.uuid for escola in data['escola']]
+        if data['diagnostico']:
+            filtros['alergias_intolerancias__id__in'] = [disgnostico.id for disgnostico in data['diagnostico']]
         page = self.paginate_queryset(queryset.filter(**filtros))
         if page is not None:
             serializer = self.get_serializer(page, many=True)
@@ -377,17 +379,21 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
-    @action(detail=False, methods=['POST'], url_path='imprime-relatorio-dieta-especial')
+    @action(detail=False, methods=['POST'], url_path='imprime-relatorio-dieta-especial') # noqa C901
     def imprime_relatorio_dieta_especial(self, request):
         form = RelatorioDietaForm(self.request.data)
         if not form.is_valid():
             raise ValidationError(form.errors)
         queryset = self.filter_queryset(self.get_queryset())
         data = form.cleaned_data
+        filtros = {}
         if data['escola']:
-            queryset.filter(rastro_escola__uuid__in=[escola.uuid for escola in data['escola']])
+            filtros['rastro_escola__uuid__in'] = [escola.uuid for escola in data['escola']]
+        if data['diagnostico']:
+            filtros['alergias_intolerancias__id__in'] = [disgnostico.id for disgnostico in data['diagnostico']]
+
         user = self.request.user
-        return relatorio_geral_dieta_especial(form, queryset, user)
+        return relatorio_geral_dieta_especial(form, queryset.filter(**filtros), user)
 
     @action(detail=False, methods=['POST'], url_path='panorama-escola')
     def panorama_escola(self, request):
