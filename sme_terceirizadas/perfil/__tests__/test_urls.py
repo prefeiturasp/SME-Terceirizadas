@@ -27,7 +27,8 @@ def test_atualizar_email(users_admin_escola):
     data = {
         'email': 'novoemail@email.com'
     }
-    response = client.patch('/usuarios/atualizar-email/', content_type='application/json', data=data)
+    response = client.patch('/usuarios/atualizar-email/',
+                            content_type='application/json', data=data)
     assert response.status_code == status.HTTP_200_OK
     user = Usuario.objects.get(registro_funcional=rf)
     assert user.email == 'novoemail@email.com'
@@ -40,7 +41,8 @@ def test_atualizar_senha_logado(users_admin_escola):
         'senha': 'adminadmin123',
         'confirmar_senha': 'adminadmin123'
     }
-    response = client.patch('/usuarios/atualizar-senha/', content_type='application/json', data=data)
+    response = client.patch('/usuarios/atualizar-senha/',
+                            content_type='application/json', data=data)
     assert response.status_code == status.HTTP_200_OK
     user = Usuario.objects.get(registro_funcional=rf)
     assert user.check_password('adminadmin123') is True
@@ -53,7 +55,8 @@ def test_atualizar_senha_logado_senha_atual_incorreta(users_admin_escola):
         'senha': 'adminadmin123',
         'confirmar_senha': 'adminadmin123'
     }
-    response = client.patch('/usuarios/atualizar-senha/', content_type='application/json', data=data)
+    response = client.patch('/usuarios/atualizar-senha/',
+                            content_type='application/json', data=data)
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json() == {'detail': 'senha atual incorreta'}
 
@@ -65,7 +68,8 @@ def test_atualizar_senha_logado_senha_e_confirmar_senha_divergem(users_admin_esc
         'senha': 'adminadmin123',
         'confirmar_senha': 'senhadiferente'
     }
-    response = client.patch('/usuarios/atualizar-senha/', content_type='application/json', data=data)
+    response = client.patch('/usuarios/atualizar-senha/',
+                            content_type='application/json', data=data)
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json() == {'detail': 'senha e confirmar senha divergem'}
 
@@ -76,7 +80,8 @@ def test_get_meus_dados_admin_escola(users_admin_escola):
     assert response.status_code == status.HTTP_200_OK
     assert isinstance(response.json(), dict)
     json = response.json()
-    keys = ['uuid', 'nome', 'email', 'registro_funcional', 'date_joined', 'vinculo_atual', 'tipo_usuario']
+    keys = ['uuid', 'nome', 'email', 'registro_funcional',
+            'date_joined', 'vinculo_atual', 'tipo_usuario']
     for key in keys:
         assert key in json.keys()
     assert json['email'] == email
@@ -103,14 +108,14 @@ def test_get_meus_dados_admin_escola(users_admin_escola):
             'periodos_escolares': [
                 {
                     'tipos_alimentacao': [],
-                    'nome': 'TARDE',
-                    'uuid': '57af972c-938f-4f6f-9f4b-cf7b983a10b7',
+                    'nome': 'MANHA',
+                    'uuid': 'd0c12dae-a215-41f6-af86-b7cd1838ba81',
                     'horas_atendimento': None
                 },
                 {
                     'tipos_alimentacao': [],
-                    'nome': 'MANHA',
-                    'uuid': 'd0c12dae-a215-41f6-af86-b7cd1838ba81',
+                    'nome': 'TARDE',
+                    'uuid': '57af972c-938f-4f6f-9f4b-cf7b983a10b7',
                     'horas_atendimento': None
                 }
             ],
@@ -129,7 +134,8 @@ def test_get_meus_dados_diretor_escola(users_diretor_escola):
     assert response.status_code == status.HTTP_200_OK
     assert isinstance(response.json(), dict)
     json = response.json()
-    keys = ['uuid', 'nome', 'email', 'registro_funcional', 'date_joined', 'vinculo_atual', 'tipo_usuario']
+    keys = ['uuid', 'nome', 'email', 'registro_funcional',
+            'date_joined', 'vinculo_atual', 'tipo_usuario']
     for key in keys:
         assert key in json.keys()
     response.json().get('vinculo_atual').pop('uuid')
@@ -156,14 +162,14 @@ def test_get_meus_dados_diretor_escola(users_diretor_escola):
             'periodos_escolares': [
                 {
                     'tipos_alimentacao': [],
-                    'nome': 'TARDE',
-                    'uuid': '57af972c-938f-4f6f-9f4b-cf7b983a10b7',
+                    'nome': 'MANHA',
+                    'uuid': 'd0c12dae-a215-41f6-af86-b7cd1838ba81',
                     'horas_atendimento': None
                 },
                 {
                     'tipos_alimentacao': [],
-                    'nome': 'MANHA',
-                    'uuid': 'd0c12dae-a215-41f6-af86-b7cd1838ba81',
+                    'nome': 'TARDE',
+                    'uuid': '57af972c-938f-4f6f-9f4b-cf7b983a10b7',
                     'horas_atendimento': None
                 }
             ],
@@ -190,8 +196,11 @@ def test_cadastro_vinculo_diretor_escola(users_diretor_escola, monkeypatch):
 
     monkeypatch.setattr(UsuarioUpdateSerializer, 'get_informacoes_usuario',
                         lambda p1, p2: mocked_request_api_eol())
-    response = client.post(f'/vinculos-escolas/{str(escola_.uuid)}/criar_equipe_administradora/', headers=headers,
-                           data=data)
+    response = client.post(
+        f'/vinculos-escolas/{str(escola_.uuid)}/criar_equipe_administradora/',
+        headers=headers,
+        data=data
+    )
     assert response.status_code == status.HTTP_200_OK
     response.json().pop('date_joined')
     response.json().get('vinculo_atual').pop('uuid')
@@ -225,14 +234,14 @@ def test_cadastro_vinculo_diretor_escola(users_diretor_escola, monkeypatch):
                 'periodos_escolares': [
                     {
                         'tipos_alimentacao': [],
-                        'nome': 'TARDE',
-                        'uuid': '57af972c-938f-4f6f-9f4b-cf7b983a10b7',
+                        'nome': 'MANHA',
+                        'uuid': 'd0c12dae-a215-41f6-af86-b7cd1838ba81',
                         'horas_atendimento': None
                     },
                     {
                         'tipos_alimentacao': [],
-                        'nome': 'MANHA',
-                        'uuid': 'd0c12dae-a215-41f6-af86-b7cd1838ba81',
+                        'nome': 'TARDE',
+                        'uuid': '57af972c-938f-4f6f-9f4b-cf7b983a10b7',
                         'horas_atendimento': None
                     }
                 ],
@@ -269,8 +278,11 @@ def test_erro_403_usuario_nao_pertence_a_escola_cadastro_vinculos(escola, users_
 
     monkeypatch.setattr(UsuarioUpdateSerializer, 'get_informacoes_usuario',
                         lambda p1, p2: mocked_request_api_eol())
-    response = client.post(f'/vinculos-escolas/{str(escola.uuid)}/criar_equipe_administradora/', headers=headers,
-                           data=data)
+    response = client.post(
+        f'/vinculos-escolas/{str(escola.uuid)}/criar_equipe_administradora/',
+        headers=headers,
+        data=data
+    )
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
@@ -615,13 +627,15 @@ def test_cadastro_diretor(client, users_diretor_escola, monkeypatch):
     }
     assert user.registro_funcional == rf
 
-    monkeypatch.setattr(UsuarioUpdateViewSet, '_get_usuario', lambda p1, p2: user)
+    monkeypatch.setattr(UsuarioUpdateViewSet,
+                        '_get_usuario', lambda p1, p2: user)
     monkeypatch.setattr(Usuario, 'pode_efetuar_cadastro',
                         lambda: True)
     response = client.post('/cadastro/', headers=headers, data=data)
     assert response.status_code == status.HTTP_200_OK
     json = response.json()
-    keys = ['uuid', 'nome', 'email', 'registro_funcional', 'date_joined', 'vinculo_atual', 'tipo_usuario']
+    keys = ['uuid', 'nome', 'email', 'registro_funcional',
+            'date_joined', 'vinculo_atual', 'tipo_usuario']
     for key in keys:
         assert key in json.keys()
     assert json['email'] == email
@@ -648,14 +662,14 @@ def test_cadastro_diretor(client, users_diretor_escola, monkeypatch):
             'periodos_escolares': [
                 {
                     'tipos_alimentacao': [],
-                    'nome': 'TARDE',
-                    'uuid': '57af972c-938f-4f6f-9f4b-cf7b983a10b7',
+                    'nome': 'MANHA',
+                    'uuid': 'd0c12dae-a215-41f6-af86-b7cd1838ba81',
                     'horas_atendimento': None
                 },
                 {
                     'tipos_alimentacao': [],
-                    'nome': 'MANHA',
-                    'uuid': 'd0c12dae-a215-41f6-af86-b7cd1838ba81',
+                    'nome': 'TARDE',
+                    'uuid': '57af972c-938f-4f6f-9f4b-cf7b983a10b7',
                     'horas_atendimento': None
                 }
             ],
@@ -679,11 +693,14 @@ def test_confirmar_email(client, usuarios_pendentes_confirmacao):
     usuario = usuarios_pendentes_confirmacao
     assert usuario.is_active is False  # deve estar inativo no sistema
     assert usuario.is_confirmed is False  # deve estar com email nao confirmado
-    response = client.get(f'/confirmar_email/{usuario.uuid}/{usuario.confirmation_key}/')  # ativacao endpoint
+    # ativacao endpoint
+    response = client.get(f'/confirmar_email/{usuario.uuid}/{usuario.confirmation_key}/')
 
     usuario_apos_ativacao = Usuario.objects.get(id=usuario.id)
-    assert usuario_apos_ativacao.is_confirmed is True  # apos a ativacao pelo link confirma email
-    assert usuario_apos_ativacao.is_active is True  # # apos a ativacao pelo link ativa no sistema
+    # apos a ativacao pelo link confirma email
+    assert usuario_apos_ativacao.is_confirmed is True
+    # # apos a ativacao pelo link ativa no sistema
+    assert usuario_apos_ativacao.is_active is True
 
     assert response.status_code == status.HTTP_200_OK
     json = response.json()
@@ -760,4 +777,5 @@ def test_recuperar_senha(client, usuarios_pendentes_confirmacao):
 def test_recuperar_senha_invalido(client, usuarios_pendentes_confirmacao):
     response = client.get(f'/cadastro/recuperar-senha/NAO-EXISTE/')
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.json() == {'detail': 'Não existe usuário com este e-mail ou RF'}
+    assert response.json() == {
+        'detail': 'Não existe usuário com este e-mail ou RF'}

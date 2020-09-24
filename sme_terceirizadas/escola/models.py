@@ -220,7 +220,8 @@ class DiretoriaRegional(ExportModelOperationsMixin('diretoria_regional'), Nomeav
     def inversoes_cardapio_reprovados(self):
         return InversaoCardapio.objects.filter(
             escola__in=self.escolas.all(),
-            status__in=[InversaoCardapio.workflow_class.DRE_NAO_VALIDOU_PEDIDO_ESCOLA]
+            status__in=[
+                InversaoCardapio.workflow_class.DRE_NAO_VALIDOU_PEDIDO_ESCOLA]
         )
 
     def __str__(self):
@@ -285,10 +286,12 @@ class TipoGestao(ExportModelOperationsMixin('tipo_gestao'), Nomeavel, Ativavel, 
 class PeriodoEscolar(ExportModelOperationsMixin('periodo_escolar'), Nomeavel, TemChaveExterna):
     """manhã, intermediário, tarde, vespertino, noturno, integral."""
 
-    tipos_alimentacao = models.ManyToManyField('cardapio.TipoAlimentacao', related_name='periodos_escolares')
+    tipos_alimentacao = models.ManyToManyField(
+        'cardapio.TipoAlimentacao', related_name='periodos_escolares')
     horas_atendimento = models.IntegerField(null=True)
 
     class Meta:
+        ordering = ('nome',)
         verbose_name = 'Período escolar'
         verbose_name_plural = 'Períodos escolares'
 
@@ -298,7 +301,8 @@ class PeriodoEscolar(ExportModelOperationsMixin('periodo_escolar'), Nomeavel, Te
 
 class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, TemCodigoEOL, TemVinculos):
     nome = models.CharField('Nome', max_length=160, blank=True)
-    codigo_eol = models.CharField('Código EOL', max_length=6, unique=True, validators=[MinLengthValidator(6)])
+    codigo_eol = models.CharField(
+        'Código EOL', max_length=6, unique=True, validators=[MinLengthValidator(6)])
     diretoria_regional = models.ForeignKey(DiretoriaRegional,
                                            related_name='escolas',
                                            on_delete=models.DO_NOTHING)
@@ -315,7 +319,8 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
 
     idades = models.ManyToManyField(FaixaIdadeEscolar, blank=True)
 
-    tipos_contagem = models.ManyToManyField('dieta_especial.TipoContagem', blank=True)
+    tipos_contagem = models.ManyToManyField(
+        'dieta_especial.TipoContagem', blank=True)
 
     endereco = models.ForeignKey('dados_comuns.Endereco',
                                  blank=True, null=True,
@@ -323,7 +328,8 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
 
     @property
     def quantidade_alunos(self):
-        quantidade_result = self.escolas_periodos.aggregate(Sum('quantidade_alunos'))
+        quantidade_result = self.escolas_periodos.aggregate(
+            Sum('quantidade_alunos'))
         return quantidade_result.get('quantidade_alunos__sum') or 0
 
     @property
@@ -334,7 +340,8 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
     def periodos_escolares(self):
         """Recupera periodos escolares da escola, desde que haja pelomenos um aluno para este período."""
         if self.tipo_unidade.tem_somente_integral_e_parcial:
-            periodos = PeriodoEscolar.objects.filter(nome__in=PERIODOS_ESPECIAIS_CEI_CEU_CCI)
+            periodos = PeriodoEscolar.objects.filter(
+                nome__in=PERIODOS_ESPECIAIS_CEI_CEU_CCI)
         else:
             # TODO: ver uma forma melhor de fazer essa query
             periodos_ids = self.escolas_periodos.filter(
@@ -380,13 +387,13 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
             periodo = aluno['dc_tipo_turno'].strip().upper()
             if periodo not in resultados:
                 resultados[periodo] = Counter()
-            data_nascimento = dt_nascimento_from_api(aluno['dt_nascimento_aluno'])
+            data_nascimento = dt_nascimento_from_api(
+                aluno['dt_nascimento_aluno'])
             for faixa_etaria in faixas_etarias:
                 if faixa_etaria.data_pertence_a_faixa(data_nascimento, data_referencia):
                     resultados[periodo][str(faixa_etaria.uuid)] += 1
 
         return resultados
-
 
     def alunos_por_faixa_etaria(self, data_referencia=None):  # noqa C901
         if data_referencia is None:
@@ -400,7 +407,8 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
 
         resultados = Counter()
         for aluno in lista_alunos:
-            data_nascimento = dt_nascimento_from_api(aluno['dt_nascimento_aluno'])
+            data_nascimento = dt_nascimento_from_api(
+                aluno['dt_nascimento_aluno'])
             for faixa_etaria in faixas_etarias:
                 if faixa_etaria.data_pertence_a_faixa(data_nascimento, data_referencia):
                     resultados[str(faixa_etaria.uuid)] += 1
@@ -425,7 +433,8 @@ class EscolaPeriodoEscolar(ExportModelOperationsMixin('escola_periodo'), Ativave
     periodo_escolar = models.ForeignKey(PeriodoEscolar,
                                         related_name='escolas_periodos',
                                         on_delete=models.DO_NOTHING)
-    quantidade_alunos = models.PositiveSmallIntegerField('Quantidade de alunos', default=0)
+    quantidade_alunos = models.PositiveSmallIntegerField(
+        'Quantidade de alunos', default=0)
 
     def __str__(self):
         periodo_nome = self.periodo_escolar.nome
@@ -453,7 +462,8 @@ class EscolaPeriodoEscolar(ExportModelOperationsMixin('escola_periodo'), Ativave
         faixa_alunos = Counter()
         for aluno in lista_alunos:
             if aluno['dc_tipo_turno'].strip().upper() == self.periodo_escolar.nome:
-                data_nascimento = dt_nascimento_from_api(aluno['dt_nascimento_aluno'])
+                data_nascimento = dt_nascimento_from_api(
+                    aluno['dt_nascimento_aluno'])
                 for faixa_etaria in faixas_etarias:
                     if faixa_etaria.data_pertence_a_faixa(data_nascimento, data_referencia):
                         faixa_alunos[faixa_etaria.uuid] += 1
@@ -473,8 +483,10 @@ class LogAlteracaoQuantidadeAlunosPorEscolaEPeriodoEscolar(TemChaveExterna, Cria
     periodo_escolar = models.ForeignKey(PeriodoEscolar,
                                         related_name='log_alteracao_quantidade_alunos',
                                         on_delete=models.DO_NOTHING)
-    quantidade_alunos_de = models.PositiveSmallIntegerField('Quantidade de alunos anterior', default=0)
-    quantidade_alunos_para = models.PositiveSmallIntegerField('Quantidade de alunos alterada', default=0)
+    quantidade_alunos_de = models.PositiveSmallIntegerField(
+        'Quantidade de alunos anterior', default=0)
+    quantidade_alunos_para = models.PositiveSmallIntegerField(
+        'Quantidade de alunos alterada', default=0)
 
     def __str__(self):
         quantidade_anterior = self.quantidade_alunos_de
@@ -570,7 +582,8 @@ class Codae(ExportModelOperationsMixin('codae'), Nomeavel, TemChaveExterna, TemV
         )
 
     def grupos_inclusoes_alimentacao_normal_das_minhas_escolas(self, filtro_aplicado):
-        queryset = queryset_por_data(filtro_aplicado, GrupoInclusaoAlimentacaoNormal)
+        queryset = queryset_por_data(
+            filtro_aplicado, GrupoInclusaoAlimentacaoNormal)
         return queryset.filter(
             status__in=[GrupoInclusaoAlimentacaoNormal.workflow_class.DRE_VALIDADO,
                         GrupoInclusaoAlimentacaoNormal.workflow_class.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO]
@@ -604,7 +617,8 @@ class Codae(ExportModelOperationsMixin('codae'), Nomeavel, TemChaveExterna, TemV
         )
 
     def inclusoes_alimentacao_continua_das_minhas_escolas(self, filtro_aplicado):
-        queryset = queryset_por_data(filtro_aplicado, InclusaoAlimentacaoContinua)
+        queryset = queryset_por_data(
+            filtro_aplicado, InclusaoAlimentacaoContinua)
         return queryset.filter(
             status__in=[GrupoInclusaoAlimentacaoNormal.workflow_class.DRE_VALIDADO,
                         GrupoInclusaoAlimentacaoNormal.workflow_class.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO]
@@ -634,7 +648,8 @@ class Codae(ExportModelOperationsMixin('codae'), Nomeavel, TemChaveExterna, TemV
         #
 
     def solicitacoes_unificadas(self, filtro_aplicado):
-        queryset = queryset_por_data(filtro_aplicado, SolicitacaoKitLancheUnificada)
+        queryset = queryset_por_data(
+            filtro_aplicado, SolicitacaoKitLancheUnificada)
         return queryset.filter(
             status=SolicitacaoKitLancheUnificada.workflow_class.CODAE_A_AUTORIZAR
         )
@@ -686,14 +701,16 @@ class Codae(ExportModelOperationsMixin('codae'), Nomeavel, TemChaveExterna, TemV
         )
 
     def solicitacoes_kit_lanche_das_minhas_escolas_a_validar(self, filtro_aplicado):
-        queryset = queryset_por_data(filtro_aplicado, SolicitacaoKitLancheAvulsa)
+        queryset = queryset_por_data(
+            filtro_aplicado, SolicitacaoKitLancheAvulsa)
         return queryset.filter(
             status__in=[SolicitacaoKitLancheAvulsa.workflow_class.DRE_VALIDADO,
                         SolicitacaoKitLancheAvulsa.workflow_class.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO]
         )
 
     def solicitacoes_kit_lanche_cei_das_minhas_escolas_a_validar(self, filtro_aplicado):
-        queryset = queryset_por_data(filtro_aplicado, SolicitacaoKitLancheCEIAvulsa)
+        queryset = queryset_por_data(
+            filtro_aplicado, SolicitacaoKitLancheCEIAvulsa)
         return queryset.filter(
             status__in=[SolicitacaoKitLancheCEIAvulsa.workflow_class.DRE_VALIDADO,
                         SolicitacaoKitLancheCEIAvulsa.workflow_class.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO]
@@ -734,10 +751,13 @@ class Codae(ExportModelOperationsMixin('codae'), Nomeavel, TemChaveExterna, TemV
 
 class Aluno(TemChaveExterna):
     nome = models.CharField('Nome Completo do Aluno', max_length=100)
-    codigo_eol = models.CharField('Código EOL', max_length=7, unique=True, validators=[MinLengthValidator(7)])
+    codigo_eol = models.CharField(
+        'Código EOL', max_length=7, unique=True, validators=[MinLengthValidator(7)])
     data_nascimento = models.DateField()
-    escola = models.ForeignKey(Escola, blank=True, null=True, on_delete=models.SET_NULL)
-    periodo_escolar = models.ForeignKey(PeriodoEscolar, blank=True, null=True, on_delete=models.SET_NULL)
+    escola = models.ForeignKey(
+        Escola, blank=True, null=True, on_delete=models.SET_NULL)
+    periodo_escolar = models.ForeignKey(
+        PeriodoEscolar, blank=True, null=True, on_delete=models.SET_NULL)
 
     def __str__(self):
         return f'{self.nome} - {self.codigo_eol}'
