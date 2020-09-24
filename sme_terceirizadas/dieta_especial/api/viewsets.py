@@ -502,7 +502,7 @@ class AlergiaIntoleranciaViewSet(mixins.ListModelMixin,
 class ClassificacaoDietaViewSet(mixins.ListModelMixin,
                                 mixins.RetrieveModelMixin,
                                 GenericViewSet):
-    queryset = ClassificacaoDieta.objects.all().order_by('nome')
+    queryset = ClassificacaoDieta.objects.order_by('nome')
     serializer_class = ClassificacaoDietaSerializer
     pagination_class = None
 
