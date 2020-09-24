@@ -82,8 +82,8 @@ def relatorio_alteracao_cardapio(request, solicitacao):
         {'escola': escola,
          'solicitacao': solicitacao,
          'substituicoes': substituicoes,
-         'fluxo': constants.FLUXO_PARTINDO_ESCOLA,
-         'width': get_width(constants.FLUXO_PARTINDO_ESCOLA, solicitacao.logs),
+         'fluxo': constants.FLUXO_ALTERACAO_DE_CARDAPIO,
+         'width': get_width(constants.FLUXO_ALTERACAO_DE_CARDAPIO, solicitacao.logs),
          'logs': formata_logs(logs)}
     )
     return html_to_pdf_response(html_string, f'alteracao_cardapio_{solicitacao.id_externo}.pdf')
