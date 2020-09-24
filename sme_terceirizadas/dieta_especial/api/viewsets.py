@@ -19,6 +19,7 @@ from ...dados_comuns.permissions import (
     UsuarioEscola,
     UsuarioTerceirizada
 )
+from ...escola.models import EscolaPeriodoEscolar
 from ...paineis_consolidados.api.constants import FILTRO_CODIGO_EOL_ALUNO
 from ...relatorios.relatorios import (
     relatorio_dieta_especial,
@@ -401,23 +402,31 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
         if not form.is_valid():
             raise ValidationError(form.errors)
 
-        periodo_escolar_igual = Q(aluno__periodo_escolar=F('aluno__escola__escolas_periodos__periodo_escolar'))
+        periodo_escolar_igual = Q(escola__aluno__periodo_escolar=F('periodo_escolar'))
+        status = Q(escola__aluno__dietas_especiais__status__in=[DietaEspecialWorkflow.CODAE_AUTORIZADO,
+                                                                DietaEspecialWorkflow.TERCEIRIZADA_TOMOU_CIENCIA,
+                                                                DietaEspecialWorkflow.ESCOLA_SOLICITOU_INATIVACAO])
+        escola = Q(escola__aluno__escola=form.cleaned_data['escola'])
+
+        q_params = status & periodo_escolar_igual & escola
 
         campos = [
-            'aluno__escola__escolas_periodos__periodo_escolar__nome',
-            'aluno__escola__escolas_periodos__periodo_escolar__horas_atendimento',
-            'aluno__escola__escolas_periodos__quantidade_alunos'
+            'periodo_escolar__nome',
+            'periodo_escolar__horas_atendimento',
+            'quantidade_alunos'
         ]
-        qs = SolicitacaoDietaEspecial.objects.filter(
-            aluno__escola__escolas_periodos__quantidade_alunos__gt=0,
-            aluno__escola=form.cleaned_data['escola'],
-            status__in=[DietaEspecialWorkflow.CODAE_AUTORIZADO,
-                        DietaEspecialWorkflow.TERCEIRIZADA_TOMOU_CIENCIA,
-                        DietaEspecialWorkflow.ESCOLA_SOLICITOU_INATIVACAO]
+        qs = EscolaPeriodoEscolar.objects.filter(
+            escola=form.cleaned_data['escola'], quantidade_alunos__gt=0
         ).values(*campos).annotate(
-            qtde_tipo_a=(Count('id', filter=Q(classificacao__nome='Tipo A') & periodo_escolar_igual)),
-            qtde_enteral=(Count('id', filter=Q(classificacao__nome='Tipo A Enteral') & periodo_escolar_igual)),
-            qtde_tipo_b=(Count('id', filter=Q(classificacao__nome='Tipo B') & periodo_escolar_igual)),
+            qtde_tipo_a=(Count('id', filter=Q(
+                escola__aluno__dietas_especiais__classificacao__nome='Tipo A'
+            ) & q_params)),
+            qtde_enteral=(Count('id', filter=Q(
+                escola__aluno__dietas_especiais__classificacao__nome='Tipo A Enteral'
+            ) & q_params)),
+            qtde_tipo_b=(Count('id', filter=Q(
+                escola__aluno__dietas_especiais__classificacao__nome='Tipo B'
+            ) & q_params)),
         ).order_by(*campos)
 
         serializer = self.get_serializer(qs, many=True)
