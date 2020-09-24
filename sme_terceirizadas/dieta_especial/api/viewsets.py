@@ -398,6 +398,7 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
 
     @action(detail=False, methods=['POST'], url_path='panorama-escola')
     def panorama_escola(self, request):
+        # TODO: Mover essa rotina para o viewset escola simples, evitando esse form
         form = PanoramaForm(self.request.data)
         if not form.is_valid():
             raise ValidationError(form.errors)

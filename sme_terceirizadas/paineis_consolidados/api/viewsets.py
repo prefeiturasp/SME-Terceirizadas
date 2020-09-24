@@ -308,7 +308,7 @@ class CODAESolicitacoesViewSet(SolicitacoesViewSet):
 class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
     lookup_field = 'uuid'
     queryset = SolicitacoesEscola.objects.all()
-    permission_classes = (UsuarioEscola,)
+    permission_classes = (PermissaoParaRecuperarDietaEspecial,)
     serializer_class = SolicitacoesSerializer
 
     @action(detail=False, methods=['GET'], url_path=f'{PENDENTES_AUTORIZACAO}/{FILTRO_ESCOLA_UUID}')
