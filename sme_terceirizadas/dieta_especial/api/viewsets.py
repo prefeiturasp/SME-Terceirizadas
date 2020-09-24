@@ -368,7 +368,7 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
         queryset = self.filter_queryset(self.get_queryset())
         data = form.cleaned_data
         filtros = {}
-        if 'escola' in data:
+        if data['escola']:
             filtros['rastro_escola__uuid__in'] = [escola.uuid for escola in data['escola']]
         page = self.paginate_queryset(queryset.filter(**filtros))
         if page is not None:
@@ -384,7 +384,7 @@ class SolicitacaoDietaEspecialViewSet(mixins.RetrieveModelMixin,
             raise ValidationError(form.errors)
         queryset = self.filter_queryset(self.get_queryset())
         data = form.cleaned_data
-        if 'escola' in data:
+        if data['escola']:
             queryset.filter(rastro_escola__uuid__in=[escola.uuid for escola in data['escola']])
         user = self.request.user
         return relatorio_geral_dieta_especial(form, queryset, user)
