@@ -233,11 +233,17 @@ class Usuario(ExportModelOperationsMixin('usuario'), SimpleEmailConfirmationUser
 
     def enviar_email_administrador(self):
         self.add_email_if_not_exists(self.email)
+        titulo = '[SIGPAE] Novo cadastro de empresa'
+        template = 'email_cadastro_terceirizada.html'
+        dados_template = {'titulo': titulo, 'link_cadastro': url_configs('LOGIN_TERCEIRIZADAS', {}), 'nome': self.nome}
+        html = render_to_string(template, dados_template)
         self.email_user(
             subject='[SIGPAE] Novo cadastro de empresa',
-            message=f'Seja bem vindo(a), {self.nome}\n\nSua empresa foi cadastrada no sistema SIGPAE e a partir ' +
-                    f'desse momento você terá acesso as suas funcionalidades.\n\nEfetue seu cadastro através do link ' +
-                    f'abaixo e acompanhe as suas solicitações.\n\n{url_configs("LOGIN_TERCEIRIZADAS", {})}')
+            message='',
+            template=template,
+            dados_template=dados_template,
+            html=html
+        )
 
     def atualiza_senha(self, senha, token):
         token_generator = PasswordResetTokenGenerator()
