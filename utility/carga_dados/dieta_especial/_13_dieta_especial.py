@@ -47,6 +47,7 @@ def importa_motivos_negacao():
 def cria_classificacoes_dieta():
     classificacoes = [
         ['Tipo A', 'Classificação da dieta tipo A deve vir aqui'],
+        ['Tipo A Enteral', 'Classificação da dieta tipo A Enteral deve vir aqui'],
         ['Tipo B', 'Classificação da dieta tipo B deve vir aqui'],
         ['Tipo C', 'Classificação da dieta tipo C deve vir aqui'],
     ]
