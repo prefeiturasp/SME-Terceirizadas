@@ -10,17 +10,29 @@
   <div>
     <hr style="color: #EEEEEE; opacity: 0.3">
   </div>
-  <div class="multiplos-motivos-solicitacao">
-    <div class="coluna-esquerda titulo">Motivo</div>
-    <div class="coluna-direita titulo">Dia(s) de suspensão</div>
-  </div>
-  <div class="multiplos-motivos-solicitacao">
-    <div class="coluna-esquerda">{{ motivo }}</div>
-    <div class="coluna-direita linha-com-datas">
-      {% for i in suspensoes.all %}
-      <div class="data-suspensao">{{ i.data|date:"d/m/Y" }}</div>
-      {% endfor %}
-    </div>
+  <div class="tabela-sem-borda">
+    <table class="tabela-sem-borda">
+      <thead>
+        <tr>
+          <td style="color: #686868">Motivo</td>
+          <td style="color: #686868">Dia(s) de suspensão</td>
+        </tr>
+      </thead>
+      <tbody>
+        {% for motivo in suspensoes.all %}
+          <tr>
+            <td>
+              {% if motivo.motivo.nome == 'Outro' %}
+                {{ motivo.motivo.nome }} - {{ motivo.outro_motivo }}
+              {% else %}
+                {{ motivo.motivo.nome }}
+              {% endif %}
+            </td>
+            <td>{{ motivo.data|date:"d/m/Y" }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </div>
 
   <div class="tabela-sem-borda">

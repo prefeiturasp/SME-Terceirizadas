@@ -15,7 +15,8 @@ def test_tipo_unidade_escolar(tipo_unidade_escolar):
     assert isinstance(str(tipo_unidade_escolar), str)
     assert tipo_unidade_escolar.iniciais is not None
     assert tipo_unidade_escolar.cardapios.all() is not None
-    cardapio_do_dia = tipo_unidade_escolar.get_cardapio(data=datetime.date.today())
+    cardapio_do_dia = tipo_unidade_escolar.get_cardapio(
+        data=datetime.date.today())
     assert isinstance(cardapio_do_dia, Cardapio)
 
 
@@ -43,11 +44,16 @@ def test_diretoria_regional(diretoria_regional, escola):
     assert diretoria_regional.inclusoes_continuas_autorizadas is not None
 
     for filtro in [DAQUI_A_TRINTA_DIAS, DAQUI_A_SETE_DIAS, SEM_FILTRO]:
-        assert diretoria_regional.solicitacoes_kit_lanche_das_minhas_escolas_a_validar(filtro) is not None
-        assert diretoria_regional.alteracoes_cardapio_das_minhas_escolas_a_validar(filtro) is not None
-        assert diretoria_regional.inclusoes_alimentacao_continua_das_minhas_escolas(filtro) is not None
-        assert diretoria_regional.alteracoes_cardapio_das_minhas_escolas(filtro) is not None
-        assert diretoria_regional.inversoes_cardapio_das_minhas_escolas(filtro) is not None
+        assert diretoria_regional.solicitacoes_kit_lanche_das_minhas_escolas_a_validar(
+            filtro) is not None
+        assert diretoria_regional.alteracoes_cardapio_das_minhas_escolas_a_validar(
+            filtro) is not None
+        assert diretoria_regional.inclusoes_alimentacao_continua_das_minhas_escolas(
+            filtro) is not None
+        assert diretoria_regional.alteracoes_cardapio_das_minhas_escolas(
+            filtro) is not None
+        assert diretoria_regional.inversoes_cardapio_das_minhas_escolas(
+            filtro) is not None
 
 
 def test_escola(escola):
@@ -85,12 +91,15 @@ def test_codae(codae):
     assert codae.alteracoes_cardapio_reprovadas is not None
 
     for filtro in [DAQUI_A_TRINTA_DIAS, DAQUI_A_SETE_DIAS, SEM_FILTRO]:
-        assert codae.solicitacoes_kit_lanche_das_minhas_escolas_a_validar(filtro) is not None
+        assert codae.solicitacoes_kit_lanche_das_minhas_escolas_a_validar(
+            filtro) is not None
         assert codae.solicitacoes_unificadas(filtro) is not None
         assert codae.suspensoes_cardapio_das_minhas_escolas(filtro) is not None
         assert codae.alteracoes_cardapio_das_minhas(filtro) is not None
-        assert codae.inclusoes_alimentacao_continua_das_minhas_escolas(filtro) is not None
-        assert codae.grupos_inclusoes_alimentacao_normal_das_minhas_escolas(filtro) is not None
+        assert codae.inclusoes_alimentacao_continua_das_minhas_escolas(
+            filtro) is not None
+        assert codae.grupos_inclusoes_alimentacao_normal_das_minhas_escolas(
+            filtro) is not None
         assert codae.inversoes_cardapio_das_minhas_escolas(filtro) is not None
 
 
@@ -114,16 +123,22 @@ def test_aluno(aluno):
 @freeze_time('2019-06-20')
 def test_data_pertence_faixa_etaria_hoje(datas_e_faixas):
     (data, faixa_etaria, eh_pertencente) = datas_e_faixas
-    assert faixa_etaria.data_pertence_a_faixa(data, datetime.date.today()) == eh_pertencente
+    assert faixa_etaria.data_pertence_a_faixa(
+        data, datetime.date.today()) == eh_pertencente
 
 
 def test_escola_periodo_escolar_alunos_por_faixa_etaria(faixas_etarias,
                                                         escola_periodo_escolar,
                                                         eolservice_get_informacoes_escola_turma_aluno):
-    faixas_alunos = escola_periodo_escolar.alunos_por_faixa_etaria(datetime.date(2020, 10, 25))
+    faixas_alunos = escola_periodo_escolar.alunos_por_faixa_etaria(
+        datetime.date(2020, 10, 25))
     assert [i for i in faixas_alunos.values()] == [94, 18, 26]
 
 
 def test_faixa_str():
     faixa = FaixaEtaria.objects.create(inicio=24, fim=48)
     assert str(faixa) == '2 anos - 4 anos'
+
+
+def test_ordem(periodo_escolar):
+    assert ('nome',) == periodo_escolar._meta.ordering

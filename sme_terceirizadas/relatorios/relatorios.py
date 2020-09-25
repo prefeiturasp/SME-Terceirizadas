@@ -25,8 +25,10 @@ def relatorio_filtro_periodo(request, query_set_consolidado, escola_nome='', dre
 
     tipo_solicitacao = request_params.get('tipo_solicitacao', 'INVALIDO')
     status_solicitacao = request_params.get('status_solicitacao', 'INVALIDO')
-    data_inicial = datetime.datetime.strptime(request_params.get('data_inicial'), '%Y-%m-%d')
-    data_final = datetime.datetime.strptime(request_params.get('data_final'), '%Y-%m-%d')
+    data_inicial = datetime.datetime.strptime(
+        request_params.get('data_inicial'), '%Y-%m-%d')
+    data_final = datetime.datetime.strptime(
+        request_params.get('data_final'), '%Y-%m-%d')
     filtro = {'tipo_solicitacao': tipo_solicitacao, 'status': status_solicitacao,
               'data_inicial': data_inicial, 'data_final': data_final}
 
@@ -58,7 +60,8 @@ def relatorio_resumo_anual_e_mensal(request, resumos_mes, resumo_ano):
 
 
 def relatorio_kit_lanche_unificado(request, solicitacao):
-    qtd_escolas = EscolaQuantidade.objects.filter(solicitacao_unificada=solicitacao).count()
+    qtd_escolas = EscolaQuantidade.objects.filter(
+        solicitacao_unificada=solicitacao).count()
 
     html_string = render_to_string(
         'solicitacao_kit_lanche_unificado.html',
@@ -79,8 +82,8 @@ def relatorio_alteracao_cardapio(request, solicitacao):
         {'escola': escola,
          'solicitacao': solicitacao,
          'substituicoes': substituicoes,
-         'fluxo': constants.FLUXO_PARTINDO_ESCOLA,
-         'width': get_width(constants.FLUXO_PARTINDO_ESCOLA, solicitacao.logs),
+         'fluxo': constants.FLUXO_ALTERACAO_DE_CARDAPIO,
+         'width': get_width(constants.FLUXO_ALTERACAO_DE_CARDAPIO, solicitacao.logs),
          'logs': formata_logs(logs)}
     )
     return html_to_pdf_response(html_string, f'alteracao_cardapio_{solicitacao.id_externo}.pdf')
@@ -160,10 +163,9 @@ def relatorio_inclusao_alimentacao_normal(request, solicitacao):
     html_string = render_to_string(
         'solicitacao_inclusao_alimentacao_normal.html',
         {
-            'escola': escola,
-            'solicitacao': solicitacao,
-            'fluxo': constants.FLUXO_PARTINDO_ESCOLA,
-            'width': get_width(constants.FLUXO_PARTINDO_ESCOLA, solicitacao.logs),
+            'escola': escola, 'solicitacao': solicitacao,
+            'fluxo': constants.FLUXO_INCLUSAO_ALIMENTACAO,
+            'width': get_width(constants.FLUXO_INCLUSAO_ALIMENTACAO, solicitacao.logs),
             'logs': formata_logs(logs)
         }
     )
@@ -197,8 +199,8 @@ def relatorio_kit_lanche_passeio(request, solicitacao):
             'escola': escola,
             'solicitacao': solicitacao,
             'quantidade_kits': solicitacao.solicitacao_kit_lanche.kits.all().count() * solicitacao.quantidade_alunos,
-            'fluxo': constants.FLUXO_PARTINDO_ESCOLA,
-            'width': get_width(constants.FLUXO_PARTINDO_ESCOLA, solicitacao.logs),
+            'fluxo': constants.FLUXO_KIT_LANCHE_PASSEIO,
+            'width': get_width(constants.FLUXO_KIT_LANCHE_PASSEIO, solicitacao.logs),
             'logs': formata_logs(logs)
         }
     )
@@ -245,8 +247,8 @@ def relatorio_inversao_dia_de_cardapio(request, solicitacao):
 def relatorio_suspensao_de_alimentacao(request, solicitacao):
     escola = solicitacao.rastro_escola
     logs = solicitacao.logs
-    # TODO: GrupoSuspensaoAlimentacaoSerializerViewSet não tem motivo, quem tem é cada suspensão do relacionamento
-    motivo = 'Deve ajustar aqui...'
+    # TODO: GrupoSuspensaoAlimentacaoSerializerViewSet não tem motivo, quem
+    # tem é cada suspensão do relacionamento
     suspensoes = solicitacao.suspensoes_alimentacao.all()
     quantidades_por_periodo = solicitacao.quantidades_por_periodo.all()
     html_string = render_to_string(
@@ -255,10 +257,9 @@ def relatorio_suspensao_de_alimentacao(request, solicitacao):
             'escola': escola,
             'solicitacao': solicitacao,
             'suspensoes': suspensoes,
-            'motivo': motivo,
             'quantidades_por_periodo': quantidades_por_periodo,
-            'fluxo': constants.FLUXO_INFORMATIVO,
-            'width': get_width(constants.FLUXO_INFORMATIVO, solicitacao.logs),
+            'fluxo': constants.FLUXO_SUSPENSAO_ALIMENTACAO,
+            'width': get_width(constants.FLUXO_SUSPENSAO_ALIMENTACAO, solicitacao.logs),
             'logs': formata_logs(logs)
         }
     )
@@ -288,53 +289,67 @@ def relatorio_produto_homologacao(request, produto):
     return html_to_pdf_response(html_string, f'produto_homologacao_{produto.id_externo}.pdf')
 
 
-def relatorio_produtos_suspensos(request, payload):
-    dado = {
-        'homologacoes': payload.get('response', ''),
-        'eh_relatorio_por_data': payload.get('eh_por_data', False)
-    }
-    len_produtos = len(dado['homologacoes'])
-    dado['len_produtos'] = len_produtos
-    if dado['eh_relatorio_por_data']:
-        dado['data_inicio'] = payload.get('data_inicio', '')
-        dado['data_fim'] = payload.get('data_fim', '')
+def relatorio_produtos_suspensos(produtos, filtros):
+    if filtros['cabecario_tipo'] == 'CABECARIO_POR_DATA' and 'data_suspensao_inicial' not in filtros:
+        data_suspensao_inicial = datetime.datetime.today()
+        for produto in produtos:
+            ultimo_log = produto.ultima_homologacao.ultimo_log
+            if ultimo_log.criado_em < data_suspensao_inicial:
+                data_suspensao_inicial = ultimo_log.criado_em
+        filtros['data_suspensao_inicial'] = data_suspensao_inicial.strftime(
+            '%d/%m/%Y')
+
     html_string = render_to_string(
         'relatorio_suspensoes_produto.html',
-        dado
+        {
+            'produtos': produtos,
+            'config': filtros
+        }
     )
     return html_to_pdf_response(html_string, 'relatorio_suspensoes_produto.pdf')
 
 
-def relatorio_produtos_em_analise_sensorial(request, payload):
-    data_incial_analise_padrao = payload['produtos'][0]['ultima_homologacao']['log_solicitacao_analise']['criado_em']
-    contatos_terceirizada = payload['produtos'][0]['ultima_homologacao']['rastro_terceirizada']['contatos']
+def relatorio_produtos_em_analise_sensorial(produtos, filtros):
+    data_incial_analise_padrao = produtos[0]['ultima_homologacao'][
+        'log_solicitacao_analise']['criado_em']
+    contatos_terceirizada = produtos[0]['ultima_homologacao'][
+        'rastro_terceirizada']['contatos']
     config = get_config_cabecario_relatorio_analise(
-        payload['filtros'],
+        filtros,
         data_incial_analise_padrao,
         contatos_terceirizada)
     html_string = render_to_string(
         'relatorio_produto_em_analise_sensorial.html',
         {
-            'produtos': payload['produtos'],
+            'produtos': produtos,
             'config': config
         }
     )
     return html_to_pdf_response(html_string, 'relatorio_produtos_em_analise_sensorial.pdf')
 
 
-def relatorio_reclamacao(request, payload):
+def relatorio_reclamacao(produtos, filtros):
+    if filtros['cabecario_tipo'] == 'CABECARIO_POR_DATA' and 'data_inicial_reclamacao' not in filtros:
+        data_inicial_reclamacao = datetime.datetime.today()
+        for produto in produtos:
+            reclamacao = produto.ultima_homologacao.reclamacoes.first()
+            if reclamacao.criado_em < data_inicial_reclamacao:
+                data_inicial_reclamacao = reclamacao.criado_em
+        filtros['data_inicial_reclamacao'] = data_inicial_reclamacao.strftime(
+            '%d/%m/%Y')
     html_string = render_to_string(
         'relatorio_reclamacao.html',
         {
-            'produtos': payload['produtos'],
-            'config': payload['config_cabecario']
+            'produtos': produtos,
+            'config': filtros
         }
     )
     return html_to_pdf_response(html_string, 'relatorio_reclamacao.pdf')
 
 
 def relatorio_quantitativo_por_terceirizada(request, filtros, dados_relatorio):
-    dados_relatorio_transformados = transforma_dados_relatorio_quantitativo(dados_relatorio)
+    dados_relatorio_transformados = transforma_dados_relatorio_quantitativo(
+        dados_relatorio)
     html_string = render_to_string(
         'relatorio_quantitativo_por_terceirizada.html',
         {
@@ -410,3 +425,36 @@ def relatorio_produto_analise_sensorial_recebimento(request, produto):
         }
     )
     return html_to_pdf_response(html_string, f'produto_homologacao_{produto.id_externo}.pdf')
+
+
+def get_relatorio_dieta_especial(campos, form, queryset, user, nome_relatorio):
+    status = None
+    if 'status' in form.cleaned_data:
+        status = dict(form.fields['status'].choices).get(
+            form.cleaned_data['status'], '')
+    html_string = render_to_string(
+        f'{nome_relatorio}.html',
+        {
+            'campos': campos,
+            'status': status,
+            'filtros': form.cleaned_data,
+            'queryset': queryset,
+            'user': user
+        }
+    )
+    return html_to_pdf_response(html_string, f'{nome_relatorio}.pdf')
+
+
+def relatorio_quantitativo_solic_dieta_especial(campos, form, queryset, user):
+    return get_relatorio_dieta_especial(
+        campos, form, queryset, user, 'relatorio_quantitativo_solicitacoes_dieta_especial')
+
+
+def relatorio_quantitativo_diag_dieta_especial(campos, form, queryset, user):
+    return get_relatorio_dieta_especial(
+        campos, form, queryset, user, 'relatorio_quantitativo_diagnostico_dieta_especial')
+
+
+def relatorio_geral_dieta_especial(form, queryset, user):
+    return get_relatorio_dieta_especial(
+        None, form, queryset, user, 'relatorio_dieta_especial')

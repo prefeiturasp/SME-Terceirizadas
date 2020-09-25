@@ -17,7 +17,8 @@ from ..models import (
     ClassificacaoDieta,
     MotivoNegacao,
     SolicitacaoDietaEspecial,
-    SubstituicaoAlimento
+    SubstituicaoAlimento,
+    TipoContagem
 )
 from .serializers_create import SolicitacaoDietaEspecialCreateSerializer, SubstituicaoAlimentoCreateSerializer
 from .validators import atributos_lista_nao_vazios, atributos_string_nao_vazios, deve_ter_atributos
@@ -45,6 +46,12 @@ class AlimentoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Alimento
         fields = '__all__'
+
+
+class TipoContagemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TipoContagem
+        exclude = ('id',)
 
 
 class AnexoSerializer(ModelSerializer):
@@ -246,3 +253,59 @@ class SolicitacoesAtivasInativasPorAlunoSerializer(serializers.Serializer):
     nome = serializers.CharField(source='aluno.nome')
     ativas = serializers.IntegerField()
     inativas = serializers.IntegerField()
+
+
+class RelatorioQuantitativoSolicDietaEspSerializer(serializers.Serializer):
+    dre = serializers.CharField(source='aluno__escola__diretoria_regional__nome', required=False)
+    escola = serializers.CharField(source='aluno__escola__nome', required=False)
+    diagnostico = serializers.CharField(source='alergias_intolerancias__descricao', required=False)
+    ano_nasc_aluno = serializers.CharField(source='aluno__data_nascimento__year', required=False)
+    qtde_ativas = serializers.IntegerField()
+    qtde_inativas = serializers.IntegerField()
+    qtde_pendentes = serializers.IntegerField()
+
+
+class SolicitacaoDietaEspecialSimplesSerializer(serializers.ModelSerializer):
+    aluno = AlunoSerializer()
+    rastro_escola = EscolaSerializer()
+    status_titulo = serializers.CharField(source='status.state.title')
+    logs = LogSolicitacoesUsuarioSerializer(many=True)
+    status_solicitacao = serializers.CharField(
+        source='status',
+        required=False,
+        read_only=True
+    )
+    classificacao = ClassificacaoDietaSerializer()
+    alergias_intolerancias = AlergiaIntoleranciaSerializer(many=True)
+    motivo_negacao = MotivoNegacaoSerializer()
+
+    class Meta:
+        model = SolicitacaoDietaEspecial
+        fields = (
+            'uuid',
+            'criado_em',
+            'status_solicitacao',
+            'aluno',
+            'rastro_escola',
+            'alergias_intolerancias',
+            'classificacao',
+            'nome_protocolo',
+            'motivo_negacao',
+            'justificativa_negacao',
+            'registro_funcional_nutricionista',
+            'logs',
+            'ativo',
+            'data_termino',
+            'status_titulo'
+        )
+
+
+class PanoramaSerializer(serializers.Serializer):
+    periodo = serializers.CharField(source='periodo_escolar__nome', required=False)
+    horas_atendimento = serializers.IntegerField(
+        source='periodo_escolar__horas_atendimento',
+        required=False)
+    qtde_alunos = serializers.IntegerField(source='quantidade_alunos', required=False)
+    qtde_tipo_a = serializers.IntegerField()
+    qtde_enteral = serializers.IntegerField()
+    qtde_tipo_b = serializers.IntegerField()

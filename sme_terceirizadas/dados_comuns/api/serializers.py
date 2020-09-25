@@ -6,6 +6,7 @@ from ..models import (
     AnexoLogSolicitacoesUsuario,
     CategoriaPerguntaFrequente,
     Contato,
+    Endereco,
     LogSolicitacoesUsuario,
     PerguntaFrequente,
     TemplateMensagem
@@ -52,6 +53,18 @@ class LogSolicitacoesUsuarioSerializer(serializers.ModelSerializer):
     class Meta:
         model = LogSolicitacoesUsuario
         fields = ('status_evento_explicacao', 'usuario', 'criado_em', 'descricao', 'justificativa', 'resposta_sim_nao')
+
+
+class LogSolicitacoesSerializer(serializers.ModelSerializer):
+    status_evento_explicacao = serializers.CharField(
+        source='get_status_evento_display',
+        required=False,
+        read_only=True
+    )
+
+    class Meta:
+        model = LogSolicitacoesUsuario
+        fields = ('status_evento_explicacao', 'criado_em', 'descricao', 'justificativa', 'resposta_sim_nao')
 
 
 class LogSolicitacoesUsuarioComVinculoSerializer(LogSolicitacoesUsuarioSerializer):
@@ -111,4 +124,10 @@ class ConsultaPerguntasFrequentesSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CategoriaPerguntaFrequente
+        exclude = ('id',)
+
+
+class EnderecoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Endereco
         exclude = ('id',)

@@ -93,6 +93,8 @@ libsass = "==0.19.4"
 django-crispy-forms = "*"
 django-weasyprint = "*"
 django-filter = "*"
+importlib-metadata = "==1.7.0"
+text-unidecode = "*"
 
 [requires]
 python_version = "3.6"

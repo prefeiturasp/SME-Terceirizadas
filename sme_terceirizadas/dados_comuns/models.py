@@ -149,6 +149,10 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
     def status_evento_explicacao(self):
         return self.get_status_evento_display()
 
+    @property
+    def get_anexos(self):
+        return AnexoLogSolicitacoesUsuario.objects.filter(log=self)
+
     def __str__(self):
         return (f'{self.usuario} executou {self.get_status_evento_display()} '
                 f'em {self.get_solicitacao_tipo_display()} no dia {self.criado_em}')
@@ -162,6 +166,14 @@ class AnexoLogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes_a
 
     def __str__(self):
         return f'Anexo {self.uuid} - {self.nome}'
+
+
+class Endereco(ExportModelOperationsMixin('endereco'), models.Model):
+    logradouro = models.CharField(max_length=255, validators=[MinLengthValidator(5)])
+    numero = models.IntegerField(null=True)
+    complemento = models.CharField(max_length=50, blank=True)
+    bairro = models.CharField(max_length=50)
+    cep = models.IntegerField()
 
 
 class Contato(ExportModelOperationsMixin('contato'), models.Model):

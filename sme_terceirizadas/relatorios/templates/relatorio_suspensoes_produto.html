@@ -13,35 +13,39 @@
       <div class="item-prod tres">Data cadastro</div>
       <div class="item-prod tres">Data suspensão produto</div>
     </div>
-    {% for homologacao in homologacoes %}
+    {% for produto in produtos %}
     <div class="item-suspensao-detalhe">
-      <div class="item-prod-detalhe um">{{homologacao.produto.nome}}</div>
-      <div class="item-prod-detalhe um">{{homologacao.produto.marca.nome}}</div>
-      <div class="item-prod-detalhe dois">{{homologacao.produto.fabricante.nome}}</div>
-      <div class="item-prod-detalhe tres">{{homologacao.produto.criado_em|formata_data}}</div>
-      <div class="item-prod-detalhe tres">{{homologacao.logs|retorna_data_do_ultimo_log}}</div>
+      <div class="item-prod-detalhe um">{{produto.nome}}</div>
+      <div class="item-prod-detalhe um">{{produto.marca.nome}}</div>
+      <div class="item-prod-detalhe dois">{{produto.fabricante.nome}}</div>
+      <div class="item-prod-detalhe tres">{{produto.criado_em|date:'d/m/Y'}}</div>
+      <div class="item-prod-detalhe tres">{{produto.ultima_homologacao.ultimo_log.criado_em|date:'d/m/Y'}}</div>
     </div>
     <div class="visao-geral-produto">
       <div class="tres-informacoes">
         <div class="informacao">
           <label>Nome</label>
-          <p>{{homologacao.logs|retorna_nome_ultimo_log}}</p>
-          <p>RF: {{homologacao.logs|retorna_rf_ultimo_log}}</p>
+          <p>{{produto.ultima_homologacao.ultimo_log.usuario.nome}}</p>
+          <p>RF: {{produto.ultima_homologacao.ultimo_log.usuario.registro_funcional}}</p>
         </div>
         <div class="informacao">
           <label>Cargo</label>
-          <p>{{homologacao.logs|retorna_cargo_ultimo_log}}</p>
+          <p>{{produto.ultima_homologacao.ultimo_log.usuario.cargo}}</p>
         </div>
         <div class="informacao">
           <label>Justificativa de suspensão de produto</label>
-          <p>{{homologacao.logs|retorna_justificativa_ultimo_log}}</p>
+          <p>{{produto.ultima_homologacao.ultimo_log.justificativa|safe}}</p>
         </div>
       </div>
 
       <div class="uma-informacao">
         <div class="informacao">
           <label>Anexo</label>
-          <p>{{homologacao.logs|verifica_se_tem_anexos}}</p>
+          {%if produto.ultima_homologacao.ultimo_log.get_anexos|length %}
+            <p>Sim</p>
+          {% else %}
+            <p>Não</p>
+          {% endif %}
         </div>
       </div>
     </div>

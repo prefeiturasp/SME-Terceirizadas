@@ -13,19 +13,19 @@
       <div class="item-prod dois">Fabricante</div>
       <div class="item-prod tres">Qtde. reclamações</div>
       <div class="item-prod quatro">Data cadastro</div>
+      <div class="item-prod dois">Status do produto</div>
     </div>
     {% for produto in produtos %}
     <div class="item-reclamacao-detalhe">
       <div class="item-prod-detalhe um">{{produto.nome}}</div>
       <div class="item-prod-detalhe dois">{{produto.marca.nome}}</div>
       <div class="item-prod-detalhe dois">{{produto.fabricante.nome}}</div>
-      <div class="item-prod-detalhe tres">{{produto.qtde_reclamacoes}}</div>
-      <div class="item-prod-detalhe quatro">{{produto.criado_em|formata_data}}</div>
+      <div class="item-prod-detalhe tres">{{produto.ultima_homologacao.reclamacoes.all|length}}</div>
+      <div class="item-prod-detalhe quatro">{{produto.criado_em|date:'d/m/Y'}}</div>
+      <div class="item-prod-detalhe dois">{{produto.ultima_homologacao.status.state.title }}</div>
     </div>
 
-
-      {% with produto.homologacoes|last as ultima_homologacao%}
-      {% for reclamacao in ultima_homologacao.reclamacoes%}
+      {% for reclamacao in produto.ultima_homologacao.reclamacoes.all%}
        <div class="visao-geral-produto">
       <div class="duas-informacoes-separadas">
         <div class="informacao">
@@ -56,18 +56,18 @@
           <div class="duas-informacoes">
         <div class="informacao">
           <label>Data reclamação</label>
-          {{reclamacao.criado_em|formata_data}}
+          {{reclamacao.criado_em|date:'d/m/Y'}}
         </div>
         <div class="informacao-dois">
-          <label>justificativa</label>
+          <label>Justificativa</label>
           <p>{{reclamacao.justificativa|safe}}</p>
         </div>
         </div>
-      {% for log in reclamacao.logs %}
+      {% for log in reclamacao.logs.all %}
             <div class="duas-informacoes">
         <div class="informacao">
           <label>{{log.status_evento_explicacao|obter_rotulo_data_log}}</label>
-          {{log.criado_em|formata_data}}
+          {{log.criado_em|date:'d/m/Y'}}
         </div>
         <div class="informacao-dois">
           <label>{{log.status_evento_explicacao|obter_titulo_log_reclamacao}}</label>
@@ -76,12 +76,7 @@
       </div>
       {% endfor %}
         </div>
-      <hr />
       {% endfor %}
-
-     {% endwith %}
-
-
     {% endfor %}
   </div>
 </section>

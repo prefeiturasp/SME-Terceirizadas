@@ -1,7 +1,7 @@
 from django import forms
 
 from ..escola.models import DiretoriaRegional, Escola
-from .models import SolicitacaoDietaEspecial
+from .models import AlergiaIntolerancia, SolicitacaoDietaEspecial
 
 
 class NegaDietaEspecialForm(forms.ModelForm):
@@ -25,5 +25,57 @@ class SolicitacoesAtivasInativasPorAlunoForm(forms.Form):
     dre = forms.ModelChoiceField(
         required=False,
         queryset=DiretoriaRegional.objects.all(),
+        to_field_name='uuid'
+    )
+
+
+class RelatorioQuantitativoSolicDietaEspForm(forms.Form):
+    dre = forms.ModelMultipleChoiceField(
+        required=False,
+        queryset=DiretoriaRegional.objects.all(),
+        to_field_name='uuid'
+    )
+    escola = forms.ModelMultipleChoiceField(
+        required=False,
+        queryset=Escola.objects.all(),
+        to_field_name='uuid'
+    )
+    diagnostico = forms.ModelMultipleChoiceField(
+        required=False,
+        queryset=AlergiaIntolerancia.objects.all()
+    )
+    status = forms.ChoiceField(required=False, choices=(
+        ('', 'Todos'),
+        ('ativas', 'Ativa'),
+        ('inativas', 'Inativa'),
+        ('pendentes', 'Pendente de aprovação'),
+    ))
+    data_inicial = forms.DateField(required=False)
+    data_final = forms.DateField(required=False)
+
+
+class RelatorioDietaForm(forms.Form):
+    dre = forms.ModelChoiceField(
+        required=False,
+        queryset=DiretoriaRegional.objects.all(),
+        to_field_name='uuid'
+    )
+    escola = forms.ModelMultipleChoiceField(
+        required=False,
+        queryset=Escola.objects.all(),
+        to_field_name='uuid'
+    )
+    diagnostico = forms.ModelMultipleChoiceField(
+        required=False,
+        queryset=AlergiaIntolerancia.objects.all()
+    )
+    data_inicial = forms.DateField(required=False)
+    data_final = forms.DateField(required=False)
+
+
+class PanoramaForm(forms.Form):
+    escola = forms.ModelChoiceField(
+        required=False,
+        queryset=Escola.objects.all(),
         to_field_name='uuid'
     )

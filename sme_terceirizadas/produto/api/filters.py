@@ -1,7 +1,9 @@
+from datetime import timedelta
+
 from django_filters import rest_framework as filters
 
 from ..models import Produto
-from ..utils import cria_filtro_aditivos
+from ..utils import converte_para_datetime, cria_filtro_aditivos
 
 
 class ProdutoFilter(filters.FilterSet):
@@ -29,3 +31,24 @@ class ProdutoFilter(filters.FilterSet):
         value = self.request.query_params.getlist('status')
         filtro = {name: value}
         return qs.filter(**filtro)
+
+
+def filtros_produto_reclamacoes(request):
+    status_reclamacao = request.query_params.getlist('status_reclamacao')
+    data_inicial_reclamacao = request.query_params.get('data_inicial_reclamacao')
+    data_final_reclamacao = request.query_params.get('data_final_reclamacao')
+    filtro_homologacao = {}
+    filtro_reclamacao = {}
+
+    if status_reclamacao:
+        filtro_homologacao['homologacoes__reclamacoes__status__in'] = status_reclamacao
+        filtro_reclamacao['status__in'] = status_reclamacao
+    if data_inicial_reclamacao:
+        data_inicial_reclamacao = converte_para_datetime(data_inicial_reclamacao)
+        filtro_homologacao['homologacoes__reclamacoes__criado_em__gte'] = data_inicial_reclamacao
+        filtro_reclamacao['criado_em__gte'] = data_inicial_reclamacao
+    if data_final_reclamacao:
+        data_final_reclamacao = converte_para_datetime(data_final_reclamacao) + timedelta(days=1)
+        filtro_homologacao['homologacoes__reclamacoes__criado_em__lte'] = data_final_reclamacao
+        filtro_reclamacao['criado_em__lte'] = data_final_reclamacao
+    return filtro_reclamacao, filtro_homologacao

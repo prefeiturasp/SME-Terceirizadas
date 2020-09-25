@@ -7,7 +7,6 @@ from ...dados_comuns.constants import ADMINISTRADOR_TERCEIRIZADA, NUTRI_ADMIN_RE
 from ...dados_comuns.models import Contato
 from ...dados_comuns.tasks import envia_email_unico_task
 from ...eol_servico.utils import EOLException, EOLService
-from ...escola.api.validators import usuario_e_vinculado_a_aquela_instituicao, usuario_nao_possui_vinculo_valido
 from ...perfil.api.validators import usuario_e_das_terceirizadas
 from ...terceirizada.models import Terceirizada
 from ..models import Perfil, Usuario, Vinculo
@@ -16,6 +15,8 @@ from .validators import (
     registro_funcional_e_cpf_sao_da_mesma_pessoa,
     senha_deve_ser_igual_confirmar_senha,
     terceirizada_tem_esse_cnpj,
+    usuario_e_vinculado_a_aquela_instituicao,
+    usuario_nao_possui_vinculo_valido,
     usuario_pode_efetuar_cadastro
 )
 

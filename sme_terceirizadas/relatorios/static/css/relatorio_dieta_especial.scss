@@ -1,80 +1,15 @@
-hr {
-	width: 98%;
-	text-align: center;
-	border-top: 0.1px solid #C0C0C0;
-}
-.cabecario-reclamacao-reduzido {
-	height: 40px;
-	background: #FFFFFF;
-	border: 1px solid #000000;
-	border-radius: 4px;
-	display: flex;
-	align-items: center;
-	padding-left: 10px;
-}
-.cabecario-reclamacao-status {
-	height: 40px;
-	background: #FFFFFF;
-	border: 1px solid #000000;
-	border-radius: 4px;
-	display: flex;
-	padding-left: 10px;
-	article {
-		&:first-child {
-			width: 200px;
-			border-right: 1px solid #000;
-			padding-top: 10px;
-			padding-left: 10px;
-		}
-		&:last-child {
-			width: 480px;
-			padding-top: 10px;
-			padding-left: 10px;
-		}
-	}
-}
-.cabecario-reclamacao-data {
-	height: 80px;
-	background: #fff;
-	border: 1px solid #000;
-	border-radius: 4px;
-	display: flex;
-	flex-direction: row;
-	article {
-		&:first-child {
-			width: 449px;
-			border-right: 1px solid #000;
-			padding-top: 10px;
-			padding-left: 10px;
-		}
-		&:last-child {
-			width: 280px;
-			div {
-				height: 40px;
-				display: flex;
-				align-items: center;
-				padding-left: 10px;
-				&:last-child {
-					height: 39px;
-					border-top: 1px solid #000;
-				}
-			}
-		}
-	}
-}
-.corpo-relatorio-produto-reclamacao {
+.corpo-relatorio-produto-dieta {
 	padding: 1em 2em 1em 2em;
-	.sessao-detalhes-reclamacao {
+	.sessao-detalhes-dieta {
 		background: #fff;
 		width: 730px;
 		.visao-geral-produto {
 			height: auto;
 			max-height: 100%;
-      font-size: 12px;
-      page-break-inside: avoid;
-      padding-bottom: 10px;
-      border: 1px solid #dfdfdf;
-
+			font-size: 12px;
+			page-break-inside: avoid;
+			padding-bottom: 15px;
+			border: 1px solid #dfdfdf;
 			.uma-informacao {
 				display: flex;
 				flex-direction: row;
@@ -181,7 +116,7 @@ hr {
 				.informacao-tres {
 					display: flex;
 					flex-direction: column;
-					width: 885px;
+					width: 510px;
 					padding: 10px 0 0 10px;
 					height: auto;
 					max-height: 100%;
@@ -273,7 +208,7 @@ hr {
 				.informacao-tres {
 					display: flex;
 					flex-direction: column;
-					width: 280px;
+					width: 350px;
 					padding: 10px 0 0 10px;
 					height: auto;
 					max-height: 100%;
@@ -287,9 +222,9 @@ hr {
 					p {
 						margin: 0px;
 						padding: 0px;
-						color: #686868;
+						color: #000000;
 						font-style: normal;
-						font-weight: 500;
+						font-weight: normal;
 						font-size: 12px;
 						line-height: 27px;
 						label {
@@ -535,12 +470,12 @@ hr {
 				}
 			}
 		}
-		.item-reclamacao-detalhe {
+		.item-dieta-detalhe {
 			background: #f9f9f9;
 			display: flex;
 			flex-direction: row;
-			height: max-content;
-			border: 1px solid #C0C0C0;
+			height: 36px;
+			border: 1px solid #c0c0c0;
 			.item-prod-detalhe {
 				display: flex;
 				align-items: center;
@@ -552,12 +487,12 @@ hr {
 				line-height: 18px;
 			}
 		}
-		.item-reclamacao {
+		.item-dieta {
 			background: #eee;
 			display: flex;
 			flex-direction: row;
 			height: 36px;
-			border: 1px solid #C0C0C0;
+			border: 1px solid #c0c0c0;
 			.item-prod {
 				display: flex;
 				align-items: center;
@@ -576,14 +511,17 @@ hr {
 	}
 }
 .um {
-	width: 180px;
+	width: 175px;
 }
 .dois {
-	width: 160px;
+	width: 165px;
 }
 .tres {
 	width: 105px;
 }
 .quatro {
 	width: 95px;
+}
+.um-thead {
+	width: 177px;
 }

@@ -1,7 +1,8 @@
 from django.core.exceptions import ObjectDoesNotExist
+from django_filters import rest_framework as filters
 from rest_framework import serializers, status
 from rest_framework.decorators import action
-from rest_framework.mixins import CreateModelMixin, ListModelMixin
+from rest_framework.mixins import CreateModelMixin, ListModelMixin, RetrieveModelMixin, UpdateModelMixin
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, ModelViewSet, ReadOnlyModelViewSet
 
@@ -17,6 +18,7 @@ from ...escola.api.permissions import (
 )
 from ...escola.api.serializers import (
     AlunoSerializer,
+    AlunoSimplesSerializer,
     CODAESerializer,
     EscolaPeriodoEscolarSerializer,
     LoteNomeSerializer,
@@ -25,6 +27,7 @@ from ...escola.api.serializers import (
 )
 from ...escola.api.serializers_create import (
     EscolaPeriodoEscolarCreateSerializer,
+    EscolaSimplesUpdateSerializer,
     FaixaEtariaSerializer,
     LoteCreateSerializer,
     MudancaFaixasEtariasCreateSerializer
@@ -45,6 +48,7 @@ from ..models import (
     TipoGestao,
     TipoUnidadeEscolar
 )
+from .filters import AlunoFilter, DiretoriaRegionalFilter
 from .serializers import (
     DiretoriaRegionalCompletaSerializer,
     DiretoriaRegionalSimplissimaSerializer,
@@ -160,10 +164,14 @@ class VinculoCODAEGestaoAlimentacaoTerceirizadaViewSet(ReadOnlyModelViewSet):
         return Response(self.get_serializer(vinculo).data)
 
 
-class EscolaSimplesViewSet(ReadOnlyModelViewSet):
+class EscolaSimplesViewSet(ListModelMixin, RetrieveModelMixin, UpdateModelMixin, GenericViewSet):
     lookup_field = 'uuid'
     queryset = Escola.objects.all()
-    serializer_class = EscolaSimplesSerializer
+
+    def get_serializer_class(self):
+        if self.action in ['update', 'partial_update']:
+            return EscolaSimplesUpdateSerializer
+        return EscolaSimplesSerializer
 
 
 class EscolaSimplissimaViewSet(ReadOnlyModelViewSet):
@@ -179,8 +187,13 @@ class EscolaSimplissimaViewSet(ReadOnlyModelViewSet):
 
 class EscolaSimplissimaComDREViewSet(ReadOnlyModelViewSet):
     lookup_field = 'uuid'
-    queryset = Escola.objects.all()
+    queryset = Escola.objects.all().prefetch_related('diretoria_regional')
     serializer_class = EscolaListagemSimplissimaComDRESelializer
+
+
+class EscolaSimplissimaComDREUnpaginatedViewSet(EscolaSimplissimaComDREViewSet):
+    pagination_class = None
+    filterset_class = DiretoriaRegionalFilter
 
 
 class EscolaQuantidadeAlunosPorPeriodoEFaixaViewSet(GenericViewSet):
@@ -369,10 +382,22 @@ class EscolaPeriodoEscolarViewSet(ModelViewSet):
         })
 
 
-class AlunoViewSet(ReadOnlyModelViewSet):
+class AlunoViewSet(RetrieveModelMixin, ListModelMixin, GenericViewSet):
     lookup_field = 'codigo_eol'
     queryset = Aluno.objects.all()
     serializer_class = AlunoSerializer
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = AlunoFilter
+
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return AlunoSimplesSerializer
+        return self.serializer_class
+
+    def get_queryset(self):
+        if self.action == 'retrieve':
+            return self.queryset.select_related('escola__diretoria_regional')
+        return self.queryset
 
 
 class FaixaEtariaViewSet(CreateModelMixin, ListModelMixin, GenericViewSet):
