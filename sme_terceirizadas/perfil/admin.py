@@ -36,6 +36,10 @@ class BaseUserAdmin(DjangoUserAdmin):
     list_display = ('email', 'nome', 'is_staff', 'is_active')
     search_fields = ('email', 'nome')
     ordering = ('email',)
+    actions = ('carga_dados',)
+
+    def carga_dados(self, request, queryset):
+        return call_command('carga_dados')
 
 
 admin.site.register(Usuario, BaseUserAdmin)
