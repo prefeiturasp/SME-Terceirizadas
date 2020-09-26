@@ -9,6 +9,8 @@ from utility.carga_dados.escola.importa_dados import cria_diretorias_regionais
 from utility.carga_dados.escola.importa_dados import cria_lotes
 from utility.carga_dados.escola.importa_dados import cria_subprefeituras
 from utility.carga_dados.escola.importa_dados import cria_tipos_gestao
+from utility.carga_dados.inclusao_alimentacao.importa_dados import cria_motivo_inclusao_continua
+from utility.carga_dados.inclusao_alimentacao.importa_dados import cria_motivo_inclusao_normal
 
 
 class Command(BaseCommand):
@@ -26,3 +28,5 @@ class Command(BaseCommand):
         cria_lotes()
         cria_subprefeituras()
         cria_tipos_gestao()
+        cria_motivo_inclusao_continua()
+        cria_motivo_inclusao_normal()
