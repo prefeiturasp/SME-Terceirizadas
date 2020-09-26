@@ -11,6 +11,8 @@ from utility.carga_dados.escola.importa_dados import cria_subprefeituras
 from utility.carga_dados.escola.importa_dados import cria_tipos_gestao
 from utility.carga_dados.inclusao_alimentacao.importa_dados import cria_motivo_inclusao_continua
 from utility.carga_dados.inclusao_alimentacao.importa_dados import cria_motivo_inclusao_normal
+from utility.carga_dados.kit_lanche.importa_dados import cria_kit_lanche_item
+from utility.carga_dados.kit_lanche.importa_dados import cria_kit_lanche
 
 
 class Command(BaseCommand):
@@ -30,3 +32,5 @@ class Command(BaseCommand):
         cria_tipos_gestao()
         cria_motivo_inclusao_continua()
         cria_motivo_inclusao_normal()
+        cria_kit_lanche_item()
+        cria_kit_lanche()
