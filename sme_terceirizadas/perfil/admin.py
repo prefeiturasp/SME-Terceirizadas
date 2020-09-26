@@ -38,15 +38,7 @@ class BaseUserAdmin(DjangoUserAdmin):
     ordering = ('email',)
 
 
-@admin.register(Perfil)
-class PerfilAdmin(admin.ModelAdmin):
-    list_display = ('__str__', )
-    actions = ('carga_dados',)
-
-    def carga_dados(self, request, queryset):
-        return call_command('carga_dados')
-
-
 admin.site.register(Usuario, BaseUserAdmin)
+admin.site.register(Perfil)
 admin.site.register(Vinculo)
 admin.site.register(Cargo)
