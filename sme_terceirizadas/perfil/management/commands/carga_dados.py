@@ -4,6 +4,7 @@ from utility.carga_dados.cardapio.importa_dados import cria_motivoalteracaocarda
 from utility.carga_dados.cardapio.importa_dados import cria_motivosuspensao
 from utility.carga_dados.cardapio.importa_dados import cria_tipo_alimentacao
 from utility.carga_dados.dados_comuns.importa_dados import cria_contatos
+from utility.carga_dados.dados_comuns.importa_dados import cria_templatemensagem
 
 
 class Command(BaseCommand):
@@ -16,3 +17,4 @@ class Command(BaseCommand):
         cria_motivosuspensao()
         cria_tipo_alimentacao()
         cria_contatos()
+        cria_templatemensagem()
