@@ -1,0 +1,5 @@
+from sme_terceirizadas.dados_comuns.data.contatos import data_contatos
+from sme_terceirizadas.dados_comuns.data.templatemensagem import data_templatemensagem
+from sme_terceirizadas.dados_comuns.models import Contato
+from sme_terceirizadas.dados_comuns.models import TemplateMensagem
+from utility.carga_dados.helper import ja_existe

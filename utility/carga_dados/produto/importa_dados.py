@@ -1,0 +1,5 @@
+from sme_terceirizadas.produto.data.informacao_nutricional import data_informacao_nutricional
+from sme_terceirizadas.produto.data.tipo_informacao_nutricional import data_tipo_informacao_nutricional
+from sme_terceirizadas.produto.models import TipoDeInformacaoNutricional
+from sme_terceirizadas.produto.models import InformacaoNutricional
+from utility.carga_dados.helper import ja_existe

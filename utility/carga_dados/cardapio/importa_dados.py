@@ -4,7 +4,6 @@ from sme_terceirizadas.cardapio.data.tipo_alimentacao import data_tipo_alimentac
 from sme_terceirizadas.cardapio.models import MotivoAlteracaoCardapio
 from sme_terceirizadas.cardapio.models import MotivoSuspensao
 from sme_terceirizadas.cardapio.models import TipoAlimentacao
-from utility.carga_dados.escola.helper import bcolors
 from utility.carga_dados.helper import ja_existe
 
 
