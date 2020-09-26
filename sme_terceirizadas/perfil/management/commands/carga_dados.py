@@ -13,6 +13,8 @@ from utility.carga_dados.inclusao_alimentacao.importa_dados import cria_motivo_i
 from utility.carga_dados.inclusao_alimentacao.importa_dados import cria_motivo_inclusao_normal
 from utility.carga_dados.kit_lanche.importa_dados import cria_kit_lanche_item
 from utility.carga_dados.kit_lanche.importa_dados import cria_kit_lanche
+from utility.carga_dados.produto.importa_dados import cria_informacao_nutricional
+from utility.carga_dados.produto.importa_dados import cria_tipo_informacao_nutricional
 
 
 class Command(BaseCommand):
@@ -34,3 +36,5 @@ class Command(BaseCommand):
         cria_motivo_inclusao_normal()
         cria_kit_lanche_item()
         cria_kit_lanche()
+        cria_informacao_nutricional()
+        cria_tipo_informacao_nutricional()
