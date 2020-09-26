@@ -1,1 +1,1 @@
-data = []
+data_tipos_gestao = []

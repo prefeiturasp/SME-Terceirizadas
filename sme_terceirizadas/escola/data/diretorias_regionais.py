@@ -1,1 +1,1 @@
-data = []
+data_diretorias_regionais = []
