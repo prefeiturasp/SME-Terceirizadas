@@ -1,1 +1,4 @@
-data_tipos_gestao = []
+data_tipos_gestao = [
+    "TERC TOTAL",
+    "MISTA"
+]
