@@ -13,4 +13,7 @@ def cria_motivo_inclusao_continua():
 
 
 def cria_motivo_inclusao_normal():
-    pass
+    for item in data_motivo_inclusao_normal:
+        _, created = MotivoInclusaoNormal.objects.get_or_create(nome=item)
+        if not created:
+            ja_existe('MotivoInclusaoNormal', item)
