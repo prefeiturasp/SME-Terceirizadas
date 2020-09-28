@@ -1,3 +1,6 @@
+import re
+
+from django.db.utils import IntegrityError
 from django.template.loader import render_to_string
 from rest_framework import serializers, status
 from rest_framework.exceptions import ValidationError
@@ -178,10 +181,15 @@ class UsuarioUpdateSerializer(serializers.ModelSerializer):
             usuario_pode_efetuar_cadastro(instance)
         return attrs
 
-    def partial_update(self, instance, validated_data):
+    def partial_update(self, instance, validated_data):  # noqa C901
         cnpj = validated_data.get('cnpj', None)
         validated_data = self._validate(instance, validated_data)
-        self.update(instance, validated_data)
+        try:
+            self.update(instance, validated_data)
+        except IntegrityError as e:
+            if re.search('perfil_usuario_cpf_key.+already\\sexists', e.args[0], flags=re.I | re.S):
+                raise serializers.ValidationError('CPF já cadastrado')
+            raise e
         instance.set_password(validated_data['password'])
         if cnpj:
             instance.vinculo_atual.ativar_vinculo()
