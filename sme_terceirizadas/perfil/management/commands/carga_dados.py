@@ -1,3 +1,4 @@
+from django.conf.settings import DEBUG
 from django.core.management.base import BaseCommand
 from utility.carga_dados.usuarios import cria_usuarios
 from utility.carga_dados.cardapio.importa_dados import cria_motivoalteracaocardapio
@@ -22,19 +23,44 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         self.stdout.write('Importando dados...')
-        cria_usuarios()
+
+        # A ordem dos métodos é importante!
+        # Por isso de if.
+        if DEBUG:
+            cria_usuarios()  # Dev
+
         cria_motivoalteracaocardapio()
         cria_motivosuspensao()
         cria_tipo_alimentacao()
-        cria_contatos()
-        cria_templatemensagem()
+
+        if DEBUG:
+            cria_contatos()
+            cria_templatemensagem()
+
         cria_diretorias_regionais()
-        cria_lotes()
-        cria_subprefeituras()
+        cria_lotes()  # Fazer
+        cria_subprefeituras()  # Fazer
         cria_tipos_gestao()
         cria_motivo_inclusao_continua()
         cria_motivo_inclusao_normal()
-        cria_kit_lanche_item()
-        cria_kit_lanche()
+
+        if DEBUG:
+            cria_kit_lanche_item()
+            cria_kit_lanche()
+
         cria_informacao_nutricional()
         cria_tipo_informacao_nutricional()
+
+        # if DEBUG:
+        #     # terceirizada
+        #     cria_contratos()  # Fazer
+        #     cria_editais()  # Fazer
+        #     cria_nutricionistas()  # Fazer
+        #     cria_terceirizadas()  # Fazer
+        #     cria_vigencias()  # Fazer
+
+        # Produto
+        # cria_diagnosticos()  # Fazer
+
+        # Escola
+        # TODO para DEV
