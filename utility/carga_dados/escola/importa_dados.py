@@ -9,6 +9,7 @@ from sme_terceirizadas.escola.models import TipoGestao
 from sme_terceirizadas.terceirizada.data.terceirizadas import data_terceirizadas  # noqa
 from sme_terceirizadas.terceirizada.models import Terceirizada
 from utility.carga_dados.escola.helper import bcolors
+from utility.carga_dados.helper import adiciona_m2m_items
 from utility.carga_dados.helper import get_modelo
 from utility.carga_dados.helper import ja_existe
 from utility.carga_dados.helper import le_dados
@@ -30,6 +31,7 @@ def cria_diretorias_regionais():
 
 
 def cria_lotes():
+    # Possui FK.
     # Monta o dicionário direto da lista de items.
     dict_tipo_gestao = le_dados(data_tipos_gestao, 'nome')
     dict_dre = le_dados(data_diretorias_regionais, 'codigo_eol')
@@ -67,7 +69,28 @@ def cria_lotes():
 
 
 def cria_subprefeituras():
-    pass
+    # Possui FK e M2M
+    dict_lote = le_dados(data_lotes, 'iniciais')
+    dict_dre = le_dados(data_diretorias_regionais, 'codigo_eol')
+    for item in data_subprefeituras:
+        lote = get_modelo(
+            modelo=Lote,
+            modelo_id=item.get('lote'),
+            dicionario=dict_lote,
+            campo_unico='iniciais'
+        )
+        subprefeitura, created = Subprefeitura.objects.get_or_create(nome=item[
+                                                                     'nome'])
+        if not created:
+            ja_existe('Subprefeitura', item['nome'])
+
+        adiciona_m2m_items(
+            campo_m2m=subprefeitura.diretoria_regional,
+            dicionario_m2m=item.get('diretoria_regional'),
+            modelo=DiretoriaRegional,
+            dicionario=dict_dre,
+            campo_unico='codigo_eol'
+        )
 
 
 def cria_tipos_gestao():

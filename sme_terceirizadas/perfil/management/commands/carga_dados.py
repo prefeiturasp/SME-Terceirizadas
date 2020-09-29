@@ -44,7 +44,7 @@ class Command(BaseCommand):
         cria_terceirizadas()
 
         cria_lotes()
-        cria_subprefeituras()  # Fazer
+        cria_subprefeituras()
         cria_motivo_inclusao_continua()
         cria_motivo_inclusao_normal()
 
