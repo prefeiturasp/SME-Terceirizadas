@@ -55,7 +55,7 @@ def busca_sigla_lote(sigla):
     def _get_id(data):
         try:
             return list(
-                filter(lambda item: item["fields"]["iniciais"] == data, fixture_data)
+                filter(lambda item: item["fields"]["iniciais"] == data, fixture_data)  # noqa
             )[0]["id"]
         except (IndexError, TypeError) as ex:
             raise Exception(f"Siga do Lote Nao Encontrado, {ex}") from None

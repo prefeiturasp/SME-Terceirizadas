@@ -2,10 +2,9 @@ import json
 import os
 
 import environ
+from utility.carga_dados.escola.helper import bcolors, printa_pontinhos
 
-from sme_terceirizadas.escola.models import (
-    DiretoriaRegional)
-from utility.carga_dados.escola.helper import printa_pontinhos, bcolors
+from sme_terceirizadas.escola.models import DiretoriaRegional
 
 ROOT_DIR = environ.Path(__file__) - 1
 with open(os.path.join(ROOT_DIR, 'planilhas_de_carga', 'dres.json'), 'r') as f:

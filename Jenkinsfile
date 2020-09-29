@@ -46,8 +46,6 @@ pipeline {
 
           sh 'pip install --user pipenv'
           sh 'pipenv install --dev'
-          sh 'pipenv install pytest'
-          sh 'pipenv install pytest-cov'
           sh 'pipenv run pytest'
           sh 'pipenv run flake8'
 

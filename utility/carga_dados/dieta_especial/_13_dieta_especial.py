@@ -1,13 +1,8 @@
 import environ
 import pandas as pd
-
-from sme_terceirizadas.dieta_especial.models import (
-    AlergiaIntolerancia,
-    Alimento,
-    ClassificacaoDieta,
-    MotivoNegacao
-)
 from utility.carga_dados.escola.helper import printa_pontinhos
+
+from sme_terceirizadas.dieta_especial.models import AlergiaIntolerancia, Alimento, ClassificacaoDieta, MotivoNegacao
 
 ROOT_DIR = environ.Path(__file__) - 1
 

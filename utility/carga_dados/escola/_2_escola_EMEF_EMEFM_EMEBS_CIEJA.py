@@ -9,13 +9,17 @@ import time
 import environ
 import numpy as np
 import pandas as pd
+from utility.carga_dados.escola.helper import (
+    bcolors,
+    busca_sigla_lote,
+    coloca_zero_a_esquerda,
+    normaliza_nome,
+    printa_pontinhos,
+    somente_digitos
+)
 
 from sme_terceirizadas.dados_comuns.models import Contato
-from sme_terceirizadas.escola.models import (
-    TipoUnidadeEscolar, TipoGestao, Escola, DiretoriaRegional, Lote)
-from utility.carga_dados.escola.helper import (
-    coloca_zero_a_esquerda, normaliza_nome, somente_digitos, busca_sigla_lote,
-    bcolors, printa_pontinhos)
+from sme_terceirizadas.escola.models import DiretoriaRegional, Escola, Lote, TipoGestao, TipoUnidadeEscolar
 
 ROOT_DIR = environ.Path(__file__) - 1
 

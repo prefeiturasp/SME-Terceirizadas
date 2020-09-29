@@ -1,23 +1,28 @@
 """
     Antes de rodar isso vc deve ter rodado as escolas e as fixtures e associar usuarios as instituicoes
 """
-from base64 import b64encode
 import datetime
 import random
 import string
+from base64 import b64encode
 
-from django.db import IntegrityError, transaction
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.db import IntegrityError, transaction
 from faker import Faker
 
-from sme_terceirizadas.escola.models import Aluno, Escola
-from .helper import base64_encode
-
 from sme_terceirizadas.dieta_especial.models import (
-    AlergiaIntolerancia, Alimento, Anexo, ClassificacaoDieta, MotivoNegacao,
-    SolicitacaoDietaEspecial, SubstituicaoAlimento
+    AlergiaIntolerancia,
+    Alimento,
+    Anexo,
+    ClassificacaoDieta,
+    MotivoNegacao,
+    SolicitacaoDietaEspecial,
+    SubstituicaoAlimento
 )
+from sme_terceirizadas.escola.models import Aluno, Escola
 from sme_terceirizadas.perfil.models import Usuario
+
+from .helper import base64_encode
 
 f = Faker('pt-br')
 f.seed(420)
