@@ -12,6 +12,6 @@ def cria_informacao_nutricional():
 def cria_tipo_informacao_nutricional():
     for item in data_tipo_informacao_nutricional:
         _, created = TipoDeInformacaoNutricional.objects.get_or_create(
-            nome=item)
+            nome=item['nome'])
         if not created:
-            ja_existe('TipoDeInformacaoNutricional', item)
+            ja_existe('TipoDeInformacaoNutricional', item['nome'])
