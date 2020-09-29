@@ -73,14 +73,17 @@ def cria_subprefeituras():
     dict_lote = le_dados(data_lotes, 'iniciais')
     dict_dre = le_dados(data_diretorias_regionais, 'codigo_eol')
     for item in data_subprefeituras:
+        # Não tem lote nos dados originais.
         lote = get_modelo(
             modelo=Lote,
             modelo_id=item.get('lote'),
             dicionario=dict_lote,
             campo_unico='iniciais'
         )
-        subprefeitura, created = Subprefeitura.objects.get_or_create(nome=item[
-                                                                     'nome'])
+        subprefeitura, created = Subprefeitura.objects.get_or_create(
+            nome=item['nome'],
+            lote=lote
+        )
         if not created:
             ja_existe('Subprefeitura', item['nome'])
 
