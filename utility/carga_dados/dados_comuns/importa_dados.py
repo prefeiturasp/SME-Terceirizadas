@@ -3,10 +3,11 @@ from sme_terceirizadas.dados_comuns.data.templatemensagem import data_templateme
 from sme_terceirizadas.dados_comuns.models import Contato
 from sme_terceirizadas.dados_comuns.models import TemplateMensagem
 from utility.carga_dados.helper import ja_existe
+from utility.carga_dados.helper import progressbar
 
 
 def cria_contatos():
-    for item in data_contatos:
+    for item in progressbar(data_contatos, 'Contato'):
         obj = Contato.objects.filter(email=item['email']).first()
         if not obj:
             Contato.objects.create(
@@ -18,7 +19,7 @@ def cria_contatos():
 
 
 def cria_templatemensagem():
-    for item in data_templatemensagem:
+    for item in progressbar(data_templatemensagem, 'Template Mensagem'):
         _, created = TemplateMensagem.objects.get_or_create(
             tipo=item['tipo'],
             assunto=item['assunto'],

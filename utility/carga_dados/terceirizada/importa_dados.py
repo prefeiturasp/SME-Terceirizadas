@@ -9,10 +9,11 @@ from sme_terceirizadas.terceirizada.models import Terceirizada
 from sme_terceirizadas.terceirizada.models import Contrato
 from sme_terceirizadas.terceirizada.models import VigenciaContrato
 from utility.carga_dados.helper import ja_existe
+from utility.carga_dados.helper import progressbar
 
 
 def cria_terceirizadas():
-    for item in data_terceirizadas:
+    for item in progressbar(data_terceirizadas, 'Terceirizada'):
         _, created = Terceirizada.objects.get_or_create(
             cnpj=item['cnpj'],
             nome_fantasia=item['nome_fantasia'],

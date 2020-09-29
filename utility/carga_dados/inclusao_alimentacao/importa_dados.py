@@ -3,17 +3,18 @@ from sme_terceirizadas.inclusao_alimentacao.data.motivo_inclusao_normal import d
 from sme_terceirizadas.inclusao_alimentacao.models import MotivoInclusaoContinua
 from sme_terceirizadas.inclusao_alimentacao.models import MotivoInclusaoNormal
 from utility.carga_dados.helper import ja_existe
+from utility.carga_dados.helper import progressbar
 
 
 def cria_motivo_inclusao_continua():
-    for item in data_motivo_inclusao_continua:
+    for item in progressbar(data_motivo_inclusao_continua, 'Motivo Inclusao Continua'):  # noqa
         _, created = MotivoInclusaoContinua.objects.get_or_create(nome=item)
         if not created:
             ja_existe('MotivoInclusaoContinua', item)
 
 
 def cria_motivo_inclusao_normal():
-    for item in data_motivo_inclusao_normal:
+    for item in progressbar(data_motivo_inclusao_normal, 'Motivo Inclusao Normal'):  # noqa
         _, created = MotivoInclusaoNormal.objects.get_or_create(nome=item)
         if not created:
             ja_existe('MotivoInclusaoNormal', item)

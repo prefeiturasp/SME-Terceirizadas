@@ -1,5 +1,6 @@
 from sme_terceirizadas.perfil.models import Usuario
 from utility.carga_dados.escola.helper import bcolors
+from utility.carga_dados.helper import progressbar
 
 
 USUARIOS = [
@@ -126,12 +127,10 @@ USUARIOS = [
 
 
 def cria_usuarios():
-    print(f'{bcolors.OKGREEN}Criando os usuários...{bcolors.ENDC}')
-    for usuario in USUARIOS:
+    for usuario in progressbar(USUARIOS, 'Usuario'):
         if Usuario.objects.filter(email=usuario['email']).first():
-            print(f"{bcolors.FAIL}Usuário {usuario['email']} já existe!{bcolors.ENDC}")
+            print(f"{bcolors.FAIL}Usuário {usuario['email']} já existe!{bcolors.ENDC}")  # noqa
         else:
-            print(f"{usuario['mensagem']}")
             Usuario.objects.create_superuser(
                 email=usuario['email'],
                 password=usuario['password'],

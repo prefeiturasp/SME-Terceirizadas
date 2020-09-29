@@ -9,11 +9,12 @@ from utility.carga_dados.escola.helper import bcolors
 from utility.carga_dados.helper import get_modelo
 from utility.carga_dados.helper import ja_existe
 from utility.carga_dados.helper import le_dados
+from utility.carga_dados.helper import progressbar
 
 
 def cria_informacao_nutricional():
     dict_tipo_nutricional = le_dados(data_tipo_informacao_nutricional)
-    for item in data_informacao_nutricional:
+    for item in progressbar(data_informacao_nutricional, 'Informacao Nutricional'):  # noqa
         tipo_nutricional = get_modelo(
             modelo=TipoDeInformacaoNutricional,
             modelo_id=item.get('tipo_nutricional'),
@@ -31,7 +32,7 @@ def cria_informacao_nutricional():
 
 
 def cria_tipo_informacao_nutricional():
-    for item in data_tipo_informacao_nutricional:
+    for item in progressbar(data_tipo_informacao_nutricional, 'Tipo de Informacao Nutricional'):  # noqa
         _, created = TipoDeInformacaoNutricional.objects.get_or_create(
             nome=item['nome'])
         if not created:
@@ -41,7 +42,7 @@ def cria_tipo_informacao_nutricional():
 def cria_diagnosticos():
     # Protocolo de Dieta Especial
     usuario_codae = Usuario.objects.get(email='codae@admin.com')
-    for item in data_protocolo_de_dieta_especial:
+    for item in progressbar(data_protocolo_de_dieta_especial, 'Protocolo de Dieta Especial'):  # noqa
         obj = ProtocoloDeDietaEspecial.objects.filter(nome=item).first()
         if not obj:
             ProtocoloDeDietaEspecial.objects.create(

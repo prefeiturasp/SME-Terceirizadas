@@ -13,10 +13,11 @@ from utility.carga_dados.helper import adiciona_m2m_items
 from utility.carga_dados.helper import get_modelo
 from utility.carga_dados.helper import ja_existe
 from utility.carga_dados.helper import le_dados
+from utility.carga_dados.helper import progressbar
 
 
 def cria_diretorias_regionais():
-    for item in data_diretorias_regionais:
+    for item in progressbar(data_diretorias_regionais, 'Diretoria Regional'):
         obj = DiretoriaRegional.objects.filter(codigo_eol=item['codigo_eol']).first()  # noqa
         if not obj:
             DiretoriaRegional.objects.create(
@@ -35,7 +36,7 @@ def cria_lotes():
     dict_tipo_gestao = le_dados(data_tipos_gestao, 'nome')
     dict_dre = le_dados(data_diretorias_regionais, 'codigo_eol')
     dict_terceirizada = le_dados(data_terceirizadas, 'cnpj')
-    for item in data_lotes:
+    for item in progressbar(data_lotes, 'Lote'):
         tipo_gestao = get_modelo(
             modelo=TipoGestao,
             modelo_id=item.get('tipo_gestao'),
@@ -71,7 +72,7 @@ def cria_subprefeituras():
     # Possui FK e M2M
     dict_lote = le_dados(data_lotes, 'iniciais')
     dict_dre = le_dados(data_diretorias_regionais, 'codigo_eol')
-    for item in data_subprefeituras:
+    for item in progressbar(data_subprefeituras, 'Subprefeitura'):
         # Não tem lote nos dados originais.
         lote = get_modelo(
             modelo=Lote,
@@ -96,7 +97,7 @@ def cria_subprefeituras():
 
 
 def cria_tipos_gestao():
-    for item in data_tipos_gestao:
+    for item in progressbar(data_tipos_gestao, 'Tipo Gestao'):
         _, created = TipoGestao.objects.get_or_create(nome=item['nome'])
         if not created:
             ja_existe('TipoGestao', item['nome'])
