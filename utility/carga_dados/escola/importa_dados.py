@@ -17,8 +17,7 @@ from utility.carga_dados.helper import le_dados
 
 def cria_diretorias_regionais():
     for item in data_diretorias_regionais:
-        obj = DiretoriaRegional.objects.filter(
-            codigo_eol=item['codigo_eol']).first()
+        obj = DiretoriaRegional.objects.filter(codigo_eol=item['codigo_eol']).first()  # noqa
         if not obj:
             DiretoriaRegional.objects.create(
                 nome=item['nome'],

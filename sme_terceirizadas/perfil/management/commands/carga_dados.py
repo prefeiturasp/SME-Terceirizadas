@@ -1,6 +1,5 @@
 from django.conf import settings
 from django.core.management.base import BaseCommand
-from utility.carga_dados.usuarios import cria_usuarios
 from utility.carga_dados.cardapio.importa_dados import cria_motivoalteracaocardapio  # noqa
 from utility.carga_dados.cardapio.importa_dados import cria_motivosuspensao
 from utility.carga_dados.cardapio.importa_dados import cria_tipo_alimentacao
@@ -12,11 +11,13 @@ from utility.carga_dados.escola.importa_dados import cria_subprefeituras
 from utility.carga_dados.escola.importa_dados import cria_tipos_gestao
 from utility.carga_dados.inclusao_alimentacao.importa_dados import cria_motivo_inclusao_continua  # noqa
 from utility.carga_dados.inclusao_alimentacao.importa_dados import cria_motivo_inclusao_normal  # noqa
-from utility.carga_dados.kit_lanche.importa_dados import cria_kit_lanche_item
 from utility.carga_dados.kit_lanche.importa_dados import cria_kit_lanche
+from utility.carga_dados.kit_lanche.importa_dados import cria_kit_lanche_item
+from utility.carga_dados.produto.importa_dados import cria_diagnosticos
 from utility.carga_dados.produto.importa_dados import cria_informacao_nutricional  # noqa
 from utility.carga_dados.produto.importa_dados import cria_tipo_informacao_nutricional  # noqa
 from utility.carga_dados.terceirizada.importa_dados import cria_terceirizadas
+from utility.carga_dados.usuarios import cria_usuarios
 
 
 class Command(BaseCommand):
@@ -66,7 +67,7 @@ class Command(BaseCommand):
         #     cria_vigencias()  # Fazer
 
         # Produto
-        # cria_diagnosticos()  # Fazer
+        cria_diagnosticos()
 
         # Escola
         # TODO para DEV

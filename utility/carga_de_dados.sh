@@ -66,7 +66,7 @@ fi
 ./manage.py shell -c "from utility.carga_dados.escola import _12_atualiza_escolas"
 ./manage.py shell -c "from utility.carga_dados.dieta_especial import _13_dieta_especial"
 ./manage.py shell -c "from utility.carga_dados.dieta_especial import _16_dieta_especial_carga_alimentos"
-./manage.py shell -c "from utility.carga_dados.produto import _1_carrega_diagnosticos"
+# ./manage.py shell -c "from utility.carga_dados.produto import _1_carrega_diagnosticos"
 
 echo -e "${RED}--------CRIANDO GESTORES DAS ESCOLAS----------${NC}"
 ./manage.py shell -c "from utility.carga_dados.escola import _7_diretor_escola"
