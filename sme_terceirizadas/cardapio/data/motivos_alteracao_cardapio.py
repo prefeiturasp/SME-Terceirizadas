@@ -1,3 +1,3 @@
 data_motivoalteracaocardapio = [
-    "Atividade Diferenciada"
+    'Atividade Diferenciada'
 ]

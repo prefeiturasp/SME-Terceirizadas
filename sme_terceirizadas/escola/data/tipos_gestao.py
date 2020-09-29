@@ -5,11 +5,11 @@ Para isso é criado um dicionário no Python apenas pra identificar os dados.
 '''
 data_tipos_gestao = [
     {
-        "id": 1,
-        "nome": "TERC TOTAL"
+        'id': 1,
+        'nome': 'TERC TOTAL'
     },
     {
-        "id": 2,
-        "nome": "MISTA"
+        'id': 2,
+        'nome': 'MISTA'
     }
 ]
