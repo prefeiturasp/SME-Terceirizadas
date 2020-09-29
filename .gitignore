@@ -296,3 +296,5 @@ sme_terceirizadas/media/
 *.csv
 *.idea
 .tmontmp/
+
+*.ipynb
