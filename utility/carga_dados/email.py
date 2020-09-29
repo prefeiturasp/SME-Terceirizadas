@@ -1,7 +1,6 @@
 import os
 
 from des.models import DynamicEmailConfiguration
-
 from utility.carga_dados.escola.helper import bcolors
 
 print(f'{bcolors.OKBLUE}Criando a configuração de email...')

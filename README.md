@@ -247,5 +247,5 @@ pipenv shell
 
 python manage.py migrate
 
-./utility/carga_de_dados.sh
+python manage.py carga_dados
 ```
