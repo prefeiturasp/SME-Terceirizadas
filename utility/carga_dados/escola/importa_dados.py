@@ -35,6 +35,6 @@ def cria_subprefeituras():
 
 def cria_tipos_gestao():
     for item in data_tipos_gestao:
-        _, created = TipoGestao.objects.get_or_create(nome=item)
+        _, created = TipoGestao.objects.get_or_create(nome=item['nome'])
         if not created:
-            ja_existe('TipoGestao', item)
+            ja_existe('TipoGestao', item['nome'])

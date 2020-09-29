@@ -1,4 +1,10 @@
 data_tipos_gestao = [
-    "TERC TOTAL",
-    "MISTA"
+    {
+        "id": 1,
+        "nome": "TERC TOTAL"
+    },
+    {
+        "id": 2,
+        "nome": "MISTA"
+    }
 ]
