@@ -76,4 +76,4 @@ class Command(BaseCommand):
         cria_diagnosticos()
 
         # Escola
-        # TODO para DEV
+        # TODO
