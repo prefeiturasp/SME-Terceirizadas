@@ -1,8 +1,8 @@
-import pandas as pd
 from unicodedata import normalize
 
-from sme_terceirizadas.escola.models import DiretoriaRegional
-from sme_terceirizadas.escola.models import Lote
+import pandas as pd
+
+from sme_terceirizadas.escola.models import DiretoriaRegional, Lote
 
 caminho_excel = '/home/amcom/Documentos/docs PO alimentacao/lista de lotes.xlsx'
 
@@ -74,5 +74,3 @@ planilhas = busca_planilhas_do_excel(nomes_sheet)
 objetos_da_planilha = busca_lotes(planilhas)
 
 monta_salva_objeto(objetos_da_planilha)
-
-

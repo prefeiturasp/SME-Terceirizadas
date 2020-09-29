@@ -5,12 +5,10 @@ import time
 import environ
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import IntegrityError
+from utility.carga_dados.escola.helper import bcolors, printa_pontinhos
 
 from sme_terceirizadas.escola.management.commands.helper import calcula_total_alunos_por_escola_por_periodo
-from sme_terceirizadas.escola.models import (
-    Escola, PeriodoEscolar, EscolaPeriodoEscolar
-)
-from utility.carga_dados.escola.helper import printa_pontinhos, bcolors
+from sme_terceirizadas.escola.models import Escola, EscolaPeriodoEscolar, PeriodoEscolar
 
 ROOT_DIR = environ.Path(__file__) - 1
 with open(os.path.join(ROOT_DIR, 'planilhas_de_carga', 'total_alunos.json'), 'r') as f:

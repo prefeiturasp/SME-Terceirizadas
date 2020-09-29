@@ -1,10 +1,11 @@
 import environ
 import numpy as np
 import pandas as pd
+from utility.carga_dados.escola.helper import bcolors, coloca_zero_a_esquerda, printa_pontinhos, somente_digitos
 
 from sme_terceirizadas.escola.models import Codae
 from sme_terceirizadas.perfil.models import Perfil, Usuario
-from utility.carga_dados.escola.helper import coloca_zero_a_esquerda, printa_pontinhos, bcolors, somente_digitos
+
 from .helper import cria_vinculo_de_perfil_usuario
 
 ROOT_DIR = environ.Path(__file__) - 1

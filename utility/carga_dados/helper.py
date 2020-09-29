@@ -1,4 +1,5 @@
 import sys
+
 from utility.carga_dados.escola.helper import bcolors
 
 

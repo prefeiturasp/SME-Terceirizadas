@@ -1,7 +1,7 @@
-from sme_terceirizadas.perfil.models import Usuario
 from utility.carga_dados.escola.helper import bcolors
 from utility.carga_dados.helper import progressbar
 
+from sme_terceirizadas.perfil.models import Usuario
 
 USUARIOS = [
     {

@@ -1,15 +1,15 @@
+from utility.carga_dados.escola.helper import bcolors
+from utility.carga_dados.helper import get_modelo, ja_existe, le_dados, progressbar
+
 from sme_terceirizadas.perfil.models import Usuario
 from sme_terceirizadas.produto.data.informacao_nutricional import data_informacao_nutricional  # noqa
 from sme_terceirizadas.produto.data.protocolo_de_dieta_especial import data_protocolo_de_dieta_especial  # noqa
 from sme_terceirizadas.produto.data.tipo_informacao_nutricional import data_tipo_informacao_nutricional  # noqa
-from sme_terceirizadas.produto.models import InformacaoNutricional
-from sme_terceirizadas.produto.models import ProtocoloDeDietaEspecial
-from sme_terceirizadas.produto.models import TipoDeInformacaoNutricional
-from utility.carga_dados.escola.helper import bcolors
-from utility.carga_dados.helper import get_modelo
-from utility.carga_dados.helper import ja_existe
-from utility.carga_dados.helper import le_dados
-from utility.carga_dados.helper import progressbar
+from sme_terceirizadas.produto.models import (
+    InformacaoNutricional,
+    ProtocoloDeDietaEspecial,
+    TipoDeInformacaoNutricional
+)
 
 
 def cria_informacao_nutricional():

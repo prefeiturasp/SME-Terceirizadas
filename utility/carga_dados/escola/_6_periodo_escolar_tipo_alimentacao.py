@@ -1,7 +1,10 @@
-from sme_terceirizadas.cardapio.models import TipoAlimentacao, \
-    VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
-from sme_terceirizadas.escola.models import PeriodoEscolar, TipoUnidadeEscolar
 from utility.carga_dados.escola.helper import printa_pontinhos
+
+from sme_terceirizadas.cardapio.models import (
+    TipoAlimentacao,
+    VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
+)
+from sme_terceirizadas.escola.models import PeriodoEscolar, TipoUnidadeEscolar
 
 
 def vincula_tipo_alimentcao():

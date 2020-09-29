@@ -1,15 +1,11 @@
+from utility.carga_dados.helper import ja_existe, progressbar
+
 from sme_terceirizadas.terceirizada.data.contratos import data_contratos
 from sme_terceirizadas.terceirizada.data.editais import data_editais
 from sme_terceirizadas.terceirizada.data.nutricionistas import data_nutricionistas
 from sme_terceirizadas.terceirizada.data.terceirizadas import data_terceirizadas
 from sme_terceirizadas.terceirizada.data.vigencias import data_vigencias
-from sme_terceirizadas.terceirizada.models import Edital
-from sme_terceirizadas.terceirizada.models import Nutricionista
-from sme_terceirizadas.terceirizada.models import Terceirizada
-from sme_terceirizadas.terceirizada.models import Contrato
-from sme_terceirizadas.terceirizada.models import VigenciaContrato
-from utility.carga_dados.helper import ja_existe
-from utility.carga_dados.helper import progressbar
+from sme_terceirizadas.terceirizada.models import Contrato, Edital, Nutricionista, Terceirizada, VigenciaContrato
 
 
 def cria_terceirizadas():

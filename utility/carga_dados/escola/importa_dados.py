@@ -1,19 +1,13 @@
+from utility.carga_dados.escola.helper import bcolors
+from utility.carga_dados.helper import adiciona_m2m_items, get_modelo, ja_existe, le_dados, progressbar
+
 from sme_terceirizadas.escola.data.diretorias_regionais import data_diretorias_regionais  # noqa
 from sme_terceirizadas.escola.data.lotes import data_lotes
 from sme_terceirizadas.escola.data.subprefeituras import data_subprefeituras
 from sme_terceirizadas.escola.data.tipos_gestao import data_tipos_gestao
-from sme_terceirizadas.escola.models import DiretoriaRegional
-from sme_terceirizadas.escola.models import Lote
-from sme_terceirizadas.escola.models import Subprefeitura
-from sme_terceirizadas.escola.models import TipoGestao
+from sme_terceirizadas.escola.models import DiretoriaRegional, Lote, Subprefeitura, TipoGestao
 from sme_terceirizadas.terceirizada.data.terceirizadas import data_terceirizadas  # noqa
 from sme_terceirizadas.terceirizada.models import Terceirizada
-from utility.carga_dados.escola.helper import bcolors
-from utility.carga_dados.helper import adiciona_m2m_items
-from utility.carga_dados.helper import get_modelo
-from utility.carga_dados.helper import ja_existe
-from utility.carga_dados.helper import le_dados
-from utility.carga_dados.helper import progressbar
 
 
 def cria_diretorias_regionais():

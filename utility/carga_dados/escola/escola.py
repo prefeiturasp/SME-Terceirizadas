@@ -1,10 +1,9 @@
-import pandas as pd
 import re
 from unicodedata import normalize
 
-from sme_terceirizadas.escola.models import Escola, DiretoriaRegional, TipoGestao, TipoUnidadeEscolar
+import pandas as pd
 
-from sme_terceirizadas.escola.models import Lote
+from sme_terceirizadas.escola.models import DiretoriaRegional, Escola, Lote, TipoGestao, TipoUnidadeEscolar
 
 caminho_excel = '/home/amcom/Documents/planilhas_de_carga/escola_dre_codae.xlsx'
 

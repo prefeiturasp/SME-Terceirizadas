@@ -8,15 +8,33 @@ import numpy as np
 from faker import Faker
 from xworkflows import InvalidTransitionError
 
-from sme_terceirizadas.cardapio.models import TipoAlimentacao, InversaoCardapio, Cardapio, \
-    GrupoSuspensaoAlimentacao, SuspensaoAlimentacao, MotivoSuspensao, QuantidadePorPeriodoSuspensaoAlimentacao, \
-    AlteracaoCardapio, MotivoAlteracaoCardapio
-from sme_terceirizadas.escola.models import Escola, DiretoriaRegional, PeriodoEscolar
-from sme_terceirizadas.inclusao_alimentacao.models import InclusaoAlimentacaoContinua, \
-    MotivoInclusaoContinua, GrupoInclusaoAlimentacaoNormal, QuantidadePorPeriodo, InclusaoAlimentacaoNormal, \
-    MotivoInclusaoNormal
-from sme_terceirizadas.kit_lanche.models import SolicitacaoKitLancheUnificada, \
-    SolicitacaoKitLanche, KitLanche, SolicitacaoKitLancheAvulsa, EscolaQuantidade
+from sme_terceirizadas.cardapio.models import (
+    AlteracaoCardapio,
+    Cardapio,
+    GrupoSuspensaoAlimentacao,
+    InversaoCardapio,
+    MotivoAlteracaoCardapio,
+    MotivoSuspensao,
+    QuantidadePorPeriodoSuspensaoAlimentacao,
+    SuspensaoAlimentacao,
+    TipoAlimentacao
+)
+from sme_terceirizadas.escola.models import DiretoriaRegional, Escola, PeriodoEscolar
+from sme_terceirizadas.inclusao_alimentacao.models import (
+    GrupoInclusaoAlimentacaoNormal,
+    InclusaoAlimentacaoContinua,
+    InclusaoAlimentacaoNormal,
+    MotivoInclusaoContinua,
+    MotivoInclusaoNormal,
+    QuantidadePorPeriodo
+)
+from sme_terceirizadas.kit_lanche.models import (
+    EscolaQuantidade,
+    KitLanche,
+    SolicitacaoKitLanche,
+    SolicitacaoKitLancheAvulsa,
+    SolicitacaoKitLancheUnificada
+)
 from sme_terceirizadas.perfil.models import Usuario
 
 f = Faker('pt-br')
