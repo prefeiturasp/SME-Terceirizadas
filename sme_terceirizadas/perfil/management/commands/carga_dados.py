@@ -52,7 +52,7 @@ class Command(BaseCommand):
             cria_kit_lanche_item()
             cria_kit_lanche()
 
-        cria_tipo_informacao_nutricional()  # aqui
+        cria_tipo_informacao_nutricional()
         cria_informacao_nutricional()
 
         # if settings.DEBUG:
