@@ -31,6 +31,8 @@ from sme_terceirizadas.escola.models import (
 from sme_terceirizadas.terceirizada.data.terceirizadas import data_terceirizadas  # noqa
 from sme_terceirizadas.terceirizada.models import Terceirizada
 
+ROOT_DIR = environ.Path(__file__) - 1
+
 
 def cria_diretorias_regionais():
     for item in progressbar(data_diretorias_regionais, 'Diretoria Regional'):
@@ -119,11 +121,10 @@ def cria_tipos_gestao():
             ja_existe('TipoGestao', item['nome'])
 
 
-def cria_tipo_unidade_escolar():
+def cria_tipo_unidade_escolar(arquivo):
     # Pega somente a coluna 'TIPO DE U.E'
     iniciais = 'TIPO DE U.E'
-    ROOT_DIR = environ.Path(__file__) - 1
-    arquivo = f'{ROOT_DIR}/csv/escola_dre_codae_EMEF_EMEFM_EMEBS_CIEJA.csv'
+    arquivo = f'{ROOT_DIR}/{arquivo}'
     items = csv_to_list(arquivo)
     items_iniciais = [item[iniciais] for item in items]
 
@@ -140,9 +141,8 @@ def cria_tipo_unidade_escolar():
             TipoUnidadeEscolar.objects.create(iniciais=iniciais)
 
 
-def cria_contatos_escola():
-    ROOT_DIR = environ.Path(__file__) - 1
-    arquivo = f'{ROOT_DIR}/csv/escola_dre_codae_EMEF_EMEFM_EMEBS_CIEJA.csv'
+def cria_contatos_escola(arquivo):
+    arquivo = f'{ROOT_DIR}/{arquivo}'
     items = csv_to_list(arquivo)
 
     for item in progressbar(items, 'Contatos Escola'):
@@ -178,7 +178,6 @@ def padroniza_dados(items):
         'CEP',
         'EMPRESA',
         'COD. CODAE',
-        'TIPO_UE2',
     )
     for item in items:
         for campo in campos_maiusculos:
@@ -212,11 +211,10 @@ def padroniza_dados(items):
     return items
 
 
-def cria_escola_emef_emefm_emebs_cieja():
-    ROOT_DIR = environ.Path(__file__) - 1
-    arquivo = f'{ROOT_DIR}/csv/escola_dre_codae_EMEF_EMEFM_EMEBS_CIEJA.csv'
+def cria_escola(arquivo, legenda):
     lista_auxiliar = []
 
+    arquivo = f'{ROOT_DIR}/{arquivo}'
     items = csv_to_list(arquivo)
 
     # Padroniza os dados
@@ -233,7 +231,7 @@ def cria_escola_emef_emefm_emebs_cieja():
     # E insere somente os itens faltantes.
     escolas_faltantes = [item for item in items if item['EOL'] not in escolas]
     if escolas_faltantes:
-        for item in progressbar(escolas_faltantes, 'Escola EMEF, EMEFM, EMEBS, CIEJA'):  # noqa
+        for item in progressbar(escolas_faltantes, legenda):  # noqa
             dre_nome = item.get('DRE')
             tipo_ue_iniciais = item.get('TIPO DE U.E')
             lote_sigla = item.get('SIGLA/LOTE')

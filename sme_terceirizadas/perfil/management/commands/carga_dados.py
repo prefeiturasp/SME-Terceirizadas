@@ -10,7 +10,7 @@ from utility.carga_dados.dados_comuns.importa_dados import cria_contatos, cria_t
 from utility.carga_dados.escola.importa_dados import (
     cria_contatos_escola,
     cria_diretorias_regionais,
-    cria_escola_emef_emefm_emebs_cieja,
+    cria_escola,
     cria_lotes,
     cria_subprefeituras,
     cria_tipo_unidade_escolar,
@@ -71,9 +71,21 @@ class Command(BaseCommand):
         cria_diagnosticos()
 
         # Escola
-        cria_tipo_unidade_escolar()
-        cria_contatos_escola()
-        cria_escola_emef_emefm_emebs_cieja()
+        arquivo = 'csv/escola_dre_codae_EMEF_EMEFM_EMEBS_CIEJA.csv'
+        cria_tipo_unidade_escolar(arquivo)
+        cria_contatos_escola(arquivo)
+        cria_escola(
+            arquivo=arquivo,
+            legenda='Escola EMEF, EMEFM, EMEBS, CIEJA'
+        )
+
+        arquivo = 'csv/escola_dre_codae_EMEI.csv'
+        cria_tipo_unidade_escolar(arquivo)
+        cria_contatos_escola(arquivo)
+        cria_escola(
+            arquivo=arquivo,
+            legenda='Escola EMEI'
+        )
 
         toc = timeit.default_timer()
         print('Tempo:', round(toc - tic, 2), 's')
