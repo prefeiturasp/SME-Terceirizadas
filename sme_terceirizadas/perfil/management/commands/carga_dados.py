@@ -1,3 +1,4 @@
+import timeit
 from django.conf import settings
 from django.core.management.base import BaseCommand
 from utility.carga_dados.cardapio.importa_dados import (
@@ -33,40 +34,44 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         self.stdout.write('Importando dados...')
+        tic = timeit.default_timer()
 
         # A ordem dos métodos é importante!
         # Por isso um monte de if.
-        # if settings.DEBUG:
-        #     cria_usuarios()  # Dev
+        if settings.DEBUG:
+            cria_usuarios()  # Dev
 
-        # cria_motivoalteracaocardapio()
-        # cria_motivosuspensao()
-        # cria_tipo_alimentacao()
+        cria_motivoalteracaocardapio()
+        cria_motivosuspensao()
+        cria_tipo_alimentacao()
 
-        # if settings.DEBUG:
-        #     cria_contatos()
-        #     cria_templatemensagem()
+        if settings.DEBUG:
+            cria_contatos()
+            cria_templatemensagem()
 
-        # cria_diretorias_regionais()
-        # cria_tipos_gestao()
+        cria_diretorias_regionais()
+        cria_tipos_gestao()
 
-        # cria_terceirizadas()
+        cria_terceirizadas()
 
-        # cria_lotes()
-        # cria_subprefeituras()
-        # cria_motivo_inclusao_continua()
-        # cria_motivo_inclusao_normal()
+        cria_lotes()
+        cria_subprefeituras()
+        cria_motivo_inclusao_continua()
+        cria_motivo_inclusao_normal()
 
-        # if settings.DEBUG:
-        #     cria_kit_lanche_item()
-        #     cria_kit_lanche()
+        if settings.DEBUG:
+            cria_kit_lanche_item()
+            cria_kit_lanche()
 
-        # cria_tipo_informacao_nutricional()
-        # cria_informacao_nutricional()
+        cria_tipo_informacao_nutricional()
+        cria_informacao_nutricional()
 
-        # # Produto
-        # cria_diagnosticos()
+        # Produto
+        cria_diagnosticos()
 
         # Escola
         cria_tipo_unidade_escolar()
         cria_escola_emef_emefm_emebs_cieja()
+
+        toc = timeit.default_timer()
+        print('Tempo:', round(toc - tic, 2), 'segundos')

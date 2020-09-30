@@ -79,12 +79,12 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
         (ESCOLA_CANCELOU, 'Escola cancelou'),
         (DRE_CANCELOU, 'DRE cancelou'),
         (CODAE_QUESTIONOU, 'Questionamento pela CODAE'),
-        (TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO, 'Terceirizada respondeu questionamento'),
+        (TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO, 'Terceirizada respondeu questionamento'),  # noqa
         (INICIO_FLUXO_INATIVACAO, 'Escola solicitou inativação'),
         (CODAE_AUTORIZOU_INATIVACAO, 'CODAE autorizou inativação'),
         (CODAE_NEGOU_INATIVACAO, 'CODAE negou inativação'),
-        (TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO, 'Terceirizada tomou ciência da inativação'),
-        (TERMINADA_AUTOMATICAMENTE_SISTEMA, 'Terminada por atingir data de término'),
+        (TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO, 'Terceirizada tomou ciência da inativação'),  # noqa
+        (TERMINADA_AUTOMATICAMENTE_SISTEMA, 'Terminada por atingir data de término'),  # noqa
         (CODAE_PENDENTE_HOMOLOGACAO, 'Pendente homologação da CODAE'),
         (CODAE_HOMOLOGADO, 'CODAE homologou'),
         (CODAE_NAO_HOMOLOGADO, 'CODAE não homologou'),
@@ -92,14 +92,14 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
         (TERCEIRIZADA_CANCELOU, 'Terceirizada cancelou homologação'),
         (INATIVA, 'Homologação inativa'),
         (CODAE_SUSPENDEU, 'CODAE suspendeu o produto'),
-        (ESCOLA_OU_NUTRICIONISTA_RECLAMOU, 'Escola/Nutricionista reclamou do produto'),
+        (ESCOLA_OU_NUTRICIONISTA_RECLAMOU, 'Escola/Nutricionista reclamou do produto'),  # noqa
         (CODAE_PEDIU_ANALISE_RECLAMACAO, 'CODAE pediu análise da reclamação'),
         (CODAE_AUTORIZOU_RECLAMACAO, 'CODAE autorizou reclamação'),
         (CODAE_RECUSOU_RECLAMACAO, 'CODAE recusou reclamação'),
-        (CODAE_QUESTIONOU_TERCEIRIZADA, 'CODAE questionou terceirizada sobre reclamação'),
+        (CODAE_QUESTIONOU_TERCEIRIZADA, 'CODAE questionou terceirizada sobre reclamação'),  # noqa
         (CODAE_RESPONDEU_RECLAMACAO, 'CODAE respondeu ao reclamante da reclamação'),
         (TERCEIRIZADA_RESPONDEU_RECLAMACAO, 'Terceirizada respondeu a reclamação'),
-        (TERCEIRIZADA_RESPONDEU_ANALISE_SENSORIAL, 'Terceirizada respondeu a análise')
+        (TERCEIRIZADA_RESPONDEU_ANALISE_SENSORIAL, 'Terceirizada respondeu a análise')  # noqa
     )
     (  # DA ESCOLA
         SOLICITACAO_KIT_LANCHE_AVULSA,
@@ -136,12 +136,15 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
     )
 
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-    criado_em = models.DateTimeField('Criado em', editable=False, auto_now_add=True)
+    criado_em = models.DateTimeField(
+        'Criado em', editable=False, auto_now_add=True)
     descricao = models.TextField('Descricao', blank=True)
     justificativa = models.TextField('Justificativa', blank=True)
-    resposta_sim_nao = models.BooleanField('Resposta - Sim ou Não', default=False)
+    resposta_sim_nao = models.BooleanField(
+        'Resposta - Sim ou Não', default=False)
     status_evento = models.PositiveSmallIntegerField(choices=STATUS_POSSIVEIS)
-    solicitacao_tipo = models.PositiveSmallIntegerField(choices=TIPOS_SOLICITACOES)
+    solicitacao_tipo = models.PositiveSmallIntegerField(
+        choices=TIPOS_SOLICITACOES)
     uuid_original = models.UUIDField()
     usuario = models.ForeignKey('perfil.Usuario', on_delete=models.DO_NOTHING)
 
@@ -160,7 +163,11 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
 
 class AnexoLogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes_anexo'), models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-    log = models.ForeignKey(LogSolicitacoesUsuario, related_name='anexos', on_delete=models.DO_NOTHING)
+    log = models.ForeignKey(
+        LogSolicitacoesUsuario,
+        related_name='anexos',
+        on_delete=models.DO_NOTHING
+    )
     nome = models.CharField(max_length=255, blank=True)
     arquivo = models.FileField()
 
@@ -169,7 +176,10 @@ class AnexoLogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes_a
 
 
 class Endereco(ExportModelOperationsMixin('endereco'), models.Model):
-    logradouro = models.CharField(max_length=255, validators=[MinLengthValidator(5)])
+    logradouro = models.CharField(
+        max_length=255,
+        validators=[MinLengthValidator(5)]
+    )
     numero = models.IntegerField(null=True)
     complemento = models.CharField(max_length=50, blank=True)
     bairro = models.CharField(max_length=50)
@@ -177,16 +187,30 @@ class Endereco(ExportModelOperationsMixin('endereco'), models.Model):
 
 
 class Contato(ExportModelOperationsMixin('contato'), models.Model):
-    telefone = models.CharField(max_length=13, validators=[MinLengthValidator(8)],
-                                blank=True)
-    telefone2 = models.CharField(max_length=10, validators=[MinLengthValidator(8)],
-                                 blank=True)
-    celular = models.CharField(max_length=11, validators=[MinLengthValidator(8)],
-                               blank=True)
+    telefone = models.CharField(
+        max_length=13,
+        validators=[MinLengthValidator(8)],
+        blank=True
+    )
+    telefone2 = models.CharField(
+        max_length=10,
+        validators=[MinLengthValidator(8)],
+        blank=True
+    )
+    celular = models.CharField(
+        max_length=11,
+        validators=[MinLengthValidator(8)],
+        blank=True
+    )
     email = models.EmailField(blank=True)
 
     def __str__(self):
-        return f'{self.telefone}, {self.email}'
+        if self.telefone:
+            return f'{self.telefone}, {self.email}'
+        elif self.telefone2:
+            return f'{self.telefone2}, {self.email}'
+        else:
+            return f'{self.email}'
 
 
 class TemplateMensagem(ExportModelOperationsMixin('template_mensagem'), models.Model):
@@ -239,10 +263,10 @@ class CategoriaPerguntaFrequente(ExportModelOperationsMixin('cat_faq'), models.M
 
 
 class PerguntaFrequente(ExportModelOperationsMixin('faq'), models.Model):
-    categoria = models.ForeignKey('CategoriaPerguntaFrequente', on_delete=models.PROTECT)
+    categoria = models.ForeignKey('CategoriaPerguntaFrequente', on_delete=models.PROTECT)  # noqa
     pergunta = models.TextField('Pergunta')
     resposta = models.TextField('Resposta')
-    criado_em = models.DateTimeField('Criado em', editable=False, auto_now_add=True)
+    criado_em = models.DateTimeField('Criado em', editable=False, auto_now_add=True)  # noqa
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
 
     def __str__(self):
