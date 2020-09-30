@@ -62,18 +62,5 @@ class Command(BaseCommand):
         cria_tipo_informacao_nutricional()
         cria_informacao_nutricional()
 
-        # if settings.DEBUG:
-        #     # terceirizada
-        #     cria_contratos()  # Fazer
-        #     cria_editais()  # Fazer
-        #     cria_nutricionistas()  # Fazer
-
-        # if settings.DEBUG:
-        #     # terceirizada
-        #     cria_vigencias()  # Fazer
-
         # Produto
         cria_diagnosticos()
-
-        # Escola
-        # TODO
