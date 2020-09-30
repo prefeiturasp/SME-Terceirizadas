@@ -8,6 +8,7 @@ from utility.carga_dados.cardapio.importa_dados import (
 )
 from utility.carga_dados.dados_comuns.importa_dados import cria_contatos, cria_templatemensagem  # noqa
 from utility.carga_dados.escola.importa_dados import (
+    cria_contatos_escola,
     cria_diretorias_regionais,
     cria_escola_emef_emefm_emebs_cieja,
     cria_lotes,
@@ -71,7 +72,8 @@ class Command(BaseCommand):
 
         # Escola
         cria_tipo_unidade_escolar()
+        cria_contatos_escola()
         cria_escola_emef_emefm_emebs_cieja()
 
         toc = timeit.default_timer()
-        print('Tempo:', round(toc - tic, 2), 'segundos')
+        print('Tempo:', round(toc - tic, 2), 's')

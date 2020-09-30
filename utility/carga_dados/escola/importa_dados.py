@@ -14,7 +14,7 @@ from utility.carga_dados.escola.helper import (
     normaliza_nome,
     somente_digitos,
 )
-
+from django.db.models import Q
 from sme_terceirizadas.dados_comuns.models import Contato
 from sme_terceirizadas.escola.data.diretorias_regionais import data_diretorias_regionais  # noqa
 from sme_terceirizadas.escola.data.lotes import data_lotes
@@ -140,6 +140,30 @@ def cria_tipo_unidade_escolar():
             TipoUnidadeEscolar.objects.create(iniciais=iniciais)
 
 
+def cria_contatos_escola():
+    ROOT_DIR = environ.Path(__file__) - 1
+    arquivo = f'{ROOT_DIR}/csv/escola_dre_codae_EMEF_EMEFM_EMEBS_CIEJA.csv'
+    items = csv_to_list(arquivo)
+
+    for item in progressbar(items, 'Contatos Escola'):
+        _email = item.get('E-MAIL').strip().lower() or ''
+        email = _email if email_valido(_email) else ''
+
+        telefone1 = somente_digitos(item.get('TELEFONE'))
+        if 8 < len(telefone1) > 10:
+            telefone1 = None
+        telefone2 = somente_digitos(item.get('TELEFONE2'))
+        if 8 < len(telefone2) > 10:
+            telefone2 = None
+
+        if telefone1 or telefone2 or email:
+            Contato.objects.get_or_create(
+                telefone=telefone1,
+                telefone2=telefone2,
+                email=email,
+            )
+
+
 def padroniza_dados(items):
     # Tudo Maiusculo + strip
     campos_maiusculos = (
@@ -148,13 +172,10 @@ def padroniza_dados(items):
         'NOME',
         'DRE',
         'SIGLA/LOTE',
-        # 'E-MAIL',  # strip
         'ENDEREÇO',
         'Nº',
         'BAIRRO',
         'CEP',
-        'TELEFONE',
-        'TELEFONE2',
         'EMPRESA',
         'COD. CODAE',
         'TIPO_UE2',
@@ -183,8 +204,6 @@ def padroniza_dados(items):
     # Somente digitos
     campos_somente_digitos = (
         'CEP',
-        'TELEFONE',
-        'TELEFONE2',
     )
     for item in items:
         for campo in campos_somente_digitos:
@@ -218,27 +237,20 @@ def cria_escola_emef_emefm_emebs_cieja():
             dre_nome = item.get('DRE')
             tipo_ue_iniciais = item.get('TIPO DE U.E')
             lote_sigla = item.get('SIGLA/LOTE')
-            _email = item.get('E-MAIL').strip().lower() or ''
-            email = _email if email_valido(_email) else ''
-
-            telefone1 = item.get('TELEFONE')
-            if 8 < len(telefone1) > 10:
-                telefone1 = None
-            telefone2 = item.get('TELEFONE2')
-            if 8 < len(telefone2) > 10:
-                telefone2 = None
+            email = item.get('E-MAIL').strip().lower() or ''
+            telefone1 = somente_digitos(item.get('TELEFONE'))
+            telefone2 = somente_digitos(item.get('TELEFONE2'))
 
             dre_obj, created_dre = DiretoriaRegional.objects.get_or_create(nome=dre_nome)  # noqa
             tipo_ue_obj, created_ue = TipoUnidadeEscolar.objects.get_or_create(iniciais=tipo_ue_iniciais)  # noqa
             tipo_gestao = TipoGestao.objects.get(nome='TERC TOTAL')
             lote_obj = Lote.objects.filter(iniciais=lote_sigla).first() or None
-
             if telefone1 or telefone2 or email:
-                contato_obj, created_contato = Contato.objects.get_or_create(
-                    telefone=telefone1,
-                    telefone2=telefone2,
-                    email=email,
-                )
+                contato_obj = Contato.objects.filter(
+                    Q(telefone=telefone1) |
+                    Q(telefone2=telefone2) |
+                    Q(email=email)
+                ).first()
 
             tipo_ue = item.get('TIPO DE U.E')
             nome = item.get('NOME')
@@ -249,12 +261,13 @@ def cria_escola_emef_emefm_emebs_cieja():
                 diretoria_regional=dre_obj,
                 tipo_unidade=tipo_ue_obj,
                 tipo_gestao=tipo_gestao,
-                contato=contato_obj
             )
             if lote_obj:
-                escola_obj = Escola(**data, lote=lote_obj)
-            else:
-                escola_obj = Escola(**data)
+                data['lote'] = lote_obj
+            if contato_obj:
+                data['contato'] = contato_obj
+
+            escola_obj = Escola(**data)
             lista_auxiliar.append(escola_obj)
 
         Escola.objects.bulk_create(lista_auxiliar)
