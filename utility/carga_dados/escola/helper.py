@@ -28,8 +28,12 @@ def normaliza_nome(nome):
     return nome
 
 
+def maiuscula(palavra):
+    return palavra.strip().upper()
+
+
 def somente_digitos(palavra):
-    return ''.join(p for p in palavra if p in '0123456789')
+    return ''.join(p for p in palavra if p.isdigit())
 
 
 def coloca_zero_a_esquerda(palavra, tam=6):
@@ -76,3 +80,12 @@ def cria_vinculo_de_perfil_usuario(perfil, usuario, instituicao):
         ativo=False
     )
     return vinculo
+
+
+def email_valido(email):
+    '''
+    Verifica se email é válido.
+    '''
+    if '@' in email:
+        return True
+    return False
