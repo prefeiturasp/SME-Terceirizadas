@@ -7,6 +7,8 @@ from sme_terceirizadas.perfil.models import Perfil, Usuario, Vinculo
 
 data_atual = datetime.date.today()
 
+# DEV
+
 usuario_escola = Usuario.objects.get(email='escola@admin.com')
 usuario_escola.registro_funcional = '0000001'
 usuario_escola.nome = 'SUPER USUARIO ESCOLA'
@@ -38,7 +40,8 @@ usuario_nutri_codae.nome = 'SUPER USUARIO NUTRICIONISTA CODAE'
 usuario_nutri_codae.crn_numero = '15975364'
 usuario_nutri_codae.cargo = 'Nutricionista'
 usuario_nutri_codae.save()
-usuario_nutri_supervisao = Usuario.objects.get(email='nutrisupervisao@admin.com')
+usuario_nutri_supervisao = Usuario.objects.get(
+    email='nutrisupervisao@admin.com')
 usuario_nutri_supervisao.registro_funcional = '0010000'
 usuario_nutri_supervisao.nome = 'SUPER USUARIO NUTRICIONISTA SUPERVISAO'
 usuario_nutri_supervisao.crn_numero = '47135859'
@@ -89,6 +92,8 @@ usuario_escola_ceu_emef.registro_funcional = '0001111'
 usuario_escola_ceu_emef.nome = 'SUPER USUARIO ESCOLA CEU EMEF'
 usuario_escola_ceu_emef.cargo = 'Diretor'
 usuario_escola_ceu_emef.save()
+
+# PROD
 
 perfil_diretor_escola, created = Perfil.objects.get_or_create(
     nome='DIRETOR',
@@ -174,7 +179,9 @@ perfil_administrador_gestao_produto, created = Perfil.objects.get_or_create(
     super_usuario=True
 )
 
+# FIM PROD
 
+# DEV
 
 escola = Escola.objects.get(nome='EMEF JOSE ERMIRIO DE MORAIS, SEN.')
 escola_cei = Escola.objects.get(nome='CEI DIRET ENEDINA DE SOUSA CARVALHO')
@@ -182,11 +189,15 @@ escola_cei_ceu = Escola.objects.get(nome='CEU CEI MENINOS')
 escola_cci = Escola.objects.get(nome='CCI/CIPS CAMARA MUNICIPAL DE SAO PAULO')
 escola_emef = Escola.objects.get(nome='EMEF PERICLES EUGENIO DA SILVA RAMOS')
 escola_emebs = Escola.objects.get(nome='EMEBS HELEN KELLER')
-escola_cieja = Escola.objects.get(nome='CIEJA CLOVIS CAITANO MIQUELAZZO - IPIRANGA')
+escola_cieja = Escola.objects.get(
+    nome='CIEJA CLOVIS CAITANO MIQUELAZZO - IPIRANGA')
 escola_emei = Escola.objects.get(nome='EMEI SENA MADUREIRA')
-escola_ceu_emei = Escola.objects.get(nome='CEU EMEI BENNO HUBERT STOLLENWERK, PE.')
-escola_ceu_emef = Escola.objects.get(nome='CEU EMEF MARA CRISTINA TARTAGLIA SENA, PROFA.')
-diretoria_regional = DiretoriaRegional.objects.get(nome='DIRETORIA REGIONAL DE EDUCACAO IPIRANGA')
+escola_ceu_emei = Escola.objects.get(
+    nome='CEU EMEI BENNO HUBERT STOLLENWERK, PE.')
+escola_ceu_emef = Escola.objects.get(
+    nome='CEU EMEF MARA CRISTINA TARTAGLIA SENA, PROFA.')
+diretoria_regional = DiretoriaRegional.objects.get(
+    nome='DIRETORIA REGIONAL DE EDUCACAO IPIRANGA')
 codae, created = Codae.objects.get_or_create(nome='CODAE')
 terceirizada = escola.lote.terceirizada
 
