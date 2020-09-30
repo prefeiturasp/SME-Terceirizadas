@@ -87,5 +87,13 @@ class Command(BaseCommand):
             legenda='Escola EMEI'
         )
 
+        arquivo = 'csv/escola_dre_codae_CEI.csv'
+        cria_tipo_unidade_escolar(arquivo)
+        cria_contatos_escola(arquivo)
+        cria_escola(
+            arquivo=arquivo,
+            legenda='Escola CEI'
+        )
+
         toc = timeit.default_timer()
         print('Tempo:', round(toc - tic, 2), 's')
