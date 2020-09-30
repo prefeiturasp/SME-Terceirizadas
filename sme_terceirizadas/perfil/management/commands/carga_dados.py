@@ -5,18 +5,23 @@ from utility.carga_dados.cardapio.importa_dados import (
     cria_motivosuspensao,
     cria_tipo_alimentacao
 )
-from utility.carga_dados.dados_comuns.importa_dados import cria_contatos, cria_templatemensagem
+from utility.carga_dados.dados_comuns.importa_dados import cria_contatos  # noqa
+from utility.carga_dados.dados_comuns.importa_dados import cria_templatemensagem
 from utility.carga_dados.escola.importa_dados import (
+    cria_contatos_escola,
     cria_diretorias_regionais,
+    cria_escola,
     cria_lotes,
     cria_subprefeituras,
+    cria_tipo_unidade_escolar,
     cria_tipos_gestao
 )
 from utility.carga_dados.inclusao_alimentacao.importa_dados import (
     cria_motivo_inclusao_continua,
     cria_motivo_inclusao_normal
 )
-from utility.carga_dados.kit_lanche.importa_dados import cria_kit_lanche, cria_kit_lanche_item
+from utility.carga_dados.kit_lanche.importa_dados import cria_kit_lanche  # noqa
+from utility.carga_dados.kit_lanche.importa_dados import cria_kit_lanche_item
 from utility.carga_dados.produto.importa_dados import (
     cria_diagnosticos,
     cria_informacao_nutricional,
@@ -64,3 +69,28 @@ class Command(BaseCommand):
 
         # Produto
         cria_diagnosticos()
+
+        # Escola
+        arquivo = 'csv/escola_dre_codae_EMEF_EMEFM_EMEBS_CIEJA.csv'
+        cria_tipo_unidade_escolar(arquivo)
+        cria_contatos_escola(arquivo)
+        cria_escola(
+            arquivo=arquivo,
+            legenda='Escola EMEF, EMEFM, EMEBS, CIEJA'
+        )
+
+        arquivo = 'csv/escola_dre_codae_EMEI.csv'
+        cria_tipo_unidade_escolar(arquivo)
+        cria_contatos_escola(arquivo)
+        cria_escola(
+            arquivo=arquivo,
+            legenda='Escola EMEI'
+        )
+
+        arquivo = 'csv/escola_dre_codae_CEI.csv'
+        cria_tipo_unidade_escolar(arquivo)
+        cria_contatos_escola(arquivo)
+        cria_escola(
+            arquivo=arquivo,
+            legenda='Escola CEI'
+        )
