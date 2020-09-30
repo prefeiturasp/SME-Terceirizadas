@@ -1,20 +1,8 @@
 import environ
-from utility.carga_dados.helper import (
-    adiciona_m2m_items,
-    csv_to_list,
-    get_modelo,
-    ja_existe,
-    le_dados,
-    progressbar,
-)
-from utility.carga_dados.escola.helper import (
-    bcolors,
-    email_valido,
-    maiuscula,
-    normaliza_nome,
-    somente_digitos,
-)
 from django.db.models import Q
+from utility.carga_dados.escola.helper import bcolors, email_valido, maiuscula, normaliza_nome, somente_digitos
+from utility.carga_dados.helper import adiciona_m2m_items, csv_to_list, get_modelo, ja_existe, le_dados, progressbar
+
 from sme_terceirizadas.dados_comuns.models import Contato
 from sme_terceirizadas.escola.data.diretorias_regionais import data_diretorias_regionais  # noqa
 from sme_terceirizadas.escola.data.lotes import data_lotes
@@ -26,7 +14,7 @@ from sme_terceirizadas.escola.models import (
     Lote,
     Subprefeitura,
     TipoGestao,
-    TipoUnidadeEscolar,
+    TipoUnidadeEscolar
 )
 from sme_terceirizadas.terceirizada.data.terceirizadas import data_terceirizadas  # noqa
 from sme_terceirizadas.terceirizada.models import Terceirizada

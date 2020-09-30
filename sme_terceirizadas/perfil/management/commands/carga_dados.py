@@ -1,4 +1,3 @@
-import timeit
 from django.conf import settings
 from django.core.management.base import BaseCommand
 from utility.carga_dados.cardapio.importa_dados import (
@@ -6,7 +5,8 @@ from utility.carga_dados.cardapio.importa_dados import (
     cria_motivosuspensao,
     cria_tipo_alimentacao
 )
-from utility.carga_dados.dados_comuns.importa_dados import cria_contatos, cria_templatemensagem  # noqa
+from utility.carga_dados.dados_comuns.importa_dados import cria_contatos  # noqa
+from utility.carga_dados.dados_comuns.importa_dados import cria_templatemensagem
 from utility.carga_dados.escola.importa_dados import (
     cria_contatos_escola,
     cria_diretorias_regionais,
@@ -14,13 +14,14 @@ from utility.carga_dados.escola.importa_dados import (
     cria_lotes,
     cria_subprefeituras,
     cria_tipo_unidade_escolar,
-    cria_tipos_gestao,
+    cria_tipos_gestao
 )
 from utility.carga_dados.inclusao_alimentacao.importa_dados import (
     cria_motivo_inclusao_continua,
     cria_motivo_inclusao_normal
 )
-from utility.carga_dados.kit_lanche.importa_dados import cria_kit_lanche, cria_kit_lanche_item  # noqa
+from utility.carga_dados.kit_lanche.importa_dados import cria_kit_lanche  # noqa
+from utility.carga_dados.kit_lanche.importa_dados import cria_kit_lanche_item
 from utility.carga_dados.produto.importa_dados import (
     cria_diagnosticos,
     cria_informacao_nutricional,
@@ -35,7 +36,6 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         self.stdout.write('Importando dados...')
-        tic = timeit.default_timer()
 
         # A ordem dos métodos é importante!
         # Por isso um monte de if.
@@ -94,6 +94,3 @@ class Command(BaseCommand):
             arquivo=arquivo,
             legenda='Escola CEI'
         )
-
-        toc = timeit.default_timer()
-        print('Tempo:', round(toc - tic, 2), 's')
