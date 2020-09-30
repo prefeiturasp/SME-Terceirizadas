@@ -1,5 +1,6 @@
-from sme_terceirizadas.escola.models import FaixaEtaria
 from utility.carga_dados.escola.helper import bcolors
+
+from sme_terceirizadas.escola.models import FaixaEtaria
 
 print(f"{bcolors.OKBLUE}Criando faixas etárias...{bcolors.ENDC}")
 FaixaEtaria.objects.bulk_create([

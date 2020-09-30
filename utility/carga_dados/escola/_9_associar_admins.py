@@ -2,7 +2,7 @@ import datetime
 
 from des.models import DynamicEmailConfiguration
 
-from sme_terceirizadas.escola.models import Escola, DiretoriaRegional, Codae
+from sme_terceirizadas.escola.models import Codae, DiretoriaRegional, Escola
 from sme_terceirizadas.perfil.models import Perfil, Usuario, Vinculo
 
 data_atual = datetime.date.today()

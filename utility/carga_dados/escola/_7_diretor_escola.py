@@ -3,11 +3,12 @@ import time
 import environ
 import numpy as np
 import pandas as pd
+from utility.carga_dados.escola.helper import bcolors, printa_pontinhos
 
 from sme_terceirizadas.escola.models import Escola
 from sme_terceirizadas.perfil.models import Perfil, Usuario
-from utility.carga_dados.escola.helper import bcolors, printa_pontinhos
-from .helper import cria_vinculo_de_perfil_usuario, coloca_zero_a_esquerda
+
+from .helper import coloca_zero_a_esquerda, cria_vinculo_de_perfil_usuario
 
 ROOT_DIR = environ.Path(__file__) - 1
 

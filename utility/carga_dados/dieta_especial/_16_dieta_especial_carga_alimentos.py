@@ -1,8 +1,9 @@
-import environ
 import csv
 
-from sme_terceirizadas.dieta_especial.models import Alimento
+import environ
 from utility.carga_dados.escola.helper import printa_pontinhos
+
+from sme_terceirizadas.dieta_especial.models import Alimento
 
 ROOT_DIR = environ.Path(__file__) - 1
 
