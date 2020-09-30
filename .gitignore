@@ -293,7 +293,6 @@ sme_terceirizadas/media/
 
 # undesired files
 *.xlsx
-*.csv
 *.idea
 .tmontmp/
 
