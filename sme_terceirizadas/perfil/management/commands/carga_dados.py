@@ -5,18 +5,20 @@ from utility.carga_dados.cardapio.importa_dados import (
     cria_motivosuspensao,
     cria_tipo_alimentacao
 )
-from utility.carga_dados.dados_comuns.importa_dados import cria_contatos, cria_templatemensagem
+from utility.carga_dados.dados_comuns.importa_dados import cria_contatos, cria_templatemensagem  # noqa
 from utility.carga_dados.escola.importa_dados import (
     cria_diretorias_regionais,
+    cria_escola_emef_emefm_emebs_cieja,
     cria_lotes,
     cria_subprefeituras,
-    cria_tipos_gestao
+    cria_tipo_unidade_escolar,
+    cria_tipos_gestao,
 )
 from utility.carga_dados.inclusao_alimentacao.importa_dados import (
     cria_motivo_inclusao_continua,
     cria_motivo_inclusao_normal
 )
-from utility.carga_dados.kit_lanche.importa_dados import cria_kit_lanche, cria_kit_lanche_item
+from utility.carga_dados.kit_lanche.importa_dados import cria_kit_lanche, cria_kit_lanche_item  # noqa
 from utility.carga_dados.produto.importa_dados import (
     cria_diagnosticos,
     cria_informacao_nutricional,
@@ -34,33 +36,37 @@ class Command(BaseCommand):
 
         # A ordem dos métodos é importante!
         # Por isso um monte de if.
-        if settings.DEBUG:
-            cria_usuarios()  # Dev
+        # if settings.DEBUG:
+        #     cria_usuarios()  # Dev
 
-        cria_motivoalteracaocardapio()
-        cria_motivosuspensao()
-        cria_tipo_alimentacao()
+        # cria_motivoalteracaocardapio()
+        # cria_motivosuspensao()
+        # cria_tipo_alimentacao()
 
-        if settings.DEBUG:
-            cria_contatos()
-            cria_templatemensagem()
+        # if settings.DEBUG:
+        #     cria_contatos()
+        #     cria_templatemensagem()
 
-        cria_diretorias_regionais()
-        cria_tipos_gestao()
+        # cria_diretorias_regionais()
+        # cria_tipos_gestao()
 
-        cria_terceirizadas()
+        # cria_terceirizadas()
 
-        cria_lotes()
-        cria_subprefeituras()
-        cria_motivo_inclusao_continua()
-        cria_motivo_inclusao_normal()
+        # cria_lotes()
+        # cria_subprefeituras()
+        # cria_motivo_inclusao_continua()
+        # cria_motivo_inclusao_normal()
 
-        if settings.DEBUG:
-            cria_kit_lanche_item()
-            cria_kit_lanche()
+        # if settings.DEBUG:
+        #     cria_kit_lanche_item()
+        #     cria_kit_lanche()
 
-        cria_tipo_informacao_nutricional()
-        cria_informacao_nutricional()
+        # cria_tipo_informacao_nutricional()
+        # cria_informacao_nutricional()
 
-        # Produto
-        cria_diagnosticos()
+        # # Produto
+        # cria_diagnosticos()
+
+        # Escola
+        cria_tipo_unidade_escolar()
+        cria_escola_emef_emefm_emebs_cieja()

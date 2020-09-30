@@ -1,11 +1,25 @@
+import environ
 from utility.carga_dados.escola.helper import bcolors
-from utility.carga_dados.helper import adiciona_m2m_items, get_modelo, ja_existe, le_dados, progressbar
+from utility.carga_dados.helper import (
+    adiciona_m2m_items,
+    csv_to_list,
+    get_modelo,
+    ja_existe,
+    le_dados,
+    progressbar,
+)
 
 from sme_terceirizadas.escola.data.diretorias_regionais import data_diretorias_regionais  # noqa
 from sme_terceirizadas.escola.data.lotes import data_lotes
 from sme_terceirizadas.escola.data.subprefeituras import data_subprefeituras
 from sme_terceirizadas.escola.data.tipos_gestao import data_tipos_gestao
-from sme_terceirizadas.escola.models import DiretoriaRegional, Lote, Subprefeitura, TipoGestao
+from sme_terceirizadas.escola.models import (
+    DiretoriaRegional,
+    Lote,
+    Subprefeitura,
+    TipoGestao,
+    TipoUnidadeEscolar,
+)
 from sme_terceirizadas.terceirizada.data.terceirizadas import data_terceirizadas  # noqa
 from sme_terceirizadas.terceirizada.models import Terceirizada
 
@@ -95,3 +109,27 @@ def cria_tipos_gestao():
         _, created = TipoGestao.objects.get_or_create(nome=item['nome'])
         if not created:
             ja_existe('TipoGestao', item['nome'])
+
+
+def cria_tipo_unidade_escolar():
+    # Pega somente a coluna 'TIPO DE U.E'
+    iniciais = 'TIPO DE U.E'
+    ROOT_DIR = environ.Path(__file__) - 1
+    arquivo = f'{ROOT_DIR}/csv/escola_dre_codae_EMEF_EMEFM_EMEBS_CIEJA.csv'
+    items = csv_to_list(arquivo)
+    items_iniciais = [item[iniciais] for item in items]
+
+    # Procura por todos os itens repetidos no banco,
+    # e retorna uma lista de iniciais...
+    tipo_unidade_escolares = TipoUnidadeEscolar.objects\
+        .filter(iniciais__in=items_iniciais)\
+        .values_list('iniciais', flat=True)
+
+    # E insere somente os itens faltantes.
+    itens_faltantes = set(items_iniciais) - set(tipo_unidade_escolares)
+    for iniciais in progressbar(itens_faltantes, 'Tipo Unidade Escolar'):
+        TipoUnidadeEscolar.objects.create(iniciais=iniciais)
+
+
+def cria_escola_emef_emefm_emebs_cieja():
+    pass
