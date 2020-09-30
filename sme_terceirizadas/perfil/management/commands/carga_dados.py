@@ -22,6 +22,7 @@ from utility.carga_dados.inclusao_alimentacao.importa_dados import (
 )
 from utility.carga_dados.kit_lanche.importa_dados import cria_kit_lanche  # noqa
 from utility.carga_dados.kit_lanche.importa_dados import cria_kit_lanche_item
+from utility.carga_dados.perfil.importa_dados import cria_perfis
 from utility.carga_dados.produto.importa_dados import (
     cria_diagnosticos,
     cria_informacao_nutricional,
@@ -41,6 +42,8 @@ class Command(BaseCommand):
         # Por isso um monte de if.
         if settings.DEBUG:
             cria_usuarios()  # Dev
+
+        cria_perfis()
 
         cria_motivoalteracaocardapio()
         cria_motivosuspensao()

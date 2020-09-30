@@ -42,7 +42,11 @@ class BaseUserAdmin(DjangoUserAdmin):
         return call_command('carga_dados')
 
 
+@admin.register(Perfil)
+class PerfilAdmin(admin.ModelAdmin):
+    list_display = ('nome', 'super_usuario', 'ativo')
+    search_fields = ('nome',)
+
 admin.site.register(Usuario, BaseUserAdmin)
-admin.site.register(Perfil)
 admin.site.register(Vinculo)
 admin.site.register(Cargo)
