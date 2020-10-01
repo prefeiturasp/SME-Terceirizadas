@@ -63,6 +63,7 @@ class UsuarioViewSet(viewsets.ReadOnlyModelViewSet):
 class UsuarioUpdateViewSet(viewsets.GenericViewSet):
     permission_classes = (permissions.AllowAny,)
     serializer_class = UsuarioUpdateSerializer
+    authentication_classes = []
 
     def _get_usuario(self, request):
         if request.data.get('registro_funcional') is not None:
