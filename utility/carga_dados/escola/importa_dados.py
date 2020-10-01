@@ -220,7 +220,8 @@ def cria_escola(arquivo, legenda):
     escolas_faltantes = [item for item in items if item['EOL'] not in escolas]
     if escolas_faltantes:
         for item in progressbar(escolas_faltantes, legenda):  # noqa
-            dre_nome = item.get('DRE')
+            # Corrige o nome da DRE
+            dre_nome = f"DIRETORIA REGIONAL DE EDUCACAO {item.get('DRE')}"
             tipo_ue_iniciais = item.get('TIPO DE U.E')
             lote_sigla = item.get('SIGLA/LOTE')
             email = item.get('E-MAIL').strip().lower() or ''
