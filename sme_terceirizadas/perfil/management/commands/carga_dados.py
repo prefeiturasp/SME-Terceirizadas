@@ -22,7 +22,7 @@ from utility.carga_dados.inclusao_alimentacao.importa_dados import (
 )
 from utility.carga_dados.kit_lanche.importa_dados import cria_kit_lanche  # noqa
 from utility.carga_dados.kit_lanche.importa_dados import cria_kit_lanche_item
-from utility.carga_dados.perfil.importa_dados import cria_perfis
+from utility.carga_dados.perfil.importa_dados import cria_perfis, cria_vinculos
 from utility.carga_dados.produto.importa_dados import (
     cria_diagnosticos,
     cria_informacao_nutricional,
@@ -40,10 +40,10 @@ class Command(BaseCommand):
 
         # A ordem dos métodos é importante!
         # Por isso um monte de if.
+        cria_perfis()
+
         if settings.DEBUG:
             cria_usuarios()  # Dev
-
-        cria_perfis()
 
         cria_motivoalteracaocardapio()
         cria_motivosuspensao()
@@ -77,23 +77,17 @@ class Command(BaseCommand):
         arquivo = 'csv/escola_dre_codae_EMEF_EMEFM_EMEBS_CIEJA.csv'
         cria_tipo_unidade_escolar(arquivo)
         cria_contatos_escola(arquivo)
-        cria_escola(
-            arquivo=arquivo,
-            legenda='Escola EMEF, EMEFM, EMEBS, CIEJA'
-        )
+        cria_escola(arquivo=arquivo, legenda='Escola EMEF, EMEFM, EMEBS, CIEJA')  # noqa
 
         arquivo = 'csv/escola_dre_codae_EMEI.csv'
         cria_tipo_unidade_escolar(arquivo)
         cria_contatos_escola(arquivo)
-        cria_escola(
-            arquivo=arquivo,
-            legenda='Escola EMEI'
-        )
+        cria_escola(arquivo=arquivo, legenda='Escola EMEI')
 
         arquivo = 'csv/escola_dre_codae_CEI.csv'
         cria_tipo_unidade_escolar(arquivo)
         cria_contatos_escola(arquivo)
-        cria_escola(
-            arquivo=arquivo,
-            legenda='Escola CEI'
-        )
+        cria_escola(arquivo=arquivo, legenda='Escola CEI')
+
+        if settings.DEBUG:
+            cria_vinculos()
