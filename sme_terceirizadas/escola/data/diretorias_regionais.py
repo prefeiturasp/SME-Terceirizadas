@@ -1,85 +1,80 @@
-'''
-O id é usado somente para identificar os dados nas Foreign Key.
-Mas não tem relação com os ids do banco de dados.
-Para isso é criado um dicionário no Python apenas pra identificar os dados.
-'''
 data_diretorias_regionais = [
     {
         'id': 1,
-        'nome': 'SANTO AMARO',
-        'iniciais': '',
+        'nome': 'DIRETORIA REGIONAL DE EDUCACAO SANTO AMARO',
+        'iniciais': 'DRE - SA',
         'codigo_eol': '109100'
     },
     {
         'id': 2,
-        'nome': 'PIRITUBA',
-        'iniciais': '',
+        'nome': 'DIRETORIA REGIONAL DE EDUCACAO PIRITUBA',
+        'iniciais': 'DRE - PT',
         'codigo_eol': '109000'
     },
     {
         'id': 3,
-        'nome': 'BUTANTA',
-        'iniciais': '',
+        'nome': 'DIRETORIA REGIONAL DE EDUCACAO BUTANTA',
+        'iniciais': 'DRE - BT',
         'codigo_eol': '108100'
     },
     {
         'id': 4,
-        'nome': 'CAMPO LIMPO',
-        'iniciais': '',
+        'nome': 'DIRETORIA REGIONAL DE EDUCACAO CAMPO LIMPO',
+        'iniciais': 'DRE - CL',
         'codigo_eol': '108200'
     },
     {
         'id': 5,
-        'nome': 'CAPELA DO SOCORRO',
-        'iniciais': '',
+        'nome': 'DIRETORIA REGIONAL DE EDUCACAO CAPELA DO SOCORRO',
+        'iniciais': 'DRE - CS',
         'codigo_eol': '108300'
     },
     {
         'id': 6,
-        'nome': 'IPIRANGA',
-        'iniciais': '',
+        'nome': 'DIRETORIA REGIONAL DE EDUCACAO IPIRANGA',
+        'iniciais': 'DRE - IP',
         'codigo_eol': '108600'
     },
     {
         'id': 7,
-        'nome': 'ITAQUERA',
-        'iniciais': '',
+        'nome': 'DIRETORIA REGIONAL DE EDUCACAO ITAQUERA',
+        'iniciais': 'DRE - IQ',
         'codigo_eol': '108700'
     },
     {
         'id': 8,
-        'nome': 'GUAIANASES',
-        'iniciais': '',
+        'nome': 'DIRETORIA REGIONAL DE EDUCACAO GUAIANASES',
+        'iniciais': 'DRE - G',
         'codigo_eol': '108500'
     },
     {
         'id': 9,
-        'nome': 'SAO MATEUS',
-        'iniciais': '',
+        'nome': 'DIRETORIA REGIONAL DE EDUCACAO SAO MATEUS',
+        'iniciais': 'DRE - SM',
         'codigo_eol': '109200'
     },
     {
         'id': 10,
-        'nome': 'PENHA',
-        'iniciais': '',
+        'nome': 'DIRETORIA REGIONAL DE EDUCACAO PENHA',
+        'iniciais': 'DRE - PE',
         'codigo_eol': '108900'
     },
     {
         'id': 11,
-        'nome': 'JACANA/TREMEMBE',
-        'iniciais': '',
+        'nome': 'DIRETORIA REGIONAL DE EDUCACAO JACANA/TREMEMBE',
+        'iniciais': 'DRE - JT',
         'codigo_eol': '108800'
     },
     {
         'id': 12,
-        'nome': 'FREGUESIA/BRASILANDIA',
-        'iniciais': '',
+        'nome': 'DIRETORIA REGIONAL DE EDUCACAO FREGUESIA/BRASILANDIA',
+        'iniciais': 'DRE - FB',
         'codigo_eol': '108400'
     },
     {
         'id': 13,
-        'nome': 'SAO MIGUEL',
-        'iniciais': '',
+        'nome': 'DIRETORIA REGIONAL DE EDUCACAO SAO MIGUEL',
+        'iniciais': 'DRE - MP',
         'codigo_eol': '109300'
     }
 ]

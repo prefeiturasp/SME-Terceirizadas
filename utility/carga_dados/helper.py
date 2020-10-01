@@ -1,4 +1,7 @@
+import csv
+import io
 import sys
+import urllib.request
 
 from utility.carga_dados.escola.helper import bcolors
 
@@ -17,6 +20,26 @@ def progressbar(it, prefix="", size=60, file=sys.stdout):
         show(i + 1)
     file.write("\n")
     file.flush()
+
+
+def csv_to_list(arquivo: str) -> list:
+    '''
+    Lê um csv e retorna um OrderedDict.
+    '''
+    with open(arquivo) as f:
+        leitor = csv.DictReader(f, delimiter=',')
+        dados = [linha for linha in leitor]
+    return dados
+
+
+def csv_online_to_list(url: str) -> list:
+    '''
+    Lê um CSV a partir de uma url.
+    '''
+    url_open = urllib.request.urlopen(url)
+    leitor = csv.DictReader(io.StringIO(url_open.read().decode('utf-8')), delimiter=',')  # noqa
+    dados = [linha for linha in leitor]
+    return dados
 
 
 def ja_existe(model, item):
