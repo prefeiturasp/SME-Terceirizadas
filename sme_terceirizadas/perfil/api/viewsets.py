@@ -64,6 +64,11 @@ class UsuarioUpdateViewSet(viewsets.GenericViewSet):
     permission_classes = (permissions.AllowAny,)
     serializer_class = UsuarioUpdateSerializer
 
+    def get_authenticators(self, *args, **kwargs):
+        if 'post' in self.action_map and self.action_map['post'] == 'create':
+            return []
+        return super().get_authenticators(*args, **kwargs)
+
     def _get_usuario(self, request):
         if request.data.get('registro_funcional') is not None:
             return Usuario.objects.get(registro_funcional=request.data.get('registro_funcional'))

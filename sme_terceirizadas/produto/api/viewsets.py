@@ -14,12 +14,7 @@ from xworkflows import InvalidTransitionError
 from ...dados_comuns import constants
 from ...dados_comuns.fluxo_status import HomologacaoProdutoWorkflow, ReclamacaoProdutoWorkflow
 from ...dados_comuns.models import LogSolicitacoesUsuario
-from ...dados_comuns.permissions import (
-    PermissaoParaReclamarDeProduto,
-    UsuarioCODAEGestaoProduto,
-    UsuarioTerceirizada,
-    usuario_eh_nutricodae
-)
+from ...dados_comuns.permissions import PermissaoParaReclamarDeProduto, UsuarioCODAEGestaoProduto, UsuarioTerceirizada
 from ...relatorios.relatorios import (
     relatorio_produto_analise_sensorial,
     relatorio_produto_analise_sensorial_recebimento,
@@ -74,8 +69,7 @@ from .serializers.serializers import (
     ProtocoloSimplesSerializer,
     ReclamacaoDeProdutoSerializer,
     ReclamacaoDeProdutoSimplesSerializer,
-    SolicitacaoCadastroProdutoDietaSerializer,
-    SolicitacaoCadastroProdutoDietaSimplesSerializer
+    SolicitacaoCadastroProdutoDietaSerializer
 )
 from .serializers.serializers_create import (
     ProdutoSerializerCreate,
@@ -1061,14 +1055,13 @@ class SolicitacaoCadastroProdutoDietaFilter(filters.FilterSet):
 class SolicitacaoCadastroProdutoDietaViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
     queryset = SolicitacaoCadastroProdutoDieta.objects.all().order_by('-criado_em')
+    pagination_class = StandardResultsSetPagination
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = SolicitacaoCadastroProdutoDietaFilter
 
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update']:
             return SolicitacaoCadastroProdutoDietaSerializerCreate
-        elif self.action == 'list' and usuario_eh_nutricodae(self.request.user):
-            return SolicitacaoCadastroProdutoDietaSimplesSerializer
         return SolicitacaoCadastroProdutoDietaSerializer
 
     @action(detail=False, methods=['GET'], url_path='nomes-produtos')

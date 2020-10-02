@@ -95,6 +95,7 @@ django-weasyprint = "*"
 django-filter = "*"
 importlib-metadata = "==1.7.0"
 text-unidecode = "*"
+attrs = "==19.1.0"
 
 [requires]
 python_version = "3.6"
