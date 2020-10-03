@@ -7,6 +7,7 @@ from utility.carga_dados.cardapio.importa_dados import (
 )
 from utility.carga_dados.dados_comuns.importa_dados import cria_contatos  # noqa
 from utility.carga_dados.dados_comuns.importa_dados import cria_templatemensagem
+from utility.carga_dados.dieta_especial.importa_dados import cria_motivo_negacao
 from utility.carga_dados.escola.importa_dados import (
     cria_contatos_escola,
     cria_diretorias_regionais,
@@ -62,12 +63,12 @@ class Command(BaseCommand):
         cria_tipos_gestao()
 
         cria_terceirizadas()
+        cria_lotes()
 
         if settings.DEBUG:
             cria_edital()
             cria_contratos()
 
-        cria_lotes()
         cria_subprefeituras()
         cria_motivo_inclusao_continua()
         cria_motivo_inclusao_normal()
@@ -78,6 +79,9 @@ class Command(BaseCommand):
 
         cria_tipo_informacao_nutricional()
         cria_informacao_nutricional()
+
+        # Dieta Especial
+        cria_motivo_negacao()
 
         # Produto
         cria_diagnosticos()
