@@ -30,6 +30,7 @@ from utility.carga_dados.produto.importa_dados import (
 )
 from utility.carga_dados.terceirizada.importa_dados import (
     cria_edital,
+    cria_contratos,
     cria_terceirizadas
 )
 from utility.carga_dados.usuarios import cria_usuarios
@@ -64,6 +65,7 @@ class Command(BaseCommand):
 
         if settings.DEBUG:
             cria_edital()
+            cria_contratos()
 
         cria_lotes()
         cria_subprefeituras()
