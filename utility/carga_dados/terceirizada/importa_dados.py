@@ -8,6 +8,18 @@ from sme_terceirizadas.terceirizada.data.vigencias import data_vigencias
 from sme_terceirizadas.terceirizada.models import Contrato, Edital, Nutricionista, Terceirizada, VigenciaContrato
 
 
+def cria_edital():
+    for item in progressbar(data_editais, 'Edital'):
+        _, created = Edital.objects.get_or_create(
+            numero=item['numero'],
+            tipo_contratacao=item['tipo_contratacao'],
+            processo=item['processo'],
+            objeto=item['objeto'],
+        )
+        if not created:
+            ja_existe('Edital', item['numero'])
+
+
 def cria_terceirizadas():
     for item in progressbar(data_terceirizadas, 'Terceirizada'):
         _, created = Terceirizada.objects.get_or_create(
