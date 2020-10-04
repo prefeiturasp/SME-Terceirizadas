@@ -213,6 +213,9 @@ class SolicitacoesDietaEspecialAtivasInativasPorAluno(models.Model):
 
 class Alimento(Nomeavel):
 
+    class Meta:
+        ordering = ('nome',)
+
     def __str__(self):
         return self.nome
 

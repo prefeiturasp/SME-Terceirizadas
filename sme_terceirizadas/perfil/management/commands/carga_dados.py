@@ -7,7 +7,11 @@ from utility.carga_dados.cardapio.importa_dados import (
 )
 from utility.carga_dados.dados_comuns.importa_dados import cria_contatos  # noqa
 from utility.carga_dados.dados_comuns.importa_dados import cria_templatemensagem
-from utility.carga_dados.dieta_especial.importa_dados import cria_classificacoes_dieta, cria_motivo_negacao
+from utility.carga_dados.dieta_especial.importa_dados import (
+    cria_alimento,
+    cria_classificacoes_dieta,
+    cria_motivo_negacao
+)
 from utility.carga_dados.escola.importa_dados import (
     cria_contatos_escola,
     cria_diretorias_regionais,
@@ -81,6 +85,7 @@ class Command(BaseCommand):
         cria_informacao_nutricional()
 
         # Dieta Especial
+        cria_alimento()
         cria_classificacoes_dieta()
         cria_motivo_negacao()
 
