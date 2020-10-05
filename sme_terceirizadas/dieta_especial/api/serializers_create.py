@@ -7,7 +7,8 @@ from ...dados_comuns.constants import DEZ_MB
 from ...dados_comuns.utils import convert_base64_to_contentfile, convert_date_format, size
 from ...dados_comuns.validators import deve_ser_no_passado, deve_ter_extensao_valida
 from ...eol_servico.utils import EOLService
-from ...escola.models import Aluno, PeriodoEscolar
+from ...escola.api.serializers import AlunoNaoMatriculadoSerializer
+from ...escola.models import Aluno, Escola, PeriodoEscolar, Responsavel
 from ...produto.models import Produto
 from ..models import Anexo, SolicitacaoDietaEspecial, SubstituicaoAlimento
 from .validators import AlunoSerializerValidator
@@ -43,7 +44,9 @@ class SolicitacaoDietaEspecialCreateSerializer(serializers.ModelSerializer):
     anexos = serializers.ListField(
         child=AnexoCreateSerializer(), required=True
     )
-    aluno_json = serializers.JSONField()
+    aluno_json = serializers.JSONField(required=False)
+    aluno_nao_matriculado_data = AlunoNaoMatriculadoSerializer(required=False)
+    aluno_nao_matriculado = serializers.BooleanField(default=False)
 
     def validate_anexos(self, anexos):
         for anexo in anexos:
@@ -67,22 +70,62 @@ class SolicitacaoDietaEspecialCreateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):  # noqa C901
         validated_data['criado_por'] = self.context['request'].user
         anexos = validated_data.pop('anexos', [])
-        aluno_data = validated_data.pop('aluno_json')
-        if SolicitacaoDietaEspecial.aluno_possui_dieta_especial_pendente(aluno_data.get('codigo_eol')):
-            raise serializers.ValidationError('Aluno já possui Solicitação de Dieta Especial pendente')
-        info_turma = EOLService.get_informacoes_escola_turma_aluno(
-            validated_data['criado_por'].vinculo_atual.instituicao.codigo_eol)
-        for registro in info_turma:
-            if registro['cd_aluno'] == int(aluno_data['codigo_eol']):
-                periodo_nome = registro['dc_tipo_turno']
-                break
+        aluno_data = validated_data.pop('aluno_json', None)
+        aluno_nao_matriculado_data = validated_data.pop('aluno_nao_matriculado_data', None)
+        aluno_nao_matriculado = validated_data.pop('aluno_nao_matriculado')
+
+        if aluno_nao_matriculado:
+            aluno = aluno_nao_matriculado_data
+            codigo_eol_escola = aluno_nao_matriculado_data.pop('codigo_eol_escola')
+            responsavel = aluno_nao_matriculado_data.pop('responsavel')
+            cpf_aluno = aluno_nao_matriculado_data.get('cpf')
+            nome_aluno = aluno_nao_matriculado_data.get('nome')
+            data_nascimento = aluno_nao_matriculado_data.get('data_nascimento')
+
+            escola = Escola.objects.get(codigo_eol=codigo_eol_escola)
+
+            aluno = Aluno.objects.filter(nome=nome_aluno, responsaveis__cpf=responsavel.get('cpf')).first()
+
+            if cpf_aluno and not aluno:
+                aluno, _ = Aluno.objects.get_or_create(
+                    cpf=cpf_aluno,
+                    defaults={'nome': nome_aluno, 'data_nascimento': data_nascimento}
+                )
+            elif not aluno:
+                aluno = Aluno.objects.create(nome=nome_aluno, data_nascimento=data_nascimento)
+
+            if SolicitacaoDietaEspecial.aluno_possui_dieta_especial_pendente(aluno):
+                raise serializers.ValidationError('Aluno já possui Solicitação de Dieta Especial pendente')
+
+            aluno.escola = escola
+            aluno.nao_matriculado = True
+            aluno.save()
+
+            Responsavel.objects.get_or_create(
+                cpf=responsavel.get('cpf'),
+                defaults={'aluno': aluno, 'nome': responsavel.get('nome')}
+            )
+
         else:
-            raise serializers.ValidationError('Aluno não pertence a essa escola')
-        periodo = PeriodoEscolar.objects.get(nome__icontains=unidecode(periodo_nome.strip()))
-        aluno = self._get_or_create_aluno(aluno_data)
-        aluno.escola = validated_data['criado_por'].vinculo_atual.instituicao
-        aluno.periodo_escolar = periodo
-        aluno.save()
+            info_turma = EOLService.get_informacoes_escola_turma_aluno(
+                validated_data['criado_por'].vinculo_atual.instituicao.codigo_eol)
+            for registro in info_turma:
+                if registro['cd_aluno'] == int(aluno_data['codigo_eol']):
+                    periodo_nome = registro['dc_tipo_turno']
+                    break
+            else:
+                raise serializers.ValidationError('Aluno não pertence a essa escola')
+
+            aluno = self._get_or_create_aluno(aluno_data)
+
+            if SolicitacaoDietaEspecial.aluno_possui_dieta_especial_pendente(aluno):
+                raise serializers.ValidationError('Aluno já possui Solicitação de Dieta Especial pendente')
+
+            periodo = PeriodoEscolar.objects.get(nome__icontains=unidecode(periodo_nome.strip()))
+            aluno.escola = validated_data['criado_por'].vinculo_atual.instituicao
+            aluno.periodo_escolar = periodo
+            aluno.save()
+
         solicitacao = SolicitacaoDietaEspecial.objects.create(**validated_data)
         solicitacao.aluno = aluno
         solicitacao.ativo = False
@@ -128,5 +171,7 @@ class SolicitacaoDietaEspecialCreateSerializer(serializers.ModelSerializer):
             'registro_funcional_pescritor',
             'observacoes',
             'criado_em',
-            'anexos'
+            'anexos',
+            'aluno_nao_matriculado',
+            'aluno_nao_matriculado_data'
         )
