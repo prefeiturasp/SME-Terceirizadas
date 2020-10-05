@@ -751,13 +751,16 @@ class Codae(ExportModelOperationsMixin('codae'), Nomeavel, TemChaveExterna, TemV
 
 class Aluno(TemChaveExterna):
     nome = models.CharField('Nome Completo do Aluno', max_length=100)
-    codigo_eol = models.CharField(
-        'Código EOL', max_length=7, unique=True, validators=[MinLengthValidator(7)])
+    codigo_eol = models.CharField( # noqa DJ01
+        'Código EOL', max_length=7, unique=True, validators=[MinLengthValidator(7)], null=True, blank=True)
     data_nascimento = models.DateField()
     escola = models.ForeignKey(
         Escola, blank=True, null=True, on_delete=models.SET_NULL)
     periodo_escolar = models.ForeignKey(
         PeriodoEscolar, blank=True, null=True, on_delete=models.SET_NULL)
+    cpf = models.CharField(max_length=11, blank=True, null=True, unique=True,  # noqa DJ01
+                           validators=[MinLengthValidator(11)])
+    nao_matriculado = models.BooleanField(default=False)
 
     def __str__(self):
         return f'{self.nome} - {self.codigo_eol}'
@@ -798,3 +801,18 @@ class FaixaEtaria(Ativavel, TemChaveExterna):
 
 class MudancaFaixasEtarias(Justificativa, TemChaveExterna):
     faixas_etarias_ativadas = models.ManyToManyField(FaixaEtaria)
+
+
+class Responsavel(Nomeavel, TemChaveExterna, CriadoEm):
+
+    cpf = models.CharField(max_length=11, blank=True, null=True, unique=True,  # noqa DJ01
+                           validators=[MinLengthValidator(11)])
+    aluno = models.ForeignKey(
+        Aluno, on_delete=models.CASCADE, related_name='responsaveis')
+
+    def __str__(self):
+        return self.nome
+
+    class Meta:
+        verbose_name = 'Responsável'
+        verbose_name_plural = 'Reponsáveis'
