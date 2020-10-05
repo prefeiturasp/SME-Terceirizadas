@@ -16,12 +16,16 @@ class LancamentoDiario(CriadoEm, CriadoPor, TemData,
     )
     tipo_dieta = models.ForeignKey(
         'dieta_especial.ClassificacaoDieta',
-        on_delete=models.DO_NOTHING
+        on_delete=models.DO_NOTHING,
+        null=True
     )
     frequencia = models.IntegerField(null=True)
     lanche_4h = models.IntegerField(null=True)
     lanche_5h = models.IntegerField(null=True)
     observacoes = models.TextField(blank=True)
+
+    def __str__(self):
+        return str(self.uuid)
 
 
 class Refeicao(models.Model):
@@ -34,3 +38,6 @@ class Refeicao(models.Model):
         on_delete=models.CASCADE,
         related_name="refeicoes"
     )
+
+    def __str__(self):
+        return str(self.uuid)
