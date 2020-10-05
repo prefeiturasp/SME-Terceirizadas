@@ -30,7 +30,7 @@ def test_kit_lanche_cei_avulsa_serializer_create_create():
         user = mommy.make('perfil.Usuario')
 
     alunos = mommy.make('escola.Aluno', _quantity=4)
-    alunos_com_dieta = [aluno.codigo_eol for aluno in alunos]
+    alunos_com_dieta = [aluno.uuid for aluno in alunos]
 
     escola = mommy.make('escola.Escola')
     # TODO: Achar uma forma de esse teste travar a data atual do sistema,
@@ -67,7 +67,7 @@ def test_kit_lanche_cei_avulsa_serializer_create_update():
     solic = mommy.make('kit_lanche.SolicitacaoKitLancheCEIAvulsa')
 
     alunos = mommy.make('escola.Aluno', _quantity=4)
-    alunos_com_dieta = [aluno.codigo_eol for aluno in alunos]
+    alunos_com_dieta = [aluno.uuid for aluno in alunos]
 
     escola = mommy.make('escola.Escola')
     # TODO: Achar uma forma de esse teste travar a data atual do sistema,
@@ -109,7 +109,7 @@ def test_kit_lanche_cei_avulsa_serializer_create_update():
         assert solic_faixa.quantidade == req_faixa['quantidade']
 
     for (solic_aluno, req_aluno) in zip(solic2.alunos_com_dieta_especial_participantes.all(), alunos_com_dieta):
-        assert solic_aluno.codigo_eol == req_aluno
+        assert solic_aluno.uuid == req_aluno.uuid
 
     assert solic2.solicitacao_kit_lanche.data == data
     assert solic2.solicitacao_kit_lanche.descricao == descricao
