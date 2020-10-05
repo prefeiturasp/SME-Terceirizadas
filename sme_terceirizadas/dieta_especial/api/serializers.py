@@ -250,6 +250,7 @@ class SolicitacoesAtivasInativasPorAlunoSerializer(serializers.Serializer):
     dre = serializers.CharField(source='aluno.escola.diretoria_regional.nome')
     escola = serializers.CharField(source='aluno.escola.nome')
     codigo_eol = serializers.CharField(source='aluno.codigo_eol')
+    uuid = serializers.CharField(source='aluno.uuid')
     nome = serializers.CharField(source='aluno.nome')
     ativas = serializers.IntegerField()
     inativas = serializers.IntegerField()
