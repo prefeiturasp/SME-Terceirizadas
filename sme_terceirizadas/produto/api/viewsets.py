@@ -175,11 +175,12 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
         response = {'results': self.dados_dashboard(query_set=query_set)}
         return Response(response)
 
-    @action(detail=False,
+    @action(detail=False, # noqa C901
             methods=['GET'],
             url_path=f'filtro-por-status/{constants.FILTRO_STATUS_HOMOLOGACAO}')
     def solicitacoes_homologacao_por_status(self, request, filtro_aplicado=constants.RASCUNHO):
         filtros = {}
+        user = self.request.user
         if filtro_aplicado:
             if filtro_aplicado == 'codae_pediu_analise_reclamacao':
                 status__in = ['ESCOLA_OU_NUTRICIONISTA_RECLAMOU',
@@ -188,6 +189,10 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
                                                               constants.ADMINISTRADOR_GESTAO_PRODUTO]:
                     status__in.append('TERCEIRIZADA_RESPONDEU_RECLAMACAO')
                 filtros['status__in'] = status__in
+            elif user.tipo_usuario == constants.TIPO_USUARIO_ESCOLA and filtro_aplicado == 'codae_homologado':
+                filtros['status__in'] = ['ESCOLA_OU_NUTRICIONISTA_RECLAMOU',
+                                         'CODAE_PEDIU_ANALISE_RECLAMACAO',
+                                         filtro_aplicado.upper()]
             else:
                 filtros['status'] = filtro_aplicado.upper()
         query_set = self.get_queryset_dashboard().filter(**filtros)
