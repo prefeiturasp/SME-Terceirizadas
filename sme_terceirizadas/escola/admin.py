@@ -10,6 +10,7 @@ from .models import (
     LogAlteracaoQuantidadeAlunosPorEscolaEPeriodoEscolar,
     Lote,
     PeriodoEscolar,
+    Responsavel,
     Subprefeitura,
     TipoGestao,
     TipoUnidadeEscolar
@@ -26,6 +27,7 @@ admin.site.register(TipoUnidadeEscolar)
 admin.site.register(Codae)
 admin.site.register(EscolaPeriodoEscolar)
 admin.site.register(LogAlteracaoQuantidadeAlunosPorEscolaEPeriodoEscolar)
+admin.site.register(Responsavel)
 
 
 @admin.register(Escola)

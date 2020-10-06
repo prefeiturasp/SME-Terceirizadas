@@ -92,10 +92,11 @@ class SolicitacaoDietaEspecial(
         null=True, validators=[nao_pode_ser_no_passado])
 
     @classmethod
-    def aluno_possui_dieta_especial_pendente(cls, codigo_eol_aluno):
+    def aluno_possui_dieta_especial_pendente(cls, aluno):
         return cls.objects.filter(
-            aluno__codigo_eol=codigo_eol_aluno,
-            status=cls.workflow_class.CODAE_A_AUTORIZAR).exists()
+            aluno=aluno,
+            status=cls.workflow_class.CODAE_A_AUTORIZAR
+        ).exists()
 
     # Property necessária para retornar dados no serializer de criação de
     # Dieta Especial

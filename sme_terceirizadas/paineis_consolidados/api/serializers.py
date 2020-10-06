@@ -19,7 +19,10 @@ class SolicitacoesSerializer(serializers.ModelSerializer):
 
     def get_descricao(self, obj):
         uuid = str(obj.uuid)
-        return f'{uuid.upper()[:5]} - {obj.lote_nome[:20]} - {obj.desc_doc}'
+        descricao = f'{uuid.upper()[:5]} - {obj.lote_nome[:20]} - {obj.desc_doc}'
+        if obj.aluno_nao_matriculado:
+            descricao = f'{descricao} - Não matriculados'
+        return descricao
 
     def get_data_log(self, obj):
         data_log = obj.data_log.astimezone(timezone.get_current_timezone())
