@@ -74,7 +74,7 @@ def cria_filtro_produto_por_parametros_form(cleaned_data):  # noqa C901
 
 def cria_filtro_aditivos(aditivos):
     lista_aditivos = aditivos.replace(', ', ',').split(',')
-    return reduce(operator.and_, (Q(aditivos__contains=aditivo) for aditivo in lista_aditivos))
+    return reduce(operator.and_, (Q(aditivos__icontains=aditivo) for aditivo in lista_aditivos))
 
 
 def converte_para_datetime(data):
