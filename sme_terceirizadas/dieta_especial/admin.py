@@ -8,7 +8,7 @@ from .models import (
     MotivoNegacao,
     SolicitacaoDietaEspecial,
     SubstituicaoAlimento,
-    TipoContagem,
+    TipoContagem
 )
 
 
@@ -16,6 +16,7 @@ from .models import (
 class AlimentoAdmin(admin.ModelAdmin):
     list_display = ('nome',)
     search_fields = ('nome',)
+
 
 admin.site.register(AlergiaIntolerancia)
 admin.site.register(Anexo)
