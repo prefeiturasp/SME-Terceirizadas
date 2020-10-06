@@ -38,7 +38,7 @@ class SolicitacaoKitLancheCEIAvulsaCreationSerializer(serializers.ModelSerialize
         queryset=Escola.objects.all()
     )
     alunos_com_dieta_especial_participantes = serializers.SlugRelatedField(
-        slug_field='codigo_eol',
+        slug_field='uuid',
         many=True,
         queryset=Aluno.objects.all())
     faixas_etarias = FaixaEtariaSolicitacaoKitLancheCEIAvulsaCreateSerializer(many=True)
