@@ -25,7 +25,9 @@ admin.site.register(Subprefeitura)
 admin.site.register(TipoGestao)
 admin.site.register(TipoUnidadeEscolar)
 admin.site.register(Codae)
-admin.site.register(EscolaPeriodoEscolar)
+class EscolaPeriodoEscolarAdmin(admin.ModelAdmin):
+    search_fields = ['escola__nome', 'periodo_escolar__nome']
+admin.site.register(EscolaPeriodoEscolar, EscolaPeriodoEscolarAdmin)
 admin.site.register(LogAlteracaoQuantidadeAlunosPorEscolaEPeriodoEscolar)
 admin.site.register(Responsavel)
 

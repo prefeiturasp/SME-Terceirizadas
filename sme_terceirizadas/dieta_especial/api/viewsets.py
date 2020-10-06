@@ -529,7 +529,7 @@ class SolicitacaoDietaEspecialViewSet(
 
         campos = [
             'periodo_escolar__nome',
-            'periodo_escolar__horas_atendimento',
+            'horas_atendimento',
             'quantidade_alunos'
         ]
         qs = EscolaPeriodoEscolar.objects.filter(
