@@ -25,7 +25,7 @@ class ProdutoFilter(filters.FilterSet):
 
     def filtra_aditivos(self, qs, name, value):
         filtro = cria_filtro_aditivos(value)
-        qs.filter(filtro)
+        return qs.filter(filtro)
 
     def filtra_homologacoes(self, qs, name, value):
         value = self.request.query_params.getlist('status')
