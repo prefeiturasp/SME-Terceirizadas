@@ -25,30 +25,35 @@ from .validators import atributos_lista_nao_vazios, atributos_string_nao_vazios,
 
 
 class AlergiaIntoleranciaSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = AlergiaIntolerancia
         fields = '__all__'
 
 
 class ClassificacaoDietaSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = ClassificacaoDieta
         fields = '__all__'
 
 
 class MotivoNegacaoSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = MotivoNegacao
         fields = '__all__'
 
 
 class AlimentoSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Alimento
         fields = '__all__'
 
 
 class TipoContagemSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = TipoContagem
         exclude = ('id',)
@@ -72,6 +77,7 @@ class SubstituicaoAlimentoSerializer(ModelSerializer):
 
 
 class SolicitacaoDietaEspecialAutorizarSerializer(SolicitacaoDietaEspecialCreateSerializer):
+
     def validate(self, dados_a_validar):
         deve_ter_atributos(
             dados_a_validar,
@@ -83,10 +89,13 @@ class SolicitacaoDietaEspecialAutorizarSerializer(SolicitacaoDietaEspecialCreate
             ]
         )
         if 'data_termino' in dados_a_validar:
-            data_termino = datetime.strptime(dados_a_validar['data_termino'], '%Y-%m-%d').date()
+            data_termino = datetime.strptime(
+                dados_a_validar['data_termino'], '%Y-%m-%d').date()
             nao_pode_ser_no_passado(data_termino)
-        atributos_lista_nao_vazios(dados_a_validar, ['substituicoes', 'alergias_intolerancias'])
-        atributos_string_nao_vazios(dados_a_validar, ['registro_funcional_nutricionista'])
+        atributos_lista_nao_vazios(
+            dados_a_validar, ['substituicoes', 'alergias_intolerancias'])
+        atributos_string_nao_vazios(
+            dados_a_validar, ['registro_funcional_nutricionista'])
         return dados_a_validar
 
     def update(self, instance, data):
@@ -95,8 +104,10 @@ class SolicitacaoDietaEspecialAutorizarSerializer(SolicitacaoDietaEspecialCreate
         substituicoes = validated_data.pop('substituicoes')
 
         instance.classificacao_id = validated_data['classificacao']
-        instance.registro_funcional_nutricionista = validated_data['registro_funcional_nutricionista']
-        instance.informacoes_adicionais = validated_data.get('informacoes_adicionais', '')
+        instance.registro_funcional_nutricionista = validated_data[
+            'registro_funcional_nutricionista']
+        instance.informacoes_adicionais = validated_data.get(
+            'informacoes_adicionais', '')
         instance.nome_protocolo = validated_data.get('nome_protocolo', '')
         data_termino = validated_data.get('data_termino', '')
         if data_termino:
@@ -105,7 +116,8 @@ class SolicitacaoDietaEspecialAutorizarSerializer(SolicitacaoDietaEspecialCreate
 
         instance.alergias_intolerancias.all().delete()
         for ai in alergias_intolerancias:
-            instance.alergias_intolerancias.add(AlergiaIntolerancia.objects.get(pk=ai))
+            instance.alergias_intolerancias.add(
+                AlergiaIntolerancia.objects.get(pk=ai))
 
         instance.substituicaoalimento_set.all().delete()
         for substituicao in substituicoes:
@@ -118,6 +130,7 @@ class SolicitacaoDietaEspecialAutorizarSerializer(SolicitacaoDietaEspecialCreate
 
 
 class DiretoriaRegionalSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = DiretoriaRegional
         fields = ['nome', 'codigo_eol']
@@ -131,7 +144,8 @@ class EscolaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Escola
-        fields = ('uuid', 'nome', 'diretoria_regional', 'tipo_gestao', 'lote', 'contato')
+        fields = ('uuid', 'nome', 'diretoria_regional',
+                  'tipo_gestao', 'lote', 'contato')
 
 
 class SolicitacaoDietaEspecialSerializer(serializers.ModelSerializer):
@@ -194,8 +208,10 @@ class SolicitacaoDietaEspecialUpdateSerializer(serializers.ModelSerializer):
         child=AnexoSerializer(), required=True
     )
 
-    classificacao = serializers.PrimaryKeyRelatedField(queryset=ClassificacaoDieta.objects.all())
-    alergias_intolerancias = serializers.PrimaryKeyRelatedField(queryset=AlergiaIntolerancia.objects.all(), many=True)
+    classificacao = serializers.PrimaryKeyRelatedField(
+        queryset=ClassificacaoDieta.objects.all())
+    alergias_intolerancias = serializers.PrimaryKeyRelatedField(
+        queryset=AlergiaIntolerancia.objects.all(), many=True)
 
     substituicoes = SubstituicaoAlimentoCreateSerializer(many=True)
 
@@ -257,10 +273,16 @@ class SolicitacoesAtivasInativasPorAlunoSerializer(serializers.Serializer):
 
 
 class RelatorioQuantitativoSolicDietaEspSerializer(serializers.Serializer):
-    dre = serializers.CharField(source='aluno__escola__diretoria_regional__nome', required=False)
-    escola = serializers.CharField(source='aluno__escola__nome', required=False)
-    diagnostico = serializers.CharField(source='alergias_intolerancias__descricao', required=False)
-    ano_nasc_aluno = serializers.CharField(source='aluno__data_nascimento__year', required=False)
+    dre = serializers.CharField(
+        source='aluno__escola__diretoria_regional__nome', required=False)
+    escola = serializers.CharField(
+        source='aluno__escola__nome', required=False)
+    diagnostico = serializers.CharField(
+        source='alergias_intolerancias__descricao', required=False)
+    classificacao = serializers.CharField(
+        source='classificacao__nome', required=False)
+    ano_nasc_aluno = serializers.CharField(
+        source='aluno__data_nascimento__year', required=False)
     qtde_ativas = serializers.IntegerField()
     qtde_inativas = serializers.IntegerField()
     qtde_pendentes = serializers.IntegerField()
@@ -302,11 +324,13 @@ class SolicitacaoDietaEspecialSimplesSerializer(serializers.ModelSerializer):
 
 
 class PanoramaSerializer(serializers.Serializer):
-    periodo = serializers.CharField(source='periodo_escolar__nome', required=False)
+    periodo = serializers.CharField(
+        source='periodo_escolar__nome', required=False)
     horas_atendimento = serializers.IntegerField(
         source='periodo_escolar__horas_atendimento',
         required=False)
-    qtde_alunos = serializers.IntegerField(source='quantidade_alunos', required=False)
+    qtde_alunos = serializers.IntegerField(
+        source='quantidade_alunos', required=False)
     qtde_tipo_a = serializers.IntegerField()
     qtde_enteral = serializers.IntegerField()
     qtde_tipo_b = serializers.IntegerField()
