@@ -26,7 +26,8 @@ from ...relatorios.relatorios import (
     relatorio_dieta_especial_protocolo,
     relatorio_geral_dieta_especial,
     relatorio_quantitativo_diag_dieta_especial,
-    relatorio_quantitativo_solic_dieta_especial
+    relatorio_quantitativo_solic_dieta_especial,
+    relatorio_quantitativo_classificacao_dieta_especial
 )
 from ..forms import (
     NegaDietaEspecialForm,
@@ -430,6 +431,24 @@ class SolicitacaoDietaEspecialViewSet(
         user = self.request.user
 
         return relatorio_quantitativo_solic_dieta_especial(campos, form, qs, user)
+
+    @action(
+        detail=False,
+        methods=['POST'],
+        url_path='imprime-relatorio-quantitativo-classificacao-dieta-esp'
+    )
+    def imprime_relatorio_quantitativo_classificacao_dieta_esp(self, request):
+        form = RelatorioQuantitativoSolicDietaEspForm(self.request.data)
+        if not form.is_valid():
+            raise ValidationError(form.errors)
+
+        campos = self.get_campos_relatorio_quantitativo_classificacao_dieta_esp(
+            form.cleaned_data)
+        qs = self.get_queryset_relatorio_quantitativo_solic_dieta_esp(
+            form, campos)
+        user = self.request.user
+
+        return relatorio_quantitativo_classificacao_dieta_especial(campos, form, qs, user)
 
     @action(
         detail=False,

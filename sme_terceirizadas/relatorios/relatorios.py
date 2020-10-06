@@ -450,6 +450,11 @@ def relatorio_quantitativo_solic_dieta_especial(campos, form, queryset, user):
         campos, form, queryset, user, 'relatorio_quantitativo_solicitacoes_dieta_especial')
 
 
+def relatorio_quantitativo_classificacao_dieta_especial(campos, form, queryset, user):
+    return get_relatorio_dieta_especial(
+        campos, form, queryset, user, 'relatorio_quantitativo_classificacao_dieta_especial')
+
+
 def relatorio_quantitativo_diag_dieta_especial(campos, form, queryset, user):
     return get_relatorio_dieta_especial(
         campos, form, queryset, user, 'relatorio_quantitativo_diagnostico_dieta_especial')
