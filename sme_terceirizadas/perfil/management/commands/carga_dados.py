@@ -33,11 +33,7 @@ from utility.carga_dados.produto.importa_dados import (
     cria_informacao_nutricional,
     cria_tipo_informacao_nutricional
 )
-from utility.carga_dados.terceirizada.importa_dados import (
-    cria_edital,
-    cria_contratos,
-    cria_terceirizadas
-)
+from utility.carga_dados.terceirizada.importa_dados import cria_contratos, cria_edital, cria_terceirizadas
 from utility.carga_dados.usuarios import cria_usuarios
 
 

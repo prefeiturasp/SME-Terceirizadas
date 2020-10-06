@@ -25,9 +25,9 @@ from ...relatorios.relatorios import (
     relatorio_dieta_especial,
     relatorio_dieta_especial_protocolo,
     relatorio_geral_dieta_especial,
+    relatorio_quantitativo_classificacao_dieta_especial,
     relatorio_quantitativo_diag_dieta_especial,
-    relatorio_quantitativo_solic_dieta_especial,
-    relatorio_quantitativo_classificacao_dieta_especial
+    relatorio_quantitativo_solic_dieta_especial
 )
 from ..forms import (
     NegaDietaEspecialForm,
