@@ -15,6 +15,7 @@ from ...dados_comuns import constants
 from ...dados_comuns.fluxo_status import HomologacaoProdutoWorkflow, ReclamacaoProdutoWorkflow
 from ...dados_comuns.models import LogSolicitacoesUsuario
 from ...dados_comuns.permissions import PermissaoParaReclamarDeProduto, UsuarioCODAEGestaoProduto, UsuarioTerceirizada
+from ...dados_comuns.utils import url_configs
 from ...relatorios.relatorios import (
     relatorio_produto_analise_sensorial,
     relatorio_produto_analise_sensorial_recebimento,
@@ -207,14 +208,14 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
             url_path=constants.CODAE_HOMOLOGA)
     def codae_homologa(self, request, uuid=None):
         homologacao_produto = self.get_object()
+        uri = reverse(
+            'Produtos-relatorio',
+            args=[homologacao_produto.produto.uuid]
+        )
         try:
             homologacao_produto.codae_homologa(
                 user=request.user,
-                link_pdf=reverse(
-                    'Produtos-relatorio',
-                    args=[homologacao_produto.produto.uuid],
-                    request=request
-                ))
+                link_pdf=url_configs('API', {'uri': uri}))
             serializer = self.get_serializer(homologacao_produto)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -227,16 +228,16 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
             url_path=constants.CODAE_NAO_HOMOLOGA)
     def codae_nao_homologa(self, request, uuid=None):
         homologacao_produto = self.get_object()
+        uri = reverse(
+            'Produtos-relatorio',
+            args=[homologacao_produto.produto.uuid]
+        )
         try:
             justificativa = request.data.get('justificativa', '')
             homologacao_produto.codae_nao_homologa(
                 user=request.user,
                 justificativa=justificativa,
-                link_pdf=reverse(
-                    'Produtos-relatorio',
-                    args=[homologacao_produto.produto.uuid],
-                    request=request
-                )
+                link_pdf=url_configs('API', {'uri': uri})
             )
             serializer = self.get_serializer(homologacao_produto)
             return Response(serializer.data)
@@ -250,16 +251,17 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
             url_path=constants.CODAE_QUESTIONA_PEDIDO)
     def codae_questiona(self, request, uuid=None):
         homologacao_produto = self.get_object()
+        uri = reverse(
+            'Produtos-relatorio',
+            args=[homologacao_produto.produto.uuid]
+        )
         try:
             justificativa = request.data.get('justificativa', '')
             homologacao_produto.codae_questiona(
                 user=request.user,
                 justificativa=justificativa,
-                link_pdf=reverse(
-                    'Produtos-relatorio',
-                    args=[homologacao_produto.produto.uuid],
-                    request=request
-                ))
+                link_pdf=url_configs('API', {'uri': uri})
+            )
             serializer = self.get_serializer(homologacao_produto)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -272,16 +274,17 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
             url_path=constants.CODAE_PEDE_ANALISE_SENSORIAL)
     def codae_pede_analise_sensorial(self, request, uuid=None):
         homologacao_produto = self.get_object()
+        uri = reverse(
+            'Produtos-relatorio',
+            args=[homologacao_produto.produto.uuid]
+        )
         try:
             justificativa = request.data.get('justificativa', '')
             homologacao_produto.gera_protocolo_analise_sensorial()
             homologacao_produto.codae_pede_analise_sensorial(
                 user=request.user, justificativa=justificativa,
-                link_pdf=reverse(
-                    'Produtos-relatorio',
-                    args=[homologacao_produto.produto.uuid],
-                    request=request
-                ))
+                link_pdf=url_configs('API', {'uri': uri})
+            )
             serializer = self.get_serializer(homologacao_produto)
             return Response(serializer.data)
         except InvalidTransitionError as e:
