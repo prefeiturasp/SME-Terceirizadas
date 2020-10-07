@@ -687,7 +687,8 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         form_data['status'] = [
             HomologacaoProdutoWorkflow.CODAE_HOMOLOGADO,
             HomologacaoProdutoWorkflow.ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
-            HomologacaoProdutoWorkflow.CODAE_PEDIU_ANALISE_RECLAMACAO
+            HomologacaoProdutoWorkflow.CODAE_PEDIU_ANALISE_RECLAMACAO,
+            HomologacaoProdutoWorkflow.TERCEIRIZADA_RESPONDEU_RECLAMACAO
         ]
 
         queryset = self.get_queryset_filtrado(form_data)
