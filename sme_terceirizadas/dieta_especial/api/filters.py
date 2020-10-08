@@ -7,6 +7,7 @@ from ..models import ClassificacaoDieta
 class DietaEspecialFilter(filters.FilterSet):
     aluno = filters.CharFilter(field_name='aluno__uuid', lookup_expr='iexact')
     nome_aluno = filters.CharFilter(field_name='aluno__nome', lookup_expr='icontains')
+    nome_completo_aluno = filters.CharFilter(field_name='aluno__nome', lookup_expr='iexact')
     cpf_responsavel = filters.CharFilter(field_name='aluno__responsaveis__cpf', lookup_expr='iexact')
     dre = filters.CharFilter(field_name='rastro_dre__uuid', lookup_expr='iexact')
     data_inicial = filters.DateFilter(field_name='criado_em', lookup_expr='date__gte')
