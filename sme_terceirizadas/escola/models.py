@@ -288,7 +288,6 @@ class PeriodoEscolar(ExportModelOperationsMixin('periodo_escolar'), Nomeavel, Te
 
     tipos_alimentacao = models.ManyToManyField(
         'cardapio.TipoAlimentacao', related_name='periodos_escolares')
-    horas_atendimento = models.IntegerField(null=True)
 
     class Meta:
         ordering = ('nome',)
@@ -435,6 +434,7 @@ class EscolaPeriodoEscolar(ExportModelOperationsMixin('escola_periodo'), Ativave
                                         on_delete=models.DO_NOTHING)
     quantidade_alunos = models.PositiveSmallIntegerField(
         'Quantidade de alunos', default=0)
+    horas_atendimento = models.IntegerField(null=True)
 
     def __str__(self):
         periodo_nome = self.periodo_escolar.nome
