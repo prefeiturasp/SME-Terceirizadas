@@ -529,8 +529,9 @@ class SolicitacaoDietaEspecialViewSet(
 
         campos = [
             'periodo_escolar__nome',
-            'periodo_escolar__horas_atendimento',
-            'quantidade_alunos'
+            'horas_atendimento',
+            'quantidade_alunos',
+            'uuid',
         ]
         qs = EscolaPeriodoEscolar.objects.filter(
             escola=form.cleaned_data['escola'], quantidade_alunos__gt=0
