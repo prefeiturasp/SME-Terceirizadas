@@ -80,6 +80,12 @@
       {{ homologacao.logs.last.justificativa|safe }}
     </article>
   {% endif %}
+  {% if homologacao.status == 'CODAE_QUESTIONADO' %}
+    <div class="label">Motivo da suspensão (Data: {{ homologacao.logs.last.criado_em|date:'d/m/Y' }})</div>
+    <article class="justificativa-motivo">
+      {{ homologacao.logs.last.justificativa|safe }}
+    </article>
+  {% endif %}
 
    {% if homologacao.status == 'CODAE_AUTORIZOU_RECLAMACAO' %}
     <article class="justificativa-motivo">
