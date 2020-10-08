@@ -1,12 +1,7 @@
 from django.db import models
 
-from sme_terceirizadas.dados_comuns.behaviors import (  # noqa I101
-    CriadoEm,
-    CriadoPor,
-    Logs,
-    TemChaveExterna,
-    TemData,
-)
+from sme_terceirizadas.dados_comuns.behaviors import CriadoEm, CriadoPor, Logs, TemChaveExterna, TemData  # noqa I101
+
 
 class LancamentoDiario(CriadoEm, CriadoPor, TemData,
                        Logs, TemChaveExterna, models.Model):
@@ -22,6 +17,7 @@ class LancamentoDiario(CriadoEm, CriadoPor, TemData,
     frequencia = models.IntegerField(null=True)
     lanche_4h = models.IntegerField(null=True)
     lanche_5h = models.IntegerField(null=True)
+    ref_enteral = models.IntegerField(null=True)
     observacoes = models.TextField(blank=True)
 
     def __str__(self):
@@ -36,8 +32,8 @@ class Refeicao(models.Model):
     lancamento = models.ForeignKey(
         LancamentoDiario,
         on_delete=models.CASCADE,
-        related_name="refeicoes"
+        related_name='refeicoes'
     )
 
     def __str__(self):
-        return str(self.uuid)
+        return f'{self.id} - Pertencente ao lançamento ${self.lancamento.uuid}'

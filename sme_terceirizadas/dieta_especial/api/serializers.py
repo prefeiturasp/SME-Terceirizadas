@@ -330,3 +330,4 @@ class PanoramaSerializer(serializers.Serializer):
     qtde_tipo_a = serializers.IntegerField()
     qtde_enteral = serializers.IntegerField()
     qtde_tipo_b = serializers.IntegerField()
+    uuid_escola_periodo_escolar = serializers.CharField(source='uuid', required=False)

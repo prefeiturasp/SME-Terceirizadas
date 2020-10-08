@@ -1,7 +1,11 @@
 from django.contrib import admin
 
-from .models import Refeicao, LancamentoDiario
-# Register your models here.
+from .models import LancamentoDiario, Refeicao
 
 admin.site.register(Refeicao)
-admin.site.register(LancamentoDiario)
+
+
+@admin.register(LancamentoDiario)
+class LancamentoDiarioAdmin(admin.ModelAdmin):
+    list_display = ('__str__',)
+    readonly_fields = ['escola_periodo_escolar', 'criado_por']
