@@ -84,7 +84,7 @@ class SolicitacaoDietaEspecialCreateSerializer(serializers.ModelSerializer):
 
             escola = Escola.objects.get(codigo_eol=codigo_eol_escola)
 
-            aluno = Aluno.objects.filter(nome__iexact=nome_aluno, responsaveis__cpf=responsavel_data.get('cpf')).first()
+            aluno = Aluno.objects.filter(nome__iexact=nome_aluno, responsaveis__cpf=responsavel_data.get('cpf')).last()
 
             if cpf_aluno and not aluno:
                 aluno, _ = Aluno.objects.get_or_create(
