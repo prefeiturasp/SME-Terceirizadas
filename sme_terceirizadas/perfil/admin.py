@@ -3,7 +3,7 @@ from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 from django.core.management import call_command
 from django.utils.translation import ugettext_lazy as _
 
-from .models import Cargo, Perfil, Usuario, Vinculo
+from .models import Cargo, Perfil, Usuario, Vinculo, PlanilhaDiretorCogestor
 
 
 class BaseUserAdmin(DjangoUserAdmin):
@@ -52,6 +52,15 @@ class PerfilAdmin(admin.ModelAdmin):
 class VinculoAdmin(admin.ModelAdmin):
     list_display = ('__str__',)
     search_fields = ('usuario__nome',)
+
+
+@admin.register(PlanilhaDiretorCogestor)
+class PlanilhaDiretorCogestorAdmin(admin.ModelAdmin):
+    list_display = ('__str__', 'criado_em')
+
+    def save_model(self, request, obj, form, change):
+        print('AQUI')
+        super(PlanilhaDiretorCogestorAdmin, self).save_model(request, obj, form, change)  # noqa
 
 
 admin.site.register(Usuario, BaseUserAdmin)
