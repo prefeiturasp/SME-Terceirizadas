@@ -236,12 +236,12 @@ class SolicitacaoDietaEspecialViewSet(
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)  # noqa
 
     @action(detail=True, url_path=constants.RELATORIO,
-            methods=['get'], permission_classes=[AllowAny])
+            methods=['get'], permission_classes=(IsAuthenticated,))
     def relatorio(self, request, uuid=None):
         return relatorio_dieta_especial(request, solicitacao=self.get_object())
 
     @action(detail=True, url_path=constants.PROTOCOLO,
-            methods=['get'], permission_classes=[AllowAny])
+            methods=['get'], permission_classes=(IsAuthenticated,))
     def protocolo(self, request, uuid=None):
         return relatorio_dieta_especial_protocolo(request, solicitacao=self.get_object())  # noqa
 

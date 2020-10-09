@@ -1,5 +1,5 @@
 from rest_framework import status
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ViewSet
 
@@ -8,7 +8,7 @@ from ..utils import EOLException, EOLService
 
 class DadosUsuarioEOLViewSet(ViewSet):
     lookup_field = 'registro_funcional'
-    permission_classes = (AllowAny,)
+    permission_classes = (IsAuthenticated,)
 
     def retrieve(self, request, registro_funcional=None):
         try:
@@ -22,7 +22,7 @@ class DadosUsuarioEOLViewSet(ViewSet):
 
 class DadosAlunoEOLViewSet(ViewSet):
     lookup_field = 'codigo_eol'
-    permission_classes = (AllowAny,)
+    permission_classes = (IsAuthenticated,)
 
     def retrieve(self, request, codigo_eol=None):
         try:

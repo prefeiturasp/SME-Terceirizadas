@@ -3,6 +3,7 @@ import datetime
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models.query_utils import Q
 from rest_framework import permissions, status, viewsets
+from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
@@ -16,7 +17,7 @@ from .serializers import PerfilSerializer, UsuarioUpdateSerializer
 
 
 class UsuarioViewSet(viewsets.ReadOnlyModelViewSet):
-    permission_classes = (permissions.AllowAny,)
+    permission_classes = (IsAuthenticated,)
     lookup_field = 'uuid'
     queryset = Usuario.objects.all()
     serializer_class = UsuarioDetalheSerializer
@@ -42,7 +43,8 @@ class UsuarioViewSet(viewsets.ReadOnlyModelViewSet):
     def atualizar_senha(self, request):
         try:
             usuario = request.user
-            assert usuario.check_password(request.data.get('senha_atual')) is True, 'senha atual incorreta'
+            assert usuario.check_password(request.data.get(
+                'senha_atual')) is True, 'senha atual incorreta'
             senha = request.data.get('senha')
             confirmar_senha = request.data.get('confirmar_senha')
             assert senha == confirmar_senha, 'senha e confirmar senha divergem'
@@ -61,7 +63,7 @@ class UsuarioViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class UsuarioUpdateViewSet(viewsets.GenericViewSet):
-    permission_classes = (permissions.AllowAny,)
+    permission_classes = (IsAuthenticated,)
     serializer_class = UsuarioUpdateSerializer
 
     def get_authenticators(self, *args, **kwargs):
@@ -85,7 +87,8 @@ class UsuarioUpdateViewSet(viewsets.GenericViewSet):
         try:
             usuario = self._get_usuario(request)
             # TODO: ajeitar isso aqui
-            usuario = UsuarioUpdateSerializer(usuario).partial_update(usuario, request.data)
+            usuario = UsuarioUpdateSerializer(
+                usuario).partial_update(usuario, request.data)
             if not isinstance(usuario.vinculo_atual.instituicao, Terceirizada):
                 usuario.enviar_email_confirmacao()
             return Response(UsuarioDetalheSerializer(usuario).data)
@@ -97,7 +100,8 @@ class UsuarioUpdateViewSet(viewsets.GenericViewSet):
     @action(detail=False, url_path='recuperar-senha/(?P<registro_funcional_ou_email>.*)')
     def recuperar_senha(self, request, registro_funcional_ou_email=None):
         try:
-            usuario = self._get_usuario_por_rf_email(registro_funcional_ou_email)
+            usuario = self._get_usuario_por_rf_email(
+                registro_funcional_ou_email)
         except ObjectDoesNotExist:
             return Response({'detail': 'Não existe usuário com este e-mail ou RF'},
                             status=status.HTTP_400_BAD_REQUEST)
@@ -123,13 +127,14 @@ class UsuarioUpdateViewSet(viewsets.GenericViewSet):
 
 
 class PerfilViewSet(viewsets.ReadOnlyModelViewSet):
+    permission_classes = (IsAuthenticated,)
     lookup_field = 'uuid'
     queryset = Perfil.objects.all()
     serializer_class = PerfilSerializer
 
 
 class UsuarioConfirmaEmailViewSet(viewsets.GenericViewSet):
-    permission_classes = (permissions.AllowAny,)
+    permission_classes = (IsAuthenticated,)
     serializer_class = UsuarioDetalheSerializer
 
     # TODO: ajeitar isso
@@ -143,7 +148,8 @@ class UsuarioConfirmaEmailViewSet(viewsets.GenericViewSet):
                             status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            vinculo_esperando_ativacao = usuario.vinculos.get(ativo=False, data_inicial=None, data_final=None)
+            vinculo_esperando_ativacao = usuario.vinculos.get(
+                ativo=False, data_inicial=None, data_final=None)
             vinculo_esperando_ativacao.ativo = True
             vinculo_esperando_ativacao.data_inicial = datetime.date.today()
             vinculo_esperando_ativacao.save()
