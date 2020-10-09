@@ -48,6 +48,11 @@ class PerfilAdmin(admin.ModelAdmin):
     search_fields = ('nome',)
 
 
+@admin.register(Vinculo)
+class VinculoAdmin(admin.ModelAdmin):
+    list_display = ('__str__',)
+    search_fields = ('usuario__nome',)
+
+
 admin.site.register(Usuario, BaseUserAdmin)
-admin.site.register(Vinculo)
 admin.site.register(Cargo)
