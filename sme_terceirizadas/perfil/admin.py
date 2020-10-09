@@ -1,13 +1,10 @@
-from utility.carga_dados.escola.importa_dados import (
-    cria_usuario_diretor,
-    cria_usuario_cogestor
-)
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 from django.core.management import call_command
 from django.utils.translation import ugettext_lazy as _
+from utility.carga_dados.escola.importa_dados import cria_usuario_cogestor, cria_usuario_diretor
 
-from .models import Cargo, Perfil, Usuario, Vinculo, PlanilhaDiretorCogestor
+from .models import Cargo, Perfil, PlanilhaDiretorCogestor, Usuario, Vinculo
 
 
 class BaseUserAdmin(DjangoUserAdmin):

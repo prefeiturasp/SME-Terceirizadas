@@ -19,7 +19,7 @@ from utility.carga_dados.escola.importa_dados import (
     cria_lotes,
     cria_subprefeituras,
     cria_tipo_unidade_escolar,
-    cria_tipos_gestao,
+    cria_tipos_gestao
 )
 from utility.carga_dados.inclusao_alimentacao.importa_dados import (
     cria_motivo_inclusao_continua,

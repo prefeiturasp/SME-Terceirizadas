@@ -1,7 +1,7 @@
-import environ
 import subprocess
+
+import environ
 from django.db.models import Q
-from .helper import cria_vinculo_de_perfil_usuario
 from utility.carga_dados.escola.helper import bcolors, email_valido, maiuscula, normaliza_nome
 from utility.carga_dados.helper import (
     adiciona_m2m_items,
@@ -11,8 +11,9 @@ from utility.carga_dados.helper import (
     ja_existe,
     le_dados,
     progressbar,
-    somente_digitos,
+    somente_digitos
 )
+
 from sme_terceirizadas.dados_comuns.models import Contato
 from sme_terceirizadas.escola.data.diretorias_regionais import data_diretorias_regionais  # noqa
 from sme_terceirizadas.escola.data.lotes import data_lotes
@@ -29,6 +30,8 @@ from sme_terceirizadas.escola.models import (
 from sme_terceirizadas.perfil.models import Perfil, Usuario
 from sme_terceirizadas.terceirizada.data.terceirizadas import data_terceirizadas  # noqa
 from sme_terceirizadas.terceirizada.models import Terceirizada
+
+from .helper import cria_vinculo_de_perfil_usuario
 
 ROOT_DIR = environ.Path(__file__) - 1
 

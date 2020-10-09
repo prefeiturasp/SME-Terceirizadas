@@ -2,6 +2,7 @@ import csv
 import io
 import sys
 import urllib.request
+
 import xlrd
 from utility.carga_dados.escola.helper import bcolors
 

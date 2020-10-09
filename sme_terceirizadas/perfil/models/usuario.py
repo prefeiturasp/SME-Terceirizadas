@@ -296,12 +296,13 @@ class Cargo(TemChaveExterna, Nomeavel, Ativavel):
         return f'{self.usuario} de {self.data_inicial} até {self.data_final}'
 
 
-class PlanilhaDiretorCogestor(models.Model):
-    '''
+class PlanilhaDiretorCogestor(models.Model):  # noqa D204
+    """
     Importa dados de planilha específica de Diretores e Cogestores.
     No momento apenas DRE Ipiranga.
-    '''
-    arquivo = models.FileField(null=True, blank=True)
+    """
+
+    arquivo = models.FileField()
     criado_em = models.DateTimeField(
         'criado em',
         auto_now_add=True,
