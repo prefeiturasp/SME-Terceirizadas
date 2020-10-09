@@ -77,14 +77,14 @@ class SolicitacaoDietaEspecialCreateSerializer(serializers.ModelSerializer):
         if aluno_nao_matriculado:
             aluno = aluno_nao_matriculado_data
             codigo_eol_escola = aluno_nao_matriculado_data.pop('codigo_eol_escola')
-            responsavel = aluno_nao_matriculado_data.pop('responsavel')
+            responsavel_data = aluno_nao_matriculado_data.pop('responsavel')
             cpf_aluno = aluno_nao_matriculado_data.get('cpf')
             nome_aluno = aluno_nao_matriculado_data.get('nome')
             data_nascimento = aluno_nao_matriculado_data.get('data_nascimento')
 
             escola = Escola.objects.get(codigo_eol=codigo_eol_escola)
 
-            aluno = Aluno.objects.filter(nome=nome_aluno, responsaveis__cpf=responsavel.get('cpf')).first()
+            aluno = Aluno.objects.filter(nome__iexact=nome_aluno, responsaveis__cpf=responsavel_data.get('cpf')).first()
 
             if cpf_aluno and not aluno:
                 aluno, _ = Aluno.objects.get_or_create(
@@ -101,10 +101,11 @@ class SolicitacaoDietaEspecialCreateSerializer(serializers.ModelSerializer):
             aluno.nao_matriculado = True
             aluno.save()
 
-            Responsavel.objects.get_or_create(
-                cpf=responsavel.get('cpf'),
-                defaults={'aluno': aluno, 'nome': responsavel.get('nome')}
+            responsavel, _ = Responsavel.objects.get_or_create(
+                cpf=responsavel_data.get('cpf'),
+                defaults={'nome': responsavel_data.get('nome')}
             )
+            aluno.responsaveis.add(responsavel)
 
         else:
             info_turma = EOLService.get_informacoes_escola_turma_aluno(
