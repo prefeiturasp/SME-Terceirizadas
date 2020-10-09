@@ -20,8 +20,6 @@ from utility.carga_dados.escola.importa_dados import (
     cria_subprefeituras,
     cria_tipo_unidade_escolar,
     cria_tipos_gestao,
-    cria_usuario_diretor,
-    cria_usuario_cogestor
 )
 from utility.carga_dados.inclusao_alimentacao.importa_dados import (
     cria_motivo_inclusao_continua,
@@ -108,7 +106,3 @@ class Command(BaseCommand):
 
         if settings.DEBUG:
             cria_vinculos()
-
-        arquivo = ''
-        cria_usuario_diretor(arquivo)
-        cria_usuario_cogestor(arquivo)

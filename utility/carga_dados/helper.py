@@ -46,9 +46,17 @@ def csv_online_to_list(url: str) -> list:
     return dados
 
 
-def excel_to_list(arquivo):
-    # https://stackoverflow.com/a/38309568/802542
-    workbook = xlrd.open_workbook(arquivo)
+def excel_to_list(arquivo, in_memory=False):
+    '''
+    Lê planilha Excel e retorna uma lista de dicionários.
+    Você pode informar se quer ler o arquivo InMemoryUploadedFile.
+    https://stackoverflow.com/a/38309568/802542
+    https://stackoverflow.com/a/12886981/802542
+    '''
+    if in_memory:
+        workbook = xlrd.open_workbook(filename=arquivo, file_contents=arquivo.read())  # noqa
+    else:
+        workbook = xlrd.open_workbook(arquivo)
     sheet = workbook.sheet_by_index(0)
 
     primeira_linha = []

@@ -285,11 +285,11 @@ def cria_escola_faltante(unidade_escolar, codigo_eol, dre, lote):
     )
 
 
-def cria_usuario_diretor(arquivo):
+def cria_usuario_diretor(arquivo, in_memory=False):
     '''
     DRE Ipiranga
     '''
-    items = excel_to_list(arquivo)
+    items = excel_to_list(arquivo, in_memory=in_memory)
 
     perfil_diretor, created = Perfil.objects.get_or_create(
         nome='DIRETOR',
@@ -338,13 +338,16 @@ def cria_usuario_diretor(arquivo):
             )
         else:
             print(f'{bcolors.FAIL}Aviso: Usuario: "{nome}" já existe!{bcolors.ENDC}')  # noqa
+    return items
 
 
-def cria_usuario_cogestor(arquivo):
+def cria_usuario_cogestor(items):
     '''
-    DRE Ipiranga
+    DRE Ipiranga.
+    Específico: depende dos items de cria_usuario_diretor,
+    porque o InMemoryUploadedFile não deu certo aqui.
     '''
-    items = excel_to_list(arquivo)
+    # items = excel_to_list(arquivo, in_memory=in_memory)
 
     perfil_diretor, created = Perfil.objects.get_or_create(
         nome='COGESTOR',

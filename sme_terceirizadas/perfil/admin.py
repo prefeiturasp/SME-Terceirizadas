@@ -1,3 +1,7 @@
+from utility.carga_dados.escola.importa_dados import (
+    cria_usuario_diretor,
+    cria_usuario_cogestor
+)
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 from django.core.management import call_command
@@ -59,7 +63,10 @@ class PlanilhaDiretorCogestorAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'criado_em')
 
     def save_model(self, request, obj, form, change):
-        print('AQUI')
+        # Lendo arquivo InMemoryUploadedFile
+        arquivo = request.FILES.get('arquivo')
+        items = cria_usuario_diretor(arquivo, in_memory=True)
+        cria_usuario_cogestor(items)
         super(PlanilhaDiretorCogestorAdmin, self).save_model(request, obj, form, change)  # noqa
 
 
