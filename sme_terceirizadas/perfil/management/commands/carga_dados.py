@@ -109,6 +109,6 @@ class Command(BaseCommand):
         if settings.DEBUG:
             cria_vinculos()
 
-        arquivo = '/home/regis/Downloads/RELAÇÃO DOS DIRETORES - DRE IP.xlsx'
+        arquivo = ''
         cria_usuario_diretor(arquivo)
         cria_usuario_cogestor(arquivo)
