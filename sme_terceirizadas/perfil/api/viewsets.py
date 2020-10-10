@@ -63,7 +63,7 @@ class UsuarioViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class UsuarioUpdateViewSet(viewsets.GenericViewSet):
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (AllowAny,)
     serializer_class = UsuarioUpdateSerializer
 
     def get_authenticators(self, *args, **kwargs):
@@ -134,7 +134,7 @@ class PerfilViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class UsuarioConfirmaEmailViewSet(viewsets.GenericViewSet):
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (AllowAny,)
     serializer_class = UsuarioDetalheSerializer
 
     # TODO: ajeitar isso

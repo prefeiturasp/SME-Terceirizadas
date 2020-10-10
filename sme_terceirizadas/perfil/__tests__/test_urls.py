@@ -621,11 +621,9 @@ def test_cadastro_diretor(client, users_diretor_escola, monkeypatch):
     }
     assert user.registro_funcional == rf
 
-    monkeypatch.setattr(UsuarioUpdateViewSet,
-                        '_get_usuario', lambda p1, p2: user)
-    monkeypatch.setattr(Usuario, 'pode_efetuar_cadastro',
-                        lambda: True)
-    response = client.post('/cadastro/', headers=headers, data=data)
+    monkeypatch.setattr(UsuarioUpdateViewSet, '_get_usuario', lambda p1, p2: user)  # noqa
+    monkeypatch.setattr(Usuario, 'pode_efetuar_cadastro', lambda: True)
+    response = client.post('/cadastro/', headers=headers, data=data)  # noqa
     assert response.status_code == status.HTTP_200_OK
     json = response.json()
     keys = ['uuid', 'nome', 'email', 'registro_funcional',
@@ -686,7 +684,7 @@ def test_confirmar_email(client, usuarios_pendentes_confirmacao):
     assert usuario.is_active is False  # deve estar inativo no sistema
     assert usuario.is_confirmed is False  # deve estar com email nao confirmado
     # ativacao endpoint
-    response = client.get(f'/confirmar_email/{usuario.uuid}/{usuario.confirmation_key}/')
+    response = client.get(f'/confirmar_email/{usuario.uuid}/{usuario.confirmation_key}/')  # noqa
 
     usuario_apos_ativacao = Usuario.objects.get(id=usuario.id)
     # apos a ativacao pelo link confirma email

@@ -58,7 +58,8 @@ def usuario_2():
 @pytest.fixture()
 def usuario_com_rf_de_diretor(escola):
     hoje = datetime.date.today()
-    perfil_diretor = mommy.make('Perfil', nome='DIRETOR', ativo=True, uuid='41c20c8b-7e57-41ed-9433-ccb92e8afaf1')
+    perfil_diretor = mommy.make(
+        'Perfil', nome='DIRETOR', ativo=True, uuid='41c20c8b-7e57-41ed-9433-ccb92e8afaf1')
     user = mommy.make(
         models.Usuario,
         registro_funcional='6580157'
@@ -88,10 +89,14 @@ def vinculo_aguardando_ativacao(perfil, usuario):
 
 @pytest.fixture(params=[
     # dataini, datafim, ativo
-    (datetime.date(2000, 1, 12), datetime.date(2000, 1, 12), True),  # nao pode data final e ativo
-    (None, datetime.date(2000, 1, 12), True),  # nao pode data final sem data inicial
-    (None, datetime.date(2000, 1, 12), False),  # nao pode data final sem data inicial,
-    (datetime.date(2000, 1, 12), None, False)  # nao pode data inicio, sem data fim e inativo
+    (datetime.date(2000, 1, 12), datetime.date(
+        2000, 1, 12), True),  # nao pode data final e ativo
+    # nao pode data final sem data inicial
+    (None, datetime.date(2000, 1, 12), True),
+    # nao pode data final sem data inicial,
+    (None, datetime.date(2000, 1, 12), False),
+    # nao pode data inicio, sem data fim e inativo
+    (datetime.date(2000, 1, 12), None, False)
 ])
 def vinculo_invalido(perfil, usuario, request):
     dataini, datafim, ativo = request.param
@@ -121,13 +126,16 @@ def usuario_update_serializer(usuario_2):
 ])
 def users_admin_escola(client, django_user_model, request):
     email, password, rf = request.param
-    user = django_user_model.objects.create_user(password=password, email=email, registro_funcional=rf)
+    user = django_user_model.objects.create_user(
+        password=password, email=email, registro_funcional=rf)
     client.login(email=email, password=password)
 
     diretoria_regional = mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL IPIRANGA',
                                     uuid='7da9acec-48e1-430c-8a5c-1f1efc666fad', codigo_eol=987656)
-    cardapio1 = mommy.make('cardapio.Cardapio', data=datetime.date(2019, 10, 11))
-    cardapio2 = mommy.make('cardapio.Cardapio', data=datetime.date(2019, 10, 15))
+    cardapio1 = mommy.make('cardapio.Cardapio',
+                           data=datetime.date(2019, 10, 11))
+    cardapio2 = mommy.make('cardapio.Cardapio',
+                           data=datetime.date(2019, 10, 15))
     tipo_unidade_escolar = mommy.make('escola.TipoUnidadeEscolar',
                                       iniciais=f.name()[:10],
                                       cardapios=[cardapio1, cardapio2],
@@ -135,12 +143,18 @@ def users_admin_escola(client, django_user_model, request):
     escola = mommy.make('Escola', nome='EMEI NOE AZEVEDO, PROF',
                         uuid='b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd', diretoria_regional=diretoria_regional,
                         codigo_eol='256341', tipo_unidade=tipo_unidade_escolar)
-    periodo_escolar_tarde = mommy.make('PeriodoEscolar', nome='TARDE', uuid='57af972c-938f-4f6f-9f4b-cf7b983a10b7')
-    periodo_escolar_manha = mommy.make('PeriodoEscolar', nome='MANHA', uuid='d0c12dae-a215-41f6-af86-b7cd1838ba81')
-    mommy.make('EscolaPeriodoEscolar', escola=escola, quantidade_alunos=230, periodo_escolar=periodo_escolar_tarde)
-    mommy.make('EscolaPeriodoEscolar', escola=escola, quantidade_alunos=220, periodo_escolar=periodo_escolar_manha)
-    perfil_professor = mommy.make('Perfil', nome='ADMINISTRADOR_ESCOLA', ativo=False)
-    perfil_admin = mommy.make('Perfil', nome='Admin', ativo=True, uuid='d6fd15cc-52c6-4db4-b604-018d22eeb3dd')
+    periodo_escolar_tarde = mommy.make(
+        'PeriodoEscolar', nome='TARDE', uuid='57af972c-938f-4f6f-9f4b-cf7b983a10b7')
+    periodo_escolar_manha = mommy.make(
+        'PeriodoEscolar', nome='MANHA', uuid='d0c12dae-a215-41f6-af86-b7cd1838ba81')
+    mommy.make('EscolaPeriodoEscolar', escola=escola,
+               quantidade_alunos=230, periodo_escolar=periodo_escolar_tarde)
+    mommy.make('EscolaPeriodoEscolar', escola=escola,
+               quantidade_alunos=220, periodo_escolar=periodo_escolar_manha)
+    perfil_professor = mommy.make(
+        'Perfil', nome='ADMINISTRADOR_ESCOLA', ativo=False)
+    perfil_admin = mommy.make(
+        'Perfil', nome='Admin', ativo=True, uuid='d6fd15cc-52c6-4db4-b604-018d22eeb3dd')
     hoje = datetime.date.today()
 
     mommy.make('Vinculo', usuario=user, instituicao=escola, perfil=perfil_professor,
@@ -154,20 +168,24 @@ def users_admin_escola(client, django_user_model, request):
 @pytest.fixture(params=[
     # email, senha, rf, cpf
     ('diretor_1@sme.prefeitura.sp.gov.br', 'adminadmin', '0000001', '44426575052'),
-    ('diretor_2@sme.prefeitura.sp.gov.br', 'aasdsadsadff', '0000002', '56789925031'),
+    ('diretor_2@sme.prefeitura.sp.gov.br',
+     'aasdsadsadff', '0000002', '56789925031'),
     ('diretor_3@sme.prefeitura.sp.gov.br', '98as7d@@#', '0000147', '86880963099'),
     ('diretor_4@sme.prefeitura.sp.gov.br', '##$$csazd@!', '0000441', '13151715036'),
     ('diretor_5@sme.prefeitura.sp.gov.br', '!!@##FFG121', '0005551', '40296233013')
 ])
 def users_diretor_escola(client, django_user_model, request, usuario_2):
     email, password, rf, cpf = request.param
-    user = django_user_model.objects.create_user(password=password, email=email, registro_funcional=rf, cpf=cpf)
+    user = django_user_model.objects.create_user(
+        password=password, email=email, registro_funcional=rf, cpf=cpf)
     client.login(email=email, password=password)
 
     diretoria_regional = mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL IPIRANGA',
                                     uuid='7da9acec-48e1-430c-8a5c-1f1efc666fad', codigo_eol=987656)
-    cardapio1 = mommy.make('cardapio.Cardapio', data=datetime.date(2019, 10, 11))
-    cardapio2 = mommy.make('cardapio.Cardapio', data=datetime.date(2019, 10, 15))
+    cardapio1 = mommy.make('cardapio.Cardapio',
+                           data=datetime.date(2019, 10, 11))
+    cardapio2 = mommy.make('cardapio.Cardapio',
+                           data=datetime.date(2019, 10, 15))
     tipo_unidade_escolar = mommy.make('escola.TipoUnidadeEscolar',
                                       iniciais=f.name()[:10],
                                       cardapios=[cardapio1, cardapio2],
@@ -175,13 +193,18 @@ def users_diretor_escola(client, django_user_model, request, usuario_2):
     escola = mommy.make('Escola', nome='EMEI NOE AZEVEDO, PROF',
                         uuid='b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd', diretoria_regional=diretoria_regional,
                         codigo_eol='256341', tipo_unidade=tipo_unidade_escolar)
-    periodo_escolar_tarde = mommy.make('PeriodoEscolar', nome='TARDE', uuid='57af972c-938f-4f6f-9f4b-cf7b983a10b7')
-    periodo_escolar_manha = mommy.make('PeriodoEscolar', nome='MANHA', uuid='d0c12dae-a215-41f6-af86-b7cd1838ba81')
-    mommy.make('EscolaPeriodoEscolar', escola=escola, quantidade_alunos=230, periodo_escolar=periodo_escolar_tarde)
-    mommy.make('EscolaPeriodoEscolar', escola=escola, quantidade_alunos=220, periodo_escolar=periodo_escolar_manha)
+    periodo_escolar_tarde = mommy.make(
+        'PeriodoEscolar', nome='TARDE', uuid='57af972c-938f-4f6f-9f4b-cf7b983a10b7')
+    periodo_escolar_manha = mommy.make(
+        'PeriodoEscolar', nome='MANHA', uuid='d0c12dae-a215-41f6-af86-b7cd1838ba81')
+    mommy.make('EscolaPeriodoEscolar', escola=escola,
+               quantidade_alunos=230, periodo_escolar=periodo_escolar_tarde)
+    mommy.make('EscolaPeriodoEscolar', escola=escola,
+               quantidade_alunos=220, periodo_escolar=periodo_escolar_manha)
     perfil_professor = mommy.make('Perfil', nome='ADMINISTRADOR_ESCOLA', ativo=False,
                                   uuid='48330a6f-c444-4462-971e-476452b328b2')
-    perfil_diretor = mommy.make('Perfil', nome='DIRETOR', ativo=True, uuid='41c20c8b-7e57-41ed-9433-ccb92e8afaf1')
+    perfil_diretor = mommy.make(
+        'Perfil', nome='DIRETOR', ativo=True, uuid='41c20c8b-7e57-41ed-9433-ccb92e8afaf1')
 
     hoje = datetime.date.today()
     mommy.make('Vinculo', usuario=user, instituicao=escola, perfil=perfil_professor,
@@ -196,15 +219,20 @@ def users_diretor_escola(client, django_user_model, request, usuario_2):
 
 @pytest.fixture(params=[
     # email, senha, rf, cpf
-    ('cogestor_1@sme.prefeitura.sp.gov.br', 'adminadmin', '0000001', '44426575052'),
-    ('cogestor_2@sme.prefeitura.sp.gov.br', 'aasdsadsadff', '0000002', '56789925031'),
+    ('cogestor_1@sme.prefeitura.sp.gov.br',
+     'adminadmin', '0000001', '44426575052'),
+    ('cogestor_2@sme.prefeitura.sp.gov.br',
+     'aasdsadsadff', '0000002', '56789925031'),
     ('cogestor_3@sme.prefeitura.sp.gov.br', '98as7d@@#', '0000147', '86880963099'),
-    ('cogestor_4@sme.prefeitura.sp.gov.br', '##$$csazd@!', '0000441', '13151715036'),
-    ('cogestor_5@sme.prefeitura.sp.gov.br', '!!@##FFG121', '0005551', '40296233013')
+    ('cogestor_4@sme.prefeitura.sp.gov.br',
+     '##$$csazd@!', '0000441', '13151715036'),
+    ('cogestor_5@sme.prefeitura.sp.gov.br',
+     '!!@##FFG121', '0005551', '40296233013')
 ])
 def users_cogestor_diretoria_regional(client, django_user_model, request, usuario_2):
     email, password, rf, cpf = request.param
-    user = django_user_model.objects.create_user(password=password, email=email, registro_funcional=rf, cpf=cpf)
+    user = django_user_model.objects.create_user(
+        password=password, email=email, registro_funcional=rf, cpf=cpf)
     client.login(email=email, password=password)
 
     diretoria_regional = mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL DE EDUCACAO CAPELA DO SOCORRO',
@@ -212,7 +240,8 @@ def users_cogestor_diretoria_regional(client, django_user_model, request, usuari
 
     perfil_professor = mommy.make('Perfil', nome='ADMINISTRADOR_DRE', ativo=False,
                                   uuid='48330a6f-c444-4462-971e-476452b328b2')
-    perfil_cogestor = mommy.make('Perfil', nome='COGESTOR', ativo=True, uuid='41c20c8b-7e57-41ed-9433-ccb92e8afaf1')
+    perfil_cogestor = mommy.make(
+        'Perfil', nome='COGESTOR', ativo=True, uuid='41c20c8b-7e57-41ed-9433-ccb92e8afaf1')
 
     hoje = datetime.date.today()
     mommy.make('Vinculo', usuario=user, instituicao=diretoria_regional, perfil=perfil_professor,
@@ -228,18 +257,24 @@ def users_cogestor_diretoria_regional(client, django_user_model, request, usuari
 
 @pytest.fixture(params=[
     # email, senha, rf, cpf
-    ('cogestor_1@sme.prefeitura.sp.gov.br', 'adminadmin', '0000001', '44426575052'),
-    ('cogestor_2@sme.prefeitura.sp.gov.br', 'aasdsadsadff', '0000002', '56789925031'),
+    ('cogestor_1@sme.prefeitura.sp.gov.br',
+     'adminadmin', '0000001', '44426575052'),
+    ('cogestor_2@sme.prefeitura.sp.gov.br',
+     'aasdsadsadff', '0000002', '56789925031'),
     ('cogestor_3@sme.prefeitura.sp.gov.br', '98as7d@@#', '0000147', '86880963099'),
-    ('cogestor_4@sme.prefeitura.sp.gov.br', '##$$csazd@!', '0000441', '13151715036'),
-    ('cogestor_5@sme.prefeitura.sp.gov.br', '!!@##FFG121', '0005551', '40296233013')
+    ('cogestor_4@sme.prefeitura.sp.gov.br',
+     '##$$csazd@!', '0000441', '13151715036'),
+    ('cogestor_5@sme.prefeitura.sp.gov.br',
+     '!!@##FFG121', '0005551', '40296233013')
 ])
 def users_codae_gestao_alimentacao(client, django_user_model, request, usuario_2):
     email, password, rf, cpf = request.param
-    user = django_user_model.objects.create_user(password=password, email=email, registro_funcional=rf, cpf=cpf)
+    user = django_user_model.objects.create_user(
+        password=password, email=email, registro_funcional=rf, cpf=cpf)
     client.login(email=email, password=password)
 
-    codae = mommy.make('Codae', nome='CODAE', uuid='b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd')
+    codae = mommy.make('Codae', nome='CODAE',
+                       uuid='b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd')
 
     perfil_administrador_codae = mommy.make('Perfil', nome='ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA', ativo=True,
                                             uuid='48330a6f-c444-4462-971e-476452b328b2')
@@ -259,15 +294,20 @@ def users_codae_gestao_alimentacao(client, django_user_model, request, usuario_2
 
 @pytest.fixture(params=[
     # email, senha, rf, cpf
-    ('cogestor_1@sme.prefeitura.sp.gov.br', 'adminadmin', '0000001', '44426575052'),
-    ('cogestor_2@sme.prefeitura.sp.gov.br', 'aasdsadsadff', '0000002', '56789925031'),
+    ('cogestor_1@sme.prefeitura.sp.gov.br',
+     'adminadmin', '0000001', '44426575052'),
+    ('cogestor_2@sme.prefeitura.sp.gov.br',
+     'aasdsadsadff', '0000002', '56789925031'),
     ('cogestor_3@sme.prefeitura.sp.gov.br', '98as7d@@#', '0000147', '86880963099'),
-    ('cogestor_4@sme.prefeitura.sp.gov.br', '##$$csazd@!', '0000441', '13151715036'),
-    ('cogestor_5@sme.prefeitura.sp.gov.br', '!!@##FFG121', '0005551', '40296233013')
+    ('cogestor_4@sme.prefeitura.sp.gov.br',
+     '##$$csazd@!', '0000441', '13151715036'),
+    ('cogestor_5@sme.prefeitura.sp.gov.br',
+     '!!@##FFG121', '0005551', '40296233013')
 ])
 def users_terceirizada(client, django_user_model, request, usuario_2):
     email, password, rf, cpf = request.param
-    user = django_user_model.objects.create_user(password=password, email=email, registro_funcional=rf, cpf=cpf)
+    user = django_user_model.objects.create_user(
+        password=password, email=email, registro_funcional=rf, cpf=cpf)
     client.login(email=email, password=password)
     mommy.make('Codae')
     terceirizada = mommy.make('Terceirizada', nome_fantasia='Alimentos LTDA',
@@ -319,13 +359,16 @@ def mocked_request_api_eol_usuario_diretoria_regional():
 ])
 def usuarios_pendentes_confirmacao(request, perfil):
     nome, uuid = request.param
-    usuario = mommy.make('Usuario', nome=nome, uuid=uuid, is_active=False, registro_funcional='1234567')
+    usuario = mommy.make('Usuario', nome=nome, uuid=uuid,
+                         is_active=False, registro_funcional='1234567')
     hoje = datetime.date.today()
 
     diretoria_regional = mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL IPIRANGA',
                                     uuid='7da9acec-48e1-430c-8a5c-1f1efc666fad', codigo_eol=987656)
-    cardapio1 = mommy.make('cardapio.Cardapio', data=datetime.date(2019, 10, 11))
-    cardapio2 = mommy.make('cardapio.Cardapio', data=datetime.date(2019, 10, 15))
+    cardapio1 = mommy.make('cardapio.Cardapio',
+                           data=datetime.date(2019, 10, 11))
+    cardapio2 = mommy.make('cardapio.Cardapio',
+                           data=datetime.date(2019, 10, 15))
     tipo_unidade_escolar = mommy.make('escola.TipoUnidadeEscolar',
                                       iniciais=f.name()[:10],
                                       cardapios=[cardapio1, cardapio2],
@@ -346,9 +389,12 @@ def usuarios_pendentes_confirmacao(request, perfil):
 
 @pytest.fixture(params=[
     # email, esprado
-    ('tebohelleb-2297@sme.prefeitura.sp.gov.br', 't*************7@sme.prefeitura.sp.gov.br'),
-    ('surracecyss-9018@sme.prefeitura.sp.gov.br', 's**************8@sme.prefeitura.sp.gov.br'),
-    ('zoffexupi-7784@sme.prefeitura.sp.gov.br', 'z************4@sme.prefeitura.sp.gov.br'),
+    ('tebohelleb-2297@sme.prefeitura.sp.gov.br',
+     't*************7@sme.prefeitura.sp.gov.br'),
+    ('surracecyss-9018@sme.prefeitura.sp.gov.br',
+     's**************8@sme.prefeitura.sp.gov.br'),
+    ('zoffexupi-7784@sme.prefeitura.sp.gov.br',
+     'z************4@sme.prefeitura.sp.gov.br'),
     ('fulano157@sme.prefeitura.sp.gov.br', 'f*******7@sme.prefeitura.sp.gov.br')
 ])
 def email_list(request):
@@ -357,10 +403,49 @@ def email_list(request):
 
 @pytest.fixture(params=[
     # email, esprado
-    ('tebohelleb-2297@smea.prefeitura.sp.gov.br', 't*************7@sme.prefeitura.sp.gov.br'),
-    ('surracecyss-9018@smes.prefeitura.sp.gov.br', 's**************8@sme.prefeitura.sp.gov.br'),
-    ('zoffexupi-7784@smed.prefeitura.sp.gov.br', 'z************4@sme.prefeitura.sp.gov.br'),
+    ('tebohelleb-2297@smea.prefeitura.sp.gov.br',
+     't*************7@sme.prefeitura.sp.gov.br'),
+    ('surracecyss-9018@smes.prefeitura.sp.gov.br',
+     's**************8@sme.prefeitura.sp.gov.br'),
+    ('zoffexupi-7784@smed.prefeitura.sp.gov.br',
+     'z************4@sme.prefeitura.sp.gov.br'),
     ('fulano157@smea.prefeitura.sp.gov.br', 'f*******7@sme.prefeitura.sp.gov.br')
 ])
 def email_list_invalidos(request):
     return request.param
+
+
+@pytest.fixture
+def fake_user(client):
+    email = 'admin@admin.com'
+    password = 'admin'
+    user = models.Usuario.objects.create_user(
+        email=email,
+        password=password,
+        nome='admin',
+        cpf='0',
+        registro_funcional='1234',
+    )
+    return user, password
+
+
+@pytest.fixture
+def usuario_autenticado(client):
+    email = 'admin@admin.com'
+    password = 'admin'
+    user = models.Usuario.objects.create_user(
+        email=email,
+        password=password,
+        nome='admin',
+        cpf='0',
+        registro_funcional='1234',
+    )
+    client.login(email=email, password=password)
+    return client
+
+
+@pytest.fixture
+def authenticated_client(client, fake_user):
+    user, password = fake_user
+    client.login(email=user.email, password=password)
+    return client
