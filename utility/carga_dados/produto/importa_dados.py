@@ -66,10 +66,13 @@ def cria_marca():
     Produto.objects.all().delete()
     Marca.objects.all().delete()
     # Cria marcas novas.
-    for i in progressbar(range(20), 'Marca'):
+    for _ in progressbar(range(20), 'Marca'):
         nome = fake_english.company()
         Marca.objects.create(nome=nome)
 
 
 def cria_fabricante():
-    pass
+    Fabricante.objects.all().delete()
+    for _ in progressbar(range(20), 'Fabricante'):
+        nome = fake.company()
+        Fabricante.objects.create(nome=nome)
