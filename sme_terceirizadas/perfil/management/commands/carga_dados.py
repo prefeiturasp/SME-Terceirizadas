@@ -30,8 +30,11 @@ from utility.carga_dados.kit_lanche.importa_dados import cria_kit_lanche_item
 from utility.carga_dados.perfil.importa_dados import cria_perfis, cria_vinculos
 from utility.carga_dados.produto.importa_dados import (
     cria_diagnosticos,
+    cria_fabricante,
     cria_informacao_nutricional,
-    cria_tipo_informacao_nutricional
+    cria_marca,
+    cria_produto,
+    cria_tipo_informacao_nutricional,
 )
 from utility.carga_dados.terceirizada.importa_dados import cria_contratos, cria_edital, cria_terceirizadas
 from utility.carga_dados.usuarios import cria_usuarios
@@ -106,3 +109,6 @@ class Command(BaseCommand):
 
         if settings.DEBUG:
             cria_vinculos()
+            cria_marca()
+            cria_fabricante()
+            cria_produto()

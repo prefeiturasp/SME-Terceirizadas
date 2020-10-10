@@ -1,7 +1,10 @@
+import uuid
 from random import choice, randint, random
 from utility.carga_dados.escola.helper import bcolors
 from utility.carga_dados.helper import get_modelo, ja_existe, le_dados, progressbar
 
+from sme_terceirizadas.dados_comuns.fluxo_status import HomologacaoProdutoWorkflow
+from sme_terceirizadas.dados_comuns.models import LogSolicitacoesUsuario
 from sme_terceirizadas.perfil.models import Usuario
 from sme_terceirizadas.produto.data.informacao_nutricional import data_informacao_nutricional  # noqa
 from sme_terceirizadas.produto.data.protocolo_de_dieta_especial import data_protocolo_de_dieta_especial  # noqa
@@ -9,6 +12,7 @@ from sme_terceirizadas.produto.data.tipo_informacao_nutricional import data_tipo
 from sme_terceirizadas.produto.data.produtos import data_produtos
 from sme_terceirizadas.produto.models import (
     Fabricante,
+    HomologacaoDoProduto,
     InformacaoNutricional,
     Marca,
     Produto,
@@ -80,6 +84,23 @@ def cria_fabricante():
         Fabricante.objects.create(nome=nome)
 
 
+def cria_homologacao_do_produto_passo_01(produto):
+    criado_por = Usuario.objects.get(email='terceirizada@admin.com')
+    homologacao_do_produto = HomologacaoDoProduto.objects.create(
+        criado_por=criado_por,
+        produto=produto,
+        status='CODAE_PENDENTE_HOMOLOGACAO',
+    )
+    LogSolicitacoesUsuario.objects.create(
+        descricao=homologacao_do_produto,
+        justificativa='Lorem',
+        status_evento=0,  # INICIO_FLUXO
+        solicitacao_tipo=10,  # HOMOLOGACAO_PRODUTO
+        usuario=criado_por,
+        uuid_original=uuid.uuid4(),
+    )
+
+
 def cria_produto():
     for item in progressbar(data_produtos, 'Produto'):
         marcas = Marca.objects.all()
@@ -99,7 +120,7 @@ def cria_produto():
         porcao = str(randint(50, 300)) + str(choice([' g', ' ml']))
         unidade_caseira = str(round(randint(1, 5) * random(), 2)).replace('.', ',') + ' unidade'  # noqa
 
-        Produto.objects.create(
+        produto = Produto.objects.create(
             nome=item,
             marca=marca,
             fabricante=fabricante,
@@ -113,4 +134,17 @@ def cria_produto():
             numero_registro=numero_registro,
             porcao=porcao,
             unidade_caseira=unidade_caseira,
+        )
+        cria_homologacao_do_produto_passo_01(produto)
+
+
+def cria_homologacao_do_produto():
+    # Percorre os status de homologação
+    for status in HomologacaoProdutoWorkflow.states:
+        criado_por = Usuario.objects.get(email='admin@admin.com')
+        produto = Produto.objects.first()
+        HomologacaoDoProduto.objects.create(
+            criado_por=criado_por,
+            produto=produto,
+            status=status,
         )

@@ -46,10 +46,25 @@ class ProdutoModelAdmin(admin.ModelAdmin):
     ordering = ('nome',)
 
 
-admin.site.register(HomologacaoDoProduto)
+@admin.register(ProtocoloDeDietaEspecial)
+class ProtocoloDeDietaEspecialModelAdmin(admin.ModelAdmin):
+    search_fields = ('nome',)
+    ordering = ('nome',)
+
+
+@admin.register(TipoDeInformacaoNutricional)
+class TipoDeInformacaoNutricionalModelAdmin(admin.ModelAdmin):
+    search_fields = ('nome',)
+    ordering = ('nome',)
+
+
+@admin.register(HomologacaoDoProduto)
+class HomologacaoDoProdutoModelAdmin(admin.ModelAdmin):
+    list_display = ('__str__', 'produto', 'status')
+    search_fields = ('produto__nome',)
+
+
 admin.site.register(InformacaoNutricional)
-admin.site.register(ProtocoloDeDietaEspecial)
 admin.site.register(ReclamacaoDeProduto)
 admin.site.register(RespostaAnaliseSensorial)
 admin.site.register(SolicitacaoCadastroProdutoDieta)
-admin.site.register(TipoDeInformacaoNutricional)
