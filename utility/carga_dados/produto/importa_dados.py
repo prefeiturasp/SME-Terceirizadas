@@ -1,3 +1,4 @@
+from random import choice
 from utility.carga_dados.escola.helper import bcolors
 from utility.carga_dados.helper import get_modelo, ja_existe, le_dados, progressbar
 
@@ -5,6 +6,7 @@ from sme_terceirizadas.perfil.models import Usuario
 from sme_terceirizadas.produto.data.informacao_nutricional import data_informacao_nutricional  # noqa
 from sme_terceirizadas.produto.data.protocolo_de_dieta_especial import data_protocolo_de_dieta_especial  # noqa
 from sme_terceirizadas.produto.data.tipo_informacao_nutricional import data_tipo_informacao_nutricional  # noqa
+from sme_terceirizadas.produto.data.produtos import data_produtos
 from sme_terceirizadas.produto.models import (
     Fabricante,
     InformacaoNutricional,
@@ -67,7 +69,7 @@ def cria_marca():
     Marca.objects.all().delete()
     # Cria marcas novas.
     for _ in progressbar(range(20), 'Marca'):
-        nome = fake_english.company()
+        nome = fake_english.company().split()[0].replace(',', '').split('-')[0]
         Marca.objects.create(nome=nome)
 
 
@@ -76,3 +78,16 @@ def cria_fabricante():
     for _ in progressbar(range(20), 'Fabricante'):
         nome = fake.company()
         Fabricante.objects.create(nome=nome)
+
+
+def cria_produto():
+    for item in progressbar(data_produtos, 'Produto'):
+        marcas = Marca.objects.all()
+        marca = choice([item for item in marcas])
+        fabricantes = Fabricante.objects.all()
+        fabricante = choice([item for item in fabricantes])
+        Produto.objects.create(
+            nome=item,
+            marca=marca,
+            fabricante=fabricante,
+        )

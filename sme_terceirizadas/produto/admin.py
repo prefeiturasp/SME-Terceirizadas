@@ -15,16 +15,6 @@ from .models import (
     TipoDeInformacaoNutricional
 )
 
-admin.site.register(Fabricante)
-admin.site.register(InformacaoNutricional)
-admin.site.register(Marca)
-admin.site.register(ProtocoloDeDietaEspecial)
-admin.site.register(ReclamacaoDeProduto)
-admin.site.register(RespostaAnaliseSensorial)
-admin.site.register(TipoDeInformacaoNutricional)
-admin.site.register(HomologacaoDoProduto)
-admin.site.register(SolicitacaoCadastroProdutoDieta)
-
 
 class InformacoesNutricionaisDoProdutoInline(admin.TabularInline):
     model = InformacoesNutricionaisDoProduto
@@ -36,6 +26,30 @@ class ImagemDoProdutoInline(admin.TabularInline):
     extra = 1
 
 
+@admin.register(Marca)
+class MarcaModelAdmin(admin.ModelAdmin):
+    search_fields = ('nome',)
+    ordering = ('nome',)
+
+
+@admin.register(Fabricante)
+class FabricanteModelAdmin(admin.ModelAdmin):
+    search_fields = ('nome',)
+    ordering = ('nome',)
+
+
 @admin.register(Produto)
 class ProdutoModelAdmin(admin.ModelAdmin):
     inlines = [InformacoesNutricionaisDoProdutoInline, ImagemDoProdutoInline]
+    list_display = ('nome', 'marca', 'fabricante')
+    search_fields = ('nome', 'marca__nome', 'fabricante__nome')
+    ordering = ('nome',)
+
+
+admin.site.register(HomologacaoDoProduto)
+admin.site.register(InformacaoNutricional)
+admin.site.register(ProtocoloDeDietaEspecial)
+admin.site.register(ReclamacaoDeProduto)
+admin.site.register(RespostaAnaliseSensorial)
+admin.site.register(SolicitacaoCadastroProdutoDieta)
+admin.site.register(TipoDeInformacaoNutricional)
