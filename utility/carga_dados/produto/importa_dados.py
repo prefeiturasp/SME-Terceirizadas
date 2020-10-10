@@ -6,10 +6,17 @@ from sme_terceirizadas.produto.data.informacao_nutricional import data_informaca
 from sme_terceirizadas.produto.data.protocolo_de_dieta_especial import data_protocolo_de_dieta_especial  # noqa
 from sme_terceirizadas.produto.data.tipo_informacao_nutricional import data_tipo_informacao_nutricional  # noqa
 from sme_terceirizadas.produto.models import (
+    Fabricante,
     InformacaoNutricional,
+    Marca,
+    Produto,
     ProtocoloDeDietaEspecial,
-    TipoDeInformacaoNutricional
+    TipoDeInformacaoNutricional,
 )
+from faker import Faker
+
+fake_english = Faker()
+fake = Faker('pt-br')
 
 
 def cria_informacao_nutricional():
@@ -52,3 +59,17 @@ def cria_diagnosticos():
         else:
             nome = item
             print(f'{bcolors.FAIL}Aviso: ProtocoloDeDietaEspecial: "{nome}" já existe!{bcolors.ENDC}')  # noqa
+
+
+def cria_marca():
+    # Deleta produtos e marcas.
+    Produto.objects.all().delete()
+    Marca.objects.all().delete()
+    # Cria marcas novas.
+    for i in progressbar(range(20), 'Marca'):
+        nome = fake_english.company()
+        Marca.objects.create(nome=nome)
+
+
+def cria_fabricante():
+    pass
