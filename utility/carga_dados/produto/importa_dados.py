@@ -1,4 +1,4 @@
-from random import choice
+from random import choice, randint, random
 from utility.carga_dados.escola.helper import bcolors
 from utility.carga_dados.helper import get_modelo, ja_existe, le_dados, progressbar
 
@@ -17,7 +17,7 @@ from sme_terceirizadas.produto.models import (
 )
 from faker import Faker
 
-fake_english = Faker()
+faker = Faker()
 fake = Faker('pt-br')
 
 
@@ -69,7 +69,7 @@ def cria_marca():
     Marca.objects.all().delete()
     # Cria marcas novas.
     for _ in progressbar(range(20), 'Marca'):
-        nome = fake_english.company().split()[0].replace(',', '').split('-')[0]
+        nome = faker.company().split()[0].replace(',', '').split('-')[0]
         Marca.objects.create(nome=nome)
 
 
@@ -84,10 +84,33 @@ def cria_produto():
     for item in progressbar(data_produtos, 'Produto'):
         marcas = Marca.objects.all()
         marca = choice([item for item in marcas])
+
         fabricantes = Fabricante.objects.all()
         fabricante = choice([item for item in fabricantes])
+
+        componentes = fake.sentence(nb_words=5)
+        aditivos = fake.sentence(nb_words=10)
+        tipo = fake.word()
+        embalagem = fake.word()
+        prazo_validade = faker.date_this_year()
+        info_armazenamento = fake.sentence(nb_words=5)
+        outras_informacoes = fake.sentence(nb_words=10)
+        numero_registro = faker.bothify(letters='ABCDEFGHIJ')
+        porcao = str(randint(50, 300)) + str(choice([' g', ' ml']))
+        unidade_caseira = str(round(randint(1, 5) * random(), 2)).replace('.', ',') + ' unidade'  # noqa
+
         Produto.objects.create(
             nome=item,
             marca=marca,
             fabricante=fabricante,
+            componentes=componentes,
+            aditivos=aditivos,
+            tipo=tipo,
+            embalagem=embalagem,
+            prazo_validade=prazo_validade,
+            info_armazenamento=info_armazenamento,
+            outras_informacoes=outras_informacoes,
+            numero_registro=numero_registro,
+            porcao=porcao,
+            unidade_caseira=unidade_caseira,
         )
