@@ -85,10 +85,14 @@ def cria_fabricante():
 
 def cria_homologacao_do_produto_passo_01(produto):
     criado_por = Usuario.objects.get(email='terceirizada@admin.com')
+    # Se não colocar o 'rastro_terceirizada'
+    # ele não mostra os produtos no dashboard.
+    rastro_terceirizada = criado_por.vinculo_atual.instituicao
     homologacao_do_produto = HomologacaoDoProduto.objects.create(
         criado_por=criado_por,
         produto=produto,
         status='CODAE_PENDENTE_HOMOLOGACAO',
+        rastro_terceirizada=rastro_terceirizada
     )
 
     # Monta um dicionário dos STATUS_POSSIVEIS
@@ -146,12 +150,14 @@ def cria_produto():
 
 
 def cria_homologacao_do_produto():
+    # Não utilizado no momento..
     # Percorre os status de homologação
+    criado_por = Usuario.objects.get(email='terceirizada@admin.com')
     for status in HomologacaoProdutoWorkflow.states:
-        criado_por = Usuario.objects.get(email='admin@admin.com')
         produto = Produto.objects.first()
         HomologacaoDoProduto.objects.create(
             criado_por=criado_por,
             produto=produto,
             status=status,
+            rastro_terceirizada=criado_por.vinculo_atual.instituicao
         )

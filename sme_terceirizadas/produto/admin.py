@@ -60,7 +60,7 @@ class TipoDeInformacaoNutricionalModelAdmin(admin.ModelAdmin):
 
 @admin.register(HomologacaoDoProduto)
 class HomologacaoDoProdutoModelAdmin(admin.ModelAdmin):
-    list_display = ('__str__', 'produto', 'status')
+    list_display = ('__str__', 'produto', 'status', 'uuid')
     search_fields = ('produto__nome',)
 
 
