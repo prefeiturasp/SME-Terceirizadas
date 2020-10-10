@@ -1,4 +1,3 @@
-import uuid
 from random import choice, randint, random
 from utility.carga_dados.escola.helper import bcolors
 from utility.carga_dados.helper import get_modelo, ja_existe, le_dados, progressbar
@@ -91,13 +90,21 @@ def cria_homologacao_do_produto_passo_01(produto):
         produto=produto,
         status='CODAE_PENDENTE_HOMOLOGACAO',
     )
+
+    # Monta um dicionário dos STATUS_POSSIVEIS
+    _status = LogSolicitacoesUsuario.STATUS_POSSIVEIS
+    status = {v: k for (k, v) in _status}
+
+    _tipos = LogSolicitacoesUsuario.TIPOS_SOLICITACOES
+    tipos = {v: k for (k, v) in _tipos}
+
     LogSolicitacoesUsuario.objects.create(
         descricao=homologacao_do_produto,
         justificativa='Lorem',
-        status_evento=0,  # INICIO_FLUXO
-        solicitacao_tipo=10,  # HOMOLOGACAO_PRODUTO
+        status_evento=status['Solicitação Realizada'],
+        solicitacao_tipo=tipos['Homologação de Produto'],
         usuario=criado_por,
-        uuid_original=uuid.uuid4(),
+        uuid_original=homologacao_do_produto.uuid,
     )
 
 
