@@ -8,6 +8,7 @@ from sme_terceirizadas.cardapio.models import (
     ComboDoVinculoTipoAlimentacaoPeriodoTipoUE,
     MotivoAlteracaoCardapio,
     MotivoSuspensao,
+    SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE,
     TipoAlimentacao,
     VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar,
 )
@@ -59,6 +60,21 @@ def cria_combo_do_vinculo_tipo_alimentacao_periodo_tipo_ue():
         # Cria vários combos para cada vinculo.
         for _ in range(randint(3, 7)):
             obj = ComboDoVinculoTipoAlimentacaoPeriodoTipoUE.objects.create(vinculo=vinculo)  # noqa
-            tipos_amostra = sample(tipos_alimentacoes, 3)
+            tipos_amostra = sample(tipos_alimentacoes, randint(1, 3))
             for item in tipos_amostra:
                 obj.tipos_alimentacao.add(item)
+
+
+def cria_substituicao_do_combo_do_vinculo_tipo_alimentacao_periodo_tipo_ue():
+    SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE.objects.all().delete()
+    combos = ComboDoVinculoTipoAlimentacaoPeriodoTipoUE.objects.all()  # noqa
+    tipos_alimentacoes = list(TipoAlimentacao.objects.all())
+    for combo in progressbar(combos, 'SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE'):  # noqa
+        obj = SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE.objects.create(combo=combo)  # noqa
+        tipos_amostra = sample(tipos_alimentacoes, randint(1, 3))
+        for item in tipos_amostra:
+            obj.tipos_alimentacao.add(item)
+
+
+# def cria_SubstituicaoAlimentacaoNoPeriodoEscolar():
+#     SubstituicaoAlimentacaoNoPeriodoEscolar.objects.all().delete()
