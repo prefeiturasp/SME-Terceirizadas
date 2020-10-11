@@ -1,4 +1,4 @@
-from random import sample
+from random import randint, sample
 from utility.carga_dados.helper import ja_existe, progressbar
 
 from sme_terceirizadas.cardapio.data.motivos_alteracao_cardapio import data_motivoalteracaocardapio
@@ -56,7 +56,9 @@ def cria_combo_do_vinculo_tipo_alimentacao_periodo_tipo_ue():
     vinculos = VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar.objects.all()  # noqa
     tipos_alimentacoes = list(TipoAlimentacao.objects.all())
     for vinculo in progressbar(vinculos, 'ComboDoVinculoTipoAlimentacaoPeriodoTipoUE'):  # noqa
-        obj = ComboDoVinculoTipoAlimentacaoPeriodoTipoUE.objects.create(vinculo=vinculo)  # noqa
-        tipos_amostra = sample(tipos_alimentacoes, 3)
-        for item in tipos_amostra:
-            obj.tipos_alimentacao.add(item)
+        # Cria vários combos para cada vinculo.
+        for _ in range(randint(3, 7)):
+            obj = ComboDoVinculoTipoAlimentacaoPeriodoTipoUE.objects.create(vinculo=vinculo)  # noqa
+            tipos_amostra = sample(tipos_alimentacoes, 3)
+            for item in tipos_amostra:
+                obj.tipos_alimentacao.add(item)
