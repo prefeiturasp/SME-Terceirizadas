@@ -4,6 +4,7 @@ from utility.carga_dados.cardapio.importa_dados import (
     cria_combo_do_vinculo_tipo_alimentacao_periodo_tipo_ue,
     cria_motivoalteracaocardapio,
     cria_motivosuspensao,
+    cria_substituicao_do_combo_do_vinculo_tipo_alimentacao_periodo_tipo_ue,
     cria_tipo_alimentacao,
     cria_vinculo_tipo_alimentacao_com_periodo_escolar_e_tipo_unidade_escolar,
 )
@@ -114,8 +115,9 @@ class Command(BaseCommand):
         if settings.DEBUG:
             cria_periodo_escolar()
             cria_escola_com_periodo_escolar()
-            cria_vinculo_tipo_alimentacao_com_periodo_escolar_e_tipo_unidade_escolar()
+            cria_vinculo_tipo_alimentacao_com_periodo_escolar_e_tipo_unidade_escolar()  # noqa
             cria_combo_do_vinculo_tipo_alimentacao_periodo_tipo_ue()
+            cria_substituicao_do_combo_do_vinculo_tipo_alimentacao_periodo_tipo_ue()  # noqa
 
             cria_vinculos()
             cria_marca()
