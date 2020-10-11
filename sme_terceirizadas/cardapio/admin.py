@@ -37,6 +37,7 @@ class SubstituicaoComboInline(admin.TabularInline):
 @admin.register(ComboDoVinculoTipoAlimentacaoPeriodoTipoUE)
 class ComboDoVinculoTipoAlimentacaoPeriodoTipoUEModelAdmin(admin.ModelAdmin):
     inlines = [SubstituicaoComboInline]
+    readonly_fields = ('vinculo',)
 
 
 class ComboVinculoLine(admin.TabularInline):
@@ -91,4 +92,7 @@ class QuantidadePorPeriodoSuspensaoAlimentacaoInline(admin.TabularInline):
 
 @admin.register(GrupoSuspensaoAlimentacao)
 class GrupoSuspensaoAlimentacaoModelAdmin(admin.ModelAdmin):
-    inlines = [SuspensaoAlimentacaoInline, QuantidadePorPeriodoSuspensaoAlimentacaoInline]
+    inlines = [
+        SuspensaoAlimentacaoInline,
+        QuantidadePorPeriodoSuspensaoAlimentacaoInline
+    ]
