@@ -23,7 +23,6 @@ from .models import (
 admin.site.register(TipoAlimentacao)
 admin.site.register(InversaoCardapio)
 admin.site.register(MotivoAlteracaoCardapio)
-admin.site.register(SubstituicaoAlimentacaoNoPeriodoEscolar)
 admin.site.register(SuspensaoAlimentacaoDaCEI)
 admin.site.register(MotivoSuspensao)
 admin.site.register(HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolar)
@@ -38,6 +37,16 @@ class SubstituicaoComboInline(admin.TabularInline):
 class ComboDoVinculoTipoAlimentacaoPeriodoTipoUEModelAdmin(admin.ModelAdmin):
     inlines = [SubstituicaoComboInline]
     readonly_fields = ('vinculo',)
+
+
+@admin.register(SubstituicaoAlimentacaoNoPeriodoEscolar)
+class SubstituicaoAlimentacaoNoPeriodoEscolarModelAdmin(admin.ModelAdmin):
+    readonly_fields = (
+        'alteracao_cardapio',
+        'periodo_escolar',
+        'tipo_alimentacao_de',
+        'tipo_alimentacao_para'
+    )
 
 
 class ComboVinculoLine(admin.TabularInline):
