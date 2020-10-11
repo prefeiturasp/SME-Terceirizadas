@@ -36,7 +36,8 @@ def cria_informacao_nutricional():
 
         data = dict(
             nome=item.get('nome'),
-            tipo_nutricional=tipo_nutricional
+            tipo_nutricional=tipo_nutricional,
+            medida=item.get('medida')
         )
         _, created = InformacaoNutricional.objects.get_or_create(**data)
         if not created:

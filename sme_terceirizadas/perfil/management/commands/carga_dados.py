@@ -17,6 +17,7 @@ from utility.carga_dados.escola.importa_dados import (
     cria_diretorias_regionais,
     cria_escola,
     cria_lotes,
+    cria_periodo_escolar,
     cria_subprefeituras,
     cria_tipo_unidade_escolar,
     cria_tipos_gestao
@@ -108,6 +109,7 @@ class Command(BaseCommand):
         cria_escola(arquivo=arquivo, legenda='Escola CEI')
 
         if settings.DEBUG:
+            cria_periodo_escolar()
             cria_vinculos()
             cria_marca()
             cria_fabricante()

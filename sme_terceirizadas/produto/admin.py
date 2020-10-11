@@ -64,7 +64,13 @@ class HomologacaoDoProdutoModelAdmin(admin.ModelAdmin):
     search_fields = ('produto__nome',)
 
 
-admin.site.register(InformacaoNutricional)
+@admin.register(InformacaoNutricional)
+class InformacaoNutricionalModelAdmin(admin.ModelAdmin):
+    list_display = ('__str__', 'tipo_nutricional', 'medida')
+    search_fields = ('nome',)
+    list_filter = ('tipo_nutricional',)
+
+
 admin.site.register(ReclamacaoDeProduto)
 admin.site.register(RespostaAnaliseSensorial)
 admin.site.register(SolicitacaoCadastroProdutoDieta)

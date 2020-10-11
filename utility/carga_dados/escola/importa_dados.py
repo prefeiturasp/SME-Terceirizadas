@@ -14,15 +14,18 @@ from utility.carga_dados.helper import (
     somente_digitos
 )
 
+from sme_terceirizadas.cardapio.models import TipoAlimentacao
 from sme_terceirizadas.dados_comuns.models import Contato
 from sme_terceirizadas.escola.data.diretorias_regionais import data_diretorias_regionais  # noqa
 from sme_terceirizadas.escola.data.lotes import data_lotes
+from sme_terceirizadas.escola.data.periodo_escolar import data_periodo_escolar
 from sme_terceirizadas.escola.data.subprefeituras import data_subprefeituras
 from sme_terceirizadas.escola.data.tipos_gestao import data_tipos_gestao
 from sme_terceirizadas.escola.models import (
     DiretoriaRegional,
     Escola,
     Lote,
+    PeriodoEscolar,
     Subprefeitura,
     TipoGestao,
     TipoUnidadeEscolar
@@ -272,6 +275,14 @@ def cria_escola(arquivo, legenda):
             lista_auxiliar.append(escola_obj)
 
         Escola.objects.bulk_create(lista_auxiliar)
+
+
+def cria_periodo_escolar():
+    tipos_alimentacao = TipoAlimentacao.objects.all()
+    for item in progressbar(data_periodo_escolar, 'PeriodoEscolar'):
+        periodo_escolar, created = PeriodoEscolar.objects.get_or_create(nome=item)  # noqa
+        for tipo in tipos_alimentacao:
+            periodo_escolar.tipos_alimentacao.add(tipo)
 
 
 def cria_escola_faltante(unidade_escolar, codigo_eol, dre, lote):
