@@ -16,6 +16,7 @@ from utility.carga_dados.escola.importa_dados import (
     cria_contatos_escola,
     cria_diretorias_regionais,
     cria_escola,
+    cria_escola_com_periodo_escolar,
     cria_lotes,
     cria_periodo_escolar,
     cria_subprefeituras,
@@ -110,6 +111,7 @@ class Command(BaseCommand):
 
         if settings.DEBUG:
             cria_periodo_escolar()
+            cria_escola_com_periodo_escolar()
             cria_vinculos()
             cria_marca()
             cria_fabricante()
