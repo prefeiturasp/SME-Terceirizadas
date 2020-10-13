@@ -15,6 +15,8 @@ class LancamentoDiarioViewSet(ModelViewSet):
         grupos = ['convencional', 'grupoA', 'grupoB']
 
         for grupo in grupos:
+            if grupo not in self.request.data:
+                continue
             dados_grupo = self.request.data[grupo]
             dados_grupo['data'] = self.request.data['data_lancamento']
             dados_grupo['escola_periodo_escolar'] = self.request.data['escola_periodo_escolar']
