@@ -79,7 +79,7 @@ class CustomAbstractUser(AbstractBaseUser, PermissionsMixin):
     is_staff = models.BooleanField(
         _('staff status'),
         default=False,
-        help_text=_('Designates whether the user can log into this admin site.'),
+        help_text=_('Designates whether the user can log into this admin site.'),  # noqa
     )
     is_active = models.BooleanField(
         _('active'),
@@ -112,7 +112,8 @@ class CustomAbstractUser(AbstractBaseUser, PermissionsMixin):
                                      dados_template=dados_template, html=html)
 
 
-# TODO: Refatorar classe Usuário para comportar classes Pessoa, Usuário, Nutricionista
+# TODO: Refatorar classe Usuário para comportar classes Pessoa, Usuário,
+# Nutricionista
 class Usuario(ExportModelOperationsMixin('usuario'), SimpleEmailConfirmationUserMixin, CustomAbstractUser,
               TemChaveExterna):
     """Classe de autenticacao do django, ela tem muitos perfis."""
@@ -139,7 +140,7 @@ class Usuario(ExportModelOperationsMixin('usuario'), SimpleEmailConfirmationUser
     contatos = models.ManyToManyField('dados_comuns.Contato', blank=True)
 
     # TODO: esses atributos devem pertencer somente a um model Nutricionista
-    super_admin_terceirizadas = models.BooleanField('É Administrador por parte das Terceirizadas?', default=False)
+    super_admin_terceirizadas = models.BooleanField('É Administrador por parte das Terceirizadas?', default=False)  # noqa
     crn_numero = models.CharField('Nutricionista crn', max_length=160, blank=True, null=True)  # noqa DJ01
 
     USERNAME_FIELD = 'email'
@@ -188,7 +189,7 @@ class Usuario(ExportModelOperationsMixin('usuario'), SimpleEmailConfirmationUser
 
     @property
     def pode_efetuar_cadastro(self):
-        dados_usuario = EOLService.get_informacoes_usuario(self.registro_funcional)
+        dados_usuario = EOLService.get_informacoes_usuario(self.registro_funcional)  # noqa
         diretor_de_escola = False
         for dado in dados_usuario:
             if dado['cargo'] == 'DIRETOR DE ESCOLA':
@@ -199,7 +200,8 @@ class Usuario(ExportModelOperationsMixin('usuario'), SimpleEmailConfirmationUser
 
     def enviar_email_confirmacao(self):
         self.add_email_if_not_exists(self.email)
-        content = {'uuid': self.uuid, 'confirmation_key': self.confirmation_key}
+        content = {'uuid': self.uuid,
+                   'confirmation_key': self.confirmation_key}
         titulo = 'Confirmação de E-mail'
         conteudo = f'Clique neste link para confirmar seu e-mail no SIGPAE: {url_configs("CONFIRMAR_EMAIL", content)}'
         template = 'email_conteudo_simples.html'
@@ -235,7 +237,8 @@ class Usuario(ExportModelOperationsMixin('usuario'), SimpleEmailConfirmationUser
         self.add_email_if_not_exists(self.email)
         titulo = '[SIGPAE] Novo cadastro de empresa'
         template = 'email_cadastro_terceirizada.html'
-        dados_template = {'titulo': titulo, 'link_cadastro': url_configs('LOGIN_TERCEIRIZADAS', {}), 'nome': self.nome}
+        dados_template = {'titulo': titulo, 'link_cadastro': url_configs(
+            'LOGIN_TERCEIRIZADAS', {}), 'nome': self.nome}
         html = render_to_string(template, dados_template)
         self.email_user(
             subject='[SIGPAE] Novo cadastro de empresa',
@@ -269,7 +272,11 @@ class Usuario(ExportModelOperationsMixin('usuario'), SimpleEmailConfirmationUser
 class Cargo(TemChaveExterna, Nomeavel, Ativavel):
     data_inicial = models.DateField('Data inicial', null=True, blank=True)
     data_final = models.DateField('Data final', null=True, blank=True)
-    usuario = models.ForeignKey(Usuario, related_name='cargos', on_delete=models.CASCADE)
+    usuario = models.ForeignKey(
+        Usuario,
+        related_name='cargos',
+        on_delete=models.CASCADE
+    )
 
     def finalizar_cargo(self):
         self.ativo = False
@@ -287,3 +294,25 @@ class Cargo(TemChaveExterna, Nomeavel, Ativavel):
 
     def __str__(self):
         return f'{self.usuario} de {self.data_inicial} até {self.data_final}'
+
+
+class PlanilhaDiretorCogestor(models.Model):  # noqa D204
+    """
+    Importa dados de planilha específica de Diretores e Cogestores.
+    No momento apenas DRE Ipiranga.
+    """
+
+    arquivo = models.FileField()
+    criado_em = models.DateTimeField(
+        'criado em',
+        auto_now_add=True,
+        auto_now=False
+    )
+
+    def __str__(self):
+        return str(self.arquivo)
+
+    class Meta:
+        ordering = ('-criado_em',)
+        verbose_name = 'Planilha Diretor Cogestor'
+        verbose_name_plural = 'Planilhas Diretores Cogestores'
