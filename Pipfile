@@ -9,7 +9,6 @@ ipdb='==0.11'  # https://github.com/gotcha/ipdb
 Sphinx='==1.8.4'  # https://github.com/sphinx-doc/sphinx
 pandas='==0.25.0' # https://github.com/pandas-dev/pandas/
 numpy='==1.17.0' # https://github.com/numpy/numpy/
-xlrd='==1.2.0' # https://pypi.org/project/xlrd/
 # Testing
 # ------------------------------------------------------------------------------
 mypy='==0.730'  # https://github.com/python/mypy
@@ -96,6 +95,7 @@ django-filter = "*"
 importlib-metadata = "==1.7.0"
 text-unidecode = "*"
 attrs = "==19.1.0"
+xlrd='==1.2.0' # https://pypi.org/project/xlrd/
 
 [requires]
 python_version = "3.6"
