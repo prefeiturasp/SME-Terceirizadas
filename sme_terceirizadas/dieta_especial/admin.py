@@ -12,13 +12,20 @@ from .models import (
 )
 
 
+@admin.register(AlergiaIntolerancia)
+class AlergiaIntoleranciaAdmin(admin.ModelAdmin):
+    list_display = ('descricao',)
+    search_fields = ('descricao',)
+    ordering = ('descricao',)
+
+
 @admin.register(Alimento)
 class AlimentoAdmin(admin.ModelAdmin):
     list_display = ('nome',)
     search_fields = ('nome',)
+    ordering = ('nome',)
 
 
-admin.site.register(AlergiaIntolerancia)
 admin.site.register(Anexo)
 admin.site.register(ClassificacaoDieta)
 admin.site.register(MotivoNegacao)
