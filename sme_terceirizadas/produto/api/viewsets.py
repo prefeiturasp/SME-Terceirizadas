@@ -723,6 +723,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
             url_path='filtro-reclamacoes-terceirizada',
             permission_classes=[UsuarioTerceirizada])
     def filtro_reclamacoes_terceirizada(self, request):
+        user = request.user
         filtro_homologacao = {'homologacoes__reclamacoes__status':
                               ReclamacaoProdutoWorkflow.AGUARDANDO_RESPOSTA_TERCEIRIZADA}
         filtro_reclamacao = {'status__in': [ReclamacaoProdutoWorkflow.AGUARDANDO_RESPOSTA_TERCEIRIZADA,
@@ -732,6 +733,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
             homologacoes__reclamacoes__status=ReclamacaoProdutoWorkflow.AGUARDANDO_RESPOSTA_TERCEIRIZADA))
 
         queryset = self.filter_queryset(self.get_queryset()).filter(
+            homologacoes__rastro_terceirizada=user.vinculo_atual.instituicao,
             **filtro_homologacao).prefetch_related(
                 Prefetch('homologacoes__reclamacoes', queryset=ReclamacaoDeProduto.objects.filter(
                     **filtro_reclamacao))).annotate(

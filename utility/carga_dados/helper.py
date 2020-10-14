@@ -3,6 +3,7 @@ import io
 import sys
 import urllib.request
 
+import xlrd
 from utility.carga_dados.escola.helper import bcolors
 
 
@@ -22,6 +23,10 @@ def progressbar(it, prefix="", size=60, file=sys.stdout):
     file.flush()
 
 
+def somente_digitos(palavra):
+    return ''.join(p for p in palavra if p.isdigit())
+
+
 def csv_to_list(arquivo: str) -> list:
     '''
     Lê um csv e retorna um OrderedDict.
@@ -39,6 +44,32 @@ def csv_online_to_list(url: str) -> list:
     url_open = urllib.request.urlopen(url)
     leitor = csv.DictReader(io.StringIO(url_open.read().decode('utf-8')), delimiter=',')  # noqa
     dados = [linha for linha in leitor]
+    return dados
+
+
+def excel_to_list(arquivo, in_memory=False):
+    '''
+    Lê planilha Excel e retorna uma lista de dicionários.
+    Você pode informar se quer ler o arquivo InMemoryUploadedFile.
+    https://stackoverflow.com/a/38309568/802542
+    https://stackoverflow.com/a/12886981/802542
+    '''
+    if in_memory:
+        workbook = xlrd.open_workbook(filename=arquivo, file_contents=arquivo.read())  # noqa
+    else:
+        workbook = xlrd.open_workbook(arquivo)
+    sheet = workbook.sheet_by_index(0)
+
+    primeira_linha = []
+    for col in range(sheet.ncols):
+        primeira_linha.append(sheet.cell_value(0, col).strip())
+
+    dados = []
+    for row in range(1, sheet.nrows):
+        objeto = {}
+        for col in range(sheet.ncols):
+            objeto[primeira_linha[col]] = sheet.cell_value(row, col)
+        dados.append(objeto)
     return dados
 
 

@@ -2,8 +2,9 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 from django.core.management import call_command
 from django.utils.translation import ugettext_lazy as _
+from utility.carga_dados.escola.importa_dados import cria_usuario_cogestor, cria_usuario_diretor
 
-from .models import Cargo, Perfil, Usuario, Vinculo
+from .models import Cargo, Perfil, PlanilhaDiretorCogestor, Usuario, Vinculo
 
 
 class BaseUserAdmin(DjangoUserAdmin):
@@ -48,6 +49,23 @@ class PerfilAdmin(admin.ModelAdmin):
     search_fields = ('nome',)
 
 
+@admin.register(Vinculo)
+class VinculoAdmin(admin.ModelAdmin):
+    list_display = ('__str__',)
+    search_fields = ('usuario__nome',)
+
+
+@admin.register(PlanilhaDiretorCogestor)
+class PlanilhaDiretorCogestorAdmin(admin.ModelAdmin):
+    list_display = ('__str__', 'criado_em')
+
+    def save_model(self, request, obj, form, change):
+        # Lendo arquivo InMemoryUploadedFile
+        arquivo = request.FILES.get('arquivo')
+        items = cria_usuario_diretor(arquivo, in_memory=True)
+        cria_usuario_cogestor(items)
+        super(PlanilhaDiretorCogestorAdmin, self).save_model(request, obj, form, change)  # noqa
+
+
 admin.site.register(Usuario, BaseUserAdmin)
-admin.site.register(Vinculo)
 admin.site.register(Cargo)

@@ -47,7 +47,7 @@
             {% if 'aluno__escola__nome' in campos %}
               <td>{{ resultado.aluno__escola__nome }}</td>
             {% endif %}
-            <td>{{ resultado.classificacao__nome }}</td>
+            <td>{{ resultado.classificacao__nome|default:"" }}</td>
             {% if filtros.status == "" or filtros.status == "pendentes" %}
               <td>{{ resultado.qtde_pendentes }}</td>
             {% endif %}
