@@ -302,7 +302,7 @@ class PlanilhaDiretorCogestor(models.Model):  # noqa D204
     No momento apenas DRE Ipiranga.
     """
 
-    arquivo = models.FileField()
+    arquivo = models.FileField(blank=True, null=True)
     criado_em = models.DateTimeField(
         'criado em',
         auto_now_add=True,
