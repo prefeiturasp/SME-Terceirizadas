@@ -74,7 +74,3 @@ def cria_substituicao_do_combo_do_vinculo_tipo_alimentacao_periodo_tipo_ue():
         tipos_amostra = sample(tipos_alimentacoes, randint(1, 3))
         for item in tipos_amostra:
             obj.tipos_alimentacao.add(item)
-
-
-# def cria_SubstituicaoAlimentacaoNoPeriodoEscolar():
-#     SubstituicaoAlimentacaoNoPeriodoEscolar.objects.all().delete()
