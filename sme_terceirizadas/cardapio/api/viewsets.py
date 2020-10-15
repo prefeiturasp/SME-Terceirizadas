@@ -1,6 +1,6 @@
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
+from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST
 from rest_framework.viewsets import GenericViewSet
@@ -109,7 +109,8 @@ class VinculoTipoAlimentacaoViewSet(mixins.RetrieveModelMixin,
                                     GenericViewSet):
     lookup_field = 'uuid'
     serializer_class = VinculoTipoAlimentoSimplesSerializer
-    queryset = VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar.objects.filter(ativo=True)
+    queryset = VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar.objects.filter(
+        ativo=True)
 
     @action(detail=False,
             url_path='tipo_unidade_escolar/(?P<tipo_unidade_escolar_uuid>[^/.]+)')
@@ -190,7 +191,8 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
         if self.action in ['list', 'update']:
             self.permission_classes = (IsAdminUser,)
         elif self.action == 'retrieve':
-            self.permission_classes = (IsAuthenticated, PermissaoParaRecuperarObjeto)
+            self.permission_classes = (
+                IsAuthenticated, PermissaoParaRecuperarObjeto)
         elif self.action in ['create', 'destroy']:
             self.permission_classes = (UsuarioEscola,)
         return super(InversaoCardapioViewSet, self).get_permissions()
@@ -245,7 +247,8 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
             permission_classes=(UsuarioEscola,))
     def minhas_solicitacoes(self, request):
         usuario = request.user
-        inversoes_rascunho = InversaoCardapio.get_solicitacoes_rascunho(usuario)
+        inversoes_rascunho = InversaoCardapio.get_solicitacoes_rascunho(
+            usuario)
         page = self.paginate_queryset(inversoes_rascunho)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
@@ -297,7 +300,8 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
             if inversao_cardapio.status == inversao_cardapio.workflow_class.DRE_VALIDADO:
                 inversao_cardapio.codae_autoriza(user=user)
             else:
-                inversao_cardapio.codae_autoriza_questionamento(user=user, justificativa=justificativa)
+                inversao_cardapio.codae_autoriza_questionamento(
+                    user=user, justificativa=justificativa)
             serializer = self.get_serializer(inversao_cardapio)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -309,7 +313,8 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
         inversao_cardapio = self.get_object()
         justificativa = request.data.get('justificativa', '')
         try:
-            inversao_cardapio.codae_questiona(user=request.user, justificativa=justificativa)
+            inversao_cardapio.codae_questiona(
+                user=request.user, justificativa=justificativa)
             serializer = self.get_serializer(inversao_cardapio)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -323,9 +328,11 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
         try:
             user = request.user
             if inversao_cardapio.status == inversao_cardapio.workflow_class.DRE_VALIDADO:
-                inversao_cardapio.codae_nega(user=user, justificativa=justificativa)
+                inversao_cardapio.codae_nega(
+                    user=user, justificativa=justificativa)
             else:
-                inversao_cardapio.codae_nega_questionamento(user=user, justificativa=justificativa)
+                inversao_cardapio.codae_nega_questionamento(
+                    user=user, justificativa=justificativa)
             serializer = self.get_serializer(inversao_cardapio)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -362,7 +369,8 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
         inversao_cardapio = self.get_object()
         justificativa = request.data.get('justificativa', '')
         try:
-            inversao_cardapio.cancelar_pedido(user=request.user, justificativa=justificativa)
+            inversao_cardapio.cancelar_pedido(
+                user=request.user, justificativa=justificativa)
             serializer = self.get_serializer(inversao_cardapio)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -377,7 +385,7 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
                             status=status.HTTP_403_FORBIDDEN)
 
     @action(detail=True, url_path=constants.RELATORIO, methods=['get'],
-            permission_classes=(AllowAny,))
+            permission_classes=(IsAuthenticated,))
     def relatorio(self, request, uuid=None):
         return relatorio_inversao_dia_de_cardapio(request, solicitacao=self.get_object())
 
@@ -392,7 +400,8 @@ class SuspensaoAlimentacaoDaCEIViewSet(viewsets.ModelViewSet):
         if self.action in ['list', 'update']:
             self.permission_classes = (IsAdminUser,)
         elif self.action == 'retrieve':
-            self.permission_classes = (IsAuthenticated, PermissaoParaRecuperarObjeto)
+            self.permission_classes = (
+                IsAuthenticated, PermissaoParaRecuperarObjeto)
         elif self.action in ['create', 'destroy']:
             self.permission_classes = (UsuarioEscola,)
         return super(SuspensaoAlimentacaoDaCEIViewSet, self).get_permissions()
@@ -411,7 +420,8 @@ class SuspensaoAlimentacaoDaCEIViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['GET'], permission_classes=(UsuarioEscola,))
     def meus_rascunhos(self, request):
         usuario = request.user
-        suspensoes = SuspensaoAlimentacaoDaCEI.get_rascunhos_do_usuario(usuario)
+        suspensoes = SuspensaoAlimentacaoDaCEI.get_rascunhos_do_usuario(
+            usuario)
         page = self.paginate_queryset(suspensoes)
         serializer = SuspensaoAlimentacaoDaCEISerializer(page, many=True)
         return self.get_paginated_response(serializer.data)
@@ -446,7 +456,8 @@ class GrupoSuspensaoAlimentacaoSerializerViewSet(viewsets.ModelViewSet):
         if self.action in ['list', 'update']:
             self.permission_classes = (IsAdminUser,)
         elif self.action == 'retrieve':
-            self.permission_classes = (IsAuthenticated, PermissaoParaRecuperarObjeto)
+            self.permission_classes = (
+                IsAuthenticated, PermissaoParaRecuperarObjeto)
         elif self.action in ['create', 'destroy']:
             self.permission_classes = (UsuarioEscola,)
         return super(GrupoSuspensaoAlimentacaoSerializerViewSet, self).get_permissions()
@@ -468,13 +479,15 @@ class GrupoSuspensaoAlimentacaoSerializerViewSet(viewsets.ModelViewSet):
         )
 
         page = self.paginate_queryset(alteracoes_cardapio)
-        serializer = GrupoSuspensaoAlimentacaoSimplesSerializer(page, many=True)
+        serializer = GrupoSuspensaoAlimentacaoSimplesSerializer(
+            page, many=True)
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False, methods=['GET'])
     def informadas(self, request):
         grupo_informados = GrupoSuspensaoAlimentacao.get_informados().order_by('-id')
-        serializer = GrupoSupensaoAlimentacaoListagemSimplesSerializer(grupo_informados, many=True)
+        serializer = GrupoSupensaoAlimentacaoListagemSimplesSerializer(
+            grupo_informados, many=True)
         return Response(serializer.data)
 
     @action(detail=False, methods=['GET'],
@@ -489,7 +502,8 @@ class GrupoSuspensaoAlimentacaoSerializerViewSet(viewsets.ModelViewSet):
         )
 
         page = self.paginate_queryset(suspensoes_cardapio)
-        serializer = GrupoSupensaoAlimentacaoListagemSimplesSerializer(page, many=True)
+        serializer = GrupoSupensaoAlimentacaoListagemSimplesSerializer(
+            page, many=True)
         return self.get_paginated_response(serializer.data)
 
     @action(detail=False, url_path='tomados-ciencia', methods=['GET'])
@@ -502,7 +516,8 @@ class GrupoSuspensaoAlimentacaoSerializerViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['GET'], permission_classes=(UsuarioEscola,))
     def meus_rascunhos(self, request):
         usuario = request.user
-        grupos_suspensao = GrupoSuspensaoAlimentacao.get_rascunhos_do_usuario(usuario)
+        grupos_suspensao = GrupoSuspensaoAlimentacao.get_rascunhos_do_usuario(
+            usuario)
         page = self.paginate_queryset(grupos_suspensao)
         serializer = GrupoSuspensaoAlimentacaoSerializer(page, many=True)
         return self.get_paginated_response(serializer.data)
@@ -527,7 +542,8 @@ class GrupoSuspensaoAlimentacaoSerializerViewSet(viewsets.ModelViewSet):
     def terceirizada_toma_ciencia(self, request, uuid=None):
         grupo_suspensao_de_alimentacao = self.get_object()
         try:
-            grupo_suspensao_de_alimentacao.terceirizada_toma_ciencia(user=request.user, )
+            grupo_suspensao_de_alimentacao.terceirizada_toma_ciencia(
+                user=request.user, )
             serializer = self.get_serializer(grupo_suspensao_de_alimentacao)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -542,7 +558,7 @@ class GrupoSuspensaoAlimentacaoSerializerViewSet(viewsets.ModelViewSet):
                             status=status.HTTP_403_FORBIDDEN)
 
     @action(detail=True, url_path=constants.RELATORIO, methods=['get'],
-            permission_classes=[AllowAny])
+            permission_classes=(IsAuthenticated,))
     def relatorio(self, request, uuid=None):
         return relatorio_suspensao_de_alimentacao(request, solicitacao=self.get_object())
 
@@ -556,7 +572,8 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
         if self.action in ['list', 'update']:
             self.permission_classes = (IsAdminUser,)
         elif self.action == 'retrieve':
-            self.permission_classes = (IsAuthenticated, PermissaoParaRecuperarObjeto)
+            self.permission_classes = (
+                IsAuthenticated, PermissaoParaRecuperarObjeto)
         elif self.action in ['create', 'destroy']:
             self.permission_classes = (UsuarioEscola,)
         return super(AlteracoesCardapioViewSet, self).get_permissions()
@@ -574,7 +591,8 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
             permission_classes=(UsuarioEscola,))
     def minhas_solicitacoes(self, request):
         usuario = request.user
-        alteracoes_cardapio_rascunho = AlteracaoCardapio.get_rascunhos_do_usuario(usuario)
+        alteracoes_cardapio_rascunho = AlteracaoCardapio.get_rascunhos_do_usuario(
+            usuario)
         page = self.paginate_queryset(alteracoes_cardapio_rascunho)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
@@ -672,7 +690,8 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
         alteracao_cardapio = self.get_object()
         justificativa = request.data.get('justificativa', '')
         try:
-            alteracao_cardapio.dre_nao_valida(user=request.user, justificativa=justificativa)
+            alteracao_cardapio.dre_nao_valida(
+                user=request.user, justificativa=justificativa)
             serializer = self.get_serializer(alteracao_cardapio)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -685,9 +704,11 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
         justificativa = request.data.get('justificativa', '')
         try:
             if alteracao_cardapio.status == alteracao_cardapio.workflow_class.DRE_VALIDADO:
-                alteracao_cardapio.codae_nega(user=request.user, justificativa=justificativa)
+                alteracao_cardapio.codae_nega(
+                    user=request.user, justificativa=justificativa)
             else:
-                alteracao_cardapio.codae_nega_questionamento(user=request.user, justificativa=justificativa)
+                alteracao_cardapio.codae_nega_questionamento(
+                    user=request.user, justificativa=justificativa)
             serializer = self.get_serializer(alteracao_cardapio)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -702,7 +723,8 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
             if alteracao_cardapio.status == alteracao_cardapio.workflow_class.DRE_VALIDADO:
                 alteracao_cardapio.codae_autoriza(user=request.user)
             else:
-                alteracao_cardapio.codae_autoriza_questionamento(user=request.user, justificativa=justificativa)
+                alteracao_cardapio.codae_autoriza_questionamento(
+                    user=request.user, justificativa=justificativa)
             serializer = self.get_serializer(alteracao_cardapio)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -712,7 +734,8 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
             methods=['patch'], url_path=constants.CODAE_QUESTIONA_PEDIDO)
     def codae_questiona_pedido(self, request, uuid=None):
         alteracao_cardapio = self.get_object()
-        observacao_questionamento_codae = request.data.get('observacao_questionamento_codae', '')
+        observacao_questionamento_codae = request.data.get(
+            'observacao_questionamento_codae', '')
         try:
             alteracao_cardapio.codae_questiona(
                 user=request.user,
@@ -755,13 +778,15 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
         inclusao_alimentacao_continua = self.get_object()
         justificativa = request.data.get('justificativa', '')
         try:
-            inclusao_alimentacao_continua.cancelar_pedido(user=request.user, justificativa=justificativa)
+            inclusao_alimentacao_continua.cancelar_pedido(
+                user=request.user, justificativa=justificativa)
             serializer = self.get_serializer(inclusao_alimentacao_continua)
             return Response(serializer.data)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
-    # TODO rever os demais endpoints. Essa action consolida em uma única pesquisa as pesquisas por prioridade.
+    # TODO rever os demais endpoints. Essa action consolida em uma única
+    # pesquisa as pesquisas por prioridade.
     @action(detail=False,
             url_path=f'{constants.PEDIDOS_DRE}/{constants.FILTRO_PADRAO_PEDIDOS}',
             permission_classes=[UsuarioDiretoriaRegional])
@@ -796,7 +821,8 @@ class AlteracoesCardapioCEIViewSet(AlteracoesCardapioViewSet):
             permission_classes=(UsuarioEscola,))
     def minhas_solicitacoes(self, request):
         usuario = request.user
-        alteracoes_cardapio_rascunho = AlteracaoCardapioCEI.get_rascunhos_do_usuario(usuario)
+        alteracoes_cardapio_rascunho = AlteracaoCardapioCEI.get_rascunhos_do_usuario(
+            usuario)
         page = self.paginate_queryset(alteracoes_cardapio_rascunho)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)

@@ -5,7 +5,7 @@ from django_filters import rest_framework as filters
 from rest_framework import generics, mixins, serializers
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
+from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST
 from rest_framework.viewsets import GenericViewSet
@@ -236,12 +236,12 @@ class SolicitacaoDietaEspecialViewSet(
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)  # noqa
 
     @action(detail=True, url_path=constants.RELATORIO,
-            methods=['get'], permission_classes=[AllowAny])
+            methods=['get'], permission_classes=(IsAuthenticated,))
     def relatorio(self, request, uuid=None):
         return relatorio_dieta_especial(request, solicitacao=self.get_object())
 
     @action(detail=True, url_path=constants.PROTOCOLO,
-            methods=['get'], permission_classes=[AllowAny])
+            methods=['get'], permission_classes=(IsAuthenticated,))
     def protocolo(self, request, uuid=None):
         return relatorio_dieta_especial_protocolo(request, solicitacao=self.get_object())  # noqa
 
