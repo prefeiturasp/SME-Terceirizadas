@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime
 
 from django.core.validators import MinLengthValidator
 from django.db import models
@@ -157,8 +158,9 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
         return AnexoLogSolicitacoesUsuario.objects.filter(log=self)
 
     def __str__(self):
+        data = datetime.strftime(self.criado_em, '%Y-%m-%d %H:%M:%S')
         return (f'{self.usuario} executou {self.get_status_evento_display()} '
-                f'em {self.get_solicitacao_tipo_display()} no dia {self.criado_em}')
+                f'em {self.get_solicitacao_tipo_display()} no dia {data}')
 
 
 class AnexoLogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes_anexo'), models.Model):

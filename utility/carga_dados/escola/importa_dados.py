@@ -1,5 +1,5 @@
 import subprocess
-
+from random import randint, choice
 import environ
 from django.db.models import Q
 from utility.carga_dados.escola.helper import bcolors, email_valido, maiuscula, normaliza_nome
@@ -14,18 +14,22 @@ from utility.carga_dados.helper import (
     somente_digitos
 )
 
+from sme_terceirizadas.cardapio.models import TipoAlimentacao
 from sme_terceirizadas.dados_comuns.models import Contato
 from sme_terceirizadas.escola.data.diretorias_regionais import data_diretorias_regionais  # noqa
 from sme_terceirizadas.escola.data.lotes import data_lotes
+from sme_terceirizadas.escola.data.periodo_escolar import data_periodo_escolar
 from sme_terceirizadas.escola.data.subprefeituras import data_subprefeituras
 from sme_terceirizadas.escola.data.tipos_gestao import data_tipos_gestao
 from sme_terceirizadas.escola.models import (
     DiretoriaRegional,
     Escola,
+    EscolaPeriodoEscolar,
     Lote,
+    PeriodoEscolar,
     Subprefeitura,
     TipoGestao,
-    TipoUnidadeEscolar
+    TipoUnidadeEscolar,
 )
 from sme_terceirizadas.perfil.models import Perfil, Usuario
 from sme_terceirizadas.terceirizada.data.terceirizadas import data_terceirizadas  # noqa
@@ -274,6 +278,14 @@ def cria_escola(arquivo, legenda):
         Escola.objects.bulk_create(lista_auxiliar)
 
 
+def cria_periodo_escolar():
+    tipos_alimentacao = TipoAlimentacao.objects.all()
+    for item in progressbar(data_periodo_escolar, 'PeriodoEscolar'):
+        periodo_escolar, created = PeriodoEscolar.objects.get_or_create(nome=item)  # noqa
+        for tipo in tipos_alimentacao:
+            periodo_escolar.tipos_alimentacao.add(tipo)
+
+
 def cria_escola_faltante(unidade_escolar, codigo_eol, dre, lote):
     tipo_gestao = TipoGestao.objects.get(nome='TERC TOTAL')
     nome_tipo_unidade = unidade_escolar.split()[0]
@@ -402,3 +414,22 @@ def cria_usuario_cogestor(items):
                 )
         else:
             print(f'{bcolors.FAIL}Aviso: Usuario: "{nome}" já existe!{bcolors.ENDC}')  # noqa
+
+
+def cria_escola_com_periodo_escolar():
+    # Percorre todas as escolas e todos os períodos.
+    # Deleta tudo antes
+    EscolaPeriodoEscolar.objects.all().delete()
+    escolas = Escola.objects.all()
+    periodos_escolares = PeriodoEscolar.objects.all()
+    aux = []
+    for escola in progressbar(escolas, 'Escola Periodo Escolar'):
+        for periodo_escolar in periodos_escolares:
+            obj = EscolaPeriodoEscolar(
+                escola=escola,
+                periodo_escolar=periodo_escolar,
+                quantidade_alunos=randint(100, 500),
+                horas_atendimento=choice([4, 8, 12]),
+            )
+            aux.append(obj)
+    EscolaPeriodoEscolar.objects.bulk_create(aux)
