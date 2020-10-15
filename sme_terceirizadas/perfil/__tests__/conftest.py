@@ -433,13 +433,6 @@ def fake_user(client):
 def usuario_autenticado(client):
     email = 'admin@admin.com'
     password = 'admin'
-    user = models.Usuario.objects.create_user(
-        email=email,
-        password=password,
-        nome='admin',
-        cpf='0',
-        registro_funcional='1234',
-    )
     client.login(email=email, password=password)
     return client
 

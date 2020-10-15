@@ -2,10 +2,10 @@ import datetime
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models.query_utils import Q
-from rest_framework import permissions, status, viewsets
-from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
+from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
 from ...escola.api.serializers import UsuarioDetalheSerializer
