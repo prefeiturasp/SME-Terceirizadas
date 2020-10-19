@@ -77,6 +77,7 @@ class SolicitacaoDietaEspecialCreateSerializer(serializers.ModelSerializer):
         aluno_nao_matriculado = validated_data.pop('aluno_nao_matriculado')
 
         escola_destino = None
+        tipo_solicitacao = None
 
         if aluno_nao_matriculado:
             aluno = aluno_nao_matriculado_data
@@ -111,6 +112,7 @@ class SolicitacaoDietaEspecialCreateSerializer(serializers.ModelSerializer):
                 defaults={'nome': responsavel_data.get('nome')}
             )
             aluno.responsaveis.add(responsavel)
+            tipo_solicitacao = 'ALUNO_NAO_MATRICULADO'
 
         else:
             info_turma = EOLService.get_informacoes_escola_turma_aluno(
@@ -132,11 +134,13 @@ class SolicitacaoDietaEspecialCreateSerializer(serializers.ModelSerializer):
             escola_destino = aluno.escola
             aluno.periodo_escolar = periodo
             aluno.save()
+            tipo_solicitacao = 'COMUM'
 
         solicitacao = SolicitacaoDietaEspecial.objects.create(**validated_data)
         solicitacao.aluno = aluno
         solicitacao.ativo = False
         solicitacao.escola_destino = escola_destino
+        solicitacao.tipo_solicitacao = tipo_solicitacao
         solicitacao.save()
 
         for anexo in anexos:
