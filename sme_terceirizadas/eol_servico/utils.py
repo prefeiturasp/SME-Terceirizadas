@@ -15,7 +15,7 @@ class EOLException(Exception):
 
 class EOLService(object):
     DEFAULT_HEADERS = {'Authorization': f'Token {DJANGO_EOL_API_TOKEN}'}
-    DEFAULT_TIMEOUT = 15
+    DEFAULT_TIMEOUT = 20
 
     @classmethod
     def get_informacoes_usuario(cls, registro_funcional):
