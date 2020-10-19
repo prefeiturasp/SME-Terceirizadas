@@ -89,6 +89,7 @@ class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmiga
     lote_nome = models.CharField(max_length=50)
     dre_nome = models.CharField(max_length=200)
     escola_nome = models.CharField(max_length=200)
+    tipo_solicitacao_dieta = models.CharField(max_length=30)
     terceirizada_nome = models.CharField(max_length=200)
     nome_aluno = models.CharField(max_length=200)
     aluno_nao_matriculado = models.BooleanField(default=False, null=True)
