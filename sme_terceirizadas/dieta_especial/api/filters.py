@@ -12,7 +12,7 @@ class DietaEspecialFilter(filters.FilterSet):
     escola = filters.CharFilter(field_name='rastro_escola__uuid', lookup_expr='iexact')
     cpf_responsavel = filters.CharFilter(field_name='aluno__responsaveis__cpf', lookup_expr='iexact')
     ativo = filters.BooleanFilter(field_name='ativo')
-    dre = filters.CharFilter(field_name='rastro_dre__uuid', lookup_expr='iexact')
+    tipo_solicitacao = filters.CharFilter(field_name='tipo_solicitacao', lookup_expr='iexact')
     data_inicial = filters.DateFilter(field_name='criado_em', lookup_expr='date__gte')
     data_final = filters.DateFilter(field_name='criado_em', lookup_expr='date__lte')
     classificacao = filters.ModelMultipleChoiceFilter(field_name='classificacao__id',
