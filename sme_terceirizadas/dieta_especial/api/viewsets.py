@@ -7,7 +7,7 @@ from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.status import HTTP_400_BAD_REQUEST
+from rest_framework.status import HTTP_201_CREATED, HTTP_400_BAD_REQUEST
 from rest_framework.viewsets import GenericViewSet
 from xworkflows import InvalidTransitionError
 
@@ -40,6 +40,7 @@ from ..models import (
     AlergiaIntolerancia,
     Alimento,
     ClassificacaoDieta,
+    MotivoAlteracaoUE,
     MotivoNegacao,
     SolicitacaoDietaEspecial,
     SolicitacoesDietaEspecialAtivasInativasPorAluno,
@@ -51,6 +52,7 @@ from .serializers import (
     AlergiaIntoleranciaSerializer,
     AlimentoSerializer,
     ClassificacaoDietaSerializer,
+    MotivoAlteracaoUESerializer,
     MotivoNegacaoSerializer,
     PanoramaSerializer,
     RelatorioQuantitativoSolicDietaEspSerializer,
@@ -61,7 +63,7 @@ from .serializers import (
     SolicitacoesAtivasInativasPorAlunoSerializer,
     TipoContagemSerializer
 )
-from .serializers_create import SolicitacaoDietaEspecialCreateSerializer
+from .serializers_create import AlteracaoUESerializer, SolicitacaoDietaEspecialCreateSerializer
 
 
 class SolicitacaoDietaEspecialViewSet(
@@ -117,6 +119,8 @@ class SolicitacaoDietaEspecialViewSet(
             return SolicitacaoDietaEspecialSimplesSerializer
         elif self.action == 'panorama_escola':
             return PanoramaSerializer
+        elif self.action == 'alteracao_ue':
+            return AlteracaoUESerializer
         return SolicitacaoDietaEspecialSerializer
 
     @action(
@@ -551,6 +555,16 @@ class SolicitacaoDietaEspecialViewSet(
 
         return Response(serializer.data)
 
+    @action(detail=False, methods=['post'], url_path='alteracao-ue')
+    def alteracao_ue(self, request):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(status=HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors,
+                            status=HTTP_400_BAD_REQUEST)
+
 
 class SolicitacoesAtivasInativasPorAlunoView(generics.ListAPIView):
     serializer_class = SolicitacoesAtivasInativasPorAlunoSerializer
@@ -658,3 +672,8 @@ class TipoContagemViewSet(mixins.ListModelMixin, GenericViewSet):
     pagination_class = None
     verbose_name = 'Tipo de Contagem'
     verbose_name_plural = 'Tipos de Contagem'
+
+
+class MotivoAlteracaoUEViewSet(mixins.ListModelMixin, GenericViewSet):
+    queryset = MotivoAlteracaoUE.objects.order_by('nome')
+    serializer_class = MotivoAlteracaoUESerializer

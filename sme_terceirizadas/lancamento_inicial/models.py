@@ -1,6 +1,6 @@
 from django.db import models
 
-from sme_terceirizadas.dados_comuns.behaviors import CriadoEm, CriadoPor, Logs, TemChaveExterna, TemData  # noqa I101
+from ..dados_comuns.behaviors import CriadoEm, CriadoPor, Logs, TemChaveExterna, TemData  # noqa I101
 
 
 class LancamentoDiario(CriadoEm, CriadoPor, TemData,

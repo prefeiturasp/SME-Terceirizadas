@@ -32,6 +32,13 @@ class SolicitacaoDietaEspecial(
     Ativavel
 ):
     DESCRICAO = 'Dieta Especial'
+
+    TIPO_SOLICITACAO_CHOICES = [
+        ('COMUM', 'Comum'),
+        ('ALUNO_NAO_MATRICULADO', 'Aluno não matriculado'),
+        ('ALTERACAO_UE', 'Alteração U.E'),
+    ]
+
     aluno = models.ForeignKey(
         'escola.Aluno',
         null=True,
@@ -60,7 +67,8 @@ class SolicitacaoDietaEspecial(
     )
     # Preenchido pela Escola
     observacoes = models.TextField('Observações', blank=True)
-    # Preenchido pela CODAE ao autorizar a dieta
+
+    # Preenchido pela_ CODAE ao autorizar a dieta
     informacoes_adicionais = models.TextField(
         'Informações Adicionais',
         blank=True
@@ -90,6 +98,48 @@ class SolicitacaoDietaEspecial(
 
     data_termino = models.DateField(
         null=True, validators=[nao_pode_ser_no_passado])
+
+    motivo_alteracao_ue = models.ForeignKey(
+        'MotivoAlteracaoUE',
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE
+    )
+
+    escola_destino = models.ForeignKey(
+        'escola.Escola',
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE
+    )
+
+    dieta_alterada = models.ForeignKey(
+        'self',
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE
+    )
+
+    data_inicial_alteracao = models.DateField(
+        null=True,
+        blank=True
+    )
+
+    data_final_alteracao = models.DateField(
+        null=True,
+        blank=True
+    )
+
+    tipo_solicitacao = models.CharField(
+        max_length=30,
+        choices=TIPO_SOLICITACAO_CHOICES,
+        default='COMUM',
+    )
+
+    observacoes_alteracao = models.TextField(
+        'Observações Alteração',
+        blank=True
+    )
 
     @classmethod
     def aluno_possui_dieta_especial_pendente(cls, aluno):
@@ -190,6 +240,16 @@ class ClassificacaoDieta(Descritivel, Nomeavel):
 
     def __str__(self):
         return self.nome
+
+
+class MotivoAlteracaoUE(Descritivel, Nomeavel, TemChaveExterna):
+
+    def __str__(self):
+        return self.nome
+
+    class Meta:
+        verbose_name = 'Motivo Alteração U.E'
+        verbose_name_plural = 'Motivo Alteração U.E'
 
 
 class MotivoNegacao(Descritivel):
