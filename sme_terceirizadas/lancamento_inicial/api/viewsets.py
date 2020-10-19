@@ -6,7 +6,7 @@ from rest_framework.viewsets import ModelViewSet
 
 from ...dieta_especial.models import ClassificacaoDieta
 from ..models import LancamentoDiario
-from ..utils import mes_para_faixa, eh_feriado_ou_fds
+from ..utils import eh_feriado_ou_fds, mes_para_faixa
 from .serializers import LancamentoDiarioCreateSerializer, LancamentoDiarioSerializer
 
 
@@ -46,7 +46,7 @@ class LancamentoDiarioViewSet(ModelViewSet):
             escola_periodo_escolar__uuid=self.request.GET['escola_periodo_escolar']
         ).all()
 
-        datas = [ data_inicial + timedelta(n) for n in range(int ((data_final - data_inicial).days))]
+        datas = [data_inicial + timedelta(n) for n in range(int((data_final - data_inicial).days + 1))]
         dados_a_retornar = []
 
         for data in datas:
