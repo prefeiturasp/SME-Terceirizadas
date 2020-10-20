@@ -51,7 +51,7 @@ class LancamentoDiarioViewSet(ModelViewSet):
 
         for data in datas:
             try:
-                lancamento = qs.get(data=data)
+                lancamento = qs.get(data=data, tipo_dieta__isnull=True)
             except LancamentoDiario.DoesNotExist:
                 lancamento = None
             dados_a_retornar.append({
