@@ -19,6 +19,7 @@ class LancamentoDiario(CriadoEm, CriadoPor, TemData,
     lanche_5h = models.IntegerField(null=True)
     ref_enteral = models.IntegerField(null=True)
     observacoes = models.TextField(blank=True)
+    eh_dia_de_sobremesa_doce = models.BooleanField(default=False)
 
     def __str__(self):
         return str(self.uuid)
