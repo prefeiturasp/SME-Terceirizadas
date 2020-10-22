@@ -4,7 +4,6 @@ from django.forms import ValidationError
 from django_filters import rest_framework as filters
 from rest_framework import generics, mixins, serializers
 from rest_framework.decorators import action
-from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.status import HTTP_201_CREATED, HTTP_400_BAD_REQUEST
@@ -568,7 +567,7 @@ class SolicitacaoDietaEspecialViewSet(
 
 class SolicitacoesAtivasInativasPorAlunoView(generics.ListAPIView):
     serializer_class = SolicitacoesAtivasInativasPorAlunoSerializer
-    pagination_class = PageNumberPagination
+    pagination_class = RelatorioPagination
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
