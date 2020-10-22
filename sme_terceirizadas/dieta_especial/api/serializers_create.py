@@ -103,7 +103,7 @@ class SolicitacaoDietaEspecialCreateSerializer(serializers.ModelSerializer):
             if SolicitacaoDietaEspecial.aluno_possui_dieta_especial_pendente(aluno):
                 raise serializers.ValidationError('Aluno já possui Solicitação de Dieta Especial pendente')
 
-            aluno.escola = escola
+            aluno.escola = validated_data['criado_por'].vinculo_atual.instituicao
             aluno.nao_matriculado = True
             aluno.save()
 
