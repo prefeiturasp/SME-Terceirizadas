@@ -339,8 +339,7 @@ def cria_usuario_diretor(arquivo, in_memory=False):
             continue
 
         registro_funcional = somente_digitos(str(item.get('RF - DIRETOR'))[:7])
-        existe_registro_funcional = Usuario.objects.filter(
-            registro_funcional=registro_funcional).first()
+        existe_registro_funcional = Usuario.objects.filter(registro_funcional=registro_funcional).first()  # noqa
         if existe_registro_funcional:
             continue
 
@@ -375,9 +374,7 @@ def cria_usuario_diretor(arquivo, in_memory=False):
                 escola.save()
             else:
                 unidade_escolar = item.get('UNIDADE ESCOLAR')
-                # dre = DiretoriaRegional.objects.filter(nome__icontains='IPIRANGA').first()  # noqa
                 dre = item.get('DRE').strip()
-                # dre = DiretoriaRegional.objects.filter(iniciais__icontains=iniciais).first()  # noqa
 
                 lote = None
                 if dre:
@@ -415,15 +412,22 @@ def cria_usuario_cogestor(items):
     for item in progressbar(items, 'Cogestores DRE Ipiranga'):
         # Remove .0 e transforma em tamanho de 6 digitos
         email = item.get('E-MAIL - ASSISTENTE DE DIRETOR').lower().strip()
+
         cpf = None
         if item.get('CPF - ASSISTENTE DE DIRETOR'):
-            cpf = somente_digitos(item.get('CPF - ASSISTENTE DE DIRETOR')[:11].zfill(11))  # noqa
+            cpf = somente_digitos(str(item.get('CPF - ASSISTENTE DE DIRETOR'))[:11].zfill(11))  # noqa
+
         registro_funcional = None
         if item.get('RF - ASSISTENTE DE DIRETOR'):
             registro_funcional = somente_digitos(item.get('RF - ASSISTENTE DE DIRETOR')[:7])  # noqa
+            existe_registro_funcional = Usuario.objects.filter(registro_funcional=registro_funcional).first()  # noqa
+            if existe_registro_funcional:
+                continue
+
         nome = item.get('ASSISTENTE DE DIRETOR').strip()
         if nome == 'SEM ASSISTENTE':
             continue
+
         cargo = 'Cogestor'
         codigo_eol = str(item.get('CÓDIGO EOL DA U.E')).strip('.0').zfill(6)
 
