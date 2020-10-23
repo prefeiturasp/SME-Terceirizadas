@@ -26,7 +26,7 @@
         <div class="informacao">
           <label>Nome</label>
           <p>{{produto.ultima_homologacao.ultimo_log.usuario.nome}}</p>
-          <p>RF: {{produto.ultima_homologacao.ultimo_log.usuario.registro_funcional}}</p>
+          <p>RF: {{produto.ultima_homologacao.ultimo_log.usuario.registro_funcional|default:''}}</p>
         </div>
         <div class="informacao">
           <label>Cargo</label>
