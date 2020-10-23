@@ -329,9 +329,21 @@ def cria_usuario_diretor(arquivo, in_memory=False):
 
     for item in progressbar(items, 'Diretores DRE'):
         # Remove .0 e transforma em tamanho de 6 digitos
+        if not item.get('E-MAIL DIRETOR'):
+            continue
         email = item.get('E-MAIL DIRETOR').lower().strip()
         cpf = somente_digitos(str(item.get('CPF - DIRETOR'))[:11].zfill(11))
+
+        existe_cpf = Usuario.objects.filter(cpf=cpf).first()
+        if existe_cpf:
+            continue
+
         registro_funcional = somente_digitos(str(item.get('RF - DIRETOR'))[:7])
+        existe_registro_funcional = Usuario.objects.filter(
+            registro_funcional=registro_funcional).first()
+        if existe_registro_funcional:
+            continue
+
         nome = item.get('DIRETOR').strip()
         if nome == 'NÃO POSSUI':
             continue
