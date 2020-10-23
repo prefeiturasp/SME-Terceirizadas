@@ -1,4 +1,5 @@
 import subprocess
+
 from random import randint, choice
 import environ
 from django.db.models import Q
@@ -288,7 +289,10 @@ def cria_periodo_escolar():
 
 def cria_escola_faltante(unidade_escolar, codigo_eol, dre, lote):
     tipo_gestao = TipoGestao.objects.get(nome='TERC TOTAL')
-    nome_tipo_unidade = unidade_escolar.split()[0]
+    if 'CEU GESTAO' in unidade_escolar:
+        nome_tipo_unidade = 'CEU GESTAO'
+    else:
+        nome_tipo_unidade = unidade_escolar.split()[0]
     tipo_unidade = TipoUnidadeEscolar.objects.filter(iniciais=nome_tipo_unidade).first()  # noqa
     data = Escola.objects.create(
         nome=unidade_escolar,
@@ -298,12 +302,23 @@ def cria_escola_faltante(unidade_escolar, codigo_eol, dre, lote):
         tipo_gestao=tipo_gestao,
         lote=lote
     )
+    return data
+
+
+def busca_lote(dre=None, lote=None):
+    if lote:
+        if lote == '7 A':
+            nome = 'LOTE 07 A'
+        if lote == '7 B':
+            nome = 'LOTE 07 B'
+    if dre:
+        dre_obj = DiretoriaRegional.objects.get(iniciais__icontains=dre)
+        nome = dre_obj.iniciais.split('-')[-1].strip()
+        lote_obj = Lote.objects.get(iniciais__icontains=nome)
+    return dre_obj, lote_obj
 
 
 def cria_usuario_diretor(arquivo, in_memory=False):
-    '''
-    DRE Ipiranga
-    '''
     items = excel_to_list(arquivo, in_memory=in_memory)
 
     perfil_diretor, created = Perfil.objects.get_or_create(
@@ -312,14 +327,17 @@ def cria_usuario_diretor(arquivo, in_memory=False):
         super_usuario=True
     )
 
-    for item in progressbar(items, 'Diretores DRE Ipiranga'):
+    for item in progressbar(items, 'Diretores DRE'):
         # Remove .0 e transforma em tamanho de 6 digitos
-        email = item.get('E-MAIL INSTITUCIONAL DO  DIRETOR').lower().strip()
-        cpf = somente_digitos(item.get('CPF - DIRETOR')[:11].zfill(11))
-        registro_funcional = somente_digitos(item.get('RF - DIRETOR')[:7])
+        email = item.get('E-MAIL DIRETOR').lower().strip()
+        cpf = somente_digitos(str(item.get('CPF - DIRETOR'))[:11].zfill(11))
+        registro_funcional = somente_digitos(str(item.get('RF - DIRETOR'))[:7])
         nome = item.get('DIRETOR').strip()
+        if nome == 'NÃO POSSUI':
+            continue
         cargo = 'Diretor'
-        codigo_eol = str(item.get('CÓDIGO EOL DA U.E')).strip('.0').zfill(6)
+        codigo_eol = str(item.get('EOL DA U.E')).strip('.0').zfill(6)
+        telefone = somente_digitos(str(item.get('TELEFONE DIRETOR'))[:13])
         obj = Usuario.objects.filter(email=email).first()
         if not obj:
             diretor = Usuario.objects.create_user(
@@ -332,19 +350,31 @@ def cria_usuario_diretor(arquivo, in_memory=False):
                 is_staff=False,
                 is_superuser=False,
             )
+            contato_obj, contato_created = Contato.objects.get_or_create(
+                telefone=telefone,
+                telefone2='',
+                celular='',
+                email=email,
+            )
+
             escola = Escola.objects.filter(codigo_eol=codigo_eol).first()
-            if not escola:
+            if escola:
+                escola.contato = contato_obj
+                escola.save()
+            else:
                 unidade_escolar = item.get('UNIDADE ESCOLAR')
-                dre = DiretoriaRegional.objects.filter(nome__icontains='IPIRANGA').first()  # noqa
+                # dre = DiretoriaRegional.objects.filter(nome__icontains='IPIRANGA').first()  # noqa
+                dre = item.get('DRE').strip()
+                # dre = DiretoriaRegional.objects.filter(iniciais__icontains=iniciais).first()  # noqa
 
-                if item.get('LOTE') == '7 A':
-                    lote = Lote.objects.get(nome='LOTE 07 A')
-                if item.get('LOTE') == '7 B':
-                    lote = Lote.objects.get(nome='LOTE 07 B')
-                else:
-                    lote = Lote.objects.get(nome='LOTE 07 A')
+                lote = None
+                if dre:
+                    # Se necessário, informar lote.
+                    dre, lote = busca_lote(dre=dre)
 
-                cria_escola_faltante(unidade_escolar, codigo_eol, dre, lote)
+                escola = cria_escola_faltante(unidade_escolar, codigo_eol, dre, lote)  # noqa
+                escola.contato = contato_obj
+                escola.save()
 
             cria_vinculo_de_perfil_usuario(
                 perfil=perfil_diretor,
@@ -372,10 +402,12 @@ def cria_usuario_cogestor(items):
 
     for item in progressbar(items, 'Cogestores DRE Ipiranga'):
         # Remove .0 e transforma em tamanho de 6 digitos
-        email = item.get('E-MAIL- ASSISTENTE DE DIRETOR').lower().strip()
+        email = item.get('E-MAIL - ASSISTENTE DE DIRETOR').lower().strip()
         cpf = somente_digitos(item.get('CPF - ASSISTENTE DE DIRETOR')[:11].zfill(11))  # noqa
-        registro_funcional = somente_digitos(item.get('RF - ASSITENTE DE DIRETOR')[:7])  # noqa
-        nome = item.get('ASSITENTE DE DIRETOR').strip()
+        registro_funcional = somente_digitos(item.get('RF - ASSISTENTE DE DIRETOR')[:7])  # noqa
+        nome = item.get('ASSISTENTE DE DIRETOR').strip()
+        if nome == 'SEM ASSISTENTE':
+            continue
         cargo = 'Cogestor'
         codigo_eol = str(item.get('CÓDIGO EOL DA U.E')).strip('.0').zfill(6)
 
