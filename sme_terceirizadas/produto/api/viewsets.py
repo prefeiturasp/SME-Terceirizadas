@@ -195,7 +195,7 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
                     status__in.append('TERCEIRIZADA_RESPONDEU_RECLAMACAO')
                 filtros['status__in'] = status__in
 
-            if filtro_aplicado == 'codae_homologado':
+            elif filtro_aplicado == 'codae_homologado':
 
                 if user.tipo_usuario == constants.TIPO_USUARIO_TERCEIRIZADA:
                     filtros['status__in'] = ['ESCOLA_OU_NUTRICIONISTA_RECLAMOU',
