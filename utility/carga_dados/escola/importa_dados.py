@@ -289,7 +289,7 @@ def cria_periodo_escolar():
 
 def cria_escola_faltante(unidade_escolar, codigo_eol, dre, lote):
     tipo_gestao = TipoGestao.objects.get(nome='TERC TOTAL')
-    if 'CEU GESTAO' in unidade_escolar:
+    if 'CEU GESTAO' or 'CEU GESTÃO' in unidade_escolar:
         nome_tipo_unidade = 'CEU GESTAO'
     else:
         nome_tipo_unidade = unidade_escolar.split()[0]
@@ -403,8 +403,12 @@ def cria_usuario_cogestor(items):
     for item in progressbar(items, 'Cogestores DRE Ipiranga'):
         # Remove .0 e transforma em tamanho de 6 digitos
         email = item.get('E-MAIL - ASSISTENTE DE DIRETOR').lower().strip()
-        cpf = somente_digitos(item.get('CPF - ASSISTENTE DE DIRETOR')[:11].zfill(11))  # noqa
-        registro_funcional = somente_digitos(item.get('RF - ASSISTENTE DE DIRETOR')[:7])  # noqa
+        cpf = None
+        if item.get('CPF - ASSISTENTE DE DIRETOR'):
+            cpf = somente_digitos(item.get('CPF - ASSISTENTE DE DIRETOR')[:11].zfill(11))  # noqa
+        registro_funcional = None
+        if item.get('RF - ASSISTENTE DE DIRETOR'):
+            registro_funcional = somente_digitos(item.get('RF - ASSISTENTE DE DIRETOR')[:7])  # noqa
         nome = item.get('ASSISTENTE DE DIRETOR').strip()
         if nome == 'SEM ASSISTENTE':
             continue
