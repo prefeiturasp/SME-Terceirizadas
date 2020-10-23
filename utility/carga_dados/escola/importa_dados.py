@@ -321,6 +321,12 @@ def busca_lote(dre=None, lote=None):
 def cria_usuario_diretor(arquivo, in_memory=False):
     items = excel_to_list(arquivo, in_memory=in_memory)
 
+    print('Antes:', Usuario.objects.all().count())
+
+    diretores_unicos = len(set([item['DIRETOR'] for item in items if item['DIRETOR'] != '']))  # noqa
+
+    print('Diretores novos:', diretores_unicos)
+
     perfil_diretor, created = Perfil.objects.get_or_create(
         nome='DIRETOR',
         ativo=True,
@@ -332,6 +338,9 @@ def cria_usuario_diretor(arquivo, in_memory=False):
         if not item.get('E-MAIL DIRETOR'):
             continue
         email = item.get('E-MAIL DIRETOR').lower().strip()
+        if '@' not in email:
+            continue
+
         cpf = somente_digitos(str(item.get('CPF - DIRETOR'))[:11].zfill(11))
 
         existe_cpf = Usuario.objects.filter(cpf=cpf).first()
@@ -392,16 +401,21 @@ def cria_usuario_diretor(arquivo, in_memory=False):
             )
         else:
             print(f'{bcolors.FAIL}Aviso: Usuario: "{nome}" já existe!{bcolors.ENDC}')  # noqa
+
+    print('Diretores Depois:', Usuario.objects.all().count())
     return items
 
 
 def cria_usuario_cogestor(items):
     '''
-    DRE Ipiranga.
     Específico: depende dos items de cria_usuario_diretor,
     porque o InMemoryUploadedFile não deu certo aqui.
     '''
-    # items = excel_to_list(arquivo, in_memory=in_memory)
+    print('Antes:', Usuario.objects.all().count())
+
+    cogestores_unicos = len(set([item['ASSISTENTE DE DIRETOR'] for item in items if item['ASSISTENTE DE DIRETOR'] != '']))  # noqa
+
+    print('Cogestores novos:', cogestores_unicos)
 
     perfil_diretor, created = Perfil.objects.get_or_create(
         nome='COGESTOR',
@@ -409,9 +423,11 @@ def cria_usuario_cogestor(items):
         super_usuario=True
     )
 
-    for item in progressbar(items, 'Cogestores DRE Ipiranga'):
+    for item in progressbar(items, 'Cogestores DRE'):
         # Remove .0 e transforma em tamanho de 6 digitos
         email = item.get('E-MAIL - ASSISTENTE DE DIRETOR').lower().strip()
+        if '@' not in email:
+            continue
 
         cpf = None
         if item.get('CPF - ASSISTENTE DE DIRETOR'):
@@ -466,6 +482,8 @@ def cria_usuario_cogestor(items):
                 )
         else:
             print(f'{bcolors.FAIL}Aviso: Usuario: "{nome}" já existe!{bcolors.ENDC}')  # noqa
+
+    print('Cogestores Depois:', Usuario.objects.all().count())
 
 
 def cria_escola_com_periodo_escolar():
