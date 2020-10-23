@@ -320,12 +320,7 @@ def busca_lote(dre=None, lote=None):
 
 def cria_usuario_diretor(arquivo, in_memory=False):
     items = excel_to_list(arquivo, in_memory=in_memory)
-
-    print('Antes:', Usuario.objects.all().count())
-
     diretores_unicos = len(set([item['DIRETOR'] for item in items if item['DIRETOR'] != '']))  # noqa
-
-    print('Diretores novos:', diretores_unicos)
 
     perfil_diretor, created = Perfil.objects.get_or_create(
         nome='DIRETOR',
@@ -402,7 +397,6 @@ def cria_usuario_diretor(arquivo, in_memory=False):
         else:
             print(f'{bcolors.FAIL}Aviso: Usuario: "{nome}" já existe!{bcolors.ENDC}')  # noqa
 
-    print('Diretores Depois:', Usuario.objects.all().count())
     return items
 
 
@@ -411,12 +405,7 @@ def cria_usuario_cogestor(items):
     Específico: depende dos items de cria_usuario_diretor,
     porque o InMemoryUploadedFile não deu certo aqui.
     '''
-    print('Antes:', Usuario.objects.all().count())
-
     cogestores_unicos = len(set([item['ASSISTENTE DE DIRETOR'] for item in items if item['ASSISTENTE DE DIRETOR'] != '']))  # noqa
-
-    print('Cogestores novos:', cogestores_unicos)
-
     perfil_diretor, created = Perfil.objects.get_or_create(
         nome='COGESTOR',
         ativo=True,
@@ -482,8 +471,6 @@ def cria_usuario_cogestor(items):
                 )
         else:
             print(f'{bcolors.FAIL}Aviso: Usuario: "{nome}" já existe!{bcolors.ENDC}')  # noqa
-
-    print('Cogestores Depois:', Usuario.objects.all().count())
 
 
 def cria_escola_com_periodo_escolar():
