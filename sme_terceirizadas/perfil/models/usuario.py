@@ -203,9 +203,12 @@ class Usuario(ExportModelOperationsMixin('usuario'), SimpleEmailConfirmationUser
         content = {'uuid': self.uuid,
                    'confirmation_key': self.confirmation_key}
         titulo = 'Confirmação de E-mail'
-        conteudo = f'Clique neste link para confirmar seu e-mail no SIGPAE: {url_configs("CONFIRMAR_EMAIL", content)}'
-        template = 'email_conteudo_simples.html'
-        dados_template = {'titulo': titulo, 'conteudo': conteudo}
+        template = 'email_cadastro_funcionario.html'
+        dados_template = {
+            'titulo': titulo,
+            'link_cadastro': url_configs('CONFIRMAR_EMAIL', content),
+            'nome': self.nome
+        }
         html = render_to_string(template, dados_template)
         self.email_user(
             subject='Confirme seu e-mail - SIGPAE',
