@@ -25,18 +25,21 @@ from ..models import (
 
 
 class FaixaEtariaSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = FaixaEtaria
         exclude = ('id', 'ativo')
 
 
 class SubsticuicoesTipoAlimentacaoSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = TipoAlimentacao
         exclude = ('id', 'substituicoes',)
 
 
 class TipoAlimentacaoSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = TipoAlimentacao
         exclude = ('id',)
@@ -51,19 +54,23 @@ class PeriodoEscolarSerializer(serializers.ModelSerializer):
 
 
 class PeriodoEscolarSimplesSerializer(serializers.ModelSerializer):
-    # TODO: tirar tipos de alimentacao daqui, tipos de alimentacao são relacionados a TIPOUE + PERIODOESCOLAR
+    # TODO: tirar tipos de alimentacao daqui, tipos de alimentacao são
+    # relacionados a TIPOUE + PERIODOESCOLAR
+
     class Meta:
         model = PeriodoEscolar
         exclude = ('id', 'tipos_alimentacao')
 
 
 class TipoGestaoSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = TipoGestao
         exclude = ('id',)
 
 
 class SubprefeituraSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Subprefeitura
         exclude = ('id',)
@@ -78,18 +85,21 @@ class TipoUnidadeEscolarSerializer(serializers.ModelSerializer):
 
 
 class TipoUnidadeEscolarSerializerSimples(serializers.ModelSerializer):
+
     class Meta:
         model = TipoUnidadeEscolar
         exclude = ('id', 'cardapios', 'periodos_escolares')
 
 
 class FaixaIdadeEscolarSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = FaixaIdadeEscolar
         exclude = ('id',)
 
 
 class DiretoriaRegionalSimplissimaSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = DiretoriaRegional
         fields = ('uuid', 'nome', 'codigo_eol')
@@ -134,7 +144,7 @@ class LoteNomeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Lote
-        fields = ('uuid', 'nome', 'tipo_gestao', 'diretoria_regional', 'terceirizada')
+        fields = ('uuid', 'nome', 'tipo_gestao', 'diretoria_regional', 'terceirizada')  # noqa
 
 
 class EscolaSimplesSerializer(serializers.ModelSerializer):
@@ -145,11 +155,21 @@ class EscolaSimplesSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Escola
-        fields = ('uuid', 'nome', 'codigo_eol', 'quantidade_alunos', 'periodos_escolares', 'lote', 'tipo_gestao',
-                  'diretoria_regional', 'tipos_contagem')
+        fields = (
+            'uuid',
+            'nome',
+            'codigo_eol',
+            'quantidade_alunos',
+            'periodos_escolares',
+            'lote',
+            'tipo_gestao',
+            'diretoria_regional',
+            'tipos_contagem'
+        )
 
 
 class EscolaListagemSimplesSelializer(serializers.ModelSerializer):
+
     class Meta:
         model = Escola
         fields = ('uuid', 'nome', 'codigo_eol', 'quantidade_alunos')
@@ -163,18 +183,8 @@ class EscolaListagemSimplissimaComDRESelializer(serializers.ModelSerializer):
         fields = ('uuid', 'nome', 'diretoria_regional')
 
 
-class EscolaSimplissimaSerializer(serializers.ModelSerializer):
-    lote = serializers.SerializerMethodField()
-
-    def get_lote(self, obj):
-        return f'{obj.lote.nome} - {obj.lote.iniciais}'
-
-    class Meta:
-        model = Escola
-        fields = ('uuid', 'nome', 'codigo_eol', 'lote')
-
-
 class PeriodoEFaixaEtariaCounterSerializer(serializers.BaseSerializer):
+
     def to_representation(self, dados_entrada):
         """
         Retorna a quantidade de alunos por período e faixa etária.
@@ -249,13 +259,15 @@ class TerceirizadaSerializer(serializers.ModelSerializer):
     def get_nutricionistas(self, obj):
         content_type = ContentType.objects.get_for_model(Terceirizada)
         return UsuarioNutricionistaSerializer(
-            Usuario.objects.filter(vinculos__object_id=obj.id,
-                                   vinculos__content_type=content_type,
-                                   crn_numero__isnull=False
-                                   ).filter(
+            Usuario.objects.filter(
+                vinculos__object_id=obj.id,
+                vinculos__content_type=content_type,
+                crn_numero__isnull=False
+            ).filter(
                 Q(vinculos__data_inicial=None, vinculos__data_final=None,
-                  vinculos__ativo=False) |  # noqa W504 esperando ativacao
-                Q(vinculos__data_inicial__isnull=False, vinculos__data_final=None, vinculos__ativo=True)
+                  vinculos__ativo=False) |
+                Q(vinculos__data_inicial__isnull=False,
+                  vinculos__data_final=None, vinculos__ativo=True)
                 # noqa W504 ativo
             ).distinct(),
             many=True
@@ -342,7 +354,7 @@ class UsuarioNutricionistaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Usuario
-        fields = ('nome', 'contatos', 'crn_numero', 'super_admin_terceirizadas', 'vinculo_atual')
+        fields = ('nome', 'contatos', 'crn_numero', 'super_admin_terceirizadas', 'vinculo_atual')  # noqa
 
 
 class UsuarioDetalheSerializer(serializers.ModelSerializer):
@@ -386,10 +398,19 @@ class AlunoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Aluno
-        fields = ('uuid', 'nome', 'data_nascimento', 'codigo_eol', 'escola', 'nome_escola', 'nome_dre')
+        fields = (
+            'uuid',
+            'nome',
+            'data_nascimento',
+            'codigo_eol',
+            'escola',
+            'nome_escola',
+            'nome_dre'
+        )
 
 
 class AlunoSimplesSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Aluno
         fields = ('uuid', 'nome', 'data_nascimento', 'codigo_eol')
@@ -407,4 +428,11 @@ class AlunoNaoMatriculadoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Aluno
-        fields = ('uuid', 'responsavel', 'codigo_eol_escola', 'nome', 'cpf', 'data_nascimento')
+        fields = (
+            'uuid',
+            'responsavel',
+            'codigo_eol_escola',
+            'nome',
+            'cpf',
+            'data_nascimento'
+        )
