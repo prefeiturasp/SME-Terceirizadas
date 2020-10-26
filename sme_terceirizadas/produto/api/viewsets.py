@@ -879,7 +879,9 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         if not form.is_valid():
             return Response(form.errors)
 
-        queryset = self.get_queryset().filter(**form.cleaned_data)
+        queryset = self.get_queryset().filter(
+            **form.cleaned_data).exclude(
+                homologacoes__status=HomologacaoProdutoWorkflow.RASCUNHO)
 
         return Response({
             'produto_existe': queryset.count() > 0
