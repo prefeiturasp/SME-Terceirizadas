@@ -586,10 +586,13 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
     @xworkflows.after_transition('escola_ou_nutricionista_reclamou')
     def _escola_ou_nutricionista_reclamou_hook(self, *args, **kwargs):
         user = kwargs['user']
-        self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
-                                  usuario=user)
-        self._envia_email_escola_ou_nutricionista_reclamou(
-            kwargs['reclamacao'])
+        reclamacao = kwargs['reclamacao']
+        self.salvar_log_transicao(
+            status_evento=LogSolicitacoesUsuario.ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
+            usuario=user,
+            justificativa=reclamacao['reclamacao'],
+        )
+        self._envia_email_escola_ou_nutricionista_reclamou(reclamacao)
 
     def salva_log_com_justificativa_e_anexos(self, evento, request):
         log_transicao = self.salvar_log_transicao(
