@@ -8,7 +8,7 @@ data_diretorias_regionais = [
     {
         'id': 2,
         'nome': 'DIRETORIA REGIONAL DE EDUCACAO PIRITUBA',
-        'iniciais': 'DRE - PT',
+        'iniciais': 'DRE - PJ',
         'codigo_eol': '109000'
     },
     {
