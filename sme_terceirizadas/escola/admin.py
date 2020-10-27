@@ -36,9 +36,15 @@ class LoteAdmin(admin.ModelAdmin):
     search_fields = ('codigo_eol', 'nome')
 
 
+@admin.register(DiretoriaRegional)
+class DiretoriaRegionalAdmin(admin.ModelAdmin):
+    list_display = ('iniciais', '__str__')
+    list_display_links = ('__str__',)
+    search_fields = ('codigo_eol', 'nome')
+
+
 admin.site.register(Aluno)
 admin.site.register(Codae)
-admin.site.register(DiretoriaRegional)
 admin.site.register(EscolaPeriodoEscolar, EscolaPeriodoEscolarAdmin)
 admin.site.register(FaixaIdadeEscolar)
 admin.site.register(LogAlteracaoQuantidadeAlunosPorEscolaEPeriodoEscolar)
