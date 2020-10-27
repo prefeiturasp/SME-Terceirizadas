@@ -33,7 +33,7 @@ class EscolaAdmin(admin.ModelAdmin):
 class LoteAdmin(admin.ModelAdmin):
     list_display = ('iniciais', '__str__')
     list_display_links = ('__str__',)
-    search_fields = ('codigo_eol', 'nome')
+    search_fields = ('iniciais', 'nome', 'diretoria_regional__nome')
 
 
 @admin.register(DiretoriaRegional)
