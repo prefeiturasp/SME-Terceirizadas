@@ -11,6 +11,9 @@ router.register('vinculos-diretorias-regionais', viewsets.VinculoDiretoriaRegion
 router.register('vinculos-codae-gestao-alimentacao-terceirizada',
                 viewsets.VinculoCODAEGestaoAlimentacaoTerceirizadaViewSet,
                 basename='vinculos-codae-gestao-alimentacao-terceirizada')
+router.register('vinculos-codae-gestao-dieta-especial',
+                viewsets.VinculoCODAEGestaoDietaEspecialViewSet,
+                basename='vinculos-codae-gestao-dieta-especial')
 router.register('faixas-etarias', viewsets.FaixaEtariaViewSet, basename='Faixas Etárias')
 router.register('escola-quantidade-alunos-por-periodo-e-faixa-etaria',
                 viewsets.EscolaQuantidadeAlunosPorPeriodoEFaixaViewSet,
