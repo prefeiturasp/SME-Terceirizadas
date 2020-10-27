@@ -24,8 +24,9 @@ escolas_novas = csv_to_list(arquivo_escolas_novas)
 def cria_novas_escolas(unidade_escolar, codigo_eol, dre, nome_tipo_unidade, lote):
     tipo_gestao = TipoGestao.objects.get(nome='TERC TOTAL')
     tipo_unidade = TipoUnidadeEscolar.objects.filter(iniciais=nome_tipo_unidade).first()  # noqa
+    nome = f'{nome_tipo_unidade} {unidade_escolar}'
     Escola.objects.create(
-        nome=unidade_escolar,
+        nome=nome,
         codigo_eol=codigo_eol,
         diretoria_regional=dre,
         tipo_unidade=tipo_unidade,
@@ -47,7 +48,6 @@ def main():
         item_lote = item['DRE']
         lote = Lote.objects.get(iniciais=item_lote)
         cria_novas_escolas(item['UNIDADE_ESCOLAR'], codigo_eol, dre, item['TIPO'].strip(), lote)  # noqa
-
     print(Escola.objects.all().count(), 'escolas')  # noqa T001
 
 
