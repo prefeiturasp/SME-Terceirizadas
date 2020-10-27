@@ -481,7 +481,9 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         homologacao_produto = self.get_object()
         if homologacao_produto.pode_excluir:
-            return super().destroy(request, *args, **kwargs)
+            homologacao_produto.produto.delete()
+            homologacao_produto.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
         else:
             return Response(dict(detail='Você só pode excluir quando o status for RASCUNHO.'),
                             status=status.HTTP_403_FORBIDDEN)
