@@ -314,7 +314,7 @@ def busca_lote(dre=None, lote=None):
     if dre:
         dre_obj = DiretoriaRegional.objects.get(iniciais__icontains=dre)
         nome = dre_obj.iniciais.split('-')[-1].strip()
-        lote_obj = Lote.objects.get(iniciais__icontains=nome)
+        lote_obj = Lote.objects.filter(iniciais__icontains=nome).first()
     return dre_obj, lote_obj
 
 
