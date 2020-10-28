@@ -117,11 +117,11 @@
       <div class="quatro-informacoes">
         <div class="informacao-tres">
           <label>Observação da Dieta</label>
-          {{dieta.observacoes|striptags}}
+          {{dieta.observacoes|striptags|safe}}
         </div>
         <div class="informacao-tres">
           <label>Informações Adicionais</label>
-          {{dieta.informacoes_adicionais|striptags}}
+          {{dieta.informacoes_adicionais|striptags|safe}}
         </div>
       </div>
     </div>

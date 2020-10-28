@@ -38,7 +38,7 @@
         <p>Solicitação de análise sensorial</p>
       </header>
       <main>
-        <p>{{ ultimo_log.justificativa|striptags }}</p>
+        <p>{{ ultimo_log.justificativa|striptags|safe }}</p>
       </main>
     </article>
 
