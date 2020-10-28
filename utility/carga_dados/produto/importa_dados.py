@@ -105,7 +105,7 @@ def cria_homologacao_do_produto_passo_01(produto):
 
     LogSolicitacoesUsuario.objects.create(
         descricao=homologacao_do_produto,
-        justificativa='Lorem',
+        justificativa=fake.sentence(),
         status_evento=status['Solicitação Realizada'],
         solicitacao_tipo=tipos['Homologação de Produto'],
         usuario=criado_por,
