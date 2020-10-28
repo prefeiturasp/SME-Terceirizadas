@@ -1,6 +1,7 @@
 from django import template
 
 from ...dados_comuns import constants
+from ...dados_comuns.fluxo_status import DietaEspecialWorkflow
 from ...dados_comuns.models import LogSolicitacoesUsuario
 
 register = template.Library()
@@ -210,3 +211,14 @@ def obter_rotulo_data_log(status_evento):
         constants.CODAE_RESPONDEU_RECLAMACAO: 'Data resposta CODAE'
     }
     return rotulo_data_log.get(status_evento, 'Data reclamação')
+
+
+@register.filter
+def obter_titulo_status_dieta(status):
+    titulo_status_dieta = {
+        DietaEspecialWorkflow.CODAE_A_AUTORIZAR: 'Aguardando Autorização',
+        DietaEspecialWorkflow.CODAE_AUTORIZADO: 'Autorizada',
+        DietaEspecialWorkflow.CODAE_NEGOU_PEDIDO: 'Negada',
+        DietaEspecialWorkflow.ESCOLA_CANCELOU: 'Cancelada'
+    }
+    return titulo_status_dieta.get(status, '')

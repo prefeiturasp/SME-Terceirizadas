@@ -308,6 +308,7 @@ class SolicitacaoDietaEspecialSimplesSerializer(serializers.ModelSerializer):
         model = SolicitacaoDietaEspecial
         fields = (
             'uuid',
+            'id_externo',
             'criado_em',
             'status_solicitacao',
             'aluno',
@@ -321,7 +322,9 @@ class SolicitacaoDietaEspecialSimplesSerializer(serializers.ModelSerializer):
             'logs',
             'ativo',
             'data_termino',
-            'status_titulo'
+            'status_titulo',
+            'observacoes',
+            'informacoes_adicionais'
         )
 
 
