@@ -166,7 +166,7 @@ class SolicitacaoDietaEspecial(
         assert isinstance(anexos, list), 'anexos precisa ser uma lista'
         assert len(anexos) > 0, 'anexos não pode ser vazio'
         for anexo in anexos:
-            data = convert_base64_to_contentfile(anexo.get('arquivo'))
+            data = convert_base64_to_contentfile(anexo.get('base64'))
             Anexo.objects.create(
                 solicitacao_dieta_especial=self,
                 arquivo=data,
