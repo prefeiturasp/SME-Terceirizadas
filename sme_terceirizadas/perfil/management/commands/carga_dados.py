@@ -6,7 +6,7 @@ from utility.carga_dados.cardapio.importa_dados import (
     cria_motivosuspensao,
     cria_substituicao_do_combo_do_vinculo_tipo_alimentacao_periodo_tipo_ue,
     cria_tipo_alimentacao,
-    cria_vinculo_tipo_alimentacao_com_periodo_escolar_e_tipo_unidade_escolar,
+    cria_vinculo_tipo_alimentacao_com_periodo_escolar_e_tipo_unidade_escolar
 )
 from utility.carga_dados.dados_comuns.importa_dados import cria_contatos  # noqa
 from utility.carga_dados.dados_comuns.importa_dados import cria_templatemensagem
@@ -40,9 +40,14 @@ from utility.carga_dados.produto.importa_dados import (
     cria_informacao_nutricional,
     cria_marca,
     cria_produto,
-    cria_tipo_informacao_nutricional,
+    cria_tipo_informacao_nutricional
 )
-from utility.carga_dados.terceirizada.importa_dados import cria_contratos, cria_edital, cria_terceirizadas, adiciona_contato_em_terceirizada
+from utility.carga_dados.terceirizada.importa_dados import (
+    adiciona_contato_em_terceirizada,
+    cria_contratos,
+    cria_edital,
+    cria_terceirizadas
+)
 from utility.carga_dados.usuarios import cria_usuarios
 
 

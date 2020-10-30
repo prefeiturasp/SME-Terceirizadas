@@ -1,6 +1,8 @@
 import csv
+
 from django.core.management.base import BaseCommand
 from utility.carga_dados.helper import progressbar
+
 from sme_terceirizadas.escola.models import DiretoriaRegional, Escola, Lote, TipoGestao, TipoUnidadeEscolar  # noqa
 
 

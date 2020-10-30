@@ -51,8 +51,6 @@ def deve_ser_email_sme(email):
 
 
 def usuario_e_vinculado_a_aquela_instituicao(descricao_instituicao: str, instituicoes_eol: list):
-    print(f'descricao_instituicao={descricao_instituicao} -=- instituicoes_eol={instituicoes_eol}')
-    mesma_instituicao = False
     for instituicao_eol in instituicoes_eol:
         if instituicao_eol['divisao'] in descricao_instituicao or descricao_instituicao in instituicao_eol['divisao']:
             return True
