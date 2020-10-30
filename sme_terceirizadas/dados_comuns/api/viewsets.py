@@ -4,7 +4,7 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ViewSet
 
@@ -24,14 +24,14 @@ from .serializers import (
 
 
 class ApiVersion(viewsets.ViewSet):
-    permission_classes = [AllowAny]
+    permission_classes = (AllowAny,)
 
     def list(self, request):
         return Response({'API_Version': __version__})
 
 
 class DiasDaSemanaViewSet(ViewSet):
-    permission_classes = (AllowAny,)
+    permission_classes = (IsAuthenticated,)
 
     @method_decorator(cache_page(TEMPO_CACHE_6H))
     def list(self, request):
@@ -39,7 +39,7 @@ class DiasDaSemanaViewSet(ViewSet):
 
 
 class TempoDePasseioViewSet(ViewSet):
-    permission_classes = (AllowAny,)
+    permission_classes = (IsAuthenticated,)
 
     @method_decorator(cache_page(TEMPO_CACHE_6H))
     def list(self, request):

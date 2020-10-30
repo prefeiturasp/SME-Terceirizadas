@@ -70,7 +70,8 @@ class HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolar(TemChaveExterna):
 
 
 class ComboDoVinculoTipoAlimentacaoPeriodoTipoUE(
-    ExportModelOperationsMixin('substituicoes_vinculo_alimentacao'), TemChaveExterna,
+    ExportModelOperationsMixin(
+        'substituicoes_vinculo_alimentacao'), TemChaveExterna,
     TemLabelDeTiposDeAlimentacao):  # noqa E125
 
     tipos_alimentacao = models.ManyToManyField('TipoAlimentacao',
@@ -84,12 +85,13 @@ class ComboDoVinculoTipoAlimentacaoPeriodoTipoUE(
                                 related_name='combos')
 
     def pode_excluir(self):
-        # TODO: incrementar esse método,  impedir exclusão se tiver solicitações em cima desse combo também.
+        # TODO: incrementar esse método,  impedir exclusão se tiver
+        # solicitações em cima desse combo também.
         return not self.substituicoes.exists()
 
     def __str__(self):
-        tipos_alimentacao_nome = [nome for nome in self.tipos_alimentacao.values_list('nome', flat=True)]
-        return f'TiposAlim.:{tipos_alimentacao_nome}'
+        tipos_alimentacao_nome = [nome for nome in self.tipos_alimentacao.values_list('nome', flat=True)]  # noqa
+        return f'TiposAlim.: {tipos_alimentacao_nome}'
 
     class Meta:
         verbose_name = 'Combo do vínculo tipo alimentação'
@@ -110,11 +112,13 @@ class SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE(TemChaveExterna,
                               related_name='substituicoes')
 
     def pode_excluir(self):
-        # TODO: incrementar esse método,  impedir exclusão se tiver solicitações em cima dessa substituição do combo.
+        # TODO: incrementar esse método,  impedir exclusão se tiver
+        # solicitações em cima dessa substituição do combo.
         return True
 
     def __str__(self):
-        tipos_alimentacao_nome = [nome for nome in self.tipos_alimentacao.values_list('nome', flat=True)]
+        tipos_alimentacao_nome = [
+            nome for nome in self.tipos_alimentacao.values_list('nome', flat=True)]
         return f'TiposAlim.:{tipos_alimentacao_nome}'
 
     class Meta:
@@ -160,7 +164,8 @@ class Cardapio(ExportModelOperationsMixin('cardapio'), Descritivel, Ativavel, Te
     """
 
     tipos_alimentacao = models.ManyToManyField(TipoAlimentacao)
-    edital = models.ForeignKey('terceirizada.Edital', on_delete=models.DO_NOTHING, related_name='editais')
+    edital = models.ForeignKey(
+        'terceirizada.Edital', on_delete=models.DO_NOTHING, related_name='editais')
 
     @property  # type: ignore
     def tipos_unidade_escolar(self):
@@ -223,7 +228,8 @@ class InversaoCardapio(ExportModelOperationsMixin('inversao_cardapio'), CriadoEm
 
     @property
     def template_mensagem(self):
-        template = TemplateMensagem.objects.get(tipo=TemplateMensagem.INVERSAO_CARDAPIO)
+        template = TemplateMensagem.objects.get(
+            tipo=TemplateMensagem.INVERSAO_CARDAPIO)
         template_troca = {
             '@id': self.id_externo,
             '@criado_em': str(self.criado_em),
@@ -293,11 +299,13 @@ class SuspensaoAlimentacao(ExportModelOperationsMixin('suspensao_alimentacao'), 
 
 class QuantidadePorPeriodoSuspensaoAlimentacao(ExportModelOperationsMixin('quantidade_periodo'), TemChaveExterna):
     numero_alunos = models.SmallIntegerField()
-    periodo_escolar = models.ForeignKey('escola.PeriodoEscolar', on_delete=models.DO_NOTHING)
+    periodo_escolar = models.ForeignKey(
+        'escola.PeriodoEscolar', on_delete=models.DO_NOTHING)
     grupo_suspensao = models.ForeignKey('GrupoSuspensaoAlimentacao', on_delete=models.CASCADE,
                                         blank=True, null=True, related_name='quantidades_por_periodo')
     # TODO: SUBSTITUIR POR COMBOS DO TIPO DE ALIMENTACAO
-    tipos_alimentacao = models.ManyToManyField(ComboDoVinculoTipoAlimentacaoPeriodoTipoUE)
+    tipos_alimentacao = models.ManyToManyField(
+        ComboDoVinculoTipoAlimentacaoPeriodoTipoUE)
 
     def __str__(self):
         return f'Quantidade de alunos: {self.numero_alunos}'
@@ -359,7 +367,8 @@ class GrupoSuspensaoAlimentacao(ExportModelOperationsMixin('grupo_suspensao_alim
 
     @property
     def template_mensagem(self):
-        template = TemplateMensagem.objects.get(tipo=TemplateMensagem.SUSPENSAO_ALIMENTACAO)
+        template = TemplateMensagem.objects.get(
+            tipo=TemplateMensagem.SUSPENSAO_ALIMENTACAO)
         template_troca = {  # noqa
             '@id': self.id,
             '@criado_em': str(self.criado_em),
@@ -392,7 +401,8 @@ class SuspensaoAlimentacaoNoPeriodoEscolar(ExportModelOperationsMixin('suspensao
     qtd_alunos = models.PositiveSmallIntegerField(default=0)
     periodo_escolar = models.ForeignKey('escola.PeriodoEscolar', on_delete=models.PROTECT,
                                         related_name='suspensoes_periodo_escolar')
-    tipos_alimentacao = models.ManyToManyField('TipoAlimentacao', related_name='suspensoes_periodo_escolar')
+    tipos_alimentacao = models.ManyToManyField(
+        'TipoAlimentacao', related_name='suspensoes_periodo_escolar')
 
     def __str__(self):
         return f'Suspensão de alimentação da Alteração de Cardápio: {self.suspensao_alimentacao}'
@@ -430,7 +440,8 @@ class SuspensaoAlimentacaoDaCEI(ExportModelOperationsMixin('suspensao_alimentaca
 
     @property
     def template_mensagem(self):
-        template = TemplateMensagem.objects.get(tipo=TemplateMensagem.ALTERACAO_CARDAPIO)
+        template = TemplateMensagem.objects.get(
+            tipo=TemplateMensagem.ALTERACAO_CARDAPIO)
         template_troca = {  # noqa
             '@id': self.id,
             '@criado_em': str(self.criado_em),
@@ -512,7 +523,8 @@ class AlteracaoCardapio(ExportModelOperationsMixin('alteracao_cardapio'), Criado
 
     @property
     def template_mensagem(self):
-        template = TemplateMensagem.objects.get(tipo=TemplateMensagem.ALTERACAO_CARDAPIO)
+        template = TemplateMensagem.objects.get(
+            tipo=TemplateMensagem.ALTERACAO_CARDAPIO)
         template_troca = {  # noqa
             '@id': self.id,
             '@criado_em': str(self.criado_em),
@@ -580,7 +592,8 @@ class AlteracaoCardapioCEI(ExportModelOperationsMixin('alteracao_cardapio_cei'),
 
     @property
     def template_mensagem(self):
-        template = TemplateMensagem.objects.get(tipo=TemplateMensagem.ALTERACAO_CARDAPIO)
+        template = TemplateMensagem.objects.get(
+            tipo=TemplateMensagem.ALTERACAO_CARDAPIO)
         template_troca = {  # noqa
             '@id': self.id,
             '@criado_em': str(self.criado_em),

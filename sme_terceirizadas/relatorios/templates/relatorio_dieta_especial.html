@@ -1,5 +1,6 @@
 {% include 'relatorio_base.html' %}
 {% load static %}
+{% load index %}
 {% load sass_tags %}
 
 <html>
@@ -40,10 +41,18 @@
           <div class="item-prod-detalhe quatro">Inativa</div>
         {% endif %}
       </div>
+       <div class="quatro-informacoes">
+        <div class="informacao">
+          <label>Solicitação #{{dieta.id_externo}}</label>
+        </div>
+        <div class="informacao-tres">
+          <p>Status Solicitação: <label>{{dieta.status|obter_titulo_status_dieta}}</label></p>
+        </div>
+      </div>
       <div class="quatro-informacoes">
         <div class="informacao">
           <label>Código EOL do aluno</label>
-          {{dieta.aluno.codigo_eol}}
+          {{dieta.aluno.codigo_eol|default:''}}
         </div>
         <div class="informacao">
           <label>Nome do Aluno</label>
@@ -102,6 +111,17 @@
           {% if dieta.status.state.title == "CODAE negou a solicitação" or dieta.status.state.title == "CODAE autorizou" %}
             {{ dieta.logs.last.usuario.registro_funcional|default:"" }}
           {% endif %}
+        </div>
+      </div>
+
+      <div class="quatro-informacoes">
+        <div class="informacao-tres">
+          <label>Observação da Dieta</label>
+          {{dieta.observacoes|striptags|safe}}
+        </div>
+        <div class="informacao-tres">
+          <label>Informações Adicionais</label>
+          {{dieta.informacoes_adicionais|striptags|safe}}
         </div>
       </div>
     </div>

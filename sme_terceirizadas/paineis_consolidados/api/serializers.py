@@ -20,8 +20,10 @@ class SolicitacoesSerializer(serializers.ModelSerializer):
     def get_descricao(self, obj):
         uuid = str(obj.uuid)
         descricao = f'{uuid.upper()[:5]} - {obj.lote_nome[:20]} - {obj.desc_doc}'
-        if obj.aluno_nao_matriculado:
+        if obj.tipo_solicitacao_dieta == 'ALUNO_NAO_MATRICULADO':
             descricao = f'{descricao} - Não matriculados'
+        if obj.tipo_solicitacao_dieta == 'ALTERACAO_UE':
+            descricao = f'{descricao} - Alteração U.E'
         return descricao
 
     def get_data_log(self, obj):

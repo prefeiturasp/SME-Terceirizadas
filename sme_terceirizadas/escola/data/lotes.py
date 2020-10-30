@@ -23,7 +23,7 @@ data_lotes = [
     {
         'id': 4,
         'nome': 'LOTE 12',
-        'iniciais': 'PI',
+        'iniciais': 'PJ',
         'tipo_gestao': 2,
         'diretoria_regional': 2
     },
@@ -117,7 +117,7 @@ data_lotes = [
     {
         'id': 16,
         'nome': 'LOTE 05',
-        'iniciais': 'FO',
+        'iniciais': 'FB',
         'tipo_gestao': 1,
         'diretoria_regional': 12,
         'terceirizada': 3

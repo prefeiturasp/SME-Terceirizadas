@@ -2,6 +2,7 @@ from random import sample
 
 from utility.carga_dados.helper import ja_existe, progressbar
 
+from sme_terceirizadas.dados_comuns.models import Contato
 from sme_terceirizadas.escola.models import DiretoriaRegional
 from sme_terceirizadas.terceirizada.data.contratos import data_contratos
 from sme_terceirizadas.terceirizada.data.editais import data_editais
@@ -50,7 +51,7 @@ def cria_contratos():
 
 def cria_terceirizadas():
     for item in progressbar(data_terceirizadas, 'Terceirizada'):
-        _, created = Terceirizada.objects.get_or_create(
+        terceirizada, created = Terceirizada.objects.get_or_create(
             cnpj=item['cnpj'],
             nome_fantasia=item['nome_fantasia'],
             razao_social=item['razao_social'],
@@ -60,3 +61,12 @@ def cria_terceirizadas():
         )
         if not created:
             ja_existe('Terceirizada', item['cnpj'])
+
+
+def adiciona_contato_em_terceirizada():
+    contatos = list(Contato.objects.all())
+    terceirizadas = Terceirizada.objects.all()
+    for terceirizada in terceirizadas:
+        contato_amostra = sample(contatos, 2)
+        for item in contato_amostra:
+            terceirizada.contatos.add(item)

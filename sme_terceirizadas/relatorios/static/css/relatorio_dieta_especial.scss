@@ -206,12 +206,10 @@
 					}
 				}
 				.informacao-tres {
-					display: flex;
 					flex-direction: column;
+					display: flex;
 					width: 350px;
 					padding: 10px 0 0 10px;
-					height: auto;
-					max-height: 100%;
 					label {
 						color: #686868;
 						font-style: normal;
@@ -220,13 +218,13 @@
 						line-height: 18px;
 					}
 					p {
+						color: #686868;
 						margin: 0px;
 						padding: 0px;
-						color: #000000;
 						font-style: normal;
-						font-weight: normal;
-						font-size: 12px;
-						line-height: 27px;
+						font-weight: 500;
+						font-size: 11px;
+						line-height: 18px;
 						label {
 							color: #000;
 						}

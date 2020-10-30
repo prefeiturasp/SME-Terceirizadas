@@ -16,28 +16,40 @@ from .models import (
     TipoUnidadeEscolar
 )
 
-admin.site.register(Aluno)
-admin.site.register(DiretoriaRegional)
-admin.site.register(FaixaIdadeEscolar)
-admin.site.register(Lote)
-admin.site.register(PeriodoEscolar)
-admin.site.register(Subprefeitura)
-admin.site.register(TipoGestao)
-admin.site.register(TipoUnidadeEscolar)
-admin.site.register(Codae)
-
 
 class EscolaPeriodoEscolarAdmin(admin.ModelAdmin):
     search_fields = ['escola__nome', 'periodo_escolar__nome']
 
 
-admin.site.register(EscolaPeriodoEscolar, EscolaPeriodoEscolarAdmin)
-admin.site.register(LogAlteracaoQuantidadeAlunosPorEscolaEPeriodoEscolar)
-admin.site.register(Responsavel)
-
-
 @admin.register(Escola)
 class EscolaAdmin(admin.ModelAdmin):
-    list_display = ['codigo_eol', 'nome', 'diretoria_regional', 'tipo_gestao', 'tipo_unidade']
+    list_display = ['codigo_eol', 'nome',
+                    'diretoria_regional', 'tipo_gestao', 'tipo_unidade']
     ordering = ['codigo_eol', 'nome']
     search_fields = ['codigo_eol', 'nome']
+
+
+@admin.register(Lote)
+class LoteAdmin(admin.ModelAdmin):
+    list_display = ('iniciais', '__str__')
+    list_display_links = ('__str__',)
+    search_fields = ('iniciais', 'nome', 'diretoria_regional__nome')
+
+
+@admin.register(DiretoriaRegional)
+class DiretoriaRegionalAdmin(admin.ModelAdmin):
+    list_display = ('iniciais', '__str__')
+    list_display_links = ('__str__',)
+    search_fields = ('codigo_eol', 'nome')
+
+
+admin.site.register(Aluno)
+admin.site.register(Codae)
+admin.site.register(EscolaPeriodoEscolar, EscolaPeriodoEscolarAdmin)
+admin.site.register(FaixaIdadeEscolar)
+admin.site.register(LogAlteracaoQuantidadeAlunosPorEscolaEPeriodoEscolar)
+admin.site.register(PeriodoEscolar)
+admin.site.register(Responsavel)
+admin.site.register(Subprefeitura)
+admin.site.register(TipoGestao)
+admin.site.register(TipoUnidadeEscolar)

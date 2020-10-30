@@ -45,6 +45,7 @@ pytest-django='==3.4.7'  # https://github.com/pytest-dev/pytest-django
 flower = "==0.9.3"
 isort = "==4.3.21"
 flake8-isort = "==2.8.0"
+notebook = "*"
 
 [packages]
 # The psycopg2-binary package is meant for beginners to start playing with

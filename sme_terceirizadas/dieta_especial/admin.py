@@ -5,6 +5,7 @@ from .models import (
     Alimento,
     Anexo,
     ClassificacaoDieta,
+    MotivoAlteracaoUE,
     MotivoNegacao,
     SolicitacaoDietaEspecial,
     SubstituicaoAlimento,
@@ -28,6 +29,7 @@ class AlimentoAdmin(admin.ModelAdmin):
 
 admin.site.register(Anexo)
 admin.site.register(ClassificacaoDieta)
+admin.site.register(MotivoAlteracaoUE)
 admin.site.register(MotivoNegacao)
 admin.site.register(SolicitacaoDietaEspecial)
 admin.site.register(SubstituicaoAlimento)

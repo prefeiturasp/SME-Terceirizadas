@@ -15,6 +15,7 @@ from ..models import (
     Alimento,
     Anexo,
     ClassificacaoDieta,
+    MotivoAlteracaoUE,
     MotivoNegacao,
     SolicitacaoDietaEspecial,
     SubstituicaoAlimento,
@@ -114,7 +115,8 @@ class SolicitacaoDietaEspecialAutorizarSerializer(SolicitacaoDietaEspecialCreate
             instance.data_termino = data_termino
         instance.ativo = True
 
-        instance.alergias_intolerancias.all().delete()
+        instance.alergias_intolerancias.clear()
+
         for ai in alergias_intolerancias:
             instance.alergias_intolerancias.add(
                 AlergiaIntolerancia.objects.get(pk=ai))
@@ -306,6 +308,7 @@ class SolicitacaoDietaEspecialSimplesSerializer(serializers.ModelSerializer):
         model = SolicitacaoDietaEspecial
         fields = (
             'uuid',
+            'id_externo',
             'criado_em',
             'status_solicitacao',
             'aluno',
@@ -319,7 +322,9 @@ class SolicitacaoDietaEspecialSimplesSerializer(serializers.ModelSerializer):
             'logs',
             'ativo',
             'data_termino',
-            'status_titulo'
+            'status_titulo',
+            'observacoes',
+            'informacoes_adicionais'
         )
 
 
@@ -331,3 +336,14 @@ class PanoramaSerializer(serializers.Serializer):
     qtde_enteral = serializers.IntegerField()
     qtde_tipo_b = serializers.IntegerField()
     uuid_escola_periodo_escolar = serializers.CharField(source='uuid', required=False)
+
+
+class MotivoAlteracaoUESerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = MotivoAlteracaoUE
+        fields = (
+            'uuid',
+            'nome',
+            'descricao'
+        )

@@ -11,6 +11,7 @@ class NutricionistasInline(admin.TabularInline):
 @admin.register(Terceirizada)
 class GrupoSuspensaoAlimentacaoModelAdmin(admin.ModelAdmin):
     inlines = [NutricionistasInline]
+    readonly_fields = ('contatos',)
 
 
 class VigenciaContratoInline(admin.TabularInline):
