@@ -1,6 +1,12 @@
 from rest_framework import permissions
 
-from ...dados_comuns.constants import COGESTOR, COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA, COORDENADOR_DIETA_ESPECIAL,  DIRETOR, SUPLENTE
+from ...dados_comuns.constants import (
+    COGESTOR,
+    COORDENADOR_DIETA_ESPECIAL,
+    COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
+    DIRETOR,
+    SUPLENTE
+)
 
 
 class PodeCriarAdministradoresDaEscola(permissions.BasePermission):
@@ -58,7 +64,6 @@ class PodeCriarAdministradoresDaCODAEGestaoDietaEspecial(permissions.BasePermiss
     def has_permission(self, request, view):
         usuario = request.user
         if not usuario.is_anonymous:
-            print(f'usuario.vinculo_atual.perfil.nome={usuario.vinculo_atual.perfil.nome}')
             perfil_coordenador_gestao_alimentacao = (
                 usuario.vinculo_atual.perfil.nome == COORDENADOR_DIETA_ESPECIAL
             )
