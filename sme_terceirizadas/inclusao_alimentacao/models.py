@@ -48,10 +48,9 @@ class QuantidadePorPeriodo(ExportModelOperationsMixin('quantidade_periodo'), Tem
         qtd = self.tipos_alimentacao.count()
         return f'{self.numero_alunos} alunos para {self.periodo_escolar} com {qtd} tipo(s) de alimentação'
 
-
-class Meta:
-    verbose_name = 'Quantidade por periodo'
-    verbose_name_plural = 'Quantidades por periodo'
+    class Meta:
+        verbose_name = 'Quantidade por periodo'
+        verbose_name_plural = 'Quantidades por periodo'
 
 
 class MotivoInclusaoContinua(ExportModelOperationsMixin('motivo_inclusao_continua'), Nomeavel, TemChaveExterna):

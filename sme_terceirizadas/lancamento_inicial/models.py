@@ -1,7 +1,10 @@
 from django.db import models
+from django.db.models import Q, Sum
 
 from ..dados_comuns.behaviors import CriadoEm, CriadoPor, Logs, TemChaveExterna, TemData  # noqa I101
-
+from ..dados_comuns.fluxo_status import PedidoAPartirDaEscolaWorkflow
+from ..inclusao_alimentacao.models import QuantidadePorPeriodo
+from .utils import total_kits_lanche_por_escola_e_data, total_merendas_secas_por_escola_periodo_escolar_e_data
 
 class LancamentoDiario(CriadoEm, CriadoPor, TemData,
                        Logs, TemChaveExterna, models.Model):
@@ -15,11 +18,24 @@ class LancamentoDiario(CriadoEm, CriadoPor, TemData,
         null=True
     )
     frequencia = models.IntegerField(null=True)
+    merenda_seca = models.IntegerField(null=True)
     lanche_4h = models.IntegerField(null=True)
     lanche_5h = models.IntegerField(null=True)
     ref_enteral = models.IntegerField(null=True)
     observacoes = models.TextField(blank=True)
     eh_dia_de_sobremesa_doce = models.BooleanField(default=False)
+
+    @property
+    def kits_lanches(self):
+        return total_kits_lanche_por_escola_e_data(
+            self.escola_periodo_escolar.escola, self.data
+        )
+
+    @property
+    def merenda_seca_solicitada(self):
+        return total_merendas_secas_por_escola_periodo_escolar_e_data(
+            self.escola_periodo_escolar, self.data
+        )
 
     def __str__(self):
         return str(self.uuid)

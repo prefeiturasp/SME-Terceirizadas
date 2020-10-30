@@ -136,6 +136,7 @@ class VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar(
     Ex.: Para CEI(creche) pela manhã (período) faz sentido ter mingau e não café da tarde.
     """
 
+    # TODO: Refatorar para usar EscolaPeriodoEscolar
     tipo_unidade_escolar = models.ForeignKey('escola.TipoUnidadeEscolar',
                                              null=True,
                                              on_delete=models.DO_NOTHING)

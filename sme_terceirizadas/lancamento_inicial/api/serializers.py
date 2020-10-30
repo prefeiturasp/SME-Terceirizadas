@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from ...dieta_especial.api.serializers import ClassificacaoDietaSerializer
 from ...escola.models import EscolaPeriodoEscolar
 from ..models import LancamentoDiario, Refeicao
 
@@ -18,6 +19,9 @@ class RefeicaoSerializer(serializers.ModelSerializer):
 
 class LancamentoDiarioSerializer(serializers.ModelSerializer):
     refeicoes = RefeicaoSerializer(many=True, required=False)
+    tipo_dieta = ClassificacaoDietaSerializer()
+    merenda_seca_solicitada = serializers.IntegerField(read_only=True)
+    kits_lanches = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = LancamentoDiario

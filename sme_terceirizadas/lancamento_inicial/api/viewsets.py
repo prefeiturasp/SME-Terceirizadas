@@ -1,5 +1,6 @@
 from datetime import timedelta
 
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
@@ -7,6 +8,7 @@ from rest_framework.viewsets import ModelViewSet
 from ...dieta_especial.models import ClassificacaoDieta
 from ..models import LancamentoDiario
 from ..utils import eh_feriado_ou_fds, mes_para_faixa
+from .filters import LancamentoDiarioFilter
 from .serializers import LancamentoDiarioCreateSerializer, LancamentoDiarioSerializer
 
 
@@ -14,6 +16,8 @@ class LancamentoDiarioViewSet(ModelViewSet):
     lookup_field = 'uuid'
     queryset = LancamentoDiario.objects.all()
     serializer_class = LancamentoDiarioCreateSerializer
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = LancamentoDiarioFilter
 
     def get_serializer_class(self):
         if self.action == 'create':
