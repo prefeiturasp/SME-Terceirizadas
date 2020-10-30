@@ -1,0 +1,8 @@
+{% extends 'email_base.html' %}
+
+{% block conteudo %}
+<p>Seja bem vindo(a), {{ nome }} <br />
+Clique neste link para confirmar seu e-mail no SIGPAE:<br /><br />
+<a href="{{ link_cadastro }}">Clique para confirmar seu e-mail</a>
+<br/>
+{% endblock %}

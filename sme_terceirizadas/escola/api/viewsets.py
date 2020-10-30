@@ -7,12 +7,14 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, ModelViewSet, ReadOnlyModelViewSet
 
 from ...dados_comuns.constants import (
+    ADMINISTRADOR_DIETA_ESPECIAL,
     ADMINISTRADOR_DRE,
     ADMINISTRADOR_ESCOLA,
     ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA
 )
 from ...escola.api.permissions import (
     PodeCriarAdministradoresDaCODAEGestaoAlimentacaoTerceirizada,
+    PodeCriarAdministradoresDaCODAEGestaoDietaEspecial,
     PodeCriarAdministradoresDaDiretoriaRegional,
     PodeCriarAdministradoresDaEscola
 )
@@ -63,105 +65,59 @@ from .serializers import (
 )
 
 # https://www.django-rest-framework.org/api-guide/permissions/#custom-permissions
-
-
-class VinculoEscolaViewSet(ReadOnlyModelViewSet):
+class VinculoViewSet(ReadOnlyModelViewSet):
     lookup_field = 'uuid'
+    serializer_class = VinculoSerializer
+
+    @action(detail=True, methods=['post'])
+    def criar_equipe_administradora(self, request, uuid=None):
+        try:
+            instituicao = self.get_object()
+            data = request.data.copy()
+            data['instituicao'] = instituicao.nome
+            usuario = UsuarioUpdateSerializer(data).create(validated_data=data)
+            usuario.criar_vinculo_administrador(instituicao, nome_perfil=self.nome_perfil)
+            return Response(UsuarioDetalheSerializer(usuario).data)
+        except serializers.ValidationError as e:
+            return Response(data=dict(detail=e.args[0]), status=e.status_code)
+
+    @action(detail=True)
+    def get_equipe_administradora(self, request, uuid=None):
+        instituicao = self.get_object()
+        vinculos = instituicao.vinculos_que_podem_ser_finalizados
+        return Response(self.get_serializer(vinculos, many=True).data)
+
+    @action(detail=True, methods=['patch'])
+    def finalizar_vinculo(self, request, uuid=None):
+        instituicao = self.get_object()
+        vinculo_uuid = request.data.get('vinculo_uuid')
+        vinculo = instituicao.vinculos.get(uuid=vinculo_uuid)
+        vinculo.finalizar_vinculo()
+        return Response(self.get_serializer(vinculo).data)
+
+
+class VinculoEscolaViewSet(VinculoViewSet):
     queryset = Escola.objects.all()
     permission_classes = [PodeCriarAdministradoresDaEscola]
-    serializer_class = VinculoSerializer
-
-    @action(detail=True, methods=['post'])
-    def criar_equipe_administradora(self, request, uuid=None):
-        try:
-            escola = self.get_object()
-            data = request.data.copy()
-            data['instituicao'] = escola.nome
-            usuario = UsuarioUpdateSerializer(data).create(validated_data=data)
-            usuario.criar_vinculo_administrador(escola, nome_perfil=ADMINISTRADOR_ESCOLA)
-            return Response(UsuarioDetalheSerializer(usuario).data)
-        except serializers.ValidationError as e:
-            return Response(data=dict(detail=e.args[0]), status=e.status_code)
-
-    @action(detail=True)
-    def get_equipe_administradora(self, request, uuid=None):
-        escola = self.get_object()
-        vinculos = escola.vinculos_que_podem_ser_finalizados
-        return Response(self.get_serializer(vinculos, many=True).data)
-
-    @action(detail=True, methods=['patch'])
-    def finalizar_vinculo(self, request, uuid=None):
-        escola = self.get_object()
-        vinculo_uuid = request.data.get('vinculo_uuid')
-        vinculo = escola.vinculos.get(uuid=vinculo_uuid)
-        vinculo.finalizar_vinculo()
-        return Response(self.get_serializer(vinculo).data)
+    nome_perfil = ADMINISTRADOR_ESCOLA
 
 
-class VinculoDiretoriaRegionalViewSet(ReadOnlyModelViewSet):
-    lookup_field = 'uuid'
+class VinculoDiretoriaRegionalViewSet(VinculoViewSet):
     queryset = DiretoriaRegional.objects.all()
-    serializer_class = VinculoSerializer
     permission_classes = [PodeCriarAdministradoresDaDiretoriaRegional]
-
-    @action(detail=True, methods=['post'])
-    def criar_equipe_administradora(self, request, uuid=None):
-        try:
-            diretoria_regional = self.get_object()
-            data = request.data.copy()
-            data['instituicao'] = diretoria_regional.nome
-            usuario = UsuarioUpdateSerializer(data).create(validated_data=data)
-            usuario.criar_vinculo_administrador(diretoria_regional, nome_perfil=ADMINISTRADOR_DRE)
-            return Response(UsuarioDetalheSerializer(usuario).data)
-        except serializers.ValidationError as e:
-            return Response(data=dict(detail=e.args[0]), status=e.status_code)
-
-    @action(detail=True)
-    def get_equipe_administradora(self, request, uuid=None):
-        diretoria_regional = self.get_object()
-        vinculos = diretoria_regional.vinculos_que_podem_ser_finalizados
-        return Response(self.get_serializer(vinculos, many=True).data)
-
-    @action(detail=True, methods=['patch'])
-    def finalizar_vinculo(self, request, uuid=None):
-        diretoria_regional = self.get_object()
-        vinculo_uuid = request.data.get('vinculo_uuid')
-        vinculo = diretoria_regional.vinculos.get(uuid=vinculo_uuid)
-        vinculo.finalizar_vinculo()
-        return Response(self.get_serializer(vinculo).data)
+    nome_perfil = ADMINISTRADOR_DRE
 
 
-class VinculoCODAEGestaoAlimentacaoTerceirizadaViewSet(ReadOnlyModelViewSet):
-    lookup_field = 'uuid'
+class VinculoCODAEGestaoAlimentacaoTerceirizadaViewSet(VinculoViewSet):
     queryset = Codae.objects.all()
-    serializer_class = VinculoSerializer
     permission_classes = [PodeCriarAdministradoresDaCODAEGestaoAlimentacaoTerceirizada]
+    nome_perfil = ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA
 
-    @action(detail=True, methods=['post'])
-    def criar_equipe_administradora(self, request, uuid=None):
-        try:
-            codae = self.get_object()
-            data = request.data.copy()
-            data['instituicao'] = codae.nome
-            usuario = UsuarioUpdateSerializer(data).create(validated_data=data)
-            usuario.criar_vinculo_administrador(codae, nome_perfil=ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA)
-            return Response(UsuarioDetalheSerializer(usuario).data)
-        except serializers.ValidationError as e:
-            return Response(data=dict(detail=e.args[0]), status=e.status_code)
 
-    @action(detail=True)
-    def get_equipe_administradora(self, request, uuid=None):
-        codae = self.get_object()
-        vinculos = codae.vinculos_que_podem_ser_finalizados
-        return Response(self.get_serializer(vinculos, many=True).data)
-
-    @action(detail=True, methods=['patch'])
-    def finalizar_vinculo(self, request, uuid=None):
-        codae = self.get_object()
-        vinculo_uuid = request.data.get('vinculo_uuid')
-        vinculo = codae.vinculos.get(uuid=vinculo_uuid)
-        vinculo.finalizar_vinculo()
-        return Response(self.get_serializer(vinculo).data)
+class VinculoCODAEGestaoDietaEspecialViewSet(VinculoViewSet):
+    queryset = Codae.objects.all()
+    permission_classes = [PodeCriarAdministradoresDaCODAEGestaoDietaEspecial]
+    nome_perfil = ADMINISTRADOR_DIETA_ESPECIAL
 
 
 class EscolaSimplesViewSet(ListModelMixin, RetrieveModelMixin, UpdateModelMixin, GenericViewSet):
@@ -311,7 +267,7 @@ class LoteSimplesViewSet(ModelViewSet):
     queryset = Lote.objects.all()
 
 
-class CODAESimplesViewSet(ReadOnlyModelViewSet):
+class CODAESimplesViewSet(ModelViewSet):
     lookup_field = 'uuid'
     queryset = Codae.objects.all()
     serializer_class = CODAESerializer

@@ -729,17 +729,8 @@ class Codae(ExportModelOperationsMixin('codae'), Nomeavel, TemChaveExterna, TemV
             status=AlteracaoCardapio.workflow_class.CODAE_NEGOU_PEDIDO
         )
 
-    def save(self, *args, **kwargs):
-        self.pk = 1
-        super(Codae, self).save(*args, **kwargs)
-
     def delete(self, *args, **kwargs):
         pass
-
-    @classmethod
-    def load(cls):
-        obj, created = cls.objects.get_or_create(pk=1)
-        return obj
 
     def __str__(self):
         return self.nome
