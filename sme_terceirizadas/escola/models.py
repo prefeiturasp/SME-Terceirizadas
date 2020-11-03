@@ -779,6 +779,8 @@ class Aluno(TemChaveExterna):
         Responsavel, blank=True, related_name='alunos')
 
     def __str__(self):
+        if self.nao_matriculado:
+            return f'{self.nome} - Não Matriculado'
         return f'{self.nome} - {self.codigo_eol}'
 
     @property

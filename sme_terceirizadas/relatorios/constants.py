@@ -187,12 +187,6 @@ FLUXO_DIETA_ESPECIAL_INATIVACAO_INCOMPLETO = [
         'status': '',
         'criado_em': '',
         'usuario': None
-    },
-    {
-        'titulo': 'Terceirizada',
-        'status': '',
-        'criado_em': '',
-        'usuario': None
     }
 ]
 
@@ -224,12 +218,6 @@ FLUXO_DIETA_ESPECIAL_INATIVACAO = [
     },
     {
         'titulo': 'CODAE',
-        'status': '',
-        'criado_em': '',
-        'usuario': None
-    },
-    {
-        'titulo': 'Terceirizada',
         'status': '',
         'criado_em': '',
         'usuario': None

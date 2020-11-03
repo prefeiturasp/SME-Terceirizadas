@@ -1,20 +1,26 @@
 {% load index %}
 
 {% block cabecalho_solicitacao_partindo_escola %}
+  <hr style="color: #EEEEEE; opacity: 0.3">
   <h5 style="text-align: center">Relatório SIGPAE - {{ solicitacao.DESCRICAO }}</h5>
-  <div class="id-pedido">
-    <div class="retangulo-id">
+  <div class="row id-pedido">
+    <div class="retangulo-id w-25">
       # {{ solicitacao.id_externo }} <br/> <span>Nº DA SOLICITAÇÃO</span>
     </div>
-    <div class="info">
-      <div>Solicitante</div>
-      <div>{{ solicitacao.rastro_escola.nome }}</div>
+    <div class="info w-50">
+     {% if solicitacao.tipo_solicitacao == 'COMUM'%}
+        <div>Solicitante</div>
+        <div>{{ solicitacao.rastro_escola.nome }}</div>
+      {% else%}
+        <div>Escola onde o programa será realizado</div>
+        <div>{{ solicitacao.escola_destino.nome }}</div>
+      {% endif %}
     </div>
-    <div class="info">
+    <div class="info w-25">
       <div>Lote</div>
       <div>{{ solicitacao.rastro_lote.nome|slice:"5:15" }}</div>
     </div>
-    <div class="info">
+    <div class="info w-25">
       <div>Tipo de gestão</div>
       <div>{{ escola.tipo_gestao.nome|slice:"5:15" }}</div>
     </div>
