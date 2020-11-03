@@ -80,7 +80,6 @@ class SolicitacaoDietaEspecialCreateSerializer(serializers.ModelSerializer):
         tipo_solicitacao = None
 
         if aluno_nao_matriculado:
-            aluno = aluno_nao_matriculado_data
             codigo_eol_escola = aluno_nao_matriculado_data.pop('codigo_eol_escola')
             responsavel_data = aluno_nao_matriculado_data.pop('responsavel')
             cpf_aluno = aluno_nao_matriculado_data.get('cpf')
@@ -90,15 +89,16 @@ class SolicitacaoDietaEspecialCreateSerializer(serializers.ModelSerializer):
             escola = Escola.objects.get(codigo_eol=codigo_eol_escola)
             escola_destino = escola
 
-            aluno = Aluno.objects.filter(nome__iexact=nome_aluno, responsaveis__cpf=responsavel_data.get('cpf')).last()
+            aluno = None
 
-            if cpf_aluno and not aluno:
-                aluno, _ = Aluno.objects.get_or_create(
-                    cpf=cpf_aluno,
-                    defaults={'nome': nome_aluno, 'data_nascimento': data_nascimento}
-                )
-            elif not aluno:
-                aluno = Aluno.objects.create(nome=nome_aluno, data_nascimento=data_nascimento)
+            if cpf_aluno:
+                aluno = Aluno.objects.filter(cpf=cpf_aluno).last()
+            if not aluno:
+                aluno = Aluno.objects.filter(
+                    nome__iexact=nome_aluno,
+                    responsaveis__cpf=responsavel_data.get('cpf')).last()
+            if not aluno:
+                aluno = Aluno.objects.create(nome=nome_aluno, data_nascimento=data_nascimento, cpf=cpf_aluno)
 
             if SolicitacaoDietaEspecial.aluno_possui_dieta_especial_pendente(aluno):
                 raise serializers.ValidationError('Aluno já possui Solicitação de Dieta Especial pendente')
