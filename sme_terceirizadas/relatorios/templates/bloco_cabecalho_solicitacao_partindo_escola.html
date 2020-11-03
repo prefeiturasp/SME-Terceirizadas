@@ -18,11 +18,19 @@
     </div>
     <div class="info w-25">
       <div>Lote</div>
+      {% if solicitacao.tipo_solicitacao == 'COMUM'%}
       <div>{{ solicitacao.rastro_lote.nome|slice:"5:15" }}</div>
+      {% else%}
+        {{ solicitacao.escola_destino.lote.nome|slice:"5:15" }}
+      {%endif%}
     </div>
     <div class="info w-25">
       <div>Tipo de gestão</div>
-      <div>{{ escola.tipo_gestao.nome|slice:"5:15" }}</div>
+      {% if solicitacao.tipo_solicitacao == 'COMUM'%}
+        <div>{{ escola.tipo_gestao.nome|slice:"5:15" }}</div>
+       {% else%}
+        <div>{{ solicitacao.escola_destino.tipo_gestao.nome|slice:"5:15" }}</div>
+      {%endif%}
     </div>
   </div>
   <div>
