@@ -21,7 +21,7 @@
       {% if solicitacao.tipo_solicitacao == 'COMUM'%}
       <div>{{ solicitacao.rastro_lote.nome|slice:"5:15" }}</div>
       {% else%}
-        {{ solicitacao.escola_destino.lote.nome|slice:"5:15" }}
+       <div> {{ solicitacao.escola_destino.lote.nome|slice:"5:15" }}</div>
       {%endif%}
     </div>
     <div class="info w-25">
