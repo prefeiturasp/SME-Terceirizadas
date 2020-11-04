@@ -8,29 +8,16 @@
       # {{ solicitacao.id_externo }} <br/> <span>Nº DA SOLICITAÇÃO</span>
     </div>
     <div class="info w-50">
-     {% if solicitacao.tipo_solicitacao == 'COMUM'%}
         <div>Solicitante</div>
-        <div>{{ solicitacao.rastro_escola.nome }}</div>
-      {% else%}
-        <div>Escola onde será realizado o programa</div>
-        <div>{{ solicitacao.escola_destino.nome }}</div>
-      {% endif %}
+        <div>{{ escola.nome }}</div>
     </div>
     <div class="info w-25">
       <div>Lote</div>
-      {% if solicitacao.tipo_solicitacao == 'COMUM'%}
-      <div>{{ solicitacao.rastro_lote.nome|slice:"5:15" }}</div>
-      {% else%}
-       <div> {{ solicitacao.escola_destino.lote.nome|slice:"5:15" }}</div>
-      {%endif%}
+      <div>{{ escola.lote.nome|slice:"5:15" }}</div>
     </div>
     <div class="info w-25">
       <div>Tipo de gestão</div>
-      {% if solicitacao.tipo_solicitacao == 'COMUM'%}
-        <div>{{ escola.tipo_gestao.nome|slice:"5:15" }}</div>
-       {% else%}
-        <div>{{ solicitacao.escola_destino.tipo_gestao.nome|slice:"5:15" }}</div>
-      {%endif%}
+      <div>{{ escola.tipo_gestao.nome|slice:"5:15" }}</div>
     </div>
   </div>
   <div>
