@@ -1,10 +1,8 @@
 from django.db import models
-from django.db.models import Q, Sum
 
 from ..dados_comuns.behaviors import CriadoEm, CriadoPor, Logs, TemChaveExterna, TemData  # noqa I101
-from ..dados_comuns.fluxo_status import PedidoAPartirDaEscolaWorkflow
-from ..inclusao_alimentacao.models import QuantidadePorPeriodo
 from .utils import total_kits_lanche_por_escola_e_data, total_merendas_secas_por_escola_periodo_escolar_e_data
+
 
 class LancamentoDiario(CriadoEm, CriadoPor, TemData,
                        Logs, TemChaveExterna, models.Model):

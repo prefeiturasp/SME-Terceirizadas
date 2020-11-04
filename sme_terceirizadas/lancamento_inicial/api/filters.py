@@ -2,6 +2,7 @@ from django_filters.rest_framework import DateFilter, FilterSet, ModelChoiceFilt
 
 from ...escola.models import EscolaPeriodoEscolar
 
+
 class LancamentoDiarioFilter(FilterSet):
     data = DateFilter()
     escola_periodo_escolar = ModelChoiceFilter(
