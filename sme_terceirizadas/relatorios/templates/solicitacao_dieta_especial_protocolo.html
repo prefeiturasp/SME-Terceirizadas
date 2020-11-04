@@ -10,20 +10,57 @@
       <table>
         <thead>
         <tr>
-          <th class="th-eol">Cód. EOL do Aluno</th>
-          <th class="th-nome">Nome Completo do Aluno</th>
-          <th class="th-nasc">Data de Nascimento</th>
-          <th class="th-aceite">Data de aceite do laudo</th>
+        {% if solicitacao.tipo_solicitacao == 'ALUNO_NAO_MATRICULADO' %}
+           <th class="w-25">CPF do Aluno</th>
+        {% else %}
+            <th class="w-25">Cód. EOL do Aluno</th>
+        {% endif %}
+          <th class="w-40">Nome Completo do Aluno</th>
+          <th class="w-25">Data de Nascimento</th>
         </tr>
         </thead>
         <tbody>
         <tr>
-          <td>{{ solicitacao.aluno.codigo_eol }}</td>
+        {% if solicitacao.tipo_solicitacao == 'ALUNO_NAO_MATRICULADO' %}
+          <td>{{ solicitacao.aluno.cpf|default:'' }}</td>
+        {% else %}
+          <td>{{ solicitacao.aluno.codigo_eol|default:'' }}</td>
+        {% endif %}
           <td>{{ solicitacao.aluno.nome }}</td>
           <td>{{ solicitacao.aluno.data_nascimento|date:"SHORT_DATE_FORMAT" }}</td>
-          <td>{{ log_autorizacao.criado_em|date:"SHORT_DATE_FORMAT" }}</td>
         </tr>
         </tbody>
+      </table>
+      {% if solicitacao.tipo_solicitacao == 'ALUNO_NAO_MATRICULADO' %}
+          <table>
+            <tr>
+              <th class="w-25">CPF do Responsável</th>
+              <th class="w-40">Nome completo do Responsável</th>
+              <th class="w-25" />
+            </tr>
+          {%with responsavel=solicitacao.aluno.responsaveis.first %}
+            <tr>
+              <td>{{ responsavel.cpf|default:'' }}</td>
+              <td>{{ responsavel.nome }}</td>
+            </tr>
+            <tr/>
+          {% endwith %}
+        </table>
+      {% endif %}
+      <table>
+        <tr>
+          <th class="w-25">Data de aceite do laudo</th>
+          <th class="w-40">Data de término da dieta</th>
+          <th class="w-25" />
+        </tr>
+      <tr>
+        <td>{{ log_autorizacao.criado_em|date:"SHORT_DATE_FORMAT" }}</td>
+      {% if solicitacao.tipo_solicitacao == 'ALTERACAO_UE' %}
+        <td>{{ solicitacao.data_final_alteracao }}</td>
+      {% else %}
+        <td>{{ solicitacao.data_final_alteracao |default:'' }}</td>
+      {% endif %}
+      </tr>
       </table>
     </div>
     <h5>
