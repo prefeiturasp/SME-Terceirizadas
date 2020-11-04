@@ -106,7 +106,10 @@ def relatorio_alteracao_cardapio_cei(request, solicitacao):
 
 
 def relatorio_dieta_especial(request, solicitacao):
-    escola = solicitacao.rastro_escola
+    if solicitacao.tipo_solicitacao == 'COMUM':
+        escola = solicitacao.rastro_escola
+    else:
+        escola = solicitacao.escola_destino
     logs = solicitacao.logs
     if solicitacao.logs.filter(status_evento=LogSolicitacoesUsuario.INICIO_FLUXO_INATIVACAO).exists():
         if solicitacao.logs.filter(status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_TOMOU_CIENCIA).exists():
