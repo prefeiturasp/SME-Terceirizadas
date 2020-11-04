@@ -56,9 +56,9 @@
       <tr>
         <td>{{ log_autorizacao.criado_em|date:"SHORT_DATE_FORMAT" }}</td>
       {% if solicitacao.tipo_solicitacao == 'ALTERACAO_UE' %}
-        <td>{{ solicitacao.data_final_alteracao }}</td>
+        <td>{{ solicitacao.data_final_alteracao|date:"SHORT_DATE_FORMAT" }}</td>
       {% else %}
-        <td>{{ solicitacao.data_final_alteracao |default:'' }}</td>
+        <td>{{ solicitacao.data_final_alteracao|date:"SHORT_DATE_FORMAT"|default:'' }}</td>
       {% endif %}
       </tr>
       </table>
