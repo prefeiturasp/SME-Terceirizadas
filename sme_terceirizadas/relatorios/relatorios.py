@@ -132,10 +132,14 @@ def relatorio_dieta_especial(request, solicitacao):
 
 
 def relatorio_dieta_especial_protocolo(request, solicitacao):
+    if solicitacao.tipo_solicitacao == 'COMUM':
+        escola = solicitacao.rastro_escola
+    else:
+        escola = solicitacao.escola_destino
     html_string = render_to_string(
         'solicitacao_dieta_especial_protocolo.html',
         {
-            'escola': solicitacao.rastro_escola,
+            'escola': escola,
             'solicitacao': solicitacao,
             'data_termino': solicitacao.data_termino,
             'log_autorizacao': solicitacao.logs.get(status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU)
