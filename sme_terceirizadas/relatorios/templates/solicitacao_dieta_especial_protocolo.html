@@ -58,7 +58,7 @@
       {% if solicitacao.tipo_solicitacao == 'ALTERACAO_UE' %}
         <td>{{ solicitacao.data_final_alteracao|date:"SHORT_DATE_FORMAT" }}</td>
       {% else %}
-        <td>{{ solicitacao.data_final_alteracao|date:"SHORT_DATE_FORMAT"|default:'' }}</td>
+        <td>{{ solicitacao.data_termino|date:"SHORT_DATE_FORMAT"|default:'' }}</td>
       {% endif %}
       </tr>
       </table>
