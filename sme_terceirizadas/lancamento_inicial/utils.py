@@ -82,4 +82,4 @@ def alteracoes_de_cardapio_por_escola_periodo_escolar_e_data(escola_periodo_esco
     ))
 
     if lpr.count():
-        return 'LRP'
+        return 'LPR'

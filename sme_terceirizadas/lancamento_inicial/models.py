@@ -1,7 +1,11 @@
 from django.db import models
 
 from ..dados_comuns.behaviors import CriadoEm, CriadoPor, Logs, TemChaveExterna, TemData  # noqa I101
-from .utils import total_kits_lanche_por_escola_e_data, total_merendas_secas_por_escola_periodo_escolar_e_data
+from .utils import (
+    alteracoes_de_cardapio_por_escola_periodo_escolar_e_data,
+    total_kits_lanche_por_escola_e_data,
+    total_merendas_secas_por_escola_periodo_escolar_e_data
+)
 
 
 class LancamentoDiario(CriadoEm, CriadoPor, TemData,
@@ -32,6 +36,12 @@ class LancamentoDiario(CriadoEm, CriadoPor, TemData,
     @property
     def merenda_seca_solicitada(self):
         return total_merendas_secas_por_escola_periodo_escolar_e_data(
+            self.escola_periodo_escolar, self.data
+        )
+
+    @property
+    def troca(self):
+        return alteracoes_de_cardapio_por_escola_periodo_escolar_e_data(
             self.escola_periodo_escolar, self.data
         )
 

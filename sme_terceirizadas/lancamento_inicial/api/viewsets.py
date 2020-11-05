@@ -74,7 +74,7 @@ class LancamentoDiarioViewSet(ModelViewSet):
 
     def lancamentos_diarios_com_sobremesa_doce_na_semana(self, escola_periodo_escolar, data):
         primeiro_dia_da_semana = data - timedelta(days=data.weekday())
-        ultimo_dia_da_semana = data - timedelta(days=6 - data.weekday())
+        ultimo_dia_da_semana = data + timedelta(days=6 - data.weekday())
         return LancamentoDiario.objects.filter(
             escola_periodo_escolar=escola_periodo_escolar,
             data__range=(primeiro_dia_da_semana, ultimo_dia_da_semana),

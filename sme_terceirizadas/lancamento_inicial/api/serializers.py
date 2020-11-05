@@ -22,6 +22,7 @@ class LancamentoDiarioSerializer(serializers.ModelSerializer):
     tipo_dieta = ClassificacaoDietaSerializer()
     merenda_seca_solicitada = serializers.IntegerField(read_only=True)
     kits_lanches = serializers.IntegerField(read_only=True)
+    troca = serializers.CharField(read_only=True)
 
     class Meta:
         model = LancamentoDiario
