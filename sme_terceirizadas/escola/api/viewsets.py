@@ -77,7 +77,7 @@ class VinculoViewSet(ReadOnlyModelViewSet):
             data = request.data.copy()
             data['instituicao'] = instituicao.nome
             usuario = UsuarioUpdateSerializer(data).create(validated_data=data)
-            usuario.criar_vinculo_administrador(instituicao, nome_perfil=self.nome_perfil)
+            usuario.criar_vinculo_administrador(instituicao, nome_perfil=self.nome_perfil)  # noqa
             return Response(UsuarioDetalheSerializer(usuario).data)
         except serializers.ValidationError as e:
             return Response(data=dict(detail=e.args[0]), status=e.status_code)
@@ -111,7 +111,7 @@ class VinculoDiretoriaRegionalViewSet(VinculoViewSet):
 
 class VinculoCODAEGestaoAlimentacaoTerceirizadaViewSet(VinculoViewSet):
     queryset = Codae.objects.all()
-    permission_classes = [PodeCriarAdministradoresDaCODAEGestaoAlimentacaoTerceirizada]
+    permission_classes = [PodeCriarAdministradoresDaCODAEGestaoAlimentacaoTerceirizada]  # noqa
     nome_perfil = ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA
 
 
@@ -172,8 +172,8 @@ class EscolaQuantidadeAlunosPorPeriodoEFaixaViewSet(GenericViewSet):
         escola = self.get_object()
         data_referencia = form.cleaned_data['data_referencia']
 
-        counter_faixas_etarias = escola.alunos_por_periodo_e_faixa_etaria(data_referencia)
-        serializer = PeriodoEFaixaEtariaCounterSerializer(counter_faixas_etarias)
+        counter_faixas_etarias = escola.alunos_por_periodo_e_faixa_etaria(data_referencia)  # noqa
+        serializer = PeriodoEFaixaEtariaCounterSerializer(counter_faixas_etarias)  # noqa
         return Response(serializer.data)
 
 
@@ -203,7 +203,7 @@ class PeriodoEscolarViewSet(ReadOnlyModelViewSet):
         data_referencia = form.cleaned_data['data_referencia']
 
         try:
-            faixa_alunos = escola_periodo.alunos_por_faixa_etaria(data_referencia)
+            faixa_alunos = escola_periodo.alunos_por_faixa_etaria(data_referencia)  # noqa
         except ObjectDoesNotExist:
             return Response(
                 {'detail': 'Não há faixas etárias cadastradas. Contate a coordenadoria CODAE.'},
@@ -321,7 +321,7 @@ class EscolaPeriodoEscolarViewSet(ModelViewSet):
         data_referencia = form.cleaned_data['data_referencia']
 
         try:
-            faixa_alunos = escola_periodo.alunos_por_faixa_etaria(data_referencia)
+            faixa_alunos = escola_periodo.alunos_por_faixa_etaria(data_referencia)  # noqa
         except ObjectDoesNotExist:
             return Response(
                 {'detail': 'Não há faixas etárias cadastradas. Contate a coordenadoria CODAE.'},
