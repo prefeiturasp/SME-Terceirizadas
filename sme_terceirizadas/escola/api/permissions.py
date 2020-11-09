@@ -35,7 +35,7 @@ class PodeCriarAdministradoresDaDiretoriaRegional(permissions.BasePermission):
     def has_permission(self, request, view):
         usuario = request.user
         if not usuario.is_anonymous:
-            perfil_cogestor_ou_suplente = usuario.vinculo_atual.perfil.nome in [COGESTOR, SUPLENTE]
+            perfil_cogestor_ou_suplente = usuario.vinculo_atual.perfil.nome in [COGESTOR, SUPLENTE]  # noqa
             return perfil_cogestor_ou_suplente
         return False
 
@@ -48,7 +48,7 @@ class PodeCriarAdministradoresDaDiretoriaRegional(permissions.BasePermission):
 
 
 class PodeCriarAdministradoresDaCODAEGestaoAlimentacaoTerceirizada(permissions.BasePermission):
-    message = 'O seu perfil não tem permissao para criar administradores da codae - gestao alimentacao'
+    message = 'O seu perfil não tem permissão para criar administradores da codae - gestão alimentação'
 
     def has_permission(self, request, view):
         usuario = request.user
@@ -61,7 +61,7 @@ class PodeCriarAdministradoresDaCODAEGestaoAlimentacaoTerceirizada(permissions.B
 
 
 class PodeCriarAdministradoresDaCODAEGestaoDietaEspecial(permissions.BasePermission):
-    message = 'O seu perfil não tem permissao para criar administradores da codae - dieta especial'
+    message = 'O seu perfil não tem permissão para criar administradores da codae - dieta especial'
 
     def has_permission(self, request, view):
         usuario = request.user
@@ -74,7 +74,7 @@ class PodeCriarAdministradoresDaCODAEGestaoDietaEspecial(permissions.BasePermiss
 
 
 class PodeCriarAdministradoresDaCODAEGestaoProdutos(permissions.BasePermission):
-    message = 'O seu perfil não tem permissao para criar administradores da codae - gestão de produtos'
+    message = 'O seu perfil não tem permissão para criar administradores da codae - gestão de produtos'
 
     def has_permission(self, request, view):
         usuario = request.user
@@ -87,7 +87,7 @@ class PodeCriarAdministradoresDaCODAEGestaoProdutos(permissions.BasePermission):
 
 
 class PodeCriarAdministradoresDaCODAESupervisaoNutricao(permissions.BasePermission):
-    message = 'O seu perfil não tem permissao para criar administradores da codae - gestão de produtos'
+    message = 'O seu perfil não tem permissão para criar administradores da codae - gestão de produtos'
 
     def has_permission(self, request, view):
         usuario = request.user
