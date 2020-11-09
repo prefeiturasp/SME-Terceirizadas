@@ -10,11 +10,15 @@ from ...dados_comuns.constants import (
     ADMINISTRADOR_DIETA_ESPECIAL,
     ADMINISTRADOR_DRE,
     ADMINISTRADOR_ESCOLA,
-    ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA
+    ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
+    ADMINISTRADOR_GESTAO_PRODUTO,
+    ADMINISTRADOR_SUPERVISAO_NUTRICAO
 )
 from ...escola.api.permissions import (
     PodeCriarAdministradoresDaCODAEGestaoAlimentacaoTerceirizada,
     PodeCriarAdministradoresDaCODAEGestaoDietaEspecial,
+    PodeCriarAdministradoresDaCODAEGestaoProdutos,
+    PodeCriarAdministradoresDaCODAESupervisaoNutricao,
     PodeCriarAdministradoresDaDiretoriaRegional,
     PodeCriarAdministradoresDaEscola
 )
@@ -119,6 +123,18 @@ class VinculoCODAEGestaoDietaEspecialViewSet(VinculoViewSet):
     queryset = Codae.objects.all()
     permission_classes = [PodeCriarAdministradoresDaCODAEGestaoDietaEspecial]
     nome_perfil = ADMINISTRADOR_DIETA_ESPECIAL
+
+
+class VinculoCODAEGestaoProdutosViewSet(VinculoViewSet):
+    queryset = Codae.objects.all()
+    permission_classes = [PodeCriarAdministradoresDaCODAEGestaoProdutos]
+    nome_perfil = ADMINISTRADOR_GESTAO_PRODUTO
+
+
+class VinculoCODAESupervisaoNutricaoViewSet(VinculoViewSet):
+    queryset = Codae.objects.all()
+    permission_classes = [PodeCriarAdministradoresDaCODAESupervisaoNutricao]
+    nome_perfil = ADMINISTRADOR_SUPERVISAO_NUTRICAO
 
 
 class EscolaSimplesViewSet(ListModelMixin, RetrieveModelMixin, UpdateModelMixin, GenericViewSet):

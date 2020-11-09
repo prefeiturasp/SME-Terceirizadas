@@ -52,7 +52,10 @@ def deve_ser_email_sme(email):
 
 def usuario_e_vinculado_a_aquela_instituicao(descricao_instituicao: str, instituicoes_eol: list):
     for instituicao_eol in instituicoes_eol:
-        if instituicao_eol['divisao'] in descricao_instituicao or descricao_instituicao in instituicao_eol['divisao']:
+        divisao = instituicao_eol['divisao']
+        pertencem_mesma_divisao = divisao in descricao_instituicao or descricao_instituicao in divisao
+        pertencem_a_codae = 'codae' in divisao.lower() and 'codae' in descricao_instituicao.lower()
+        if pertencem_mesma_divisao or pertencem_a_codae:
             return True
     raise serializers.ValidationError('Instituições devem ser a mesma')
 
