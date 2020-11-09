@@ -24,6 +24,9 @@ class SolicitacaoRemessa(ModeloBase):
         default=STATUS_INTEGRADA
     )
 
+    def __str__(self):
+        return f'Solicitação: {self.numero_solicitacao} - Status: {self.status}'
+
     class Meta:
-        verbose_name = "Solicitação Remessa"
-        verbose_name_plural = "Solicitações Remessas"
+        verbose_name = 'Solicitação Remessa'
+        verbose_name_plural = 'Solicitações Remessas'

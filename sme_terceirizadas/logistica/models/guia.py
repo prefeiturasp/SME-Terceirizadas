@@ -25,11 +25,11 @@ class Guia(ModeloBase):
     endereco_unidade = models.CharField('Endereço da unidade', blank=True, max_length=300)
     numero_unidade = models.CharField('Número da unidade', blank=True, max_length=10)
     bairro_unidade = models.CharField('Bairro da unidade', blank=True, max_length=100)
-    cep_unidade = models.CharField("CEP da unidade", blank=True, max_length=20)
+    cep_unidade = models.CharField('CEP da unidade', blank=True, max_length=20)
     cidade_unidade = models.CharField('Cidade da unidade', blank=True, max_length=100)
     estado_unidade = models.CharField('Estado da unidade', blank=True, max_length=2)
     contato_unidade = models.CharField('Contato na unidade', blank=True, max_length=150)
-    telefone_unidade = models.CharField('Telefone da unidade', blank=True, null=True, default="", max_length=20)
+    telefone_unidade = models.CharField('Telefone da unidade', blank=True, default='', max_length=20)
     status = models.CharField(
         'status',
         max_length=25,
@@ -37,6 +37,9 @@ class Guia(ModeloBase):
         default=STATUS_INTEGRADA
     )
 
+    def __str__(self):
+        return f'Guia: {self.numero_guia} - {self.status} da solicitação: {self.solicitacao.numero_solicitacao}'
+
     class Meta:
-        verbose_name = "Guia"
-        verbose_name_plural = "Guias"
+        verbose_name = 'Guia'
+        verbose_name_plural = 'Guias'

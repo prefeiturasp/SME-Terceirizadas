@@ -61,7 +61,7 @@ class CriadoEm(models.Model):
 
 
 class TemAlteradoEm(models.Model):
-    alterado_em = models.DateTimeField("Alterado em", editable=False, auto_now=True)
+    alterado_em = models.DateTimeField('Alterado em', editable=False, auto_now=True)
 
     class Meta:
         abstract = True
