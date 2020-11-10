@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import (SolicitacaoRemessa, Guia, Alimento)
+from .models import Alimento, Guia, SolicitacaoRemessa
 
 
 class GuiaInline(admin.StackedInline):
@@ -17,7 +17,7 @@ class AlimentoInline(admin.TabularInline):
 class SolicitacaoAdmin(admin.ModelAdmin):
 
     def get_guias(self, obj):
-        return ", ".join([
+        return ', '.join([
             guias.numero_guia for guias in obj.guias.all()
         ])
     get_guias.short_description = 'Guias'
