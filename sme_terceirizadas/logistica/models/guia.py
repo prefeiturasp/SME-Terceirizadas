@@ -31,7 +31,7 @@ class Guia(ModeloBase):
     contato_unidade = models.CharField('Contato na unidade', blank=True, max_length=150)
     telefone_unidade = models.CharField('Telefone da unidade', blank=True, default='', max_length=20)
     status = models.CharField(
-        'status',
+        'Status da guia',
         max_length=25,
         choices=STATUS_CHOICES,
         default=STATUS_INTEGRADA
@@ -41,5 +41,5 @@ class Guia(ModeloBase):
         return f'Guia: {self.numero_guia} - {self.status} da solicitação: {self.solicitacao.numero_solicitacao}'
 
     class Meta:
-        verbose_name = 'Guia'
-        verbose_name_plural = 'Guias'
+        verbose_name = 'Guia de Remessa'
+        verbose_name_plural = 'Guias de Remessas'

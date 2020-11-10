@@ -18,7 +18,7 @@ class SolicitacaoRemessa(ModeloBase):
     cnpj = models.CharField('CNPJ', validators=[MinLengthValidator(14)], max_length=14)
     numero_solicitacao = models.CharField('Número da solicitação', blank=True, max_length=100)
     status = models.CharField(
-        'status',
+        'Status da solicitação',
         max_length=25,
         choices=STATUS_CHOICES,
         default=STATUS_INTEGRADA

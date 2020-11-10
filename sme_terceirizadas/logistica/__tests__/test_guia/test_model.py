@@ -17,5 +17,5 @@ def test_srt_model(guia):
 
 
 def test_meta_modelo(guia):
-    assert guia._meta.verbose_name == 'Guia'
-    assert guia._meta.verbose_name_plural == 'Guias'
+    assert guia._meta.verbose_name == 'Guia de Remessa'
+    assert guia._meta.verbose_name_plural == 'Guias de Remessas'
