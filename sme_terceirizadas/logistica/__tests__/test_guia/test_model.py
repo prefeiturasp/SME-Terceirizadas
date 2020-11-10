@@ -1,7 +1,7 @@
 import pytest
 from django.contrib.auth import get_user_model
 
-from sme_terceirizadas.logistica.models.guia import Guia
+from ...models.guia import Guia
 
 pytestmark = pytest.mark.django_db
 
