@@ -61,15 +61,15 @@ pipeline {
 
        stage('Analise codigo') {
 	     when {
-           branch 'development'
+           branch 'homolog'
          }
         steps {
           sh 'sonar-scanner \
-            -Dsonar.projectKey=SME-Terceirizadas-DEV \
+            -Dsonar.projectKey=SME-Terceirizadas \
             -Dsonar.projectBaseDir=sme_terceirizadas \
             -Dsonar.exclusions=dados_comuns \
             -Dsonar.host.url=http://sonar.sme.prefeitura.sp.gov.br \
-            -Dsonar.login=3dabbba51bfc86a65466516576e60156cd06274d \
+            -Dsonar.login=c1b62f2b14aed3a21724323aa8028e731e29f146 \
             -Dsonar.language=py \
             -Dsonar.sourceEncoding=UTF-8 \
             -Dsonar.python.pylint=pylint \
