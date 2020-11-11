@@ -214,8 +214,8 @@ class AlteracaoUESerializer(serializers.ModelSerializer):
         fields = (
             'escola_destino',
             'dieta_alterada',
-            'data_inicial_alteracao',
-            'data_final_alteracao',
+            'data_inicio',
+            'data_termino',
             'motivo_alteracao',
             'observacoes_alteracao'
         )
@@ -224,14 +224,15 @@ class AlteracaoUESerializer(serializers.ModelSerializer):
         dieta_alterada = validated_data.get('dieta_alterada')
         escola_destino = validated_data.get('escola_destino')
         motivo_alteracao = validated_data.get('motivo_alteracao')
-        data_inicial_alteracao = validated_data.get('data_inicial_alteracao')
-        data_final_alteracao = validated_data.get('data_final_alteracao')
-        observacoes_alteracao = validated_data.get('observacoes_alteracao')
+        data_inicio = validated_data.get('data_inicio')
+        data_termino = validated_data.get('data_termino')
+        observacoes_alteracao = validated_data.get('observacoes_alteracao', '')
 
         if SolicitacaoDietaEspecial.aluno_possui_dieta_especial_pendente(dieta_alterada.aluno):
             raise serializers.ValidationError('Aluno já possui Solicitação de Dieta Especial pendente')
 
         substituicoes = SubstituicaoAlimento.objects.filter(solicitacao_dieta_especial=dieta_alterada)
+        anexos = Anexo.objects.filter(solicitacao_dieta_especial=dieta_alterada)
 
         solicitacao_alteracao = deepcopy(dieta_alterada)
         solicitacao_alteracao.id = None
@@ -242,8 +243,8 @@ class AlteracaoUESerializer(serializers.ModelSerializer):
         solicitacao_alteracao.motivo_alteracao_ue = motivo_alteracao
         solicitacao_alteracao.escola_destino = escola_destino
         solicitacao_alteracao.dieta_alterada = dieta_alterada
-        solicitacao_alteracao.data_inicial_alteracao = data_inicial_alteracao
-        solicitacao_alteracao.data_final_alteracao = data_final_alteracao
+        solicitacao_alteracao.data_termino = data_termino
+        solicitacao_alteracao.data_inicio = data_inicio
         solicitacao_alteracao.observacoes_alteracao = observacoes_alteracao
         solicitacao_alteracao.save()
         solicitacao_alteracao.alergias_intolerancias.add(*dieta_alterada.alergias_intolerancias.all())
@@ -256,5 +257,11 @@ class AlteracaoUESerializer(serializers.ModelSerializer):
             substituicao_alteracao.solicitacao_dieta_especial = solicitacao_alteracao
             substituicao_alteracao.save()
             substituicao_alteracao.substitutos.add(*substituicao.substitutos.all())
+
+        for anexo in anexos:
+            anexo_alteracao = deepcopy(anexo)
+            anexo_alteracao.id = None
+            anexo_alteracao.solicitacao_dieta_especial = solicitacao_alteracao
+            anexo_alteracao.save()
 
         return solicitacao_alteracao

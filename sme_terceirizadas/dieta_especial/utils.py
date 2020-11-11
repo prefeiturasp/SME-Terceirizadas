@@ -2,6 +2,7 @@ from datetime import date
 
 from rest_framework.pagination import PageNumberPagination
 
+from ..dados_comuns.constants import TIPO_SOLICITACAO_DIETA
 from ..dados_comuns.fluxo_status import DietaEspecialWorkflow
 from .models import SolicitacaoDietaEspecial
 
@@ -20,6 +21,9 @@ def dietas_especiais_a_terminar():
 
 def termina_dietas_especiais(usuario):
     for solicitacao in dietas_especiais_a_terminar():
+        if solicitacao.tipo_solicitacao == TIPO_SOLICITACAO_DIETA.get('ALTERACAO_UE'):
+            solicitacao.dieta_alterada.ativo = True
+            solicitacao.dieta_alterada.save()
         solicitacao.termina(usuario)
 
 

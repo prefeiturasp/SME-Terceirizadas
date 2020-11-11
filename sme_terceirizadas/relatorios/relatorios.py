@@ -122,6 +122,7 @@ def relatorio_dieta_especial(request, solicitacao):
         'solicitacao_dieta_especial.html',
         {
             'escola': escola,
+            'lote': escola.lote,
             'solicitacao': solicitacao,
             'fluxo': fluxo,
             'width': get_width(fluxo, solicitacao.logs),

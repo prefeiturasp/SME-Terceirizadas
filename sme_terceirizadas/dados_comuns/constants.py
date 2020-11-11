@@ -166,3 +166,7 @@ CODAE_RECUSOU_RECLAMACAO = 'CODAE recusou reclamação'
 CODAE_QUESTIONOU_TERCEIRIZADA = 'CODAE questionou terceirizada sobre reclamação'
 CODAE_RESPONDEU_RECLAMACAO = 'CODAE respondeu ao reclamante da reclamação'
 TERCEIRIZADA_RESPONDEU_RECLAMACAO = 'Terceirizada respondeu a reclamação'
+
+TIPO_SOLICITACAO_DIETA = {'COMUM': 'COMUM',
+                          'ALTERACAO_UE': 'ALTERACAO_UE',
+                          'ALUNO_NAO_MATRICULADO': 'ALUNO_NAO_MATRICULADO'}
