@@ -412,7 +412,8 @@ class AlunoSerializer(serializers.ModelSerializer):
             'escola',
             'nome_escola',
             'nome_dre',
-            'responsaveis'
+            'responsaveis',
+            'cpf'
         )
 
 
