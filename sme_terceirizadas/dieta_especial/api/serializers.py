@@ -91,7 +91,7 @@ class SolicitacaoDietaEspecialAutorizarSerializer(SolicitacaoDietaEspecialCreate
         )
         if 'data_termino' in dados_a_validar:
             data_termino = datetime.strptime(
-                dados_a_validar['data_termino'], '%Y-%m-%d').date()
+                dados_a_validar['data_termino'], '%d/%m/%Y').date()
             nao_pode_ser_no_passado(data_termino)
         atributos_lista_nao_vazios(
             dados_a_validar, ['substituicoes', 'alergias_intolerancias'])
@@ -112,6 +112,8 @@ class SolicitacaoDietaEspecialAutorizarSerializer(SolicitacaoDietaEspecialCreate
         instance.nome_protocolo = validated_data.get('nome_protocolo', '')
         data_termino = validated_data.get('data_termino', '')
         if data_termino:
+            data_termino = datetime.strptime(
+                data_termino, '%d/%m/%Y').date()
             instance.data_termino = data_termino
 
         instance.alergias_intolerancias.clear()
