@@ -10,6 +10,7 @@ class DietaEspecialFilter(filters.FilterSet):
     nome_completo_aluno = filters.CharFilter(field_name='aluno__nome', lookup_expr='iexact')
     codigo_eol_aluno = filters.CharFilter(field_name='aluno__codigo_eol', lookup_expr='iexact')
     escola = filters.CharFilter(field_name='rastro_escola__uuid', lookup_expr='iexact')
+    dre = filters.CharFilter(field_name='rastro_escola__diretoria_regional__uuid', lookup_expr='iexact')
     cpf_responsavel = filters.CharFilter(field_name='aluno__responsaveis__cpf', lookup_expr='iexact')
     ativo = filters.BooleanFilter(field_name='ativo')
     tipo_solicitacao = filters.CharFilter(field_name='tipo_solicitacao', lookup_expr='iexact')
