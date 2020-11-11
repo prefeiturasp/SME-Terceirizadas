@@ -14,7 +14,8 @@ from .constants import (
     ADMINISTRADOR_DIETA_ESPECIAL,
     ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
     COORDENADOR_DIETA_ESPECIAL,
-    COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA
+    COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
+    TIPO_SOLICITACAO_DIETA
 )
 from .models import AnexoLogSolicitacoesUsuario, LogSolicitacoesUsuario
 from .tasks import envia_email_em_massa_task, envia_email_unico_task
@@ -1338,8 +1339,14 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
     def _partes_interessadas_codae_autoriza_ou_nega(self):
         email_query_set_escola = self.rastro_escola.vinculos.filter(
             ativo=True
-        ).values_list('usuario__email', flat=False)
-        return [email for email in email_query_set_escola]
+        ).values_list('usuario__email', flat=True)
+        email_lista = [email for email in email_query_set_escola]
+        if self.tipo_solicitacao != TIPO_SOLICITACAO_DIETA.get('COMUM'):
+            email_query_set_terceirizada = self.escola_destino.lote.terceirizada.vinculos.filter(
+                ativo=True
+            ).values_list('usuario__email', flat=True)
+            email_lista += [email for email in email_query_set_terceirizada]
+        return email_lista
 
     @property
     def partes_interessadas_terceirizadas_tomou_ciencia(self):

@@ -113,7 +113,6 @@ class SolicitacaoDietaEspecialAutorizarSerializer(SolicitacaoDietaEspecialCreate
         data_termino = validated_data.get('data_termino', '')
         if data_termino:
             instance.data_termino = data_termino
-        instance.ativo = True
 
         instance.alergias_intolerancias.clear()
 
@@ -150,12 +149,24 @@ class EscolaSerializer(serializers.ModelSerializer):
                   'tipo_gestao', 'lote', 'contato')
 
 
+class MotivoAlteracaoUESerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = MotivoAlteracaoUE
+        fields = (
+            'uuid',
+            'nome',
+            'descricao'
+        )
+
+
 class SolicitacaoDietaEspecialSerializer(serializers.ModelSerializer):
     aluno = AlunoSerializer()
     anexos = serializers.ListField(
         child=AnexoSerializer(), required=True
     )
     escola = EscolaSerializer()
+    escola_destino = EscolaSerializer()
     logs = LogSolicitacoesUsuarioSerializer(many=True)
     status_solicitacao = serializers.CharField(
         source='status',
@@ -167,7 +178,7 @@ class SolicitacaoDietaEspecialSerializer(serializers.ModelSerializer):
     classificacao = ClassificacaoDietaSerializer()
     alergias_intolerancias = AlergiaIntoleranciaSerializer(many=True)
     motivo_negacao = MotivoNegacaoSerializer()
-
+    motivo_alteracao_ue = MotivoAlteracaoUESerializer()
     substituicoes = SubstituicaoAlimentoSerializer(many=True)
 
     tem_solicitacao_cadastro_produto = serializers.SerializerMethodField()
@@ -186,6 +197,7 @@ class SolicitacaoDietaEspecialSerializer(serializers.ModelSerializer):
             'status_solicitacao',
             'aluno',
             'escola',
+            'escola_destino',
             'anexos',
             'nome_completo_pescritor',
             'registro_funcional_pescritor',
@@ -201,7 +213,10 @@ class SolicitacaoDietaEspecialSerializer(serializers.ModelSerializer):
             'logs',
             'ativo',
             'data_termino',
-            'tem_solicitacao_cadastro_produto'
+            'tem_solicitacao_cadastro_produto',
+            'tipo_solicitacao',
+            'observacoes_alteracao',
+            'motivo_alteracao_ue'
         )
 
 
@@ -336,14 +351,3 @@ class PanoramaSerializer(serializers.Serializer):
     qtde_enteral = serializers.IntegerField()
     qtde_tipo_b = serializers.IntegerField()
     uuid_escola_periodo_escolar = serializers.CharField(source='uuid', required=False)
-
-
-class MotivoAlteracaoUESerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = MotivoAlteracaoUE
-        fields = (
-            'uuid',
-            'nome',
-            'descricao'
-        )
