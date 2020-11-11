@@ -387,10 +387,11 @@ class SolicitacaoDietaEspecialViewSet(
         if not form.is_valid():
             raise ValidationError(form.errors)
 
-        campos = self.get_campos_relatorio_quantitativo_diag_dieta_esp(
-            form.cleaned_data)
-        qs = self.get_queryset_relatorio_quantitativo_solic_dieta_esp(
-            form, campos)
+        if self.request.data.get('somente_dietas_ativas'):
+            campos = ['alergias_intolerancias__descricao']
+        else:
+            campos = self.get_campos_relatorio_quantitativo_diag_dieta_esp(form.cleaned_data)  # noqa
+        qs = self.get_queryset_relatorio_quantitativo_solic_dieta_esp(form, campos)  # noqa
 
         self.pagination_class = RelatorioPagination
         page = self.paginate_queryset(qs)
