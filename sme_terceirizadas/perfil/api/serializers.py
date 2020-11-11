@@ -25,12 +25,14 @@ from .validators import (
 
 
 class PerfilSimplesSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Perfil
         fields = ('nome', 'uuid')
 
 
 class PerfilSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Perfil
         exclude = ('id', 'nome', 'ativo')
@@ -46,12 +48,37 @@ class UsuarioSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Usuario
-        fields = ('uuid', 'cpf', 'nome', 'email', 'date_joined', 'registro_funcional', 'tipo_usuario', 'cargo')
+        fields = (
+            'uuid',
+            'cpf',
+            'nome',
+            'email',
+            'date_joined',
+            'registro_funcional',
+            'tipo_usuario',
+            'cargo'
+        )
+
+
+class UsuarioVinculoSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Usuario
+        fields = (
+            'uuid',
+            'cpf',
+            'nome',
+            'email',
+            'date_joined',
+            'registro_funcional',
+            'tipo_usuario',
+            'cargo'
+        )
 
 
 class VinculoSerializer(serializers.ModelSerializer):
     perfil = PerfilSimplesSerializer()
-    usuario = UsuarioSerializer()
+    usuario = UsuarioVinculoSerializer()
 
     class Meta:
         model = Vinculo
@@ -73,7 +100,7 @@ class UsuarioUpdateSerializer(serializers.ModelSerializer):
         usuario.registro_funcional = None
         usuario.nome = validated_data['nome']
         usuario.crn_numero = validated_data.get('crn_numero', None)
-        usuario.super_admin_terceirizadas = validated_data.get('super_admin_terceirizadas', False)
+        usuario.super_admin_terceirizadas = validated_data.get('super_admin_terceirizadas', False)  # noqa
         usuario.save()
         for contato_json in validated_data.get('contatos', []):
             contato = Contato(
@@ -96,9 +123,15 @@ class UsuarioUpdateSerializer(serializers.ModelSerializer):
         usuario.is_active = False
         usuario.save()
         if usuario.super_admin_terceirizadas:
-            usuario.criar_vinculo_administrador(terceirizada, nome_perfil=NUTRI_ADMIN_RESPONSAVEL)
+            usuario.criar_vinculo_administrador(
+                terceirizada,
+                nome_perfil=NUTRI_ADMIN_RESPONSAVEL
+            )
         else:
-            usuario.criar_vinculo_administrador(terceirizada, nome_perfil=ADMINISTRADOR_TERCEIRIZADA)
+            usuario.criar_vinculo_administrador(
+                terceirizada,
+                nome_perfil=ADMINISTRADOR_TERCEIRIZADA
+            )
         usuario.enviar_email_administrador()
 
     def update_nutricionista(self, terceirizada, validated_data):
@@ -117,10 +150,14 @@ class UsuarioUpdateSerializer(serializers.ModelSerializer):
         nome_perfil = NUTRI_ADMIN_RESPONSAVEL if validated_data.get(
             'super_admin_terceirizadas') else ADMINISTRADOR_TERCEIRIZADA
         if novo_usuario:
-            usuario.criar_vinculo_administrador(terceirizada, nome_perfil=nome_perfil)
+            usuario.criar_vinculo_administrador(
+                terceirizada,
+                nome_perfil=nome_perfil
+            )
             usuario.enviar_email_administrador()
         else:
-            # TODO: não deve estar aqui esse método envia_email_unico_task() Remover.
+            # TODO: não deve estar aqui esse método envia_email_unico_task()
+            # Remover.
             if ja_e_administrador and not validated_data.get('super_admin_terceirizadas'):
                 titulo = 'Alteração de funcionalidade'
                 conteudo = f'Olá, {usuario.nome} seu cadastro como nutricionista administrador foi alterado. '
@@ -144,7 +181,7 @@ class UsuarioUpdateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):  # noqa C901
         # TODO: ajeitar isso aqui, criar um validator antes...
         try:
-            informacoes_usuario_json = self.get_informacoes_usuario(validated_data)
+            informacoes_usuario_json = self.get_informacoes_usuario(validated_data)  # noqa
         except EOLException as e:
             return Response({'detail': f'{e}'}, status=status.HTTP_400_BAD_REQUEST)
         if validated_data['instituicao'] != 'CODAE':
@@ -168,16 +205,16 @@ class UsuarioUpdateSerializer(serializers.ModelSerializer):
         return usuario
 
     def _validate(self, instance, attrs):
-        senha_deve_ser_igual_confirmar_senha(attrs['password'], attrs['confirmar_password'])
+        senha_deve_ser_igual_confirmar_senha(attrs['password'], attrs['confirmar_password'])  # noqa
         cpf = attrs.get('cpf')
         cnpj = attrs.get('cnpj', None)
         if cnpj:
             usuario_e_das_terceirizadas(instance)
-            terceirizada_tem_esse_cnpj(instance.vinculo_atual.instituicao, cnpj)
+            terceirizada_tem_esse_cnpj(instance.vinculo_atual.instituicao, cnpj)  # noqa
         if instance.cpf:
             deve_ter_mesmo_cpf(cpf, instance.cpf)
         if 'tipo_email' in attrs:
-            registro_funcional_e_cpf_sao_da_mesma_pessoa(instance, attrs['registro_funcional'], attrs['cpf'])
+            registro_funcional_e_cpf_sao_da_mesma_pessoa(instance, attrs['registro_funcional'], attrs['cpf'])  # noqa
             usuario_pode_efetuar_cadastro(instance)
         return attrs
 
@@ -199,5 +236,11 @@ class UsuarioUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Usuario
-        fields = ('email', 'registro_funcional', 'password', 'confirmar_password', 'cpf')
+        fields = (
+            'email',
+            'registro_funcional',
+            'password',
+            'confirmar_password',
+            'cpf'
+        )
         write_only_fields = ('password',)

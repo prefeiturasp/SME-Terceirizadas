@@ -60,6 +60,13 @@ class CriadoEm(models.Model):
         abstract = True
 
 
+class TemAlteradoEm(models.Model):
+    alterado_em = models.DateTimeField('Alterado em', editable=False, auto_now=True)
+
+    class Meta:
+        abstract = True
+
+
 class IntervaloDeTempo(models.Model):
     data_hora_inicial = models.DateTimeField('Data/hora inicial')
     data_hora_final = models.DateTimeField('Data/hora final')
@@ -254,5 +261,10 @@ class TemFaixaEtariaEQuantidade(models.Model):
     faixa_etaria = models.ForeignKey('escola.FaixaEtaria', on_delete=models.DO_NOTHING)
     quantidade = models.PositiveSmallIntegerField()
 
+    class Meta:
+        abstract = True
+
+
+class ModeloBase(TemChaveExterna, CriadoEm, TemAlteradoEm):
     class Meta:
         abstract = True

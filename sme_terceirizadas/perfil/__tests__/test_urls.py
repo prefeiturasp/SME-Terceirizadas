@@ -305,7 +305,7 @@ def test_get_equipe_administradora_vinculos_escola(users_diretor_escola):
     assert response.json() == [
         {'data_inicial': datetime.date.today().strftime('%d/%m/%Y'),
          'perfil': {'nome': 'ADMINISTRADOR_ESCOLA', 'uuid': '48330a6f-c444-4462-971e-476452b328b2'},
-         'usuario': {'uuid': '8344f23a-95c4-4871-8f20-3880529767c0', 'nome': 'Fulano da Silva', 'cpf': None,
+         'usuario': {'uuid': '8344f23a-95c4-4871-8f20-3880529767c0', 'nome': 'Fulano da Silva', 'cpf': '11111111111',
                      'email': 'fulano@teste.com', 'registro_funcional': '1234567', 'tipo_usuario': 'escola',
                      'cargo': ''}}]
 
@@ -394,7 +394,7 @@ def test_get_equipe_administradora_vinculos_dre(users_cogestor_diretoria_regiona
         {'data_inicial': datetime.date.today().strftime('%d/%m/%Y'),
          'perfil': {'nome': 'ADMINISTRADOR_DRE', 'uuid': '48330a6f-c444-4462-971e-476452b328b2'},
          'usuario': {'uuid': '8344f23a-95c4-4871-8f20-3880529767c0', 'nome': 'Fulano da Silva',
-                     'email': 'fulano@teste.com', 'registro_funcional': '1234567', 'cpf': None,
+                     'email': 'fulano@teste.com', 'registro_funcional': '1234567', 'cpf': '11111111111',
                      'tipo_usuario': 'diretoriaregional', 'cargo': ''}}]
 
 
@@ -521,7 +521,7 @@ def test_get_equipe_administradora_vinculos_codae(users_codae_gestao_alimentacao
          'perfil': {'nome': 'ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA',
                     'uuid': '48330a6f-c444-4462-971e-476452b328b2'},
          'usuario': {'uuid': '8344f23a-95c4-4871-8f20-3880529767c0', 'nome': 'Fulano da Silva',
-                     'email': 'fulano@teste.com', 'registro_funcional': '1234567', 'cpf': None,
+                     'email': 'fulano@teste.com', 'registro_funcional': '1234567', 'cpf': '11111111111',
                      'tipo_usuario': 'gestao_alimentacao_terceirizada', 'cargo': ''}}]
 
 

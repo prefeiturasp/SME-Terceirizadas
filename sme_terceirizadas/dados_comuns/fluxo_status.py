@@ -1510,7 +1510,8 @@ class FluxoReclamacaoProduto(xwf_models.WorkflowEnabled, models.Model):
                 'DIRETOR CEI',
                 'ADMINISTRADOR_TERCEIRIZADA',
                 'NUTRI_ADMIN_RESPONSAVEL',
-                'SUPERVISAO_NUTRICAO']
+                'COORDENADOR_SUPERVISAO_NUTRICAO',
+                'ADMINISTRADOR_SUPERVISAO_NUTRICAO']
         )
         return [usuario.email for usuario in queryset]
 

@@ -26,7 +26,7 @@ def cria_vinculos():
         'perfil_cogestor_dre': Perfil.objects.get(nome='COGESTOR'),
         'perfil_usuario_codae': Perfil.objects.get(nome='COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA'),  # noqa
         'perfil_usuario_nutri_codae': Perfil.objects.get(nome='COORDENADOR_DIETA_ESPECIAL'),  # noqa
-        'perfil_usuario_nutri_supervisao': Perfil.objects.get(nome='SUPERVISAO_NUTRICAO'),  # noqa
+        'perfil_usuario_nutri_supervisao': Perfil.objects.get(nome='COORDENADOR_SUPERVISAO_NUTRICAO'),  # noqa
         'perfil_coordenador_gestao_produto': Perfil.objects.get(nome='COORDENADOR_GESTAO_PRODUTO'),  # noqa
         'perfil_usuario_terceirizada': Perfil.objects.get(nome='NUTRI_ADMIN_RESPONSAVEL'),  # noqa
     }
@@ -122,7 +122,10 @@ def cria_vinculos():
             )
 
     diretoria_regional = DiretoriaRegional.objects.get(nome='DIRETORIA REGIONAL DE EDUCACAO IPIRANGA')  # noqa
-    codae, created = Codae.objects.get_or_create(nome='CODAE')
+    codae_alimentacao, created = Codae.objects.get_or_create(nome='CODAE - GESTAO ALIMENTAÇÃO')
+    codae_dieta_especial, created = Codae.objects.get_or_create(nome='CODAE - GESTÃO DIETA ESPECIAL')
+    codae_produtos, created = Codae.objects.get_or_create(nome='CODAE - GESTÃO PRODUTOS')
+    codae_nutrisupervisao, created = Codae.objects.get_or_create(nome='CODAE - SUPERVISÃO DE NUTRIÇÃO')
     escola = Escola.objects.get(nome='EMEF JOSE ERMIRIO DE MORAIS, SEN.')  # noqa
     terceirizada = escola.lote.terceirizada
 
@@ -138,17 +141,17 @@ def cria_vinculos():
             'usuario': usuario['usuario_codae'],
         },
         {
-            'instituicao': codae,
+            'instituicao': codae_dieta_especial,
             'perfil': perfil['perfil_usuario_nutri_codae'],
             'usuario': usuario['usuario_nutri_codae'],
         },
         {
-            'instituicao': codae,
+            'instituicao': codae_nutrisupervisao,
             'perfil': perfil['perfil_usuario_nutri_supervisao'],
             'usuario': usuario['usuario_nutri_supervisao'],
         },
         {
-            'instituicao': codae,
+            'instituicao': codae_produtos,
             'perfil': perfil['perfil_coordenador_gestao_produto'],
             'usuario': usuario['usuario_gestao_produto_codae'],
         },

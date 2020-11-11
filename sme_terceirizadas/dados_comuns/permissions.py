@@ -6,10 +6,11 @@ from .constants import (
     ADMINISTRADOR_DIETA_ESPECIAL,
     ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
     ADMINISTRADOR_GESTAO_PRODUTO,
+    ADMINISTRADOR_SUPERVISAO_NUTRICAO,
     COORDENADOR_DIETA_ESPECIAL,
     COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
     COORDENADOR_GESTAO_PRODUTO,
-    SUPERVISAO_NUTRICAO
+    COORDENADOR_SUPERVISAO_NUTRICAO
 )
 
 
@@ -100,7 +101,8 @@ class UsuarioNutricionista(BasePermission):
             isinstance(usuario.vinculo_atual.instituicao, Codae) and
             usuario.vinculo_atual.perfil.nome in [COORDENADOR_DIETA_ESPECIAL,
                                                   ADMINISTRADOR_DIETA_ESPECIAL,
-                                                  SUPERVISAO_NUTRICAO]
+                                                  COORDENADOR_SUPERVISAO_NUTRICAO,
+                                                  ADMINISTRADOR_SUPERVISAO_NUTRICAO]
         )
 
 
@@ -209,9 +211,10 @@ class PermissaoParaRecuperarDietaEspecial(BasePermission):
             return (
                 usuario.vinculo_atual.perfil.nome in [COORDENADOR_DIETA_ESPECIAL,
                                                       ADMINISTRADOR_DIETA_ESPECIAL,
-                                                      SUPERVISAO_NUTRICAO,
+                                                      COORDENADOR_SUPERVISAO_NUTRICAO,
                                                       COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
-                                                      ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA]
+                                                      ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
+                                                      ADMINISTRADOR_SUPERVISAO_NUTRICAO]
             )
         elif isinstance(usuario.vinculo_atual.instituicao, Terceirizada):
             return (
@@ -233,7 +236,8 @@ class PermissaoParaReclamarDeProduto(BasePermission):
                     isinstance(usuario.vinculo_atual.instituicao, Codae) and
                     usuario.vinculo_atual.perfil.nome in [COORDENADOR_DIETA_ESPECIAL,
                                                           ADMINISTRADOR_DIETA_ESPECIAL,
-                                                          SUPERVISAO_NUTRICAO]
+                                                          COORDENADOR_SUPERVISAO_NUTRICAO,
+                                                          ADMINISTRADOR_SUPERVISAO_NUTRICAO]
                 )
             )
         )

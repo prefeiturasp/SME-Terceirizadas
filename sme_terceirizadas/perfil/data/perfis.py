@@ -30,7 +30,12 @@ data_perfis = [
         'super_usuario': True,
     },
     {
-        'nome': 'SUPERVISAO_NUTRICAO',
+        'nome': 'COORDENADOR_SUPERVISAO_NUTRICAO',
+        'ativo': True,
+        'super_usuario': True,
+    },
+    {
+        'nome': 'ADMINISTRADOR_SUPERVISAO_NUTRICAO',
         'ativo': True,
         'super_usuario': True,
     },
