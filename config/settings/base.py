@@ -86,6 +86,7 @@ THIRD_PARTY_APPS = [
     'django_prometheus',
     'rest_framework',
     'rest_framework_swagger',
+    'rest_framework_xml',
     'des',  # for email configuration in database
     'django_xworkflows',
     'simple_email_confirmation',
@@ -282,6 +283,9 @@ REST_FRAMEWORK = {
         'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.BasicAuthentication',
+    ),
+    'DEFAULT_PARSER_CLASSES': (
+        'rest_framework_xml.parsers.XMLParser',
     ),
     'DATETIME_FORMAT': '%d/%m/%Y %H:%M:%S',
     'DATETIME_INPUT_FORMATS': ['%d/%m/%Y %H:%M:%S', 'iso-8601'],
