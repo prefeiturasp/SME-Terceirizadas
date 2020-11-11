@@ -72,11 +72,12 @@
           <td>{{ solicitacao.data_termino|date:"SHORT_DATE_FORMAT"|default:'Sem data de término' }}</td>
         </tr>
       </table>
-
-        {% if solicitacao.observacoes %}
+      <hr />
+      {% if solicitacao.observacoes %}
           <h5>Observações</h5>
           <p>{{ solicitacao.observacoes|safe }}</p>
-        {% endif %}
+          </hr>
+      {% endif %}
 
       <table>
         <tr>
