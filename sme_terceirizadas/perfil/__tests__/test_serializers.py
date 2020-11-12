@@ -11,19 +11,19 @@ def test_usuario_serializer(usuario_serializer):
     assert usuario_serializer.data is not None
 
 
-def test_usuario_update_serializer_partial_update(monkeypatch, usuario_update_serializer, usuario_2):
+def test_usuario_update_serializer_partial_update(monkeypatch, usuario_update_serializer, usuario_3):
     dados_usuario = {
         'password': 'adminadmin',
         'confirmar_password': 'adminadmin',
         'email': 'nome.completo@sme.prefeitura.sp.gov.br',
-        'registro_funcional': '1234567',
-        'cpf': '11111111111'
+        'registro_funcional': '7654321',
+        'cpf': '22222222222'
     }
     monkeypatch.setattr(Usuario, 'pode_efetuar_cadastro', lambda: True)
-    usuario = usuario_update_serializer.partial_update(usuario_2, dados_usuario)
-    assert usuario.cpf == '11111111111'
+    usuario = usuario_update_serializer.partial_update(usuario_3, dados_usuario)
+    assert usuario.cpf == '22222222222'
     assert usuario.email == 'nome.completo@sme.prefeitura.sp.gov.br'
-    assert usuario.registro_funcional == '1234567'
+    assert usuario.registro_funcional == '7654321'
 
 
 def test_usuario_update_serializer_create(monkeypatch):
