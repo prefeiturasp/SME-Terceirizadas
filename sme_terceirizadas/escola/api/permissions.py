@@ -2,6 +2,7 @@ from rest_framework import permissions
 
 from ...dados_comuns.constants import (
     COGESTOR,
+    COORDENADOR_ESCOLA,
     COORDENADOR_DIETA_ESPECIAL,
     COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
     COORDENADOR_GESTAO_PRODUTO,
@@ -17,16 +18,12 @@ class PodeCriarAdministradoresDaEscola(permissions.BasePermission):
     def has_permission(self, request, view):
         usuario = request.user
         if not usuario.is_anonymous:
-            perfil_diretor = usuario.vinculo_atual.perfil.nome == DIRETOR
-            return perfil_diretor
+            return usuario.vinculo_atual.perfil.nome == COORDENADOR_ESCOLA
         return False
 
     def has_object_permission(self, request, view, obj):
         user = request.user
-        tem_vinculo_que_pode_criar_administradores = user.vinculo_atual.instituicao == obj
-        if tem_vinculo_que_pode_criar_administradores:
-            return True
-        return False
+        return user.vinculo_atual.instituicao == obj
 
 
 class PodeCriarAdministradoresDaDiretoriaRegional(permissions.BasePermission):
