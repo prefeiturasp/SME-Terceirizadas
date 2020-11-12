@@ -65,7 +65,14 @@ def usuario_3():
         cpf='22222222222',
         registro_funcional='7654321'
     )
-    mommy.make('Vinculo', usuario=user, perfil=mommy.make('Perfil'), ativo=True, data_inicial=datetime.date.today(), data_final=None)
+    mommy.make(
+        'Vinculo',
+        usuario=user,
+        perfil=mommy.make('Perfil'),
+        ativo=True,
+        data_inicial=datetime.date.today(),
+        data_final=None
+    )
     return user
 
 

@@ -39,7 +39,6 @@ def test_registro_funcional_e_cpf_sao_da_mesma_pessoa(usuario):
 
 
 def test_deve_ser_email_sme_ou_prefeitura(email_list):
-    print(email_list)
     email, _ = email_list
     assert deve_ser_email_sme_ou_prefeitura(email) is True
 

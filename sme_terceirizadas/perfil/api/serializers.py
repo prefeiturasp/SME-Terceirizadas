@@ -7,13 +7,13 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
 from ...dados_comuns.constants import (
-    ADMINISTRADOR_TERCEIRIZADA,
-    NUTRI_ADMIN_RESPONSAVEL,
+    ADMINISTRADOR_DIETA_ESPECIAL,
     ADMINISTRADOR_DRE,
     ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
-    ADMINISTRADOR_DIETA_ESPECIAL,
     ADMINISTRADOR_GESTAO_PRODUTO,
-    ADMINISTRADOR_SUPERVISAO_NUTRICAO
+    ADMINISTRADOR_SUPERVISAO_NUTRICAO,
+    ADMINISTRADOR_TERCEIRIZADA,
+    NUTRI_ADMIN_RESPONSAVEL
 )
 from ...dados_comuns.models import Contato
 from ...dados_comuns.tasks import envia_email_unico_task
@@ -213,7 +213,7 @@ class UsuarioUpdateSerializer(serializers.ModelSerializer):
             usuario.save()
         return usuario
 
-    def _validate(self, instance, attrs):
+    def _validate(self, instance, attrs):  # noqa C901
         senha_deve_ser_igual_confirmar_senha(attrs['password'], attrs['confirmar_password'])  # noqa
         cpf = attrs.get('cpf')
         cnpj = attrs.get('cnpj', None)
@@ -225,7 +225,6 @@ class UsuarioUpdateSerializer(serializers.ModelSerializer):
         if 'tipo_email' in attrs:
             registro_funcional_e_cpf_sao_da_mesma_pessoa(instance, attrs['registro_funcional'], attrs['cpf'])  # noqa
             usuario_pode_efetuar_cadastro(instance)
-        print(f'instance.vinculo_atual.perfil.nome={instance.vinculo_atual.perfil.nome}')
         if instance.vinculo_atual.perfil.nome in [
             ADMINISTRADOR_DRE,
             ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,

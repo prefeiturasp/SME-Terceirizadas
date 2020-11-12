@@ -22,10 +22,9 @@ from ..dados_comuns.behaviors import (
 )
 from ..dados_comuns.constants import (
     COGESTOR,
-    COORDENADOR_ESCOLA,
     COORDENADOR_DIETA_ESPECIAL,
+    COORDENADOR_ESCOLA,
     COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
-    DIRETOR,
     SUPLENTE
 )
 from ..dados_comuns.utils import queryset_por_data, subtrai_meses_de_data
