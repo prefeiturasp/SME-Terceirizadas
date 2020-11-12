@@ -1342,10 +1342,11 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
         ).values_list('usuario__email', flat=True)
         email_lista = [email for email in email_query_set_escola]
         if self.tipo_solicitacao != TIPO_SOLICITACAO_DIETA.get('COMUM'):
-            email_query_set_terceirizada = self.escola_destino.lote.terceirizada.vinculos.filter(
-                ativo=True
-            ).values_list('usuario__email', flat=True)
-            email_lista += [email for email in email_query_set_terceirizada]
+            if self.escola_destino.lote.terceirizada:
+                email_query_set_terceirizada = self.escola_destino.lote.terceirizada.vinculos.filter(
+                    ativo=True
+                ).values_list('usuario__email', flat=True)
+                email_lista += [email for email in email_query_set_terceirizada]
         return email_lista
 
     @property
