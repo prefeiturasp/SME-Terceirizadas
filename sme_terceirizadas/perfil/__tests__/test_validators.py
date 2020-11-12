@@ -2,7 +2,7 @@ import pytest
 from rest_framework.exceptions import ValidationError
 
 from ..api.validators import (
-    deve_ser_email_sme,
+    deve_ser_email_sme_ou_prefeitura,
     registro_funcional_e_cpf_sao_da_mesma_pessoa,
     senha_deve_ser_igual_confirmar_senha
 )
@@ -38,12 +38,12 @@ def test_registro_funcional_e_cpf_sao_da_mesma_pessoa(usuario):
         )
 
 
-def test_deve_ser_email_sme(email_list):
+def test_deve_ser_email_sme_ou_prefeitura(email_list):
     email, _ = email_list
-    assert deve_ser_email_sme(email) is True
+    assert deve_ser_email_sme_ou_prefeitura(email) is True
 
 
-def test_extensoes_invalidas(email_list_invalidos):
+def test_deve_ser_email_sme_ou_prefeitura_invalidos(email_list_invalidos):
     email, _ = email_list_invalidos
     with pytest.raises(ValidationError, match='Deve ser email da SME'):
-        deve_ser_email_sme(email)
+        deve_ser_email_sme_ou_prefeitura(email)

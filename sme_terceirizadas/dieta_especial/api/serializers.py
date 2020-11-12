@@ -112,6 +112,8 @@ class SolicitacaoDietaEspecialAutorizarSerializer(SolicitacaoDietaEspecialCreate
         instance.nome_protocolo = validated_data.get('nome_protocolo', '')
         data_termino = validated_data.get('data_termino', '')
         if data_termino:
+            data_termino = datetime.strptime(
+                data_termino, '%Y-%m-%d').date()
             instance.data_termino = data_termino
 
         instance.alergias_intolerancias.clear()

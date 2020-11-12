@@ -152,7 +152,7 @@ class EscolaSimplissimaViewSet(ListModelMixin, RetrieveModelMixin, GenericViewSe
     queryset = Escola.objects.all()
     serializer_class = EscolaSimplissimaSerializer
     filter_backends = (filters.DjangoFilterBackend,)
-    filterset_fields = ['codigo_eol', 'nome']
+    filterset_fields = ['codigo_eol', 'nome', 'diretoria_regional__uuid']
 
     @action(detail=False, methods=['GET'], url_path=f'{FILTRO_DRE_UUID}')
     def filtro_por_diretoria_regional(self, request, dre_uuid=None):

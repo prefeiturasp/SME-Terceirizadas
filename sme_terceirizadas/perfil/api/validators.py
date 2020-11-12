@@ -44,8 +44,8 @@ def usuario_pode_efetuar_cadastro(usuario: Usuario):
     return True
 
 
-def deve_ser_email_sme(email):
-    if '@sme.prefeitura.sp.gov.br' not in email:
+def deve_ser_email_sme_ou_prefeitura(email):
+    if '@sme.prefeitura.sp.gov.br' not in email and '@prefeitura.sp.gov.br' not in email:
         raise serializers.ValidationError('Deve ser email da SME')
     return True
 
