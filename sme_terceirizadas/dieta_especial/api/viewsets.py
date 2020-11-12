@@ -26,6 +26,7 @@ from ...relatorios.relatorios import (
     relatorio_geral_dieta_especial,
     relatorio_quantitativo_classificacao_dieta_especial,
     relatorio_quantitativo_diag_dieta_especial,
+    relatorio_quantitativo_diag_dieta_especial_somente_dietas_ativas,
     relatorio_quantitativo_solic_dieta_especial
 )
 from ..forms import (
@@ -389,10 +390,11 @@ class SolicitacaoDietaEspecialViewSet(
         if not form.is_valid():
             raise ValidationError(form.errors)
 
-        campos = self.get_campos_relatorio_quantitativo_diag_dieta_esp(
-            form.cleaned_data)
-        qs = self.get_queryset_relatorio_quantitativo_solic_dieta_esp(
-            form, campos)
+        if self.request.data.get('somente_dietas_ativas'):
+            campos = ['alergias_intolerancias__descricao']
+        else:
+            campos = self.get_campos_relatorio_quantitativo_diag_dieta_esp(form.cleaned_data)  # noqa
+        qs = self.get_queryset_relatorio_quantitativo_solic_dieta_esp(form, campos)  # noqa
 
         self.pagination_class = RelatorioPagination
         page = self.paginate_queryset(qs)
@@ -465,13 +467,28 @@ class SolicitacaoDietaEspecialViewSet(
         if not form.is_valid():
             raise ValidationError(form.errors)
 
-        campos = self.get_campos_relatorio_quantitativo_diag_dieta_esp(
-            form.cleaned_data)
-        qs = self.get_queryset_relatorio_quantitativo_solic_dieta_esp(
-            form, campos)
+        campos = self.get_campos_relatorio_quantitativo_diag_dieta_esp(form.cleaned_data)  # noqa
+        qs = self.get_queryset_relatorio_quantitativo_solic_dieta_esp(form, campos)  # noqa
         user = self.request.user
-
         return relatorio_quantitativo_diag_dieta_especial(campos, form, qs, user)
+
+    @action(
+        detail=False,
+        methods=['POST'],
+        url_path='imprime-relatorio-quantitativo-diag-dieta-esp/somente-dietas-ativas'
+    )
+    def imprime_relatorio_quantitativo_diag_dieta_esp_somente_dietas_ativas(self, request):  # noqa
+        form = RelatorioQuantitativoSolicDietaEspForm(self.request.data)
+        if not form.is_valid():
+            raise ValidationError(form.errors)
+
+        if self.request.data.get('somente_dietas_ativas'):
+            campos = ['alergias_intolerancias__descricao']
+        else:
+            campos = self.get_campos_relatorio_quantitativo_diag_dieta_esp(form.cleaned_data)  # noqa
+        qs = self.get_queryset_relatorio_quantitativo_solic_dieta_esp(form, campos)  # noqa
+        user = self.request.user
+        return relatorio_quantitativo_diag_dieta_especial_somente_dietas_ativas(campos, form, qs, user)  # noqa
 
     @action(detail=False, methods=['POST'], url_path='relatorio-dieta-especial')  # noqa C901
     def relatorio_dieta_especial(self, request):
@@ -563,8 +580,7 @@ class SolicitacaoDietaEspecialViewSet(
             serializer.save()
             return Response(status=HTTP_201_CREATED)
         else:
-            return Response(serializer.errors,
-                            status=HTTP_400_BAD_REQUEST)
+            return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
 
 
 class SolicitacoesAtivasInativasPorAlunoView(generics.ListAPIView):
