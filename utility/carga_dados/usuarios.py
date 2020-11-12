@@ -150,6 +150,14 @@ USUARIOS = [
         'nome': 'SUPER USUARIO DILOG',
         'cargo': 'Gerente',
     },
+    {
+        'email': 'emefjoseermiriodemorais@admin.com',
+        'password': 'adminadmin',
+        'cpf': '',
+        'registro_funcional': '',
+        'nome': 'COORD EMEF JOSE ERMIRIO',
+        'cargo': '',
+    },
 ]
 
 
