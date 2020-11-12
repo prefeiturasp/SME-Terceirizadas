@@ -465,7 +465,22 @@ def relatorio_quantitativo_classificacao_dieta_especial(campos, form, queryset, 
 
 def relatorio_quantitativo_diag_dieta_especial(campos, form, queryset, user):
     return get_relatorio_dieta_especial(
-        campos, form, queryset, user, 'relatorio_quantitativo_diagnostico_dieta_especial')
+        campos,
+        form,
+        queryset,
+        user,
+        'relatorio_quantitativo_diagnostico_dieta_especial'
+    )
+
+
+def relatorio_quantitativo_diag_dieta_especial_somente_dietas_ativas(campos, form, queryset, user):
+    return get_relatorio_dieta_especial(
+        campos,
+        form,
+        queryset,
+        user,
+        'relatorio_quantitativo_diagnostico_dieta_especial_somente_dietas_ativas'
+    )
 
 
 def relatorio_geral_dieta_especial(form, queryset, user):
