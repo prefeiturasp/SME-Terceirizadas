@@ -142,6 +142,14 @@ USUARIOS = [
         'nome': 'SUPER USUARIO ESCOLA CEU EMEF',
         'cargo': 'Diretor',
     },
+    {
+        'email': 'dilog@admin.com',
+        'password': 'adminadmin',
+        'cpf': '11111111117',
+        'registro_funcional': '1110000',
+        'nome': 'SUPER USUARIO DILOG',
+        'cargo': 'Gerente',
+    },
 ]
 
 
