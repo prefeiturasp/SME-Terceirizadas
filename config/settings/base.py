@@ -87,6 +87,7 @@ THIRD_PARTY_APPS = [
     'rest_framework',
     'rest_framework_swagger',
     'rest_framework_xml',
+    'rest_framework.authtoken',
     'des',  # for email configuration in database
     'django_xworkflows',
     'simple_email_confirmation',
@@ -283,6 +284,7 @@ REST_FRAMEWORK = {
         'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
     ),
     'DEFAULT_PARSER_CLASSES': (
         'rest_framework_xml.parsers.XMLParser',
