@@ -43,7 +43,7 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
         serializer = SolicitacaoRemessaSerializer(instance)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    @action(detail=True, permission_classes=(IsAuthenticated,),
+    @action(detail=True, permission_classes=(UsuarioDilogCodae,),
             methods=['patch'], url_path='envia-solicitacao')
     def incia_fluxo_solicitacao(self, request, uuid=None):
         solicitacao = SolicitacaoRemessa.objects.get(uuid=uuid)
@@ -56,7 +56,7 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=status.HTTP_400_BAD_REQUEST)
 
-    @action(detail=True, permission_classes=(IsAuthenticated,),
+    @action(detail=True, permission_classes=(UsuarioDilogCodae,),
             methods=['patch'], url_path='distribuidor-confirma')
     def distribuidor_confirma_hook(self, request, uuid=None):
         solicitacao = SolicitacaoRemessa.objects.get(uuid=uuid)
