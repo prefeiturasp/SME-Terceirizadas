@@ -5,8 +5,8 @@ from .api import viewsets
 
 router = routers.DefaultRouter()
 
-router.register('solicitacoes-remessas', viewsets.SolicitacaoModelViewSet,
-                basename='solicitacoes-remessas')
+router.register('solicitacao-remessa', viewsets.SolicitacaoModelViewSet,
+                basename='solicitacao-remessa')
 
 urlpatterns = [
     path('', include(router.urls)),

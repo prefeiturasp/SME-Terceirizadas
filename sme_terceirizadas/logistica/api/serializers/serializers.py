@@ -1,6 +1,8 @@
 from rest_framework import serializers
 
 from sme_terceirizadas.logistica.models import Alimento, Guia, SolicitacaoRemessa
+from sme_terceirizadas.dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
+from sme_terceirizadas.dados_comuns.models import LogSolicitacoesUsuario
 
 
 class AlimentoSerializer(serializers.ModelSerializer):
@@ -27,6 +29,13 @@ class GuiaSerializer(serializers.ModelSerializer):
 
 class SolicitacaoRemessaSerializer(serializers.ModelSerializer):
     guias = serializers.SerializerMethodField()
+    logs = serializers.SerializerMethodField()
+
+    def get_logs(self, obj):
+        return LogSolicitacoesUsuarioSerializer(
+            LogSolicitacoesUsuario.objects.filter(uuid_original=obj.uuid).order_by('criado_em'),
+            many=True
+        ).data
 
     def get_guias(self, obj):
         return GuiaSerializer(
