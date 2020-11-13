@@ -23,8 +23,8 @@ from ..dados_comuns.behaviors import (
 from ..dados_comuns.constants import (
     COGESTOR,
     COORDENADOR_DIETA_ESPECIAL,
+    COORDENADOR_ESCOLA,
     COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
-    DIRETOR,
     SUPLENTE
 )
 from ..dados_comuns.utils import queryset_por_data, subtrai_meses_de_data
@@ -355,7 +355,7 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
         return self.vinculos.filter(
             Q(data_inicial=None, data_final=None, ativo=False) |  # noqa W504 esperando ativacao
             Q(data_inicial__isnull=False, data_final=None, ativo=True)  # noqa W504 ativo
-        ).exclude(perfil__nome=DIRETOR)
+        ).exclude(perfil__nome=COORDENADOR_ESCOLA)
 
     @property
     def grupos_inclusoes(self):

@@ -385,10 +385,16 @@ class EscolaPeriodoEscolarSerializer(serializers.ModelSerializer):
         fields = ('uuid', 'quantidade_alunos', 'escola', 'periodo_escolar')
 
 
+class ReponsavelSerializer(serializers.Serializer):
+    cpf = serializers.CharField()
+    nome = serializers.CharField()
+
+
 class AlunoSerializer(serializers.ModelSerializer):
     escola = EscolaSimplesSerializer(required=False)
     nome_escola = serializers.SerializerMethodField()
     nome_dre = serializers.SerializerMethodField()
+    responsaveis = ReponsavelSerializer(many=True)
 
     def get_nome_escola(self, obj):
         return f'{obj.escola.nome}' if obj.escola else None
@@ -405,7 +411,9 @@ class AlunoSerializer(serializers.ModelSerializer):
             'codigo_eol',
             'escola',
             'nome_escola',
-            'nome_dre'
+            'nome_dre',
+            'responsaveis',
+            'cpf'
         )
 
 
@@ -414,11 +422,6 @@ class AlunoSimplesSerializer(serializers.ModelSerializer):
     class Meta:
         model = Aluno
         fields = ('uuid', 'nome', 'data_nascimento', 'codigo_eol')
-
-
-class ReponsavelSerializer(serializers.Serializer):
-    cpf = serializers.CharField()
-    nome = serializers.CharField()
 
 
 class AlunoNaoMatriculadoSerializer(serializers.ModelSerializer):

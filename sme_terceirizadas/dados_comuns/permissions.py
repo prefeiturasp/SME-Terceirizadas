@@ -10,6 +10,7 @@ from .constants import (
     COORDENADOR_DIETA_ESPECIAL,
     COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
     COORDENADOR_GESTAO_PRODUTO,
+    COORDENADOR_LOGISTICA,
     COORDENADOR_SUPERVISAO_NUTRICAO
 )
 
@@ -240,4 +241,17 @@ class PermissaoParaReclamarDeProduto(BasePermission):
                                                           ADMINISTRADOR_SUPERVISAO_NUTRICAO]
                 )
             )
+        )
+
+
+class UsuarioDilogCodae(BasePermission):
+    """Permite acesso a usuários com vinculo a CODAE - Dieta Especial."""
+
+    def has_permission(self, request, view):
+        usuario = request.user
+        return (
+            not usuario.is_anonymous and
+            usuario.vinculo_atual and
+            isinstance(usuario.vinculo_atual.instituicao, Codae) and
+            usuario.vinculo_atual.perfil.nome in [COORDENADOR_LOGISTICA]
         )

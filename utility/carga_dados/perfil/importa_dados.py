@@ -25,6 +25,7 @@ def cria_vinculos():
         'perfil_diretor_escola_cei': Perfil.objects.get(nome='DIRETOR_CEI'),
         'perfil_cogestor_dre': Perfil.objects.get(nome='COGESTOR'),
         'perfil_usuario_codae': Perfil.objects.get(nome='COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA'),  # noqa
+        'perfil_usuario_dilog': Perfil.objects.get(nome='COORDENADOR_LOGISTICA'),  # noqa
         'perfil_usuario_nutri_codae': Perfil.objects.get(nome='COORDENADOR_DIETA_ESPECIAL'),  # noqa
         'perfil_usuario_nutri_supervisao': Perfil.objects.get(nome='COORDENADOR_SUPERVISAO_NUTRICAO'),  # noqa
         'perfil_coordenador_gestao_produto': Perfil.objects.get(nome='COORDENADOR_GESTAO_PRODUTO'),  # noqa
@@ -44,6 +45,7 @@ def cria_vinculos():
         'usuario_escola_ceu_emef': Usuario.objects.get(email='escolaceuemef@admin.com'),
         'usuario_dre': Usuario.objects.get(email='dre@admin.com'),
         'usuario_codae': Usuario.objects.get(email='codae@admin.com'),
+        'usuario_dilog': Usuario.objects.get(email='dilog@admin.com'),
         'usuario_nutri_codae': Usuario.objects.get(email='nutricodae@admin.com'),
         'usuario_nutri_supervisao': Usuario.objects.get(email='nutrisupervisao@admin.com'),
         'usuario_gestao_produto_codae': Usuario.objects.get(email='gpcodae@admin.com'),
@@ -123,6 +125,7 @@ def cria_vinculos():
 
     diretoria_regional = DiretoriaRegional.objects.get(nome='DIRETORIA REGIONAL DE EDUCACAO IPIRANGA')  # noqa
     codae_alimentacao, created = Codae.objects.get_or_create(nome='CODAE - GESTAO ALIMENTAÇÃO')
+    dilog, created = Codae.objects.get_or_create(nome='CODAE - DILOG')
     codae_dieta_especial, created = Codae.objects.get_or_create(nome='CODAE - GESTÃO DIETA ESPECIAL')
     codae_produtos, created = Codae.objects.get_or_create(nome='CODAE - GESTÃO PRODUTOS')
     codae_nutrisupervisao, created = Codae.objects.get_or_create(nome='CODAE - SUPERVISÃO DE NUTRIÇÃO')
@@ -136,9 +139,14 @@ def cria_vinculos():
             'usuario': usuario['usuario_dre'],
         },
         {
-            'instituicao': codae,
+            'instituicao': codae_alimentacao,
             'perfil': perfil['perfil_usuario_codae'],
             'usuario': usuario['usuario_codae'],
+        },
+        {
+            'instituicao': dilog,
+            'perfil': perfil['perfil_usuario_dilog'],
+            'usuario': usuario['usuario_dilog'],
         },
         {
             'instituicao': codae_dieta_especial,
