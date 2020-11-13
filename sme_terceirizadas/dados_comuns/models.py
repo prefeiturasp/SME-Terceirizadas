@@ -61,9 +61,16 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
         CODAE_RESPONDEU_RECLAMACAO,
 
         # ESPECIFICA SOLICITAÇÂO CADASTRO PRODUTO
-        TERCEIRIZADA_ATENDE_SOLICITACAO_CADASTRO
+        TERCEIRIZADA_ATENDE_SOLICITACAO_CADASTRO,
 
-    ) = range(36)
+        # ESPECIFICA SOLICITAÇÃO DE REMESSA
+        INICIO_FLUXO_SOLICITACAO,
+        DILOG_ENVIA_SOLICITACAO,
+        DISTRIBUIDOR_CONFIRMA_SOLICITACAO,
+        DISTRIBUIDOR_SOLICITA_ALTERACAO_SOLICITACAO,
+        PAPA_CANCELA_SOLICITACAO
+
+    ) = range(41)
 
     STATUS_POSSIVEIS = (
         (INICIO_FLUXO, 'Solicitação Realizada'),
@@ -100,7 +107,12 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
         (CODAE_QUESTIONOU_TERCEIRIZADA, 'CODAE questionou terceirizada sobre reclamação'),  # noqa
         (CODAE_RESPONDEU_RECLAMACAO, 'CODAE respondeu ao reclamante da reclamação'),
         (TERCEIRIZADA_RESPONDEU_RECLAMACAO, 'Terceirizada respondeu a reclamação'),
-        (TERCEIRIZADA_RESPONDEU_ANALISE_SENSORIAL, 'Terceirizada respondeu a análise')  # noqa
+        (TERCEIRIZADA_RESPONDEU_ANALISE_SENSORIAL, 'Terceirizada respondeu a análise'),  # noqa
+        (INICIO_FLUXO_SOLICITACAO, 'Papa enviou solicitação de remessa'),
+        (DILOG_ENVIA_SOLICITACAO, 'DILOG enviou solicitação de remessa'),
+        (DISTRIBUIDOR_CONFIRMA_SOLICITACAO, 'Distribuidor confirmou solicitação de remessa'),  # noqa
+        (DISTRIBUIDOR_SOLICITA_ALTERACAO_SOLICITACAO, 'Distribuidor pede alteração da solicitação de remessa'),  # noqa
+        (PAPA_CANCELA_SOLICITACAO, 'Papa cancelou solicitação de remessa'),
     )
     (  # DA ESCOLA
         SOLICITACAO_KIT_LANCHE_AVULSA,
@@ -117,8 +129,9 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
         # DA TERCEIRIZADA
         HOMOLOGACAO_PRODUTO,
         # PRODUTOS
-        RECLAMACAO_PRODUTO
-    ) = range(12)
+        RECLAMACAO_PRODUTO,
+        SOLICITACAO_REMESSA_PAPA
+    ) = range(13)
 
     TIPOS_SOLICITACOES = (
         (SOLICITACAO_KIT_LANCHE_AVULSA, 'Solicitação de kit lanche avulsa'),
@@ -133,7 +146,8 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
         (SOLICITACAO_KIT_LANCHE_UNIFICADA, 'Solicitação de kit lanche unificada'),
         (HOMOLOGACAO_PRODUTO, 'Homologação de Produto'),
         (RECLAMACAO_PRODUTO, 'Reclamação de Produto'),
-        (TERCEIRIZADA_RESPONDEU_ANALISE_SENSORIAL, 'Responde Análise Sensorial')
+        (TERCEIRIZADA_RESPONDEU_ANALISE_SENSORIAL, 'Responde Análise Sensorial'),
+        (SOLICITACAO_REMESSA_PAPA, 'Solicitação de remessa')
     )
 
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
