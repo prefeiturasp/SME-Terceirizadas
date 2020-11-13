@@ -4,6 +4,29 @@ from ...dados_comuns.behaviors import ModeloBase
 from .solicitacao import SolicitacaoRemessa
 
 
+class GuiaManager(models.Manager):
+
+    def create_guia(self, StrNumGui, DtEntrega, StrCodUni, StrNomUni,
+                    StrEndUni, StrNumUni, StrBaiUni, StrCepUni,
+                    StrCidUni, StrEstUni, StrConUni, StrTelUni,
+                    solicitacao):
+        return self.create(
+            numero_guia=StrNumGui,
+            data_entrega=DtEntrega,
+            codigo_unidade=StrCodUni,
+            nome_unidade=StrNomUni,
+            endereco_unidade=StrEndUni,
+            numero_unidade=StrNumUni,
+            bairro_unidade=StrBaiUni,
+            cep_unidade=StrCepUni,
+            cidade_unidade=StrCidUni,
+            estado_unidade=StrEstUni,
+            contato_unidade=StrConUni,
+            telefone_unidade=StrTelUni,
+            solicitacao=solicitacao
+        )
+
+
 class Guia(ModeloBase):
     # Status Choice
     STATUS_INTEGRADA = 'INTEGRADA'
@@ -36,6 +59,8 @@ class Guia(ModeloBase):
         choices=STATUS_CHOICES,
         default=STATUS_INTEGRADA
     )
+
+    objects = GuiaManager()
 
     def __str__(self):
         return f'Guia: {self.numero_guia} - {self.status} da solicitação: {self.solicitacao.numero_solicitacao}'

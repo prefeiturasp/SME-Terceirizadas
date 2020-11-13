@@ -4,6 +4,15 @@ from django.db import models
 from ...dados_comuns.behaviors import ModeloBase
 
 
+class SolicitacaoRemessaManager(models.Manager):
+
+    def create_solicitacao(self, StrCnpj, StrNumSol):
+        return self.create(
+            cnpj=StrCnpj,
+            numero_solicitacao=StrNumSol
+        )
+
+
 class SolicitacaoRemessa(ModeloBase):
     # Status Choice
     STATUS_INTEGRADA = 'INTEGRADA'
@@ -23,6 +32,8 @@ class SolicitacaoRemessa(ModeloBase):
         choices=STATUS_CHOICES,
         default=STATUS_INTEGRADA
     )
+
+    objects = SolicitacaoRemessaManager()
 
     def __str__(self):
         return f'Solicitação: {self.numero_solicitacao} - Status: {self.status}'
