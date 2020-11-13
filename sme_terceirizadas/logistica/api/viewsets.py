@@ -4,16 +4,14 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from xworkflows import InvalidTransitionError
 
-from sme_terceirizadas.dados_comuns.parser_xml import ListXMLParser
 from sme_terceirizadas.dados_comuns.models import LogSolicitacoesUsuario
+from sme_terceirizadas.dados_comuns.parser_xml import ListXMLParser
 from sme_terceirizadas.logistica.api.serializers.serializer_create import SolicitacaoRemessaCreateSerializer
 from sme_terceirizadas.logistica.api.serializers.serializers import (
     SolicitacaoRemessaSerializer,
     XmlParserSolicitacaoSerializer
 )
 from sme_terceirizadas.logistica.models import SolicitacaoRemessa
-
-from sme_terceirizadas.perfil.models import Usuario
 
 STR_XML_BODY = '{http://schemas.xmlsoap.org/soap/envelope/}Body'
 STR_ARQUIVO_SOLICITACAO = 'ArqSolicitacaoMOD'

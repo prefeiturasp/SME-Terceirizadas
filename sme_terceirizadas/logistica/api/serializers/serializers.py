@@ -1,8 +1,8 @@
 from rest_framework import serializers
 
-from sme_terceirizadas.logistica.models import Alimento, Guia, SolicitacaoRemessa
 from sme_terceirizadas.dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
 from sme_terceirizadas.dados_comuns.models import LogSolicitacoesUsuario
+from sme_terceirizadas.logistica.models import Alimento, Guia, SolicitacaoRemessa
 
 
 class AlimentoSerializer(serializers.ModelSerializer):

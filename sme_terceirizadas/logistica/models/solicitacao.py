@@ -1,13 +1,11 @@
 from django.core.validators import MinLengthValidator
 from django.db import models
 
-from ...dados_comuns.behaviors import ModeloBase
-from sme_terceirizadas.dados_comuns.behaviors import (
-    Logs,
-    TemIdentificadorExternoAmigavel
-)
+from sme_terceirizadas.dados_comuns.behaviors import Logs, TemIdentificadorExternoAmigavel
 from sme_terceirizadas.dados_comuns.fluxo_status import FluxoSolicitacaoRemessa
 from sme_terceirizadas.dados_comuns.models import LogSolicitacoesUsuario
+
+from ...dados_comuns.behaviors import ModeloBase
 
 
 class SolicitacaoRemessaManager(models.Manager):
