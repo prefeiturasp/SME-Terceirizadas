@@ -32,6 +32,8 @@ class ListXMLParser(XMLParser):
     def _xml_convert(self, element):
         children = list(element)
         if len(children) == 0:
+            if 'Str' in element.tag:
+                return element.text
             return self._type_convert(element.text)
         else:
             data = check_and_returns_data_from_element(self, element)
