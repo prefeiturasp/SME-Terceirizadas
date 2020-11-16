@@ -232,7 +232,7 @@ class UsuarioUpdateSerializer(serializers.ModelSerializer):
             ADMINISTRADOR_GESTAO_PRODUTO,
             ADMINISTRADOR_SUPERVISAO_NUTRICAO
         ]:
-            deve_ser_email_sme_ou_prefeitura(instance.email)
+            deve_ser_email_sme_ou_prefeitura(attrs['email'])
 
         return attrs
 
