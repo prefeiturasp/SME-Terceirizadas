@@ -286,9 +286,6 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.TokenAuthentication',
     ),
-    'DEFAULT_PARSER_CLASSES': (
-        'rest_framework_xml.parsers.XMLParser',
-    ),
     'DATETIME_FORMAT': '%d/%m/%Y %H:%M:%S',
     'DATETIME_INPUT_FORMATS': ['%d/%m/%Y %H:%M:%S', 'iso-8601'],
     'DATE_FORMAT': '%d/%m/%Y',
