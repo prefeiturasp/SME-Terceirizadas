@@ -55,25 +55,40 @@
     <div class="bloco-pescritor-dieta-especial">
       <table>
         <tr>
-          <th class="w-75">Nome do Pescritor</th>
-          <th class="w-25">Registro Funcional</th>
+          <th class="w-50">Nome do Pescritor</th>
+          <th class="w-50">Registro Funcional</th>
         </tr>
         <tr>
           <td>{{ solicitacao.nome_completo_pescritor }}</td>
           <td>{{ solicitacao.registro_funcional_pescritor }}</td>
         </tr>
       </table>
-        {% if solicitacao.tipo_solicitacao == 'ALTERACAO_UE'%}
-          <h5>Data de término</h5>
-          <p>{{ solicitacao.data_final_alteracao }}</p>
-        {% elif solicitacao.data_termino %}
-          <h5>Data de término</h5>
-          <p>{{ solicitacao.data_termino }}</p>
-        {% endif %}
-        {% if solicitacao.observacoes %}
+      <hr />
+       <table>
+        <tr>
+          <th class="w-50">Data de término</th>
+        </tr>
+        <tr>
+          <td>{{ solicitacao.data_termino|date:"SHORT_DATE_FORMAT"|default:'Sem data de término' }}</td>
+        </tr>
+      </table>
+      <hr />
+      {% if solicitacao.observacoes %}
           <h5>Observações</h5>
           <p>{{ solicitacao.observacoes|safe }}</p>
-        {% endif %}
+          </hr>
+      {% endif %}
+
+      <table>
+        <tr>
+          <th class="w-50">Motivo da alteração</th>
+          <th class="w-50">Observações da alteração</th>
+        </tr>
+        <tr>
+          <td>{{ solicitacao.motivo_alteracao_ue.nome }}</td>
+          <td>{{ solicitacao.observacoes_alteracao|striptags|safe|default:'' }}</td>
+        </tr>
+      </table>
       <hr/>
     </div>
     <div class="bloco-relacao-por-diagnostico">

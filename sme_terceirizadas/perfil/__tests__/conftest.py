@@ -55,6 +55,27 @@ def usuario_2():
     )
 
 
+@pytest.fixture
+def usuario_3():
+    user = mommy.make(
+        models.Usuario,
+        uuid='155743d3-b16d-4899-8224-efc694053055',
+        nome='Siclano Souza',
+        email='siclano@teste.com',
+        cpf='22222222222',
+        registro_funcional='7654321'
+    )
+    mommy.make(
+        'Vinculo',
+        usuario=user,
+        perfil=mommy.make('Perfil'),
+        ativo=True,
+        data_inicial=datetime.date.today(),
+        data_final=None
+    )
+    return user
+
+
 @pytest.fixture()
 def usuario_com_rf_de_diretor(escola):
     hoje = datetime.date.today()
@@ -204,7 +225,7 @@ def users_diretor_escola(client, django_user_model, request, usuario_2):
     perfil_professor = mommy.make('Perfil', nome='ADMINISTRADOR_ESCOLA', ativo=False,
                                   uuid='48330a6f-c444-4462-971e-476452b328b2')
     perfil_diretor = mommy.make(
-        'Perfil', nome='DIRETOR', ativo=True, uuid='41c20c8b-7e57-41ed-9433-ccb92e8afaf1')
+        'Perfil', nome='COORDENADOR_ESCOLA', ativo=True, uuid='41c20c8b-7e57-41ed-9433-ccb92e8afaf1')
 
     hoje = datetime.date.today()
     mommy.make('Vinculo', usuario=user, instituicao=escola, perfil=perfil_professor,
@@ -389,13 +410,14 @@ def usuarios_pendentes_confirmacao(request, perfil):
 
 @pytest.fixture(params=[
     # email, esprado
-    ('tebohelleb-2297@sme.prefeitura.sp.gov.br',
-     't*************7@sme.prefeitura.sp.gov.br'),
-    ('surracecyss-9018@sme.prefeitura.sp.gov.br',
-     's**************8@sme.prefeitura.sp.gov.br'),
-    ('zoffexupi-7784@sme.prefeitura.sp.gov.br',
-     'z************4@sme.prefeitura.sp.gov.br'),
-    ('fulano157@sme.prefeitura.sp.gov.br', 'f*******7@sme.prefeitura.sp.gov.br')
+    ('tebohelleb-2297@sme.prefeitura.sp.gov.br', 't*************7@sme.prefeitura.sp.gov.br'),
+    ('surracecyss-9018@sme.prefeitura.sp.gov.br', 's**************8@sme.prefeitura.sp.gov.br'),
+    ('zoffexupi-7784@sme.prefeitura.sp.gov.br', 'z************4@sme.prefeitura.sp.gov.br'),
+    ('fulano157@sme.prefeitura.sp.gov.br', 'f*******7@sme.prefeitura.sp.gov.br'),
+    ('tebohelleb-2297@prefeitura.sp.gov.br', 't*************7@prefeitura.sp.gov.br'),
+    ('surracecyss-9018@prefeitura.sp.gov.br', 's**************8@prefeitura.sp.gov.br'),
+    ('zoffexupi-7784@prefeitura.sp.gov.br', 'z************4@prefeitura.sp.gov.br'),
+    ('fulano157@prefeitura.sp.gov.br', 'f*******7@prefeitura.sp.gov.br')
 ])
 def email_list(request):
     return request.param
@@ -403,13 +425,14 @@ def email_list(request):
 
 @pytest.fixture(params=[
     # email, esprado
-    ('tebohelleb-2297@smea.prefeitura.sp.gov.br',
-     't*************7@sme.prefeitura.sp.gov.br'),
-    ('surracecyss-9018@smes.prefeitura.sp.gov.br',
-     's**************8@sme.prefeitura.sp.gov.br'),
-    ('zoffexupi-7784@smed.prefeitura.sp.gov.br',
-     'z************4@sme.prefeitura.sp.gov.br'),
-    ('fulano157@smea.prefeitura.sp.gov.br', 'f*******7@sme.prefeitura.sp.gov.br')
+    ('tebohelleb-2297@smea.prefeitura.sp.gov.br', 't*************7@sme.prefeitura.sp.gov.br'),
+    ('surracecyss-9018@smes.prefeitura.sp.gov.br', 's**************8@sme.prefeitura.sp.gov.br'),
+    ('zoffexupi-7784@smed.prefeitura.sp.gov.br', 'z************4@sme.prefeitura.sp.gov.br'),
+    ('fulano157@smea.prefeitura.sp.gov.br', 'f*******7@sme.prefeitura.sp.gov.br'),
+    ('tebohelleb-2297@prefeituraa.sp.gov.br', 't*************7@prefeiturab.sp.gov.br'),
+    ('surracecyss-9018@prefeiturab.sp.gov.br', 's**************8@prefeiturac.sp.gov.br'),
+    ('zoffexupi-7784@prefeiturac.sp.gov.br', 'z************4@prefeiturad.sp.gov.br'),
+    ('fulano157@prefeiturad.sp.gov.br', 'f*******7@prefeiturae.sp.gov.br')
 ])
 def email_list_invalidos(request):
     return request.param

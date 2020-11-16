@@ -120,12 +120,7 @@ class SolicitacaoDietaEspecial(
         on_delete=models.CASCADE
     )
 
-    data_inicial_alteracao = models.DateField(
-        null=True,
-        blank=True
-    )
-
-    data_final_alteracao = models.DateField(
+    data_inicio = models.DateField(
         null=True,
         blank=True
     )

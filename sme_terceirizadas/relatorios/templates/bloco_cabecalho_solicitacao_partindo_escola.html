@@ -11,17 +11,26 @@
         <div>Solicitante</div>
         <div>{{ escola.nome }}</div>
     </div>
-    <div class="info w-25">
+    <div class="info w-10">
       <div>Lote</div>
-      <div>{{ escola.lote.nome|slice:"5:15" }}</div>
+      <div>{{ lote.nome|slice:"5:15" }}</div>
     </div>
-    <div class="info w-25">
+    <div class="info w-15">
       <div>Tipo de gestão</div>
       <div>{{ escola.tipo_gestao.nome|slice:"5:15" }}</div>
     </div>
   </div>
-  <div>
-    <hr style="color: #EEEEEE; opacity: 0.3">
+  {% if solicitacao.tipo_solicitacao != 'COMUM'%}
+  <div class="row id-pedido">
+      <div class="info w-100">
+        <div>Tipo da solicitação</div>
+        {% if solicitacao.tipo_solicitacao == 'ALTERACAO_UE'%}
+          <div>ALTERAÇÂO DE U.E</div>
+        {% else%}
+          <div>ALUNOS NÂO MATRICULADOS</div>
+        {%endif%}
+      </div>
   </div>
-
+  {% endif%}
+   <hr style="color: #EEEEEE; opacity: 0.3">
 {% endblock %}

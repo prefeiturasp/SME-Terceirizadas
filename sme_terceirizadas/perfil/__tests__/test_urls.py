@@ -175,7 +175,7 @@ def test_get_meus_dados_diretor_escola(users_diretor_escola):
                                    'codigo_eol': '987656'},
             'tipo_unidade_escolar': '56725de5-89d3-4edf-8633-3e0b5c99e9d4'
         },
-        'perfil': {'nome': 'DIRETOR', 'uuid': '41c20c8b-7e57-41ed-9433-ccb92e8afaf1'}}
+        'perfil': {'nome': 'COORDENADOR_ESCOLA', 'uuid': '41c20c8b-7e57-41ed-9433-ccb92e8afaf1'}}
 
 
 def test_cadastro_vinculo_diretor_escola(users_diretor_escola, monkeypatch):
@@ -669,7 +669,7 @@ def test_cadastro_diretor(client, users_diretor_escola, monkeypatch):
                                    'codigo_eol': '987656'},
             'tipo_unidade_escolar': '56725de5-89d3-4edf-8633-3e0b5c99e9d4'
         },
-        'perfil': {'nome': 'DIRETOR', 'uuid': '41c20c8b-7e57-41ed-9433-ccb92e8afaf1'}}
+        'perfil': {'nome': 'COORDENADOR_ESCOLA', 'uuid': '41c20c8b-7e57-41ed-9433-ccb92e8afaf1'}}
 
 
 def test_post_usuarios(client_autenticado):

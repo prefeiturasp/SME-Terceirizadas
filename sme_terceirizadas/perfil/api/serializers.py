@@ -6,7 +6,15 @@ from rest_framework import serializers, status
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
-from ...dados_comuns.constants import ADMINISTRADOR_TERCEIRIZADA, NUTRI_ADMIN_RESPONSAVEL
+from ...dados_comuns.constants import (
+    ADMINISTRADOR_DIETA_ESPECIAL,
+    ADMINISTRADOR_DRE,
+    ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
+    ADMINISTRADOR_GESTAO_PRODUTO,
+    ADMINISTRADOR_SUPERVISAO_NUTRICAO,
+    ADMINISTRADOR_TERCEIRIZADA,
+    NUTRI_ADMIN_RESPONSAVEL
+)
 from ...dados_comuns.models import Contato
 from ...dados_comuns.tasks import envia_email_unico_task
 from ...eol_servico.utils import EOLException, EOLService
@@ -14,6 +22,7 @@ from ...perfil.api.validators import usuario_e_das_terceirizadas
 from ...terceirizada.models import Terceirizada
 from ..models import Perfil, Usuario, Vinculo
 from .validators import (
+    deve_ser_email_sme_ou_prefeitura,
     deve_ter_mesmo_cpf,
     registro_funcional_e_cpf_sao_da_mesma_pessoa,
     senha_deve_ser_igual_confirmar_senha,
@@ -204,7 +213,7 @@ class UsuarioUpdateSerializer(serializers.ModelSerializer):
             usuario.save()
         return usuario
 
-    def _validate(self, instance, attrs):
+    def _validate(self, instance, attrs):  # noqa C901
         senha_deve_ser_igual_confirmar_senha(attrs['password'], attrs['confirmar_password'])  # noqa
         cpf = attrs.get('cpf')
         cnpj = attrs.get('cnpj', None)
@@ -216,6 +225,15 @@ class UsuarioUpdateSerializer(serializers.ModelSerializer):
         if 'tipo_email' in attrs:
             registro_funcional_e_cpf_sao_da_mesma_pessoa(instance, attrs['registro_funcional'], attrs['cpf'])  # noqa
             usuario_pode_efetuar_cadastro(instance)
+        if instance.vinculo_atual.perfil.nome in [
+            ADMINISTRADOR_DRE,
+            ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
+            ADMINISTRADOR_DIETA_ESPECIAL,
+            ADMINISTRADOR_GESTAO_PRODUTO,
+            ADMINISTRADOR_SUPERVISAO_NUTRICAO
+        ]:
+            deve_ser_email_sme_ou_prefeitura(attrs['email'])
+
         return attrs
 
     def partial_update(self, instance, validated_data):  # noqa C901
@@ -226,6 +244,8 @@ class UsuarioUpdateSerializer(serializers.ModelSerializer):
         except IntegrityError as e:
             if re.search('perfil_usuario_cpf_key.+already\\sexists', e.args[0], flags=re.I | re.S):
                 raise serializers.ValidationError('CPF já cadastrado')
+            if re.search('perfil_usuario_email_key.+already\\sexists', e.args[0], flags=re.I | re.S):
+                raise serializers.ValidationError('Email já cadastrado')
             raise e
         instance.set_password(validated_data['password'])
         if cnpj:
