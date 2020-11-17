@@ -1,28 +1,40 @@
 from django.core.validators import MinLengthValidator
 from django.db import models
 
+from sme_terceirizadas.dados_comuns.behaviors import Logs, TemIdentificadorExternoAmigavel
+from sme_terceirizadas.dados_comuns.fluxo_status import FluxoSolicitacaoRemessa
+from sme_terceirizadas.dados_comuns.models import LogSolicitacoesUsuario
+
 from ...dados_comuns.behaviors import ModeloBase
 
 
-class SolicitacaoRemessa(ModeloBase):
-    # Status Choice
-    STATUS_INTEGRADA = 'INTEGRADA'
+class SolicitacaoRemessaManager(models.Manager):
 
-    STATUS_NOMES = {
-        STATUS_INTEGRADA: 'Integrada',
-    }
+    def create_solicitacao(self, StrCnpj, StrNumSol):
+        return self.create(
+            cnpj=StrCnpj,
+            numero_solicitacao=StrNumSol
+        )
 
-    STATUS_CHOICES = (
-        (STATUS_INTEGRADA, STATUS_NOMES[STATUS_INTEGRADA]),
-    )
+
+class SolicitacaoRemessa(ModeloBase, TemIdentificadorExternoAmigavel, Logs, FluxoSolicitacaoRemessa):
     cnpj = models.CharField('CNPJ', validators=[MinLengthValidator(14)], max_length=14)
     numero_solicitacao = models.CharField('Número da solicitação', blank=True, max_length=100)
-    status = models.CharField(
-        'Status da solicitação',
-        max_length=25,
-        choices=STATUS_CHOICES,
-        default=STATUS_INTEGRADA
-    )
+
+    objects = SolicitacaoRemessaManager()
+
+    def salvar_log_transicao(self, status_evento, usuario, **kwargs):
+        justificativa = kwargs.get('justificativa', '')
+        resposta_sim_nao = kwargs.get('resposta_sim_nao', False)
+        LogSolicitacoesUsuario.objects.create(
+            descricao=str(self),
+            status_evento=status_evento,
+            solicitacao_tipo=LogSolicitacoesUsuario.SOLICITACAO_REMESSA_PAPA,
+            usuario=usuario,
+            uuid_original=self.uuid,
+            justificativa=justificativa,
+            resposta_sim_nao=resposta_sim_nao
+        )
 
     def __str__(self):
         return f'Solicitação: {self.numero_solicitacao} - Status: {self.status}'

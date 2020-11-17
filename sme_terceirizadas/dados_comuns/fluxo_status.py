@@ -168,6 +168,34 @@ class InformativoPartindoDaEscolaWorkflow(xwf_models.Workflow):
     initial_state = RASCUNHO
 
 
+class SolicitacaoRemessaWorkFlow(xwf_models.Workflow):
+    log_model = ''  # Disable logging to database
+
+    AGUARDANDO_ENVIO = 'AGUARDANDO_ENVIO'
+    DILOG_ENVIA = 'DILOG_ENVIA'
+    PAPA_CANCELA = 'PAPA_CANCELA'
+    DISTRIBUIDOR_CONFIRMA = 'DISTRIBUIDOR_CONFIRMA'
+    DISTRIBUIDOR_SOLICITA_ALTERACAO = 'DISTRIBUIDOR_SOLICITA_ALTERACAO'
+
+    states = (
+        (AGUARDANDO_ENVIO, 'Aguardando envio'),
+        (DILOG_ENVIA, 'DILOG enviou a solicitação'),
+        (PAPA_CANCELA, 'Solicitação cancelada'),
+        (DISTRIBUIDOR_CONFIRMA, 'Distribuidor confirma solicitação'),
+        (DISTRIBUIDOR_SOLICITA_ALTERACAO, 'Distribuidor solicita alteração')
+    )
+
+    transitions = (
+        ('inicia_fluxo', AGUARDANDO_ENVIO, DILOG_ENVIA),
+        ('empresa_atende', DILOG_ENVIA, DISTRIBUIDOR_CONFIRMA),
+        ('solicita_alteracao', DILOG_ENVIA, DISTRIBUIDOR_SOLICITA_ALTERACAO),
+        ('cancela_solicitacao', [AGUARDANDO_ENVIO, DILOG_ENVIA, DISTRIBUIDOR_CONFIRMA, DISTRIBUIDOR_SOLICITA_ALTERACAO],
+         PAPA_CANCELA)
+    )
+
+    initial_state = AGUARDANDO_ENVIO
+
+
 class DietaEspecialWorkflow(xwf_models.Workflow):
     # leia com atenção:
     # https://django-xworkflows.readthedocs.io/en/latest/index.html
@@ -297,6 +325,34 @@ class HomologacaoProdutoWorkflow(xwf_models.Workflow):
     )
 
     initial_state = RASCUNHO
+
+
+class FluxoSolicitacaoRemessa(xwf_models.WorkflowEnabled, models.Model):
+    workflow_class = SolicitacaoRemessaWorkFlow
+    status = xwf_models.StateField(workflow_class)
+
+    def salvar_log_transicao(self, status_evento, usuario, **kwargs):
+        raise NotImplementedError('Deve criar um método salvar_log_transicao')
+
+    def _preenche_template_e_envia_email(self, assunto, titulo, user, partes_interessadas):
+        raise NotImplementedError('Deve criar um método de envio de email as partes interessadas')
+
+    @xworkflows.after_transition('inicia_fluxo')
+    def _inicia_fluxo_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.DILOG_ENVIA_SOLICITACAO,
+                                  usuario=user,
+                                  justificativa=kwargs.get('justificativa', ''))
+
+    @xworkflows.after_transition('empresa_atende')
+    def _empresa_atende_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.DISTRIBUIDOR_CONFIRMA_SOLICITACAO,
+                                  usuario=user,
+                                  justificativa=kwargs.get('justificativa', ''))
+
+    class Meta:
+        abstract = True
 
 
 class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
