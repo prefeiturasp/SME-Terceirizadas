@@ -15,7 +15,7 @@ data_informacao_nutricional = [
         'id': 3,
         'nome': 'AÇÚCARES',
         'tipo_nutricional': 2,
-        'medida': 'MG'
+        'medida': 'G'
     },
     {
         'id': 4,
