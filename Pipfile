@@ -79,6 +79,7 @@ coreapi='==2.3.3'  # https://github.com/core-api/python-client
 djangorestframework-jwt='==1.11.0' # https://getblimp.github.io/django-rest-framework-jwt/
 workalendar='==4.3.1' # https://github.com/peopledoc/workalendar
 django-rest-swagger='==2.2.0' # https://github.com/marcgibbons/django-rest-swagger
+djangorestframework-xml = "==2.0.0"
 django-simple-email-confirmation='==0.6' # https://github.com/mfogel/django-simple-email-confirmation/
 # Produção
 gunicorn='==19.9.0'  # https://github.com/benoitc/gunicorn

@@ -6,6 +6,7 @@ from .models import Alimento, Guia, SolicitacaoRemessa
 class GuiaInline(admin.StackedInline):
     model = Guia
     extra = 1  # Quantidade de linhas que serão exibidas.
+    show_change_link = True
 
 
 class AlimentoInline(admin.TabularInline):
