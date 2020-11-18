@@ -1,6 +1,8 @@
+from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import serializers
 
 from sme_terceirizadas.logistica.models import Alimento, Guia, SolicitacaoRemessa
+from sme_terceirizadas.terceirizada.models import Terceirizada
 
 
 class AlimentoCreateSerializer(serializers.Serializer):
@@ -48,6 +50,13 @@ class SolicitacaoRemessaCreateSerializer(serializers.Serializer):
         validated_data.pop('IntSeqenv', None)
         validated_data.pop('IntQtGuia', None)
         validated_data.pop('IntTotVol', None)
+        cnpj = validated_data.get('StrCnpj', None)
+        try:
+            distribuidor = Terceirizada.objects.get(cnpj=cnpj)
+            validated_data['distribuidor'] = distribuidor
+        except ObjectDoesNotExist:
+            pass
+
         solicitacao = SolicitacaoRemessa.objects.create_solicitacao(**validated_data)
         for guia_json in guias:
             guia_json['solicitacao'] = solicitacao
