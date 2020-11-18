@@ -53,6 +53,12 @@ def test_cadastro_empresa(users_codae_gestao_alimentacao):
              ]
              }
         ],
+        'super_admin': {
+            'email': 'empresa@empresa.teste.com', 'nome': 'Empresa LTDA', 'cpf': '97596447031',
+            'contatos': [{
+                'email': 'empresa@empresa2.teste.com', 'telefone': '12 32131 2315'
+            }]
+        },
         'nome_fantasia': 'Empresa Empresada', 'razao_social': 'Empresa LTDA', 'cnpj': '58833199000119',
         'representante_legal': 'Seu Carlos', 'representante_telefone': '12 12212 1121',
         'representante_email': 'carlos@empresa.teste.com', 'endereco': 'Rua dos Coqueiros 123', 'cep': '09123456',
@@ -66,17 +72,23 @@ def test_cadastro_empresa(users_codae_gestao_alimentacao):
             {'nome': 'Yolanda', 'crn_numero': '0987654', 'super_admin_terceirizadas': False,
              'contatos': [
                  {
-                     'telefone': '12 32131 2312', 'email': 'yolanda@empresa.teste.com'
+                     'telefone': '12 32131 2312', 'email': 'yolanda@empresa2.teste.com'
                  }
              ]}, {
                 'nome': 'Yago', 'crn_numero': '7654321', 'super_admin_terceirizadas': True,
                 'contatos': [
                     {
-                        'telefone': '11 32334 2212', 'email': 'yago@empresa.teste.com'
+                        'telefone': '11 32334 2212', 'email': 'yago@empresa3.teste.com'
                     }
                 ]
             }
         ],
+        'super_admin': {
+            'email': 'empresa@empresa2.teste.com', 'nome': 'Empresa LTDA2', 'cpf': '97596447027',
+            'contatos': [{
+                'email': 'empresa@empresa2.teste.com', 'telefone': '12 32131 2315'
+            }]
+        },
         'nome_fantasia': 'Empresa Empresada', 'razao_social': 'Empresa LTDA', 'cnpj': '58833199000119',
         'representante_legal': 'Seu Carlos', 'representante_telefone': '12 12212 1121',
         'representante_email': 'carlos@empresa.teste.com', 'endereco': 'Rua dos Coqueiros 123', 'cep': '09123456',
