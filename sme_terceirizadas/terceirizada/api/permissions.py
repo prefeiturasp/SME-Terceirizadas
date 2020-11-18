@@ -5,7 +5,6 @@ from ...dados_comuns.constants import (
     COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
     NUTRI_ADMIN_RESPONSAVEL
 )
-from ...escola.models import Codae
 
 
 class PodeAlterarTerceirizadasPermission(permissions.BasePermission):
@@ -32,7 +31,7 @@ class PodeCriarAdministradoresDaTerceirizada(permissions.BasePermission):
 
     def has_object_permission(self, request, view, obj):
         user = request.user
-        tem_vinculo_que_pode_criar_administradores = user.vinculo_atual.instituicao in [obj, Codae.objects.get()]
+        tem_vinculo_que_pode_criar_administradores = user.vinculo_atual.instituicao == obj
         if tem_vinculo_que_pode_criar_administradores:
             return True
         return False
