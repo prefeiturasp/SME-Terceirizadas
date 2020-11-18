@@ -6,12 +6,11 @@
 <section class="corpo-relatorio-produto">
   <div style="display: flex; justify-content: space-between;">
     <div class="label">Solicitação de análise sensorial</div>
-    <div class="label">Protocolo Análise Sensorial</div>
+    <div class="label">Protocolo Análise Sensorial: {{ homologacao.protocolo_analise_sensorial }}</div>
   </div>
   <article class="detalhes-empresa">
     <div style="width: 100%; display: flex; justify-content: space-between; padding: 0 10px">
       <div class="value" style="height: 40px">{{ ultimo_log.justificativa|retira_p_texto }}</div>
-      <div class="value" style="height: 40px">{{ homologacao.protocolo_analise_sensorial }}</div>
     </div>
   </article>
   <br>
