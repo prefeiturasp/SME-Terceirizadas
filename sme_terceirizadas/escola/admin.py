@@ -18,15 +18,30 @@ from .models import (
 
 
 class EscolaPeriodoEscolarAdmin(admin.ModelAdmin):
-    search_fields = ['escola__nome', 'periodo_escolar__nome']
+    search_fields = ('escola__nome', 'periodo_escolar__nome')
 
 
 @admin.register(Escola)
 class EscolaAdmin(admin.ModelAdmin):
-    list_display = ['codigo_eol', 'nome',
-                    'diretoria_regional', 'tipo_gestao', 'tipo_unidade']
-    ordering = ['codigo_eol', 'nome']
-    search_fields = ['codigo_eol', 'nome']
+    list_display = (
+        'codigo_eol',
+        'nome',
+        'diretoria_regional',
+        'tipo_gestao',
+        'tipo_unidade',
+    )
+    list_filter = (
+        'diretoria_regional',
+        'tipo_gestao',
+        'tipo_unidade',
+    )
+    search_fields = (
+        'codigo_eol',
+        'nome',
+        'diretoria_regional__nome',
+        'tipo_unidade__iniciais',
+    )
+    ordering = ('codigo_eol', 'nome')
 
 
 @admin.register(Lote)
