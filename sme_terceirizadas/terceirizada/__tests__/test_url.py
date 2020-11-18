@@ -53,6 +53,12 @@ def test_cadastro_empresa(users_codae_gestao_alimentacao):
              ]
              }
         ],
+        'super_admin': {
+            'email': 'empresa@empresa.teste.com', 'nome': 'Empresa LTDA', 'cpf': '97596447031',
+            'contatos': {
+                'email': 'empresa@empresa.teste.com', 'telefone': '12 32131 2312'
+            }
+        },
         'nome_fantasia': 'Empresa Empresada', 'razao_social': 'Empresa LTDA', 'cnpj': '58833199000119',
         'representante_legal': 'Seu Carlos', 'representante_telefone': '12 12212 1121',
         'representante_email': 'carlos@empresa.teste.com', 'endereco': 'Rua dos Coqueiros 123', 'cep': '09123456',
@@ -77,6 +83,12 @@ def test_cadastro_empresa(users_codae_gestao_alimentacao):
                 ]
             }
         ],
+        'super_admin': {
+            'email': 'empresa@empresa.teste.com', 'nome': 'Empresa LTDA 2', 'cpf': '97596447037',
+            'contatos': {
+                'email': 'empresa@empresa.teste.com', 'telefone': '12 32131 2315'
+            }
+        },
         'nome_fantasia': 'Empresa Empresada', 'razao_social': 'Empresa LTDA', 'cnpj': '58833199000119',
         'representante_legal': 'Seu Carlos', 'representante_telefone': '12 12212 1121',
         'representante_email': 'carlos@empresa.teste.com', 'endereco': 'Rua dos Coqueiros 123', 'cep': '09123456',
