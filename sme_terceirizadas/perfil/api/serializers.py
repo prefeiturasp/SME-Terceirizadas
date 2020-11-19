@@ -7,12 +7,12 @@ from rest_framework.response import Response
 
 from ...dados_comuns.constants import (
     ADMINISTRADOR_DIETA_ESPECIAL,
+    ADMINISTRADOR_DISTRIBUIDORA,
     ADMINISTRADOR_DRE,
     ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
     ADMINISTRADOR_GESTAO_PRODUTO,
     ADMINISTRADOR_SUPERVISAO_NUTRICAO,
-    ADMINISTRADOR_TERCEIRIZADA,
-    COORDENADOR_LOGISTICA
+    ADMINISTRADOR_TERCEIRIZADA
 )
 from ...dados_comuns.models import Contato
 from ...eol_servico.utils import EOLException, EOLService
@@ -32,14 +32,12 @@ from .validators import (
 
 
 class PerfilSimplesSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Perfil
         fields = ('nome', 'uuid')
 
 
 class PerfilSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Perfil
         exclude = ('id', 'nome', 'ativo')
@@ -68,7 +66,6 @@ class UsuarioSerializer(serializers.ModelSerializer):
 
 
 class UsuarioVinculoSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Usuario
         fields = (
@@ -167,7 +164,7 @@ class UsuarioUpdateSerializer(serializers.ModelSerializer):
         if usuario.super_admin_terceirizadas:
             usuario.criar_vinculo_administrador(
                 terceirizada,
-                nome_perfil=COORDENADOR_LOGISTICA
+                nome_perfil=ADMINISTRADOR_DISTRIBUIDORA
             )
         else:
             usuario.criar_vinculo_administrador(
@@ -177,7 +174,7 @@ class UsuarioUpdateSerializer(serializers.ModelSerializer):
         usuario.enviar_email_administrador()
 
     def update_distribuidor(self, terceirizada, validated_data):
-        nome_perfil = COORDENADOR_LOGISTICA
+        nome_perfil = ADMINISTRADOR_DISTRIBUIDORA
         novo_usuario = False
         email = validated_data['contatos'][0]['email']
         cpf = validated_data.get('cpf', None)

@@ -84,4 +84,9 @@ data_perfis = [
         'ativo': True,
         'super_usuario': True,
     },
+    {
+        'nome': 'ADMINISTRADOR_DISTRIBUIDORA',
+        'ativo': True,
+        'super_usuario': True,
+    },
 ]
