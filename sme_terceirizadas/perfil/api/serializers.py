@@ -264,5 +264,6 @@ class SuperAdminTerceirizadaSerializer(serializers.ModelSerializer):
             'cpf',
             'nome',
             'email',
-            'contatos'
+            'contatos',
+            'cargo'
         )
