@@ -11,7 +11,7 @@ from ...dados_comuns.behaviors import ModeloBase
 
 class SolicitacaoRemessaManager(models.Manager):
 
-    def create_solicitacao(self, StrCnpj, StrNumSol, distribuidor):
+    def create_solicitacao(self, StrCnpj, StrNumSol, distribuidor=None):
         return self.create(
             cnpj=StrCnpj,
             numero_solicitacao=StrNumSol,
