@@ -112,21 +112,39 @@ class TerceirizadaCreateSerializer(serializers.ModelSerializer):
         nutricionistas_array = validated_data.pop('nutricionistas')
         lotes = validated_data.pop('lotes', [])
         contatos = validated_data.pop('contatos', [])
-        terceirizada = Terceirizada.objects.create(**validated_data)
-        terceirizada.lotes.set(lotes)
-        for contato_json in contatos:
+        eh_distribuidor = validated_data.get('eh_distribuidor', False)
+        if eh_distribuidor:
+            contato_json = {}
+            contato_json['telefone'] = validated_data.get('responsavel_telefone', None)
+            contato_json['email'] = validated_data.get('responsavel_email', None)
+            terceirizada = Terceirizada.objects.create(**validated_data)
             contato = ContatoSerializer().create(
                 validated_data=contato_json)
             terceirizada.contatos.add(contato)
+            distribuidor_json = {
+                'cpf': validated_data.get('responsavel_cpf', None),
+                'nome': validated_data.get('responsavel_nome', None),
+                'email': validated_data.get('responsavel_email', None),
+                'contatos': [contato_json]
+            }
+            UsuarioUpdateSerializer().create_distribuidor(terceirizada, distribuidor_json)
+        else:
+            terceirizada = Terceirizada.objects.create(**validated_data)
+            terceirizada.lotes.set(lotes)
+            for contato_json in contatos:
+                contato = ContatoSerializer().create(
+                    validated_data=contato_json)
+                terceirizada.contatos.add(contato)
 
-        for nutri_json in nutricionistas_array:
-            UsuarioUpdateSerializer().create_nutricionista(terceirizada, nutri_json)
+            for nutri_json in nutricionistas_array:
+                UsuarioUpdateSerializer().create_nutricionista(terceirizada, nutri_json)
 
-        self.criar_super_admin_terceirizada(super_admin, terceirizada)
+            self.criar_super_admin_terceirizada(super_admin, terceirizada)
 
         return terceirizada
 
-    def update(self, instance, validated_data):
+    def update(self, instance, validated_data):  # noqa C901
+        # TODO: Analisar complexidade
         # TODO: voltar aqui quando uma terceirizada tiver seu painel admin para criar suas nutris
         # aqui está tratando nutris como um dado escravo da Terceirizada
 
@@ -134,27 +152,43 @@ class TerceirizadaCreateSerializer(serializers.ModelSerializer):
         nutricionistas_array = validated_data.pop('nutricionistas', [])
         lotes_array = validated_data.pop('lotes', [])
         contato_array = validated_data.pop('contatos', [])
-
-        instance.contatos.all().delete()
-        instance.desvincular_lotes()
-
-        for nutri_json in nutricionistas_array:
-            UsuarioUpdateSerializer().update_nutricionista(instance, nutri_json)
-
-        contatos = []
-        for contato_json in contato_array:
+        eh_distribuidor = validated_data.get('eh_distribuidor', False)
+        if eh_distribuidor:
+            contato_json = {}
+            contato_json['telefone'] = validated_data.get('responsavel_telefone', None)
+            contato_json['email'] = validated_data.get('responsavel_email', None)
+            distribuidor_json = {
+                'cpf': validated_data.get('responsavel_cpf', None),
+                'nome': validated_data.get('responsavel_nome', None),
+                'email': validated_data.get('responsavel_email', None),
+                'contatos': [contato_json]
+            }
+            UsuarioUpdateSerializer().update_distribuidor(instance, distribuidor_json)
+            instance.contatos.all().delete()
             contato = ContatoSerializer().create(contato_json)
-            contatos.append(contato)
-
-        update_instance_from_dict(instance, validated_data, save=True)
-
-        instance.contatos.set(contatos)
-        instance.lotes.set(lotes_array)
-
-        if instance.super_admin:
-            self.atualizar_super_admin_terceirizada(super_admin_data, instance)
+            update_instance_from_dict(instance, validated_data, save=True)
+            instance.contatos.set([contato])
         else:
-            self.criar_super_admin_terceirizada(super_admin_data, instance)
+            instance.contatos.all().delete()
+            instance.desvincular_lotes()
+
+            for nutri_json in nutricionistas_array:
+                UsuarioUpdateSerializer().update_nutricionista(instance, nutri_json)
+
+            contatos = []
+            for contato_json in contato_array:
+                contato = ContatoSerializer().create(contato_json)
+                contatos.append(contato)
+
+            update_instance_from_dict(instance, validated_data, save=True)
+
+            instance.contatos.set(contatos)
+            instance.lotes.set(lotes_array)
+
+            if instance.super_admin:
+                self.atualizar_super_admin_terceirizada(super_admin_data, instance)
+            else:
+                self.criar_super_admin_terceirizada(super_admin_data, instance)
 
         return instance
 
@@ -178,6 +212,7 @@ class TerceirizadaCreateSerializer(serializers.ModelSerializer):
         email = dados_usuario.get('email')
         cpf = dados_usuario.get('cpf')
         nome = dados_usuario.get('nome')
+        cargo = dados_usuario.get('cargo')
 
         super_admin = terceirizada.super_admin
 
@@ -194,6 +229,7 @@ class TerceirizadaCreateSerializer(serializers.ModelSerializer):
         super_admin.nome = nome
         super_admin.email = email
         super_admin.cpf = cpf
+        super_admin.cargo = cargo
 
         if novo_email:
             super_admin.enviar_email_administrador()

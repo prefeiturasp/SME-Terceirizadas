@@ -11,7 +11,8 @@ from ...dados_comuns.constants import (
     ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
     ADMINISTRADOR_GESTAO_PRODUTO,
     ADMINISTRADOR_SUPERVISAO_NUTRICAO,
-    ADMINISTRADOR_TERCEIRIZADA
+    ADMINISTRADOR_TERCEIRIZADA,
+    COORDENADOR_LOGISTICA
 )
 from ...dados_comuns.models import Contato
 from ...eol_servico.utils import EOLException, EOLService
@@ -116,6 +117,26 @@ class UsuarioUpdateSerializer(serializers.ModelSerializer):
             usuario.contatos.add(contato)
         return usuario
 
+    def atualizar_distribuidor(self, usuario, validated_data):
+        if validated_data.get('contatos', None):
+            usuario.email = validated_data['contatos'][0]['email']
+        else:
+            usuario.email = validated_data.get('email')
+        usuario.cpf = validated_data.get('cpf', None)
+        usuario.registro_funcional = None
+        usuario.nome = validated_data['nome']
+        usuario.crn_numero = validated_data.get('crn_numero', None)
+        usuario.super_admin_terceirizadas = True
+        usuario.save()
+        for contato_json in validated_data.get('contatos', []):
+            contato = Contato(
+                email=contato_json['email'],
+                telefone=contato_json['telefone']
+            )
+            contato.save()
+            usuario.contatos.add(contato)
+        return usuario
+
     def create_nutricionista(self, terceirizada, validated_data):
         if validated_data.get('contatos', None):
             email = validated_data['contatos'][0]['email']
@@ -131,6 +152,57 @@ class UsuarioUpdateSerializer(serializers.ModelSerializer):
             terceirizada,
             nome_perfil=ADMINISTRADOR_TERCEIRIZADA
         )
+
+    def create_distribuidor(self, terceirizada, validated_data):
+        if validated_data.get('contatos', None):
+            email = validated_data['contatos'][0]['email']
+        else:
+            email = validated_data.get('email')
+        if Usuario.objects.filter(email=email).exists():
+            raise ValidationError('E-mail já cadastrado')
+        usuario = Usuario()
+        usuario = self.atualizar_distribuidor(usuario, validated_data)
+        usuario.is_active = False
+        usuario.save()
+        if usuario.super_admin_terceirizadas:
+            usuario.criar_vinculo_administrador(
+                terceirizada,
+                nome_perfil=COORDENADOR_LOGISTICA
+            )
+        else:
+            usuario.criar_vinculo_administrador(
+                terceirizada,
+                nome_perfil=ADMINISTRADOR_TERCEIRIZADA
+            )
+        usuario.enviar_email_administrador()
+
+    def update_distribuidor(self, terceirizada, validated_data):
+        nome_perfil = COORDENADOR_LOGISTICA
+        novo_usuario = False
+        email = validated_data['contatos'][0]['email']
+        cpf = validated_data.get('cpf', None)
+        if Usuario.objects.filter(email=email).exists():
+            usuario = Usuario.objects.get(email=email)
+            usuario.contatos.all().delete()
+        elif Usuario.objects.filter(cpf=cpf).exists():
+            usuario = Usuario.objects.get(cpf=cpf)
+            usuario.contatos.all().delete()
+            vinculo = Vinculo.objects.filter(object_id=terceirizada.id).last()
+            vinculo.finalizar_vinculo()
+            novo_usuario = True
+        else:
+            usuario = Usuario()
+            usuario.is_active = False
+            vinculo = Vinculo.objects.filter(object_id=terceirizada.id).last()
+            vinculo.finalizar_vinculo()
+            novo_usuario = True
+        usuario = self.atualizar_distribuidor(usuario, validated_data)
+        if novo_usuario:
+            usuario.criar_vinculo_administrador(
+                terceirizada,
+                nome_perfil=nome_perfil
+            )
+            usuario.enviar_email_administrador()
 
     def update_nutricionista(self, terceirizada, validated_data):
         novo_usuario = False
