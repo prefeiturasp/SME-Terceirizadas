@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+  <soap:Body>
+      <oWsAcessoModel>
+        <StrId>prefeitura</StrId>
+        <StrToken>9090909fb9a1caab73689217055FC8023D4CE3D899CC94755442F8EE17354FAD</StrToken>
+      </oWsAcessoModel>
+      <ArqSolicitacaoMOD>
+        <StrCnpj>02345678901234</StrCnpj>
+        <StrNumSol>559890</StrNumSol>
+        <IntSeqenv>1</IntSeqenv>
+        <guias>
+          <Guia>
+            <StrNumGui>987654</StrNumGui>
+            <DtEntrega>2019-02-25</DtEntrega>
+            <StrCodUni>58880</StrCodUni>
+            <StrNomUni>EMEI ALUISIO DE ALMEIDA</StrNomUni>
+            <StrEndUni>Rua Alvaro de Azevedo Antunes</StrEndUni>
+            <StrNumUni>1200</StrNumUni>
+            <StrBaiUni>VILA CAMPESINA</StrBaiUni>
+            <StrCepUni>03046059</StrCepUni>
+            <StrCidUni>OSASCO</StrCidUni>
+            <StrEstUni>SP</StrEstUni>
+            <StrConUni>Carlos</StrConUni>
+            <StrTelUni>944462050</StrTelUni>
+            <alimentos>
+            <Alimento>
+            <StrCodSup>512600010010027</StrCodSup>
+            <StrCodPapa>9778</StrCodPapa>
+            <StrNomAli>COXAO DURO</StrNomAli>
+            <StrEmbala>CX 7,98 KG</StrEmbala>
+            <IntQtdVol>50</IntQtdVol>
+            </Alimento>
+            <Alimento>
+            <StrCodSup>512600010010034</StrCodSup>
+            <StrCodPapa>9769</StrCodPapa>
+            <StrNomAli>CONTRA FILE</StrNomAli>
+            <StrEmbala>CX 9,13 KG</StrEmbala>
+            <IntQtdVol>90</IntQtdVol>
+            </Alimento>
+            </alimentos>
+          </Guia>
+          <Guia>
+            <StrNumGui>999544</StrNumGui>
+            <DtEntrega>2019-02-20</DtEntrega>
+            <StrCodUni>59990</StrCodUni>
+            <StrNomUni>EMEI LUIS DANTAS ALBUQUERQUE</StrNomUni>
+            <StrEndUni>Rua Afonso Pereira Barreto</StrEndUni>
+            <StrNumUni>104</StrNumUni>
+            <StrBaiUni>Jardim Barcelona</StrBaiUni>
+            <StrCepUni>04588734</StrCepUni>
+            <StrCidUni>JABOTICABAL</StrCidUni>
+            <StrEstUni>SP</StrEstUni>
+            <StrConUni>MARIA DE LURDES PINHIROS</StrConUni>
+            <StrTelUni>119834456678</StrTelUni>
+            <alimentos>
+            <Alimento>
+            <StrCodSup>534560010010094</StrCodSup>
+            <StrCodPapa>3557</StrCodPapa>
+            <StrNomAli>FRANGO CAIPIRA</StrNomAli>
+            <StrEmbala>CX 12,89 KG</StrEmbala>
+            <IntQtdVol>200</IntQtdVol>
+            </Alimento>
+            <Alimento>
+            <StrCodSup>912600010010034</StrCodSup>
+            <StrCodPapa>7665</StrCodPapa>
+            <StrNomAli>CARNE SUINA</StrNomAli>
+            <StrEmbala>CX 5,6 KG</StrEmbala>
+            <IntQtdVol>34</IntQtdVol>
+            </Alimento>
+            </alimentos>
+          </Guia>
+        </guias>
+        <IntQtGuia>2</IntQtGuia>
+        <IntTotVol>374</IntTotVol>
+      </ArqSolicitacaoMOD>
+  </soap:Body>
+</soap:Envelope>
