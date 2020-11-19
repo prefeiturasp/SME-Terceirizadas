@@ -38,12 +38,14 @@ from ...models import (
 
 
 class FabricanteSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Fabricante
         exclude = ('id',)
 
 
 class MarcaSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Marca
         exclude = ('id',)
@@ -91,6 +93,7 @@ class ImagemDoProdutoSerializer(serializers.ModelSerializer):
 
 
 class TipoDeInformacaoNutricionalSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = TipoDeInformacaoNutricional
         exclude = ('id',)
@@ -127,7 +130,8 @@ class ReclamacaoDeProdutoSerializer(serializers.ModelSerializer):
 
     def get_logs(self, obj):
         return LogSolicitacoesUsuarioSerializer(
-            LogSolicitacoesUsuario.objects.filter(uuid_original=obj.uuid).order_by('criado_em'),
+            LogSolicitacoesUsuario.objects.filter(
+                uuid_original=obj.uuid).order_by('criado_em'),
             many=True
         ).data
 
@@ -179,7 +183,7 @@ class HomologacaoProdutoComUltimoLogSerializer(serializers.ModelSerializer):
         model = HomologacaoDoProduto
         fields = ('uuid', 'status', 'id_externo', 'rastro_terceirizada', 'logs',
                   'criado_em', 'reclamacoes', 'ultimo_log', 'tempo_aguardando_acao_em_dias',
-                  'status_titulo')
+                  'status_titulo', 'protocolo_analise_sensorial')
 
 
 class ProdutoSerializer(serializers.ModelSerializer):
@@ -250,24 +254,28 @@ class ProdutoSemAnexoSerializer(serializers.ModelSerializer):
 
 
 class ProdutoSimplesSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Produto
         fields = ('uuid', 'nome',)
 
 
 class MarcaSimplesSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Marca
         fields = ('uuid', 'nome',)
 
 
 class FabricanteSimplesSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Fabricante
         fields = ('uuid', 'nome',)
 
 
 class ProtocoloSimplesSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = ProtocoloDeDietaEspecial
         fields = ('uuid', 'nome',)
@@ -390,7 +398,8 @@ class HomologacaoListagemSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = HomologacaoDoProduto
-        fields = ('uuid', 'status', 'id_externo', 'rastro_terceirizada', 'criado_em')
+        fields = ('uuid', 'status', 'id_externo',
+                  'rastro_terceirizada', 'criado_em')
 
 
 class ProdutoListagemSerializer(serializers.ModelSerializer):
@@ -405,6 +414,7 @@ class ProdutoListagemSerializer(serializers.ModelSerializer):
 
 
 class UltimoLogRelatorioSituacaoSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = LogSolicitacoesUsuario
         fields = ('criado_em',)
@@ -432,7 +442,8 @@ class ProdutoRelatorioSituacaoSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def setup_eager_loading(queryset):
-        queryset = queryset.select_related('marca', 'fabricante', 'ultima_homogacao')
+        queryset = queryset.select_related(
+            'marca', 'fabricante', 'ultima_homogacao')
 
         return queryset
 
@@ -450,7 +461,8 @@ class EscolaSolicitacaoCadastroProdutoDietaSerializer(serializers.ModelSerialize
 
     class Meta:
         model = Escola
-        fields = ('tipo_gestao', 'lote', 'diretoria_regional', 'contato', 'nome')
+        fields = ('tipo_gestao', 'lote',
+                  'diretoria_regional', 'contato', 'nome')
 
 
 class SolicitacaoCadastroProdutoDietaSimplesSerializer(serializers.ModelSerializer):
@@ -477,7 +489,8 @@ class SolicitacaoCadastroProdutoDietaSerializer(serializers.ModelSerializer):
 
 class SolicitacaoCadastroProdutoDietaConfirmarSerializer(SolicitacaoCadastroProdutoDietaSerializer):
     data_previsao_cadastro = serializers.DateField(required=True)
-    justificativa_previsao_cadastro = serializers.CharField(allow_blank=True, required=False)
+    justificativa_previsao_cadastro = serializers.CharField(
+        allow_blank=True, required=False)
 
     class Meta:
         model = SolicitacaoCadastroProdutoDieta
@@ -501,7 +514,8 @@ class HomologacaoReclamacaoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = HomologacaoDoProduto
-        fields = ('id', 'uuid', 'status', 'id_externo', 'criado_em', 'reclamacoes', 'status_titulo')
+        fields = ('id', 'uuid', 'status', 'id_externo',
+                  'criado_em', 'reclamacoes', 'status_titulo')
 
 
 class ProdutoReclamacaoSerializer(serializers.ModelSerializer):
@@ -524,7 +538,8 @@ class ReclamacoesUltimaHomologacaoHomologadosPorParametrosSerializer(serializers
 
     def get_logs(self, obj):
         return LogSolicitacoesUsuarioSerializer(
-            LogSolicitacoesUsuario.objects.filter(uuid_original=obj.uuid).order_by('criado_em'),
+            LogSolicitacoesUsuario.objects.filter(
+                uuid_original=obj.uuid).order_by('criado_em'),
             many=True
         ).data
 
@@ -554,7 +569,8 @@ class ProdutoHomologadosPorParametrosSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Produto
-        fields = ('nome', 'marca', 'eh_para_alunos_com_dieta', 'ultima_homologacao', 'criado_em')
+        fields = ('nome', 'marca', 'eh_para_alunos_com_dieta',
+                  'ultima_homologacao', 'criado_em')
 
 
 class HomologacaoProdutoSuspensoSerializer(serializers.ModelSerializer):
@@ -570,4 +586,5 @@ class ProdutoSuspensoSerializer(ProdutoBaseSerializer):
 
     class Meta:
         model = Produto
-        fields = ('id_externo', 'nome', 'marca', 'fabricante', 'ultima_homologacao', 'criado_em')
+        fields = ('id_externo', 'nome', 'marca', 'fabricante',
+                  'ultima_homologacao', 'criado_em')
