@@ -5,10 +5,12 @@ Na pasta docs tem os BMPNs dos fluxos
 import datetime
 
 import xworkflows
+from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.template.loader import render_to_string
 from django_xworkflows import models as xwf_models
 
+from ..escola import models as m
 from ..perfil.models import Usuario
 from .constants import (
     ADMINISTRADOR_DIETA_ESPECIAL,
@@ -335,7 +337,7 @@ class FluxoSolicitacaoRemessa(xwf_models.WorkflowEnabled, models.Model):
         raise NotImplementedError('Deve criar um método salvar_log_transicao')
 
     def _preenche_template_e_envia_email(self, assunto, titulo, user, partes_interessadas):
-        raise NotImplementedError('Deve criar um método de envio de email as partes interessadas')
+        raise NotImplementedError('Deve criar um método de envio de email as partes interessadas')  # noqa
 
     @xworkflows.after_transition('inicia_fluxo')
     def _inicia_fluxo_hook(self, *args, **kwargs):
@@ -405,12 +407,28 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
         )
 
     def _partes_interessadas_codae_homologa(self):
-        queryset = Usuario.objects.filter(vinculos__perfil__nome__in=[
-            'DIRETOR',
-            'DIRETOR_CEI',
-            'COORDENADOR_DIETA_ESPECIAL',
-            'NUTRI_ADMIN_RESPONSAVEL',  # Terceirizada?
-        ])
+        # Envia email somente para ESCOLAS selecionadas
+        # e para COORDENADOR_DIETA_ESPECIAL e NUTRI_ADMIN_RESPONSAVEL.
+        # AQUI
+        escolas_ids = m.Escola.objects.filter(
+            enviar_email_produto_homologado=True
+        ).values_list('id', flat=True)
+
+        content_type = ContentType.objects.get_for_model(m.Escola)
+
+        usuarios_escolas_selecionadas = Usuario.objects.filter(
+            vinculos__object_id__in=escolas_ids,
+            vinculos__content_type=content_type,
+        )
+
+        usuarios_vinculos_perfil = Usuario.objects.filter(
+            vinculos__perfil__nome__in=(
+                'COORDENADOR_DIETA_ESPECIAL',
+                'NUTRI_ADMIN_RESPONSAVEL',
+            )
+        )
+
+        queryset = usuarios_escolas_selecionadas | usuarios_vinculos_perfil
         return [usuario.email for usuario in queryset]
 
     def _envia_email_codae_homologa(self, log_transicao, link_pdf):
@@ -507,13 +525,9 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
 
     def _partes_interessadas_codae_ativa_ou_suspende(self):
         queryset = Usuario.objects.filter(
-            vinculos__ativo=True,
-            vinculos__perfil__nome__in=[
-                'ADMINISTRADOR_ESCOLA',
-                'DIRETOR',
-                'DIRETOR CEI',
+            vinculos__perfil__nome__in=(
                 'ADMINISTRADOR_TERCEIRIZADA',
-                'NUTRI_ADMIN_RESPONSAVEL']
+            )
         )
         return [usuario.email for usuario in queryset]
 
@@ -525,9 +539,11 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
                 'log_transicao': log_transicao,
             }
         )
+        usuarios_selecionados = self._partes_interessadas_codae_homologa()
+        emails = self._partes_interessadas_codae_ativa_ou_suspende() + usuarios_selecionados  # noqa
         envia_email_em_massa_task.delay(
             assunto=assunto,
-            emails=self._partes_interessadas_codae_ativa_ou_suspende(),
+            emails=emails,
             corpo='',
             html=html
         )

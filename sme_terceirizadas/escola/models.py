@@ -301,29 +301,50 @@ class PeriodoEscolar(ExportModelOperationsMixin('periodo_escolar'), Nomeavel, Te
 class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, TemCodigoEOL, TemVinculos):
     nome = models.CharField('Nome', max_length=160, blank=True)
     codigo_eol = models.CharField(
-        'Código EOL', max_length=6, unique=True, validators=[MinLengthValidator(6)])
-    diretoria_regional = models.ForeignKey(DiretoriaRegional,
-                                           related_name='escolas',
-                                           on_delete=models.DO_NOTHING)
-    tipo_unidade = models.ForeignKey(TipoUnidadeEscolar,
-                                     on_delete=models.DO_NOTHING)
-    tipo_gestao = models.ForeignKey(TipoGestao,
-                                    on_delete=models.DO_NOTHING)
-    lote = models.ForeignKey('Lote',
-                             related_name='escolas',
-                             blank=True, null=True,
-                             on_delete=models.PROTECT)
-    contato = models.ForeignKey('dados_comuns.Contato', on_delete=models.DO_NOTHING,
-                                blank=True, null=True)
-
+        'Código EOL',
+        max_length=6,
+        unique=True,
+        validators=[MinLengthValidator(6)]
+    )
+    diretoria_regional = models.ForeignKey(
+        DiretoriaRegional,
+        related_name='escolas',
+        on_delete=models.DO_NOTHING
+    )
+    tipo_unidade = models.ForeignKey(
+        TipoUnidadeEscolar,
+        on_delete=models.DO_NOTHING
+    )
+    tipo_gestao = models.ForeignKey(
+        TipoGestao,
+        on_delete=models.DO_NOTHING
+    )
+    lote = models.ForeignKey(
+        'Lote',
+        related_name='escolas',
+        blank=True, null=True,
+        on_delete=models.PROTECT
+    )
+    contato = models.ForeignKey(
+        'dados_comuns.Contato',
+        on_delete=models.DO_NOTHING,
+        blank=True,
+        null=True
+    )
     idades = models.ManyToManyField(FaixaIdadeEscolar, blank=True)
-
     tipos_contagem = models.ManyToManyField(
-        'dieta_especial.TipoContagem', blank=True)
-
-    endereco = models.ForeignKey('dados_comuns.Endereco',
-                                 blank=True, null=True,
-                                 on_delete=models.DO_NOTHING)
+        'dieta_especial.TipoContagem',
+        blank=True
+    )
+    endereco = models.ForeignKey(
+        'dados_comuns.Endereco',
+        blank=True, null=True,
+        on_delete=models.DO_NOTHING
+    )
+    enviar_email_produto_homologado = models.BooleanField(
+        default=False,
+        help_text='Envia e-mail quando houver um produto com status de homologado, não homologado, ativar ou suspender.'  # noqa
+    )
 
     @property
     def quantidade_alunos(self):
@@ -755,7 +776,7 @@ class Responsavel(Nomeavel, TemChaveExterna, CriadoEm):
 
 class Aluno(TemChaveExterna):
     nome = models.CharField('Nome Completo do Aluno', max_length=100)
-    codigo_eol = models.CharField( # noqa DJ01
+    codigo_eol = models.CharField(  # noqa DJ01
         'Código EOL', max_length=7, unique=True, validators=[MinLengthValidator(7)], null=True, blank=True)
     data_nascimento = models.DateField()
     escola = models.ForeignKey(
