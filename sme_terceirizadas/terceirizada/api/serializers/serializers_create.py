@@ -1,10 +1,14 @@
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 
 from ....dados_comuns.api.serializers import ContatoSerializer
+from ....dados_comuns.constants import NUTRI_ADMIN_RESPONSAVEL
+from ....dados_comuns.models import Contato
 from ....dados_comuns.utils import update_instance_from_dict
 from ....escola.api.serializers import UsuarioNutricionistaSerializer
 from ....escola.models import DiretoriaRegional, Lote
-from ....perfil.api.serializers import UsuarioUpdateSerializer
+from ....perfil.api.serializers import SuperAdminTerceirizadaSerializer, UsuarioUpdateSerializer
+from ....perfil.models import Usuario
 from ...models import Contrato, Edital, Nutricionista, Terceirizada, VigenciaContrato
 
 
@@ -101,45 +105,143 @@ class TerceirizadaCreateSerializer(serializers.ModelSerializer):
     lotes = serializers.SlugRelatedField(slug_field='uuid', many=True, queryset=Lote.objects.all())
     nutricionistas = UsuarioNutricionistaSerializer(many=True)
     contatos = ContatoSerializer(many=True)
+    super_admin = SuperAdminTerceirizadaSerializer()
 
     def create(self, validated_data):
+        super_admin = validated_data.pop('super_admin')
         nutricionistas_array = validated_data.pop('nutricionistas')
         lotes = validated_data.pop('lotes', [])
         contatos = validated_data.pop('contatos', [])
-        terceirizada = Terceirizada.objects.create(**validated_data)
-        terceirizada.lotes.set(lotes)
-        for contato_json in contatos:
+        eh_distribuidor = validated_data.get('eh_distribuidor', False)
+        if eh_distribuidor:
+            contato_json = {}
+            contato_json['telefone'] = validated_data.get('responsavel_telefone', None)
+            contato_json['email'] = validated_data.get('responsavel_email', None)
+            terceirizada = Terceirizada.objects.create(**validated_data)
             contato = ContatoSerializer().create(
                 validated_data=contato_json)
             terceirizada.contatos.add(contato)
-        for nutri_json in nutricionistas_array:
-            UsuarioUpdateSerializer().create_nutricionista(terceirizada, nutri_json)
+            distribuidor_json = {
+                'cpf': validated_data.get('responsavel_cpf', None),
+                'nome': validated_data.get('responsavel_nome', None),
+                'email': validated_data.get('responsavel_email', None),
+                'contatos': [contato_json]
+            }
+            UsuarioUpdateSerializer().create_distribuidor(terceirizada, distribuidor_json)
+        else:
+            terceirizada = Terceirizada.objects.create(**validated_data)
+            terceirizada.lotes.set(lotes)
+            for contato_json in contatos:
+                contato = ContatoSerializer().create(
+                    validated_data=contato_json)
+                terceirizada.contatos.add(contato)
+
+            for nutri_json in nutricionistas_array:
+                UsuarioUpdateSerializer().create_nutricionista(terceirizada, nutri_json)
+
+            self.criar_super_admin_terceirizada(super_admin, terceirizada)
+
         return terceirizada
 
-    def update(self, instance, validated_data):
+    def update(self, instance, validated_data):  # noqa C901
+        # TODO: Analisar complexidade
         # TODO: voltar aqui quando uma terceirizada tiver seu painel admin para criar suas nutris
         # aqui está tratando nutris como um dado escravo da Terceirizada
+
+        super_admin_data = validated_data.pop('super_admin')
         nutricionistas_array = validated_data.pop('nutricionistas', [])
         lotes_array = validated_data.pop('lotes', [])
         contato_array = validated_data.pop('contatos', [])
-
-        instance.contatos.all().delete()
-        instance.desvincular_lotes()
-
-        for nutri_json in nutricionistas_array:
-            UsuarioUpdateSerializer().update_nutricionista(instance, nutri_json)
-
-        contatos = []
-        for contato_json in contato_array:
+        eh_distribuidor = validated_data.get('eh_distribuidor', False)
+        if eh_distribuidor:
+            contato_json = {}
+            contato_json['telefone'] = validated_data.get('responsavel_telefone', None)
+            contato_json['email'] = validated_data.get('responsavel_email', None)
+            distribuidor_json = {
+                'cpf': validated_data.get('responsavel_cpf', None),
+                'nome': validated_data.get('responsavel_nome', None),
+                'email': validated_data.get('responsavel_email', None),
+                'contatos': [contato_json]
+            }
+            UsuarioUpdateSerializer().update_distribuidor(instance, distribuidor_json)
+            instance.contatos.all().delete()
             contato = ContatoSerializer().create(contato_json)
-            contatos.append(contato)
+            update_instance_from_dict(instance, validated_data, save=True)
+            instance.contatos.set([contato])
+        else:
+            instance.contatos.all().delete()
+            instance.desvincular_lotes()
 
-        update_instance_from_dict(instance, validated_data, save=True)
+            for nutri_json in nutricionistas_array:
+                UsuarioUpdateSerializer().update_nutricionista(instance, nutri_json)
 
-        instance.contatos.set(contatos)
-        instance.lotes.set(lotes_array)
+            contatos = []
+            for contato_json in contato_array:
+                contato = ContatoSerializer().create(contato_json)
+                contatos.append(contato)
+
+            update_instance_from_dict(instance, validated_data, save=True)
+
+            instance.contatos.set(contatos)
+            instance.lotes.set(lotes_array)
+
+            if instance.super_admin:
+                self.atualizar_super_admin_terceirizada(super_admin_data, instance)
+            else:
+                self.criar_super_admin_terceirizada(super_admin_data, instance)
 
         return instance
+
+    def criar_super_admin_terceirizada(self, dados_usuario, terceirizada): # noqa C901
+        contatos = dados_usuario.pop('contatos')
+        usuario = Usuario.objects.create(**dados_usuario)
+        usuario.super_admin_terceirizadas = True
+        usuario.is_active = False
+        usuario.save()
+        for contato in contatos:
+            contato = ContatoSerializer().create(contato)
+            usuario.contatos.add(contato)
+        usuario.criar_vinculo_administrador(
+            terceirizada,
+            nome_perfil=NUTRI_ADMIN_RESPONSAVEL
+        )
+        usuario.enviar_email_administrador()
+
+    def atualizar_super_admin_terceirizada(self, dados_usuario, terceirizada): # noqa C901
+        contatos = dados_usuario.pop('contatos')
+        email = dados_usuario.get('email')
+        cpf = dados_usuario.get('cpf')
+        nome = dados_usuario.get('nome')
+        cargo = dados_usuario.get('cargo')
+
+        super_admin = terceirizada.super_admin
+
+        novo_email = False
+
+        if cpf != super_admin.cpf:
+            if Usuario.objects.filter(cpf=cpf).exists():
+                raise ValidationError('Usuario com este CPF já existe.')
+        if email != super_admin.email:
+            if Usuario.objects.filter(email=email).exists():
+                raise ValidationError('Usuario com este Email já existe.')
+            novo_email = True
+
+        super_admin.nome = nome
+        super_admin.email = email
+        super_admin.cpf = cpf
+        super_admin.cargo = cargo
+
+        if novo_email:
+            super_admin.enviar_email_administrador()
+            super_admin.is_active = False
+
+        super_admin.save()
+
+        for contato in contatos:
+            super_admin.contatos.first()
+            obj, created = Contato.objects.update_or_create(**contato)
+            if created:
+                super_admin.contatos.add(obj)
 
     class Meta:
         model = Terceirizada

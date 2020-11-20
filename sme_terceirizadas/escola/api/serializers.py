@@ -4,7 +4,7 @@ from rest_framework import serializers
 
 from ...cardapio.models import TipoAlimentacao
 from ...dados_comuns.api.serializers import ContatoSerializer, EnderecoSerializer
-from ...perfil.api.serializers import PerfilSimplesSerializer
+from ...perfil.api.serializers import PerfilSimplesSerializer, SuperAdminTerceirizadaSerializer
 from ...perfil.models import Usuario, Vinculo
 from ...terceirizada.api.serializers.serializers import ContratoSimplesSerializer, TerceirizadaSimplesSerializer
 from ...terceirizada.models import Terceirizada
@@ -255,6 +255,7 @@ class TerceirizadaSerializer(serializers.ModelSerializer):
     lotes = LoteNomeSerializer(many=True)
     quantidade_alunos = serializers.IntegerField()
     id_externo = serializers.CharField()
+    super_admin = SuperAdminTerceirizadaSerializer()
 
     def get_nutricionistas(self, obj):
         content_type = ContentType.objects.get_for_model(Terceirizada)
@@ -262,7 +263,8 @@ class TerceirizadaSerializer(serializers.ModelSerializer):
             Usuario.objects.filter(
                 vinculos__object_id=obj.id,
                 vinculos__content_type=content_type,
-                crn_numero__isnull=False
+                crn_numero__isnull=False,
+                super_admin_terceirizadas=False,
             ).filter(
                 Q(vinculos__data_inicial=None, vinculos__data_final=None,
                   vinculos__ativo=False) |

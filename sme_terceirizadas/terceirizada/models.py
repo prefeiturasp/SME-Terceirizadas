@@ -76,6 +76,18 @@ class Terceirizada(ExportModelOperationsMixin('terceirizada'), TemChaveExterna, 
     representante_email = models.CharField('Representante contato (email)', max_length=160, blank=True)
     endereco = models.CharField('Endereco', max_length=160, blank=True)
     cep = models.CharField('CEP', max_length=8, blank=True)
+    bairro = models.CharField('CEP', max_length=150, blank=True)
+    cidade = models.CharField('CEP', max_length=150, blank=True)
+    estado = models.CharField('CEP', max_length=150, blank=True)
+    numero = models.CharField('CEP', max_length=10, blank=True)
+    complemento = models.CharField('CEP', max_length=50, blank=True)
+    eh_distribuidor = models.BooleanField('É distribuidor?', default=False)
+    responsavel_nome = models.CharField('Responsável', max_length=160, blank=True)
+    responsavel_email = models.CharField('Responsável contato (email)', max_length=160, blank=True)
+    responsavel_cpf = models.CharField(max_length=11, blank=True, null=True, unique=True,  # noqa DJ01
+                           validators=[MinLengthValidator(11)])
+    responsavel_telefone = models.CharField('Representante contato (telefone)', max_length=160, blank=True)
+    responsavel_cargo = models.CharField('Representante cargo', max_length=50, blank=True)
 
     # TODO: criar uma tabela central (Instituição) para agregar Escola, DRE, Terc e CODAE???
     # e a partir dai a instituição que tem contatos e endereço?
@@ -108,6 +120,13 @@ class Terceirizada(ExportModelOperationsMixin('terceirizada'), TemChaveExterna, 
     @property
     def nutricionistas(self):
         return self.nutricionistas
+
+    @property
+    def super_admin(self):
+        vinculo = self.vinculos.filter(usuario__super_admin_terceirizadas=True).last()
+        if vinculo:
+            return vinculo.usuario
+        return None
 
     @property
     def inclusoes_continuas_autorizadas(self):
