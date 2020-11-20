@@ -29,17 +29,20 @@ class EscolaAdmin(admin.ModelAdmin):
         'diretoria_regional',
         'tipo_gestao',
         'tipo_unidade',
+        'enviar_email_produto_homologado',
     )
-    list_filter = (
-        'diretoria_regional',
-        'tipo_gestao',
-        'tipo_unidade',
-    )
+    list_editable = ('enviar_email_produto_homologado',)
     search_fields = (
         'codigo_eol',
         'nome',
         'diretoria_regional__nome',
         'tipo_unidade__iniciais',
+    )
+    list_filter = (
+        'enviar_email_produto_homologado',
+        'diretoria_regional',
+        'tipo_gestao',
+        'tipo_unidade',
     )
     ordering = ('codigo_eol', 'nome')
 
