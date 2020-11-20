@@ -101,7 +101,7 @@
     </div>
     <article class="detalhes-empresa">
       <div style="width: 100%; display: flex; justify-content: space-between; padding: 0 10px">
-        <div class="value" style="height: 40px">{{ homologacao.logs.last.justificativa|retira_p_texto }}</div>
+        <div class="value" style="height: 40px">{{ homologacao.logs.last.justificativa|safe }}</div>
       </div>
     </article>
     <br>

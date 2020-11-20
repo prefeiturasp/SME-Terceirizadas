@@ -10,7 +10,7 @@
   </div>
   <article class="detalhes-empresa">
     <div style="width: 100%; display: flex; justify-content: space-between; padding: 0 10px">
-      <div class="value" style="height: 40px">{{ ultimo_log.justificativa|retira_p_texto }}</div>
+      <div class="value" style="height: 40px">{{ ultimo_log.justificativa|safe }}</div>
     </div>
   </article>
   <br>
@@ -201,14 +201,6 @@
       </main>
     </article>
 
-    <article class="uma-informacao">
-      <header>
-        <p>Solicitação de análise sensorial</p>
-      </header>
-      <main>
-        <p>{{ ultimo_log.justificativa|retira_p_texto }}</p>
-      </main>
-    </article>
   </section>
 
 </section>
