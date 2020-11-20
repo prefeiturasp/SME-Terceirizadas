@@ -107,25 +107,24 @@ class TerceirizadaCreateSerializer(serializers.ModelSerializer):
     contatos = ContatoSerializer(many=True)
     super_admin = SuperAdminTerceirizadaSerializer()
 
-    def create(self, validated_data):
+    def create(self, validated_data): # noqa C901
         super_admin = validated_data.pop('super_admin')
         nutricionistas_array = validated_data.pop('nutricionistas')
         lotes = validated_data.pop('lotes', [])
         contatos = validated_data.pop('contatos', [])
         eh_distribuidor = validated_data.get('eh_distribuidor', False)
         if eh_distribuidor:
-            contato_json = {}
-            contato_json['telefone'] = validated_data.get('responsavel_telefone', None)
-            contato_json['email'] = validated_data.get('responsavel_email', None)
             terceirizada = Terceirizada.objects.create(**validated_data)
-            contato = ContatoSerializer().create(
-                validated_data=contato_json)
+            for contato_json in contatos:
+                contato = ContatoSerializer().create(
+                    validated_data=contato_json)
+                terceirizada.contatos.add(contato)
             terceirizada.contatos.add(contato)
             distribuidor_json = {
                 'cpf': validated_data.get('responsavel_cpf', None),
                 'nome': validated_data.get('responsavel_nome', None),
                 'email': validated_data.get('responsavel_email', None),
-                'contatos': [contato_json]
+                'contatos': contatos
             }
             UsuarioUpdateSerializer().create_distribuidor(terceirizada, distribuidor_json)
         else:
@@ -154,20 +153,20 @@ class TerceirizadaCreateSerializer(serializers.ModelSerializer):
         contato_array = validated_data.pop('contatos', [])
         eh_distribuidor = validated_data.get('eh_distribuidor', False)
         if eh_distribuidor:
-            contato_json = {}
-            contato_json['telefone'] = validated_data.get('responsavel_telefone', None)
-            contato_json['email'] = validated_data.get('responsavel_email', None)
+            contatos = []
+            for contato_json in contato_array:
+                contato = ContatoSerializer().create(contato_json)
+                contatos.append(contato)
             distribuidor_json = {
                 'cpf': validated_data.get('responsavel_cpf', None),
                 'nome': validated_data.get('responsavel_nome', None),
                 'email': validated_data.get('responsavel_email', None),
-                'contatos': [contato_json]
+                'contatos': contato_json
             }
             UsuarioUpdateSerializer().update_distribuidor(instance, distribuidor_json)
             instance.contatos.all().delete()
-            contato = ContatoSerializer().create(contato_json)
             update_instance_from_dict(instance, validated_data, save=True)
-            instance.contatos.set([contato])
+            instance.contatos.set(contatos)
         else:
             instance.contatos.all().delete()
             instance.desvincular_lotes()
