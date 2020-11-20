@@ -409,7 +409,6 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
     def _partes_interessadas_codae_homologa(self):
         # Envia email somente para ESCOLAS selecionadas
         # e para COORDENADOR_DIETA_ESPECIAL e NUTRI_ADMIN_RESPONSAVEL.
-        # AQUI
         escolas_ids = m.Escola.objects.filter(
             enviar_email_produto_homologado=True
         ).values_list('id', flat=True)
