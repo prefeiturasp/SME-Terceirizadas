@@ -27,6 +27,7 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
     serializer_class = SolicitacaoRemessaCreateSerializer
     permission_classes = [IsAuthenticated]
     parser_classes = (ListXMLParser,)
+    pagination_class = None
 
     def get_serializer_class(self):
         if self.action == 'create':
