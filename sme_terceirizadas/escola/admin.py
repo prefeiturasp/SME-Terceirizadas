@@ -29,7 +29,7 @@ class EscolaAdmin(admin.ModelAdmin):
         'diretoria_regional',
         'tipo_gestao',
         'tipo_unidade',
-        'enviar_email_produto_homologado',
+        'enviar_email_por_produto',
     )
     search_fields = (
         'codigo_eol',
@@ -38,7 +38,7 @@ class EscolaAdmin(admin.ModelAdmin):
         'tipo_unidade__iniciais',
     )
     list_filter = (
-        'enviar_email_produto_homologado',
+        'enviar_email_por_produto',
         'diretoria_regional',
         'tipo_gestao',
         'tipo_unidade',
@@ -47,28 +47,28 @@ class EscolaAdmin(admin.ModelAdmin):
     actions = ('marcar_para_receber_email', 'marcar_para_nao_receber_email')
 
     def marcar_para_receber_email(self, request, queryset):
-        count = queryset.update(enviar_email_produto_homologado=True)
+        count = queryset.update(enviar_email_por_produto=True)
 
         if count == 1:
-            msg = '{} escola foi marcada para receber e-mail dos produtos homologados.'  # noqa
+            msg = '{} escola foi marcada para receber e-mail dos produtos.'  # noqa
         else:
-            msg = '{} escolas foram marcadas para receber e-mail dos produtos homologados.'  # noqa
+            msg = '{} escolas foram marcadas para receber e-mail dos produtos.'  # noqa
 
         self.message_user(request, msg.format(count))
 
-    marcar_para_receber_email.short_description = "Marcar para receber e-mail dos produtos homologados"  # noqa
+    marcar_para_receber_email.short_description = "Marcar para receber e-mail dos produtos"  # noqa
 
     def marcar_para_nao_receber_email(self, request, queryset):
-        count = queryset.update(enviar_email_produto_homologado=False)
+        count = queryset.update(enviar_email_por_produto=False)
 
         if count == 1:
-            msg = '{} escola foi marcada para não receber e-mail dos produtos homologados.'  # noqa
+            msg = '{} escola foi marcada para não receber e-mail dos produtos.'  # noqa
         else:
-            msg = '{} escolas foram marcadas para não receber e-mail dos produtos homologados.'  # noqa
+            msg = '{} escolas foram marcadas para não receber e-mail dos produtos.'  # noqa
 
         self.message_user(request, msg.format(count))
 
-    marcar_para_nao_receber_email.short_description = "Marcar para não receber e-mail dos produtos homologados"  # noqa
+    marcar_para_nao_receber_email.short_description = "Marcar para não receber e-mail dos produtos"  # noqa
 
 
 @admin.register(Lote)
