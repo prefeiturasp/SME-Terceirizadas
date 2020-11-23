@@ -10,6 +10,7 @@ from sme_terceirizadas.dados_comuns.parser_xml import ListXMLParser
 from sme_terceirizadas.dados_comuns.permissions import UsuarioDilogCodae
 from sme_terceirizadas.logistica.api.serializers.serializer_create import SolicitacaoRemessaCreateSerializer
 from sme_terceirizadas.logistica.api.serializers.serializers import (
+    SolicitacaoRemessaLookUpSerializer,
     SolicitacaoRemessaSerializer,
     XmlParserSolicitacaoSerializer
 )
@@ -26,10 +27,13 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
     serializer_class = SolicitacaoRemessaCreateSerializer
     permission_classes = [IsAuthenticated]
     parser_classes = (ListXMLParser,)
+    pagination_class = None
 
     def get_serializer_class(self):
         if self.action == 'create':
             return XmlParserSolicitacaoSerializer
+        if self.action == 'list':
+            return SolicitacaoRemessaLookUpSerializer
         return SolicitacaoRemessaSerializer
 
     def create(self, request, *args, **kwargs):

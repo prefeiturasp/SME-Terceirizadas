@@ -11,6 +11,12 @@ class AlimentoSerializer(serializers.ModelSerializer):
         exclude = ('id',)
 
 
+class AlimentoLookUpSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Alimento
+        fields = ('uuid', 'nome_alimento', 'qtd_volume', 'embalagem')
+
+
 class GuiaSerializer(serializers.ModelSerializer):
     alimentos = serializers.SerializerMethodField()
 
@@ -25,6 +31,22 @@ class GuiaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Guia
         exclude = ('id',)
+
+
+class GuiaLookUpSerializer(serializers.ModelSerializer):
+    alimentos = serializers.SerializerMethodField()
+
+    def get_alimentos(self, obj):
+        return AlimentoLookUpSerializer(
+            Alimento.objects.filter(
+                guia=obj.id
+            ),
+            many=True
+        ).data
+
+    class Meta:
+        model = Guia
+        fields = ('uuid', 'numero_guia', 'data_entrega', 'codigo_unidade', 'nome_unidade', 'alimentos')
 
 
 class SolicitacaoRemessaSerializer(serializers.ModelSerializer):
@@ -48,6 +70,30 @@ class SolicitacaoRemessaSerializer(serializers.ModelSerializer):
     class Meta:
         model = SolicitacaoRemessa
         exclude = ('id',)
+
+
+class SolicitacaoRemessaLookUpSerializer(serializers.ModelSerializer):
+    status = serializers.SerializerMethodField()
+    guias = serializers.SerializerMethodField()
+    distribuidor_nome = serializers.SerializerMethodField()
+
+    def get_guias(self, obj):
+        return GuiaLookUpSerializer(
+            Guia.objects.filter(
+                solicitacao=obj.id
+            ),
+            many=True
+        ).data
+
+    def get_distribuidor_nome(self, obj):
+        return obj.distribuidor.razao_social
+
+    def get_status(self, obj):
+        return obj.get_status_display()
+
+    class Meta:
+        model = SolicitacaoRemessa
+        fields = ('uuid', 'numero_solicitacao', 'distribuidor_nome', 'status', 'guias')
 
 
 class XmlAlimentoSerializer(serializers.Serializer):
