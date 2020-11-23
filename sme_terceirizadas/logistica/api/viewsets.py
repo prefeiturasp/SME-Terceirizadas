@@ -10,9 +10,9 @@ from sme_terceirizadas.dados_comuns.parser_xml import ListXMLParser
 from sme_terceirizadas.dados_comuns.permissions import UsuarioDilogCodae
 from sme_terceirizadas.logistica.api.serializers.serializer_create import SolicitacaoRemessaCreateSerializer
 from sme_terceirizadas.logistica.api.serializers.serializers import (
+    SolicitacaoRemessaLookUpSerializer,
     SolicitacaoRemessaSerializer,
-    XmlParserSolicitacaoSerializer,
-    SolicitacaoRemessaLookUpSerializer
+    XmlParserSolicitacaoSerializer
 )
 from sme_terceirizadas.logistica.models import SolicitacaoRemessa
 
