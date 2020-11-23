@@ -281,6 +281,10 @@ def relatorio_produto_homologacao(request, produto):
         status=ReclamacaoProdutoWorkflow.CODAE_ACEITOU).first()
     logs = homologacao.logs
     lotes = terceirizada.lotes.all()
+    justificativa_analise_sensorial = [
+        item.ultimo_log.justificativa
+        for item in produto.homologacoes.all()
+        if item.ultimo_log.status_evento_explicacao == 'CODAE pediu análise sensorial'][0]
     html_string = render_to_string(
         'homologacao_produto.html',
         {
@@ -291,7 +295,8 @@ def relatorio_produto_homologacao(request, produto):
             'width': get_width(constants.FLUXO_HOMOLOGACAO_PRODUTO, logs),
             'produto': produto,
             'diretorias_regionais': get_diretorias_regionais(lotes),
-            'logs': formata_logs(logs)
+            'logs': formata_logs(logs),
+            'justificativa_analise_sensorial': justificativa_analise_sensorial
         }
     )
     return html_to_pdf_response(html_string, f'produto_homologacao_{produto.id_externo}.pdf')
