@@ -31,7 +31,6 @@ class EscolaAdmin(admin.ModelAdmin):
         'tipo_unidade',
         'enviar_email_produto_homologado',
     )
-    list_editable = ('enviar_email_produto_homologado',)
     search_fields = (
         'codigo_eol',
         'nome',
@@ -45,6 +44,31 @@ class EscolaAdmin(admin.ModelAdmin):
         'tipo_unidade',
     )
     ordering = ('codigo_eol', 'nome')
+    actions = ('marcar_para_receber_email', 'marcar_para_nao_receber_email')
+
+    def marcar_para_receber_email(self, request, queryset):
+        count = queryset.update(enviar_email_produto_homologado=True)
+
+        if count == 1:
+            msg = '{} escola foi marcada para receber e-mail dos produtos homologados.'  # noqa
+        else:
+            msg = '{} escolas foram marcadas para receber e-mail dos produtos homologados.'  # noqa
+
+        self.message_user(request, msg.format(count))
+
+    marcar_para_receber_email.short_description = "Marcar para receber e-mail dos produtos homologados"  # noqa
+
+    def marcar_para_nao_receber_email(self, request, queryset):
+        count = queryset.update(enviar_email_produto_homologado=False)
+
+        if count == 1:
+            msg = '{} escola foi marcada para não receber e-mail dos produtos homologados.'  # noqa
+        else:
+            msg = '{} escolas foram marcadas para não receber e-mail dos produtos homologados.'  # noqa
+
+        self.message_user(request, msg.format(count))
+
+    marcar_para_nao_receber_email.short_description = "Marcar para não receber e-mail dos produtos homologados"  # noqa
 
 
 @admin.register(Lote)
