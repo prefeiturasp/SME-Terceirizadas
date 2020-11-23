@@ -23,6 +23,7 @@ from ..api.constants import PENDENTES_VALIDACAO_DRE, RELATORIO_PERIODO
 from ..models import SolicitacoesCODAE, SolicitacoesDRE, SolicitacoesEscola, SolicitacoesTerceirizada
 from ..validators import FiltroValidator
 from .constants import (
+    AUTORIZADAS_TEMPORARIAMENTE_DIETA_ESPECIAL,
     AUTORIZADOS,
     AUTORIZADOS_DIETA_ESPECIAL,
     CANCELADOS,
@@ -30,6 +31,7 @@ from .constants import (
     FILTRO_DRE_UUID,
     FILTRO_ESCOLA_UUID,
     FILTRO_TERCEIRIZADA_UUID,
+    INATIVAS_TEMPORARIAMENTE_DIETA_ESPECIAL,
     NEGADOS,
     NEGADOS_DIETA_ESPECIAL,
     PENDENTES_AUTORIZACAO,
@@ -195,6 +197,22 @@ class CODAESolicitacoesViewSet(SolicitacoesViewSet):
 
     @action(detail=False,
             methods=['GET'],
+            url_path=AUTORIZADAS_TEMPORARIAMENTE_DIETA_ESPECIAL,
+            permission_classes=(IsAuthenticated, PermissaoParaRecuperarDietaEspecial,))
+    def autorizadas_temporariamente_dieta_especial(self, request, dre_uuid=None):
+        query_set = SolicitacoesCODAE.get_autorizadas_temporariamente_dieta_especial()
+        return self._retorno_base(query_set)
+
+    @action(detail=False,
+            methods=['GET'],
+            url_path=INATIVAS_TEMPORARIAMENTE_DIETA_ESPECIAL,
+            permission_classes=(IsAuthenticated, PermissaoParaRecuperarDietaEspecial,))
+    def inativas_temporariamente_dieta_especial(self, request, dre_uuid=None):
+        query_set = SolicitacoesCODAE.get_inativas_temporariamente_dieta_especial()
+        return self._retorno_base(query_set)
+
+    @action(detail=False,
+            methods=['GET'],
             url_path=f'{PENDENTES_AUTORIZACAO}/{FILTRO_PADRAO_PEDIDOS}',
             permission_classes=(UsuarioCODAEGestaoAlimentacao,))
     def pendentes_autorizacao(self, request, filtro_aplicado=SEM_FILTRO):
@@ -334,6 +352,20 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
     @action(detail=False, methods=['GET'], url_path=f'{AUTORIZADOS_DIETA_ESPECIAL}/{FILTRO_ESCOLA_UUID}')
     def autorizados_dieta_especial(self, request, escola_uuid=None):
         query_set = SolicitacoesEscola.get_autorizados_dieta_especial(
+            escola_uuid=escola_uuid)
+        return self._retorno_base(query_set)
+
+    @action(detail=False,
+            methods=['GET'],
+            url_path=f'{AUTORIZADAS_TEMPORARIAMENTE_DIETA_ESPECIAL}/{FILTRO_ESCOLA_UUID}')
+    def autorizadas_temporariamente_dieta_especial(self, request, escola_uuid=None):
+        query_set = SolicitacoesEscola.get_autorizadas_temporariamente_dieta_especial(
+            escola_uuid=escola_uuid)
+        return self._retorno_base(query_set)
+
+    @action(detail=False, methods=['GET'], url_path=f'{INATIVAS_TEMPORARIAMENTE_DIETA_ESPECIAL}/{FILTRO_ESCOLA_UUID}')
+    def inativas_temporariamente_dieta_especial(self, request, escola_uuid=None):
+        query_set = SolicitacoesEscola.get_inativas_temporariamente_dieta_especial(
             escola_uuid=escola_uuid)
         return self._retorno_base(query_set)
 
@@ -498,6 +530,18 @@ class DRESolicitacoesViewSet(SolicitacoesViewSet):
     @action(detail=False, methods=['GET'], url_path=f'{CANCELADOS_DIETA_ESPECIAL}/{FILTRO_DRE_UUID}')
     def cancelados_dieta_especial(self, request, dre_uuid=None):
         query_set = SolicitacoesDRE.get_cancelados_dieta_especial(
+            dre_uuid=dre_uuid)
+        return self._retorno_base(query_set)
+
+    @action(detail=False, methods=['GET'], url_path=f'{AUTORIZADAS_TEMPORARIAMENTE_DIETA_ESPECIAL}/{FILTRO_DRE_UUID}')
+    def autorizadas_temporariamente_dieta_especial(self, request, dre_uuid=None):
+        query_set = SolicitacoesDRE.get_autorizadas_temporariamente_dieta_especial(
+            dre_uuid=dre_uuid)
+        return self._retorno_base(query_set)
+
+    @action(detail=False, methods=['GET'], url_path=f'{INATIVAS_TEMPORARIAMENTE_DIETA_ESPECIAL}/{FILTRO_DRE_UUID}')
+    def inativas_temporariamente_dieta_especial(self, request, dre_uuid=None):
+        query_set = SolicitacoesDRE.get_inativas_temporariamente_dieta_especial(
             dre_uuid=dre_uuid)
         return self._retorno_base(query_set)
 

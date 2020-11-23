@@ -12,6 +12,7 @@ from ..dados_comuns.fluxo_status import (
     PedidoAPartirDaEscolaWorkflow
 )
 from ..dados_comuns.models import LogSolicitacoesUsuario
+from ..dieta_especial.models import SolicitacaoDietaEspecial
 
 
 class SolicitacoesDestaSemanaManager(models.Manager):
@@ -93,6 +94,9 @@ class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmiga
     terceirizada_nome = models.CharField(max_length=200)
     nome_aluno = models.CharField(max_length=200)
     aluno_nao_matriculado = models.BooleanField(default=False, null=True)
+    dieta_alterada_id = models.IntegerField()
+    ativo = models.BooleanField()
+    em_vigencia = models.BooleanField()
 
     lote_uuid = models.UUIDField(editable=False)
     escola_uuid = models.UUIDField(editable=False)
@@ -272,7 +276,9 @@ class SolicitacoesCODAE(MoldeConsolidado):
         return cls.objects.filter(
             status_atual__in=cls.AUTORIZADO_STATUS_DIETA_ESPECIAL,
             status_evento__in=cls.AUTORIZADO_EVENTO_DIETA_ESPECIAL,
-            tipo_doc=cls.TP_SOL_DIETA_ESPECIAL
+            tipo_doc=cls.TP_SOL_DIETA_ESPECIAL,
+            tipo_solicitacao_dieta='COMUM',
+            ativo=True
         ).distinct().order_by('-data_log')
 
     @classmethod
@@ -289,6 +295,26 @@ class SolicitacoesCODAE(MoldeConsolidado):
             status_atual__in=cls.CANCELADOS_STATUS_DIETA_ESPECIAL,
             status_evento__in=cls.CANCELADOS_EVENTO_DIETA_ESPECIAL,
             tipo_doc=cls.TP_SOL_DIETA_ESPECIAL
+        ).distinct().order_by('-data_log')
+
+    @classmethod
+    def get_autorizadas_temporariamente_dieta_especial(cls, **kwargs):
+        return cls.objects.filter(
+            status_atual__in=cls.AUTORIZADO_STATUS_DIETA_ESPECIAL,
+            status_evento__in=cls.AUTORIZADO_EVENTO_DIETA_ESPECIAL,
+            tipo_doc=cls.TP_SOL_DIETA_ESPECIAL,
+            dieta_alterada_id__isnull=False,
+            em_vigencia=False
+        ).distinct().order_by('-data_log')
+
+    @classmethod
+    def get_inativas_temporariamente_dieta_especial(cls, **kwargs):
+        return cls.objects.filter(
+            status_atual__in=cls.AUTORIZADO_STATUS_DIETA_ESPECIAL,
+            status_evento__in=cls.AUTORIZADO_EVENTO_DIETA_ESPECIAL,
+            tipo_doc=cls.TP_SOL_DIETA_ESPECIAL,
+            tipo_solicitacao_dieta='COMUM',
+            ativo=False
         ).distinct().order_by('-data_log')
 
     @classmethod
@@ -413,7 +439,9 @@ class SolicitacoesEscola(MoldeConsolidado):
             escola_uuid=escola_uuid,
             status_atual__in=cls.AUTORIZADO_STATUS_DIETA_ESPECIAL,
             status_evento__in=cls.AUTORIZADO_EVENTO_DIETA_ESPECIAL,
-            tipo_doc=cls.TP_SOL_DIETA_ESPECIAL
+            tipo_doc=cls.TP_SOL_DIETA_ESPECIAL,
+            tipo_solicitacao_dieta='COMUM',
+            ativo=True
         ).distinct().order_by('-data_log')
 
     @classmethod
@@ -434,6 +462,30 @@ class SolicitacoesEscola(MoldeConsolidado):
             status_atual__in=cls.CANCELADOS_STATUS_DIETA_ESPECIAL,
             status_evento__in=cls.CANCELADOS_EVENTO_DIETA_ESPECIAL,
             tipo_doc=cls.TP_SOL_DIETA_ESPECIAL
+        ).distinct().order_by('-data_log')
+
+    @classmethod
+    def get_autorizadas_temporariamente_dieta_especial(cls, **kwargs):
+        escola_uuid = kwargs.get('escola_uuid')
+        return cls.objects.filter(
+            escola_uuid=escola_uuid,
+            status_atual__in=cls.AUTORIZADO_STATUS_DIETA_ESPECIAL,
+            status_evento__in=cls.AUTORIZADO_EVENTO_DIETA_ESPECIAL,
+            tipo_doc=cls.TP_SOL_DIETA_ESPECIAL,
+            dieta_alterada_id__isnull=False,
+            em_vigencia=False
+        ).distinct().order_by('-data_log')
+
+    @classmethod
+    def get_inativas_temporariamente_dieta_especial(cls, **kwargs):
+        escola_uuid = kwargs.get('escola_uuid')
+        return cls.objects.filter(
+            escola_uuid=escola_uuid,
+            status_atual__in=cls.AUTORIZADO_STATUS_DIETA_ESPECIAL,
+            status_evento__in=cls.AUTORIZADO_EVENTO_DIETA_ESPECIAL,
+            tipo_doc=cls.TP_SOL_DIETA_ESPECIAL,
+            tipo_solicitacao_dieta='COMUM',
+            ativo=False
         ).distinct().order_by('-data_log')
 
     @classmethod
@@ -571,7 +623,9 @@ class SolicitacoesDRE(MoldeConsolidado):
             dre_uuid=dre_uuid,
             status_atual__in=cls.AUTORIZADO_STATUS_DIETA_ESPECIAL,
             status_evento__in=cls.AUTORIZADO_EVENTO_DIETA_ESPECIAL,
-            tipo_doc=cls.TP_SOL_DIETA_ESPECIAL
+            tipo_doc=cls.TP_SOL_DIETA_ESPECIAL,
+            tipo_solicitacao_dieta='COMUM',
+            ativo=True
         ).distinct().order_by('-data_log')
 
     @classmethod
@@ -592,6 +646,30 @@ class SolicitacoesDRE(MoldeConsolidado):
             status_atual__in=cls.CANCELADOS_STATUS_DIETA_ESPECIAL,
             status_evento__in=cls.CANCELADOS_EVENTO_DIETA_ESPECIAL,
             tipo_doc=cls.TP_SOL_DIETA_ESPECIAL
+        ).distinct().order_by('-data_log')
+
+    @classmethod
+    def get_autorizadas_temporariamente_dieta_especial(cls, **kwargs):
+        dre_uuid = kwargs.get('dre_uuid')
+        return cls.objects.filter(
+            dre_uuid=dre_uuid,
+            status_atual__in=cls.AUTORIZADO_STATUS_DIETA_ESPECIAL,
+            status_evento__in=cls.AUTORIZADO_EVENTO_DIETA_ESPECIAL,
+            tipo_doc=cls.TP_SOL_DIETA_ESPECIAL,
+            dieta_alterada_id__isnull=False,
+            em_vigencia=False
+        ).distinct().order_by('-data_log')
+
+    @classmethod
+    def get_inativas_temporariamente_dieta_especial(cls, **kwargs):
+        dre_uuid = kwargs.get('dre_uuid')
+        return cls.objects.filter(
+            dre_uuid=dre_uuid,
+            status_atual__in=cls.AUTORIZADO_STATUS_DIETA_ESPECIAL,
+            status_evento__in=cls.AUTORIZADO_EVENTO_DIETA_ESPECIAL,
+            tipo_doc=cls.TP_SOL_DIETA_ESPECIAL,
+            tipo_solicitacao_dieta='COMUM',
+            ativo=False
         ).distinct().order_by('-data_log')
 
     @classmethod
