@@ -341,7 +341,7 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
         blank=True, null=True,
         on_delete=models.DO_NOTHING
     )
-    enviar_email_produto_homologado = models.BooleanField(
+    enviar_email_por_produto = models.BooleanField(
         default=False,
         help_text='Envia e-mail quando houver um produto com status de homologado, não homologado, ativar ou suspender.'  # noqa
     )

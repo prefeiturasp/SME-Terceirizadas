@@ -410,7 +410,7 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
         # Envia email somente para ESCOLAS selecionadas
         # e para COORDENADOR_DIETA_ESPECIAL e NUTRI_ADMIN_RESPONSAVEL.
         escolas_ids = m.Escola.objects.filter(
-            enviar_email_produto_homologado=True
+            enviar_email_por_produto=True
         ).values_list('id', flat=True)
 
         content_type = ContentType.objects.get_for_model(m.Escola)
