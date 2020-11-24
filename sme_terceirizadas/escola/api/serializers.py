@@ -420,10 +420,14 @@ class AlunoSerializer(serializers.ModelSerializer):
 
 
 class AlunoSimplesSerializer(serializers.ModelSerializer):
+    escola = serializers.SlugRelatedField(
+        slug_field='uuid',
+        queryset=Escola.objects.all()
+    )
 
     class Meta:
         model = Aluno
-        fields = ('uuid', 'nome', 'data_nascimento', 'codigo_eol')
+        fields = ('uuid', 'nome', 'data_nascimento', 'codigo_eol', 'escola')
 
 
 class AlunoNaoMatriculadoSerializer(serializers.ModelSerializer):

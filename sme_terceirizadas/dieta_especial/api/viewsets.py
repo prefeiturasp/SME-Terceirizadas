@@ -186,6 +186,9 @@ class SolicitacaoDietaEspecialViewSet(
                 user=request.user)
             solicitacao_dieta_especial.ativo = False
             solicitacao_dieta_especial.save()
+            if solicitacao_dieta_especial.tipo_solicitacao == 'ALTERACAO_UE':
+                solicitacao_dieta_especial.dieta_alterada.ativo = True
+                solicitacao_dieta_especial.dieta_alterada.save()
             serializer = self.get_serializer(solicitacao_dieta_especial)
             return Response(serializer.data)
         except InvalidTransitionError as e:
