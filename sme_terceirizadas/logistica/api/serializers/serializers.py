@@ -46,7 +46,9 @@ class GuiaLookUpSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Guia
-        fields = ('uuid', 'numero_guia', 'data_entrega', 'codigo_unidade', 'nome_unidade', 'alimentos')
+        fields = ('uuid', 'numero_guia', 'data_entrega', 'codigo_unidade', 'nome_unidade', 'endereco_unidade',
+                  'numero_unidade', 'bairro_unidade', 'bairro_unidade', 'cep_unidade', 'cidade_unidade',
+                  'estado_unidade', 'contato_unidade', 'telefone_unidade', 'alimentos')
 
 
 class SolicitacaoRemessaSerializer(serializers.ModelSerializer):
