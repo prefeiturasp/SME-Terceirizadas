@@ -12,7 +12,7 @@ from ...eol_servico.utils import EOLService
 from ...escola.api.serializers import AlunoNaoMatriculadoSerializer
 from ...escola.models import Aluno, Escola, PeriodoEscolar, Responsavel
 from ...produto.models import Produto
-from ..models import Anexo, MotivoAlteracaoUE, SolicitacaoDietaEspecial, SubstituicaoAlimento
+from ..models import Alimento, Anexo, MotivoAlteracaoUE, SolicitacaoDietaEspecial, SubstituicaoAlimento
 from .validators import AlunoSerializerValidator
 
 
@@ -29,11 +29,17 @@ class AnexoCreateSerializer(serializers.ModelSerializer):
         fields = ('arquivo', 'nome')
 
 
-class SubstituicaoAlimentoCreateSerializer(serializers.ModelSerializer):
+class SubstituicaoCreateSerializer(serializers.ModelSerializer):
     substitutos = serializers.SlugRelatedField(
         slug_field='uuid',
-        required=True,
+        required=False,
         queryset=Produto.objects.all(),
+        many=True
+    )
+    alimentos_substitutos = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=Alimento.objects.all(),
         many=True
     )
 

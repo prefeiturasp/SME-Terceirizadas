@@ -9,7 +9,7 @@ from ...dados_comuns.validators import nao_pode_ser_no_passado
 from ...escola.api.serializers import AlunoSerializer, LoteNomeSerializer, TipoGestaoSerializer
 from ...escola.models import DiretoriaRegional, Escola
 from ...produto.api.serializers.serializers import ProdutoSimplesSerializer
-from ...produto.models import SolicitacaoCadastroProdutoDieta
+from ...produto.models import Produto, SolicitacaoCadastroProdutoDieta
 from ..models import (
     AlergiaIntolerancia,
     Alimento,
@@ -21,7 +21,10 @@ from ..models import (
     SubstituicaoAlimento,
     TipoContagem
 )
-from .serializers_create import SolicitacaoDietaEspecialCreateSerializer, SubstituicaoAlimentoCreateSerializer
+from .serializers_create import (
+    SolicitacaoDietaEspecialCreateSerializer,
+    SubstituicaoCreateSerializer,
+)
 from .validators import atributos_lista_nao_vazios, atributos_string_nao_vazios, deve_ter_atributos
 
 
@@ -82,6 +85,7 @@ class AnexoSerializer(ModelSerializer):
 class SubstituicaoAlimentoSerializer(ModelSerializer):
     alimento = AlimentoSerializer()
     substitutos = ProdutoSimplesSerializer(many=True)
+    alimentos_substitutos = AlimentoSerializer(many=True)
 
     class Meta:
         model = SubstituicaoAlimento
@@ -134,11 +138,26 @@ class SolicitacaoDietaEspecialAutorizarSerializer(SolicitacaoDietaEspecialCreate
                 AlergiaIntolerancia.objects.get(pk=ai))
 
         instance.substituicaoalimento_set.all().delete()
+
         for substituicao in substituicoes:
             substituicao['solicitacao_dieta_especial'] = instance.id
-            ser = SubstituicaoAlimentoCreateSerializer(data=substituicao)
-            ser.is_valid(raise_exception=True)
-            instance.substituicaoalimento_set.add(ser.save())
+            # Separa Alimentos e Produtos.
+            alimentos_substitutos = []
+            produtos_substitutos = []
+            for substituto in substituicao['substitutos']:
+                if Alimento.objects.filter(uuid=substituto).first():
+                    alimentos_substitutos.append(substituto)
+                elif Produto.objects.filter(uuid=substituto).first():
+                    produtos_substitutos.append(substituto)
+                else:
+                    raise Exception('Substituto não encontrado.')
+
+            substituicao['alimentos_substitutos'] = alimentos_substitutos
+            substituicao['substitutos'] = produtos_substitutos
+
+            create_serializer = SubstituicaoCreateSerializer(data=substituicao)  # noqa
+            if create_serializer.is_valid(raise_exception=True):
+                instance.substituicaoalimento_set.add(create_serializer.save())  # noqa
 
         return instance
 
@@ -244,7 +263,7 @@ class SolicitacaoDietaEspecialUpdateSerializer(serializers.ModelSerializer):
     alergias_intolerancias = serializers.PrimaryKeyRelatedField(
         queryset=AlergiaIntolerancia.objects.all(), many=True)
 
-    substituicoes = SubstituicaoAlimentoCreateSerializer(many=True)
+    substituicoes = SubstituicaoCreateSerializer(many=True)
 
     def update(self, instance, data):  # noqa C901
         anexos = data.pop('anexos', [])
