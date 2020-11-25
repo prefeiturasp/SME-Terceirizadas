@@ -127,6 +127,28 @@ class UsuarioUpdateSerializer(serializers.ModelSerializer):
         usuario.contatos.set(contatos)
         return usuario
 
+    def criar_distribuidor(self, usuario, validated_data):
+        usuario.email = validated_data.get('email')
+        usuario.cpf = validated_data.get('cpf', None)
+        usuario.registro_funcional = None
+        usuario.nome = validated_data['nome']
+        usuario.crn_numero = validated_data.get('crn_numero', None)
+        usuario.super_admin_terceirizadas = True
+        usuario.save()
+        contatos = validated_data.get('contatos', None)
+        contatos_obj = []
+        for contato in contatos:
+            email = contato.get('email', None)
+            telefone = contato.get('telefone', None)
+            contato = Contato(
+                email=email,
+                telefone=telefone
+            )
+            contato.save()
+            contatos_obj.append(contato)
+        usuario.contatos.set(contatos_obj)
+        return usuario
+
     def create_nutricionista(self, terceirizada, validated_data):
         if validated_data.get('contatos', None):
             email = validated_data['contatos'][0]['email']
@@ -148,7 +170,7 @@ class UsuarioUpdateSerializer(serializers.ModelSerializer):
         if Usuario.objects.filter(email=email).exists():
             raise ValidationError('E-mail já cadastrado')
         usuario = Usuario()
-        usuario = self.atualizar_distribuidor(usuario, validated_data)
+        usuario = self.criar_distribuidor(usuario, validated_data)
         usuario.is_active = False
         usuario.save()
         if usuario.super_admin_terceirizadas:
