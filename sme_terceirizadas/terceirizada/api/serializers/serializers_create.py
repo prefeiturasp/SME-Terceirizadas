@@ -161,7 +161,7 @@ class TerceirizadaCreateSerializer(serializers.ModelSerializer):
                 'cpf': validated_data.get('responsavel_cpf', None),
                 'nome': validated_data.get('responsavel_nome', None),
                 'email': validated_data.get('responsavel_email', None),
-                'contatos': contato_json
+                'contatos': contatos
             }
             UsuarioUpdateSerializer().update_distribuidor(instance, distribuidor_json)
             instance.contatos.all().delete()
