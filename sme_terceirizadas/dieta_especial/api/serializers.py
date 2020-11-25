@@ -53,6 +53,17 @@ class AlimentoSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class AlimentosSubstitutosSerializer(serializers.ModelSerializer):
+    tipo = serializers.SerializerMethodField()
+
+    def get_tipo(self, instance):
+        return 'a'
+
+    class Meta:
+        model = Alimento
+        fields = ('uuid', 'nome', 'tipo')
+
+
 class TipoContagemSerializer(serializers.ModelSerializer):
 
     class Meta:

@@ -1,4 +1,5 @@
 from datetime import datetime
+from itertools import chain
 
 from django.db import transaction
 from django.db.models import Count, Prefetch, Q
@@ -16,6 +17,7 @@ from ...dados_comuns.fluxo_status import HomologacaoProdutoWorkflow, ReclamacaoP
 from ...dados_comuns.models import LogSolicitacoesUsuario
 from ...dados_comuns.permissions import PermissaoParaReclamarDeProduto, UsuarioCODAEGestaoProduto, UsuarioTerceirizada
 from ...dados_comuns.utils import url_configs
+from ...dieta_especial.models import Alimento
 from ...relatorios.relatorios import (
     relatorio_produto_analise_sensorial,
     relatorio_produto_analise_sensorial_recebimento,
@@ -70,7 +72,8 @@ from .serializers.serializers import (
     ProtocoloSimplesSerializer,
     ReclamacaoDeProdutoSerializer,
     ReclamacaoDeProdutoSimplesSerializer,
-    SolicitacaoCadastroProdutoDietaSerializer
+    SolicitacaoCadastroProdutoDietaSerializer,
+    SubstitutosSerializer
 )
 from .serializers.serializers_create import (
     ProdutoSerializerCreate,
@@ -538,10 +541,14 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         query_set = Produto.objects.filter(ativo=True)
         filtrar_por = request.query_params.get('filtrar_por', None)
         if filtrar_por == 'reclamacoes/':
-            query_set = query_set.filter(homologacoes__reclamacoes__isnull=False,
-                                         homologacoes__status__in=['CODAE_PEDIU_ANALISE_RECLAMACAO',
-                                                                   'TERCEIRIZADA_RESPONDEU_RECLAMACAO',
-                                                                   'ESCOLA_OU_NUTRICIONISTA_RECLAMOU'])
+            query_set = query_set.filter(
+                homologacoes__reclamacoes__isnull=False,
+                homologacoes__status__in=[
+                    'CODAE_PEDIU_ANALISE_RECLAMACAO',
+                    'TERCEIRIZADA_RESPONDEU_RECLAMACAO',
+                    'ESCOLA_OU_NUTRICIONISTA_RECLAMOU'
+                ]
+            )
         response = {'results': ProdutoSimplesSerializer(
             query_set, many=True).data}
         return Response(response)
@@ -551,8 +558,22 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         status = 'CODAE_HOMOLOGADO'
         query_set = Produto.objects.filter(
             ativo=True, homologacoes__status=status)
-        response = {'results': ProdutoSimplesSerializer(
-            query_set, many=True).data}
+        response = {
+            'results': ProdutoSimplesSerializer(query_set, many=True).data
+        }
+        return Response(response)
+
+    @action(detail=False, methods=['GET'], url_path='lista-substitutos')
+    def lista_substitutos(self, request):
+        # Retorna todos os alimentos + os produtos homologados.
+        status = 'CODAE_HOMOLOGADO'
+        alimentos = Alimento.objects.all()
+        produtos = Produto.objects.filter(ativo=True, homologacoes__status=status)  # noqa
+        alimentos.model = Produto
+        query_set = list(chain(alimentos, produtos))
+        response = {
+            'results': SubstitutosSerializer(query_set, many=True).data
+        }
         return Response(response)
 
     @action(detail=False,

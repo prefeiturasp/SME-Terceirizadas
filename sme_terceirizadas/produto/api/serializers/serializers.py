@@ -11,6 +11,8 @@ from ....dados_comuns.api.serializers import (
 )
 from ....dados_comuns.fluxo_status import ReclamacaoProdutoWorkflow
 from ....dados_comuns.validators import objeto_nao_deve_ter_duplicidade
+from ....dieta_especial.api import serializers as des
+from ....dieta_especial.models import Alimento
 from ....escola.api.serializers import (
     AlunoSimplesSerializer,
     DiretoriaRegionalSimplissimaSerializer,
@@ -258,6 +260,32 @@ class ProdutoSimplesSerializer(serializers.ModelSerializer):
     class Meta:
         model = Produto
         fields = ('uuid', 'nome',)
+
+
+class ProdutosSubstitutosSerializer(serializers.ModelSerializer):
+    tipo = serializers.SerializerMethodField()
+
+    def get_tipo(self, instance):
+        return 'p'
+
+    class Meta:
+        model = Produto
+        fields = ('uuid', 'nome', 'tipo')
+
+
+class SubstitutosSerializer(serializers.Serializer):
+    # https://stackoverflow.com/a/41744814
+
+    @classmethod
+    def get_serializer(cls, model):
+        if model == Alimento:
+            return des.AlimentosSubstitutosSerializer
+        elif model == Produto:
+            return ProdutosSubstitutosSerializer
+
+    def to_representation(self, instance):
+        serializer = self.get_serializer(instance.__class__)
+        return serializer(instance, context=self.context).data
 
 
 class MarcaSimplesSerializer(serializers.ModelSerializer):
