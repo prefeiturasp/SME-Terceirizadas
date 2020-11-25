@@ -267,7 +267,7 @@ class SolicitacoesDietaEspecialAtivasInativasPorAluno(models.Model):
         db_table = 'dietas_ativas_inativas_por_aluno'
 
 
-class Alimento(Nomeavel):
+class Alimento(Nomeavel, TemChaveExterna):
 
     class Meta:
         ordering = ('nome',)
@@ -281,7 +281,6 @@ class SubstituicaoAlimento(models.Model):
         ('I', 'Isento'),
         ('S', 'Substituir')
     ]
-
     solicitacao_dieta_especial = models.ForeignKey(
         SolicitacaoDietaEspecial,
         on_delete=models.CASCADE
@@ -296,6 +295,12 @@ class SubstituicaoAlimento(models.Model):
     substitutos = models.ManyToManyField(
         'produto.Produto',
         related_name='substitutos',
+        blank=True,
+        help_text='produtos substitutos'
+    )
+    alimentos_substitutos = models.ManyToManyField(
+        Alimento,
+        related_name='alimentos_substitutos',
         blank=True
     )
 

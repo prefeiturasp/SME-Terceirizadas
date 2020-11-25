@@ -186,8 +186,9 @@ class SolicitacaoDietaEspecialSerializer(serializers.ModelSerializer):
     tem_solicitacao_cadastro_produto = serializers.SerializerMethodField()
 
     def get_tem_solicitacao_cadastro_produto(self, obj):
-        return SolicitacaoCadastroProdutoDieta.objects.filter(solicitacao_dieta_especial=obj,
-                                                              status='AGUARDANDO_CONFIRMACAO').exists()
+        return SolicitacaoCadastroProdutoDieta.objects.filter(
+            solicitacao_dieta_especial=obj,
+            status='AGUARDANDO_CONFIRMACAO').exists()
 
     class Meta:
         model = SolicitacaoDietaEspecial
@@ -346,10 +347,10 @@ class SolicitacaoDietaEspecialSimplesSerializer(serializers.ModelSerializer):
 
 
 class PanoramaSerializer(serializers.Serializer):
-    periodo = serializers.CharField(source='periodo_escolar__nome', required=False)
+    periodo = serializers.CharField(source='periodo_escolar__nome', required=False)  # noqa
     horas_atendimento = serializers.IntegerField(required=False)
-    qtde_alunos = serializers.IntegerField(source='quantidade_alunos', required=False)
+    qtde_alunos = serializers.IntegerField(source='quantidade_alunos', required=False)  # noqa
     qtde_tipo_a = serializers.IntegerField()
     qtde_enteral = serializers.IntegerField()
     qtde_tipo_b = serializers.IntegerField()
-    uuid_escola_periodo_escolar = serializers.CharField(source='uuid', required=False)
+    uuid_escola_periodo_escolar = serializers.CharField(source='uuid', required=False)  # noqa
