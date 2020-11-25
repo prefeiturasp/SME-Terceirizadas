@@ -31,7 +31,15 @@ class SolicitacaoDietaEspecial(
     TemIdentificadorExternoAmigavel,
     Ativavel
 ):
-    DESCRICAO = 'Dieta Especial'
+    DESCRICAO_SOLICITACAO = {
+        'CODAE_A_AUTORIZAR': 'Solicitação de Inclusão',
+        'CODAE_NEGOU_PEDIDO': 'Negada a Inclusão',
+        'CODAE_AUTORIZADO': 'Autorizada',
+        'ESCOLA_SOLICITOU_INATIVACAO': 'Solicitação de Cancelamento',
+        'CODAE_NEGOU_INATIVACAO': 'Negada o Cancelamento',
+        'CODAE_AUTORIZOU_INATIVACAO': 'Cancelamento Autorizado',
+        'ESCOLA_CANCELOU': 'Cancelada pela Unidade Escolar',
+    }
 
     TIPO_SOLICITACAO_CHOICES = [
         ('COMUM', 'Comum'),
@@ -142,6 +150,11 @@ class SolicitacaoDietaEspecial(
             aluno=aluno,
             status=cls.workflow_class.CODAE_A_AUTORIZAR
         ).exists()
+
+    @property
+    def DESCRICAO(self):
+        descricao = self.DESCRICAO_SOLICITACAO.get(self.status)
+        return f'Dieta Especial - {descricao}' if descricao else 'Dieta Especial'
 
     # Property necessária para retornar dados no serializer de criação de
     # Dieta Especial

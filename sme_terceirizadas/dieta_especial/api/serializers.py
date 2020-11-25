@@ -321,6 +321,9 @@ class SolicitacaoDietaEspecialSimplesSerializer(serializers.ModelSerializer):
     classificacao = ClassificacaoDietaSerializer()
     alergias_intolerancias = AlergiaIntoleranciaSerializer(many=True)
     motivo_negacao = MotivoNegacaoSerializer()
+    anexos = serializers.ListField(
+        child=AnexoSerializer(), required=True
+    )
 
     class Meta:
         model = SolicitacaoDietaEspecial
@@ -338,11 +341,15 @@ class SolicitacaoDietaEspecialSimplesSerializer(serializers.ModelSerializer):
             'justificativa_negacao',
             'registro_funcional_nutricionista',
             'logs',
+            'anexos',
             'ativo',
             'data_termino',
             'status_titulo',
+            'nome_completo_pescritor',
+            'registro_funcional_pescritor',
             'observacoes',
-            'informacoes_adicionais'
+            'informacoes_adicionais',
+            'tipo_solicitacao'
         )
 
 
