@@ -31,6 +31,7 @@ from .constants import (
     FILTRO_DRE_UUID,
     FILTRO_ESCOLA_UUID,
     FILTRO_TERCEIRIZADA_UUID,
+    INATIVAS_DIETA_ESPECIAL,
     INATIVAS_TEMPORARIAMENTE_DIETA_ESPECIAL,
     NEGADOS,
     NEGADOS_DIETA_ESPECIAL,
@@ -213,6 +214,14 @@ class CODAESolicitacoesViewSet(SolicitacoesViewSet):
 
     @action(detail=False,
             methods=['GET'],
+            url_path=INATIVAS_DIETA_ESPECIAL,
+            permission_classes=(IsAuthenticated, PermissaoParaRecuperarDietaEspecial,))
+    def inativas_dieta_especial(self, request):
+        query_set = SolicitacoesCODAE.get_inativas_dieta_especial()
+        return self._retorno_base(query_set)
+
+    @action(detail=False,
+            methods=['GET'],
             url_path=f'{PENDENTES_AUTORIZACAO}/{FILTRO_PADRAO_PEDIDOS}',
             permission_classes=(UsuarioCODAEGestaoAlimentacao,))
     def pendentes_autorizacao(self, request, filtro_aplicado=SEM_FILTRO):
@@ -366,6 +375,15 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
     @action(detail=False, methods=['GET'], url_path=f'{INATIVAS_TEMPORARIAMENTE_DIETA_ESPECIAL}/{FILTRO_ESCOLA_UUID}')
     def inativas_temporariamente_dieta_especial(self, request, escola_uuid=None):
         query_set = SolicitacoesEscola.get_inativas_temporariamente_dieta_especial(
+            escola_uuid=escola_uuid)
+        return self._retorno_base(query_set)
+
+    @action(detail=False,
+            methods=['GET'],
+            url_path=f'{INATIVAS_DIETA_ESPECIAL}/{FILTRO_ESCOLA_UUID}',
+            permission_classes=(IsAuthenticated, PermissaoParaRecuperarDietaEspecial,))
+    def inativas_dieta_especial(self, request, escola_uuid=None):
+        query_set = SolicitacoesCODAE.get_inativas_dieta_especial(
             escola_uuid=escola_uuid)
         return self._retorno_base(query_set)
 
@@ -542,6 +560,15 @@ class DRESolicitacoesViewSet(SolicitacoesViewSet):
     @action(detail=False, methods=['GET'], url_path=f'{INATIVAS_TEMPORARIAMENTE_DIETA_ESPECIAL}/{FILTRO_DRE_UUID}')
     def inativas_temporariamente_dieta_especial(self, request, dre_uuid=None):
         query_set = SolicitacoesDRE.get_inativas_temporariamente_dieta_especial(
+            dre_uuid=dre_uuid)
+        return self._retorno_base(query_set)
+
+    @action(detail=False,
+            methods=['GET'],
+            url_path=f'{INATIVAS_DIETA_ESPECIAL}/{FILTRO_DRE_UUID}',
+            permission_classes=(IsAuthenticated, PermissaoParaRecuperarDietaEspecial,))
+    def inativas_dieta_especial(self, request, dre_uuid=None):
+        query_set = SolicitacoesCODAE.get_inativas_dieta_especial(
             dre_uuid=dre_uuid)
         return self._retorno_base(query_set)
 
