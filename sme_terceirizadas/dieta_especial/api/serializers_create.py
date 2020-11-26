@@ -11,6 +11,7 @@ from ...dados_comuns.validators import deve_ser_no_passado, deve_ter_extensao_va
 from ...eol_servico.utils import EOLService
 from ...escola.api.serializers import AlunoNaoMatriculadoSerializer
 from ...escola.models import Aluno, Escola, PeriodoEscolar, Responsavel
+from ...produto.api.serializers import serializers as ser
 from ...produto.models import Produto
 from ..models import Alimento, Anexo, MotivoAlteracaoUE, SolicitacaoDietaEspecial, SubstituicaoAlimento
 from .validators import AlunoSerializerValidator
@@ -30,6 +31,14 @@ class AnexoCreateSerializer(serializers.ModelSerializer):
 
 
 class SubstituicaoCreateSerializer(serializers.ModelSerializer):
+    substitutos = ser.SubstitutosSerializer(many=True)
+
+    class Meta:
+        model = SubstituicaoAlimento
+        fields = '__all__'
+
+
+class SubstituicaoAutorizarSerializer(serializers.ModelSerializer):
     substitutos = serializers.SlugRelatedField(
         slug_field='uuid',
         required=False,

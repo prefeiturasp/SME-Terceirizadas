@@ -23,7 +23,8 @@ from ..models import (
 )
 from .serializers_create import (
     SolicitacaoDietaEspecialCreateSerializer,
-    SubstituicaoCreateSerializer,
+    SubstituicaoAutorizarSerializer,
+    SubstituicaoCreateSerializer
 )
 from .validators import atributos_lista_nao_vazios, atributos_string_nao_vazios, deve_ter_atributos
 
@@ -114,7 +115,7 @@ class SolicitacaoDietaEspecialAutorizarSerializer(SolicitacaoDietaEspecialCreate
             dados_a_validar, ['registro_funcional_nutricionista'])
         return dados_a_validar
 
-    def update(self, instance, data):
+    def update(self, instance, data):  # noqa C901
         validated_data = self.validate(data)
         alergias_intolerancias = validated_data.pop('alergias_intolerancias')
         substituicoes = validated_data.pop('substituicoes')
@@ -127,8 +128,7 @@ class SolicitacaoDietaEspecialAutorizarSerializer(SolicitacaoDietaEspecialCreate
         instance.nome_protocolo = validated_data.get('nome_protocolo', '')
         data_termino = validated_data.get('data_termino', '')
         if data_termino:
-            data_termino = datetime.strptime(
-                data_termino, '%Y-%m-%d').date()
+            data_termino = datetime.strptime(data_termino, '%Y-%m-%d').date()
             instance.data_termino = data_termino
 
         instance.alergias_intolerancias.clear()
@@ -138,7 +138,6 @@ class SolicitacaoDietaEspecialAutorizarSerializer(SolicitacaoDietaEspecialCreate
                 AlergiaIntolerancia.objects.get(pk=ai))
 
         instance.substituicaoalimento_set.all().delete()
-
         for substituicao in substituicoes:
             substituicao['solicitacao_dieta_especial'] = instance.id
             # Separa Alimentos e Produtos.
@@ -155,9 +154,9 @@ class SolicitacaoDietaEspecialAutorizarSerializer(SolicitacaoDietaEspecialCreate
             substituicao['alimentos_substitutos'] = alimentos_substitutos
             substituicao['substitutos'] = produtos_substitutos
 
-            create_serializer = SubstituicaoCreateSerializer(data=substituicao)  # noqa
+            create_serializer = SubstituicaoAutorizarSerializer(data=substituicao)  # noqa
             if create_serializer.is_valid(raise_exception=True):
-                instance.substituicaoalimento_set.add(create_serializer.save())  # noqa
+                instance.substituicaoalimento_set.add(create_serializer.save())
 
         return instance
 
@@ -254,15 +253,13 @@ class SolicitacaoDietaEspecialSerializer(serializers.ModelSerializer):
 
 
 class SolicitacaoDietaEspecialUpdateSerializer(serializers.ModelSerializer):
-    anexos = serializers.ListField(
-        child=AnexoSerializer(), required=True
-    )
-
+    anexos = serializers.ListField(child=AnexoSerializer(), required=True)
     classificacao = serializers.PrimaryKeyRelatedField(
-        queryset=ClassificacaoDieta.objects.all())
+        queryset=ClassificacaoDieta.objects.all()
+    )
     alergias_intolerancias = serializers.PrimaryKeyRelatedField(
-        queryset=AlergiaIntolerancia.objects.all(), many=True)
-
+        queryset=AlergiaIntolerancia.objects.all(), many=True
+    )
     substituicoes = SubstituicaoCreateSerializer(many=True)
 
     def update(self, instance, data):  # noqa C901
@@ -292,7 +289,11 @@ class SolicitacaoDietaEspecialUpdateSerializer(serializers.ModelSerializer):
                 substituicao['solicitacao_dieta_especial'] = instance
                 subst_obj = SubstituicaoAlimento.objects.create(**substituicao)
                 if substitutos:
-                    subst_obj.substitutos.set(substitutos)
+                    for substituto in substitutos:
+                        if isinstance(substituto, Alimento):
+                            subst_obj.alimentos_substitutos.add(substituto)
+                        if isinstance(substituto, Produto):
+                            subst_obj.substitutos.add(substituto)
 
         instance.save()
         return instance

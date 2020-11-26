@@ -283,6 +283,16 @@ class SubstitutosSerializer(serializers.Serializer):
         elif model == Produto:
             return ProdutosSubstitutosSerializer
 
+    def to_internal_value(self, data):
+        alimento_obj = Alimento.objects.filter(uuid=data).first()
+        if alimento_obj:
+            return alimento_obj
+        produto_obj = Produto.objects.filter(uuid=data).first()
+        if produto_obj:
+            return produto_obj
+        else:
+            raise Exception('Substituto não encontrado.')
+
     def to_representation(self, instance):
         serializer = self.get_serializer(instance.__class__)
         return serializer(instance, context=self.context).data
