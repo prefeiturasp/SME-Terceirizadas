@@ -1,0 +1,10 @@
+{% extends 'email_base.html' %}
+{% load email_templatetags %}
+
+{% block conteudo %}
+  <p>Nova solicitação Nº {{ solicitacao }} para entrega de alimento.</p>
+  <p>Solicitação enviada em {{ data_hora }}</p>
+  <br/>
+  <a href="#">Clique para acessar detalhes da solicitação</a>
+  <br/>
+{% endblock %}
