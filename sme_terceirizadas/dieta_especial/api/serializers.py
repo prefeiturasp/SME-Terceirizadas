@@ -385,10 +385,19 @@ class SolicitacaoDietaEspecialSimplesSerializer(serializers.ModelSerializer):
 
 
 class PanoramaSerializer(serializers.Serializer):
-    periodo = serializers.CharField(source='periodo_escolar__nome', required=False)  # noqa
+    periodo = serializers.CharField(
+        source='periodo_escolar__nome',
+        required=False
+    )
     horas_atendimento = serializers.IntegerField(required=False)
-    qtde_alunos = serializers.IntegerField(source='quantidade_alunos', required=False)  # noqa
+    qtde_alunos = serializers.IntegerField(
+        source='quantidade_alunos',
+        required=False
+    )
     qtde_tipo_a = serializers.IntegerField()
     qtde_enteral = serializers.IntegerField()
     qtde_tipo_b = serializers.IntegerField()
-    uuid_escola_periodo_escolar = serializers.CharField(source='uuid', required=False)  # noqa
+    uuid_escola_periodo_escolar = serializers.CharField(
+        source='uuid',
+        required=False
+    )

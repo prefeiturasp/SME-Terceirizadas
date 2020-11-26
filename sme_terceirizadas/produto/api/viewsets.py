@@ -568,7 +568,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         # Retorna todos os alimentos + os produtos homologados.
         status = 'CODAE_HOMOLOGADO'
         alimentos = Alimento.objects.all()
-        produtos = Produto.objects.filter(ativo=True, homologacoes__status=status)  # noqa
+        produtos = Produto.objects.filter(ativo=True, homologacoes__status=status)
         alimentos.model = Produto
         query_set = list(chain(alimentos, produtos))
         response = {
