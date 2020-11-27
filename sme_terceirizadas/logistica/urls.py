@@ -7,6 +7,8 @@ router = routers.DefaultRouter()
 
 router.register('solicitacao-remessa', viewsets.SolicitacaoModelViewSet,
                 basename='solicitacao-remessa')
+router.register('solicitacao-remessa-envio', viewsets.SolicitacaoEnvioEmMassaModelViewSet,
+                basename='solicitacao-remessa-envio')
 
 urlpatterns = [
     path('', include(router.urls)),
