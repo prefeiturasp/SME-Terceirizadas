@@ -360,7 +360,7 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(hour=1, minute=0)
     },
     'termina-dietas-especiais': {
-        'task': 'sme_terceirizadas.dieta_especial.tasks.termina_dietas_especiais_task',
+        'task': 'sme_terceirizadas.dieta_especial.tasks.processa_dietas_especiais_task',
         'schedule': crontab(hour=1, minute=30)
     }
 }
