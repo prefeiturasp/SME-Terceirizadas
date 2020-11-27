@@ -53,6 +53,13 @@ class SolicitacaoRemessaSerializer(serializers.ModelSerializer):
     guias = serializers.SerializerMethodField()
     logs = serializers.SerializerMethodField()
 
+    log_atual = serializers.SerializerMethodField()
+
+    def get_log_atual(self, obj):
+        return LogSolicitacoesUsuarioSerializer(
+            LogSolicitacoesUsuario.objects.filter(uuid_original=obj.uuid).last()
+        ).data
+
     def get_logs(self, obj):
         return LogSolicitacoesUsuarioSerializer(
             LogSolicitacoesUsuario.objects.filter(uuid_original=obj.uuid).order_by('criado_em'),
