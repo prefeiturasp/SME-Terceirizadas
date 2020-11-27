@@ -13,7 +13,7 @@ from .models import (
     SubstituicaoAlimento,
     TipoContagem
 )
-from .tasks import termina_dietas_especiais_task
+from .tasks import processa_dietas_especiais_task
 
 
 @admin.register(AlergiaIntolerancia)
@@ -48,7 +48,7 @@ class SolicitacaoDietaEspecialAdmin(admin.ModelAdmin):
         return my_urls + urls
 
     def inativa_dietas(self, request):
-        termina_dietas_especiais_task.delay()
+        processa_dietas_especiais_task.delay()
         messages.add_message(
             request,
             messages.INFO,

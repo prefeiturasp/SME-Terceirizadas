@@ -27,6 +27,26 @@ def termina_dietas_especiais(usuario):
         solicitacao.termina(usuario)
 
 
+def dietas_especiais_a_iniciar():
+    return SolicitacaoDietaEspecial.objects.filter(
+        data_inicio__lte=date.today(),
+        ativo=False,
+        status__in=[
+            DietaEspecialWorkflow.CODAE_AUTORIZADO,
+            DietaEspecialWorkflow.TERCEIRIZADA_TOMOU_CIENCIA,
+            DietaEspecialWorkflow.ESCOLA_SOLICITOU_INATIVACAO
+        ]
+    )
+
+
+def inicia_dietas_temporarias(usuario):
+    for solicitacao in dietas_especiais_a_iniciar():
+        if solicitacao.tipo_solicitacao == TIPO_SOLICITACAO_DIETA.get('ALTERACAO_UE'):
+            solicitacao.dieta_alterada.ativo = False
+            solicitacao.dieta_alterada.save()
+        solicitacao.ativo = True
+
+
 class RelatorioPagination(PageNumberPagination):
     page_size = 10
     page_size_query_param = 'page_size'
