@@ -28,6 +28,11 @@ admin.site.register(MotivoSuspensao)
 admin.site.register(HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolar)
 
 
+@admin.register(SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE)
+class SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUEModelAdmin(admin.ModelAdmin):
+    list_display = ('__str__',)
+
+
 class SubstituicaoComboInline(admin.TabularInline):
     model = SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE
     extra = 2
@@ -36,6 +41,7 @@ class SubstituicaoComboInline(admin.TabularInline):
 @admin.register(ComboDoVinculoTipoAlimentacaoPeriodoTipoUE)
 class ComboDoVinculoTipoAlimentacaoPeriodoTipoUEModelAdmin(admin.ModelAdmin):
     inlines = [SubstituicaoComboInline]
+    search_fields = ('vinculo__tipo_unidade_escolar__iniciais',)
     readonly_fields = ('vinculo',)
 
 
