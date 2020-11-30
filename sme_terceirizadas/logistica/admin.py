@@ -1,6 +1,7 @@
 from django.contrib import admin
 
-from .models import Alimento, Guia, SolicitacaoRemessa
+from .models import Alimento, Guia, SolicitacaoRemessa, TipoEmbalagem
+from .services import inativa_tipos_de_embabalagem
 
 
 class GuiaInline(admin.StackedInline):
@@ -52,3 +53,24 @@ class GuiaAdmin(admin.ModelAdmin):
     list_filter = ('status',)
     ordering = ('-alterado_em',)
     inlines = [AlimentoInline]
+
+
+@admin.register(TipoEmbalagem)
+class TipoEmbalagemAdmin(admin.ModelAdmin):
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def get_tipo(self, obj):
+        return f'{obj.sigla} - {obj.descricao}'
+
+    get_tipo.short_description = 'Tipo de embalagem'
+
+    def inativa_embalagens(self, request, queryset):
+        inativa_tipos_de_embabalagem(queryset)
+        self.message_user(request, 'Tipos de embalagens inativadas.')
+
+    inativa_embalagens.short_description = 'Inativar Tipos de Embalagens'
+
+    list_display = ('get_tipo',)
+    actions = ['inativa_embalagens']
