@@ -109,7 +109,7 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
         (TERCEIRIZADA_RESPONDEU_RECLAMACAO, 'Terceirizada respondeu a reclamação'),
         (TERCEIRIZADA_RESPONDEU_ANALISE_SENSORIAL, 'Terceirizada respondeu a análise'),  # noqa
         (INICIO_FLUXO_SOLICITACAO, 'Papa enviou solicitação de remessa'),
-        (DILOG_ENVIA_SOLICITACAO, 'DILOG enviou solicitação de remessa'),
+        (DILOG_ENVIA_SOLICITACAO, 'Enviada'),
         (DISTRIBUIDOR_CONFIRMA_SOLICITACAO, 'Distribuidor confirmou solicitação de remessa'),  # noqa
         (DISTRIBUIDOR_SOLICITA_ALTERACAO_SOLICITACAO, 'Distribuidor pede alteração da solicitação de remessa'),  # noqa
         (PAPA_CANCELA_SOLICITACAO, 'Papa cancelou solicitação de remessa'),
