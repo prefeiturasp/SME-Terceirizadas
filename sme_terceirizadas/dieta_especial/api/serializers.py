@@ -245,6 +245,7 @@ class SolicitacaoDietaEspecialSerializer(serializers.ModelSerializer):
             'logs',
             'ativo',
             'data_termino',
+            'data_inicio',
             'tem_solicitacao_cadastro_produto',
             'tipo_solicitacao',
             'observacoes_alteracao',
