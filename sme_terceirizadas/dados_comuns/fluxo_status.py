@@ -181,10 +181,10 @@ class SolicitacaoRemessaWorkFlow(xwf_models.Workflow):
 
     states = (
         (AGUARDANDO_ENVIO, 'Aguardando envio'),
-        (DILOG_ENVIA, 'DILOG enviou a solicitação'),
-        (PAPA_CANCELA, 'Solicitação cancelada'),
-        (DISTRIBUIDOR_CONFIRMA, 'Distribuidor confirma solicitação'),
-        (DISTRIBUIDOR_SOLICITA_ALTERACAO, 'Distribuidor solicita alteração')
+        (DILOG_ENVIA, 'Enviada'),
+        (PAPA_CANCELA, 'Cancelada'),
+        (DISTRIBUIDOR_CONFIRMA, 'Confirmada'),
+        (DISTRIBUIDOR_SOLICITA_ALTERACAO, 'Em análise')
     )
 
     transitions = (
