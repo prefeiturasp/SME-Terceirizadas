@@ -339,12 +339,30 @@ class FluxoSolicitacaoRemessa(xwf_models.WorkflowEnabled, models.Model):
     def _preenche_template_e_envia_email(self, assunto, titulo, user, partes_interessadas):
         raise NotImplementedError('Deve criar um método de envio de email as partes interessadas')  # noqa
 
+    def _envia_email_dilog_envia_solicitacao_para_distibuidor(self, log_transicao):
+        html = render_to_string(
+            template_name='logistica_dilog_envia_solicitacao.html',
+            context={
+                'titulo': f'Nova solicitação N° {self.numero_solicitacao} para Entrega de Alimento',
+                'solicitacao': self.numero_solicitacao,
+                'log_transicao': log_transicao,
+            }
+        )
+        envia_email_unico_task.delay(
+            assunto=f'[SIGPAE] Nova solicitação N° {self.numero_solicitacao} para Entrega de Alimento',
+            email=self.distribuidor.responsavel_email,
+            corpo='',
+            html=html
+        )
+
     @xworkflows.after_transition('inicia_fluxo')
     def _inicia_fluxo_hook(self, *args, **kwargs):
         user = kwargs['user']
-        self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.DILOG_ENVIA_SOLICITACAO,
-                                  usuario=user,
-                                  justificativa=kwargs.get('justificativa', ''))
+        log_transicao = self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.DILOG_ENVIA_SOLICITACAO,
+                                                  usuario=user,
+                                                  justificativa=kwargs.get('justificativa', ''))
+
+        self._envia_email_dilog_envia_solicitacao_para_distibuidor(log_transicao=log_transicao)
 
     @xworkflows.after_transition('empresa_atende')
     def _empresa_atende_hook(self, *args, **kwargs):

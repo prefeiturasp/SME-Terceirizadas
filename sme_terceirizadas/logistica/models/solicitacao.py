@@ -30,7 +30,7 @@ class SolicitacaoRemessa(ModeloBase, TemIdentificadorExternoAmigavel, Logs, Flux
     def salvar_log_transicao(self, status_evento, usuario, **kwargs):
         justificativa = kwargs.get('justificativa', '')
         resposta_sim_nao = kwargs.get('resposta_sim_nao', False)
-        LogSolicitacoesUsuario.objects.create(
+        log_transicao = LogSolicitacoesUsuario.objects.create(
             descricao=str(self),
             status_evento=status_evento,
             solicitacao_tipo=LogSolicitacoesUsuario.SOLICITACAO_REMESSA_PAPA,
@@ -39,6 +39,7 @@ class SolicitacaoRemessa(ModeloBase, TemIdentificadorExternoAmigavel, Logs, Flux
             justificativa=justificativa,
             resposta_sim_nao=resposta_sim_nao
         )
+        return log_transicao
 
     def __str__(self):
         return f'Solicitação: {self.numero_solicitacao} - Status: {self.status}'
