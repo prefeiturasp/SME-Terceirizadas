@@ -32,3 +32,16 @@ class Alimento(ModeloBase):
     class Meta:
         verbose_name = 'Alimento'
         verbose_name_plural = 'Alimentos'
+
+
+class TipoEmbalagem(ModeloBase):
+    sigla = models.CharField('Código', unique=True, max_length=10)
+    descricao = models.CharField('Nome', max_length=100)
+    ativo = models.BooleanField('Ativo?', default=True)
+
+    def __str__(self):
+        return f'{self.sigla} - {self.descricao} - {self.ativo}'
+
+    class Meta:
+        verbose_name = 'Tipo de Emabalgem Fechada'
+        verbose_name_plural = 'Tipos de Emabalgens Fechadas'
