@@ -43,7 +43,6 @@ from ..models import (
     MotivoAlteracaoUE,
     MotivoNegacao,
     SolicitacaoDietaEspecial,
-    SolicitacoesDietaEspecialAtivasInativasPorAluno,
     TipoContagem
 )
 from ..utils import RelatorioPagination
@@ -616,8 +615,7 @@ class SolicitacoesAtivasInativasPorAlunoView(generics.ListAPIView):
         if not form.is_valid():
             raise ValidationError(form.errors)
 
-        qs = Aluno.objects.all()\
-            .annotate(
+        qs = Aluno.objects.all().annotate(
             ativas=Count('dietas_especiais', filter=Q(
                 dietas_especiais__status=DietaEspecialWorkflow.CODAE_AUTORIZADO,
                 dietas_especiais__ativo=True
