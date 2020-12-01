@@ -615,15 +615,10 @@ class SolicitacoesAtivasInativasPorAlunoView(generics.ListAPIView):
         if not form.is_valid():
             raise ValidationError(form.errors)
 
-        qs = Aluno.objects.all().annotate(
-            ativas=Count('dietas_especiais', filter=Q(
-                dietas_especiais__status=DietaEspecialWorkflow.CODAE_AUTORIZADO,
-                dietas_especiais__ativo=True
-            )),
-            inativas=Count(
-                'dietas_especiais',
-                filter=~Q(dietas_especiais__status=DietaEspecialWorkflow.CODAE_AUTORIZADO) |
-                Q(dietas_especiais__ativo=False)),
+        qs = Aluno.objects.filter(
+            dietas_especiais__status='CODAE_AUTORIZADO').annotate(
+            ativas=Count('dietas_especiais', filter=Q(dietas_especiais__ativo=True)),
+            inativas=Count('dietas_especiais', filter=Q(dietas_especiais__ativo=False)),
         )
 
         user = self.request.user
