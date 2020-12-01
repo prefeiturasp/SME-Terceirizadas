@@ -18,7 +18,7 @@ from ...dados_comuns.permissions import (
     UsuarioEscola,
     UsuarioTerceirizada
 )
-from ...escola.models import EscolaPeriodoEscolar
+from ...escola.models import Aluno, EscolaPeriodoEscolar
 from ...paineis_consolidados.api.constants import FILTRO_CODIGO_EOL_ALUNO
 from ...relatorios.relatorios import (
     relatorio_dieta_especial,
@@ -592,24 +592,22 @@ class SolicitacoesAtivasInativasPorAlunoView(generics.ListAPIView):
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
-        agregado = queryset.aggregate(Sum('ativas'), Sum('inativas'))
+        total_ativas = queryset.aggregate(Sum('ativas'))
+        total_inativas = queryset.aggregate(Sum('inativas'))
 
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
-            # TODO: Ver se tem como remover o UnorderedObjectListWarning
-            # que acontece por passarmos mais dados do que apenas o
-            # serializer.data
             return self.get_paginated_response({
-                'total_ativas': agregado['ativas__sum'],
-                'total_inativas': agregado['inativas__sum'],
+                'total_ativas': total_ativas['ativas__sum'],
+                'total_inativas': total_inativas['inativas__sum'],
                 'solicitacoes': serializer.data
             })
 
         serializer = self.get_serializer(queryset, many=True)
         return Response({
-            'total_ativas': agregado['ativas__sum'],
-            'total_inativas': agregado['inativas__sum'],
+            'total_ativas': total_ativas['ativas__sum'],
+            'total_inativas': total_inativas['inativas__sum'],
             'solicitacoes': serializer.data
         })
 
@@ -618,36 +616,44 @@ class SolicitacoesAtivasInativasPorAlunoView(generics.ListAPIView):
         if not form.is_valid():
             raise ValidationError(form.errors)
 
-        qs = SolicitacoesDietaEspecialAtivasInativasPorAluno.objects.all()
+        qs = Aluno.objects.all()\
+            .annotate(
+            ativas=Count('dietas_especiais', filter=Q(
+                dietas_especiais__status=DietaEspecialWorkflow.CODAE_AUTORIZADO,
+                dietas_especiais__ativo=True
+            )),
+            inativas=Count(
+                'dietas_especiais',
+                filter=~Q(dietas_especiais__status=DietaEspecialWorkflow.CODAE_AUTORIZADO) |
+                Q(dietas_especiais__ativo=False)),
+        )
 
         user = self.request.user
 
         if user.tipo_usuario == 'escola':
-            qs = qs.filter(aluno__escola=user.vinculo_atual.instituicao)
+            qs = qs.filter(escola=user.vinculo_atual.instituicao)
         elif form.cleaned_data['escola']:
-            qs = qs.filter(aluno__escola=form.cleaned_data['escola'])
+            qs = qs.filter(escola=form.cleaned_data['escola'])
         elif user.tipo_usuario == 'diretoriaregional':
-            qs = qs.filter(aluno__escola__diretoria_regional=user.vinculo_atual.instituicao)  # noqa
+            qs = qs.filter(escola__diretoria_regional=user.vinculo_atual.instituicao)
         elif form.cleaned_data['dre']:
-            qs = qs.filter(
-                aluno__escola__diretoria_regional=form.cleaned_data['dre'])
+            qs = qs.filter(escola__diretoria_regional=form.cleaned_data['dre'])
 
         if form.cleaned_data['codigo_eol']:
             codigo_eol = f"{int(form.cleaned_data['codigo_eol']):06d}"
-            qs = qs.filter(aluno__codigo_eol=codigo_eol)
+            qs = qs.filter(codigo_eol=codigo_eol)
         elif form.cleaned_data['nome_aluno']:
-            qs = qs.filter(
-                aluno__nome__icontains=form.cleaned_data['nome_aluno'])
+            qs = qs.filter(nome__icontains=form.cleaned_data['nome_aluno'])
 
         if self.request.user.tipo_usuario == 'dieta_especial':
             return qs.order_by(
-                'aluno__escola__diretoria_regional__nome',
-                'aluno__escola__nome',
-                'aluno__nome'
+                'escola__diretoria_regional__nome',
+                'escola__nome',
+                'nome'
             )
         elif self.request.user.tipo_usuario == 'diretoriaregional':
-            return qs.order_by('aluno__escola__nome', 'aluno__nome')
-        return qs.order_by('aluno__nome')
+            return qs.order_by('escola__nome', 'nome')
+        return qs.order_by('nome')
 
 
 class AlergiaIntoleranciaViewSet(
