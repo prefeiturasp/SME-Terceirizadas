@@ -14,6 +14,7 @@ from sme_terceirizadas.logistica.api.serializers.serializer_create import Solici
 from sme_terceirizadas.logistica.api.serializers.serializers import (
     SolicitacaoRemessaLookUpSerializer,
     SolicitacaoRemessaSerializer,
+    SolicitacaoRemessaSimplesSerializer,
     XmlParserSolicitacaoSerializer
 )
 from sme_terceirizadas.logistica.models import SolicitacaoRemessa
@@ -79,6 +80,11 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
         except DataError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}', status=False),
                             status=HTTP_406_NOT_ACCEPTABLE)
+
+    @action(detail=False, methods=['GET'], url_path='lista-numeros')
+    def lista_numeros(self, request):
+        response = {'results': SolicitacaoRemessaSimplesSerializer(self.get_queryset(), many=True).data}
+        return Response(response)
 
     @action(detail=False, permission_classes=(UsuarioDilogCodae,),
             methods=['GET'], url_path='lista-requisicoes-para-envio')
