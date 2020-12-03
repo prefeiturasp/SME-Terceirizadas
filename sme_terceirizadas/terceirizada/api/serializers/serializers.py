@@ -33,6 +33,13 @@ class TerceirizadaSimplesSerializer(serializers.ModelSerializer):
         fields = ('uuid', 'cnpj', 'nome_fantasia', 'contatos')
 
 
+class DistribuidorSimplesSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Terceirizada
+        fields = ('uuid', 'nome_fantasia')
+
+
 class VigenciaContratoSerializer(serializers.ModelSerializer):
     class Meta:
         model = VigenciaContrato
