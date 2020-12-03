@@ -139,3 +139,9 @@ class TipoEmbalagemSerializer(serializers.ModelSerializer):
     class Meta:
         model = TipoEmbalagem
         exclude = ('id',)
+
+
+class SolicitacaoRemessaSimplesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SolicitacaoRemessa
+        fields = ('uuid', 'numero_solicitacao')

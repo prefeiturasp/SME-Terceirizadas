@@ -10,7 +10,12 @@ from ..forms import RelatorioQuantitativoForm
 from ..models import Edital, Terceirizada
 from ..utils import obtem_dados_relatorio_quantitativo
 from .permissions import PodeCriarAdministradoresDaTerceirizada
-from .serializers.serializers import EditalContratosSerializer, EditalSerializer, TerceirizadaSimplesSerializer
+from .serializers.serializers import (
+    DistribuidorSimplesSerializer,
+    EditalContratosSerializer,
+    EditalSerializer,
+    TerceirizadaSimplesSerializer
+)
 from .serializers.serializers_create import EditalContratosCreateSerializer, TerceirizadaCreateSerializer
 
 
@@ -32,6 +37,12 @@ class TerceirizadaViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['GET'], url_path='lista-nomes')
     def lista_nomes(self, request):
         response = {'results': TerceirizadaSimplesSerializer(self.get_queryset(), many=True).data}
+        return Response(response)
+
+    @action(detail=False, methods=['GET'], url_path='lista-nomes-distribuidores')
+    def lista_nomes_distribuidores(self, request):
+        queryset = Terceirizada.objects.filter(eh_distribuidor=True)
+        response = {'results': DistribuidorSimplesSerializer(queryset, many=True).data}
         return Response(response)
 
     @action(detail=False, methods=['GET'], url_path='relatorio-quantitativo')

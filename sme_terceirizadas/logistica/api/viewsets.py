@@ -14,6 +14,7 @@ from sme_terceirizadas.logistica.api.serializers.serializer_create import Solici
 from sme_terceirizadas.logistica.api.serializers.serializers import (
     SolicitacaoRemessaLookUpSerializer,
     SolicitacaoRemessaSerializer,
+    SolicitacaoRemessaSimplesSerializer,
     XmlParserSolicitacaoSerializer
 )
 from sme_terceirizadas.logistica.models import SolicitacaoRemessa
@@ -86,7 +87,7 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
         response = {'results': SolicitacaoRemessaSimplesSerializer(queryset, many=True).data}
         return Response(response)
 
-    @action(detail=False, permission_classes=(UsuarioDilogCodae,),
+    @action(detail=False, permission_classes=(UsuarioDilogCodae,),  # noqa C901
             methods=['GET'], url_path='lista-requisicoes-para-envio')
     def lista_requisicoes_para_envio(self, request):
         queryset = self.queryset.filter(status=SolicitacaoRemessaWorkFlow.AGUARDANDO_ENVIO)
