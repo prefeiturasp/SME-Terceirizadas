@@ -1,3 +1,4 @@
+import datetime
 from django.db.utils import DataError
 from rest_framework import viewsets
 from rest_framework.decorators import action
@@ -101,6 +102,10 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(distribuidor__nome_fantasia__icontains=nome_distribuidor)
         if data_inicio and data_fim:
             queryset = queryset.filter(guias__data_entrega__range=[data_inicio, data_fim]).distinct()
+        if data_inicio and not data_fim:
+            queryset = queryset.filter(guias__data_entrega__gte=data_inicio).distinct()
+        if data_fim and not data_inicio:
+            queryset = queryset.filter(guias__data_entrega__lte=data_fim).distinct()
 
         response = {'results': SolicitacaoRemessaLookUpSerializer(queryset, many=True).data}
         return Response(response)
