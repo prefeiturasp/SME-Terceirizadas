@@ -14,7 +14,8 @@ from utility.carga_dados.dieta_especial.importa_dados import (
     cria_alergia_intolerancias,
     cria_alimento,
     cria_classificacoes_dieta,
-    cria_motivo_negacao
+    cria_motivo_alteracao_ue,
+    cria_motivo_negacao,
 )
 from utility.carga_dados.escola.importa_dados import (
     cria_contatos_escola,
@@ -98,6 +99,7 @@ class Command(BaseCommand):
         cria_alimento()
         cria_classificacoes_dieta()
         cria_motivo_negacao()
+        cria_motivo_alteracao_ue()
         cria_alergia_intolerancias()
 
         # Produto
