@@ -80,6 +80,35 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}', status=False),
                             status=HTTP_406_NOT_ACCEPTABLE)
 
+    @action(detail=False, methods=['GET'], url_path='lista-numeros')
+    def lista_numeros(self, request):
+        queryset = self.get_queryset().filter(status__in=[SolicitacaoRemessaWorkFlow.AGUARDANDO_ENVIO])
+        response = {'results': SolicitacaoRemessaSimplesSerializer(queryset, many=True).data}
+        return Response(response)
+
+    @action(detail=False, permission_classes=(UsuarioDilogCodae,),
+            methods=['GET'], url_path='lista-requisicoes-para-envio')
+    def lista_requisicoes_para_envio(self, request):
+        queryset = self.queryset.filter(status=SolicitacaoRemessaWorkFlow.AGUARDANDO_ENVIO)
+        numero_requisicao = request.query_params.get('numero_requisicao', None)
+        nome_distribuidor = request.query_params.get('nome_distribuidor', None)
+        data_inicio = request.query_params.get('data_inicio', None)
+        data_fim = request.query_params.get('data_fim', None)
+
+        if numero_requisicao:
+            queryset = queryset.filter(numero_solicitacao=numero_requisicao)
+        if nome_distribuidor:
+            queryset = queryset.filter(distribuidor__nome_fantasia__icontains=nome_distribuidor)
+        if data_inicio and data_fim:
+            queryset = queryset.filter(guias__data_entrega__range=[data_inicio, data_fim]).distinct()
+        if data_inicio and not data_fim:
+            queryset = queryset.filter(guias__data_entrega__gte=data_inicio).distinct()
+        if data_fim and not data_inicio:
+            queryset = queryset.filter(guias__data_entrega__lte=data_fim).distinct()
+
+        response = {'results': SolicitacaoRemessaLookUpSerializer(queryset, many=True).data}
+        return Response(response)
+
     @action(detail=True, permission_classes=(UsuarioDilogCodae,),
             methods=['patch'], url_path='envia-solicitacao')
     def incia_fluxo_solicitacao(self, request, uuid=None):
