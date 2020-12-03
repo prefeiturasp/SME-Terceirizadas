@@ -1,4 +1,3 @@
-import datetime
 from django.db.utils import DataError
 from rest_framework import viewsets
 from rest_framework.decorators import action
@@ -87,7 +86,7 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
         response = {'results': SolicitacaoRemessaSimplesSerializer(self.get_queryset(), many=True).data}
         return Response(response)
 
-    @action(detail=False, permission_classes=(UsuarioDilogCodae,),
+    @action(detail=False, permission_classes=(UsuarioDilogCodae,),  # noqa C901
             methods=['GET'], url_path='lista-requisicoes-para-envio')
     def lista_requisicoes_para_envio(self, request):
         queryset = self.queryset.filter(status=SolicitacaoRemessaWorkFlow.AGUARDANDO_ENVIO)
