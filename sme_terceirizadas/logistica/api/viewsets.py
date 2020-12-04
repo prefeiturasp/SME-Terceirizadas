@@ -21,6 +21,7 @@ from sme_terceirizadas.logistica.models import SolicitacaoRemessa
 
 STR_XML_BODY = '{http://schemas.xmlsoap.org/soap/envelope/}Body'
 STR_ARQUIVO_SOLICITACAO = 'ArqSolicitacaoMOD'
+STR_ARQUIVO_CANCELAMENTO = 'ArqCancelamento'
 
 
 class SolicitacaoEnvioEmMassaModelViewSet(viewsets.ModelViewSet):
@@ -65,21 +66,32 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         remove_dirt = request.data.get(f'{STR_XML_BODY}')
-        json_data = remove_dirt.pop(f'{STR_ARQUIVO_SOLICITACAO}')
-        try:
-            instance = SolicitacaoRemessaCreateSerializer().create(validated_data=json_data)
-            usuario = request.user
+        json_cancelamento = remove_dirt.get(f'{STR_ARQUIVO_CANCELAMENTO}')
+        json_data = remove_dirt.get(f'{STR_ARQUIVO_SOLICITACAO}')
 
-            instance.salvar_log_transicao(
-                status_evento=LogSolicitacoesUsuario.INICIO_FLUXO_SOLICITACAO,
-                usuario=usuario
-            )
+        if json_data:
+            try:
+                instance = SolicitacaoRemessaCreateSerializer().create(validated_data=json_data)
+                usuario = request.user
 
-            return Response(dict(detail=f'Criado com sucesso', status=True),
-                            status=HTTP_201_CREATED)
-        except DataError as e:
-            return Response(dict(detail=f'Erro de transição de estado: {e}', status=False),
-                            status=HTTP_406_NOT_ACCEPTABLE)
+                instance.salvar_log_transicao(
+                    status_evento=LogSolicitacoesUsuario.INICIO_FLUXO_SOLICITACAO,
+                    usuario=usuario
+                )
+
+                return Response(dict(detail=f'Criado com sucesso', status=True),
+                                status=HTTP_201_CREATED)
+            except DataError as e:
+                return Response(dict(detail=f'Erro de transição de estado: {e}', status=False),
+                                status=HTTP_406_NOT_ACCEPTABLE)
+        if json_cancelamento:
+            try:
+                solicitacao = SolicitacaoRemessa.objects.get(numero_solicitacao=json_cancelamento['StrNumSol'])
+                import ipdb
+                ipdb.set_trace()
+            except DataError as e:
+                pass
+
 
     @action(detail=False, methods=['GET'], url_path='lista-numeros')
     def lista_numeros(self, request):
