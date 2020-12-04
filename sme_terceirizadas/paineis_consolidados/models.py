@@ -2,6 +2,7 @@ import datetime
 import operator
 
 from django.db import models
+from django.db.models import Q
 
 from ..dados_comuns.behaviors import TemIdentificadorExternoAmigavel, TemPrioridade
 from ..dados_comuns.constants import DAQUI_A_SETE_DIAS, DAQUI_A_TRINTA_DIAS
@@ -287,6 +288,7 @@ class SolicitacoesCODAE(MoldeConsolidado):
     @classmethod
     def get_autorizados_dieta_especial(cls, **kwargs):
         return cls.objects.filter(
+            Q(em_vigencia=True) | Q(em_vigencia__isnull=True),
             status_atual__in=cls.AUTORIZADO_STATUS_DIETA_ESPECIAL,
             status_evento__in=cls.AUTORIZADO_EVENTO_DIETA_ESPECIAL,
             tipo_doc=cls.TP_SOL_DIETA_ESPECIAL,
@@ -467,6 +469,7 @@ class SolicitacoesEscola(MoldeConsolidado):
     def get_autorizados_dieta_especial(cls, **kwargs):
         escola_uuid = kwargs.get('escola_uuid')
         return cls.objects.filter(
+            Q(em_vigencia=True) | Q(em_vigencia__isnull=True),
             escola_uuid=escola_uuid,
             status_atual__in=cls.AUTORIZADO_STATUS_DIETA_ESPECIAL,
             status_evento__in=cls.AUTORIZADO_EVENTO_DIETA_ESPECIAL,
@@ -671,6 +674,7 @@ class SolicitacoesDRE(MoldeConsolidado):
     def get_autorizados_dieta_especial(cls, **kwargs):
         dre_uuid = kwargs.get('dre_uuid')
         return cls.objects.filter(
+            Q(em_vigencia=True) | Q(em_vigencia__isnull=True),
             dre_uuid=dre_uuid,
             status_atual__in=cls.AUTORIZADO_STATUS_DIETA_ESPECIAL,
             status_evento__in=cls.AUTORIZADO_EVENTO_DIETA_ESPECIAL,
@@ -856,6 +860,7 @@ class SolicitacoesTerceirizada(MoldeConsolidado):
     def get_autorizados_dieta_especial(cls, **kwargs):
         terceirizada_uuid = kwargs.get('terceirizada_uuid')
         return cls.objects.filter(
+            Q(em_vigencia=True) | Q(em_vigencia__isnull=True),
             terceirizada_uuid=terceirizada_uuid,
             status_atual__in=cls.AUTORIZADO_STATUS_DIETA_ESPECIAL,
             status_evento__in=cls.AUTORIZADO_EVENTO_DIETA_ESPECIAL,
