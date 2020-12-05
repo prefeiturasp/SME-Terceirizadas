@@ -66,9 +66,14 @@
       <hr />
        <table>
         <tr>
+          <th class="w-50">
+            Período de Vigência<br/>
+            Data de início
+          </th>
           <th class="w-50">Data de término</th>
         </tr>
         <tr>
+          <td>{{ solicitacao.data_inicio|date:"SHORT_DATE_FORMAT"|default:'Sem data de início' }}</td>
           <td>{{ solicitacao.data_termino|date:"SHORT_DATE_FORMAT"|default:'Sem data de término' }}</td>
         </tr>
       </table>
@@ -124,8 +129,6 @@
           </div>
         {% endif %}
     </div>
-
-
-      {% include "bloco_historico_questionamento.html" %}
+    {% include "bloco_historico_questionamento.html" %}
   </div>
 {% endblock %}
