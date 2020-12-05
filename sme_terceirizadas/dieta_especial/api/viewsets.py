@@ -622,7 +622,10 @@ class SolicitacoesAtivasInativasPorAlunoView(generics.ListAPIView):
         qs = Aluno.objects.filter(
             dietas_especiais__status=DietaEspecialWorkflow.CODAE_AUTORIZADO,
         ).annotate(
-            ativas=Count('dietas_especiais', filter=Q(dietas_especiais__ativo=True)),
+            ativas=Count('dietas_especiais', filter=Q(
+                dietas_especiais__ativo=True,
+                dietas_especiais__dieta_alterada__isnull=True
+            )),
             inativas=Count('dietas_especiais', filter=Q(
                 dietas_especiais__ativo=False,
                 dietas_especiais__dieta_alterada__isnull=True
