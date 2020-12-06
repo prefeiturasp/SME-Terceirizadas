@@ -12,12 +12,22 @@ from sme_terceirizadas.dados_comuns.parser_xml import ListXMLParser
 from sme_terceirizadas.dados_comuns.permissions import UsuarioDilogCodae
 from sme_terceirizadas.logistica.api.serializers.serializer_create import SolicitacaoRemessaCreateSerializer
 from sme_terceirizadas.logistica.api.serializers.serializers import (
+    AlimentoDaGuiaDaRemessaSerializer,
+    AlimentoDaGuiaDaRemessaSimplesSerializer,
+    GuiaDaRemessaSerializer,
+    GuiaDaRemessaSimplesSerializer,
+    InfoUnidadesSimplesDaGuiaSerializer,
     SolicitacaoRemessaLookUpSerializer,
     SolicitacaoRemessaSerializer,
     SolicitacaoRemessaSimplesSerializer,
     XmlParserSolicitacaoSerializer
 )
+from sme_terceirizadas.logistica.models import Alimento
+from sme_terceirizadas.logistica.models import Guia as GuiasDasRequisicoes
 from sme_terceirizadas.logistica.models import SolicitacaoRemessa
+
+from ..utils import RequisicaoPagination
+from .helpers import remove_acentos_de_strings, retorna_status_das_requisicoes
 
 STR_XML_BODY = '{http://schemas.xmlsoap.org/soap/envelope/}Body'
 STR_ARQUIVO_SOLICITACAO = 'ArqSolicitacaoMOD'
@@ -110,6 +120,47 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
         response = {'results': SolicitacaoRemessaLookUpSerializer(queryset, many=True).data}
         return Response(response)
 
+    @action(detail=False, permission_classes=(UsuarioDilogCodae,),  # noqa C901
+            methods=['GET'], url_path='consulta-requisicoes-de-entrega')
+    def lista_requisicoes_filtro_avancado(self, request):
+        queryset = self.get_queryset()
+        numero_requisicao = request.query_params.get('numero_requisicao', None)
+        status = request.query_params.get('status', [])
+        data_inicio = request.query_params.get('data_inicio', None)
+        data_fim = request.query_params.get('data_fim', None)
+        numero_guia = request.query_params.get('numero_guia', None)
+        nome_produto = request.query_params.get('nome_produto', None)
+        nome_distribuidor = request.query_params.get('nome_distribuidor', None)
+        codigo_eol = request.query_params.get('codigo_escola', None)
+        nome_escola = request.query_params.get('nome_escola', None)
+        if len(status) >= 1:
+            lista_status = retorna_status_das_requisicoes(status)
+            queryset = queryset.filter(numero_status__in=lista_status)
+        if numero_requisicao:
+            queryset = queryset.filter(numero_solicitacao=numero_requisicao)
+        if nome_distribuidor:
+            queryset = queryset.filter(distribuidor__nome_fantasia__icontains=nome_distribuidor)
+        if numero_guia:
+            queryset = queryset.filter(guias__numero_guia__icontains=numero_guia).distinct()
+        if data_inicio:
+            queryset = queryset.filter(guias__data_entrega__gte=data_inicio).distinct()
+        if data_fim:
+            queryset = queryset.filter(guias__data_entrega__lte=data_fim).distinct()
+        if codigo_eol:
+            queryset = queryset.filter(guias__codigo_unidade__icontains=codigo_eol).distinct()
+        if nome_escola:
+            unidade_educacional = remove_acentos_de_strings(nome_escola)
+            queryset = queryset.filter(guias__nome_unidade__icontains=unidade_educacional).distinct()
+        if nome_produto:
+            produto = remove_acentos_de_strings(nome_produto)
+            queryset = queryset.filter(guias__alimentos__nome_alimento__icontains=produto).distinct()
+
+        self.pagination_class = RequisicaoPagination
+        page = self.paginate_queryset(queryset)
+        serializer = SolicitacaoRemessaSerializer(
+            page if page is not None else queryset, many=True)
+        return self.get_paginated_response(serializer.data)
+
     @action(detail=True, permission_classes=(UsuarioDilogCodae,),
             methods=['patch'], url_path='envia-solicitacao')
     def incia_fluxo_solicitacao(self, request, uuid=None):
@@ -136,3 +187,34 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
             return Response(serializer.data)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+
+
+class GuiaDaRequisicaoModelViewSet(viewsets.ModelViewSet):
+    lookup_field = 'uuid'
+    queryset = GuiasDasRequisicoes.objects.all()
+    serializer_class = GuiaDaRemessaSerializer
+    permission_classes = [UsuarioDilogCodae]
+
+    @action(detail=False, methods=['GET'], url_path='lista-numeros')
+    def lista_numeros(self, request):
+        response = {'results': GuiaDaRemessaSimplesSerializer(self.get_queryset(), many=True).data}
+        return Response(response)
+
+    @action(detail=False, methods=['GET'], url_path='unidades-escolares')
+    def nomes_unidades(self, request):
+        unidades_escolares = GuiasDasRequisicoes.objects.values(
+            'nome_unidade', 'codigo_unidade').distinct()
+        response = {'results': InfoUnidadesSimplesDaGuiaSerializer(unidades_escolares, many=True).data}
+        return Response(response)
+
+
+class AlimentoDaGuiaModelViewSet(viewsets.ModelViewSet):
+    lookup_field = 'uuid'
+    queryset = Alimento.objects.all()
+    serializer_class = AlimentoDaGuiaDaRemessaSerializer
+    permission_classes = [UsuarioDilogCodae]
+
+    @action(detail=False, methods=['GET'], url_path='lista-nomes')
+    def lista_nomes(self, request):
+        response = {'results': AlimentoDaGuiaDaRemessaSimplesSerializer(self.get_queryset(), many=True).data}
+        return Response(response)
