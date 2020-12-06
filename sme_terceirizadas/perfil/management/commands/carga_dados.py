@@ -15,7 +15,7 @@ from utility.carga_dados.dieta_especial.importa_dados import (
     cria_alimento,
     cria_classificacoes_dieta,
     cria_motivo_alteracao_ue,
-    cria_motivo_negacao,
+    cria_motivo_negacao
 )
 from utility.carga_dados.escola.importa_dados import (
     cria_contatos_escola,
