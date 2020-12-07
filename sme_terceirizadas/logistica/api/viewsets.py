@@ -1,3 +1,4 @@
+from django.core.exceptions import ObjectDoesNotExist
 from django.db.utils import DataError
 from rest_framework import viewsets
 from rest_framework.decorators import action
@@ -48,6 +49,34 @@ class SolicitacaoEnvioEmMassaModelViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
+class SolicitacaoCancelamentoModelViewSet(viewsets.ModelViewSet):
+    lookup_field = 'uuid'
+    http_method_names = ['post', ]
+    queryset = SolicitacaoRemessa.objects.all()
+    serializer_class = XmlParserSolicitacaoSerializer
+    permission_classes = [IsAuthenticated]
+    parser_classes = (ListXMLParser,)
+    pagination_class = None
+
+    def create(self, request, *args, **kwargs):
+        remove_dirt = request.data.get(f'{STR_XML_BODY}')
+        json_cancelamento = remove_dirt.get(f'{STR_ARQUIVO_CANCELAMENTO}')
+        usuario = request.user
+
+        if json_cancelamento:
+            try:
+                solicitacao = SolicitacaoRemessa.objects.get(numero_solicitacao=json_cancelamento['StrNumSol'])
+                solicitacao.cancela_solicitacao(user=usuario,)
+                return Response(dict(detail=f'Cancelada com sucesso', status=True),
+                                status=HTTP_201_CREATED)
+            except InvalidTransitionError as e:
+                return Response(dict(detail=f'Erro de transição de estado: {e}', status=False),
+                                status=HTTP_406_NOT_ACCEPTABLE)
+            except ObjectDoesNotExist as e:
+                return Response(dict(detail=f'Erro de transição de estado: {e}', status=False),
+                                status=HTTP_406_NOT_ACCEPTABLE)
+
+
 class SolicitacaoModelViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
     http_method_names = ['get', 'post', 'patch']
@@ -68,11 +97,11 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
         remove_dirt = request.data.get(f'{STR_XML_BODY}')
         json_cancelamento = remove_dirt.get(f'{STR_ARQUIVO_CANCELAMENTO}')
         json_data = remove_dirt.get(f'{STR_ARQUIVO_SOLICITACAO}')
+        usuario = request.user
 
         if json_data:
             try:
                 instance = SolicitacaoRemessaCreateSerializer().create(validated_data=json_data)
-                usuario = request.user
 
                 instance.salvar_log_transicao(
                     status_evento=LogSolicitacoesUsuario.INICIO_FLUXO_SOLICITACAO,
@@ -87,8 +116,9 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
         if json_cancelamento:
             try:
                 solicitacao = SolicitacaoRemessa.objects.get(numero_solicitacao=json_cancelamento['StrNumSol'])
-                import ipdb
-                ipdb.set_trace()
+                solicitacao.cancela_solicitacao(user=usuario,)
+                return Response(dict(detail=f'Cancelada com sucesso', status=True),
+                                status=HTTP_201_CREATED)
             except DataError as e:
                 pass
 
@@ -148,3 +178,27 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
             return Response(serializer.data)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+
+
+    @action(detail=True, permission_classes=(IsAuthenticated,),
+            methods=['post'], url_path='cancelamento')
+    def papa_cancela_hook(self, request):
+        remove_dirt = request.data.get(f'{STR_XML_BODY}')
+        json_cancelamento = remove_dirt.get(f'{STR_ARQUIVO_CANCELAMENTO}')
+        usuario = request.user
+
+        if json_cancelamento:
+            try:
+                solicitacao = SolicitacaoRemessa.objects.get(numero_solicitacao=json_cancelamento['StrNumSol'])
+                solicitacao.cancela_solicitacao(user=usuario, )
+                # return Response(dict(detail=f'Cancelada com sucesso', status=True),
+                #                 status=HTTP_201_CREATED)
+                serializer = SolicitacaoRemessaSerializer(solicitacao, many=False)
+            except InvalidTransitionError as e:
+                return Response(dict(detail=f'Erro de transição de estado: {e}', status=False),
+                                status=HTTP_406_NOT_ACCEPTABLE)
+            except ObjectDoesNotExist as e:
+                return Response(dict(detail=f'Erro de transição de estado: {e}', status=False),
+                                status=HTTP_406_NOT_ACCEPTABLE)
+
+        return Response(serializer.data)
