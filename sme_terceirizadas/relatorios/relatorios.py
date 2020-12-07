@@ -244,8 +244,8 @@ def relatorio_inversao_dia_de_cardapio(request, solicitacao):
             'solicitacao': solicitacao,
             'data_de': solicitacao.cardapio_de.data,
             'data_para': solicitacao.cardapio_para.data,
-            'fluxo': constants.FLUXO_PARTINDO_ESCOLA,
-            'width': get_width(constants.FLUXO_PARTINDO_ESCOLA, solicitacao.logs),
+            'fluxo': constants.FLUXO_INVERSAO_DIA_CARDAPIO,
+            'width': get_width(constants.FLUXO_INVERSAO_DIA_CARDAPIO, solicitacao.logs),
             'logs': formata_logs(logs)
         }
     )

@@ -109,6 +109,27 @@ FLUXO_INCLUSAO_ALIMENTACAO = [
     }
 ]
 
+FLUXO_INVERSAO_DIA_CARDAPIO = [
+    {
+        'titulo': 'Solicitação Realizada',
+        'status': '',
+        'criado_em': '',
+        'usuario': None
+    },
+    {
+        'titulo': 'DRE',
+        'status': '',
+        'criado_em': '',
+        'usuario': None
+    },
+    {
+        'titulo': 'CODAE',
+        'status': '',
+        'criado_em': '',
+        'usuario': None
+    }
+]
+
 FLUXO_INFORMATIVO = [
     {
         'titulo': 'Solicitação Realizada',
@@ -189,7 +210,6 @@ FLUXO_DIETA_ESPECIAL_INATIVACAO_INCOMPLETO = [
         'usuario': None
     }
 ]
-
 
 FLUXO_DIETA_ESPECIAL_INATIVACAO = [
     {
