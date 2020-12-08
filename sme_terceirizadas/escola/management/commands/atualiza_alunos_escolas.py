@@ -1,9 +1,12 @@
-import environ
 import logging
-import requests
 import timeit
+
+import environ
+import requests
+from django.conf import settings
 from django.core.management.base import BaseCommand
 from requests import ConnectionError
+from utility.carga_dados.helper import progressbar
 
 from ....dados_comuns.constants import DJANGO_EOL_API_TOKEN, DJANGO_EOL_API_URL
 from ...models import Aluno, Escola, PeriodoEscolar
@@ -33,11 +36,11 @@ class Command(BaseCommand):
         toc = timeit.default_timer()
         result = round(toc - tic, 2)
         if result > 60:
-            print('Total time:', round(result // 60, 2))
+            logger.debug('Total time:', round(result // 60, 2), 'min')
         else:
-            print('Total time:', round(result, 2))
+            logger.debug('Total time:', round(result, 2), 's')
 
-    def _obtem_alunos_escola(self, cod_eol_escola):
+    def _obtem_alunos_escola(self, cod_eol_escola):  # noqa C901
         try:
             r = requests.get(
                 f'{DJANGO_EOL_API_URL}/escola_turma_aluno/{cod_eol_escola}',
@@ -46,7 +49,8 @@ class Command(BaseCommand):
             json = r.json()
             if json == 'não encontrado':
                 return
-            logger.debug(f'payload da resposta: {json}')
+            if not settings.DEBUG:
+                logger.debug(f'payload da resposta: {json}')
             return json
         except ConnectionError as e:
             msg = f'Erro de conexão na api do EOL: {e}'
@@ -60,12 +64,10 @@ class Command(BaseCommand):
         # Aconteceu na escola codigo_eol 012874.
         registros = [dict(t) for t in {tuple(d.items()) for d in dados_escola['results']}]
 
-        for i, registro in enumerate(registros):
-            print(i, registro['cd_aluno'], registro['nm_aluno'])
-            with open('alunos_teste.txt', 'a') as f:
-                f.write(f"{str(i)}, {registro['cd_aluno']}, {registro['nm_aluno']}")
-                f.write('\n')
+        if settings.DEBUG:
+            registros = progressbar(registros, 'Alunos')
 
+        for registro in registros:
             aluno = Aluno.objects.filter(codigo_eol=registro['cd_aluno']).first()
             data_nascimento = registro['dt_nascimento_aluno'].split('T')[0]
             periodo = self.PERIODOS[registro['dc_tipo_turno'].strip()]
@@ -90,14 +92,15 @@ class Command(BaseCommand):
         Aluno.objects.bulk_create(novos_alunos)
 
     def _atualiza_todas_as_escolas(self):
-        escolas = Escola.objects.all()
+        if settings.DEBUG:
+            # Em debug roda uma quantidade menor de escolas (apenas para teste local).
+            escolas = Escola.objects.all()[:10]
+        else:
+            escolas = Escola.objects.all()
+
+        total = escolas.count()
         for i, escola in enumerate(escolas):
-            print(i, 'escola:', escola)
+            logger.debug(f'{i+1}/{total} - {escola}')
             dados_escola = self._obtem_alunos_escola(escola.codigo_eol)
-            with open('escolas_teste.txt', 'a') as f:
-                f.write(str(i))
-                f.write('\n')
-                f.write(str(escola.codigo_eol))
-                f.write('\n')
             if dados_escola:
                 self._atualiza_alunos_da_escola(escola, dados_escola)
