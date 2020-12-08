@@ -36,13 +36,18 @@ class Command(BaseCommand):
             default=None,
             help='Informar código EOL da escola.'
         )
+        parser.add_argument(
+            '--progressbar', '-p',
+            action='store_true',
+            help='Mostra barra de progresso.'
+        )
 
     def handle(self, *args, **options):
         tic = timeit.default_timer()
         if options['escola']:
-            self._atualiza_todas_as_escolas(options['escola'])
+            self._atualiza_todas_as_escolas(options['escola'], options['progressbar'])
         else:
-            self._atualiza_todas_as_escolas()
+            self._atualiza_todas_as_escolas(options['progressbar'])
 
         toc = timeit.default_timer()
         result = round(toc - tic, 2)
@@ -59,6 +64,7 @@ class Command(BaseCommand):
             )
             json = r.json()
             if json == 'não encontrado':
+                logger.debug('Não encontrado.')
                 return
             if not settings.DEBUG:
                 logger.debug(f'payload da resposta: {json}')
@@ -67,15 +73,14 @@ class Command(BaseCommand):
             msg = f'Erro de conexão na api do EOL: {e}'
             logger.error(msg)
             self.stdout.write(self.style.ERROR(msg))
-            return
 
-    def _atualiza_alunos_da_escola(self, escola, dados_escola):
+    def _atualiza_alunos_da_escola(self, escola, dados_escola, progress_bar=None):
         novos_alunos = []
         # Remove dicionários duplicados da lista.
         # Aconteceu na escola codigo_eol 012874.
         registros = [dict(t) for t in {tuple(d.items()) for d in dados_escola['results']}]
 
-        if settings.DEBUG:
+        if progress_bar:
             registros = progressbar(registros, 'Alunos')
 
         for registro in registros:
@@ -102,7 +107,7 @@ class Command(BaseCommand):
                 novos_alunos.append(obj_aluno)
         Aluno.objects.bulk_create(novos_alunos)
 
-    def _atualiza_todas_as_escolas(self, codigo_eol_escola=None):
+    def _atualiza_todas_as_escolas(self, codigo_eol_escola=None, progressbar=None):
         if codigo_eol_escola:
             escolas = Escola.objects.filter(codigo_eol=codigo_eol_escola)
         else:
@@ -113,4 +118,4 @@ class Command(BaseCommand):
             logger.debug(f'{i+1}/{total} - {escola}')
             dados_escola = self._obtem_alunos_escola(escola.codigo_eol)
             if dados_escola:
-                self._atualiza_alunos_da_escola(escola, dados_escola)
+                self._atualiza_alunos_da_escola(escola, dados_escola, progressbar)
