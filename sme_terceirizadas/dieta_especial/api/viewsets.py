@@ -141,7 +141,7 @@ class SolicitacaoDietaEspecialViewSet(
     @action(detail=True, methods=['patch'], permission_classes=(UsuarioCODAEDietaEspecial,))  # noqa: C901
     def autorizar(self, request, uuid=None):
         solicitacao = self.get_object()
-        if solicitacao.aluno.possui_dieta_especial_ativa:
+        if solicitacao.aluno.possui_dieta_especial_ativa and solicitacao.tipo_solicitacao == 'COMUM':
             solicitacao.aluno.inativar_dieta_especial()
         serializer = self.get_serializer()
         try:
