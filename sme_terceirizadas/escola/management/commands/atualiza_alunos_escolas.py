@@ -30,15 +30,26 @@ class Command(BaseCommand):
         'Vespertino': 'VESPERTINO',
     }
 
+    def add_arguments(self, parser):
+        parser.add_argument(
+            '--escola', '-e',
+            default=None,
+            help='Informar código EOL da escola.'
+        )
+
     def handle(self, *args, **options):
         tic = timeit.default_timer()
-        self._atualiza_todas_as_escolas()
+        if options['escola']:
+            self._atualiza_todas_as_escolas(options['escola'])
+        else:
+            self._atualiza_todas_as_escolas()
+
         toc = timeit.default_timer()
         result = round(toc - tic, 2)
         if result > 60:
-            logger.debug('Total time:', round(result // 60, 2), 'min')
+            logger.debug(f'Total time: {round(result // 60, 2)} min')
         else:
-            logger.debug('Total time:', round(result, 2), 's')
+            logger.debug(f'Total time: {round(result, 2)} s')
 
     def _obtem_alunos_escola(self, cod_eol_escola):  # noqa C901
         try:
@@ -91,10 +102,9 @@ class Command(BaseCommand):
                 novos_alunos.append(obj_aluno)
         Aluno.objects.bulk_create(novos_alunos)
 
-    def _atualiza_todas_as_escolas(self):
-        if settings.DEBUG:
-            # Em debug roda uma quantidade menor de escolas (apenas para teste local).
-            escolas = Escola.objects.all()[:10]
+    def _atualiza_todas_as_escolas(self, codigo_eol_escola=None):
+        if codigo_eol_escola:
+            escolas = Escola.objects.filter(codigo_eol=codigo_eol_escola)
         else:
             escolas = Escola.objects.all()
 
