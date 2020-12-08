@@ -280,10 +280,23 @@ class SolicitacoesDietaEspecialAtivasInativasPorAluno(models.Model):
         db_table = 'dietas_ativas_inativas_por_aluno'
 
 
-class Alimento(Nomeavel, TemChaveExterna):
+class Alimento(Nomeavel, TemChaveExterna, Ativavel):
+    TIPO_CHOICES = [
+        ('E', 'Edital'),
+        ('P', 'Proprio')
+    ]
+    tipo = models.CharField(max_length=1, choices=TIPO_CHOICES, default='E')
+    marca = models.ForeignKey(
+        'produto.Marca',
+        on_delete=models.PROTECT,
+        blank=True,
+        null=True
+    )
+    outras_informacoes = models.CharField(max_length=255, blank=True)
 
     class Meta:
         ordering = ('nome',)
+        unique_together = ('nome', 'marca')
 
     def __str__(self):
         return self.nome
