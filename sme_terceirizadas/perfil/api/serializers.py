@@ -242,7 +242,9 @@ class UsuarioUpdateSerializer(serializers.ModelSerializer):
             informacoes_usuario_json = self.get_informacoes_usuario(validated_data)  # noqa
         except EOLException as e:
             return Response({'detail': f'{e}'}, status=status.HTTP_400_BAD_REQUEST)
-        if validated_data['instituicao'] != 'CODAE':
+        eh_da_codae = validated_data['instituicao'] == 'CODAE'
+        eh_da_dre = validated_data['instituicao'].startswith('DIRETORIA REGIONAL DE EDUCACAO')
+        if not eh_da_codae and not eh_da_dre:
             usuario_e_vinculado_a_aquela_instituicao(
                 descricao_instituicao=validated_data['instituicao'],
                 instituicoes_eol=informacoes_usuario_json
