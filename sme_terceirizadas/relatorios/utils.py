@@ -118,3 +118,11 @@ def conta_filtros(filtros):
         if valor:
             qtde_filtros += 1
     return qtde_filtros
+
+
+def get_ultima_justificativa_analise_sensorial(produto):
+    justificativa = [
+        item.ultimo_log.justificativa
+        for item in produto.homologacoes.all()
+        if item.ultimo_log.status_evento_explicacao == 'CODAE pediu análise sensorial']
+    return justificativa[0] if justificativa else None
