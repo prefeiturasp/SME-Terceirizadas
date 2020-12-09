@@ -799,6 +799,10 @@ class Aluno(TemChaveExterna):
     def possui_dieta_especial_ativa(self):
         return self.dietas_especiais.filter(ativo=True).exists()
 
+    @property
+    def possui_dieta_especial(self):
+        return self.dietas_especiais.all().exists()
+
     def inativar_dieta_especial(self):
         try:
             dieta_especial = self.dietas_especiais.get(ativo=True)

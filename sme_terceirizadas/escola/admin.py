@@ -87,8 +87,8 @@ class DiretoriaRegionalAdmin(admin.ModelAdmin):
 
 @admin.register(Aluno)
 class AlunoAdmin(admin.ModelAdmin):
-    list_display = ('__str__',)
-    search_fields = ('nome',)
+    list_display = ('__str__', 'escola')
+    search_fields = ('nome', 'escola__nome')
 
 
 admin.site.register(Codae)
