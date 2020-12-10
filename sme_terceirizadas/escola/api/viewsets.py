@@ -373,7 +373,9 @@ class EscolaPeriodoEscolarViewSet(ModelViewSet):
         data_referencia = form.cleaned_data['data_referencia']
 
         log = LogAlteracaoQuantidadeAlunosPorEscolaEPeriodoEscolar.objects.filter(
-            criado_em__gte=data_referencia
+            criado_em__gte=data_referencia,
+            escola=escola_periodo.escola,
+            periodo_escolar=escola_periodo.periodo_escolar
         ).order_by('criado_em').first()
 
         if log:
@@ -386,6 +388,7 @@ class EscolaPeriodoEscolarViewSet(ModelViewSet):
                 'convencional': quantidade_alunos
             }
         })
+
 
 class AlunoViewSet(RetrieveModelMixin, ListModelMixin, GenericViewSet):
     lookup_field = 'codigo_eol'
