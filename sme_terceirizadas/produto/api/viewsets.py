@@ -553,6 +553,20 @@ class ProdutoViewSet(viewsets.ModelViewSet):
             query_set, many=True).data}
         return Response(response)
 
+    @action(detail=False, methods=['GET'], url_path='lista-nomes-nova-reclamacao')
+    def lista_produtos_nova_reclamacao(self, request):
+        query_set = Produto.objects.filter(ativo=True)
+        query_set = query_set.filter(
+            homologacoes__status__in=[
+                HomologacaoProdutoWorkflow.CODAE_HOMOLOGADO,
+                HomologacaoProdutoWorkflow.ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
+                HomologacaoProdutoWorkflow.CODAE_PEDIU_ANALISE_RECLAMACAO,
+                HomologacaoProdutoWorkflow.TERCEIRIZADA_RESPONDEU_RECLAMACAO
+            ]
+        )
+        response = {'results': ProdutoSimplesSerializer(query_set, many=True).data}
+        return Response(response)
+
     @action(detail=False, methods=['GET'], url_path='lista-nomes-homologados')
     def lista_produtos_homologados(self, request):
         status = 'CODAE_HOMOLOGADO'
@@ -893,9 +907,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         filtros = self.request.query_params.dict()
         return relatorio_reclamacao(queryset, filtros)
 
-    @action(detail=False,
-            methods=['GET'],
-            url_path='ja-existe')
+    @action(detail=False, methods=['GET'], url_path='ja-existe')
     def ja_existe(self, request):
         form = ProdutoJaExisteForm(request.GET)
 
@@ -942,6 +954,19 @@ class FabricanteViewSet(viewsets.ModelViewSet):
             query_set, many=True).data}
         return Response(response)
 
+    @action(detail=False, methods=['GET'], url_path='lista-nomes-nova-reclamacao')
+    def lista_fabricantes_nova_reclamacao(self, request):
+        query_set = Fabricante.objects.filter(
+            produto__homologacoes__status__in=[
+                HomologacaoProdutoWorkflow.CODAE_HOMOLOGADO,
+                HomologacaoProdutoWorkflow.ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
+                HomologacaoProdutoWorkflow.CODAE_PEDIU_ANALISE_RECLAMACAO,
+                HomologacaoProdutoWorkflow.TERCEIRIZADA_RESPONDEU_RECLAMACAO
+            ]
+        )
+        response = {'results': FabricanteSimplesSerializer(query_set, many=True).data}
+        return Response(response)
+
 
 class MarcaViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
@@ -959,6 +984,19 @@ class MarcaViewSet(viewsets.ModelViewSet):
                                                                             'ESCOLA_OU_NUTRICIONISTA_RECLAMOU'])
         response = {'results': MarcaSimplesSerializer(
             query_set, many=True).data}
+        return Response(response)
+
+    @action(detail=False, methods=['GET'], url_path='lista-nomes-nova-reclamacao')
+    def lista_marcas_nova_reclamacao(self, request):
+        query_set = Marca.objects.filter(
+            produto__homologacoes__status__in=[
+                HomologacaoProdutoWorkflow.CODAE_HOMOLOGADO,
+                HomologacaoProdutoWorkflow.ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
+                HomologacaoProdutoWorkflow.CODAE_PEDIU_ANALISE_RECLAMACAO,
+                HomologacaoProdutoWorkflow.TERCEIRIZADA_RESPONDEU_RECLAMACAO
+            ]
+        )
+        response = {'results': MarcaSimplesSerializer(query_set, many=True).data}
         return Response(response)
 
 
