@@ -30,13 +30,16 @@ class GuiaManager(models.Manager):
 class Guia(ModeloBase):
     # Status Choice
     STATUS_INTEGRADA = 'INTEGRADA'
+    STATUS_CANCELADA = 'CANCELADA'
 
     STATUS_NOMES = {
         STATUS_INTEGRADA: 'Integrada',
+        STATUS_CANCELADA: 'Cancelada',
     }
 
     STATUS_CHOICES = (
         (STATUS_INTEGRADA, STATUS_NOMES[STATUS_INTEGRADA]),
+        (STATUS_CANCELADA, STATUS_NOMES[STATUS_CANCELADA]),
     )
 
     numero_guia = models.CharField('Número da guia', blank=True, max_length=100)

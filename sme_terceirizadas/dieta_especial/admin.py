@@ -40,6 +40,7 @@ admin.site.register(MotivoNegacao)
 class SolicitacaoDietaEspecialAdmin(admin.ModelAdmin):
     list_display = ('id_externo', '__str__', 'status', 'ativo')
     list_display_links = ('__str__',)
+    readonly_fields = ('aluno',)
     change_list_template = 'dieta_especial/change_list.html'
 
     def get_urls(self):
