@@ -23,7 +23,6 @@ from sme_terceirizadas.logistica.api.serializers.serializers import (
     SolicitacaoRemessaSimplesSerializer,
     XmlParserSolicitacaoSerializer
 )
-
 from sme_terceirizadas.logistica.models import Alimento
 from sme_terceirizadas.logistica.models import Guia as GuiasDasRequisicoes
 from sme_terceirizadas.logistica.models import SolicitacaoRemessa
