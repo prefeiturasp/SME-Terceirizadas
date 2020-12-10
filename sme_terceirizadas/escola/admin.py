@@ -85,7 +85,12 @@ class DiretoriaRegionalAdmin(admin.ModelAdmin):
     search_fields = ('codigo_eol', 'nome')
 
 
-admin.site.register(Aluno)
+@admin.register(Aluno)
+class AlunoAdmin(admin.ModelAdmin):
+    list_display = ('__str__',)
+    search_fields = ('nome',)
+
+
 admin.site.register(Codae)
 admin.site.register(EscolaPeriodoEscolar, EscolaPeriodoEscolarAdmin)
 admin.site.register(FaixaIdadeEscolar)

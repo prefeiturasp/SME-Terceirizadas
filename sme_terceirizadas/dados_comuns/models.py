@@ -108,11 +108,11 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
         (CODAE_RESPONDEU_RECLAMACAO, 'CODAE respondeu ao reclamante da reclamação'),
         (TERCEIRIZADA_RESPONDEU_RECLAMACAO, 'Terceirizada respondeu a reclamação'),
         (TERCEIRIZADA_RESPONDEU_ANALISE_SENSORIAL, 'Terceirizada respondeu a análise'),  # noqa
-        (INICIO_FLUXO_SOLICITACAO, 'Papa enviou solicitação de remessa'),
-        (DILOG_ENVIA_SOLICITACAO, 'Enviada'),
-        (DISTRIBUIDOR_CONFIRMA_SOLICITACAO, 'Distribuidor confirmou solicitação de remessa'),  # noqa
-        (DISTRIBUIDOR_SOLICITA_ALTERACAO_SOLICITACAO, 'Distribuidor pede alteração da solicitação de remessa'),  # noqa
-        (PAPA_CANCELA_SOLICITACAO, 'Papa cancelou solicitação de remessa'),
+        (INICIO_FLUXO_SOLICITACAO, 'Papa enviou a requisição'),
+        (DILOG_ENVIA_SOLICITACAO, 'Dilog Enviou a requisição'),
+        (DISTRIBUIDOR_CONFIRMA_SOLICITACAO, 'Distribuidor confirmou requisição'),  # noqa
+        (DISTRIBUIDOR_SOLICITA_ALTERACAO_SOLICITACAO, 'Distribuidor pede alteração da requisição'),  # noqa
+        (PAPA_CANCELA_SOLICITACAO, 'Papa cancelou a requisição'),
     )
     (  # DA ESCOLA
         SOLICITACAO_KIT_LANCHE_AVULSA,

@@ -13,6 +13,7 @@ from .utils import (
     formata_logs,
     get_config_cabecario_relatorio_analise,
     get_diretorias_regionais,
+    get_ultima_justificativa_analise_sensorial,
     get_width
 )
 
@@ -244,8 +245,8 @@ def relatorio_inversao_dia_de_cardapio(request, solicitacao):
             'solicitacao': solicitacao,
             'data_de': solicitacao.cardapio_de.data,
             'data_para': solicitacao.cardapio_para.data,
-            'fluxo': constants.FLUXO_PARTINDO_ESCOLA,
-            'width': get_width(constants.FLUXO_PARTINDO_ESCOLA, solicitacao.logs),
+            'fluxo': constants.FLUXO_INVERSAO_DIA_CARDAPIO,
+            'width': get_width(constants.FLUXO_INVERSAO_DIA_CARDAPIO, solicitacao.logs),
             'logs': formata_logs(logs)
         }
     )
@@ -281,10 +282,7 @@ def relatorio_produto_homologacao(request, produto):
         status=ReclamacaoProdutoWorkflow.CODAE_ACEITOU).first()
     logs = homologacao.logs
     lotes = terceirizada.lotes.all()
-    justificativa_analise_sensorial = [
-        item.ultimo_log.justificativa
-        for item in produto.homologacoes.all()
-        if item.ultimo_log.status_evento_explicacao == 'CODAE pediu análise sensorial'][0]
+    justificativa_analise_sensorial = get_ultima_justificativa_analise_sensorial(produto)
     html_string = render_to_string(
         'homologacao_produto.html',
         {

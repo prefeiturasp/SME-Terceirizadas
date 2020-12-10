@@ -2,6 +2,7 @@ from rest_framework import serializers
 
 from sme_terceirizadas.dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
 from sme_terceirizadas.dados_comuns.models import LogSolicitacoesUsuario
+from sme_terceirizadas.logistica.api.helpers import retorna_status_para_usuario
 from sme_terceirizadas.logistica.models import Alimento, Guia, SolicitacaoRemessa, TipoEmbalagem
 
 
@@ -58,9 +59,11 @@ class SolicitacaoRemessaSerializer(serializers.ModelSerializer):
     log_atual = serializers.SerializerMethodField()
 
     def get_log_atual(self, obj):
-        return LogSolicitacoesUsuarioSerializer(
+        log = LogSolicitacoesUsuarioSerializer(
             LogSolicitacoesUsuario.objects.filter(uuid_original=obj.uuid).last()
         ).data
+        log['status_usuario'] = retorna_status_para_usuario(log['status_evento_explicacao'])
+        return log
 
     def get_logs(self, obj):
         return LogSolicitacoesUsuarioSerializer(
@@ -145,3 +148,33 @@ class SolicitacaoRemessaSimplesSerializer(serializers.ModelSerializer):
     class Meta:
         model = SolicitacaoRemessa
         fields = ('uuid', 'numero_solicitacao')
+
+
+class GuiaDaRemessaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Guia
+        exclude = ('id',)
+
+
+class GuiaDaRemessaSimplesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Guia
+        fields = ('uuid', 'numero_guia')
+
+
+class InfoUnidadesSimplesDaGuiaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Guia
+        fields = ('codigo_unidade', 'nome_unidade')
+
+
+class AlimentoDaGuiaDaRemessaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Alimento
+        exclude = ('id',)
+
+
+class AlimentoDaGuiaDaRemessaSimplesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Alimento
+        fields = ('uuid', 'nome_alimento')
