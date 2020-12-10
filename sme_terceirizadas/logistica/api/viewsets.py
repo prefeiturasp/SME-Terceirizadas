@@ -1,9 +1,10 @@
+from django.core.exceptions import ObjectDoesNotExist
 from django.db.utils import DataError
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.status import HTTP_201_CREATED, HTTP_400_BAD_REQUEST, HTTP_406_NOT_ACCEPTABLE
+from rest_framework.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_400_BAD_REQUEST, HTTP_406_NOT_ACCEPTABLE
 from xworkflows.base import InvalidTransitionError
 
 from sme_terceirizadas.dados_comuns.fluxo_status import SolicitacaoRemessaWorkFlow
@@ -31,6 +32,7 @@ from .helpers import remove_acentos_de_strings, retorna_status_das_requisicoes
 
 STR_XML_BODY = '{http://schemas.xmlsoap.org/soap/envelope/}Body'
 STR_ARQUIVO_SOLICITACAO = 'ArqSolicitacaoMOD'
+STR_ARQUIVO_CANCELAMENTO = 'ArqCancelamento'
 
 
 class SolicitacaoEnvioEmMassaModelViewSet(viewsets.ModelViewSet):
@@ -57,6 +59,59 @@ class SolicitacaoEnvioEmMassaModelViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
+class SolicitacaoCancelamentoModelViewSet(viewsets.ModelViewSet):
+    lookup_field = 'uuid'
+    http_method_names = ['post', ]
+    queryset = SolicitacaoRemessa.objects.all()
+    serializer_class = XmlParserSolicitacaoSerializer
+    permission_classes = [IsAuthenticated]
+    parser_classes = (ListXMLParser,)
+    pagination_class = None
+
+    def cancela_guias(self, num_solicitacao, guias, usuario):
+        # Cancela as guias recebidas no cancelamento;
+        # Se as guias da solicitação forem todas as guias recebidas, cancela também a solicitação;
+        # E se todas as guias de uma solicitação encontram se canceladas, cancela também a solicitação;
+
+        if isinstance(guias, list):
+            guias_payload = [x['StrNumGui'] for x in guias]
+        else:
+            guias_payload = [x['StrNumGui'] for x in guias.values()]
+
+        solicitacao = SolicitacaoRemessa.objects.get(numero_solicitacao=num_solicitacao)
+        solicitacao.guias.filter(numero_guia__in=guias_payload).update(status=SolicitacaoRemessaWorkFlow.PAPA_CANCELA)
+
+        guias_existentes = list(solicitacao.guias.values_list('numero_guia', flat=True))
+        existe_guia_nao_cancelada = solicitacao.guias.exclude(status=GuiasDasRequisicoes.STATUS_CANCELADA).exists()
+
+        if set(guias_existentes) == set(guias_payload) or not existe_guia_nao_cancelada:
+            solicitacao.cancela_solicitacao(user=usuario)
+        else:
+            solicitacao.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.PAPA_CANCELA_SOLICITACAO,
+                                             usuario=usuario,
+                                             justificativa=f'Guias canceladas: {guias_payload}')
+
+    def create(self, request, *args, **kwargs):  # noqa: C901
+        remove_dirt = request.data.get(f'{STR_XML_BODY}')
+        json_cancelamento = remove_dirt.get(f'{STR_ARQUIVO_CANCELAMENTO}')
+        usuario = request.user
+
+        if json_cancelamento:
+            try:
+                num_solicitacao = json_cancelamento['StrNumSol']
+                guias = json_cancelamento['guias']
+                self.cancela_guias(num_solicitacao, guias, usuario)
+
+                return Response(dict(detail=f'Cancelamento realizado com sucesso', status=True),
+                                status=HTTP_200_OK)
+            except InvalidTransitionError as e:
+                return Response(dict(detail=f'Erro de transição de estado: {e}', status=False),
+                                status=HTTP_406_NOT_ACCEPTABLE)
+            except ObjectDoesNotExist as e:
+                return Response(dict(detail=f'Erro de transição de estado: {e}', status=False),
+                                status=HTTP_406_NOT_ACCEPTABLE)
+
+
 class SolicitacaoModelViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
     http_method_names = ['get', 'post', 'patch']
@@ -75,21 +130,23 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         remove_dirt = request.data.get(f'{STR_XML_BODY}')
-        json_data = remove_dirt.pop(f'{STR_ARQUIVO_SOLICITACAO}')
-        try:
-            instance = SolicitacaoRemessaCreateSerializer().create(validated_data=json_data)
-            usuario = request.user
+        json_data = remove_dirt.get(f'{STR_ARQUIVO_SOLICITACAO}')
+        usuario = request.user
 
-            instance.salvar_log_transicao(
-                status_evento=LogSolicitacoesUsuario.INICIO_FLUXO_SOLICITACAO,
-                usuario=usuario
-            )
+        if json_data:
+            try:
+                instance = SolicitacaoRemessaCreateSerializer().create(validated_data=json_data)
 
-            return Response(dict(detail=f'Criado com sucesso', status=True),
-                            status=HTTP_201_CREATED)
-        except DataError as e:
-            return Response(dict(detail=f'Erro de transição de estado: {e}', status=False),
-                            status=HTTP_406_NOT_ACCEPTABLE)
+                instance.salvar_log_transicao(
+                    status_evento=LogSolicitacoesUsuario.INICIO_FLUXO_SOLICITACAO,
+                    usuario=usuario
+                )
+
+                return Response(dict(detail=f'Criado com sucesso', status=True),
+                                status=HTTP_201_CREATED)
+            except DataError as e:
+                return Response(dict(detail=f'Erro de transição de estado: {e}', status=False),
+                                status=HTTP_406_NOT_ACCEPTABLE)
 
     @action(detail=False, methods=['GET'], url_path='lista-numeros')
     def lista_numeros(self, request):
