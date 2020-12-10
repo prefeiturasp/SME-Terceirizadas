@@ -1,3 +1,4 @@
+from datetime import datetime
 from django.db import transaction
 from django.db.models import Case, CharField, Count, F, Q, Sum, Value, When
 from django.forms import ValidationError
@@ -615,21 +616,32 @@ class SolicitacoesAtivasInativasPorAlunoView(generics.ListAPIView):
         if not form.is_valid():
             raise ValidationError(form.errors)
 
+        hoje = datetime.today()
+
         ids_alterados = SolicitacaoDietaEspecial.objects.filter(
             dieta_alterada__isnull=False
         ).only('dieta_alterada_id').values_list('dieta_alterada_id', flat=True)
 
+        # Retorna somente Dietas Autorizadas Alteração de UE.
+        ids_alterados_autorizada_ue = SolicitacaoDietaEspecial.objects.filter(
+            dieta_alterada__isnull=False,
+            data_inicio__lte=hoje,
+            data_termino__gte=hoje
+        ).only('dieta_alterada_id').values_list('dieta_alterada_id', flat=True)
+
+        # Retorna somente Dietas Autorizadas e Inativas.
         qs = Aluno.objects.filter(
             dietas_especiais__status=DietaEspecialWorkflow.CODAE_AUTORIZADO,
+            dietas_especiais__dieta_alterada__isnull=True
         ).annotate(
             ativas=Count('dietas_especiais', filter=Q(
-                dietas_especiais__ativo=True,
-                dietas_especiais__dieta_alterada__isnull=True
-            )),
+                dietas_especiais__ativo=True
+            ) | Q(dietas_especiais__id__in=ids_alterados_autorizada_ue)
+            ),
             inativas=Count('dietas_especiais', filter=Q(
-                dietas_especiais__ativo=False,
-                dietas_especiais__dieta_alterada__isnull=True
-            ) & ~Q(dietas_especiais__id__in=ids_alterados)),
+                dietas_especiais__ativo=False
+            ) & ~Q(dietas_especiais__id__in=ids_alterados)
+            ),
         )
 
         user = self.request.user
