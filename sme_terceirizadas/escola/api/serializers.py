@@ -4,6 +4,7 @@ from rest_framework import serializers
 
 from ...cardapio.models import TipoAlimentacao
 from ...dados_comuns.api.serializers import ContatoSerializer, EnderecoSerializer
+from ...paineis_consolidados import models
 from ...perfil.api.serializers import PerfilSimplesSerializer, SuperAdminTerceirizadaSerializer
 from ...perfil.models import Usuario, Vinculo
 from ...terceirizada.api.serializers.serializers import ContratoSimplesSerializer, TerceirizadaSimplesSerializer
@@ -397,12 +398,33 @@ class AlunoSerializer(serializers.ModelSerializer):
     nome_escola = serializers.SerializerMethodField()
     nome_dre = serializers.SerializerMethodField()
     responsaveis = ReponsavelSerializer(many=True)
+    possui_dieta_especial = serializers.SerializerMethodField()
 
     def get_nome_escola(self, obj):
         return f'{obj.escola.nome}' if obj.escola else None
 
     def get_nome_dre(self, obj):
         return f'{obj.escola.diretoria_regional.nome}' if obj.escola else None
+
+    def get_possui_dieta_especial(self, obj):
+        user = self.context['request'].user
+        instituicao = user.vinculo_atual.instituicao
+        if user.tipo_usuario == 'escola':
+            dietas_autorizadas = models.SolicitacoesEscola.get_autorizados_dieta_especial(escola_uuid=instituicao.uuid)
+            dietas_inativas = models.SolicitacoesEscola.get_inativas_dieta_especial(escola_uuid=instituicao.uuid)
+        elif user.tipo_usuario == 'diretoriaregional':
+            dietas_autorizadas = models.SolicitacoesDRE.get_autorizados_dieta_especial(dre_uuid=instituicao.uuid)
+            dietas_inativas = models.SolicitacoesDRE.get_inativas_dieta_especial(dre_uuid=instituicao.uuid)
+        else:
+            dietas_autorizadas = models.SolicitacoesCODAE.get_autorizados_dieta_especial()
+            dietas_inativas = models.SolicitacoesCODAE.get_inativas_dieta_especial()
+
+        ids_dietas_autorizadas = dietas_autorizadas.values_list('id', flat=True)
+        ids_dietas_inativas = dietas_inativas.values_list('id', flat=True)
+        # Juntas as duas querysets.
+        dietas_especiais = ids_dietas_autorizadas | ids_dietas_inativas
+
+        return obj.dietas_especiais.filter(id__in=dietas_especiais).exists()
 
     class Meta:
         model = Aluno
@@ -415,7 +437,8 @@ class AlunoSerializer(serializers.ModelSerializer):
             'nome_escola',
             'nome_dre',
             'responsaveis',
-            'cpf'
+            'cpf',
+            'possui_dieta_especial'
         )
 
 
