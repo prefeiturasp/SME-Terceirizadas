@@ -1,5 +1,3 @@
-from datetime import datetime
-
 from django.db import transaction
 from django.db.models import Case, CharField, Count, F, Q, Sum, Value, When
 from django.forms import ValidationError
@@ -22,6 +20,7 @@ from ...dados_comuns.permissions import (
 )
 from ...escola.models import Aluno, EscolaPeriodoEscolar
 from ...paineis_consolidados.api.constants import FILTRO_CODIGO_EOL_ALUNO
+from ...paineis_consolidados.models import SolicitacoesCODAE
 from ...relatorios.relatorios import (
     relatorio_dieta_especial,
     relatorio_dieta_especial_protocolo,
@@ -617,33 +616,37 @@ class SolicitacoesAtivasInativasPorAlunoView(generics.ListAPIView):
         if not form.is_valid():
             raise ValidationError(form.errors)
 
-        hoje = datetime.today()
+        cls = SolicitacoesCODAE
 
+        # Retorna somente Dietas Autorizadas
+        ids_dietas_autorizadas = cls.objects.filter(
+            Q(em_vigencia=True) | Q(em_vigencia__isnull=True),
+            status_atual__in=cls.AUTORIZADO_STATUS_DIETA_ESPECIAL,
+            status_evento__in=cls.AUTORIZADO_EVENTO_DIETA_ESPECIAL,
+            tipo_doc=cls.TP_SOL_DIETA_ESPECIAL,
+            ativo=True
+        ).distinct().order_by('-data_log').values_list('id', flat=True)
+
+        # Retorna somente Dietas Inativas.
         ids_alterados = SolicitacaoDietaEspecial.objects.filter(
             dieta_alterada__isnull=False
         ).only('dieta_alterada_id').values_list('dieta_alterada_id', flat=True)
 
-        # Retorna somente Dietas Autorizadas Alteração de UE.
-        ids_alterados_autorizada_ue = SolicitacaoDietaEspecial.objects.filter(
-            dieta_alterada__isnull=False,
-            data_inicio__lte=hoje,
-            data_termino__gte=hoje
-        ).only('dieta_alterada_id').values_list('dieta_alterada_id', flat=True)
+        ids_dietas_inativas = cls.objects.filter(
+            status_atual__in=cls.INATIVOS_STATUS_DIETA_ESPECIAL,
+            status_evento__in=cls.INATIVOS_EVENTO_DIETA_ESPECIAL,
+            tipo_doc=cls.TP_SOL_DIETA_ESPECIAL,
+            dieta_alterada_id__isnull=True,
+            ativo=False
+        ).exclude(id__in=ids_alterados).distinct().order_by('-data_log').values_list('id', flat=True)
 
         # Retorna somente Dietas Autorizadas e Inativas.
         qs = Aluno.objects.filter(
-            dietas_especiais__status=DietaEspecialWorkflow.CODAE_AUTORIZADO,
-            dietas_especiais__dieta_alterada__isnull=True
+            dietas_especiais__status='CODAE_AUTORIZADO'
         ).annotate(
-            ativas=Count('dietas_especiais', filter=Q(
-                dietas_especiais__ativo=True
-            ) & ~Q(dietas_especiais__id__in=ids_alterados_autorizada_ue)
-            ),
-            inativas=Count('dietas_especiais', filter=Q(
-                dietas_especiais__ativo=False
-            ) & ~Q(dietas_especiais__id__in=ids_alterados)
-            ),
-        )
+            ativas=Count('dietas_especiais', filter=Q(dietas_especiais__id__in=ids_dietas_autorizadas)),
+            inativas=Count('dietas_especiais', filter=Q(dietas_especiais__id__in=ids_dietas_inativas)),
+        ).filter(Q(ativas__gt=0) | Q(inativas__gt=0))
 
         user = self.request.user
 
