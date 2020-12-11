@@ -168,7 +168,7 @@ class TerceirizadaCreateSerializer(serializers.ModelSerializer):
             update_instance_from_dict(instance, validated_data, save=True)
             instance.contatos.set(contatos)
         else:
-            instance.contatos.all().delete()
+            instance.contatos.clear()
             instance.desvincular_lotes()
 
             for nutri_json in nutricionistas_array:
@@ -214,6 +214,7 @@ class TerceirizadaCreateSerializer(serializers.ModelSerializer):
         cargo = dados_usuario.get('cargo')
 
         super_admin = terceirizada.super_admin
+        super_admin.contatos.clear()
 
         novo_email = False
 
@@ -235,12 +236,11 @@ class TerceirizadaCreateSerializer(serializers.ModelSerializer):
             super_admin.is_active = False
 
         super_admin.save()
-
         for contato in contatos:
-            super_admin.contatos.first()
-            obj, created = Contato.objects.update_or_create(**contato)
-            if created:
-                super_admin.contatos.add(obj)
+            email = contato.get('email', '')
+            telefone = contato.get('telefone', '')
+            contato = Contato.objects.create(email=email, telefone=telefone)
+            super_admin.contatos.add(contato)
 
     class Meta:
         model = Terceirizada

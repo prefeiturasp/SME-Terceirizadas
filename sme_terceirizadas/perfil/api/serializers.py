@@ -12,7 +12,8 @@ from ...dados_comuns.constants import (
     ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
     ADMINISTRADOR_GESTAO_PRODUTO,
     ADMINISTRADOR_SUPERVISAO_NUTRICAO,
-    ADMINISTRADOR_TERCEIRIZADA
+    ADMINISTRADOR_TERCEIRIZADA,
+    TIPOS_EMAIL_CADASTRO
 )
 from ...dados_comuns.models import Contato
 from ...eol_servico.utils import EOLException, EOLService
@@ -283,7 +284,7 @@ class UsuarioUpdateSerializer(serializers.ModelSerializer):
             ADMINISTRADOR_GESTAO_PRODUTO,
             ADMINISTRADOR_SUPERVISAO_NUTRICAO
         ]:
-            deve_ser_email_sme_ou_prefeitura(attrs['email'])
+            deve_ser_email_sme_ou_prefeitura(attrs['email'] + TIPOS_EMAIL_CADASTRO[attrs['tipo_email']])
 
         return attrs
 
