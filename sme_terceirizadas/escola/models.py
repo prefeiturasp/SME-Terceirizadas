@@ -777,7 +777,13 @@ class Responsavel(Nomeavel, TemChaveExterna, CriadoEm):
 class Aluno(TemChaveExterna):
     nome = models.CharField('Nome Completo do Aluno', max_length=100)
     codigo_eol = models.CharField(  # noqa DJ01
-        'Código EOL', max_length=7, unique=True, validators=[MinLengthValidator(7)], null=True, blank=True)
+        'Código EOL',
+        max_length=7,
+        unique=True,
+        validators=[MinLengthValidator(7)],
+        null=True,
+        blank=True
+    )
     data_nascimento = models.DateField()
     escola = models.ForeignKey(
         Escola, blank=True, null=True, on_delete=models.SET_NULL)
