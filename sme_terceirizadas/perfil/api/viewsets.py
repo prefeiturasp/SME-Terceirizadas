@@ -95,7 +95,11 @@ class UsuarioUpdateViewSet(viewsets.GenericViewSet):
         except ValidationError as e:
             return Response({'detail': e.detail[0].title()}, status=status.HTTP_400_BAD_REQUEST)
         except ObjectDoesNotExist:
-            return Response({'detail': 'E-mail não cadastrado no sistema'}, status=status.HTTP_400_BAD_REQUEST)
+            if request.data.get('registro_funcional'):
+                mensagem = 'RF não cadastrado no sistema'
+            else:
+                mensagem = 'E-mail não cadastrado no sistema'
+            return Response({'detail': mensagem}, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, url_path='recuperar-senha/(?P<registro_funcional_ou_email>.*)')
     def recuperar_senha(self, request, registro_funcional_ou_email=None):
