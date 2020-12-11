@@ -29,7 +29,11 @@ from ...relatorios.relatorios import (
     relatorio_reclamacao
 )
 from ...terceirizada.api.serializers.serializers import TerceirizadaSimplesSerializer
-from ..constants import NOVA_RECLAMACAO_HOMOLOGACOES_STATUS
+from ..constants import (
+    AVALIAR_RECLAMACAO_HOMOLOGACOES_STATUS,
+    AVALIAR_RECLAMACAO_RECLAMACOES_STATUS,
+    NOVA_RECLAMACAO_HOMOLOGACOES_STATUS
+)
 from ..forms import ProdutoJaExisteForm, ProdutoPorParametrosForm
 from ..models import (
     Fabricante,
@@ -558,28 +562,17 @@ class ProdutoViewSet(viewsets.ModelViewSet):
     def lista_produtos_nova_reclamacao(self, request):
         query_set = Produto.objects.filter(
             ativo=True,
-            # AQUI
             homologacoes__status__in=NOVA_RECLAMACAO_HOMOLOGACOES_STATUS
         )
         response = {'results': ProdutoSimplesSerializer(query_set, many=True).data}
         return Response(response)
 
-    # Aqui
     @action(detail=False, methods=['GET'], url_path='lista-nomes-avaliar-reclamacao')
     def lista_produtos_avaliar_reclamacao(self, request):
         query_set = Produto.objects.filter(
             ativo=True,
-            homologacoes__status__in=[
-                HomologacaoProdutoWorkflow.CODAE_PEDIU_ANALISE_RECLAMACAO,
-                HomologacaoProdutoWorkflow.ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
-                HomologacaoProdutoWorkflow.TERCEIRIZADA_RESPONDEU_RECLAMACAO,
-                HomologacaoProdutoWorkflow.CODAE_AUTORIZOU_RECLAMACAO,
-            ],
-            # CONFERIR DE ONDE VEM ESSE STATUS
-            homologacoes__reclamacoes__status__in=[
-                HomologacaoProdutoWorkflow.AGUARDANDO_AVALIACAO,
-                HomologacaoProdutoWorkflow.RESPONDIDO_TERCEIRIZADA,
-            ]
+            homologacoes__status__in=AVALIAR_RECLAMACAO_HOMOLOGACOES_STATUS,
+            homologacoes__reclamacoes__status__in=AVALIAR_RECLAMACAO_RECLAMACOES_STATUS
         )
         response = {'results': ProdutoSimplesSerializer(query_set, many=True).data}
         return Response(response)
@@ -974,12 +967,16 @@ class FabricanteViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['GET'], url_path='lista-nomes-nova-reclamacao')
     def lista_fabricantes_nova_reclamacao(self, request):
         query_set = Fabricante.objects.filter(
-            produto__homologacoes__status__in=[
-                HomologacaoProdutoWorkflow.CODAE_HOMOLOGADO,
-                HomologacaoProdutoWorkflow.ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
-                HomologacaoProdutoWorkflow.CODAE_PEDIU_ANALISE_RECLAMACAO,
-                HomologacaoProdutoWorkflow.TERCEIRIZADA_RESPONDEU_RECLAMACAO
-            ]
+            produto__homologacoes__status__in=NOVA_RECLAMACAO_HOMOLOGACOES_STATUS
+        )
+        response = {'results': FabricanteSimplesSerializer(query_set, many=True).data}
+        return Response(response)
+
+    @action(detail=False, methods=['GET'], url_path='lista-nomes-avaliar-reclamacao')
+    def lista_fabricantes_avaliar_reclamacao(self, request):
+        query_set = Fabricante.objects.filter(
+            produto__homologacoes__status__in=AVALIAR_RECLAMACAO_HOMOLOGACOES_STATUS,
+            produto__homologacoes__reclamacoes__status__in=AVALIAR_RECLAMACAO_RECLAMACOES_STATUS
         )
         response = {'results': FabricanteSimplesSerializer(query_set, many=True).data}
         return Response(response)
@@ -1006,12 +1003,16 @@ class MarcaViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['GET'], url_path='lista-nomes-nova-reclamacao')
     def lista_marcas_nova_reclamacao(self, request):
         query_set = Marca.objects.filter(
-            produto__homologacoes__status__in=[
-                HomologacaoProdutoWorkflow.CODAE_HOMOLOGADO,
-                HomologacaoProdutoWorkflow.ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
-                HomologacaoProdutoWorkflow.CODAE_PEDIU_ANALISE_RECLAMACAO,
-                HomologacaoProdutoWorkflow.TERCEIRIZADA_RESPONDEU_RECLAMACAO
-            ]
+            produto__homologacoes__status__in=NOVA_RECLAMACAO_HOMOLOGACOES_STATUS
+        )
+        response = {'results': MarcaSimplesSerializer(query_set, many=True).data}
+        return Response(response)
+
+    @action(detail=False, methods=['GET'], url_path='lista-nomes-avaliar-reclamacao')
+    def lista_marcas_avaliar_reclamacao(self, request):
+        query_set = Marca.objects.filter(
+            produto__homologacoes__status__in=AVALIAR_RECLAMACAO_HOMOLOGACOES_STATUS,
+            produto__homologacoes__reclamacoes__status__in=AVALIAR_RECLAMACAO_RECLAMACOES_STATUS
         )
         response = {'results': MarcaSimplesSerializer(query_set, many=True).data}
         return Response(response)
