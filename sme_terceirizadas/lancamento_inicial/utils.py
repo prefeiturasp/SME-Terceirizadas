@@ -6,6 +6,8 @@ from workalendar.america import BrazilSaoPauloCity
 
 from ..cardapio.models import AlteracaoCardapio, TipoAlimentacao
 from ..dados_comuns.fluxo_status import PedidoAPartirDaEscolaWorkflow
+from ..dieta_especial.models import ClassificacaoDieta
+from ..escola.models import Aluno, LogAlteracaoQuantidadeAlunosPorEscolaEPeriodoEscolar
 from ..inclusao_alimentacao.models import QuantidadePorPeriodo
 from ..kit_lanche.models import SolicitacaoKitLancheAvulsa
 
@@ -83,3 +85,48 @@ def alteracoes_de_cardapio_por_escola_periodo_escolar_e_data(escola_periodo_esco
 
     if lpr.count():
         return 'LPR'
+
+
+def matriculados_convencional_em_uma_data(escola_periodo, data):
+    log = LogAlteracaoQuantidadeAlunosPorEscolaEPeriodoEscolar.objects.filter(
+        escola=escola_periodo.escola,
+        periodo_escolar=escola_periodo.periodo_escolar,
+        criado_em__gte=data
+    ).order_by('criado_em').first()
+
+    if log:
+        return log.quantidade_alunos_de
+    else:
+        return escola_periodo.quantidade_alunos
+
+
+def matriculados_em_uma_data(escola_periodo, data):
+    hoje = date.today()
+
+    filtro_data_termino = [
+        Q(dietas_especiais__data_termino__isnull=True) | Q(dietas_especiais__data_termino__gte=hoje)
+    ]
+    filtros_escola_periodo = {
+        'escola': escola_periodo.escola,
+        'periodo_escolar': escola_periodo.periodo_escolar
+    }
+
+    classificacoes_a = ClassificacaoDieta.objects.filter(nome__in=['Tipo A', 'Tipo A Enteral'])
+    classificacoes_b = ClassificacaoDieta.objects.filter(nome__in=['Tipo B'])
+
+    quantidade_alunos_dieta_a = Aluno.objects.filter(
+        dietas_especiais__classificacao__in=classificacoes_a,
+        *filtro_data_termino,
+        **filtros_escola_periodo
+    ).count()
+    quantidade_alunos_dieta_b = Aluno.objects.filter(
+        dietas_especiais__classificacao__in=classificacoes_b,
+        *filtro_data_termino,
+        **filtros_escola_periodo
+    ).count()
+
+    return {
+        'convencional': matriculados_convencional_em_uma_data(escola_periodo, data),
+        'tipoA': quantidade_alunos_dieta_a,
+        'tipoB': quantidade_alunos_dieta_b
+    }

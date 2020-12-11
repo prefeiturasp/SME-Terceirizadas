@@ -48,6 +48,7 @@ from ..models import (
     Escola,
     EscolaPeriodoEscolar,
     FaixaEtaria,
+    LogAlteracaoQuantidadeAlunosPorEscolaEPeriodoEscolar,
     Lote,
     PeriodoEscolar,
     Subprefeitura,
@@ -356,6 +357,36 @@ class EscolaPeriodoEscolarViewSet(ModelViewSet):
         return Response({
             'count': len(results),
             'results': results
+        })
+
+#  TODO: Quebrar esse método um pouco, está complexo e sem teste
+    @action(detail=True, url_path='matriculados-na-data/(?P<data_referencia_str>[^/.]+)')  # noqa C901
+    def matriculados_na_data(self, request, uuid, data_referencia_str):
+        form = AlunosPorFaixaEtariaForm({
+            'data_referencia': data_referencia_str
+        })
+
+        if not form.is_valid():
+            return Response(form.errors)
+
+        escola_periodo = self.get_object()
+        data_referencia = form.cleaned_data['data_referencia']
+
+        log = LogAlteracaoQuantidadeAlunosPorEscolaEPeriodoEscolar.objects.filter(
+            criado_em__gte=data_referencia,
+            escola=escola_periodo.escola,
+            periodo_escolar=escola_periodo.periodo_escolar
+        ).order_by('criado_em').first()
+
+        if log:
+            quantidade_alunos = log.quantidade_alunos_de
+        else:
+            quantidade_alunos = escola_periodo.quantidade_alunos
+
+        return Response({
+            'quantidade_alunos': {
+                'convencional': quantidade_alunos
+            }
         })
 
 
