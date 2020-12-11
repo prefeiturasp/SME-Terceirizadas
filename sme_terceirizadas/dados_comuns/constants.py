@@ -32,8 +32,8 @@ DIAS_DE_PRAZO_REGULAR_EM_DIANTE = obter_dias_uteis_apos_hoje(REGULAR)
 #
 
 TIPOS_EMAIL_CADASTRO = {
-    '0': '@sme.prefeitura.sp.gov.br',
-    '1': '@prefeitura.sp.gov.br'
+    0: '@sme.prefeitura.sp.gov.br',
+    1: '@prefeitura.sp.gov.br'
 }
 
 #
