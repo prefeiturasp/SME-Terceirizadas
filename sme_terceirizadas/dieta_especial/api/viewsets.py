@@ -20,7 +20,7 @@ from ...dados_comuns.permissions import (
 )
 from ...escola.models import Aluno, EscolaPeriodoEscolar
 from ...paineis_consolidados.api.constants import FILTRO_CODIGO_EOL_ALUNO
-from ...paineis_consolidados.models import SolicitacoesCODAE
+from ...paineis_consolidados.models import SolicitacoesCODAE, SolicitacoesDRE, SolicitacoesEscola
 from ...relatorios.relatorios import (
     relatorio_dieta_especial,
     relatorio_dieta_especial_protocolo,
@@ -616,29 +616,24 @@ class SolicitacoesAtivasInativasPorAlunoView(generics.ListAPIView):
         if not form.is_valid():
             raise ValidationError(form.errors)
 
-        cls = SolicitacoesCODAE
+        user = self.request.user
+
+        instituicao = user.vinculo_atual.instituicao
+        if user.tipo_usuario == 'escola':
+            dietas_autorizadas = SolicitacoesEscola.get_autorizados_dieta_especial(escola_uuid=instituicao.uuid)
+            dietas_inativas = SolicitacoesEscola.get_inativas_dieta_especial(escola_uuid=instituicao.uuid)
+        elif user.tipo_usuario == 'diretoriaregional':
+            dietas_autorizadas = SolicitacoesDRE.get_autorizados_dieta_especial(dre_uuid=instituicao.uuid)
+            dietas_inativas = SolicitacoesDRE.get_inativas_dieta_especial(dre_uuid=instituicao.uuid)
+        else:
+            dietas_autorizadas = SolicitacoesCODAE.get_autorizados_dieta_especial()
+            dietas_inativas = SolicitacoesCODAE.get_inativas_dieta_especial()
 
         # Retorna somente Dietas Autorizadas
-        ids_dietas_autorizadas = cls.objects.filter(
-            Q(em_vigencia=True) | Q(em_vigencia__isnull=True),
-            status_atual__in=cls.AUTORIZADO_STATUS_DIETA_ESPECIAL,
-            status_evento__in=cls.AUTORIZADO_EVENTO_DIETA_ESPECIAL,
-            tipo_doc=cls.TP_SOL_DIETA_ESPECIAL,
-            ativo=True
-        ).distinct().order_by('-data_log').values_list('id', flat=True)
+        ids_dietas_autorizadas = dietas_autorizadas.values_list('id', flat=True)
 
         # Retorna somente Dietas Inativas.
-        ids_alterados = SolicitacaoDietaEspecial.objects.filter(
-            dieta_alterada__isnull=False
-        ).only('dieta_alterada_id').values_list('dieta_alterada_id', flat=True)
-
-        ids_dietas_inativas = cls.objects.filter(
-            status_atual__in=cls.INATIVOS_STATUS_DIETA_ESPECIAL,
-            status_evento__in=cls.INATIVOS_EVENTO_DIETA_ESPECIAL,
-            tipo_doc=cls.TP_SOL_DIETA_ESPECIAL,
-            dieta_alterada_id__isnull=True,
-            ativo=False
-        ).exclude(id__in=ids_alterados).distinct().order_by('-data_log').values_list('id', flat=True)
+        ids_dietas_inativas = dietas_inativas.values_list('id', flat=True)
 
         # Retorna somente Dietas Autorizadas e Inativas.
         qs = Aluno.objects.filter(
@@ -647,8 +642,6 @@ class SolicitacoesAtivasInativasPorAlunoView(generics.ListAPIView):
             ativas=Count('dietas_especiais', filter=Q(dietas_especiais__id__in=ids_dietas_autorizadas)),
             inativas=Count('dietas_especiais', filter=Q(dietas_especiais__id__in=ids_dietas_inativas)),
         ).filter(Q(ativas__gt=0) | Q(inativas__gt=0))
-
-        user = self.request.user
 
         if user.tipo_usuario == 'escola':
             qs = qs.filter(escola=user.vinculo_atual.instituicao)

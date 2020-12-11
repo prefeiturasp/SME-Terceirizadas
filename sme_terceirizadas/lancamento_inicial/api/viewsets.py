@@ -11,6 +11,8 @@ from ..models import LancamentoDiario
 from ..utils import (
     alteracoes_de_cardapio_por_escola_periodo_escolar_e_data,
     eh_feriado_ou_fds,
+    matriculados_convencional_em_uma_data,
+    matriculados_em_uma_data,
     mes_para_faixa,
     total_kits_lanche_por_escola_e_data,
     total_merendas_secas_por_escola_periodo_escolar_e_data
@@ -52,9 +54,10 @@ class LancamentoDiarioViewSet(ModelViewSet):
     @action(detail=False, url_path='por-mes', methods=['get'])
     def por_mes(self, request):
         (data_inicial, data_final) = mes_para_faixa(self.request.GET['mes'])
+        escola_periodo_escolar = EscolaPeriodoEscolar.objects.get(uuid=self.request.GET['escola_periodo_escolar'])
         qs = self.get_queryset().filter(
             data__range=(data_inicial, data_final),
-            escola_periodo_escolar__uuid=self.request.GET['escola_periodo_escolar']
+            escola_periodo_escolar=escola_periodo_escolar
         ).all()
 
         datas = [data_inicial + timedelta(n) for n in range(int((data_final - data_inicial).days + 1))]
@@ -68,6 +71,7 @@ class LancamentoDiarioViewSet(ModelViewSet):
             dados_a_retornar.append({
                 'dia': data.day,
                 'eh_feriado_ou_fds': eh_feriado_ou_fds(data),
+                'quantidade_alunos': matriculados_convencional_em_uma_data(escola_periodo_escolar, data),
                 'lancamento': self.get_serializer(lancamento).data if lancamento else None
             })
         return Response(dados_a_retornar)
@@ -95,7 +99,8 @@ class LancamentoDiarioViewSet(ModelViewSet):
             'troca': alteracoes_de_cardapio_por_escola_periodo_escolar_e_data(
                 escola_periodo_escolar, data),
             'tem_sobremesa_doce_na_semana': self.lancamentos_diarios_com_sobremesa_doce_na_semana(
-                escola_periodo_escolar, data).count() > 0
+                escola_periodo_escolar, data).count() > 0,
+            'quantidade_alunos': matriculados_em_uma_data(escola_periodo_escolar, data)
         }
 
         return Response(dados_a_retornar)
