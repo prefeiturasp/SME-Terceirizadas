@@ -637,7 +637,7 @@ class SolicitacoesAtivasInativasPorAlunoView(generics.ListAPIView):
         ).annotate(
             ativas=Count('dietas_especiais', filter=Q(
                 dietas_especiais__ativo=True
-            ) | Q(dietas_especiais__id__in=ids_alterados_autorizada_ue)
+            ) & ~Q(dietas_especiais__id__in=ids_alterados_autorizada_ue)
             ),
             inativas=Count('dietas_especiais', filter=Q(
                 dietas_especiais__ativo=False
