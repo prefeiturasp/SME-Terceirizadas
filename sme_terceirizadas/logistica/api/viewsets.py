@@ -10,7 +10,7 @@ from xworkflows.base import InvalidTransitionError
 from sme_terceirizadas.dados_comuns.fluxo_status import SolicitacaoRemessaWorkFlow
 from sme_terceirizadas.dados_comuns.models import LogSolicitacoesUsuario
 from sme_terceirizadas.dados_comuns.parser_xml import ListXMLParser
-from sme_terceirizadas.dados_comuns.permissions import UsuarioDilogCodae
+from sme_terceirizadas.dados_comuns.permissions import UsuarioDilogCodae, UsuarioDistribuidor
 from sme_terceirizadas.logistica.api.serializers.serializer_create import SolicitacaoRemessaCreateSerializer
 from sme_terceirizadas.logistica.api.serializers.serializers import (
     AlimentoDaGuiaDaRemessaSerializer,
@@ -215,6 +215,18 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
         self.pagination_class = RequisicaoPagination
         page = self.paginate_queryset(queryset)
         serializer = SolicitacaoRemessaSerializer(
+            page if page is not None else queryset, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False, permission_classes=(UsuarioDistribuidor,),  # noqa C901
+            methods=['GET'], url_path='consulta-requisicoes-distribuidor')
+    def lista_requisicoes_distrinuidor(self, request):
+        usuario = request.user
+        queryset = self.get_queryset()
+        queryset = queryset.filter(distribuidor=usuario.vinculo_atual.instituicao)
+        self.pagination_class = RequisicaoPagination
+        page = self.paginate_queryset(queryset)
+        serializer = SolicitacaoRemessaLookUpSerializer(
             page if page is not None else queryset, many=True)
         return self.get_paginated_response(serializer.data)
 
