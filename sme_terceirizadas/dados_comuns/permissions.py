@@ -4,6 +4,7 @@ from ..escola.models import Codae, DiretoriaRegional, Escola
 from ..terceirizada.models import Terceirizada
 from .constants import (
     ADMINISTRADOR_DIETA_ESPECIAL,
+    ADMINISTRADOR_DISTRIBUIDORA,
     ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
     ADMINISTRADOR_GESTAO_PRODUTO,
     ADMINISTRADOR_SUPERVISAO_NUTRICAO,
@@ -254,4 +255,17 @@ class UsuarioDilogCodae(BasePermission):
             usuario.vinculo_atual and
             isinstance(usuario.vinculo_atual.instituicao, Codae) and
             usuario.vinculo_atual.perfil.nome in [COORDENADOR_LOGISTICA]
+        )
+
+
+class UsuarioDistribuidor(BasePermission):
+    """Permite acesso a usuários com vinculo a Distribuidoras."""
+
+    def has_permission(self, request, view):
+        usuario = request.user
+        return (
+            not usuario.is_anonymous and
+            usuario.vinculo_atual and
+            isinstance(usuario.vinculo_atual.instituicao, Terceirizada) and
+            usuario.vinculo_atual.perfil.nome in [ADMINISTRADOR_DISTRIBUIDORA]
         )
