@@ -33,8 +33,9 @@ class AlimentoAdmin(admin.ModelAdmin):
 
 @admin.register(AlimentoProprio)
 class AlimentoProprioAdmin(admin.ModelAdmin):
-    list_display = ('nome',)
-    search_fields = ('nome',)
+    list_display = ('nome', 'marca')
+    search_fields = ('nome', 'marca__nome', 'outras_informacoes')
+    list_filter = ('marca',)
     ordering = ('nome',)
     readonly_fields = ('tipo',)
 
