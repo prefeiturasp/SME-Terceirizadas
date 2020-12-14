@@ -19,6 +19,7 @@ from ..dados_comuns.utils import convert_base64_to_contentfile
 from ..dados_comuns.validators import nao_pode_ser_no_passado
 from ..escola.api.serializers import AlunoSerializer
 from ..escola.models import Aluno
+from .managers import AlimentoProprioManager
 
 
 class SolicitacaoDietaEspecial(
@@ -280,13 +281,40 @@ class SolicitacoesDietaEspecialAtivasInativasPorAluno(models.Model):
         db_table = 'dietas_ativas_inativas_por_aluno'
 
 
-class Alimento(Nomeavel, TemChaveExterna):
+class Alimento(Nomeavel, TemChaveExterna, Ativavel):
+    TIPO_CHOICES = (
+        ('E', 'Edital'),
+        ('P', 'Proprio')
+    )
+    tipo = models.CharField(max_length=1, choices=TIPO_CHOICES, default='E')
+    marca = models.ForeignKey(
+        'produto.Marca',
+        on_delete=models.PROTECT,
+        blank=True,
+        null=True
+    )
+    outras_informacoes = models.CharField(max_length=255, blank=True)
 
     class Meta:
         ordering = ('nome',)
+        unique_together = ('nome', 'marca')
 
     def __str__(self):
         return self.nome
+
+
+class AlimentoProprio(Alimento):
+
+    objects = AlimentoProprioManager()
+
+    class Meta:
+        proxy = True
+        verbose_name = 'alimento próprio CODAE'
+        verbose_name_plural = 'alimentos próprios CODAE'
+
+    def save(self, *args, **kwargs):
+        self.tipo = 'P'
+        super(AlimentoProprio, self).save(*args, **kwargs)
 
 
 class SubstituicaoAlimento(models.Model):
