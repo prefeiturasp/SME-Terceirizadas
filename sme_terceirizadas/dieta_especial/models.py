@@ -309,8 +309,8 @@ class AlimentoProprio(Alimento):
 
     class Meta:
         proxy = True
-        verbose_name = 'alimento próprio'
-        verbose_name_plural = 'alimentos próprios'
+        verbose_name = 'alimento próprio CODAE'
+        verbose_name_plural = 'alimentos próprios CODAE'
 
     def save(self, *args, **kwargs):
         self.tipo = 'P'

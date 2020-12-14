@@ -16,6 +16,9 @@ from .models import (
     TipoContagem
 )
 from .tasks import processa_dietas_especiais_task
+from sme_terceirizadas.dados_comuns.permissions import UsuarioDilogCodae
+from sme_terceirizadas.escola.models import Codae
+from sme_terceirizadas.dados_comuns.constants import COORDENADOR_LOGISTICA
 
 
 @admin.register(AlergiaIntolerancia)
@@ -34,12 +37,36 @@ class AlimentoAdmin(admin.ModelAdmin):
 
 @admin.register(AlimentoProprio)
 class AlimentoProprioAdmin(admin.ModelAdmin):
-    list_display = ('nome', 'marca')
+    list_display = ('nome', 'marca', 'outras_informacoes', 'ativo')
     search_fields = ('nome', 'marca__nome', 'outras_informacoes')
-    list_filter = ('marca',)
+    list_filter = ('ativo', 'marca',)
     ordering = ('nome',)
     readonly_fields = ('tipo',)
     form = AlimentoProprioForm
+    actions = ('inativar_alimentos',)
+
+    def inativar_alimentos(self, request, queryset):
+        count = queryset.update(ativo=False)
+
+        if count == 1:
+            msg = '{} alimento próprio foi inativado.'
+        else:
+            msg = '{} alimentos próprios foram inativados.'
+
+        self.message_user(request, msg.format(count))
+
+    inativar_alimentos.short_description = "Marcar para inativar alimentos"
+
+    def has_module_permission(self, request, obj=None):
+        usuario = request.user
+        return (
+            not usuario.is_anonymous and
+            usuario.vinculo_atual and
+            isinstance(usuario.vinculo_atual.instituicao, Codae) and
+            usuario.vinculo_atual.perfil.nome in [COORDENADOR_LOGISTICA] or
+            usuario.email == 'admin@admin.com'
+        )
+        return False
 
     def has_delete_permission(self, request, obj=None):
         return False
