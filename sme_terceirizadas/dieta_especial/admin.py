@@ -41,6 +41,9 @@ class AlimentoProprioAdmin(admin.ModelAdmin):
     readonly_fields = ('tipo',)
     form = AlimentoProprioForm
 
+    def has_delete_permission(self, request, obj=None):
+        return False
+
 
 admin.site.register(Anexo)
 admin.site.register(ClassificacaoDieta)

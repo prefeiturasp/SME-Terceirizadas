@@ -91,7 +91,7 @@ class AlimentoProprioForm(forms.ModelForm):
     class Meta:
         fields = '__all__'
 
-    def __init__(self, request=None, *args, **kwargs):
-        super(AlimentoProprioForm, self).__init__(*args, **kwargs)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.fields['nome'].required = True
         self.fields['marca'].required = True
