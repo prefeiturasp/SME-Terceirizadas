@@ -50,25 +50,25 @@ class EscolaAdmin(admin.ModelAdmin):
         count = queryset.update(enviar_email_por_produto=True)
 
         if count == 1:
-            msg = '{} escola foi marcada para receber e-mail dos produtos.'
+            msg = '{} escola foi marcada para receber e-mail dos produtos.'  # noqa P103
         else:
-            msg = '{} escolas foram marcadas para receber e-mail dos produtos.'
+            msg = '{} escolas foram marcadas para receber e-mail dos produtos.'  # noqa P103
 
         self.message_user(request, msg.format(count))
 
-    marcar_para_receber_email.short_description = "Marcar para receber e-mail dos produtos"
+    marcar_para_receber_email.short_description = 'Marcar para receber e-mail dos produtos'
 
     def marcar_para_nao_receber_email(self, request, queryset):
         count = queryset.update(enviar_email_por_produto=False)
 
         if count == 1:
-            msg = '{} escola foi marcada para não receber e-mail dos produtos.'
+            msg = '{} escola foi marcada para não receber e-mail dos produtos.'  # noqa P103
         else:
-            msg = '{} escolas foram marcadas para não receber e-mail dos produtos.'
+            msg = '{} escolas foram marcadas para não receber e-mail dos produtos.'  # noqa P103
 
         self.message_user(request, msg.format(count))
 
-    marcar_para_nao_receber_email.short_description = "Marcar para não receber e-mail dos produtos"
+    marcar_para_nao_receber_email.short_description = 'Marcar para não receber e-mail dos produtos'
 
 
 @admin.register(Lote)

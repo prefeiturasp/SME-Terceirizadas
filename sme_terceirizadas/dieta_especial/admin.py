@@ -2,6 +2,9 @@ from django.contrib import admin, messages
 from django.shortcuts import redirect
 from django.urls import path
 
+from sme_terceirizadas.dados_comuns.constants import COORDENADOR_LOGISTICA
+from sme_terceirizadas.escola.models import Codae
+
 from .forms import AlimentoProprioForm
 from .models import (
     AlergiaIntolerancia,
@@ -16,9 +19,6 @@ from .models import (
     TipoContagem
 )
 from .tasks import processa_dietas_especiais_task
-from sme_terceirizadas.dados_comuns.permissions import UsuarioDilogCodae
-from sme_terceirizadas.escola.models import Codae
-from sme_terceirizadas.dados_comuns.constants import COORDENADOR_LOGISTICA
 
 
 @admin.register(AlergiaIntolerancia)
@@ -49,13 +49,13 @@ class AlimentoProprioAdmin(admin.ModelAdmin):
         count = queryset.update(ativo=False)
 
         if count == 1:
-            msg = '{} alimento próprio foi inativado.'
+            msg = '{} alimento próprio foi inativado.'  # noqa P103
         else:
-            msg = '{} alimentos próprios foram inativados.'
+            msg = '{} alimentos próprios foram inativados.'  # noqa P103
 
         self.message_user(request, msg.format(count))
 
-    inativar_alimentos.short_description = "Marcar para inativar alimentos"
+    inativar_alimentos.short_description = 'Marcar para inativar alimentos'
 
     def has_module_permission(self, request, obj=None):
         usuario = request.user
