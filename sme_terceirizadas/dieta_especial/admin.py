@@ -2,6 +2,7 @@ from django.contrib import admin, messages
 from django.shortcuts import redirect
 from django.urls import path
 
+from .forms import AlimentoProprioForm
 from .models import (
     AlergiaIntolerancia,
     Alimento,
@@ -38,6 +39,7 @@ class AlimentoProprioAdmin(admin.ModelAdmin):
     list_filter = ('marca',)
     ordering = ('nome',)
     readonly_fields = ('tipo',)
+    form = AlimentoProprioForm
 
 
 admin.site.register(Anexo)

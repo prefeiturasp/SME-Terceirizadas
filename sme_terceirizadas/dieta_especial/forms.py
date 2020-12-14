@@ -84,3 +84,14 @@ class PanoramaForm(forms.Form):
         queryset=Escola.objects.all(),
         to_field_name='uuid'
     )
+
+
+class AlimentoProprioForm(forms.ModelForm):
+
+    class Meta:
+        fields = '__all__'
+
+    def __init__(self, request=None, *args, **kwargs):
+        super(AlimentoProprioForm, self).__init__(*args, **kwargs)
+        self.fields['nome'].required = True
+        self.fields['marca'].required = True
