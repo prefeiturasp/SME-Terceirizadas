@@ -89,4 +89,9 @@ data_perfis = [
         'ativo': True,
         'super_usuario': True,
     },
+    {
+        'nome': 'COORDENADOR_LOGISTICA',
+        'ativo': True,
+        'super_usuario': True,
+    },
 ]
