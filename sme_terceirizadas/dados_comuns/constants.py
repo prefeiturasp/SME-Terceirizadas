@@ -31,15 +31,6 @@ DIAS_DE_PRAZO_REGULAR_EM_DIANTE = obter_dias_uteis_apos_hoje(REGULAR)
 # PEDIDOS
 #
 
-TIPOS_EMAIL_CADASTRO = {
-    '0': '@sme.prefeitura.sp.gov.br',
-    '1': '@prefeitura.sp.gov.br'
-}
-
-#
-# PEDIDOS
-#
-
 SEM_FILTRO = 'sem_filtro'
 DAQUI_A_SETE_DIAS = 'daqui_a_7_dias'
 DAQUI_A_TRINTA_DIAS = 'daqui_a_30_dias'
