@@ -66,13 +66,19 @@ class LancamentoDiarioViewSet(ModelViewSet):
         for data in datas:
             try:
                 lancamento = qs.get(data=data, tipo_dieta__isnull=True)
+                lancamento_serializado = self.get_serializer(lancamento).data
+                quantidade_alunos = matriculados_convencional_em_uma_data(
+                    escola_periodo_escolar,
+                    data
+                )
             except LancamentoDiario.DoesNotExist:
-                lancamento = None
+                lancamento_serializado = None
+                quantidade_alunos = None
             dados_a_retornar.append({
                 'dia': data.day,
                 'eh_feriado_ou_fds': eh_feriado_ou_fds(data),
-                'quantidade_alunos': matriculados_convencional_em_uma_data(escola_periodo_escolar, data),
-                'lancamento': self.get_serializer(lancamento).data if lancamento else None
+                'quantidade_alunos': quantidade_alunos,
+                'lancamento': lancamento_serializado
             })
         return Response(dados_a_retornar)
 
