@@ -1000,11 +1000,11 @@ class FabricanteViewSet(viewsets.ModelViewSet):
     def lista_fabricantes_responder_reclamacao(self, request):
         user = request.user
         query_set = Fabricante.objects.filter(
-            homologacoes__status__in=RESPONDER_RECLAMACAO_HOMOLOGACOES_STATUS,
-            homologacoes__reclamacoes__status__in=RESPONDER_RECLAMACAO_RECLAMACOES_STATUS
+            produto__homologacoes__status__in=RESPONDER_RECLAMACAO_HOMOLOGACOES_STATUS,
+            produto__homologacoes__reclamacoes__status__in=RESPONDER_RECLAMACAO_RECLAMACOES_STATUS
         )
         if user.tipo_usuario == 'terceirizada':
-            query_set = query_set.filter(homologacoes__rastro_terceirizada=user.vinculo_atual.instituicao)
+            query_set = query_set.filter(produto__homologacoes__rastro_terceirizada=user.vinculo_atual.instituicao)
         response = {'results': FabricanteSimplesSerializer(query_set, many=True).data}
         return Response(response)
 
@@ -1048,11 +1048,11 @@ class MarcaViewSet(viewsets.ModelViewSet):
     def lista_marcas_responder_reclamacao(self, request):
         user = request.user
         query_set = Marca.objects.filter(
-            homologacoes__status__in=RESPONDER_RECLAMACAO_HOMOLOGACOES_STATUS,
-            homologacoes__reclamacoes__status__in=RESPONDER_RECLAMACAO_RECLAMACOES_STATUS
+            produto__homologacoes__status__in=RESPONDER_RECLAMACAO_HOMOLOGACOES_STATUS,
+            produto__homologacoes__reclamacoes__status__in=RESPONDER_RECLAMACAO_RECLAMACOES_STATUS
         )
         if user.tipo_usuario == 'terceirizada':
-            query_set = query_set.filter(homologacoes__rastro_terceirizada=user.vinculo_atual.instituicao)
+            query_set = query_set.filter(produto__homologacoes__rastro_terceirizada=user.vinculo_atual.instituicao)
         response = {'results': MarcaSimplesSerializer(query_set, many=True).data}
         return Response(response)
 
