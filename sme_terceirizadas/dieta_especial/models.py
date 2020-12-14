@@ -144,6 +144,11 @@ class SolicitacaoDietaEspecial(
         blank=True
     )
 
+    caracteristicas_do_alimento = models.TextField(
+        'Características dos alimentos',
+        blank=True
+    )
+
     @classmethod
     def aluno_possui_dieta_especial_pendente(cls, aluno):
         return cls.objects.filter(
