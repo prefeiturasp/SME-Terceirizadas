@@ -5,6 +5,7 @@ from django.urls import path
 from .models import (
     AlergiaIntolerancia,
     Alimento,
+    AlimentoProprio,
     Anexo,
     ClassificacaoDieta,
     MotivoAlteracaoUE,
@@ -28,6 +29,14 @@ class AlimentoAdmin(admin.ModelAdmin):
     list_display = ('nome',)
     search_fields = ('nome',)
     ordering = ('nome',)
+
+
+@admin.register(AlimentoProprio)
+class AlimentoProprioAdmin(admin.ModelAdmin):
+    list_display = ('nome',)
+    search_fields = ('nome',)
+    ordering = ('nome',)
+    readonly_fields = ('tipo',)
 
 
 admin.site.register(Anexo)
