@@ -59,13 +59,15 @@ class AlimentoProprioAdmin(admin.ModelAdmin):
 
     def has_module_permission(self, request, obj=None):
         usuario = request.user
-        return (
-            not usuario.is_anonymous and
-            usuario.vinculo_atual and
-            isinstance(usuario.vinculo_atual.instituicao, Codae) and
-            usuario.vinculo_atual.perfil.nome in [COORDENADOR_LOGISTICA] or
-            usuario.email == 'admin@admin.com'
-        )
+        if usuario:
+            if not usuario.is_anonymous:
+                return (
+                    not usuario.is_anonymous and
+                    usuario.vinculo_atual and
+                    isinstance(usuario.vinculo_atual.instituicao, Codae) and
+                    usuario.vinculo_atual.perfil.nome in [COORDENADOR_LOGISTICA] or
+                    usuario.email == 'admin@admin.com'
+                )
         return False
 
     def has_delete_permission(self, request, obj=None):
