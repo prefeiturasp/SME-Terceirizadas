@@ -47,7 +47,7 @@ from ..models import (
     TipoContagem
 )
 from ..utils import RelatorioPagination
-from .filters import DietaEspecialFilter
+from .filters import AlimentoFilter, DietaEspecialFilter
 from .serializers import (
     AlergiaIntoleranciaSerializer,
     AlimentoSerializer,
@@ -265,6 +265,11 @@ class SolicitacaoDietaEspecialViewSet(
         try:
             solicitacao.cancelar_pedido(
                 user=request.user, justificativa=justificativa)
+            solicitacao.ativo = False
+            solicitacao.save()
+            if solicitacao.tipo_solicitacao == 'ALTERACAO_UE':
+                solicitacao.dieta_alterada.ativo = True
+                solicitacao.dieta_alterada.save()
             serializer = self.get_serializer(solicitacao)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -703,6 +708,8 @@ class AlimentoViewSet(
     queryset = Alimento.objects.all().order_by('nome')
     serializer_class = AlimentoSerializer
     pagination_class = None
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = AlimentoFilter
 
 
 class TipoContagemViewSet(mixins.ListModelMixin, GenericViewSet):
