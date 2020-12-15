@@ -47,7 +47,7 @@ from ..models import (
     TipoContagem
 )
 from ..utils import RelatorioPagination
-from .filters import DietaEspecialFilter
+from .filters import AlimentoFilter, DietaEspecialFilter
 from .serializers import (
     AlergiaIntoleranciaSerializer,
     AlimentoSerializer,
@@ -703,6 +703,8 @@ class AlimentoViewSet(
     queryset = Alimento.objects.all().order_by('nome')
     serializer_class = AlimentoSerializer
     pagination_class = None
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = AlimentoFilter
 
 
 class TipoContagemViewSet(mixins.ListModelMixin, GenericViewSet):

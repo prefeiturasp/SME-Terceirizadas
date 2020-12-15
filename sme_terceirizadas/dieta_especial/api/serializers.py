@@ -8,7 +8,7 @@ from ...dados_comuns.utils import update_instance_from_dict
 from ...dados_comuns.validators import nao_pode_ser_no_passado
 from ...escola.api.serializers import AlunoSerializer, LoteNomeSerializer, TipoGestaoSerializer
 from ...escola.models import DiretoriaRegional, Escola
-from ...produto.api.serializers.serializers import ProdutoSimplesSerializer
+from ...produto.api.serializers.serializers import MarcaSimplesSerializer, ProdutoSimplesSerializer
 from ...produto.models import Produto, SolicitacaoCadastroProdutoDieta
 from ..models import (
     AlergiaIntolerancia,
@@ -51,6 +51,7 @@ class MotivoNegacaoSerializer(serializers.ModelSerializer):
 
 
 class AlimentoSerializer(serializers.ModelSerializer):
+    marca = MarcaSimplesSerializer()
 
     class Meta:
         model = Alimento
