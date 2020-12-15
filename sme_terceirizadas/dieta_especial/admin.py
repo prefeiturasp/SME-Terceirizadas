@@ -39,7 +39,7 @@ class AlimentoAdmin(admin.ModelAdmin):
 class AlimentoProprioAdmin(admin.ModelAdmin):
     list_display = ('nome', 'marca', 'outras_informacoes', 'ativo')
     search_fields = ('nome', 'marca__nome', 'outras_informacoes')
-    list_filter = ('ativo', 'marca',)
+    list_filter = ('ativo',)
     ordering = ('nome',)
     readonly_fields = ('tipo',)
     form = AlimentoProprioForm
