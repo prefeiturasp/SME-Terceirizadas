@@ -61,14 +61,14 @@ class SolicitacaoDietaEspecial(
         blank=True
     )
     registro_funcional_pescritor = models.CharField(
-        'Nome completo do pescritor da receita',
+        'Registro funcional do pescritor da receita',
         help_text='CRN/CRM/CRFa...',
         max_length=200,
         validators=[MinLengthValidator(4), MaxLengthValidator(6)],
         blank=True
     )
     registro_funcional_nutricionista = models.CharField(
-        'Nome completo do pescritor da receita',
+        'Registro funcional do nutricionista',
         help_text='CRN/CRM/CRFa...',
         max_length=200,
         validators=[MinLengthValidator(6)],
@@ -142,6 +142,11 @@ class SolicitacaoDietaEspecial(
 
     observacoes_alteracao = models.TextField(
         'Observações Alteração',
+        blank=True
+    )
+
+    caracteristicas_do_alimento = models.TextField(
+        'Características dos alimentos',
         blank=True
     )
 

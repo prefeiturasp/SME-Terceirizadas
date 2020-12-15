@@ -1,7 +1,7 @@
 from django_filters import rest_framework as filters
 
 from ...dados_comuns.fluxo_status import DietaEspecialWorkflow
-from ..models import ClassificacaoDieta
+from ..models import Alimento, ClassificacaoDieta
 
 
 class DietaEspecialFilter(filters.FilterSet):
@@ -20,3 +20,7 @@ class DietaEspecialFilter(filters.FilterSet):
                                                       to_field_name='id',
                                                       queryset=ClassificacaoDieta.objects.all())
     status = filters.MultipleChoiceFilter(choices=[(str(state), state) for state in DietaEspecialWorkflow.states])
+
+
+class AlimentoFilter(filters.FilterSet):
+    tipo = filters.MultipleChoiceFilter(choices=Alimento.TIPO_CHOICES)

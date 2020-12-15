@@ -606,7 +606,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
     def lista_substitutos(self, request):
         # Retorna todos os alimentos + os produtos homologados.
         status = 'CODAE_HOMOLOGADO'
-        alimentos = Alimento.objects.all()
+        alimentos = Alimento.objects.filter(tipo='E')
         produtos = Produto.objects.filter(ativo=True, homologacoes__status=status)
         alimentos.model = Produto
         query_set = list(chain(alimentos, produtos))
