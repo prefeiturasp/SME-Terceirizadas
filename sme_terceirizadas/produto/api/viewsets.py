@@ -565,7 +565,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         query_set = Produto.objects.filter(
             ativo=True,
             homologacoes__status__in=NOVA_RECLAMACAO_HOMOLOGACOES_STATUS
-        )
+        ).distinct()
         response = {'results': ProdutoSimplesSerializer(query_set, many=True).data}
         return Response(response)
 
@@ -575,7 +575,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
             ativo=True,
             homologacoes__status__in=AVALIAR_RECLAMACAO_HOMOLOGACOES_STATUS,
             homologacoes__reclamacoes__status__in=AVALIAR_RECLAMACAO_RECLAMACOES_STATUS
-        )
+        ).distinct()
         response = {'results': ProdutoSimplesSerializer(query_set, many=True).data}
         return Response(response)
 
@@ -586,7 +586,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
             ativo=True,
             homologacoes__status__in=RESPONDER_RECLAMACAO_HOMOLOGACOES_STATUS,
             homologacoes__reclamacoes__status__in=RESPONDER_RECLAMACAO_RECLAMACOES_STATUS
-        )
+        ).distinct()
         if user.tipo_usuario == 'terceirizada':
             query_set = query_set.filter(homologacoes__rastro_terceirizada=user.vinculo_atual.instituicao)
         response = {'results': ProdutoSimplesSerializer(query_set, many=True).data}
