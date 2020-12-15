@@ -983,7 +983,7 @@ class FabricanteViewSet(viewsets.ModelViewSet):
     def lista_fabricantes_nova_reclamacao(self, request):
         query_set = Fabricante.objects.filter(
             produto__homologacoes__status__in=NOVA_RECLAMACAO_HOMOLOGACOES_STATUS
-        )
+        ).distinct()
         response = {'results': FabricanteSimplesSerializer(query_set, many=True).data}
         return Response(response)
 
@@ -992,7 +992,7 @@ class FabricanteViewSet(viewsets.ModelViewSet):
         query_set = Fabricante.objects.filter(
             produto__homologacoes__status__in=AVALIAR_RECLAMACAO_HOMOLOGACOES_STATUS,
             produto__homologacoes__reclamacoes__status__in=AVALIAR_RECLAMACAO_RECLAMACOES_STATUS
-        )
+        ).distinct()
         response = {'results': FabricanteSimplesSerializer(query_set, many=True).data}
         return Response(response)
 
@@ -1002,7 +1002,7 @@ class FabricanteViewSet(viewsets.ModelViewSet):
         query_set = Fabricante.objects.filter(
             produto__homologacoes__status__in=RESPONDER_RECLAMACAO_HOMOLOGACOES_STATUS,
             produto__homologacoes__reclamacoes__status__in=RESPONDER_RECLAMACAO_RECLAMACOES_STATUS
-        )
+        ).distinct()
         if user.tipo_usuario == 'terceirizada':
             query_set = query_set.filter(produto__homologacoes__rastro_terceirizada=user.vinculo_atual.instituicao)
         response = {'results': FabricanteSimplesSerializer(query_set, many=True).data}
@@ -1031,7 +1031,7 @@ class MarcaViewSet(viewsets.ModelViewSet):
     def lista_marcas_nova_reclamacao(self, request):
         query_set = Marca.objects.filter(
             produto__homologacoes__status__in=NOVA_RECLAMACAO_HOMOLOGACOES_STATUS
-        )
+        ).distinct()
         response = {'results': MarcaSimplesSerializer(query_set, many=True).data}
         return Response(response)
 
@@ -1040,7 +1040,7 @@ class MarcaViewSet(viewsets.ModelViewSet):
         query_set = Marca.objects.filter(
             produto__homologacoes__status__in=AVALIAR_RECLAMACAO_HOMOLOGACOES_STATUS,
             produto__homologacoes__reclamacoes__status__in=AVALIAR_RECLAMACAO_RECLAMACOES_STATUS
-        )
+        ).distinct()
         response = {'results': MarcaSimplesSerializer(query_set, many=True).data}
         return Response(response)
 
@@ -1050,7 +1050,7 @@ class MarcaViewSet(viewsets.ModelViewSet):
         query_set = Marca.objects.filter(
             produto__homologacoes__status__in=RESPONDER_RECLAMACAO_HOMOLOGACOES_STATUS,
             produto__homologacoes__reclamacoes__status__in=RESPONDER_RECLAMACAO_RECLAMACOES_STATUS
-        )
+        ).distinct()
         if user.tipo_usuario == 'terceirizada':
             query_set = query_set.filter(produto__homologacoes__rastro_terceirizada=user.vinculo_atual.instituicao)
         response = {'results': MarcaSimplesSerializer(query_set, many=True).data}
