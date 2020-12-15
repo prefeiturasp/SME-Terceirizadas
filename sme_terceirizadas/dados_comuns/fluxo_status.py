@@ -1389,6 +1389,7 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
             raise xworkflows.InvalidTransitionError(
                 'Não pode terminar uma dieta antes da data')
         self.status = self.workflow_class.TERMINADA_AUTOMATICAMENTE_SISTEMA
+        self.ativo = False
         self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.TERMINADA_AUTOMATICAMENTE_SISTEMA,
                                   usuario=usuario,
                                   justificativa='Atingiu data limite e foi terminada automaticamente')

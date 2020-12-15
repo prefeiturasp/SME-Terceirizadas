@@ -45,6 +45,7 @@ def inicia_dietas_temporarias(usuario):
             solicitacao.dieta_alterada.ativo = False
             solicitacao.dieta_alterada.save()
         solicitacao.ativo = True
+        solicitacao.save()
 
 
 class RelatorioPagination(PageNumberPagination):

@@ -148,7 +148,7 @@ class SolicitacaoDietaEspecialViewSet(
         try:
             if solicitacao.tipo_solicitacao != 'ALTERACAO_UE':
                 serializer.update(solicitacao, request.data)
-            solicitacao.ativo = True
+                solicitacao.ativo = True
             solicitacao.codae_autoriza(user=request.user)
             return Response({'detail': 'Autorização de dieta especial realizada com sucesso'})  # noqa
         except InvalidTransitionError as e:
