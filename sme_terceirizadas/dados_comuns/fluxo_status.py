@@ -233,11 +233,11 @@ class DietaEspecialWorkflow(xwf_models.Workflow):
 
     transitions = (
         ('inicia_fluxo', RASCUNHO, CODAE_A_AUTORIZAR),
-        ('codae_nega', [CODAE_A_AUTORIZAR,
-                        ESCOLA_SOLICITOU_INATIVACAO], CODAE_NEGOU_PEDIDO),
+        ('codae_nega', [CODAE_A_AUTORIZAR], CODAE_NEGOU_PEDIDO),
         ('codae_autoriza', CODAE_A_AUTORIZAR, CODAE_AUTORIZADO),
         ('terceirizada_toma_ciencia', CODAE_AUTORIZADO, TERCEIRIZADA_TOMOU_CIENCIA),
-        ('cancelar_pedido', CODAE_A_AUTORIZAR, ESCOLA_CANCELOU),
+        ('cancelar_pedido', [CODAE_A_AUTORIZAR,
+                             ESCOLA_SOLICITOU_INATIVACAO], ESCOLA_CANCELOU),
         ('inicia_fluxo_inativacao', [
          CODAE_AUTORIZADO, TERCEIRIZADA_TOMOU_CIENCIA], ESCOLA_SOLICITOU_INATIVACAO),
         ('codae_nega_inativacao', ESCOLA_SOLICITOU_INATIVACAO, CODAE_NEGOU_INATIVACAO),
