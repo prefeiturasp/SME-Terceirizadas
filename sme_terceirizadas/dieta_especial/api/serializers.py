@@ -121,10 +121,9 @@ class SolicitacaoDietaEspecialAutorizarSerializer(SolicitacaoDietaEspecialCreate
         substituicoes = validated_data.pop('substituicoes')
 
         instance.classificacao_id = validated_data['classificacao']
-        instance.registro_funcional_nutricionista = validated_data[
-            'registro_funcional_nutricionista']
-        instance.informacoes_adicionais = validated_data.get(
-            'informacoes_adicionais', '')
+        instance.registro_funcional_nutricionista = validated_data['registro_funcional_nutricionista']
+        instance.informacoes_adicionais = validated_data.get('informacoes_adicionais', '')
+        instance.caracteristicas_do_alimento = validated_data.get('caracteristicas_do_alimento', '')
         instance.nome_protocolo = validated_data.get('nome_protocolo', '')
         data_termino = validated_data.get('data_termino', '')
         if data_termino:
