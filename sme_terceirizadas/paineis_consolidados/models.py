@@ -82,6 +82,17 @@ class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmiga
         LogSolicitacoesUsuario.TERCEIRIZADA_TOMOU_CIENCIA
     ]
 
+    INATIVOS_STATUS_DIETA_ESPECIAL_TEMP = [
+        DietaEspecialWorkflow.CODAE_AUTORIZOU_INATIVACAO,
+        DietaEspecialWorkflow.TERMINADA_AUTOMATICAMENTE_SISTEMA,
+        PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_TOMOU_CIENCIA
+    ]
+    INATIVOS_EVENTO_DIETA_ESPECIAL_TEMP = [
+        LogSolicitacoesUsuario.CODAE_AUTORIZOU_INATIVACAO,
+        LogSolicitacoesUsuario.TERMINADA_AUTOMATICAMENTE_SISTEMA,
+        LogSolicitacoesUsuario.TERCEIRIZADA_TOMOU_CIENCIA
+    ]
+
     TP_SOL_TODOS = 'TODOS'
     TP_SOL_ALT_CARDAPIO = 'ALT_CARDAPIO'
     TP_SOL_INV_CARDAPIO = 'INV_CARDAPIO'
@@ -343,12 +354,18 @@ class SolicitacoesCODAE(MoldeConsolidado):
         ).only('dieta_alterada_id').values('dieta_alterada_id')
         ids_alterados = [s['dieta_alterada_id'] for s in qs]
         return cls.objects.filter(
-            status_atual__in=cls.INATIVOS_STATUS_DIETA_ESPECIAL,
-            status_evento__in=cls.INATIVOS_EVENTO_DIETA_ESPECIAL,
+            Q(
+                tipo_solicitacao_dieta='ALTERACAO_UE',
+                status_atual__in=cls.INATIVOS_STATUS_DIETA_ESPECIAL_TEMP,
+                status_evento__in=cls.INATIVOS_EVENTO_DIETA_ESPECIAL_TEMP,
+            ) | Q(
+                tipo_solicitacao_dieta='COMUM',
+                status_atual__in=cls.INATIVOS_STATUS_DIETA_ESPECIAL,
+                status_evento__in=cls.INATIVOS_EVENTO_DIETA_ESPECIAL,
+            ) & ~Q(id__in=ids_alterados),
             tipo_doc=cls.TP_SOL_DIETA_ESPECIAL,
-            dieta_alterada_id__isnull=True,
             ativo=False
-        ).exclude(id__in=ids_alterados).distinct().order_by('-data_log')
+        ).distinct().order_by('-data_log')
 
     @classmethod
     def get_pendentes_autorizacao(cls, **kwargs):
