@@ -510,10 +510,17 @@ class SolicitacoesEscola(MoldeConsolidado):
     def get_cancelados_dieta_especial(cls, **kwargs):
         escola_uuid = kwargs.get('escola_uuid')
         return cls.objects.filter(
-            escola_uuid=escola_uuid,
-            status_atual__in=cls.CANCELADOS_STATUS_DIETA_ESPECIAL,
-            status_evento__in=cls.CANCELADOS_EVENTO_DIETA_ESPECIAL,
-            tipo_doc=cls.TP_SOL_DIETA_ESPECIAL
+            Q(
+                tipo_solicitacao_dieta='ALTERACAO_UE',
+                status_atual__in=cls.CANCELADOS_STATUS_DIETA_ESPECIAL_TEMP,
+                status_evento__in=cls.CANCELADOS_EVENTO_DIETA_ESPECIAL_TEMP,
+            ) | Q(
+                tipo_solicitacao_dieta='COMUM',
+                status_atual__in=cls.CANCELADOS_STATUS_DIETA_ESPECIAL,
+                status_evento__in=cls.CANCELADOS_EVENTO_DIETA_ESPECIAL,
+            ),
+            tipo_doc=cls.TP_SOL_DIETA_ESPECIAL,
+            escola_uuid=escola_uuid
         ).distinct().order_by('-data_log')
 
     @classmethod
@@ -715,10 +722,17 @@ class SolicitacoesDRE(MoldeConsolidado):
     def get_cancelados_dieta_especial(cls, **kwargs):
         dre_uuid = kwargs.get('dre_uuid')
         return cls.objects.filter(
-            dre_uuid=dre_uuid,
-            status_atual__in=cls.CANCELADOS_STATUS_DIETA_ESPECIAL,
-            status_evento__in=cls.CANCELADOS_EVENTO_DIETA_ESPECIAL,
-            tipo_doc=cls.TP_SOL_DIETA_ESPECIAL
+            Q(
+                tipo_solicitacao_dieta='ALTERACAO_UE',
+                status_atual__in=cls.CANCELADOS_STATUS_DIETA_ESPECIAL_TEMP,
+                status_evento__in=cls.CANCELADOS_EVENTO_DIETA_ESPECIAL_TEMP,
+            ) | Q(
+                tipo_solicitacao_dieta='COMUM',
+                status_atual__in=cls.CANCELADOS_STATUS_DIETA_ESPECIAL,
+                status_evento__in=cls.CANCELADOS_EVENTO_DIETA_ESPECIAL,
+            ),
+            tipo_doc=cls.TP_SOL_DIETA_ESPECIAL,
+            dre_uuid=dre_uuid
         ).distinct().order_by('-data_log')
 
     @classmethod

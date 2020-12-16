@@ -92,7 +92,7 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
         (CODAE_AUTORIZOU_INATIVACAO, 'CODAE autorizou inativação'),
         (CODAE_NEGOU_INATIVACAO, 'CODAE negou inativação'),
         (TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO, 'Terceirizada tomou ciência da inativação'),  # noqa
-        (TERMINADA_AUTOMATICAMENTE_SISTEMA, 'Terminada por atingir data de término'),  # noqa
+        (TERMINADA_AUTOMATICAMENTE_SISTEMA, 'Cancelada por atingir data de término'),  # noqa
         (CODAE_PENDENTE_HOMOLOGACAO, 'Pendente homologação da CODAE'),
         (CODAE_HOMOLOGADO, 'CODAE homologou'),
         (CODAE_NAO_HOMOLOGADO, 'CODAE não homologou'),
