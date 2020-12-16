@@ -121,6 +121,46 @@
             {% endfor %}
         {% endif %}
     </div>
+    {% if solicitacao.escola.tipo_gestao.nome == 'MISTA' or solicitacao.escola.tipo_gestao.nome == 'PARCEIRA' or solicitacao.escola.tipo_gestao.nome == 'DIRETA' %}
+    <div class="bloco-identificacao-nutri tabela-sem-borda">
+      <h5>Substituições</h5>
+      <table>
+        <thead>
+          <tr>
+            <th>Alimento</th>
+            <th>Tipo</th>
+            <th>Isenção/Substituição</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for substituicao in solicitacao.substituicoes %}
+            <tr>
+              <td>{{ substituicao.alimento }}</td>
+              <td className="tipo">
+                {% if substituicao.tipo == 'I' %}
+                  Isenção
+                {% elif substituicao.tipo == 'S' %}
+                  Substituição
+                {% endif %}
+              </td>
+              <td>
+                {% if substituicao.substitutos.all %}
+                  {{ substituicao.substitutos.all|join:", " }}
+                {% else %}
+                  {{ substituicao.alimentos_substitutos.all|join:", " }}
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+      <div class="bloco-identificacao-nutri">
+        <h5>Descrever características do alimento</h5>
+        <p>{{ solicitacao.caracteristicas_do_alimento|safe }}</p>
+        <p style="color: red">Os Produtos (Alimentos) devem ser adquiridos utilizando a verba PTRF ou outro recurso disponível.</p>
+      </div>
+    {% endif %}
     <div class="bloco-identificacao-nutri">
         {% if solicitacao.registro_funcional_nutricionista %}
           <h5>Identificação do Nutricionista</h5>

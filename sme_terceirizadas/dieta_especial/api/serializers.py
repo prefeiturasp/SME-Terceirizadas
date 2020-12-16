@@ -239,6 +239,7 @@ class SolicitacaoDietaEspecialSerializer(serializers.ModelSerializer):
             'nome_protocolo',
             'substituicoes',
             'informacoes_adicionais',
+            'caracteristicas_do_alimento',
             'motivo_negacao',
             'justificativa_negacao',
             'registro_funcional_nutricionista',
