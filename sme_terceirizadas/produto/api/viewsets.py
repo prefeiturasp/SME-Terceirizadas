@@ -564,7 +564,8 @@ class ProdutoViewSet(viewsets.ModelViewSet):
     def lista_produtos_nova_reclamacao(self, request):
         query_set = Produto.objects.filter(
             ativo=True,
-            homologacoes__status__in=NOVA_RECLAMACAO_HOMOLOGACOES_STATUS
+            homologacoes__status__in=NOVA_RECLAMACAO_HOMOLOGACOES_STATUS,
+            homologacoes__reclamacoes__status__in=AVALIAR_RECLAMACAO_RECLAMACOES_STATUS
         ).distinct()
         response = {'results': ProdutoSimplesSerializer(query_set, many=True).data}
         return Response(response)
@@ -982,7 +983,8 @@ class FabricanteViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['GET'], url_path='lista-nomes-nova-reclamacao')
     def lista_fabricantes_nova_reclamacao(self, request):
         query_set = Fabricante.objects.filter(
-            produto__homologacoes__status__in=NOVA_RECLAMACAO_HOMOLOGACOES_STATUS
+            produto__homologacoes__status__in=NOVA_RECLAMACAO_HOMOLOGACOES_STATUS,
+            produto__homologacoes__reclamacoes__status__in=AVALIAR_RECLAMACAO_RECLAMACOES_STATUS
         ).distinct()
         response = {'results': FabricanteSimplesSerializer(query_set, many=True).data}
         return Response(response)
@@ -1030,7 +1032,8 @@ class MarcaViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['GET'], url_path='lista-nomes-nova-reclamacao')
     def lista_marcas_nova_reclamacao(self, request):
         query_set = Marca.objects.filter(
-            produto__homologacoes__status__in=NOVA_RECLAMACAO_HOMOLOGACOES_STATUS
+            produto__homologacoes__status__in=NOVA_RECLAMACAO_HOMOLOGACOES_STATUS,
+            produto__homologacoes__reclamacoes__status__in=AVALIAR_RECLAMACAO_RECLAMACOES_STATUS
         ).distinct()
         response = {'results': MarcaSimplesSerializer(query_set, many=True).data}
         return Response(response)
