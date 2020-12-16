@@ -587,7 +587,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
             ativo=True,
             homologacoes__status__in=RESPONDER_RECLAMACAO_HOMOLOGACOES_STATUS,
             homologacoes__reclamacoes__status__in=RESPONDER_RECLAMACAO_RECLAMACOES_STATUS,
-            homologacoes__produto__homologacoes__rastro_terceirizada=user.vinculo_atual.instituicao
+            homologacoes__rastro_terceirizada=user.vinculo_atual.instituicao
         ).distinct()
         response = {'results': ProdutoSimplesSerializer(query_set, many=True).data}
         return Response(response)
