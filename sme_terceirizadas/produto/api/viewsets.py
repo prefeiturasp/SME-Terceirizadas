@@ -566,8 +566,8 @@ class ProdutoViewSet(viewsets.ModelViewSet):
             ativo=True,
             homologacoes__status__in=NOVA_RECLAMACAO_HOMOLOGACOES_STATUS,
             homologacoes__reclamacoes__status__in=AVALIAR_RECLAMACAO_RECLAMACOES_STATUS
-        ).distinct()
-        response = {'results': ProdutoSimplesSerializer(query_set, many=True).data}
+        ).only('nome').values('nome').order_by('nome').distinct()
+        response = {'results': [{'uuid': 'uuid', 'nome': r['nome']} for r in query_set]}
         return Response(response)
 
     @action(detail=False, methods=['GET'], url_path='lista-nomes-avaliar-reclamacao')
@@ -576,8 +576,8 @@ class ProdutoViewSet(viewsets.ModelViewSet):
             ativo=True,
             homologacoes__status__in=AVALIAR_RECLAMACAO_HOMOLOGACOES_STATUS,
             homologacoes__reclamacoes__status__in=AVALIAR_RECLAMACAO_RECLAMACOES_STATUS
-        ).distinct()
-        response = {'results': ProdutoSimplesSerializer(query_set, many=True).data}
+        ).only('nome').values('nome').order_by('nome').distinct()
+        response = {'results': [{'uuid': 'uuid', 'nome': r['nome']} for r in query_set]}
         return Response(response)
 
     @action(detail=False, methods=['GET'], url_path='lista-nomes-responder-reclamacao')
@@ -588,8 +588,8 @@ class ProdutoViewSet(viewsets.ModelViewSet):
             homologacoes__status__in=RESPONDER_RECLAMACAO_HOMOLOGACOES_STATUS,
             homologacoes__reclamacoes__status__in=RESPONDER_RECLAMACAO_RECLAMACOES_STATUS,
             homologacoes__rastro_terceirizada=user.vinculo_atual.instituicao
-        ).distinct()
-        response = {'results': ProdutoSimplesSerializer(query_set, many=True).data}
+        ).only('nome').values('nome').order_by('nome').distinct()
+        response = {'results': [{'uuid': 'uuid', 'nome': r['nome']} for r in query_set]}
         return Response(response)
 
     @action(detail=False, methods=['GET'], url_path='lista-nomes-homologados')
