@@ -92,7 +92,7 @@ class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmiga
         LogSolicitacoesUsuario.CODAE_AUTORIZOU_INATIVACAO,
         LogSolicitacoesUsuario.TERMINADA_AUTOMATICAMENTE_SISTEMA,
         LogSolicitacoesUsuario.TERCEIRIZADA_TOMOU_CIENCIA,
-        DietaEspecialWorkflow.ESCOLA_CANCELOU
+        LogSolicitacoesUsuario.ESCOLA_CANCELOU
     ]
 
     TP_SOL_TODOS = 'TODOS'
