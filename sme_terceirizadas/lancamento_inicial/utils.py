@@ -91,11 +91,11 @@ def matriculados_convencional_em_uma_data(escola_periodo, data):
     log = LogAlteracaoQuantidadeAlunosPorEscolaEPeriodoEscolar.objects.filter(
         escola=escola_periodo.escola,
         periodo_escolar=escola_periodo.periodo_escolar,
-        criado_em__gte=data
+        criado_em__date__lte=data
     ).order_by('criado_em').first()
 
     if log:
-        return log.quantidade_alunos_de
+        return log.quantidade_alunos_para
     else:
         return escola_periodo.quantidade_alunos
 
