@@ -355,9 +355,9 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'sme_terceirizadas.escola.tasks.atualiza_dados_escolas',
         'schedule': crontab(hour=0, minute=30)
     },
-    'atualiza-alunos-escolas.py': {
-        'task': 'sme_terceirizadas.escola.tasks.atualiza_alunos_escolas.py',
-        'schedule': crontab(hour=1, minute=0)
+    'atualiza-alunos-escolas': {
+        'task': 'sme_terceirizadas.escola.tasks.atualiza_alunos_escolas',
+        'schedule': crontab(hour=13, minute=0)
     },
     'ativa-desativa-vinculos-alimentacao': {
         'task': 'sme_terceirizadas.cardapio.tasks.ativa_desativa_vinculos_alimentacao_com_periodo_escolar_e_tipo_unidade_escolar',  # noqa E501
