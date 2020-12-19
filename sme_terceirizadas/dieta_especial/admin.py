@@ -80,12 +80,19 @@ admin.site.register(MotivoAlteracaoUE)
 admin.site.register(MotivoNegacao)
 
 
+class SubstituicaoAlimentoInline(admin.TabularInline):
+    model = SubstituicaoAlimento
+    extra = 0
+
+
 @admin.register(SolicitacaoDietaEspecial)
 class SolicitacaoDietaEspecialAdmin(admin.ModelAdmin):
     list_display = ('id_externo', '__str__', 'status', 'ativo')
     list_display_links = ('__str__',)
+    search_fields = ('uuid', 'aluno__codigo_eol')
     readonly_fields = ('aluno',)
     change_list_template = 'dieta_especial/change_list.html'
+    inlines = (SubstituicaoAlimentoInline,)
 
     def get_urls(self):
         urls = super().get_urls()
