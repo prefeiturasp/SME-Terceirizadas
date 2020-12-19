@@ -8,6 +8,7 @@ from .models import (
     EscolaPeriodoEscolar,
     FaixaIdadeEscolar,
     LogAlteracaoQuantidadeAlunosPorEscolaEPeriodoEscolar,
+    LogRotinaDiariaAlunos,
     Lote,
     PeriodoEscolar,
     Responsavel,
@@ -95,6 +96,7 @@ admin.site.register(Codae)
 admin.site.register(EscolaPeriodoEscolar, EscolaPeriodoEscolarAdmin)
 admin.site.register(FaixaIdadeEscolar)
 admin.site.register(LogAlteracaoQuantidadeAlunosPorEscolaEPeriodoEscolar)
+admin.site.register(LogRotinaDiariaAlunos)
 admin.site.register(PeriodoEscolar)
 admin.site.register(Responsavel)
 admin.site.register(Subprefeitura)

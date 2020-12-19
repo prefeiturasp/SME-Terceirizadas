@@ -9,7 +9,7 @@ from requests import ConnectionError
 from utility.carga_dados.helper import progressbar
 
 from ....dados_comuns.constants import DJANGO_EOL_API_TOKEN, DJANGO_EOL_API_URL
-from ...models import Aluno, Escola, PeriodoEscolar
+from ...models import Aluno, Escola, LogRotinaDiariaAlunos, PeriodoEscolar
 
 env = environ.Env()
 
@@ -44,10 +44,20 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         tic = timeit.default_timer()
+
+        quantidade_alunos_antes = Aluno.objects.all().count()
+
         if options['escola']:
             self._atualiza_todas_as_escolas(options['escola'], options['progressbar'])
         else:
             self._atualiza_todas_as_escolas(options['progressbar'])
+
+        quantidade_alunos_atual = Aluno.objects.all().count()
+
+        LogRotinaDiariaAlunos.objects.create(
+            quantidade_alunos_antes=quantidade_alunos_antes,
+            quantidade_alunos_atual=quantidade_alunos_atual,
+        )
 
         toc = timeit.default_timer()
         result = round(toc - tic, 2)
@@ -90,7 +100,7 @@ class Command(BaseCommand):
             periodo_escolar = PeriodoEscolar.objects.get(nome=periodo)
 
             if aluno:
-                aluno.nome = registro['nm_aluno']
+                aluno.nome = registro['nm_aluno'].strip()
                 aluno.codigo_eol = registro['cd_aluno']
                 aluno.data_nascimento = data_nascimento
                 aluno.escola = escola
@@ -98,7 +108,7 @@ class Command(BaseCommand):
                 aluno.save()
             else:
                 obj_aluno = Aluno(
-                    nome=registro['nm_aluno'],
+                    nome=registro['nm_aluno'].strip(),
                     codigo_eol=registro['cd_aluno'],
                     data_nascimento=data_nascimento,
                     escola=escola,

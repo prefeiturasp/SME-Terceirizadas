@@ -521,6 +521,22 @@ class LogAlteracaoQuantidadeAlunosPorEscolaEPeriodoEscolar(TemChaveExterna, Cria
         ordering = ('criado_em',)
 
 
+class LogRotinaDiariaAlunos(TemChaveExterna, CriadoEm):
+    quantidade_alunos_antes = models.PositiveIntegerField('Quantidade de alunos antes', default=0)
+    quantidade_alunos_atual = models.PositiveIntegerField('Quantidade de alunos atual', default=0)
+
+    def __str__(self):
+        criado_em = self.criado_em.strftime('%Y-%m-%d %H:%M:%S')
+        quant_antes = self.quantidade_alunos_antes
+        quant_atual = self.quantidade_alunos_atual
+        return f'Criado em {criado_em} - Quant. de alunos antes: {quant_antes}. Quant. de alunos atual: {quant_atual}'
+
+    class Meta:
+        verbose_name = 'Log Rotina Diária quantidade de alunos'
+        verbose_name_plural = 'Logs Rotina Diária quantidade de alunos'
+        ordering = ('-criado_em',)
+
+
 class Lote(ExportModelOperationsMixin('lote'), TemChaveExterna, Nomeavel, Iniciais):
     """Lote de escolas."""
 
