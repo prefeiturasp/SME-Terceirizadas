@@ -640,14 +640,15 @@ class SolicitacoesAtivasInativasPorAlunoView(generics.ListAPIView):
         # Retorna somente Dietas Inativas.
         ids_dietas_inativas = dietas_inativas.values_list('id', flat=True)
 
+        INATIVOS_STATUS_DIETA_ESPECIAL = [
+            'CODAE_AUTORIZADO',
+            'CODAE_AUTORIZOU_INATIVACAO',
+            'TERMINADA_AUTOMATICAMENTE_SISTEMA'
+        ]
+
         # Retorna somente Dietas Autorizadas e Inativas.
         qs = Aluno.objects.filter(
-            dietas_especiais__status__in=[
-                'CODAE_AUTORIZADO',
-                'TERMINADA_AUTOMATICAMENTE_SISTEMA',
-                'CODAE_AUTORIZOU_INATIVACAO'
-            ]
-        ).annotate(
+            dietas_especiais__status__in=INATIVOS_STATUS_DIETA_ESPECIAL).annotate(
             ativas=Count('dietas_especiais', filter=Q(dietas_especiais__id__in=ids_dietas_autorizadas)),
             inativas=Count('dietas_especiais', filter=Q(dietas_especiais__id__in=ids_dietas_inativas)),
         ).filter(Q(ativas__gt=0) | Q(inativas__gt=0))
