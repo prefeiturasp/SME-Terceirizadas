@@ -1,5 +1,6 @@
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.utils import DataError
+from django_filters import rest_framework as filters
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -28,7 +29,7 @@ from sme_terceirizadas.logistica.models import Guia as GuiasDasRequisicoes
 from sme_terceirizadas.logistica.models import SolicitacaoRemessa
 
 from ..utils import RequisicaoPagination
-from .helpers import remove_acentos_de_strings, retorna_status_das_requisicoes
+from .serializers.filters import GuiaFilter, SolicitacaoFilter
 
 STR_XML_BODY = '{http://schemas.xmlsoap.org/soap/envelope/}Body'
 STR_ARQUIVO_SOLICITACAO = 'ArqSolicitacaoMOD'
@@ -119,7 +120,9 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
     serializer_class = SolicitacaoRemessaCreateSerializer
     permission_classes = [IsAuthenticated]
     parser_classes = (ListXMLParser,)
-    pagination_class = None
+    pagination_class = RequisicaoPagination
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = SolicitacaoFilter
 
     def get_serializer_class(self):
         if self.action == 'create':
@@ -127,6 +130,23 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
         if self.action == 'list':
             return SolicitacaoRemessaLookUpSerializer
         return SolicitacaoRemessaSerializer
+
+    def get_permissions(self):
+        if self.action in ['list']:
+            self.permission_classes = (UsuarioDilogCodae,)
+        return super(SolicitacaoModelViewSet, self).get_permissions()
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        queryset = queryset.order_by('-guias__data_entrega')
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
         remove_dirt = request.data.get(f'{STR_XML_BODY}')
@@ -177,48 +197,7 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
         response = {'results': SolicitacaoRemessaLookUpSerializer(queryset, many=True).data}
         return Response(response)
 
-    @action(detail=False, permission_classes=(UsuarioDilogCodae,),  # noqa C901
-            methods=['GET'], url_path='consulta-requisicoes-de-entrega')
-    def lista_requisicoes_filtro_avancado(self, request):
-        queryset = self.get_queryset()
-        numero_requisicao = request.query_params.get('numero_requisicao', None)
-        status = request.query_params.get('status', [])
-        data_inicio = request.query_params.get('data_inicio', None)
-        data_fim = request.query_params.get('data_fim', None)
-        numero_guia = request.query_params.get('numero_guia', None)
-        nome_produto = request.query_params.get('nome_produto', None)
-        nome_distribuidor = request.query_params.get('nome_distribuidor', None)
-        codigo_eol = request.query_params.get('codigo_escola', None)
-        nome_escola = request.query_params.get('nome_escola', None)
-        if len(status) >= 1:
-            lista_status = retorna_status_das_requisicoes(status)
-            queryset = queryset.filter(numero_status__in=lista_status)
-        if numero_requisicao:
-            queryset = queryset.filter(numero_solicitacao=numero_requisicao)
-        if nome_distribuidor:
-            queryset = queryset.filter(distribuidor__nome_fantasia__icontains=nome_distribuidor)
-        if numero_guia:
-            queryset = queryset.filter(guias__numero_guia__icontains=numero_guia).distinct()
-        if data_inicio:
-            queryset = queryset.filter(guias__data_entrega__gte=data_inicio).distinct()
-        if data_fim:
-            queryset = queryset.filter(guias__data_entrega__lte=data_fim).distinct()
-        if codigo_eol:
-            queryset = queryset.filter(guias__codigo_unidade__icontains=codigo_eol).distinct()
-        if nome_escola:
-            unidade_educacional = remove_acentos_de_strings(nome_escola)
-            queryset = queryset.filter(guias__nome_unidade__icontains=unidade_educacional).distinct()
-        if nome_produto:
-            produto = remove_acentos_de_strings(nome_produto)
-            queryset = queryset.filter(guias__alimentos__nome_alimento__icontains=produto).distinct()
-
-        self.pagination_class = RequisicaoPagination
-        page = self.paginate_queryset(queryset)
-        serializer = SolicitacaoRemessaSerializer(
-            page if page is not None else queryset, many=True)
-        return self.get_paginated_response(serializer.data)
-
-    @action(detail=False, permission_classes=(UsuarioDistribuidor,),  # noqa C901
+    @action(detail=False, permission_classes=(UsuarioDistribuidor,),
             methods=['GET'], url_path='consulta-requisicoes-distribuidor')
     def lista_requisicoes_distrinuidor(self, request):
         usuario = request.user
@@ -263,6 +242,13 @@ class GuiaDaRequisicaoModelViewSet(viewsets.ModelViewSet):
     queryset = GuiasDasRequisicoes.objects.all()
     serializer_class = GuiaDaRemessaSerializer
     permission_classes = [UsuarioDilogCodae]
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = GuiaFilter
+
+    def get_serializer_class(self):
+        if self.action == 'nomes_unidades':
+            return InfoUnidadesSimplesDaGuiaSerializer
+        return GuiaDaRemessaSerializer
 
     @action(detail=False, methods=['GET'], url_path='lista-numeros')
     def lista_numeros(self, request):
@@ -271,9 +257,9 @@ class GuiaDaRequisicaoModelViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['GET'], url_path='unidades-escolares')
     def nomes_unidades(self, request):
-        unidades_escolares = GuiasDasRequisicoes.objects.values(
-            'nome_unidade', 'codigo_unidade').distinct()
-        response = {'results': InfoUnidadesSimplesDaGuiaSerializer(unidades_escolares, many=True).data}
+        queryset = self.filter_queryset(self.get_queryset())
+        serializer = self.get_serializer(queryset, many=True)
+        response = {'results': serializer.data}
         return Response(response)
 
 
