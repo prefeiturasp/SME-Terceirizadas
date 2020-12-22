@@ -138,7 +138,7 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
-        queryset = queryset.order_by('-guias__data_entrega')
+        queryset = queryset.order_by('-guias__data_entrega').distinct()
 
         page = self.paginate_queryset(queryset)
         if page is not None:
