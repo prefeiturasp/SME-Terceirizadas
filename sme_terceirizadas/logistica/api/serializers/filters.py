@@ -30,7 +30,7 @@ class SolicitacaoFilter(filters.FilterSet):
         lookup_expr='exact',
     )
     nome_unidade = filters.CharFilter(
-        field_name='guias__nome_unidade',
+        field_name='guias__nome_unidade__unaccent',
         lookup_expr='icontains',
     )
     nome_produto = filters.CharFilter(
