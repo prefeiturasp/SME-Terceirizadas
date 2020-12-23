@@ -34,6 +34,10 @@ class GuiaSerializer(serializers.ModelSerializer):
 
 class GuiaLookUpSerializer(serializers.ModelSerializer):
     alimentos = serializers.SerializerMethodField()
+    status = serializers.SerializerMethodField()
+
+    def get_status(self, obj):
+        return obj.get_status_display()
 
     def get_alimentos(self, obj):
         return AlimentoLookUpSerializer(
@@ -47,7 +51,7 @@ class GuiaLookUpSerializer(serializers.ModelSerializer):
         model = Guia
         fields = ('uuid', 'numero_guia', 'data_entrega', 'codigo_unidade', 'nome_unidade', 'endereco_unidade',
                   'numero_unidade', 'bairro_unidade', 'bairro_unidade', 'cep_unidade', 'cidade_unidade',
-                  'estado_unidade', 'contato_unidade', 'telefone_unidade', 'alimentos')
+                  'estado_unidade', 'contato_unidade', 'telefone_unidade', 'alimentos', 'status')
 
 
 class SolicitacaoRemessaSerializer(serializers.ModelSerializer):
