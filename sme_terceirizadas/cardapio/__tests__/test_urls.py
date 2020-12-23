@@ -22,6 +22,12 @@ ESCOLA_INFORMA_SUSPENSAO = 'informa-suspensao'
 #
 # Inversão de dia de Cardápio
 #
+def daqui_dez_dias_ou_ultimo_dia_do_ano():
+    hoje = datetime.date.today()
+    dia_alteracao = hoje + datetime.timedelta(days=10)
+    if dia_alteracao.year != hoje.year:
+        dia_alteracao = datetime.date(hoje.year, 12, 31)
+    return dia_alteracao
 
 
 def test_permissoes_inversao_cardapio_viewset(client_autenticado_vinculo_escola_cardapio,
@@ -518,7 +524,7 @@ def test_url_endpoint_alt_card_inicio_403(client_autenticado_vinculo_dre_cardapi
 
 def test_url_endpoint_alt_card_criar(client_autenticado_vinculo_escola_cardapio, motivo_alteracao_cardapio, escola,
                                      tipo_alimentacao, alteracao_substituicoes_params, periodo_escolar):
-    dia_alteracao = datetime.date.today() + datetime.timedelta(days=10)
+    dia_alteracao = daqui_dez_dias_ou_ultimo_dia_do_ano()
     (data_inicial, data_final, combo1, combo2, substituicao1, substituicao2) = alteracao_substituicoes_params
     data = {
         'motivo': str(motivo_alteracao_cardapio.uuid),
@@ -556,7 +562,7 @@ def test_url_endpoint_alt_card_criar(client_autenticado_vinculo_escola_cardapio,
 def test_url_endpoint_alt_card_cei_criar(client_autenticado_vinculo_escola_cardapio, motivo_alteracao_cardapio, escola,
                                          tipo_alimentacao, alteracao_substituicoes_params, periodo_escolar,
                                          faixas_etarias_ativas):
-    dia_alteracao = datetime.date.today() + datetime.timedelta(days=10)
+    dia_alteracao = daqui_dez_dias_ou_ultimo_dia_do_ano()
     (data_inicial, data_final, combo1, combo2, substituicao1, substituicao2) = alteracao_substituicoes_params
     data = {
         'motivo': str(motivo_alteracao_cardapio.uuid),
