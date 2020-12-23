@@ -10,6 +10,7 @@ from ..dieta_especial.models import ClassificacaoDieta
 from ..escola.models import Aluno, LogAlteracaoQuantidadeAlunosPorEscolaEPeriodoEscolar
 from ..inclusao_alimentacao.models import QuantidadePorPeriodo
 from ..kit_lanche.models import SolicitacaoKitLancheAvulsa
+from ..paineis_consolidados.models import MoldeConsolidado, SolicitacoesEscola
 
 
 def mes_para_faixa(mes_string):
@@ -92,7 +93,7 @@ def matriculados_convencional_em_uma_data(escola_periodo, data):
         escola=escola_periodo.escola,
         periodo_escolar=escola_periodo.periodo_escolar,
         criado_em__date__lte=data
-    ).order_by('criado_em').first()
+    ).order_by('-criado_em').first()
 
     if log:
         return log.quantidade_alunos_para
@@ -104,7 +105,12 @@ def matriculados_em_uma_data(escola_periodo, data):
     hoje = date.today()
 
     filtro_data_termino = [
-        Q(dietas_especiais__data_termino__isnull=True) | Q(dietas_especiais__data_termino__gte=hoje)
+        Q(dietas_especiais__data_termino__isnull=True) |
+        Q(dietas_especiais__data_termino__gte=data) &
+        (
+            Q(dietas_especiais__data_inicio__isnull=True) |
+            Q(dietas_especiais__data_inicio__isnull=False, dietas_especiais__data_inicio__lte=hoje)
+        )
     ]
     filtros_escola_periodo = {
         'escola': escola_periodo.escola,
@@ -114,12 +120,20 @@ def matriculados_em_uma_data(escola_periodo, data):
     classificacoes_a = ClassificacaoDieta.objects.filter(nome__in=['Tipo A', 'Tipo A Enteral'])
     classificacoes_b = ClassificacaoDieta.objects.filter(nome__in=['Tipo B'])
 
+    solicitacoes_autorizadas = SolicitacoesEscola.get_autorizados_dieta_especial(
+        escola_uuid=escola_periodo.escola.uuid
+    )
+    ids_solicitacoes_autorizadas = solicitacoes_autorizadas.values_list('id')
+
     quantidade_alunos_dieta_a = Aluno.objects.filter(
+        dietas_especiais__ativo=True,
+        dietas_especiais__status__in=MoldeConsolidado.AUTORIZADO_STATUS_DIETA_ESPECIAL,
         dietas_especiais__classificacao__in=classificacoes_a,
         *filtro_data_termino,
         **filtros_escola_periodo
     ).count()
     quantidade_alunos_dieta_b = Aluno.objects.filter(
+        dietas_especiais__in=ids_solicitacoes_autorizadas,
         dietas_especiais__classificacao__in=classificacoes_b,
         *filtro_data_termino,
         **filtros_escola_periodo
