@@ -179,6 +179,12 @@ class HomologacaoDoProduto(TemChaveExterna, CriadoEm, CriadoPor, FluxoHomologaca
     pdf_gerado = models.BooleanField(default=False)
 
     @property
+    def data_cadastro(self):
+        if self.status != self.workflow_class.RASCUNHO:
+            log = self.logs.get(status_evento=LogSolicitacoesUsuario.CODAE_HOMOLOGADO)
+            return log.criado_em.date()
+
+    @property
     def template_mensagem(self):
         template = TemplateMensagem.objects.get(tipo=TemplateMensagem.HOMOLOGACAO_PRODUTO)
         template_troca = {
