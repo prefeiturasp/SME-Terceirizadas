@@ -24,6 +24,8 @@ def terceirizada_tem_esse_cnpj(terceirizada: Terceirizada, cnpj: str):
 
 
 def usuario_e_das_terceirizadas(usuario: Usuario):
+    if usuario.vinculo_atual is None:
+        raise serializers.ValidationError('Usuario não possui vinculo com instituição')
     if not isinstance(usuario.vinculo_atual.instituicao, Terceirizada):
         raise serializers.ValidationError('Usuario já existe e não é Perfil Terceirizadas')
     return True
