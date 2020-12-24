@@ -174,6 +174,7 @@ class HomologacaoProdutoComUltimoLogSerializer(serializers.ModelSerializer):
     logs = LogSolicitacoesUsuarioComVinculoSerializer(many=True)
     ultimo_log = LogSolicitacoesUsuarioComVinculoSerializer()
     status_titulo = serializers.CharField(source='status.state.title')
+    data_cadastro = serializers.DateField()
 
     def get_reclamacoes(self, obj):
         return ReclamacaoDeProdutoSerializer(
@@ -185,7 +186,7 @@ class HomologacaoProdutoComUltimoLogSerializer(serializers.ModelSerializer):
         model = HomologacaoDoProduto
         fields = ('uuid', 'status', 'id_externo', 'rastro_terceirizada', 'logs',
                   'criado_em', 'reclamacoes', 'ultimo_log', 'tempo_aguardando_acao_em_dias',
-                  'status_titulo', 'protocolo_analise_sensorial')
+                  'status_titulo', 'protocolo_analise_sensorial', 'data_cadastro')
 
 
 class ProdutoSerializer(serializers.ModelSerializer):
