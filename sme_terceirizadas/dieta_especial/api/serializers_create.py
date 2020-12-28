@@ -287,6 +287,7 @@ class AlteracaoUESerializer(serializers.ModelSerializer):
             substituicao_alteracao.solicitacao_dieta_especial = solicitacao_alteracao
             substituicao_alteracao.save()
             substituicao_alteracao.substitutos.add(*substituicao.substitutos.all())
+            substituicao_alteracao.alimentos_substitutos.add(*substituicao.alimentos_substitutos.all())
 
         for anexo in anexos:
             anexo_alteracao = deepcopy(anexo)
