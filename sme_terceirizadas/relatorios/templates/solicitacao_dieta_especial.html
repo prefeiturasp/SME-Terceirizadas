@@ -157,7 +157,9 @@
     </div>
       <div class="bloco-identificacao-nutri">
         <h5>Descrever características do alimento</h5>
-        <p>{{ solicitacao.caracteristicas_do_alimento|safe }}</p>
+        <div>
+          <p>{{ solicitacao.caracteristicas_do_alimento|safe }}</p>
+        </div>
         <p style="color: red">Os Produtos (Alimentos) devem ser adquiridos utilizando a verba PTRF ou outro recurso disponível.</p>
       </div>
     {% endif %}
