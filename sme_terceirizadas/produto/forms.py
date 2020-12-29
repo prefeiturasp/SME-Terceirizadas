@@ -22,3 +22,13 @@ class ProdutoJaExisteForm(forms.Form):
     fabricante = forms.ModelChoiceField(Fabricante.objects.all(), to_field_name='uuid')
     marca = forms.ModelChoiceField(Marca.objects.all(), to_field_name='uuid')
     nome = forms.CharField()
+
+
+class NomeDeProdutoEditalForm(forms.ModelForm):
+
+    class Meta:
+        fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['nome'].required = True

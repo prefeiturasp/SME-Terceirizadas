@@ -8,12 +8,14 @@ from .models import (
     InformacoesNutricionaisDoProduto,
     Marca,
     Produto,
+    NomeDeProdutoEdital,
     ProtocoloDeDietaEspecial,
     ReclamacaoDeProduto,
     RespostaAnaliseSensorial,
     SolicitacaoCadastroProdutoDieta,
     TipoDeInformacaoNutricional
 )
+from .forms import NomeDeProdutoEditalForm
 
 
 class InformacoesNutricionaisDoProdutoInline(admin.TabularInline):
@@ -44,6 +46,15 @@ class ProdutoModelAdmin(admin.ModelAdmin):
     list_display = ('nome', 'marca', 'fabricante')
     search_fields = ('nome', 'marca__nome', 'fabricante__nome')
     ordering = ('nome',)
+
+
+@admin.register(NomeDeProdutoEdital)
+class NomeDeProdutoEditalAdmin(admin.ModelAdmin):
+    list_display = ('nome', 'ativo')
+    search_fields = ('nome',)
+    list_filter = ('ativo',)
+    readonly_fields = ('criado_por',)
+    form = NomeDeProdutoEditalForm
 
 
 @admin.register(ProtocoloDeDietaEspecial)

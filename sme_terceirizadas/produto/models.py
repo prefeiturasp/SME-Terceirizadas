@@ -157,6 +157,7 @@ class NomeDeProdutoEdital(Ativavel, CriadoEm, CriadoPor, Nomeavel, TemChaveExter
 
     class Meta:
         ordering = ('nome',)
+        unique_together = ('nome',)
         verbose_name = 'Produto proveniente do Edital'
         verbose_name_plural = 'Produtos provenientes do Edital'
 
