@@ -157,7 +157,7 @@
     </div>
       <div class="bloco-identificacao-nutri">
         <h5>Descrever características do alimento</h5>
-        <div>
+        <div style="border-color: #686868; width: 100%">
           <p>{{ solicitacao.caracteristicas_do_alimento|safe }}</p>
         </div>
         <p style="color: red">Os Produtos (Alimentos) devem ser adquiridos utilizando a verba PTRF ou outro recurso disponível.</p>
@@ -166,7 +166,7 @@
     <div class="bloco-identificacao-nutri">
         {% if solicitacao.registro_funcional_nutricionista %}
           <h5>Identificação do Nutricionista</h5>
-          <div>
+          <div style="border-color: #686868; width: 100%">
             <p style="text-transform: uppercase">{{ solicitacao.registro_funcional_nutricionista }}</p>
           </div>
         {% endif %}
