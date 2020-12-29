@@ -6,9 +6,10 @@ from .models import (
     ImagemDoProduto,
     InformacaoNutricional,
     InformacoesNutricionaisDoProduto,
+    LogNomeDeProdutoEdital,
     Marca,
-    Produto,
     NomeDeProdutoEdital,
+    Produto,
     ProtocoloDeDietaEspecial,
     ReclamacaoDeProduto,
     RespostaAnaliseSensorial,
@@ -55,35 +56,10 @@ class NomeDeProdutoEditalAdmin(admin.ModelAdmin):
     list_filter = ('ativo',)
     readonly_fields = ('criado_por',)
     form = NomeDeProdutoEditalForm
-    actions = ('ativar_produtos', 'inativar_produtos')
 
     def save_model(self, request, obj, form, change):
         obj.criado_por = request.user
         super(NomeDeProdutoEditalAdmin, self).save_model(request, obj, form, change)
-
-    def ativar_produtos(self, request, queryset):
-        count = queryset.update(ativo=True)
-
-        if count == 1:
-            msg = '{} produto foi ativado.'  # noqa P103
-        else:
-            msg = '{} produtos foram ativados.'  # noqa P103
-
-        self.message_user(request, msg.format(count))
-
-    ativar_produtos.short_description = 'Marcar para ativar produtos'
-
-    def inativar_produtos(self, request, queryset):
-        count = queryset.update(ativo=False)
-
-        if count == 1:
-            msg = '{} produto foi inativado.'  # noqa P103
-        else:
-            msg = '{} produtos foram inativados.'  # noqa P103
-
-        self.message_user(request, msg.format(count))
-
-    inativar_produtos.short_description = 'Marcar para inativar produtos'
 
     def has_delete_permission(self, request, obj=None):
         return False
