@@ -162,6 +162,25 @@ class NomeDeProdutoEdital(Ativavel, CriadoEm, CriadoPor, Nomeavel, TemChaveExter
         verbose_name_plural = 'Produtos provenientes do Edital'
 
 
+class LogNomeDeProdutoEdital(TemChaveExterna, CriadoEm, CriadoPor):
+    ACAO = (
+        ('a', 'ativar'),
+        ('i', 'inativar'),
+    )
+    acao = models.CharField('ação', max_length=1, choices=ACAO, null=True, blank=True)
+    nome_de_produto_edital = models.ForeignKey(
+        NomeDeProdutoEdital,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
+
+    class Meta:
+        ordering = ('-criado_em',)
+        verbose_name = 'Log de Produto proveniente do Edital'
+        verbose_name_plural = 'Log de Produtos provenientes do Edital'
+
+
 class InformacoesNutricionaisDoProduto(TemChaveExterna):
     produto = models.ForeignKey(Produto, on_delete=models.CASCADE, related_name='informacoes_nutricionais')
     informacao_nutricional = models.ForeignKey(InformacaoNutricional, on_delete=models.DO_NOTHING)
