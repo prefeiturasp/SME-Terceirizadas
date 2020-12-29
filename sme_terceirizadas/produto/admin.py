@@ -78,6 +78,22 @@ class NomeDeProdutoEditalAdmin(admin.ModelAdmin):
         return False
 
 
+@admin.register(LogNomeDeProdutoEdital)
+class LogNomeDeProdutoEditalAdmin(admin.ModelAdmin):
+    list_display = ('__str__', 'nome_de_produto_edital', 'criado_por', 'get_rf', 'criado_em', 'acao')
+    search_fields = ('nome_de_produto_edital__nome', 'criado_por__nome',)
+    readonly_fields = ('nome_de_produto_edital', 'acao', 'criado_por', 'get_rf', 'criado_em')
+
+    def get_rf(self, obj):
+        if obj.criado_por.registro_funcional:
+            return obj.criado_por.registro_funcional
+
+    get_rf.short_description = 'RF'
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
 @admin.register(ProtocoloDeDietaEspecial)
 class ProtocoloDeDietaEspecialModelAdmin(admin.ModelAdmin):
     search_fields = ('nome',)
@@ -103,7 +119,6 @@ class InformacaoNutricionalModelAdmin(admin.ModelAdmin):
     list_filter = ('tipo_nutricional',)
 
 
-admin.site.register(LogNomeDeProdutoEdital)
 admin.site.register(ReclamacaoDeProduto)
 admin.site.register(RespostaAnaliseSensorial)
 admin.site.register(SolicitacaoCadastroProdutoDieta)
