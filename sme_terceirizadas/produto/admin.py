@@ -50,12 +50,16 @@ class ProdutoModelAdmin(admin.ModelAdmin):
 
 @admin.register(NomeDeProdutoEdital)
 class NomeDeProdutoEditalAdmin(admin.ModelAdmin):
-    list_display = ('nome', 'ativo')
+    list_display = ('nome', 'criado_por', 'ativo')
     search_fields = ('nome',)
     list_filter = ('ativo',)
     readonly_fields = ('criado_por',)
     form = NomeDeProdutoEditalForm
     actions = ('ativar_produtos', 'inativar_produtos')
+
+    def save_model(self, request, obj, form, change):
+        obj.criado_por = request.user
+        super(NomeDeProdutoEditalAdmin, self).save_model(request, obj, form, change)
 
     def ativar_produtos(self, request, queryset):
         count = queryset.update(ativo=True)
