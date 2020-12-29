@@ -57,7 +57,20 @@ class NomeDeProdutoEditalAdmin(admin.ModelAdmin):
     readonly_fields = ('criado_por',)
     form = NomeDeProdutoEditalForm
 
+    def salvar_log(self, request, obj, acao):
+        LogNomeDeProdutoEdital.objects.create(
+            acao=acao,
+            nome_de_produto_edital=obj,
+            criado_por=request.user,
+        )
+
     def save_model(self, request, obj, form, change):
+        if obj.ativo:
+            acao = 'a'
+        else:
+            acao = 'i'
+        self.salvar_log(request, obj, acao)
+
         obj.criado_por = request.user
         super(NomeDeProdutoEditalAdmin, self).save_model(request, obj, form, change)
 
@@ -90,6 +103,7 @@ class InformacaoNutricionalModelAdmin(admin.ModelAdmin):
     list_filter = ('tipo_nutricional',)
 
 
+admin.site.register(LogNomeDeProdutoEdital)
 admin.site.register(ReclamacaoDeProduto)
 admin.site.register(RespostaAnaliseSensorial)
 admin.site.register(SolicitacaoCadastroProdutoDieta)

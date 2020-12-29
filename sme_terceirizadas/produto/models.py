@@ -161,6 +161,9 @@ class NomeDeProdutoEdital(Ativavel, CriadoEm, CriadoPor, Nomeavel, TemChaveExter
         verbose_name = 'Produto proveniente do Edital'
         verbose_name_plural = 'Produtos provenientes do Edital'
 
+    def __str__(self):
+        return self.nome
+
 
 class LogNomeDeProdutoEdital(TemChaveExterna, CriadoEm, CriadoPor):
     ACAO = (
