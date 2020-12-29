@@ -136,6 +136,6 @@ def matriculados_em_uma_data(escola_periodo, data):
 
     return {
         'convencional': matriculados_convencional_em_uma_data(escola_periodo, data),
-        'tipoA': quantidade_alunos_dieta_a,
-        'tipoB': quantidade_alunos_dieta_b
+        'grupoA': quantidade_alunos_dieta_a,
+        'grupoB': quantidade_alunos_dieta_b
     }
