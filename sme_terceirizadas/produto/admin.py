@@ -56,6 +56,9 @@ class NomeDeProdutoEditalAdmin(admin.ModelAdmin):
     readonly_fields = ('criado_por',)
     form = NomeDeProdutoEditalForm
 
+    def has_delete_permission(self, request, obj=None):
+        return False
+
 
 @admin.register(ProtocoloDeDietaEspecial)
 class ProtocoloDeDietaEspecialModelAdmin(admin.ModelAdmin):
