@@ -55,6 +55,19 @@ class NomeDeProdutoEditalAdmin(admin.ModelAdmin):
     list_filter = ('ativo',)
     readonly_fields = ('criado_por',)
     form = NomeDeProdutoEditalForm
+    actions = ('ativar_produtos',)
+
+    def ativar_produtos(self, request, queryset):
+        count = queryset.update(ativo=True)
+
+        if count == 1:
+            msg = '{} produto foi ativado.'  # noqa P103
+        else:
+            msg = '{} produtos foram ativados.'  # noqa P103
+
+        self.message_user(request, msg.format(count))
+
+    ativar_produtos.short_description = 'Marcar para ativar produtos'
 
     def has_delete_permission(self, request, obj=None):
         return False
