@@ -273,7 +273,7 @@ class UsuarioUpdateSerializer(serializers.ModelSerializer):
             terceirizada_tem_esse_cnpj(instance.vinculo_atual.instituicao, cnpj)  # noqa
         if instance.cpf:
             deve_ter_mesmo_cpf(cpf, instance.cpf)
-        if 'tipo_email' in attrs:
+        if 'registro_funcional' in attrs:
             registro_funcional_e_cpf_sao_da_mesma_pessoa(instance, attrs['registro_funcional'], attrs['cpf'])  # noqa
             usuario_pode_efetuar_cadastro(instance)
         if instance.vinculo_atual.perfil.nome in [
