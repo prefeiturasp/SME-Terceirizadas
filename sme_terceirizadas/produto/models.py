@@ -50,6 +50,7 @@ class Marca(Nomeavel, TemChaveExterna):
 
 
 class TipoDeInformacaoNutricional(Nomeavel, TemChaveExterna):
+
     def __str__(self):
         return self.nome
 
@@ -150,6 +151,14 @@ class Produto(Ativavel, CriadoEm, CriadoPor, Nomeavel, TemChaveExterna, TemIdent
     class Meta:
         verbose_name = 'Produto'
         verbose_name_plural = 'Produtos'
+
+
+class NomeDeProdutoEdital(Ativavel, CriadoEm, CriadoPor, Nomeavel, TemChaveExterna, TemIdentificadorExternoAmigavel):
+
+    class Meta:
+        ordering = ('nome',)
+        verbose_name = 'Produto proveniente do Edital'
+        verbose_name_plural = 'Produtos provenientes do Edital'
 
 
 class InformacoesNutricionaisDoProduto(TemChaveExterna):
