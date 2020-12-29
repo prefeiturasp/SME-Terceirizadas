@@ -1,5 +1,6 @@
 from django.contrib import admin
 
+from .forms import NomeDeProdutoEditalForm
 from .models import (
     Fabricante,
     HomologacaoDoProduto,
@@ -16,7 +17,6 @@ from .models import (
     SolicitacaoCadastroProdutoDieta,
     TipoDeInformacaoNutricional
 )
-from .forms import NomeDeProdutoEditalForm
 
 
 class InformacoesNutricionaisDoProdutoInline(admin.TabularInline):

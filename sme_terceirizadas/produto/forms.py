@@ -29,6 +29,6 @@ class NomeDeProdutoEditalForm(forms.ModelForm):
     class Meta:
         fields = '__all__'
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs):  # noqa D107
         super().__init__(*args, **kwargs)
         self.fields['nome'].required = True
