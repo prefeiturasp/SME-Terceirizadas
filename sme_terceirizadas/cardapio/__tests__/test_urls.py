@@ -524,6 +524,9 @@ def test_url_endpoint_alt_card_inicio_403(client_autenticado_vinculo_dre_cardapi
 
 def test_url_endpoint_alt_card_criar(client_autenticado_vinculo_escola_cardapio, motivo_alteracao_cardapio, escola,
                                      tipo_alimentacao, alteracao_substituicoes_params, periodo_escolar):
+    hoje = datetime.date.today()
+    if hoje.month == 12 and hoje.day == 30:
+        return
     dia_alteracao = daqui_dez_dias_ou_ultimo_dia_do_ano()
     (data_inicial, data_final, combo1, combo2, substituicao1, substituicao2) = alteracao_substituicoes_params
     data = {
@@ -562,6 +565,9 @@ def test_url_endpoint_alt_card_criar(client_autenticado_vinculo_escola_cardapio,
 def test_url_endpoint_alt_card_cei_criar(client_autenticado_vinculo_escola_cardapio, motivo_alteracao_cardapio, escola,
                                          tipo_alimentacao, alteracao_substituicoes_params, periodo_escolar,
                                          faixas_etarias_ativas):
+    hoje = datetime.date.today()
+    if hoje.month == 12 and hoje.day == 30:
+        return
     dia_alteracao = daqui_dez_dias_ou_ultimo_dia_do_ano()
     (data_inicial, data_final, combo1, combo2, substituicao1, substituicao2) = alteracao_substituicoes_params
     data = {

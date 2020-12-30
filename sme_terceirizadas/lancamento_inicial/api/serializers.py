@@ -40,7 +40,15 @@ class LancamentoDiarioCreateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         refeicoes = validated_data.pop('refeicoes', [])
 
-        lancamento, created = LancamentoDiario.objects.get_or_create(**validated_data)
+        try:
+            lancamento = LancamentoDiario.objects.get(
+                data=validated_data['data'],
+                escola_periodo_escolar=validated_data['escola_periodo_escolar'],
+                tipo_dieta=validated_data['tipo_dieta'] if 'tipo_dieta' in validated_data else None
+            )
+            self.update(lancamento, validated_data)
+        except LancamentoDiario.DoesNotExist:
+            lancamento = LancamentoDiario.objects.create(**validated_data)
 
         lancamento.refeicoes.all().delete()
 
