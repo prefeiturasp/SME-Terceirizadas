@@ -81,9 +81,15 @@ class NomeDeProdutoEditalAdmin(admin.ModelAdmin):
 
 @admin.register(LogNomeDeProdutoEdital)
 class LogNomeDeProdutoEditalAdmin(admin.ModelAdmin):
-    list_display = ('__str__', 'nome_de_produto_edital', 'criado_por', 'get_rf', 'criado_em', 'acao')
+    list_display = ('__str__', 'nome_de_produto_edital', 'get_nome_usuario', 'get_rf', 'criado_em', 'acao')
     search_fields = ('nome_de_produto_edital__nome', 'criado_por__nome',)
     readonly_fields = ('nome_de_produto_edital', 'acao', 'criado_por', 'get_rf', 'criado_em')
+
+    def get_nome_usuario(self, obj):
+        if obj.criado_por.nome:
+            return obj.criado_por.nome
+
+    get_nome_usuario.short_description = 'Nome usuário'
 
     def get_rf(self, obj):
         if obj.criado_por.registro_funcional:
