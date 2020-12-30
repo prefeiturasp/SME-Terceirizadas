@@ -51,10 +51,11 @@ class ProdutoModelAdmin(admin.ModelAdmin):
 
 @admin.register(NomeDeProdutoEdital)
 class NomeDeProdutoEditalAdmin(admin.ModelAdmin):
-    list_display = ('nome', 'criado_por', 'ativo')
+    list_display = ('nome', 'criado_por', 'criado_em', 'ativo')
     search_fields = ('nome',)
     list_filter = ('ativo',)
     readonly_fields = ('criado_por',)
+    date_hierarchy = 'criado_em'
     form = NomeDeProdutoEditalForm
     object_history_template = 'produto/object_history.html'
 
