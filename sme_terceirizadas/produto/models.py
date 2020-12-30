@@ -50,6 +50,7 @@ class Marca(Nomeavel, TemChaveExterna):
 
 
 class TipoDeInformacaoNutricional(Nomeavel, TemChaveExterna):
+
     def __str__(self):
         return self.nome
 
@@ -150,6 +151,40 @@ class Produto(Ativavel, CriadoEm, CriadoPor, Nomeavel, TemChaveExterna, TemIdent
     class Meta:
         verbose_name = 'Produto'
         verbose_name_plural = 'Produtos'
+
+
+class NomeDeProdutoEdital(Ativavel, CriadoEm, CriadoPor, Nomeavel, TemChaveExterna, TemIdentificadorExternoAmigavel):
+
+    class Meta:
+        ordering = ('nome',)
+        unique_together = ('nome',)
+        verbose_name = 'Produto proveniente do Edital'
+        verbose_name_plural = 'Produtos provenientes do Edital'
+
+    def __str__(self):
+        return self.nome
+
+
+class LogNomeDeProdutoEdital(TemChaveExterna, TemIdentificadorExternoAmigavel, CriadoEm, CriadoPor):
+    ACAO = (
+        ('a', 'ativar'),
+        ('i', 'inativar'),
+    )
+    acao = models.CharField('ação', max_length=1, choices=ACAO, null=True, blank=True)  # noqa DJ01
+    nome_de_produto_edital = models.ForeignKey(
+        NomeDeProdutoEdital,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
+
+    class Meta:
+        ordering = ('-criado_em',)
+        verbose_name = 'Log de Produto proveniente do Edital'
+        verbose_name_plural = 'Log de Produtos provenientes do Edital'
+
+    def __str__(self):
+        return self.id_externo
 
 
 class InformacoesNutricionaisDoProduto(TemChaveExterna):

@@ -1,12 +1,15 @@
 from django.contrib import admin
 
+from .forms import NomeDeProdutoEditalForm
 from .models import (
     Fabricante,
     HomologacaoDoProduto,
     ImagemDoProduto,
     InformacaoNutricional,
     InformacoesNutricionaisDoProduto,
+    LogNomeDeProdutoEdital,
     Marca,
+    NomeDeProdutoEdital,
     Produto,
     ProtocoloDeDietaEspecial,
     ReclamacaoDeProduto,
@@ -44,6 +47,55 @@ class ProdutoModelAdmin(admin.ModelAdmin):
     list_display = ('nome', 'marca', 'fabricante')
     search_fields = ('nome', 'marca__nome', 'fabricante__nome')
     ordering = ('nome',)
+
+
+@admin.register(NomeDeProdutoEdital)
+class NomeDeProdutoEditalAdmin(admin.ModelAdmin):
+    list_display = ('nome', 'criado_por', 'ativo')
+    search_fields = ('nome',)
+    list_filter = ('ativo',)
+    readonly_fields = ('criado_por',)
+    form = NomeDeProdutoEditalForm
+
+    def salvar_log(self, request, obj, acao):
+        LogNomeDeProdutoEdital.objects.create(
+            acao=acao,
+            nome_de_produto_edital=obj,
+            criado_por=request.user,
+        )
+
+    def save_model(self, request, obj, form, change):
+        if change:
+            if obj.ativo:
+                acao = 'a'
+            else:
+                acao = 'i'
+            self.salvar_log(request, obj, acao)
+        else:
+            obj.criado_por = request.user
+        super(NomeDeProdutoEditalAdmin, self).save_model(request, obj, form, change)
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(LogNomeDeProdutoEdital)
+class LogNomeDeProdutoEditalAdmin(admin.ModelAdmin):
+    list_display = ('__str__', 'nome_de_produto_edital', 'criado_por', 'get_rf', 'criado_em', 'acao')
+    search_fields = ('nome_de_produto_edital__nome', 'criado_por__nome',)
+    readonly_fields = ('nome_de_produto_edital', 'acao', 'criado_por', 'get_rf', 'criado_em')
+
+    def get_rf(self, obj):
+        if obj.criado_por.registro_funcional:
+            return obj.criado_por.registro_funcional
+
+    get_rf.short_description = 'RF'
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
 
 
 @admin.register(ProtocoloDeDietaEspecial)
