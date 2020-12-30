@@ -107,7 +107,6 @@ def homologacao_produto_homologado(homologacao_produto):
 @pytest.fixture
 def homologacao_produto_homologado_com_log(homologacao_produto, user):
     homologacao_produto.inicia_fluxo(user=user)
-    homologacao_produto.codae_homologa(user=user, link_pdf='')
     return homologacao_produto
 
 
