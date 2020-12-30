@@ -51,11 +51,13 @@ class ProdutoModelAdmin(admin.ModelAdmin):
 
 @admin.register(NomeDeProdutoEdital)
 class NomeDeProdutoEditalAdmin(admin.ModelAdmin):
-    list_display = ('nome', 'criado_por', 'ativo')
+    list_display = ('nome', 'criado_por', 'criado_em', 'ativo')
     search_fields = ('nome',)
     list_filter = ('ativo',)
     readonly_fields = ('criado_por',)
+    date_hierarchy = 'criado_em'
     form = NomeDeProdutoEditalForm
+    object_history_template = 'produto/object_history.html'
 
     def salvar_log(self, request, obj, acao):
         LogNomeDeProdutoEdital.objects.create(
@@ -74,38 +76,6 @@ class NomeDeProdutoEditalAdmin(admin.ModelAdmin):
         else:
             obj.criado_por = request.user
         super(NomeDeProdutoEditalAdmin, self).save_model(request, obj, form, change)
-
-    def has_delete_permission(self, request, obj=None):
-        return False
-
-
-@admin.register(LogNomeDeProdutoEdital)
-class LogNomeDeProdutoEditalAdmin(admin.ModelAdmin):
-    list_display = ('__str__', 'nome_de_produto_edital', 'get_nome_usuario', 'get_rf', 'criado_em', 'acao')
-    search_fields = ('nome_de_produto_edital__nome', 'criado_por__nome',)
-    readonly_fields = ('nome_de_produto_edital', 'acao', 'criado_por', 'get_rf', 'criado_em')
-
-    def get_nome_usuario(self, obj):
-        if obj.criado_por.nome:
-            return obj.criado_por.nome
-
-    get_nome_usuario.short_description = 'Nome usuário'
-
-    def get_rf(self, obj):
-        if obj.criado_por.registro_funcional:
-            return obj.criado_por.registro_funcional
-
-    get_rf.short_description = 'RF'
-
-    def change_view(self, request, object_id, extra_context=None):
-        # https://stackoverflow.com/a/44616767
-        extra_context = extra_context or {}
-        extra_context['show_save_and_continue'] = False
-        extra_context['show_save'] = False
-        return super(LogNomeDeProdutoEditalAdmin, self).change_view(request, object_id, extra_context=extra_context)
-
-    def has_add_permission(self, request, obj=None):
-        return False
 
     def has_delete_permission(self, request, obj=None):
         return False
