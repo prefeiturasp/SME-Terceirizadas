@@ -56,6 +56,7 @@ class NomeDeProdutoEditalAdmin(admin.ModelAdmin):
     list_filter = ('ativo',)
     readonly_fields = ('criado_por',)
     form = NomeDeProdutoEditalForm
+    object_history_template = 'produto/object_history.html'
 
     def salvar_log(self, request, obj, acao):
         LogNomeDeProdutoEdital.objects.create(
