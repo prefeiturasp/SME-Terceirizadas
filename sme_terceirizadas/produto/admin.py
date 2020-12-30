@@ -65,13 +65,14 @@ class NomeDeProdutoEditalAdmin(admin.ModelAdmin):
         )
 
     def save_model(self, request, obj, form, change):
-        if obj.ativo:
-            acao = 'a'
+        if change:
+            if obj.ativo:
+                acao = 'a'
+            else:
+                acao = 'i'
+            self.salvar_log(request, obj, acao)
         else:
-            acao = 'i'
-        self.salvar_log(request, obj, acao)
-
-        obj.criado_por = request.user
+            obj.criado_por = request.user
         super(NomeDeProdutoEditalAdmin, self).save_model(request, obj, form, change)
 
     def has_delete_permission(self, request, obj=None):
@@ -89,6 +90,9 @@ class LogNomeDeProdutoEditalAdmin(admin.ModelAdmin):
             return obj.criado_por.registro_funcional
 
     get_rf.short_description = 'RF'
+
+    def has_add_permission(self, request, obj=None):
+        return False
 
     def has_delete_permission(self, request, obj=None):
         return False
