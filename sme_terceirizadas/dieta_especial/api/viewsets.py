@@ -1,3 +1,5 @@
+from datetime import date
+
 from django.db import transaction
 from django.db.models import Case, CharField, Count, F, Q, Sum, Value, When
 from django.forms import ValidationError
@@ -547,15 +549,36 @@ class SolicitacaoDietaEspecialViewSet(
         if not form.is_valid():
             raise ValidationError(form.errors)
 
-        periodo_escolar_igual = Q(
-            escola__aluno__periodo_escolar=F('periodo_escolar'))
-        status = Q(escola__aluno__dietas_especiais__status__in=[
-            DietaEspecialWorkflow.CODAE_AUTORIZADO,
-            DietaEspecialWorkflow.TERCEIRIZADA_TOMOU_CIENCIA,
-            DietaEspecialWorkflow.ESCOLA_SOLICITOU_INATIVACAO])
-        escola = Q(escola__aluno__escola=form.cleaned_data['escola'])
+        hoje = date.today()
 
-        q_params = status & periodo_escolar_igual & escola
+        filtros_gerais = Q(
+            escola__aluno__periodo_escolar=F('periodo_escolar'),
+            escola__aluno__escola=form.cleaned_data['escola'],
+            escola__aluno__dietas_especiais__ativo=True,
+            escola__aluno__dietas_especiais__status__in=[
+                DietaEspecialWorkflow.CODAE_AUTORIZADO,
+                DietaEspecialWorkflow.TERCEIRIZADA_TOMOU_CIENCIA,
+                DietaEspecialWorkflow.ESCOLA_SOLICITOU_INATIVACAO
+            ],
+        )
+        filtros_data_dieta = (
+            (
+                Q(escola__aluno__dietas_especiais__data_termino__isnull=True) |
+                Q(escola__aluno__dietas_especiais__data_termino__gte=hoje)
+            )
+            &
+            (
+                Q(escola__aluno__dietas_especiais__data_inicio__isnull=True)
+                &
+                Q(escola__aluno__dietas_especiais__criado_em__date__lte=hoje)
+                |
+                Q(escola__aluno__dietas_especiais__data_inicio__isnull=False)
+                &
+                Q(escola__aluno__dietas_especiais__data_inicio__lte=hoje)
+            )
+        )
+
+        q_params = filtros_gerais & filtros_data_dieta
 
         campos = [
             'periodo_escolar__nome',

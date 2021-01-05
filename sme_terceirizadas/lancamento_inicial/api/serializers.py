@@ -37,6 +37,16 @@ class LancamentoDiarioCreateSerializer(serializers.ModelSerializer):
         queryset=EscolaPeriodoEscolar.objects.all()
     )
 
+    def update(self, instance, validated_data):
+        instance.frequencia = validated_data.get('frequencia')
+        instance.merenda_seca = validated_data.get('merenda_seca')
+        instance.lanche_4h = validated_data.get('lanche_4h')
+        instance.lanche_5h = validated_data.get('lanche_5h')
+        instance.ref_enteral = validated_data.get('ref_enteral')
+        instance.observacoes = validated_data.get('observacoes', '')
+        instance.eh_dia_de_sobremesa_doce = validated_data.get('eh_dia_de_sobremesa_doce', False)
+        return super().update(instance, validated_data)
+
     def create(self, validated_data):
         refeicoes = validated_data.pop('refeicoes', [])
 
