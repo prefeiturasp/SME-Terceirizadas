@@ -28,6 +28,7 @@ from sme_terceirizadas.logistica.models import Alimento
 from sme_terceirizadas.logistica.models import Guia as GuiasDasRequisicoes
 from sme_terceirizadas.logistica.models import SolicitacaoRemessa
 
+from ...dados_comuns.constants import ADMINISTRADOR_DISTRIBUIDORA
 from ..utils import RequisicaoPagination
 from .serializers.filters import GuiaFilter, SolicitacaoFilter
 
@@ -116,7 +117,6 @@ class SolicitacaoCancelamentoModelViewSet(viewsets.ModelViewSet):
 class SolicitacaoModelViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
     http_method_names = ['get', 'post', 'patch']
-    queryset = SolicitacaoRemessa.objects.all()
     serializer_class = SolicitacaoRemessaCreateSerializer
     permission_classes = [IsAuthenticated]
     parser_classes = (ListXMLParser,)
@@ -133,8 +133,14 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         if self.action in ['list']:
-            self.permission_classes = (UsuarioDilogCodae,)
+            self.permission_classes = [UsuarioDilogCodae | UsuarioDistribuidor]
         return super(SolicitacaoModelViewSet, self).get_permissions()
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.vinculo_atual.perfil.nome in [ADMINISTRADOR_DISTRIBUIDORA]:
+            return SolicitacaoRemessa.objects.filter(distribuidor=user.vinculo_atual.instituicao)
+        return SolicitacaoRemessa.objects.all()
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
@@ -197,18 +203,6 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
         response = {'results': SolicitacaoRemessaLookUpSerializer(queryset, many=True).data}
         return Response(response)
 
-    @action(detail=False, permission_classes=(UsuarioDistribuidor,),
-            methods=['GET'], url_path='consulta-requisicoes-distribuidor')
-    def lista_requisicoes_distrinuidor(self, request):
-        usuario = request.user
-        queryset = self.get_queryset()
-        queryset = queryset.filter(distribuidor=usuario.vinculo_atual.instituicao)
-        self.pagination_class = RequisicaoPagination
-        page = self.paginate_queryset(queryset)
-        serializer = SolicitacaoRemessaLookUpSerializer(
-            page if page is not None else queryset, many=True)
-        return self.get_paginated_response(serializer.data)
-
     @action(detail=True, permission_classes=(UsuarioDilogCodae,),
             methods=['patch'], url_path='envia-solicitacao')
     def incia_fluxo_solicitacao(self, request, uuid=None):
@@ -249,6 +243,11 @@ class GuiaDaRequisicaoModelViewSet(viewsets.ModelViewSet):
         if self.action == 'nomes_unidades':
             return InfoUnidadesSimplesDaGuiaSerializer
         return GuiaDaRemessaSerializer
+
+    def get_permissions(self):
+        if self.action in ['nomes_unidades']:
+            self.permission_classes = [UsuarioDilogCodae | UsuarioDistribuidor]
+        return super(GuiaDaRequisicaoModelViewSet, self).get_permissions()
 
     @action(detail=False, methods=['GET'], url_path='lista-numeros')
     def lista_numeros(self, request):
