@@ -55,7 +55,6 @@ class NomeDeProdutoEditalAdmin(admin.ModelAdmin):
     search_fields = ('nome',)
     list_filter = ('ativo',)
     readonly_fields = ('get_usuario',)
-    date_hierarchy = 'criado_em'
     form = NomeDeProdutoEditalForm
     object_history_template = 'produto/object_history.html'
 
