@@ -164,9 +164,10 @@ class NomeDeProdutoEdital(Ativavel, CriadoEm, CriadoPor, Nomeavel, TemChaveExter
     def __str__(self):
         return self.nome
 
-    def clean(self):
+    def clean(self, *args, **kwargs):
         # Nome sempre em caixa alta.
         self.nome = self.nome.upper()
+        return super(NomeDeProdutoEdital, self).clean(*args, **kwargs)
 
 
 class LogNomeDeProdutoEdital(TemChaveExterna, TemIdentificadorExternoAmigavel, CriadoEm, CriadoPor):
