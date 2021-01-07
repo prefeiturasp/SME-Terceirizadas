@@ -226,6 +226,12 @@ def test_url_endpoint_produtos_filtro_relatorio_reclamacoes(client_autenticado_v
     assert response.status_code == status.HTTP_200_OK
 
 
+def test_url_endpoint_nome_de_produto_edital(client_autenticado_vinculo_terceirizada):
+    client = client_autenticado_vinculo_terceirizada
+    response = client.get(f'/nome-de-produtos-edital/')
+    assert response.status_code == status.HTTP_200_OK
+
+
 def test_url_produto_ja_existe(client_autenticado_vinculo_terceirizada, produto, marca1, fabricante):
     response = client_autenticado_vinculo_terceirizada.get('/produtos/ja-existe/', {
         'nome': 'Produto1',

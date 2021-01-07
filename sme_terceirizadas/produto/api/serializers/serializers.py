@@ -30,6 +30,7 @@ from ...models import (
     InformacoesNutricionaisDoProduto,
     LogSolicitacoesUsuario,
     Marca,
+    NomeDeProdutoEdital,
     Produto,
     ProtocoloDeDietaEspecial,
     ReclamacaoDeProduto,
@@ -260,6 +261,13 @@ class ProdutoSimplesSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Produto
+        fields = ('uuid', 'nome',)
+
+
+class NomeDeProdutoEditalSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = NomeDeProdutoEdital
         fields = ('uuid', 'nome',)
 
 

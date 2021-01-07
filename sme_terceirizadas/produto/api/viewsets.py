@@ -43,6 +43,7 @@ from ..models import (
     ImagemDoProduto,
     InformacaoNutricional,
     Marca,
+    NomeDeProdutoEdital,
     Produto,
     ProtocoloDeDietaEspecial,
     ReclamacaoDeProduto,
@@ -67,6 +68,7 @@ from .serializers.serializers import (
     InformacaoNutricionalSerializer,
     MarcaSerializer,
     MarcaSimplesSerializer,
+    NomeDeProdutoEditalSerializer,
     ProdutoHomologadosPorParametrosSerializer,
     ProdutoListagemSerializer,
     ProdutoReclamacaoSerializer,
@@ -947,6 +949,11 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         return Response({
             'produto_existe': queryset.count() > 0
         })
+
+
+class NomeDeProdutoEditalViewSet(viewsets.ModelViewSet):
+    serializer_class = NomeDeProdutoEditalSerializer
+    queryset = NomeDeProdutoEdital.objects.filter(ativo=True)
 
 
 class ProtocoloDeDietaEspecialViewSet(viewsets.ModelViewSet):
