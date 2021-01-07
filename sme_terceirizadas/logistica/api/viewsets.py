@@ -28,6 +28,7 @@ from sme_terceirizadas.logistica.models import Alimento
 from sme_terceirizadas.logistica.models import Guia as GuiasDasRequisicoes
 from sme_terceirizadas.logistica.models import SolicitacaoRemessa
 
+from ...dados_comuns.constants import ADMINISTRADOR_DISTRIBUIDORA
 from ..utils import RequisicaoPagination
 from .serializers.filters import GuiaFilter, SolicitacaoFilter
 
@@ -116,7 +117,6 @@ class SolicitacaoCancelamentoModelViewSet(viewsets.ModelViewSet):
 class SolicitacaoModelViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
     http_method_names = ['get', 'post', 'patch']
-    queryset = SolicitacaoRemessa.objects.all()
     serializer_class = SolicitacaoRemessaCreateSerializer
     permission_classes = [IsAuthenticated]
     parser_classes = (ListXMLParser,)
@@ -133,19 +133,33 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         if self.action in ['list']:
-            self.permission_classes = (UsuarioDilogCodae,)
+            self.permission_classes = [UsuarioDilogCodae | UsuarioDistribuidor]
         return super(SolicitacaoModelViewSet, self).get_permissions()
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.vinculo_atual.perfil.nome in [ADMINISTRADOR_DISTRIBUIDORA]:
+            return SolicitacaoRemessa.objects.filter(distribuidor=user.vinculo_atual.instituicao)
+        return SolicitacaoRemessa.objects.all()
+
+    def get_paginated_response(self, data, num_enviadas=None):
+        assert self.paginator is not None
+        return self.paginator.get_paginated_response(data, num_enviadas)
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
         queryset = queryset.order_by('-guias__data_entrega').distinct()
 
+        num_enviadas = queryset.filter(status=SolicitacaoRemessaWorkFlow.DILOG_ENVIA).count()
+
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
+            response = self.get_paginated_response(serializer.data, num_enviadas)
+            return response
 
         serializer = self.get_serializer(queryset, many=True)
+        serializer.data['teste'] = 1
         return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
@@ -177,7 +191,7 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
     @action(detail=False, permission_classes=(UsuarioDilogCodae,),  # noqa C901
             methods=['GET'], url_path='lista-requisicoes-para-envio')
     def lista_requisicoes_para_envio(self, request):
-        queryset = self.queryset.filter(status=SolicitacaoRemessaWorkFlow.AGUARDANDO_ENVIO)
+        queryset = self.get_queryset().filter(status=SolicitacaoRemessaWorkFlow.AGUARDANDO_ENVIO)
         numero_requisicao = request.query_params.get('numero_requisicao', None)
         nome_distribuidor = request.query_params.get('nome_distribuidor', None)
         data_inicio = request.query_params.get('data_inicio', None)
@@ -197,18 +211,6 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
         response = {'results': SolicitacaoRemessaLookUpSerializer(queryset, many=True).data}
         return Response(response)
 
-    @action(detail=False, permission_classes=(UsuarioDistribuidor,),
-            methods=['GET'], url_path='consulta-requisicoes-distribuidor')
-    def lista_requisicoes_distrinuidor(self, request):
-        usuario = request.user
-        queryset = self.get_queryset()
-        queryset = queryset.filter(distribuidor=usuario.vinculo_atual.instituicao)
-        self.pagination_class = RequisicaoPagination
-        page = self.paginate_queryset(queryset)
-        serializer = SolicitacaoRemessaLookUpSerializer(
-            page if page is not None else queryset, many=True)
-        return self.get_paginated_response(serializer.data)
-
     @action(detail=True, permission_classes=(UsuarioDilogCodae,),
             methods=['patch'], url_path='envia-solicitacao')
     def incia_fluxo_solicitacao(self, request, uuid=None):
@@ -223,9 +225,9 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
-    @action(detail=True, permission_classes=(UsuarioDilogCodae,),
+    @action(detail=True, permission_classes=(UsuarioDistribuidor,),
             methods=['patch'], url_path='distribuidor-confirma')
-    def distribuidor_confirma_hook(self, request, uuid=None):
+    def distribuidor_confirma(self, request, uuid=None):
         solicitacao = SolicitacaoRemessa.objects.get(uuid=uuid)
         usuario = request.user
 
@@ -233,6 +235,20 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
             solicitacao.empresa_atende(user=usuario, )
             serializer = SolicitacaoRemessaSerializer(solicitacao)
             return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, permission_classes=(UsuarioDistribuidor,),
+            methods=['patch'], url_path='distribuidor-confirma-todos')
+    def distribuidor_confirma_todos(self, request):
+        queryset = self.get_queryset()
+        solicitacoes = queryset.filter(status=SolicitacaoRemessaWorkFlow.DILOG_ENVIA)
+        usuario = request.user
+
+        try:
+            for solicitacao in solicitacoes:
+                solicitacao.empresa_atende(user=usuario,)
+            return Response(status=HTTP_200_OK)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
@@ -249,6 +265,11 @@ class GuiaDaRequisicaoModelViewSet(viewsets.ModelViewSet):
         if self.action == 'nomes_unidades':
             return InfoUnidadesSimplesDaGuiaSerializer
         return GuiaDaRemessaSerializer
+
+    def get_permissions(self):
+        if self.action in ['nomes_unidades']:
+            self.permission_classes = [UsuarioDilogCodae | UsuarioDistribuidor]
+        return super(GuiaDaRequisicaoModelViewSet, self).get_permissions()
 
     @action(detail=False, methods=['GET'], url_path='lista-numeros')
     def lista_numeros(self, request):
