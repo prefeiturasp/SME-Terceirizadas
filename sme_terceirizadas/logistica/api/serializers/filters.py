@@ -34,7 +34,7 @@ class SolicitacaoFilter(filters.FilterSet):
         lookup_expr='icontains',
     )
     nome_produto = filters.CharFilter(
-        field_name='guias__alimentos__nome_alimento',
+        field_name='guias__alimentos__nome_alimento__unaccent',
         lookup_expr='icontains',
     )
     status = filters.MultipleChoiceFilter(
