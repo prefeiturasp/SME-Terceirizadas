@@ -3,7 +3,7 @@ import datetime
 import pytest
 from model_mommy import mommy
 
-from ...escola.models import EscolaPeriodoEscolar
+from ...escola.models import EscolaPeriodoEscolar, LogAlteracaoQuantidadeAlunosPorEscolaEPeriodoEscolar, PeriodoEscolar
 from ..models import LancamentoDiario
 
 
@@ -50,6 +50,48 @@ def client_autenticado_da_escola(client, django_user_model, escola):
 @pytest.fixture
 def escola_periodo_escolar():
     return mommy.make(EscolaPeriodoEscolar)
+
+
+@pytest.fixture
+def periodo_escolar():
+    return mommy.make(PeriodoEscolar)
+
+
+@pytest.fixture
+def escola_periodo_escolar_com_quantidade_de_alunos(escola, periodo_escolar):
+    return mommy.make(
+        EscolaPeriodoEscolar,
+        escola=escola,
+        periodo_escolar=periodo_escolar,
+        quantidade_alunos=123)
+
+
+@pytest.fixture
+def log_mudanca_qtde_1(escola, periodo_escolar):
+    log = mommy.make(
+        LogAlteracaoQuantidadeAlunosPorEscolaEPeriodoEscolar,
+        escola=escola,
+        periodo_escolar=periodo_escolar,
+        quantidade_alunos_de=121,
+        quantidade_alunos_para=123
+    )
+    log.criado_em = datetime.date(2020, 12, 21)
+    log.save()
+    return log
+
+
+@pytest.fixture
+def log_mudanca_qtde_2(escola, periodo_escolar):
+    log = mommy.make(
+        LogAlteracaoQuantidadeAlunosPorEscolaEPeriodoEscolar,
+        escola=escola,
+        periodo_escolar=periodo_escolar,
+        quantidade_alunos_de=119,
+        quantidade_alunos_para=121
+    )
+    log.criado_em = datetime.date(2020, 12, 11)
+    log.save()
+    return log
 
 
 @pytest.fixture
