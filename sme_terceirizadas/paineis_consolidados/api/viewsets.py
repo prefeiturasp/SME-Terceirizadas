@@ -383,7 +383,7 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
             url_path=f'{INATIVAS_DIETA_ESPECIAL}/{FILTRO_ESCOLA_UUID}',
             permission_classes=(IsAuthenticated, PermissaoParaRecuperarDietaEspecial,))
     def inativas_dieta_especial(self, request, escola_uuid=None):
-        query_set = SolicitacoesCODAE.get_inativas_dieta_especial(
+        query_set = SolicitacoesEscola.get_inativas_dieta_especial(
             escola_uuid=escola_uuid)
         return self._retorno_base(query_set)
 
