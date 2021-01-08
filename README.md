@@ -30,7 +30,7 @@ Que **precisam acompanhar com segurança o fornecimento de alimentação escolar
 
 O **SIGPAE (Sistema de Gestão  do Programa para Alimentação Escolar)**  
 
-É uma **plataforma**  que **gerencia todas as etapas de solicitações de alimentação, cadastro de produtos e controles internos** 
+É uma **plataforma** que **gerencia todas as etapas de solicitações de alimentação, cadastro de produtos e controles internos** 
 
 Diferentemente de **solicitações através de planilhas, e-mails e telefonemas**  
 
@@ -42,45 +42,50 @@ O SIGPAE tem como objetivo automatizar os processos internos de fornecimento e d
 
 ## [](#personas)Personas
 
-**Direção escolar:**  responsável pela gestão da escola, com necessidade de otimização de tempo. O sistema é essencial para melhor controle das ações realizadas para a escola.
+**Quem:** direção escolar
+**Características e necessidades:** responsável pela gestão da escola, com necessidade de otimização de tempo. O sistema é essencial para melhor controle das ações realizadas para a escola
 
-**Assistente Técnico de Educação e Nutricionista:**  responsável pela gestão das solicitações de alimentação no núcleo de gestão de contratos na  coordenadoria de alimentação escolar, com necessidade de organização do recebimento das diversas solicitações das escolas.
+**Quem:** Assistente Técnico de Educação e Nutricionista
+**Características e necessidades:** responsável pela gestão das solicitações de alimentação no núcleo de gestão de contratos na  coordenadoria de alimentação escolar, com necessidade de organização do recebimento das diversas solicitações das escolas
 
-**Contador:** liquidação de todos os pagamentos efetuados pela coordenadoria de alimentação escolar 
+**Quem:** Contador
+**Características e necessidades:** liquidação de todos os pagamentos efetuados pela coordenadoria de alimentação escolar 
 
-**Nutricionista de Dieta Especial:** responsável pela validação de solicitações e prescrição da dieta especial, tem necessidade de otimização do processo para revisão, encaminhamento e fornecimento da dieta nas escolas. Processos burocráticos, dolorosos e com decisões de alto impacto para os estudantes.
+**Quem:** Nutricionista de Dieta Especial
+**Características e necessidades:** responsável pela validação de solicitações e prescrição da dieta especial, tem necessidade de otimização do processo para revisão, encaminhamento e fornecimento da dieta nas escolas. Processos burocráticos, dolorosos e com decisões de alto impacto para os estudantes
 
-**Nutricionista P&D:** responsável pela gestão de produtos (homologação, correção, suspensão e avaliação de reclamação e solicitação de análise sensorial) solicitados pelas empresas terceirizadas, com a necessidade de controle do que pode ser utilizados nas unidades escolares. 
+**Quem:** Nutricionista P&D
+**Características e necessidades:** responsável pela gestão de produtos (homologação, correção, suspensão e avaliação de reclamação e solicitação de análise sensorial) solicitados pelas empresas terceirizadas, com a necessidade de controle do que pode ser utilizados nas unidades escolares
 
-**Diretoria Regional de Educação:** responsável pelo gerenciamento das solicitações realizadas pelas escolas que administra, com a necessidade de otimizar e controlar as diversas solicitações das unidades escolares. Para fiscalização e controle das solicitações geradas.
+**Quem:** Diretoria Regional de Educação
+**Características e necessidades:** responsável pelo gerenciamento das solicitações realizadas pelas escolas que administra, com a necessidade de otimizar e controlar as diversas solicitações das unidades escolares. Para fiscalização e controle das solicitações geradas
 
-**Estudantes:** participação nas aulas, com garantia de recebimento de alimentação durante todo o período em que estiver na unidade escolar, assim como o recebimento de alimentação para as atividades externas. 
+**Quem:** estudantes
+**Características e necessidades:** participação nas aulas, com garantia de recebimento de alimentação durante todo o período em que estiver na unidade escolar, assim como o recebimento de alimentação para as atividades externas 
 
-**Família:** responsável por acompanhar o cardápio diário das alimentações e por realizar a entrega de documentação para solicitação de Dieta Especial na unidade escolar, quando necessário, com a necessidade de atendimento ágil.
+**Quem:** Família
+**Características e necessidades:** responsável por acompanhar o cardápio diário das alimentações e por realizar a entrega de documentação para solicitação de Dieta Especial na unidade escolar, quando necessário, com a necessidade de atendimento ágil
   
 ### [](#funcionalidades)Funcionalidades
-Escola
+**Escola**
+
 - Solicitações
-	-  Cadastro/ Edição/ Cancelamento/ Acompanhamento de solicitações para Inclusão de alimentação
-	- Cadastro/ Edição/ Cancelamento/ Acompanhamento de solicitações Alteração de alimentação
-	- inversão
-	- Suspensão
-	- Kit
-	Relatórios por tipo de solicitação
-	Relatórios por status
-	Relatório por evolução das solicitações por tipo
-    Portal administrativo
+- Cadastro/ Edição/ Cancelamento/ Acompanhamento de solicitações para Inclusão de alimentação
+- Cadastro/ Edição/ Cancelamento/ Acompanhamento de solicitações Alteração de alimentação
+- Inversão
+- Suspensão
+- Kit
+- Relatórios por tipo de solicitação
+- Relatórios por status
+- Relatório por evolução das solicitações por tipo
+- Portal administrativo
 
-Dieta Especial
-	Relatórios
+**Dieta Especial**
+-  Relatórios
 
-Gestão de Produtos
-	Relatórios por de produto
-	Relatório por reclamação
-
-### [](#jornadas)Jornadas
-
-
+**Gestão de Produtos**
+- Relatórios por de produto
+- Relatório por reclamação
 
 ### [](#roadmap)Roadmap
 
@@ -104,7 +109,7 @@ Release 7 - Faturamento
 
 | Papel | Titular | Suplente  
 |--|--|--|  
-| Product Owner | Elisete Pereira | Daniela Chichon | Andrea Wang |   
+| Product Owner | Elisete Pereira | Daniela Chichon e Andrea Wang |  
 | Agente de Governança | Vítor Ferragini |  |  
 | Gerente de Projeto | Aline Freitas | |  
 | Scrum Master | Andrea Paiva |  | 
@@ -116,27 +121,19 @@ Release 7 - Faturamento
 
 # [](#como-surgiu)Como surgiu
 
-## [](#fase-de-descoberta)Fase de Descoberta:
-
-**Oficina sobre Homologação de Produtos:**
-
 ## [](#Protótipos)Protótipos:
 
 **Protótipo Navegável:**
 
-Visão Escola:
+**Visão Escola:**
 https://www.figma.com/file/52MKvjiFFjoy7WLuvLLjAi/Spt_13-ALIMENTA%C3%87%C3%83O-Terceirizadas_sprint13-230719?node-id=0%3A25539
 
-Visão CODAE:
+**Visão CODAE:**
 https://www.figma.com/file/52MKvjiFFjoy7WLuvLLjAi/Spt_13-ALIMENTA%C3%87%C3%83O-Terceirizadas_sprint13-230719?node-id=0%3A36995
 
-Visão DRE: https://www.figma.com/file/52MKvjiFFjoy7WLuvLLjAi/Spt_13-ALIMENTA%C3%87%C3%83O-Terceirizadas_sprint13-230719?node-id=0%3A43643
+**Visão DRE:** https://www.figma.com/file/52MKvjiFFjoy7WLuvLLjAi/Spt_13-ALIMENTA%C3%87%C3%83O-Terceirizadas_sprint13-230719?node-id=0%3A43643
 
-## [](#testes-de-usabilidade)Testes de Usabilidade:
-
-Não realizados.
-
-## [](#links-úteis)Links Úteis:
+# [](#links-úteis)Links Úteis:
 
 **Homologação:**
 
@@ -165,15 +162,15 @@ Informar os repositórios de código que envolvem a solução:
 [SME-TERCEIRIZADAS-FRONTEND]
 [https://github.com/prefeiturasp/SME-Terceirizadas-Frontend](https://github.com/prefeiturasp/SME-Terceirizadas-Frontend)
  
-## [](#instalação-e-configuração)Instalação e Configuração:
+# [](#instalação-e-configuração)Instalação e Configuração:
 
-### Pré-requisitos
+## Pré-requisitos
 
 * git
 * Docker
 * Docker compose
 
-### Banco de dados no Docker
+## Banco de dados no Docker
 
 Vamos rodar apenas o banco de dados em Docker, para isto crie uma pasta fora do projeto com o nome `sme-docker`.
 
@@ -211,8 +208,7 @@ services:
       - ./pgbkp:/var/lib/pgadmin/storage/
 ```
 
-
-### Build da imagem do banco de dados
+## Build da imagem do banco de dados
 
 Para buildar as imagens do projeto, executar o comando abaixo
 
@@ -220,7 +216,7 @@ Para buildar as imagens do projeto, executar o comando abaixo
 $ docker-compose -f docker-postgres.yml build
 ```
 
-### Execução da imagem do banco de dados
+## Execução da imagem do banco de dados
 
 Abra um terminal na raiz do projeto e execute o seguinte para o desenvolvimento local:
 
@@ -228,7 +224,7 @@ Abra um terminal na raiz do projeto e execute o seguinte para o desenvolvimento 
 $ docker-compose -f docker-postgres.yml up -d
 ```
 
-### Rodando o backend
+## Rodando o backend
 
 Pré-requisitos:
 
