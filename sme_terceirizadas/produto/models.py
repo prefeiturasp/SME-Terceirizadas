@@ -94,7 +94,7 @@ class Produto(Ativavel, CriadoEm, CriadoPor, Nomeavel, TemChaveExterna, TemIdent
     aditivos = models.TextField('Aditivos', blank=True)
 
     tipo = models.CharField('Tipo do Produto', blank=True, max_length=250)
-    embalagem = models.CharField('Embalagem Primária', blank=True, max_length=100)
+    embalagem = models.CharField('Embalagem Primária', blank=True, max_length=500)
     prazo_validade = models.CharField('Prazo de validade', blank=True, max_length=100)
     info_armazenamento = models.CharField('Informações de Armazenamento',
                                           blank=True, max_length=500)
