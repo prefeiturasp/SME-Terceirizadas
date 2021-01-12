@@ -13,8 +13,8 @@ O [Ateliê do Software](http://forum.govit.prefeitura.sp.gov.br/uploads/default/
 
 # Conteúdo
 
-1. [Sobre o Time](#sobre-o-time)  
-2. [Sobre o Produto](#sobre-o-produto)  
+1. [Sobre o Produto](#sobre-o-produto) 
+2. [Sobre o Time](#sobre-o-time) 
 3. [Como surgiu](#como-surgiu)  
 4. [Links Úteis](#links-úteis)  
 5. [Comunicação](#comunicação)  
@@ -30,19 +30,21 @@ Que **precisam acompanhar com segurança o fornecimento de alimentação escolar
 
 O **SIGPAE (Sistema de Gestão  do Programa para Alimentação Escolar)**  
 
-É uma **plataforma** que **gerencia todas as etapas de solicitações de alimentação, cadastro de produtos e controles internos** 
+É uma **plataforma** 
+
+Que **gerencia todas as etapas de solicitações de alimentação, cadastro de produtos e controles internos** 
 
 Diferentemente de **solicitações através de planilhas, e-mails e telefonemas**  
 
 Onosso produto **garante mais agilidade, confiabilidade e segurança para os processos.**
 
-## [](#objetivos-de-negócio)Objetivos de Negócio
+## Objetivos de Negócio
 
 O SIGPAE tem como objetivo automatizar os processos internos de fornecimento e distribuição de alimentação escolar. Como principais funcionalidades temos: cadastro e acompanhamento de solicitações de alimentação, solicitação de dieta especial, gestão de produtos, medição inicial e faturamento.
 
-## [](#personas)Personas
+## Personas
 
-**Quem:** direção escolar
+**Quem:** Direção Escolar
 **Características e necessidades:** responsável pela gestão da escola, com necessidade de otimização de tempo. O sistema é essencial para melhor controle das ações realizadas para a escola
 
 **Quem:** Assistente Técnico de Educação e Nutricionista
@@ -66,7 +68,8 @@ O SIGPAE tem como objetivo automatizar os processos internos de fornecimento e d
 **Quem:** Família
 **Características e necessidades:** responsável por acompanhar o cardápio diário das alimentações e por realizar a entrega de documentação para solicitação de Dieta Especial na unidade escolar, quando necessário, com a necessidade de atendimento ágil
   
-### [](#funcionalidades)Funcionalidades
+## Funcionalidades
+
 **Escola**
 
 - Solicitações
@@ -81,31 +84,33 @@ O SIGPAE tem como objetivo automatizar os processos internos de fornecimento e d
 - Portal administrativo
 
 **Dieta Especial**
+
 -  Relatórios
 
 **Gestão de Produtos**
+
 - Relatórios por de produto
 - Relatório por reclamação
 
-### [](#roadmap)Roadmap
+## Roadmap
 
-Release 1  - Solicitações de alimentações
+- Release 1  - Solicitações de alimentações
 
-Release 2 - Relatórios de solicitações
+- Release 2 - Relatórios de solicitações
 
-Release 3 - Dieta Especial:
+- Release 3 - Dieta Especial:
 
-Release 4 - Relatório de Dieta Especial
+- Release 4 - Relatório de Dieta Especial
 
-Release 5- Homologação de produtos
+- Release 5 - Homologação de produtos
 
-Release 6-  Cardápio
+- Release 6-  Cardápio
 
-Release 6 - Medicação inicial
+- Release 6 - Medicação inicial
 
-Release 7 - Faturamento
+- Release 7 - Faturamento
 
-## [](#sobre-o-time)Sobre o Time:
+# Sobre o Time
 
 | Papel | Titular | Suplente  
 |--|--|--|  
@@ -119,9 +124,9 @@ Release 7 - Faturamento
 | Analista Programador | Bruno Buzzo, Pedro Walter, Rodolpho Lima |  |
 | Analista de teste |Paula Pimentel|  |
 
-# [](#como-surgiu)Como surgiu
+# Como surgiu
 
-## [](#Protótipos)Protótipos:
+## Protótipos
 
 **Protótipo Navegável:**
 
@@ -133,7 +138,7 @@ https://www.figma.com/file/52MKvjiFFjoy7WLuvLLjAi/Spt_13-ALIMENTA%C3%87%C3%83O-T
 
 **Visão DRE:** https://www.figma.com/file/52MKvjiFFjoy7WLuvLLjAi/Spt_13-ALIMENTA%C3%87%C3%83O-Terceirizadas_sprint13-230719?node-id=0%3A43643
 
-# [](#links-úteis)Links Úteis:
+# Links Úteis:
 
 **Homologação:**
 
@@ -143,17 +148,17 @@ https://www.figma.com/file/52MKvjiFFjoy7WLuvLLjAi/Spt_13-ALIMENTA%C3%87%C3%83O-T
 
 [https://sigpae.sme.prefeitura.sp.gov.br/](https://sigpae.sme.prefeitura.sp.gov.br/)
 
-# [](#comunicação)Comunicação:
+# Comunicação:
 
 | Canal de comunicação | Objetivos |
 |----------------------|-----------|
-| [Issues do Github](https://github.com/prefeiturasp/SME-PTRF/issues) | - Sugestão de novas funcionalidades<br> - Reportar bugs<br> - Discussões técnicas |
+| [Issues do Github](https://github.com/prefeiturasp/SME-Terceirizadas/issues) | - Sugestão de novas funcionalidades<br> - Reportar bugs<br> - Discussões técnicas |
 
-## [](#como-contribuir)Como contribuir
+# Como contribuir
 
 Contribuições são **super bem vindas**! Se você tem vontade de construir o SIGPAE conosco, veja o nosso [guia de contribuição](./CONTRIBUTING.md) onde explicamos detalhadamente como trabalhamos e de que formas você pode nos ajudar a alcançar nossos objetivos. Lembrando que todos devem seguir  nosso [código de conduta](./CODEOFCONDUCT.md).
 
-## [](#repositórios)Repositórios:
+# Repositórios:
 
 Informar os repositórios de código que envolvem a solução:
 
@@ -162,7 +167,7 @@ Informar os repositórios de código que envolvem a solução:
 [SME-TERCEIRIZADAS-FRONTEND]
 [https://github.com/prefeiturasp/SME-Terceirizadas-Frontend](https://github.com/prefeiturasp/SME-Terceirizadas-Frontend)
  
-# [](#instalação-e-configuração)Instalação e Configuração:
+# Instalação e Configuração:
 
 ## Pré-requisitos
 
