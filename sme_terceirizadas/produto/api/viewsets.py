@@ -19,6 +19,7 @@ from ...dados_comuns.permissions import PermissaoParaReclamarDeProduto, UsuarioC
 from ...dados_comuns.utils import url_configs
 from ...dieta_especial.models import Alimento
 from ...relatorios.relatorios import (
+    relatorio_marcas_por_produto_homologacao,
     relatorio_produto_analise_sensorial,
     relatorio_produto_analise_sensorial_recebimento,
     relatorio_produto_homologacao,
@@ -657,6 +658,36 @@ class ProdutoViewSet(viewsets.ModelViewSet):
             methods=['get'], permission_classes=(AllowAny,))
     def relatorio(self, request, uuid=None):
         return relatorio_produto_homologacao(request, produto=self.get_object())
+
+
+# ------------
+
+    @action(detail=False,
+            methods=['GET'],
+            permission_classes=(AllowAny,),
+            url_path='marcas-por-produto')
+    def relatorio_marcas_por_produto(self, request):
+        return relatorio_marcas_por_produto_homologacao(request)
+
+    # USAR COMO BASE
+    # @action(detail=False,
+    #         methods=['GET'],
+    #         url_path='relatorio-reclamacao')
+    # def relatorio_reclamacao(self, request):
+    #     filtro_reclamacao, filtro_homologacao = filtros_produto_reclamacoes(
+    #         request)
+    #     queryset = self.filter_queryset(
+    #         self.get_queryset()).filter(**filtro_homologacao).prefetch_related(
+    #             Prefetch('homologacoes__reclamacoes', queryset=ReclamacaoDeProduto.objects.filter(
+    #                 **filtro_reclamacao))).order_by(
+    #                     'nome').distinct()
+    #     filtros = self.request.query_params.dict()
+    #     return relatorio_reclamacao(queryset, filtros)
+
+    # aqui
+
+
+# ------------
 
     @action(detail=True, url_path=constants.RELATORIO_ANALISE,
             methods=['get'], permission_classes=(IsAuthenticated,))

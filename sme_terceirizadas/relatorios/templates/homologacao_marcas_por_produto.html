@@ -1,0 +1,89 @@
+{% extends 'cabecalho_relatorio_produto.html' %}
+{% load marcas_por_produto_templatetags %}
+{% load static %}
+
+{% block css %}
+<style>
+
+</style>
+{% endblock %}
+
+{% block conteudo %}
+<header class="header">
+  <figure class="logo-titulo">
+    <img src="{% static 'images/LOGO_PB_POSITIVO.png' %}" alt=""/>
+    <h1>SISTEMA GESTÃO DO PROGRAMA DE ALIMENTAÇÃO ESCOLAR</h1>
+  </figure>
+  <section class="conteudo-titulo">
+    <article class="article-pedido-lote">
+      <h2>N° PEDIDO: {{ homologacao.id_externo }}</h2>
+      <section class="">
+        <h3>LOTE:</h3>
+        <ul class="lista-lotes">
+          {% for lote in terceirizada.lotes.all %}
+          <li>{{ lote.nome }};</li>
+          {% endfor %}
+        </ul>
+      </section>
+    </article>
+    <article class="article-dre">
+      <section>
+        <h3 class="dre-header">DRE:</h3>
+        <ul>
+          {% for diretoria_regional in diretorias_regionais %}
+          <li>{{ diretoria_regional.nome }}</li>
+          {% endfor %}
+        </ul>
+      </section>
+    </article>
+  </section>
+</header>
+<p style="page-break-before: avoid;"></p>
+<section class="corpo-relatorio-produto">
+
+  <article class="detalhes-empresa">
+    <div class="nome">
+      <div class="label">Empresa solicitante (Terceirizada)</div>
+      <div class="value">terceirizada.nome</div>
+    </div>
+    <div class="telefone">
+      <div class="label">Telefone</div>
+      <div class="value">terceirizada.representante_telefone</div>
+    </div>
+    <div class="email">
+      <div class="label">E-mail</div>
+      <div class="value">terceirizada.representante_email</div>
+    </div>
+  </article>
+
+  <!-- <p style="page-break-before: avoid;"></p> -->
+  <section class="identificacao-produto nova-pagina-bloco">
+
+  </section>
+  <!-- <p style="page-break-before: avoid;"></p> -->
+  <section class="">
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th>Nome do produto</th>
+          <th>Marcas</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for produto in produtos %}
+          <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>{{ produto }}</td>
+            <td>{{ produto|obter_marcas_do_produto }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <header>
+      <p>Nome do produto</p>
+      <p>Marcas</p>
+    </header>
+  </section>
+</section>
+
+{% endblock %}
