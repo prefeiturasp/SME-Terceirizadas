@@ -9,11 +9,11 @@ from ..utils import converte_para_datetime, cria_filtro_aditivos
 
 class ProdutoFilter(filters.FilterSet):
     uuid = filters.CharFilter(field_name='homologacoes__uuid', lookup_expr='iexact')
-    nome_produto = filters.CharFilter(field_name='nome', lookup_expr='icontains')
+    nome_produto = filters.CharFilter(field_name='nome__unaccent', lookup_expr='icontains')
     data_inicial = filters.DateFilter(field_name='homologacoes__criado_em', lookup_expr='date__gte')
     data_final = filters.DateFilter(field_name='homologacoes__criado_em', lookup_expr='date__lte')
-    nome_marca = filters.CharFilter(field_name='marca__nome', lookup_expr='icontains')
-    nome_fabricante = filters.CharFilter(field_name='fabricante__nome', lookup_expr='icontains')
+    nome_marca = filters.CharFilter(field_name='marca__nome__unaccent', lookup_expr='icontains')
+    nome_fabricante = filters.CharFilter(field_name='fabricante__nome__unaccent', lookup_expr='icontains')
     nome_terceirizada = filters.CharFilter(field_name='homologacoes__rastro_terceirizada__nome_fantasia',
                                            lookup_expr='icontains')
     aditivos = filters.CharFilter(field_name='aditivos', method='filtra_aditivos')
