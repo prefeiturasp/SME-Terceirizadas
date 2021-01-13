@@ -304,11 +304,16 @@ def relatorio_produto_homologacao(request, produto):
 
 def relatorio_marcas_por_produto_homologacao(request):
     # Filtrar pra retornar somente produtos homologados.
-    produtos_distintos = Produto.objects.all().values_list('nome', flat=True).distinct().order_by('nome')
+    produtos = Produto.objects.all().values_list('nome', 'marca__nome')
+    produtos_e_marcas = {}
+    for key, value in produtos:
+        produtos_e_marcas[key] = produtos_e_marcas.get(key, [])  # caso a chave não exista, criar a lista vazia
+        produtos_e_marcas[key].append(value)
+
     html_string = render_to_string(
         'homologacao_marcas_por_produto.html',
         {
-            'produtos': produtos_distintos,
+            'produtos': produtos_e_marcas,
         }
     )
     # return html_to_pdf_response(html_string, f'relatorio_marcas_por_produto_homologacao.pdf')

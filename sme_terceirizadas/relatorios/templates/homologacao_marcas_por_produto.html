@@ -1,5 +1,5 @@
 {% extends 'cabecalho_relatorio_produto.html' %}
-{% load marcas_por_produto_templatetags %}
+{% load index %}
 {% load static %}
 
 {% block css %}
@@ -70,19 +70,14 @@
         </tr>
       </thead>
       <tbody>
-        {% for produto in produtos %}
+        {% for produto, marca in produtos.items %}
           <tr>
-            <td>{{ forloop.counter }}</td>
             <td>{{ produto }}</td>
-            <td>{{ produto|obter_marcas_do_produto }}</td>
+            <td>{{ marca|concatena_string }}</td>
           </tr>
         {% endfor %}
       </tbody>
     </table>
-    <header>
-      <p>Nome do produto</p>
-      <p>Marcas</p>
-    </header>
   </section>
 </section>
 
