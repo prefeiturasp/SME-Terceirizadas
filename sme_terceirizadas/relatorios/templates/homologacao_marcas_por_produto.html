@@ -4,7 +4,32 @@
 
 {% block css %}
 <style>
-
+  .tabela {
+    min-height: 80px;
+    border-collapse: collapse;
+    border-style: hidden;
+    box-shadow: 0 0 0 1px black;
+    background: #FFFFFF;
+    width: 100%;
+  }
+  .tabela thead tr {
+    height: 50px;
+    background: #EEEEEE;
+  }
+  .tabela-borda-arredonda {
+    border-radius: 4px;
+  }
+  .fonte {
+    font-style: normal;
+    font-weight: normal;
+    font-size: 12px;
+    text-transform: uppercase;
+    color: #000;
+  }
+  table td {
+    border: 1px solid black;
+    padding: 10px;
+  }
 </style>
 {% endblock %}
 
@@ -14,58 +39,66 @@
     <img src="{% static 'images/LOGO_PB_POSITIVO.png' %}" alt=""/>
     <h1>SISTEMA GESTÃO DO PROGRAMA DE ALIMENTAÇÃO ESCOLAR</h1>
   </figure>
-  <section class="conteudo-titulo">
+
+  <table class="tabela tabela-borda-arredonda fonte">
+    <tr>
+      <td colspan="3" style="vertical-align: middle;">RELATÓRIO DE PRODUTOS HOMOLOGADOS AGRUPADO POR NOME E MARCA</td>
+    </tr>
+    <tr>
+      <td style="vertical-align: middle; width: 30%">Data: 05/02/2021</td>
+      <td style="vertical-align: middle; width: 40%">Nome: Todos</td>
+      <td style="vertical-align: middle; width: 30%">Marca: Todos</td>
+    </tr>
+  </table>
+
+  <!-- <section class="conteudo-titulo">
     <article class="article-pedido-lote">
-      <h2>N° PEDIDO: {{ homologacao.id_externo }}</h2>
+      <h2>RELATÓRIO DE PRODUTOS HOMOLOGADOS AGRUPADO POR NOME E MARCA</h2>
       <section class="">
-        <h3>LOTE:</h3>
-        <ul class="lista-lotes">
-          {% for lote in terceirizada.lotes.all %}
-          <li>{{ lote.nome }};</li>
-          {% endfor %}
-        </ul>
+        <h3>Data:</h3>
+        <h3>Data:</h3>
       </section>
     </article>
     <article class="article-dre">
-      <section>
-        <h3 class="dre-header">DRE:</h3>
-        <ul>
-          {% for diretoria_regional in diretorias_regionais %}
-          <li>{{ diretoria_regional.nome }}</li>
-          {% endfor %}
-        </ul>
-      </section>
-    </article>
-  </section>
+          <section>
+            <h3 class="dre-header">DRE:</h3>
+            <ul>
+              {% for diretoria_regional in diretorias_regionais %}
+              <li>{{ diretoria_regional.nome }}</li>
+              {% endfor %}
+            </ul>
+          </section>
+        </article>
+  </section> -->
 </header>
 <p style="page-break-before: avoid;"></p>
 <section class="corpo-relatorio-produto">
 
-  <article class="detalhes-empresa">
-    <div class="nome">
-      <div class="label">Empresa solicitante (Terceirizada)</div>
-      <div class="value">terceirizada.nome</div>
-    </div>
-    <div class="telefone">
-      <div class="label">Telefone</div>
-      <div class="value">terceirizada.representante_telefone</div>
-    </div>
-    <div class="email">
-      <div class="label">E-mail</div>
-      <div class="value">terceirizada.representante_email</div>
-    </div>
-  </article>
+  <!-- <article class="detalhes-empresa">
+      <div class="nome">
+        <div class="label">Empresa solicitante (Terceirizada)</div>
+        <div class="value">terceirizada.nome</div>
+      </div>
+      <div class="telefone">
+        <div class="label">Telefone</div>
+        <div class="value">terceirizada.representante_telefone</div>
+      </div>
+      <div class="email">
+        <div class="label">E-mail</div>
+        <div class="value">terceirizada.representante_email</div>
+      </div>
+    </article> -->
 
   <!-- <p style="page-break-before: avoid;"></p> -->
-  <section class="identificacao-produto nova-pagina-bloco">
-
-  </section>
+  <!-- <section class="identificacao-produto nova-pagina-bloco">
+  
+    </section> -->
   <!-- <p style="page-break-before: avoid;"></p> -->
-  <section class="">
-    <table class="table table-bordered">
+  <section>
+    <table class="tabela">
       <thead>
         <tr>
-          <th>Nome do produto</th>
+          <th style="border-collapse: collapse; border-style: hidden; box-shadow: 0 0 0 1px black;">Nome do produto</th>
           <th>Marcas</th>
         </tr>
       </thead>

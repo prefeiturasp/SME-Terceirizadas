@@ -304,7 +304,7 @@ def relatorio_produto_homologacao(request, produto):
 
 def relatorio_marcas_por_produto_homologacao(request):
     # Filtrar pra retornar somente produtos homologados.
-    produtos = Produto.objects.all().values_list('nome', 'marca__nome')
+    produtos = Produto.objects.all().values_list('nome', 'marca__nome').order_by('nome', 'marca__nome')
     produtos_e_marcas = {}
     for key, value in produtos:
         produtos_e_marcas[key] = produtos_e_marcas.get(key, [])  # caso a chave não exista, criar a lista vazia
