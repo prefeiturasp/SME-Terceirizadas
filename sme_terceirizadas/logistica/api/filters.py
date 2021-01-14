@@ -1,6 +1,6 @@
 from django_filters import rest_framework as filters
 
-from ....dados_comuns.fluxo_status import SolicitacaoRemessaWorkFlow
+from ...dados_comuns.fluxo_status import SolicitacaoRemessaWorkFlow
 
 
 class SolicitacaoFilter(filters.FilterSet):

@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Alimento, Guia, SolicitacaoRemessa, TipoEmbalagem
+from .models import Alimento, Embalagem, Guia, SolicitacaoRemessa, TipoEmbalagem
 from .services import inativa_tipos_de_embabalagem
 
 
@@ -74,3 +74,34 @@ class TipoEmbalagemAdmin(admin.ModelAdmin):
 
     list_display = ('get_tipo',)
     actions = ['inativa_embalagens']
+
+
+@admin.register(Embalagem)
+class EmbalagemAdmin(admin.ModelAdmin):
+    list_display = (
+        'get_guia',
+        'get_alimento',
+        'descricao_embalagem',
+        'capacidade_embalagem',
+        'unidade_medida',
+        'tipo_embalagem'
+    )
+    search_fields = (
+        'descricao_embalagem',
+        'capacidade_embalagem',
+        'unidade_medida',
+        'tipo_embalagem'
+    )
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def get_alimento(self, obj):
+        return obj.alimento.nome_alimento
+
+    def get_guia(self, obj):
+        return obj.alimento.guia.numero_guia
+
+    ordering = ('-alterado_em',)
+    get_alimento.short_description = 'Nome do Alimento'
+    get_guia.short_description = 'Número da Guia'
