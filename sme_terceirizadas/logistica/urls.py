@@ -2,6 +2,7 @@ from django.urls import include, path
 from rest_framework import routers
 
 from .api import viewsets
+from .api.soup import views as soup_views
 
 router = routers.DefaultRouter()
 
@@ -16,4 +17,5 @@ router.register('alimentos-da-guia', viewsets.AlimentoDaGuiaModelViewSet, basena
 
 urlpatterns = [
     path('', include(router.urls)),
+    path('webserver/solicitacao-remessa/', soup_views.solicitacao_application),
 ]

@@ -23,7 +23,7 @@ class SolicitacaoRemessa(ModeloBase, TemIdentificadorExternoAmigavel, Logs, Flux
     distribuidor = models.ForeignKey(
         Terceirizada, on_delete=models.CASCADE, blank=True, null=True, related_name='solicitacoes')
     cnpj = models.CharField('CNPJ', validators=[MinLengthValidator(14)], max_length=14)
-    numero_solicitacao = models.CharField('Número da solicitação', blank=True, max_length=100)
+    numero_solicitacao = models.CharField('Número da solicitação', blank=True, max_length=100, unique=True)
 
     objects = SolicitacaoRemessaManager()
 
