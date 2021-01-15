@@ -90,9 +90,9 @@ django_soap_application = DjangoApplication(soap_app)
 
 env = environ.Env()
 
-DJANGO_API_URL = env.str('DJANGO_API_URL', default=None)
+API_URL = env.str('API_URL', default=None)
 
-if DJANGO_API_URL:
-    django_soap_application.doc.wsdl11.build_interface_document(DJANGO_API_URL + '/webserver/solicitacao-remessa/')
+if API_URL:
+    django_soap_application.doc.wsdl11.build_interface_document(API_URL + '/webserver/solicitacao-remessa/')
 
 solicitacao_application = csrf_exempt(django_soap_application)
