@@ -310,7 +310,6 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
         'Código CODAE',
         max_length=10,
         blank=True,
-        null=True,
         default=''
     )
     diretoria_regional = models.ForeignKey(
