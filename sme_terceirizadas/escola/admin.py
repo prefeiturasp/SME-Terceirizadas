@@ -26,6 +26,7 @@ class EscolaPeriodoEscolarAdmin(admin.ModelAdmin):
 class EscolaAdmin(admin.ModelAdmin):
     list_display = (
         'codigo_eol',
+        'codigo_codae',
         'nome',
         'diretoria_regional',
         'tipo_gestao',
@@ -34,6 +35,7 @@ class EscolaAdmin(admin.ModelAdmin):
     )
     search_fields = (
         'codigo_eol',
+        'codigo_codae',
         'nome',
         'diretoria_regional__nome',
         'tipo_unidade__iniciais',
