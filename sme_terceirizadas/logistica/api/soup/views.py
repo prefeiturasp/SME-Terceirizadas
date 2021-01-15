@@ -1,3 +1,4 @@
+import environ
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import IntegrityError
 from django.views.decorators.csrf import csrf_exempt
@@ -86,5 +87,12 @@ soap_app = Application(
 )
 
 django_soap_application = DjangoApplication(soap_app)
+
+env = environ.Env()
+
+DJANGO_API_URL = env.str('DJANGO_API_URL', default=None)
+
+if DJANGO_API_URL:
+    django_soap_application.doc.wsdl11.build_interface_document(DJANGO_API_URL + '/webserver/solicitacao-remessa/')
 
 solicitacao_application = csrf_exempt(django_soap_application)
