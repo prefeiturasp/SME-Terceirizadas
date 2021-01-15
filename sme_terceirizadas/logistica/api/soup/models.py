@@ -220,7 +220,7 @@ class ArqCancelamento(ComplexModel):
         solicitacao.guias.filter(numero_guia__in=guias_payload).update(status=SolicitacaoRemessaWorkFlow.PAPA_CANCELA)
 
         guias_existentes = list(solicitacao.guias.values_list('numero_guia', flat=True))
-        existe_guia_nao_cancelada = solicitacao.guias.exclude(status=Guia.STATUS_CANCELADA).exists()
+        existe_guia_nao_cancelada = solicitacao.guias.exclude(status=GuiaModel.STATUS_CANCELADA).exists()
 
         if set(guias_existentes) == set(guias_payload) or not existe_guia_nao_cancelada:
             solicitacao.cancela_solicitacao(user=user)
