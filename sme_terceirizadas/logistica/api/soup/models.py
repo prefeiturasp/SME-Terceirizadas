@@ -1,5 +1,5 @@
 from django.core import exceptions
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from spyne.model.complex import Array, ComplexModel
 from spyne.model.primitive import Date, Integer, String
 from spyne.util.dictdoc import get_object_as_dict
@@ -124,7 +124,7 @@ class Guia(ComplexModel):
         }
         return GuiaModel(**guia_dict)
 
-    def create_many(self, guias_data, solicitacao):
+    def create_many(self, guias_data, solicitacao): # noqa C901
 
         guias_obj_list = []
         alimentos_dict_list = []
@@ -137,8 +137,15 @@ class Guia(ComplexModel):
             for data in alimentos_data:
                 data['guia'] = guia_obj
                 alimentos_dict_list.append(data)
+        try:
+            GuiaModel.objects.bulk_create(guias_obj_list)
 
-        GuiaModel.objects.bulk_create(guias_obj_list)
+        except IntegrityError as e:
+            if 'unique constraint' in str(e):
+                error = str(e)
+                msg = error.split('Key')
+                raise IntegrityError('Guia duplicada:' + msg[1])
+            raise IntegrityError('Erro ao salvar Guia.')
 
         Alimento().create_many(alimentos_dict_list)
 
@@ -154,7 +161,7 @@ class ArqSolicitacaoMOD(ComplexModel):
     IntQtGuia = Integer
     IntTotVol = Integer
 
-    @transaction.atomic
+    @transaction.atomic # noqa C901
     def create(self):
         data = get_object_as_dict(self)
         distribuidor = None
@@ -170,9 +177,18 @@ class ArqSolicitacaoMOD(ComplexModel):
         except exceptions.ObjectDoesNotExist:
             raise exceptions.ObjectDoesNotExist('Não existe distribuidor cadastrado com esse cnpj')
 
-        solicitacao = SolicitacaoRemessa.objects.create_solicitacao(**data)
+        try:
+            solicitacao = SolicitacaoRemessa.objects.create_solicitacao(**data)
+
+        except IntegrityError as e:
+            if 'unique constraint' in str(e):
+                error = str(e)
+                msg = error.split('Key')
+                raise IntegrityError('Solicitação duplicada:' + msg[1])
+            raise IntegrityError('Erro ao salvar Solicitação.')
 
         Guia().create_many(guias, solicitacao)
+
         return solicitacao
 
 
