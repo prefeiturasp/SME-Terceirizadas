@@ -6,11 +6,13 @@
 <style>
   .tabela {
     min-height: 80px;
+    border: 1px solid black;
     border-collapse: collapse;
     border-style: hidden;
     box-shadow: 0 0 0 1px black;
     background: #FFFFFF;
     width: 100%;
+    overflow: hidden;
   }
   .tabela thead tr {
     height: 50px;
@@ -26,8 +28,8 @@
     text-transform: uppercase;
     color: #000;
   }
-  table td {
-    border: 1px solid black;
+  table, th, td {
+    border: 1px solid black !important;
     padding: 10px;
   }
 </style>
@@ -39,61 +41,21 @@
     <img src="{% static 'images/LOGO_PB_POSITIVO.png' %}" alt=""/>
     <h1>SISTEMA GESTÃO DO PROGRAMA DE ALIMENTAÇÃO ESCOLAR</h1>
   </figure>
+  {% include "tabela_filtros.html" with filtros=filtros %}
 
   <table class="tabela tabela-borda-arredonda fonte">
     <tr>
       <td colspan="3" style="vertical-align: middle;">RELATÓRIO DE PRODUTOS HOMOLOGADOS AGRUPADO POR NOME E MARCA</td>
     </tr>
     <tr>
-      <td style="vertical-align: middle; width: 30%">Data: 05/02/2021</td>
+      <td style="vertical-align: middle; width: 30%">Data: {{ hoje|date:"d/m/Y" }}</td>
       <td style="vertical-align: middle; width: 40%">Nome: Todos</td>
       <td style="vertical-align: middle; width: 30%">Marca: Todos</td>
     </tr>
   </table>
-
-  <!-- <section class="conteudo-titulo">
-    <article class="article-pedido-lote">
-      <h2>RELATÓRIO DE PRODUTOS HOMOLOGADOS AGRUPADO POR NOME E MARCA</h2>
-      <section class="">
-        <h3>Data:</h3>
-        <h3>Data:</h3>
-      </section>
-    </article>
-    <article class="article-dre">
-          <section>
-            <h3 class="dre-header">DRE:</h3>
-            <ul>
-              {% for diretoria_regional in diretorias_regionais %}
-              <li>{{ diretoria_regional.nome }}</li>
-              {% endfor %}
-            </ul>
-          </section>
-        </article>
-  </section> -->
 </header>
 <p style="page-break-before: avoid;"></p>
 <section class="corpo-relatorio-produto">
-
-  <!-- <article class="detalhes-empresa">
-      <div class="nome">
-        <div class="label">Empresa solicitante (Terceirizada)</div>
-        <div class="value">terceirizada.nome</div>
-      </div>
-      <div class="telefone">
-        <div class="label">Telefone</div>
-        <div class="value">terceirizada.representante_telefone</div>
-      </div>
-      <div class="email">
-        <div class="label">E-mail</div>
-        <div class="value">terceirizada.representante_email</div>
-      </div>
-    </article> -->
-
-  <!-- <p style="page-break-before: avoid;"></p> -->
-  <!-- <section class="identificacao-produto nova-pagina-bloco">
-  
-    </section> -->
-  <!-- <p style="page-break-before: avoid;"></p> -->
   <section>
     <table class="tabela">
       <thead>
