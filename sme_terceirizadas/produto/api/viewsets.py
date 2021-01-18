@@ -664,9 +664,10 @@ class ProdutoViewSet(viewsets.ModelViewSet):
             permission_classes=(AllowAny,),
             url_path='marcas-por-produto')
     def relatorio_marcas_por_produto(self, request):
-        return relatorio_marcas_por_produto_homologacao(request)
-
-    # aqui
+        return relatorio_marcas_por_produto_homologacao(
+            request,
+            produtos=self.get_queryset_filtrado_agrupado(request)
+        )
 
     @action(detail=True, url_path=constants.RELATORIO_ANALISE,
             methods=['get'], permission_classes=(IsAuthenticated,))
@@ -679,8 +680,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         return relatorio_produto_analise_sensorial_recebimento(request, produto=self.get_object())
 
     def get_queryset_filtrado(self, cleaned_data):
-        campos_a_pesquisar = cria_filtro_produto_por_parametros_form(
-            cleaned_data)
+        campos_a_pesquisar = cria_filtro_produto_por_parametros_form(cleaned_data)
         if 'aditivos' in cleaned_data:
             filtro_aditivos = cria_filtro_aditivos(cleaned_data['aditivos'])
             return self.get_queryset().filter(**campos_a_pesquisar).filter(filtro_aditivos)
@@ -734,10 +734,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
 
         return Response(self.serializa_agrupamento(dados_agrupados))
 
-    @action(detail=False,
-            methods=['POST'],
-            url_path='filtro-por-parametros-agrupado-nome-marcas')
-    def filtro_por_parametros_agrupado_nome_marcas(self, request):
+    def get_queryset_filtrado_agrupado(self, request):
         form = ProdutoPorParametrosForm(request.data)
 
         if not form.is_valid():
@@ -757,6 +754,13 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         for key, value in produtos:
             produtos_e_marcas[key] = produtos_e_marcas.get(key, [])  # caso a chave não exista, criar a lista vazia
             produtos_e_marcas[key].append(value)
+        return produtos_e_marcas
+
+    @action(detail=False,
+            methods=['POST'],
+            url_path='filtro-por-parametros-agrupado-nome-marcas')
+    def filtro_por_parametros_agrupado_nome_marcas(self, request):
+        produtos_e_marcas = self.get_queryset_filtrado_agrupado(request)
         return Response(produtos_e_marcas)
 
     @action(detail=False,
