@@ -659,9 +659,6 @@ class ProdutoViewSet(viewsets.ModelViewSet):
     def relatorio(self, request, uuid=None):
         return relatorio_produto_homologacao(request, produto=self.get_object())
 
-
-# ------------
-
     @action(detail=False,
             methods=['GET'],
             permission_classes=(AllowAny,),
@@ -669,25 +666,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
     def relatorio_marcas_por_produto(self, request):
         return relatorio_marcas_por_produto_homologacao(request)
 
-    # USAR COMO BASE
-    # @action(detail=False,
-    #         methods=['GET'],
-    #         url_path='relatorio-reclamacao')
-    # def relatorio_reclamacao(self, request):
-    #     filtro_reclamacao, filtro_homologacao = filtros_produto_reclamacoes(
-    #         request)
-    #     queryset = self.filter_queryset(
-    #         self.get_queryset()).filter(**filtro_homologacao).prefetch_related(
-    #             Prefetch('homologacoes__reclamacoes', queryset=ReclamacaoDeProduto.objects.filter(
-    #                 **filtro_reclamacao))).order_by(
-    #                     'nome').distinct()
-    #     filtros = self.request.query_params.dict()
-    #     return relatorio_reclamacao(queryset, filtros)
-
     # aqui
-
-
-# ------------
 
     @action(detail=True, url_path=constants.RELATORIO_ANALISE,
             methods=['get'], permission_classes=(IsAuthenticated,))
@@ -754,6 +733,31 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         dados_agrupados = agrupa_por_terceirizada(queryset)
 
         return Response(self.serializa_agrupamento(dados_agrupados))
+
+    @action(detail=False,
+            methods=['POST'],
+            url_path='filtro-por-parametros-agrupado-nome-marcas')
+    def filtro_por_parametros_agrupado_nome_marcas(self, request):
+        form = ProdutoPorParametrosForm(request.data)
+
+        if not form.is_valid():
+            return Response(form.errors)
+
+        form_data = form.cleaned_data.copy()
+        form_data['status'] = [
+            HomologacaoProdutoWorkflow.CODAE_HOMOLOGADO,
+            HomologacaoProdutoWorkflow.ESCOLA_OU_NUTRICIONISTA_RECLAMOU
+        ]
+
+        queryset = self.get_queryset_filtrado(form_data)
+        queryset.order_by('criado_por')
+
+        produtos = queryset.values_list('nome', 'marca__nome').order_by('nome', 'marca__nome')
+        produtos_e_marcas = {}
+        for key, value in produtos:
+            produtos_e_marcas[key] = produtos_e_marcas.get(key, [])  # caso a chave não exista, criar a lista vazia
+            produtos_e_marcas[key].append(value)
+        return Response(produtos_e_marcas)
 
     @action(detail=False,
             methods=['GET'],
