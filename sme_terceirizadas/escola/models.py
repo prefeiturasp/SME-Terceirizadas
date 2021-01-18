@@ -306,11 +306,13 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
         unique=True,
         validators=[MinLengthValidator(6)]
     )
-    codigo_codae = models.CharField(
+    codigo_codae = models.CharField( # noqa DJ01
         'Código CODAE',
+        unique=True,
         max_length=10,
         blank=True,
-        default=''
+        null=True,
+        default=None
     )
     diretoria_regional = models.ForeignKey(
         DiretoriaRegional,
