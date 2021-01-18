@@ -664,9 +664,15 @@ class ProdutoViewSet(viewsets.ModelViewSet):
             permission_classes=(AllowAny,),
             url_path='marcas-por-produto')
     def relatorio_marcas_por_produto(self, request):
+        form = ProdutoPorParametrosForm(request.GET)
+
+        if not form.is_valid():
+            return Response(form.errors)
+
         return relatorio_marcas_por_produto_homologacao(
             request,
-            produtos=self.get_queryset_filtrado_agrupado(request)
+            produtos=self.get_queryset_filtrado_agrupado(request, form),
+            filtros=form.cleaned_data
         )
 
     @action(detail=True, url_path=constants.RELATORIO_ANALISE,
@@ -734,12 +740,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
 
         return Response(self.serializa_agrupamento(dados_agrupados))
 
-    def get_queryset_filtrado_agrupado(self, request):
-        form = ProdutoPorParametrosForm(request.data)
-
-        if not form.is_valid():
-            return Response(form.errors)
-
+    def get_queryset_filtrado_agrupado(self, request, form):
         form_data = form.cleaned_data.copy()
         form_data['status'] = [
             HomologacaoProdutoWorkflow.CODAE_HOMOLOGADO,
@@ -760,7 +761,12 @@ class ProdutoViewSet(viewsets.ModelViewSet):
             methods=['POST'],
             url_path='filtro-por-parametros-agrupado-nome-marcas')
     def filtro_por_parametros_agrupado_nome_marcas(self, request):
-        produtos_e_marcas = self.get_queryset_filtrado_agrupado(request)
+        form = ProdutoPorParametrosForm(request.data)
+
+        if not form.is_valid():
+            return Response(form.errors)
+
+        produtos_e_marcas = self.get_queryset_filtrado_agrupado(request, form)
         return Response(produtos_e_marcas)
 
     @action(detail=False,
@@ -782,8 +788,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
 
         dados_agrupados = agrupa_por_terceirizada(queryset)
 
-        return relatorio_produtos_agrupado_terceirizada(
-            request, dados_agrupados, form_data)
+        return relatorio_produtos_agrupado_terceirizada(request, dados_agrupados, form_data)
 
     @action(detail=False,
             methods=['GET'],

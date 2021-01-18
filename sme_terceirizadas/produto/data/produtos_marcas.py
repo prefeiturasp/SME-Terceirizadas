@@ -87,7 +87,7 @@ data_produtos_marcas = [
     ('ARROZ POLIDO LONGO FINO TIPO 1', '5 Estrelas'),
     ('ARROZ POLIDO LONGO FINO TIPO 1', 'Coração Brasileiro'),
     ('ARROZ POLIDO LONGO FINO TIPO 1', 'Coradini'),
-    ('ARROZ POLIDO LONGO FINO TIPO 1', 'D\'mais'),
+    ('ARROZ POLIDO LONGO FINO TIPO 1', "D\'mais"),
     ('ARROZ POLIDO LONGO FINO TIPO 1', 'Dio Santo'),
     ('ARROZ POLIDO LONGO FINO TIPO 1', 'Dona Iza'),
     ('ARROZ POLIDO LONGO FINO TIPO 1', 'Dona Milú'),

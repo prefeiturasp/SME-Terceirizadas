@@ -41,7 +41,6 @@
     <img src="{% static 'images/LOGO_PB_POSITIVO.png' %}" alt=""/>
     <h1>SISTEMA GESTÃO DO PROGRAMA DE ALIMENTAÇÃO ESCOLAR</h1>
   </figure>
-  {% include "tabela_filtros.html" with filtros=filtros %}
 
   <table class="tabela tabela-borda-arredonda fonte">
     <tr>
@@ -49,8 +48,9 @@
     </tr>
     <tr>
       <td style="vertical-align: middle; width: 30%">Data: {{ hoje|date:"d/m/Y" }}</td>
-      <td style="vertical-align: middle; width: 40%">Nome: Todos</td>
-      <td style="vertical-align: middle; width: 30%">Marca: Todos</td>
+      <td style="vertical-align: middle; width: 40%">Nome: {% if filtros.nome_produto %}{{ filtros.nome_produto }} {% else %} Todos{% endif %}</td>
+
+      <td style="vertical-align: middle; width: 30%">Marca: {% if filtros.nome_marca %}{{ filtros.nome_marca }} {% else %} Todos{% endif %}</td>
     </tr>
   </table>
 </header>

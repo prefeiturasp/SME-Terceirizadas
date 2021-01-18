@@ -51,7 +51,7 @@ data_marcas = [
     'Cri Alimentos',
     'Crialimentos',
     'Célia',
-    'D\'mais',
+    "D'mais",
     'Da Barra',
     'Dacoli',
     'Dallas',

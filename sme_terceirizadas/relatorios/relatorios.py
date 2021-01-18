@@ -1,7 +1,6 @@
 import datetime
 
 from django.template.loader import render_to_string
-from django.http import HttpResponse
 
 from ..dados_comuns.fluxo_status import ReclamacaoProdutoWorkflow
 from ..dados_comuns.models import LogSolicitacoesUsuario
@@ -17,7 +16,6 @@ from .utils import (
     get_ultima_justificativa_analise_sensorial,
     get_width
 )
-from sme_terceirizadas.produto.models import Produto
 
 
 def relatorio_filtro_periodo(request, query_set_consolidado, escola_nome='', dre_nome=''):
@@ -302,10 +300,14 @@ def relatorio_produto_homologacao(request, produto):
     return html_to_pdf_response(html_string, f'produto_homologacao_{produto.id_externo}.pdf')
 
 
-def relatorio_marcas_por_produto_homologacao(request, produtos):
+def relatorio_marcas_por_produto_homologacao(request, produtos, filtros):
     html_string = render_to_string(
         'homologacao_marcas_por_produto.html',
-        {'produtos': produtos}
+        {
+            'produtos': produtos,
+            'hoje': datetime.date.today(),
+            'filtros': filtros
+        }
     )
     return html_to_pdf_response(html_string, f'relatorio_marcas_por_produto_homologacao.pdf')
 

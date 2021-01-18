@@ -1,6 +1,5 @@
 from django.conf import settings
 from django.core.management.base import BaseCommand
-from utility.carga_dados.helper import progressbar
 from utility.carga_dados.produto.importa_dados import cria_marca2, cria_produto_marca
 
 
