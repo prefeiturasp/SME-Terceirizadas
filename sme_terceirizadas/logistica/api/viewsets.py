@@ -30,7 +30,7 @@ from sme_terceirizadas.logistica.models import SolicitacaoRemessa
 
 from ...dados_comuns.constants import ADMINISTRADOR_DISTRIBUIDORA
 from ..utils import RequisicaoPagination
-from .serializers.filters import GuiaFilter, SolicitacaoFilter
+from .filters import GuiaFilter, SolicitacaoFilter
 
 STR_XML_BODY = '{http://schemas.xmlsoap.org/soap/envelope/}Body'
 STR_ARQUIVO_SOLICITACAO = 'ArqSolicitacaoMOD'

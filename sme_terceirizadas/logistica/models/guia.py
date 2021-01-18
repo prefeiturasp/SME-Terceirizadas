@@ -42,7 +42,7 @@ class Guia(ModeloBase):
         (STATUS_CANCELADA, STATUS_NOMES[STATUS_CANCELADA]),
     )
 
-    numero_guia = models.CharField('Número da guia', blank=True, max_length=100)
+    numero_guia = models.CharField('Número da guia', blank=True, max_length=100, unique=True)
     solicitacao = models.ForeignKey(
         SolicitacaoRemessa, on_delete=models.CASCADE, blank=True, null=True, related_name='guias')
     data_entrega = models.DateField('Data da entrega')

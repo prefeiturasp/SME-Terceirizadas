@@ -985,6 +985,14 @@ class ProdutoViewSet(viewsets.ModelViewSet):
             'produto_existe': queryset.count() > 0
         })
 
+    @action(detail=False, methods=['GET'], url_path='autocomplete-nomes')
+    def autocomplete_nomes(self, request):
+        queryset = self.filter_queryset(self.get_queryset())
+        return Response({
+            'count': queryset.count(),
+            'results': [value[0] for value in queryset.values_list('nome')]
+        })
+
 
 class NomeDeProdutoEditalViewSet(viewsets.ModelViewSet):
     serializer_class = NomeDeProdutoEditalSerializer

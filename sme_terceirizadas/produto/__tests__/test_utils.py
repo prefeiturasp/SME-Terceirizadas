@@ -25,9 +25,9 @@ def test_cria_filtro_produto_por_parametros_form_vazio():
 
 def test_cria_filtro_produto_por_parametros_form_parametros():
     parametros = {
-        'nome_fabricante': 'fabricante__nome__icontains',
-        'nome_marca': 'marca__nome__icontains',
-        'nome_produto': 'nome__icontains',
+        'nome_fabricante': 'fabricante__nome__unaccent__icontains',
+        'nome_marca': 'marca__nome__unaccent__icontains',
+        'nome_produto': 'nome__unaccent__icontains',
         'nome_terceirizada': 'homologacoes__rastro_terceirizada__nome_fantasia__icontains',
         'data_inicial': 'homologacoes__criado_em__gte',
         'status': 'homologacoes__status__in',

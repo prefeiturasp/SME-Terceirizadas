@@ -89,14 +89,14 @@ def alteracoes_de_cardapio_por_escola_periodo_escolar_e_data(escola_periodo_esco
 
 
 def matriculados_convencional_em_uma_data(escola_periodo, data):
-    log = LogAlteracaoQuantidadeAlunosPorEscolaEPeriodoEscolar.objects.filter(
+    log_posterior = LogAlteracaoQuantidadeAlunosPorEscolaEPeriodoEscolar.objects.filter(
         escola=escola_periodo.escola,
         periodo_escolar=escola_periodo.periodo_escolar,
-        criado_em__date__lte=data
-    ).order_by('-criado_em').first()
+        criado_em__date__gt=data
+    ).order_by('criado_em').first()
 
-    if log:
-        return log.quantidade_alunos_para
+    if log_posterior:
+        return log_posterior.quantidade_alunos_de
     else:
         return escola_periodo.quantidade_alunos
 
