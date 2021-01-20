@@ -19,6 +19,7 @@ from ...dados_comuns.permissions import PermissaoParaReclamarDeProduto, UsuarioC
 from ...dados_comuns.utils import url_configs
 from ...dieta_especial.models import Alimento
 from ...relatorios.relatorios import (
+    relatorio_marcas_por_produto_homologacao,
     relatorio_produto_analise_sensorial,
     relatorio_produto_analise_sensorial_recebimento,
     relatorio_produto_homologacao,
@@ -678,6 +679,22 @@ class ProdutoViewSet(viewsets.ModelViewSet):
     def relatorio(self, request, uuid=None):
         return relatorio_produto_homologacao(request, produto=self.get_object())
 
+    @action(detail=False,
+            methods=['GET'],
+            permission_classes=(AllowAny,),
+            url_path='marcas-por-produto')
+    def relatorio_marcas_por_produto(self, request):
+        form = ProdutoPorParametrosForm(request.GET)
+
+        if not form.is_valid():
+            return Response(form.errors)
+
+        return relatorio_marcas_por_produto_homologacao(
+            request,
+            produtos=self.get_queryset_filtrado_agrupado(request, form),
+            filtros=form.cleaned_data
+        )
+
     @action(detail=True, url_path=constants.RELATORIO_ANALISE,
             methods=['get'], permission_classes=(IsAuthenticated,))
     def relatorio_analise_sensorial(self, request, uuid=None):
@@ -689,8 +706,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         return relatorio_produto_analise_sensorial_recebimento(request, produto=self.get_object())
 
     def get_queryset_filtrado(self, cleaned_data):
-        campos_a_pesquisar = cria_filtro_produto_por_parametros_form(
-            cleaned_data)
+        campos_a_pesquisar = cria_filtro_produto_por_parametros_form(cleaned_data)
         if 'aditivos' in cleaned_data:
             filtro_aditivos = cria_filtro_aditivos(cleaned_data['aditivos'])
             return self.get_queryset().filter(**campos_a_pesquisar).filter(filtro_aditivos)
@@ -744,6 +760,35 @@ class ProdutoViewSet(viewsets.ModelViewSet):
 
         return Response(self.serializa_agrupamento(dados_agrupados))
 
+    def get_queryset_filtrado_agrupado(self, request, form):
+        form_data = form.cleaned_data.copy()
+        form_data['status'] = [
+            HomologacaoProdutoWorkflow.CODAE_HOMOLOGADO,
+            HomologacaoProdutoWorkflow.ESCOLA_OU_NUTRICIONISTA_RECLAMOU
+        ]
+
+        queryset = self.get_queryset_filtrado(form_data)
+        queryset.order_by('criado_por')
+
+        produtos = queryset.values_list('nome', 'marca__nome').order_by('nome', 'marca__nome')
+        produtos_e_marcas = {}
+        for key, value in produtos:
+            produtos_e_marcas[key] = produtos_e_marcas.get(key, [])  # caso a chave não exista, criar a lista vazia
+            produtos_e_marcas[key].append(value)
+        return produtos_e_marcas
+
+    @action(detail=False,
+            methods=['POST'],
+            url_path='filtro-por-parametros-agrupado-nome-marcas')
+    def filtro_por_parametros_agrupado_nome_marcas(self, request):
+        form = ProdutoPorParametrosForm(request.data)
+
+        if not form.is_valid():
+            return Response(form.errors)
+
+        produtos_e_marcas = self.get_queryset_filtrado_agrupado(request, form)
+        return Response(produtos_e_marcas)
+
     @action(detail=False,
             methods=['GET'],
             url_path='relatorio-por-parametros-agrupado-terceirizada')
@@ -763,8 +808,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
 
         dados_agrupados = agrupa_por_terceirizada(queryset)
 
-        return relatorio_produtos_agrupado_terceirizada(
-            request, dados_agrupados, form_data)
+        return relatorio_produtos_agrupado_terceirizada(request, dados_agrupados, form_data)
 
     @action(detail=False,
             methods=['GET'],
