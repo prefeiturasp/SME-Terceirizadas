@@ -41,6 +41,7 @@ from utility.carga_dados.produto.importa_dados import (
     cria_informacao_nutricional,
     cria_marca,
     cria_produto,
+    cria_produto_marca,
     cria_tipo_informacao_nutricional
 )
 from utility.carga_dados.terceirizada.importa_dados import (
@@ -132,4 +133,5 @@ class Command(BaseCommand):
             cria_marca()
             cria_fabricante()
             cria_produto()
+            cria_produto_marca()
             adiciona_contato_em_terceirizada()

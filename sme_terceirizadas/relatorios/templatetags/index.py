@@ -81,6 +81,11 @@ def concatena_str(query_set):
 
 
 @register.filter
+def concatena_string(lista):
+    return ', '.join([p for p in lista])
+
+
+@register.filter
 def concatena_label(query_set):
     label = ''
     for item in query_set:
