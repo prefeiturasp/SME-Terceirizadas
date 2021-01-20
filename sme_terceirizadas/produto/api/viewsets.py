@@ -1020,7 +1020,7 @@ class FabricanteViewSet(viewsets.ModelViewSet, ListaNomesUnicos):
         query_set = Fabricante.objects.filter(
             produto__ativo=True,
             produto__homologacoes__status__in=NOVA_RECLAMACAO_HOMOLOGACOES_STATUS
-        ).distinct()
+        ).distinct('nome')
         response = {'results': FabricanteSimplesSerializer(query_set, many=True).data}
         return Response(response)
 
@@ -1070,7 +1070,7 @@ class MarcaViewSet(viewsets.ModelViewSet, ListaNomesUnicos):
         query_set = Marca.objects.filter(
             produto__ativo=True,
             produto__homologacoes__status__in=NOVA_RECLAMACAO_HOMOLOGACOES_STATUS
-        ).distinct()
+        ).distinct('nome')
         response = {'results': MarcaSimplesSerializer(query_set, many=True).data}
         return Response(response)
 
