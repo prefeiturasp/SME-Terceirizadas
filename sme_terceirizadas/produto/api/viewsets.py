@@ -93,6 +93,17 @@ from .serializers.serializers_create import (
 )
 
 
+class ListaNomesUnicos():
+    @action(detail=False, methods=['GET'], url_path='lista-nomes-unicos')
+    def lista_nomes_unicos(self, request):
+        query_set = self.filter_queryset(self.get_queryset()).values('nome').distinct()
+        nomes_unicos = [i['nome'] for i in query_set]
+        return Response({
+            'results': nomes_unicos,
+            'count': len(nomes_unicos)
+        })
+
+
 class InformacaoNutricionalBaseViewSet(viewsets.ReadOnlyModelViewSet):
 
     def possui_tipo_nutricional_na_lista(self, infos_nutricionais, nome):
@@ -563,6 +574,15 @@ class ProdutoViewSet(viewsets.ModelViewSet):
             query_set, many=True).data}
         return Response(response)
 
+    @action(detail=False, methods=['GET'], url_path='lista-nomes-unicos')
+    def lista_nomes_unicos(self, request):
+        query_set = self.filter_queryset(self.get_queryset()).filter(ativo=True).values('nome').distinct()
+        nomes_unicos = [p['nome'] for p in query_set]
+        return Response({
+            'results': nomes_unicos,
+            'count': len(nomes_unicos)
+        })
+
     @action(detail=False, methods=['GET'], url_path='lista-nomes-nova-reclamacao')
     def lista_produtos_nova_reclamacao(self, request):
         query_set = Produto.objects.filter(
@@ -1021,7 +1041,7 @@ class ProtocoloDeDietaEspecialViewSet(viewsets.ModelViewSet):
         return Response(response)
 
 
-class FabricanteViewSet(viewsets.ModelViewSet):
+class FabricanteViewSet(viewsets.ModelViewSet, ListaNomesUnicos):
     lookup_field = 'uuid'
     serializer_class = FabricanteSerializer
     queryset = Fabricante.objects.all()
@@ -1071,7 +1091,7 @@ class FabricanteViewSet(viewsets.ModelViewSet):
         return Response(response)
 
 
-class MarcaViewSet(viewsets.ModelViewSet):
+class MarcaViewSet(viewsets.ModelViewSet, ListaNomesUnicos):
     lookup_field = 'uuid'
     serializer_class = MarcaSerializer
     queryset = Marca.objects.all()
