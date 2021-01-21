@@ -115,3 +115,4 @@ class SolicitacaoDeAlteracaoRequisicaoAdmin(admin.ModelAdmin):
     list_display = ('id_externo', 'motivos')
     search_fields = ('id_externo',)
     list_filter = ('motivo',)
+    readonly_fields = ('id_externo', 'motivo', 'requisicao', 'usuario_solicitante', 'criado_em', 'justificativa',)

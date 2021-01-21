@@ -169,6 +169,7 @@ class AlimentoDaGuiaDaRemessaSimplesSerializer(serializers.ModelSerializer):
 class SolicitacaoDeAlteracaoSerializer(serializers.ModelSerializer):
     motivo = serializers.CharField(source='get_motivo_display')
     id_externo = serializers.SerializerMethodField()
+    requisicao = SolicitacaoRemessaSimplesSerializer(read_only=True, many=False)
 
     def get_id_externo(self, obj):
         return obj.id_externo

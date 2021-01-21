@@ -12,7 +12,10 @@ from sme_terceirizadas.dados_comuns.fluxo_status import SolicitacaoRemessaWorkFl
 from sme_terceirizadas.dados_comuns.models import LogSolicitacoesUsuario
 from sme_terceirizadas.dados_comuns.parser_xml import ListXMLParser
 from sme_terceirizadas.dados_comuns.permissions import UsuarioDilogCodae, UsuarioDistribuidor
-from sme_terceirizadas.logistica.api.serializers.serializer_create import SolicitacaoRemessaCreateSerializer
+from sme_terceirizadas.logistica.api.serializers.serializer_create import (
+    SolicitacaoDeAlteracaoRequisicaoCreateSerializer,
+    SolicitacaoRemessaCreateSerializer
+)
 from sme_terceirizadas.logistica.api.serializers.serializers import (
     AlimentoDaGuiaDaRemessaSerializer,
     AlimentoDaGuiaDaRemessaSimplesSerializer,
@@ -301,7 +304,10 @@ class SolicitacaoDeAlteracaoDeRequisicaoViewset(viewsets.ModelViewSet):
     lookup_field = 'uuid'
     queryset = SolicitacaoDeAlteracaoRequisicao.objects.all()
     serializer_class = SolicitacaoDeAlteracaoSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [UsuarioDistribuidor]
 
     def get_serializer_class(self):
-        return SolicitacaoDeAlteracaoSerializer
+        if self.action in ['retrieve', 'list']:
+            return SolicitacaoDeAlteracaoSerializer
+        else:
+            return SolicitacaoDeAlteracaoRequisicaoCreateSerializer

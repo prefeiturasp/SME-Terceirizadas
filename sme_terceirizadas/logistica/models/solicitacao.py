@@ -74,5 +74,12 @@ class SolicitacaoDeAlteracaoRequisicao(ModeloBase, TemIdentificadorExternoAmigav
     requisicao = models.ForeignKey(SolicitacaoRemessa, on_delete=models.CASCADE,
                                    related_name='solicitacoes_de_alteracao')
     motivo = MultiSelectField(choices=MOTIVO_CHOICES)
-    justificativa = models.TextField('Justificativa', blank=False)
+    justificativa = models.TextField('Justificativa', blank=True)
     usuario_solicitante = models.ForeignKey('perfil.Usuario', on_delete=models.DO_NOTHING)
+
+    def __str__(self):
+        return f'Solicitação de alteração: {self.id_externo}'
+
+    class Meta:
+        verbose_name = 'Solicitação de Alteração de Requisição'
+        verbose_name_plural = 'Solicitações de Alteração de Requisição'
