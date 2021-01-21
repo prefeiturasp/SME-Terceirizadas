@@ -171,6 +171,9 @@ def cria_produto_marca():
     for item in progressbar(data_produtos_marcas, 'Produto/Marca'):
         marca = Marca.objects.filter(nome=item[1]).first()
         fabricante = Fabricante.objects.filter(nome__startswith=item[1]).first()
+        fabricantes = Fabricante.objects.all()
+        if not fabricante:
+            fabricante = choice(fabricantes)
 
         componentes = fake.sentence(nb_words=5)
         aditivos = fake.sentence(nb_words=10)
