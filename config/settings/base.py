@@ -93,7 +93,8 @@ THIRD_PARTY_APPS = [
     'django_xworkflows',
     'simple_email_confirmation',
     'sass_processor',
-    'sequences.apps.SequencesConfig'
+    'sequences.apps.SequencesConfig',
+    'multiselectfield'
 ]
 LOCAL_APPS = [
     'sme_terceirizadas.perfil.apps.PerfilConfig',

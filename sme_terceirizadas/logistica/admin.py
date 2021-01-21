@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Alimento, Embalagem, Guia, SolicitacaoRemessa, TipoEmbalagem
+from .models import Alimento, Embalagem, Guia, SolicitacaoDeAlteracaoRequisicao, SolicitacaoRemessa, TipoEmbalagem
 from .services import inativa_tipos_de_embabalagem
 
 
@@ -105,3 +105,13 @@ class EmbalagemAdmin(admin.ModelAdmin):
     ordering = ('-alterado_em',)
     get_alimento.short_description = 'Nome do Alimento'
     get_guia.short_description = 'Número da Guia'
+
+
+@admin.register(SolicitacaoDeAlteracaoRequisicao)
+class SolicitacaoDeAlteracaoRequisicaoAdmin(admin.ModelAdmin):
+    def motivos(self, obj):
+        return obj.get_motivo_display()
+
+    list_display = ('numero_alteracao', 'motivos')
+    search_fields = ('numero_alteracao',)
+    list_filter = ('motivo',)
