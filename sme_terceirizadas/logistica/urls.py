@@ -14,6 +14,8 @@ router.register('solicitacao-remessa-cancelamento', viewsets.SolicitacaoCancelam
                 basename='solicitacao-remessa-cancelamento')
 router.register('guias-da-requisicao', viewsets.GuiaDaRequisicaoModelViewSet, basename='guias-da-requisicao')
 router.register('alimentos-da-guia', viewsets.AlimentoDaGuiaModelViewSet, basename='alimentos-da-guia')
+router.register('solicitacao-de-alteracao-de-requisicao', viewsets.SolicitacaoDeAlteracaoDeRequisicaoViewset,
+                basename='solicitacao-de-alteracao-de-requisicao')
 
 urlpatterns = [
     path('', include(router.urls)),

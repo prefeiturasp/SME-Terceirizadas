@@ -19,6 +19,7 @@ from sme_terceirizadas.logistica.api.serializers.serializers import (
     GuiaDaRemessaSerializer,
     GuiaDaRemessaSimplesSerializer,
     InfoUnidadesSimplesDaGuiaSerializer,
+    SolicitacaoDeAlteracaoSerializer,
     SolicitacaoRemessaLookUpSerializer,
     SolicitacaoRemessaSerializer,
     SolicitacaoRemessaSimplesSerializer,
@@ -26,7 +27,7 @@ from sme_terceirizadas.logistica.api.serializers.serializers import (
 )
 from sme_terceirizadas.logistica.models import Alimento
 from sme_terceirizadas.logistica.models import Guia as GuiasDasRequisicoes
-from sme_terceirizadas.logistica.models import SolicitacaoRemessa
+from sme_terceirizadas.logistica.models import SolicitacaoDeAlteracaoRequisicao, SolicitacaoRemessa
 
 from ...dados_comuns.constants import ADMINISTRADOR_DISTRIBUIDORA
 from ..utils import RequisicaoPagination
@@ -294,3 +295,13 @@ class AlimentoDaGuiaModelViewSet(viewsets.ModelViewSet):
     def lista_nomes(self, request):
         response = {'results': AlimentoDaGuiaDaRemessaSimplesSerializer(self.get_queryset(), many=True).data}
         return Response(response)
+
+
+class SolicitacaoDeAlteracaoDeRequisicaoViewset(viewsets.ModelViewSet):
+    lookup_field = 'uuid'
+    queryset = SolicitacaoDeAlteracaoRequisicao.objects.all()
+    serializer_class = SolicitacaoDeAlteracaoSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_serializer_class(self):
+        return SolicitacaoDeAlteracaoSerializer
