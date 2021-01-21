@@ -76,9 +76,3 @@ class SolicitacaoDeAlteracaoRequisicao(ModeloBase, TemIdentificadorExternoAmigav
     motivo = MultiSelectField(choices=MOTIVO_CHOICES)
     justificativa = models.TextField('Justificativa', blank=False)
     usuario_solicitante = models.ForeignKey('perfil.Usuario', on_delete=models.DO_NOTHING)
-    data = models.DateField(auto_now=False, auto_now_add=False)
-    hora = models.TimeField(auto_now=False, auto_now_add=False)
-
-    @property
-    def numero_alteracao(self):
-        return f'{self.uuid.urn[9:17].upper()}'
