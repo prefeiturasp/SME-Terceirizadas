@@ -9,6 +9,8 @@ from sme_terceirizadas.produto.data.informacao_nutricional import data_informaca
 from sme_terceirizadas.produto.data.protocolo_de_dieta_especial import data_protocolo_de_dieta_especial  # noqa
 from sme_terceirizadas.produto.data.tipo_informacao_nutricional import data_tipo_informacao_nutricional  # noqa
 from sme_terceirizadas.produto.data.produtos import data_produtos
+from sme_terceirizadas.produto.data.produtos_marcas import data_produtos_marcas
+from sme_terceirizadas.produto.data.marcas import data_marcas
 from sme_terceirizadas.produto.models import (
     Fabricante,
     HomologacaoDoProduto,
@@ -72,27 +74,39 @@ def cria_marca():
     Produto.objects.all().delete()
     Marca.objects.all().delete()
     # Cria marcas novas.
-    for _ in progressbar(range(20), 'Marca'):
-        nome = faker.company().split()[0].replace(',', '').split('-')[0]
+    for item in progressbar(data_marcas, 'Marca'):
+        nome = item
         Marca.objects.create(nome=nome)
+
+
+def cria_marca2():
+    # Cria marcas novas.
+    for item in progressbar(data_marcas, 'Marca'):
+        nome = item
+        Marca.objects.get_or_create(nome=nome)
 
 
 def cria_fabricante():
     Fabricante.objects.all().delete()
-    for _ in progressbar(range(20), 'Fabricante'):
-        nome = fake.company()
+    for item in progressbar(data_marcas, 'Fabricante'):
+        sufixo = choice(['Ltda', 'S.A.', 'M.E.'])
+        nome = f'{item} {sufixo}'
         Fabricante.objects.create(nome=nome)
 
 
-def cria_homologacao_do_produto_passo_01(produto):
+def cria_homologacao_do_produto_passo_01(produto, codae_homologa=False):
     criado_por = Usuario.objects.get(email='terceirizada@admin.com')
     # Se não colocar o 'rastro_terceirizada'
     # ele não mostra os produtos no dashboard.
     rastro_terceirizada = criado_por.vinculo_atual.instituicao
+    if codae_homologa:
+        status = 'CODAE_HOMOLOGADO'
+    else:
+        status = 'CODAE_PENDENTE_HOMOLOGACAO'
     homologacao_do_produto = HomologacaoDoProduto.objects.create(
         criado_por=criado_por,
         produto=produto,
-        status='CODAE_PENDENTE_HOMOLOGACAO',
+        status=status,
         rastro_terceirizada=rastro_terceirizada
     )
 
@@ -114,6 +128,7 @@ def cria_homologacao_do_produto_passo_01(produto):
 
 
 def cria_produto():
+    criado_por = Usuario.objects.get(email='terceirizada@admin.com')
     for item in progressbar(data_produtos, 'Produto'):
         marcas = Marca.objects.all()
         marca = choice([item for item in marcas])
@@ -136,6 +151,7 @@ def cria_produto():
             nome=item,
             marca=marca,
             fabricante=fabricante,
+            criado_por=criado_por,
             componentes=componentes,
             aditivos=aditivos,
             tipo=tipo,
@@ -147,7 +163,47 @@ def cria_produto():
             porcao=porcao,
             unidade_caseira=unidade_caseira,
         )
-        cria_homologacao_do_produto_passo_01(produto)
+        cria_homologacao_do_produto_passo_01(produto, codae_homologa=False)
+
+
+def cria_produto_marca():
+    criado_por = Usuario.objects.get(email='terceirizada@admin.com')
+    for item in progressbar(data_produtos_marcas, 'Produto/Marca'):
+        marca = Marca.objects.filter(nome=item[1]).first()
+        fabricante = Fabricante.objects.filter(nome__startswith=item[1]).first()
+        fabricantes = Fabricante.objects.all()
+        if not fabricante:
+            fabricante = choice(fabricantes)
+
+        componentes = fake.sentence(nb_words=5)
+        aditivos = fake.sentence(nb_words=10)
+        tipo = fake.word()
+        embalagem = fake.word()
+        prazo_validade = faker.date_this_year()
+        info_armazenamento = fake.sentence(nb_words=5)
+        outras_informacoes = fake.sentence(nb_words=10)
+        numero_registro = faker.bothify(letters='ABCDEFGHIJ')
+        porcao = str(randint(50, 300)) + str(choice([' g', ' ml']))
+        unidade_caseira = str(round(randint(1, 5) * random(), 2)).replace('.', ',') + ' unidade'  # noqa
+
+        if not Produto.objects.filter(nome=item[0], marca=marca).first():
+            produto = Produto.objects.create(
+                nome=item[0],
+                marca=marca,
+                fabricante=fabricante,
+                componentes=componentes,
+                criado_por=criado_por,
+                aditivos=aditivos,
+                tipo=tipo,
+                embalagem=embalagem,
+                prazo_validade=prazo_validade,
+                info_armazenamento=info_armazenamento,
+                outras_informacoes=outras_informacoes,
+                numero_registro=numero_registro,
+                porcao=porcao,
+                unidade_caseira=unidade_caseira,
+            )
+            cria_homologacao_do_produto_passo_01(produto, codae_homologa=True)
 
 
 def cria_homologacao_do_produto():
