@@ -26,7 +26,7 @@ class AlimentoLookUpSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Alimento
-        fields = ('uuid', 'nome_alimento', 'qtd_volume', 'embalagem', 'embalagens')
+        fields = ('uuid', 'nome_alimento', 'embalagens')
 
 
 class GuiaSerializer(serializers.ModelSerializer):
