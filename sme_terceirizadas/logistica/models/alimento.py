@@ -37,8 +37,6 @@ class Alimento(ModeloBase):
     codigo_suprimento = models.CharField('Código suprimento', blank=True, max_length=100)
     codigo_papa = models.CharField('Código papa', blank=True, max_length=10)
     nome_alimento = models.CharField('Nome do alimento/produto', blank=True, max_length=100)
-    embalagem = models.CharField('Embalagem', blank=True, max_length=100)
-    qtd_volume = models.PositiveSmallIntegerField('Quantidade/Volume', blank=True)
 
     objects = AlimentoManager()
 
@@ -88,3 +86,4 @@ class Embalagem(ModeloBase):
     class Meta:
         verbose_name = 'Embalagem'
         verbose_name_plural = 'Embalagens'
+        ordering = ['criado_em', 'tipo_embalagem']

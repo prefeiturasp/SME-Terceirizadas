@@ -27,8 +27,6 @@ class Alimento(ComplexModel):
             'codigo_suprimento': data.get('StrCodSup'),
             'codigo_papa': data.get('StrCodPapa'),
             'nome_alimento': data.get('StrNomAli'),
-            'embalagem': data.get('StrEmbala'),
-            'qtd_volume': data.get('IntQtdVol'),
             'guia': data.get('guia')
         }
         return AlimentoModel(**alimento_dict)
