@@ -63,20 +63,24 @@
           <td>{{ solicitacao.registro_funcional_pescritor }}</td>
         </tr>
       </table>
-      <hr />
-       <table>
-        <tr>
-          <th class="w-50">
-            Período de Vigência<br/>
-            Data de início
-          </th>
-          <th class="w-50"><br/> Data de término</th>
-        </tr>
-        <tr>
-          <td>{{ solicitacao.data_inicio|date:"SHORT_DATE_FORMAT"|default:'Sem data de início' }}</td>
-          <td>{{ solicitacao.data_termino|date:"SHORT_DATE_FORMAT"|default:'Sem data de término' }}</td>
-        </tr>
-      </table>
+
+      {% if solicitacao.status != 'CODAE_A_AUTORIZAR' %}
+        <hr />
+         <table>
+          <tr>
+            <th class="w-50">
+              Período de Vigência<br/>
+              Data de início
+            </th>
+            <th class="w-50"><br/> Data de término</th>
+          </tr>
+          <tr>
+            <td>{{ solicitacao.data_inicio|date:"SHORT_DATE_FORMAT"|default:'Sem data de início' }}</td>
+            <td>{{ solicitacao.data_termino|date:"SHORT_DATE_FORMAT"|default:'Sem data de término' }}</td>
+          </tr>
+        </table>
+      {% endif %}
+
       <hr />
       {% if solicitacao.observacoes %}
           <h5>Observações</h5>
@@ -84,6 +88,7 @@
           </hr>
       {% endif %}
 
+    {% if solicitacao.status != 'CODAE_A_AUTORIZAR' %}
       <table>
         <tr>
           <th class="w-50">Motivo da alteração</th>
@@ -95,6 +100,8 @@
         </tr>
       </table>
       <hr/>
+    {% endif %}
+
     </div>
     <div class="bloco-relacao-por-diagnostico">
         {% if solicitacao.alergias_intolerancias.exists %}
@@ -122,46 +129,51 @@
         {% endif %}
     </div>
     {% if solicitacao.escola.tipo_gestao.nome == 'MISTA' or solicitacao.escola.tipo_gestao.nome == 'PARCEIRA' or solicitacao.escola.tipo_gestao.nome == 'DIRETA' %}
-    <div class="bloco-identificacao-nutri tabela-sem-borda">
-      <h5>Substituições</h5>
-      <table>
-        <thead>
-          <tr>
-            <th>Alimento</th>
-            <th>Tipo</th>
-            <th>Isenção/Substituição</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for substituicao in solicitacao.substituicoes %}
-            <tr>
-              <td>{{ substituicao.alimento }}</td>
-              <td className="tipo">
-                {% if substituicao.tipo == 'I' %}
-                  Isenção
-                {% elif substituicao.tipo == 'S' %}
-                  Substituição
-                {% endif %}
-              </td>
-              <td>
-                {% if substituicao.substitutos.all %}
-                  {{ substituicao.substitutos.all|join:", " }}
-                {% else %}
-                  {{ substituicao.alimentos_substitutos.all|join:", " }}
-                {% endif %}
-              </td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-      <div class="bloco-identificacao-nutri">
-        <h5>Descrever características do alimento</h5>
-        <div style="border-color: #686868; width: 100%">
-          <p>{{ solicitacao.caracteristicas_do_alimento|safe }}</p>
+      {% if solicitacao.status != 'CODAE_A_AUTORIZAR' %}
+        <div class="bloco-identificacao-nutri tabela-sem-borda">
+          <h5>Substituições</h5>
+          <table>
+            <thead>
+              <tr>
+                <th>Alimento</th>
+                <th>Tipo</th>
+                <th>Isenção/Substituição</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for substituicao in solicitacao.substituicoes %}
+                <tr>
+                  <td>{{ substituicao.alimento }}</td>
+                  <td className="tipo">
+                    {% if substituicao.tipo == 'I' %}
+                      Isenção
+                    {% elif substituicao.tipo == 'S' %}
+                      Substituição
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if substituicao.substitutos.all %}
+                      {{ substituicao.substitutos.all|join:", " }}
+                    {% else %}
+                      {{ substituicao.alimentos_substitutos.all|join:", " }}
+                    {% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
         </div>
-        <p style="color: red">Os Produtos (Alimentos) devem ser adquiridos utilizando a verba PTRF ou outro recurso disponível.</p>
-      </div>
+      {% endif %}
+
+      {% if solicitacao.status != 'CODAE_A_AUTORIZAR' %}
+        <div class="bloco-identificacao-nutri">
+          <h5>Descrever características do alimento</h5>
+          <div style="border-color: #686868; width: 100%">
+            <p>{{ solicitacao.caracteristicas_do_alimento|safe }}</p>
+          </div>
+          <p style="color: red">Os Produtos (Alimentos) devem ser adquiridos utilizando a verba PTRF ou outro recurso disponível.</p>
+        </div>
+      {% endif %}
     {% endif %}
     <div class="bloco-identificacao-nutri">
         {% if solicitacao.registro_funcional_nutricionista %}
