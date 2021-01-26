@@ -279,6 +279,13 @@ def cria_escola(arquivo, legenda):
         Escola.objects.bulk_create(lista_auxiliar)
 
 
+def atualiza_tipo_gestao(codigo_eol_escola):
+    escola = Escola.objects.get(codigo_eol=codigo_eol_escola)
+    tipo_gestao = TipoGestao.objects.get(nome='MISTA')
+    escola.tipo_gestao = tipo_gestao
+    escola.save()
+
+
 def cria_periodo_escolar():
     tipos_alimentacao = TipoAlimentacao.objects.all()
     for item in progressbar(data_periodo_escolar, 'PeriodoEscolar'):

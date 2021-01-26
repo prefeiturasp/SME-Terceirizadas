@@ -7,7 +7,8 @@ from spyne.util.dictdoc import get_object_as_dict
 from ....dados_comuns.fluxo_status import SolicitacaoRemessaWorkFlow
 from ....dados_comuns.models import LogSolicitacoesUsuario
 from ....terceirizada.models import Terceirizada
-from ...models.alimento import Alimento as AlimentoModel, Embalagem, TipoEmbalagem  # noqa I001
+from ...models.alimento import Alimento as AlimentoModel  # noqa I001
+from ...models.alimento import Embalagem, TipoEmbalagem
 from ...models.guia import Guia as GuiaModel
 from ...models.solicitacao import SolicitacaoRemessa
 
@@ -27,8 +28,6 @@ class Alimento(ComplexModel):
             'codigo_suprimento': data.get('StrCodSup'),
             'codigo_papa': data.get('StrCodPapa'),
             'nome_alimento': data.get('StrNomAli'),
-            'embalagem': data.get('StrEmbala'),
-            'qtd_volume': data.get('IntQtdVol'),
             'guia': data.get('guia')
         }
         return AlimentoModel(**alimento_dict)

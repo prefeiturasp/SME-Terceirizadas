@@ -1,4 +1,5 @@
 from django.core.exceptions import ObjectDoesNotExist
+from django.db.models import F, Sum
 from django.db.utils import DataError
 from django_filters import rest_framework as filters
 from rest_framework import viewsets
@@ -28,7 +29,7 @@ from sme_terceirizadas.logistica.api.serializers.serializers import (
     SolicitacaoRemessaSimplesSerializer,
     XmlParserSolicitacaoSerializer
 )
-from sme_terceirizadas.logistica.models import Alimento
+from sme_terceirizadas.logistica.models import Alimento, Embalagem
 from sme_terceirizadas.logistica.models import Guia as GuiasDasRequisicoes
 from sme_terceirizadas.logistica.models import SolicitacaoDeAlteracaoRequisicao, SolicitacaoRemessa
 
@@ -255,6 +256,42 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
             return Response(status=HTTP_200_OK)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, permission_classes=[UsuarioDistribuidor | UsuarioDilogCodae],
+            methods=['get'], url_path='consolidado-alimentos')
+    def consolidado_alimentos(self, request, uuid=None):
+        solicitacao = self.get_queryset().filter(uuid=uuid).first()
+        queryset = Embalagem.objects.filter(alimento__guia__solicitacao=solicitacao)
+
+        if solicitacao is None:
+            return Response('Solicitação inexistente.', status=HTTP_400_BAD_REQUEST)
+
+        response_data = []
+
+        capacidade_total_alimentos = queryset.values(
+            nome_alimento=F('alimento__nome_alimento')
+        ).annotate(
+            peso_total=Sum('capacidade_embalagem')
+        ).order_by()
+
+        capacidade_total_embalagens = queryset.values(
+            'descricao_embalagem',
+            'unidade_medida',
+            nome_alimento=F('alimento__nome_alimento')
+        ).annotate(
+            peso_embalagem=Sum('capacidade_embalagem')
+        ).order_by()
+
+        for data in capacidade_total_alimentos:
+            data['total_embalagens'] = []
+            response_data.append(data)
+
+        for data in capacidade_total_embalagens:
+            nome_alimento = data.pop('nome_alimento')
+            index = next((index for (index, item) in enumerate(response_data) if item['nome_alimento'] == nome_alimento)) # noqa E501
+            response_data[index]['total_embalagens'].append(data)
+
+        return Response(response_data, status=HTTP_200_OK)
 
 
 class GuiaDaRequisicaoModelViewSet(viewsets.ModelViewSet):

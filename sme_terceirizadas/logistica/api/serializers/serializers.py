@@ -3,11 +3,23 @@ from rest_framework import serializers
 from sme_terceirizadas.dados_comuns.api.serializers import LogSolicitacoesSerializer
 from sme_terceirizadas.logistica.models import (
     Alimento,
+    Embalagem,
     Guia,
     SolicitacaoDeAlteracaoRequisicao,
     SolicitacaoRemessa,
     TipoEmbalagem
 )
+
+
+class EmbalagemSerializer(serializers.ModelSerializer):
+    tipo_embalagem = serializers.SerializerMethodField()
+
+    def get_tipo_embalagem(self, obj):
+        return obj.get_tipo_embalagem_display()
+
+    class Meta:
+        model = Embalagem
+        exclude = ('id',)
 
 
 class AlimentoSerializer(serializers.ModelSerializer):
@@ -17,21 +29,15 @@ class AlimentoSerializer(serializers.ModelSerializer):
 
 
 class AlimentoLookUpSerializer(serializers.ModelSerializer):
+    embalagens = EmbalagemSerializer(many=True)
+
     class Meta:
         model = Alimento
-        fields = ('uuid', 'nome_alimento', 'qtd_volume', 'embalagem')
+        fields = ('uuid', 'nome_alimento', 'embalagens')
 
 
 class GuiaSerializer(serializers.ModelSerializer):
-    alimentos = serializers.SerializerMethodField()
-
-    def get_alimentos(self, obj):
-        return AlimentoSerializer(
-            Alimento.objects.filter(
-                guia=obj.id
-            ),
-            many=True
-        ).data
+    alimentos = AlimentoSerializer(many=True)
 
     class Meta:
         model = Guia
@@ -39,19 +45,11 @@ class GuiaSerializer(serializers.ModelSerializer):
 
 
 class GuiaLookUpSerializer(serializers.ModelSerializer):
-    alimentos = serializers.SerializerMethodField()
+    alimentos = AlimentoLookUpSerializer(many=True)
     status = serializers.SerializerMethodField()
 
     def get_status(self, obj):
         return obj.get_status_display()
-
-    def get_alimentos(self, obj):
-        return AlimentoLookUpSerializer(
-            Alimento.objects.filter(
-                guia=obj.id
-            ),
-            many=True
-        ).data
 
     class Meta:
         model = Guia
@@ -72,16 +70,8 @@ class SolicitacaoRemessaSerializer(serializers.ModelSerializer):
 
 class SolicitacaoRemessaLookUpSerializer(serializers.ModelSerializer):
     status = serializers.SerializerMethodField()
-    guias = serializers.SerializerMethodField()
+    guias = GuiaLookUpSerializer(many=True)
     distribuidor_nome = serializers.SerializerMethodField()
-
-    def get_guias(self, obj):
-        return GuiaLookUpSerializer(
-            Guia.objects.filter(
-                solicitacao=obj.id
-            ),
-            many=True
-        ).data
 
     def get_distribuidor_nome(self, obj):
         return obj.distribuidor.razao_social
