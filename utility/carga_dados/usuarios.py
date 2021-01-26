@@ -106,6 +106,14 @@ USUARIOS = [
         'cargo': 'Diretor',
     },
     {
+        'email': 'escolaemef3@admin.com',
+        'password': 'adminadmin',
+        'cpf': '11111111133',
+        'registro_funcional': '0001003',
+        'nome': 'SUPER USUARIO ESCOLA EMEF',
+        'cargo': 'Diretor',
+    },
+    {
         'email': 'escolaemebs@admin.com',
         'password': 'adminadmin',
         'cpf': '11111111112',
