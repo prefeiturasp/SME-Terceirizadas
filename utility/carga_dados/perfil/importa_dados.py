@@ -38,6 +38,7 @@ def cria_vinculos():
         'usuario_escola_cei_ceu': Usuario.objects.get(email='escolaceiceu@admin.com'),
         'usuario_escola_cci': Usuario.objects.get(email='escolacci@admin.com'),
         'usuario_escola_emef': Usuario.objects.get(email='escolaemef@admin.com'),
+        'usuario_escola_emef3': Usuario.objects.get(email='escolaemef3@admin.com'),
         'usuario_escola_emebs': Usuario.objects.get(email='escolaemebs@admin.com'),
         'usuario_escola_cieja': Usuario.objects.get(email='escolacieja@admin.com'),
         'usuario_escola_emei': Usuario.objects.get(email='escolaemei@admin.com'),
@@ -77,6 +78,11 @@ def cria_vinculos():
             'nome': 'EMEF PERICLES EUGENIO DA SILVA RAMOS',
             'perfil': perfil['perfil_diretor_escola'],
             'usuario': usuario['usuario_escola_emef'],
+        },
+        {
+            'nome': 'EMEF PLINIO SALGADO',
+            'perfil': perfil['perfil_diretor_escola'],
+            'usuario': usuario['usuario_escola_emef3'],
         },
         {
             'nome': 'EMEBS HELEN KELLER',

@@ -13,11 +13,13 @@ from utility.carga_dados.dados_comuns.importa_dados import cria_templatemensagem
 from utility.carga_dados.dieta_especial.importa_dados import (
     cria_alergia_intolerancias,
     cria_alimento,
+    cria_alimento_proprio,
     cria_classificacoes_dieta,
     cria_motivo_alteracao_ue,
     cria_motivo_negacao
 )
 from utility.carga_dados.escola.importa_dados import (
+    atualiza_tipo_gestao,
     cria_contatos_escola,
     cria_diretorias_regionais,
     cria_escola,
@@ -26,7 +28,7 @@ from utility.carga_dados.escola.importa_dados import (
     cria_periodo_escolar,
     cria_subprefeituras,
     cria_tipo_unidade_escolar,
-    cria_tipos_gestao
+    cria_tipos_gestao,
 )
 from utility.carga_dados.inclusao_alimentacao.importa_dados import (
     cria_motivo_inclusao_continua,
@@ -122,6 +124,8 @@ class Command(BaseCommand):
         cria_contatos_escola(arquivo)
         cria_escola(arquivo=arquivo, legenda='Escola CEI')
 
+        atualiza_tipo_gestao(codigo_eol_escola='099791')
+
         if settings.DEBUG:
             cria_periodo_escolar()
             cria_escola_com_periodo_escolar()
@@ -135,3 +139,5 @@ class Command(BaseCommand):
             cria_produto()
             cria_produto_marca()
             adiciona_contato_em_terceirizada()
+
+            cria_alimento_proprio()
