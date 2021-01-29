@@ -1,5 +1,6 @@
 from django.core.validators import MinLengthValidator
 from django.db import models
+from multiselectfield import MultiSelectField
 
 from sme_terceirizadas.dados_comuns.behaviors import Logs, TemIdentificadorExternoAmigavel
 from sme_terceirizadas.dados_comuns.fluxo_status import FluxoSolicitacaoRemessa
@@ -47,3 +48,38 @@ class SolicitacaoRemessa(ModeloBase, TemIdentificadorExternoAmigavel, Logs, Flux
     class Meta:
         verbose_name = 'Solicitação Remessa'
         verbose_name_plural = 'Solicitações Remessas'
+
+
+class SolicitacaoDeAlteracaoRequisicao(ModeloBase, TemIdentificadorExternoAmigavel):
+    # Motivo Choice
+    MOTIVO_ALTERAR_DATA_ENTREGA = 'ALTERAR_DATA_ENTREGA'
+    MOTIVO_ALTERAR_QTD_ALIMENTO = 'ALTERAR_QTD_ALIMENTO'
+    MOTIVO_ALTERAR_ALIMENTO = 'ALTERAR_ALIMENTO'
+    MOTIVO_OUTROS = 'OUTROS'
+
+    MOTIVO_NOMES = {
+        MOTIVO_ALTERAR_DATA_ENTREGA: 'Alterar data de entrega',
+        MOTIVO_ALTERAR_QTD_ALIMENTO: 'Alterar quantidade de alimento',
+        MOTIVO_ALTERAR_ALIMENTO: 'Alterar alimento',
+        MOTIVO_OUTROS: 'Outros',
+    }
+
+    MOTIVO_CHOICES = (
+        (MOTIVO_ALTERAR_DATA_ENTREGA, MOTIVO_NOMES[MOTIVO_ALTERAR_DATA_ENTREGA]),
+        (MOTIVO_ALTERAR_QTD_ALIMENTO, MOTIVO_NOMES[MOTIVO_ALTERAR_QTD_ALIMENTO]),
+        (MOTIVO_ALTERAR_ALIMENTO, MOTIVO_NOMES[MOTIVO_ALTERAR_ALIMENTO]),
+        (MOTIVO_OUTROS, MOTIVO_NOMES[MOTIVO_OUTROS]),
+    )
+
+    requisicao = models.ForeignKey(SolicitacaoRemessa, on_delete=models.CASCADE,
+                                   related_name='solicitacoes_de_alteracao')
+    motivo = MultiSelectField(choices=MOTIVO_CHOICES)
+    justificativa = models.TextField('Justificativa', blank=True)
+    usuario_solicitante = models.ForeignKey('perfil.Usuario', on_delete=models.DO_NOTHING)
+
+    def __str__(self):
+        return f'Solicitação de alteração: {self.id_externo}'
+
+    class Meta:
+        verbose_name = 'Solicitação de Alteração de Requisição'
+        verbose_name_plural = 'Solicitações de Alteração de Requisição'
