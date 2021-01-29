@@ -1,7 +1,8 @@
 from django.core.exceptions import ObjectDoesNotExist
-from rest_framework import serializers
+from rest_framework import fields, serializers
+from xworkflows.base import InvalidTransitionError
 
-from sme_terceirizadas.logistica.models import Alimento, Guia, SolicitacaoRemessa
+from sme_terceirizadas.logistica.models import Alimento, Guia, SolicitacaoDeAlteracaoRequisicao, SolicitacaoRemessa
 from sme_terceirizadas.terceirizada.models import Terceirizada
 
 
@@ -62,3 +63,28 @@ class SolicitacaoRemessaCreateSerializer(serializers.Serializer):
             guia_json['solicitacao'] = solicitacao
             GuiaCreateSerializer().create(validated_data=guia_json)
         return solicitacao
+
+
+class SolicitacaoDeAlteracaoRequisicaoCreateSerializer(serializers.ModelSerializer):
+    motivo = fields.MultipleChoiceField(choices=SolicitacaoDeAlteracaoRequisicao.MOTIVO_CHOICES)
+    requisicao = serializers.UUIDField()
+
+    def create(self, validated_data):  # noqa C901
+        user = self.context['request'].user
+        uuid_requisicao = validated_data.pop('requisicao', None)
+        try:
+            requisicao = SolicitacaoRemessa.objects.get(uuid=uuid_requisicao)
+            solicit_alteracao = SolicitacaoDeAlteracaoRequisicao.objects.create(usuario_solicitante=user,
+                                                                                requisicao=requisicao, **validated_data)
+            try:
+                requisicao.solicita_alteracao(user=user, justificativa=validated_data['justificativa'])
+            except InvalidTransitionError as e:
+                raise serializers.ValidationError(f'Erro de transição de estado: {e}')
+        except ObjectDoesNotExist:
+            raise serializers.ValidationError(f'Requisição de remessa não existe.')
+
+        return solicit_alteracao
+
+    class Meta:
+        model = SolicitacaoDeAlteracaoRequisicao
+        exclude = ('id', 'usuario_solicitante')
