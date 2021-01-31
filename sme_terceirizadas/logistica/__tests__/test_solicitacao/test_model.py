@@ -17,7 +17,7 @@ def test_instance_model(solicitacao):
 
 
 def test_srt_model(solicitacao):
-    assert solicitacao.__str__() == 'Solicitação: 559890 - Status: AGUARDANDO_ENVIO'
+    assert solicitacao.__str__() == 'Solicitação: 559890 - Status: Aguardando envio'
 
 
 def test_meta_modelo(solicitacao):

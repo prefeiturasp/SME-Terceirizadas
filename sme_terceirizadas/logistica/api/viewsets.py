@@ -1,5 +1,5 @@
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import F, Sum
+from django.db.models import F, FloatField, Sum
 from django.db.utils import DataError
 from django_filters import rest_framework as filters
 from rest_framework import viewsets
@@ -271,7 +271,7 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
         capacidade_total_alimentos = queryset.values(
             nome_alimento=F('alimento__nome_alimento')
         ).annotate(
-            peso_total=Sum('capacidade_embalagem')
+            peso_total=Sum(F('capacidade_embalagem') * F('qtd_volume'), output_field=FloatField())
         ).order_by()
 
         capacidade_total_embalagens = queryset.values(
@@ -279,7 +279,8 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
             'unidade_medida',
             nome_alimento=F('alimento__nome_alimento')
         ).annotate(
-            peso_embalagem=Sum('capacidade_embalagem')
+            peso_embalagem=Sum(F('capacidade_embalagem') * F('qtd_volume'), output_field=FloatField()),
+            qtd_volume=Sum('qtd_volume')
         ).order_by()
 
         for data in capacidade_total_alimentos:

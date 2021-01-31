@@ -43,7 +43,7 @@ class SolicitacaoRemessa(ModeloBase, TemIdentificadorExternoAmigavel, Logs, Flux
         return log_transicao
 
     def __str__(self):
-        return f'Solicitação: {self.numero_solicitacao} - Status: {self.status}'
+        return f'Solicitação: {self.numero_solicitacao} - Status: {self.get_status_display()}'
 
     class Meta:
         verbose_name = 'Solicitação Remessa'
