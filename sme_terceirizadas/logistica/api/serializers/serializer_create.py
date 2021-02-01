@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import fields, serializers
 from xworkflows.base import InvalidTransitionError
@@ -74,8 +76,16 @@ class SolicitacaoDeAlteracaoRequisicaoCreateSerializer(serializers.ModelSerializ
         uuid_requisicao = validated_data.pop('requisicao', None)
         try:
             requisicao = SolicitacaoRemessa.objects.get(uuid=uuid_requisicao)
-            solicit_alteracao = SolicitacaoDeAlteracaoRequisicao.objects.create(usuario_solicitante=user,
-                                                                                requisicao=requisicao, **validated_data)
+
+            dias_uteis = self.get_diferenca_dias_uteis(requisicao.guias.first().data_entrega)
+
+            if dias_uteis <= 3:
+                raise serializers.ValidationError('Data limite alcançada. Não é mais possível alterar essa requisição.')
+
+            solicit_alteracao = SolicitacaoDeAlteracaoRequisicao.objects.create(
+                usuario_solicitante=user,
+                requisicao=requisicao, **validated_data
+            )
             try:
                 requisicao.solicita_alteracao(user=user, justificativa=validated_data.get('justificativa', ''))
             except InvalidTransitionError as e:
@@ -84,6 +94,17 @@ class SolicitacaoDeAlteracaoRequisicaoCreateSerializer(serializers.ModelSerializ
             raise serializers.ValidationError(f'Requisição de remessa não existe.')
 
         return solicit_alteracao
+
+    def get_diferenca_dias_uteis(self, data_entrega):
+        hoje = datetime.now().date()
+        cal_dias = 1 + ((data_entrega - hoje).days * 5 - (hoje.weekday() - data_entrega.weekday()) * 2) / 7
+
+        if hoje.weekday() == 5:
+            cal_dias = cal_dias - 1
+        if data_entrega.weekday() == 6:
+            cal_dias = cal_dias - 1
+
+        return cal_dias
 
     class Meta:
         model = SolicitacaoDeAlteracaoRequisicao
