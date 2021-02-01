@@ -242,10 +242,14 @@ Pré-requisitos:
 * pipenv
 
 ```
-pipenv install --dev
 pipenv shell
+pyenv local 3.6.10
+pipenv install --dev
 
 python manage.py migrate
+
+# Mude para a branch development
+git checkout -b development origin/development
 
 python manage.py carga_dados
 ```
