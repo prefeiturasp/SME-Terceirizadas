@@ -604,7 +604,7 @@ class SolicitacaoDietaEspecialViewSet(
 
         return Response(serializer.data)
 
-    @action(detail=False, methods=['post'], url_path='alteracao-ue')
+    @action(detail=False, methods=['POST'], url_path='alteracao-ue')
     def alteracao_ue(self, request):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():

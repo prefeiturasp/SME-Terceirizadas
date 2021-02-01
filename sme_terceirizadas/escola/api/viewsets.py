@@ -407,6 +407,14 @@ class AlunoViewSet(RetrieveModelMixin, ListModelMixin, GenericViewSet):
             return self.queryset.select_related('escola__diretoria_regional')
         return self.queryset
 
+    @action(detail=True, methods=['GET'], url_path='aluno-pertence-a-escola/(?P<escola_codigo_eol>[^/.]+)')
+    def aluno_pertence_a_escola(self, request, codigo_eol, escola_codigo_eol):
+        escola = Escola.objects.filter(codigo_eol=escola_codigo_eol).first()
+        aluno = Aluno.objects.filter(codigo_eol=codigo_eol).first()
+
+        resposta = True if aluno and aluno.escola == escola else False
+        return Response({'pertence_a_escola': resposta})
+
 
 class FaixaEtariaViewSet(CreateModelMixin, ListModelMixin, GenericViewSet):
     queryset = FaixaEtaria.objects.filter(ativo=True)
