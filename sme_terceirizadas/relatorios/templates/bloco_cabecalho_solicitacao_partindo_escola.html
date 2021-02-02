@@ -8,8 +8,12 @@
       # {{ solicitacao.id_externo }} <br/> <span>Nº DA SOLICITAÇÃO</span>
     </div>
     <div class="info w-50">
+      {% if solicitacao.tipo_solicitacao == 'ALTERACAO_UE'%}
+        <div>Escola onde será realizado o programa</div>
+      {% else %}
         <div>Solicitante</div>
-        <div>{{ escola.nome }}</div>
+      {% endif %}
+      <div>{{ escola.nome }}</div>
     </div>
     <div class="info w-10">
       <div>Lote</div>
@@ -22,7 +26,7 @@
   </div>
   {% if solicitacao.tipo_solicitacao != 'COMUM'%}
   <div class="row id-pedido">
-      <div class="info w-100">
+      <div class="info w-25">
         <div>Tipo da solicitação</div>
         {% if solicitacao.tipo_solicitacao == 'ALTERACAO_UE'%}
           <div>ALTERAÇÃO DE U.E</div>
@@ -30,6 +34,12 @@
           <div>ALUNOS NÃO MATRICULADOS</div>
         {%endif%}
       </div>
+      {% if solicitacao.tipo_solicitacao == 'ALTERACAO_UE'%}
+        <div class="info w-50" style="padding-left: 0">
+          <div>Dieta Especial de Origem</div>
+            <div>{{ escola_origem.nome }}</div>
+        </div>
+      {%endif%}
   </div>
   {% endif%}
    <hr style="color: #EEEEEE; opacity: 0.3">

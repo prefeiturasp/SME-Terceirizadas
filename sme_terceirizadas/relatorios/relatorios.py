@@ -111,6 +111,7 @@ def relatorio_dieta_especial(request, solicitacao):
         escola = solicitacao.rastro_escola
     else:
         escola = solicitacao.escola_destino
+    escola_origem = solicitacao.rastro_escola
     logs = solicitacao.logs
     if solicitacao.logs.filter(status_evento=LogSolicitacoesUsuario.INICIO_FLUXO_INATIVACAO).exists():
         if solicitacao.logs.filter(status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_TOMOU_CIENCIA).exists():
@@ -123,6 +124,7 @@ def relatorio_dieta_especial(request, solicitacao):
         'solicitacao_dieta_especial.html',
         {
             'escola': escola,
+            'escola_origem': escola_origem,
             'lote': escola.lote,
             'solicitacao': solicitacao,
             'fluxo': fluxo,
