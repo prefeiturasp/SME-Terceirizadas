@@ -14,6 +14,7 @@ from ..dados_comuns.fluxo_status import (
 )
 from ..dados_comuns.models import LogSolicitacoesUsuario
 from ..dieta_especial.models import SolicitacaoDietaEspecial
+from ..escola.models import Escola
 
 
 class SolicitacoesDestaSemanaManager(models.Manager):
@@ -127,6 +128,7 @@ class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmiga
 
     lote_uuid = models.UUIDField(editable=False)
     escola_uuid = models.UUIDField(editable=False)
+    escola_destino_id = models.IntegerField()
     dre_uuid = models.UUIDField(editable=False)
     terceirizada_uuid = models.UUIDField(editable=False)
 
@@ -489,9 +491,10 @@ class SolicitacoesEscola(MoldeConsolidado):
     @classmethod
     def get_autorizados_dieta_especial(cls, **kwargs):
         escola_uuid = kwargs.get('escola_uuid')
+        escola_destino = Escola.objects.get(uuid=escola_uuid)
         return cls.objects.filter(
             Q(em_vigencia=True) | Q(em_vigencia__isnull=True),
-            escola_uuid=escola_uuid,
+            escola_destino_id=escola_destino.id,
             status_atual__in=cls.AUTORIZADO_STATUS_DIETA_ESPECIAL,
             status_evento__in=cls.AUTORIZADO_EVENTO_DIETA_ESPECIAL,
             tipo_doc=cls.TP_SOL_DIETA_ESPECIAL,
@@ -528,8 +531,9 @@ class SolicitacoesEscola(MoldeConsolidado):
     @classmethod
     def get_autorizadas_temporariamente_dieta_especial(cls, **kwargs):
         escola_uuid = kwargs.get('escola_uuid')
+        escola_destino = Escola.objects.get(uuid=escola_uuid)
         return cls.objects.filter(
-            escola_uuid=escola_uuid,
+            escola_destino_id=escola_destino.id,
             status_atual__in=cls.AUTORIZADO_STATUS_DIETA_ESPECIAL,
             status_evento__in=cls.AUTORIZADO_EVENTO_DIETA_ESPECIAL,
             tipo_doc=cls.TP_SOL_DIETA_ESPECIAL,

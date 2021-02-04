@@ -203,7 +203,7 @@ class PermissaoParaRecuperarDietaEspecial(BasePermission):
         usuario = request.user
         if isinstance(usuario.vinculo_atual.instituicao, Escola):
             return (
-                usuario.vinculo_atual.instituicao in [obj.escola, obj.rastro_escola]
+                usuario.vinculo_atual.instituicao in [obj.escola, obj.rastro_escola, obj.escola_destino]
             )
         elif isinstance(usuario.vinculo_atual.instituicao, DiretoriaRegional):
             return (
