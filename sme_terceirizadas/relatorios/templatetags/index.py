@@ -227,3 +227,17 @@ def obter_titulo_status_dieta(status):
         DietaEspecialWorkflow.ESCOLA_CANCELOU: 'Cancelada'
     }
     return titulo_status_dieta.get(status, '')
+
+
+@register.filter
+def retorna_lote(valor):
+    if 'LOTE' in valor:
+        return valor[5:]
+    return valor
+
+
+@register.filter
+def retorna_tipo_gestao(valor):
+    if 'TERC' in valor:
+        return valor[5:]
+    return valor

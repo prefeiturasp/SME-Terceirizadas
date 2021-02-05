@@ -17,11 +17,11 @@
     </div>
     <div class="info w-10">
       <div>Lote</div>
-      <div>{{ lote.nome|slice:"5:15" }}</div>
+      <div>{{ lote.nome|retorna_lote }}</div>
     </div>
     <div class="info w-15">
       <div>Tipo de gestão</div>
-      <div>{{ escola.tipo_gestao.nome|slice:"5:15" }}</div>
+      <div>{{ escola.tipo_gestao.nome|retorna_tipo_gestao }}</div>
     </div>
   </div>
   {% if solicitacao.tipo_solicitacao != 'COMUM'%}
