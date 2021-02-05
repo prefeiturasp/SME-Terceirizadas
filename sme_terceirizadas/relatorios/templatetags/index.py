@@ -234,10 +234,3 @@ def retorna_lote(valor):
     if 'LOTE' in valor:
         return valor[5:]
     return valor
-
-
-@register.filter
-def retorna_tipo_gestao(valor):
-    if 'TERC' in valor:
-        return valor[5:]
-    return valor
