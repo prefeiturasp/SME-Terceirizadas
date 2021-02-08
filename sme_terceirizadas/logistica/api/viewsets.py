@@ -33,7 +33,7 @@ from sme_terceirizadas.logistica.models import Alimento, Embalagem
 from sme_terceirizadas.logistica.models import Guia as GuiasDasRequisicoes
 from sme_terceirizadas.logistica.models import SolicitacaoDeAlteracaoRequisicao, SolicitacaoRemessa
 
-from ...dados_comuns.constants import ADMINISTRADOR_DISTRIBUIDORA
+from ...relatorios.relatorios import get_pdf_guia_distribuidor
 from ..utils import RequisicaoPagination
 from .filters import GuiaFilter, SolicitacaoFilter
 
@@ -143,7 +143,7 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        if user.vinculo_atual.perfil.nome in [ADMINISTRADOR_DISTRIBUIDORA]:
+        if user.vinculo_atual.perfil.nome in ['ADMINISTRADOR_DISTRIBUIDORA']:
             return SolicitacaoRemessa.objects.filter(distribuidor=user.vinculo_atual.instituicao)
         return SolicitacaoRemessa.objects.all()
 
@@ -294,6 +294,22 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
 
         return Response(response_data, status=HTTP_200_OK)
 
+    @action(detail=True, methods=['GET'], url_path='gerar-pdf-distribuidor', permission_classes=[UsuarioDistribuidor])
+    def gerar_pdf_distribuidor(self, request, uuid=None):
+        solicitacao = self.get_object()
+        guias = solicitacao.guias.all()
+        return get_pdf_guia_distribuidor(data=guias)
+
+    @action(
+        detail=False, methods=['GET'],
+        url_path='gerar-pdf-distribuidor-geral',
+        permission_classes=[UsuarioDistribuidor])
+    def gerar_pdf_distribuidor_geral(self, request, uuid=None):
+        queryset = self.filter_queryset(self.get_queryset())
+        queryset = queryset.filter(status='DISTRIBUIDOR_CONFIRMA')
+        guias = GuiasDasRequisicoes.objects.filter(solicitacao__in=queryset)
+        return get_pdf_guia_distribuidor(data=guias)
+
 
 class GuiaDaRequisicaoModelViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
@@ -324,6 +340,11 @@ class GuiaDaRequisicaoModelViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         response = {'results': serializer.data}
         return Response(response)
+
+    @action(detail=True, methods=['GET'], url_path='gerar-pdf-distribuidor', permission_classes=[UsuarioDistribuidor])
+    def gerar_pdf_distribuidor(self, request, uuid=None):
+        guia = self.get_object()
+        return get_pdf_guia_distribuidor(data=[guia])
 
 
 class AlimentoDaGuiaModelViewSet(viewsets.ModelViewSet):
