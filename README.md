@@ -227,6 +227,21 @@ Abra um terminal na raiz do projeto e execute o seguinte para o desenvolvimento 
 $ docker-compose -f docker-postgres.yml up -d
 ```
 
+### Rodando o Celery
+
+Na pasta `sme-docker` rodar o comando
+
+```
+docker-compose -f docker-celery.yml up -d
+```
+
+Na pasta `SME-Terceirizadas`, com a virtualenv ativa rode
+
+```
+celery -A config worker --loglevel=info -B
+```
+
+
 ### Rodando o backend
 
 Pré-requisitos:
