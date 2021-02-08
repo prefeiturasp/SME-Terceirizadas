@@ -88,6 +88,18 @@
           </hr>
       {% endif %}
 
+      {% if solicitacao.status == 'CODAE_NEGOU_PEDIDO' %}
+        {% if solicitacao.motivo_negacao %}
+          <h5>Motivo da justificativa</h5>
+          <p>{{ solicitacao.motivo_negacao.descricao }}</p>
+        {% endif %}
+        {% if solicitacao.justificativa_negacao %}
+          <h5>Justificativa da negação</h5>
+          <p>{{ solicitacao.justificativa_negacao|safe }}</p>
+        {% endif %}
+        <hr>
+      {% endif %}
+
     {% if solicitacao.status != 'CODAE_A_AUTORIZAR' %}
       {% if solicitacao.motivo_alteracao_ue or solicitacao.observacoes_alteracao %}
         <table>
