@@ -312,7 +312,7 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
     def gerar_pdf_distribuidor_geral(self, request, uuid=None):
         queryset = self.filter_queryset(self.get_queryset())
         queryset = queryset.filter(status='DISTRIBUIDOR_CONFIRMA')
-        guias = GuiasDasRequisicoes.objects.filter(solicitacao__in=queryset)
+        guias = GuiasDasRequisicoes.objects.filter(solicitacao__in=queryset).order_by('-data_entrega').distinct()
         return get_pdf_guia_distribuidor(data=guias)
 
 
