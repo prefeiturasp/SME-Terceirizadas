@@ -219,14 +219,6 @@ services:
 ```
 
 
-### Build da imagem do banco de dados
-
-Para buildar as imagens do projeto, executar o comando abaixo
-
-```
-$ docker-compose -f docker-postgres.yml build
-```
-
 ### Execução da imagem do banco de dados
 
 Abra um terminal na raiz do projeto e execute o seguinte para o desenvolvimento local:
