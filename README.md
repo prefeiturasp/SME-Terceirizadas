@@ -219,14 +219,6 @@ services:
 ```
 
 
-### Build da imagem do banco de dados
-
-Para buildar as imagens do projeto, executar o comando abaixo
-
-```
-$ docker-compose -f docker-postgres.yml build
-```
-
 ### Execução da imagem do banco de dados
 
 Abra um terminal na raiz do projeto e execute o seguinte para o desenvolvimento local:
@@ -234,6 +226,21 @@ Abra um terminal na raiz do projeto e execute o seguinte para o desenvolvimento 
 ```
 $ docker-compose -f docker-postgres.yml up -d
 ```
+
+### Rodando o Celery
+
+Na pasta `sme-docker` rodar o comando
+
+```
+docker-compose -f docker-celery.yml up -d
+```
+
+Na pasta `SME-Terceirizadas`, com a virtualenv ativa rode
+
+```
+celery -A config worker --loglevel=info -B
+```
+
 
 ### Rodando o backend
 
