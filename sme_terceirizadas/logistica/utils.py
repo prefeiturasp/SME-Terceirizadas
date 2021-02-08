@@ -9,9 +9,10 @@ class RequisicaoPagination(PageNumberPagination):
     page_size_query_param = 'page_size'
     max_page_size = 100
 
-    def get_paginated_response(self, data, num_enviadas):
+    def get_paginated_response(self, data, num_enviadas, num_confirmadas):
         return Response(OrderedDict([
             ('count', self.page.paginator.count),
             ('num_enviadas', num_enviadas),
-            ('results', data)
+            ('results', data),
+            ('num_confirmadas', num_confirmadas)
         ]))

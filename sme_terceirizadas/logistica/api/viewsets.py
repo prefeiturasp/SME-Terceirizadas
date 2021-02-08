@@ -147,20 +147,25 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
             return SolicitacaoRemessa.objects.filter(distribuidor=user.vinculo_atual.instituicao)
         return SolicitacaoRemessa.objects.all()
 
-    def get_paginated_response(self, data, num_enviadas=None):
+    def get_paginated_response(self, data, num_enviadas=None, num_confirmadas=None):
         assert self.paginator is not None
-        return self.paginator.get_paginated_response(data, num_enviadas)
+        return self.paginator.get_paginated_response(data, num_enviadas, num_confirmadas)
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
         queryset = queryset.order_by('-guias__data_entrega').distinct()
 
         num_enviadas = queryset.filter(status=SolicitacaoRemessaWorkFlow.DILOG_ENVIA).count()
+        num_confirmadas = queryset.filter(status=SolicitacaoRemessaWorkFlow.DISTRIBUIDOR_CONFIRMA).count()
 
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
-            response = self.get_paginated_response(serializer.data, num_enviadas)
+            response = self.get_paginated_response(
+                serializer.data,
+                num_enviadas=num_enviadas,
+                num_confirmadas=num_confirmadas
+            )
             return response
 
         serializer = self.get_serializer(queryset, many=True)
