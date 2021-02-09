@@ -282,9 +282,10 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
         capacidade_total_embalagens = queryset.values(
             'descricao_embalagem',
             'unidade_medida',
+            'capacidade_embalagem',
             nome_alimento=F('alimento__nome_alimento')
         ).annotate(
-            peso_embalagem=Sum(F('capacidade_embalagem') * F('qtd_volume'), output_field=FloatField()),
+            peso_total_embalagem=Sum(F('capacidade_embalagem') * F('qtd_volume'), output_field=FloatField()),
             qtd_volume=Sum('qtd_volume')
         ).order_by()
 
