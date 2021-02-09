@@ -64,7 +64,7 @@
         </tr>
       </table>
 
-      {% if solicitacao.status != 'CODAE_A_AUTORIZAR' %}
+      {% if solicitacao.status != 'CODAE_A_AUTORIZAR' and solicitacao.status != 'CODAE_NEGOU_PEDIDO' and solicitacao.status != 'ESCOLA_CANCELOU' %}
         <hr />
          <table>
           <tr>
@@ -89,17 +89,27 @@
       {% endif %}
 
     {% if solicitacao.status != 'CODAE_A_AUTORIZAR' %}
-      <table>
-        <tr>
-          <th class="w-50">Motivo da alteração</th>
-          <th class="w-50">Observações da alteração</th>
-        </tr>
-        <tr>
-          <td>{{ solicitacao.motivo_alteracao_ue.nome }}</td>
-          <td>{{ solicitacao.observacoes_alteracao|striptags|safe|default:'' }}</td>
-        </tr>
-      </table>
-      <hr/>
+      {% if solicitacao.motivo_alteracao_ue or solicitacao.observacoes_alteracao %}
+        <table>
+          <tr>
+            {% if solicitacao.motivo_alteracao_ue%}
+              <th class="w-50">Motivo da alteração</th>
+            {% endif %}
+            {% if solicitacao.observacoes_alteracao %}
+              <th class="w-50">Observações da alteração</th>
+            {% endif %}
+          </tr>
+          <tr>
+            {% if solicitacao.motivo_alteracao_ue%}
+              <td>{{ solicitacao.motivo_alteracao_ue.nome }}</td>
+            {% endif %}
+            {% if solicitacao.observacoes_alteracao %}
+              <td>{{ solicitacao.observacoes_alteracao|striptags|safe|default:'' }}</td>
+            {% endif %}
+          </tr>
+        </table>
+        <hr/>
+      {% endif %}
     {% endif %}
 
     </div>
