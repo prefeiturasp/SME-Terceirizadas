@@ -4,6 +4,14 @@
 {% load sass_tags %}
 
 {% block conteudo %}
+
+  <style>
+    span > p {
+      margin-top: 5px;
+      margin-bottom: 5px;
+    }
+  </style>
+
   <div class="conteudo tabela-sem-borda">
   {% include "bloco_fluxo_status_homologacao.html" %}
     {% include "bloco_cabecalho_solicitacao_partindo_escola.html" %}
@@ -81,11 +89,23 @@
         </table>
       {% endif %}
 
-      <hr />
+      <hr>
       {% if solicitacao.observacoes %}
-          <h5>Observações</h5>
-          <p>{{ solicitacao.observacoes|safe }}</p>
-          </hr>
+          <h5 style="margin: 0;">Observações</h5>
+          <span>{{ solicitacao.observacoes|safe }}</span>
+          <hr>
+      {% endif %}
+
+      {% if solicitacao.status == 'CODAE_NEGOU_PEDIDO' %}
+        {% if solicitacao.motivo_negacao %}
+          <h5 style="margin: 0;">Motivo da negação</h5>
+          <p style="margin-top: 5px;">{{ solicitacao.motivo_negacao.descricao }}</p>
+        {% endif %}
+        {% if solicitacao.justificativa_negacao %}
+          <h5 style="margin: 0;">Justificativa da negação</h5>
+          <span>{{ solicitacao.justificativa_negacao|safe }}</span>
+        {% endif %}
+        <hr>
       {% endif %}
 
     {% if solicitacao.status != 'CODAE_A_AUTORIZAR' %}
