@@ -65,6 +65,9 @@ class Guia(ModeloBase):
 
     objects = GuiaManager()
 
+    def as_dict(self):
+        return dict((f.name, getattr(self, f.name)) for f in self._meta.fields)
+
     def __str__(self):
         return f'Guia: {self.numero_guia} - {self.status} da solicitação: {self.solicitacao.numero_solicitacao}'
 
