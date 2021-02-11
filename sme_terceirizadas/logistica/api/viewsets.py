@@ -34,8 +34,8 @@ from sme_terceirizadas.logistica.models import Guia as GuiasDasRequisicoes
 from sme_terceirizadas.logistica.models import SolicitacaoDeAlteracaoRequisicao, SolicitacaoRemessa
 
 from ...relatorios.relatorios import get_pdf_guia_distribuidor
-from ..utils import RequisicaoPagination
-from .filters import GuiaFilter, SolicitacaoFilter
+from ..utils import RequisicaoPagination, SolicitacaoAlteracaoPagination
+from .filters import GuiaFilter, SolicitacaoAlteracaoFilter, SolicitacaoFilter
 
 STR_XML_BODY = '{http://schemas.xmlsoap.org/soap/envelope/}Body'
 STR_ARQUIVO_SOLICITACAO = 'ArqSolicitacaoMOD'
@@ -370,6 +370,37 @@ class SolicitacaoDeAlteracaoDeRequisicaoViewset(viewsets.ModelViewSet):
     queryset = SolicitacaoDeAlteracaoRequisicao.objects.all()
     serializer_class = SolicitacaoDeAlteracaoSerializer
     permission_classes = [UsuarioDistribuidor]
+    pagination_class = SolicitacaoAlteracaoPagination
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = SolicitacaoAlteracaoFilter
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        queryset = queryset.order_by('requisicao__guias__data_entrega').distinct()
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            response = self.get_paginated_response(
+                serializer.data
+            )
+            return response
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.vinculo_atual.perfil.nome in ['ADMINISTRADOR_DISTRIBUIDORA']:
+            return SolicitacaoDeAlteracaoRequisicao.objects.filter(
+                requisicao__distribuidor=user.vinculo_atual.instituicao
+            )
+        return SolicitacaoDeAlteracaoRequisicao.objects.all()
+
+    def get_permissions(self):
+        if self.action in ['retrieve', 'list']:
+            self.permission_classes = [UsuarioDilogCodae | UsuarioDistribuidor]
+        return super(SolicitacaoDeAlteracaoDeRequisicaoViewset, self).get_permissions()
 
     def get_serializer_class(self):
         if self.action in ['retrieve', 'list']:
