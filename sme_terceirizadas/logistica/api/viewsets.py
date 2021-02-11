@@ -34,8 +34,8 @@ from sme_terceirizadas.logistica.models import Guia as GuiasDasRequisicoes
 from sme_terceirizadas.logistica.models import SolicitacaoDeAlteracaoRequisicao, SolicitacaoRemessa
 
 from ...relatorios.relatorios import get_pdf_guia_distribuidor
-from ..utils import RequisicaoPagination
-from .filters import GuiaFilter, SolicitacaoFilter
+from ..utils import RequisicaoPagination, SolicitacaoAlteracaoPagination
+from .filters import GuiaFilter, SolicitacaoAlteracaoFilter, SolicitacaoFilter
 
 STR_XML_BODY = '{http://schemas.xmlsoap.org/soap/envelope/}Body'
 STR_ARQUIVO_SOLICITACAO = 'ArqSolicitacaoMOD'
@@ -147,20 +147,25 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
             return SolicitacaoRemessa.objects.filter(distribuidor=user.vinculo_atual.instituicao)
         return SolicitacaoRemessa.objects.all()
 
-    def get_paginated_response(self, data, num_enviadas=None):
+    def get_paginated_response(self, data, num_enviadas=None, num_confirmadas=None):
         assert self.paginator is not None
-        return self.paginator.get_paginated_response(data, num_enviadas)
+        return self.paginator.get_paginated_response(data, num_enviadas, num_confirmadas)
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
         queryset = queryset.order_by('-guias__data_entrega').distinct()
 
         num_enviadas = queryset.filter(status=SolicitacaoRemessaWorkFlow.DILOG_ENVIA).count()
+        num_confirmadas = queryset.filter(status=SolicitacaoRemessaWorkFlow.DISTRIBUIDOR_CONFIRMA).count()
 
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
-            response = self.get_paginated_response(serializer.data, num_enviadas)
+            response = self.get_paginated_response(
+                serializer.data,
+                num_enviadas=num_enviadas,
+                num_confirmadas=num_confirmadas
+            )
             return response
 
         serializer = self.get_serializer(queryset, many=True)
@@ -277,9 +282,10 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
         capacidade_total_embalagens = queryset.values(
             'descricao_embalagem',
             'unidade_medida',
+            'capacidade_embalagem',
             nome_alimento=F('alimento__nome_alimento')
         ).annotate(
-            peso_embalagem=Sum(F('capacidade_embalagem') * F('qtd_volume'), output_field=FloatField()),
+            peso_total_embalagem=Sum(F('capacidade_embalagem') * F('qtd_volume'), output_field=FloatField()),
             qtd_volume=Sum('qtd_volume')
         ).order_by()
 
@@ -307,7 +313,7 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
     def gerar_pdf_distribuidor_geral(self, request, uuid=None):
         queryset = self.filter_queryset(self.get_queryset())
         queryset = queryset.filter(status='DISTRIBUIDOR_CONFIRMA')
-        guias = GuiasDasRequisicoes.objects.filter(solicitacao__in=queryset)
+        guias = GuiasDasRequisicoes.objects.filter(solicitacao__in=queryset).order_by('-data_entrega').distinct()
         return get_pdf_guia_distribuidor(data=guias)
 
 
@@ -364,6 +370,37 @@ class SolicitacaoDeAlteracaoDeRequisicaoViewset(viewsets.ModelViewSet):
     queryset = SolicitacaoDeAlteracaoRequisicao.objects.all()
     serializer_class = SolicitacaoDeAlteracaoSerializer
     permission_classes = [UsuarioDistribuidor]
+    pagination_class = SolicitacaoAlteracaoPagination
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = SolicitacaoAlteracaoFilter
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        queryset = queryset.order_by('requisicao__guias__data_entrega').distinct()
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            response = self.get_paginated_response(
+                serializer.data
+            )
+            return response
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.vinculo_atual.perfil.nome in ['ADMINISTRADOR_DISTRIBUIDORA']:
+            return SolicitacaoDeAlteracaoRequisicao.objects.filter(
+                requisicao__distribuidor=user.vinculo_atual.instituicao
+            )
+        return SolicitacaoDeAlteracaoRequisicao.objects.all()
+
+    def get_permissions(self):
+        if self.action in ['retrieve', 'list']:
+            self.permission_classes = [UsuarioDilogCodae | UsuarioDistribuidor]
+        return super(SolicitacaoDeAlteracaoDeRequisicaoViewset, self).get_permissions()
 
     def get_serializer_class(self):
         if self.action in ['retrieve', 'list']:

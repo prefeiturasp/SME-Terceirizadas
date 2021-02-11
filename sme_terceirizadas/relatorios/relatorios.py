@@ -519,8 +519,8 @@ def get_pdf_guia_distribuidor(data=None, many=False):
         while True:
             alimentos = todos_alimentos[inicio:inicio + num_alimentos_pagina]
             if alimentos:
-                page = guia.__dict__
-                peso_total_pagina = sum(alimento.peso_total for alimento in alimentos)
+                page = guia.as_dict()
+                peso_total_pagina = round(sum(alimento.peso_total for alimento in alimentos), 2)
                 page['alimentos'] = alimentos
                 page['peso_total'] = peso_total_pagina
                 pages.append(page)
@@ -528,7 +528,6 @@ def get_pdf_guia_distribuidor(data=None, many=False):
             else:
                 break
         inicio = 0
-
     html_string = render_to_string('logistica/guia_distribuidor/index.html', {'pages': pages})
     data_arquivo = datetime.date.today().strftime('%d/%m/%Y')
 

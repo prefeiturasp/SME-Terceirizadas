@@ -1,3 +1,7 @@
+import functools
+import operator
+
+from django.db.models import Q
 from django_filters import rest_framework as filters
 
 from ...dados_comuns.fluxo_status import SolicitacaoRemessaWorkFlow
@@ -47,5 +51,32 @@ class GuiaFilter(filters.FilterSet):
     codigo_unidade = filters.CharFilter(
         field_name='codigo_unidade',
         lookup_expr='exact',
-
     )
+
+
+class SolicitacaoAlteracaoFilter(filters.FilterSet):
+
+    numero_solicitacao = filters.CharFilter(
+        field_name='uuid',
+        lookup_expr='startswith',
+    )
+    nome_distribuidor = filters.CharFilter(
+        field_name='requisicao__distribuidor__nome_fantasia',
+        lookup_expr='icontains',
+    )
+    data_inicial = filters.DateFilter(
+        field_name='requisicao__guias__data_entrega',
+        lookup_expr='gte',
+    )
+    data_final = filters.DateFilter(
+        field_name='requisicao__guias__data_entrega',
+        lookup_expr='lte',
+    )
+    motivos = filters.CharFilter(field_name='motivo', method='filtra_motivos')
+
+    def filtra_motivos(self, qs, name, value):
+        motivos = value
+        filtro = functools.reduce(
+            operator.and_, (Q(motivo__icontains=motivo) for motivo in motivos)
+        )
+        return qs.filter(filtro)
