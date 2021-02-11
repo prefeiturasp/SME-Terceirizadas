@@ -68,9 +68,13 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
         DILOG_ENVIA_SOLICITACAO,
         DISTRIBUIDOR_CONFIRMA_SOLICITACAO,
         DISTRIBUIDOR_SOLICITA_ALTERACAO_SOLICITACAO,
-        PAPA_CANCELA_SOLICITACAO
+        PAPA_CANCELA_SOLICITACAO,
 
-    ) = range(41)
+        # ESPECIFICA SOLICITAÇÃO DE ALTERACAO
+        DILOG_ACEITA_ALTERACAO,
+        DILOG_NEGA_ALTERACAO,
+
+    ) = range(43)
 
     STATUS_POSSIVEIS = (
         (INICIO_FLUXO, 'Solicitação Realizada'),
@@ -113,6 +117,8 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
         (DISTRIBUIDOR_CONFIRMA_SOLICITACAO, 'Distribuidor confirmou requisição'),  # noqa
         (DISTRIBUIDOR_SOLICITA_ALTERACAO_SOLICITACAO, 'Distribuidor pede alteração da requisição'),  # noqa
         (PAPA_CANCELA_SOLICITACAO, 'Papa cancelou a requisição'),
+        (DILOG_ACEITA_ALTERACAO, 'Dilog Aceita Alteração'),
+        (DILOG_NEGA_ALTERACAO, 'Dilog Nega Alteração'),
     )
     (  # DA ESCOLA
         SOLICITACAO_KIT_LANCHE_AVULSA,
@@ -130,8 +136,9 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
         HOMOLOGACAO_PRODUTO,
         # PRODUTOS
         RECLAMACAO_PRODUTO,
-        SOLICITACAO_REMESSA_PAPA
-    ) = range(13)
+        SOLICITACAO_REMESSA_PAPA,
+        SOLICITACAO_DE_ALTERACAO_REQUISICAO
+    ) = range(14)
 
     TIPOS_SOLICITACOES = (
         (SOLICITACAO_KIT_LANCHE_AVULSA, 'Solicitação de kit lanche avulsa'),
@@ -147,7 +154,8 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
         (HOMOLOGACAO_PRODUTO, 'Homologação de Produto'),
         (RECLAMACAO_PRODUTO, 'Reclamação de Produto'),
         (TERCEIRIZADA_RESPONDEU_ANALISE_SENSORIAL, 'Responde Análise Sensorial'),
-        (SOLICITACAO_REMESSA_PAPA, 'Solicitação de remessa')
+        (SOLICITACAO_REMESSA_PAPA, 'Solicitação de remessa'),
+        (SOLICITACAO_DE_ALTERACAO_REQUISICAO, 'Solicitação de Ateração de requisição')
     )
 
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
