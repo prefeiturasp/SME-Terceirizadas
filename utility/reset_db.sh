@@ -22,5 +22,5 @@ if [ "$apagar" != "${apagar#[Ss]}" ] ;then
         fi
     done
     echo "Recriado banco de dados..."
-    createdb $PGOPTS terceirizadas
+    createdb $PGOPTS $POSTGRES_DB
 fi
