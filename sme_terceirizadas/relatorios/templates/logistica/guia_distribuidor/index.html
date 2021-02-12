@@ -131,12 +131,14 @@
 					</tr>
 				</thead>
 				<tbody> {% for alimento in page.alimentos %}
+          {% embalagens_filter alimento.embalagens.all "FRACIONADA" as embalagem_fracionada %}
+          {% embalagens_filter alimento.embalagens.all "FECHADA" as embalagem_fechada %}
 					<tr>
 						<td>{{alimento.nome_alimento}}</td>
-						<td>{{alimento.embalagens.all.0.qtd_volume}} {{alimento.embalagens.all.0.descricao_embalagem}}</td>
-						<td>{{alimento.embalagens.all.0.capacidade_embalagem}} {{alimento.embalagens.all.0.unidade_medida}}</td>
-						<td>{{alimento.embalagens.all.1.qtd_volume}} {{alimento.embalagens.all.1.descricao_embalagem}}</td>
-						<td>{{alimento.embalagens.all.1.capacidade_embalagem}} {{alimento.embalagens.all.1.unidade_medida}}</td>
+						<td>{{embalagem_fechada.qtd_volume|default:''}} {{embalagem_fechada.descricao_embalagem}}</td>
+						<td>{{embalagem_fechada.capacidade_embalagem}} {{embalagem_fechada.unidade_medida}}</td>
+						<td>{{embalagem_fracionada.qtd_volume}} {{embalagem_fracionada.descricao_embalagem}}</td>
+						<td>{{embalagem_fracionada.capacidade_embalagem}} {{embalagem_fracionada.unidade_medida}}</td>
 					</tr> {% endfor %} </tbody>
 				<tfooter>
 					<tr>
