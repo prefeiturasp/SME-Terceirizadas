@@ -1,5 +1,5 @@
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import F, FloatField, Sum
+from django.db.models import Count, F, FloatField, Max, Sum
 from django.db.utils import DataError
 from django_filters import rest_framework as filters
 from rest_framework import viewsets
@@ -283,6 +283,7 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
             'descricao_embalagem',
             'unidade_medida',
             'capacidade_embalagem',
+            'tipo_embalagem',
             nome_alimento=F('alimento__nome_alimento')
         ).annotate(
             peso_total_embalagem=Sum(F('capacidade_embalagem') * F('qtd_volume'), output_field=FloatField()),
@@ -376,7 +377,11 @@ class SolicitacaoDeAlteracaoDeRequisicaoViewset(viewsets.ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
-        queryset = queryset.order_by('requisicao__guias__data_entrega').distinct()
+        queryset = queryset.annotate(
+            qtd_guias=Count('requisicao__guias'),
+            nome_distribuidor=F('requisicao__distribuidor__razao_social'),
+            data_entrega=Max('requisicao__guias__data_entrega')
+        ).order_by('requisicao__guias__data_entrega').distinct()
 
         page = self.paginate_queryset(queryset)
         if page is not None:

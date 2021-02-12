@@ -198,6 +198,27 @@ class SolicitacaoRemessaWorkFlow(xwf_models.Workflow):
     initial_state = AGUARDANDO_ENVIO
 
 
+class SolicitacaoDeAlteracaoWorkFlow(xwf_models.Workflow):
+    log_model = ''  # Disable logging to database
+
+    EM_ANALISE = 'EM_ANALISE'
+    ACEITA = 'ACEITA'
+    NEGADA = 'NEGADA'
+
+    states = (
+        (EM_ANALISE, 'Em análise'),
+        (ACEITA, 'Aceita'),
+        (NEGADA, 'Negada'),
+    )
+
+    transitions = (
+        ('dilog_aceita', EM_ANALISE, ACEITA),
+        ('dilog_nega', EM_ANALISE, NEGADA),
+    )
+
+    initial_state = EM_ANALISE
+
+
 class DietaEspecialWorkflow(xwf_models.Workflow):
     # leia com atenção:
     # https://django-xworkflows.readthedocs.io/en/latest/index.html
@@ -307,20 +328,20 @@ class HomologacaoProdutoWorkflow(xwf_models.Workflow):
         ('escola_ou_nutricionista_reclamou',
          CODAE_HOMOLOGADO, ESCOLA_OU_NUTRICIONISTA_RECLAMOU),
         ('codae_pediu_analise_reclamacao',
-            [ESCOLA_OU_NUTRICIONISTA_RECLAMOU, TERCEIRIZADA_RESPONDEU_RECLAMACAO],
-            CODAE_PEDIU_ANALISE_RECLAMACAO),
+         [ESCOLA_OU_NUTRICIONISTA_RECLAMOU, TERCEIRIZADA_RESPONDEU_RECLAMACAO],
+         CODAE_PEDIU_ANALISE_RECLAMACAO),
         ('terceirizada_responde_reclamacao',
          CODAE_PEDIU_ANALISE_RECLAMACAO, TERCEIRIZADA_RESPONDEU_RECLAMACAO),
         ('codae_autorizou_reclamacao',
-            [CODAE_PEDIU_ANALISE_RECLAMACAO,
-             ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
-             TERCEIRIZADA_RESPONDEU_RECLAMACAO],
+         [CODAE_PEDIU_ANALISE_RECLAMACAO,
+          ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
+          TERCEIRIZADA_RESPONDEU_RECLAMACAO],
          CODAE_AUTORIZOU_RECLAMACAO),
         ('codae_recusou_reclamacao',
-            [CODAE_PEDIU_ANALISE_RECLAMACAO,
-             ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
-             TERCEIRIZADA_RESPONDEU_RECLAMACAO],
-            CODAE_HOMOLOGADO),
+         [CODAE_PEDIU_ANALISE_RECLAMACAO,
+          ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
+          TERCEIRIZADA_RESPONDEU_RECLAMACAO],
+         CODAE_HOMOLOGADO),
         ('inativa_homologacao',
          [CODAE_SUSPENDEU, ESCOLA_OU_NUTRICIONISTA_RECLAMOU, CODAE_QUESTIONADO, CODAE_HOMOLOGADO,
           CODAE_NAO_HOMOLOGADO, CODAE_AUTORIZOU_RECLAMACAO], INATIVA),
@@ -382,6 +403,34 @@ class FluxoSolicitacaoRemessa(xwf_models.WorkflowEnabled, models.Model):
     def _solicita_alteracao_hook(self, *args, **kwargs):
         user = kwargs['user']
         self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.DISTRIBUIDOR_SOLICITA_ALTERACAO_SOLICITACAO,
+                                  usuario=user,
+                                  justificativa=kwargs.get('justificativa', ''))
+
+    class Meta:
+        abstract = True
+
+
+class FluxoSolicitacaoDeAlteracao(xwf_models.WorkflowEnabled, models.Model):
+    workflow_class = SolicitacaoDeAlteracaoWorkFlow
+    status = xwf_models.StateField(workflow_class)
+
+    def salvar_log_transicao(self, status_evento, usuario, **kwargs):
+        raise NotImplementedError('Deve criar um método salvar_log_transicao')
+
+    def _preenche_template_e_envia_email(self, assunto, titulo, user, partes_interessadas):
+        raise NotImplementedError('Deve criar um método de envio de email as partes interessadas')  # noqa
+
+    @xworkflows.after_transition('dilog_aceita')
+    def _dilog_aceita_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.DILOG_ACEITA_ALTERACAO,
+                                  usuario=user,
+                                  justificativa=kwargs.get('justificativa', ''))
+
+    @xworkflows.after_transition('dilog_nega')
+    def _dilog_nega_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.DILOG_NEGA_ALTERACAO,
                                   usuario=user,
                                   justificativa=kwargs.get('justificativa', ''))
 
@@ -1738,7 +1787,6 @@ class FluxoSolicitacaoCadastroProduto(xwf_models.WorkflowEnabled, models.Model):
         return [usuario.email for usuario in queryset]
 
     def _envia_email_solicitacao_realizada(self):
-
         html = render_to_string(
             template_name='dieta_especial_solicitou_cadastro_produto.html',
             context={

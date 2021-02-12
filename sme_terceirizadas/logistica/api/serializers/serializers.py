@@ -158,11 +158,21 @@ class AlimentoDaGuiaDaRemessaSimplesSerializer(serializers.ModelSerializer):
 
 class SolicitacaoDeAlteracaoSerializer(serializers.ModelSerializer):
     motivo = serializers.CharField(source='get_motivo_display')
-    id_externo = serializers.SerializerMethodField()
     requisicao = SolicitacaoRemessaSimplesSerializer(read_only=True, many=False)
+    nome_distribuidor = serializers.CharField()
+    qtd_guias = serializers.IntegerField()
+    status = serializers.SerializerMethodField()
+    criado_em = serializers.SerializerMethodField()
+    data_entrega = serializers.SerializerMethodField()
 
-    def get_id_externo(self, obj):
-        return obj.id_externo
+    def get_criado_em(self, obj):
+        return obj.criado_em.strftime('%d/%m/%Y')
+
+    def get_data_entrega(self, obj):
+        return obj.data_entrega.strftime('%d/%m/%Y')
+
+    def get_status(self, obj):
+        return obj.get_status_display()
 
     class Meta:
         model = SolicitacaoDeAlteracaoRequisicao
