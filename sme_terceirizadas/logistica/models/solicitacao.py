@@ -3,7 +3,7 @@ from django.db import models
 from multiselectfield import MultiSelectField
 
 from sme_terceirizadas.dados_comuns.behaviors import Logs, TemIdentificadorExternoAmigavel
-from sme_terceirizadas.dados_comuns.fluxo_status import FluxoSolicitacaoRemessa
+from sme_terceirizadas.dados_comuns.fluxo_status import FluxoSolicitacaoDeAlteracao, FluxoSolicitacaoRemessa
 from sme_terceirizadas.dados_comuns.models import LogSolicitacoesUsuario
 from sme_terceirizadas.terceirizada.models import Terceirizada
 
@@ -50,7 +50,7 @@ class SolicitacaoRemessa(ModeloBase, TemIdentificadorExternoAmigavel, Logs, Flux
         verbose_name_plural = 'Solicitações Remessas'
 
 
-class SolicitacaoDeAlteracaoRequisicao(ModeloBase, TemIdentificadorExternoAmigavel):
+class SolicitacaoDeAlteracaoRequisicao(ModeloBase, TemIdentificadorExternoAmigavel, FluxoSolicitacaoDeAlteracao):
     # Motivo Choice
     MOTIVO_ALTERAR_DATA_ENTREGA = 'ALTERAR_DATA_ENTREGA'
     MOTIVO_ALTERAR_QTD_ALIMENTO = 'ALTERAR_QTD_ALIMENTO'
@@ -76,9 +76,24 @@ class SolicitacaoDeAlteracaoRequisicao(ModeloBase, TemIdentificadorExternoAmigav
     motivo = MultiSelectField(choices=MOTIVO_CHOICES)
     justificativa = models.TextField('Justificativa', blank=True)
     usuario_solicitante = models.ForeignKey('perfil.Usuario', on_delete=models.DO_NOTHING)
+    numero_solicitacao = models.CharField('Número da solicitação', blank=True, max_length=50, unique=True)
+
+    def salvar_log_transicao(self, status_evento, usuario, **kwargs):
+        justificativa = kwargs.get('justificativa', '')
+        resposta_sim_nao = kwargs.get('resposta_sim_nao', False)
+        log_transicao = LogSolicitacoesUsuario.objects.create(
+            descricao=str(self),
+            status_evento=status_evento,
+            solicitacao_tipo=LogSolicitacoesUsuario.SOLICITACAO_DE_ALTERACAO_REQUISICAO,
+            usuario=usuario,
+            uuid_original=self.uuid,
+            justificativa=justificativa,
+            resposta_sim_nao=resposta_sim_nao
+        )
+        return log_transicao
 
     def __str__(self):
-        return f'Solicitação de alteração: {self.id_externo}'
+        return f'Solicitação de alteração: {self.numero_solicitacao}'
 
     class Meta:
         verbose_name = 'Solicitação de Alteração de Requisição'

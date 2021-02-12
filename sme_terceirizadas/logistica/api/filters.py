@@ -57,11 +57,11 @@ class GuiaFilter(filters.FilterSet):
 class SolicitacaoAlteracaoFilter(filters.FilterSet):
 
     numero_solicitacao = filters.CharFilter(
-        field_name='uuid',
-        lookup_expr='startswith',
+        field_name='numero_solicitacao',
+        lookup_expr='exact',
     )
     nome_distribuidor = filters.CharFilter(
-        field_name='requisicao__distribuidor__nome_fantasia',
+        field_name='requisicao__distribuidor__razao_social',
         lookup_expr='icontains',
     )
     data_inicial = filters.DateFilter(

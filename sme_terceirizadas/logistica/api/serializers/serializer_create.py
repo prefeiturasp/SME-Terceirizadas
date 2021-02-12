@@ -1,4 +1,5 @@
 from datetime import datetime
+from time import time
 
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import fields, serializers
@@ -84,6 +85,7 @@ class SolicitacaoDeAlteracaoRequisicaoCreateSerializer(serializers.ModelSerializ
 
             solicit_alteracao = SolicitacaoDeAlteracaoRequisicao.objects.create(
                 usuario_solicitante=user,
+                numero_solicitacao=hex(int(time() * 10000000))[11:],
                 requisicao=requisicao, **validated_data
             )
             try:

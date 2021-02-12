@@ -234,3 +234,12 @@ def retorna_lote(valor):
     if 'LOTE' in valor:
         return valor[5:]
     return valor
+
+
+@register.simple_tag
+def embalagens_filter(embalagens, tipo):
+    for emb in embalagens:
+        if emb.tipo_embalagem == tipo:
+            return emb
+    else:
+        return False
