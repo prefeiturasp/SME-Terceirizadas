@@ -1,10 +1,12 @@
 import openpyxl
 from datetime import date
+from pathlib import Path
 from django.core.management.base import BaseCommand
 from utility.carga_dados.helper import excel_to_list_with_openpyxl, progressbar
 from sme_terceirizadas.escola.models import Escola
 
 DATA = date.today().isoformat().replace('-', '_')
+home = str(Path.home())
 
 
 def get_codigo_eol(valor):
@@ -43,6 +45,6 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         arquivo = options['arquivo']
-        arquivo_saida = '/home/regis/Downloads/resultado_analise_dietas_ativas.xlsx'
+        arquivo_saida = f'{home}/Downloads/resultado_analise_dietas_ativas.xlsx'
         items = excel_to_list_with_openpyxl(arquivo, in_memory=False)
         retorna_codigo_eol_escolas_nao_identificadas(items, arquivo_saida)
