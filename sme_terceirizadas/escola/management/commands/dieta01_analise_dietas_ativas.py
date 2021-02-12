@@ -1,5 +1,6 @@
 from django.core.management.base import BaseCommand
 from utility.carga_dados.helper import excel_to_list_with_openpyxl
+from sme_terceirizadas.escola.models import Escola
 
 
 class Command(BaseCommand):
@@ -18,4 +19,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         arquivo = options['arquivo']
         items = excel_to_list_with_openpyxl(arquivo, in_memory=False)
-        self.stdout.write(len(items))
+        cod_escola_unicos = set([item['CodEscola'] for item in items])
+        codigo_eol_sigpae_lista = Escola.objects.values_list('codigo_eol', flat=True)
+        codigo_eol_escola_nao_existentes = cod_escola_unicos - set(codigo_eol_sigpae_lista)
+        print(len(codigo_eol_escola_nao_existentes))
