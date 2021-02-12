@@ -112,7 +112,8 @@ class SolicitacaoDeAlteracaoRequisicaoAdmin(admin.ModelAdmin):
     def motivos(self, obj):
         return obj.get_motivo_display()
 
-    list_display = ('id_externo', 'motivos')
-    search_fields = ('id_externo',)
+    list_display = ('numero_solicitacao', 'motivos')
+    search_fields = ('numero_solicitacao',)
     list_filter = ('motivo',)
-    readonly_fields = ('id_externo', 'motivo', 'requisicao', 'usuario_solicitante', 'criado_em', 'justificativa',)
+    readonly_fields = ('numero_solicitacao', 'motivo', 'requisicao', 'usuario_solicitante',
+                       'criado_em', 'justificativa',)
