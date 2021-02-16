@@ -75,8 +75,8 @@ class SolicitacaoAlteracaoFilter(filters.FilterSet):
     motivos = filters.CharFilter(field_name='motivo', method='filtra_motivos')
 
     def filtra_motivos(self, qs, name, value):
-        motivos = value
+        motivos = value.replace(', ', ',').split(',')
         filtro = functools.reduce(
-            operator.and_, (Q(motivo__icontains=motivo) for motivo in motivos)
+            operator.or_, (Q(motivo__icontains=motivo) for motivo in motivos)
         )
         return qs.filter(filtro)
