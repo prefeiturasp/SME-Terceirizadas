@@ -170,14 +170,16 @@ def compara_lista_informacoes_nutricionais(anterior, proxima):  # noqa C901
     for info_nutricional in proxima:
         for info_anterior in anterior:
             if info_anterior.informacao_nutricional.nome == info_nutricional['informacao_nutricional'].nome:
-                if info_anterior.quantidade_porcao != info_nutricional['quantidade_porcao']:
+                if ('quantidade_porcao' in info_nutricional and
+                   info_anterior.quantidade_porcao != info_nutricional['quantidade_porcao']):
                     modificacoes.append({
                         'informacao_nutricional': info_anterior.informacao_nutricional,
                         'valor': 'Quantidade porção',
                         'de': info_anterior.quantidade_porcao,
                         'para': info_nutricional['quantidade_porcao']
                     })
-                if info_anterior.valor_diario != info_nutricional['valor_diario']:
+                if ('valor_diario' in info_nutricional and
+                   info_anterior.valor_diario != info_nutricional['valor_diario']):
                     modificacoes.append({
                         'informacao_nutricional': info_anterior.informacao_nutricional,
                         'valor': 'Valor diário',
