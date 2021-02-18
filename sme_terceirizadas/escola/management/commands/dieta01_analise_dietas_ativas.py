@@ -6,6 +6,7 @@ from pathlib import Path
 from django.core.management.base import BaseCommand
 from utility.carga_dados.helper import excel_to_list_with_openpyxl, progressbar
 from sme_terceirizadas.escola.models import Escola
+from sme_terceirizadas.produto.models import ProtocoloDeDietaEspecial
 from sme_terceirizadas.eol_servico.utils import EOLService
 
 DATA = date.today().isoformat().replace('-', '_')
@@ -54,6 +55,22 @@ def escreve_xlsx(codigo_eol_escola_nao_existentes, arquivo_saida):
     ws['A1'] = 'codigo_eol_escola'
     for i, item in enumerate(progressbar(list(codigo_eol_escola_nao_existentes), 'Escrevendo...')):
         ws[f'A{i+2}'] = str(item)
+    nome = arquivo_saida.split('.')
+    wb.save(f'{nome[0]}_{DATA}.{nome[1]}')
+
+
+def escreve_xlsx_primeira_aba(arquivo_saida):
+    nome_ = arquivo_saida.split('.')
+    nome = f'{nome_[0]}_{DATA}.{nome_[1]}'
+    wb = openpyxl.load_workbook(nome)
+    ws = wb.worksheets[0]
+    ws['A1'] = 'Este arquivo contém as planilhas:'
+    ws['A2'] = 'Código EOL das Escolas não identificadas no SIGPAE'
+    ws['A3'] = 'Código EOL dos Alunos não matriculados na escola'
+    ws['A4'] = 'CodEscola não existentes em unidades_da_rede...'
+    ws['A5'] = 'Dados do SIGPAE para as escolas da planilha'
+    ws['A6'] = 'CodDiagnostico inexistentes'
+    ws['A7'] = 'ProtocoloDieta inexistentes'
     nome = arquivo_saida.split('.')
     wb.save(f'{nome[0]}_{DATA}.{nome[1]}')
 
@@ -193,6 +210,46 @@ def retorna_dados_sigpae(items, arquivo_saida):
     escreve_xlsx_dados_sigpae(list(cod_escola_unicos), arquivo_saida)
 
 
+def escreve_xlsx_cod_diagnostico_inexistentes(cod_diagnostico_inexistentes, arquivo_saida):
+    nome_ = arquivo_saida.split('.')
+    nome = f'{nome_[0]}_{DATA}.{nome_[1]}'
+    wb = openpyxl.load_workbook(nome)
+    ws = wb.create_sheet('CodDiagnostico inexistentes')
+    ws['A1'] = 'cod_diagnostico'
+    for i, item in enumerate(progressbar(list(cod_diagnostico_inexistentes), 'Escrevendo...')):
+        ws[f'A{i+2}'] = str(item)
+    nome = arquivo_saida.split('.')
+    wb.save(f'{nome[0]}_{DATA}.{nome[1]}')
+
+
+def escreve_xlsx_protocolo_dieta_inexistentes(protocolo_dieta_inexistentes, arquivo_saida):
+    nome_ = arquivo_saida.split('.')
+    nome = f'{nome_[0]}_{DATA}.{nome_[1]}'
+    wb = openpyxl.load_workbook(nome)
+    ws = wb.create_sheet('ProtocoloDieta inexistentes')
+    ws['A1'] = 'protocolo_dieta'
+    for i, item in enumerate(progressbar(list(protocolo_dieta_inexistentes), 'Escrevendo...')):
+        ws[f'A{i+2}'] = str(item)
+    nome = arquivo_saida.split('.')
+    wb.save(f'{nome[0]}_{DATA}.{nome[1]}')
+
+
+def retorna_cod_diagnostico_inexistentes(items, arquivo_saida):
+    cod_diagnostico_unicos = [item['CodDiagnostico'] for item in items]
+    protocolo_de_dieta_especial = ProtocoloDeDietaEspecial.objects.values_list('nome', flat=True)
+    cod_diagnostico_inexistentes = set(cod_diagnostico_unicos) - set(protocolo_de_dieta_especial)
+    if cod_diagnostico_inexistentes:
+        escreve_xlsx_cod_diagnostico_inexistentes(cod_diagnostico_inexistentes, arquivo_saida)
+
+
+def retorna_protocolo_dieta_inexistentes(items, arquivo_saida):
+    protocolo_dieta_unicos = [item['ProtocoloDieta'] for item in items]
+    protocolo_de_dieta_especial = ProtocoloDeDietaEspecial.objects.values_list('nome', flat=True)
+    protocolo_dieta_inexistentes = set(protocolo_dieta_unicos) - set(protocolo_de_dieta_especial)
+    if protocolo_dieta_inexistentes:
+        escreve_xlsx_protocolo_dieta_inexistentes(protocolo_dieta_inexistentes, arquivo_saida)
+
+
 class Command(BaseCommand):
     help = """
     Lê uma planilha específica com Dietas Ativas a serem integradas no sistema.
@@ -233,3 +290,9 @@ class Command(BaseCommand):
         # Usa items_codigos_escolas
         # Usa gera_dict_codigos_escolas
         retorna_dados_sigpae(items, arquivo_saida)
+
+        # 6 Verificar os campos "CodDiagnostico" e "ProtocoloDieta"
+        retorna_cod_diagnostico_inexistentes(items, arquivo_saida)
+        retorna_protocolo_dieta_inexistentes(items, arquivo_saida)
+
+        escreve_xlsx_primeira_aba(arquivo_saida)
