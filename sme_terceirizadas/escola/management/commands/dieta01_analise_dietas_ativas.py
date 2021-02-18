@@ -29,7 +29,13 @@ def gera_dict_codigos_escolas(items_codigos_escolas):
 
 def gera_dict_codigo_aluno_por_codigo_escola(items):
     for item in items:
-        codigo_eol_escola = dict_codigos_escolas[item['CodEscola']]
+        try:
+            codigo_eol_escola = dict_codigos_escolas[item['CodEscola']]
+        except Exception as e:
+            # Grava os CodEscola não existentes em unidades_da_rede_28.01_.xlsx
+            with open(f'{home}/codescola_nao_existentes.txt', 'a') as f:
+                f.write(f"{item['CodEscola']}\n")
+
         cod_eol_aluno = get_codigo_eol_aluno(item['CodEOLAluno'])
         dict_codigo_aluno_por_codigo_escola[cod_eol_aluno] = get_codigo_eol_escola(codigo_eol_escola)
 
@@ -68,14 +74,38 @@ def escreve_xlsx_alunos_nao_matriculados_na_escola(alunos_nao_matriculados_na_es
     wb.save(f'{nome[0]}_{DATA}.{nome[1]}')
 
 
+def escreve_xlsx_codescola_nao_existentes(codescola_nao_existentes, arquivo_saida):
+    nome_ = arquivo_saida.split('.')
+    nome = f'{nome_[0]}_{DATA}.{nome_[1]}'
+    wb = openpyxl.load_workbook(nome)
+    ws = wb.create_sheet('CodEscola não existentes em unidades_da_rede...')
+    ws['A1'] = 'CodEscola'
+    for i, item in enumerate(progressbar(list(codescola_nao_existentes), 'Escrevendo...')):
+        ws[f'A{i+2}'] = str(item)
+    nome = arquivo_saida.split('.')
+    wb.save(f'{nome[0]}_{DATA}.{nome[1]}')
+
+
 def retorna_codigo_eol_escolas_nao_identificadas(items, arquivo_saida):
-    cod_escola_unicos = set([get_codigo_eol_escola(item['CodEscola']) for item in items])
+    aux = []
+    codescola_nao_existentes = []
+    for item in items:
+        try:
+            aux.append(get_codigo_eol_escola(dict_codigos_escolas[item['CodEscola']]))
+        except Exception as e:
+            # Grava os CodEscola não existentes em unidades_da_rede_28.01_.xlsx
+            print('CodEscola não existentes', item['CodEscola'])
+            codescola_nao_existentes.append(item['CodEscola'])
+
+    cod_escola_unicos = set(aux)
     codigo_eol_sigpae_lista = Escola.objects.values_list('codigo_eol', flat=True)
     codigo_eol_escola_nao_existentes = cod_escola_unicos - set(codigo_eol_sigpae_lista)
+
     escreve_xlsx(codigo_eol_escola_nao_existentes, arquivo_saida)
+    escreve_xlsx_codescola_nao_existentes(set(codescola_nao_existentes), arquivo_saida)
 
 
-def retorna_Alunos_nao_matriculados_na_escola(escolas_da_planilha, items, arquivo_saida):
+def retorna_alunos_nao_matriculados_na_escola(escolas_da_planilha, items, arquivo_saida):
     # Percorrendo "escolas_da_planilha", a partir da planilha pegar todos os alunos de cada escola do iterador.
     tic = timeit.default_timer()
 
@@ -131,17 +161,20 @@ class Command(BaseCommand):
         arquivo_codigos_escolas = f'{home}/Downloads/unidades_da_rede_28.01_.xlsx'
         arquivo_saida = f'{home}/Downloads/resultado_analise_dietas_ativas.xlsx'
         items = excel_to_list_with_openpyxl(arquivo, in_memory=False)
+
         # 1
+        items_codigos_escolas = excel_to_list_with_openpyxl(arquivo_codigos_escolas, in_memory=False)
+        gera_dict_codigos_escolas(items_codigos_escolas)
         retorna_codigo_eol_escolas_nao_identificadas(items, arquivo_saida)
 
         # 2
-        items_codigos_escolas = excel_to_list_with_openpyxl(arquivo_codigos_escolas, in_memory=False)
+        # items_codigos_escolas = excel_to_list_with_openpyxl(arquivo_codigos_escolas, in_memory=False)
 
-        gera_dict_codigos_escolas(items_codigos_escolas)
-        gera_dict_codigo_aluno_por_codigo_escola(items)
+        # gera_dict_codigos_escolas(items_codigos_escolas)
+        # gera_dict_codigo_aluno_por_codigo_escola(items)
 
-        # A partir da planilha, pegar todas as escolas únicas "escolas_da_planilha"
-        escolas_da_planilha = get_escolas_unicas(items)
+        # # A partir da planilha, pegar todas as escolas únicas "escolas_da_planilha"
+        # escolas_da_planilha = get_escolas_unicas(items)
 
-        # Percorrendo "escolas_da_planilha", a partir da planilha pegar todos os alunos de cada escola do iterador.
-        retorna_Alunos_nao_matriculados_na_escola(escolas_da_planilha, items, arquivo_saida)
+        # # Percorrendo "escolas_da_planilha", a partir da planilha pegar todos os alunos de cada escola do iterador.
+        # retorna_alunos_nao_matriculados_na_escola(escolas_da_planilha, items, arquivo_saida)
