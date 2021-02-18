@@ -102,7 +102,9 @@ def retorna_codigo_eol_escolas_nao_identificadas(items, arquivo_saida):
     codigo_eol_escola_nao_existentes = cod_escola_unicos - set(codigo_eol_sigpae_lista)
 
     escreve_xlsx(codigo_eol_escola_nao_existentes, arquivo_saida)
-    escreve_xlsx_codescola_nao_existentes(set(codescola_nao_existentes), arquivo_saida)
+
+    if set(codescola_nao_existentes):
+        escreve_xlsx_codescola_nao_existentes(set(codescola_nao_existentes), arquivo_saida)
 
 
 def retorna_alunos_nao_matriculados_na_escola(escolas_da_planilha, items, arquivo_saida):
@@ -143,6 +145,54 @@ def retorna_alunos_nao_matriculados_na_escola(escolas_da_planilha, items, arquiv
     print('Time', round(toc - tic, 2))
 
 
+def escreve_xlsx_dados_sigpae(items, arquivo_saida):
+    nome_ = arquivo_saida.split('.')
+    nome = f'{nome_[0]}_{DATA}.{nome_[1]}'
+    wb = openpyxl.load_workbook(nome)
+    ws = wb.create_sheet('Dados do SIGPAE para as escolas da planilha')
+    ws['A1'] = 'codigo_eol_escola'
+    ws['B1'] = 'nome_da_escola'
+    ws['C1'] = 'nome_dre'
+    ws['D1'] = 'lote'
+    ws['E1'] = 'tipo_gestao'
+    ws['F1'] = 'contato_email'
+    ws['G1'] = 'contato_telefone'
+    ws['H1'] = 'contato_telefone2'
+    ws['I1'] = 'contato_celular'
+    i = 0  # indice criado manualmente pra não inserir linhas em branco na planilha.
+    for item in progressbar(items, 'Escrevendo...'):
+        escola = Escola.objects.filter(codigo_eol=item).first()
+        if escola:
+            ws[f'A{i+2}'] = escola.codigo_eol
+            ws[f'B{i+2}'] = escola.nome
+            if escola.diretoria_regional:
+                ws[f'C{i+2}'] = escola.diretoria_regional.nome
+            if escola.lote:
+                ws[f'D{i+2}'] = escola.lote.nome
+            if escola.tipo_gestao:
+                ws[f'E{i+2}'] = escola.tipo_gestao.nome
+            if escola.contato:
+                ws[f'F{i+2}'] = escola.contato.email
+                ws[f'G{i+2}'] = escola.contato.telefone
+                ws[f'H{i+2}'] = escola.contato.telefone2
+                ws[f'I{i+2}'] = escola.contato.celular
+            i += 1
+    nome = arquivo_saida.split('.')
+    wb.save(f'{nome[0]}_{DATA}.{nome[1]}')
+
+
+def retorna_dados_sigpae(items, arquivo_saida):
+    aux = []
+    for item in items:
+        try:
+            aux.append(get_codigo_eol_escola(dict_codigos_escolas[item['CodEscola']]))
+        except Exception as e:
+            pass
+
+    cod_escola_unicos = set(aux)
+    escreve_xlsx_dados_sigpae(list(cod_escola_unicos), arquivo_saida)
+
+
 class Command(BaseCommand):
     help = """
     Lê uma planilha específica com Dietas Ativas a serem integradas no sistema.
@@ -178,3 +228,8 @@ class Command(BaseCommand):
 
         # # Percorrendo "escolas_da_planilha", a partir da planilha pegar todos os alunos de cada escola do iterador.
         # retorna_alunos_nao_matriculados_na_escola(escolas_da_planilha, items, arquivo_saida)
+
+        # 5
+        # Usa items_codigos_escolas
+        # Usa gera_dict_codigos_escolas
+        retorna_dados_sigpae(items, arquivo_saida)
