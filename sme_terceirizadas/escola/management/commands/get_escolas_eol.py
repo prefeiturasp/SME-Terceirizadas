@@ -52,6 +52,7 @@ def gera_dict_codigo_aluno_por_codigo_escola(items):
             grava_codescola_nao_existentes(item['CodEscola'])
 
         cod_eol_aluno = get_codigo_eol_aluno(item['CodEOLAluno'])
+        # chave: cod_eol_aluno, valor: codigo_eol_escola
         dict_codigo_aluno_por_codigo_escola[cod_eol_aluno] = get_codigo_eol_escola(codigo_eol_escola)
 
 
@@ -109,8 +110,6 @@ async def get_informacoes_escola_turma_aluno(codigo_eol: str):
 async def main(escolas_da_planilha):
     task_list = []
 
-    escreve_escolas_json('{\n')
-
     for i, escola in enumerate(escolas_da_planilha):
         try:
             codigo_eol_escola = get_codigo_eol_escola(dict_codigos_escolas[escola])
@@ -120,9 +119,6 @@ async def main(escolas_da_planilha):
             grava_codescola_nao_existentes(escola)
 
     await asyncio.gather(*task_list)
-
-    ajustes_no_arquivo()
-    escreve_escolas_json('}\n')
 
 
 class Command(BaseCommand):
@@ -140,14 +136,20 @@ class Command(BaseCommand):
         escolas_da_planilha = list(get_escolas_unicas(items))
         print('Escolas:', len(escolas_da_planilha))
 
+        escreve_escolas_json('{\n')
+
         # Particiona os intervalos da lista para fazer apenas 100 requisições por vez.
-        limit = 100  # 3
-        # for i in range(0, 2 + 1, limit):
+        # limit = 3
+        limit = 100
+        # for i in range(0, 9 + 1, limit):
         for i in range(0, len(escolas_da_planilha) + 1, limit):
             loop = asyncio.get_event_loop()
             loop.run_until_complete(main(escolas_da_planilha[i:i+limit]))
             print('Waiting...')
             time.sleep(10)
+
+        ajustes_no_arquivo()
+        escreve_escolas_json('}\n')
 
         time_taken = round(time.monotonic() - start_time, 2)
         print(f"Time Taken:{time_taken}")

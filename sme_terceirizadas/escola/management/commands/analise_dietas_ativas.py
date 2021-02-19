@@ -1,14 +1,12 @@
 import json
 import openpyxl
-import timeit
-from datetime import date
-from time import sleep
+from datetime import date, datetime
 from pathlib import Path
 from django.core.management.base import BaseCommand
-from utility.carga_dados.helper import excel_to_list_with_openpyxl, progressbar
 from sme_terceirizadas.escola.models import Escola
 from sme_terceirizadas.produto.models import ProtocoloDeDietaEspecial
-from sme_terceirizadas.eol_servico.utils import EOLService
+from utility.carga_dados.helper import excel_to_list_with_openpyxl, progressbar
+
 
 DATA = date.today().isoformat().replace('-', '_')
 home = str(Path.home())
@@ -73,9 +71,11 @@ def escreve_xlsx_primeira_aba(arquivo_saida):
     ws['A2'] = 'Código EOL das Escolas não identificadas no SIGPAE'
     ws['A3'] = 'Código EOL dos Alunos não matriculados na escola'
     ws['A4'] = 'CodEscola não existentes em unidades_da_rede...'
-    ws['A5'] = 'Dados do SIGPAE para as escolas da planilha'
-    ws['A6'] = 'CodDiagnostico inexistentes'
-    ws['A7'] = 'ProtocoloDieta inexistentes'
+    ws['A5'] = 'Alunos com nome diferente do EOL'
+    ws['A6'] = 'Alunos com data nascimento diferente do EOL'
+    ws['A7'] = 'Dados do SIGPAE para as escolas da planilha'
+    ws['A8'] = 'CodDiagnostico inexistentes'
+    ws['A9'] = 'ProtocoloDieta inexistentes'
     nome = arquivo_saida.split('.')
     wb.save(f'{nome[0]}_{DATA}.{nome[1]}')
 
@@ -136,8 +136,8 @@ def get_escolas(arquivo):
     return data
 
 
-def retorna_alunos_nao_matriculados_na_escola(items, arquivo_saida):
-    data = get_escolas(f'{home}/escolas.json')
+def retorna_alunos_nao_matriculados_na_escola(items, escolas, arquivo_saida):
+    data = escolas
     alunos_nao_matriculados_na_escola_lista = []
 
     for aluno in items:
@@ -252,6 +252,86 @@ def retorna_protocolo_dieta_inexistentes(items, arquivo_saida):
         escreve_xlsx_protocolo_dieta_inexistentes(protocolo_dieta_inexistentes, arquivo_saida)
 
 
+def string_to_date(texto, formato):
+    # Transforma string em data.
+    return datetime.strptime(texto, formato).date()
+
+
+def escreve_xlsx_alunos_com_nome_diferente(lista, arquivo_saida):
+    nome_ = arquivo_saida.split('.')
+    nome = f'{nome_[0]}_{DATA}.{nome_[1]}'
+    wb = openpyxl.load_workbook(nome)
+    ws = wb.create_sheet('Alunos com nome diferente do EOL')
+    ws['A1'] = 'nome_aluno_planilha'
+    ws['B1'] = 'nome_aluno_eol'
+    for i, item in enumerate(progressbar(lista, 'Escrevendo...')):
+        ws[f'A{i+2}'] = str(item[0])
+        ws[f'B{i+2}'] = str(item[1])
+    nome = arquivo_saida.split('.')
+    wb.save(f'{nome[0]}_{DATA}.{nome[1]}')
+
+
+def escreve_xlsx_alunos_com_nascimento_diferente(lista, arquivo_saida):
+    nome_ = arquivo_saida.split('.')
+    nome = f'{nome_[0]}_{DATA}.{nome_[1]}'
+    wb = openpyxl.load_workbook(nome)
+    ws = wb.create_sheet('Alunos com nascimento diferente do EOL')
+    ws['A1'] = 'nascimento_planilha'
+    ws['B1'] = 'nascimento_eol'
+    for i, item in enumerate(progressbar(lista, 'Escrevendo...')):
+        ws[f'A{i+2}'] = str(item[0])
+        ws[f'B{i+2}'] = str(item[1])
+    nome = arquivo_saida.split('.')
+    wb.save(f'{nome[0]}_{DATA}.{nome[1]}')
+
+
+def retorna_alunos_com_nome_diferente(items, escolas, arquivo_saida):
+    aux = []
+    for aluno in items:
+        escola = dict_codigo_aluno_por_codigo_escola[str(aluno['CodEOLAluno'])]
+        if escolas.get(escola):
+            # print(aluno['CodEOLAluno'], 'escola:', escola)
+            # print(aluno['CodEOLAluno'], aluno['DataNascimento'], aluno['NomeAluno'])
+            aluno_localizado = list(filter(lambda x: x['cd_aluno'] == aluno['CodEOLAluno'], escolas.get(escola)))
+            if aluno_localizado:
+                nome_aluno_planilha = aluno['NomeAluno']
+                nome_aluno_eol = aluno_localizado[0]['nm_aluno']
+                # print(aluno_localizado[0]['nm_aluno'])
+                # print(nome_aluno_planilha == nome_aluno_eol)
+                if nome_aluno_planilha != nome_aluno_eol:
+                    tupla = (nome_aluno_planilha, nome_aluno_eol)
+                    print(nome_aluno_planilha)
+                    print(nome_aluno_eol)
+                    aux.append(tupla)
+    if aux:
+        escreve_xlsx_alunos_com_nome_diferente(aux, arquivo_saida)
+    else:
+        print('Todos alunos estão com o nome OK.')
+
+
+def retorna_alunos_com_nascimento_diferente(items, escolas, arquivo_saida):
+    aux = []
+    for aluno in items:
+        escola = dict_codigo_aluno_por_codigo_escola[str(aluno['CodEOLAluno'])]
+        if escolas.get(escola):
+            aluno_localizado = list(filter(lambda x: x['cd_aluno'] == aluno['CodEOLAluno'], escolas.get(escola)))
+            if aluno_localizado:
+                nascimento_planilha = string_to_date(aluno['DataNascimento'], '%d/%m/%Y')
+                # print(nascimento_planilha)
+                nascimento_eol = string_to_date(aluno_localizado[0]['dt_nascimento_aluno'], '%Y-%m-%dT%H:%M:%S')
+                # print(nascimento_eol)
+                # print(nascimento_planilha == nascimento_eol)
+                if nascimento_planilha != nascimento_eol:
+                    tupla = (nascimento_planilha, nascimento_eol)
+                    print(nascimento_planilha)
+                    print(nascimento_eol)
+                    aux.append(tupla)
+    if aux:
+        escreve_xlsx_alunos_com_nascimento_diferente(aux, arquivo_saida)
+    else:
+        print('Todos alunos estão com a data de nascimento OK.')
+
+
 class Command(BaseCommand):
     help = """
     Lê uma planilha específica com Dietas Ativas a serem integradas no sistema.
@@ -270,6 +350,7 @@ class Command(BaseCommand):
         arquivo_codigos_escolas = f'{home}/Downloads/unidades_da_rede_28.01_.xlsx'
         arquivo_saida = f'{home}/Downloads/resultado_analise_dietas_ativas.xlsx'
         items = excel_to_list_with_openpyxl(arquivo, in_memory=False)
+        escolas = get_escolas(f'{home}/escolas.json')
 
         # 1
         items_codigos_escolas = excel_to_list_with_openpyxl(arquivo_codigos_escolas, in_memory=False)
@@ -280,7 +361,11 @@ class Command(BaseCommand):
         # Usa items_codigos_escolas
         # Usa gera_dict_codigos_escolas
         gera_dict_codigo_aluno_por_codigo_escola(items)
-        retorna_alunos_nao_matriculados_na_escola(items, arquivo_saida)
+        retorna_alunos_nao_matriculados_na_escola(items, escolas, arquivo_saida)
+
+        # 3 - Retorna nome e data de nascimento que forem diferentes entre a planilha e o EOL.
+        retorna_alunos_com_nome_diferente(items, escolas, arquivo_saida)
+        retorna_alunos_com_nascimento_diferente(items, escolas, arquivo_saida)
 
         # ---
 
