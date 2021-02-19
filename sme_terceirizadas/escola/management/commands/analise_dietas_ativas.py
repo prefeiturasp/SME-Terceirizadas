@@ -1,3 +1,4 @@
+import json
 import openpyxl
 import timeit
 from datetime import date
@@ -38,11 +39,15 @@ def gera_dict_codigo_aluno_por_codigo_escola(items):
                 f.write(f"{item['CodEscola']}\n")
 
         cod_eol_aluno = get_codigo_eol_aluno(item['CodEOLAluno'])
+        # chave: cod_eol_aluno, valor: codigo_eol_escola
         dict_codigo_aluno_por_codigo_escola[cod_eol_aluno] = get_codigo_eol_escola(codigo_eol_escola)
 
 
 def get_escolas_unicas(items):
-    # A partir da planilha, pegar todas as escolas únicas "escolas_da_planilha"
+    """
+    A partir da planilha, pegar todas as escolas únicas "escolas_da_planilha"
+    Retorna escolas únicas.
+    """
     escolas = []
     for item in items:
         escolas.append(item['CodEscola'])
@@ -124,42 +129,39 @@ def retorna_codigo_eol_escolas_nao_identificadas(items, arquivo_saida):
         escreve_xlsx_codescola_nao_existentes(set(codescola_nao_existentes), arquivo_saida)
 
 
-def retorna_alunos_nao_matriculados_na_escola(escolas_da_planilha, items, arquivo_saida):
-    # Percorrendo "escolas_da_planilha", a partir da planilha pegar todos os alunos de cada escola do iterador.
-    tic = timeit.default_timer()
+def get_escolas(arquivo):
+    # Lê os dados de 'escolas.json' e retorna um json.
+    with open(arquivo, 'r') as f:
+        data = json.load(f)
+    return data
 
+
+def retorna_alunos_nao_matriculados_na_escola(items, arquivo_saida):
+    data = get_escolas(f'{home}/escolas.json')
     alunos_nao_matriculados_na_escola_lista = []
-    for i, escola in enumerate(list(escolas_da_planilha)[:5]):
-        print(i, 'Lendo API do EOL...')
-        if i % 4 == 0:
-            sleep(2)
-        # Pegar os alunos de cada escola do iterador.
-        # Retorna uma tupla com CodEOLAluno e NomeAluno
-        alunos_da_planilha_por_escola_lista = [
-            (get_codigo_eol_aluno(item['CodEOLAluno']), item['NomeAluno'])
-            for item in items if item['CodEscola'] == escola
-        ]
-        print('Alunos', i, escola)
-        print(i, 'alunos_da_planilha_por_escola_lista', alunos_da_planilha_por_escola_lista)
-        # Pegar todos os alunos por escola na API usando a função get_informacoes_escola_turma_aluno
-        codigo_eol_escola = get_codigo_eol_escola(dict_codigos_escolas[escola])
-        print('codigo_eol_escola', codigo_eol_escola)
-        alunos_da_api_por_escola_lista = EOLService.get_informacoes_escola_turma_aluno(codigo_eol_escola)
-        for cod_aluno, nome_aluno in alunos_da_planilha_por_escola_lista:
+
+    for aluno in items:
+        escola = dict_codigo_aluno_por_codigo_escola[str(aluno['CodEOLAluno'])]
+        if data.get(escola):
             pertence = any(
-                get_codigo_eol_aluno(aluno['cd_aluno']) == cod_aluno
-                for aluno in alunos_da_api_por_escola_lista
+                get_codigo_eol_aluno(_aluno['cd_aluno']) == str(aluno['CodEOLAluno'])
+                for _aluno in data.get(escola)
             )
-            if not pertence:
-                print(f'>>> Aluno {cod_aluno} - {nome_aluno} não pertence a escola {codigo_eol_escola}')
-                alunos_nao_matriculados_na_escola_lista.append((cod_aluno, nome_aluno, codigo_eol_escola))
-                print()
+            print('aluno:', aluno['CodEOLAluno'], 'escola:', escola, pertence)
+        else:
+            pertence = False
+
+        if not pertence:
+            tupla = (
+                str(aluno['CodEOLAluno']),
+                aluno['NomeAluno'],
+                escola
+            )
+            alunos_nao_matriculados_na_escola_lista.append(tupla)
 
     if alunos_nao_matriculados_na_escola_lista:
+        # Criar lista com o nome e cod_eol_aluno não matriculado na escola informada.
         escreve_xlsx_alunos_nao_matriculados_na_escola(alunos_nao_matriculados_na_escola_lista, arquivo_saida)
-
-    toc = timeit.default_timer()
-    print('Time', round(toc - tic, 2))
 
 
 def escreve_xlsx_dados_sigpae(items, arquivo_saida):
@@ -275,16 +277,12 @@ class Command(BaseCommand):
         retorna_codigo_eol_escolas_nao_identificadas(items, arquivo_saida)
 
         # 2
-        # items_codigos_escolas = excel_to_list_with_openpyxl(arquivo_codigos_escolas, in_memory=False)
+        # Usa items_codigos_escolas
+        # Usa gera_dict_codigos_escolas
+        gera_dict_codigo_aluno_por_codigo_escola(items)
+        retorna_alunos_nao_matriculados_na_escola(items, arquivo_saida)
 
-        # gera_dict_codigos_escolas(items_codigos_escolas)
-        # gera_dict_codigo_aluno_por_codigo_escola(items)
-
-        # # A partir da planilha, pegar todas as escolas únicas "escolas_da_planilha"
-        # escolas_da_planilha = get_escolas_unicas(items)
-
-        # # Percorrendo "escolas_da_planilha", a partir da planilha pegar todos os alunos de cada escola do iterador.
-        # retorna_alunos_nao_matriculados_na_escola(escolas_da_planilha, items, arquivo_saida)
+        # ---
 
         # 5
         # Usa items_codigos_escolas
