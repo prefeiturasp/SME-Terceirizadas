@@ -1,12 +1,13 @@
 import json
-import openpyxl
 from datetime import date, datetime
 from pathlib import Path
+
+import openpyxl
 from django.core.management.base import BaseCommand
-from sme_terceirizadas.escola.models import Escola
-from sme_terceirizadas.produto.models import ProtocoloDeDietaEspecial
 from utility.carga_dados.helper import excel_to_list_with_openpyxl, progressbar
 
+from sme_terceirizadas.escola.models import Escola
+from sme_terceirizadas.produto.models import ProtocoloDeDietaEspecial
 
 DATA = date.today().isoformat().replace('-', '_')
 home = str(Path.home())
@@ -35,6 +36,7 @@ def gera_dict_codigo_aluno_por_codigo_escola(items):
             # Grava os CodEscola não existentes em unidades_da_rede_28.01_.xlsx
             with open(f'{home}/codescola_nao_existentes.txt', 'a') as f:
                 f.write(f"{item['CodEscola']}\n")
+            raise e
 
         cod_eol_aluno = get_codigo_eol_aluno(item['CodEOLAluno'])
         # chave: cod_eol_aluno, valor: codigo_eol_escola
@@ -42,8 +44,8 @@ def gera_dict_codigo_aluno_por_codigo_escola(items):
 
 
 def get_escolas_unicas(items):
-    """
-    A partir da planilha, pegar todas as escolas únicas "escolas_da_planilha"
+    """A partir da planilha, pegar todas as escolas únicas "escolas_da_planilha".
+
     Retorna escolas únicas.
     """
     escolas = []
@@ -108,7 +110,7 @@ def escreve_xlsx_codescola_nao_existentes(codescola_nao_existentes, arquivo_said
     wb.save(f'{nome[0]}_{DATA}.{nome[1]}')
 
 
-def retorna_codigo_eol_escolas_nao_identificadas(items, arquivo_saida):
+def retorna_codigo_eol_escolas_nao_identificadas(items, arquivo_saida):  # noqa C901
     aux = []
     codescola_nao_existentes = []
     for item in items:
@@ -116,8 +118,8 @@ def retorna_codigo_eol_escolas_nao_identificadas(items, arquivo_saida):
             aux.append(get_codigo_eol_escola(dict_codigos_escolas[item['CodEscola']]))
         except Exception as e:
             # Grava os CodEscola não existentes em unidades_da_rede_28.01_.xlsx
-            print('CodEscola não existentes', item['CodEscola'])
             codescola_nao_existentes.append(item['CodEscola'])
+            raise e
 
     cod_escola_unicos = set(aux)
     codigo_eol_sigpae_lista = Escola.objects.values_list('codigo_eol', flat=True)
@@ -136,7 +138,7 @@ def get_escolas(arquivo):
     return data
 
 
-def retorna_alunos_nao_matriculados_na_escola(items, escolas, arquivo_saida):
+def retorna_alunos_nao_matriculados_na_escola(items, escolas, arquivo_saida):  # noqa C901
     data = escolas
     alunos_nao_matriculados_na_escola_lista = []
 
@@ -147,7 +149,6 @@ def retorna_alunos_nao_matriculados_na_escola(items, escolas, arquivo_saida):
                 get_codigo_eol_aluno(_aluno['cd_aluno']) == str(aluno['CodEOLAluno'])
                 for _aluno in data.get(escola)
             )
-            print('aluno:', aluno['CodEOLAluno'], 'escola:', escola, pertence)
         else:
             pertence = False
 
@@ -164,7 +165,7 @@ def retorna_alunos_nao_matriculados_na_escola(items, escolas, arquivo_saida):
         escreve_xlsx_alunos_nao_matriculados_na_escola(alunos_nao_matriculados_na_escola_lista, arquivo_saida)
 
 
-def escreve_xlsx_dados_sigpae(items, arquivo_saida):
+def escreve_xlsx_dados_sigpae(items, arquivo_saida):  # noqa C901
     nome_ = arquivo_saida.split('.')
     nome = f'{nome_[0]}_{DATA}.{nome_[1]}'
     wb = openpyxl.load_workbook(nome)
@@ -206,7 +207,7 @@ def retorna_dados_sigpae(items, arquivo_saida):
         try:
             aux.append(get_codigo_eol_escola(dict_codigos_escolas[item['CodEscola']]))
         except Exception as e:
-            pass
+            raise e
 
     cod_escola_unicos = set(aux)
     escreve_xlsx_dados_sigpae(list(cod_escola_unicos), arquivo_saida)
@@ -285,31 +286,23 @@ def escreve_xlsx_alunos_com_nascimento_diferente(lista, arquivo_saida):
     wb.save(f'{nome[0]}_{DATA}.{nome[1]}')
 
 
-def retorna_alunos_com_nome_diferente(items, escolas, arquivo_saida):
+def retorna_alunos_com_nome_diferente(items, escolas, arquivo_saida):  # noqa C901
     aux = []
     for aluno in items:
         escola = dict_codigo_aluno_por_codigo_escola[str(aluno['CodEOLAluno'])]
         if escolas.get(escola):
-            # print(aluno['CodEOLAluno'], 'escola:', escola)
-            # print(aluno['CodEOLAluno'], aluno['DataNascimento'], aluno['NomeAluno'])
             aluno_localizado = list(filter(lambda x: x['cd_aluno'] == aluno['CodEOLAluno'], escolas.get(escola)))
             if aluno_localizado:
                 nome_aluno_planilha = aluno['NomeAluno']
                 nome_aluno_eol = aluno_localizado[0]['nm_aluno']
-                # print(aluno_localizado[0]['nm_aluno'])
-                # print(nome_aluno_planilha == nome_aluno_eol)
                 if nome_aluno_planilha != nome_aluno_eol:
                     tupla = (nome_aluno_planilha, nome_aluno_eol)
-                    print(nome_aluno_planilha)
-                    print(nome_aluno_eol)
                     aux.append(tupla)
     if aux:
         escreve_xlsx_alunos_com_nome_diferente(aux, arquivo_saida)
-    else:
-        print('Todos alunos estão com o nome OK.')
 
 
-def retorna_alunos_com_nascimento_diferente(items, escolas, arquivo_saida):
+def retorna_alunos_com_nascimento_diferente(items, escolas, arquivo_saida):  # noqa C901
     aux = []
     for aluno in items:
         escola = dict_codigo_aluno_por_codigo_escola[str(aluno['CodEOLAluno'])]
@@ -317,19 +310,12 @@ def retorna_alunos_com_nascimento_diferente(items, escolas, arquivo_saida):
             aluno_localizado = list(filter(lambda x: x['cd_aluno'] == aluno['CodEOLAluno'], escolas.get(escola)))
             if aluno_localizado:
                 nascimento_planilha = string_to_date(aluno['DataNascimento'], '%d/%m/%Y')
-                # print(nascimento_planilha)
                 nascimento_eol = string_to_date(aluno_localizado[0]['dt_nascimento_aluno'], '%Y-%m-%dT%H:%M:%S')
-                # print(nascimento_eol)
-                # print(nascimento_planilha == nascimento_eol)
                 if nascimento_planilha != nascimento_eol:
                     tupla = (nascimento_planilha, nascimento_eol)
-                    print(nascimento_planilha)
-                    print(nascimento_eol)
                     aux.append(tupla)
     if aux:
         escreve_xlsx_alunos_com_nascimento_diferente(aux, arquivo_saida)
-    else:
-        print('Todos alunos estão com a data de nascimento OK.')
 
 
 class Command(BaseCommand):
@@ -366,8 +352,6 @@ class Command(BaseCommand):
         # 3 - Retorna nome e data de nascimento que forem diferentes entre a planilha e o EOL.
         retorna_alunos_com_nome_diferente(items, escolas, arquivo_saida)
         retorna_alunos_com_nascimento_diferente(items, escolas, arquivo_saida)
-
-        # ---
 
         # 5
         # Usa items_codigos_escolas

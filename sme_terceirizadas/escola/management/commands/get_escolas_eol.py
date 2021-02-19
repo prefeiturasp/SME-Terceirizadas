@@ -1,19 +1,15 @@
 import asyncio
-import httpx
-import openpyxl
 import subprocess
 import time
-import timeit
-from datetime import datetime, date
+from datetime import date, datetime
 from pathlib import Path
-from pprint import pprint
-from time import sleep
+
+import httpx
 from django.core.management.base import BaseCommand
 from rest_framework import status
+from utility.carga_dados.helper import excel_to_list_with_openpyxl
 
-from utility.carga_dados.helper import excel_to_list_with_openpyxl, progressbar
 from sme_terceirizadas.dados_comuns.constants import DJANGO_EOL_API_TOKEN, DJANGO_EOL_API_URL
-
 
 MDATA = datetime.now().strftime('%Y%m%d_%H%M%S')
 DEFAULT_HEADERS = {'Authorization': f'Token {DJANGO_EOL_API_TOKEN}'}
@@ -40,7 +36,7 @@ def gera_dict_codigos_escolas(items_codigos_escolas):
 
 def grava_codescola_nao_existentes(valor):
     with open(f'{home}/codescola_nao_existentes.txt', 'a') as f:
-        f.write(f"{valor}\n")
+        f.write(f'{valor}\n')
 
 
 def gera_dict_codigo_aluno_por_codigo_escola(items):
@@ -50,6 +46,7 @@ def gera_dict_codigo_aluno_por_codigo_escola(items):
         except Exception as e:
             # Grava os CodEscola não existentes em unidades_da_rede_28.01_.xlsx
             grava_codescola_nao_existentes(item['CodEscola'])
+            raise e
 
         cod_eol_aluno = get_codigo_eol_aluno(item['CodEOLAluno'])
         # chave: cod_eol_aluno, valor: codigo_eol_escola
@@ -57,8 +54,8 @@ def gera_dict_codigo_aluno_por_codigo_escola(items):
 
 
 def get_escolas_unicas(items):
-    """
-    A partir da planilha, pegar todas as escolas únicas "escolas_da_planilha"
+    """A partir da planilha, pegar todas as escolas únicas "escolas_da_planilha".
+
     Retorna escolas únicas.
     """
     escolas = []
@@ -97,26 +94,26 @@ async def get_informacoes_escola_turma_aluno(codigo_eol: str):
             results = response.json()['results']
             if len(results) == 0:
                 raise EOLException(f'Resultados para o código: {codigo_eol} vazios')
-            print(len(results))
 
             escreve_escolas_json(f'"{codigo_eol}": {results}\n')
 
             return results
         else:
             with open(f'{home}/codigo_eol_erro_da_api_eol.txt', 'a') as f:
-                f.write(f"{codigo_eol}\n")
+                f.write(f'{codigo_eol}\n')
 
 
 async def main(escolas_da_planilha):
     task_list = []
 
-    for i, escola in enumerate(escolas_da_planilha):
+    for escola in escolas_da_planilha:
         try:
             codigo_eol_escola = get_codigo_eol_escola(dict_codigos_escolas[escola])
             task_list.append(get_informacoes_escola_turma_aluno(codigo_eol_escola))
         except Exception as e:
             # Grava os CodEscola não existentes em unidades_da_rede_28.01_.xlsx
             grava_codescola_nao_existentes(escola)
+            raise e
 
     await asyncio.gather(*task_list)
 
@@ -134,25 +131,19 @@ class Command(BaseCommand):
 
         # A partir da planilha, pegar todas as escolas únicas "escolas_da_planilha"
         escolas_da_planilha = list(get_escolas_unicas(items))
-        print('Escolas:', len(escolas_da_planilha))
 
         escreve_escolas_json('{\n')
 
         # Particiona os intervalos da lista para fazer apenas 100 requisições por vez.
-        # limit = 3
         limit = 100
-        # for i in range(0, 9 + 1, limit):
         for i in range(0, len(escolas_da_planilha) + 1, limit):
             loop = asyncio.get_event_loop()
-            loop.run_until_complete(main(escolas_da_planilha[i:i+limit]))
-            print('Waiting...')
+            loop.run_until_complete(main(escolas_da_planilha[i:i + limit]))
+            self.stdout.write('Waiting...')
             time.sleep(10)
 
         ajustes_no_arquivo()
         escreve_escolas_json('}\n')
 
         time_taken = round(time.monotonic() - start_time, 2)
-        print(f"Time Taken:{time_taken}")
-
-        # with open('/tmp/tempo.txt', 'a') as f:
-        #     f.write(f'{len(escolas_da_planilha)} escolas em {time_taken} s\n')
+        self.stdout.write(f'Time Taken:{time_taken}')
