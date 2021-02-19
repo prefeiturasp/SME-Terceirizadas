@@ -151,6 +151,6 @@ class Command(BaseCommand):
 
         time_taken = round(time.monotonic() - start_time, 2)
         print(f"Time Taken:{time_taken}")
-        # Remover
-        with open('/tmp/tempo.txt', 'a') as f:
-            f.write(f'{len(escolas_da_planilha)} escolas em {time_taken} s\n')
+
+        # with open('/tmp/tempo.txt', 'a') as f:
+        #     f.write(f'{len(escolas_da_planilha)} escolas em {time_taken} s\n')
