@@ -1,13 +1,14 @@
-from django.core.management.base import BaseCommand
 import asyncio
 import httpx
 import openpyxl
+import subprocess
 import time
 import timeit
 from datetime import datetime, date
 from pathlib import Path
 from pprint import pprint
 from time import sleep
+from django.core.management.base import BaseCommand
 from rest_framework import status
 
 from utility.carga_dados.helper import excel_to_list_with_openpyxl, progressbar
@@ -55,7 +56,10 @@ def gera_dict_codigo_aluno_por_codigo_escola(items):
 
 
 def get_escolas_unicas(items):
-    # A partir da planilha, pegar todas as escolas únicas "escolas_da_planilha"
+    """
+    A partir da planilha, pegar todas as escolas únicas "escolas_da_planilha"
+    Retorna escolas únicas.
+    """
     escolas = []
     for item in items:
         escolas.append(item['CodEscola'])
@@ -64,6 +68,23 @@ def get_escolas_unicas(items):
 
 class EOLException(Exception):
     pass
+
+
+def escreve_escolas_json(texto):
+    with open(f'{home}/escolas.json', 'a') as f:
+        f.write(texto)
+
+
+def ajustes_no_arquivo():
+    # Troca aspas simples por aspas duplas (foi necessário dois replace).
+    subprocess.run(f'sed -i "s/\'/?/g" {home}/escolas.json', shell=True)
+    subprocess.run(f"sed -i 's/?/\"/g' {home}/escolas.json", shell=True)
+
+    # Insere uma vírgula em todas as linhas exceto na última
+    subprocess.run(f"sed -i '$ !s/$/,/' {home}/escolas.json", shell=True)
+
+    # remove virgula da primeira linha
+    subprocess.run(f"sed -i '1s/,//' {home}/escolas.json", shell=True)
 
 
 async def get_informacoes_escola_turma_aluno(codigo_eol: str):
@@ -76,18 +97,20 @@ async def get_informacoes_escola_turma_aluno(codigo_eol: str):
             if len(results) == 0:
                 raise EOLException(f'Resultados para o código: {codigo_eol} vazios')
             print(len(results))
-            with open(f'{home}/resultado.json', 'a') as f:
-                f.write(f'{results}')
-                f.write('\n')
+
+            escreve_escolas_json(f'"{codigo_eol}": {results}\n')
+
             return results
         else:
             with open(f'{home}/codigo_eol_erro_da_api_eol.txt', 'a') as f:
                 f.write(f"{codigo_eol}\n")
-            # raise EOLException(f'API EOL com erro. Status: {response.status_code}')
 
 
 async def main(escolas_da_planilha):
     task_list = []
+
+    escreve_escolas_json('{\n')
+
     for i, escola in enumerate(escolas_da_planilha):
         try:
             codigo_eol_escola = get_codigo_eol_escola(dict_codigos_escolas[escola])
@@ -97,6 +120,9 @@ async def main(escolas_da_planilha):
             grava_codescola_nao_existentes(escola)
 
     await asyncio.gather(*task_list)
+
+    ajustes_no_arquivo()
+    escreve_escolas_json('}\n')
 
 
 class Command(BaseCommand):
@@ -115,9 +141,11 @@ class Command(BaseCommand):
         print('Escolas:', len(escolas_da_planilha))
 
         # Particiona os intervalos da lista para fazer apenas 100 requisições por vez.
-        for i in range(0, len(escolas_da_planilha) + 1, 100):
+        limit = 100  # 3
+        # for i in range(0, 2 + 1, limit):
+        for i in range(0, len(escolas_da_planilha) + 1, limit):
             loop = asyncio.get_event_loop()
-            loop.run_until_complete(main(escolas_da_planilha[i:i+100]))
+            loop.run_until_complete(main(escolas_da_planilha[i:i+limit]))
             print('Waiting...')
             time.sleep(10)
 
