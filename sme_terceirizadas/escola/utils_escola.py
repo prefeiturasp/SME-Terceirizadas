@@ -114,12 +114,9 @@ async def main(escolas_da_planilha):
     await asyncio.gather(*task_list)
 
 
-def get_escolas():
-    arquivo = f'{home}/Downloads/banco_de_dietas_ativas_05.02_teste.xlsx'
-    arquivo_codigos_escolas = f'{home}/Downloads/unidades_da_rede_28.01_.xlsx'
-
-    items = excel_to_list_with_openpyxl(arquivo, in_memory=False)
-    items_codigos_escolas = excel_to_list_with_openpyxl(arquivo_codigos_escolas, in_memory=False)
+def get_escolas(arquivo, arquivo_codigos_escolas, in_memory):
+    items = excel_to_list_with_openpyxl(arquivo, in_memory=in_memory)
+    items_codigos_escolas = excel_to_list_with_openpyxl(arquivo_codigos_escolas, in_memory=in_memory)
 
     gera_dict_codigos_escolas(items_codigos_escolas)
     gera_dict_codigo_aluno_por_codigo_escola(items)
@@ -132,7 +129,8 @@ def get_escolas():
     # Particiona os intervalos da lista para fazer apenas 100 requisições por vez.
     limit = 100
     for i in range(0, len(escolas_da_planilha) + 1, limit):
-        loop = asyncio.get_event_loop()
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
         loop.run_until_complete(main(escolas_da_planilha[i:i + limit]))
         print('Waiting...')
         time.sleep(10)

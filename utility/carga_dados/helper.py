@@ -3,8 +3,8 @@ import io
 import openpyxl
 import sys
 import urllib.request
-
 import xlrd
+from io import BytesIO
 from utility.carga_dados.escola.helper import bcolors
 
 
@@ -80,8 +80,7 @@ def excel_to_list_with_openpyxl(filename, in_memory=None):
     Usando openpyxl
     '''
     if in_memory:
-        # filename=BytesIO(input_excel.read())
-        pass
+        wb = openpyxl.load_workbook(filename=BytesIO(filename.read()))
     else:
         wb = openpyxl.load_workbook(filename)
 

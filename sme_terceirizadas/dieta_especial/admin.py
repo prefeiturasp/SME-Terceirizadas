@@ -4,6 +4,7 @@ from django.urls import path
 
 from sme_terceirizadas.dados_comuns.constants import COORDENADOR_LOGISTICA
 from sme_terceirizadas.escola.models import Codae
+from sme_terceirizadas.escola.utils_escola import get_escolas
 
 from .forms import AlimentoProprioForm
 from .models import (
@@ -119,8 +120,8 @@ class PlanilhaDietasAtivasAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         # Lendo arquivo InMemoryUploadedFile
         arquivo = request.FILES.get('arquivo')
-        arquivo_unidades_da_rede = request.FILES.get('arquivo_unidades_da_rede')
-        items = get_escolas(arquivo, arquivo_unidades_da_rede, in_memory=True)
+        arquivo_codigos_escolas = request.FILES.get('arquivo_unidades_da_rede')
+        items = get_escolas(arquivo, arquivo_codigos_escolas, in_memory=True)
         super(PlanilhaDietasAtivasAdmin, self).save_model(request, obj, form, change)
 
 
