@@ -101,6 +101,8 @@ attrs = "==19.1.0"
 xlrd = "*"
 spyne = "==2.13.16"
 lxml = "*"
+openpyxl = "*"
+httpx = "*"
 
 [requires]
 python_version = "3.6"
