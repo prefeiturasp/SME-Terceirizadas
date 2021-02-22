@@ -121,7 +121,7 @@ class PlanilhaDietasAtivasAdmin(admin.ModelAdmin):
         # Lendo arquivo InMemoryUploadedFile
         arquivo = request.FILES.get('arquivo')
         arquivo_codigos_escolas = request.FILES.get('arquivo_unidades_da_rede')
-        items = get_escolas(arquivo, arquivo_codigos_escolas, in_memory=True)
+        get_escolas(arquivo, arquivo_codigos_escolas, in_memory=True)
         super(PlanilhaDietasAtivasAdmin, self).save_model(request, obj, form, change)
 
 

@@ -362,8 +362,9 @@ class PlanilhaDietasAtivas(models.Model):
 
     Requer uma planilha com o De Para entre Código Escola e Código EOL da Escola.
     """
-    arquivo = models.FileField(blank=True, null=True, help_text="Arquivo com escolas e dietas")
-    arquivo_unidades_da_rede = models.FileField(blank=True, null=True, help_text="Arquivo unidades_da_rede...xlsx")
+
+    arquivo = models.FileField(blank=True, null=True, help_text='Arquivo com escolas e dietas')  # noqa DJ01
+    arquivo_unidades_da_rede = models.FileField(blank=True, null=True, help_text='Arquivo unidades_da_rede...xlsx')  # noqa DJ01
     criado_em = models.DateTimeField(
         'criado em',
         auto_now_add=True,

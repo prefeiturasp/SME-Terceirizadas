@@ -1,13 +1,14 @@
 import asyncio
-import httpx
 import subprocess
 import time
 from datetime import date, datetime
 from pathlib import Path
+
+import httpx
 from rest_framework import status
 from utility.carga_dados.helper import excel_to_list_with_openpyxl
-from sme_terceirizadas.dados_comuns.constants import DJANGO_EOL_API_TOKEN, DJANGO_EOL_API_URL
 
+from sme_terceirizadas.dados_comuns.constants import DJANGO_EOL_API_TOKEN, DJANGO_EOL_API_URL
 
 MDATA = datetime.now().strftime('%Y%m%d_%H%M%S')
 DEFAULT_HEADERS = {'Authorization': f'Token {DJANGO_EOL_API_TOKEN}'}
@@ -132,7 +133,7 @@ def get_escolas(arquivo, arquivo_codigos_escolas, in_memory):
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         loop.run_until_complete(main(escolas_da_planilha[i:i + limit]))
-        print('Waiting...')
+        print('Waiting...')  # noqa T001
         time.sleep(10)
 
     ajustes_no_arquivo()
