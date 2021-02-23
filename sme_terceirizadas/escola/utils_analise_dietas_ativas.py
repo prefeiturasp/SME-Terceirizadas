@@ -78,7 +78,9 @@ def escreve_xlsx_primeira_aba(arquivo_saida):
     ws['A8'] = 'CodDiagnostico inexistentes'
     ws['A9'] = 'ProtocoloDieta inexistentes'
     nome = arquivo_saida.split('.')
-    wb.save(f'{nome[0]}_{DATA}.{nome[1]}')
+    nome_final = f'{nome[0]}_{DATA}.{nome[1]}'
+    wb.save(nome_final)
+    return nome_final
 
 
 def escreve_xlsx_alunos_nao_matriculados_na_escola(alunos_nao_matriculados_na_escola_lista, arquivo_saida):
@@ -346,4 +348,5 @@ def main(arquivo, arquivo_codigos_escolas):
     retorna_cod_diagnostico_inexistentes(items, arquivo_saida)
     retorna_protocolo_dieta_inexistentes(items, arquivo_saida)
 
-    escreve_xlsx_primeira_aba(arquivo_saida)
+    arquivo_final = escreve_xlsx_primeira_aba(arquivo_saida)
+    return arquivo_final

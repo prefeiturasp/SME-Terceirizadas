@@ -1,7 +1,8 @@
+from datetime import date
 from django.contrib import admin, messages
 from django.shortcuts import redirect
 from django.urls import path
-
+from django.http import HttpResponse
 from sme_terceirizadas.dados_comuns.constants import COORDENADOR_LOGISTICA
 from sme_terceirizadas.escola.models import Codae
 from sme_terceirizadas.escola.utils_analise_dietas_ativas import main
@@ -131,7 +132,15 @@ class PlanilhaDietasAtivasAdmin(admin.ModelAdmin):
 
         arquivo = queryset[0].arquivo
         arquivo_unidades_da_rede = queryset[0].arquivo_unidades_da_rede
-        main(arquivo=arquivo, arquivo_codigos_escolas=arquivo_unidades_da_rede)
+        resultado = main(arquivo=arquivo, arquivo_codigos_escolas=arquivo_unidades_da_rede)
+
+        # Testando o download do arquivo
+        DATA = date.today().isoformat().replace('-', '_')
+        nome_arquivo = f'resultado_analise_dietas_ativas_{DATA}.xlsx'
+        with open(resultado, 'rb') as f:
+            response = HttpResponse(f.read(), content_type='application/ms-excel')
+            response['Content-Disposition'] = f'attachment; filename="{nome_arquivo}"'
+        return response
 
     analisar_planilha_dietas_ativas.short_description = 'Analisar planilha dietas ativas'
 
