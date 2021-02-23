@@ -4,6 +4,7 @@ from django.urls import path
 
 from sme_terceirizadas.dados_comuns.constants import COORDENADOR_LOGISTICA
 from sme_terceirizadas.escola.models import Codae
+from sme_terceirizadas.escola.utils_analise_dietas_ativas import main
 from sme_terceirizadas.escola.utils_escola import get_escolas
 
 from .forms import AlimentoProprioForm
@@ -116,6 +117,7 @@ class SolicitacaoDietaEspecialAdmin(admin.ModelAdmin):
 @admin.register(PlanilhaDietasAtivas)
 class PlanilhaDietasAtivasAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'criado_em')
+    actions = ('analisar_planilha_dietas_ativas',)
 
     def save_model(self, request, obj, form, change):
         # Lendo arquivo InMemoryUploadedFile
@@ -123,6 +125,17 @@ class PlanilhaDietasAtivasAdmin(admin.ModelAdmin):
         arquivo_codigos_escolas = request.FILES.get('arquivo_unidades_da_rede')
         get_escolas(arquivo, arquivo_codigos_escolas, in_memory=True)
         super(PlanilhaDietasAtivasAdmin, self).save_model(request, obj, form, change)
+
+    def analisar_planilha_dietas_ativas(self, request, queryset):
+        # count = queryset.update(enviar_email_por_produto=True)
+        count = 1
+
+        if count == 1:
+            msg = '{} planilha foi marcada para ser analisada.'
+
+        self.message_user(request, msg.format(count))
+
+    analisar_planilha_dietas_ativas.short_description = 'Analisar planilha dietas ativas'
 
 
 admin.site.register(SubstituicaoAlimento)
