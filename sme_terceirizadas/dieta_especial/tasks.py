@@ -1,5 +1,8 @@
 from celery import shared_task
 
+from sme_terceirizadas.dieta_especial.models import PlanilhaDietasAtivas
+from sme_terceirizadas.escola.utils_escola import get_escolas
+
 from ..perfil.models import Usuario
 from .utils import inicia_dietas_temporarias, termina_dietas_especiais
 
@@ -14,3 +17,13 @@ def processa_dietas_especiais_task():
     usuario_admin = Usuario.objects.get(pk=1)
     inicia_dietas_temporarias(usuario=usuario_admin)
     termina_dietas_especiais(usuario=usuario_admin)
+
+
+@shared_task()
+def get_escolas_task():
+    planilha_dietas_ativas = PlanilhaDietasAtivas.objects.first()
+    get_escolas(
+        planilha_dietas_ativas.arquivo,
+        planilha_dietas_ativas.arquivo_unidades_da_rede,
+        in_memory=True
+    )

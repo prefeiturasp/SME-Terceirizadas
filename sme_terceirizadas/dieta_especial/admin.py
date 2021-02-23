@@ -8,7 +8,6 @@ from django.urls import path
 from sme_terceirizadas.dados_comuns.constants import COORDENADOR_LOGISTICA
 from sme_terceirizadas.escola.models import Codae
 from sme_terceirizadas.escola.utils_analise_dietas_ativas import main
-from sme_terceirizadas.escola.utils_escola import get_escolas
 
 from .forms import AlimentoProprioForm
 from .models import (
@@ -24,7 +23,7 @@ from .models import (
     SubstituicaoAlimento,
     TipoContagem
 )
-from .tasks import processa_dietas_especiais_task
+from .tasks import get_escolas_task, processa_dietas_especiais_task
 
 
 @admin.register(AlergiaIntolerancia)
@@ -117,10 +116,7 @@ class PlanilhaDietasAtivasAdmin(admin.ModelAdmin):
     actions = ('analisar_planilha_dietas_ativas',)
 
     def save_model(self, request, obj, form, change):
-        # Lendo arquivo InMemoryUploadedFile
-        arquivo = request.FILES.get('arquivo')
-        arquivo_codigos_escolas = request.FILES.get('arquivo_unidades_da_rede')
-        get_escolas(arquivo, arquivo_codigos_escolas, in_memory=True)
+        get_escolas_task.delay()
         super(PlanilhaDietasAtivasAdmin, self).save_model(request, obj, form, change)
 
     def analisar_planilha_dietas_ativas(self, request, queryset):
