@@ -2,9 +2,9 @@ import asyncio
 import subprocess
 import time
 from datetime import date, datetime
-from pathlib import Path
 
 import httpx
+from django.conf import settings
 from rest_framework import status
 from utility.carga_dados.helper import excel_to_list_with_openpyxl
 
@@ -13,7 +13,7 @@ from sme_terceirizadas.dados_comuns.constants import DJANGO_EOL_API_TOKEN, DJANG
 MDATA = datetime.now().strftime('%Y%m%d_%H%M%S')
 DEFAULT_HEADERS = {'Authorization': f'Token {DJANGO_EOL_API_TOKEN}'}
 DATA = date.today().isoformat().replace('-', '_')
-home = str(Path.home())
+PATH = str(settings.MEDIA_ROOT)
 dict_codigos_escolas = {}
 dict_codigo_aluno_por_codigo_escola = {}
 
@@ -32,7 +32,7 @@ def gera_dict_codigos_escolas(items_codigos_escolas):
 
 
 def grava_codescola_nao_existentes(valor):
-    with open(f'{home}/codescola_nao_existentes.txt', 'a') as f:
+    with open(f'{PATH}/codescola_nao_existentes.txt', 'a') as f:
         f.write(f'{valor}\n')
 
 
@@ -66,20 +66,20 @@ class EOLException(Exception):
 
 
 def escreve_escolas_json(texto):
-    with open(f'{home}/escolas.json', 'a') as f:
+    with open(f'{PATH}/escolas.json', 'a') as f:
         f.write(texto)
 
 
 def ajustes_no_arquivo():
     # Troca aspas simples por aspas duplas (foi necessário dois replace).
-    subprocess.run(f'sed -i "s/\'/?/g" {home}/escolas.json', shell=True)
-    subprocess.run(f"sed -i 's/?/\"/g' {home}/escolas.json", shell=True)
+    subprocess.run(f'sed -i "s/\'/?/g" {PATH}/escolas.json', shell=True)
+    subprocess.run(f"sed -i 's/?/\"/g' {PATH}/escolas.json", shell=True)
 
     # Insere uma vírgula em todas as linhas exceto na última
-    subprocess.run(f"sed -i '$ !s/$/,/' {home}/escolas.json", shell=True)
+    subprocess.run(f"sed -i '$ !s/$/,/' {PATH}/escolas.json", shell=True)
 
     # remove virgula da primeira linha
-    subprocess.run(f"sed -i '1s/,//' {home}/escolas.json", shell=True)
+    subprocess.run(f"sed -i '1s/,//' {PATH}/escolas.json", shell=True)
 
 
 async def get_informacoes_escola_turma_aluno(codigo_eol: str):
@@ -96,7 +96,7 @@ async def get_informacoes_escola_turma_aluno(codigo_eol: str):
 
             return results
         else:
-            with open(f'{home}/codigo_eol_erro_da_api_eol.txt', 'a') as f:
+            with open(f'{PATH}/codigo_eol_erro_da_api_eol.txt', 'a') as f:
                 f.write(f'{codigo_eol}\n')
 
 
