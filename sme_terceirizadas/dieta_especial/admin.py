@@ -1,8 +1,10 @@
 from datetime import date
+
 from django.contrib import admin, messages
+from django.http import HttpResponse
 from django.shortcuts import redirect
 from django.urls import path
-from django.http import HttpResponse
+
 from sme_terceirizadas.dados_comuns.constants import COORDENADOR_LOGISTICA
 from sme_terceirizadas.escola.models import Codae
 from sme_terceirizadas.escola.utils_analise_dietas_ativas import main
@@ -127,7 +129,7 @@ class PlanilhaDietasAtivasAdmin(admin.ModelAdmin):
             return
 
         count = 1
-        msg = '{} planilha foi marcada para ser analisada.'
+        msg = '{} planilha foi marcada para ser analisada.'  # noqa P103
         self.message_user(request, msg.format(count))
 
         arquivo = queryset[0].arquivo
