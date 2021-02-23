@@ -121,20 +121,17 @@ class PlanilhaDietasAtivasAdmin(admin.ModelAdmin):
         super(PlanilhaDietasAtivasAdmin, self).save_model(request, obj, form, change)
 
     def analisar_planilha_dietas_ativas(self, request, queryset):
-        # count = queryset.update(enviar_email_por_produto=True)
-        count = 1
-        print(self)
-        print(request.POST)
-        print(queryset)
-
         if len(queryset) > 1:
             self.message_user(request, 'Escolha somente uma planilha.', messages.ERROR)
             return
 
-        if count == 1:
-            msg = '{} planilha foi marcada para ser analisada.'
-
+        count = 1
+        msg = '{} planilha foi marcada para ser analisada.'
         self.message_user(request, msg.format(count))
+
+        arquivo = queryset[0].arquivo
+        arquivo_unidades_da_rede = queryset[0].arquivo_unidades_da_rede
+        main(arquivo=arquivo, arquivo_codigos_escolas=arquivo_unidades_da_rede)
 
     analisar_planilha_dietas_ativas.short_description = 'Analisar planilha dietas ativas'
 
