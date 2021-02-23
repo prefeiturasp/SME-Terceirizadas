@@ -77,12 +77,6 @@ class AlimentoProprioAdmin(admin.ModelAdmin):
         return False
 
 
-admin.site.register(Anexo)
-admin.site.register(ClassificacaoDieta)
-admin.site.register(MotivoAlteracaoUE)
-admin.site.register(MotivoNegacao)
-
-
 class SubstituicaoAlimentoInline(admin.TabularInline):
     model = SubstituicaoAlimento
     extra = 0
@@ -129,6 +123,13 @@ class PlanilhaDietasAtivasAdmin(admin.ModelAdmin):
     def analisar_planilha_dietas_ativas(self, request, queryset):
         # count = queryset.update(enviar_email_por_produto=True)
         count = 1
+        print(self)
+        print(request.POST)
+        print(queryset)
+
+        if len(queryset) > 1:
+            self.message_user(request, 'Escolha somente uma planilha.', messages.ERROR)
+            return
 
         if count == 1:
             msg = '{} planilha foi marcada para ser analisada.'
@@ -137,6 +138,13 @@ class PlanilhaDietasAtivasAdmin(admin.ModelAdmin):
 
     analisar_planilha_dietas_ativas.short_description = 'Analisar planilha dietas ativas'
 
+    def has_delete_permission(self, request, obj=None):
+        return False
 
+
+admin.site.register(Anexo)
+admin.site.register(ClassificacaoDieta)
+admin.site.register(MotivoAlteracaoUE)
+admin.site.register(MotivoNegacao)
 admin.site.register(SubstituicaoAlimento)
 admin.site.register(TipoContagem)
