@@ -21,9 +21,7 @@ def processa_dietas_especiais_task():
 
 @shared_task()
 def get_escolas_task():
-    planilha_dietas_ativas = PlanilhaDietasAtivas.objects.first()
-    get_escolas(
-        planilha_dietas_ativas.arquivo,
-        planilha_dietas_ativas.arquivo_unidades_da_rede,
-        in_memory=True
-    )
+    obj = PlanilhaDietasAtivas.objects.first()
+    arquivo = obj.arquivo
+    arquivo_unidades_da_rede = obj.arquivo_unidades_da_rede
+    get_escolas(arquivo, arquivo_unidades_da_rede, obj.tempfile, in_memory=True)

@@ -1,3 +1,4 @@
+import json
 from datetime import date
 
 from django.contrib import admin, messages
@@ -8,6 +9,7 @@ from django.urls import path
 from sme_terceirizadas.dados_comuns.constants import COORDENADOR_LOGISTICA
 from sme_terceirizadas.escola.models import Codae
 from sme_terceirizadas.escola.utils_analise_dietas_ativas import main
+from sme_terceirizadas.escola.utils_escola import create_tempfile, escreve_escolas_json
 
 from .forms import AlimentoProprioForm
 from .models import (
@@ -112,11 +114,15 @@ class SolicitacaoDietaEspecialAdmin(admin.ModelAdmin):
 
 @admin.register(PlanilhaDietasAtivas)
 class PlanilhaDietasAtivasAdmin(admin.ModelAdmin):
-    list_display = ('__str__', 'criado_em')
-    actions = ('analisar_planilha_dietas_ativas',)
+    list_display = ('__str__', 'tempfile', 'criado_em')
+    actions = ('analisar_planilha_dietas_ativas', 'gerar_json_do_eol')
 
     def save_model(self, request, obj, form, change):
-        get_escolas_task.delay()
+        if not change:
+            # Gera JSON temporario
+            obj.tempfile = create_tempfile()
+            escreve_escolas_json(obj.tempfile, '{\n')
+            obj.save
         super(PlanilhaDietasAtivasAdmin, self).save_model(request, obj, form, change)
 
     def analisar_planilha_dietas_ativas(self, request, queryset):
@@ -142,8 +148,26 @@ class PlanilhaDietasAtivasAdmin(admin.ModelAdmin):
 
     analisar_planilha_dietas_ativas.short_description = 'Analisar planilha dietas ativas'
 
+    def gerar_json_do_eol(self, request, queryset):
+        # Lê a API do EOL e gera um arquivo JSON.
+        if len(queryset) > 1:
+            self.message_user(request, 'Escolha somente uma planilha.', messages.ERROR)
+            return
+
+        count = 1
+        msg = '{} planilha foi marcada para ser analisada.'  # noqa P103
+        self.message_user(request, msg.format(count))
+        get_escolas_task.delay()
+
     def has_delete_permission(self, request, obj=None):
         return False
+
+
+def _read_file(filename):
+    # File is json
+    with open(filename, 'r') as f:
+        data = json.load(f)
+    return data
 
 
 admin.site.register(Anexo)
