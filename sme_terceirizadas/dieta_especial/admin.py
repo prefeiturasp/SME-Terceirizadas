@@ -1,4 +1,3 @@
-import json
 from datetime import date
 
 from django.contrib import admin, messages
@@ -134,16 +133,24 @@ class PlanilhaDietasAtivasAdmin(admin.ModelAdmin):
         msg = '{} planilha foi marcada para ser analisada.'  # noqa P103
         self.message_user(request, msg.format(count))
 
+        tempfile = queryset[0].tempfile
+
         arquivo = queryset[0].arquivo
         arquivo_unidades_da_rede = queryset[0].arquivo_unidades_da_rede
-        resultado = main(arquivo=arquivo, arquivo_codigos_escolas=arquivo_unidades_da_rede)
+        resultado, arquivo_final = main(
+            arquivo=arquivo,
+            arquivo_codigos_escolas=arquivo_unidades_da_rede,
+            tempfile=tempfile
+        )
+
+        with open(arquivo_final, 'rb') as f:
+            resultado = f.read()
 
         # Testando o download do arquivo
         DATA = date.today().isoformat().replace('-', '_')
-        nome_arquivo = f'resultado_analise_dietas_ativas_{DATA}.xlsx'
-        with open(resultado, 'rb') as f:
-            response = HttpResponse(f.read(), content_type='application/ms-excel')
-            response['Content-Disposition'] = f'attachment; filename="{nome_arquivo}"'
+        nome_arquivo = f'resultado_analise_dietas_ativas_{DATA}_01.xlsx'
+        response = HttpResponse(resultado, content_type='application/ms-excel')
+        response['Content-Disposition'] = f'attachment; filename="{nome_arquivo}"'
         return response
 
     analisar_planilha_dietas_ativas.short_description = 'Analisar planilha dietas ativas'
@@ -161,13 +168,6 @@ class PlanilhaDietasAtivasAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return False
-
-
-def _read_file(filename):
-    # File is json
-    with open(filename, 'r') as f:
-        data = json.load(f)
-    return data
 
 
 admin.site.register(Anexo)

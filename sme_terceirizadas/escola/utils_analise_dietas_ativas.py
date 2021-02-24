@@ -1,8 +1,11 @@
 import json
 from datetime import date, datetime
+from io import BytesIO
 from pathlib import Path
+from tempfile import NamedTemporaryFile
 
 import openpyxl
+from openpyxl.writer.excel import save_virtual_workbook
 from utility.carga_dados.helper import excel_to_list_with_openpyxl, progressbar
 
 from sme_terceirizadas.escola.models import Escola
@@ -53,20 +56,21 @@ def get_escolas_unicas(items):
     return set(escolas)
 
 
-def escreve_xlsx(codigo_eol_escola_nao_existentes, arquivo_saida):
+def escreve_xlsx(codigo_eol_escola_nao_existentes):
     wb = openpyxl.Workbook()
-    ws = wb.create_sheet('Código EOL das Escolas não identificadas no SIGPAE')
-    ws['A1'] = 'codigo_eol_escola'
-    for i, item in enumerate(progressbar(list(codigo_eol_escola_nao_existentes), 'Escrevendo...')):
-        ws[f'A{i+2}'] = str(item)
-    nome = arquivo_saida.split('.')
-    wb.save(f'{nome[0]}_{DATA}.{nome[1]}')
+    with NamedTemporaryFile() as tmp:
+        ws = wb.create_sheet('Código EOL das Escolas não identificadas no SIGPAE')
+        ws['A1'] = 'codigo_eol_escola'
+        for i, item in enumerate(progressbar(list(codigo_eol_escola_nao_existentes), 'Escrevendo...')):
+            ws[f'A{i+2}'] = str(item)
+        nome_excel_tempfile = f'{tmp.name}.xlsx'
+        wb.save(nome_excel_tempfile)
+        output = BytesIO(save_virtual_workbook(wb))
+    return output, nome_excel_tempfile
 
 
-def escreve_xlsx_primeira_aba(arquivo_saida):
-    nome_ = arquivo_saida.split('.')
-    nome = f'{nome_[0]}_{DATA}.{nome_[1]}'
-    wb = openpyxl.load_workbook(nome)
+def escreve_xlsx_primeira_aba(resultado, arquivo_saida):
+    wb = openpyxl.load_workbook(arquivo_saida)
     ws = wb.worksheets[0]
     ws['A1'] = 'Este arquivo contém as planilhas:'
     ws['A2'] = 'Código EOL das Escolas não identificadas no SIGPAE'
@@ -77,16 +81,12 @@ def escreve_xlsx_primeira_aba(arquivo_saida):
     ws['A7'] = 'Dados do SIGPAE para as escolas da planilha'
     ws['A8'] = 'CodDiagnostico inexistentes'
     ws['A9'] = 'ProtocoloDieta inexistentes'
-    nome = arquivo_saida.split('.')
-    nome_final = f'{nome[0]}_{DATA}.{nome[1]}'
-    wb.save(nome_final)
-    return nome_final
+    wb.save(arquivo_saida)
+    return resultado, arquivo_saida
 
 
 def escreve_xlsx_alunos_nao_matriculados_na_escola(alunos_nao_matriculados_na_escola_lista, arquivo_saida):
-    nome_ = arquivo_saida.split('.')
-    nome = f'{nome_[0]}_{DATA}.{nome_[1]}'
-    wb = openpyxl.load_workbook(nome)
+    wb = openpyxl.load_workbook(arquivo_saida)
     ws = wb.create_sheet('Código EOL dos Alunos não matriculados na escola')
     ws['A1'] = 'codigo_eol_aluno'
     ws['B1'] = 'nome_aluno'
@@ -95,23 +95,20 @@ def escreve_xlsx_alunos_nao_matriculados_na_escola(alunos_nao_matriculados_na_es
         ws[f'A{i+2}'] = str(item[0])
         ws[f'B{i+2}'] = str(item[1])
         ws[f'C{i+2}'] = str(item[2])
-    nome = arquivo_saida.split('.')
-    wb.save(f'{nome[0]}_{DATA}.{nome[1]}')
+    wb.save(arquivo_saida)
+    return arquivo_saida
 
 
 def escreve_xlsx_codescola_nao_existentes(codescola_nao_existentes, arquivo_saida):
-    nome_ = arquivo_saida.split('.')
-    nome = f'{nome_[0]}_{DATA}.{nome_[1]}'
-    wb = openpyxl.load_workbook(nome)
+    wb = openpyxl.load_workbook(arquivo_saida)
     ws = wb.create_sheet('CodEscola não existentes em unidades_da_rede...')
     ws['A1'] = 'CodEscola'
     for i, item in enumerate(progressbar(list(codescola_nao_existentes), 'Escrevendo...')):
         ws[f'A{i+2}'] = str(item)
-    nome = arquivo_saida.split('.')
-    wb.save(f'{nome[0]}_{DATA}.{nome[1]}')
+    wb.save(arquivo_saida)
 
 
-def retorna_codigo_eol_escolas_nao_identificadas(items, arquivo_saida):  # noqa C901
+def retorna_codigo_eol_escolas_nao_identificadas(items):  # noqa C901
     aux = []
     codescola_nao_existentes = []
     for item in items:
@@ -126,10 +123,12 @@ def retorna_codigo_eol_escolas_nao_identificadas(items, arquivo_saida):  # noqa 
     codigo_eol_sigpae_lista = Escola.objects.values_list('codigo_eol', flat=True)
     codigo_eol_escola_nao_existentes = cod_escola_unicos - set(codigo_eol_sigpae_lista)
 
-    escreve_xlsx(codigo_eol_escola_nao_existentes, arquivo_saida)
+    arquivo_saida, nome_excel_tempfile = escreve_xlsx(codigo_eol_escola_nao_existentes)
 
     if set(codescola_nao_existentes):
         escreve_xlsx_codescola_nao_existentes(set(codescola_nao_existentes), arquivo_saida)
+
+    return arquivo_saida, nome_excel_tempfile
 
 
 def get_escolas_json(arquivo):
@@ -163,13 +162,11 @@ def retorna_alunos_nao_matriculados_na_escola(items, escolas, arquivo_saida):  #
 
     if alunos_nao_matriculados_na_escola_lista:
         # Criar lista com o nome e cod_eol_aluno não matriculado na escola informada.
-        escreve_xlsx_alunos_nao_matriculados_na_escola(alunos_nao_matriculados_na_escola_lista, arquivo_saida)
+        return escreve_xlsx_alunos_nao_matriculados_na_escola(alunos_nao_matriculados_na_escola_lista, arquivo_saida)
 
 
 def escreve_xlsx_dados_sigpae(items, arquivo_saida):  # noqa C901
-    nome_ = arquivo_saida.split('.')
-    nome = f'{nome_[0]}_{DATA}.{nome_[1]}'
-    wb = openpyxl.load_workbook(nome)
+    wb = openpyxl.load_workbook(arquivo_saida)
     ws = wb.create_sheet('Dados do SIGPAE para as escolas da planilha')
     ws['A1'] = 'codigo_eol_escola'
     ws['B1'] = 'nome_da_escola'
@@ -198,8 +195,7 @@ def escreve_xlsx_dados_sigpae(items, arquivo_saida):  # noqa C901
                 ws[f'H{i+2}'] = escola.contato.telefone2
                 ws[f'I{i+2}'] = escola.contato.celular
             i += 1
-    nome = arquivo_saida.split('.')
-    wb.save(f'{nome[0]}_{DATA}.{nome[1]}')
+    wb.save(arquivo_saida)
 
 
 def retorna_dados_sigpae(items, arquivo_saida):
@@ -215,27 +211,21 @@ def retorna_dados_sigpae(items, arquivo_saida):
 
 
 def escreve_xlsx_cod_diagnostico_inexistentes(cod_diagnostico_inexistentes, arquivo_saida):
-    nome_ = arquivo_saida.split('.')
-    nome = f'{nome_[0]}_{DATA}.{nome_[1]}'
-    wb = openpyxl.load_workbook(nome)
+    wb = openpyxl.load_workbook(arquivo_saida)
     ws = wb.create_sheet('CodDiagnostico inexistentes')
     ws['A1'] = 'cod_diagnostico'
     for i, item in enumerate(progressbar(list(cod_diagnostico_inexistentes), 'Escrevendo...')):
         ws[f'A{i+2}'] = str(item)
-    nome = arquivo_saida.split('.')
-    wb.save(f'{nome[0]}_{DATA}.{nome[1]}')
+    wb.save(arquivo_saida)
 
 
 def escreve_xlsx_protocolo_dieta_inexistentes(protocolo_dieta_inexistentes, arquivo_saida):
-    nome_ = arquivo_saida.split('.')
-    nome = f'{nome_[0]}_{DATA}.{nome_[1]}'
-    wb = openpyxl.load_workbook(nome)
+    wb = openpyxl.load_workbook(arquivo_saida)
     ws = wb.create_sheet('ProtocoloDieta inexistentes')
     ws['A1'] = 'protocolo_dieta'
     for i, item in enumerate(progressbar(list(protocolo_dieta_inexistentes), 'Escrevendo...')):
         ws[f'A{i+2}'] = str(item)
-    nome = arquivo_saida.split('.')
-    wb.save(f'{nome[0]}_{DATA}.{nome[1]}')
+    wb.save(arquivo_saida)
 
 
 def retorna_cod_diagnostico_inexistentes(items, arquivo_saida):
@@ -260,31 +250,25 @@ def string_to_date(texto, formato):
 
 
 def escreve_xlsx_alunos_com_nome_diferente(lista, arquivo_saida):
-    nome_ = arquivo_saida.split('.')
-    nome = f'{nome_[0]}_{DATA}.{nome_[1]}'
-    wb = openpyxl.load_workbook(nome)
+    wb = openpyxl.load_workbook(arquivo_saida)
     ws = wb.create_sheet('Alunos com nome diferente do EOL')
     ws['A1'] = 'nome_aluno_planilha'
     ws['B1'] = 'nome_aluno_eol'
     for i, item in enumerate(progressbar(lista, 'Escrevendo...')):
         ws[f'A{i+2}'] = str(item[0])
         ws[f'B{i+2}'] = str(item[1])
-    nome = arquivo_saida.split('.')
-    wb.save(f'{nome[0]}_{DATA}.{nome[1]}')
+    wb.save(arquivo_saida)
 
 
 def escreve_xlsx_alunos_com_nascimento_diferente(lista, arquivo_saida):
-    nome_ = arquivo_saida.split('.')
-    nome = f'{nome_[0]}_{DATA}.{nome_[1]}'
-    wb = openpyxl.load_workbook(nome)
+    wb = openpyxl.load_workbook(arquivo_saida)
     ws = wb.create_sheet('Alunos com nascimento diferente do EOL')
     ws['A1'] = 'nascimento_planilha'
     ws['B1'] = 'nascimento_eol'
     for i, item in enumerate(progressbar(lista, 'Escrevendo...')):
         ws[f'A{i+2}'] = str(item[0])
         ws[f'B{i+2}'] = str(item[1])
-    nome = arquivo_saida.split('.')
-    wb.save(f'{nome[0]}_{DATA}.{nome[1]}')
+    wb.save(arquivo_saida)
 
 
 def retorna_alunos_com_nome_diferente(items, escolas, arquivo_saida):  # noqa C901
@@ -319,34 +303,32 @@ def retorna_alunos_com_nascimento_diferente(items, escolas, arquivo_saida):  # n
         escreve_xlsx_alunos_com_nascimento_diferente(aux, arquivo_saida)
 
 
-def main(arquivo, arquivo_codigos_escolas):
-    arquivo_saida = f'{home}/resultado_analise_dietas_ativas.xlsx'
+def main(arquivo, arquivo_codigos_escolas, tempfile):
     items = excel_to_list_with_openpyxl(arquivo, in_memory=False)
-    escolas = get_escolas_json(f'{home}/escolas.json')
+    escolas = get_escolas_json(tempfile)
 
     # 1
     items_codigos_escolas = excel_to_list_with_openpyxl(arquivo_codigos_escolas, in_memory=False)
     gera_dict_codigos_escolas(items_codigos_escolas)
-    retorna_codigo_eol_escolas_nao_identificadas(items, arquivo_saida)
+    resultado, nome_excel_tempfile = retorna_codigo_eol_escolas_nao_identificadas(items)
 
     # 2
     # Usa items_codigos_escolas
     # Usa gera_dict_codigos_escolas
     gera_dict_codigo_aluno_por_codigo_escola(items)
-    retorna_alunos_nao_matriculados_na_escola(items, escolas, arquivo_saida)
+    retorna_alunos_nao_matriculados_na_escola(items, escolas, nome_excel_tempfile)
 
     # 3 - Retorna nome e data de nascimento que forem diferentes entre a planilha e o EOL.
-    retorna_alunos_com_nome_diferente(items, escolas, arquivo_saida)
-    retorna_alunos_com_nascimento_diferente(items, escolas, arquivo_saida)
+    retorna_alunos_com_nome_diferente(items, escolas, nome_excel_tempfile)
+    retorna_alunos_com_nascimento_diferente(items, escolas, nome_excel_tempfile)
 
     # 5
     # Usa items_codigos_escolas
     # Usa gera_dict_codigos_escolas
-    retorna_dados_sigpae(items, arquivo_saida)
+    retorna_dados_sigpae(items, nome_excel_tempfile)
 
     # 6 Verificar os campos "CodDiagnostico" e "ProtocoloDieta"
-    retorna_cod_diagnostico_inexistentes(items, arquivo_saida)
-    retorna_protocolo_dieta_inexistentes(items, arquivo_saida)
-
-    arquivo_final = escreve_xlsx_primeira_aba(arquivo_saida)
-    return arquivo_final
+    retorna_cod_diagnostico_inexistentes(items, nome_excel_tempfile)
+    retorna_protocolo_dieta_inexistentes(items, nome_excel_tempfile)
+    res, arquivo_final = escreve_xlsx_primeira_aba(resultado, nome_excel_tempfile)
+    return res, arquivo_final
