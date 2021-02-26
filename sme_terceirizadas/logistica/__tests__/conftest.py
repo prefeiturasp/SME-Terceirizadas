@@ -1,5 +1,14 @@
 import pytest
+from faker import Faker
 from model_mommy import mommy
+
+fake = Faker('pt_BR')
+fake.seed(420)
+
+
+@pytest.fixture
+def distribuidor():
+    return mommy.make('Usuario', email='distribuidor@admin.com', is_superuser=True)
 
 
 @pytest.fixture
@@ -28,4 +37,16 @@ def guia(solicitacao):
         estado_unidade='SP',
         contato_unidade='Carlos',
         telefone_unidade='944462050'
+    )
+
+
+@pytest.fixture
+def solicitacao_de_alteracao_requisicao(solicitacao, distribuidor):
+    return mommy.make(
+        'SolicitacaoDeAlteracaoRequisicao',
+        requisicao=solicitacao,
+        motivo='OUTROS',
+        justificativa=fake.text(),
+        usuario_solicitante=distribuidor,
+        numero_solicitacao='00000001-ALT',
     )
