@@ -1,6 +1,6 @@
 import pytest
-from model_mommy import mommy
 from faker import Faker
+from model_mommy import mommy
 
 fake = Faker('pt_BR')
 fake.seed(420)

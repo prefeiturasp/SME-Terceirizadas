@@ -1,5 +1,4 @@
 from datetime import datetime
-from time import time
 
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import fields, serializers

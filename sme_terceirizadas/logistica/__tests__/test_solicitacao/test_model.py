@@ -1,7 +1,7 @@
 import pytest
 from django.contrib.auth import get_user_model
 
-from ...models.solicitacao import SolicitacaoRemessa, SolicitacaoDeAlteracaoRequisicao
+from ...models.solicitacao import SolicitacaoDeAlteracaoRequisicao, SolicitacaoRemessa
 
 pytestmark = pytest.mark.django_db
 
