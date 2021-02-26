@@ -167,7 +167,6 @@ class ArqSolicitacaoMOD(ComplexModel):
         cnpj = data.get('StrCnpj')
         guias = data.pop('guias', [])
         data.pop('IntSeqenv', None)
-        data.pop('IntQtGuia', None)
         data.pop('IntTotVol', None)
 
         try:
