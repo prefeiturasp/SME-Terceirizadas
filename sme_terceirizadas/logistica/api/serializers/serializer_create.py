@@ -68,6 +68,12 @@ class SolicitacaoRemessaCreateSerializer(serializers.Serializer):
         return solicitacao
 
 
+def novo_numero_solicitacao(objeto):
+    # Nova regra para sequência de numeração.
+    objeto.numero_solicitacao = f'{str(objeto.pk).zfill(8)}-ALT'
+    objeto.save()
+
+
 class SolicitacaoDeAlteracaoRequisicaoCreateSerializer(serializers.ModelSerializer):
     motivo = fields.MultipleChoiceField(choices=SolicitacaoDeAlteracaoRequisicao.MOTIVO_CHOICES)
     requisicao = serializers.UUIDField()
@@ -81,13 +87,14 @@ class SolicitacaoDeAlteracaoRequisicaoCreateSerializer(serializers.ModelSerializ
             dias_uteis = self.get_diferenca_dias_uteis(requisicao.guias.first().data_entrega)
 
             if dias_uteis <= 3:
-                raise serializers.ValidationError('Data limite alcançada. Não é mais possível alterar essa requisição.')
+                raise serializers.ValidationError(
+                    'Data limite alcançada. Não é mais possível alterar essa requisição.')
 
-            solicit_alteracao = SolicitacaoDeAlteracaoRequisicao.objects.create(
+            solicitacao_alteracao = SolicitacaoDeAlteracaoRequisicao.objects.create(
                 usuario_solicitante=user,
-                numero_solicitacao=hex(int(time() * 10000000))[11:],
                 requisicao=requisicao, **validated_data
             )
+            novo_numero_solicitacao(solicitacao_alteracao)
             try:
                 requisicao.solicita_alteracao(user=user, justificativa=validated_data.get('justificativa', ''))
             except InvalidTransitionError as e:
@@ -95,7 +102,7 @@ class SolicitacaoDeAlteracaoRequisicaoCreateSerializer(serializers.ModelSerializ
         except ObjectDoesNotExist:
             raise serializers.ValidationError(f'Requisição de remessa não existe.')
 
-        return solicit_alteracao
+        return solicitacao_alteracao
 
     def get_diferenca_dias_uteis(self, data_entrega):
         hoje = datetime.now().date()
