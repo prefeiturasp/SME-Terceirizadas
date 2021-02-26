@@ -1,6 +1,8 @@
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Count, F, FloatField, Max, Sum
+from django.db.models import Case, Count, F, FloatField, Max, Sum, Value, When
+from django.db.models.fields import CharField
 from django.db.utils import DataError
+from django.http.response import HttpResponse
 from django_filters import rest_framework as filters
 from rest_framework import viewsets
 from rest_framework.decorators import action
@@ -29,6 +31,7 @@ from sme_terceirizadas.logistica.api.serializers.serializers import (
     SolicitacaoRemessaSimplesSerializer,
     XmlParserSolicitacaoSerializer
 )
+from sme_terceirizadas.logistica.api.services.exporta_para_excel import RequisicoesExcelService
 from sme_terceirizadas.logistica.models import Alimento, Embalagem
 from sme_terceirizadas.logistica.models import Guia as GuiasDasRequisicoes
 from sme_terceirizadas.logistica.models import SolicitacaoDeAlteracaoRequisicao, SolicitacaoRemessa
@@ -316,6 +319,39 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
         queryset = queryset.filter(status='DISTRIBUIDOR_CONFIRMA')
         guias = GuiasDasRequisicoes.objects.filter(solicitacao__in=queryset).order_by('-data_entrega').distinct()
         return get_pdf_guia_distribuidor(data=guias)
+
+    @action(
+        detail=False, methods=['GET'],
+        url_path='exporta-excel-visao-analitica',
+        permission_classes=[IsAuthenticated])
+    def gerar_excel(self, request):
+        queryset = self.get_queryset()
+
+        requisicoes = queryset.annotate(status_requisicao=Case(
+            When(status='AGUARDANDO_ENVIO', then=Value('Aguardando envio')),
+            When(status='DILOG_ENVIA', then=Value('Enviada')),
+            When(status='CANCELADA', then=Value('Cancelada')),
+            When(status='DISTRIBUIDOR_CONFIRMA', then=Value('Confirmada')),
+            When(status='DISTRIBUIDOR_SOLICITA_ALTERACAO', then=Value('Em análise')),
+            output_field=CharField(),
+        )).values(
+            'numero_solicitacao', 'status_requisicao', 'quantidade_total_guias', 'guias__numero_guia',
+            'guias__data_entrega', 'guias__codigo_unidade', 'guias__nome_unidade', 'guias__endereco_unidade',
+            'guias__endereco_unidade', 'guias__numero_unidade', 'guias__bairro_unidade', 'guias__cep_unidade',
+            'guias__cidade_unidade', 'guias__estado_unidade', 'guias__contato_unidade', 'guias__telefone_unidade',
+            'guias__alimentos__nome_alimento', 'guias__alimentos__codigo_suprimento', 'guias__alimentos__codigo_papa',
+            'guias__alimentos__embalagens__tipo_embalagem', 'guias__alimentos__embalagens__descricao_embalagem',
+            'guias__alimentos__embalagens__capacidade_embalagem', 'guias__alimentos__embalagens__unidade_medida',
+            'guias__alimentos__embalagens__qtd_volume')
+
+        result = RequisicoesExcelService.exportar(requisicoes)
+
+        response = HttpResponse(
+            result.arquivo,
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = 'attachment; filename=%s' % result.filename
+        return response
 
 
 class GuiaDaRequisicaoModelViewSet(viewsets.ModelViewSet):
