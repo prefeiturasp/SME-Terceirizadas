@@ -14,6 +14,7 @@ def test_instance_model(solicitacao):
     assert model.cnpj
     assert model.numero_solicitacao
     assert model.status
+    assert model.quantidade_total_guias
 
 
 def test_srt_model(solicitacao):
