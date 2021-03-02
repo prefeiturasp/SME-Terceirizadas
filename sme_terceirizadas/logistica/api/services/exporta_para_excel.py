@@ -1,6 +1,7 @@
 from io import BytesIO
 
 from openpyxl import Workbook
+from openpyxl.styles import Font
 from openpyxl.writer.excel import save_virtual_workbook
 
 
@@ -24,8 +25,7 @@ class RequisicoesExcelService(object):
         for ind, title in enumerate(cabecalho, 1):
             celula = ws.cell(row=1, column=ind)
             celula.value = title
-            length = len(title) + 2
-            ws.column_dimensions[celula.column_letter].width = length
+            celula.font = Font(size="13", bold=True)
 
         for ind, requisicao in enumerate(requisioes, 2):
             ws.cell(row=ind, column=1, value=requisicao['numero_solicitacao'])
@@ -36,7 +36,7 @@ class RequisicoesExcelService(object):
             ws.cell(row=ind, column=6, value=requisicao['guias__codigo_unidade'])
             ws.cell(row=ind, column=7, value=requisicao['guias__nome_unidade'])
             ws.cell(row=ind, column=8, value=requisicao['guias__endereco_unidade'])
-            ws.cell(row=ind, column=9, value=requisicao['guias__numero_unidade'])
+            ws.cell(row=ind, column=9, value=int(requisicao['guias__numero_unidade']))
             ws.cell(row=ind, column=10, value=requisicao['guias__bairro_unidade'])
             ws.cell(row=ind, column=11, value=requisicao['guias__cep_unidade'])
             ws.cell(row=ind, column=12, value=requisicao['guias__cidade_unidade'])
@@ -56,6 +56,13 @@ class RequisicoesExcelService(object):
                 ws.cell(row=ind, column=24, value=requisicao['guias__alimentos__embalagens__capacidade_embalagem'])
                 ws.cell(row=ind, column=25, value=requisicao['guias__alimentos__embalagens__unidade_medida'])
                 ws.cell(row=ind, column=26, value=requisicao['guias__alimentos__embalagens__qtd_volume'])
+
+        # auto adjusting column width of cells
+        for column_cells in ws.columns:
+            unmerged_cells = list(
+                filter(lambda cell_to_check: cell_to_check.coordinate not in ws.merged_cells, column_cells))
+            length = max(len(str(cell.value)) for cell in unmerged_cells)
+            ws.column_dimensions[unmerged_cells[0].column_letter].width = length * 1.2
 
         arquivo = BytesIO(save_virtual_workbook(wb))
         filename = 'visao-consolidada.xlsx'
