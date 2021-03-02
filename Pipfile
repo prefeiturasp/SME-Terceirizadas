@@ -101,10 +101,8 @@ attrs = "==19.1.0"
 xlrd = "*"
 spyne = "==2.13.16"
 lxml = "*"
-
-# Exportação Excel
-openpyxl = "==3.0.6"
-httpx = "==0.17.0"
+openpyxl = "*"
+httpx = "*"
 
 [requires]
 python_version = "3.6"

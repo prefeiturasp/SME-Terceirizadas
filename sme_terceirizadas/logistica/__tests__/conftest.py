@@ -16,7 +16,8 @@ def solicitacao():
     return mommy.make(
         'SolicitacaoRemessa',
         cnpj='12345678901234',
-        numero_solicitacao='559890'
+        numero_solicitacao='559890',
+        quantidade_total_guias=2
     )
 
 
