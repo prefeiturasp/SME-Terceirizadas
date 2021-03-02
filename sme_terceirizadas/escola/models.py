@@ -306,7 +306,7 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
         unique=True,
         validators=[MinLengthValidator(6)]
     )
-    codigo_codae = models.CharField( # noqa DJ01
+    codigo_codae = models.CharField(  # noqa DJ01
         'Código CODAE',
         unique=True,
         max_length=10,
@@ -816,6 +816,7 @@ class Aluno(TemChaveExterna):
     cpf = models.CharField(max_length=11, blank=True, null=True, unique=True,  # noqa DJ01
                            validators=[MinLengthValidator(11)])
     nao_matriculado = models.BooleanField(default=False)
+    serie = models.CharField(max_length=10, blank=True, null=True)  # noqa DJ01
 
     responsaveis = models.ManyToManyField(
         Responsavel, blank=True, related_name='alunos')

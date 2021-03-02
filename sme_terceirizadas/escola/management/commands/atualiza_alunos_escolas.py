@@ -98,6 +98,7 @@ class Command(BaseCommand):
             data_nascimento = registro['dt_nascimento_aluno'].split('T')[0]
             periodo = self.PERIODOS[registro['dc_tipo_turno'].strip()]
             periodo_escolar = PeriodoEscolar.objects.get(nome=periodo)
+            serie = registro['dc_turma_escola'].strip()
 
             if aluno:
                 aluno.nome = registro['nm_aluno'].strip()
@@ -105,6 +106,7 @@ class Command(BaseCommand):
                 aluno.data_nascimento = data_nascimento
                 aluno.escola = escola
                 aluno.periodo_escolar = periodo_escolar
+                aluno.serie = serie
                 aluno.save()
             else:
                 obj_aluno = Aluno(
@@ -112,7 +114,8 @@ class Command(BaseCommand):
                     codigo_eol=registro['cd_aluno'],
                     data_nascimento=data_nascimento,
                     escola=escola,
-                    periodo_escolar=periodo_escolar
+                    periodo_escolar=periodo_escolar,
+                    serie=serie
                 )
                 novos_alunos.append(obj_aluno)
         Aluno.objects.bulk_create(novos_alunos)

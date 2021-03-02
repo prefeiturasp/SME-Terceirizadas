@@ -355,3 +355,28 @@ class TipoContagem(Nomeavel, TemChaveExterna):
 
     def __str__(self):
         return self.nome
+
+
+class PlanilhaDietasAtivas(models.Model):
+    """Importa dados de planilha de Dietas Ativas específicas.
+
+    Requer uma planilha com o De Para entre Código Escola e Código EOL da Escola.
+    """
+
+    arquivo = models.FileField(blank=True, null=True, help_text='Arquivo com escolas e dietas')  # noqa DJ01
+    arquivo_unidades_da_rede = models.FileField(blank=True, null=True, help_text='Arquivo unidades_da_rede...xlsx')  # noqa DJ01
+    resultado = models.FileField(blank=True, null=True, help_text='Arquivo com o resultado')  # noqa DJ01
+    tempfile = models.CharField(max_length=100, null=True, blank=True, help_text='JSON temporario')  # noqa DJ01
+    criado_em = models.DateTimeField(
+        'criado em',
+        auto_now_add=True,
+        auto_now=False
+    )
+
+    class Meta:
+        ordering = ('-criado_em',)
+        verbose_name = 'Planilha Dieta Ativa'
+        verbose_name_plural = 'Planilhas Dietas Ativas'
+
+    def __str__(self):
+        return str(self.arquivo)

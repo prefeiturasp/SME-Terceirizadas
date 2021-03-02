@@ -88,7 +88,7 @@ tornado='==6.0.3'    # http://www.tornadoweb.org/en/stable/
 sentry-sdk = "==0.10.2"
 django-prometheus = "==1.1.0"
 # Relatórios
-weasyprint = "==50"
+weasyprint = "==52"
 django-sass-processor = "==0.8"
 django-compressor = "==2.4"
 libsass = "==0.19.4"
@@ -101,8 +101,10 @@ attrs = "==19.1.0"
 xlrd = "*"
 spyne = "==2.13.16"
 lxml = "*"
+
 # Exportação Excel
-openpyxl = "===3.0.6"
+openpyxl = "==3.0.6"
+httpx = "==0.17.0"
 
 [requires]
 python_version = "3.6"
