@@ -325,7 +325,7 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
         url_path='exporta-excel-visao-analitica',
         permission_classes=[IsAuthenticated])
     def gerar_excel(self, request):
-        queryset = self.get_queryset()
+        queryset = self.filter_queryset(self.get_queryset())
 
         requisicoes = queryset.annotate(status_requisicao=Case(
             When(status='AGUARDANDO_ENVIO', then=Value('Aguardando envio')),
@@ -347,10 +347,10 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
         result = RequisicoesExcelService.exportar(requisicoes)
 
         response = HttpResponse(
-            result.arquivo,
+            result['arquivo'],
             content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         )
-        response['Content-Disposition'] = 'attachment; filename=%s' % result.filename
+        response['Content-Disposition'] = 'attachment; filename=%s' % result['filename']
         return response
 
 
