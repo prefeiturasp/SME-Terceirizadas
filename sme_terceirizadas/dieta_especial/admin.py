@@ -87,7 +87,7 @@ class SubstituicaoAlimentoInline(admin.TabularInline):
 
 @admin.register(SolicitacaoDietaEspecial)
 class SolicitacaoDietaEspecialAdmin(admin.ModelAdmin):
-    list_display = ('id_externo', '__str__', 'status', 'ativo')
+    list_display = ('id_externo', '__str__', 'status', 'tipo_solicitacao', 'ativo')
     list_display_links = ('__str__',)
     search_fields = ('uuid', 'aluno__codigo_eol')
     readonly_fields = ('aluno',)

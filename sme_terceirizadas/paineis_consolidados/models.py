@@ -121,6 +121,7 @@ class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmiga
     tipo_solicitacao_dieta = models.CharField(max_length=30)
     terceirizada_nome = models.CharField(max_length=200)
     nome_aluno = models.CharField(max_length=200)
+    serie = models.CharField(max_length=10)
     codigo_eol_aluno = models.CharField(max_length=7)
     aluno_nao_matriculado = models.BooleanField(default=False, null=True)
     dieta_alterada_id = models.IntegerField()
