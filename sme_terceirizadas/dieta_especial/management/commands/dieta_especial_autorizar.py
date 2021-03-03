@@ -33,6 +33,7 @@ def autorizar_dieta(dieta_uuid):
 
     # SubstituicaoAlimento
     alimento = choice(Alimento.objects.all())
+    # Escolhe 3 alimentos substitutos (diferente do alimento escolhido acima).
     alimentos_substitutos = sample(list(Alimento.objects.exclude(pk=alimento.pk)), 3)
 
     substituicao_alimento = SubstituicaoAlimento.objects.create(
@@ -50,7 +51,7 @@ def autorizar_dieta(dieta_uuid):
 
 class Command(BaseCommand):
     help = """
-    Autorizar uma Dieta Especial, informando o uuid da Dieta.
+    Autoriza uma Dieta Especial, informando o uuid da Dieta.
     """
 
     def add_arguments(self, parser):
