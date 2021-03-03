@@ -929,6 +929,16 @@ class SolicitacoesTerceirizada(MoldeConsolidado):
         ).distinct().order_by('-data_log')
 
     @classmethod
+    def get_autorizadas_temporariamente_dieta_especial(cls, **kwargs):
+        return cls.objects.filter(
+            status_atual__in=cls.AUTORIZADO_STATUS_DIETA_ESPECIAL,
+            status_evento__in=cls.AUTORIZADO_EVENTO_DIETA_ESPECIAL,
+            tipo_doc=cls.TP_SOL_DIETA_ESPECIAL,
+            dieta_alterada_id__isnull=False,
+            em_vigencia=False
+        ).distinct().order_by('-data_log')
+
+    @classmethod
     def get_questionamentos(cls, **kwargs):
         terceirizada_uuid = kwargs.get('terceirizada_uuid')
         s = cls.objects.filter(
