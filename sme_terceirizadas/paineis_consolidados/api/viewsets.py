@@ -742,6 +742,16 @@ class TerceirizadaSolicitacoesViewSet(SolicitacoesViewSet):
             terceirizada_uuid=terceirizada_uuid)
         return self._retorno_base(query_set)
 
+    @action(
+        detail=False,
+        methods=['GET'],
+        url_path=f'{INATIVAS_TEMPORARIAMENTE_DIETA_ESPECIAL}/{FILTRO_TERCEIRIZADA_UUID}'
+    )
+    def inativas_temporariamente_dieta_especial(self, request, terceirizada_uuid=None):
+        query_set = SolicitacoesTerceirizada.get_inativas_temporariamente_dieta_especial(
+            terceirizada_uuid=terceirizada_uuid)
+        return self._retorno_base(query_set)
+
     @action(detail=False, methods=['GET'], url_path=f'{QUESTIONAMENTOS}/{FILTRO_TERCEIRIZADA_UUID}')
     def questionamentos(self, request, terceirizada_uuid=None):
         query_set = SolicitacoesTerceirizada.get_questionamentos(
