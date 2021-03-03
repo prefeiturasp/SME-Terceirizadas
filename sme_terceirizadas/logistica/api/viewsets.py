@@ -38,6 +38,7 @@ from sme_terceirizadas.logistica.models import SolicitacaoDeAlteracaoRequisicao,
 
 from ...relatorios.relatorios import get_pdf_guia_distribuidor
 from ..utils import RequisicaoPagination, SolicitacaoAlteracaoPagination
+from .helpers import retorna_dados_normalizados_excel_visao_dilog, retorna_dados_normalizados_excel_visao_distribuidor
 from .filters import GuiaFilter, SolicitacaoAlteracaoFilter, SolicitacaoFilter
 
 STR_XML_BODY = '{http://schemas.xmlsoap.org/soap/envelope/}Body'
@@ -323,28 +324,16 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
     @action(
         detail=False, methods=['GET'],
         url_path='exporta-excel-visao-analitica',
-        permission_classes=[IsAuthenticated])
+        permission_classes=[UsuarioDilogCodae | UsuarioDistribuidor])
     def gerar_excel(self, request):
+        user = self.request.user
         queryset = self.filter_queryset(self.get_queryset())
-
-        requisicoes = queryset.annotate(status_requisicao=Case(
-            When(status='AGUARDANDO_ENVIO', then=Value('Aguardando envio')),
-            When(status='DILOG_ENVIA', then=Value('Enviada')),
-            When(status='CANCELADA', then=Value('Cancelada')),
-            When(status='DISTRIBUIDOR_CONFIRMA', then=Value('Confirmada')),
-            When(status='DISTRIBUIDOR_SOLICITA_ALTERACAO', then=Value('Em análise')),
-            output_field=CharField(),
-        )).values(
-            'numero_solicitacao', 'status_requisicao', 'quantidade_total_guias', 'guias__numero_guia',
-            'guias__data_entrega', 'guias__codigo_unidade', 'guias__nome_unidade', 'guias__endereco_unidade',
-            'guias__endereco_unidade', 'guias__numero_unidade', 'guias__bairro_unidade', 'guias__cep_unidade',
-            'guias__cidade_unidade', 'guias__estado_unidade', 'guias__contato_unidade', 'guias__telefone_unidade',
-            'guias__alimentos__nome_alimento', 'guias__alimentos__codigo_suprimento', 'guias__alimentos__codigo_papa',
-            'guias__alimentos__embalagens__tipo_embalagem', 'guias__alimentos__embalagens__descricao_embalagem',
-            'guias__alimentos__embalagens__capacidade_embalagem', 'guias__alimentos__embalagens__unidade_medida',
-            'guias__alimentos__embalagens__qtd_volume')
-
-        result = RequisicoesExcelService.exportar(requisicoes)
+        if user.vinculo_atual.perfil.nome in ['ADMINISTRADOR_DISTRIBUIDORA']:
+            requisicoes = retorna_dados_normalizados_excel_visao_distribuidor(queryset)
+            result = RequisicoesExcelService.exportar_visao_distribuidor(requisicoes)
+        else:
+            requisicoes = retorna_dados_normalizados_excel_visao_dilog(queryset)
+            result = RequisicoesExcelService.exportar_visao_dilog(requisicoes)
 
         response = HttpResponse(
             result['arquivo'],
