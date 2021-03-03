@@ -52,7 +52,6 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        if settings.DEBUG:
-            aluno = options['aluno']
-            escola = options['escola']
-            criar_dieta(aluno, escola)
+        aluno = options['aluno']
+        escola = options['escola']
+        criar_dieta(aluno, escola)
