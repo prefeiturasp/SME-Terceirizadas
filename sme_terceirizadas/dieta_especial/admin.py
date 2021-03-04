@@ -17,6 +17,7 @@ from .models import (
     AlimentoProprio,
     Anexo,
     ClassificacaoDieta,
+    LogDietasAtivasCanceladasAutomaticamente,
     MotivoAlteracaoUE,
     MotivoNegacao,
     PlanilhaDietasAtivas,
@@ -168,6 +169,33 @@ class PlanilhaDietasAtivasAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return False
+
+
+@admin.register(LogDietasAtivasCanceladasAutomaticamente)
+class LogDietasAtivasCanceladasAutomaticamenteAdmin(admin.ModelAdmin):
+    list_display = (
+        '__str__',
+        'codigo_eol_aluno',
+        'codigo_eol_escola_origem',
+        'codigo_eol_escola_destino',
+        'get_escola_existe'
+    )
+    search_fields = (
+        'codigo_eol_aluno',
+        'nome_aluno',
+        'codigo_eol_escola_origem',
+        'nome_escola_origem',
+        'codigo_eol_escola_destino',
+        'nome_escola_destino',
+    )
+
+    def get_escola_existe(self, obj):
+        if obj.escola_existe:
+            return True
+        return False
+
+    get_escola_existe.boolean = True
+    get_escola_existe.short_description = 'escola existe'
 
 
 admin.site.register(Anexo)

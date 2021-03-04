@@ -74,7 +74,9 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
         DILOG_ACEITA_ALTERACAO,
         DILOG_NEGA_ALTERACAO,
 
-    ) = range(43)
+        CANCELADO_ALUNO_MUDOU_ESCOLA,
+        CANCELADO_ALUNO_NAO_PERTENCE_REDE,
+    ) = range(45)
 
     STATUS_POSSIVEIS = (
         (INICIO_FLUXO, 'Solicitação Realizada'),
@@ -119,6 +121,8 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
         (PAPA_CANCELA_SOLICITACAO, 'Papa cancelou a requisição'),
         (DILOG_ACEITA_ALTERACAO, 'Dilog Aceita Alteração'),
         (DILOG_NEGA_ALTERACAO, 'Dilog Nega Alteração'),
+        (CANCELADO_ALUNO_MUDOU_ESCOLA, 'Cancelado por alteração de U.E.'),
+        (CANCELADO_ALUNO_NAO_PERTENCE_REDE, 'Cancelado porque aluno não está matriculado na rede municipal'),
     )
     (  # DA ESCOLA
         SOLICITACAO_KIT_LANCHE_AVULSA,

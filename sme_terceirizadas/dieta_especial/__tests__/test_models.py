@@ -1,6 +1,9 @@
 import pytest
 import xworkflows
 
+from ...dados_comuns.models import LogSolicitacoesUsuario
+from ..models import LogDietasAtivasCanceladasAutomaticamente
+
 pytestmark = pytest.mark.django_db
 
 
@@ -54,3 +57,35 @@ def test_termina_dieta_especial(solicitacoes_dieta_especial_dt_termino_ontem_ati
         ultimo_log = solicitacao.logs.last()
         assert ultimo_log.usuario_id == usuario_admin.id
         assert ultimo_log.justificativa == 'Atingiu data limite e foi terminada automaticamente'
+
+
+def test_solicitacao_dieta_especial_transicao_cancelar_automaticamente(
+    solicitacao_dieta_especial_autorizada,
+    usuario_admin
+):
+    solicitacao_dieta_especial_autorizada.cancelar_aluno_mudou_escola(user=usuario_admin)
+    ultimo_log = solicitacao_dieta_especial_autorizada.logs.last()
+    assert ultimo_log.usuario_id == usuario_admin.id
+    assert ultimo_log.status_evento == LogSolicitacoesUsuario.CANCELADO_ALUNO_MUDOU_ESCOLA
+
+
+def test_solicitacao_dieta_especial_transicao_cancelar_fora_da_rede(
+    solicitacao_dieta_especial_autorizada,
+    usuario_admin
+):
+    solicitacao_dieta_especial_autorizada.cancelar_aluno_nao_pertence_rede(user=usuario_admin)
+    ultimo_log = solicitacao_dieta_especial_autorizada.logs.last()
+    assert ultimo_log.usuario_id == usuario_admin.id
+    assert ultimo_log.status_evento == LogSolicitacoesUsuario.CANCELADO_ALUNO_NAO_PERTENCE_REDE
+
+
+def test_instance_model(log_dietas_ativas_canceladas_automaticamente):
+    model = log_dietas_ativas_canceladas_automaticamente
+    assert isinstance(model, LogDietasAtivasCanceladasAutomaticamente)
+    assert model.dieta
+    assert model.codigo_eol_aluno
+    assert model.nome_aluno
+    assert model.codigo_eol_escola_origem
+    assert model.nome_escola_origem
+    assert model.codigo_eol_escola_destino
+    assert model.nome_escola_destino

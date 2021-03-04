@@ -483,3 +483,17 @@ def eolservice_get_informacoes_escola_turma_aluno(monkeypatch):
         'get_informacoes_escola_turma_aluno',
         lambda x: js['results']
     )
+
+
+@pytest.fixture
+def log_dietas_ativas_canceladas_automaticamente(solicitacao_dieta_especial_autorizada_ativa):
+    return mommy.make(
+        'LogDietasAtivasCanceladasAutomaticamente',
+        dieta=solicitacao_dieta_especial_autorizada_ativa,
+        codigo_eol_aluno='6595803',
+        nome_aluno='GUILHERME RODRIGUES DA HORA',
+        codigo_eol_escola_origem='019871',
+        nome_escola_origem='EMEF PERICLES EUGENIO DA SILVA RAMOS',
+        codigo_eol_escola_destino='018210',
+        nome_escola_destino='EMEFM DARCY RIBEIRO',
+    )
