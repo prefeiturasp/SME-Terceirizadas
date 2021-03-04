@@ -90,15 +90,21 @@ def retorna_dados_normalizados_excel_visao_dilog(queryset):
         When(status='DISTRIBUIDOR_CONFIRMA', then=Value('Confirmada')),
         When(status='DISTRIBUIDOR_SOLICITA_ALTERACAO', then=Value('Em análise')),
         output_field=CharField(),
-    ), ).values(
+    ), codigo_eol_unidade=Value('', output_field=CharField())).values(
         'distribuidor__nome_fantasia', 'numero_solicitacao', 'status_requisicao', 'quantidade_total_guias',
         'guias__numero_guia', 'guias__status', 'guias__data_entrega', 'guias__codigo_unidade', 'guias__nome_unidade',
         'guias__endereco_unidade', 'guias__endereco_unidade', 'guias__numero_unidade', 'guias__bairro_unidade',
         'guias__cep_unidade', 'guias__cidade_unidade', 'guias__estado_unidade', 'guias__contato_unidade',
         'guias__telefone_unidade', 'guias__alimentos__nome_alimento', 'guias__alimentos__codigo_suprimento',
-        'guias__alimentos__codigo_papa', 'guias__alimentos__embalagens__tipo_embalagem',
+        'guias__alimentos__codigo_papa', 'guias__alimentos__embalagens__tipo_embalagem', 'codigo_eol_unidade',
         'guias__alimentos__embalagens__descricao_embalagem', 'guias__alimentos__embalagens__capacidade_embalagem',
         'guias__alimentos__embalagens__unidade_medida', 'guias__alimentos__embalagens__qtd_volume')
 
+    escolas = Escola.objects.all().values('codigo_eol', 'codigo_codae')
+
+    for requisicao in requisicoes:
+        for escola in escolas:
+            if requisicao['guias__codigo_unidade'] == escola['codigo_codae']:
+                requisicao['codigo_eol_unidade'] = escola.get('codigo_eol', '')
 
     return requisicoes
