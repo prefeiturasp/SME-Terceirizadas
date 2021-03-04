@@ -71,10 +71,10 @@ def gerar_log_dietas_ativas_canceladas_automaticamente(dieta, dados):
         dieta=dieta,
         codigo_eol_aluno=dados['codigo_eol_aluno'],
         nome_aluno=dados['nome_aluno'],
-        codigo_eol_escola_origem=dados['codigo_eol_escola_origem'],
-        nome_escola_origem=dados['nome_escola_origem'],
-        codigo_eol_escola_destino=dados['codigo_eol_escola_destino'],
-        nome_escola_destino=dados['nome_escola_destino'],
+        codigo_eol_escola_origem=dados.get('codigo_eol_escola_origem'),
+        nome_escola_origem=dados.get('nome_escola_origem'),
+        codigo_eol_escola_destino=dados.get('codigo_eol_escola_destino'),
+        nome_escola_destino=dados.get('nome_escola_destino'),
     )
     LogDietasAtivasCanceladasAutomaticamente.objects.create(**data)
 
@@ -95,10 +95,14 @@ def cancela_dietas_ativas_automaticamente():  # noqa C901 D205 D400
         aluno = Aluno.objects.get(codigo_eol=dieta.codigo_eol_aluno)
         dados_do_aluno = get_aluno_eol(dieta.codigo_eol_aluno)
         if dados_do_aluno:
+            if aluno.escola:
+                cod_escola_no_sigpae = aluno.escola.codigo_eol
+            else:
+                cod_escola_no_sigpae = None
             # Retorna True ou False
             resposta = aluno_pertence_a_escola_ou_esta_na_rede(
                 cod_escola_no_eol=dados_do_aluno['cd_escola'],
-                cod_escola_no_sigpae=aluno.escola.codigo_eol
+                cod_escola_no_sigpae=cod_escola_no_sigpae
             )
             escola_existe_no_sigpae = Escola.objects.filter(codigo_eol=dados_do_aluno['cd_escola']).first()
 
@@ -111,11 +115,13 @@ def cancela_dietas_ativas_automaticamente():  # noqa C901 D205 D400
             dados = dict(
                 codigo_eol_aluno=dieta.codigo_eol_aluno,
                 nome_aluno=aluno.nome,
-                codigo_eol_escola_origem=aluno.escola.codigo_eol,
-                nome_escola_origem=aluno.escola.nome,
                 codigo_eol_escola_destino=dados_do_aluno['cd_escola'],
                 nome_escola_destino=nome_escola_destino,
             )
+            if cod_escola_no_sigpae:
+                dados['nome_escola_origem'] = aluno.escola.nome
+                dados['codigo_eol_escola_origem'] = aluno.escola.codigo_eol
+
             if not resposta:
                 gerar_log_dietas_ativas_canceladas_automaticamente(solicitacao_dieta, dados)
                 # Cancelar Dieta

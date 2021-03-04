@@ -368,6 +368,10 @@ CELERY_BEAT_SCHEDULE = {
     'atualiza-alunos-escolas': {
         'task': 'sme_terceirizadas.escola.tasks.atualiza_alunos_escolas',
         'schedule': crontab(hour=2, minute=0)
+    },
+    'cancela-dietas-ativas-automaticamente': {
+        'task': 'sme_terceirizadas.dieta_especial.tasks.cancela_dietas_ativas_automaticamente_task',
+        'schedule': crontab(hour=2, minute=30)
     }
 }
 
