@@ -1,4 +1,5 @@
 from unicodedata import normalize
+
 from django.db.models import Case, Value, When
 from django.db.models.fields import CharField
 

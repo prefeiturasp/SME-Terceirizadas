@@ -1,6 +1,5 @@
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Case, Count, F, FloatField, Max, Sum, Value, When
-from django.db.models.fields import CharField
+from django.db.models import Count, F, FloatField, Max, Sum
 from django.db.utils import DataError
 from django.http.response import HttpResponse
 from django_filters import rest_framework as filters
@@ -38,8 +37,8 @@ from sme_terceirizadas.logistica.models import SolicitacaoDeAlteracaoRequisicao,
 
 from ...relatorios.relatorios import get_pdf_guia_distribuidor
 from ..utils import RequisicaoPagination, SolicitacaoAlteracaoPagination
-from .helpers import retorna_dados_normalizados_excel_visao_dilog, retorna_dados_normalizados_excel_visao_distribuidor
 from .filters import GuiaFilter, SolicitacaoAlteracaoFilter, SolicitacaoFilter
+from .helpers import retorna_dados_normalizados_excel_visao_dilog, retorna_dados_normalizados_excel_visao_distribuidor
 
 STR_XML_BODY = '{http://schemas.xmlsoap.org/soap/envelope/}Body'
 STR_ARQUIVO_SOLICITACAO = 'ArqSolicitacaoMOD'

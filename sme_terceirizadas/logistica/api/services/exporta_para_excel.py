@@ -1,7 +1,7 @@
 from io import BytesIO
 
 from openpyxl import Workbook
-from openpyxl.styles import Font, Border, Side, PatternFill
+from openpyxl.styles import Border, Font, PatternFill, Side
 from openpyxl.writer.excel import save_virtual_workbook
 
 
@@ -11,7 +11,7 @@ class RequisicoesExcelService(object):
                             top=Side(border_style='thin', color='24292E'),
                             bottom=Side(border_style='thin', color='24292E'))
 
-    @classmethod
+    @classmethod  # noqa C901
     def aplicar_estilo_padrao(cls, ws, count_data, count_fields):
 
         for linha in range(1, (count_data + 2)):
@@ -49,7 +49,7 @@ class RequisicoesExcelService(object):
         for ind, title in enumerate(cabecalho, 1):
             celula = ws.cell(row=1, column=ind)
             celula.value = title
-            celula.font = Font(size="13", bold=True, color='00FFFFFF')
+            celula.font = Font(size='13', bold=True, color='00FFFFFF')
 
         for ind, requisicao in enumerate(requisioes, 2):
             ws.cell(row=ind, column=1, value=requisicao['numero_solicitacao'])
@@ -110,7 +110,7 @@ class RequisicoesExcelService(object):
         for ind, title in enumerate(cabecalho, 1):
             celula = ws.cell(row=1, column=ind)
             celula.value = title
-            celula.font = Font(size="13", bold=True, color='00FFFFFF')
+            celula.font = Font(size='13', bold=True, color='00FFFFFF')
 
         for ind, requisicao in enumerate(requisioes, 2):
             ws.cell(row=ind, column=1, value=requisicao['distribuidor__nome_fantasia'])
