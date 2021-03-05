@@ -57,7 +57,7 @@ def get_aluno_eol(codigo_eol_aluno):
     try:
         dados_do_aluno = EOLService.get_informacoes_aluno(codigo_eol_aluno)
         return dados_do_aluno
-    except EOLException as e:  # noqa F841
+    except EOLException:
         return {}
 
 
@@ -71,10 +71,10 @@ def gerar_log_dietas_ativas_canceladas_automaticamente(dieta, dados):
         dieta=dieta,
         codigo_eol_aluno=dados['codigo_eol_aluno'],
         nome_aluno=dados['nome_aluno'],
-        codigo_eol_escola_origem=dados.get('codigo_eol_escola_origem'),
-        nome_escola_origem=dados.get('nome_escola_origem'),
-        codigo_eol_escola_destino=dados.get('codigo_eol_escola_destino'),
-        nome_escola_destino=dados.get('nome_escola_destino'),
+        codigo_eol_escola_destino=dados.get('codigo_eol_escola_origem'),
+        nome_escola_destino=dados.get('nome_escola_origem'),
+        codigo_eol_escola_origem=dados.get('codigo_eol_escola_destino'),
+        nome_escola_origem=dados.get('nome_escola_destino'),
     )
     LogDietasAtivasCanceladasAutomaticamente.objects.create(**data)
 
