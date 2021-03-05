@@ -121,8 +121,8 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
         (PAPA_CANCELA_SOLICITACAO, 'Papa cancelou a requisição'),
         (DILOG_ACEITA_ALTERACAO, 'Dilog Aceita Alteração'),
         (DILOG_NEGA_ALTERACAO, 'Dilog Nega Alteração'),
-        (CANCELADO_ALUNO_MUDOU_ESCOLA, 'Cancelado por alteração de U.E.'),
-        (CANCELADO_ALUNO_NAO_PERTENCE_REDE, 'Cancelado porque aluno não está matriculado na rede municipal'),
+        (CANCELADO_ALUNO_MUDOU_ESCOLA, 'Cancelamento por alteração de unidade educacional'),
+        (CANCELADO_ALUNO_NAO_PERTENCE_REDE, 'Cancelamento para aluno não matriculado na rede municipal'),
     )
     (  # DA ESCOLA
         SOLICITACAO_KIT_LANCHE_AVULSA,

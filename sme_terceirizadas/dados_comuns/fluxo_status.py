@@ -252,8 +252,8 @@ class DietaEspecialWorkflow(xwf_models.Workflow):
         (TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO,
          'Terceirizada tomou ciência da inativação'),
         (TERMINADA_AUTOMATICAMENTE_SISTEMA, 'Data de término atingida'),
-        (CANCELADO_ALUNO_MUDOU_ESCOLA, 'Cancelado por alteração de U.E.'),
-        (CANCELADO_ALUNO_NAO_PERTENCE_REDE, 'Cancelado porque aluno não está matriculado na rede municipal')
+        (CANCELADO_ALUNO_MUDOU_ESCOLA, 'Cancelamento por alteração de unidade educacional'),
+        (CANCELADO_ALUNO_NAO_PERTENCE_REDE, 'Cancelamento para aluno não matriculado na rede municipal')
     )
 
     transitions = (
