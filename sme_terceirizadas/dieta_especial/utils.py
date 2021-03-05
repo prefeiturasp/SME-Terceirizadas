@@ -138,6 +138,8 @@ def cancela_dietas_ativas_automaticamente():  # noqa C901 D205 D400
             dados = dict(
                 codigo_eol_aluno=dieta.codigo_eol_aluno,
                 nome_aluno=aluno.nome,
+                codigo_eol_escola_origem=aluno.escola.codigo_eol,
+                nome_escola_origem=aluno.escola.nome,
             )
             gerar_log_dietas_ativas_canceladas_automaticamente(solicitacao_dieta, dados)
             _cancelar_dieta_aluno_fora_da_rede(solicitacao_dieta)
