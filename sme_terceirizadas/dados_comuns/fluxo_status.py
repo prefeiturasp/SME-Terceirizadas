@@ -234,6 +234,8 @@ class DietaEspecialWorkflow(xwf_models.Workflow):
     CODAE_AUTORIZOU_INATIVACAO = 'CODAE_AUTORIZOU_INATIVACAO'
     TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO = 'TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO'
     TERMINADA_AUTOMATICAMENTE_SISTEMA = 'TERMINADA_AUTOMATICAMENTE_SISTEMA'
+    CANCELADO_ALUNO_MUDOU_ESCOLA = 'CANCELADO_ALUNO_MUDOU_ESCOLA'
+    CANCELADO_ALUNO_NAO_PERTENCE_REDE = 'CANCELADO_ALUNO_NAO_PERTENCE_REDE'
 
     ESCOLA_CANCELOU = 'ESCOLA_CANCELOU'
 
@@ -249,7 +251,9 @@ class DietaEspecialWorkflow(xwf_models.Workflow):
         (CODAE_AUTORIZOU_INATIVACAO, 'CODAE autorizou a inativação'),
         (TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO,
          'Terceirizada tomou ciência da inativação'),
-        (TERMINADA_AUTOMATICAMENTE_SISTEMA, 'Data de término atingida')
+        (TERMINADA_AUTOMATICAMENTE_SISTEMA, 'Data de término atingida'),
+        (CANCELADO_ALUNO_MUDOU_ESCOLA, 'Cancelamento por alteração de unidade educacional'),
+        (CANCELADO_ALUNO_NAO_PERTENCE_REDE, 'Cancelamento para aluno não matriculado na rede municipal')
     )
 
     transitions = (
@@ -266,6 +270,8 @@ class DietaEspecialWorkflow(xwf_models.Workflow):
          ESCOLA_SOLICITOU_INATIVACAO, CODAE_AUTORIZOU_INATIVACAO),
         ('terceirizada_toma_ciencia_inativacao',
          CODAE_AUTORIZOU_INATIVACAO, TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO),
+        ('cancelar_aluno_mudou_escola', CODAE_AUTORIZADO, CANCELADO_ALUNO_MUDOU_ESCOLA),
+        ('cancelar_aluno_nao_pertence_rede', CODAE_AUTORIZADO, CANCELADO_ALUNO_NAO_PERTENCE_REDE),
     )
 
     initial_state = RASCUNHO
@@ -1541,6 +1547,20 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
         self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.ESCOLA_CANCELOU,
                                   usuario=user,
                                   justificativa=justificativa)
+
+    @xworkflows.after_transition('cancelar_aluno_mudou_escola')
+    def _cancelar_aluno_mudou_escola_hook(self, *args, **kwargs):
+        self.salvar_log_transicao(
+            status_evento=LogSolicitacoesUsuario.CANCELADO_ALUNO_MUDOU_ESCOLA,
+            usuario=kwargs['user']
+        )
+
+    @xworkflows.after_transition('cancelar_aluno_nao_pertence_rede')
+    def _cancelar_aluno_nao_pertence_rede_hook(self, *args, **kwargs):
+        self.salvar_log_transicao(
+            status_evento=LogSolicitacoesUsuario.CANCELADO_ALUNO_NAO_PERTENCE_REDE,
+            usuario=kwargs['user']
+        )
 
     @xworkflows.after_transition('codae_nega')
     def _codae_nega_hook(self, *args, **kwargs):
