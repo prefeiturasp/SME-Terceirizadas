@@ -86,6 +86,13 @@ def _cancelar_dieta(dieta):
     dieta.save()
 
 
+def _cancelar_dieta_aluno_fora_da_rede(dieta):
+    usuario_admin = Usuario.objects.get(pk=1)
+    dieta.cancelar_aluno_nao_pertence_rede(user=usuario_admin)
+    dieta.ativo = False
+    dieta.save()
+
+
 def cancela_dietas_ativas_automaticamente():  # noqa C901 D205 D400
     """Se um aluno trocar de escola ou não pertencer a rede
     e se tiver uma Dieta Especial Ativa, essa dieta será cancelada automaticamente.
@@ -94,6 +101,8 @@ def cancela_dietas_ativas_automaticamente():  # noqa C901 D205 D400
     for dieta in dietas_ativas_comuns:
         aluno = Aluno.objects.get(codigo_eol=dieta.codigo_eol_aluno)
         dados_do_aluno = get_aluno_eol(dieta.codigo_eol_aluno)
+        solicitacao_dieta = SolicitacaoDietaEspecial.objects.filter(pk=dieta.pk).first()
+
         if dados_do_aluno:
             if aluno.escola:
                 cod_escola_no_sigpae = aluno.escola.codigo_eol
@@ -110,8 +119,6 @@ def cancela_dietas_ativas_automaticamente():  # noqa C901 D205 D400
             if escola_existe_no_sigpae:
                 nome_escola_destino = escola_existe_no_sigpae.nome
 
-            solicitacao_dieta = SolicitacaoDietaEspecial.objects.filter(pk=dieta.pk).first()
-
             dados = dict(
                 codigo_eol_aluno=dieta.codigo_eol_aluno,
                 nome_aluno=aluno.nome,
@@ -126,6 +133,14 @@ def cancela_dietas_ativas_automaticamente():  # noqa C901 D205 D400
                 gerar_log_dietas_ativas_canceladas_automaticamente(solicitacao_dieta, dados)
                 # Cancelar Dieta
                 _cancelar_dieta(solicitacao_dieta)
+        else:
+            # Aluno não pertence a rede municipal.
+            dados = dict(
+                codigo_eol_aluno=dieta.codigo_eol_aluno,
+                nome_aluno=aluno.nome,
+            )
+            gerar_log_dietas_ativas_canceladas_automaticamente(solicitacao_dieta, dados)
+            _cancelar_dieta_aluno_fora_da_rede(solicitacao_dieta)
 
 
 class RelatorioPagination(PageNumberPagination):
