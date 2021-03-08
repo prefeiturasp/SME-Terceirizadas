@@ -385,7 +385,7 @@ class PlanilhaDietasAtivas(models.Model):
 class LogDietasAtivasCanceladasAutomaticamente(CriadoEm):
     dieta = models.ForeignKey(
         'SolicitacaoDietaEspecial',
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         related_name='dietas_especiais',
     )
     codigo_eol_aluno = models.CharField(  # noqa DJ01
