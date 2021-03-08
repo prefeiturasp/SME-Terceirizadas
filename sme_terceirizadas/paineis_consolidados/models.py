@@ -967,14 +967,15 @@ class SolicitacoesTerceirizada(MoldeConsolidado):
             dieta_alterada__isnull=False
         ).only('dieta_alterada_id').values('dieta_alterada_id')
         ids_alterados = [s['dieta_alterada_id'] for s in qs]
+        terceirizada_uuid = kwargs.get('terceirizada_uuid')
         return cls.objects.filter(
-            ~Q(id__in=ids_alterados),
+            terceirizada_uuid=terceirizada_uuid,
             status_atual__in=cls.INATIVOS_STATUS_DIETA_ESPECIAL,
             status_evento__in=cls.INATIVOS_EVENTO_DIETA_ESPECIAL,
             tipo_doc=cls.TP_SOL_DIETA_ESPECIAL,
-            tipo_solicitacao_dieta='COMUM',
+            dieta_alterada_id__isnull=True,
             ativo=False
-        ).distinct().order_by('-data_log')
+        ).exclude(id__in=ids_alterados).distinct().order_by('-data_log')
 
     @classmethod
     def get_questionamentos(cls, **kwargs):
