@@ -6,6 +6,7 @@ from ...dados_comuns.fluxo_status import PedidoAPartirDaEscolaWorkflow
 
 
 class AlteracoesCardapioDestaSemanaManager(models.Manager):
+
     def get_queryset(self):
         hoje = datetime.date.today()
         data_limite_inicial = hoje
@@ -16,6 +17,7 @@ class AlteracoesCardapioDestaSemanaManager(models.Manager):
 
 
 class AlteracoesCardapioDesteMesManager(models.Manager):
+
     def get_queryset(self):
         hoje = datetime.date.today()
         data_limite_inicial = hoje
@@ -26,6 +28,7 @@ class AlteracoesCardapioDesteMesManager(models.Manager):
 
 
 class AlteracoesCardapioVencidaManager(models.Manager):
+
     def get_queryset(self):
         hoje = datetime.date.today()
         return super(AlteracoesCardapioVencidaManager, self).get_queryset(
@@ -39,18 +42,22 @@ class AlteracoesCardapioVencidaManager(models.Manager):
 
 
 class AlteracoesCardapioDoMesCorrenteManager(models.Manager):
+
     def get_queryset(self):
-        hoje = datetime.date.today()
+        hoje = datetime.datetime.today().date()
         primeiro_dia_do_mes = hoje.replace(month=hoje.month, day=1)
-        ultimo_dia_do_mes = hoje.replace(month=hoje.month + 1, day=1) - datetime.timedelta(days=1)
+        proximo_mes = hoje.replace(day=28) + datetime.timedelta(days=4)
+        ultimo_dia_do_mes = proximo_mes - datetime.timedelta(days=proximo_mes.day)
         return super(AlteracoesCardapioDoMesCorrenteManager, self).get_queryset().filter(
             data_inicial__range=(primeiro_dia_do_mes, ultimo_dia_do_mes)
         ).filter(
-            status__in=[PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR,
-                        PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO,
-                        PedidoAPartirDaEscolaWorkflow.DRE_PEDIU_ESCOLA_REVISAR,
-                        PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO,
-                        PedidoAPartirDaEscolaWorkflow.CODAE_QUESTIONADO,
-                        PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO,
-                        PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_TOMOU_CIENCIA]
+            status__in=[
+                PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR,
+                PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO,
+                PedidoAPartirDaEscolaWorkflow.DRE_PEDIU_ESCOLA_REVISAR,
+                PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO,
+                PedidoAPartirDaEscolaWorkflow.CODAE_QUESTIONADO,
+                PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO,
+                PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_TOMOU_CIENCIA
+            ]
         )

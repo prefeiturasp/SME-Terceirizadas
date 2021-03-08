@@ -1,8 +1,17 @@
 {% extends 'cabecalho_rodape_solicitacao.html' %}
 {% load index %}
 {% load static %}
+{% load sass_tags %}
 
 {% block conteudo %}
+
+  <style>
+    span > p {
+      margin-top: 5px;
+      margin-bottom: 5px;
+    }
+  </style>
+
   <div class="conteudo tabela-sem-borda">
   {% include "bloco_fluxo_status_homologacao.html" %}
     {% include "bloco_cabecalho_solicitacao_partindo_escola.html" %}
@@ -10,38 +19,119 @@
       <h5>Descrição da solicitação</h5>
       <table>
         <tr>
-          <th>Cód. EOL do Aluno</th>
-          <th colspan="2">Nome completo do Aluno</th>
-          <th>Data de nascimento</th>
+          {% if solicitacao.tipo_solicitacao == 'ALUNO_NAO_MATRICULADO'%}
+            <th class="w-25">CPF do Aluno</th>
+          {%else%}
+            <th class="w-25">Cód. EOL do Aluno</th>
+          {%endif%}
+          <th class="w-50">Nome completo do Aluno</th>
+          <th class="w-25">Data de nascimento</th>
         </tr>
         <tr>
-          <td>{{ solicitacao.aluno.codigo_eol }}</td>
-          <td colspan="2">{{ solicitacao.aluno.nome }}</td>
-          <td>{{ solicitacao.aluno.data_nascimento }}</td>
+          {% if solicitacao.tipo_solicitacao == 'ALUNO_NAO_MATRICULADO'%}
+            <td>{{ solicitacao.aluno.cpf|default:'' }}</td>
+          {%else%}
+            <td>{{ solicitacao.aluno.codigo_eol }}</td>
+          {%endif%}
+            <td>{{ solicitacao.aluno.nome }}</td>
+            <td>{{ solicitacao.aluno.data_nascimento }}</td>
         </tr>
       </table>
       <hr/>
     </div>
+
+    {% if solicitacao.tipo_solicitacao == 'ALUNO_NAO_MATRICULADO' %}
+      <div class="bloco-pescritor-dieta-especial">
+          <table>
+            <tr>
+              <th class="w-25">CPF do Responsável</th>
+              <th class="w-75">Nome completo do Responsável</th>
+              <th/>
+            </tr>
+          {%for responsavel in solicitacao.aluno.responsaveis.all %}
+            <tr>
+              <td>{{ responsavel.cpf|default:'' }}</td>
+              <td>{{ responsavel.nome }}</td>
+            </tr>
+            <tr/>
+          {% endfor %}
+        </table>
+          <hr/>
+        </div>
+    {% endif %}
+
     <div class="bloco-pescritor-dieta-especial">
       <table>
         <tr>
-          <th>Nome do Pescritor</th>
-          <th>Registro Funcional</th>
+          <th class="w-50">Nome do Pescritor</th>
+          <th class="w-50">Registro Funcional</th>
         </tr>
         <tr>
           <td>{{ solicitacao.nome_completo_pescritor }}</td>
           <td>{{ solicitacao.registro_funcional_pescritor }}</td>
         </tr>
       </table>
-        {% if solicitacao.data_termino %}
-          <h5>Data de término</h5>
-          <p>{{ solicitacao.data_termino }}</p>
+
+      {% if solicitacao.status != 'CODAE_A_AUTORIZAR' and solicitacao.status != 'CODAE_NEGOU_PEDIDO' and solicitacao.status != 'ESCOLA_CANCELOU' %}
+        <hr />
+         <table>
+          <tr>
+            <th class="w-50">
+              Período de Vigência<br/>
+              Data de início
+            </th>
+            <th class="w-50"><br/> Data de término</th>
+          </tr>
+          <tr>
+            <td>{{ solicitacao.data_inicio|date:"SHORT_DATE_FORMAT"|default:'Sem data de início' }}</td>
+            <td>{{ solicitacao.data_termino|date:"SHORT_DATE_FORMAT"|default:'Sem data de término' }}</td>
+          </tr>
+        </table>
+      {% endif %}
+
+      <hr>
+      {% if solicitacao.observacoes %}
+          <h5 style="margin: 0;">Observações</h5>
+          <span>{{ solicitacao.observacoes|safe }}</span>
+          <hr>
+      {% endif %}
+
+      {% if solicitacao.status == 'CODAE_NEGOU_PEDIDO' %}
+        {% if solicitacao.motivo_negacao %}
+          <h5 style="margin: 0;">Motivo da negação</h5>
+          <p style="margin-top: 5px;">{{ solicitacao.motivo_negacao.descricao }}</p>
         {% endif %}
-        {% if solicitacao.observacoes %}
-          <h5>Observações</h5>
-          <p>{{ solicitacao.observacoes|safe }}</p>
+        {% if solicitacao.justificativa_negacao %}
+          <h5 style="margin: 0;">Justificativa da negação</h5>
+          <span>{{ solicitacao.justificativa_negacao|safe }}</span>
         {% endif %}
-      <hr/>
+        <hr>
+      {% endif %}
+
+    {% if solicitacao.status != 'CODAE_A_AUTORIZAR' %}
+      {% if solicitacao.motivo_alteracao_ue or solicitacao.observacoes_alteracao %}
+        <table>
+          <tr>
+            {% if solicitacao.motivo_alteracao_ue%}
+              <th class="w-50">Motivo da alteração</th>
+            {% endif %}
+            {% if solicitacao.observacoes_alteracao %}
+              <th class="w-50">Observações da alteração</th>
+            {% endif %}
+          </tr>
+          <tr>
+            {% if solicitacao.motivo_alteracao_ue%}
+              <td>{{ solicitacao.motivo_alteracao_ue.nome }}</td>
+            {% endif %}
+            {% if solicitacao.observacoes_alteracao %}
+              <td>{{ solicitacao.observacoes_alteracao|striptags|safe|default:'' }}</td>
+            {% endif %}
+          </tr>
+        </table>
+        <hr/>
+      {% endif %}
+    {% endif %}
+
     </div>
     <div class="bloco-relacao-por-diagnostico">
         {% if solicitacao.alergias_intolerancias.exists %}
@@ -68,16 +158,61 @@
             {% endfor %}
         {% endif %}
     </div>
+    {% if solicitacao.escola.tipo_gestao.nome == 'MISTA' or solicitacao.escola.tipo_gestao.nome == 'PARCEIRA' or solicitacao.escola.tipo_gestao.nome == 'DIRETA' %}
+      {% if solicitacao.status != 'CODAE_A_AUTORIZAR' %}
+        <div class="bloco-identificacao-nutri tabela-sem-borda">
+          <h5>Substituições</h5>
+          <table>
+            <thead>
+              <tr>
+                <th>Alimento</th>
+                <th>Tipo</th>
+                <th>Isenção/Substituição</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for substituicao in solicitacao.substituicoes %}
+                <tr>
+                  <td>{{ substituicao.alimento }}</td>
+                  <td className="tipo">
+                    {% if substituicao.tipo == 'I' %}
+                      Isenção
+                    {% elif substituicao.tipo == 'S' %}
+                      Substituição
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if substituicao.substitutos.all %}
+                      {{ substituicao.substitutos.all|join:", " }}
+                    {% else %}
+                      {{ substituicao.alimentos_substitutos.all|join:", " }}
+                    {% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% endif %}
+
+      {% if solicitacao.status != 'CODAE_A_AUTORIZAR' %}
+        <div class="bloco-identificacao-nutri">
+          <h5>Descrever características do alimento</h5>
+          <div style="border-color: #686868; width: 100%">
+            <p>{{ solicitacao.caracteristicas_do_alimento|safe }}</p>
+          </div>
+          <p style="color: red">Os Produtos (Alimentos) devem ser adquiridos utilizando a verba PTRF ou outro recurso disponível.</p>
+        </div>
+      {% endif %}
+    {% endif %}
     <div class="bloco-identificacao-nutri">
         {% if solicitacao.registro_funcional_nutricionista %}
           <h5>Identificação do Nutricionista</h5>
-          <div>
+          <div style="border-color: #686868; width: 100%">
             <p style="text-transform: uppercase">{{ solicitacao.registro_funcional_nutricionista }}</p>
           </div>
         {% endif %}
     </div>
-
-
-      {% include "bloco_historico_questionamento.html" %}
+    {% include "bloco_historico_questionamento.html" %}
   </div>
 {% endblock %}

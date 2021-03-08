@@ -61,9 +61,22 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
         CODAE_RESPONDEU_RECLAMACAO,
 
         # ESPECIFICA SOLICITAÇÂO CADASTRO PRODUTO
-        TERCEIRIZADA_ATENDE_SOLICITACAO_CADASTRO
+        TERCEIRIZADA_ATENDE_SOLICITACAO_CADASTRO,
 
-    ) = range(36)
+        # ESPECIFICA SOLICITAÇÃO DE REMESSA
+        INICIO_FLUXO_SOLICITACAO,
+        DILOG_ENVIA_SOLICITACAO,
+        DISTRIBUIDOR_CONFIRMA_SOLICITACAO,
+        DISTRIBUIDOR_SOLICITA_ALTERACAO_SOLICITACAO,
+        PAPA_CANCELA_SOLICITACAO,
+
+        # ESPECIFICA SOLICITAÇÃO DE ALTERACAO
+        DILOG_ACEITA_ALTERACAO,
+        DILOG_NEGA_ALTERACAO,
+
+        CANCELADO_ALUNO_MUDOU_ESCOLA,
+        CANCELADO_ALUNO_NAO_PERTENCE_REDE,
+    ) = range(45)
 
     STATUS_POSSIVEIS = (
         (INICIO_FLUXO, 'Solicitação Realizada'),
@@ -85,7 +98,7 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
         (CODAE_AUTORIZOU_INATIVACAO, 'CODAE autorizou inativação'),
         (CODAE_NEGOU_INATIVACAO, 'CODAE negou inativação'),
         (TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO, 'Terceirizada tomou ciência da inativação'),  # noqa
-        (TERMINADA_AUTOMATICAMENTE_SISTEMA, 'Terminada por atingir data de término'),  # noqa
+        (TERMINADA_AUTOMATICAMENTE_SISTEMA, 'Cancelada por atingir data de término'),  # noqa
         (CODAE_PENDENTE_HOMOLOGACAO, 'Pendente homologação da CODAE'),
         (CODAE_HOMOLOGADO, 'CODAE homologou'),
         (CODAE_NAO_HOMOLOGADO, 'CODAE não homologou'),
@@ -100,7 +113,16 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
         (CODAE_QUESTIONOU_TERCEIRIZADA, 'CODAE questionou terceirizada sobre reclamação'),  # noqa
         (CODAE_RESPONDEU_RECLAMACAO, 'CODAE respondeu ao reclamante da reclamação'),
         (TERCEIRIZADA_RESPONDEU_RECLAMACAO, 'Terceirizada respondeu a reclamação'),
-        (TERCEIRIZADA_RESPONDEU_ANALISE_SENSORIAL, 'Terceirizada respondeu a análise')  # noqa
+        (TERCEIRIZADA_RESPONDEU_ANALISE_SENSORIAL, 'Terceirizada respondeu a análise'),  # noqa
+        (INICIO_FLUXO_SOLICITACAO, 'Papa enviou a requisição'),
+        (DILOG_ENVIA_SOLICITACAO, 'Dilog Enviou a requisição'),
+        (DISTRIBUIDOR_CONFIRMA_SOLICITACAO, 'Distribuidor confirmou requisição'),  # noqa
+        (DISTRIBUIDOR_SOLICITA_ALTERACAO_SOLICITACAO, 'Distribuidor pede alteração da requisição'),  # noqa
+        (PAPA_CANCELA_SOLICITACAO, 'Papa cancelou a requisição'),
+        (DILOG_ACEITA_ALTERACAO, 'Dilog Aceita Alteração'),
+        (DILOG_NEGA_ALTERACAO, 'Dilog Nega Alteração'),
+        (CANCELADO_ALUNO_MUDOU_ESCOLA, 'Cancelamento por alteração de unidade educacional'),
+        (CANCELADO_ALUNO_NAO_PERTENCE_REDE, 'Cancelamento para aluno não matriculado na rede municipal'),
     )
     (  # DA ESCOLA
         SOLICITACAO_KIT_LANCHE_AVULSA,
@@ -117,8 +139,10 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
         # DA TERCEIRIZADA
         HOMOLOGACAO_PRODUTO,
         # PRODUTOS
-        RECLAMACAO_PRODUTO
-    ) = range(12)
+        RECLAMACAO_PRODUTO,
+        SOLICITACAO_REMESSA_PAPA,
+        SOLICITACAO_DE_ALTERACAO_REQUISICAO
+    ) = range(14)
 
     TIPOS_SOLICITACOES = (
         (SOLICITACAO_KIT_LANCHE_AVULSA, 'Solicitação de kit lanche avulsa'),
@@ -133,7 +157,9 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
         (SOLICITACAO_KIT_LANCHE_UNIFICADA, 'Solicitação de kit lanche unificada'),
         (HOMOLOGACAO_PRODUTO, 'Homologação de Produto'),
         (RECLAMACAO_PRODUTO, 'Reclamação de Produto'),
-        (TERCEIRIZADA_RESPONDEU_ANALISE_SENSORIAL, 'Responde Análise Sensorial')
+        (TERCEIRIZADA_RESPONDEU_ANALISE_SENSORIAL, 'Responde Análise Sensorial'),
+        (SOLICITACAO_REMESSA_PAPA, 'Solicitação de remessa'),
+        (SOLICITACAO_DE_ALTERACAO_REQUISICAO, 'Solicitação de Ateração de requisição')
     )
 
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)

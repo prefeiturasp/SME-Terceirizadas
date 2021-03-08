@@ -51,8 +51,8 @@ class PerfilAdmin(admin.ModelAdmin):
 
 @admin.register(Vinculo)
 class VinculoAdmin(admin.ModelAdmin):
-    list_display = ('__str__',)
-    search_fields = ('usuario__nome',)
+    list_display = ('__str__', 'perfil', 'content_type')
+    search_fields = ('usuario__nome', 'usuario__email', 'usuario__registro_funcional')
 
 
 @admin.register(PlanilhaDiretorCogestor)

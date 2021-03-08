@@ -22,3 +22,18 @@ class ProdutoJaExisteForm(forms.Form):
     fabricante = forms.ModelChoiceField(Fabricante.objects.all(), to_field_name='uuid')
     marca = forms.ModelChoiceField(Marca.objects.all(), to_field_name='uuid')
     nome = forms.CharField()
+
+
+class NomeDeProdutoEditalForm(forms.ModelForm):
+
+    class Meta:
+        fields = ('nome', 'ativo')
+
+    def __init__(self, *args, **kwargs):  # noqa D107
+        super().__init__(*args, **kwargs)
+        self.fields['nome'].required = True
+        instance = getattr(self, 'instance', None)
+        if instance and instance.pk:
+            self.fields['ativo'].disabled = False
+        else:
+            self.fields['ativo'].disabled = True

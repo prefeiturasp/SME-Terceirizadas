@@ -1,26 +1,46 @@
 {% load index %}
 
 {% block cabecalho_solicitacao_partindo_escola %}
+  <hr style="color: #EEEEEE; opacity: 0.3">
   <h5 style="text-align: center">Relatório SIGPAE - {{ solicitacao.DESCRICAO }}</h5>
-  <div class="id-pedido">
-    <div class="retangulo-id">
+  <div class="row id-pedido">
+    <div class="retangulo-id w-25">
       # {{ solicitacao.id_externo }} <br/> <span>Nº DA SOLICITAÇÃO</span>
     </div>
-    <div class="info">
-      <div>Solicitante</div>
-      <div>{{ solicitacao.rastro_escola.nome }}</div>
+    <div class="info w-40">
+      {% if solicitacao.tipo_solicitacao == 'ALTERACAO_UE'%}
+        <div>Escola onde será realizado o programa</div>
+      {% else %}
+        <div>Solicitante</div>
+      {% endif %}
+      <div>{{ escola.nome }}</div>
     </div>
-    <div class="info">
+    <div class="info w-10">
       <div>Lote</div>
-      <div>{{ solicitacao.rastro_lote.nome|slice:"5:15" }}</div>
+      <div>{{ lote.nome|retorna_lote }}</div>
     </div>
-    <div class="info">
+    <div class="info w-15">
       <div>Tipo de gestão</div>
-      <div>{{ escola.tipo_gestao.nome|slice:"5:15" }}</div>
+      <div>{{ escola.tipo_gestao.nome }}</div>
     </div>
   </div>
-  <div>
-    <hr style="color: #EEEEEE; opacity: 0.3">
+  {% if solicitacao.tipo_solicitacao != 'COMUM'%}
+  <div class="row id-pedido">
+      <div class="info w-25">
+        <div>Tipo da solicitação</div>
+        {% if solicitacao.tipo_solicitacao == 'ALTERACAO_UE'%}
+          <div>ALTERAÇÃO DE U.E</div>
+        {% else%}
+          <div>ALUNOS NÃO MATRICULADOS</div>
+        {%endif%}
+      </div>
+      {% if solicitacao.tipo_solicitacao == 'ALTERACAO_UE'%}
+        <div class="info w-50" style="padding-left: 0">
+          <div>Dieta Especial de Origem</div>
+            <div>{{ escola_origem.nome }}</div>
+        </div>
+      {%endif%}
   </div>
-
+  {% endif%}
+   <hr style="color: #EEEEEE; opacity: 0.3">
 {% endblock %}

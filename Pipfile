@@ -42,7 +42,7 @@ django-debug-toolbar='==1.11'  # https://github.com/jazzband/django-debug-toolba
 django-extensions='==2.2.3'    # https://github.com/django-extensions/django-extensions
 django-coverage-plugin='==1.6.0'  # https://github.com/nedbat/django_coverage_plugin
 pytest-django='==3.4.7'  # https://github.com/pytest-dev/pytest-django
-flower = "==0.9.3"
+flower = "==0.9.7"
 isort = "==4.3.21"
 flake8-isort = "==2.8.0"
 notebook = "*"
@@ -72,6 +72,7 @@ django-redis='==4.10.0'  # https://github.com/niwinz/django-redis
 django-des='==2.4.1' # https://github.com/jamiecounsell/django-des
 django-cors-headers='==3.0.2'   # https://pypi.org/project/django-cors-headers/
 django-sequences='==2.5'  # https://pypi.org/project/django-sequences/
+django-multiselectfield='==0.1.12' # https://github.com/goinnn/django-multiselectfield
 # Django REST Framework
 # ------------------------------------------------------------------------------
 djangorestframework='==3.9.1'  # https://github.com/encode/django-rest-framework
@@ -79,6 +80,7 @@ coreapi='==2.3.3'  # https://github.com/core-api/python-client
 djangorestframework-jwt='==1.11.0' # https://getblimp.github.io/django-rest-framework-jwt/
 workalendar='==4.3.1' # https://github.com/peopledoc/workalendar
 django-rest-swagger='==2.2.0' # https://github.com/marcgibbons/django-rest-swagger
+djangorestframework-xml = "==2.0.0"
 django-simple-email-confirmation='==0.6' # https://github.com/mfogel/django-simple-email-confirmation/
 # Produção
 gunicorn='==19.9.0'  # https://github.com/benoitc/gunicorn
@@ -86,7 +88,7 @@ tornado='==6.0.3'    # http://www.tornadoweb.org/en/stable/
 sentry-sdk = "==0.10.2"
 django-prometheus = "==1.1.0"
 # Relatórios
-weasyprint = "==50"
+weasyprint = "==52"
 django-sass-processor = "==0.8"
 django-compressor = "==2.4"
 libsass = "==0.19.4"
@@ -97,6 +99,10 @@ importlib-metadata = "==1.7.0"
 text-unidecode = "*"
 attrs = "==19.1.0"
 xlrd = "*"
+spyne = "==2.13.16"
+lxml = "*"
+openpyxl = "*"
+httpx = "*"
 
 [requires]
 python_version = "3.6"

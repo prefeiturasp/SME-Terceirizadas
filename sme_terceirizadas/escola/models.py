@@ -23,8 +23,8 @@ from ..dados_comuns.behaviors import (
 from ..dados_comuns.constants import (
     COGESTOR,
     COORDENADOR_DIETA_ESPECIAL,
+    COORDENADOR_ESCOLA,
     COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
-    DIRETOR,
     SUPLENTE
 )
 from ..dados_comuns.utils import queryset_por_data, subtrai_meses_de_data
@@ -301,29 +301,58 @@ class PeriodoEscolar(ExportModelOperationsMixin('periodo_escolar'), Nomeavel, Te
 class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, TemCodigoEOL, TemVinculos):
     nome = models.CharField('Nome', max_length=160, blank=True)
     codigo_eol = models.CharField(
-        'Código EOL', max_length=6, unique=True, validators=[MinLengthValidator(6)])
-    diretoria_regional = models.ForeignKey(DiretoriaRegional,
-                                           related_name='escolas',
-                                           on_delete=models.DO_NOTHING)
-    tipo_unidade = models.ForeignKey(TipoUnidadeEscolar,
-                                     on_delete=models.DO_NOTHING)
-    tipo_gestao = models.ForeignKey(TipoGestao,
-                                    on_delete=models.DO_NOTHING)
-    lote = models.ForeignKey('Lote',
-                             related_name='escolas',
-                             blank=True, null=True,
-                             on_delete=models.PROTECT)
-    contato = models.ForeignKey('dados_comuns.Contato', on_delete=models.DO_NOTHING,
-                                blank=True, null=True)
-
+        'Código EOL',
+        max_length=6,
+        unique=True,
+        validators=[MinLengthValidator(6)]
+    )
+    codigo_codae = models.CharField(  # noqa DJ01
+        'Código CODAE',
+        unique=True,
+        max_length=10,
+        blank=True,
+        null=True,
+        default=None
+    )
+    diretoria_regional = models.ForeignKey(
+        DiretoriaRegional,
+        related_name='escolas',
+        on_delete=models.DO_NOTHING
+    )
+    tipo_unidade = models.ForeignKey(
+        TipoUnidadeEscolar,
+        on_delete=models.DO_NOTHING
+    )
+    tipo_gestao = models.ForeignKey(
+        TipoGestao,
+        on_delete=models.DO_NOTHING
+    )
+    lote = models.ForeignKey(
+        'Lote',
+        related_name='escolas',
+        blank=True, null=True,
+        on_delete=models.PROTECT
+    )
+    contato = models.ForeignKey(
+        'dados_comuns.Contato',
+        on_delete=models.DO_NOTHING,
+        blank=True,
+        null=True
+    )
     idades = models.ManyToManyField(FaixaIdadeEscolar, blank=True)
-
     tipos_contagem = models.ManyToManyField(
-        'dieta_especial.TipoContagem', blank=True)
-
-    endereco = models.ForeignKey('dados_comuns.Endereco',
-                                 blank=True, null=True,
-                                 on_delete=models.DO_NOTHING)
+        'dieta_especial.TipoContagem',
+        blank=True
+    )
+    endereco = models.ForeignKey(
+        'dados_comuns.Endereco',
+        blank=True, null=True,
+        on_delete=models.DO_NOTHING
+    )
+    enviar_email_por_produto = models.BooleanField(
+        default=False,
+        help_text='Envia e-mail quando houver um produto com status de homologado, não homologado, ativar ou suspender.'  # noqa
+    )
 
     @property
     def quantidade_alunos(self):
@@ -355,7 +384,7 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
         return self.vinculos.filter(
             Q(data_inicial=None, data_final=None, ativo=False) |  # noqa W504 esperando ativacao
             Q(data_inicial__isnull=False, data_final=None, ativo=True)  # noqa W504 ativo
-        ).exclude(perfil__nome=DIRETOR)
+        ).exclude(perfil__nome=COORDENADOR_ESCOLA)
 
     @property
     def grupos_inclusoes(self):
@@ -498,6 +527,22 @@ class LogAlteracaoQuantidadeAlunosPorEscolaEPeriodoEscolar(TemChaveExterna, Cria
         verbose_name = 'Log Alteração quantidade de alunos'
         verbose_name_plural = 'Logs de Alteração quantidade de alunos'
         ordering = ('criado_em',)
+
+
+class LogRotinaDiariaAlunos(TemChaveExterna, CriadoEm):
+    quantidade_alunos_antes = models.PositiveIntegerField('Quantidade de alunos antes', default=0)
+    quantidade_alunos_atual = models.PositiveIntegerField('Quantidade de alunos atual', default=0)
+
+    def __str__(self):
+        criado_em = self.criado_em.strftime('%Y-%m-%d %H:%M:%S')
+        quant_antes = self.quantidade_alunos_antes
+        quant_atual = self.quantidade_alunos_atual
+        return f'Criado em {criado_em} - Quant. de alunos antes: {quant_antes}. Quant. de alunos atual: {quant_atual}'
+
+    class Meta:
+        verbose_name = 'Log Rotina Diária quantidade de alunos'
+        verbose_name_plural = 'Logs Rotina Diária quantidade de alunos'
+        ordering = ('-criado_em',)
 
 
 class Lote(ExportModelOperationsMixin('lote'), TemChaveExterna, Nomeavel, Iniciais):
@@ -755,8 +800,14 @@ class Responsavel(Nomeavel, TemChaveExterna, CriadoEm):
 
 class Aluno(TemChaveExterna):
     nome = models.CharField('Nome Completo do Aluno', max_length=100)
-    codigo_eol = models.CharField( # noqa DJ01
-        'Código EOL', max_length=7, unique=True, validators=[MinLengthValidator(7)], null=True, blank=True)
+    codigo_eol = models.CharField(  # noqa DJ01
+        'Código EOL',
+        max_length=7,
+        unique=True,
+        validators=[MinLengthValidator(7)],
+        null=True,
+        blank=True
+    )
     data_nascimento = models.DateField()
     escola = models.ForeignKey(
         Escola, blank=True, null=True, on_delete=models.SET_NULL)
@@ -765,11 +816,14 @@ class Aluno(TemChaveExterna):
     cpf = models.CharField(max_length=11, blank=True, null=True, unique=True,  # noqa DJ01
                            validators=[MinLengthValidator(11)])
     nao_matriculado = models.BooleanField(default=False)
+    serie = models.CharField(max_length=10, blank=True, null=True)  # noqa DJ01
 
     responsaveis = models.ManyToManyField(
         Responsavel, blank=True, related_name='alunos')
 
     def __str__(self):
+        if self.nao_matriculado:
+            return f'{self.nome} - Não Matriculado'
         return f'{self.nome} - {self.codigo_eol}'
 
     @property

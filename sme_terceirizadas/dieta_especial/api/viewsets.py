@@ -1,3 +1,5 @@
+from datetime import date
+
 from django.db import transaction
 from django.db.models import Case, CharField, Count, F, Q, Sum, Value, When
 from django.forms import ValidationError
@@ -18,14 +20,16 @@ from ...dados_comuns.permissions import (
     UsuarioEscola,
     UsuarioTerceirizada
 )
-from ...escola.models import EscolaPeriodoEscolar
+from ...escola.models import Aluno, EscolaPeriodoEscolar
 from ...paineis_consolidados.api.constants import FILTRO_CODIGO_EOL_ALUNO
+from ...paineis_consolidados.models import SolicitacoesCODAE, SolicitacoesDRE, SolicitacoesEscola
 from ...relatorios.relatorios import (
     relatorio_dieta_especial,
     relatorio_dieta_especial_protocolo,
     relatorio_geral_dieta_especial,
     relatorio_quantitativo_classificacao_dieta_especial,
     relatorio_quantitativo_diag_dieta_especial,
+    relatorio_quantitativo_diag_dieta_especial_somente_dietas_ativas,
     relatorio_quantitativo_solic_dieta_especial
 )
 from ..forms import (
@@ -42,11 +46,10 @@ from ..models import (
     MotivoAlteracaoUE,
     MotivoNegacao,
     SolicitacaoDietaEspecial,
-    SolicitacoesDietaEspecialAtivasInativasPorAluno,
     TipoContagem
 )
 from ..utils import RelatorioPagination
-from .filters import DietaEspecialFilter
+from .filters import AlimentoFilter, DietaEspecialFilter
 from .serializers import (
     AlergiaIntoleranciaSerializer,
     AlimentoSerializer,
@@ -141,11 +144,13 @@ class SolicitacaoDietaEspecialViewSet(
     @action(detail=True, methods=['patch'], permission_classes=(UsuarioCODAEDietaEspecial,))  # noqa: C901
     def autorizar(self, request, uuid=None):
         solicitacao = self.get_object()
-        if solicitacao.aluno.possui_dieta_especial_ativa:
+        if solicitacao.aluno.possui_dieta_especial_ativa and solicitacao.tipo_solicitacao == 'COMUM':
             solicitacao.aluno.inativar_dieta_especial()
         serializer = self.get_serializer()
         try:
-            serializer.update(solicitacao, request.data)
+            if solicitacao.tipo_solicitacao != 'ALTERACAO_UE':
+                serializer.update(solicitacao, request.data)
+                solicitacao.ativo = True
             solicitacao.codae_autoriza(user=request.user)
             return Response({'detail': 'Autorização de dieta especial realizada com sucesso'})  # noqa
         except InvalidTransitionError as e:
@@ -183,6 +188,9 @@ class SolicitacaoDietaEspecialViewSet(
                 user=request.user)
             solicitacao_dieta_especial.ativo = False
             solicitacao_dieta_especial.save()
+            if solicitacao_dieta_especial.tipo_solicitacao == 'ALTERACAO_UE':
+                solicitacao_dieta_especial.dieta_alterada.ativo = True
+                solicitacao_dieta_especial.dieta_alterada.save()
             serializer = self.get_serializer(solicitacao_dieta_especial)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -259,6 +267,11 @@ class SolicitacaoDietaEspecialViewSet(
         try:
             solicitacao.cancelar_pedido(
                 user=request.user, justificativa=justificativa)
+            solicitacao.ativo = False
+            solicitacao.save()
+            if solicitacao.tipo_solicitacao == 'ALTERACAO_UE':
+                solicitacao.dieta_alterada.ativo = True
+                solicitacao.dieta_alterada.save()
             serializer = self.get_serializer(solicitacao)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -387,10 +400,11 @@ class SolicitacaoDietaEspecialViewSet(
         if not form.is_valid():
             raise ValidationError(form.errors)
 
-        campos = self.get_campos_relatorio_quantitativo_diag_dieta_esp(
-            form.cleaned_data)
-        qs = self.get_queryset_relatorio_quantitativo_solic_dieta_esp(
-            form, campos)
+        if self.request.data.get('somente_dietas_ativas'):
+            campos = ['alergias_intolerancias__descricao']
+        else:
+            campos = self.get_campos_relatorio_quantitativo_diag_dieta_esp(form.cleaned_data)  # noqa
+        qs = self.get_queryset_relatorio_quantitativo_solic_dieta_esp(form, campos)  # noqa
 
         self.pagination_class = RelatorioPagination
         page = self.paginate_queryset(qs)
@@ -463,13 +477,28 @@ class SolicitacaoDietaEspecialViewSet(
         if not form.is_valid():
             raise ValidationError(form.errors)
 
-        campos = self.get_campos_relatorio_quantitativo_diag_dieta_esp(
-            form.cleaned_data)
-        qs = self.get_queryset_relatorio_quantitativo_solic_dieta_esp(
-            form, campos)
+        campos = self.get_campos_relatorio_quantitativo_diag_dieta_esp(form.cleaned_data)  # noqa
+        qs = self.get_queryset_relatorio_quantitativo_solic_dieta_esp(form, campos)  # noqa
         user = self.request.user
-
         return relatorio_quantitativo_diag_dieta_especial(campos, form, qs, user)
+
+    @action(
+        detail=False,
+        methods=['POST'],
+        url_path='imprime-relatorio-quantitativo-diag-dieta-esp/somente-dietas-ativas'
+    )
+    def imprime_relatorio_quantitativo_diag_dieta_esp_somente_dietas_ativas(self, request):  # noqa
+        form = RelatorioQuantitativoSolicDietaEspForm(self.request.data)
+        if not form.is_valid():
+            raise ValidationError(form.errors)
+
+        if self.request.data.get('somente_dietas_ativas'):
+            campos = ['alergias_intolerancias__descricao']
+        else:
+            campos = self.get_campos_relatorio_quantitativo_diag_dieta_esp(form.cleaned_data)  # noqa
+        qs = self.get_queryset_relatorio_quantitativo_solic_dieta_esp(form, campos)  # noqa
+        user = self.request.user
+        return relatorio_quantitativo_diag_dieta_especial_somente_dietas_ativas(campos, form, qs, user)  # noqa
 
     @action(detail=False, methods=['POST'], url_path='relatorio-dieta-especial')  # noqa C901
     def relatorio_dieta_especial(self, request):
@@ -520,15 +549,36 @@ class SolicitacaoDietaEspecialViewSet(
         if not form.is_valid():
             raise ValidationError(form.errors)
 
-        periodo_escolar_igual = Q(
-            escola__aluno__periodo_escolar=F('periodo_escolar'))
-        status = Q(escola__aluno__dietas_especiais__status__in=[
-            DietaEspecialWorkflow.CODAE_AUTORIZADO,
-            DietaEspecialWorkflow.TERCEIRIZADA_TOMOU_CIENCIA,
-            DietaEspecialWorkflow.ESCOLA_SOLICITOU_INATIVACAO])
-        escola = Q(escola__aluno__escola=form.cleaned_data['escola'])
+        hoje = date.today()
 
-        q_params = status & periodo_escolar_igual & escola
+        filtros_gerais = Q(
+            escola__aluno__periodo_escolar=F('periodo_escolar'),
+            escola__aluno__escola=form.cleaned_data['escola'],
+            escola__aluno__dietas_especiais__ativo=True,
+            escola__aluno__dietas_especiais__status__in=[
+                DietaEspecialWorkflow.CODAE_AUTORIZADO,
+                DietaEspecialWorkflow.TERCEIRIZADA_TOMOU_CIENCIA,
+                DietaEspecialWorkflow.ESCOLA_SOLICITOU_INATIVACAO
+            ],
+        )
+        filtros_data_dieta = (
+            (
+                Q(escola__aluno__dietas_especiais__data_termino__isnull=True) |
+                Q(escola__aluno__dietas_especiais__data_termino__gte=hoje)
+            )
+            &
+            (
+                Q(escola__aluno__dietas_especiais__data_inicio__isnull=True)
+                &
+                Q(escola__aluno__dietas_especiais__criado_em__date__lte=hoje)
+                |
+                Q(escola__aluno__dietas_especiais__data_inicio__isnull=False)
+                &
+                Q(escola__aluno__dietas_especiais__data_inicio__lte=hoje)
+            )
+        )
+
+        q_params = filtros_gerais & filtros_data_dieta
 
         campos = [
             'periodo_escolar__nome',
@@ -554,15 +604,14 @@ class SolicitacaoDietaEspecialViewSet(
 
         return Response(serializer.data)
 
-    @action(detail=False, methods=['post'], url_path='alteracao-ue')
+    @action(detail=False, methods=['POST'], url_path='alteracao-ue')
     def alteracao_ue(self, request):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(status=HTTP_201_CREATED)
         else:
-            return Response(serializer.errors,
-                            status=HTTP_400_BAD_REQUEST)
+            return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
 
 
 class SolicitacoesAtivasInativasPorAlunoView(generics.ListAPIView):
@@ -571,24 +620,22 @@ class SolicitacoesAtivasInativasPorAlunoView(generics.ListAPIView):
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
-        agregado = queryset.aggregate(Sum('ativas'), Sum('inativas'))
+        total_ativas = queryset.aggregate(Sum('ativas'))
+        total_inativas = queryset.aggregate(Sum('inativas'))
 
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
-            # TODO: Ver se tem como remover o UnorderedObjectListWarning
-            # que acontece por passarmos mais dados do que apenas o
-            # serializer.data
             return self.get_paginated_response({
-                'total_ativas': agregado['ativas__sum'],
-                'total_inativas': agregado['inativas__sum'],
+                'total_ativas': total_ativas['ativas__sum'],
+                'total_inativas': total_inativas['inativas__sum'],
                 'solicitacoes': serializer.data
             })
 
         serializer = self.get_serializer(queryset, many=True)
         return Response({
-            'total_ativas': agregado['ativas__sum'],
-            'total_inativas': agregado['inativas__sum'],
+            'total_ativas': total_ativas['ativas__sum'],
+            'total_inativas': total_inativas['inativas__sum'],
             'solicitacoes': serializer.data
         })
 
@@ -597,36 +644,62 @@ class SolicitacoesAtivasInativasPorAlunoView(generics.ListAPIView):
         if not form.is_valid():
             raise ValidationError(form.errors)
 
-        qs = SolicitacoesDietaEspecialAtivasInativasPorAluno.objects.all()
-
         user = self.request.user
 
+        instituicao = user.vinculo_atual.instituicao
         if user.tipo_usuario == 'escola':
-            qs = qs.filter(aluno__escola=user.vinculo_atual.instituicao)
-        elif form.cleaned_data['escola']:
-            qs = qs.filter(aluno__escola=form.cleaned_data['escola'])
+            dietas_autorizadas = SolicitacoesEscola.get_autorizados_dieta_especial(escola_uuid=instituicao.uuid)
+            dietas_inativas = SolicitacoesEscola.get_inativas_dieta_especial(escola_uuid=instituicao.uuid)
         elif user.tipo_usuario == 'diretoriaregional':
-            qs = qs.filter(aluno__escola__diretoria_regional=user.vinculo_atual.instituicao)  # noqa
+            dietas_autorizadas = SolicitacoesDRE.get_autorizados_dieta_especial(dre_uuid=instituicao.uuid)
+            dietas_inativas = SolicitacoesDRE.get_inativas_dieta_especial(dre_uuid=instituicao.uuid)
+        else:
+            dietas_autorizadas = SolicitacoesCODAE.get_autorizados_dieta_especial()
+            dietas_inativas = SolicitacoesCODAE.get_inativas_dieta_especial()
+
+        # Retorna somente Dietas Autorizadas
+        ids_dietas_autorizadas = dietas_autorizadas.values_list('id', flat=True)
+
+        # Retorna somente Dietas Inativas.
+        ids_dietas_inativas = dietas_inativas.values_list('id', flat=True)
+
+        INATIVOS_STATUS_DIETA_ESPECIAL = [
+            'CODAE_AUTORIZADO',
+            'CODAE_AUTORIZOU_INATIVACAO',
+            'TERMINADA_AUTOMATICAMENTE_SISTEMA'
+        ]
+
+        # Retorna somente Dietas Autorizadas e Inativas.
+        qs = Aluno.objects.filter(
+            dietas_especiais__status__in=INATIVOS_STATUS_DIETA_ESPECIAL).annotate(
+            ativas=Count('dietas_especiais', filter=Q(dietas_especiais__id__in=ids_dietas_autorizadas)),
+            inativas=Count('dietas_especiais', filter=Q(dietas_especiais__id__in=ids_dietas_inativas)),
+        ).filter(Q(ativas__gt=0) | Q(inativas__gt=0))
+
+        if user.tipo_usuario == 'escola':
+            qs = qs.filter(escola=user.vinculo_atual.instituicao)
+        elif form.cleaned_data['escola']:
+            qs = qs.filter(escola=form.cleaned_data['escola'])
+        elif user.tipo_usuario == 'diretoriaregional':
+            qs = qs.filter(escola__diretoria_regional=user.vinculo_atual.instituicao)
         elif form.cleaned_data['dre']:
-            qs = qs.filter(
-                aluno__escola__diretoria_regional=form.cleaned_data['dre'])
+            qs = qs.filter(escola__diretoria_regional=form.cleaned_data['dre'])
 
         if form.cleaned_data['codigo_eol']:
             codigo_eol = f"{int(form.cleaned_data['codigo_eol']):06d}"
-            qs = qs.filter(aluno__codigo_eol=codigo_eol)
+            qs = qs.filter(codigo_eol=codigo_eol)
         elif form.cleaned_data['nome_aluno']:
-            qs = qs.filter(
-                aluno__nome__icontains=form.cleaned_data['nome_aluno'])
+            qs = qs.filter(nome__icontains=form.cleaned_data['nome_aluno'])
 
         if self.request.user.tipo_usuario == 'dieta_especial':
             return qs.order_by(
-                'aluno__escola__diretoria_regional__nome',
-                'aluno__escola__nome',
-                'aluno__nome'
+                'escola__diretoria_regional__nome',
+                'escola__nome',
+                'nome'
             )
         elif self.request.user.tipo_usuario == 'diretoriaregional':
-            return qs.order_by('aluno__escola__nome', 'aluno__nome')
-        return qs.order_by('aluno__nome')
+            return qs.order_by('escola__nome', 'nome')
+        return qs.order_by('nome')
 
 
 class AlergiaIntoleranciaViewSet(
@@ -663,6 +736,8 @@ class AlimentoViewSet(
     queryset = Alimento.objects.all().order_by('nome')
     serializer_class = AlimentoSerializer
     pagination_class = None
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = AlimentoFilter
 
 
 class TipoContagemViewSet(mixins.ListModelMixin, GenericViewSet):

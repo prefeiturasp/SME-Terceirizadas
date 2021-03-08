@@ -18,7 +18,8 @@ from ..dados_comuns.models import LogSolicitacoesUsuario, TemplateMensagem
 from ..dados_comuns.utils import convert_base64_to_contentfile
 from ..dados_comuns.validators import nao_pode_ser_no_passado
 from ..escola.api.serializers import AlunoSerializer
-from ..escola.models import Aluno
+from ..escola.models import Aluno, Escola
+from .managers import AlimentoProprioManager
 
 
 class SolicitacaoDietaEspecial(
@@ -31,7 +32,15 @@ class SolicitacaoDietaEspecial(
     TemIdentificadorExternoAmigavel,
     Ativavel
 ):
-    DESCRICAO = 'Dieta Especial'
+    DESCRICAO_SOLICITACAO = {
+        'CODAE_A_AUTORIZAR': 'Solicitação de Inclusão',
+        'CODAE_NEGOU_PEDIDO': 'Negada a Inclusão',
+        'CODAE_AUTORIZADO': 'Autorizada',
+        'ESCOLA_SOLICITOU_INATIVACAO': 'Solicitação de Cancelamento',
+        'CODAE_NEGOU_INATIVACAO': 'Negada o Cancelamento',
+        'CODAE_AUTORIZOU_INATIVACAO': 'Cancelamento Autorizado',
+        'ESCOLA_CANCELOU': 'Cancelada pela Unidade Escolar',
+    }
 
     TIPO_SOLICITACAO_CHOICES = [
         ('COMUM', 'Comum'),
@@ -52,14 +61,14 @@ class SolicitacaoDietaEspecial(
         blank=True
     )
     registro_funcional_pescritor = models.CharField(
-        'Nome completo do pescritor da receita',
+        'Registro funcional do pescritor da receita',
         help_text='CRN/CRM/CRFa...',
         max_length=200,
         validators=[MinLengthValidator(4), MaxLengthValidator(6)],
         blank=True
     )
     registro_funcional_nutricionista = models.CharField(
-        'Nome completo do pescritor da receita',
+        'Registro funcional do nutricionista',
         help_text='CRN/CRM/CRFa...',
         max_length=200,
         validators=[MinLengthValidator(6)],
@@ -120,12 +129,7 @@ class SolicitacaoDietaEspecial(
         on_delete=models.CASCADE
     )
 
-    data_inicial_alteracao = models.DateField(
-        null=True,
-        blank=True
-    )
-
-    data_final_alteracao = models.DateField(
+    data_inicio = models.DateField(
         null=True,
         blank=True
     )
@@ -141,12 +145,22 @@ class SolicitacaoDietaEspecial(
         blank=True
     )
 
+    caracteristicas_do_alimento = models.TextField(
+        'Características dos alimentos',
+        blank=True
+    )
+
     @classmethod
     def aluno_possui_dieta_especial_pendente(cls, aluno):
         return cls.objects.filter(
             aluno=aluno,
             status=cls.workflow_class.CODAE_A_AUTORIZAR
         ).exists()
+
+    @property
+    def DESCRICAO(self):
+        descricao = self.DESCRICAO_SOLICITACAO.get(self.status)
+        return f'Dieta Especial - {descricao}' if descricao else 'Dieta Especial'
 
     # Property necessária para retornar dados no serializer de criação de
     # Dieta Especial
@@ -272,13 +286,40 @@ class SolicitacoesDietaEspecialAtivasInativasPorAluno(models.Model):
         db_table = 'dietas_ativas_inativas_por_aluno'
 
 
-class Alimento(Nomeavel):
+class Alimento(Nomeavel, TemChaveExterna, Ativavel):
+    TIPO_CHOICES = (
+        ('E', 'Edital'),
+        ('P', 'Proprio')
+    )
+    tipo = models.CharField(max_length=1, choices=TIPO_CHOICES, default='E')
+    marca = models.ForeignKey(
+        'produto.Marca',
+        on_delete=models.PROTECT,
+        blank=True,
+        null=True
+    )
+    outras_informacoes = models.CharField(max_length=255, blank=True)
 
     class Meta:
         ordering = ('nome',)
+        unique_together = ('nome', 'marca')
 
     def __str__(self):
         return self.nome
+
+
+class AlimentoProprio(Alimento):
+
+    objects = AlimentoProprioManager()
+
+    class Meta:
+        proxy = True
+        verbose_name = 'alimento próprio CODAE'
+        verbose_name_plural = 'alimentos próprios CODAE'
+
+    def save(self, *args, **kwargs):
+        self.tipo = 'P'
+        super(AlimentoProprio, self).save(*args, **kwargs)
 
 
 class SubstituicaoAlimento(models.Model):
@@ -286,7 +327,6 @@ class SubstituicaoAlimento(models.Model):
         ('I', 'Isento'),
         ('S', 'Substituir')
     ]
-
     solicitacao_dieta_especial = models.ForeignKey(
         SolicitacaoDietaEspecial,
         on_delete=models.CASCADE
@@ -301,6 +341,12 @@ class SubstituicaoAlimento(models.Model):
     substitutos = models.ManyToManyField(
         'produto.Produto',
         related_name='substitutos',
+        blank=True,
+        help_text='produtos substitutos'
+    )
+    alimentos_substitutos = models.ManyToManyField(
+        Alimento,
+        related_name='alimentos_substitutos',
         blank=True
     )
 
@@ -309,3 +355,75 @@ class TipoContagem(Nomeavel, TemChaveExterna):
 
     def __str__(self):
         return self.nome
+
+
+class PlanilhaDietasAtivas(models.Model):
+    """Importa dados de planilha de Dietas Ativas específicas.
+
+    Requer uma planilha com o De Para entre Código Escola e Código EOL da Escola.
+    """
+
+    arquivo = models.FileField(blank=True, null=True, help_text='Arquivo com escolas e dietas')  # noqa DJ01
+    arquivo_unidades_da_rede = models.FileField(blank=True, null=True, help_text='Arquivo unidades_da_rede...xlsx')  # noqa DJ01
+    resultado = models.FileField(blank=True, null=True, help_text='Arquivo com o resultado')  # noqa DJ01
+    tempfile = models.CharField(max_length=100, null=True, blank=True, help_text='JSON temporario')  # noqa DJ01
+    criado_em = models.DateTimeField(
+        'criado em',
+        auto_now_add=True,
+        auto_now=False
+    )
+
+    class Meta:
+        ordering = ('-criado_em',)
+        verbose_name = 'Planilha Dieta Ativa'
+        verbose_name_plural = 'Planilhas Dietas Ativas'
+
+    def __str__(self):
+        return str(self.arquivo)
+
+
+class LogDietasAtivasCanceladasAutomaticamente(CriadoEm):
+    dieta = models.ForeignKey(
+        'SolicitacaoDietaEspecial',
+        on_delete=models.PROTECT,
+        related_name='dietas_especiais',
+    )
+    codigo_eol_aluno = models.CharField(  # noqa DJ01
+        'Código EOL aluno',
+        max_length=7,
+        validators=[MinLengthValidator(7)],
+        null=True,
+        blank=True
+    )
+    nome_aluno = models.CharField('Nome do Aluno', max_length=100, null=True, blank=True)  # noqa DJ01
+    codigo_eol_escola_origem = models.CharField(  # noqa DJ01
+        'Código EOL escola origem',
+        max_length=6,
+        validators=[MinLengthValidator(6)],
+        null=True,
+        blank=True
+    )
+    nome_escola_origem = models.CharField('Nome da Escola origem', max_length=160, null=True, blank=True)  # noqa DJ01
+    codigo_eol_escola_destino = models.CharField(  # noqa DJ01
+        'Código EOL escola destino',
+        max_length=6,
+        validators=[MinLengthValidator(6)],
+        null=True,
+        blank=True
+    )
+    nome_escola_destino = models.CharField('Nome da Escola destino', max_length=160, null=True, blank=True)  # noqa DJ01
+
+    class Meta:
+        ordering = ('-criado_em',)
+        verbose_name = 'log dietas ativas canceladas automaticamente'
+        verbose_name_plural = 'log dietas ativas canceladas automaticamente'
+
+    def __str__(self):
+        return str(self.pk)
+
+    @property
+    def escola_existe(self):
+        escola_existe_no_sigpae = Escola.objects.filter(codigo_eol=self.codigo_eol_escola_destino).first()
+        if escola_existe_no_sigpae:
+            return True
+        return False

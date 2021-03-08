@@ -50,6 +50,7 @@ class Marca(Nomeavel, TemChaveExterna):
 
 
 class TipoDeInformacaoNutricional(Nomeavel, TemChaveExterna):
+
     def __str__(self):
         return self.nome
 
@@ -93,7 +94,7 @@ class Produto(Ativavel, CriadoEm, CriadoPor, Nomeavel, TemChaveExterna, TemIdent
     aditivos = models.TextField('Aditivos', blank=True)
 
     tipo = models.CharField('Tipo do Produto', blank=True, max_length=250)
-    embalagem = models.CharField('Embalagem Primária', blank=True, max_length=100)
+    embalagem = models.CharField('Embalagem Primária', blank=True, max_length=500)
     prazo_validade = models.CharField('Prazo de validade', blank=True, max_length=100)
     info_armazenamento = models.CharField('Informações de Armazenamento',
                                           blank=True, max_length=500)
@@ -152,6 +153,45 @@ class Produto(Ativavel, CriadoEm, CriadoPor, Nomeavel, TemChaveExterna, TemIdent
         verbose_name_plural = 'Produtos'
 
 
+class NomeDeProdutoEdital(Ativavel, CriadoEm, CriadoPor, Nomeavel, TemChaveExterna, TemIdentificadorExternoAmigavel):
+
+    class Meta:
+        ordering = ('nome',)
+        unique_together = ('nome',)
+        verbose_name = 'Produto proveniente do Edital'
+        verbose_name_plural = 'Produtos provenientes do Edital'
+
+    def __str__(self):
+        return self.nome
+
+    def clean(self, *args, **kwargs):
+        # Nome sempre em caixa alta.
+        self.nome = self.nome.upper()
+        return super(NomeDeProdutoEdital, self).clean(*args, **kwargs)
+
+
+class LogNomeDeProdutoEdital(TemChaveExterna, TemIdentificadorExternoAmigavel, CriadoEm, CriadoPor):
+    ACAO = (
+        ('a', 'ativar'),
+        ('i', 'inativar'),
+    )
+    acao = models.CharField('ação', max_length=1, choices=ACAO, null=True, blank=True)  # noqa DJ01
+    nome_de_produto_edital = models.ForeignKey(
+        NomeDeProdutoEdital,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
+
+    class Meta:
+        ordering = ('-criado_em',)
+        verbose_name = 'Log de Produto proveniente do Edital'
+        verbose_name_plural = 'Log de Produtos provenientes do Edital'
+
+    def __str__(self):
+        return self.id_externo
+
+
 class InformacoesNutricionaisDoProduto(TemChaveExterna):
     produto = models.ForeignKey(Produto, on_delete=models.CASCADE, related_name='informacoes_nutricionais')
     informacao_nutricional = models.ForeignKey(InformacaoNutricional, on_delete=models.DO_NOTHING)
@@ -177,6 +217,12 @@ class HomologacaoDoProduto(TemChaveExterna, CriadoEm, CriadoPor, FluxoHomologaca
     necessita_analise_sensorial = models.BooleanField(default=False)
     protocolo_analise_sensorial = models.CharField(max_length=8, blank=True)
     pdf_gerado = models.BooleanField(default=False)
+
+    @property
+    def data_cadastro(self):
+        if self.status != self.workflow_class.RASCUNHO:
+            log = self.logs.get(status_evento=LogSolicitacoesUsuario.INICIO_FLUXO)
+            return log.criado_em.date()
 
     @property
     def template_mensagem(self):

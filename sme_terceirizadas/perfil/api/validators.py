@@ -24,6 +24,8 @@ def terceirizada_tem_esse_cnpj(terceirizada: Terceirizada, cnpj: str):
 
 
 def usuario_e_das_terceirizadas(usuario: Usuario):
+    if usuario.vinculo_atual is None:
+        raise serializers.ValidationError('Usuario não possui vinculo com instituição')
     if not isinstance(usuario.vinculo_atual.instituicao, Terceirizada):
         raise serializers.ValidationError('Usuario já existe e não é Perfil Terceirizadas')
     return True
@@ -44,15 +46,18 @@ def usuario_pode_efetuar_cadastro(usuario: Usuario):
     return True
 
 
-def deve_ser_email_sme(email):
-    if '@sme.prefeitura.sp.gov.br' not in email:
+def deve_ser_email_sme_ou_prefeitura(email):
+    if '@sme.prefeitura.sp.gov.br' not in email and '@prefeitura.sp.gov.br' not in email:
         raise serializers.ValidationError('Deve ser email da SME')
     return True
 
 
 def usuario_e_vinculado_a_aquela_instituicao(descricao_instituicao: str, instituicoes_eol: list):
     for instituicao_eol in instituicoes_eol:
-        if instituicao_eol['divisao'] in descricao_instituicao or descricao_instituicao in instituicao_eol['divisao']:
+        divisao = instituicao_eol['divisao']
+        pertencem_mesma_divisao = divisao in descricao_instituicao or descricao_instituicao in divisao
+        pertencem_a_codae = 'codae' in divisao.lower() and 'codae' in descricao_instituicao.lower()
+        if pertencem_mesma_divisao or pertencem_a_codae:
             return True
     raise serializers.ValidationError('Instituições devem ser a mesma')
 

@@ -1,3 +1,6 @@
+from django.core.exceptions import ObjectDoesNotExist
+from rest_framework.authtoken.models import Token
+
 from utility.carga_dados.escola.helper import bcolors
 from utility.carga_dados.helper import progressbar
 
@@ -103,6 +106,14 @@ USUARIOS = [
         'cargo': 'Diretor',
     },
     {
+        'email': 'escolaemef3@admin.com',
+        'password': 'adminadmin',
+        'cpf': '11111111133',
+        'registro_funcional': '0001003',
+        'nome': 'SUPER USUARIO ESCOLA EMEF',
+        'cargo': 'Diretor',
+    },
+    {
         'email': 'escolaemebs@admin.com',
         'password': 'adminadmin',
         'cpf': '11111111112',
@@ -142,6 +153,30 @@ USUARIOS = [
         'nome': 'SUPER USUARIO ESCOLA CEU EMEF',
         'cargo': 'Diretor',
     },
+    {
+        'email': 'papa@admin.com',
+        'password': 'adminadmin',
+        'cpf': '11111111118',
+        'registro_funcional': '0001112',
+        'nome': 'SUPER USUARIO PAPA',
+        'cargo': 'Diretor',
+    },
+    {
+        'email': 'dilog@admin.com',
+        'password': 'adminadmin',
+        'cpf': '11111111117',
+        'registro_funcional': '1110000',
+        'nome': 'SUPER USUARIO DILOG',
+        'cargo': 'Gerente',
+    },
+    {
+        'email': 'emefjoseermiriodemorais@admin.com',
+        'password': 'adminadmin',
+        'cpf': '',
+        'registro_funcional': '',
+        'nome': 'COORD EMEF JOSE ERMIRIO',
+        'cargo': '',
+    },
 ]
 
 
@@ -159,3 +194,9 @@ def cria_usuarios():
                 crn_numero=usuario.get('crn_numero'),
                 cargo=usuario.get('cargo'),
             )
+
+    try:
+        user = Usuario.objects.get(email='papa@admin.com')
+        Token.objects.get_or_create(user=user)
+    except ObjectDoesNotExist:
+        print(f"{bcolors.FAIL}Usuário papa@admin.com' não existe!{bcolors.ENDC}")  # noqa

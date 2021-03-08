@@ -4,7 +4,8 @@ from rest_framework import serializers
 
 from ...cardapio.models import TipoAlimentacao
 from ...dados_comuns.api.serializers import ContatoSerializer, EnderecoSerializer
-from ...perfil.api.serializers import PerfilSimplesSerializer
+from ...paineis_consolidados import models
+from ...perfil.api.serializers import PerfilSimplesSerializer, SuperAdminTerceirizadaSerializer
 from ...perfil.models import Usuario, Vinculo
 from ...terceirizada.api.serializers.serializers import ContratoSimplesSerializer, TerceirizadaSimplesSerializer
 from ...terceirizada.models import Terceirizada
@@ -113,7 +114,7 @@ class EscolaSimplissimaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Escola
-        fields = ('uuid', 'nome', 'codigo_eol', 'lote', 'quantidade_alunos')
+        fields = ('uuid', 'nome', 'codigo_eol', 'codigo_codae', 'lote', 'quantidade_alunos')
 
 
 class DiretoriaRegionalSimplesSerializer(serializers.ModelSerializer):
@@ -255,6 +256,7 @@ class TerceirizadaSerializer(serializers.ModelSerializer):
     lotes = LoteNomeSerializer(many=True)
     quantidade_alunos = serializers.IntegerField()
     id_externo = serializers.CharField()
+    super_admin = SuperAdminTerceirizadaSerializer()
 
     def get_nutricionistas(self, obj):
         content_type = ContentType.objects.get_for_model(Terceirizada)
@@ -262,7 +264,8 @@ class TerceirizadaSerializer(serializers.ModelSerializer):
             Usuario.objects.filter(
                 vinculos__object_id=obj.id,
                 vinculos__content_type=content_type,
-                crn_numero__isnull=False
+                crn_numero__isnull=False,
+                super_admin_terceirizadas=False,
             ).filter(
                 Q(vinculos__data_inicial=None, vinculos__data_final=None,
                   vinculos__ativo=False) |
@@ -385,16 +388,43 @@ class EscolaPeriodoEscolarSerializer(serializers.ModelSerializer):
         fields = ('uuid', 'quantidade_alunos', 'escola', 'periodo_escolar')
 
 
+class ReponsavelSerializer(serializers.Serializer):
+    cpf = serializers.CharField()
+    nome = serializers.CharField()
+
+
 class AlunoSerializer(serializers.ModelSerializer):
     escola = EscolaSimplesSerializer(required=False)
     nome_escola = serializers.SerializerMethodField()
     nome_dre = serializers.SerializerMethodField()
+    responsaveis = ReponsavelSerializer(many=True)
+    possui_dieta_especial = serializers.SerializerMethodField()
 
     def get_nome_escola(self, obj):
         return f'{obj.escola.nome}' if obj.escola else None
 
     def get_nome_dre(self, obj):
         return f'{obj.escola.diretoria_regional.nome}' if obj.escola else None
+
+    def get_possui_dieta_especial(self, obj):
+        user = self.context['request'].user
+        instituicao = user.vinculo_atual.instituicao
+        if user.tipo_usuario == 'escola':
+            dietas_autorizadas = models.SolicitacoesEscola.get_autorizados_dieta_especial(escola_uuid=instituicao.uuid)
+            dietas_inativas = models.SolicitacoesEscola.get_inativas_dieta_especial(escola_uuid=instituicao.uuid)
+        elif user.tipo_usuario == 'diretoriaregional':
+            dietas_autorizadas = models.SolicitacoesDRE.get_autorizados_dieta_especial(dre_uuid=instituicao.uuid)
+            dietas_inativas = models.SolicitacoesDRE.get_inativas_dieta_especial(dre_uuid=instituicao.uuid)
+        else:
+            dietas_autorizadas = models.SolicitacoesCODAE.get_autorizados_dieta_especial()
+            dietas_inativas = models.SolicitacoesCODAE.get_inativas_dieta_especial()
+
+        ids_dietas_autorizadas = dietas_autorizadas.values_list('id', flat=True)
+        ids_dietas_inativas = dietas_inativas.values_list('id', flat=True)
+        # Juntas as duas querysets.
+        dietas_especiais = ids_dietas_autorizadas | ids_dietas_inativas
+
+        return obj.dietas_especiais.filter(id__in=dietas_especiais).exists()
 
     class Meta:
         model = Aluno
@@ -405,20 +435,23 @@ class AlunoSerializer(serializers.ModelSerializer):
             'codigo_eol',
             'escola',
             'nome_escola',
-            'nome_dre'
+            'nome_dre',
+            'responsaveis',
+            'cpf',
+            'possui_dieta_especial',
+            'serie'
         )
 
 
 class AlunoSimplesSerializer(serializers.ModelSerializer):
+    escola = serializers.SlugRelatedField(
+        slug_field='uuid',
+        queryset=Escola.objects.all()
+    )
 
     class Meta:
         model = Aluno
-        fields = ('uuid', 'nome', 'data_nascimento', 'codigo_eol')
-
-
-class ReponsavelSerializer(serializers.Serializer):
-    cpf = serializers.CharField()
-    nome = serializers.CharField()
+        fields = ('uuid', 'nome', 'data_nascimento', 'codigo_eol', 'escola')
 
 
 class AlunoNaoMatriculadoSerializer(serializers.ModelSerializer):

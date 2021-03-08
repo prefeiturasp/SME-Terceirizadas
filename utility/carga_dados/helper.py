@@ -1,9 +1,10 @@
 import csv
 import io
+import openpyxl
 import sys
 import urllib.request
-
 import xlrd
+from io import BytesIO
 from utility.carga_dados.escola.helper import bcolors
 
 
@@ -71,6 +72,31 @@ def excel_to_list(arquivo, in_memory=False):
             objeto[primeira_linha[col]] = sheet.cell_value(row, col)
         dados.append(objeto)
     return dados
+
+
+def excel_to_list_with_openpyxl(filename, in_memory=None):
+    '''
+    Lê planilha Excel (xlsx) e retorna uma lista de dicionários.
+    Usando openpyxl
+    '''
+    if in_memory:
+        wb = openpyxl.load_workbook(filename=BytesIO(filename.read()))
+    else:
+        wb = openpyxl.load_workbook(filename)
+
+    ws = wb.worksheets[0]  # read first sheet.
+
+    first_line = []
+    for col in ws[1]:
+        first_line.append(col.value.strip())
+
+    data = []
+    for row in range(2, ws.max_row + 1):
+        obj_dict = {}
+        for col in range(1, ws.max_column + 1):
+            obj_dict[first_line[col - 1]] = ws.cell(row=row, column=col).value
+        data.append(obj_dict)
+    return data
 
 
 def ja_existe(model, item):

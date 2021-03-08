@@ -54,23 +54,36 @@ def cria_vinculo_tipo_alimentacao_com_periodo_escolar_e_tipo_unidade_escolar():
 
 def cria_combo_do_vinculo_tipo_alimentacao_periodo_tipo_ue():
     ComboDoVinculoTipoAlimentacaoPeriodoTipoUE.objects.all().delete()
-    vinculos = VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar.objects.all()  # noqa
+    vinculos = VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar.objects.all()
     tipos_alimentacoes = list(TipoAlimentacao.objects.all())
-    for vinculo in progressbar(vinculos, 'ComboDoVinculoTipoAlimentacaoPeriodoTipoUE'):  # noqa
+    for vinculo in progressbar(vinculos, 'ComboDoVinculoTipoAlimentacaoPeriodoTipoUE'):
         # Cria vários combos para cada vinculo.
-        for _ in range(randint(3, 7)):
-            obj = ComboDoVinculoTipoAlimentacaoPeriodoTipoUE.objects.create(vinculo=vinculo)  # noqa
+        for _ in range(randint(5, 10)):
+            obj = ComboDoVinculoTipoAlimentacaoPeriodoTipoUE.objects.create(vinculo=vinculo)
             tipos_amostra = sample(tipos_alimentacoes, randint(1, 3))
             for item in tipos_amostra:
                 obj.tipos_alimentacao.add(item)
+        # Cria um combo específico para lanche e outro para refeição.
+        tipos_alimentacoes2 = list(TipoAlimentacao.objects.filter(nome__in=('lanche', 'refeição')))
+        for tipo in tipos_alimentacoes2:
+            obj = ComboDoVinculoTipoAlimentacaoPeriodoTipoUE.objects.create(vinculo=vinculo)
+            obj.tipos_alimentacao.add(tipo)
 
 
 def cria_substituicao_do_combo_do_vinculo_tipo_alimentacao_periodo_tipo_ue():
     SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE.objects.all().delete()
-    combos = ComboDoVinculoTipoAlimentacaoPeriodoTipoUE.objects.all()  # noqa
-    tipos_alimentacoes = list(TipoAlimentacao.objects.all())
-    for combo in progressbar(combos, 'SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE'):  # noqa
-        obj = SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE.objects.create(combo=combo)  # noqa
+    combos = ComboDoVinculoTipoAlimentacaoPeriodoTipoUE.objects.all()
+    tipos_alimentacoes = list(TipoAlimentacao.objects.exclude(nome__in=('lanche', 'refeição')))
+    for combo in progressbar(combos, 'SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE'):
+        obj = SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE.objects.create(combo=combo)
         tipos_amostra = sample(tipos_alimentacoes, randint(1, 3))
+        tipos_alimentacao_list = [item[1] for item in combo.tipos_alimentacao.values_list()]
         for item in tipos_amostra:
-            obj.tipos_alimentacao.add(item)
+            if len(tipos_alimentacao_list) == 1 and 'lanche' in tipos_alimentacao_list:
+                refeicao = TipoAlimentacao.objects.filter(nome='refeição').first()
+                obj.tipos_alimentacao.add(refeicao)
+            elif len(tipos_alimentacao_list) == 1 and 'refeição' in tipos_alimentacao_list:
+                lanche = TipoAlimentacao.objects.filter(nome='lanche').first()
+                obj.tipos_alimentacao.add(lanche)
+            else:
+                obj.tipos_alimentacao.add(item)

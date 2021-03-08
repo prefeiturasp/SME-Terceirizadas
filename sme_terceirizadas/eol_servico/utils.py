@@ -50,13 +50,18 @@ class EOLService(object):
         """Retorna detalhes do aluno.
 
         A api do EOL retorna assim:
-        {'cd_aluno': 0001234,
-          'nm_aluno': 'XXXXXX',
-          'nm_social_aluno': None,
-          'dt_nascimento_aluno': '1973-08-14T00:00:00',
-          'cd_sexo_aluno': 'M',
-          'nm_mae_aluno': 'XXXXX',
-          'nm_pai_aluno': 'XXXX'}
+        {
+            'cd_aluno': 0001234,
+            'nm_aluno': 'XXXXXX',
+            'nm_social_aluno': None,
+            'dt_nascimento_aluno': '1973-08-14T00:00:00',
+            'cd_sexo_aluno': 'M',
+            'nm_mae_aluno': 'XXXXX',
+            'nm_pai_aluno': 'XXXX',
+            "cd_escola": "017981",
+            "dc_turma_escola": "4C",
+            "dc_tipo_turno": "Manhã               "
+        }
         """
         response = requests.get(f'{DJANGO_EOL_API_URL}/alunos/{codigo_eol}',
                                 headers=cls.DEFAULT_HEADERS,

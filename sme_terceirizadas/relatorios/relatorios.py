@@ -1,5 +1,6 @@
 import datetime
 
+from django.db.models import F, FloatField, Sum
 from django.template.loader import render_to_string
 
 from ..dados_comuns.fluxo_status import ReclamacaoProdutoWorkflow
@@ -13,6 +14,7 @@ from .utils import (
     formata_logs,
     get_config_cabecario_relatorio_analise,
     get_diretorias_regionais,
+    get_ultima_justificativa_analise_sensorial,
     get_width
 )
 
@@ -106,7 +108,11 @@ def relatorio_alteracao_cardapio_cei(request, solicitacao):
 
 
 def relatorio_dieta_especial(request, solicitacao):
-    escola = solicitacao.rastro_escola
+    if solicitacao.tipo_solicitacao == 'COMUM':
+        escola = solicitacao.rastro_escola
+    else:
+        escola = solicitacao.escola_destino
+    escola_origem = solicitacao.rastro_escola
     logs = solicitacao.logs
     if solicitacao.logs.filter(status_evento=LogSolicitacoesUsuario.INICIO_FLUXO_INATIVACAO).exists():
         if solicitacao.logs.filter(status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_TOMOU_CIENCIA).exists():
@@ -119,6 +125,8 @@ def relatorio_dieta_especial(request, solicitacao):
         'solicitacao_dieta_especial.html',
         {
             'escola': escola,
+            'escola_origem': escola_origem,
+            'lote': escola.lote,
             'solicitacao': solicitacao,
             'fluxo': fluxo,
             'width': get_width(fluxo, solicitacao.logs),
@@ -129,10 +137,14 @@ def relatorio_dieta_especial(request, solicitacao):
 
 
 def relatorio_dieta_especial_protocolo(request, solicitacao):
+    if solicitacao.tipo_solicitacao == 'COMUM':
+        escola = solicitacao.rastro_escola
+    else:
+        escola = solicitacao.escola_destino
     html_string = render_to_string(
         'solicitacao_dieta_especial_protocolo.html',
         {
-            'escola': solicitacao.rastro_escola,
+            'escola': escola,
             'solicitacao': solicitacao,
             'data_termino': solicitacao.data_termino,
             'log_autorizacao': solicitacao.logs.get(status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU)
@@ -236,8 +248,8 @@ def relatorio_inversao_dia_de_cardapio(request, solicitacao):
             'solicitacao': solicitacao,
             'data_de': solicitacao.cardapio_de.data,
             'data_para': solicitacao.cardapio_para.data,
-            'fluxo': constants.FLUXO_PARTINDO_ESCOLA,
-            'width': get_width(constants.FLUXO_PARTINDO_ESCOLA, solicitacao.logs),
+            'fluxo': constants.FLUXO_INVERSAO_DIA_CARDAPIO,
+            'width': get_width(constants.FLUXO_INVERSAO_DIA_CARDAPIO, solicitacao.logs),
             'logs': formata_logs(logs)
         }
     )
@@ -273,6 +285,7 @@ def relatorio_produto_homologacao(request, produto):
         status=ReclamacaoProdutoWorkflow.CODAE_ACEITOU).first()
     logs = homologacao.logs
     lotes = terceirizada.lotes.all()
+    justificativa_analise_sensorial = get_ultima_justificativa_analise_sensorial(produto)
     html_string = render_to_string(
         'homologacao_produto.html',
         {
@@ -283,10 +296,23 @@ def relatorio_produto_homologacao(request, produto):
             'width': get_width(constants.FLUXO_HOMOLOGACAO_PRODUTO, logs),
             'produto': produto,
             'diretorias_regionais': get_diretorias_regionais(lotes),
-            'logs': formata_logs(logs)
+            'logs': formata_logs(logs),
+            'justificativa_analise_sensorial': justificativa_analise_sensorial
         }
     )
     return html_to_pdf_response(html_string, f'produto_homologacao_{produto.id_externo}.pdf')
+
+
+def relatorio_marcas_por_produto_homologacao(request, produtos, filtros):
+    html_string = render_to_string(
+        'homologacao_marcas_por_produto.html',
+        {
+            'produtos': produtos,
+            'hoje': datetime.date.today(),
+            'filtros': filtros
+        }
+    )
+    return html_to_pdf_response(html_string, f'relatorio_marcas_por_produto_homologacao.pdf')
 
 
 def relatorio_produtos_suspensos(produtos, filtros):
@@ -457,9 +483,52 @@ def relatorio_quantitativo_classificacao_dieta_especial(campos, form, queryset, 
 
 def relatorio_quantitativo_diag_dieta_especial(campos, form, queryset, user):
     return get_relatorio_dieta_especial(
-        campos, form, queryset, user, 'relatorio_quantitativo_diagnostico_dieta_especial')
+        campos,
+        form,
+        queryset,
+        user,
+        'relatorio_quantitativo_diagnostico_dieta_especial'
+    )
+
+
+def relatorio_quantitativo_diag_dieta_especial_somente_dietas_ativas(campos, form, queryset, user):
+    return get_relatorio_dieta_especial(
+        campos,
+        form,
+        queryset,
+        user,
+        'relatorio_quantitativo_diagnostico_dieta_especial_somente_dietas_ativas'
+    )
 
 
 def relatorio_geral_dieta_especial(form, queryset, user):
     return get_relatorio_dieta_especial(
         None, form, queryset, user, 'relatorio_dieta_especial')
+
+
+def get_pdf_guia_distribuidor(data=None, many=False):
+    pages = []
+    inicio = 0
+    num_alimentos_pagina = 4
+    for guia in data:
+        todos_alimentos = guia.alimentos.all().annotate(
+            peso_total=Sum(
+                F('embalagens__capacidade_embalagem') * F('embalagens__qtd_volume'), output_field=FloatField()
+            )
+        ).order_by('nome_alimento')
+        while True:
+            alimentos = todos_alimentos[inicio:inicio + num_alimentos_pagina]
+            if alimentos:
+                page = guia.as_dict()
+                peso_total_pagina = round(sum(alimento.peso_total for alimento in alimentos), 2)
+                page['alimentos'] = alimentos
+                page['peso_total'] = peso_total_pagina
+                pages.append(page)
+                inicio = inicio + num_alimentos_pagina
+            else:
+                break
+        inicio = 0
+    html_string = render_to_string('logistica/guia_distribuidor/index.html', {'pages': pages})
+    data_arquivo = datetime.date.today().strftime('%d/%m/%Y')
+
+    return html_to_pdf_response(html_string.replace('dt_file', data_arquivo), 'guia_de_remessa.pdf')

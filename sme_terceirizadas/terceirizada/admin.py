@@ -11,6 +11,7 @@ class NutricionistasInline(admin.TabularInline):
 @admin.register(Terceirizada)
 class GrupoSuspensaoAlimentacaoModelAdmin(admin.ModelAdmin):
     inlines = [NutricionistasInline]
+    search_fields = ('nome_fantasia',)
     readonly_fields = ('contatos',)
 
 

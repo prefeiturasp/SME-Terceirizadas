@@ -18,9 +18,11 @@ from ...dados_comuns.behaviors import Ativavel, Nomeavel, TemChaveExterna
 from ...dados_comuns.constants import (
     ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
     ADMINISTRADOR_GESTAO_PRODUTO,
+    ADMINISTRADOR_SUPERVISAO_NUTRICAO,
     COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
     COORDENADOR_GESTAO_PRODUTO,
-    SUPERVISAO_NUTRICAO
+    COORDENADOR_LOGISTICA,
+    COORDENADOR_SUPERVISAO_NUTRICAO
 )
 from ...dados_comuns.tasks import envia_email_unico_task
 from ...dados_comuns.utils import url_configs
@@ -140,7 +142,8 @@ class Usuario(ExportModelOperationsMixin('usuario'), SimpleEmailConfirmationUser
     contatos = models.ManyToManyField('dados_comuns.Contato', blank=True)
 
     # TODO: esses atributos devem pertencer somente a um model Nutricionista
-    super_admin_terceirizadas = models.BooleanField('É Administrador por parte das Terceirizadas?', default=False)  # noqa
+    super_admin_terceirizadas = models.BooleanField('É Administrador por parte das Terceirizadas?',
+                                                    default=False)  # noqa
     crn_numero = models.CharField('Nutricionista crn', max_length=160, blank=True, null=True)  # noqa DJ01
 
     USERNAME_FIELD = 'email'
@@ -175,13 +178,16 @@ class Usuario(ExportModelOperationsMixin('usuario'), SimpleEmailConfirmationUser
         if self.vinculo_atual:
             tipo_usuario = self.vinculo_atual.content_type.model
             if tipo_usuario == 'codae':
-                if self.vinculo_atual.perfil.nome in [COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
-                                                      ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA]:
+                if self.vinculo_atual.perfil.nome in [COORDENADOR_LOGISTICA]:
+                    tipo_usuario = 'coordenador_logistica'
+                elif self.vinculo_atual.perfil.nome in [COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
+                                                        ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA]:
                     tipo_usuario = 'gestao_alimentacao_terceirizada'
                 elif self.vinculo_atual.perfil.nome in [COORDENADOR_GESTAO_PRODUTO,
                                                         ADMINISTRADOR_GESTAO_PRODUTO]:
                     tipo_usuario = 'gestao_produto'
-                elif self.vinculo_atual.perfil.nome == SUPERVISAO_NUTRICAO:
+                elif self.vinculo_atual.perfil.nome in [COORDENADOR_SUPERVISAO_NUTRICAO,
+                                                        ADMINISTRADOR_SUPERVISAO_NUTRICAO]:
                     tipo_usuario = 'supervisao_nutricao'
                 else:
                     tipo_usuario = 'dieta_especial'

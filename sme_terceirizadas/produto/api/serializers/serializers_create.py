@@ -45,7 +45,7 @@ class InformacoesNutricionaisDoProdutoSerializerCreate(serializers.ModelSerializ
     )
 
     quantidade_porcao = serializers.CharField(required=True)
-    valor_diario = serializers.CharField(required=True)
+    valor_diario = serializers.CharField(required=False)
 
     class Meta:
         model = InformacoesNutricionaisDoProduto

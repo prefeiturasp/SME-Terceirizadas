@@ -81,6 +81,11 @@ def concatena_str(query_set):
 
 
 @register.filter
+def concatena_string(lista):
+    return ', '.join([p for p in lista])
+
+
+@register.filter
 def concatena_label(query_set):
     label = ''
     for item in query_set:
@@ -222,3 +227,19 @@ def obter_titulo_status_dieta(status):
         DietaEspecialWorkflow.ESCOLA_CANCELOU: 'Cancelada'
     }
     return titulo_status_dieta.get(status, '')
+
+
+@register.filter
+def retorna_lote(valor):
+    if 'LOTE' in valor:
+        return valor[5:]
+    return valor
+
+
+@register.simple_tag
+def embalagens_filter(embalagens, tipo):
+    for emb in embalagens:
+        if emb.tipo_embalagem == tipo:
+            return emb
+    else:
+        return False

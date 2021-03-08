@@ -4,12 +4,15 @@ from ..escola.models import Codae, DiretoriaRegional, Escola
 from ..terceirizada.models import Terceirizada
 from .constants import (
     ADMINISTRADOR_DIETA_ESPECIAL,
+    ADMINISTRADOR_DISTRIBUIDORA,
     ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
     ADMINISTRADOR_GESTAO_PRODUTO,
+    ADMINISTRADOR_SUPERVISAO_NUTRICAO,
     COORDENADOR_DIETA_ESPECIAL,
     COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
     COORDENADOR_GESTAO_PRODUTO,
-    SUPERVISAO_NUTRICAO
+    COORDENADOR_LOGISTICA,
+    COORDENADOR_SUPERVISAO_NUTRICAO
 )
 
 
@@ -100,7 +103,8 @@ class UsuarioNutricionista(BasePermission):
             isinstance(usuario.vinculo_atual.instituicao, Codae) and
             usuario.vinculo_atual.perfil.nome in [COORDENADOR_DIETA_ESPECIAL,
                                                   ADMINISTRADOR_DIETA_ESPECIAL,
-                                                  SUPERVISAO_NUTRICAO]
+                                                  COORDENADOR_SUPERVISAO_NUTRICAO,
+                                                  ADMINISTRADOR_SUPERVISAO_NUTRICAO]
         )
 
 
@@ -199,7 +203,7 @@ class PermissaoParaRecuperarDietaEspecial(BasePermission):
         usuario = request.user
         if isinstance(usuario.vinculo_atual.instituicao, Escola):
             return (
-                usuario.vinculo_atual.instituicao in [obj.escola, obj.rastro_escola]
+                usuario.vinculo_atual.instituicao in [obj.escola, obj.rastro_escola, obj.escola_destino]
             )
         elif isinstance(usuario.vinculo_atual.instituicao, DiretoriaRegional):
             return (
@@ -209,9 +213,10 @@ class PermissaoParaRecuperarDietaEspecial(BasePermission):
             return (
                 usuario.vinculo_atual.perfil.nome in [COORDENADOR_DIETA_ESPECIAL,
                                                       ADMINISTRADOR_DIETA_ESPECIAL,
-                                                      SUPERVISAO_NUTRICAO,
+                                                      COORDENADOR_SUPERVISAO_NUTRICAO,
                                                       COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
-                                                      ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA]
+                                                      ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
+                                                      ADMINISTRADOR_SUPERVISAO_NUTRICAO]
             )
         elif isinstance(usuario.vinculo_atual.instituicao, Terceirizada):
             return (
@@ -233,7 +238,34 @@ class PermissaoParaReclamarDeProduto(BasePermission):
                     isinstance(usuario.vinculo_atual.instituicao, Codae) and
                     usuario.vinculo_atual.perfil.nome in [COORDENADOR_DIETA_ESPECIAL,
                                                           ADMINISTRADOR_DIETA_ESPECIAL,
-                                                          SUPERVISAO_NUTRICAO]
+                                                          COORDENADOR_SUPERVISAO_NUTRICAO,
+                                                          ADMINISTRADOR_SUPERVISAO_NUTRICAO]
                 )
             )
+        )
+
+
+class UsuarioDilogCodae(BasePermission):
+    """Permite acesso a usuários com vinculo a CODAE - Dieta Especial."""
+
+    def has_permission(self, request, view):
+        usuario = request.user
+        return (
+            not usuario.is_anonymous and
+            usuario.vinculo_atual and
+            isinstance(usuario.vinculo_atual.instituicao, Codae) and
+            usuario.vinculo_atual.perfil.nome in [COORDENADOR_LOGISTICA]
+        )
+
+
+class UsuarioDistribuidor(BasePermission):
+    """Permite acesso a usuários com vinculo a Distribuidoras."""
+
+    def has_permission(self, request, view):
+        usuario = request.user
+        return (
+            not usuario.is_anonymous and
+            usuario.vinculo_atual and
+            isinstance(usuario.vinculo_atual.instituicao, Terceirizada) and
+            usuario.vinculo_atual.perfil.nome in [ADMINISTRADOR_DISTRIBUIDORA]
         )

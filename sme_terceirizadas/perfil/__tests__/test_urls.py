@@ -175,7 +175,7 @@ def test_get_meus_dados_diretor_escola(users_diretor_escola):
                                    'codigo_eol': '987656'},
             'tipo_unidade_escolar': '56725de5-89d3-4edf-8633-3e0b5c99e9d4'
         },
-        'perfil': {'nome': 'DIRETOR', 'uuid': '41c20c8b-7e57-41ed-9433-ccb92e8afaf1'}}
+        'perfil': {'nome': 'COORDENADOR_ESCOLA', 'uuid': '41c20c8b-7e57-41ed-9433-ccb92e8afaf1'}}
 
 
 def test_cadastro_vinculo_diretor_escola(users_diretor_escola, monkeypatch):
@@ -305,7 +305,7 @@ def test_get_equipe_administradora_vinculos_escola(users_diretor_escola):
     assert response.json() == [
         {'data_inicial': datetime.date.today().strftime('%d/%m/%Y'),
          'perfil': {'nome': 'ADMINISTRADOR_ESCOLA', 'uuid': '48330a6f-c444-4462-971e-476452b328b2'},
-         'usuario': {'uuid': '8344f23a-95c4-4871-8f20-3880529767c0', 'nome': 'Fulano da Silva', 'cpf': None,
+         'usuario': {'uuid': '8344f23a-95c4-4871-8f20-3880529767c0', 'nome': 'Fulano da Silva', 'cpf': '11111111111',
                      'email': 'fulano@teste.com', 'registro_funcional': '1234567', 'tipo_usuario': 'escola',
                      'cargo': ''}}]
 
@@ -394,7 +394,7 @@ def test_get_equipe_administradora_vinculos_dre(users_cogestor_diretoria_regiona
         {'data_inicial': datetime.date.today().strftime('%d/%m/%Y'),
          'perfil': {'nome': 'ADMINISTRADOR_DRE', 'uuid': '48330a6f-c444-4462-971e-476452b328b2'},
          'usuario': {'uuid': '8344f23a-95c4-4871-8f20-3880529767c0', 'nome': 'Fulano da Silva',
-                     'email': 'fulano@teste.com', 'registro_funcional': '1234567', 'cpf': None,
+                     'email': 'fulano@teste.com', 'registro_funcional': '1234567', 'cpf': '11111111111',
                      'tipo_usuario': 'diretoriaregional', 'cargo': ''}}]
 
 
@@ -521,7 +521,7 @@ def test_get_equipe_administradora_vinculos_codae(users_codae_gestao_alimentacao
          'perfil': {'nome': 'ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA',
                     'uuid': '48330a6f-c444-4462-971e-476452b328b2'},
          'usuario': {'uuid': '8344f23a-95c4-4871-8f20-3880529767c0', 'nome': 'Fulano da Silva',
-                     'email': 'fulano@teste.com', 'registro_funcional': '1234567', 'cpf': None,
+                     'email': 'fulano@teste.com', 'registro_funcional': '1234567', 'cpf': '11111111111',
                      'tipo_usuario': 'gestao_alimentacao_terceirizada', 'cargo': ''}}]
 
 
@@ -601,7 +601,7 @@ def test_cadastro_erro(client):
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert isinstance(response.json(), dict)
     assert response.json() == {
-        'detail': 'E-mail não cadastrado no sistema'
+        'detail': 'RF não cadastrado no sistema'
     }
 
 
@@ -669,7 +669,7 @@ def test_cadastro_diretor(client, users_diretor_escola, monkeypatch):
                                    'codigo_eol': '987656'},
             'tipo_unidade_escolar': '56725de5-89d3-4edf-8633-3e0b5c99e9d4'
         },
-        'perfil': {'nome': 'DIRETOR', 'uuid': '41c20c8b-7e57-41ed-9433-ccb92e8afaf1'}}
+        'perfil': {'nome': 'COORDENADOR_ESCOLA', 'uuid': '41c20c8b-7e57-41ed-9433-ccb92e8afaf1'}}
 
 
 def test_post_usuarios(client_autenticado):

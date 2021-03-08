@@ -79,6 +79,7 @@ DJANGO_APPS = [
     'django.contrib.staticfiles',
     # 'django.contrib.humanize', # Handy template tags
     'django.contrib.admin',
+    'django.contrib.postgres'
 ]
 THIRD_PARTY_APPS = [
     'crispy_forms',
@@ -86,11 +87,14 @@ THIRD_PARTY_APPS = [
     'django_prometheus',
     'rest_framework',
     'rest_framework_swagger',
+    'rest_framework_xml',
+    'rest_framework.authtoken',
     'des',  # for email configuration in database
     'django_xworkflows',
     'simple_email_confirmation',
     'sass_processor',
-    'sequences.apps.SequencesConfig'
+    'sequences.apps.SequencesConfig',
+    'multiselectfield'
 ]
 LOCAL_APPS = [
     'sme_terceirizadas.perfil.apps.PerfilConfig',
@@ -105,6 +109,7 @@ LOCAL_APPS = [
     'sme_terceirizadas.relatorios.apps.RelatoriosConfig',
     'sme_terceirizadas.produto.apps.ProdutoConfig',
     'sme_terceirizadas.lancamento_inicial.apps.LancamentoInicialConfig',
+    'sme_terceirizadas.logistica.apps.LogisticaConfig',
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -281,6 +286,7 @@ REST_FRAMEWORK = {
         'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
     ),
     'DATETIME_FORMAT': '%d/%m/%Y %H:%M:%S',
     'DATETIME_INPUT_FORMATS': ['%d/%m/%Y %H:%M:%S', 'iso-8601'],
@@ -352,12 +358,20 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(hour=0, minute=30)
     },
     'ativa-desativa-vinculos-alimentacao': {
-        'task': 'sme_terceirizadas.cardapio.tasks.ativa_desativa_vinculos_alimentacao_com_periodo_escolar_e_tipo_unidade_escolar', # noqa E501
+        'task': 'sme_terceirizadas.cardapio.tasks.ativa_desativa_vinculos_alimentacao_com_periodo_escolar_e_tipo_unidade_escolar',  # noqa E501
         'schedule': crontab(hour=1, minute=0)
     },
     'termina-dietas-especiais': {
-        'task': 'sme_terceirizadas.dieta_especial.tasks.termina_dietas_especiais_task',
+        'task': 'sme_terceirizadas.dieta_especial.tasks.processa_dietas_especiais_task',
         'schedule': crontab(hour=1, minute=30)
+    },
+    'atualiza-alunos-escolas': {
+        'task': 'sme_terceirizadas.escola.tasks.atualiza_alunos_escolas',
+        'schedule': crontab(hour=2, minute=0)
+    },
+    'cancela-dietas-ativas-automaticamente': {
+        'task': 'sme_terceirizadas.dieta_especial.tasks.cancela_dietas_ativas_automaticamente_task',
+        'schedule': crontab(hour=2, minute=30)
     }
 }
 

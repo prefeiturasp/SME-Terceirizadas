@@ -10,6 +10,11 @@ data_perfis = [
         'super_usuario': True,
     },
     {
+        'nome': 'COORDENADOR_ESCOLA',
+        'ativo': True,
+        'super_usuario': True,
+    },
+    {
         'nome': 'ADMINISTRADOR_ESCOLA',
         'ativo': True,
         'super_usuario': True,
@@ -30,7 +35,12 @@ data_perfis = [
         'super_usuario': True,
     },
     {
-        'nome': 'SUPERVISAO_NUTRICAO',
+        'nome': 'COORDENADOR_SUPERVISAO_NUTRICAO',
+        'ativo': True,
+        'super_usuario': True,
+    },
+    {
+        'nome': 'ADMINISTRADOR_SUPERVISAO_NUTRICAO',
         'ativo': True,
         'super_usuario': True,
     },
@@ -41,6 +51,11 @@ data_perfis = [
     },
     {
         'nome': 'COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA',
+        'ativo': True,
+        'super_usuario': True,
+    },
+    {
+        'nome': 'COORDENADOR_LOGISTICA',
         'ativo': True,
         'super_usuario': True,
     },
@@ -66,6 +81,16 @@ data_perfis = [
     },
     {
         'nome': 'ADMINISTRADOR_GESTAO_PRODUTO',
+        'ativo': True,
+        'super_usuario': True,
+    },
+    {
+        'nome': 'ADMINISTRADOR_DISTRIBUIDORA',
+        'ativo': True,
+        'super_usuario': True,
+    },
+    {
+        'nome': 'COORDENADOR_LOGISTICA',
         'ativo': True,
         'super_usuario': True,
     },

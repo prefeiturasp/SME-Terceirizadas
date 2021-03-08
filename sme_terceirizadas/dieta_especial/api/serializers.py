@@ -8,8 +8,8 @@ from ...dados_comuns.utils import update_instance_from_dict
 from ...dados_comuns.validators import nao_pode_ser_no_passado
 from ...escola.api.serializers import AlunoSerializer, LoteNomeSerializer, TipoGestaoSerializer
 from ...escola.models import DiretoriaRegional, Escola
-from ...produto.api.serializers.serializers import ProdutoSimplesSerializer
-from ...produto.models import SolicitacaoCadastroProdutoDieta
+from ...produto.api.serializers.serializers import MarcaSimplesSerializer, ProdutoSimplesSerializer
+from ...produto.models import Produto, SolicitacaoCadastroProdutoDieta
 from ..models import (
     AlergiaIntolerancia,
     Alimento,
@@ -21,7 +21,11 @@ from ..models import (
     SubstituicaoAlimento,
     TipoContagem
 )
-from .serializers_create import SolicitacaoDietaEspecialCreateSerializer, SubstituicaoAlimentoCreateSerializer
+from .serializers_create import (
+    SolicitacaoDietaEspecialCreateSerializer,
+    SubstituicaoAutorizarSerializer,
+    SubstituicaoCreateSerializer
+)
 from .validators import atributos_lista_nao_vazios, atributos_string_nao_vazios, deve_ter_atributos
 
 
@@ -47,10 +51,22 @@ class MotivoNegacaoSerializer(serializers.ModelSerializer):
 
 
 class AlimentoSerializer(serializers.ModelSerializer):
+    marca = MarcaSimplesSerializer()
 
     class Meta:
         model = Alimento
         fields = '__all__'
+
+
+class AlimentosSubstitutosSerializer(serializers.ModelSerializer):
+    tipo = serializers.SerializerMethodField()
+
+    def get_tipo(self, instance):
+        return 'a'
+
+    class Meta:
+        model = Alimento
+        fields = ('uuid', 'nome', 'tipo')
 
 
 class TipoContagemSerializer(serializers.ModelSerializer):
@@ -71,6 +87,7 @@ class AnexoSerializer(ModelSerializer):
 class SubstituicaoAlimentoSerializer(ModelSerializer):
     alimento = AlimentoSerializer()
     substitutos = ProdutoSimplesSerializer(many=True)
+    alimentos_substitutos = AlimentoSerializer(many=True)
 
     class Meta:
         model = SubstituicaoAlimento
@@ -99,21 +116,20 @@ class SolicitacaoDietaEspecialAutorizarSerializer(SolicitacaoDietaEspecialCreate
             dados_a_validar, ['registro_funcional_nutricionista'])
         return dados_a_validar
 
-    def update(self, instance, data):
+    def update(self, instance, data):  # noqa C901
         validated_data = self.validate(data)
         alergias_intolerancias = validated_data.pop('alergias_intolerancias')
         substituicoes = validated_data.pop('substituicoes')
 
         instance.classificacao_id = validated_data['classificacao']
-        instance.registro_funcional_nutricionista = validated_data[
-            'registro_funcional_nutricionista']
-        instance.informacoes_adicionais = validated_data.get(
-            'informacoes_adicionais', '')
+        instance.registro_funcional_nutricionista = validated_data['registro_funcional_nutricionista']
+        instance.informacoes_adicionais = validated_data.get('informacoes_adicionais', '')
+        instance.caracteristicas_do_alimento = validated_data.get('caracteristicas_do_alimento', '')
         instance.nome_protocolo = validated_data.get('nome_protocolo', '')
         data_termino = validated_data.get('data_termino', '')
         if data_termino:
+            data_termino = datetime.strptime(data_termino, '%Y-%m-%d').date()
             instance.data_termino = data_termino
-        instance.ativo = True
 
         instance.alergias_intolerancias.clear()
 
@@ -124,9 +140,23 @@ class SolicitacaoDietaEspecialAutorizarSerializer(SolicitacaoDietaEspecialCreate
         instance.substituicaoalimento_set.all().delete()
         for substituicao in substituicoes:
             substituicao['solicitacao_dieta_especial'] = instance.id
-            ser = SubstituicaoAlimentoCreateSerializer(data=substituicao)
-            ser.is_valid(raise_exception=True)
-            instance.substituicaoalimento_set.add(ser.save())
+            # Separa Alimentos e Produtos.
+            alimentos_substitutos = []
+            produtos_substitutos = []
+            for substituto in substituicao['substitutos']:
+                if Alimento.objects.filter(uuid=substituto).first():
+                    alimentos_substitutos.append(substituto)
+                elif Produto.objects.filter(uuid=substituto).first():
+                    produtos_substitutos.append(substituto)
+                else:
+                    raise Exception('Substituto não encontrado.')
+
+            substituicao['alimentos_substitutos'] = alimentos_substitutos
+            substituicao['substitutos'] = produtos_substitutos
+
+            create_serializer = SubstituicaoAutorizarSerializer(data=substituicao)  # noqa
+            if create_serializer.is_valid(raise_exception=True):
+                instance.substituicaoalimento_set.add(create_serializer.save())
 
         return instance
 
@@ -150,12 +180,24 @@ class EscolaSerializer(serializers.ModelSerializer):
                   'tipo_gestao', 'lote', 'contato')
 
 
+class MotivoAlteracaoUESerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = MotivoAlteracaoUE
+        fields = (
+            'uuid',
+            'nome',
+            'descricao'
+        )
+
+
 class SolicitacaoDietaEspecialSerializer(serializers.ModelSerializer):
     aluno = AlunoSerializer()
     anexos = serializers.ListField(
         child=AnexoSerializer(), required=True
     )
     escola = EscolaSerializer()
+    escola_destino = EscolaSerializer()
     logs = LogSolicitacoesUsuarioSerializer(many=True)
     status_solicitacao = serializers.CharField(
         source='status',
@@ -167,14 +209,15 @@ class SolicitacaoDietaEspecialSerializer(serializers.ModelSerializer):
     classificacao = ClassificacaoDietaSerializer()
     alergias_intolerancias = AlergiaIntoleranciaSerializer(many=True)
     motivo_negacao = MotivoNegacaoSerializer()
-
+    motivo_alteracao_ue = MotivoAlteracaoUESerializer()
     substituicoes = SubstituicaoAlimentoSerializer(many=True)
 
     tem_solicitacao_cadastro_produto = serializers.SerializerMethodField()
 
     def get_tem_solicitacao_cadastro_produto(self, obj):
-        return SolicitacaoCadastroProdutoDieta.objects.filter(solicitacao_dieta_especial=obj,
-                                                              status='AGUARDANDO_CONFIRMACAO').exists()
+        return SolicitacaoCadastroProdutoDieta.objects.filter(
+            solicitacao_dieta_especial=obj,
+            status='AGUARDANDO_CONFIRMACAO').exists()
 
     class Meta:
         model = SolicitacaoDietaEspecial
@@ -186,6 +229,7 @@ class SolicitacaoDietaEspecialSerializer(serializers.ModelSerializer):
             'status_solicitacao',
             'aluno',
             'escola',
+            'escola_destino',
             'anexos',
             'nome_completo_pescritor',
             'registro_funcional_pescritor',
@@ -195,27 +239,30 @@ class SolicitacaoDietaEspecialSerializer(serializers.ModelSerializer):
             'nome_protocolo',
             'substituicoes',
             'informacoes_adicionais',
+            'caracteristicas_do_alimento',
             'motivo_negacao',
             'justificativa_negacao',
             'registro_funcional_nutricionista',
             'logs',
             'ativo',
             'data_termino',
-            'tem_solicitacao_cadastro_produto'
+            'data_inicio',
+            'tem_solicitacao_cadastro_produto',
+            'tipo_solicitacao',
+            'observacoes_alteracao',
+            'motivo_alteracao_ue'
         )
 
 
 class SolicitacaoDietaEspecialUpdateSerializer(serializers.ModelSerializer):
-    anexos = serializers.ListField(
-        child=AnexoSerializer(), required=True
-    )
-
+    anexos = serializers.ListField(child=AnexoSerializer(), required=True)
     classificacao = serializers.PrimaryKeyRelatedField(
-        queryset=ClassificacaoDieta.objects.all())
+        queryset=ClassificacaoDieta.objects.all()
+    )
     alergias_intolerancias = serializers.PrimaryKeyRelatedField(
-        queryset=AlergiaIntolerancia.objects.all(), many=True)
-
-    substituicoes = SubstituicaoAlimentoCreateSerializer(many=True)
+        queryset=AlergiaIntolerancia.objects.all(), many=True
+    )
+    substituicoes = SubstituicaoCreateSerializer(many=True)
 
     def update(self, instance, data):  # noqa C901
         anexos = data.pop('anexos', [])
@@ -244,7 +291,11 @@ class SolicitacaoDietaEspecialUpdateSerializer(serializers.ModelSerializer):
                 substituicao['solicitacao_dieta_especial'] = instance
                 subst_obj = SubstituicaoAlimento.objects.create(**substituicao)
                 if substitutos:
-                    subst_obj.substitutos.set(substitutos)
+                    for substituto in substitutos:
+                        if isinstance(substituto, Alimento):
+                            subst_obj.alimentos_substitutos.add(substituto)
+                        if isinstance(substituto, Produto):
+                            subst_obj.substitutos.add(substituto)
 
         instance.save()
         return instance
@@ -265,11 +316,11 @@ class SolicitacaoDietaEspecialLogSerializer(serializers.ModelSerializer):
 
 
 class SolicitacoesAtivasInativasPorAlunoSerializer(serializers.Serializer):
-    dre = serializers.CharField(source='aluno.escola.diretoria_regional.nome')
-    escola = serializers.CharField(source='aluno.escola.nome')
-    codigo_eol = serializers.CharField(source='aluno.codigo_eol')
-    uuid = serializers.CharField(source='aluno.uuid')
-    nome = serializers.CharField(source='aluno.nome')
+    dre = serializers.CharField(source='escola.diretoria_regional.nome')
+    escola = serializers.CharField(source='escola.nome')
+    codigo_eol = serializers.CharField()
+    uuid = serializers.CharField()
+    nome = serializers.CharField()
     ativas = serializers.IntegerField()
     inativas = serializers.IntegerField()
 
@@ -303,6 +354,9 @@ class SolicitacaoDietaEspecialSimplesSerializer(serializers.ModelSerializer):
     classificacao = ClassificacaoDietaSerializer()
     alergias_intolerancias = AlergiaIntoleranciaSerializer(many=True)
     motivo_negacao = MotivoNegacaoSerializer()
+    anexos = serializers.ListField(
+        child=AnexoSerializer(), required=True
+    )
 
     class Meta:
         model = SolicitacaoDietaEspecial
@@ -320,30 +374,32 @@ class SolicitacaoDietaEspecialSimplesSerializer(serializers.ModelSerializer):
             'justificativa_negacao',
             'registro_funcional_nutricionista',
             'logs',
+            'anexos',
             'ativo',
             'data_termino',
             'status_titulo',
+            'nome_completo_pescritor',
+            'registro_funcional_pescritor',
             'observacoes',
-            'informacoes_adicionais'
+            'informacoes_adicionais',
+            'tipo_solicitacao'
         )
 
 
 class PanoramaSerializer(serializers.Serializer):
-    periodo = serializers.CharField(source='periodo_escolar__nome', required=False)
+    periodo = serializers.CharField(
+        source='periodo_escolar__nome',
+        required=False
+    )
     horas_atendimento = serializers.IntegerField(required=False)
-    qtde_alunos = serializers.IntegerField(source='quantidade_alunos', required=False)
+    qtde_alunos = serializers.IntegerField(
+        source='quantidade_alunos',
+        required=False
+    )
     qtde_tipo_a = serializers.IntegerField()
     qtde_enteral = serializers.IntegerField()
     qtde_tipo_b = serializers.IntegerField()
-    uuid_escola_periodo_escolar = serializers.CharField(source='uuid', required=False)
-
-
-class MotivoAlteracaoUESerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = MotivoAlteracaoUE
-        fields = (
-            'uuid',
-            'nome',
-            'descricao'
-        )
+    uuid_escola_periodo_escolar = serializers.CharField(
+        source='uuid',
+        required=False
+    )

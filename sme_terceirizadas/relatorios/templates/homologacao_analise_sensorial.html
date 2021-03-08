@@ -4,6 +4,16 @@
 
 {% block conteudo %}
 <section class="corpo-relatorio-produto">
+  <div style="display: flex; justify-content: space-between;">
+    <div class="label">Solicitação de análise sensorial</div>
+    <div class="label">Protocolo Análise Sensorial: {{ homologacao.protocolo_analise_sensorial }}</div>
+  </div>
+  <article class="detalhes-empresa" style="height: auto">
+    <div style="width: 100%; display: flex; justify-content: space-between; padding: 0 10px">
+      <div class="value" style="height: auto"><div>{{ ultimo_log.justificativa|safe }}</div></div>
+    </div>
+  </article>
+  <br>
   <article class="detalhes-empresa">
     <div class="nome">
       <div class="label">Empresa solicitante (Terceirizada)</div>
@@ -191,14 +201,6 @@
       </main>
     </article>
 
-    <article class="uma-informacao">
-      <header>
-        <p>Solicitação de análise sensorial</p>
-      </header>
-      <main>
-        <p>{{ ultimo_log.justificativa|retira_p_texto }}</p>
-      </main>
-    </article>
   </section>
 
 </section>

@@ -11,8 +11,9 @@ from ...dados_comuns.validators import deve_ser_no_passado, deve_ter_extensao_va
 from ...eol_servico.utils import EOLService
 from ...escola.api.serializers import AlunoNaoMatriculadoSerializer
 from ...escola.models import Aluno, Escola, PeriodoEscolar, Responsavel
+from ...produto.api.serializers import serializers as ser
 from ...produto.models import Produto
-from ..models import Anexo, MotivoAlteracaoUE, SolicitacaoDietaEspecial, SubstituicaoAlimento
+from ..models import Alimento, Anexo, MotivoAlteracaoUE, SolicitacaoDietaEspecial, SubstituicaoAlimento
 from .validators import AlunoSerializerValidator
 
 
@@ -29,11 +30,25 @@ class AnexoCreateSerializer(serializers.ModelSerializer):
         fields = ('arquivo', 'nome')
 
 
-class SubstituicaoAlimentoCreateSerializer(serializers.ModelSerializer):
+class SubstituicaoCreateSerializer(serializers.ModelSerializer):
+    substitutos = ser.SubstitutosSerializer(many=True)
+
+    class Meta:
+        model = SubstituicaoAlimento
+        fields = '__all__'
+
+
+class SubstituicaoAutorizarSerializer(serializers.ModelSerializer):
     substitutos = serializers.SlugRelatedField(
         slug_field='uuid',
-        required=True,
+        required=False,
         queryset=Produto.objects.all(),
+        many=True
+    )
+    alimentos_substitutos = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=Alimento.objects.all(),
         many=True
     )
 
@@ -54,7 +69,8 @@ class SolicitacaoDietaEspecialCreateSerializer(serializers.ModelSerializer):
         for anexo in anexos:
             filesize = size(anexo['arquivo'])
             if filesize > DEZ_MB:
-                raise serializers.ValidationError('O tamanho máximo de um arquivo é 10MB')
+                msg = 'O tamanho máximo de um arquivo é 10MB'
+                raise serializers.ValidationError(msg)
         if not anexos:
             raise serializers.ValidationError('Anexos não pode ser vazio')
         return anexos
@@ -73,15 +89,16 @@ class SolicitacaoDietaEspecialCreateSerializer(serializers.ModelSerializer):
         validated_data['criado_por'] = self.context['request'].user
         anexos = validated_data.pop('anexos', [])
         aluno_data = validated_data.pop('aluno_json', None)
-        aluno_nao_matriculado_data = validated_data.pop('aluno_nao_matriculado_data', None)
+        aluno_nao_matriculado_data = validated_data.pop(
+            'aluno_nao_matriculado_data', None)
         aluno_nao_matriculado = validated_data.pop('aluno_nao_matriculado')
 
         escola_destino = None
         tipo_solicitacao = None
 
         if aluno_nao_matriculado:
-            aluno = aluno_nao_matriculado_data
-            codigo_eol_escola = aluno_nao_matriculado_data.pop('codigo_eol_escola')
+            codigo_eol_escola = aluno_nao_matriculado_data.pop(
+                'codigo_eol_escola')
             responsavel_data = aluno_nao_matriculado_data.pop('responsavel')
             cpf_aluno = aluno_nao_matriculado_data.get('cpf')
             nome_aluno = aluno_nao_matriculado_data.get('nome')
@@ -90,20 +107,27 @@ class SolicitacaoDietaEspecialCreateSerializer(serializers.ModelSerializer):
             escola = Escola.objects.get(codigo_eol=codigo_eol_escola)
             escola_destino = escola
 
-            aluno = Aluno.objects.filter(nome__iexact=nome_aluno, responsaveis__cpf=responsavel_data.get('cpf')).last()
+            aluno = None
 
-            if cpf_aluno and not aluno:
-                aluno, _ = Aluno.objects.get_or_create(
-                    cpf=cpf_aluno,
-                    defaults={'nome': nome_aluno, 'data_nascimento': data_nascimento}
+            if cpf_aluno:
+                aluno = Aluno.objects.filter(cpf=cpf_aluno).last()
+            if not aluno:
+                aluno = Aluno.objects.filter(
+                    nome__iexact=nome_aluno,
+                    responsaveis__cpf=responsavel_data.get('cpf')).last()
+            if not aluno:
+                aluno = Aluno.objects.create(
+                    nome=nome_aluno,
+                    data_nascimento=data_nascimento,
+                    cpf=cpf_aluno
                 )
-            elif not aluno:
-                aluno = Aluno.objects.create(nome=nome_aluno, data_nascimento=data_nascimento)
 
             if SolicitacaoDietaEspecial.aluno_possui_dieta_especial_pendente(aluno):
-                raise serializers.ValidationError('Aluno já possui Solicitação de Dieta Especial pendente')
+                msg = 'Aluno já possui Solicitação de Dieta Especial pendente'
+                raise serializers.ValidationError(msg)
 
-            aluno.escola = validated_data['criado_por'].vinculo_atual.instituicao
+            aluno.escola = validated_data[
+                'criado_por'].vinculo_atual.instituicao
             aluno.nao_matriculado = True
             aluno.save()
 
@@ -122,15 +146,19 @@ class SolicitacaoDietaEspecialCreateSerializer(serializers.ModelSerializer):
                     periodo_nome = registro['dc_tipo_turno']
                     break
             else:
-                raise serializers.ValidationError('Aluno não pertence a essa escola')
+                raise serializers.ValidationError(
+                    'Aluno não pertence a essa escola')
 
             aluno = self._get_or_create_aluno(aluno_data)
 
             if SolicitacaoDietaEspecial.aluno_possui_dieta_especial_pendente(aluno):
-                raise serializers.ValidationError('Aluno já possui Solicitação de Dieta Especial pendente')
+                msg = 'Aluno já possui Solicitação de Dieta Especial pendente'
+                raise serializers.ValidationError(msg)
 
-            periodo = PeriodoEscolar.objects.get(nome__icontains=unidecode(periodo_nome.strip()))
-            aluno.escola = validated_data['criado_por'].vinculo_atual.instituicao
+            periodo = PeriodoEscolar.objects.get(
+                nome__icontains=unidecode(periodo_nome.strip()))
+            aluno.escola = validated_data[
+                'criado_por'].vinculo_atual.instituicao
             escola_destino = aluno.escola
             aluno.periodo_escolar = periodo
             aluno.save()
@@ -214,8 +242,8 @@ class AlteracaoUESerializer(serializers.ModelSerializer):
         fields = (
             'escola_destino',
             'dieta_alterada',
-            'data_inicial_alteracao',
-            'data_final_alteracao',
+            'data_inicio',
+            'data_termino',
             'motivo_alteracao',
             'observacoes_alteracao'
         )
@@ -224,14 +252,17 @@ class AlteracaoUESerializer(serializers.ModelSerializer):
         dieta_alterada = validated_data.get('dieta_alterada')
         escola_destino = validated_data.get('escola_destino')
         motivo_alteracao = validated_data.get('motivo_alteracao')
-        data_inicial_alteracao = validated_data.get('data_inicial_alteracao')
-        data_final_alteracao = validated_data.get('data_final_alteracao')
-        observacoes_alteracao = validated_data.get('observacoes_alteracao')
+        data_inicio = validated_data.get('data_inicio')
+        data_termino = validated_data.get('data_termino')
+        observacoes_alteracao = validated_data.get('observacoes_alteracao', '')
 
         if SolicitacaoDietaEspecial.aluno_possui_dieta_especial_pendente(dieta_alterada.aluno):
             raise serializers.ValidationError('Aluno já possui Solicitação de Dieta Especial pendente')
 
-        substituicoes = SubstituicaoAlimento.objects.filter(solicitacao_dieta_especial=dieta_alterada)
+        substituicoes = SubstituicaoAlimento.objects.filter(
+            solicitacao_dieta_especial=dieta_alterada)
+        anexos = Anexo.objects.filter(
+            solicitacao_dieta_especial=dieta_alterada)
 
         solicitacao_alteracao = deepcopy(dieta_alterada)
         solicitacao_alteracao.id = None
@@ -242,8 +273,8 @@ class AlteracaoUESerializer(serializers.ModelSerializer):
         solicitacao_alteracao.motivo_alteracao_ue = motivo_alteracao
         solicitacao_alteracao.escola_destino = escola_destino
         solicitacao_alteracao.dieta_alterada = dieta_alterada
-        solicitacao_alteracao.data_inicial_alteracao = data_inicial_alteracao
-        solicitacao_alteracao.data_final_alteracao = data_final_alteracao
+        solicitacao_alteracao.data_termino = data_termino
+        solicitacao_alteracao.data_inicio = data_inicio
         solicitacao_alteracao.observacoes_alteracao = observacoes_alteracao
         solicitacao_alteracao.save()
         solicitacao_alteracao.alergias_intolerancias.add(*dieta_alterada.alergias_intolerancias.all())
@@ -256,5 +287,12 @@ class AlteracaoUESerializer(serializers.ModelSerializer):
             substituicao_alteracao.solicitacao_dieta_especial = solicitacao_alteracao
             substituicao_alteracao.save()
             substituicao_alteracao.substitutos.add(*substituicao.substitutos.all())
+            substituicao_alteracao.alimentos_substitutos.add(*substituicao.alimentos_substitutos.all())
+
+        for anexo in anexos:
+            anexo_alteracao = deepcopy(anexo)
+            anexo_alteracao.id = None
+            anexo_alteracao.solicitacao_dieta_especial = solicitacao_alteracao
+            anexo_alteracao.save()
 
         return solicitacao_alteracao

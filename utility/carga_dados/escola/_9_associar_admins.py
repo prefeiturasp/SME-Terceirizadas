@@ -128,7 +128,7 @@ perfil_usuario_nutri_codae, created = Perfil.objects.get_or_create(
     nome='COORDENADOR_DIETA_ESPECIAL', ativo=True, super_usuario=True)
 
 perfil_usuario_nutri_supervisao, created = Perfil.objects.get_or_create(
-    nome='SUPERVISAO_NUTRICAO', ativo=True, super_usuario=True)
+    nome='COORDENADOR_SUPERVISAO_NUTRICAO', ativo=True, super_usuario=True)
 
 Perfil.objects.get_or_create(
     nome='ADMINISTRADOR_DIETA_ESPECIAL', ativo=True, super_usuario=True)

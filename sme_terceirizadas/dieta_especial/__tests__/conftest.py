@@ -69,7 +69,8 @@ def solicitacao_dieta_especial_outra_dre(escola_dre_guaianases, aluno):
 def anexo_docx(arquivo_docx_base64, solicitacao_dieta_especial):
     return mommy.make(Anexo,
                       solicitacao_dieta_especial=solicitacao_dieta_especial,
-                      arquivo=convert_base64_to_contentfile(arquivo_docx_base64),
+                      arquivo=convert_base64_to_contentfile(
+                          arquivo_docx_base64),
                       nome='arquivo-supimpa.docx')
 
 
@@ -157,14 +158,17 @@ def solicitacao_dieta_especial_a_autorizar(client, escola, template_mensagem_die
     email = 'escola@admin.com'
     password = 'adminadmin'
     rf = '1545933'
-    user = Usuario.objects.create_user(password=password, email=email, registro_funcional=rf)
+    user = Usuario.objects.create_user(
+        password=password, email=email, registro_funcional=rf)
     client.login(email=email, password=password)
 
-    perfil_professor = mommy.make('perfil.Perfil', nome='ADMINISTRADOR_ESCOLA', ativo=False)
+    perfil_professor = mommy.make(
+        'perfil.Perfil', nome='ADMINISTRADOR_ESCOLA', ativo=False)
     mommy.make('perfil.Vinculo', usuario=user, instituicao=escola, perfil=perfil_professor,
                data_inicial=datetime.date.today(), ativo=True)  # ativo
 
-    aluno = mommy.make(Aluno, nome='Roberto Alves da Silva', codigo_eol='123456', data_nascimento='2000-01-01')
+    aluno = mommy.make(Aluno, nome='Roberto Alves da Silva',
+                       codigo_eol='123456', data_nascimento='2000-01-01')
     solic = mommy.make(SolicitacaoDietaEspecial,
                        rastro_escola=escola,
                        aluno=aluno,
@@ -179,7 +183,8 @@ def solicitacao_dieta_especial_autorizada(client, escola, solicitacao_dieta_espe
     email = 'terceirizada@admin.com'
     password = 'adminadmin'
     rf = '4545454'
-    user = Usuario.objects.create_user(password=password, email=email, registro_funcional=rf)
+    user = Usuario.objects.create_user(
+        password=password, email=email, registro_funcional=rf)
     client.login(email=email, password=password)
 
     perfil = mommy.make('perfil.Perfil', nome='TERCEIRIZADA', ativo=False)
@@ -196,7 +201,8 @@ def solicitacao_dieta_especial_escola_solicitou_inativacao(client, escola, solic
     email = 'terceirizada2@admin.com'
     password = 'adminadmin'
     rf = '4545455'
-    user = Usuario.objects.create_user(password=password, email=email, registro_funcional=rf)
+    user = Usuario.objects.create_user(
+        password=password, email=email, registro_funcional=rf)
     client.login(email=email, password=password)
 
     perfil = mommy.make('perfil.Perfil', nome='TERCEIRIZADA', ativo=False)
@@ -215,14 +221,16 @@ def solicitacao_dieta_especial_codae_autorizou_inativacao(client,
     email = 'terceirizada3@admin.com'
     password = 'adminadmin'
     rf = '4545456'
-    user = Usuario.objects.create_user(password=password, email=email, registro_funcional=rf)
+    user = Usuario.objects.create_user(
+        password=password, email=email, registro_funcional=rf)
     client.login(email=email, password=password)
 
     perfil = mommy.make('perfil.Perfil', nome='TERCEIRIZADA', ativo=False)
     mommy.make('perfil.Vinculo', usuario=user, instituicao=escola.lote.terceirizada, perfil=perfil,
                data_inicial=datetime.date.today(), ativo=True)
 
-    solicitacao_dieta_especial_escola_solicitou_inativacao.codae_autoriza_inativacao(user=user)
+    solicitacao_dieta_especial_escola_solicitou_inativacao.codae_autoriza_inativacao(
+        user=user)
 
     return solicitacao_dieta_especial_escola_solicitou_inativacao
 
@@ -237,7 +245,8 @@ def template_mensagem_dieta_especial():
 def escola():
     terceirizada = mommy.make('Terceirizada')
     lote = mommy.make('Lote', terceirizada=terceirizada)
-    diretoria_regional = mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL IPIRANGA')
+    diretoria_regional = mommy.make(
+        'DiretoriaRegional', nome='DIRETORIA REGIONAL IPIRANGA')
     escola = mommy.make(
         'Escola',
         lote=lote,
@@ -319,7 +328,8 @@ def solicitacoes_dieta_especial_nao_autorizadas_e_nao_ativas(escola, aluno):
                    status=DietaEspecialWorkflow.CODAE_A_AUTORIZAR,
                    aluno=aluno,
                    rastro_escola=escola),
-        mommy.make(SolicitacaoDietaEspecial, status=DietaEspecialWorkflow.CODAE_NEGOU_PEDIDO, rastro_escola=escola),
+        mommy.make(SolicitacaoDietaEspecial,
+                   status=DietaEspecialWorkflow.CODAE_NEGOU_PEDIDO, rastro_escola=escola),
         mommy.make(SolicitacaoDietaEspecial,
                    status=DietaEspecialWorkflow.CODAE_AUTORIZOU_INATIVACAO,
                    aluno=aluno,
@@ -472,4 +482,18 @@ def eolservice_get_informacoes_escola_turma_aluno(monkeypatch):
         EOLService,
         'get_informacoes_escola_turma_aluno',
         lambda x: js['results']
+    )
+
+
+@pytest.fixture
+def log_dietas_ativas_canceladas_automaticamente(solicitacao_dieta_especial_autorizada_ativa):
+    return mommy.make(
+        'LogDietasAtivasCanceladasAutomaticamente',
+        dieta=solicitacao_dieta_especial_autorizada_ativa,
+        codigo_eol_aluno='6595803',
+        nome_aluno='GUILHERME RODRIGUES DA HORA',
+        codigo_eol_escola_origem='019871',
+        nome_escola_origem='EMEF PERICLES EUGENIO DA SILVA RAMOS',
+        codigo_eol_escola_destino='018210',
+        nome_escola_destino='EMEFM DARCY RIBEIRO',
     )

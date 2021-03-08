@@ -10,11 +10,15 @@ from ...dados_comuns.constants import (
     ADMINISTRADOR_DIETA_ESPECIAL,
     ADMINISTRADOR_DRE,
     ADMINISTRADOR_ESCOLA,
-    ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA
+    ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
+    ADMINISTRADOR_GESTAO_PRODUTO,
+    ADMINISTRADOR_SUPERVISAO_NUTRICAO
 )
 from ...escola.api.permissions import (
     PodeCriarAdministradoresDaCODAEGestaoAlimentacaoTerceirizada,
     PodeCriarAdministradoresDaCODAEGestaoDietaEspecial,
+    PodeCriarAdministradoresDaCODAEGestaoProdutos,
+    PodeCriarAdministradoresDaCODAESupervisaoNutricao,
     PodeCriarAdministradoresDaDiretoriaRegional,
     PodeCriarAdministradoresDaEscola
 )
@@ -44,12 +48,14 @@ from ..models import (
     Escola,
     EscolaPeriodoEscolar,
     FaixaEtaria,
+    LogAlteracaoQuantidadeAlunosPorEscolaEPeriodoEscolar,
     Lote,
     PeriodoEscolar,
     Subprefeitura,
     TipoGestao,
     TipoUnidadeEscolar
 )
+from ..utils import EscolaSimplissimaPagination
 from .filters import AlunoFilter, DiretoriaRegionalFilter
 from .serializers import (
     DiretoriaRegionalCompletaSerializer,
@@ -77,7 +83,7 @@ class VinculoViewSet(ReadOnlyModelViewSet):
             data = request.data.copy()
             data['instituicao'] = instituicao.nome
             usuario = UsuarioUpdateSerializer(data).create(validated_data=data)
-            usuario.criar_vinculo_administrador(instituicao, nome_perfil=self.nome_perfil)
+            usuario.criar_vinculo_administrador(instituicao, nome_perfil=self.nome_perfil)  # noqa
             return Response(UsuarioDetalheSerializer(usuario).data)
         except serializers.ValidationError as e:
             return Response(data=dict(detail=e.args[0]), status=e.status_code)
@@ -111,7 +117,7 @@ class VinculoDiretoriaRegionalViewSet(VinculoViewSet):
 
 class VinculoCODAEGestaoAlimentacaoTerceirizadaViewSet(VinculoViewSet):
     queryset = Codae.objects.all()
-    permission_classes = [PodeCriarAdministradoresDaCODAEGestaoAlimentacaoTerceirizada]
+    permission_classes = [PodeCriarAdministradoresDaCODAEGestaoAlimentacaoTerceirizada]  # noqa
     nome_perfil = ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA
 
 
@@ -119,6 +125,18 @@ class VinculoCODAEGestaoDietaEspecialViewSet(VinculoViewSet):
     queryset = Codae.objects.all()
     permission_classes = [PodeCriarAdministradoresDaCODAEGestaoDietaEspecial]
     nome_perfil = ADMINISTRADOR_DIETA_ESPECIAL
+
+
+class VinculoCODAEGestaoProdutosViewSet(VinculoViewSet):
+    queryset = Codae.objects.all()
+    permission_classes = [PodeCriarAdministradoresDaCODAEGestaoProdutos]
+    nome_perfil = ADMINISTRADOR_GESTAO_PRODUTO
+
+
+class VinculoCODAESupervisaoNutricaoViewSet(VinculoViewSet):
+    queryset = Codae.objects.all()
+    permission_classes = [PodeCriarAdministradoresDaCODAESupervisaoNutricao]
+    nome_perfil = ADMINISTRADOR_SUPERVISAO_NUTRICAO
 
 
 class EscolaSimplesViewSet(ListModelMixin, RetrieveModelMixin, UpdateModelMixin, GenericViewSet):
@@ -136,7 +154,8 @@ class EscolaSimplissimaViewSet(ListModelMixin, RetrieveModelMixin, GenericViewSe
     queryset = Escola.objects.all()
     serializer_class = EscolaSimplissimaSerializer
     filter_backends = (filters.DjangoFilterBackend,)
-    filterset_fields = ['codigo_eol', 'nome']
+    pagination_class = EscolaSimplissimaPagination
+    filterset_fields = ['codigo_eol', 'nome', 'diretoria_regional__uuid']
 
     @action(detail=False, methods=['GET'], url_path=f'{FILTRO_DRE_UUID}')
     def filtro_por_diretoria_regional(self, request, dre_uuid=None):
@@ -172,8 +191,8 @@ class EscolaQuantidadeAlunosPorPeriodoEFaixaViewSet(GenericViewSet):
         escola = self.get_object()
         data_referencia = form.cleaned_data['data_referencia']
 
-        counter_faixas_etarias = escola.alunos_por_periodo_e_faixa_etaria(data_referencia)
-        serializer = PeriodoEFaixaEtariaCounterSerializer(counter_faixas_etarias)
+        counter_faixas_etarias = escola.alunos_por_periodo_e_faixa_etaria(data_referencia)  # noqa
+        serializer = PeriodoEFaixaEtariaCounterSerializer(counter_faixas_etarias)  # noqa
         return Response(serializer.data)
 
 
@@ -203,7 +222,7 @@ class PeriodoEscolarViewSet(ReadOnlyModelViewSet):
         data_referencia = form.cleaned_data['data_referencia']
 
         try:
-            faixa_alunos = escola_periodo.alunos_por_faixa_etaria(data_referencia)
+            faixa_alunos = escola_periodo.alunos_por_faixa_etaria(data_referencia)  # noqa
         except ObjectDoesNotExist:
             return Response(
                 {'detail': 'Não há faixas etárias cadastradas. Contate a coordenadoria CODAE.'},
@@ -321,7 +340,7 @@ class EscolaPeriodoEscolarViewSet(ModelViewSet):
         data_referencia = form.cleaned_data['data_referencia']
 
         try:
-            faixa_alunos = escola_periodo.alunos_por_faixa_etaria(data_referencia)
+            faixa_alunos = escola_periodo.alunos_por_faixa_etaria(data_referencia)  # noqa
         except ObjectDoesNotExist:
             return Response(
                 {'detail': 'Não há faixas etárias cadastradas. Contate a coordenadoria CODAE.'},
@@ -338,6 +357,36 @@ class EscolaPeriodoEscolarViewSet(ModelViewSet):
         return Response({
             'count': len(results),
             'results': results
+        })
+
+#  TODO: Quebrar esse método um pouco, está complexo e sem teste
+    @action(detail=True, url_path='matriculados-na-data/(?P<data_referencia_str>[^/.]+)')  # noqa C901
+    def matriculados_na_data(self, request, uuid, data_referencia_str):
+        form = AlunosPorFaixaEtariaForm({
+            'data_referencia': data_referencia_str
+        })
+
+        if not form.is_valid():
+            return Response(form.errors)
+
+        escola_periodo = self.get_object()
+        data_referencia = form.cleaned_data['data_referencia']
+
+        log = LogAlteracaoQuantidadeAlunosPorEscolaEPeriodoEscolar.objects.filter(
+            criado_em__gte=data_referencia,
+            escola=escola_periodo.escola,
+            periodo_escolar=escola_periodo.periodo_escolar
+        ).order_by('criado_em').first()
+
+        if log:
+            quantidade_alunos = log.quantidade_alunos_de
+        else:
+            quantidade_alunos = escola_periodo.quantidade_alunos
+
+        return Response({
+            'quantidade_alunos': {
+                'convencional': quantidade_alunos
+            }
         })
 
 
@@ -357,6 +406,14 @@ class AlunoViewSet(RetrieveModelMixin, ListModelMixin, GenericViewSet):
         if self.action == 'retrieve':
             return self.queryset.select_related('escola__diretoria_regional')
         return self.queryset
+
+    @action(detail=True, methods=['GET'], url_path='aluno-pertence-a-escola/(?P<escola_codigo_eol>[^/.]+)')
+    def aluno_pertence_a_escola(self, request, codigo_eol, escola_codigo_eol):
+        escola = Escola.objects.filter(codigo_eol=escola_codigo_eol).first()
+        aluno = Aluno.objects.filter(codigo_eol=codigo_eol).first()
+
+        resposta = True if aluno and aluno.escola == escola else False
+        return Response({'pertence_a_escola': resposta})
 
 
 class FaixaEtariaViewSet(CreateModelMixin, ListModelMixin, GenericViewSet):

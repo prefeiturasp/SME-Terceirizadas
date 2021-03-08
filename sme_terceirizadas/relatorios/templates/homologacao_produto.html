@@ -94,6 +94,19 @@
     </article>
   {% endif %}
 
+  {% if homologacao.status == 'CODAE_PEDIU_ANALISE_SENSORIAL' %}
+    <div style="display: flex; justify-content: space-between;">
+      <div class="label">Solicitação de análise sensorial:</div>
+      <div class="label">Protocolo Análise Sensorial: {{ homologacao.protocolo_analise_sensorial }}</div>
+    </div>
+    <article class="detalhes-empresa" style="height: auto">
+      <div style="width: 100%; display: flex; justify-content: space-between; padding: 0 10px">
+        <div class="value" style="height: auto"><div>{{ justificativa_analise_sensorial|safe }}</div></div>
+      </div>
+    </article>
+    <br>
+  {% endif %}
+
   <article class="detalhes-empresa">
     <div class="nome">
       <div class="label">Empresa solicitante (Terceirizada)</div>
