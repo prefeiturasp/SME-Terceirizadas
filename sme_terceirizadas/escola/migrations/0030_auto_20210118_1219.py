@@ -10,9 +10,9 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AlterField(
-            model_name='escola',
-            name='codigo_codae',
-            field=models.CharField(blank=True, default=None, max_length=10, null=True, unique=True, verbose_name='Código CODAE'),
-        ),
+        # migrations.AlterField(
+        #     model_name='escola',
+        #     name='codigo_codae',
+        #     field=models.CharField(blank=True, default=None, max_length=10, null=True, unique=True, verbose_name='Código CODAE'),
+        # ),
     ]
