@@ -178,7 +178,8 @@ class LogDietasAtivasCanceladasAutomaticamenteAdmin(admin.ModelAdmin):
         'codigo_eol_aluno',
         'codigo_eol_escola_origem',
         'codigo_eol_escola_destino',
-        'get_escola_existe'
+        'get_escola_existe',
+        'get_criado_em'
     )
     search_fields = (
         'codigo_eol_aluno',
@@ -196,6 +197,15 @@ class LogDietasAtivasCanceladasAutomaticamenteAdmin(admin.ModelAdmin):
 
     get_escola_existe.boolean = True
     get_escola_existe.short_description = 'escola existe'
+
+    def get_criado_em(self, obj):
+        if obj.criado_em:
+            return obj.criado_em.strftime('%d/%m/%Y %H:%M:%S')
+
+    get_criado_em.short_description = 'Criado em'
+
+    def has_add_permission(self, request, obj=None):
+        return False
 
 
 admin.site.register(Anexo)

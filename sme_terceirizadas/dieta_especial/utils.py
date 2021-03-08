@@ -66,7 +66,7 @@ def aluno_pertence_a_escola_ou_esta_na_rede(cod_escola_no_eol, cod_escola_no_sig
     return cod_escola_no_eol == cod_escola_no_sigpae
 
 
-def gerar_log_dietas_ativas_canceladas_automaticamente(dieta, dados):
+def gerar_log_dietas_ativas_canceladas_automaticamente(dieta, dados, fora_da_rede=False):
     data = dict(
         dieta=dieta,
         codigo_eol_aluno=dados['codigo_eol_aluno'],
@@ -76,6 +76,11 @@ def gerar_log_dietas_ativas_canceladas_automaticamente(dieta, dados):
         codigo_eol_escola_origem=dados.get('codigo_eol_escola_destino'),
         nome_escola_origem=dados.get('nome_escola_destino'),
     )
+    if fora_da_rede:
+        data['codigo_eol_escola_origem'] = dados.get('codigo_eol_escola_origem')
+        data['nome_escola_origem'] = dados.get('nome_escola_origem')
+        data['codigo_eol_escola_destino'] = ''
+        data['nome_escola_destino'] = ''
     LogDietasAtivasCanceladasAutomaticamente.objects.create(**data)
 
 
@@ -135,14 +140,15 @@ def cancela_dietas_ativas_automaticamente():  # noqa C901 D205 D400
                 _cancelar_dieta(solicitacao_dieta)
         else:
             # Aluno não pertence a rede municipal.
+            # Inverte escola origem.
             dados = dict(
                 codigo_eol_aluno=dieta.codigo_eol_aluno,
                 nome_aluno=aluno.nome,
                 codigo_eol_escola_origem=aluno.escola.codigo_eol,
                 nome_escola_origem=aluno.escola.nome,
             )
-            gerar_log_dietas_ativas_canceladas_automaticamente(solicitacao_dieta, dados)
-            _cancelar_dieta_aluno_fora_da_rede(solicitacao_dieta)
+            gerar_log_dietas_ativas_canceladas_automaticamente(solicitacao_dieta, dados, fora_da_rede=True)
+            _cancelar_dieta_aluno_fora_da_rede(dieta=solicitacao_dieta)
 
 
 class RelatorioPagination(PageNumberPagination):
