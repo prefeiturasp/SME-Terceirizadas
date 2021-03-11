@@ -107,10 +107,15 @@ def enviar_email_para_diretor_da_escola(solicitacao_dieta, aluno, escola):
     assunto = 'Alerta para Criar uma Nova Dieta Especial'
     perfil = Perfil.objects.get(nome='DIRETOR')
     ct = ContentType.objects.get_for_model(escola)
-    vinculo = Vinculo.objects.get(perfil=perfil, content_type=ct, object_id=escola.pk)
+    vinculos = Vinculo.objects.filter(perfil=perfil, content_type=ct, object_id=escola.pk)
 
     # E-mail do Diretor da Escola.
-    email = vinculo.usuario.email
+    # Pode ter mais de um Diretor?
+    emails = []
+    for vinculo in vinculos:
+        email = vinculo.usuario.email
+        emails.append(email)
+
     html_string = relatorio_dieta_especial_conteudo(solicitacao_dieta)
     anexo = html_to_pdf_email_anexo(html_string)
     anexo_nome = f'dieta_especial_{aluno.codigo_eol}.pdf'
@@ -124,14 +129,16 @@ def enviar_email_para_diretor_da_escola(solicitacao_dieta, aluno, escola):
         }
     )
 
-    envia_email_unico_com_anexo_inmemory(
-        assunto=assunto,
-        corpo=corpo,
-        email=email,
-        anexo_nome=anexo_nome,
-        mimetypes='application/pdf',
-        anexo=anexo,
-    )
+    # Parece que está previsto ter mais Diretores vinculados a mesma escola.
+    for email in emails:
+        envia_email_unico_com_anexo_inmemory(
+            assunto=assunto,
+            corpo=corpo,
+            email=email,
+            anexo_nome=anexo_nome,
+            mimetypes='application/pdf',
+            anexo=anexo,
+        )
 
 
 def cancela_dietas_ativas_automaticamente():  # noqa C901 D205 D400

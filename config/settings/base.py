@@ -371,7 +371,7 @@ CELERY_BEAT_SCHEDULE = {
     },
     'cancela-dietas-ativas-automaticamente': {
         'task': 'sme_terceirizadas.dieta_especial.tasks.cancela_dietas_ativas_automaticamente_task',
-        'schedule': crontab(hour=14, minute=0)
+        'schedule': crontab(hour=17, minute=0)
     }
 }
 
