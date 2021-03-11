@@ -1,7 +1,7 @@
 import base64
 import datetime
 import uuid
-from mimetypes import guess_extension
+from mimetypes import guess_extension, guess_type
 from typing import Any
 
 import environ
@@ -9,7 +9,7 @@ from config.settings.base import URL_CONFIGS
 from des.models import DynamicEmailConfiguration
 from django.conf import settings
 from django.core.files.base import ContentFile
-from django.core.mail import EmailMultiAlternatives, get_connection, send_mail
+from django.core.mail import EmailMessage, EmailMultiAlternatives, get_connection, send_mail
 from workalendar.america import BrazilSaoPauloCity
 
 from .constants import DAQUI_A_SETE_DIAS, DAQUI_A_TRINTA_DIAS, DOMINIOS_DEV
@@ -48,6 +48,35 @@ def envia_email_unico(assunto: str, corpo: str, email: str, template: str, dados
         config.from_email or None,
         [email],
         html_message=html)
+
+
+def envia_email_unico_com_anexo(assunto: str, corpo: str, email: str, anexo=[]):  # noqa B006
+    # Anexa um arquivo no email.
+    config = DynamicEmailConfiguration.get_solo()
+
+    email = EmailMessage(
+        assunto,
+        corpo,
+        config.from_email or None,
+        [email]
+    )
+    _mimetypes, _ = guess_type(anexo.name)
+    email.attach(anexo.name, anexo.read(), _mimetypes)
+    email.send()
+
+
+def envia_email_unico_com_anexo_inmemory(assunto: str, corpo: str, email: str, anexo_nome: str, mimetypes: str, anexo=[]):  # noqa E501
+    # Rever a obrigatoriedade de anexo_nome e mimetypes para implementações futuras, ou generalização.
+    config = DynamicEmailConfiguration.get_solo()
+
+    email = EmailMessage(
+        assunto,
+        corpo,
+        config.from_email or None,
+        [email]
+    )
+    email.attach(anexo_nome, anexo, mimetypes)
+    email.send()
 
 
 def envia_email_em_massa(assunto: str, corpo: str, emails: list, template: str, dados_template: Any, html=None):

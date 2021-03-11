@@ -107,7 +107,7 @@ def relatorio_alteracao_cardapio_cei(request, solicitacao):
     return html_to_pdf_response(html_string, f'alteracao_cardapio_{solicitacao.id_externo}.pdf')
 
 
-def relatorio_dieta_especial(request, solicitacao):
+def relatorio_dieta_especial_conteudo(solicitacao):
     if solicitacao.tipo_solicitacao == 'COMUM':
         escola = solicitacao.rastro_escola
     else:
@@ -133,6 +133,11 @@ def relatorio_dieta_especial(request, solicitacao):
             'logs': formata_logs(logs)
         }
     )
+    return html_string
+
+
+def relatorio_dieta_especial(request, solicitacao):
+    html_string = relatorio_dieta_especial_conteudo(solicitacao)
     return html_to_pdf_response(html_string, f'dieta_especial_{solicitacao.id_externo}.pdf')
 
 
