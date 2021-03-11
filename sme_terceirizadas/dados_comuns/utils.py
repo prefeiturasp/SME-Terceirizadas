@@ -75,6 +75,7 @@ def envia_email_unico_com_anexo_inmemory(assunto: str, corpo: str, email: str, a
         config.from_email or None,
         [email]
     )
+    email.content_subtype = 'html'
     email.attach(anexo_nome, anexo, mimetypes)
     email.send()
 
