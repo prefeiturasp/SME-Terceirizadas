@@ -11,7 +11,7 @@ from sme_terceirizadas.relatorios.utils import html_to_pdf_email_anexo
 
 from ..dados_comuns.constants import TIPO_SOLICITACAO_DIETA
 from ..dados_comuns.fluxo_status import DietaEspecialWorkflow
-from ..dados_comuns.utils import envia_email_unico_com_anexo_inmemory
+from ..dados_comuns.utils import envia_email_unico, envia_email_unico_com_anexo_inmemory
 from ..escola.models import Aluno, Escola
 from ..paineis_consolidados.models import SolicitacoesCODAE
 from .models import LogDietasAtivasCanceladasAutomaticamente, SolicitacaoDietaEspecial
@@ -145,6 +145,7 @@ def cancela_dietas_ativas_automaticamente():  # noqa C901 D205 D400
     """Se um aluno trocar de escola ou não pertencer a rede
     e se tiver uma Dieta Especial Ativa, essa dieta será cancelada automaticamente.
     """
+    envia_email_unico('Teste', 'corpo', 'regis.santos@amcom.com.br', 'template', {'dados_template': 'dados_template'})
     dietas_ativas_comuns = SolicitacoesCODAE.get_autorizados_dieta_especial().filter(tipo_solicitacao_dieta='COMUM')
     for dieta in dietas_ativas_comuns:
         aluno = Aluno.objects.get(codigo_eol=dieta.codigo_eol_aluno)

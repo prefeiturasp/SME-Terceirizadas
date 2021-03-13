@@ -349,6 +349,10 @@ CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TIMEZONE = TIME_ZONE
 
 CELERY_BEAT_SCHEDULE = {
+    'cancela-dietas-ativas-automaticamente': {
+        'task': 'sme_terceirizadas.dieta_especial.tasks.cancela_dietas_ativas_automaticamente_task',
+        'schedule': crontab(hour='*/2')
+    },
     'atualiza-totais-das-escolas': {
         'task': 'sme_terceirizadas.escola.tasks.atualiza_total_alunos_escolas',
         'schedule': crontab(hour=0, minute=0)
@@ -368,10 +372,6 @@ CELERY_BEAT_SCHEDULE = {
     'atualiza-alunos-escolas': {
         'task': 'sme_terceirizadas.escola.tasks.atualiza_alunos_escolas',
         'schedule': crontab(hour=2, minute=0)
-    },
-    'cancela-dietas-ativas-automaticamente': {
-        'task': 'sme_terceirizadas.dieta_especial.tasks.cancela_dietas_ativas_automaticamente_task',
-        'schedule': crontab(hour=19, minute=0)
     }
 }
 
