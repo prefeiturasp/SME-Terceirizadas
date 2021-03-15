@@ -178,13 +178,15 @@ class SolicitacaoRemessaWorkFlow(xwf_models.Workflow):
     PAPA_CANCELA = 'CANCELADA'
     DISTRIBUIDOR_CONFIRMA = 'DISTRIBUIDOR_CONFIRMA'
     DISTRIBUIDOR_SOLICITA_ALTERACAO = 'DISTRIBUIDOR_SOLICITA_ALTERACAO'
+    DILOG_ACEITA_ALTERACAO = 'DILOG_ACEITA_ALTERACAO'
 
     states = (
         (AGUARDANDO_ENVIO, 'Aguardando envio'),
         (DILOG_ENVIA, 'Enviada'),
         (PAPA_CANCELA, 'Cancelada'),
         (DISTRIBUIDOR_CONFIRMA, 'Confirmada'),
-        (DISTRIBUIDOR_SOLICITA_ALTERACAO, 'Em análise')
+        (DISTRIBUIDOR_SOLICITA_ALTERACAO, 'Em análise'),
+        (DILOG_ACEITA_ALTERACAO, 'Alterada')
     )
 
     transitions = (
@@ -192,7 +194,8 @@ class SolicitacaoRemessaWorkFlow(xwf_models.Workflow):
         ('empresa_atende', DILOG_ENVIA, DISTRIBUIDOR_CONFIRMA),
         ('solicita_alteracao', [DILOG_ENVIA, DISTRIBUIDOR_CONFIRMA], DISTRIBUIDOR_SOLICITA_ALTERACAO),
         ('cancela_solicitacao', [AGUARDANDO_ENVIO, DILOG_ENVIA, DISTRIBUIDOR_CONFIRMA, DISTRIBUIDOR_SOLICITA_ALTERACAO,
-                                 PAPA_CANCELA], PAPA_CANCELA)
+                                 PAPA_CANCELA], PAPA_CANCELA),
+        ('dilog_aceita_alteracao', DISTRIBUIDOR_SOLICITA_ALTERACAO, DILOG_ACEITA_ALTERACAO),
     )
 
     initial_state = AGUARDANDO_ENVIO
@@ -264,7 +267,7 @@ class DietaEspecialWorkflow(xwf_models.Workflow):
         ('cancelar_pedido', [CODAE_A_AUTORIZAR,
                              ESCOLA_SOLICITOU_INATIVACAO], ESCOLA_CANCELOU),
         ('inicia_fluxo_inativacao', [
-         CODAE_AUTORIZADO, TERCEIRIZADA_TOMOU_CIENCIA], ESCOLA_SOLICITOU_INATIVACAO),
+            CODAE_AUTORIZADO, TERCEIRIZADA_TOMOU_CIENCIA], ESCOLA_SOLICITOU_INATIVACAO),
         ('codae_nega_inativacao', ESCOLA_SOLICITOU_INATIVACAO, CODAE_NEGOU_INATIVACAO),
         ('codae_autoriza_inativacao',
          ESCOLA_SOLICITOU_INATIVACAO, CODAE_AUTORIZOU_INATIVACAO),
@@ -409,6 +412,13 @@ class FluxoSolicitacaoRemessa(xwf_models.WorkflowEnabled, models.Model):
     def _solicita_alteracao_hook(self, *args, **kwargs):
         user = kwargs['user']
         self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.DISTRIBUIDOR_SOLICITA_ALTERACAO_SOLICITACAO,
+                                  usuario=user,
+                                  justificativa=kwargs.get('justificativa', ''))
+
+    @xworkflows.after_transition('dilog_aceita_alteracao')
+    def _dilog_aceita_alteracao_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.DILOG_ACEITA_ALTERACAO,
                                   usuario=user,
                                   justificativa=kwargs.get('justificativa', ''))
 
