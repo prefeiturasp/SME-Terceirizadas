@@ -67,7 +67,6 @@ def get_aluno_eol(codigo_eol_aluno):
 
 
 def aluno_pertence_a_escola_ou_esta_na_rede(cod_escola_no_eol, cod_escola_no_sigpae) -> bool:
-    # Falta verificar se o aluno está na rede
     return cod_escola_no_eol == cod_escola_no_sigpae
 
 
@@ -103,7 +102,50 @@ def _cancelar_dieta_aluno_fora_da_rede(dieta):
     dieta.save()
 
 
-def enviar_email_para_diretor_da_escola(solicitacao_dieta, aluno, escola):
+def enviar_email_para_diretor_da_escola_origem(solicitacao_dieta, aluno, escola):  # noqa C901
+    assunto = f'Cancelamento Automático de Dieta Especial Nº {solicitacao_dieta.id_externo}'
+    perfil = Perfil.objects.get(nome='DIRETOR')
+    ct = ContentType.objects.get_for_model(escola)
+    vinculos = Vinculo.objects.filter(perfil=perfil, content_type=ct, object_id=escola.pk)
+
+    # E-mail do Diretor da Escola.
+    # Pode ter mais de um Diretor?
+    emails = []
+    for vinculo in vinculos:
+        email = vinculo.usuario.email
+        emails.append(email)
+
+    hoje = date.today().strftime('%d/%m/%Y')
+
+    template = 'email/email_dieta_cancelada_automaticamente_escola_origem.html',
+    dados_template = {
+        'nome_aluno': aluno.nome,
+        'codigo_eol_aluno': aluno.codigo_eol,
+        'dieta_numero': solicitacao_dieta.id_externo,
+        'nome_escola': escola.nome,
+        'hoje': hoje,
+    }
+    html = render_to_string(template, dados_template)
+
+    # Pega o email da Terceirizada
+    vinculos_terc = escola.lote.terceirizada.vinculos.all()
+    for vinculo in vinculos_terc:
+        if vinculo.usuario:
+            emails.append(vinculo.usuario.email)
+
+    # Parece que está previsto ter mais Diretores vinculados a mesma escola.
+    for email in emails:
+        envia_email_unico(
+            assunto=assunto,
+            corpo='',
+            email=email,
+            template=template,
+            dados_template=dados_template,
+            html=html,
+        )
+
+
+def enviar_email_para_diretor_da_escola_destino(solicitacao_dieta, aluno, escola):
     assunto = 'Alerta para Criar uma Nova Dieta Especial'
     perfil = Perfil.objects.get(nome='DIRETOR')
     ct = ContentType.objects.get_for_model(escola)
@@ -121,7 +163,7 @@ def enviar_email_para_diretor_da_escola(solicitacao_dieta, aluno, escola):
     anexo_nome = f'dieta_especial_{aluno.codigo_eol}.pdf'
 
     corpo = render_to_string(
-        template_name='email/email_dieta_cancelada_automaticamente.html',
+        template_name='email/email_dieta_cancelada_automaticamente_escola_destino.html',
         context={
             'nome_aluno': aluno.nome,
             'codigo_eol_aluno': aluno.codigo_eol,
@@ -182,11 +224,16 @@ def cancela_dietas_ativas_automaticamente():  # noqa C901 D205 D400
                 gerar_log_dietas_ativas_canceladas_automaticamente(solicitacao_dieta, dados)
                 # Cancelar Dieta
                 _cancelar_dieta(solicitacao_dieta)
+
                 if escola_existe_no_sigpae:
+                    # Envia email pra escola Origem.
+                    escola_origem = escola_existe_no_sigpae
+                    enviar_email_para_diretor_da_escola_origem(solicitacao_dieta, aluno, escola=escola_origem)
+
                     # Envia email pra escola Destino.
                     # Parece que está invertido, mas está certo.
                     escola_destino = aluno.escola
-                    enviar_email_para_diretor_da_escola(solicitacao_dieta, aluno, escola=escola_destino)
+                    enviar_email_para_diretor_da_escola_destino(solicitacao_dieta, aluno, escola=escola_destino)
         else:
             # Aluno não pertence a rede municipal.
             # Inverte escola origem.
