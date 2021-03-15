@@ -25,6 +25,7 @@ from sme_terceirizadas.logistica.api.serializers.serializers import (
     GuiaDaRemessaSimplesSerializer,
     InfoUnidadesSimplesDaGuiaSerializer,
     SolicitacaoDeAlteracaoSerializer,
+    SolicitacaoDeAlteracaoSimplesSerializer,
     SolicitacaoRemessaLookUpSerializer,
     SolicitacaoRemessaSerializer,
     SolicitacaoRemessaSimplesSerializer,
@@ -436,3 +437,23 @@ class SolicitacaoDeAlteracaoDeRequisicaoViewset(viewsets.ModelViewSet):
             return SolicitacaoDeAlteracaoSerializer
         else:
             return SolicitacaoDeAlteracaoRequisicaoCreateSerializer
+
+    @action(detail=True, permission_classes=(UsuarioDilogCodae,),
+            methods=['patch'], url_path='dilog-aceita-alteracao')
+    def dilog_aceita_alteracao(self, request, uuid=None):
+        usuario = request.user
+        justificativa_aceite = request.data.get('justificativa_aceite', '')
+
+        try:
+            solicitacao_alteracao = SolicitacaoDeAlteracaoRequisicao.objects.get(uuid=uuid)
+            requisicao = SolicitacaoRemessa.objects.get(id=solicitacao_alteracao.requisicao.id)
+
+            requisicao.dilog_aceita_alteracao(user=usuario, justificativa=justificativa_aceite)
+            solicitacao_alteracao.dilog_aceita(user=usuario, justificativa=justificativa_aceite)
+
+            solicitacao_alteracao.justificativa_aceite = justificativa_aceite
+            solicitacao_alteracao.save()
+            serializer = SolicitacaoDeAlteracaoSimplesSerializer(solicitacao_alteracao)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)

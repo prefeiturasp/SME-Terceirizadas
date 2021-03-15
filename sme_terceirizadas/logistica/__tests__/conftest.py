@@ -48,6 +48,7 @@ def solicitacao_de_alteracao_requisicao(solicitacao, distribuidor):
         requisicao=solicitacao,
         motivo='OUTROS',
         justificativa=fake.text(),
+        justificativa_aceite=fake.text(),
         usuario_solicitante=distribuidor,
         numero_solicitacao='00000001-ALT',
     )
