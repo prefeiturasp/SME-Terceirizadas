@@ -177,3 +177,9 @@ class SolicitacaoDeAlteracaoSerializer(serializers.ModelSerializer):
     class Meta:
         model = SolicitacaoDeAlteracaoRequisicao
         exclude = ('id',)
+
+
+class SolicitacaoDeAlteracaoSimplesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SolicitacaoDeAlteracaoRequisicao
+        fields = ('uuid', 'numero_solicitacao')

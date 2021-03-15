@@ -29,6 +29,12 @@ def test_meta_model(solicitacao):
 def test_solicitacao_de_alteracao_requisicao_model(solicitacao_de_alteracao_requisicao):
     model = solicitacao_de_alteracao_requisicao
     assert isinstance(model, SolicitacaoDeAlteracaoRequisicao)
+    assert model.requisicao
+    assert model.motivo
+    assert model.justificativa
+    assert model.justificativa_aceite
+    assert model.usuario_solicitante
+    assert model.numero_solicitacao
 
 
 def test_srt_solicitacao_de_alteracao_requisicao_model(solicitacao_de_alteracao_requisicao):
