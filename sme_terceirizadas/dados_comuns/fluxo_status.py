@@ -2,9 +2,9 @@
 
 Na pasta docs tem os BMPNs dos fluxos
 """
-import environ
 import datetime
 
+import environ
 import xworkflows
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
