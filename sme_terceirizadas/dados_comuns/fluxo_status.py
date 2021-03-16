@@ -2,6 +2,7 @@
 
 Na pasta docs tem os BMPNs dos fluxos
 """
+import environ
 import datetime
 
 import xworkflows
@@ -370,12 +371,16 @@ class FluxoSolicitacaoRemessa(xwf_models.WorkflowEnabled, models.Model):
         raise NotImplementedError('Deve criar um método de envio de email as partes interessadas')  # noqa
 
     def _envia_email_dilog_envia_solicitacao_para_distibuidor(self, log_transicao):
+        env = environ.Env()
+        url = f'https://{env("SERVER_NAME")}/' \
+              f'logistica/gestao-requisicao-entrega?numero_requisicao={self.numero_solicitacao}'
         html = render_to_string(
             template_name='logistica_dilog_envia_solicitacao.html',
             context={
                 'titulo': f'Nova solicitação N° {self.numero_solicitacao} para Entrega de Alimento',
                 'solicitacao': self.numero_solicitacao,
                 'log_transicao': log_transicao,
+                'url': url
             }
         )
         envia_email_unico_task.delay(
