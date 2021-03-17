@@ -24,8 +24,8 @@ def compara_e_atualiza_dados_do_eol(dados, usuario):
 
 @shared_task
 def busca_cargo_de_usuario(registro_funcional):
-    usuario = get_usuario(registro_funcional)
     try:
+        usuario = get_usuario(registro_funcional)
         dados = EOLService.get_informacoes_usuario(registro_funcional)
         compara_e_atualiza_dados_do_eol(dados, usuario)
 
