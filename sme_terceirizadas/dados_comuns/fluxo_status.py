@@ -24,6 +24,8 @@ from .models import AnexoLogSolicitacoesUsuario, LogSolicitacoesUsuario
 from .tasks import envia_email_em_massa_task, envia_email_unico_task
 from .utils import convert_base64_to_contentfile
 
+env = environ.Env()
+
 
 class PedidoAPartirDaEscolaWorkflow(xwf_models.Workflow):
     # leia com atenção:
@@ -371,7 +373,6 @@ class FluxoSolicitacaoRemessa(xwf_models.WorkflowEnabled, models.Model):
         raise NotImplementedError('Deve criar um método de envio de email as partes interessadas')  # noqa
 
     def _envia_email_dilog_envia_solicitacao_para_distibuidor(self, log_transicao):
-        env = environ.Env()
         url = f'{env("REACT_APP_URL")}/logistica/gestao-requisicao-entrega?numero_requisicao={self.numero_solicitacao}'
         html = render_to_string(
             template_name='logistica_dilog_envia_solicitacao.html',
@@ -439,6 +440,47 @@ class FluxoSolicitacaoDeAlteracao(xwf_models.WorkflowEnabled, models.Model):
 
     def _preenche_template_e_envia_email(self, assunto, titulo, user, partes_interessadas):
         raise NotImplementedError('Deve criar um método de envio de email as partes interessadas')  # noqa
+
+    def _partes_interessadas_dilog(self):
+        # Envia email somente para COORDENADOR_LOGISTICA.
+        queryset = Usuario.objects.filter(
+            vinculos__perfil__nome__in=(
+                'COORDENADOR_LOGISTICA',
+            )
+        )
+        return [usuario.email for usuario in queryset]
+
+    def _envia_email_distribuidor_solicita_alteracao(self, log_transicao, partes_interessadas):
+        url = f'{env("REACT_APP_URL")}' \
+              f'/logistica/gestao-solicitacao-alteracao?numero_solicitacao={self.numero_solicitacao}'
+        html = render_to_string(
+            template_name='logistica_dilog_envia_solicitacao.html',
+            context={
+                'titulo': f'Solicitação de alteração N° {self.numero_solicitacao}',
+                'solicitacao': self.numero_solicitacao,
+                'log_transicao': log_transicao,
+                'url': url
+            }
+        )
+        envia_email_em_massa_task.delay(
+            assunto=f'[SIGPAE] Solicitação de Alteração N° {self.numero_solicitacao}',
+            emails=partes_interessadas,
+            corpo='',
+            html=html
+        )
+
+    @xworkflows.after_transition('inicia_fluxo')
+    def _inicia_fluxo_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        log_transicao = self.salvar_log_transicao(
+            status_evento=LogSolicitacoesUsuario.DISTRIBUIDOR_SOLICITA_ALTERACAO_SOLICITACAO,
+            usuario=user,
+            justificativa=kwargs.get('justificativa', ''))
+
+        partes_interessadas = self._partes_interessadas_dilog()
+
+        self._envia_email_distribuidor_solicita_alteracao(log_transicao=log_transicao,
+                                                          partes_interessadas=partes_interessadas)
 
     @xworkflows.after_transition('dilog_aceita')
     def _dilog_aceita_hook(self, *args, **kwargs):
