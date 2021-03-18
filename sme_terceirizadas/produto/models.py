@@ -88,7 +88,7 @@ class Produto(Ativavel, CriadoEm, CriadoPor, Nomeavel, TemChaveExterna, TemIdent
 
     marca = models.ForeignKey(Marca, on_delete=models.DO_NOTHING)
     fabricante = models.ForeignKey(Fabricante, on_delete=models.DO_NOTHING)
-    componentes = models.CharField('Componentes do Produto', blank=True, max_length=500)
+    componentes = models.CharField('Componentes do Produto', blank=True, max_length=5000)
 
     tem_aditivos_alergenicos = models.BooleanField('Tem aditivos alergênicos', default=False)
     aditivos = models.TextField('Aditivos', blank=True)
