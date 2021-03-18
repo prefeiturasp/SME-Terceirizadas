@@ -33,6 +33,7 @@ def test_solicitacao_de_alteracao_requisicao_model(solicitacao_de_alteracao_requ
     assert model.motivo
     assert model.justificativa
     assert model.justificativa_aceite
+    assert model.justificativa_negacao
     assert model.usuario_solicitante
     assert model.numero_solicitacao
 

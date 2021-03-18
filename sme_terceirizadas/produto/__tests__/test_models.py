@@ -18,3 +18,8 @@ def test_homologacao_produto_tempo_aguardando_acao_em_dias(homologacao_produto, 
 def test_homologacao_produto_data_cadastro(homologacao_produto_homologado_com_log, user):
     hoje = date.today()
     assert homologacao_produto_homologado_com_log.data_cadastro == hoje
+
+
+def test_produto_componentes_max_length(homologacao_produto_homologado_com_log, user):
+    homologacao_produto_homologado_com_log.componentes = 'x' * 5000
+    assert len(homologacao_produto_homologado_com_log.componentes) == 5000
