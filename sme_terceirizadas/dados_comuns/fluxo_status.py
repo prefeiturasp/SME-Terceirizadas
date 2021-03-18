@@ -180,7 +180,6 @@ class SolicitacaoRemessaWorkFlow(xwf_models.Workflow):
     DISTRIBUIDOR_CONFIRMA = 'DISTRIBUIDOR_CONFIRMA'
     DISTRIBUIDOR_SOLICITA_ALTERACAO = 'DISTRIBUIDOR_SOLICITA_ALTERACAO'
     DILOG_ACEITA_ALTERACAO = 'DILOG_ACEITA_ALTERACAO'
-    DILOG_NEGA_ALTERACAO = 'DILOG_NEGA_ALTERACAO'
 
     states = (
         (AGUARDANDO_ENVIO, 'Aguardando envio'),
@@ -189,7 +188,6 @@ class SolicitacaoRemessaWorkFlow(xwf_models.Workflow):
         (DISTRIBUIDOR_CONFIRMA, 'Confirmada'),
         (DISTRIBUIDOR_SOLICITA_ALTERACAO, 'Em análise'),
         (DILOG_ACEITA_ALTERACAO, 'Alterada'),
-        (DILOG_NEGA_ALTERACAO, 'Alteração Negada')
     )
 
     transitions = (
@@ -197,9 +195,9 @@ class SolicitacaoRemessaWorkFlow(xwf_models.Workflow):
         ('empresa_atende', DILOG_ENVIA, DISTRIBUIDOR_CONFIRMA),
         ('solicita_alteracao', [DILOG_ENVIA, DISTRIBUIDOR_CONFIRMA], DISTRIBUIDOR_SOLICITA_ALTERACAO),
         ('cancela_solicitacao', [AGUARDANDO_ENVIO, DILOG_ENVIA, DISTRIBUIDOR_CONFIRMA, DISTRIBUIDOR_SOLICITA_ALTERACAO,
-                                 PAPA_CANCELA, DILOG_ACEITA_ALTERACAO, DILOG_NEGA_ALTERACAO], PAPA_CANCELA),
+                                 PAPA_CANCELA, DILOG_ACEITA_ALTERACAO], PAPA_CANCELA),
         ('dilog_aceita_alteracao', DISTRIBUIDOR_SOLICITA_ALTERACAO, DILOG_ACEITA_ALTERACAO),
-        ('dilog_nega_alteracao', DISTRIBUIDOR_SOLICITA_ALTERACAO, DILOG_NEGA_ALTERACAO),
+        ('dilog_nega_alteracao', DISTRIBUIDOR_SOLICITA_ALTERACAO, DILOG_ENVIA),
     )
 
     initial_state = AGUARDANDO_ENVIO
