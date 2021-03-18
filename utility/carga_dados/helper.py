@@ -32,7 +32,7 @@ def csv_to_list(arquivo: str) -> list:
     '''
     Lê um csv e retorna um OrderedDict.
     '''
-    with open(arquivo) as f:
+    with open(arquivo, encoding="utf-8") as f:
         leitor = csv.DictReader(f, delimiter=',')
         dados = [linha for linha in leitor]
     return dados

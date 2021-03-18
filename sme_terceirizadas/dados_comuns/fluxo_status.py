@@ -180,6 +180,7 @@ class SolicitacaoRemessaWorkFlow(xwf_models.Workflow):
     DISTRIBUIDOR_CONFIRMA = 'DISTRIBUIDOR_CONFIRMA'
     DISTRIBUIDOR_SOLICITA_ALTERACAO = 'DISTRIBUIDOR_SOLICITA_ALTERACAO'
     DILOG_ACEITA_ALTERACAO = 'DILOG_ACEITA_ALTERACAO'
+    DILOG_NEGA_ALTERACAO = 'DILOG_NEGA_ALTERACAO'
 
     states = (
         (AGUARDANDO_ENVIO, 'Aguardando envio'),
@@ -187,7 +188,8 @@ class SolicitacaoRemessaWorkFlow(xwf_models.Workflow):
         (PAPA_CANCELA, 'Cancelada'),
         (DISTRIBUIDOR_CONFIRMA, 'Confirmada'),
         (DISTRIBUIDOR_SOLICITA_ALTERACAO, 'Em análise'),
-        (DILOG_ACEITA_ALTERACAO, 'Alterada')
+        (DILOG_ACEITA_ALTERACAO, 'Alterada'),
+        (DILOG_NEGA_ALTERACAO, 'Alteração Negada')
     )
 
     transitions = (
@@ -195,8 +197,9 @@ class SolicitacaoRemessaWorkFlow(xwf_models.Workflow):
         ('empresa_atende', DILOG_ENVIA, DISTRIBUIDOR_CONFIRMA),
         ('solicita_alteracao', [DILOG_ENVIA, DISTRIBUIDOR_CONFIRMA], DISTRIBUIDOR_SOLICITA_ALTERACAO),
         ('cancela_solicitacao', [AGUARDANDO_ENVIO, DILOG_ENVIA, DISTRIBUIDOR_CONFIRMA, DISTRIBUIDOR_SOLICITA_ALTERACAO,
-                                 PAPA_CANCELA, DILOG_ACEITA_ALTERACAO], PAPA_CANCELA),
+                                 PAPA_CANCELA, DILOG_ACEITA_ALTERACAO, DILOG_NEGA_ALTERACAO], PAPA_CANCELA),
         ('dilog_aceita_alteracao', DISTRIBUIDOR_SOLICITA_ALTERACAO, DILOG_ACEITA_ALTERACAO),
+        ('dilog_nega_alteracao', DISTRIBUIDOR_SOLICITA_ALTERACAO, DILOG_NEGA_ALTERACAO),
     )
 
     initial_state = AGUARDANDO_ENVIO
@@ -423,6 +426,13 @@ class FluxoSolicitacaoRemessa(xwf_models.WorkflowEnabled, models.Model):
     def _dilog_aceita_alteracao_hook(self, *args, **kwargs):
         user = kwargs['user']
         self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.DILOG_ACEITA_ALTERACAO,
+                                  usuario=user,
+                                  justificativa=kwargs.get('justificativa', ''))
+
+    @xworkflows.after_transition('dilog_nega_alteracao')
+    def _dilog_nega_alteracao_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.DILOG_NEGA_ALTERACAO,
                                   usuario=user,
                                   justificativa=kwargs.get('justificativa', ''))
 

@@ -457,3 +457,23 @@ class SolicitacaoDeAlteracaoDeRequisicaoViewset(viewsets.ModelViewSet):
             return Response(serializer.data)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, permission_classes=(UsuarioDilogCodae,),
+            methods=['patch'], url_path='dilog-nega-alteracao')
+    def dilog_nega_alteracao(self, request, uuid=None):
+        usuario = request.user
+        justificativa_negacao = request.data.get('justificativa_negacao', '')
+
+        try:
+            solicitacao_alteracao = SolicitacaoDeAlteracaoRequisicao.objects.get(uuid=uuid)
+            requisicao = SolicitacaoRemessa.objects.get(id=solicitacao_alteracao.requisicao.id)
+
+            requisicao.dilog_nega_alteracao(user=usuario, justificativa=justificativa_negacao)
+            solicitacao_alteracao.dilog_nega(user=usuario, justificativa=justificativa_negacao)
+
+            solicitacao_alteracao.justificativa_negacao = justificativa_negacao
+            solicitacao_alteracao.save()
+            serializer = SolicitacaoDeAlteracaoSimplesSerializer(solicitacao_alteracao)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
