@@ -220,6 +220,7 @@ class SolicitacaoDeAlteracaoWorkFlow(xwf_models.Workflow):
     transitions = (
         ('dilog_aceita', EM_ANALISE, ACEITA),
         ('dilog_nega', EM_ANALISE, NEGADA),
+        ('inicia_fluxo', EM_ANALISE, EM_ANALISE),
     )
 
     initial_state = EM_ANALISE
@@ -451,8 +452,8 @@ class FluxoSolicitacaoDeAlteracao(xwf_models.WorkflowEnabled, models.Model):
         return [usuario.email for usuario in queryset]
 
     def _envia_email_distribuidor_solicita_alteracao(self, log_transicao, partes_interessadas):
-        url = f'{env("REACT_APP_URL")}' \
-              f'/logistica/gestao-solicitacao-alteracao?numero_solicitacao={self.numero_solicitacao}'
+        base_url = f'{env("REACT_APP_URL")}'
+        url = f'{base_url}/logistica/gestao-solicitacao-alteracao?numero_solicitacao={self.numero_solicitacao}'
         html = render_to_string(
             template_name='logistica_dilog_envia_solicitacao.html',
             context={
