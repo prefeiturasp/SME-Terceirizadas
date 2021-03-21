@@ -78,6 +78,7 @@ class SolicitacaoDeAlteracaoRequisicao(ModeloBase, TemIdentificadorExternoAmigav
     motivo = MultiSelectField(choices=MOTIVO_CHOICES)
     justificativa = models.TextField('Justificativa de solicitação pelo distribuidor', blank=True)
     justificativa_aceite = models.TextField('Justificativa de aceite pela dilog', blank=True)
+    justificativa_negacao = models.TextField('Justificativa de negacao pela dilog', blank=True)
     usuario_solicitante = models.ForeignKey('perfil.Usuario', on_delete=models.DO_NOTHING)
     numero_solicitacao = models.CharField('Número da solicitação', blank=True, max_length=50, unique=True)
 
