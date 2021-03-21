@@ -351,7 +351,7 @@ CELERY_TIMEZONE = TIME_ZONE
 CELERY_BEAT_SCHEDULE = {
     'cancela-dietas-ativas-automaticamente': {
         'task': 'sme_terceirizadas.dieta_especial.tasks.cancela_dietas_ativas_automaticamente_task',
-        'schedule': crontab(minute='*/5')
+        'schedule': crontab(hour='8-12', minute='*/5')
     },
     'atualiza-totais-das-escolas': {
         'task': 'sme_terceirizadas.escola.tasks.atualiza_total_alunos_escolas',
