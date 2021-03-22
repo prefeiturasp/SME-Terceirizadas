@@ -55,7 +55,7 @@ def html_to_pdf_email_anexo(html_string, pdf_filename=None):
         string=html_string,
         url_fetcher=django_url_fetcher,
         base_url='file://abobrinha').write_pdf()
-    sleep(5)
+    sleep(10)
     return pdf_file
 
 
