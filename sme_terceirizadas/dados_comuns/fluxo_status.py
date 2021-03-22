@@ -447,8 +447,22 @@ class FluxoSolicitacaoDeAlteracao(xwf_models.WorkflowEnabled, models.Model):
     def salvar_log_transicao(self, status_evento, usuario, **kwargs):
         raise NotImplementedError('Deve criar um método salvar_log_transicao')
 
-    def _preenche_template_e_envia_email(self, assunto, titulo, user, partes_interessadas):
-        raise NotImplementedError('Deve criar um método de envio de email as partes interessadas')  # noqa
+    def _preenche_template_e_envia_email(self, template, assunto, titulo, partes_interessadas, log_transicao, situacao):
+        html = render_to_string(
+            template_name=template,
+            context={
+                'titulo': titulo,
+                'solicitacao': self.numero_solicitacao,
+                'log_transicao': log_transicao,
+                'situacao': situacao
+            }
+        )
+        envia_email_em_massa_task.delay(
+            assunto=assunto,
+            emails=partes_interessadas,
+            corpo='',
+            html=html
+        )
 
     def _partes_interessadas_dilog(self):
         # Envia email somente para COORDENADOR_LOGISTICA.
@@ -458,6 +472,14 @@ class FluxoSolicitacaoDeAlteracao(xwf_models.WorkflowEnabled, models.Model):
             )
         )
         return [usuario.email for usuario in queryset]
+
+    def _partes_interessadas_distribuidor(self):
+        # Envia email somente para vinculos do distribuidor.
+        email_query_set_distribuidor = self.requisicao.distribuidor.vinculos.filter(
+            ativo=True
+        ).values_list('usuario__email', flat=False)
+
+        return [email for email in email_query_set_distribuidor]
 
     def _envia_email_distribuidor_solicita_alteracao(self, log_transicao, partes_interessadas):
         base_url = f'{env("REACT_APP_URL")}'
@@ -494,16 +516,31 @@ class FluxoSolicitacaoDeAlteracao(xwf_models.WorkflowEnabled, models.Model):
     @xworkflows.after_transition('dilog_aceita')
     def _dilog_aceita_hook(self, *args, **kwargs):
         user = kwargs['user']
-        self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.DILOG_ACEITA_ALTERACAO,
-                                  usuario=user,
-                                  justificativa=kwargs.get('justificativa', ''))
+        log_transicao = self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.DILOG_ACEITA_ALTERACAO,
+                                                  usuario=user, justificativa=kwargs.get('justificativa', ''))
+        # Monta e-mail de aceite
+        titulo = 'Solicitação de alteração aceita.'
+        assunto = f'[SIGPAE] Resposta à Solicitação de Alteração N° {self.numero_solicitacao}'
+        situacao = 'aceita'
+        template = 'logistica_dilog_aceita_ou_nega_alteracao.html'
+        partes_interessadas = self._partes_interessadas_distribuidor()
+
+        self._preenche_template_e_envia_email(template, assunto, titulo, partes_interessadas, log_transicao, situacao)
 
     @xworkflows.after_transition('dilog_nega')
     def _dilog_nega_hook(self, *args, **kwargs):
         user = kwargs['user']
-        self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.DILOG_NEGA_ALTERACAO,
-                                  usuario=user,
-                                  justificativa=kwargs.get('justificativa', ''))
+        log_transicao = self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.DILOG_NEGA_ALTERACAO,
+                                                  usuario=user, justificativa=kwargs.get('justificativa', ''))
+
+        # Monta e-mail de negação
+        titulo = 'Solicitação de alteração negada.'
+        assunto = f'[SIGPAE] Resposta à Solicitação de Alteração N° {self.numero_solicitacao}'
+        situacao = 'negada'
+        template = 'logistica_dilog_aceita_ou_nega_alteracao.html'
+        partes_interessadas = self._partes_interessadas_distribuidor()
+
+        self._preenche_template_e_envia_email(template, assunto, titulo, partes_interessadas, log_transicao, situacao)
 
     class Meta:
         abstract = True
