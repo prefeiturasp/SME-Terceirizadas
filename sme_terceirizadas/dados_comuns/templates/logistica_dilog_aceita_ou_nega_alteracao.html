@@ -1,0 +1,12 @@
+{% extends 'email_base.html' %}
+{% load email_templatetags %}
+
+{% block conteudo %}
+  <p>A Solicitação de Alteração <spam style="color: #0C6B45">N° {{ solicitacao }}</spam>
+    foi {{ situacao }} pela CODAE com a seguinte justificativa:</p>
+  <br/>
+  <div style="border: 2px solid #0C6B45; border-radius: 5px; padding: 10px">
+  {{ log_transicao.justificativa | safe }}
+  </div>
+  <br/>
+{% endblock %}
