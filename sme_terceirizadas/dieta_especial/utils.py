@@ -1,5 +1,5 @@
 from datetime import date
-
+from time import sleep
 from django.contrib.contenttypes.models import ContentType
 from django.template.loader import render_to_string
 from rest_framework.pagination import PageNumberPagination
@@ -160,6 +160,7 @@ def enviar_email_para_diretor_da_escola_destino(solicitacao_dieta, aluno, escola
 
     html_string = relatorio_dieta_especial_conteudo(solicitacao_dieta)
     anexo = html_to_pdf_email_anexo(html_string)
+    sleep(5)
     anexo_nome = f'dieta_especial_{aluno.codigo_eol}.pdf'
 
     corpo = render_to_string(
