@@ -60,6 +60,10 @@ class SolicitacaoAlteracaoFilter(filters.FilterSet):
         field_name='numero_solicitacao',
         lookup_expr='exact',
     )
+    numero_requisicao = filters.CharFilter(
+        field_name='requisicao__numero_solicitacao',
+        lookup_expr='exact',
+    )
     nome_distribuidor = filters.CharFilter(
         field_name='requisicao__distribuidor__razao_social',
         lookup_expr='icontains',

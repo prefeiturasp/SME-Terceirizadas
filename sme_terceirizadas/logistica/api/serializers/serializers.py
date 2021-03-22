@@ -164,6 +164,7 @@ class SolicitacaoDeAlteracaoSerializer(serializers.ModelSerializer):
     status = serializers.SerializerMethodField()
     criado_em = serializers.SerializerMethodField()
     data_entrega = serializers.SerializerMethodField()
+    numero_requisicao = serializers.SerializerMethodField()
 
     def get_criado_em(self, obj):
         return obj.criado_em.strftime('%d/%m/%Y')
@@ -173,6 +174,9 @@ class SolicitacaoDeAlteracaoSerializer(serializers.ModelSerializer):
 
     def get_status(self, obj):
         return obj.get_status_display()
+
+    def get_numero_requisicao(self, obj):
+        return obj.requisicao.numero_solicitacao
 
     class Meta:
         model = SolicitacaoDeAlteracaoRequisicao

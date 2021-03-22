@@ -53,7 +53,7 @@ def html_to_pdf_email_anexo(html_string, pdf_filename=None):
     pdf_file = HTML(
         string=html_string,
         url_fetcher=django_url_fetcher,
-        base_url='file://abobrinha').write_pdf()
+        base_url='file://abobrinha').write_pdf('/tmp/teste.pdf')
     return pdf_file
 
 
