@@ -1,5 +1,6 @@
 import math
 from datetime import date
+from time import sleep
 
 from django.http import HttpResponse
 from django_weasyprint.utils import django_url_fetcher
@@ -54,6 +55,7 @@ def html_to_pdf_email_anexo(html_string, pdf_filename=None):
         string=html_string,
         url_fetcher=django_url_fetcher,
         base_url='file://abobrinha').write_pdf()
+    sleep(5)
     return pdf_file
 
 
