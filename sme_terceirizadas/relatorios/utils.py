@@ -50,10 +50,11 @@ def html_to_pdf_response(html_string, pdf_filename):
 def html_to_pdf_email_anexo(html_string, pdf_filename=None):
     # O PDF gerado aqui pode ser anexado num email.
     # Utilizado para enviar email ao cancelar dietas ativas automaticamente.
-    HTML(
+    pdf_file = HTML(
         string=html_string,
         url_fetcher=django_url_fetcher,
         base_url='file://abobrinha').write_pdf(pdf_filename)
+    return pdf_file
 
 
 def get_config_cabecario_relatorio_analise(filtros, data_incial_analise_padrao, contatos_terceirizada):  # noqa C901

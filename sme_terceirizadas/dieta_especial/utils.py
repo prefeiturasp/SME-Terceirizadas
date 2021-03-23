@@ -1,6 +1,5 @@
 from datetime import date
 
-from config.settings.base import MEDIA_ROOT
 from django.contrib.contenttypes.models import ContentType
 from django.template.loader import render_to_string
 from rest_framework.pagination import PageNumberPagination
@@ -12,7 +11,7 @@ from sme_terceirizadas.relatorios.utils import html_to_pdf_email_anexo
 
 from ..dados_comuns.constants import TIPO_SOLICITACAO_DIETA
 from ..dados_comuns.fluxo_status import DietaEspecialWorkflow
-from ..dados_comuns.utils import envia_email_unico, envia_email_unico_com_anexo
+from ..dados_comuns.utils import envia_email_unico, envia_email_unico_com_anexo_inmemory
 from ..escola.models import Aluno, Escola
 from ..paineis_consolidados.models import SolicitacoesCODAE
 from .models import LogDietasAtivasCanceladasAutomaticamente, SolicitacaoDietaEspecial
@@ -159,9 +158,10 @@ def enviar_email_para_diretor_da_escola_destino(solicitacao_dieta, aluno, escola
         email = vinculo.usuario.email
         emails.append(email)
 
-    nome_arquivo = f'{MEDIA_ROOT}/dieta_especial_{aluno.codigo_eol}_auto.pdf'
     html_string = relatorio_dieta_especial_conteudo(solicitacao_dieta)
-    html_to_pdf_email_anexo(html_string=html_string, pdf_filename=nome_arquivo)
+    anexo = html_to_pdf_email_anexo(html_string)
+    anexo_nome = f'dieta_especial_{aluno.codigo_eol}.pdf'
+    html_to_pdf_email_anexo(html_string)
 
     corpo = render_to_string(
         template_name='email/email_dieta_cancelada_automaticamente_escola_destino.html',
@@ -173,21 +173,21 @@ def enviar_email_para_diretor_da_escola_destino(solicitacao_dieta, aluno, escola
     )
 
     # Parece que está previsto ter mais Diretores vinculados a mesma escola.
-    with open(f'{nome_arquivo}', 'rb') as anexo:
-        for email in emails:
-            envia_email_unico_com_anexo(
-                assunto=assunto,
-                corpo=corpo,
-                email=email,
-                anexo=anexo,
-            )
+    for email in emails:
+        envia_email_unico_com_anexo_inmemory(
+            assunto=assunto,
+            corpo=corpo,
+            email=email,
+            anexo_nome=anexo_nome,
+            mimetypes='application/pdf',
+            anexo=anexo,
+        )
 
 
 def cancela_dietas_ativas_automaticamente():  # noqa C901 D205 D400
     """Se um aluno trocar de escola ou não pertencer a rede
     e se tiver uma Dieta Especial Ativa, essa dieta será cancelada automaticamente.
     """
-    envia_email_unico('Teste', 'corpo', 'regis.santos@amcom.com.br', 'template', {'dados_template': 'dados_template'})
     dietas_ativas_comuns = SolicitacoesCODAE.get_autorizados_dieta_especial().filter(tipo_solicitacao_dieta='COMUM')
     for dieta in dietas_ativas_comuns:
         aluno = Aluno.objects.get(codigo_eol=dieta.codigo_eol_aluno)
