@@ -52,6 +52,7 @@ def envia_email_unico(assunto: str, corpo: str, email: str, template: str, dados
 
 def envia_email_unico_com_anexo(assunto: str, corpo: str, email: str, anexo=[]):  # noqa B006
     # Anexa um arquivo no email.
+    # Usado em enviar_email_para_diretor_da_escola_destino.
     config = DynamicEmailConfiguration.get_solo()
 
     email = EmailMessage(
@@ -60,8 +61,12 @@ def envia_email_unico_com_anexo(assunto: str, corpo: str, email: str, anexo=[]):
         config.from_email or None,
         [email]
     )
+    email.content_subtype = 'html'
     _mimetypes, _ = guess_type(anexo.name)
-    email.attach(anexo.name, anexo.read(), _mimetypes)
+    # Este anexo vem da pasta media.
+    nome_anexo = anexo.name.split('/')[-1]
+    nome_anexo = nome_anexo.replace('_auto', '')
+    email.attach(nome_anexo, anexo.read(), _mimetypes)
     email.send()
 
 

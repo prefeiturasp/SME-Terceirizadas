@@ -1,6 +1,7 @@
 from datetime import date
 from time import sleep
 
+from config.settings.base import MEDIA_ROOT
 from django.contrib.contenttypes.models import ContentType
 from django.template.loader import render_to_string
 from rest_framework.pagination import PageNumberPagination
@@ -12,7 +13,7 @@ from sme_terceirizadas.relatorios.utils import html_to_pdf_email_anexo
 
 from ..dados_comuns.constants import TIPO_SOLICITACAO_DIETA
 from ..dados_comuns.fluxo_status import DietaEspecialWorkflow
-from ..dados_comuns.utils import envia_email_unico, envia_email_unico_com_anexo_inmemory
+from ..dados_comuns.utils import envia_email_unico, envia_email_unico_com_anexo
 from ..escola.models import Aluno, Escola
 from ..paineis_consolidados.models import SolicitacoesCODAE
 from .models import LogDietasAtivasCanceladasAutomaticamente, SolicitacaoDietaEspecial
@@ -159,10 +160,11 @@ def enviar_email_para_diretor_da_escola_destino(solicitacao_dieta, aluno, escola
         email = vinculo.usuario.email
         emails.append(email)
 
+    nome_arquivo = f'{MEDIA_ROOT}/dieta_especial_{aluno.codigo_eol}_auto.pdf'
     html_string = relatorio_dieta_especial_conteudo(solicitacao_dieta)
-    anexo = html_to_pdf_email_anexo(html_string)
-    sleep(10)
-    anexo_nome = f'dieta_especial_{aluno.codigo_eol}.pdf'
+    html_to_pdf_email_anexo(html_string=html_string, pdf_filename=nome_arquivo)
+    sleep(3)
+    anexo = open(f'{nome_arquivo}', 'rb')
 
     corpo = render_to_string(
         template_name='email/email_dieta_cancelada_automaticamente_escola_destino.html',
@@ -175,12 +177,10 @@ def enviar_email_para_diretor_da_escola_destino(solicitacao_dieta, aluno, escola
 
     # Parece que está previsto ter mais Diretores vinculados a mesma escola.
     for email in emails:
-        envia_email_unico_com_anexo_inmemory(
+        envia_email_unico_com_anexo(
             assunto=assunto,
             corpo=corpo,
             email=email,
-            anexo_nome=anexo_nome,
-            mimetypes='application/pdf',
             anexo=anexo,
         )
 

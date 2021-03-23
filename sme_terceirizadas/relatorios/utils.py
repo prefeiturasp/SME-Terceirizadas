@@ -1,7 +1,6 @@
 import math
 from datetime import date
 
-from django.conf import settings
 from django.http import HttpResponse
 from django_weasyprint.utils import django_url_fetcher
 from weasyprint import HTML
@@ -51,11 +50,10 @@ def html_to_pdf_response(html_string, pdf_filename):
 def html_to_pdf_email_anexo(html_string, pdf_filename=None):
     # O PDF gerado aqui pode ser anexado num email.
     # Utilizado para enviar email ao cancelar dietas ativas automaticamente.
-    pdf_file = HTML(
+    HTML(
         string=html_string,
         url_fetcher=django_url_fetcher,
-        base_url='file://abobrinha').write_pdf(f'{settings.MEDIA_ROOT}/teste.pdf')
-    return pdf_file
+        base_url='file://abobrinha').write_pdf(pdf_filename)
 
 
 def get_config_cabecario_relatorio_analise(filtros, data_incial_analise_padrao, contatos_terceirizada):  # noqa C901
