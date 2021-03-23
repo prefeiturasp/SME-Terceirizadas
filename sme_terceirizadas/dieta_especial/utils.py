@@ -1,5 +1,4 @@
 from datetime import date
-from time import sleep
 
 from config.settings.base import MEDIA_ROOT
 from django.contrib.contenttypes.models import ContentType
@@ -163,8 +162,6 @@ def enviar_email_para_diretor_da_escola_destino(solicitacao_dieta, aluno, escola
     nome_arquivo = f'{MEDIA_ROOT}/dieta_especial_{aluno.codigo_eol}_auto.pdf'
     html_string = relatorio_dieta_especial_conteudo(solicitacao_dieta)
     html_to_pdf_email_anexo(html_string=html_string, pdf_filename=nome_arquivo)
-    sleep(3)
-    anexo = open(f'{nome_arquivo}', 'rb')
 
     corpo = render_to_string(
         template_name='email/email_dieta_cancelada_automaticamente_escola_destino.html',
@@ -176,13 +173,14 @@ def enviar_email_para_diretor_da_escola_destino(solicitacao_dieta, aluno, escola
     )
 
     # Parece que está previsto ter mais Diretores vinculados a mesma escola.
-    for email in emails:
-        envia_email_unico_com_anexo(
-            assunto=assunto,
-            corpo=corpo,
-            email=email,
-            anexo=anexo,
-        )
+    with open(f'{nome_arquivo}', 'rb') as anexo:
+        for email in emails:
+            envia_email_unico_com_anexo(
+                assunto=assunto,
+                corpo=corpo,
+                email=email,
+                anexo=anexo,
+            )
 
 
 def cancela_dietas_ativas_automaticamente():  # noqa C901 D205 D400
