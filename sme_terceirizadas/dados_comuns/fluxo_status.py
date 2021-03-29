@@ -379,14 +379,14 @@ class FluxoSolicitacaoRemessa(xwf_models.WorkflowEnabled, models.Model):
         html = render_to_string(
             template_name='logistica_dilog_envia_solicitacao.html',
             context={
-                'titulo': f'Nova solicitação N° {self.numero_solicitacao} para Entrega de Alimento',
+                'titulo': f'Nova Requisição de Entrega N° {self.numero_solicitacao}',
                 'solicitacao': self.numero_solicitacao,
                 'log_transicao': log_transicao,
                 'url': url
             }
         )
         envia_email_unico_task.delay(
-            assunto=f'[SIGPAE] Nova solicitação N° {self.numero_solicitacao} para Entrega de Alimento',
+            assunto=f'[SIGPAE] Nova Requisição de Entrega N° {self.numero_solicitacao}',
             email=self.distribuidor.responsavel_email,
             corpo='',
             html=html
