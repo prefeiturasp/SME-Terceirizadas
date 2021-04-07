@@ -286,7 +286,7 @@ class SuspensaoAlimentacao(ExportModelOperationsMixin('suspensao_alimentacao'), 
 
     prioritario = models.BooleanField(default=False)
     motivo = models.ForeignKey(MotivoSuspensao, on_delete=models.DO_NOTHING)
-    outro_motivo = models.CharField('Outro motivo', blank=True, max_length=50)
+    outro_motivo = models.CharField('Outro motivo', blank=True, max_length=500)
     grupo_suspensao = models.ForeignKey('GrupoSuspensaoAlimentacao', on_delete=models.CASCADE,
                                         blank=True, null=True, related_name='suspensoes_alimentacao')
 
@@ -419,7 +419,7 @@ class SuspensaoAlimentacaoDaCEI(ExportModelOperationsMixin('suspensao_alimentaca
     DESCRICAO = 'Suspensão de Alimentação de CEI'
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING)
     motivo = models.ForeignKey(MotivoSuspensao, on_delete=models.DO_NOTHING)
-    outro_motivo = models.CharField('Outro motivo', blank=True, max_length=50)
+    outro_motivo = models.CharField('Outro motivo', blank=True, max_length=500)
     periodos_escolares = models.ManyToManyField('escola.PeriodoEscolar',
                                                 related_name='%(app_label)s_%(class)s_periodos',
                                                 help_text='Periodos escolares da suspensão',
