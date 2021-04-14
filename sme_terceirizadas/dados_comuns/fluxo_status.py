@@ -477,7 +477,7 @@ class FluxoSolicitacaoDeAlteracao(xwf_models.WorkflowEnabled, models.Model):
         # Envia email somente para vinculos do distribuidor.
         email_query_set_distribuidor = self.requisicao.distribuidor.vinculos.filter(
             ativo=True
-        ).values_list('usuario__email', flat=False)
+        ).values_list('usuario__email', flat=True)
 
         return [email for email in email_query_set_distribuidor]
 
