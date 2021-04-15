@@ -461,3 +461,38 @@ class ProtocoloPadraoDietaEspecial(TemChaveExterna, CriadoEm, CriadoPor, TemIden
     def __str__(self):
         return str(self.nome_protocolo)
 
+
+class SubstituicaoAlimentoProtocoloPadrao(models.Model):
+    TIPO_CHOICES = [
+        ('I', 'Isento'),
+        ('S', 'Substituir')
+    ]
+    protocolo_padrao = models.ForeignKey(
+        ProtocoloPadraoDietaEspecial,
+        on_delete=models.CASCADE
+    )
+    alimento = models.ForeignKey(
+        Alimento,
+        on_delete=models.PROTECT,
+        blank=True,
+        null=True
+    )
+    tipo = models.CharField(max_length=1, choices=TIPO_CHOICES, blank=True)
+    substitutos = models.ManyToManyField(
+        'produto.Produto',
+        related_name='substitutos_protocolo_padrao',
+        blank=True,
+        help_text='produtos substitutos'
+    )
+    alimentos_substitutos = models.ManyToManyField(
+        Alimento,
+        related_name='alimentos_substitutos_protocolo_padrao',
+        blank=True
+    )
+
+    class Meta:
+        verbose_name = 'Substituição de alimento para protocolo padrão de dieta'
+        verbose_name_plural = 'Substituições de alimentos para protocolos padrões de dietas'
+
+    def __str__(self):
+        return f'substituição protocolo padrão: {self.protocolo_padrao}, tipo: {self.tipo}.'
