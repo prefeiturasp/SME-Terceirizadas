@@ -14,7 +14,8 @@ from ...eol_servico.utils import EOLService
 from ...escola.models import Aluno
 from ...perfil.models import Usuario
 from ...produto.models import Produto
-from ..models import AlergiaIntolerancia, Alimento, Anexo, ClassificacaoDieta, MotivoNegacao, SolicitacaoDietaEspecial
+from ..models import (AlergiaIntolerancia, Alimento, Anexo, ClassificacaoDieta, MotivoNegacao, SolicitacaoDietaEspecial,
+                      ProtocoloPadraoDietaEspecial)
 
 fake = Faker('pt_BR')
 fake.seed(420)
@@ -496,4 +497,13 @@ def log_dietas_ativas_canceladas_automaticamente(solicitacao_dieta_especial_auto
         nome_escola_origem='EMEF PERICLES EUGENIO DA SILVA RAMOS',
         codigo_eol_escola_destino='018210',
         nome_escola_destino='EMEFM DARCY RIBEIRO',
+    )
+
+
+@pytest.fixture
+def protocolo_padrao_dieta_especial():
+    return mommy.make(
+        'ProtocoloPadraoDietaEspecial',
+        nome_protocolo='ALERGIA A AVEIA',
+        status='LIBERADO',
     )
