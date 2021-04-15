@@ -309,7 +309,6 @@ class Alimento(Nomeavel, TemChaveExterna, Ativavel):
 
 
 class AlimentoProprio(Alimento):
-
     objects = AlimentoProprioManager()
 
     class Meta:
@@ -364,7 +363,8 @@ class PlanilhaDietasAtivas(models.Model):
     """
 
     arquivo = models.FileField(blank=True, null=True, help_text='Arquivo com escolas e dietas')  # noqa DJ01
-    arquivo_unidades_da_rede = models.FileField(blank=True, null=True, help_text='Arquivo unidades_da_rede...xlsx')  # noqa DJ01
+    arquivo_unidades_da_rede = models.FileField(blank=True, null=True,
+                                                help_text='Arquivo unidades_da_rede...xlsx')  # noqa DJ01
     resultado = models.FileField(blank=True, null=True, help_text='Arquivo com o resultado')  # noqa DJ01
     tempfile = models.CharField(max_length=100, null=True, blank=True, help_text='JSON temporario')  # noqa DJ01
     criado_em = models.DateTimeField(
@@ -427,3 +427,37 @@ class LogDietasAtivasCanceladasAutomaticamente(CriadoEm):
         if escola_existe_no_sigpae:
             return True
         return False
+
+
+class ProtocoloPadraoDietaEspecial(TemChaveExterna, CriadoEm, CriadoPor, TemIdentificadorExternoAmigavel):
+    # Status Choice
+    STATUS_LIBERADO = 'LIBERADO'
+    STATUS_NAO_LIBERADO = 'NAO_LIBERADO'
+
+    STATUS_NOMES = {
+        STATUS_LIBERADO: 'Liberado',
+        STATUS_NAO_LIBERADO: 'Não Liberado',
+    }
+
+    STATUS_CHOICES = (
+        (STATUS_LIBERADO, STATUS_NOMES[STATUS_LIBERADO]),
+        (STATUS_NAO_LIBERADO, STATUS_NOMES[STATUS_NAO_LIBERADO]),
+    )
+
+    nome_protocolo = models.TextField('Nome do Protocolo')
+
+    status = models.CharField(
+        'Status da guia',
+        max_length=25,
+        choices=STATUS_CHOICES,
+        default=STATUS_NAO_LIBERADO
+    )
+
+    class Meta:
+        ordering = ('-criado_em',)
+        verbose_name = 'Protocolo padrão de dieta especial'
+        verbose_name_plural = 'Protocolos padrões de dieta especial'
+
+    def __str__(self):
+        return str(self.nome_protocolo)
+
