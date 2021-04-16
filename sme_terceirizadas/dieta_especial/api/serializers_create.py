@@ -13,7 +13,8 @@ from ...escola.api.serializers import AlunoNaoMatriculadoSerializer
 from ...escola.models import Aluno, Escola, PeriodoEscolar, Responsavel
 from ...produto.api.serializers import serializers as ser
 from ...produto.models import Produto
-from ..models import Alimento, Anexo, MotivoAlteracaoUE, SolicitacaoDietaEspecial, SubstituicaoAlimento
+from ..models import (Alimento, Anexo, MotivoAlteracaoUE, SolicitacaoDietaEspecial, SubstituicaoAlimento,
+                      SubstituicaoAlimentoProtocoloPadrao, ProtocoloPadraoDietaEspecial)
 from .validators import AlunoSerializerValidator
 
 
@@ -36,6 +37,14 @@ class SubstituicaoCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = SubstituicaoAlimento
         fields = '__all__'
+
+
+class SubstituicaoProtocoloPadraoCreateSerializer(serializers.ModelSerializer):
+    substitutos = ser.SubstitutosSerializer(many=True)
+
+    class Meta:
+        model = SubstituicaoAlimentoProtocoloPadrao
+        exclude = ('protocolo_padrao',)
 
 
 class SubstituicaoAutorizarSerializer(serializers.ModelSerializer):
@@ -296,3 +305,28 @@ class AlteracaoUESerializer(serializers.ModelSerializer):
             anexo_alteracao.save()
 
         return solicitacao_alteracao
+
+
+class ProtocoloPadraoDietaEspecialSerializerCreate(serializers.ModelSerializer):
+    substituicoes = SubstituicaoProtocoloPadraoCreateSerializer(many=True)
+
+    def create(self, validated_data):
+        substituicoes = validated_data.pop('substituicoes')
+        protocolo_padrao = ProtocoloPadraoDietaEspecial.objects.create(**validated_data)
+
+        for substituicao in substituicoes:
+            substitutos = substituicao.pop('substitutos', None)
+            substituicao['protocolo_padrao'] = protocolo_padrao
+            subst_obj = SubstituicaoAlimentoProtocoloPadrao.objects.create(**substituicao)
+            if substitutos:
+                for substituto in substitutos:
+                    if isinstance(substituto, Alimento):
+                        subst_obj.alimentos_substitutos.add(substituto)
+                    if isinstance(substituto, Produto):
+                        subst_obj.substitutos.add(substituto)
+
+        return protocolo_padrao
+
+    class Meta:
+        model = ProtocoloPadraoDietaEspecial
+        fields = ('uuid', 'nome_protocolo', 'status', 'criado_em', 'substituicoes')

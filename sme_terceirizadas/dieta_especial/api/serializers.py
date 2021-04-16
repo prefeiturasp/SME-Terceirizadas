@@ -19,7 +19,7 @@ from ..models import (
     MotivoNegacao,
     SolicitacaoDietaEspecial,
     SubstituicaoAlimento,
-    TipoContagem
+    TipoContagem, ProtocoloPadraoDietaEspecial, SubstituicaoAlimentoProtocoloPadrao
 )
 from .serializers_create import (
     SolicitacaoDietaEspecialCreateSerializer,
@@ -403,3 +403,27 @@ class PanoramaSerializer(serializers.Serializer):
         source='uuid',
         required=False
     )
+
+
+class SubstituicaoAlimentoProtocoloPadraoSerializer(ModelSerializer):
+    alimento = AlimentoSerializer()
+    substitutos = ProdutoSimplesSerializer(many=True)
+    alimentos_substitutos = AlimentoSerializer(many=True)
+
+    class Meta:
+        model = SubstituicaoAlimentoProtocoloPadrao
+        fields = '__all__'
+
+
+class ProtocoloPadraoDietaEspecialSerializer(serializers.ModelSerializer):
+    status = serializers.CharField(source='get_status_display')
+    substituicoes = SubstituicaoAlimentoProtocoloPadraoSerializer(many=True)
+
+    class Meta:
+        model = ProtocoloPadraoDietaEspecial
+        fields = (
+            'uuid',
+            'nome_protocolo',
+            'status',
+            'substituicoes'
+        )
