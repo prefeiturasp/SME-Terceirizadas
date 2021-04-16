@@ -363,8 +363,7 @@ class PlanilhaDietasAtivas(models.Model):
     """
 
     arquivo = models.FileField(blank=True, null=True, help_text='Arquivo com escolas e dietas')  # noqa DJ01
-    arquivo_unidades_da_rede = models.FileField(blank=True, null=True,
-                                                help_text='Arquivo unidades_da_rede...xlsx')  # noqa DJ01
+    arquivo_unidades_da_rede = models.FileField(blank=True, null=True, help_text='Arquivo unidades_da_rede...xlsx')  # noqa DJ01
     resultado = models.FileField(blank=True, null=True, help_text='Arquivo com o resultado')  # noqa DJ01
     tempfile = models.CharField(max_length=100, null=True, blank=True, help_text='JSON temporario')  # noqa DJ01
     criado_em = models.DateTimeField(

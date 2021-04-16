@@ -14,8 +14,7 @@ from ...eol_servico.utils import EOLService
 from ...escola.models import Aluno
 from ...perfil.models import Usuario
 from ...produto.models import Produto
-from ..models import (AlergiaIntolerancia, Alimento, Anexo, ClassificacaoDieta, MotivoNegacao, SolicitacaoDietaEspecial,
-                      ProtocoloPadraoDietaEspecial)
+from ..models import AlergiaIntolerancia, Alimento, Anexo, ClassificacaoDieta, MotivoNegacao, SolicitacaoDietaEspecial
 
 fake = Faker('pt_BR')
 fake.seed(420)
