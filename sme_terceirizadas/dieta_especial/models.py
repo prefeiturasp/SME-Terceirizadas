@@ -468,7 +468,8 @@ class SubstituicaoAlimentoProtocoloPadrao(models.Model):
     ]
     protocolo_padrao = models.ForeignKey(
         ProtocoloPadraoDietaEspecial,
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        related_name='substituicoes'
     )
     alimento = models.ForeignKey(
         Alimento,
