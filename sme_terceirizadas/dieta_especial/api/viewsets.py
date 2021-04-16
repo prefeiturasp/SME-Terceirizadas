@@ -46,7 +46,7 @@ from ..models import (
     MotivoAlteracaoUE,
     MotivoNegacao,
     SolicitacaoDietaEspecial,
-    TipoContagem
+    TipoContagem, ProtocoloPadraoDietaEspecial
 )
 from ..utils import RelatorioPagination
 from .filters import AlimentoFilter, DietaEspecialFilter
@@ -63,9 +63,10 @@ from .serializers import (
     SolicitacaoDietaEspecialSimplesSerializer,
     SolicitacaoDietaEspecialUpdateSerializer,
     SolicitacoesAtivasInativasPorAlunoSerializer,
-    TipoContagemSerializer
+    TipoContagemSerializer, ProtocoloPadraoDietaEspecialSerializer
 )
-from .serializers_create import AlteracaoUESerializer, SolicitacaoDietaEspecialCreateSerializer
+from .serializers_create import AlteracaoUESerializer, SolicitacaoDietaEspecialCreateSerializer, \
+    ProtocoloPadraoDietaEspecialSerializerCreate
 
 
 class SolicitacaoDietaEspecialViewSet(
@@ -751,3 +752,21 @@ class TipoContagemViewSet(mixins.ListModelMixin, GenericViewSet):
 class MotivoAlteracaoUEViewSet(mixins.ListModelMixin, GenericViewSet):
     queryset = MotivoAlteracaoUE.objects.order_by('nome')
     serializer_class = MotivoAlteracaoUESerializer
+
+
+class ProtocoloPadraoDietaEspecialViewSet(
+        mixins.RetrieveModelMixin,
+        mixins.ListModelMixin,
+        mixins.CreateModelMixin,
+        mixins.UpdateModelMixin,
+        GenericViewSet):
+    lookup_field = 'uuid'
+    permission_classes = (IsAuthenticated,)
+    queryset = ProtocoloPadraoDietaEspecial.objects.all()
+    serializer_class = ProtocoloPadraoDietaEspecialSerializer
+
+    def get_serializer_class(self):
+        if self.action == 'create':
+            return ProtocoloPadraoDietaEspecialSerializerCreate
+        else:
+            return ProtocoloPadraoDietaEspecialSerializer
