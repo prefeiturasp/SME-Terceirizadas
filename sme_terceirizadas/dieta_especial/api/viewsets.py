@@ -45,8 +45,9 @@ from ..models import (
     ClassificacaoDieta,
     MotivoAlteracaoUE,
     MotivoNegacao,
+    ProtocoloPadraoDietaEspecial,
     SolicitacaoDietaEspecial,
-    TipoContagem, ProtocoloPadraoDietaEspecial
+    TipoContagem
 )
 from ..utils import RelatorioPagination
 from .filters import AlimentoFilter, DietaEspecialFilter
@@ -57,16 +58,20 @@ from .serializers import (
     MotivoAlteracaoUESerializer,
     MotivoNegacaoSerializer,
     PanoramaSerializer,
+    ProtocoloPadraoDietaEspecialSerializer,
     RelatorioQuantitativoSolicDietaEspSerializer,
     SolicitacaoDietaEspecialAutorizarSerializer,
     SolicitacaoDietaEspecialSerializer,
     SolicitacaoDietaEspecialSimplesSerializer,
     SolicitacaoDietaEspecialUpdateSerializer,
     SolicitacoesAtivasInativasPorAlunoSerializer,
-    TipoContagemSerializer, ProtocoloPadraoDietaEspecialSerializer
+    TipoContagemSerializer
 )
-from .serializers_create import AlteracaoUESerializer, SolicitacaoDietaEspecialCreateSerializer, \
-    ProtocoloPadraoDietaEspecialSerializerCreate
+from .serializers_create import (
+    AlteracaoUESerializer,
+    ProtocoloPadraoDietaEspecialSerializerCreate,
+    SolicitacaoDietaEspecialCreateSerializer
+)
 
 
 class SolicitacaoDietaEspecialViewSet(

@@ -13,8 +13,15 @@ from ...escola.api.serializers import AlunoNaoMatriculadoSerializer
 from ...escola.models import Aluno, Escola, PeriodoEscolar, Responsavel
 from ...produto.api.serializers import serializers as ser
 from ...produto.models import Produto
-from ..models import (Alimento, Anexo, MotivoAlteracaoUE, SolicitacaoDietaEspecial, SubstituicaoAlimento,
-                      SubstituicaoAlimentoProtocoloPadrao, ProtocoloPadraoDietaEspecial)
+from ..models import (
+    Alimento,
+    Anexo,
+    MotivoAlteracaoUE,
+    ProtocoloPadraoDietaEspecial,
+    SolicitacaoDietaEspecial,
+    SubstituicaoAlimento,
+    SubstituicaoAlimentoProtocoloPadrao
+)
 from .validators import AlunoSerializerValidator
 
 
@@ -310,7 +317,7 @@ class AlteracaoUESerializer(serializers.ModelSerializer):
 class ProtocoloPadraoDietaEspecialSerializerCreate(serializers.ModelSerializer):
     substituicoes = SubstituicaoProtocoloPadraoCreateSerializer(many=True)
 
-    def create(self, validated_data):
+    def create(self, validated_data): # noqa C901
         substituicoes = validated_data.pop('substituicoes')
         protocolo_padrao = ProtocoloPadraoDietaEspecial.objects.create(**validated_data)
 

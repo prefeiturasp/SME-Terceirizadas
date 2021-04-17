@@ -214,6 +214,7 @@ class SubstituicaoAlimentoProtocoloPadraoInline(admin.TabularInline):
     model = SubstituicaoAlimentoProtocoloPadrao
     extra = 0
 
+
 @admin.register(ProtocoloPadraoDietaEspecial)
 class ProtocoloPadraoDietaEspecialAdmin(admin.ModelAdmin):
     list_display = ('nome_protocolo', 'status')

@@ -17,9 +17,11 @@ from ..models import (
     ClassificacaoDieta,
     MotivoAlteracaoUE,
     MotivoNegacao,
+    ProtocoloPadraoDietaEspecial,
     SolicitacaoDietaEspecial,
     SubstituicaoAlimento,
-    TipoContagem, ProtocoloPadraoDietaEspecial, SubstituicaoAlimentoProtocoloPadrao
+    SubstituicaoAlimentoProtocoloPadrao,
+    TipoContagem
 )
 from .serializers_create import (
     SolicitacaoDietaEspecialCreateSerializer,
