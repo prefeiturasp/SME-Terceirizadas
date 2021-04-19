@@ -1,6 +1,7 @@
 from django.db import models
 
 from ...dados_comuns.behaviors import ModeloBase
+from ...escola.models import Escola
 from .solicitacao import SolicitacaoRemessa
 
 
@@ -9,7 +10,7 @@ class GuiaManager(models.Manager):
     def create_guia(self, StrNumGui, DtEntrega, StrCodUni, StrNomUni,
                     StrEndUni, StrNumUni, StrBaiUni, StrCepUni,
                     StrCidUni, StrEstUni, StrConUni, StrTelUni,
-                    solicitacao):
+                    solicitacao, escola):
         return self.create(
             numero_guia=StrNumGui,
             data_entrega=DtEntrega,
@@ -23,7 +24,8 @@ class GuiaManager(models.Manager):
             estado_unidade=StrEstUni,
             contato_unidade=StrConUni,
             telefone_unidade=StrTelUni,
-            solicitacao=solicitacao
+            solicitacao=solicitacao,
+            escola=escola
         )
 
 
@@ -48,6 +50,7 @@ class Guia(ModeloBase):
     data_entrega = models.DateField('Data da entrega')
     codigo_unidade = models.CharField('Código da unidade', blank=True, max_length=10)
     nome_unidade = models.CharField('Nome da unidade', blank=True, max_length=150)
+    escola = models.ForeignKey(Escola, on_delete=models.SET_NULL, blank=True, null=True)
     endereco_unidade = models.CharField('Endereço da unidade', blank=True, max_length=300)
     numero_unidade = models.CharField('Número da unidade', blank=True, max_length=10)
     bairro_unidade = models.CharField('Bairro da unidade', blank=True, max_length=100)
