@@ -2,6 +2,8 @@ import pytest
 from faker import Faker
 from model_mommy import mommy
 
+from ...escola import models
+
 fake = Faker('pt_BR')
 fake.seed(420)
 
@@ -20,12 +22,23 @@ def solicitacao():
         quantidade_total_guias=2
     )
 
+@pytest.fixture
+def lote():
+    return mommy.make(models.Lote, nome='lote', iniciais='lt')
 
 @pytest.fixture
-def guia(solicitacao):
+def escola(lote):
+    return mommy.make(models.Escola,
+                      nome=fake.name(),
+                      codigo_eol=fake.name()[:6],
+                      lote=lote)
+
+@pytest.fixture
+def guia(solicitacao, escola):
     return mommy.make(
         'Guia',
         solicitacao=solicitacao,
+        escola=escola,
         numero_guia='987654',
         data_entrega='2019-02-25',
         codigo_unidade='58880',

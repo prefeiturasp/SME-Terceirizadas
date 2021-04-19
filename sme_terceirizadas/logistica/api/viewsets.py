@@ -366,7 +366,7 @@ class GuiaDaRequisicaoModelViewSet(viewsets.ModelViewSet):
         response = {'results': GuiaDaRemessaSimplesSerializer(self.get_queryset(), many=True).data}
         return Response(response)
 
-    @action(detail=False, methods=['GET'], url_path='inconsistencias')
+    @action(detail=False, methods=['GET'], url_path='inconsistencias', permission_classes=(UsuarioDilogCodae,))
     def lista_inconsistencias(self, request):
         response = {'results': GuiaDaRemessaSerializer(self.get_queryset().filter(escola=None), many=True).data}
         return Response(response)
