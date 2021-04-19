@@ -22,9 +22,11 @@ def solicitacao():
         quantidade_total_guias=2
     )
 
+
 @pytest.fixture
 def lote():
     return mommy.make(models.Lote, nome='lote', iniciais='lt')
+
 
 @pytest.fixture
 def escola(lote):
@@ -32,6 +34,7 @@ def escola(lote):
                       nome=fake.name(),
                       codigo_eol=fake.name()[:6],
                       lote=lote)
+
 
 @pytest.fixture
 def guia(solicitacao, escola):

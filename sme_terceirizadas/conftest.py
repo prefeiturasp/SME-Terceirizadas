@@ -99,6 +99,7 @@ def client_autenticado_codae_gestao_alimentacao(client, django_user_model):
     client.login(email=email, password=password)
     return client
 
+
 @pytest.fixture
 def client_autenticado_dilog(client, django_user_model):
     email = 'test@test.com'
