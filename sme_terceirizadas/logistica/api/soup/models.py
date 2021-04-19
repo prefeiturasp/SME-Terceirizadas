@@ -1,4 +1,5 @@
 from django.core import exceptions
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import IntegrityError, transaction
 from spyne.model.complex import Array, ComplexModel
 from spyne.model.primitive import Date, Integer, String
@@ -6,6 +7,7 @@ from spyne.util.dictdoc import get_object_as_dict
 
 from ....dados_comuns.fluxo_status import SolicitacaoRemessaWorkFlow
 from ....dados_comuns.models import LogSolicitacoesUsuario
+from ....escola.models import Escola
 from ....terceirizada.models import Terceirizada
 from ...models.alimento import Alimento as AlimentoModel  # noqa I001
 from ...models.alimento import Embalagem, TipoEmbalagem
@@ -131,6 +133,13 @@ class Guia(ComplexModel):
         for data in guias_data:
             alimentos_data = data.pop('alimentos', [])
             guia_obj = self.build_guia_obj(data, solicitacao)
+
+            try:
+                escola = Escola.objects.get(codigo_codae=guia_obj.codigo_unidade)
+                guia_obj.escola = escola
+            except ObjectDoesNotExist:
+                guia_obj.escola = None
+
             guias_obj_list.append(guia_obj)
 
             for data in alimentos_data:

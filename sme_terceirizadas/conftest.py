@@ -98,3 +98,23 @@ def client_autenticado_codae_gestao_alimentacao(client, django_user_model):
                ativo=True)
     client.login(email=email, password=password)
     return client
+
+
+@pytest.fixture
+def client_autenticado_dilog(client, django_user_model):
+    email = 'test@test.com'
+    password = 'bar'
+    user = django_user_model.objects.create_user(password=password, email=email, registro_funcional='8888888')
+    perfil_admin_dilog = mommy.make('Perfil',
+                                    nome=constants.COORDENADOR_LOGISTICA,
+                                    ativo=True)
+    codae = mommy.make('Codae')
+    hoje = datetime.date.today()
+    mommy.make('Vinculo',
+               usuario=user,
+               instituicao=codae,
+               perfil=perfil_admin_dilog,
+               data_inicial=hoje,
+               ativo=True)
+    client.login(email=email, password=password)
+    return client
