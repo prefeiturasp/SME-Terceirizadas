@@ -36,6 +36,7 @@ from sme_terceirizadas.logistica.models import Alimento, Embalagem
 from sme_terceirizadas.logistica.models import Guia as GuiasDasRequisicoes
 from sme_terceirizadas.logistica.models import SolicitacaoDeAlteracaoRequisicao, SolicitacaoRemessa
 
+from ...escola.models import Escola
 from ...relatorios.relatorios import get_pdf_guia_distribuidor
 from ..utils import RequisicaoPagination, SolicitacaoAlteracaoPagination
 from .filters import GuiaFilter, SolicitacaoAlteracaoFilter, SolicitacaoFilter
@@ -184,7 +185,6 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
         if json_data:
             try:
                 instance = SolicitacaoRemessaCreateSerializer().create(validated_data=json_data)
-
                 instance.salvar_log_transicao(
                     status_evento=LogSolicitacoesUsuario.INICIO_FLUXO_SOLICITACAO,
                     usuario=usuario
@@ -364,6 +364,26 @@ class GuiaDaRequisicaoModelViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['GET'], url_path='lista-numeros')
     def lista_numeros(self, request):
         response = {'results': GuiaDaRemessaSimplesSerializer(self.get_queryset(), many=True).data}
+        return Response(response)
+
+    @action(detail=False, methods=['GET'], url_path='inconsistencias', permission_classes=(UsuarioDilogCodae,))
+    def lista_inconsistencias(self, request):
+        response = {'results': GuiaDaRemessaSerializer(self.get_queryset().filter(escola=None), many=True).data}
+        return Response(response)
+
+    @action(detail=False, methods=['PATCH'], url_path='vincula-guias')
+    def vincula_guias(self, request):
+        guias_desvinculadas = self.get_queryset().filter(escola=None)
+        contagem = 0
+
+        for guia in guias_desvinculadas:
+            escola = Escola.objects.filter(codigo_codae=guia.codigo_unidade).first()
+            if escola is not None:
+                guia.escola = escola
+                guia.save()
+                contagem += 1
+
+        response = {'message': str(contagem) + ' guia(s) vinculada(s)'}
         return Response(response)
 
     @action(detail=False, methods=['GET'], url_path='unidades-escolares')
