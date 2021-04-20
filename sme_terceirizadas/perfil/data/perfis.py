@@ -20,6 +20,11 @@ data_perfis = [
         'super_usuario': True,
     },
     {
+        'nome': 'ADMINISTRADOR_ESCOLA_ABASTECIMENTO',
+        'ativo': True,
+        'super_usuario': True,
+    },
+    {
         'nome': 'COGESTOR',
         'ativo': True,
         'super_usuario': True,
