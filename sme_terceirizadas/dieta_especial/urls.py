@@ -28,6 +28,8 @@ router.register(ENDPOINT_TIPO_CONTAGEM, viewsets.TipoContagemViewSet,
                 basename='Tipos de contagem de refeições'),
 router.register('motivo-alteracao-ue', viewsets.MotivoAlteracaoUEViewSet,
                 basename='Motivos alteracao UE de dieta especial')
+router.register('protocolo-padrao-dieta-especial', viewsets.ProtocoloPadraoDietaEspecialViewSet,
+                basename='Protocolo padrao de dieta especial')
 
 
 urlpatterns = [

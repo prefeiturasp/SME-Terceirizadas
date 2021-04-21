@@ -309,7 +309,6 @@ class Alimento(Nomeavel, TemChaveExterna, Ativavel):
 
 
 class AlimentoProprio(Alimento):
-
     objects = AlimentoProprioManager()
 
     class Meta:
@@ -427,3 +426,78 @@ class LogDietasAtivasCanceladasAutomaticamente(CriadoEm):
         if escola_existe_no_sigpae:
             return True
         return False
+
+
+class ProtocoloPadraoDietaEspecial(TemChaveExterna, CriadoEm, CriadoPor, TemIdentificadorExternoAmigavel):
+    # Status Choice
+    STATUS_LIBERADO = 'LIBERADO'
+    STATUS_NAO_LIBERADO = 'NAO_LIBERADO'
+
+    STATUS_NOMES = {
+        STATUS_LIBERADO: 'Liberado',
+        STATUS_NAO_LIBERADO: 'Não Liberado',
+    }
+
+    STATUS_CHOICES = (
+        (STATUS_LIBERADO, STATUS_NOMES[STATUS_LIBERADO]),
+        (STATUS_NAO_LIBERADO, STATUS_NOMES[STATUS_NAO_LIBERADO]),
+    )
+
+    nome_protocolo = models.TextField('Nome do Protocolo')
+
+    orientacoes_gerais = models.TextField(
+        'Orientações Gerais',
+        blank=True
+    )
+
+    status = models.CharField(
+        'Status da guia',
+        max_length=25,
+        choices=STATUS_CHOICES,
+        default=STATUS_NAO_LIBERADO
+    )
+
+    class Meta:
+        ordering = ('-criado_em',)
+        verbose_name = 'Protocolo padrão de dieta especial'
+        verbose_name_plural = 'Protocolos padrões de dieta especial'
+
+    def __str__(self):
+        return str(self.nome_protocolo)
+
+
+class SubstituicaoAlimentoProtocoloPadrao(models.Model):
+    TIPO_CHOICES = [
+        ('I', 'Isento'),
+        ('S', 'Substituir')
+    ]
+    protocolo_padrao = models.ForeignKey(
+        ProtocoloPadraoDietaEspecial,
+        on_delete=models.CASCADE,
+        related_name='substituicoes'
+    )
+    alimento = models.ForeignKey(
+        Alimento,
+        on_delete=models.PROTECT,
+        blank=True,
+        null=True
+    )
+    tipo = models.CharField(max_length=1, choices=TIPO_CHOICES, blank=True)
+    substitutos = models.ManyToManyField(
+        'produto.Produto',
+        related_name='substitutos_protocolo_padrao',
+        blank=True,
+        help_text='produtos substitutos'
+    )
+    alimentos_substitutos = models.ManyToManyField(
+        Alimento,
+        related_name='alimentos_substitutos_protocolo_padrao',
+        blank=True
+    )
+
+    class Meta:
+        verbose_name = 'Substituição de alimento para protocolo padrão de dieta'
+        verbose_name_plural = 'Substituições de alimentos para protocolos padrões de dietas'
+
+    def __str__(self):
+        return f'substituição protocolo padrão: {self.protocolo_padrao}, tipo: {self.tipo}.'

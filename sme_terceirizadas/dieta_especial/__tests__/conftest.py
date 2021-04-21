@@ -497,3 +497,12 @@ def log_dietas_ativas_canceladas_automaticamente(solicitacao_dieta_especial_auto
         codigo_eol_escola_destino='018210',
         nome_escola_destino='EMEFM DARCY RIBEIRO',
     )
+
+
+@pytest.fixture
+def protocolo_padrao_dieta_especial():
+    return mommy.make(
+        'ProtocoloPadraoDietaEspecial',
+        nome_protocolo='ALERGIA A AVEIA',
+        status='LIBERADO',
+    )
