@@ -2,7 +2,7 @@ import pytest
 import xworkflows
 
 from ...dados_comuns.models import LogSolicitacoesUsuario
-from ..models import LogDietasAtivasCanceladasAutomaticamente
+from ..models import LogDietasAtivasCanceladasAutomaticamente, ProtocoloPadraoDietaEspecial
 
 pytestmark = pytest.mark.django_db
 
@@ -89,3 +89,18 @@ def test_instance_model(log_dietas_ativas_canceladas_automaticamente):
     assert model.nome_escola_origem
     assert model.codigo_eol_escola_destino
     assert model.nome_escola_destino
+
+
+def test_instance_model_protocolo_padrao(protocolo_padrao_dieta_especial):
+    assert isinstance(protocolo_padrao_dieta_especial, ProtocoloPadraoDietaEspecial)
+    assert protocolo_padrao_dieta_especial.nome_protocolo
+    assert protocolo_padrao_dieta_especial.status
+
+
+def test_srt_model(protocolo_padrao_dieta_especial):
+    assert protocolo_padrao_dieta_especial.__str__() == 'ALERGIA A AVEIA'
+
+
+def test_meta_modelo(protocolo_padrao_dieta_especial):
+    assert protocolo_padrao_dieta_especial._meta.verbose_name == 'Protocolo padrão de dieta especial'
+    assert protocolo_padrao_dieta_especial._meta.verbose_name_plural == 'Protocolos padrões de dieta especial'

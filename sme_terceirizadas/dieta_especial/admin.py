@@ -21,8 +21,10 @@ from .models import (
     MotivoAlteracaoUE,
     MotivoNegacao,
     PlanilhaDietasAtivas,
+    ProtocoloPadraoDietaEspecial,
     SolicitacaoDietaEspecial,
     SubstituicaoAlimento,
+    SubstituicaoAlimentoProtocoloPadrao,
     TipoContagem
 )
 from .tasks import get_escolas_task, processa_dietas_especiais_task
@@ -208,9 +210,22 @@ class LogDietasAtivasCanceladasAutomaticamenteAdmin(admin.ModelAdmin):
         return False
 
 
+class SubstituicaoAlimentoProtocoloPadraoInline(admin.TabularInline):
+    model = SubstituicaoAlimentoProtocoloPadrao
+    extra = 0
+
+
+@admin.register(ProtocoloPadraoDietaEspecial)
+class ProtocoloPadraoDietaEspecialAdmin(admin.ModelAdmin):
+    list_display = ('nome_protocolo', 'status')
+    search_fields = ('nome_protocolo',)
+    inlines = (SubstituicaoAlimentoProtocoloPadraoInline,)
+
+
 admin.site.register(Anexo)
 admin.site.register(ClassificacaoDieta)
 admin.site.register(MotivoAlteracaoUE)
 admin.site.register(MotivoNegacao)
 admin.site.register(SubstituicaoAlimento)
+admin.site.register(SubstituicaoAlimentoProtocoloPadrao)
 admin.site.register(TipoContagem)
