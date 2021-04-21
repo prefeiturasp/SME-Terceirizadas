@@ -427,5 +427,6 @@ class ProtocoloPadraoDietaEspecialSerializer(serializers.ModelSerializer):
             'uuid',
             'nome_protocolo',
             'status',
+            'orientacoes_gerais',
             'substituicoes'
         )

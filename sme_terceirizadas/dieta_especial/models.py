@@ -445,6 +445,11 @@ class ProtocoloPadraoDietaEspecial(TemChaveExterna, CriadoEm, CriadoPor, TemIden
 
     nome_protocolo = models.TextField('Nome do Protocolo')
 
+    orientacoes_gerais = models.TextField(
+        'Orientações Gerais',
+        blank=True
+    )
+
     status = models.CharField(
         'Status da guia',
         max_length=25,

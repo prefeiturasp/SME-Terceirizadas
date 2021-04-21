@@ -336,4 +336,4 @@ class ProtocoloPadraoDietaEspecialSerializerCreate(serializers.ModelSerializer):
 
     class Meta:
         model = ProtocoloPadraoDietaEspecial
-        fields = ('uuid', 'nome_protocolo', 'status', 'criado_em', 'substituicoes')
+        fields = ('uuid', 'nome_protocolo', 'status', 'orientacoes_gerais', 'criado_em', 'substituicoes')
