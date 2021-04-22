@@ -64,18 +64,18 @@ pipeline {
            branch 'homolog'
          }
         steps {
-          sh 'sonar-scanner \
+          sh 'echo "[ INFO ] Iniciando analise Sonar..." && sonar-scanner \
             -Dsonar.projectKey=SME-Terceirizadas \
             -Dsonar.projectBaseDir=sme_terceirizadas \
             -Dsonar.exclusions=dados_comuns \
             -Dsonar.host.url=http://sonar.sme.prefeitura.sp.gov.br \
-            -Dsonar.login=c1b62f2b14aed3a21724323aa8028e731e29f146 \
-            -Dsonar.language=py \
-            -Dsonar.sourceEncoding=UTF-8 \
-            -Dsonar.python.pylint=pylint \
-            -Dsonar.python.pylint_config=.pylintrc \
-            -Dsonar.python.pylint.reportPath=pylint-report.txt \
-            -Dsonar.python.coverage.reportPaths=./coverage.xml'
+            -Dsonar.login=c1b62f2b14aed3a21724323aa8028e731e29f146'
+//            -Dsonar.language=py \
+//            -Dsonar.sourceEncoding=UTF-8 \
+//            -Dsonar.python.pylint=pylint \
+//            -Dsonar.python.pylint_config=.pylintrc \
+//            -Dsonar.python.pylint.reportPath=pylint-report.txt \
+//            -Dsonar.python.coverage.reportPaths=./coverage.xml \ 
 //            -Dsonar.python.bandit.reportPaths=../bandit.json'
         }
        }
