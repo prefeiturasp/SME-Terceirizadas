@@ -75,8 +75,8 @@ pipeline {
             -Dsonar.python.pylint=pylint \
             -Dsonar.python.pylint_config=.pylintrc \
             -Dsonar.python.pylint.reportPath=pylint-report.txt \
-            -Dsonar.python.coverage.reportPaths=./coverage.xml \
-            -Dsonar.python.bandit.reportPaths=../bandit.json'
+            -Dsonar.python.coverage.reportPaths=./coverage.xml'
+//            -Dsonar.python.bandit.reportPaths=../bandit.json'
         }
        }
 
