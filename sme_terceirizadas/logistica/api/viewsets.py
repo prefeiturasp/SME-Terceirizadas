@@ -367,12 +367,12 @@ class GuiaDaRequisicaoModelViewSet(viewsets.ModelViewSet):
         return Response(response)
 
     @action(detail=False, methods=['GET'], url_path='inconsistencias', permission_classes=(UsuarioDilogCodae,))
-    def lista_inconsistencias(self, request):
+    def lista_guias_inconsistencias(self, request):
         response = {'results': GuiaDaRemessaSerializer(self.get_queryset().filter(escola=None), many=True).data}
         return Response(response)
 
     @action(detail=False, methods=['PATCH'], url_path='vincula-guias')
-    def vincula_guias(self, request):
+    def vincula_guias_com_escolas(self, request):
         guias_desvinculadas = self.get_queryset().filter(escola=None)
         contagem = 0
 
