@@ -247,7 +247,7 @@ class GuiaRemessaWorkFlow(xwf_models.Workflow):
         (DISTRIBUIDOR_REGISTRA_INSUCESSO, 'Insucesso de entrega'),
         (RECEBIDA, 'Recebida'),
         (NAO_RECEBIDA, 'Não recebida'),
-        (RECEBIMENTO_PARCIAL, 'Recebimento'),
+        (RECEBIMENTO_PARCIAL, 'Recebimento parcial'),
         (REPOSICAO_TOTAL, 'Reposição total'),
         (REPOSICAO_PARCIAL, 'Reposição parcial'),
     )
