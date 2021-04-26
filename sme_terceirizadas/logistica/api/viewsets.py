@@ -40,7 +40,8 @@ from ...escola.models import Escola
 from ...relatorios.relatorios import get_pdf_guia_distribuidor
 from ..utils import RequisicaoPagination, SolicitacaoAlteracaoPagination
 from .filters import GuiaFilter, SolicitacaoAlteracaoFilter, SolicitacaoFilter
-from .helpers import retorna_dados_normalizados_excel_visao_dilog, retorna_dados_normalizados_excel_visao_distribuidor
+from .helpers import retorna_dados_normalizados_excel_visao_dilog, retorna_dados_normalizados_excel_visao_distribuidor, \
+    inicia_fluxo_guias
 
 STR_XML_BODY = '{http://schemas.xmlsoap.org/soap/envelope/}Body'
 STR_ARQUIVO_SOLICITACAO = 'ArqSolicitacaoMOD'
@@ -234,6 +235,7 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
 
         try:
             solicitacao.inicia_fluxo(user=usuario, )
+            inicia_fluxo_guias(solicitacao, usuario)
             serializer = SolicitacaoRemessaSerializer(solicitacao)
             return Response(serializer.data)
         except InvalidTransitionError as e:
