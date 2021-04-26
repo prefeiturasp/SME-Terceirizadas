@@ -59,18 +59,18 @@ pipeline {
        }
       }
 
-       stage('Analise codigo') {
-	     when {
+    stage('Analise codigo') {
+	    when {
            branch 'homolog'
-         }
-        steps {
-          sh 'echo "[ INFO ] Iniciando analise Sonar..." && sonar-scanner \
-		  -Dsonar.projectKey=SME-Terceirizadas-2 \
-		  -Dsonar.sources=. \
-		  -Dsonar.host.url=http://sonar.sme.prefeitura.sp.gov.br \
-		  -Dsonar.login=4956ec6fda24220af6bd801ce470de700d9431d2'
         }
-       }
+        steps {
+            sh 'echo "[ INFO ] Iniciando analise Sonar..." && sonar-scanner \
+              -Dsonar.projectKey=SME-Terceirizadas \
+              -Dsonar.sources=. \
+              -Dsonar.host.url=http://sonar.sme.prefeitura.sp.gov.br \
+              -Dsonar.login=0d279825541065cf66a60cbdfe9b8a25ec357226'
+        }
+    }
 
        stage('Build DEV') {
          when {
