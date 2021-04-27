@@ -1,6 +1,8 @@
 from django.db import models
 
 from ...dados_comuns.behaviors import ModeloBase
+from ...dados_comuns.fluxo_status import FluxoGuiaRemessa
+from ...dados_comuns.models import LogSolicitacoesUsuario
 from ...escola.models import Escola
 from .solicitacao import SolicitacaoRemessa
 
@@ -29,20 +31,7 @@ class GuiaManager(models.Manager):
         )
 
 
-class Guia(ModeloBase):
-    # Status Choice
-    STATUS_INTEGRADA = 'INTEGRADA'
-    STATUS_CANCELADA = 'CANCELADA'
-
-    STATUS_NOMES = {
-        STATUS_INTEGRADA: 'Integrada',
-        STATUS_CANCELADA: 'Cancelada',
-    }
-
-    STATUS_CHOICES = (
-        (STATUS_INTEGRADA, STATUS_NOMES[STATUS_INTEGRADA]),
-        (STATUS_CANCELADA, STATUS_NOMES[STATUS_CANCELADA]),
-    )
+class Guia(ModeloBase, FluxoGuiaRemessa):
 
     numero_guia = models.CharField('Número da guia', blank=True, max_length=100, unique=True)
     solicitacao = models.ForeignKey(
@@ -59,17 +48,25 @@ class Guia(ModeloBase):
     estado_unidade = models.CharField('Estado da unidade', blank=True, max_length=2)
     contato_unidade = models.CharField('Contato na unidade', blank=True, max_length=150)
     telefone_unidade = models.CharField('Telefone da unidade', blank=True, default='', max_length=20)
-    status = models.CharField(
-        'Status da guia',
-        max_length=25,
-        choices=STATUS_CHOICES,
-        default=STATUS_INTEGRADA
-    )
 
     objects = GuiaManager()
 
     def as_dict(self):
         return dict((f.name, getattr(self, f.name)) for f in self._meta.fields)
+
+    def salvar_log_transicao(self, status_evento, usuario, **kwargs):
+        justificativa = kwargs.get('justificativa', '')
+        resposta_sim_nao = kwargs.get('resposta_sim_nao', False)
+        log_transicao = LogSolicitacoesUsuario.objects.create(
+            descricao=str(self),
+            status_evento=status_evento,
+            solicitacao_tipo=LogSolicitacoesUsuario.SOLICITACAO_REMESSA_PAPA,
+            usuario=usuario,
+            uuid_original=self.uuid,
+            justificativa=justificativa,
+            resposta_sim_nao=resposta_sim_nao
+        )
+        return log_transicao
 
     def __str__(self):
         return f'Guia: {self.numero_guia} - {self.status} da solicitação: {self.solicitacao.numero_solicitacao}'

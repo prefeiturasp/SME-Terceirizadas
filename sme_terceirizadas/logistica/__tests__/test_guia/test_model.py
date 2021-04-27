@@ -13,7 +13,7 @@ def test_instance_model(solicitacao, guia):
 
 
 def test_srt_model(guia):
-    assert guia.__str__() == 'Guia: 987654 - INTEGRADA da solicitação: 559890'
+    assert guia.__str__() == 'Guia: 987654 - AGUARDANDO_ENVIO da solicitação: 559890'
 
 
 def test_meta_modelo(guia):
