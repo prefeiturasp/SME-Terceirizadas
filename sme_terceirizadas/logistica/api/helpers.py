@@ -2,13 +2,13 @@ from unicodedata import normalize
 
 from django.db.models import Case, Value, When
 from django.db.models.fields import CharField
+from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST
+from xworkflows.base import InvalidTransitionError
 
 from sme_terceirizadas.dados_comuns.fluxo_status import SolicitacaoRemessaWorkFlow
 from sme_terceirizadas.escola.models import Escola
 from sme_terceirizadas.logistica.models import Guia
-from xworkflows.base import InvalidTransitionError
-from rest_framework.response import Response
 
 
 def remove_acentos_de_strings(nome: str) -> str:

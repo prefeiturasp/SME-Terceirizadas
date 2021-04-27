@@ -40,8 +40,11 @@ from ...escola.models import Escola
 from ...relatorios.relatorios import get_pdf_guia_distribuidor
 from ..utils import RequisicaoPagination, SolicitacaoAlteracaoPagination
 from .filters import GuiaFilter, SolicitacaoAlteracaoFilter, SolicitacaoFilter
-from .helpers import retorna_dados_normalizados_excel_visao_dilog, retorna_dados_normalizados_excel_visao_distribuidor, \
-    inicia_fluxo_guias
+from .helpers import (
+    inicia_fluxo_guias,
+    retorna_dados_normalizados_excel_visao_dilog,
+    retorna_dados_normalizados_excel_visao_distribuidor
+)
 
 STR_XML_BODY = '{http://schemas.xmlsoap.org/soap/envelope/}Body'
 STR_ARQUIVO_SOLICITACAO = 'ArqSolicitacaoMOD'

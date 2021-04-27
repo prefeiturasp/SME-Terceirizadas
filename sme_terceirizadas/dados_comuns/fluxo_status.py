@@ -597,7 +597,7 @@ class FluxoGuiaRemessa(xwf_models.WorkflowEnabled, models.Model):
     @xworkflows.after_transition('inicia_fluxo')
     def _inicia_fluxo_hook(self, *args, **kwargs):
         user = kwargs['user']
-        log_transicao = self.salvar_log_transicao(
+        self.salvar_log_transicao(
             status_evento=LogSolicitacoesUsuario.ABASTECIMENTO_GUIA_DE_REMESSA,
             usuario=user,
             justificativa=kwargs.get('justificativa', ''))
