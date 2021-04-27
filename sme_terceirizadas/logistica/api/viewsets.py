@@ -10,7 +10,7 @@ from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_400_BAD_REQUEST, HTTP_406_NOT_ACCEPTABLE
 from xworkflows.base import InvalidTransitionError
 
-from sme_terceirizadas.dados_comuns.fluxo_status import SolicitacaoRemessaWorkFlow
+from sme_terceirizadas.dados_comuns.fluxo_status import GuiaRemessaWorkFlow, SolicitacaoRemessaWorkFlow
 from sme_terceirizadas.dados_comuns.models import LogSolicitacoesUsuario
 from sme_terceirizadas.dados_comuns.parser_xml import ListXMLParser
 from sme_terceirizadas.dados_comuns.permissions import UsuarioDilogCodae, UsuarioDistribuidor
@@ -91,10 +91,10 @@ class SolicitacaoCancelamentoModelViewSet(viewsets.ModelViewSet):
             guias_payload = [x['StrNumGui'] for x in guias.values()]
 
         solicitacao = SolicitacaoRemessa.objects.get(numero_solicitacao=num_solicitacao)
-        solicitacao.guias.filter(numero_guia__in=guias_payload).update(status=SolicitacaoRemessaWorkFlow.PAPA_CANCELA)
+        solicitacao.guias.filter(numero_guia__in=guias_payload).update(status=GuiaRemessaWorkFlow.CANCELADA)
 
         guias_existentes = list(solicitacao.guias.values_list('numero_guia', flat=True))
-        existe_guia_nao_cancelada = solicitacao.guias.exclude(status=GuiasDasRequisicoes.STATUS_CANCELADA).exists()
+        existe_guia_nao_cancelada = solicitacao.guias.exclude(status=GuiaRemessaWorkFlow.CANCELADA).exists()
 
         if set(guias_existentes) == set(guias_payload) or not existe_guia_nao_cancelada:
             solicitacao.cancela_solicitacao(user=usuario)
@@ -367,12 +367,12 @@ class GuiaDaRequisicaoModelViewSet(viewsets.ModelViewSet):
         return Response(response)
 
     @action(detail=False, methods=['GET'], url_path='inconsistencias', permission_classes=(UsuarioDilogCodae,))
-    def lista_inconsistencias(self, request):
+    def lista_guias_inconsistencias(self, request):
         response = {'results': GuiaDaRemessaSerializer(self.get_queryset().filter(escola=None), many=True).data}
         return Response(response)
 
     @action(detail=False, methods=['PATCH'], url_path='vincula-guias')
-    def vincula_guias(self, request):
+    def vincula_guias_com_escolas(self, request):
         guias_desvinculadas = self.get_queryset().filter(escola=None)
         contagem = 0
 
