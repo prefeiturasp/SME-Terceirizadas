@@ -69,7 +69,7 @@ class Guia(ModeloBase, FluxoGuiaRemessa):
         return log_transicao
 
     def __str__(self):
-        return f'Guia: {self.numero_guia} da solicitação: {self.solicitacao.numero_solicitacao}'
+        return f'Guia: {self.numero_guia} - {self.status} da solicitação: {self.solicitacao.numero_solicitacao}'
 
     class Meta:
         verbose_name = 'Guia de Remessa'
