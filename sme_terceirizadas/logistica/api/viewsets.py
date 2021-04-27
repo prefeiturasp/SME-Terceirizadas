@@ -238,7 +238,7 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
 
         try:
             solicitacao.inicia_fluxo(user=usuario, )
-            inicia_fluxo_guias(solicitacao, usuario)
+            inicia_fluxo_guias(solicitacao, user=usuario)
             serializer = SolicitacaoRemessaSerializer(solicitacao)
             return Response(serializer.data)
         except InvalidTransitionError as e:

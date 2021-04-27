@@ -121,6 +121,6 @@ def inicia_fluxo_guias(requisicao, user):
     guias = Guia.objects.filter(solicitacao=requisicao)
     try:
         for guia in guias:
-            guia.inicia_fluxo(user)
+            guia.inicia_fluxo(user=user)
     except InvalidTransitionError as e:
         return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
