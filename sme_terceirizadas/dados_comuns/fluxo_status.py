@@ -255,7 +255,6 @@ class GuiaRemessaWorkFlow(xwf_models.Workflow):
     )
 
     transitions = (
-        ('inicia_fluxo', AGUARDANDO_ENVIO, AGUARDANDO_CONFIRMACAO),
         ('distribuidor_registra_insucesso', PENDENTE_DE_CONFERENCIA, DISTRIBUIDOR_REGISTRA_INSUCESSO),
         ('escola_recebe', PENDENTE_DE_CONFERENCIA, RECEBIDA),
         ('escola_nao_recebe', PENDENTE_DE_CONFERENCIA, NAO_RECEBIDA),
@@ -439,6 +438,7 @@ class FluxoSolicitacaoRemessa(xwf_models.WorkflowEnabled, models.Model):
                                                   usuario=user,
                                                   justificativa=kwargs.get('justificativa', ''))
 
+        self.guias.update(status=GuiaRemessaWorkFlow.AGUARDANDO_CONFIRMACAO)
         self._envia_email_dilog_envia_solicitacao_para_distibuidor(log_transicao=log_transicao)
 
     @xworkflows.after_transition('empresa_atende')
@@ -447,6 +447,8 @@ class FluxoSolicitacaoRemessa(xwf_models.WorkflowEnabled, models.Model):
         self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.DISTRIBUIDOR_CONFIRMA_SOLICITACAO,
                                   usuario=user,
                                   justificativa=kwargs.get('justificativa', ''))
+
+        self.guias.update(status=GuiaRemessaWorkFlow.PENDENTE_DE_CONFERENCIA)
 
     @xworkflows.after_transition('cancela_solicitacao')
     def _cancela_solicitacao_hook(self, *args, **kwargs):
@@ -596,8 +598,32 @@ class FluxoGuiaRemessa(xwf_models.WorkflowEnabled, models.Model):
     def _preenche_template_e_envia_email(self, assunto, titulo, user, partes_interessadas):
         raise NotImplementedError('Deve criar um método de envio de email as partes interessadas')  # noqa
 
-    @xworkflows.after_transition('inicia_fluxo')
-    def _inicia_fluxo_hook(self, *args, **kwargs):
+    @xworkflows.after_transition('distribuidor_registra_insucesso')
+    def _distribuidor_registra_insucesso_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        self.salvar_log_transicao(
+            status_evento=LogSolicitacoesUsuario.ABASTECIMENTO_GUIA_DE_REMESSA,
+            usuario=user,
+            justificativa=kwargs.get('justificativa', ''))
+
+    @xworkflows.after_transition('escola_recebe')
+    def _escola_recebe_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        self.salvar_log_transicao(
+            status_evento=LogSolicitacoesUsuario.ABASTECIMENTO_GUIA_DE_REMESSA,
+            usuario=user,
+            justificativa=kwargs.get('justificativa', ''))
+
+    @xworkflows.after_transition('escola_nao_recebe')
+    def _escola_nao_recebe_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        self.salvar_log_transicao(
+            status_evento=LogSolicitacoesUsuario.ABASTECIMENTO_GUIA_DE_REMESSA,
+            usuario=user,
+            justificativa=kwargs.get('justificativa', ''))
+
+    @xworkflows.after_transition('escola_recebe_parcial')
+    def _escola_recebe_parcial_hook(self, *args, **kwargs):
         user = kwargs['user']
         self.salvar_log_transicao(
             status_evento=LogSolicitacoesUsuario.ABASTECIMENTO_GUIA_DE_REMESSA,
