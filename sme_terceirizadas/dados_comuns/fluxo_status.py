@@ -239,6 +239,7 @@ class GuiaRemessaWorkFlow(xwf_models.Workflow):
     RECEBIMENTO_PARCIAL = 'RECEBIMENTO_PARCIAL'
     REPOSICAO_TOTAL = 'REPOSICAO_TOTAL'
     REPOSICAO_PARCIAL = 'REPOSICAO_PARCIAL'
+    CANCELADA = 'CANCELADA'
 
     states = (
         (AGUARDANDO_ENVIO, 'Aguardando envio'),
@@ -250,6 +251,7 @@ class GuiaRemessaWorkFlow(xwf_models.Workflow):
         (RECEBIMENTO_PARCIAL, 'Recebimento parcial'),
         (REPOSICAO_TOTAL, 'Reposição total'),
         (REPOSICAO_PARCIAL, 'Reposição parcial'),
+        (CANCELADA, 'Cancelada'),
     )
 
     transitions = (
