@@ -38,7 +38,7 @@ from sme_terceirizadas.logistica.models import SolicitacaoDeAlteracaoRequisicao,
 
 from ...escola.models import Escola
 from ...relatorios.relatorios import get_pdf_guia_distribuidor
-from ..utils import RequisicaoPagination, SolicitacaoAlteracaoPagination
+from ..utils import GuiaPagination, RequisicaoPagination, SolicitacaoAlteracaoPagination
 from .filters import GuiaFilter, SolicitacaoAlteracaoFilter, SolicitacaoFilter
 from .helpers import retorna_dados_normalizados_excel_visao_dilog, retorna_dados_normalizados_excel_visao_distribuidor
 
@@ -347,7 +347,8 @@ class GuiaDaRequisicaoModelViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
     queryset = GuiasDasRequisicoes.objects.all()
     serializer_class = GuiaDaRemessaSerializer
-    permission_classes = [UsuarioDilogCodae]
+    permission_classes = [UsuarioDilogCodae | UsuarioDistribuidor]
+    pagination_class = GuiaPagination
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = GuiaFilter
 
@@ -397,6 +398,31 @@ class GuiaDaRequisicaoModelViewSet(viewsets.ModelViewSet):
     def gerar_pdf_distribuidor(self, request, uuid=None):
         guia = self.get_object()
         return get_pdf_guia_distribuidor(data=[guia])
+
+    @action(detail=False,
+            methods=['GET'],
+            url_path='lista-guias-para-insucesso',
+            permission_classes=[UsuarioDistribuidor])
+    def lista_guias_para_insucesso(self, request):
+        queryset = self.filter_queryset(self.get_queryset())
+        queryset = queryset.annotate(
+            numero_requisicao=F('solicitacao__numero_solicitacao')
+        ).exclude(status__in=(
+            GuiaRemessaWorkFlow.CANCELADA,
+            GuiaRemessaWorkFlow.AGUARDANDO_ENVIO,
+            GuiaRemessaWorkFlow.AGUARDANDO_CONFIRMACAO
+        )).order_by('data_entrega').distinct()
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            response = self.get_paginated_response(
+                serializer.data
+            )
+            return response
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
 
 class AlimentoDaGuiaModelViewSet(viewsets.ModelViewSet):
