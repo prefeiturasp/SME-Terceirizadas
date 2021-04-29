@@ -347,7 +347,8 @@ class GuiaDaRequisicaoModelViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
     queryset = GuiasDasRequisicoes.objects.all()
     serializer_class = GuiaDaRemessaSerializer
-    permission_classes = [UsuarioDilogCodae]
+    # TODO: arrumar a permission
+    permission_classes = [IsAuthenticated]
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = GuiaFilter
 
@@ -369,6 +370,12 @@ class GuiaDaRequisicaoModelViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['GET'], url_path='inconsistencias', permission_classes=(UsuarioDilogCodae,))
     def lista_guias_inconsistencias(self, request):
         response = {'results': GuiaDaRemessaSerializer(self.get_queryset().filter(escola=None), many=True).data}
+        return Response(response)
+
+    @action(detail=False, methods=['GET'], url_path='guias-escola')
+    def lista_guias_escola(self, request):
+        esc_query = request.user.vinculo_atual.instituicao
+        response = {'results': GuiaDaRemessaSerializer(self.get_queryset().filter(escola=esc_query), many=True).data}
         return Response(response)
 
     @action(detail=False, methods=['PATCH'], url_path='vincula-guias')
