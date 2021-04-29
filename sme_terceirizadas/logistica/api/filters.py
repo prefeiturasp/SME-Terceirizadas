@@ -52,6 +52,22 @@ class GuiaFilter(filters.FilterSet):
         field_name='codigo_unidade',
         lookup_expr='exact',
     )
+    numero_guia = filters.CharFilter(
+        field_name='numero_guia',
+        lookup_expr='exact',
+    )
+    numero_requisicao = filters.CharFilter(
+        field_name='solicitacao__numero_solicitacao',
+        lookup_expr='exact',
+    )
+    data_inicial = filters.DateFilter(
+        field_name='data_entrega',
+        lookup_expr='gte',
+    )
+    data_final = filters.DateFilter(
+        field_name='data_entrega',
+        lookup_expr='lte',
+    )
 
 
 class SolicitacaoAlteracaoFilter(filters.FilterSet):
