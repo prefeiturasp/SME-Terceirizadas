@@ -52,6 +52,10 @@ class GuiaFilter(filters.FilterSet):
         field_name='codigo_unidade',
         lookup_expr='exact',
     )
+    nome_unidade = filters.CharFilter(
+        field_name='nome_unidade',
+        lookup_expr='icontains',
+    )
     numero_guia = filters.CharFilter(
         field_name='numero_guia',
         lookup_expr='exact',
