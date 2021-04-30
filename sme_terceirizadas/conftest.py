@@ -118,3 +118,23 @@ def client_autenticado_dilog(client, django_user_model):
                ativo=True)
     client.login(email=email, password=password)
     return client
+
+
+@pytest.fixture
+def client_autenticado_distribuidor(client, django_user_model):
+    email = 'test@test.com'
+    password = 'bar'
+    user = django_user_model.objects.create_user(password=password, email=email, registro_funcional='8888888')
+    perfil_admin_distribuidor = mommy.make('Perfil',
+                                           nome=constants.ADMINISTRADOR_DISTRIBUIDORA,
+                                           ativo=True)
+    distribuidor = mommy.make('Terceirizada')
+    hoje = datetime.date.today()
+    mommy.make('Vinculo',
+               usuario=user,
+               instituicao=distribuidor,
+               perfil=perfil_admin_distribuidor,
+               data_inicial=hoje,
+               ativo=True)
+    client.login(email=email, password=password)
+    return client
