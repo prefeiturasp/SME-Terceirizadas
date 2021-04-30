@@ -411,6 +411,14 @@ class SolicitacoesCODAE(MoldeConsolidado):
             status_evento__in=cls.CANCELADOS_EVENTO,
             status_atual__in=cls.CANCELADOS_STATUS,
         ).exclude(tipo_doc=cls.TP_SOL_DIETA_ESPECIAL).distinct().order_by('-data_log')
+    
+    @classmethod
+    def get_questionamentos(cls, **kwargs):
+        s = cls.objects.filter(
+            status_atual=PedidoAPartirDaEscolaWorkflow.CODAE_QUESTIONADO,
+            status_evento=LogSolicitacoesUsuario.CODAE_QUESTIONOU
+        )
+        return sorted(s, key=operator.attrgetter('data_log'), reverse=True)
 
     #
     # Filtros consolidados
