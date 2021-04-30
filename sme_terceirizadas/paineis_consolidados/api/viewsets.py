@@ -252,9 +252,9 @@ class CODAESolicitacoesViewSet(SolicitacoesViewSet):
     def cancelados(self, request):
         query_set = SolicitacoesCODAE.get_cancelados()
         return self._retorno_base(query_set)
-    
-    @action(detail=False, 
-            methods=['GET'], 
+
+    @action(detail=False,
+            methods=['GET'],
             url_path=QUESTIONAMENTOS,
             permission_classes=(UsuarioCODAEGestaoAlimentacao,))
     def questionamentos(self, request):

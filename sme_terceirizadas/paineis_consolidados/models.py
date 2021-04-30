@@ -411,7 +411,7 @@ class SolicitacoesCODAE(MoldeConsolidado):
             status_evento__in=cls.CANCELADOS_EVENTO,
             status_atual__in=cls.CANCELADOS_STATUS,
         ).exclude(tipo_doc=cls.TP_SOL_DIETA_ESPECIAL).distinct().order_by('-data_log')
-    
+
     @classmethod
     def get_questionamentos(cls, **kwargs):
         s = cls.objects.filter(
