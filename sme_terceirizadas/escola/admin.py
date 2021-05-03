@@ -1,4 +1,5 @@
-from django.contrib import admin
+from django.contrib import admin, messages
+from utility.carga_dados.helper import excel_to_list_with_openpyxl
 
 from .models import (
     Aluno,
@@ -11,6 +12,7 @@ from .models import (
     LogRotinaDiariaAlunos,
     Lote,
     PeriodoEscolar,
+    PlanilhaEscolaDeParaCodigoEolCodigoCoade,
     Responsavel,
     Subprefeitura,
     TipoGestao,
@@ -92,6 +94,26 @@ class DiretoriaRegionalAdmin(admin.ModelAdmin):
 class AlunoAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'escola')
     search_fields = ('nome', 'escola__nome', 'codigo_eol', 'escola__codigo_eol')
+
+
+@admin.register(PlanilhaEscolaDeParaCodigoEolCodigoCoade)
+class PlanilhaEscolaDeParaCodigoEolCodigoCoadeAdmin(admin.ModelAdmin):
+    list_display = ('__str__', 'criado_em', 'codigos_codae_vinculados')
+
+    def vincular_codigos_codae_da_planilha(self, request, queryset):
+        arquivo = queryset.first()
+
+        if len(queryset) > 1:
+            self.message_user(request, 'Escolha somente uma planilha.', messages.ERROR)
+            return
+
+        dados_planilha = excel_to_list_with_openpyxl(arquivo.planilha.path)
+
+        for info_escola in dados_planilha:
+            escola = Escola.objects.filter(codigo_eol=info_escola.get('codigo_eol')).first()
+            if escola:
+                escola.codigo_codae = info_escola.get('codigo_unidade')
+                escola.save()
 
 
 admin.site.register(Codae)
