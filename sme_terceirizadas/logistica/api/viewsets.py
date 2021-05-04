@@ -13,7 +13,11 @@ from xworkflows.base import InvalidTransitionError
 from sme_terceirizadas.dados_comuns.fluxo_status import GuiaRemessaWorkFlow, SolicitacaoRemessaWorkFlow
 from sme_terceirizadas.dados_comuns.models import LogSolicitacoesUsuario
 from sme_terceirizadas.dados_comuns.parser_xml import ListXMLParser
-from sme_terceirizadas.dados_comuns.permissions import UsuarioDilogCodae, UsuarioDistribuidor
+from sme_terceirizadas.dados_comuns.permissions import (
+    UsuarioDilogCodae,
+    UsuarioDistribuidor,
+    UsuarioEscolaAbastecimento
+)
 from sme_terceirizadas.logistica.api.serializers.serializer_create import (
     SolicitacaoDeAlteracaoRequisicaoCreateSerializer,
     SolicitacaoRemessaCreateSerializer
@@ -21,6 +25,7 @@ from sme_terceirizadas.logistica.api.serializers.serializer_create import (
 from sme_terceirizadas.logistica.api.serializers.serializers import (
     AlimentoDaGuiaDaRemessaSerializer,
     AlimentoDaGuiaDaRemessaSimplesSerializer,
+    GuiaDaRemessaComDistribuidorSerializer,
     GuiaDaRemessaSerializer,
     GuiaDaRemessaSimplesSerializer,
     InfoUnidadesSimplesDaGuiaSerializer,
@@ -347,7 +352,7 @@ class GuiaDaRequisicaoModelViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
     queryset = GuiasDasRequisicoes.objects.all()
     serializer_class = GuiaDaRemessaSerializer
-    permission_classes = [UsuarioDilogCodae | UsuarioDistribuidor]
+    permission_classes = [UsuarioDilogCodae | UsuarioDistribuidor | UsuarioEscolaAbastecimento]
     pagination_class = GuiaPagination
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = GuiaFilter
@@ -359,7 +364,7 @@ class GuiaDaRequisicaoModelViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         if self.action in ['nomes_unidades']:
-            self.permission_classes = [UsuarioDilogCodae | UsuarioDistribuidor]
+            self.permission_classes = [UsuarioDilogCodae | UsuarioDistribuidor | UsuarioEscolaAbastecimento]
         return super(GuiaDaRequisicaoModelViewSet, self).get_permissions()
 
     @action(detail=False, methods=['GET'], url_path='lista-numeros')
@@ -375,8 +380,23 @@ class GuiaDaRequisicaoModelViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['GET'], url_path='guias-escola')
     def lista_guias_escola(self, request):
         esc_query = request.user.vinculo_atual.instituicao
-        response = {'results': GuiaDaRemessaSerializer(self.get_queryset().filter(escola=esc_query), many=True).data}
-        return Response(response)
+        queryset = self.get_queryset().annotate(
+            nome_distribuidor=F('solicitacao__distribuidor__nome_fantasia')
+        ).filter(escola=esc_query).exclude(status__in=(
+            GuiaRemessaWorkFlow.CANCELADA,
+            GuiaRemessaWorkFlow.AGUARDANDO_ENVIO,
+            GuiaRemessaWorkFlow.AGUARDANDO_CONFIRMACAO
+        )).order_by('data_entrega').distinct()
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = GuiaDaRemessaComDistribuidorSerializer(page, many=True)
+            response = self.get_paginated_response(
+                serializer.data
+            )
+            return response
+
+        serializer = GuiaDaRemessaComDistribuidorSerializer(queryset, many=True)
+        return Response(serializer.data)
 
     @action(detail=False, methods=['PATCH'], url_path='vincula-guias')
     def vincula_guias_com_escolas(self, request):
