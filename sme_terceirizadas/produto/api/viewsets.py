@@ -159,12 +159,6 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
 
     def get_lista_status(self):
         lista_status = [
-            HomologacaoDoProduto.workflow_class.ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
-            HomologacaoDoProduto.workflow_class.CODAE_PEDIU_ANALISE_RECLAMACAO,
-            HomologacaoDoProduto.workflow_class.CODAE_SUSPENDEU,
-            HomologacaoDoProduto.workflow_class.CODAE_HOMOLOGADO,
-            HomologacaoDoProduto.workflow_class.CODAE_NAO_HOMOLOGADO,
-            HomologacaoDoProduto.workflow_class.CODAE_AUTORIZOU_RECLAMACAO,
             HomologacaoDoProduto.workflow_class.TERCEIRIZADA_RESPONDEU_RECLAMACAO
         ]
 
@@ -172,15 +166,41 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
                                               constants.TIPO_USUARIO_GESTAO_PRODUTO]:
             lista_status.append(
                 HomologacaoDoProduto.workflow_class.CODAE_QUESTIONADO)
+
+        return lista_status
+
+    def get_status_todas_terceirizadas(self):
+        lista_status = [
+            HomologacaoDoProduto.workflow_class.ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
+            HomologacaoDoProduto.workflow_class.CODAE_PEDIU_ANALISE_RECLAMACAO,
+            HomologacaoDoProduto.workflow_class.CODAE_AUTORIZOU_RECLAMACAO,
+            HomologacaoDoProduto.workflow_class.CODAE_SUSPENDEU,
+            HomologacaoDoProduto.workflow_class.CODAE_HOMOLOGADO,
+            HomologacaoDoProduto.workflow_class.CODAE_NAO_HOMOLOGADO]
+
+        if self.request.user.tipo_usuario in [constants.TIPO_USUARIO_TERCEIRIZADA,
+                                              constants.TIPO_USUARIO_GESTAO_PRODUTO]:
             lista_status.append(
                 HomologacaoDoProduto.workflow_class.CODAE_PEDIU_ANALISE_SENSORIAL)
+
             lista_status.append(
                 HomologacaoDoProduto.workflow_class.CODAE_PENDENTE_HOMOLOGACAO)
 
         return lista_status
 
+
     def dados_dashboard(self, query_set: list) -> dict:
         sumario = []
+
+        query = self.get_queryset()
+
+        for workflow in self.get_status_todas_terceirizadas():
+            sumario.append({
+                'status': workflow,
+                'dados': self.get_serializer(query.filter(status=workflow),
+                                             context={'request': self.request}, many=True).data
+            })
+
         for workflow_status in self.get_lista_status():
             sumario.append({
                 'status': workflow_status,
@@ -236,7 +256,7 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
                                              filtro_aplicado.upper()]
             else:
                 filtros['status'] = filtro_aplicado.upper()
-        query_set = self.get_queryset_dashboard().filter(**filtros)
+        query_set = self.get_queryset().filter(**filtros)
         serializer = self.get_serializer if filtro_aplicado != constants.RASCUNHO else HomologacaoProdutoSerializer
         response = {'results': serializer(
             query_set, context={'request': request}, many=True).data}
@@ -862,7 +882,6 @@ class ProdutoViewSet(viewsets.ModelViewSet):
             homologacoes__reclamacoes__status=ReclamacaoProdutoWorkflow.AGUARDANDO_RESPOSTA_TERCEIRIZADA))
 
         queryset = self.filter_queryset(self.get_queryset()).filter(
-            homologacoes__rastro_terceirizada=user.vinculo_atual.instituicao,
             **filtro_homologacao).prefetch_related(
                 Prefetch('homologacoes__reclamacoes', queryset=ReclamacaoDeProduto.objects.filter(
                     **filtro_reclamacao))).annotate(

@@ -558,11 +558,13 @@ class ReclamacaoDeProdutoRelatorioSerializer(serializers.ModelSerializer):
 class HomologacaoReclamacaoSerializer(serializers.ModelSerializer):
     reclamacoes = ReclamacaoDeProdutoRelatorioSerializer(many=True)
     status_titulo = serializers.CharField(source='status.state.title')
+    rastro_terceirizada = TerceirizadaSimplesSerializer()
 
     class Meta:
         model = HomologacaoDoProduto
         fields = ('id', 'uuid', 'status', 'id_externo',
-                  'criado_em', 'reclamacoes', 'status_titulo')
+                  'criado_em', 'reclamacoes', 'status_titulo', 
+                  'rastro_terceirizada')
 
 
 class ProdutoReclamacaoSerializer(serializers.ModelSerializer):
