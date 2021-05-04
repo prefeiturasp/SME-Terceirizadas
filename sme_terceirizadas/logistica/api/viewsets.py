@@ -352,7 +352,7 @@ class GuiaDaRequisicaoModelViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
     queryset = GuiasDasRequisicoes.objects.all()
     serializer_class = GuiaDaRemessaSerializer
-    permission_classes = [UsuarioDilogCodae | UsuarioDistribuidor | UsuarioEscolaAbastecimento]
+    permission_classes = [UsuarioDilogCodae | UsuarioDistribuidor]
     pagination_class = GuiaPagination
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = GuiaFilter
@@ -364,7 +364,7 @@ class GuiaDaRequisicaoModelViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         if self.action in ['nomes_unidades']:
-            self.permission_classes = [UsuarioDilogCodae | UsuarioDistribuidor | UsuarioEscolaAbastecimento]
+            self.permission_classes = [UsuarioDilogCodae | UsuarioDistribuidor]
         return super(GuiaDaRequisicaoModelViewSet, self).get_permissions()
 
     @action(detail=False, methods=['GET'], url_path='lista-numeros')
@@ -377,12 +377,12 @@ class GuiaDaRequisicaoModelViewSet(viewsets.ModelViewSet):
         response = {'results': GuiaDaRemessaSerializer(self.get_queryset().filter(escola=None), many=True).data}
         return Response(response)
 
-    @action(detail=False, methods=['GET'], url_path='guias-escola')
+    @action(detail=False, methods=['GET'], url_path='guias-escola', permission_classes=(UsuarioEscolaAbastecimento,))
     def lista_guias_escola(self, request):
-        esc_query = request.user.vinculo_atual.instituicao
+        escola = request.user.vinculo_atual.instituicao
         queryset = self.get_queryset().annotate(
             nome_distribuidor=F('solicitacao__distribuidor__nome_fantasia')
-        ).filter(escola=esc_query).exclude(status__in=(
+        ).filter(escola=escola).exclude(status__in=(
             GuiaRemessaWorkFlow.CANCELADA,
             GuiaRemessaWorkFlow.AGUARDANDO_ENVIO,
             GuiaRemessaWorkFlow.AGUARDANDO_CONFIRMACAO
