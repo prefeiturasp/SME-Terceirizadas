@@ -5,6 +5,7 @@ from ..terceirizada.models import Terceirizada
 from .constants import (
     ADMINISTRADOR_DIETA_ESPECIAL,
     ADMINISTRADOR_DISTRIBUIDORA,
+    ADMINISTRADOR_ESCOLA_ABASTECIMENTO,
     ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
     ADMINISTRADOR_GESTAO_PRODUTO,
     ADMINISTRADOR_SUPERVISAO_NUTRICAO,
@@ -268,4 +269,17 @@ class UsuarioDistribuidor(BasePermission):
             usuario.vinculo_atual and
             isinstance(usuario.vinculo_atual.instituicao, Terceirizada) and
             usuario.vinculo_atual.perfil.nome in [ADMINISTRADOR_DISTRIBUIDORA]
+        )
+
+
+class UsuarioEscolaAbastecimento(BasePermission):
+    """Permite acesso a usuários com vinculo a uma Escola de Abastecimento."""
+
+    def has_permission(self, request, view):
+        usuario = request.user
+        return (
+            not usuario.is_anonymous and
+            usuario.vinculo_atual and
+            isinstance(usuario.vinculo_atual.instituicao, Escola) and
+            usuario.vinculo_atual.perfil.nome in [ADMINISTRADOR_ESCOLA_ABASTECIMENTO]
         )

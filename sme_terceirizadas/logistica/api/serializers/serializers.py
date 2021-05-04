@@ -136,6 +136,16 @@ class GuiaDaRemessaSerializer(serializers.ModelSerializer):
         exclude = ('id',)
 
 
+class GuiaDaRemessaComDistribuidorSerializer(serializers.ModelSerializer):
+    nome_distribuidor = serializers.CharField()
+    alimentos = AlimentoLookUpSerializer(many=True)
+    status = serializers.CharField(source='get_status_display')
+
+    class Meta:
+        model = Guia
+        exclude = ('id',)
+
+
 class GuiaDaRemessaSimplesSerializer(serializers.ModelSerializer):
     class Meta:
         model = Guia

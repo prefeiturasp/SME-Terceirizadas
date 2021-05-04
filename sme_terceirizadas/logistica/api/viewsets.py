@@ -13,7 +13,11 @@ from xworkflows.base import InvalidTransitionError
 from sme_terceirizadas.dados_comuns.fluxo_status import GuiaRemessaWorkFlow, SolicitacaoRemessaWorkFlow
 from sme_terceirizadas.dados_comuns.models import LogSolicitacoesUsuario
 from sme_terceirizadas.dados_comuns.parser_xml import ListXMLParser
-from sme_terceirizadas.dados_comuns.permissions import UsuarioDilogCodae, UsuarioDistribuidor
+from sme_terceirizadas.dados_comuns.permissions import (
+    UsuarioDilogCodae,
+    UsuarioDistribuidor,
+    UsuarioEscolaAbastecimento
+)
 from sme_terceirizadas.logistica.api.serializers.serializer_create import (
     SolicitacaoDeAlteracaoRequisicaoCreateSerializer,
     SolicitacaoRemessaCreateSerializer
@@ -21,6 +25,7 @@ from sme_terceirizadas.logistica.api.serializers.serializer_create import (
 from sme_terceirizadas.logistica.api.serializers.serializers import (
     AlimentoDaGuiaDaRemessaSerializer,
     AlimentoDaGuiaDaRemessaSimplesSerializer,
+    GuiaDaRemessaComDistribuidorSerializer,
     GuiaDaRemessaSerializer,
     GuiaDaRemessaSimplesSerializer,
     InfoUnidadesSimplesDaGuiaSerializer,
@@ -371,6 +376,27 @@ class GuiaDaRequisicaoModelViewSet(viewsets.ModelViewSet):
     def lista_guias_inconsistencias(self, request):
         response = {'results': GuiaDaRemessaSerializer(self.get_queryset().filter(escola=None), many=True).data}
         return Response(response)
+
+    @action(detail=False, methods=['GET'], url_path='guias-escola', permission_classes=(UsuarioEscolaAbastecimento,))
+    def lista_guias_escola(self, request):
+        escola = request.user.vinculo_atual.instituicao
+        queryset = self.get_queryset().annotate(
+            nome_distribuidor=F('solicitacao__distribuidor__nome_fantasia')
+        ).filter(escola=escola).exclude(status__in=(
+            GuiaRemessaWorkFlow.CANCELADA,
+            GuiaRemessaWorkFlow.AGUARDANDO_ENVIO,
+            GuiaRemessaWorkFlow.AGUARDANDO_CONFIRMACAO
+        )).order_by('data_entrega').distinct()
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = GuiaDaRemessaComDistribuidorSerializer(page, many=True)
+            response = self.get_paginated_response(
+                serializer.data
+            )
+            return response
+
+        serializer = GuiaDaRemessaComDistribuidorSerializer(queryset, many=True)
+        return Response(serializer.data)
 
     @action(detail=False, methods=['PATCH'], url_path='vincula-guias')
     def vincula_guias_com_escolas(self, request):
