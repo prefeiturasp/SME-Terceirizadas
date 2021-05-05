@@ -380,7 +380,8 @@ class GuiaDaRequisicaoModelViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['GET'], url_path='guias-escola', permission_classes=(UsuarioEscolaAbastecimento,))
     def lista_guias_escola(self, request):
         escola = request.user.vinculo_atual.instituicao
-        queryset = self.get_queryset().annotate(
+        queryset = self.filter_queryset(self.get_queryset())
+        queryset = queryset.annotate(
             nome_distribuidor=F('solicitacao__distribuidor__nome_fantasia')
         ).filter(escola=escola).exclude(status__in=(
             GuiaRemessaWorkFlow.CANCELADA,
