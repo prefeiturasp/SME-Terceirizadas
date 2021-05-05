@@ -16,6 +16,7 @@ from ..dados_comuns.behaviors import (
     Iniciais,
     Justificativa,
     Nomeavel,
+    TemAlteradoEm,
     TemChaveExterna,
     TemCodigoEOL,
     TemVinculos
@@ -862,3 +863,18 @@ class FaixaEtaria(Ativavel, TemChaveExterna):
 
 class MudancaFaixasEtarias(Justificativa, TemChaveExterna):
     faixas_etarias_ativadas = models.ManyToManyField(FaixaEtaria)
+
+
+class PlanilhaEscolaDeParaCodigoEolCodigoCoade(CriadoEm, TemAlteradoEm):
+    planilha = models.FileField(help_text='Deve ser inserido um arquivo excel em formato xlsx<br> '
+                                          'O arquivo deve conter as colunas código eol e código codae.<br>'
+                                          'O nome de cada coluna deve ser exatamente como a seguir:<br> '
+                                          '<b>codigo_eol</b> e <b>codigo_unidade</b>')
+    codigos_codae_vinculados = models.BooleanField('Códigos Codae Vinculados?', default=False, editable=False)
+
+    class Meta:
+        verbose_name = 'Planilha De-Para: Código EOL x Código Codae'
+        verbose_name_plural = 'Planilhas De-Para: Código EOL x Código Codae'
+
+    def __str__(self):
+        return str(self.planilha)

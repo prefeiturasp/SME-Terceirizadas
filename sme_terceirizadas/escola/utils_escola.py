@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import subprocess
 import time
 from datetime import date, datetime
@@ -6,10 +7,14 @@ from tempfile import NamedTemporaryFile
 
 import httpx
 from django.conf import settings
+from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import status
 from utility.carga_dados.helper import excel_to_list_with_openpyxl
 
 from sme_terceirizadas.dados_comuns.constants import DJANGO_EOL_API_TOKEN, DJANGO_EOL_API_URL
+from sme_terceirizadas.escola.models import Escola, PlanilhaEscolaDeParaCodigoEolCodigoCoade
+
+logger = logging.getLogger('sigpae.taskEscola')
 
 MDATA = datetime.now().strftime('%Y%m%d_%H%M%S')
 DEFAULT_HEADERS = {'Authorization': f'Token {DJANGO_EOL_API_TOKEN}'}
@@ -146,3 +151,26 @@ def get_escolas(arquivo, arquivo_codigos_escolas, tempfile, in_memory):
     escreve_escolas_json(tempfile, '}\n')
 
     return tempfile
+
+
+def atualiza_codigo_codae_das_escolas(path_planilha, id_planilha):  # noqa: C901
+    dados_planilha = excel_to_list_with_openpyxl(path_planilha)
+
+    count = 0
+    for info_escola in dados_planilha:
+        if info_escola.get('codigo_eol'):
+            escola = Escola.objects.filter(codigo_eol=f'{info_escola.get("codigo_eol"):06d}').first()
+
+            if escola:
+                escola.codigo_codae = info_escola.get('codigo_unidade')
+                escola.save()
+                count += 1
+
+    try:
+        obj_planilha = PlanilhaEscolaDeParaCodigoEolCodigoCoade.objects.get(id=id_planilha)
+        obj_planilha.codigos_codae_vinculados = True
+        obj_planilha.save()
+    except ObjectDoesNotExist:
+        pass
+
+    logger.debug(f'Código(s) codae de {count} escola(s) foram atualizados')
