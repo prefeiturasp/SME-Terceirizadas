@@ -5,7 +5,13 @@ from freezegun import freeze_time
 
 from ...cardapio.models import Cardapio
 from ...dados_comuns.constants import DAQUI_A_SETE_DIAS, DAQUI_A_TRINTA_DIAS, SEM_FILTRO
-from ..models import DiretoriaRegional, FaixaEtaria, TipoGestao, TipoUnidadeEscolar
+from ..models import (
+    DiretoriaRegional,
+    FaixaEtaria,
+    PlanilhaEscolaDeParaCodigoEolCodigoCoade,
+    TipoGestao,
+    TipoUnidadeEscolar
+)
 
 pytestmark = pytest.mark.django_db
 
@@ -142,3 +148,16 @@ def test_faixa_str():
 
 def test_ordem(periodo_escolar):
     assert ('nome',) == periodo_escolar._meta.ordering
+
+
+def test_instance_model_planilha_de_para_codigo_eol_codigo_codae(planilha_de_para_eol_codae):
+    model = planilha_de_para_eol_codae
+    assert isinstance(model, PlanilhaEscolaDeParaCodigoEolCodigoCoade)
+    assert model.criado_em is not None
+    assert model.planilha is not None
+    assert model.codigos_codae_vinculados is not None
+
+
+def test_meta_modelo_planilha_de_para_codigo_eol_codigo_codae(planilha_de_para_eol_codae):
+    assert planilha_de_para_eol_codae._meta.verbose_name == 'Planilha De-Para: Código EOL x Código Codae'
+    assert planilha_de_para_eol_codae._meta.verbose_name_plural == 'Planilhas De-Para: Código EOL x Código Codae'

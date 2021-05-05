@@ -2,6 +2,7 @@ import datetime
 import json
 
 import pytest
+from django.core.files.uploadedfile import SimpleUploadedFile
 from faker import Faker
 from model_mommy import mommy
 
@@ -163,4 +164,19 @@ def eolservice_get_informacoes_escola_turma_aluno(monkeypatch):
         EOLService,
         'get_informacoes_escola_turma_aluno',
         lambda x: js['results']
+    )
+
+
+@pytest.fixture
+def arquivo():
+    return SimpleUploadedFile(f'planilha-teste.pdf', bytes(f'CONTEUDO TESTE TESTE TESTE', encoding='utf-8'))
+
+
+@pytest.fixture
+def planilha_de_para_eol_codae(arquivo):
+    return mommy.make(
+        'PlanilhaEscolaDeParaCodigoEolCodigoCoade',
+        planilha=arquivo,
+        criado_em=datetime.date.today(),
+        codigos_codae_vinculados=False
     )
