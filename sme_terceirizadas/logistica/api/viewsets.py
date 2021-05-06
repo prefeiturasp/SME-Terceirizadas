@@ -25,6 +25,7 @@ from sme_terceirizadas.logistica.api.serializers.serializer_create import (
 from sme_terceirizadas.logistica.api.serializers.serializers import (
     AlimentoDaGuiaDaRemessaSerializer,
     AlimentoDaGuiaDaRemessaSimplesSerializer,
+    GuiaDaRemessaComAlimentoSerializer,
     GuiaDaRemessaComDistribuidorSerializer,
     GuiaDaRemessaSerializer,
     GuiaDaRemessaSimplesSerializer,
@@ -397,6 +398,14 @@ class GuiaDaRequisicaoModelViewSet(viewsets.ModelViewSet):
             return response
 
         serializer = GuiaDaRemessaComDistribuidorSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['GET'], url_path='guia-por-id', permission_classes=(UsuarioEscolaAbastecimento,))
+    def lista_guia_por_uuid(self, request):
+        # TODO: Decidir se o método servirá apenas pra conferencia de guia, caso sim, checar status e escola da guia
+        uuid = request.query_params.get('uuid', None)
+        queryset = self.get_queryset().filter(uuid=uuid)
+        serializer = GuiaDaRemessaComAlimentoSerializer(queryset, many=True)
         return Response(serializer.data)
 
     @action(detail=False, methods=['PATCH'], url_path='vincula-guias')
