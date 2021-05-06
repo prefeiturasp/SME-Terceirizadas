@@ -54,7 +54,7 @@
           <th class="w-25" />
         </tr>
       <tr>
-        <td>{{ log_autorizacao.criado_em|date:"SHORT_DATE_FORMAT" }}</td>
+        <td>{{ solicitacao.data_inicio|date:"SHORT_DATE_FORMAT"|default:'Sem data de início' }}</td>
         <td>{{ solicitacao.data_termino|date:"SHORT_DATE_FORMAT"|default:'Sem data de término' }}</td>
       </tr>
       </table>
