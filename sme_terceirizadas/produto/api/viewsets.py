@@ -188,7 +188,6 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
 
         return lista_status
 
-
     def dados_dashboard(self, query_set: list) -> dict:
         sumario = []
 
@@ -872,7 +871,6 @@ class ProdutoViewSet(viewsets.ModelViewSet):
             url_path='filtro-reclamacoes-terceirizada',
             permission_classes=[UsuarioTerceirizada])
     def filtro_reclamacoes_terceirizada(self, request):
-        user = request.user
         filtro_homologacao = {'homologacoes__reclamacoes__status':
                               ReclamacaoProdutoWorkflow.AGUARDANDO_RESPOSTA_TERCEIRIZADA}
         filtro_reclamacao = {'status__in': [ReclamacaoProdutoWorkflow.AGUARDANDO_RESPOSTA_TERCEIRIZADA,
