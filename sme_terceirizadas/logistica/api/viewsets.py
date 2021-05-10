@@ -45,7 +45,11 @@ from ...escola.models import Escola
 from ...relatorios.relatorios import get_pdf_guia_distribuidor
 from ..utils import GuiaPagination, RequisicaoPagination, SolicitacaoAlteracaoPagination
 from .filters import GuiaFilter, SolicitacaoAlteracaoFilter, SolicitacaoFilter
-from .helpers import retorna_dados_normalizados_excel_visao_dilog, retorna_dados_normalizados_excel_visao_distribuidor
+from .helpers import (
+    confirma_guias,
+    retorna_dados_normalizados_excel_visao_dilog,
+    retorna_dados_normalizados_excel_visao_distribuidor
+)
 
 STR_XML_BODY = '{http://schemas.xmlsoap.org/soap/envelope/}Body'
 STR_ARQUIVO_SOLICITACAO = 'ArqSolicitacaoMOD'
@@ -252,6 +256,7 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
 
         try:
             solicitacao.empresa_atende(user=usuario, )
+            confirma_guias(solicitacao, usuario)
             serializer = SolicitacaoRemessaSerializer(solicitacao)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -267,6 +272,7 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
         try:
             for solicitacao in solicitacoes:
                 solicitacao.empresa_atende(user=usuario,)
+                confirma_guias(solicitacao, usuario)
             return Response(status=HTTP_200_OK)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
