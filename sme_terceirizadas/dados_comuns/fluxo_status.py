@@ -25,6 +25,7 @@ from .tasks import envia_email_em_massa_task, envia_email_unico_task
 from .utils import convert_base64_to_contentfile
 
 env = environ.Env()
+base_url = f'{env("REACT_APP_URL")}'
 
 
 class PedidoAPartirDaEscolaWorkflow(xwf_models.Workflow):
@@ -255,6 +256,7 @@ class GuiaRemessaWorkFlow(xwf_models.Workflow):
     )
 
     transitions = (
+        ('distribuidor_confirma_guia', AGUARDANDO_CONFIRMACAO, PENDENTE_DE_CONFERENCIA),
         ('distribuidor_registra_insucesso', PENDENTE_DE_CONFERENCIA, DISTRIBUIDOR_REGISTRA_INSUCESSO),
         ('escola_recebe', PENDENTE_DE_CONFERENCIA, RECEBIDA),
         ('escola_nao_recebe', PENDENTE_DE_CONFERENCIA, NAO_RECEBIDA),
@@ -524,7 +526,6 @@ class FluxoSolicitacaoDeAlteracao(xwf_models.WorkflowEnabled, models.Model):
         return [email for email in email_query_set_distribuidor]
 
     def _envia_email_distribuidor_solicita_alteracao(self, log_transicao, partes_interessadas):
-        base_url = f'{env("REACT_APP_URL")}'
         url = f'{base_url}/logistica/gestao-solicitacao-alteracao?numero_solicitacao={self.numero_solicitacao}'
         html = render_to_string(
             template_name='logistica_dilog_envia_solicitacao.html',
@@ -595,8 +596,47 @@ class FluxoGuiaRemessa(xwf_models.WorkflowEnabled, models.Model):
     def salvar_log_transicao(self, status_evento, usuario, **kwargs):
         raise NotImplementedError('Deve criar um método salvar_log_transicao')
 
-    def _preenche_template_e_envia_email(self, assunto, titulo, user, partes_interessadas):
-        raise NotImplementedError('Deve criar um método de envio de email as partes interessadas')  # noqa
+    def _preenche_template_e_envia_email(self, template, assunto, titulo, partes_interessadas, log_transicao, url):
+        html = render_to_string(
+            template_name=template,
+            context={
+                'titulo': titulo,
+                'guia': self.numero_guia,
+                'log_transicao': log_transicao,
+                'url': url
+            }
+        )
+        envia_email_em_massa_task.delay(
+            assunto=assunto,
+            emails=partes_interessadas,
+            corpo='',
+            html=html
+        )
+
+    def _partes_interessadas_escola(self):
+        # Envia email somente para usuários ativos vinculados a escola da guia
+        email_query_set_escola = self.escola.vinculos.filter(
+            ativo=True
+        ).values_list('usuario__email', flat=True)
+
+        return [email for email in email_query_set_escola]
+
+    @xworkflows.after_transition('distribuidor_confirma_guia')
+    def _distribuidor_confirma_guia(self, *args, **kwargs):
+        user = kwargs['user']
+        log_transicao = self.salvar_log_transicao(
+            status_evento=LogSolicitacoesUsuario.ABASTECIMENTO_GUIA_DE_REMESSA,
+            usuario=user,
+            justificativa=kwargs.get('justificativa', ''))
+
+        # Monta e-mail
+        url = f'{base_url}/logistica/conferir-entrega?numero_guia={self.numero_guia}'
+        titulo = f'Nova Guia de Remessa N° {self.numero_guia}'
+        assunto = f'[SIGPAE] Nova Guia de Remessa N° {self.numero_guia}'
+        template = 'logistica_distribuidor_confirma_requisicao.html'
+        partes_interessadas = self._partes_interessadas_escola()
+
+        self._preenche_template_e_envia_email(template, assunto, titulo, partes_interessadas, log_transicao, url)
 
     @xworkflows.after_transition('distribuidor_registra_insucesso')
     def _distribuidor_registra_insucesso_hook(self, *args, **kwargs):
