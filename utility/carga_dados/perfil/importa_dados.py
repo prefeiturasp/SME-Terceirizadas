@@ -30,6 +30,7 @@ def cria_vinculos():
         'perfil_usuario_nutri_supervisao': Perfil.objects.get(nome='COORDENADOR_SUPERVISAO_NUTRICAO'),  # noqa
         'perfil_coordenador_gestao_produto': Perfil.objects.get(nome='COORDENADOR_GESTAO_PRODUTO'),  # noqa
         'perfil_usuario_terceirizada': Perfil.objects.get(nome='NUTRI_ADMIN_RESPONSAVEL'),  # noqa
+        'perfil_usuario_ue': Perfil.objects.get(nome='ADMINISTRADOR_ESCOLA_ABASTECIMENTO')
     }
 
     usuario = {
@@ -51,6 +52,7 @@ def cria_vinculos():
         'usuario_nutri_supervisao': Usuario.objects.get(email='nutrisupervisao@admin.com'),
         'usuario_gestao_produto_codae': Usuario.objects.get(email='gpcodae@admin.com'),
         'usuario_terceirizada': Usuario.objects.get(email='terceirizada@admin.com'),
+        'usuario_ue': Usuario.objects.get(email='ue@admin.com'),
     }
 
     items = [
@@ -109,6 +111,12 @@ def cria_vinculos():
             'perfil': perfil['perfil_diretor_escola'],
             'usuario': usuario['usuario_escola_ceu_emef'],
         },
+        {
+            'nome': 'CEI DIRET ROBERTO ARANTES LANHOSO',
+            'perfil': perfil['perfil_usuario_ue'],
+            'usuario': usuario['usuario_ue'],
+        },
+
     ]
 
     data_atual = date.today()

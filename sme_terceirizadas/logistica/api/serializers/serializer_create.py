@@ -96,6 +96,7 @@ class SolicitacaoDeAlteracaoRequisicaoCreateSerializer(serializers.ModelSerializ
             novo_numero_solicitacao(solicitacao_alteracao)
             try:
                 requisicao.solicita_alteracao(user=user, justificativa=validated_data.get('justificativa', ''))
+                solicitacao_alteracao.inicia_fluxo(user=user, justificativa=validated_data.get('justificativa', ''))
             except InvalidTransitionError as e:
                 raise serializers.ValidationError(f'Erro de transição de estado: {e}')
         except ObjectDoesNotExist:

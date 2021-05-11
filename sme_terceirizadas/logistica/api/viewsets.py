@@ -10,10 +10,14 @@ from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_400_BAD_REQUEST, HTTP_406_NOT_ACCEPTABLE
 from xworkflows.base import InvalidTransitionError
 
-from sme_terceirizadas.dados_comuns.fluxo_status import SolicitacaoRemessaWorkFlow
+from sme_terceirizadas.dados_comuns.fluxo_status import GuiaRemessaWorkFlow, SolicitacaoRemessaWorkFlow
 from sme_terceirizadas.dados_comuns.models import LogSolicitacoesUsuario
 from sme_terceirizadas.dados_comuns.parser_xml import ListXMLParser
-from sme_terceirizadas.dados_comuns.permissions import UsuarioDilogCodae, UsuarioDistribuidor
+from sme_terceirizadas.dados_comuns.permissions import (
+    UsuarioDilogCodae,
+    UsuarioDistribuidor,
+    UsuarioEscolaAbastecimento
+)
 from sme_terceirizadas.logistica.api.serializers.serializer_create import (
     SolicitacaoDeAlteracaoRequisicaoCreateSerializer,
     SolicitacaoRemessaCreateSerializer
@@ -21,10 +25,12 @@ from sme_terceirizadas.logistica.api.serializers.serializer_create import (
 from sme_terceirizadas.logistica.api.serializers.serializers import (
     AlimentoDaGuiaDaRemessaSerializer,
     AlimentoDaGuiaDaRemessaSimplesSerializer,
+    GuiaDaRemessaComDistribuidorSerializer,
     GuiaDaRemessaSerializer,
     GuiaDaRemessaSimplesSerializer,
     InfoUnidadesSimplesDaGuiaSerializer,
     SolicitacaoDeAlteracaoSerializer,
+    SolicitacaoDeAlteracaoSimplesSerializer,
     SolicitacaoRemessaLookUpSerializer,
     SolicitacaoRemessaSerializer,
     SolicitacaoRemessaSimplesSerializer,
@@ -35,8 +41,9 @@ from sme_terceirizadas.logistica.models import Alimento, Embalagem
 from sme_terceirizadas.logistica.models import Guia as GuiasDasRequisicoes
 from sme_terceirizadas.logistica.models import SolicitacaoDeAlteracaoRequisicao, SolicitacaoRemessa
 
+from ...escola.models import Escola
 from ...relatorios.relatorios import get_pdf_guia_distribuidor
-from ..utils import RequisicaoPagination, SolicitacaoAlteracaoPagination
+from ..utils import GuiaPagination, RequisicaoPagination, SolicitacaoAlteracaoPagination
 from .filters import GuiaFilter, SolicitacaoAlteracaoFilter, SolicitacaoFilter
 from .helpers import retorna_dados_normalizados_excel_visao_dilog, retorna_dados_normalizados_excel_visao_distribuidor
 
@@ -89,10 +96,10 @@ class SolicitacaoCancelamentoModelViewSet(viewsets.ModelViewSet):
             guias_payload = [x['StrNumGui'] for x in guias.values()]
 
         solicitacao = SolicitacaoRemessa.objects.get(numero_solicitacao=num_solicitacao)
-        solicitacao.guias.filter(numero_guia__in=guias_payload).update(status=SolicitacaoRemessaWorkFlow.PAPA_CANCELA)
+        solicitacao.guias.filter(numero_guia__in=guias_payload).update(status=GuiaRemessaWorkFlow.CANCELADA)
 
         guias_existentes = list(solicitacao.guias.values_list('numero_guia', flat=True))
-        existe_guia_nao_cancelada = solicitacao.guias.exclude(status=GuiasDasRequisicoes.STATUS_CANCELADA).exists()
+        existe_guia_nao_cancelada = solicitacao.guias.exclude(status=GuiaRemessaWorkFlow.CANCELADA).exists()
 
         if set(guias_existentes) == set(guias_payload) or not existe_guia_nao_cancelada:
             solicitacao.cancela_solicitacao(user=usuario)
@@ -183,7 +190,6 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
         if json_data:
             try:
                 instance = SolicitacaoRemessaCreateSerializer().create(validated_data=json_data)
-
                 instance.salvar_log_transicao(
                     status_evento=LogSolicitacoesUsuario.INICIO_FLUXO_SOLICITACAO,
                     usuario=usuario
@@ -346,7 +352,8 @@ class GuiaDaRequisicaoModelViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
     queryset = GuiasDasRequisicoes.objects.all()
     serializer_class = GuiaDaRemessaSerializer
-    permission_classes = [UsuarioDilogCodae]
+    permission_classes = [UsuarioDilogCodae | UsuarioDistribuidor]
+    pagination_class = GuiaPagination
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = GuiaFilter
 
@@ -365,6 +372,48 @@ class GuiaDaRequisicaoModelViewSet(viewsets.ModelViewSet):
         response = {'results': GuiaDaRemessaSimplesSerializer(self.get_queryset(), many=True).data}
         return Response(response)
 
+    @action(detail=False, methods=['GET'], url_path='inconsistencias', permission_classes=(UsuarioDilogCodae,))
+    def lista_guias_inconsistencias(self, request):
+        response = {'results': GuiaDaRemessaSerializer(self.get_queryset().filter(escola=None), many=True).data}
+        return Response(response)
+
+    @action(detail=False, methods=['GET'], url_path='guias-escola', permission_classes=(UsuarioEscolaAbastecimento,))
+    def lista_guias_escola(self, request):
+        escola = request.user.vinculo_atual.instituicao
+        queryset = self.filter_queryset(self.get_queryset())
+        queryset = queryset.annotate(
+            nome_distribuidor=F('solicitacao__distribuidor__nome_fantasia')
+        ).filter(escola=escola).exclude(status__in=(
+            GuiaRemessaWorkFlow.CANCELADA,
+            GuiaRemessaWorkFlow.AGUARDANDO_ENVIO,
+            GuiaRemessaWorkFlow.AGUARDANDO_CONFIRMACAO
+        )).order_by('data_entrega').distinct()
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = GuiaDaRemessaComDistribuidorSerializer(page, many=True)
+            response = self.get_paginated_response(
+                serializer.data
+            )
+            return response
+
+        serializer = GuiaDaRemessaComDistribuidorSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['PATCH'], url_path='vincula-guias')
+    def vincula_guias_com_escolas(self, request):
+        guias_desvinculadas = self.get_queryset().filter(escola=None)
+        contagem = 0
+
+        for guia in guias_desvinculadas:
+            escola = Escola.objects.filter(codigo_codae=guia.codigo_unidade).first()
+            if escola is not None:
+                guia.escola = escola
+                guia.save()
+                contagem += 1
+
+        response = {'message': str(contagem) + ' guia(s) vinculada(s)'}
+        return Response(response)
+
     @action(detail=False, methods=['GET'], url_path='unidades-escolares')
     def nomes_unidades(self, request):
         queryset = self.filter_queryset(self.get_queryset())
@@ -376,6 +425,31 @@ class GuiaDaRequisicaoModelViewSet(viewsets.ModelViewSet):
     def gerar_pdf_distribuidor(self, request, uuid=None):
         guia = self.get_object()
         return get_pdf_guia_distribuidor(data=[guia])
+
+    @action(detail=False,
+            methods=['GET'],
+            url_path='lista-guias-para-insucesso',
+            permission_classes=[UsuarioDistribuidor])
+    def lista_guias_para_insucesso(self, request):
+        queryset = self.filter_queryset(self.get_queryset())
+        queryset = queryset.annotate(
+            numero_requisicao=F('solicitacao__numero_solicitacao')
+        ).exclude(status__in=(
+            GuiaRemessaWorkFlow.CANCELADA,
+            GuiaRemessaWorkFlow.AGUARDANDO_ENVIO,
+            GuiaRemessaWorkFlow.AGUARDANDO_CONFIRMACAO
+        )).order_by('data_entrega').distinct()
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            response = self.get_paginated_response(
+                serializer.data
+            )
+            return response
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
 
 class AlimentoDaGuiaModelViewSet(viewsets.ModelViewSet):
@@ -436,3 +510,43 @@ class SolicitacaoDeAlteracaoDeRequisicaoViewset(viewsets.ModelViewSet):
             return SolicitacaoDeAlteracaoSerializer
         else:
             return SolicitacaoDeAlteracaoRequisicaoCreateSerializer
+
+    @action(detail=True, permission_classes=(UsuarioDilogCodae,),
+            methods=['patch'], url_path='dilog-aceita-alteracao')
+    def dilog_aceita_alteracao(self, request, uuid=None):
+        usuario = request.user
+        justificativa_aceite = request.data.get('justificativa_aceite', '')
+
+        try:
+            solicitacao_alteracao = SolicitacaoDeAlteracaoRequisicao.objects.get(uuid=uuid)
+            requisicao = SolicitacaoRemessa.objects.get(id=solicitacao_alteracao.requisicao.id)
+
+            requisicao.dilog_aceita_alteracao(user=usuario, justificativa=justificativa_aceite)
+            solicitacao_alteracao.dilog_aceita(user=usuario, justificativa=justificativa_aceite)
+
+            solicitacao_alteracao.justificativa_aceite = justificativa_aceite
+            solicitacao_alteracao.save()
+            serializer = SolicitacaoDeAlteracaoSimplesSerializer(solicitacao_alteracao)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, permission_classes=(UsuarioDilogCodae,),
+            methods=['patch'], url_path='dilog-nega-alteracao')
+    def dilog_nega_alteracao(self, request, uuid=None):
+        usuario = request.user
+        justificativa_negacao = request.data.get('justificativa_negacao', '')
+
+        try:
+            solicitacao_alteracao = SolicitacaoDeAlteracaoRequisicao.objects.get(uuid=uuid)
+            requisicao = SolicitacaoRemessa.objects.get(id=solicitacao_alteracao.requisicao.id)
+
+            requisicao.dilog_nega_alteracao(user=usuario, justificativa=justificativa_negacao)
+            solicitacao_alteracao.dilog_nega(user=usuario, justificativa=justificativa_negacao)
+
+            solicitacao_alteracao.justificativa_negacao = justificativa_negacao
+            solicitacao_alteracao.save()
+            serializer = SolicitacaoDeAlteracaoSimplesSerializer(solicitacao_alteracao)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)

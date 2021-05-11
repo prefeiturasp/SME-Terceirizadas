@@ -177,6 +177,14 @@ USUARIOS = [
         'nome': 'COORD EMEF JOSE ERMIRIO',
         'cargo': '',
     },
+    {
+        'email': 'ue@admin.com',
+        'password': 'adminadmin',
+        'cpf': '11111111119',
+        'registro_funcional': '1110001',
+        'nome': 'SUPER USUARIO UE',
+        'cargo': 'Gerente',
+    },
 ]
 
 

@@ -9,7 +9,9 @@ logger = logging.getLogger('sigpae.taskPerfil')
 
 
 def get_usuario(registro_funcional):
-    return Usuario.objects.get(registro_funcional=registro_funcional)
+    usuario = Usuario.objects.filter(registro_funcional=registro_funcional).first()
+    if usuario:
+        return usuario
 
 
 def compara_e_atualiza_dados_do_eol(dados, usuario):
@@ -24,8 +26,8 @@ def compara_e_atualiza_dados_do_eol(dados, usuario):
 
 @shared_task
 def busca_cargo_de_usuario(registro_funcional):
-    usuario = get_usuario(registro_funcional)
     try:
+        usuario = get_usuario(registro_funcional)
         dados = EOLService.get_informacoes_usuario(registro_funcional)
         compara_e_atualiza_dados_do_eol(dados, usuario)
 

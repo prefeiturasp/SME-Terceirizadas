@@ -59,26 +59,18 @@ pipeline {
        }
       }
 
-       stage('Analise codigo') {
-	     when {
+    stage('Analise codigo') {
+	    when {
            branch 'homolog'
-         }
-        steps {
-          sh 'sonar-scanner \
-            -Dsonar.projectKey=SME-Terceirizadas \
-            -Dsonar.projectBaseDir=sme_terceirizadas \
-            -Dsonar.exclusions=dados_comuns \
-            -Dsonar.host.url=http://sonar.sme.prefeitura.sp.gov.br \
-            -Dsonar.login=c1b62f2b14aed3a21724323aa8028e731e29f146 \
-            -Dsonar.language=py \
-            -Dsonar.sourceEncoding=UTF-8 \
-            -Dsonar.python.pylint=pylint \
-            -Dsonar.python.pylint_config=.pylintrc \
-            -Dsonar.python.pylint.reportPath=pylint-report.txt \
-            -Dsonar.python.coverage.reportPaths=./coverage.xml \
-            -Dsonar.python.bandit.reportPaths=../bandit.json'
         }
-       }
+        steps {
+            sh 'echo "[ INFO ] Iniciando analise Sonar..." && sonar-scanner \
+              -Dsonar.projectKey=SME-Terceirizadas \
+              -Dsonar.sources=. \
+              -Dsonar.host.url=http://sonar.sme.prefeitura.sp.gov.br \
+              -Dsonar.login=0d279825541065cf66a60cbdfe9b8a25ec357226'
+        }
+    }
 
        stage('Build DEV') {
          when {
@@ -172,7 +164,7 @@ pipeline {
         steps {
           timeout(time: 24, unit: "HOURS") {
           // telegramSend("${JOB_NAME}...O Build ${BUILD_DISPLAY_NAME} - Requer uma aprovação para deploy !!!\n Consulte o log para detalhes -> [Job logs](${env.BUILD_URL}console)\n")
-            input message: 'Deseja realizar o deploy?', ok: 'SIM', submitter: 'marcos_nastri, calvin_rossinhole, ollyver_ottoboni, kelwy_oliveira, pedro_walter, rodolfo_lima, regis_santos'
+            input message: 'Deseja realizar o deploy?', ok: 'SIM', submitter: 'marcos_nastri, calvin_rossinhole, ollyver_ottoboni, kelwy_oliveira, pedro_walter, rodolfo_lima, regis_santos, luis_zimmermann, anderson_morais'
           }
 
           script {
@@ -231,7 +223,7 @@ pipeline {
         steps {
           timeout(time: 24, unit: "HOURS") {
           // telegramSend("${JOB_NAME}...O Build ${BUILD_DISPLAY_NAME} - Requer uma aprovação para deploy !!!\n Consulte o log para detalhes -> [Job logs](${env.BUILD_URL}console)\n")
-            input message: 'Deseja realizar o deploy?', ok: 'SIM', submitter: 'marcos_nastri, calvin_rossinhole, ollyver_ottoboni, kelwy_oliveira, pedro_walter, rodolfo_lima, regis_santos'
+            input message: 'Deseja realizar o deploy?', ok: 'SIM', submitter: 'marcos_nastri, calvin_rossinhole, ollyver_ottoboni, kelwy_oliveira, pedro_walter, rodolfo_lima, regis_santos, anderson_morais'
           }
 
           script {

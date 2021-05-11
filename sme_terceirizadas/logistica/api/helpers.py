@@ -69,6 +69,7 @@ def retorna_dados_normalizados_excel_visao_distribuidor(queryset):
         When(status='CANCELADA', then=Value('Cancelada')),
         When(status='DISTRIBUIDOR_CONFIRMA', then=Value('Confirmada')),
         When(status='DISTRIBUIDOR_SOLICITA_ALTERACAO', then=Value('Em análise')),
+        When(status='DILOG_ACEITA_ALTERACAO', then=Value('Alterada')),
         output_field=CharField(),
     )).values(
         'numero_solicitacao', 'status_requisicao', 'quantidade_total_guias', 'guias__numero_guia',
@@ -90,6 +91,7 @@ def retorna_dados_normalizados_excel_visao_dilog(queryset):
         When(status='CANCELADA', then=Value('Cancelada')),
         When(status='DISTRIBUIDOR_CONFIRMA', then=Value('Confirmada')),
         When(status='DISTRIBUIDOR_SOLICITA_ALTERACAO', then=Value('Em análise')),
+        When(status='DILOG_ACEITA_ALTERACAO', then=Value('Alterada')),
         output_field=CharField(),
     ), codigo_eol_unidade=Value('', output_field=CharField())).values(
         'distribuidor__nome_fantasia', 'numero_solicitacao', 'status_requisicao', 'quantidade_total_guias',

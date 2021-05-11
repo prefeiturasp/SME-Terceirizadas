@@ -4,7 +4,7 @@ import operator
 from django.db.models import Q
 from django_filters import rest_framework as filters
 
-from ...dados_comuns.fluxo_status import SolicitacaoRemessaWorkFlow
+from ...dados_comuns.fluxo_status import GuiaRemessaWorkFlow, SolicitacaoRemessaWorkFlow
 
 
 class SolicitacaoFilter(filters.FilterSet):
@@ -52,12 +52,40 @@ class GuiaFilter(filters.FilterSet):
         field_name='codigo_unidade',
         lookup_expr='exact',
     )
+    nome_unidade = filters.CharFilter(
+        field_name='nome_unidade',
+        lookup_expr='icontains',
+    )
+    numero_guia = filters.CharFilter(
+        field_name='numero_guia',
+        lookup_expr='exact',
+    )
+    numero_requisicao = filters.CharFilter(
+        field_name='solicitacao__numero_solicitacao',
+        lookup_expr='exact',
+    )
+    data_inicial = filters.DateFilter(
+        field_name='data_entrega',
+        lookup_expr='gte',
+    )
+    data_final = filters.DateFilter(
+        field_name='data_entrega',
+        lookup_expr='lte',
+    )
+    status = filters.MultipleChoiceFilter(
+        field_name='status',
+        choices=[(str(state), state) for state in GuiaRemessaWorkFlow.states],
+    )
 
 
 class SolicitacaoAlteracaoFilter(filters.FilterSet):
 
     numero_solicitacao = filters.CharFilter(
         field_name='numero_solicitacao',
+        lookup_expr='exact',
+    )
+    numero_requisicao = filters.CharFilter(
+        field_name='requisicao__numero_solicitacao',
         lookup_expr='exact',
     )
     nome_distribuidor = filters.CharFilter(

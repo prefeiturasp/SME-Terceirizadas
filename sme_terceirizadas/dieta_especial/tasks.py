@@ -19,12 +19,12 @@ def processa_dietas_especiais_task():
     termina_dietas_especiais(usuario=usuario_admin)
 
 
-@shared_task()
+@shared_task
 def cancela_dietas_ativas_automaticamente_task():
     cancela_dietas_ativas_automaticamente()
 
 
-@shared_task()
+@shared_task
 def get_escolas_task():
     obj = PlanilhaDietasAtivas.objects.first()  # Tem um problema aqui, e se selecionar outro arquivo?
     arquivo = obj.arquivo

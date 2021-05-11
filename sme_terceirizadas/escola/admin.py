@@ -1,4 +1,5 @@
-from django.contrib import admin
+from django.contrib import admin, messages
+from django.shortcuts import redirect
 
 from .models import (
     Aluno,
@@ -11,11 +12,13 @@ from .models import (
     LogRotinaDiariaAlunos,
     Lote,
     PeriodoEscolar,
+    PlanilhaEscolaDeParaCodigoEolCodigoCoade,
     Responsavel,
     Subprefeitura,
     TipoGestao,
     TipoUnidadeEscolar
 )
+from .tasks import atualiza_codigo_codae_das_escolas_task
 
 
 class EscolaPeriodoEscolarAdmin(admin.ModelAdmin):
@@ -92,6 +95,28 @@ class DiretoriaRegionalAdmin(admin.ModelAdmin):
 class AlunoAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'escola')
     search_fields = ('nome', 'escola__nome', 'codigo_eol', 'escola__codigo_eol')
+
+
+@admin.register(PlanilhaEscolaDeParaCodigoEolCodigoCoade)
+class PlanilhaEscolaDeParaCodigoEolCodigoCoadeAdmin(admin.ModelAdmin):
+    list_display = ('__str__', 'criado_em', 'codigos_codae_vinculados')
+    actions = ('vincular_codigos_codae_da_planilha', )
+
+    def vincular_codigos_codae_da_planilha(self, request, queryset):
+        if len(queryset) > 1:
+            self.message_user(request, 'Escolha somente uma planilha.', messages.ERROR)
+            return
+
+        arquivo = queryset.first()
+        atualiza_codigo_codae_das_escolas_task.delay(path_planilha=arquivo.planilha.path, id_planilha=arquivo.id)
+
+        messages.add_message(
+            request,
+            messages.INFO,
+            'Atualização de códigos codae das escolas disparada. Este procedimento pode demorar alguns minutos..'
+        )
+        return redirect('admin:escola_planilhaescoladeparacodigoeolcodigocoade_changelist')
+    vincular_codigos_codae_da_planilha.short_description = 'Executar atualização dos códigos codae das escolas'
 
 
 admin.site.register(Codae)

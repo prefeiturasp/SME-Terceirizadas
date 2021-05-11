@@ -4,6 +4,7 @@ Na pasta docs tem os BMPNs dos fluxos
 """
 import datetime
 
+import environ
 import xworkflows
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
@@ -22,6 +23,8 @@ from .constants import (
 from .models import AnexoLogSolicitacoesUsuario, LogSolicitacoesUsuario
 from .tasks import envia_email_em_massa_task, envia_email_unico_task
 from .utils import convert_base64_to_contentfile
+
+env = environ.Env()
 
 
 class PedidoAPartirDaEscolaWorkflow(xwf_models.Workflow):
@@ -178,13 +181,15 @@ class SolicitacaoRemessaWorkFlow(xwf_models.Workflow):
     PAPA_CANCELA = 'CANCELADA'
     DISTRIBUIDOR_CONFIRMA = 'DISTRIBUIDOR_CONFIRMA'
     DISTRIBUIDOR_SOLICITA_ALTERACAO = 'DISTRIBUIDOR_SOLICITA_ALTERACAO'
+    DILOG_ACEITA_ALTERACAO = 'DILOG_ACEITA_ALTERACAO'
 
     states = (
         (AGUARDANDO_ENVIO, 'Aguardando envio'),
         (DILOG_ENVIA, 'Enviada'),
         (PAPA_CANCELA, 'Cancelada'),
         (DISTRIBUIDOR_CONFIRMA, 'Confirmada'),
-        (DISTRIBUIDOR_SOLICITA_ALTERACAO, 'Em análise')
+        (DISTRIBUIDOR_SOLICITA_ALTERACAO, 'Em análise'),
+        (DILOG_ACEITA_ALTERACAO, 'Alterada'),
     )
 
     transitions = (
@@ -192,7 +197,9 @@ class SolicitacaoRemessaWorkFlow(xwf_models.Workflow):
         ('empresa_atende', DILOG_ENVIA, DISTRIBUIDOR_CONFIRMA),
         ('solicita_alteracao', [DILOG_ENVIA, DISTRIBUIDOR_CONFIRMA], DISTRIBUIDOR_SOLICITA_ALTERACAO),
         ('cancela_solicitacao', [AGUARDANDO_ENVIO, DILOG_ENVIA, DISTRIBUIDOR_CONFIRMA, DISTRIBUIDOR_SOLICITA_ALTERACAO,
-                                 PAPA_CANCELA], PAPA_CANCELA)
+                                 PAPA_CANCELA, DILOG_ACEITA_ALTERACAO], PAPA_CANCELA),
+        ('dilog_aceita_alteracao', DISTRIBUIDOR_SOLICITA_ALTERACAO, DILOG_ACEITA_ALTERACAO),
+        ('dilog_nega_alteracao', DISTRIBUIDOR_SOLICITA_ALTERACAO, DILOG_ENVIA),
     )
 
     initial_state = AGUARDANDO_ENVIO
@@ -214,9 +221,49 @@ class SolicitacaoDeAlteracaoWorkFlow(xwf_models.Workflow):
     transitions = (
         ('dilog_aceita', EM_ANALISE, ACEITA),
         ('dilog_nega', EM_ANALISE, NEGADA),
+        ('inicia_fluxo', EM_ANALISE, EM_ANALISE),
     )
 
     initial_state = EM_ANALISE
+
+
+class GuiaRemessaWorkFlow(xwf_models.Workflow):
+    log_model = ''  # Disable logging to database
+
+    AGUARDANDO_ENVIO = 'AGUARDANDO_ENVIO'
+    AGUARDANDO_CONFIRMACAO = 'AGUARDANDO_CONFIRMACAO'
+    PENDENTE_DE_CONFERENCIA = 'PENDENTE_DE_CONFERENCIA'
+    DISTRIBUIDOR_REGISTRA_INSUCESSO = 'DISTRIBUIDOR_REGISTRA_INSUCESSO'
+    RECEBIDA = 'RECEBIDA'
+    NAO_RECEBIDA = 'NAO_RECEBIDA'
+    RECEBIMENTO_PARCIAL = 'RECEBIMENTO_PARCIAL'
+    REPOSICAO_TOTAL = 'REPOSICAO_TOTAL'
+    REPOSICAO_PARCIAL = 'REPOSICAO_PARCIAL'
+    CANCELADA = 'CANCELADA'
+
+    states = (
+        (AGUARDANDO_ENVIO, 'Aguardando envio'),
+        (AGUARDANDO_CONFIRMACAO, 'Aguardando confirmação'),
+        (PENDENTE_DE_CONFERENCIA, 'Pendente de conferência'),
+        (DISTRIBUIDOR_REGISTRA_INSUCESSO, 'Insucesso de entrega'),
+        (RECEBIDA, 'Recebida'),
+        (NAO_RECEBIDA, 'Não recebida'),
+        (RECEBIMENTO_PARCIAL, 'Recebimento parcial'),
+        (REPOSICAO_TOTAL, 'Reposição total'),
+        (REPOSICAO_PARCIAL, 'Reposição parcial'),
+        (CANCELADA, 'Cancelada'),
+    )
+
+    transitions = (
+        ('distribuidor_registra_insucesso', PENDENTE_DE_CONFERENCIA, DISTRIBUIDOR_REGISTRA_INSUCESSO),
+        ('escola_recebe', PENDENTE_DE_CONFERENCIA, RECEBIDA),
+        ('escola_nao_recebe', PENDENTE_DE_CONFERENCIA, NAO_RECEBIDA),
+        ('escola_recebe_parcial', PENDENTE_DE_CONFERENCIA, RECEBIMENTO_PARCIAL),
+        ('reposicao_parcial', [NAO_RECEBIDA, RECEBIMENTO_PARCIAL], REPOSICAO_PARCIAL),
+        ('reposicao_total', [NAO_RECEBIDA, RECEBIMENTO_PARCIAL], REPOSICAO_TOTAL),
+    )
+
+    initial_state = AGUARDANDO_ENVIO
 
 
 class DietaEspecialWorkflow(xwf_models.Workflow):
@@ -264,7 +311,7 @@ class DietaEspecialWorkflow(xwf_models.Workflow):
         ('cancelar_pedido', [CODAE_A_AUTORIZAR,
                              ESCOLA_SOLICITOU_INATIVACAO], ESCOLA_CANCELOU),
         ('inicia_fluxo_inativacao', [
-         CODAE_AUTORIZADO, TERCEIRIZADA_TOMOU_CIENCIA], ESCOLA_SOLICITOU_INATIVACAO),
+            CODAE_AUTORIZADO, TERCEIRIZADA_TOMOU_CIENCIA], ESCOLA_SOLICITOU_INATIVACAO),
         ('codae_nega_inativacao', ESCOLA_SOLICITOU_INATIVACAO, CODAE_NEGOU_INATIVACAO),
         ('codae_autoriza_inativacao',
          ESCOLA_SOLICITOU_INATIVACAO, CODAE_AUTORIZOU_INATIVACAO),
@@ -367,16 +414,18 @@ class FluxoSolicitacaoRemessa(xwf_models.WorkflowEnabled, models.Model):
         raise NotImplementedError('Deve criar um método de envio de email as partes interessadas')  # noqa
 
     def _envia_email_dilog_envia_solicitacao_para_distibuidor(self, log_transicao):
+        url = f'{env("REACT_APP_URL")}/logistica/gestao-requisicao-entrega?numero_requisicao={self.numero_solicitacao}'
         html = render_to_string(
             template_name='logistica_dilog_envia_solicitacao.html',
             context={
-                'titulo': f'Nova solicitação N° {self.numero_solicitacao} para Entrega de Alimento',
+                'titulo': f'Nova Requisição de Entrega N° {self.numero_solicitacao}',
                 'solicitacao': self.numero_solicitacao,
                 'log_transicao': log_transicao,
+                'url': url
             }
         )
         envia_email_unico_task.delay(
-            assunto=f'[SIGPAE] Nova solicitação N° {self.numero_solicitacao} para Entrega de Alimento',
+            assunto=f'[SIGPAE] Nova Requisição de Entrega N° {self.numero_solicitacao}',
             email=self.distribuidor.responsavel_email,
             corpo='',
             html=html
@@ -389,6 +438,7 @@ class FluxoSolicitacaoRemessa(xwf_models.WorkflowEnabled, models.Model):
                                                   usuario=user,
                                                   justificativa=kwargs.get('justificativa', ''))
 
+        self.guias.update(status=GuiaRemessaWorkFlow.AGUARDANDO_CONFIRMACAO)
         self._envia_email_dilog_envia_solicitacao_para_distibuidor(log_transicao=log_transicao)
 
     @xworkflows.after_transition('empresa_atende')
@@ -397,6 +447,8 @@ class FluxoSolicitacaoRemessa(xwf_models.WorkflowEnabled, models.Model):
         self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.DISTRIBUIDOR_CONFIRMA_SOLICITACAO,
                                   usuario=user,
                                   justificativa=kwargs.get('justificativa', ''))
+
+        self.guias.update(status=GuiaRemessaWorkFlow.PENDENTE_DE_CONFERENCIA)
 
     @xworkflows.after_transition('cancela_solicitacao')
     def _cancela_solicitacao_hook(self, *args, **kwargs):
@@ -412,6 +464,20 @@ class FluxoSolicitacaoRemessa(xwf_models.WorkflowEnabled, models.Model):
                                   usuario=user,
                                   justificativa=kwargs.get('justificativa', ''))
 
+    @xworkflows.after_transition('dilog_aceita_alteracao')
+    def _dilog_aceita_alteracao_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.DILOG_ACEITA_ALTERACAO,
+                                  usuario=user,
+                                  justificativa=kwargs.get('justificativa', ''))
+
+    @xworkflows.after_transition('dilog_nega_alteracao')
+    def _dilog_nega_alteracao_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.DILOG_NEGA_ALTERACAO,
+                                  usuario=user,
+                                  justificativa=kwargs.get('justificativa', ''))
+
     class Meta:
         abstract = True
 
@@ -423,22 +489,146 @@ class FluxoSolicitacaoDeAlteracao(xwf_models.WorkflowEnabled, models.Model):
     def salvar_log_transicao(self, status_evento, usuario, **kwargs):
         raise NotImplementedError('Deve criar um método salvar_log_transicao')
 
-    def _preenche_template_e_envia_email(self, assunto, titulo, user, partes_interessadas):
-        raise NotImplementedError('Deve criar um método de envio de email as partes interessadas')  # noqa
+    def _preenche_template_e_envia_email(self, template, assunto, titulo, partes_interessadas, log_transicao, situacao):
+        html = render_to_string(
+            template_name=template,
+            context={
+                'titulo': titulo,
+                'solicitacao': self.numero_solicitacao,
+                'log_transicao': log_transicao,
+                'situacao': situacao
+            }
+        )
+        envia_email_em_massa_task.delay(
+            assunto=assunto,
+            emails=partes_interessadas,
+            corpo='',
+            html=html
+        )
+
+    def _partes_interessadas_dilog(self):
+        # Envia email somente para COORDENADOR_LOGISTICA.
+        queryset = Usuario.objects.filter(
+            vinculos__perfil__nome__in=(
+                'COORDENADOR_LOGISTICA',
+            )
+        )
+        return [usuario.email for usuario in queryset]
+
+    def _partes_interessadas_distribuidor(self):
+        # Envia email somente para vinculos do distribuidor.
+        email_query_set_distribuidor = self.requisicao.distribuidor.vinculos.filter(
+            ativo=True
+        ).values_list('usuario__email', flat=True)
+
+        return [email for email in email_query_set_distribuidor]
+
+    def _envia_email_distribuidor_solicita_alteracao(self, log_transicao, partes_interessadas):
+        base_url = f'{env("REACT_APP_URL")}'
+        url = f'{base_url}/logistica/gestao-solicitacao-alteracao?numero_solicitacao={self.numero_solicitacao}'
+        html = render_to_string(
+            template_name='logistica_dilog_envia_solicitacao.html',
+            context={
+                'titulo': f'Solicitação de alteração N° {self.numero_solicitacao}',
+                'solicitacao': self.numero_solicitacao,
+                'log_transicao': log_transicao,
+                'url': url
+            }
+        )
+        envia_email_em_massa_task.delay(
+            assunto=f'[SIGPAE] Solicitação de Alteração N° {self.numero_solicitacao}',
+            emails=partes_interessadas,
+            corpo='',
+            html=html
+        )
+
+    @xworkflows.after_transition('inicia_fluxo')
+    def _inicia_fluxo_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        log_transicao = self.salvar_log_transicao(
+            status_evento=LogSolicitacoesUsuario.DISTRIBUIDOR_SOLICITA_ALTERACAO_SOLICITACAO,
+            usuario=user,
+            justificativa=kwargs.get('justificativa', ''))
+
+        partes_interessadas = self._partes_interessadas_dilog()
+
+        self._envia_email_distribuidor_solicita_alteracao(log_transicao=log_transicao,
+                                                          partes_interessadas=partes_interessadas)
 
     @xworkflows.after_transition('dilog_aceita')
     def _dilog_aceita_hook(self, *args, **kwargs):
         user = kwargs['user']
-        self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.DILOG_ACEITA_ALTERACAO,
-                                  usuario=user,
-                                  justificativa=kwargs.get('justificativa', ''))
+        log_transicao = self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.DILOG_ACEITA_ALTERACAO,
+                                                  usuario=user, justificativa=kwargs.get('justificativa', ''))
+        # Monta e-mail de aceite
+        titulo = 'Solicitação de alteração aceita.'
+        assunto = f'[SIGPAE] Resposta à Solicitação de Alteração N° {self.numero_solicitacao}'
+        situacao = 'aceita'
+        template = 'logistica_dilog_aceita_ou_nega_alteracao.html'
+        partes_interessadas = self._partes_interessadas_distribuidor()
+
+        self._preenche_template_e_envia_email(template, assunto, titulo, partes_interessadas, log_transicao, situacao)
 
     @xworkflows.after_transition('dilog_nega')
     def _dilog_nega_hook(self, *args, **kwargs):
         user = kwargs['user']
-        self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.DILOG_NEGA_ALTERACAO,
-                                  usuario=user,
-                                  justificativa=kwargs.get('justificativa', ''))
+        log_transicao = self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.DILOG_NEGA_ALTERACAO,
+                                                  usuario=user, justificativa=kwargs.get('justificativa', ''))
+
+        # Monta e-mail de negação
+        titulo = 'Solicitação de alteração negada.'
+        assunto = f'[SIGPAE] Resposta à Solicitação de Alteração N° {self.numero_solicitacao}'
+        situacao = 'negada'
+        template = 'logistica_dilog_aceita_ou_nega_alteracao.html'
+        partes_interessadas = self._partes_interessadas_distribuidor()
+
+        self._preenche_template_e_envia_email(template, assunto, titulo, partes_interessadas, log_transicao, situacao)
+
+    class Meta:
+        abstract = True
+
+
+class FluxoGuiaRemessa(xwf_models.WorkflowEnabled, models.Model):
+    workflow_class = GuiaRemessaWorkFlow
+    status = xwf_models.StateField(workflow_class)
+
+    def salvar_log_transicao(self, status_evento, usuario, **kwargs):
+        raise NotImplementedError('Deve criar um método salvar_log_transicao')
+
+    def _preenche_template_e_envia_email(self, assunto, titulo, user, partes_interessadas):
+        raise NotImplementedError('Deve criar um método de envio de email as partes interessadas')  # noqa
+
+    @xworkflows.after_transition('distribuidor_registra_insucesso')
+    def _distribuidor_registra_insucesso_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        self.salvar_log_transicao(
+            status_evento=LogSolicitacoesUsuario.ABASTECIMENTO_GUIA_DE_REMESSA,
+            usuario=user,
+            justificativa=kwargs.get('justificativa', ''))
+
+    @xworkflows.after_transition('escola_recebe')
+    def _escola_recebe_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        self.salvar_log_transicao(
+            status_evento=LogSolicitacoesUsuario.ABASTECIMENTO_GUIA_DE_REMESSA,
+            usuario=user,
+            justificativa=kwargs.get('justificativa', ''))
+
+    @xworkflows.after_transition('escola_nao_recebe')
+    def _escola_nao_recebe_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        self.salvar_log_transicao(
+            status_evento=LogSolicitacoesUsuario.ABASTECIMENTO_GUIA_DE_REMESSA,
+            usuario=user,
+            justificativa=kwargs.get('justificativa', ''))
+
+    @xworkflows.after_transition('escola_recebe_parcial')
+    def _escola_recebe_parcial_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        self.salvar_log_transicao(
+            status_evento=LogSolicitacoesUsuario.ABASTECIMENTO_GUIA_DE_REMESSA,
+            usuario=user,
+            justificativa=kwargs.get('justificativa', ''))
 
     class Meta:
         abstract = True
