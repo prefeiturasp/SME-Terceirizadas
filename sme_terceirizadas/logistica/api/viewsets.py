@@ -252,8 +252,8 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
         usuario = request.user
 
         try:
+            confirma_guias(solicitacao=solicitacao, user=usuario)
             solicitacao.empresa_atende(user=usuario, )
-            confirma_guias(solicitacao, usuario)
             serializer = SolicitacaoRemessaSerializer(solicitacao)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -268,8 +268,8 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
 
         try:
             for solicitacao in solicitacoes:
-                solicitacao.empresa_atende(user=usuario,)
                 confirma_guias(solicitacao, usuario)
+                solicitacao.empresa_atende(user=usuario,)
             return Response(status=HTTP_200_OK)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
