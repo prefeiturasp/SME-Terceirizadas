@@ -387,8 +387,10 @@ class SolicitacoesCODAE(MoldeConsolidado):
     def get_pendentes_autorizacao(cls, **kwargs):
         manager = cls._get_manager(kwargs)
         return manager.filter(
-            status_evento__in=cls.PENDENTES_EVENTO,
-            status_atual__in=cls.PENDENTES_STATUS
+            (Q(status_evento__in=cls.PENDENTES_EVENTO) &
+                Q(status_atual__in=cls.PENDENTES_STATUS)) |
+            (Q(desc_doc='Kit Lanche Passeio Unificado') &
+                Q(status_atual='CODAE_A_AUTORIZAR'))
         ).exclude(tipo_doc=cls.TP_SOL_DIETA_ESPECIAL).distinct('data_log').order_by('-data_log')
 
     @classmethod
@@ -484,10 +486,8 @@ class SolicitacoesEscola(MoldeConsolidado):
                         ]
 
     AUTORIZADOS_STATUS = [PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO,
-                          PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_TOMOU_CIENCIA,
-                          InformativoPartindoDaEscolaWorkflow.INFORMADO]
+                          PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_TOMOU_CIENCIA]
     AUTORIZADOS_EVENTO = [LogSolicitacoesUsuario.TERCEIRIZADA_TOMOU_CIENCIA,
-                          LogSolicitacoesUsuario.INICIO_FLUXO,
                           LogSolicitacoesUsuario.CODAE_AUTORIZOU]
 
     CANCELADOS_STATUS = [PedidoAPartirDaEscolaWorkflow.ESCOLA_CANCELOU]
@@ -604,9 +604,14 @@ class SolicitacoesEscola(MoldeConsolidado):
 
     @classmethod
     def get_autorizados(cls, **kwargs):
+        from sme_terceirizadas.kit_lanche.models import SolicitacaoKitLancheUnificada
+        from django.db.models import Q
+
         escola_uuid = kwargs.get('escola_uuid')
+        uuids_solicitacao_unificadas = SolicitacaoKitLancheUnificada.objects.filter(
+            escolas_quantidades__escola__uuid=escola_uuid).values_list('uuid', flat=True)
         return cls.objects.filter(
-            escola_uuid=escola_uuid,
+            Q(escola_uuid=escola_uuid) | Q(uuid__in=uuids_solicitacao_unificadas),
             status_atual__in=cls.AUTORIZADOS_STATUS,
             status_evento__in=cls.AUTORIZADOS_EVENTO
         ).exclude(tipo_doc=cls.TP_SOL_DIETA_ESPECIAL).distinct().order_by('-data_log')
