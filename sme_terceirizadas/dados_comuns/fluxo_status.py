@@ -615,11 +615,14 @@ class FluxoGuiaRemessa(xwf_models.WorkflowEnabled, models.Model):
 
     def _partes_interessadas_escola(self):
         # Envia email somente para usuários ativos vinculados a escola da guia
-        email_query_set_escola = self.escola.vinculos.filter(
-            ativo=True
-        ).values_list('usuario__email', flat=True)
+        if self.escola:
+            email_query_set_escola = self.escola.vinculos.filter(
+                ativo=True
+            ).values_list('usuario__email', flat=True)
 
-        return [email for email in email_query_set_escola]
+            return [email for email in email_query_set_escola]
+        else:
+            return []
 
     @xworkflows.after_transition('distribuidor_confirma_guia')
     def _distribuidor_confirma_guia_hook(self, *args, **kwargs):
