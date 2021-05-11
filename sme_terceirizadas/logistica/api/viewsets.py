@@ -400,12 +400,26 @@ class GuiaDaRequisicaoModelViewSet(viewsets.ModelViewSet):
         serializer = GuiaDaRemessaComDistribuidorSerializer(queryset, many=True)
         return Response(serializer.data)
 
-    @action(detail=False, methods=['GET'], url_path='guia-por-id', permission_classes=(UsuarioEscolaAbastecimento,))
-    def lista_guia_por_uuid(self, request):
-        # TODO: Decidir se o método servirá apenas pra conferencia de guia, caso sim, checar status e escola da guia
+    @action(detail=False, methods=['GET'],
+            url_path='guia-para-conferencia', permission_classes=(UsuarioEscolaAbastecimento,))
+    def lista_guia_para_conferencia(self, request):
+        escola = request.user.vinculo_atual.instituicao
         uuid = request.query_params.get('uuid', None)
-        queryset = self.get_queryset().filter(uuid=uuid)
-        serializer = GuiaDaRemessaComAlimentoSerializer(queryset, many=True)
+        queryset = self.get_queryset().filter(uuid=uuid).first()
+        status_invalidos = (
+            GuiaRemessaWorkFlow.CANCELADA,
+            GuiaRemessaWorkFlow.AGUARDANDO_ENVIO,
+            GuiaRemessaWorkFlow.AGUARDANDO_CONFIRMACAO
+        )
+        if queryset.status in status_invalidos:
+            return Response(dict(
+                detail=f'Erro ao buscar guia: Essa guia não está pronta para o processo de conferencia'
+            ), status=HTTP_400_BAD_REQUEST)
+        if queryset.escola != escola:
+            return Response(dict(
+                detail=f'Erro ao buscar guia: Essa guia não pertence a sua escola'
+            ), status=HTTP_400_BAD_REQUEST)
+        serializer = GuiaDaRemessaComAlimentoSerializer(queryset)
         return Response(serializer.data)
 
     @action(detail=False, methods=['PATCH'], url_path='vincula-guias')
