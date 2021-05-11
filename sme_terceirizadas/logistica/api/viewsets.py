@@ -40,6 +40,7 @@ from sme_terceirizadas.logistica.api.services.exporta_para_excel import Requisic
 from sme_terceirizadas.logistica.models import Alimento, Embalagem
 from sme_terceirizadas.logistica.models import Guia as GuiasDasRequisicoes
 from sme_terceirizadas.logistica.models import SolicitacaoDeAlteracaoRequisicao, SolicitacaoRemessa
+from sme_terceirizadas.logistica.services import confirma_guias
 
 from ...escola.models import Escola
 from ...relatorios.relatorios import get_pdf_guia_distribuidor
@@ -252,6 +253,7 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
 
         try:
             solicitacao.empresa_atende(user=usuario, )
+            confirma_guias(solicitacao, usuario)
             serializer = SolicitacaoRemessaSerializer(solicitacao)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -267,6 +269,7 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
         try:
             for solicitacao in solicitacoes:
                 solicitacao.empresa_atende(user=usuario,)
+                confirma_guias(solicitacao, usuario)
             return Response(status=HTTP_200_OK)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
