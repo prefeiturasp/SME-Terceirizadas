@@ -2,13 +2,9 @@ from unicodedata import normalize
 
 from django.db.models import Case, Value, When
 from django.db.models.fields import CharField
-from rest_framework.response import Response
-from rest_framework.status import HTTP_400_BAD_REQUEST
-from xworkflows.base import InvalidTransitionError
 
 from sme_terceirizadas.dados_comuns.fluxo_status import SolicitacaoRemessaWorkFlow
 from sme_terceirizadas.escola.models import Escola
-from sme_terceirizadas.logistica.models import Guia
 
 
 def remove_acentos_de_strings(nome: str) -> str:
@@ -115,12 +111,3 @@ def retorna_dados_normalizados_excel_visao_dilog(queryset):
                 requisicao['codigo_eol_unidade'] = escola.get('codigo_eol', '')
 
     return requisicoes
-
-
-def confirma_guias(requisicao, user):
-    guias = Guia.objects.filter(solicitacao=requisicao)
-    try:
-        for guia in guias:
-            guia.distribuidor_confirma_guia(user)
-    except InvalidTransitionError as e:
-        return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)

@@ -40,16 +40,13 @@ from sme_terceirizadas.logistica.api.services.exporta_para_excel import Requisic
 from sme_terceirizadas.logistica.models import Alimento, Embalagem
 from sme_terceirizadas.logistica.models import Guia as GuiasDasRequisicoes
 from sme_terceirizadas.logistica.models import SolicitacaoDeAlteracaoRequisicao, SolicitacaoRemessa
+from sme_terceirizadas.logistica.services import confirma_guias
 
 from ...escola.models import Escola
 from ...relatorios.relatorios import get_pdf_guia_distribuidor
 from ..utils import GuiaPagination, RequisicaoPagination, SolicitacaoAlteracaoPagination
 from .filters import GuiaFilter, SolicitacaoAlteracaoFilter, SolicitacaoFilter
-from .helpers import (
-    confirma_guias,
-    retorna_dados_normalizados_excel_visao_dilog,
-    retorna_dados_normalizados_excel_visao_distribuidor
-)
+from .helpers import retorna_dados_normalizados_excel_visao_dilog, retorna_dados_normalizados_excel_visao_distribuidor
 
 STR_XML_BODY = '{http://schemas.xmlsoap.org/soap/envelope/}Body'
 STR_ARQUIVO_SOLICITACAO = 'ArqSolicitacaoMOD'

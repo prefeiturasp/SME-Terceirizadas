@@ -622,7 +622,7 @@ class FluxoGuiaRemessa(xwf_models.WorkflowEnabled, models.Model):
         return [email for email in email_query_set_escola]
 
     @xworkflows.after_transition('distribuidor_confirma_guia')
-    def _distribuidor_confirma_guia(self, *args, **kwargs):
+    def _distribuidor_confirma_guia_hook(self, *args, **kwargs):
         user = kwargs['user']
         log_transicao = self.salvar_log_transicao(
             status_evento=LogSolicitacoesUsuario.ABASTECIMENTO_GUIA_DE_REMESSA,
