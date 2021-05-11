@@ -4,104 +4,109 @@
 {% load static %}
 
 {% block conteudo %}
-  <link rel="stylesheet" href="{% sass_src 'css/dieta_especial_protocolo.scss' %}" type="text/css">
-  <div class="conteudo dieta-especial-protocolo">
-    <div  class="tabela-dados-solicitacao">
-      <table>
-        <thead>
+<link rel="stylesheet" href="{% sass_src 'css/dieta_especial_protocolo.scss' %}" type="text/css">
+<div class="conteudo dieta-especial-protocolo">
+  <div class="tabela-dados-solicitacao">
+    <table>
+      <thead>
         <tr>
-        {% if solicitacao.tipo_solicitacao == 'ALUNO_NAO_MATRICULADO' %}
-           <th class="w-25">CPF do Aluno</th>
-        {% else %}
-            <th class="w-25">Cód. EOL do Aluno</th>
-        {% endif %}
+          {% if solicitacao.tipo_solicitacao == 'ALUNO_NAO_MATRICULADO' %}
+          <th class="w-25">CPF do Aluno</th>
+          {% else %}
+          <th class="w-25">Cód. EOL do Aluno</th>
+          {% endif %}
           <th class="w-40">Nome Completo do Aluno</th>
           <th class="w-25">Data de Nascimento</th>
         </tr>
-        </thead>
-        <tbody>
+      </thead>
+      <tbody>
         <tr>
-        {% if solicitacao.tipo_solicitacao == 'ALUNO_NAO_MATRICULADO' %}
+          {% if solicitacao.tipo_solicitacao == 'ALUNO_NAO_MATRICULADO' %}
           <td>{{ solicitacao.aluno.cpf|default:'' }}</td>
-        {% else %}
+          {% else %}
           <td>{{ solicitacao.aluno.codigo_eol|default:'' }}</td>
-        {% endif %}
+          {% endif %}
           <td>{{ solicitacao.aluno.nome }}</td>
           <td>{{ solicitacao.aluno.data_nascimento|date:"SHORT_DATE_FORMAT" }}</td>
         </tr>
-        </tbody>
-      </table>
-      {% if solicitacao.tipo_solicitacao == 'ALUNO_NAO_MATRICULADO' %}
-          <table>
-            <tr>
-              <th class="w-25">CPF do Responsável</th>
-              <th class="w-40">Nome completo do Responsável</th>
-              <th class="w-25" />
-            </tr>
-          {%with responsavel=solicitacao.aluno.responsaveis.first %}
-            <tr>
-              <td>{{ responsavel.cpf|default:'' }}</td>
-              <td>{{ responsavel.nome }}</td>
-            </tr>
-            <tr/>
-          {% endwith %}
-        </table>
-      {% endif %}
-      <table>
-        <tr>
-          <th class="w-25">Data de aceite do laudo</th>
-          <th class="w-40">Data de término da dieta</th>
-          <th class="w-25" />
-        </tr>
+      </tbody>
+    </table>
+    {% if solicitacao.tipo_solicitacao == 'ALUNO_NAO_MATRICULADO' %}
+    <table>
+      <tr>
+        <th class="w-25">CPF do Responsável</th>
+        <th class="w-40">Nome completo do Responsável</th>
+        <th class="w-25" />
+      </tr>
+      {%with responsavel=solicitacao.aluno.responsaveis.first %}
+      <tr>
+        <td>{{ responsavel.cpf|default:'' }}</td>
+        <td>{{ responsavel.nome }}</td>
+      </tr>
+      <tr />
+      {% endwith %}
+    </table>
+    {% endif %}
+    <table>
+      <tr>
+        <th class="w-25">Data de aceite do laudo</th>
+        <th class="w-40">Data de término da dieta</th>
+        <th class="w-25" />
+      </tr>
       <tr>
         <td>{{ solicitacao.data_inicio|date:"SHORT_DATE_FORMAT"|default:'Sem data de início' }}</td>
         <td>{{ solicitacao.data_termino|date:"SHORT_DATE_FORMAT"|default:'Sem data de término' }}</td>
       </tr>
-      </table>
-    </div>
-    <h5>
-      {{ solicitacao.nome_protocolo | upper }}
-    </h5>
-    <p><strong>1. Orientações</strong></p>
-    <p>O Diretor da U.E. e a Empresa devem verificar:</p>
-    {% if data_termino %}
-      <p>- Esta dieta especial terá seu fornecimento encerrado em {{ data_termino }}</p>
-    {% endif %}
-    <p>- A Unidade Educacional deverá acompanhar se o cardápio publicado está de acordo com a relação de alimentos substitutos a seguir levando em consideração os alimentos recebidos pela unidade de acordo com a faixa etária. Em caso de dúvida, solicitar auxílio ao Nutricionista RT e ao Nutricionista Supervisor.</p>
-    <p><strong>2. Relação de Alimentos para Substituição</strong></p>
-    <p>A empresa deverá compor o cardápio de acordo com a relação de alimentos substitutos.</p>
-    <table class="table-dieta-especial">
-      <thead>
-        <tr>
-          <th>Alimento</th>
-          <th>Tipo</th>
-          <th>Isenção/Substituição</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for substituicao in solicitacao.substituicoes %}
-          <tr>
-            <td>{{ substituicao.alimento }}</td>
-            <td className="tipo">
-              {% if substituicao.tipo == 'I' %}
-                Isenção
-              {% elif substituicao.tipo == 'S' %}
-                Substituição
-              {% endif %}
-            </td>
-            <td>
-              {{ substituicao.substitutos.all|join:", " }}
-            </td>
-          </tr>
-        {% endfor %}
-      </tbody>
     </table>
-    {% if solicitacao.informacoes_adicionais %}
-      <p><strong>3. Informações Adicionais</strong></p>
-      <div class="protocolo-dieta-informacoes-adicionais">
-        {{ solicitacao.informacoes_adicionais|safe }}
-      </div>
-    {% endif %}
-    <p class="rodape">*A fim de evitar a monotonia dos cardápios das dietas especiais e considerando a disponibilidade dos alimentos no mercado, os alimentos substitutos para dietas especiais deverão acompanhar a variação dos sabores conforme os indicados nos cardápios publicados, destinados aos demais alunos da rede terceirizada. Neste mesmo sentido, também deverão ser alternadas as opções de subsituição de cada alimento.</p>
   </div>
+  <h5>
+    {{ solicitacao.nome_protocolo | upper }}
+  </h5>
+  <p><strong>1. Orientações</strong></p>
+  <p>O Diretor da U.E. e a Empresa devem verificar:</p>
+  {% if data_termino %}
+  <p>- Esta dieta especial terá seu fornecimento encerrado em {{ data_termino }}</p>
+  {% endif %}
+  <p>- A Unidade Educacional deverá acompanhar se o cardápio publicado está de acordo com a relação de alimentos
+    substitutos a seguir levando em consideração os alimentos recebidos pela unidade de acordo com a faixa etária. Em
+    caso de dúvida, solicitar auxílio ao Nutricionista RT e ao Nutricionista Supervisor.</p>
+  <p><strong>2. Relação de Alimentos para Substituição</strong></p>
+  <p>A empresa deverá compor o cardápio de acordo com a relação de alimentos substitutos.</p>
+  <table class="table-dieta-especial">
+    <thead>
+      <tr>
+        <th>Alimento</th>
+        <th>Tipo</th>
+        <th>Isenção/Substituição</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for substituicao in solicitacao.substituicoes %}
+      <tr>
+        <td>{{ substituicao.alimento }}</td>
+        <td className="tipo">
+          {% if substituicao.tipo == 'I' %}
+          Isenção
+          {% elif substituicao.tipo == 'S' %}
+          Substituição
+          {% endif %}
+        </td>
+        <td>
+          {{ substituicao.alimentos_substitutos.all|join:", " }}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% if solicitacao.informacoes_adicionais %}
+  <p><strong>3. Informações Adicionais</strong></p>
+  <div class="protocolo-dieta-informacoes-adicionais">
+    {{ solicitacao.informacoes_adicionais|safe }}
+  </div>
+  {% endif %}
+  <p class="rodape">*A fim de evitar a monotonia dos cardápios das dietas especiais e considerando a disponibilidade dos
+    alimentos no mercado, os alimentos substitutos para dietas especiais deverão acompanhar a variação dos sabores
+    conforme os indicados nos cardápios publicados, destinados aos demais alunos da rede terceirizada. Neste mesmo
+    sentido, também deverão ser alternadas as opções de subsituição de cada alimento.</p>
+</div>
 {% endblock %}

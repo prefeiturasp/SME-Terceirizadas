@@ -162,6 +162,7 @@ class CODAESolicitacoesViewSet(SolicitacoesViewSet):
                                                                 filtro=filtro_aplicado)
         response = {'results': self._agrupa_por_tipo_visao(
             tipo_visao=tipo_visao, query_set=query_set)}
+
         return Response(response)
 
     @action(detail=False,
