@@ -951,7 +951,9 @@ class SolicitacoesTerceirizada(MoldeConsolidado):
 
     @classmethod
     def get_autorizadas_temporariamente_dieta_especial(cls, **kwargs):
+        terceirizada_uuid = kwargs.get('terceirizada_uuid')
         return cls.objects.filter(
+            terceirizada_uuid=terceirizada_uuid,
             status_atual__in=cls.AUTORIZADO_STATUS_DIETA_ESPECIAL,
             status_evento__in=cls.AUTORIZADO_EVENTO_DIETA_ESPECIAL,
             tipo_doc=cls.TP_SOL_DIETA_ESPECIAL,
@@ -961,7 +963,9 @@ class SolicitacoesTerceirizada(MoldeConsolidado):
 
     @classmethod
     def get_inativas_temporariamente_dieta_especial(cls, **kwargs):
+        terceirizada_uuid = kwargs.get('terceirizada_uuid')
         qs = SolicitacaoDietaEspecial.objects.filter(
+            rastro_terceirizada__uuid=terceirizada_uuid,
             dieta_alterada__isnull=False
         ).only('dieta_alterada_id').values('dieta_alterada_id')
         ids_alterados = [s['dieta_alterada_id'] for s in qs]
