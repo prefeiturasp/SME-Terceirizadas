@@ -1,7 +1,14 @@
 from django.contrib import admin
 
-from .models import Alimento, Embalagem, Guia, SolicitacaoDeAlteracaoRequisicao, SolicitacaoRemessa, TipoEmbalagem, \
-    ConferenciaGuia
+from .models import (
+    Alimento,
+    ConferenciaGuia,
+    Embalagem,
+    Guia,
+    SolicitacaoDeAlteracaoRequisicao,
+    SolicitacaoRemessa,
+    TipoEmbalagem
+)
 from .services import inativa_tipos_de_embabalagem
 
 

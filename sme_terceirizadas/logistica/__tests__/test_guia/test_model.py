@@ -1,7 +1,7 @@
 import pytest
 from django.contrib.auth import get_user_model
 
-from ...models.guia import Guia, ConferenciaGuia
+from ...models.guia import ConferenciaGuia, Guia
 
 pytestmark = pytest.mark.django_db
 
