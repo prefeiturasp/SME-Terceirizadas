@@ -1,4 +1,4 @@
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db.models import Count, F, FloatField, Max, Sum
 from django.db.utils import DataError
 from django.http.response import HttpResponse
@@ -7,7 +7,13 @@ from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_400_BAD_REQUEST, HTTP_406_NOT_ACCEPTABLE
+from rest_framework.status import (
+    HTTP_200_OK,
+    HTTP_201_CREATED,
+    HTTP_400_BAD_REQUEST,
+    HTTP_404_NOT_FOUND,
+    HTTP_406_NOT_ACCEPTABLE
+)
 from xworkflows.base import InvalidTransitionError
 
 from sme_terceirizadas.dados_comuns.fluxo_status import GuiaRemessaWorkFlow, SolicitacaoRemessaWorkFlow
@@ -25,7 +31,6 @@ from sme_terceirizadas.logistica.api.serializers.serializer_create import (
 from sme_terceirizadas.logistica.api.serializers.serializers import (
     AlimentoDaGuiaDaRemessaSerializer,
     AlimentoDaGuiaDaRemessaSimplesSerializer,
-    GuiaDaRemessaComAlimentoSerializer,
     GuiaDaRemessaComDistribuidorSerializer,
     GuiaDaRemessaSerializer,
     GuiaDaRemessaSimplesSerializer,
@@ -46,7 +51,11 @@ from ...escola.models import Escola
 from ...relatorios.relatorios import get_pdf_guia_distribuidor
 from ..utils import GuiaPagination, RequisicaoPagination, SolicitacaoAlteracaoPagination
 from .filters import GuiaFilter, SolicitacaoAlteracaoFilter, SolicitacaoFilter
-from .helpers import retorna_dados_normalizados_excel_visao_dilog, retorna_dados_normalizados_excel_visao_distribuidor
+from .helpers import (
+    retorna_dados_normalizados_excel_visao_dilog,
+    retorna_dados_normalizados_excel_visao_distribuidor,
+    valida_guia_conferencia
+)
 
 STR_XML_BODY = '{http://schemas.xmlsoap.org/soap/envelope/}Body'
 STR_ARQUIVO_SOLICITACAO = 'ArqSolicitacaoMOD'
@@ -404,23 +413,13 @@ class GuiaDaRequisicaoModelViewSet(viewsets.ModelViewSet):
             url_path='guia-para-conferencia', permission_classes=(UsuarioEscolaAbastecimento,))
     def lista_guia_para_conferencia(self, request):
         escola = request.user.vinculo_atual.instituicao
-        uuid = request.query_params.get('uuid', None)
-        queryset = self.get_queryset().filter(uuid=uuid).first()
-        status_invalidos = (
-            GuiaRemessaWorkFlow.CANCELADA,
-            GuiaRemessaWorkFlow.AGUARDANDO_ENVIO,
-            GuiaRemessaWorkFlow.AGUARDANDO_CONFIRMACAO
-        )
-        if queryset.status in status_invalidos:
-            return Response(dict(
-                detail=f'Erro ao buscar guia: Essa guia não está pronta para o processo de conferencia'
-            ), status=HTTP_400_BAD_REQUEST)
-        if queryset.escola != escola:
-            return Response(dict(
-                detail=f'Erro ao buscar guia: Essa guia não pertence a sua escola'
-            ), status=HTTP_400_BAD_REQUEST)
-        serializer = GuiaDaRemessaComAlimentoSerializer(queryset)
-        return Response(serializer.data)
+        try:
+            uuid = request.query_params.get('uuid', None)
+            queryset = self.get_queryset().filter(uuid=uuid)
+            return valida_guia_conferencia(queryset, escola)
+        except ValidationError as e:
+            return Response(dict(detail=f'Erro: {e}', status=False),
+                            status=HTTP_404_NOT_FOUND)
 
     @action(detail=False, methods=['PATCH'], url_path='vincula-guias')
     def vincula_guias_com_escolas(self, request):
