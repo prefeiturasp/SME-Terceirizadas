@@ -37,6 +37,11 @@ def escola(lote):
 
 
 @pytest.fixture
+def escola_com_guia(lote):
+    return models.Escola.objects.get(uuid='b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd')
+
+
+@pytest.fixture
 def guia(solicitacao, escola):
     return mommy.make(
         'Guia',
@@ -54,6 +59,28 @@ def guia(solicitacao, escola):
         estado_unidade='SP',
         contato_unidade='Carlos',
         telefone_unidade='944462050'
+    )
+
+
+@pytest.fixture
+def guia_com_escola_client_autenticado(solicitacao, escola_com_guia):
+    return mommy.make(
+        'Guia',
+        solicitacao=solicitacao,
+        escola=escola_com_guia,
+        numero_guia='9876543',
+        data_entrega='2019-02-25',
+        codigo_unidade='58880',
+        nome_unidade='EMEI ALUISIO DE ALMEIDA',
+        endereco_unidade='Rua Alvaro de Azevedo Antunes',
+        numero_unidade='1200',
+        bairro_unidade='VILA CAMPESINA',
+        cep_unidade='03046059',
+        cidade_unidade='OSASCO',
+        estado_unidade='SP',
+        contato_unidade='Carlos',
+        telefone_unidade='944462050',
+        status='PENDENTE_DE_CONFERENCIA'
     )
 
 

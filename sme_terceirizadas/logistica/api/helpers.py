@@ -2,9 +2,12 @@ from unicodedata import normalize
 
 from django.db.models import Case, Value, When
 from django.db.models.fields import CharField
+from rest_framework.response import Response
+from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
 
-from sme_terceirizadas.dados_comuns.fluxo_status import SolicitacaoRemessaWorkFlow
+from sme_terceirizadas.dados_comuns.fluxo_status import GuiaRemessaWorkFlow, SolicitacaoRemessaWorkFlow
 from sme_terceirizadas.escola.models import Escola
+from sme_terceirizadas.logistica.api.serializers.serializers import GuiaDaRemessaComAlimentoSerializer
 
 
 def remove_acentos_de_strings(nome: str) -> str:
@@ -111,3 +114,25 @@ def retorna_dados_normalizados_excel_visao_dilog(queryset):
                 requisicao['codigo_eol_unidade'] = escola.get('codigo_eol', '')
 
     return requisicoes
+
+
+def valida_guia_conferencia(queryset, escola):
+    if queryset.count() == 0:
+        return Response(dict(detail=f'Erro: Guia não encontrada', status=False),
+                        status=HTTP_404_NOT_FOUND)
+    guia = queryset.first()
+    status_invalidos = (
+        GuiaRemessaWorkFlow.CANCELADA,
+        GuiaRemessaWorkFlow.AGUARDANDO_ENVIO,
+        GuiaRemessaWorkFlow.AGUARDANDO_CONFIRMACAO
+    )
+    if guia.status in status_invalidos:
+        return Response(dict(
+            detail=f'Erro ao buscar guia: Essa guia não está pronta para o processo de conferencia'
+        ), status=HTTP_400_BAD_REQUEST)
+    if guia.escola != escola:
+        return Response(dict(
+            detail=f'Erro ao buscar guia: Essa guia não pertence a sua escola'
+        ), status=HTTP_400_BAD_REQUEST)
+    serializer = GuiaDaRemessaComAlimentoSerializer(guia)
+    return Response(serializer.data)
