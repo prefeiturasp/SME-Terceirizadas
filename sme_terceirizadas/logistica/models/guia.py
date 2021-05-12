@@ -4,6 +4,7 @@ from ...dados_comuns.behaviors import ModeloBase
 from ...dados_comuns.fluxo_status import FluxoGuiaRemessa
 from ...dados_comuns.models import LogSolicitacoesUsuario
 from ...escola.models import Escola
+from ..validators import apenas_letras_validation, letras_e_numeros_validation
 from .solicitacao import SolicitacaoRemessa
 
 
@@ -74,3 +75,19 @@ class Guia(ModeloBase, FluxoGuiaRemessa):
     class Meta:
         verbose_name = 'Guia de Remessa'
         verbose_name_plural = 'Guias de Remessas'
+
+
+class ConferenciaGuia(ModeloBase):
+    guia = models.ForeignKey(
+        Guia, on_delete=models.PROTECT, related_name='conferencias')
+    data_recebimento = models.DateField('Data de recebimento')
+    hora_recebimento = models.TimeField('Hora do recebimento')
+    nome_motorista = models.CharField('Nome do motorista', max_length=100, validators=[apenas_letras_validation])
+    placa_veiculo = models.CharField('Placa do veículo', max_length=7, validators=[letras_e_numeros_validation])
+
+    def __str__(self):
+        return f'Conferência da guia {self.guia.numero_guia}'
+
+    class Meta:
+        verbose_name = 'Conferência da Guia de Remessa'
+        verbose_name_plural = 'Conferência das Guias de Remessas'
