@@ -159,18 +159,7 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
 
     def get_lista_status(self):
         lista_status = [
-            HomologacaoDoProduto.workflow_class.TERCEIRIZADA_RESPONDEU_RECLAMACAO
-        ]
-
-        if self.request.user.tipo_usuario in [constants.TIPO_USUARIO_TERCEIRIZADA,
-                                              constants.TIPO_USUARIO_GESTAO_PRODUTO]:
-            lista_status.append(
-                HomologacaoDoProduto.workflow_class.CODAE_QUESTIONADO)
-
-        return lista_status
-
-    def get_status_todas_terceirizadas(self):
-        lista_status = [
+            HomologacaoDoProduto.workflow_class.TERCEIRIZADA_RESPONDEU_RECLAMACAO,
             HomologacaoDoProduto.workflow_class.ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
             HomologacaoDoProduto.workflow_class.CODAE_PEDIU_ANALISE_RECLAMACAO,
             HomologacaoDoProduto.workflow_class.CODAE_AUTORIZOU_RECLAMACAO,
@@ -181,6 +170,9 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
         if self.request.user.tipo_usuario in [constants.TIPO_USUARIO_TERCEIRIZADA,
                                               constants.TIPO_USUARIO_GESTAO_PRODUTO]:
             lista_status.append(
+                HomologacaoDoProduto.workflow_class.CODAE_QUESTIONADO)
+
+            lista_status.append(
                 HomologacaoDoProduto.workflow_class.CODAE_PEDIU_ANALISE_SENSORIAL)
 
             lista_status.append(
@@ -189,37 +181,42 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
         return lista_status
 
     def dados_dashboard(self, query_set: list) -> dict:
+        # TODO: é preciso fazer um refactor dessa parte do dashboard de P&D
         sumario = []
 
         query = self.get_queryset()
 
-        for workflow in self.get_status_todas_terceirizadas():
+        for workflow in self.get_lista_status():
+            q = query_set
+
+            if (workflow in [
+                HomologacaoDoProduto.workflow_class.TERCEIRIZADA_RESPONDEU_RECLAMACAO,
+                HomologacaoDoProduto.workflow_class.CODAE_QUESTIONADO] and
+                    self.request.user.tipo_usuario == constants.TIPO_USUARIO_TERCEIRIZADA):
+
+                q = query_set.filter(rastro_terceirizada=self.request.user.vinculo_atual.instituicao)
+
+            # Para o card aguardando reclamação quando o usuário é uma escola
+            if (workflow in [
+                HomologacaoDoProduto.workflow_class.ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
+                HomologacaoDoProduto.workflow_class.TERCEIRIZADA_RESPONDEU_RECLAMACAO,
+                HomologacaoDoProduto.workflow_class.CODAE_PEDIU_ANALISE_RECLAMACAO] and
+                    self.request.user.tipo_usuario == constants.TIPO_USUARIO_ESCOLA):
+
+                q = query.filter(reclamacoes__escola=self.request.user.vinculo_atual.instituicao)
+
             sumario.append({
                 'status': workflow,
-                'dados': self.get_serializer(query.filter(status=workflow),
-                                             context={'request': self.request}, many=True).data
-            })
-
-        for workflow_status in self.get_lista_status():
-            sumario.append({
-                'status': workflow_status,
-                'dados': self.get_serializer(query_set.filter(status=workflow_status),
-                                             context={'request': self.request}, many=True).data
+                'dados': self.get_serializer(
+                    q.filter(status=workflow).distinct().all(),
+                    context={'request': self.request}, many=True).data
             })
 
         return sumario
 
-    def get_queryset_dashboard(self):
-        query_set = self.get_queryset()
-        user = self.request.user
-        if user.tipo_usuario == constants.TIPO_USUARIO_TERCEIRIZADA:
-            query_set = query_set.filter(
-                rastro_terceirizada=user.vinculo_atual.instituicao)
-        return query_set
-
     @action(detail=False, methods=['GET'], url_path='dashboard')
     def dashboard(self, request):
-        query_set = self.get_queryset_dashboard()
+        query_set = self.get_queryset()
         response = {'results': self.dados_dashboard(query_set=query_set)}
         return Response(response)
 
@@ -238,6 +235,11 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
                     status__in.append('TERCEIRIZADA_RESPONDEU_RECLAMACAO')
                 filtros['status__in'] = status__in
 
+                if request.user.tipo_usuario == constants.TIPO_USUARIO_ESCOLA:
+                    filtros['reclamacoes__escola'] = request.user.vinculo_atual.instituicao
+                    if 'TERCEIRIZADA_RESPONDEU_RECLAMACAO' not in status__in:
+                        status__in.append('TERCEIRIZADA_RESPONDEU_RECLAMACAO')
+
             elif filtro_aplicado == 'codae_homologado':
 
                 if user.tipo_usuario == constants.TIPO_USUARIO_TERCEIRIZADA:
@@ -255,7 +257,7 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
                                              filtro_aplicado.upper()]
             else:
                 filtros['status'] = filtro_aplicado.upper()
-        query_set = self.get_queryset().filter(**filtros)
+        query_set = self.get_queryset().filter(**filtros).distinct()
         serializer = self.get_serializer if filtro_aplicado != constants.RASCUNHO else HomologacaoProdutoSerializer
         response = {'results': serializer(
             query_set, context={'request': request}, many=True).data}

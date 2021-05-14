@@ -2,6 +2,16 @@
 version: '3.1'
 
 services:
+  db:
+    container_name: database_sigpae
+    image: postgres:11.2-alpine
+    restart: always
+    env_file: .env
+    volumes:
+      - ./sigpae-postgres-data:/var/lib/postgresql/data
+    ports:
+      - 5441:5432
+
   celery_sigpae:
     build: .
     container_name: celery-sigpae
