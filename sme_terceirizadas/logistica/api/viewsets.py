@@ -25,12 +25,14 @@ from sme_terceirizadas.dados_comuns.permissions import (
     UsuarioEscolaAbastecimento
 )
 from sme_terceirizadas.logistica.api.serializers.serializer_create import (
+    ConferenciaDaGuiaCreateSerializer,
     SolicitacaoDeAlteracaoRequisicaoCreateSerializer,
     SolicitacaoRemessaCreateSerializer
 )
 from sme_terceirizadas.logistica.api.serializers.serializers import (
     AlimentoDaGuiaDaRemessaSerializer,
     AlimentoDaGuiaDaRemessaSimplesSerializer,
+    ConferenciaDaGuiaSerializer,
     GuiaDaRemessaComDistribuidorSerializer,
     GuiaDaRemessaSerializer,
     GuiaDaRemessaSimplesSerializer,
@@ -43,7 +45,7 @@ from sme_terceirizadas.logistica.api.serializers.serializers import (
     XmlParserSolicitacaoSerializer
 )
 from sme_terceirizadas.logistica.api.services.exporta_para_excel import RequisicoesExcelService
-from sme_terceirizadas.logistica.models import Alimento, Embalagem
+from sme_terceirizadas.logistica.models import Alimento, ConferenciaGuia, Embalagem
 from sme_terceirizadas.logistica.models import Guia as GuiasDasRequisicoes
 from sme_terceirizadas.logistica.models import SolicitacaoDeAlteracaoRequisicao, SolicitacaoRemessa
 from sme_terceirizadas.logistica.services import confirma_guias
@@ -575,3 +577,16 @@ class SolicitacaoDeAlteracaoDeRequisicaoViewset(viewsets.ModelViewSet):
             return Response(serializer.data)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+
+
+class ConferenciaDaGuiaModelViewSet(viewsets.ModelViewSet):
+    lookup_field = 'uuid'
+    queryset = ConferenciaGuia.objects.all()
+    serializer_class = ConferenciaDaGuiaSerializer
+    permission_classes = [UsuarioEscolaAbastecimento]
+
+    def get_serializer_class(self):
+        if self.action in ['retrieve', 'list']:
+            return ConferenciaDaGuiaSerializer
+        else:
+            return ConferenciaDaGuiaCreateSerializer

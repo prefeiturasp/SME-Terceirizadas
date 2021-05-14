@@ -1,6 +1,14 @@
 from django.contrib import admin
 
-from .models import Alimento, Embalagem, Guia, SolicitacaoDeAlteracaoRequisicao, SolicitacaoRemessa, TipoEmbalagem
+from .models import (
+    Alimento,
+    ConferenciaGuia,
+    Embalagem,
+    Guia,
+    SolicitacaoDeAlteracaoRequisicao,
+    SolicitacaoRemessa,
+    TipoEmbalagem
+)
 from .services import inativa_tipos_de_embabalagem
 
 
@@ -129,3 +137,14 @@ class SolicitacaoDeAlteracaoRequisicaoAdmin(admin.ModelAdmin):
 
     def motivos(self, obj):
         return obj.get_motivo_display()
+
+
+@admin.register(ConferenciaGuia)
+class ConferenciaGuiaAdmin(admin.ModelAdmin):
+    list_display = ('get_guia', 'data_recebimento')
+    search_fields = ('get_guia',)
+    readonly_fields = ('criado_em',)
+
+    def get_guia(self, obj):
+        return obj.guia.numero_guia
+    get_guia.short_description = 'Número Guia'

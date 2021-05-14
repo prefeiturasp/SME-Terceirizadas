@@ -3,12 +3,14 @@ from rest_framework import serializers
 from sme_terceirizadas.dados_comuns.api.serializers import LogSolicitacoesSerializer
 from sme_terceirizadas.logistica.models import (
     Alimento,
+    ConferenciaGuia,
     Embalagem,
     Guia,
     SolicitacaoDeAlteracaoRequisicao,
     SolicitacaoRemessa,
     TipoEmbalagem
 )
+from sme_terceirizadas.perfil.api.serializers import UsuarioVinculoSerializer
 
 
 class EmbalagemSerializer(serializers.ModelSerializer):
@@ -210,3 +212,11 @@ class SolicitacaoDeAlteracaoSimplesSerializer(serializers.ModelSerializer):
     class Meta:
         model = SolicitacaoDeAlteracaoRequisicao
         fields = ('uuid', 'numero_solicitacao')
+
+
+class ConferenciaDaGuiaSerializer(serializers.ModelSerializer):
+    criado_por = UsuarioVinculoSerializer()
+
+    class Meta:
+        model = ConferenciaGuia
+        exclude = ('id',)

@@ -1,7 +1,9 @@
+import json
+
 import pytest
 from rest_framework import status
 
-from sme_terceirizadas.logistica.models import Guia
+from sme_terceirizadas.logistica.models import ConferenciaGuia, Guia
 
 pytestmark = pytest.mark.django_db
 
@@ -54,3 +56,25 @@ def test_url_get_guia_conferencia(client_autenticado_escola_abastecimento, guia_
     assert Guia.objects.exists()
     assert Guia.objects.get(uuid=str(guia_com_escola_client_autenticado.uuid))
     assert response.status_code == status.HTTP_200_OK
+
+
+def test_url_conferir_guia_recebida(client_autenticado_escola_abastecimento, guia_com_escola_client_autenticado):
+    payload = {
+        'guia': str(guia_com_escola_client_autenticado.uuid),
+        'nome_motorista': 'José',
+        'placa_veiculo': 'AAABV44',
+        'data_recebimento': '04/04/2021',
+        'hora_recebimento': '03:04'
+    }
+
+    response = client_autenticado_escola_abastecimento.post(
+        '/conferencia-da-guia/',
+        data=json.dumps(payload),
+        content_type='application/json'
+    )
+
+    conferencia = ConferenciaGuia.objects.first()
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert conferencia.uuid
+    assert conferencia.criado_por
