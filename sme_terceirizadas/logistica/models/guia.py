@@ -1,7 +1,5 @@
 from django.db import models
 
-from sme_terceirizadas.logistica.models.validators import apenas_letras_validation, letras_e_numeros_validation
-
 from ...dados_comuns.behaviors import CriadoPor, ModeloBase
 from ...dados_comuns.fluxo_status import FluxoGuiaRemessa
 from ...dados_comuns.models import LogSolicitacoesUsuario
