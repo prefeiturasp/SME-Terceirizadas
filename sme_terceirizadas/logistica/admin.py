@@ -143,6 +143,7 @@ class SolicitacaoDeAlteracaoRequisicaoAdmin(admin.ModelAdmin):
 class ConferenciaGuiaAdmin(admin.ModelAdmin):
     list_display = ('get_guia', 'data_recebimento')
     search_fields = ('get_guia',)
+    readonly_fields = ('criado_em',)
 
     def get_guia(self, obj):
         return obj.guia.numero_guia
