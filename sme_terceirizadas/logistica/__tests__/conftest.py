@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import pytest
 from faker import Faker
 from model_mommy import mommy
@@ -95,4 +97,16 @@ def solicitacao_de_alteracao_requisicao(solicitacao, distribuidor):
         justificativa_negacao=fake.text(),
         usuario_solicitante=distribuidor,
         numero_solicitacao='00000001-ALT',
+    )
+
+
+@pytest.fixture
+def conferencia_guia(guia):
+    return mommy.make(
+        'ConferenciaGuia',
+        guia=guia,
+        data_recebimento=datetime.now(),
+        hora_recebimento=datetime.now().time(),
+        nome_motorista='José da Silva',
+        placa_veiculo='77AB75A',
     )

@@ -4,7 +4,14 @@ from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import fields, serializers
 from xworkflows.base import InvalidTransitionError
 
-from sme_terceirizadas.logistica.models import Alimento, Guia, SolicitacaoDeAlteracaoRequisicao, SolicitacaoRemessa
+from sme_terceirizadas.logistica.models import (
+    Alimento,
+    ConferenciaGuia,
+    Guia,
+    SolicitacaoDeAlteracaoRequisicao,
+    SolicitacaoRemessa
+)
+from sme_terceirizadas.perfil.api.serializers import UsuarioVinculoSerializer
 from sme_terceirizadas.terceirizada.models import Terceirizada
 
 
@@ -118,3 +125,36 @@ class SolicitacaoDeAlteracaoRequisicaoCreateSerializer(serializers.ModelSerializ
     class Meta:
         model = SolicitacaoDeAlteracaoRequisicao
         exclude = ('id', 'usuario_solicitante')
+
+
+class ConferenciaDaGuiaCreateSerializer(serializers.ModelSerializer):
+    guia = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=Guia.objects.all()
+    )
+    nome_motorista = serializers.CharField(required=True)
+    placa_veiculo = serializers.CharField(required=True)
+    data_recebimento = serializers.DateField(required=True)
+    hora_recebimento = serializers.TimeField(required=True)
+    criado_por = UsuarioVinculoSerializer(required=False)
+
+    class Meta:
+        model = ConferenciaGuia
+        exclude = ('id',)
+
+    def create(self, validated_data):  # noqa C901
+        guia_request = validated_data.get('guia', None)
+        user = self.context['request'].user
+        validated_data['criado_por'] = user
+        try:
+            guia = Guia.objects.get(uuid=guia_request.uuid)
+            conferencia_guia = ConferenciaGuia.objects.create(**validated_data)
+            try:
+                guia.escola_recebe(user=user)
+            except InvalidTransitionError as e:
+                raise serializers.ValidationError(f'Erro de transição de estado: {e}')
+        except ObjectDoesNotExist:
+            raise serializers.ValidationError(f'Guia de remessa não existe.')
+
+        return conferencia_guia
