@@ -56,11 +56,13 @@ class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmiga
     AUTORIZADO_STATUS_DIETA_ESPECIAL = [DietaEspecialWorkflow.CODAE_AUTORIZADO,
                                         DietaEspecialWorkflow.TERCEIRIZADA_TOMOU_CIENCIA,
                                         DietaEspecialWorkflow.CODAE_AUTORIZOU_INATIVACAO,
-                                        DietaEspecialWorkflow.TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO]
+                                        DietaEspecialWorkflow.TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO,
+                                        InformativoPartindoDaEscolaWorkflow.INFORMADO]
     AUTORIZADO_EVENTO_DIETA_ESPECIAL = [LogSolicitacoesUsuario.CODAE_AUTORIZOU,
                                         LogSolicitacoesUsuario.TERCEIRIZADA_TOMOU_CIENCIA,
                                         LogSolicitacoesUsuario.CODAE_AUTORIZOU_INATIVACAO,
-                                        LogSolicitacoesUsuario.TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO]
+                                        LogSolicitacoesUsuario.TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO,
+                                        LogSolicitacoesUsuario.INICIO_FLUXO]
 
     NEGADOS_STATUS_DIETA_ESPECIAL = [DietaEspecialWorkflow.CODAE_NEGOU_PEDIDO,
                                      DietaEspecialWorkflow.CODAE_NEGOU_INATIVACAO]
@@ -290,9 +292,11 @@ class SolicitacoesCODAE(MoldeConsolidado):
                         LogSolicitacoesUsuario.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO]
 
     AUTORIZADOS_STATUS = [PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO,
-                          PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_TOMOU_CIENCIA]
+                          PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_TOMOU_CIENCIA,
+                          InformativoPartindoDaEscolaWorkflow.INFORMADO]
     AUTORIZADOS_EVENTO = [LogSolicitacoesUsuario.CODAE_AUTORIZOU,
-                          LogSolicitacoesUsuario.TERCEIRIZADA_TOMOU_CIENCIA]
+                          LogSolicitacoesUsuario.TERCEIRIZADA_TOMOU_CIENCIA,
+                          LogSolicitacoesUsuario.INICIO_FLUXO]
 
     CANCELADOS_STATUS = [PedidoAPartirDaEscolaWorkflow.ESCOLA_CANCELOU,
                          PedidoAPartirDaDiretoriaRegionalWorkflow.DRE_CANCELOU]
@@ -700,9 +704,11 @@ class SolicitacoesDRE(MoldeConsolidado):
     AUTORIZADOS_STATUS = [PedidoAPartirDaDiretoriaRegionalWorkflow.CODAE_AUTORIZADO,
                           PedidoAPartirDaDiretoriaRegionalWorkflow.TERCEIRIZADA_TOMOU_CIENCIA,
                           PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO,
-                          PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_TOMOU_CIENCIA]
+                          PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_TOMOU_CIENCIA,
+                          InformativoPartindoDaEscolaWorkflow.INFORMADO]
     AUTORIZADOS_EVENTO = [LogSolicitacoesUsuario.CODAE_AUTORIZOU,
-                          LogSolicitacoesUsuario.TERCEIRIZADA_TOMOU_CIENCIA]
+                          LogSolicitacoesUsuario.TERCEIRIZADA_TOMOU_CIENCIA,
+                          LogSolicitacoesUsuario.INICIO_FLUXO]
 
     CANCELADOS_STATUS = [PedidoAPartirDaDiretoriaRegionalWorkflow.DRE_CANCELOU,
                          PedidoAPartirDaEscolaWorkflow.ESCOLA_CANCELOU]
