@@ -22,7 +22,7 @@ SELECT
   terceirizada.uuid AS terceirizada_uuid,
   logs.criado_em,
   'ALT_CARDAPIO' AS tipo_doc,
-  'Alteração de Cardápio' AS desc_doc,
+  'Alteração do Tipo de Alimentação' AS desc_doc,
   logs.status_evento,
   cardapio.status AS status
 FROM
