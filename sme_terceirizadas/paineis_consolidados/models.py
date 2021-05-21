@@ -36,6 +36,9 @@ class SolicitacoesDesteMesManager(models.Manager):
 
 
 class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmigavel):
+    """Mapeia a view gerada pelos sqls (solicitacoes_consolidadas) para objetos que são utilizados nos paineis consolidados, principalmente 
+    no painel de Gestão de Alimentação.
+    """
     PENDENTES_STATUS = []
     PENDENTES_EVENTO = []
 
