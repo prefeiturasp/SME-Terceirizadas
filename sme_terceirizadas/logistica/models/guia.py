@@ -90,3 +90,40 @@ class ConferenciaGuia(ModeloBase, CriadoPor):
     class Meta:
         verbose_name = 'Conferência da Guia de Remessa'
         verbose_name_plural = 'Conferência das Guias de Remessas'
+
+
+class InsucessoEntregaGuia(ModeloBase, CriadoPor):
+    # Motivo Choice
+    MOTIVO_UNIDADE_FECHADA = 'UNIDADE_FECHADA'
+    MOTIVO_OUTROS = 'OUTROS'
+
+    MOTIVO_NOMES = {
+        MOTIVO_UNIDADE_FECHADA: 'Unidade educacional fechada',
+        MOTIVO_OUTROS: 'Outros',
+    }
+
+    MOTIVO_CHOICES = (
+        (MOTIVO_UNIDADE_FECHADA, MOTIVO_NOMES[MOTIVO_UNIDADE_FECHADA]),
+        (MOTIVO_OUTROS, MOTIVO_NOMES[MOTIVO_OUTROS]),
+    )
+
+    guia = models.ForeignKey(
+        Guia, on_delete=models.PROTECT, related_name='insucessos')
+    hora_tentativa = models.TimeField('Hora da tentativa de entrega')
+    nome_motorista = models.CharField('Nome do motorista', max_length=100)
+    placa_veiculo = models.CharField('Placa do veículo', max_length=7)
+    justificativa = models.TextField('Justificativa', max_length=500)
+    arquivo = models.FileField()
+    motivo = models.CharField(
+        'Status da guia',
+        max_length=25,
+        choices=MOTIVO_CHOICES,
+        default=MOTIVO_UNIDADE_FECHADA
+    )
+
+    def __str__(self):
+        return f'Conferência da guia {self.guia.numero_guia}'
+
+    class Meta:
+        verbose_name = 'Conferência da Guia de Remessa'
+        verbose_name_plural = 'Conferência das Guias de Remessas'
