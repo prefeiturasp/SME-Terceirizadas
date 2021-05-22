@@ -113,7 +113,7 @@ class InsucessoEntregaGuia(ModeloBase, CriadoPor):
     nome_motorista = models.CharField('Nome do motorista', max_length=100)
     placa_veiculo = models.CharField('Placa do veículo', max_length=7)
     justificativa = models.TextField('Justificativa', max_length=500)
-    arquivo = models.FileField()
+    arquivo = models.FileField(blank=True)
     motivo = models.CharField(
         'Status da guia',
         max_length=25,
