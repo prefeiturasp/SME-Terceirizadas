@@ -4,6 +4,7 @@ import pytest
 from rest_framework import status
 
 from sme_terceirizadas.logistica.models import ConferenciaGuia, Guia
+from sme_terceirizadas.logistica.models.guia import InsucessoEntregaGuia
 
 pytestmark = pytest.mark.django_db
 
@@ -78,3 +79,31 @@ def test_url_conferir_guia_recebida(client_autenticado_escola_abastecimento, gui
     assert response.status_code == status.HTTP_201_CREATED
     assert conferencia.uuid
     assert conferencia.criado_por
+
+
+def test_url_authorized_insucesso_entrega_list(client_autenticado_distribuidor, guia):
+    response = client_autenticado_distribuidor.get('/insucesso-de-entrega/')
+    assert response.status_code == status.HTTP_200_OK
+
+
+def test_url_registrar_insucesso_entrega(client_autenticado_distribuidor, guia_pendente_de_conferencia):
+    payload = {
+        'guia': str(guia_pendente_de_conferencia.uuid),
+        'nome_motorista': 'José',
+        'placa_veiculo': 'AAABV44',
+        'hora_tentativa': '03:04',
+        'motivo': 'UNIDADE_FECHADA',
+        'justificativa': 'Unidade estava fechada.',
+    }
+
+    response = client_autenticado_distribuidor.post(
+        '/insucesso-de-entrega/',
+        data=json.dumps(payload),
+        content_type='application/json'
+    )
+
+    insucesso_entrega = InsucessoEntregaGuia.objects.first()
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert insucesso_entrega.uuid
+    assert insucesso_entrega.criado_por
