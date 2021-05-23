@@ -115,15 +115,15 @@ class InsucessoEntregaGuia(ModeloBase, CriadoPor):
     justificativa = models.TextField('Justificativa', max_length=500)
     arquivo = models.FileField(blank=True)
     motivo = models.CharField(
-        'Status da guia',
+        'Motivo do insucesso',
         max_length=25,
         choices=MOTIVO_CHOICES,
         default=MOTIVO_UNIDADE_FECHADA
     )
 
     def __str__(self):
-        return f'Conferência da guia {self.guia.numero_guia}'
+        return f'Insucesso de entrega da guia {self.guia.numero_guia}'
 
     class Meta:
-        verbose_name = 'Conferência da Guia de Remessa'
-        verbose_name_plural = 'Conferência das Guias de Remessas'
+        verbose_name = 'Insucesso de Entrega da Guia'
+        verbose_name_plural = 'Insucessos de Entregas das Guias'
