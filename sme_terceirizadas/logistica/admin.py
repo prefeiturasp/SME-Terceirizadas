@@ -9,6 +9,7 @@ from .models import (
     SolicitacaoRemessa,
     TipoEmbalagem
 )
+from .models.guia import InsucessoEntregaGuia
 from .services import inativa_tipos_de_embabalagem
 
 
@@ -148,3 +149,18 @@ class ConferenciaGuiaAdmin(admin.ModelAdmin):
     def get_guia(self, obj):
         return obj.guia.numero_guia
     get_guia.short_description = 'Número Guia'
+
+
+@admin.register(InsucessoEntregaGuia)
+class InsucessoEntregaGuiaAdmin(admin.ModelAdmin):
+    list_display = ('get_guia', 'get_data_tentativa')
+    search_fields = ('get_guia',)
+    readonly_fields = ('criado_em',)
+
+    def get_guia(self, obj):
+        return obj.guia.numero_guia
+    get_guia.short_description = 'Número Guia'
+
+    def get_data_tentativa(self, obj):
+        return obj.guia.data_entrega
+    get_data_tentativa.short_description = 'Data Tentativa da Entrega'
