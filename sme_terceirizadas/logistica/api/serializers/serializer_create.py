@@ -11,6 +11,7 @@ from sme_terceirizadas.logistica.models import (
     SolicitacaoDeAlteracaoRequisicao,
     SolicitacaoRemessa
 )
+from sme_terceirizadas.logistica.models.guia import InsucessoEntregaGuia
 from sme_terceirizadas.perfil.api.serializers import UsuarioVinculoSerializer
 from sme_terceirizadas.terceirizada.models import Terceirizada
 
@@ -158,3 +159,37 @@ class ConferenciaDaGuiaCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(f'Guia de remessa não existe.')
 
         return conferencia_guia
+
+
+class InsucessoDeEntregaGuiaCreateSerializer(serializers.ModelSerializer):
+    guia = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=Guia.objects.all()
+    )
+    motivo = serializers.CharField(required=True)
+    nome_motorista = serializers.CharField(required=True)
+    placa_veiculo = serializers.CharField(required=True)
+    hora_tentativa = serializers.TimeField(required=True)
+    justificativa = serializers.CharField(required=True)
+    criado_por = UsuarioVinculoSerializer(required=False)
+
+    class Meta:
+        model = InsucessoEntregaGuia
+        exclude = ('id',)
+
+    def create(self, validated_data):  # noqa C901
+        guia_request = validated_data.get('guia', None)
+        user = self.context['request'].user
+        validated_data['criado_por'] = user
+        try:
+            guia = Guia.objects.get(uuid=guia_request.uuid)
+            insucesso_entrega = InsucessoEntregaGuia.objects.create(**validated_data)
+            try:
+                guia.distribuidor_registra_insucesso(user=user)
+            except InvalidTransitionError as e:
+                raise serializers.ValidationError(f'Erro de transição de estado: {e}')
+        except ObjectDoesNotExist:
+            raise serializers.ValidationError(f'Guia de remessa não existe.')
+
+        return insucesso_entrega

@@ -26,6 +26,7 @@ from sme_terceirizadas.dados_comuns.permissions import (
 )
 from sme_terceirizadas.logistica.api.serializers.serializer_create import (
     ConferenciaDaGuiaCreateSerializer,
+    InsucessoDeEntregaGuiaCreateSerializer,
     SolicitacaoDeAlteracaoRequisicaoCreateSerializer,
     SolicitacaoRemessaCreateSerializer
 )
@@ -37,6 +38,7 @@ from sme_terceirizadas.logistica.api.serializers.serializers import (
     GuiaDaRemessaSerializer,
     GuiaDaRemessaSimplesSerializer,
     InfoUnidadesSimplesDaGuiaSerializer,
+    InsucessoDeEntregaGuiaSerializer,
     SolicitacaoDeAlteracaoSerializer,
     SolicitacaoDeAlteracaoSimplesSerializer,
     SolicitacaoRemessaLookUpSerializer,
@@ -52,6 +54,7 @@ from sme_terceirizadas.logistica.services import confirma_guias
 
 from ...escola.models import Escola
 from ...relatorios.relatorios import get_pdf_guia_distribuidor
+from ..models.guia import InsucessoEntregaGuia
 from ..utils import GuiaPagination, RequisicaoPagination, SolicitacaoAlteracaoPagination
 from .filters import GuiaFilter, SolicitacaoAlteracaoFilter, SolicitacaoFilter
 from .helpers import (
@@ -590,3 +593,16 @@ class ConferenciaDaGuiaModelViewSet(viewsets.ModelViewSet):
             return ConferenciaDaGuiaSerializer
         else:
             return ConferenciaDaGuiaCreateSerializer
+
+
+class InsucessoDeEntregaGuiaModelViewSet(viewsets.ModelViewSet):
+    lookup_field = 'uuid'
+    queryset = InsucessoEntregaGuia.objects.all()
+    serializer_class = InsucessoDeEntregaGuiaSerializer
+    permission_classes = [UsuarioDistribuidor]
+
+    def get_serializer_class(self):
+        if self.action in ['retrieve', 'list']:
+            return InsucessoDeEntregaGuiaSerializer
+        else:
+            return InsucessoDeEntregaGuiaCreateSerializer
