@@ -491,7 +491,7 @@ class AlteracaoCardapio(ExportModelOperationsMixin('alteracao_cardapio'), Criado
                         TemChaveExterna, IntervaloDeDia, TemObservacao, FluxoAprovacaoPartindoDaEscola,
                         TemIdentificadorExternoAmigavel, Logs, TemPrioridade, SolicitacaoForaDoPrazo,
                         EhAlteracaoCardapio):
-    DESCRICAO = 'Alteração de Cardápio'
+    DESCRICAO = 'Alteração do Tipo de Alimento'
 
     eh_alteracao_com_lanche_repetida = models.BooleanField(default=False)
 
