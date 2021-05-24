@@ -12,4 +12,4 @@ def test_template_mensagem(template_mensagem):
 
 
 def test_template_mensagem_obj(template_mensagem_obj):
-    assert template_mensagem_obj.__str__() == 'Alteração de cardápio'
+    assert template_mensagem_obj.__str__() == 'Alteração do tipo de Alimentação'
