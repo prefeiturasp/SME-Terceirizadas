@@ -65,6 +65,28 @@ def guia(solicitacao, escola):
 
 
 @pytest.fixture
+def guia_pendente_de_conferencia(solicitacao, escola):
+    return mommy.make(
+        'Guia',
+        solicitacao=solicitacao,
+        escola=escola,
+        numero_guia='987654',
+        data_entrega='2019-02-25',
+        codigo_unidade='58880',
+        nome_unidade='EMEI ALUISIO DE ALMEIDA',
+        endereco_unidade='Rua Alvaro de Azevedo Antunes',
+        numero_unidade='1200',
+        bairro_unidade='VILA CAMPESINA',
+        cep_unidade='03046059',
+        cidade_unidade='OSASCO',
+        estado_unidade='SP',
+        contato_unidade='Carlos',
+        telefone_unidade='944462050',
+        status='PENDENTE_DE_CONFERENCIA'
+    )
+
+
+@pytest.fixture
 def guia_com_escola_client_autenticado(solicitacao, escola_com_guia):
     return mommy.make(
         'Guia',
@@ -109,4 +131,17 @@ def conferencia_guia(guia):
         hora_recebimento=datetime.now().time(),
         nome_motorista='José da Silva',
         placa_veiculo='77AB75A',
+    )
+
+
+@pytest.fixture
+def insucesso_entrega_guia(guia):
+    return mommy.make(
+        'InsucessoEntregaGuia',
+        guia=guia,
+        hora_tentativa=datetime.now().time(),
+        nome_motorista='José da Silva',
+        placa_veiculo='77AB75A',
+        justificativa='Unidade estava fechada.',
+        motivo='UNIDADE_FECHADA'
     )

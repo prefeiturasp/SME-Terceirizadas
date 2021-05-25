@@ -26,6 +26,7 @@ from sme_terceirizadas.dados_comuns.permissions import (
 )
 from sme_terceirizadas.logistica.api.serializers.serializer_create import (
     ConferenciaDaGuiaCreateSerializer,
+    InsucessoDeEntregaGuiaCreateSerializer,
     SolicitacaoDeAlteracaoRequisicaoCreateSerializer,
     SolicitacaoRemessaCreateSerializer
 )
@@ -37,6 +38,7 @@ from sme_terceirizadas.logistica.api.serializers.serializers import (
     GuiaDaRemessaSerializer,
     GuiaDaRemessaSimplesSerializer,
     InfoUnidadesSimplesDaGuiaSerializer,
+    InsucessoDeEntregaGuiaSerializer,
     SolicitacaoDeAlteracaoSerializer,
     SolicitacaoDeAlteracaoSimplesSerializer,
     SolicitacaoRemessaLookUpSerializer,
@@ -52,12 +54,14 @@ from sme_terceirizadas.logistica.services import confirma_guias
 
 from ...escola.models import Escola
 from ...relatorios.relatorios import get_pdf_guia_distribuidor
+from ..models.guia import InsucessoEntregaGuia
 from ..utils import GuiaPagination, RequisicaoPagination, SolicitacaoAlteracaoPagination
 from .filters import GuiaFilter, SolicitacaoAlteracaoFilter, SolicitacaoFilter
 from .helpers import (
     retorna_dados_normalizados_excel_visao_dilog,
     retorna_dados_normalizados_excel_visao_distribuidor,
-    valida_guia_conferencia
+    valida_guia_conferencia,
+    valida_guia_insucesso
 )
 
 STR_XML_BODY = '{http://schemas.xmlsoap.org/soap/envelope/}Body'
@@ -478,6 +482,18 @@ class GuiaDaRequisicaoModelViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
+    @action(detail=False, methods=['GET'],
+            url_path='guia-para-insucesso', permission_classes=(UsuarioDistribuidor,))
+    def guia_para_insucesso(self, request):
+        try:
+            uuid = request.query_params.get('uuid', None)
+            queryset = self.get_queryset().filter(uuid=uuid).annotate(
+                numero_requisicao=F('solicitacao__numero_solicitacao'))
+            return valida_guia_insucesso(queryset)
+        except ValidationError as e:
+            return Response(dict(detail=f'Erro: {e}', status=False),
+                            status=HTTP_404_NOT_FOUND)
+
 
 class AlimentoDaGuiaModelViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
@@ -590,3 +606,16 @@ class ConferenciaDaGuiaModelViewSet(viewsets.ModelViewSet):
             return ConferenciaDaGuiaSerializer
         else:
             return ConferenciaDaGuiaCreateSerializer
+
+
+class InsucessoDeEntregaGuiaModelViewSet(viewsets.ModelViewSet):
+    lookup_field = 'uuid'
+    queryset = InsucessoEntregaGuia.objects.all()
+    serializer_class = InsucessoDeEntregaGuiaSerializer
+    permission_classes = [UsuarioDistribuidor]
+
+    def get_serializer_class(self):
+        if self.action in ['retrieve', 'list']:
+            return InsucessoDeEntregaGuiaSerializer
+        else:
+            return InsucessoDeEntregaGuiaCreateSerializer

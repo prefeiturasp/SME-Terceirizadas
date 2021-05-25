@@ -10,6 +10,7 @@ from sme_terceirizadas.logistica.models import (
     SolicitacaoRemessa,
     TipoEmbalagem
 )
+from sme_terceirizadas.logistica.models.guia import InsucessoEntregaGuia
 from sme_terceirizadas.perfil.api.serializers import UsuarioVinculoSerializer
 
 
@@ -219,4 +220,14 @@ class ConferenciaDaGuiaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ConferenciaGuia
+        exclude = ('id',)
+
+
+class InsucessoDeEntregaGuiaSerializer(serializers.ModelSerializer):
+    guia = GuiaDaRemessaSimplesSerializer()
+    criado_por = UsuarioVinculoSerializer()
+    motivo = serializers.CharField(source='get_motivo_display')
+
+    class Meta:
+        model = InsucessoEntregaGuia
         exclude = ('id',)

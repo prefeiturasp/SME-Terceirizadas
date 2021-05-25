@@ -148,7 +148,7 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
 
     TIPOS_SOLICITACOES = (
         (SOLICITACAO_KIT_LANCHE_AVULSA, 'Solicitação de kit lanche avulsa'),
-        (ALTERACAO_DE_CARDAPIO, 'Alteração de cardápio'),
+        (ALTERACAO_DE_CARDAPIO, 'Alteração do tipo de alimentação'),
         (SUSPENSAO_DE_CARDAPIO, 'Suspensão de cardápio'),
         (INVERSAO_DE_CARDAPIO, 'Inversão de cardápio'),
         (INCLUSAO_ALIMENTACAO_NORMAL, 'Inclusão de alimentação normal'),
@@ -262,7 +262,7 @@ class TemplateMensagem(ExportModelOperationsMixin('template_mensagem'), models.M
     HOMOLOGACAO_PRODUTO = 8
 
     CHOICES = (
-        (ALTERACAO_CARDAPIO, 'Alteração de cardápio'),
+        (ALTERACAO_CARDAPIO, 'Alteração do tipo de Alimentação'),
         (INCLUSAO_ALIMENTACAO, 'Inclusão de alimentação'),
         (INCLUSAO_ALIMENTACAO_CONTINUA, 'Inclusão de alimentação contínua'),
         (SUSPENSAO_ALIMENTACAO, 'Suspensão de alimentação'),

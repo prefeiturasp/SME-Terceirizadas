@@ -85,7 +85,7 @@ class SubstituicoesInLine(admin.TabularInline):
 @admin.register(AlteracaoCardapio)
 class AlteracaoCardapioModelAdmin(admin.ModelAdmin):
     inlines = [SubstituicoesInLine]
-    list_display = ('uuid', 'data_inicial', 'data_final', 'status')
+    list_display = ('uuid', 'data_inicial', 'data_final', 'status', 'DESCRICAO')
     list_filter = ('status',)
     readonly_fields = ('escola',)
 
