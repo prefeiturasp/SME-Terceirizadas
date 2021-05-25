@@ -107,3 +107,12 @@ def test_url_registrar_insucesso_entrega(client_autenticado_distribuidor, guia_p
     assert response.status_code == status.HTTP_201_CREATED
     assert insucesso_entrega.uuid
     assert insucesso_entrega.criado_por
+
+
+def test_url_get_guia_para_registro_de_insucesso(client_autenticado_distribuidor, guia_pendente_de_conferencia):
+    response = client_autenticado_distribuidor.get(
+        '/guias-da-requisicao/guia-para-insucesso/?uuid=' + str(guia_pendente_de_conferencia.uuid)
+    )
+    assert Guia.objects.exists()
+    assert Guia.objects.get(uuid=str(guia_pendente_de_conferencia.uuid))
+    assert response.status_code == status.HTTP_200_OK

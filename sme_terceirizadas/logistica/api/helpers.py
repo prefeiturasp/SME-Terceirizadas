@@ -7,7 +7,10 @@ from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
 
 from sme_terceirizadas.dados_comuns.fluxo_status import GuiaRemessaWorkFlow, SolicitacaoRemessaWorkFlow
 from sme_terceirizadas.escola.models import Escola
-from sme_terceirizadas.logistica.api.serializers.serializers import GuiaDaRemessaComAlimentoSerializer
+from sme_terceirizadas.logistica.api.serializers.serializers import (
+    GuiaDaRemessaComAlimentoSerializer,
+    GuiaDaRemessaSerializer
+)
 
 
 def remove_acentos_de_strings(nome: str) -> str:
@@ -135,4 +138,23 @@ def valida_guia_conferencia(queryset, escola):
             detail=f'Erro ao buscar guia: Essa guia não pertence a sua escola'
         ), status=HTTP_400_BAD_REQUEST)
     serializer = GuiaDaRemessaComAlimentoSerializer(guia)
+    return Response(serializer.data)
+
+
+def valida_guia_insucesso(queryset, escola):
+    if queryset.count() == 0:
+        return Response(dict(detail=f'Erro: Guia não encontrada', status=False),
+                        status=HTTP_404_NOT_FOUND)
+    guia = queryset.first()
+    status_invalidos = (
+        GuiaRemessaWorkFlow.CANCELADA,
+        GuiaRemessaWorkFlow.AGUARDANDO_ENVIO,
+        GuiaRemessaWorkFlow.AGUARDANDO_CONFIRMACAO
+    )
+    if guia.status in status_invalidos:
+        return Response(dict(
+            detail=f'Erro ao buscar guia: Essa guia não está pronta para registro de insucesso'
+        ), status=HTTP_400_BAD_REQUEST)
+    serializer = GuiaDaRemessaSerializer(guia)
+
     return Response(serializer.data)
