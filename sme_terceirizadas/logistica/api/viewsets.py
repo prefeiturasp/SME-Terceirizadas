@@ -60,7 +60,8 @@ from .filters import GuiaFilter, SolicitacaoAlteracaoFilter, SolicitacaoFilter
 from .helpers import (
     retorna_dados_normalizados_excel_visao_dilog,
     retorna_dados_normalizados_excel_visao_distribuidor,
-    valida_guia_conferencia
+    valida_guia_conferencia,
+    valida_guia_insucesso
 )
 
 STR_XML_BODY = '{http://schemas.xmlsoap.org/soap/envelope/}Body'
@@ -480,6 +481,18 @@ class GuiaDaRequisicaoModelViewSet(viewsets.ModelViewSet):
 
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+
+    @action(detail=False, methods=['GET'],
+            url_path='guia-para-insucesso', permission_classes=(UsuarioDistribuidor,))
+    def guia_para_insucesso(self, request):
+        try:
+            uuid = request.query_params.get('uuid', None)
+            queryset = self.get_queryset().filter(uuid=uuid).annotate(
+                numero_requisicao=F('solicitacao__numero_solicitacao'))
+            return valida_guia_insucesso(queryset)
+        except ValidationError as e:
+            return Response(dict(detail=f'Erro: {e}', status=False),
+                            status=HTTP_404_NOT_FOUND)
 
 
 class AlimentoDaGuiaModelViewSet(viewsets.ModelViewSet):

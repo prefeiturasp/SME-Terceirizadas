@@ -226,13 +226,7 @@ class ConferenciaDaGuiaSerializer(serializers.ModelSerializer):
 class InsucessoDeEntregaGuiaSerializer(serializers.ModelSerializer):
     guia = GuiaDaRemessaSimplesSerializer()
     criado_por = UsuarioVinculoSerializer()
-    arquivo = serializers.SerializerMethodField()
     motivo = serializers.CharField(source='get_motivo_display')
-
-    def get_arquivo(self, obj):
-        request = self.context.get('request')
-        arquivo = obj.arquivo.url
-        return request.build_absolute_uri(arquivo)
 
     class Meta:
         model = InsucessoEntregaGuia
