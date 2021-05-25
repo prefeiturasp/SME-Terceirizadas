@@ -92,6 +92,66 @@ class ConferenciaGuia(ModeloBase, CriadoPor):
         verbose_name_plural = 'Conferência das Guias de Remessas'
 
 
+class OcorrenciaEntregaPorAlimento(ModeloBase):
+    # Status Alimento Choice
+    STATUS_ALIMENTO_RECEBIDO = 'RECEBIDO'
+    STATUS_ALIMENTO_PARCIAL = 'PARCIAL'
+    STATUS_ALIMENTO_NAO_RECEBIDO = 'NAO_RECEBIDO'
+
+    STATUS_ALIMENTO_NOMES = {
+        STATUS_ALIMENTO_RECEBIDO: 'Recebido',
+        STATUS_ALIMENTO_PARCIAL: 'Parcial',
+        STATUS_ALIMENTO_NAO_RECEBIDO: 'Não recebido',
+    }
+
+    STATUS_ALIMENTO_CHOICES = (
+        (STATUS_ALIMENTO_RECEBIDO, STATUS_ALIMENTO_NOMES[STATUS_ALIMENTO_RECEBIDO]),
+        (STATUS_ALIMENTO_PARCIAL, STATUS_ALIMENTO_NOMES[STATUS_ALIMENTO_PARCIAL]),
+        (STATUS_ALIMENTO_NAO_RECEBIDO, STATUS_ALIMENTO_NOMES[STATUS_ALIMENTO_NAO_RECEBIDO]),
+    )
+
+    # Tipo Embalagem Choice
+    FECHADA = 'FECHADA'
+    FRACIONADA = 'FRACIONADA'
+
+    TIPO_EMBALAGEM_CHOICES = (
+        (FECHADA, 'Fechada'),
+        (FRACIONADA, 'Fracionada'),
+    )
+
+    # Status Ocorrencia Choice
+    STATUS_OCORRENCIA_QTD_MENOR = 'QTD_MENOR'
+    STATUS_OCORRENCIA_PROBLEMA_QUALIDADE = 'PROBLEMA_QUALIDADE'
+    STATUS_OCORRENCIA_ALIMENTO_DIFERENTE = 'ALIMENTO_DIFERENTE'
+
+    STATUS_OCORRENCIA_NOMES = {
+        STATUS_OCORRENCIA_QTD_MENOR: 'Quantidade menor que a prevista',
+        STATUS_OCORRENCIA_PROBLEMA_QUALIDADE: 'Problema de qualidade do produto',
+        STATUS_OCORRENCIA_ALIMENTO_DIFERENTE: 'Alimento diferente do previsto',
+    }
+
+    STATUS_OCORRENCIA_CHOICES = (
+        (STATUS_OCORRENCIA_QTD_MENOR, STATUS_OCORRENCIA_NOMES[STATUS_OCORRENCIA_QTD_MENOR]),
+        (STATUS_OCORRENCIA_PROBLEMA_QUALIDADE, STATUS_OCORRENCIA_NOMES[STATUS_OCORRENCIA_PROBLEMA_QUALIDADE]),
+        (STATUS_OCORRENCIA_ALIMENTO_DIFERENTE, STATUS_OCORRENCIA_NOMES[STATUS_OCORRENCIA_ALIMENTO_DIFERENTE]),
+    )
+
+    conferencia = models.ForeignKey(
+        ConferenciaGuia, on_delete=models.PROTECT, related_name='ocorrencias')
+    tipo_embalagem = models.CharField(choices=TIPO_EMBALAGEM_CHOICES, max_length=15, default=FECHADA)
+    nome_alimento = models.CharField('Nome do alimento/produto', blank=False, max_length=100)
+    qtd_recebido = models.PositiveSmallIntegerField('Quantidade recebido')
+    observacao = models.TextField('Observação', max_length=500)
+
+    def __str__(self):
+        return f'Ocorrência da guia {self.conferencia.guia.numero_guia}'
+
+    class Meta:
+        verbose_name = 'Ocorrencia de Entrega por Alimento'
+        verbose_name_plural = 'Ocorrencias de Entregas por Alimentos'
+
+
+
 class InsucessoEntregaGuia(ModeloBase, CriadoPor):
     # Motivo Choice
     MOTIVO_UNIDADE_FECHADA = 'UNIDADE_FECHADA'
