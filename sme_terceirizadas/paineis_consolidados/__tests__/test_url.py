@@ -75,7 +75,7 @@ def test_escola_relatorio_evolucao_solicitacoes(users_diretor_escola):
         'results':
             {'total': 10,
              'Inclusão de Alimentação': {'quantidades': [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0], 'total': 3},
-             'Alteração de Cardápio': {'quantidades': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3], 'total': 3},
+             'Alteração do tipo de Alimentação': {'quantidades': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3], 'total': 3},
              'Inversão de dia de Cardápio': {'quantidades': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 'total': 0},
              'Suspensão de Alimentação': {'quantidades': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 'total': 0},
              'Kit Lanche Passeio': {'quantidades': [0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0], 'total': 4},
@@ -158,7 +158,8 @@ def test_resumo_ano_dre(solicitacoes_ano_dre):
     assert response.json() == {
         'results': {'total': 10,
                     'Inclusão de Alimentação': {'quantidades': [3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 'total': 3},
-                    'Alteração de Cardápio': {'quantidades': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3], 'total': 3},
+                    'Alteração do tipo de Alimentação': {
+                        'quantidades': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3], 'total': 3},
                     'Inversão de dia de Cardápio': {'quantidades': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 'total': 0},
                     'Suspensão de Alimentação': {'quantidades': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 'total': 0},
                     'Kit Lanche Passeio': {'quantidades': [0, 2, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0], 'total': 4},
