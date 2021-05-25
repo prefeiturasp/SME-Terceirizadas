@@ -485,12 +485,11 @@ class GuiaDaRequisicaoModelViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['GET'],
             url_path='guia-para-insucesso', permission_classes=(UsuarioDistribuidor,))
     def guia_para_insucesso(self, request):
-        escola = request.user.vinculo_atual.instituicao
         try:
             uuid = request.query_params.get('uuid', None)
             queryset = self.get_queryset().filter(uuid=uuid).annotate(
                 numero_requisicao=F('solicitacao__numero_solicitacao'))
-            return valida_guia_insucesso(queryset, escola)
+            return valida_guia_insucesso(queryset)
         except ValidationError as e:
             return Response(dict(detail=f'Erro: {e}', status=False),
                             status=HTTP_404_NOT_FOUND)

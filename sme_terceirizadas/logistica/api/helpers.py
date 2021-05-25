@@ -141,7 +141,7 @@ def valida_guia_conferencia(queryset, escola):
     return Response(serializer.data)
 
 
-def valida_guia_insucesso(queryset, escola):
+def valida_guia_insucesso(queryset):
     if queryset.count() == 0:
         return Response(dict(detail=f'Erro: Guia não encontrada', status=False),
                         status=HTTP_404_NOT_FOUND)
