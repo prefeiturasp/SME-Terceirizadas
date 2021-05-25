@@ -103,7 +103,7 @@ class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
                 'quantidades': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                 'total': 0
             },
-            'Alteração de Cardápio': {
+            'Alteração do tipo de Alimentação': {
                 'quantidades': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                 'total': 0
             },
