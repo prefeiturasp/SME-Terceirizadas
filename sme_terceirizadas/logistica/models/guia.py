@@ -1,4 +1,5 @@
 from django.db import models
+from multiselectfield import MultiSelectField
 
 from ...dados_comuns.behaviors import CriadoPor, ModeloBase
 from ...dados_comuns.fluxo_status import FluxoGuiaRemessa
@@ -32,7 +33,6 @@ class GuiaManager(models.Manager):
 
 
 class Guia(ModeloBase, FluxoGuiaRemessa):
-
     numero_guia = models.CharField('Número da guia', blank=True, max_length=100, unique=True)
     solicitacao = models.ForeignKey(
         SolicitacaoRemessa, on_delete=models.CASCADE, blank=True, null=True, related_name='guias')
@@ -92,7 +92,7 @@ class ConferenciaGuia(ModeloBase, CriadoPor):
         verbose_name_plural = 'Conferência das Guias de Remessas'
 
 
-class OcorrenciaEntregaPorAlimento(ModeloBase):
+class ConferenciaIndividualPorAlimento(ModeloBase):
     # Status Alimento Choice
     STATUS_ALIMENTO_RECEBIDO = 'RECEBIDO'
     STATUS_ALIMENTO_PARCIAL = 'PARCIAL'
@@ -120,36 +120,54 @@ class OcorrenciaEntregaPorAlimento(ModeloBase):
     )
 
     # Status Ocorrencia Choice
-    STATUS_OCORRENCIA_QTD_MENOR = 'QTD_MENOR'
-    STATUS_OCORRENCIA_PROBLEMA_QUALIDADE = 'PROBLEMA_QUALIDADE'
-    STATUS_OCORRENCIA_ALIMENTO_DIFERENTE = 'ALIMENTO_DIFERENTE'
+    OCORRENCIA_QTD_MENOR = 'QTD_MENOR'
+    OCORRENCIA_PROBLEMA_QUALIDADE = 'PROBLEMA_QUALIDADE'
+    OCORRENCIA_ALIMENTO_DIFERENTE = 'ALIMENTO_DIFERENTE'
+    OCORRENCIA_EMBALAGEM_DANIFICADA = 'EMBALAGEM_DANIFICADA'
+    OCORRENCIA_EMBALAGEM_VIOLADA = 'EMBALAGEM_VIOLADA'
+    OCORRENCIA_VALIDADE_EXPIRADA = 'VALIDADE_EXPIRADA'
+    OCORRENCIA_ATRASO_ENTREGA = 'ATRASO_ENTREGA'
+    OCORRENCIA_AUSENCIA_PRODUTO = 'AUSENCIA_PRODUTO'
 
-    STATUS_OCORRENCIA_NOMES = {
-        STATUS_OCORRENCIA_QTD_MENOR: 'Quantidade menor que a prevista',
-        STATUS_OCORRENCIA_PROBLEMA_QUALIDADE: 'Problema de qualidade do produto',
-        STATUS_OCORRENCIA_ALIMENTO_DIFERENTE: 'Alimento diferente do previsto',
+    OCORRENCIA_NOMES = {
+        OCORRENCIA_QTD_MENOR: 'Quantidade menor que a prevista',
+        OCORRENCIA_PROBLEMA_QUALIDADE: 'Problema de qualidade do produto',
+        OCORRENCIA_ALIMENTO_DIFERENTE: 'Alimento diferente do previsto',
+        OCORRENCIA_EMBALAGEM_DANIFICADA: 'Embalagem danificada',
+        OCORRENCIA_EMBALAGEM_VIOLADA: 'Embalagem violada',
+        OCORRENCIA_VALIDADE_EXPIRADA: 'Prazo de validade expirado',
+        OCORRENCIA_ATRASO_ENTREGA: 'Atraso na entrega',
+        OCORRENCIA_AUSENCIA_PRODUTO: 'Ausência do produto',
     }
 
-    STATUS_OCORRENCIA_CHOICES = (
-        (STATUS_OCORRENCIA_QTD_MENOR, STATUS_OCORRENCIA_NOMES[STATUS_OCORRENCIA_QTD_MENOR]),
-        (STATUS_OCORRENCIA_PROBLEMA_QUALIDADE, STATUS_OCORRENCIA_NOMES[STATUS_OCORRENCIA_PROBLEMA_QUALIDADE]),
-        (STATUS_OCORRENCIA_ALIMENTO_DIFERENTE, STATUS_OCORRENCIA_NOMES[STATUS_OCORRENCIA_ALIMENTO_DIFERENTE]),
+    OCORRENCIA_CHOICES = (
+        (OCORRENCIA_QTD_MENOR, OCORRENCIA_NOMES[OCORRENCIA_QTD_MENOR]),
+        (OCORRENCIA_PROBLEMA_QUALIDADE, OCORRENCIA_NOMES[OCORRENCIA_PROBLEMA_QUALIDADE]),
+        (OCORRENCIA_ALIMENTO_DIFERENTE, OCORRENCIA_NOMES[OCORRENCIA_ALIMENTO_DIFERENTE]),
+        (OCORRENCIA_EMBALAGEM_DANIFICADA, OCORRENCIA_NOMES[OCORRENCIA_EMBALAGEM_DANIFICADA]),
+        (OCORRENCIA_EMBALAGEM_VIOLADA, OCORRENCIA_NOMES[OCORRENCIA_EMBALAGEM_VIOLADA]),
+        (OCORRENCIA_VALIDADE_EXPIRADA, OCORRENCIA_NOMES[OCORRENCIA_VALIDADE_EXPIRADA]),
+        (OCORRENCIA_ATRASO_ENTREGA, OCORRENCIA_NOMES[OCORRENCIA_ATRASO_ENTREGA]),
+        (OCORRENCIA_AUSENCIA_PRODUTO, OCORRENCIA_NOMES[OCORRENCIA_AUSENCIA_PRODUTO]),
     )
 
     conferencia = models.ForeignKey(
-        ConferenciaGuia, on_delete=models.PROTECT, related_name='ocorrencias')
+        ConferenciaGuia, on_delete=models.PROTECT, related_name='conferencia_dos_alimentos')
     tipo_embalagem = models.CharField(choices=TIPO_EMBALAGEM_CHOICES, max_length=15, default=FECHADA)
-    nome_alimento = models.CharField('Nome do alimento/produto', blank=False, max_length=100)
+    nome_alimento = models.CharField('Nome do alimento/produto', max_length=100)
     qtd_recebido = models.PositiveSmallIntegerField('Quantidade recebido')
-    observacao = models.TextField('Observação', max_length=500)
+    observacao = models.TextField('Observação', max_length=500, blank=True)
+    status_alimento = models.CharField(choices=STATUS_ALIMENTO_CHOICES, max_length=40, default=STATUS_ALIMENTO_RECEBIDO)
+    ocorrencia = MultiSelectField(choices=OCORRENCIA_CHOICES, blank=True)
+    tem_ocorrencia = models.BooleanField(default=False)
+    arquivo = models.FileField(blank=True)
 
     def __str__(self):
-        return f'Ocorrência da guia {self.conferencia.guia.numero_guia}'
+        return f'Conferencia do alimento {self.nome_alimento} da guia {self.conferencia.guia.numero_guia}'
 
     class Meta:
-        verbose_name = 'Ocorrencia de Entrega por Alimento'
-        verbose_name_plural = 'Ocorrencias de Entregas por Alimentos'
-
+        verbose_name = 'Conferência Individual por Alimento'
+        verbose_name_plural = 'Conferências Individuais por Alimentos'
 
 
 class InsucessoEntregaGuia(ModeloBase, CriadoPor):
