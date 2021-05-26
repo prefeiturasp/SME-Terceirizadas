@@ -10,7 +10,7 @@ from sme_terceirizadas.logistica.models import (
     SolicitacaoRemessa,
     TipoEmbalagem
 )
-from sme_terceirizadas.logistica.models.guia import InsucessoEntregaGuia
+from sme_terceirizadas.logistica.models.guia import ConferenciaIndividualPorAlimento, InsucessoEntregaGuia
 from sme_terceirizadas.perfil.api.serializers import UsuarioVinculoSerializer
 
 
@@ -217,6 +217,25 @@ class SolicitacaoDeAlteracaoSimplesSerializer(serializers.ModelSerializer):
 
 class ConferenciaDaGuiaSerializer(serializers.ModelSerializer):
     criado_por = UsuarioVinculoSerializer()
+
+    class Meta:
+        model = ConferenciaGuia
+        exclude = ('id',)
+
+
+class ConferenciaIndividualPorAlimentoSerializer(serializers.ModelSerializer):
+    status_alimento = serializers.CharField(source='get_status_alimento_display')
+    tipo_embalagem = serializers.CharField(source='get_tipo_embalagem_display')
+    ocorrencia = serializers.CharField(source='get_ocorrencia_display')
+
+    class Meta:
+        model = ConferenciaIndividualPorAlimento
+        exclude = ('id',)
+
+
+class ConferenciaComOcorrenciaSerializer(serializers.ModelSerializer):
+    criado_por = UsuarioVinculoSerializer()
+    conferencias_individuais = ConferenciaIndividualPorAlimentoSerializer(many=True)
 
     class Meta:
         model = ConferenciaGuia

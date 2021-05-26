@@ -4,6 +4,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import fields, serializers
 from xworkflows.base import InvalidTransitionError
 
+from sme_terceirizadas.logistica.api.serializers.serializers import ConferenciaIndividualPorAlimentoSerializer
 from sme_terceirizadas.logistica.models import (
     Alimento,
     ConferenciaGuia,
@@ -11,7 +12,7 @@ from sme_terceirizadas.logistica.models import (
     SolicitacaoDeAlteracaoRequisicao,
     SolicitacaoRemessa
 )
-from sme_terceirizadas.logistica.models.guia import InsucessoEntregaGuia
+from sme_terceirizadas.logistica.models.guia import ConferenciaIndividualPorAlimento, InsucessoEntregaGuia
 from sme_terceirizadas.perfil.api.serializers import UsuarioVinculoSerializer
 from sme_terceirizadas.terceirizada.models import Terceirizada
 
@@ -159,6 +160,58 @@ class ConferenciaDaGuiaCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(f'Guia de remessa não existe.')
 
         return conferencia_guia
+
+
+class ConferenciaComOcorrenciaCreateSerializer(serializers.ModelSerializer):
+    conferencias_individuais = ConferenciaIndividualPorAlimentoSerializer(many=True, required=False)
+    guia = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=Guia.objects.all()
+    )
+    nome_motorista = serializers.CharField(required=True)
+    placa_veiculo = serializers.CharField(required=True)
+    data_recebimento = serializers.DateField(required=True)
+    hora_recebimento = serializers.TimeField(required=True)
+    criado_por = UsuarioVinculoSerializer(required=False)
+
+    class Meta:
+        model = ConferenciaGuia
+        exclude = ('id',)
+
+    def create(self, validated_data): # noqa C901
+        user = self.context['request'].user
+        validated_data['criado_por'] = user
+        conferencias_individuais_list = []
+        conferencias_individuais = validated_data.pop('conferencias_individuais')
+        conferencia_guia = ConferenciaGuia.objects.create(**validated_data)
+        for conferencia_individual in conferencias_individuais:
+            conferencia_individual['conferencia'] = conferencia_guia
+            conferencia = ConferenciaIndividualPorAlimentoCreateSerializer().create(conferencia_individual)
+            conferencias_individuais_list.append(conferencia)
+        conferencia_guia.conferencia_dos_alimentos.set(conferencias_individuais_list)
+        return conferencia_guia
+
+
+class ConferenciaIndividualPorAlimentoCreateSerializer(serializers.ModelSerializer):
+    conferencia = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=ConferenciaGuia.objects.all()
+    )
+    tipo_embalagem = serializers.CharField(required=True)
+    nome_alimento = serializers.CharField(required=True)
+    qtd_recebido = serializers.IntegerField(required=True)
+    status_alimento = serializers.CharField(required=True)
+    tem_ocorrencia = serializers.BooleanField(required=True)
+
+    class Meta:
+        model = ConferenciaIndividualPorAlimento
+        exclude = ('id',)
+
+    def create(self, validated_data):
+        conferencia_individual = ConferenciaIndividualPorAlimento.objects.create(**validated_data)
+        return conferencia_individual
 
 
 class InsucessoDeEntregaGuiaCreateSerializer(serializers.ModelSerializer):
