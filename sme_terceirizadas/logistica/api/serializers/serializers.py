@@ -224,9 +224,23 @@ class ConferenciaDaGuiaSerializer(serializers.ModelSerializer):
 
 
 class ConferenciaIndividualPorAlimentoSerializer(serializers.ModelSerializer):
-    status_alimento = serializers.CharField(source='get_status_alimento_display')
-    tipo_embalagem = serializers.CharField(source='get_tipo_embalagem_display')
-    ocorrencia = serializers.CharField(source='get_ocorrencia_display')
+    conferencia = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=ConferenciaGuia.objects.all()
+    )
+    status_alimento = serializers.SerializerMethodField()
+    tipo_embalagem = serializers.SerializerMethodField()
+    ocorrencia = serializers.SerializerMethodField()
+
+    def get_status_alimento(self, obj):
+        return obj.get_status_alimento_display()
+
+    def get_tipo_embalagem(self, obj):
+        return obj.get_tipo_embalagem_display()
+
+    def get_ocorrencia(self, obj):
+        return obj.get_ocorrencia_display()
 
     class Meta:
         model = ConferenciaIndividualPorAlimento
@@ -235,7 +249,7 @@ class ConferenciaIndividualPorAlimentoSerializer(serializers.ModelSerializer):
 
 class ConferenciaComOcorrenciaSerializer(serializers.ModelSerializer):
     criado_por = UsuarioVinculoSerializer()
-    conferencias_individuais = ConferenciaIndividualPorAlimentoSerializer(many=True)
+    conferencia_dos_alimentos = ConferenciaIndividualPorAlimentoSerializer(many=True)
 
     class Meta:
         model = ConferenciaGuia

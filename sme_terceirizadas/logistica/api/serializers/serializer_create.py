@@ -4,7 +4,6 @@ from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import fields, serializers
 from xworkflows.base import InvalidTransitionError
 
-from sme_terceirizadas.logistica.api.serializers.serializers import ConferenciaIndividualPorAlimentoSerializer
 from sme_terceirizadas.logistica.models import (
     Alimento,
     ConferenciaGuia,
@@ -162,8 +161,34 @@ class ConferenciaDaGuiaCreateSerializer(serializers.ModelSerializer):
         return conferencia_guia
 
 
+class ConferenciaIndividualPorAlimentoCreateSerializer(serializers.ModelSerializer):
+    conferencia = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=ConferenciaGuia.objects.all()
+    )
+    tipo_embalagem = serializers.ChoiceField(
+        choices=ConferenciaIndividualPorAlimento.TIPO_EMBALAGEM_CHOICES, required=True)
+    nome_alimento = serializers.CharField(required=True)
+    qtd_recebido = serializers.IntegerField(required=True)
+    status_alimento = serializers.ChoiceField(
+        choices=ConferenciaIndividualPorAlimento.STATUS_ALIMENTO_CHOICES, required=True)
+    ocorrencia = fields.MultipleChoiceField(choices=ConferenciaIndividualPorAlimento.OCORRENCIA_CHOICES, required=False)
+
+    def create(self, validated_data):
+        ocorrencia = validated_data.get('ocorrencia', None)
+        if ocorrencia:
+            validated_data['tem_ocorrencia'] = True
+        conferencia_individual = ConferenciaIndividualPorAlimento.objects.create(**validated_data)
+        return conferencia_individual
+
+    class Meta:
+        model = ConferenciaIndividualPorAlimento
+        exclude = ('id',)
+
+
 class ConferenciaComOcorrenciaCreateSerializer(serializers.ModelSerializer):
-    conferencias_individuais = ConferenciaIndividualPorAlimentoSerializer(many=True, required=False)
+    conferencia_dos_alimentos = ConferenciaIndividualPorAlimentoCreateSerializer(many=True, required=False)
     guia = serializers.SlugRelatedField(
         slug_field='uuid',
         required=True,
@@ -182,36 +207,16 @@ class ConferenciaComOcorrenciaCreateSerializer(serializers.ModelSerializer):
     def create(self, validated_data): # noqa C901
         user = self.context['request'].user
         validated_data['criado_por'] = user
-        conferencias_individuais_list = []
-        conferencias_individuais = validated_data.pop('conferencias_individuais')
+        conferencia_dos_alimentos_list = []
+        conferencia_dos_alimentos = validated_data.pop('conferencia_dos_alimentos')
         conferencia_guia = ConferenciaGuia.objects.create(**validated_data)
-        for conferencia_individual in conferencias_individuais:
-            conferencia_individual['conferencia'] = conferencia_guia
-            conferencia = ConferenciaIndividualPorAlimentoCreateSerializer().create(conferencia_individual)
-            conferencias_individuais_list.append(conferencia)
-        conferencia_guia.conferencia_dos_alimentos.set(conferencias_individuais_list)
+        for alimento in conferencia_dos_alimentos:
+            alimento['conferencia'] = conferencia_guia
+            conferencia_individual = ConferenciaIndividualPorAlimentoCreateSerializer().create(alimento)
+            conferencia_dos_alimentos_list.append(conferencia_individual)
+        conferencia_guia.conferencia_dos_alimentos.set(conferencia_dos_alimentos_list)
+
         return conferencia_guia
-
-
-class ConferenciaIndividualPorAlimentoCreateSerializer(serializers.ModelSerializer):
-    conferencia = serializers.SlugRelatedField(
-        slug_field='uuid',
-        required=False,
-        queryset=ConferenciaGuia.objects.all()
-    )
-    tipo_embalagem = serializers.CharField(required=True)
-    nome_alimento = serializers.CharField(required=True)
-    qtd_recebido = serializers.IntegerField(required=True)
-    status_alimento = serializers.CharField(required=True)
-    tem_ocorrencia = serializers.BooleanField(required=True)
-
-    class Meta:
-        model = ConferenciaIndividualPorAlimento
-        exclude = ('id',)
-
-    def create(self, validated_data):
-        conferencia_individual = ConferenciaIndividualPorAlimento.objects.create(**validated_data)
-        return conferencia_individual
 
 
 class InsucessoDeEntregaGuiaCreateSerializer(serializers.ModelSerializer):
