@@ -17,6 +17,8 @@ router.register('alimentos-da-guia', viewsets.AlimentoDaGuiaModelViewSet, basena
 router.register('conferencia-da-guia', viewsets.ConferenciaDaGuiaModelViewSet, basename='conferencia-da-guia')
 router.register('conferencia-da-guia-com-ocorrencia', viewsets.ConferenciaDaGuiaComOcorrenciaModelViewSet,
                 basename='conferencia-da-guia-com-ocorrencia')
+router.register('conferencia-individual', viewsets.ConferenciaindividualModelViewSet,
+                basename='conferencia-individual')
 router.register('insucesso-de-entrega', viewsets.InsucessoDeEntregaGuiaModelViewSet,
                 basename='insucesso-de-entrega')
 router.register('solicitacao-de-alteracao-de-requisicao', viewsets.SolicitacaoDeAlteracaoDeRequisicaoViewset,
