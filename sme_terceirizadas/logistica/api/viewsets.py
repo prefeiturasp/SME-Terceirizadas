@@ -41,6 +41,7 @@ from sme_terceirizadas.logistica.api.serializers.serializers import (
     InsucessoDeEntregaGuiaSerializer,
     SolicitacaoDeAlteracaoSerializer,
     SolicitacaoDeAlteracaoSimplesSerializer,
+    SolicitacaoRemessaContagemGuiasSerializer,
     SolicitacaoRemessaLookUpSerializer,
     SolicitacaoRemessaSerializer,
     SolicitacaoRemessaSimplesSerializer,
@@ -245,6 +246,33 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(guias__data_entrega__lte=data_fim).distinct()
 
         response = {'results': SolicitacaoRemessaLookUpSerializer(queryset, many=True).data}
+        return Response(response)
+
+    @action(detail=False, permission_classes=(UsuarioDilogCodae,),
+            methods=['GET'], url_path='lista-requisicoes-confirmadas')
+    def lista_requisicoes_confirmadas(self, request):
+        queryset = self.get_queryset().filter(status=SolicitacaoRemessaWorkFlow.DISTRIBUIDOR_CONFIRMA)
+        from django.db.models import Q
+        queryset = queryset.annotate(
+            guias_pendentes=Count('guias__status', filter=Q(guias__status=GuiaRemessaWorkFlow.PENDENTE_DE_CONFERENCIA)))
+        queryset = queryset.annotate(
+            guias_insucesso=Count('guias__status', filter=Q(
+                guias__status=GuiaRemessaWorkFlow.DISTRIBUIDOR_REGISTRA_INSUCESSO
+            )))
+        queryset = queryset.annotate(
+            guias_recebidas=Count('guias__status', filter=Q(guias__status=GuiaRemessaWorkFlow.RECEBIDA)))
+        queryset = queryset.annotate(
+            guias_parciais=Count('guias__status', filter=Q(guias__status=GuiaRemessaWorkFlow.RECEBIMENTO_PARCIAL)))
+        queryset = queryset.annotate(
+            guias_nao_recebidas=Count('guias__status', filter=Q(guias__status=GuiaRemessaWorkFlow.NAO_RECEBIDA)))
+        queryset = queryset.annotate(
+            guias_reposicao_parcial=Count('guias__status', filter=Q(
+                guias__status=GuiaRemessaWorkFlow.REPOSICAO_PARCIAL
+            )))
+        queryset = queryset.annotate(
+            guias_reposicao_total=Count('guias__status', filter=Q(guias__status=GuiaRemessaWorkFlow.REPOSICAO_TOTAL)))
+
+        response = {'results': SolicitacaoRemessaContagemGuiasSerializer(queryset, many=True).data}
         return Response(response)
 
     @action(detail=True, permission_classes=(UsuarioDilogCodae,),

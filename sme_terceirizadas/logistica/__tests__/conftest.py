@@ -16,12 +16,22 @@ def distribuidor():
 
 
 @pytest.fixture
-def solicitacao():
+def terceirizada():
+    return mommy.make('Terceirizada',
+                      contatos=[mommy.make('dados_comuns.Contato')],
+                      make_m2m=True,
+                      nome_fantasia='Alimentos SA'
+                      )
+
+
+@pytest.fixture
+def solicitacao(terceirizada):
     return mommy.make(
         'SolicitacaoRemessa',
         cnpj='12345678901234',
         numero_solicitacao='559890',
-        quantidade_total_guias=2
+        quantidade_total_guias=2,
+        distribuidor=terceirizada
     )
 
 

@@ -87,6 +87,29 @@ class SolicitacaoRemessaLookUpSerializer(serializers.ModelSerializer):
         fields = ('uuid', 'numero_solicitacao', 'distribuidor_nome', 'status', 'guias')
 
 
+class SolicitacaoRemessaContagemGuiasSerializer(serializers.ModelSerializer):
+    status = serializers.SerializerMethodField()
+    guias_pendentes = serializers.IntegerField()
+    guias_insucesso = serializers.IntegerField()
+    guias_recebidas = serializers.IntegerField()
+    guias_parciais = serializers.IntegerField()
+    guias_nao_recebidas = serializers.IntegerField()
+    guias_reposicao_parcial = serializers.IntegerField()
+    guias_reposicao_total = serializers.IntegerField()
+    distribuidor_nome = serializers.SerializerMethodField()
+    guias = GuiaLookUpSerializer(many=True)
+
+    def get_distribuidor_nome(self, obj):
+        return obj.distribuidor.razao_social
+
+    def get_status(self, obj):
+        return obj.get_status_display()
+
+    class Meta:
+        model = SolicitacaoRemessa
+        exclude = ('id',)
+
+
 class XmlAlimentoSerializer(serializers.Serializer):
     StrCodSup = serializers.CharField()
     StrCodPapa = serializers.CharField()
