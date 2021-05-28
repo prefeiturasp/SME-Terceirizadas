@@ -5,6 +5,7 @@ from faker import Faker
 from model_mommy import mommy
 
 from ...escola import models
+from ..models.guia import ConferenciaIndividualPorAlimento
 
 fake = Faker('pt_BR')
 fake.seed(420)
@@ -131,6 +132,19 @@ def conferencia_guia(guia):
         hora_recebimento=datetime.now().time(),
         nome_motorista='José da Silva',
         placa_veiculo='77AB75A',
+    )
+
+
+@pytest.fixture
+def conferencia_guia_individual(conferencia_guia):
+    return mommy.make(
+        'ConferenciaIndividualPorAlimento',
+        conferencia=conferencia_guia,
+        tipo_embalagem=ConferenciaIndividualPorAlimento.FECHADA,
+        status_alimento=ConferenciaIndividualPorAlimento.STATUS_ALIMENTO_RECEBIDO,
+        ocorrencia=[ConferenciaIndividualPorAlimento.OCORRENCIA_AUSENCIA_PRODUTO],
+        nome_alimento='PATINHO',
+        qtd_recebido=20,
     )
 
 
