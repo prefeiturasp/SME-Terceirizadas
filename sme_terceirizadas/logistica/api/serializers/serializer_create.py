@@ -4,6 +4,10 @@ from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import fields, serializers
 from xworkflows.base import InvalidTransitionError
 
+from sme_terceirizadas.logistica.api.helpers import (
+    atualiza_guia_com_base_nas_conferencias_por_alimentos,
+    verifica_se_a_guia_pode_ser_conferida
+)
 from sme_terceirizadas.logistica.models import (
     Alimento,
     ConferenciaGuia,
@@ -205,16 +209,21 @@ class ConferenciaComOcorrenciaCreateSerializer(serializers.ModelSerializer):
         exclude = ('id',)
 
     def create(self, validated_data): # noqa C901
+        guia = validated_data.get('guia', None)
+        verifica_se_a_guia_pode_ser_conferida(guia)
         user = self.context['request'].user
         validated_data['criado_por'] = user
         conferencia_dos_alimentos_list = []
         conferencia_dos_alimentos = validated_data.pop('conferencia_dos_alimentos')
         conferencia_guia = ConferenciaGuia.objects.create(**validated_data)
+        status_dos_alimentos = []
         for alimento in conferencia_dos_alimentos:
             alimento['conferencia'] = conferencia_guia
+            status_dos_alimentos.append(alimento['status_alimento'])
             conferencia_individual = ConferenciaIndividualPorAlimentoCreateSerializer().create(alimento)
             conferencia_dos_alimentos_list.append(conferencia_individual)
         conferencia_guia.conferencia_dos_alimentos.set(conferencia_dos_alimentos_list)
+        atualiza_guia_com_base_nas_conferencias_por_alimentos(guia, user, status_dos_alimentos)
 
         return conferencia_guia
 
