@@ -4,7 +4,7 @@ import pytest
 from rest_framework import status
 
 from sme_terceirizadas.logistica.models import ConferenciaGuia, Guia
-from sme_terceirizadas.logistica.models.guia import InsucessoEntregaGuia
+from sme_terceirizadas.logistica.models.guia import ConferenciaIndividualPorAlimento, InsucessoEntregaGuia
 
 pytestmark = pytest.mark.django_db
 
@@ -116,3 +116,35 @@ def test_url_get_guia_para_registro_de_insucesso(client_autenticado_distribuidor
     assert Guia.objects.exists()
     assert Guia.objects.get(uuid=str(guia_pendente_de_conferencia.uuid))
     assert response.status_code == status.HTTP_200_OK
+
+
+def test_url_conferir_guia_com_ocorrencia(client_autenticado_escola_abastecimento, guia_com_escola_client_autenticado):
+    payload = {
+        'guia': str(guia_com_escola_client_autenticado.uuid),
+        'nome_motorista': 'José',
+        'placa_veiculo': 'AAABV44',
+        'data_recebimento': '04/04/2021',
+        'hora_recebimento': '03:04',
+        'conferencia_dos_alimentos': [
+            {
+                'tipo_embalagem': ConferenciaIndividualPorAlimento.FECHADA,
+                'nome_alimento': 'PATINHO',
+                'qtd_recebido': 20,
+                'status_alimento': ConferenciaIndividualPorAlimento.STATUS_ALIMENTO_PARCIAL,
+                'ocorrencia': [ConferenciaIndividualPorAlimento.OCORRENCIA_QTD_MENOR]
+            }
+        ]
+    }
+
+    response = client_autenticado_escola_abastecimento.post(
+        '/conferencia-da-guia-com-ocorrencia/',
+        data=json.dumps(payload),
+        content_type='application/json'
+    )
+
+    conferencia = ConferenciaGuia.objects.first()
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert conferencia.uuid
+    assert conferencia.criado_por
+    assert conferencia.conferencia_dos_alimentos
