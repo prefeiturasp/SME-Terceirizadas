@@ -96,14 +96,15 @@ class SolicitacaoRemessaContagemGuiasSerializer(serializers.ModelSerializer):
     guias_nao_recebidas = serializers.IntegerField()
     guias_reposicao_parcial = serializers.IntegerField()
     guias_reposicao_total = serializers.IntegerField()
-    distribuidor_nome = serializers.SerializerMethodField()
-    guias = GuiaLookUpSerializer(many=True)
-
-    def get_distribuidor_nome(self, obj):
-        return obj.distribuidor.razao_social
+    qtd_guias = serializers.IntegerField()
+    distribuidor_nome = serializers.CharField()
+    data_entrega = serializers.SerializerMethodField()
 
     def get_status(self, obj):
         return obj.get_status_display()
+
+    def get_data_entrega(self, obj):
+        return obj.data_entrega.strftime('%d/%m/%Y')
 
     class Meta:
         model = SolicitacaoRemessa
