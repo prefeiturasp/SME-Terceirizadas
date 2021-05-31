@@ -279,7 +279,9 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
         if page is not None:
             serializer = SolicitacaoRemessaContagemGuiasSerializer(page, many=True)
             response = self.get_paginated_response(
-                serializer.data
+                serializer.data,
+                num_enviadas=0,
+                num_confirmadas=queryset.count()
             )
             return response
 
