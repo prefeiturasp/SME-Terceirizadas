@@ -255,7 +255,8 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
     @action(detail=False, permission_classes=(UsuarioDilogCodae,),
             methods=['GET'], url_path='lista-requisicoes-confirmadas')
     def lista_requisicoes_confirmadas(self, request):
-        queryset = self.filter_queryset(self.get_queryset().filter(status=SolicitacaoRemessaWorkFlow.DISTRIBUIDOR_CONFIRMA))
+        queryset = self.filter_queryset(
+            self.get_queryset().filter(status=SolicitacaoRemessaWorkFlow.DISTRIBUIDOR_CONFIRMA))
 
         queryset = queryset.annotate(
             qtd_guias=Count('guias'),
