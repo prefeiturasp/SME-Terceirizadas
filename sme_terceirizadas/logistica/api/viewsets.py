@@ -273,7 +273,7 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
                 guias__status=GuiaRemessaWorkFlow.REPOSICAO_PARCIAL
             )),
             guias_reposicao_total=Count('guias__status', filter=Q(guias__status=GuiaRemessaWorkFlow.REPOSICAO_TOTAL)),
-        )
+        ).order_by('guias__data_entrega').distinct()
 
         page = self.paginate_queryset(queryset)
         if page is not None:
