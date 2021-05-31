@@ -15,6 +15,10 @@ router.register('solicitacao-remessa-cancelamento', viewsets.SolicitacaoCancelam
 router.register('guias-da-requisicao', viewsets.GuiaDaRequisicaoModelViewSet, basename='guias-da-requisicao')
 router.register('alimentos-da-guia', viewsets.AlimentoDaGuiaModelViewSet, basename='alimentos-da-guia')
 router.register('conferencia-da-guia', viewsets.ConferenciaDaGuiaModelViewSet, basename='conferencia-da-guia')
+router.register('conferencia-da-guia-com-ocorrencia', viewsets.ConferenciaDaGuiaComOcorrenciaModelViewSet,
+                basename='conferencia-da-guia-com-ocorrencia')
+router.register('conferencia-individual', viewsets.ConferenciaindividualModelViewSet,
+                basename='conferencia-individual')
 router.register('insucesso-de-entrega', viewsets.InsucessoDeEntregaGuiaModelViewSet,
                 basename='insucesso-de-entrega')
 router.register('solicitacao-de-alteracao-de-requisicao', viewsets.SolicitacaoDeAlteracaoDeRequisicaoViewset,

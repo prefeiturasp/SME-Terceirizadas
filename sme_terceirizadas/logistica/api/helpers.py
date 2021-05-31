@@ -1,15 +1,26 @@
 from unicodedata import normalize
 
+from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Case, Value, When
 from django.db.models.fields import CharField
+from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
+from xworkflows.base import InvalidTransitionError
 
 from sme_terceirizadas.dados_comuns.fluxo_status import GuiaRemessaWorkFlow, SolicitacaoRemessaWorkFlow
 from sme_terceirizadas.escola.models import Escola
 from sme_terceirizadas.logistica.api.serializers.serializers import (
     GuiaDaRemessaComAlimentoSerializer,
     GuiaDaRemessaSerializer
+)
+from sme_terceirizadas.logistica.models import Guia
+from sme_terceirizadas.logistica.models.guia import ConferenciaIndividualPorAlimento
+
+status_invalidos_para_conferencia = (
+    GuiaRemessaWorkFlow.CANCELADA,
+    GuiaRemessaWorkFlow.AGUARDANDO_ENVIO,
+    GuiaRemessaWorkFlow.AGUARDANDO_CONFIRMACAO
 )
 
 
@@ -124,12 +135,7 @@ def valida_guia_conferencia(queryset, escola):
         return Response(dict(detail=f'Erro: Guia não encontrada', status=False),
                         status=HTTP_404_NOT_FOUND)
     guia = queryset.first()
-    status_invalidos = (
-        GuiaRemessaWorkFlow.CANCELADA,
-        GuiaRemessaWorkFlow.AGUARDANDO_ENVIO,
-        GuiaRemessaWorkFlow.AGUARDANDO_CONFIRMACAO
-    )
-    if guia.status in status_invalidos:
+    if guia.status in status_invalidos_para_conferencia:
         return Response(dict(
             detail=f'Erro ao buscar guia: Essa guia não está pronta para o processo de conferencia'
         ), status=HTTP_400_BAD_REQUEST)
@@ -146,15 +152,40 @@ def valida_guia_insucesso(queryset):
         return Response(dict(detail=f'Erro: Guia não encontrada', status=False),
                         status=HTTP_404_NOT_FOUND)
     guia = queryset.first()
-    status_invalidos = (
-        GuiaRemessaWorkFlow.CANCELADA,
-        GuiaRemessaWorkFlow.AGUARDANDO_ENVIO,
-        GuiaRemessaWorkFlow.AGUARDANDO_CONFIRMACAO
-    )
-    if guia.status in status_invalidos:
+    if guia.status in status_invalidos_para_conferencia:
         return Response(dict(
             detail=f'Erro ao buscar guia: Essa guia não está pronta para registro de insucesso'
         ), status=HTTP_400_BAD_REQUEST)
     serializer = GuiaDaRemessaSerializer(guia)
 
     return Response(serializer.data)
+
+
+def verifica_se_a_guia_pode_ser_conferida(guia):
+    try:
+        guia = Guia.objects.get(uuid=guia.uuid)
+        if guia.status in status_invalidos_para_conferencia:
+            raise ValidationError(f'Erro ao buscar guia: Essa guia ainda não pode ser conferida.')
+    except ObjectDoesNotExist:
+        raise ValidationError(f'Guia de remessa não existe.')
+
+
+def atualiza_guia_com_base_nas_conferencias_por_alimentos(guia, user, status_dos_alimentos):  # noqa C901
+    try:
+        guia = Guia.objects.get(uuid=guia.uuid)
+        recebido = ConferenciaIndividualPorAlimento.STATUS_ALIMENTO_RECEBIDO
+        nao_recebido = ConferenciaIndividualPorAlimento.STATUS_ALIMENTO_NAO_RECEBIDO
+        if len(status_dos_alimentos) == 0:
+            raise ValidationError(f'Status dos alimentos não foram informados.')
+        try:
+            if all(status == recebido for status in status_dos_alimentos):
+                guia.escola_recebe(user=user)
+            elif all(status == nao_recebido for status in status_dos_alimentos):
+                guia.escola_nao_recebe(user=user)
+            else:
+                guia.escola_recebe_parcial(user=user)
+        except InvalidTransitionError as e:
+            raise ValidationError(f'Erro de transição de estado: {e}')
+
+    except ObjectDoesNotExist:
+        raise ValidationError(f'Guia de remessa não existe.')

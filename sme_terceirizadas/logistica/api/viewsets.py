@@ -25,7 +25,9 @@ from sme_terceirizadas.dados_comuns.permissions import (
     UsuarioEscolaAbastecimento
 )
 from sme_terceirizadas.logistica.api.serializers.serializer_create import (
+    ConferenciaComOcorrenciaCreateSerializer,
     ConferenciaDaGuiaCreateSerializer,
+    ConferenciaIndividualPorAlimentoCreateSerializer,
     InsucessoDeEntregaGuiaCreateSerializer,
     SolicitacaoDeAlteracaoRequisicaoCreateSerializer,
     SolicitacaoRemessaCreateSerializer
@@ -33,7 +35,9 @@ from sme_terceirizadas.logistica.api.serializers.serializer_create import (
 from sme_terceirizadas.logistica.api.serializers.serializers import (
     AlimentoDaGuiaDaRemessaSerializer,
     AlimentoDaGuiaDaRemessaSimplesSerializer,
+    ConferenciaComOcorrenciaSerializer,
     ConferenciaDaGuiaSerializer,
+    ConferenciaIndividualPorAlimentoSerializer,
     GuiaDaRemessaComDistribuidorSerializer,
     GuiaDaRemessaSerializer,
     GuiaDaRemessaSimplesSerializer,
@@ -608,6 +612,19 @@ class ConferenciaDaGuiaModelViewSet(viewsets.ModelViewSet):
             return ConferenciaDaGuiaCreateSerializer
 
 
+class ConferenciaDaGuiaComOcorrenciaModelViewSet(viewsets.ModelViewSet):
+    lookup_field = 'uuid'
+    queryset = ConferenciaGuia.objects.all()
+    serializer_class = ConferenciaComOcorrenciaSerializer
+    permission_classes = [UsuarioEscolaAbastecimento]
+
+    def get_serializer_class(self):
+        if self.action in ['retrieve', 'list']:
+            return ConferenciaComOcorrenciaSerializer
+        else:
+            return ConferenciaComOcorrenciaCreateSerializer
+
+
 class InsucessoDeEntregaGuiaModelViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
     queryset = InsucessoEntregaGuia.objects.all()
@@ -619,3 +636,16 @@ class InsucessoDeEntregaGuiaModelViewSet(viewsets.ModelViewSet):
             return InsucessoDeEntregaGuiaSerializer
         else:
             return InsucessoDeEntregaGuiaCreateSerializer
+
+
+class ConferenciaindividualModelViewSet(viewsets.ModelViewSet):
+    lookup_field = 'uuid'
+    queryset = ConferenciaGuia.objects.all()
+    serializer_class = ConferenciaIndividualPorAlimentoSerializer
+    permission_classes = [UsuarioEscolaAbastecimento]
+
+    def get_serializer_class(self):
+        if self.action in ['retrieve', 'list']:
+            return ConferenciaIndividualPorAlimentoSerializer
+        else:
+            return ConferenciaIndividualPorAlimentoCreateSerializer

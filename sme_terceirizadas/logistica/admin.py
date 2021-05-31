@@ -9,7 +9,7 @@ from .models import (
     SolicitacaoRemessa,
     TipoEmbalagem
 )
-from .models.guia import InsucessoEntregaGuia
+from .models.guia import ConferenciaIndividualPorAlimento, InsucessoEntregaGuia
 from .services import inativa_tipos_de_embabalagem
 
 
@@ -149,6 +149,11 @@ class ConferenciaGuiaAdmin(admin.ModelAdmin):
     def get_guia(self, obj):
         return obj.guia.numero_guia
     get_guia.short_description = 'Número Guia'
+
+
+@admin.register(ConferenciaIndividualPorAlimento)
+class ConferenciaIndividualPorAlimentoAdmin(admin.ModelAdmin):
+    list_display = ('nome_alimento',)
 
 
 @admin.register(InsucessoEntregaGuia)
