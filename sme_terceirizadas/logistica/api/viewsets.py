@@ -255,9 +255,13 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
     @action(detail=False, permission_classes=(UsuarioDilogCodae,),
             methods=['GET'], url_path='lista-requisicoes-confirmadas')
     def lista_requisicoes_confirmadas(self, request):
-        queryset = self.get_queryset().filter(status=SolicitacaoRemessaWorkFlow.DISTRIBUIDOR_CONFIRMA)
+        queryset = self.filter_queryset(
+            self.get_queryset().filter(status=SolicitacaoRemessaWorkFlow.DISTRIBUIDOR_CONFIRMA))
 
         queryset = queryset.annotate(
+            qtd_guias=Count('guias'),
+            distribuidor_nome=F('distribuidor__razao_social'),
+            data_entrega=Max('guias__data_entrega'),
             guias_pendentes=Count('guias__status', filter=Q(guias__status=GuiaRemessaWorkFlow.PENDENTE_DE_CONFERENCIA)),
             guias_insucesso=Count('guias__status', filter=Q(
                 guias__status=GuiaRemessaWorkFlow.DISTRIBUIDOR_REGISTRA_INSUCESSO
@@ -269,7 +273,17 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
                 guias__status=GuiaRemessaWorkFlow.REPOSICAO_PARCIAL
             )),
             guias_reposicao_total=Count('guias__status', filter=Q(guias__status=GuiaRemessaWorkFlow.REPOSICAO_TOTAL)),
-        )
+        ).order_by('guias__data_entrega').distinct()
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = SolicitacaoRemessaContagemGuiasSerializer(page, many=True)
+            response = self.get_paginated_response(
+                serializer.data,
+                num_enviadas=0,
+                num_confirmadas=queryset.count()
+            )
+            return response
 
         response = {'results': SolicitacaoRemessaContagemGuiasSerializer(queryset, many=True).data}
         return Response(response)
