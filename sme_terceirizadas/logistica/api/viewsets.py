@@ -1,5 +1,5 @@
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
-from django.db.models import Count, F, FloatField, Max, Sum
+from django.db.models import Count, F, FloatField, Max, Q, Sum
 from django.db.utils import DataError
 from django.http.response import HttpResponse
 from django_filters import rest_framework as filters
@@ -252,25 +252,20 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
             methods=['GET'], url_path='lista-requisicoes-confirmadas')
     def lista_requisicoes_confirmadas(self, request):
         queryset = self.get_queryset().filter(status=SolicitacaoRemessaWorkFlow.DISTRIBUIDOR_CONFIRMA)
-        from django.db.models import Q
+
         queryset = queryset.annotate(
-            guias_pendentes=Count('guias__status', filter=Q(guias__status=GuiaRemessaWorkFlow.PENDENTE_DE_CONFERENCIA)))
-        queryset = queryset.annotate(
+            guias_pendentes=Count('guias__status', filter=Q(guias__status=GuiaRemessaWorkFlow.PENDENTE_DE_CONFERENCIA)),
             guias_insucesso=Count('guias__status', filter=Q(
                 guias__status=GuiaRemessaWorkFlow.DISTRIBUIDOR_REGISTRA_INSUCESSO
-            )))
-        queryset = queryset.annotate(
-            guias_recebidas=Count('guias__status', filter=Q(guias__status=GuiaRemessaWorkFlow.RECEBIDA)))
-        queryset = queryset.annotate(
-            guias_parciais=Count('guias__status', filter=Q(guias__status=GuiaRemessaWorkFlow.RECEBIMENTO_PARCIAL)))
-        queryset = queryset.annotate(
-            guias_nao_recebidas=Count('guias__status', filter=Q(guias__status=GuiaRemessaWorkFlow.NAO_RECEBIDA)))
-        queryset = queryset.annotate(
+            )),
+            guias_recebidas=Count('guias__status', filter=Q(guias__status=GuiaRemessaWorkFlow.RECEBIDA)),
+            guias_parciais=Count('guias__status', filter=Q(guias__status=GuiaRemessaWorkFlow.RECEBIMENTO_PARCIAL)),
+            guias_nao_recebidas=Count('guias__status', filter=Q(guias__status=GuiaRemessaWorkFlow.NAO_RECEBIDA)),
             guias_reposicao_parcial=Count('guias__status', filter=Q(
                 guias__status=GuiaRemessaWorkFlow.REPOSICAO_PARCIAL
-            )))
-        queryset = queryset.annotate(
-            guias_reposicao_total=Count('guias__status', filter=Q(guias__status=GuiaRemessaWorkFlow.REPOSICAO_TOTAL)))
+            )),
+            guias_reposicao_total=Count('guias__status', filter=Q(guias__status=GuiaRemessaWorkFlow.REPOSICAO_TOTAL)),
+        )
 
         response = {'results': SolicitacaoRemessaContagemGuiasSerializer(queryset, many=True).data}
         return Response(response)
