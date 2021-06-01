@@ -10,7 +10,7 @@ from sme_terceirizadas.logistica.models import (
     SolicitacaoRemessa,
     TipoEmbalagem
 )
-from sme_terceirizadas.logistica.models.guia import InsucessoEntregaGuia
+from sme_terceirizadas.logistica.models.guia import ConferenciaIndividualPorAlimento, InsucessoEntregaGuia
 from sme_terceirizadas.perfil.api.serializers import UsuarioVinculoSerializer
 
 
@@ -85,6 +85,30 @@ class SolicitacaoRemessaLookUpSerializer(serializers.ModelSerializer):
     class Meta:
         model = SolicitacaoRemessa
         fields = ('uuid', 'numero_solicitacao', 'distribuidor_nome', 'status', 'guias')
+
+
+class SolicitacaoRemessaContagemGuiasSerializer(serializers.ModelSerializer):
+    status = serializers.SerializerMethodField()
+    guias_pendentes = serializers.IntegerField()
+    guias_insucesso = serializers.IntegerField()
+    guias_recebidas = serializers.IntegerField()
+    guias_parciais = serializers.IntegerField()
+    guias_nao_recebidas = serializers.IntegerField()
+    guias_reposicao_parcial = serializers.IntegerField()
+    guias_reposicao_total = serializers.IntegerField()
+    qtd_guias = serializers.IntegerField()
+    distribuidor_nome = serializers.CharField()
+    data_entrega = serializers.SerializerMethodField()
+
+    def get_status(self, obj):
+        return obj.get_status_display()
+
+    def get_data_entrega(self, obj):
+        return obj.data_entrega.strftime('%d/%m/%Y')
+
+    class Meta:
+        model = SolicitacaoRemessa
+        exclude = ('id',)
 
 
 class XmlAlimentoSerializer(serializers.Serializer):
@@ -217,6 +241,39 @@ class SolicitacaoDeAlteracaoSimplesSerializer(serializers.ModelSerializer):
 
 class ConferenciaDaGuiaSerializer(serializers.ModelSerializer):
     criado_por = UsuarioVinculoSerializer()
+
+    class Meta:
+        model = ConferenciaGuia
+        exclude = ('id',)
+
+
+class ConferenciaIndividualPorAlimentoSerializer(serializers.ModelSerializer):
+    conferencia = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=ConferenciaGuia.objects.all()
+    )
+    status_alimento = serializers.SerializerMethodField()
+    tipo_embalagem = serializers.SerializerMethodField()
+    ocorrencia = serializers.SerializerMethodField()
+
+    def get_status_alimento(self, obj):
+        return obj.get_status_alimento_display()
+
+    def get_tipo_embalagem(self, obj):
+        return obj.get_tipo_embalagem_display()
+
+    def get_ocorrencia(self, obj):
+        return obj.get_ocorrencia_display()
+
+    class Meta:
+        model = ConferenciaIndividualPorAlimento
+        exclude = ('id',)
+
+
+class ConferenciaComOcorrenciaSerializer(serializers.ModelSerializer):
+    criado_por = UsuarioVinculoSerializer()
+    conferencia_dos_alimentos = ConferenciaIndividualPorAlimentoSerializer(many=True)
 
     class Meta:
         model = ConferenciaGuia

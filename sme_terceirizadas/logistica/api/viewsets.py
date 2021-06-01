@@ -1,5 +1,5 @@
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
-from django.db.models import Count, F, FloatField, Max, Sum
+from django.db.models import Count, F, FloatField, Max, Q, Sum
 from django.db.utils import DataError
 from django.http.response import HttpResponse
 from django_filters import rest_framework as filters
@@ -25,7 +25,9 @@ from sme_terceirizadas.dados_comuns.permissions import (
     UsuarioEscolaAbastecimento
 )
 from sme_terceirizadas.logistica.api.serializers.serializer_create import (
+    ConferenciaComOcorrenciaCreateSerializer,
     ConferenciaDaGuiaCreateSerializer,
+    ConferenciaIndividualPorAlimentoCreateSerializer,
     InsucessoDeEntregaGuiaCreateSerializer,
     SolicitacaoDeAlteracaoRequisicaoCreateSerializer,
     SolicitacaoRemessaCreateSerializer
@@ -33,7 +35,9 @@ from sme_terceirizadas.logistica.api.serializers.serializer_create import (
 from sme_terceirizadas.logistica.api.serializers.serializers import (
     AlimentoDaGuiaDaRemessaSerializer,
     AlimentoDaGuiaDaRemessaSimplesSerializer,
+    ConferenciaComOcorrenciaSerializer,
     ConferenciaDaGuiaSerializer,
+    ConferenciaIndividualPorAlimentoSerializer,
     GuiaDaRemessaComDistribuidorSerializer,
     GuiaDaRemessaSerializer,
     GuiaDaRemessaSimplesSerializer,
@@ -41,6 +45,7 @@ from sme_terceirizadas.logistica.api.serializers.serializers import (
     InsucessoDeEntregaGuiaSerializer,
     SolicitacaoDeAlteracaoSerializer,
     SolicitacaoDeAlteracaoSimplesSerializer,
+    SolicitacaoRemessaContagemGuiasSerializer,
     SolicitacaoRemessaLookUpSerializer,
     SolicitacaoRemessaSerializer,
     SolicitacaoRemessaSimplesSerializer,
@@ -245,6 +250,42 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(guias__data_entrega__lte=data_fim).distinct()
 
         response = {'results': SolicitacaoRemessaLookUpSerializer(queryset, many=True).data}
+        return Response(response)
+
+    @action(detail=False, permission_classes=(UsuarioDilogCodae,),
+            methods=['GET'], url_path='lista-requisicoes-confirmadas')
+    def lista_requisicoes_confirmadas(self, request):
+        queryset = self.filter_queryset(
+            self.get_queryset().filter(status=SolicitacaoRemessaWorkFlow.DISTRIBUIDOR_CONFIRMA))
+
+        queryset = queryset.annotate(
+            qtd_guias=Count('guias'),
+            distribuidor_nome=F('distribuidor__razao_social'),
+            data_entrega=Max('guias__data_entrega'),
+            guias_pendentes=Count('guias__status', filter=Q(guias__status=GuiaRemessaWorkFlow.PENDENTE_DE_CONFERENCIA)),
+            guias_insucesso=Count('guias__status', filter=Q(
+                guias__status=GuiaRemessaWorkFlow.DISTRIBUIDOR_REGISTRA_INSUCESSO
+            )),
+            guias_recebidas=Count('guias__status', filter=Q(guias__status=GuiaRemessaWorkFlow.RECEBIDA)),
+            guias_parciais=Count('guias__status', filter=Q(guias__status=GuiaRemessaWorkFlow.RECEBIMENTO_PARCIAL)),
+            guias_nao_recebidas=Count('guias__status', filter=Q(guias__status=GuiaRemessaWorkFlow.NAO_RECEBIDA)),
+            guias_reposicao_parcial=Count('guias__status', filter=Q(
+                guias__status=GuiaRemessaWorkFlow.REPOSICAO_PARCIAL
+            )),
+            guias_reposicao_total=Count('guias__status', filter=Q(guias__status=GuiaRemessaWorkFlow.REPOSICAO_TOTAL)),
+        ).order_by('guias__data_entrega').distinct()
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = SolicitacaoRemessaContagemGuiasSerializer(page, many=True)
+            response = self.get_paginated_response(
+                serializer.data,
+                num_enviadas=0,
+                num_confirmadas=queryset.count()
+            )
+            return response
+
+        response = {'results': SolicitacaoRemessaContagemGuiasSerializer(queryset, many=True).data}
         return Response(response)
 
     @action(detail=True, permission_classes=(UsuarioDilogCodae,),
@@ -608,6 +649,19 @@ class ConferenciaDaGuiaModelViewSet(viewsets.ModelViewSet):
             return ConferenciaDaGuiaCreateSerializer
 
 
+class ConferenciaDaGuiaComOcorrenciaModelViewSet(viewsets.ModelViewSet):
+    lookup_field = 'uuid'
+    queryset = ConferenciaGuia.objects.all()
+    serializer_class = ConferenciaComOcorrenciaSerializer
+    permission_classes = [UsuarioEscolaAbastecimento]
+
+    def get_serializer_class(self):
+        if self.action in ['retrieve', 'list']:
+            return ConferenciaComOcorrenciaSerializer
+        else:
+            return ConferenciaComOcorrenciaCreateSerializer
+
+
 class InsucessoDeEntregaGuiaModelViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
     queryset = InsucessoEntregaGuia.objects.all()
@@ -619,3 +673,16 @@ class InsucessoDeEntregaGuiaModelViewSet(viewsets.ModelViewSet):
             return InsucessoDeEntregaGuiaSerializer
         else:
             return InsucessoDeEntregaGuiaCreateSerializer
+
+
+class ConferenciaindividualModelViewSet(viewsets.ModelViewSet):
+    lookup_field = 'uuid'
+    queryset = ConferenciaGuia.objects.all()
+    serializer_class = ConferenciaIndividualPorAlimentoSerializer
+    permission_classes = [UsuarioEscolaAbastecimento]
+
+    def get_serializer_class(self):
+        if self.action in ['retrieve', 'list']:
+            return ConferenciaIndividualPorAlimentoSerializer
+        else:
+            return ConferenciaIndividualPorAlimentoCreateSerializer

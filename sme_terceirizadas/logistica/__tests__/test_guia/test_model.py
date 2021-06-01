@@ -1,7 +1,7 @@
 import pytest
 from django.contrib.auth import get_user_model
 
-from ...models.guia import ConferenciaGuia, Guia, InsucessoEntregaGuia
+from ...models.guia import ConferenciaGuia, ConferenciaIndividualPorAlimento, Guia, InsucessoEntregaGuia
 
 pytestmark = pytest.mark.django_db
 
@@ -45,3 +45,16 @@ def test_srt_insucesso_entrega_guiamodel(insucesso_entrega_guia):
 def test_meta_insucesso_entrega_guiamodelo(insucesso_entrega_guia):
     assert insucesso_entrega_guia._meta.verbose_name == 'Insucesso de Entrega da Guia'
     assert insucesso_entrega_guia._meta.verbose_name_plural == 'Insucessos de Entregas das Guias'
+
+
+def test_instance_conferencia_guia_individual_model(conferencia_guia_individual):
+    assert isinstance(conferencia_guia_individual, ConferenciaIndividualPorAlimento)
+
+
+def test_srt_conferencia_guia_individual_model(conferencia_guia_individual):
+    assert conferencia_guia_individual.__str__() == 'Conferencia do alimento PATINHO da guia 987654'
+
+
+def test_meta_conferencia_guia_individual_modelo(conferencia_guia_individual):
+    assert conferencia_guia_individual._meta.verbose_name == 'Conferência Individual por Alimento'
+    assert conferencia_guia_individual._meta.verbose_name_plural == 'Conferências Individuais por Alimentos'
