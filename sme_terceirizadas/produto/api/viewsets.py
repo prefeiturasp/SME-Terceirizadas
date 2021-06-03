@@ -523,6 +523,21 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(homologacoes, many=True)
         return Response(serializer.data)
 
+    @action(detail=True,
+            permission_classes=[UsuarioTerceirizada],
+            methods=['patch'],
+            url_path=constants.TERCEIRIZADA_CANCELOU_SOLICITACAO_HOMOLOGACAO)
+    def terceirizada_cancelou_solicitacao_homologacao(self, request, uuid=None):
+        homologacao_produto = self.get_object()
+        justificativa = request.data.get('justificativa', '')
+        try:
+            homologacao_produto.terceirizada_cancelou_solicitacao_homologacao(
+                user=request.user, justificativa=justificativa)
+            return Response('Cancelamento de solicitação de homologação realizada com sucesso!')
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'),
+                            status=status.HTTP_400_BAD_REQUEST)
+
     def destroy(self, request, *args, **kwargs):
         homologacao_produto = self.get_object()
         if homologacao_produto.pode_excluir:
