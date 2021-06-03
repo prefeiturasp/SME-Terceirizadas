@@ -165,7 +165,8 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
             HomologacaoDoProduto.workflow_class.CODAE_AUTORIZOU_RECLAMACAO,
             HomologacaoDoProduto.workflow_class.CODAE_SUSPENDEU,
             HomologacaoDoProduto.workflow_class.CODAE_HOMOLOGADO,
-            HomologacaoDoProduto.workflow_class.CODAE_NAO_HOMOLOGADO]
+            HomologacaoDoProduto.workflow_class.CODAE_NAO_HOMOLOGADO,
+            HomologacaoDoProduto.workflow_class.TERCEIRIZADA_CANCELOU_SOLICITACAO_HOMOLOGACAO]
 
         if self.request.user.tipo_usuario in [constants.TIPO_USUARIO_TERCEIRIZADA,
                                               constants.TIPO_USUARIO_GESTAO_PRODUTO]:
@@ -255,6 +256,10 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
                                              'CODAE_PEDIU_ANALISE_RECLAMACAO',
                                              'TERCEIRIZADA_RESPONDEU_RECLAMACAO',
                                              filtro_aplicado.upper()]
+            elif filtro_aplicado == 'codae_nao_homologado':
+                status__in = ['CODAE_NAO_HOMOLOGADO',
+                              'TERCEIRIZADA_CANCELOU_SOLICITACAO_HOMOLOGACAO']
+                filtros['status__in'] = status__in
             else:
                 filtros['status'] = filtro_aplicado.upper()
         query_set = self.get_queryset().filter(**filtros).distinct()
