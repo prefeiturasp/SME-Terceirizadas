@@ -52,6 +52,7 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
         CODAE_PEDIU_ANALISE_RECLAMACAO,
         CODAE_AUTORIZOU_RECLAMACAO,
         INATIVA,
+        TERCEIRIZADA_CANCELOU_SOLICITACAO_HOMOLOGACAO,
 
         # ESPECIFICA RECLAMAÇÃO DE PRODUTO
         TERCEIRIZADA_RESPONDEU_RECLAMACAO,
@@ -76,7 +77,7 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
 
         CANCELADO_ALUNO_MUDOU_ESCOLA,
         CANCELADO_ALUNO_NAO_PERTENCE_REDE,
-    ) = range(45)
+    ) = range(46)
 
     STATUS_POSSIVEIS = (
         (INICIO_FLUXO, 'Solicitação Realizada'),
@@ -105,6 +106,7 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
         (CODAE_PEDIU_ANALISE_SENSORIAL, 'CODAE pediu análise sensorial'),
         (TERCEIRIZADA_CANCELOU, 'Terceirizada cancelou homologação'),
         (INATIVA, 'Homologação inativa'),
+        (TERCEIRIZADA_CANCELOU_SOLICITACAO_HOMOLOGACAO, 'Terceirizada cancelou solicitação de homologação de produto'),
         (CODAE_SUSPENDEU, 'CODAE suspendeu o produto'),
         (ESCOLA_OU_NUTRICIONISTA_RECLAMOU, 'Escola/Nutricionista reclamou do produto'),  # noqa
         (CODAE_PEDIU_ANALISE_RECLAMACAO, 'CODAE pediu análise da reclamação'),

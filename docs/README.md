@@ -62,3 +62,8 @@ class Migration(migrations.Migration):
     ]
 ```
 então é só aplicar a migração `python manage.py migrate`
+
+
+## Diagramas
+
+Na diretório diagramas de classes é possível visualizar todos os diagramas das apps django do projeto afim de ajudar no entendimentos das relações entre os modelos.

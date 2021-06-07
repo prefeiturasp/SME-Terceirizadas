@@ -344,6 +344,7 @@ class HomologacaoProdutoWorkflow(xwf_models.Workflow):
     CODAE_PEDIU_ANALISE_RECLAMACAO = 'CODAE_PEDIU_ANALISE_RECLAMACAO'
     TERCEIRIZADA_RESPONDEU_RECLAMACAO = 'TERCEIRIZADA_RESPONDEU_RECLAMACAO'
     CODAE_AUTORIZOU_RECLAMACAO = 'CODAE_AUTORIZOU_RECLAMACAO'
+    TERCEIRIZADA_CANCELOU_SOLICITACAO_HOMOLOGACAO = 'TERCEIRIZADA_CANCELOU_SOLICITACAO_HOMOLOGACAO'
 
     states = (
         (RASCUNHO, 'Rascunho'),
@@ -359,7 +360,8 @@ class HomologacaoProdutoWorkflow(xwf_models.Workflow):
          'Escola/Nutricionista reclamou do produto'),
         (CODAE_PEDIU_ANALISE_RECLAMACAO, 'CODAE pediu análise da reclamação'),
         (TERCEIRIZADA_RESPONDEU_RECLAMACAO, 'Terceirizada respondeu a reclamação'),
-        (CODAE_AUTORIZOU_RECLAMACAO, 'CODAE autorizou reclamação')
+        (CODAE_AUTORIZOU_RECLAMACAO, 'CODAE autorizou reclamação'),
+        (TERCEIRIZADA_CANCELOU_SOLICITACAO_HOMOLOGACAO, 'Terceirizada cancelou solicitação de homologação de produto')
     )
 
     transitions = (
@@ -400,6 +402,8 @@ class HomologacaoProdutoWorkflow(xwf_models.Workflow):
         ('inativa_homologacao',
          [CODAE_SUSPENDEU, ESCOLA_OU_NUTRICIONISTA_RECLAMOU, CODAE_QUESTIONADO, CODAE_HOMOLOGADO,
           CODAE_NAO_HOMOLOGADO, CODAE_AUTORIZOU_RECLAMACAO], INATIVA),
+        ('terceirizada_cancelou_solicitacao_homologacao',
+         CODAE_PENDENTE_HOMOLOGACAO, TERCEIRIZADA_CANCELOU_SOLICITACAO_HOMOLOGACAO),
     )
 
     initial_state = RASCUNHO
@@ -932,6 +936,13 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
             justificativa=justificativa)
         self._envia_email_codae_pede_analise_sensorial(
             log_transicao=log_transicao, link_pdf=kwargs['link_pdf'])
+
+    @xworkflows.after_transition('terceirizada_cancelou_solicitacao_homologacao')
+    def _terceirizada_cancelou_solicitacao_homologacao_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_CANCELOU_SOLICITACAO_HOMOLOGACAO,
+                                  usuario=user,
+                                  justificativa=kwargs.get('justificativa', ''))
 
     @xworkflows.after_transition('terceirizada_responde_analise_sensorial')
     def _terceirizada_responde_analise_sensorial_hook(self, *args, **kwargs):
