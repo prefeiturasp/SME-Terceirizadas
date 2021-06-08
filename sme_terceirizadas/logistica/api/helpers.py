@@ -189,3 +189,17 @@ def atualiza_guia_com_base_nas_conferencias_por_alimentos(guia, user, status_dos
 
     except ObjectDoesNotExist:
         raise ValidationError(f'Guia de remessa não existe.')
+
+
+def registra_qtd_a_receber(conferencia_individual):
+    try:
+        guia = conferencia_individual.conferencia.guia
+        nome_alimento = conferencia_individual.nome_alimento
+        tipo_embalagem = conferencia_individual.tipo_embalagem
+
+        alimento = guia.alimentos.get(nome_alimento=nome_alimento)
+        embalagem = alimento.embalagens.get(tipo_embalagem=tipo_embalagem)
+        embalagem.qtd_a_receber = embalagem.qtd_volume - embalagem.qtd_a_receber - conferencia_individual.qtd_recebido
+        embalagem.save()
+    except ObjectDoesNotExist:
+        raise ValidationError(f'Alimento ou embalagem não existe.')
