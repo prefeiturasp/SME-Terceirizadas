@@ -118,7 +118,8 @@ def test_url_get_guia_para_registro_de_insucesso(client_autenticado_distribuidor
     assert response.status_code == status.HTTP_200_OK
 
 
-def test_url_conferir_guia_com_ocorrencia(client_autenticado_escola_abastecimento, guia_com_escola_client_autenticado):
+def test_url_conferir_guia_com_ocorrencia(
+        client_autenticado_escola_abastecimento, guia_com_escola_client_autenticado, alimento, embalagem):
     payload = {
         'guia': str(guia_com_escola_client_autenticado.uuid),
         'nome_motorista': 'José',

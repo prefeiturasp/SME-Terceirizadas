@@ -6,6 +6,7 @@ from xworkflows.base import InvalidTransitionError
 
 from sme_terceirizadas.logistica.api.helpers import (
     atualiza_guia_com_base_nas_conferencias_por_alimentos,
+    registra_qtd_a_receber,
     verifica_se_a_guia_pode_ser_conferida
 )
 from sme_terceirizadas.logistica.models import (
@@ -184,6 +185,7 @@ class ConferenciaIndividualPorAlimentoCreateSerializer(serializers.ModelSerializ
         if ocorrencia:
             validated_data['tem_ocorrencia'] = True
         conferencia_individual = ConferenciaIndividualPorAlimento.objects.create(**validated_data)
+        registra_qtd_a_receber(conferencia_individual)
         return conferencia_individual
 
     class Meta:

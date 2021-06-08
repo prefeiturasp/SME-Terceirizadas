@@ -77,6 +77,7 @@ class Embalagem(ModeloBase):
     unidade_medida = models.CharField('Unidade de Medida', max_length=10)
     tipo_embalagem = models.CharField(choices=TIPO_EMBALAGEM_CHOICES, max_length=15, default=FECHADA)
     qtd_volume = models.PositiveSmallIntegerField('Quantidade/Volume', blank=True, null=True)
+    qtd_a_receber = models.PositiveSmallIntegerField('Quantidade a receber faltante', default=0, blank=True, null=True)
     alimento = models.ForeignKey(
         Alimento, on_delete=models.CASCADE, blank=True, null=True, related_name='embalagens')
 
