@@ -120,6 +120,31 @@ def guia_com_escola_client_autenticado(solicitacao, escola_com_guia):
 
 
 @pytest.fixture
+def alimento(guia_com_escola_client_autenticado):
+    return mommy.make(
+        'logistica.Alimento',
+        guia=guia_com_escola_client_autenticado,
+        codigo_suprimento='123456',
+        codigo_papa='2345',
+        nome_alimento='PATINHO'
+    )
+
+
+@pytest.fixture
+def embalagem(alimento):
+    return mommy.make(
+        'Embalagem',
+        alimento=alimento,
+        descricao_embalagem='CX',
+        capacidade_embalagem=9.13,
+        unidade_medida='KG',
+        tipo_embalagem='FECHADA',
+        qtd_volume=90,
+        qtd_a_receber=0
+    )
+
+
+@pytest.fixture
 def solicitacao_de_alteracao_requisicao(solicitacao, distribuidor):
     return mommy.make(
         'SolicitacaoDeAlteracaoRequisicao',
