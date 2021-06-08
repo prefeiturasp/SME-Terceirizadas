@@ -315,7 +315,7 @@ class ReclamacaoDeProduto(FluxoReclamacaoProduto, TemChaveExterna, CriadoEm, Cri
     reclamante_nome = models.CharField('Nome', max_length=255)
     reclamacao = models.TextField('Reclamação')
     escola = models.ForeignKey(Escola, null=True, on_delete=models.PROTECT, related_name='reclamacoes')
-    produto_lote = models.TextField(max_length=255, blank=True)
+    produto_lote = models.TextField(max_length=255, blank=True, default='')
     produto_data_validade = models.DateField(auto_now=False, auto_now_add=False, blank=True, null=True)
     produto_data_fabricacao = models.DateField(auto_now=False, auto_now_add=False, blank=True, null=True)
 
