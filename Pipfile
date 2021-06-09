@@ -65,7 +65,7 @@ django-xworkflows='==0.12.3' # https://github.com/rbarrois/django_xworkflows
 drf_base64='==2.0' # https://pypi.org/project/drf_base64/
 # Django
 # ------------------------------------------------------------------------------
-django='==2.2.13'          # https://www.djangoproject.com/
+django='==2.2.22'          # https://www.djangoproject.com/
 django-environ='==0.4.5'  # https://github.com/joke2k/django-environ
 django-model-utils='==3.1.2'  # https://github.com/jazzband/django-model-utils
 django-redis='==4.10.0'  # https://github.com/niwinz/django-redis
