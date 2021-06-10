@@ -9,7 +9,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.status import HTTP_201_CREATED, HTTP_400_BAD_REQUEST
-from rest_framework.viewsets import GenericViewSet
+from rest_framework.viewsets import GenericViewSet, ModelViewSet
 from xworkflows import InvalidTransitionError
 
 from ...dados_comuns import constants
@@ -49,7 +49,7 @@ from ..models import (
     SolicitacaoDietaEspecial,
     TipoContagem
 )
-from ..utils import RelatorioPagination
+from ..utils import ProtocoloPadraoPagination, RelatorioPagination
 from .filters import AlimentoFilter, DietaEspecialFilter
 from .serializers import (
     AlergiaIntoleranciaSerializer,
@@ -759,19 +759,29 @@ class MotivoAlteracaoUEViewSet(mixins.ListModelMixin, GenericViewSet):
     serializer_class = MotivoAlteracaoUESerializer
 
 
-class ProtocoloPadraoDietaEspecialViewSet(
-        mixins.RetrieveModelMixin,
-        mixins.ListModelMixin,
-        mixins.CreateModelMixin,
-        mixins.UpdateModelMixin,
-        GenericViewSet):
+class ProtocoloPadraoDietaEspecialViewSet(ModelViewSet):
     lookup_field = 'uuid'
     permission_classes = (IsAuthenticated,)
     queryset = ProtocoloPadraoDietaEspecial.objects.all()
     serializer_class = ProtocoloPadraoDietaEspecialSerializer
+    pagination_class = ProtocoloPadraoPagination
+    filter_backends = (filters.DjangoFilterBackend,)
+    filter_fields = ('nome_protocolo', 'status')
 
     def get_serializer_class(self):
         if self.action == 'create':
             return ProtocoloPadraoDietaEspecialSerializerCreate
         else:
             return ProtocoloPadraoDietaEspecialSerializer
+
+    @action(detail=False, methods=['GET'], url_path='lista-status')
+    def lista_status(self, request):
+        list_status = ProtocoloPadraoDietaEspecial.STATUS_NOMES.keys()
+
+        return Response({'results': list_status})
+
+    @action(detail=False, methods=['GET'], url_path='nomes')
+    def nomes(self, request):
+        nomes = self.queryset.values_list('nome_protocolo', flat=True).distinct()
+
+        return Response({'results': nomes})
