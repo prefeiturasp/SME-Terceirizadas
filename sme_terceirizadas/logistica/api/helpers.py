@@ -23,6 +23,9 @@ status_invalidos_para_conferencia = (
     GuiaRemessaWorkFlow.AGUARDANDO_CONFIRMACAO
 )
 
+status_alimento_recebido = ConferenciaIndividualPorAlimento.STATUS_ALIMENTO_RECEBIDO,
+status_alimento_nao_recebido = ConferenciaIndividualPorAlimento.STATUS_ALIMENTO_NAO_RECEBIDO
+
 
 def remove_acentos_de_strings(nome: str) -> str:
     return normalize('NFKD', nome).encode('ASCII', 'ignore').decode('ASCII')
@@ -170,22 +173,40 @@ def verifica_se_a_guia_pode_ser_conferida(guia):
         raise ValidationError(f'Guia de remessa não existe.')
 
 
-def atualiza_guia_com_base_nas_conferencias_por_alimentos(guia, user, status_dos_alimentos):  # noqa C901
+def atualiza_status_guia_conferencia_com_ocorrencia(guia_obj, user, status_dos_alimentos):  # noqa C901
     try:
-        guia = Guia.objects.get(uuid=guia.uuid)
-        recebido = ConferenciaIndividualPorAlimento.STATUS_ALIMENTO_RECEBIDO
-        nao_recebido = ConferenciaIndividualPorAlimento.STATUS_ALIMENTO_NAO_RECEBIDO
+        if all(status == status_alimento_recebido for status in status_dos_alimentos):
+            guia_obj.escola_recebe(user=user)
+        elif all(status == status_alimento_nao_recebido for status in status_dos_alimentos):
+            guia_obj.escola_nao_recebe(user=user)
+        else:
+            guia_obj.escola_recebe_parcial(user=user)
+    except InvalidTransitionError as e:
+        raise ValidationError(f'Erro de transição de estado: {e}')
+
+
+def atualiza_status_guia_reposicao(guia_obj, user, status_dos_alimentos):  # noqa C901
+    try:
+        if all(status == status_alimento_recebido for status in status_dos_alimentos):
+            guia_obj.reposicao_total(user=user)
+        elif all(status == status_alimento_nao_recebido for status in status_dos_alimentos):
+            guia_obj.reposicao_parcial(user=user)
+        else:
+            guia_obj.reposicao_parcial(user=user)
+    except InvalidTransitionError as e:
+        raise ValidationError(f'Erro de transição de estado: {e}')
+
+
+def atualiza_guia_com_base_nas_conferencias_por_alimentos(guia, user, status_dos_alimentos, eh_reposicao):  # noqa C901
+    try:
+        guia_obj = Guia.objects.get(uuid=guia.uuid)
         if len(status_dos_alimentos) == 0:
             raise ValidationError(f'Status dos alimentos não foram informados.')
-        try:
-            if all(status == recebido for status in status_dos_alimentos):
-                guia.escola_recebe(user=user)
-            elif all(status == nao_recebido for status in status_dos_alimentos):
-                guia.escola_nao_recebe(user=user)
-            else:
-                guia.escola_recebe_parcial(user=user)
-        except InvalidTransitionError as e:
-            raise ValidationError(f'Erro de transição de estado: {e}')
+
+        if eh_reposicao:
+            atualiza_status_guia_reposicao(guia_obj, user, status_dos_alimentos)
+        else:
+            atualiza_status_guia_conferencia_com_ocorrencia(guia_obj, user, status_dos_alimentos)
 
     except ObjectDoesNotExist:
         raise ValidationError(f'Guia de remessa não existe.')
