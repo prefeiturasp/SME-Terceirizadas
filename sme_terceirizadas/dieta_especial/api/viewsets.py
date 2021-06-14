@@ -762,7 +762,7 @@ class MotivoAlteracaoUEViewSet(mixins.ListModelMixin, GenericViewSet):
 class ProtocoloPadraoDietaEspecialViewSet(ModelViewSet):
     lookup_field = 'uuid'
     permission_classes = (IsAuthenticated,)
-    queryset = ProtocoloPadraoDietaEspecial.objects.all()
+    queryset = ProtocoloPadraoDietaEspecial.objects.all().order_by('nome_protocolo')
     serializer_class = ProtocoloPadraoDietaEspecialSerializer
     pagination_class = ProtocoloPadraoPagination
     filter_backends = (filters.DjangoFilterBackend,)
