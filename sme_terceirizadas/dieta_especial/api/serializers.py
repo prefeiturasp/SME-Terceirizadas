@@ -411,6 +411,7 @@ class SubstituicaoAlimentoProtocoloPadraoSerializer(ModelSerializer):
     alimento = AlimentoSerializer()
     substitutos = ProdutoSimplesSerializer(many=True)
     alimentos_substitutos = AlimentoSerializer(many=True)
+    tipo = serializers.CharField(source='get_tipo_display')
 
     class Meta:
         model = SubstituicaoAlimentoProtocoloPadrao
