@@ -94,6 +94,7 @@ THIRD_PARTY_APPS = [
     'simple_email_confirmation',
     'sass_processor',
     'sequences.apps.SequencesConfig',
+    "django_celery_beat",
     'multiselectfield'
 ]
 LOCAL_APPS = [

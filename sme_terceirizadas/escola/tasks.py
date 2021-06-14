@@ -1,9 +1,21 @@
 import datetime
 import logging
+from sme_terceirizadas.perfil.models.perfil import Vinculo
 
 from celery import shared_task
 from django.core import management
 from requests import ConnectionError
+
+from ..paineis_consolidados.models import SolicitacoesDRE
+from ..dados_comuns.models import LogSolicitacoesUsuario
+from ..dados_comuns.fluxo_status import PedidoAPartirDaEscolaWorkflow
+from ..cardapio.models import AlteracaoCardapio, AlteracaoCardapioCEI, InversaoCardapio
+from ..inclusao_alimentacao.models import (
+    GrupoInclusaoAlimentacaoNormal,
+    InclusaoAlimentacaoContinua,
+    InclusaoAlimentacaoDaCEI
+)
+from ..kit_lanche.models import SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheCEIAvulsa, SolicitacaoKitLancheUnificada
 
 from sme_terceirizadas.escola.utils_escola import atualiza_codigo_codae_das_escolas
 
@@ -49,3 +61,43 @@ def atualiza_alunos_escolas():
 def atualiza_codigo_codae_das_escolas_task(path_planilha, id_planilha):
     logger.debug(f'Iniciando task atualiza_codigo_codae_das_escolas às {datetime.datetime.now()}')
     atualiza_codigo_codae_das_escolas(path_planilha, id_planilha)
+
+
+@shared_task(
+    autoretry_for=(ConnectionError,),
+    retry_backoff=2,
+    retry_kwargs={'max_retries': 3}
+)
+def nega_solicitacoes_vencidas():
+        """Gestão de Alimentação: Nega solicitações não validadas pela DRE, ou seja, que possuam
+        status igual a DRE_A_VALIDAR e que tenham o dia do evento
+        menor ou igual ao dia de execução dessa task."""
+
+        from sme_terceirizadas.perfil.models import Usuario
+
+        justificativa = 'A solicitação não foi validada em tempo hábil'
+        
+        # Buscando solictações da DRE não validadas mais que expiraram
+        uuids_solicitacoes_dre_a_validar = SolicitacoesDRE.objects.filter(
+            status_atual=PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR,
+            status_evento=LogSolicitacoesUsuario.INICIO_FLUXO,
+            data_evento__lte=datetime.date.today()
+
+        ).exclude(tipo_doc=SolicitacoesDRE.TP_SOL_DIETA_ESPECIAL).values_list('uuid', flat=True).distinct().order_by('-data_log')
+
+        classes_solicitacoes = [
+            SolicitacaoKitLancheAvulsa,
+            SolicitacaoKitLancheCEIAvulsa,
+            SolicitacaoKitLancheUnificada,
+            GrupoInclusaoAlimentacaoNormal,
+            InclusaoAlimentacaoContinua,
+            InclusaoAlimentacaoDaCEI,
+            AlteracaoCardapio,
+            AlteracaoCardapioCEI,
+            InversaoCardapio]
+        
+        for classe_solicitacao in classes_solicitacoes:
+            solicitacoes = classe_solicitacao.objects.filter(uuid__in=uuids_solicitacoes_dre_a_validar)
+            print(classe_solicitacao._meta.model, solicitacoes.count())
+            for solicitacao in solicitacoes.all():
+                solicitacao.dre_nao_valida(user=Vinculo.objects.filter(object_id=solicitacao.escola.diretoria_regional.id, content_type__model='diretoriaregional', ativo=True).get().usuario, justificativa=justificativa)
