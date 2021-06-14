@@ -213,21 +213,22 @@ class TemPrioridade(object):
         dias_uteis_limite_superior = obter_dias_uteis_apos(hoje, LIMITE_SUPERIOR)
         dias_de_prazo_regular_em_diante = obter_dias_uteis_apos(hoje, REGULAR)
 
-        if minimo_dias_para_pedido >= ultimo_dia_util >= hoje:
+        if ultimo_dia_util and minimo_dias_para_pedido >= ultimo_dia_util >= hoje:
             descricao = 'PRIORITARIO'
-        elif dias_uteis_limite_superior >= ultimo_dia_util >= dias_uteis_limite_inferior:
+        elif ultimo_dia_util and dias_uteis_limite_superior >= ultimo_dia_util >= dias_uteis_limite_inferior:
             descricao = 'LIMITE'
-        elif ultimo_dia_util >= dias_de_prazo_regular_em_diante:
+        elif ultimo_dia_util and ultimo_dia_util >= dias_de_prazo_regular_em_diante:
             descricao = 'REGULAR'
         return descricao
 
     def _get_ultimo_dia_util(self, data: datetime.date) -> datetime.date:
         """Assumindo que é sab, dom ou feriado volta para o dia util anterior."""
         data_retorno = data
-        while not eh_dia_util(data_retorno):
-            data_retorno -= datetime.timedelta(days=1)
-        if isinstance(data_retorno, datetime.datetime):
-            return data_retorno.date()
+        if data_retorno:
+            while not eh_dia_util(data_retorno):
+                data_retorno -= datetime.timedelta(days=1)
+            if isinstance(data_retorno, datetime.datetime):
+                return data_retorno.date()
         return data_retorno
 
 
