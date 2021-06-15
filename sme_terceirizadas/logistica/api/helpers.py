@@ -173,40 +173,20 @@ def verifica_se_a_guia_pode_ser_conferida(guia):
         raise ValidationError(f'Guia de remessa não existe.')
 
 
-def atualiza_status_guia_conferencia_com_ocorrencia(guia_obj, user, status_dos_alimentos):  # noqa C901
-    try:
-        if all(status == status_alimento_recebido for status in status_dos_alimentos):
-            guia_obj.escola_recebe(user=user)
-        elif all(status == status_alimento_nao_recebido for status in status_dos_alimentos):
-            guia_obj.escola_nao_recebe(user=user)
-        else:
-            guia_obj.escola_recebe_parcial(user=user)
-    except InvalidTransitionError as e:
-        raise ValidationError(f'Erro de transição de estado: {e}')
-
-
-def atualiza_status_guia_reposicao(guia_obj, user, status_dos_alimentos):  # noqa C901
-    try:
-        if all(status == status_alimento_recebido for status in status_dos_alimentos):
-            guia_obj.reposicao_total(user=user)
-        elif all(status == status_alimento_nao_recebido for status in status_dos_alimentos):
-            guia_obj.reposicao_parcial(user=user)
-        else:
-            guia_obj.reposicao_parcial(user=user)
-    except InvalidTransitionError as e:
-        raise ValidationError(f'Erro de transição de estado: {e}')
-
-
 def atualiza_guia_com_base_nas_conferencias_por_alimentos(guia, user, status_dos_alimentos, eh_reposicao):  # noqa C901
     try:
         guia_obj = Guia.objects.get(uuid=guia.uuid)
         if len(status_dos_alimentos) == 0:
             raise ValidationError(f'Status dos alimentos não foram informados.')
-
-        if eh_reposicao:
-            atualiza_status_guia_reposicao(guia_obj, user, status_dos_alimentos)
-        else:
-            atualiza_status_guia_conferencia_com_ocorrencia(guia_obj, user, status_dos_alimentos)
+        try:
+            if all(status == status_alimento_recebido for status in status_dos_alimentos):
+                guia_obj.reposicao_totall(user=user) if eh_reposicao else guia_obj.escola_recebel(user=user)
+            elif all(status == status_alimento_nao_recebido for status in status_dos_alimentos):
+                guia_obj.reposicao_parcial(user=user) if eh_reposicao else guia_obj.escola_nao_recebe(user=user)
+            else:
+                guia_obj.reposicao_parcial(user=user) if eh_reposicao else guia_obj.escola_recebe_parcial(user=user)
+        except InvalidTransitionError as e:
+            raise ValidationError(f'Erro de transição de estado: {e}')
 
     except ObjectDoesNotExist:
         raise ValidationError(f'Guia de remessa não existe.')
