@@ -6,11 +6,10 @@ from django.core import management
 from requests import ConnectionError
 
 from sme_terceirizadas.escola.utils_escola import atualiza_codigo_codae_das_escolas
-from sme_terceirizadas.escola.models import Codae
 from sme_terceirizadas.perfil.models.perfil import Vinculo
 
 from ..cardapio.models import AlteracaoCardapio, AlteracaoCardapioCEI, InversaoCardapio
-from ..dados_comuns.fluxo_status import PedidoAPartirDaEscolaWorkflow, PedidoAPartirDaDiretoriaRegionalWorkflow
+from ..dados_comuns.fluxo_status import PedidoAPartirDaDiretoriaRegionalWorkflow, PedidoAPartirDaEscolaWorkflow
 from ..dados_comuns.models import LogSolicitacoesUsuario
 from ..inclusao_alimentacao.models import (
     GrupoInclusaoAlimentacaoNormal,
@@ -125,9 +124,9 @@ def nega_solicitacoes_pendentes_autorizacao_vencidas():
     # Buscando solictações da DRE não validadas mais que expiraram
     uuids_solicitacoes_dre_a_validar = SolicitacoesDRE.objects.filter(
         status_atual__in=[PedidoAPartirDaDiretoriaRegionalWorkflow.CODAE_A_AUTORIZAR,
-                        PedidoAPartirDaEscolaWorkflow.CODAE_QUESTIONADO,
-                        PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO,
-                        PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO],
+                          PedidoAPartirDaEscolaWorkflow.CODAE_QUESTIONADO,
+                          PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO,
+                          PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO],
         data_evento__lte=datetime.date.today()
     ).exclude(
         tipo_doc=SolicitacoesDRE.TP_SOL_DIETA_ESPECIAL
@@ -146,16 +145,14 @@ def nega_solicitacoes_pendentes_autorizacao_vencidas():
 
     for classe_solicitacao in classes_solicitacoes:
         solicitacoes = classe_solicitacao.objects.filter(uuid__in=uuids_solicitacoes_dre_a_validar)
-        print(type(solicitacoes), solicitacoes.count())
         for solicitacao in solicitacoes.all():
             usuario = Vinculo.objects.filter(
-                perfil__nome="COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA" ,content_type__model='codae', ativo=True
+                perfil__nome='COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA', content_type__model='codae', ativo=True
             ).first().usuario
-            print(usuario)
             if solicitacao.status in [
-                PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO, 
-                PedidoAPartirDaEscolaWorkflow.CODAE_QUESTIONADO,
-                PedidoAPartirDaDiretoriaRegionalWorkflow.CODAE_A_AUTORIZAR]:
+                    PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO,
+                    PedidoAPartirDaEscolaWorkflow.CODAE_QUESTIONADO,
+                    PedidoAPartirDaDiretoriaRegionalWorkflow.CODAE_A_AUTORIZAR]:
                 solicitacao.codae_nega(user=usuario, justificativa=justificativa)
             else:
                 solicitacao.codae_nega_questionamento(user=usuario, justificativa=justificativa)
