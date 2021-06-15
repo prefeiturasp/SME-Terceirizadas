@@ -212,6 +212,7 @@ class ConferenciaComOcorrenciaCreateSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data): # noqa C901
         guia = validated_data.get('guia', None)
+        eh_reposicao = validated_data.get('eh_reposicao', False)
         verifica_se_a_guia_pode_ser_conferida(guia)
         user = self.context['request'].user
         validated_data['criado_por'] = user
@@ -225,7 +226,7 @@ class ConferenciaComOcorrenciaCreateSerializer(serializers.ModelSerializer):
             conferencia_individual = ConferenciaIndividualPorAlimentoCreateSerializer().create(alimento)
             conferencia_dos_alimentos_list.append(conferencia_individual)
         conferencia_guia.conferencia_dos_alimentos.set(conferencia_dos_alimentos_list)
-        atualiza_guia_com_base_nas_conferencias_por_alimentos(guia, user, status_dos_alimentos)
+        atualiza_guia_com_base_nas_conferencias_por_alimentos(guia, user, status_dos_alimentos, eh_reposicao)
 
         return conferencia_guia
 

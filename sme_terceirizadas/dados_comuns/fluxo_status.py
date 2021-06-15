@@ -83,7 +83,7 @@ class PedidoAPartirDaEscolaWorkflow(xwf_models.Workflow):
          TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO, CODAE_AUTORIZADO),
         ('codae_nega_questionamento',
          TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO, CODAE_NEGOU_PEDIDO),
-        ('codae_nega', DRE_VALIDADO, CODAE_NEGOU_PEDIDO),
+        ('codae_nega', [DRE_VALIDADO, CODAE_QUESTIONADO], CODAE_NEGOU_PEDIDO),
         ('terceirizada_responde_questionamento',
          CODAE_QUESTIONADO, TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO),
         ('terceirizada_toma_ciencia', CODAE_AUTORIZADO, TERCEIRIZADA_TOMOU_CIENCIA),
@@ -135,7 +135,7 @@ class PedidoAPartirDaDiretoriaRegionalWorkflow(xwf_models.Workflow):
     transitions = (
         ('inicia_fluxo', RASCUNHO, CODAE_A_AUTORIZAR),
         ('codae_pede_revisao', CODAE_A_AUTORIZAR, CODAE_PEDIU_DRE_REVISAR),
-        ('codae_nega', CODAE_A_AUTORIZAR, CODAE_NEGOU_PEDIDO),
+        ('codae_nega', [CODAE_A_AUTORIZAR, CODAE_QUESTIONADO], CODAE_NEGOU_PEDIDO),
         ('dre_revisa', CODAE_PEDIU_DRE_REVISAR, CODAE_A_AUTORIZAR),
         ('codae_autoriza', CODAE_A_AUTORIZAR, CODAE_AUTORIZADO),
         ('codae_questiona', CODAE_A_AUTORIZAR, CODAE_QUESTIONADO),
@@ -671,6 +671,22 @@ class FluxoGuiaRemessa(xwf_models.WorkflowEnabled, models.Model):
 
     @xworkflows.after_transition('escola_recebe_parcial')
     def _escola_recebe_parcial_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        self.salvar_log_transicao(
+            status_evento=LogSolicitacoesUsuario.ABASTECIMENTO_GUIA_DE_REMESSA,
+            usuario=user,
+            justificativa=kwargs.get('justificativa', ''))
+
+    @xworkflows.after_transition('reposicao_parcial')
+    def _reposicao_parcial_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        self.salvar_log_transicao(
+            status_evento=LogSolicitacoesUsuario.ABASTECIMENTO_GUIA_DE_REMESSA,
+            usuario=user,
+            justificativa=kwargs.get('justificativa', ''))
+
+    @xworkflows.after_transition('reposicao_total')
+    def _reposicao_total_hook(self, *args, **kwargs):
         user = kwargs['user']
         self.salvar_log_transicao(
             status_evento=LogSolicitacoesUsuario.ABASTECIMENTO_GUIA_DE_REMESSA,
