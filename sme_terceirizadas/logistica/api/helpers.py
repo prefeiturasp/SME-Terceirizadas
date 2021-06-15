@@ -184,7 +184,7 @@ def atualiza_guia_com_base_nas_conferencias_por_alimentos(guia, user, status_dos
             raise ValidationError(f'Status dos alimentos não foram informados.')
         try:
             if all(status == status_alimento_recebido for status in status_dos_alimentos):
-                guia_obj.reposicao_totall(user=user) if eh_reposicao else guia_obj.escola_recebel(user=user)
+                guia_obj.reposicao_total(user=user) if eh_reposicao else guia_obj.escola_recebel(user=user)
             elif all(status == status_alimento_nao_recebido for status in status_dos_alimentos):
                 guia_obj.reposicao_parcial(user=user) if eh_reposicao else guia_obj.escola_nao_recebe(user=user)
             else:
