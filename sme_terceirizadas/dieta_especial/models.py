@@ -485,9 +485,9 @@ class ProtocoloPadraoDietaEspecial(TemChaveExterna, CriadoEm, CriadoPor, TemIden
     def __str__(self):
         return str(self.nome_protocolo)
 
-auditlog.register(ProtocoloPadraoDietaEspecial)
-
 class SubstituicaoAlimentoProtocoloPadrao(models.Model):
+    history = AuditlogHistoryField()
+
     TIPO_CHOICES = [
         ('I', 'Isento'),
         ('S', 'Substituir')
@@ -522,3 +522,7 @@ class SubstituicaoAlimentoProtocoloPadrao(models.Model):
 
     def __str__(self):
         return f'substituição protocolo padrão: {self.protocolo_padrao}, tipo: {self.tipo}.'
+
+
+auditlog.register(ProtocoloPadraoDietaEspecial)
+auditlog.register(SubstituicaoAlimentoProtocoloPadrao, include_fields=['alimentos_substitutos'])
