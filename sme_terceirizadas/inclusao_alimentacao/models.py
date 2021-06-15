@@ -218,7 +218,7 @@ class GrupoInclusaoAlimentacaoNormal(ExportModelOperationsMixin('grupo_inclusao'
     @property
     def data(self):
         inclusao_normal = self.inclusoes_normais.order_by('data').first()
-        return inclusao_normal.data
+        return inclusao_normal.data if inclusao_normal else ""
 
     def salvar_log_transicao(self, status_evento, usuario, **kwargs):
         justificativa = kwargs.get('justificativa', '')

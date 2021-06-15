@@ -234,7 +234,7 @@ docker-compose -f docker-celery.yml up -d
 Na pasta `SME-Terceirizadas`, com a virtualenv ativa rode
 
 ```
-celery -A config worker --loglevel=info -B
+celery -A config worker --beat --scheduler django --loglevel=info
 ```
 
 
