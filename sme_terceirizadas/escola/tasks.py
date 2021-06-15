@@ -6,10 +6,11 @@ from django.core import management
 from requests import ConnectionError
 
 from sme_terceirizadas.escola.utils_escola import atualiza_codigo_codae_das_escolas
+from sme_terceirizadas.escola.models import Codae
 from sme_terceirizadas.perfil.models.perfil import Vinculo
 
 from ..cardapio.models import AlteracaoCardapio, AlteracaoCardapioCEI, InversaoCardapio
-from ..dados_comuns.fluxo_status import PedidoAPartirDaEscolaWorkflow
+from ..dados_comuns.fluxo_status import PedidoAPartirDaEscolaWorkflow, PedidoAPartirDaDiretoriaRegionalWorkflow
 from ..dados_comuns.models import LogSolicitacoesUsuario
 from ..inclusao_alimentacao.models import (
     GrupoInclusaoAlimentacaoNormal,
@@ -105,3 +106,56 @@ def nega_solicitacoes_vencidas():
                 content_type__model='diretoriaregional', ativo=True
             ).get().usuario
             solicitacao.dre_nao_valida(user=usuario, justificativa=justificativa)
+
+
+@shared_task(
+    autoretry_for=(ConnectionError,),
+    retry_backoff=2,
+    retry_kwargs={'max_retries': 3}
+)
+def nega_solicitacoes_pendentes_autorizacao_vencidas():
+    """Gestão de Alimentação.
+
+    Nega solicitações não validadas pela DRE, ou seja, que possuam
+    status igual a DRE__VALIDADO e que tenham o dia do evento
+    menor ou igual ao dia de execução dessa task.
+    """
+    justificativa = 'A solicitação não foi validada em tempo hábil'
+
+    # Buscando solictações da DRE não validadas mais que expiraram
+    uuids_solicitacoes_dre_a_validar = SolicitacoesDRE.objects.filter(
+        status_atual__in=[PedidoAPartirDaDiretoriaRegionalWorkflow.CODAE_A_AUTORIZAR,
+                        PedidoAPartirDaEscolaWorkflow.CODAE_QUESTIONADO,
+                        PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO,
+                        PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO],
+        data_evento__lte=datetime.date.today()
+    ).exclude(
+        tipo_doc=SolicitacoesDRE.TP_SOL_DIETA_ESPECIAL
+    ).values_list('uuid', flat=True).distinct().order_by('-data_log')
+
+    classes_solicitacoes = [
+        SolicitacaoKitLancheAvulsa,
+        SolicitacaoKitLancheCEIAvulsa,
+        SolicitacaoKitLancheUnificada,
+        GrupoInclusaoAlimentacaoNormal,
+        InclusaoAlimentacaoContinua,
+        InclusaoAlimentacaoDaCEI,
+        AlteracaoCardapio,
+        AlteracaoCardapioCEI,
+        InversaoCardapio]
+
+    for classe_solicitacao in classes_solicitacoes:
+        solicitacoes = classe_solicitacao.objects.filter(uuid__in=uuids_solicitacoes_dre_a_validar)
+        print(type(solicitacoes), solicitacoes.count())
+        for solicitacao in solicitacoes.all():
+            usuario = Vinculo.objects.filter(
+                perfil__nome="COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA" ,content_type__model='codae', ativo=True
+            ).first().usuario
+            print(usuario)
+            if solicitacao.status in [
+                PedidoAPartirDaEscolaWorkflow.DRE_VALIDADO, 
+                PedidoAPartirDaEscolaWorkflow.CODAE_QUESTIONADO,
+                PedidoAPartirDaDiretoriaRegionalWorkflow.CODAE_A_AUTORIZAR]:
+                solicitacao.codae_nega(user=usuario, justificativa=justificativa)
+            else:
+                solicitacao.codae_nega_questionamento(user=usuario, justificativa=justificativa)
