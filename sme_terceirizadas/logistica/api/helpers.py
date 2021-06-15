@@ -174,6 +174,10 @@ def verifica_se_a_guia_pode_ser_conferida(guia):
 
 
 def atualiza_guia_com_base_nas_conferencias_por_alimentos(guia, user, status_dos_alimentos, eh_reposicao):  # noqa C901
+    """
+    Método responsavel por chamar hooks de atualização de status das guias baseado nos status dos alimentos conferidos e
+    no tipo de conferencia caso seja uma reposição.
+    """
     try:
         guia_obj = Guia.objects.get(uuid=guia.uuid)
         if len(status_dos_alimentos) == 0:
