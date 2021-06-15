@@ -90,6 +90,7 @@ THIRD_PARTY_APPS = [
     'rest_framework_xml',
     'rest_framework.authtoken',
     'des',  # for email configuration in database
+    'auditlog',
     'django_xworkflows',
     'simple_email_confirmation',
     'sass_processor',
@@ -177,7 +178,9 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'django_prometheus.middleware.PrometheusAfterMiddleware'
+    'django_prometheus.middleware.PrometheusAfterMiddleware',
+    "sme_terceirizadas.jwt_middleware.JWTAuthenticationMiddleware",
+    'auditlog.middleware.AuditlogMiddleware',
 ]
 
 # STATIC

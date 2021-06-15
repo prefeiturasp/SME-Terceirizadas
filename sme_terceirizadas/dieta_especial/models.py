@@ -1,3 +1,5 @@
+from auditlog.models import AuditlogHistoryField
+from auditlog.registry import auditlog
 from django.core.validators import MaxLengthValidator, MinLengthValidator
 from django.db import models
 from django_prometheus.models import ExportModelOperationsMixin
@@ -445,6 +447,8 @@ class LogDietasAtivasCanceladasAutomaticamente(CriadoEm):
 
 
 class ProtocoloPadraoDietaEspecial(TemChaveExterna, CriadoEm, CriadoPor, TemIdentificadorExternoAmigavel):
+    history = AuditlogHistoryField()
+
     # Status Choice
     STATUS_LIBERADO = 'LIBERADO'
     STATUS_NAO_LIBERADO = 'NAO_LIBERADO'
@@ -481,6 +485,7 @@ class ProtocoloPadraoDietaEspecial(TemChaveExterna, CriadoEm, CriadoPor, TemIden
     def __str__(self):
         return str(self.nome_protocolo)
 
+auditlog.register(ProtocoloPadraoDietaEspecial)
 
 class SubstituicaoAlimentoProtocoloPadrao(models.Model):
     TIPO_CHOICES = [
