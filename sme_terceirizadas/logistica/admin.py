@@ -142,8 +142,8 @@ class SolicitacaoDeAlteracaoRequisicaoAdmin(admin.ModelAdmin):
 
 @admin.register(ConferenciaGuia)
 class ConferenciaGuiaAdmin(admin.ModelAdmin):
-    list_display = ('get_guia', 'data_recebimento')
-    search_fields = ('get_guia',)
+    list_display = ('get_guia', 'data_recebimento', 'eh_reposicao')
+    search_fields = ('guia__numero_guia',)
     readonly_fields = ('criado_em',)
 
     def get_guia(self, obj):
@@ -159,7 +159,7 @@ class ConferenciaIndividualPorAlimentoAdmin(admin.ModelAdmin):
 @admin.register(InsucessoEntregaGuia)
 class InsucessoEntregaGuiaAdmin(admin.ModelAdmin):
     list_display = ('get_guia', 'get_data_tentativa')
-    search_fields = ('get_guia',)
+    search_fields = ('guia__numero_guia',)
     readonly_fields = ('criado_em',)
 
     def get_guia(self, obj):

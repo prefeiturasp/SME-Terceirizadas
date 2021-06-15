@@ -677,6 +677,22 @@ class FluxoGuiaRemessa(xwf_models.WorkflowEnabled, models.Model):
             usuario=user,
             justificativa=kwargs.get('justificativa', ''))
 
+    @xworkflows.after_transition('reposicao_parcial')
+    def _reposicao_parcial_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        self.salvar_log_transicao(
+            status_evento=LogSolicitacoesUsuario.ABASTECIMENTO_GUIA_DE_REMESSA,
+            usuario=user,
+            justificativa=kwargs.get('justificativa', ''))
+
+    @xworkflows.after_transition('reposicao_total')
+    def _reposicao_total_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        self.salvar_log_transicao(
+            status_evento=LogSolicitacoesUsuario.ABASTECIMENTO_GUIA_DE_REMESSA,
+            usuario=user,
+            justificativa=kwargs.get('justificativa', ''))
+
     class Meta:
         abstract = True
 
