@@ -259,20 +259,25 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
             self.get_queryset().filter(status=SolicitacaoRemessaWorkFlow.DISTRIBUIDOR_CONFIRMA))
 
         queryset = queryset.annotate(
-            qtd_guias=Count('guias'),
+            qtd_guias=Count('guias', distinct=True),
             distribuidor_nome=F('distribuidor__razao_social'),
             data_entrega=Max('guias__data_entrega'),
-            guias_pendentes=Count('guias__status', filter=Q(guias__status=GuiaRemessaWorkFlow.PENDENTE_DE_CONFERENCIA)),
-            guias_insucesso=Count('guias__status', filter=Q(
-                guias__status=GuiaRemessaWorkFlow.DISTRIBUIDOR_REGISTRA_INSUCESSO
-            )),
-            guias_recebidas=Count('guias__status', filter=Q(guias__status=GuiaRemessaWorkFlow.RECEBIDA)),
-            guias_parciais=Count('guias__status', filter=Q(guias__status=GuiaRemessaWorkFlow.RECEBIMENTO_PARCIAL)),
-            guias_nao_recebidas=Count('guias__status', filter=Q(guias__status=GuiaRemessaWorkFlow.NAO_RECEBIDA)),
+            guias_pendentes=Count(
+                'guias__status', filter=Q(guias__status=GuiaRemessaWorkFlow.PENDENTE_DE_CONFERENCIA), distinct=True),
+            guias_insucesso=Count(
+                'guias__status',
+                filter=Q(guias__status=GuiaRemessaWorkFlow.DISTRIBUIDOR_REGISTRA_INSUCESSO),
+                distinct=True),
+            guias_recebidas=Count('guias__status', filter=Q(guias__status=GuiaRemessaWorkFlow.RECEBIDA), distinct=True),
+            guias_parciais=Count(
+                'guias__status', filter=Q(guias__status=GuiaRemessaWorkFlow.RECEBIMENTO_PARCIAL), distinct=True),
+            guias_nao_recebidas=Count(
+                'guias__status', filter=Q(guias__status=GuiaRemessaWorkFlow.NAO_RECEBIDA), distinct=True),
             guias_reposicao_parcial=Count('guias__status', filter=Q(
                 guias__status=GuiaRemessaWorkFlow.REPOSICAO_PARCIAL
-            )),
-            guias_reposicao_total=Count('guias__status', filter=Q(guias__status=GuiaRemessaWorkFlow.REPOSICAO_TOTAL)),
+            ), distinct=True),
+            guias_reposicao_total=Count(
+                'guias__status', filter=Q(guias__status=GuiaRemessaWorkFlow.REPOSICAO_TOTAL), distinct=True),
         ).order_by('guias__data_entrega').distinct()
 
         page = self.paginate_queryset(queryset)
@@ -326,7 +331,7 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
         try:
             for solicitacao in solicitacoes:
                 confirma_guias(solicitacao, usuario)
-                solicitacao.empresa_atende(user=usuario,)
+                solicitacao.empresa_atende(user=usuario, )
             return Response(status=HTTP_200_OK)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
