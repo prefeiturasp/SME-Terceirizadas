@@ -4,11 +4,13 @@ from rest_framework_jwt.authentication import JSONWebTokenAuthentication
 
 
 class JWTAuthenticationMiddleware(object):
+
     def __init__(self, get_response):
+        """JWT Middleware."""
         self.get_response = get_response
 
     def __call__(self, request):
-        request.user = SimpleLazyObject(lambda:self.__class__.get_jwt_user(request))
+        request.user = SimpleLazyObject(lambda: self.__class__.get_jwt_user(request))
         return self.get_response(request)
 
     @staticmethod

@@ -179,7 +179,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django_prometheus.middleware.PrometheusAfterMiddleware',
-    "sme_terceirizadas.jwt_middleware.JWTAuthenticationMiddleware",
+    'sme_terceirizadas.jwt_middleware.JWTAuthenticationMiddleware',
     'auditlog.middleware.AuditlogMiddleware',
 ]
 

@@ -15,13 +15,13 @@ from ...produto.api.serializers import serializers as ser
 from ...produto.models import Produto
 from ..models import (
     Alimento,
+    AlimentoSubstituto,
     Anexo,
     MotivoAlteracaoUE,
     ProtocoloPadraoDietaEspecial,
     SolicitacaoDietaEspecial,
     SubstituicaoAlimento,
-    SubstituicaoAlimentoProtocoloPadrao,
-    AlimentoSubstituto
+    SubstituicaoAlimentoProtocoloPadrao
 )
 from .validators import AlunoSerializerValidator
 
@@ -330,9 +330,8 @@ class ProtocoloPadraoDietaEspecialSerializerCreate(serializers.ModelSerializer):
             subst_obj = SubstituicaoAlimentoProtocoloPadrao.objects.create(**substituicao)
             if substitutos:
                 for substituto in substitutos:
-                    print(substituto, type(substituto))
                     if isinstance(substituto, Alimento):
-                        AlimentoSubstituto.objects.create(substituicao_alimento_protocolo_padrao=subst_obj, 
+                        AlimentoSubstituto.objects.create(substituicao_alimento_protocolo_padrao=subst_obj,
                                                           alimento=substituto)
                     if isinstance(substituto, Produto):
                         subst_obj.substitutos.add(substituto)

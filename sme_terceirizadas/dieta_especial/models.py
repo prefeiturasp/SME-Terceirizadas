@@ -450,7 +450,9 @@ class LogDietasAtivasCanceladasAutomaticamente(CriadoEm):
 
 
 class AlimentoSubstituto(models.Model):
-    substituicao_alimento_protocolo_padrao = models.ForeignKey("SubstituicaoAlimentoProtocoloPadrao", on_delete=models.SET_NULL, null=True)
+    substituicao_alimento_protocolo_padrao = models.ForeignKey(
+        'SubstituicaoAlimentoProtocoloPadrao',
+        on_delete=models.SET_NULL, null=True)
     alimento = models.ForeignKey(Alimento, on_delete=models.SET_NULL, null=True, blank=True)
 
 
@@ -485,7 +487,7 @@ class ProtocoloPadraoDietaEspecial(TemChaveExterna, CriadoEm, CriadoPor, TemIden
         default=STATUS_NAO_LIBERADO
     )
 
-    def historico(self):
+    def historico(self): # noqa
         LogMixin = LogEntryAdminMixin()
 
         class Historico:
@@ -514,8 +516,11 @@ class ProtocoloPadraoDietaEspecial(TemChaveExterna, CriadoEm, CriadoPor, TemIden
             historico_alimentos_substituicoes = LogEntry.objects.get_for_objects(
                 AlimentoSubstituto.objects.filter(substituicao_alimento_protocolo_padrao=substituicao).all())
             for historico_alimento in historico_alimentos_substituicoes.all():
-                historico = Historico(LogMixin.created(historico_alimento), historico_alimento.actor,
-                    historico_alimento.object_repr, json.loads(historico_alimento.changes))
+                historico = Historico(
+                    LogMixin.created(historico_alimento),
+                    historico_alimento.actor,
+                    historico_alimento.object_repr,
+                    json.loads(historico_alimento.changes))
                 lista_historico_inicial.append(historico)
 
         grupo_lpg = {}
@@ -525,17 +530,15 @@ class ProtocoloPadraoDietaEspecial(TemChaveExterna, CriadoEm, CriadoPor, TemIden
         historicos = []
         for _, values in grupo_lpg.items():
             hist = {
-                "criado_em": values[0].criado_em,
-                "ator": str(values[0].ator),
-                "mudancas": []
+                'criado_em': values[0].criado_em,
+                'ator': str(values[0].ator),
+                'mudancas': []
             }
             for v in values:
                 hist['mudancas'].append(v.mudancas)
             historicos.append(hist)
 
         return historicos
-
-
 
     class Meta:
         ordering = ('-criado_em',)
@@ -544,6 +547,7 @@ class ProtocoloPadraoDietaEspecial(TemChaveExterna, CriadoEm, CriadoPor, TemIden
 
     def __str__(self):
         return str(self.nome_protocolo)
+
 
 class SubstituicaoAlimentoProtocoloPadrao(models.Model):
     history = AuditlogHistoryField()
