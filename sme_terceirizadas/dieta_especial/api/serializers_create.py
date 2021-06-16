@@ -6,7 +6,7 @@ from rest_framework import serializers
 from text_unidecode import unidecode
 
 from ...dados_comuns.constants import DEZ_MB
-from ...dados_comuns.utils import convert_base64_to_contentfile, convert_date_format, size
+from ...dados_comuns.utils import convert_base64_to_contentfile, convert_date_format, size, update_instance_from_dict
 from ...dados_comuns.validators import deve_ser_no_passado, deve_ter_extensao_valida
 from ...eol_servico.utils import EOLService
 from ...escola.api.serializers import AlunoNaoMatriculadoSerializer
@@ -336,6 +336,24 @@ class ProtocoloPadraoDietaEspecialSerializerCreate(serializers.ModelSerializer):
                         subst_obj.substitutos.add(substituto)
 
         return protocolo_padrao
+
+    def update(self, instance, validated_data): # noqa C901
+        substituicoes = validated_data.pop('substituicoes')
+        instance.substituicoes.all().delete()
+
+        update_instance_from_dict(instance, validated_data, save=True)
+
+        for substituicao in substituicoes:
+            substitutos = substituicao.pop('substitutos', None)
+            substituicao['protocolo_padrao'] = instance
+            subst_obj = SubstituicaoAlimentoProtocoloPadrao.objects.create(**substituicao)
+            if substitutos:
+                for substituto in substitutos:
+                    if isinstance(substituto, Alimento):
+                        subst_obj.alimentos_substitutos.add(substituto)
+                    if isinstance(substituto, Produto):
+                        subst_obj.substitutos.add(substituto)
+        return instance
 
     class Meta:
         model = ProtocoloPadraoDietaEspecial
