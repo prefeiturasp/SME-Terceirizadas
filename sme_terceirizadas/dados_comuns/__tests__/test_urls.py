@@ -1,4 +1,5 @@
 from faker import Faker
+from freezegun import freeze_time
 from model_mommy import mommy
 
 from ..models import CategoriaPerguntaFrequente, PerguntaFrequente
@@ -49,3 +50,17 @@ def test_url_atualiza_faq(client_autenticado_coordenador_codae):
     assert pergunta.pergunta == payload['pergunta']
     assert pergunta.resposta == payload['resposta']
     assert categoria.uuid == payload['categoria']
+
+
+@freeze_time('2021-06-16')
+def test_proximo_dia_util_suspensao_alimentacao_segunda(client_autenticado):
+    from sme_terceirizadas.dados_comuns.constants import obter_dias_uteis_apos_hoje
+    result = obter_dias_uteis_apos_hoje(3)
+    assert str(result) == '2021-06-21'
+
+
+@freeze_time('2021-06-18')
+def test_proximo_dia_util_suspensao_alimentacao_sexta(client_autenticado):
+    from sme_terceirizadas.dados_comuns.constants import obter_dias_uteis_apos_hoje
+    result = obter_dias_uteis_apos_hoje(3)
+    assert str(result) == '2021-06-23'
