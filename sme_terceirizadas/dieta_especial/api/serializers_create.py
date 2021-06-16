@@ -20,7 +20,8 @@ from ..models import (
     ProtocoloPadraoDietaEspecial,
     SolicitacaoDietaEspecial,
     SubstituicaoAlimento,
-    SubstituicaoAlimentoProtocoloPadrao
+    SubstituicaoAlimentoProtocoloPadrao,
+    AlimentoSubstituto
 )
 from .validators import AlunoSerializerValidator
 
@@ -323,15 +324,16 @@ class ProtocoloPadraoDietaEspecialSerializerCreate(serializers.ModelSerializer):
     def create(self, validated_data): # noqa C901
         substituicoes = validated_data.pop('substituicoes')
         protocolo_padrao = ProtocoloPadraoDietaEspecial.objects.create(**validated_data)
-
         for substituicao in substituicoes:
             substitutos = substituicao.pop('substitutos', None)
             substituicao['protocolo_padrao'] = protocolo_padrao
             subst_obj = SubstituicaoAlimentoProtocoloPadrao.objects.create(**substituicao)
             if substitutos:
                 for substituto in substitutos:
+                    print(substituto, type(substituto))
                     if isinstance(substituto, Alimento):
-                        subst_obj.alimentos_substitutos.add(substituto)
+                        AlimentoSubstituto.objects.create(substituicao_alimento_protocolo_padrao=subst_obj, 
+                                                          alimento=substituto)
                     if isinstance(substituto, Produto):
                         subst_obj.substitutos.add(substituto)
 

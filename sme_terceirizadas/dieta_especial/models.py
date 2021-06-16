@@ -1,4 +1,7 @@
-from auditlog.models import AuditlogHistoryField
+import json
+
+from auditlog.mixins import LogEntryAdminMixin
+from auditlog.models import AuditlogHistoryField, LogEntry
 from auditlog.registry import auditlog
 from django.core.validators import MaxLengthValidator, MinLengthValidator
 from django.db import models
@@ -446,6 +449,11 @@ class LogDietasAtivasCanceladasAutomaticamente(CriadoEm):
         return False
 
 
+class AlimentoSubstituto(models.Model):
+    substituicao_alimento_protocolo_padrao = models.ForeignKey("SubstituicaoAlimentoProtocoloPadrao", on_delete=models.SET_NULL, null=True)
+    alimento = models.ForeignKey(Alimento, on_delete=models.SET_NULL, null=True, blank=True)
+
+
 class ProtocoloPadraoDietaEspecial(TemChaveExterna, CriadoEm, CriadoPor, TemIdentificadorExternoAmigavel):
     history = AuditlogHistoryField()
 
@@ -476,6 +484,58 @@ class ProtocoloPadraoDietaEspecial(TemChaveExterna, CriadoEm, CriadoPor, TemIden
         choices=STATUS_CHOICES,
         default=STATUS_NAO_LIBERADO
     )
+
+    def historico(self):
+        LogMixin = LogEntryAdminMixin()
+
+        class Historico:
+            def __init__(self, criado_em=None, ator=None, representacao=None, mudancas=None):
+                self.criado_em = criado_em
+                self.ator = ator
+                self.representacao = representacao
+                self.mudancas = mudancas
+
+        lista_historico_inicial = []
+
+        for historia_protocolo in self.history.all():
+            historico = Historico(
+                LogMixin.created(historia_protocolo), historia_protocolo.actor,
+                historia_protocolo.object_repr, json.loads(historia_protocolo.changes))
+            lista_historico_inicial.append(historico)
+
+        historico_substituicoes = LogEntry.objects.get_for_objects(self.substituicoes.all())
+        for historico_substituicao in historico_substituicoes.all():
+            historico = Historico(
+                LogMixin.created(historico_substituicao), historico_substituicao.actor,
+                historico_substituicao.object_repr, json.loads(historico_substituicao.changes))
+            lista_historico_inicial.append(historico)
+
+        for substituicao in self.substituicoes.all():
+            historico_alimentos_substituicoes = LogEntry.objects.get_for_objects(
+                AlimentoSubstituto.objects.filter(substituicao_alimento_protocolo_padrao=substituicao).all())
+            for historico_alimento in historico_alimentos_substituicoes.all():
+                historico = Historico(LogMixin.created(historico_alimento), historico_alimento.actor,
+                    historico_alimento.object_repr, json.loads(historico_alimento.changes))
+                lista_historico_inicial.append(historico)
+
+        grupo_lpg = {}
+        for historico in lista_historico_inicial:
+            grupo_lpg.setdefault(historico.criado_em[:16], []).append(historico)
+
+        historicos = []
+        for _, values in grupo_lpg.items():
+            hist = {
+                "criado_em": values[0].criado_em,
+                "ator": str(values[0].ator),
+                "mudancas": []
+            }
+            for v in values:
+                hist['mudancas'].append(v.mudancas)
+            historicos.append(hist)
+
+        return historicos
+
+
 
     class Meta:
         ordering = ('-criado_em',)
@@ -513,7 +573,8 @@ class SubstituicaoAlimentoProtocoloPadrao(models.Model):
     alimentos_substitutos = models.ManyToManyField(
         Alimento,
         related_name='alimentos_substitutos_protocolo_padrao',
-        blank=True
+        blank=True,
+        through='AlimentoSubstituto'
     )
 
     class Meta:
@@ -525,4 +586,6 @@ class SubstituicaoAlimentoProtocoloPadrao(models.Model):
 
 
 auditlog.register(ProtocoloPadraoDietaEspecial)
-auditlog.register(SubstituicaoAlimentoProtocoloPadrao, include_fields=['alimentos_substitutos'])
+auditlog.register(SubstituicaoAlimentoProtocoloPadrao)
+auditlog.register(SubstituicaoAlimentoProtocoloPadrao.alimentos_substitutos.through)
+auditlog.register(AlimentoSubstituto)
