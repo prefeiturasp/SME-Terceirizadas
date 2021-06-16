@@ -60,7 +60,7 @@ class DiasUteisViewSet(ViewSet):
     def list(self, request):
         dias_uteis = {
             'proximos_cinco_dias_uteis': obter_dias_uteis_apos_hoje(5),
-            'proximos_dois_dias_uteis': obter_dias_uteis_apos_hoje(2)
+            'proximos_dois_dias_uteis': obter_dias_uteis_apos_hoje(3)
         }
 
         return Response(dias_uteis)
