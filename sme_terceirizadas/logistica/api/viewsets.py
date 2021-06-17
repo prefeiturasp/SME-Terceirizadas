@@ -252,11 +252,14 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
         response = {'results': SolicitacaoRemessaLookUpSerializer(queryset, many=True).data}
         return Response(response)
 
-    @action(detail=False, permission_classes=(UsuarioDilogCodae,),
+    @action(detail=False, permission_classes=[UsuarioDilogCodae | UsuarioDistribuidor],
             methods=['GET'], url_path='lista-requisicoes-confirmadas')
     def lista_requisicoes_confirmadas(self, request):
         queryset = self.filter_queryset(
             self.get_queryset().filter(status=SolicitacaoRemessaWorkFlow.DISTRIBUIDOR_CONFIRMA))
+
+        if(self.request.user.vinculo_atual.perfil.nome == 'ADMINISTRADOR_DISTRIBUIDORA'):
+            queryset = queryset.filter(distribuidor=self.request.user.vinculo_atual.instituicao)
 
         queryset = queryset.annotate(
             qtd_guias=Count('guias', distinct=True),
