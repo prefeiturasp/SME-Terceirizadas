@@ -23,7 +23,7 @@ status_invalidos_para_conferencia = (
     GuiaRemessaWorkFlow.AGUARDANDO_CONFIRMACAO
 )
 
-status_alimento_recebido = ConferenciaIndividualPorAlimento.STATUS_ALIMENTO_RECEBIDO,
+status_alimento_recebido = ConferenciaIndividualPorAlimento.STATUS_ALIMENTO_RECEBIDO
 status_alimento_nao_recebido = ConferenciaIndividualPorAlimento.STATUS_ALIMENTO_NAO_RECEBIDO
 
 
