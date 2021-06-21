@@ -261,6 +261,7 @@ class GuiaRemessaWorkFlow(xwf_models.Workflow):
         ('escola_recebe', PENDENTE_DE_CONFERENCIA, RECEBIDA),
         ('escola_nao_recebe', PENDENTE_DE_CONFERENCIA, NAO_RECEBIDA),
         ('escola_recebe_parcial', PENDENTE_DE_CONFERENCIA, RECEBIMENTO_PARCIAL),
+        ('escola_recebe_parcial_atraso', PENDENTE_DE_CONFERENCIA, RECEBIMENTO_PARCIAL),
         ('reposicao_parcial', [NAO_RECEBIDA, RECEBIMENTO_PARCIAL], REPOSICAO_PARCIAL),
         ('reposicao_total', [NAO_RECEBIDA, RECEBIMENTO_PARCIAL], REPOSICAO_TOTAL),
     )
@@ -664,13 +665,39 @@ class FluxoGuiaRemessa(xwf_models.WorkflowEnabled, models.Model):
     @xworkflows.after_transition('escola_nao_recebe')
     def _escola_nao_recebe_hook(self, *args, **kwargs):
         user = kwargs['user']
-        self.salvar_log_transicao(
+        log_transicao = self.salvar_log_transicao(
             status_evento=LogSolicitacoesUsuario.ABASTECIMENTO_GUIA_DE_REMESSA,
             usuario=user,
             justificativa=kwargs.get('justificativa', ''))
 
+        # Monta e-mail
+        url = f'{base_url}/logistica/conferir-entrega'
+        titulo = f'Prepare-se para uma possível reposição dos alimentos não recebidos!'
+        assunto = f'[SIGPAE] Prepare-se para uma possível reposição dos alimentos não recebidos!'
+        template = 'logistica_escola_aviso_reposicao.html'
+        partes_interessadas = self._partes_interessadas_escola()
+
+        self._preenche_template_e_envia_email(template, assunto, titulo, partes_interessadas, log_transicao, url)
+
     @xworkflows.after_transition('escola_recebe_parcial')
     def _escola_recebe_parcial_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        log_transicao = self.salvar_log_transicao(
+            status_evento=LogSolicitacoesUsuario.ABASTECIMENTO_GUIA_DE_REMESSA,
+            usuario=user,
+            justificativa=kwargs.get('justificativa', ''))
+
+        # Monta e-mail
+        url = f'{base_url}/logistica/conferir-entrega'
+        titulo = f'Prepare-se para uma possível reposição dos alimentos não recebidos!'
+        assunto = f'[SIGPAE] Prepare-se para uma possível reposição dos alimentos não recebidos!'
+        template = 'logistica_escola_aviso_reposicao.html'
+        partes_interessadas = self._partes_interessadas_escola()
+
+        self._preenche_template_e_envia_email(template, assunto, titulo, partes_interessadas, log_transicao, url)
+
+    @xworkflows.after_transition('escola_recebe_parcial_atraso')
+    def _escola_recebe_parcial_atraso_hook(self, *args, **kwargs):
         user = kwargs['user']
         self.salvar_log_transicao(
             status_evento=LogSolicitacoesUsuario.ABASTECIMENTO_GUIA_DE_REMESSA,
