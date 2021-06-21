@@ -220,13 +220,16 @@ class ConferenciaComOcorrenciaCreateSerializer(serializers.ModelSerializer):
         conferencia_dos_alimentos = validated_data.pop('conferencia_dos_alimentos')
         conferencia_guia = ConferenciaGuia.objects.create(**validated_data)
         status_dos_alimentos = []
+        ocorrencias_dos_alimentos = []
         for alimento in conferencia_dos_alimentos:
             alimento['conferencia'] = conferencia_guia
             status_dos_alimentos.append(alimento['status_alimento'])
+            ocorrencias_dos_alimentos = ocorrencias_dos_alimentos + list(alimento['ocorrencia'])
             conferencia_individual = ConferenciaIndividualPorAlimentoCreateSerializer().create(alimento)
             conferencia_dos_alimentos_list.append(conferencia_individual)
         conferencia_guia.conferencia_dos_alimentos.set(conferencia_dos_alimentos_list)
-        atualiza_guia_com_base_nas_conferencias_por_alimentos(guia, user, status_dos_alimentos, eh_reposicao)
+        atualiza_guia_com_base_nas_conferencias_por_alimentos(guia, user, status_dos_alimentos,
+                                                              eh_reposicao, ocorrencias_dos_alimentos)
 
         return conferencia_guia
 
