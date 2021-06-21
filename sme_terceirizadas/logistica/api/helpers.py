@@ -25,6 +25,7 @@ status_invalidos_para_conferencia = (
 
 status_alimento_recebido = ConferenciaIndividualPorAlimento.STATUS_ALIMENTO_RECEBIDO
 status_alimento_nao_recebido = ConferenciaIndividualPorAlimento.STATUS_ALIMENTO_NAO_RECEBIDO
+ocorrencia_em_atraso = ConferenciaIndividualPorAlimento.OCORRENCIA_ATRASO_ENTREGA
 
 
 def remove_acentos_de_strings(nome: str) -> str:
@@ -173,7 +174,7 @@ def verifica_se_a_guia_pode_ser_conferida(guia):
         raise ValidationError(f'Guia de remessa não existe.')
 
 
-def atualiza_guia_com_base_nas_conferencias_por_alimentos(guia, user, status_dos_alimentos, eh_reposicao):  # noqa C901
+def atualiza_guia_com_base_nas_conferencias_por_alimentos(guia, user, status_dos_alimentos, eh_reposicao, ocorrencias_dos_alimentos):  # noqa C901
     """
     Método responsavel por chamar hooks de atualização de status das guias baseado nos status dos alimentos conferidos e
     no tipo de conferencia caso seja uma reposição.
@@ -187,6 +188,8 @@ def atualiza_guia_com_base_nas_conferencias_por_alimentos(guia, user, status_dos
                 guia_obj.reposicao_total(user=user) if eh_reposicao else guia_obj.escola_recebe(user=user)
             elif all(status == status_alimento_nao_recebido for status in status_dos_alimentos):
                 guia_obj.reposicao_parcial(user=user) if eh_reposicao else guia_obj.escola_nao_recebe(user=user)
+            elif all(ocorrencia == ocorrencia_em_atraso for ocorrencia in ocorrencias_dos_alimentos):
+                guia_obj.escola_recebe_parcial_atraso(user=user)
             else:
                 guia_obj.reposicao_parcial(user=user) if eh_reposicao else guia_obj.escola_recebe_parcial(user=user)
         except InvalidTransitionError as e:
