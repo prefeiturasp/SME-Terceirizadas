@@ -27,11 +27,11 @@ def avisa_a_escola_que_hoje_tem_entrega_de_alimentos():
         html = render_to_string(
             template_name='logistica_avisa_ue_para_conferir_no_prazo.html',
             context={
-                'titulo': 'Hoje tem entrega de alimentos',
+                'titulo': 'Hoje tem entrega de alimentos!',
             }
         )
         envia_email_em_massa_task.delay(
-            assunto='[SIGPAE] Hoje tem entrega de alimentos',
+            assunto='[SIGPAE] Hoje tem entrega de alimentos!',
             emails=partes_interessadas,
             corpo='',
             html=html
