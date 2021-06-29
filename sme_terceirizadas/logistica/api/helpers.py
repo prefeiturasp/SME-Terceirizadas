@@ -25,6 +25,7 @@ status_invalidos_para_conferencia = (
 
 status_alimento_recebido = ConferenciaIndividualPorAlimento.STATUS_ALIMENTO_RECEBIDO
 status_alimento_nao_recebido = ConferenciaIndividualPorAlimento.STATUS_ALIMENTO_NAO_RECEBIDO
+status_alimento_parcial = ConferenciaIndividualPorAlimento.STATUS_ALIMENTO_PARCIAL
 ocorrencia_em_atraso = ConferenciaIndividualPorAlimento.OCORRENCIA_ATRASO_ENTREGA
 
 
@@ -134,6 +135,52 @@ def retorna_dados_normalizados_excel_visao_dilog(queryset):
     return requisicoes
 
 
+def retorna_dados_normalizados_excel_entregas_distribuidor(queryset): # noqa C901
+
+    requisicoes = queryset.annotate(status_requisicao=Case(
+        When(status='AGUARDANDO_ENVIO', then=Value('Aguardando envio')),
+        When(status='DILOG_ENVIA', then=Value('Recebida')),
+        When(status='CANCELADA', then=Value('Cancelada')),
+        When(status='DISTRIBUIDOR_CONFIRMA', then=Value('Confirmada')),
+        When(status='DISTRIBUIDOR_SOLICITA_ALTERACAO', then=Value('Em análise')),
+        When(status='DILOG_ACEITA_ALTERACAO', then=Value('Alterada')),
+        output_field=CharField(),
+    )).values(
+        'numero_solicitacao', 'status_requisicao', 'quantidade_total_guias', 'guias__numero_guia',
+        'guias__data_entrega', 'guias__codigo_unidade', 'guias__escola__codigo_eol', 'guias__nome_unidade',
+        'guias__endereco_unidade', 'guias__numero_unidade', 'guias__bairro_unidade', 'guias__cep_unidade',
+        'guias__cidade_unidade', 'guias__estado_unidade', 'guias__contato_unidade', 'guias__telefone_unidade',
+        'guias__alimentos__nome_alimento', 'guias__alimentos__codigo_suprimento', 'guias__alimentos__codigo_papa',
+        'guias__alimentos__embalagens__tipo_embalagem', 'guias__alimentos__embalagens__descricao_embalagem',
+        'guias__alimentos__embalagens__capacidade_embalagem', 'guias__alimentos__embalagens__unidade_medida',
+        'guias__alimentos__embalagens__qtd_volume', 'guias__status', 'guias__alimentos__embalagens__qtd_a_receber')
+
+    for requisicao in requisicoes:
+        for guia in queryset[0].guias.all():
+            if guia.numero_guia == requisicao['guias__numero_guia']:
+                if guia.conferencias.first():
+                    conferencias = guia.conferencias.all().order_by('criado_em')
+                    requisicao['primeira_conferencia'] = conferencias[0]
+                    conferencia_alimento = alinhaAlimentos(requisicao, conferencias[0])
+                    if conferencia_alimento:
+                        requisicao['conferencia_alimento'] = conferencia_alimento
+                    for conferencia in conferencias:
+                        if conferencia.eh_reposicao:
+                            requisicao['primeira_reposicao'] = conferencia
+                            reposicao_alimento = alinhaAlimentos(requisicao, conferencia)
+                            if reposicao_alimento:
+                                requisicao['reposicao_alimento'] = reposicao_alimento
+                            break
+
+    return requisicoes
+
+
+def alinhaAlimentos(requisicao, conferencia):
+    for conf_alim in conferencia.conferencia_dos_alimentos.all():
+        if conf_alim.nome_alimento == requisicao['guias__alimentos__nome_alimento']:
+            return conf_alim
+
+
 def valida_guia_conferencia(queryset, escola):
     if queryset.count() == 0:
         return Response(dict(detail=f'Erro: Guia não encontrada', status=False),
@@ -216,3 +263,78 @@ def registra_qtd_a_receber(conferencia_individual):  # noqa C901
         embalagem.save()
     except ObjectDoesNotExist:
         raise ValidationError(f'Alimento ou embalagem não existe.')
+
+
+def retorna_status_alimento(status):
+    nomes_alimentos = ConferenciaIndividualPorAlimento.STATUS_ALIMENTO_NOMES
+    switcher = {
+        status_alimento_recebido: nomes_alimentos[status_alimento_recebido],
+        status_alimento_nao_recebido: nomes_alimentos[status_alimento_nao_recebido],
+        status_alimento_parcial: nomes_alimentos[status_alimento_parcial]
+    }
+    return switcher.get(status, 'Status Inválido')
+
+
+def retorna_ocorrencias_alimento(ocorrencias):
+    ocorrencias_retorno = []
+    for ocorrencia in ocorrencias:
+        nomes_ocorrencias = ConferenciaIndividualPorAlimento.OCORRENCIA_NOMES
+        qtd_menor = ConferenciaIndividualPorAlimento.OCORRENCIA_QTD_MENOR
+        prob_qualidade = ConferenciaIndividualPorAlimento.OCORRENCIA_PROBLEMA_QUALIDADE
+        alimento_diferente = ConferenciaIndividualPorAlimento.OCORRENCIA_ALIMENTO_DIFERENTE
+        embalagem_danificada = ConferenciaIndividualPorAlimento.OCORRENCIA_EMBALAGEM_DANIFICADA
+        embalagem_violada = ConferenciaIndividualPorAlimento.OCORRENCIA_EMBALAGEM_VIOLADA
+        validade_expirada = ConferenciaIndividualPorAlimento.OCORRENCIA_VALIDADE_EXPIRADA
+        atraso_entrega = ConferenciaIndividualPorAlimento.OCORRENCIA_ATRASO_ENTREGA
+        ausencia_produto = ConferenciaIndividualPorAlimento.OCORRENCIA_AUSENCIA_PRODUTO
+
+        switcher = {
+            qtd_menor: nomes_ocorrencias[qtd_menor],
+            prob_qualidade: nomes_ocorrencias[prob_qualidade],
+            alimento_diferente: nomes_ocorrencias[alimento_diferente],
+            embalagem_danificada: nomes_ocorrencias[embalagem_danificada],
+            embalagem_violada: nomes_ocorrencias[embalagem_violada],
+            validade_expirada: nomes_ocorrencias[validade_expirada],
+            atraso_entrega: nomes_ocorrencias[atraso_entrega],
+            ausencia_produto: nomes_ocorrencias[ausencia_produto]
+        }
+        ocorrencias_retorno.insert(0, switcher.get(ocorrencia, 'Ocorrência Inválida'))
+    return ', '.join(ocorrencias_retorno)
+
+
+def retorna_status_guia_remessa(status):
+    nomes_status = GuiaRemessaWorkFlow.states
+
+    aguardando_envio = GuiaRemessaWorkFlow.AGUARDANDO_ENVIO
+    aguardando_confirmacao = GuiaRemessaWorkFlow.AGUARDANDO_CONFIRMACAO
+    pendente_conferencia = GuiaRemessaWorkFlow.PENDENTE_DE_CONFERENCIA
+    insucesso = GuiaRemessaWorkFlow.DISTRIBUIDOR_REGISTRA_INSUCESSO
+    recebida = GuiaRemessaWorkFlow.RECEBIDA
+    nao_recebida = GuiaRemessaWorkFlow.NAO_RECEBIDA
+    parcial = GuiaRemessaWorkFlow.RECEBIMENTO_PARCIAL
+    repo_total = GuiaRemessaWorkFlow.REPOSICAO_TOTAL
+    repo_parcial = GuiaRemessaWorkFlow.REPOSICAO_PARCIAL
+    cancelada = GuiaRemessaWorkFlow.CANCELADA
+
+    switcher = {
+        aguardando_envio: nomes_status[aguardando_envio],
+        aguardando_confirmacao: nomes_status[aguardando_confirmacao],
+        pendente_conferencia: nomes_status[pendente_conferencia],
+        insucesso: nomes_status[insucesso],
+        recebida: nomes_status[recebida],
+        nao_recebida: nomes_status[nao_recebida],
+        parcial: nomes_status[parcial],
+        repo_total: nomes_status[repo_total],
+        repo_parcial: nomes_status[repo_parcial],
+        cancelada: nomes_status[cancelada]
+    }
+
+    state = switcher.get(status, 'Status Inválido')
+    return state.title
+
+
+def valida_rf_ou_cpf(user):
+    if user.registro_funcional is None:
+        return user.cpf
+    else:
+        return user.registro_funcional

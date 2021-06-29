@@ -63,6 +63,7 @@ from ..models.guia import InsucessoEntregaGuia
 from ..utils import GuiaPagination, RequisicaoPagination, SolicitacaoAlteracaoPagination
 from .filters import GuiaFilter, SolicitacaoAlteracaoFilter, SolicitacaoFilter
 from .helpers import (
+    retorna_dados_normalizados_excel_entregas_distribuidor,
     retorna_dados_normalizados_excel_visao_dilog,
     retorna_dados_normalizados_excel_visao_distribuidor,
     valida_guia_conferencia,
@@ -413,6 +414,24 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
             content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         )
         response['Content-Disposition'] = 'attachment; filename=%s' % result['filename']
+        return response
+
+    @action(
+        detail=False, methods=['GET'],
+        url_path='exporta-excel-visao-entregas',
+        permission_classes=[UsuarioDistribuidor])
+    def gerar_excel_entregas(self, request):
+        uuid = request.query_params.get('uuid', None)
+        queryset = self.get_queryset().filter(uuid=uuid)
+        requisicoes = retorna_dados_normalizados_excel_entregas_distribuidor(queryset)
+        result = RequisicoesExcelService.exportar_entregas_distribuidor(requisicoes)
+
+        response = HttpResponse(
+            result['arquivo'],
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = 'attachment; filename=%s' % result['filename']
+
         return response
 
 
