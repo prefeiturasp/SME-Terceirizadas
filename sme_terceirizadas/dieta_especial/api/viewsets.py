@@ -59,6 +59,7 @@ from .serializers import (
     MotivoNegacaoSerializer,
     PanoramaSerializer,
     ProtocoloPadraoDietaEspecialSerializer,
+    ProtocoloPadraoDietaEspecialSimplesSerializer,
     RelatorioQuantitativoSolicDietaEspSerializer,
     SolicitacaoDietaEspecialAutorizarSerializer,
     SolicitacaoDietaEspecialSerializer,
@@ -785,3 +786,9 @@ class ProtocoloPadraoDietaEspecialViewSet(ModelViewSet):
         nomes = self.queryset.values_list('nome_protocolo', flat=True).distinct()
 
         return Response({'results': nomes})
+
+    @action(detail=False, methods=['GET'], url_path='lista-protocolos-liberados')
+    def lista_protocolos_liberados(self, request):
+        protocolos_liberados = self.get_queryset().filter(status=ProtocoloPadraoDietaEspecial.STATUS_LIBERADO)
+        response = {'results': ProtocoloPadraoDietaEspecialSimplesSerializer(protocolos_liberados, many=True).data}
+        return Response(response)

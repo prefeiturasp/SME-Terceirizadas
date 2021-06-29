@@ -431,3 +431,9 @@ class ProtocoloPadraoDietaEspecialSerializer(serializers.ModelSerializer):
             'orientacoes_gerais',
             'substituicoes'
         )
+
+
+class ProtocoloPadraoDietaEspecialSimplesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProtocoloPadraoDietaEspecial
+        fields = ('nome_protocolo', 'uuid')
