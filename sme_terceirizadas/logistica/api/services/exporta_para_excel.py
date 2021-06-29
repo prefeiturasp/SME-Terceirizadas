@@ -209,7 +209,7 @@ class RequisicoesExcelService(object):
 
         wb = Workbook()
         ws = wb.active
-        ws.title = 'Visão Analítica Abastecimento'
+        ws.title = 'Relatório de Conferência'
 
         for ind, title in enumerate(cabecalho, 1):
             celula = ws.cell(row=1, column=ind)
