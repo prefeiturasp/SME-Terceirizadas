@@ -1,10 +1,8 @@
 import os
-from io import BytesIO
 from tempfile import NamedTemporaryFile
 
 from openpyxl import Workbook
 from openpyxl.styles import Border, Font, PatternFill, Side
-from openpyxl.writer.excel import save_virtual_workbook
 
 from ..helpers import (
     retorna_ocorrencias_alimento,
@@ -36,6 +34,16 @@ class RequisicoesExcelService(object):
                 filter(lambda cell_to_check: cell_to_check.coordinate not in ws.merged_cells, colunas))
             length = max(len(str(cell.value)) for cell in unmerged_cells)
             ws.column_dimensions[unmerged_cells[0].column_letter].width = length * 1.2
+
+    @classmethod
+    def gera_arquivo(cls, wb):
+        with NamedTemporaryFile(delete=False) as tmp:
+            wb.save(tmp.name)
+            tmp.seek(0)
+            arquivo = tmp.read()
+            tmp.close()
+            os.unlink(tmp.name)
+            return arquivo
 
     @classmethod
     def exportar_visao_distribuidor(cls, requisicoes):
@@ -91,7 +99,7 @@ class RequisicoesExcelService(object):
                 ws.cell(row=ind, column=26, value=requisicao['guias__alimentos__embalagens__qtd_volume'])
 
         cls.aplicar_estilo_padrao(ws, count_data, count_fields)
-        arquivo = BytesIO(save_virtual_workbook(wb))
+        arquivo = cls.gera_arquivo(wb)
         filename = 'visao-consolidada.xlsx'
 
         return {'arquivo': arquivo, 'filename': filename}
@@ -155,7 +163,7 @@ class RequisicoesExcelService(object):
             ws.cell(row=ind, column=29, value=requisicao['guias__status'])
 
         cls.aplicar_estilo_padrao(ws, count_data, count_fields)
-        arquivo = BytesIO(save_virtual_workbook(wb))
+        arquivo = cls.gera_arquivo(wb)
         filename = 'visao-consolidada.xlsx'
 
         return {'arquivo': arquivo, 'filename': filename}
@@ -299,12 +307,7 @@ class RequisicoesExcelService(object):
             ws.cell(row=ind, column=55, value=retorna_status_guia_remessa(requisicao['guias__status']))
 
         cls.aplicar_estilo_padrao(ws, count_data, count_fields)
-        with NamedTemporaryFile(delete=False) as tmp:
-            wb.save(tmp.name)
-            tmp.seek(0)
-            arquivo = tmp.read()
-            tmp.close()
-            os.unlink(tmp.name)
+        arquivo = cls.gera_arquivo(wb)
         filename = 'visao-consolidada.xlsx'
 
         return {'arquivo': arquivo, 'filename': filename}

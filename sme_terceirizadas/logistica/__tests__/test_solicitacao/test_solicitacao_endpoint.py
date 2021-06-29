@@ -25,3 +25,13 @@ def test_url_exportar_excel_entregas(client_autenticado_distribuidor, solicitaca
     )
 
     assert response.status_code == status.HTTP_200_OK
+
+
+def test_url_excel_analitica_dilog(client_autenticado_dilog):
+    response = client_autenticado_dilog.get('/solicitacao-remessa/exporta-excel-visao-analitica/')
+    assert response.status_code == status.HTTP_200_OK
+
+
+def test_url_exportar_excel_analitica_distribuidor(client_autenticado_distribuidor):
+    response = client_autenticado_distribuidor.get('/solicitacao-remessa/exporta-excel-visao-analitica/')
+    assert response.status_code == status.HTTP_200_OK
