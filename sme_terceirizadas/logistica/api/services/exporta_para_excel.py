@@ -38,7 +38,7 @@ class RequisicoesExcelService(object):
             ws.column_dimensions[unmerged_cells[0].column_letter].width = length * 1.2
 
     @classmethod
-    def exportar_visao_distribuidor(cls, requisioes):
+    def exportar_visao_distribuidor(cls, requisicoes):
 
         cabecalho = ['Número da Requisição', 'Status da Requisição', 'Quantidade Total de Guias', 'Número da Guia',
                      'Data de Entrega', 'Código CODAE da UE', 'Nome UE', 'Endereço UE', 'Número UE', 'Bairro UE',
@@ -49,7 +49,7 @@ class RequisicoesExcelService(object):
                      'Unidade de Medida da Embalagem Fracionada', 'Quantidade de Volumes da Embalagem Fracionada']
 
         count_fields = len(cabecalho)
-        count_data = requisioes.count()
+        count_data = requisicoes.count()
 
         wb = Workbook()
         ws = wb.active
@@ -60,7 +60,7 @@ class RequisicoesExcelService(object):
             celula.value = title
             celula.font = Font(size='13', bold=True, color='00FFFFFF')
 
-        for ind, requisicao in enumerate(requisioes, 2):
+        for ind, requisicao in enumerate(requisicoes, 2):
             ws.cell(row=ind, column=1, value=requisicao['numero_solicitacao'])
             ws.cell(row=ind, column=2, value=requisicao['status_requisicao'])
             ws.cell(row=ind, column=3, value=requisicao['quantidade_total_guias'])
@@ -97,7 +97,7 @@ class RequisicoesExcelService(object):
         return {'arquivo': arquivo, 'filename': filename}
 
     @classmethod
-    def exportar_visao_dilog(cls, requisioes):
+    def exportar_visao_dilog(cls, requisicoes):
 
         cabecalho = ['Nome do Distribuidor', 'Número da Requisição', 'Status da Requisição',
                      'Quantidade Total de Guias', 'Número da Guia', 'Data de Entrega', 'Código EOL da UE',
@@ -110,7 +110,7 @@ class RequisicoesExcelService(object):
                      'Status da Guia']
 
         count_fields = len(cabecalho)
-        count_data = requisioes.count()
+        count_data = requisicoes.count()
 
         wb = Workbook()
         ws = wb.active
@@ -121,7 +121,7 @@ class RequisicoesExcelService(object):
             celula.value = title
             celula.font = Font(size='13', bold=True, color='00FFFFFF')
 
-        for ind, requisicao in enumerate(requisioes, 2):
+        for ind, requisicao in enumerate(requisicoes, 2):
             ws.cell(row=ind, column=1, value=requisicao['distribuidor__nome_fantasia'])
             ws.cell(row=ind, column=2, value=requisicao['numero_solicitacao'])
             ws.cell(row=ind, column=3, value=requisicao['status_requisicao'])
@@ -161,7 +161,7 @@ class RequisicoesExcelService(object):
         return {'arquivo': arquivo, 'filename': filename}
 
     @classmethod # noqa C901
-    def exportar_entregas_distribuidor(cls, requisioes):
+    def exportar_entregas_distribuidor(cls, requisicoes):
 
         cabecalho = ['Número da Requisição', 'Quantidade Total de Guias', 'Número da Guia', 'Data de Entrega',
                      '(1ª Conferência) Data de recebimento', '(1ª Conferência) Hora de recebimento',
@@ -197,7 +197,7 @@ class RequisicoesExcelService(object):
                      ]
 
         count_fields = len(cabecalho)
-        count_data = requisioes.count()
+        count_data = requisicoes.count()
 
         wb = Workbook()
         ws = wb.active
@@ -208,7 +208,7 @@ class RequisicoesExcelService(object):
             celula.value = title
             celula.font = Font(size='13', bold=True, color='00FFFFFF')
 
-        for ind, requisicao in enumerate(requisioes, 2):
+        for ind, requisicao in enumerate(requisicoes, 2):
 
             qtd_recebida = 0
 
