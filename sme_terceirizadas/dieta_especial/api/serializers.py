@@ -123,9 +123,13 @@ class SolicitacaoDietaEspecialAutorizarSerializer(SolicitacaoDietaEspecialCreate
         alergias_intolerancias = validated_data.pop('alergias_intolerancias')
         substituicoes = validated_data.pop('substituicoes')
 
+        protocolo_padrao = ProtocoloPadraoDietaEspecial.objects.get(uuid=validated_data['protocolo_padrao'])
+        instance.protocolo_padrao = protocolo_padrao
+
         instance.classificacao_id = validated_data['classificacao']
         instance.registro_funcional_nutricionista = validated_data['registro_funcional_nutricionista']
         instance.informacoes_adicionais = validated_data.get('informacoes_adicionais', '')
+        instance.orientacoes_gerais = validated_data.get('orientacoes_gerais', '')
         instance.caracteristicas_do_alimento = validated_data.get('caracteristicas_do_alimento', '')
         instance.nome_protocolo = validated_data.get('nome_protocolo', '')
         data_termino = validated_data.get('data_termino', '')
