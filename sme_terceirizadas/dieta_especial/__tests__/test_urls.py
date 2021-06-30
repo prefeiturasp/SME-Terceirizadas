@@ -250,6 +250,7 @@ def test_url_atualizar_dieta(client_autenticado_vinculo_escola,  # noqa C901
                              solicitacao_dieta_especial,
                              classificacoes_dieta,
                              alergias_intolerancias,
+                             protocolo_padrao_dieta_especial,
                              substituicoes):
     payload = {
         'observacoes': '<p>dsadsadasd</p>\n',
@@ -264,6 +265,9 @@ def test_url_atualizar_dieta(client_autenticado_vinculo_escola,  # noqa C901
         'classificacao': classificacoes_dieta[1].id,
         'alergias_intolerancias': [alergias_intolerancias[1].id],
         'informacoes_adicionais': 'Um textinho bem pequenininho',
+        'protocolo_padrao': protocolo_padrao_dieta_especial.uuid,
+        'nome_protocolo': protocolo_padrao_dieta_especial.nome_protocolo,
+        'orientacoes_gerais': 'Um texto grande aqui',
         'substituicoes': substituicoes
     }
     response = client_autenticado_vinculo_escola.patch(

@@ -140,7 +140,7 @@ def substituicoes(alimentos, produtos):
 
 
 @pytest.fixture
-def payload_autorizar(alergias_intolerancias, classificacoes_dieta, substituicoes):
+def payload_autorizar(alergias_intolerancias, classificacoes_dieta, substituicoes, protocolo_padrao_dieta_especial):
     return {
         'classificacao': classificacoes_dieta[0].id,
         'alergias_intolerancias': [
@@ -149,7 +149,10 @@ def payload_autorizar(alergias_intolerancias, classificacoes_dieta, substituicoe
         'registro_funcional_nutricionista':
             'ELABORADO por USUARIO NUTRICIONISTA CODAE - CRN null',
         'substituicoes': substituicoes,
-        'informacoes_adicionais': 'Um texto bem grandão'
+        'informacoes_adicionais': 'Um texto bem grandão',
+        'protocolo_padrao': protocolo_padrao_dieta_especial.uuid,
+        'nome_protocolo': protocolo_padrao_dieta_especial.nome_protocolo,
+        'orientacoes_gerais': 'Um texto grande aqui'
     }
 
 
