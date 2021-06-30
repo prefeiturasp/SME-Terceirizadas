@@ -261,6 +261,11 @@ class SolicitacaoDietaEspecialSerializer(serializers.ModelSerializer):
 
 
 class SolicitacaoDietaEspecialUpdateSerializer(serializers.ModelSerializer):
+    protocolo_padrao = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=ProtocoloPadraoDietaEspecial.objects.all()
+    )
     anexos = serializers.ListField(child=AnexoSerializer(), required=True)
     classificacao = serializers.PrimaryKeyRelatedField(
         queryset=ClassificacaoDieta.objects.all()
