@@ -82,7 +82,22 @@ class SolicitacaoDietaEspecial(
         'Informações Adicionais',
         blank=True
     )
+
+    protocolo_padrao = models.ForeignKey(
+        'ProtocoloPadraoDietaEspecial',
+        on_delete=models.PROTECT,
+        related_name='solicitacoes_dietas_especiais',
+        blank=True,
+        null=True
+    )
+
     nome_protocolo = models.TextField('Nome do Protocolo', blank=True)
+
+    # Preenchido pela NutriCODAE ao autorizar a dieta
+    orientacoes_gerais = models.TextField(
+        'Orientações Gerais',
+        blank=True
+    )
 
     # TODO: Confirmar se PROTECT é a melhor escolha para o campos abaixo
     classificacao = models.ForeignKey(
@@ -102,6 +117,7 @@ class SolicitacaoDietaEspecial(
         on_delete=models.PROTECT,
         null=True
     )
+
     # TODO: Mover essa justificativa para o log de transição de status
     justificativa_negacao = models.TextField(blank=True)
 

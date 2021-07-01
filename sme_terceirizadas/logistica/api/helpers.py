@@ -15,7 +15,7 @@ from sme_terceirizadas.logistica.api.serializers.serializers import (
     GuiaDaRemessaSerializer
 )
 from sme_terceirizadas.logistica.models import Guia
-from sme_terceirizadas.logistica.models.guia import ConferenciaIndividualPorAlimento
+from sme_terceirizadas.logistica.models.guia import ConferenciaIndividualPorAlimento, InsucessoEntregaGuia
 
 status_invalidos_para_conferencia = (
     GuiaRemessaWorkFlow.CANCELADA,
@@ -136,7 +136,6 @@ def retorna_dados_normalizados_excel_visao_dilog(queryset):
 
 
 def retorna_dados_normalizados_excel_entregas_distribuidor(queryset): # noqa C901
-
     requisicoes = queryset.annotate(status_requisicao=Case(
         When(status='AGUARDANDO_ENVIO', then=Value('Aguardando envio')),
         When(status='DILOG_ENVIA', then=Value('Recebida')),
@@ -153,7 +152,10 @@ def retorna_dados_normalizados_excel_entregas_distribuidor(queryset): # noqa C90
         'guias__alimentos__nome_alimento', 'guias__alimentos__codigo_suprimento', 'guias__alimentos__codigo_papa',
         'guias__alimentos__embalagens__tipo_embalagem', 'guias__alimentos__embalagens__descricao_embalagem',
         'guias__alimentos__embalagens__capacidade_embalagem', 'guias__alimentos__embalagens__unidade_medida',
-        'guias__alimentos__embalagens__qtd_volume', 'guias__status', 'guias__alimentos__embalagens__qtd_a_receber')
+        'guias__alimentos__embalagens__qtd_volume', 'guias__status', 'guias__alimentos__embalagens__qtd_a_receber',
+        'guias__insucessos__placa_veiculo', 'guias__insucessos__nome_motorista', 'guias__insucessos__criado_em',
+        'guias__insucessos__hora_tentativa', 'guias__insucessos__motivo', 'guias__insucessos__justificativa',
+        'guias__insucessos__criado_por__cpf', 'guias__insucessos__criado_por__nome')
 
     for requisicao in requisicoes:
         for guia in queryset[0].guias.all():
@@ -338,3 +340,17 @@ def valida_rf_ou_cpf(user):
         return user.cpf
     else:
         return user.registro_funcional
+
+
+def retorna_motivo_insucesso(motivo):
+    nomes_motivos = InsucessoEntregaGuia.MOTIVO_NOMES
+
+    ue_fechada = InsucessoEntregaGuia.MOTIVO_UNIDADE_FECHADA
+    outros = InsucessoEntregaGuia.MOTIVO_OUTROS
+
+    switcher = {
+        ue_fechada: nomes_motivos[ue_fechada],
+        outros: nomes_motivos[outros],
+    }
+
+    return switcher.get(motivo, 'Motivo Inválido')

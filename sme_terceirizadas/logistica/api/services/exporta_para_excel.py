@@ -5,6 +5,7 @@ from openpyxl import Workbook
 from openpyxl.styles import Border, Font, PatternFill, Side
 
 from ..helpers import (
+    retorna_motivo_insucesso,
     retorna_ocorrencias_alimento,
     retorna_status_alimento,
     retorna_status_guia_remessa,
@@ -169,8 +170,79 @@ class RequisicoesExcelService(object):
         return {'arquivo': arquivo, 'filename': filename}
 
     @classmethod # noqa C901
-    def exportar_entregas_distribuidor(cls, requisicoes):
+    def cria_aba_insucesso(cls, ws, requisicoes):
+        cabecalho = ['Número da Requisição', 'Quantidade Total de Guias', 'Número da Guia', 'Data de Entrega',
+                     'Nome do Motorista', 'Placa do Veículo',
+                     'Data de Registro do Insucesso', 'Hora de Registro do Insucesso',
+                     'Código EOL', 'Código CODAE', 'Nome UE', 'Endereço UE', 'Número UE', 'Bairro UE',
+                     'CEP UE', 'Cidade UE', 'Estado UE', 'Contato de Entrega', 'Telefone UE', 'Nome do Alimento',
+                     'Código SUPRI', 'Código PAPA',
+                     'Descrição Embalagem Fechada', 'Capacidade da Embalagem Fechada',
+                     'Unidade de Medida da Embalagem Fechada',
+                     'Quantidade Prevista (Volumes da Embalagem Fechada)',
+                     'Descrição Embalagem Fracionada', 'Capacidade da Embalagem Fracionada',
+                     'Unidade de Medida da Embalagem Fracionada',
+                     'Quantidade Prevista (Volumes da Embalagem Fracionada)',
+                     'Hora da tentativa de entrega', 'Motivo',
+                     'Justificativa',
+                     'Status da Guia de Remessa',
+                     'Nome Completo do Conferente',
+                     'Documento do Conferente']
 
+        count_fields = len(cabecalho)
+        count_data = requisicoes.count()
+
+        for ind, title in enumerate(cabecalho, 1):
+            celula = ws.cell(row=1, column=ind)
+            celula.value = title
+            celula.font = Font(size='13', bold=True, color='00FFFFFF')
+
+        for ind, requisicao in enumerate(requisicoes, 2):
+            ws.cell(row=ind, column=1, value=requisicao['numero_solicitacao'])
+            ws.cell(row=ind, column=2, value=requisicao['quantidade_total_guias'])
+            ws.cell(row=ind, column=3, value=requisicao['guias__numero_guia'])
+            ws.cell(row=ind, column=4, value=requisicao['guias__data_entrega'])
+            if requisicao['guias__insucessos__criado_em'] is not None:
+                ws.cell(row=ind, column=5, value=requisicao['guias__insucessos__nome_motorista'])
+                ws.cell(row=ind, column=6, value=requisicao['guias__insucessos__placa_veiculo'])
+                ws.cell(row=ind, column=7, value=requisicao['guias__insucessos__criado_em'].strftime('%d/%m/%Y'))
+                ws.cell(row=ind, column=8, value=requisicao['guias__insucessos__criado_em'].strftime('%H:%M:%S'))
+            ws.cell(row=ind, column=9, value=requisicao['guias__escola__codigo_eol'])
+            ws.cell(row=ind, column=10, value=requisicao['guias__codigo_unidade'])
+            ws.cell(row=ind, column=11, value=requisicao['guias__nome_unidade'])
+            ws.cell(row=ind, column=12, value=requisicao['guias__endereco_unidade'])
+            ws.cell(row=ind, column=13, value=int(requisicao['guias__numero_unidade']))
+            ws.cell(row=ind, column=14, value=requisicao['guias__bairro_unidade'])
+            ws.cell(row=ind, column=15, value=requisicao['guias__cep_unidade'])
+            ws.cell(row=ind, column=16, value=requisicao['guias__cidade_unidade'])
+            ws.cell(row=ind, column=17, value=requisicao['guias__estado_unidade'])
+            ws.cell(row=ind, column=18, value=requisicao['guias__contato_unidade'])
+            ws.cell(row=ind, column=19, value=requisicao['guias__telefone_unidade'])
+            ws.cell(row=ind, column=20, value=requisicao['guias__alimentos__nome_alimento'])
+            ws.cell(row=ind, column=21, value=requisicao['guias__alimentos__codigo_suprimento'])
+            ws.cell(row=ind, column=22, value=requisicao['guias__alimentos__codigo_papa'])
+            if requisicao['guias__alimentos__embalagens__tipo_embalagem'] == 'FECHADA':
+                ws.cell(row=ind, column=23, value=requisicao['guias__alimentos__embalagens__descricao_embalagem'])
+                ws.cell(row=ind, column=24, value=requisicao['guias__alimentos__embalagens__capacidade_embalagem'])
+                ws.cell(row=ind, column=25, value=requisicao['guias__alimentos__embalagens__unidade_medida'])
+                ws.cell(row=ind, column=26, value=requisicao['guias__alimentos__embalagens__qtd_volume'])
+            else:
+                ws.cell(row=ind, column=27, value=requisicao['guias__alimentos__embalagens__descricao_embalagem'])
+                ws.cell(row=ind, column=28, value=requisicao['guias__alimentos__embalagens__capacidade_embalagem'])
+                ws.cell(row=ind, column=29, value=requisicao['guias__alimentos__embalagens__unidade_medida'])
+                ws.cell(row=ind, column=30, value=requisicao['guias__alimentos__embalagens__qtd_volume'])
+            if requisicao['guias__insucessos__criado_em'] is not None:
+                ws.cell(row=ind, column=31, value=requisicao['guias__insucessos__hora_tentativa'].strftime('%H:%M:%S'))
+                ws.cell(row=ind, column=32, value=retorna_motivo_insucesso(requisicao['guias__insucessos__motivo']))
+                ws.cell(row=ind, column=33, value=requisicao['guias__insucessos__justificativa'])
+                ws.cell(row=ind, column=34, value=retorna_status_guia_remessa(requisicao['guias__status']))
+                ws.cell(row=ind, column=35, value=requisicao['guias__insucessos__criado_por__nome'])
+                ws.cell(row=ind, column=36, value=requisicao['guias__insucessos__criado_por__cpf'])
+
+        cls.aplicar_estilo_padrao(ws, count_data, count_fields)
+
+    @classmethod # noqa C901
+    def cria_aba_conferencia(cls, ws, requisicoes):
         cabecalho = ['Número da Requisição', 'Quantidade Total de Guias', 'Número da Guia', 'Data de Entrega',
                      '(1ª Conferência) Data de recebimento', '(1ª Conferência) Hora de recebimento',
                      '(1ª Conferência) Nome do Motorista', '(1ª Conferência) Placa do Veículo',
@@ -200,17 +272,12 @@ class RequisicoesExcelService(object):
                      '(Reposição) Status de Recebimento do Alimento', '(Reposição) Ocorrência',
                      '(Reposição) Observações',
                      '(Reposição) Nome Completo do Conferente', '(Reposição) Documento do Conferente (RF ou CPF)',
-                     'Status da Guia de Remessa'
-
-                     ]
+                     'Status da Guia de Remessa']
 
         count_fields = len(cabecalho)
         count_data = requisicoes.count()
 
-        wb = Workbook()
-        ws = wb.active
         ws.title = 'Relatório de Conferência'
-
         for ind, title in enumerate(cabecalho, 1):
             celula = ws.cell(row=1, column=ind)
             celula.value = title
@@ -305,8 +372,17 @@ class RequisicoesExcelService(object):
                     ws.cell(row=ind, column=54, value=valida_rf_ou_cpf(requisicao['primeira_reposicao'].criado_por))
 
             ws.cell(row=ind, column=55, value=retorna_status_guia_remessa(requisicao['guias__status']))
-
         cls.aplicar_estilo_padrao(ws, count_data, count_fields)
+
+    @classmethod
+    def exportar_entregas_distribuidor(cls, requisicoes):
+        wb = Workbook()
+        ws_conferencia = wb.active
+        cls.cria_aba_conferencia(ws_conferencia, requisicoes)
+
+        ws_insucesso = wb.create_sheet('Relatório de Insucesso')
+        cls.cria_aba_insucesso(ws_insucesso, requisicoes)
+
         arquivo = cls.gera_arquivo(wb)
         filename = 'visao-consolidada.xlsx'
 
