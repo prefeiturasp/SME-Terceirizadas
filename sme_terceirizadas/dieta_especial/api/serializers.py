@@ -219,6 +219,11 @@ class SolicitacaoDietaEspecialSerializer(serializers.ModelSerializer):
     substituicoes = SubstituicaoAlimentoSerializer(many=True)
 
     tem_solicitacao_cadastro_produto = serializers.SerializerMethodField()
+    protocolo_padrao = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=ProtocoloPadraoDietaEspecial.objects.all()
+    )
 
     def get_tem_solicitacao_cadastro_produto(self, obj):
         return SolicitacaoCadastroProdutoDieta.objects.filter(
@@ -242,7 +247,9 @@ class SolicitacaoDietaEspecialSerializer(serializers.ModelSerializer):
             'observacoes',
             'alergias_intolerancias',
             'classificacao',
+            'protocolo_padrao',
             'nome_protocolo',
+            'orientacoes_gerais',
             'substituicoes',
             'informacoes_adicionais',
             'caracteristicas_do_alimento',
