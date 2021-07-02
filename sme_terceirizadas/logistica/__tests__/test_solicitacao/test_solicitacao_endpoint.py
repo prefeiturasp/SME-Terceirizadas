@@ -26,6 +26,7 @@ def test_url_exportar_excel_entregas_distribuidor(client_autenticado_distribuido
 
     assert response.status_code == status.HTTP_200_OK
 
+
 def test_url_exportar_excel_entregas_dilog(client_autenticado_dilog, solicitacao):
     response = client_autenticado_dilog.get(
         '/solicitacao-remessa/exporta-excel-visao-entregas/?uuid=' + str(solicitacao.uuid)
