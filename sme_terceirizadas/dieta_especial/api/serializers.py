@@ -270,8 +270,9 @@ class SolicitacaoDietaEspecialSerializer(serializers.ModelSerializer):
 class SolicitacaoDietaEspecialUpdateSerializer(serializers.ModelSerializer):
     protocolo_padrao = serializers.SlugRelatedField(
         slug_field='uuid',
-        required=True,
-        queryset=ProtocoloPadraoDietaEspecial.objects.all()
+        required=False,
+        queryset=ProtocoloPadraoDietaEspecial.objects.all(),
+        allow_null=True
     )
     anexos = serializers.ListField(child=AnexoSerializer(), required=True)
     classificacao = serializers.PrimaryKeyRelatedField(
@@ -302,8 +303,8 @@ class SolicitacaoDietaEspecialUpdateSerializer(serializers.ModelSerializer):
             for ai in alergias_intolerancias:
                 instance.alergias_intolerancias.add(ai)
 
+        instance.substituicaoalimento_set.all().delete()
         if substituicoes:
-            instance.substituicaoalimento_set.all().delete()
             for substituicao in substituicoes:
                 substitutos = substituicao.pop('substitutos', None)
                 substituicao['solicitacao_dieta_especial'] = instance
