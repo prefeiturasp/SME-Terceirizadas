@@ -303,8 +303,8 @@ class SolicitacaoDietaEspecialUpdateSerializer(serializers.ModelSerializer):
             for ai in alergias_intolerancias:
                 instance.alergias_intolerancias.add(ai)
 
+        instance.substituicaoalimento_set.all().delete()
         if substituicoes:
-            instance.substituicaoalimento_set.all().delete()
             for substituicao in substituicoes:
                 substitutos = substituicao.pop('substitutos', None)
                 substituicao['solicitacao_dieta_especial'] = instance
