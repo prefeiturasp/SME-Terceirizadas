@@ -219,6 +219,11 @@ class SolicitacaoDietaEspecialSerializer(serializers.ModelSerializer):
     substituicoes = SubstituicaoAlimentoSerializer(many=True)
 
     tem_solicitacao_cadastro_produto = serializers.SerializerMethodField()
+    protocolo_padrao = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=ProtocoloPadraoDietaEspecial.objects.all()
+    )
 
     def get_tem_solicitacao_cadastro_produto(self, obj):
         return SolicitacaoCadastroProdutoDieta.objects.filter(
@@ -242,7 +247,9 @@ class SolicitacaoDietaEspecialSerializer(serializers.ModelSerializer):
             'observacoes',
             'alergias_intolerancias',
             'classificacao',
+            'protocolo_padrao',
             'nome_protocolo',
+            'orientacoes_gerais',
             'substituicoes',
             'informacoes_adicionais',
             'caracteristicas_do_alimento',
@@ -263,8 +270,9 @@ class SolicitacaoDietaEspecialSerializer(serializers.ModelSerializer):
 class SolicitacaoDietaEspecialUpdateSerializer(serializers.ModelSerializer):
     protocolo_padrao = serializers.SlugRelatedField(
         slug_field='uuid',
-        required=True,
-        queryset=ProtocoloPadraoDietaEspecial.objects.all()
+        required=False,
+        queryset=ProtocoloPadraoDietaEspecial.objects.all(),
+        allow_null=True
     )
     anexos = serializers.ListField(child=AnexoSerializer(), required=True)
     classificacao = serializers.PrimaryKeyRelatedField(
@@ -295,8 +303,8 @@ class SolicitacaoDietaEspecialUpdateSerializer(serializers.ModelSerializer):
             for ai in alergias_intolerancias:
                 instance.alergias_intolerancias.add(ai)
 
+        instance.substituicaoalimento_set.all().delete()
         if substituicoes:
-            instance.substituicaoalimento_set.all().delete()
             for substituicao in substituicoes:
                 substitutos = substituicao.pop('substitutos', None)
                 substituicao['solicitacao_dieta_especial'] = instance
