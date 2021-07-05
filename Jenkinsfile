@@ -104,6 +104,8 @@ pipeline {
           set -x
           '''
           sh 'kubectl rollout restart deployment/sigpae-backend -n sme-sigpae'
+	  sh 'kubectl rollout restart deployment/sigpae-beat -n sme-sigpae'
+	  sh 'kubectl rollout restart deployment/sigpae-celery -n sme-sigpae'
           sh 'rm -f $HOME/.kube/config'
         }
        }
@@ -140,6 +142,8 @@ pipeline {
           set -x
           '''
           sh 'kubectl rollout restart deployment/sigpae-backend -n sme-sigpae'
+	  sh 'kubectl rollout restart deployment/sigpae-beat -n sme-sigpae'
+	  sh 'kubectl rollout restart deployment/sigpae-celery -n sme-sigpae'
           sh 'rm -f $HOME/.kube/config'                   
         }
        }
@@ -176,6 +180,8 @@ pipeline {
           set -x
           '''
           sh 'kubectl rollout restart deployment/sigpae-backend -n sme-sigpae'
+	  sh 'kubectl rollout restart deployment/sigpae-beat -n sme-sigpae'
+	  sh 'kubectl rollout restart deployment/sigpae-celery -n sme-sigpae'
           sh 'rm -f $HOME/.kube/config'  
         }
        }

@@ -170,7 +170,8 @@ class RequisicoesExcelService(object):
         return {'arquivo': arquivo, 'filename': filename}
 
     @classmethod # noqa C901
-    def cria_aba_insucesso(cls, ws, requisicoes):
+    def cria_aba_insucesso(cls, ws, requisicoes, perfil):
+        offset = 0
         cabecalho = ['Número da Requisição', 'Quantidade Total de Guias', 'Número da Guia', 'Data de Entrega',
                      'Nome do Motorista', 'Placa do Veículo',
                      'Data de Registro do Insucesso', 'Hora de Registro do Insucesso',
@@ -189,6 +190,10 @@ class RequisicoesExcelService(object):
                      'Nome Completo do Conferente',
                      'Documento do Conferente']
 
+        if perfil == 'DILOG':
+            cabecalho.insert(0, 'Nome do Distribuidor')
+            offset = 1
+
         count_fields = len(cabecalho)
         count_data = requisicoes.count()
 
@@ -198,46 +203,56 @@ class RequisicoesExcelService(object):
             celula.font = Font(size='13', bold=True, color='00FFFFFF')
 
         for ind, requisicao in enumerate(requisicoes, 2):
-            ws.cell(row=ind, column=1, value=requisicao['numero_solicitacao'])
-            ws.cell(row=ind, column=2, value=requisicao['quantidade_total_guias'])
-            ws.cell(row=ind, column=3, value=requisicao['guias__numero_guia'])
-            ws.cell(row=ind, column=4, value=requisicao['guias__data_entrega'])
+            if perfil == 'DILOG':
+                ws.cell(row=ind, column=offset, value=requisicao['distribuidor__nome_fantasia'])
+            ws.cell(row=ind, column=offset + 1, value=requisicao['numero_solicitacao'])
+            ws.cell(row=ind, column=offset + 2, value=requisicao['quantidade_total_guias'])
+            ws.cell(row=ind, column=offset + 3, value=requisicao['guias__numero_guia'])
+            ws.cell(row=ind, column=offset + 4, value=requisicao['guias__data_entrega'])
             if requisicao['guias__insucessos__criado_em'] is not None:
-                ws.cell(row=ind, column=5, value=requisicao['guias__insucessos__nome_motorista'])
-                ws.cell(row=ind, column=6, value=requisicao['guias__insucessos__placa_veiculo'])
-                ws.cell(row=ind, column=7, value=requisicao['guias__insucessos__criado_em'].strftime('%d/%m/%Y'))
-                ws.cell(row=ind, column=8, value=requisicao['guias__insucessos__criado_em'].strftime('%H:%M:%S'))
-            ws.cell(row=ind, column=9, value=requisicao['guias__escola__codigo_eol'])
-            ws.cell(row=ind, column=10, value=requisicao['guias__codigo_unidade'])
-            ws.cell(row=ind, column=11, value=requisicao['guias__nome_unidade'])
-            ws.cell(row=ind, column=12, value=requisicao['guias__endereco_unidade'])
-            ws.cell(row=ind, column=13, value=int(requisicao['guias__numero_unidade']))
-            ws.cell(row=ind, column=14, value=requisicao['guias__bairro_unidade'])
-            ws.cell(row=ind, column=15, value=requisicao['guias__cep_unidade'])
-            ws.cell(row=ind, column=16, value=requisicao['guias__cidade_unidade'])
-            ws.cell(row=ind, column=17, value=requisicao['guias__estado_unidade'])
-            ws.cell(row=ind, column=18, value=requisicao['guias__contato_unidade'])
-            ws.cell(row=ind, column=19, value=requisicao['guias__telefone_unidade'])
-            ws.cell(row=ind, column=20, value=requisicao['guias__alimentos__nome_alimento'])
-            ws.cell(row=ind, column=21, value=requisicao['guias__alimentos__codigo_suprimento'])
-            ws.cell(row=ind, column=22, value=requisicao['guias__alimentos__codigo_papa'])
+                ws.cell(row=ind, column=offset + 5, value=requisicao['guias__insucessos__nome_motorista'])
+                ws.cell(row=ind, column=offset + 6, value=requisicao['guias__insucessos__placa_veiculo'])
+                ws.cell(row=ind, column=offset + 7,
+                        value=requisicao['guias__insucessos__criado_em'].strftime('%d/%m/%Y'))
+                ws.cell(row=ind, column=offset + 8,
+                        value=requisicao['guias__insucessos__criado_em'].strftime('%H:%M:%S'))
+            ws.cell(row=ind, column=offset + 9, value=requisicao['guias__escola__codigo_eol'])
+            ws.cell(row=ind, column=offset + 10, value=requisicao['guias__codigo_unidade'])
+            ws.cell(row=ind, column=offset + 11, value=requisicao['guias__nome_unidade'])
+            ws.cell(row=ind, column=offset + 12, value=requisicao['guias__endereco_unidade'])
+            ws.cell(row=ind, column=offset + 13, value=requisicao['guias__numero_unidade'])
+            ws.cell(row=ind, column=offset + 14, value=requisicao['guias__bairro_unidade'])
+            ws.cell(row=ind, column=offset + 15, value=requisicao['guias__cep_unidade'])
+            ws.cell(row=ind, column=offset + 16, value=requisicao['guias__cidade_unidade'])
+            ws.cell(row=ind, column=offset + 17, value=requisicao['guias__estado_unidade'])
+            ws.cell(row=ind, column=offset + 18, value=requisicao['guias__contato_unidade'])
+            ws.cell(row=ind, column=offset + 19, value=requisicao['guias__telefone_unidade'])
+            ws.cell(row=ind, column=offset + 20, value=requisicao['guias__alimentos__nome_alimento'])
+            ws.cell(row=ind, column=offset + 21, value=requisicao['guias__alimentos__codigo_suprimento'])
+            ws.cell(row=ind, column=offset + 22, value=requisicao['guias__alimentos__codigo_papa'])
             if requisicao['guias__alimentos__embalagens__tipo_embalagem'] == 'FECHADA':
-                ws.cell(row=ind, column=23, value=requisicao['guias__alimentos__embalagens__descricao_embalagem'])
-                ws.cell(row=ind, column=24, value=requisicao['guias__alimentos__embalagens__capacidade_embalagem'])
-                ws.cell(row=ind, column=25, value=requisicao['guias__alimentos__embalagens__unidade_medida'])
-                ws.cell(row=ind, column=26, value=requisicao['guias__alimentos__embalagens__qtd_volume'])
+                ws.cell(row=ind, column=offset + 23,
+                        value=requisicao['guias__alimentos__embalagens__descricao_embalagem'])
+                ws.cell(row=ind, column=offset + 24,
+                        value=requisicao['guias__alimentos__embalagens__capacidade_embalagem'])
+                ws.cell(row=ind, column=offset + 25, value=requisicao['guias__alimentos__embalagens__unidade_medida'])
+                ws.cell(row=ind, column=offset + 26, value=requisicao['guias__alimentos__embalagens__qtd_volume'])
             else:
-                ws.cell(row=ind, column=27, value=requisicao['guias__alimentos__embalagens__descricao_embalagem'])
-                ws.cell(row=ind, column=28, value=requisicao['guias__alimentos__embalagens__capacidade_embalagem'])
-                ws.cell(row=ind, column=29, value=requisicao['guias__alimentos__embalagens__unidade_medida'])
-                ws.cell(row=ind, column=30, value=requisicao['guias__alimentos__embalagens__qtd_volume'])
+                ws.cell(row=ind, column=offset + 27,
+                        value=requisicao['guias__alimentos__embalagens__descricao_embalagem'])
+                ws.cell(row=ind, column=offset + 28,
+                        value=requisicao['guias__alimentos__embalagens__capacidade_embalagem'])
+                ws.cell(row=ind, column=offset + 29, value=requisicao['guias__alimentos__embalagens__unidade_medida'])
+                ws.cell(row=ind, column=offset + 30, value=requisicao['guias__alimentos__embalagens__qtd_volume'])
             if requisicao['guias__insucessos__criado_em'] is not None:
-                ws.cell(row=ind, column=31, value=requisicao['guias__insucessos__hora_tentativa'].strftime('%H:%M:%S'))
-                ws.cell(row=ind, column=32, value=retorna_motivo_insucesso(requisicao['guias__insucessos__motivo']))
-                ws.cell(row=ind, column=33, value=requisicao['guias__insucessos__justificativa'])
-                ws.cell(row=ind, column=34, value=retorna_status_guia_remessa(requisicao['guias__status']))
-                ws.cell(row=ind, column=35, value=requisicao['guias__insucessos__criado_por__nome'])
-                ws.cell(row=ind, column=36, value=requisicao['guias__insucessos__criado_por__cpf'])
+                ws.cell(row=ind, column=offset + 31,
+                        value=requisicao['guias__insucessos__hora_tentativa'].strftime('%H:%M:%S'))
+                ws.cell(row=ind, column=offset + 32,
+                        value=retorna_motivo_insucesso(requisicao['guias__insucessos__motivo']))
+                ws.cell(row=ind, column=offset + 33, value=requisicao['guias__insucessos__justificativa'])
+                ws.cell(row=ind, column=offset + 34, value=retorna_status_guia_remessa(requisicao['guias__status']))
+                ws.cell(row=ind, column=offset + 35, value=requisicao['guias__insucessos__criado_por__nome'])
+                ws.cell(row=ind, column=offset + 36, value=requisicao['guias__insucessos__criado_por__cpf'])
 
         cls.aplicar_estilo_padrao(ws, count_data, count_fields)
 
@@ -381,7 +396,19 @@ class RequisicoesExcelService(object):
         cls.cria_aba_conferencia(ws_conferencia, requisicoes)
 
         ws_insucesso = wb.create_sheet('Relatório de Insucesso')
-        cls.cria_aba_insucesso(ws_insucesso, requisicoes)
+        cls.cria_aba_insucesso(ws_insucesso, requisicoes, 'DISTRIBUIDOR')
+
+        arquivo = cls.gera_arquivo(wb)
+        filename = 'visao-consolidada.xlsx'
+
+        return {'arquivo': arquivo, 'filename': filename}
+
+    @classmethod
+    def exportar_entregas_dilog(cls, requisicoes):
+        wb = Workbook()
+        ws_insucesso = wb.active
+        cls.cria_aba_insucesso(ws_insucesso, requisicoes, 'DILOG')
+        ws_insucesso.title = 'Relatório de Insucesso'
 
         arquivo = cls.gera_arquivo(wb)
         filename = 'visao-consolidada.xlsx'

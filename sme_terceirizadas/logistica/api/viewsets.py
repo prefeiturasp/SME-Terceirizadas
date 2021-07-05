@@ -419,12 +419,16 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
     @action(
         detail=False, methods=['GET'],
         url_path='exporta-excel-visao-entregas',
-        permission_classes=[UsuarioDistribuidor])
+        permission_classes=[UsuarioDilogCodae | UsuarioDistribuidor])
     def gerar_excel_entregas(self, request):
         uuid = request.query_params.get('uuid', None)
         queryset = self.get_queryset().filter(uuid=uuid)
         requisicoes = retorna_dados_normalizados_excel_entregas_distribuidor(queryset)
-        result = RequisicoesExcelService.exportar_entregas_distribuidor(requisicoes)
+
+        if self.request.user.vinculo_atual.perfil.nome in ['ADMINISTRADOR_DISTRIBUIDORA']:
+            result = RequisicoesExcelService.exportar_entregas_distribuidor(requisicoes)
+        else:
+            result = RequisicoesExcelService.exportar_entregas_dilog(requisicoes)
 
         response = HttpResponse(
             result['arquivo'],
