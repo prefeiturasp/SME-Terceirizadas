@@ -6,7 +6,7 @@ pipeline {
     }
   
     agent {
-      node { label 'python-36-rc' }
+      node { label 'python-36-sigpae' }
     }
 
     options {
