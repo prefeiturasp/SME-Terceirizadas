@@ -332,7 +332,10 @@ def retorna_status_guia_remessa(status):
     }
 
     state = switcher.get(status, 'Status Inválido')
-    return state.title
+    if isinstance(state, str):
+        return state
+    else:
+        return state.title
 
 
 def valida_rf_ou_cpf(user):
