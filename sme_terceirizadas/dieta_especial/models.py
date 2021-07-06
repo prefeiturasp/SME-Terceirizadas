@@ -1,3 +1,6 @@
+from auditlog.models import AuditlogHistoryField
+from auditlog.registry import auditlog
+from django.contrib.postgres import fields
 from django.core.validators import MaxLengthValidator, MinLengthValidator
 from django.db import models
 from django_prometheus.models import ExportModelOperationsMixin
@@ -444,7 +447,17 @@ class LogDietasAtivasCanceladasAutomaticamente(CriadoEm):
         return False
 
 
+class AlimentoSubstituto(models.Model):
+    substituicao_alimento_protocolo_padrao = models.ForeignKey(
+        'SubstituicaoAlimentoProtocoloPadrao',
+        on_delete=models.SET_NULL, null=True)
+    alimento = models.ForeignKey(Alimento, on_delete=models.SET_NULL, null=True, blank=True)
+
+
 class ProtocoloPadraoDietaEspecial(TemChaveExterna, CriadoEm, CriadoPor, TemIdentificadorExternoAmigavel):
+    # Mantive para termos um histórico acessível pelo admin
+    history = AuditlogHistoryField()
+
     # Status Choice
     STATUS_LIBERADO = 'LIBERADO'
     STATUS_NAO_LIBERADO = 'NAO_LIBERADO'
@@ -473,6 +486,8 @@ class ProtocoloPadraoDietaEspecial(TemChaveExterna, CriadoEm, CriadoPor, TemIden
         default=STATUS_NAO_LIBERADO
     )
 
+    historico = fields.JSONField(blank=True, null=True)
+
     class Meta:
         ordering = ('-criado_em',)
         verbose_name = 'Protocolo padrão de dieta especial'
@@ -483,6 +498,8 @@ class ProtocoloPadraoDietaEspecial(TemChaveExterna, CriadoEm, CriadoPor, TemIden
 
 
 class SubstituicaoAlimentoProtocoloPadrao(models.Model):
+    history = AuditlogHistoryField()
+
     TIPO_CHOICES = [
         ('I', 'Isento'),
         ('S', 'Substituir')
@@ -508,7 +525,8 @@ class SubstituicaoAlimentoProtocoloPadrao(models.Model):
     alimentos_substitutos = models.ManyToManyField(
         Alimento,
         related_name='alimentos_substitutos_protocolo_padrao',
-        blank=True
+        blank=True,
+        through='AlimentoSubstituto'
     )
 
     class Meta:
@@ -517,3 +535,9 @@ class SubstituicaoAlimentoProtocoloPadrao(models.Model):
 
     def __str__(self):
         return f'substituição protocolo padrão: {self.protocolo_padrao}, tipo: {self.tipo}.'
+
+
+auditlog.register(ProtocoloPadraoDietaEspecial)
+auditlog.register(SubstituicaoAlimentoProtocoloPadrao)
+auditlog.register(SubstituicaoAlimentoProtocoloPadrao.alimentos_substitutos.through)
+auditlog.register(AlimentoSubstituto)

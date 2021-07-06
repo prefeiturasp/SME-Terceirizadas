@@ -74,6 +74,7 @@ django-cors-headers='==3.0.2'   # https://pypi.org/project/django-cors-headers/
 django-sequences='==2.5'  # https://pypi.org/project/django-sequences/
 django-multiselectfield='==0.1.12' # https://github.com/goinnn/django-multiselectfield
 django-celery-beat='==2.0.0'  # https://github.com/celery/django-celery-beat
+django-auditlog="*"   # https://github.com/jazzband/django-auditlog/
 # Django REST Framework
 # ------------------------------------------------------------------------------
 djangorestframework='==3.9.1'  # https://github.com/encode/django-rest-framework
