@@ -343,7 +343,7 @@ class RequisicoesExcelService(object):
             ws.cell(row=ind, column=offset + 18, value=requisicao['guias__escola__codigo_eol'])
             ws.cell(row=ind, column=offset + 19, value=requisicao['guias__nome_unidade'])
             ws.cell(row=ind, column=offset + 20, value=requisicao['guias__endereco_unidade'])
-            ws.cell(row=ind, column=offset + 21, value=int(requisicao['guias__numero_unidade']))
+            ws.cell(row=ind, column=offset + 21, value=requisicao['guias__numero_unidade'])
             ws.cell(row=ind, column=offset + 22, value=requisicao['guias__bairro_unidade'])
             ws.cell(row=ind, column=offset + 23, value=requisicao['guias__cep_unidade'])
             ws.cell(row=ind, column=offset + 24, value=requisicao['guias__cidade_unidade'])
