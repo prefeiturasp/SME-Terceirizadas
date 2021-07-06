@@ -1,8 +1,6 @@
-import json
-
-from auditlog.mixins import LogEntryAdminMixin
-from auditlog.models import AuditlogHistoryField, LogEntry
+from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
+from django.contrib.postgres import fields
 from django.core.validators import MaxLengthValidator, MinLengthValidator
 from django.db import models
 from django_prometheus.models import ExportModelOperationsMixin
@@ -457,6 +455,7 @@ class AlimentoSubstituto(models.Model):
 
 
 class ProtocoloPadraoDietaEspecial(TemChaveExterna, CriadoEm, CriadoPor, TemIdentificadorExternoAmigavel):
+    # Mantive para termos um histórico acessível pelo admin
     history = AuditlogHistoryField()
 
     # Status Choice
@@ -487,58 +486,7 @@ class ProtocoloPadraoDietaEspecial(TemChaveExterna, CriadoEm, CriadoPor, TemIden
         default=STATUS_NAO_LIBERADO
     )
 
-    def historico(self): # noqa
-        LogMixin = LogEntryAdminMixin()
-
-        class Historico:
-            def __init__(self, criado_em=None, ator=None, representacao=None, mudancas=None):
-                self.criado_em = criado_em
-                self.ator = ator
-                self.representacao = representacao
-                self.mudancas = mudancas
-
-        lista_historico_inicial = []
-
-        for historia_protocolo in self.history.all():
-            historico = Historico(
-                LogMixin.created(historia_protocolo), historia_protocolo.actor,
-                historia_protocolo.object_repr, json.loads(historia_protocolo.changes))
-            lista_historico_inicial.append(historico)
-
-        historico_substituicoes = LogEntry.objects.get_for_objects(self.substituicoes.all())
-        for historico_substituicao in historico_substituicoes.all():
-            historico = Historico(
-                LogMixin.created(historico_substituicao), historico_substituicao.actor,
-                historico_substituicao.object_repr, json.loads(historico_substituicao.changes))
-            lista_historico_inicial.append(historico)
-
-        for substituicao in self.substituicoes.all():
-            historico_alimentos_substituicoes = LogEntry.objects.get_for_objects(
-                AlimentoSubstituto.objects.filter(substituicao_alimento_protocolo_padrao=substituicao).all())
-            for historico_alimento in historico_alimentos_substituicoes.all():
-                historico = Historico(
-                    LogMixin.created(historico_alimento),
-                    historico_alimento.actor,
-                    historico_alimento.object_repr,
-                    json.loads(historico_alimento.changes))
-                lista_historico_inicial.append(historico)
-
-        grupo_lpg = {}
-        for historico in lista_historico_inicial:
-            grupo_lpg.setdefault(historico.criado_em[:16], []).append(historico)
-
-        historicos = []
-        for _, values in grupo_lpg.items():
-            hist = {
-                'criado_em': values[0].criado_em,
-                'ator': str(values[0].ator),
-                'mudancas': []
-            }
-            for v in values:
-                hist['mudancas'].append(v.mudancas)
-            historicos.append(hist)
-
-        return historicos
+    historico = fields.JSONField(blank=True, null=True)
 
     class Meta:
         ordering = ('-criado_em',)

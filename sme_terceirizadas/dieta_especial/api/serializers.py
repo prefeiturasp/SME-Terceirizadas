@@ -438,6 +438,7 @@ class SubstituicaoAlimentoProtocoloPadraoSerializer(ModelSerializer):
 class ProtocoloPadraoDietaEspecialSerializer(serializers.ModelSerializer):
     status = serializers.CharField(source='get_status_display')
     substituicoes = SubstituicaoAlimentoProtocoloPadraoSerializer(many=True)
+    historico = serializers.SerializerMethodField()
 
     class Meta:
         model = ProtocoloPadraoDietaEspecial
@@ -446,8 +447,13 @@ class ProtocoloPadraoDietaEspecialSerializer(serializers.ModelSerializer):
             'nome_protocolo',
             'status',
             'orientacoes_gerais',
-            'substituicoes'
+            'substituicoes',
+            'historico'
         )
+
+    def get_historico(self, obj):
+        import json
+        return json.loads(obj.historico) if obj.historico else []
 
 
 class ProtocoloPadraoDietaEspecialSimplesSerializer(serializers.ModelSerializer):

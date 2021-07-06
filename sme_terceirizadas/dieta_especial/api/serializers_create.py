@@ -23,6 +23,7 @@ from ..models import (
     SubstituicaoAlimento,
     SubstituicaoAlimentoProtocoloPadrao
 )
+from ..utils import log_create, log_update
 from .validators import AlunoSerializerValidator
 
 
@@ -336,12 +337,24 @@ class ProtocoloPadraoDietaEspecialSerializerCreate(serializers.ModelSerializer):
                     if isinstance(substituto, Produto):
                         subst_obj.substitutos.add(substituto)
 
+        user = None
+        request = self.context.get('request')
+        if request and hasattr(request, 'user'):
+            user = request.user
+        log_create(protocolo_padrao, user=user)
+
         return protocolo_padrao
 
     def update(self, instance, validated_data): # noqa C901
         substituicoes = validated_data.pop('substituicoes')
-        instance.substituicoes.all().delete()
 
+        user = None
+        request = self.context.get('request')
+        if request and hasattr(request, 'user'):
+            user = request.user
+        log_update(instance, validated_data, instance.substituicoes, substituicoes, user)
+
+        instance.substituicoes.all().delete()
         update_instance_from_dict(instance, validated_data, save=True)
 
         for substituicao in substituicoes:
@@ -351,7 +364,8 @@ class ProtocoloPadraoDietaEspecialSerializerCreate(serializers.ModelSerializer):
             if substitutos:
                 for substituto in substitutos:
                     if isinstance(substituto, Alimento):
-                        subst_obj.alimentos_substitutos.add(substituto)
+                        AlimentoSubstituto.objects.create(substituicao_alimento_protocolo_padrao=subst_obj,
+                                                          alimento=substituto)
                     if isinstance(substituto, Produto):
                         subst_obj.substitutos.add(substituto)
         return instance

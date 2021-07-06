@@ -787,17 +787,14 @@ class ProtocoloPadraoDietaEspecialViewSet(ModelViewSet):
 
         return Response({'results': nomes})
 
-<<<<<<< HEAD
     @action(detail=False, methods=['GET'], url_path='lista-protocolos-liberados')
     def lista_protocolos_liberados(self, request):
         protocolos_liberados = self.get_queryset().filter(status=ProtocoloPadraoDietaEspecial.STATUS_LIBERADO)
         response = {'results': ProtocoloPadraoDietaEspecialSimplesSerializer(protocolos_liberados, many=True).data}
         return Response(response)
-    
-=======
->>>>>>> Histórico protocolo padrão
+
     @action(detail=True, methods=['GET'], url_path='historico')
     def historico(self, request, uuid=None):
+        import json
         protocolo_padrao: ProtocoloPadraoDietaEspecial = self.get_object()
-        return Response({'results': protocolo_padrao.historico()})
-
+        return Response({'results': json.loads(protocolo_padrao.historico) if protocolo_padrao.historico else []})

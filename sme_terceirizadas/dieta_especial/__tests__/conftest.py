@@ -509,3 +509,24 @@ def protocolo_padrao_dieta_especial():
         nome_protocolo='ALERGIA A AVEIA',
         status='LIBERADO',
     )
+
+
+@pytest.fixture
+def protocolo_padrao_dieta_especial_2():
+    return mommy.make(
+        'ProtocoloPadraoDietaEspecial',
+        nome_protocolo='ALERGIA A ABACAXI',
+        status='LIBERADO',
+        orientacoes_gerais='Orientação Geral'
+    )
+
+
+@pytest.fixture
+def substituicao_padrao_dieta_especial_2(alimentos, produtos, protocolo_padrao_dieta_especial_2):
+    return mommy.make(
+        'SubstituicaoAlimentoProtocoloPadrao',
+        protocolo_padrao=protocolo_padrao_dieta_especial_2,
+        alimento=alimentos[0],
+        tipo='I',
+        alimentos_substitutos=alimentos
+    )
