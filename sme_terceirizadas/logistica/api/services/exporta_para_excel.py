@@ -257,7 +257,8 @@ class RequisicoesExcelService(object):
         cls.aplicar_estilo_padrao(ws, count_data, count_fields)
 
     @classmethod # noqa C901
-    def cria_aba_conferencia(cls, ws, requisicoes):
+    def cria_aba_conferencia(cls, ws, requisicoes, perfil):
+        offset = 0
         cabecalho = ['Número da Requisição', 'Quantidade Total de Guias', 'Número da Guia', 'Data de Entrega',
                      '(1ª Conferência) Data de recebimento', '(1ª Conferência) Hora de recebimento',
                      '(1ª Conferência) Nome do Motorista', '(1ª Conferência) Placa do Veículo',
@@ -289,6 +290,10 @@ class RequisicoesExcelService(object):
                      '(Reposição) Nome Completo do Conferente', '(Reposição) Documento do Conferente (RF ou CPF)',
                      'Status da Guia de Remessa']
 
+        if perfil == 'DILOG':
+            cabecalho.insert(0, 'Nome do Distribuidor')
+            offset = 1
+
         count_fields = len(cabecalho)
         count_data = requisicoes.count()
 
@@ -309,91 +314,103 @@ class RequisicoesExcelService(object):
             else:
                 qtd_recebida = ''
 
-            ws.cell(row=ind, column=1, value=requisicao['numero_solicitacao'])
-            ws.cell(row=ind, column=2, value=requisicao['quantidade_total_guias'])
-            ws.cell(row=ind, column=3, value=requisicao['guias__numero_guia'])
-            ws.cell(row=ind, column=4, value=requisicao['guias__data_entrega'])
+            if perfil == 'DILOG':
+                ws.cell(row=ind, column=offset, value=requisicao['distribuidor__nome_fantasia'])
+            ws.cell(row=ind, column=offset + 1, value=requisicao['numero_solicitacao'])
+            ws.cell(row=ind, column=offset + 2, value=requisicao['quantidade_total_guias'])
+            ws.cell(row=ind, column=offset + 3, value=requisicao['guias__numero_guia'])
+            ws.cell(row=ind, column=offset + 4, value=requisicao['guias__data_entrega'])
             if 'primeira_conferencia' in requisicao:
-                ws.cell(row=ind, column=5, value=requisicao['primeira_conferencia'].data_recebimento)
-                ws.cell(row=ind, column=6, value=requisicao['primeira_conferencia'].hora_recebimento)
-                ws.cell(row=ind, column=7, value=requisicao['primeira_conferencia'].nome_motorista)
-                ws.cell(row=ind, column=8, value=requisicao['primeira_conferencia'].placa_veiculo)
-                ws.cell(row=ind, column=9, value=requisicao['primeira_conferencia'].criado_em.strftime('%d/%m/%Y'))
-                ws.cell(row=ind, column=10, value=requisicao['primeira_conferencia'].criado_em.strftime('%H:%M:%S'))
+                ws.cell(row=ind, column=offset + 5, value=requisicao['primeira_conferencia'].data_recebimento)
+                ws.cell(row=ind, column=offset + 6, value=requisicao['primeira_conferencia'].hora_recebimento)
+                ws.cell(row=ind, column=offset + 7, value=requisicao['primeira_conferencia'].nome_motorista)
+                ws.cell(row=ind, column=offset + 8, value=requisicao['primeira_conferencia'].placa_veiculo)
+                ws.cell(row=ind, column=offset + 9,
+                        value=requisicao['primeira_conferencia'].criado_em.strftime('%d/%m/%Y'))
+                ws.cell(row=ind, column=offset + 10,
+                        value=requisicao['primeira_conferencia'].criado_em.strftime('%H:%M:%S'))
 
             if 'primeira_reposicao' in requisicao:
-                ws.cell(row=ind, column=11, value=requisicao['primeira_reposicao'].data_recebimento)
-                ws.cell(row=ind, column=12, value=requisicao['primeira_reposicao'].hora_recebimento)
-                ws.cell(row=ind, column=13, value=requisicao['primeira_reposicao'].nome_motorista)
-                ws.cell(row=ind, column=14, value=requisicao['primeira_reposicao'].placa_veiculo)
-                ws.cell(row=ind, column=15, value=requisicao['primeira_reposicao'].criado_em.strftime('%d/%m/%Y'))
-                ws.cell(row=ind, column=16, value=requisicao['primeira_reposicao'].criado_em.strftime('%H:%M:%S'))
-            ws.cell(row=ind, column=17, value=requisicao['guias__codigo_unidade'])
-            ws.cell(row=ind, column=18, value=requisicao['guias__escola__codigo_eol'])
-            ws.cell(row=ind, column=19, value=requisicao['guias__nome_unidade'])
-            ws.cell(row=ind, column=20, value=requisicao['guias__endereco_unidade'])
-            ws.cell(row=ind, column=21, value=int(requisicao['guias__numero_unidade']))
-            ws.cell(row=ind, column=22, value=requisicao['guias__bairro_unidade'])
-            ws.cell(row=ind, column=23, value=requisicao['guias__cep_unidade'])
-            ws.cell(row=ind, column=24, value=requisicao['guias__cidade_unidade'])
-            ws.cell(row=ind, column=25, value=requisicao['guias__estado_unidade'])
-            ws.cell(row=ind, column=26, value=requisicao['guias__contato_unidade'])
-            ws.cell(row=ind, column=27, value=requisicao['guias__telefone_unidade'])
-            ws.cell(row=ind, column=28, value=requisicao['guias__alimentos__nome_alimento'])
-            ws.cell(row=ind, column=29, value=requisicao['guias__alimentos__codigo_suprimento'])
-            ws.cell(row=ind, column=30, value=requisicao['guias__alimentos__codigo_papa'])
+                ws.cell(row=ind, column=offset + 11, value=requisicao['primeira_reposicao'].data_recebimento)
+                ws.cell(row=ind, column=offset + 12, value=requisicao['primeira_reposicao'].hora_recebimento)
+                ws.cell(row=ind, column=offset + 13, value=requisicao['primeira_reposicao'].nome_motorista)
+                ws.cell(row=ind, column=offset + 14, value=requisicao['primeira_reposicao'].placa_veiculo)
+                ws.cell(row=ind, column=offset + 15,
+                        value=requisicao['primeira_reposicao'].criado_em.strftime('%d/%m/%Y'))
+                ws.cell(row=ind, column=offset + 16,
+                        value=requisicao['primeira_reposicao'].criado_em.strftime('%H:%M:%S'))
+            ws.cell(row=ind, column=offset + 17, value=requisicao['guias__codigo_unidade'])
+            ws.cell(row=ind, column=offset + 18, value=requisicao['guias__escola__codigo_eol'])
+            ws.cell(row=ind, column=offset + 19, value=requisicao['guias__nome_unidade'])
+            ws.cell(row=ind, column=offset + 20, value=requisicao['guias__endereco_unidade'])
+            ws.cell(row=ind, column=offset + 21, value=requisicao['guias__numero_unidade'])
+            ws.cell(row=ind, column=offset + 22, value=requisicao['guias__bairro_unidade'])
+            ws.cell(row=ind, column=offset + 23, value=requisicao['guias__cep_unidade'])
+            ws.cell(row=ind, column=offset + 24, value=requisicao['guias__cidade_unidade'])
+            ws.cell(row=ind, column=offset + 25, value=requisicao['guias__estado_unidade'])
+            ws.cell(row=ind, column=offset + 26, value=requisicao['guias__contato_unidade'])
+            ws.cell(row=ind, column=offset + 27, value=requisicao['guias__telefone_unidade'])
+            ws.cell(row=ind, column=offset + 28, value=requisicao['guias__alimentos__nome_alimento'])
+            ws.cell(row=ind, column=offset + 29, value=requisicao['guias__alimentos__codigo_suprimento'])
+            ws.cell(row=ind, column=offset + 30, value=requisicao['guias__alimentos__codigo_papa'])
 
             if requisicao['guias__alimentos__embalagens__tipo_embalagem'] == 'FECHADA':
-                ws.cell(row=ind, column=31, value=requisicao['guias__alimentos__embalagens__descricao_embalagem'])
-                ws.cell(row=ind, column=32, value=requisicao['guias__alimentos__embalagens__capacidade_embalagem'])
-                ws.cell(row=ind, column=33, value=requisicao['guias__alimentos__embalagens__unidade_medida'])
-                ws.cell(row=ind, column=34, value=requisicao['guias__alimentos__embalagens__qtd_volume'])
-                ws.cell(row=ind, column=35, value=qtd_recebida)
-                ws.cell(row=ind, column=36, value=requisicao['guias__alimentos__embalagens__qtd_a_receber'])
+                ws.cell(row=ind, column=offset + 31,
+                        value=requisicao['guias__alimentos__embalagens__descricao_embalagem'])
+                ws.cell(row=ind, column=offset + 32,
+                        value=requisicao['guias__alimentos__embalagens__capacidade_embalagem'])
+                ws.cell(row=ind, column=offset + 33, value=requisicao['guias__alimentos__embalagens__unidade_medida'])
+                ws.cell(row=ind, column=offset + 34, value=requisicao['guias__alimentos__embalagens__qtd_volume'])
+                ws.cell(row=ind, column=offset + 35, value=qtd_recebida)
+                ws.cell(row=ind, column=offset + 36, value=requisicao['guias__alimentos__embalagens__qtd_a_receber'])
                 if 'reposicao_alimento' in requisicao:
-                    ws.cell(row=ind, column=37, value=requisicao['reposicao_alimento'].qtd_recebido)
+                    ws.cell(row=ind, column=offset + 37, value=requisicao['reposicao_alimento'].qtd_recebido)
             else:
-                ws.cell(row=ind, column=38, value=requisicao['guias__alimentos__embalagens__descricao_embalagem'])
-                ws.cell(row=ind, column=39, value=requisicao['guias__alimentos__embalagens__capacidade_embalagem'])
-                ws.cell(row=ind, column=40, value=requisicao['guias__alimentos__embalagens__unidade_medida'])
-                ws.cell(row=ind, column=41, value=requisicao['guias__alimentos__embalagens__qtd_volume'])
-                ws.cell(row=ind, column=42, value=qtd_recebida)
-                ws.cell(row=ind, column=43, value=requisicao['guias__alimentos__embalagens__qtd_a_receber'])
+                ws.cell(row=ind, column=offset + 38,
+                        value=requisicao['guias__alimentos__embalagens__descricao_embalagem'])
+                ws.cell(row=ind, column=offset + 39,
+                        value=requisicao['guias__alimentos__embalagens__capacidade_embalagem'])
+                ws.cell(row=ind, column=offset + 40, value=requisicao['guias__alimentos__embalagens__unidade_medida'])
+                ws.cell(row=ind, column=offset + 41, value=requisicao['guias__alimentos__embalagens__qtd_volume'])
+                ws.cell(row=ind, column=offset + 42, value=qtd_recebida)
+                ws.cell(row=ind, column=offset + 43, value=requisicao['guias__alimentos__embalagens__qtd_a_receber'])
                 if 'reposicao_alimento' in requisicao:
-                    ws.cell(row=ind, column=44, value=requisicao['reposicao_alimento'].qtd_recebido)
+                    ws.cell(row=ind, column=offset + 44, value=requisicao['reposicao_alimento'].qtd_recebido)
 
             if 'primeira_conferencia' in requisicao:
                 if 'conferencia_alimento' in requisicao:
-                    ws.cell(row=ind, column=45, value=retorna_status_alimento(
+                    ws.cell(row=ind, column=offset + 45, value=retorna_status_alimento(
                         requisicao['conferencia_alimento'].status_alimento
                     ))
-                    ws.cell(row=ind, column=46, value=retorna_ocorrencias_alimento(
+                    ws.cell(row=ind, column=offset + 46, value=retorna_ocorrencias_alimento(
                         requisicao['conferencia_alimento'].ocorrencia
                     ))
-                    ws.cell(row=ind, column=47, value=requisicao['conferencia_alimento'].observacao)
-                ws.cell(row=ind, column=48, value=requisicao['primeira_conferencia'].criado_por.nome)
-                ws.cell(row=ind, column=49, value=valida_rf_ou_cpf(requisicao['primeira_conferencia'].criado_por))
+                    ws.cell(row=ind, column=offset + 47, value=requisicao['conferencia_alimento'].observacao)
+                ws.cell(row=ind, column=offset + 48, value=requisicao['primeira_conferencia'].criado_por.nome)
+                ws.cell(row=ind, column=offset + 49,
+                        value=valida_rf_ou_cpf(requisicao['primeira_conferencia'].criado_por))
 
             if 'primeira_reposicao' in requisicao:
                 if 'reposicao_alimento' in requisicao:
-                    ws.cell(row=ind, column=50, value=retorna_status_alimento(
+                    ws.cell(row=ind, column=offset + 50, value=retorna_status_alimento(
                         requisicao['reposicao_alimento'].status_alimento
                     ))
-                    ws.cell(row=ind, column=51, value=retorna_ocorrencias_alimento(
+                    ws.cell(row=ind, column=offset + 51, value=retorna_ocorrencias_alimento(
                         requisicao['reposicao_alimento'].ocorrencia
                     ))
-                    ws.cell(row=ind, column=52, value=requisicao['reposicao_alimento'].observacao)
-                    ws.cell(row=ind, column=53, value=requisicao['primeira_reposicao'].criado_por.nome)
-                    ws.cell(row=ind, column=54, value=valida_rf_ou_cpf(requisicao['primeira_reposicao'].criado_por))
+                    ws.cell(row=ind, column=offset + 52, value=requisicao['reposicao_alimento'].observacao)
+                    ws.cell(row=ind, column=offset + 53, value=requisicao['primeira_reposicao'].criado_por.nome)
+                    ws.cell(row=ind, column=offset + 54,
+                            value=valida_rf_ou_cpf(requisicao['primeira_reposicao'].criado_por))
 
-            ws.cell(row=ind, column=55, value=retorna_status_guia_remessa(requisicao['guias__status']))
+            ws.cell(row=ind, column=offset + 55, value=retorna_status_guia_remessa(requisicao['guias__status']))
         cls.aplicar_estilo_padrao(ws, count_data, count_fields)
 
     @classmethod
     def exportar_entregas_distribuidor(cls, requisicoes):
         wb = Workbook()
         ws_conferencia = wb.active
-        cls.cria_aba_conferencia(ws_conferencia, requisicoes)
+        cls.cria_aba_conferencia(ws_conferencia, requisicoes, 'DISTRIBUIDOR')
 
         ws_insucesso = wb.create_sheet('Relatório de Insucesso')
         cls.cria_aba_insucesso(ws_insucesso, requisicoes, 'DISTRIBUIDOR')
@@ -406,9 +423,11 @@ class RequisicoesExcelService(object):
     @classmethod
     def exportar_entregas_dilog(cls, requisicoes):
         wb = Workbook()
-        ws_insucesso = wb.active
+        ws_conferencia = wb.active
+        cls.cria_aba_conferencia(ws_conferencia, requisicoes, 'DILOG')
+
+        ws_insucesso = wb.create_sheet('Relatório de Insucesso')
         cls.cria_aba_insucesso(ws_insucesso, requisicoes, 'DILOG')
-        ws_insucesso.title = 'Relatório de Insucesso'
 
         arquivo = cls.gera_arquivo(wb)
         filename = 'visao-consolidada.xlsx'
