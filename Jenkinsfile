@@ -90,7 +90,7 @@ pipeline {
                     if ( env.branchname == 'main' ||  env.branchname == 'master' || env.branchname == 'homolog' || env.branchname == 'release' ) {
                         sendTelegram("🤩 [Deploy ${env.branchname}] Job Name: ${JOB_NAME} \nBuild: ${BUILD_DISPLAY_NAME} \nMe aprove! \nLog: \n${env.BUILD_URL}")
                         timeout(time: 24, unit: "HOURS") {
-                            input message: 'Deseja realizar o deploy?', ok: 'SIM', submitter: 'admin'
+                            input message: 'Deseja realizar o deploy?', ok: 'SIM', submitter: 'kelwy_oliveira, anderson_morais, luis_zimmermann, rodolpho_azeredo'
                         }
                         withCredentials([file(credentialsId: "${kubeconfig}", variable: 'config')]){
                             sh('cp $config '+"$home"+'/.kube/config')
