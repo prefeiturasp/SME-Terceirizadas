@@ -2,7 +2,7 @@ pipeline {
     environment {
       branchname =  env.BRANCH_NAME.toLowerCase()
       kubeconfig = getKubeconf(env.branchname)
-      registryCredential = 'regsme'
+      registryCredential = 'jenkins_registry'
     }
   
     agent {
