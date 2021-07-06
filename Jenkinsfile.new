@@ -1,12 +1,15 @@
 pipeline {
     environment {
       branchname =  env.BRANCH_NAME.toLowerCase()
+      registryCredential = 'regsme'
       kubeconfig = getKubeconf(env.branchname)
-      registryCredential = 'jenkins_registry'
+      imagetag = getTag(env.branchname)
     }
   
     agent {
-      node { label 'python-36-rc' }
+      node {
+        label 'python-36-rc'
+      }
     }
 
     options {
@@ -18,12 +21,15 @@ pipeline {
     stages {
 
         stage('CheckOut') {            
-            steps { checkout scm }            
+            steps {
+              checkout scm
+            }            
         }
 
         stage('AmbienteTestes') {
-            agent { label 'master' }
-            when { branch 'homolog' }
+            agent {
+                label 'master'
+            }
             steps {
                 script {
                     CONTAINER_ID = sh (script: 'docker ps -q --filter "name=terceirizadas-db"',returnStdout: true).trim()
@@ -38,18 +44,7 @@ pipeline {
                 }
             }
         }
-
-        stage('AnaliseCodigo') {
-	      when { branch 'homolog' }
-          steps {
-              withSonarQubeEnv('sonarqube-local'){
-                sh 'echo "[ INFO ] Iniciando analise Sonar..." && sonar-scanner \
-                -Dsonar.projectKey=SME-Terceirizadas \
-                -Dsonar.sources=.'
-            }
-          }
-        }
-
+        
         stage('Testes') {
           when { branch 'homolog' }
           steps {
@@ -60,52 +55,57 @@ pipeline {
           }
           post {
             success{
+              //  Publicando arquivo de cobertura
               publishCoverage adapters: [coberturaAdapter('coverage.xml')], sourceFileResolver: sourceFiles('NEVER_STORE')
             }
           }
         }
 
+        stage('AnaliseCodigo') {
+	      when { branch 'homolog' }
+          steps {
+              withSonarQubeEnv('sonarqube-local'){
+                sh 'echo "[ INFO ] Iniciando analise Sonar..." && sonar-scanner \
+                -Dsonar.projectKey=SME-Terceirizadas \
+                -Dsonar.sources=. \
+                -Dsonar.host.url=http://sonar.sme.prefeitura.sp.gov.br'
+            }
+          }
+        }
+
         stage('Build') {
-          when { anyOf { branch 'master'; branch 'main'; branch "story/*"; branch 'development'; branch 'release'; branch 'homolog';  } } 
+          when { anyOf { branch 'master'; branch 'main'; branch "story/*"; branch 'development'; branch 'release';  } } 
           steps {
             script {
               imagename1 = "registry.sme.prefeitura.sp.gov.br/${env.branchname}/sme-sigpae-api"
-              //imagename2 = "registry.sme.prefeitura.sp.gov.br/${env.branchname}/sme-outra"
-              dockerImage1 = docker.build(imagename1, "-f Dockerfile .")
-              //dockerImage2 = docker.build(imagename2, "-f Dockerfile_outro .")
+              dockerImage1 = docker.build imagename1
               docker.withRegistry( 'https://registry.sme.prefeitura.sp.gov.br', registryCredential ) {
-              dockerImage1.push()
-              //dockerImage2.push()
+              dockerImage1.push(imagetag)
               }
-              sh "docker rmi $imagename1"
-              //sh "docker rmi $imagename2"
+              sh "docker rmi $imagename1:$imagetag"
             }
           }
         }
 	    
         stage('Deploy'){
-            when { anyOf {  branch 'master'; branch 'main'; branch 'development'; branch 'release'; branch 'homolog';  } }        
+            when { anyOf {  branch 'master'; branch 'main'; branch "story/*"; branch 'development'; branch 'release';  } }        
             steps {
                 script{
-                    if ( env.branchname == 'main' ||  env.branchname == 'master' || env.branchname == 'homolog' || env.branchname == 'release' ) {
-                        sendTelegram("🤩 [Deploy ${env.branchname}] Job Name: ${JOB_NAME} \nBuild: ${BUILD_DISPLAY_NAME} \nMe aprove! \nLog: \n${env.BUILD_URL}")
+                    if ( env.branchname == 'main' ||  env.branchname == 'master' || env.branchname == 'homolog' ) {
+                        sendTelegram("🤩 [Deploy] Job Name: ${JOB_NAME} \nBuild: ${BUILD_DISPLAY_NAME} \nStatus: Me aprove! \nLog: \n${env.BUILD_URL}")
                         timeout(time: 24, unit: "HOURS") {
                             input message: 'Deseja realizar o deploy?', ok: 'SIM', submitter: 'admin'
                         }
                         withCredentials([file(credentialsId: "${kubeconfig}", variable: 'config')]){
                             sh('cp $config '+"$home"+'/.kube/config')
-                            sh 'kubectl rollout restart deployment/sigpae-backend -n sme-sigpae'
-                            sh 'kubectl rollout restart deployment/sigpae-beat -n sme-sigpae'
-                            sh 'kubectl rollout restart deployment/sigpae-celery -n sme-sigpae'
+                            sh( 'kubectl get nodes')
                             sh('rm -f '+"$home"+'/.kube/config')
                         }
                     }
                     else{
                         withCredentials([file(credentialsId: "${kubeconfig}", variable: 'config')]){
                             sh('cp $config '+"$home"+'/.kube/config')
-                            sh 'kubectl rollout restart deployment/sigpae-backend -n sme-sigpae'
-                            sh 'kubectl rollout restart deployment/sigpae-beat -n sme-sigpae'
-                            sh 'kubectl rollout restart deployment/sigpae-celery -n sme-sigpae'
+                            sh( 'kubectl get nodes')
                             sh('rm -f '+"$home"+'/.kube/config')
                         }
                     }
@@ -115,16 +115,26 @@ pipeline {
     }
 
   post {
-    success { sendTelegram("🚀 Job Name: ${JOB_NAME} \nBuild: ${BUILD_DISPLAY_NAME} \nStatus: Success \nLog: \n${env.BUILD_URL}console") }
-    unstable { sendTelegram("💣 Job Name: ${JOB_NAME} \nBuild: ${BUILD_DISPLAY_NAME} \nStatus: Unstable \nLog: \n${env.BUILD_URL}console") }
-    failure { sendTelegram("💥 Job Name: ${JOB_NAME} \nBuild: ${BUILD_DISPLAY_NAME} \nStatus: Failure \nLog: \n${env.BUILD_URL}console") }
-    aborted { sendTelegram ("😥 Job Name: ${JOB_NAME} \nBuild: ${BUILD_DISPLAY_NAME} \nStatus: Aborted \nLog: \n${env.BUILD_URL}console") }
+    success {
+      sendTelegram("🚀 Job Name: ${JOB_NAME} \nBuild: ${BUILD_DISPLAY_NAME} \nStatus: Success \nLog: \n${env.BUILD_URL}console")
+    }
+    unstable {
+      sendTelegram("💣 Job Name: ${JOB_NAME} \nBuild: ${BUILD_DISPLAY_NAME} \nStatus: Unstable \nLog: \n${env.BUILD_URL}console")
+    }
+    failure {
+      sendTelegram("💥 Job Name: ${JOB_NAME} \nBuild: ${BUILD_DISPLAY_NAME} \nStatus: Failure \nLog: \n${env.BUILD_URL}console")
+    }
+    aborted {
+      sendTelegram ("😥 Job Name: ${JOB_NAME} \nBuild: ${BUILD_DISPLAY_NAME} \nStatus: Aborted \nLog: \n${env.BUILD_URL}console")
+    }
   }
 }
 def sendTelegram(message) {
     def encodedMessage = URLEncoder.encode(message, "UTF-8")
+
     withCredentials([string(credentialsId: 'telegramToken', variable: 'TOKEN'),
     string(credentialsId: 'telegramChatId', variable: 'CHAT_ID')]) {
+
         response = httpRequest (consoleLogResponseBody: true,
                 contentType: 'APPLICATION_JSON',
                 httpMode: 'GET',
@@ -133,10 +143,25 @@ def sendTelegram(message) {
         return response
     }
 }
+def getTag(branchName) {
+    if("main".equals(branchName)) {
+        return "latest";
+    } else if ("master".equals(branchName)) {
+        return "latest";
+    } else if ("homolog".equals(branchName)) {
+        return "homolog";
+    } else if ("development".equals(branchName)) {
+        return "dev";
+    }
+}
 def getKubeconf(branchName) {
-    if("main".equals(branchName)) { return "config_prd"; }
-    else if ("master".equals(branchName)) { return "config_prd"; }
-    else if ("homolog".equals(branchName)) { return "config_hom"; }
-    else if ("release".equals(branchName)) { return "config_hom"; }
-    else if ("development".equals(branchName)) { return "config_dev"; }
+    if("main".equals(branchName)) {
+        return "config_prd";
+    } else if ("master".equals(branchName)) {
+        return "config_prd";
+    } else if ("homolog".equals(branchName)) {
+        return "config_hom";
+    } else if ("development".equals(branchName)) {
+        return "config_dev";
+    }
 }
