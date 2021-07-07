@@ -407,27 +407,13 @@ class RequisicoesExcelService(object):
         cls.aplicar_estilo_padrao(ws, count_data, count_fields)
 
     @classmethod
-    def exportar_entregas_distribuidor(cls, requisicoes):
+    def exportar_entregas(cls, requisicoes, perfil):
         wb = Workbook()
         ws_conferencia = wb.active
-        cls.cria_aba_conferencia(ws_conferencia, requisicoes, 'DISTRIBUIDOR')
+        cls.cria_aba_conferencia(ws_conferencia, requisicoes, perfil)
 
         ws_insucesso = wb.create_sheet('Relatório de Insucesso')
-        cls.cria_aba_insucesso(ws_insucesso, requisicoes, 'DISTRIBUIDOR')
-
-        arquivo = cls.gera_arquivo(wb)
-        filename = 'visao-consolidada.xlsx'
-
-        return {'arquivo': arquivo, 'filename': filename}
-
-    @classmethod
-    def exportar_entregas_dilog(cls, requisicoes):
-        wb = Workbook()
-        ws_conferencia = wb.active
-        cls.cria_aba_conferencia(ws_conferencia, requisicoes, 'DILOG')
-
-        ws_insucesso = wb.create_sheet('Relatório de Insucesso')
-        cls.cria_aba_insucesso(ws_insucesso, requisicoes, 'DILOG')
+        cls.cria_aba_insucesso(ws_insucesso, requisicoes, perfil)
 
         arquivo = cls.gera_arquivo(wb)
         filename = 'visao-consolidada.xlsx'
