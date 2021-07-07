@@ -426,9 +426,9 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
         requisicoes = retorna_dados_normalizados_excel_entregas_distribuidor(queryset)
 
         if self.request.user.vinculo_atual.perfil.nome in ['ADMINISTRADOR_DISTRIBUIDORA']:
-            result = RequisicoesExcelService.exportar_entregas_distribuidor(requisicoes)
+            result = RequisicoesExcelService.exportar_entregas(requisicoes, 'DISTRIBUIDOR')
         else:
-            result = RequisicoesExcelService.exportar_entregas_dilog(requisicoes)
+            result = RequisicoesExcelService.exportar_entregas(requisicoes, 'DILOG')
 
         response = HttpResponse(
             result['arquivo'],
