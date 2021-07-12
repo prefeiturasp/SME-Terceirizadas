@@ -332,7 +332,7 @@ class ReclamacaoDeProduto(FluxoReclamacaoProduto, TemChaveExterna, CriadoEm, Cri
                 justificativa=justificativa
             )
             for anexo in kwargs.get('anexos', []):
-                arquivo = convert_base64_to_contentfile(anexo.pop('base64'))
+                arquivo = convert_base64_to_contentfile(anexo.get('base64'))
                 AnexoLogSolicitacoesUsuario.objects.create(
                     log=log_transicao,
                     arquivo=arquivo,
