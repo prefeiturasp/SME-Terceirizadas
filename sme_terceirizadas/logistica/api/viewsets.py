@@ -422,13 +422,24 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
         permission_classes=[UsuarioDilogCodae | UsuarioDistribuidor])
     def gerar_excel_entregas(self, request):
         uuid = request.query_params.get('uuid', None)
-        queryset = self.get_queryset().filter(uuid=uuid)
+        tem_conferencia = eval(request.query_params.get('tem_conferencia', 'False').capitalize())
+        tem_insucesso = eval(request.query_params.get('tem_insucesso', 'False').capitalize())
+        requisicoes_insucesso = None
+        queryset = self.filter_queryset(self.get_queryset())
+        if tem_insucesso:
+            queryset_insucesso = self.get_queryset().filter(
+                uuid=uuid,
+                guias__status=GuiaRemessaWorkFlow.DISTRIBUIDOR_REGISTRA_INSUCESSO)
+            requisicoes_insucesso = retorna_dados_normalizados_excel_entregas_distribuidor(queryset_insucesso)
+
         requisicoes = retorna_dados_normalizados_excel_entregas_distribuidor(queryset)
 
         if self.request.user.vinculo_atual.perfil.nome in ['ADMINISTRADOR_DISTRIBUIDORA']:
-            result = RequisicoesExcelService.exportar_entregas(requisicoes, 'DISTRIBUIDOR')
+            result = RequisicoesExcelService.exportar_entregas(
+                requisicoes, requisicoes_insucesso, 'DISTRIBUIDOR', tem_conferencia, tem_insucesso)
         else:
-            result = RequisicoesExcelService.exportar_entregas(requisicoes, 'DILOG')
+            result = RequisicoesExcelService.exportar_entregas(
+                requisicoes, requisicoes_insucesso, 'DILOG', tem_conferencia, tem_insucesso)
 
         response = HttpResponse(
             result['arquivo'],
