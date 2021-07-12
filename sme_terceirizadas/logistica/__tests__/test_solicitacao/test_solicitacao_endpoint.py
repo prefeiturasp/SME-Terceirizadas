@@ -19,9 +19,11 @@ def test_url_authorized_confirmadas(client_autenticado_dilog):
     assert response.status_code == status.HTTP_200_OK
 
 
-def test_url_exportar_excel_entregas_distribuidor(client_autenticado_distribuidor, solicitacao):
+def test_url_exportar_excel_entregas_distribuidor(client_autenticado_distribuidor, solicitacao,
+                                                  tem_conferencia='true', tem_insucesso='true'):
     response = client_autenticado_distribuidor.get(
-        '/solicitacao-remessa/exporta-excel-visao-entregas/?uuid=' + str(solicitacao.uuid)
+        f'/solicitacao-remessa/exporta-excel-visao-entregas/'
+        f'?uuid={str(solicitacao.uuid)}&tem_conferencia=true&tem_insucesso=true'
     )
 
     assert response.status_code == status.HTTP_200_OK
@@ -29,7 +31,8 @@ def test_url_exportar_excel_entregas_distribuidor(client_autenticado_distribuido
 
 def test_url_exportar_excel_entregas_dilog(client_autenticado_dilog, solicitacao):
     response = client_autenticado_dilog.get(
-        '/solicitacao-remessa/exporta-excel-visao-entregas/?uuid=' + str(solicitacao.uuid)
+        f'/solicitacao-remessa/exporta-excel-visao-entregas/'
+        f'?uuid={str(solicitacao.uuid)}&tem_conferencia=true&tem_insucesso=true'
     )
 
     assert response.status_code == status.HTTP_200_OK

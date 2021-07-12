@@ -169,7 +169,7 @@ class RequisicoesExcelService(object):
 
         return {'arquivo': arquivo, 'filename': filename}
 
-    @classmethod # noqa C901
+    @classmethod  # noqa C901
     def cria_aba_insucesso(cls, ws, requisicoes, perfil):
         offset = 0
         cabecalho = ['Número da Requisição', 'Quantidade Total de Guias', 'Número da Guia', 'Data de Entrega',
@@ -197,6 +197,7 @@ class RequisicoesExcelService(object):
         count_fields = len(cabecalho)
         count_data = requisicoes.count()
 
+        ws.title = 'Relatório de Insucesso'
         for ind, title in enumerate(cabecalho, 1):
             celula = ws.cell(row=1, column=ind)
             celula.value = title
@@ -256,7 +257,7 @@ class RequisicoesExcelService(object):
 
         cls.aplicar_estilo_padrao(ws, count_data, count_fields)
 
-    @classmethod # noqa C901
+    @classmethod  # noqa C901
     def cria_aba_conferencia(cls, ws, requisicoes, perfil):
         offset = 0
         cabecalho = ['Número da Requisição', 'Quantidade Total de Guias', 'Número da Guia', 'Data de Entrega',
@@ -407,13 +408,20 @@ class RequisicoesExcelService(object):
         cls.aplicar_estilo_padrao(ws, count_data, count_fields)
 
     @classmethod
-    def exportar_entregas(cls, requisicoes, perfil):
+    def exportar_entregas(cls, requisicoes, requisicoes_insucesso, perfil, tem_conferencia, tem_insucesso):
         wb = Workbook()
-        ws_conferencia = wb.active
-        cls.cria_aba_conferencia(ws_conferencia, requisicoes, perfil)
+        if tem_conferencia and not tem_insucesso:
+            ws_conferencia = wb.active
+            cls.cria_aba_conferencia(ws_conferencia, requisicoes, perfil)
+        elif tem_insucesso and not tem_conferencia:
+            ws_insucesso = wb.active
+            cls.cria_aba_insucesso(ws_insucesso, requisicoes_insucesso, perfil)
+        else:
+            ws_conferencia = wb.active
+            cls.cria_aba_conferencia(ws_conferencia, requisicoes, perfil)
 
-        ws_insucesso = wb.create_sheet('Relatório de Insucesso')
-        cls.cria_aba_insucesso(ws_insucesso, requisicoes, perfil)
+            ws_insucesso = wb.create_sheet('Relatório de Insucesso')
+            cls.cria_aba_insucesso(ws_insucesso, requisicoes_insucesso, perfil)
 
         arquivo = cls.gera_arquivo(wb)
         filename = 'visao-consolidada.xlsx'
