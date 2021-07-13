@@ -56,7 +56,6 @@ from sme_terceirizadas.logistica.models import Alimento, ConferenciaGuia, Embala
 from sme_terceirizadas.logistica.models import Guia as GuiasDasRequisicoes
 from sme_terceirizadas.logistica.models import SolicitacaoDeAlteracaoRequisicao, SolicitacaoRemessa
 from sme_terceirizadas.logistica.services import confirma_guias
-from .validators import eh_true_ou_false
 
 from ...escola.models import Escola
 from ...relatorios.relatorios import get_pdf_guia_distribuidor
@@ -70,6 +69,7 @@ from .helpers import (
     valida_guia_conferencia,
     valida_guia_insucesso
 )
+from .validators import eh_true_ou_false
 
 STR_XML_BODY = '{http://schemas.xmlsoap.org/soap/envelope/}Body'
 STR_ARQUIVO_SOLICITACAO = 'ArqSolicitacaoMOD'
