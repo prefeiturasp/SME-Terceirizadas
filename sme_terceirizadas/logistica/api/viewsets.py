@@ -56,6 +56,7 @@ from sme_terceirizadas.logistica.models import Alimento, ConferenciaGuia, Embala
 from sme_terceirizadas.logistica.models import Guia as GuiasDasRequisicoes
 from sme_terceirizadas.logistica.models import SolicitacaoDeAlteracaoRequisicao, SolicitacaoRemessa
 from sme_terceirizadas.logistica.services import confirma_guias
+from .validators import eh_true_ou_false
 
 from ...escola.models import Escola
 from ...relatorios.relatorios import get_pdf_guia_distribuidor
@@ -422,8 +423,11 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
         permission_classes=[UsuarioDilogCodae | UsuarioDistribuidor])
     def gerar_excel_entregas(self, request):
         uuid = request.query_params.get('uuid', None)
-        tem_conferencia = eval(request.query_params.get('tem_conferencia', 'False').capitalize())
-        tem_insucesso = eval(request.query_params.get('tem_insucesso', 'False').capitalize())
+        tem_conferencia = request.query_params.get('tem_conferencia', None)
+        tem_insucesso = request.query_params.get('tem_insucesso', None)
+        if eh_true_ou_false(tem_conferencia, 'tem_conferencia') and eh_true_ou_false(tem_insucesso, 'tem_insucesso'):
+            tem_conferencia = eval(tem_conferencia.capitalize())
+            tem_insucesso = eval(tem_insucesso.capitalize())
         requisicoes_insucesso = None
         queryset = self.filter_queryset(self.get_queryset())
         if tem_insucesso:
