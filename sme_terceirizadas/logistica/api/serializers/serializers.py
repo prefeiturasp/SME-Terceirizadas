@@ -58,7 +58,7 @@ class GuiaLookUpSerializer(serializers.ModelSerializer):
         model = Guia
         fields = ('uuid', 'numero_guia', 'data_entrega', 'codigo_unidade', 'nome_unidade', 'endereco_unidade',
                   'numero_unidade', 'bairro_unidade', 'bairro_unidade', 'cep_unidade', 'cidade_unidade',
-                  'estado_unidade', 'contato_unidade', 'telefone_unidade', 'alimentos', 'status')
+                  'estado_unidade', 'contato_unidade', 'telefone_unidade', 'alimentos', 'status', 'situacao')
 
 
 class SolicitacaoRemessaSerializer(serializers.ModelSerializer):
@@ -84,7 +84,7 @@ class SolicitacaoRemessaLookUpSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SolicitacaoRemessa
-        fields = ('uuid', 'numero_solicitacao', 'distribuidor_nome', 'status', 'guias')
+        fields = ('uuid', 'numero_solicitacao', 'distribuidor_nome', 'status', 'situacao', 'guias')
 
 
 class SolicitacaoRemessaContagemGuiasSerializer(serializers.ModelSerializer):
