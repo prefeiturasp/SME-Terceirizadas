@@ -1022,7 +1022,7 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
             justificativa=justificativa,
         )
         for anexo in kwargs.get('anexos'):
-            arquivo = convert_base64_to_contentfile(anexo.pop('base64'))
+            arquivo = convert_base64_to_contentfile(anexo.get('base64'))
             AnexoLogSolicitacoesUsuario.objects.create(
                 log=log_transicao,
                 arquivo=arquivo,
@@ -1947,9 +1947,11 @@ class ReclamacaoProdutoWorkflow(xwf_models.Workflow):
         ('codae_questiona', AGUARDANDO_AVALIACAO, AGUARDANDO_RESPOSTA_TERCEIRIZADA),
         ('terceirizada_responde', AGUARDANDO_RESPOSTA_TERCEIRIZADA,
          RESPONDIDO_TERCEIRIZADA),
-        ('codae_aceita', [AGUARDANDO_AVALIACAO,
+        ('codae_aceita', [AGUARDANDO_RESPOSTA_TERCEIRIZADA,
+                          AGUARDANDO_AVALIACAO,
                           RESPONDIDO_TERCEIRIZADA], CODAE_ACEITOU),
-        ('codae_recusa', [AGUARDANDO_AVALIACAO,
+        ('codae_recusa', [AGUARDANDO_RESPOSTA_TERCEIRIZADA,
+                          AGUARDANDO_AVALIACAO,
                           RESPONDIDO_TERCEIRIZADA], CODAE_RECUSOU),
         ('codae_responde', [AGUARDANDO_AVALIACAO,
                             RESPONDIDO_TERCEIRIZADA], CODAE_RESPONDEU),
