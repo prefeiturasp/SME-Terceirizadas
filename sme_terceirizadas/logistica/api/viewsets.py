@@ -55,7 +55,7 @@ from sme_terceirizadas.logistica.api.services.exporta_para_excel import Requisic
 from sme_terceirizadas.logistica.models import Alimento, ConferenciaGuia, Embalagem
 from sme_terceirizadas.logistica.models import Guia as GuiasDasRequisicoes
 from sme_terceirizadas.logistica.models import SolicitacaoDeAlteracaoRequisicao, SolicitacaoRemessa
-from sme_terceirizadas.logistica.services import confirma_guias
+from sme_terceirizadas.logistica.services import arquiva_guias, confirma_guias
 
 from ...escola.models import Escola
 from ...relatorios.relatorios import get_pdf_guia_distribuidor
@@ -158,14 +158,13 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'patch']
     serializer_class = SolicitacaoRemessaCreateSerializer
     permission_classes = [IsAuthenticated]
-    parser_classes = (ListXMLParser,)
     pagination_class = RequisicaoPagination
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = SolicitacaoFilter
 
     def get_serializer_class(self):
         if self.action == 'create':
-            return XmlParserSolicitacaoSerializer
+            return SolicitacaoRemessaCreateSerializer
         if self.action == 'list':
             return SolicitacaoRemessaLookUpSerializer
         return SolicitacaoRemessaSerializer
@@ -224,6 +223,21 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
             except DataError as e:
                 return Response(dict(detail=f'Erro de transição de estado: {e}', status=False),
                                 status=HTTP_406_NOT_ACCEPTABLE)
+
+    @action(detail=False, permission_classes=(UsuarioDilogCodae,),
+            methods=['post'], url_path='arquivar')
+    def arquiva_guias_e_requisicoes(self, request):
+        numero_requisicao = request.data.get('numero_requisicao', '')
+        guias = request.data.get('guias', [])
+
+        if not numero_requisicao:
+            raise ValidationError('É necessario informar o número da requisição ao qual a(s) guia(s) pertece(m).')
+        if not guias:
+            raise ValidationError('É necessario informar o número das guias para arquivamento.')
+
+        arquiva_guias(numero_requisicao=numero_requisicao, guias=guias)
+
+        return Response('Arquivamento realizado com sucesso.', status=HTTP_200_OK)
 
     @action(detail=False, methods=['GET'], url_path='lista-numeros')
     def lista_numeros(self, request):

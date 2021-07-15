@@ -23,17 +23,19 @@ def confirma_guias(solicitacao, user):
         return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
 
-def arquiva_guias(self, numero_solicitacao, guias):  # noqa C901
+def arquiva_guias(numero_requisicao, guias):  # noqa C901
     # Método para arquivamento da(s) guia(s) e requisições. Importante saber:
     # Se todas as guias para arquivamento forem todas as guias da requisição,
     # além das guias, a requisição também será arquivada.
 
     try:
-        requisicao = SolicitacaoRemessa.objects.get(numero_solicitacao=numero_solicitacao)
+        requisicao = SolicitacaoRemessa.objects.get(numero_solicitacao=numero_requisicao)
         if requisicao.situacao == SolicitacaoRemessa.ARQUIVADA:
             raise ValidationError('Não é possivel realizar o processo de arquivamento de uma requisição arquivada.')
+        if requisicao.guias.filter(numero_guia__in=guias, situacao=Guia.ARQUIVADA).exists():
+            raise ValidationError('Devem ser enviadas para arquivamento apenas guias ativas.')
     except ObjectDoesNotExist:
-        raise ValidationError(f'Requisição {numero_solicitacao} não existe.')
+        raise ValidationError(f'Requisição {numero_requisicao} não existe.')
 
     requisicao.guias.filter(numero_guia__in=guias).update(situacao=Guia.ARQUIVADA)
 
@@ -41,4 +43,4 @@ def arquiva_guias(self, numero_solicitacao, guias):  # noqa C901
     existe_guia_ativa = requisicao.guias.filter(situacao=Guia.ATIVA).exists()
 
     if set(guias_existentes) == set(guias) or not existe_guia_ativa:
-        requisicao.arquiva_requisicao(requisicao.uuid)
+        requisicao.arquivar_requisicao(uuid=requisicao.uuid)
