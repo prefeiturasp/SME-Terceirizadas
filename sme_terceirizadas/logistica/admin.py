@@ -44,9 +44,8 @@ class SolicitacaoAdmin(admin.ModelAdmin):
         if obj.situacao == 'ARQUIVADA':
             color = 'red'
         return format_html(
-            '<div style="width:80px; color:white; text-align:center; background:{}; border-radius:5px;">{}</div>',
-            color,
-            obj.get_situacao_display()
+            f'<div style="width:80px; color:white; text-align:center; background:{color}; '
+            f'border-radius:5px;">{obj.get_situacao_display()}</div>'
         )
     get_situacao.short_description = 'Situação Da Solicitacão'
 
@@ -79,9 +78,8 @@ class GuiaAdmin(admin.ModelAdmin):
         if obj.situacao == 'ARQUIVADA':
             color = 'red'
         return format_html(
-            '<div style="width:80px; color:white; text-align:center; background:{}; border-radius:5px;">{}</div>',
-            color,
-            obj.get_situacao_display()
+            f'<div style="width:80px; color:white; text-align:center; background:{color}; '
+            f'border-radius:5px;">{obj.get_situacao_display()}</div>'
         )
     get_situacao.short_description = 'Situação Guia'
 
