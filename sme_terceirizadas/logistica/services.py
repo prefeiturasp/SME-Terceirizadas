@@ -44,3 +44,23 @@ def arquiva_guias(numero_requisicao, guias):  # noqa C901
 
     if set(guias_existentes) == set(guias) or not existe_guia_ativa:
         requisicao.arquivar_requisicao(uuid=requisicao.uuid)
+
+def desarquiva_guias(numero_requisicao, guias):  # noqa C901
+    # Método para desarquivamento da(s) guia(s) e requisições. Importante saber:
+    # Se ao menos uma guia da requisição for desarquivada, a requisição também será desarquivada.
+
+    try:
+        requisicao = SolicitacaoRemessa.objects.get(numero_solicitacao=numero_requisicao)
+        if requisicao.situacao == SolicitacaoRemessa.ATIVA:
+            raise ValidationError('Não é possivel realizar o processo de desarquivamento de uma requisição ativa.')
+        if requisicao.guias.filter(numero_guia__in=guias, situacao=Guia.ARQUIVADA).exists():
+            raise ValidationError('Devem ser enviadas para desarquivamento apenas guias arquivadas.')
+    except ObjectDoesNotExist:
+        raise ValidationError(f'Requisição {numero_requisicao} não existe.')
+
+    requisicao.guias.filter(numero_guia__in=guias).update(situacao=Guia.ATIVA)
+
+    existe_guia_ativa = requisicao.guias.filter(situacao=Guia.ATIVA).exists()
+
+    if existe_guia_ativa:
+        requisicao.desarquivar_requisicao(uuid=requisicao.uuid)

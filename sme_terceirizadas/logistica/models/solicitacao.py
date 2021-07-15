@@ -60,6 +60,12 @@ class SolicitacaoRemessa(ModeloBase, TemIdentificadorExternoAmigavel, Logs, Flux
         requisicao.situacao = SolicitacaoRemessa.ARQUIVADA
         requisicao.save()
 
+    @classmethod
+    def desarquivar_requisicao(cls, uuid):
+        requisicao = SolicitacaoRemessa.objects.get(uuid=uuid)
+        requisicao.situacao = SolicitacaoRemessa.ATIVA
+        requisicao.save()
+
     def __str__(self):
         return f'Solicitação: {self.numero_solicitacao} - Status: {self.get_status_display()}'
 
