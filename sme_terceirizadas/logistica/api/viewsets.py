@@ -55,7 +55,7 @@ from sme_terceirizadas.logistica.api.services.exporta_para_excel import Requisic
 from sme_terceirizadas.logistica.models import Alimento, ConferenciaGuia, Embalagem
 from sme_terceirizadas.logistica.models import Guia as GuiasDasRequisicoes
 from sme_terceirizadas.logistica.models import SolicitacaoDeAlteracaoRequisicao, SolicitacaoRemessa
-from sme_terceirizadas.logistica.services import arquiva_guias, confirma_guias
+from sme_terceirizadas.logistica.services import arquiva_guias, confirma_guias, desarquiva_guias
 
 from ...escola.models import Escola
 from ...relatorios.relatorios import get_pdf_guia_distribuidor
@@ -231,13 +231,32 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
         guias = request.data.get('guias', [])
 
         if not numero_requisicao:
-            raise ValidationError('É necessario informar o número da requisição ao qual a(s) guia(s) pertece(m).')
+            return Response('É necessario informar o número da requisição ao qual a(s) guia(s) pertece(m).',
+                            status=HTTP_406_NOT_ACCEPTABLE)
         if not guias:
-            raise ValidationError('É necessario informar o número das guias para arquivamento.')
+            return Response('É necessario informar o número das guias para arquivamento.',
+                            status=HTTP_406_NOT_ACCEPTABLE)
 
         arquiva_guias(numero_requisicao=numero_requisicao, guias=guias)
 
         return Response('Arquivamento realizado com sucesso.', status=HTTP_200_OK)
+
+    @action(detail=False, permission_classes=(UsuarioDilogCodae,),
+            methods=['post'], url_path='desarquivar')
+    def desarquiva_guias_e_requisicoes(self, request):
+        numero_requisicao = request.data.get('numero_requisicao', '')
+        guias = request.data.get('guias', [])
+
+        if not numero_requisicao:
+            return Response('É necessario informar o número da requisição ao qual a(s) guia(s) pertece(m).',
+                            status=HTTP_406_NOT_ACCEPTABLE)
+        if not guias:
+            return Response('É necessario informar o número das guias para desarquivamento.',
+                            status=HTTP_406_NOT_ACCEPTABLE)
+
+        desarquiva_guias(numero_requisicao=numero_requisicao, guias=guias)
+
+        return Response('Desarquivamento realizado com sucesso.', status=HTTP_200_OK)
 
     @action(detail=False, methods=['GET'], url_path='lista-numeros')
     def lista_numeros(self, request):
