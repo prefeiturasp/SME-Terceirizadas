@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.utils.html import format_html
 
 from .models import (
     Alimento,
@@ -26,7 +27,7 @@ class AlimentoInline(admin.TabularInline):
 
 @admin.register(SolicitacaoRemessa)
 class SolicitacaoAdmin(admin.ModelAdmin):
-    list_display = ('cnpj', 'numero_solicitacao', 'status', 'get_guias')
+    list_display = ('cnpj', 'numero_solicitacao', 'status', 'get_situacao', 'get_guias')
     ordering = ('-alterado_em',)
     search_fields = ('numero_solicitacao',)
     list_filter = ('status',)
@@ -38,6 +39,16 @@ class SolicitacaoAdmin(admin.ModelAdmin):
         ])
     get_guias.short_description = 'Guias'
 
+    def get_situacao(self, obj):
+        color = 'green'
+        if obj.situacao == 'ARQUIVADA':
+            color = 'red'
+        return format_html(
+            f'<div style="width:80px; color:white; text-align:center; background:{color}; '
+            f'border-radius:5px;">{obj.get_situacao_display()}</div>'
+        )
+    get_situacao.short_description = 'Situação Da Solicitacão'
+
 
 @admin.register(Guia)
 class GuiaAdmin(admin.ModelAdmin):
@@ -46,6 +57,7 @@ class GuiaAdmin(admin.ModelAdmin):
         'get_solicitacao',
         'get_status_solicitacao',
         'numero_guia',
+        'get_situacao',
         'data_entrega',
         'codigo_unidade',
         'nome_unidade',
@@ -60,6 +72,16 @@ class GuiaAdmin(admin.ModelAdmin):
     list_filter = ('status',)
     ordering = ('-alterado_em',)
     inlines = [AlimentoInline]
+
+    def get_situacao(self, obj):
+        color = 'green'
+        if obj.situacao == 'ARQUIVADA':
+            color = 'red'
+        return format_html(
+            f'<div style="width:80px; color:white; text-align:center; background:{color}; '
+            f'border-radius:5px;">{obj.get_situacao_display()}</div>'
+        )
+    get_situacao.short_description = 'Situação Guia'
 
     def get_cnpj(self, obj):
         return obj.solicitacao.cnpj

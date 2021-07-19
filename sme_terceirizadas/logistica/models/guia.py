@@ -33,6 +33,15 @@ class GuiaManager(models.Manager):
 
 
 class Guia(ModeloBase, FluxoGuiaRemessa):
+
+    ATIVA = 'ATIVA'
+    ARQUIVADA = 'ARQUIVADA'
+
+    SITUACAO_CHOICES = (
+        (ATIVA, 'Ativa'),
+        (ARQUIVADA, 'Arquivada'),
+    )
+
     numero_guia = models.CharField('Número da guia', blank=True, max_length=100, unique=True)
     solicitacao = models.ForeignKey(
         SolicitacaoRemessa, on_delete=models.CASCADE, blank=True, null=True, related_name='guias')
@@ -48,6 +57,7 @@ class Guia(ModeloBase, FluxoGuiaRemessa):
     estado_unidade = models.CharField('Estado da unidade', blank=True, max_length=2)
     contato_unidade = models.CharField('Contato na unidade', blank=True, max_length=150)
     telefone_unidade = models.CharField('Telefone da unidade', blank=True, default='', max_length=20)
+    situacao = models.CharField(choices=SITUACAO_CHOICES, max_length=10, default=ATIVA)
 
     objects = GuiaManager()
 
