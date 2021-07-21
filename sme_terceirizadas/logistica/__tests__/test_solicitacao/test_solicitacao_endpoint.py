@@ -1,5 +1,9 @@
+import json
+
 import pytest
 from rest_framework import status
+
+from sme_terceirizadas.logistica.models import SolicitacaoRemessa
 
 pytestmark = pytest.mark.django_db
 
@@ -79,3 +83,42 @@ def test_url_excel_analitica_dilog(client_autenticado_dilog):
 def test_url_exportar_excel_analitica_distribuidor(client_autenticado_distribuidor):
     response = client_autenticado_distribuidor.get('/solicitacao-remessa/exporta-excel-visao-analitica/')
     assert response.status_code == status.HTTP_200_OK
+
+
+def test_arquivar_guias_da_requisicao(client_autenticado_dilog, solicitacao, guia):
+    payload = {
+        'numero_requisicao': str(solicitacao.numero_solicitacao),
+        'guias': [f'{guia.numero_guia}']
+    }
+
+    response = client_autenticado_dilog.post(
+        '/solicitacao-remessa/arquivar/',
+        data=json.dumps(payload),
+        content_type='application/json'
+    )
+
+    requisicao = SolicitacaoRemessa.objects.first()
+
+    assert response.status_code == status.HTTP_200_OK
+    assert requisicao.situacao == SolicitacaoRemessa.ARQUIVADA
+
+
+def test_desarquivar_guias_da_requisicao(client_autenticado_dilog, solicitacao, guia):
+    solicitacao.situacao = SolicitacaoRemessa.ARQUIVADA
+    solicitacao.save()
+    guia.situacao = SolicitacaoRemessa.ARQUIVADA
+    guia.save()
+    payload = {
+        'numero_requisicao': str(solicitacao.numero_solicitacao),
+        'guias': [f'{guia.numero_guia}']
+    }
+    response = client_autenticado_dilog.post(
+        '/solicitacao-remessa/desarquivar/',
+        data=json.dumps(payload),
+        content_type='application/json'
+    )
+
+    requisicao = SolicitacaoRemessa.objects.first()
+
+    assert response.status_code == status.HTTP_200_OK
+    assert requisicao.situacao == SolicitacaoRemessa.ATIVA

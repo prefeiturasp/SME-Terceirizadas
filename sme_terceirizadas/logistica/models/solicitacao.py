@@ -22,11 +22,21 @@ class SolicitacaoRemessaManager(models.Manager):
 
 
 class SolicitacaoRemessa(ModeloBase, TemIdentificadorExternoAmigavel, Logs, FluxoSolicitacaoRemessa):
+
+    ATIVA = 'ATIVA'
+    ARQUIVADA = 'ARQUIVADA'
+
+    SITUACAO_CHOICES = (
+        (ATIVA, 'Ativa'),
+        (ARQUIVADA, 'Arquivada'),
+    )
+
     distribuidor = models.ForeignKey(
         Terceirizada, on_delete=models.CASCADE, blank=True, null=True, related_name='solicitacoes')
     cnpj = models.CharField('CNPJ', validators=[MinLengthValidator(14)], max_length=14)
     numero_solicitacao = models.CharField('Número da solicitação', blank=True, max_length=100, unique=True)
     quantidade_total_guias = models.IntegerField('Qtd total de guias na requisição', null=True)
+    situacao = models.CharField(choices=SITUACAO_CHOICES, max_length=10, default=ATIVA)
 
     objects = SolicitacaoRemessaManager()
 
@@ -43,6 +53,18 @@ class SolicitacaoRemessa(ModeloBase, TemIdentificadorExternoAmigavel, Logs, Flux
             resposta_sim_nao=resposta_sim_nao
         )
         return log_transicao
+
+    @classmethod
+    def arquivar_requisicao(cls, uuid):
+        requisicao = SolicitacaoRemessa.objects.get(uuid=uuid)
+        requisicao.situacao = SolicitacaoRemessa.ARQUIVADA
+        requisicao.save()
+
+    @classmethod
+    def desarquivar_requisicao(cls, uuid):
+        requisicao = SolicitacaoRemessa.objects.get(uuid=uuid)
+        requisicao.situacao = SolicitacaoRemessa.ATIVA
+        requisicao.save()
 
     def __str__(self):
         return f'Solicitação: {self.numero_solicitacao} - Status: {self.get_status_display()}'
