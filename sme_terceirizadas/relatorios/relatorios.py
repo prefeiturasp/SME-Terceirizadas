@@ -155,8 +155,10 @@ def relatorio_dieta_especial_protocolo(request, solicitacao):
             'log_autorizacao': solicitacao.logs.get(status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU)
         }
     )
-    return html_to_pdf_response(html_string, f'dieta_especial_{solicitacao.id_externo}.pdf')
-
+    if request:
+        return html_to_pdf_response(html_string, f'dieta_especial_{solicitacao.id_externo}.pdf')
+    else:
+        return html_string
 
 def relatorio_inclusao_alimentacao_continua(request, solicitacao):
     escola = solicitacao.rastro_escola
