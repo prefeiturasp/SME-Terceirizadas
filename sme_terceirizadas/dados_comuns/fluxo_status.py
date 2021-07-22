@@ -13,6 +13,7 @@ from django_xworkflows import models as xwf_models
 
 from ..escola import models as m
 from ..perfil.models import Usuario
+from ..relatorios.utils import html_to_pdf_email_anexo
 from .constants import (
     ADMINISTRADOR_DIETA_ESPECIAL,
     ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
@@ -22,7 +23,7 @@ from .constants import (
 )
 from .models import AnexoLogSolicitacoesUsuario, LogSolicitacoesUsuario
 from .tasks import envia_email_em_massa_task, envia_email_unico_task
-from .utils import convert_base64_to_contentfile
+from .utils import convert_base64_to_contentfile, envia_email_unico_com_anexo_inmemory
 
 env = environ.Env()
 base_url = f'{env("REACT_APP_URL")}'
@@ -1801,9 +1802,48 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
         return []
 
     @property
+    def _partes_interessadas_codae_autoriza(self):
+        escola = self.escola_destino
+        terceirizada = escola.lote.terceirizada
+        responsaveis_escola = [vinculo.usuario.email for vinculo in escola.vinculos.filter(ativo=True)]
+        responsaveis_terceirizadas = [vinculo.usuario.email for vinculo in terceirizada.vinculos.filter(ativo=True)]
+        return responsaveis_escola + responsaveis_terceirizadas
+
+    @property
     def template_mensagem(self):
         raise NotImplementedError(
             'Deve criar um property que recupera o assunto e corpo mensagem desse objeto')
+
+    def _envia_email_autorizar(self, assunto, titulo, user, partes_interessadas, dieta_origem):
+        from ..relatorios.relatorios import relatorio_dieta_especial_protocolo
+
+        template = 'fluxo_autorizar_dieta.html'
+        dados_template = {
+            'nome_aluno': self.aluno.nome,
+            'codigo_eol_aluno': self.aluno.codigo_eol,
+            'data_inicio': self.data_inicio.strftime('%d/%m/%Y'),
+            'data_termino': self.data_termino.strftime('%d/%m/%Y')
+        }
+
+        html = render_to_string(template, dados_template)
+
+        html_string_relatorio = relatorio_dieta_especial_protocolo(None, dieta_origem)
+
+        anexo = {
+            'arquivo': html_to_pdf_email_anexo(html_string_relatorio),
+            'nome': f'dieta_especial_{dieta_origem.id_externo}.pdf',
+            'mimetypes': 'application/pdf'
+        }
+
+        for email in partes_interessadas:
+            envia_email_unico_com_anexo_inmemory(
+                assunto=assunto,
+                corpo=html,
+                email=email,
+                anexo_nome=anexo.get('nome'),
+                mimetypes=anexo.get('mimetypes'),
+                anexo=anexo.get('arquivo'),
+            )
 
     def _preenche_template_e_envia_email(self, assunto, titulo, user, partes_interessadas):
         template = 'fluxo_autorizar_negar_cancelar.html'
@@ -1862,12 +1902,20 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
     @xworkflows.after_transition('codae_autoriza')
     def _codae_autoriza_hook(self, *args, **kwargs):
         user = kwargs['user']
-        assunto = '[SIGPAE] Status de solicitação - #' + self.id_externo
-        titulo = 'Status de solicitação - #' + self.id_externo
         self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU,
                                   usuario=user)
-        self._preenche_template_e_envia_email(assunto, titulo, user,
-                                              self._partes_interessadas_codae_autoriza_ou_nega)
+        if self.tipo_solicitacao == 'ALTERACAO_UE':
+            assunto = 'Alerta de atendimento de Dieta Especial no CEI-Polo/Recreio nas férias'
+            titulo = 'Alerta de atendimento de Dieta Especial no CEI-Polo/Recreio nas férias'
+            dieta_origem = self.aluno.dietas_especiais.filter(
+                tipo_solicitacao='COMUM',
+                status=self.workflow_class.CODAE_AUTORIZADO).last()
+            self._envia_email_autorizar(assunto, titulo, user, self._partes_interessadas_codae_autoriza, dieta_origem)
+        else:
+            assunto = '[SIGPAE] Status de solicitação - #' + self.id_externo
+            titulo = 'Status de solicitação - #' + self.id_externo
+            self._preenche_template_e_envia_email(assunto, titulo, user,
+                                                  self._partes_interessadas_codae_autoriza_ou_nega)
 
     @xworkflows.after_transition('inicia_fluxo_inativacao')
     def _inicia_fluxo_inativacao_hook(self, *args, **kwargs):
