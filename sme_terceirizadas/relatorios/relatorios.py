@@ -160,6 +160,7 @@ def relatorio_dieta_especial_protocolo(request, solicitacao):
     else:
         return html_string
 
+
 def relatorio_inclusao_alimentacao_continua(request, solicitacao):
     escola = solicitacao.rastro_escola
     logs = solicitacao.logs

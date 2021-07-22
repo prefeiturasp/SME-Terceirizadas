@@ -11,10 +11,9 @@ from django.db import models
 from django.template.loader import render_to_string
 from django_xworkflows import models as xwf_models
 
-from ..relatorios.utils import html_to_pdf_email_anexo
-
 from ..escola import models as m
 from ..perfil.models import Usuario
+from ..relatorios.utils import html_to_pdf_email_anexo
 from .constants import (
     ADMINISTRADOR_DIETA_ESPECIAL,
     ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
@@ -1822,8 +1821,8 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
         dados_template = {
             'nome_aluno': self.aluno.nome,
             'codigo_eol_aluno': self.aluno.codigo_eol,
-            'data_inicio': self.data_inicio.strftime("%d/%m/%Y"),
-            'data_termino': self.data_termino.strftime("%d/%m/%Y")
+            'data_inicio': self.data_inicio.strftime('%d/%m/%Y'),
+            'data_termino': self.data_termino.strftime('%d/%m/%Y')
         }
 
         html = render_to_string(template, dados_template)
@@ -1905,12 +1904,12 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
         user = kwargs['user']
         self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU,
                                   usuario=user)
-        if self.tipo_solicitacao == "ALTERACAO_UE":
+        if self.tipo_solicitacao == 'ALTERACAO_UE':
             assunto = 'Alerta de atendimento de Dieta Especial no CEI-Polo/Recreio nas férias'
             titulo = 'Alerta de atendimento de Dieta Especial no CEI-Polo/Recreio nas férias'
             dieta_origem = self.aluno.dietas_especiais.filter(
-                                    tipo_solicitacao="COMUM",
-                                    status=self.workflow_class.CODAE_AUTORIZADO).last()
+                tipo_solicitacao='COMUM',
+                status=self.workflow_class.CODAE_AUTORIZADO).last()
             self._envia_email_autorizar(assunto, titulo, user, self._partes_interessadas_codae_autoriza, dieta_origem)
         else:
             assunto = '[SIGPAE] Status de solicitação - #' + self.id_externo
