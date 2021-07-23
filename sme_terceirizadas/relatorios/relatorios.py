@@ -136,6 +136,34 @@ def relatorio_dieta_especial_conteudo(solicitacao):
     return html_string
 
 
+def relatorio_guia_de_remessa(guias):
+    pages = []
+    inicio = 0
+    num_alimentos_pagina = 4
+    for guia in guias:
+        todos_alimentos = guia.alimentos.all().annotate(
+            peso_total=Sum(
+                F('embalagens__capacidade_embalagem') * F('embalagens__qtd_volume'), output_field=FloatField()
+            )
+        ).order_by('nome_alimento')
+        while True:
+            alimentos = todos_alimentos[inicio:inicio + num_alimentos_pagina]
+            if alimentos:
+                page = guia.as_dict()
+                peso_total_pagina = round(sum(alimento.peso_total for alimento in alimentos), 2)
+                page['alimentos'] = alimentos
+                page['peso_total'] = peso_total_pagina
+                pages.append(page)
+                inicio = inicio + num_alimentos_pagina
+            else:
+                break
+        inicio = 0
+    html_string = render_to_string('logistica/guia_distribuidor/index.html', {'pages': pages})
+    data_arquivo = datetime.date.today().strftime('%d/%m/%Y')
+
+    return html_to_pdf_response(html_string.replace('dt_file', data_arquivo), 'guia_de_remessa.pdf')
+
+
 def relatorio_dieta_especial(request, solicitacao):
     html_string = relatorio_dieta_especial_conteudo(solicitacao)
     return html_to_pdf_response(html_string, f'dieta_especial_{solicitacao.id_externo}.pdf')
