@@ -1804,9 +1804,12 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
     @property
     def _partes_interessadas_codae_autoriza(self):
         escola = self.escola_destino
-        terceirizada = escola.lote.terceirizada
         responsaveis_escola = [vinculo.usuario.email for vinculo in escola.vinculos.filter(ativo=True)]
-        responsaveis_terceirizadas = [vinculo.usuario.email for vinculo in terceirizada.vinculos.filter(ativo=True)]
+        try:
+            terceirizada = escola.lote.terceirizada
+            responsaveis_terceirizadas = [vinculo.usuario.email for vinculo in terceirizada.vinculos.filter(ativo=True)]
+        except AttributeError:
+            responsaveis_terceirizadas = []
         return responsaveis_escola + responsaveis_terceirizadas
 
     @property
