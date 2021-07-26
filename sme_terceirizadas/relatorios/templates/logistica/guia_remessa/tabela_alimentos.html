@@ -1,0 +1,52 @@
+{% include 'relatorio_base.html' %}
+{% load static %}
+{% load sass_tags %}
+
+<html>
+<head>
+  <link rel="stylesheet" href="{% sass_src 'css/cabecalho.scss' %}" type="text/css">
+</head>
+<body>
+	<div class="page-container mt-3">
+		<div class="table-responsive-sm">
+			<h4 class="title">Produtos</h4>
+			<table class="table table-sm table-bordered">
+				<thead>
+					<tr>
+						<th scope="col" class="w-40" rowspan="2" style="text-align:left;vertical-align:top;">Alimento(s)</th>
+						<th scope="col" colspan="2">Embalagem fechada</th>
+						<th scope="col" colspan="2">Embalagem fracionada</th>
+					</tr>
+					<tr>
+						<th scope="col">Quantidade</th>
+						<th scope="col">Unidade</th>
+						<th scope="col">Quantidade</th>
+						<th scope="col">Unidade</th>
+					</tr>
+				</thead>
+				<tbody> {% for alimento in page.alimentos %}
+          {% embalagens_filter alimento.embalagens.all "FRACIONADA" as embalagem_fracionada %}
+          {% embalagens_filter alimento.embalagens.all "FECHADA" as embalagem_fechada %}
+					<tr>
+						<td>{{alimento.nome_alimento}}</td>
+						<td>{{embalagem_fechada.qtd_volume|default:''}} {{embalagem_fechada.descricao_embalagem}}</td>
+						<td>{{embalagem_fechada.capacidade_embalagem}} {{embalagem_fechada.unidade_medida}}</td>
+						<td>{{embalagem_fracionada.qtd_volume}} {{embalagem_fracionada.descricao_embalagem}}</td>
+						<td>{{embalagem_fracionada.capacidade_embalagem}} {{embalagem_fracionada.unidade_medida}}</td>
+					</tr> {% endfor %} </tbody>
+				<tfooter>
+					<tr>
+						<th scope="row" rowspan="2"></th>
+						<td colspan="2" class="title">Total de itens</td>
+						<td colspan="2">{{page.alimentos.count}}</td>
+					</tr>
+					<tr>
+						<td colspan="2" class="title">Peso total(KG)</td>
+						<td colspan="2"> {{page.peso_total}} KG</td>
+					</tr>
+				</tfooter>
+			</table>
+		</div>
+	</div>
+</body>
+</html>

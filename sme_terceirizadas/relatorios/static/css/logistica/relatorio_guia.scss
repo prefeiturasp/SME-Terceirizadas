@@ -1,0 +1,108 @@
+@page {
+  size: A4;
+  @bottom-left {
+    background: $cinza-claro;
+    color: $preto;
+    content: '';
+    font-size: 10px;
+    width: 100%;
+    padding: 1em 2em 4em 2em;
+    margin-top: 1em;
+  }
+  @bottom-center {
+    background: $cinza-claro;
+    color: $preto;
+    content: counter(page) "/" counter(pages);
+    ;
+    font-size: 10px;
+    padding: 1em 2em 4em 2em;
+    margin-top: 1em;
+  }
+  @bottom-right {
+    background: $cinza-claro;
+    color: $preto;
+    content: 'Data de arquivo: dt_file';
+    font-size: 10px;
+    padding: 1em 2em 4em 2em;
+    margin-top: 1em;
+  }
+
+  :nth-of(n+2) {
+    margin-top: 0;
+  }
+}
+
+.table {
+  border: 1px solid #dddddd;
+  background: #F3F3F3;
+}
+
+.obj {
+  background: #F3F3F3;
+}
+
+.header {
+  font-size: 14px;
+}
+
+.page-container {
+  padding-right: 2em;
+  padding-left: 2em;
+  font-size: 14px;
+  font-style: normal;
+  line-height: 16px;
+  color: #42474A;
+}
+
+.page-container .title {
+  font-family: Roboto;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 18px;
+  letter-spacing: 0.01em;
+  text-align: left;
+}
+
+.header .info {
+  background: #FFFFFF;
+  border-collapse: collapse;
+  background: $branco;
+  border-radius: 3px !important;
+  width: 100%;
+  overflow: hidden;
+}
+
+.header .info .row {
+  margin-right: 0!important;
+  margin-left: 0 !important;
+}
+
+.header .info .col {
+  font-style: normal;
+  line-height: 16px;
+  letter-spacing: 0.01em;
+  text-align: left;
+  box-sizing: border-box;
+}
+
+.barra-status{
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 8px;
+}
+
+.card-barra-status{
+  background: #20AA73;
+  border-radius: 4px;
+  height: auto;
+  padding: 8px;
+  font-weight: bold;
+  font-size: 16px;
+  line-height: 19px;
+  display: flex;
+  align-items: center;
+  letter-spacing: 0.01em;
+  color: #FFFFFF;
+}

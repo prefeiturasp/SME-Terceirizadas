@@ -1,0 +1,17 @@
+{% include 'relatorio_base.html' %} {% load static %} {% load index %} {% load sass_tags %}
+<html>
+
+<head>
+	<link rel="stylesheet" href="{% sass_src 'css/cabecalho.scss' %}" type="text/css">
+	<link rel="stylesheet" href="{% sass_src 'css/custom_bootstrap.scss' %}" type="text/css"> </head>
+  <link rel="stylesheet" href="{% sass_src 'css/logistica/relatorio_guia.scss' %}" type="text/css">
+<body>
+  {% for page in pages %}
+	<div style="page-break-before: always;"></div>
+	{% comment %} {% include "cabecalho.html" with filtros=filtros %} {% endcomment %}
+  {% include "cabecalho.html" %}
+  {% include "barra_status.html" %}
+  {% include "tabela_alimentos.html" %}
+	{% endfor %} </body>
+
+</html>
