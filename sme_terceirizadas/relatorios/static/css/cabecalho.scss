@@ -50,11 +50,41 @@
     text-transform: uppercase;
     color: $preto;
   }
+
+  .titulo-branco{
+    color: #FFFFFF;
+  }
 }
 
 .header {
   padding: 1em 2em 1em 2em;
   background: $cinza-claro;
+}
+
+.green-header{
+  background: $verde;
+  font-size: 14px;
+}
+
+.green-header .info {
+  background: $branco;
+  border-collapse: collapse;
+  border-radius: 3px !important;
+  width: 100%;
+  overflow: hidden;
+}
+
+.green-header .info .row {
+  margin-right: 0!important;
+  margin-left: 0 !important;
+}
+
+.green-header .info .col {
+  font-style: normal;
+  line-height: 16px;
+  letter-spacing: 0.01em;
+  text-align: left;
+  box-sizing: border-box;
 }
 
 .tabela-cabecalho {

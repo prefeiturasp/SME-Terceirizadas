@@ -149,3 +149,13 @@ def test_url_conferir_guia_com_ocorrencia(
     assert conferencia.uuid
     assert conferencia.criado_por
     assert conferencia.conferencia_dos_alimentos
+
+
+def test_url_relatorio_guia_remessa_authorized_dilog(client_autenticado_dilog, guia):
+    response = client_autenticado_dilog.get(f'/guias-da-requisicao/{str(guia.uuid)}/relatorio-guia-remessa/')
+    assert response.status_code == status.HTTP_200_OK
+
+
+def test_url_relatorio_guia_remessa_authorized_distribuidor(client_autenticado_distribuidor, guia):
+    response = client_autenticado_distribuidor.get(f'/guias-da-requisicao/{str(guia.uuid)}/relatorio-guia-remessa/')
+    assert response.status_code == status.HTTP_200_OK
