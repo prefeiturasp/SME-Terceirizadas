@@ -1,15 +1,13 @@
 {% include 'relatorio_base.html' %}
+{% load index %}
 {% load static %}
 {% load sass_tags %}
 
 <html>
-<head>
-  <link rel="stylesheet" href="{% sass_src 'css/cabecalho.scss' %}" type="text/css">
-</head>
 <body>
 	<div class="page-container mt-3">
 		<div class="table-responsive-sm">
-			<h4 class="title">Produtos</h4>
+			<h4 class="title main-title">Alimentos previstos para entrega</h4>
 			<table class="table table-sm table-bordered">
 				<thead>
 					<tr>
@@ -24,7 +22,8 @@
 						<th scope="col">Unidade</th>
 					</tr>
 				</thead>
-				<tbody> {% for alimento in page.alimentos %}
+				<tbody> 
+        {% for alimento in page.alimentos %}
           {% embalagens_filter alimento.embalagens.all "FRACIONADA" as embalagem_fracionada %}
           {% embalagens_filter alimento.embalagens.all "FECHADA" as embalagem_fechada %}
 					<tr>
@@ -33,7 +32,9 @@
 						<td>{{embalagem_fechada.capacidade_embalagem}} {{embalagem_fechada.unidade_medida}}</td>
 						<td>{{embalagem_fracionada.qtd_volume}} {{embalagem_fracionada.descricao_embalagem}}</td>
 						<td>{{embalagem_fracionada.capacidade_embalagem}} {{embalagem_fracionada.unidade_medida}}</td>
-					</tr> {% endfor %} </tbody>
+					</tr>
+        {% endfor %}
+        </tbody>
 				<tfooter>
 					<tr>
 						<th scope="row" rowspan="2"></th>

@@ -3,18 +3,15 @@
 {% load sass_tags %}
 
 <html>
-<head>
-  <link rel="stylesheet" href="{% sass_src 'css/logistica/relatorio_guia.scss' %}" type="text/css">
-</head>
 <body>
-<div class="barra-status">
-  <div class="card-barra-status">
-    Recebida
-  </div>
+  <div class="barra-status">
+    <div class="card-barra-status">
+      {{page.status_guia}}
+    </div>
 
-  <div class="card-barra-status">
-    Data de recebimento dos alimentos: 15/06/2021
+    <div class="card-barra-status">
+      Data de recebimento dos alimentos: 15/06/2021
+    </div>
   </div>
-</div>
 </body>
 </html>

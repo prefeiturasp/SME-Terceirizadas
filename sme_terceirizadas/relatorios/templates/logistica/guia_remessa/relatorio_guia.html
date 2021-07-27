@@ -3,15 +3,21 @@
 
 <head>
 	<link rel="stylesheet" href="{% sass_src 'css/cabecalho.scss' %}" type="text/css">
-	<link rel="stylesheet" href="{% sass_src 'css/custom_bootstrap.scss' %}" type="text/css"> </head>
+	<link rel="stylesheet" href="{% sass_src 'css/custom_bootstrap.scss' %}" type="text/css">
   <link rel="stylesheet" href="{% sass_src 'css/logistica/relatorio_guia.scss' %}" type="text/css">
+  <link rel="stylesheet" href="{% sass_src 'css/logistica/barra_status.scss' %}" type="text/css">
+</head>
 <body>
   {% for page in pages %}
+  
 	<div style="page-break-before: always;"></div>
-	{% comment %} {% include "cabecalho.html" with filtros=filtros %} {% endcomment %}
-  {% include "cabecalho.html" %}
-  {% include "barra_status.html" %}
-  {% include "tabela_alimentos.html" %}
-	{% endfor %} </body>
+  {% include "logistica/guia_remessa/cabecalho.html" %}
+  <div class="page-content">
+  {% include "logistica/guia_remessa/barra_status.html" %}
+  {% include "logistica/guia_remessa/tabela_alimentos.html" %}
+  {% include "logistica/guia_remessa/rodape.html" %}
+  </div>
+	{% endfor %}
+</body>
 
 </html>
