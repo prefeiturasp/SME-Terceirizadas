@@ -58,7 +58,7 @@ from sme_terceirizadas.logistica.models import SolicitacaoDeAlteracaoRequisicao,
 from sme_terceirizadas.logistica.services import arquiva_guias, confirma_guias, desarquiva_guias
 
 from ...escola.models import Escola
-from ...relatorios.relatorios import get_pdf_guia_distribuidor
+from ...relatorios.relatorios import get_pdf_guia_distribuidor, relatorio_guia_de_remessa
 from ..models.guia import InsucessoEntregaGuia
 from ..utils import GuiaPagination, RequisicaoPagination, SolicitacaoAlteracaoPagination
 from .filters import GuiaFilter, SolicitacaoAlteracaoFilter, SolicitacaoFilter
@@ -613,6 +613,13 @@ class GuiaDaRequisicaoModelViewSet(viewsets.ModelViewSet):
         except ValidationError as e:
             return Response(dict(detail=f'Erro: {e}', status=False),
                             status=HTTP_404_NOT_FOUND)
+
+    @action(detail=True, methods=['GET'],
+            url_path='relatorio-guia-remessa', permission_classes=[UsuarioDilogCodae | UsuarioDistribuidor])
+    def relatorio_guia_de_remessa(self, request, uuid=None):
+        guia = self.get_object()
+        guias = [guia]
+        return relatorio_guia_de_remessa(guias)
 
 
 class AlimentoDaGuiaModelViewSet(viewsets.ModelViewSet):

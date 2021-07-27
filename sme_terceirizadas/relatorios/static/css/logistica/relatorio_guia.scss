@@ -1,0 +1,37 @@
+@import "../variaveis";
+
+.table {
+  border: 1px solid $cinza-quase-claro;
+  background: $branco;
+}
+
+.obj {
+  background: #F3F3F3;
+}
+
+.page-content {
+  margin: 0 1em;
+}
+
+.page-container {
+  padding-right: 2em;
+  padding-left: 2em;
+  font-size: 14px;
+  font-style: normal;
+  line-height: 16px;
+  color: #42474A;
+}
+
+.page-container .title {
+  font-family: Roboto;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 18px;
+  letter-spacing: 0.01em;
+  text-align: left;
+}
+
+.page-container .main-title{
+  color: $verde;
+  font-size: 16px;
+}
