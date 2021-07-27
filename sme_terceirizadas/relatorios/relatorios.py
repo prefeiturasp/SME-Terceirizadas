@@ -6,6 +6,7 @@ from django.template.loader import render_to_string
 from ..dados_comuns.fluxo_status import ReclamacaoProdutoWorkflow
 from ..dados_comuns.models import LogSolicitacoesUsuario
 from ..kit_lanche.models import EscolaQuantidade
+from ..logistica.api.helpers import retorna_status_guia_remessa
 from ..relatorios.utils import html_to_pdf_response
 from ..terceirizada.utils import transforma_dados_relatorio_quantitativo
 from . import constants
@@ -153,6 +154,7 @@ def relatorio_guia_de_remessa(guias):
                 peso_total_pagina = round(sum(alimento.peso_total for alimento in alimentos), 2)
                 page['alimentos'] = alimentos
                 page['peso_total'] = peso_total_pagina
+                page['status_guia'] = retorna_status_guia_remessa(page['status'])
                 pages.append(page)
                 inicio = inicio + num_alimentos_pagina
             else:
