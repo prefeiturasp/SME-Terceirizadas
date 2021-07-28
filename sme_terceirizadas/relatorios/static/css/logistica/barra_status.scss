@@ -20,3 +20,12 @@
   letter-spacing: 0.01em;
   color: $branco;
 }
+
+.alinha-direita{
+  justify-content: flex-end;
+}
+
+.preenchivel{
+  background: $cinza-quase-claro;
+  color: $cinza-meio-escuro;
+}

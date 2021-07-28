@@ -14,7 +14,13 @@
   {% include "logistica/guia_remessa/cabecalho.html" %}
   <div class="page-content">
   {% include "logistica/guia_remessa/barra_status.html" %}
+
   {% include "logistica/guia_remessa/tabela_alimentos.html" %}
+
+  {% if page.status_guia == "Pendente de conferência" %}
+    {% include "logistica/guia_remessa/rodape_pendente_conferencia.html" %}
+  {% endif %}
+
   {% include "logistica/guia_remessa/rodape.html" %}
   </div>
 	{% endfor %}

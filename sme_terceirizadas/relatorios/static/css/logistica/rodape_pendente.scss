@@ -1,0 +1,16 @@
+@import "../variaveis";
+
+.green-text{
+  color: $verde;
+}
+
+.campo{
+  border-bottom: 1px solid #dddddd;
+  padding-bottom: 1.5em;
+}
+
+.campo-area{
+  border: 1px solid #dddddd;
+  margin-top: 8px;
+  height: 77px;
+}
