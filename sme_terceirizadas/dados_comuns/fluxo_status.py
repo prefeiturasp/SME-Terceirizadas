@@ -379,7 +379,11 @@ class HomologacaoProdutoWorkflow(xwf_models.Workflow):
         ('terceirizada_responde_questionamento',
          CODAE_QUESTIONADO, CODAE_PENDENTE_HOMOLOGACAO),
         ('codae_pede_analise_sensorial',
-         CODAE_PENDENTE_HOMOLOGACAO, CODAE_PEDIU_ANALISE_SENSORIAL),
+         [CODAE_PEDIU_ANALISE_RECLAMACAO,
+          CODAE_PENDENTE_HOMOLOGACAO,
+          ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
+          TERCEIRIZADA_RESPONDEU_RECLAMACAO,
+          CODAE_HOMOLOGADO], CODAE_PEDIU_ANALISE_SENSORIAL),
         ('terceirizada_responde_analise_sensorial',
          CODAE_PEDIU_ANALISE_SENSORIAL, CODAE_PENDENTE_HOMOLOGACAO),
         ('codae_suspende', CODAE_HOMOLOGADO, CODAE_SUSPENDEU),
@@ -394,18 +398,24 @@ class HomologacaoProdutoWorkflow(xwf_models.Workflow):
         ('codae_autorizou_reclamacao',
          [CODAE_PEDIU_ANALISE_RECLAMACAO,
           ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
-          TERCEIRIZADA_RESPONDEU_RECLAMACAO],
+          TERCEIRIZADA_RESPONDEU_RECLAMACAO,
+          CODAE_PEDIU_ANALISE_SENSORIAL],
          CODAE_AUTORIZOU_RECLAMACAO),
         ('codae_recusou_reclamacao',
          [CODAE_PEDIU_ANALISE_RECLAMACAO,
           ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
-          TERCEIRIZADA_RESPONDEU_RECLAMACAO],
+          TERCEIRIZADA_RESPONDEU_RECLAMACAO,
+          CODAE_PEDIU_ANALISE_SENSORIAL],
          CODAE_HOMOLOGADO),
         ('inativa_homologacao',
          [CODAE_SUSPENDEU, ESCOLA_OU_NUTRICIONISTA_RECLAMOU, CODAE_QUESTIONADO, CODAE_HOMOLOGADO,
           CODAE_NAO_HOMOLOGADO, CODAE_AUTORIZOU_RECLAMACAO], INATIVA),
         ('terceirizada_cancelou_solicitacao_homologacao',
          CODAE_PENDENTE_HOMOLOGACAO, TERCEIRIZADA_CANCELOU_SOLICITACAO_HOMOLOGACAO),
+        ('terceirizada_responde_analise_sensorial_da_reclamacao',
+         CODAE_PEDIU_ANALISE_SENSORIAL, ESCOLA_OU_NUTRICIONISTA_RECLAMOU),
+        ('terceirizada_responde_analise_sensorial_homologado',
+         CODAE_PEDIU_ANALISE_SENSORIAL, CODAE_HOMOLOGADO)
     )
 
     initial_state = RASCUNHO
@@ -870,7 +880,7 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
         )
 
     def _partes_interessadas_codae_pede_analise_sensorial(self):
-        return [self.criado_por.email]
+        return [self.ultima_analise.terceirizada.vinculos.filter(ativo=True).first().usuario.email]
 
     def _envia_email_codae_pede_analise_sensorial(self, log_transicao, link_pdf):
         html = render_to_string(
@@ -990,6 +1000,22 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
 
     @xworkflows.after_transition('terceirizada_responde_analise_sensorial')
     def _terceirizada_responde_analise_sensorial_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        justificativa = kwargs.get('justificativa', '')
+        self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_RESPONDEU_ANALISE_SENSORIAL,
+                                  usuario=user,
+                                  justificativa=justificativa)
+
+    @xworkflows.after_transition('terceirizada_responde_analise_sensorial_da_reclamacao')
+    def _terceirizada_responde_analise_sensorial_da_reclamacao_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        justificativa = kwargs.get('justificativa', '')
+        self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_RESPONDEU_ANALISE_SENSORIAL,
+                                  usuario=user,
+                                  justificativa=justificativa)
+
+    @xworkflows.after_transition('terceirizada_responde_analise_sensorial_homologado')
+    def _terceirizada_responde_analise_sensorial_homologado_hook(self, *args, **kwargs):
         user = kwargs['user']
         justificativa = kwargs.get('justificativa', '')
         self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_RESPONDEU_ANALISE_SENSORIAL,
@@ -1981,6 +2007,8 @@ class ReclamacaoProdutoWorkflow(xwf_models.Workflow):
     AGUARDANDO_AVALIACAO = 'AGUARDANDO_AVALIACAO'  # INICIO
     AGUARDANDO_RESPOSTA_TERCEIRIZADA = 'AGUARDANDO_RESPOSTA_TERCEIRIZADA'
     RESPONDIDO_TERCEIRIZADA = 'RESPONDIDO_TERCEIRIZADA'
+    AGUARDANDO_ANALISE_SENSORIAL = 'AGUARDANDO_ANALISE_SENSORIAL'
+    ANALISE_SENSORIAL_RESPONDIDA = 'ANALISE_SENSORIAL_RESPONDIDA'
     CODAE_ACEITOU = 'CODAE_ACEITOU'
     CODAE_RECUSOU = 'CODAE_RECUSOU'
     CODAE_RESPONDEU = 'CODAE_RESPONDEU'
@@ -1988,6 +2016,8 @@ class ReclamacaoProdutoWorkflow(xwf_models.Workflow):
     states = (
         (AGUARDANDO_AVALIACAO, 'Aguardando avaliação da CODAE'),
         (AGUARDANDO_RESPOSTA_TERCEIRIZADA, 'Aguardando resposta da terceirizada'),
+        (AGUARDANDO_ANALISE_SENSORIAL, 'Aguardando análise sensorial.'),
+        (ANALISE_SENSORIAL_RESPONDIDA, 'Análise sensorial respondida.'),
         (RESPONDIDO_TERCEIRIZADA, 'Respondido pela terceirizada'),
         (CODAE_ACEITOU, 'CODAE aceitou'),
         (CODAE_RECUSOU, 'CODAE recusou'),
@@ -2000,12 +2030,20 @@ class ReclamacaoProdutoWorkflow(xwf_models.Workflow):
          RESPONDIDO_TERCEIRIZADA),
         ('codae_aceita', [AGUARDANDO_RESPOSTA_TERCEIRIZADA,
                           AGUARDANDO_AVALIACAO,
-                          RESPONDIDO_TERCEIRIZADA], CODAE_ACEITOU),
+                          RESPONDIDO_TERCEIRIZADA,
+                          AGUARDANDO_ANALISE_SENSORIAL,
+                          ANALISE_SENSORIAL_RESPONDIDA], CODAE_ACEITOU),
         ('codae_recusa', [AGUARDANDO_RESPOSTA_TERCEIRIZADA,
                           AGUARDANDO_AVALIACAO,
-                          RESPONDIDO_TERCEIRIZADA], CODAE_RECUSOU),
+                          RESPONDIDO_TERCEIRIZADA,
+                          AGUARDANDO_ANALISE_SENSORIAL,
+                          ANALISE_SENSORIAL_RESPONDIDA], CODAE_RECUSOU),
         ('codae_responde', [AGUARDANDO_AVALIACAO,
                             RESPONDIDO_TERCEIRIZADA], CODAE_RESPONDEU),
+        ('codae_pede_analise_sensorial', [AGUARDANDO_AVALIACAO,
+                                          RESPONDIDO_TERCEIRIZADA,
+                                          ANALISE_SENSORIAL_RESPONDIDA], AGUARDANDO_ANALISE_SENSORIAL),
+        ('terceirizada_responde_analise_sensorial', AGUARDANDO_ANALISE_SENSORIAL, ANALISE_SENSORIAL_RESPONDIDA)
     )
 
     initial_state = AGUARDANDO_AVALIACAO
@@ -2108,6 +2146,18 @@ class FluxoReclamacaoProduto(xwf_models.WorkflowEnabled, models.Model):
     def _terceirizada_responde_hook(self, *args, **kwargs):
         self.salvar_log_transicao(
             status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_RESPONDEU_RECLAMACAO,
+            **kwargs)
+
+    @xworkflows.after_transition('codae_pede_analise_sensorial')
+    def _codae_pede_analise_sensorial_hook(self, *args, **kwargs):
+        self.salvar_log_transicao(
+            status_evento=LogSolicitacoesUsuario.CODAE_PEDIU_ANALISE_SENSORIAL,
+            **kwargs)
+
+    @xworkflows.after_transition('terceirizada_responde_analise_sensorial')
+    def _terceirizada_responde_analise_sensorial_hook(self, *args, **kwargs):
+        self.salvar_log_transicao(
+            status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_RESPONDEU_ANALISE_SENSORIAL,
             **kwargs)
 
     class Meta:

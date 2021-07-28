@@ -74,14 +74,23 @@ def test_url_endpoint_homologacao_produto_codae_questiona(client_autenticado_vin
 def test_url_endpoint_homologacao_produto_codae_pede_analise_sensorial(client_autenticado_vinculo_codae_produto,
                                                                        homologacao_produto_pendente_homologacao):
     assert homologacao_produto_pendente_homologacao.status == HomologacaoProdutoWorkflow.CODAE_PENDENTE_HOMOLOGACAO
+
     response = client_autenticado_vinculo_codae_produto.patch(
         f'/homologacoes-produtos/{homologacao_produto_pendente_homologacao.uuid}/'
-        f'{constants.CODAE_PEDE_ANALISE_SENSORIAL}/')
+        f'{constants.CODAE_PEDE_ANALISE_SENSORIAL}/',
+        content_type='application/json',
+        data=json.dumps({
+            'justificativa': 'É isso',
+            'uuidTerceirizada': str(homologacao_produto_pendente_homologacao.rastro_terceirizada.uuid)}))
     assert response.status_code == status.HTTP_200_OK
     assert response.json()['status'] == HomologacaoProdutoWorkflow.CODAE_PEDIU_ANALISE_SENSORIAL
     response = client_autenticado_vinculo_codae_produto.patch(
         f'/homologacoes-produtos/{homologacao_produto_pendente_homologacao.uuid}/'
-        f'{constants.CODAE_PEDE_ANALISE_SENSORIAL}/')
+        f'{constants.CODAE_PEDE_ANALISE_SENSORIAL}/',
+        content_type='application/json',
+        data=json.dumps({
+            'justificativa': 'É isso',
+            'uuidTerceirizada': str(homologacao_produto_pendente_homologacao.rastro_terceirizada.uuid)}))
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json() == {
         'detail': "Erro de transição de estado: Transition 'codae_pede_analise_sensorial' isn't available from state "
@@ -90,6 +99,23 @@ def test_url_endpoint_homologacao_produto_codae_pede_analise_sensorial(client_au
         f'/painel-gerencial-homologacoes-produtos/filtro-por-status/codae_pediu_analise_sensorial/')
     assert response.status_code == status.HTTP_200_OK
     assert len(response.json().get('results')) == 1
+
+
+def test_url_endpoint_homologacao_produto_codae_pede_analise_sensorial_reclamacao_homologado(
+        client_autenticado_vinculo_codae_produto, reclamacao):
+    from ...dados_comuns.fluxo_status import ReclamacaoProdutoWorkflow
+
+    assert reclamacao.status == ReclamacaoProdutoWorkflow.AGUARDANDO_AVALIACAO
+
+    response = client_autenticado_vinculo_codae_produto.patch(
+        f'/reclamacoes-produtos/{reclamacao.uuid}/'
+        f'{constants.CODAE_PEDE_ANALISE_SENSORIAL}/',
+        content_type='application/json',
+        data=json.dumps({
+            'justificativa': 'É isso',
+            'uuidTerceirizada': str(reclamacao.homologacao_de_produto.rastro_terceirizada.uuid)}))
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()['status'] == ReclamacaoProdutoWorkflow.AGUARDANDO_ANALISE_SENSORIAL
 
 
 def test_url_endpoint_homologacao_produto_codae_pede_analise_reclamacao(client_autenticado_vinculo_codae_produto,

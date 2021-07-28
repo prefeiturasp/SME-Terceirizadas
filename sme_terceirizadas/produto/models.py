@@ -263,6 +263,10 @@ class HomologacaoDoProduto(TemChaveExterna, CriadoEm, CriadoPor, FluxoHomologaca
     def ultimo_log(self):
         return self.log_mais_recente
 
+    @property
+    def ultima_analise(self):
+        return self.analises_sensoriais.last()
+
     def gera_protocolo_analise_sensorial(self):
         id_sequecial = str(get_next_value('protocolo_analise_sensorial'))
         serial = ''
@@ -404,3 +408,40 @@ class SolicitacaoCadastroProdutoDieta(FluxoSolicitacaoCadastroProduto, TemChaveE
 
     def __str__(self):
         return f'Solicitacao cadastro produto {self.nome_produto}'
+
+
+class AnaliseSensorial(TemChaveExterna, TemIdentificadorExternoAmigavel, CriadoEm):
+    # Status Choice
+    STATUS_AGUARDANDO_RESPOSTA = 'AGUARDANDO_RESPOSTA'
+    STATUS_RESPONDIDA = 'RESPONDIDA'
+
+    STATUS = {
+        STATUS_AGUARDANDO_RESPOSTA: 'Aguardando resposta',
+        STATUS_RESPONDIDA: 'Respondida',
+    }
+
+    STATUS_CHOICES = (
+        (STATUS_AGUARDANDO_RESPOSTA, STATUS[STATUS_AGUARDANDO_RESPOSTA]),
+        (STATUS_RESPONDIDA, STATUS[STATUS_RESPONDIDA]),
+    )
+
+    homologacao_de_produto = models.ForeignKey('HomologacaoDoProduto', on_delete=models.CASCADE,
+                                               related_name='analises_sensoriais')
+
+    # Terceirizada que irá responder a análise
+    terceirizada = models.ForeignKey('terceirizada.Terceirizada', on_delete=models.CASCADE,
+                                     related_name='analises_sensoriais', null=True)
+
+    status = models.CharField(
+        'Status da análise',
+        max_length=25,
+        choices=STATUS_CHOICES,
+        default=STATUS_AGUARDANDO_RESPOSTA
+    )
+
+    @property
+    def numero_protocolo(self):
+        return self.homologacao_de_produto.protocolo_analise_sensorial
+
+    def __str__(self):
+        return f'Análise Sensorial {self.id_externo} de protocolo {self.numero_protocolo} criada em: {self.criado_em}'
