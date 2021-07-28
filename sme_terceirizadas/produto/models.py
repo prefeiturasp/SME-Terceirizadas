@@ -263,6 +263,10 @@ class HomologacaoDoProduto(TemChaveExterna, CriadoEm, CriadoPor, FluxoHomologaca
     def ultimo_log(self):
         return self.log_mais_recente
 
+    @property
+    def ultima_analise(self):
+        return self.analises_sensoriais.last()
+
     def gera_protocolo_analise_sensorial(self):
         id_sequecial = str(get_next_value('protocolo_analise_sensorial'))
         serial = ''
