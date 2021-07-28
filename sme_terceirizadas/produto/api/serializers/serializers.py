@@ -22,6 +22,7 @@ from ....escola.api.serializers import (
 from ....escola.models import Escola
 from ....terceirizada.api.serializers.serializers import TerceirizadaSimplesSerializer
 from ...models import (
+    AnaliseSensorial,
     AnexoReclamacaoDeProduto,
     Fabricante,
     HomologacaoDoProduto,
@@ -169,6 +170,14 @@ class HomologacaoProdutoSimplesSerializer(serializers.ModelSerializer):
                   'criado_em', 'reclamacoes')
 
 
+class AnaliseSensorialSerializer(serializers.ModelSerializer):
+    terceirizada = TerceirizadaSimplesSerializer()
+
+    class Meta:
+        model = AnaliseSensorial
+        exclude = ('id',)
+
+
 class HomologacaoProdutoComUltimoLogSerializer(serializers.ModelSerializer):
     reclamacoes = serializers.SerializerMethodField()
     rastro_terceirizada = TerceirizadaSimplesSerializer()
@@ -176,6 +185,7 @@ class HomologacaoProdutoComUltimoLogSerializer(serializers.ModelSerializer):
     ultimo_log = LogSolicitacoesUsuarioComVinculoSerializer()
     status_titulo = serializers.CharField(source='status.state.title')
     data_cadastro = serializers.DateField()
+    ultima_analise = AnaliseSensorialSerializer()
 
     def get_reclamacoes(self, obj):
         return ReclamacaoDeProdutoSerializer(
@@ -186,7 +196,7 @@ class HomologacaoProdutoComUltimoLogSerializer(serializers.ModelSerializer):
     class Meta:
         model = HomologacaoDoProduto
         fields = ('uuid', 'status', 'id_externo', 'rastro_terceirizada', 'logs',
-                  'criado_em', 'reclamacoes', 'ultimo_log', 'tempo_aguardando_acao_em_dias',
+                  'criado_em', 'reclamacoes', 'ultimo_log', 'ultima_analise', 'tempo_aguardando_acao_em_dias',
                   'status_titulo', 'protocolo_analise_sensorial', 'data_cadastro')
 
 
@@ -332,11 +342,12 @@ class HomologacaoProdutoSerializer(serializers.ModelSerializer):
     produto = ProdutoSerializer()
     logs = LogSolicitacoesUsuarioSerializer(many=True)
     rastro_terceirizada = TerceirizadaSimplesSerializer()
+    ultima_analise = AnaliseSensorialSerializer()
 
     class Meta:
         model = HomologacaoDoProduto
         fields = ('uuid', 'produto', 'status', 'id_externo', 'logs', 'rastro_terceirizada', 'pdf_gerado',
-                  'protocolo_analise_sensorial')
+                  'protocolo_analise_sensorial', 'ultima_analise')
 
 
 class ProdutoBaseSerializer(serializers.ModelSerializer):
