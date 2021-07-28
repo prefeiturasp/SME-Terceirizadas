@@ -39,6 +39,7 @@ from ..constants import (
 )
 from ..forms import ProdutoJaExisteForm, ProdutoPorParametrosForm
 from ..models import (
+    AnaliseSensorial,
     Fabricante,
     HomologacaoDoProduto,
     ImagemDoProduto,
@@ -340,11 +341,13 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
             return Response(dict(detail=f'Erro de transição de estado: {e}'),
                             status=status.HTTP_400_BAD_REQUEST)
 
-    @action(detail=True,
+    @action(detail=True,  # noqa C901
             permission_classes=(UsuarioCODAEGestaoProduto,),
             methods=['patch'],
             url_path=constants.CODAE_PEDE_ANALISE_SENSORIAL)
     def codae_pede_analise_sensorial(self, request, uuid=None):
+        from sme_terceirizadas.terceirizada.models import Terceirizada
+        from sme_terceirizadas.produto.models import AnaliseSensorial
         homologacao_produto = self.get_object()
         uri = reverse(
             'Produtos-relatorio',
@@ -352,11 +355,24 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
         )
         try:
             justificativa = request.data.get('justificativa', '')
+            terceirizada_uuid = request.data.get('uuidTerceirizada', '')
+            if not terceirizada_uuid:
+                return Response({'detail': 'O uuid da terceirizada é obrigatório'})
+
+            terceirizada = Terceirizada.objects.filter(uuid=terceirizada_uuid).first()
+            if not terceirizada:
+                return Response({'detail': f'Terceirizada para uuid {terceirizada_uuid} não encontrado.'})
+
+            AnaliseSensorial.objects.create(
+                homologacao_de_produto=homologacao_produto,
+                terceirizada=terceirizada)
+
             homologacao_produto.gera_protocolo_analise_sensorial()
             homologacao_produto.codae_pede_analise_sensorial(
                 user=request.user, justificativa=justificativa,
                 link_pdf=url_configs('API', {'uri': uri})
             )
+
             serializer = self.get_serializer(homologacao_produto)
             return Response(serializer.data)
         except InvalidTransitionError as e:
@@ -1200,7 +1216,7 @@ class RespostaAnaliseSensorialViewSet(viewsets.ModelViewSet):
     serializer_class = RespostaAnaliseSensorialSearilzerCreate
     queryset = RespostaAnaliseSensorial.objects.all()
 
-    @action(detail=False,
+    @action(detail=False, # noqa C901
             permission_classes=[UsuarioTerceirizada],
             methods=['post'],
             url_path=constants.TERCEIRIZADA_RESPONDE_ANALISE_SENSORIAL)
@@ -1216,10 +1232,37 @@ class RespostaAnaliseSensorialViewSet(viewsets.ModelViewSet):
         try:
             serializer.create(data)
             justificativa = request.data.get('justificativa', '')
-            homologacao.terceirizada_responde_analise_sensorial(
-                user=request.user, justificativa=justificativa
-            )
+            if not justificativa:
+                justificativa = data.get('observacao', '')
+
+            reclamacao = homologacao.reclamacoes.filter(
+                status=ReclamacaoProdutoWorkflow.AGUARDANDO_ANALISE_SENSORIAL).first()
+            if reclamacao:
+                # Respondendo análise sensorial vindo de uma Homologação de produto em processo de reclamação.
+                reclamacao.terceirizada_responde_analise_sensorial(user=request.user, justificativa=justificativa)
+                # Assim a homologação volta a aparecer no card de aguardando análise reclamações.
+                homologacao.terceirizada_responde_analise_sensorial_da_reclamacao(
+                    user=request.user, justificativa=justificativa
+                )
+            else:
+                # Respondendo análise sensorial vindo de uma Homologação de produto homologada.
+                logs_homologados = homologacao.logs.filter(status_evento=LogSolicitacoesUsuario.CODAE_HOMOLOGADO).all()
+                if logs_homologados:
+                    homologacao.terceirizada_responde_analise_sensorial_homologado(
+                        user=request.user, justificativa=justificativa
+                    )
+                else:
+                    # Respondendo análise sensorial vindo de uma Homologação de produto pendente.
+                    homologacao.terceirizada_responde_analise_sensorial(
+                        user=request.user, justificativa=justificativa
+                    )
             serializer.save()
+
+            analise_sensorial = homologacao.ultima_analise
+            if analise_sensorial:
+                analise_sensorial.status = AnaliseSensorial.STATUS_RESPONDIDA
+                analise_sensorial.save()
+
             return Response(serializer.data)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'),
@@ -1260,6 +1303,13 @@ class ReclamacaoProdutoViewSet(viewsets.ModelViewSet):
             anexos=anexos,
             justificativa=justificativa
         )
+        analises_sensoriais = reclamacao_produto.homologacao_de_produto.analises_sensoriais.filter(
+            status=AnaliseSensorial.STATUS_AGUARDANDO_RESPOSTA).all()
+        if analises_sensoriais:
+            for analise_sensorial in analises_sensoriais:
+                analise_sensorial.status = AnaliseSensorial.STATUS_RESPONDIDA
+                analise_sensorial.save()
+
         return self.muda_status_com_justificativa_e_anexo(
             request,
             reclamacao_produto.codae_aceita)
@@ -1269,6 +1319,7 @@ class ReclamacaoProdutoViewSet(viewsets.ModelViewSet):
             methods=['patch'],
             url_path=constants.CODAE_RECUSA)
     def codae_recusa(self, request, uuid=None):
+        from sme_terceirizadas.produto.models import AnaliseSensorial
         reclamacao_produto = self.get_object()
         resposta = self.muda_status_com_justificativa_e_anexo(
             request,
@@ -1277,7 +1328,9 @@ class ReclamacaoProdutoViewSet(viewsets.ModelViewSet):
             status__in=[
                 ReclamacaoProdutoWorkflow.AGUARDANDO_AVALIACAO,
                 ReclamacaoProdutoWorkflow.AGUARDANDO_RESPOSTA_TERCEIRIZADA,
-                ReclamacaoProdutoWorkflow.RESPONDIDO_TERCEIRIZADA
+                ReclamacaoProdutoWorkflow.RESPONDIDO_TERCEIRIZADA,
+                ReclamacaoProdutoWorkflow.AGUARDANDO_ANALISE_SENSORIAL,
+                ReclamacaoProdutoWorkflow.ANALISE_SENSORIAL_RESPONDIDA,
             ]
         )
         if reclamacoes_ativas.count() == 0:
@@ -1285,6 +1338,13 @@ class ReclamacaoProdutoViewSet(viewsets.ModelViewSet):
                 user=request.user,
                 justificativa='Recusa automática por não haver mais reclamações'
             )
+
+        analises_sensoriais = reclamacao_produto.homologacao_de_produto.analises_sensoriais.filter(
+            status=AnaliseSensorial.STATUS_AGUARDANDO_RESPOSTA).all()
+        if analises_sensoriais:
+            for analise_sensorial in analises_sensoriais:
+                analise_sensorial.status = AnaliseSensorial.STATUS_RESPONDIDA
+                analise_sensorial.save()
         return resposta
 
     @action(detail=True,
@@ -1339,9 +1399,55 @@ class ReclamacaoProdutoViewSet(viewsets.ModelViewSet):
                 user=request.user,
                 anexos=anexos,
                 justificativa=justificativa,
-                request=request
-            )
+                request=request)
         return resposta
+
+    @action(detail=True, # noqa C901
+            permission_classes=(UsuarioCODAEGestaoProduto,),
+            methods=['patch'],
+            url_path=constants.CODAE_PEDE_ANALISE_SENSORIAL)
+    def codae_pede_analise_sensorial(self, request, uuid=None):
+        from sme_terceirizadas.terceirizada.models import Terceirizada
+        from sme_terceirizadas.produto.models import AnaliseSensorial
+
+        reclamacao_produto = self.get_object()
+        homologacao_produto = reclamacao_produto.homologacao_de_produto
+        uri = reverse(
+            'Produtos-relatorio',
+            args=[homologacao_produto.produto.uuid]
+        )
+        try:
+            anexos = request.data.get('anexos', [])
+            justificativa = request.data.get('justificativa', '')
+            terceirizada_uuid = request.data.get('uuidTerceirizada', '')
+            if not terceirizada_uuid:
+                return Response({'detail': 'O uuid da terceirizada é obrigatório'})
+
+            terceirizada = Terceirizada.objects.filter(uuid=terceirizada_uuid).first()
+            if not terceirizada:
+                return Response({'detail': f'Terceirizada para uuid {terceirizada_uuid} não encontrado.'})
+
+            AnaliseSensorial.objects.create(
+                homologacao_de_produto=homologacao_produto,
+                terceirizada=terceirizada)
+
+            homologacao_produto.gera_protocolo_analise_sensorial()
+            homologacao_produto.codae_pede_analise_sensorial(
+                user=request.user, justificativa=justificativa,
+                link_pdf=url_configs('API', {'uri': uri})
+            )
+
+            reclamacao_produto.codae_pede_analise_sensorial(
+                user=request.user,
+                anexos=anexos,
+                justificativa=justificativa
+            )
+
+            serializer = self.get_serializer(self.get_object())
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'),
+                            status=status.HTTP_400_BAD_REQUEST)
 
 
 class SolicitacaoCadastroProdutoDietaFilter(filters.FilterSet):
