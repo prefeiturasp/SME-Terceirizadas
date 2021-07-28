@@ -161,7 +161,7 @@ def relatorio_guia_de_remessa(guias):
                 break
         inicio = 0
     html_string = render_to_string('logistica/guia_remessa/relatorio_guia.html', {'pages': pages})
-    data_arquivo = datetime.date.today().strftime('%d/%m/%Y')
+    data_arquivo = datetime.datetime.today().strftime('%d/%m/%Y às %H:%M')
 
     return html_to_pdf_response(html_string.replace('dt_file', data_arquivo), 'guia_de_remessa.pdf')
 
