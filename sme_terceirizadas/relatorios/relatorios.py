@@ -1,8 +1,10 @@
 import datetime
 
+import environ
 from django.db.models import F, FloatField, Sum
 from django.template.loader import render_to_string
 
+from ..dados_comuns.fluxo_status import GuiaRemessaWorkFlow as GuiaStatus
 from ..dados_comuns.fluxo_status import ReclamacaoProdutoWorkflow
 from ..dados_comuns.models import LogSolicitacoesUsuario
 from ..kit_lanche.models import EscolaQuantidade
@@ -18,6 +20,8 @@ from .utils import (
     get_ultima_justificativa_analise_sensorial,
     get_width
 )
+
+env = environ.Env()
 
 
 def relatorio_filtro_periodo(request, query_set_consolidado, escola_nome='', dre_nome=''):
@@ -137,11 +141,15 @@ def relatorio_dieta_especial_conteudo(solicitacao):
     return html_string
 
 
-def relatorio_guia_de_remessa(guias):
+def relatorio_guia_de_remessa(guias): # noqa C901
+    API_URL = env.str('API_URL', default=None)
     pages = []
     inicio = 0
     num_alimentos_pagina = 4
+    insucesso = None
     for guia in guias:
+        if guia.status == GuiaStatus.DISTRIBUIDOR_REGISTRA_INSUCESSO:
+            insucesso = guia.insucessos.last()
         todos_alimentos = guia.alimentos.all().annotate(
             peso_total=Sum(
                 F('embalagens__capacidade_embalagem') * F('embalagens__qtd_volume'), output_field=FloatField()
@@ -157,11 +165,13 @@ def relatorio_guia_de_remessa(guias):
                 page['status_guia'] = retorna_status_guia_remessa(page['status'])
                 pages.append(page)
                 inicio = inicio + num_alimentos_pagina
+                if insucesso:
+                    page['insucesso'] = insucesso
             else:
                 break
         inicio = 0
-    html_string = render_to_string('logistica/guia_remessa/relatorio_guia.html', {'pages': pages})
-    data_arquivo = datetime.date.today().strftime('%d/%m/%Y')
+    html_string = render_to_string('logistica/guia_remessa/relatorio_guia.html', {'pages': pages, 'API_URL': API_URL})
+    data_arquivo = datetime.datetime.today().strftime('%d/%m/%Y às %H:%M')
 
     return html_to_pdf_response(html_string.replace('dt_file', data_arquivo), 'guia_de_remessa.pdf')
 
