@@ -35,3 +35,46 @@
   color: $verde;
   font-size: 16px;
 }
+
+hr {
+  display: block;
+  height: 1px;
+  border: 0;
+  border-top: 1px solid #C0C0C0;
+  margin: 1em 0;
+  padding: 0;
+}
+
+.logo-sigpae{
+  display: flex;
+  align-content: center;
+  align-items: center;
+  img {
+    max-width:80px;
+    max-height:70px;
+    width: auto;
+    height: auto;
+  }
+}
+
+.insucesso-container {
+  font-size: 16px;
+  font-weight: normal;
+  line-height: 19px;
+  text-align: justify;
+  img {
+    float: left;
+    max-width:400px;
+    max-height:200px;
+    width: auto;
+    height: auto;
+    margin-right: 16px;
+  }
+}
+
+.text-footer {
+  font-size: 12px;
+  font-weight: normal;
+  line-height: 14px;
+  text-align: justify;
+}
