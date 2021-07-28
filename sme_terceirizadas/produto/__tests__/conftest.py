@@ -118,6 +118,19 @@ def homologacao_produto_escola_ou_nutri_reclamou(homologacao_produto):
 
 
 @pytest.fixture
+def reclamacao(homologacao_produto_escola_ou_nutri_reclamou, escola, user):
+    reclamacao = mommy.make('ReclamacaoDeProduto',
+                            homologacao_de_produto=homologacao_produto_escola_ou_nutri_reclamou,
+                            escola=escola,
+                            reclamante_registro_funcional='23456789',
+                            reclamante_cargo='Cargo',
+                            reclamante_nome='Anderson',
+                            criado_por=user,
+                            criado_em=datetime.datetime.utcnow())
+    return reclamacao
+
+
+@pytest.fixture
 def client_autenticado_vinculo_terceirizada_homologacao(client, django_user_model, escola):
     email = 'test@test.com'
     password = 'bar'
