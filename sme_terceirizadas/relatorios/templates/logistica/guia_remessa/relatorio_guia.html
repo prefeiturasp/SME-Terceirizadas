@@ -21,6 +21,11 @@
     {% include "logistica/guia_remessa/rodape_pendente_conferencia.html" %}
   {% endif %}
 
+  {% if page.status_guia == "Recebida" %}
+    {% include "logistica/guia_remessa/tabela_recebida.html" %}
+    {% include "logistica/guia_remessa/rodape_recebida.html" %}
+  {% endif %}
+
   {% include "logistica/guia_remessa/rodape.html" %}
   </div>
 	{% endfor %}
