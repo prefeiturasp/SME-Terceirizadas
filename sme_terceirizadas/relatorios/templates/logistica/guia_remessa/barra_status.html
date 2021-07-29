@@ -11,6 +11,12 @@
         Data de recebimento do alimento na Unidade Educacional: ______/______/______
       </div>
     </div>
+  {% elif page.status_guia == "Insucesso de entrega" %}
+    <div class="barra-status">
+      <div class="card-barra-status">
+        {{page.status_guia}}
+      </div>
+    </div>
   {% else %}
     <div class="barra-status">
       <div class="card-barra-status">
