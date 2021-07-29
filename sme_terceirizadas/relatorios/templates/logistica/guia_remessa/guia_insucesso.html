@@ -8,7 +8,7 @@
       <h4 class="title main-title">Insucesso de Entrega</h4>
       <div class="insucesso-container">
         {% if page.insucesso.arquivo %}
-          <img src="{{ API_URL }}{{ page.insucesso.arquivo.url }}" alt="">
+          <img src="{{ URL }}{{ page.insucesso.arquivo.url }}" alt="">
         {% endif %}
         <p>
           No dia <strong>{{ page.data_entrega|date:"d/m/Y" }}</strong>, às <strong>{{ page.insucesso.hora_tentativa|time:"H:i" }}</strong>, o motorista <strong>{{ page.insucesso.nome_motorista|upper }}</strong> cuja placa de veículo é nº <strong>{{ page.insucesso.placa_veiculo|upper }}</strong> esteve em <strong>{{ page.nome_unidade|upper }}</strong>. A entrega dos alimentos previstos nesta Guia de Remessa não foi realizada pelo motivo <strong>{{ page.insucesso.get_motivo_display|upper }}</strong>, conforme justificativa <strong>{{ page.insucesso.justificativa|upper }}</strong>.
