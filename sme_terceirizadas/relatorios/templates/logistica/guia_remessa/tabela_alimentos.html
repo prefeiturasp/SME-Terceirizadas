@@ -22,7 +22,7 @@
 						<th scope="col">Capacidade</th>
 					</tr>
 				</thead>
-				<tbody> 
+				<tbody>
         {% for alimento in page.alimentos %}
           {% embalagens_filter alimento.embalagens.all "FRACIONADA" as embalagem_fracionada %}
           {% embalagens_filter alimento.embalagens.all "FECHADA" as embalagem_fechada %}
@@ -47,6 +47,7 @@
 					</tr>
 				</tfooter>
 			</table>
+      <hr>
 		</div>
 	</div>
 </body>

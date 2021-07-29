@@ -9,7 +9,7 @@
 </head>
 <body>
   {% for page in pages %}
-  
+
 	<div style="page-break-before: always;"></div>
   {% include "logistica/guia_remessa/cabecalho.html" %}
   <div class="page-content">
@@ -19,6 +19,10 @@
 
   {% if page.status_guia == "Pendente de conferência" %}
     {% include "logistica/guia_remessa/rodape_pendente_conferencia.html" %}
+  {% endif %}
+
+  {% if page.status_guia == "Insucesso de entrega" %}
+    {% include "logistica/guia_remessa/guia_insucesso.html" %}
   {% endif %}
 
   {% include "logistica/guia_remessa/rodape.html" %}
