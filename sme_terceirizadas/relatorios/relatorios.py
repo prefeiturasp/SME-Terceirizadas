@@ -142,7 +142,7 @@ def relatorio_dieta_especial_conteudo(solicitacao):
 
 
 def relatorio_guia_de_remessa(guias): # noqa C901
-    API_URL = env.str('API_URL', default=None)
+    SERVER_NAME = env.str('SERVER_NAME', default=None)
     pages = []
     inicio = 0
     num_alimentos_pagina = 4
@@ -170,7 +170,7 @@ def relatorio_guia_de_remessa(guias): # noqa C901
             else:
                 break
         inicio = 0
-    html_string = render_to_string('logistica/guia_remessa/relatorio_guia.html', {'pages': pages, 'API_URL': API_URL})
+    html_string = render_to_string('logistica/guia_remessa/relatorio_guia.html', {'pages': pages, 'URL': SERVER_NAME})
     data_arquivo = datetime.datetime.today().strftime('%d/%m/%Y às %H:%M')
 
     return html_to_pdf_response(html_string.replace('dt_file', data_arquivo), 'guia_de_remessa.pdf')
