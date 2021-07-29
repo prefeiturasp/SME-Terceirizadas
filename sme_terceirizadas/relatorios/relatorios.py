@@ -145,7 +145,7 @@ def relatorio_guia_de_remessa(guias): # noqa C901
     API_URL = env.str('API_URL', default=None)
     pages = []
     inicio = 0
-    num_alimentos_pagina = 4
+    num_alimentos_pagina = 3
     insucesso = None
     for guia in guias:
         if guia.status == GuiaStatus.DISTRIBUIDOR_REGISTRA_INSUCESSO:
