@@ -1106,6 +1106,18 @@ class FabricanteViewSet(viewsets.ModelViewSet, ListaNomesUnicos):
     serializer_class = FabricanteSerializer
     queryset = Fabricante.objects.all()
 
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        if 'page' in request.query_params:
+            page = self.paginate_queryset(queryset)
+            if page is not None:
+                serializer = self.get_serializer(page, many=True)
+                return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({'results': serializer.data})
+
     @action(detail=False, methods=['GET'], url_path='lista-nomes')
     def lista_fabricantes(self, request):
         query_set = Fabricante.objects.all()
@@ -1155,6 +1167,18 @@ class MarcaViewSet(viewsets.ModelViewSet, ListaNomesUnicos):
     lookup_field = 'uuid'
     serializer_class = MarcaSerializer
     queryset = Marca.objects.all()
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        if 'page' in request.query_params:
+            page = self.paginate_queryset(queryset)
+            if page is not None:
+                serializer = self.get_serializer(page, many=True)
+                return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({'results': serializer.data})
 
     @action(detail=False, methods=['GET'], url_path='lista-nomes')
     def lista_marcas(self, request):
