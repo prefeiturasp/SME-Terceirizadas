@@ -17,14 +17,14 @@
         {{page.status_guia}}
       </div>
     </div>
-  {% else %}
+  {% elif page.status_guia == "Recebida" %}
     <div class="barra-status">
       <div class="card-barra-status">
         {{page.status_guia}}
       </div>
 
       <div class="card-barra-status">
-        Data de recebimento dos alimentos: 15/06/2021
+        Data de recebimento dos alimentos: {{ page.conferencia.data_recebimento|date:"d/m/Y" }}
       </div>
     </div>
   {% endif %}
