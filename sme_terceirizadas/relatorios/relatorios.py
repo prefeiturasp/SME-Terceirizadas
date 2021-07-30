@@ -147,9 +147,13 @@ def relatorio_guia_de_remessa(guias): # noqa C901
     inicio = 0
     num_alimentos_pagina = 4
     insucesso = None
+    conferencia = None
     for guia in guias:
         if guia.status == GuiaStatus.DISTRIBUIDOR_REGISTRA_INSUCESSO:
             insucesso = guia.insucessos.last()
+        if guia.status == GuiaStatus.RECEBIDA:
+            conferencia = guia.conferencias.last()
+            num_alimentos_pagina = 3
         todos_alimentos = guia.alimentos.all().annotate(
             peso_total=Sum(
                 F('embalagens__capacidade_embalagem') * F('embalagens__qtd_volume'), output_field=FloatField()
@@ -167,6 +171,8 @@ def relatorio_guia_de_remessa(guias): # noqa C901
                 inicio = inicio + num_alimentos_pagina
                 if insucesso:
                     page['insucesso'] = insucesso
+                if conferencia:
+                    page['conferencia'] = conferencia
             else:
                 break
         inicio = 0
