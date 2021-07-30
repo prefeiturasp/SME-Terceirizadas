@@ -145,7 +145,7 @@ def relatorio_guia_de_remessa(guias): # noqa C901
     SERVER_NAME = env.str('SERVER_NAME', default=None)
     pages = []
     inicio = 0
-    num_alimentos_pagina = 3
+    num_alimentos_pagina = 4
     insucesso = None
     conferencia = None
     for guia in guias:
