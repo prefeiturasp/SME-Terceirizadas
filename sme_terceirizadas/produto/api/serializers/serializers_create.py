@@ -55,19 +55,21 @@ class InformacoesNutricionaisDoProdutoSerializerCreate(serializers.ModelSerializ
 class ProdutoSerializerCreate(serializers.ModelSerializer):
     protocolos = serializers.SlugRelatedField(
         slug_field='uuid',
-        required=True,
+        required=False,
         queryset=ProtocoloDeDietaEspecial.objects.all(),
         many=True
     )
     marca = serializers.SlugRelatedField(
         slug_field='uuid',
-        required=True,
-        queryset=Marca.objects.all()
+        required=False,
+        queryset=Marca.objects.all(),
+        allow_null=True
     )
     fabricante = serializers.SlugRelatedField(
         slug_field='uuid',
-        required=True,
-        queryset=Fabricante.objects.all()
+        required=False,
+        queryset=Fabricante.objects.all(),
+        allow_null=True
     )
 
     imagens = ImagemDoProdutoSerializerCreate(many=True)
