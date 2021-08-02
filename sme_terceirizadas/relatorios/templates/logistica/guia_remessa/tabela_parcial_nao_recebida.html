@@ -15,8 +15,15 @@
 		          		<tbody> 
                     <tr>
 		          				<th scope="col" class="w-40" rowspan="3" style="vertical-align:middle;">
-                        <div>Nome do Produto</div>
-                        <div class="nome-alimento"> {{alimento.nome_alimento}} </div>
+                      <div class="cell-imagem-e-nome">
+                        <div class="cell-imagem">
+                          <img class="imagem-ocorrencia" src="https://rehagro.com.br/blog/wp-content/uploads/2020/07/WhatsApp-Image-2020-07-28-at-16.27.12.jpeg" alt="">
+                        </div>
+                        <div class="cell-nome">
+                          <div>Nome do Produto</div>
+                          <div class="nome-alimento">{{alimento.nome_alimento}}</div>
+                        </div>
+                      </div>
                       </th>
 		          				<th scope="col" colspan="2">Embalagem fechada</th>
 		          				<th scope="col" colspan="2">Embalagem fracionada</th>
@@ -34,6 +41,20 @@
 						          <td>{{embalagem_fracionada.capacidade_embalagem|default:'-'}} {{embalagem_fracionada.unidade_medida}}</td>
 		          			</tr>
                   </tbody>
+                  <tfoot>
+                    <tr>
+                      <td colspan="5">
+                        <strong>Ocorrência: </strong>
+                        Atraso na Entrega
+                      </td>
+                    </tr>
+                    <tr>
+                      <td colspan="5">
+                       <strong>Observação: </strong>
+                       Chegou atrasado demais
+                      </td>
+                    </tr>
+                  </tfoot>
 		          	</table>
         {% endfor %}
     </div>
