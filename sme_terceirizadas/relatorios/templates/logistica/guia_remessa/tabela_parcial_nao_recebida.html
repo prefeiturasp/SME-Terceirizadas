@@ -1,0 +1,67 @@
+{% include 'relatorio_base.html' %}
+{% load index %}
+{% load static %}
+{% load sass_tags %}
+
+<html>
+<body>
+	<div class="page-container mt-3">
+    <div class="table-responsive-sm">
+		  <h4 class="title main-title">Alimentos recebidos pela Unidade Educacional</h4>
+        {% for alimento in page.alimentos %}
+          {% embalagens_filter alimento.embalagens.all "FRACIONADA" as embalagem_fracionada %}
+          {% embalagens_filter alimento.embalagens.all "FECHADA" as embalagem_fechada %}
+          {% embalagens_filter alimento.embalagens_conferidas "FRACIONADA" as embalagem_fracionada_conferida %}
+          {% embalagens_filter alimento.embalagens_conferidas "FECHADA" as embalagem_fechada_conferida %}
+		          	<table class="table table-md table-bordered">
+		          		<tbody> 
+                    <tr>
+		          				<th scope="col" class="w-40" rowspan="3" style="vertical-align:middle;">
+                      <div class="cell-imagem-e-nome">
+                        {% if alimento.embalagens_conferidas.0.arquivo %}
+                          <div class="cell-imagem">
+                            <img class="imagem-ocorrencia" src="{{ URL }}{{ alimento.embalagens_conferidas.0.arquivo.url }}" alt="">
+                          </div>
+                        {% endif %}
+                        <div class="cell-nome">
+                          <div>Nome do Produto</div>
+                          <div class="nome-alimento">{{alimento.nome_alimento}}</div>
+                        </div>
+                      </div>
+                      </th>
+		          				<th scope="col" colspan="2">Embalagem fechada</th>
+		          				<th scope="col" colspan="2">Embalagem fracionada</th>
+		          			</tr>
+		          			<tr>
+		          				<th scope="col">Quantidade</th>
+		          				<th scope="col">Capacidade</th>
+		          				<th scope="col">Quantidade</th>
+		          				<th scope="col">Capacidade</th>
+		          			</tr>
+                    <tr>
+		          				<td>{{embalagem_fechada_conferida.qtd_recebido}} {{embalagem_fechada.descricao_embalagem|default:'-'}}</td>
+						          <td>{{embalagem_fechada.capacidade_embalagem|default:'-'}} {{embalagem_fechada.unidade_medida}}</td>
+						          <td>{{embalagem_fracionada_conferida.qtd_recebido}} {{embalagem_fracionada.descricao_embalagem |default:'-'}}</td>
+						          <td>{{embalagem_fracionada.capacidade_embalagem|default:'-'}} {{embalagem_fracionada.unidade_medida}}</td>
+		          			</tr>
+                  </tbody>
+                  <tfoot>
+                    <tr>
+                      <td colspan="5">
+                        Ocorrência:
+                        {{alimento.embalagens_conferidas.0.ocorrencia}}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td colspan="5">
+                       Observação:
+                       {{alimento.embalagens_conferidas.0.observacao}}
+                      </td>
+                    </tr>
+                  </tfoot>
+		          	</table>
+        {% endfor %}
+    </div>
+	</div>
+</body>
+</html>
