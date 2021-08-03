@@ -2029,10 +2029,14 @@ class ReclamacaoProdutoWorkflow(xwf_models.Workflow):
     )
 
     transitions = (
-        ('codae_questiona_terceirizada', AGUARDANDO_AVALIACAO, AGUARDANDO_RESPOSTA_TERCEIRIZADA),
+        ('codae_questiona_terceirizada', [AGUARDANDO_AVALIACAO,
+                                          ANALISE_SENSORIAL_RESPONDIDA,
+                                          RESPONDIDO_TERCEIRIZADA], AGUARDANDO_RESPOSTA_TERCEIRIZADA),
         ('terceirizada_responde', AGUARDANDO_RESPOSTA_TERCEIRIZADA,
          RESPONDIDO_TERCEIRIZADA),
-        ('codae_questiona_ue', AGUARDANDO_AVALIACAO, AGUARDANDO_RESPOSTA_UE),
+        ('codae_questiona_ue', [AGUARDANDO_AVALIACAO,
+                                ANALISE_SENSORIAL_RESPONDIDA,
+                                RESPONDIDO_TERCEIRIZADA], AGUARDANDO_RESPOSTA_UE),
         ('ue_responde', AGUARDANDO_RESPOSTA_UE, RESPONDIDO_UE),
         ('codae_aceita', [AGUARDANDO_RESPOSTA_TERCEIRIZADA,
                           AGUARDANDO_AVALIACAO,
