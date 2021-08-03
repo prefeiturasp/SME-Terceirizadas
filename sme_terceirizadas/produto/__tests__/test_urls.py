@@ -118,6 +118,21 @@ def test_url_endpoint_homologacao_produto_codae_pede_analise_sensorial_reclamaca
     assert response.json()['status'] == ReclamacaoProdutoWorkflow.AGUARDANDO_ANALISE_SENSORIAL
 
 
+def test_url_endpoint_homologacao_produto_codae_questiona_ue_reclamacao_homologado(
+        client_autenticado_vinculo_codae_produto, reclamacao):
+    from ...dados_comuns.fluxo_status import ReclamacaoProdutoWorkflow
+
+    assert reclamacao.status == ReclamacaoProdutoWorkflow.AGUARDANDO_AVALIACAO
+
+    response = client_autenticado_vinculo_codae_produto.patch(
+        f'/reclamacoes-produtos/{reclamacao.uuid}/'
+        f'{constants.CODAE_QUESTIONA_UE}/',
+        content_type='application/json',
+        data=json.dumps({'justificativa': 'É isso'}))
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()['status'] == ReclamacaoProdutoWorkflow.AGUARDANDO_RESPOSTA_UE
+
+
 def test_url_endpoint_homologacao_produto_codae_pede_analise_reclamacao(client_autenticado_vinculo_codae_produto,
                                                                         homologacao_produto_escola_ou_nutri_reclamou):
     body_content = {'justificativa': '<p>a</p>\n',
