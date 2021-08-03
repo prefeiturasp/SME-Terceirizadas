@@ -2009,6 +2009,8 @@ class ReclamacaoProdutoWorkflow(xwf_models.Workflow):
     RESPONDIDO_TERCEIRIZADA = 'RESPONDIDO_TERCEIRIZADA'
     AGUARDANDO_ANALISE_SENSORIAL = 'AGUARDANDO_ANALISE_SENSORIAL'
     ANALISE_SENSORIAL_RESPONDIDA = 'ANALISE_SENSORIAL_RESPONDIDA'
+    AGUARDANDO_RESPOSTA_UE = 'AGUARDANDO_RESPOSTA_UE'
+    RESPONDIDO_UE = 'RESPONDIDO_UE'
     CODAE_ACEITOU = 'CODAE_ACEITOU'
     CODAE_RECUSOU = 'CODAE_RECUSOU'
     CODAE_RESPONDEU = 'CODAE_RESPONDEU'
@@ -2016,28 +2018,36 @@ class ReclamacaoProdutoWorkflow(xwf_models.Workflow):
     states = (
         (AGUARDANDO_AVALIACAO, 'Aguardando avaliação da CODAE'),
         (AGUARDANDO_RESPOSTA_TERCEIRIZADA, 'Aguardando resposta da terceirizada'),
+        (AGUARDANDO_RESPOSTA_UE, 'Aguardando resposta da U.E'),
         (AGUARDANDO_ANALISE_SENSORIAL, 'Aguardando análise sensorial.'),
         (ANALISE_SENSORIAL_RESPONDIDA, 'Análise sensorial respondida.'),
         (RESPONDIDO_TERCEIRIZADA, 'Respondido pela terceirizada'),
+        (RESPONDIDO_UE, 'Respondido pela U.E'),
         (CODAE_ACEITOU, 'CODAE aceitou'),
         (CODAE_RECUSOU, 'CODAE recusou'),
         (CODAE_RESPONDEU, 'CODAE respondeu ao reclamante'),
     )
 
     transitions = (
-        ('codae_questiona', AGUARDANDO_AVALIACAO, AGUARDANDO_RESPOSTA_TERCEIRIZADA),
+        ('codae_questiona_terceirizada', AGUARDANDO_AVALIACAO, AGUARDANDO_RESPOSTA_TERCEIRIZADA),
         ('terceirizada_responde', AGUARDANDO_RESPOSTA_TERCEIRIZADA,
          RESPONDIDO_TERCEIRIZADA),
+        ('codae_questiona_ue', AGUARDANDO_AVALIACAO, AGUARDANDO_RESPOSTA_UE),
+        ('ue_responde', AGUARDANDO_RESPOSTA_UE, RESPONDIDO_UE),
         ('codae_aceita', [AGUARDANDO_RESPOSTA_TERCEIRIZADA,
                           AGUARDANDO_AVALIACAO,
                           RESPONDIDO_TERCEIRIZADA,
                           AGUARDANDO_ANALISE_SENSORIAL,
-                          ANALISE_SENSORIAL_RESPONDIDA], CODAE_ACEITOU),
+                          ANALISE_SENSORIAL_RESPONDIDA,
+                          AGUARDANDO_RESPOSTA_UE,
+                          RESPONDIDO_UE], CODAE_ACEITOU),
         ('codae_recusa', [AGUARDANDO_RESPOSTA_TERCEIRIZADA,
                           AGUARDANDO_AVALIACAO,
                           RESPONDIDO_TERCEIRIZADA,
                           AGUARDANDO_ANALISE_SENSORIAL,
-                          ANALISE_SENSORIAL_RESPONDIDA], CODAE_RECUSOU),
+                          ANALISE_SENSORIAL_RESPONDIDA,
+                          AGUARDANDO_RESPOSTA_UE,
+                          RESPONDIDO_UE], CODAE_RECUSOU),
         ('codae_responde', [AGUARDANDO_AVALIACAO,
                             RESPONDIDO_TERCEIRIZADA], CODAE_RESPONDEU),
         ('codae_pede_analise_sensorial', [AGUARDANDO_AVALIACAO,
@@ -2129,10 +2139,16 @@ class FluxoReclamacaoProduto(xwf_models.WorkflowEnabled, models.Model):
             **kwargs)
         self._envia_email_recusa_reclamacao(log_recusa)
 
-    @xworkflows.after_transition('codae_questiona')
-    def _codae_questiona_hook(self, *args, **kwargs):
+    @xworkflows.after_transition('codae_questiona_terceirizada')
+    def _codae_questiona_terceirizada_hook(self, *args, **kwargs):
         self.salvar_log_transicao(
             status_evento=LogSolicitacoesUsuario.CODAE_QUESTIONOU_TERCEIRIZADA,
+            **kwargs)
+
+    @xworkflows.after_transition('codae_questiona_ue')
+    def _codae_questiona_ue_hook(self, *args, **kwargs):
+        self.salvar_log_transicao(
+            status_evento=LogSolicitacoesUsuario.CODAE_QUESTIONOU_UE,
             **kwargs)
 
     @xworkflows.after_transition('codae_responde')
