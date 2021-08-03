@@ -106,7 +106,8 @@ CODAE_RECUSA_RECLAMACAO = 'codae-recusa-reclamacao'
 CODAE_ACEITA_RECLAMACAO = 'codae-aceita-reclamacao'
 CODAE_ACEITA = 'codae-aceita'
 CODAE_RECUSA = 'codae-recusa'
-CODAE_QUESTIONA = 'codae-questiona'
+CODAE_QUESTIONA_TERCEIRIZADA = 'codae-questiona-terceirizada'
+CODAE_QUESTIONA_UE = 'codae-questiona-ue'
 CODAE_RESPONDE = 'codae-responde'
 
 TERCEIRIZADA_RESPONDE_QUESTIONAMENTO = 'terceirizada-responde-questionamento'
@@ -169,8 +170,10 @@ DEZ_MB = 10485760
 CODAE_AUTORIZOU_RECLAMACAO = 'CODAE autorizou reclamação'
 CODAE_RECUSOU_RECLAMACAO = 'CODAE recusou reclamação'
 CODAE_QUESTIONOU_TERCEIRIZADA = 'CODAE questionou terceirizada sobre reclamação'
+CODAE_QUESTIONOU_UE = 'CODAE questionou U.E. sobre reclamação'
 CODAE_RESPONDEU_RECLAMACAO = 'CODAE respondeu ao reclamante da reclamação'
 TERCEIRIZADA_RESPONDEU_RECLAMACAO = 'Terceirizada respondeu a reclamação'
+UE_RESPONDEU_RECLAMACAO = 'U.E. respondeu a reclamação'
 
 TIPO_SOLICITACAO_DIETA = {'COMUM': 'COMUM',
                           'ALTERACAO_UE': 'ALTERACAO_UE',
