@@ -89,3 +89,30 @@ table{
     margin-top: 8px;
   }
 }
+
+.footer-ocorrencia td {
+  padding: 0.3rem 0.6rem;
+}
+
+.cell-imagem-e-nome{
+  display: flex;
+  flex-direction: row;
+
+  .cell-nome{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin-left: 6px;
+    text-align: left;
+  }
+
+  .cell-imagem{
+
+  }
+}
+
+.imagem-ocorrencia{
+  max-width: 60px;
+  max-height: 60px;
+  padding: 3px;
+}

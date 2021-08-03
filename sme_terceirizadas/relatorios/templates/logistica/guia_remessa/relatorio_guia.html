@@ -26,6 +26,11 @@
     {% include "logistica/guia_remessa/rodape_recebida.html" %}
   {% endif %}
 
+    {% if page.status_guia == "Recebimento Parcial" or "Não recebida" %}
+    {% include "logistica/guia_remessa/tabela_parcial_nao_recebida.html" %}
+    {% include "logistica/guia_remessa/rodape_recebida.html" %}
+  {% endif %}
+
   {% if page.status_guia == "Insucesso de entrega" %}
     {% include "logistica/guia_remessa/guia_insucesso.html" %}
   {% endif %}

@@ -1129,7 +1129,12 @@
 
 .table-md th,
 .table-md td {
-  padding: 0.45rem;
+  padding: 0.3rem 0.5rem;
+}
+
+.table-lg th,
+.table-lg td {
+  padding: 0.5rem;
 }
 
 .table-bordered {
