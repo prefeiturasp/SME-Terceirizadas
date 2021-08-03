@@ -106,11 +106,16 @@ class DiretoriaRegionalSimplissimaSerializer(serializers.ModelSerializer):
         fields = ('uuid', 'nome', 'codigo_eol')
 
 
-class EscolaSimplissimaSerializer(serializers.ModelSerializer):
-    lote = serializers.SerializerMethodField()
+class LoteReclamacaoSerializer(serializers.ModelSerializer):
+    terceirizada = TerceirizadaSimplesSerializer()
 
-    def get_lote(self, obj):
-        return f'{obj.lote.nome} - {obj.lote.iniciais}' if obj.lote else None
+    class Meta:
+        model = Lote
+        fields = ('uuid', 'nome', 'terceirizada')
+
+
+class EscolaSimplissimaSerializer(serializers.ModelSerializer):
+    lote = LoteReclamacaoSerializer()
 
     class Meta:
         model = Escola
