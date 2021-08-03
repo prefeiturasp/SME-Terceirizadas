@@ -26,7 +26,7 @@
     {% include "logistica/guia_remessa/rodape_recebida.html" %}
   {% endif %}
 
-    {% if page.status_guia == "Recebimento Parcial" or "Não recebida" %}
+  {% if page.status_guia == "Recebimento Parcial" or page.status_guia == "Não recebida" %}
     {% include "logistica/guia_remessa/tabela_parcial_nao_recebida.html" %}
     {% include "logistica/guia_remessa/rodape_recebida.html" %}
   {% endif %}
