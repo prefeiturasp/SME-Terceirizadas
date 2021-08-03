@@ -11,14 +11,18 @@
         {% for alimento in page.alimentos %}
           {% embalagens_filter alimento.embalagens.all "FRACIONADA" as embalagem_fracionada %}
           {% embalagens_filter alimento.embalagens.all "FECHADA" as embalagem_fechada %}
+          {% embalagens_filter alimento.embalagens_conferidas "FRACIONADA" as embalagem_fracionada_conferida %}
+          {% embalagens_filter alimento.embalagens_conferidas "FECHADA" as embalagem_fechada_conferida %}
 		          	<table class="table table-md table-bordered">
 		          		<tbody> 
                     <tr>
 		          				<th scope="col" class="w-40" rowspan="3" style="vertical-align:middle;">
                       <div class="cell-imagem-e-nome">
-                        <div class="cell-imagem">
-                          <img class="imagem-ocorrencia" src="https://rehagro.com.br/blog/wp-content/uploads/2020/07/WhatsApp-Image-2020-07-28-at-16.27.12.jpeg" alt="">
-                        </div>
+                        {% if alimento.embalagens_conferidas.0.arquivo %}
+                          <div class="cell-imagem">
+                            <img class="imagem-ocorrencia" src="{{ URL }}{{ alimento.embalagens_conferidas.0.arquivo.url }}" alt="">
+                          </div>
+                        {% endif %}
                         <div class="cell-nome">
                           <div>Nome do Produto</div>
                           <div class="nome-alimento">{{alimento.nome_alimento}}</div>
@@ -35,23 +39,23 @@
 		          				<th scope="col">Capacidade</th>
 		          			</tr>
                     <tr>
-		          				<td>{{embalagem_fechada.qtd_volume|default:'-'}} {{embalagem_fechada.descricao_embalagem}}</td>
+		          				<td>{{embalagem_fechada_conferida.qtd_recebido}} {{embalagem_fechada.descricao_embalagem|default:'-'}}</td>
 						          <td>{{embalagem_fechada.capacidade_embalagem|default:'-'}} {{embalagem_fechada.unidade_medida}}</td>
-						          <td>{{embalagem_fracionada.qtd_volume|default:'-'}} {{embalagem_fracionada.descricao_embalagem}}</td>
+						          <td>{{embalagem_fracionada_conferida.qtd_recebido}} {{embalagem_fracionada.descricao_embalagem |default:'-'}}</td>
 						          <td>{{embalagem_fracionada.capacidade_embalagem|default:'-'}} {{embalagem_fracionada.unidade_medida}}</td>
 		          			</tr>
                   </tbody>
                   <tfoot>
                     <tr>
                       <td colspan="5">
-                        <strong>Ocorrência: </strong>
-                        Atraso na Entrega
+                        Ocorrência:
+                        {{alimento.embalagens_conferidas.0.ocorrencia}}
                       </td>
                     </tr>
                     <tr>
                       <td colspan="5">
-                       <strong>Observação: </strong>
-                       Chegou atrasado demais
+                       Observação:
+                       {{alimento.embalagens_conferidas.0.observacao}}
                       </td>
                     </tr>
                   </tfoot>
