@@ -159,3 +159,7 @@ def test_url_relatorio_guia_remessa_authorized_dilog(client_autenticado_dilog, g
 def test_url_relatorio_guia_remessa_authorized_distribuidor(client_autenticado_distribuidor, guia):
     response = client_autenticado_distribuidor.get(f'/guias-da-requisicao/{str(guia.uuid)}/relatorio-guia-remessa/')
     assert response.status_code == status.HTTP_200_OK
+
+def test_url_relatorio_guia_remessa_authorized_escola(client_autenticado_escola_abastecimento, guia_com_escola_client_autenticado):
+    response = client_autenticado_escola_abastecimento.get(f'/guias-da-requisicao/{str(guia_com_escola_client_autenticado.uuid)}/relatorio-guia-remessa/')
+    assert response.status_code == status.HTTP_200_OK
