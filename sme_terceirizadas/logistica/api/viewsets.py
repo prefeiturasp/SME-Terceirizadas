@@ -615,7 +615,8 @@ class GuiaDaRequisicaoModelViewSet(viewsets.ModelViewSet):
                             status=HTTP_404_NOT_FOUND)
 
     @action(detail=True, methods=['GET'],
-            url_path='relatorio-guia-remessa', permission_classes=[UsuarioEscolaAbastecimento | UsuarioDilogCodae | UsuarioDistribuidor])
+            url_path='relatorio-guia-remessa',
+            permission_classes=[UsuarioEscolaAbastecimento | UsuarioDilogCodae | UsuarioDistribuidor])
     def relatorio_guia_de_remessa(self, request, uuid=None):
         guia = self.get_object()
         guias = [guia]
