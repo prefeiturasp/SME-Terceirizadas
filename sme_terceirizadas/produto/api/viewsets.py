@@ -167,7 +167,9 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
             HomologacaoDoProduto.workflow_class.CODAE_SUSPENDEU,
             HomologacaoDoProduto.workflow_class.CODAE_HOMOLOGADO,
             HomologacaoDoProduto.workflow_class.CODAE_NAO_HOMOLOGADO,
-            HomologacaoDoProduto.workflow_class.TERCEIRIZADA_CANCELOU_SOLICITACAO_HOMOLOGACAO]
+            HomologacaoDoProduto.workflow_class.TERCEIRIZADA_CANCELOU_SOLICITACAO_HOMOLOGACAO,
+            HomologacaoDoProduto.workflow_class.CODAE_QUESTIONOU_UE,
+            HomologacaoDoProduto.workflow_class.UE_RESPONDEU_QUESTIONAMENTO]
 
         if self.request.user.tipo_usuario in [constants.TIPO_USUARIO_TERCEIRIZADA,
                                               constants.TIPO_USUARIO_GESTAO_PRODUTO]:
@@ -202,7 +204,9 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
             if (workflow in [
                 HomologacaoDoProduto.workflow_class.ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
                 HomologacaoDoProduto.workflow_class.TERCEIRIZADA_RESPONDEU_RECLAMACAO,
-                HomologacaoDoProduto.workflow_class.CODAE_PEDIU_ANALISE_RECLAMACAO] and
+                HomologacaoDoProduto.workflow_class.CODAE_PEDIU_ANALISE_RECLAMACAO,
+                HomologacaoDoProduto.workflow_class.CODAE_QUESTIONOU_UE,
+                HomologacaoDoProduto.workflow_class.UE_RESPONDEU_QUESTIONAMENTO] and
                     self.request.user.tipo_usuario == constants.TIPO_USUARIO_ESCOLA):
 
                 q = query.filter(reclamacoes__escola=self.request.user.vinculo_atual.instituicao)
@@ -1403,13 +1407,12 @@ class ReclamacaoProdutoViewSet(viewsets.ModelViewSet):
         anexos = request.data.get('anexos', [])
         justificativa = request.data.get('justificativa', '')
         status_homologacao = homologacao_de_produto.status
-        if status_homologacao != HomologacaoProdutoWorkflow.CODAE_PEDIU_ANALISE_RECLAMACAO:
-            homologacao_de_produto.codae_pediu_analise_reclamacao(
+        if status_homologacao != HomologacaoProdutoWorkflow.CODAE_QUESTIONOU_UE:
+            homologacao_de_produto.codae_questiona_ue(
                 user=request.user,
                 anexos=anexos,
                 justificativa=justificativa
             )
-            homologacao_de_produto.rastro_terceirizada = reclamacao_produto.escola.lote.terceirizada
             homologacao_de_produto.save()
 
         return self.muda_status_com_justificativa_e_anexo(
