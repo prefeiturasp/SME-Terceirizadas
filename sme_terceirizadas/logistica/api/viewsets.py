@@ -430,6 +430,16 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
         return get_pdf_guia_distribuidor(data=guias)
 
     @action(
+        detail=True,
+        methods=['GET'],
+        url_path='relatorio-guias-da-requisicao',
+        permission_classes=[UsuarioDistribuidor | UsuarioDilogCodae])
+    def gerar_relaorio_guias_da_requisicao(self, request, uuid=None):
+        solicitacao = self.get_object()
+        guias = solicitacao.guias.all()
+        return relatorio_guia_de_remessa(guias=guias)
+
+    @action(
         detail=False, methods=['GET'],
         url_path='exporta-excel-visao-analitica',
         permission_classes=[UsuarioDilogCodae | UsuarioDistribuidor])
