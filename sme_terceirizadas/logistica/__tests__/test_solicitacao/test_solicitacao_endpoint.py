@@ -122,3 +122,9 @@ def test_desarquivar_guias_da_requisicao(client_autenticado_dilog, solicitacao, 
 
     assert response.status_code == status.HTTP_200_OK
     assert requisicao.situacao == SolicitacaoRemessa.ATIVA
+
+
+def test_url_relatorio_guia_remessa_authorized_dilog(client_autenticado_dilog, solicitacao):
+    response = client_autenticado_dilog.get(
+        f'/solicitacao-remessa/{str(solicitacao.uuid)}/relatorio-guias-da-requisicao/')
+    assert response.status_code == status.HTTP_200_OK
