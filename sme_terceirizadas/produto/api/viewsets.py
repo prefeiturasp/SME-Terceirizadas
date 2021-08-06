@@ -15,7 +15,12 @@ from xworkflows import InvalidTransitionError
 from ...dados_comuns import constants
 from ...dados_comuns.fluxo_status import HomologacaoProdutoWorkflow, ReclamacaoProdutoWorkflow
 from ...dados_comuns.models import LogSolicitacoesUsuario
-from ...dados_comuns.permissions import PermissaoParaReclamarDeProduto, UsuarioCODAEGestaoProduto, UsuarioTerceirizada
+from ...dados_comuns.permissions import (
+    PermissaoParaReclamarDeProduto,
+    UsuarioCODAEGestaoProduto,
+    UsuarioEscola,
+    UsuarioTerceirizada
+)
 from ...dados_comuns.utils import url_configs
 from ...dieta_especial.models import Alimento
 from ...relatorios.relatorios import (
@@ -350,8 +355,8 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
             methods=['patch'],
             url_path=constants.CODAE_PEDE_ANALISE_SENSORIAL)
     def codae_pede_analise_sensorial(self, request, uuid=None):
-        from sme_terceirizadas.terceirizada.models import Terceirizada
         from sme_terceirizadas.produto.models import AnaliseSensorial
+        from sme_terceirizadas.terceirizada.models import Terceirizada
         homologacao_produto = self.get_object()
         uri = reverse(
             'Produtos-relatorio',
@@ -675,6 +680,24 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         response = {'results': [{'uuid': 'uuid', 'nome': r['nome']} for r in query_set]}
         return Response(response)
 
+    @action(detail=False, methods=['GET'], url_path='lista-nomes-responder-reclamacao-escola')
+    def lista_produtos_responder_reclamacao_escola(self, request):
+        user = request.user
+        status_homologacoes = [
+            HomologacaoProdutoWorkflow.CODAE_QUESTIONOU_UE,
+            HomologacaoProdutoWorkflow.UE_RESPONDEU_QUESTIONAMENTO]
+
+        status_reclamacoes = [ReclamacaoProdutoWorkflow.AGUARDANDO_RESPOSTA_UE]
+
+        query_set = Produto.objects.filter(
+            ativo=True,
+            homologacoes__status__in=status_homologacoes,
+            homologacoes__reclamacoes__status__in=status_reclamacoes,
+            homologacoes__reclamacoes__escola=user.vinculo_atual.instituicao
+        ).only('nome').values('nome').order_by('nome').distinct()
+        response = {'results': [{'uuid': 'uuid', 'nome': r['nome']} for r in query_set]}
+        return Response(response)
+
     @action(detail=False, methods=['GET'], url_path='lista-nomes-homologados')
     def lista_produtos_homologados(self, request):
         status = 'CODAE_HOMOLOGADO'
@@ -929,6 +952,26 @@ class ProdutoViewSet(viewsets.ModelViewSet):
 
         return self.paginated_response(queryset)
 
+    @action(detail=False,
+            methods=['GET'],
+            url_path='filtro-reclamacoes-escola')
+    def filtro_reclamacoes_escola(self, request):
+        filtro_homologacao = {'homologacoes__reclamacoes__status':
+                              ReclamacaoProdutoWorkflow.AGUARDANDO_RESPOSTA_UE}
+        filtro_reclamacao = {'status__in': [ReclamacaoProdutoWorkflow.AGUARDANDO_RESPOSTA_UE,
+                                            ReclamacaoProdutoWorkflow.RESPONDIDO_UE
+                                            ]}
+        qtde_questionamentos = Count('homologacoes__reclamacoes', filter=Q(
+            homologacoes__reclamacoes__status=ReclamacaoProdutoWorkflow.AGUARDANDO_RESPOSTA_UE))
+
+        queryset = self.filter_queryset(self.get_queryset()).filter(
+            **filtro_homologacao).prefetch_related(
+                Prefetch('homologacoes__reclamacoes', queryset=ReclamacaoDeProduto.objects.filter(
+                    **filtro_reclamacao))).annotate(
+                        qtde_questionamentos=qtde_questionamentos).order_by('criado_em').distinct()
+
+        return self.paginated_response(queryset)
+
     def filtra_produtos_em_analise_sensorial(self, request, queryset):
         data_analise_inicial = converte_para_datetime(
             request.query_params.get('data_analise_inicial', None))
@@ -1166,6 +1209,24 @@ class FabricanteViewSet(viewsets.ModelViewSet, ListaNomesUnicos):
         response = {'results': FabricanteSimplesSerializer(query_set, many=True).data}
         return Response(response)
 
+    @action(detail=False, methods=['GET'], url_path='lista-nomes-responder-reclamacao-escola')
+    def lista_fabricantes_responder_reclamacao_escola(self, request):
+        user = request.user
+        status_homologacoes = [
+            HomologacaoProdutoWorkflow.CODAE_QUESTIONOU_UE,
+            HomologacaoProdutoWorkflow.UE_RESPONDEU_QUESTIONAMENTO]
+
+        status_reclamacoes = [ReclamacaoProdutoWorkflow.AGUARDANDO_RESPOSTA_UE]
+
+        query_set = Fabricante.objects.filter(
+            produto__homologacoes__status__in=status_homologacoes,
+            produto__homologacoes__reclamacoes__status__in=status_reclamacoes,
+            produto__homologacoes__reclamacoes__escola=user.vinculo_atual.instituicao
+        ).distinct()
+
+        response = {'results': FabricanteSimplesSerializer(query_set, many=True).data}
+        return Response(response)
+
 
 class MarcaViewSet(viewsets.ModelViewSet, ListaNomesUnicos):
     lookup_field = 'uuid'
@@ -1222,6 +1283,23 @@ class MarcaViewSet(viewsets.ModelViewSet, ListaNomesUnicos):
             produto__homologacoes__status__in=RESPONDER_RECLAMACAO_HOMOLOGACOES_STATUS,
             produto__homologacoes__reclamacoes__status__in=RESPONDER_RECLAMACAO_RECLAMACOES_STATUS,
             produto__homologacoes__rastro_terceirizada=user.vinculo_atual.instituicao
+        ).distinct()
+        response = {'results': MarcaSimplesSerializer(query_set, many=True).data}
+        return Response(response)
+
+    @action(detail=False, methods=['GET'], url_path='lista-nomes-responder-reclamacao-escola')
+    def lista_marcas_responder_reclamacao_escola(self, request):
+        user = request.user
+        status_homologacoes = [
+            HomologacaoProdutoWorkflow.CODAE_QUESTIONOU_UE,
+            HomologacaoProdutoWorkflow.UE_RESPONDEU_QUESTIONAMENTO]
+
+        status_reclamacoes = [ReclamacaoProdutoWorkflow.AGUARDANDO_RESPOSTA_UE]
+
+        query_set = Marca.objects.filter(
+            produto__homologacoes__status__in=status_homologacoes,
+            produto__homologacoes__reclamacoes__status__in=status_reclamacoes,
+            produto__homologacoes__reclamacoes__escola=user.vinculo_atual.instituicao
         ).distinct()
         response = {'results': MarcaSimplesSerializer(query_set, many=True).data}
         return Response(response)
@@ -1452,13 +1530,37 @@ class ReclamacaoProdutoViewSet(viewsets.ModelViewSet):
                 request=request)
         return resposta
 
+    @action(detail=True,
+            methods=['patch'],
+            url_path=constants.ESCOLA_RESPONDE,
+            permission_classes=[UsuarioEscola])
+    def escola_responde(self, request, uuid=None):
+        reclamacao_produto = self.get_object()
+        anexos = request.data.get('anexos', [])
+        justificativa = request.data.get('justificativa', '')
+        resposta = self.muda_status_com_justificativa_e_anexo(
+            request,
+            reclamacao_produto.ue_responde)
+        questionamentos_ativos = reclamacao_produto.homologacao_de_produto.reclamacoes.filter(
+            status__in=[
+                ReclamacaoProdutoWorkflow.AGUARDANDO_RESPOSTA_UE,
+            ]
+        )
+        if questionamentos_ativos.count() == 0:
+            reclamacao_produto.homologacao_de_produto.ue_respondeu_questionamento(
+                user=request.user,
+                anexos=anexos,
+                justificativa=justificativa,
+                request=request)
+        return resposta
+
     @action(detail=True, # noqa C901
             permission_classes=(UsuarioCODAEGestaoProduto,),
             methods=['patch'],
             url_path=constants.CODAE_PEDE_ANALISE_SENSORIAL)
     def codae_pede_analise_sensorial(self, request, uuid=None):
-        from sme_terceirizadas.terceirizada.models import Terceirizada
         from sme_terceirizadas.produto.models import AnaliseSensorial
+        from sme_terceirizadas.terceirizada.models import Terceirizada
 
         reclamacao_produto = self.get_object()
         homologacao_produto = reclamacao_produto.homologacao_de_produto

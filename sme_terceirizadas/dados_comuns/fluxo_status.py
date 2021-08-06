@@ -1140,6 +1140,13 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
             kwargs['request']
         )
 
+    @xworkflows.after_transition('ue_respondeu_questionamento')
+    def _ue_respondeu_questionamento_hook(self, *args, **kwargs):
+        self.salva_log_com_justificativa_e_anexos(
+            LogSolicitacoesUsuario.UE_RESPONDEU_RECLAMACAO,
+            kwargs['request']
+        )
+
     class Meta:
         abstract = True
 
@@ -2193,6 +2200,12 @@ class FluxoReclamacaoProduto(xwf_models.WorkflowEnabled, models.Model):
     def _terceirizada_responde_hook(self, *args, **kwargs):
         self.salvar_log_transicao(
             status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_RESPONDEU_RECLAMACAO,
+            **kwargs)
+
+    @xworkflows.after_transition('ue_responde')
+    def _ue_responde_hook(self, *args, **kwargs):
+        self.salvar_log_transicao(
+            status_evento=LogSolicitacoesUsuario.UE_RESPONDEU_RECLAMACAO,
             **kwargs)
 
     @xworkflows.after_transition('codae_pede_analise_sensorial')
