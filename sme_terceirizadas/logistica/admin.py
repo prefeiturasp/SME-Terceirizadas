@@ -31,6 +31,7 @@ class SolicitacaoAdmin(admin.ModelAdmin):
     ordering = ('-alterado_em',)
     search_fields = ('numero_solicitacao',)
     list_filter = ('status',)
+    readonly_fields = ('uuid',)
     inlines = [GuiaInline]
 
     def get_guias(self, obj):
@@ -71,6 +72,7 @@ class GuiaAdmin(admin.ModelAdmin):
     )
     list_filter = ('status',)
     ordering = ('-alterado_em',)
+    readonly_fields = ('uuid',)
     inlines = [AlimentoInline]
 
     def get_situacao(self, obj):
