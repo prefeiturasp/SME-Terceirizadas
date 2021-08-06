@@ -116,3 +116,11 @@ table{
   max-height: 60px;
   padding: 3px;
 }
+
+.fixed-bottom-absolute {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 1030;
+}
