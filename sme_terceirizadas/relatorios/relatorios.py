@@ -599,7 +599,7 @@ def get_pdf_guia_distribuidor(data=None, many=False):
             else:
                 break
         inicio = 0
-    html_string = render_to_string('logistica/guia_distribuidor/index.html', {'pages': pages})
+    html_string = render_to_string('logistica/guia_distribuidor/guia_distribuidor_v2.html', {'pages': pages})
     data_arquivo = datetime.date.today().strftime('%d/%m/%Y')
 
     return html_to_pdf_response(html_string.replace('dt_file', data_arquivo), 'guia_de_remessa.pdf')
