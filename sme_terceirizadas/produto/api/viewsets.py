@@ -18,7 +18,6 @@ from ...dados_comuns.models import LogSolicitacoesUsuario
 from ...dados_comuns.permissions import (
     PermissaoParaReclamarDeProduto,
     UsuarioCODAEGestaoProduto,
-    UsuarioEscola,
     UsuarioTerceirizada
 )
 from ...dados_comuns.utils import url_configs
@@ -1532,8 +1531,7 @@ class ReclamacaoProdutoViewSet(viewsets.ModelViewSet):
 
     @action(detail=True,
             methods=['patch'],
-            url_path=constants.ESCOLA_RESPONDE,
-            permission_classes=[UsuarioEscola])
+            url_path=constants.ESCOLA_RESPONDE)
     def escola_responde(self, request, uuid=None):
         reclamacao_produto = self.get_object()
         anexos = request.data.get('anexos', [])
