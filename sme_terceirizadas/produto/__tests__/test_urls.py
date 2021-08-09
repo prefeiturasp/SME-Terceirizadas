@@ -288,3 +288,41 @@ def test_url_produto_ja_existe(client_autenticado_vinculo_terceirizada, produto,
     })
 
     assert response.json()['produto_existe'] is False
+
+
+def test_url_endpoint_lista_nomes_responder_reclamacao_escola(client_autenticado_vinculo_escola_ue, produto,
+                                                              homologacao_produto_gpcodae_questionou_escola,
+                                                              reclamacao_ue):
+
+    client = client_autenticado_vinculo_escola_ue
+    response = client.get(f'/produtos/lista-nomes-responder-reclamacao-escola/')
+    esperado = {'results': [{'uuid': 'uuid', 'nome': produto.nome}]}
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == esperado
+
+
+def test_url_endpoint_lista_nomes_responder_reclamacao_fabricantes(client_autenticado_vinculo_escola_ue,
+                                                                   produto, fabricante,
+                                                                   homologacao_produto_gpcodae_questionou_escola,
+                                                                   reclamacao_ue):
+
+    client = client_autenticado_vinculo_escola_ue
+    response = client.get(f'/fabricantes/lista-nomes-responder-reclamacao-escola/')
+    esperado = {'results': [{'uuid': str(fabricante.uuid), 'nome': fabricante.nome}]}
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == esperado
+
+
+def test_url_endpoint_lista_nomes_responder_reclamacao_marcas(client_autenticado_vinculo_escola_ue,
+                                                              produto, marca1,
+                                                              homologacao_produto_gpcodae_questionou_escola,
+                                                              reclamacao_ue):
+
+    client = client_autenticado_vinculo_escola_ue
+    response = client.get(f'/marcas/lista-nomes-responder-reclamacao-escola/')
+    esperado = {'results': [{'uuid': str(marca1.uuid), 'nome': marca1.nome}]}
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == esperado

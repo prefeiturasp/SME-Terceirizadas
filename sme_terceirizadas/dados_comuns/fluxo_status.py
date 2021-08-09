@@ -395,7 +395,8 @@ class HomologacaoProdutoWorkflow(xwf_models.Workflow):
         ('escola_ou_nutricionista_reclamou',
          CODAE_HOMOLOGADO, ESCOLA_OU_NUTRICIONISTA_RECLAMOU),
         ('codae_questiona_ue',
-         [UE_RESPONDEU_QUESTIONAMENTO,
+         [CODAE_PEDIU_ANALISE_RECLAMACAO,
+          UE_RESPONDEU_QUESTIONAMENTO,
           TERCEIRIZADA_RESPONDEU_RECLAMACAO,
           ESCOLA_OU_NUTRICIONISTA_RECLAMOU], CODAE_QUESTIONOU_UE),
         ('ue_respondeu_questionamento', CODAE_QUESTIONOU_UE, UE_RESPONDEU_QUESTIONAMENTO),
@@ -1137,6 +1138,13 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
     def _terceirizada_responde_reclamacao_hook(self, *args, **kwargs):
         self.salva_log_com_justificativa_e_anexos(
             LogSolicitacoesUsuario.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO,
+            kwargs['request']
+        )
+
+    @xworkflows.after_transition('ue_respondeu_questionamento')
+    def _ue_respondeu_questionamento_hook(self, *args, **kwargs):
+        self.salva_log_com_justificativa_e_anexos(
+            LogSolicitacoesUsuario.UE_RESPONDEU_RECLAMACAO,
             kwargs['request']
         )
 
@@ -2193,6 +2201,12 @@ class FluxoReclamacaoProduto(xwf_models.WorkflowEnabled, models.Model):
     def _terceirizada_responde_hook(self, *args, **kwargs):
         self.salvar_log_transicao(
             status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_RESPONDEU_RECLAMACAO,
+            **kwargs)
+
+    @xworkflows.after_transition('ue_responde')
+    def _ue_responde_hook(self, *args, **kwargs):
+        self.salvar_log_transicao(
+            status_evento=LogSolicitacoesUsuario.UE_RESPONDEU_RECLAMACAO,
             **kwargs)
 
     @xworkflows.after_transition('codae_pede_analise_sensorial')
