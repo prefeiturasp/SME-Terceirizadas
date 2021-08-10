@@ -951,11 +951,13 @@ class ProdutoViewSet(viewsets.ModelViewSet):
             methods=['GET'],
             url_path='filtro-reclamacoes-escola')
     def filtro_reclamacoes_escola(self, request):
+        user = self.request.user
         filtro_homologacao = {'homologacoes__reclamacoes__status':
                               ReclamacaoProdutoWorkflow.AGUARDANDO_RESPOSTA_UE}
         filtro_reclamacao = {'status__in': [ReclamacaoProdutoWorkflow.AGUARDANDO_RESPOSTA_UE,
                                             ReclamacaoProdutoWorkflow.RESPONDIDO_UE
-                                            ]}
+                                            ],
+                             'escola': user.vinculo_atual.instituicao}
         qtde_questionamentos = Count('homologacoes__reclamacoes', filter=Q(
             homologacoes__reclamacoes__status=ReclamacaoProdutoWorkflow.AGUARDANDO_RESPOSTA_UE))
 
