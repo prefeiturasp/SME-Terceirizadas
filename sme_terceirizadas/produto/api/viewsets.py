@@ -953,7 +953,8 @@ class ProdutoViewSet(viewsets.ModelViewSet):
     def filtro_reclamacoes_escola(self, request):
         user = self.request.user
         filtro_homologacao = {'homologacoes__reclamacoes__status':
-                              ReclamacaoProdutoWorkflow.AGUARDANDO_RESPOSTA_UE}
+                              ReclamacaoProdutoWorkflow.AGUARDANDO_RESPOSTA_UE,
+                              'homologacoes__reclamacoes__escola': user.vinculo_atual.instituicao}
         filtro_reclamacao = {'status__in': [ReclamacaoProdutoWorkflow.AGUARDANDO_RESPOSTA_UE,
                                             ReclamacaoProdutoWorkflow.RESPONDIDO_UE
                                             ],
