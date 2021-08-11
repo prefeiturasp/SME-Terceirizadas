@@ -13,6 +13,7 @@ from django_xworkflows import models as xwf_models
 
 from ..escola import models as m
 from ..perfil.models import Usuario
+from ..relatorios.utils import html_to_pdf_email_anexo
 from .constants import (
     ADMINISTRADOR_DIETA_ESPECIAL,
     ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
@@ -22,9 +23,10 @@ from .constants import (
 )
 from .models import AnexoLogSolicitacoesUsuario, LogSolicitacoesUsuario
 from .tasks import envia_email_em_massa_task, envia_email_unico_task
-from .utils import convert_base64_to_contentfile
+from .utils import convert_base64_to_contentfile, envia_email_unico_com_anexo_inmemory
 
 env = environ.Env()
+base_url = f'{env("REACT_APP_URL")}'
 
 
 class PedidoAPartirDaEscolaWorkflow(xwf_models.Workflow):
@@ -82,7 +84,7 @@ class PedidoAPartirDaEscolaWorkflow(xwf_models.Workflow):
          TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO, CODAE_AUTORIZADO),
         ('codae_nega_questionamento',
          TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO, CODAE_NEGOU_PEDIDO),
-        ('codae_nega', DRE_VALIDADO, CODAE_NEGOU_PEDIDO),
+        ('codae_nega', [DRE_VALIDADO, CODAE_QUESTIONADO], CODAE_NEGOU_PEDIDO),
         ('terceirizada_responde_questionamento',
          CODAE_QUESTIONADO, TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO),
         ('terceirizada_toma_ciencia', CODAE_AUTORIZADO, TERCEIRIZADA_TOMOU_CIENCIA),
@@ -134,7 +136,7 @@ class PedidoAPartirDaDiretoriaRegionalWorkflow(xwf_models.Workflow):
     transitions = (
         ('inicia_fluxo', RASCUNHO, CODAE_A_AUTORIZAR),
         ('codae_pede_revisao', CODAE_A_AUTORIZAR, CODAE_PEDIU_DRE_REVISAR),
-        ('codae_nega', CODAE_A_AUTORIZAR, CODAE_NEGOU_PEDIDO),
+        ('codae_nega', [CODAE_A_AUTORIZAR, CODAE_QUESTIONADO], CODAE_NEGOU_PEDIDO),
         ('dre_revisa', CODAE_PEDIU_DRE_REVISAR, CODAE_A_AUTORIZAR),
         ('codae_autoriza', CODAE_A_AUTORIZAR, CODAE_AUTORIZADO),
         ('codae_questiona', CODAE_A_AUTORIZAR, CODAE_QUESTIONADO),
@@ -255,10 +257,12 @@ class GuiaRemessaWorkFlow(xwf_models.Workflow):
     )
 
     transitions = (
+        ('distribuidor_confirma_guia', AGUARDANDO_CONFIRMACAO, PENDENTE_DE_CONFERENCIA),
         ('distribuidor_registra_insucesso', PENDENTE_DE_CONFERENCIA, DISTRIBUIDOR_REGISTRA_INSUCESSO),
         ('escola_recebe', PENDENTE_DE_CONFERENCIA, RECEBIDA),
         ('escola_nao_recebe', PENDENTE_DE_CONFERENCIA, NAO_RECEBIDA),
         ('escola_recebe_parcial', PENDENTE_DE_CONFERENCIA, RECEBIMENTO_PARCIAL),
+        ('escola_recebe_parcial_atraso', PENDENTE_DE_CONFERENCIA, RECEBIMENTO_PARCIAL),
         ('reposicao_parcial', [NAO_RECEBIDA, RECEBIMENTO_PARCIAL], REPOSICAO_PARCIAL),
         ('reposicao_total', [NAO_RECEBIDA, RECEBIMENTO_PARCIAL], REPOSICAO_TOTAL),
     )
@@ -339,9 +343,12 @@ class HomologacaoProdutoWorkflow(xwf_models.Workflow):
     INATIVA = 'HOMOLOGACAO_INATIVA'
     CODAE_SUSPENDEU = 'CODAE_SUSPENDEU'
     ESCOLA_OU_NUTRICIONISTA_RECLAMOU = 'ESCOLA_OU_NUTRICIONISTA_RECLAMOU'
+    CODAE_QUESTIONOU_UE = 'CODAE_QUESTIONOU_UE'
+    UE_RESPONDEU_QUESTIONAMENTO = 'UE_RESPONDEU_QUESTIONAMENTO'
     CODAE_PEDIU_ANALISE_RECLAMACAO = 'CODAE_PEDIU_ANALISE_RECLAMACAO'
     TERCEIRIZADA_RESPONDEU_RECLAMACAO = 'TERCEIRIZADA_RESPONDEU_RECLAMACAO'
     CODAE_AUTORIZOU_RECLAMACAO = 'CODAE_AUTORIZOU_RECLAMACAO'
+    TERCEIRIZADA_CANCELOU_SOLICITACAO_HOMOLOGACAO = 'TERCEIRIZADA_CANCELOU_SOLICITACAO_HOMOLOGACAO'
 
     states = (
         (RASCUNHO, 'Rascunho'),
@@ -355,9 +362,12 @@ class HomologacaoProdutoWorkflow(xwf_models.Workflow):
         (CODAE_SUSPENDEU, 'CODAE suspendeu o produto'),
         (ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
          'Escola/Nutricionista reclamou do produto'),
+        (CODAE_QUESTIONOU_UE, 'CODAE questionou U.E.'),
+        (UE_RESPONDEU_QUESTIONAMENTO, 'U.E respondeu questionamento'),
         (CODAE_PEDIU_ANALISE_RECLAMACAO, 'CODAE pediu análise da reclamação'),
         (TERCEIRIZADA_RESPONDEU_RECLAMACAO, 'Terceirizada respondeu a reclamação'),
-        (CODAE_AUTORIZOU_RECLAMACAO, 'CODAE autorizou reclamação')
+        (CODAE_AUTORIZOU_RECLAMACAO, 'CODAE autorizou reclamação'),
+        (TERCEIRIZADA_CANCELOU_SOLICITACAO_HOMOLOGACAO, 'Terceirizada cancelou solicitação de homologação de produto')
     )
 
     transitions = (
@@ -373,31 +383,50 @@ class HomologacaoProdutoWorkflow(xwf_models.Workflow):
         ('terceirizada_responde_questionamento',
          CODAE_QUESTIONADO, CODAE_PENDENTE_HOMOLOGACAO),
         ('codae_pede_analise_sensorial',
-         CODAE_PENDENTE_HOMOLOGACAO, CODAE_PEDIU_ANALISE_SENSORIAL),
+         [CODAE_PEDIU_ANALISE_RECLAMACAO,
+          CODAE_PENDENTE_HOMOLOGACAO,
+          ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
+          TERCEIRIZADA_RESPONDEU_RECLAMACAO,
+          CODAE_HOMOLOGADO], CODAE_PEDIU_ANALISE_SENSORIAL),
         ('terceirizada_responde_analise_sensorial',
          CODAE_PEDIU_ANALISE_SENSORIAL, CODAE_PENDENTE_HOMOLOGACAO),
         ('codae_suspende', CODAE_HOMOLOGADO, CODAE_SUSPENDEU),
         ('codae_ativa', CODAE_SUSPENDEU, CODAE_HOMOLOGADO),
         ('escola_ou_nutricionista_reclamou',
          CODAE_HOMOLOGADO, ESCOLA_OU_NUTRICIONISTA_RECLAMOU),
+        ('codae_questiona_ue',
+         [CODAE_PEDIU_ANALISE_RECLAMACAO,
+          UE_RESPONDEU_QUESTIONAMENTO,
+          TERCEIRIZADA_RESPONDEU_RECLAMACAO,
+          ESCOLA_OU_NUTRICIONISTA_RECLAMOU], CODAE_QUESTIONOU_UE),
+        ('ue_respondeu_questionamento', CODAE_QUESTIONOU_UE, UE_RESPONDEU_QUESTIONAMENTO),
         ('codae_pediu_analise_reclamacao',
-         [ESCOLA_OU_NUTRICIONISTA_RECLAMOU, TERCEIRIZADA_RESPONDEU_RECLAMACAO],
-         CODAE_PEDIU_ANALISE_RECLAMACAO),
+         [UE_RESPONDEU_QUESTIONAMENTO,
+          TERCEIRIZADA_RESPONDEU_RECLAMACAO,
+          ESCOLA_OU_NUTRICIONISTA_RECLAMOU], CODAE_PEDIU_ANALISE_RECLAMACAO),
         ('terceirizada_responde_reclamacao',
          CODAE_PEDIU_ANALISE_RECLAMACAO, TERCEIRIZADA_RESPONDEU_RECLAMACAO),
         ('codae_autorizou_reclamacao',
          [CODAE_PEDIU_ANALISE_RECLAMACAO,
           ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
-          TERCEIRIZADA_RESPONDEU_RECLAMACAO],
+          TERCEIRIZADA_RESPONDEU_RECLAMACAO,
+          CODAE_PEDIU_ANALISE_SENSORIAL],
          CODAE_AUTORIZOU_RECLAMACAO),
         ('codae_recusou_reclamacao',
          [CODAE_PEDIU_ANALISE_RECLAMACAO,
           ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
-          TERCEIRIZADA_RESPONDEU_RECLAMACAO],
+          TERCEIRIZADA_RESPONDEU_RECLAMACAO,
+          CODAE_PEDIU_ANALISE_SENSORIAL],
          CODAE_HOMOLOGADO),
         ('inativa_homologacao',
          [CODAE_SUSPENDEU, ESCOLA_OU_NUTRICIONISTA_RECLAMOU, CODAE_QUESTIONADO, CODAE_HOMOLOGADO,
           CODAE_NAO_HOMOLOGADO, CODAE_AUTORIZOU_RECLAMACAO], INATIVA),
+        ('terceirizada_cancelou_solicitacao_homologacao',
+         CODAE_PENDENTE_HOMOLOGACAO, TERCEIRIZADA_CANCELOU_SOLICITACAO_HOMOLOGACAO),
+        ('terceirizada_responde_analise_sensorial_da_reclamacao',
+         CODAE_PEDIU_ANALISE_SENSORIAL, ESCOLA_OU_NUTRICIONISTA_RECLAMOU),
+        ('terceirizada_responde_analise_sensorial_homologado',
+         CODAE_PEDIU_ANALISE_SENSORIAL, CODAE_HOMOLOGADO)
     )
 
     initial_state = RASCUNHO
@@ -524,7 +553,6 @@ class FluxoSolicitacaoDeAlteracao(xwf_models.WorkflowEnabled, models.Model):
         return [email for email in email_query_set_distribuidor]
 
     def _envia_email_distribuidor_solicita_alteracao(self, log_transicao, partes_interessadas):
-        base_url = f'{env("REACT_APP_URL")}'
         url = f'{base_url}/logistica/gestao-solicitacao-alteracao?numero_solicitacao={self.numero_solicitacao}'
         html = render_to_string(
             template_name='logistica_dilog_envia_solicitacao.html',
@@ -595,8 +623,50 @@ class FluxoGuiaRemessa(xwf_models.WorkflowEnabled, models.Model):
     def salvar_log_transicao(self, status_evento, usuario, **kwargs):
         raise NotImplementedError('Deve criar um método salvar_log_transicao')
 
-    def _preenche_template_e_envia_email(self, assunto, titulo, user, partes_interessadas):
-        raise NotImplementedError('Deve criar um método de envio de email as partes interessadas')  # noqa
+    def _preenche_template_e_envia_email(self, template, assunto, titulo, partes_interessadas, log_transicao, url):
+        html = render_to_string(
+            template_name=template,
+            context={
+                'titulo': titulo,
+                'guia': self.numero_guia,
+                'log_transicao': log_transicao,
+                'url': url
+            }
+        )
+        envia_email_em_massa_task.delay(
+            assunto=assunto,
+            emails=partes_interessadas,
+            corpo='',
+            html=html
+        )
+
+    def _partes_interessadas_escola(self):
+        # Envia email somente para usuários ativos vinculados a escola da guia
+        if self.escola:
+            email_query_set_escola = self.escola.vinculos.filter(
+                ativo=True
+            ).values_list('usuario__email', flat=True)
+
+            return [email for email in email_query_set_escola]
+        else:
+            return []
+
+    @xworkflows.after_transition('distribuidor_confirma_guia')
+    def _distribuidor_confirma_guia_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        log_transicao = self.salvar_log_transicao(
+            status_evento=LogSolicitacoesUsuario.ABASTECIMENTO_GUIA_DE_REMESSA,
+            usuario=user,
+            justificativa=kwargs.get('justificativa', ''))
+
+        # Monta e-mail
+        url = f'{base_url}/logistica/conferir-entrega?numero_guia={self.numero_guia}'
+        titulo = f'Nova Guia de Remessa N° {self.numero_guia}'
+        assunto = f'[SIGPAE] Nova Guia de Remessa N° {self.numero_guia}'
+        template = 'logistica_distribuidor_confirma_requisicao.html'
+        partes_interessadas = self._partes_interessadas_escola()
+
+        self._preenche_template_e_envia_email(template, assunto, titulo, partes_interessadas, log_transicao, url)
 
     @xworkflows.after_transition('distribuidor_registra_insucesso')
     def _distribuidor_registra_insucesso_hook(self, *args, **kwargs):
@@ -617,13 +687,55 @@ class FluxoGuiaRemessa(xwf_models.WorkflowEnabled, models.Model):
     @xworkflows.after_transition('escola_nao_recebe')
     def _escola_nao_recebe_hook(self, *args, **kwargs):
         user = kwargs['user']
+        log_transicao = self.salvar_log_transicao(
+            status_evento=LogSolicitacoesUsuario.ABASTECIMENTO_GUIA_DE_REMESSA,
+            usuario=user,
+            justificativa=kwargs.get('justificativa', ''))
+
+        # Monta e-mail
+        url = f'{base_url}/logistica/conferir-entrega'
+        titulo = f'Prepare-se para uma possível reposição dos alimentos não recebidos!'
+        assunto = f'[SIGPAE] Prepare-se para uma possível reposição dos alimentos não recebidos!'
+        template = 'logistica_escola_aviso_reposicao.html'
+        partes_interessadas = self._partes_interessadas_escola()
+
+        self._preenche_template_e_envia_email(template, assunto, titulo, partes_interessadas, log_transicao, url)
+
+    @xworkflows.after_transition('escola_recebe_parcial')
+    def _escola_recebe_parcial_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        log_transicao = self.salvar_log_transicao(
+            status_evento=LogSolicitacoesUsuario.ABASTECIMENTO_GUIA_DE_REMESSA,
+            usuario=user,
+            justificativa=kwargs.get('justificativa', ''))
+
+        # Monta e-mail
+        url = f'{base_url}/logistica/conferir-entrega'
+        titulo = f'Prepare-se para uma possível reposição dos alimentos não recebidos!'
+        assunto = f'[SIGPAE] Prepare-se para uma possível reposição dos alimentos não recebidos!'
+        template = 'logistica_escola_aviso_reposicao.html'
+        partes_interessadas = self._partes_interessadas_escola()
+
+        self._preenche_template_e_envia_email(template, assunto, titulo, partes_interessadas, log_transicao, url)
+
+    @xworkflows.after_transition('escola_recebe_parcial_atraso')
+    def _escola_recebe_parcial_atraso_hook(self, *args, **kwargs):
+        user = kwargs['user']
         self.salvar_log_transicao(
             status_evento=LogSolicitacoesUsuario.ABASTECIMENTO_GUIA_DE_REMESSA,
             usuario=user,
             justificativa=kwargs.get('justificativa', ''))
 
-    @xworkflows.after_transition('escola_recebe_parcial')
-    def _escola_recebe_parcial_hook(self, *args, **kwargs):
+    @xworkflows.after_transition('reposicao_parcial')
+    def _reposicao_parcial_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        self.salvar_log_transicao(
+            status_evento=LogSolicitacoesUsuario.ABASTECIMENTO_GUIA_DE_REMESSA,
+            usuario=user,
+            justificativa=kwargs.get('justificativa', ''))
+
+    @xworkflows.after_transition('reposicao_total')
+    def _reposicao_total_hook(self, *args, **kwargs):
         user = kwargs['user']
         self.salvar_log_transicao(
             status_evento=LogSolicitacoesUsuario.ABASTECIMENTO_GUIA_DE_REMESSA,
@@ -779,7 +891,7 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
         )
 
     def _partes_interessadas_codae_pede_analise_sensorial(self):
-        return [self.criado_por.email]
+        return [self.ultima_analise.terceirizada.vinculos.filter(ativo=True).first().usuario.email]
 
     def _envia_email_codae_pede_analise_sensorial(self, log_transicao, link_pdf):
         html = render_to_string(
@@ -890,8 +1002,31 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
         self._envia_email_codae_pede_analise_sensorial(
             log_transicao=log_transicao, link_pdf=kwargs['link_pdf'])
 
+    @xworkflows.after_transition('terceirizada_cancelou_solicitacao_homologacao')
+    def _terceirizada_cancelou_solicitacao_homologacao_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_CANCELOU_SOLICITACAO_HOMOLOGACAO,
+                                  usuario=user,
+                                  justificativa=kwargs.get('justificativa', ''))
+
     @xworkflows.after_transition('terceirizada_responde_analise_sensorial')
     def _terceirizada_responde_analise_sensorial_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        justificativa = kwargs.get('justificativa', '')
+        self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_RESPONDEU_ANALISE_SENSORIAL,
+                                  usuario=user,
+                                  justificativa=justificativa)
+
+    @xworkflows.after_transition('terceirizada_responde_analise_sensorial_da_reclamacao')
+    def _terceirizada_responde_analise_sensorial_da_reclamacao_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        justificativa = kwargs.get('justificativa', '')
+        self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_RESPONDEU_ANALISE_SENSORIAL,
+                                  usuario=user,
+                                  justificativa=justificativa)
+
+    @xworkflows.after_transition('terceirizada_responde_analise_sensorial_homologado')
+    def _terceirizada_responde_analise_sensorial_homologado_hook(self, *args, **kwargs):
         user = kwargs['user']
         justificativa = kwargs.get('justificativa', '')
         self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_RESPONDEU_ANALISE_SENSORIAL,
@@ -915,6 +1050,23 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
                 nome=anexo['nome']
             )
 
+    @xworkflows.after_transition('codae_questiona_ue')
+    def _codae_questiona_ue_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        justificativa = kwargs.get('justificativa', '')
+        log_transicao = self.salvar_log_transicao(
+            status_evento=LogSolicitacoesUsuario.CODAE_QUESTIONOU_UE,
+            usuario=user,
+            justificativa=justificativa,
+        )
+        for anexo in kwargs.get('anexos'):
+            arquivo = convert_base64_to_contentfile(anexo.pop('base64'))
+            AnexoLogSolicitacoesUsuario.objects.create(
+                log=log_transicao,
+                arquivo=arquivo,
+                nome=anexo['nome']
+            )
+
     @xworkflows.after_transition('codae_autorizou_reclamacao')
     def _codae_autorizou_reclamacao_hook(self, *args, **kwargs):
         user = kwargs['user']
@@ -925,7 +1077,7 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
             justificativa=justificativa,
         )
         for anexo in kwargs.get('anexos'):
-            arquivo = convert_base64_to_contentfile(anexo.pop('base64'))
+            arquivo = convert_base64_to_contentfile(anexo.get('base64'))
             AnexoLogSolicitacoesUsuario.objects.create(
                 log=log_transicao,
                 arquivo=arquivo,
@@ -986,6 +1138,13 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
     def _terceirizada_responde_reclamacao_hook(self, *args, **kwargs):
         self.salva_log_com_justificativa_e_anexos(
             LogSolicitacoesUsuario.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO,
+            kwargs['request']
+        )
+
+    @xworkflows.after_transition('ue_respondeu_questionamento')
+    def _ue_respondeu_questionamento_hook(self, *args, **kwargs):
+        self.salva_log_com_justificativa_e_anexos(
+            LogSolicitacoesUsuario.UE_RESPONDEU_RECLAMACAO,
             kwargs['request']
         )
 
@@ -1704,9 +1863,51 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
         return []
 
     @property
+    def _partes_interessadas_codae_autoriza(self):
+        escola = self.escola_destino
+        responsaveis_escola = [vinculo.usuario.email for vinculo in escola.vinculos.filter(ativo=True)]
+        try:
+            terceirizada = escola.lote.terceirizada
+            responsaveis_terceirizadas = [vinculo.usuario.email for vinculo in terceirizada.vinculos.filter(ativo=True)]
+        except AttributeError:
+            responsaveis_terceirizadas = []
+        return responsaveis_escola + responsaveis_terceirizadas
+
+    @property
     def template_mensagem(self):
         raise NotImplementedError(
             'Deve criar um property que recupera o assunto e corpo mensagem desse objeto')
+
+    def _envia_email_autorizar(self, assunto, titulo, user, partes_interessadas, dieta_origem):
+        from ..relatorios.relatorios import relatorio_dieta_especial_protocolo
+
+        template = 'fluxo_autorizar_dieta.html'
+        dados_template = {
+            'nome_aluno': self.aluno.nome,
+            'codigo_eol_aluno': self.aluno.codigo_eol,
+            'data_inicio': self.data_inicio.strftime('%d/%m/%Y'),
+            'data_termino': self.data_termino.strftime('%d/%m/%Y')
+        }
+
+        html = render_to_string(template, dados_template)
+
+        html_string_relatorio = relatorio_dieta_especial_protocolo(None, dieta_origem)
+
+        anexo = {
+            'arquivo': html_to_pdf_email_anexo(html_string_relatorio),
+            'nome': f'dieta_especial_{dieta_origem.id_externo}.pdf',
+            'mimetypes': 'application/pdf'
+        }
+
+        for email in partes_interessadas:
+            envia_email_unico_com_anexo_inmemory(
+                assunto=assunto,
+                corpo=html,
+                email=email,
+                anexo_nome=anexo.get('nome'),
+                mimetypes=anexo.get('mimetypes'),
+                anexo=anexo.get('arquivo'),
+            )
 
     def _preenche_template_e_envia_email(self, assunto, titulo, user, partes_interessadas):
         template = 'fluxo_autorizar_negar_cancelar.html'
@@ -1765,12 +1966,20 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
     @xworkflows.after_transition('codae_autoriza')
     def _codae_autoriza_hook(self, *args, **kwargs):
         user = kwargs['user']
-        assunto = '[SIGPAE] Status de solicitação - #' + self.id_externo
-        titulo = 'Status de solicitação - #' + self.id_externo
         self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU,
                                   usuario=user)
-        self._preenche_template_e_envia_email(assunto, titulo, user,
-                                              self._partes_interessadas_codae_autoriza_ou_nega)
+        if self.tipo_solicitacao == 'ALTERACAO_UE':
+            assunto = 'Alerta de atendimento de Dieta Especial no CEI-Polo/Recreio nas férias'
+            titulo = 'Alerta de atendimento de Dieta Especial no CEI-Polo/Recreio nas férias'
+            dieta_origem = self.aluno.dietas_especiais.filter(
+                tipo_solicitacao='COMUM',
+                status=self.workflow_class.CODAE_AUTORIZADO).last()
+            self._envia_email_autorizar(assunto, titulo, user, self._partes_interessadas_codae_autoriza, dieta_origem)
+        else:
+            assunto = '[SIGPAE] Status de solicitação - #' + self.id_externo
+            titulo = 'Status de solicitação - #' + self.id_externo
+            self._preenche_template_e_envia_email(assunto, titulo, user,
+                                                  self._partes_interessadas_codae_autoriza_ou_nega)
 
     @xworkflows.after_transition('inicia_fluxo_inativacao')
     def _inicia_fluxo_inativacao_hook(self, *args, **kwargs):
@@ -1833,6 +2042,10 @@ class ReclamacaoProdutoWorkflow(xwf_models.Workflow):
     AGUARDANDO_AVALIACAO = 'AGUARDANDO_AVALIACAO'  # INICIO
     AGUARDANDO_RESPOSTA_TERCEIRIZADA = 'AGUARDANDO_RESPOSTA_TERCEIRIZADA'
     RESPONDIDO_TERCEIRIZADA = 'RESPONDIDO_TERCEIRIZADA'
+    AGUARDANDO_ANALISE_SENSORIAL = 'AGUARDANDO_ANALISE_SENSORIAL'
+    ANALISE_SENSORIAL_RESPONDIDA = 'ANALISE_SENSORIAL_RESPONDIDA'
+    AGUARDANDO_RESPOSTA_UE = 'AGUARDANDO_RESPOSTA_UE'
+    RESPONDIDO_UE = 'RESPONDIDO_UE'
     CODAE_ACEITOU = 'CODAE_ACEITOU'
     CODAE_RECUSOU = 'CODAE_RECUSOU'
     CODAE_RESPONDEU = 'CODAE_RESPONDEU'
@@ -1840,22 +2053,46 @@ class ReclamacaoProdutoWorkflow(xwf_models.Workflow):
     states = (
         (AGUARDANDO_AVALIACAO, 'Aguardando avaliação da CODAE'),
         (AGUARDANDO_RESPOSTA_TERCEIRIZADA, 'Aguardando resposta da terceirizada'),
+        (AGUARDANDO_RESPOSTA_UE, 'Aguardando resposta da U.E'),
+        (AGUARDANDO_ANALISE_SENSORIAL, 'Aguardando análise sensorial.'),
+        (ANALISE_SENSORIAL_RESPONDIDA, 'Análise sensorial respondida.'),
         (RESPONDIDO_TERCEIRIZADA, 'Respondido pela terceirizada'),
+        (RESPONDIDO_UE, 'Respondido pela U.E'),
         (CODAE_ACEITOU, 'CODAE aceitou'),
         (CODAE_RECUSOU, 'CODAE recusou'),
         (CODAE_RESPONDEU, 'CODAE respondeu ao reclamante'),
     )
 
     transitions = (
-        ('codae_questiona', AGUARDANDO_AVALIACAO, AGUARDANDO_RESPOSTA_TERCEIRIZADA),
+        ('codae_questiona_terceirizada', [AGUARDANDO_AVALIACAO,
+                                          ANALISE_SENSORIAL_RESPONDIDA,
+                                          RESPONDIDO_TERCEIRIZADA], AGUARDANDO_RESPOSTA_TERCEIRIZADA),
         ('terceirizada_responde', AGUARDANDO_RESPOSTA_TERCEIRIZADA,
          RESPONDIDO_TERCEIRIZADA),
-        ('codae_aceita', [AGUARDANDO_AVALIACAO,
-                          RESPONDIDO_TERCEIRIZADA], CODAE_ACEITOU),
-        ('codae_recusa', [AGUARDANDO_AVALIACAO,
-                          RESPONDIDO_TERCEIRIZADA], CODAE_RECUSOU),
+        ('codae_questiona_ue', [AGUARDANDO_AVALIACAO,
+                                ANALISE_SENSORIAL_RESPONDIDA,
+                                RESPONDIDO_TERCEIRIZADA], AGUARDANDO_RESPOSTA_UE),
+        ('ue_responde', AGUARDANDO_RESPOSTA_UE, RESPONDIDO_UE),
+        ('codae_aceita', [AGUARDANDO_RESPOSTA_TERCEIRIZADA,
+                          AGUARDANDO_AVALIACAO,
+                          RESPONDIDO_TERCEIRIZADA,
+                          AGUARDANDO_ANALISE_SENSORIAL,
+                          ANALISE_SENSORIAL_RESPONDIDA,
+                          AGUARDANDO_RESPOSTA_UE,
+                          RESPONDIDO_UE], CODAE_ACEITOU),
+        ('codae_recusa', [AGUARDANDO_RESPOSTA_TERCEIRIZADA,
+                          AGUARDANDO_AVALIACAO,
+                          RESPONDIDO_TERCEIRIZADA,
+                          AGUARDANDO_ANALISE_SENSORIAL,
+                          ANALISE_SENSORIAL_RESPONDIDA,
+                          AGUARDANDO_RESPOSTA_UE,
+                          RESPONDIDO_UE], CODAE_RECUSOU),
         ('codae_responde', [AGUARDANDO_AVALIACAO,
                             RESPONDIDO_TERCEIRIZADA], CODAE_RESPONDEU),
+        ('codae_pede_analise_sensorial', [AGUARDANDO_AVALIACAO,
+                                          RESPONDIDO_TERCEIRIZADA,
+                                          ANALISE_SENSORIAL_RESPONDIDA], AGUARDANDO_ANALISE_SENSORIAL),
+        ('terceirizada_responde_analise_sensorial', AGUARDANDO_ANALISE_SENSORIAL, ANALISE_SENSORIAL_RESPONDIDA)
     )
 
     initial_state = AGUARDANDO_AVALIACAO
@@ -1941,10 +2178,16 @@ class FluxoReclamacaoProduto(xwf_models.WorkflowEnabled, models.Model):
             **kwargs)
         self._envia_email_recusa_reclamacao(log_recusa)
 
-    @xworkflows.after_transition('codae_questiona')
-    def _codae_questiona_hook(self, *args, **kwargs):
+    @xworkflows.after_transition('codae_questiona_terceirizada')
+    def _codae_questiona_terceirizada_hook(self, *args, **kwargs):
         self.salvar_log_transicao(
             status_evento=LogSolicitacoesUsuario.CODAE_QUESTIONOU_TERCEIRIZADA,
+            **kwargs)
+
+    @xworkflows.after_transition('codae_questiona_ue')
+    def _codae_questiona_ue_hook(self, *args, **kwargs):
+        self.salvar_log_transicao(
+            status_evento=LogSolicitacoesUsuario.CODAE_QUESTIONOU_UE,
             **kwargs)
 
     @xworkflows.after_transition('codae_responde')
@@ -1958,6 +2201,24 @@ class FluxoReclamacaoProduto(xwf_models.WorkflowEnabled, models.Model):
     def _terceirizada_responde_hook(self, *args, **kwargs):
         self.salvar_log_transicao(
             status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_RESPONDEU_RECLAMACAO,
+            **kwargs)
+
+    @xworkflows.after_transition('ue_responde')
+    def _ue_responde_hook(self, *args, **kwargs):
+        self.salvar_log_transicao(
+            status_evento=LogSolicitacoesUsuario.UE_RESPONDEU_RECLAMACAO,
+            **kwargs)
+
+    @xworkflows.after_transition('codae_pede_analise_sensorial')
+    def _codae_pede_analise_sensorial_hook(self, *args, **kwargs):
+        self.salvar_log_transicao(
+            status_evento=LogSolicitacoesUsuario.CODAE_PEDIU_ANALISE_SENSORIAL,
+            **kwargs)
+
+    @xworkflows.after_transition('terceirizada_responde_analise_sensorial')
+    def _terceirizada_responde_analise_sensorial_hook(self, *args, **kwargs):
+        self.salvar_log_transicao(
+            status_evento=LogSolicitacoesUsuario.TERCEIRIZADA_RESPONDEU_ANALISE_SENSORIAL,
             **kwargs)
 
     class Meta:

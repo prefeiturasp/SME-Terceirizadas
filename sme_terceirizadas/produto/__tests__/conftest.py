@@ -5,7 +5,7 @@ from faker import Faker
 from model_mommy import mommy
 
 from ...dados_comuns import constants
-from ...dados_comuns.fluxo_status import HomologacaoProdutoWorkflow
+from ...dados_comuns.fluxo_status import HomologacaoProdutoWorkflow, ReclamacaoProdutoWorkflow
 from ...dados_comuns.models import TemplateMensagem
 
 fake = Faker('pt-Br')
@@ -75,49 +75,6 @@ def user(django_user_model):
 
 
 @pytest.fixture
-def homologacao_produto(escola, template_homologacao_produto, user):
-    perfil_admin_terceirizada = mommy.make('Perfil', nome=constants.ADMINISTRADOR_TERCEIRIZADA,
-                                           ativo=True)
-    hoje = datetime.date.today()
-    mommy.make('Vinculo', usuario=user, instituicao=escola.lote.terceirizada, perfil=perfil_admin_terceirizada,
-               data_inicial=hoje, ativo=True)
-    produto = mommy.make('Produto', criado_por=user)
-    homologacao_produto = mommy.make('HomologacaoDoProduto',
-                                     produto=produto,
-                                     rastro_terceirizada=escola.lote.terceirizada,
-                                     criado_por=user,
-                                     criado_em=datetime.datetime.utcnow())
-    return homologacao_produto
-
-
-@pytest.fixture
-def homologacao_produto_pendente_homologacao(homologacao_produto):
-    homologacao_produto.status = HomologacaoProdutoWorkflow.CODAE_PENDENTE_HOMOLOGACAO
-    homologacao_produto.save()
-    return homologacao_produto
-
-
-@pytest.fixture
-def homologacao_produto_homologado(homologacao_produto):
-    homologacao_produto.status = HomologacaoProdutoWorkflow.CODAE_HOMOLOGADO
-    homologacao_produto.save()
-    return homologacao_produto
-
-
-@pytest.fixture
-def homologacao_produto_homologado_com_log(homologacao_produto, user):
-    homologacao_produto.inicia_fluxo(user=user)
-    return homologacao_produto
-
-
-@pytest.fixture
-def homologacao_produto_escola_ou_nutri_reclamou(homologacao_produto):
-    homologacao_produto.status = HomologacaoProdutoWorkflow.ESCOLA_OU_NUTRICIONISTA_RECLAMOU
-    homologacao_produto.save()
-    return homologacao_produto
-
-
-@pytest.fixture
 def client_autenticado_vinculo_terceirizada_homologacao(client, django_user_model, escola):
     email = 'test@test.com'
     password = 'bar'
@@ -179,7 +136,7 @@ def marca2():
 
 @pytest.fixture
 def fabricante():
-    return mommy.make('Fabricante')
+    return mommy.make('Fabricante', nome='Fabricante1')
 
 
 @pytest.fixture
@@ -259,3 +216,98 @@ def imagem_produto1(produto):
 @pytest.fixture
 def imagem_produto2(produto):
     return mommy.make('ImagemDoProduto', produto=produto, nome='Imagem2')
+
+
+@pytest.fixture
+def client_autenticado_vinculo_escola_ue(client, django_user_model, escola):
+    email = 'test@test.com'
+    password = 'bar'
+    user = django_user_model.objects.create_user(password=password, email=email,
+                                                 registro_funcional='8888888')
+
+    perfil_diretor = mommy.make('Perfil', nome='DIRETOR', ativo=True, uuid='41c20c8b-7e57-41ed-9433-ccb92e8afaf1')
+
+    hoje = datetime.date.today()
+    mommy.make('Vinculo', usuario=user, instituicao=escola, perfil=perfil_diretor,
+               data_inicial=hoje, ativo=True)
+    mommy.make(TemplateMensagem, assunto='TESTE',
+               tipo=TemplateMensagem.DIETA_ESPECIAL,
+               template_html='@id @criado_em @status @link')
+    client.login(email=email, password=password)
+    return client
+
+
+@pytest.fixture
+def homologacao_produto(escola, template_homologacao_produto, user, produto):
+    perfil_admin_terceirizada = mommy.make('Perfil', nome=constants.ADMINISTRADOR_TERCEIRIZADA,
+                                           ativo=True)
+    hoje = datetime.date.today()
+    mommy.make('Vinculo', usuario=user, instituicao=escola.lote.terceirizada, perfil=perfil_admin_terceirizada,
+               data_inicial=hoje, ativo=True)
+    homologacao_produto = mommy.make('HomologacaoDoProduto',
+                                     produto=produto,
+                                     rastro_terceirizada=escola.lote.terceirizada,
+                                     criado_por=user,
+                                     criado_em=datetime.datetime.utcnow())
+    return homologacao_produto
+
+
+@pytest.fixture
+def homologacao_produto_pendente_homologacao(homologacao_produto):
+    homologacao_produto.status = HomologacaoProdutoWorkflow.CODAE_PENDENTE_HOMOLOGACAO
+    homologacao_produto.save()
+    return homologacao_produto
+
+
+@pytest.fixture
+def homologacao_produto_homologado(homologacao_produto):
+    homologacao_produto.status = HomologacaoProdutoWorkflow.CODAE_HOMOLOGADO
+    homologacao_produto.save()
+    return homologacao_produto
+
+
+@pytest.fixture
+def homologacao_produto_homologado_com_log(homologacao_produto, user):
+    homologacao_produto.inicia_fluxo(user=user)
+    return homologacao_produto
+
+
+@pytest.fixture
+def homologacao_produto_escola_ou_nutri_reclamou(homologacao_produto):
+    homologacao_produto.status = HomologacaoProdutoWorkflow.ESCOLA_OU_NUTRICIONISTA_RECLAMOU
+    homologacao_produto.save()
+    return homologacao_produto
+
+
+@pytest.fixture
+def reclamacao(homologacao_produto_escola_ou_nutri_reclamou, escola, user):
+    reclamacao = mommy.make('ReclamacaoDeProduto',
+                            homologacao_de_produto=homologacao_produto_escola_ou_nutri_reclamou,
+                            escola=escola,
+                            reclamante_registro_funcional='23456789',
+                            reclamante_cargo='Cargo',
+                            reclamante_nome='Anderson',
+                            criado_por=user,
+                            criado_em=datetime.datetime.utcnow())
+    return reclamacao
+
+
+@pytest.fixture
+def homologacao_produto_gpcodae_questionou_escola(homologacao_produto):
+    homologacao_produto.status = HomologacaoProdutoWorkflow.CODAE_QUESTIONOU_UE
+    homologacao_produto.save()
+    return homologacao_produto
+
+
+@pytest.fixture
+def reclamacao_ue(homologacao_produto_gpcodae_questionou_escola, escola, user):
+    reclamacao = mommy.make('ReclamacaoDeProduto',
+                            homologacao_de_produto=homologacao_produto_gpcodae_questionou_escola,
+                            escola=escola,
+                            reclamante_registro_funcional='23456788',
+                            reclamante_cargo='Cargo',
+                            reclamante_nome='Arthur',
+                            criado_por=user,
+                            criado_em=datetime.datetime.utcnow(),
+                            status=ReclamacaoProdutoWorkflow.AGUARDANDO_RESPOSTA_UE)
+    return reclamacao

@@ -1127,6 +1127,16 @@
   padding: 0.3rem;
 }
 
+.table-md th,
+.table-md td {
+  padding: 0.3rem 0.5rem;
+}
+
+.table-lg th,
+.table-lg td {
+  padding: 0.4rem 0.5rem;
+}
+
 .table-bordered {
   border: 1px solid #dee2e6;
   border-collapse: collapse;

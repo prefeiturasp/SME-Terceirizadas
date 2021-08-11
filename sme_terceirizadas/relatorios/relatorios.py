@@ -1,11 +1,14 @@
 import datetime
 
+import environ
 from django.db.models import F, FloatField, Sum
 from django.template.loader import render_to_string
 
+from ..dados_comuns.fluxo_status import GuiaRemessaWorkFlow as GuiaStatus
 from ..dados_comuns.fluxo_status import ReclamacaoProdutoWorkflow
 from ..dados_comuns.models import LogSolicitacoesUsuario
 from ..kit_lanche.models import EscolaQuantidade
+from ..logistica.api.helpers import retorna_status_guia_remessa
 from ..relatorios.utils import html_to_pdf_response
 from ..terceirizada.utils import transforma_dados_relatorio_quantitativo
 from . import constants
@@ -17,6 +20,8 @@ from .utils import (
     get_ultima_justificativa_analise_sensorial,
     get_width
 )
+
+env = environ.Env()
 
 
 def relatorio_filtro_periodo(request, query_set_consolidado, escola_nome='', dre_nome=''):
@@ -136,6 +141,64 @@ def relatorio_dieta_especial_conteudo(solicitacao):
     return html_string
 
 
+def relatorio_guia_de_remessa(guias): # noqa C901
+    SERVER_NAME = env.str('SERVER_NAME', default=None)
+    pages = []
+    inicio = 0
+    num_alimentos_pagina = 4
+    insucesso = None
+    conferencia = None
+    for guia in guias:
+        todos_alimentos = guia.alimentos.all().annotate(
+            peso_total=Sum(
+                F('embalagens__capacidade_embalagem') * F('embalagens__qtd_volume'), output_field=FloatField()
+            )
+        ).order_by('nome_alimento')
+
+        if guia.status == GuiaStatus.DISTRIBUIDOR_REGISTRA_INSUCESSO:
+            insucesso = guia.insucessos.last()
+        elif guia.status == GuiaStatus.RECEBIDA:
+            conferencia = guia.conferencias.last()
+            num_alimentos_pagina = 3
+        elif guia.status in (GuiaStatus.RECEBIMENTO_PARCIAL, GuiaStatus.NAO_RECEBIDA):
+            num_alimentos_pagina = 2
+            conferencia = guia.conferencias.last()
+            conferencias_individuais = conferencia.conferencia_dos_alimentos.all()
+            for alimento_guia in todos_alimentos:
+                conferencias_alimento = []
+                for alimento_conferencia in conferencias_individuais:
+                    if alimento_guia.nome_alimento == alimento_conferencia.nome_alimento:
+                        for embalagem in alimento_guia.embalagens.all():
+                            if embalagem.tipo_embalagem == alimento_conferencia.tipo_embalagem:
+                                embalagem.qtd_recebido = alimento_conferencia.qtd_recebido
+                                embalagem.ocorrencia = alimento_conferencia.ocorrencia
+                                embalagem.observacao = alimento_conferencia.observacao
+                                embalagem.arquivo = alimento_conferencia.arquivo
+                                conferencias_alimento.append(embalagem)
+                        alimento_guia.embalagens_conferidas = conferencias_alimento
+
+        while True:
+            alimentos = todos_alimentos[inicio:inicio + num_alimentos_pagina]
+            if alimentos:
+                page = guia.as_dict()
+                peso_total_pagina = round(sum(alimento.peso_total for alimento in alimentos), 2)
+                page['alimentos'] = alimentos
+                page['peso_total'] = peso_total_pagina
+                page['status_guia'] = retorna_status_guia_remessa(page['status'])
+                page['insucesso'] = insucesso
+                page['conferencia'] = conferencia
+
+                pages.append(page)
+                inicio = inicio + num_alimentos_pagina
+            else:
+                break
+        inicio = 0
+    html_string = render_to_string('logistica/guia_remessa/relatorio_guia.html', {'pages': pages, 'URL': SERVER_NAME})
+    data_arquivo = datetime.datetime.today().strftime('%d/%m/%Y às %H:%M')
+
+    return html_to_pdf_response(html_string.replace('dt_file', data_arquivo), 'guia_de_remessa.pdf')
+
+
 def relatorio_dieta_especial(request, solicitacao):
     html_string = relatorio_dieta_especial_conteudo(solicitacao)
     return html_to_pdf_response(html_string, f'dieta_especial_{solicitacao.id_externo}.pdf')
@@ -155,7 +218,10 @@ def relatorio_dieta_especial_protocolo(request, solicitacao):
             'log_autorizacao': solicitacao.logs.get(status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU)
         }
     )
-    return html_to_pdf_response(html_string, f'dieta_especial_{solicitacao.id_externo}.pdf')
+    if request:
+        return html_to_pdf_response(html_string, f'dieta_especial_{solicitacao.id_externo}.pdf')
+    else:
+        return html_string
 
 
 def relatorio_inclusao_alimentacao_continua(request, solicitacao):
@@ -533,7 +599,7 @@ def get_pdf_guia_distribuidor(data=None, many=False):
             else:
                 break
         inicio = 0
-    html_string = render_to_string('logistica/guia_distribuidor/index.html', {'pages': pages})
+    html_string = render_to_string('logistica/guia_distribuidor/guia_distribuidor_v2.html', {'pages': pages})
     data_arquivo = datetime.date.today().strftime('%d/%m/%Y')
 
     return html_to_pdf_response(html_string.replace('dt_file', data_arquivo), 'guia_de_remessa.pdf')

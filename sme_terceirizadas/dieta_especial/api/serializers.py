@@ -123,9 +123,13 @@ class SolicitacaoDietaEspecialAutorizarSerializer(SolicitacaoDietaEspecialCreate
         alergias_intolerancias = validated_data.pop('alergias_intolerancias')
         substituicoes = validated_data.pop('substituicoes')
 
+        protocolo_padrao = ProtocoloPadraoDietaEspecial.objects.get(uuid=validated_data['protocolo_padrao'])
+        instance.protocolo_padrao = protocolo_padrao
+
         instance.classificacao_id = validated_data['classificacao']
         instance.registro_funcional_nutricionista = validated_data['registro_funcional_nutricionista']
         instance.informacoes_adicionais = validated_data.get('informacoes_adicionais', '')
+        instance.orientacoes_gerais = validated_data.get('orientacoes_gerais', '')
         instance.caracteristicas_do_alimento = validated_data.get('caracteristicas_do_alimento', '')
         instance.nome_protocolo = validated_data.get('nome_protocolo', '')
         data_termino = validated_data.get('data_termino', '')
@@ -215,6 +219,11 @@ class SolicitacaoDietaEspecialSerializer(serializers.ModelSerializer):
     substituicoes = SubstituicaoAlimentoSerializer(many=True)
 
     tem_solicitacao_cadastro_produto = serializers.SerializerMethodField()
+    protocolo_padrao = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=ProtocoloPadraoDietaEspecial.objects.all()
+    )
 
     def get_tem_solicitacao_cadastro_produto(self, obj):
         return SolicitacaoCadastroProdutoDieta.objects.filter(
@@ -238,7 +247,9 @@ class SolicitacaoDietaEspecialSerializer(serializers.ModelSerializer):
             'observacoes',
             'alergias_intolerancias',
             'classificacao',
+            'protocolo_padrao',
             'nome_protocolo',
+            'orientacoes_gerais',
             'substituicoes',
             'informacoes_adicionais',
             'caracteristicas_do_alimento',
@@ -257,6 +268,12 @@ class SolicitacaoDietaEspecialSerializer(serializers.ModelSerializer):
 
 
 class SolicitacaoDietaEspecialUpdateSerializer(serializers.ModelSerializer):
+    protocolo_padrao = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=ProtocoloPadraoDietaEspecial.objects.all(),
+        allow_null=True
+    )
     anexos = serializers.ListField(child=AnexoSerializer(), required=True)
     classificacao = serializers.PrimaryKeyRelatedField(
         queryset=ClassificacaoDieta.objects.all()
@@ -286,8 +303,8 @@ class SolicitacaoDietaEspecialUpdateSerializer(serializers.ModelSerializer):
             for ai in alergias_intolerancias:
                 instance.alergias_intolerancias.add(ai)
 
+        instance.substituicaoalimento_set.all().delete()
         if substituicoes:
-            instance.substituicaoalimento_set.all().delete()
             for substituicao in substituicoes:
                 substitutos = substituicao.pop('substitutos', None)
                 substituicao['solicitacao_dieta_especial'] = instance
@@ -411,6 +428,7 @@ class SubstituicaoAlimentoProtocoloPadraoSerializer(ModelSerializer):
     alimento = AlimentoSerializer()
     substitutos = ProdutoSimplesSerializer(many=True)
     alimentos_substitutos = AlimentoSerializer(many=True)
+    tipo = serializers.CharField(source='get_tipo_display')
 
     class Meta:
         model = SubstituicaoAlimentoProtocoloPadrao
@@ -420,6 +438,7 @@ class SubstituicaoAlimentoProtocoloPadraoSerializer(ModelSerializer):
 class ProtocoloPadraoDietaEspecialSerializer(serializers.ModelSerializer):
     status = serializers.CharField(source='get_status_display')
     substituicoes = SubstituicaoAlimentoProtocoloPadraoSerializer(many=True)
+    historico = serializers.SerializerMethodField()
 
     class Meta:
         model = ProtocoloPadraoDietaEspecial
@@ -428,5 +447,16 @@ class ProtocoloPadraoDietaEspecialSerializer(serializers.ModelSerializer):
             'nome_protocolo',
             'status',
             'orientacoes_gerais',
-            'substituicoes'
+            'substituicoes',
+            'historico'
         )
+
+    def get_historico(self, obj):
+        import json
+        return json.loads(obj.historico) if obj.historico else []
+
+
+class ProtocoloPadraoDietaEspecialSimplesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProtocoloPadraoDietaEspecial
+        fields = ('nome_protocolo', 'uuid')

@@ -9,6 +9,10 @@ from ...dados_comuns.fluxo_status import GuiaRemessaWorkFlow, SolicitacaoRemessa
 
 class SolicitacaoFilter(filters.FilterSet):
 
+    uuid = filters.CharFilter(
+        field_name='uuid',
+        lookup_expr='exact',
+    )
     numero_requisicao = filters.CharFilter(
         field_name='numero_solicitacao',
         lookup_expr='exact',
@@ -44,6 +48,10 @@ class SolicitacaoFilter(filters.FilterSet):
     status = filters.MultipleChoiceFilter(
         field_name='status',
         choices=[(str(state), state) for state in SolicitacaoRemessaWorkFlow.states],
+    )
+    status_guia = filters.MultipleChoiceFilter(
+        field_name='guias__status',
+        choices=[(str(state), state) for state in GuiaRemessaWorkFlow.states],
     )
 
 

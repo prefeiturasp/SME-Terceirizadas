@@ -1,0 +1,30 @@
+{% extends 'email_base.html' %}
+{% load email_templatetags %}
+
+{% block conteudo %}
+  <p>
+    Favor tomar as providências devidas para receber os alimentos na data prevista na Guia de Remessa. Ao recebê-los, confira atentamente os itens, comparando-os com a informação presente na Guia.  <br/>
+    Atente-se, principalmente, aos seguintes aspectos:
+  </p>
+  <ol>
+  <li>
+    Quantidade: a quantidade de alimentos recebidos deve ser a mesma prevista na Guia de Remessa.
+  </li>
+  <li>
+     Qualidade: os alimentos devem estar aptos a serem consumidos, isto é, dentro do prazo de validade e embalagem intacta (quando for o caso), com aspecto adequado e outros critérios de qualidade. Para frutas, legumes, verduras e ovos, ver guia específico no site da SME.
+  </li>
+  </ol>
+  <p>
+    Imediatamente após a conferência, acesse no SIGPAE a página de "Gestão das Guias de Remessa" e insira as informações de recebimento, apontando a quantidade de alimentos recebidos e, caso tenha constatado algum problema, descreva-o. <br/>
+    Caso tenha alguma dúvida, procure pelo Atendimento/CODAE.
+  </p><br/>
+  <p>
+  Att., <br/>
+  Coordenadoria de Alimentação Escolar <br/>
+  Secretaria Municipal de Educação"
+  </p>
+
+  <br/>
+  <a href="{{ url }}">Clique para acessar detalhes</a>
+  <br/>
+{% endblock %}

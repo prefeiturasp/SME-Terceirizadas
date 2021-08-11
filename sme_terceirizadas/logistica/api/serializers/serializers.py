@@ -3,12 +3,15 @@ from rest_framework import serializers
 from sme_terceirizadas.dados_comuns.api.serializers import LogSolicitacoesSerializer
 from sme_terceirizadas.logistica.models import (
     Alimento,
+    ConferenciaGuia,
     Embalagem,
     Guia,
     SolicitacaoDeAlteracaoRequisicao,
     SolicitacaoRemessa,
     TipoEmbalagem
 )
+from sme_terceirizadas.logistica.models.guia import ConferenciaIndividualPorAlimento, InsucessoEntregaGuia
+from sme_terceirizadas.perfil.api.serializers import UsuarioVinculoSerializer
 
 
 class EmbalagemSerializer(serializers.ModelSerializer):
@@ -55,7 +58,7 @@ class GuiaLookUpSerializer(serializers.ModelSerializer):
         model = Guia
         fields = ('uuid', 'numero_guia', 'data_entrega', 'codigo_unidade', 'nome_unidade', 'endereco_unidade',
                   'numero_unidade', 'bairro_unidade', 'bairro_unidade', 'cep_unidade', 'cidade_unidade',
-                  'estado_unidade', 'contato_unidade', 'telefone_unidade', 'alimentos', 'status')
+                  'estado_unidade', 'contato_unidade', 'telefone_unidade', 'alimentos', 'status', 'situacao')
 
 
 class SolicitacaoRemessaSerializer(serializers.ModelSerializer):
@@ -81,7 +84,31 @@ class SolicitacaoRemessaLookUpSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SolicitacaoRemessa
-        fields = ('uuid', 'numero_solicitacao', 'distribuidor_nome', 'status', 'guias')
+        fields = ('uuid', 'numero_solicitacao', 'distribuidor_nome', 'status', 'situacao', 'guias')
+
+
+class SolicitacaoRemessaContagemGuiasSerializer(serializers.ModelSerializer):
+    status = serializers.SerializerMethodField()
+    guias_pendentes = serializers.IntegerField()
+    guias_insucesso = serializers.IntegerField()
+    guias_recebidas = serializers.IntegerField()
+    guias_parciais = serializers.IntegerField()
+    guias_nao_recebidas = serializers.IntegerField()
+    guias_reposicao_parcial = serializers.IntegerField()
+    guias_reposicao_total = serializers.IntegerField()
+    qtd_guias = serializers.IntegerField()
+    distribuidor_nome = serializers.CharField()
+    data_entrega = serializers.SerializerMethodField()
+
+    def get_status(self, obj):
+        return obj.get_status_display()
+
+    def get_data_entrega(self, obj):
+        return obj.data_entrega.strftime('%d/%m/%Y')
+
+    class Meta:
+        model = SolicitacaoRemessa
+        exclude = ('id',)
 
 
 class XmlAlimentoSerializer(serializers.Serializer):
@@ -124,6 +151,49 @@ class SolicitacaoRemessaSimplesSerializer(serializers.ModelSerializer):
     class Meta:
         model = SolicitacaoRemessa
         fields = ('uuid', 'numero_solicitacao')
+
+
+class ConferenciaIndividualPorAlimentoSerializer(serializers.ModelSerializer):
+    conferencia = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=ConferenciaGuia.objects.all()
+    )
+    status_alimento = serializers.SerializerMethodField()
+    tipo_embalagem = serializers.SerializerMethodField()
+    ocorrencia = serializers.SerializerMethodField()
+
+    def get_status_alimento(self, obj):
+        return obj.get_status_alimento_display()
+
+    def get_tipo_embalagem(self, obj):
+        return obj.get_tipo_embalagem_display()
+
+    def get_ocorrencia(self, obj):
+        return obj.get_ocorrencia_display()
+
+    class Meta:
+        model = ConferenciaIndividualPorAlimento
+        exclude = ('id',)
+
+
+class ConferenciaComOcorrenciaSerializer(serializers.ModelSerializer):
+    criado_por = UsuarioVinculoSerializer()
+    conferencia_dos_alimentos = ConferenciaIndividualPorAlimentoSerializer(many=True)
+
+    class Meta:
+        model = ConferenciaGuia
+        exclude = ('id',)
+
+
+class GuiaDaRemessaComAlimentoSerializer(serializers.ModelSerializer):
+    alimentos = AlimentoLookUpSerializer(many=True)
+    conferencias = ConferenciaComOcorrenciaSerializer(many=True)
+    status = serializers.CharField(source='get_status_display')
+
+    class Meta:
+        model = Guia
+        exclude = ('id',)
 
 
 class GuiaDaRemessaSerializer(serializers.ModelSerializer):
@@ -201,3 +271,21 @@ class SolicitacaoDeAlteracaoSimplesSerializer(serializers.ModelSerializer):
     class Meta:
         model = SolicitacaoDeAlteracaoRequisicao
         fields = ('uuid', 'numero_solicitacao')
+
+
+class ConferenciaDaGuiaSerializer(serializers.ModelSerializer):
+    criado_por = UsuarioVinculoSerializer()
+
+    class Meta:
+        model = ConferenciaGuia
+        exclude = ('id',)
+
+
+class InsucessoDeEntregaGuiaSerializer(serializers.ModelSerializer):
+    guia = GuiaDaRemessaSimplesSerializer()
+    criado_por = UsuarioVinculoSerializer()
+    motivo = serializers.CharField(source='get_motivo_display')
+
+    class Meta:
+        model = InsucessoEntregaGuia
+        exclude = ('id',)

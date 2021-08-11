@@ -1,6 +1,16 @@
 from django.contrib import admin
+from django.utils.html import format_html
 
-from .models import Alimento, Embalagem, Guia, SolicitacaoDeAlteracaoRequisicao, SolicitacaoRemessa, TipoEmbalagem
+from .models import (
+    Alimento,
+    ConferenciaGuia,
+    Embalagem,
+    Guia,
+    SolicitacaoDeAlteracaoRequisicao,
+    SolicitacaoRemessa,
+    TipoEmbalagem
+)
+from .models.guia import ConferenciaIndividualPorAlimento, InsucessoEntregaGuia
 from .services import inativa_tipos_de_embabalagem
 
 
@@ -17,10 +27,11 @@ class AlimentoInline(admin.TabularInline):
 
 @admin.register(SolicitacaoRemessa)
 class SolicitacaoAdmin(admin.ModelAdmin):
-    list_display = ('cnpj', 'numero_solicitacao', 'status', 'get_guias')
+    list_display = ('cnpj', 'numero_solicitacao', 'status', 'get_situacao', 'get_guias')
     ordering = ('-alterado_em',)
     search_fields = ('numero_solicitacao',)
     list_filter = ('status',)
+    readonly_fields = ('uuid',)
     inlines = [GuiaInline]
 
     def get_guias(self, obj):
@@ -28,6 +39,16 @@ class SolicitacaoAdmin(admin.ModelAdmin):
             guias.numero_guia for guias in obj.guias.all()
         ])
     get_guias.short_description = 'Guias'
+
+    def get_situacao(self, obj):
+        color = 'green'
+        if obj.situacao == 'ARQUIVADA':
+            color = 'red'
+        return format_html(
+            f'<div style="width:80px; color:white; text-align:center; background:{color}; '
+            f'border-radius:5px;">{obj.get_situacao_display()}</div>'
+        )
+    get_situacao.short_description = 'Situação Da Solicitacão'
 
 
 @admin.register(Guia)
@@ -37,6 +58,7 @@ class GuiaAdmin(admin.ModelAdmin):
         'get_solicitacao',
         'get_status_solicitacao',
         'numero_guia',
+        'get_situacao',
         'data_entrega',
         'codigo_unidade',
         'nome_unidade',
@@ -50,7 +72,18 @@ class GuiaAdmin(admin.ModelAdmin):
     )
     list_filter = ('status',)
     ordering = ('-alterado_em',)
+    readonly_fields = ('uuid',)
     inlines = [AlimentoInline]
+
+    def get_situacao(self, obj):
+        color = 'green'
+        if obj.situacao == 'ARQUIVADA':
+            color = 'red'
+        return format_html(
+            f'<div style="width:80px; color:white; text-align:center; background:{color}; '
+            f'border-radius:5px;">{obj.get_situacao_display()}</div>'
+        )
+    get_situacao.short_description = 'Situação Guia'
 
     def get_cnpj(self, obj):
         return obj.solicitacao.cnpj
@@ -129,3 +162,34 @@ class SolicitacaoDeAlteracaoRequisicaoAdmin(admin.ModelAdmin):
 
     def motivos(self, obj):
         return obj.get_motivo_display()
+
+
+@admin.register(ConferenciaGuia)
+class ConferenciaGuiaAdmin(admin.ModelAdmin):
+    list_display = ('get_guia', 'data_recebimento', 'eh_reposicao')
+    search_fields = ('guia__numero_guia',)
+    readonly_fields = ('criado_em',)
+
+    def get_guia(self, obj):
+        return obj.guia.numero_guia
+    get_guia.short_description = 'Número Guia'
+
+
+@admin.register(ConferenciaIndividualPorAlimento)
+class ConferenciaIndividualPorAlimentoAdmin(admin.ModelAdmin):
+    list_display = ('nome_alimento',)
+
+
+@admin.register(InsucessoEntregaGuia)
+class InsucessoEntregaGuiaAdmin(admin.ModelAdmin):
+    list_display = ('get_guia', 'get_data_tentativa')
+    search_fields = ('guia__numero_guia',)
+    readonly_fields = ('criado_em',)
+
+    def get_guia(self, obj):
+        return obj.guia.numero_guia
+    get_guia.short_description = 'Número Guia'
+
+    def get_data_tentativa(self, obj):
+        return obj.guia.data_entrega
+    get_data_tentativa.short_description = 'Data Tentativa da Entrega'

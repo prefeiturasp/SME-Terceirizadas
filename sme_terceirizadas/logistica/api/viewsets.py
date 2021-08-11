@@ -1,5 +1,5 @@
-from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Count, F, FloatField, Max, Sum
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.db.models import Count, F, FloatField, Max, Q, Sum
 from django.db.utils import DataError
 from django.http.response import HttpResponse
 from django_filters import rest_framework as filters
@@ -7,7 +7,13 @@ from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_400_BAD_REQUEST, HTTP_406_NOT_ACCEPTABLE
+from rest_framework.status import (
+    HTTP_200_OK,
+    HTTP_201_CREATED,
+    HTTP_400_BAD_REQUEST,
+    HTTP_404_NOT_FOUND,
+    HTTP_406_NOT_ACCEPTABLE
+)
 from xworkflows.base import InvalidTransitionError
 
 from sme_terceirizadas.dados_comuns.fluxo_status import GuiaRemessaWorkFlow, SolicitacaoRemessaWorkFlow
@@ -19,33 +25,51 @@ from sme_terceirizadas.dados_comuns.permissions import (
     UsuarioEscolaAbastecimento
 )
 from sme_terceirizadas.logistica.api.serializers.serializer_create import (
+    ConferenciaComOcorrenciaCreateSerializer,
+    ConferenciaDaGuiaCreateSerializer,
+    ConferenciaIndividualPorAlimentoCreateSerializer,
+    InsucessoDeEntregaGuiaCreateSerializer,
     SolicitacaoDeAlteracaoRequisicaoCreateSerializer,
     SolicitacaoRemessaCreateSerializer
 )
 from sme_terceirizadas.logistica.api.serializers.serializers import (
     AlimentoDaGuiaDaRemessaSerializer,
     AlimentoDaGuiaDaRemessaSimplesSerializer,
+    ConferenciaComOcorrenciaSerializer,
+    ConferenciaDaGuiaSerializer,
+    ConferenciaIndividualPorAlimentoSerializer,
     GuiaDaRemessaComDistribuidorSerializer,
     GuiaDaRemessaSerializer,
     GuiaDaRemessaSimplesSerializer,
     InfoUnidadesSimplesDaGuiaSerializer,
+    InsucessoDeEntregaGuiaSerializer,
     SolicitacaoDeAlteracaoSerializer,
     SolicitacaoDeAlteracaoSimplesSerializer,
+    SolicitacaoRemessaContagemGuiasSerializer,
     SolicitacaoRemessaLookUpSerializer,
     SolicitacaoRemessaSerializer,
     SolicitacaoRemessaSimplesSerializer,
     XmlParserSolicitacaoSerializer
 )
 from sme_terceirizadas.logistica.api.services.exporta_para_excel import RequisicoesExcelService
-from sme_terceirizadas.logistica.models import Alimento, Embalagem
+from sme_terceirizadas.logistica.models import Alimento, ConferenciaGuia, Embalagem
 from sme_terceirizadas.logistica.models import Guia as GuiasDasRequisicoes
 from sme_terceirizadas.logistica.models import SolicitacaoDeAlteracaoRequisicao, SolicitacaoRemessa
+from sme_terceirizadas.logistica.services import arquiva_guias, confirma_guias, desarquiva_guias
 
 from ...escola.models import Escola
-from ...relatorios.relatorios import get_pdf_guia_distribuidor
+from ...relatorios.relatorios import get_pdf_guia_distribuidor, relatorio_guia_de_remessa
+from ..models.guia import InsucessoEntregaGuia
 from ..utils import GuiaPagination, RequisicaoPagination, SolicitacaoAlteracaoPagination
 from .filters import GuiaFilter, SolicitacaoAlteracaoFilter, SolicitacaoFilter
-from .helpers import retorna_dados_normalizados_excel_visao_dilog, retorna_dados_normalizados_excel_visao_distribuidor
+from .helpers import (
+    retorna_dados_normalizados_excel_entregas_distribuidor,
+    retorna_dados_normalizados_excel_visao_dilog,
+    retorna_dados_normalizados_excel_visao_distribuidor,
+    valida_guia_conferencia,
+    valida_guia_insucesso
+)
+from .validators import eh_true_ou_false
 
 STR_XML_BODY = '{http://schemas.xmlsoap.org/soap/envelope/}Body'
 STR_ARQUIVO_SOLICITACAO = 'ArqSolicitacaoMOD'
@@ -134,14 +158,13 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'patch']
     serializer_class = SolicitacaoRemessaCreateSerializer
     permission_classes = [IsAuthenticated]
-    parser_classes = (ListXMLParser,)
     pagination_class = RequisicaoPagination
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = SolicitacaoFilter
 
     def get_serializer_class(self):
         if self.action == 'create':
-            return XmlParserSolicitacaoSerializer
+            return SolicitacaoRemessaCreateSerializer
         if self.action == 'list':
             return SolicitacaoRemessaLookUpSerializer
         return SolicitacaoRemessaSerializer
@@ -201,6 +224,40 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
                 return Response(dict(detail=f'Erro de transição de estado: {e}', status=False),
                                 status=HTTP_406_NOT_ACCEPTABLE)
 
+    @action(detail=False, permission_classes=(UsuarioDilogCodae,),
+            methods=['post'], url_path='arquivar')
+    def arquiva_guias_e_requisicoes(self, request):
+        numero_requisicao = request.data.get('numero_requisicao', '')
+        guias = request.data.get('guias', [])
+
+        if not numero_requisicao:
+            return Response('É necessario informar o número da requisição ao qual a(s) guia(s) pertece(m).',
+                            status=HTTP_406_NOT_ACCEPTABLE)
+        if not guias:
+            return Response('É necessario informar o número das guias para arquivamento.',
+                            status=HTTP_406_NOT_ACCEPTABLE)
+
+        arquiva_guias(numero_requisicao=numero_requisicao, guias=guias)
+
+        return Response('Arquivamento realizado com sucesso.', status=HTTP_200_OK)
+
+    @action(detail=False, permission_classes=(UsuarioDilogCodae,),
+            methods=['post'], url_path='desarquivar')
+    def desarquiva_guias_e_requisicoes(self, request):
+        numero_requisicao = request.data.get('numero_requisicao', '')
+        guias = request.data.get('guias', [])
+
+        if not numero_requisicao:
+            return Response('É necessario informar o número da requisição ao qual a(s) guia(s) pertece(m).',
+                            status=HTTP_406_NOT_ACCEPTABLE)
+        if not guias:
+            return Response('É necessario informar o número das guias para desarquivamento.',
+                            status=HTTP_406_NOT_ACCEPTABLE)
+
+        desarquiva_guias(numero_requisicao=numero_requisicao, guias=guias)
+
+        return Response('Desarquivamento realizado com sucesso.', status=HTTP_200_OK)
+
     @action(detail=False, methods=['GET'], url_path='lista-numeros')
     def lista_numeros(self, request):
         queryset = self.get_queryset().filter(status__in=[SolicitacaoRemessaWorkFlow.AGUARDANDO_ENVIO])
@@ -230,6 +287,50 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
         response = {'results': SolicitacaoRemessaLookUpSerializer(queryset, many=True).data}
         return Response(response)
 
+    @action(detail=False, permission_classes=[UsuarioDilogCodae | UsuarioDistribuidor],
+            methods=['GET'], url_path='lista-requisicoes-confirmadas')
+    def lista_requisicoes_confirmadas(self, request):
+        queryset = self.filter_queryset(
+            self.get_queryset().filter(status=SolicitacaoRemessaWorkFlow.DISTRIBUIDOR_CONFIRMA))
+
+        if(self.request.user.vinculo_atual.perfil.nome == 'ADMINISTRADOR_DISTRIBUIDORA'):
+            queryset = queryset.filter(distribuidor=self.request.user.vinculo_atual.instituicao)
+
+        queryset = queryset.annotate(
+            qtd_guias=Count('guias', distinct=True),
+            distribuidor_nome=F('distribuidor__razao_social'),
+            data_entrega=Max('guias__data_entrega'),
+            guias_pendentes=Count(
+                'guias__status', filter=Q(guias__status=GuiaRemessaWorkFlow.PENDENTE_DE_CONFERENCIA), distinct=True),
+            guias_insucesso=Count(
+                'guias__status',
+                filter=Q(guias__status=GuiaRemessaWorkFlow.DISTRIBUIDOR_REGISTRA_INSUCESSO),
+                distinct=True),
+            guias_recebidas=Count('guias__status', filter=Q(guias__status=GuiaRemessaWorkFlow.RECEBIDA), distinct=True),
+            guias_parciais=Count(
+                'guias__status', filter=Q(guias__status=GuiaRemessaWorkFlow.RECEBIMENTO_PARCIAL), distinct=True),
+            guias_nao_recebidas=Count(
+                'guias__status', filter=Q(guias__status=GuiaRemessaWorkFlow.NAO_RECEBIDA), distinct=True),
+            guias_reposicao_parcial=Count('guias__status', filter=Q(
+                guias__status=GuiaRemessaWorkFlow.REPOSICAO_PARCIAL
+            ), distinct=True),
+            guias_reposicao_total=Count(
+                'guias__status', filter=Q(guias__status=GuiaRemessaWorkFlow.REPOSICAO_TOTAL), distinct=True),
+        ).order_by('guias__data_entrega').distinct()
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = SolicitacaoRemessaContagemGuiasSerializer(page, many=True)
+            response = self.get_paginated_response(
+                serializer.data,
+                num_enviadas=0,
+                num_confirmadas=queryset.count()
+            )
+            return response
+
+        response = {'results': SolicitacaoRemessaContagemGuiasSerializer(queryset, many=True).data}
+        return Response(response)
+
     @action(detail=True, permission_classes=(UsuarioDilogCodae,),
             methods=['patch'], url_path='envia-solicitacao')
     def incia_fluxo_solicitacao(self, request, uuid=None):
@@ -251,6 +352,7 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
         usuario = request.user
 
         try:
+            confirma_guias(solicitacao=solicitacao, user=usuario)
             solicitacao.empresa_atende(user=usuario, )
             serializer = SolicitacaoRemessaSerializer(solicitacao)
             return Response(serializer.data)
@@ -266,7 +368,8 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
 
         try:
             for solicitacao in solicitacoes:
-                solicitacao.empresa_atende(user=usuario,)
+                confirma_guias(solicitacao, usuario)
+                solicitacao.empresa_atende(user=usuario, )
             return Response(status=HTTP_200_OK)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
@@ -327,6 +430,16 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
         return get_pdf_guia_distribuidor(data=guias)
 
     @action(
+        detail=True,
+        methods=['GET'],
+        url_path='relatorio-guias-da-requisicao',
+        permission_classes=[UsuarioDistribuidor | UsuarioDilogCodae])
+    def gerar_relaorio_guias_da_requisicao(self, request, uuid=None):
+        solicitacao = self.get_object()
+        guias = solicitacao.guias.all()
+        return relatorio_guia_de_remessa(guias=guias)
+
+    @action(
         detail=False, methods=['GET'],
         url_path='exporta-excel-visao-analitica',
         permission_classes=[UsuarioDilogCodae | UsuarioDistribuidor])
@@ -345,6 +458,42 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
             content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         )
         response['Content-Disposition'] = 'attachment; filename=%s' % result['filename']
+        return response
+
+    @action(
+        detail=False, methods=['GET'],
+        url_path='exporta-excel-visao-entregas',
+        permission_classes=[UsuarioDilogCodae | UsuarioDistribuidor])
+    def gerar_excel_entregas(self, request):
+        uuid = request.query_params.get('uuid', None)
+        tem_conferencia = request.query_params.get('tem_conferencia', None)
+        tem_insucesso = request.query_params.get('tem_insucesso', None)
+        if eh_true_ou_false(tem_conferencia, 'tem_conferencia') and eh_true_ou_false(tem_insucesso, 'tem_insucesso'):
+            tem_conferencia = eval(tem_conferencia.capitalize())
+            tem_insucesso = eval(tem_insucesso.capitalize())
+        requisicoes_insucesso = None
+        queryset = self.filter_queryset(self.get_queryset())
+        if tem_insucesso:
+            queryset_insucesso = self.get_queryset().filter(
+                uuid=uuid,
+                guias__status=GuiaRemessaWorkFlow.DISTRIBUIDOR_REGISTRA_INSUCESSO)
+            requisicoes_insucesso = retorna_dados_normalizados_excel_entregas_distribuidor(queryset_insucesso)
+
+        requisicoes = retorna_dados_normalizados_excel_entregas_distribuidor(queryset)
+
+        if self.request.user.vinculo_atual.perfil.nome in ['ADMINISTRADOR_DISTRIBUIDORA']:
+            result = RequisicoesExcelService.exportar_entregas(
+                requisicoes, requisicoes_insucesso, 'DISTRIBUIDOR', tem_conferencia, tem_insucesso)
+        else:
+            result = RequisicoesExcelService.exportar_entregas(
+                requisicoes, requisicoes_insucesso, 'DILOG', tem_conferencia, tem_insucesso)
+
+        response = HttpResponse(
+            result['arquivo'],
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = 'attachment; filename=%s' % result['filename']
+
         return response
 
 
@@ -399,6 +548,18 @@ class GuiaDaRequisicaoModelViewSet(viewsets.ModelViewSet):
         serializer = GuiaDaRemessaComDistribuidorSerializer(queryset, many=True)
         return Response(serializer.data)
 
+    @action(detail=False, methods=['GET'],
+            url_path='guia-para-conferencia', permission_classes=(UsuarioEscolaAbastecimento,))
+    def lista_guia_para_conferencia(self, request):
+        escola = request.user.vinculo_atual.instituicao
+        try:
+            uuid = request.query_params.get('uuid', None)
+            queryset = self.get_queryset().filter(uuid=uuid)
+            return valida_guia_conferencia(queryset, escola)
+        except ValidationError as e:
+            return Response(dict(detail=f'Erro: {e}', status=False),
+                            status=HTTP_404_NOT_FOUND)
+
     @action(detail=False, methods=['PATCH'], url_path='vincula-guias')
     def vincula_guias_com_escolas(self, request):
         guias_desvinculadas = self.get_queryset().filter(escola=None)
@@ -450,6 +611,26 @@ class GuiaDaRequisicaoModelViewSet(viewsets.ModelViewSet):
 
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+
+    @action(detail=False, methods=['GET'],
+            url_path='guia-para-insucesso', permission_classes=(UsuarioDistribuidor,))
+    def guia_para_insucesso(self, request):
+        try:
+            uuid = request.query_params.get('uuid', None)
+            queryset = self.get_queryset().filter(uuid=uuid).annotate(
+                numero_requisicao=F('solicitacao__numero_solicitacao'))
+            return valida_guia_insucesso(queryset)
+        except ValidationError as e:
+            return Response(dict(detail=f'Erro: {e}', status=False),
+                            status=HTTP_404_NOT_FOUND)
+
+    @action(detail=True, methods=['GET'],
+            url_path='relatorio-guia-remessa',
+            permission_classes=[UsuarioEscolaAbastecimento | UsuarioDilogCodae | UsuarioDistribuidor])
+    def relatorio_guia_de_remessa(self, request, uuid=None):
+        guia = self.get_object()
+        guias = [guia]
+        return relatorio_guia_de_remessa(guias)
 
 
 class AlimentoDaGuiaModelViewSet(viewsets.ModelViewSet):
@@ -550,3 +731,55 @@ class SolicitacaoDeAlteracaoDeRequisicaoViewset(viewsets.ModelViewSet):
             return Response(serializer.data)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+
+
+class ConferenciaDaGuiaModelViewSet(viewsets.ModelViewSet):
+    lookup_field = 'uuid'
+    queryset = ConferenciaGuia.objects.all()
+    serializer_class = ConferenciaDaGuiaSerializer
+    permission_classes = [UsuarioEscolaAbastecimento]
+
+    def get_serializer_class(self):
+        if self.action in ['retrieve', 'list']:
+            return ConferenciaDaGuiaSerializer
+        else:
+            return ConferenciaDaGuiaCreateSerializer
+
+
+class ConferenciaDaGuiaComOcorrenciaModelViewSet(viewsets.ModelViewSet):
+    lookup_field = 'uuid'
+    queryset = ConferenciaGuia.objects.all()
+    serializer_class = ConferenciaComOcorrenciaSerializer
+    permission_classes = [UsuarioEscolaAbastecimento]
+
+    def get_serializer_class(self):
+        if self.action in ['retrieve', 'list']:
+            return ConferenciaComOcorrenciaSerializer
+        else:
+            return ConferenciaComOcorrenciaCreateSerializer
+
+
+class InsucessoDeEntregaGuiaModelViewSet(viewsets.ModelViewSet):
+    lookup_field = 'uuid'
+    queryset = InsucessoEntregaGuia.objects.all()
+    serializer_class = InsucessoDeEntregaGuiaSerializer
+    permission_classes = [UsuarioDistribuidor]
+
+    def get_serializer_class(self):
+        if self.action in ['retrieve', 'list']:
+            return InsucessoDeEntregaGuiaSerializer
+        else:
+            return InsucessoDeEntregaGuiaCreateSerializer
+
+
+class ConferenciaindividualModelViewSet(viewsets.ModelViewSet):
+    lookup_field = 'uuid'
+    queryset = ConferenciaGuia.objects.all()
+    serializer_class = ConferenciaIndividualPorAlimentoSerializer
+    permission_classes = [UsuarioEscolaAbastecimento]
+
+    def get_serializer_class(self):
+        if self.action in ['retrieve', 'list']:
+            return ConferenciaIndividualPorAlimentoSerializer
+        else:
+            return ConferenciaIndividualPorAlimentoCreateSerializer

@@ -52,10 +52,13 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
         CODAE_PEDIU_ANALISE_RECLAMACAO,
         CODAE_AUTORIZOU_RECLAMACAO,
         INATIVA,
+        TERCEIRIZADA_CANCELOU_SOLICITACAO_HOMOLOGACAO,
 
         # ESPECIFICA RECLAMAÇÃO DE PRODUTO
         TERCEIRIZADA_RESPONDEU_RECLAMACAO,
         TERCEIRIZADA_RESPONDEU_ANALISE_SENSORIAL,
+        CODAE_QUESTIONOU_UE,
+        UE_RESPONDEU_RECLAMACAO,
         CODAE_RECUSOU_RECLAMACAO,
         CODAE_QUESTIONOU_TERCEIRIZADA,
         CODAE_RESPONDEU_RECLAMACAO,
@@ -76,7 +79,7 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
 
         CANCELADO_ALUNO_MUDOU_ESCOLA,
         CANCELADO_ALUNO_NAO_PERTENCE_REDE,
-    ) = range(45)
+    ) = range(48)
 
     STATUS_POSSIVEIS = (
         (INICIO_FLUXO, 'Solicitação Realizada'),
@@ -105,14 +108,17 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
         (CODAE_PEDIU_ANALISE_SENSORIAL, 'CODAE pediu análise sensorial'),
         (TERCEIRIZADA_CANCELOU, 'Terceirizada cancelou homologação'),
         (INATIVA, 'Homologação inativa'),
+        (TERCEIRIZADA_CANCELOU_SOLICITACAO_HOMOLOGACAO, 'Terceirizada cancelou solicitação de homologação de produto'),
         (CODAE_SUSPENDEU, 'CODAE suspendeu o produto'),
         (ESCOLA_OU_NUTRICIONISTA_RECLAMOU, 'Escola/Nutricionista reclamou do produto'),  # noqa
         (CODAE_PEDIU_ANALISE_RECLAMACAO, 'CODAE pediu análise da reclamação'),
         (CODAE_AUTORIZOU_RECLAMACAO, 'CODAE autorizou reclamação'),
         (CODAE_RECUSOU_RECLAMACAO, 'CODAE recusou reclamação'),
         (CODAE_QUESTIONOU_TERCEIRIZADA, 'CODAE questionou terceirizada sobre reclamação'),  # noqa
+        (CODAE_QUESTIONOU_UE, 'CODAE questionou U.E. sobre reclamação'),  # noqa
         (CODAE_RESPONDEU_RECLAMACAO, 'CODAE respondeu ao reclamante da reclamação'),
         (TERCEIRIZADA_RESPONDEU_RECLAMACAO, 'Terceirizada respondeu a reclamação'),
+        (UE_RESPONDEU_RECLAMACAO, 'U.E. respondeu a reclamação'),
         (TERCEIRIZADA_RESPONDEU_ANALISE_SENSORIAL, 'Terceirizada respondeu a análise'),  # noqa
         (INICIO_FLUXO_SOLICITACAO, 'Papa enviou a requisição'),
         (DILOG_ENVIA_SOLICITACAO, 'Dilog Enviou a requisição'),
@@ -148,7 +154,7 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
 
     TIPOS_SOLICITACOES = (
         (SOLICITACAO_KIT_LANCHE_AVULSA, 'Solicitação de kit lanche avulsa'),
-        (ALTERACAO_DE_CARDAPIO, 'Alteração de cardápio'),
+        (ALTERACAO_DE_CARDAPIO, 'Alteração do tipo de alimentação'),
         (SUSPENSAO_DE_CARDAPIO, 'Suspensão de cardápio'),
         (INVERSAO_DE_CARDAPIO, 'Inversão de cardápio'),
         (INCLUSAO_ALIMENTACAO_NORMAL, 'Inclusão de alimentação normal'),
@@ -262,7 +268,7 @@ class TemplateMensagem(ExportModelOperationsMixin('template_mensagem'), models.M
     HOMOLOGACAO_PRODUTO = 8
 
     CHOICES = (
-        (ALTERACAO_CARDAPIO, 'Alteração de cardápio'),
+        (ALTERACAO_CARDAPIO, 'Alteração do tipo de Alimentação'),
         (INCLUSAO_ALIMENTACAO, 'Inclusão de alimentação'),
         (INCLUSAO_ALIMENTACAO_CONTINUA, 'Inclusão de alimentação contínua'),
         (SUSPENSAO_ALIMENTACAO, 'Suspensão de alimentação'),

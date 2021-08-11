@@ -36,6 +36,12 @@ class SolicitacoesDesteMesManager(models.Manager):
 
 
 class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmigavel):
+    """Mapeia uma sql view para um modelo django.
+
+    Mapeia a view gerada pelos sqls (solicitacoes_consolidadas) para objetos que
+    são utilizados nos paineis consolidados, principalmente no painel de Gestão de Alimentação.
+    """
+
     PENDENTES_STATUS = []
     PENDENTES_EVENTO = []
 
@@ -56,11 +62,13 @@ class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmiga
     AUTORIZADO_STATUS_DIETA_ESPECIAL = [DietaEspecialWorkflow.CODAE_AUTORIZADO,
                                         DietaEspecialWorkflow.TERCEIRIZADA_TOMOU_CIENCIA,
                                         DietaEspecialWorkflow.CODAE_AUTORIZOU_INATIVACAO,
-                                        DietaEspecialWorkflow.TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO]
+                                        DietaEspecialWorkflow.TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO,
+                                        InformativoPartindoDaEscolaWorkflow.INFORMADO]
     AUTORIZADO_EVENTO_DIETA_ESPECIAL = [LogSolicitacoesUsuario.CODAE_AUTORIZOU,
                                         LogSolicitacoesUsuario.TERCEIRIZADA_TOMOU_CIENCIA,
                                         LogSolicitacoesUsuario.CODAE_AUTORIZOU_INATIVACAO,
-                                        LogSolicitacoesUsuario.TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO]
+                                        LogSolicitacoesUsuario.TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO,
+                                        LogSolicitacoesUsuario.INICIO_FLUXO]
 
     NEGADOS_STATUS_DIETA_ESPECIAL = [DietaEspecialWorkflow.CODAE_NEGOU_PEDIDO,
                                      DietaEspecialWorkflow.CODAE_NEGOU_INATIVACAO]
@@ -290,9 +298,11 @@ class SolicitacoesCODAE(MoldeConsolidado):
                         LogSolicitacoesUsuario.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO]
 
     AUTORIZADOS_STATUS = [PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO,
-                          PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_TOMOU_CIENCIA]
+                          PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_TOMOU_CIENCIA,
+                          InformativoPartindoDaEscolaWorkflow.INFORMADO]
     AUTORIZADOS_EVENTO = [LogSolicitacoesUsuario.CODAE_AUTORIZOU,
-                          LogSolicitacoesUsuario.TERCEIRIZADA_TOMOU_CIENCIA]
+                          LogSolicitacoesUsuario.TERCEIRIZADA_TOMOU_CIENCIA,
+                          LogSolicitacoesUsuario.INICIO_FLUXO]
 
     CANCELADOS_STATUS = [PedidoAPartirDaEscolaWorkflow.ESCOLA_CANCELOU,
                          PedidoAPartirDaDiretoriaRegionalWorkflow.DRE_CANCELOU]
@@ -387,8 +397,10 @@ class SolicitacoesCODAE(MoldeConsolidado):
     def get_pendentes_autorizacao(cls, **kwargs):
         manager = cls._get_manager(kwargs)
         return manager.filter(
-            status_evento__in=cls.PENDENTES_EVENTO,
-            status_atual__in=cls.PENDENTES_STATUS
+            (Q(status_evento__in=cls.PENDENTES_EVENTO) &
+                Q(status_atual__in=cls.PENDENTES_STATUS)) |
+            (Q(desc_doc='Kit Lanche Passeio Unificado') &
+                Q(status_atual='CODAE_A_AUTORIZAR'))
         ).exclude(tipo_doc=cls.TP_SOL_DIETA_ESPECIAL).distinct('data_log').order_by('-data_log')
 
     @classmethod
@@ -484,10 +496,8 @@ class SolicitacoesEscola(MoldeConsolidado):
                         ]
 
     AUTORIZADOS_STATUS = [PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO,
-                          PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_TOMOU_CIENCIA,
-                          InformativoPartindoDaEscolaWorkflow.INFORMADO]
+                          PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_TOMOU_CIENCIA]
     AUTORIZADOS_EVENTO = [LogSolicitacoesUsuario.TERCEIRIZADA_TOMOU_CIENCIA,
-                          LogSolicitacoesUsuario.INICIO_FLUXO,
                           LogSolicitacoesUsuario.CODAE_AUTORIZOU]
 
     CANCELADOS_STATUS = [PedidoAPartirDaEscolaWorkflow.ESCOLA_CANCELOU]
@@ -604,9 +614,14 @@ class SolicitacoesEscola(MoldeConsolidado):
 
     @classmethod
     def get_autorizados(cls, **kwargs):
+        from sme_terceirizadas.kit_lanche.models import SolicitacaoKitLancheUnificada
+        from django.db.models import Q
+
         escola_uuid = kwargs.get('escola_uuid')
+        uuids_solicitacao_unificadas = SolicitacaoKitLancheUnificada.objects.filter(
+            escolas_quantidades__escola__uuid=escola_uuid).values_list('uuid', flat=True)
         return cls.objects.filter(
-            escola_uuid=escola_uuid,
+            Q(escola_uuid=escola_uuid) | Q(uuid__in=uuids_solicitacao_unificadas),
             status_atual__in=cls.AUTORIZADOS_STATUS,
             status_evento__in=cls.AUTORIZADOS_EVENTO
         ).exclude(tipo_doc=cls.TP_SOL_DIETA_ESPECIAL).distinct().order_by('-data_log')
@@ -695,9 +710,11 @@ class SolicitacoesDRE(MoldeConsolidado):
     AUTORIZADOS_STATUS = [PedidoAPartirDaDiretoriaRegionalWorkflow.CODAE_AUTORIZADO,
                           PedidoAPartirDaDiretoriaRegionalWorkflow.TERCEIRIZADA_TOMOU_CIENCIA,
                           PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO,
-                          PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_TOMOU_CIENCIA]
+                          PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_TOMOU_CIENCIA,
+                          InformativoPartindoDaEscolaWorkflow.INFORMADO]
     AUTORIZADOS_EVENTO = [LogSolicitacoesUsuario.CODAE_AUTORIZOU,
-                          LogSolicitacoesUsuario.TERCEIRIZADA_TOMOU_CIENCIA]
+                          LogSolicitacoesUsuario.TERCEIRIZADA_TOMOU_CIENCIA,
+                          LogSolicitacoesUsuario.INICIO_FLUXO]
 
     CANCELADOS_STATUS = [PedidoAPartirDaDiretoriaRegionalWorkflow.DRE_CANCELOU,
                          PedidoAPartirDaEscolaWorkflow.ESCOLA_CANCELOU]
@@ -946,7 +963,9 @@ class SolicitacoesTerceirizada(MoldeConsolidado):
 
     @classmethod
     def get_autorizadas_temporariamente_dieta_especial(cls, **kwargs):
+        terceirizada_uuid = kwargs.get('terceirizada_uuid')
         return cls.objects.filter(
+            terceirizada_uuid=terceirizada_uuid,
             status_atual__in=cls.AUTORIZADO_STATUS_DIETA_ESPECIAL,
             status_evento__in=cls.AUTORIZADO_EVENTO_DIETA_ESPECIAL,
             tipo_doc=cls.TP_SOL_DIETA_ESPECIAL,
@@ -956,7 +975,9 @@ class SolicitacoesTerceirizada(MoldeConsolidado):
 
     @classmethod
     def get_inativas_temporariamente_dieta_especial(cls, **kwargs):
+        terceirizada_uuid = kwargs.get('terceirizada_uuid')
         qs = SolicitacaoDietaEspecial.objects.filter(
+            rastro_terceirizada__uuid=terceirizada_uuid,
             dieta_alterada__isnull=False
         ).only('dieta_alterada_id').values('dieta_alterada_id')
         ids_alterados = [s['dieta_alterada_id'] for s in qs]

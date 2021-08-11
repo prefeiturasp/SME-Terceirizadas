@@ -86,8 +86,8 @@ class Produto(Ativavel, CriadoEm, CriadoPor, Nomeavel, TemChaveExterna, TemIdent
                                         blank=True,
                                         )
 
-    marca = models.ForeignKey(Marca, on_delete=models.DO_NOTHING)
-    fabricante = models.ForeignKey(Fabricante, on_delete=models.DO_NOTHING)
+    marca = models.ForeignKey(Marca, on_delete=models.DO_NOTHING, blank=True, null=True)
+    fabricante = models.ForeignKey(Fabricante, on_delete=models.DO_NOTHING, blank=True, null=True)
     componentes = models.CharField('Componentes do Produto', blank=True, max_length=5000)
 
     tem_aditivos_alergenicos = models.BooleanField('Tem aditivos alergênicos', default=False)
@@ -263,6 +263,10 @@ class HomologacaoDoProduto(TemChaveExterna, CriadoEm, CriadoPor, FluxoHomologaca
     def ultimo_log(self):
         return self.log_mais_recente
 
+    @property
+    def ultima_analise(self):
+        return self.analises_sensoriais.last()
+
     def gera_protocolo_analise_sensorial(self):
         id_sequecial = str(get_next_value('protocolo_analise_sensorial'))
         serial = ''
@@ -315,6 +319,9 @@ class ReclamacaoDeProduto(FluxoReclamacaoProduto, TemChaveExterna, CriadoEm, Cri
     reclamante_nome = models.CharField('Nome', max_length=255)
     reclamacao = models.TextField('Reclamação')
     escola = models.ForeignKey(Escola, null=True, on_delete=models.PROTECT, related_name='reclamacoes')
+    produto_lote = models.TextField(max_length=255, blank=True, default='')
+    produto_data_validade = models.DateField(auto_now=False, auto_now_add=False, blank=True, null=True)
+    produto_data_fabricacao = models.DateField(auto_now=False, auto_now_add=False, blank=True, null=True)
 
     def salvar_log_transicao(self, status_evento, **kwargs):
         justificativa = kwargs.get('justificativa', '')
@@ -329,7 +336,7 @@ class ReclamacaoDeProduto(FluxoReclamacaoProduto, TemChaveExterna, CriadoEm, Cri
                 justificativa=justificativa
             )
             for anexo in kwargs.get('anexos', []):
-                arquivo = convert_base64_to_contentfile(anexo.pop('base64'))
+                arquivo = convert_base64_to_contentfile(anexo.get('base64'))
                 AnexoLogSolicitacoesUsuario.objects.create(
                     log=log_transicao,
                     arquivo=arquivo,
@@ -401,3 +408,40 @@ class SolicitacaoCadastroProdutoDieta(FluxoSolicitacaoCadastroProduto, TemChaveE
 
     def __str__(self):
         return f'Solicitacao cadastro produto {self.nome_produto}'
+
+
+class AnaliseSensorial(TemChaveExterna, TemIdentificadorExternoAmigavel, CriadoEm):
+    # Status Choice
+    STATUS_AGUARDANDO_RESPOSTA = 'AGUARDANDO_RESPOSTA'
+    STATUS_RESPONDIDA = 'RESPONDIDA'
+
+    STATUS = {
+        STATUS_AGUARDANDO_RESPOSTA: 'Aguardando resposta',
+        STATUS_RESPONDIDA: 'Respondida',
+    }
+
+    STATUS_CHOICES = (
+        (STATUS_AGUARDANDO_RESPOSTA, STATUS[STATUS_AGUARDANDO_RESPOSTA]),
+        (STATUS_RESPONDIDA, STATUS[STATUS_RESPONDIDA]),
+    )
+
+    homologacao_de_produto = models.ForeignKey('HomologacaoDoProduto', on_delete=models.CASCADE,
+                                               related_name='analises_sensoriais')
+
+    # Terceirizada que irá responder a análise
+    terceirizada = models.ForeignKey('terceirizada.Terceirizada', on_delete=models.CASCADE,
+                                     related_name='analises_sensoriais', null=True)
+
+    status = models.CharField(
+        'Status da análise',
+        max_length=25,
+        choices=STATUS_CHOICES,
+        default=STATUS_AGUARDANDO_RESPOSTA
+    )
+
+    @property
+    def numero_protocolo(self):
+        return self.homologacao_de_produto.protocolo_analise_sensorial
+
+    def __str__(self):
+        return f'Análise Sensorial {self.id_externo} de protocolo {self.numero_protocolo} criada em: {self.criado_em}'
