@@ -760,6 +760,19 @@ class ConferenciaDaGuiaComOcorrenciaModelViewSet(viewsets.ModelViewSet):
         else:
             return ConferenciaComOcorrenciaCreateSerializer
 
+    @action(detail=False, methods=['GET'], url_path='get-ultima-conferencia',
+            permission_classes=[UsuarioEscolaAbastecimento])
+    def get_ultima_conferencia(self, request):
+        uuid = request.query_params.get('uuid', None)
+        conferencia = self.get_queryset().filter(guia__uuid=uuid, eh_reposicao=False).last()
+
+        if not conferencia:
+            return Response(dict(detail=f'Erro: Não existe conferência para edição na guia informada.'),
+                            status=HTTP_404_NOT_FOUND)
+
+        response = {'results': ConferenciaComOcorrenciaSerializer(conferencia, many=False).data}
+        return Response(response)
+
 
 class InsucessoDeEntregaGuiaModelViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'

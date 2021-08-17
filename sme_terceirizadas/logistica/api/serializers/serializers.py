@@ -177,9 +177,16 @@ class ConferenciaIndividualPorAlimentoSerializer(serializers.ModelSerializer):
         exclude = ('id',)
 
 
+class GuiaDaRemessaSimplesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Guia
+        fields = ('uuid', 'numero_guia', 'data_entrega')
+
+
 class ConferenciaComOcorrenciaSerializer(serializers.ModelSerializer):
     criado_por = UsuarioVinculoSerializer()
     conferencia_dos_alimentos = ConferenciaIndividualPorAlimentoSerializer(many=True)
+    guia = GuiaDaRemessaSimplesSerializer(many=False)
 
     class Meta:
         model = ConferenciaGuia
@@ -214,12 +221,6 @@ class GuiaDaRemessaComDistribuidorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Guia
         exclude = ('id',)
-
-
-class GuiaDaRemessaSimplesSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Guia
-        fields = ('uuid', 'numero_guia')
 
 
 class InfoUnidadesSimplesDaGuiaSerializer(serializers.ModelSerializer):
