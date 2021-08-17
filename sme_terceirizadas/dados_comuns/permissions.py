@@ -283,3 +283,47 @@ class UsuarioEscolaAbastecimento(BasePermission):
             isinstance(usuario.vinculo_atual.instituicao, Escola) and
             usuario.vinculo_atual.perfil.nome in [ADMINISTRADOR_ESCOLA_ABASTECIMENTO]
         )
+
+
+class UsuarioDilogOuDistribuidor(BasePermission):
+    """Permite acesso a usuários com vinculo a dilogCodae e distribuidor."""
+
+    def has_permission(self, request, view):
+        usuario = request.user
+        return (
+            not usuario.is_anonymous and
+            usuario.vinculo_atual and
+            (
+                isinstance(usuario.vinculo_atual.instituicao, Codae) and
+                usuario.vinculo_atual.perfil.nome in [COORDENADOR_LOGISTICA] or
+                (
+                    isinstance(usuario.vinculo_atual.instituicao, Terceirizada) and
+                    usuario.vinculo_atual.perfil.nome in [ADMINISTRADOR_DISTRIBUIDORA]
+                )
+            )
+        )
+
+
+class UsuarioDilogOuDistribuidorOuEscolaAbastecimento(BasePermission):
+    """Acesso permitido a usuários vinculados a uma escola abastecimento ou cordenador dilog ou distibuidor"""
+
+    def has_permission(self, request, view):
+        usuario = request.user
+        return (
+            not usuario.is_anonymous and
+            usuario.vinculo_atual and
+            (
+                (
+                    isinstance(usuario.vinculo_atual.instituicao, Codae) and
+                    usuario.vinculo_atual.perfil.nome in [COORDENADOR_LOGISTICA]
+                ) or
+                (
+                    isinstance(usuario.vinculo_atual.instituicao, Terceirizada) and
+                    usuario.vinculo_atual.perfil.nome in [ADMINISTRADOR_DISTRIBUIDORA]
+                ) or
+                (
+                    isinstance(usuario.vinculo_atual.instituicao, Escola) and
+                    usuario.vinculo_atual.perfil.nome in [ADMINISTRADOR_ESCOLA_ABASTECIMENTO]
+                )
+            )
+        )
