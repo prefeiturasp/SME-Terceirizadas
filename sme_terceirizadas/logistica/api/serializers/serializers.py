@@ -180,13 +180,13 @@ class ConferenciaIndividualPorAlimentoSerializer(serializers.ModelSerializer):
 class GuiaDaRemessaSimplesSerializer(serializers.ModelSerializer):
     class Meta:
         model = Guia
-        fields = ('uuid', 'numero_guia', 'data_entrega')
+        fields = ('uuid', 'numero_guia')
 
 
 class ConferenciaComOcorrenciaSerializer(serializers.ModelSerializer):
     criado_por = UsuarioVinculoSerializer()
     conferencia_dos_alimentos = ConferenciaIndividualPorAlimentoSerializer(many=True)
-    guia = GuiaDaRemessaSimplesSerializer(many=False)
+    guia = GuiaLookUpSerializer(many=False)
 
     class Meta:
         model = ConferenciaGuia
