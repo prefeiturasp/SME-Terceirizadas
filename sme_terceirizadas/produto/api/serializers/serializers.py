@@ -20,6 +20,8 @@ from ....escola.api.serializers import (
     TipoGestaoSerializer
 )
 from ....escola.models import Escola
+from ....perfil.api.serializers import UsuarioSerializer
+from ....perfil.models import Usuario
 from ....terceirizada.api.serializers.serializers import TerceirizadaSimplesSerializer
 from ...models import (
     AnaliseSensorial,
@@ -559,11 +561,18 @@ class ReclamacaoDeProdutoRelatorioSerializer(serializers.ModelSerializer):
     escola = EscolaSimplissimaSerializer()
     status_titulo = serializers.CharField(source='status.state.title')
     logs = LogSolicitacoesSerializer(many=True)
+    usuario = serializers.SerializerMethodField()
+
+    def get_usuario(self, obj):
+        return UsuarioSerializer(
+            Usuario.objects.filter(
+                registro_funcional=obj.reclamante_registro_funcional).first(),
+        ).data
 
     class Meta:
         model = ReclamacaoDeProduto
         fields = ('uuid', 'reclamante_registro_funcional', 'logs', 'reclamante_cargo', 'reclamante_nome',
-                  'reclamacao', 'escola', 'status', 'status_titulo', 'criado_em', 'id_externo')
+                  'reclamacao', 'escola', 'usuario', 'status', 'status_titulo', 'criado_em', 'id_externo')
 
 
 class HomologacaoReclamacaoSerializer(serializers.ModelSerializer):

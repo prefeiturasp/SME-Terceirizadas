@@ -109,6 +109,7 @@ CODAE_ACEITA = 'codae-aceita'
 CODAE_RECUSA = 'codae-recusa'
 CODAE_QUESTIONA_TERCEIRIZADA = 'codae-questiona-terceirizada'
 CODAE_QUESTIONA_UE = 'codae-questiona-ue'
+CODAE_QUESTIONA_NUTRISUPERVISOR = 'codae-questiona-nutrisupervisor'
 CODAE_RESPONDE = 'codae-responde'
 
 TERCEIRIZADA_RESPONDE_QUESTIONAMENTO = 'terceirizada-responde-questionamento'
