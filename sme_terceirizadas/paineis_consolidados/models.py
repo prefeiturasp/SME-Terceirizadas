@@ -570,6 +570,18 @@ class SolicitacoesEscola(MoldeConsolidado):
         ).distinct().order_by('-data_log')
 
     @classmethod
+    def get_aguardando_vigencia_dieta_especial(cls, **kwargs):
+        escola_uuid = kwargs.get('escola_uuid')
+        return cls.objects.filter(
+            escola_uuid=escola_uuid,
+            status_atual__in=cls.AUTORIZADO_STATUS_DIETA_ESPECIAL,
+            status_evento__in=cls.AUTORIZADO_EVENTO_DIETA_ESPECIAL,
+            tipo_doc=cls.TP_SOL_DIETA_ESPECIAL,
+            dieta_alterada_id__isnull=False,
+            em_vigencia=False
+        ).distinct().order_by('-data_log')
+
+    @classmethod
     def get_inativas_temporariamente_dieta_especial(cls, **kwargs):
         qs = SolicitacaoDietaEspecial.objects.filter(
             dieta_alterada__isnull=False
