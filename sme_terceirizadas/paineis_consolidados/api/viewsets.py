@@ -23,6 +23,7 @@ from ..api.constants import PENDENTES_VALIDACAO_DRE, RELATORIO_PERIODO
 from ..models import SolicitacoesCODAE, SolicitacoesDRE, SolicitacoesEscola, SolicitacoesTerceirizada
 from ..validators import FiltroValidator
 from .constants import (
+    AGUARDANDO_INICIO_VIGENCIA_DIETA_ESPECIAL,
     AUTORIZADAS_TEMPORARIAMENTE_DIETA_ESPECIAL,
     AUTORIZADOS,
     AUTORIZADOS_DIETA_ESPECIAL,
@@ -378,6 +379,14 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
             url_path=f'{AUTORIZADAS_TEMPORARIAMENTE_DIETA_ESPECIAL}/{FILTRO_ESCOLA_UUID}')
     def autorizadas_temporariamente_dieta_especial(self, request, escola_uuid=None):
         query_set = SolicitacoesEscola.get_autorizadas_temporariamente_dieta_especial(
+            escola_uuid=escola_uuid)
+        return self._retorno_base(query_set)
+
+    @action(detail=False,
+            methods=['GET'],
+            url_path=f'{AGUARDANDO_INICIO_VIGENCIA_DIETA_ESPECIAL}/{FILTRO_ESCOLA_UUID}')
+    def aguardando_inicio_vigencia_dieta_especial(self, request, escola_uuid=None):
+        query_set = SolicitacoesEscola.get_aguardando_vigencia_dieta_especial(
             escola_uuid=escola_uuid)
         return self._retorno_base(query_set)
 
