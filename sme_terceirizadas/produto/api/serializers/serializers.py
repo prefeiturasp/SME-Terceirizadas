@@ -126,6 +126,13 @@ class ReclamacaoDeProdutoSerializer(serializers.ModelSerializer):
     anexos = serializers.SerializerMethodField()
     status_titulo = serializers.CharField(source='status.state.title')
     logs = serializers.SerializerMethodField()
+    usuario = serializers.SerializerMethodField()
+
+    def get_usuario(self, obj):
+        return UsuarioSerializer(
+            Usuario.objects.filter(
+                registro_funcional=obj.reclamante_registro_funcional).first(),
+        ).data
 
     def get_anexos(self, obj):
         return AnexoReclamacaoDeProdutoSerializer(
@@ -144,7 +151,7 @@ class ReclamacaoDeProdutoSerializer(serializers.ModelSerializer):
     class Meta:
         model = ReclamacaoDeProduto
         fields = ('uuid', 'reclamante_registro_funcional', 'logs', 'reclamante_cargo', 'reclamante_nome',
-                  'reclamacao', 'escola', 'anexos', 'status', 'status_titulo', 'criado_em', 'id_externo')
+                  'reclamacao', 'escola', 'usuario', 'anexos', 'status', 'status_titulo', 'criado_em', 'id_externo')
 
 
 class ReclamacaoDeProdutoSimplesSerializer(serializers.ModelSerializer):
