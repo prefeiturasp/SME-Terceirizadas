@@ -29,7 +29,6 @@ from sme_terceirizadas.dados_comuns.permissions import (
 from sme_terceirizadas.logistica.api.serializers.serializer_create import (
     ConferenciaComOcorrenciaCreateSerializer,
     ConferenciaDaGuiaCreateSerializer,
-    ConferenciaIndividualPorAlimentoCreateSerializer,
     InsucessoDeEntregaGuiaCreateSerializer,
     SolicitacaoDeAlteracaoRequisicaoCreateSerializer,
     SolicitacaoRemessaCreateSerializer
@@ -755,10 +754,10 @@ class ConferenciaDaGuiaComOcorrenciaModelViewSet(viewsets.ModelViewSet):
     permission_classes = [UsuarioEscolaAbastecimento]
 
     def get_serializer_class(self):
-        if self.action in ['retrieve', 'list']:
-            return ConferenciaComOcorrenciaSerializer
-        else:
+        if self.action in ['create', 'update']:
             return ConferenciaComOcorrenciaCreateSerializer
+        else:
+            return ConferenciaComOcorrenciaSerializer
 
     @action(detail=False, methods=['GET'], url_path='get-ultima-conferencia',
             permission_classes=[UsuarioEscolaAbastecimento])
@@ -796,5 +795,3 @@ class ConferenciaindividualModelViewSet(viewsets.ModelViewSet):
     def get_serializer_class(self):
         if self.action in ['retrieve', 'list']:
             return ConferenciaIndividualPorAlimentoSerializer
-        else:
-            return ConferenciaIndividualPorAlimentoCreateSerializer
