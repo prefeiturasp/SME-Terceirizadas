@@ -1,5 +1,6 @@
 import base64
 import datetime
+import os
 import uuid
 from mimetypes import guess_extension, guess_type
 from typing import Any
@@ -125,6 +126,16 @@ def convert_base64_to_contentfile(base64_str: str):
     ext = guess_extension(format[5:]) or ''
     data = ContentFile(base64.b64decode(imgstr), name=str(uuid.uuid4()) + ext)
     return data
+
+
+def convert_image_to_base64(image_file, format):
+    if not os.path.isfile(image_file):
+        return None
+
+    encoded_string = ''
+    with open(image_file, 'rb') as img_f:
+        encoded_string = base64.b64encode(img_f.read())
+    return 'data:image/%s;base64,%s' % (format, encoded_string)
 
 
 def queryset_por_data(filtro_aplicado, model):

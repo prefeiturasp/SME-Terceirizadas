@@ -161,12 +161,16 @@ class ConferenciaIndividualPorAlimentoSerializer(serializers.ModelSerializer):
     )
     status_alimento = serializers.SerializerMethodField()
     tipo_embalagem = serializers.SerializerMethodField()
+    arquivo = serializers.SerializerMethodField()
 
     def get_status_alimento(self, obj):
         return obj.get_status_alimento_display()
 
     def get_tipo_embalagem(self, obj):
         return obj.get_tipo_embalagem_display()
+
+    def get_arquivo(self, obj):
+        return obj.arquivo_base64
 
     class Meta:
         model = ConferenciaIndividualPorAlimento
