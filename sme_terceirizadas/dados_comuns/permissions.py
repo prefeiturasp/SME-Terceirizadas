@@ -305,7 +305,7 @@ class UsuarioDilogOuDistribuidor(BasePermission):
 
 
 class UsuarioDilogOuDistribuidorOuEscolaAbastecimento(BasePermission):
-    """Acesso permitido a usuários vinculados a uma escola abastecimento ou cordenador dilog ou distibuidor"""
+    """Acesso permitido a usuários vinculados a uma escola abastecimento ou cordenador dilog ou distibuidor."""
 
     def has_permission(self, request, view):
         usuario = request.user
