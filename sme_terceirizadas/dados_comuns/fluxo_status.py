@@ -346,6 +346,7 @@ class HomologacaoProdutoWorkflow(xwf_models.Workflow):
     CODAE_QUESTIONOU_UE = 'CODAE_QUESTIONOU_UE'
     UE_RESPONDEU_QUESTIONAMENTO = 'UE_RESPONDEU_QUESTIONAMENTO'
     CODAE_QUESTIONOU_NUTRISUPERVISOR = 'CODAE_QUESTIONOU_NUTRISUPERVISOR'
+    NUTRISUPERVISOR_RESPONDEU_QUESTIONAMENTO = 'NUTRISUPERVISOR_RESPONDEU_QUESTIONAMENTO'
     CODAE_PEDIU_ANALISE_RECLAMACAO = 'CODAE_PEDIU_ANALISE_RECLAMACAO'
     TERCEIRIZADA_RESPONDEU_RECLAMACAO = 'TERCEIRIZADA_RESPONDEU_RECLAMACAO'
     CODAE_AUTORIZOU_RECLAMACAO = 'CODAE_AUTORIZOU_RECLAMACAO'
@@ -366,6 +367,7 @@ class HomologacaoProdutoWorkflow(xwf_models.Workflow):
         (CODAE_QUESTIONOU_UE, 'CODAE questionou U.E.'),
         (UE_RESPONDEU_QUESTIONAMENTO, 'U.E respondeu questionamento'),
         (CODAE_QUESTIONOU_NUTRISUPERVISOR, 'CODAE questionou Nutrisupervisor'),
+        (NUTRISUPERVISOR_RESPONDEU_QUESTIONAMENTO, 'Nutrisupervisor respondeu questionamento'),
         (CODAE_PEDIU_ANALISE_RECLAMACAO, 'CODAE pediu análise da reclamação'),
         (TERCEIRIZADA_RESPONDEU_RECLAMACAO, 'Terceirizada respondeu a reclamação'),
         (CODAE_AUTORIZOU_RECLAMACAO, 'CODAE autorizou reclamação'),
@@ -399,16 +401,21 @@ class HomologacaoProdutoWorkflow(xwf_models.Workflow):
         ('codae_questiona_ue',
          [CODAE_PEDIU_ANALISE_RECLAMACAO,
           UE_RESPONDEU_QUESTIONAMENTO,
+          NUTRISUPERVISOR_RESPONDEU_QUESTIONAMENTO,
           TERCEIRIZADA_RESPONDEU_RECLAMACAO,
           ESCOLA_OU_NUTRICIONISTA_RECLAMOU], CODAE_QUESTIONOU_UE),
         ('codae_questiona_nutrisupervisor',
          [CODAE_PEDIU_ANALISE_RECLAMACAO,
           UE_RESPONDEU_QUESTIONAMENTO,
+          NUTRISUPERVISOR_RESPONDEU_QUESTIONAMENTO,
           TERCEIRIZADA_RESPONDEU_RECLAMACAO,
           ESCOLA_OU_NUTRICIONISTA_RECLAMOU], CODAE_QUESTIONOU_NUTRISUPERVISOR),
+        ('nutrisupervisor_respondeu_questionamento',
+         CODAE_QUESTIONOU_NUTRISUPERVISOR, NUTRISUPERVISOR_RESPONDEU_QUESTIONAMENTO),
         ('ue_respondeu_questionamento', CODAE_QUESTIONOU_UE, UE_RESPONDEU_QUESTIONAMENTO),
         ('codae_pediu_analise_reclamacao',
          [UE_RESPONDEU_QUESTIONAMENTO,
+          NUTRISUPERVISOR_RESPONDEU_QUESTIONAMENTO,
           TERCEIRIZADA_RESPONDEU_RECLAMACAO,
           ESCOLA_OU_NUTRICIONISTA_RECLAMOU], CODAE_PEDIU_ANALISE_RECLAMACAO),
         ('terceirizada_responde_reclamacao',
@@ -1169,6 +1176,13 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
     def _ue_respondeu_questionamento_hook(self, *args, **kwargs):
         self.salva_log_com_justificativa_e_anexos(
             LogSolicitacoesUsuario.UE_RESPONDEU_RECLAMACAO,
+            kwargs['request']
+        )
+
+    @xworkflows.after_transition('nutrisupervisor_respondeu_questionamento')
+    def _nutrisupervisor_respondeu_questionamento_hook(self, *args, **kwargs):
+        self.salva_log_com_justificativa_e_anexos(
+            LogSolicitacoesUsuario.NUTRISUPERVISOR_RESPONDEU_RECLAMACAO,
             kwargs['request']
         )
 
@@ -2071,6 +2085,7 @@ class ReclamacaoProdutoWorkflow(xwf_models.Workflow):
     AGUARDANDO_RESPOSTA_UE = 'AGUARDANDO_RESPOSTA_UE'
     RESPONDIDO_UE = 'RESPONDIDO_UE'
     AGUARDANDO_RESPOSTA_NUTRISUPERVISOR = 'AGUARDANDO_RESPOSTA_NUTRISUPERVISOR'
+    RESPONDIDO_NUTRISUPERVISOR = 'RESPONDIDO_NUTRISUPERVISOR'
     CODAE_ACEITOU = 'CODAE_ACEITOU'
     CODAE_RECUSOU = 'CODAE_RECUSOU'
     CODAE_RESPONDEU = 'CODAE_RESPONDEU'
@@ -2084,6 +2099,7 @@ class ReclamacaoProdutoWorkflow(xwf_models.Workflow):
         (ANALISE_SENSORIAL_RESPONDIDA, 'Análise sensorial respondida.'),
         (RESPONDIDO_TERCEIRIZADA, 'Respondido pela terceirizada'),
         (RESPONDIDO_UE, 'Respondido pela U.E'),
+        (RESPONDIDO_NUTRISUPERVISOR, 'Respondido pelo nutrisupervisor'),
         (CODAE_ACEITOU, 'CODAE aceitou'),
         (CODAE_RECUSOU, 'CODAE recusou'),
         (CODAE_RESPONDEU, 'CODAE respondeu ao reclamante'),
@@ -2093,21 +2109,26 @@ class ReclamacaoProdutoWorkflow(xwf_models.Workflow):
         ('codae_questiona_terceirizada', [AGUARDANDO_AVALIACAO,
                                           ANALISE_SENSORIAL_RESPONDIDA,
                                           RESPONDIDO_TERCEIRIZADA,
+                                          RESPONDIDO_NUTRISUPERVISOR,
                                           RESPONDIDO_UE], AGUARDANDO_RESPOSTA_TERCEIRIZADA),
         ('terceirizada_responde', AGUARDANDO_RESPOSTA_TERCEIRIZADA,
          RESPONDIDO_TERCEIRIZADA),
         ('codae_questiona_ue', [AGUARDANDO_AVALIACAO,
                                 ANALISE_SENSORIAL_RESPONDIDA,
                                 RESPONDIDO_TERCEIRIZADA,
+                                RESPONDIDO_NUTRISUPERVISOR,
                                 RESPONDIDO_UE], AGUARDANDO_RESPOSTA_UE),
         ('ue_responde', AGUARDANDO_RESPOSTA_UE, RESPONDIDO_UE),
         ('codae_questiona_nutrisupervisor', [AGUARDANDO_AVALIACAO,
                                              ANALISE_SENSORIAL_RESPONDIDA,
                                              RESPONDIDO_TERCEIRIZADA,
+                                             RESPONDIDO_NUTRISUPERVISOR,
                                              RESPONDIDO_UE], AGUARDANDO_RESPOSTA_NUTRISUPERVISOR),
+        ('nutrisupervisor_responde', AGUARDANDO_RESPOSTA_NUTRISUPERVISOR, RESPONDIDO_NUTRISUPERVISOR),
         ('codae_aceita', [AGUARDANDO_RESPOSTA_TERCEIRIZADA,
                           AGUARDANDO_AVALIACAO,
                           RESPONDIDO_TERCEIRIZADA,
+                          RESPONDIDO_NUTRISUPERVISOR,
                           AGUARDANDO_ANALISE_SENSORIAL,
                           ANALISE_SENSORIAL_RESPONDIDA,
                           AGUARDANDO_RESPOSTA_UE,
@@ -2115,6 +2136,7 @@ class ReclamacaoProdutoWorkflow(xwf_models.Workflow):
         ('codae_recusa', [AGUARDANDO_RESPOSTA_TERCEIRIZADA,
                           AGUARDANDO_AVALIACAO,
                           RESPONDIDO_TERCEIRIZADA,
+                          RESPONDIDO_NUTRISUPERVISOR,
                           AGUARDANDO_ANALISE_SENSORIAL,
                           ANALISE_SENSORIAL_RESPONDIDA,
                           AGUARDANDO_RESPOSTA_UE,
@@ -2122,10 +2144,12 @@ class ReclamacaoProdutoWorkflow(xwf_models.Workflow):
         ('codae_responde', [AGUARDANDO_AVALIACAO,
                             ANALISE_SENSORIAL_RESPONDIDA,
                             RESPONDIDO_TERCEIRIZADA,
+                            RESPONDIDO_NUTRISUPERVISOR,
                             RESPONDIDO_UE], CODAE_RESPONDEU),
         ('codae_pede_analise_sensorial', [AGUARDANDO_AVALIACAO,
                                           ANALISE_SENSORIAL_RESPONDIDA,
                                           RESPONDIDO_TERCEIRIZADA,
+                                          RESPONDIDO_NUTRISUPERVISOR,
                                           RESPONDIDO_UE], AGUARDANDO_ANALISE_SENSORIAL),
         ('terceirizada_responde_analise_sensorial', AGUARDANDO_ANALISE_SENSORIAL, ANALISE_SENSORIAL_RESPONDIDA)
     )
@@ -2248,6 +2272,12 @@ class FluxoReclamacaoProduto(xwf_models.WorkflowEnabled, models.Model):
     def _ue_responde_hook(self, *args, **kwargs):
         self.salvar_log_transicao(
             status_evento=LogSolicitacoesUsuario.UE_RESPONDEU_RECLAMACAO,
+            **kwargs)
+
+    @xworkflows.after_transition('nutrisupervisor_responde')
+    def _nutrisupervisor_responde_hook(self, *args, **kwargs):
+        self.salvar_log_transicao(
+            status_evento=LogSolicitacoesUsuario.NUTRISUPERVISOR_RESPONDEU_RECLAMACAO,
             **kwargs)
 
     @xworkflows.after_transition('codae_pede_analise_sensorial')
