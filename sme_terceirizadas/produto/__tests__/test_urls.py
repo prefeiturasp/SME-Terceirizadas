@@ -317,6 +317,19 @@ def test_url_endpoint_lista_nomes_responder_reclamacao_escola(client_autenticado
     assert response.json() == esperado
 
 
+def test_url_endpoint_lista_nomes_responder_reclamacao_nutri(client_autenticado_vinculo_escola_nutrisupervisor,
+                                                             produto,
+                                                             homologacao_produto_gpcodae_questionou_nutrisupervisor,
+                                                             reclamacao_nutrisupervisor):
+
+    client = client_autenticado_vinculo_escola_nutrisupervisor
+    response = client.get(f'/produtos/lista-nomes-responder-reclamacao-nutrisupervisor/')
+    esperado = {'results': [{'uuid': 'uuid', 'nome': produto.nome}]}
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == esperado
+
+
 def test_url_endpoint_lista_nomes_responder_reclamacao_fabricantes(client_autenticado_vinculo_escola_ue,
                                                                    produto, fabricante,
                                                                    homologacao_produto_gpcodae_questionou_escola,
@@ -330,6 +343,20 @@ def test_url_endpoint_lista_nomes_responder_reclamacao_fabricantes(client_autent
     assert response.json() == esperado
 
 
+def test_url_endpoint_lista_nomes_responder_reclamacao_fabricantes_nutri(
+        client_autenticado_vinculo_escola_nutrisupervisor,
+        fabricante,
+        homologacao_produto_gpcodae_questionou_nutrisupervisor,
+        reclamacao_nutrisupervisor):
+
+    client = client_autenticado_vinculo_escola_nutrisupervisor
+    response = client.get(f'/fabricantes/lista-nomes-responder-reclamacao-nutrisupervisor/')
+    esperado = {'results': [{'uuid': str(fabricante.uuid), 'nome': fabricante.nome}]}
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == esperado
+
+
 def test_url_endpoint_lista_nomes_responder_reclamacao_marcas(client_autenticado_vinculo_escola_ue,
                                                               produto, marca1,
                                                               homologacao_produto_gpcodae_questionou_escola,
@@ -337,6 +364,20 @@ def test_url_endpoint_lista_nomes_responder_reclamacao_marcas(client_autenticado
 
     client = client_autenticado_vinculo_escola_ue
     response = client.get(f'/marcas/lista-nomes-responder-reclamacao-escola/')
+    esperado = {'results': [{'uuid': str(marca1.uuid), 'nome': marca1.nome}]}
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == esperado
+
+
+def test_url_endpoint_lista_nomes_responder_reclamacao_marcas_nutri(
+        client_autenticado_vinculo_escola_nutrisupervisor,
+        marca1,
+        homologacao_produto_gpcodae_questionou_nutrisupervisor,
+        reclamacao_nutrisupervisor):
+
+    client = client_autenticado_vinculo_escola_nutrisupervisor
+    response = client.get(f'/marcas/lista-nomes-responder-reclamacao-nutrisupervisor/')
     esperado = {'results': [{'uuid': str(marca1.uuid), 'nome': marca1.nome}]}
 
     assert response.status_code == status.HTTP_200_OK

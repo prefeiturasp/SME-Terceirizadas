@@ -238,6 +238,30 @@ def client_autenticado_vinculo_escola_ue(client, django_user_model, escola):
 
 
 @pytest.fixture
+def client_autenticado_vinculo_escola_nutrisupervisor(
+        client,
+        django_user_model,
+        escola):
+
+    email = 'test@test.com'
+    password = 'bar'
+    user = django_user_model.objects.create_user(password=password, email=email,
+                                                 registro_funcional='8888888')
+
+    perfil_nutri = mommy.make('Perfil', nome='COORDENADOR_SUPERVISAO_NUTRICAO',
+                              ativo=True, uuid='41c20c8b-7e57-41ed-9433-ccb92e8afaf1')
+
+    hoje = datetime.date.today()
+    mommy.make('Vinculo', usuario=user, instituicao=escola, perfil=perfil_nutri,
+               data_inicial=hoje, ativo=True)
+    mommy.make(TemplateMensagem, assunto='TESTE',
+               tipo=TemplateMensagem.DIETA_ESPECIAL,
+               template_html='@id @criado_em @status @link')
+    client.login(email=email, password=password)
+    return client
+
+
+@pytest.fixture
 def homologacao_produto(escola, template_homologacao_produto, user, produto):
     perfil_admin_terceirizada = mommy.make('Perfil', nome=constants.ADMINISTRADOR_TERCEIRIZADA,
                                            ativo=True)
@@ -300,6 +324,13 @@ def homologacao_produto_gpcodae_questionou_escola(homologacao_produto):
 
 
 @pytest.fixture
+def homologacao_produto_gpcodae_questionou_nutrisupervisor(homologacao_produto):
+    homologacao_produto.status = HomologacaoProdutoWorkflow.CODAE_QUESTIONOU_NUTRISUPERVISOR
+    homologacao_produto.save()
+    return homologacao_produto
+
+
+@pytest.fixture
 def reclamacao_ue(homologacao_produto_gpcodae_questionou_escola, escola, user):
     reclamacao = mommy.make('ReclamacaoDeProduto',
                             homologacao_de_produto=homologacao_produto_gpcodae_questionou_escola,
@@ -310,4 +341,18 @@ def reclamacao_ue(homologacao_produto_gpcodae_questionou_escola, escola, user):
                             criado_por=user,
                             criado_em=datetime.datetime.utcnow(),
                             status=ReclamacaoProdutoWorkflow.AGUARDANDO_RESPOSTA_UE)
+    return reclamacao
+
+
+@pytest.fixture
+def reclamacao_nutrisupervisor(homologacao_produto_gpcodae_questionou_nutrisupervisor, escola, user):
+    reclamacao = mommy.make('ReclamacaoDeProduto',
+                            homologacao_de_produto=homologacao_produto_gpcodae_questionou_nutrisupervisor,
+                            escola=escola,
+                            reclamante_registro_funcional='8888888',
+                            reclamante_cargo='Cargo',
+                            reclamante_nome='Arthur',
+                            criado_por=user,
+                            criado_em=datetime.datetime.utcnow(),
+                            status=ReclamacaoProdutoWorkflow.AGUARDANDO_RESPOSTA_NUTRISUPERVISOR)
     return reclamacao
