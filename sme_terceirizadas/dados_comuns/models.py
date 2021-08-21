@@ -59,6 +59,7 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
         TERCEIRIZADA_RESPONDEU_ANALISE_SENSORIAL,
         CODAE_QUESTIONOU_UE,
         UE_RESPONDEU_RECLAMACAO,
+        NUTRISUPERVISOR_RESPONDEU_RECLAMACAO,
         CODAE_QUESTIONOU_NUTRISUPERVISOR,
         CODAE_RECUSOU_RECLAMACAO,
         CODAE_QUESTIONOU_TERCEIRIZADA,
@@ -80,7 +81,7 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
 
         CANCELADO_ALUNO_MUDOU_ESCOLA,
         CANCELADO_ALUNO_NAO_PERTENCE_REDE,
-    ) = range(49)
+    ) = range(50)
 
     STATUS_POSSIVEIS = (
         (INICIO_FLUXO, 'Solicitação Realizada'),
@@ -121,6 +122,7 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
         (CODAE_QUESTIONOU_NUTRISUPERVISOR, 'CODAE questionou nutrisupervisor sobre reclamação'),
         (TERCEIRIZADA_RESPONDEU_RECLAMACAO, 'Terceirizada respondeu a reclamação'),
         (UE_RESPONDEU_RECLAMACAO, 'U.E. respondeu a reclamação'),
+        (NUTRISUPERVISOR_RESPONDEU_RECLAMACAO, 'Nutrisupervisor respondeu a reclamação'),
         (TERCEIRIZADA_RESPONDEU_ANALISE_SENSORIAL, 'Terceirizada respondeu a análise'),  # noqa
         (INICIO_FLUXO_SOLICITACAO, 'Papa enviou a requisição'),
         (DILOG_ENVIA_SOLICITACAO, 'Dilog Enviou a requisição'),
