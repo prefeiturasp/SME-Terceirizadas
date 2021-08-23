@@ -21,13 +21,14 @@ from sme_terceirizadas.dados_comuns.models import LogSolicitacoesUsuario
 from sme_terceirizadas.dados_comuns.parser_xml import ListXMLParser
 from sme_terceirizadas.dados_comuns.permissions import (
     UsuarioDilogCodae,
+    UsuarioDilogOuDistribuidor,
+    UsuarioDilogOuDistribuidorOuEscolaAbastecimento,
     UsuarioDistribuidor,
     UsuarioEscolaAbastecimento
 )
 from sme_terceirizadas.logistica.api.serializers.serializer_create import (
     ConferenciaComOcorrenciaCreateSerializer,
     ConferenciaDaGuiaCreateSerializer,
-    ConferenciaIndividualPorAlimentoCreateSerializer,
     InsucessoDeEntregaGuiaCreateSerializer,
     SolicitacaoDeAlteracaoRequisicaoCreateSerializer,
     SolicitacaoRemessaCreateSerializer
@@ -171,7 +172,7 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         if self.action in ['list']:
-            self.permission_classes = [UsuarioDilogCodae | UsuarioDistribuidor]
+            self.permission_classes = [UsuarioDilogOuDistribuidor]
         return super(SolicitacaoModelViewSet, self).get_permissions()
 
     def get_queryset(self):
@@ -287,7 +288,7 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
         response = {'results': SolicitacaoRemessaLookUpSerializer(queryset, many=True).data}
         return Response(response)
 
-    @action(detail=False, permission_classes=[UsuarioDilogCodae | UsuarioDistribuidor],
+    @action(detail=False, permission_classes=[UsuarioDilogOuDistribuidor],
             methods=['GET'], url_path='lista-requisicoes-confirmadas')
     def lista_requisicoes_confirmadas(self, request):
         queryset = self.filter_queryset(
@@ -374,7 +375,7 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
-    @action(detail=True, permission_classes=[UsuarioDistribuidor | UsuarioDilogCodae],
+    @action(detail=True, permission_classes=[UsuarioDilogOuDistribuidor],
             methods=['get'], url_path='consolidado-alimentos')
     def consolidado_alimentos(self, request, uuid=None):
         solicitacao = self.get_queryset().filter(uuid=uuid).first()
@@ -433,7 +434,7 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
         detail=True,
         methods=['GET'],
         url_path='relatorio-guias-da-requisicao',
-        permission_classes=[UsuarioDistribuidor | UsuarioDilogCodae])
+        permission_classes=[UsuarioDilogOuDistribuidor])
     def gerar_relaorio_guias_da_requisicao(self, request, uuid=None):
         solicitacao = self.get_object()
         guias = solicitacao.guias.all()
@@ -442,7 +443,7 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
     @action(
         detail=False, methods=['GET'],
         url_path='exporta-excel-visao-analitica',
-        permission_classes=[UsuarioDilogCodae | UsuarioDistribuidor])
+        permission_classes=[UsuarioDilogOuDistribuidor])
     def gerar_excel(self, request):
         user = self.request.user
         queryset = self.filter_queryset(self.get_queryset())
@@ -463,7 +464,7 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
     @action(
         detail=False, methods=['GET'],
         url_path='exporta-excel-visao-entregas',
-        permission_classes=[UsuarioDilogCodae | UsuarioDistribuidor])
+        permission_classes=[UsuarioDilogOuDistribuidor])
     def gerar_excel_entregas(self, request):
         uuid = request.query_params.get('uuid', None)
         tem_conferencia = request.query_params.get('tem_conferencia', None)
@@ -501,7 +502,7 @@ class GuiaDaRequisicaoModelViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
     queryset = GuiasDasRequisicoes.objects.all()
     serializer_class = GuiaDaRemessaSerializer
-    permission_classes = [UsuarioDilogCodae | UsuarioDistribuidor]
+    permission_classes = [UsuarioDilogOuDistribuidor]
     pagination_class = GuiaPagination
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = GuiaFilter
@@ -513,7 +514,7 @@ class GuiaDaRequisicaoModelViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         if self.action in ['nomes_unidades']:
-            self.permission_classes = [UsuarioDilogCodae | UsuarioDistribuidor]
+            self.permission_classes = [UsuarioDilogOuDistribuidor]
         return super(GuiaDaRequisicaoModelViewSet, self).get_permissions()
 
     @action(detail=False, methods=['GET'], url_path='lista-numeros')
@@ -626,7 +627,7 @@ class GuiaDaRequisicaoModelViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['GET'],
             url_path='relatorio-guia-remessa',
-            permission_classes=[UsuarioEscolaAbastecimento | UsuarioDilogCodae | UsuarioDistribuidor])
+            permission_classes=[UsuarioDilogOuDistribuidorOuEscolaAbastecimento])
     def relatorio_guia_de_remessa(self, request, uuid=None):
         guia = self.get_object()
         guias = [guia]
@@ -683,7 +684,7 @@ class SolicitacaoDeAlteracaoDeRequisicaoViewset(viewsets.ModelViewSet):
 
     def get_permissions(self):
         if self.action in ['retrieve', 'list']:
-            self.permission_classes = [UsuarioDilogCodae | UsuarioDistribuidor]
+            self.permission_classes = [UsuarioDilogOuDistribuidor]
         return super(SolicitacaoDeAlteracaoDeRequisicaoViewset, self).get_permissions()
 
     def get_serializer_class(self):
@@ -753,10 +754,23 @@ class ConferenciaDaGuiaComOcorrenciaModelViewSet(viewsets.ModelViewSet):
     permission_classes = [UsuarioEscolaAbastecimento]
 
     def get_serializer_class(self):
-        if self.action in ['retrieve', 'list']:
-            return ConferenciaComOcorrenciaSerializer
-        else:
+        if self.action in ['create', 'update']:
             return ConferenciaComOcorrenciaCreateSerializer
+        else:
+            return ConferenciaComOcorrenciaSerializer
+
+    @action(detail=False, methods=['GET'], url_path='get-ultima-conferencia',
+            permission_classes=[UsuarioEscolaAbastecimento])
+    def get_ultima_conferencia(self, request):
+        uuid = request.query_params.get('uuid', None)
+        conferencia = self.get_queryset().filter(guia__uuid=uuid, eh_reposicao=False).last()
+
+        if not conferencia:
+            return Response(dict(detail=f'Erro: Não existe conferência para edição na guia informada.'),
+                            status=HTTP_404_NOT_FOUND)
+
+        response = {'results': ConferenciaComOcorrenciaSerializer(conferencia, many=False).data}
+        return Response(response)
 
 
 class InsucessoDeEntregaGuiaModelViewSet(viewsets.ModelViewSet):
@@ -781,5 +795,3 @@ class ConferenciaindividualModelViewSet(viewsets.ModelViewSet):
     def get_serializer_class(self):
         if self.action in ['retrieve', 'list']:
             return ConferenciaIndividualPorAlimentoSerializer
-        else:
-            return ConferenciaIndividualPorAlimentoCreateSerializer
