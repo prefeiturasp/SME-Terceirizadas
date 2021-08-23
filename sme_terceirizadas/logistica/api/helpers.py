@@ -14,7 +14,6 @@ from sme_terceirizadas.logistica.api.serializers.serializers import (
     GuiaDaRemessaComAlimentoSerializer,
     GuiaDaRemessaSerializer
 )
-from sme_terceirizadas.logistica.models import Guia
 from sme_terceirizadas.logistica.models.guia import ConferenciaIndividualPorAlimento, InsucessoEntregaGuia
 
 status_invalidos_para_conferencia = (
@@ -216,7 +215,6 @@ def valida_guia_insucesso(queryset):
 
 def verifica_se_a_guia_pode_ser_conferida(guia):
     try:
-        guia = Guia.objects.get(uuid=guia.uuid)
         if guia.status in status_invalidos_para_conferencia:
             raise ValidationError(f'Erro ao buscar guia: Essa guia ainda não pode ser conferida.')
     except ObjectDoesNotExist:
@@ -229,21 +227,18 @@ def atualiza_guia_com_base_nas_conferencias_por_alimentos(guia, user, status_dos
     no tipo de conferencia caso seja uma reposição.
     """
     try:
-        guia_obj = Guia.objects.get(uuid=guia.uuid)
         if len(status_dos_alimentos) == 0:
             raise ValidationError(f'Status dos alimentos não foram informados.')
-        try:
-            if all(status == status_alimento_recebido for status in status_dos_alimentos):
-                guia_obj.reposicao_total(user=user) if eh_reposicao else guia_obj.escola_recebe(user=user)
-            elif all(status == status_alimento_nao_recebido for status in status_dos_alimentos):
-                guia_obj.reposicao_parcial(user=user) if eh_reposicao else guia_obj.escola_nao_recebe(user=user)
-            elif all(ocorrencia == ocorrencia_em_atraso for ocorrencia in ocorrencias_dos_alimentos):
-                guia_obj.escola_recebe_parcial_atraso(user=user)
-            else:
-                guia_obj.reposicao_parcial(user=user) if eh_reposicao else guia_obj.escola_recebe_parcial(user=user)
-        except InvalidTransitionError as e:
-            raise ValidationError(f'Erro de transição de estado: {e}')
-
+        elif all(status == status_alimento_recebido for status in status_dos_alimentos):
+            guia.reposicao_total(user=user) if eh_reposicao else guia.escola_recebe(user=user)
+        elif all(status == status_alimento_nao_recebido for status in status_dos_alimentos):
+            guia.reposicao_parcial(user=user) if eh_reposicao else guia.escola_nao_recebe(user=user)
+        elif all(ocorrencia == ocorrencia_em_atraso for ocorrencia in ocorrencias_dos_alimentos):
+            guia.escola_recebe_parcial_atraso(user=user)
+        else:
+            guia.reposicao_parcial(user=user) if eh_reposicao else guia.escola_recebe_parcial(user=user)
+    except InvalidTransitionError as e:
+        raise ValidationError(f'Erro de transição de estado: {e}')
     except ObjectDoesNotExist:
         raise ValidationError(f'Guia de remessa não existe.')
 
@@ -357,3 +352,21 @@ def retorna_motivo_insucesso(motivo):
     }
 
     return switcher.get(motivo, 'Motivo Inválido')
+
+
+def registra_conferencias_individuais(guia, conferencia, conferencia_dos_alimentos, user, eh_reposicao):
+    conferencia_dos_alimentos_list = []
+    status_dos_alimentos = []
+    ocorrencias_dos_alimentos = []
+    for alimento in conferencia_dos_alimentos:
+        alimento['conferencia'] = conferencia
+        if alimento['ocorrencia']:
+            alimento['tem_ocorrencia'] = True
+        status_dos_alimentos.append(alimento['status_alimento'])
+        ocorrencias_dos_alimentos = ocorrencias_dos_alimentos + list(alimento['ocorrencia'])
+        conferencia_individual = ConferenciaIndividualPorAlimento.objects.create(**alimento)
+        registra_qtd_a_receber(conferencia_individual)
+        conferencia_dos_alimentos_list.append(conferencia_individual)
+    conferencia.conferencia_dos_alimentos.set(conferencia_dos_alimentos_list)
+    atualiza_guia_com_base_nas_conferencias_por_alimentos(guia, user, status_dos_alimentos,
+                                                          eh_reposicao, ocorrencias_dos_alimentos)

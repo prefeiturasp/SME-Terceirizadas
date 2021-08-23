@@ -259,10 +259,22 @@ class GuiaRemessaWorkFlow(xwf_models.Workflow):
     transitions = (
         ('distribuidor_confirma_guia', AGUARDANDO_CONFIRMACAO, PENDENTE_DE_CONFERENCIA),
         ('distribuidor_registra_insucesso', PENDENTE_DE_CONFERENCIA, DISTRIBUIDOR_REGISTRA_INSUCESSO),
-        ('escola_recebe', PENDENTE_DE_CONFERENCIA, RECEBIDA),
-        ('escola_nao_recebe', PENDENTE_DE_CONFERENCIA, NAO_RECEBIDA),
-        ('escola_recebe_parcial', PENDENTE_DE_CONFERENCIA, RECEBIMENTO_PARCIAL),
-        ('escola_recebe_parcial_atraso', PENDENTE_DE_CONFERENCIA, RECEBIMENTO_PARCIAL),
+        ('escola_recebe', [
+            PENDENTE_DE_CONFERENCIA, NAO_RECEBIDA, RECEBIMENTO_PARCIAL,
+            RECEBIDA, REPOSICAO_PARCIAL, REPOSICAO_TOTAL
+        ], RECEBIDA),
+        ('escola_nao_recebe', [
+            PENDENTE_DE_CONFERENCIA, NAO_RECEBIDA, RECEBIMENTO_PARCIAL,
+            RECEBIDA, REPOSICAO_PARCIAL, REPOSICAO_TOTAL
+        ], NAO_RECEBIDA),
+        ('escola_recebe_parcial', [
+            PENDENTE_DE_CONFERENCIA, NAO_RECEBIDA, RECEBIMENTO_PARCIAL,
+            RECEBIDA, REPOSICAO_PARCIAL, REPOSICAO_TOTAL
+        ], RECEBIMENTO_PARCIAL),
+        ('escola_recebe_parcial_atraso', [
+            PENDENTE_DE_CONFERENCIA, NAO_RECEBIDA, RECEBIMENTO_PARCIAL,
+            RECEBIDA, REPOSICAO_PARCIAL, REPOSICAO_TOTAL
+        ], RECEBIMENTO_PARCIAL),
         ('reposicao_parcial', [NAO_RECEBIDA, RECEBIMENTO_PARCIAL], REPOSICAO_PARCIAL),
         ('reposicao_total', [NAO_RECEBIDA, RECEBIMENTO_PARCIAL], REPOSICAO_TOTAL),
     )
