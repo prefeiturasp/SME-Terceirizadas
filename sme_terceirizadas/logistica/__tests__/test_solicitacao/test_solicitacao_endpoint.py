@@ -124,6 +124,35 @@ def test_desarquivar_guias_da_requisicao(client_autenticado_dilog, solicitacao, 
     assert requisicao.situacao == SolicitacaoRemessa.ATIVA
 
 
+def test_arquivar_guias_da_requisicao_distribuidor_nao_pode(client_autenticado_distribuidor, solicitacao, guia):
+    payload = {
+        'numero_requisicao': str(solicitacao.numero_solicitacao),
+        'guias': [f'{guia.numero_guia}']
+    }
+
+    response = client_autenticado_distribuidor.post(
+        '/solicitacao-remessa/arquivar/',
+        data=json.dumps(payload),
+        content_type='application/json'
+    )
+
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+def test_desarquivar_guias_da_requisicao_distribuidor_nao_pode(client_autenticado_distribuidor, solicitacao, guia):
+    payload = {
+        'numero_requisicao': str(solicitacao.numero_solicitacao),
+        'guias': [f'{guia.numero_guia}']
+    }
+    response = client_autenticado_distribuidor.post(
+        '/solicitacao-remessa/desarquivar/',
+        data=json.dumps(payload),
+        content_type='application/json'
+    )
+
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
 def test_url_relatorio_guia_remessa_authorized_dilog(client_autenticado_dilog, solicitacao):
     response = client_autenticado_dilog.get(
         f'/solicitacao-remessa/{str(solicitacao.uuid)}/relatorio-guias-da-requisicao/')
