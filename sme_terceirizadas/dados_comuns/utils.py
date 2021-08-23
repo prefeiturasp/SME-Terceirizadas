@@ -135,7 +135,7 @@ def convert_image_to_base64(image_file, format):
     encoded_string = ''
     with open(image_file, 'rb') as img_f:
         encoded_string = base64.b64encode(img_f.read())
-    return 'data:image/%s;base64,%s' % (format, encoded_string)
+    return 'data:image/%s;base64,%s' % (format, encoded_string.decode('utf-8'))
 
 
 def queryset_por_data(filtro_aplicado, model):
