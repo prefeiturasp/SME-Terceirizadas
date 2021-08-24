@@ -171,6 +171,19 @@ def conferencia_guia(guia):
 
 
 @pytest.fixture
+def reposicao_guia(guia):
+    return mommy.make(
+        'ConferenciaGuia',
+        guia=guia,
+        data_recebimento=datetime.now(),
+        hora_recebimento=datetime.now().time(),
+        nome_motorista='José da Silva',
+        placa_veiculo='77AB75A',
+        eh_reposicao=True
+    )
+
+
+@pytest.fixture
 def conferencia_guia_individual(conferencia_guia):
     return mommy.make(
         'ConferenciaIndividualPorAlimento',

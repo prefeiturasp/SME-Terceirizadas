@@ -118,6 +118,19 @@ def test_url_get_guia_para_registro_de_insucesso(client_autenticado_distribuidor
     assert response.status_code == status.HTTP_200_OK
 
 
+def test_url_get_ultima_conferencia(client_autenticado_escola_abastecimento, conferencia_guia):
+    response = client_autenticado_escola_abastecimento.get(
+        '/conferencia-da-guia-com-ocorrencia/get-ultima-conferencia/?uuid=' + str(conferencia_guia.guia.uuid)
+    )
+    assert response.status_code == status.HTTP_200_OK
+
+
+def test_url_get_ultima_reposicao(client_autenticado_escola_abastecimento, reposicao_guia):
+    response = client_autenticado_escola_abastecimento.get(
+        '/conferencia-da-guia-com-ocorrencia/get-ultima-reposicao/?uuid=' + str(reposicao_guia.guia.uuid)
+    )
+    assert response.status_code == status.HTTP_200_OK
+
 def test_url_conferir_guia_com_ocorrencia(
         client_autenticado_escola_abastecimento, guia_com_escola_client_autenticado, alimento, embalagem):
     payload = {
@@ -149,6 +162,7 @@ def test_url_conferir_guia_com_ocorrencia(
     assert conferencia.uuid
     assert conferencia.criado_por
     assert conferencia.conferencia_dos_alimentos
+
 
 
 def test_url_relatorio_guia_remessa_authorized_dilog(client_autenticado_dilog, guia):
