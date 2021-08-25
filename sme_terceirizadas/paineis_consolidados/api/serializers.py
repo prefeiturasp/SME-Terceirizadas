@@ -14,7 +14,7 @@ class SolicitacoesSerializer(serializers.ModelSerializer):
     id_externo = serializers.CharField()
 
     def get_descricao_dieta_especial(self, obj):
-        return f'{obj.codigo_eol_aluno} - {obj.nome_aluno}'
+        return f'{obj.codigo_eol_aluno if obj.codigo_eol_aluno else "(Aluno não matriculado)"} - {obj.nome_aluno}'
 
     def get_descricao(self, obj):
         uuid = str(obj.uuid)
