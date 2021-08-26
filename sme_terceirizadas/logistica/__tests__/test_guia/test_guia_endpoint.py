@@ -1,3 +1,4 @@
+import datetime
 import json
 
 import pytest
@@ -131,8 +132,9 @@ def test_url_get_ultima_reposicao(client_autenticado_escola_abastecimento, repos
     )
     assert response.status_code == status.HTTP_200_OK
 
+
 def test_url_conferir_guia_com_ocorrencia(
-        client_autenticado_escola_abastecimento, guia_com_escola_client_autenticado, alimento, embalagem):
+        client_autenticado_escola_abastecimento, guia_com_escola_client_autenticado):
     payload = {
         'guia': str(guia_com_escola_client_autenticado.uuid),
         'nome_motorista': 'José',
@@ -163,6 +165,32 @@ def test_url_conferir_guia_com_ocorrencia(
     assert conferencia.criado_por
     assert conferencia.conferencia_dos_alimentos
 
+
+def test_url_editar_conferencia_com_ocorrencia(client_autenticado_escola_abastecimento, conferencia_guia):
+    payload = {
+        'guia': str(conferencia_guia.guia.uuid),
+        'nome_motorista': 'Fabio',
+        'placa_veiculo': 'AAABV44',
+        'data_recebimento': '04/04/2021',
+        'hora_recebimento': '03:04',
+        'conferencia_dos_alimentos': []
+    }
+
+    response = client_autenticado_escola_abastecimento.put(
+        f'/conferencia-da-guia-com-ocorrencia/{conferencia_guia.uuid}/',
+        data=json.dumps(payload),
+        content_type='application/json'
+    )
+
+    conferencia = ConferenciaGuia.objects.first()
+
+    assert response.status_code == status.HTTP_200_OK
+    assert conferencia.uuid
+    assert conferencia.criado_por
+    assert conferencia.nome_motorista == 'Fabio'
+    assert conferencia.placa_veiculo == 'AAABV44'
+    assert datetime.date.strftime(conferencia.data_recebimento, '%d/%m/%Y') == '04/04/2021'
+    assert datetime.time.strftime(conferencia.hora_recebimento, '%H:%M') == '03:04'
 
 
 def test_url_relatorio_guia_remessa_authorized_dilog(client_autenticado_dilog, guia):
