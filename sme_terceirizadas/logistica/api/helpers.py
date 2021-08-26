@@ -14,7 +14,11 @@ from sme_terceirizadas.logistica.api.serializers.serializers import (
     GuiaDaRemessaComAlimentoSerializer,
     GuiaDaRemessaSerializer
 )
-from sme_terceirizadas.logistica.models.guia import ConferenciaIndividualPorAlimento, InsucessoEntregaGuia
+from sme_terceirizadas.logistica.models.guia import (
+    ConferenciaGuia,
+    ConferenciaIndividualPorAlimento,
+    InsucessoEntregaGuia
+)
 
 status_invalidos_para_conferencia = (
     GuiaRemessaWorkFlow.CANCELADA,
@@ -243,7 +247,7 @@ def atualiza_guia_com_base_nas_conferencias_por_alimentos(guia, user, status_dos
         raise ValidationError(f'Guia de remessa não existe.')
 
 
-def registra_qtd_a_receber(conferencia_individual):  # noqa C901
+def registra_qtd_a_receber(conferencia_individual, edicao=False):  # noqa C901
     try:
         guia = conferencia_individual.conferencia.guia
         nome_alimento = conferencia_individual.nome_alimento
@@ -251,8 +255,14 @@ def registra_qtd_a_receber(conferencia_individual):  # noqa C901
 
         alimento = guia.alimentos.get(nome_alimento=nome_alimento)
         embalagem = alimento.embalagens.get(tipo_embalagem=tipo_embalagem)
-        if conferencia_individual.conferencia.eh_reposicao:
+        if conferencia_individual.conferencia.eh_reposicao and not edicao:
             embalagem.qtd_a_receber = embalagem.qtd_a_receber - conferencia_individual.qtd_recebido
+        elif conferencia_individual.conferencia.eh_reposicao and edicao:
+            conferencia = ConferenciaGuia.objects.filter(guia__id=guia.id, eh_reposicao=False).last()
+            conferencias_dos_alimentos = conferencia.conferencia_dos_alimentos.all()
+            for alimento_conf in conferencias_dos_alimentos:
+                if alimento_conf.nome_alimento == nome_alimento and alimento_conf.tipo_embalagem == tipo_embalagem:
+                    embalagem.qtd_a_receber = embalagem.qtd_volume - alimento_conf.qtd_recebido - conferencia_individual.qtd_recebido  # noqa E501
         else:
             embalagem.qtd_a_receber = embalagem.qtd_volume - conferencia_individual.qtd_recebido
         if embalagem.qtd_a_receber < 0:
@@ -354,7 +364,7 @@ def retorna_motivo_insucesso(motivo):
     return switcher.get(motivo, 'Motivo Inválido')
 
 
-def registra_conferencias_individuais(guia, conferencia, conferencia_dos_alimentos, user, eh_reposicao):
+def registra_conferencias_individuais(guia, conferencia, conferencia_dos_alimentos, user, eh_reposicao, edicao=False):
     conferencia_dos_alimentos_list = []
     status_dos_alimentos = []
     ocorrencias_dos_alimentos = []
@@ -365,7 +375,7 @@ def registra_conferencias_individuais(guia, conferencia, conferencia_dos_aliment
         status_dos_alimentos.append(alimento['status_alimento'])
         ocorrencias_dos_alimentos = ocorrencias_dos_alimentos + list(alimento['ocorrencia'])
         conferencia_individual = ConferenciaIndividualPorAlimento.objects.create(**alimento)
-        registra_qtd_a_receber(conferencia_individual)
+        registra_qtd_a_receber(conferencia_individual, edicao)
         conferencia_dos_alimentos_list.append(conferencia_individual)
     conferencia.conferencia_dos_alimentos.set(conferencia_dos_alimentos_list)
     atualiza_guia_com_base_nas_conferencias_por_alimentos(guia, user, status_dos_alimentos,

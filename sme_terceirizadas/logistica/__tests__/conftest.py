@@ -159,7 +159,19 @@ def solicitacao_de_alteracao_requisicao(solicitacao, distribuidor):
 
 
 @pytest.fixture
-def conferencia_guia(guia):
+def conferencia_guia(guia_com_escola_client_autenticado):
+    return mommy.make(
+        'ConferenciaGuia',
+        guia=guia_com_escola_client_autenticado,
+        data_recebimento=datetime.now(),
+        hora_recebimento=datetime.now().time(),
+        nome_motorista='José da Silva',
+        placa_veiculo='77AB75A',
+    )
+
+
+@pytest.fixture
+def reposicao_guia(guia):
     return mommy.make(
         'ConferenciaGuia',
         guia=guia,
@@ -167,6 +179,7 @@ def conferencia_guia(guia):
         hora_recebimento=datetime.now().time(),
         nome_motorista='José da Silva',
         placa_veiculo='77AB75A',
+        eh_reposicao=True
     )
 
 

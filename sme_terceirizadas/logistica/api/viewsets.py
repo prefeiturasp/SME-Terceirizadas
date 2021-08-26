@@ -772,6 +772,19 @@ class ConferenciaDaGuiaComOcorrenciaModelViewSet(viewsets.ModelViewSet):
         response = {'results': ConferenciaComOcorrenciaSerializer(conferencia, many=False).data}
         return Response(response)
 
+    @action(detail=False, methods=['GET'], url_path='get-ultima-reposicao',
+            permission_classes=[UsuarioEscolaAbastecimento])
+    def get_ultima_reposicao(self, request):
+        uuid = request.query_params.get('uuid', None)
+        reposicao = self.get_queryset().filter(guia__uuid=uuid, eh_reposicao=True).last()
+
+        if not reposicao:
+            return Response(dict(detail=f'Erro: Não existe reposição para edição na guia informada.'),
+                            status=HTTP_404_NOT_FOUND)
+
+        response = {'results': ConferenciaComOcorrenciaSerializer(reposicao, many=False).data}
+        return Response(response)
+
 
 class InsucessoDeEntregaGuiaModelViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
