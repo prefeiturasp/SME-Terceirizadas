@@ -134,7 +134,7 @@ def test_url_get_ultima_reposicao(client_autenticado_escola_abastecimento, repos
 
 
 def test_url_conferir_guia_com_ocorrencia(
-        client_autenticado_escola_abastecimento, guia_com_escola_client_autenticado):
+        client_autenticado_escola_abastecimento, guia_com_escola_client_autenticado, alimento, embalagem):
     payload = {
         'guia': str(guia_com_escola_client_autenticado.uuid),
         'nome_motorista': 'José',
@@ -166,14 +166,23 @@ def test_url_conferir_guia_com_ocorrencia(
     assert conferencia.conferencia_dos_alimentos
 
 
-def test_url_editar_conferencia_com_ocorrencia(client_autenticado_escola_abastecimento, conferencia_guia):
+def test_url_editar_conferencia_com_ocorrencia(client_autenticado_escola_abastecimento, conferencia_guia,
+                                               alimento, embalagem):
     payload = {
         'guia': str(conferencia_guia.guia.uuid),
         'nome_motorista': 'Fabio',
         'placa_veiculo': 'AAABV44',
         'data_recebimento': '04/04/2021',
         'hora_recebimento': '03:04',
-        'conferencia_dos_alimentos': []
+        'conferencia_dos_alimentos': [
+            {
+                'tipo_embalagem': ConferenciaIndividualPorAlimento.FECHADA,
+                'nome_alimento': 'PATINHO',
+                'qtd_recebido': 20,
+                'status_alimento': ConferenciaIndividualPorAlimento.STATUS_ALIMENTO_PARCIAL,
+                'ocorrencia': [ConferenciaIndividualPorAlimento.OCORRENCIA_QTD_MENOR]
+            }
+        ]
     }
 
     response = client_autenticado_escola_abastecimento.put(
