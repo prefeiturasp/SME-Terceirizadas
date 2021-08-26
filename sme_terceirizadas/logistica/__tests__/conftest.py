@@ -171,6 +171,18 @@ def conferencia_guia(guia_com_escola_client_autenticado):
 
 
 @pytest.fixture
+def conferencia_guia_normal(guia):
+    return mommy.make(
+        'ConferenciaGuia',
+        guia=guia,
+        data_recebimento=datetime.now(),
+        hora_recebimento=datetime.now().time(),
+        nome_motorista='José da Silva',
+        placa_veiculo='77AB75A',
+    )
+
+
+@pytest.fixture
 def reposicao_guia(guia):
     return mommy.make(
         'ConferenciaGuia',
