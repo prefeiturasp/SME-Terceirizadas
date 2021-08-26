@@ -231,13 +231,20 @@ class ConferenciaComOcorrenciaCreateSerializer(serializers.ModelSerializer):
         validated_data['criado_por'] = user
 
         verifica_se_a_guia_pode_ser_conferida(guia)
-        instance.conferencia_dos_alimentos.all().delete()
-        if not eh_reposicao:
+        if guia.situacao == Guia.ARQUIVADA:
+            raise serializers.ValidationError(
+                'Não é possível realizar a edição de uma conferencia/reposição de uma guia arquivada.')
+        elif eh_reposicao and not conferencia_dos_alimentos:
+            raise serializers.ValidationError('Uma reposição deve conter ao menos uma conferência individual.')
+        elif not eh_reposicao:
             exclui_ultima_reposicao(guia)
+
+        instance.conferencia_dos_alimentos.all().delete()
         update_instance_from_dict(instance, validated_data, save=True)
 
         if conferencia_dos_alimentos:
-            registra_conferencias_individuais(guia, instance, conferencia_dos_alimentos, user, eh_reposicao)
+            registra_conferencias_individuais(
+                guia, instance, conferencia_dos_alimentos, user, eh_reposicao, edicao=True)
         else:
             try:
                 guia.escola_recebe(user=user)
