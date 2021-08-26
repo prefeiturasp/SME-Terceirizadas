@@ -196,10 +196,10 @@ def reposicao_guia(guia):
 
 
 @pytest.fixture
-def conferencia_guia_individual(conferencia_guia):
+def conferencia_guia_individual(conferencia_guia_normal):
     return mommy.make(
         'ConferenciaIndividualPorAlimento',
-        conferencia=conferencia_guia,
+        conferencia=conferencia_guia_normal,
         tipo_embalagem=ConferenciaIndividualPorAlimento.FECHADA,
         status_alimento=ConferenciaIndividualPorAlimento.STATUS_ALIMENTO_RECEBIDO,
         ocorrencia=[ConferenciaIndividualPorAlimento.OCORRENCIA_AUSENCIA_PRODUTO],
