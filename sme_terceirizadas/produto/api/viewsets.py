@@ -185,6 +185,43 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
 
         return lista_status
 
+    def reclamacoes_por_usuario(self, workflow, query, query_set):
+        q = query_set
+        if (workflow in [
+            HomologacaoDoProduto.workflow_class.TERCEIRIZADA_RESPONDEU_RECLAMACAO,
+            HomologacaoDoProduto.workflow_class.CODAE_QUESTIONADO] and
+                self.request.user.tipo_usuario == constants.TIPO_USUARIO_TERCEIRIZADA):
+
+            q = query_set.filter(rastro_terceirizada=self.request.user.vinculo_atual.instituicao)
+
+        # Para o card aguardando reclamação quando o usuário é uma escola
+        if (workflow in [
+            HomologacaoDoProduto.workflow_class.ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
+            HomologacaoDoProduto.workflow_class.CODAE_PEDIU_ANALISE_RECLAMACAO,
+            HomologacaoDoProduto.workflow_class.CODAE_QUESTIONOU_UE,
+            HomologacaoDoProduto.workflow_class.CODAE_QUESTIONOU_NUTRISUPERVISOR,
+            HomologacaoDoProduto.workflow_class.TERCEIRIZADA_RESPONDEU_RECLAMACAO,
+            HomologacaoDoProduto.workflow_class.UE_RESPONDEU_QUESTIONAMENTO,
+            HomologacaoDoProduto.workflow_class.NUTRISUPERVISOR_RESPONDEU_QUESTIONAMENTO] and
+                self.request.user.tipo_usuario == constants.TIPO_USUARIO_ESCOLA):
+
+            q = query.filter(reclamacoes__escola=self.request.user.vinculo_atual.instituicao)
+
+        # Para o card aguardando reclamação quando o usuário é um nutrisupervisor
+        if (workflow in [
+            HomologacaoDoProduto.workflow_class.ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
+            HomologacaoDoProduto.workflow_class.CODAE_PEDIU_ANALISE_RECLAMACAO,
+            HomologacaoDoProduto.workflow_class.CODAE_QUESTIONOU_UE,
+            HomologacaoDoProduto.workflow_class.CODAE_QUESTIONOU_NUTRISUPERVISOR,
+            HomologacaoDoProduto.workflow_class.TERCEIRIZADA_RESPONDEU_RECLAMACAO,
+            HomologacaoDoProduto.workflow_class.UE_RESPONDEU_QUESTIONAMENTO,
+            HomologacaoDoProduto.workflow_class.NUTRISUPERVISOR_RESPONDEU_QUESTIONAMENTO] and
+                self.request.user.tipo_usuario == constants.TIPO_USUARIO_NUTRISUPERVISOR):
+
+            q = query.filter(reclamacoes__reclamante_registro_funcional=self.request.user.registro_funcional)
+
+        return q
+
     def dados_dashboard(self, query_set: list) -> dict:
         # TODO: é preciso fazer um refactor dessa parte do dashboard de P&D
         sumario = []
@@ -192,27 +229,7 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
         query = self.get_queryset()
 
         for workflow in self.get_lista_status():
-            q = query_set
-
-            if (workflow in [
-                HomologacaoDoProduto.workflow_class.TERCEIRIZADA_RESPONDEU_RECLAMACAO,
-                HomologacaoDoProduto.workflow_class.CODAE_QUESTIONADO] and
-                    self.request.user.tipo_usuario == constants.TIPO_USUARIO_TERCEIRIZADA):
-
-                q = query_set.filter(rastro_terceirizada=self.request.user.vinculo_atual.instituicao)
-
-            # Para o card aguardando reclamação quando o usuário é uma escola
-            if (workflow in [
-                HomologacaoDoProduto.workflow_class.ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
-                HomologacaoDoProduto.workflow_class.TERCEIRIZADA_RESPONDEU_RECLAMACAO,
-                HomologacaoDoProduto.workflow_class.CODAE_PEDIU_ANALISE_RECLAMACAO,
-                HomologacaoDoProduto.workflow_class.CODAE_QUESTIONOU_UE,
-                HomologacaoDoProduto.workflow_class.UE_RESPONDEU_QUESTIONAMENTO,
-                HomologacaoDoProduto.workflow_class.CODAE_QUESTIONOU_NUTRISUPERVISOR,
-                HomologacaoDoProduto.workflow_class.NUTRISUPERVISOR_RESPONDEU_QUESTIONAMENTO] and
-                    self.request.user.tipo_usuario == constants.TIPO_USUARIO_ESCOLA):
-
-                q = query.filter(reclamacoes__escola=self.request.user.vinculo_atual.instituicao)
+            q = self.reclamacoes_por_usuario(workflow, query, query_set)
 
             sumario.append({
                 'status': workflow,
