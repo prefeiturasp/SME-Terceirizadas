@@ -1,3 +1,4 @@
+from sme_terceirizadas.produto.utils import cria_itens_cadastro
 from django.contrib import admin
 
 from .forms import NomeDeProdutoEditalForm
@@ -111,7 +112,20 @@ class InformacaoNutricionalModelAdmin(admin.ModelAdmin):
     list_filter = ('tipo_nutricional',)
 
 
+@admin.register(ItemCadastro)
+class ItemCadastroModelAdmin(admin.ModelAdmin):
+    list_display = ('__str__', 'tipo')
+    list_filter = ('content_type',)
+    actions = ('cria_itens',)
+
+    def cria_itens(self, request, _):
+        from sme_terceirizadas.produto.utils import cria_itens_cadastro
+        cria_itens_cadastro()
+
+        self.message_user(request, "Processo iniciado com sucesso.")
+
+    cria_itens.short_description = "Cria ItemCadastro para cada Marca e Fabricante se não exitirem."
+
 admin.site.register(ReclamacaoDeProduto)
 admin.site.register(RespostaAnaliseSensorial)
 admin.site.register(SolicitacaoCadastroProdutoDieta)
-admin.site.register(ItemCadastro)

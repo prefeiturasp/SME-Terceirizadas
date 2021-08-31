@@ -253,3 +253,30 @@ def mudancas_para_justificativa_html(mudancas, fields_produto):
             'mudancas': mudancas.items()
         }
     )
+
+
+def cria_itens_cadastro():
+    """Cria Itens Cadastro para Fabricantes e Marcas caso não existam."""
+
+    from sme_terceirizadas.produto.models import Fabricante, ItemCadastro, Marca
+    
+    marcas = Marca.objects.all()
+    for marca in marcas:
+        cria_item_cadastro(object=marca, tipo=ItemCadastro.MARCA)
+    
+    fabricantes = Fabricante.objects.all()
+    for fabricante in fabricantes:
+        cria_item_cadastro(object=fabricante, tipo=ItemCadastro.FABRICANTE)
+
+
+def cria_item_cadastro(object, tipo):
+    from django.contrib.contenttypes.models import ContentType
+    from sme_terceirizadas.produto.models import ItemCadastro
+
+    try:
+        content_type = ContentType.objects.get_for_model(object.__class__)
+        ItemCadastro.objects.get(content_type__pk=content_type.pk, object_id=object.id)
+    except ItemCadastro.DoesNotExist:
+        item = ItemCadastro(content_object=object, tipo=tipo)
+        item.save()
+
