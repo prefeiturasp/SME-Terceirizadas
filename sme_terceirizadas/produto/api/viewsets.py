@@ -44,6 +44,7 @@ from ..models import (
     HomologacaoDoProduto,
     ImagemDoProduto,
     InformacaoNutricional,
+    ItemCadastro,
     Marca,
     NomeDeProdutoEdital,
     Produto,
@@ -68,6 +69,7 @@ from .serializers.serializers import (
     HomologacaoProdutoSerializer,
     ImagemDoProdutoSerializer,
     InformacaoNutricionalSerializer,
+    ItensCadastroSerializer,
     MarcaSerializer,
     MarcaSimplesSerializer,
     NomeDeProdutoEditalSerializer,
@@ -1774,3 +1776,15 @@ class SolicitacaoCadastroProdutoDietaViewSet(viewsets.ModelViewSet):
             return Response({'detail': f'Erro na transição de estado {e}'}, status=HTTP_400_BAD_REQUEST)
         except serializers.ValidationError as e:
             return Response({'detail': f'Dados inválidos {e}'}, status=HTTP_400_BAD_REQUEST)
+
+
+class ItensCadastroViewSet(viewsets.ModelViewSet):
+    lookup_field = 'uuid'
+    queryset = ItemCadastro.objects.all().order_by('-criado_em')
+    permission_classes = [IsAuthenticated]
+
+    def get_serializer_class(self):
+        return ItensCadastroSerializer
+
+    class Meta:
+        model = ItemCadastro

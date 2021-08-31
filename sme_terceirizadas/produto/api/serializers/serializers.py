@@ -31,6 +31,7 @@ from ...models import (
     ImagemDoProduto,
     InformacaoNutricional,
     InformacoesNutricionaisDoProduto,
+    ItemCadastro,
     LogSolicitacoesUsuario,
     Marca,
     NomeDeProdutoEdital,
@@ -664,3 +665,18 @@ class ProdutoSuspensoSerializer(ProdutoBaseSerializer):
         model = Produto
         fields = ('id_externo', 'nome', 'marca', 'fabricante',
                   'ultima_homologacao', 'criado_em')
+
+
+class ItensCadastroSerializer(serializers.ModelSerializer):
+    nome = serializers.SerializerMethodField()
+    tipo_display = serializers.SerializerMethodField()
+
+    def get_nome(self, obj):
+        return obj.content_object.nome
+
+    def get_tipo_display(self, obj):
+        return obj.get_tipo_display()
+
+    class Meta:
+        model = ItemCadastro
+        fields = ('uuid', 'nome', 'tipo', 'tipo_display')

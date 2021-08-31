@@ -382,3 +382,32 @@ def test_url_endpoint_lista_nomes_responder_reclamacao_marcas_nutri(
 
     assert response.status_code == status.HTTP_200_OK
     assert response.json() == esperado
+
+
+def test_url_endpoint_lista_itens_cadastros(client_autenticado_vinculo_escola_ue,
+                                            item_cadastrado_1,
+                                            item_cadastrado_2):
+
+    client = client_autenticado_vinculo_escola_ue
+    response = client.get(f'/itens-cadastros/')
+    esperado = {
+        'count': 2,
+        'next': None,
+        'previous': None,
+        'results': [
+            {
+                'uuid': str(item_cadastrado_2.uuid),
+                'nome': item_cadastrado_2.content_object.nome,
+                'tipo': item_cadastrado_2.tipo,
+                'tipo_display': item_cadastrado_2.get_tipo_display()
+            },
+            {
+                'uuid': str(item_cadastrado_1.uuid),
+                'nome': item_cadastrado_1.content_object.nome,
+                'tipo': item_cadastrado_1.tipo,
+                'tipo_display': item_cadastrado_1.get_tipo_display()
+            }]
+    }
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == esperado

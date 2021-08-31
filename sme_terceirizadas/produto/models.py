@@ -1,5 +1,7 @@
 from datetime import datetime
 
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from sequences import get_last_value, get_next_value
 
@@ -445,3 +447,48 @@ class AnaliseSensorial(TemChaveExterna, TemIdentificadorExternoAmigavel, CriadoE
 
     def __str__(self):
         return f'Análise Sensorial {self.id_externo} de protocolo {self.numero_protocolo} criada em: {self.criado_em}'
+
+
+class ItemCadastro(TemChaveExterna, CriadoEm):
+    """Gerencia Cadastro de itens.
+
+    Permite gerenciar a criação, edição, deleção e consulta
+    de modelos que só possuem o atributo nome.
+
+    Exemplos: Marca, Fabricante, Unidade de Medida e Embalagem
+    """
+
+    MARCA = 'MARCA'
+    FABRICANTE = 'FABRICANTE'
+    UNIDADE_MEDIDA = 'UNIDADE_MEDIDA'
+    EMBALAGEM = 'EMBALAGEM'
+
+    MODELOS = {
+        MARCA: 'Marca',
+        FABRICANTE: 'Fabricante',
+        UNIDADE_MEDIDA: 'Unidade de Medida',
+        EMBALAGEM: 'Embalagem'
+    }
+
+    CHOICES = (
+        (MARCA, MODELOS[MARCA]),
+        (FABRICANTE, MODELOS[FABRICANTE]),
+        (UNIDADE_MEDIDA, MODELOS[UNIDADE_MEDIDA]),
+        (EMBALAGEM, MODELOS[EMBALAGEM]),
+    )
+
+    tipo = models.CharField(
+        'Tipo',
+        max_length=30,
+        choices=CHOICES
+    )
+
+    content_type = models.ForeignKey(ContentType,
+                                     on_delete=models.CASCADE)
+
+    object_id = models.PositiveIntegerField()
+
+    content_object = GenericForeignKey('content_type', 'object_id')
+
+    def __str__(self) -> str:
+        return self.content_object.nome

@@ -7,6 +7,7 @@ from .models import (
     ImagemDoProduto,
     InformacaoNutricional,
     InformacoesNutricionaisDoProduto,
+    ItemCadastro,
     LogNomeDeProdutoEdital,
     Marca,
     NomeDeProdutoEdital,
@@ -113,3 +114,4 @@ class InformacaoNutricionalModelAdmin(admin.ModelAdmin):
 admin.site.register(ReclamacaoDeProduto)
 admin.site.register(RespostaAnaliseSensorial)
 admin.site.register(SolicitacaoCadastroProdutoDieta)
+admin.site.register(ItemCadastro)
