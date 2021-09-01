@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from sequences import get_last_value, get_next_value
@@ -40,12 +40,14 @@ class ProtocoloDeDietaEspecial(Ativavel, CriadoEm, CriadoPor, TemChaveExterna):
 
 
 class Fabricante(Nomeavel, TemChaveExterna):
+    item = GenericRelation('ItemCadastro', related_query_name='fabricante')
 
     def __str__(self):
         return self.nome
 
 
 class Marca(Nomeavel, TemChaveExterna):
+    item = GenericRelation('ItemCadastro', related_query_name='marca')
 
     def __str__(self):
         return self.nome
@@ -492,3 +494,32 @@ class ItemCadastro(TemChaveExterna, CriadoEm):
 
     def __str__(self) -> str:
         return self.content_object.nome
+
+    @classmethod
+    def eh_tipo_permitido(cls, tipo: str) -> bool:
+        return tipo in [c[0] for c in cls.CHOICES]
+
+    @classmethod
+    def criar(cls, nome: str, tipo: str) -> object:
+        classes = {cls.MARCA: Marca, cls.FABRICANTE: Fabricante}
+        nome_upper = nome.upper()
+
+        if not cls.eh_tipo_permitido(tipo):
+            raise Exception(f'Tipo não permitido: {tipo}')
+
+        modelo = classes[tipo].objects.create(nome=nome_upper)
+
+        item = cls(tipo=tipo, content_object=modelo)
+        item.save()
+        return item
+
+    @classmethod
+    def cria_modelo(cls, nome: str, tipo: str) -> object:
+        classes = {cls.MARCA: Marca, cls.FABRICANTE: Fabricante}
+        nome_upper = nome.upper()
+
+        if not cls.eh_tipo_permitido(tipo):
+            raise Exception(f'Tipo não permitido: {tipo}')
+
+        modelo = classes[tipo].objects.create(nome=nome_upper)
+        return modelo

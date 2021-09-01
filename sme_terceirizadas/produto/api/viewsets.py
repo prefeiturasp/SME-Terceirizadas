@@ -54,6 +54,7 @@ from ..models import (
     SolicitacaoCadastroProdutoDieta
 )
 from ..utils import (
+    ItemCadastroPagination,
     StandardResultsSetPagination,
     agrupa_por_terceirizada,
     converte_para_datetime,
@@ -61,7 +62,7 @@ from ..utils import (
     cria_filtro_produto_por_parametros_form,
     get_filtros_data
 )
-from .filters import ProdutoFilter, filtros_produto_reclamacoes
+from .filters import ItemCadastroFilter, ProdutoFilter, filtros_produto_reclamacoes
 from .serializers.serializers import (
     FabricanteSerializer,
     FabricanteSimplesSerializer,
@@ -69,6 +70,7 @@ from .serializers.serializers import (
     HomologacaoProdutoSerializer,
     ImagemDoProdutoSerializer,
     InformacaoNutricionalSerializer,
+    ItensCadastroCreateSerializer,
     ItensCadastroSerializer,
     MarcaSerializer,
     MarcaSimplesSerializer,
@@ -1781,10 +1783,19 @@ class SolicitacaoCadastroProdutoDietaViewSet(viewsets.ModelViewSet):
 class ItensCadastroViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
     queryset = ItemCadastro.objects.all().order_by('-criado_em')
-    permission_classes = [IsAuthenticated]
+    pagination_class = ItemCadastroPagination
+    permission_classes = [AllowAny]
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = ItemCadastroFilter
 
     def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update']:
+            return ItensCadastroCreateSerializer
         return ItensCadastroSerializer
+
+    @action(detail=False, methods=['GET'], url_path='tipos')
+    def tipos(self, _):
+        return Response([{'tipo': choice[0], 'tipo_display': choice[1]} for choice in ItemCadastro.CHOICES])
 
     class Meta:
         model = ItemCadastro

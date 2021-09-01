@@ -680,3 +680,39 @@ class ItensCadastroSerializer(serializers.ModelSerializer):
     class Meta:
         model = ItemCadastro
         fields = ('uuid', 'nome', 'tipo', 'tipo_display')
+
+
+class ItensCadastroCreateSerializer(serializers.Serializer):
+    nome = serializers.CharField(required=True, write_only=True)
+    tipo = serializers.CharField(required=True)
+
+    def create(self, validated_data):
+        nome = validated_data['nome']
+        tipo = validated_data['tipo']
+
+        try:
+            item = ItemCadastro.criar(nome, tipo)
+            return item
+        except Exception:
+            raise Exception('Erro ao criar ItemCadastro.')
+
+    def update(self, instance, validated_data):
+        nome = validated_data['nome']
+        tipo = validated_data['tipo']
+
+        try:
+            if instance.tipo != tipo:
+                modelo_antigo = instance.content_object
+                modelo_novo = ItemCadastro.cria_modelo(nome, tipo)
+                instance.tipo = tipo
+                instance.content_object = modelo_novo
+                instance.save()
+
+                modelo_antigo.delete()
+            else:
+                modelo = instance.content_object
+                modelo.nome = nome.upper()
+                modelo.save()
+        except Exception as e:
+            raise Exception(f'Erro ao criar ItemCadastro. {str(e)}')
+        return instance

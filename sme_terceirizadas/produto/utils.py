@@ -113,6 +113,12 @@ class StandardResultsSetPagination(PageNumberPagination):
     max_page_size = 100
 
 
+class ItemCadastroPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
+
 def compara_lista_imagens(anterior, proxima):  # noqa C901
     adicoes = []
     exclusoes = []
@@ -257,13 +263,12 @@ def mudancas_para_justificativa_html(mudancas, fields_produto):
 
 def cria_itens_cadastro():
     """Cria Itens Cadastro para Fabricantes e Marcas caso não existam."""
-
     from sme_terceirizadas.produto.models import Fabricante, ItemCadastro, Marca
-    
+
     marcas = Marca.objects.all()
     for marca in marcas:
         cria_item_cadastro(object=marca, tipo=ItemCadastro.MARCA)
-    
+
     fabricantes = Fabricante.objects.all()
     for fabricante in fabricantes:
         cria_item_cadastro(object=fabricante, tipo=ItemCadastro.FABRICANTE)
@@ -279,4 +284,3 @@ def cria_item_cadastro(object, tipo):
     except ItemCadastro.DoesNotExist:
         item = ItemCadastro(content_object=object, tipo=tipo)
         item.save()
-

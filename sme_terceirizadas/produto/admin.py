@@ -1,4 +1,3 @@
-from sme_terceirizadas.produto.utils import cria_itens_cadastro
 from django.contrib import admin
 
 from .forms import NomeDeProdutoEditalForm
@@ -122,9 +121,10 @@ class ItemCadastroModelAdmin(admin.ModelAdmin):
         from sme_terceirizadas.produto.utils import cria_itens_cadastro
         cria_itens_cadastro()
 
-        self.message_user(request, "Processo iniciado com sucesso.")
+        self.message_user(request, 'Processo iniciado com sucesso.')
 
-    cria_itens.short_description = "Cria ItemCadastro para cada Marca e Fabricante se não exitirem."
+    cria_itens.short_description = 'Cria ItemCadastro para cada Marca e Fabricante se não exitirem.'
+
 
 admin.site.register(ReclamacaoDeProduto)
 admin.site.register(RespostaAnaliseSensorial)
