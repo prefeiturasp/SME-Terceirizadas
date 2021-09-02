@@ -123,7 +123,7 @@ class ItemCadastroModelAdmin(admin.ModelAdmin):
 
         self.message_user(request, 'Processo iniciado com sucesso.')
 
-    cria_itens.short_description = 'Cria ItemCadastro para cada Marca e Fabricante se não exitirem.'
+    cria_itens.short_description = 'Cria ItemCadastro para cada Marca e/ou Fabricante caso não exista.'
 
 
 admin.site.register(ReclamacaoDeProduto)

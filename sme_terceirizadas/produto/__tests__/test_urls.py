@@ -469,3 +469,21 @@ def test_url_endpoint_tipos_item_cadastro(client_autenticado_vinculo_escola_ue):
 
     assert response.status_code == status.HTTP_200_OK
     assert response.json() == esperado
+
+
+def test_url_endpoint_lista_de_nomes_de_itens_cadastros(client_autenticado_vinculo_escola_ue,
+                                                        item_cadastrado_1,
+                                                        item_cadastrado_2):
+
+    client = client_autenticado_vinculo_escola_ue
+    response = client.get(f'/itens-cadastros/lista-nomes/')
+    result = response.json()
+
+    esperado = {
+        'results': [
+            item_cadastrado_2.content_object.nome,
+            item_cadastrado_1.content_object.nome
+        ]
+    }
+
+    assert result == esperado

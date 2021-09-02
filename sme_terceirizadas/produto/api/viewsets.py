@@ -1784,7 +1784,7 @@ class ItensCadastroViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
     queryset = ItemCadastro.objects.all().order_by('-criado_em')
     pagination_class = ItemCadastroPagination
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = ItemCadastroFilter
 
@@ -1796,6 +1796,10 @@ class ItensCadastroViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['GET'], url_path='tipos')
     def tipos(self, _):
         return Response([{'tipo': choice[0], 'tipo_display': choice[1]} for choice in ItemCadastro.CHOICES])
+
+    @action(detail=False, methods=['GET'], url_path='lista-nomes')
+    def lista_de_nomes(self, _):
+        return Response({'results': [item.content_object.nome for item in self.queryset.all()]})
 
     class Meta:
         model = ItemCadastro
