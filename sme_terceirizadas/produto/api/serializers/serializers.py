@@ -690,15 +690,23 @@ class ItensCadastroCreateSerializer(serializers.Serializer):
         nome = validated_data['nome']
         tipo = validated_data['tipo']
 
+        if (nome.upper(), tipo) in ((item.content_object.nome.upper(), item.tipo)
+                                    for item in ItemCadastro.objects.all()):
+            raise serializers.ValidationError('Item já cadastrado.')
+
         try:
             item = ItemCadastro.criar(nome, tipo)
             return item
         except Exception:
-            raise Exception('Erro ao criar ItemCadastro.')
+            raise serializers.ValidationError('Erro ao criar ItemCadastro.')
 
-    def update(self, instance, validated_data):
+    def update(self, instance, validated_data): # noqa C901
         nome = validated_data['nome']
         tipo = validated_data['tipo']
+
+        if (nome.upper(), tipo) in ((item.content_object.nome.upper(), item.tipo)
+                                    for item in ItemCadastro.objects.all()):
+            raise serializers.ValidationError('Item já cadastrado.')
 
         try:
             if instance.tipo != tipo:
@@ -714,5 +722,5 @@ class ItensCadastroCreateSerializer(serializers.Serializer):
                 modelo.nome = nome.upper()
                 modelo.save()
         except Exception as e:
-            raise Exception(f'Erro ao criar ItemCadastro. {str(e)}')
+            raise serializers.ValidationError(f'Erro ao criar ItemCadastro. {str(e)}')
         return instance

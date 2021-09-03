@@ -1807,7 +1807,7 @@ class ItensCadastroViewSet(viewsets.ModelViewSet):
         if instance.deleta_modelo():
             return Response(status=status.HTTP_204_NO_CONTENT)
 
-        msg = 'Esse item não pode ser deletado pois já existe um produto vinculado ao mesmo.'
+        msg = 'Não será possível realizar a exclusão. Este item contém relacionamentos com Cadastro de Produtos.'
         return Response(data={'detail': msg}, status=status.HTTP_403_FORBIDDEN)
 
     class Meta:
