@@ -1784,7 +1784,7 @@ class ItensCadastroViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
     queryset = ItemCadastro.objects.all().order_by('-criado_em')
     pagination_class = ItemCadastroPagination
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = ItemCadastroFilter
 
@@ -1800,6 +1800,15 @@ class ItensCadastroViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['GET'], url_path='lista-nomes')
     def lista_de_nomes(self, _):
         return Response({'results': [item.content_object.nome for item in self.queryset.all()]})
+
+    def destroy(self, request, *args, **kwargs):
+        instance: ItemCadastro = self.get_object()
+
+        if instance.deleta_modelo():
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
+        msg = 'Esse item não pode ser deletado pois já existe um produto vinculado ao mesmo.'
+        return Response(data={'detail': msg}, status=status.HTTP_403_FORBIDDEN)
 
     class Meta:
         model = ItemCadastro

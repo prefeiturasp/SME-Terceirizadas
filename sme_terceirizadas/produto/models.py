@@ -479,6 +479,8 @@ class ItemCadastro(TemChaveExterna, CriadoEm):
         (EMBALAGEM, MODELOS[EMBALAGEM]),
     )
 
+    CLASSES = {MARCA: Marca, FABRICANTE: Fabricante}
+
     tipo = models.CharField(
         'Tipo',
         max_length=30,
@@ -499,15 +501,24 @@ class ItemCadastro(TemChaveExterna, CriadoEm):
     def eh_tipo_permitido(cls, tipo: str) -> bool:
         return tipo in [c[0] for c in cls.CHOICES]
 
+    def pode_deletar(self):
+        from sme_terceirizadas.produto.models import Produto
+
+        if self.tipo == self.MARCA:
+            return not Produto.objects.filter(marca__pk=self.content_object.pk).exists()
+        elif self.tipo == self.FABRICANTE:
+            return not Produto.objects.filter(fabricante__pk=self.content_object.pk).exists()
+
+        return True
+
     @classmethod
     def criar(cls, nome: str, tipo: str) -> object:
-        classes = {cls.MARCA: Marca, cls.FABRICANTE: Fabricante}
         nome_upper = nome.upper()
 
         if not cls.eh_tipo_permitido(tipo):
             raise Exception(f'Tipo não permitido: {tipo}')
 
-        modelo = classes[tipo].objects.create(nome=nome_upper)
+        modelo = cls.CLASSES[tipo].objects.create(nome=nome_upper)
 
         item = cls(tipo=tipo, content_object=modelo)
         item.save()
@@ -515,11 +526,18 @@ class ItemCadastro(TemChaveExterna, CriadoEm):
 
     @classmethod
     def cria_modelo(cls, nome: str, tipo: str) -> object:
-        classes = {cls.MARCA: Marca, cls.FABRICANTE: Fabricante}
         nome_upper = nome.upper()
 
         if not cls.eh_tipo_permitido(tipo):
             raise Exception(f'Tipo não permitido: {tipo}')
 
-        modelo = classes[tipo].objects.create(nome=nome_upper)
+        modelo = cls.CLASSES[tipo].objects.create(nome=nome_upper)
         return modelo
+
+    def deleta_modelo(self):
+        if self.pode_deletar():
+            self.content_object.delete()
+            self.delete()
+            return True
+
+        return False
