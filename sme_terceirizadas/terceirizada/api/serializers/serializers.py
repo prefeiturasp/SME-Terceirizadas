@@ -70,6 +70,12 @@ class EditalSerializer(serializers.ModelSerializer):
         exclude = ('id',)
 
 
+class EditalSimplesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Edital
+        fields = ('uuid', 'numero')
+
+
 class EditalContratosSerializer(serializers.ModelSerializer):
     contratos = ContratoSerializer(many=True)
 

@@ -9,6 +9,8 @@ from ...perfil.models import Usuario
 from ..api.serializers.serializers import (
     ContratoSerializer,
     EditalContratosSerializer,
+    EditalSerializer,
+    EditalSimplesSerializer,
     TerceirizadaSimplesSerializer,
     VigenciaContratoSerializer
 )
@@ -119,6 +121,18 @@ def contrato_serializer():
 def edital_contratos_serializer():
     edital_contratos = mommy.make(Edital)
     return EditalContratosSerializer(edital_contratos)
+
+
+@pytest.fixture
+def edital_serializer():
+    edital = mommy.make(Edital)
+    return EditalSerializer(edital)
+
+
+@pytest.fixture
+def edital_simples_serializer():
+    edital = mommy.make(Edital)
+    return EditalSimplesSerializer(edital)
 
 
 @pytest.fixture

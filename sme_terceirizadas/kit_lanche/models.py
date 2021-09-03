@@ -52,7 +52,19 @@ class ItemKitLanche(ExportModelOperationsMixin('item_kit_lanche'), Nomeavel, Tem
 class KitLanche(ExportModelOperationsMixin('kit_lanche'), Nomeavel, TemChaveExterna):
     """kit1, kit2, kit3."""
 
+    ATIVO = 'ATIVO'
+    INATIVO = 'INATIVO'
+
+    STATUS_CHOICES = (
+        (ATIVO, 'Ativo'),
+        (INATIVO, 'Inativo'),
+    )
+
     itens = models.ManyToManyField(ItemKitLanche)
+    descricao = models.TextField(default='')
+    edital = models.ForeignKey(
+        'terceirizada.Edital', on_delete=models.DO_NOTHING, related_name='edital_kit_lanche', default=None, null=True)
+    status = models.CharField(choices=STATUS_CHOICES, max_length=10, default=ATIVO)
 
     def __str__(self):
         return self.nome
