@@ -11,6 +11,8 @@ from sme_terceirizadas.perfil.models.perfil import Vinculo
 from ..cardapio.models import AlteracaoCardapio, AlteracaoCardapioCEI, InversaoCardapio
 from ..dados_comuns.fluxo_status import PedidoAPartirDaDiretoriaRegionalWorkflow, PedidoAPartirDaEscolaWorkflow
 from ..dados_comuns.models import LogSolicitacoesUsuario
+from ..eol_servico.utils import EOLServicoSGP
+from ..escola.models import Escola
 from ..inclusao_alimentacao.models import (
     GrupoInclusaoAlimentacaoNormal,
     InclusaoAlimentacaoContinua,
@@ -156,3 +158,20 @@ def nega_solicitacoes_pendentes_autorizacao_vencidas():
                 solicitacao.codae_nega(user=usuario, justificativa=justificativa)
             else:
                 solicitacao.codae_nega_questionamento(user=usuario, justificativa=justificativa)
+
+
+@shared_task(
+    autoretry_for=(ConnectionError,),
+    retry_backoff=2,
+    retry_kwargs={'max_retries': 3}
+)
+def matriculados_por_escola_e_periodo_regulares():
+    """Medição Inicial.
+
+    Consulta todos os dias a API do eol do SGP, para cada escola e turmas regulares,
+    a quantidade de alunos matriculados por período no dia e armazena essa informação.
+    """
+    from datetime import date
+    hoje = date.today()
+    for escola in Escola.objects.all():
+        logger.debug(f'Consultando matriculados da escola com código eol: {escola.codigo_eol}, data: {hoje.strftime("%Y-%m-%d")}')
