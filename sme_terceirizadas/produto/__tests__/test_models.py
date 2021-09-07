@@ -23,3 +23,7 @@ def test_homologacao_produto_data_cadastro(homologacao_produto_homologado_com_lo
 def test_produto_componentes_max_length(homologacao_produto_homologado_com_log, user):
     homologacao_produto_homologado_com_log.componentes = 'x' * 5000
     assert len(homologacao_produto_homologado_com_log.componentes) == 5000
+
+
+def test_item_cadastrado_marca(item_cadastrado_1):
+    assert item_cadastrado_1.tipo == 'MARCA'
