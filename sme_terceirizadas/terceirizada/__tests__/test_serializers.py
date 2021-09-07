@@ -30,3 +30,18 @@ def test_edital_contratos_serializer(edital_contratos_serializer):
     assert 'processo' in edital_contratos_serializer.data
     assert 'objeto' in edital_contratos_serializer.data
     assert 'contratos' in edital_contratos_serializer.data
+
+
+def test_edital_serializer(edital_serializer):
+    assert edital_serializer.data is not None
+    assert 'uuid' in edital_serializer.data
+    assert 'numero' in edital_serializer.data
+    assert 'tipo_contratacao' in edital_serializer.data
+    assert 'processo' in edital_serializer.data
+    assert 'objeto' in edital_serializer.data
+
+
+def test_edital_simples_serializer(edital_simples_serializer):
+    assert edital_simples_serializer.data is not None
+    assert 'uuid' in edital_simples_serializer.data
+    assert 'numero' in edital_simples_serializer.data

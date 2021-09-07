@@ -12,6 +12,9 @@ pytestmark = pytest.mark.django_db
 
 def test_kit_lanche(kit_lanche):
     assert isinstance(kit_lanche.nome, str)
+    assert isinstance(kit_lanche.descricao, str)
+    assert isinstance(kit_lanche.status, str)
+    assert isinstance(kit_lanche.edital.numero, str)
     assert isinstance(kit_lanche.__str__(), str)
     assert kit_lanche.itens.count() == 3
     assert kit_lanche._meta.verbose_name == 'Kit lanche'

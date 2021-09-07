@@ -537,3 +537,14 @@ def test_kit_lanche_nao_deve_permitir_editar_status_diretamente(client_autentica
     # deve ser rascunho e não codae autorizado
     assert json['status_explicacao'] == PedidoAPartirDaEscolaWorkflow.RASCUNHO
     assert json.get('status') is None
+
+
+def test_url_endpoint_consulta_kits_lanche(client_autenticado, kit_lanche):
+    client = client_autenticado
+    response = client.get('/kit-lanches/consulta-kits/')
+    assert response.status_code == status.HTTP_200_OK
+
+    data = response.json()
+    item = data['results'][0]
+
+    assert isinstance(item, dict)

@@ -40,6 +40,11 @@ def escola(diretoria_regional, lote):
 
 
 @pytest.fixture
+def edital():
+    return mommy.make('Edital', numero='1', objeto='lorem ipsum')
+
+
+@pytest.fixture
 def client_autenticado_da_escola(client, django_user_model, escola):
     email = 'user@escola.com'
     password = 'bar'
@@ -97,11 +102,14 @@ def client_autenticado_da_terceirizada(client, django_user_model, terceirizada):
 
 
 @pytest.fixture
-def kit_lanche():
+def kit_lanche(edital):
     itens = mommy.make(models.ItemKitLanche,
                        nome=fake.name(),
                        _quantity=3)
     return mommy.make(models.KitLanche, nome=fake.name(),
+                      descricao=fake.text()[:160],
+                      status='ATIVO',
+                      edital=edital,
                       itens=itens)
 
 

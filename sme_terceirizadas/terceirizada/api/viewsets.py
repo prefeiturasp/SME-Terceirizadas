@@ -14,6 +14,7 @@ from .serializers.serializers import (
     DistribuidorSimplesSerializer,
     EditalContratosSerializer,
     EditalSerializer,
+    EditalSimplesSerializer,
     TerceirizadaSimplesSerializer
 )
 from .serializers.serializers_create import EditalContratosCreateSerializer, TerceirizadaCreateSerializer
@@ -23,6 +24,12 @@ class EditalViewSet(viewsets.ReadOnlyModelViewSet):
     lookup_field = 'uuid'
     serializer_class = EditalSerializer
     queryset = Edital.objects.all()
+
+    @action(detail=False, methods=['GET'], url_path='lista-numeros')
+    def lista_numeros(self, request):
+        queryset = self.get_queryset()
+        response = {'results': EditalSimplesSerializer(queryset, many=True).data}
+        return Response(response)
 
 
 class TerceirizadaViewSet(viewsets.ModelViewSet):
