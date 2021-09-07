@@ -7,6 +7,7 @@ from ....escola.api.serializers import (
     EscolaSimplesSerializer,
     FaixaEtariaSerializer
 )
+from ....terceirizada.api.serializers.serializers import EditalSerializer
 from ...models import (
     EscolaQuantidade,
     FaixaEtariaSolicitacaoKitLancheCEIAvulsa,
@@ -34,6 +35,15 @@ class KitLancheSerializer(serializers.ModelSerializer):
 
 
 class KitLancheSimplesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = KitLanche
+        exclude = ('id', 'itens')
+
+
+class KitLancheConsultaSerializer(serializers.ModelSerializer):
+    edital = EditalSerializer()
+    status = serializers.CharField(source='get_status_display')
+
     class Meta:
         model = KitLanche
         exclude = ('id', 'itens')

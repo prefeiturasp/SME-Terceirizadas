@@ -28,6 +28,18 @@ def test_url_endpoint_editais_autenticado(client_autenticado_terceiro):
     assert isinstance(item, dict)
 
 
+def test_url_endpoint_editais_numeros_autenticado(client_autenticado_terceiro):
+    client = client_autenticado_terceiro
+    response = client.get('/editais/lista-numeros/')
+    assert response.status_code == status.HTTP_200_OK
+
+    data = response.json()
+    assert len(data) == 1
+    item = data['results'][0]
+
+    assert isinstance(item, dict)
+
+
 def test_url_endpoint_editais_contratos_autenticado(client_autenticado_terceiro):
     client = client_autenticado_terceiro
     response = client.get('/editais-contratos/')

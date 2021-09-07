@@ -1,3 +1,4 @@
+from django_filters import rest_framework as filters
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
@@ -23,7 +24,9 @@ from ...relatorios.relatorios import (
 )
 from .. import models
 from ..api.validators import nao_deve_ter_mais_solicitacoes_que_alunos
+from ..filters import KitLancheFilter
 from ..models import SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheCEIAvulsa, SolicitacaoKitLancheUnificada
+from ..utils import KitLanchePagination
 from .serializers import serializers, serializers_create, serializers_create_cei
 
 
@@ -31,6 +34,19 @@ class KitLancheViewSet(ReadOnlyModelViewSet):
     lookup_field = 'uuid'
     queryset = models.KitLanche.objects.all()
     serializer_class = serializers.KitLancheSerializer
+    pagination_class = KitLanchePagination
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = KitLancheFilter
+
+    @action(detail=False, methods=['GET'], url_path='consulta-kits')
+    def lista_kits_consulta(self, request):
+        queryset = self.filter_queryset(self.get_queryset().order_by('id'))
+        page = self.paginate_queryset(queryset)
+        serializer = serializers.KitLancheConsultaSerializer(page, many=True)
+        response = self.get_paginated_response(
+            serializer.data
+        )
+        return response
 
 
 class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
