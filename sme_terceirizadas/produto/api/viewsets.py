@@ -44,6 +44,7 @@ from ..models import (
     HomologacaoDoProduto,
     ImagemDoProduto,
     InformacaoNutricional,
+    ItemCadastro,
     Marca,
     NomeDeProdutoEdital,
     Produto,
@@ -53,6 +54,7 @@ from ..models import (
     SolicitacaoCadastroProdutoDieta
 )
 from ..utils import (
+    ItemCadastroPagination,
     StandardResultsSetPagination,
     agrupa_por_terceirizada,
     converte_para_datetime,
@@ -60,7 +62,7 @@ from ..utils import (
     cria_filtro_produto_por_parametros_form,
     get_filtros_data
 )
-from .filters import ProdutoFilter, filtros_produto_reclamacoes
+from .filters import ItemCadastroFilter, ProdutoFilter, filtros_produto_reclamacoes
 from .serializers.serializers import (
     FabricanteSerializer,
     FabricanteSimplesSerializer,
@@ -68,6 +70,8 @@ from .serializers.serializers import (
     HomologacaoProdutoSerializer,
     ImagemDoProdutoSerializer,
     InformacaoNutricionalSerializer,
+    ItensCadastroCreateSerializer,
+    ItensCadastroSerializer,
     MarcaSerializer,
     MarcaSimplesSerializer,
     NomeDeProdutoEditalSerializer,
@@ -1791,3 +1795,37 @@ class SolicitacaoCadastroProdutoDietaViewSet(viewsets.ModelViewSet):
             return Response({'detail': f'Erro na transição de estado {e}'}, status=HTTP_400_BAD_REQUEST)
         except serializers.ValidationError as e:
             return Response({'detail': f'Dados inválidos {e}'}, status=HTTP_400_BAD_REQUEST)
+
+
+class ItensCadastroViewSet(viewsets.ModelViewSet):
+    lookup_field = 'uuid'
+    queryset = ItemCadastro.objects.all().order_by('-criado_em')
+    pagination_class = ItemCadastroPagination
+    permission_classes = [AllowAny]
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = ItemCadastroFilter
+
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update']:
+            return ItensCadastroCreateSerializer
+        return ItensCadastroSerializer
+
+    @action(detail=False, methods=['GET'], url_path='tipos')
+    def tipos(self, _):
+        return Response([{'tipo': choice[0], 'tipo_display': choice[1]} for choice in ItemCadastro.CHOICES])
+
+    @action(detail=False, methods=['GET'], url_path='lista-nomes')
+    def lista_de_nomes(self, _):
+        return Response({'results': [item.content_object.nome for item in self.queryset.all()]})
+
+    def destroy(self, request, *args, **kwargs):
+        instance: ItemCadastro = self.get_object()
+
+        if instance.deleta_modelo():
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
+        msg = 'Não será possível realizar a exclusão. Este item contém relacionamentos com Cadastro de Produtos.'
+        return Response(data={'detail': msg}, status=status.HTTP_403_FORBIDDEN)
+
+    class Meta:
+        model = ItemCadastro

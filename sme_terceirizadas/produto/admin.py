@@ -7,6 +7,7 @@ from .models import (
     ImagemDoProduto,
     InformacaoNutricional,
     InformacoesNutricionaisDoProduto,
+    ItemCadastro,
     LogNomeDeProdutoEdital,
     Marca,
     NomeDeProdutoEdital,
@@ -108,6 +109,21 @@ class InformacaoNutricionalModelAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'tipo_nutricional', 'medida')
     search_fields = ('nome',)
     list_filter = ('tipo_nutricional',)
+
+
+@admin.register(ItemCadastro)
+class ItemCadastroModelAdmin(admin.ModelAdmin):
+    list_display = ('__str__', 'tipo')
+    list_filter = ('content_type',)
+    actions = ('cria_itens',)
+
+    def cria_itens(self, request, _):
+        from sme_terceirizadas.produto.utils import cria_itens_cadastro
+        cria_itens_cadastro()
+
+        self.message_user(request, 'Processo iniciado com sucesso.')
+
+    cria_itens.short_description = 'Cria ItemCadastro para cada Marca e/ou Fabricante caso não exista.'
 
 
 admin.site.register(ReclamacaoDeProduto)

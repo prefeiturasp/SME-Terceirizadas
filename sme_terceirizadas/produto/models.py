@@ -1,5 +1,7 @@
 from datetime import datetime
 
+from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
+from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from sequences import get_last_value, get_next_value
 
@@ -38,12 +40,14 @@ class ProtocoloDeDietaEspecial(Ativavel, CriadoEm, CriadoPor, TemChaveExterna):
 
 
 class Fabricante(Nomeavel, TemChaveExterna):
+    item = GenericRelation('ItemCadastro', related_query_name='fabricante')
 
     def __str__(self):
         return self.nome
 
 
 class Marca(Nomeavel, TemChaveExterna):
+    item = GenericRelation('ItemCadastro', related_query_name='marca')
 
     def __str__(self):
         return self.nome
@@ -445,3 +449,95 @@ class AnaliseSensorial(TemChaveExterna, TemIdentificadorExternoAmigavel, CriadoE
 
     def __str__(self):
         return f'Análise Sensorial {self.id_externo} de protocolo {self.numero_protocolo} criada em: {self.criado_em}'
+
+
+class ItemCadastro(TemChaveExterna, CriadoEm):
+    """Gerencia Cadastro de itens.
+
+    Permite gerenciar a criação, edição, deleção e consulta
+    de modelos que só possuem o atributo nome.
+
+    Exemplos: Marca, Fabricante, Unidade de Medida e Embalagem
+    """
+
+    MARCA = 'MARCA'
+    FABRICANTE = 'FABRICANTE'
+    UNIDADE_MEDIDA = 'UNIDADE_MEDIDA'
+    EMBALAGEM = 'EMBALAGEM'
+
+    MODELOS = {
+        MARCA: 'Marca',
+        FABRICANTE: 'Fabricante',
+        UNIDADE_MEDIDA: 'Unidade de Medida',
+        EMBALAGEM: 'Embalagem'
+    }
+
+    CHOICES = (
+        (MARCA, MODELOS[MARCA]),
+        (FABRICANTE, MODELOS[FABRICANTE]),
+        (UNIDADE_MEDIDA, MODELOS[UNIDADE_MEDIDA]),
+        (EMBALAGEM, MODELOS[EMBALAGEM]),
+    )
+
+    CLASSES = {MARCA: Marca, FABRICANTE: Fabricante}
+
+    tipo = models.CharField(
+        'Tipo',
+        max_length=30,
+        choices=CHOICES
+    )
+
+    content_type = models.ForeignKey(ContentType,
+                                     on_delete=models.CASCADE)
+
+    object_id = models.PositiveIntegerField()
+
+    content_object = GenericForeignKey('content_type', 'object_id')
+
+    def __str__(self) -> str:
+        return self.content_object.nome
+
+    @classmethod
+    def eh_tipo_permitido(cls, tipo: str) -> bool:
+        return tipo in [c[0] for c in cls.CHOICES]
+
+    def pode_deletar(self):
+        from sme_terceirizadas.produto.models import Produto
+
+        if self.tipo == self.MARCA:
+            return not Produto.objects.filter(marca__pk=self.content_object.pk).exists()
+        elif self.tipo == self.FABRICANTE:
+            return not Produto.objects.filter(fabricante__pk=self.content_object.pk).exists()
+
+        return True
+
+    @classmethod
+    def criar(cls, nome: str, tipo: str) -> object:
+        nome_upper = nome.upper()
+
+        if not cls.eh_tipo_permitido(tipo):
+            raise Exception(f'Tipo não permitido: {tipo}')
+
+        modelo = cls.CLASSES[tipo].objects.create(nome=nome_upper)
+
+        item = cls(tipo=tipo, content_object=modelo)
+        item.save()
+        return item
+
+    @classmethod
+    def cria_modelo(cls, nome: str, tipo: str) -> object:
+        nome_upper = nome.upper()
+
+        if not cls.eh_tipo_permitido(tipo):
+            raise Exception(f'Tipo não permitido: {tipo}')
+
+        modelo = cls.CLASSES[tipo].objects.create(nome=nome_upper)
+        return modelo
+
+    def deleta_modelo(self):
+        if self.pode_deletar():
+            self.content_object.delete()
+            self.delete()
+            return True
+
+        return False

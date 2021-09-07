@@ -382,3 +382,108 @@ def test_url_endpoint_lista_nomes_responder_reclamacao_marcas_nutri(
 
     assert response.status_code == status.HTTP_200_OK
     assert response.json() == esperado
+
+
+def test_url_endpoint_lista_itens_cadastros(client_autenticado_vinculo_escola_ue,
+                                            item_cadastrado_1,
+                                            item_cadastrado_2):
+
+    client = client_autenticado_vinculo_escola_ue
+    response = client.get(f'/itens-cadastros/')
+    esperado = {
+        'count': 2,
+        'next': None,
+        'previous': None,
+        'results': [
+            {
+                'uuid': str(item_cadastrado_2.uuid),
+                'nome': item_cadastrado_2.content_object.nome,
+                'tipo': item_cadastrado_2.tipo,
+                'tipo_display': item_cadastrado_2.get_tipo_display()
+            },
+            {
+                'uuid': str(item_cadastrado_1.uuid),
+                'nome': item_cadastrado_1.content_object.nome,
+                'tipo': item_cadastrado_1.tipo,
+                'tipo_display': item_cadastrado_1.get_tipo_display()
+            }]
+    }
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == esperado
+
+
+def test_url_endpoint_detalhe_item_cadastro(client_autenticado_vinculo_escola_ue,
+                                            item_cadastrado_1):
+
+    client = client_autenticado_vinculo_escola_ue
+    response = client.get(f'/itens-cadastros/{str(item_cadastrado_1.uuid)}/')
+    esperado = {
+        'uuid': str(item_cadastrado_1.uuid),
+        'nome': item_cadastrado_1.content_object.nome,
+        'tipo': item_cadastrado_1.tipo,
+        'tipo_display': item_cadastrado_1.get_tipo_display()
+    }
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == esperado
+
+
+def test_url_endpoint_criar_item_cadastro_e_marca(client_autenticado_vinculo_escola_ue):
+    from sme_terceirizadas.produto.models import ItemCadastro
+
+    assert ItemCadastro.objects.count() == 0
+    client = client_autenticado_vinculo_escola_ue
+    payload = {
+        'nome': 'Flamengo',
+        'tipo': 'MARCA'
+    }
+    response = client.post(f'/itens-cadastros/', data=json.dumps(payload), content_type='application/json')
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert ItemCadastro.objects.count() == 1
+
+
+def test_url_endpoint_tipos_item_cadastro(client_autenticado_vinculo_escola_ue):
+
+    client = client_autenticado_vinculo_escola_ue
+    response = client.get(f'/itens-cadastros/tipos/')
+    esperado = [
+        {
+            'tipo': 'MARCA',
+            'tipo_display': 'Marca'
+        },
+        {
+            'tipo': 'FABRICANTE',
+            'tipo_display': 'Fabricante'
+        },
+        {
+            'tipo': 'UNIDADE_MEDIDA',
+            'tipo_display': 'Unidade de Medida'
+        },
+        {
+            'tipo': 'EMBALAGEM',
+            'tipo_display': 'Embalagem'
+        }
+    ]
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == esperado
+
+
+def test_url_endpoint_lista_de_nomes_de_itens_cadastros(client_autenticado_vinculo_escola_ue,
+                                                        item_cadastrado_1,
+                                                        item_cadastrado_2):
+
+    client = client_autenticado_vinculo_escola_ue
+    response = client.get(f'/itens-cadastros/lista-nomes/')
+    result = response.json()
+
+    esperado = {
+        'results': [
+            item_cadastrado_2.content_object.nome,
+            item_cadastrado_1.content_object.nome
+        ]
+    }
+
+    assert result == esperado

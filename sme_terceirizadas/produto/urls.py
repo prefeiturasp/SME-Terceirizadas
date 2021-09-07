@@ -29,6 +29,11 @@ router.register(
     viewsets.SolicitacaoCadastroProdutoDietaViewSet,
     'Solicitação cadastro de Produtos'
 )
+router.register(
+    'itens-cadastros',
+    viewsets.ItensCadastroViewSet,
+    basename='itens-cadastros'
+)
 
 urlpatterns = [
     path('', include(router.urls)),

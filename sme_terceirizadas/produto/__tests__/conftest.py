@@ -1,6 +1,7 @@
 import datetime
 
 import pytest
+from django.contrib.contenttypes.models import ContentType
 from faker import Faker
 from model_mommy import mommy
 
@@ -356,3 +357,19 @@ def reclamacao_nutrisupervisor(homologacao_produto_gpcodae_questionou_nutrisuper
                             criado_em=datetime.datetime.utcnow(),
                             status=ReclamacaoProdutoWorkflow.AGUARDANDO_RESPOSTA_NUTRISUPERVISOR)
     return reclamacao
+
+
+@pytest.fixture
+def item_cadastrado_1(marca1):
+    return mommy.make('ItemCadastro',
+                      tipo='MARCA',
+                      content_type=ContentType.objects.get(model='marca'),
+                      content_object=marca1)
+
+
+@pytest.fixture
+def item_cadastrado_2(fabricante):
+    return mommy.make('ItemCadastro',
+                      tipo='FABRICANTE',
+                      content_type=ContentType.objects.get(model='fabricante'),
+                      content_object=fabricante)
