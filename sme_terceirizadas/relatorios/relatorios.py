@@ -281,8 +281,8 @@ def relatorio_kit_lanche_passeio(request, solicitacao):
     logs = solicitacao.logs
     observacao = solicitacao.solicitacao_kit_lanche.descricao
     solicitacao.observacao = observacao
-    tempo_escilhido = str(solicitacao.solicitacao_kit_lanche.tempo_passeio)
-    tempo_passeio = TEMPO_PASSEIO.get('tempo_escilhido')
+    tempo_passeio_num = str(solicitacao.solicitacao_kit_lanche.tempo_passeio)
+    tempo_passeio = TEMPO_PASSEIO.get(tempo_passeio_num)
     html_string = render_to_string(
         'solicitacao_kit_lanche_passeio.html',
         {
