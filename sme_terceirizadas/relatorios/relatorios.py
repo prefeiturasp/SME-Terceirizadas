@@ -272,13 +272,21 @@ def relatorio_inclusao_alimentacao_cei(request, solicitacao):
 
 
 def relatorio_kit_lanche_passeio(request, solicitacao):
+    TEMPO_PASSEIO = {
+        '0': 'até 4 horas',
+        '1': 'de 5 a 7 horas',
+        '2': '8 horas ou mais'
+    }
     escola = solicitacao.rastro_escola
     logs = solicitacao.logs
     observacao = solicitacao.solicitacao_kit_lanche.descricao
     solicitacao.observacao = observacao
+    tempo_passeio_num = str(solicitacao.solicitacao_kit_lanche.tempo_passeio)
+    tempo_passeio = TEMPO_PASSEIO.get(tempo_passeio_num)
     html_string = render_to_string(
         'solicitacao_kit_lanche_passeio.html',
         {
+            'tempo_passeio': tempo_passeio,
             'escola': escola,
             'solicitacao': solicitacao,
             'quantidade_kits': solicitacao.solicitacao_kit_lanche.kits.all().count() * solicitacao.quantidade_alunos,
