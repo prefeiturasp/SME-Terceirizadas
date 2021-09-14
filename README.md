@@ -68,51 +68,47 @@ No futuro, o sistema também contará com módulos que apoiarão o trabalho da c
   
 ## Funcionalidades
 
-**Escola**
-
-- Solicitações
-- Cadastro/ Edição/ Cancelamento/ Acompanhamento de solicitações para Inclusão de alimentação
-- Cadastro/ Edição/ Cancelamento/ Acompanhamento de solicitações Alteração de alimentação
-- Inversão
-- Suspensão
-- Kit
-- Relatórios por tipo de solicitação
-- Relatórios por status
-- Relatório por evolução das solicitações por tipo
-- Portal administrativo
-
-**Dieta Especial**
-
--  Relatórios
+**Gestão de Alimentação**
+- Inclusão de Alimentação
+- Solicitação de Kit Lanche
+- Suspensão de Alimentação
+- Alteração de Cardápio
+- Relatórios
 
 **Gestão de Produtos**
+- Cadastro de produto
+- Suspensão e ativação de produto
+- Registro de reclamação
+- Relatórios
 
-- Relatórios por de produto
-- Relatório por reclamação
+**Dieta Especial**
+- Solicitação de Dieta
+- Cancelamento de Dieta
+- Autorização de Dieta
+- Criação de Protocolos de Dieta Especial
+- Relatórios
 
 ## Roadmap
 
-- Release 1  - Solicitações de alimentações
+- Release 1  - Gestão de Alimentação
 
-- Release 2 - Relatórios de solicitações
+- Release 2 - Gestão de Produtos e Dieta Especial
 
-- Release 3 - Dieta Especial:
+- Release 3 - Medição Inicial EMEF (visão UE)
 
-- Release 4 - Relatório de Dieta Especial
+- Release 4 - Medição Inicial EMEF (visão DRE e CODAE)
 
-- Release 5 - Homologação de produtos
+- Release 5 - Medição Inicial CEI e EMEI
 
 - Release 6-  Cardápio
 
-- Release 6 - Medicação inicial
-
-- Release 7 - Faturamento
+- Release 7 - Supervisão
 
 # Sobre o Time
 
 | Papel | Titular | Suplente  
 |--|--|--|  
-| Product Owner | Andrea Wang | Daniela Chichon e Elisete Pereira |  
+| Product Owner | Andrea Wang e Daniela Chichon| Elisete Pereira |  
 | Agente de Governança | Juliana Demay | Vítor Ferragini |  
 | Gerente de Projeto | Andrea Paiva | |  
 | Scrum Master | Augusto Silva |  | 
