@@ -161,7 +161,7 @@ def relatorio_guia_de_remessa(guias): # noqa C901
             conferencia = guia.conferencias.last()
             num_alimentos_pagina = 3
         elif guia.status in (GuiaStatus.RECEBIMENTO_PARCIAL, GuiaStatus.NAO_RECEBIDA):
-            num_alimentos_pagina = 2
+            num_alimentos_pagina = 1000
             conferencia = guia.conferencias.last()
             conferencias_individuais = conferencia.conferencia_dos_alimentos.all()
             for alimento_guia in todos_alimentos:
