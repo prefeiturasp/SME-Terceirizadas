@@ -26,7 +26,7 @@ O [Ateliê do Software](http://forum.govit.prefeitura.sp.gov.br/uploads/default/
 
 Para as **unidades escolares da rede municipal de educação da cidade de São Paulo** 
 
-Que **precisam acompanhar com segurança o fornecimento de alimentação escolar**
+Que **precisam acompanhar o fornecimento de alimentação escolar**
 
 O **SIGPAE (Sistema de Gestão  do Programa para Alimentação Escolar)**  
 
@@ -40,7 +40,14 @@ Onosso produto **garante mais agilidade, confiabilidade e segurança para os pro
 
 ## Objetivos de Negócio
 
-O SIGPAE tem como objetivo automatizar os processos internos de fornecimento e distribuição de alimentação escolar. Como principais funcionalidades temos: cadastro e acompanhamento de solicitações de alimentação, solicitação de dieta especial, gestão de produtos, medição inicial e faturamento.
+O SIGPAE tem como objetivo automatizar os processos internos de fornecimento e distribuição de alimentação escolar. Atualmente, temos os seguintes módulos desenvolvidos ou em desenvolvimento:
+
+- Gestão de Produtos: gestão de produtos, marcas e fabricantes oferecidos para os estudantes da rede municipal
+- Dieta Especial: registro e análise de solicitações de Dieta Especial feitas pelas Unidades Educacionais (UEs) e criação de protocolos de Dieta Especial para os estudantes
+- Gestão de Alimentação: registro e análise de solicitações de alimentação enviadas pelas UEs
+- Medição Inicial: registro e análise das refeições servidas pelas UEs mensalmente
+
+No futuro, o sistema também contará com módulos que apoiarão o trabalho da criação do cardápio, das nutricionistas da Supervisão, do Faturamento, entre outras. Desta forma, pretende-se que todo o trabalho desenvolvido para fornecer alimentação para as mais de 1000 UEs beneficiadas seja realizado a partir de um sistema, com maior segurança e automatização de processos.
 
 ## Personas
 
