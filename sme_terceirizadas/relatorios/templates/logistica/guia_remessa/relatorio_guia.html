@@ -34,11 +34,11 @@
 
 
       {% elif page.status_guia == "Insucesso de entrega" %}
-        
+        {% include "logistica/guia_remessa/rodape_recebida.html" %}
         {% include "logistica/guia_remessa/barra_status.html" %}
         {% include "logistica/guia_remessa/tabela_alimentos.html" %}
         {% include "logistica/guia_remessa/guia_insucesso.html" %}
-        {% include "logistica/guia_remessa/rodape.html" %} 
+        {% comment %} {% include "logistica/guia_remessa/rodape.html" %} {% endcomment %}
       {% endif %}
 
       {% comment %} {% include "logistica/guia_remessa/rodape.html" %} {% endcomment %}
