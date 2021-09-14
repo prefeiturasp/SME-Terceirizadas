@@ -52,28 +52,19 @@ No futuro, o sistema também contará com módulos que apoiarão o trabalho da c
 ## Personas
 
 **Quem:** Direção Escolar
-**Características e necessidades:** responsável pela gestão da escola, com necessidade de otimização de tempo. O sistema é essencial para melhor controle das ações realizadas para a escola
+**Características e necessidades:** responsável pela gestão da escola, com necessidade de otimização de tempo. O sistema é essencial para melhor controle das solicitações realizadas pela UE e demandas de DRE e CODAE
 
 **Quem:** Assistente Técnico de Educação e Nutricionista
-**Características e necessidades:** responsável pela gestão das solicitações de alimentação no núcleo de gestão de contratos na  coordenadoria de alimentação escolar, com necessidade de organização do recebimento das diversas solicitações das escolas
-
-**Quem:** Contador
-**Características e necessidades:** liquidação de todos os pagamentos efetuados pela coordenadoria de alimentação escolar 
+**Características e necessidades:** responsável pela gestão das solicitações de alimentação no núcleo de gestão de contratos na CODAE, com necessidade de organização do recebimento das diversas solicitações das UEs
 
 **Quem:** Nutricionista de Dieta Especial
-**Características e necessidades:** responsável pela validação de solicitações e prescrição da dieta especial, tem necessidade de otimização do processo para revisão, encaminhamento e fornecimento da dieta nas escolas. Processos burocráticos, dolorosos e com decisões de alto impacto para os estudantes
+**Características e necessidades:** responsável pela validação de solicitações e prescrição da Dieta Especial, tem necessidade de otimização do processo para revisão, encaminhamento e fornecimento da dieta nas escolas. Processos burocráticos, dolorosos e com decisões de alto impacto para os estudantes
 
 **Quem:** Nutricionista P&D
 **Características e necessidades:** responsável pela gestão de produtos (homologação, correção, suspensão e avaliação de reclamação e solicitação de análise sensorial) solicitados pelas empresas terceirizadas, com a necessidade de controle do que pode ser utilizados nas unidades escolares
 
-**Quem:** Diretoria Regional de Educação
+**Quem:** Diretoria Regional de Educação (DRE)
 **Características e necessidades:** responsável pelo gerenciamento das solicitações realizadas pelas escolas que administra, com a necessidade de otimizar e controlar as diversas solicitações das unidades escolares. Para fiscalização e controle das solicitações geradas
-
-**Quem:** estudantes
-**Características e necessidades:** participação nas aulas, com garantia de recebimento de alimentação durante todo o período em que estiver na unidade escolar, assim como o recebimento de alimentação para as atividades externas 
-
-**Quem:** Família
-**Características e necessidades:** responsável por acompanhar o cardápio diário das alimentações e por realizar a entrega de documentação para solicitação de Dieta Especial na unidade escolar, quando necessário, com a necessidade de atendimento ágil
   
 ## Funcionalidades
 
@@ -121,17 +112,15 @@ No futuro, o sistema também contará com módulos que apoiarão o trabalho da c
 
 | Papel | Titular | Suplente  
 |--|--|--|  
-| Product Owner | Elisete Pereira | Daniela Chichon e Andrea Wang |  
-| Agente de Governança | Vítor Ferragini |  |  
-| Gerente de Projeto | Aline Freitas | |  
-| Scrum Master | Andrea Paiva |  | 
+| Product Owner | Andrea Wang | Daniela Chichon e Elisete Pereira |  
+| Agente de Governança | Juliana Demay | Vítor Ferragini |  
+| Gerente de Projeto | Andrea Paiva | |  
+| Scrum Master | Augusto Silva |  | 
 | Designer de Serviços | Caio Dib | |  
-| Analista de negócios | Fabrício Ramalho |  |  
+| Analista de negócios | Jaqueline Sargi |  |  
 | Analista UX/UI | Pamela Marsola |  |  
-| Analista Programador | Bruno Buzzo, Pedro Walter, Rodolpho Lima |  |
+| Analista Programador | Anderson Moraes | Rodolpho Lima |
 | Analista de teste |Paula Pimentel|  |
-
-# Como surgiu
 
 ## Protótipos
 
@@ -145,7 +134,7 @@ https://www.figma.com/file/52MKvjiFFjoy7WLuvLLjAi/Spt_13-ALIMENTA%C3%87%C3%83O-T
 
 **Visão DRE:** https://www.figma.com/file/52MKvjiFFjoy7WLuvLLjAi/Spt_13-ALIMENTA%C3%87%C3%83O-Terceirizadas_sprint13-230719?node-id=0%3A43643
 
-# Links Úteis:
+# Links Úteis
 
 **Homologação:**
 
@@ -165,7 +154,7 @@ https://www.figma.com/file/52MKvjiFFjoy7WLuvLLjAi/Spt_13-ALIMENTA%C3%87%C3%83O-T
 
 Contribuições são **super bem vindas**! Se você tem vontade de construir o SIGPAE conosco, veja o nosso [guia de contribuição](./CONTRIBUTING.md) onde explicamos detalhadamente como trabalhamos e de que formas você pode nos ajudar a alcançar nossos objetivos. Lembrando que todos devem seguir  nosso [código de conduta](./CODEOFCONDUCT.md).
 
-# Repositórios:
+# Repositórios
 
 Informar os repositórios de código que envolvem a solução:
 
@@ -174,7 +163,7 @@ Informar os repositórios de código que envolvem a solução:
 [SME-TERCEIRIZADAS-FRONTEND]
 [https://github.com/prefeiturasp/SME-Terceirizadas-Frontend](https://github.com/prefeiturasp/SME-Terceirizadas-Frontend)
  
-# Instalação e Configuração:
+# Instalação e Configuração
 
 ## Pré-requisitos
 
