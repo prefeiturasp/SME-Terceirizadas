@@ -96,7 +96,8 @@ THIRD_PARTY_APPS = [
     'sass_processor',
     'sequences.apps.SequencesConfig',
     'django_celery_beat',
-    'multiselectfield'
+    'multiselectfield',
+    'rangefilter',
 ]
 LOCAL_APPS = [
     'sme_terceirizadas.perfil.apps.PerfilConfig',

@@ -19,6 +19,7 @@ from ..dados_comuns.behaviors import (
     TemAlteradoEm,
     TemChaveExterna,
     TemCodigoEOL,
+    TemObservacao,
     TemVinculos
 )
 from ..dados_comuns.constants import (
@@ -877,3 +878,72 @@ class PlanilhaEscolaDeParaCodigoEolCodigoCoade(CriadoEm, TemAlteradoEm):
 
     def __str__(self):
         return str(self.planilha)
+
+
+class AlunosMatriculadosPeriodoEscolaRegular(CriadoEm, TemAlteradoEm, TemChaveExterna):
+    """Serve para guardar a quantidade de alunos matriculados da escola em um dado periodo escolar regular.
+
+    Ex: EMEI BLABLA pela manhã tem 20 alunos
+    """
+
+    escola = models.ForeignKey(Escola,
+                               related_name='alunos_matriculados_por_periodo',
+                               on_delete=models.DO_NOTHING)
+    periodo_escolar = models.ForeignKey(PeriodoEscolar,
+                                        related_name='alunos_matriculados',
+                                        on_delete=models.DO_NOTHING)
+    quantidade_alunos = models.PositiveSmallIntegerField(
+        'Quantidade de alunos', default=0)
+
+    @classmethod
+    def criar(cls, escola, periodo_escolar, quantidade_alunos):
+        alunos_matriculados = cls.objects.filter(escola=escola, periodo_escolar=periodo_escolar).first()
+        if not alunos_matriculados:
+            alunos_matriculados = cls.objects.create(
+                escola=escola, periodo_escolar=periodo_escolar, quantidade_alunos=quantidade_alunos)
+        else:
+            alunos_matriculados.quantidade_alunos = quantidade_alunos
+            alunos_matriculados.save()
+
+    def __str__(self):
+        periodo_nome = self.periodo_escolar.nome
+
+        return f'Escola {self.escola.nome} no periodo da {periodo_nome} tem {self.quantidade_alunos} alunos'
+
+    class Meta:
+        verbose_name = 'Alunos Matriculados por Período e Escola'
+        verbose_name_plural = 'Alunos Matriculados por Períodos e Escolas'
+
+
+class LogAlunosMatriculadosPeriodoEscolaRegular(TemChaveExterna, CriadoEm, TemObservacao):
+    """Histórico da quantidade de Alunos por período."""
+
+    escola = models.ForeignKey(Escola,
+                               related_name='logs_alunos_matriculados_por_periodo',
+                               on_delete=models.DO_NOTHING)
+    periodo_escolar = models.ForeignKey(PeriodoEscolar,
+                                        related_name='logs_alunos_matriculados',
+                                        on_delete=models.DO_NOTHING)
+    quantidade_alunos = models.PositiveSmallIntegerField(
+        'Quantidade de alunos', default=0)
+
+    @classmethod
+    def criar(cls, escola, periodo_escolar, quantidade_alunos, data):
+        log_alunos = cls.objects.filter(
+            escola=escola, periodo_escolar=periodo_escolar, criado_em__year=data.year,
+            criado_em__month=data.month, criado_em__day=data.day)
+        if not log_alunos:
+            cls.objects.create(
+                escola=escola, periodo_escolar=periodo_escolar,
+                quantidade_alunos=quantidade_alunos)
+
+    def __str__(self):
+        periodo_nome = self.periodo_escolar.nome
+
+        return f"""Escola {self.escola.nome} no periodo da {periodo_nome}
+        tem {self.quantidade_alunos} alunos no dia {self.criado_em}"""
+
+    class Meta:
+        verbose_name = 'Log Alteração quantidade de alunos regular'
+        verbose_name_plural = 'Logs de Alteração quantidade de alunos regulares'
+        ordering = ('criado_em',)

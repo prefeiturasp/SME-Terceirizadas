@@ -4,7 +4,12 @@ import environ
 import requests
 from rest_framework import status
 
-from ..dados_comuns.constants import DJANGO_EOL_API_TOKEN, DJANGO_EOL_API_URL
+from ..dados_comuns.constants import (
+    DJANGO_EOL_API_TOKEN,
+    DJANGO_EOL_API_URL,
+    DJANGO_EOL_SGP_API_TOKEN,
+    DJANGO_EOL_SGP_API_URL
+)
 
 env = environ.Env()
 
@@ -108,6 +113,23 @@ class EOLService(object):
             return results
         else:
             raise EOLException(f'API EOL com erro. Status: {response.status_code}')
+
+
+class EOLServicoSGP:
+    HEADER = {
+        'x-api-eol-key': f'{DJANGO_EOL_SGP_API_TOKEN}'
+    }
+    TIMEOUT = 10
+
+    @classmethod
+    def matricula_por_escola(cls, codigo_eol: str, data: str, tipo_turma: int = 1):
+        response = requests.get(f'{DJANGO_EOL_SGP_API_URL}/matriculas/escolas/{codigo_eol}/quantidades/',
+                                headers=cls.HEADER, timeout=cls.TIMEOUT, params={'data': data, 'tipoTurma': tipo_turma})
+        if response.status_code == status.HTTP_200_OK:
+            resultado = response.json()
+            return resultado
+        else:
+            raise EOLException(f'API EOL do SGP está com erro. Erro: {str(response)}, Status: {response.status_code}')
 
 
 def dt_nascimento_from_api(string_dt_nascimento):
