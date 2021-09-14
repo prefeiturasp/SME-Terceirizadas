@@ -59,7 +59,7 @@ class Guia(ModeloBase, FluxoGuiaRemessa):
     cidade_unidade = models.CharField('Cidade da unidade', blank=True, max_length=100)
     estado_unidade = models.CharField('Estado da unidade', blank=True, max_length=2)
     contato_unidade = models.CharField('Contato na unidade', blank=True, max_length=150)
-    telefone_unidade = models.CharField('Telefone da unidade', blank=True, default='', max_length=20)
+    telefone_unidade = models.CharField('Telefone da unidade', blank=True, default='', max_length=50)
     situacao = models.CharField(choices=SITUACAO_CHOICES, max_length=10, default=ATIVA)
 
     objects = GuiaManager()
