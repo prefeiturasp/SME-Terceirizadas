@@ -1,5 +1,6 @@
 import datetime
 import logging
+from datetime import date
 
 from celery import shared_task
 from django.core import management
@@ -20,6 +21,7 @@ from ..inclusao_alimentacao.models import (
 )
 from ..kit_lanche.models import SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheCEIAvulsa, SolicitacaoKitLancheUnificada
 from ..paineis_consolidados.models import SolicitacoesDRE
+from .utils import registra_quantidade_matriculados
 
 # https://docs.celeryproject.org/en/latest/userguide/tasks.html
 logger = logging.getLogger('sigpae.taskEscola')
@@ -165,13 +167,26 @@ def nega_solicitacoes_pendentes_autorizacao_vencidas():
     retry_backoff=2,
     retry_kwargs={'max_retries': 3}
 )
-def matriculados_por_escola_e_periodo_regulares():
+def matriculados_por_escola_e_periodo_regulares():  # noqa C901
     """Medição Inicial.
 
     Consulta todos os dias a API do eol do SGP, para cada escola e turmas regulares,
     a quantidade de alunos matriculados por período no dia e armazena essa informação.
     """
-    from datetime import date
+
     hoje = date.today()
-    for escola in Escola.objects.all():
-        logger.debug(f'Consultando matriculados da escola com código eol: {escola.codigo_eol}, data: {hoje.strftime("%Y-%m-%d")}')
+    escolas = Escola.objects.all()
+    total = len(escolas)
+    cont = 1
+    for escola in escolas:
+        logger.debug(f'Processando {cont} de {total}')
+        logger.debug(f"""Consultando matriculados da escola com Nome: {escola.nome}
+        e código eol: {escola.codigo_eol}, data: {hoje.strftime('%Y-%m-%d')}""")
+        try:
+            resposta = EOLServicoSGP.matricula_por_escola(codigo_eol=escola.codigo_eol, data=hoje.strftime('%Y-%m-%d'))
+            logger.debug(resposta)
+
+            registra_quantidade_matriculados(resposta['turnos'], escola, hoje)
+        except Exception as e:
+            logger.error(f'Dados não encontrados para escola {escola} : {str(e)}')
+        cont += 1

@@ -1,14 +1,17 @@
 from django.contrib import admin, messages
 from django.shortcuts import redirect
+from rangefilter.filters import DateRangeFilter
 
 from .models import (
     Aluno,
+    AlunosMatriculadosPeriodoEscolaRegular,
     Codae,
     DiretoriaRegional,
     Escola,
     EscolaPeriodoEscolar,
     FaixaIdadeEscolar,
     LogAlteracaoQuantidadeAlunosPorEscolaEPeriodoEscolar,
+    LogAlunosMatriculadosPeriodoEscolaRegular,
     LogRotinaDiariaAlunos,
     Lote,
     PeriodoEscolar,
@@ -117,6 +120,20 @@ class PlanilhaEscolaDeParaCodigoEolCodigoCoadeAdmin(admin.ModelAdmin):
         )
         return redirect('admin:escola_planilhaescoladeparacodigoeolcodigocoade_changelist')
     vincular_codigos_codae_da_planilha.short_description = 'Executar atualização dos códigos codae das escolas'
+
+
+@admin.register(AlunosMatriculadosPeriodoEscolaRegular)
+class AlunosMatriculadosPeriodoEscolaRegularAdmin(admin.ModelAdmin):
+    list_display = ('__str__', 'alterado_em')
+    search_fields = ('escola__nome', 'periodo_escolar__nome')
+    list_filter = ('alterado_em',)
+
+
+@admin.register(LogAlunosMatriculadosPeriodoEscolaRegular)
+class LogAlunosMatriculadosPeriodoEscolaRegularAdmin(admin.ModelAdmin):
+    list_display = ('__str__', 'criado_em')
+    search_fields = ('escola__nome', 'periodo_escolar__nome')
+    list_filter = (('criado_em', DateRangeFilter),)
 
 
 admin.site.register(Codae)

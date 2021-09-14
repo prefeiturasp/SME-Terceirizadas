@@ -117,7 +117,7 @@ class EOLService(object):
 
 class EOLServicoSGP:
     HEADER = {
-        "x-api-eol-key": f"{DJANGO_EOL_SGP_API_TOKEN}"
+        'x-api-eol-key': f'{DJANGO_EOL_SGP_API_TOKEN}'
     }
     TIMEOUT = 10
 
@@ -125,12 +125,12 @@ class EOLServicoSGP:
     def matricula_por_escola(cls, codigo_eol: str, data: str, tipo_turma: int = 1):
         response = requests.get(f'{DJANGO_EOL_SGP_API_URL}/matriculas/escolas/{codigo_eol}/quantidades/',
                                 headers=cls.HEADER, timeout=cls.TIMEOUT, params={'data': data, 'tipoTurma': tipo_turma})
-        resultado = response.json()
         if response.status_code == status.HTTP_200_OK:
+            resultado = response.json()
             return resultado
         else:
-            raise EOLException(f'API EOL do SGP está com erro. Status: {response.status_code}')
- 
+            raise EOLException(f'API EOL do SGP está com erro. Erro: {str(response)}, Status: {response.status_code}')
+
 
 def dt_nascimento_from_api(string_dt_nascimento):
     (ano, mes, dia) = string_dt_nascimento.split('T')[0].split('-')
