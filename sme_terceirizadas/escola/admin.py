@@ -4,14 +4,14 @@ from rangefilter.filters import DateRangeFilter
 
 from .models import (
     Aluno,
-    AlunosMatriculadosPeriodoEscolaRegular,
+    AlunosMatriculadosPeriodoEscola,
     Codae,
     DiretoriaRegional,
     Escola,
     EscolaPeriodoEscolar,
     FaixaIdadeEscolar,
     LogAlteracaoQuantidadeAlunosPorEscolaEPeriodoEscolar,
-    LogAlunosMatriculadosPeriodoEscolaRegular,
+    LogAlunosMatriculadosPeriodoEscola,
     LogRotinaDiariaAlunos,
     Lote,
     PeriodoEscolar,
@@ -122,16 +122,16 @@ class PlanilhaEscolaDeParaCodigoEolCodigoCoadeAdmin(admin.ModelAdmin):
     vincular_codigos_codae_da_planilha.short_description = 'Executar atualização dos códigos codae das escolas'
 
 
-@admin.register(AlunosMatriculadosPeriodoEscolaRegular)
-class AlunosMatriculadosPeriodoEscolaRegularAdmin(admin.ModelAdmin):
-    list_display = ('__str__', 'alterado_em')
+@admin.register(AlunosMatriculadosPeriodoEscola)
+class AlunosMatriculadosPeriodoEscolaAdmin(admin.ModelAdmin):
+    list_display = ('__str__', 'alterado_em', 'tipo_turma')
     search_fields = ('escola__nome', 'periodo_escolar__nome')
-    list_filter = ('alterado_em',)
+    list_filter = ('alterado_em', 'tipo_turma')
 
 
-@admin.register(LogAlunosMatriculadosPeriodoEscolaRegular)
-class LogAlunosMatriculadosPeriodoEscolaRegularAdmin(admin.ModelAdmin):
-    list_display = ('__str__', 'criado_em')
+@admin.register(LogAlunosMatriculadosPeriodoEscola)
+class LogAlunosMatriculadosPeriodoEscolaAdmin(admin.ModelAdmin):
+    list_display = ('__str__', 'criado_em', 'tipo_turma')
     search_fields = ('escola__nome', 'periodo_escolar__nome')
     list_filter = (('criado_em', DateRangeFilter),)
 

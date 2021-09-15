@@ -1,6 +1,5 @@
 import datetime
 import logging
-from datetime import date
 
 from celery import shared_task
 from django.core import management
@@ -12,8 +11,7 @@ from sme_terceirizadas.perfil.models.perfil import Vinculo
 from ..cardapio.models import AlteracaoCardapio, AlteracaoCardapioCEI, InversaoCardapio
 from ..dados_comuns.fluxo_status import PedidoAPartirDaDiretoriaRegionalWorkflow, PedidoAPartirDaEscolaWorkflow
 from ..dados_comuns.models import LogSolicitacoesUsuario
-from ..eol_servico.utils import EOLServicoSGP
-from ..escola.models import Escola
+from ..escola.models import TipoTurma
 from ..inclusao_alimentacao.models import (
     GrupoInclusaoAlimentacaoNormal,
     InclusaoAlimentacaoContinua,
@@ -21,7 +19,7 @@ from ..inclusao_alimentacao.models import (
 )
 from ..kit_lanche.models import SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheCEIAvulsa, SolicitacaoKitLancheUnificada
 from ..paineis_consolidados.models import SolicitacoesDRE
-from .utils import registra_quantidade_matriculados
+from .utils import registro_quantidade_alunos_matriculados_por_escola_periodo
 
 # https://docs.celeryproject.org/en/latest/userguide/tasks.html
 logger = logging.getLogger('sigpae.taskEscola')
@@ -174,19 +172,19 @@ def matriculados_por_escola_e_periodo_regulares():  # noqa C901
     a quantidade de alunos matriculados por período no dia e armazena essa informação.
     """
 
-    hoje = date.today()
-    escolas = Escola.objects.all()
-    total = len(escolas)
-    cont = 1
-    for escola in escolas:
-        logger.debug(f'Processando {cont} de {total}')
-        logger.debug(f"""Consultando matriculados da escola com Nome: {escola.nome}
-        e código eol: {escola.codigo_eol}, data: {hoje.strftime('%Y-%m-%d')}""")
-        try:
-            resposta = EOLServicoSGP.matricula_por_escola(codigo_eol=escola.codigo_eol, data=hoje.strftime('%Y-%m-%d'))
-            logger.debug(resposta)
+    registro_quantidade_alunos_matriculados_por_escola_periodo(TipoTurma.REGULAR)
 
-            registra_quantidade_matriculados(resposta['turnos'], escola, hoje)
-        except Exception as e:
-            logger.error(f'Dados não encontrados para escola {escola} : {str(e)}')
-        cont += 1
+
+@shared_task(
+    autoretry_for=(ConnectionError,),
+    retry_backoff=2,
+    retry_kwargs={'max_retries': 3}
+)
+def matriculados_por_escola_e_periodo_programas():  # noqa C901
+    """Medição Inicial.
+
+    Consulta todos os dias a API do eol do SGP, para cada escola e turmas programas,
+    a quantidade de alunos matriculados por período no dia e armazena essa informação.
+    """
+
+    registro_quantidade_alunos_matriculados_por_escola_periodo(TipoTurma.PROGRAMAS)

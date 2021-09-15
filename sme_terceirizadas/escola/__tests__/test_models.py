@@ -6,8 +6,10 @@ from freezegun import freeze_time
 from ...cardapio.models import Cardapio
 from ...dados_comuns.constants import DAQUI_A_SETE_DIAS, DAQUI_A_TRINTA_DIAS, SEM_FILTRO
 from ..models import (
+    AlunosMatriculadosPeriodoEscola,
     DiretoriaRegional,
     FaixaEtaria,
+    LogAlunosMatriculadosPeriodoEscola,
     PlanilhaEscolaDeParaCodigoEolCodigoCoade,
     TipoGestao,
     TipoUnidadeEscolar
@@ -161,3 +163,60 @@ def test_instance_model_planilha_de_para_codigo_eol_codigo_codae(planilha_de_par
 def test_meta_modelo_planilha_de_para_codigo_eol_codigo_codae(planilha_de_para_eol_codae):
     assert planilha_de_para_eol_codae._meta.verbose_name == 'Planilha De-Para: Código EOL x Código Codae'
     assert planilha_de_para_eol_codae._meta.verbose_name_plural == 'Planilhas De-Para: Código EOL x Código Codae'
+
+
+def test_modelo_alunos_matriculados_periodo_escola_regular(alunos_matriculados_periodo_escola_regular):
+    model = alunos_matriculados_periodo_escola_regular
+    assert isinstance(model, AlunosMatriculadosPeriodoEscola)
+    assert model.criado_em is not None
+    assert model.escola is not None
+    assert model.periodo_escolar is not None
+    assert model.quantidade_alunos == 50
+    assert model.tipo_turma == 'REGULAR'
+
+
+def test_modelo_alunos_matriculados_periodo_escola_programas(alunos_matriculados_periodo_escola_programas):
+    model = alunos_matriculados_periodo_escola_programas
+    assert isinstance(model, AlunosMatriculadosPeriodoEscola)
+    assert model.criado_em is not None
+    assert model.escola is not None
+    assert model.periodo_escolar is not None
+    assert model.quantidade_alunos == 50
+    assert model.tipo_turma == 'PROGRAMAS'
+
+
+def test_modelo_log_alunos_matriculados_periodo_escola_regular(log_alunos_matriculados_periodo_escola_regular):
+    model = log_alunos_matriculados_periodo_escola_regular
+    assert isinstance(model, LogAlunosMatriculadosPeriodoEscola)
+    assert model.criado_em is not None
+    assert model.escola is not None
+    assert model.periodo_escolar is not None
+    assert model.quantidade_alunos == 50
+    assert model.tipo_turma == 'REGULAR'
+
+
+def test_modelo_log_alunos_matriculados_periodo_escola_programas(log_alunos_matriculados_periodo_escola_programas):
+    model = log_alunos_matriculados_periodo_escola_programas
+    assert isinstance(model, LogAlunosMatriculadosPeriodoEscola)
+    assert model.criado_em is not None
+    assert model.escola is not None
+    assert model.periodo_escolar is not None
+    assert model.quantidade_alunos == 50
+    assert model.tipo_turma == 'PROGRAMAS'
+
+
+def test_criar_alunos_matriculados_periodo_escola_regular(escola, periodo_escolar):
+    assert AlunosMatriculadosPeriodoEscola.objects.count() == 0
+    AlunosMatriculadosPeriodoEscola.criar(
+        escola=escola, periodo_escolar=periodo_escolar, quantidade_alunos=32, tipo_turma='REGULAR')
+    assert AlunosMatriculadosPeriodoEscola.objects.count() == 1
+    assert AlunosMatriculadosPeriodoEscola.objects.first().tipo_turma == 'REGULAR'
+
+
+def test_criar_log_alunos_matriculados_periodo_escola_regular(escola, periodo_escolar):
+    hoje = datetime.date.today()
+    assert LogAlunosMatriculadosPeriodoEscola.objects.count() == 0
+    LogAlunosMatriculadosPeriodoEscola.criar(
+        escola=escola, periodo_escolar=periodo_escolar, quantidade_alunos=32, data=hoje, tipo_turma='REGULAR')
+    assert LogAlunosMatriculadosPeriodoEscola.objects.count() == 1
+    assert LogAlunosMatriculadosPeriodoEscola.objects.first().tipo_turma == 'REGULAR'
