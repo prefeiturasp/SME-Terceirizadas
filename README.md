@@ -130,6 +130,8 @@ https://www.figma.com/file/52MKvjiFFjoy7WLuvLLjAi/Spt_13-ALIMENTA%C3%87%C3%83O-T
 
 **Visão DRE:** https://www.figma.com/file/52MKvjiFFjoy7WLuvLLjAi/Spt_13-ALIMENTA%C3%87%C3%83O-Terceirizadas_sprint13-230719?node-id=0%3A43643
 
+**Mapeamento inicial de fluxos:** https://drive.google.com/drive/folders/1mGy5On44p_wHBldWoEKyLrBTG98mhZaC?usp=sharing
+
 # Links Úteis
 
 **Homologação:**
