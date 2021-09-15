@@ -1,7 +1,10 @@
 import logging
 import re
+from datetime import date
 
 from rest_framework.pagination import PageNumberPagination
+
+from sme_terceirizadas.eol_servico.utils import EOLServicoSGP
 
 logger = logging.getLogger('sigpae.taskEscola')
 
@@ -29,10 +32,10 @@ def remove_acentos(texto):
     return resultado
 
 
-def registra_quantidade_matriculados(turnos, escola, data):
+def registra_quantidade_matriculados(turnos, escola, data, tipo_turma):
     from sme_terceirizadas.escola.models import (
-        AlunosMatriculadosPeriodoEscolaRegular,
-        LogAlunosMatriculadosPeriodoEscolaRegular,
+        AlunosMatriculadosPeriodoEscola,
+        LogAlunosMatriculadosPeriodoEscola,
         PeriodoEscolar
     )
 
@@ -43,12 +46,39 @@ def registra_quantidade_matriculados(turnos, escola, data):
             logger.debug(f'Periodo {turno_resp["turno"]} não encontrado na tabela de Períodos')
             continue
 
-        AlunosMatriculadosPeriodoEscolaRegular.criar(
-            escola=escola, periodo_escolar=periodo, quantidade_alunos=turno_resp['quantidade'])
+        AlunosMatriculadosPeriodoEscola.criar(
+            escola=escola, periodo_escolar=periodo,
+            quantidade_alunos=turno_resp['quantidade'],
+            tipo_turma=tipo_turma)
 
-        LogAlunosMatriculadosPeriodoEscolaRegular.criar(
-            escola=escola, periodo_escolar=periodo, quantidade_alunos=turno_resp['quantidade'],
-            data=data)
+        LogAlunosMatriculadosPeriodoEscola.criar(
+            escola=escola, periodo_escolar=periodo,
+            quantidade_alunos=turno_resp['quantidade'],
+            data=data, tipo_turma=tipo_turma)
+
+
+def registro_quantidade_alunos_matriculados_por_escola_periodo(tipo_turma):
+    from sme_terceirizadas.escola.models import Escola
+
+    hoje = date.today()
+    escolas = Escola.objects.all()
+    total = len(escolas)
+    cont = 1
+    for escola in escolas:
+        logger.debug(f'Processando {cont} de {total}')
+        logger.debug(f"""Consultando matriculados da escola com Nome: {escola.nome}
+        e código eol: {escola.codigo_eol}, data: {hoje.strftime('%Y-%m-%d')} para o tipo turma {tipo_turma.name}""")
+        try:
+            resposta = EOLServicoSGP.matricula_por_escola(
+                codigo_eol=escola.codigo_eol,
+                data=hoje.strftime('%Y-%m-%d'),
+                tipo_turma=tipo_turma.value)
+            logger.debug(resposta)
+
+            registra_quantidade_matriculados(resposta['turnos'], escola, hoje, tipo_turma.name)
+        except Exception as e:
+            logger.error(f'Dados não encontrados para escola {escola} : {str(e)}')
+        cont += 1
 
 
 class EscolaSimplissimaPagination(PageNumberPagination):

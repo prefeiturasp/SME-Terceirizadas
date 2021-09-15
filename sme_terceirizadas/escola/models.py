@@ -1,6 +1,7 @@
 import logging
 from collections import Counter
 from datetime import date
+from enum import Enum
 
 from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 from django.core.validators import MinLengthValidator
@@ -880,8 +881,17 @@ class PlanilhaEscolaDeParaCodigoEolCodigoCoade(CriadoEm, TemAlteradoEm):
         return str(self.planilha)
 
 
-class AlunosMatriculadosPeriodoEscolaRegular(CriadoEm, TemAlteradoEm, TemChaveExterna):
-    """Serve para guardar a quantidade de alunos matriculados da escola em um dado periodo escolar regular.
+class TipoTurma(Enum):
+    REGULAR = 1
+    PROGRAMAS = 3
+
+    @classmethod
+    def choices(cls):
+        return tuple((t.name, t.value) for t in cls)
+
+
+class AlunosMatriculadosPeriodoEscola(CriadoEm, TemAlteradoEm, TemChaveExterna):
+    """Serve para guardar a quantidade de alunos matriculados da escola em um dado periodo escolar.
 
     Ex: EMEI BLABLA pela manhã tem 20 alunos
     """
@@ -895,12 +905,21 @@ class AlunosMatriculadosPeriodoEscolaRegular(CriadoEm, TemAlteradoEm, TemChaveEx
     quantidade_alunos = models.PositiveSmallIntegerField(
         'Quantidade de alunos', default=0)
 
+    tipo_turma = models.CharField(
+        max_length=255,
+        choices=TipoTurma.choices(),
+        blank=True,
+        default=TipoTurma.REGULAR.name)
+
     @classmethod
-    def criar(cls, escola, periodo_escolar, quantidade_alunos):
-        alunos_matriculados = cls.objects.filter(escola=escola, periodo_escolar=periodo_escolar).first()
+    def criar(cls, escola, periodo_escolar, quantidade_alunos, tipo_turma):
+        alunos_matriculados = cls.objects.filter(
+            escola=escola, periodo_escolar=periodo_escolar,
+            tipo_turma=tipo_turma).first()
         if not alunos_matriculados:
             alunos_matriculados = cls.objects.create(
-                escola=escola, periodo_escolar=periodo_escolar, quantidade_alunos=quantidade_alunos)
+                escola=escola, periodo_escolar=periodo_escolar,
+                quantidade_alunos=quantidade_alunos, tipo_turma=tipo_turma)
         else:
             alunos_matriculados.quantidade_alunos = quantidade_alunos
             alunos_matriculados.save()
@@ -908,14 +927,15 @@ class AlunosMatriculadosPeriodoEscolaRegular(CriadoEm, TemAlteradoEm, TemChaveEx
     def __str__(self):
         periodo_nome = self.periodo_escolar.nome
 
-        return f'Escola {self.escola.nome} no periodo da {periodo_nome} tem {self.quantidade_alunos} alunos'
+        return f"""Escola {self.escola.nome} do tipo {self.tipo_turma} no periodo da {periodo_nome}
+        tem {self.quantidade_alunos} alunos"""
 
     class Meta:
         verbose_name = 'Alunos Matriculados por Período e Escola'
         verbose_name_plural = 'Alunos Matriculados por Períodos e Escolas'
 
 
-class LogAlunosMatriculadosPeriodoEscolaRegular(TemChaveExterna, CriadoEm, TemObservacao):
+class LogAlunosMatriculadosPeriodoEscola(TemChaveExterna, CriadoEm, TemObservacao):
     """Histórico da quantidade de Alunos por período."""
 
     escola = models.ForeignKey(Escola,
@@ -927,23 +947,31 @@ class LogAlunosMatriculadosPeriodoEscolaRegular(TemChaveExterna, CriadoEm, TemOb
     quantidade_alunos = models.PositiveSmallIntegerField(
         'Quantidade de alunos', default=0)
 
+    tipo_turma = models.CharField(
+        max_length=255,
+        choices=TipoTurma.choices(),
+        blank=True,
+        default=TipoTurma.REGULAR.name)
+
     @classmethod
-    def criar(cls, escola, periodo_escolar, quantidade_alunos, data):
+    def criar(cls, escola, periodo_escolar, quantidade_alunos, data, tipo_turma):
         log_alunos = cls.objects.filter(
-            escola=escola, periodo_escolar=periodo_escolar, criado_em__year=data.year,
-            criado_em__month=data.month, criado_em__day=data.day)
+            escola=escola, periodo_escolar=periodo_escolar,
+            criado_em__year=data.year, criado_em__month=data.month,
+            criado_em__day=data.day, tipo_turma=tipo_turma)
         if not log_alunos:
             cls.objects.create(
                 escola=escola, periodo_escolar=periodo_escolar,
-                quantidade_alunos=quantidade_alunos)
+                quantidade_alunos=quantidade_alunos,
+                tipo_turma=tipo_turma)
 
     def __str__(self):
         periodo_nome = self.periodo_escolar.nome
 
-        return f"""Escola {self.escola.nome} no periodo da {periodo_nome}
+        return f"""Escola {self.escola.nome} do tipo {self.tipo_turma} no periodo da {periodo_nome}
         tem {self.quantidade_alunos} alunos no dia {self.criado_em}"""
 
     class Meta:
-        verbose_name = 'Log Alteração quantidade de alunos regular'
-        verbose_name_plural = 'Logs de Alteração quantidade de alunos regulares'
+        verbose_name = 'Log Alteração quantidade de alunos regular e programa'
+        verbose_name_plural = 'Logs de Alteração quantidade de alunos regulares e de programas'
         ordering = ('criado_em',)
