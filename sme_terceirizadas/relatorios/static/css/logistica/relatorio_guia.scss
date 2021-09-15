@@ -129,15 +129,17 @@ table{
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
-  
-  .cell-imagem{
-
+  justify-content: space-between;
+  padding: 8px;
+  margin-bottom: 4px;
+  .legenda-imagem{
+    text-align: center;
   }
 }
 
 .imagem-ocorrencia{
   max-width: 8cm;
-  max-height: 8cm;
+  //max-height: 8cm;
   padding: 3px;
 }
 

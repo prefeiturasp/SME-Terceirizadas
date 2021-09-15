@@ -40,6 +40,40 @@
         {% endfor %}
         </tbody>
 			</table>
+
+      <h4 class="title main-title">Imagens</h4>
+      {% comment %} <div class="imagem-container">
+        {% for alimento in page.alimentos %}
+          {% if alimento.embalagens_conferidas.0.arquivo %}
+            {% if alimento.embalagens_conferidas.0.arquivo %}
+              <div class="cell-imagem">
+                <img class="imagem-ocorrencia" src="{{ URL }}{{ alimento.embalagens_conferidas.0.arquivo.url }}" alt="">
+                <div class="legenda-imagem">{{alimento.nome_alimento}}</div>
+              </div>
+            {% endif %}
+          {% endif %}
+  
+        {% endfor %}
+      </div> {% endcomment %}
+
+      <table>
+          {% for alimento in page.alimentos %}
+            {% if alimento.embalagens_conferidas.0.arquivo %}
+              {% if alimento.embalagens_conferidas.0.arquivo %}
+              <tr>
+                <td>
+                  <div>
+                    <img class="imagem-ocorrencia" src="{{ URL }}{{ alimento.embalagens_conferidas.0.arquivo.url }}" alt="">
+                    <div class="legenda-imagem">{{alimento.nome_alimento}}</div>
+                  </div>
+                </td>
+              </tr>
+              {% endif %}
+            {% endif %}
+    
+          {% endfor %}
+        </table>
+
       <div class="row green-text">
         <div class="col">
           <div class="titulo"> Nome do responsável pelo recebimento (Unidade Educacional)  </div>
@@ -56,19 +90,7 @@
           <div class="campo"> {{ page.conferencia.placa_veiculo }} </div>
         </div>
       </div>
-      <h4 class="title main-title">Imagens</h4>
-      <div class="imagem-container">
-        {% for alimento in page.alimentos %}
-          {% if alimento.embalagens_conferidas.0.arquivo %}
-            {% if alimento.embalagens_conferidas.0.arquivo %}
-              <div class="cell-imagem">
-                <img class="imagem-ocorrencia" src="{{ URL }}{{ alimento.embalagens_conferidas.0.arquivo.url }}" alt="">
-              </div>
-            {% endif %}
-          {% endif %}
-  
-        {% endfor %}
-      </div>
+
     </div>
 	</div>
 </body>
