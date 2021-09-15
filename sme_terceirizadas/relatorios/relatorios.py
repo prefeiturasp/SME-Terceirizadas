@@ -144,8 +144,6 @@ def relatorio_dieta_especial_conteudo(solicitacao):
 def relatorio_guia_de_remessa(guias): # noqa C901
     SERVER_NAME = env.str('SERVER_NAME', default=None)
     pages = []
-    inicio = 0
-    num_alimentos_pagina = 4
     insucesso = None
     conferencia = None
     for guia in guias:
@@ -159,9 +157,7 @@ def relatorio_guia_de_remessa(guias): # noqa C901
             insucesso = guia.insucessos.last()
         elif guia.status == GuiaStatus.RECEBIDA:
             conferencia = guia.conferencias.last()
-            num_alimentos_pagina = 3
         elif guia.status in (GuiaStatus.RECEBIMENTO_PARCIAL, GuiaStatus.NAO_RECEBIDA):
-            num_alimentos_pagina = 1000
             conferencia = guia.conferencias.last()
             conferencias_individuais = conferencia.conferencia_dos_alimentos.all()
             for alimento_guia in todos_alimentos:
@@ -177,22 +173,17 @@ def relatorio_guia_de_remessa(guias): # noqa C901
                                 conferencias_alimento.append(embalagem)
                         alimento_guia.embalagens_conferidas = conferencias_alimento
 
-        while True:
-            alimentos = todos_alimentos[inicio:inicio + num_alimentos_pagina]
-            if alimentos:
-                page = guia.as_dict()
-                peso_total_pagina = round(sum(alimento.peso_total for alimento in alimentos), 2)
-                page['alimentos'] = alimentos
-                page['peso_total'] = peso_total_pagina
-                page['status_guia'] = retorna_status_guia_remessa(page['status'])
-                page['insucesso'] = insucesso
-                page['conferencia'] = conferencia
+        if todos_alimentos:
+            page = guia.as_dict()
+            peso_total_pagina = round(sum(alimento.peso_total for alimento in todos_alimentos), 2)
+            page['alimentos'] = todos_alimentos
+            page['peso_total'] = peso_total_pagina
+            page['status_guia'] = retorna_status_guia_remessa(page['status'])
+            page['insucesso'] = insucesso
+            page['conferencia'] = conferencia
 
-                pages.append(page)
-                inicio = inicio + num_alimentos_pagina
-            else:
-                break
-        inicio = 0
+            pages.append(page)
+
     html_string = render_to_string('logistica/guia_remessa/relatorio_guia.html', {'pages': pages, 'URL': SERVER_NAME})
     data_arquivo = datetime.datetime.today().strftime('%d/%m/%Y às %H:%M')
 
