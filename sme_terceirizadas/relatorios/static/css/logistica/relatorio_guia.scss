@@ -1,14 +1,8 @@
 @import "../variaveis";
 
 @page {
-  //size: A4;
-  //margin-bottom: 2em;
   padding-top: 5.8cm;
   @top-center {
-    //margin-top: 8cm;
-    //padding-top: 8cm;
-    //margin: 6cm 0 0 0;
-    //padding: 5cm 0 0 0;
     content: element(cabecalho);
     width: 100%;
   }
@@ -28,7 +22,6 @@
 header {
  position: running(cabecalho);
  margin-top: 5.6cm;
- //padding-top: 6cm;
 }
 
 .table {
@@ -41,12 +34,12 @@ header {
 }
 
 .page-content {
-  margin: 0 1em;
+  margin: 0 0.5em;
 }
 
 .page-container {
-  padding-right: 2em;
-  padding-left: 2em;
+  padding-right: 1em;
+  padding-left: 1em;
   font-size: 14px;
   font-style: normal;
   line-height: 16px;
@@ -109,6 +102,8 @@ hr {
   font-weight: normal;
   line-height: 14px;
   text-align: justify;
+  display: block;
+  padding-top: 12px;
 }
 
 table{
@@ -121,32 +116,20 @@ table{
   }
 }
 
-.footer-ocorrencia td {
-  padding: 0.3rem 0.6rem;
-}
-
-.imagem-container{
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  padding: 8px;
-  margin-bottom: 4px;
-  .legenda-imagem{
-    text-align: center;
-  }
+.imagem{
+  text-align: center;
 }
 
 .imagem-ocorrencia{
-  max-width: 8cm;
-  //max-height: 8cm;
+  max-width: 9cm;
+  max-height: 9cm;
   padding: 3px;
 }
 
-.fixed-bottom-absolute {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  z-index: 1030;
+.tabela-imagem{
+  width: 100%;
+
+  td{
+    padding-bottom: 30px;
+  }
 }
