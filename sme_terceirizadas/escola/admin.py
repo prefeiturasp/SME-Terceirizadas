@@ -133,7 +133,7 @@ class AlunosMatriculadosPeriodoEscolaAdmin(admin.ModelAdmin):
 class LogAlunosMatriculadosPeriodoEscolaAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'criado_em', 'tipo_turma')
     search_fields = ('escola__nome', 'periodo_escolar__nome')
-    list_filter = (('criado_em', DateRangeFilter),)
+    list_filter = (('criado_em', DateRangeFilter), 'tipo_turma')
 
 
 admin.site.register(Codae)
