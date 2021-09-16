@@ -173,7 +173,7 @@ def relatorio_guia_de_remessa(guias): # noqa C901
                                 embalagem.arquivo = alimento_conferencia.arquivo
                                 if alimento_conferencia.arquivo:
                                     imagem = {
-                                        'nome_alimento': alimento_guia.nome,
+                                        'nome_alimento': alimento_guia.nome_alimento,
                                         'arquivo': alimento_conferencia.arquivo
                                     }
                                     lista_imagens.append(imagem)
