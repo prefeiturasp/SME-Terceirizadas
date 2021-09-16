@@ -144,6 +144,7 @@ def relatorio_dieta_especial_conteudo(solicitacao):
 def relatorio_guia_de_remessa(guias): # noqa C901
     SERVER_NAME = env.str('SERVER_NAME', default=None)
     pages = []
+    lista_imagens = []
     insucesso = None
     conferencia = None
     for guia in guias:
@@ -170,6 +171,12 @@ def relatorio_guia_de_remessa(guias): # noqa C901
                                 embalagem.ocorrencia = alimento_conferencia.ocorrencia
                                 embalagem.observacao = alimento_conferencia.observacao
                                 embalagem.arquivo = alimento_conferencia.arquivo
+                                if alimento_conferencia.arquivo:
+                                    imagem = {
+                                        'nome_alimento': alimento_guia.nome,
+                                        'arquivo': alimento_conferencia.arquivo
+                                    }
+                                    lista_imagens.append(imagem)
                                 conferencias_alimento.append(embalagem)
                         alimento_guia.embalagens_conferidas = conferencias_alimento
 
@@ -181,6 +188,7 @@ def relatorio_guia_de_remessa(guias): # noqa C901
             page['status_guia'] = retorna_status_guia_remessa(page['status'])
             page['insucesso'] = insucesso
             page['conferencia'] = conferencia
+            page['lista_imagens'] = lista_imagens
 
             pages.append(page)
 
