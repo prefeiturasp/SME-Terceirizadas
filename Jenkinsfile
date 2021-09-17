@@ -54,6 +54,7 @@ pipeline {
           when { branch 'homolog' }
           steps {
              sh 'pip install --user pipenv'
+	     sh 'pip install --user psycopg2'
              sh 'pipenv install --dev'
              sh 'pipenv run pytest'
              sh 'pipenv run flake8'
