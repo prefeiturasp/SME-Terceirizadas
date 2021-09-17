@@ -2,7 +2,7 @@
 <html>
 
 <head>
-	<link rel="stylesheet" href="{% sass_src 'css/cabecalho.scss' %}" type="text/css">
+	<link rel="stylesheet" href="{% sass_src 'css/logistica/cabecalho.scss' %}" type="text/css">
 	<link rel="stylesheet" href="{% sass_src 'css/custom_bootstrap.scss' %}" type="text/css">
   <link rel="stylesheet" href="{% sass_src 'css/logistica/relatorio_guia.scss' %}" type="text/css">
   <link rel="stylesheet" href="{% sass_src 'css/logistica/barra_status.scss' %}" type="text/css">
@@ -13,26 +13,33 @@
     <div style="page-break-before: always;"></div>
     {% include "logistica/guia_remessa/cabecalho.html" %}
     <div class="page-content">
-      {% include "logistica/guia_remessa/barra_status.html" %}
-      {% include "logistica/guia_remessa/tabela_alimentos.html" %}
-
+      
       {% if page.status_guia == "Pendente de conferência" %}
+        {% include "logistica/guia_remessa/barra_status.html" %}
+        {% include "logistica/guia_remessa/tabela_alimentos.html" %}
         {% include "logistica/guia_remessa/rodape_pendente_conferencia.html" %}
+        {% include "logistica/guia_remessa/rodape.html" %}
 
       {% elif page.status_guia == "Recebida" %}
-        {% include "logistica/guia_remessa/tabela_recebida.html" %}
         {% include "logistica/guia_remessa/rodape_recebida.html" %}
+        {% include "logistica/guia_remessa/barra_status.html" %}
+        {% include "logistica/guia_remessa/tabela_alimentos.html" %}
+        {% include "logistica/guia_remessa/tabela_recebida.html" %}
 
       {% elif page.status_guia == "Recebimento parcial" or page.status_guia == "Não recebida" %}
-        {% include "logistica/guia_remessa/tabela_parcial_nao_recebida.html" %}
         {% include "logistica/guia_remessa/rodape_recebida.html" %}
+        {% include "logistica/guia_remessa/barra_status.html" %}
+        {% include "logistica/guia_remessa/tabela_alimentos.html" %}
+        {% include "logistica/guia_remessa/tabela_parcial_nao_recebida.html" %}
+
 
       {% elif page.status_guia == "Insucesso de entrega" %}
+        {% include "logistica/guia_remessa/rodape_recebida.html" %}
+        {% include "logistica/guia_remessa/barra_status.html" %}
+        {% include "logistica/guia_remessa/tabela_alimentos.html" %}
         {% include "logistica/guia_remessa/guia_insucesso.html" %}
-
       {% endif %}
 
-      {% include "logistica/guia_remessa/rodape.html" %}
     </div>
 	{% endfor %}
 </body>
