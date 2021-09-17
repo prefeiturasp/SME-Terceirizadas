@@ -1,5 +1,29 @@
 @import "../variaveis";
 
+@page {
+  padding-top: 5.8cm;
+  @top-center {
+    content: element(cabecalho);
+    width: 100%;
+  }
+ }
+
+@page :nth(n+2) {
+  margin-top: 5.6cm;
+  padding-top: 1cm;
+}
+
+@page :nth(1) {
+  //WTF bug...
+  margin-top: 0;
+  padding-top: 5.8cm;
+}
+
+header {
+ position: running(cabecalho);
+ margin-top: 5.6cm;
+}
+
 .table {
   border: 1px solid $cinza-quase-claro;
   background: $branco;
@@ -10,12 +34,12 @@
 }
 
 .page-content {
-  margin: 0 1em;
+  margin: 0 0.5em;
 }
 
 .page-container {
-  padding-right: 2em;
-  padding-left: 2em;
+  padding-right: 1em;
+  padding-left: 1em;
   font-size: 14px;
   font-style: normal;
   line-height: 16px;
@@ -78,6 +102,8 @@ hr {
   font-weight: normal;
   line-height: 14px;
   text-align: justify;
+  display: block;
+  padding-top: 12px;
 }
 
 table{
@@ -90,37 +116,20 @@ table{
   }
 }
 
-.footer-ocorrencia td {
-  padding: 0.3rem 0.6rem;
-}
-
-.cell-imagem-e-nome{
-  display: flex;
-  flex-direction: row;
-
-  .cell-nome{
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    margin-left: 6px;
-    text-align: left;
-  }
-
-  .cell-imagem{
-
-  }
+.imagem{
+  text-align: center;
 }
 
 .imagem-ocorrencia{
-  max-width: 60px;
-  max-height: 60px;
+  max-width: 9cm;
+  max-height: 9cm;
   padding: 3px;
 }
 
-.fixed-bottom-absolute {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  z-index: 1030;
+.tabela-imagem{
+  width: 100%;
+
+  td{
+    padding-bottom: 30px;
+  }
 }
