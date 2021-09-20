@@ -20,6 +20,7 @@ from ..dados_comuns.behaviors import (
     TemAlteradoEm,
     TemChaveExterna,
     TemCodigoEOL,
+    TemData,
     TemObservacao,
     TemVinculos
 )
@@ -975,3 +976,22 @@ class LogAlunosMatriculadosPeriodoEscola(TemChaveExterna, CriadoEm, TemObservaca
         verbose_name = 'Log Alteração quantidade de alunos regular e programa'
         verbose_name_plural = 'Logs de Alteração quantidade de alunos regulares e de programas'
         ordering = ('criado_em',)
+
+
+class DiaCalendario(CriadoEm, TemAlteradoEm, TemData, TemChaveExterna):
+
+    escola = models.ForeignKey(Escola,
+                               related_name='calendario',
+                               on_delete=models.DO_NOTHING,
+                               null=True)
+
+    dia_letivo = models.BooleanField('É dia Letivo?', default=True)
+
+    def __str__(self) -> str:
+        return f"""Dia {self.data.strftime("%d/%m/%Y")}
+        {"é dia letivo" if self.dia_letivo else "não é dia letivo"} para escola {self.escola}"""
+
+    class Meta:
+        verbose_name = 'Dia'
+        verbose_name_plural = 'Dias'
+        ordering = ('data',)
