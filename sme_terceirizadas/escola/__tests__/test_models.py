@@ -7,6 +7,7 @@ from ...cardapio.models import Cardapio
 from ...dados_comuns.constants import DAQUI_A_SETE_DIAS, DAQUI_A_TRINTA_DIAS, SEM_FILTRO
 from ..models import (
     AlunosMatriculadosPeriodoEscola,
+    DiaCalendario,
     DiretoriaRegional,
     FaixaEtaria,
     LogAlunosMatriculadosPeriodoEscola,
@@ -220,3 +221,21 @@ def test_criar_log_alunos_matriculados_periodo_escola_regular(escola, periodo_es
         escola=escola, periodo_escolar=periodo_escolar, quantidade_alunos=32, data=hoje, tipo_turma='REGULAR')
     assert LogAlunosMatriculadosPeriodoEscola.objects.count() == 1
     assert LogAlunosMatriculadosPeriodoEscola.objects.first().tipo_turma == 'REGULAR'
+
+
+def test_dia_calendario_e_dia_letivo(dia_calendario_letivo):
+    model = dia_calendario_letivo
+    assert isinstance(model, DiaCalendario)
+    assert model.criado_em is not None
+    assert model.data is not None
+    assert model.escola is not None
+    assert model.dia_letivo
+
+
+def test_dia_calendario_nao_e_dia_letivo(dia_calendario_nao_letivo):
+    model = dia_calendario_nao_letivo
+    assert isinstance(model, DiaCalendario)
+    assert model.criado_em is not None
+    assert model.data is not None
+    assert model.escola is not None
+    assert not model.dia_letivo

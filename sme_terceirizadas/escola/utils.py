@@ -1,6 +1,6 @@
 import logging
 import re
-from datetime import date
+from datetime import date, datetime
 
 from rest_framework.pagination import PageNumberPagination
 
@@ -79,6 +79,61 @@ def registro_quantidade_alunos_matriculados_por_escola_periodo(tipo_turma):
         except Exception as e:
             logger.error(f'Dados não encontrados para escola {escola} : {str(e)}')
         cont += 1
+
+
+def processa_dias_letivos(lista_dias_letivos, escola):
+    from sme_terceirizadas.escola.models import DiaCalendario
+
+    for dia_dict in lista_dias_letivos:
+        data = datetime.strptime(dia_dict['data'], '%Y-%m-%dT00:00:00')
+        dia_calendario: DiaCalendario = DiaCalendario.objects.filter(escola=escola, data__year=data.year,
+                                                                     data__month=data.month, data__day=data.day).first()
+        if not dia_calendario:
+            dia_calendario = DiaCalendario.objects.create(
+                escola=escola,
+                data=data,
+                dia_letivo=dia_dict['ehLetivo']
+            )
+        else:
+            dia_calendario.dia_letivo = dia_dict['ehLetivo']
+            dia_calendario.save()
+
+
+def calendario_sgp():
+    from calendar import monthrange
+
+    from sme_terceirizadas.escola.models import Escola
+    from sme_terceirizadas.escola.services import NovoSGPServico
+
+    hoje = date.today()
+    escolas = Escola.objects.all()
+    total = len(escolas)
+    for cont, escola in enumerate(escolas, 1):
+        logger.debug(f'Processando {cont} de {total}')
+        logger.debug(f"""Consultando dias letivos da escola com Nome: {escola.nome}
+        e código eol: {escola.codigo_eol}, data: {hoje.strftime('%Y-%m-%d')}""")
+        try:
+            ultimo_dia_do_mes_atual = monthrange(year=hoje.year, month=hoje.month)[1]
+            data_inicio = hoje.strftime('%Y-%m-%d')
+            data_fim = datetime(year=hoje.year, month=hoje.month, day=ultimo_dia_do_mes_atual).strftime('%Y-%m-%d')
+
+            resposta = NovoSGPServico.dias_letivos(
+                codigo_eol=escola.codigo_eol,
+                data_inicio=data_inicio,
+                data_fim=data_fim)
+            logger.debug(resposta)
+
+            processa_dias_letivos(resposta, escola)
+        except Exception as e:
+            logger.error(f'Dados não encontrados para escola {escola} : {str(e)}')
+            logger.debug('Tentando buscar dias letivos no novo sgp para turno da noite')
+            resposta = NovoSGPServico.dias_letivos(
+                codigo_eol=escola.codigo_eol,
+                data_inicio=data_inicio,
+                data_fim=data_fim,
+                tipo_turno=3)
+
+            processa_dias_letivos(resposta, escola)
 
 
 class EscolaSimplissimaPagination(PageNumberPagination):

@@ -216,3 +216,19 @@ def log_alunos_matriculados_periodo_escola_programas(escola, periodo_escolar):
                       periodo_escolar=periodo_escolar,
                       quantidade_alunos=50,
                       tipo_turma=models.TipoTurma.PROGRAMAS.name)
+
+
+@pytest.fixture
+def dia_calendario_letivo(escola):
+    return mommy.make(models.DiaCalendario,
+                      escola=escola,
+                      data=datetime.datetime(2021, 9, 24),
+                      dia_letivo=True)
+
+
+@pytest.fixture
+def dia_calendario_nao_letivo(escola):
+    return mommy.make(models.DiaCalendario,
+                      escola=escola,
+                      data=datetime.datetime(2021, 9, 25),
+                      dia_letivo=False)
