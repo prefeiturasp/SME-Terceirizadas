@@ -6,6 +6,7 @@ from .models import (
     Aluno,
     AlunosMatriculadosPeriodoEscola,
     Codae,
+    DiaCalendario,
     DiretoriaRegional,
     Escola,
     EscolaPeriodoEscolar,
@@ -134,6 +135,13 @@ class LogAlunosMatriculadosPeriodoEscolaAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'criado_em', 'tipo_turma')
     search_fields = ('escola__nome', 'periodo_escolar__nome')
     list_filter = (('criado_em', DateRangeFilter), 'tipo_turma')
+
+
+@admin.register(DiaCalendario)
+class DiaCalendarioAdmin(admin.ModelAdmin):
+    list_display = ('__str__', 'data', 'dia_letivo')
+    search_fields = ('escola__nome',)
+    list_filter = (('data', DateRangeFilter),)
 
 
 admin.site.register(Codae)

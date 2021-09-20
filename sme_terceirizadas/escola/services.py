@@ -12,8 +12,7 @@ class NovoSGPServico:
 
     @classmethod
     def dias_letivos(cls, codigo_eol: str, data_inicio: str, data_fim: str, tipo_turno: int = 1):
-        """Consulta a quantidade de matriculados na API do sgp."""
-
+        """Consulta os dias letivos para ums escola na API do novo sgp."""
         response = requests.get(f'{DJANGO_NOVO_SGP_API_URL}/v1/calendario/integracoes/ues/dias-letivos/',
                                 headers=cls.HEADER, timeout=cls.TIMEOUT,
                                 params={'UeCodigo': codigo_eol, 'TipoTurno': tipo_turno,
@@ -23,4 +22,4 @@ class NovoSGPServico:
             resultado = response.json()
             return resultado
         else:
-            raise Exception(f'API EOL do SGP está com erro. Erro: {str(response)}, Status: {response.status_code}')
+            raise Exception(f'Erro: {str(response)}, Status: {response.status_code}')
