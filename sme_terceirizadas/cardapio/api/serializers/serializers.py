@@ -10,7 +10,7 @@ from ....escola.api.serializers import (
     TipoUnidadeEscolarSerializer,
     TipoUnidadeEscolarSerializerSimples
 )
-from ....terceirizada.api.serializers.serializers import EditalSerializer
+from ....terceirizada.api.serializers.serializers import EditalSerializer, TerceirizadaSimplesSerializer
 from ...models import (
     AlteracaoCardapio,
     AlteracaoCardapioCEI,
@@ -149,6 +149,7 @@ class InversaoCardapioSerializer(serializers.ModelSerializer):
     data_de = serializers.DateField()
     data_para = serializers.DateField()
     logs = LogSolicitacoesUsuarioSerializer(many=True)
+    rastro_terceirizada = TerceirizadaSimplesSerializer()
 
     class Meta:
         model = InversaoCardapio
@@ -215,6 +216,7 @@ class GrupoSuspensaoAlimentacaoSerializer(serializers.ModelSerializer):
     suspensoes_alimentacao = SuspensaoAlimentacaoSerializer(many=True)
     id_externo = serializers.CharField()
     logs = LogSolicitacoesUsuarioSerializer(many=True)
+    rastro_terceirizada = TerceirizadaSimplesSerializer()
 
     class Meta:
         model = GrupoSuspensaoAlimentacao
@@ -301,6 +303,7 @@ class AlteracaoCardapioSerializerBase(serializers.ModelSerializer):
 
 class AlteracaoCardapioSerializer(AlteracaoCardapioSerializerBase):
     substituicoes = SubstituicoesAlimentacaoNoPeriodoEscolarSerializer(many=True)
+    rastro_terceirizada = TerceirizadaSimplesSerializer()
 
     class Meta:
         model = AlteracaoCardapio

@@ -7,7 +7,7 @@ from ....escola.api.serializers import (
     EscolaSimplesSerializer,
     FaixaEtariaSerializer
 )
-from ....terceirizada.api.serializers.serializers import EditalSerializer
+from ....terceirizada.api.serializers.serializers import EditalSerializer, TerceirizadaSimplesSerializer
 from ...models import (
     EscolaQuantidade,
     FaixaEtariaSolicitacaoKitLancheCEIAvulsa,
@@ -70,6 +70,7 @@ class SolicitacaoKitLancheAvulsaSerializer(serializers.ModelSerializer):
     logs = LogSolicitacoesUsuarioSerializer(many=True)
     quantidade_alimentacoes = serializers.IntegerField()
     data = serializers.DateField()
+    rastro_terceirizada = TerceirizadaSimplesSerializer()
 
     class Meta:
         model = SolicitacaoKitLancheAvulsa
@@ -113,6 +114,7 @@ class SolicitacaoKitLancheUnificadaSerializer(serializers.ModelSerializer):
     prioridade = serializers.CharField()
     data = serializers.DateField()
     quantidade_alimentacoes = serializers.IntegerField()
+    rastro_terceirizada = TerceirizadaSimplesSerializer()
 
     class Meta:
         model = SolicitacaoKitLancheUnificada
