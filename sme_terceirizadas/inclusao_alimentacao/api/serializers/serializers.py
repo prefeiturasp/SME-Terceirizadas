@@ -21,6 +21,7 @@ from ....inclusao_alimentacao.models import (
     QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEI,
     QuantidadePorPeriodo
 )
+from ....terceirizada.api.serializers.serializers import TerceirizadaSimplesSerializer
 
 
 class MotivoInclusaoContinuaSerializer(serializers.ModelSerializer):
@@ -103,6 +104,7 @@ class InclusaoAlimentacaoContinuaSerializer(serializers.ModelSerializer):
         read_only=True
     )
     id_externo = serializers.CharField()
+    rastro_terceirizada = TerceirizadaSimplesSerializer()
 
     class Meta:
         model = InclusaoAlimentacaoContinua
@@ -135,6 +137,7 @@ class GrupoInclusaoAlimentacaoNormalSerializer(serializers.ModelSerializer):
     prioridade = serializers.CharField()
     inclusoes = InclusaoAlimentacaoNormalSerializer(many=True)
     escola = EscolaSimplesSerializer()
+    rastro_terceirizada = TerceirizadaSimplesSerializer()
     quantidades_periodo = QuantidadePorPeriodoSerializer(many=True)
     logs = LogSolicitacoesUsuarioSerializer(many=True)
     id_externo = serializers.CharField()
