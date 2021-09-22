@@ -50,7 +50,6 @@ def html_to_pdf_response(html_string, pdf_filename):
 
 
 def html_to_pdf_multiple_response(lista_strings, pdf_filename):
-    lista_pdfs = []
     arquivo_final = io.BytesIO()
     arquivo = Pdf.new()
     for html_string in lista_strings:
