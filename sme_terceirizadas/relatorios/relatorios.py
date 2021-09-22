@@ -143,7 +143,7 @@ def relatorio_dieta_especial_conteudo(solicitacao):
 
 def relatorio_guia_de_remessa(guias): # noqa C901
     SERVER_NAME = env.str('SERVER_NAME', default=None)
-    pages = []
+    page = None
     lista_pdfs = []
     insucesso = None
     conferencia = None
@@ -190,8 +190,6 @@ def relatorio_guia_de_remessa(guias): # noqa C901
             page['insucesso'] = insucesso
             page['conferencia'] = conferencia
             page['lista_imagens'] = lista_imagens
-
-            pages.append(page)
 
         html_string = render_to_string('logistica/guia_remessa/relatorio_guia.html',
                                        {'pages': [page], 'URL': SERVER_NAME})
