@@ -107,6 +107,7 @@ lxml = "*"
 openpyxl = "*"
 httpx = "*"
 pypdf2 = "*"
+pikepdf = "*"
 
 [requires]
 python_version = "3.6"
