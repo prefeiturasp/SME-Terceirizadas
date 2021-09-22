@@ -9,7 +9,7 @@ from ..dados_comuns.fluxo_status import ReclamacaoProdutoWorkflow
 from ..dados_comuns.models import LogSolicitacoesUsuario
 from ..kit_lanche.models import EscolaQuantidade
 from ..logistica.api.helpers import retorna_status_guia_remessa
-from ..relatorios.utils import html_to_pdf_response
+from ..relatorios.utils import html_to_pdf_multiple_response, html_to_pdf_response
 from ..terceirizada.utils import transforma_dados_relatorio_quantitativo
 from . import constants
 from .utils import (
@@ -144,10 +144,11 @@ def relatorio_dieta_especial_conteudo(solicitacao):
 def relatorio_guia_de_remessa(guias): # noqa C901
     SERVER_NAME = env.str('SERVER_NAME', default=None)
     pages = []
-    lista_imagens = []
+    lista_pdfs = []
     insucesso = None
     conferencia = None
     for guia in guias:
+        lista_imagens = []
         todos_alimentos = guia.alimentos.all().annotate(
             peso_total=Sum(
                 F('embalagens__capacidade_embalagem') * F('embalagens__qtd_volume'), output_field=FloatField()
@@ -192,10 +193,16 @@ def relatorio_guia_de_remessa(guias): # noqa C901
 
             pages.append(page)
 
-    html_string = render_to_string('logistica/guia_remessa/relatorio_guia.html', {'pages': pages, 'URL': SERVER_NAME})
-    data_arquivo = datetime.datetime.today().strftime('%d/%m/%Y às %H:%M')
+        html_string = render_to_string('logistica/guia_remessa/relatorio_guia.html',
+                                       {'pages': [page], 'URL': SERVER_NAME})
+        data_arquivo = datetime.datetime.today().strftime('%d/%m/%Y às %H:%M')
 
-    return html_to_pdf_response(html_string.replace('dt_file', data_arquivo), 'guia_de_remessa.pdf')
+        lista_pdfs.append(html_string.replace('dt_file', data_arquivo))
+
+    if len(lista_pdfs) == 1:
+        return html_to_pdf_response(lista_pdfs[0], 'guia_de_remessa.pdf')
+    else:
+        return html_to_pdf_multiple_response(lista_pdfs, 'guia_de_remessa.pdf')
 
 
 def relatorio_dieta_especial(request, solicitacao):

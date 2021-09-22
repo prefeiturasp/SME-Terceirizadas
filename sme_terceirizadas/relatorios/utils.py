@@ -1,8 +1,10 @@
+import io
 import math
 from datetime import date
 
 from django.http import HttpResponse
 from django_weasyprint.utils import django_url_fetcher
+from pikepdf import Pdf
 from weasyprint import HTML
 
 from ..dados_comuns.models import LogSolicitacoesUsuario
@@ -43,6 +45,25 @@ def html_to_pdf_response(html_string, pdf_filename):
         url_fetcher=django_url_fetcher,
         base_url='file://abobrinha').write_pdf()
     response = HttpResponse(pdf_file, content_type='application/pdf')
+    response['Content-Disposition'] = f'filename="{pdf_filename}"'
+    return response
+
+
+def html_to_pdf_multiple_response(lista_strings, pdf_filename):
+    lista_pdfs = []
+    arquivo_final = io.BytesIO()
+    arquivo = Pdf.new()
+    for html_string in lista_strings:
+        pdf_file = HTML(
+            string=html_string,
+            url_fetcher=django_url_fetcher,
+            base_url='file://abobrinha').write_pdf()
+        src = Pdf.open(io.BytesIO(pdf_file))
+        arquivo.pages.extend(src.pages)
+
+    arquivo.save(arquivo_final)
+    arquivo_final.seek(0)
+    response = HttpResponse(arquivo_final, content_type='application/pdf')
     response['Content-Disposition'] = f'filename="{pdf_filename}"'
     return response
 

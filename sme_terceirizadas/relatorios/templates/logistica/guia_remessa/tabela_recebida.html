@@ -28,15 +28,32 @@
           {% embalagens_filter alimento.embalagens.all "FECHADA" as embalagem_fechada %}
 					<tr>
 						<td>{{alimento.nome_alimento}}</td>
-						<td>{{embalagem_fechada.qtd_volume|default:'-'}} {{embalagem_fechada.descricao_embalagem}}</td>
-						<td>{{embalagem_fechada.capacidade_embalagem|default:'-'}} {{embalagem_fechada.unidade_medida}}</td>
-						<td>{{embalagem_fracionada.qtd_volume|default:'-'}} {{embalagem_fracionada.descricao_embalagem}}</td>
-						<td>{{embalagem_fracionada.capacidade_embalagem|default:'-'}} {{embalagem_fracionada.unidade_medida}}</td>
+						<td>{{embalagem_fechada.qtd_volume}} {{embalagem_fechada.descricao_embalagem|default:'-'}}</td>
+						<td>{{embalagem_fechada.capacidade_embalagem} {{embalagem_fechada.unidade_medida|default:'-'}}</td>
+						<td>{{embalagem_fracionada.qtd_volume} {{embalagem_fracionada.descricao_embalagem|default:'-'}}</td>
+						<td>{{embalagem_fracionada.capacidade_embalagem} {{embalagem_fracionada.unidade_medida|default:'-'}}</td>
 					</tr>
         {% endfor %}
         </tbody>
 			</table>
     </div>
+    <hr/>
+      <div class="row green-text">
+        <div class="col">
+          <div class="titulo"> Nome do responsável pelo recebimento (Unidade Educacional)  </div>
+          <div class="campo"> {{ page.conferencia.criado_por.nome }} </div>
+          <br/>
+          <div class="titulo"> Nome do Motorista </div>
+          <div class="campo"> {{ page.conferencia.nome_motorista }} </div>
+          </div>
+          <div class="col">
+            <div class="titulo"> RF ou CPF do responsável pelo recebimento (Unidade Educacional) </div>
+            <div class="campo"> {{page.conferencia.criado_por.registro_funcional|default:page.conferencia.criado_por.cpf}} </div>
+          <br/>
+          <div class="titulo"> Placa do veículo </div>
+          <div class="campo"> {{ page.conferencia.placa_veiculo }} </div>
+        </div>
+      </div>
 	</div>
 </body>
 </html>

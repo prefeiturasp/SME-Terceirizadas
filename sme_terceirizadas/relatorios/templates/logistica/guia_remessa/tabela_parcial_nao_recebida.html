@@ -32,10 +32,10 @@
           {% embalagens_filter alimento.embalagens_conferidas "FECHADA" as embalagem_fechada_conferida %}
 					<tr>
 						<td>{{alimento.nome_alimento}}</td>
-						<td>{{embalagem_fechada_conferida.qtd_recebido|default:'-'}} {{embalagem_fechada.descricao_embalagem}}</td>
-						<td>{{embalagem_fechada.capacidade_embalagem|default:'-'}} {{embalagem_fechada.unidade_medida}}</td>
-						<td>{{embalagem_fracionada_conferida.qtd_recebido|default:'-'}} {{embalagem_fracionada.descricao_embalagem}}</td>
-						<td>{{embalagem_fracionada.capacidade_embalagem|default:'-'}} {{embalagem_fracionada.unidade_medida}}</td>
+						<td>{{embalagem_fechada_conferida.qtd_recebido}} {{embalagem_fechada.descricao_embalagem|default:'-'}}</td>
+						<td>{{embalagem_fechada.capacidade_embalagem}} {{embalagem_fechada.unidade_medida|default:'-'}}</td>
+						<td>{{embalagem_fracionada_conferida.qtd_recebido}} {{embalagem_fracionada.descricao_embalagem|default:'-'}}</td>
+						<td>{{embalagem_fracionada.capacidade_embalagem}} {{embalagem_fracionada.unidade_medida|default:'-'}}</td>
             <td>{{alimento.embalagens_conferidas.0.ocorrencia|default:'-'}}</td>
             <td>{{alimento.embalagens_conferidas.0.observacao|default:'-'}}</td>
 					</tr>
