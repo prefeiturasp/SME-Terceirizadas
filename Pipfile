@@ -106,6 +106,7 @@ spyne = "==2.13.16"
 lxml = "*"
 openpyxl = "*"
 httpx = "*"
+pikepdf = "*"
 
 [requires]
 python_version = "3.6"
