@@ -58,9 +58,7 @@ def html_to_pdf_multiple_response(lista_strings, pdf_filename):
             string=html_string,
             url_fetcher=django_url_fetcher,
             base_url='file://abobrinha').write_pdf()
-        lista_pdfs.append(pdf_file)
-    for file in lista_pdfs:
-        src = Pdf.open(io.BytesIO(file))
+        src = Pdf.open(io.BytesIO(pdf_file))
         arquivo.pages.extend(src.pages)
 
     arquivo.save(arquivo_final)

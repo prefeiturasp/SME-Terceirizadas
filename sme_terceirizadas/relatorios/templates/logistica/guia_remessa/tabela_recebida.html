@@ -37,6 +37,23 @@
         </tbody>
 			</table>
     </div>
+    <hr/>
+      <div class="row green-text">
+        <div class="col">
+          <div class="titulo"> Nome do responsável pelo recebimento (Unidade Educacional)  </div>
+          <div class="campo"> {{ page.conferencia.criado_por.nome }} </div>
+          <br/>
+          <div class="titulo"> Nome do Motorista </div>
+          <div class="campo"> {{ page.conferencia.nome_motorista }} </div>
+          </div>
+          <div class="col">
+            <div class="titulo"> RF ou CPF do responsável pelo recebimento (Unidade Educacional) </div>
+            <div class="campo"> {{page.conferencia.criado_por.registro_funcional|default:page.conferencia.criado_por.cpf}} </div>
+          <br/>
+          <div class="titulo"> Placa do veículo </div>
+          <div class="campo"> {{ page.conferencia.placa_veiculo }} </div>
+        </div>
+      </div>
 	</div>
 </body>
 </html>

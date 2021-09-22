@@ -199,7 +199,10 @@ def relatorio_guia_de_remessa(guias): # noqa C901
 
         lista_pdfs.append(html_string.replace('dt_file', data_arquivo))
 
-    return html_to_pdf_multiple_response(lista_pdfs, 'guia_de_remessa.pdf')
+    if len(lista_pdfs) == 1:
+        return html_to_pdf_response(lista_pdfs[0], 'guia_de_remessa.pdf')
+    else:
+        return html_to_pdf_multiple_response(lista_pdfs, 'guia_de_remessa.pdf')
 
 
 def relatorio_dieta_especial(request, solicitacao):
