@@ -110,6 +110,8 @@ O SIGPAE tem como objetivo automatizar os processos internos de fornecimento e d
 
 - Release 7 - Faturamento
 
+- Release 8 - Faturamento 2
+
 # Sobre o Time
 
 | Papel | Titular | Suplente  
