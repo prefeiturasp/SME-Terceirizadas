@@ -50,6 +50,16 @@ def test_url_endpoint_homologacao_produto_codae_nao_homologa(client_autenticado_
     assert len(response.json().get('results')) == 1
 
 
+def test_url_endpoint_homologacao_produto_rascunho(client_autenticado_vinculo_codae_produto,
+                                                   homologacao_produto_rascunho,
+                                                   especificacao_produto1):
+    assert homologacao_produto_rascunho.status == HomologacaoProdutoWorkflow.RASCUNHO
+    response = client_autenticado_vinculo_codae_produto.get(
+        f'/painel-gerencial-homologacoes-produtos/filtro-por-status/rascunho/')
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json().get('results')) == 1
+
+
 def test_url_endpoint_homologacao_produto_codae_questiona(client_autenticado_vinculo_codae_produto,
                                                           homologacao_produto_pendente_homologacao):
     assert homologacao_produto_pendente_homologacao.status == HomologacaoProdutoWorkflow.CODAE_PENDENTE_HOMOLOGACAO
@@ -288,6 +298,52 @@ def test_url_endpoint_nome_de_produto_edital(client_autenticado_vinculo_terceiri
     assert response.status_code == status.HTTP_200_OK
 
 
+def test_url_endpoint_cadastro_produto_os_steps_sem_rascunho(client_autenticado_vinculo_terceirizada,
+                                                             marca1, fabricante, info_nutricional1,
+                                                             unidade_medida, embalagem_produto):
+    payload = {
+        'uuid': None,
+        'unidade_caseira': '01 copo',
+        'tipo': 'algum tipo',
+        'tem_aditivos_alergicos': False,
+        'protocolos': [],
+        'prazo_validade': '12 meses',
+        'porcao': 'colher de sopa',
+        'outras_informacoes': '',
+        'numero_registro': '3',
+        'nome': 'Novo Produto',
+        'marca': str(marca1.uuid),
+        'informacoes_nutricionais': [
+            {
+                'informacao_nutricional': str(info_nutricional1.uuid),
+                'quantidade_porcao': '1',
+                'valor_diario': '2'
+            }
+        ],
+        'especificacoes': [
+            {
+                'volume': 3,
+                'unidade_de_medida': str(unidade_medida.uuid),
+                'embalagem_produto': str(embalagem_produto.uuid)
+            }
+        ],
+        'imagens': [{
+            'nome': 'nome.png',
+            'arquivo': 'data:image/png;base64,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'  # noqa
+        }],
+        'fabricante': str(fabricante.uuid),
+        'embalagem': '3',
+        'eh_para_alunos_com_dieta': False,
+        'componentes': 'DEDE',
+        'cadastro_finalizado': True
+    }
+
+    client = client_autenticado_vinculo_terceirizada
+    response = client.post(f'/produtos/', data=json.dumps(payload), content_type='application/json')
+
+    assert response.status_code == status.HTTP_201_CREATED
+
+
 def test_url_produto_ja_existe(client_autenticado_vinculo_terceirizada, produto, marca1, fabricante):
     response = client_autenticado_vinculo_terceirizada.get('/produtos/ja-existe/', {
         'nome': 'Produto1',
@@ -386,15 +442,29 @@ def test_url_endpoint_lista_nomes_responder_reclamacao_marcas_nutri(
 
 def test_url_endpoint_lista_itens_cadastros(client_autenticado_vinculo_escola_ue,
                                             item_cadastrado_1,
-                                            item_cadastrado_2):
+                                            item_cadastrado_2,
+                                            item_cadastrado_3,
+                                            item_cadastrado_4):
 
     client = client_autenticado_vinculo_escola_ue
     response = client.get(f'/itens-cadastros/')
     esperado = {
-        'count': 2,
+        'count': 4,
         'next': None,
         'previous': None,
         'results': [
+            {
+                'uuid': str(item_cadastrado_4.uuid),
+                'nome': item_cadastrado_4.content_object.nome,
+                'tipo': item_cadastrado_4.tipo,
+                'tipo_display': item_cadastrado_4.get_tipo_display()
+            },
+            {
+                'uuid': str(item_cadastrado_3.uuid),
+                'nome': item_cadastrado_3.content_object.nome,
+                'tipo': item_cadastrado_3.tipo,
+                'tipo_display': item_cadastrado_3.get_tipo_display()
+            },
             {
                 'uuid': str(item_cadastrado_2.uuid),
                 'nome': item_cadastrado_2.content_object.nome,
@@ -444,6 +514,51 @@ def test_url_endpoint_criar_item_cadastro_e_marca(client_autenticado_vinculo_esc
     assert ItemCadastro.objects.count() == 1
 
 
+def test_url_endpoint_criar_item_cadastro_e_fabricante(client_autenticado_vinculo_escola_ue):
+    from sme_terceirizadas.produto.models import ItemCadastro
+
+    assert ItemCadastro.objects.count() == 0
+    client = client_autenticado_vinculo_escola_ue
+    payload = {
+        'nome': 'Anjo',
+        'tipo': 'FABRICANTE'
+    }
+    response = client.post(f'/itens-cadastros/', data=json.dumps(payload), content_type='application/json')
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert ItemCadastro.objects.count() == 1
+
+
+def test_url_endpoint_criar_item_cadastro_e_unidade_medida(client_autenticado_vinculo_escola_ue):
+    from sme_terceirizadas.produto.models import ItemCadastro
+
+    assert ItemCadastro.objects.count() == 0
+    client = client_autenticado_vinculo_escola_ue
+    payload = {
+        'nome': 'Kg',
+        'tipo': 'UNIDADE_MEDIDA'
+    }
+    response = client.post(f'/itens-cadastros/', data=json.dumps(payload), content_type='application/json')
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert ItemCadastro.objects.count() == 1
+
+
+def test_url_endpoint_criar_item_cadastro_e_embalagem_produto(client_autenticado_vinculo_escola_ue):
+    from sme_terceirizadas.produto.models import ItemCadastro
+
+    assert ItemCadastro.objects.count() == 0
+    client = client_autenticado_vinculo_escola_ue
+    payload = {
+        'nome': 'Bolsa',
+        'tipo': 'EMBALAGEM'
+    }
+    response = client.post(f'/itens-cadastros/', data=json.dumps(payload), content_type='application/json')
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert ItemCadastro.objects.count() == 1
+
+
 def test_url_endpoint_tipos_item_cadastro(client_autenticado_vinculo_escola_ue):
 
     client = client_autenticado_vinculo_escola_ue
@@ -473,17 +588,59 @@ def test_url_endpoint_tipos_item_cadastro(client_autenticado_vinculo_escola_ue):
 
 def test_url_endpoint_lista_de_nomes_de_itens_cadastros(client_autenticado_vinculo_escola_ue,
                                                         item_cadastrado_1,
-                                                        item_cadastrado_2):
+                                                        item_cadastrado_2,
+                                                        item_cadastrado_3,
+                                                        item_cadastrado_4):
 
     client = client_autenticado_vinculo_escola_ue
-    response = client.get(f'/itens-cadastros/lista-nomes/')
-    result = response.json()
+    response = client.get('/itens-cadastros/lista-nomes/')
+    resultado = response.json()
 
     esperado = {
         'results': [
+            item_cadastrado_4.content_object.nome,
+            item_cadastrado_3.content_object.nome,
             item_cadastrado_2.content_object.nome,
             item_cadastrado_1.content_object.nome
         ]
     }
 
-    assert result == esperado
+    assert resultado == esperado
+
+
+def test_url_endpoint_lista_unidades_de_medida_sem_paginacao(client_autenticado_vinculo_escola_ue,
+                                                             unidade_medida):
+
+    client = client_autenticado_vinculo_escola_ue
+    response = client.get('/unidades-medida/')
+    resultado = response.json()
+
+    esperado = {
+        'results': [
+            {
+                'uuid': str(unidade_medida.uuid),
+                'nome': unidade_medida.nome
+            }
+        ]
+    }
+
+    assert resultado == esperado
+
+
+def test_url_endpoint_lista_embalagens_produto_sem_paginacao(client_autenticado_vinculo_escola_ue,
+                                                             embalagem_produto):
+
+    client = client_autenticado_vinculo_escola_ue
+    response = client.get('/embalagens-produto/')
+    resultado = response.json()
+
+    esperado = {
+        'results': [
+            {
+                'uuid': str(embalagem_produto.uuid),
+                'nome': embalagem_produto.nome
+            }
+        ]
+    }
+
+    assert resultado == esperado

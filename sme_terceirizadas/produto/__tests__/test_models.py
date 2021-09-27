@@ -2,6 +2,8 @@ from datetime import date, datetime, timedelta
 
 import pytest
 
+from sme_terceirizadas.produto.models import UnidadeMedida
+
 pytestmark = pytest.mark.django_db
 
 
@@ -27,3 +29,20 @@ def test_produto_componentes_max_length(homologacao_produto_homologado_com_log, 
 
 def test_item_cadastrado_marca(item_cadastrado_1):
     assert item_cadastrado_1.tipo == 'MARCA'
+
+
+def test_modelo_fabricante(fabricante):
+    assert fabricante.nome == 'Fabricante1'
+
+
+def test_modelo_marca(marca1):
+    assert marca1.nome == 'Marca1'
+
+
+def test_modelo_unidade_medida(unidade_medida):
+    assert isinstance(unidade_medida, UnidadeMedida)
+    assert unidade_medida.nome == 'Litros'
+
+
+def test_modelo_embalagem(embalagem_produto):
+    assert embalagem_produto.nome == 'Bag'

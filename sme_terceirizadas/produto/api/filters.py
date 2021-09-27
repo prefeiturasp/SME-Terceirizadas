@@ -66,4 +66,5 @@ class ItemCadastroFilter(filters.FilterSet):
     tipo = filters.CharFilter(field_name='tipo', lookup_expr='iexact')
 
     def filtra_nome(self, qs, _, value):
-        return qs.filter(Q(fabricante__nome__icontains=value) | Q(marca__nome__icontains=value))
+        return qs.filter(Q(fabricante__nome__icontains=value) | Q(marca__nome__icontains=value)
+                         | Q(unidade_medida__nome__icontains=value) | Q(embalagem_produto__nome__icontains=value))
