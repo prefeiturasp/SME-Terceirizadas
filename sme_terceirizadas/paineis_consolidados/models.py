@@ -503,8 +503,10 @@ class SolicitacoesEscola(MoldeConsolidado):
     CANCELADOS_STATUS = [PedidoAPartirDaEscolaWorkflow.ESCOLA_CANCELOU]
     CANCELADOS_EVENTO = [LogSolicitacoesUsuario.ESCOLA_CANCELOU]
 
-    NEGADOS_STATUS = [PedidoAPartirDaEscolaWorkflow.CODAE_NEGOU_PEDIDO]
-    NEGADOS_EVENTO = [LogSolicitacoesUsuario.CODAE_NEGOU]
+    NEGADOS_STATUS = [PedidoAPartirDaEscolaWorkflow.CODAE_NEGOU_PEDIDO,
+                      PedidoAPartirDaEscolaWorkflow.DRE_NAO_VALIDOU_PEDIDO_ESCOLA]
+    NEGADOS_EVENTO = [LogSolicitacoesUsuario.CODAE_NEGOU,
+                      LogSolicitacoesUsuario.DRE_NAO_VALIDOU]
 
     @classmethod
     def get_pendentes_dieta_especial(cls, **kwargs):
