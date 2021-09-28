@@ -292,6 +292,7 @@ sme_terceirizadas/media/
 .pytest_cache/
 .testmondata
 sigpae-postgres-data
+sigpae-postgres-data_prod
 
 # undesired files
 *.xlsx
