@@ -147,6 +147,7 @@ def relatorio_guia_de_remessa(guias): # noqa C901
     lista_pdfs = []
     insucesso = None
     conferencia = None
+    reposicao = None
     for guia in guias:
         lista_imagens = []
         todos_alimentos = guia.alimentos.all().annotate(
@@ -160,7 +161,7 @@ def relatorio_guia_de_remessa(guias): # noqa C901
         elif guia.status == GuiaStatus.RECEBIDA:
             conferencia = guia.conferencias.last()
         elif guia.status in (GuiaStatus.RECEBIMENTO_PARCIAL, GuiaStatus.NAO_RECEBIDA):
-            conferencia = guia.conferencias.last()
+            conferencia = guia.conferencias.filter(eh_reposicao=False).last()
             conferencias_individuais = conferencia.conferencia_dos_alimentos.all()
             for alimento_guia in todos_alimentos:
                 conferencias_alimento = []
@@ -180,6 +181,46 @@ def relatorio_guia_de_remessa(guias): # noqa C901
                                     lista_imagens.append(imagem)
                                 conferencias_alimento.append(embalagem)
                         alimento_guia.embalagens_conferidas = conferencias_alimento
+        elif guia.status in (GuiaStatus.REPOSICAO_PARCIAL, GuiaStatus.REPOSICAO_TOTAL):
+            conferencia = guia.conferencias.filter(eh_reposicao=False).last()
+            conferencias_individuais = conferencia.conferencia_dos_alimentos.all()
+            reposicao = guia.conferencias.filter(eh_reposicao=True).last()
+            reposicoes_individuais = reposicao.conferencia_dos_alimentos.all()
+            for alimento_guia in todos_alimentos:
+                conferencias_alimento = []
+                reposicoes_alimento = []
+                for alimento_conferencia in conferencias_individuais:
+                    if alimento_guia.nome_alimento == alimento_conferencia.nome_alimento:
+                        for embalagem in alimento_guia.embalagens.all():
+                            if embalagem.tipo_embalagem == alimento_conferencia.tipo_embalagem:
+                                embalagem.qtd_recebido = alimento_conferencia.qtd_recebido
+                                embalagem.ocorrencia = alimento_conferencia.ocorrencia
+                                embalagem.observacao = alimento_conferencia.observacao
+                                embalagem.arquivo = alimento_conferencia.arquivo
+                                if alimento_conferencia.arquivo:
+                                    imagem = {
+                                        'nome_alimento': alimento_guia.nome_alimento,
+                                        'arquivo': alimento_conferencia.arquivo
+                                    }
+                                    lista_imagens.append(imagem)
+                                conferencias_alimento.append(embalagem)
+                        alimento_guia.embalagens_conferidas = conferencias_alimento
+                for alimento_reposicao in reposicoes_individuais:
+                    if alimento_guia.nome_alimento == alimento_reposicao.nome_alimento:
+                        for embalagem in alimento_guia.embalagens.all():
+                            if embalagem.tipo_embalagem == alimento_reposicao.tipo_embalagem:
+                                embalagem.qtd_recebido = alimento_reposicao.qtd_recebido
+                                embalagem.ocorrencia = alimento_reposicao.ocorrencia
+                                embalagem.observacao = alimento_reposicao.observacao
+                                embalagem.arquivo = alimento_reposicao.arquivo
+                                if alimento_reposicao.arquivo:
+                                    imagem = {
+                                        'nome_alimento': alimento_guia.nome_alimento,
+                                        'arquivo': alimento_reposicao.arquivo
+                                    }
+                                    lista_imagens.append(imagem)
+                                reposicoes_alimento.append(embalagem)
+                        alimento_guia.embalagens_conferidas = conferencias_alimento
 
         if todos_alimentos:
             page = guia.as_dict()
@@ -189,6 +230,7 @@ def relatorio_guia_de_remessa(guias): # noqa C901
             page['status_guia'] = retorna_status_guia_remessa(page['status'])
             page['insucesso'] = insucesso
             page['conferencia'] = conferencia
+            page['reposicao'] = reposicao
             page['lista_imagens'] = lista_imagens
 
         html_string = render_to_string('logistica/guia_remessa/relatorio_guia.html',
