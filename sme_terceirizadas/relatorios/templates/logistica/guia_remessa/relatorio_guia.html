@@ -18,7 +18,7 @@
         {% include "logistica/guia_remessa/barra_status.html" %}
         {% include "logistica/guia_remessa/tabela_alimentos.html" %}
         {% include "logistica/guia_remessa/rodape_pendente_conferencia.html" %}
-        {% include "logistica/guia_remessa/rodape.html" %}
+
 
       {% elif page.status_guia == "Recebida" %}
         {% include "logistica/guia_remessa/rodape_recebida.html" %}
@@ -31,6 +31,14 @@
         {% include "logistica/guia_remessa/barra_status.html" %}
         {% include "logistica/guia_remessa/tabela_alimentos.html" %}
         {% include "logistica/guia_remessa/tabela_parcial_nao_recebida.html" %}
+      
+      {% elif page.status_guia == "Reposição parcial" or page.status_guia == "Reposição total" %}
+        {% include "logistica/guia_remessa/barra_status.html" %}
+        {% include "logistica/guia_remessa/tabela_alimentos.html" %}
+        {% include "logistica/guia_remessa/tabela_parcial_nao_recebida.html" %}
+        <hr/>
+        {% include "logistica/guia_remessa/tabela_reposicao.html" %}
+        {% include "logistica/guia_remessa/rodape.html" %}
 
 
       {% elif page.status_guia == "Insucesso de entrega" %}

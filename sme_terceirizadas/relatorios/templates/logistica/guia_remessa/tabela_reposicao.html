@@ -7,7 +7,7 @@
 <body>
 	<div class="page-container mt-3">
     <div class="table-responsive-sm">
-		  <h4 class="title main-title">Alimentos recebidos pela Unidade Educacional</h4>
+		  <h4 class="title main-title">Reposição de alimentos faltantes</h4>
         <table class="table table-md table-bordered">
 				<thead>
 					<tr>
@@ -28,25 +28,25 @@
         {% for alimento in page.alimentos %}
           {% embalagens_filter alimento.embalagens.all "FRACIONADA" as embalagem_fracionada %}
           {% embalagens_filter alimento.embalagens.all "FECHADA" as embalagem_fechada %}
-          {% embalagens_filter alimento.embalagens_conferidas "FRACIONADA" as embalagem_fracionada_conferida %}
-          {% embalagens_filter alimento.embalagens_conferidas "FECHADA" as embalagem_fechada_conferida %}
+          {% embalagens_filter alimento.embalagens_repostas "FRACIONADA" as embalagem_fracionada_conferida %}
+          {% embalagens_filter alimento.embalagens_repostas "FECHADA" as embalagem_fechada_conferida %}
 					<tr>
 						<td>{{alimento.nome_alimento}}</td>
 						<td>{{embalagem_fechada_conferida.qtd_recebido}} {{embalagem_fechada.descricao_embalagem|default:'-'}}</td>
 						<td>{{embalagem_fechada.capacidade_embalagem}} {{embalagem_fechada.unidade_medida|default:'-'}}</td>
 						<td>{{embalagem_fracionada_conferida.qtd_recebido}} {{embalagem_fracionada.descricao_embalagem|default:'-'}}</td>
 						<td>{{embalagem_fracionada.capacidade_embalagem}} {{embalagem_fracionada.unidade_medida|default:'-'}}</td>
-            <td>{{alimento.embalagens_conferidas.0.ocorrencia|default:'-'}}</td>
-            <td>{{alimento.embalagens_conferidas.0.observacao|default:'-'}}</td>
+            <td>{{alimento.embalagens_repostas.0.ocorrencia|default:'-'}}</td>
+            <td>{{alimento.embalagens_repostas.0.observacao|default:'-'}}</td>
 					</tr>
         {% endfor %}
         </tbody>
 			</table>
 
-      {% if page.lista_imagens_conferencia %}
+      {% if page.lista_imagens_reposicao %}
         <h4 class="title main-title">Imagens</h4>
         <table class="tabela-imagem">
-          {% for imagem in page.lista_imagens_conferencia %}
+          {% for imagem in page.lista_imagens_reposicao %}
             {% if forloop.first %}
                 <tr>
             {% endif %}
@@ -70,17 +70,17 @@
       <div class="row green-text">
         <div class="col">
           <div class="titulo"> Nome do responsável pelo recebimento (Unidade Educacional)  </div>
-          <div class="campo"> {{ page.conferencia.criado_por.nome }} </div>
+          <div class="campo"> {{ page.reposicao.criado_por.nome }} </div>
           <br/>
           <div class="titulo"> Nome do Motorista </div>
-          <div class="campo"> {{ page.conferencia.nome_motorista }} </div>
+          <div class="campo"> {{ page.reposicao.nome_motorista }} </div>
           </div>
           <div class="col">
             <div class="titulo"> RF ou CPF do responsável pelo recebimento (Unidade Educacional) </div>
-            <div class="campo"> {{page.conferencia.criado_por.registro_funcional|default:page.conferencia.criado_por.cpf}} </div>
+            <div class="campo"> {{page.reposicao.criado_por.registro_funcional|default:page.reposicao.criado_por.cpf}} </div>
           <br/>
           <div class="titulo"> Placa do veículo </div>
-          <div class="campo"> {{ page.conferencia.placa_veiculo }} </div>
+          <div class="campo"> {{ page.reposicao.placa_veiculo }} </div>
         </div>
       </div>
       <div class="row align-content-end mt-3">
@@ -89,7 +89,7 @@
         </div>
         <div class="col-11 ml-3">
           <span class="text-footer-insucesso">
-            Este documento foi registrado eletronicamente por <strong>{{ page.conferencia.criado_por.nome|upper }}</strong>, <strong>{{ page.conferencia.criado_por.cargo|default:" "|upper }}</strong>, <strong>{{page.conferencia.criado_por.registro_funcional|default:page.conferencia.criado_por.cpf}}</strong>, <strong>{{ page.conferencia.criado_por.vinculo_atual.instituicao.nome|upper }}</strong> em {{ page.conferencia.criado_em|date:"d/m/Y" }}, às {{ page.conferencia.criado_em|time:"H:i" }}. O registro eletrônico da Guia de Remessa é comprovação e ateste do serviço prestado à Unidade Educacional, conforme previsão contratual.
+            Este documento foi registrado eletronicamente por <strong>{{ page.reposicao.criado_por.nome|upper }}</strong>, <strong>{{ page.reposicao.criado_por.cargo|default:" "|upper }}</strong>, <strong>{{page.reposicao.criado_por.registro_funcional|default:page.reposicao.criado_por.cpf}}</strong>, <strong>{{ page.reposicao.criado_por.vinculo_atual.instituicao.nome|upper }}</strong> em {{ page.reposicao.criado_em|date:"d/m/Y" }}, às {{ page.reposicao.criado_em|time:"H:i" }}. O registro eletrônico da Guia de Remessa é comprovação e ateste do serviço prestado à Unidade Educacional, conforme previsão contratual.
           </span>
         </div>
       </div>
