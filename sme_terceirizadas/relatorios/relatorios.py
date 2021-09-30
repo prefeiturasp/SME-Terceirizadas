@@ -149,7 +149,8 @@ def relatorio_guia_de_remessa(guias): # noqa C901
     conferencia = None
     reposicao = None
     for guia in guias:
-        lista_imagens = []
+        lista_imagens_conferencia = []
+        lista_imagens_reposicao = []
         todos_alimentos = guia.alimentos.all().annotate(
             peso_total=Sum(
                 F('embalagens__capacidade_embalagem') * F('embalagens__qtd_volume'), output_field=FloatField()
@@ -178,7 +179,7 @@ def relatorio_guia_de_remessa(guias): # noqa C901
                                         'nome_alimento': alimento_guia.nome_alimento,
                                         'arquivo': alimento_conferencia.arquivo
                                     }
-                                    lista_imagens.append(imagem)
+                                    lista_imagens_conferencia.append(imagem)
                                 conferencias_alimento.append(embalagem)
                         alimento_guia.embalagens_conferidas = conferencias_alimento
         elif guia.status in (GuiaStatus.REPOSICAO_PARCIAL, GuiaStatus.REPOSICAO_TOTAL):
@@ -202,7 +203,7 @@ def relatorio_guia_de_remessa(guias): # noqa C901
                                         'nome_alimento': alimento_guia.nome_alimento,
                                         'arquivo': alimento_conferencia.arquivo
                                     }
-                                    lista_imagens.append(imagem)
+                                    lista_imagens_conferencia.append(imagem)
                                 conferencias_alimento.append(embalagem)
                         alimento_guia.embalagens_conferidas = conferencias_alimento
                 for alimento_reposicao in reposicoes_individuais:
@@ -218,9 +219,9 @@ def relatorio_guia_de_remessa(guias): # noqa C901
                                         'nome_alimento': alimento_guia.nome_alimento,
                                         'arquivo': alimento_reposicao.arquivo
                                     }
-                                    lista_imagens.append(imagem)
+                                    lista_imagens_reposicao.append(imagem)
                                 reposicoes_alimento.append(embalagem)
-                        alimento_guia.embalagens_conferidas = conferencias_alimento
+                        alimento_guia.embalagens_repostas = reposicoes_alimento
 
         if todos_alimentos:
             page = guia.as_dict()
@@ -231,7 +232,8 @@ def relatorio_guia_de_remessa(guias): # noqa C901
             page['insucesso'] = insucesso
             page['conferencia'] = conferencia
             page['reposicao'] = reposicao
-            page['lista_imagens'] = lista_imagens
+            page['lista_imagens_conferencia'] = lista_imagens_conferencia
+            page['lista_imagens_reposicao'] = lista_imagens_reposicao
 
         html_string = render_to_string('logistica/guia_remessa/relatorio_guia.html',
                                        {'pages': [page], 'URL': SERVER_NAME})
