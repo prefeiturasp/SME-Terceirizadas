@@ -145,83 +145,67 @@ def relatorio_guia_de_remessa(guias): # noqa C901
     SERVER_NAME = env.str('SERVER_NAME', default=None)
     page = None
     lista_pdfs = []
-    insucesso = None
-    conferencia = None
-    reposicao = None
     for guia in guias:
         lista_imagens_conferencia = []
         lista_imagens_reposicao = []
+        insucesso = guia.insucessos.last() if guia.insucessos else None
+        reposicao = None
+        conferencias_individuais = None
+        reposicoes_individuais = None
         todos_alimentos = guia.alimentos.all().annotate(
             peso_total=Sum(
                 F('embalagens__capacidade_embalagem') * F('embalagens__qtd_volume'), output_field=FloatField()
             )
         ).order_by('nome_alimento')
 
-        if guia.status == GuiaStatus.DISTRIBUIDOR_REGISTRA_INSUCESSO:
-            insucesso = guia.insucessos.last()
-        elif guia.status == GuiaStatus.RECEBIDA:
+        if guia.status == GuiaStatus.RECEBIDA:
             conferencia = guia.conferencias.last()
-        elif guia.status in (GuiaStatus.RECEBIMENTO_PARCIAL, GuiaStatus.NAO_RECEBIDA):
+
+        else:
             conferencia = guia.conferencias.filter(eh_reposicao=False).last()
-            conferencias_individuais = conferencia.conferencia_dos_alimentos.all()
-            for alimento_guia in todos_alimentos:
-                conferencias_alimento = []
-                for alimento_conferencia in conferencias_individuais:
-                    if alimento_guia.nome_alimento == alimento_conferencia.nome_alimento:
-                        for embalagem in alimento_guia.embalagens.all():
-                            if embalagem.tipo_embalagem == alimento_conferencia.tipo_embalagem:
-                                embalagem.qtd_recebido = alimento_conferencia.qtd_recebido
-                                embalagem.ocorrencia = alimento_conferencia.ocorrencia
-                                embalagem.observacao = alimento_conferencia.observacao
-                                embalagem.arquivo = alimento_conferencia.arquivo
-                                if alimento_conferencia.arquivo:
-                                    imagem = {
-                                        'nome_alimento': alimento_guia.nome_alimento,
-                                        'arquivo': alimento_conferencia.arquivo
-                                    }
-                                    lista_imagens_conferencia.append(imagem)
-                                conferencias_alimento.append(embalagem)
-                        alimento_guia.embalagens_conferidas = conferencias_alimento
-        elif guia.status in (GuiaStatus.REPOSICAO_PARCIAL, GuiaStatus.REPOSICAO_TOTAL):
-            conferencia = guia.conferencias.filter(eh_reposicao=False).last()
-            conferencias_individuais = conferencia.conferencia_dos_alimentos.all()
             reposicao = guia.conferencias.filter(eh_reposicao=True).last()
-            reposicoes_individuais = reposicao.conferencia_dos_alimentos.all()
+            if conferencia:
+                conferencias_individuais = conferencia.conferencia_dos_alimentos.all()
+            elif reposicao:
+                reposicoes_individuais = reposicao.conferencia_dos_alimentos.all()
+
             for alimento_guia in todos_alimentos:
                 conferencias_alimento = []
                 reposicoes_alimento = []
-                for alimento_conferencia in conferencias_individuais:
-                    if alimento_guia.nome_alimento == alimento_conferencia.nome_alimento:
-                        for embalagem in alimento_guia.embalagens.all():
-                            if embalagem.tipo_embalagem == alimento_conferencia.tipo_embalagem:
-                                embalagem.qtd_recebido = alimento_conferencia.qtd_recebido
-                                embalagem.ocorrencia = alimento_conferencia.ocorrencia
-                                embalagem.observacao = alimento_conferencia.observacao
-                                embalagem.arquivo = alimento_conferencia.arquivo
-                                if alimento_conferencia.arquivo:
-                                    imagem = {
-                                        'nome_alimento': alimento_guia.nome_alimento,
-                                        'arquivo': alimento_conferencia.arquivo
-                                    }
-                                    lista_imagens_conferencia.append(imagem)
-                                conferencias_alimento.append(embalagem)
-                        alimento_guia.embalagens_conferidas = conferencias_alimento
-                for alimento_reposicao in reposicoes_individuais:
-                    if alimento_guia.nome_alimento == alimento_reposicao.nome_alimento:
-                        for embalagem in alimento_guia.embalagens.all():
-                            if embalagem.tipo_embalagem == alimento_reposicao.tipo_embalagem:
-                                embalagem.qtd_recebido = alimento_reposicao.qtd_recebido
-                                embalagem.ocorrencia = alimento_reposicao.ocorrencia
-                                embalagem.observacao = alimento_reposicao.observacao
-                                embalagem.arquivo = alimento_reposicao.arquivo
-                                if alimento_reposicao.arquivo:
-                                    imagem = {
-                                        'nome_alimento': alimento_guia.nome_alimento,
-                                        'arquivo': alimento_reposicao.arquivo
-                                    }
-                                    lista_imagens_reposicao.append(imagem)
-                                reposicoes_alimento.append(embalagem)
-                        alimento_guia.embalagens_repostas = reposicoes_alimento
+                if conferencias_individuais:
+                    for alimento_conferencia in conferencias_individuais:
+                        if alimento_guia.nome_alimento == alimento_conferencia.nome_alimento:
+                            for embalagem in alimento_guia.embalagens.all():
+                                if embalagem.tipo_embalagem == alimento_conferencia.tipo_embalagem:
+                                    embalagem.qtd_recebido = alimento_conferencia.qtd_recebido
+                                    embalagem.ocorrencia = alimento_conferencia.ocorrencia
+                                    embalagem.observacao = alimento_conferencia.observacao
+                                    embalagem.arquivo = alimento_conferencia.arquivo
+                                    if alimento_conferencia.arquivo:
+                                        imagem = {
+                                            'nome_alimento': alimento_guia.nome_alimento,
+                                            'arquivo': alimento_conferencia.arquivo
+                                        }
+                                        lista_imagens_conferencia.append(imagem)
+                                    conferencias_alimento.append(embalagem)
+                            alimento_guia.embalagens_conferidas = conferencias_alimento
+                if reposicoes_individuais:
+                    for alimento_reposicao in reposicoes_individuais:
+                        if alimento_guia.nome_alimento == alimento_reposicao.nome_alimento:
+                            for embalagem in alimento_guia.embalagens.all():
+                                if embalagem.tipo_embalagem == alimento_reposicao.tipo_embalagem:
+                                    embalagem.qtd_recebido = alimento_reposicao.qtd_recebido
+                                    embalagem.ocorrencia = alimento_reposicao.ocorrencia
+                                    embalagem.observacao = alimento_reposicao.observacao
+                                    embalagem.arquivo = alimento_reposicao.arquivo
+                                    if alimento_reposicao.arquivo:
+                                        imagem = {
+                                            'nome_alimento': alimento_guia.nome_alimento,
+                                            'arquivo': alimento_reposicao.arquivo
+                                        }
+                                        lista_imagens_reposicao.append(imagem)
+                                    reposicoes_alimento.append(embalagem)
+                            alimento_guia.embalagens_repostas = reposicoes_alimento
 
         if todos_alimentos:
             page = guia.as_dict()
