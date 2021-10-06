@@ -92,7 +92,7 @@ class SubstituicaoAlimentoInline(admin.TabularInline):
 class SolicitacaoDietaEspecialAdmin(admin.ModelAdmin):
     list_display = ('id_externo', '__str__', 'status', 'tipo_solicitacao', 'ativo')
     list_display_links = ('__str__',)
-    search_fields = ('uuid', 'aluno__codigo_eol')
+    search_fields = ('uuid', 'aluno__codigo_eol', 'aluno__nome')
     readonly_fields = ('aluno',)
     change_list_template = 'dieta_especial/change_list.html'
     inlines = (SubstituicaoAlimentoInline,)

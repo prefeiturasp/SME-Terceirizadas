@@ -14,6 +14,7 @@ from .utils import cancela_dietas_ativas_automaticamente, inicia_dietas_temporar
     retry_kwargs={'max_retries': 8},
 )
 def processa_dietas_especiais_task():
+    print("TASK RAPAZ")
     usuario_admin = Usuario.objects.get(pk=1)
     inicia_dietas_temporarias(usuario=usuario_admin)
     termina_dietas_especiais(usuario=usuario_admin)

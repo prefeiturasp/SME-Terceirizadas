@@ -522,14 +522,29 @@ class SolicitacoesEscola(MoldeConsolidado):
     def get_autorizados_dieta_especial(cls, **kwargs):
         escola_uuid = kwargs.get('escola_uuid')
         escola_destino = Escola.objects.get(uuid=escola_uuid)
-        return cls.objects.filter(
+
+        # Mantive o comportamento normal para as solicitações
+        # que não são de alteração de UE.
+        solicitacoes_em_vigencia_e_ativas = cls.objects.filter(
             Q(em_vigencia=True) | Q(em_vigencia__isnull=True),
             escola_destino_id=escola_destino.id,
+            escola_uuid=escola_uuid,
             status_atual__in=cls.AUTORIZADO_STATUS_DIETA_ESPECIAL,
             status_evento__in=cls.AUTORIZADO_EVENTO_DIETA_ESPECIAL,
             tipo_doc=cls.TP_SOL_DIETA_ESPECIAL,
             ativo=True
-        ).distinct().order_by('-data_log')
+        )
+
+        solicitacoes_de_alteracao_para_escola_de_origem = cls.objects.filter(
+            Q(em_vigencia=False) | Q(em_vigencia=True, ativo=True),
+            escola_uuid=escola_uuid,
+            status_atual__in=cls.AUTORIZADO_STATUS_DIETA_ESPECIAL,
+            status_evento__in=cls.AUTORIZADO_EVENTO_DIETA_ESPECIAL,
+            tipo_doc=cls.TP_SOL_DIETA_ESPECIAL,
+            dieta_alterada_id__isnull=False
+        )
+        solicitacoes = solicitacoes_em_vigencia_e_ativas | solicitacoes_de_alteracao_para_escola_de_origem
+        return solicitacoes.distinct().order_by('-data_log')
 
     @classmethod
     def get_negados_dieta_especial(cls, **kwargs):
@@ -544,8 +559,10 @@ class SolicitacoesEscola(MoldeConsolidado):
     @classmethod
     def get_cancelados_dieta_especial(cls, **kwargs):
         escola_uuid = kwargs.get('escola_uuid')
+        escola_destino = Escola.objects.get(uuid=escola_uuid)
         return cls.objects.filter(
             Q(
+                Q(escola_uuid=escola_uuid) | Q(escola_destino_id=escola_destino.id),
                 tipo_solicitacao_dieta='ALTERACAO_UE',
                 status_atual__in=cls.CANCELADOS_STATUS_DIETA_ESPECIAL_TEMP,
                 status_evento__in=cls.CANCELADOS_EVENTO_DIETA_ESPECIAL_TEMP,
@@ -553,9 +570,9 @@ class SolicitacoesEscola(MoldeConsolidado):
                 tipo_solicitacao_dieta='COMUM',
                 status_atual__in=cls.CANCELADOS_STATUS_DIETA_ESPECIAL,
                 status_evento__in=cls.CANCELADOS_EVENTO_DIETA_ESPECIAL,
+                escola_uuid=escola_uuid
             ),
             tipo_doc=cls.TP_SOL_DIETA_ESPECIAL,
-            escola_uuid=escola_uuid
         ).distinct().order_by('-data_log')
 
     @classmethod
@@ -568,14 +585,15 @@ class SolicitacoesEscola(MoldeConsolidado):
             status_evento__in=cls.AUTORIZADO_EVENTO_DIETA_ESPECIAL,
             tipo_doc=cls.TP_SOL_DIETA_ESPECIAL,
             dieta_alterada_id__isnull=False,
-            em_vigencia=False
+            em_vigencia=True,
         ).distinct().order_by('-data_log')
 
     @classmethod
     def get_aguardando_vigencia_dieta_especial(cls, **kwargs):
         escola_uuid = kwargs.get('escola_uuid')
+        escola_destino = Escola.objects.get(uuid=escola_uuid)
         return cls.objects.filter(
-            escola_uuid=escola_uuid,
+            escola_destino_id=escola_destino.id,
             status_atual__in=cls.AUTORIZADO_STATUS_DIETA_ESPECIAL,
             status_evento__in=cls.AUTORIZADO_EVENTO_DIETA_ESPECIAL,
             tipo_doc=cls.TP_SOL_DIETA_ESPECIAL,
