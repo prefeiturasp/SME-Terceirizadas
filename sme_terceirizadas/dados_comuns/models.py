@@ -228,6 +228,7 @@ class Endereco(ExportModelOperationsMixin('endereco'), models.Model):
 
 
 class Contato(ExportModelOperationsMixin('contato'), models.Model):
+    nome = models.CharField('Nome', max_length=160, blank=True)
     telefone = models.CharField(
         max_length=13,
         validators=[MinLengthValidator(8)],
