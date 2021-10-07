@@ -62,9 +62,18 @@ class LogSolicitacoesSerializer(serializers.ModelSerializer):
         read_only=True
     )
 
+    anexos = serializers.SerializerMethodField()
+
+    def get_anexos(self, obj):
+        return AnexoLogSolicitacoesUsuarioSerializer(
+            AnexoLogSolicitacoesUsuario.objects.filter(
+                log=obj
+            ), many=True
+        ).data
+
     class Meta:
         model = LogSolicitacoesUsuario
-        fields = ('status_evento_explicacao', 'criado_em', 'descricao', 'justificativa', 'resposta_sim_nao')
+        fields = ('status_evento_explicacao', 'criado_em', 'descricao', 'justificativa', 'resposta_sim_nao', 'anexos')
 
 
 class LogSolicitacoesUsuarioComVinculoSerializer(LogSolicitacoesUsuarioSerializer):
