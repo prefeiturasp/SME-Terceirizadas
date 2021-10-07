@@ -26,6 +26,8 @@ from ....terceirizada.api.serializers.serializers import TerceirizadaSimplesSeri
 from ...models import (
     AnaliseSensorial,
     AnexoReclamacaoDeProduto,
+    EmbalagemProduto,
+    EspecificacaoProduto,
     Fabricante,
     HomologacaoDoProduto,
     ImagemDoProduto,
@@ -40,7 +42,8 @@ from ...models import (
     ReclamacaoDeProduto,
     RespostaAnaliseSensorial,
     SolicitacaoCadastroProdutoDieta,
-    TipoDeInformacaoNutricional
+    TipoDeInformacaoNutricional,
+    UnidadeMedida
 )
 
 
@@ -210,6 +213,27 @@ class HomologacaoProdutoComUltimoLogSerializer(serializers.ModelSerializer):
                   'status_titulo', 'protocolo_analise_sensorial', 'data_cadastro')
 
 
+class UnidadeMedidaSerialzer(serializers.ModelSerializer):
+    class Meta:
+        model = UnidadeMedida
+        fields = ('uuid', 'nome')
+
+
+class EmbalagemProdutoSerialzer(serializers.ModelSerializer):
+    class Meta:
+        model = EmbalagemProduto
+        fields = ('uuid', 'nome')
+
+
+class EspecificacaoProdutoSerializer(serializers.ModelSerializer):
+    unidade_de_medida = UnidadeMedidaSerialzer()
+    embalagem_produto = EmbalagemProdutoSerialzer()
+
+    class Meta:
+        model = EspecificacaoProduto
+        exclude = ('id', 'produto')
+
+
 class ProdutoSerializer(serializers.ModelSerializer):
     protocolos = ProtocoloDeDietaEspecialSerializer(many=True)
     marca = MarcaSerializer()
@@ -225,6 +249,8 @@ class ProdutoSerializer(serializers.ModelSerializer):
 
     ultima_homologacao = HomologacaoProdutoComUltimoLogSerializer()
 
+    especificacoes = serializers.SerializerMethodField()
+
     def get_homologacoes(self, obj):
         return HomologacaoProdutoComUltimoLogSerializer(
             HomologacaoDoProduto.objects.filter(
@@ -236,6 +262,13 @@ class ProdutoSerializer(serializers.ModelSerializer):
     def get_informacoes_nutricionais(self, obj):
         return InformacoesNutricionaisDoProdutoSerializer(
             InformacoesNutricionaisDoProduto.objects.filter(
+                produto=obj
+            ), many=True
+        ).data
+
+    def get_especificacoes(self, obj):
+        return EspecificacaoProdutoSerializer(
+            EspecificacaoProduto.objects.filter(
                 produto=obj
             ), many=True
         ).data

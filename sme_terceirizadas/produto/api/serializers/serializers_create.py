@@ -9,6 +9,8 @@ from ....terceirizada.models import Terceirizada
 from ...models import (
     AnexoReclamacaoDeProduto,
     AnexoRespostaAnaliseSensorial,
+    EmbalagemProduto,
+    EspecificacaoProduto,
     Fabricante,
     HomologacaoDoProduto,
     ImagemDoProduto,
@@ -19,7 +21,8 @@ from ...models import (
     ProtocoloDeDietaEspecial,
     ReclamacaoDeProduto,
     RespostaAnaliseSensorial,
-    SolicitacaoCadastroProdutoDieta
+    SolicitacaoCadastroProdutoDieta,
+    UnidadeMedida
 )
 from ...utils import changes_between, mudancas_para_justificativa_html
 
@@ -52,6 +55,25 @@ class InformacoesNutricionaisDoProdutoSerializerCreate(serializers.ModelSerializ
         exclude = ('id', 'produto',)
 
 
+class EspecificacaoProdutoCreateSerializer(serializers.ModelSerializer):
+    unidade_de_medida = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=UnidadeMedida.objects.all(),
+        allow_null=True
+    )
+    embalagem_produto = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=EmbalagemProduto.objects.all(),
+        allow_null=True
+    )
+
+    class Meta:
+        model = EspecificacaoProduto
+        exclude = ('id', 'produto',)
+
+
 class ProdutoSerializerCreate(serializers.ModelSerializer):
     protocolos = serializers.SlugRelatedField(
         slug_field='uuid',
@@ -76,6 +98,7 @@ class ProdutoSerializerCreate(serializers.ModelSerializer):
     informacoes_nutricionais = InformacoesNutricionaisDoProdutoSerializerCreate(many=True)
     cadastro_finalizado = serializers.BooleanField(required=False)
     cadastro_atualizado = serializers.BooleanField(required=False)
+    especificacoes = EspecificacaoProdutoCreateSerializer(many=True)
 
     def create(self, validated_data):  # noqa C901
         validated_data['criado_por'] = self.context['request'].user
@@ -83,6 +106,7 @@ class ProdutoSerializerCreate(serializers.ModelSerializer):
         protocolos = validated_data.pop('protocolos', [])
         informacoes_nutricionais = validated_data.pop('informacoes_nutricionais', [])
         cadastro_finalizado = validated_data.pop('cadastro_finalizado', False)
+        especificacoes_produto = validated_data.pop('especificacoes', [])
 
         produto = Produto.objects.create(**validated_data)
 
@@ -98,6 +122,14 @@ class ProdutoSerializerCreate(serializers.ModelSerializer):
                 informacao_nutricional=informacao.get('informacao_nutricional', ''),
                 quantidade_porcao=informacao.get('quantidade_porcao', ''),
                 valor_diario=informacao.get('valor_diario', '')
+            )
+
+        for especificacao in especificacoes_produto:
+            EspecificacaoProduto.objects.create(
+                produto=produto,
+                volume=especificacao.get('volume', ''),
+                unidade_de_medida=especificacao.get('unidade_de_medida', ''),
+                embalagem_produto=especificacao.get('embalagem_produto', '')
             )
 
         produto.protocolos.set(protocolos)
@@ -120,10 +152,12 @@ class ProdutoSerializerCreate(serializers.ModelSerializer):
         imagens = validated_data.pop('imagens', [])
         protocolos = validated_data.pop('protocolos', [])
         informacoes_nutricionais = validated_data.pop('informacoes_nutricionais', [])
+        especificacoes_produto = validated_data.pop('especificacoes', [])
 
         update_instance_from_dict(instance, validated_data, save=True)
 
         instance.informacoes_nutricionais.all().delete()
+        instance.especificacoes.all().delete()
 
         if 'imagens' in mudancas and 'exclusoes' in mudancas['imagens']:
             for imagem in mudancas['imagens']['exclusoes']:
@@ -146,6 +180,14 @@ class ProdutoSerializerCreate(serializers.ModelSerializer):
                 informacao_nutricional=informacao.get('informacao_nutricional', ''),
                 quantidade_porcao=informacao.get('quantidade_porcao', ''),
                 valor_diario=informacao.get('valor_diario', '')
+            )
+
+        for especificacao in especificacoes_produto:
+            EspecificacaoProduto.objects.create(
+                produto=instance,
+                volume=especificacao.get('volume', ''),
+                unidade_de_medida=especificacao.get('unidade_de_medida', ''),
+                embalagem_produto=especificacao.get('embalagem_produto', '')
             )
 
         instance.protocolos.set([])

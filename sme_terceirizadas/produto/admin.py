@@ -2,6 +2,7 @@ from django.contrib import admin
 
 from .forms import NomeDeProdutoEditalForm
 from .models import (
+    EmbalagemProduto,
     Fabricante,
     HomologacaoDoProduto,
     ImagemDoProduto,
@@ -16,7 +17,8 @@ from .models import (
     ReclamacaoDeProduto,
     RespostaAnaliseSensorial,
     SolicitacaoCadastroProdutoDieta,
-    TipoDeInformacaoNutricional
+    TipoDeInformacaoNutricional,
+    UnidadeMedida
 )
 
 
@@ -38,6 +40,18 @@ class MarcaModelAdmin(admin.ModelAdmin):
 
 @admin.register(Fabricante)
 class FabricanteModelAdmin(admin.ModelAdmin):
+    search_fields = ('nome',)
+    ordering = ('nome',)
+
+
+@admin.register(UnidadeMedida)
+class UnidadeMedidaModelAdmin(admin.ModelAdmin):
+    search_fields = ('nome',)
+    ordering = ('nome',)
+
+
+@admin.register(EmbalagemProduto)
+class EmbalagemProdutoModelAdmin(admin.ModelAdmin):
     search_fields = ('nome',)
     ordering = ('nome',)
 
