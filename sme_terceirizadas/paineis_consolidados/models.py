@@ -970,7 +970,8 @@ class SolicitacoesTerceirizada(MoldeConsolidado):
             terceirizada_uuid=terceirizada_uuid,
             status_atual__in=cls.AUTORIZADO_STATUS_DIETA_ESPECIAL,
             status_evento__in=cls.AUTORIZADO_EVENTO_DIETA_ESPECIAL,
-            tipo_doc=cls.TP_SOL_DIETA_ESPECIAL
+            tipo_doc=cls.TP_SOL_DIETA_ESPECIAL,
+            ativo=True
         ).distinct().order_by('-data_log')
 
     @classmethod
@@ -987,10 +988,17 @@ class SolicitacoesTerceirizada(MoldeConsolidado):
     def get_cancelados_dieta_especial(cls, **kwargs):
         terceirizada_uuid = kwargs.get('terceirizada_uuid')
         return cls.objects.filter(
-            terceirizada_uuid=terceirizada_uuid,
-            status_atual__in=cls.CANCELADOS_STATUS_DIETA_ESPECIAL,
-            status_evento__in=cls.CANCELADOS_EVENTO_DIETA_ESPECIAL,
-            tipo_doc=cls.TP_SOL_DIETA_ESPECIAL
+            Q(
+                tipo_solicitacao_dieta='ALTERACAO_UE',
+                status_atual__in=cls.CANCELADOS_STATUS_DIETA_ESPECIAL_TEMP,
+                status_evento__in=cls.CANCELADOS_EVENTO_DIETA_ESPECIAL_TEMP,
+            ) | Q(
+                tipo_solicitacao_dieta='COMUM',
+                status_atual__in=cls.CANCELADOS_STATUS_DIETA_ESPECIAL,
+                status_evento__in=cls.CANCELADOS_EVENTO_DIETA_ESPECIAL,
+            ),
+            tipo_doc=cls.TP_SOL_DIETA_ESPECIAL,
+            terceirizada_uuid=terceirizada_uuid
         ).distinct().order_by('-data_log')
 
     @classmethod

@@ -19,7 +19,7 @@ from ..dados_comuns.behaviors import (
 from ..dados_comuns.fluxo_status import FluxoDietaEspecialPartindoDaEscola
 from ..dados_comuns.models import LogSolicitacoesUsuario, TemplateMensagem
 from ..dados_comuns.utils import convert_base64_to_contentfile
-from ..dados_comuns.validators import nao_pode_ser_no_passado
+from ..dados_comuns.validators import nao_pode_ser_no_passado # noqa
 from ..escola.api.serializers import AlunoSerializer
 from ..escola.models import Aluno, Escola
 from .managers import AlimentoProprioManager
@@ -125,7 +125,7 @@ class SolicitacaoDietaEspecial(
     justificativa_negacao = models.TextField(blank=True)
 
     data_termino = models.DateField(
-        null=True, validators=[nao_pode_ser_no_passado])
+        null=True) # , validators=[nao_pode_ser_no_passado] # noqa
 
     motivo_alteracao_ue = models.ForeignKey(
         'MotivoAlteracaoUE',
