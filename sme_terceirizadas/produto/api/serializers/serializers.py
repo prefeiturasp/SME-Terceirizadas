@@ -3,6 +3,7 @@ import datetime
 from rest_framework import serializers
 
 from ....dados_comuns.api.serializers import (
+    AnexoLogSolicitacoesUsuarioSerializer,
     ContatoSerializer,
     LogSolicitacoesSerializer,
     LogSolicitacoesUsuarioComAnexosSerializer,
@@ -603,6 +604,12 @@ class ReclamacaoDeProdutoRelatorioSerializer(serializers.ModelSerializer):
     status_titulo = serializers.CharField(source='status.state.title')
     logs = LogSolicitacoesSerializer(many=True)
     usuario = serializers.SerializerMethodField()
+    anexos = serializers.SerializerMethodField()
+
+    def get_anexos(self, obj):
+        return AnexoLogSolicitacoesUsuarioSerializer(
+            obj.anexos, many=True
+        ).data
 
     def get_usuario(self, obj):
         return UsuarioSerializer(
@@ -613,7 +620,7 @@ class ReclamacaoDeProdutoRelatorioSerializer(serializers.ModelSerializer):
     class Meta:
         model = ReclamacaoDeProduto
         fields = ('uuid', 'reclamante_registro_funcional', 'logs', 'reclamante_cargo', 'reclamante_nome',
-                  'reclamacao', 'escola', 'usuario', 'status', 'status_titulo', 'criado_em', 'id_externo')
+                  'reclamacao', 'escola', 'usuario', 'status', 'status_titulo', 'criado_em', 'id_externo', 'anexos')
 
 
 class HomologacaoReclamacaoSerializer(serializers.ModelSerializer):
