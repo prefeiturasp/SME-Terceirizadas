@@ -11,6 +11,7 @@ from ..dados_comuns.behaviors import (
     CriadoPor,
     Logs,
     Nomeavel,
+    TemAlteradoEm,
     TemChaveExterna,
     TemIdentificadorExternoAmigavel
 )
@@ -48,6 +49,20 @@ class Fabricante(Nomeavel, TemChaveExterna):
 
 class Marca(Nomeavel, TemChaveExterna):
     item = GenericRelation('ItemCadastro', related_query_name='marca')
+
+    def __str__(self):
+        return self.nome
+
+
+class UnidadeMedida(Nomeavel, TemChaveExterna):
+    item = GenericRelation('ItemCadastro', related_query_name='unidade_medida')
+
+    def __str__(self):
+        return self.nome
+
+
+class EmbalagemProduto(Nomeavel, TemChaveExterna):
+    item = GenericRelation('ItemCadastro', related_query_name='embalagem_produto')
 
     def __str__(self):
         return self.nome
@@ -107,6 +122,7 @@ class Produto(Ativavel, CriadoEm, CriadoPor, Nomeavel, TemChaveExterna, TemIdent
 
     porcao = models.CharField('Porção nutricional', blank=True, max_length=50)
     unidade_caseira = models.CharField('Unidade nutricional', blank=True, max_length=50)
+    tem_gluten = models.BooleanField('Tem Glúten?', default=False)
 
     @property
     def imagens(self):
@@ -479,7 +495,8 @@ class ItemCadastro(TemChaveExterna, CriadoEm):
         (EMBALAGEM, MODELOS[EMBALAGEM]),
     )
 
-    CLASSES = {MARCA: Marca, FABRICANTE: Fabricante}
+    CLASSES = {MARCA: Marca, FABRICANTE: Fabricante,
+               UNIDADE_MEDIDA: UnidadeMedida, EMBALAGEM: EmbalagemProduto}
 
     tipo = models.CharField(
         'Tipo',
@@ -501,13 +518,17 @@ class ItemCadastro(TemChaveExterna, CriadoEm):
     def eh_tipo_permitido(cls, tipo: str) -> bool:
         return tipo in [c[0] for c in cls.CHOICES]
 
-    def pode_deletar(self):
+    def pode_deletar(self): # noqa C901
         from sme_terceirizadas.produto.models import Produto
 
         if self.tipo == self.MARCA:
             return not Produto.objects.filter(marca__pk=self.content_object.pk).exists()
         elif self.tipo == self.FABRICANTE:
             return not Produto.objects.filter(fabricante__pk=self.content_object.pk).exists()
+        elif self.tipo == self.UNIDADE_MEDIDA:
+            return not Produto.objects.filter(unidade_medida__pk=self.content_object.pk).exists()
+        elif self.tipo == self.EMBALAGEM:
+            return not Produto.objects.filter(embalagem__pk=self.content_object.pk).exists()
 
         return True
 
@@ -541,3 +562,22 @@ class ItemCadastro(TemChaveExterna, CriadoEm):
             return True
 
         return False
+
+
+class EspecificacaoProduto(CriadoEm, TemAlteradoEm, TemChaveExterna):
+    """Representa uma especificação de produto.
+
+    Usado na criação do produto e na edição dos rascunhos.
+    Ex: Para o produto coca-cola pode-se ter:
+    volume: 3, unidade de medida: Litros, embalagem: bag
+    volume: 1,5, unidade de medida: Litros, embalagem: bag
+    """
+
+    volume = models.FloatField('Volume', null=True)
+    produto = models.ForeignKey(Produto, on_delete=models.CASCADE, related_name='especificacoes')
+    unidade_de_medida = models.ForeignKey(UnidadeMedida, on_delete=models.DO_NOTHING, null=True)
+    embalagem_produto = models.ForeignKey(EmbalagemProduto, on_delete=models.DO_NOTHING, null=True)
+
+    class Meta:
+        verbose_name = 'Especificicação do Produto'
+        verbose_name_plural = 'Especificações do Produto'

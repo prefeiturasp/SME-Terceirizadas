@@ -141,6 +141,16 @@ def fabricante():
 
 
 @pytest.fixture
+def unidade_medida():
+    return mommy.make('UnidadeMedida', nome='Litros')
+
+
+@pytest.fixture
+def embalagem_produto():
+    return mommy.make('EmbalagemProduto', nome='Bag')
+
+
+@pytest.fixture
 def produto(user, protocolo1, protocolo2, marca1, fabricante):
     return mommy.make('Produto',
                       criado_por=user,
@@ -207,6 +217,15 @@ def info_nutricional_produto3(produto, info_nutricional3):
         informacao_nutricional=info_nutricional3,
         quantidade_porcao='5',
         valor_diario='6')
+
+
+@pytest.fixture
+def especificacao_produto1(produto, unidade_medida, embalagem_produto):
+    return mommy.make('EspecificacaoProduto',
+                      volume=1.5,
+                      produto=produto,
+                      unidade_de_medida=unidade_medida,
+                      embalagem_produto=embalagem_produto)
 
 
 @pytest.fixture
@@ -332,6 +351,13 @@ def homologacao_produto_gpcodae_questionou_nutrisupervisor(homologacao_produto):
 
 
 @pytest.fixture
+def homologacao_produto_rascunho(homologacao_produto):
+    homologacao_produto.status = HomologacaoProdutoWorkflow.RASCUNHO
+    homologacao_produto.save()
+    return homologacao_produto
+
+
+@pytest.fixture
 def reclamacao_ue(homologacao_produto_gpcodae_questionou_escola, escola, user):
     reclamacao = mommy.make('ReclamacaoDeProduto',
                             homologacao_de_produto=homologacao_produto_gpcodae_questionou_escola,
@@ -373,3 +399,19 @@ def item_cadastrado_2(fabricante):
                       tipo='FABRICANTE',
                       content_type=ContentType.objects.get(model='fabricante'),
                       content_object=fabricante)
+
+
+@pytest.fixture
+def item_cadastrado_3(unidade_medida):
+    return mommy.make('ItemCadastro',
+                      tipo='UNIDADE_MEDIDA',
+                      content_type=ContentType.objects.get(model='unidademedida'),
+                      content_object=unidade_medida)
+
+
+@pytest.fixture
+def item_cadastrado_4(embalagem_produto):
+    return mommy.make('ItemCadastro',
+                      tipo='EMBALAGEM',
+                      content_type=ContentType.objects.get(model='embalagemproduto'),
+                      content_object=embalagem_produto)

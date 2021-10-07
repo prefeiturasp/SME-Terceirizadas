@@ -34,6 +34,16 @@ router.register(
     viewsets.ItensCadastroViewSet,
     basename='itens-cadastros'
 )
+router.register(
+    'unidades-medida',
+    viewsets.UnidadesDeMedidaViewSet,
+    basename='unidades-medida'
+)
+router.register(
+    'embalagens-produto',
+    viewsets.EmbalagemProdutoViewSet,
+    basename='embalagens-produto'
+)
 
 urlpatterns = [
     path('', include(router.urls)),

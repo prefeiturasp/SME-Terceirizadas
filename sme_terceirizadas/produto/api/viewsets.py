@@ -40,6 +40,7 @@ from ..constants import (
 from ..forms import ProdutoJaExisteForm, ProdutoPorParametrosForm
 from ..models import (
     AnaliseSensorial,
+    EmbalagemProduto,
     Fabricante,
     HomologacaoDoProduto,
     ImagemDoProduto,
@@ -51,7 +52,8 @@ from ..models import (
     ProtocoloDeDietaEspecial,
     ReclamacaoDeProduto,
     RespostaAnaliseSensorial,
-    SolicitacaoCadastroProdutoDieta
+    SolicitacaoCadastroProdutoDieta,
+    UnidadeMedida
 )
 from ..utils import (
     ItemCadastroPagination,
@@ -64,6 +66,7 @@ from ..utils import (
 )
 from .filters import ItemCadastroFilter, ProdutoFilter, filtros_produto_reclamacoes
 from .serializers.serializers import (
+    EmbalagemProdutoSerialzer,
     FabricanteSerializer,
     FabricanteSimplesSerializer,
     HomologacaoProdutoPainelGerencialSerializer,
@@ -88,7 +91,8 @@ from .serializers.serializers import (
     ReclamacaoDeProdutoSerializer,
     ReclamacaoDeProdutoSimplesSerializer,
     SolicitacaoCadastroProdutoDietaSerializer,
-    SubstitutosSerializer
+    SubstitutosSerializer,
+    UnidadeMedidaSerialzer
 )
 from .serializers.serializers_create import (
     ProdutoSerializerCreate,
@@ -1801,7 +1805,7 @@ class ItensCadastroViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
     queryset = ItemCadastro.objects.all().order_by('-criado_em')
     pagination_class = ItemCadastroPagination
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = ItemCadastroFilter
 
@@ -1829,3 +1833,41 @@ class ItensCadastroViewSet(viewsets.ModelViewSet):
 
     class Meta:
         model = ItemCadastro
+
+
+class UnidadesDeMedidaViewSet(viewsets.ModelViewSet):
+    lookup_field = 'uuid'
+    serializer_class = UnidadeMedidaSerialzer
+    queryset = UnidadeMedida.objects.all()
+    permission_classes = [IsAuthenticated]
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        if 'page' in request.query_params:
+            page = self.paginate_queryset(queryset)
+            if page is not None:
+                serializer = self.get_serializer(page, many=True)
+                return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({'results': serializer.data})
+
+
+class EmbalagemProdutoViewSet(viewsets.ModelViewSet):
+    lookup_field = 'uuid'
+    serializer_class = EmbalagemProdutoSerialzer
+    queryset = EmbalagemProduto.objects.all()
+    permission_classes = [IsAuthenticated]
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        if 'page' in request.query_params:
+            page = self.paginate_queryset(queryset)
+            if page is not None:
+                serializer = self.get_serializer(page, many=True)
+                return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({'results': serializer.data})
