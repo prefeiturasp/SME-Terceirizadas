@@ -6,7 +6,6 @@ from django_prometheus.models import ExportModelOperationsMixin
 from ..cardapio.models import AlteracaoCardapio, AlteracaoCardapioCEI, GrupoSuspensaoAlimentacao, InversaoCardapio
 from ..dados_comuns.behaviors import (
     Ativavel,
-    CriadoEm,
     IntervaloDeDia,
     Nomeavel,
     TemChaveExterna,
