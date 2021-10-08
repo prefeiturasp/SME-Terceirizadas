@@ -122,7 +122,7 @@ class Produto(Ativavel, CriadoEm, CriadoPor, Nomeavel, TemChaveExterna, TemIdent
 
     porcao = models.CharField('Porção nutricional', blank=True, max_length=50)
     unidade_caseira = models.CharField('Unidade nutricional', blank=True, max_length=50)
-    tem_gluten = models.BooleanField('Tem Glúten?', default=False)
+    tem_gluten = models.BooleanField('Tem Glúten?', null=True, default=None)
 
     @property
     def imagens(self):
@@ -526,9 +526,9 @@ class ItemCadastro(TemChaveExterna, CriadoEm):
         elif self.tipo == self.FABRICANTE:
             return not Produto.objects.filter(fabricante__pk=self.content_object.pk).exists()
         elif self.tipo == self.UNIDADE_MEDIDA:
-            return not Produto.objects.filter(unidade_medida__pk=self.content_object.pk).exists()
+            return not Produto.objects.filter(especificacoes__unidade_de_medida__pk=self.content_object.pk).exists()
         elif self.tipo == self.EMBALAGEM:
-            return not Produto.objects.filter(embalagem__pk=self.content_object.pk).exists()
+            return not Produto.objects.filter(especificacoes__embalagem_produto__pk=self.content_object.pk).exists()
 
         return True
 
