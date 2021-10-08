@@ -40,6 +40,7 @@ from sme_terceirizadas.logistica.api.serializers.serializers import (
     ConferenciaDaGuiaSerializer,
     ConferenciaIndividualPorAlimentoSerializer,
     GuiaDaRemessaComDistribuidorSerializer,
+    GuiaDaRemessaComStatusRequisicaoSerializer,
     GuiaDaRemessaSerializer,
     GuiaDaRemessaSimplesSerializer,
     InfoUnidadesSimplesDaGuiaSerializer,
@@ -595,7 +596,8 @@ class GuiaDaRequisicaoModelViewSet(viewsets.ModelViewSet):
     def lista_guias_para_insucesso(self, request):
         queryset = self.filter_queryset(self.get_queryset())
         queryset = queryset.annotate(
-            numero_requisicao=F('solicitacao__numero_solicitacao')
+            numero_requisicao=F('solicitacao__numero_solicitacao'),
+            status_requisicao=F('solicitacao__status')
         ).exclude(status__in=(
             GuiaRemessaWorkFlow.CANCELADA,
             GuiaRemessaWorkFlow.AGUARDANDO_ENVIO,
@@ -604,7 +606,7 @@ class GuiaDaRequisicaoModelViewSet(viewsets.ModelViewSet):
 
         page = self.paginate_queryset(queryset)
         if page is not None:
-            serializer = self.get_serializer(page, many=True)
+            serializer = GuiaDaRemessaComStatusRequisicaoSerializer(page, many=True)
             response = self.get_paginated_response(
                 serializer.data
             )
