@@ -247,7 +247,9 @@ class Contato(ExportModelOperationsMixin('contato'), models.Model):
     email = models.EmailField(blank=True)
 
     def __str__(self):
-        if self.telefone:
+        if self.nome and self.telefone:
+            return f'{self.nome}, {self.telefone}, {self.email}'
+        elif self.telefone:
             return f'{self.telefone}, {self.email}'
         elif self.telefone2:
             return f'{self.telefone2}, {self.email}'
