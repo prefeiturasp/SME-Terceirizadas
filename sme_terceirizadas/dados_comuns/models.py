@@ -228,6 +228,7 @@ class Endereco(ExportModelOperationsMixin('endereco'), models.Model):
 
 
 class Contato(ExportModelOperationsMixin('contato'), models.Model):
+    nome = models.CharField('Nome', max_length=160, blank=True)
     telefone = models.CharField(
         max_length=13,
         validators=[MinLengthValidator(8)],
@@ -246,7 +247,9 @@ class Contato(ExportModelOperationsMixin('contato'), models.Model):
     email = models.EmailField(blank=True)
 
     def __str__(self):
-        if self.telefone:
+        if self.nome and self.telefone:
+            return f'{self.nome}, {self.telefone}, {self.email}'
+        elif self.telefone:
             return f'{self.telefone}, {self.email}'
         elif self.telefone2:
             return f'{self.telefone2}, {self.email}'

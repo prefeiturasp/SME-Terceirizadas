@@ -12,8 +12,8 @@ from .models import (
 
 @admin.register(Contato)
 class ContatoAdmin(admin.ModelAdmin):
-    list_display = ('telefone', 'telefone2', 'email')
-    search_fields = ('telefone', 'telefone2', 'email')
+    list_display = ('email', 'nome', 'telefone', 'telefone2')
+    search_fields = ('email', 'nome', 'telefone', 'telefone2')
 
 
 admin.site.register(CategoriaPerguntaFrequente)
