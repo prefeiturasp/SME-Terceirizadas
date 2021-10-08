@@ -5,7 +5,7 @@ from faker import Faker
 from model_mommy import mommy
 from rest_framework.test import APIClient
 
-from ...perfil.models import Usuario
+from ...perfil.models import Perfil, Usuario
 from ..api.serializers.serializers import (
     ContratoSerializer,
     EditalContratosSerializer,
@@ -153,3 +153,8 @@ def terceirizada():
 @pytest.fixture
 def nutricionista():
     return mommy.make(Nutricionista, nome='nutri')
+
+
+@pytest.fixture
+def perfil_distribuidor():
+    return mommy.make(Perfil, nome='ADMINISTRADOR_DISTRIBUIDORA')

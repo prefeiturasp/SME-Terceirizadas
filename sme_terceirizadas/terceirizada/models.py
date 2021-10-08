@@ -123,6 +123,8 @@ class Terceirizada(ExportModelOperationsMixin('terceirizada'), TemChaveExterna, 
                            validators=[MinLengthValidator(11)])
     responsavel_telefone = models.CharField('Responsável contato (telefone)', max_length=160, blank=True)
     responsavel_cargo = models.CharField('Responsável cargo', max_length=50, blank=True)
+    # OBS.: Uso exclusivo do modulo de abastecimento(logistica).
+    # Não tem relação com o processo do edital com associação de contrato a empresa.
     numero_contrato = models.CharField('Número de contrato', max_length=50, blank=True)
     tipo_empresa = models.CharField(choices=TIPO_EMPRESA_CHOICES, max_length=25, default=TERCEIRIZADA)
     tipo_alimento = models.CharField(choices=TIPO_ALIMENTO_CHOICES, max_length=25, default=TIPO_ALIMENTO_TERCEIRIZADA)
