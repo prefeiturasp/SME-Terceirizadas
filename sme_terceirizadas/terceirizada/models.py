@@ -68,7 +68,7 @@ class Nutricionista(ExportModelOperationsMixin('nutricionista'), TemChaveExterna
 
 
 class Terceirizada(ExportModelOperationsMixin('terceirizada'), TemChaveExterna, Ativavel,
-                   TemIdentificadorExternoAmigavel, TemVinculos, CriadoEm):
+                   TemIdentificadorExternoAmigavel, TemVinculos):
     # Tipo Empresa Choice
     ARMAZEM_DISTRIBUIDOR = 'ARMAZEM/DISTRIBUIDOR'
     FORNECEDOR_DISTRIBUIDOR = 'FORNECEDOR/DISTRIBUIDOR'
@@ -127,6 +127,7 @@ class Terceirizada(ExportModelOperationsMixin('terceirizada'), TemChaveExterna, 
     numero_contrato = models.CharField('Número de contrato', max_length=50, blank=True)
     tipo_empresa = models.CharField(choices=TIPO_EMPRESA_CHOICES, max_length=25, default=TERCEIRIZADA)
     tipo_alimento = models.CharField(choices=TIPO_ALIMENTO_CHOICES, max_length=25, default=TIPO_ALIMENTO_TERCEIRIZADA)
+    criado_em = models.DateTimeField('Criado em', editable=False, auto_now_add=True)
 
     # TODO: criar uma tabela central (Instituição) para agregar Escola, DRE, Terc e CODAE???
     # e a partir dai a instituição que tem contatos e endereço?
