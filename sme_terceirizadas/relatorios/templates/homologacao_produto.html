@@ -12,25 +12,26 @@
     padding-left: 0.75em;
     padding-top: 0em;
     line-height: 10px;
-    }
+  }
 
-    .justificativa-motivo .label{
-      height: 20px;
-      display: flex;
-      font-style: normal;
-      font-weight: normal;
-      font-size: 12px;
-      color: #686868;
-    }
+  .justificativa-motivo .label {
+    height: 20px;
+    display: flex;
+    font-style: normal;
+    font-weight: normal;
+    font-size: 12px;
+    color: #686868;
+  }
 
-    .justificativa-motivo .value{
-      height: 20px;
-      display: flex;
-      font-weight: 500;
-      font-size: 12px;
-      color: #000000;
-      margin-top: 7px;
-    }
+  .justificativa-motivo .value {
+    height: 20px;
+    display: flex;
+    font-weight: 500;
+    font-size: 12px;
+    color: #000000;
+    margin-top: 7px;
+  }
+
   .nova-pagina-bloco {
     display: inline-block !important;
   }
@@ -39,29 +40,13 @@
 {% block conteudo %}
 <header class="header">
   <figure class="logo-titulo">
-    <img src="{% static 'images/LOGO_PB_POSITIVO.png' %}" alt=""/>
+    <img src="{% static 'images/LOGO_PB_POSITIVO.png' %}" alt="" />
     <h1>SISTEMA GESTÃO DO PROGRAMA DE ALIMENTAÇÃO ESCOLAR</h1>
   </figure>
   <section class="conteudo-titulo">
-    <article class="article-pedido-lote">
-      <h2>N° PEDIDO: {{ homologacao.id_externo }}</h2>
-      <section class="">
-        <h3>LOTE:</h3>
-        <ul class="lista-lotes">
-          {% for lote in terceirizada.lotes.all %}
-          <li>{{ lote.nome }};</li>
-          {% endfor %}
-        </ul>
-      </section>
-    </article>
     <article class="article-dre">
       <section>
-        <h3 class="dre-header">DRE:</h3>
-        <ul>
-          {% for diretoria_regional in diretorias_regionais %}
-          <li>{{ diretoria_regional.nome }}</li>
-          {% endfor %}
-        </ul>
+        <h3 class="n-pedido-header">N° PEDIDO: {{ homologacao.id_externo }}</h3>
       </section>
     </article>
   </section>
@@ -69,42 +54,46 @@
 <p style="page-break-before: avoid;"></p>
 <section class="corpo-relatorio-produto">
   {% if homologacao.status == 'CODAE_NAO_HOMOLOGADO' %}
-    <div class="label">Motivo da recusa de homologação (Data: {{ homologacao.logs.last.criado_em|date:'d/m/Y' }})</div>
-    <article class="justificativa-motivo">
-      {{ homologacao.logs.last.justificativa|safe }}
-    </article>
+  <div class="label">Motivo da recusa de homologação (Data: {{ homologacao.logs.last.criado_em|date:'d/m/Y' }})</div>
+  <article class="justificativa-motivo">
+    {{ homologacao.logs.last.justificativa|safe }}
+  </article>
   {% endif %}
   {% if homologacao.status == 'CODAE_SUSPENDEU' %}
-    <div class="label">Motivo da suspensão (Data: {{ homologacao.logs.last.criado_em|date:'d/m/Y' }})</div>
-    <article class="justificativa-motivo">
-      {{ homologacao.logs.last.justificativa|safe }}
-    </article>
+  <div class="label">Motivo da suspensão (Data: {{ homologacao.logs.last.criado_em|date:'d/m/Y' }})</div>
+  <article class="justificativa-motivo">
+    {{ homologacao.logs.last.justificativa|safe }}
+  </article>
   {% endif %}
   {% if homologacao.status == 'CODAE_QUESTIONADO' %}
-    <div class="label">Motivo da solicitação de correção do produto (Data: {{ homologacao.logs.last.criado_em|date:'d/m/Y' }})</div>
-    <article class="justificativa-motivo">
-      {{ homologacao.logs.last.justificativa|safe }}
-    </article>
+  <div class="label">Motivo da solicitação de correção do produto (Data: {{ homologacao.logs.last.criado_em|date:'d/m/Y'
+    }})</div>
+  <article class="justificativa-motivo">
+    {{ homologacao.logs.last.justificativa|safe }}
+  </article>
   {% endif %}
 
-   {% if homologacao.status == 'CODAE_AUTORIZOU_RECLAMACAO' %}
-    <article class="justificativa-motivo">
-        <div class="value">Reclamação aceita pela equipe de gestão de produto CODAE em {{ reclamacao.ultimo_log.criado_em|date:'d/m/Y' }} </div>
-       <div class="label">Para mais detalhes favor extrair o relatório de reclamação de produto</div>
-    </article>
+  {% if homologacao.status == 'CODAE_AUTORIZOU_RECLAMACAO' %}
+  <article class="justificativa-motivo">
+    <div class="value">Reclamação aceita pela equipe de gestão de produto CODAE em {{
+      reclamacao.ultimo_log.criado_em|date:'d/m/Y' }} </div>
+    <div class="label">Para mais detalhes favor extrair o relatório de reclamação de produto</div>
+  </article>
   {% endif %}
 
   {% if homologacao.status == 'CODAE_PEDIU_ANALISE_SENSORIAL' %}
-    <div style="display: flex; justify-content: space-between;">
-      <div class="label">Solicitação de análise sensorial:</div>
-      <div class="label">Protocolo Análise Sensorial: {{ homologacao.protocolo_analise_sensorial }}</div>
-    </div>
-    <article class="detalhes-empresa" style="height: auto">
-      <div style="width: 100%; display: flex; justify-content: space-between; padding: 0 10px">
-        <div class="value" style="height: auto"><div>{{ justificativa_analise_sensorial|safe }}</div></div>
+  <div style="display: flex; justify-content: space-between;">
+    <div class="label">Solicitação de análise sensorial:</div>
+    <div class="label">Protocolo Análise Sensorial: {{ homologacao.protocolo_analise_sensorial }}</div>
+  </div>
+  <article class="detalhes-empresa" style="height: auto">
+    <div style="width: 100%; display: flex; justify-content: space-between; padding: 0 10px">
+      <div class="value" style="height: auto">
+        <div>{{ justificativa_analise_sensorial|safe }}</div>
       </div>
-    </article>
-    <br>
+    </div>
+  </article>
+  <br>
   {% endif %}
 
   <article class="detalhes-empresa">
