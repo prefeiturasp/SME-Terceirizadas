@@ -106,16 +106,16 @@ def test_alteracao_cardapio_validators(alteracao_card_params):
     class FakeObject(object):
         user = mommy.make('perfil.Usuario')
 
-    data_inicial, data_final, combo1, combo2, sub1, sub2 = alteracao_card_params
+    motivo, data_inicial, data_final, combo1, combo2, sub1, sub2 = alteracao_card_params
 
     serializer_obj = AlteracaoCardapioSerializerCreate(context={'request': FakeObject})
     substituicoes_dict = []
     substituicoes_dict.append(dict(tipo_alimentacao_de=combo1, tipo_alimentacao_para=sub1))
     substituicoes_dict.append(dict(tipo_alimentacao_de=combo2, tipo_alimentacao_para=sub2))
-    resp_dt_inicial = serializer_obj.validate_data_inicial(data_inicial=data_inicial)
+    resp_dt_inicial = serializer_obj.validate({'motivo': motivo, 'data_inicial': data_inicial})
     resp_substicuicoes = serializer_obj.validate_substituicoes(substituicoes=substituicoes_dict)
 
-    assert resp_dt_inicial == data_inicial
+    assert isinstance(resp_dt_inicial, dict)
     assert resp_substicuicoes == substituicoes_dict
 
 
