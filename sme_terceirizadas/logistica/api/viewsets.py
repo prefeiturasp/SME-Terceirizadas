@@ -23,6 +23,7 @@ from sme_terceirizadas.dados_comuns.permissions import (
     UsuarioDilogCodae,
     UsuarioDilogOuDistribuidor,
     UsuarioDilogOuDistribuidorOuEscolaAbastecimento,
+    UsuarioDiretoriaRegional,
     UsuarioDistribuidor,
     UsuarioEscolaAbastecimento
 )
@@ -59,7 +60,7 @@ from sme_terceirizadas.logistica.models import Guia as GuiasDasRequisicoes
 from sme_terceirizadas.logistica.models import SolicitacaoDeAlteracaoRequisicao, SolicitacaoRemessa
 from sme_terceirizadas.logistica.services import arquiva_guias, confirma_guias, desarquiva_guias
 
-from ...escola.models import Escola
+from ...escola.models import DiretoriaRegional, Escola
 from ...relatorios.relatorios import get_pdf_guia_distribuidor, relatorio_guia_de_remessa
 from ..models.guia import InsucessoEntregaGuia
 from ..utils import GuiaPagination, RequisicaoPagination, SolicitacaoAlteracaoPagination
@@ -289,7 +290,7 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
         response = {'results': SolicitacaoRemessaLookUpSerializer(queryset, many=True).data}
         return Response(response)
 
-    @action(detail=False, permission_classes=[UsuarioDilogOuDistribuidor],
+    @action(detail=False, permission_classes=[UsuarioDilogOuDistribuidor | UsuarioDiretoriaRegional],
             methods=['GET'], url_path='lista-requisicoes-confirmadas')
     def lista_requisicoes_confirmadas(self, request):
         queryset = self.filter_queryset(
@@ -298,26 +299,30 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
         if(self.request.user.vinculo_atual.perfil.nome == 'ADMINISTRADOR_DISTRIBUIDORA'):
             queryset = queryset.filter(distribuidor=self.request.user.vinculo_atual.instituicao)
 
+        if(isinstance(self.request.user.vinculo_atual.instituicao, DiretoriaRegional)):
+            lista_ids_escolas = self.request.user.vinculo_atual.instituicao.escolas.values_list('id', flat='True')
+            queryset = queryset.filter(guias__escola__id__in=lista_ids_escolas).distinct()
+
         queryset = queryset.annotate(
-            qtd_guias=Count('guias', distinct=True),
+            qtd_guias=Count('guias'),
             distribuidor_nome=F('distribuidor__razao_social'),
             data_entrega=Max('guias__data_entrega'),
             guias_pendentes=Count(
-                'guias__status', filter=Q(guias__status=GuiaRemessaWorkFlow.PENDENTE_DE_CONFERENCIA), distinct=True),
+                'guias__status', filter=Q(guias__status=GuiaRemessaWorkFlow.PENDENTE_DE_CONFERENCIA)),
             guias_insucesso=Count(
                 'guias__status',
                 filter=Q(guias__status=GuiaRemessaWorkFlow.DISTRIBUIDOR_REGISTRA_INSUCESSO),
                 distinct=True),
-            guias_recebidas=Count('guias__status', filter=Q(guias__status=GuiaRemessaWorkFlow.RECEBIDA), distinct=True),
+            guias_recebidas=Count('guias__status', filter=Q(guias__status=GuiaRemessaWorkFlow.RECEBIDA)),
             guias_parciais=Count(
-                'guias__status', filter=Q(guias__status=GuiaRemessaWorkFlow.RECEBIMENTO_PARCIAL), distinct=True),
+                'guias__status', filter=Q(guias__status=GuiaRemessaWorkFlow.RECEBIMENTO_PARCIAL)),
             guias_nao_recebidas=Count(
-                'guias__status', filter=Q(guias__status=GuiaRemessaWorkFlow.NAO_RECEBIDA), distinct=True),
+                'guias__status', filter=Q(guias__status=GuiaRemessaWorkFlow.NAO_RECEBIDA)),
             guias_reposicao_parcial=Count('guias__status', filter=Q(
                 guias__status=GuiaRemessaWorkFlow.REPOSICAO_PARCIAL
-            ), distinct=True),
+            )),
             guias_reposicao_total=Count(
-                'guias__status', filter=Q(guias__status=GuiaRemessaWorkFlow.REPOSICAO_TOTAL), distinct=True),
+                'guias__status', filter=Q(guias__status=GuiaRemessaWorkFlow.REPOSICAO_TOTAL)),
         ).order_by('guias__data_entrega').distinct()
 
         page = self.paginate_queryset(queryset)
