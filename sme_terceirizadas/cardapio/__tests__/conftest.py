@@ -566,7 +566,7 @@ def alteracao_card_params(request):
                                tipos_alimentacao=[alimentacao3, alimentacao1], combo=combo1)
     substituicao2 = mommy.make('cardapio.SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE',
                                tipos_alimentacao=[alimentacao5, alimentacao2], combo=combo2)
-    motivo = mommy.make('cardapio.MotivoSuspensao', nome='outro', uuid='478b09e1-4c14-4e50-a446-fbc0af727a09')                               
+    motivo = mommy.make('cardapio.MotivoSuspensao', nome='outro', uuid='478b09e1-4c14-4e50-a446-fbc0af727a09')
 
     data_inicial, data_final = request.param
     return motivo, data_inicial, data_final, combo1, combo2, substituicao1, substituicao2

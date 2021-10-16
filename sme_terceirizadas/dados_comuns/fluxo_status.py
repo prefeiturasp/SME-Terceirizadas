@@ -81,7 +81,7 @@ class PedidoAPartirDaEscolaWorkflow(xwf_models.Workflow):
         ('codae_autoriza', DRE_VALIDADO, CODAE_AUTORIZADO),
         ('codae_questiona', DRE_VALIDADO, CODAE_QUESTIONADO),
         ('codae_autoriza_questionamento',
-         TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO, CODAE_AUTORIZADO),
+         [DRE_VALIDADO, TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO], CODAE_AUTORIZADO),
         ('codae_nega_questionamento',
          TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO, CODAE_NEGOU_PEDIDO),
         ('codae_nega', [DRE_VALIDADO, CODAE_QUESTIONADO], CODAE_NEGOU_PEDIDO),
