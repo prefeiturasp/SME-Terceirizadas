@@ -105,7 +105,7 @@ pipeline {
                             sh 'kubectl rollout restart deployment/sigpae-celery -n sme-sigpae-treino'
 			    sh 'kubectl rollout restart deployment/sigpae-frontend -n sme-sigpae-treino'
                             sh('rm -f '+"$home"+'/.kube/config')
-                        }
+                    }
                 }
             }           
         }    
