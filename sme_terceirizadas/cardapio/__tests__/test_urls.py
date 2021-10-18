@@ -538,7 +538,8 @@ def test_url_endpoint_alt_card_criar(client_autenticado_vinculo_escola_cardapio,
         'substituicoes': [{
             'periodo_escolar': str(periodo_escolar.uuid),
             'tipo_alimentacao_de': str(combo1.uuid),
-            'tipo_alimentacao_para': str(substituicao1.uuid)
+            'tipo_alimentacao_para': str(substituicao1.uuid),
+            'qtd_alunos': 10
         }]
     }
 
@@ -560,6 +561,7 @@ def test_url_endpoint_alt_card_criar(client_autenticado_vinculo_escola_cardapio,
     assert substituicao['periodo_escolar'] == str(periodo_escolar.uuid)
     assert substituicao['tipo_alimentacao_de'] == str(combo1.uuid)
     assert substituicao['tipo_alimentacao_para'] == str(substituicao1.uuid)
+    assert substituicao['qtd_alunos'] == 10
 
 
 def test_url_endpoint_alt_card_cei_criar(client_autenticado_vinculo_escola_cardapio, motivo_alteracao_cardapio, escola,
