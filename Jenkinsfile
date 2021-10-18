@@ -93,23 +93,19 @@ pipeline {
                         timeout(time: 24, unit: "HOURS") {
                             input message: 'Deseja realizar o deploy?', ok: 'SIM', submitter: 'kelwy_oliveira, anderson_morais, luis_zimmermann, rodolpho_azeredo'
                         }
-                        withCredentials([file(credentialsId: "${kubeconfig}", variable: 'config')]){
+                    }
+                    withCredentials([file(credentialsId: "${kubeconfig}", variable: 'config')]){
                             sh('cp $config '+"$home"+'/.kube/config')
                             sh 'kubectl rollout restart deployment/sigpae-backend -n sme-sigpae'
                             sh 'kubectl rollout restart deployment/sigpae-beat -n sme-sigpae'
                             sh 'kubectl rollout restart deployment/sigpae-celery -n sme-sigpae'
+			    sh 'kubectl rollout restart deployment/sigpae-frontend -n sme-sigpae'
+		            sh 'kubectl rollout restart deployment/sigpae-backend -n sme-sigpae-treino'
+                            sh 'kubectl rollout restart deployment/sigpae-beat -n sme-sigpae-treino'
+                            sh 'kubectl rollout restart deployment/sigpae-celery -n sme-sigpae-treino'
+			    sh 'kubectl rollout restart deployment/sigpae-frontend -n sme-sigpae-treino'
                             sh('rm -f '+"$home"+'/.kube/config')
                         }
-                    }
-                    else{
-                        withCredentials([file(credentialsId: "${kubeconfig}", variable: 'config')]){
-                            sh('cp $config '+"$home"+'/.kube/config')
-                            sh 'kubectl rollout restart deployment/sigpae-backend -n sme-sigpae'
-                            sh 'kubectl rollout restart deployment/sigpae-beat -n sme-sigpae'
-                            sh 'kubectl rollout restart deployment/sigpae-celery -n sme-sigpae'
-                            sh('rm -f '+"$home"+'/.kube/config')
-                        }
-                    }
                 }
             }           
         }    
