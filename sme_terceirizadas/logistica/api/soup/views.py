@@ -13,7 +13,10 @@ from ....dados_comuns.models import LogSolicitacoesUsuario
 from .models import ArqCancelamento, ArqSolicitacaoMOD, SoapResponse, oWsAcessoModel
 from .token_auth import TokenAuthentication
 
-NS = 'http://webserver.serbom.com.br'
+env = environ.Env()
+
+NS = f'{env("DJANGO_XMLNS")}'
+API_URL = env.str('API_URL', default=None)
 
 
 class SolicitacaoService(ServiceBase):
@@ -87,10 +90,6 @@ soap_app = Application(
 )
 
 django_soap_application = DjangoApplication(soap_app)
-
-env = environ.Env()
-
-API_URL = env.str('API_URL', default=None)
 
 if API_URL:
     django_soap_application.doc.wsdl11.build_interface_document(API_URL + '/webserver/solicitacao-remessa/')

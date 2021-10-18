@@ -1,3 +1,4 @@
+import environ
 from django.core import exceptions
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import IntegrityError, transaction
@@ -6,6 +7,7 @@ from spyne.model.primitive import Date, Integer, String
 from spyne.util.dictdoc import get_object_as_dict
 
 from ....dados_comuns.fluxo_status import GuiaRemessaWorkFlow
+from ....dados_comuns.fluxo_status import SolicitacaoRemessaWorkFlow as StatusReq
 from ....dados_comuns.models import LogSolicitacoesUsuario
 from ....escola.models import Escola
 from ....terceirizada.models import Terceirizada
@@ -14,7 +16,9 @@ from ...models.alimento import Embalagem, TipoEmbalagem
 from ...models.guia import Guia as GuiaModel
 from ...models.solicitacao import SolicitacaoRemessa
 
-NS = 'http://webserver.serbom.com.br'
+env = environ.Env()
+
+NS = f'{env("DJANGO_XMLNS")}'
 
 
 class Alimento(ComplexModel):
@@ -175,7 +179,6 @@ class ArqSolicitacaoMOD(ComplexModel):
         distribuidor = None
         cnpj = data.get('StrCnpj')
         guias = data.pop('guias', [])
-        data.pop('IntSeqenv', None)
         data.pop('IntTotVol', None)
 
         try:
@@ -224,19 +227,20 @@ class ArqCancelamento(ComplexModel):
         except exceptions.ObjectDoesNotExist:
             raise exceptions.ObjectDoesNotExist('Solicitacão não encontrada.')
 
-        solicitacao.guias.filter(numero_guia__in=guias_payload).update(status=GuiaRemessaWorkFlow.CANCELADA)
+        if solicitacao.status in (StatusReq.AGUARDANDO_ENVIO, StatusReq.DILOG_ENVIA, StatusReq.DILOG_ACEITA_ALTERACAO):
+            solicitacao.guias.filter(numero_guia__in=guias_payload).update(status=GuiaRemessaWorkFlow.CANCELADA)
 
-        guias_existentes = list(solicitacao.guias.values_list('numero_guia', flat=True))
-        existe_guia_nao_cancelada = solicitacao.guias.exclude(status=GuiaRemessaWorkFlow.CANCELADA).exists()
+            guias_existentes = list(solicitacao.guias.values_list('numero_guia', flat=True))
+            existe_guia_nao_cancelada = solicitacao.guias.exclude(status=GuiaRemessaWorkFlow.CANCELADA).exists()
 
-        if set(guias_existentes) == set(guias_payload) or not existe_guia_nao_cancelada:
-            solicitacao.cancela_solicitacao(user=user)
-        else:
-            solicitacao.salvar_log_transicao(
-                status_evento=LogSolicitacoesUsuario.PAPA_CANCELA_SOLICITACAO,
-                usuario=user,
-                justificativa=f'Guias canceladas: {guias_payload}'
-            )
+            if set(guias_existentes) == set(guias_payload) or not existe_guia_nao_cancelada:
+                solicitacao.cancela_solicitacao(user=user)
+            else:
+                solicitacao.salvar_log_transicao(
+                    status_evento=LogSolicitacoesUsuario.PAPA_CANCELA_SOLICITACAO,
+                    usuario=user,
+                    justificativa=f'Guias canceladas: {guias_payload}'
+                )
 
 
 class oWsAcessoModel(ComplexModel):
