@@ -81,7 +81,7 @@ class PedidoAPartirDaEscolaWorkflow(xwf_models.Workflow):
         ('codae_autoriza', DRE_VALIDADO, CODAE_AUTORIZADO),
         ('codae_questiona', DRE_VALIDADO, CODAE_QUESTIONADO),
         ('codae_autoriza_questionamento',
-         TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO, CODAE_AUTORIZADO),
+         [DRE_VALIDADO, TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO], CODAE_AUTORIZADO),
         ('codae_nega_questionamento',
          TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO, CODAE_NEGOU_PEDIDO),
         ('codae_nega', [DRE_VALIDADO, CODAE_QUESTIONADO], CODAE_NEGOU_PEDIDO),
@@ -1451,8 +1451,11 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
     @xworkflows.before_transition('codae_autoriza_questionamento')
     @xworkflows.before_transition('codae_autoriza')
     def _codae_autoriza_hook_antes(self, *args, **kwargs):
+        from sme_terceirizadas.cardapio.models import AlteracaoCardapio
         if (self.foi_solicitado_fora_do_prazo and
             self.status != PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO):  # noqa #129
+            if (isinstance(self, AlteracaoCardapio) and self.motivo.nome == "Merenda Seca"):
+                return
             raise xworkflows.InvalidTransitionError(
                 f'CODAE não pode autorizar direto caso seja em cima da hora, deve questionar')
 
