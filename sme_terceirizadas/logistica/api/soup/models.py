@@ -6,7 +6,7 @@ from spyne.model.complex import Array, ComplexModel
 from spyne.model.primitive import Date, Integer, String
 from spyne.util.dictdoc import get_object_as_dict
 
-from ....dados_comuns.fluxo_status import GuiaRemessaWorkFlow
+from ....dados_comuns.fluxo_status import GuiaRemessaWorkFlow as GuiaStatus
 from ....dados_comuns.fluxo_status import SolicitacaoRemessaWorkFlow as StatusReq
 from ....dados_comuns.models import LogSolicitacoesUsuario
 from ....escola.models import Escola
@@ -227,11 +227,10 @@ class ArqCancelamento(ComplexModel):
         except exceptions.ObjectDoesNotExist:
             raise exceptions.ObjectDoesNotExist('Solicitacão não encontrada.')
 
+        guias_existentes = list(solicitacao.guias.values_list('numero_guia', flat=True))
         if solicitacao.status in (StatusReq.AGUARDANDO_ENVIO, StatusReq.DILOG_ENVIA, StatusReq.DILOG_ACEITA_ALTERACAO):
-            solicitacao.guias.filter(numero_guia__in=guias_payload).update(status=GuiaRemessaWorkFlow.CANCELADA)
-
-            guias_existentes = list(solicitacao.guias.values_list('numero_guia', flat=True))
-            existe_guia_nao_cancelada = solicitacao.guias.exclude(status=GuiaRemessaWorkFlow.CANCELADA).exists()
+            solicitacao.guias.filter(numero_guia__in=guias_payload).update(status=GuiaStatus.CANCELADA)
+            existe_guia_nao_cancelada = solicitacao.guias.exclude(status=GuiaStatus.CANCELADA).exists()
 
             if set(guias_existentes) == set(guias_payload) or not existe_guia_nao_cancelada:
                 solicitacao.cancela_solicitacao(user=user)
@@ -241,7 +240,18 @@ class ArqCancelamento(ComplexModel):
                     usuario=user,
                     justificativa=f'Guias canceladas: {guias_payload}'
                 )
+        elif solicitacao.status in (StatusReq.DISTRIBUIDOR_CONFIRMA, StatusReq.DISTRIBUIDOR_SOLICITA_ALTERACAO):
+            solicitacao.guias.filter(numero_guia__in=guias_payload).update(status=GuiaStatus.AGUARDANDO_CANCELAMENTO)
+            existe_guia_nao_cancelada = solicitacao.guias.exclude(status=GuiaStatus.CANCELADA).exists()
 
+            if set(guias_existentes) == set(guias_payload) or not existe_guia_nao_cancelada:
+                solicitacao.aguarda_confirmacao_de_cancelamento(user=user)
+            else:
+                solicitacao.salvar_log_transicao(
+                    status_evento=LogSolicitacoesUsuario.PAPA_AGUARDA_CONFIRMACAO_CANCELAMENTO_SOLICITACAO,
+                    usuario=user,
+                    justificativa=f'Guias canceladas: {guias_payload}'
+                )
 
 class oWsAcessoModel(ComplexModel):
     __namespace__ = NS
