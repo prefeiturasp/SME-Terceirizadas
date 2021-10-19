@@ -14,7 +14,7 @@ from ...models.alimento import Embalagem, TipoEmbalagem
 from ...models.guia import Guia as GuiaModel
 from ...models.solicitacao import SolicitacaoRemessa
 
-NS = 'http://webserver.serbom.com.br'
+NS = 'https://sigpae.sme.prefeitura.sp.gov.br'
 
 
 class Alimento(ComplexModel):
