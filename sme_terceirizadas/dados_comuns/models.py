@@ -74,6 +74,7 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
         DISTRIBUIDOR_CONFIRMA_SOLICITACAO,
         DISTRIBUIDOR_SOLICITA_ALTERACAO_SOLICITACAO,
         PAPA_CANCELA_SOLICITACAO,
+        PAPA_AGUARDA_CONFIRMACAO_CANCELAMENTO_SOLICITACAO,
 
         # ESPECIFICA SOLICITAÇÃO DE ALTERACAO
         DILOG_ACEITA_ALTERACAO,
@@ -81,7 +82,7 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
 
         CANCELADO_ALUNO_MUDOU_ESCOLA,
         CANCELADO_ALUNO_NAO_PERTENCE_REDE,
-    ) = range(50)
+    ) = range(51)
 
     STATUS_POSSIVEIS = (
         (INICIO_FLUXO, 'Solicitação Realizada'),
@@ -129,6 +130,7 @@ class LogSolicitacoesUsuario(ExportModelOperationsMixin('log_solicitacoes'), mod
         (DISTRIBUIDOR_CONFIRMA_SOLICITACAO, 'Distribuidor confirmou requisição'),  # noqa
         (DISTRIBUIDOR_SOLICITA_ALTERACAO_SOLICITACAO, 'Distribuidor pede alteração da requisição'),  # noqa
         (PAPA_CANCELA_SOLICITACAO, 'Papa cancelou a requisição'),
+        (PAPA_AGUARDA_CONFIRMACAO_CANCELAMENTO_SOLICITACAO, 'Papa aguarda confirmação do cancelamento da solicitação'),
         (DILOG_ACEITA_ALTERACAO, 'Dilog Aceita Alteração'),
         (DILOG_NEGA_ALTERACAO, 'Dilog Nega Alteração'),
         (CANCELADO_ALUNO_MUDOU_ESCOLA, 'Cancelamento por alteração de unidade educacional'),
