@@ -60,7 +60,6 @@ class KitLanche(ExportModelOperationsMixin('kit_lanche'), Nomeavel, TemChaveExte
         (INATIVO, 'Inativo'),
     )
 
-    itens = models.ManyToManyField(ItemKitLanche)
     descricao = models.TextField(default='')
     edital = models.ForeignKey(
         'terceirizada.Edital', on_delete=models.DO_NOTHING, related_name='edital_kit_lanche', default=None, null=True)
