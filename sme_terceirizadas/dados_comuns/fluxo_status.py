@@ -197,7 +197,7 @@ class SolicitacaoRemessaWorkFlow(xwf_models.Workflow):
     transitions = (
         ('inicia_fluxo', AGUARDANDO_ENVIO, DILOG_ENVIA),
         ('empresa_atende', DILOG_ENVIA, DISTRIBUIDOR_CONFIRMA),
-        ('solicita_alteracao', [DILOG_ENVIA, DISTRIBUIDOR_CONFIRMA], DISTRIBUIDOR_SOLICITA_ALTERACAO),
+        ('solicita_alteracao', DILOG_ENVIA, DISTRIBUIDOR_SOLICITA_ALTERACAO),
         ('cancela_solicitacao', [AGUARDANDO_ENVIO, DILOG_ENVIA, DISTRIBUIDOR_CONFIRMA, DISTRIBUIDOR_SOLICITA_ALTERACAO,
                                  PAPA_CANCELA, DILOG_ACEITA_ALTERACAO], PAPA_CANCELA),
         ('dilog_aceita_alteracao', DISTRIBUIDOR_SOLICITA_ALTERACAO, DILOG_ACEITA_ALTERACAO),
