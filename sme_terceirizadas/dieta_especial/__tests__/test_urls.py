@@ -569,6 +569,24 @@ def test_url_endpoint_tomar_ciencia_dieta(client_autenticado_vinculo_terceirizad
     assert obj.status == DietaEspecialWorkflow.TERCEIRIZADA_TOMOU_CIENCIA
 
 
+def test_url_endpoint_marcar_conferida(client_autenticado_vinculo_terceirizada_dieta,
+                                       solicitacao_dieta_especial):
+    obj = SolicitacaoDietaEspecial.objects.first()
+    assert not obj.conferido
+
+    response = client_autenticado_vinculo_terceirizada_dieta.patch(
+        f'/solicitacoes-dieta-especial/{obj.uuid}/marcar-conferida/',
+        content_type='application/json'
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    json = response.json()
+    assert 'conferido' in json.keys()
+    assert json['conferido']
+    obj = SolicitacaoDietaEspecial.objects.first()
+    assert obj.conferido
+
+
 def test_url_endpoint_escola_solicita_inativacao_dieta(client_autenticado_vinculo_escola_dieta,
                                                        solicitacao_dieta_especial):
     obj = SolicitacaoDietaEspecial.objects.first()

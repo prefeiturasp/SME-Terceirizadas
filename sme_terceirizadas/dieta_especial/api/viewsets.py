@@ -284,6 +284,20 @@ class SolicitacaoDietaEspecialViewSet(
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)  # noqa
 
+    @action(detail=True,
+            methods=['patch'],
+            url_path=constants.MARCAR_CONFERIDA,
+            permission_classes=(UsuarioTerceirizada,))
+    def terceirizada_marca_solicitacao_como_conferida(self, request, uuid=None):
+        solicitacao_dieta_especial: SolicitacaoDietaEspecial = self.get_object()
+        try:
+            solicitacao_dieta_especial.conferido = True
+            solicitacao_dieta_especial.save()
+            serializer = self.get_serializer(solicitacao_dieta_especial)
+            return Response(serializer.data)
+        except Exception as e:
+            return Response(dict(detail=f'Erro ao marcar solicitação como conferida: {e}'), status=HTTP_400_BAD_REQUEST)  # noqa
+
     def get_queryset_relatorio_quantitativo_solic_dieta_esp(self, form, campos):  # noqa C901
         user = self.request.user
         qs = self.get_queryset()

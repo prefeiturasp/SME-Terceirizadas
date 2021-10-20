@@ -160,6 +160,7 @@ class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmiga
     objects = models.Manager()
     filtro_7_dias = SolicitacoesDestaSemanaManager()
     filtro_30_dias = SolicitacoesDesteMesManager()
+    conferido = models.BooleanField()
 
     @classmethod
     def get_pendentes_autorizacao(cls, **kwargs):
