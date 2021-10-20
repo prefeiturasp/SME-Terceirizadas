@@ -43,6 +43,7 @@ class KitLancheSerializer(serializers.ModelSerializer):
         if (KitLanche.objects.filter(edital__uuid=validated_data['edital'].uuid,
                                      nome=validated_data['nome'].upper()).first()):
             raise serializers.ValidationError('Esse nome de kit lanche já existe para edital selecionado')
+        validated_data['nome'] = validated_data['nome'].upper()
         return validated_data
 
     def validate_nome_kit_lanche_update(self, validated_data, instance):
@@ -50,6 +51,7 @@ class KitLancheSerializer(serializers.ModelSerializer):
             edital__uuid=validated_data['edital'].uuid,
                 nome=validated_data['nome'].upper()).exclude(uuid=str(instance.uuid)).first()):
             serializers.ValidationError('Esse nome de kit lanche já existe para edital selecionado')
+        validated_data['nome'] = validated_data['nome'].upper()
         return validated_data
 
     def create(self, validated_data):
