@@ -103,14 +103,10 @@ def client_autenticado_da_terceirizada(client, django_user_model, terceirizada):
 
 @pytest.fixture
 def kit_lanche(edital):
-    itens = mommy.make(models.ItemKitLanche,
-                       nome=fake.name(),
-                       _quantity=3)
     return mommy.make(models.KitLanche, nome=fake.name(),
                       descricao=fake.text()[:160],
                       status='ATIVO',
-                      edital=edital,
-                      itens=itens)
+                      edital=edital)
 
 
 @pytest.fixture

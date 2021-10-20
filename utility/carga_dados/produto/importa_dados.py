@@ -5,6 +5,7 @@ from utility.carga_dados.helper import get_modelo, ja_existe, le_dados, progress
 from sme_terceirizadas.dados_comuns.fluxo_status import HomologacaoProdutoWorkflow
 from sme_terceirizadas.dados_comuns.models import LogSolicitacoesUsuario
 from sme_terceirizadas.perfil.models import Usuario
+from sme_terceirizadas.dieta_especial.models import Alimento
 from sme_terceirizadas.produto.data.informacao_nutricional import data_informacao_nutricional  # noqa
 from sme_terceirizadas.produto.data.protocolo_de_dieta_especial import data_protocolo_de_dieta_especial  # noqa
 from sme_terceirizadas.produto.data.tipo_informacao_nutricional import data_tipo_informacao_nutricional  # noqa
@@ -72,6 +73,7 @@ def cria_diagnosticos():
 def cria_marca():
     # Deleta produtos e marcas.
     Produto.objects.all().delete()
+    Alimento.objects.all().delete()
     Marca.objects.all().delete()
     # Cria marcas novas.
     for item in progressbar(data_marcas, 'Marca'):
