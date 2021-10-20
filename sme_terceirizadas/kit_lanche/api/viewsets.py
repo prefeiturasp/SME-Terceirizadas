@@ -5,7 +5,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST
-from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
+from rest_framework.viewsets import ModelViewSet
 from xworkflows import InvalidTransitionError
 
 from ...dados_comuns import constants
@@ -30,7 +30,7 @@ from ..utils import KitLanchePagination
 from .serializers import serializers, serializers_create, serializers_create_cei
 
 
-class KitLancheViewSet(ReadOnlyModelViewSet):
+class KitLancheViewSet(ModelViewSet):
     lookup_field = 'uuid'
     queryset = models.KitLanche.objects.all()
     serializer_class = serializers.KitLancheSerializer
@@ -47,6 +47,22 @@ class KitLancheViewSet(ReadOnlyModelViewSet):
             serializer.data
         )
         return response
+
+    @action(detail=False, methods=['GET'], url_path='nome-existe')
+    def valida_nome_kit_lanche(self, request):
+        try:
+            nome = request.query_params.get('nome').upper()
+            edital = request.query_params.get('edital')
+            uuid = request.query_params.get('uuid')
+            kit_lanche = self.queryset.get(nome=nome, edital__uuid=edital)
+            if (str(kit_lanche.uuid) != uuid):
+                return Response(dict(
+                    detail='Esse nome de kit lanche já existe para edital selecionado'),
+                    status=HTTP_200_OK)
+            else:
+                return Response(dict(detail='Nome válido'), status=404)
+        except models.KitLanche.DoesNotExist:
+            return Response(dict(detail='Nome válido'), status=404)
 
 
 class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
