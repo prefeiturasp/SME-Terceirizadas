@@ -13,7 +13,7 @@ from ....dados_comuns.models import LogSolicitacoesUsuario
 from .models import ArqCancelamento, ArqSolicitacaoMOD, SoapResponse, oWsAcessoModel
 from .token_auth import TokenAuthentication
 
-NS = 'http://webserver.serbom.com.br'
+NS = 'https://sigpae.sme.prefeitura.sp.gov.br'
 
 
 class SolicitacaoService(ServiceBase):
