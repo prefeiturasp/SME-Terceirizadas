@@ -6,6 +6,8 @@ from spyne.model.complex import Array, ComplexModel
 from spyne.model.primitive import Date, Integer, String
 from spyne.util.dictdoc import get_object_as_dict
 
+from sme_terceirizadas.eol_servico.utils import EOLPapaService
+
 from ....dados_comuns.fluxo_status import GuiaRemessaWorkFlow as GuiaStatus
 from ....dados_comuns.fluxo_status import SolicitacaoRemessaWorkFlow as StatusReq
 from ....dados_comuns.models import LogSolicitacoesUsuario
@@ -214,13 +216,13 @@ class ArqCancelamento(ComplexModel):
     def cancel(self, user):
         cancelamento_dict = get_object_as_dict(self)
         num_solicitacao = cancelamento_dict.get('StrNumSol')
+        seq_envio = cancelamento_dict.get('IntSeqenv')
         guias = cancelamento_dict.get('guias')
 
         if isinstance(guias, list):
             guias_payload = [x['StrNumGui'] for x in guias]
         else:
             guias_payload = [x['StrNumGui'] for x in guias.values()]
-
         try:
             solicitacao = SolicitacaoRemessa.objects.get(numero_solicitacao=num_solicitacao)
 
@@ -228,6 +230,7 @@ class ArqCancelamento(ComplexModel):
             raise exceptions.ObjectDoesNotExist('Solicitacão não encontrada.')
 
         guias_existentes = list(solicitacao.guias.values_list('numero_guia', flat=True))
+        # Não depende de confirmação do distribuidor no sigpae
         if solicitacao.status in (StatusReq.AGUARDANDO_ENVIO, StatusReq.DILOG_ENVIA, StatusReq.DILOG_ACEITA_ALTERACAO):
             solicitacao.guias.filter(numero_guia__in=guias_payload).update(status=GuiaStatus.CANCELADA)
             existe_guia_nao_cancelada = solicitacao.guias.exclude(status=GuiaStatus.CANCELADA).exists()
@@ -240,11 +243,17 @@ class ArqCancelamento(ComplexModel):
                     usuario=user,
                     justificativa=f'Guias canceladas: {guias_payload}'
                 )
+            # Envia confirmação para o papa
+            EOLPapaService.confirmacao_de_cancelamento(
+                cnpj=solicitacao.cnpj, numero_solicitacao=solicitacao.numero_solicitacao, sequencia_envio=seq_envio)
+
+        # Depende de confirmação do distribuidor no sigpae
         elif solicitacao.status in (StatusReq.DISTRIBUIDOR_CONFIRMA, StatusReq.DISTRIBUIDOR_SOLICITA_ALTERACAO):
             solicitacao.guias.filter(numero_guia__in=guias_payload).update(status=GuiaStatus.AGUARDANDO_CANCELAMENTO)
-            existe_guia_nao_cancelada = solicitacao.guias.exclude(status=GuiaStatus.CANCELADA).exists()
+            existe_guia_aguardando_cancelamento = solicitacao.guias.exclude(
+                status=GuiaStatus.AGUARDANDO_CANCELAMENTO).exists()
 
-            if set(guias_existentes) == set(guias_payload) or not existe_guia_nao_cancelada:
+            if set(guias_existentes) == set(guias_payload) or not existe_guia_aguardando_cancelamento:
                 solicitacao.aguarda_confirmacao_de_cancelamento(user=user)
             else:
                 solicitacao.salvar_log_transicao(
@@ -252,6 +261,7 @@ class ArqCancelamento(ComplexModel):
                     usuario=user,
                     justificativa=f'Guias canceladas: {guias_payload}'
                 )
+
 
 class oWsAcessoModel(ComplexModel):
     __namespace__ = NS

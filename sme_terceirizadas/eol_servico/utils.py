@@ -7,6 +7,9 @@ from rest_framework import status
 from ..dados_comuns.constants import (
     DJANGO_EOL_API_TOKEN,
     DJANGO_EOL_API_URL,
+    DJANGO_EOL_PAPA_API_SENHA,
+    DJANGO_EOL_PAPA_API_URL,
+    DJANGO_EOL_PAPA_API_USUARIO,
     DJANGO_EOL_SGP_API_TOKEN,
     DJANGO_EOL_SGP_API_URL
 )
@@ -131,6 +134,27 @@ class EOLServicoSGP:
             return resultado
         else:
             raise EOLException(f'API EOL do SGP está com erro. Erro: {str(response)}, Status: {response.status_code}')
+
+
+class EOLPapaService(object):
+    TIMEOUT = 20
+
+    @classmethod
+    def confirmacao_de_cancelamento(cls, cnpj, numero_solicitacao, sequencia_envio):
+        payload = {
+            'CNPJ_PREST': cnpj,
+            'NUM_SOL': numero_solicitacao,
+            'SEQ_ENVIO': sequencia_envio,
+            'USUARIO': DJANGO_EOL_PAPA_API_USUARIO,
+            'SENHA': DJANGO_EOL_PAPA_API_SENHA,
+
+        }
+
+        response = requests.post(f'{DJANGO_EOL_PAPA_API_URL}/confirmarcancelamentosolicitacao/',
+                                 timeout=cls.TIMEOUT, json=payload)
+
+        if not response.status_code == status.HTTP_200_OK:
+            raise EOLException(f'API EOL do PAPA está com erro. Erro: {str(response)}, Status: {response.status_code}')
 
 
 def dt_nascimento_from_api(string_dt_nascimento):
