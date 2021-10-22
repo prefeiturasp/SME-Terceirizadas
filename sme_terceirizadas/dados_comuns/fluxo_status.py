@@ -205,7 +205,7 @@ class SolicitacaoRemessaWorkFlow(xwf_models.Workflow):
         ('dilog_aceita_alteracao', DISTRIBUIDOR_SOLICITA_ALTERACAO, DILOG_ACEITA_ALTERACAO),
         ('dilog_nega_alteracao', DISTRIBUIDOR_SOLICITA_ALTERACAO, DILOG_ENVIA),
         ('aguarda_confirmacao_de_cancelamento', [DISTRIBUIDOR_CONFIRMA, DISTRIBUIDOR_SOLICITA_ALTERACAO],
-                                                    AGUARDANDO_CANCELAMENTO),
+         AGUARDANDO_CANCELAMENTO),
     )
 
     initial_state = AGUARDANDO_ENVIO
@@ -509,7 +509,6 @@ class FluxoSolicitacaoRemessa(xwf_models.WorkflowEnabled, models.Model):
                                   justificativa=kwargs.get('justificativa', ''))
 
         self.guias.update(status=GuiaRemessaWorkFlow.PENDENTE_DE_CONFERENCIA)
-
 
     @xworkflows.after_transition('aguarda_confirmacao_de_cancelamento')
     def _aguarda_confirmacao_de_cancelamento_hook(self, *args, **kwargs):
