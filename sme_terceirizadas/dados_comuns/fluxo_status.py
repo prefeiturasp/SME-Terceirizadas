@@ -259,6 +259,7 @@ class GuiaRemessaWorkFlow(xwf_models.Workflow):
         (REPOSICAO_TOTAL, 'Reposição total'),
         (REPOSICAO_PARCIAL, 'Reposição parcial'),
         (CANCELADA, 'Cancelada'),
+        (AGUARDANDO_CANCELAMENTO, 'Aguardando cancelamento'),
     )
 
     transitions = (
