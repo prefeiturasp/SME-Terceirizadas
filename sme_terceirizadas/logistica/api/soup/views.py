@@ -9,11 +9,16 @@ from spyne.protocol.soap import Soap11
 from spyne.server.django import DjangoApplication
 from spyne.service import ServiceBase
 
+from sme_terceirizadas.eol_servico.utils import EOLException
+
 from ....dados_comuns.models import LogSolicitacoesUsuario
 from .models import ArqCancelamento, ArqSolicitacaoMOD, SoapResponse, oWsAcessoModel
 from .token_auth import TokenAuthentication
 
-NS = 'https://sigpae.sme.prefeitura.sp.gov.br'
+env = environ.Env()
+
+API_URL = env.str('API_URL', default=None)
+NS = f'{env("DJANGO_XMLNS")}'
 
 
 class SolicitacaoService(ServiceBase):
@@ -62,11 +67,14 @@ class SolicitacaoService(ServiceBase):
         except IntegrityError as e:
             return SoapResponse(str_status='false', str_menssagem=str(e))
 
+        except EOLException as e:
+            return SoapResponse(str_status='false', str_menssagem=str(e))
+
         except Exception:
-            msg = 'Houve um erro ao cancelar a solicitação.'
+            msg = 'Houve um erro ao receber a solicitação de cancelamento.'
             return SoapResponse(str_status='false', str_menssagem=msg)
 
-        return SoapResponse(str_status='true', str_menssagem='Cancelamento realizado com sucesso')
+        return SoapResponse(str_status='true', str_menssagem='Solicitação de cancelamento recebida com sucesso')
 
 
 def _method_return_string(ctx):
@@ -87,10 +95,6 @@ soap_app = Application(
 )
 
 django_soap_application = DjangoApplication(soap_app)
-
-env = environ.Env()
-
-API_URL = env.str('API_URL', default=None)
 
 if API_URL:
     django_soap_application.doc.wsdl11.build_interface_document(API_URL + '/webserver/solicitacao-remessa/')
