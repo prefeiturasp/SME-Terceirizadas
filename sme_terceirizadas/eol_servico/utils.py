@@ -136,7 +136,7 @@ class EOLServicoSGP:
             raise EOLException(f'API EOL do SGP está com erro. Erro: {str(response)}, Status: {response.status_code}')
 
 
-class EOLPapaService(object):
+class EOLPapaService:
     TIMEOUT = 20
 
     @classmethod
@@ -152,8 +152,12 @@ class EOLPapaService(object):
 
         response = requests.post(f'{DJANGO_EOL_PAPA_API_URL}/confirmarcancelamentosolicitacao/',
                                  timeout=cls.TIMEOUT, json=payload)
-
-        if not response.status_code == status.HTTP_200_OK:
+        if response.status_code == status.HTTP_200_OK:
+            result = response.json()
+            if result['RETORNO'] != 'TRUE':
+                raise EOLException(
+                    f'API EOL do PAPA não confirmou cancelamento. MSG: {str(result)}')
+        else:
             raise EOLException(f'API EOL do PAPA está com erro. Erro: {str(response)}, Status: {response.status_code}')
 
 
