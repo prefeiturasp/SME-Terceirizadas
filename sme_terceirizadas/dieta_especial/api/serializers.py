@@ -263,7 +263,8 @@ class SolicitacaoDietaEspecialSerializer(serializers.ModelSerializer):
             'tem_solicitacao_cadastro_produto',
             'tipo_solicitacao',
             'observacoes_alteracao',
-            'motivo_alteracao_ue'
+            'motivo_alteracao_ue',
+            'conferido'
         )
 
 
