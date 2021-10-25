@@ -12,10 +12,11 @@ from ...dados_comuns.behaviors import ModeloBase
 
 class SolicitacaoRemessaManager(models.Manager):
 
-    def create_solicitacao(self, StrCnpj, StrNumSol, IntQtGuia, distribuidor=None):
+    def create_solicitacao(self, StrCnpj, StrNumSol, IntSeqenv, IntQtGuia, distribuidor=None):
         return self.create(
             cnpj=StrCnpj,
             numero_solicitacao=StrNumSol,
+            sequencia_envio=IntSeqenv,
             quantidade_total_guias=IntQtGuia,
             distribuidor=distribuidor
         )
@@ -36,6 +37,7 @@ class SolicitacaoRemessa(ModeloBase, TemIdentificadorExternoAmigavel, Logs, Flux
     cnpj = models.CharField('CNPJ', validators=[MinLengthValidator(14)], max_length=14)
     numero_solicitacao = models.CharField('Número da solicitação', blank=True, max_length=100, unique=True)
     quantidade_total_guias = models.IntegerField('Qtd total de guias na requisição', null=True)
+    sequencia_envio = models.IntegerField('Sequência de envio atribuído pelo papa', null=True)
     situacao = models.CharField(choices=SITUACAO_CHOICES, max_length=10, default=ATIVA)
 
     objects = SolicitacaoRemessaManager()
