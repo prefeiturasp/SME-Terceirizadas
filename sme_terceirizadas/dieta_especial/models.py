@@ -169,6 +169,8 @@ class SolicitacaoDietaEspecial(
         blank=True
     )
 
+    conferido = models.BooleanField('Marcar como conferido?', default=False)
+
     @classmethod
     def aluno_possui_dieta_especial_pendente(cls, aluno):
         return cls.objects.filter(
