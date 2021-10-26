@@ -31,6 +31,7 @@ def solicitacao(terceirizada):
         'SolicitacaoRemessa',
         cnpj='12345678901234',
         numero_solicitacao='559890',
+        sequencia_envio=1212,
         quantidade_total_guias=2,
         distribuidor=terceirizada
     )

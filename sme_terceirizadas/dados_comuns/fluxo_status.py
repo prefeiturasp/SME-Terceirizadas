@@ -180,6 +180,7 @@ class SolicitacaoRemessaWorkFlow(xwf_models.Workflow):
 
     AGUARDANDO_ENVIO = 'AGUARDANDO_ENVIO'
     DILOG_ENVIA = 'DILOG_ENVIA'
+    AGUARDANDO_CANCELAMENTO = 'AGUARDANDO_CANCELAMENTO'
     PAPA_CANCELA = 'CANCELADA'
     DISTRIBUIDOR_CONFIRMA = 'DISTRIBUIDOR_CONFIRMA'
     DISTRIBUIDOR_SOLICITA_ALTERACAO = 'DISTRIBUIDOR_SOLICITA_ALTERACAO'
@@ -188,6 +189,7 @@ class SolicitacaoRemessaWorkFlow(xwf_models.Workflow):
     states = (
         (AGUARDANDO_ENVIO, 'Aguardando envio'),
         (DILOG_ENVIA, 'Enviada'),
+        (AGUARDANDO_CANCELAMENTO, 'Aguardando cancelamento'),
         (PAPA_CANCELA, 'Cancelada'),
         (DISTRIBUIDOR_CONFIRMA, 'Confirmada'),
         (DISTRIBUIDOR_SOLICITA_ALTERACAO, 'Em análise'),
@@ -202,6 +204,8 @@ class SolicitacaoRemessaWorkFlow(xwf_models.Workflow):
                                  PAPA_CANCELA, DILOG_ACEITA_ALTERACAO], PAPA_CANCELA),
         ('dilog_aceita_alteracao', DISTRIBUIDOR_SOLICITA_ALTERACAO, DILOG_ACEITA_ALTERACAO),
         ('dilog_nega_alteracao', DISTRIBUIDOR_SOLICITA_ALTERACAO, DILOG_ENVIA),
+        ('aguarda_confirmacao_de_cancelamento', [DISTRIBUIDOR_CONFIRMA, DISTRIBUIDOR_SOLICITA_ALTERACAO],
+         AGUARDANDO_CANCELAMENTO),
     )
 
     initial_state = AGUARDANDO_ENVIO
@@ -242,6 +246,7 @@ class GuiaRemessaWorkFlow(xwf_models.Workflow):
     REPOSICAO_TOTAL = 'REPOSICAO_TOTAL'
     REPOSICAO_PARCIAL = 'REPOSICAO_PARCIAL'
     CANCELADA = 'CANCELADA'
+    AGUARDANDO_CANCELAMENTO = 'AGUARDANDO_CANCELAMENTO'
 
     states = (
         (AGUARDANDO_ENVIO, 'Aguardando envio'),
@@ -254,6 +259,7 @@ class GuiaRemessaWorkFlow(xwf_models.Workflow):
         (REPOSICAO_TOTAL, 'Reposição total'),
         (REPOSICAO_PARCIAL, 'Reposição parcial'),
         (CANCELADA, 'Cancelada'),
+        (AGUARDANDO_CANCELAMENTO, 'Aguardando cancelamento'),
     )
 
     transitions = (
@@ -503,6 +509,14 @@ class FluxoSolicitacaoRemessa(xwf_models.WorkflowEnabled, models.Model):
                                   justificativa=kwargs.get('justificativa', ''))
 
         self.guias.update(status=GuiaRemessaWorkFlow.PENDENTE_DE_CONFERENCIA)
+
+    @xworkflows.after_transition('aguarda_confirmacao_de_cancelamento')
+    def _aguarda_confirmacao_de_cancelamento_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        self.salvar_log_transicao(
+            status_evento=LogSolicitacoesUsuario.PAPA_AGUARDA_CONFIRMACAO_CANCELAMENTO_SOLICITACAO,
+            usuario=user,
+            justificativa=kwargs.get('justificativa', ''))
 
     @xworkflows.after_transition('cancela_solicitacao')
     def _cancela_solicitacao_hook(self, *args, **kwargs):
