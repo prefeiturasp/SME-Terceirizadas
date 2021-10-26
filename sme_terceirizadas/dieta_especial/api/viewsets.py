@@ -142,7 +142,7 @@ class SolicitacaoDietaEspecialViewSet(
             aluno__codigo_eol=codigo_eol_aluno
         ).exclude(
             status=SolicitacaoDietaEspecial.workflow_class.CODAE_A_AUTORIZAR
-        )
+        ).order_by('-criado_em')
         page = self.paginate_queryset(solicitacoes)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
