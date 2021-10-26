@@ -12,7 +12,7 @@ from .utils import eh_dia_util, obter_dias_uteis_apos, ordena_dias_semana_comeca
 
 
 class Iniciais(models.Model):
-    iniciais = models.CharField('Iniciais', blank=True, max_length=10)
+    iniciais = models.CharField('Iniciais', blank=True, max_length=20)
 
     class Meta:
         abstract = True
@@ -98,7 +98,9 @@ class TemChaveExterna(models.Model):
 
 
 class TemCodigoEOL(models.Model):
-    codigo_eol = models.CharField('Código EOL', max_length=6, unique=True, validators=[MinLengthValidator(6)])
+    codigo_eol = models.CharField(
+        'Código EOL', max_length=6, unique=True, validators=[MinLengthValidator(6)]
+    )
 
     class Meta:
         abstract = True
@@ -124,16 +126,17 @@ class DiasSemana(models.Model):
     )
 
     dias_semana = ArrayField(
-        models.PositiveSmallIntegerField(choices=DIAS,
-                                         default=[],
-                                         null=True, blank=True
-                                         )
+        models.PositiveSmallIntegerField(
+            choices=DIAS, default=[], null=True, blank=True
+        )
     )
 
     def dias_semana_display(self):
         result = ''
         choices = dict(self.DIAS)
-        for index, value in enumerate(ordena_dias_semana_comeca_domingo(self.dias_semana)):
+        for index, value in enumerate(
+            ordena_dias_semana_comeca_domingo(self.dias_semana)
+        ):
             result += '{0}'.format(choices[value])
             if not index == len(self.dias_semana) - 1:
                 result += ', '
@@ -153,8 +156,9 @@ class TempoPasseio(models.Model):
         (CINCO_A_SETE, 'Cinco a sete horas'),
         (OITO_OU_MAIS, 'Oito horas'),
     )
-    tempo_passeio = models.PositiveSmallIntegerField(choices=HORAS,
-                                                     null=True, blank=True)
+    tempo_passeio = models.PositiveSmallIntegerField(
+        choices=HORAS, null=True, blank=True
+    )
 
     class Meta:
         abstract = True
@@ -162,8 +166,9 @@ class TempoPasseio(models.Model):
 
 class CriadoPor(models.Model):
     # TODO: futuramente deixar obrigatorio esse campo
-    criado_por = models.ForeignKey('perfil.Usuario', on_delete=models.DO_NOTHING,
-                                   null=True, blank=True)
+    criado_por = models.ForeignKey(
+        'perfil.Usuario', on_delete=models.DO_NOTHING, null=True, blank=True
+    )
 
     class Meta:
         abstract = True
@@ -215,7 +220,12 @@ class TemPrioridade(object):
 
         if ultimo_dia_util and minimo_dias_para_pedido >= ultimo_dia_util >= hoje:
             descricao = 'PRIORITARIO'
-        elif ultimo_dia_util and dias_uteis_limite_superior >= ultimo_dia_util >= dias_uteis_limite_inferior:
+        elif (
+            ultimo_dia_util
+            and dias_uteis_limite_superior
+            >= ultimo_dia_util
+            >= dias_uteis_limite_inferior
+        ):
             descricao = 'LIMITE'
         elif ultimo_dia_util and ultimo_dia_util >= dias_de_prazo_regular_em_diante:
             descricao = 'REGULAR'
@@ -251,8 +261,8 @@ class TemVinculos(models.Model):
 
 class SolicitacaoForaDoPrazo(models.Model):
     foi_solicitado_fora_do_prazo = models.BooleanField(
-        'Solicitação foi criada em cima da hora (5 dias úteis ou menos)?',
-        default=False)
+        'Solicitação foi criada em cima da hora (5 dias úteis ou menos)?', default=False
+    )
 
     class Meta:
         abstract = True
