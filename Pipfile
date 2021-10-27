@@ -54,7 +54,7 @@ notebook = "*"
 # you shouldn’t use ‘psycopg2-binary’ as a module dependency.
 # For production use you are advised to use the source distribution.
 # Ensure no binary package -> export PIP_NO_BINARY=:psycopg2:
-psycopg2='==2.8.4'  # https://github.com/psycopg/psycopg2
+# psycopg2='==2.8.4'  # https://github.com/psycopg/psycopg2
 celery = "==4.3.0"   # http://www.celeryproject.org
 pytz= '==2018.9'  # https://github.com/stub42/pytz
 python-slugify= '==2.0.1'  # https://github.com/un33k/python-slugify
@@ -96,7 +96,7 @@ django-sass-processor = "==0.8"
 django-compressor = "==2.4"
 libsass = "==0.19.4"
 django-crispy-forms = "*"
-django-weasyprint = "*"
+django-weasyprint = "==1.1.0"
 django-filter = "*"
 importlib-metadata = "==1.7.0"
 text-unidecode = "*"
