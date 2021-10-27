@@ -6,6 +6,7 @@ from django.db import models
 from django_prometheus.models import ExportModelOperationsMixin
 
 from ..dados_comuns.behaviors import (
+    ArquivoCargaBase,
     Ativavel,
     CriadoEm,
     CriadoPor,
@@ -16,10 +17,11 @@ from ..dados_comuns.behaviors import (
     TemIdentificadorExternoAmigavel,
     TemPrioridade
 )
+from ..dados_comuns.constants import StatusProcessamentoArquivo
 from ..dados_comuns.fluxo_status import FluxoDietaEspecialPartindoDaEscola
 from ..dados_comuns.models import LogSolicitacoesUsuario, TemplateMensagem
 from ..dados_comuns.utils import convert_base64_to_contentfile
-from ..dados_comuns.validators import nao_pode_ser_no_passado # noqa
+from ..dados_comuns.validators import nao_pode_ser_no_passado  # noqa
 from ..escola.api.serializers import AlunoSerializer
 from ..escola.models import Aluno, Escola
 from .managers import AlimentoProprioManager
@@ -543,3 +545,28 @@ auditlog.register(ProtocoloPadraoDietaEspecial)
 auditlog.register(SubstituicaoAlimentoProtocoloPadrao)
 auditlog.register(SubstituicaoAlimentoProtocoloPadrao.alimentos_substitutos.through)
 auditlog.register(AlimentoSubstituto)
+
+
+class ArquivoCargaDietaEspecial(ArquivoCargaBase):
+    class Meta:
+        verbose_name = 'Arquivo para importação de solicitações de Dieta Especial'
+        verbose_name_plural = 'Arquivos para importação de solicitações de Dieta Especial'
+
+    def __str__(self) -> str:
+        return str(self.conteudo)
+    
+    def inicia_processamento(self):
+        self.status = StatusProcessamentoArquivo.PROCESSANDO
+        self.save()
+    
+    def processamento_com_sucesso(self):
+        self.status = StatusProcessamentoArquivo.SUCESSO
+        self.save()
+    
+    def processamento_com_erro(self):
+        self.status = StatusProcessamentoArquivo.PROCESSADO_COM_ERRO
+        self.save()
+    
+    def erro_no_processamento(self):
+        self.status = StatusProcessamentoArquivo.ERRO
+        self.save()
