@@ -282,13 +282,13 @@ class ModeloBase(TemChaveExterna, CriadoEm, TemAlteradoEm):
         abstract = True
 
 
-class ArquivoCargaBase(ModelBase):
+class ArquivoCargaBase(ModeloBase):
     conteudo = models.FileField(blank=True, null=True)
     status = models.CharField(
         'status',
         max_length=35,
         choices=StatusProcessamentoArquivo.choices(),
-        default=StatusProcessamentoArquivo.PENDENTE
+        default=StatusProcessamentoArquivo.PENDENTE.value
     )
     log = models.TextField(blank=True, null=True)
 
