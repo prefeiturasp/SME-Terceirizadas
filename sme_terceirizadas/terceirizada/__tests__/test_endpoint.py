@@ -74,7 +74,6 @@ def test_post_empresa_distribuidor(client_autenticado_dilog, perfil_distribuidor
         data=json.dumps(payload),
         content_type='application/json'
     )
-
     terceirizada = Terceirizada.objects.first()
 
     assert response.status_code == status.HTTP_201_CREATED

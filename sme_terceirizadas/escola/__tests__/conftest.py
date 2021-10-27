@@ -44,11 +44,12 @@ def lote():
 
 
 @pytest.fixture
-def escola(lote):
+def escola(lote, tipo_gestao):
     return mommy.make(models.Escola,
                       nome=fake.name(),
                       codigo_eol=fake.name()[:6],
-                      lote=lote)
+                      lote=lote,
+                      tipo_gestao=tipo_gestao)
 
 
 @pytest.fixture
