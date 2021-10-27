@@ -153,6 +153,12 @@ class LoteNomeSerializer(serializers.ModelSerializer):
         fields = ('uuid', 'nome', 'tipo_gestao', 'diretoria_regional', 'terceirizada')  # noqa
 
 
+class LoteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Lote
+        fields = ('uuid', 'nome')  # noqa
+
+
 class EscolaSimplesSerializer(serializers.ModelSerializer):
     lote = LoteNomeSerializer()
     tipo_gestao = TipoGestaoSerializer()

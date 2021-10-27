@@ -28,6 +28,7 @@ from ...escola.api.serializers import (
     CODAESerializer,
     EscolaPeriodoEscolarSerializer,
     LoteNomeSerializer,
+    LoteSerializer,
     LoteSimplesSerializer,
     UsuarioDetalheSerializer
 )
@@ -270,6 +271,11 @@ class LoteViewSet(ModelViewSet):
     lookup_field = 'uuid'
     serializer_class = LoteSimplesSerializer
     queryset = Lote.objects.all()
+
+    @action(detail=False, methods=['GET'], url_path='meus-lotes-vinculados')
+    def meus_lotes_vinculados(self, request):
+        lotes = self.queryset.filter(terceirizada=request.user.vinculo_atual.instituicao)
+        return Response({'results': LoteSerializer(lotes, many=True).data})
 
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update']:
