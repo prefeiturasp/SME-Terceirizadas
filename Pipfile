@@ -107,6 +107,7 @@ lxml = "*"
 openpyxl = "*"
 httpx = "*"
 pikepdf = "*"
+pydantic = "==1.8.2"
 
 [requires]
 python_version = "3.6"

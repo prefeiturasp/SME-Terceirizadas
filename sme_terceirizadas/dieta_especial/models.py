@@ -556,17 +556,17 @@ class ArquivoCargaDietaEspecial(ArquivoCargaBase):
         return str(self.conteudo)
     
     def inicia_processamento(self):
-        self.status = StatusProcessamentoArquivo.PROCESSANDO
+        self.status = StatusProcessamentoArquivo.PROCESSANDO.value
         self.save()
     
     def processamento_com_sucesso(self):
-        self.status = StatusProcessamentoArquivo.SUCESSO
+        self.status = StatusProcessamentoArquivo.SUCESSO.value
         self.save()
     
     def processamento_com_erro(self):
-        self.status = StatusProcessamentoArquivo.PROCESSADO_COM_ERRO
+        self.status = StatusProcessamentoArquivo.PROCESSADO_COM_ERRO.value
         self.save()
     
     def erro_no_processamento(self):
-        self.status = StatusProcessamentoArquivo.ERRO
+        self.status = StatusProcessamentoArquivo.ERRO.value
         self.save()
