@@ -5,8 +5,9 @@ from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.postgres.fields import ArrayField
 from django.core.validators import MinLengthValidator
 from django.db import models
+from django.db.models.base import ModelBase
 
-from .constants import LIMITE_INFERIOR, LIMITE_SUPERIOR, PRIORITARIO, REGULAR
+from .constants import LIMITE_INFERIOR, LIMITE_SUPERIOR, PRIORITARIO, REGULAR, StatusProcessamentoArquivo
 from .models import LogSolicitacoesUsuario
 from .utils import eh_dia_util, obter_dias_uteis_apos, ordena_dias_semana_comeca_domingo
 
@@ -277,5 +278,19 @@ class TemFaixaEtariaEQuantidade(models.Model):
 
 
 class ModeloBase(TemChaveExterna, CriadoEm, TemAlteradoEm):
+    class Meta:
+        abstract = True
+
+
+class ArquivoCargaBase(ModelBase):
+    conteudo = models.FileField(blank=True, null=True)
+    status = models.CharField(
+        'status',
+        max_length=35,
+        choices=StatusProcessamentoArquivo.choices(),
+        default=StatusProcessamentoArquivo.PENDENTE
+    )
+    log = models.TextField(blank=True, null=True)
+
     class Meta:
         abstract = True
