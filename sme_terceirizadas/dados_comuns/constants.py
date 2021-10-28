@@ -1,4 +1,5 @@
 import datetime
+from enum import Enum
 
 import environ
 from workalendar.america import BrazilSaoPauloCity
@@ -193,3 +194,15 @@ UE_RESPONDEU_RECLAMACAO = 'U.E. respondeu a reclamação'
 TIPO_SOLICITACAO_DIETA = {'COMUM': 'COMUM',
                           'ALTERACAO_UE': 'ALTERACAO_UE',
                           'ALUNO_NAO_MATRICULADO': 'ALUNO_NAO_MATRICULADO'}
+
+
+class StatusProcessamentoArquivo(Enum):
+    PENDENTE = 'PENDENTE'
+    SUCESSO = 'SUCESSO'
+    ERRO = 'ERRO'
+    PROCESSADO_COM_ERRO = 'PROCESSADO_COM_ERRO'
+    PROCESSANDO = 'PROCESSANDO'
+
+    @classmethod
+    def choices(cls):
+        return [(key.value, key.name) for key in cls]
