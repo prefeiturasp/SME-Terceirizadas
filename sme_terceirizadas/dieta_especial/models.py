@@ -316,6 +316,15 @@ class Alimento(Nomeavel, TemChaveExterna, Ativavel):
         ('E', 'Edital'),
         ('P', 'Proprio')
     )
+    SO_ALIMENTOS = 'SO_ALIMENTOS'
+    SO_SUBSTITUTOS = 'SO_SUBSTITUTOS'
+    AMBOS = 'AMBOS'
+    TIPO_LISTAGEM_PROTOCOLO = (
+        (SO_ALIMENTOS, 'Aparece somente na listagem de alimentos'),
+        (SO_SUBSTITUTOS, 'Aparece somente na listagem de alimentos substitutos'),
+        (AMBOS, 'Aparece nas listagem de alimentos e substitutos')
+    )
+    
     tipo = models.CharField(max_length=1, choices=TIPO_CHOICES, default='E')
     marca = models.ForeignKey(
         'produto.Marca',
@@ -324,6 +333,7 @@ class Alimento(Nomeavel, TemChaveExterna, Ativavel):
         null=True
     )
     outras_informacoes = models.CharField(max_length=255, blank=True)
+    tipo_listagem_protocolo = models.CharField(choices=TIPO_LISTAGEM_PROTOCOLO, default=SO_ALIMENTOS)
 
     class Meta:
         ordering = ('nome',)
