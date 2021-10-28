@@ -173,6 +173,8 @@ class SolicitacaoDietaEspecial(
 
     conferido = models.BooleanField('Marcar como conferido?', default=False)
 
+    eh_importado = models.BooleanField('Proveniente de importacao?', default=False)
+
     @classmethod
     def aluno_possui_dieta_especial_pendente(cls, aluno):
         return cls.objects.filter(
@@ -554,19 +556,19 @@ class ArquivoCargaDietaEspecial(ArquivoCargaBase):
 
     def __str__(self) -> str:
         return str(self.conteudo)
-    
+
     def inicia_processamento(self):
         self.status = StatusProcessamentoArquivo.PROCESSANDO.value
         self.save()
-    
+
     def processamento_com_sucesso(self):
         self.status = StatusProcessamentoArquivo.SUCESSO.value
         self.save()
-    
+
     def processamento_com_erro(self):
         self.status = StatusProcessamentoArquivo.PROCESSADO_COM_ERRO.value
         self.save()
-    
+
     def erro_no_processamento(self):
         self.status = StatusProcessamentoArquivo.ERRO.value
         self.save()

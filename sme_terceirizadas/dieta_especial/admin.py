@@ -96,6 +96,7 @@ class SolicitacaoDietaEspecialAdmin(admin.ModelAdmin):
     list_display_links = ('__str__',)
     search_fields = ('uuid', 'aluno__codigo_eol', 'aluno__nome')
     readonly_fields = ('aluno',)
+    list_filter = ('eh_importado', 'conferido')
     change_list_template = 'dieta_especial/change_list.html'
     inlines = (SubstituicaoAlimentoInline,)
 
@@ -236,10 +237,9 @@ class ArquivoCargaDietaEspecialAdmin(admin.ModelAdmin):
             self.message_user(request, 'Escolha somente uma planilha.', messages.ERROR)
             return
 
-        importa_dietas_especiais(queryset.first())
-
+        importa_dietas_especiais(usuario=request.user, arquivo=queryset.first())
         self.message_user(request, f'Processo Terminado. Verifique o status do processo. {queryset.first().uuid}')
-    
+
     processa_carga.short_description = 'Realiza a importação das solicitações de dietas especiais'
 
 

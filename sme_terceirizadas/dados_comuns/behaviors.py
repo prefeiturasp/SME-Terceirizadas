@@ -5,7 +5,6 @@ from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.postgres.fields import ArrayField
 from django.core.validators import MinLengthValidator
 from django.db import models
-from django.db.models.base import ModelBase
 
 from .constants import LIMITE_INFERIOR, LIMITE_SUPERIOR, PRIORITARIO, REGULAR, StatusProcessamentoArquivo
 from .models import LogSolicitacoesUsuario
@@ -283,14 +282,14 @@ class ModeloBase(TemChaveExterna, CriadoEm, TemAlteradoEm):
 
 
 class ArquivoCargaBase(ModeloBase):
-    conteudo = models.FileField(blank=True, null=True)
+    conteudo = models.FileField(blank=True, default='')
     status = models.CharField(
         'status',
         max_length=35,
         choices=StatusProcessamentoArquivo.choices(),
         default=StatusProcessamentoArquivo.PENDENTE.value
     )
-    log = models.TextField(blank=True, null=True)
+    log = models.TextField(blank=True, default='')
 
     class Meta:
         abstract = True

@@ -201,7 +201,7 @@ class StatusProcessamentoArquivo(Enum):
     SUCESSO = 'SUCESSO'
     ERRO = 'ERRO'
     PROCESSADO_COM_ERRO = 'PROCESSADO_COM_ERRO'
-    PROCESSANDO = "PROCESSANDO"
+    PROCESSANDO = 'PROCESSANDO'
 
     @classmethod
     def choices(cls):
