@@ -362,29 +362,6 @@ def test_url_endpoint_autorizar_dieta_gestao_alimentacao(client_autenticado_vinc
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
-def test_url_endpoint_autorizar_dieta_transicao_invalida(client_autenticado_vinculo_codae_dieta,
-                                                         solicitacao_dieta_especial,
-                                                         payload_autorizar):
-    obj = SolicitacaoDietaEspecial.objects.first()
-
-    assert obj.registro_funcional_nutricionista == ''
-
-    response = client_autenticado_vinculo_codae_dieta.patch(
-        f'/solicitacoes-dieta-especial/{obj.uuid}/autorizar/',
-        content_type='application/json',
-        data=payload_autorizar
-    )
-
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
-    json = response.json()
-    assert json['detail'].startswith('Erro na transição de estado')
-
-    obj2 = SolicitacaoDietaEspecial.objects.first()
-
-    assert obj.status == obj2.status
-    assert obj.registro_funcional_nutricionista == obj2.registro_funcional_nutricionista
-
-
 def test_url_endpoint_autorizar_dieta_atributos_obrigatorios(client_autenticado_vinculo_codae_dieta,
                                                              solicitacao_dieta_especial,
                                                              payload_autorizar):

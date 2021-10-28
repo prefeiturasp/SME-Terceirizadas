@@ -9,6 +9,7 @@ from sme_terceirizadas.dados_comuns.constants import COORDENADOR_LOGISTICA
 from sme_terceirizadas.escola.models import Codae
 from sme_terceirizadas.escola.utils_analise_dietas_ativas import main
 from sme_terceirizadas.escola.utils_escola import create_tempfile, escreve_escolas_json
+from sme_terceirizadas.processamento_arquivos.dieta_especial import importa_dietas_especiais
 
 from .forms import AlimentoProprioForm
 from .models import (
@@ -16,6 +17,7 @@ from .models import (
     Alimento,
     AlimentoProprio,
     Anexo,
+    ArquivoCargaDietaEspecial,
     ClassificacaoDieta,
     LogDietasAtivasCanceladasAutomaticamente,
     MotivoAlteracaoUE,
@@ -94,6 +96,7 @@ class SolicitacaoDietaEspecialAdmin(admin.ModelAdmin):
     list_display_links = ('__str__',)
     search_fields = ('uuid', 'aluno__codigo_eol', 'aluno__nome')
     readonly_fields = ('aluno',)
+    list_filter = ('eh_importado', 'conferido')
     change_list_template = 'dieta_especial/change_list.html'
     inlines = (SubstituicaoAlimentoInline,)
 
@@ -220,6 +223,24 @@ class ProtocoloPadraoDietaEspecialAdmin(admin.ModelAdmin):
     list_display = ('nome_protocolo', 'status')
     search_fields = ('nome_protocolo',)
     inlines = (SubstituicaoAlimentoProtocoloPadraoInline,)
+
+
+@admin.register(ArquivoCargaDietaEspecial)
+class ArquivoCargaDietaEspecialAdmin(admin.ModelAdmin):
+    list_display = ('uuid', '__str__', 'criado_em', 'status')
+    readonly_fields = ('status', 'log')
+    list_filter = ('status',)
+    actions = ('processa_carga',)
+
+    def processa_carga(self, request, queryset):
+        if len(queryset) > 1:
+            self.message_user(request, 'Escolha somente uma planilha.', messages.ERROR)
+            return
+
+        importa_dietas_especiais(usuario=request.user, arquivo=queryset.first())
+        self.message_user(request, f'Processo Terminado. Verifique o status do processo. {queryset.first().uuid}')
+
+    processa_carga.short_description = 'Realiza a importação das solicitações de dietas especiais'
 
 
 admin.site.register(Anexo)
