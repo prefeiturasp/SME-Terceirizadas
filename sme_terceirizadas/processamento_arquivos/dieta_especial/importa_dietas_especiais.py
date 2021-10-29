@@ -1,8 +1,12 @@
 import logging
+from datetime import date
+from tempfile import NamedTemporaryFile
 from typing import List
 
+from django.core.files import File
+from django.db import transaction
 from django.db.models import Q
-from openpyxl import load_workbook
+from openpyxl import Workbook, load_workbook, styles
 
 from sme_terceirizadas.dieta_especial.models import (
     AlergiaIntolerancia,
@@ -11,6 +15,7 @@ from sme_terceirizadas.dieta_especial.models import (
     SolicitacaoDietaEspecial
 )
 from sme_terceirizadas.escola.models import Aluno
+from sme_terceirizadas.perfil.models.perfil import Perfil, Vinculo
 from sme_terceirizadas.perfil.models.usuario import Usuario
 
 from .schemas import ArquivoCargaDietaEspecialSchema
@@ -89,9 +94,9 @@ class ProcessadorPlanilha:
             raise Exception(f'Erro: Aluno com código eol {solicitacao_dieta_schema.codigo_eol_aluno} não encontrado.')
 
         if solicitacao_dieta_schema.nome_aluno.upper() != aluno.nome:
-            raise Exception(f"""Erro: Nome divergente para o código eol {aluno.codigo_eol}:
-                            Nome aluno planilha:
-                            {solicitacao_dieta_schema.nome_aluno.upper()} != Nome aluno sistema: {aluno.nome}""")
+            raise Exception(f'Erro: Nome divergente para o código eol {aluno.codigo_eol}: '
+                            + 'Nome aluno planilha: '
+                            + f'{solicitacao_dieta_schema.nome_aluno.upper()} != Nome aluno sistema: {aluno.nome}')
         return aluno
 
     def consulta_classificacao(self, dieta_schema) -> ClassificacaoDieta:
@@ -120,17 +125,37 @@ class ProcessadorPlanilha:
 
     def checa_existencia_solicitacao(self, solicitacao_dieta_schema, aluno) -> None:
         if SolicitacaoDietaEspecial.objects.filter(aluno=aluno, ativo=True, eh_importado=True).exists():
-            raise Exception(f"""Erro: Já existe uma solicitação ativa que foi importada para o aluno com código eol:
-                            {solicitacao_dieta_schema.codigo_eol_aluno}""")
+            raise Exception('Erro: Já existe uma solicitação ativa que foi importada para o aluno com código eol: '
+                            + f'{solicitacao_dieta_schema.codigo_eol_aluno}')
 
-    def cria_solicitacao(self, solicitacao_dieta_schema, aluno, classificacao_dieta, diagnosticos):
+    @transaction.atomic
+    def cria_solicitacao(self, solicitacao_dieta_schema, aluno, classificacao_dieta, diagnosticos):  # noqa C901 
         observacoes = """Essa Dieta Especial foi autorizada anteriormente a implantação do SIGPAE.
         Para ter acesso ao Protocolo da Dieta Especial,
         entre em contato com o Núcleo de Dieta Especial através do e-mail:
         smecodaedietaespecial@sme.prefeitura.sp.gov.br."""
 
+        email_fake = f'fake{aluno.escola.id}@admin.com'
+        usuario_escola = Usuario.objects.filter(email=email_fake).first()
+        if not usuario_escola:
+            perfil = Perfil.objects.get(nome='DIRETOR')
+            data_atual = date.today()
+
+            usuario_escola = Usuario.objects.create_superuser(
+                email=email_fake,
+                password='SIGPAE123',
+                nome=aluno.escola.nome,
+                cargo='DIRETOR',
+            )
+            Vinculo.objects.create(
+                instituicao=aluno.escola,
+                perfil=perfil,
+                usuario=usuario_escola,
+                data_inicial=data_atual,
+            )
+
         solicitacao: SolicitacaoDietaEspecial = SolicitacaoDietaEspecial.objects.create(
-            criado_por=self.usuario,
+            criado_por=usuario_escola,
             aluno=aluno,
             escola_destino=aluno.escola,
             ativo=True,
@@ -140,7 +165,7 @@ class ProcessadorPlanilha:
             conferido=True,
             eh_importado=True
         )
-        solicitacao.inicia_fluxo(user=self.usuario)
+        solicitacao.inicia_fluxo(user=usuario_escola)
         solicitacao.alergias_intolerancias.add(*diagnosticos)
         solicitacao.save()
         solicitacao.codae_autoriza(user=self.usuario)
@@ -149,9 +174,24 @@ class ProcessadorPlanilha:
         if self.erros:
             self.arquivo.log = '\n'.join(self.erros)
             self.arquivo.processamento_com_erro()
+            self.cria_planilha_de_erros()
         else:
             self.arquivo.log = 'Planilha processada com sucesso.'
             self.arquivo.processamento_com_sucesso()
+
+    def cria_planilha_de_erros(self) -> None:
+        workbook: Workbook = Workbook()
+        ws = workbook.active
+        ws.title = 'Erros'
+        cabecalho = ws.cell(row=1, column=1, value='Erros encontrados no processamento da planilha')
+        cabecalho.fill = styles.PatternFill('solid', fgColor='808080')
+        for index, erro in enumerate(self.erros, 2):
+            ws.cell(row=index, column=1, value=erro)
+
+        filename = f'arquivo_resultado_{self.arquivo.pk}.xlsx'
+        with NamedTemporaryFile() as tmp:
+            workbook.save(tmp.name)
+            self.arquivo.resultado.save(name=filename, content=File(tmp))
 
 
 def importa_dietas_especiais(usuario: Usuario, arquivo: ArquivoCargaDietaEspecial) -> None:

@@ -228,7 +228,7 @@ class ProtocoloPadraoDietaEspecialAdmin(admin.ModelAdmin):
 @admin.register(ArquivoCargaDietaEspecial)
 class ArquivoCargaDietaEspecialAdmin(admin.ModelAdmin):
     list_display = ('uuid', '__str__', 'criado_em', 'status')
-    readonly_fields = ('status', 'log')
+    readonly_fields = ('resultado', 'status', 'log')
     list_filter = ('status',)
     actions = ('processa_carga',)
 
