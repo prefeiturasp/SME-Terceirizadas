@@ -24,3 +24,7 @@ class ArquivoCargaDietaEspecialSchema(BaseModel):
         if len(value) != TAMANHO_CODIGO_EOL_ALUNO:
             raise ValueError('Codigo eol do aluno deve ter 7 dígitos.')
         return value
+
+
+class ArquivoCargaAlimentosSchema(BaseModel):
+    nome: str
