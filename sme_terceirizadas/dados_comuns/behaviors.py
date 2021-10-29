@@ -291,5 +291,21 @@ class ArquivoCargaBase(ModeloBase):
     )
     log = models.TextField(blank=True, default='')
 
+    def inicia_processamento(self):
+        self.status = StatusProcessamentoArquivo.PROCESSANDO.value
+        self.save()
+
+    def processamento_com_sucesso(self):
+        self.status = StatusProcessamentoArquivo.SUCESSO.value
+        self.save()
+
+    def processamento_com_erro(self):
+        self.status = StatusProcessamentoArquivo.PROCESSADO_COM_ERRO.value
+        self.save()
+
+    def erro_no_processamento(self):
+        self.status = StatusProcessamentoArquivo.ERRO.value
+        self.save()
+
     class Meta:
         abstract = True
