@@ -560,6 +560,8 @@ auditlog.register(AlimentoSubstituto)
 
 # TODO: Melhorar essa duplicação de código nas cargas
 class ArquivoCargaDietaEspecial(ArquivoCargaBase):
+    resultado = models.FileField(blank=True, default='')
+
     class Meta:
         verbose_name = 'Arquivo para importação de solicitações de Dieta Especial'
         verbose_name_plural = 'Arquivos para importação de solicitações de Dieta Especial'
