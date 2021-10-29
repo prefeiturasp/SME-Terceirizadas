@@ -17,7 +17,6 @@ from ..dados_comuns.behaviors import (
     TemIdentificadorExternoAmigavel,
     TemPrioridade
 )
-from ..dados_comuns.constants import StatusProcessamentoArquivo
 from ..dados_comuns.fluxo_status import FluxoDietaEspecialPartindoDaEscola
 from ..dados_comuns.models import LogSolicitacoesUsuario, TemplateMensagem
 from ..dados_comuns.utils import convert_base64_to_contentfile
@@ -324,7 +323,7 @@ class Alimento(Nomeavel, TemChaveExterna, Ativavel):
         (SO_SUBSTITUTOS, 'Aparece somente na listagem de alimentos substitutos'),
         (AMBOS, 'Aparece nas listagem de alimentos e substitutos')
     )
-    
+
     tipo = models.CharField(max_length=1, choices=TIPO_CHOICES, default='E')
     marca = models.ForeignKey(
         'produto.Marca',
@@ -333,7 +332,7 @@ class Alimento(Nomeavel, TemChaveExterna, Ativavel):
         null=True
     )
     outras_informacoes = models.CharField(max_length=255, blank=True)
-    tipo_listagem_protocolo = models.CharField(choices=TIPO_LISTAGEM_PROTOCOLO, default=SO_ALIMENTOS)
+    tipo_listagem_protocolo = models.CharField(max_length=15, choices=TIPO_LISTAGEM_PROTOCOLO, default=SO_ALIMENTOS)
 
     class Meta:
         ordering = ('nome',)
@@ -559,6 +558,7 @@ auditlog.register(SubstituicaoAlimentoProtocoloPadrao.alimentos_substitutos.thro
 auditlog.register(AlimentoSubstituto)
 
 
+# TODO: Melhorar essa duplicação de código nas cargas
 class ArquivoCargaDietaEspecial(ArquivoCargaBase):
     class Meta:
         verbose_name = 'Arquivo para importação de solicitações de Dieta Especial'
@@ -567,18 +567,11 @@ class ArquivoCargaDietaEspecial(ArquivoCargaBase):
     def __str__(self) -> str:
         return str(self.conteudo)
 
-    def inicia_processamento(self):
-        self.status = StatusProcessamentoArquivo.PROCESSANDO.value
-        self.save()
 
-    def processamento_com_sucesso(self):
-        self.status = StatusProcessamentoArquivo.SUCESSO.value
-        self.save()
+class ArquivoCargaAlimentosSubstitutos(ArquivoCargaBase):
+    class Meta:
+        verbose_name = 'Arquivo para importação de Alimentos e Alimentos substitutos'
+        verbose_name_plural = 'Arquivos para importação de Alimentos e Alimentos substitutos'
 
-    def processamento_com_erro(self):
-        self.status = StatusProcessamentoArquivo.PROCESSADO_COM_ERRO.value
-        self.save()
-
-    def erro_no_processamento(self):
-        self.status = StatusProcessamentoArquivo.ERRO.value
-        self.save()
+    def __str__(self) -> str:
+        return str(self.conteudo)
