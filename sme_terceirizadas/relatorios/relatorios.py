@@ -126,6 +126,7 @@ def relatorio_dieta_especial_conteudo(solicitacao):
             fluxo = constants.FLUXO_DIETA_ESPECIAL_INATIVACAO_INCOMPLETO
     else:
         fluxo = constants.FLUXO_DIETA_ESPECIAL
+        eh_importado = solicitacao.eh_importado
     html_string = render_to_string(
         'solicitacao_dieta_especial.html',
         {
@@ -135,7 +136,8 @@ def relatorio_dieta_especial_conteudo(solicitacao):
             'solicitacao': solicitacao,
             'fluxo': fluxo,
             'width': get_width(fluxo, solicitacao.logs),
-            'logs': formata_logs(logs)
+            'logs': formata_logs(logs),
+            'eh_importado': eh_importado
         }
     )
     return html_string

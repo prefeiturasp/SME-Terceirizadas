@@ -264,7 +264,8 @@ class SolicitacaoDietaEspecialSerializer(serializers.ModelSerializer):
             'tipo_solicitacao',
             'observacoes_alteracao',
             'motivo_alteracao_ue',
-            'conferido'
+            'conferido',
+            'eh_importado'
         )
 
 
