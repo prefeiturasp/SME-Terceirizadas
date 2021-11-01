@@ -23,6 +23,13 @@ def index_exists(indexable, i):
 
 
 @register.filter
+def check_importada(atributo):
+    if (atributo):
+        return not atributo
+    return True
+
+
+@register.filter
 def fim_de_fluxo(logs):
     fim = False
     for log in logs:
