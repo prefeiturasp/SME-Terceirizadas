@@ -25,8 +25,10 @@
         {{ logs|get_element_by_index:forloop.counter0|get_attribute:'criado_em' }}
         <br/>
         <span>
+                  {% if eh_importado|check_importada %}
                   RF: {{ logs|get_element_by_index:forloop.counter0|get_attribute:'usuario'|get_attribute:'registro_funcional' }}
                   <br/>
+                  {% endif %}
                   {{ logs|get_element_by_index:forloop.counter0|get_attribute:'usuario'|get_attribute:'nome' }}
                 </span>
         {% endif %}
