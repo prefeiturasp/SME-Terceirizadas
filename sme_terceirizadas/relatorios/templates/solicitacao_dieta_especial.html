@@ -13,7 +13,7 @@
   </style>
 
   <div class="conteudo tabela-sem-borda">
-  {% include "bloco_fluxo_status_homologacao.html" %}
+  {% include "bloco_fluxo_status_homologacao.html" with eh_importado=solicitacao.eh_importado %}
     {% include "bloco_cabecalho_solicitacao_partindo_escola.html" %}
     <div class="bloco-pescritor-dieta-especial">
       <h5>Descrição da solicitação</h5>
