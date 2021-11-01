@@ -126,7 +126,7 @@ def relatorio_dieta_especial_conteudo(solicitacao):
             fluxo = constants.FLUXO_DIETA_ESPECIAL_INATIVACAO_INCOMPLETO
     else:
         fluxo = constants.FLUXO_DIETA_ESPECIAL
-        eh_importado = solicitacao.eh_importado
+    eh_importado = solicitacao.eh_importado
     html_string = render_to_string(
         'solicitacao_dieta_especial.html',
         {
