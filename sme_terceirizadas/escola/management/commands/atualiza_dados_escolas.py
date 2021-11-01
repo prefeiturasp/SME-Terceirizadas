@@ -37,7 +37,7 @@ class Command(BaseCommand):
 
     def _atualiza_dados_escola(self, dre):
         response = requests.get(
-            f'{DJANGO_EOL_SGP_API_URL}/DREs/{dre.codigo_eol}/escolas',
+            f'{DJANGO_EOL_SGP_API_URL}/DREs/{dre.codigo_eol}/escola',
             headers=self.headers,
             timeout=self.timeout,
         )
