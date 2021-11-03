@@ -1,0 +1,9 @@
+{% extends 'email_base.html' %}
+{% load email_templatetags %}
+
+{% block conteudo %}
+  <p> Foi disponibilizado para sua análise o cancelamento de guias de remessa da Requisição nº {{ solicitacao }}</p>
+  <br/>
+  <a href="{{ url }}">Clique para acessar detalhes da solicitação</a>
+  <br/>
+{% endblock %}
