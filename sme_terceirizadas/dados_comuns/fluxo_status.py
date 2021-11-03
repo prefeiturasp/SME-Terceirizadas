@@ -491,6 +491,24 @@ class FluxoSolicitacaoRemessa(xwf_models.WorkflowEnabled, models.Model):
             html=html
         )
 
+    def _envia_email_aguarda_cancelamento_para_distibuidor(self, log_transicao):
+        url = f'{env("REACT_APP_URL")}/logistica/gestao-requisicao-entrega?numero_requisicao={self.numero_solicitacao}'
+        html = render_to_string(
+            template_name='logistica_aguardando_cancelamento_distribuidor.html',
+            context={
+                'titulo': f'Cancelamento de Guias de Remessa da Requisição N° {self.numero_solicitacao}',
+                'solicitacao': self.numero_solicitacao,
+                'log_transicao': log_transicao,
+                'url': url
+            }
+        )
+        envia_email_unico_task.delay(
+            assunto=f'[SIGPAE] Cancelamento de Guias de Remessa da Requisição N° {self.numero_solicitacao}',
+            email=self.distribuidor.responsavel_email,
+            corpo='',
+            html=html
+        )
+
     @xworkflows.after_transition('inicia_fluxo')
     def _inicia_fluxo_hook(self, *args, **kwargs):
         user = kwargs['user']
@@ -513,10 +531,11 @@ class FluxoSolicitacaoRemessa(xwf_models.WorkflowEnabled, models.Model):
     @xworkflows.after_transition('aguarda_confirmacao_de_cancelamento')
     def _aguarda_confirmacao_de_cancelamento_hook(self, *args, **kwargs):
         user = kwargs['user']
-        self.salvar_log_transicao(
+        log_transicao = self.salvar_log_transicao(
             status_evento=LogSolicitacoesUsuario.PAPA_AGUARDA_CONFIRMACAO_CANCELAMENTO_SOLICITACAO,
             usuario=user,
             justificativa=kwargs.get('justificativa', ''))
+        self._envia_email_aguarda_cancelamento_para_distibuidor(log_transicao=log_transicao)
 
     @xworkflows.after_transition('cancela_solicitacao')
     def _cancela_solicitacao_hook(self, *args, **kwargs):
