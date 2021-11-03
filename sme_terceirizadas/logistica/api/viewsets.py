@@ -540,7 +540,6 @@ class GuiaDaRequisicaoModelViewSet(viewsets.ModelViewSet):
         queryset = queryset.annotate(
             nome_distribuidor=F('solicitacao__distribuidor__nome_fantasia')
         ).filter(escola=escola).exclude(status__in=(
-            GuiaRemessaWorkFlow.CANCELADA,
             GuiaRemessaWorkFlow.AGUARDANDO_ENVIO,
             GuiaRemessaWorkFlow.AGUARDANDO_CONFIRMACAO
         )).order_by('data_entrega').distinct()
