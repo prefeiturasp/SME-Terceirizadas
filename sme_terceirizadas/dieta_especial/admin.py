@@ -19,6 +19,7 @@ from .models import (
     Anexo,
     ArquivoCargaAlimentosSubstitutos,
     ArquivoCargaDietaEspecial,
+    ArquivoCargaUsuariosEscola,
     ClassificacaoDieta,
     LogDietasAtivasCanceladasAutomaticamente,
     MotivoAlteracaoUE,
@@ -261,6 +262,24 @@ class ArquivoCargaAlimentosSubstitutosAdmin(admin.ModelAdmin):
         self.message_user(request, f'Processo Terminado. Verifique o status do processo. {queryset.first().uuid}')
 
     processa_carga.short_description = 'Realiza a importação dos alimentos e alimentos substitutos'
+
+
+@admin.register(ArquivoCargaUsuariosEscola)
+class ArquivoCargaUsuariosEscolaAdmin(admin.ModelAdmin):
+    list_display = ('uuid', '__str__', 'criado_em', 'status')
+    readonly_fields = ('resultado', 'status', 'log')
+    list_filter = ('status',)
+    actions = ('processa_carga',)
+
+    def processa_carga(self, request, queryset):
+        if len(queryset) > 1:
+            self.message_user(request, 'Escolha somente uma planilha.', messages.ERROR)
+            return
+
+        
+        self.message_user(request, f'Processo Terminado. Verifique o status do processo. {queryset.first().uuid}')
+
+    processa_carga.short_description = 'Realiza a importação dos usuários Diretor e Assistente Diretor'
 
 
 admin.site.register(Anexo)
