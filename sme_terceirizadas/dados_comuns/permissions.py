@@ -3,12 +3,20 @@ from rest_framework.permissions import BasePermission
 from ..escola.models import Codae, DiretoriaRegional, Escola
 from ..terceirizada.models import Terceirizada
 from .constants import (
+    ADMINISTRADOR_CODAE_DILOG_CONTABIL,
+    ADMINISTRADOR_CODAE_DILOG_JURIDICO,
+    ADMINISTRADOR_CODAE_GABINETE,
     ADMINISTRADOR_DIETA_ESPECIAL,
     ADMINISTRADOR_DISTRIBUIDORA,
+    ADMINISTRADOR_DRE,
     ADMINISTRADOR_ESCOLA_ABASTECIMENTO,
     ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
     ADMINISTRADOR_GESTAO_PRODUTO,
     ADMINISTRADOR_SUPERVISAO_NUTRICAO,
+    ADMINISTRADOR_UE_DIRETA,
+    ADMINISTRADOR_UE_MISTA,
+    ADMINISTRADOR_UE_PARCEIRA,
+    COORDENADOR_CODAE_DILOG_LOGISTICA,
     COORDENADOR_DIETA_ESPECIAL,
     COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
     COORDENADOR_GESTAO_PRODUTO,
@@ -255,7 +263,7 @@ class UsuarioDilogCodae(BasePermission):
             not usuario.is_anonymous and
             usuario.vinculo_atual and
             isinstance(usuario.vinculo_atual.instituicao, Codae) and
-            usuario.vinculo_atual.perfil.nome in [COORDENADOR_LOGISTICA]
+            usuario.vinculo_atual.perfil.nome in [COORDENADOR_LOGISTICA, COORDENADOR_CODAE_DILOG_LOGISTICA]
         )
 
 
@@ -281,7 +289,10 @@ class UsuarioEscolaAbastecimento(BasePermission):
             not usuario.is_anonymous and
             usuario.vinculo_atual and
             isinstance(usuario.vinculo_atual.instituicao, Escola) and
-            usuario.vinculo_atual.perfil.nome in [ADMINISTRADOR_ESCOLA_ABASTECIMENTO]
+            usuario.vinculo_atual.perfil.nome in [
+                ADMINISTRADOR_ESCOLA_ABASTECIMENTO, ADMINISTRADOR_UE_DIRETA, ADMINISTRADOR_UE_MISTA,
+                ADMINISTRADOR_UE_PARCEIRA
+            ]
         )
 
 
@@ -295,7 +306,7 @@ class UsuarioDilogOuDistribuidor(BasePermission):
             usuario.vinculo_atual and
             (
                 isinstance(usuario.vinculo_atual.instituicao, Codae) and
-                usuario.vinculo_atual.perfil.nome in [COORDENADOR_LOGISTICA] or
+                usuario.vinculo_atual.perfil.nome in [COORDENADOR_LOGISTICA, COORDENADOR_CODAE_DILOG_LOGISTICA] or
                 (
                     isinstance(usuario.vinculo_atual.instituicao, Terceirizada) and
                     usuario.vinculo_atual.perfil.nome in [ADMINISTRADOR_DISTRIBUIDORA]
@@ -315,7 +326,7 @@ class UsuarioDilogOuDistribuidorOuEscolaAbastecimento(BasePermission):
             (
                 (
                     isinstance(usuario.vinculo_atual.instituicao, Codae) and
-                    usuario.vinculo_atual.perfil.nome in [COORDENADOR_LOGISTICA]
+                    usuario.vinculo_atual.perfil.nome in [COORDENADOR_LOGISTICA, COORDENADOR_CODAE_DILOG_LOGISTICA]
                 ) or
                 (
                     isinstance(usuario.vinculo_atual.instituicao, Terceirizada) and
@@ -323,7 +334,45 @@ class UsuarioDilogOuDistribuidorOuEscolaAbastecimento(BasePermission):
                 ) or
                 (
                     isinstance(usuario.vinculo_atual.instituicao, Escola) and
-                    usuario.vinculo_atual.perfil.nome in [ADMINISTRADOR_ESCOLA_ABASTECIMENTO]
+                    usuario.vinculo_atual.perfil.nome in [
+                        ADMINISTRADOR_ESCOLA_ABASTECIMENTO, ADMINISTRADOR_UE_DIRETA, ADMINISTRADOR_UE_MISTA,
+                        ADMINISTRADOR_UE_PARCEIRA
+                    ]
+                )
+            )
+        )
+
+
+class PermissaoParaListarEntregas(BasePermission):
+
+    def has_permission(self, request, view):
+        usuario = request.user
+        return (
+            not usuario.is_anonymous and
+            usuario.vinculo_atual and
+            (
+                (
+                    isinstance(usuario.vinculo_atual.instituicao, Codae) and
+                    usuario.vinculo_atual.perfil.nome in [
+                        COORDENADOR_LOGISTICA, COORDENADOR_CODAE_DILOG_LOGISTICA, ADMINISTRADOR_SUPERVISAO_NUTRICAO,
+                        ADMINISTRADOR_CODAE_GABINETE, ADMINISTRADOR_CODAE_DILOG_CONTABIL,
+                        ADMINISTRADOR_CODAE_DILOG_JURIDICO
+                    ]
+                ) or
+                (
+                    isinstance(usuario.vinculo_atual.instituicao, Terceirizada) and
+                    usuario.vinculo_atual.perfil.nome in [ADMINISTRADOR_DISTRIBUIDORA]
+                ) or
+                (
+                    isinstance(usuario.vinculo_atual.instituicao, Escola) and
+                    usuario.vinculo_atual.perfil.nome in [
+                        ADMINISTRADOR_ESCOLA_ABASTECIMENTO, ADMINISTRADOR_UE_DIRETA, ADMINISTRADOR_UE_MISTA,
+                        ADMINISTRADOR_UE_PARCEIRA
+                    ]
+                )or
+                (
+                    isinstance(usuario.vinculo_atual.instituicao, DiretoriaRegional) and
+                    usuario.vinculo_atual.perfil.nome in [ADMINISTRADOR_DRE]
                 )
             )
         )
