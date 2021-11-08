@@ -9,7 +9,11 @@ from sme_terceirizadas.dados_comuns.constants import COORDENADOR_LOGISTICA
 from sme_terceirizadas.escola.models import Codae
 from sme_terceirizadas.escola.utils_analise_dietas_ativas import main
 from sme_terceirizadas.escola.utils_escola import create_tempfile, escreve_escolas_json
-from sme_terceirizadas.processamento_arquivos.dieta_especial import importa_alimentos, importa_dietas_especiais
+from sme_terceirizadas.processamento_arquivos.dieta_especial import (
+    importa_alimentos,
+    importa_dietas_especiais,
+    importa_usuarios_escola
+)
 
 from .forms import AlimentoProprioForm
 from .models import (
@@ -276,7 +280,7 @@ class ArquivoCargaUsuariosEscolaAdmin(admin.ModelAdmin):
             self.message_user(request, 'Escolha somente uma planilha.', messages.ERROR)
             return
 
-        
+        importa_usuarios_escola(request.user, queryset.first())
         self.message_user(request, f'Processo Terminado. Verifique o status do processo. {queryset.first().uuid}')
 
     processa_carga.short_description = 'Realiza a importação dos usuários Diretor e Assistente Diretor'

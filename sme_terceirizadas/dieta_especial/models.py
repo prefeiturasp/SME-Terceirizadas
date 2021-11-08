@@ -580,6 +580,7 @@ class ArquivoCargaAlimentosSubstitutos(ArquivoCargaBase):
 
 class ArquivoCargaUsuariosEscola(ArquivoCargaBase):
     """Essa classe foi colocada aqui pois os usuários seriam usados para a dieta especial."""
+
     resultado = models.FileField(blank=True, default='')
 
     class Meta:
