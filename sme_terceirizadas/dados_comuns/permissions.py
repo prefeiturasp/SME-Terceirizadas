@@ -354,7 +354,7 @@ class PermissaoParaListarEntregas(BasePermission):
                 (
                     isinstance(usuario.vinculo_atual.instituicao, Codae) and
                     usuario.vinculo_atual.perfil.nome in [
-                        COORDENADOR_LOGISTICA, COORDENADOR_CODAE_DILOG_LOGISTICA, ADMINISTRADOR_SUPERVISAO_NUTRICAO,
+                        COORDENADOR_LOGISTICA, COORDENADOR_CODAE_DILOG_LOGISTICA, COORDENADOR_SUPERVISAO_NUTRICAO,
                         ADMINISTRADOR_CODAE_GABINETE, ADMINISTRADOR_CODAE_DILOG_CONTABIL,
                         ADMINISTRADOR_CODAE_DILOG_JURIDICO
                     ]
