@@ -9,7 +9,11 @@ from sme_terceirizadas.dados_comuns.constants import COORDENADOR_LOGISTICA
 from sme_terceirizadas.escola.models import Codae
 from sme_terceirizadas.escola.utils_analise_dietas_ativas import main
 from sme_terceirizadas.escola.utils_escola import create_tempfile, escreve_escolas_json
-from sme_terceirizadas.processamento_arquivos.dieta_especial import importa_alimentos, importa_dietas_especiais
+from sme_terceirizadas.processamento_arquivos.dieta_especial import (
+    importa_alimentos,
+    importa_dietas_especiais,
+    importa_usuarios_escola
+)
 
 from .forms import AlimentoProprioForm
 from .models import (
@@ -19,6 +23,7 @@ from .models import (
     Anexo,
     ArquivoCargaAlimentosSubstitutos,
     ArquivoCargaDietaEspecial,
+    ArquivoCargaUsuariosEscola,
     ClassificacaoDieta,
     LogDietasAtivasCanceladasAutomaticamente,
     MotivoAlteracaoUE,
@@ -261,6 +266,24 @@ class ArquivoCargaAlimentosSubstitutosAdmin(admin.ModelAdmin):
         self.message_user(request, f'Processo Terminado. Verifique o status do processo. {queryset.first().uuid}')
 
     processa_carga.short_description = 'Realiza a importação dos alimentos e alimentos substitutos'
+
+
+@admin.register(ArquivoCargaUsuariosEscola)
+class ArquivoCargaUsuariosEscolaAdmin(admin.ModelAdmin):
+    list_display = ('uuid', '__str__', 'criado_em', 'status')
+    readonly_fields = ('resultado', 'status', 'log')
+    list_filter = ('status',)
+    actions = ('processa_carga',)
+
+    def processa_carga(self, request, queryset):
+        if len(queryset) > 1:
+            self.message_user(request, 'Escolha somente uma planilha.', messages.ERROR)
+            return
+
+        importa_usuarios_escola(request.user, queryset.first())
+        self.message_user(request, f'Processo Terminado. Verifique o status do processo. {queryset.first().uuid}')
+
+    processa_carga.short_description = 'Realiza a importação dos usuários Diretor e Assistente Diretor'
 
 
 admin.site.register(Anexo)

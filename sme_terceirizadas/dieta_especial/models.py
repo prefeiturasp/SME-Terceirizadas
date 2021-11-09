@@ -558,7 +558,6 @@ auditlog.register(SubstituicaoAlimentoProtocoloPadrao.alimentos_substitutos.thro
 auditlog.register(AlimentoSubstituto)
 
 
-# TODO: Melhorar essa duplicação de código nas cargas
 class ArquivoCargaDietaEspecial(ArquivoCargaBase):
     resultado = models.FileField(blank=True, default='')
 
@@ -574,6 +573,19 @@ class ArquivoCargaAlimentosSubstitutos(ArquivoCargaBase):
     class Meta:
         verbose_name = 'Arquivo para importação de Alimentos e Alimentos substitutos'
         verbose_name_plural = 'Arquivos para importação de Alimentos e Alimentos substitutos'
+
+    def __str__(self) -> str:
+        return str(self.conteudo)
+
+
+class ArquivoCargaUsuariosEscola(ArquivoCargaBase):
+    """Essa classe foi colocada aqui pois os usuários seriam usados para a dieta especial."""
+
+    resultado = models.FileField(blank=True, default='')
+
+    class Meta:
+        verbose_name = 'Arquivo para importação de usuários Diretor e Assistente Diretor'
+        verbose_name_plural = 'Arquivos para importação de usuários Diretor e Assistente Diretor'
 
     def __str__(self) -> str:
         return str(self.conteudo)
