@@ -7,7 +7,8 @@ from rest_framework import status
 from ..dados_comuns.constants import (
     DJANGO_EOL_API_TOKEN,
     DJANGO_EOL_API_URL,
-    DJANGO_EOL_PAPA_API_SENHA,
+    DJANGO_EOL_PAPA_API_SENHA_CANCELAMENTO,
+    DJANGO_EOL_PAPA_API_SENHA_ENVIO,
     DJANGO_EOL_PAPA_API_URL,
     DJANGO_EOL_PAPA_API_USUARIO,
     DJANGO_EOL_SGP_API_TOKEN,
@@ -146,7 +147,7 @@ class EOLPapaService:
             'NUM_SOL': numero_solicitacao,
             'SEQ_ENVIO': sequencia_envio,
             'USUARIO': DJANGO_EOL_PAPA_API_USUARIO,
-            'SENHA': DJANGO_EOL_PAPA_API_SENHA,
+            'SENHA': DJANGO_EOL_PAPA_API_SENHA_CANCELAMENTO,
 
         }
 
@@ -157,6 +158,28 @@ class EOLPapaService:
             if result['RETORNO'] != 'TRUE':
                 raise EOLException(
                     f'API EOL do PAPA não confirmou cancelamento. MSG: {str(result)}')
+        else:
+            raise EOLException(f'API EOL do PAPA está com erro. Erro: {str(response)}, Status: {response.status_code}')
+
+    @classmethod
+    def confirmacao_de_envio(cls, cnpj, numero_solicitacao, sequencia_envio):
+        if sequencia_envio is None:
+            sequencia_envio = 0
+        payload = {
+            'CNPJ_PREST': cnpj,
+            'NUM_SOL': numero_solicitacao,
+            'SEQ_ENVIO': sequencia_envio,
+            'USUARIO': DJANGO_EOL_PAPA_API_USUARIO,
+            'SENHA': DJANGO_EOL_PAPA_API_SENHA_ENVIO,
+
+        }
+        response = requests.post(f'{DJANGO_EOL_PAPA_API_URL}/confirmarenviosolicitacao/',
+                                 timeout=cls.TIMEOUT, json=payload)
+        if response.status_code == status.HTTP_200_OK:
+            result = response.json()
+            if result['RETORNO'] != 'TRUE':
+                raise EOLException(
+                    f'API EOL do PAPA não confirmou o envio. MSG: {str(result)}')
         else:
             raise EOLException(f'API EOL do PAPA está com erro. Erro: {str(response)}, Status: {response.status_code}')
 

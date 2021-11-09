@@ -1,4 +1,5 @@
 import environ
+from django.conf import settings
 from django.core import exceptions
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import IntegrityError, transaction
@@ -244,8 +245,9 @@ class ArqCancelamento(ComplexModel):
                     justificativa=f'Guias canceladas: {guias_payload}'
                 )
             # Envia confirmação para o papa
-            EOLPapaService.confirmacao_de_cancelamento(
-                cnpj=solicitacao.cnpj, numero_solicitacao=solicitacao.numero_solicitacao, sequencia_envio=seq_envio)
+            if not settings.DEBUG:
+                EOLPapaService.confirmacao_de_cancelamento(
+                    cnpj=solicitacao.cnpj, numero_solicitacao=solicitacao.numero_solicitacao, sequencia_envio=seq_envio)
 
         # Depende de confirmação do distribuidor no sigpae
         elif solicitacao.status in (StatusReq.DISTRIBUIDOR_CONFIRMA, StatusReq.DISTRIBUIDOR_SOLICITA_ALTERACAO):

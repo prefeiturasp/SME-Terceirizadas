@@ -1,4 +1,6 @@
+from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.db import transaction
 from django.db.models import Count, F, FloatField, Max, Q, Sum
 from django.db.utils import DataError
 from django.http.response import HttpResponse
@@ -27,6 +29,7 @@ from sme_terceirizadas.dados_comuns.permissions import (
     UsuarioDistribuidor,
     UsuarioEscolaAbastecimento
 )
+from sme_terceirizadas.eol_servico.utils import EOLPapaService
 from sme_terceirizadas.logistica.api.serializers.serializer_create import (
     ConferenciaComOcorrenciaCreateSerializer,
     ConferenciaDaGuiaCreateSerializer,
@@ -352,6 +355,7 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
+    @transaction.atomic
     @action(detail=True, permission_classes=(UsuarioDistribuidor,),
             methods=['patch'], url_path='distribuidor-confirma')
     def distribuidor_confirma(self, request, uuid=None):
@@ -362,10 +366,16 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
             confirma_guias(solicitacao=solicitacao, user=usuario)
             solicitacao.empresa_atende(user=usuario, )
             serializer = SolicitacaoRemessaSerializer(solicitacao)
+            if settings.DEBUG is not True:
+                EOLPapaService.confirmacao_de_envio(
+                    cnpj=solicitacao.cnpj,
+                    numero_solicitacao=solicitacao.numero_solicitacao,
+                    sequencia_envio=solicitacao.sequencia_envio)
             return Response(serializer.data)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
+    @transaction.atomic  # noqa: C901
     @action(detail=False, permission_classes=(UsuarioDistribuidor,),
             methods=['patch'], url_path='distribuidor-confirma-todos')
     def distribuidor_confirma_todos(self, request):
@@ -377,6 +387,11 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
             for solicitacao in solicitacoes:
                 confirma_guias(solicitacao, usuario)
                 solicitacao.empresa_atende(user=usuario, )
+                if settings.DEBUG is not True:
+                    EOLPapaService.confirmacao_de_envio(
+                        cnpj=solicitacao.cnpj,
+                        numero_solicitacao=solicitacao.numero_solicitacao,
+                        sequencia_envio=solicitacao.sequencia_envio)
             return Response(status=HTTP_200_OK)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
@@ -540,7 +555,6 @@ class GuiaDaRequisicaoModelViewSet(viewsets.ModelViewSet):
         queryset = queryset.annotate(
             nome_distribuidor=F('solicitacao__distribuidor__nome_fantasia')
         ).filter(escola=escola).exclude(status__in=(
-            GuiaRemessaWorkFlow.CANCELADA,
             GuiaRemessaWorkFlow.AGUARDANDO_ENVIO,
             GuiaRemessaWorkFlow.AGUARDANDO_CONFIRMACAO
         )).order_by('data_entrega').distinct()
