@@ -99,4 +99,39 @@ data_perfis = [
         'ativo': True,
         'super_usuario': True,
     },
+    {
+        'nome': 'COORDENADOR_CODAE_DILOG_LOGISTICA',
+        'ativo': True,
+        'super_usuario': True,
+    },
+    {
+        'nome': 'ADMINISTRADOR_CODAE_GABINETE',
+        'ativo': True,
+        'super_usuario': True,
+    },
+    {
+        'nome': 'ADMINISTRADOR_CODAE_DILOG_CONTABIL',
+        'ativo': True,
+        'super_usuario': True,
+    },
+    {
+        'nome': 'ADMINISTRADOR_CODAE_DILOG_JURIDICO',
+        'ativo': True,
+        'super_usuario': True,
+    },
+    {
+        'nome': 'ADMINISTRADOR_UE_MISTA',
+        'ativo': True,
+        'super_usuario': True,
+    },
+    {
+        'nome': 'ADMINISTRADOR_UE_DIRETA',
+        'ativo': True,
+        'super_usuario': True,
+    },
+    {
+        'nome': 'ADMINISTRADOR_UE_PARCEIRA',
+        'ativo': True,
+        'super_usuario': True,
+    },
 ]

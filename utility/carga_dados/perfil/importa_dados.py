@@ -30,7 +30,14 @@ def cria_vinculos():
         'perfil_usuario_nutri_supervisao': Perfil.objects.get(nome='COORDENADOR_SUPERVISAO_NUTRICAO'),  # noqa
         'perfil_coordenador_gestao_produto': Perfil.objects.get(nome='COORDENADOR_GESTAO_PRODUTO'),  # noqa
         'perfil_usuario_terceirizada': Perfil.objects.get(nome='NUTRI_ADMIN_RESPONSAVEL'),  # noqa
-        'perfil_usuario_ue': Perfil.objects.get(nome='ADMINISTRADOR_ESCOLA_ABASTECIMENTO')
+        'perfil_usuario_ue': Perfil.objects.get(nome='ADMINISTRADOR_ESCOLA_ABASTECIMENTO'),
+        'perfil_usuario_codae_dilog': Perfil.objects.get(nome='COORDENADOR_CODAE_DILOG_LOGISTICA'),
+        'perfil_usuario_codae_gabinete': Perfil.objects.get(nome='ADMINISTRADOR_CODAE_GABINETE'),
+        'perfil_usuario_dilog_contabil': Perfil.objects.get(nome='ADMINISTRADOR_CODAE_DILOG_CONTABIL'),
+        'perfil_usuario_dilog_juridico': Perfil.objects.get(nome='ADMINISTRADOR_CODAE_DILOG_JURIDICO'),
+        'perfil_usuario_ue_mista': Perfil.objects.get(nome='ADMINISTRADOR_UE_MISTA'),
+        'perfil_usuario_ue_direta': Perfil.objects.get(nome='ADMINISTRADOR_UE_DIRETA'),
+        'perfil_usuario_ue_parceira': Perfil.objects.get(nome='ADMINISTRADOR_UE_PARCEIRA')
     }
 
     usuario = {
@@ -52,7 +59,13 @@ def cria_vinculos():
         'usuario_nutri_supervisao': Usuario.objects.get(email='nutrisupervisao@admin.com'),
         'usuario_gestao_produto_codae': Usuario.objects.get(email='gpcodae@admin.com'),
         'usuario_terceirizada': Usuario.objects.get(email='terceirizada@admin.com'),
-        'usuario_ue': Usuario.objects.get(email='ue@admin.com'),
+        'usuario_codae_gabinete': Usuario.objects.get(email='codaegabinete@admin.com'),
+        'usuario_codae_logistica': Usuario.objects.get(email='codaelogistica@admin.com'),
+        'usuario_codae_contabio': Usuario.objects.get(email='codaecontabil@admin.com'),
+        'usuario_codae_juridico': Usuario.objects.get(email='codaejuridico@admin.com'),
+        'usuario_ue_mista': Usuario.objects.get(email='uemista@admin.com'),
+        'usuario_ue_direta': Usuario.objects.get(email='uedireta@admin.com'),
+        'usuario_ue_parceira': Usuario.objects.get(email='ueparceira@admin.com'),
     }
 
     items = [
@@ -115,6 +128,21 @@ def cria_vinculos():
             'nome': 'CEI DIRET ROBERTO ARANTES LANHOSO',
             'perfil': perfil['perfil_usuario_ue'],
             'usuario': usuario['usuario_ue'],
+        },
+        {
+            'nome': 'CEI MUN. PINHEIROS',
+            'perfil': perfil['perfil_usuario_ue_mista'],
+            'usuario': usuario['usuario_ue_mista'],
+        },
+        {
+            'nome': 'CIEJA ALUNA JESSICA NUNES HERCULANO',
+            'perfil': perfil['perfil_usuario_ue_direta'],
+            'usuario': usuario['usuario_ue_direta'],
+        },
+        {
+            'nome': 'CEI PARC. FRATERNIDADE MARIA DE NAZARÉ',
+            'perfil': perfil['perfil_usuario_ue_parceira'],
+            'usuario': usuario['usuario_ue_parceira'],
         },
 
     ]
