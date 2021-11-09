@@ -1,5 +1,6 @@
 import logging
 
+from django.db import transaction
 from django.db.models import Q
 from openpyxl import load_workbook
 
@@ -59,6 +60,7 @@ class ProcessadorPlanilha:
         return {key: linha[index].value
                 for index, key in enumerate(ArquivoCargaAlimentosSchema.schema()['properties'].keys())}
 
+    @transaction.atomic
     def processa_alimentos(self, worksheet, tipo_listagem=Alimento.SO_ALIMENTOS):  # noqa C901
         linhas = list(worksheet.rows)
         for ind, linha in enumerate(linhas[1:], 2):  # Começando em 2 pois a primeira linha é o cabeçalho da planilha
