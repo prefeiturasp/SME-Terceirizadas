@@ -105,7 +105,7 @@ class ProcessadorPlanilha:
         usuario = Usuario.objects.filter(Q(registro_funcional=registro_funcional) | Q(email=email)).first()
         if usuario:
             raise Exception(f'Usuário pra esse email {email} ou com esse rf '
-                            + '{registro_funcional} já criado: Nome na planilha {nome_planilha}.')
+                            + f'{registro_funcional} já criado: Nome na planilha {nome_planilha}.')
 
     def __criar_usuario(self, escola, nome_usuario, email, cargo):
         perfil = Perfil.objects.get(nome=cargo)
