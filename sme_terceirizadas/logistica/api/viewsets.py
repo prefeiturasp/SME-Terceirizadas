@@ -22,10 +22,10 @@ from sme_terceirizadas.dados_comuns.fluxo_status import GuiaRemessaWorkFlow, Sol
 from sme_terceirizadas.dados_comuns.models import LogSolicitacoesUsuario
 from sme_terceirizadas.dados_comuns.parser_xml import ListXMLParser
 from sme_terceirizadas.dados_comuns.permissions import (
+    PermissaoParaListarEntregas,
     UsuarioDilogCodae,
     UsuarioDilogOuDistribuidor,
     UsuarioDilogOuDistribuidorOuEscolaAbastecimento,
-    UsuarioDiretoriaRegional,
     UsuarioDistribuidor,
     UsuarioEscolaAbastecimento
 )
@@ -293,7 +293,7 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
         response = {'results': SolicitacaoRemessaLookUpSerializer(queryset, many=True).data}
         return Response(response)
 
-    @action(detail=False, permission_classes=[UsuarioDilogOuDistribuidor | UsuarioDiretoriaRegional],
+    @action(detail=False, permission_classes=[PermissaoParaListarEntregas],
             methods=['GET'], url_path='lista-requisicoes-confirmadas')
     def lista_requisicoes_confirmadas(self, request):
         queryset = self.filter_queryset(
