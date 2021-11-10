@@ -14,7 +14,8 @@ from ..dados_comuns.behaviors import (
     TemChaveExterna,
     TemData,
     TemIdentificadorExternoAmigavel,
-    TemPrioridade
+    TemPrioridade,
+    TemTerceirizadaConferiuGestaoAlimentacao
 )
 from ..dados_comuns.fluxo_status import FluxoAprovacaoPartindoDaEscola
 from ..dados_comuns.models import LogSolicitacoesUsuario, TemplateMensagem
@@ -73,7 +74,8 @@ class InclusaoAlimentacaoContinua(ExportModelOperationsMixin('inclusao_continua'
                                   TemChaveExterna,
                                   DiasSemana, FluxoAprovacaoPartindoDaEscola,
                                   CriadoPor, TemIdentificadorExternoAmigavel,
-                                  CriadoEm, Logs, TemPrioridade, SolicitacaoForaDoPrazo):
+                                  CriadoEm, Logs, TemPrioridade, SolicitacaoForaDoPrazo,
+                                  TemTerceirizadaConferiuGestaoAlimentacao):
     # TODO: noralizar campo de Descritivel: descricao -> observacao
     DESCRICAO = 'Inclusão de Alimentação Contínua'
 
@@ -181,7 +183,8 @@ class InclusaoAlimentacaoNormal(ExportModelOperationsMixin('inclusao_normal'), T
 
 class GrupoInclusaoAlimentacaoNormal(ExportModelOperationsMixin('grupo_inclusao'), Descritivel, TemChaveExterna,
                                      FluxoAprovacaoPartindoDaEscola, CriadoEm, SolicitacaoForaDoPrazo,
-                                     CriadoPor, TemIdentificadorExternoAmigavel, Logs, TemPrioridade):
+                                     CriadoPor, TemIdentificadorExternoAmigavel, Logs, TemPrioridade,
+                                     TemTerceirizadaConferiuGestaoAlimentacao):
     DESCRICAO = 'Inclusão de Alimentação'
 
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING,
@@ -276,7 +279,8 @@ class QuantidadeDeAlunosPorFaixaEtariaDaInclusaoDeAlimentacaoDaCEI(TemChaveExter
 
 
 class InclusaoAlimentacaoDaCEI(Descritivel, TemData, TemChaveExterna, FluxoAprovacaoPartindoDaEscola, CriadoEm,
-                               SolicitacaoForaDoPrazo, CriadoPor, TemIdentificadorExternoAmigavel, Logs, TemPrioridade):
+                               SolicitacaoForaDoPrazo, CriadoPor, TemIdentificadorExternoAmigavel, Logs, TemPrioridade,
+                               TemTerceirizadaConferiuGestaoAlimentacao):
     DESCRICAO = 'Inclusão de Alimentação Por CEI'
 
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING,

@@ -18,7 +18,8 @@ from ..dados_comuns.behaviors import (  # noqa I101
     TemFaixaEtariaEQuantidade,
     TemIdentificadorExternoAmigavel,
     TempoPasseio,
-    TemPrioridade
+    TemPrioridade,
+    TemTerceirizadaConferiuGestaoAlimentacao
 )
 from ..dados_comuns.fluxo_status import FluxoAprovacaoPartindoDaDiretoriaRegional, FluxoAprovacaoPartindoDaEscola
 from ..dados_comuns.models import LogSolicitacoesUsuario, TemplateMensagem
@@ -90,7 +91,8 @@ class SolicitacaoKitLanche(ExportModelOperationsMixin('kit_lanche_base'), TemDat
 
 class SolicitacaoKitLancheAvulsaBase(TemChaveExterna,  # type: ignore
                                      FluxoAprovacaoPartindoDaEscola, TemIdentificadorExternoAmigavel,
-                                     CriadoPor, TemPrioridade, Logs, SolicitacaoForaDoPrazo):
+                                     CriadoPor, TemPrioridade, Logs, SolicitacaoForaDoPrazo,
+                                     TemTerceirizadaConferiuGestaoAlimentacao):
     # TODO: ao deletar este, deletar solicitacao_kit_lanche também que é uma tabela acessória
     # TODO: passar `local` para solicitacao_kit_lanche
     DESCRICAO = 'Kit Lanche'
@@ -190,7 +192,8 @@ class FaixaEtariaSolicitacaoKitLancheCEIAvulsa(TemChaveExterna, TemFaixaEtariaEQ
 
 class SolicitacaoKitLancheUnificada(ExportModelOperationsMixin('kit_lanche_unificada'), CriadoPor, TemChaveExterna,
                                     TemIdentificadorExternoAmigavel, SolicitacaoForaDoPrazo,
-                                    FluxoAprovacaoPartindoDaDiretoriaRegional, Logs, TemPrioridade):
+                                    FluxoAprovacaoPartindoDaDiretoriaRegional, Logs, TemPrioridade,
+                                    TemTerceirizadaConferiuGestaoAlimentacao):
     """Uma DRE pede para as suas escolas.
 
     lista_kit_lanche_igual é a mesma lista de kit lanche pra todos.
