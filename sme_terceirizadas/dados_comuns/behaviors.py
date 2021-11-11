@@ -313,6 +313,7 @@ class ArquivoCargaBase(ModeloBase):
 
 class TemTerceirizadaConferiuGestaoAlimentacao(models.Model):
     """Indicação de que a terceirizada realizou avaliação da solicitação na gestão de alimentação."""
+
     terceirizada_conferiu_gestao = models.BooleanField('Terceirizada conferiu?', default=False)
 
     class Meta:

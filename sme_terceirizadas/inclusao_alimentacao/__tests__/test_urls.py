@@ -16,7 +16,7 @@ from ...dados_comuns.constants import (
     TERCEIRIZADA_TOMOU_CIENCIA
 )
 from ...dados_comuns.fluxo_status import PedidoAPartirDaEscolaWorkflow
-from ..models import GrupoInclusaoAlimentacaoNormal, InclusaoAlimentacaoDaCEI
+from ..models import GrupoInclusaoAlimentacaoNormal, InclusaoAlimentacaoContinua, InclusaoAlimentacaoDaCEI
 
 pytestmark = pytest.mark.django_db
 
@@ -508,3 +508,40 @@ def test_url_endpoint_inclusao_cei_relatorio(client_autenticado_vinculo_escola_c
         'Content-Disposition', f'filename="inclusao_alimentacao_{id_externo}.pdf"')
     assert 'PDF-1.5' in str(response.content)
     assert isinstance(response.content, bytes)
+
+
+def checa_se_terceirizada_marcou_conferencia_na_gestao_de_alimentacao(client_autenticado,
+                                                                      classe,
+                                                                      path):
+    obj = classe.objects.first()
+    assert not obj.terceirizada_conferiu_gestao
+
+    response = client_autenticado.patch(
+        f'/{path}/{obj.uuid}/marcar-conferida/',
+        content_type='application/json')
+
+    assert response.status_code == status.HTTP_200_OK
+
+    result = response.json()
+    assert 'terceirizada_conferiu_gestao' in result.keys()
+    assert result['terceirizada_conferiu_gestao']
+
+    obj = classe.objects.first()
+    assert obj.terceirizada_conferiu_gestao                                          
+
+
+def test_terceirizada_marca_conferencia_grupo_inclusao_normal_viewset(client_autenticado,
+                                                                      grupo_inclusao_alimentacao_normal):
+    checa_se_terceirizada_marcou_conferencia_na_gestao_de_alimentacao(
+        client_autenticado,
+        GrupoInclusaoAlimentacaoNormal,
+        'grupos-inclusao-alimentacao-normal')
+
+
+def test_terceirizada_marca_conferencia_inclusoes_alimentacao_continua_viewset(client_autenticado,
+                                                                               inclusao_alimentacao_continua):
+    checa_se_terceirizada_marcou_conferencia_na_gestao_de_alimentacao(
+        client_autenticado,
+        InclusaoAlimentacaoContinua,
+        'inclusoes-alimentacao-continua')
+
