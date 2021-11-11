@@ -455,7 +455,7 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
         detail=True,
         methods=['GET'],
         url_path='relatorio-guias-da-requisicao',
-        permission_classes=[UsuarioDilogOuDistribuidor])
+        permission_classes=[PermissaoParaListarEntregas])
     def gerar_relaorio_guias_da_requisicao(self, request, uuid=None):
         solicitacao = self.get_object()
         guias = solicitacao.guias.all()
@@ -485,7 +485,7 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
     @action(
         detail=False, methods=['GET'],
         url_path='exporta-excel-visao-entregas',
-        permission_classes=[UsuarioDilogOuDistribuidor])
+        permission_classes=[PermissaoParaListarEntregas])
     def gerar_excel_entregas(self, request):
         uuid = request.query_params.get('uuid', None)
         tem_conferencia = request.query_params.get('tem_conferencia', None)
