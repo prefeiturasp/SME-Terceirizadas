@@ -364,8 +364,7 @@ class PermissaoParaListarEntregas(BasePermission):
                     usuario.vinculo_atual.perfil.nome in [ADMINISTRADOR_DISTRIBUIDORA]
                 ) or
                 (
-                    isinstance(usuario.vinculo_atual.instituicao, DiretoriaRegional) and
-                    usuario.vinculo_atual.perfil.nome in [ADMINISTRADOR_DRE]
+                    isinstance(usuario.vinculo_atual.instituicao, DiretoriaRegional)
                 )
             )
         )
