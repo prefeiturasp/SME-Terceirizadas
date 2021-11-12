@@ -140,18 +140,22 @@ class ProcessadorPlanilha:
         if not usuario_escola:
             perfil = Perfil.objects.get(nome='DIRETOR')
             data_atual = date.today()
-
-            usuario_escola = Usuario.objects.create_superuser(
+            # Esse Usuário não consegue acessar o sistema
+            # Troquei a senha pra reforçar que essa não funciona
+            # já que o usuário não tem acesso ao sistema
+            usuario_escola = Usuario.objects.create(
                 email=email_fake,
-                password='SIGPAE123',
+                password='fakepass',
                 nome=aluno.escola.nome,
                 cargo='DIRETOR',
+                is_active=False
             )
             Vinculo.objects.create(
                 instituicao=aluno.escola,
                 perfil=perfil,
                 usuario=usuario_escola,
                 data_inicial=data_atual,
+                ativo=True
             )
 
         solicitacao: SolicitacaoDietaEspecial = SolicitacaoDietaEspecial.objects.create(
