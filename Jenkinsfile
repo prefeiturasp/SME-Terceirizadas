@@ -53,7 +53,7 @@ pipeline {
         stage('Testes') {
           when { branch 'homolog' }
           steps {
-             sh 'pip install --user pipenv'
+             sh 'pip install --user pipenv==2021.11.9'
              sh 'pip install --user psycopg2'
              sh 'pipenv install --dev'
              sh 'pipenv run pytest'
