@@ -14,25 +14,30 @@
     {% include "logistica/guia_remessa/cabecalho.html" %}
     <div class="page-content">
 
-      {% include "logistica/guia_remessa/barra_status.html" %}
+      {% if page.status_guia != "Cancelada" %}
+        {% include "logistica/guia_remessa/barra_status.html" %}
+      {% endif %}
+
       {% include "logistica/guia_remessa/tabela_alimentos.html" %}
 
-      {% if page.status_guia == "Pendente de conferência" %}
-        {% include "logistica/guia_remessa/rodape_pendente_conferencia.html" %}
-      {% else %}
-        {% if page.insucesso %}
-          {% include "logistica/guia_remessa/guia_insucesso.html" %}
-        {% endif %}
-
-        {% if page.status_guia == "Recebida" %}
-          {% include "logistica/guia_remessa/tabela_recebida.html" %}
+      {% if page.status_guia != "Cancelada" %}
+        {% if page.status_guia == "Pendente de conferência" %}
+          {% include "logistica/guia_remessa/rodape_pendente_conferencia.html" %}
         {% else %}
-          {% if page.conferencia %}
-            {% include "logistica/guia_remessa/tabela_parcial_nao_recebida.html" %}
+          {% if page.insucesso %}
+            {% include "logistica/guia_remessa/guia_insucesso.html" %}
           {% endif %}
 
-          {% if page.reposicao %}
-            {% include "logistica/guia_remessa/tabela_reposicao.html" %}
+          {% if page.status_guia == "Recebida" %}
+            {% include "logistica/guia_remessa/tabela_recebida.html" %}
+          {% else %}
+            {% if page.conferencia %}
+              {% include "logistica/guia_remessa/tabela_parcial_nao_recebida.html" %}
+            {% endif %}
+
+            {% if page.reposicao %}
+              {% include "logistica/guia_remessa/tabela_reposicao.html" %}
+            {% endif %}
           {% endif %}
         {% endif %}
       {% endif %}
