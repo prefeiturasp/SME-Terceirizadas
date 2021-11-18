@@ -55,6 +55,7 @@ pipeline {
           steps {
              sh 'pip install --user pipenv==2021.11.9'
              sh 'pip install --user psycopg2'
+             sh 'pipenv run python -m pip install --upgrade pip'
              sh 'pipenv install --dev'
              sh 'pipenv run pytest'
              sh 'pipenv run flake8'
