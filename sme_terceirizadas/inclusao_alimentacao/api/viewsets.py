@@ -303,6 +303,9 @@ class GrupoInclusaoAlimentacaoNormalViewSet(InclusaoAlimentacaoViewSetBase):
         return serializers.GrupoInclusaoAlimentacaoNormalSerializer
 
     def get_permissions(self):
+        print('AQUIAQUIAQUI')
+        print(self.action)
+        print(self.permission_classes)
         if self.action in ['list', 'update']:
             self.permission_classes = (IsAdminUser,)
         elif self.action == 'retrieve':

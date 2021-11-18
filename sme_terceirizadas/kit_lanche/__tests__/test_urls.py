@@ -4,7 +4,7 @@ from rest_framework import status
 
 from ...dados_comuns import constants
 from ...dados_comuns.fluxo_status import PedidoAPartirDaDiretoriaRegionalWorkflow, PedidoAPartirDaEscolaWorkflow
-from ..models import SolicitacaoKitLancheAvulsa
+from ..models import SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheCEIAvulsa, SolicitacaoKitLancheUnificada
 
 pytestmark = pytest.mark.django_db
 
@@ -548,3 +548,50 @@ def test_url_endpoint_consulta_kits_lanche(client_autenticado, kit_lanche):
     item = data['results'][0]
 
     assert isinstance(item, dict)
+
+
+def checa_se_terceirizada_marcou_conferencia_na_gestao_de_alimentacao(client_autenticado,
+                                                                      classe,
+                                                                      path):
+    obj = classe.objects.first()
+    assert not obj.terceirizada_conferiu_gestao
+
+    response = client_autenticado.patch(
+        f'/{path}/{obj.uuid}/marcar-conferida/',
+        content_type='application/json')
+
+    assert response.status_code == status.HTTP_200_OK
+
+    print(response.json())
+    print(response.content)
+
+    result = response.json()
+    assert 'terceirizada_conferiu_gestao' in result.keys()
+    assert result['terceirizada_conferiu_gestao']
+
+    obj = classe.objects.first()
+    assert obj.terceirizada_conferiu_gestao                                          
+
+
+def test_terceirizada_marca_conferencia_solicitacao_avulsa_viewset(client_autenticado,
+                                                                      solicitacao_avulsa):
+    checa_se_terceirizada_marcou_conferencia_na_gestao_de_alimentacao(
+        client_autenticado,
+        SolicitacaoKitLancheAvulsa,
+        'solicitacoes-kit-lanche-avulsa')
+
+
+def test_terceirizada_marca_conferencia_solicitacao_kitlanche_unificada_viewset(client_autenticado,
+                                                                      solicitacao_unificada_lista_igual_codae_autorizado):
+    checa_se_terceirizada_marcou_conferencia_na_gestao_de_alimentacao(
+        client_autenticado,
+        SolicitacaoKitLancheUnificada,
+        'solicitacoes-kit-lanche-unificada')
+
+
+def test_terceirizada_marca_conferencia_solicitacao_kitlanche_cei_avulsa_viewset(client_autenticado,
+                                                                      solicitacao_cei):
+    checa_se_terceirizada_marcou_conferencia_na_gestao_de_alimentacao(
+        client_autenticado,
+        SolicitacaoKitLancheCEIAvulsa,
+        'solicitacoes-kit-lanche-cei-avulsa')

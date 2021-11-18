@@ -284,6 +284,20 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
     def relatorio(self, request, uuid=None):
         return relatorio_kit_lanche_passeio(request, solicitacao=self.get_object())
 
+    @action(detail=True,
+        methods=['patch'],
+        url_path=constants.MARCAR_CONFERIDA,
+        permission_classes=(IsAuthenticated,))
+    def terceirizada_marca_inclusao_como_conferida(self, request, uuid=None):
+        solicitacao_kit_lanche_avulsa: SolicitacaoKitLancheAvulsa = self.get_object()
+        try:
+            solicitacao_kit_lanche_avulsa.terceirizada_conferiu_gestao = True
+            solicitacao_kit_lanche_avulsa.save()
+            serializer = self.get_serializer(solicitacao_kit_lanche_avulsa)
+            return Response(serializer.data)
+        except Exception as e:
+            return Response(dict(detail=f'Erro ao marcar solicitação como conferida: {e}'), status=status.HTTP_400_BAD_REQUEST)  # noqa
+
 
 class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
     lookup_field = 'uuid'
@@ -454,6 +468,20 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
             return Response(dict(detail='Você só pode excluir quando o status for RASCUNHO.'),
                             status=status.HTTP_403_FORBIDDEN)
 
+    @action(detail=True,
+        methods=['patch'],
+        url_path=constants.MARCAR_CONFERIDA,
+        permission_classes=(IsAuthenticated,))
+    def terceirizada_marca_inclusao_como_conferida(self, request, uuid=None):
+        solicitacao_kit_lanche_unificado: SolicitacaoKitLancheUnificada = self.get_object()
+        try:
+            solicitacao_kit_lanche_unificado.terceirizada_conferiu_gestao = True
+            solicitacao_kit_lanche_unificado.save()
+            serializer = self.get_serializer(solicitacao_kit_lanche_unificado)
+            return Response(serializer.data)
+        except Exception as e:
+            return Response(dict(detail=f'Erro ao marcar solicitação como conferida: {e}'), status=status.HTTP_400_BAD_REQUEST)  # noqa
+
 
 class SolicitacaoKitLancheCEIAvulsaViewSet(SolicitacaoKitLancheAvulsaViewSet):
     lookup_field = 'uuid'
@@ -519,3 +547,17 @@ class SolicitacaoKitLancheCEIAvulsaViewSet(SolicitacaoKitLancheAvulsaViewSet):
             methods=['get'])
     def relatorio(self, request, uuid=None):
         return relatorio_kit_lanche_passeio_cei(request, solicitacao=self.get_object())
+
+    @action(detail=True,
+        methods=['patch'],
+        url_path=constants.MARCAR_CONFERIDA,
+        permission_classes=(IsAuthenticated,))
+    def terceirizada_marca_inclusao_como_conferida(self, request, uuid=None):
+        solicitacao_kit_lanche_cei_avulsa: SolicitacaoKitLancheCEIAvulsa = self.get_object()
+        try:
+            solicitacao_kit_lanche_cei_avulsa.terceirizada_conferiu_gestao = True
+            solicitacao_kit_lanche_cei_avulsa.save()
+            serializer = self.get_serializer(solicitacao_kit_lanche_cei_avulsa)
+            return Response(serializer.data)
+        except Exception as e:
+            return Response(dict(detail=f'Erro ao marcar solicitação como conferida: {e}'), status=status.HTTP_400_BAD_REQUEST)  # noqa
