@@ -8,7 +8,6 @@ from .constants import (
     ADMINISTRADOR_CODAE_GABINETE,
     ADMINISTRADOR_DIETA_ESPECIAL,
     ADMINISTRADOR_DISTRIBUIDORA,
-    ADMINISTRADOR_DRE,
     ADMINISTRADOR_ESCOLA_ABASTECIMENTO,
     ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
     ADMINISTRADOR_GESTAO_PRODUTO,
@@ -364,15 +363,7 @@ class PermissaoParaListarEntregas(BasePermission):
                     usuario.vinculo_atual.perfil.nome in [ADMINISTRADOR_DISTRIBUIDORA]
                 ) or
                 (
-                    isinstance(usuario.vinculo_atual.instituicao, Escola) and
-                    usuario.vinculo_atual.perfil.nome in [
-                        ADMINISTRADOR_ESCOLA_ABASTECIMENTO, ADMINISTRADOR_UE_DIRETA, ADMINISTRADOR_UE_MISTA,
-                        ADMINISTRADOR_UE_PARCEIRA
-                    ]
-                )or
-                (
-                    isinstance(usuario.vinculo_atual.instituicao, DiretoriaRegional) and
-                    usuario.vinculo_atual.perfil.nome in [ADMINISTRADOR_DRE]
+                    isinstance(usuario.vinculo_atual.instituicao, DiretoriaRegional)
                 )
             )
         )
