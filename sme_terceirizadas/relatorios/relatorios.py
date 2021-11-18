@@ -9,7 +9,7 @@ from ..dados_comuns.fluxo_status import ReclamacaoProdutoWorkflow
 from ..dados_comuns.models import LogSolicitacoesUsuario
 from ..kit_lanche.models import EscolaQuantidade
 from ..logistica.api.helpers import retorna_status_guia_remessa
-from ..relatorios.utils import html_to_pdf_multiple_response, html_to_pdf_response
+from ..relatorios.utils import html_to_pdf_multiple_response, html_to_pdf_response, html_to_pdf_response_cancelada
 from ..terceirizada.utils import transforma_dados_relatorio_quantitativo
 from . import constants
 from .utils import (
@@ -160,7 +160,7 @@ def relatorio_guia_de_remessa(guias): # noqa C901
             )
         ).order_by('nome_alimento')
 
-        if guia.status == GuiaStatus.PENDENTE_DE_CONFERENCIA:
+        if guia.status == GuiaStatus.PENDENTE_DE_CONFERENCIA or guia.status == GuiaStatus.CANCELADA:
             conferencia = None
             reposicao = None
         elif guia.status == GuiaStatus.RECEBIDA:
@@ -228,7 +228,10 @@ def relatorio_guia_de_remessa(guias): # noqa C901
         lista_pdfs.append(html_string.replace('dt_file', data_arquivo))
 
     if len(lista_pdfs) == 1:
-        return html_to_pdf_response(lista_pdfs[0], 'guia_de_remessa.pdf')
+        if guia.status == GuiaStatus.CANCELADA:
+            return html_to_pdf_response_cancelada(lista_pdfs[0], 'guia_de_remessa.pdf')
+        else:
+            return html_to_pdf_response(lista_pdfs[0], 'guia_de_remessa.pdf')
     else:
         return html_to_pdf_multiple_response(lista_pdfs, 'guia_de_remessa.pdf')
 
