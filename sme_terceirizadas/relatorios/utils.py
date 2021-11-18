@@ -5,6 +5,7 @@ from datetime import date
 from django.http import HttpResponse
 from django_weasyprint.utils import django_url_fetcher
 from pikepdf import Pdf
+from PyPDF4 import PdfFileReader, PdfFileWriter
 from weasyprint import HTML
 
 from ..dados_comuns.models import LogSolicitacoesUsuario
@@ -45,6 +46,30 @@ def html_to_pdf_response(html_string, pdf_filename):
         url_fetcher=django_url_fetcher,
         base_url='file://abobrinha').write_pdf()
     response = HttpResponse(pdf_file, content_type='application/pdf')
+    response['Content-Disposition'] = f'filename="{pdf_filename}"'
+    return response
+
+
+def html_to_pdf_response_cancelada(html_string, pdf_filename):
+    arquivo_final = io.BytesIO()
+    pdf_file = HTML(
+        string=html_string,
+        url_fetcher=django_url_fetcher,
+        base_url='file://abobrinha').write_pdf()
+
+    watermark_instance = PdfFileReader('sme_terceirizadas/relatorios/static/images/cancel-1.pdf')
+    watermark_page = watermark_instance.getPage(0)
+    pdf_reader = PdfFileReader(io.BytesIO(pdf_file))
+    pdf_writer = PdfFileWriter()
+
+    for page in range(pdf_reader.getNumPages()):
+        page = pdf_reader.getPage(page)
+        page.mergePage(watermark_page)
+        pdf_writer.addPage(page)
+
+    pdf_writer.write(arquivo_final)
+    arquivo_final.seek(0)
+    response = HttpResponse(arquivo_final, content_type='application/pdf')
     response['Content-Disposition'] = f'filename="{pdf_filename}"'
     return response
 
