@@ -490,9 +490,8 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
         uuid = request.query_params.get('uuid', None)
         tem_conferencia = request.query_params.get('tem_conferencia', None)
         tem_insucesso = request.query_params.get('tem_insucesso', None)
-        if eh_true_ou_false(tem_conferencia, 'tem_conferencia') and eh_true_ou_false(tem_insucesso, 'tem_insucesso'):
-            tem_conferencia = eval(tem_conferencia.capitalize())
-            tem_insucesso = eval(tem_insucesso.capitalize())
+        tem_conferencia = eh_true_ou_false(tem_conferencia, 'tem_conferencia')
+        tem_insucesso = eh_true_ou_false(tem_insucesso, 'tem_insucesso')
         requisicoes_insucesso = None
         queryset = self.filter_queryset(self.get_queryset())
         if tem_insucesso:
