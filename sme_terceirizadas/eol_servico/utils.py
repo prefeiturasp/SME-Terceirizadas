@@ -78,7 +78,7 @@ class EOLService(object):
 
         if response.status_code == status.HTTP_200_OK:
             results = response.json()['results']
-            if len(results) == 1:
+            if len(results) > 0:
                 return results[0]
             raise EOLException(f'Resultados para o código: {codigo_eol} vazios')
         else:
