@@ -308,6 +308,7 @@ class DietaEspecialWorkflow(xwf_models.Workflow):
     CANCELADO_ALUNO_NAO_PERTENCE_REDE = 'CANCELADO_ALUNO_NAO_PERTENCE_REDE'
 
     ESCOLA_CANCELOU = 'ESCOLA_CANCELOU'
+    CODAE_NEGOU_CANCELAMENTO = 'CODAE_NEGOU_CANCELAMENTO'
 
     states = (
         (RASCUNHO, 'Rascunho'),
@@ -316,6 +317,7 @@ class DietaEspecialWorkflow(xwf_models.Workflow):
         (CODAE_AUTORIZADO, 'CODAE autorizou'),
         (TERCEIRIZADA_TOMOU_CIENCIA, 'Terceirizada toma ciencia'),
         (ESCOLA_CANCELOU, 'Escola cancelou'),
+        (CODAE_NEGOU_CANCELAMENTO, 'CODAE negou o cancelamento'),
         (ESCOLA_SOLICITOU_INATIVACAO, 'Escola solicitou inativação'),
         (CODAE_NEGOU_INATIVACAO, 'CODAE negou a inativação'),
         (CODAE_AUTORIZOU_INATIVACAO, 'CODAE autorizou a inativação'),
@@ -333,6 +335,8 @@ class DietaEspecialWorkflow(xwf_models.Workflow):
         ('terceirizada_toma_ciencia', CODAE_AUTORIZADO, TERCEIRIZADA_TOMOU_CIENCIA),
         ('cancelar_pedido', [CODAE_A_AUTORIZAR,
                              ESCOLA_SOLICITOU_INATIVACAO], ESCOLA_CANCELOU),
+        ('negar_cancelamento_pedido', [CODAE_A_AUTORIZAR,
+                             ESCOLA_SOLICITOU_INATIVACAO], CODAE_NEGOU_CANCELAMENTO),
         ('inicia_fluxo_inativacao', [
             CODAE_AUTORIZADO, TERCEIRIZADA_TOMOU_CIENCIA], ESCOLA_SOLICITOU_INATIVACAO),
         ('codae_nega_inativacao', ESCOLA_SOLICITOU_INATIVACAO, CODAE_NEGOU_INATIVACAO),
@@ -2021,6 +2025,14 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
         user = kwargs['user']
         justificativa = kwargs['justificativa']
         self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.ESCOLA_CANCELOU,
+                                  usuario=user,
+                                  justificativa=justificativa)
+
+    @xworkflows.after_transition('negar_cancelamento_pedido')
+    def _negar_cancelamento_pedido_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        justificativa = kwargs['justificativa']
+        self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_NEGOU_CANCELAMENTO,
                                   usuario=user,
                                   justificativa=justificativa)
 

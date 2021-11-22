@@ -291,6 +291,15 @@ class MotivoAlteracaoUE(Descritivel, Nomeavel, TemChaveExterna):
 
 
 class MotivoNegacao(Descritivel):
+    CANCELAMENTO = 'CANCELAMENTO'
+    INCLUSAO = 'INCLUSAO'
+
+    PROCESSO_CHOICES = (
+        (CANCELAMENTO, 'Solicitação de Cancelamento'),
+        (INCLUSAO, 'Solicitação de Inclusão'),
+    )
+
+    processo = models.CharField(choices=PROCESSO_CHOICES, default=INCLUSAO, blank=False, max_length=20)
 
     def __str__(self):
         return self.descricao
