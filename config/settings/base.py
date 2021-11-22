@@ -410,6 +410,7 @@ logging.config.dictConfig({
         }
     },
     'loggers': {
+        'sentry_sdk': {'level': 'ERROR', 'handlers': ['console'], 'propagate': False},
         'sigpae': {
             'level': 'DEBUG',
             'handlers': [
