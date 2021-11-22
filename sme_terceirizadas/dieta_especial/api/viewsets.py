@@ -272,8 +272,6 @@ class SolicitacaoDietaEspecialViewSet(
         justificativa = request.data.get('justificativa', '')
         solicitacao = self.get_object()
         try:
-            import ipdb
-            ipdb.set_trace()
             solicitacao.cancelar_pedido(
                 user=request.user, justificativa=justificativa)
             solicitacao.ativo = False
@@ -295,8 +293,6 @@ class SolicitacaoDietaEspecialViewSet(
         justificativa = request.data.get('justificativa', '')
         solicitacao = self.get_object()
         try:
-            import ipdb
-            ipdb.set_trace()
             solicitacao.negar_cancelamento_pedido(
                 user=request.user, justificativa=justificativa)
             serializer = self.get_serializer(solicitacao)
