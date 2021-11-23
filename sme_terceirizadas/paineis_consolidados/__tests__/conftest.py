@@ -418,7 +418,7 @@ def status_and_endpoint(request):
 def client_autenticado_dre_paineis_consolidados(client, django_user_model, diretoria_regional2, templates,
                                                 alteracoes_cardapio_dre_atual):
     email = 'test@test.com'
-    password = 'bar'
+    password = constants.DJANGO_ADMIN_PASSWORD
     user = django_user_model.objects.create_user(password=password, email=email, registro_funcional='8888888')
     user_escola = django_user_model.objects.create_user(password='xxx', email='user@escola.com',
                                                         registro_funcional='123123', cpf='12312312332')

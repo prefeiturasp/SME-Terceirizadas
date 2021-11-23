@@ -13,7 +13,7 @@ f = Faker(locale='pt-Br')
 @pytest.fixture
 def client_autenticado(client, django_user_model):
     email = 'test@test.com'
-    password = 'bar'
+    password = constants.DJANGO_ADMIN_PASSWORD
     django_user_model.objects.create_user(password=password, email=email,
                                           registro_funcional='8888888')
     client.login(email=email, password=password)
@@ -23,7 +23,7 @@ def client_autenticado(client, django_user_model):
 @pytest.fixture
 def client_admin_django(client, django_user_model):
     email = 'admDoDjango@xxx.com'
-    password = 'XXX'
+    password = constants.DJANGO_ADMIN_PASSWORD
     django_user_model.objects.create_user(password=password, email=email,
                                           registro_funcional='8888888',
                                           is_staff=True, )
@@ -34,7 +34,7 @@ def client_admin_django(client, django_user_model):
 @pytest.fixture
 def client_autenticado_vinculo_escola(client, django_user_model):
     email = 'test@test.com'
-    password = 'bar'
+    password = constants.DJANGO_ADMIN_PASSWORD
     user = django_user_model.objects.create_user(password=password, email=email,
                                                  registro_funcional='8888888')
     lote = mommy.make('Lote', nome='lote', iniciais='lt')
@@ -63,7 +63,7 @@ def client_autenticado_vinculo_escola(client, django_user_model):
 @pytest.fixture
 def client_autenticado_diretoria_regional(client, django_user_model):
     email = 'test@test.com'
-    password = 'bar'
+    password = constants.DJANGO_ADMIN_PASSWORD
     user = django_user_model.objects.create_user(password=password, email=email, registro_funcional='8888888')
     perfil_cogestor = mommy.make('Perfil',
                                  nome=constants.COGESTOR,
@@ -83,7 +83,7 @@ def client_autenticado_diretoria_regional(client, django_user_model):
 @pytest.fixture
 def client_autenticado_codae_gestao_alimentacao(client, django_user_model):
     email = 'test@test.com'
-    password = 'bar'
+    password = constants.DJANGO_ADMIN_PASSWORD
     user = django_user_model.objects.create_user(password=password, email=email, registro_funcional='8888888')
     perfil_admin_gestao_alimentacao = mommy.make('Perfil',
                                                  nome=constants.ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
@@ -103,7 +103,7 @@ def client_autenticado_codae_gestao_alimentacao(client, django_user_model):
 @pytest.fixture
 def client_autenticado_dilog(client, django_user_model):
     email = 'test@test.com'
-    password = 'bar'
+    password = constants.DJANGO_ADMIN_PASSWORD
     user = django_user_model.objects.create_user(password=password, email=email, registro_funcional='8888888')
     perfil_admin_dilog = mommy.make('Perfil',
                                     nome=constants.COORDENADOR_LOGISTICA,
@@ -123,7 +123,7 @@ def client_autenticado_dilog(client, django_user_model):
 @pytest.fixture
 def client_autenticado_distribuidor(client, django_user_model):
     email = 'test@test.com'
-    password = 'bar'
+    password = constants.DJANGO_ADMIN_PASSWORD
     user = django_user_model.objects.create_user(password=password, email=email, registro_funcional='8888888')
     perfil_admin_distribuidor = mommy.make('Perfil',
                                            nome=constants.ADMINISTRADOR_DISTRIBUIDORA,
@@ -143,7 +143,7 @@ def client_autenticado_distribuidor(client, django_user_model):
 @pytest.fixture
 def client_autenticado_escola_abastecimento(client, django_user_model):
     email = 'test@test.com'
-    password = 'bar'
+    password = constants.DJANGO_ADMIN_PASSWORD
     user = django_user_model.objects.create_user(password=password, email=email,
                                                  registro_funcional='8888888')
     lote = mommy.make('Lote', nome='lote', iniciais='lt')

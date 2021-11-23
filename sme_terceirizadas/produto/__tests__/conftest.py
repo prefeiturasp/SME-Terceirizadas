@@ -37,7 +37,7 @@ def template_homologacao_produto():
 @pytest.fixture
 def client_autenticado_vinculo_codae_produto(client, django_user_model, escola, codae, template_homologacao_produto):
     email = 'test@test.com'
-    password = 'bar'
+    password = constants.DJANGO_ADMIN_PASSWORD
     user = django_user_model.objects.create_user(password=password, email=email,
                                                  registro_funcional='8888888')
     perfil_admin_gestao_produto = mommy.make('Perfil', nome=constants.ADMINISTRADOR_GESTAO_PRODUTO,
@@ -53,7 +53,7 @@ def client_autenticado_vinculo_codae_produto(client, django_user_model, escola, 
 @pytest.fixture
 def client_autenticado_vinculo_terceirizada(client, django_user_model, escola, template_homologacao_produto):
     email = 'test@test.com'
-    password = 'bar'
+    password = constants.DJANGO_ADMIN_PASSWORD
     tecerizada = escola.lote.terceirizada
     user = django_user_model.objects.create_user(password=password, email=email,
                                                  registro_funcional='8888888')
@@ -70,7 +70,7 @@ def client_autenticado_vinculo_terceirizada(client, django_user_model, escola, t
 @pytest.fixture
 def user(django_user_model):
     email = 'test@test1.com'
-    password = 'bar'
+    password = constants.DJANGO_ADMIN_PASSWORD
     return django_user_model.objects.create_user(password=password, email=email,
                                                  registro_funcional='8888881')
 
@@ -78,7 +78,7 @@ def user(django_user_model):
 @pytest.fixture
 def client_autenticado_vinculo_terceirizada_homologacao(client, django_user_model, escola):
     email = 'test@test.com'
-    password = 'bar'
+    password = constants.DJANGO_ADMIN_PASSWORD
     tecerizada = escola.lote.terceirizada
     user = django_user_model.objects.create_user(password=password, email=email,
                                                  registro_funcional='8888888')
@@ -241,7 +241,7 @@ def imagem_produto2(produto):
 @pytest.fixture
 def client_autenticado_vinculo_escola_ue(client, django_user_model, escola):
     email = 'test@test.com'
-    password = 'bar'
+    password = constants.DJANGO_ADMIN_PASSWORD
     user = django_user_model.objects.create_user(password=password, email=email,
                                                  registro_funcional='8888888')
 
@@ -264,7 +264,7 @@ def client_autenticado_vinculo_escola_nutrisupervisor(
         escola):
 
     email = 'test@test.com'
-    password = 'bar'
+    password = constants.DJANGO_ADMIN_PASSWORD
     user = django_user_model.objects.create_user(password=password, email=email,
                                                  registro_funcional='8888888')
 

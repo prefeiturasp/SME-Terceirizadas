@@ -5,7 +5,7 @@ from faker import Faker
 from model_mommy import mommy
 
 from ...dados_comuns.behaviors import TempoPasseio
-from ...dados_comuns.constants import COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA
+from ...dados_comuns.constants import COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA, DJANGO_ADMIN_PASSWORD
 from ...dados_comuns.fluxo_status import PedidoAPartirDaDiretoriaRegionalWorkflow, PedidoAPartirDaEscolaWorkflow
 from ...dados_comuns.models import TemplateMensagem
 from .. import models
@@ -47,7 +47,7 @@ def edital():
 @pytest.fixture
 def client_autenticado_da_escola(client, django_user_model, escola):
     email = 'user@escola.com'
-    password = 'bar'
+    password = DJANGO_ADMIN_PASSWORD
     perfil_diretor = mommy.make('Perfil', nome='DIRETOR', ativo=True)
     usuario = django_user_model.objects.create_user(password=password, email=email,
                                                     registro_funcional='123456',
@@ -62,7 +62,7 @@ def client_autenticado_da_escola(client, django_user_model, escola):
 @pytest.fixture
 def client_autenticado_da_dre(client, django_user_model, diretoria_regional):
     email = 'user@dre.com'
-    password = 'bar'
+    password = DJANGO_ADMIN_PASSWORD
     perfil_adm_dre = mommy.make('Perfil', nome='ADM_DRE', ativo=True)
     usuario = django_user_model.objects.create_user(password=password, email=email,
                                                     registro_funcional='123456')
@@ -76,7 +76,7 @@ def client_autenticado_da_dre(client, django_user_model, diretoria_regional):
 @pytest.fixture
 def client_autenticado_da_codae(client, django_user_model, codae):
     email = 'foo@codae.com'
-    password = 'bar'
+    password = DJANGO_ADMIN_PASSWORD
     perfil_adm_codae = mommy.make('Perfil', nome=COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA, ativo=True)
     usuario = django_user_model.objects.create_user(password=password, email=email,
                                                     registro_funcional='123456')
@@ -90,7 +90,7 @@ def client_autenticado_da_codae(client, django_user_model, codae):
 @pytest.fixture
 def client_autenticado_da_terceirizada(client, django_user_model, terceirizada):
     email = 'foo@codae.com'
-    password = 'bar'
+    password = DJANGO_ADMIN_PASSWORD
     perfil_adm_terc = mommy.make('Perfil', nome='TERCEIRIZADA', ativo=True)
     usuario = django_user_model.objects.create_user(password=password, email=email,
                                                     registro_funcional='123456')
