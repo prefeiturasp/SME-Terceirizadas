@@ -209,7 +209,6 @@ class InclusaoAlimentacaoDaCEIViewSet(InclusaoAlimentacaoViewSetBase):
     serializer_class = serializers.InclusaoAlimentacaoDaCEISerializer
     permission_classes = (IsAuthenticated,)
 
-
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update']:
             return serializers_create.InclusaoAlimentacaoDaCEICreateSerializer
@@ -264,11 +263,11 @@ class InclusaoAlimentacaoDaCEIViewSet(InclusaoAlimentacaoViewSetBase):
         page = self.paginate_queryset(inclusoes_alimentacao_cei)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
-    
+
     @action(detail=True,
-        methods=['patch'],
-        url_path=constants.MARCAR_CONFERIDA,
-        permission_classes=(IsAuthenticated,))
+            methods=['patch'],
+            url_path=constants.MARCAR_CONFERIDA,
+            permission_classes=(IsAuthenticated,))
     def terceirizada_marca_inclusao_como_conferida(self, request, uuid=None):
         inclusao_alimentacao_cei: InclusaoAlimentacaoDaCEI = self.get_object()
         try:
@@ -303,9 +302,6 @@ class GrupoInclusaoAlimentacaoNormalViewSet(InclusaoAlimentacaoViewSetBase):
         return serializers.GrupoInclusaoAlimentacaoNormalSerializer
 
     def get_permissions(self):
-        print('AQUIAQUIAQUI')
-        print(self.action)
-        print(self.permission_classes)
         if self.action in ['list', 'update']:
             self.permission_classes = (IsAdminUser,)
         elif self.action == 'retrieve':
@@ -384,7 +380,7 @@ class GrupoInclusaoAlimentacaoNormalViewSet(InclusaoAlimentacaoViewSetBase):
         else:
             return Response(dict(detail='Você só pode excluir quando o status for RASCUNHO.'),
                             status=status.HTTP_403_FORBIDDEN)
-    
+
     @action(detail=True,
             methods=['patch'],
             url_path=constants.MARCAR_CONFERIDA,
@@ -487,7 +483,7 @@ class InclusaoAlimentacaoContinuaViewSet(ModelViewSet, EscolaIniciaCancela, DREV
         else:
             return Response(dict(detail='Você só pode excluir quando o status for RASCUNHO.'),
                             status=status.HTTP_403_FORBIDDEN)
-    
+
     @action(detail=True,
             methods=['patch'],
             url_path=constants.MARCAR_CONFERIDA,

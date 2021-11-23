@@ -285,9 +285,9 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
         return relatorio_kit_lanche_passeio(request, solicitacao=self.get_object())
 
     @action(detail=True,
-        methods=['patch'],
-        url_path=constants.MARCAR_CONFERIDA,
-        permission_classes=(IsAuthenticated,))
+            methods=['patch'],
+            url_path=constants.MARCAR_CONFERIDA,
+            permission_classes=(IsAuthenticated,))
     def terceirizada_marca_inclusao_como_conferida(self, request, uuid=None):
         solicitacao_kit_lanche_avulsa: SolicitacaoKitLancheAvulsa = self.get_object()
         try:
@@ -469,9 +469,9 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
                             status=status.HTTP_403_FORBIDDEN)
 
     @action(detail=True,
-        methods=['patch'],
-        url_path=constants.MARCAR_CONFERIDA,
-        permission_classes=(IsAuthenticated,))
+            methods=['patch'],
+            url_path=constants.MARCAR_CONFERIDA,
+            permission_classes=(IsAuthenticated,))
     def terceirizada_marca_inclusao_como_conferida(self, request, uuid=None):
         solicitacao_kit_lanche_unificado: SolicitacaoKitLancheUnificada = self.get_object()
         try:
@@ -549,9 +549,9 @@ class SolicitacaoKitLancheCEIAvulsaViewSet(SolicitacaoKitLancheAvulsaViewSet):
         return relatorio_kit_lanche_passeio_cei(request, solicitacao=self.get_object())
 
     @action(detail=True,
-        methods=['patch'],
-        url_path=constants.MARCAR_CONFERIDA,
-        permission_classes=(IsAuthenticated,))
+            methods=['patch'],
+            url_path=constants.MARCAR_CONFERIDA,
+            permission_classes=(IsAuthenticated,))
     def terceirizada_marca_inclusao_como_conferida(self, request, uuid=None):
         solicitacao_kit_lanche_cei_avulsa: SolicitacaoKitLancheCEIAvulsa = self.get_object()
         try:

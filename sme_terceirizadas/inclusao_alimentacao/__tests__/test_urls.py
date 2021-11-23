@@ -46,24 +46,6 @@ def test_permissoes_grupo_inclusao_normal_viewset(client_autenticado_vinculo_esc
     )
     assert response.status_code == status.HTTP_403_FORBIDDEN
     assert response.json() == {'detail': 'Você não tem permissão para executar essa ação.'}
-    # grupo_inclusao_alimentacao_normal.status = PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR
-    # grupo_inclusao_alimentacao_normal.save()
-    # response = client_autenticado_vinculo_escola_inclusao.delete(
-    #     f'/grupos-inclusao-alimentacao-normal/{grupo_inclusao_alimentacao_normal.uuid}/'
-    # )
-    # assert response.status_code == status.HTTP_403_FORBIDDEN
-    # assert response.json() == {'detail': 'Você só pode excluir quando o status for RASCUNHO.'}
-    # # pode deletar somente se for escola e se estiver como rascunho
-    # response = client_autenticado_vinculo_escola_inclusao.delete(
-    #     f'/grupos-inclusao-alimentacao-normal/{grupo_inclusao_alimentacao_normal_outra_dre.uuid}/'
-    # )
-    # assert response.status_code == status.HTTP_403_FORBIDDEN
-    # grupo_inclusao_alimentacao_normal.status = PedidoAPartirDaEscolaWorkflow.RASCUNHO
-    # grupo_inclusao_alimentacao_normal.save()
-    # response = client_autenticado_vinculo_escola_inclusao.delete(
-    #     f'/grupos-inclusao-alimentacao-normal/{grupo_inclusao_alimentacao_normal.uuid}/'
-    # )
-    # assert response.status_code == status.HTTP_204_NO_CONTENT
 
 
 def test_url_endpoint_grupos_inclusao_motivos_inclusao_normal(client_autenticado_vinculo_escola_inclusao):
@@ -527,7 +509,7 @@ def checa_se_terceirizada_marcou_conferencia_na_gestao_de_alimentacao(client_aut
     assert result['terceirizada_conferiu_gestao']
 
     obj = classe.objects.first()
-    assert obj.terceirizada_conferiu_gestao                                          
+    assert obj.terceirizada_conferiu_gestao
 
 
 def test_terceirizada_marca_conferencia_grupo_inclusao_normal_viewset(client_autenticado,
@@ -544,4 +526,3 @@ def test_terceirizada_marca_conferencia_inclusoes_alimentacao_continua_viewset(c
         client_autenticado,
         InclusaoAlimentacaoContinua,
         'inclusoes-alimentacao-continua')
-

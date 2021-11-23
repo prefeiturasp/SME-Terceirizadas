@@ -160,6 +160,7 @@ def inclusao_alimentacao_normal(motivo_inclusao_normal):
                       data=datetime.date(2019, 10, 1),
                       motivo=motivo_inclusao_normal)
 
+
 @pytest.fixture()
 def inclusao_alimentacao_cei(motivo_inclusao_normal, escola, template_inclusao_continua):
     return mommy.make(models.InclusaoAlimentacaoDaCEI,
