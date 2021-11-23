@@ -336,7 +336,7 @@ class DietaEspecialWorkflow(xwf_models.Workflow):
         ('cancelar_pedido', [CODAE_A_AUTORIZAR,
                              ESCOLA_SOLICITOU_INATIVACAO], ESCOLA_CANCELOU),
         ('negar_cancelamento_pedido', [CODAE_A_AUTORIZAR,
-                             ESCOLA_SOLICITOU_INATIVACAO], CODAE_NEGOU_CANCELAMENTO),
+                                       ESCOLA_SOLICITOU_INATIVACAO], CODAE_NEGOU_CANCELAMENTO),
         ('inicia_fluxo_inativacao', [
             CODAE_AUTORIZADO, TERCEIRIZADA_TOMOU_CIENCIA], ESCOLA_SOLICITOU_INATIVACAO),
         ('codae_nega_inativacao', ESCOLA_SOLICITOU_INATIVACAO, CODAE_NEGOU_INATIVACAO),

@@ -268,7 +268,7 @@ class SolicitacaoDietaEspecialViewSet(
         methods=['post'],
         url_path=constants.ESCOLA_CANCELA_DIETA_ESPECIAL
     )
-    def escola_cancela_solicitacao(self, request, uuid=None): # aaaa
+    def escola_cancela_solicitacao(self, request, uuid=None):
         justificativa = request.data.get('justificativa', '')
         solicitacao = self.get_object()
         try:

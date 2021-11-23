@@ -496,6 +496,31 @@ def test_url_endpoint_cancelar_dieta(client_autenticado_vinculo_escola_dieta,
         "'ESCOLA_CANCELOU'."}
 
 
+def test_url_endpoint_negar_cancelamento_dieta(client_autenticado_vinculo_escola_dieta,
+                                               solicitacao_dieta_especial_a_autorizar):
+    obj = SolicitacaoDietaEspecial.objects.first()
+    data = {
+        'justificativa': 'Uma justificativa fajuta'
+    }
+    response = client_autenticado_vinculo_escola_dieta.post(
+        f'/solicitacoes-dieta-especial/{obj.uuid}/negar-cancelamento-dieta-especial/',
+        content_type='application/json',
+        data=data
+    )
+    obj.refresh_from_db()
+    assert response.status_code == status.HTTP_200_OK
+    assert obj.status == DietaEspecialWorkflow.CODAE_NEGOU_CANCELAMENTO
+    response = client_autenticado_vinculo_escola_dieta.post(
+        f'/solicitacoes-dieta-especial/{obj.uuid}/negar-cancelamento-dieta-especial/',
+        content_type='application/json',
+        data=data
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {
+        'detail': f"Erro de transição de estado: Transition 'negar_cancelamento_pedido' isn't available from state " +
+        "'CODAE_NEGOU_CANCELAMENTO'."}
+
+
 def test_url_endpoint_negar_dieta(client_autenticado_vinculo_codae_dieta,
                                   solicitacao_dieta_especial,
                                   motivos_negacao):

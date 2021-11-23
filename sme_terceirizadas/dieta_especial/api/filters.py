@@ -25,5 +25,6 @@ class DietaEspecialFilter(filters.FilterSet):
 class AlimentoFilter(filters.FilterSet):
     tipo = filters.MultipleChoiceFilter(choices=Alimento.TIPO_CHOICES)
 
+
 class MotivoNegacaoFilter(filters.FilterSet):
     processo = filters.MultipleChoiceFilter(choices=MotivoNegacao.PROCESSO_CHOICES)
