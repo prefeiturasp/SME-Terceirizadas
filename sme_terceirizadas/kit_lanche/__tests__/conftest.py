@@ -8,6 +8,7 @@ from ...dados_comuns.behaviors import TempoPasseio
 from ...dados_comuns.constants import COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA
 from ...dados_comuns.fluxo_status import PedidoAPartirDaDiretoriaRegionalWorkflow, PedidoAPartirDaEscolaWorkflow
 from ...dados_comuns.models import TemplateMensagem
+from ...escola.models import Aluno
 from .. import models
 
 fake = Faker('pt_BR')
@@ -37,6 +38,11 @@ def diretoria_regional():
 @pytest.fixture
 def escola(diretoria_regional, lote):
     return mommy.make('Escola', lote=lote, diretoria_regional=diretoria_regional)
+
+
+@pytest.fixture
+def aluno():
+    return mommy.make(Aluno, nome='Roberto Alves da Silva', codigo_eol='123456', data_nascimento='2000-01-01')
 
 
 @pytest.fixture

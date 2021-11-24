@@ -147,6 +147,7 @@ class SolicitacaoKitLancheAvulsa(ExportModelOperationsMixin('kit_lanche_avulsa')
     quantidade_alunos = models.PositiveSmallIntegerField()
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING,
                                related_name='solicitacoes_kit_lanche_avulsa')
+    alunos_com_dieta_especial_participantes = models.ManyToManyField('escola.Aluno')
 
     def __str__(self):
         return f'{self.escola} SOLICITA PARA {self.quantidade_alunos} ALUNOS EM {self.local}'

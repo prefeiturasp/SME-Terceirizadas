@@ -52,9 +52,11 @@ def test_kit_lanche_avulso_serializer_creators(kits_avulsos_param_serializer):
     serializer_obj = SolicitacaoKitLancheAvulsaCreationSerializer(context={'request': FakeObject})
     lote = mommy.make('Lote')
     escola = mommy.make('Escola', lote=lote)
+    aluno = mommy.make('escola.Aluno')
     validated_data_create = dict(quantidade_alunos=quantidade_alunos_pedido,
                                  escola=escola,
-                                 solicitacao_kit_lanche=dict(data=data))
+                                 solicitacao_kit_lanche=dict(data=data),
+                                 alunos_com_dieta_especial_participantes=[aluno])
 
     serializer_obj.validate(attrs=validated_data_create)
 
@@ -69,7 +71,8 @@ def test_kit_lanche_avulso_serializer_creators(kits_avulsos_param_serializer):
     data2 = data + datetime.timedelta(days=1)
     validated_data_update = dict(quantidade_alunos=quantidade_alunos_pedido,
                                  escola=escola,
-                                 solicitacao_kit_lanche=dict(data=data2))
+                                 solicitacao_kit_lanche=dict(data=data2),
+                                 alunos_com_dieta_especial_participantes=[aluno])
 
     serializer_obj.validate(attrs=validated_data_update)
 

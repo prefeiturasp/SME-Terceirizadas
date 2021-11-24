@@ -8,7 +8,7 @@ from ....dados_comuns.validators import (
     deve_ser_no_mesmo_ano_corrente,
     nao_pode_ser_no_passado
 )
-from ....escola.models import DiretoriaRegional, Escola
+from ....escola.models import Aluno, DiretoriaRegional, Escola
 from ...models import (
     EscolaQuantidade,
     KitLanche,
@@ -78,7 +78,11 @@ class SolicitacaoKitLancheAvulsaCreationSerializer(serializers.ModelSerializer):
         required=False,
         queryset=Escola.objects.all()
     )
-
+    alunos_com_dieta_especial_participantes = serializers.SlugRelatedField(
+        slug_field='uuid',
+        many=True,
+        queryset=Aluno.objects.all()
+    )
     status_explicacao = serializers.CharField(
         source='status',
         required=False,
@@ -100,15 +104,21 @@ class SolicitacaoKitLancheAvulsaCreationSerializer(serializers.ModelSerializer):
         solicitacao_kit_lanche_json = validated_data.pop('solicitacao_kit_lanche')
         solicitacao_kit_lanche = SolicitacaoKitLancheCreationSerializer(
         ).create(solicitacao_kit_lanche_json)
+        alunos_com_dieta = validated_data.pop('alunos_com_dieta_especial_participantes')
         solicitacao_kit_avulsa = SolicitacaoKitLancheAvulsa.objects.create(
             solicitacao_kit_lanche=solicitacao_kit_lanche, **validated_data
         )
         solicitacao_kit_avulsa.save()
+
+        solicitacao_kit_avulsa.alunos_com_dieta_especial_participantes.set(alunos_com_dieta)
+
         return solicitacao_kit_avulsa
 
     def update(self, instance, validated_data):
         solicitacao_kit_lanche_json = validated_data.pop('solicitacao_kit_lanche')
         solicitacao_kit_lanche = instance.solicitacao_kit_lanche
+
+        alunos_com_dieta = validated_data.pop('alunos_com_dieta_especial_participantes')
 
         SolicitacaoKitLancheCreationSerializer(
         ).update(solicitacao_kit_lanche, solicitacao_kit_lanche_json)
@@ -116,6 +126,9 @@ class SolicitacaoKitLancheAvulsaCreationSerializer(serializers.ModelSerializer):
         update_instance_from_dict(instance, validated_data)
 
         instance.save()
+
+        instance.alunos_com_dieta_especial_participantes.set(alunos_com_dieta)
+
         return instance
 
     class Meta:
