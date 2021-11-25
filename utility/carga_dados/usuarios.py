@@ -1,15 +1,15 @@
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.authtoken.models import Token
-
 from utility.carga_dados.escola.helper import bcolors
 from utility.carga_dados.helper import progressbar
 
+from sme_terceirizadas.dados_comuns.constants import DJANGO_ADMIN_PASSWORD
 from sme_terceirizadas.perfil.models import Usuario
 
 USUARIOS = [
     {
         'email': 'admin@admin.com',
-        'password': 'adminadmin',
+        'password': DJANGO_ADMIN_PASSWORD,
         'cpf': '11111111100',
         'registro_funcional': '1111111',
         'nome': 'Admin',
@@ -17,7 +17,7 @@ USUARIOS = [
     },
     {
         'email': 'escola@admin.com',
-        'password': 'adminadmin',
+        'password': DJANGO_ADMIN_PASSWORD,
         'cpf': '11111111101',
         'registro_funcional': '0000001',
         'nome': 'SUPER USUARIO ESCOLA',
@@ -25,7 +25,7 @@ USUARIOS = [
     },
     {
         'email': 'dre@admin.com',
-        'password': 'adminadmin',
+        'password': DJANGO_ADMIN_PASSWORD,
         'cpf': '11111111102',
         'registro_funcional': '0000010',
         'nome': 'SUPER USUARIO DRE',
@@ -33,7 +33,7 @@ USUARIOS = [
     },
     {
         'email': 'codae@admin.com',
-        'password': 'adminadmin',
+        'password': DJANGO_ADMIN_PASSWORD,
         'cpf': '11111111103',
         'registro_funcional': '0000011',
         'nome': 'Gestão de Terceirizadas',
@@ -41,7 +41,7 @@ USUARIOS = [
     },
     {
         'email': 'gpcodae@admin.com',
-        'password': 'adminadmin',
+        'password': DJANGO_ADMIN_PASSWORD,
         'cpf': '11111111104',
         'registro_funcional': '1000011',
         'nome': 'SUPER USUARIO GESTAO PRODUTO CODAE',
@@ -49,7 +49,7 @@ USUARIOS = [
     },
     {
         'email': 'terceirizada@admin.com',
-        'password': 'adminadmin',
+        'password': DJANGO_ADMIN_PASSWORD,
         'cpf': '11111111105',
         'registro_funcional': '0000100',
         'nome': 'SUPER USUARIO TERCEIRIZADA',
@@ -57,7 +57,7 @@ USUARIOS = [
     },
     {
         'email': 'nutricodae@admin.com',
-        'password': 'adminadmin',
+        'password': DJANGO_ADMIN_PASSWORD,
         'cpf': '11111111106',
         'registro_funcional': '0000101',
         'nome': 'SUPER USUARIO NUTRICIONISTA CODAE',
@@ -66,7 +66,7 @@ USUARIOS = [
     },
     {
         'email': 'nutrisupervisao@admin.com',
-        'password': 'adminadmin',
+        'password': DJANGO_ADMIN_PASSWORD,
         'cpf': '11111111107',
         'registro_funcional': '0010000',
         'nome': 'SUPER USUARIO NUTRICIONISTA SUPERVISAO',
@@ -75,7 +75,7 @@ USUARIOS = [
     },
     {
         'email': 'escolacei@admin.com',
-        'password': 'adminadmin',
+        'password': DJANGO_ADMIN_PASSWORD,
         'cpf': '11111111108',
         'registro_funcional': '0000110',
         'nome': 'SUPER USUARIO ESCOLA CEI',
@@ -83,7 +83,7 @@ USUARIOS = [
     },
     {
         'email': 'escolaceiceu@admin.com',
-        'password': 'adminadmin',
+        'password': DJANGO_ADMIN_PASSWORD,
         'cpf': '11111111109',
         'registro_funcional': '0000111',
         'nome': 'SUPER USUARIO ESCOLA CEI CEU',
@@ -91,7 +91,7 @@ USUARIOS = [
     },
     {
         'email': 'escolacci@admin.com',
-        'password': 'adminadmin',
+        'password': DJANGO_ADMIN_PASSWORD,
         'cpf': '11111111110',
         'registro_funcional': '0001000',
         'nome': 'SUPER USUARIO ESCOLA CCI',
@@ -99,7 +99,7 @@ USUARIOS = [
     },
     {
         'email': 'escolaemef@admin.com',
-        'password': 'adminadmin',
+        'password': DJANGO_ADMIN_PASSWORD,
         'cpf': '11111111111',
         'registro_funcional': '0001001',
         'nome': 'SUPER USUARIO ESCOLA EMEF',
@@ -107,7 +107,7 @@ USUARIOS = [
     },
     {
         'email': 'escolaemef3@admin.com',
-        'password': 'adminadmin',
+        'password': DJANGO_ADMIN_PASSWORD,
         'cpf': '11111111133',
         'registro_funcional': '0001003',
         'nome': 'SUPER USUARIO ESCOLA EMEF',
@@ -115,7 +115,7 @@ USUARIOS = [
     },
     {
         'email': 'escolaemebs@admin.com',
-        'password': 'adminadmin',
+        'password': DJANGO_ADMIN_PASSWORD,
         'cpf': '11111111112',
         'registro_funcional': '0001010',
         'nome': 'SUPER USUARIO ESCOLA EMEBS',
@@ -123,7 +123,7 @@ USUARIOS = [
     },
     {
         'email': 'escolacieja@admin.com',
-        'password': 'adminadmin',
+        'password': DJANGO_ADMIN_PASSWORD,
         'cpf': '11111111113',
         'registro_funcional': '0001011',
         'nome': 'SUPER USUARIO ESCOLA CIEJA',
@@ -131,7 +131,7 @@ USUARIOS = [
     },
     {
         'email': 'escolaemei@admin.com',
-        'password': 'adminadmin',
+        'password': DJANGO_ADMIN_PASSWORD,
         'cpf': '11111111114',
         'registro_funcional': '0001100',
         'nome': 'SUPER USUARIO ESCOLA EMEI',
@@ -139,7 +139,7 @@ USUARIOS = [
     },
     {
         'email': 'escolaceuemei@admin.com',
-        'password': 'adminadmin',
+        'password': DJANGO_ADMIN_PASSWORD,
         'cpf': '11111111115',
         'registro_funcional': '0001101',
         'nome': 'SUPER USUARIO ESCOLA CEU EMEI',
@@ -147,7 +147,7 @@ USUARIOS = [
     },
     {
         'email': 'escolaceuemef@admin.com',
-        'password': 'adminadmin',
+        'password': DJANGO_ADMIN_PASSWORD,
         'cpf': '11111111116',
         'registro_funcional': '0001111',
         'nome': 'SUPER USUARIO ESCOLA CEU EMEF',
@@ -155,7 +155,7 @@ USUARIOS = [
     },
     {
         'email': 'papa@admin.com',
-        'password': 'adminadmin',
+        'password': DJANGO_ADMIN_PASSWORD,
         'cpf': '11111111118',
         'registro_funcional': '0001112',
         'nome': 'SUPER USUARIO PAPA',
@@ -163,7 +163,7 @@ USUARIOS = [
     },
     {
         'email': 'dilog@admin.com',
-        'password': 'adminadmin',
+        'password': DJANGO_ADMIN_PASSWORD,
         'cpf': '11111111117',
         'registro_funcional': '1110000',
         'nome': 'SUPER USUARIO DILOG',
@@ -171,7 +171,7 @@ USUARIOS = [
     },
     {
         'email': 'emefjoseermiriodemorais@admin.com',
-        'password': 'adminadmin',
+        'password': DJANGO_ADMIN_PASSWORD,
         'cpf': '',
         'registro_funcional': '',
         'nome': 'COORD EMEF JOSE ERMIRIO',
@@ -179,7 +179,7 @@ USUARIOS = [
     },
     {
         'email': 'ue@admin.com',
-        'password': 'adminadmin',
+        'password': DJANGO_ADMIN_PASSWORD,
         'cpf': '11111111119',
         'registro_funcional': '1110001',
         'nome': 'SUPER USUARIO UE',
@@ -187,7 +187,7 @@ USUARIOS = [
     },
     {
         'email': 'codaegabinete@admin.com',
-        'password': 'adminadmin',
+        'password': DJANGO_ADMIN_PASSWORD,
         'cpf': '11111111120',
         'registro_funcional': '1230000',
         'nome': 'COORD CODAE GABINETE',
@@ -195,7 +195,7 @@ USUARIOS = [
     },
     {
         'email': 'codaelogistica@admin.com',
-        'password': 'adminadmin',
+        'password': DJANGO_ADMIN_PASSWORD,
         'cpf': '11111111121',
         'registro_funcional': '1231000',
         'nome': 'COORD CODAE DILOG LOGISTICA',
@@ -203,7 +203,7 @@ USUARIOS = [
     },
     {
         'email': 'codaecontabil@admin.com',
-        'password': 'adminadmin',
+        'password': DJANGO_ADMIN_PASSWORD,
         'cpf': '11111111122',
         'registro_funcional': '1232000',
         'nome': 'CODAE DILOG CONTABIL',
@@ -211,7 +211,7 @@ USUARIOS = [
     },
     {
         'email': 'codaejuridico@admin.com',
-        'password': 'adminadmin',
+        'password': DJANGO_ADMIN_PASSWORD,
         'cpf': '11111111123',
         'registro_funcional': '1233000',
         'nome': 'CODAE DILOG JURIDICO',
@@ -219,7 +219,7 @@ USUARIOS = [
     },
     {
         'email': 'uemista@admin.com',
-        'password': 'adminadmin',
+        'password': DJANGO_ADMIN_PASSWORD,
         'cpf': '11111111124',
         'registro_funcional': '1235000',
         'nome': 'SUPER USUARIO UE MISTA',
@@ -227,7 +227,7 @@ USUARIOS = [
     },
     {
         'email': 'uedireta@admin.com',
-        'password': 'adminadmin',
+        'password': DJANGO_ADMIN_PASSWORD,
         'cpf': '11111111125',
         'registro_funcional': '1236000',
         'nome': 'SUPER USUARIO UE DIRETA',
@@ -235,7 +235,7 @@ USUARIOS = [
     },
     {
         'email': 'ueparceira@admin.com',
-        'password': 'adminadmin',
+        'password': DJANGO_ADMIN_PASSWORD,
         'cpf': '11111111126',
         'registro_funcional': '1237000',
         'nome': 'SUPER USUARIO UE PARCEIRA',
@@ -244,7 +244,7 @@ USUARIOS = [
 ]
 
 
-def cria_usuarios():
+def cria_usuarios(): # noqa C901
     for usuario in progressbar(USUARIOS, 'Usuario'):
         if Usuario.objects.filter(email=usuario['email']).first():
             print(f"{bcolors.FAIL}Usuário {usuario['email']} já existe!{bcolors.ENDC}")  # noqa

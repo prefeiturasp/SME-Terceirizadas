@@ -159,7 +159,7 @@ def payload_autorizar(alergias_intolerancias, classificacoes_dieta, substituicoe
 @pytest.fixture
 def solicitacao_dieta_especial_a_autorizar(client, escola, template_mensagem_dieta_especial):
     email = 'escola@admin.com'
-    password = 'adminadmin'
+    password = constants.DJANGO_ADMIN_PASSWORD
     rf = '1545933'
     user = Usuario.objects.create_user(
         password=password, email=email, registro_funcional=rf)
@@ -184,7 +184,7 @@ def solicitacao_dieta_especial_a_autorizar(client, escola, template_mensagem_die
 @pytest.fixture
 def solicitacao_dieta_especial_autorizada(client, escola, solicitacao_dieta_especial_a_autorizar):
     email = 'terceirizada@admin.com'
-    password = 'adminadmin'
+    password = constants.DJANGO_ADMIN_PASSWORD
     rf = '4545454'
     user = Usuario.objects.create_user(
         password=password, email=email, registro_funcional=rf)
@@ -202,7 +202,7 @@ def solicitacao_dieta_especial_autorizada(client, escola, solicitacao_dieta_espe
 @pytest.fixture
 def solicitacao_dieta_especial_escola_solicitou_inativacao(client, escola, solicitacao_dieta_especial_autorizada):
     email = 'terceirizada2@admin.com'
-    password = 'adminadmin'
+    password = constants.DJANGO_ADMIN_PASSWORD
     rf = '4545455'
     user = Usuario.objects.create_user(
         password=password, email=email, registro_funcional=rf)
@@ -222,7 +222,7 @@ def solicitacao_dieta_especial_codae_autorizou_inativacao(client,
                                                           escola,
                                                           solicitacao_dieta_especial_escola_solicitou_inativacao):
     email = 'terceirizada3@admin.com'
-    password = 'adminadmin'
+    password = constants.DJANGO_ADMIN_PASSWORD
     rf = '4545456'
     user = Usuario.objects.create_user(
         password=password, email=email, registro_funcional=rf)
@@ -263,7 +263,7 @@ def escola():
 @pytest.fixture
 def client_autenticado_vinculo_escola_dieta(client, django_user_model, escola, template_mensagem_dieta_especial):
     email = 'test@test.com'
-    password = 'bar'
+    password = constants.DJANGO_ADMIN_PASSWORD
     user = django_user_model.objects.create_user(password=password, email=email,
                                                  registro_funcional='8888888')
     perfil_diretor = mommy.make('Perfil', nome='DIRETOR', ativo=True)
@@ -277,7 +277,7 @@ def client_autenticado_vinculo_escola_dieta(client, django_user_model, escola, t
 @pytest.fixture
 def client_autenticado_vinculo_codae_dieta(client, django_user_model, escola, codae, template_mensagem_dieta_especial):
     email = 'test@test.com'
-    password = 'bar'
+    password = constants.DJANGO_ADMIN_PASSWORD
     user = django_user_model.objects.create_user(password=password, email=email,
                                                  registro_funcional='8888888')
     perfil_admin_dieta_especial = mommy.make('Perfil', nome=constants.ADMINISTRADOR_DIETA_ESPECIAL,
@@ -293,7 +293,7 @@ def client_autenticado_vinculo_codae_dieta(client, django_user_model, escola, co
 def client_autenticado_vinculo_codae_gestao_alimentacao_dieta(client, django_user_model, escola, codae,
                                                               template_mensagem_dieta_especial):
     email = 'test@test.com'
-    password = 'bar'
+    password = constants.DJANGO_ADMIN_PASSWORD
     user = django_user_model.objects.create_user(password=password, email=email,
                                                  registro_funcional='8888888')
     perfil_admin_gestao_alimentacao = mommy.make('Perfil', nome=constants.ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
@@ -309,7 +309,7 @@ def client_autenticado_vinculo_codae_gestao_alimentacao_dieta(client, django_use
 def client_autenticado_vinculo_terceirizada_dieta(client, django_user_model, escola, codae,
                                                   template_mensagem_dieta_especial):
     email = 'test@test.com'
-    password = 'bar'
+    password = constants.DJANGO_ADMIN_PASSWORD
     user = django_user_model.objects.create_user(password=password, email=email,
                                                  registro_funcional='8888888')
     perfil_nutri_admin = mommy.make('Perfil', nome=constants.NUTRI_ADMIN_RESPONSAVEL,

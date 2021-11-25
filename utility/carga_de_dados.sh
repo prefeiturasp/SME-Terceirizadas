@@ -6,9 +6,6 @@ echo "Script de carga de dados... Sempre confira os dados para ver se está corr
 echo "Ao final do script, deseja criar solicitações de teste? (S/N)"
 read criar_solicitacoes
 
-echo "Criar usuários para teste? (S/N)"
-read criar_usuarios
-
 echo "Associar admins à escola | dre | codae | terceirizada? VALIDO PARA DESENVOLVIMENTO / HOMOLOGAÇÃO (S/N)"
 read associa_admins
 
@@ -17,44 +14,6 @@ read atualizacao_tempo_real
 
 ./manage.py migrate
 ./manage.py loaddata sme_terceirizadas/**/fixtures/*.json
-
-if [ "$criar_usuarios" != "${criar_usuarios#[Ss]}" ]; then
-  echo "Criando usuários..."
-  echo "Criando admin do sistema"
-  ./manage.py shell -c "from sme_terceirizadas.perfil.models import Usuario; Usuario.objects.create_superuser('admin@admin.com', 'adminadmin', cpf='11111111110', registro_funcional='1111110')"
-  echo "Criando Escola admin"
-  ./manage.py shell -c "from sme_terceirizadas.perfil.models import Usuario; Usuario.objects.create_superuser('escola@admin.com', 'adminadmin', cpf='11111111111', registro_funcional='1111111')"
-  echo "Criando DRE admin"
-  ./manage.py shell -c "from sme_terceirizadas.perfil.models import Usuario; Usuario.objects.create_superuser('dre@admin.com', 'adminadmin', cpf='11111111112', registro_funcional='1111112')"
-  echo "Criando TERC admin"
-  ./manage.py shell -c "from sme_terceirizadas.perfil.models import Usuario; Usuario.objects.create_superuser('terceirizada@admin.com', 'adminadmin', cpf='11111111113', registro_funcional='1111113')"
-  echo "Criando CODAE admin"
-  ./manage.py shell -c "from sme_terceirizadas.perfil.models import Usuario; Usuario.objects.create_superuser('codae@admin.com', 'adminadmin', cpf='11111111114', registro_funcional='1111114')"
-  echo "Criando CODAE Nutricionista admin"
-  ./manage.py shell -c "from sme_terceirizadas.perfil.models import Usuario; Usuario.objects.create_superuser('nutricodae@admin.com', 'adminadmin', cpf='11111111115', registro_funcional='1111115')"
-  echo "Criando Nutricionista Supervisao admin"
-  ./manage.py shell -c "from sme_terceirizadas.perfil.models import Usuario; Usuario.objects.create_superuser('nutrisupervisao@admin.com', 'adminadmin', cpf='11111111125', registro_funcional='1111125')"
-  echo "Criando CODAE - Gestao de Produtos - admin"
-  ./manage.py shell -c "from sme_terceirizadas.perfil.models import Usuario; Usuario.objects.create_superuser('gpcodae@admin.com', 'adminadmin', cpf='21111111114', registro_funcional='2111114')"
-  echo "Criando Escola CEI admin"
-  ./manage.py shell -c "from sme_terceirizadas.perfil.models import Usuario; Usuario.objects.create_superuser('escolacei@admin.com', 'adminadmin', cpf='11111111116', registro_funcional='1111116')"
-  echo "Criando Escola CEI CEU admin"
-  ./manage.py shell -c "from sme_terceirizadas.perfil.models import Usuario; Usuario.objects.create_superuser('escolaceiceu@admin.com', 'adminadmin', cpf='11111111117', registro_funcional='1111117')"
-  echo "Criando Escola CCI admin"
-  ./manage.py shell -c "from sme_terceirizadas.perfil.models import Usuario; Usuario.objects.create_superuser('escolacci@admin.com', 'adminadmin', cpf='11111111118', registro_funcional='1111118')"
-  echo "Criando Escola EMEF admin"
-  ./manage.py shell -c "from sme_terceirizadas.perfil.models import Usuario; Usuario.objects.create_superuser('escolaemef@admin.com', 'adminadmin', cpf='11111111119', registro_funcional='1111119')"
-  echo "Criando Escola EMEBS admin"
-  ./manage.py shell -c "from sme_terceirizadas.perfil.models import Usuario; Usuario.objects.create_superuser('escolaemebs@admin.com', 'adminadmin', cpf='11111111120', registro_funcional='1111120')"
-  echo "Criando Escola CIEJA admin"
-  ./manage.py shell -c "from sme_terceirizadas.perfil.models import Usuario; Usuario.objects.create_superuser('escolacieja@admin.com', 'adminadmin', cpf='11111111121', registro_funcional='1111121')"
-  echo "Criando Escola EMEI admin"
-  ./manage.py shell -c "from sme_terceirizadas.perfil.models import Usuario; Usuario.objects.create_superuser('escolaemei@admin.com', 'adminadmin', cpf='11111111122', registro_funcional='1111122')"
-  echo "Criando Escola CEU EMEI admin"
-  ./manage.py shell -c "from sme_terceirizadas.perfil.models import Usuario; Usuario.objects.create_superuser('escolaceuemei@admin.com', 'adminadmin', cpf='11111111123', registro_funcional='1111123')"
-  echo "Criando Escola CEU EMEF admin"
-  ./manage.py shell -c "from sme_terceirizadas.perfil.models import Usuario; Usuario.objects.create_superuser('escolaceuemef@admin.com', 'adminadmin', cpf='11111111124', registro_funcional='1111124')"
-fi
 
 ./manage.py shell -c "from utility.carga_dados.escola import _2_escola_EMEF_EMEFM_EMEBS_CIEJA"
 ./manage.py shell -c "from utility.carga_dados.escola import _3_escola_EMEI"

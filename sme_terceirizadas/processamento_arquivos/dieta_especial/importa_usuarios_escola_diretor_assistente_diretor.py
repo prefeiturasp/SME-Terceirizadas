@@ -7,6 +7,7 @@ from django.db import transaction
 from django.db.models import Q
 from openpyxl import Workbook, load_workbook, styles
 
+from sme_terceirizadas.dados_comuns.constants import DJANGO_ADMIN_TREINAMENTO_PASSWORD
 from sme_terceirizadas.dieta_especial.models import ArquivoCargaUsuariosEscola
 from sme_terceirizadas.escola.models import Escola
 from sme_terceirizadas.perfil.models.perfil import Perfil, Vinculo
@@ -112,7 +113,7 @@ class ProcessadorPlanilha:
         data_atual = date.today()
         usuario = Usuario.objects.create_superuser(
             email=email.strip(),
-            password='SIGPAE123',
+            password=DJANGO_ADMIN_TREINAMENTO_PASSWORD,
             nome=nome_usuario.strip(),
             cargo=cargo,
         )

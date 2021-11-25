@@ -3,6 +3,7 @@ import datetime
 import pytest
 from model_mommy import mommy
 
+from ...dados_comuns.constants import DJANGO_ADMIN_PASSWORD
 from ...dados_comuns.models import TemplateMensagem
 from ...dieta_especial.models import SolicitacaoDietaEspecial
 from ...escola.models import Aluno
@@ -35,7 +36,7 @@ def template_mensagem_dieta_especial():
 @pytest.fixture
 def solicitacao_dieta_especial_a_autorizar(client, escola, template_mensagem_dieta_especial):
     email = 'escola@admin.com'
-    password = 'adminadmin'
+    password = DJANGO_ADMIN_PASSWORD
     rf = '1545933'
     user = Usuario.objects.create_user(
         password=password, email=email, registro_funcional=rf)
@@ -60,7 +61,7 @@ def solicitacao_dieta_especial_a_autorizar(client, escola, template_mensagem_die
 @pytest.fixture
 def solicitacao_dieta_especial_autorizada(client, escola, solicitacao_dieta_especial_a_autorizar):
     email = 'terceirizada@admin.com'
-    password = 'adminadmin'
+    password = DJANGO_ADMIN_PASSWORD
     rf = '4545454'
     user = Usuario.objects.create_user(
         password=password, email=email, registro_funcional=rf)
