@@ -4,7 +4,7 @@ pipeline {
       kubeconfig = getKubeconf(env.branchname)
       registryCredential = 'jenkins_registry'
     }
-  
+
     agent {
       node { label 'python-36-sigpae' }
     }
@@ -14,11 +14,11 @@ pipeline {
       disableConcurrentBuilds()
       skipDefaultCheckout()
     }
-  
+
     stages {
 
-        stage('CheckOut') {            
-            steps { checkout scm }            
+        stage('CheckOut') {
+            steps { checkout scm }
         }
 
         stage('AmbienteTestes') {
@@ -31,7 +31,7 @@ pipeline {
                         sh "echo nome é: ${CONTAINER_ID}"
                         sh "docker rm -f ${CONTAINER_ID}"
                         sh 'docker run -d --rm --cap-add SYS_TIME --name terceirizadas-db --network python-network -p 5432 -e TZ="America/Sao_Paulo" -e POSTGRES_DB=terceirizadas -e POSTGRES_PASSWORD=adminadmin -e POSTGRES_USER=postgres postgres:9-alpine'
-                    } 
+                    }
                     else {
                         sh 'docker run -d --rm --cap-add SYS_TIME --name terceirizadas-db --network python-network -p 5432 -e TZ="America/Sao_Paulo" -e POSTGRES_DB=terceirizadas -e POSTGRES_PASSWORD=adminadmin -e POSTGRES_USER=postgres postgres:9-alpine'
                     }
@@ -67,7 +67,7 @@ pipeline {
         }
 
         stage('Build') {
-          when { anyOf { branch 'master'; branch 'main'; branch "story/*"; branch 'development'; branch 'release'; branch 'homolog';  } } 
+          when { anyOf { branch 'master'; branch 'main'; branch "story/*"; branch 'development'; branch 'release'; branch 'homolog';  } }
           steps {
             script {
               imagename1 = "registry.sme.prefeitura.sp.gov.br/${env.branchname}/sme-sigpae-api"
@@ -83,15 +83,15 @@ pipeline {
             }
           }
         }
-	    
+
         stage('Deploy'){
-            when { anyOf {  branch 'master'; branch 'main'; branch 'development'; branch 'release'; branch 'homolog';  } }        
+            when { anyOf {  branch 'master'; branch 'main'; branch 'development'; branch 'release'; branch 'homolog';  } }
             steps {
                 script{
                     if ( env.branchname == 'main' ||  env.branchname == 'master' || env.branchname == 'homolog' || env.branchname == 'release' ) {
                         sendTelegram("🤩 [Deploy ${env.branchname}] Job Name: ${JOB_NAME} \nBuild: ${BUILD_DISPLAY_NAME} \nMe aprove! \nLog: \n${env.BUILD_URL}")
                         timeout(time: 24, unit: "HOURS") {
-                            input message: 'Deseja realizar o deploy?', ok: 'SIM', submitter: 'kelwy_oliveira, anderson_morais, luis_zimmermann, rodolpho_azeredo'
+                            input message: 'Deseja realizar o deploy?', ok: 'SIM', submitter: 'kelwy_oliveira, anderson_morais, luis_zimmermann, rodolpho_azeredo, joao_mesquita'
                         }
                     }
                     if ( env.branchname == 'homolog' || env.branchname == 'release' ) {
@@ -113,8 +113,8 @@ pipeline {
                             sh('rm -f '+"$home"+'/.kube/config')
                     }
                 }
-            }           
-        }    
+            }
+        }
     }
 
   post {
