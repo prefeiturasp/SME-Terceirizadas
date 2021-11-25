@@ -291,7 +291,7 @@ class SolicitacaoDietaEspecialViewSet(
     )
     def codae_nega_cancelamento(self, request, uuid=None):
         justificativa = request.data.get('justificativa', '')
-        motivo_negacao = request.data.get('justificativa', '')
+        motivo_negacao = request.data.get('motivo_negacao', '')
         solicitacao = self.get_object()
         try:
             solicitacao.negar_cancelamento_pedido(
