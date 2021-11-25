@@ -1,3 +1,4 @@
+import environ
 from datetime import datetime
 
 from drf_base64.serializers import ModelSerializer
@@ -80,10 +81,16 @@ class TipoContagemSerializer(serializers.ModelSerializer):
 
 class AnexoSerializer(ModelSerializer):
     nome = serializers.CharField()
+    arquivo_url = serializers.SerializerMethodField()
+
+    def get_arquivo_url(self, instance):
+        env = environ.Env()
+        api_url = env.str('URL_ANEXO', default='http://localhost:8000')
+        return f'{api_url}{instance.arquivo.url}'
 
     class Meta:
         model = Anexo
-        fields = ('arquivo', 'nome', 'eh_laudo_alta')
+        fields = ('arquivo_url', 'arquivo', 'nome', 'eh_laudo_alta')
 
 
 class SubstituicaoAlimentoSerializer(ModelSerializer):
