@@ -694,7 +694,7 @@ def horario_combo_tipo_alimentacao(request, vinculo_tipo_alimentacao, escola_com
 def client_autenticado_vinculo_escola_cardapio(client, django_user_model, escola, template_mensagem_alteracao_cardapio,
                                                cardapio_valido2, cardapio_valido3):
     email = 'test@test.com'
-    password = 'bar'
+    password = constants.DJANGO_ADMIN_PASSWORD
     user = django_user_model.objects.create_user(password=password, email=email,
                                                  registro_funcional='8888888')
     perfil_diretor = mommy.make('Perfil', nome='DIRETOR', ativo=True)
@@ -728,7 +728,7 @@ def client_autenticado_vinculo_escola_cardapio(client, django_user_model, escola
 @pytest.fixture
 def client_autenticado_vinculo_dre_cardapio(client, django_user_model, escola, template_mensagem_alteracao_cardapio):
     email = 'test@test1.com'
-    password = 'bar'
+    password = constants.DJANGO_ADMIN_PASSWORD
     user = django_user_model.objects.create_user(password=password, email=email,
                                                  registro_funcional='8888889')
     perfil_cogestor = mommy.make('Perfil', nome='COGESTOR', ativo=True)
@@ -743,7 +743,7 @@ def client_autenticado_vinculo_dre_cardapio(client, django_user_model, escola, t
 @pytest.fixture
 def client_autenticado_vinculo_codae_cardapio(client, django_user_model, escola, codae):
     email = 'test@test.com'
-    password = 'bar'
+    password = constants.DJANGO_ADMIN_PASSWORD
     user = django_user_model.objects.create_user(password=password, email=email,
                                                  registro_funcional='8888888')
     perfil_admin_gestao_alimentacao = mommy.make('Perfil', nome=constants.ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
@@ -762,7 +762,7 @@ def client_autenticado_vinculo_codae_cardapio(client, django_user_model, escola,
 @pytest.fixture
 def client_autenticado_vinculo_codae_dieta_cardapio(client, django_user_model, escola, codae):
     email = 'test@test.com'
-    password = 'bar'
+    password = constants.DJANGO_ADMIN_PASSWORD
     user = django_user_model.objects.create_user(password=password, email=email,
                                                  registro_funcional='8888888')
     perfil_dieta = mommy.make('Perfil',
@@ -782,7 +782,7 @@ def client_autenticado_vinculo_codae_dieta_cardapio(client, django_user_model, e
 @pytest.fixture
 def client_autenticado_vinculo_terceirizada_cardapio(client, django_user_model, escola, codae):
     email = 'test@test.com'
-    password = 'bar'
+    password = constants.DJANGO_ADMIN_PASSWORD
     user = django_user_model.objects.create_user(password=password, email=email,
                                                  registro_funcional='8888888')
     perfil_nutri_admin = mommy.make('Perfil', nome=constants.NUTRI_ADMIN_RESPONSAVEL,

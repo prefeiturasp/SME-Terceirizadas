@@ -8,6 +8,7 @@ from django.db import transaction
 from django.db.models import Q
 from openpyxl import Workbook, load_workbook, styles
 
+from sme_terceirizadas.dados_comuns.constants import DJANGO_ADMIN_PASSWORD
 from sme_terceirizadas.dieta_especial.models import (
     AlergiaIntolerancia,
     ArquivoCargaDietaEspecial,
@@ -129,7 +130,7 @@ class ProcessadorPlanilha:
                             + f'{solicitacao_dieta_schema.codigo_eol_aluno}')
 
     @transaction.atomic
-    def cria_solicitacao(self, solicitacao_dieta_schema, aluno, classificacao_dieta, diagnosticos):  # noqa C901 
+    def cria_solicitacao(self, solicitacao_dieta_schema, aluno, classificacao_dieta, diagnosticos):  # noqa C901
         observacoes = """Essa Dieta Especial foi autorizada anteriormente a implantação do SIGPAE.
         Para ter acesso ao Protocolo da Dieta Especial,
         entre em contato com o Núcleo de Dieta Especial através do e-mail:
@@ -145,7 +146,7 @@ class ProcessadorPlanilha:
             # já que o usuário não tem acesso ao sistema
             usuario_escola = Usuario.objects.create(
                 email=email_fake,
-                password='fakepass',
+                password=DJANGO_ADMIN_PASSWORD,
                 nome=aluno.escola.nome,
                 cargo='DIRETOR',
                 is_active=False

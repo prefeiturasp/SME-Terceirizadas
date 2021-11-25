@@ -3,6 +3,7 @@ import datetime
 import pytest
 from model_mommy import mommy
 
+from ...dados_comuns.constants import DJANGO_ADMIN_PASSWORD
 from ...escola.models import EscolaPeriodoEscolar, LogAlteracaoQuantidadeAlunosPorEscolaEPeriodoEscolar, PeriodoEscolar
 from ..models import LancamentoDiario
 
@@ -35,7 +36,7 @@ def escola(diretoria_regional, lote):
 @pytest.fixture
 def client_autenticado_da_escola(client, django_user_model, escola):
     email = 'user@escola.com'
-    password = 'bar'
+    password = DJANGO_ADMIN_PASSWORD
     perfil_diretor = mommy.make('Perfil', nome='DIRETOR', ativo=True)
     usuario = django_user_model.objects.create_user(password=password, email=email,
                                                     registro_funcional='123456',

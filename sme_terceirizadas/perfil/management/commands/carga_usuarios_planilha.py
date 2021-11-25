@@ -4,6 +4,7 @@ from datetime import date
 from django.core.management.base import BaseCommand
 from openpyxl import load_workbook
 
+from sme_terceirizadas.dados_comuns.constants import DJANGO_ADMIN_TREINAMENTO_PASSWORD
 from sme_terceirizadas.escola.models import Codae
 from sme_terceirizadas.perfil.models import Perfil, Usuario, Vinculo
 
@@ -48,7 +49,7 @@ class Command(BaseCommand):
             self.stdout.write(f'criando usuario com email: {email} cpf: {cpf} index: {i}')
             usuario = Usuario.objects.create_superuser(
                 email=email,
-                password='SIGPAE123',
+                password=DJANGO_ADMIN_TREINAMENTO_PASSWORD,
                 cpf=cpf,
                 registro_funcional=rf,
                 nome=sheet_ranges.cell(row=i, column=(2 - fix_coluna)).value,
