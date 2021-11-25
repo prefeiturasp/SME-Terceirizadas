@@ -291,10 +291,13 @@ class SolicitacaoDietaEspecialViewSet(
     )
     def codae_nega_cancelamento(self, request, uuid=None):
         justificativa = request.data.get('justificativa', '')
+        motivo_negacao = request.data.get('justificativa', '')
         solicitacao = self.get_object()
         try:
             solicitacao.negar_cancelamento_pedido(
                 user=request.user, justificativa=justificativa)
+            solicitacao.motivo_negacao = motivo_negacao
+            solicitacao.save()
             serializer = self.get_serializer(solicitacao)
             return Response(serializer.data)
         except InvalidTransitionError as e:
