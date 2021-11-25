@@ -43,6 +43,27 @@
       </tbody>
     </table>
   </div>
+  {% if solicitacao.alunos_com_dieta_especial_participantes.all %}
+    <h3>Alunos com dieta especial</h3>
+    <div class="tabela-sem-borda">
+      <table>
+        <thead>
+          <tr>
+            <th>Código EOL</th>
+            <th>Nome</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for aluno in solicitacao.alunos_com_dieta_especial_participantes.all %}
+            <tr>
+              <td>{{ aluno.codigo_eol }}</td>
+              <td>{{ aluno.nome }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% endif %}
   {% include "bloco_observacoes.html" %}
   {% include "bloco_historico_questionamento.html" %}
   {% include "bloco_historico_cancelamento.html" %}
