@@ -296,7 +296,7 @@ class SolicitacaoDietaEspecialViewSet(
         try:
             solicitacao.negar_cancelamento_pedido(
                 user=request.user, justificativa=justificativa)
-            solicitacao.motivo_negacao = motivo_negacao
+            solicitacao.motivo_negacao = MotivoNegacao.objects.get(id=motivo_negacao)
             solicitacao.save()
             serializer = self.get_serializer(solicitacao)
             return Response(serializer.data)
