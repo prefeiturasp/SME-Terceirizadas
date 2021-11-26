@@ -71,9 +71,11 @@ class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmiga
                                         LogSolicitacoesUsuario.INICIO_FLUXO]
 
     NEGADOS_STATUS_DIETA_ESPECIAL = [DietaEspecialWorkflow.CODAE_NEGOU_PEDIDO,
-                                     DietaEspecialWorkflow.CODAE_NEGOU_INATIVACAO]
+                                     DietaEspecialWorkflow.CODAE_NEGOU_INATIVACAO,
+                                     DietaEspecialWorkflow.CODAE_NEGOU_CANCELAMENTO]
     NEGADOS_EVENTO_DIETA_ESPECIAL = [LogSolicitacoesUsuario.CODAE_NEGOU,
-                                     LogSolicitacoesUsuario.CODAE_NEGOU_INATIVACAO]
+                                     LogSolicitacoesUsuario.CODAE_NEGOU_INATIVACAO,
+                                     LogSolicitacoesUsuario.CODAE_NEGOU_CANCELAMENTO]
 
     CANCELADOS_STATUS_DIETA_ESPECIAL = [
         DietaEspecialWorkflow.ESCOLA_CANCELOU,
@@ -1076,6 +1078,7 @@ class SolicitacoesTerceirizada(MoldeConsolidado):
     @classmethod
     def get_autorizados(cls, **kwargs):
         terceirizada_uuid = kwargs.get('terceirizada_uuid')
+        print(cls)
         return cls.objects.filter(
             status_evento__in=[LogSolicitacoesUsuario.CODAE_AUTORIZOU,
                                LogSolicitacoesUsuario.INICIO_FLUXO,

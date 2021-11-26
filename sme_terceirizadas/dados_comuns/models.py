@@ -32,6 +32,7 @@ class LogSolicitacoesUsuario(
         TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO,
         # "BURLADO DO FLUXO", PODE SER CHAMADO A QUALQUER MOMENTO COM AS DEVIDAS RESTRIÇÕES
         ESCOLA_CANCELOU,
+        CODAE_NEGOU_CANCELAMENTO,
         DRE_CANCELOU,
         # ESPECIFICA DIETA ESPECIAL
         INICIO_FLUXO_INATIVACAO,
@@ -75,7 +76,7 @@ class LogSolicitacoesUsuario(
         DILOG_NEGA_ALTERACAO,
         CANCELADO_ALUNO_MUDOU_ESCOLA,
         CANCELADO_ALUNO_NAO_PERTENCE_REDE,
-    ) = range(51)
+    ) = range(52)
 
     STATUS_POSSIVEIS = (
         (INICIO_FLUXO, 'Solicitação Realizada'),
@@ -90,6 +91,7 @@ class LogSolicitacoesUsuario(
         (DRE_NAO_VALIDOU, 'DRE não validou'),
         (ESCOLA_REVISOU, 'Escola revisou'),
         (ESCOLA_CANCELOU, 'Escola cancelou'),
+        (CODAE_NEGOU_CANCELAMENTO, 'CODAE negou cancelamento'),
         (DRE_CANCELOU, 'DRE cancelou'),
         (CODAE_QUESTIONOU, 'Questionamento pela CODAE'),
         (

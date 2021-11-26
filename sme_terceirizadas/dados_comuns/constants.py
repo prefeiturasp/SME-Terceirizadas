@@ -89,6 +89,7 @@ ESCOLA_INFORMA_SUSPENSAO = 'informa-suspensao'
 ESCOLA_SOLICITA_INATIVACAO = 'escola-solicita-inativacao'
 
 ESCOLA_CANCELA_DIETA_ESPECIAL = 'escola-cancela-dieta-especial'
+CODAE_NEGA_CANCELAMENTO_DIETA = 'negar-cancelamento-dieta-especial'
 
 DRE_INICIO_PEDIDO = 'inicio-pedido'
 DRE_VALIDA_PEDIDO = 'diretoria-regional-valida-pedido'
