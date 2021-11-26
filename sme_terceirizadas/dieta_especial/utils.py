@@ -4,7 +4,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.template.loader import render_to_string
 from rest_framework.pagination import PageNumberPagination
 
-from sme_terceirizadas.eol_servico.utils import EOLException, EOLService
+from sme_terceirizadas.eol_servico.utils import EOLException, EOLServicoSGP
 from sme_terceirizadas.perfil.models import Perfil, Usuario, Vinculo
 from sme_terceirizadas.relatorios.relatorios import relatorio_dieta_especial_conteudo
 from sme_terceirizadas.relatorios.utils import html_to_pdf_email_anexo
@@ -60,7 +60,7 @@ def inicia_dietas_temporarias(usuario):
 
 def get_aluno_eol(codigo_eol_aluno):
     try:
-        dados_do_aluno = EOLService.get_informacoes_aluno(codigo_eol_aluno)
+        dados_do_aluno = EOLServicoSGP.get_aluno_eol(codigo_eol_aluno)
         return dados_do_aluno
     except EOLException:
         return {}
@@ -201,7 +201,7 @@ def cancela_dietas_ativas_automaticamente():  # noqa C901 D205 D400
                 cod_escola_no_sigpae = None
             # Retorna True ou False
             resposta = aluno_pertence_a_escola_ou_esta_na_rede(
-                cod_escola_no_eol=dados_do_aluno['cd_escola'],
+                cod_escola_no_eol=solicitacao_dieta.escola.codigo_eol,
                 cod_escola_no_sigpae=cod_escola_no_sigpae
             )
             escola_existe_no_sigpae = Escola.objects.filter(codigo_eol=dados_do_aluno['cd_escola']).first()
@@ -260,8 +260,8 @@ class ProtocoloPadraoPagination(PageNumberPagination):
 
 
 def log_create(protocolo_padrao, user=None):
-    from datetime import datetime
     import json
+    from datetime import datetime
 
     historico = {}
 

@@ -305,8 +305,9 @@ def solicitacoes_ano_dre(client, django_user_model, request, diretoria_regional2
     user_dre = django_user_model.objects.create_user(password=password, email=email, registro_funcional=rf, cpf=cpf)
     user_codae = django_user_model.objects.create_user(password=constants.DJANGO_ADMIN_PASSWORD, email='xxx@email.com',
                                                        registro_funcional='9987634', cpf='12oiu3123')
-    user_escola = django_user_model.objects.create_user(password=constants.DJANGO_ADMIN_PASSWORD, email='user@escola.com',
-                                                        registro_funcional='123123', cpf='12312312332')
+    user_escola = django_user_model.objects.create_user(password=constants.DJANGO_ADMIN_PASSWORD,
+                                                        email='user@escola.com', registro_funcional='123123',
+                                                        cpf='12312312332')
     client.login(email=email, password=password)
 
     perfil_adm_dre = mommy.make('Perfil', nome='ADMINISTRADOR_DRE', ativo=True)
