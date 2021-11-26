@@ -50,7 +50,7 @@ from ..models import (
     TipoContagem
 )
 from ..utils import ProtocoloPadraoPagination, RelatorioPagination
-from .filters import AlimentoFilter, DietaEspecialFilter
+from .filters import AlimentoFilter, DietaEspecialFilter, MotivoNegacaoFilter
 from .serializers import (
     AlergiaIntoleranciaSerializer,
     AlimentoSerializer,
@@ -283,6 +283,25 @@ class SolicitacaoDietaEspecialViewSet(
             return Response(serializer.data)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)  # noqa
+
+    @action(
+        detail=True,
+        methods=['post'],
+        url_path=constants.CODAE_NEGA_CANCELAMENTO_DIETA
+    )
+    def codae_nega_cancelamento(self, request, uuid=None):
+        justificativa = request.data.get('justificativa', '')
+        motivo_negacao = request.data.get('motivo_negacao', '')
+        solicitacao = self.get_object()
+        try:
+            solicitacao.negar_cancelamento_pedido(
+                user=request.user, justificativa=justificativa)
+            solicitacao.motivo_negacao = MotivoNegacao.objects.get(id=motivo_negacao)
+            solicitacao.save()
+            serializer = self.get_serializer(solicitacao)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
     @action(detail=True,
             methods=['patch'],
@@ -748,6 +767,8 @@ class MotivoNegacaoViewSet(
     queryset = MotivoNegacao.objects.all()
     serializer_class = MotivoNegacaoSerializer
     pagination_class = None
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = MotivoNegacaoFilter
 
 
 class AlimentoViewSet(
