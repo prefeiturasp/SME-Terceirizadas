@@ -163,6 +163,7 @@ class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmiga
     filtro_7_dias = SolicitacoesDestaSemanaManager()
     filtro_30_dias = SolicitacoesDesteMesManager()
     conferido = models.BooleanField()
+    terceirizada_conferiu_gestao = models.BooleanField()
 
     @classmethod
     def get_pendentes_autorizacao(cls, **kwargs):
@@ -649,8 +650,9 @@ class SolicitacoesEscola(MoldeConsolidado):
 
     @classmethod
     def get_autorizados(cls, **kwargs):
-        from sme_terceirizadas.kit_lanche.models import SolicitacaoKitLancheUnificada
         from django.db.models import Q
+
+        from sme_terceirizadas.kit_lanche.models import SolicitacaoKitLancheUnificada
 
         escola_uuid = kwargs.get('escola_uuid')
         uuids_solicitacao_unificadas = SolicitacaoKitLancheUnificada.objects.filter(

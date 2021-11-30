@@ -389,6 +389,20 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
     def relatorio(self, request, uuid=None):
         return relatorio_inversao_dia_de_cardapio(request, solicitacao=self.get_object())
 
+    @action(detail=True,
+            methods=['patch'],
+            url_path=constants.MARCAR_CONFERIDA,
+            permission_classes=(IsAuthenticated,))
+    def terceirizada_marca_inclusao_como_conferida(self, request, uuid=None):
+        inversao_cardapio: InversaoCardapio = self.get_object()
+        try:
+            inversao_cardapio.terceirizada_conferiu_gestao = True
+            inversao_cardapio.save()
+            serializer = self.get_serializer(inversao_cardapio)
+            return Response(serializer.data)
+        except Exception as e:
+            return Response(dict(detail=f'Erro ao marcar solicitação como conferida: {e}'), status=status.HTTP_400_BAD_REQUEST)  # noqa
+
 
 class SuspensaoAlimentacaoDaCEIViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
@@ -561,6 +575,20 @@ class GrupoSuspensaoAlimentacaoSerializerViewSet(viewsets.ModelViewSet):
             permission_classes=(IsAuthenticated,))
     def relatorio(self, request, uuid=None):
         return relatorio_suspensao_de_alimentacao(request, solicitacao=self.get_object())
+
+    @action(detail=True,
+            methods=['patch'],
+            url_path=constants.MARCAR_CONFERIDA,
+            permission_classes=(IsAuthenticated,))
+    def terceirizada_marca_inclusao_como_conferida(self, request, uuid=None):
+        grupo_suspensao_alimentacao: GrupoSuspensaoAlimentacao = self.get_object()
+        try:
+            grupo_suspensao_alimentacao.terceirizada_conferiu_gestao = True
+            grupo_suspensao_alimentacao.save()
+            serializer = self.get_serializer(grupo_suspensao_alimentacao)
+            return Response(serializer.data)
+        except Exception as e:
+            return Response(dict(detail=f'Erro ao marcar solicitação como conferida: {e}'), status=status.HTTP_400_BAD_REQUEST)  # noqa
 
 
 class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
@@ -807,6 +835,20 @@ class AlteracoesCardapioViewSet(viewsets.ModelViewSet):
         else:
             return Response(dict(detail='Você só pode excluir quando o status for RASCUNHO.'),
                             status=status.HTTP_403_FORBIDDEN)
+
+    @action(detail=True,
+            methods=['patch'],
+            url_path=constants.MARCAR_CONFERIDA,
+            permission_classes=(IsAuthenticated,))
+    def terceirizada_marca_inclusao_como_conferida(self, request, uuid=None):
+        alteracao_cardapio: AlteracaoCardapio = self.get_object()
+        try:
+            alteracao_cardapio.terceirizada_conferiu_gestao = True
+            alteracao_cardapio.save()
+            serializer = self.get_serializer(alteracao_cardapio)
+            return Response(serializer.data)
+        except Exception as e:
+            return Response(dict(detail=f'Erro ao marcar solicitação como conferida: {e}'), status=status.HTTP_400_BAD_REQUEST)  # noqa
 
 
 class AlteracoesCardapioCEIViewSet(AlteracoesCardapioViewSet):
