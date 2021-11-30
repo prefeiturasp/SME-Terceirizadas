@@ -1080,7 +1080,6 @@ class SolicitacoesTerceirizada(MoldeConsolidado):
     @classmethod
     def get_autorizados(cls, **kwargs):
         terceirizada_uuid = kwargs.get('terceirizada_uuid')
-        print(cls)
         return cls.objects.filter(
             status_evento__in=[LogSolicitacoesUsuario.CODAE_AUTORIZOU,
                                LogSolicitacoesUsuario.INICIO_FLUXO,

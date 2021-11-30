@@ -497,10 +497,12 @@ def test_url_endpoint_cancelar_dieta(client_autenticado_vinculo_escola_dieta,
 
 
 def test_url_endpoint_negar_cancelamento_dieta(client_autenticado_vinculo_escola_dieta,
-                                               solicitacao_dieta_especial_a_autorizar):
+                                               solicitacao_dieta_especial_a_autorizar,
+                                               motivos_negacao):
     obj = SolicitacaoDietaEspecial.objects.first()
     data = {
-        'justificativa': 'Uma justificativa fajuta'
+        'justificativa': 'Uma justificativa fajuta',
+        'motivo_negacao': motivos_negacao[0].id
     }
     response = client_autenticado_vinculo_escola_dieta.post(
         f'/solicitacoes-dieta-especial/{obj.uuid}/negar-cancelamento-dieta-especial/',
