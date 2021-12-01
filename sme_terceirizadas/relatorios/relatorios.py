@@ -158,7 +158,7 @@ def relatorio_guia_de_remessa(guias): # noqa C901
             peso_total=Sum(
                 F('embalagens__capacidade_embalagem') * F('embalagens__qtd_volume'), output_field=FloatField()
             )
-        ).order_by('nome_alimento')
+        )
 
         if guia.status == GuiaStatus.PENDENTE_DE_CONFERENCIA or guia.status == GuiaStatus.CANCELADA:
             conferencia = None
@@ -631,7 +631,7 @@ def get_pdf_guia_distribuidor(data=None, many=False):
             peso_total=Sum(
                 F('embalagens__capacidade_embalagem') * F('embalagens__qtd_volume'), output_field=FloatField()
             )
-        ).order_by('nome_alimento')
+        )
         while True:
             alimentos = todos_alimentos[inicio:inicio + num_alimentos_pagina]
             if alimentos:
