@@ -64,7 +64,7 @@ from sme_terceirizadas.logistica.models import SolicitacaoDeAlteracaoRequisicao,
 from sme_terceirizadas.logistica.services import arquiva_guias, confirma_guias, desarquiva_guias
 
 from ...escola.models import DiretoriaRegional, Escola
-from ...relatorios.relatorios import get_pdf_guia_distribuidor, relatorio_guia_de_remessa
+from ...relatorios.relatorios import relatorio_guia_de_remessa
 from ..models.guia import InsucessoEntregaGuia
 from ..utils import GuiaPagination, RequisicaoPagination, SolicitacaoAlteracaoPagination
 from .filters import GuiaFilter, SolicitacaoAlteracaoFilter, SolicitacaoFilter
@@ -439,7 +439,7 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
     def gerar_pdf_distribuidor(self, request, uuid=None):
         solicitacao = self.get_object()
         guias = solicitacao.guias.all()
-        return get_pdf_guia_distribuidor(data=guias)
+        return relatorio_guia_de_remessa(guias=guias)
 
     @action(
         detail=False, methods=['GET'],
@@ -449,7 +449,7 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
         queryset = self.filter_queryset(self.get_queryset())
         queryset = queryset.filter(status='DISTRIBUIDOR_CONFIRMA')
         guias = GuiasDasRequisicoes.objects.filter(solicitacao__in=queryset).order_by('-data_entrega').distinct()
-        return get_pdf_guia_distribuidor(data=guias)
+        return relatorio_guia_de_remessa(guias=guias)
 
     @action(
         detail=True,
@@ -605,7 +605,7 @@ class GuiaDaRequisicaoModelViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['GET'], url_path='gerar-pdf-distribuidor', permission_classes=[UsuarioDistribuidor])
     def gerar_pdf_distribuidor(self, request, uuid=None):
         guia = self.get_object()
-        return get_pdf_guia_distribuidor(data=[guia])
+        return relatorio_guia_de_remessa(guias=[guia])
 
     @action(detail=False,
             methods=['GET'],
