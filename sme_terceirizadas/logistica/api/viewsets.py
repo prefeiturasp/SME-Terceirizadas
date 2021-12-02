@@ -544,7 +544,8 @@ class GuiaDaRequisicaoModelViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['GET'], url_path='inconsistencias', permission_classes=(UsuarioDilogCodae,))
     def lista_guias_inconsistencias(self, request):
-        response = {'results': GuiaDaRemessaSerializer(self.get_queryset().filter(escola=None), many=True).data}
+        response = {'results': GuiaDaRemessaSerializer(self.get_queryset().filter(escola=None).annotate(
+                    numero_requisicao=F('solicitacao__numero_solicitacao')), many=True).data}
         return Response(response)
 
     @action(detail=False, methods=['GET'], url_path='guias-escola', permission_classes=(UsuarioEscolaAbastecimento,))
