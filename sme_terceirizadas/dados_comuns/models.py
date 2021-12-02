@@ -1,9 +1,12 @@
 import uuid
 from datetime import datetime
 
+from django.contrib.auth import get_user_model
 from django.core.validators import MinLengthValidator
 from django.db import models
 from django_prometheus.models import ExportModelOperationsMixin
+
+from .behaviors import ModeloBase
 
 
 class LogSolicitacoesUsuario(
@@ -345,3 +348,83 @@ class PerguntaFrequente(ExportModelOperationsMixin('faq'), models.Model):
 
     def __str__(self):
         return self.pergunta
+
+
+class Notificacao(ModeloBase):
+    # Tipos de Notificação
+    TIPO_NOTIFICACAO_ALERTA = 'ALERTA'
+    TIPO_NOTIFICACAO_AVISO = 'AVISO'
+    TIPO_NOTIFICACAO_PENDENCIA = 'PENDENCIA'
+
+    TIPO_NOTIFICACAO_NOMES = {
+        TIPO_NOTIFICACAO_ALERTA: 'Alerta',
+        TIPO_NOTIFICACAO_AVISO: 'Aviso',
+        TIPO_NOTIFICACAO_PENDENCIA: 'PENDENCIA',
+    }
+
+    TIPO_NOTIFICACAO_CHOICES = (
+        (TIPO_NOTIFICACAO_ALERTA, TIPO_NOTIFICACAO_NOMES[TIPO_NOTIFICACAO_ALERTA]),
+        (TIPO_NOTIFICACAO_AVISO, TIPO_NOTIFICACAO_NOMES[TIPO_NOTIFICACAO_AVISO]),
+        (TIPO_NOTIFICACAO_PENDENCIA, TIPO_NOTIFICACAO_NOMES[TIPO_NOTIFICACAO_PENDENCIA]),
+    )
+
+    # Categorias de Notificação
+    CATEGORIA_NOTIFICACAO_REQUISICAO_DE_ENTREGA = 'REQUISICAO_DE_ENTREGA'
+    CATEGORIA_NOTIFICACAO_ALTERACAO_REQUISICAO_ENTREGA = 'ALTERACAO_REQUISICAO_ENTREGA'
+    CATEGORIA_NOTIFICACAO_GUIA_DE_REMESSA = 'GUIA_DE_REMESSA'
+
+    CATEGORIA_NOTIFICACAO_NOMES = {
+        CATEGORIA_NOTIFICACAO_REQUISICAO_DE_ENTREGA: 'Requisição de entrega',
+        CATEGORIA_NOTIFICACAO_ALTERACAO_REQUISICAO_ENTREGA: 'Alteração de requisição de entrega',
+        CATEGORIA_NOTIFICACAO_GUIA_DE_REMESSA: 'Guia de Remessa',
+    }
+
+    CATEGORIA_NOTIFICACAO_CHOICES = (
+        (CATEGORIA_NOTIFICACAO_REQUISICAO_DE_ENTREGA,
+         CATEGORIA_NOTIFICACAO_NOMES[CATEGORIA_NOTIFICACAO_REQUISICAO_DE_ENTREGA]),
+        (CATEGORIA_NOTIFICACAO_ALTERACAO_REQUISICAO_ENTREGA,
+         CATEGORIA_NOTIFICACAO_NOMES[CATEGORIA_NOTIFICACAO_ALTERACAO_REQUISICAO_ENTREGA]),
+        (CATEGORIA_NOTIFICACAO_GUIA_DE_REMESSA, CATEGORIA_NOTIFICACAO_NOMES[CATEGORIA_NOTIFICACAO_GUIA_DE_REMESSA]),
+    )
+
+    tipo = models.CharField(
+        'Tipo',
+        max_length=15,
+        choices=TIPO_NOTIFICACAO_CHOICES,
+        default=TIPO_NOTIFICACAO_AVISO,
+    )
+
+    categoria = models.CharField(
+        'Categoria',
+        max_length=30,
+        choices=CATEGORIA_NOTIFICACAO_CHOICES,
+    )
+
+    titulo = models.CharField('Título', max_length=100, default='', blank=True)
+
+    descricao = models.TextField('Descrição', max_length=1000, default='', blank=True)
+
+    hora = models.TimeField('Hora', editable=False, auto_now_add=True)
+
+    lido = models.BooleanField('Foi Lido?', default=False)
+
+    resolvido = models.BooleanField('Foi resolvido?', default=False)
+
+    usuario = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, default='', blank=True, null=True)
+
+    requisicao = models.ForeignKey('SolicitacaoRemessa', on_delete=models.CASCADE,
+                                   related_name='notificacoes_da_requisicao', blank=True, null=True)
+
+    guia = models.ForeignKey('Guia', on_delete=models.CASCADE, related_name='notificacoes_da_guia',
+                             blank=True, null=True)
+
+    solicitacao_de_alteracao = models.ForeignKey('SolicitacaoDeAlteracaoRequisicao', on_delete=models.CASCADE,
+                                                 related_name='notificacoes_da_solicitacao_de_alteracao',
+                                                 blank=True, null=True)
+
+    class Meta:
+        verbose_name = 'Notificação'
+        verbose_name_plural = 'Notificações'
+
+    def __str__(self):
+        return self.titulo
