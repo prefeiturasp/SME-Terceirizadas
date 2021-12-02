@@ -79,6 +79,7 @@ class SolicitacaoService(ServiceBase):
 
 def _method_return_string(ctx):
     ctx.out_string[0] = ctx.out_string[0].replace(b'tns:', b'')
+    ctx.out_string[0] = ctx.out_string[0].replace(b'soap11env', b'soap')
 
 
 SolicitacaoService.event_manager.add_listener(

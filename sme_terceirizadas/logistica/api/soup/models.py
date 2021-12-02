@@ -98,6 +98,10 @@ class GuiCan(ComplexModel):
     StrNumGui = String
 
 
+ArrayOfAlimento = Array(Alimento)
+ArrayOfAlimento.__type_name__ = 'ArrayOfAlimento'
+
+
 class Guia(ComplexModel):
     __namespace__ = NS
     StrNumGui = String
@@ -112,7 +116,7 @@ class Guia(ComplexModel):
     StrEstUni = String
     StrConUni = String
     StrTelUni = String
-    alimentos = Array(Alimento)
+    alimentos = ArrayOfAlimento
 
     def build_guia_obj(self, data, soliciacao):
         guia_dict = {
@@ -167,12 +171,19 @@ class Guia(ComplexModel):
         return guias_obj_list
 
 
+ArrayOfGuia = Array(Guia)
+ArrayOfGuia.__type_name__ = 'ArrayOfGuia'
+ArrayOfGuiCan = Array(GuiCan)
+ArrayOfGuiCan.__type_name__ = 'ArrayOfGuiCan'
+
+
 class ArqSolicitacaoMOD(ComplexModel):
     __namespace__ = NS
+    __type_name__ = 'SolicitacaoMOD'
     StrCnpj = String
     StrNumSol = String
     IntSeqenv = Integer
-    guias = Array(Guia)
+    guias = ArrayOfGuia
     IntQtGuia = Integer
     IntTotVol = Integer
 
@@ -207,10 +218,11 @@ class ArqSolicitacaoMOD(ComplexModel):
 
 class ArqCancelamento(ComplexModel):
     __namespace__ = NS
+    __type_name__ = 'CancelamentoMOD'
     StrCnpj = String
     StrNumSol = String
     IntSeqenv = Integer
-    guias = Array(GuiCan)
+    guias = ArrayOfGuiCan
     IntQtGuia = Integer
 
     @transaction.atomic # noqa C901
@@ -267,12 +279,14 @@ class ArqCancelamento(ComplexModel):
 
 class oWsAcessoModel(ComplexModel):
     __namespace__ = NS
+    __type_name__ = 'acessMOD'
     StrId = String
     StrToken = String
 
 
 class SoapResponse(ComplexModel):
     __namespace__ = NS
+    __type_name__ = 'codresMOD'
 
     def __init__(self, str_status, str_menssagem):
         """Objeto de response adaptado para o webserver soap."""
