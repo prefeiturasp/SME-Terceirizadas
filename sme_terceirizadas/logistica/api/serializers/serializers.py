@@ -204,6 +204,7 @@ class GuiaDaRemessaComAlimentoSerializer(serializers.ModelSerializer):
 
 
 class GuiaDaRemessaSerializer(serializers.ModelSerializer):
+    numero_requisicao = serializers.CharField()
     alimentos = AlimentoLookUpSerializer(many=True)
     status = serializers.CharField(source='get_status_display')
 
