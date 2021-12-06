@@ -1,12 +1,9 @@
 import uuid
 from datetime import datetime
 
-from django.contrib.auth import get_user_model
 from django.core.validators import MinLengthValidator
 from django.db import models
 from django_prometheus.models import ExportModelOperationsMixin
-
-from .behaviors import ModeloBase
 
 
 class LogSolicitacoesUsuario(
@@ -350,7 +347,7 @@ class PerguntaFrequente(ExportModelOperationsMixin('faq'), models.Model):
         return self.pergunta
 
 
-class Notificacao(ModeloBase):
+class Notificacao(models.Model):
     # Tipos de Notificação
     TIPO_NOTIFICACAO_ALERTA = 'ALERTA'
     TIPO_NOTIFICACAO_AVISO = 'AVISO'
@@ -359,7 +356,7 @@ class Notificacao(ModeloBase):
     TIPO_NOTIFICACAO_NOMES = {
         TIPO_NOTIFICACAO_ALERTA: 'Alerta',
         TIPO_NOTIFICACAO_AVISO: 'Aviso',
-        TIPO_NOTIFICACAO_PENDENCIA: 'PENDENCIA',
+        TIPO_NOTIFICACAO_PENDENCIA: 'Pendência',
     }
 
     TIPO_NOTIFICACAO_CHOICES = (
@@ -387,6 +384,8 @@ class Notificacao(ModeloBase):
         (CATEGORIA_NOTIFICACAO_GUIA_DE_REMESSA, CATEGORIA_NOTIFICACAO_NOMES[CATEGORIA_NOTIFICACAO_GUIA_DE_REMESSA]),
     )
 
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+
     tipo = models.CharField(
         'Tipo',
         max_length=15,
@@ -410,17 +409,11 @@ class Notificacao(ModeloBase):
 
     resolvido = models.BooleanField('Foi resolvido?', default=False)
 
-    usuario = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, default='', blank=True, null=True)
+    usuario = models.ForeignKey('perfil.Usuario', on_delete=models.CASCADE, default='', null=True, blank=True)
 
-    requisicao = models.ForeignKey('SolicitacaoRemessa', on_delete=models.CASCADE,
-                                   related_name='notificacoes_da_requisicao', blank=True, null=True)
+    criado_em = models.DateTimeField('Criado em', editable=False, auto_now_add=True)
 
-    guia = models.ForeignKey('Guia', on_delete=models.CASCADE, related_name='notificacoes_da_guia',
-                             blank=True, null=True)
-
-    solicitacao_de_alteracao = models.ForeignKey('SolicitacaoDeAlteracaoRequisicao', on_delete=models.CASCADE,
-                                                 related_name='notificacoes_da_solicitacao_de_alteracao',
-                                                 blank=True, null=True)
+    link = models.CharField('Link', max_length=100, default='', blank=True)
 
     class Meta:
         verbose_name = 'Notificação'

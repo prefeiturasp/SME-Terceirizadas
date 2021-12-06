@@ -5,6 +5,7 @@ from .models import (
     Contato,
     Endereco,
     LogSolicitacoesUsuario,
+    Notificacao,
     PerguntaFrequente,
     TemplateMensagem
 )
@@ -19,5 +20,6 @@ class ContatoAdmin(admin.ModelAdmin):
 admin.site.register(CategoriaPerguntaFrequente)
 admin.site.register(Endereco)
 admin.site.register(LogSolicitacoesUsuario)
+admin.site.register(Notificacao)
 admin.site.register(PerguntaFrequente)
 admin.site.register(TemplateMensagem)
