@@ -1,12 +1,14 @@
 import pytest
-from model_mommy import mommy
 from django.contrib import admin
 from django.contrib.auth import get_user_model
+from model_mommy import mommy
+
 from ..models import Notificacao
 
 pytestmark = pytest.mark.django_db
 
 User = get_user_model()
+
 
 def test_template_mensagem(template_mensagem):
     params, esperado = template_mensagem

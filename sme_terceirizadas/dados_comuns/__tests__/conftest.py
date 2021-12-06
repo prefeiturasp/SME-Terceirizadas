@@ -5,7 +5,8 @@ from faker import Faker
 from model_mommy import mommy
 
 from ...escola import models
-from ..models import TemplateMensagem, Notificacao
+from ..constants import DJANGO_ADMIN_PASSWORD
+from ..models import Notificacao, TemplateMensagem
 
 fake = Faker('pt_BR')
 fake.seed(420)
@@ -185,7 +186,7 @@ def data_inversao_mesmo_ano(request):
 
 @pytest.fixture
 def client_autenticado_coordenador_codae(client, django_user_model):
-    email, password, rf, cpf = ('cogestor_1@sme.prefeitura.sp.gov.br', 'adminadmin', '0000001', '44426575052')
+    email, password, rf, cpf = ('cogestor_1@sme.prefeitura.sp.gov.br', DJANGO_ADMIN_PASSWORD, '0000001', '44426575052')
     user = django_user_model.objects.create_user(password=password, email=email, registro_funcional=rf, cpf=cpf)
     client.login(email=email, password=password)
 
@@ -202,12 +203,19 @@ def client_autenticado_coordenador_codae(client, django_user_model):
 
 
 @pytest.fixture
-def notificacao(usuario):
+def usuario_teste_notificacao(django_user_model):
+    email, password, rf, cpf = ('usuario_teste@admin.com', DJANGO_ADMIN_PASSWORD, '0000001', '44426575052')
+    user = django_user_model.objects.create_user(password=password, email=email, registro_funcional=rf, cpf=cpf)
+    return user
+
+
+@pytest.fixture
+def notificacao(usuario_teste_notificacao):
     return mommy.make(
         'Notificacao',
         tipo=Notificacao.TIPO_NOTIFICACAO_ALERTA,
         categoria=Notificacao.CATEGORIA_NOTIFICACAO_REQUISICAO_DE_ENTREGA,
         titulo='Nova requisição de entrega',
         descricao='A requisição 0000 está disponivel para envio ao distribuidor',
-        usuario=usuario
+        usuario=usuario_teste_notificacao
     )
