@@ -5,7 +5,7 @@ from faker import Faker
 from model_mommy import mommy
 
 from ...escola import models
-from ..models import TemplateMensagem
+from ..models import TemplateMensagem, Notificacao
 
 fake = Faker('pt_BR')
 fake.seed(420)
@@ -199,3 +199,15 @@ def client_autenticado_coordenador_codae(client, django_user_model):
                data_inicial=hoje, ativo=True)
 
     return client
+
+
+@pytest.fixture
+def notificacao(usuario):
+    return mommy.make(
+        'Notificacao',
+        tipo=Notificacao.TIPO_NOTIFICACAO_ALERTA,
+        categoria=Notificacao.CATEGORIA_NOTIFICACAO_REQUISICAO_DE_ENTREGA,
+        titulo='Nova requisição de entrega',
+        descricao='A requisição 0000 está disponivel para envio ao distribuidor',
+        usuario=usuario
+    )
