@@ -1,13 +1,10 @@
 import pytest
 from django.contrib import admin
-from django.contrib.auth import get_user_model
 from model_mommy import mommy
 
 from ..models import Notificacao
 
 pytestmark = pytest.mark.django_db
-
-User = get_user_model()
 
 
 def test_template_mensagem(template_mensagem):
@@ -21,7 +18,7 @@ def test_template_mensagem_obj(template_mensagem_obj):
     assert template_mensagem_obj.__str__() == 'Alteração do tipo de Alimentação'
 
 
-def test_instance_model_notificacao(notificacao):
+def test_instance_model_notificacao(notificacao, django_user_model):
     model = notificacao
     assert isinstance(model, Notificacao)
     assert model.titulo
@@ -30,7 +27,7 @@ def test_instance_model_notificacao(notificacao):
     assert model.categoria
     assert model.criado_em
     assert model.uuid
-    assert isinstance(model.usuario, User)
+    assert isinstance(model.usuario, django_user_model)
     assert model.id
 
 
