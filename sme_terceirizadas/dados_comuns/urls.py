@@ -15,6 +15,7 @@ router.register('templates-mensagem', viewsets.TemplateMensagemViewSet,
 router.register('perguntas-frequentes', viewsets.PerguntaFrequenteViewSet, basename='Perguntas Frequentes')
 router.register('categorias-pergunta-frequente', viewsets.CategoriaPerguntaFrequenteViewSet,
                 basename='Categorias de Pergunta Frequente')
+router.register('notificacoes', viewsets.NotificacaoViewSet, basename='Notificações')
 
 urlpatterns = [
     path('', include(router.urls)),
