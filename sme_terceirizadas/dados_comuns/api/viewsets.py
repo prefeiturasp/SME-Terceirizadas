@@ -148,7 +148,12 @@ class NotificacaoViewSet(viewsets.ModelViewSet):
         return qs
 
     def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())
+        pendencias = self.filter_queryset(
+            self.get_queryset().filter(tipo=Notificacao.TIPO_NOTIFICACAO_PENDENCIA, resolvido=False))
+        gerais = self.filter_queryset(self.get_queryset().exclude(
+            tipo=Notificacao.TIPO_NOTIFICACAO_PENDENCIA, resolvido=False))
+        # Notificações de pendencias não resolvidas tem precedencia na listagem de notificações
+        queryset = list(pendencias) + list(gerais)
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = NotificacaoSerializer(page, many=True)
