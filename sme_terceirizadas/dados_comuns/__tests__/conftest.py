@@ -5,7 +5,7 @@ from faker import Faker
 from model_mommy import mommy
 
 from ...escola import models
-from ..constants import DJANGO_ADMIN_PASSWORD
+from ..constants import COORDENADOR_LOGISTICA, DJANGO_ADMIN_PASSWORD
 from ..models import Notificacao, TemplateMensagem
 
 fake = Faker('pt_BR')
@@ -203,27 +203,46 @@ def client_autenticado_coordenador_codae(client, django_user_model):
 
 
 @pytest.fixture
-def usuario_teste_notificacao(django_user_model):
-    email, password, rf, cpf = ('usuario_teste@admin.com', DJANGO_ADMIN_PASSWORD, '0000001', '44426575052')
-    user = django_user_model.objects.create_user(password=password, email=email, registro_funcional=rf, cpf=cpf)
-    return user
-
-
-@pytest.fixture
 def usuario_teste_notificacao_autenticado(client, django_user_model):
     email, password = ('usuario_teste@admin.com', DJANGO_ADMIN_PASSWORD)
+    user = django_user_model.objects.create_user(password=password, email=email, registro_funcional='8888888')
+    perfil_admin_dilog = mommy.make('Perfil',
+                                    nome=COORDENADOR_LOGISTICA,
+                                    ativo=True)
+    codae = mommy.make('Codae')
+    hoje = datetime.date.today()
+    mommy.make('Vinculo',
+               usuario=user,
+               instituicao=codae,
+               perfil=perfil_admin_dilog,
+               data_inicial=hoje,
+               ativo=True)
     client.login(email=email, password=password)
 
-    return client
+    return user, client
 
 
 @pytest.fixture
-def notificacao(usuario_teste_notificacao):
+def notificacao(usuario_teste_notificacao_autenticado):
+    user, client = usuario_teste_notificacao_autenticado
     return mommy.make(
         'Notificacao',
         tipo=Notificacao.TIPO_NOTIFICACAO_ALERTA,
         categoria=Notificacao.CATEGORIA_NOTIFICACAO_REQUISICAO_DE_ENTREGA,
         titulo='Nova requisição de entrega',
         descricao='A requisição 0000 está disponivel para envio ao distribuidor',
-        usuario=usuario_teste_notificacao
+        usuario=user
+    )
+
+
+@pytest.fixture
+def notificacao_de_pendencia(usuario_teste_notificacao_autenticado):
+    user, client = usuario_teste_notificacao_autenticado
+    return mommy.make(
+        'Notificacao',
+        tipo=Notificacao.TIPO_NOTIFICACAO_PENDENCIA,
+        categoria=Notificacao.CATEGORIA_NOTIFICACAO_GUIA_DE_REMESSA,
+        titulo='Conferencia em atraso',
+        descricao='A guia 0000 precisa ser conferida',
+        usuario=user
     )
