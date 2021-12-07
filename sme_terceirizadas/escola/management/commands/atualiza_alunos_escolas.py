@@ -90,7 +90,7 @@ class Command(BaseCommand):
         Aluno.objects.bulk_create(novos_alunos.values())
 
     def _atualiza_todas_as_escolas(self):
-        escolas = Escola.objects.filter(diretoria_regional__iniciais='DRE - FB').all()
+        escolas = Escola.objects.all()
 
         total = escolas.count()
         for i, escola in enumerate(escolas):
