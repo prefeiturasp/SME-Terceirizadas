@@ -1,3 +1,5 @@
+import json
+
 from faker import Faker
 from freezegun import freeze_time
 from model_mommy import mommy
@@ -64,3 +66,10 @@ def test_proximo_dia_util_suspensao_alimentacao_sexta(client_autenticado):
     from sme_terceirizadas.dados_comuns.constants import obter_dias_uteis_apos_hoje
     result = obter_dias_uteis_apos_hoje(3)
     assert str(result) == '2021-06-23'
+
+
+def test_quantidade_de_nao_lidos(usuario_teste_notificacao_autenticado, notificacao):
+    response = usuario_teste_notificacao_autenticado.get(
+        f'/api/notificacoes/quantidade-nao-lidos/', content_type='application/json')
+    result = json.loads(response.content)
+    assert result['quantidade_nao_lidos'] == 1

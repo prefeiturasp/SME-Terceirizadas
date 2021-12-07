@@ -210,6 +210,14 @@ def usuario_teste_notificacao(django_user_model):
 
 
 @pytest.fixture
+def usuario_teste_notificacao_autenticado(client, django_user_model):
+    email, password = ('usuario_teste@admin.com', DJANGO_ADMIN_PASSWORD)
+    client.login(email=email, password=password)
+
+    return client
+
+
+@pytest.fixture
 def notificacao(usuario_teste_notificacao):
     return mommy.make(
         'Notificacao',
