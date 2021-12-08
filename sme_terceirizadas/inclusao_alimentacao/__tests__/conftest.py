@@ -87,6 +87,7 @@ def inclusao_alimentacao_continua_params(escola, motivo_inclusao_continua, reque
                        data_inicial=data_inicial,
                        data_final=data_final,
                        outro_motivo=fake.name(),
+                       observacao=fake.name(),
                        escola=escola)
     return model, esperado
 
@@ -103,6 +104,7 @@ def inclusao_alimentacao_continua(escola, motivo_inclusao_continua, request, tem
                       data_inicial=data_inicial,
                       data_final=data_final,
                       outro_motivo=fake.name(),
+                      observacao=fake.name(),
                       escola=escola,
                       rastro_escola=escola,
                       rastro_dre=escola.diretoria_regional)
@@ -121,6 +123,7 @@ def inclusao_alimentacao_continua_outra_dre(escola_dre_guaianases, motivo_inclus
                       data_inicial=data_inicial,
                       data_final=data_final,
                       outro_motivo=fake.name(),
+                      observacao=fake.name(),
                       escola=escola_dre_guaianases,
                       rastro_escola=escola_dre_guaianases,
                       rastro_dre=escola_dre_guaianases.diretoria_regional)
@@ -167,6 +170,7 @@ def inclusao_alimentacao_cei(motivo_inclusao_normal, escola, template_inclusao_c
                       data=datetime.date(2019, 10, 2),
                       motivo=motivo_inclusao_normal,
                       outro_motivo=fake.name(),
+                      observacao=fake.name(),
                       escola=escola,
                       rastro_escola=escola,
                       rastro_dre=escola.diretoria_regional)
