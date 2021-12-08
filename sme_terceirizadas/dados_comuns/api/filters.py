@@ -2,6 +2,7 @@ from django_filters import rest_framework as filters
 
 from ..models import Notificacao
 
+
 class NotificacaoFilter(filters.FilterSet):
     uuid = filters.CharFilter(
         field_name='uuid',
