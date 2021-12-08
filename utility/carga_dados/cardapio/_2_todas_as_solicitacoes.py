@@ -154,6 +154,7 @@ def cria_inclusoes_continuas(qtd=50):
                 motivo=_get_random_motivo_continuo(),
                 escola=_get_random_escola(),
                 outro_motivo=f.text()[:20],
+                observacao=f.text()[:20],
                 descricao=f.text()[:160], criado_por=user,
                 dias_semana=list(np.random.randint(6, size=4)),
                 data_inicial=hoje + datetime.timedelta(
