@@ -165,6 +165,64 @@ def test_get_pendencias_nao_resolvidas(usuario_teste_notificacao_autenticado, no
     assert result == esperado
 
 
+def test_filtro_notificacoes_lidas(usuario_teste_notificacao_autenticado, notificacao):
+    user, client = usuario_teste_notificacao_autenticado
+    response = client.get(
+        f'/notificacoes/?lido=true', content_type='application/json')
+    result = json.loads(response.content)
+    esperado = {
+        'next': None,
+        'previous': None,
+        'count': 1,
+        'page_size': 5,
+        'results': [
+            {
+                'uuid': str(notificacao.uuid),
+                'titulo': notificacao.titulo,
+                'descricao': notificacao.descricao,
+                'criado_em': notificacao.criado_em.strftime('%d/%m/%Y'),
+                'hora': notificacao.hora.strftime('%H:%M'),
+                'tipo': Notificacao.TIPO_NOTIFICACAO_NOMES[notificacao.tipo],
+                'categoria': Notificacao.CATEGORIA_NOTIFICACAO_NOMES[notificacao.categoria],
+                'link': notificacao.link,
+                'lido': notificacao.lido,
+                'resolvido': notificacao.resolvido,
+            }
+        ]
+    }
+    assert response.status_code == status.HTTP_200_OK
+    assert result == esperado
+
+
+def test_filtro_notificacoes_por_tipo(usuario_teste_notificacao_autenticado, notificacao_de_pendencia):
+    user, client = usuario_teste_notificacao_autenticado
+    response = client.get(
+        f'/notificacoes/?tipo={Notificacao.TIPO_NOTIFICACAO_PENDENCIA}', content_type='application/json')
+    result = json.loads(response.content)
+    esperado = {
+        'next': None,
+        'previous': None,
+        'count': 1,
+        'page_size': 5,
+        'results': [
+            {
+                'uuid': str(notificacao_de_pendencia.uuid),
+                'titulo': notificacao_de_pendencia.titulo,
+                'descricao': notificacao_de_pendencia.descricao,
+                'criado_em': notificacao_de_pendencia.criado_em.strftime('%d/%m/%Y'),
+                'hora': notificacao_de_pendencia.hora.strftime('%H:%M'),
+                'tipo': Notificacao.TIPO_NOTIFICACAO_NOMES[notificacao_de_pendencia.tipo],
+                'categoria': Notificacao.CATEGORIA_NOTIFICACAO_NOMES[notificacao_de_pendencia.categoria],
+                'link': notificacao_de_pendencia.link,
+                'lido': notificacao_de_pendencia.lido,
+                'resolvido': notificacao_de_pendencia.resolvido,
+            }
+        ]
+    }
+    assert response.status_code == status.HTTP_200_OK
+    assert result == esperado
+
+
 def test_put_notificacao_marcar_como_lida(usuario_teste_notificacao_autenticado, notificacao):
     user, client = usuario_teste_notificacao_autenticado
     payload = {
