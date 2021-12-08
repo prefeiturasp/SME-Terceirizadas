@@ -83,7 +83,7 @@ class InclusaoAlimentacaoContinua(ExportModelOperationsMixin('inclusao_continua'
     motivo = models.ForeignKey(MotivoInclusaoContinua, on_delete=models.DO_NOTHING)
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING,
                                related_name='inclusoes_alimentacao_continua')
-
+    observacao = models.CharField('Observação', blank=True, max_length=1000)
     objects = models.Manager()  # Manager Padrão
     desta_semana = InclusoesDeAlimentacaoContinuaDestaSemanaManager()
     deste_mes = InclusoesDeAlimentacaoContinuaDesteMesManager()
