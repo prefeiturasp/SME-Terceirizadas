@@ -298,7 +298,8 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
         try:
             user = request.user
             if inversao_cardapio.status == inversao_cardapio.workflow_class.DRE_VALIDADO:
-                inversao_cardapio.codae_autoriza(user=user)
+                inversao_cardapio.codae_autoriza(
+                    user=user, justificativa=justificativa)
             else:
                 inversao_cardapio.codae_autoriza_questionamento(
                     user=user, justificativa=justificativa)
