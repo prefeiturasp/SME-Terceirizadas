@@ -4,6 +4,7 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ViewSet
@@ -11,16 +12,35 @@ from rest_framework.viewsets import ModelViewSet, ViewSet
 from ... import __version__
 from ..behaviors import DiasSemana, TempoPasseio
 from ..constants import TEMPO_CACHE_1H, TEMPO_CACHE_6H, obter_dias_uteis_apos_hoje
-from ..models import CategoriaPerguntaFrequente, PerguntaFrequente, TemplateMensagem
+from ..models import CategoriaPerguntaFrequente, Notificacao, PerguntaFrequente, TemplateMensagem
 from ..permissions import UsuarioCODAEGestaoAlimentacao
 from .serializers import (
     CategoriaPerguntaFrequenteSerializer,
     ConfiguracaoEmailSerializer,
     ConfiguracaoMensagemSerializer,
     ConsultaPerguntasFrequentesSerializer,
+    NotificacaoSerializer,
     PerguntaFrequenteCreateSerializer,
     PerguntaFrequenteSerializer
 )
+
+DEFAULT_PAGE = 1
+DEFAULT_PAGE_SIZE = 5
+
+
+class CustomPagination(PageNumberPagination):
+    page = DEFAULT_PAGE
+    page_size = DEFAULT_PAGE_SIZE
+    page_size_query_param = 'page_size'
+
+    def get_paginated_response(self, data):
+        return Response({
+            'next': self.get_next_link(),
+            'previous': self.get_previous_link(),
+            'count': self.page.paginator.count,
+            'page_size': int(self.request.GET.get('page_size', self.page_size)),
+            'results': data
+        })
 
 
 class ApiVersion(viewsets.ViewSet):
@@ -113,3 +133,87 @@ class PerguntaFrequenteViewSet(ModelViewSet):
         if self.action in ['create', 'update', 'partial_update', 'destroy']:
             self.permission_classes = (UsuarioCODAEGestaoAlimentacao,)
         return super(PerguntaFrequenteViewSet, self).get_permissions()
+
+
+class NotificacaoViewSet(viewsets.ModelViewSet):
+    lookup_field = 'uuid'
+    permission_classes = [IsAuthenticated]
+    queryset = Notificacao.objects.all()
+    serializer_class = NotificacaoSerializer
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        qs = Notificacao.objects.filter(usuario=self.request.user).all().order_by('-criado_em')
+
+        return qs
+
+    def list(self, request, *args, **kwargs):
+        pendencias = self.filter_queryset(
+            self.get_queryset().filter(tipo=Notificacao.TIPO_NOTIFICACAO_PENDENCIA, resolvido=False))
+        gerais = self.filter_queryset(self.get_queryset().exclude(
+            tipo=Notificacao.TIPO_NOTIFICACAO_PENDENCIA, resolvido=False))
+        # Notificações de pendencias não resolvidas tem precedencia na listagem de notificações
+        queryset = list(pendencias) + list(gerais)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = NotificacaoSerializer(page, many=True)
+            response = self.get_paginated_response(serializer.data)
+            return response
+
+        serializer = NotificacaoSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['get'], url_path='gerais')
+    def lista_notificacoes_gerais(self, request):
+        queryset = self.filter_queryset(self.get_queryset().exclude(
+            tipo=Notificacao.TIPO_NOTIFICACAO_PENDENCIA, resolvido=False))
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = NotificacaoSerializer(page, many=True)
+            response = self.get_paginated_response(serializer.data)
+            return response
+
+        serializer = NotificacaoSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['get'], url_path='pendencias-nao-resolvidas')
+    def lista_pendencias_nao_resolvidas(self, request):
+        queryset = self.filter_queryset(
+            self.get_queryset().filter(tipo=Notificacao.TIPO_NOTIFICACAO_PENDENCIA, resolvido=False))
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = NotificacaoSerializer(page, many=True)
+            response = self.get_paginated_response(serializer.data)
+            return response
+
+        serializer = NotificacaoSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['get'], url_path='quantidade-nao-lidos')
+    def quantidade_de_nao_lidos(self, request):
+        notificacoes = Notificacao.objects.filter(usuario=self.request.user).filter(
+            lido=False, tipo__in=[Notificacao.TIPO_NOTIFICACAO_ALERTA, Notificacao.TIPO_NOTIFICACAO_AVISO]).count()
+        pendencias = Notificacao.objects.filter(usuario=self.request.user).filter(
+            resolvido=False, tipo=Notificacao.TIPO_NOTIFICACAO_PENDENCIA).count()
+        data = {
+            'quantidade_nao_lidos': notificacoes + pendencias
+        }
+        return Response(data)
+
+    @action(detail=False, methods=['put'], url_path='marcar-lido')
+    def marcar_como_lido_nao_lido(self, request):
+        dado = self.request.data
+
+        try:
+            notificacao = Notificacao.objects.filter(uuid=dado['uuid']).first()
+            notificacao.lido = dado['lido']
+            notificacao.save()
+        except Exception as err:
+            return Response(dict(detail=f'Erro ao realizar atualização: {err}'), status=status.HTTP_400_BAD_REQUEST)
+
+        resultado = {
+            'mensagem': 'Notificação atualizada com sucesso'
+        }
+        status_code = status.HTTP_200_OK
+
+        return Response(resultado, status=status_code)

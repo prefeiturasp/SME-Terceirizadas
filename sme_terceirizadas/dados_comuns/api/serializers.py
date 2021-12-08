@@ -8,6 +8,7 @@ from ..models import (
     Contato,
     Endereco,
     LogSolicitacoesUsuario,
+    Notificacao,
     PerguntaFrequente,
     TemplateMensagem
 )
@@ -140,3 +141,31 @@ class EnderecoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Endereco
         exclude = ('id',)
+
+
+class NotificacaoSerializer(serializers.ModelSerializer):
+    tipo = serializers.CharField(source='get_tipo_display')
+    categoria = serializers.CharField(source='get_categoria_display')
+    hora = serializers.SerializerMethodField()
+    criado_em = serializers.SerializerMethodField()
+
+    def get_hora(self, obj):
+        return obj.hora.strftime('%H:%M')
+
+    def get_criado_em(self, obj):
+        return obj.criado_em.strftime('%d/%m/%Y')
+
+    class Meta:
+        model = Notificacao
+        fields = [
+            'uuid',
+            'titulo',
+            'descricao',
+            'criado_em',
+            'hora',
+            'tipo',
+            'categoria',
+            'link',
+            'lido',
+            'resolvido'
+        ]
