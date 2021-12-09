@@ -300,7 +300,7 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
 
     @property
     def quantidade_alunos(self):
-        quantidade_result = self.escolas_periodos.aggregate(Sum('quantidade_alunos'))
+        quantidade_result = self.alunos_matriculados_por_periodo.aggregate(Sum('quantidade_alunos'))
         return quantidade_result.get('quantidade_alunos__sum') or 0
 
     @property
