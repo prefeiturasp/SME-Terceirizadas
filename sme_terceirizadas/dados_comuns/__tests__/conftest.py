@@ -231,7 +231,8 @@ def notificacao(usuario_teste_notificacao_autenticado):
         categoria=Notificacao.CATEGORIA_NOTIFICACAO_REQUISICAO_DE_ENTREGA,
         titulo='Nova requisição de entrega',
         descricao='A requisição 0000 está disponivel para envio ao distribuidor',
-        usuario=user
+        usuario=user,
+        lido=True
     )
 
 
