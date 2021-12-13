@@ -4,11 +4,12 @@ from config import celery
 from django.template.loader import render_to_string
 
 from ..dados_comuns.fluxo_status import GuiaRemessaWorkFlow
+from ..dados_comuns.models import Notificacao
 from ..dados_comuns.tasks import envia_email_em_massa_task
 from ..logistica.models.guia import Guia
 
 
-@celery.app.task(soft_time_limit=1000, time_limit=1200)
+@celery.app.task(soft_time_limit=1000, time_limit=1200) # noqa C901
 def avisa_a_escola_que_hoje_tem_entrega_de_alimentos():
     hoje = datetime.date.today()
 
@@ -20,9 +21,15 @@ def avisa_a_escola_que_hoje_tem_entrega_de_alimentos():
                 ativo=True
             ).values_list('usuario__email', flat=True)
 
+            vinculos = guia.escola.vinculos.filter(
+                ativo=True
+            )
+
             partes_interessadas = [email for email in email_query_set_escola]
+            users = [vinculo.usuario for vinculo in vinculos]
         else:
             partes_interessadas = []
+            users = []
 
         html = render_to_string(
             template_name='logistica_avisa_ue_para_conferir_no_prazo.html',
@@ -36,6 +43,21 @@ def avisa_a_escola_que_hoje_tem_entrega_de_alimentos():
             corpo='',
             html=html
         )
+
+        if users:
+            texto_notificacao = render_to_string(
+                template_name='logistica_notificacao_avisa_ue_para_conferir_no_prazo.html',
+            )
+            for user in users:
+                Notificacao.notificar(
+                    tipo=Notificacao.TIPO_NOTIFICACAO_AVISO,
+                    categoria=Notificacao.CATEGORIA_NOTIFICACAO_GUIA_DE_REMESSA,
+                    titulo=f'Hoje tem entrega de alimentos | Guia: {guia.numero_guia}',
+                    descricao=texto_notificacao,
+                    usuario=user,
+                    link=f'/logistica/conferir-entrega?numero_guia={guia.numero_guia}',
+                    guia=guia,
+                )
 
 
 @celery.app.task(soft_time_limit=1000, time_limit=1200)
