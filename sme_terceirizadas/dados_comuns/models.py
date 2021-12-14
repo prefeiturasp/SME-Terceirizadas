@@ -347,6 +347,10 @@ class PerguntaFrequente(ExportModelOperationsMixin('faq'), models.Model):
         return self.pergunta
 
 
+class NotificacaoException(Exception):
+    pass
+
+
 class Notificacao(models.Model):
     # Tipos de Notificação
     TIPO_NOTIFICACAO_ALERTA = 'ALERTA'
@@ -401,7 +405,7 @@ class Notificacao(models.Model):
 
     titulo = models.CharField('Título', max_length=100, default='', blank=True)
 
-    descricao = models.TextField('Descrição', max_length=1000, default='', blank=True)
+    descricao = models.TextField('Descrição', max_length=5000, default='', blank=True)
 
     hora = models.TimeField('Hora', editable=False, auto_now_add=True)
 
@@ -415,9 +419,37 @@ class Notificacao(models.Model):
 
     link = models.CharField('Link', max_length=100, default='', blank=True)
 
+    guia = models.ForeignKey('logistica.Guia', on_delete=models.CASCADE, related_name='notificacoes_da_guia',
+                             blank=True, null=True)
+
     class Meta:
         verbose_name = 'Notificação'
         verbose_name_plural = 'Notificações'
 
     def __str__(self):
         return self.titulo
+
+    @classmethod # noqa C901
+    def notificar(cls, tipo, categoria, titulo, descricao, usuario, link, guia=None):
+
+        if tipo not in cls.TIPO_NOTIFICACAO_NOMES.keys():
+            raise NotificacaoException(f'Tipo {tipo} não é um tipo válido.')
+
+        if categoria not in cls.CATEGORIA_NOTIFICACAO_NOMES.keys():
+            raise NotificacaoException(f'Categoria {categoria} não é uma categoria válida.')
+
+        if not titulo:
+            raise NotificacaoException(f'O título não pode ser vazio.')
+
+        if not usuario:
+            raise NotificacaoException(f'É necessário definir o usuário destinatário.')
+
+        cls.objects.create(
+            tipo=tipo,
+            categoria=categoria,
+            titulo=titulo,
+            descricao=descricao,
+            usuario=usuario,
+            link=link,
+            guia=guia,
+        )

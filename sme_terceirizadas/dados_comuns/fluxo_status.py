@@ -21,7 +21,7 @@ from .constants import (
     COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
     TIPO_SOLICITACAO_DIETA
 )
-from .models import AnexoLogSolicitacoesUsuario, LogSolicitacoesUsuario
+from .models import AnexoLogSolicitacoesUsuario, LogSolicitacoesUsuario, Notificacao
 from .tasks import envia_email_em_massa_task, envia_email_unico_task
 from .utils import convert_base64_to_contentfile, envia_email_unico_com_anexo_inmemory
 
@@ -702,6 +702,22 @@ class FluxoGuiaRemessa(xwf_models.WorkflowEnabled, models.Model):
             html=html
         )
 
+    def _preenche_template_e_cria_notificacao(self, template_notif, titulo_notif, usuarios, link, tipo):
+        if usuarios:
+            texto_notificacao = render_to_string(
+                template_name=template_notif,
+            )
+            for usuario in usuarios:
+                Notificacao.notificar(
+                    tipo=tipo,
+                    categoria=Notificacao.CATEGORIA_NOTIFICACAO_GUIA_DE_REMESSA,
+                    titulo=titulo_notif,
+                    descricao=texto_notificacao,
+                    usuario=usuario,
+                    link=link,
+                    guia=self,
+                )
+
     def _partes_interessadas_escola(self):
         # Envia email somente para usuários ativos vinculados a escola da guia
         if self.escola:
@@ -710,6 +726,17 @@ class FluxoGuiaRemessa(xwf_models.WorkflowEnabled, models.Model):
             ).values_list('usuario__email', flat=True)
 
             return [email for email in email_query_set_escola]
+        else:
+            return []
+
+    def _usuarios_partes_interessadas_escola(self):
+        # retornar objeto de usuários ativos, vinculados a escola da guia
+        if self.escola:
+            vinculos = self.escola.vinculos.filter(
+                ativo=True
+            )
+
+            return [vinculo.usuario for vinculo in vinculos]
         else:
             return []
 
@@ -763,6 +790,15 @@ class FluxoGuiaRemessa(xwf_models.WorkflowEnabled, models.Model):
 
         self._preenche_template_e_envia_email(template, assunto, titulo, partes_interessadas, log_transicao, url)
 
+        # Monta Notificacao
+        usuarios = self._usuarios_partes_interessadas_escola()
+        template_notif = 'logistica_notificacao_escola_aviso_reposicao.html'
+        tipo = Notificacao.TIPO_NOTIFICACAO_AVISO
+        titulo_notif = f'Prepare-se para uma possível reposição dos alimentos não recebidos! | Guia: {self.numero_guia}'
+        link = f'/logistica/conferir-entrega?numero_guia={self.numero_guia}'
+
+        self._preenche_template_e_cria_notificacao(template_notif, titulo_notif, usuarios, link, tipo)
+
     @xworkflows.after_transition('escola_recebe_parcial')
     def _escola_recebe_parcial_hook(self, *args, **kwargs):
         user = kwargs['user']
@@ -779,6 +815,15 @@ class FluxoGuiaRemessa(xwf_models.WorkflowEnabled, models.Model):
         partes_interessadas = self._partes_interessadas_escola()
 
         self._preenche_template_e_envia_email(template, assunto, titulo, partes_interessadas, log_transicao, url)
+
+        # Monta Notificacao
+        usuarios = self._usuarios_partes_interessadas_escola()
+        template_notif = 'logistica_notificacao_escola_aviso_reposicao.html'
+        tipo = Notificacao.TIPO_NOTIFICACAO_AVISO
+        titulo_notif = f'Prepare-se para uma possível reposição dos alimentos não recebidos! | Guia: {self.numero_guia}'
+        link = f'/logistica/conferir-entrega?numero_guia={self.numero_guia}'
+
+        self._preenche_template_e_cria_notificacao(template_notif, titulo_notif, usuarios, link, tipo)
 
     @xworkflows.after_transition('escola_recebe_parcial_atraso')
     def _escola_recebe_parcial_atraso_hook(self, *args, **kwargs):

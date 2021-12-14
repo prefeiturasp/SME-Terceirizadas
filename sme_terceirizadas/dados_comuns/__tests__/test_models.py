@@ -42,3 +42,23 @@ def test_meta_modelo_notificacao(notificacao):
 
 def test_admin_notificacao():
     assert admin.site._registry[Notificacao]
+
+
+def test_notificar(notificacao):
+    Notificacao.notificar(
+        tipo=Notificacao.TIPO_NOTIFICACAO_AVISO,
+        categoria=Notificacao.CATEGORIA_NOTIFICACAO_GUIA_DE_REMESSA,
+        titulo=f'Hoje tem entrega de alimentos',
+        descricao='teste',
+        usuario=notificacao.usuario,
+        link=f'/teste/',
+    )
+
+    obj = Notificacao.objects.last()
+
+    assert obj.tipo == Notificacao.TIPO_NOTIFICACAO_AVISO
+    assert obj.categoria == Notificacao.CATEGORIA_NOTIFICACAO_GUIA_DE_REMESSA
+    assert obj.titulo == 'Hoje tem entrega de alimentos'
+    assert obj.descricao == 'teste'
+    assert obj.usuario == notificacao.usuario
+    assert obj.link == '/teste/'

@@ -2,6 +2,7 @@ from des.models import DynamicEmailConfiguration
 from django.db import IntegrityError
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
+from django_filters import rest_framework as filters
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
@@ -14,6 +15,7 @@ from ..behaviors import DiasSemana, TempoPasseio
 from ..constants import TEMPO_CACHE_1H, TEMPO_CACHE_6H, obter_dias_uteis_apos_hoje
 from ..models import CategoriaPerguntaFrequente, Notificacao, PerguntaFrequente, TemplateMensagem
 from ..permissions import UsuarioCODAEGestaoAlimentacao
+from .filters import NotificacaoFilter
 from .serializers import (
     CategoriaPerguntaFrequenteSerializer,
     ConfiguracaoEmailSerializer,
@@ -141,6 +143,8 @@ class NotificacaoViewSet(viewsets.ModelViewSet):
     queryset = Notificacao.objects.all()
     serializer_class = NotificacaoSerializer
     pagination_class = CustomPagination
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = NotificacaoFilter
 
     def get_queryset(self):
         qs = Notificacao.objects.filter(usuario=self.request.user).all().order_by('-criado_em')
