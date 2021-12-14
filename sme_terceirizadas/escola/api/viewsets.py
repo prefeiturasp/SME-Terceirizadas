@@ -286,7 +286,10 @@ class LoteViewSet(ModelViewSet):
 
     @action(detail=False, methods=['GET'], url_path='meus-lotes-vinculados')
     def meus_lotes_vinculados(self, request):
-        lotes = self.queryset.filter(terceirizada=request.user.vinculo_atual.instituicao)
+        if (request.user.tipo_usuario == 'diretoriaregional'):
+            lotes = self.queryset.filter(diretoria_regional=request.user.vinculo_atual.instituicao)
+        else:
+            lotes = self.queryset.filter(terceirizada=request.user.vinculo_atual.instituicao)
         return Response({'results': LoteSerializer(lotes, many=True).data})
 
     def get_serializer_class(self):
