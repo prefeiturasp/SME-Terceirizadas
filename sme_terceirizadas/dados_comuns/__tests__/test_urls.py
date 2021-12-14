@@ -69,7 +69,7 @@ def test_proximo_dia_util_suspensao_alimentacao_sexta(client_autenticado):
     assert str(result) == '2021-06-23'
 
 
-def test_get_notificacao_quantidade_de_nao_lidos(usuario_teste_notificacao_autenticado, notificacao):
+def test_get_notificacao_quantidade_de_nao_lidos(usuario_teste_notificacao_autenticado, notificacao_de_pendencia):
     user, client = usuario_teste_notificacao_autenticado
     response = client.get(
         f'/notificacoes/quantidade-nao-lidos/', content_type='application/json')
