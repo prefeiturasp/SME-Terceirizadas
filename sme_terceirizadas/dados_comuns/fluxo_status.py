@@ -1962,10 +1962,12 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
             - Nutricionistas CODAE
             - Terceirizada que tomou ciência (se aplicável)
         """
-        email_query_set_escola = self.rastro_escola.vinculos.filter(
-            ativo=True
-        ).values_list('usuario__email')
-        email_lista = [email for email in email_query_set_escola]
+        email_lista = []
+        try:
+            email_escola_eol = self.escola.contato.email
+            email_lista = [email_escola_eol]
+        except AttributeError:
+            email_lista = []
         email_query_set_codae = Usuario.objects.filter(
             vinculos__perfil__nome=COORDENADOR_DIETA_ESPECIAL).values_list(
             'email')
@@ -1979,10 +1981,12 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
 
     @property
     def _partes_interessadas_codae_autoriza_ou_nega(self):
-        email_query_set_escola = self.rastro_escola.vinculos.filter(
-            ativo=True
-        ).values_list('usuario__email', flat=True)
-        email_lista = [email for email in email_query_set_escola]
+        email_lista = []
+        try:
+            email_escola_eol = self.escola.contato.email
+            email_lista = [email_escola_eol]
+        except AttributeError:
+            email_lista = []
         if self.tipo_solicitacao != TIPO_SOLICITACAO_DIETA.get('COMUM'):
             if self.escola_destino.lote.terceirizada:
                 email_query_set_terceirizada = self.escola_destino.lote.terceirizada.vinculos.filter(
@@ -1999,13 +2003,16 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
     @property
     def _partes_interessadas_codae_autoriza(self):
         escola = self.escola_destino
-        responsaveis_escola = [vinculo.usuario.email for vinculo in escola.vinculos.filter(ativo=True)]
+        try:
+            email_escola_destino_eol = [escola.contato.email]
+        except AttributeError:
+            email_escola_destino_eol = []
         try:
             terceirizada = escola.lote.terceirizada
             responsaveis_terceirizadas = [vinculo.usuario.email for vinculo in terceirizada.vinculos.filter(ativo=True)]
         except AttributeError:
             responsaveis_terceirizadas = []
-        return responsaveis_escola + responsaveis_terceirizadas
+        return email_escola_destino_eol + responsaveis_terceirizadas
 
     @property
     def template_mensagem(self):
