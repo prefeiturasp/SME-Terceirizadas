@@ -145,6 +145,64 @@ def enviar_email_para_diretor_da_escola_origem(solicitacao_dieta, aluno, escola)
         )
 
 
+def enviar_email_para_escola_origem_eol(solicitacao_dieta, aluno, escola):
+    assunto = 'Alerta para Criar uma Nova Dieta Especial'
+
+    email_escola_origem_eol = escola.escola_destino.contato.email
+
+    html_string = relatorio_dieta_especial_conteudo(solicitacao_dieta)
+    anexo = html_to_pdf_email_anexo(html_string)
+    anexo_nome = f'dieta_especial_{aluno.codigo_eol}.pdf'
+    html_to_pdf_email_anexo(html_string)
+
+    corpo = render_to_string(
+        template_name='email/email_dieta_cancelada_automaticamente_escola_destino.html',
+        context={
+            'nome_aluno': aluno.nome,
+            'codigo_eol_aluno': aluno.codigo_eol,
+            'nome_escola': escola.nome,
+        }
+    )
+
+    envia_email_unico_com_anexo_inmemory(
+        assunto=assunto,
+        corpo=corpo,
+        email=email_escola_origem_eol,
+        anexo_nome=anexo_nome,
+        mimetypes='application/pdf',
+        anexo=anexo,
+    )
+
+
+def enviar_email_para_escola_destino_eol(solicitacao_dieta, aluno, escola):
+    assunto = 'Alerta para Criar uma Nova Dieta Especial'
+
+    email_escola_destino_eol = escola.escola_destino.contato.email
+
+    html_string = relatorio_dieta_especial_conteudo(solicitacao_dieta)
+    anexo = html_to_pdf_email_anexo(html_string)
+    anexo_nome = f'dieta_especial_{aluno.codigo_eol}.pdf'
+    html_to_pdf_email_anexo(html_string)
+
+    corpo = render_to_string(
+        template_name='email/email_dieta_cancelada_automaticamente_escola_destino.html',
+        context={
+            'nome_aluno': aluno.nome,
+            'codigo_eol_aluno': aluno.codigo_eol,
+            'nome_escola': escola.nome,
+        }
+    )
+
+    envia_email_unico_com_anexo_inmemory(
+        assunto=assunto,
+        corpo=corpo,
+        email=email_escola_destino_eol,
+        anexo_nome=anexo_nome,
+        mimetypes='application/pdf',
+        anexo=anexo,
+    )
+
+
 def enviar_email_para_diretor_da_escola_destino(solicitacao_dieta, aluno, escola):
     assunto = 'Alerta para Criar uma Nova Dieta Especial'
     perfil = Perfil.objects.get(nome='DIRETOR')
