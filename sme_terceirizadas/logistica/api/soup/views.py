@@ -23,11 +23,7 @@ NS = f'{env("DJANGO_XMLNS")}'
 
 class SolicitacaoService(ServiceBase):
 
-<<<<<<< Updated upstream
-    @rpc(oWsAcessoModel, ArqSolicitacaoMOD, _returns=SoapResponse, _in_message_name='Solicitacao') # noqa C901
-=======
-    @rpc(oWsAcessoModel, ArqSolicitacaoMOD, _returns=SoapResponse) # noqa C901 , _in_message_name='Solicitacao', _wsdl_part_name='SolicitacaoResponse'
->>>>>>> Stashed changes
+    @rpc(oWsAcessoModel, ArqSolicitacaoMOD, _returns=SoapResponse) # noqa C901
     def Solicitacao(ctx, oWsAcessoModel, ArqSolicitacaoMOD):
 
         try:
@@ -54,11 +50,7 @@ class SolicitacaoService(ServiceBase):
 
         return SoapResponse(str_status='true', str_menssagem='Solicitação criada com sucesso.')
 
-<<<<<<< Updated upstream
-    @rpc(oWsAcessoModel, ArqCancelamento, _returns=SoapResponse, _in_message_name='Cancelamento') # noqa C901
-=======
-    @rpc(oWsAcessoModel, ArqCancelamento, _returns=SoapResponse) # noqa C901 , _in_message_name='Cancelamento', _wsdl_part_name='CancelamentoResponse'
->>>>>>> Stashed changes
+    @rpc(oWsAcessoModel, ArqCancelamento, _returns=SoapResponse) # noqa C901
     def Cancelamento(ctx, oWsAcessoModel, ArqCancelamento):
 
         try:
