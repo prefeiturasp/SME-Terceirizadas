@@ -23,6 +23,8 @@ router.register('insucesso-de-entrega', viewsets.InsucessoDeEntregaGuiaModelView
                 basename='insucesso-de-entrega')
 router.register('solicitacao-de-alteracao-de-requisicao', viewsets.SolicitacaoDeAlteracaoDeRequisicaoViewset,
                 basename='solicitacao-de-alteracao-de-requisicao')
+router.register('solicitacao-remessa-wsdl', viewsets.WSDLSolicitacaoServiceViewSet,
+                basename='solicitacao-remessa-wsdl')
 
 urlpatterns = [
     path('', include(router.urls)),
