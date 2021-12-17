@@ -60,7 +60,9 @@ class DadosAlunoEOLViewSet(ViewSet):
                 'nm_pai_aluno': None,
                 'cd_escola': aluno.escola.codigo_eol,
                 'dc_turma_escola': aluno.serie,
-                'dc_tipo_turno': aluno.periodo_escolar.nome
+                # TODO: investigar e tratar AttributeError para aluno.periodo_escolar.nome
+                # ('NoneType' object has no attribute 'nome')
+                # 'dc_tipo_turno': aluno.periodo_escolar.nome
             }
             return Response({'detail': dados})
         except EOLException as e:
