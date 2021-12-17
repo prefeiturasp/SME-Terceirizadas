@@ -108,6 +108,7 @@ solicitacao_application = csrf_exempt(django_soap_application)
 
 
 class WSDLSolicitacaoServiceViewSet(viewsets.ModelViewSet):
+    http_method_names = ['get']
     permission_classes = [AllowAny, DjangoModelPermissionsOrAnonReadOnly]
     queryset = SolicitacaoRemessa.objects.all()
 
