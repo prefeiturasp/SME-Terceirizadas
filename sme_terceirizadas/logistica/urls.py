@@ -24,12 +24,10 @@ router.register('insucesso-de-entrega', viewsets.InsucessoDeEntregaGuiaModelView
 router.register('solicitacao-de-alteracao-de-requisicao', viewsets.SolicitacaoDeAlteracaoDeRequisicaoViewset,
                 basename='solicitacao-de-alteracao-de-requisicao')
 
-webservice_router = routers.DefaultRouter()
-webservice_router.register('solicitacao-remessa-wsdl', viewsets.WSDLSolicitacaoServiceViewSet,
+router.register('webserver/solicitacao-remessa/wsdl', soup_views.WSDLSolicitacaoServiceViewSet,
                 basename='solicitacao-remessa-wsdl')
 
 urlpatterns = [
     path('', include(router.urls)),
-    path('webserver/solicitacao-remessa-wsdl/', include(webservice_router)),
     path('webserver/solicitacao-remessa/', soup_views.solicitacao_application),
 ]

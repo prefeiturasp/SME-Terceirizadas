@@ -3,7 +3,7 @@ from django.conf import settings
 from django.core import exceptions
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import IntegrityError, transaction
-from spyne.model.complex import Array, ComplexModel, XmlData
+from spyne.model.complex import Array, ComplexModel
 from spyne.model.primitive import Date, Integer, String
 from spyne.util.dictdoc import get_object_as_dict
 
@@ -26,13 +26,12 @@ NS = f'{env("DJANGO_XMLNS")}'
 
 class Alimento(ComplexModel):
     __namespace__ = NS
-    __type_name__ = "Alimento"
+    __type_name__ = 'Alimento'
     StrCodSup = String
     StrCodPapa = String
     StrNomAli = String
     StrEmbala = String
     IntQtdVol = Integer
-
 
     def build_alimento_obj(self, data):
         alimento_dict = {
