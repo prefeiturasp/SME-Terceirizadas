@@ -157,19 +157,19 @@
         <wsdlsoap11:binding style="document" transport="http://schemas.xmlsoap.org/soap/http" />
         <wsdl:operation name="Solicitacao">
             <wsdlsoap11:operation soapAction="https://hom-sigpae.sme.prefeitura.sp.gov.br/api/webserver/solicitacao-remessa/" style="document" />
-            <wsdl:input name="Solicitacao">
+            <wsdl:input>
                 <wsdlsoap11:body use="literal" />
             </wsdl:input>
-            <wsdl:output name="SolicitacaoResponse">
+            <wsdl:output>
                 <wsdlsoap11:body use="literal" />
             </wsdl:output>
         </wsdl:operation>
         <wsdl:operation name="Cancelamento">
             <wsdlsoap11:operation soapAction="https://hom-sigpae.sme.prefeitura.sp.gov.br/api/webserver/solicitacao-remessa/" style="document" />
-            <wsdl:input name="Cancelamento">
+            <wsdl:input>
                 <wsdlsoap11:body use="literal" />
             </wsdl:input>
-            <wsdl:output name="CancelamentoResponse">
+            <wsdl:output>
                 <wsdlsoap11:body use="literal" />
             </wsdl:output>
         </wsdl:operation>
