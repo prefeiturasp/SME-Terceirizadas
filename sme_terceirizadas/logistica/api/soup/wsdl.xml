@@ -140,7 +140,7 @@
     </wsdl:message>
     <wsdl:service name="SolicitacaoService">
         <wsdl:port name="WSPrefSoap" binding="tns:WSPrefSoap">
-            <wsdlsoap11:address location="localhost:8000/api/webserver/solicitacao-remessa/" />
+            <wsdlsoap11:address location="hom-sigpae.sme.prefeitura.sp.gov.br/api/webserver/solicitacao-remessa/" />
         </wsdl:port>
     </wsdl:service>
     <wsdl:portType name="WSPrefSoap">
