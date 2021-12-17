@@ -1,8 +1,12 @@
+import os
+
 import environ
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import IntegrityError
+from django.http.response import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
-from rest_framework import exceptions
+from rest_framework import exceptions, viewsets
+from rest_framework.permissions import AllowAny, DjangoModelPermissionsOrAnonReadOnly
 from spyne.application import Application
 from spyne.decorator import rpc
 from spyne.protocol.soap import Soap11
@@ -12,6 +16,7 @@ from spyne.service import ServiceBase
 from sme_terceirizadas.eol_servico.utils import EOLException
 
 from ....dados_comuns.models import LogSolicitacoesUsuario
+from ...models import SolicitacaoRemessa
 from .models import ArqCancelamento, ArqSolicitacaoMOD, SoapResponse, oWsAcessoModel
 from .token_auth import TokenAuthentication
 
@@ -23,7 +28,7 @@ NS = f'{env("DJANGO_XMLNS")}'
 
 class SolicitacaoService(ServiceBase):
 
-    @rpc(oWsAcessoModel, ArqSolicitacaoMOD, _returns=SoapResponse, _in_message_name='Solicitacao') # noqa C901
+    @rpc(oWsAcessoModel, ArqSolicitacaoMOD, _returns=SoapResponse) # noqa C901
     def Solicitacao(ctx, oWsAcessoModel, ArqSolicitacaoMOD):
 
         try:
@@ -50,7 +55,7 @@ class SolicitacaoService(ServiceBase):
 
         return SoapResponse(str_status='true', str_menssagem='Solicitação criada com sucesso.')
 
-    @rpc(oWsAcessoModel, ArqCancelamento, _returns=SoapResponse, _in_message_name='Cancelamento') # noqa C901
+    @rpc(oWsAcessoModel, ArqCancelamento, _returns=SoapResponse) # noqa C901
     def Cancelamento(ctx, oWsAcessoModel, ArqCancelamento):
 
         try:
@@ -96,8 +101,18 @@ soap_app = Application(
 )
 
 django_soap_application = DjangoApplication(soap_app)
-
 if API_URL:
-    django_soap_application.doc.wsdl11.build_interface_document(API_URL + '/webserver/solicitacao-remessa/')
+    django_soap_application.doc.wsdl11.build_interface_document(API_URL + '/webserver/solicitacao-remessa/wsdl/')
 
 solicitacao_application = csrf_exempt(django_soap_application)
+
+
+class WSDLSolicitacaoServiceViewSet(viewsets.ModelViewSet):
+    http_method_names = ['get']
+    permission_classes = [AllowAny, DjangoModelPermissionsOrAnonReadOnly]
+    queryset = SolicitacaoRemessa.objects.all()
+
+    def list(self, request, *args, **kwargs):
+        CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+
+        return HttpResponse(open(f'{CURRENT_DIR}/wsdl.xml').read(), content_type='text/xml')

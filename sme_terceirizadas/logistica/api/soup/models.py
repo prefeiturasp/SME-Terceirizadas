@@ -26,6 +26,7 @@ NS = f'{env("DJANGO_XMLNS")}'
 
 class Alimento(ComplexModel):
     __namespace__ = NS
+    __type_name__ = 'Alimento'
     StrCodSup = String
     StrCodPapa = String
     StrNomAli = String
