@@ -138,11 +138,6 @@
     <wsdl:message name="CancelamentoSoapOut">
         <wsdl:part name="parameters" element="tns:CancelamentoResponse" />
     </wsdl:message>
-    <wsdl:service name="SolicitacaoService">
-        <wsdl:port name="WSPrefSoap" binding="tns:WSPrefSoap">
-            <wsdlsoap11:address location="https://hom-sigpae.sme.prefeitura.sp.gov.br/api/webserver/solicitacao-remessa/" />
-        </wsdl:port>
-    </wsdl:service>
     <wsdl:portType name="WSPrefSoap">
         <wsdl:operation name="Solicitacao" parameterOrder="Solicitacao">
             <wsdl:input message="tns:SolicitacaoSoapIn" />
@@ -174,4 +169,9 @@
             </wsdl:output>
         </wsdl:operation>
     </wsdl:binding>
+    <wsdl:service name="SolicitacaoService">
+        <wsdl:port name="WSPrefSoap" binding="tns:WSPrefSoap">
+            <wsdlsoap11:address location="https://hom-sigpae.sme.prefeitura.sp.gov.br/api/webserver/solicitacao-remessa/" />
+        </wsdl:port>
+    </wsdl:service>
 </wsdl:definitions>
