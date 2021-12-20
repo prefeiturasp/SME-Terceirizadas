@@ -1,12 +1,15 @@
 from rest_framework import serializers
 
 from ....dados_comuns.api.serializers import LogSolicitacoesUsuarioSerializer
+from ....dados_comuns.utils import update_instance_from_dict
 from ....escola.api.serializers import (
     AlunoSerializer,
     DiretoriaRegionalSimplissimaSerializer,
     EscolaSimplesSerializer,
     FaixaEtariaSerializer
 )
+from ....terceirizada.api.serializers.serializers import EditalSerializer, TerceirizadaSimplesSerializer
+from ....terceirizada.models import Edital
 from ...models import (
     EscolaQuantidade,
     FaixaEtariaSolicitacaoKitLancheCEIAvulsa,
@@ -26,17 +29,56 @@ class ItemKitLancheSerializer(serializers.ModelSerializer):
 
 
 class KitLancheSerializer(serializers.ModelSerializer):
-    itens = ItemKitLancheSerializer(many=True)
+    edital = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=Edital.objects.all()
+    )
 
     class Meta:
         model = KitLanche
         exclude = ('id',)
 
+    def validate_nome_kit_lanche_create(self, validated_data):
+        if (KitLanche.objects.filter(edital__uuid=validated_data['edital'].uuid,
+                                     nome=validated_data['nome'].upper()).first()):
+            raise serializers.ValidationError('Esse nome de kit lanche já existe para edital selecionado')
+        validated_data['nome'] = validated_data['nome'].upper()
+        return validated_data
+
+    def validate_nome_kit_lanche_update(self, validated_data, instance):
+        if (KitLanche.objects.filter(
+            edital__uuid=validated_data['edital'].uuid,
+                nome=validated_data['nome'].upper()).exclude(uuid=str(instance.uuid)).first()):
+            serializers.ValidationError('Esse nome de kit lanche já existe para edital selecionado')
+        validated_data['nome'] = validated_data['nome'].upper()
+        return validated_data
+
+    def create(self, validated_data):
+        self.validate_nome_kit_lanche_create(validated_data)
+        kit_lanche = KitLanche.objects.create(**validated_data)
+        return kit_lanche
+
+    def update(self, instance, validated_data):
+        self.validate_nome_kit_lanche_update(validated_data, instance)
+        update_instance_from_dict(instance, validated_data)
+        instance.save()
+        return instance
+
 
 class KitLancheSimplesSerializer(serializers.ModelSerializer):
     class Meta:
         model = KitLanche
-        exclude = ('id', 'itens')
+        exclude = ('id',)
+
+
+class KitLancheConsultaSerializer(serializers.ModelSerializer):
+    edital = EditalSerializer()
+    status = serializers.CharField(source='get_status_display')
+
+    class Meta:
+        model = KitLanche
+        exclude = ('id',)
 
 
 class SolicitacaoKitLancheSimplesSerializer(serializers.ModelSerializer):
@@ -56,10 +98,12 @@ class SolicitacaoKitLancheAvulsaSerializer(serializers.ModelSerializer):
                                      required=False)
     prioridade = serializers.CharField()
     id_externo = serializers.CharField()
+    alunos_com_dieta_especial_participantes = AlunoSerializer(many=True)
     foi_solicitado_fora_do_prazo = serializers.BooleanField()
     logs = LogSolicitacoesUsuarioSerializer(many=True)
     quantidade_alimentacoes = serializers.IntegerField()
     data = serializers.DateField()
+    rastro_terceirizada = TerceirizadaSimplesSerializer()
 
     class Meta:
         model = SolicitacaoKitLancheAvulsa
@@ -103,6 +147,7 @@ class SolicitacaoKitLancheUnificadaSerializer(serializers.ModelSerializer):
     prioridade = serializers.CharField()
     data = serializers.DateField()
     quantidade_alimentacoes = serializers.IntegerField()
+    rastro_terceirizada = TerceirizadaSimplesSerializer()
 
     class Meta:
         model = SolicitacaoKitLancheUnificada

@@ -2,11 +2,13 @@ from django.contrib import admin
 
 from .forms import NomeDeProdutoEditalForm
 from .models import (
+    EmbalagemProduto,
     Fabricante,
     HomologacaoDoProduto,
     ImagemDoProduto,
     InformacaoNutricional,
     InformacoesNutricionaisDoProduto,
+    ItemCadastro,
     LogNomeDeProdutoEdital,
     Marca,
     NomeDeProdutoEdital,
@@ -15,7 +17,8 @@ from .models import (
     ReclamacaoDeProduto,
     RespostaAnaliseSensorial,
     SolicitacaoCadastroProdutoDieta,
-    TipoDeInformacaoNutricional
+    TipoDeInformacaoNutricional,
+    UnidadeMedida
 )
 
 
@@ -37,6 +40,18 @@ class MarcaModelAdmin(admin.ModelAdmin):
 
 @admin.register(Fabricante)
 class FabricanteModelAdmin(admin.ModelAdmin):
+    search_fields = ('nome',)
+    ordering = ('nome',)
+
+
+@admin.register(UnidadeMedida)
+class UnidadeMedidaModelAdmin(admin.ModelAdmin):
+    search_fields = ('nome',)
+    ordering = ('nome',)
+
+
+@admin.register(EmbalagemProduto)
+class EmbalagemProdutoModelAdmin(admin.ModelAdmin):
     search_fields = ('nome',)
     ordering = ('nome',)
 
@@ -108,6 +123,21 @@ class InformacaoNutricionalModelAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'tipo_nutricional', 'medida')
     search_fields = ('nome',)
     list_filter = ('tipo_nutricional',)
+
+
+@admin.register(ItemCadastro)
+class ItemCadastroModelAdmin(admin.ModelAdmin):
+    list_display = ('__str__', 'tipo')
+    list_filter = ('content_type',)
+    actions = ('cria_itens',)
+
+    def cria_itens(self, request, _):
+        from sme_terceirizadas.produto.utils import cria_itens_cadastro
+        cria_itens_cadastro()
+
+        self.message_user(request, 'Processo iniciado com sucesso.')
+
+    cria_itens.short_description = 'Cria ItemCadastro para cada Marca e/ou Fabricante caso não exista.'
 
 
 admin.site.register(ReclamacaoDeProduto)

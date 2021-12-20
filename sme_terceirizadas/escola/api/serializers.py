@@ -153,6 +153,12 @@ class LoteNomeSerializer(serializers.ModelSerializer):
         fields = ('uuid', 'nome', 'tipo_gestao', 'diretoria_regional', 'terceirizada')  # noqa
 
 
+class LoteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Lote
+        fields = ('uuid', 'nome')  # noqa
+
+
 class EscolaSimplesSerializer(serializers.ModelSerializer):
     lote = LoteNomeSerializer()
     tipo_gestao = TipoGestaoSerializer()
@@ -255,6 +261,8 @@ class DiretoriaRegionalCompletaSerializer(serializers.ModelSerializer):
 
 
 class TerceirizadaSerializer(serializers.ModelSerializer):
+    tipo_alimento_display = serializers.CharField(source='get_tipo_alimento_display')
+    tipo_empresa_display = serializers.CharField(source='get_tipo_empresa_display')
     nutricionistas = serializers.SerializerMethodField()
     contatos = ContatoSerializer(many=True)
     contratos = ContratoSimplesSerializer(many=True)

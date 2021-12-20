@@ -391,11 +391,12 @@ class AlteracaoCardapioSerializerCreateBase(serializers.ModelSerializer):
 class AlteracaoCardapioSerializerCreate(AlteracaoCardapioSerializerCreateBase):
     substituicoes = SubstituicoesAlimentacaoNoPeriodoEscolarSerializerCreate(many=True)
 
-    def validate_data_inicial(self, data_inicial):
-        nao_pode_ser_no_passado(data_inicial)
-        deve_pedir_com_antecedencia(data_inicial)
-        deve_ser_no_mesmo_ano_corrente(data_inicial)
-        return data_inicial
+    def validate(self, attrs):
+        nao_pode_ser_no_passado(attrs['data_inicial'])
+        if attrs['motivo'].nome != 'Merenda Seca':
+            deve_pedir_com_antecedencia(attrs['data_inicial'])
+        deve_ser_no_mesmo_ano_corrente(attrs['data_inicial'])
+        return attrs
 
     class Meta:
         model = AlteracaoCardapio

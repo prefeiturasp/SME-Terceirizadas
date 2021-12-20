@@ -3,6 +3,7 @@ import datetime
 from rest_framework import serializers
 
 from ....dados_comuns.api.serializers import (
+    AnexoLogSolicitacoesUsuarioSerializer,
     ContatoSerializer,
     LogSolicitacoesSerializer,
     LogSolicitacoesUsuarioComAnexosSerializer,
@@ -20,15 +21,20 @@ from ....escola.api.serializers import (
     TipoGestaoSerializer
 )
 from ....escola.models import Escola
+from ....perfil.api.serializers import UsuarioSerializer
+from ....perfil.models import Usuario
 from ....terceirizada.api.serializers.serializers import TerceirizadaSimplesSerializer
 from ...models import (
     AnaliseSensorial,
     AnexoReclamacaoDeProduto,
+    EmbalagemProduto,
+    EspecificacaoProduto,
     Fabricante,
     HomologacaoDoProduto,
     ImagemDoProduto,
     InformacaoNutricional,
     InformacoesNutricionaisDoProduto,
+    ItemCadastro,
     LogSolicitacoesUsuario,
     Marca,
     NomeDeProdutoEdital,
@@ -37,7 +43,8 @@ from ...models import (
     ReclamacaoDeProduto,
     RespostaAnaliseSensorial,
     SolicitacaoCadastroProdutoDieta,
-    TipoDeInformacaoNutricional
+    TipoDeInformacaoNutricional,
+    UnidadeMedida
 )
 
 
@@ -124,6 +131,13 @@ class ReclamacaoDeProdutoSerializer(serializers.ModelSerializer):
     anexos = serializers.SerializerMethodField()
     status_titulo = serializers.CharField(source='status.state.title')
     logs = serializers.SerializerMethodField()
+    usuario = serializers.SerializerMethodField()
+
+    def get_usuario(self, obj):
+        return UsuarioSerializer(
+            Usuario.objects.filter(
+                registro_funcional=obj.reclamante_registro_funcional).first(),
+        ).data
 
     def get_anexos(self, obj):
         return AnexoReclamacaoDeProdutoSerializer(
@@ -142,7 +156,7 @@ class ReclamacaoDeProdutoSerializer(serializers.ModelSerializer):
     class Meta:
         model = ReclamacaoDeProduto
         fields = ('uuid', 'reclamante_registro_funcional', 'logs', 'reclamante_cargo', 'reclamante_nome',
-                  'reclamacao', 'escola', 'anexos', 'status', 'status_titulo', 'criado_em', 'id_externo')
+                  'reclamacao', 'escola', 'usuario', 'anexos', 'status', 'status_titulo', 'criado_em', 'id_externo')
 
 
 class ReclamacaoDeProdutoSimplesSerializer(serializers.ModelSerializer):
@@ -200,6 +214,27 @@ class HomologacaoProdutoComUltimoLogSerializer(serializers.ModelSerializer):
                   'status_titulo', 'protocolo_analise_sensorial', 'data_cadastro')
 
 
+class UnidadeMedidaSerialzer(serializers.ModelSerializer):
+    class Meta:
+        model = UnidadeMedida
+        fields = ('uuid', 'nome')
+
+
+class EmbalagemProdutoSerialzer(serializers.ModelSerializer):
+    class Meta:
+        model = EmbalagemProduto
+        fields = ('uuid', 'nome')
+
+
+class EspecificacaoProdutoSerializer(serializers.ModelSerializer):
+    unidade_de_medida = UnidadeMedidaSerialzer()
+    embalagem_produto = EmbalagemProdutoSerialzer()
+
+    class Meta:
+        model = EspecificacaoProduto
+        exclude = ('id', 'produto')
+
+
 class ProdutoSerializer(serializers.ModelSerializer):
     protocolos = ProtocoloDeDietaEspecialSerializer(many=True)
     marca = MarcaSerializer()
@@ -215,6 +250,8 @@ class ProdutoSerializer(serializers.ModelSerializer):
 
     ultima_homologacao = HomologacaoProdutoComUltimoLogSerializer()
 
+    especificacoes = serializers.SerializerMethodField()
+
     def get_homologacoes(self, obj):
         return HomologacaoProdutoComUltimoLogSerializer(
             HomologacaoDoProduto.objects.filter(
@@ -226,6 +263,13 @@ class ProdutoSerializer(serializers.ModelSerializer):
     def get_informacoes_nutricionais(self, obj):
         return InformacoesNutricionaisDoProdutoSerializer(
             InformacoesNutricionaisDoProduto.objects.filter(
+                produto=obj
+            ), many=True
+        ).data
+
+    def get_especificacoes(self, obj):
+        return EspecificacaoProdutoSerializer(
+            EspecificacaoProduto.objects.filter(
                 produto=obj
             ), many=True
         ).data
@@ -559,11 +603,24 @@ class ReclamacaoDeProdutoRelatorioSerializer(serializers.ModelSerializer):
     escola = EscolaSimplissimaSerializer()
     status_titulo = serializers.CharField(source='status.state.title')
     logs = LogSolicitacoesSerializer(many=True)
+    usuario = serializers.SerializerMethodField()
+    anexos = serializers.SerializerMethodField()
+
+    def get_anexos(self, obj):
+        return AnexoLogSolicitacoesUsuarioSerializer(
+            obj.anexos, many=True
+        ).data
+
+    def get_usuario(self, obj):
+        return UsuarioSerializer(
+            Usuario.objects.filter(
+                registro_funcional=obj.reclamante_registro_funcional).first(),
+        ).data
 
     class Meta:
         model = ReclamacaoDeProduto
         fields = ('uuid', 'reclamante_registro_funcional', 'logs', 'reclamante_cargo', 'reclamante_nome',
-                  'reclamacao', 'escola', 'status', 'status_titulo', 'criado_em', 'id_externo')
+                  'reclamacao', 'escola', 'usuario', 'status', 'status_titulo', 'criado_em', 'id_externo', 'anexos')
 
 
 class HomologacaoReclamacaoSerializer(serializers.ModelSerializer):
@@ -648,3 +705,62 @@ class ProdutoSuspensoSerializer(ProdutoBaseSerializer):
         model = Produto
         fields = ('id_externo', 'nome', 'marca', 'fabricante',
                   'ultima_homologacao', 'criado_em')
+
+
+class ItensCadastroSerializer(serializers.ModelSerializer):
+    nome = serializers.SerializerMethodField()
+    tipo_display = serializers.SerializerMethodField()
+
+    def get_nome(self, obj):
+        return obj.content_object.nome
+
+    def get_tipo_display(self, obj):
+        return obj.get_tipo_display()
+
+    class Meta:
+        model = ItemCadastro
+        fields = ('uuid', 'nome', 'tipo', 'tipo_display')
+
+
+class ItensCadastroCreateSerializer(serializers.Serializer):
+    nome = serializers.CharField(required=True, write_only=True)
+    tipo = serializers.CharField(required=True)
+
+    def create(self, validated_data):
+        nome = validated_data['nome']
+        tipo = validated_data['tipo']
+
+        if (nome.upper(), tipo) in ((item.content_object.nome.upper(), item.tipo)
+                                    for item in ItemCadastro.objects.all()):
+            raise serializers.ValidationError('Item já cadastrado.')
+
+        try:
+            item = ItemCadastro.criar(nome, tipo)
+            return item
+        except Exception:
+            raise serializers.ValidationError('Erro ao criar ItemCadastro.')
+
+    def update(self, instance, validated_data): # noqa C901
+        nome = validated_data['nome']
+        tipo = validated_data['tipo']
+
+        if (nome.upper(), tipo) in ((item.content_object.nome.upper(), item.tipo)
+                                    for item in ItemCadastro.objects.all()):
+            raise serializers.ValidationError('Item já cadastrado.')
+
+        try:
+            if instance.tipo != tipo:
+                modelo_antigo = instance.content_object
+                modelo_novo = ItemCadastro.cria_modelo(nome, tipo)
+                instance.tipo = tipo
+                instance.content_object = modelo_novo
+                instance.save()
+
+                modelo_antigo.delete()
+            else:
+                modelo = instance.content_object
+                modelo.nome = nome.upper()
+                modelo.save()
+        except Exception as e:
+            raise serializers.ValidationError(f'Erro ao criar ItemCadastro. {str(e)}')
+        return instance

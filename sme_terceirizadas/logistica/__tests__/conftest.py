@@ -31,6 +31,7 @@ def solicitacao(terceirizada):
         'SolicitacaoRemessa',
         cnpj='12345678901234',
         numero_solicitacao='559890',
+        sequencia_envio=1212,
         quantidade_total_guias=2,
         distribuidor=terceirizada
     )
@@ -159,7 +160,19 @@ def solicitacao_de_alteracao_requisicao(solicitacao, distribuidor):
 
 
 @pytest.fixture
-def conferencia_guia(guia):
+def conferencia_guia(guia_com_escola_client_autenticado):
+    return mommy.make(
+        'ConferenciaGuia',
+        guia=guia_com_escola_client_autenticado,
+        data_recebimento=datetime.now(),
+        hora_recebimento=datetime.now().time(),
+        nome_motorista='José da Silva',
+        placa_veiculo='77AB75A',
+    )
+
+
+@pytest.fixture
+def conferencia_guia_normal(guia):
     return mommy.make(
         'ConferenciaGuia',
         guia=guia,
@@ -171,10 +184,23 @@ def conferencia_guia(guia):
 
 
 @pytest.fixture
-def conferencia_guia_individual(conferencia_guia):
+def reposicao_guia(guia):
+    return mommy.make(
+        'ConferenciaGuia',
+        guia=guia,
+        data_recebimento=datetime.now(),
+        hora_recebimento=datetime.now().time(),
+        nome_motorista='José da Silva',
+        placa_veiculo='77AB75A',
+        eh_reposicao=True
+    )
+
+
+@pytest.fixture
+def conferencia_guia_individual(conferencia_guia_normal):
     return mommy.make(
         'ConferenciaIndividualPorAlimento',
-        conferencia=conferencia_guia,
+        conferencia=conferencia_guia_normal,
         tipo_embalagem=ConferenciaIndividualPorAlimento.FECHADA,
         status_alimento=ConferenciaIndividualPorAlimento.STATUS_ALIMENTO_RECEBIDO,
         ocorrencia=[ConferenciaIndividualPorAlimento.OCORRENCIA_AUSENCIA_PRODUTO],

@@ -4,6 +4,7 @@ import pytest
 from faker import Faker
 from model_mommy import mommy
 
+from ...dados_comuns.constants import DJANGO_ADMIN_PASSWORD
 from .. import models
 from ..api.serializers import UsuarioSerializer, UsuarioUpdateSerializer
 
@@ -441,7 +442,7 @@ def email_list_invalidos(request):
 @pytest.fixture
 def fake_user(client):
     email = 'admin@admin.com'
-    password = 'admin'
+    password = DJANGO_ADMIN_PASSWORD
     user = models.Usuario.objects.create_user(
         email=email,
         password=password,
@@ -455,7 +456,7 @@ def fake_user(client):
 @pytest.fixture
 def usuario_autenticado(client):
     email = 'admin@admin.com'
-    password = 'admin'
+    password = DJANGO_ADMIN_PASSWORD
     client.login(email=email, password=password)
     return client
 

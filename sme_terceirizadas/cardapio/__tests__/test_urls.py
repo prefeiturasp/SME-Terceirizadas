@@ -5,6 +5,8 @@ import random
 from freezegun import freeze_time
 from rest_framework import status
 
+from sme_terceirizadas.cardapio.models import AlteracaoCardapio, GrupoSuspensaoAlimentacao, InversaoCardapio
+
 from ...dados_comuns import constants
 from ...dados_comuns.fluxo_status import InformativoPartindoDaEscolaWorkflow, PedidoAPartirDaEscolaWorkflow
 
@@ -538,7 +540,8 @@ def test_url_endpoint_alt_card_criar(client_autenticado_vinculo_escola_cardapio,
         'substituicoes': [{
             'periodo_escolar': str(periodo_escolar.uuid),
             'tipo_alimentacao_de': str(combo1.uuid),
-            'tipo_alimentacao_para': str(substituicao1.uuid)
+            'tipo_alimentacao_para': str(substituicao1.uuid),
+            'qtd_alunos': 10
         }]
     }
 
@@ -560,6 +563,7 @@ def test_url_endpoint_alt_card_criar(client_autenticado_vinculo_escola_cardapio,
     assert substituicao['periodo_escolar'] == str(periodo_escolar.uuid)
     assert substituicao['tipo_alimentacao_de'] == str(combo1.uuid)
     assert substituicao['tipo_alimentacao_para'] == str(substituicao1.uuid)
+    assert substituicao['qtd_alunos'] == 10
 
 
 def test_url_endpoint_alt_card_cei_criar(client_autenticado_vinculo_escola_cardapio, motivo_alteracao_cardapio, escola,
@@ -909,3 +913,47 @@ def test_endpoint_horario_do_combo_tipo_alimentacao_unidade_escolar(client_auten
         'codigo_eol': '000546',
         'quantidade_alunos': 743
     }
+
+
+def checa_se_terceirizada_marcou_conferencia_na_gestao_de_alimentacao(client_autenticado,
+                                                                      classe,
+                                                                      path):
+    obj = classe.objects.first()
+    assert not obj.terceirizada_conferiu_gestao
+
+    response = client_autenticado.patch(
+        f'/{path}/{obj.uuid}/marcar-conferida/',
+        content_type='application/json')
+
+    assert response.status_code == status.HTTP_200_OK
+
+    result = response.json()
+    assert 'terceirizada_conferiu_gestao' in result.keys()
+    assert result['terceirizada_conferiu_gestao']
+
+    obj = classe.objects.first()
+    assert obj.terceirizada_conferiu_gestao
+
+
+def test_terceirizada_marca_conferencia_inversao_cardapio_viewset(client_autenticado,
+                                                                  inversao_dia_cardapio):
+    checa_se_terceirizada_marcou_conferencia_na_gestao_de_alimentacao(
+        client_autenticado,
+        InversaoCardapio,
+        'inversoes-dia-cardapio')
+
+
+def test_terceirizada_marca_conferencia_grupo_suspensao_alimentacao_viewset(client_autenticado,
+                                                                            grupo_suspensao_alimentacao):
+    checa_se_terceirizada_marcou_conferencia_na_gestao_de_alimentacao(
+        client_autenticado,
+        GrupoSuspensaoAlimentacao,
+        'grupos-suspensoes-alimentacao')
+
+
+def test_terceirizada_marca_conferencia_alteracao_cardapio_viewset(client_autenticado,
+                                                                   alteracao_cardapio):
+    checa_se_terceirizada_marcou_conferencia_na_gestao_de_alimentacao(
+        client_autenticado,
+        AlteracaoCardapio,
+        'alteracoes-cardapio')

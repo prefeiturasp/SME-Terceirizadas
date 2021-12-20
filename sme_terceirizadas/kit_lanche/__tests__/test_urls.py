@@ -4,7 +4,7 @@ from rest_framework import status
 
 from ...dados_comuns import constants
 from ...dados_comuns.fluxo_status import PedidoAPartirDaDiretoriaRegionalWorkflow, PedidoAPartirDaEscolaWorkflow
-from ..models import SolicitacaoKitLancheAvulsa
+from ..models import SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheUnificada
 
 pytestmark = pytest.mark.django_db
 
@@ -460,7 +460,7 @@ def test_url_endpoint_solicitacoes_kit_lanche_unificado_relatorio(
 
 
 @freeze_time('2019-10-11')
-def test_create_kit_lanche(client_autenticado_da_escola, solicitacao_avulsa, escola, kit_lanche):
+def test_create_kit_lanche(client_autenticado_da_escola, solicitacao_avulsa, escola, kit_lanche, aluno):
     """Primeiro cria-se 3 rascunhos (POST) 200, 200, 200 totalizando 600 alunos que é mais que 500.
 
     Após isso, vamos efetivar a solicitacao (PATCH), no qual sai de RASCUNHO para DRE_A_VALIDAR, deve-se
@@ -485,8 +485,11 @@ def test_create_kit_lanche(client_autenticado_da_escola, solicitacao_avulsa, esc
                                                                   },
                                                                   'local': 'TESTE!!!',
                                                                   'quantidade_alunos': step,
-                                                                  'escola': escola.uuid, }
-                                                              )
+                                                                  'escola': escola.uuid,
+                                                                  'alunos_com_dieta_especial_participantes': [
+                                                                      aluno.uuid
+                                                                  ],
+                                                              })
         # deve permitir todos sem problema pois são criados com status inicial RASCUNHO
         assert response_criacao1.status_code == status.HTTP_201_CREATED
         json = response_criacao1.json()
@@ -514,7 +517,8 @@ def test_create_kit_lanche(client_autenticado_da_escola, solicitacao_avulsa, esc
 @freeze_time('2019-10-11')
 def test_kit_lanche_nao_deve_permitir_editar_status_diretamente(client_autenticado_da_escola, solicitacao_avulsa,
                                                                 escola,
-                                                                kit_lanche):
+                                                                kit_lanche,
+                                                                aluno):
     data_teste = '27/11/2019'
     response_criacao1 = client_autenticado_da_escola.post(f'/{ENDPOINT_AVULSO}/',
                                                           content_type='application/json',
@@ -531,9 +535,60 @@ def test_kit_lanche_nao_deve_permitir_editar_status_diretamente(client_autentica
                                                               },
                                                               'local': 'TESTE!!!',
                                                               'quantidade_alunos': 100,
-                                                              'escola': escola.uuid, })
+                                                              'escola': escola.uuid,
+                                                              'alunos_com_dieta_especial_participantes': [
+                                                                  aluno.uuid
+                                                              ],
+                                                          })
     assert response_criacao1.status_code == status.HTTP_201_CREATED
     json = response_criacao1.json()
     # deve ser rascunho e não codae autorizado
     assert json['status_explicacao'] == PedidoAPartirDaEscolaWorkflow.RASCUNHO
     assert json.get('status') is None
+
+
+def test_url_endpoint_consulta_kits_lanche(client_autenticado, kit_lanche):
+    client = client_autenticado
+    response = client.get('/kit-lanches/consulta-kits/')
+    assert response.status_code == status.HTTP_200_OK
+
+    data = response.json()
+    item = data['results'][0]
+
+    assert isinstance(item, dict)
+
+
+def checa_se_terceirizada_marcou_conferencia_na_gestao_de_alimentacao(client_autenticado,
+                                                                      classe,
+                                                                      path):
+    obj = classe.objects.first()
+    assert not obj.terceirizada_conferiu_gestao
+
+    response = client_autenticado.patch(
+        f'/{path}/{obj.uuid}/marcar-conferida/',
+        content_type='application/json')
+
+    assert response.status_code == status.HTTP_200_OK
+
+    result = response.json()
+    assert 'terceirizada_conferiu_gestao' in result.keys()
+    assert result['terceirizada_conferiu_gestao']
+
+    obj = classe.objects.first()
+    assert obj.terceirizada_conferiu_gestao
+
+
+def test_terceirizada_marca_conferencia_solicitacao_avulsa_viewset(client_autenticado,
+                                                                   solicitacao_avulsa):
+    checa_se_terceirizada_marcou_conferencia_na_gestao_de_alimentacao(
+        client_autenticado,
+        SolicitacaoKitLancheAvulsa,
+        'solicitacoes-kit-lanche-avulsa')
+
+
+def test_terceirizada_marca_conferencia_solicitacao_kitlanche_unificada_viewset(
+        client_autenticado, solicitacao_unificada_lista_igual_codae_autorizado):
+    checa_se_terceirizada_marcou_conferencia_na_gestao_de_alimentacao(
+        client_autenticado,
+        SolicitacaoKitLancheUnificada,
+        'solicitacoes-kit-lanche-unificada')

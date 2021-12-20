@@ -5,10 +5,12 @@ from faker import Faker
 from model_mommy import mommy
 from rest_framework.test import APIClient
 
-from ...perfil.models import Usuario
+from ...perfil.models import Perfil, Usuario
 from ..api.serializers.serializers import (
     ContratoSerializer,
     EditalContratosSerializer,
+    EditalSerializer,
+    EditalSimplesSerializer,
     TerceirizadaSimplesSerializer,
     VigenciaContratoSerializer
 )
@@ -122,6 +124,18 @@ def edital_contratos_serializer():
 
 
 @pytest.fixture
+def edital_serializer():
+    edital = mommy.make(Edital)
+    return EditalSerializer(edital)
+
+
+@pytest.fixture
+def edital_simples_serializer():
+    edital = mommy.make(Edital)
+    return EditalSimplesSerializer(edital)
+
+
+@pytest.fixture
 def terceirizada_simples_serializer():
     terceirizada = mommy.make(Terceirizada)
     return TerceirizadaSimplesSerializer(terceirizada)
@@ -139,3 +153,8 @@ def terceirizada():
 @pytest.fixture
 def nutricionista():
     return mommy.make(Nutricionista, nome='nutri')
+
+
+@pytest.fixture
+def perfil_distribuidor():
+    return mommy.make(Perfil, nome='ADMINISTRADOR_DISTRIBUIDORA')

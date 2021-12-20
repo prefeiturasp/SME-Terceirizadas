@@ -5,7 +5,7 @@ verify_ssl = true
 
 [dev-packages]
 Werkzeug='==0.15.3'  # https://github.com/pallets/werkzeug
-ipdb='==0.11'  # https://github.com/gotcha/ipdb
+ipdb='==0.13.9'  # https://github.com/gotcha/ipdb
 Sphinx='==1.8.4'  # https://github.com/sphinx-doc/sphinx
 pandas='==0.25.0' # https://github.com/pandas-dev/pandas/
 numpy='==1.17.0' # https://github.com/numpy/numpy/
@@ -75,6 +75,7 @@ django-sequences='==2.5'  # https://pypi.org/project/django-sequences/
 django-multiselectfield='==0.1.12' # https://github.com/goinnn/django-multiselectfield
 django-celery-beat='==2.0.0'  # https://github.com/celery/django-celery-beat
 django-auditlog="*"   # https://github.com/jazzband/django-auditlog/
+django-admin-rangefilter='==0.8.1' # https://github.com/silentsokolov/django-admin-rangefilter
 # Django REST Framework
 # ------------------------------------------------------------------------------
 djangorestframework='==3.9.1'  # https://github.com/encode/django-rest-framework
@@ -95,7 +96,7 @@ django-sass-processor = "==0.8"
 django-compressor = "==2.4"
 libsass = "==0.19.4"
 django-crispy-forms = "*"
-django-weasyprint = "*"
+django-weasyprint = "==1.1.0"
 django-filter = "*"
 importlib-metadata = "==1.7.0"
 text-unidecode = "*"
@@ -105,6 +106,9 @@ spyne = "==2.13.16"
 lxml = "*"
 openpyxl = "*"
 httpx = "*"
+pikepdf = "*"
+PyPDF4 = "*"
+pydantic = "==1.8.2"
 
 [requires]
 python_version = "3.6"

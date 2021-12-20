@@ -24,6 +24,9 @@ router.register('insucesso-de-entrega', viewsets.InsucessoDeEntregaGuiaModelView
 router.register('solicitacao-de-alteracao-de-requisicao', viewsets.SolicitacaoDeAlteracaoDeRequisicaoViewset,
                 basename='solicitacao-de-alteracao-de-requisicao')
 
+router.register('webserver/solicitacao-remessa/wsdl', soup_views.WSDLSolicitacaoServiceViewSet,
+                basename='solicitacao-remessa-wsdl')
+
 urlpatterns = [
     path('', include(router.urls)),
     path('webserver/solicitacao-remessa/', soup_views.solicitacao_application),

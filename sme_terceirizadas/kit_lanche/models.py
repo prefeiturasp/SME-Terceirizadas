@@ -18,7 +18,8 @@ from ..dados_comuns.behaviors import (  # noqa I101
     TemFaixaEtariaEQuantidade,
     TemIdentificadorExternoAmigavel,
     TempoPasseio,
-    TemPrioridade
+    TemPrioridade,
+    TemTerceirizadaConferiuGestaoAlimentacao
 )
 from ..dados_comuns.fluxo_status import FluxoAprovacaoPartindoDaDiretoriaRegional, FluxoAprovacaoPartindoDaEscola
 from ..dados_comuns.models import LogSolicitacoesUsuario, TemplateMensagem
@@ -52,7 +53,18 @@ class ItemKitLanche(ExportModelOperationsMixin('item_kit_lanche'), Nomeavel, Tem
 class KitLanche(ExportModelOperationsMixin('kit_lanche'), Nomeavel, TemChaveExterna):
     """kit1, kit2, kit3."""
 
-    itens = models.ManyToManyField(ItemKitLanche)
+    ATIVO = 'ATIVO'
+    INATIVO = 'INATIVO'
+
+    STATUS_CHOICES = (
+        (ATIVO, 'Ativo'),
+        (INATIVO, 'Inativo'),
+    )
+
+    descricao = models.TextField(default='')
+    edital = models.ForeignKey(
+        'terceirizada.Edital', on_delete=models.DO_NOTHING, related_name='edital_kit_lanche', default=None, null=True)
+    status = models.CharField(choices=STATUS_CHOICES, max_length=10, default=ATIVO)
 
     def __str__(self):
         return self.nome
@@ -79,7 +91,8 @@ class SolicitacaoKitLanche(ExportModelOperationsMixin('kit_lanche_base'), TemDat
 
 class SolicitacaoKitLancheAvulsaBase(TemChaveExterna,  # type: ignore
                                      FluxoAprovacaoPartindoDaEscola, TemIdentificadorExternoAmigavel,
-                                     CriadoPor, TemPrioridade, Logs, SolicitacaoForaDoPrazo):
+                                     CriadoPor, TemPrioridade, Logs, SolicitacaoForaDoPrazo,
+                                     TemTerceirizadaConferiuGestaoAlimentacao):
     # TODO: ao deletar este, deletar solicitacao_kit_lanche também que é uma tabela acessória
     # TODO: passar `local` para solicitacao_kit_lanche
     DESCRICAO = 'Kit Lanche'
@@ -136,6 +149,7 @@ class SolicitacaoKitLancheAvulsa(ExportModelOperationsMixin('kit_lanche_avulsa')
     quantidade_alunos = models.PositiveSmallIntegerField()
     escola = models.ForeignKey('escola.Escola', on_delete=models.DO_NOTHING,
                                related_name='solicitacoes_kit_lanche_avulsa')
+    alunos_com_dieta_especial_participantes = models.ManyToManyField('escola.Aluno')
 
     def __str__(self):
         return f'{self.escola} SOLICITA PARA {self.quantidade_alunos} ALUNOS EM {self.local}'
@@ -179,7 +193,8 @@ class FaixaEtariaSolicitacaoKitLancheCEIAvulsa(TemChaveExterna, TemFaixaEtariaEQ
 
 class SolicitacaoKitLancheUnificada(ExportModelOperationsMixin('kit_lanche_unificada'), CriadoPor, TemChaveExterna,
                                     TemIdentificadorExternoAmigavel, SolicitacaoForaDoPrazo,
-                                    FluxoAprovacaoPartindoDaDiretoriaRegional, Logs, TemPrioridade):
+                                    FluxoAprovacaoPartindoDaDiretoriaRegional, Logs, TemPrioridade,
+                                    TemTerceirizadaConferiuGestaoAlimentacao):
     """Uma DRE pede para as suas escolas.
 
     lista_kit_lanche_igual é a mesma lista de kit lanche pra todos.

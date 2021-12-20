@@ -68,6 +68,41 @@ class Nutricionista(ExportModelOperationsMixin('nutricionista'), TemChaveExterna
 
 class Terceirizada(ExportModelOperationsMixin('terceirizada'), TemChaveExterna, Ativavel,
                    TemIdentificadorExternoAmigavel, TemVinculos):
+    # Tipo Empresa Choice
+    ARMAZEM_DISTRIBUIDOR = 'ARMAZEM/DISTRIBUIDOR'
+    FORNECEDOR_DISTRIBUIDOR = 'FORNECEDOR/DISTRIBUIDOR'
+    # opção se faz necessária para atender o fluxo do alimentação terceirizada
+    TERCEIRIZADA = 'TERCEIRIZADA'
+
+    TIPO_EMPRESA_CHOICES = (
+        (ARMAZEM_DISTRIBUIDOR, 'Armazém/Distribuidor'),
+        (FORNECEDOR_DISTRIBUIDOR, 'Fornecedor/Distribuidor'),
+        (TERCEIRIZADA, 'Terceirizada'),
+    )
+    # Tipo Alimento Choice
+    TIPO_ALIMENTO_CONGELADOS = 'CONGELADOS_E_RESFRIADOS'
+    TIPO_ALIMENTO_FLVO = 'FLVO'
+    TIPO_ALIMENTO_PAES_E_BOLO = 'PAES_E_BOLO'
+    TIPO_ALIMENTO_SECOS = 'SECOS'
+    # opção se faz necessária para atender o fluxo do alimentação terceirizada
+    TIPO_ALIMENTO_TERCEIRIZADA = 'TERCEIRIZADA'
+
+    TIPO_ALIMENTO_NOMES = {
+        TIPO_ALIMENTO_CONGELADOS: 'Congelados e resfriados',
+        TIPO_ALIMENTO_FLVO: 'FLVO',
+        TIPO_ALIMENTO_PAES_E_BOLO: 'Pães & bolos',
+        TIPO_ALIMENTO_SECOS: 'Secos',
+        TIPO_ALIMENTO_TERCEIRIZADA: 'Terceirizada',
+
+    }
+
+    TIPO_ALIMENTO_CHOICES = (
+        (TIPO_ALIMENTO_CONGELADOS, TIPO_ALIMENTO_NOMES[TIPO_ALIMENTO_CONGELADOS]),
+        (TIPO_ALIMENTO_FLVO, TIPO_ALIMENTO_NOMES[TIPO_ALIMENTO_FLVO]),
+        (TIPO_ALIMENTO_PAES_E_BOLO, TIPO_ALIMENTO_NOMES[TIPO_ALIMENTO_PAES_E_BOLO]),
+        (TIPO_ALIMENTO_SECOS, TIPO_ALIMENTO_NOMES[TIPO_ALIMENTO_SECOS]),
+    )
+
     nome_fantasia = models.CharField('Nome fantasia', max_length=160, blank=True)
     razao_social = models.CharField('Razao social', max_length=160, blank=True)
     cnpj = models.CharField('CNPJ', validators=[MinLengthValidator(14)], max_length=14)
@@ -88,6 +123,12 @@ class Terceirizada(ExportModelOperationsMixin('terceirizada'), TemChaveExterna, 
                            validators=[MinLengthValidator(11)])
     responsavel_telefone = models.CharField('Responsável contato (telefone)', max_length=160, blank=True)
     responsavel_cargo = models.CharField('Responsável cargo', max_length=50, blank=True)
+    # OBS.: Uso exclusivo do modulo de abastecimento(logistica).
+    # Não tem relação com o processo do edital com associação de contrato a empresa.
+    numero_contrato = models.CharField('Número de contrato', max_length=50, blank=True)
+    tipo_empresa = models.CharField(choices=TIPO_EMPRESA_CHOICES, max_length=25, default=TERCEIRIZADA)
+    tipo_alimento = models.CharField(choices=TIPO_ALIMENTO_CHOICES, max_length=25, default=TIPO_ALIMENTO_TERCEIRIZADA)
+    criado_em = models.DateTimeField('Criado em', editable=False, auto_now_add=True)
 
     # TODO: criar uma tabela central (Instituição) para agregar Escola, DRE, Terc e CODAE???
     # e a partir dai a instituição que tem contatos e endereço?

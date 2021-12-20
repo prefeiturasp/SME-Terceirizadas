@@ -6,6 +6,7 @@ from django.db import models
 from django_prometheus.models import ExportModelOperationsMixin
 
 from ..dados_comuns.behaviors import (
+    ArquivoCargaBase,
     Ativavel,
     CriadoEm,
     CriadoPor,
@@ -19,7 +20,7 @@ from ..dados_comuns.behaviors import (
 from ..dados_comuns.fluxo_status import FluxoDietaEspecialPartindoDaEscola
 from ..dados_comuns.models import LogSolicitacoesUsuario, TemplateMensagem
 from ..dados_comuns.utils import convert_base64_to_contentfile
-from ..dados_comuns.validators import nao_pode_ser_no_passado
+from ..dados_comuns.validators import nao_pode_ser_no_passado  # noqa
 from ..escola.api.serializers import AlunoSerializer
 from ..escola.models import Aluno, Escola
 from .managers import AlimentoProprioManager
@@ -125,7 +126,7 @@ class SolicitacaoDietaEspecial(
     justificativa_negacao = models.TextField(blank=True)
 
     data_termino = models.DateField(
-        null=True, validators=[nao_pode_ser_no_passado])
+        null=True) # , validators=[nao_pode_ser_no_passado] # noqa
 
     motivo_alteracao_ue = models.ForeignKey(
         'MotivoAlteracaoUE',
@@ -168,6 +169,10 @@ class SolicitacaoDietaEspecial(
         'Características dos alimentos',
         blank=True
     )
+
+    conferido = models.BooleanField('Marcar como conferido?', default=False)
+
+    eh_importado = models.BooleanField('Proveniente de importacao?', default=False)
 
     @classmethod
     def aluno_possui_dieta_especial_pendente(cls, aluno):
@@ -286,6 +291,15 @@ class MotivoAlteracaoUE(Descritivel, Nomeavel, TemChaveExterna):
 
 
 class MotivoNegacao(Descritivel):
+    CANCELAMENTO = 'CANCELAMENTO'
+    INCLUSAO = 'INCLUSAO'
+
+    PROCESSO_CHOICES = (
+        (CANCELAMENTO, 'Solicitação de Cancelamento'),
+        (INCLUSAO, 'Solicitação de Inclusão'),
+    )
+
+    processo = models.CharField(choices=PROCESSO_CHOICES, default=INCLUSAO, blank=False, max_length=20)
 
     def __str__(self):
         return self.descricao
@@ -310,6 +324,15 @@ class Alimento(Nomeavel, TemChaveExterna, Ativavel):
         ('E', 'Edital'),
         ('P', 'Proprio')
     )
+    SO_ALIMENTOS = 'SO_ALIMENTOS'
+    SO_SUBSTITUTOS = 'SO_SUBSTITUTOS'
+    AMBOS = 'AMBOS'
+    TIPO_LISTAGEM_PROTOCOLO = (
+        (SO_ALIMENTOS, 'Aparece somente na listagem de alimentos'),
+        (SO_SUBSTITUTOS, 'Aparece somente na listagem de alimentos substitutos'),
+        (AMBOS, 'Aparece nas listagem de alimentos e substitutos')
+    )
+
     tipo = models.CharField(max_length=1, choices=TIPO_CHOICES, default='E')
     marca = models.ForeignKey(
         'produto.Marca',
@@ -318,6 +341,7 @@ class Alimento(Nomeavel, TemChaveExterna, Ativavel):
         null=True
     )
     outras_informacoes = models.CharField(max_length=255, blank=True)
+    tipo_listagem_protocolo = models.CharField(max_length=15, choices=TIPO_LISTAGEM_PROTOCOLO, default=SO_ALIMENTOS)
 
     class Meta:
         ordering = ('nome',)
@@ -541,3 +565,36 @@ auditlog.register(ProtocoloPadraoDietaEspecial)
 auditlog.register(SubstituicaoAlimentoProtocoloPadrao)
 auditlog.register(SubstituicaoAlimentoProtocoloPadrao.alimentos_substitutos.through)
 auditlog.register(AlimentoSubstituto)
+
+
+class ArquivoCargaDietaEspecial(ArquivoCargaBase):
+    resultado = models.FileField(blank=True, default='')
+
+    class Meta:
+        verbose_name = 'Arquivo para importação de solicitações de Dieta Especial'
+        verbose_name_plural = 'Arquivos para importação de solicitações de Dieta Especial'
+
+    def __str__(self) -> str:
+        return str(self.conteudo)
+
+
+class ArquivoCargaAlimentosSubstitutos(ArquivoCargaBase):
+    class Meta:
+        verbose_name = 'Arquivo para importação de Alimentos e Alimentos substitutos'
+        verbose_name_plural = 'Arquivos para importação de Alimentos e Alimentos substitutos'
+
+    def __str__(self) -> str:
+        return str(self.conteudo)
+
+
+class ArquivoCargaUsuariosEscola(ArquivoCargaBase):
+    """Essa classe foi colocada aqui pois os usuários seriam usados para a dieta especial."""
+
+    resultado = models.FileField(blank=True, default='')
+
+    class Meta:
+        verbose_name = 'Arquivo para importação de usuários Diretor e Assistente Diretor'
+        verbose_name_plural = 'Arquivos para importação de usuários Diretor e Assistente Diretor'
+
+    def __str__(self) -> str:
+        return str(self.conteudo)

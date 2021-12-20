@@ -1,14 +1,18 @@
 from django.contrib import admin, messages
 from django.shortcuts import redirect
+from rangefilter.filters import DateRangeFilter
 
 from .models import (
     Aluno,
+    AlunosMatriculadosPeriodoEscola,
     Codae,
+    DiaCalendario,
     DiretoriaRegional,
     Escola,
     EscolaPeriodoEscolar,
     FaixaIdadeEscolar,
     LogAlteracaoQuantidadeAlunosPorEscolaEPeriodoEscolar,
+    LogAlunosMatriculadosPeriodoEscola,
     LogRotinaDiariaAlunos,
     Lote,
     PeriodoEscolar,
@@ -117,6 +121,27 @@ class PlanilhaEscolaDeParaCodigoEolCodigoCoadeAdmin(admin.ModelAdmin):
         )
         return redirect('admin:escola_planilhaescoladeparacodigoeolcodigocoade_changelist')
     vincular_codigos_codae_da_planilha.short_description = 'Executar atualização dos códigos codae das escolas'
+
+
+@admin.register(AlunosMatriculadosPeriodoEscola)
+class AlunosMatriculadosPeriodoEscolaAdmin(admin.ModelAdmin):
+    list_display = ('__str__', 'alterado_em', 'tipo_turma')
+    search_fields = ('escola__nome', 'periodo_escolar__nome')
+    list_filter = ('alterado_em', 'tipo_turma')
+
+
+@admin.register(LogAlunosMatriculadosPeriodoEscola)
+class LogAlunosMatriculadosPeriodoEscolaAdmin(admin.ModelAdmin):
+    list_display = ('__str__', 'criado_em', 'tipo_turma')
+    search_fields = ('escola__nome', 'periodo_escolar__nome')
+    list_filter = (('criado_em', DateRangeFilter), 'tipo_turma')
+
+
+@admin.register(DiaCalendario)
+class DiaCalendarioAdmin(admin.ModelAdmin):
+    list_display = ('__str__', 'data', 'dia_letivo')
+    search_fields = ('escola__nome',)
+    list_filter = (('data', DateRangeFilter),)
 
 
 admin.site.register(Codae)

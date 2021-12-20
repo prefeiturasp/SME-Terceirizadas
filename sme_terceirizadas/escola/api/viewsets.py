@@ -28,6 +28,7 @@ from ...escola.api.serializers import (
     CODAESerializer,
     EscolaPeriodoEscolarSerializer,
     LoteNomeSerializer,
+    LoteSerializer,
     LoteSimplesSerializer,
     UsuarioDetalheSerializer
 )
@@ -157,6 +158,18 @@ class EscolaSimplissimaViewSet(ListModelMixin, RetrieveModelMixin, GenericViewSe
     pagination_class = EscolaSimplissimaPagination
     filterset_fields = ['codigo_eol', 'nome', 'diretoria_regional__uuid']
 
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        if 'page' in request.query_params:
+            page = self.paginate_queryset(queryset)
+            if page is not None:
+                serializer = self.get_serializer(page, many=True)
+                return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({'results': serializer.data})
+
     @action(detail=False, methods=['GET'], url_path=f'{FILTRO_DRE_UUID}')
     def filtro_por_diretoria_regional(self, request, dre_uuid=None):
         escolas = Escola.objects.filter(diretoria_regional__uuid=dre_uuid)
@@ -270,6 +283,14 @@ class LoteViewSet(ModelViewSet):
     lookup_field = 'uuid'
     serializer_class = LoteSimplesSerializer
     queryset = Lote.objects.all()
+
+    @action(detail=False, methods=['GET'], url_path='meus-lotes-vinculados')
+    def meus_lotes_vinculados(self, request):
+        if (request.user.tipo_usuario == 'diretoriaregional'):
+            lotes = self.queryset.filter(diretoria_regional=request.user.vinculo_atual.instituicao)
+        else:
+            lotes = self.queryset.filter(terceirizada=request.user.vinculo_atual.instituicao)
+        return Response({'results': LoteSerializer(lotes, many=True).data})
 
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update']:

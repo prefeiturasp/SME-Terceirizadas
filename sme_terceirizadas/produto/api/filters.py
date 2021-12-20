@@ -1,5 +1,6 @@
 from datetime import timedelta
 
+from django.db.models import Q
 from django_filters import rest_framework as filters
 
 from ...dados_comuns.fluxo_status import HomologacaoProdutoWorkflow
@@ -58,3 +59,12 @@ def filtros_produto_reclamacoes(request):
         filtro_homologacao['homologacoes__reclamacoes__criado_em__lte'] = data_final_reclamacao
         filtro_reclamacao['criado_em__lte'] = data_final_reclamacao
     return filtro_reclamacao, filtro_homologacao
+
+
+class ItemCadastroFilter(filters.FilterSet):
+    nome = filters.CharFilter(method='filtra_nome', lookup_expr='icontains')
+    tipo = filters.CharFilter(field_name='tipo', lookup_expr='iexact')
+
+    def filtra_nome(self, qs, _, value):
+        return qs.filter(Q(fabricante__nome__icontains=value) | Q(marca__nome__icontains=value)
+                         | Q(unidade_medida__nome__icontains=value) | Q(embalagem_produto__nome__icontains=value))

@@ -87,6 +87,7 @@ def inclusao_alimentacao_continua_params(escola, motivo_inclusao_continua, reque
                        data_inicial=data_inicial,
                        data_final=data_final,
                        outro_motivo=fake.name(),
+                       observacao=fake.name(),
                        escola=escola)
     return model, esperado
 
@@ -103,6 +104,7 @@ def inclusao_alimentacao_continua(escola, motivo_inclusao_continua, request, tem
                       data_inicial=data_inicial,
                       data_final=data_final,
                       outro_motivo=fake.name(),
+                      observacao=fake.name(),
                       escola=escola,
                       rastro_escola=escola,
                       rastro_dre=escola.diretoria_regional)
@@ -121,6 +123,7 @@ def inclusao_alimentacao_continua_outra_dre(escola_dre_guaianases, motivo_inclus
                       data_inicial=data_inicial,
                       data_final=data_final,
                       outro_motivo=fake.name(),
+                      observacao=fake.name(),
                       escola=escola_dre_guaianases,
                       rastro_escola=escola_dre_guaianases,
                       rastro_dre=escola_dre_guaianases.diretoria_regional)
@@ -159,6 +162,18 @@ def inclusao_alimentacao_normal(motivo_inclusao_normal):
     return mommy.make(models.InclusaoAlimentacaoNormal,
                       data=datetime.date(2019, 10, 1),
                       motivo=motivo_inclusao_normal)
+
+
+@pytest.fixture()
+def inclusao_alimentacao_cei(motivo_inclusao_normal, escola, template_inclusao_continua):
+    return mommy.make(models.InclusaoAlimentacaoDaCEI,
+                      data=datetime.date(2019, 10, 2),
+                      motivo=motivo_inclusao_normal,
+                      outro_motivo=fake.name(),
+                      observacao=fake.name(),
+                      escola=escola,
+                      rastro_escola=escola,
+                      rastro_dre=escola.diretoria_regional)
 
 
 @pytest.fixture
@@ -309,7 +324,7 @@ def grupo_inclusao_alimentacao_nome():
 @pytest.fixture
 def client_autenticado_vinculo_escola_inclusao(client, django_user_model, escola, template_inclusao_normal):
     email = 'test@test.com'
-    password = 'bar'
+    password = constants.DJANGO_ADMIN_PASSWORD
     user = django_user_model.objects.create_user(password=password, email=email,
                                                  registro_funcional='8888888')
     perfil_diretor = mommy.make('Perfil', nome=constants.DIRETOR, ativo=True)
@@ -323,7 +338,7 @@ def client_autenticado_vinculo_escola_inclusao(client, django_user_model, escola
 @pytest.fixture
 def client_autenticado_vinculo_escola_cei_inclusao(client, django_user_model, escola, template_inclusao_normal):
     email = 'test@test.com'
-    password = 'bar'
+    password = constants.DJANGO_ADMIN_PASSWORD
     user = django_user_model.objects.create_user(password=password, email=email,
                                                  registro_funcional='8888888')
     perfil_diretor = mommy.make('Perfil', nome=constants.DIRETOR_CEI, ativo=True)
@@ -337,7 +352,7 @@ def client_autenticado_vinculo_escola_cei_inclusao(client, django_user_model, es
 @pytest.fixture
 def client_autenticado_vinculo_dre_inclusao(client, django_user_model, escola, template_inclusao_normal):
     email = 'test@test1.com'
-    password = 'bar'
+    password = constants.DJANGO_ADMIN_PASSWORD
     user = django_user_model.objects.create_user(password=password, email=email,
                                                  registro_funcional='8888889')
     perfil_cogestor = mommy.make('Perfil', nome='COGESTOR', ativo=True)
@@ -351,7 +366,7 @@ def client_autenticado_vinculo_dre_inclusao(client, django_user_model, escola, t
 @pytest.fixture
 def client_autenticado_vinculo_codae_inclusao(client, django_user_model, escola, codae):
     email = 'test@test.com'
-    password = 'bar'
+    password = constants.DJANGO_ADMIN_PASSWORD
     user = django_user_model.objects.create_user(password=password, email=email,
                                                  registro_funcional='8888888')
     perfil_admin_gestao_alimentacao = mommy.make('Perfil', nome=constants.ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
@@ -370,7 +385,7 @@ def client_autenticado_vinculo_codae_inclusao(client, django_user_model, escola,
 @pytest.fixture
 def client_autenticado_vinculo_terceirizada_inclusao(client, django_user_model, escola, codae):
     email = 'test@test.com'
-    password = 'bar'
+    password = constants.DJANGO_ADMIN_PASSWORD
     user = django_user_model.objects.create_user(password=password, email=email,
                                                  registro_funcional='8888888')
     perfil_nutri_admin = mommy.make('Perfil', nome=constants.NUTRI_ADMIN_RESPONSAVEL,

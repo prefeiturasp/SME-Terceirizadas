@@ -5,6 +5,7 @@ from .models import (
     Contato,
     Endereco,
     LogSolicitacoesUsuario,
+    Notificacao,
     PerguntaFrequente,
     TemplateMensagem
 )
@@ -12,12 +13,13 @@ from .models import (
 
 @admin.register(Contato)
 class ContatoAdmin(admin.ModelAdmin):
-    list_display = ('telefone', 'telefone2', 'email')
-    search_fields = ('telefone', 'telefone2', 'email')
+    list_display = ('email', 'nome', 'telefone', 'telefone2')
+    search_fields = ('email', 'nome', 'telefone', 'telefone2')
 
 
 admin.site.register(CategoriaPerguntaFrequente)
 admin.site.register(Endereco)
 admin.site.register(LogSolicitacoesUsuario)
+admin.site.register(Notificacao)
 admin.site.register(PerguntaFrequente)
 admin.site.register(TemplateMensagem)

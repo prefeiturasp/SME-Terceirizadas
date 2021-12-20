@@ -71,9 +71,11 @@ class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmiga
                                         LogSolicitacoesUsuario.INICIO_FLUXO]
 
     NEGADOS_STATUS_DIETA_ESPECIAL = [DietaEspecialWorkflow.CODAE_NEGOU_PEDIDO,
-                                     DietaEspecialWorkflow.CODAE_NEGOU_INATIVACAO]
+                                     DietaEspecialWorkflow.CODAE_NEGOU_INATIVACAO,
+                                     DietaEspecialWorkflow.CODAE_NEGOU_CANCELAMENTO]
     NEGADOS_EVENTO_DIETA_ESPECIAL = [LogSolicitacoesUsuario.CODAE_NEGOU,
-                                     LogSolicitacoesUsuario.CODAE_NEGOU_INATIVACAO]
+                                     LogSolicitacoesUsuario.CODAE_NEGOU_INATIVACAO,
+                                     LogSolicitacoesUsuario.CODAE_NEGOU_CANCELAMENTO]
 
     CANCELADOS_STATUS_DIETA_ESPECIAL = [
         DietaEspecialWorkflow.ESCOLA_CANCELOU,
@@ -160,6 +162,8 @@ class MoldeConsolidado(models.Model, TemPrioridade, TemIdentificadorExternoAmiga
     objects = models.Manager()
     filtro_7_dias = SolicitacoesDestaSemanaManager()
     filtro_30_dias = SolicitacoesDesteMesManager()
+    conferido = models.BooleanField()
+    terceirizada_conferiu_gestao = models.BooleanField()
 
     @classmethod
     def get_pendentes_autorizacao(cls, **kwargs):
@@ -503,8 +507,10 @@ class SolicitacoesEscola(MoldeConsolidado):
     CANCELADOS_STATUS = [PedidoAPartirDaEscolaWorkflow.ESCOLA_CANCELOU]
     CANCELADOS_EVENTO = [LogSolicitacoesUsuario.ESCOLA_CANCELOU]
 
-    NEGADOS_STATUS = [PedidoAPartirDaEscolaWorkflow.CODAE_NEGOU_PEDIDO]
-    NEGADOS_EVENTO = [LogSolicitacoesUsuario.CODAE_NEGOU]
+    NEGADOS_STATUS = [PedidoAPartirDaEscolaWorkflow.CODAE_NEGOU_PEDIDO,
+                      PedidoAPartirDaEscolaWorkflow.DRE_NAO_VALIDOU_PEDIDO_ESCOLA]
+    NEGADOS_EVENTO = [LogSolicitacoesUsuario.CODAE_NEGOU,
+                      LogSolicitacoesUsuario.DRE_NAO_VALIDOU]
 
     @classmethod
     def get_pendentes_dieta_especial(cls, **kwargs):
@@ -520,14 +526,29 @@ class SolicitacoesEscola(MoldeConsolidado):
     def get_autorizados_dieta_especial(cls, **kwargs):
         escola_uuid = kwargs.get('escola_uuid')
         escola_destino = Escola.objects.get(uuid=escola_uuid)
-        return cls.objects.filter(
+
+        # Mantive o comportamento normal para as solicitações
+        # que não são de alteração de UE.
+        solicitacoes_em_vigencia_e_ativas = cls.objects.filter(
             Q(em_vigencia=True) | Q(em_vigencia__isnull=True),
             escola_destino_id=escola_destino.id,
+            escola_uuid=escola_uuid,
             status_atual__in=cls.AUTORIZADO_STATUS_DIETA_ESPECIAL,
             status_evento__in=cls.AUTORIZADO_EVENTO_DIETA_ESPECIAL,
             tipo_doc=cls.TP_SOL_DIETA_ESPECIAL,
             ativo=True
-        ).distinct().order_by('-data_log')
+        )
+
+        solicitacoes_de_alteracao_para_escola_de_origem = cls.objects.filter(
+            Q(em_vigencia=False) | Q(em_vigencia=True, ativo=True),
+            escola_uuid=escola_uuid,
+            status_atual__in=cls.AUTORIZADO_STATUS_DIETA_ESPECIAL,
+            status_evento__in=cls.AUTORIZADO_EVENTO_DIETA_ESPECIAL,
+            tipo_doc=cls.TP_SOL_DIETA_ESPECIAL,
+            dieta_alterada_id__isnull=False
+        )
+        solicitacoes = solicitacoes_em_vigencia_e_ativas | solicitacoes_de_alteracao_para_escola_de_origem
+        return solicitacoes.distinct().order_by('-data_log')
 
     @classmethod
     def get_negados_dieta_especial(cls, **kwargs):
@@ -542,8 +563,10 @@ class SolicitacoesEscola(MoldeConsolidado):
     @classmethod
     def get_cancelados_dieta_especial(cls, **kwargs):
         escola_uuid = kwargs.get('escola_uuid')
+        escola_destino = Escola.objects.get(uuid=escola_uuid)
         return cls.objects.filter(
             Q(
+                Q(escola_uuid=escola_uuid) | Q(escola_destino_id=escola_destino.id),
                 tipo_solicitacao_dieta='ALTERACAO_UE',
                 status_atual__in=cls.CANCELADOS_STATUS_DIETA_ESPECIAL_TEMP,
                 status_evento__in=cls.CANCELADOS_EVENTO_DIETA_ESPECIAL_TEMP,
@@ -551,13 +574,26 @@ class SolicitacoesEscola(MoldeConsolidado):
                 tipo_solicitacao_dieta='COMUM',
                 status_atual__in=cls.CANCELADOS_STATUS_DIETA_ESPECIAL,
                 status_evento__in=cls.CANCELADOS_EVENTO_DIETA_ESPECIAL,
+                escola_uuid=escola_uuid
             ),
             tipo_doc=cls.TP_SOL_DIETA_ESPECIAL,
-            escola_uuid=escola_uuid
         ).distinct().order_by('-data_log')
 
     @classmethod
     def get_autorizadas_temporariamente_dieta_especial(cls, **kwargs):
+        escola_uuid = kwargs.get('escola_uuid')
+        escola_destino = Escola.objects.get(uuid=escola_uuid)
+        return cls.objects.filter(
+            escola_destino_id=escola_destino.id,
+            status_atual__in=cls.AUTORIZADO_STATUS_DIETA_ESPECIAL,
+            status_evento__in=cls.AUTORIZADO_EVENTO_DIETA_ESPECIAL,
+            tipo_doc=cls.TP_SOL_DIETA_ESPECIAL,
+            dieta_alterada_id__isnull=False,
+            em_vigencia=True,
+        ).distinct().order_by('-data_log')
+
+    @classmethod
+    def get_aguardando_vigencia_dieta_especial(cls, **kwargs):
         escola_uuid = kwargs.get('escola_uuid')
         escola_destino = Escola.objects.get(uuid=escola_uuid)
         return cls.objects.filter(
@@ -614,8 +650,9 @@ class SolicitacoesEscola(MoldeConsolidado):
 
     @classmethod
     def get_autorizados(cls, **kwargs):
-        from sme_terceirizadas.kit_lanche.models import SolicitacaoKitLancheUnificada
         from django.db.models import Q
+
+        from sme_terceirizadas.kit_lanche.models import SolicitacaoKitLancheUnificada
 
         escola_uuid = kwargs.get('escola_uuid')
         uuids_solicitacao_unificadas = SolicitacaoKitLancheUnificada.objects.filter(
@@ -938,7 +975,8 @@ class SolicitacoesTerceirizada(MoldeConsolidado):
             terceirizada_uuid=terceirizada_uuid,
             status_atual__in=cls.AUTORIZADO_STATUS_DIETA_ESPECIAL,
             status_evento__in=cls.AUTORIZADO_EVENTO_DIETA_ESPECIAL,
-            tipo_doc=cls.TP_SOL_DIETA_ESPECIAL
+            tipo_doc=cls.TP_SOL_DIETA_ESPECIAL,
+            ativo=True
         ).distinct().order_by('-data_log')
 
     @classmethod
@@ -955,14 +993,33 @@ class SolicitacoesTerceirizada(MoldeConsolidado):
     def get_cancelados_dieta_especial(cls, **kwargs):
         terceirizada_uuid = kwargs.get('terceirizada_uuid')
         return cls.objects.filter(
-            terceirizada_uuid=terceirizada_uuid,
-            status_atual__in=cls.CANCELADOS_STATUS_DIETA_ESPECIAL,
-            status_evento__in=cls.CANCELADOS_EVENTO_DIETA_ESPECIAL,
-            tipo_doc=cls.TP_SOL_DIETA_ESPECIAL
+            Q(
+                tipo_solicitacao_dieta='ALTERACAO_UE',
+                status_atual__in=cls.CANCELADOS_STATUS_DIETA_ESPECIAL_TEMP,
+                status_evento__in=cls.CANCELADOS_EVENTO_DIETA_ESPECIAL_TEMP,
+            ) | Q(
+                tipo_solicitacao_dieta='COMUM',
+                status_atual__in=cls.CANCELADOS_STATUS_DIETA_ESPECIAL,
+                status_evento__in=cls.CANCELADOS_EVENTO_DIETA_ESPECIAL,
+            ),
+            tipo_doc=cls.TP_SOL_DIETA_ESPECIAL,
+            terceirizada_uuid=terceirizada_uuid
         ).distinct().order_by('-data_log')
 
     @classmethod
     def get_autorizadas_temporariamente_dieta_especial(cls, **kwargs):
+        terceirizada_uuid = kwargs.get('terceirizada_uuid')
+        return cls.objects.filter(
+            terceirizada_uuid=terceirizada_uuid,
+            status_atual__in=cls.AUTORIZADO_STATUS_DIETA_ESPECIAL,
+            status_evento__in=cls.AUTORIZADO_EVENTO_DIETA_ESPECIAL,
+            tipo_doc=cls.TP_SOL_DIETA_ESPECIAL,
+            dieta_alterada_id__isnull=False,
+            em_vigencia=True
+        ).distinct().order_by('-data_log')
+
+    @classmethod
+    def get_aguardando_vigencia_dieta_especial(cls, **kwargs):
         terceirizada_uuid = kwargs.get('terceirizada_uuid')
         return cls.objects.filter(
             terceirizada_uuid=terceirizada_uuid,

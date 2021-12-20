@@ -1,10 +1,11 @@
+from django_filters import rest_framework as filters
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST
-from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
+from rest_framework.viewsets import ModelViewSet
 from xworkflows import InvalidTransitionError
 
 from ...dados_comuns import constants
@@ -23,14 +24,45 @@ from ...relatorios.relatorios import (
 )
 from .. import models
 from ..api.validators import nao_deve_ter_mais_solicitacoes_que_alunos
+from ..filters import KitLancheFilter
 from ..models import SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheCEIAvulsa, SolicitacaoKitLancheUnificada
+from ..utils import KitLanchePagination
 from .serializers import serializers, serializers_create, serializers_create_cei
 
 
-class KitLancheViewSet(ReadOnlyModelViewSet):
+class KitLancheViewSet(ModelViewSet):
     lookup_field = 'uuid'
     queryset = models.KitLanche.objects.all()
     serializer_class = serializers.KitLancheSerializer
+    pagination_class = KitLanchePagination
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = KitLancheFilter
+
+    @action(detail=False, methods=['GET'], url_path='consulta-kits')
+    def lista_kits_consulta(self, request):
+        queryset = self.filter_queryset(self.get_queryset().order_by('id'))
+        page = self.paginate_queryset(queryset)
+        serializer = serializers.KitLancheConsultaSerializer(page, many=True)
+        response = self.get_paginated_response(
+            serializer.data
+        )
+        return response
+
+    @action(detail=False, methods=['GET'], url_path='nome-existe')
+    def valida_nome_kit_lanche(self, request):
+        try:
+            nome = request.query_params.get('nome').upper()
+            edital = request.query_params.get('edital')
+            uuid = request.query_params.get('uuid')
+            kit_lanche = self.queryset.get(nome=nome, edital__uuid=edital)
+            if (str(kit_lanche.uuid) != uuid):
+                return Response(dict(
+                    detail='Esse nome de kit lanche já existe para edital selecionado'),
+                    status=HTTP_200_OK)
+            else:
+                return Response(dict(detail='Nome válido'), status=404)
+        except models.KitLanche.DoesNotExist:
+            return Response(dict(detail='Nome válido'), status=404)
 
 
 class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
@@ -252,6 +284,20 @@ class SolicitacaoKitLancheAvulsaViewSet(ModelViewSet):
     def relatorio(self, request, uuid=None):
         return relatorio_kit_lanche_passeio(request, solicitacao=self.get_object())
 
+    @action(detail=True,
+            methods=['patch'],
+            url_path=constants.MARCAR_CONFERIDA,
+            permission_classes=(IsAuthenticated,))
+    def terceirizada_marca_inclusao_como_conferida(self, request, uuid=None):
+        solicitacao_kit_lanche_avulsa: SolicitacaoKitLancheAvulsa = self.get_object()
+        try:
+            solicitacao_kit_lanche_avulsa.terceirizada_conferiu_gestao = True
+            solicitacao_kit_lanche_avulsa.save()
+            serializer = self.get_serializer(solicitacao_kit_lanche_avulsa)
+            return Response(serializer.data)
+        except Exception as e:
+            return Response(dict(detail=f'Erro ao marcar solicitação como conferida: {e}'), status=status.HTTP_400_BAD_REQUEST)  # noqa
+
 
 class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
     lookup_field = 'uuid'
@@ -422,6 +468,20 @@ class SolicitacaoKitLancheUnificadaViewSet(ModelViewSet):
             return Response(dict(detail='Você só pode excluir quando o status for RASCUNHO.'),
                             status=status.HTTP_403_FORBIDDEN)
 
+    @action(detail=True,
+            methods=['patch'],
+            url_path=constants.MARCAR_CONFERIDA,
+            permission_classes=(IsAuthenticated,))
+    def terceirizada_marca_inclusao_como_conferida(self, request, uuid=None):
+        solicitacao_kit_lanche_unificado: SolicitacaoKitLancheUnificada = self.get_object()
+        try:
+            solicitacao_kit_lanche_unificado.terceirizada_conferiu_gestao = True
+            solicitacao_kit_lanche_unificado.save()
+            serializer = self.get_serializer(solicitacao_kit_lanche_unificado)
+            return Response(serializer.data)
+        except Exception as e:
+            return Response(dict(detail=f'Erro ao marcar solicitação como conferida: {e}'), status=status.HTTP_400_BAD_REQUEST)  # noqa
+
 
 class SolicitacaoKitLancheCEIAvulsaViewSet(SolicitacaoKitLancheAvulsaViewSet):
     lookup_field = 'uuid'
@@ -487,3 +547,17 @@ class SolicitacaoKitLancheCEIAvulsaViewSet(SolicitacaoKitLancheAvulsaViewSet):
             methods=['get'])
     def relatorio(self, request, uuid=None):
         return relatorio_kit_lanche_passeio_cei(request, solicitacao=self.get_object())
+
+    @action(detail=True,
+            methods=['patch'],
+            url_path=constants.MARCAR_CONFERIDA,
+            permission_classes=(IsAuthenticated,))
+    def terceirizada_marca_inclusao_como_conferida(self, request, uuid=None):
+        solicitacao_kit_lanche_cei_avulsa: SolicitacaoKitLancheCEIAvulsa = self.get_object()
+        try:
+            solicitacao_kit_lanche_cei_avulsa.terceirizada_conferiu_gestao = True
+            solicitacao_kit_lanche_cei_avulsa.save()
+            serializer = self.get_serializer(solicitacao_kit_lanche_cei_avulsa)
+            return Response(serializer.data)
+        except Exception as e:
+            return Response(dict(detail=f'Erro ao marcar solicitação como conferida: {e}'), status=status.HTTP_400_BAD_REQUEST)  # noqa

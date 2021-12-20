@@ -13,7 +13,7 @@
   </style>
 
   <div class="conteudo tabela-sem-borda">
-  {% include "bloco_fluxo_status_homologacao.html" %}
+  {% include "bloco_fluxo_status_homologacao.html" with eh_importado=solicitacao.eh_importado %}
     {% include "bloco_cabecalho_solicitacao_partindo_escola.html" %}
     <div class="bloco-pescritor-dieta-especial">
       <h5>Descrição da solicitação</h5>
@@ -62,14 +62,16 @@
 
     <div class="bloco-pescritor-dieta-especial">
       <table>
-        <tr>
-          <th class="w-50">Nome do Pescritor</th>
-          <th class="w-50">Registro Funcional</th>
-        </tr>
-        <tr>
-          <td>{{ solicitacao.nome_completo_pescritor }}</td>
-          <td>{{ solicitacao.registro_funcional_pescritor }}</td>
-        </tr>
+        {% if solicitacao.eh_importado == False %}
+          <tr>
+            <th class="w-50">Nome do Pescritor</th>
+            <th class="w-50">Registro Funcional</th>
+          </tr>
+          <tr>
+            <td>{{ solicitacao.nome_completo_pescritor }}</td>
+            <td>{{ solicitacao.registro_funcional_pescritor }}</td>
+          </tr>
+        {% endif %}
       </table>
 
       {% if solicitacao.status != 'CODAE_A_AUTORIZAR' and solicitacao.status != 'CODAE_NEGOU_PEDIDO' and solicitacao.status != 'ESCOLA_CANCELOU' %}

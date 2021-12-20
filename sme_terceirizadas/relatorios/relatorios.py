@@ -9,7 +9,7 @@ from ..dados_comuns.fluxo_status import ReclamacaoProdutoWorkflow
 from ..dados_comuns.models import LogSolicitacoesUsuario
 from ..kit_lanche.models import EscolaQuantidade
 from ..logistica.api.helpers import retorna_status_guia_remessa
-from ..relatorios.utils import html_to_pdf_response
+from ..relatorios.utils import html_to_pdf_multiple_response, html_to_pdf_response, html_to_pdf_response_cancelada
 from ..terceirizada.utils import transforma_dados_relatorio_quantitativo
 from . import constants
 from .utils import (
@@ -126,6 +126,7 @@ def relatorio_dieta_especial_conteudo(solicitacao):
             fluxo = constants.FLUXO_DIETA_ESPECIAL_INATIVACAO_INCOMPLETO
     else:
         fluxo = constants.FLUXO_DIETA_ESPECIAL
+    eh_importado = solicitacao.eh_importado
     html_string = render_to_string(
         'solicitacao_dieta_especial.html',
         {
@@ -135,7 +136,8 @@ def relatorio_dieta_especial_conteudo(solicitacao):
             'solicitacao': solicitacao,
             'fluxo': fluxo,
             'width': get_width(fluxo, solicitacao.logs),
-            'logs': formata_logs(logs)
+            'logs': formata_logs(logs),
+            'eh_importado': eh_importado
         }
     )
     return html_string
@@ -143,29 +145,37 @@ def relatorio_dieta_especial_conteudo(solicitacao):
 
 def relatorio_guia_de_remessa(guias): # noqa C901
     SERVER_NAME = env.str('SERVER_NAME', default=None)
-    pages = []
-    inicio = 0
-    num_alimentos_pagina = 4
-    insucesso = None
-    conferencia = None
+    page = None
+    lista_pdfs = []
     for guia in guias:
+        lista_imagens_conferencia = []
+        lista_imagens_reposicao = []
+        conferencias_individuais = []
+        reposicoes_individuais = []
+        reposicao = None
+        insucesso = guia.insucessos.last() if guia.insucessos else None
         todos_alimentos = guia.alimentos.all().annotate(
             peso_total=Sum(
                 F('embalagens__capacidade_embalagem') * F('embalagens__qtd_volume'), output_field=FloatField()
             )
-        ).order_by('nome_alimento')
+        )
 
-        if guia.status == GuiaStatus.DISTRIBUIDOR_REGISTRA_INSUCESSO:
-            insucesso = guia.insucessos.last()
+        if guia.status == GuiaStatus.PENDENTE_DE_CONFERENCIA or guia.status == GuiaStatus.CANCELADA:
+            conferencia = None
+            reposicao = None
         elif guia.status == GuiaStatus.RECEBIDA:
             conferencia = guia.conferencias.last()
-            num_alimentos_pagina = 3
-        elif guia.status in (GuiaStatus.RECEBIMENTO_PARCIAL, GuiaStatus.NAO_RECEBIDA):
-            num_alimentos_pagina = 2
-            conferencia = guia.conferencias.last()
-            conferencias_individuais = conferencia.conferencia_dos_alimentos.all()
+
+        else:
+            conferencia = guia.conferencias.filter(eh_reposicao=False).last()
+            reposicao = guia.conferencias.filter(eh_reposicao=True).last()
+            if conferencia:
+                conferencias_individuais = conferencia.conferencia_dos_alimentos.all()
+            if reposicao:
+                reposicoes_individuais = reposicao.conferencia_dos_alimentos.all()
             for alimento_guia in todos_alimentos:
                 conferencias_alimento = []
+                reposicoes_alimento = []
                 for alimento_conferencia in conferencias_individuais:
                     if alimento_guia.nome_alimento == alimento_conferencia.nome_alimento:
                         for embalagem in alimento_guia.embalagens.all():
@@ -174,29 +184,56 @@ def relatorio_guia_de_remessa(guias): # noqa C901
                                 embalagem.ocorrencia = alimento_conferencia.ocorrencia
                                 embalagem.observacao = alimento_conferencia.observacao
                                 embalagem.arquivo = alimento_conferencia.arquivo
+                                if alimento_conferencia.arquivo:
+                                    imagem = {
+                                        'nome_alimento': alimento_guia.nome_alimento,
+                                        'arquivo': alimento_conferencia.arquivo
+                                    }
+                                    lista_imagens_conferencia.append(imagem)
                                 conferencias_alimento.append(embalagem)
                         alimento_guia.embalagens_conferidas = conferencias_alimento
+                for alimento_reposicao in reposicoes_individuais:
+                    if alimento_guia.nome_alimento == alimento_reposicao.nome_alimento:
+                        for embalagem in alimento_guia.embalagens.all():
+                            if embalagem.tipo_embalagem == alimento_reposicao.tipo_embalagem:
+                                embalagem.qtd_recebido = alimento_reposicao.qtd_recebido
+                                embalagem.ocorrencia = alimento_reposicao.ocorrencia
+                                embalagem.observacao = alimento_reposicao.observacao
+                                embalagem.arquivo = alimento_reposicao.arquivo
+                                if alimento_reposicao.arquivo:
+                                    imagem = {
+                                        'nome_alimento': alimento_guia.nome_alimento,
+                                        'arquivo': alimento_reposicao.arquivo
+                                    }
+                                    lista_imagens_reposicao.append(imagem)
+                                reposicoes_alimento.append(embalagem)
+                        alimento_guia.embalagens_repostas = reposicoes_alimento
 
-        while True:
-            alimentos = todos_alimentos[inicio:inicio + num_alimentos_pagina]
-            if alimentos:
-                page = guia.as_dict()
-                peso_total_pagina = round(sum(alimento.peso_total for alimento in alimentos), 2)
-                page['alimentos'] = alimentos
-                page['peso_total'] = peso_total_pagina
-                page['status_guia'] = retorna_status_guia_remessa(page['status'])
-                page['insucesso'] = insucesso
-                page['conferencia'] = conferencia
+        if todos_alimentos:
+            page = guia.as_dict()
+            peso_total_pagina = round(sum(alimento.peso_total for alimento in todos_alimentos), 2)
+            page['alimentos'] = todos_alimentos
+            page['peso_total'] = peso_total_pagina
+            page['status_guia'] = retorna_status_guia_remessa(page['status'])
+            page['insucesso'] = insucesso
+            page['conferencia'] = conferencia
+            page['reposicao'] = reposicao
+            page['lista_imagens_conferencia'] = lista_imagens_conferencia
+            page['lista_imagens_reposicao'] = lista_imagens_reposicao
 
-                pages.append(page)
-                inicio = inicio + num_alimentos_pagina
-            else:
-                break
-        inicio = 0
-    html_string = render_to_string('logistica/guia_remessa/relatorio_guia.html', {'pages': pages, 'URL': SERVER_NAME})
-    data_arquivo = datetime.datetime.today().strftime('%d/%m/%Y às %H:%M')
+        html_string = render_to_string('logistica/guia_remessa/relatorio_guia.html',
+                                       {'pages': [page], 'URL': SERVER_NAME})
+        data_arquivo = datetime.datetime.today().strftime('%d/%m/%Y às %H:%M')
 
-    return html_to_pdf_response(html_string.replace('dt_file', data_arquivo), 'guia_de_remessa.pdf')
+        lista_pdfs.append(html_string.replace('dt_file', data_arquivo))
+
+    if len(lista_pdfs) == 1:
+        if guia.status == GuiaStatus.CANCELADA:
+            return html_to_pdf_response_cancelada(lista_pdfs[0], 'guia_de_remessa.pdf')
+        else:
+            return html_to_pdf_response(lista_pdfs[0], 'guia_de_remessa.pdf')
+    else:
+        return html_to_pdf_multiple_response(lista_pdfs, 'guia_de_remessa.pdf')
 
 
 def relatorio_dieta_especial(request, solicitacao):
@@ -272,13 +309,21 @@ def relatorio_inclusao_alimentacao_cei(request, solicitacao):
 
 
 def relatorio_kit_lanche_passeio(request, solicitacao):
+    TEMPO_PASSEIO = {
+        '0': 'até 4 horas',
+        '1': 'de 5 a 7 horas',
+        '2': '8 horas ou mais'
+    }
     escola = solicitacao.rastro_escola
     logs = solicitacao.logs
     observacao = solicitacao.solicitacao_kit_lanche.descricao
     solicitacao.observacao = observacao
+    tempo_passeio_num = str(solicitacao.solicitacao_kit_lanche.tempo_passeio)
+    tempo_passeio = TEMPO_PASSEIO.get(tempo_passeio_num)
     html_string = render_to_string(
         'solicitacao_kit_lanche_passeio.html',
         {
+            'tempo_passeio': tempo_passeio,
             'escola': escola,
             'solicitacao': solicitacao,
             'quantidade_kits': solicitacao.solicitacao_kit_lanche.kits.all().count() * solicitacao.quantidade_alunos,
@@ -586,7 +631,7 @@ def get_pdf_guia_distribuidor(data=None, many=False):
             peso_total=Sum(
                 F('embalagens__capacidade_embalagem') * F('embalagens__qtd_volume'), output_field=FloatField()
             )
-        ).order_by('nome_alimento')
+        )
         while True:
             alimentos = todos_alimentos[inicio:inicio + num_alimentos_pagina]
             if alimentos:

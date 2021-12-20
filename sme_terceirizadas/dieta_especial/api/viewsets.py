@@ -50,7 +50,7 @@ from ..models import (
     TipoContagem
 )
 from ..utils import ProtocoloPadraoPagination, RelatorioPagination
-from .filters import AlimentoFilter, DietaEspecialFilter
+from .filters import AlimentoFilter, DietaEspecialFilter, MotivoNegacaoFilter
 from .serializers import (
     AlergiaIntoleranciaSerializer,
     AlimentoSerializer,
@@ -142,7 +142,7 @@ class SolicitacaoDietaEspecialViewSet(
             aluno__codigo_eol=codigo_eol_aluno
         ).exclude(
             status=SolicitacaoDietaEspecial.workflow_class.CODAE_A_AUTORIZAR
-        )
+        ).order_by('-criado_em')
         page = self.paginate_queryset(solicitacoes)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
@@ -283,6 +283,39 @@ class SolicitacaoDietaEspecialViewSet(
             return Response(serializer.data)
         except InvalidTransitionError as e:
             return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)  # noqa
+
+    @action(
+        detail=True,
+        methods=['post'],
+        url_path=constants.CODAE_NEGA_CANCELAMENTO_DIETA
+    )
+    def codae_nega_cancelamento(self, request, uuid=None):
+        justificativa = request.data.get('justificativa', '')
+        motivo_negacao = request.data.get('motivo_negacao', '')
+        solicitacao = self.get_object()
+        try:
+            solicitacao.negar_cancelamento_pedido(
+                user=request.user, justificativa=justificativa)
+            solicitacao.motivo_negacao = MotivoNegacao.objects.get(id=motivo_negacao)
+            solicitacao.save()
+            serializer = self.get_serializer(solicitacao)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
+
+    @action(detail=True,
+            methods=['patch'],
+            url_path=constants.MARCAR_CONFERIDA,
+            permission_classes=(UsuarioTerceirizada,))
+    def terceirizada_marca_solicitacao_como_conferida(self, request, uuid=None):
+        solicitacao_dieta_especial: SolicitacaoDietaEspecial = self.get_object()
+        try:
+            solicitacao_dieta_especial.conferido = True
+            solicitacao_dieta_especial.save()
+            serializer = self.get_serializer(solicitacao_dieta_especial)
+            return Response(serializer.data)
+        except Exception as e:
+            return Response(dict(detail=f'Erro ao marcar solicitação como conferida: {e}'), status=HTTP_400_BAD_REQUEST)  # noqa
 
     def get_queryset_relatorio_quantitativo_solic_dieta_esp(self, form, campos):  # noqa C901
         user = self.request.user
@@ -734,6 +767,8 @@ class MotivoNegacaoViewSet(
     queryset = MotivoNegacao.objects.all()
     serializer_class = MotivoNegacaoSerializer
     pagination_class = None
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = MotivoNegacaoFilter
 
 
 class AlimentoViewSet(

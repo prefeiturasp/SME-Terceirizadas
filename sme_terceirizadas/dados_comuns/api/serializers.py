@@ -8,6 +8,7 @@ from ..models import (
     Contato,
     Endereco,
     LogSolicitacoesUsuario,
+    Notificacao,
     PerguntaFrequente,
     TemplateMensagem
 )
@@ -62,9 +63,18 @@ class LogSolicitacoesSerializer(serializers.ModelSerializer):
         read_only=True
     )
 
+    anexos = serializers.SerializerMethodField()
+
+    def get_anexos(self, obj):
+        return AnexoLogSolicitacoesUsuarioSerializer(
+            AnexoLogSolicitacoesUsuario.objects.filter(
+                log=obj
+            ), many=True
+        ).data
+
     class Meta:
         model = LogSolicitacoesUsuario
-        fields = ('status_evento_explicacao', 'criado_em', 'descricao', 'justificativa', 'resposta_sim_nao')
+        fields = ('status_evento_explicacao', 'criado_em', 'descricao', 'justificativa', 'resposta_sim_nao', 'anexos')
 
 
 class LogSolicitacoesUsuarioComVinculoSerializer(LogSolicitacoesUsuarioSerializer):
@@ -131,3 +141,31 @@ class EnderecoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Endereco
         exclude = ('id',)
+
+
+class NotificacaoSerializer(serializers.ModelSerializer):
+    tipo = serializers.CharField(source='get_tipo_display')
+    categoria = serializers.CharField(source='get_categoria_display')
+    hora = serializers.SerializerMethodField()
+    criado_em = serializers.SerializerMethodField()
+
+    def get_hora(self, obj):
+        return obj.hora.strftime('%H:%M')
+
+    def get_criado_em(self, obj):
+        return obj.criado_em.strftime('%d/%m/%Y')
+
+    class Meta:
+        model = Notificacao
+        fields = [
+            'uuid',
+            'titulo',
+            'descricao',
+            'criado_em',
+            'hora',
+            'tipo',
+            'categoria',
+            'link',
+            'lido',
+            'resolvido'
+        ]

@@ -1,5 +1,7 @@
 from datetime import datetime
 
+from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
+from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from sequences import get_last_value, get_next_value
 
@@ -9,6 +11,7 @@ from ..dados_comuns.behaviors import (
     CriadoPor,
     Logs,
     Nomeavel,
+    TemAlteradoEm,
     TemChaveExterna,
     TemIdentificadorExternoAmigavel
 )
@@ -38,12 +41,28 @@ class ProtocoloDeDietaEspecial(Ativavel, CriadoEm, CriadoPor, TemChaveExterna):
 
 
 class Fabricante(Nomeavel, TemChaveExterna):
+    item = GenericRelation('ItemCadastro', related_query_name='fabricante')
 
     def __str__(self):
         return self.nome
 
 
 class Marca(Nomeavel, TemChaveExterna):
+    item = GenericRelation('ItemCadastro', related_query_name='marca')
+
+    def __str__(self):
+        return self.nome
+
+
+class UnidadeMedida(Nomeavel, TemChaveExterna):
+    item = GenericRelation('ItemCadastro', related_query_name='unidade_medida')
+
+    def __str__(self):
+        return self.nome
+
+
+class EmbalagemProduto(Nomeavel, TemChaveExterna):
+    item = GenericRelation('ItemCadastro', related_query_name='embalagem_produto')
 
     def __str__(self):
         return self.nome
@@ -103,6 +122,7 @@ class Produto(Ativavel, CriadoEm, CriadoPor, Nomeavel, TemChaveExterna, TemIdent
 
     porcao = models.CharField('Porção nutricional', blank=True, max_length=50)
     unidade_caseira = models.CharField('Unidade nutricional', blank=True, max_length=50)
+    tem_gluten = models.BooleanField('Tem Glúten?', null=True, default=None)
 
     @property
     def imagens(self):
@@ -445,3 +465,119 @@ class AnaliseSensorial(TemChaveExterna, TemIdentificadorExternoAmigavel, CriadoE
 
     def __str__(self):
         return f'Análise Sensorial {self.id_externo} de protocolo {self.numero_protocolo} criada em: {self.criado_em}'
+
+
+class ItemCadastro(TemChaveExterna, CriadoEm):
+    """Gerencia Cadastro de itens.
+
+    Permite gerenciar a criação, edição, deleção e consulta
+    de modelos que só possuem o atributo nome.
+
+    Exemplos: Marca, Fabricante, Unidade de Medida e Embalagem
+    """
+
+    MARCA = 'MARCA'
+    FABRICANTE = 'FABRICANTE'
+    UNIDADE_MEDIDA = 'UNIDADE_MEDIDA'
+    EMBALAGEM = 'EMBALAGEM'
+
+    MODELOS = {
+        MARCA: 'Marca',
+        FABRICANTE: 'Fabricante',
+        UNIDADE_MEDIDA: 'Unidade de Medida',
+        EMBALAGEM: 'Embalagem'
+    }
+
+    CHOICES = (
+        (MARCA, MODELOS[MARCA]),
+        (FABRICANTE, MODELOS[FABRICANTE]),
+        (UNIDADE_MEDIDA, MODELOS[UNIDADE_MEDIDA]),
+        (EMBALAGEM, MODELOS[EMBALAGEM]),
+    )
+
+    CLASSES = {MARCA: Marca, FABRICANTE: Fabricante,
+               UNIDADE_MEDIDA: UnidadeMedida, EMBALAGEM: EmbalagemProduto}
+
+    tipo = models.CharField(
+        'Tipo',
+        max_length=30,
+        choices=CHOICES
+    )
+
+    content_type = models.ForeignKey(ContentType,
+                                     on_delete=models.CASCADE)
+
+    object_id = models.PositiveIntegerField()
+
+    content_object = GenericForeignKey('content_type', 'object_id')
+
+    def __str__(self) -> str:
+        return self.content_object.nome
+
+    @classmethod
+    def eh_tipo_permitido(cls, tipo: str) -> bool:
+        return tipo in [c[0] for c in cls.CHOICES]
+
+    def pode_deletar(self): # noqa C901
+        from sme_terceirizadas.produto.models import Produto
+
+        if self.tipo == self.MARCA:
+            return not Produto.objects.filter(marca__pk=self.content_object.pk).exists()
+        elif self.tipo == self.FABRICANTE:
+            return not Produto.objects.filter(fabricante__pk=self.content_object.pk).exists()
+        elif self.tipo == self.UNIDADE_MEDIDA:
+            return not Produto.objects.filter(especificacoes__unidade_de_medida__pk=self.content_object.pk).exists()
+        elif self.tipo == self.EMBALAGEM:
+            return not Produto.objects.filter(especificacoes__embalagem_produto__pk=self.content_object.pk).exists()
+
+        return True
+
+    @classmethod
+    def criar(cls, nome: str, tipo: str) -> object:
+        nome_upper = nome.upper()
+
+        if not cls.eh_tipo_permitido(tipo):
+            raise Exception(f'Tipo não permitido: {tipo}')
+
+        modelo = cls.CLASSES[tipo].objects.create(nome=nome_upper)
+
+        item = cls(tipo=tipo, content_object=modelo)
+        item.save()
+        return item
+
+    @classmethod
+    def cria_modelo(cls, nome: str, tipo: str) -> object:
+        nome_upper = nome.upper()
+
+        if not cls.eh_tipo_permitido(tipo):
+            raise Exception(f'Tipo não permitido: {tipo}')
+
+        modelo = cls.CLASSES[tipo].objects.create(nome=nome_upper)
+        return modelo
+
+    def deleta_modelo(self):
+        if self.pode_deletar():
+            self.content_object.delete()
+            self.delete()
+            return True
+
+        return False
+
+
+class EspecificacaoProduto(CriadoEm, TemAlteradoEm, TemChaveExterna):
+    """Representa uma especificação de produto.
+
+    Usado na criação do produto e na edição dos rascunhos.
+    Ex: Para o produto coca-cola pode-se ter:
+    volume: 3, unidade de medida: Litros, embalagem: bag
+    volume: 1,5, unidade de medida: Litros, embalagem: bag
+    """
+
+    volume = models.FloatField('Volume', null=True)
+    produto = models.ForeignKey(Produto, on_delete=models.CASCADE, related_name='especificacoes')
+    unidade_de_medida = models.ForeignKey(UnidadeMedida, on_delete=models.DO_NOTHING, null=True)
+    embalagem_produto = models.ForeignKey(EmbalagemProduto, on_delete=models.DO_NOTHING, null=True)
+
+    class Meta:
+        verbose_name = 'Especificicação do Produto'
+        verbose_name_plural = 'Especificações do Produto'

@@ -1,6 +1,7 @@
 import datetime
 
 import pytest
+from django.contrib.contenttypes.models import ContentType
 from faker import Faker
 from model_mommy import mommy
 
@@ -36,7 +37,7 @@ def template_homologacao_produto():
 @pytest.fixture
 def client_autenticado_vinculo_codae_produto(client, django_user_model, escola, codae, template_homologacao_produto):
     email = 'test@test.com'
-    password = 'bar'
+    password = constants.DJANGO_ADMIN_PASSWORD
     user = django_user_model.objects.create_user(password=password, email=email,
                                                  registro_funcional='8888888')
     perfil_admin_gestao_produto = mommy.make('Perfil', nome=constants.ADMINISTRADOR_GESTAO_PRODUTO,
@@ -52,7 +53,7 @@ def client_autenticado_vinculo_codae_produto(client, django_user_model, escola, 
 @pytest.fixture
 def client_autenticado_vinculo_terceirizada(client, django_user_model, escola, template_homologacao_produto):
     email = 'test@test.com'
-    password = 'bar'
+    password = constants.DJANGO_ADMIN_PASSWORD
     tecerizada = escola.lote.terceirizada
     user = django_user_model.objects.create_user(password=password, email=email,
                                                  registro_funcional='8888888')
@@ -69,7 +70,7 @@ def client_autenticado_vinculo_terceirizada(client, django_user_model, escola, t
 @pytest.fixture
 def user(django_user_model):
     email = 'test@test1.com'
-    password = 'bar'
+    password = constants.DJANGO_ADMIN_PASSWORD
     return django_user_model.objects.create_user(password=password, email=email,
                                                  registro_funcional='8888881')
 
@@ -77,7 +78,7 @@ def user(django_user_model):
 @pytest.fixture
 def client_autenticado_vinculo_terceirizada_homologacao(client, django_user_model, escola):
     email = 'test@test.com'
-    password = 'bar'
+    password = constants.DJANGO_ADMIN_PASSWORD
     tecerizada = escola.lote.terceirizada
     user = django_user_model.objects.create_user(password=password, email=email,
                                                  registro_funcional='8888888')
@@ -137,6 +138,16 @@ def marca2():
 @pytest.fixture
 def fabricante():
     return mommy.make('Fabricante', nome='Fabricante1')
+
+
+@pytest.fixture
+def unidade_medida():
+    return mommy.make('UnidadeMedida', nome='Litros')
+
+
+@pytest.fixture
+def embalagem_produto():
+    return mommy.make('EmbalagemProduto', nome='Bag')
 
 
 @pytest.fixture
@@ -209,6 +220,15 @@ def info_nutricional_produto3(produto, info_nutricional3):
 
 
 @pytest.fixture
+def especificacao_produto1(produto, unidade_medida, embalagem_produto):
+    return mommy.make('EspecificacaoProduto',
+                      volume=1.5,
+                      produto=produto,
+                      unidade_de_medida=unidade_medida,
+                      embalagem_produto=embalagem_produto)
+
+
+@pytest.fixture
 def imagem_produto1(produto):
     return mommy.make('ImagemDoProduto', produto=produto, nome='Imagem1')
 
@@ -221,7 +241,7 @@ def imagem_produto2(produto):
 @pytest.fixture
 def client_autenticado_vinculo_escola_ue(client, django_user_model, escola):
     email = 'test@test.com'
-    password = 'bar'
+    password = constants.DJANGO_ADMIN_PASSWORD
     user = django_user_model.objects.create_user(password=password, email=email,
                                                  registro_funcional='8888888')
 
@@ -229,6 +249,30 @@ def client_autenticado_vinculo_escola_ue(client, django_user_model, escola):
 
     hoje = datetime.date.today()
     mommy.make('Vinculo', usuario=user, instituicao=escola, perfil=perfil_diretor,
+               data_inicial=hoje, ativo=True)
+    mommy.make(TemplateMensagem, assunto='TESTE',
+               tipo=TemplateMensagem.DIETA_ESPECIAL,
+               template_html='@id @criado_em @status @link')
+    client.login(email=email, password=password)
+    return client
+
+
+@pytest.fixture
+def client_autenticado_vinculo_escola_nutrisupervisor(
+        client,
+        django_user_model,
+        escola):
+
+    email = 'test@test.com'
+    password = constants.DJANGO_ADMIN_PASSWORD
+    user = django_user_model.objects.create_user(password=password, email=email,
+                                                 registro_funcional='8888888')
+
+    perfil_nutri = mommy.make('Perfil', nome='COORDENADOR_SUPERVISAO_NUTRICAO',
+                              ativo=True, uuid='41c20c8b-7e57-41ed-9433-ccb92e8afaf1')
+
+    hoje = datetime.date.today()
+    mommy.make('Vinculo', usuario=user, instituicao=escola, perfil=perfil_nutri,
                data_inicial=hoje, ativo=True)
     mommy.make(TemplateMensagem, assunto='TESTE',
                tipo=TemplateMensagem.DIETA_ESPECIAL,
@@ -300,6 +344,20 @@ def homologacao_produto_gpcodae_questionou_escola(homologacao_produto):
 
 
 @pytest.fixture
+def homologacao_produto_gpcodae_questionou_nutrisupervisor(homologacao_produto):
+    homologacao_produto.status = HomologacaoProdutoWorkflow.CODAE_QUESTIONOU_NUTRISUPERVISOR
+    homologacao_produto.save()
+    return homologacao_produto
+
+
+@pytest.fixture
+def homologacao_produto_rascunho(homologacao_produto):
+    homologacao_produto.status = HomologacaoProdutoWorkflow.RASCUNHO
+    homologacao_produto.save()
+    return homologacao_produto
+
+
+@pytest.fixture
 def reclamacao_ue(homologacao_produto_gpcodae_questionou_escola, escola, user):
     reclamacao = mommy.make('ReclamacaoDeProduto',
                             homologacao_de_produto=homologacao_produto_gpcodae_questionou_escola,
@@ -311,3 +369,49 @@ def reclamacao_ue(homologacao_produto_gpcodae_questionou_escola, escola, user):
                             criado_em=datetime.datetime.utcnow(),
                             status=ReclamacaoProdutoWorkflow.AGUARDANDO_RESPOSTA_UE)
     return reclamacao
+
+
+@pytest.fixture
+def reclamacao_nutrisupervisor(homologacao_produto_gpcodae_questionou_nutrisupervisor, escola, user):
+    reclamacao = mommy.make('ReclamacaoDeProduto',
+                            homologacao_de_produto=homologacao_produto_gpcodae_questionou_nutrisupervisor,
+                            escola=escola,
+                            reclamante_registro_funcional='8888888',
+                            reclamante_cargo='Cargo',
+                            reclamante_nome='Arthur',
+                            criado_por=user,
+                            criado_em=datetime.datetime.utcnow(),
+                            status=ReclamacaoProdutoWorkflow.AGUARDANDO_RESPOSTA_NUTRISUPERVISOR)
+    return reclamacao
+
+
+@pytest.fixture
+def item_cadastrado_1(marca1):
+    return mommy.make('ItemCadastro',
+                      tipo='MARCA',
+                      content_type=ContentType.objects.get(model='marca'),
+                      content_object=marca1)
+
+
+@pytest.fixture
+def item_cadastrado_2(fabricante):
+    return mommy.make('ItemCadastro',
+                      tipo='FABRICANTE',
+                      content_type=ContentType.objects.get(model='fabricante'),
+                      content_object=fabricante)
+
+
+@pytest.fixture
+def item_cadastrado_3(unidade_medida):
+    return mommy.make('ItemCadastro',
+                      tipo='UNIDADE_MEDIDA',
+                      content_type=ContentType.objects.get(model='unidademedida'),
+                      content_object=unidade_medida)
+
+
+@pytest.fixture
+def item_cadastrado_4(embalagem_produto):
+    return mommy.make('ItemCadastro',
+                      tipo='EMBALAGEM',
+                      content_type=ContentType.objects.get(model='embalagemproduto'),
+                      content_object=embalagem_produto)

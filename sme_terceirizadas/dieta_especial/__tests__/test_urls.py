@@ -362,29 +362,6 @@ def test_url_endpoint_autorizar_dieta_gestao_alimentacao(client_autenticado_vinc
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
-def test_url_endpoint_autorizar_dieta_transicao_invalida(client_autenticado_vinculo_codae_dieta,
-                                                         solicitacao_dieta_especial,
-                                                         payload_autorizar):
-    obj = SolicitacaoDietaEspecial.objects.first()
-
-    assert obj.registro_funcional_nutricionista == ''
-
-    response = client_autenticado_vinculo_codae_dieta.patch(
-        f'/solicitacoes-dieta-especial/{obj.uuid}/autorizar/',
-        content_type='application/json',
-        data=payload_autorizar
-    )
-
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
-    json = response.json()
-    assert json['detail'].startswith('Erro na transição de estado')
-
-    obj2 = SolicitacaoDietaEspecial.objects.first()
-
-    assert obj.status == obj2.status
-    assert obj.registro_funcional_nutricionista == obj2.registro_funcional_nutricionista
-
-
 def test_url_endpoint_autorizar_dieta_atributos_obrigatorios(client_autenticado_vinculo_codae_dieta,
                                                              solicitacao_dieta_especial,
                                                              payload_autorizar):
@@ -519,6 +496,33 @@ def test_url_endpoint_cancelar_dieta(client_autenticado_vinculo_escola_dieta,
         "'ESCOLA_CANCELOU'."}
 
 
+def test_url_endpoint_negar_cancelamento_dieta(client_autenticado_vinculo_escola_dieta,
+                                               solicitacao_dieta_especial_a_autorizar,
+                                               motivos_negacao):
+    obj = SolicitacaoDietaEspecial.objects.first()
+    data = {
+        'justificativa': 'Uma justificativa fajuta',
+        'motivo_negacao': motivos_negacao[0].id
+    }
+    response = client_autenticado_vinculo_escola_dieta.post(
+        f'/solicitacoes-dieta-especial/{obj.uuid}/negar-cancelamento-dieta-especial/',
+        content_type='application/json',
+        data=data
+    )
+    obj.refresh_from_db()
+    assert response.status_code == status.HTTP_200_OK
+    assert obj.status == DietaEspecialWorkflow.CODAE_NEGOU_CANCELAMENTO
+    response = client_autenticado_vinculo_escola_dieta.post(
+        f'/solicitacoes-dieta-especial/{obj.uuid}/negar-cancelamento-dieta-especial/',
+        content_type='application/json',
+        data=data
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {
+        'detail': f"Erro de transição de estado: Transition 'negar_cancelamento_pedido' isn't available from state " +
+        "'CODAE_NEGOU_CANCELAMENTO'."}
+
+
 def test_url_endpoint_negar_dieta(client_autenticado_vinculo_codae_dieta,
                                   solicitacao_dieta_especial,
                                   motivos_negacao):
@@ -567,6 +571,24 @@ def test_url_endpoint_tomar_ciencia_dieta(client_autenticado_vinculo_terceirizad
     obj.refresh_from_db()
 
     assert obj.status == DietaEspecialWorkflow.TERCEIRIZADA_TOMOU_CIENCIA
+
+
+def test_url_endpoint_marcar_conferida(client_autenticado_vinculo_terceirizada_dieta,
+                                       solicitacao_dieta_especial):
+    obj = SolicitacaoDietaEspecial.objects.first()
+    assert not obj.conferido
+
+    response = client_autenticado_vinculo_terceirizada_dieta.patch(
+        f'/solicitacoes-dieta-especial/{obj.uuid}/marcar-conferida/',
+        content_type='application/json'
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    json = response.json()
+    assert 'conferido' in json.keys()
+    assert json['conferido']
+    obj = SolicitacaoDietaEspecial.objects.first()
+    assert obj.conferido
 
 
 def test_url_endpoint_escola_solicita_inativacao_dieta(client_autenticado_vinculo_escola_dieta,

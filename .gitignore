@@ -292,6 +292,7 @@ sme_terceirizadas/media/
 .pytest_cache/
 .testmondata
 sigpae-postgres-data
+sigpae-postgres-data_prod
 
 # undesired files
 *.xlsx
@@ -303,3 +304,6 @@ sigpae-postgres-data
 celerybeat-schedule.bak
 celerybeat-schedule.dat
 celerybeat-schedule.dir
+
+requirements.txt
+pgdata/**/*

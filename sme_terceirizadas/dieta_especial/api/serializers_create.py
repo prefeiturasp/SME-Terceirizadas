@@ -3,14 +3,12 @@ import uuid
 from copy import deepcopy
 
 from rest_framework import serializers
-from text_unidecode import unidecode
 
 from ...dados_comuns.constants import DEZ_MB
 from ...dados_comuns.utils import convert_base64_to_contentfile, convert_date_format, size, update_instance_from_dict
 from ...dados_comuns.validators import deve_ser_no_passado, deve_ter_extensao_valida
-from ...eol_servico.utils import EOLService
 from ...escola.api.serializers import AlunoNaoMatriculadoSerializer
-from ...escola.models import Aluno, Escola, PeriodoEscolar, Responsavel
+from ...escola.models import Aluno, Escola, Responsavel
 from ...produto.api.serializers import serializers as ser
 from ...produto.models import Produto
 from ..models import (
@@ -160,28 +158,15 @@ class SolicitacaoDietaEspecialCreateSerializer(serializers.ModelSerializer):
             tipo_solicitacao = 'ALUNO_NAO_MATRICULADO'
 
         else:
-            info_turma = EOLService.get_informacoes_escola_turma_aluno(
-                validated_data['criado_por'].vinculo_atual.instituicao.codigo_eol)
-            for registro in info_turma:
-                if registro['cd_aluno'] == int(aluno_data['codigo_eol']):
-                    periodo_nome = registro['dc_tipo_turno']
-                    break
-            else:
-                raise serializers.ValidationError(
-                    'Aluno não pertence a essa escola')
-
             aluno = self._get_or_create_aluno(aluno_data)
 
             if SolicitacaoDietaEspecial.aluno_possui_dieta_especial_pendente(aluno):
                 msg = 'Aluno já possui Solicitação de Dieta Especial pendente'
                 raise serializers.ValidationError(msg)
 
-            periodo = PeriodoEscolar.objects.get(
-                nome__icontains=unidecode(periodo_nome.strip()))
             aluno.escola = validated_data[
                 'criado_por'].vinculo_atual.instituicao
             escola_destino = aluno.escola
-            aluno.periodo_escolar = periodo
             aluno.save()
             tipo_solicitacao = 'COMUM'
 

@@ -4,9 +4,9 @@ from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import fields, serializers
 from xworkflows.base import InvalidTransitionError
 
+from sme_terceirizadas.dados_comuns.utils import update_instance_from_dict
 from sme_terceirizadas.logistica.api.helpers import (
-    atualiza_guia_com_base_nas_conferencias_por_alimentos,
-    registra_qtd_a_receber,
+    registra_conferencias_individuais,
     verifica_se_a_guia_pode_ser_conferida
 )
 from sme_terceirizadas.logistica.models import (
@@ -17,6 +17,7 @@ from sme_terceirizadas.logistica.models import (
     SolicitacaoRemessa
 )
 from sme_terceirizadas.logistica.models.guia import ConferenciaIndividualPorAlimento, InsucessoEntregaGuia
+from sme_terceirizadas.logistica.services import exclui_ultima_reposicao
 from sme_terceirizadas.perfil.api.serializers import UsuarioVinculoSerializer
 from sme_terceirizadas.terceirizada.models import Terceirizada
 
@@ -178,15 +179,7 @@ class ConferenciaIndividualPorAlimentoCreateSerializer(serializers.ModelSerializ
     qtd_recebido = serializers.IntegerField(required=True)
     status_alimento = serializers.ChoiceField(
         choices=ConferenciaIndividualPorAlimento.STATUS_ALIMENTO_CHOICES, required=True)
-    ocorrencia = fields.MultipleChoiceField(choices=ConferenciaIndividualPorAlimento.OCORRENCIA_CHOICES, required=False)
-
-    def create(self, validated_data):
-        ocorrencia = validated_data.get('ocorrencia', None)
-        if ocorrencia:
-            validated_data['tem_ocorrencia'] = True
-        conferencia_individual = ConferenciaIndividualPorAlimento.objects.create(**validated_data)
-        registra_qtd_a_receber(conferencia_individual)
-        return conferencia_individual
+    ocorrencia = fields.MultipleChoiceField(choices=ConferenciaIndividualPorAlimento.OCORRENCIA_CHOICES, required=True)
 
     class Meta:
         model = ConferenciaIndividualPorAlimento
@@ -211,27 +204,54 @@ class ConferenciaComOcorrenciaCreateSerializer(serializers.ModelSerializer):
         exclude = ('id',)
 
     def create(self, validated_data): # noqa C901
-        guia = validated_data.get('guia', None)
+        guia_request = validated_data.get('guia', None)
+        try:
+            guia = Guia.objects.get(uuid=guia_request.uuid)
+        except ObjectDoesNotExist:
+            raise serializers.ValidationError(f'Guia de remessa não existe.')
         eh_reposicao = validated_data.get('eh_reposicao', False)
         verifica_se_a_guia_pode_ser_conferida(guia)
         user = self.context['request'].user
         validated_data['criado_por'] = user
-        conferencia_dos_alimentos_list = []
         conferencia_dos_alimentos = validated_data.pop('conferencia_dos_alimentos')
         conferencia_guia = ConferenciaGuia.objects.create(**validated_data)
-        status_dos_alimentos = []
-        ocorrencias_dos_alimentos = []
-        for alimento in conferencia_dos_alimentos:
-            alimento['conferencia'] = conferencia_guia
-            status_dos_alimentos.append(alimento['status_alimento'])
-            ocorrencias_dos_alimentos = ocorrencias_dos_alimentos + list(alimento['ocorrencia'])
-            conferencia_individual = ConferenciaIndividualPorAlimentoCreateSerializer().create(alimento)
-            conferencia_dos_alimentos_list.append(conferencia_individual)
-        conferencia_guia.conferencia_dos_alimentos.set(conferencia_dos_alimentos_list)
-        atualiza_guia_com_base_nas_conferencias_por_alimentos(guia, user, status_dos_alimentos,
-                                                              eh_reposicao, ocorrencias_dos_alimentos)
+        registra_conferencias_individuais(guia, conferencia_guia, conferencia_dos_alimentos, user, eh_reposicao)
 
         return conferencia_guia
+
+    def update(self, instance, validated_data): # noqa C901
+        guia_request = validated_data.get('guia', None)
+        try:
+            guia = Guia.objects.get(uuid=guia_request.uuid)
+        except ObjectDoesNotExist:
+            raise serializers.ValidationError(f'Guia de remessa não existe.')
+        conferencia_dos_alimentos = validated_data.pop('conferencia_dos_alimentos')
+        eh_reposicao = validated_data.get('eh_reposicao', False)
+        user = self.context['request'].user
+        validated_data['criado_por'] = user
+
+        verifica_se_a_guia_pode_ser_conferida(guia)
+        if guia.situacao == Guia.ARQUIVADA:
+            raise serializers.ValidationError(
+                'Não é possível realizar a edição de uma conferencia/reposição de uma guia arquivada.')
+        elif eh_reposicao and not conferencia_dos_alimentos:
+            raise serializers.ValidationError('Uma reposição deve conter ao menos uma conferência individual.')
+        elif not eh_reposicao:
+            exclui_ultima_reposicao(guia)
+
+        instance.conferencia_dos_alimentos.all().delete()
+        update_instance_from_dict(instance, validated_data, save=True)
+
+        if conferencia_dos_alimentos:
+            registra_conferencias_individuais(
+                guia, instance, conferencia_dos_alimentos, user, eh_reposicao, edicao=True)
+        else:
+            try:
+                guia.escola_recebe(user=user)
+            except InvalidTransitionError as e:
+                raise serializers.ValidationError(f'Erro de transição de estado: {e}')
+
+        return instance
 
 
 class InsucessoDeEntregaGuiaCreateSerializer(serializers.ModelSerializer):

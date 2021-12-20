@@ -11,7 +11,7 @@
 			<table class="table table-lg table-bordered">
 				<thead>
 					<tr>
-						<th scope="col" class="w-40" rowspan="2" style="text-align:left;vertical-align:top;">Alimento(s)</th>
+						<th scope="col" class="w-40" rowspan="2" colspan="2" style="text-align:left;vertical-align:top;">Alimento(s)</th>
 						<th scope="col" colspan="2">Embalagem fechada</th>
 						<th scope="col" colspan="2">Embalagem fracionada</th>
 					</tr>
@@ -27,27 +27,29 @@
           {% embalagens_filter alimento.embalagens.all "FRACIONADA" as embalagem_fracionada %}
           {% embalagens_filter alimento.embalagens.all "FECHADA" as embalagem_fechada %}
 					<tr>
-						<td>{{alimento.nome_alimento}}</td>
-						<td>{{embalagem_fechada.qtd_volume|default:''}} {{embalagem_fechada.descricao_embalagem}}</td>
-						<td>{{embalagem_fechada.capacidade_embalagem|default:'-'}} {{embalagem_fechada.unidade_medida}}</td>
-						<td>{{embalagem_fracionada.qtd_volume|default:'-'}} {{embalagem_fracionada.descricao_embalagem}}</td>
-						<td>{{embalagem_fracionada.capacidade_embalagem|default:'-'}} {{embalagem_fracionada.unidade_medida}}</td>
+						<td colspan="2">{{alimento.nome_alimento}}</td>
+						<td>{{embalagem_fechada.qtd_volume}} {{embalagem_fechada.descricao_embalagem|default:'-'}}</td>
+						<td>{{embalagem_fechada.capacidade_embalagem}} {{embalagem_fechada.unidade_medida|default:'-'}}</td>
+						<td>{{embalagem_fracionada.qtd_volume}} {{embalagem_fracionada.descricao_embalagem|default:'-'}}</td>
+						<td>{{embalagem_fracionada.capacidade_embalagem}} {{embalagem_fracionada.unidade_medida|default:'-'}}</td>
 					</tr>
         {% endfor %}
         </tbody>
 				<tfooter>
 					<tr>
-						<th scope="row" rowspan="2"></th>
-						<td colspan="2" class="title">Total de itens</td>
-						<td colspan="2">{{page.alimentos|length}}</td>
+						<td colspan="6">
+              <span class="title"> Total de itens: </span>
+              {{page.alimentos|length}}
+            </td>
 					</tr>
 					<tr>
-						<td colspan="2" class="title">Peso total(KG)</td>
-						<td colspan="2"> {{page.peso_total}} KG</td>
+						<td colspan="6">
+              <span class="title"> Peso total(KG): </span> 
+              {{page.peso_total}} KG
+            </td>
 					</tr>
 				</tfooter>
 			</table>
-      <hr>
 		</div>
 	</div>
 </body>

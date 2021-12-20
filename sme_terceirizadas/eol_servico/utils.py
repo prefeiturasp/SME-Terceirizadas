@@ -4,7 +4,16 @@ import environ
 import requests
 from rest_framework import status
 
-from ..dados_comuns.constants import DJANGO_EOL_API_TOKEN, DJANGO_EOL_API_URL
+from ..dados_comuns.constants import (
+    DJANGO_EOL_API_TOKEN,
+    DJANGO_EOL_API_URL,
+    DJANGO_EOL_PAPA_API_SENHA_CANCELAMENTO,
+    DJANGO_EOL_PAPA_API_SENHA_ENVIO,
+    DJANGO_EOL_PAPA_API_URL,
+    DJANGO_EOL_PAPA_API_USUARIO,
+    DJANGO_EOL_SGP_API_TOKEN,
+    DJANGO_EOL_SGP_API_URL
+)
 
 env = environ.Env()
 
@@ -69,7 +78,7 @@ class EOLService(object):
 
         if response.status_code == status.HTTP_200_OK:
             results = response.json()['results']
-            if len(results) == 1:
+            if len(results) > 0:
                 return results[0]
             raise EOLException(f'Resultados para o código: {codigo_eol} vazios')
         else:
@@ -108,6 +117,84 @@ class EOLService(object):
             return results
         else:
             raise EOLException(f'API EOL com erro. Status: {response.status_code}')
+
+
+class EOLServicoSGP:
+    HEADER = {
+        'x-api-eol-key': f'{DJANGO_EOL_SGP_API_TOKEN}'
+    }
+    TIMEOUT = 10
+
+    @classmethod
+    def matricula_por_escola(cls, codigo_eol: str, data: str, tipo_turma: int = 1):
+        """Consulta a quantidade de matriculados na API do sgp."""
+        response = requests.get(f'{DJANGO_EOL_SGP_API_URL}/matriculas/escolas/{codigo_eol}/quantidades/',
+                                headers=cls.HEADER, timeout=cls.TIMEOUT, params={'data': data, 'tipoTurma': tipo_turma})
+        if response.status_code == status.HTTP_200_OK:
+            resultado = response.json()
+            return resultado
+        else:
+            raise EOLException(f'API EOL do SGP está com erro. Erro: {str(response)}, Status: {response.status_code}')
+
+    @classmethod
+    def get_aluno_eol(cls, codigo_eol_aluno: str):
+        try:
+            r = requests.get(
+                f'{DJANGO_EOL_SGP_API_URL}/alunos/{codigo_eol_aluno}/turmas',
+                headers=cls.HEADER, timeout=cls.TIMEOUT
+            )
+            if r.status_code != 404:
+                json = r.json()
+                return json
+        except ConnectionError as e:
+            raise EOLService(f'Erro de conexão na api do EOL: {e}')
+
+
+class EOLPapaService:
+    TIMEOUT = 20
+
+    @classmethod
+    def confirmacao_de_cancelamento(cls, cnpj, numero_solicitacao, sequencia_envio):
+        payload = {
+            'CNPJ_PREST': cnpj,
+            'NUM_SOL': numero_solicitacao,
+            'SEQ_ENVIO': sequencia_envio,
+            'USUARIO': DJANGO_EOL_PAPA_API_USUARIO,
+            'SENHA': DJANGO_EOL_PAPA_API_SENHA_CANCELAMENTO,
+
+        }
+
+        response = requests.post(f'{DJANGO_EOL_PAPA_API_URL}/confirmarcancelamentosolicitacao/',
+                                 timeout=cls.TIMEOUT, json=payload)
+        if response.status_code == status.HTTP_200_OK:
+            result = response.json()
+            if result['RETORNO'] != 'TRUE':
+                raise EOLException(
+                    f'API EOL do PAPA não confirmou cancelamento. MSG: {str(result)}')
+        else:
+            raise EOLException(f'API EOL do PAPA está com erro. Erro: {str(response)}, Status: {response.status_code}')
+
+    @classmethod
+    def confirmacao_de_envio(cls, cnpj, numero_solicitacao, sequencia_envio):
+        if sequencia_envio is None:
+            sequencia_envio = 0
+        payload = {
+            'CNPJ_PREST': cnpj,
+            'NUM_SOL': numero_solicitacao,
+            'SEQ_ENVIO': sequencia_envio,
+            'USUARIO': DJANGO_EOL_PAPA_API_USUARIO,
+            'SENHA': DJANGO_EOL_PAPA_API_SENHA_ENVIO,
+
+        }
+        response = requests.post(f'{DJANGO_EOL_PAPA_API_URL}/confirmarenviosolicitacao/',
+                                 timeout=cls.TIMEOUT, json=payload)
+        if response.status_code == status.HTTP_200_OK:
+            result = response.json()
+            if result['RETORNO'] != 'TRUE':
+                raise EOLException(
+                    f'API EOL do PAPA não confirmou o envio. MSG: {str(result)}')
+        else:
+            raise EOLException(f'API EOL do PAPA está com erro. Erro: {str(response)}, Status: {response.status_code}')
 
 
 def dt_nascimento_from_api(string_dt_nascimento):

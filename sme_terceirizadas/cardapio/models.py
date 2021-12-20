@@ -17,7 +17,8 @@ from ..dados_comuns.behaviors import (  # noqa I101
     TemFaixaEtariaEQuantidade,
     TemIdentificadorExternoAmigavel,
     TemObservacao,
-    TemPrioridade
+    TemPrioridade,
+    TemTerceirizadaConferiuGestaoAlimentacao
 )
 from ..dados_comuns.fluxo_status import FluxoAprovacaoPartindoDaEscola, FluxoInformativoPartindoDaEscola
 from ..dados_comuns.models import TemplateMensagem  # noqa I202
@@ -185,7 +186,7 @@ class Cardapio(ExportModelOperationsMixin('cardapio'), Descritivel, Ativavel, Te
 class InversaoCardapio(ExportModelOperationsMixin('inversao_cardapio'), CriadoEm, CriadoPor, TemObservacao, Motivo,
                        TemChaveExterna,
                        TemIdentificadorExternoAmigavel, FluxoAprovacaoPartindoDaEscola,
-                       TemPrioridade, Logs, SolicitacaoForaDoPrazo):
+                       TemPrioridade, Logs, SolicitacaoForaDoPrazo, TemTerceirizadaConferiuGestaoAlimentacao):
     """Troca um cardápio de um dia por outro.
 
     servir o cardápio do dia 30 no dia 15, automaticamente o
@@ -319,7 +320,7 @@ class QuantidadePorPeriodoSuspensaoAlimentacao(ExportModelOperationsMixin('quant
 class GrupoSuspensaoAlimentacao(ExportModelOperationsMixin('grupo_suspensao_alimentacao'), TemChaveExterna, CriadoPor,
                                 TemIdentificadorExternoAmigavel,
                                 CriadoEm, TemObservacao, FluxoInformativoPartindoDaEscola, Logs,
-                                TemPrioridade):
+                                TemPrioridade, TemTerceirizadaConferiuGestaoAlimentacao):
     """Serve para agrupar suspensões.
 
     Vide SuspensaoAlimentacao e QuantidadePorPeriodoSuspensaoAlimentacao
@@ -490,7 +491,7 @@ class MotivoAlteracaoCardapio(ExportModelOperationsMixin('motivo_alteracao_carda
 class AlteracaoCardapio(ExportModelOperationsMixin('alteracao_cardapio'), CriadoEm, CriadoPor,
                         TemChaveExterna, IntervaloDeDia, TemObservacao, FluxoAprovacaoPartindoDaEscola,
                         TemIdentificadorExternoAmigavel, Logs, TemPrioridade, SolicitacaoForaDoPrazo,
-                        EhAlteracaoCardapio):
+                        EhAlteracaoCardapio, TemTerceirizadaConferiuGestaoAlimentacao):
     DESCRICAO = 'Alteração do Tipo de Alimentação'
 
     eh_alteracao_com_lanche_repetida = models.BooleanField(default=False)
@@ -562,6 +563,7 @@ class SubstituicaoAlimentacaoNoPeriodoEscolar(ExportModelOperationsMixin('substi
     alteracao_cardapio = models.ForeignKey('AlteracaoCardapio', on_delete=models.CASCADE,
                                            null=True, blank=True,
                                            related_name='substituicoes_periodo_escolar')
+    qtd_alunos = models.PositiveSmallIntegerField(default=0)
     periodo_escolar = models.ForeignKey('escola.PeriodoEscolar', on_delete=models.PROTECT,
                                         related_name='substituicoes_periodo_escolar')
     tipo_alimentacao_de = models.ForeignKey('cardapio.ComboDoVinculoTipoAlimentacaoPeriodoTipoUE',
@@ -582,7 +584,7 @@ class SubstituicaoAlimentacaoNoPeriodoEscolar(ExportModelOperationsMixin('substi
 class AlteracaoCardapioCEI(ExportModelOperationsMixin('alteracao_cardapio_cei'), CriadoEm, CriadoPor,
                            TemChaveExterna, TemData, TemObservacao, FluxoAprovacaoPartindoDaEscola,
                            TemIdentificadorExternoAmigavel, Logs, TemPrioridade, SolicitacaoForaDoPrazo,
-                           EhAlteracaoCardapio):
+                           EhAlteracaoCardapio, TemTerceirizadaConferiuGestaoAlimentacao):
     DESCRICAO = 'Alteração de Cardápio CEI'
 
     eh_alteracao_com_lanche_repetida = models.BooleanField(default=False)

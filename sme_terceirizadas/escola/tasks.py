@@ -11,6 +11,7 @@ from sme_terceirizadas.perfil.models.perfil import Vinculo
 from ..cardapio.models import AlteracaoCardapio, AlteracaoCardapioCEI, InversaoCardapio
 from ..dados_comuns.fluxo_status import PedidoAPartirDaDiretoriaRegionalWorkflow, PedidoAPartirDaEscolaWorkflow
 from ..dados_comuns.models import LogSolicitacoesUsuario
+from ..escola.models import TipoTurma
 from ..inclusao_alimentacao.models import (
     GrupoInclusaoAlimentacaoNormal,
     InclusaoAlimentacaoContinua,
@@ -18,6 +19,7 @@ from ..inclusao_alimentacao.models import (
 )
 from ..kit_lanche.models import SolicitacaoKitLancheAvulsa, SolicitacaoKitLancheCEIAvulsa, SolicitacaoKitLancheUnificada
 from ..paineis_consolidados.models import SolicitacoesDRE
+from .utils import calendario_sgp, registro_quantidade_alunos_matriculados_por_escola_periodo
 
 # https://docs.celeryproject.org/en/latest/userguide/tasks.html
 logger = logging.getLogger('sigpae.taskEscola')
@@ -156,3 +158,47 @@ def nega_solicitacoes_pendentes_autorizacao_vencidas():
                 solicitacao.codae_nega(user=usuario, justificativa=justificativa)
             else:
                 solicitacao.codae_nega_questionamento(user=usuario, justificativa=justificativa)
+
+
+@shared_task(
+    autoretry_for=(ConnectionError,),
+    retry_backoff=2,
+    retry_kwargs={'max_retries': 3}
+)
+def matriculados_por_escola_e_periodo_regulares():  # noqa C901
+    """Medição Inicial.
+
+    Consulta todos os dias a API do eol do SGP, para cada escola e turmas regulares,
+    a quantidade de alunos matriculados por período no dia e armazena essa informação.
+    """
+
+    registro_quantidade_alunos_matriculados_por_escola_periodo(TipoTurma.REGULAR)
+
+
+@shared_task(
+    autoretry_for=(ConnectionError,),
+    retry_backoff=2,
+    retry_kwargs={'max_retries': 3}
+)
+def matriculados_por_escola_e_periodo_programas():  # noqa C901
+    """Medição Inicial.
+
+    Consulta todos os dias a API do eol do SGP, para cada escola e turmas programas,
+    a quantidade de alunos matriculados por período no dia e armazena essa informação.
+    """
+
+    registro_quantidade_alunos_matriculados_por_escola_periodo(TipoTurma.PROGRAMAS)
+
+
+@shared_task(
+    autoretry_for=(ConnectionError,),
+    retry_backoff=2,
+    retry_kwargs={'max_retries': 3}
+)
+def calendario_escolas():  # noqa C901
+    """Medição Inicial.
+
+    Consulta o calendário de uma escola para o mês corrente.
+    """
+
+    calendario_sgp()

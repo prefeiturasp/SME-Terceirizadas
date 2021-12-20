@@ -161,7 +161,7 @@ class ConferenciaIndividualPorAlimentoSerializer(serializers.ModelSerializer):
     )
     status_alimento = serializers.SerializerMethodField()
     tipo_embalagem = serializers.SerializerMethodField()
-    ocorrencia = serializers.SerializerMethodField()
+    arquivo = serializers.SerializerMethodField()
 
     def get_status_alimento(self, obj):
         return obj.get_status_alimento_display()
@@ -169,17 +169,24 @@ class ConferenciaIndividualPorAlimentoSerializer(serializers.ModelSerializer):
     def get_tipo_embalagem(self, obj):
         return obj.get_tipo_embalagem_display()
 
-    def get_ocorrencia(self, obj):
-        return obj.get_ocorrencia_display()
+    def get_arquivo(self, obj):
+        return obj.arquivo_base64
 
     class Meta:
         model = ConferenciaIndividualPorAlimento
         exclude = ('id',)
 
 
+class GuiaDaRemessaSimplesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Guia
+        fields = ('uuid', 'numero_guia')
+
+
 class ConferenciaComOcorrenciaSerializer(serializers.ModelSerializer):
     criado_por = UsuarioVinculoSerializer()
     conferencia_dos_alimentos = ConferenciaIndividualPorAlimentoSerializer(many=True)
+    guia = GuiaLookUpSerializer(many=False)
 
     class Meta:
         model = ConferenciaGuia
@@ -206,6 +213,17 @@ class GuiaDaRemessaSerializer(serializers.ModelSerializer):
         exclude = ('id',)
 
 
+class GuiaDaRemessaComStatusRequisicaoSerializer(serializers.ModelSerializer):
+    numero_requisicao = serializers.CharField()
+    alimentos = AlimentoLookUpSerializer(many=True)
+    status = serializers.CharField(source='get_status_display')
+    status_requisicao = serializers.CharField()
+
+    class Meta:
+        model = Guia
+        exclude = ('id',)
+
+
 class GuiaDaRemessaComDistribuidorSerializer(serializers.ModelSerializer):
     nome_distribuidor = serializers.CharField()
     alimentos = AlimentoLookUpSerializer(many=True)
@@ -214,12 +232,6 @@ class GuiaDaRemessaComDistribuidorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Guia
         exclude = ('id',)
-
-
-class GuiaDaRemessaSimplesSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Guia
-        fields = ('uuid', 'numero_guia')
 
 
 class InfoUnidadesSimplesDaGuiaSerializer(serializers.ModelSerializer):

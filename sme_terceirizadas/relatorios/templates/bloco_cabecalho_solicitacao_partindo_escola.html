@@ -26,20 +26,12 @@
   </div>
   {% if solicitacao.tipo_solicitacao != 'COMUM'%}
   <div class="row id-pedido">
-      <div class="info w-25">
-        <div>Tipo da solicitação</div>
-        {% if solicitacao.tipo_solicitacao == 'ALTERACAO_UE'%}
-          <div>ALTERAÇÃO DE U.E</div>
-        {% else%}
-          <div>ALUNOS NÃO MATRICULADOS</div>
-        {%endif%}
+    {% if solicitacao.tipo_solicitacao == 'ALTERACAO_UE'%}
+      <div class="info w-50" style="padding-left: 0">
+        <div>Dieta Especial de Origem</div>
+          <div>{{ escola_origem.nome }}</div>
       </div>
-      {% if solicitacao.tipo_solicitacao == 'ALTERACAO_UE'%}
-        <div class="info w-50" style="padding-left: 0">
-          <div>Dieta Especial de Origem</div>
-            <div>{{ escola_origem.nome }}</div>
-        </div>
-      {%endif%}
+    {%endif%}
   </div>
   {% endif%}
    <hr style="color: #EEEEEE; opacity: 0.3">

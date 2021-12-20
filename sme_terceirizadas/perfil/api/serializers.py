@@ -61,7 +61,8 @@ class UsuarioSerializer(serializers.ModelSerializer):
             'date_joined',
             'registro_funcional',
             'tipo_usuario',
-            'cargo'
+            'cargo',
+            'crn_numero'
         )
 
 

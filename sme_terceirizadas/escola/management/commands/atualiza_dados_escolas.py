@@ -2,13 +2,12 @@ import logging
 
 import environ
 import requests
-from django.core.exceptions import ObjectDoesNotExist
 from django.core.management.base import BaseCommand
 from requests import ConnectionError
 
-from ....dados_comuns.constants import DJANGO_EOL_API_TOKEN, DJANGO_EOL_API_URL
+from ....dados_comuns.constants import DJANGO_EOL_SGP_API_TOKEN, DJANGO_EOL_SGP_API_URL
 from ....dados_comuns.models import Contato, Endereco
-from ...models import DiretoriaRegional, Escola
+from ...models import DiretoriaRegional, Escola, TipoUnidadeEscolar
 
 env = environ.Env()
 
@@ -16,97 +15,123 @@ logger = logging.getLogger('sigpae.cmd_atualiza_dados_escolas')
 
 
 class Command(BaseCommand):
-    help = 'Atualiza os dados das Escolas baseados na api do EOL'
+    help = 'Atualiza os dados das Escolas baseados na api do EOL do SGP'
+    headers = {'x-api-eol-key': f'{DJANGO_EOL_SGP_API_TOKEN}'}
+    timeout = 10
+    contador_escolas = 0
+    total_escolas = 0
 
-    def handle(self, *args, **options):
-        headers = {'Authorization': f'Token {DJANGO_EOL_API_TOKEN}'}
-
-        try:
-            r = requests.get(f'{DJANGO_EOL_API_URL}/escolas_terceirizadas/', headers=headers)
-            json = r.json()
-            logger.debug(f'payload da resposta: {json}')
-        except ConnectionError as e:
-            msg = f'Erro de conexão na api do  EOL: {e}'
-            logger.error(msg)
-            self.stdout.write(self.style.ERROR(msg))
-            return
-
-        self._atualiza_dre_da_escola(json)
-        self._atualiza_dados_da_escola(json)
-
-    def _atualiza_dados_da_escola(self, json):  # noqa C901
-        for escola_json in json['results']:
-            codigo_eol_escola = escola_json['cd_unidade_educacao'].strip()
-            nome_unidade_educacao = escola_json['nm_unidade_educacao'].strip()
-            tipo_ue = escola_json['sg_tp_escola'].strip()
-            nome_escola = f'{tipo_ue} {nome_unidade_educacao}'
+    def handle(self, *args, **options):  # noqa C901
+        diretorias_regionais = DiretoriaRegional.objects.all()
+        for dre in diretorias_regionais:
             try:
-                escola_object = Escola.objects.get(codigo_eol=codigo_eol_escola)
-            except ObjectDoesNotExist:
-                msg = f'Escola código EOL: {codigo_eol_escola} não existe no banco ainda'
+                self._atualiza_dados_escola(dre)
+            except ConnectionError as e:
+                msg = f'Erro de conexão na api do  EOL: {e}'
+                logger.error(msg)
                 self.stdout.write(self.style.ERROR(msg))
-                logger.debug(msg)
-                continue
-            if escola_object.nome != nome_escola:
-                msg = f'Atualizando nome da escola {escola_object} para {nome_escola}'
-                self.stdout.write(self.style.SUCCESS(msg))
-                logger.debug(msg)
-                escola_object.nome = nome_escola
-
-            msg = f'Escola código EOL: {codigo_eol_escola} atualizando...'
-            self.stdout.write(self.style.SUCCESS(msg))
-
-            if escola_object.endereco:
-                endereco = escola_object.endereco
-            else:
-                endereco = Endereco()
-            endereco.logradouro = escola_json['dc_tp_logradouro'].strip() + ' ' + escola_json['nm_logradouro'].strip()
-            if escola_json['cd_nr_endereco'] and escola_json['cd_nr_endereco'].strip() != 'S/N':
-                endereco.numero = escola_json['cd_nr_endereco'].strip()
-            if escola_json['dc_complemento_endereco']:
-                endereco.complemento = escola_json['dc_complemento_endereco'].strip()
-            endereco.bairro = escola_json['nm_bairro'].strip()
-            endereco.cep = escola_json['cd_cep']
-            endereco.save()
-            if escola_object.endereco is None:
-                escola_object.endereco = endereco
-
-            if escola_object.contato:
-                contato = escola_object.contato
-            else:
-                contato = Contato()
-            if escola_json['email']:
-                contato.email = escola_json['email'].strip()
-            if escola_json['tel1']:
-                contato.telefone = escola_json['tel1'].strip()
-            if escola_json['tel2']:
-                contato.telefone2 = escola_json['tel2'].strip()
-            contato.save()
-            if escola_object.contato is None:
-                escola_object.contato = contato
-
-            escola_object.save()
-
-
-    def _atualiza_dre_da_escola(self, json):  # noqa C901
-        for escola_json in json['results']:
-            codigo_eol_escola = escola_json['cd_unidade_educacao'].strip()
-            codigo_eol_dre = escola_json['cod_dre'].strip()
-            try:
-                escola_object = Escola.objects.get(codigo_eol=codigo_eol_escola)
-            except ObjectDoesNotExist:
-                msg = f'Escola código EOL: {codigo_eol_escola} não existe no banco ainda'
-                logger.debug(msg)
+            except requests.exceptions.ReadTimeout as re:
+                msg = f'readTimeout: {re}'
+                logger.error(msg)
                 self.stdout.write(self.style.ERROR(msg))
-                continue
-            if escola_object.diretoria_regional.codigo_eol != codigo_eol_dre:
-                try:
-                    diretoria_regional_object = DiretoriaRegional.objects.get(codigo_eol=codigo_eol_dre)
-                    msg = f'Escola {escola_object} mudada de DRE {escola_object.diretoria_regional} para {diretoria_regional_object}'  # noqa E501
-                    logger.debug(msg)
-                    escola_object.diretoria_regional = diretoria_regional_object
-                    escola_object.save()
-                except ObjectDoesNotExist:
-                    msg = f'DiretoriaRegional código EOL: {codigo_eol_dre} não existe no banco ainda'
-                    self.stdout.write(self.style.ERROR(msg))
-                    continue
+
+    def _atualiza_dados_escola(self, dre):
+        response = requests.get(
+            f'{DJANGO_EOL_SGP_API_URL}/DREs/{dre.codigo_eol}/escola',
+            headers=self.headers,
+            timeout=self.timeout,
+        )
+
+        escolas_list = response.json()
+        self.total_escolas += len(escolas_list)
+        for escola_dict in escolas_list:
+            self.contador_escolas += 1
+            self.stdout.write(
+                self.style.SUCCESS(
+                    f'{self.contador_escolas} DE UM TOTAL DE {self.total_escolas} ESCOLAS'
+                )
+            )
+            escola = self._atualiza_dados_iniciais_da_escola(dre, escola_dict)
+            self._atualiza_dados_contato_e_endereco_da_escola(escola)
+
+    def _atualiza_dados_iniciais_da_escola(
+        self, dre: DiretoriaRegional, escola_dict: dict
+    ):
+        codigo_eol_escola = escola_dict['codigoEscola'].strip()
+        nome_unidade_educacao = escola_dict['nomeEscola'].strip()
+        nome_tipo_escola = escola_dict['siglaTipoEscola'].strip()
+        nome_escola = f'{nome_tipo_escola} {nome_unidade_educacao}'
+
+        self.stdout.write(
+            self.style.SUCCESS(
+                (
+                    f'DRE: {dre} - Escola: {nome_escola} : {codigo_eol_escola} : {len(nome_tipo_escola)}'
+                )
+            )
+        )
+
+        tipo_unidade, _ = TipoUnidadeEscolar.objects.get_or_create(
+            iniciais=nome_tipo_escola, defaults={'ativo': True}
+        )  # noqa
+
+        escola, _ = Escola.objects.update_or_create(
+            codigo_eol=codigo_eol_escola,
+            defaults={
+                'nome': nome_escola,
+                'diretoria_regional': dre,
+                'tipo_unidade': tipo_unidade,
+            },
+        )
+        msg = (
+            f'Criando ou Atualizando dados iniciais da escola {escola} : {nome_escola}'
+        )
+        self.stdout.write(self.style.SUCCESS(msg))
+
+        return escola
+
+    def _atualiza_dados_contato_e_endereco_da_escola(self, escola: Escola):  # noqa C901
+        response = requests.get(
+            f'{DJANGO_EOL_SGP_API_URL}/escolas/dados/{escola.codigo_eol}',
+            headers=self.headers,
+            timeout=self.timeout,
+        )
+        escola_dados = response.json()
+
+        if escola.endereco:
+            endereco = escola.endereco
+        else:
+            endereco = Endereco()
+        endereco.logradouro = (
+            escola_dados['tipoLogradouro'].strip()
+            + ' '
+            + escola_dados['logradouro'].strip()
+        )
+
+        if escola_dados['numero'] and escola_dados['numero'].strip() != 'S/N':
+            endereco.numero = escola_dados['numero'].strip()
+        endereco.bairro = escola_dados['bairro'].strip()
+        endereco.cep = escola_dados['cep']
+        endereco.save()
+
+        if escola.endereco is None:
+            escola.endereco = endereco
+
+        if escola.contato:
+            contato = escola.contato
+        else:
+            contato = Contato()
+
+        if escola_dados['email']:
+            contato.email = escola_dados['email'].strip()
+
+        if (
+            escola_dados['telefone']
+            and len(escola_dados['telefone']) <= 10
+            and len(escola_dados['telefone']) >= 8
+        ):
+            contato.telefone = escola_dados['telefone'].strip()
+        contato.save()
+
+        if escola.contato is None:
+            escola.contato = contato
+        escola.save()

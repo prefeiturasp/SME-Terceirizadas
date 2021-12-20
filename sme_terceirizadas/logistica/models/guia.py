@@ -1,9 +1,12 @@
+import os
+
 from django.db import models
 from multiselectfield import MultiSelectField
 
 from ...dados_comuns.behaviors import CriadoPor, ModeloBase
 from ...dados_comuns.fluxo_status import FluxoGuiaRemessa
 from ...dados_comuns.models import LogSolicitacoesUsuario
+from ...dados_comuns.utils import convert_image_to_base64
 from ...escola.models import Escola
 from .solicitacao import SolicitacaoRemessa
 
@@ -56,7 +59,7 @@ class Guia(ModeloBase, FluxoGuiaRemessa):
     cidade_unidade = models.CharField('Cidade da unidade', blank=True, max_length=100)
     estado_unidade = models.CharField('Estado da unidade', blank=True, max_length=2)
     contato_unidade = models.CharField('Contato na unidade', blank=True, max_length=150)
-    telefone_unidade = models.CharField('Telefone da unidade', blank=True, default='', max_length=20)
+    telefone_unidade = models.CharField('Telefone da unidade', blank=True, default='', max_length=50)
     situacao = models.CharField(choices=SITUACAO_CHOICES, max_length=10, default=ATIVA)
 
     objects = GuiaManager()
@@ -175,6 +178,14 @@ class ConferenciaIndividualPorAlimento(ModeloBase):
 
     def __str__(self):
         return f'Conferencia do alimento {self.nome_alimento} da guia {self.conferencia.guia.numero_guia}'
+
+    @property
+    def arquivo_base64(self):
+        if self.arquivo:
+            extensao = os.path.splitext(self.arquivo.name)[1]
+            return convert_image_to_base64(self.arquivo.path, extensao.replace('.', ''))
+        else:
+            return None
 
     class Meta:
         verbose_name = 'Conferência Individual por Alimento'

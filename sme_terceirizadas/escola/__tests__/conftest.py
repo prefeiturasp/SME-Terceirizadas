@@ -44,11 +44,12 @@ def lote():
 
 
 @pytest.fixture
-def escola(lote):
+def escola(lote, tipo_gestao):
     return mommy.make(models.Escola,
                       nome=fake.name(),
                       codigo_eol=fake.name()[:6],
-                      lote=lote)
+                      lote=lote,
+                      tipo_gestao=tipo_gestao)
 
 
 @pytest.fixture
@@ -180,3 +181,55 @@ def planilha_de_para_eol_codae(arquivo):
         criado_em=datetime.date.today(),
         codigos_codae_vinculados=False
     )
+
+
+@pytest.fixture
+def alunos_matriculados_periodo_escola_regular(escola, periodo_escolar):
+    return mommy.make(models.AlunosMatriculadosPeriodoEscola,
+                      escola=escola,
+                      periodo_escolar=periodo_escolar,
+                      quantidade_alunos=50,
+                      tipo_turma=models.TipoTurma.REGULAR.name)
+
+
+@pytest.fixture
+def alunos_matriculados_periodo_escola_programas(escola, periodo_escolar):
+    return mommy.make(models.AlunosMatriculadosPeriodoEscola,
+                      escola=escola,
+                      periodo_escolar=periodo_escolar,
+                      quantidade_alunos=50,
+                      tipo_turma=models.TipoTurma.PROGRAMAS.name)
+
+
+@pytest.fixture
+def log_alunos_matriculados_periodo_escola_regular(escola, periodo_escolar):
+    return mommy.make(models.LogAlunosMatriculadosPeriodoEscola,
+                      escola=escola,
+                      periodo_escolar=periodo_escolar,
+                      quantidade_alunos=50,
+                      tipo_turma=models.TipoTurma.REGULAR.name)
+
+
+@pytest.fixture
+def log_alunos_matriculados_periodo_escola_programas(escola, periodo_escolar):
+    return mommy.make(models.LogAlunosMatriculadosPeriodoEscola,
+                      escola=escola,
+                      periodo_escolar=periodo_escolar,
+                      quantidade_alunos=50,
+                      tipo_turma=models.TipoTurma.PROGRAMAS.name)
+
+
+@pytest.fixture
+def dia_calendario_letivo(escola):
+    return mommy.make(models.DiaCalendario,
+                      escola=escola,
+                      data=datetime.datetime(2021, 9, 24),
+                      dia_letivo=True)
+
+
+@pytest.fixture
+def dia_calendario_nao_letivo(escola):
+    return mommy.make(models.DiaCalendario,
+                      escola=escola,
+                      data=datetime.datetime(2021, 9, 25),
+                      dia_letivo=False)

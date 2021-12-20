@@ -23,6 +23,13 @@ def confirma_guias(solicitacao, user):
         return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)
 
 
+def exclui_ultima_reposicao(guia):
+    reposicao = guia.conferencias.filter(eh_reposicao=True).last()
+    if reposicao:
+        reposicao.conferencia_dos_alimentos.all().delete()
+        reposicao.delete()
+
+
 def arquiva_guias(numero_requisicao, guias):  # noqa C901
     # Método para arquivamento da(s) guia(s) e requisições. Importante saber:
     # Se todas as guias para arquivamento forem todas as guias da requisição,

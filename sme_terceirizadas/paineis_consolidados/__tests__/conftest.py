@@ -303,10 +303,11 @@ def solicitacoes_ano_dre(client, django_user_model, request, diretoria_regional2
                          solicitacoes_kit_lanche_dre, inclusoes_de_alimentacao_continua_dre):
     email, password, rf, cpf = request.param
     user_dre = django_user_model.objects.create_user(password=password, email=email, registro_funcional=rf, cpf=cpf)
-    user_codae = django_user_model.objects.create_user(password='xxx2', email='xxx@email.com',
+    user_codae = django_user_model.objects.create_user(password=constants.DJANGO_ADMIN_PASSWORD, email='xxx@email.com',
                                                        registro_funcional='9987634', cpf='12oiu3123')
-    user_escola = django_user_model.objects.create_user(password='xxx', email='user@escola.com',
-                                                        registro_funcional='123123', cpf='12312312332')
+    user_escola = django_user_model.objects.create_user(password=constants.DJANGO_ADMIN_PASSWORD,
+                                                        email='user@escola.com', registro_funcional='123123',
+                                                        cpf='12312312332')
     client.login(email=email, password=password)
 
     perfil_adm_dre = mommy.make('Perfil', nome='ADMINISTRADOR_DRE', ativo=True)
@@ -418,9 +419,9 @@ def status_and_endpoint(request):
 def client_autenticado_dre_paineis_consolidados(client, django_user_model, diretoria_regional2, templates,
                                                 alteracoes_cardapio_dre_atual):
     email = 'test@test.com'
-    password = 'bar'
+    password = constants.DJANGO_ADMIN_PASSWORD
     user = django_user_model.objects.create_user(password=password, email=email, registro_funcional='8888888')
-    user_escola = django_user_model.objects.create_user(password='xxx', email='user@escola.com',
+    user_escola = django_user_model.objects.create_user(password=password, email='user@escola.com',
                                                         registro_funcional='123123', cpf='12312312332')
     perfil_cogestor = mommy.make('Perfil',
                                  nome=constants.COGESTOR,

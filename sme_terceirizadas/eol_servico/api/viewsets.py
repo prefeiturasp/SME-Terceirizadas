@@ -3,6 +3,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ViewSet
 
+from sme_terceirizadas.escola.models import Aluno
+
 from ..utils import EOLException, EOLService
 
 
@@ -25,8 +27,46 @@ class DadosAlunoEOLViewSet(ViewSet):
     permission_classes = (IsAuthenticated,)
 
     def retrieve(self, request, codigo_eol=None):
+        """informação importante.
+
+        Antes a consulta era feita na API do eol porém agora temos uma task que
+        roda todos os dia e importa os alunos.
+        Só mantive a resposta igual a do eol por conveniência para não precisar
+        mudar o front no momento dessa atulização
+
+        resposta:
+         {
+            'cd_aluno': 0001234,
+            'nm_aluno': 'XXXXXX',
+            'nm_social_aluno': None,
+            'dt_nascimento_aluno': '1973-08-14T00:00:00',
+            'cd_sexo_aluno': 'M',
+            'nm_mae_aluno': 'XXXXX',
+            'nm_pai_aluno': 'XXXX',
+            'cd_escola': '017981',
+            'dc_turma_escola': '4C',
+            'dc_tipo_turno': 'Manhã'
+        }
+        """
         try:
-            dados = EOLService.get_informacoes_aluno(codigo_eol)
+            aluno: Aluno = Aluno.objects.filter(codigo_eol=codigo_eol).get()
+            dados = {
+                'cd_aluno': aluno.codigo_eol,
+                'nm_aluno': aluno.nome,
+                'nm_social_aluno': None,
+                'dt_nascimento_aluno': f'{aluno.data_nascimento.strftime("%Y-%m-%d")}T00:00:00',
+                'cd_sexo_aluno': None,
+                'nm_mae_aluno': None,
+                'nm_pai_aluno': None,
+                'cd_escola': aluno.escola.codigo_eol,
+                'dc_turma_escola': aluno.serie,
+                # TODO: investigar e tratar AttributeError para aluno.periodo_escolar.nome
+                # ('NoneType' object has no attribute 'nome')
+                # 'dc_tipo_turno': aluno.periodo_escolar.nome
+            }
             return Response({'detail': dados})
         except EOLException as e:
             return Response({'detail': f'{e}'}, status=status.HTTP_400_BAD_REQUEST)
+        except Aluno.DoesNotExist as error:
+            # O front está esperando BAD_REQUEST
+            return Response({'detail': f'{error}'}, status=status.HTTP_400_BAD_REQUEST)
