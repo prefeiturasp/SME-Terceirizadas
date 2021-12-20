@@ -46,13 +46,12 @@ O SIGPAE Abastecimento também tem como objetivo substituir o antigo sistema de 
 
 A Divisão de Qualidade e Logística dos Alimentos (DILOG) é responsável pelo processo de abastecimento da Rede Municipal de Educação, após a definição do cardápio feita pela Divisão de Nutrição Escolar (DINUTRE). A DILOG recebe e atesta a qualidade dos alimentos entregues pelas empresas contratadas, monitora os estoques e planeja a logística de abastecimento, conforme atribuições definidas pelo art. 45 do Decreto Municipal nº 59.660, de 4 de agosto de 2020. A DILOG é composta por profissionais da educação, nutricionistas, veterinários, agrônomos e gestores públicos.
 
-- **É e faz:** além do já citado, é um sistema de gestão de contratos, estoques, cardápio, ocorrências de descumprimento de contrato, gera documentos que fomentarão processos administrativos (como pagamento e outros) e tem funcionalidade de monitoramento do programa de alimentação escolar
-- **Não é e não faz:** não substitui o trabalho de análise qualitativa dos nutricionistas e de outros setores da CODAE, não é um sistema de trâmite de processos administrativos e não é um sistema de compra de alimentos e nem de realização de licitações 
+- **É e faz** : ver acima + sistema de gestão de contratos, estoques, cardápio, ocorrências de descumprimento de contrato + gera documentos que fomentarão processos administrativos (como pagamento e outros) + funcionalidade de monitoramento do programa de alimentação escolar
+- **Não é e não faz**: não substitui o trabalho de análise qualitativa dos nutricionistas e de outros setores da CODAE // não é um sistema de trâmite de processos administrativos // não é um sistema de compra de alimentos e nem de realização de licitações 
 
 ## Personas
 
-**Quem:** equipes CODAE
-**Características e necessidades:** gerenciar e acompanhar todo o processo de abastecimento, de ponta a ponta.
+equipes CODAE: 
 
 **Quem:** Direção Escolar
 **Características e necessidades:** responsável pela gestão da escola, com necessidade de otimização de tempo. O sistema é essencial para melhor acompanhamento do recebimento de alimentos.

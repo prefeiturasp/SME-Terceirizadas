@@ -4,7 +4,7 @@ from itertools import chain
 from django.db import transaction
 from django.db.models import Count, Prefetch, Q
 from django_filters import rest_framework as filters
-from rest_framework import mixins, pagination, serializers, status, viewsets
+from rest_framework import mixins, serializers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -1196,14 +1196,12 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         })
 
 
-class CustomPagination(pagination.PageNumberPagination):
-    page_size = 300
+class NomeDeProdutoEditalViewSet(viewsets.ViewSet):
 
-
-class NomeDeProdutoEditalViewSet(viewsets.ModelViewSet):
-    serializer_class = NomeDeProdutoEditalSerializer
-    queryset = NomeDeProdutoEdital.objects.filter(ativo=True)
-    pagination_class = CustomPagination
+    def list(self, request):
+        queryset = NomeDeProdutoEdital.objects.filter(ativo=True).all()
+        data = NomeDeProdutoEditalSerializer(queryset, many=True).data
+        return Response({'results': data})
 
 
 class ProtocoloDeDietaEspecialViewSet(viewsets.ModelViewSet):

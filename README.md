@@ -26,7 +26,7 @@ O [Ateliê do Software](http://forum.govit.prefeitura.sp.gov.br/uploads/default/
 
 Para as **unidades escolares da rede municipal de educação da cidade de São Paulo** 
 
-Que **precisam acompanhar com segurança o fornecimento de alimentação escolar**
+Que **precisam acompanhar o fornecimento de alimentação escolar**
 
 O **SIGPAE (Sistema de Gestão  do Programa para Alimentação Escolar)**  
 
@@ -40,91 +40,83 @@ Onosso produto **garante mais agilidade, confiabilidade e segurança para os pro
 
 ## Objetivos de Negócio
 
-O SIGPAE tem como objetivo automatizar os processos internos de fornecimento e distribuição de alimentação escolar. Como principais funcionalidades temos: cadastro e acompanhamento de solicitações de alimentação, solicitação de dieta especial, gestão de produtos, medição inicial e faturamento.
+O SIGPAE tem como objetivo automatizar os processos internos de fornecimento e distribuição de alimentação escolar. Atualmente, temos os seguintes módulos desenvolvidos ou em desenvolvimento:
+
+- Gestão de Produtos: gestão de produtos, marcas e fabricantes oferecidos para os estudantes da rede municipal
+- Dieta Especial: registro e análise de solicitações de Dieta Especial feitas pelas Unidades Educacionais (UEs) e criação de protocolos de Dieta Especial para os estudantes
+- Gestão de Alimentação: registro e análise de solicitações de alimentação enviadas pelas UEs
+- Medição Inicial: registro e análise das refeições servidas pelas UEs mensalmente
+
+No futuro, o sistema também contará com módulos que apoiarão o trabalho da criação do cardápio, das nutricionistas da Supervisão, do Faturamento, entre outras. Desta forma, pretende-se que todo o trabalho desenvolvido para fornecer alimentação para as mais de 1000 UEs beneficiadas seja realizado a partir de um sistema, com maior segurança e automatização de processos.
 
 ## Personas
 
 **Quem:** Direção Escolar
-**Características e necessidades:** responsável pela gestão da escola, com necessidade de otimização de tempo. O sistema é essencial para melhor controle das ações realizadas para a escola
+**Características e necessidades:** responsável pela gestão da escola, com necessidade de otimização de tempo. O sistema é essencial para melhor controle das solicitações realizadas pela UE e demandas de DRE e CODAE
 
 **Quem:** Assistente Técnico de Educação e Nutricionista
-**Características e necessidades:** responsável pela gestão das solicitações de alimentação no núcleo de gestão de contratos na  coordenadoria de alimentação escolar, com necessidade de organização do recebimento das diversas solicitações das escolas
-
-**Quem:** Contador
-**Características e necessidades:** liquidação de todos os pagamentos efetuados pela coordenadoria de alimentação escolar 
+**Características e necessidades:** responsável pela gestão das solicitações de alimentação no núcleo de gestão de contratos na CODAE, com necessidade de organização do recebimento das diversas solicitações das UEs
 
 **Quem:** Nutricionista de Dieta Especial
-**Características e necessidades:** responsável pela validação de solicitações e prescrição da dieta especial, tem necessidade de otimização do processo para revisão, encaminhamento e fornecimento da dieta nas escolas. Processos burocráticos, dolorosos e com decisões de alto impacto para os estudantes
+**Características e necessidades:** responsável pela validação de solicitações e prescrição da Dieta Especial, tem necessidade de otimização do processo para revisão, encaminhamento e fornecimento da dieta nas escolas. Processos burocráticos, dolorosos e com decisões de alto impacto para os estudantes
 
 **Quem:** Nutricionista P&D
 **Características e necessidades:** responsável pela gestão de produtos (homologação, correção, suspensão e avaliação de reclamação e solicitação de análise sensorial) solicitados pelas empresas terceirizadas, com a necessidade de controle do que pode ser utilizados nas unidades escolares
 
-**Quem:** Diretoria Regional de Educação
+**Quem:** Diretoria Regional de Educação (DRE)
 **Características e necessidades:** responsável pelo gerenciamento das solicitações realizadas pelas escolas que administra, com a necessidade de otimizar e controlar as diversas solicitações das unidades escolares. Para fiscalização e controle das solicitações geradas
-
-**Quem:** estudantes
-**Características e necessidades:** participação nas aulas, com garantia de recebimento de alimentação durante todo o período em que estiver na unidade escolar, assim como o recebimento de alimentação para as atividades externas 
-
-**Quem:** Família
-**Características e necessidades:** responsável por acompanhar o cardápio diário das alimentações e por realizar a entrega de documentação para solicitação de Dieta Especial na unidade escolar, quando necessário, com a necessidade de atendimento ágil
   
 ## Funcionalidades
 
-**Escola**
-
-- Solicitações
-- Cadastro/ Edição/ Cancelamento/ Acompanhamento de solicitações para Inclusão de alimentação
-- Cadastro/ Edição/ Cancelamento/ Acompanhamento de solicitações Alteração de alimentação
-- Inversão
-- Suspensão
-- Kit
-- Relatórios por tipo de solicitação
-- Relatórios por status
-- Relatório por evolução das solicitações por tipo
-- Portal administrativo
-
-**Dieta Especial**
-
--  Relatórios
+**Gestão de Alimentação**
+- Inclusão de Alimentação
+- Solicitação de Kit Lanche
+- Suspensão de Alimentação
+- Alteração de Cardápio
+- Relatórios
 
 **Gestão de Produtos**
+- Cadastro de produto
+- Suspensão e ativação de produto
+- Registro de reclamação
+- Relatórios
 
-- Relatórios por de produto
-- Relatório por reclamação
+**Dieta Especial**
+- Solicitação de Dieta
+- Cancelamento de Dieta
+- Autorização de Dieta
+- Criação de Protocolos de Dieta Especial
+- Relatórios
 
 ## Roadmap
 
-- Release 1  - Solicitações de alimentações
+- Release 1  - Gestão de Alimentação
 
-- Release 2 - Relatórios de solicitações
+- Release 2 - Gestão de Produtos e Dieta Especial
 
-- Release 3 - Dieta Especial:
+- Release 3 - Medição Inicial EMEF (visão UE)
 
-- Release 4 - Relatório de Dieta Especial
+- Release 4 - Medição Inicial EMEF (visão DRE e CODAE)
 
-- Release 5 - Homologação de produtos
+- Release 5 - Medição Inicial CEI e EMEI
 
 - Release 6-  Cardápio
 
-- Release 6 - Medicação inicial
-
-- Release 7 - Faturamento
+- Release 7 - Supervisão
 
 # Sobre o Time
 
 | Papel | Titular | Suplente  
 |--|--|--|  
-| Product Owner | Elisete Pereira | Daniela Chichon e Andrea Wang |  
-| Agente de Governança | Vítor Ferragini |  |  
-| Gerente de Projeto | Aline Freitas | |  
-| Scrum Master | Andrea Paiva |  | 
+| Product Owner | Andrea Wang e Daniela Chichon| Elisete Pereira |  
+| Agente de Governança | Juliana Demay | Vítor Ferragini |  
+| Gerente de Projeto | Andrea Paiva | |  
+| Scrum Master | Augusto Silva |  | 
 | Designer de Serviços | Caio Dib | |  
-| Analista de negócios | Fabrício Ramalho |  |  
+| Analista de negócios | Jaqueline Sargi |  |  
 | Analista UX/UI | Pamela Marsola |  |  
-| Analista Programador | Bruno Buzzo, Pedro Walter, Rodolpho Lima |  |
+| Analista Programador | Anderson Moraes | Rodolpho Lima |
 | Analista de teste |Paula Pimentel|  |
-
-# Como surgiu
 
 ## Protótipos
 
@@ -138,7 +130,9 @@ https://www.figma.com/file/52MKvjiFFjoy7WLuvLLjAi/Spt_13-ALIMENTA%C3%87%C3%83O-T
 
 **Visão DRE:** https://www.figma.com/file/52MKvjiFFjoy7WLuvLLjAi/Spt_13-ALIMENTA%C3%87%C3%83O-Terceirizadas_sprint13-230719?node-id=0%3A43643
 
-# Links Úteis:
+**Mapeamento inicial de fluxos:** https://drive.google.com/drive/folders/1mGy5On44p_wHBldWoEKyLrBTG98mhZaC?usp=sharing
+
+# Links Úteis
 
 **Homologação:**
 
@@ -158,7 +152,7 @@ https://www.figma.com/file/52MKvjiFFjoy7WLuvLLjAi/Spt_13-ALIMENTA%C3%87%C3%83O-T
 
 Contribuições são **super bem vindas**! Se você tem vontade de construir o SIGPAE conosco, veja o nosso [guia de contribuição](./CONTRIBUTING.md) onde explicamos detalhadamente como trabalhamos e de que formas você pode nos ajudar a alcançar nossos objetivos. Lembrando que todos devem seguir  nosso [código de conduta](./CODEOFCONDUCT.md).
 
-# Repositórios:
+# Repositórios
 
 Informar os repositórios de código que envolvem a solução:
 
@@ -167,7 +161,7 @@ Informar os repositórios de código que envolvem a solução:
 [SME-TERCEIRIZADAS-FRONTEND]
 [https://github.com/prefeiturasp/SME-Terceirizadas-Frontend](https://github.com/prefeiturasp/SME-Terceirizadas-Frontend)
  
-# Instalação e Configuração:
+# Instalação e Configuração
 
 ## Pré-requisitos
 
