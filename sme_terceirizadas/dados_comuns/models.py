@@ -430,7 +430,7 @@ class Notificacao(models.Model):
         return self.titulo
 
     @classmethod # noqa C901
-    def notificar(cls, tipo, categoria, titulo, descricao, usuario, link, guia=None):
+    def notificar(cls, tipo, categoria, titulo, descricao, usuario, link, guia=None, renotificar=True):
 
         if tipo not in cls.TIPO_NOTIFICACAO_NOMES.keys():
             raise NotificacaoException(f'Tipo {tipo} não é um tipo válido.')
@@ -444,12 +444,22 @@ class Notificacao(models.Model):
         if not usuario:
             raise NotificacaoException(f'É necessário definir o usuário destinatário.')
 
-        cls.objects.create(
-            tipo=tipo,
-            categoria=categoria,
-            titulo=titulo,
-            descricao=descricao,
-            usuario=usuario,
-            link=link,
-            guia=guia,
-        )
+        if not renotificar:
+            notificacao_existente = cls.objects.filter(
+                tipo=tipo,
+                categoria=categoria,
+                guia=guia,
+                titulo=titulo,
+                usuario=usuario,
+            )
+
+        if renotificar or not notificacao_existente:
+            cls.objects.create(
+                tipo=tipo,
+                categoria=categoria,
+                titulo=titulo,
+                descricao=descricao,
+                usuario=usuario,
+                link=link,
+                guia=guia,
+            )
