@@ -61,20 +61,23 @@ def avisa_a_escola_que_hoje_tem_entrega_de_alimentos():
 
 
 @celery.app.task(soft_time_limit=1000, time_limit=1200)
-def avisa_a_escola_que_tem_guias_pendestes_de_conferencia():
+def avisa_a_escola_que_tem_guias_pendestes_de_conferencia(): # noqa C901
     hoje = datetime.date.today()
 
     guias = Guia.objects.filter(status=GuiaRemessaWorkFlow.PENDENTE_DE_CONFERENCIA, data_entrega__lt=hoje)
 
     for guia in guias.all():
         if guia.escola:
-            email_query_set_escola = guia.escola.vinculos.filter(
+            vinculos = guia.escola.vinculos.filter(
                 ativo=True
-            ).values_list('usuario__email', flat=True)
+            )
+            email_query_set_escola = vinculos.values_list('usuario__email', flat=True)
 
             partes_interessadas = [email for email in email_query_set_escola]
+            users = [vinculo.usuario for vinculo in vinculos]
         else:
             partes_interessadas = []
+            users = []
 
         html = render_to_string(
             template_name='logistica_avisa_ue_que_prazo_para_conferencia_foi_ultrapassado.html',
@@ -90,3 +93,23 @@ def avisa_a_escola_que_tem_guias_pendestes_de_conferencia():
             corpo='',
             html=html
         )
+
+        if users:
+            texto_notificacao = render_to_string(
+                template_name='logistica_notificacao_avisa_ue_que_prazo_para_conferencia_foi_ultrapassado.html',
+                context={
+                    'numero_guia': guia.numero_guia,
+                    'data_entrega': guia.data_entrega,
+                }
+            )
+            for user in users:
+                Notificacao.notificar(
+                    tipo=Notificacao.TIPO_NOTIFICACAO_PENDENCIA,
+                    categoria=Notificacao.CATEGORIA_NOTIFICACAO_GUIA_DE_REMESSA,
+                    titulo=f'Registre a conferência da Guia de Remessa de alimentos! | Guia: {guia.numero_guia}',
+                    descricao=texto_notificacao,
+                    usuario=user,
+                    link=f'/logistica/conferir-entrega?numero_guia={guia.numero_guia}',
+                    guia=guia,
+                    renotificar=False
+                )
