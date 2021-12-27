@@ -419,6 +419,9 @@ class Notificacao(models.Model):
 
     link = models.CharField('Link', max_length=100, default='', blank=True)
 
+    requisicao = models.ForeignKey('logistica.SolicitacaoRemessa', on_delete=models.CASCADE,
+                                   related_name='notificacoes_da_requisicao', blank=True, null=True)
+
     guia = models.ForeignKey('logistica.Guia', on_delete=models.CASCADE, related_name='notificacoes_da_guia',
                              blank=True, null=True)
 
@@ -430,7 +433,7 @@ class Notificacao(models.Model):
         return self.titulo
 
     @classmethod # noqa C901
-    def notificar(cls, tipo, categoria, titulo, descricao, usuario, link, guia=None, renotificar=True):
+    def notificar(cls, tipo, categoria, titulo, descricao, usuario, link, requisicao=None, guia=None, renotificar=True):
 
         if tipo not in cls.TIPO_NOTIFICACAO_NOMES.keys():
             raise NotificacaoException(f'Tipo {tipo} não é um tipo válido.')
@@ -448,6 +451,7 @@ class Notificacao(models.Model):
             notificacao_existente = cls.objects.filter(
                 tipo=tipo,
                 categoria=categoria,
+                requisicao=requisicao,
                 guia=guia,
                 titulo=titulo,
                 usuario=usuario,
@@ -461,5 +465,6 @@ class Notificacao(models.Model):
                 descricao=descricao,
                 usuario=usuario,
                 link=link,
+                requisicao=requisicao,
                 guia=guia,
             )
