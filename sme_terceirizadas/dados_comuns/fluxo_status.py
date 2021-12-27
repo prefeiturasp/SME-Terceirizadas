@@ -647,6 +647,34 @@ class FluxoSolicitacaoDeAlteracao(xwf_models.WorkflowEnabled, models.Model):
         )
         return [usuario.email for usuario in queryset]
 
+    def _usuarios_partes_interessadas_codae_dilog(self):
+        queryset = Usuario.objects.filter(
+            vinculos__perfil__nome__in=(
+                'COORDENADOR_LOGISTICA',
+                'COORDENADOR_CODAE_DILOG_LOGISTICA',
+            )
+        )
+        return [usuario for usuario in queryset]
+
+    def _preenche_template_e_cria_notificacao(self, template_notif, titulo_notif, usuarios, link, tipo):
+        if usuarios:
+            texto_notificacao = render_to_string(
+                template_name=template_notif,
+                context={
+                    'solicitacao': self,
+                }
+            )
+            for usuario in usuarios:
+                Notificacao.notificar(
+                    tipo=tipo,
+                    categoria=Notificacao.CATEGORIA_NOTIFICACAO_ALTERACAO_REQUISICAO_ENTREGA,
+                    titulo=titulo_notif,
+                    descricao=texto_notificacao,
+                    usuario=usuario,
+                    link=link,
+                    solicitacao_alteracao=self,
+                )
+
     def _partes_interessadas_distribuidor(self):
         # Envia email somente para vinculos do distribuidor.
         email_query_set_distribuidor = self.requisicao.distribuidor.vinculos.filter(
@@ -658,7 +686,7 @@ class FluxoSolicitacaoDeAlteracao(xwf_models.WorkflowEnabled, models.Model):
     def _envia_email_distribuidor_solicita_alteracao(self, log_transicao, partes_interessadas):
         url = f'{base_url}/logistica/gestao-solicitacao-alteracao?numero_solicitacao={self.numero_solicitacao}'
         html = render_to_string(
-            template_name='logistica_dilog_envia_solicitacao.html',
+            template_name='logistica_distribuidor_solicita_alteracao.html',
             context={
                 'titulo': f'Solicitação de alteração N° {self.numero_solicitacao}',
                 'solicitacao': self.numero_solicitacao,
@@ -685,6 +713,14 @@ class FluxoSolicitacaoDeAlteracao(xwf_models.WorkflowEnabled, models.Model):
 
         self._envia_email_distribuidor_solicita_alteracao(log_transicao=log_transicao,
                                                           partes_interessadas=partes_interessadas)
+        # Monta Notificacao
+        usuarios = self._usuarios_partes_interessadas_codae_dilog()
+        template_notif = 'logistica_notificacao_distribuidor_solicita_alteracao.html'
+        tipo = Notificacao.TIPO_NOTIFICACAO_PENDENCIA
+        titulo_notif = f'Solicitação de Alteração Nº {self.numero_solicitacao}'
+        link = f'/logistica/gestao-solicitacao-alteracao?numero_solicitacao={self.numero_solicitacao}'
+
+        self._preenche_template_e_cria_notificacao(template_notif, titulo_notif, usuarios, link, tipo)
 
     @xworkflows.after_transition('dilog_aceita')
     def _dilog_aceita_hook(self, *args, **kwargs):

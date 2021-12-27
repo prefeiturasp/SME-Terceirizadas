@@ -422,6 +422,12 @@ class Notificacao(models.Model):
     requisicao = models.ForeignKey('logistica.SolicitacaoRemessa', on_delete=models.CASCADE,
                                    related_name='notificacoes_da_requisicao', blank=True, null=True)
 
+    solicitacao_alteracao = models.ForeignKey('logistica.SolicitacaoDeAlteracaoRequisicao',
+                                              on_delete=models.CASCADE,
+                                              related_name='notificacoes_da_solicitacao_alteracao',
+                                              blank=True,
+                                              null=True)
+
     guia = models.ForeignKey('logistica.Guia', on_delete=models.CASCADE, related_name='notificacoes_da_guia',
                              blank=True, null=True)
 
@@ -433,7 +439,8 @@ class Notificacao(models.Model):
         return self.titulo
 
     @classmethod # noqa C901
-    def notificar(cls, tipo, categoria, titulo, descricao, usuario, link, requisicao=None, guia=None, renotificar=True):
+    def notificar(cls, tipo, categoria, titulo, descricao, usuario, link,
+                  requisicao=None, solicitacao_alteracao=None, guia=None, renotificar=True):
 
         if tipo not in cls.TIPO_NOTIFICACAO_NOMES.keys():
             raise NotificacaoException(f'Tipo {tipo} não é um tipo válido.')
@@ -466,5 +473,6 @@ class Notificacao(models.Model):
                 usuario=usuario,
                 link=link,
                 requisicao=requisicao,
+                solicitacao_alteracao=solicitacao_alteracao,
                 guia=guia,
             )

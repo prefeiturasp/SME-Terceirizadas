@@ -2,7 +2,7 @@
 {% load email_templatetags %}
 
 {% block conteudo %}
-  <p>Solicitação enviada em {{ log_transicao.criado_em }}</p>
+  {% include "logistica_notificacao_distribuidor_solicita_alteracao.html" %}
   <br/>
   <a href="{{ url }}">Clique para acessar detalhes da solicitação</a>
   <br/>
