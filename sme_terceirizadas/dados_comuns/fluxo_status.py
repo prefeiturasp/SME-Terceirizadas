@@ -798,6 +798,15 @@ class FluxoGuiaRemessa(xwf_models.WorkflowEnabled, models.Model):
 
         self._preenche_template_e_envia_email(template, assunto, titulo, partes_interessadas, log_transicao, url)
 
+        # Monta Notificacao
+        usuarios = self._usuarios_partes_interessadas_escola()
+        template_notif = 'logistica_notificacao_distribuidor_confirma_requisicao.html'
+        tipo = Notificacao.TIPO_NOTIFICACAO_AVISO
+        titulo_notif = f'Nova Guia de Remessa Nº {self.numero_guia}'
+        link = f'/logistica/conferir-entrega?numero_guia={self.numero_guia}'
+
+        self._preenche_template_e_cria_notificacao(template_notif, titulo_notif, usuarios, link, tipo)
+
     @xworkflows.after_transition('distribuidor_registra_insucesso')
     def _distribuidor_registra_insucesso_hook(self, *args, **kwargs):
         user = kwargs['user']
@@ -2020,7 +2029,7 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
             email_lista += [email for email in email_query_set_terceirizada]
         return email_lista
 
-    @property
+    @property  # noqa c901
     def _partes_interessadas_codae_autoriza_ou_nega(self):
         email_lista = []
         try:
@@ -2041,7 +2050,7 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
         # TODO: definir partes interessadas
         return []
 
-    @property
+    @property  # noqa c901
     def _partes_interessadas_codae_autoriza(self):
         escola = self.escola_destino
         try:
