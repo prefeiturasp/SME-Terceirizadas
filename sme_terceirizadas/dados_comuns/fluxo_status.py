@@ -513,6 +513,38 @@ class FluxoSolicitacaoRemessa(xwf_models.WorkflowEnabled, models.Model):
             html=html
         )
 
+    def _preenche_template_e_cria_notificacao(self, template_notif, titulo_notif, usuarios, link, tipo,
+                                              log_transicao=None):
+        if usuarios:
+            texto_notificacao = render_to_string(
+                template_name=template_notif,
+                context={
+                    'solicitacao': self.numero_solicitacao,
+                    'log_transicao': log_transicao,
+                }
+            )
+            for usuario in usuarios:
+                Notificacao.notificar(
+                    tipo=tipo,
+                    categoria=Notificacao.CATEGORIA_NOTIFICACAO_REQUISICAO_DE_ENTREGA,
+                    titulo=titulo_notif,
+                    descricao=texto_notificacao,
+                    usuario=usuario,
+                    link=link,
+                    requisicao=self,
+                )
+
+    def _usuarios_partes_interessadas_distribuidor(self):
+        # retornar objeto de usuários ativos, vinculados ao distribuidor da requisicao
+        if self.distribuidor:
+            vinculos = self.distribuidor.vinculos.filter(
+                ativo=True
+            )
+
+            return [vinculo.usuario for vinculo in vinculos]
+        else:
+            return []
+
     @xworkflows.after_transition('inicia_fluxo')
     def _inicia_fluxo_hook(self, *args, **kwargs):
         user = kwargs['user']
@@ -522,6 +554,15 @@ class FluxoSolicitacaoRemessa(xwf_models.WorkflowEnabled, models.Model):
 
         self.guias.update(status=GuiaRemessaWorkFlow.AGUARDANDO_CONFIRMACAO)
         self._envia_email_dilog_envia_solicitacao_para_distibuidor(log_transicao=log_transicao)
+
+        # Monta Notificacao
+        usuarios = self._usuarios_partes_interessadas_distribuidor()
+        template_notif = 'logistica_notificacao_dilog_envia_solicitacao.html'
+        tipo = Notificacao.TIPO_NOTIFICACAO_PENDENCIA
+        titulo_notif = f'Nova Requisição de Entrega N° {self.numero_solicitacao}'
+        link = f'/logistica/gestao-requisicao-entrega?numero_requisicao={self.numero_solicitacao}'
+
+        self._preenche_template_e_cria_notificacao(template_notif, titulo_notif, usuarios, link, tipo, log_transicao)
 
     @xworkflows.after_transition('empresa_atende')
     def _empresa_atende_hook(self, *args, **kwargs):
