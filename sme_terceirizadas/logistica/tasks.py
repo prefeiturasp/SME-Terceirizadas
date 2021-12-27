@@ -60,8 +60,8 @@ def avisa_a_escola_que_hoje_tem_entrega_de_alimentos():
                 )
 
 
-@celery.app.task(soft_time_limit=1000, time_limit=1200)
-def avisa_a_escola_que_tem_guias_pendestes_de_conferencia(): # noqa C901
+@celery.app.task(soft_time_limit=1000, time_limit=1200) # noqa C901
+def avisa_a_escola_que_tem_guias_pendestes_de_conferencia():
     hoje = datetime.date.today()
 
     guias = Guia.objects.filter(status=GuiaRemessaWorkFlow.PENDENTE_DE_CONFERENCIA, data_entrega__lt=hoje)
