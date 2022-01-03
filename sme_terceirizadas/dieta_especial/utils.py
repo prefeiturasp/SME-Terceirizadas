@@ -262,7 +262,7 @@ def cancela_dietas_ativas_automaticamente():  # noqa C901 D205 D400
                 cod_escola_no_eol=solicitacao_dieta.escola.codigo_eol,
                 cod_escola_no_sigpae=cod_escola_no_sigpae
             )
-            escola_existe_no_sigpae = Escola.objects.filter(codigo_eol=dados_do_aluno['cd_escola']).first()
+            escola_existe_no_sigpae = Escola.objects.filter(codigo_eol=solicitacao_dieta.escola.codigo_eol).first()
 
             nome_escola_destino = None
             if escola_existe_no_sigpae:
@@ -271,7 +271,7 @@ def cancela_dietas_ativas_automaticamente():  # noqa C901 D205 D400
             dados = dict(
                 codigo_eol_aluno=dieta.codigo_eol_aluno,
                 nome_aluno=aluno.nome,
-                codigo_eol_escola_destino=dados_do_aluno['cd_escola'],
+                codigo_eol_escola_destino=solicitacao_dieta.escola.codigo_eol,
                 nome_escola_destino=nome_escola_destino,
             )
             if cod_escola_no_sigpae:
