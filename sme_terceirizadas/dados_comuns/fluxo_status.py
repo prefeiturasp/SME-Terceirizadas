@@ -582,6 +582,15 @@ class FluxoSolicitacaoRemessa(xwf_models.WorkflowEnabled, models.Model):
             justificativa=kwargs.get('justificativa', ''))
         self._envia_email_aguarda_cancelamento_para_distibuidor(log_transicao=log_transicao)
 
+        # Monta Notificacao
+        usuarios = self._usuarios_partes_interessadas_distribuidor()
+        template_notif = 'logistica_notificacao_aguardando_cancelamento_distribuidor.html'
+        tipo = Notificacao.TIPO_NOTIFICACAO_PENDENCIA
+        titulo_notif = f'Cancelamento de Guias de Remessa da Requisição N° {self.numero_solicitacao}'
+        link = f'/logistica/gestao-requisicao-entrega?numero_requisicao={self.numero_solicitacao}'
+
+        self._preenche_template_e_cria_notificacao(template_notif, titulo_notif, usuarios, link, tipo, log_transicao)
+
     @xworkflows.after_transition('cancela_solicitacao')
     def _cancela_solicitacao_hook(self, *args, **kwargs):
         user = kwargs['user']
