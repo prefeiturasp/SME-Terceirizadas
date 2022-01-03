@@ -332,7 +332,7 @@ class SolicitacoesCODAE(MoldeConsolidado):
             status_evento__in=cls.AUTORIZADO_EVENTO_DIETA_ESPECIAL,
             tipo_doc=cls.TP_SOL_DIETA_ESPECIAL,
             ativo=True
-        ).distinct().order_by('-data_log')
+        ).order_by('pk').distinct('pk')
 
     @classmethod
     def get_negados_dieta_especial(cls, **kwargs):
