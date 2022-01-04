@@ -656,16 +656,19 @@ class SolicitacaoDietaEspecialViewSet(
 
 class SolicitacoesAtivasInativasPorAlunoView(generics.ListAPIView):
     serializer_class = SolicitacoesAtivasInativasPorAlunoSerializer
-    pagination_class = RelatorioPagination
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
         total_ativas = queryset.aggregate(Sum('ativas'))
         total_inativas = queryset.aggregate(Sum('inativas'))
 
-        page = self.paginate_queryset(queryset)
-        if page is not None:
+        tem_parametro_page = request.GET.get('page', False)
+
+        if tem_parametro_page:
+            self.pagination_class = RelatorioPagination
+            page = self.paginate_queryset(queryset)
             serializer = self.get_serializer(page, many=True)
+
             return self.get_paginated_response({
                 'total_ativas': total_ativas['ativas__sum'],
                 'total_inativas': total_inativas['inativas__sum'],

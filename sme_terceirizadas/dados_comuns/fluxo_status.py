@@ -513,6 +513,38 @@ class FluxoSolicitacaoRemessa(xwf_models.WorkflowEnabled, models.Model):
             html=html
         )
 
+    def _preenche_template_e_cria_notificacao(self, template_notif, titulo_notif, usuarios, link, tipo,
+                                              log_transicao=None):
+        if usuarios:
+            texto_notificacao = render_to_string(
+                template_name=template_notif,
+                context={
+                    'solicitacao': self.numero_solicitacao,
+                    'log_transicao': log_transicao,
+                }
+            )
+            for usuario in usuarios:
+                Notificacao.notificar(
+                    tipo=tipo,
+                    categoria=Notificacao.CATEGORIA_NOTIFICACAO_REQUISICAO_DE_ENTREGA,
+                    titulo=titulo_notif,
+                    descricao=texto_notificacao,
+                    usuario=usuario,
+                    link=link,
+                    requisicao=self,
+                )
+
+    def _usuarios_partes_interessadas_distribuidor(self):
+        # retornar objeto de usuários ativos, vinculados ao distribuidor da requisicao
+        if self.distribuidor:
+            vinculos = self.distribuidor.vinculos.filter(
+                ativo=True
+            )
+
+            return [vinculo.usuario for vinculo in vinculos]
+        else:
+            return []
+
     @xworkflows.after_transition('inicia_fluxo')
     def _inicia_fluxo_hook(self, *args, **kwargs):
         user = kwargs['user']
@@ -522,6 +554,15 @@ class FluxoSolicitacaoRemessa(xwf_models.WorkflowEnabled, models.Model):
 
         self.guias.update(status=GuiaRemessaWorkFlow.AGUARDANDO_CONFIRMACAO)
         self._envia_email_dilog_envia_solicitacao_para_distibuidor(log_transicao=log_transicao)
+
+        # Monta Notificacao
+        usuarios = self._usuarios_partes_interessadas_distribuidor()
+        template_notif = 'logistica_notificacao_dilog_envia_solicitacao.html'
+        tipo = Notificacao.TIPO_NOTIFICACAO_PENDENCIA
+        titulo_notif = f'Nova Requisição de Entrega N° {self.numero_solicitacao}'
+        link = f'/logistica/gestao-requisicao-entrega?numero_requisicao={self.numero_solicitacao}'
+
+        self._preenche_template_e_cria_notificacao(template_notif, titulo_notif, usuarios, link, tipo, log_transicao)
 
     @xworkflows.after_transition('empresa_atende')
     def _empresa_atende_hook(self, *args, **kwargs):
@@ -540,6 +581,15 @@ class FluxoSolicitacaoRemessa(xwf_models.WorkflowEnabled, models.Model):
             usuario=user,
             justificativa=kwargs.get('justificativa', ''))
         self._envia_email_aguarda_cancelamento_para_distibuidor(log_transicao=log_transicao)
+
+        # Monta Notificacao
+        usuarios = self._usuarios_partes_interessadas_distribuidor()
+        template_notif = 'logistica_notificacao_aguardando_cancelamento_distribuidor.html'
+        tipo = Notificacao.TIPO_NOTIFICACAO_PENDENCIA
+        titulo_notif = f'Cancelamento de Guias de Remessa da Requisição N° {self.numero_solicitacao}'
+        link = f'/logistica/gestao-requisicao-entrega?numero_requisicao={self.numero_solicitacao}'
+
+        self._preenche_template_e_cria_notificacao(template_notif, titulo_notif, usuarios, link, tipo, log_transicao)
 
     @xworkflows.after_transition('cancela_solicitacao')
     def _cancela_solicitacao_hook(self, *args, **kwargs):
@@ -606,6 +656,47 @@ class FluxoSolicitacaoDeAlteracao(xwf_models.WorkflowEnabled, models.Model):
         )
         return [usuario.email for usuario in queryset]
 
+    def _usuarios_partes_interessadas_codae_dilog(self):
+        queryset = Usuario.objects.filter(
+            vinculos__perfil__nome__in=(
+                'COORDENADOR_LOGISTICA',
+                'COORDENADOR_CODAE_DILOG_LOGISTICA',
+            )
+        )
+        return [usuario for usuario in queryset]
+
+    def _preenche_template_e_cria_notificacao(self, log_transicao, template_notif, titulo_notif,
+                                              usuarios, link, tipo, situacao=None):
+        if usuarios:
+            texto_notificacao = render_to_string(
+                template_name=template_notif,
+                context={
+                    'solicitacao': self,
+                    'log_transicao': log_transicao,
+                    'situacao': situacao,
+                }
+            )
+            for usuario in usuarios:
+                Notificacao.notificar(
+                    tipo=tipo,
+                    categoria=Notificacao.CATEGORIA_NOTIFICACAO_ALTERACAO_REQUISICAO_ENTREGA,
+                    titulo=titulo_notif,
+                    descricao=texto_notificacao,
+                    usuario=usuario,
+                    link=link,
+                    solicitacao_alteracao=self,
+                )
+
+    def _monta_notificacao_aceita_ou_nega_solicitacao(self, situacao, log_transicao):
+        usuarios = self._usuarios_partes_interessadas_distribuidor()
+        template_notif = 'logistica_notificacao_dilog_aceita_ou_nega_alteracao.html'
+        tipo = Notificacao.TIPO_NOTIFICACAO_AVISO
+        titulo_notif = f'Solicitação de Alteração Nº {self.numero_solicitacao} {situacao}.'
+        link = f'/logistica/consulta-solicitacao-alteracao?numero_solicitacao={self.numero_solicitacao}'
+
+        self._preenche_template_e_cria_notificacao(log_transicao, template_notif, titulo_notif,
+                                                   usuarios, link, tipo, situacao)
+
     def _partes_interessadas_distribuidor(self):
         # Envia email somente para vinculos do distribuidor.
         email_query_set_distribuidor = self.requisicao.distribuidor.vinculos.filter(
@@ -614,13 +705,24 @@ class FluxoSolicitacaoDeAlteracao(xwf_models.WorkflowEnabled, models.Model):
 
         return [email for email in email_query_set_distribuidor]
 
+    def _usuarios_partes_interessadas_distribuidor(self):
+        # retornar objeto de usuários ativos, vinculados ao distribuidor da requisicao
+        if self.requisicao.distribuidor:
+            vinculos = self.requisicao.distribuidor.vinculos.filter(
+                ativo=True
+            )
+
+            return [vinculo.usuario for vinculo in vinculos]
+        else:
+            return []
+
     def _envia_email_distribuidor_solicita_alteracao(self, log_transicao, partes_interessadas):
         url = f'{base_url}/logistica/gestao-solicitacao-alteracao?numero_solicitacao={self.numero_solicitacao}'
         html = render_to_string(
-            template_name='logistica_dilog_envia_solicitacao.html',
+            template_name='logistica_distribuidor_solicita_alteracao.html',
             context={
                 'titulo': f'Solicitação de alteração N° {self.numero_solicitacao}',
-                'solicitacao': self.numero_solicitacao,
+                'solicitacao': self,
                 'log_transicao': log_transicao,
                 'url': url
             }
@@ -644,6 +746,14 @@ class FluxoSolicitacaoDeAlteracao(xwf_models.WorkflowEnabled, models.Model):
 
         self._envia_email_distribuidor_solicita_alteracao(log_transicao=log_transicao,
                                                           partes_interessadas=partes_interessadas)
+        # Monta Notificacao
+        usuarios = self._usuarios_partes_interessadas_codae_dilog()
+        template_notif = 'logistica_notificacao_distribuidor_solicita_alteracao.html'
+        tipo = Notificacao.TIPO_NOTIFICACAO_PENDENCIA
+        titulo_notif = f'Solicitação de Alteração Nº {self.numero_solicitacao}'
+        link = f'/logistica/gestao-solicitacao-alteracao?numero_solicitacao={self.numero_solicitacao}'
+
+        self._preenche_template_e_cria_notificacao(log_transicao, template_notif, titulo_notif, usuarios, link, tipo)
 
     @xworkflows.after_transition('dilog_aceita')
     def _dilog_aceita_hook(self, *args, **kwargs):
@@ -659,6 +769,9 @@ class FluxoSolicitacaoDeAlteracao(xwf_models.WorkflowEnabled, models.Model):
 
         self._preenche_template_e_envia_email(template, assunto, titulo, partes_interessadas, log_transicao, situacao)
 
+        # Monta Notificacao
+        self._monta_notificacao_aceita_ou_nega_solicitacao(situacao, log_transicao)
+
     @xworkflows.after_transition('dilog_nega')
     def _dilog_nega_hook(self, *args, **kwargs):
         user = kwargs['user']
@@ -673,6 +786,9 @@ class FluxoSolicitacaoDeAlteracao(xwf_models.WorkflowEnabled, models.Model):
         partes_interessadas = self._partes_interessadas_distribuidor()
 
         self._preenche_template_e_envia_email(template, assunto, titulo, partes_interessadas, log_transicao, situacao)
+
+        # Monta Notificacao
+        self._monta_notificacao_aceita_ou_nega_solicitacao(situacao, log_transicao)
 
     class Meta:
         abstract = True
@@ -756,6 +872,15 @@ class FluxoGuiaRemessa(xwf_models.WorkflowEnabled, models.Model):
         partes_interessadas = self._partes_interessadas_escola()
 
         self._preenche_template_e_envia_email(template, assunto, titulo, partes_interessadas, log_transicao, url)
+
+        # Monta Notificacao
+        usuarios = self._usuarios_partes_interessadas_escola()
+        template_notif = 'logistica_notificacao_distribuidor_confirma_requisicao.html'
+        tipo = Notificacao.TIPO_NOTIFICACAO_AVISO
+        titulo_notif = f'Nova Guia de Remessa Nº {self.numero_guia}'
+        link = f'/logistica/conferir-entrega?numero_guia={self.numero_guia}'
+
+        self._preenche_template_e_cria_notificacao(template_notif, titulo_notif, usuarios, link, tipo)
 
     @xworkflows.after_transition('distribuidor_registra_insucesso')
     def _distribuidor_registra_insucesso_hook(self, *args, **kwargs):
@@ -1979,7 +2104,7 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
             email_lista += [email for email in email_query_set_terceirizada]
         return email_lista
 
-    @property
+    @property  # noqa c901
     def _partes_interessadas_codae_autoriza_ou_nega(self):
         email_lista = []
         try:
@@ -2000,7 +2125,7 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
         # TODO: definir partes interessadas
         return []
 
-    @property
+    @property  # noqa c901
     def _partes_interessadas_codae_autoriza(self):
         escola = self.escola_destino
         try:
