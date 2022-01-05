@@ -246,7 +246,8 @@ def cancela_dietas_ativas_automaticamente():  # noqa C901 D205 D400
     """Se um aluno trocar de escola ou não pertencer a rede
     e se tiver uma Dieta Especial Ativa, essa dieta será cancelada automaticamente.
     """
-    dietas_ativas_comuns = SolicitacoesCODAE.get_autorizados_dieta_especial().filter(tipo_solicitacao_dieta='COMUM')
+    dietas_ativas_comuns = SolicitacoesCODAE.get_autorizados_dieta_especial().filter(
+        tipo_solicitacao_dieta='COMUM').order_by('pk').distinct('pk')
     for dieta in dietas_ativas_comuns:
         aluno = Aluno.objects.get(codigo_eol=dieta.codigo_eol_aluno)
         dados_do_aluno = get_aluno_eol(dieta.codigo_eol_aluno)
