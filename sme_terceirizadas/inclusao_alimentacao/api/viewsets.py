@@ -193,7 +193,7 @@ class InclusaoAlimentacaoViewSetBase(ModelViewSet, EscolaIniciaCancela, DREValid
             self.permission_classes = (
                 IsAuthenticated, PermissaoParaRecuperarObjeto)
         elif self.action in ['create', 'destroy']:
-            self.permission_classes = (UsuarioEscola)
+            self.permission_classes = (IsAuthenticated, UsuarioEscola)
         return super(InclusaoAlimentacaoViewSetBase, self).get_permissions()
 
     @action(detail=True,
