@@ -697,6 +697,10 @@ class FluxoSolicitacaoDeAlteracao(xwf_models.WorkflowEnabled, models.Model):
         self._preenche_template_e_cria_notificacao(log_transicao, template_notif, titulo_notif,
                                                    usuarios, link, tipo, situacao)
 
+    def _resolve_pendencia_solicitacao_alteracao(self):
+        titulo_notif = f'Solicitação de Alteração Nº {self.numero_solicitacao}'
+        Notificacao.resolver_pendencia(titulo=titulo_notif, solicitacao_alteracao=self)
+
     def _partes_interessadas_distribuidor(self):
         # Envia email somente para vinculos do distribuidor.
         email_query_set_distribuidor = self.requisicao.distribuidor.vinculos.filter(
@@ -772,6 +776,9 @@ class FluxoSolicitacaoDeAlteracao(xwf_models.WorkflowEnabled, models.Model):
         # Monta Notificacao
         self._monta_notificacao_aceita_ou_nega_solicitacao(situacao, log_transicao)
 
+        # Resolve a pendência
+        self._resolve_pendencia_solicitacao_alteracao()
+
     @xworkflows.after_transition('dilog_nega')
     def _dilog_nega_hook(self, *args, **kwargs):
         user = kwargs['user']
@@ -789,6 +796,9 @@ class FluxoSolicitacaoDeAlteracao(xwf_models.WorkflowEnabled, models.Model):
 
         # Monta Notificacao
         self._monta_notificacao_aceita_ou_nega_solicitacao(situacao, log_transicao)
+
+        # Resolve a pendência
+        self._resolve_pendencia_solicitacao_alteracao()
 
     class Meta:
         abstract = True
