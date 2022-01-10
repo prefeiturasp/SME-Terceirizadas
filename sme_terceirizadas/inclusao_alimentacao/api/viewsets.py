@@ -81,8 +81,9 @@ class DREValida():
             url_path=constants.DRE_NAO_VALIDA_PEDIDO)
     def diretoria_regional_nao_valida_pedido(self, request, uuid=None):
         obj = self.get_object()
+        justificativa = request.data.get('justificativa', '')
         try:
-            obj.dre_nao_valida(user=request.user)
+            obj.dre_nao_valida(user=request.user, justificativa=justificativa)
             serializer = self.get_serializer(obj)
             return Response(serializer.data)
         except InvalidTransitionError as e:
