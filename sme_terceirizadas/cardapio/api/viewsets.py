@@ -283,8 +283,9 @@ class InversaoCardapioViewSet(viewsets.ModelViewSet):
             methods=['patch'], url_path=constants.DRE_NAO_VALIDA_PEDIDO)
     def diretoria_regional_nao_valida_solicitacao(self, request, uuid=None):
         inversao_cardapio = self.get_object()
+        justificativa = request.data.get('justificativa', '')
         try:
-            inversao_cardapio.dre_nao_valida(user=request.user, )
+            inversao_cardapio.dre_nao_valida(user=request.user, justificativa=justificativa)
             serializer = self.get_serializer(inversao_cardapio)
             return Response(serializer.data)
         except InvalidTransitionError as e:
