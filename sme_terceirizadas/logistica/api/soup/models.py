@@ -292,6 +292,6 @@ class SoapResponse(ComplexModel):
     def __init__(self, str_status, str_menssagem):
         """Objeto de response adaptado para o webserver soap."""
         self.StrStatus = str_status
-        self.StrMessagem = str_menssagem
+        self.StrMensagem = str_menssagem
     StrStatus = String
-    StrMessagem = String
+    StrMensagem = String
