@@ -2,7 +2,7 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from ....dados_comuns.api.serializers import ContatoSerializer
-from ....dados_comuns.constants import NUTRI_ADMIN_RESPONSAVEL
+from ....dados_comuns.constants import ADMINISTRADOR_TERCEIRIZADA
 from ....dados_comuns.models import Contato
 from ....dados_comuns.utils import update_instance_from_dict
 from ....escola.api.serializers import UsuarioNutricionistaSerializer
@@ -136,7 +136,12 @@ class TerceirizadaCreateSerializer(serializers.ModelSerializer):
                 terceirizada.contatos.add(contato)
 
             for nutri_json in nutricionistas_array:
-                UsuarioUpdateSerializer().create_nutricionista(terceirizada, nutri_json)
+                if nutri_json.get('contatos', None):
+                    nutri_contatos_array = nutri_json['contatos']
+                    for nutri_contato in nutri_contatos_array:
+                        contato = ContatoSerializer().create(
+                            validated_data=nutri_contato)
+                        terceirizada.contatos.add(contato)
 
             self.criar_super_admin_terceirizada(super_admin, terceirizada)
 
@@ -202,7 +207,7 @@ class TerceirizadaCreateSerializer(serializers.ModelSerializer):
             usuario.contatos.add(contato)
         usuario.criar_vinculo_administrador(
             terceirizada,
-            nome_perfil=NUTRI_ADMIN_RESPONSAVEL
+            nome_perfil=ADMINISTRADOR_TERCEIRIZADA
         )
         usuario.enviar_email_administrador()
 
