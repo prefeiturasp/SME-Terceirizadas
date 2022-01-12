@@ -169,7 +169,8 @@ class PermissaoParaRecuperarObjeto(BasePermission):
         elif isinstance(usuario.vinculo_atual.instituicao, Codae):
             return (
                 usuario.vinculo_atual.perfil.nome in [COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
-                                                      ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA]
+                                                      ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
+                                                      COORDENADOR_SUPERVISAO_NUTRICAO]
             )
         elif isinstance(usuario.vinculo_atual.instituicao, Terceirizada):
             try:  # solicitacoes normais
@@ -196,7 +197,8 @@ class PermissaoParaRecuperarSolicitacaoUnificada(BasePermission):
         elif isinstance(usuario.vinculo_atual.instituicao, Codae):
             return (
                 usuario.vinculo_atual.perfil.nome in [COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
-                                                      ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA]
+                                                      ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
+                                                      COORDENADOR_SUPERVISAO_NUTRICAO]
             )
         elif isinstance(usuario.vinculo_atual.instituicao, Terceirizada):
             return (
