@@ -12,6 +12,7 @@ from ...dados_comuns.permissions import (
     PermissaoParaRecuperarDietaEspecial,
     UsuarioCODAEGestaoAlimentacao,
     UsuarioDiretoriaRegional,
+    UsuarioNutricionista,
     UsuarioTerceirizada
 )
 from ...dieta_especial.api.serializers import SolicitacaoDietaEspecialLogSerializer, SolicitacaoDietaEspecialSerializer
@@ -20,7 +21,13 @@ from ...paineis_consolidados.api.constants import PESQUISA, TIPO_VISAO, TIPO_VIS
 from ...paineis_consolidados.api.serializers import SolicitacoesSerializer
 from ...relatorios.relatorios import relatorio_filtro_periodo, relatorio_resumo_anual_e_mensal
 from ..api.constants import PENDENTES_VALIDACAO_DRE, RELATORIO_PERIODO
-from ..models import SolicitacoesCODAE, SolicitacoesDRE, SolicitacoesEscola, SolicitacoesTerceirizada
+from ..models import (
+    SolicitacoesCODAE,
+    SolicitacoesDRE,
+    SolicitacoesEscola,
+    SolicitacoesNutrisupervisao,
+    SolicitacoesTerceirizada
+)
 from ..validators import FiltroValidator
 from .constants import (
     AGUARDANDO_INICIO_VIGENCIA_DIETA_ESPECIAL,
@@ -143,6 +150,69 @@ class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
             return datetime.datetime.strptime(date_text, '%d-%m-%Y')
         except ValueError:
             return False
+
+
+class NutrisupervisaoSolicitacoesViewSet(SolicitacoesViewSet):
+    lookup_field = 'uuid'
+    permission_classes = (IsAuthenticated,)
+    queryset = SolicitacoesNutrisupervisao.objects.all()
+    serializer_class = SolicitacoesSerializer
+
+    @action(detail=False,
+            methods=['GET'],
+            url_path=f'{PENDENTES_AUTORIZACAO}/{FILTRO_PADRAO_PEDIDOS}',
+            permission_classes=(UsuarioNutricionista,))
+    def pendentes_autorizacao(self, request, filtro_aplicado=SEM_FILTRO):
+        query_set = SolicitacoesNutrisupervisao.get_pendentes_autorizacao(
+            filtro=filtro_aplicado)
+        return self._retorno_base(query_set)
+
+    @action(detail=False,
+            methods=['GET'],
+            url_path=AUTORIZADOS,
+            permission_classes=(UsuarioNutricionista,))
+    def autorizados(self, request):
+        query_set = SolicitacoesNutrisupervisao.get_autorizados()
+        return self._retorno_base(query_set)
+
+    @action(detail=False,
+            methods=['GET'],
+            url_path=NEGADOS,
+            permission_classes=(UsuarioNutricionista,))
+    def negados(self, request):
+        query_set = SolicitacoesNutrisupervisao.get_negados()
+        return self._retorno_base(query_set)
+
+    @action(detail=False,
+            methods=['GET'],
+            url_path=CANCELADOS,
+            permission_classes=(UsuarioNutricionista,))
+    def cancelados(self, request):
+        query_set = SolicitacoesNutrisupervisao.get_cancelados()
+        return self._retorno_base(query_set)
+
+    @action(detail=False,
+            methods=['GET'],
+            url_path=f'{PENDENTES_AUTORIZACAO}/{FILTRO_PADRAO_PEDIDOS}/{TIPO_VISAO}')
+    def pendentes_autorizacao_secao_pendencias(self, request,
+                                               filtro_aplicado=SEM_FILTRO,
+                                               tipo_visao=TIPO_VISAO_SOLICITACOES):
+        usuario = request.user
+        diretoria_regional = usuario.vinculo_atual.instituicao
+        query_set = SolicitacoesCODAE.get_pendentes_autorizacao(dre_uuid=diretoria_regional.uuid,
+                                                                filtro=filtro_aplicado)
+        response = {'results': self._agrupa_por_tipo_visao(
+            tipo_visao=tipo_visao, query_set=query_set)}
+
+        return Response(response)
+
+    @action(detail=False,
+            methods=['GET'],
+            url_path=QUESTIONAMENTOS,
+            permission_classes=(UsuarioNutricionista,))
+    def questionamentos(self, request):
+        query_set = SolicitacoesCODAE.get_questionamentos()
+        return self._retorno_base(query_set)
 
 
 class CODAESolicitacoesViewSet(SolicitacoesViewSet):
