@@ -844,6 +844,10 @@ class FluxoGuiaRemessa(xwf_models.WorkflowEnabled, models.Model):
                     guia=self,
                 )
 
+    def _resolve_pendencia_atraso_conferencia(self):
+        titulo_notif = f'Registre a conferência da Guia de Remessa de alimentos! | Guia: {self.numero_guia}'
+        Notificacao.resolver_pendencia(titulo=titulo_notif, guia=self)
+
     def _partes_interessadas_escola(self):
         # Envia email somente para usuários ativos vinculados a escola da guia
         if self.escola:
