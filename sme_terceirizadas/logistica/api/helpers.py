@@ -1,3 +1,4 @@
+import datetime
 from unicodedata import normalize
 
 from django.core.exceptions import ObjectDoesNotExist
@@ -9,6 +10,7 @@ from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
 from xworkflows.base import InvalidTransitionError
 
 from sme_terceirizadas.dados_comuns.fluxo_status import GuiaRemessaWorkFlow, SolicitacaoRemessaWorkFlow
+from sme_terceirizadas.dados_comuns.models import Notificacao
 from sme_terceirizadas.escola.models import Escola
 from sme_terceirizadas.logistica.api.serializers.serializers import (
     GuiaDaRemessaComAlimentoSerializer,
@@ -225,6 +227,13 @@ def verifica_se_a_guia_pode_ser_conferida(guia):
         raise ValidationError(f'Guia de remessa não existe.')
 
 
+def resolve_notificacao_de_pendencia_de_atraso(guia, eh_reposicao):
+    hoje = datetime.date.today()
+    if not eh_reposicao and guia.data_entrega < hoje:
+        titulo = f'Registre a conferência da Guia de Remessa de alimentos! | Guia: {guia.numero_guia}'
+        Notificacao.resolver_pendencia(titulo=titulo, guia=guia)
+
+
 def atualiza_guia_com_base_nas_conferencias_por_alimentos(guia, user, status_dos_alimentos, eh_reposicao, ocorrencias_dos_alimentos):  # noqa C901
     """
     Método responsavel por chamar hooks de atualização de status das guias baseado nos status dos alimentos conferidos e
@@ -241,6 +250,9 @@ def atualiza_guia_com_base_nas_conferencias_por_alimentos(guia, user, status_dos
             guia.escola_recebe_parcial_atraso(user=user)
         else:
             guia.reposicao_parcial(user=user) if eh_reposicao else guia.escola_recebe_parcial(user=user)
+
+        # Resolve notificação de pendencia de atraso caso exista
+        resolve_notificacao_de_pendencia_de_atraso(guia, eh_reposicao)
     except InvalidTransitionError as e:
         raise ValidationError(f'Erro de transição de estado: {e}')
     except ObjectDoesNotExist:

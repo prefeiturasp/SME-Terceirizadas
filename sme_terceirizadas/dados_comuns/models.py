@@ -490,6 +490,7 @@ class Notificacao(models.Model):
             titulo=titulo,
             requisicao=requisicao,
             solicitacao_alteracao=solicitacao_alteracao,
-            guia=guia
+            guia=guia,
+            resolvido=False
         )
         pendencias.update(resolvido=True)
