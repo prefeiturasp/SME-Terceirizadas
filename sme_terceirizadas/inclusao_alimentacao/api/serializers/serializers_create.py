@@ -9,7 +9,6 @@ from ....dados_comuns.utils import update_instance_from_dict
 from ....dados_comuns.validators import (
     deve_pedir_com_antecedencia,
     deve_ser_no_mesmo_ano_corrente,
-    nao_pode_ser_feriado,
     nao_pode_ser_no_passado
 )
 from ....escola.models import Escola, FaixaEtaria, PeriodoEscolar
@@ -74,7 +73,6 @@ class InclusaoAlimentacaoDaCEICreateSerializer(serializers.ModelSerializer):
     def validate_data(self, data):
         nao_pode_ser_no_passado(data)
         deve_pedir_com_antecedencia(data)
-        nao_pode_ser_feriado(data)
         deve_ser_no_mesmo_ano_corrente(data)
         return data
 
@@ -167,7 +165,6 @@ class InclusaoAlimentacaoNormalCreationSerializer(serializers.ModelSerializer):
     def validate_data(self, data):
         nao_pode_ser_no_passado(data)
         deve_pedir_com_antecedencia(data)
-        nao_pode_ser_feriado(data)
         return data
 
     class Meta:
@@ -294,11 +291,8 @@ class InclusaoAlimentacaoContinuaCreationSerializer(serializers.ModelSerializer)
     def validate(self, attrs):
         data_inicial = attrs.get('data_inicial', None)
         data_final = attrs.get('data_final', None)
-        dias_semana = attrs.get('dias_semana', None)
         if data_inicial > data_final:
             raise ValidationError('data inicial não pode ser maior que data final')
-
-        self.validate_feriados_no_periodo(data_inicial, data_final, dias_semana)
 
         return attrs
 
