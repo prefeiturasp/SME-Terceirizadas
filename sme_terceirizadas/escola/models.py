@@ -536,7 +536,12 @@ class Codae(ExportModelOperationsMixin('codae'), Nomeavel, TemChaveExterna, TemV
 
     def inversoes_cardapio_das_minhas_escolas(self, filtro_aplicado):
         queryset = queryset_por_data(filtro_aplicado, InversaoCardapio)
-        return queryset.filter(status=InversaoCardapio.workflow_class.DRE_VALIDADO)
+        return queryset.filter(
+            status__in=[
+                InversaoCardapio.workflow_class.DRE_VALIDADO,
+                InversaoCardapio.workflow_class.TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO
+            ]
+        )
 
     def grupos_inclusoes_alimentacao_normal_das_minhas_escolas(self, filtro_aplicado):
         queryset = queryset_por_data(filtro_aplicado, GrupoInclusaoAlimentacaoNormal)
