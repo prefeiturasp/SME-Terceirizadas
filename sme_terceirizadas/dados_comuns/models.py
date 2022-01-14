@@ -493,4 +493,4 @@ class Notificacao(models.Model):
             guia=guia,
             resolvido=False
         )
-        pendencias.update(resolvido=True)
+        pendencias.update(resolvido=True, lido=True)

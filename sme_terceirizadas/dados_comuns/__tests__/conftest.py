@@ -247,3 +247,31 @@ def notificacao_de_pendencia(usuario_teste_notificacao_autenticado):
         descricao='A guia 0000 precisa ser conferida',
         usuario=user
     )
+
+
+@pytest.fixture
+def notificacao_de_pendencia_com_requisicao(usuario_teste_notificacao_autenticado):
+    distribuidor = mommy.make(
+        'Terceirizada',
+        contatos=[mommy.make('dados_comuns.Contato')],
+        make_m2m=True,
+        nome_fantasia='Alimentos SA'
+    )
+    requisicao = mommy.make(
+        'SolicitacaoRemessa',
+        cnpj='12345678901234',
+        numero_solicitacao='559890',
+        sequencia_envio=1212,
+        quantidade_total_guias=2,
+        distribuidor=distribuidor
+    )
+    user, client = usuario_teste_notificacao_autenticado
+    return mommy.make(
+        'Notificacao',
+        tipo=Notificacao.TIPO_NOTIFICACAO_PENDENCIA,
+        categoria=Notificacao.CATEGORIA_NOTIFICACAO_GUIA_DE_REMESSA,
+        titulo='Conferencia em atraso',
+        descricao='A guia 0000 precisa ser conferida',
+        usuario=user,
+        requisicao=requisicao
+    )
