@@ -271,6 +271,8 @@ class Contato(ExportModelOperationsMixin('contato'), models.Model):
         max_length=11, validators=[MinLengthValidator(8)], blank=True
     )
     email = models.EmailField(blank=True)
+    eh_nutricionista = models.BooleanField('É nutricionista?', default=False)
+    crn_numero = models.CharField('Nutricionista crn', max_length=160, blank=True)
 
     def __str__(self):
         if self.nome and self.telefone:
