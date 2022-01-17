@@ -13,7 +13,7 @@ from .models import (
 
 @admin.register(Contato)
 class ContatoAdmin(admin.ModelAdmin):
-    list_display = ('email', 'nome', 'telefone', 'telefone2')
+    list_display = ('email', 'nome', 'telefone', 'telefone2', 'eh_nutricionista')
     search_fields = ('email', 'nome', 'telefone', 'telefone2')
 
 
