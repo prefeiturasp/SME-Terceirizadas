@@ -68,8 +68,11 @@ class SolicitacoesViewSet(viewsets.ReadOnlyModelViewSet):
                 sem_uuid_repetido.append(resultado)
         return sem_uuid_repetido
 
-    def _retorno_base(self, query_set):
+    def _retorno_base(self, query_set, sem_paginacao=None):
         sem_uuid_repetido = self._remove_duplicados_do_query_set(query_set)
+        if sem_paginacao:
+            serializer = self.get_serializer(sem_uuid_repetido, many=True)
+            return Response({'results': serializer.data})
         page = self.paginate_queryset(sem_uuid_repetido)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
@@ -241,7 +244,10 @@ class CODAESolicitacoesViewSet(SolicitacoesViewSet):
             url_path=PENDENTES_AUTORIZACAO_DIETA_ESPECIAL,
             permission_classes=(IsAuthenticated, PermissaoParaRecuperarDietaEspecial,))
     def pendentes_autorizacao_dieta_especial(self, request):
+        tem_parametro_sem_paginacao = request.GET.get('sem_paginacao', False)
         query_set = SolicitacoesCODAE.get_pendentes_dieta_especial()
+        if tem_parametro_sem_paginacao:
+            return self._retorno_base(query_set, True)
         return self._retorno_base(query_set)
 
     @action(detail=False,
@@ -249,7 +255,10 @@ class CODAESolicitacoesViewSet(SolicitacoesViewSet):
             url_path=AUTORIZADOS_DIETA_ESPECIAL,
             permission_classes=(IsAuthenticated, PermissaoParaRecuperarDietaEspecial,))
     def autorizados_dieta_especial(self, request):
+        tem_parametro_sem_paginacao = request.GET.get('sem_paginacao', False)
         query_set = SolicitacoesCODAE.get_autorizados_dieta_especial()
+        if tem_parametro_sem_paginacao:
+            return self._retorno_base(query_set, True)
         return self._retorno_base(query_set)
 
     @action(detail=False,
@@ -257,7 +266,10 @@ class CODAESolicitacoesViewSet(SolicitacoesViewSet):
             url_path=NEGADOS_DIETA_ESPECIAL,
             permission_classes=(IsAuthenticated, PermissaoParaRecuperarDietaEspecial,))
     def negados_dieta_especial(self, request):
+        tem_parametro_sem_paginacao = request.GET.get('sem_paginacao', False)
         query_set = SolicitacoesCODAE.get_negados_dieta_especial()
+        if tem_parametro_sem_paginacao:
+            return self._retorno_base(query_set, True)
         return self._retorno_base(query_set)
 
     @action(detail=False,
@@ -265,7 +277,10 @@ class CODAESolicitacoesViewSet(SolicitacoesViewSet):
             url_path=CANCELADOS_DIETA_ESPECIAL,
             permission_classes=(IsAuthenticated, PermissaoParaRecuperarDietaEspecial,))
     def cancelados_dieta_especial(self, request):
+        tem_parametro_sem_paginacao = request.GET.get('sem_paginacao', False)
         query_set = SolicitacoesCODAE.get_cancelados_dieta_especial()
+        if tem_parametro_sem_paginacao:
+            return self._retorno_base(query_set, True)
         return self._retorno_base(query_set)
 
     @action(detail=False,
@@ -273,7 +288,10 @@ class CODAESolicitacoesViewSet(SolicitacoesViewSet):
             url_path=AUTORIZADAS_TEMPORARIAMENTE_DIETA_ESPECIAL,
             permission_classes=(IsAuthenticated, PermissaoParaRecuperarDietaEspecial,))
     def autorizadas_temporariamente_dieta_especial(self, request, dre_uuid=None):
+        tem_parametro_sem_paginacao = request.GET.get('sem_paginacao', False)
         query_set = SolicitacoesCODAE.get_autorizadas_temporariamente_dieta_especial()
+        if tem_parametro_sem_paginacao:
+            return self._retorno_base(query_set, True)
         return self._retorno_base(query_set)
 
     @action(detail=False,
@@ -281,7 +299,10 @@ class CODAESolicitacoesViewSet(SolicitacoesViewSet):
             url_path=INATIVAS_TEMPORARIAMENTE_DIETA_ESPECIAL,
             permission_classes=(IsAuthenticated, PermissaoParaRecuperarDietaEspecial,))
     def inativas_temporariamente_dieta_especial(self, request, dre_uuid=None):
+        tem_parametro_sem_paginacao = request.GET.get('sem_paginacao', False)
         query_set = SolicitacoesCODAE.get_inativas_temporariamente_dieta_especial()
+        if tem_parametro_sem_paginacao:
+            return self._retorno_base(query_set, True)
         return self._retorno_base(query_set)
 
     @action(detail=False,
@@ -289,7 +310,10 @@ class CODAESolicitacoesViewSet(SolicitacoesViewSet):
             url_path=INATIVAS_DIETA_ESPECIAL,
             permission_classes=(IsAuthenticated, PermissaoParaRecuperarDietaEspecial,))
     def inativas_dieta_especial(self, request):
+        tem_parametro_sem_paginacao = request.GET.get('sem_paginacao', False)
         query_set = SolicitacoesCODAE.get_inativas_dieta_especial()
+        if tem_parametro_sem_paginacao:
+            return self._retorno_base(query_set, True)
         return self._retorno_base(query_set)
 
     @action(detail=False,
@@ -434,36 +458,51 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
 
     @action(detail=False, methods=['GET'], url_path=f'{PENDENTES_AUTORIZACAO_DIETA_ESPECIAL}/{FILTRO_ESCOLA_UUID}')
     def pendentes_autorizacao_dieta_especial(self, request, escola_uuid=None):
+        tem_parametro_sem_paginacao = request.GET.get('sem_paginacao', False)
         query_set = SolicitacoesEscola.get_pendentes_dieta_especial(
             escola_uuid=escola_uuid)
+        if tem_parametro_sem_paginacao:
+            return self._retorno_base(query_set, True)
         return self._retorno_base(query_set)
 
     @action(detail=False, methods=['GET'], url_path=f'{AUTORIZADOS_DIETA_ESPECIAL}/{FILTRO_ESCOLA_UUID}')
     def autorizados_dieta_especial(self, request, escola_uuid=None):
+        tem_parametro_sem_paginacao = request.GET.get('sem_paginacao', False)
         query_set = SolicitacoesEscola.get_autorizados_dieta_especial(
             escola_uuid=escola_uuid)
+        if tem_parametro_sem_paginacao:
+            return self._retorno_base(query_set, True)
         return self._retorno_base(query_set)
 
     @action(detail=False,
             methods=['GET'],
             url_path=f'{AUTORIZADAS_TEMPORARIAMENTE_DIETA_ESPECIAL}/{FILTRO_ESCOLA_UUID}')
     def autorizadas_temporariamente_dieta_especial(self, request, escola_uuid=None):
+        tem_parametro_sem_paginacao = request.GET.get('sem_paginacao', False)
         query_set = SolicitacoesEscola.get_autorizadas_temporariamente_dieta_especial(
             escola_uuid=escola_uuid)
+        if tem_parametro_sem_paginacao:
+            return self._retorno_base(query_set, True)
         return self._retorno_base(query_set)
 
     @action(detail=False,
             methods=['GET'],
             url_path=f'{AGUARDANDO_INICIO_VIGENCIA_DIETA_ESPECIAL}/{FILTRO_ESCOLA_UUID}')
     def aguardando_inicio_vigencia_dieta_especial(self, request, escola_uuid=None):
+        tem_parametro_sem_paginacao = request.GET.get('sem_paginacao', False)
         query_set = SolicitacoesEscola.get_aguardando_vigencia_dieta_especial(
             escola_uuid=escola_uuid)
+        if tem_parametro_sem_paginacao:
+            return self._retorno_base(query_set, True)
         return self._retorno_base(query_set)
 
     @action(detail=False, methods=['GET'], url_path=f'{INATIVAS_TEMPORARIAMENTE_DIETA_ESPECIAL}/{FILTRO_ESCOLA_UUID}')
     def inativas_temporariamente_dieta_especial(self, request, escola_uuid=None):
+        tem_parametro_sem_paginacao = request.GET.get('sem_paginacao', False)
         query_set = SolicitacoesEscola.get_inativas_temporariamente_dieta_especial(
             escola_uuid=escola_uuid)
+        if tem_parametro_sem_paginacao:
+            return self._retorno_base(query_set, True)
         return self._retorno_base(query_set)
 
     @action(detail=False,
@@ -471,20 +510,29 @@ class EscolaSolicitacoesViewSet(SolicitacoesViewSet):
             url_path=f'{INATIVAS_DIETA_ESPECIAL}/{FILTRO_ESCOLA_UUID}',
             permission_classes=(IsAuthenticated, PermissaoParaRecuperarDietaEspecial,))
     def inativas_dieta_especial(self, request, escola_uuid=None):
+        tem_parametro_sem_paginacao = request.GET.get('sem_paginacao', False)
         query_set = SolicitacoesEscola.get_inativas_dieta_especial(
             escola_uuid=escola_uuid)
+        if tem_parametro_sem_paginacao:
+            return self._retorno_base(query_set, True)
         return self._retorno_base(query_set)
 
     @action(detail=False, methods=['GET'], url_path=f'{NEGADOS_DIETA_ESPECIAL}/{FILTRO_ESCOLA_UUID}')
     def negados_dieta_especial(self, request, escola_uuid=None):
+        tem_parametro_sem_paginacao = request.GET.get('sem_paginacao', False)
         query_set = SolicitacoesEscola.get_negados_dieta_especial(
             escola_uuid=escola_uuid)
+        if tem_parametro_sem_paginacao:
+            return self._retorno_base(query_set, True)
         return self._retorno_base(query_set)
 
     @action(detail=False, methods=['GET'], url_path=f'{CANCELADOS_DIETA_ESPECIAL}/{FILTRO_ESCOLA_UUID}')
     def cancelados_dieta_especial(self, request, escola_uuid=None):
+        tem_parametro_sem_paginacao = request.GET.get('sem_paginacao', False)
         query_set = SolicitacoesEscola.get_cancelados_dieta_especial(
             escola_uuid=escola_uuid)
+        if tem_parametro_sem_paginacao:
+            return self._retorno_base(query_set, True)
         return self._retorno_base(query_set)
 
     @action(detail=False, methods=['GET'], url_path=f'{AUTORIZADOS}/{FILTRO_ESCOLA_UUID}')
@@ -617,38 +665,56 @@ class DRESolicitacoesViewSet(SolicitacoesViewSet):
 
     @action(detail=False, methods=['GET'], url_path=f'{PENDENTES_AUTORIZACAO_DIETA_ESPECIAL}/{FILTRO_DRE_UUID}')
     def pendentes_autorizacao_dieta_especial(self, request, dre_uuid=None):
+        tem_parametro_sem_paginacao = request.GET.get('sem_paginacao', False)
         query_set = SolicitacoesDRE.get_pendentes_dieta_especial(
             dre_uuid=dre_uuid)
+        if tem_parametro_sem_paginacao:
+            return self._retorno_base(query_set, True)
         return self._retorno_base(query_set)
 
     @action(detail=False, methods=['GET'], url_path=f'{AUTORIZADOS_DIETA_ESPECIAL}/{FILTRO_DRE_UUID}')
     def autorizados_dieta_especial(self, request, dre_uuid=None):
+        tem_parametro_sem_paginacao = request.GET.get('sem_paginacao', False)
         query_set = SolicitacoesDRE.get_autorizados_dieta_especial(
             dre_uuid=dre_uuid)
+        if tem_parametro_sem_paginacao:
+            return self._retorno_base(query_set, True)
         return self._retorno_base(query_set)
 
     @action(detail=False, methods=['GET'], url_path=f'{NEGADOS_DIETA_ESPECIAL}/{FILTRO_DRE_UUID}')
     def negados_dieta_especial(self, request, dre_uuid=None):
+        tem_parametro_sem_paginacao = request.GET.get('sem_paginacao', False)
         query_set = SolicitacoesDRE.get_negados_dieta_especial(
             dre_uuid=dre_uuid)
+        if tem_parametro_sem_paginacao:
+            return self._retorno_base(query_set, True)
         return self._retorno_base(query_set)
 
     @action(detail=False, methods=['GET'], url_path=f'{CANCELADOS_DIETA_ESPECIAL}/{FILTRO_DRE_UUID}')
     def cancelados_dieta_especial(self, request, dre_uuid=None):
+        tem_parametro_sem_paginacao = request.GET.get('sem_paginacao', False)
         query_set = SolicitacoesDRE.get_cancelados_dieta_especial(
             dre_uuid=dre_uuid)
+        if tem_parametro_sem_paginacao:
+            return self._retorno_base(query_set, True)
         return self._retorno_base(query_set)
 
     @action(detail=False, methods=['GET'], url_path=f'{AUTORIZADAS_TEMPORARIAMENTE_DIETA_ESPECIAL}/{FILTRO_DRE_UUID}')
     def autorizadas_temporariamente_dieta_especial(self, request, dre_uuid=None):
+        tem_parametro_sem_paginacao = request.GET.get('sem_paginacao', False)
         query_set = SolicitacoesDRE.get_autorizadas_temporariamente_dieta_especial(
             dre_uuid=dre_uuid)
+        if tem_parametro_sem_paginacao:
+            return self._retorno_base(query_set, True)
         return self._retorno_base(query_set)
 
     @action(detail=False, methods=['GET'], url_path=f'{INATIVAS_TEMPORARIAMENTE_DIETA_ESPECIAL}/{FILTRO_DRE_UUID}')
     def inativas_temporariamente_dieta_especial(self, request, dre_uuid=None):
+        tem_parametro_sem_paginacao = request.GET.get('sem_paginacao', False)
         query_set = SolicitacoesDRE.get_inativas_temporariamente_dieta_especial(
             dre_uuid=dre_uuid)
+        if tem_parametro_sem_paginacao:
+            return self._retorno_base(query_set, True)
         return self._retorno_base(query_set)
 
     @action(detail=False,
@@ -656,8 +722,11 @@ class DRESolicitacoesViewSet(SolicitacoesViewSet):
             url_path=f'{INATIVAS_DIETA_ESPECIAL}/{FILTRO_DRE_UUID}',
             permission_classes=(IsAuthenticated, PermissaoParaRecuperarDietaEspecial,))
     def inativas_dieta_especial(self, request, dre_uuid=None):
-        query_set = SolicitacoesCODAE.get_inativas_dieta_especial(
+        tem_parametro_sem_paginacao = request.GET.get('sem_paginacao', False)
+        query_set = SolicitacoesDRE.get_inativas_dieta_especial(
             dre_uuid=dre_uuid)
+        if tem_parametro_sem_paginacao:
+            return self._retorno_base(query_set, True)
         return self._retorno_base(query_set)
 
     @action(detail=False, methods=['GET'], url_path=f'{PENDENTES_AUTORIZACAO}')
@@ -798,26 +867,38 @@ class TerceirizadaSolicitacoesViewSet(SolicitacoesViewSet):
     @action(detail=False, methods=['GET'],
             url_path=f'{PENDENTES_AUTORIZACAO_DIETA_ESPECIAL}/{FILTRO_TERCEIRIZADA_UUID}')
     def pendentes_autorizacao_dieta_especial(self, request, terceirizada_uuid=None):
+        tem_parametro_sem_paginacao = request.GET.get('sem_paginacao', False)
         query_set = SolicitacoesTerceirizada.get_pendentes_dieta_especial(
             terceirizada_uuid=terceirizada_uuid)
+        if tem_parametro_sem_paginacao:
+            return self._retorno_base(query_set, True)
         return self._retorno_base(query_set)
 
     @action(detail=False, methods=['GET'], url_path=f'{AUTORIZADOS_DIETA_ESPECIAL}/{FILTRO_TERCEIRIZADA_UUID}')
     def autorizados_dieta_especial(self, request, terceirizada_uuid=None):
+        tem_parametro_sem_paginacao = request.GET.get('sem_paginacao', False)
         query_set = SolicitacoesTerceirizada.get_autorizados_dieta_especial(
             terceirizada_uuid=terceirizada_uuid)
+        if tem_parametro_sem_paginacao:
+            return self._retorno_base(query_set, True)
         return self._retorno_base(query_set)
 
     @action(detail=False, methods=['GET'], url_path=f'{NEGADOS_DIETA_ESPECIAL}/{FILTRO_TERCEIRIZADA_UUID}')
     def negados_dieta_especial(self, request, terceirizada_uuid=None):
+        tem_parametro_sem_paginacao = request.GET.get('sem_paginacao', False)
         query_set = SolicitacoesTerceirizada.get_negados_dieta_especial(
             terceirizada_uuid=terceirizada_uuid)
+        if tem_parametro_sem_paginacao:
+            return self._retorno_base(query_set, True)
         return self._retorno_base(query_set)
 
     @action(detail=False, methods=['GET'], url_path=f'{CANCELADOS_DIETA_ESPECIAL}/{FILTRO_TERCEIRIZADA_UUID}')
     def cancelados_dieta_especial(self, request, terceirizada_uuid=None):
+        tem_parametro_sem_paginacao = request.GET.get('sem_paginacao', False)
         query_set = SolicitacoesTerceirizada.get_cancelados_dieta_especial(
             terceirizada_uuid=terceirizada_uuid)
+        if tem_parametro_sem_paginacao:
+            return self._retorno_base(query_set, True)
         return self._retorno_base(query_set)
 
     @action(
@@ -826,16 +907,22 @@ class TerceirizadaSolicitacoesViewSet(SolicitacoesViewSet):
         url_path=f'{AUTORIZADAS_TEMPORARIAMENTE_DIETA_ESPECIAL}/{FILTRO_TERCEIRIZADA_UUID}'
     )
     def autorizadas_temporariamente_dieta_especial(self, request, terceirizada_uuid=None):
+        tem_parametro_sem_paginacao = request.GET.get('sem_paginacao', False)
         query_set = SolicitacoesTerceirizada.get_autorizadas_temporariamente_dieta_especial(
             terceirizada_uuid=terceirizada_uuid)
+        if tem_parametro_sem_paginacao:
+            return self._retorno_base(query_set, True)
         return self._retorno_base(query_set)
 
     @action(detail=False,
             methods=['GET'],
             url_path=f'{AGUARDANDO_INICIO_VIGENCIA_DIETA_ESPECIAL}/{FILTRO_TERCEIRIZADA_UUID}')
     def aguardando_inicio_vigencia_dieta_especial(self, request, terceirizada_uuid=None):
+        tem_parametro_sem_paginacao = request.GET.get('sem_paginacao', False)
         query_set = SolicitacoesTerceirizada.get_aguardando_vigencia_dieta_especial(
             terceirizada_uuid=terceirizada_uuid)
+        if tem_parametro_sem_paginacao:
+            return self._retorno_base(query_set, True)
         return self._retorno_base(query_set)
 
     @action(
@@ -844,8 +931,11 @@ class TerceirizadaSolicitacoesViewSet(SolicitacoesViewSet):
         url_path=f'{INATIVAS_TEMPORARIAMENTE_DIETA_ESPECIAL}/{FILTRO_TERCEIRIZADA_UUID}'
     )
     def inativas_temporariamente_dieta_especial(self, request, terceirizada_uuid=None):
+        tem_parametro_sem_paginacao = request.GET.get('sem_paginacao', False)
         query_set = SolicitacoesTerceirizada.get_inativas_temporariamente_dieta_especial(
             terceirizada_uuid=terceirizada_uuid)
+        if tem_parametro_sem_paginacao:
+            return self._retorno_base(query_set, True)
         return self._retorno_base(query_set)
 
     @action(detail=False,
@@ -853,7 +943,10 @@ class TerceirizadaSolicitacoesViewSet(SolicitacoesViewSet):
             url_path=f'{INATIVAS_DIETA_ESPECIAL}/{FILTRO_TERCEIRIZADA_UUID}',
             )
     def inativas_dieta_especial(self, request, terceirizada_uuid=None):
+        tem_parametro_sem_paginacao = request.GET.get('sem_paginacao', False)
         query_set = SolicitacoesTerceirizada.get_inativas_dieta_especial(terceirizada_uuid=terceirizada_uuid)
+        if tem_parametro_sem_paginacao:
+            return self._retorno_base(query_set, True)
         return self._retorno_base(query_set)
 
     @action(detail=False, methods=['GET'], url_path=f'{QUESTIONAMENTOS}/{FILTRO_TERCEIRIZADA_UUID}')
