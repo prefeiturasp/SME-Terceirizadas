@@ -59,7 +59,7 @@ class DiretoriaRegional(
 
     @property
     def quantidade_alunos(self):
-        quantidade_result = EscolaPeriodoEscolar.objects.filter(escola__in=self.escolas.all()).aggregate(
+        quantidade_result = AlunosMatriculadosPeriodoEscola.objects.filter(escola__in=self.escolas.all()).aggregate(
             Sum('quantidade_alunos')
         )
         return quantidade_result.get('quantidade_alunos__sum') or 0
@@ -300,8 +300,8 @@ class Escola(ExportModelOperationsMixin('escola'), Ativavel, TemChaveExterna, Te
 
     @property
     def quantidade_alunos(self):
-        quantidade = Aluno.objects.filter(escola=self).count()
-        return quantidade
+        quantidade = AlunosMatriculadosPeriodoEscola.objects.filter(escola=self).aggregate(Sum('quantidade_alunos'))
+        return quantidade.get('quantidade_alunos__sum') or 0
 
     @property
     def alunos_por_periodo_escolar(self):
@@ -489,7 +489,7 @@ class Lote(ExportModelOperationsMixin('lote'), TemChaveExterna, Nomeavel, Inicia
 
     @property
     def quantidade_alunos(self):
-        quantidade_result = EscolaPeriodoEscolar.objects.filter(escola__in=self.escolas.all()).aggregate(
+        quantidade_result = AlunosMatriculadosPeriodoEscola.objects.filter(escola__in=self.escolas.all()).aggregate(
             Sum('quantidade_alunos')
         )
         return quantidade_result.get('quantidade_alunos__sum') or 0
@@ -529,7 +529,7 @@ class Codae(ExportModelOperationsMixin('codae'), Nomeavel, TemChaveExterna, TemV
 
     @property
     def quantidade_alunos(self):
-        quantidade_result = EscolaPeriodoEscolar.objects.filter(escola__in=Escola.objects.all()).aggregate(
+        quantidade_result = AlunosMatriculadosPeriodoEscola.objects.filter(escola__in=Escola.objects.all()).aggregate(
             Sum('quantidade_alunos')
         )
         return quantidade_result.get('quantidade_alunos__sum') or 0
