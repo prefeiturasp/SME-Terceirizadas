@@ -1,6 +1,7 @@
 from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 from django.core.management import call_command
+from django.urls import path
 from django.utils.translation import ugettext_lazy as _
 from utility.carga_dados.escola.importa_dados import cria_usuario_cogestor, cria_usuario_diretor
 from utility.carga_dados.perfil.importa_dados import (
@@ -10,6 +11,11 @@ from utility.carga_dados.perfil.importa_dados import (
     valida_arquivo_importacao_usuarios
 )
 
+from .api.viewsets import (
+    exportar_planilha_importacao_usuarios_perfil_codae,
+    exportar_planilha_importacao_usuarios_perfil_dre,
+    exportar_planilha_importacao_usuarios_perfil_escola
+)
 from .models import (
     Cargo,
     ImportacaoPlanilhaUsuarioPerfilCodae,
@@ -90,6 +96,19 @@ class ImportacaoPlanilhaUsuarioPerfilEscolaAdmin(admin.ModelAdmin):
     actions = ('processa_planilha',)
     change_list_template = 'admin/perfil/importacao_usuarios_perfil_escola.html'
 
+    def get_urls(self):
+        urls = super().get_urls()
+        my_urls = [
+            path(
+                'exportar_planilha_importacao_usuarios_perfil_escola/',
+                self.admin_site.admin_view(self.exporta_planilha, cacheable=True)
+            ),
+        ]
+        return my_urls + urls
+
+    def exporta_planilha(self, request):
+        return exportar_planilha_importacao_usuarios_perfil_escola(request)
+
     def processa_planilha(self, request, queryset):
         arquivo = queryset.first()
 
@@ -115,6 +134,19 @@ class ImportacaoPlanilhaUsuarioPerfilCodaeAdmin(admin.ModelAdmin):
     actions = ('processa_planilha',)
     change_list_template = 'admin/perfil/importacao_usuarios_perfil_codae.html'
 
+    def get_urls(self):
+        urls = super().get_urls()
+        my_urls = [
+            path(
+                'exportar_planilha_importacao_usuarios_perfil_codae/',
+                self.admin_site.admin_view(self.exporta_planilha, cacheable=True)
+            ),
+        ]
+        return my_urls + urls
+
+    def exporta_planilha(self, request):
+        return exportar_planilha_importacao_usuarios_perfil_codae(request)
+
     def processa_planilha(self, request, queryset):
         arquivo = queryset.first()
 
@@ -139,6 +171,19 @@ class ImportacaoPlanilhaUsuarioPerfilDreAdmin(admin.ModelAdmin):
     list_filter = ('status',)
     actions = ('processa_planilha',)
     change_list_template = 'admin/perfil/importacao_usuarios_perfil_dre.html'
+
+    def get_urls(self):
+        urls = super().get_urls()
+        my_urls = [
+            path(
+                'exportar_planilha_importacao_usuarios_perfil_dre/',
+                self.admin_site.admin_view(self.exporta_planilha, cacheable=True)
+            ),
+        ]
+        return my_urls + urls
+
+    def exporta_planilha(self, request):
+        return exportar_planilha_importacao_usuarios_perfil_dre(request)
 
     def processa_planilha(self, request, queryset):
         arquivo = queryset.first()
