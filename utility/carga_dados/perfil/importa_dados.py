@@ -1,11 +1,35 @@
+import logging
 from datetime import date
+from tempfile import NamedTemporaryFile
+
+from django.core.files import File
+from django.db import transaction
+from django.db.models import Q
+from openpyxl import Workbook, load_workbook, styles
 
 from utility.carga_dados.escola.helper import bcolors
 from utility.carga_dados.helper import ja_existe, progressbar
 
+from sme_terceirizadas.dados_comuns.models import Contato
+from sme_terceirizadas.dados_comuns.constants import DJANGO_ADMIN_TREINAMENTO_PASSWORD
 from sme_terceirizadas.escola.models import Codae, DiretoriaRegional, Escola
 from sme_terceirizadas.perfil.data.perfis import data_perfis
 from sme_terceirizadas.perfil.models import Perfil, Usuario, Vinculo
+from sme_terceirizadas.perfil.models import (
+    ImportacaoPlanilhaUsuarioPerfilCodae,
+    ImportacaoPlanilhaUsuarioPerfilDre,
+    ImportacaoPlanilhaUsuarioPerfilEscola
+)
+
+import magic
+
+from .schemas import (
+    ImportacaoPlanilhaUsuarioPerfilCodaeSchema,
+    ImportacaoPlanilhaUsuarioPerfilDreSchema,
+    ImportacaoPlanilhaUsuarioPerfilEscolaSchema
+)
+
+logger = logging.getLogger('sigpae.carga_dados_perfil_importa_dados')
 
 
 def cria_perfis():
@@ -226,3 +250,470 @@ def cria_vinculos():
                 usuario=item['usuario'],
                 data_inicial=data_atual,
             )
+
+
+def valida_arquivo_importacao_usuarios(arquivo) -> bool:
+    logger.debug(f'Iniciando validação do arquivo {arquivo.conteudo}: {arquivo.uuid}')
+
+    mime_types_validos = [
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'application/vnd.ms-excel',
+    ]
+    extensoes_validas = ['.xlsx', '.xls']
+    arquivo_mime_type = magic.from_buffer(arquivo.conteudo.read(2048), mime=True)
+    if arquivo_mime_type not in mime_types_validos:
+        arquivo.log = 'Formato de arquivo não suportado.'
+        arquivo.erro_no_processamento()
+        logger.error(f'Arquivo inválido: {arquivo.uuid}')
+        return False
+    if not arquivo.conteudo.path.endswith(tuple(extensoes_validas)):
+        arquivo.log = 'Extensão de arquivo não suportada'
+        arquivo.erro_no_processamento()
+        logger.error(f'Arquivo inválido: {arquivo.uuid}')
+        return False
+
+    logger.info('Arquivo válido.')
+    return True
+
+
+class ProcessadorPlanilhaUsuarioPerfilEscola:
+    def __init__(self, usuario: Usuario, arquivo: ImportacaoPlanilhaUsuarioPerfilEscola) -> None:
+        """Prepara atributos importantes para o processamento da planilha."""
+        self.usuario = usuario
+        self.arquivo = arquivo
+        self.erros = []
+        self.worksheet = self.abre_worksheet()
+
+    @property
+    def path(self):
+        return self.arquivo.conteudo.path
+
+    def processamento(self):  # noqa C901
+        self.arquivo.inicia_processamento()
+        if not self.validacao_inicial():
+            return
+
+        linhas = list(self.worksheet.rows)
+        logger.info(f'Quantidade de linhas: {len(linhas)} -- Quantidade de colunas: {len(linhas[0])}')
+
+        for ind, linha in enumerate(linhas[1:], 2):  # Começando em 2 pois a primeira linha é o cabeçalho da planilha
+            try:
+                dicionario_dados = self.monta_dicionario_de_dados(linha)
+                usuario_schema = ImportacaoPlanilhaUsuarioPerfilEscolaSchema(**dicionario_dados)
+
+                logger.info(f'Criando usuário: {usuario_schema.nome} -- {usuario_schema.email}')
+                self.cria_usuario_perfil_escola(ind, usuario_schema)
+            except Exception as exc:
+                self.erros.append(f'Linha {ind} - {exc}')
+
+    def abre_worksheet(self):
+        return load_workbook(self.path).active
+
+    def validacao_inicial(self) -> bool:
+        return self.existe_conteudo()
+
+    def existe_conteudo(self) -> bool:
+        if not self.arquivo.conteudo:
+            self.arquivo.log = 'Não foi feito o upload da planilha'
+            self.arquivo.erro_no_processamento()
+            return False
+        return True
+
+    def monta_dicionario_de_dados(self, linha: tuple) -> dict:
+        return {key: linha[index].value
+                for index, key in enumerate(ImportacaoPlanilhaUsuarioPerfilEscolaSchema.schema()['properties'].keys())}
+
+    def cria_usuario_perfil_escola(self, ind, usuario_schema: ImportacaoPlanilhaUsuarioPerfilEscolaSchema):  # noqa C901
+        try:
+            self.__criar_usuario_perfil_escola(usuario_schema)
+        except Exception as exd:
+            self.erros.append(f'Linha {ind} - {exd}')
+
+    @transaction.atomic
+    def __criar_usuario_perfil_escola(self, usuario_schema: ImportacaoPlanilhaUsuarioPerfilEscolaSchema):
+        escola = self.consulta_escola(usuario_schema.codigo_eol_escola)
+        self.checa_usuario(usuario_schema.rf, usuario_schema.email, usuario_schema.nome)
+        self.__criar_usuario(escola, usuario_schema)
+
+    def consulta_escola(self, codigo_eol_escola):
+        escola = Escola.objects.filter(codigo_eol=codigo_eol_escola).first()
+        if not escola:
+            raise Exception(f'Escola não encontrada para o código: {codigo_eol_escola}.')
+        return escola
+
+    def checa_usuario(self, registro_funcional, email, nome_planilha):
+        usuario = Usuario.objects.filter(Q(registro_funcional=registro_funcional) | Q(email=email)).first()
+        if usuario:
+            logger.error(f'Usuário com email "{email}" ou com rf "{registro_funcional}" já existe.')
+            raise Exception(f'Usuário com email "{email}" ou com rf '
+                            + f'"{registro_funcional}" já existe. Nome na planilha: {nome_planilha}.')
+
+    def __criar_usuario(self, escola, usuario_schema):
+        try:
+            perfil = Perfil.objects.get(nome=usuario_schema.perfil)
+        except Perfil.DoesNotExist:
+            logger.error(f'Este perfil não existe: {usuario_schema.perfil}')
+            raise Exception(f'Este perfil não existe: {usuario_schema.perfil}')
+        data_atual = date.today()
+        usuario = Usuario.objects.create_user(
+            email=usuario_schema.email,
+            password=DJANGO_ADMIN_TREINAMENTO_PASSWORD,
+            nome=usuario_schema.nome,
+            cargo=usuario_schema.cargo,
+            registro_funcional=usuario_schema.rf,
+            cpf=usuario_schema.cpf,
+        )
+        Vinculo.objects.create(
+            instituicao=escola,
+            perfil=perfil,
+            usuario=usuario,
+            data_inicial=data_atual,
+            ativo=True,
+        )
+        contato = Contato.objects.create(
+            nome=usuario_schema.nome,
+            email=usuario_schema.email,
+            telefone=usuario_schema.telefone
+        )
+        usuario.contatos.add(contato)
+
+    def finaliza_processamento(self) -> None:
+        if self.erros:
+            self.arquivo.log = '\n'.join(self.erros)
+            self.arquivo.processamento_com_erro()
+            self.cria_planilha_de_erros()
+            logger.error(f'Arquivo "{self.arquivo.uuid}" processado com erro(s).')
+        else:
+            self.arquivo.log = 'Planilha processada com sucesso.'
+            self.arquivo.processamento_com_sucesso()
+            logger.info(f'Arquivo "{self.arquivo.uuid}" processado com sucesso.')
+
+    def cria_planilha_de_erros(self) -> None:
+        workbook: Workbook = Workbook()
+        ws = workbook.active
+        ws.title = 'Erros'
+        cabecalho = ws.cell(row=1, column=1, value='Erros encontrados no processamento da planilha')
+        cabecalho.fill = styles.PatternFill('solid', fgColor='808080')
+        for index, erro in enumerate(self.erros, 2):
+            ws.cell(row=index, column=1, value=erro)
+
+        filename = f'arquivo_resultado_{self.arquivo.pk}.xlsx'
+        with NamedTemporaryFile() as tmp:
+            workbook.save(tmp.name)
+            self.arquivo.resultado.save(name=filename, content=File(tmp))
+
+
+def importa_usuarios_perfil_escola(usuario: Usuario, arquivo: ImportacaoPlanilhaUsuarioPerfilEscola) -> None:
+    logger.debug(f'Iniciando o processamento do arquivo: {arquivo.uuid}')
+
+    try:
+        processador = ProcessadorPlanilhaUsuarioPerfilEscola(usuario, arquivo)
+        processador.processamento()
+        processador.finaliza_processamento()
+    except Exception as exc:
+        logger.error(f'Erro genérico: {exc}')
+
+
+class ProcessadorPlanilhaUsuarioPerfilCodae:
+    def __init__(self, usuario: Usuario, arquivo: ImportacaoPlanilhaUsuarioPerfilCodae) -> None:
+        """Prepara atributos importantes para o processamento da planilha."""
+        self.usuario = usuario
+        self.arquivo = arquivo
+        self.erros = []
+        self.worksheet = self.abre_worksheet()
+
+    @property
+    def path(self):
+        return self.arquivo.conteudo.path
+
+    def processamento(self):  # noqa C901
+        self.arquivo.inicia_processamento()
+        if not self.validacao_inicial():
+            return
+
+        linhas = list(self.worksheet.rows)
+        logger.info(f'Quantidade de linhas: {len(linhas)} -- Quantidade de colunas: {len(linhas[0])}')
+
+        for ind, linha in enumerate(linhas[1:], 2):  # Começando em 2 pois a primeira linha é o cabeçalho da planilha
+            try:
+                dicionario_dados = self.monta_dicionario_de_dados(linha)
+                usuario_schema = ImportacaoPlanilhaUsuarioPerfilCodaeSchema(**dicionario_dados)
+
+                logger.info(f'Criando usuário: {usuario_schema.nome} -- {usuario_schema.email}')
+                self.cria_usuario_perfil_codae(ind, usuario_schema)
+            except Exception as exc:
+                self.erros.append(f'Linha {ind} - {exc}')
+
+    def abre_worksheet(self):
+        return load_workbook(self.path).active
+
+    def validacao_inicial(self) -> bool:
+        return self.existe_conteudo()
+
+    def existe_conteudo(self) -> bool:
+        if not self.arquivo.conteudo:
+            self.arquivo.log = 'Não foi feito o upload da planilha'
+            self.arquivo.erro_no_processamento()
+            return False
+        return True
+
+    def monta_dicionario_de_dados(self, linha: tuple) -> dict:
+        return {key: linha[index].value
+                for index, key in enumerate(ImportacaoPlanilhaUsuarioPerfilCodaeSchema.schema()['properties'].keys())}
+
+    def cria_usuario_perfil_codae(self, ind, usuario_schema: ImportacaoPlanilhaUsuarioPerfilCodaeSchema):  # noqa C901
+        try:
+            self.__criar_usuario_perfil_codae(usuario_schema)
+        except Exception as exd:
+            self.erros.append(f'Linha {ind} - {exd}')
+
+    @transaction.atomic
+    def __criar_usuario_perfil_codae(self, usuario_schema: ImportacaoPlanilhaUsuarioPerfilCodaeSchema):
+        codae = self.consulta_codae_instituicao(usuario_schema)
+        self.checa_usuario(usuario_schema.rf, usuario_schema.email, usuario_schema.nome)
+        self.__criar_usuario(codae, usuario_schema)
+
+    def consulta_codae_instituicao(self, usuario_schema):
+        perfis = {
+            'perfil_usuario_codae': Perfil.objects.get(nome__unaccent__icontains='COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA').nome,
+            'perfil_usuario_nutri_codae': Perfil.objects.get(nome__unaccent__icontains='COORDENADOR_DIETA_ESPECIAL').nome,
+            'perfil_usuario_nutri_supervisao': Perfil.objects.get(nome__unaccent__icontains='COORDENADOR_SUPERVISAO_NUTRICAO').nome,
+            'perfil_coordenador_gestao_produto': Perfil.objects.get(nome__unaccent__icontains='COORDENADOR_GESTAO_PRODUTO').nome
+        }
+        instituicoes_codae = {
+            'codae_alimentacao': Codae.objects.get(nome__unaccent__icontains='ALIMENTAÇÃO'),
+            'codae_dieta_especial': Codae.objects.get(nome__unaccent__icontains='ESPECIAL'),
+            'codae_nutrisupervisao': Codae.objects.get(nome__unaccent__icontains='NUTRIÇÃO'),
+            'codae_produtos': Codae.objects.get(nome__unaccent__icontains='PRODUTOS')
+        }
+
+        try:
+            perfil = Perfil.objects.get(nome=usuario_schema.perfil)
+        except Perfil.DoesNotExist:
+            logger.error(f'Este perfil não existe: {usuario_schema.perfil}')
+            raise Exception(f'Este perfil não existe: {usuario_schema.perfil}')
+        if usuario_schema.perfil == perfis['perfil_usuario_codae']:
+            codae = instituicoes_codae['codae_alimentacao']
+        elif usuario_schema.perfil == perfis['perfil_usuario_nutri_codae']:
+            codae = instituicoes_codae['codae_dieta_especial']
+        elif usuario_schema.perfil == perfis['perfil_usuario_nutri_supervisao']:
+            codae = instituicoes_codae['codae_nutrisupervisao']
+        elif usuario_schema.perfil == perfis['perfil_coordenador_gestao_produto']:
+            codae = instituicoes_codae['codae_produtos']
+        else:
+            codae = None
+
+        if not codae:
+            raise Exception(f'Instituição CODAE não encontrada para perfil: {usuario_schema.perfil}.')
+        return codae
+
+    def checa_usuario(self, registro_funcional, email, nome_planilha):
+        usuario = Usuario.objects.filter(Q(registro_funcional=registro_funcional) | Q(email=email)).first()
+        if usuario:
+            logger.error(f'Usuário com email "{email}" ou com rf "{registro_funcional}" já existe.')
+            raise Exception(f'Usuário com email "{email}" ou com rf '
+                            + f'"{registro_funcional}" já existe. Nome na planilha: {nome_planilha}.')
+
+    def __criar_usuario(self, codae, usuario_schema):
+        try:
+            perfil = Perfil.objects.get(nome=usuario_schema.perfil)
+        except Perfil.DoesNotExist:
+            logger.error(f'Este perfil não existe: {usuario_schema.perfil}')
+            raise Exception(f'Este perfil não existe: {usuario_schema.perfil}')
+        data_atual = date.today()
+        usuario = Usuario.objects.create_user(
+            email=usuario_schema.email,
+            password=DJANGO_ADMIN_TREINAMENTO_PASSWORD,
+            nome=usuario_schema.nome,
+            cargo=usuario_schema.cargo,
+            registro_funcional=usuario_schema.rf,
+            cpf=usuario_schema.cpf,
+            crn_numero=usuario_schema.crn_numero
+        )
+        Vinculo.objects.create(
+            instituicao=codae,
+            perfil=perfil,
+            usuario=usuario,
+            data_inicial=data_atual,
+            ativo=True,
+        )
+        contato = Contato.objects.create(
+            nome=usuario_schema.nome,
+            email=usuario_schema.email,
+            telefone=usuario_schema.telefone,
+        )
+        usuario.contatos.add(contato)
+
+    def finaliza_processamento(self) -> None:
+        if self.erros:
+            self.arquivo.log = '\n'.join(self.erros)
+            self.arquivo.processamento_com_erro()
+            self.cria_planilha_de_erros()
+            logger.error(f'Arquivo "{self.arquivo.uuid}" processado com erro(s).')
+        else:
+            self.arquivo.log = 'Planilha processada com sucesso.'
+            self.arquivo.processamento_com_sucesso()
+            logger.info(f'Arquivo "{self.arquivo.uuid}" processado com sucesso.')
+
+    def cria_planilha_de_erros(self) -> None:
+        workbook: Workbook = Workbook()
+        ws = workbook.active
+        ws.title = 'Erros'
+        cabecalho = ws.cell(row=1, column=1, value='Erros encontrados no processamento da planilha')
+        cabecalho.fill = styles.PatternFill('solid', fgColor='808080')
+        for index, erro in enumerate(self.erros, 2):
+            ws.cell(row=index, column=1, value=erro)
+
+        filename = f'arquivo_resultado_{self.arquivo.pk}.xlsx'
+        with NamedTemporaryFile() as tmp:
+            workbook.save(tmp.name)
+            self.arquivo.resultado.save(name=filename, content=File(tmp))
+
+
+def importa_usuarios_perfil_codae(usuario: Usuario, arquivo: ImportacaoPlanilhaUsuarioPerfilCodae) -> None:
+    logger.debug(f'Iniciando o processamento do arquivo: {arquivo.uuid}')
+
+    try:
+        processador = ProcessadorPlanilhaUsuarioPerfilCodae(usuario, arquivo)
+        processador.processamento()
+        processador.finaliza_processamento()
+    except Exception as exc:
+        logger.error(f'Erro genérico: {exc}')
+
+
+class ProcessadorPlanilhaUsuarioPerfilDre:
+    def __init__(self, usuario: Usuario, arquivo: ImportacaoPlanilhaUsuarioPerfilDre) -> None:
+        """Prepara atributos importantes para o processamento da planilha."""
+        self.usuario = usuario
+        self.arquivo = arquivo
+        self.erros = []
+        self.worksheet = self.abre_worksheet()
+
+    @property
+    def path(self):
+        return self.arquivo.conteudo.path
+
+    def processamento(self):  # noqa C901
+        self.arquivo.inicia_processamento()
+        if not self.validacao_inicial():
+            return
+
+        linhas = list(self.worksheet.rows)
+        logger.info(f'Quantidade de linhas: {len(linhas)} -- Quantidade de colunas: {len(linhas[0])}')
+
+        for ind, linha in enumerate(linhas[1:], 2):  # Começando em 2 pois a primeira linha é o cabeçalho da planilha
+            try:
+                dicionario_dados = self.monta_dicionario_de_dados(linha)
+                usuario_schema = ImportacaoPlanilhaUsuarioPerfilDreSchema(**dicionario_dados)
+
+                logger.info(f'Criando usuário: {usuario_schema.nome} -- {usuario_schema.email}')
+                self.cria_usuario_perfil_codae(ind, usuario_schema)
+            except Exception as exc:
+                self.erros.append(f'Linha {ind} - {exc}')
+
+    def abre_worksheet(self):
+        return load_workbook(self.path).active
+
+    def validacao_inicial(self) -> bool:
+        return self.existe_conteudo()
+
+    def existe_conteudo(self) -> bool:
+        if not self.arquivo.conteudo:
+            self.arquivo.log = 'Não foi feito o upload da planilha'
+            self.arquivo.erro_no_processamento()
+            return False
+        return True
+
+    def monta_dicionario_de_dados(self, linha: tuple) -> dict:
+        return {key: linha[index].value
+                for index, key in enumerate(ImportacaoPlanilhaUsuarioPerfilDreSchema.schema()['properties'].keys())}
+
+    def cria_usuario_perfil_codae(self, ind, usuario_schema: ImportacaoPlanilhaUsuarioPerfilDreSchema):  # noqa C901
+        try:
+            self.__criar_usuario_perfil_codae(usuario_schema)
+        except Exception as exd:
+            self.erros.append(f'Linha {ind} - {exd}')
+
+    @transaction.atomic
+    def __criar_usuario_perfil_codae(self, usuario_schema: ImportacaoPlanilhaUsuarioPerfilDreSchema):
+        dre = self.consulta_dre(usuario_schema.codigo_eol_dre)
+        self.checa_usuario(usuario_schema.rf, usuario_schema.email, usuario_schema.nome)
+        self.__criar_usuario(dre, usuario_schema)
+
+    def consulta_dre(self, codigo_eol_dre):
+        dre = DiretoriaRegional.objects.filter(codigo_eol=codigo_eol_dre).first()
+        if not dre:
+            raise Exception(f'Dre não encontrada para o código: {codigo_eol_dre}.')
+        return dre
+
+    def checa_usuario(self, registro_funcional, email, nome_planilha):
+        usuario = Usuario.objects.filter(Q(registro_funcional=registro_funcional) | Q(email=email)).first()
+        if usuario:
+            logger.error(f'Usuário com email "{email}" ou com rf "{registro_funcional}" já existe.')
+            raise Exception(f'Usuário com email "{email}" ou com rf '
+                            + f'"{registro_funcional}" já existe. Nome na planilha: {nome_planilha}.')
+
+    def __criar_usuario(self, dre, usuario_schema):
+        try:
+            perfil = Perfil.objects.get(nome=usuario_schema.perfil)
+        except Perfil.DoesNotExist:
+            logger.error(f'Este perfil não existe: {usuario_schema.perfil}')
+            raise Exception(f'Este perfil não existe: {usuario_schema.perfil}')
+        data_atual = date.today()
+        usuario = Usuario.objects.create_user(
+            email=usuario_schema.email,
+            password=DJANGO_ADMIN_TREINAMENTO_PASSWORD,
+            nome=usuario_schema.nome,
+            cargo=usuario_schema.cargo,
+            registro_funcional=usuario_schema.rf,
+            cpf=usuario_schema.cpf,
+        )
+        Vinculo.objects.create(
+            instituicao=dre,
+            perfil=perfil,
+            usuario=usuario,
+            data_inicial=data_atual,
+            ativo=True,
+        )
+        contato = Contato.objects.create(
+            nome=usuario_schema.nome,
+            email=usuario_schema.email,
+            telefone=usuario_schema.telefone,
+        )
+        usuario.contatos.add(contato)
+
+    def finaliza_processamento(self) -> None:
+        if self.erros:
+            self.arquivo.log = '\n'.join(self.erros)
+            self.arquivo.processamento_com_erro()
+            self.cria_planilha_de_erros()
+            logger.error(f'Arquivo "{self.arquivo.uuid}" processado com erro(s).')
+        else:
+            self.arquivo.log = 'Planilha processada com sucesso.'
+            self.arquivo.processamento_com_sucesso()
+            logger.info(f'Arquivo "{self.arquivo.uuid}" processado com sucesso.')
+
+    def cria_planilha_de_erros(self) -> None:
+        workbook: Workbook = Workbook()
+        ws = workbook.active
+        ws.title = 'Erros'
+        cabecalho = ws.cell(row=1, column=1, value='Erros encontrados no processamento da planilha')
+        cabecalho.fill = styles.PatternFill('solid', fgColor='808080')
+        for index, erro in enumerate(self.erros, 2):
+            ws.cell(row=index, column=1, value=erro)
+
+        filename = f'arquivo_resultado_{self.arquivo.pk}.xlsx'
+        with NamedTemporaryFile() as tmp:
+            workbook.save(tmp.name)
+            self.arquivo.resultado.save(name=filename, content=File(tmp))
+
+
+def importa_usuarios_perfil_dre(usuario: Usuario, arquivo: ImportacaoPlanilhaUsuarioPerfilDre) -> None:
+    logger.debug(f'Iniciando o processamento do arquivo: {arquivo.uuid}')
+
+    try:
+        processador = ProcessadorPlanilhaUsuarioPerfilDre(usuario, arquivo)
+        processador.processamento()
+        processador.finaliza_processamento()
+    except Exception as exc:
+        logger.error(f'Erro genérico: {exc}')

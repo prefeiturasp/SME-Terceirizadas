@@ -14,7 +14,7 @@ from django.utils.translation import ugettext_lazy as _
 from django_prometheus.models import ExportModelOperationsMixin
 from simple_email_confirmation.models import SimpleEmailConfirmationUserMixin
 
-from ...dados_comuns.behaviors import Ativavel, Nomeavel, TemChaveExterna
+from ...dados_comuns.behaviors import ArquivoCargaBase, Ativavel, Nomeavel, TemChaveExterna
 from ...dados_comuns.constants import (
     ADMINISTRADOR_CODAE_DILOG_CONTABIL,
     ADMINISTRADOR_CODAE_DILOG_JURIDICO,
@@ -331,3 +331,42 @@ class PlanilhaDiretorCogestor(models.Model):  # noqa D204
         ordering = ('-criado_em',)
         verbose_name = 'Planilha Diretor Cogestor'
         verbose_name_plural = 'Planilhas Diretores Cogestores'
+
+
+class ImportacaoPlanilhaUsuarioPerfilEscola(ArquivoCargaBase):
+    """Importa dados de planilha de usuários com perfil Escola."""
+
+    resultado = models.FileField(blank=True, default='')
+
+    class Meta:
+        verbose_name = 'Arquivo para importação de usuário perfil Escola'
+        verbose_name_plural = 'Arquivos para importação de usuários perfil Escola'
+
+    def __str__(self) -> str:
+        return str(self.conteudo)
+
+
+class ImportacaoPlanilhaUsuarioPerfilCodae(ArquivoCargaBase):
+    """Importa dados de planilha de usuários com perfil Escola."""
+
+    resultado = models.FileField(blank=True, default='')
+
+    class Meta:
+        verbose_name = 'Arquivo para importação de usuário perfil Codae'
+        verbose_name_plural = 'Arquivos para importação de usuários perfil Codae'
+
+    def __str__(self) -> str:
+        return str(self.conteudo)
+
+
+class ImportacaoPlanilhaUsuarioPerfilDre(ArquivoCargaBase):
+    """Importa dados de planilha de usuários com perfil Dre."""
+
+    resultado = models.FileField(blank=True, default='')
+
+    class Meta:
+        verbose_name = 'Arquivo para importação de usuário perfil Dre'
+        verbose_name_plural = 'Arquivos para importação de usuários perfil Dre'
+
+    def __str__(self) -> str:
+        return str(self.conteudo)

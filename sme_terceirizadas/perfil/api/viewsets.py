@@ -2,6 +2,9 @@ import datetime
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models.query_utils import Q
+from django.http import HttpResponse
+from openpyxl import Workbook, styles
+from openpyxl.worksheet.datavalidation import DataValidation
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
@@ -163,3 +166,132 @@ class UsuarioConfirmaEmailViewSet(viewsets.GenericViewSet):
 
         usuario.save()
         return Response(UsuarioDetalheSerializer(usuario).data)
+
+
+def exportar_planilha_importacao_usuarios_perfil_codae(request, **kwargs):
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename=planilha_importacao_usuarios_perfil_CODAE.xlsx'
+    workbook: Workbook = Workbook()
+    ws = workbook.active
+    ws.title = 'CODAE'
+    headers = [
+        'Nome do Usuário',
+        'Cargo',
+        'Email',
+        'CPF',
+        'Telefone',
+        'RF',
+        'Perfil',
+        'Número CRN'
+    ]
+    _font = styles.Font(name='Calibri', sz=10)
+    {k: setattr(styles.DEFAULT_FONT, k, v) for k, v in _font.__dict__.items()}
+    for i in range(0, len(headers)):
+        cabecalho = ws.cell(row=1, column=1 + i, value=headers[i])
+        cabecalho.fill = styles.PatternFill('solid', fgColor='ffff99')
+        cabecalho.font = styles.Font(name='Calibri', size=10, bold=True)
+        cabecalho.border = styles.Border(
+            left=styles.Side(border_style='thin', color='000000'),
+            right=styles.Side(border_style='thin', color='000000'),
+            top=styles.Side(border_style='thin', color='000000'),
+            bottom=styles.Side(border_style='thin', color='000000')
+        )
+    dv = DataValidation(
+        type='list',
+        formula1='"COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,'
+                 'COORDENADOR_DIETA_ESPECIAL,'
+                 'COORDENADOR_SUPERVISAO_NUTRICAO,'
+                 'COORDENADOR_GESTAO_PRODUTO"',
+        allow_blank=True
+    )
+    dv.error = 'Perfil Inválido'
+    dv.errorTitle = 'Perfil não permitido'
+    ws.add_data_validation(dv)
+    dv.add('G2:G1048576')
+    workbook.save(response)
+
+    return response
+
+
+def exportar_planilha_importacao_usuarios_perfil_escola(request, **kwargs):
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename=planilha_importacao_usuarios_perfil_ESCOLA.xlsx'
+    workbook: Workbook = Workbook()
+    ws = workbook.active
+    ws.title = 'ESCOLA'
+    headers = [
+        'Cód. EOL da U.E',
+        'Nome do Usuário',
+        'Cargo',
+        'Email',
+        'CPF',
+        'Telefone',
+        'RF',
+        'Perfil',
+    ]
+    _font = styles.Font(name='Calibri', sz=10)
+    {k: setattr(styles.DEFAULT_FONT, k, v) for k, v in _font.__dict__.items()}
+    for i in range(0, len(headers)):
+        cabecalho = ws.cell(row=1, column=1 + i, value=headers[i])
+        cabecalho.fill = styles.PatternFill('solid', fgColor='ffff99')
+        cabecalho.font = styles.Font(name='Calibri', size=10, bold=True)
+        cabecalho.border = styles.Border(
+            left=styles.Side(border_style='thin', color='000000'),
+            right=styles.Side(border_style='thin', color='000000'),
+            top=styles.Side(border_style='thin', color='000000'),
+            bottom=styles.Side(border_style='thin', color='000000')
+        )
+    dv = DataValidation(
+        type='list',
+        formula1='"DIRETOR, DIRETOR CEI"',
+        allow_blank=True
+    )
+    dv.error = 'Perfil Inválido'
+    dv.errorTitle = 'Perfil não permitido'
+    ws.add_data_validation(dv)
+    dv.add('H2:H1048576')
+    workbook.save(response)
+
+    return response
+
+
+def exportar_planilha_importacao_usuarios_perfil_dre(request, **kwargs):
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename=planilha_importacao_usuarios_perfil_DRE.xlsx'
+    workbook: Workbook = Workbook()
+    ws = workbook.active
+    ws.title = 'DRE'
+    headers = [
+        'Cód. EOL da DRE',
+        'Nome do Usuário',
+        'Cargo',
+        'Email',
+        'CPF',
+        'Telefone',
+        'RF',
+        'Perfil',
+    ]
+    _font = styles.Font(name='Calibri', sz=10)
+    {k: setattr(styles.DEFAULT_FONT, k, v) for k, v in _font.__dict__.items()}
+    for i in range(0, len(headers)):
+        cabecalho = ws.cell(row=1, column=1 + i, value=headers[i])
+        cabecalho.fill = styles.PatternFill('solid', fgColor='ffff99')
+        cabecalho.font = styles.Font(name='Calibri', size=10, bold=True)
+        cabecalho.border = styles.Border(
+            left=styles.Side(border_style='thin', color='000000'),
+            right=styles.Side(border_style='thin', color='000000'),
+            top=styles.Side(border_style='thin', color='000000'),
+            bottom=styles.Side(border_style='thin', color='000000')
+        )
+    dv = DataValidation(
+        type='list',
+        formula1='"COGESTOR, ADMINISTRADOR_DRE"',
+        allow_blank=True
+    )
+    dv.error = 'Perfil Inválido'
+    dv.errorTitle = 'Perfil não permitido'
+    ws.add_data_validation(dv)
+    dv.add('H2:H1048576')
+    workbook.save(response)
+
+    return response
