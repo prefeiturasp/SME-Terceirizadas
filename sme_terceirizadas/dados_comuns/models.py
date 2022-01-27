@@ -271,6 +271,8 @@ class Contato(ExportModelOperationsMixin('contato'), models.Model):
         max_length=11, validators=[MinLengthValidator(8)], blank=True
     )
     email = models.EmailField(blank=True)
+    eh_nutricionista = models.BooleanField('É nutricionista?', default=False)
+    crn_numero = models.CharField('Nutricionista crn', max_length=160, blank=True)
 
     def __str__(self):
         if self.nome and self.telefone:
@@ -476,3 +478,21 @@ class Notificacao(models.Model):
                 solicitacao_alteracao=solicitacao_alteracao,
                 guia=guia,
             )
+
+    @classmethod
+    def resolver_pendencia(cls, titulo, requisicao=None, solicitacao_alteracao=None, guia=None):
+        if not titulo:
+            raise NotificacaoException(f'O título não pode ser vazio.')
+        if not requisicao and not solicitacao_alteracao and not guia:
+            raise NotificacaoException(f'É preciso informar uma requisição, solicitação de alteração ou guia para '
+                                       f'resolver uma pendência.')
+
+        pendencias = cls.objects.filter(
+            tipo=Notificacao.TIPO_NOTIFICACAO_PENDENCIA,
+            titulo=titulo,
+            requisicao=requisicao,
+            solicitacao_alteracao=solicitacao_alteracao,
+            guia=guia,
+            resolvido=False
+        )
+        pendencias.update(resolvido=True, lido=True)

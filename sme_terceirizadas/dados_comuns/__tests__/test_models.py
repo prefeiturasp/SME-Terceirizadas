@@ -62,3 +62,41 @@ def test_notificar(notificacao):
     assert obj.descricao == 'teste'
     assert obj.usuario == notificacao.usuario
     assert obj.link == '/teste/'
+
+
+def test_resolver_pendencia(notificacao_de_pendencia_com_requisicao):
+    Notificacao.notificar(
+        tipo=Notificacao.TIPO_NOTIFICACAO_PENDENCIA,
+        categoria=Notificacao.CATEGORIA_NOTIFICACAO_GUIA_DE_REMESSA,
+        titulo=f'Hoje tem entrega de alimentos',
+        descricao='teste',
+        usuario=notificacao_de_pendencia_com_requisicao.usuario,
+        link=f'/teste/',
+        requisicao=notificacao_de_pendencia_com_requisicao.requisicao
+    )
+
+    obj = Notificacao.objects.last()
+
+    assert obj.tipo == Notificacao.TIPO_NOTIFICACAO_PENDENCIA
+    assert obj.categoria == Notificacao.CATEGORIA_NOTIFICACAO_GUIA_DE_REMESSA
+    assert obj.titulo == 'Hoje tem entrega de alimentos'
+    assert obj.descricao == 'teste'
+    assert obj.usuario == notificacao_de_pendencia_com_requisicao.usuario
+    assert obj.link == '/teste/'
+    assert obj.requisicao == notificacao_de_pendencia_com_requisicao.requisicao
+    assert obj.resolvido is False
+    assert obj.lido is False
+
+    Notificacao.resolver_pendencia(titulo=obj.titulo, requisicao=notificacao_de_pendencia_com_requisicao.requisicao)
+
+    obj2 = Notificacao.objects.last()
+
+    assert obj2.tipo == Notificacao.TIPO_NOTIFICACAO_PENDENCIA
+    assert obj2.categoria == Notificacao.CATEGORIA_NOTIFICACAO_GUIA_DE_REMESSA
+    assert obj2.titulo == 'Hoje tem entrega de alimentos'
+    assert obj2.descricao == 'teste'
+    assert obj2.usuario == notificacao_de_pendencia_com_requisicao.usuario
+    assert obj2.link == '/teste/'
+    assert obj2.requisicao == notificacao_de_pendencia_com_requisicao.requisicao
+    assert obj2.resolvido is True
+    assert obj2.lido is True

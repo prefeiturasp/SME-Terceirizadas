@@ -272,22 +272,25 @@ class TerceirizadaSerializer(serializers.ModelSerializer):
     super_admin = SuperAdminTerceirizadaSerializer()
 
     def get_nutricionistas(self, obj):
-        content_type = ContentType.objects.get_for_model(Terceirizada)
-        return UsuarioNutricionistaSerializer(
-            Usuario.objects.filter(
-                vinculos__object_id=obj.id,
-                vinculos__content_type=content_type,
-                crn_numero__isnull=False,
-                super_admin_terceirizadas=False,
-            ).filter(
-                Q(vinculos__data_inicial=None, vinculos__data_final=None,
-                  vinculos__ativo=False) |
-                Q(vinculos__data_inicial__isnull=False,
-                  vinculos__data_final=None, vinculos__ativo=True)
-                # noqa W504 ativo
-            ).distinct(),
-            many=True
-        ).data
+        if any(contato.eh_nutricionista for contato in obj.contatos.all()):
+            return []
+        else:
+            content_type = ContentType.objects.get_for_model(Terceirizada)
+            return UsuarioNutricionistaSerializer(
+                Usuario.objects.filter(
+                    vinculos__object_id=obj.id,
+                    vinculos__content_type=content_type,
+                    crn_numero__isnull=False,
+                    super_admin_terceirizadas=False,
+                ).filter(
+                    Q(vinculos__data_inicial=None, vinculos__data_final=None,
+                    vinculos__ativo=False) |
+                    Q(vinculos__data_inicial__isnull=False,
+                    vinculos__data_final=None, vinculos__ativo=True)
+                    # noqa W504 ativo
+                ).distinct(),
+                many=True
+            ).data
 
     class Meta:
         model = Terceirizada

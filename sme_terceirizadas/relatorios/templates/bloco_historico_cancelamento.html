@@ -9,15 +9,25 @@
             {% if log.status_evento_explicacao == "Escola cancelou" %}
               <div>{{ log.criado_em }} - ESCOLA CANCELOU</div>
               <div class="justificativa-cancelamento-escola-dre">
-                Observação do Cancelamento:
                 {{ log.justificativa }}
               </div>
             {% endif %}
             {% if log.status_evento_explicacao == "DRE cancelou" %}
               <div>{{ log.criado_em }} - DRE CANCELOU</div>
               <div class="justificativa-cancelamento-escola-dre">
-                Observação do Cancelamento:
                 {{ log.justificativa }}
+              </div>
+            {% endif %}
+            {% if log.status_evento_explicacao == "CODAE negou" %}
+              <div>{{ log.criado_em }} - CODAE NEGOU</div>
+              <div class="justificativa-cancelamento-escola-dre">
+                {{ log.justificativa | safe }}
+              </div>
+            {% endif %}
+            {% if log.status_evento_explicacao == "DRE não validou" %}
+              <div>{{ log.criado_em }} - DRE não validou</div>
+              <div class="justificativa-cancelamento-escola-dre">
+                {{ log.justificativa | safe }}
               </div>
             {% endif %}
           {% endfor %}

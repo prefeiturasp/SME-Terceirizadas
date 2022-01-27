@@ -1,11 +1,13 @@
+import re
+
+from django.db.utils import IntegrityError
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from ....dados_comuns.api.serializers import ContatoSerializer
-from ....dados_comuns.constants import NUTRI_ADMIN_RESPONSAVEL
+from ....dados_comuns.constants import ADMINISTRADOR_TERCEIRIZADA
 from ....dados_comuns.models import Contato
 from ....dados_comuns.utils import update_instance_from_dict
-from ....escola.api.serializers import UsuarioNutricionistaSerializer
 from ....escola.models import DiretoriaRegional, Lote
 from ....perfil.api.serializers import SuperAdminTerceirizadaSerializer, UsuarioUpdateSerializer
 from ....perfil.models import Usuario
@@ -103,13 +105,11 @@ class ContratoCreateSerializer(serializers.ModelSerializer):
 
 class TerceirizadaCreateSerializer(serializers.ModelSerializer):
     lotes = serializers.SlugRelatedField(slug_field='uuid', many=True, queryset=Lote.objects.all())
-    nutricionistas = UsuarioNutricionistaSerializer(many=True)
     contatos = ContatoSerializer(many=True)
     super_admin = SuperAdminTerceirizadaSerializer()
 
     def create(self, validated_data): # noqa C901
         super_admin = validated_data.pop('super_admin')
-        nutricionistas_array = validated_data.pop('nutricionistas')
         lotes = validated_data.pop('lotes', [])
         contatos = validated_data.pop('contatos', [])
         eh_distribuidor = validated_data.get('eh_distribuidor', False)
@@ -135,9 +135,6 @@ class TerceirizadaCreateSerializer(serializers.ModelSerializer):
                     validated_data=contato_json)
                 terceirizada.contatos.add(contato)
 
-            for nutri_json in nutricionistas_array:
-                UsuarioUpdateSerializer().create_nutricionista(terceirizada, nutri_json)
-
             self.criar_super_admin_terceirizada(super_admin, terceirizada)
 
         return terceirizada
@@ -146,9 +143,7 @@ class TerceirizadaCreateSerializer(serializers.ModelSerializer):
         # TODO: Analisar complexidade
         # TODO: voltar aqui quando uma terceirizada tiver seu painel admin para criar suas nutris
         # aqui está tratando nutris como um dado escravo da Terceirizada
-
         super_admin_data = validated_data.pop('super_admin')
-        nutricionistas_array = validated_data.pop('nutricionistas', [])
         lotes_array = validated_data.pop('lotes', [])
         contato_array = validated_data.pop('contatos', [])
         eh_distribuidor = validated_data.get('eh_distribuidor', False)
@@ -171,9 +166,6 @@ class TerceirizadaCreateSerializer(serializers.ModelSerializer):
             instance.contatos.clear()
             instance.desvincular_lotes()
 
-            for nutri_json in nutricionistas_array:
-                UsuarioUpdateSerializer().update_nutricionista(instance, nutri_json)
-
             contatos = []
             for contato_json in contato_array:
                 contato = ContatoSerializer().create(contato_json)
@@ -193,7 +185,14 @@ class TerceirizadaCreateSerializer(serializers.ModelSerializer):
 
     def criar_super_admin_terceirizada(self, dados_usuario, terceirizada): # noqa C901
         contatos = dados_usuario.pop('contatos')
-        usuario = Usuario.objects.create(**dados_usuario)
+        try:
+            usuario = Usuario.objects.create(**dados_usuario)
+        except IntegrityError as e:
+            if re.search('perfil_usuario_cpf_key.+already\\sexists', e.args[0], flags=re.I | re.S):
+                raise serializers.ValidationError(f'CPF - {dados_usuario["cpf"]} - já cadastrado')
+            if re.search('perfil_usuario_email_key.+already\\sexists', e.args[0], flags=re.I | re.S):
+                raise serializers.ValidationError(f'Email - {dados_usuario["email"]} - já cadastrado')
+            raise e
         usuario.super_admin_terceirizadas = True
         usuario.is_active = False
         usuario.save()
@@ -202,7 +201,7 @@ class TerceirizadaCreateSerializer(serializers.ModelSerializer):
             usuario.contatos.add(contato)
         usuario.criar_vinculo_administrador(
             terceirizada,
-            nome_perfil=NUTRI_ADMIN_RESPONSAVEL
+            nome_perfil=ADMINISTRADOR_TERCEIRIZADA
         )
         usuario.enviar_email_administrador()
 
