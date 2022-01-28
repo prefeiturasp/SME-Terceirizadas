@@ -61,7 +61,7 @@ from sme_terceirizadas.logistica.api.services.exporta_para_excel import Requisic
 from sme_terceirizadas.logistica.models import Alimento, ConferenciaGuia, Embalagem
 from sme_terceirizadas.logistica.models import Guia as GuiasDasRequisicoes
 from sme_terceirizadas.logistica.models import SolicitacaoDeAlteracaoRequisicao, SolicitacaoRemessa
-from sme_terceirizadas.logistica.services import arquiva_guias, confirma_guias, desarquiva_guias
+from sme_terceirizadas.logistica.services import arquiva_guias, confirma_cancelamento, confirma_guias, desarquiva_guias
 
 from ...escola.models import DiretoriaRegional, Escola
 from ...relatorios.relatorios import relatorio_guia_de_remessa
@@ -229,6 +229,23 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
             except DataError as e:
                 return Response(dict(detail=f'Erro de transição de estado: {e}', status=False),
                                 status=HTTP_406_NOT_ACCEPTABLE)
+
+    @action(detail=False, permission_classes=(UsuarioDistribuidor,),
+            methods=['post'], url_path='confirmar-cancelamento')
+    def confirma_cancelamento_guias_e_requisicoes(self, request):
+        numero_requisicao = request.data.get('numero_requisicao', '')
+        guias = request.data.get('guias', [])
+
+        if not numero_requisicao:
+            return Response('É necessario informar o número da requisição ao qual a(s) guia(s) pertece(m).',
+                            status=HTTP_406_NOT_ACCEPTABLE)
+        if not guias:
+            return Response('É necessario informar o número das guias para confirmação do cancelamento.',
+                            status=HTTP_406_NOT_ACCEPTABLE)
+
+        confirma_cancelamento(numero_requisicao=numero_requisicao, guias=guias, user=self.request.user)
+
+        return Response('Cancelamento realizado com sucesso.', status=HTTP_200_OK)
 
     @action(detail=False, permission_classes=(UsuarioDilogCodae,),
             methods=['post'], url_path='arquivar')
