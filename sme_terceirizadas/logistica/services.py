@@ -1,10 +1,16 @@
+from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
+from django.db import transaction
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST
 from xworkflows.base import InvalidTransitionError
 
+from sme_terceirizadas.dados_comuns.fluxo_status import GuiaRemessaWorkFlow as GuiaStatus
+from sme_terceirizadas.eol_servico.utils import EOLPapaService
 from sme_terceirizadas.logistica.models import Guia, SolicitacaoRemessa
+
+from ..dados_comuns.models import LogSolicitacoesUsuario
 
 
 def inativa_tipos_de_embabalagem(queryset):
@@ -56,6 +62,35 @@ def arquiva_guias(numero_requisicao, guias):  # noqa C901
 
     if set(guias_existentes) == set(guias) or not existe_guia_ativa:
         requisicao.arquivar_requisicao(uuid=requisicao.uuid)
+
+
+@transaction.atomic # noqa C901
+def confirma_cancelamento(numero_requisicao, guias, user):
+    # Método para confirmação de cancelamento da(s) guia(s) e requisições. Importante saber:
+    # Se todas as guias para cancelamento forem todas as guias da requisição,
+    # além das guias, a requisição também será cancelada.
+
+    try:
+        solicitacao = SolicitacaoRemessa.objects.get(numero_solicitacao=numero_requisicao)
+        seq_envio = solicitacao.sequencia_envio
+        solicitacao.guias.filter(numero_guia__in=guias).update(status=GuiaStatus.CANCELADA)
+        existe_guia_nao_cancelada = solicitacao.guias.exclude(status=GuiaStatus.CANCELADA).exists()
+        guias_existentes = list(solicitacao.guias.values_list('numero_guia', flat=True))
+
+        if set(guias_existentes) == set(guias) or not existe_guia_nao_cancelada:
+            solicitacao.distribuidor_confirma_cancelamento(user=user)
+        else:
+            solicitacao.salvar_log_transicao(
+                status_evento=LogSolicitacoesUsuario.PAPA_CANCELA_SOLICITACAO,
+                usuario=user,
+                justificativa=f'Guias canceladas: {guias}'
+            )
+        # Envia confirmação para o papa
+        if not settings.DEBUG:
+            EOLPapaService.confirmacao_de_cancelamento(
+                cnpj=solicitacao.cnpj, numero_solicitacao=solicitacao.numero_solicitacao, sequencia_envio=seq_envio)
+    except ObjectDoesNotExist:
+        raise ValidationError(f'Requisição {numero_requisicao} não existe.')
 
 def desarquiva_guias(numero_requisicao, guias):  # noqa C901
     # Método para desarquivamento da(s) guia(s) e requisições. Importante saber:

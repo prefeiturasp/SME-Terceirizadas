@@ -206,6 +206,7 @@ class SolicitacaoRemessaWorkFlow(xwf_models.Workflow):
         ('dilog_nega_alteracao', DISTRIBUIDOR_SOLICITA_ALTERACAO, DILOG_ENVIA),
         ('aguarda_confirmacao_de_cancelamento', [DISTRIBUIDOR_CONFIRMA, DISTRIBUIDOR_SOLICITA_ALTERACAO],
          AGUARDANDO_CANCELAMENTO),
+        ('distribuidor_confirma_cancelamento', AGUARDANDO_CANCELAMENTO, PAPA_CANCELA),
     )
 
     initial_state = AGUARDANDO_ENVIO
@@ -595,6 +596,13 @@ class FluxoSolicitacaoRemessa(xwf_models.WorkflowEnabled, models.Model):
     def _cancela_solicitacao_hook(self, *args, **kwargs):
         user = kwargs['user']
         self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.PAPA_CANCELA_SOLICITACAO,
+                                  usuario=user,
+                                  justificativa=kwargs.get('justificativa', ''))
+
+    @xworkflows.after_transition('distribuidor_confirma_cancelamento')
+    def _distribuidor_confirma_cancelamento_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.DISTRIBUIDOR_CONFIRMA_CANCELAMENTO,
                                   usuario=user,
                                   justificativa=kwargs.get('justificativa', ''))
 
