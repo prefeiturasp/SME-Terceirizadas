@@ -153,15 +153,10 @@ class ProdutoSerializerCreate(serializers.ModelSerializer):
         protocolos = validated_data.pop('protocolos', [])
         informacoes_nutricionais = validated_data.pop('informacoes_nutricionais', [])
         especificacoes_produto = validated_data.pop('especificacoes', [])
-
         update_instance_from_dict(instance, validated_data, save=True)
 
         instance.informacoes_nutricionais.all().delete()
         instance.especificacoes.all().delete()
-
-        if 'imagens' in mudancas and 'exclusoes' in mudancas['imagens']:
-            for imagem in mudancas['imagens']['exclusoes']:
-                imagem.delete()
 
         for imagem in imagens:
             if imagem.get('arquivo', '').startswith('http'):
