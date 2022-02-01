@@ -263,10 +263,15 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
         if filtro_aplicado:
             if filtro_aplicado == 'codae_pediu_analise_reclamacao':
                 status__in = ['ESCOLA_OU_NUTRICIONISTA_RECLAMOU',
-                              'CODAE_PEDIU_ANALISE_RECLAMACAO']
+                              'CODAE_PEDIU_ANALISE_RECLAMACAO',
+                              'CODAE_QUESTIONOU_UE']
                 if request.user.vinculo_atual.perfil.nome in [constants.COORDENADOR_GESTAO_PRODUTO,
                                                               constants.ADMINISTRADOR_GESTAO_PRODUTO]:
                     status__in.append('TERCEIRIZADA_RESPONDEU_RECLAMACAO')
+                filtros['status__in'] = status__in
+
+                if request.user.vinculo_atual.perfil.nome == constants.COORDENADOR_SUPERVISAO_NUTRICAO:
+                    status__in.append('CODAE_QUESTIONOU_NUTRISUPERVISOR')
                 filtros['status__in'] = status__in
 
                 if request.user.tipo_usuario == constants.TIPO_USUARIO_ESCOLA:
