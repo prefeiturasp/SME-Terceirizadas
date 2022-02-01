@@ -39,6 +39,7 @@ def registra_quantidade_matriculados(turnos, escola, data, tipo_turma):
         PeriodoEscolar
     )
 
+    AlunosMatriculadosPeriodoEscola.objects.filter(tipo_turma=tipo_turma, escola=escola).delete()
     for turno_resp in turnos:
         turno = remove_acentos(turno_resp['turno'])
         periodo = PeriodoEscolar.objects.filter(nome=turno.upper()).first()
@@ -59,14 +60,12 @@ def registra_quantidade_matriculados(turnos, escola, data, tipo_turma):
 
 def registro_quantidade_alunos_matriculados_por_escola_periodo(tipo_turma):
     from sme_terceirizadas.escola.models import (
-        AlunosMatriculadosPeriodoEscola,
         Escola
     )
     hoje = date.today()
     escolas = Escola.objects.all()
     total = len(escolas)
     cont = 1
-    AlunosMatriculadosPeriodoEscola.objects.filter(tipo_turma=tipo_turma.name).delete()
     for escola in escolas:
         logger.debug(f'Processando {cont} de {total}')
         logger.debug(f"""Consultando matriculados da escola com Nome: {escola.nome}
