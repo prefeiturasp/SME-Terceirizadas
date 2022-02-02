@@ -312,7 +312,7 @@ class ProtocoloPadraoDietaEspecialSerializerCreate(serializers.ModelSerializer):
         nome_protocolo = validated_data['nome_protocolo']
         protocolos = ProtocoloPadraoDietaEspecial.objects.all()
         if (nome_protocolo.upper() in [protocolo.nome_protocolo.upper() for protocolo in protocolos]):
-            raise serializers.ValidationError('Protocolo padrão já existe.')
+            raise serializers.ValidationError('Já existe um protocolo padrão com esse nome.')
         validated_data['nome_protocolo'] = nome_protocolo.upper()
         protocolo_padrao = ProtocoloPadraoDietaEspecial.objects.create(**validated_data)
         for substituicao in substituicoes:
@@ -341,7 +341,7 @@ class ProtocoloPadraoDietaEspecialSerializerCreate(serializers.ModelSerializer):
         nome_protocolo = validated_data['nome_protocolo']
         protocolos = ProtocoloPadraoDietaEspecial.objects.all().exclude(uuid=instance.uuid)
         if (nome_protocolo.upper() in [protocolo.nome_protocolo.upper() for protocolo in protocolos]):
-            raise serializers.ValidationError('Protocolo padrão já existe.')
+            raise serializers.ValidationError('Já existe um protocolo padrão com esse nome.')
         validated_data['nome_protocolo'] = nome_protocolo.upper()
         user = None
         request = self.context.get('request')
