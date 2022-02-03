@@ -1,3 +1,4 @@
+import logging
 import os
 
 import environ
@@ -20,6 +21,7 @@ from ...models import SolicitacaoRemessa
 from .models import ArqCancelamento, ArqSolicitacaoMOD, SoapResponse, oWsAcessoModel
 from .token_auth import TokenAuthentication
 
+logger = logging.getLogger('sigpae.integracao_papa')
 env = environ.Env()
 
 API_URL = env.str('API_URL', default=None)
@@ -30,11 +32,14 @@ class SolicitacaoService(ServiceBase):
 
     @rpc(oWsAcessoModel, ArqSolicitacaoMOD, _returns=SoapResponse) # noqa C901
     def Solicitacao(ctx, oWsAcessoModel, ArqSolicitacaoMOD):
+        logger.info('Inicia integração envio de solicitação PAPA x SIGPAE:')
+        logger.info(str(ArqSolicitacaoMOD))
 
         try:
             user, token = TokenAuthentication().authenticate(oWsAcessoModel)
 
         except exceptions.AuthenticationFailed as e:
+            logger.info(str(e))
             return SoapResponse(str_status='false', str_menssagem=str(e))
 
         try:
@@ -44,39 +49,50 @@ class SolicitacaoService(ServiceBase):
                 usuario=user
             )
         except ObjectDoesNotExist as e:
+            logger.info(str(e))
             return SoapResponse(str_status='false', str_menssagem=str(e))
 
         except IntegrityError as e:
+            logger.info(str(e))
             return SoapResponse(str_status='false', str_menssagem=str(e))
 
         except Exception:
             msg = 'Houve um erro ao salvar a solicitação.'
+            logger.info(msg)
             return SoapResponse(str_status='false', str_menssagem=msg)
 
+        logger.info(f'Solicitação {solicitacao.numero_solicitacao} criada com sucesso.')
         return SoapResponse(str_status='true', str_menssagem='Solicitação criada com sucesso.')
 
     @rpc(oWsAcessoModel, ArqCancelamento, _returns=SoapResponse) # noqa C901
     def Cancelamento(ctx, oWsAcessoModel, ArqCancelamento):
+        logger.info('Inicia integração envio de cancelamento PAPA x SIGPAE:')
+        logger.info(str(ArqCancelamento))
 
         try:
             user, token = TokenAuthentication().authenticate(oWsAcessoModel)
 
         except exceptions.AuthenticationFailed as e:
+            logger.info(str(e))
             return SoapResponse(str_status='false', str_menssagem=str(e))
 
         try:
             ArqCancelamento.cancel(user)
         except ObjectDoesNotExist as e:
+            logger.info(str(e))
             return SoapResponse(str_status='false', str_menssagem=str(e))
 
         except IntegrityError as e:
+            logger.info(str(e))
             return SoapResponse(str_status='false', str_menssagem=str(e))
 
         except EOLException as e:
+            logger.info(str(e))
             return SoapResponse(str_status='false', str_menssagem=str(e))
 
         except Exception:
             msg = 'Houve um erro ao receber a solicitação de cancelamento.'
+            logger.info(msg)
             return SoapResponse(str_status='false', str_menssagem=msg)
 
         return SoapResponse(str_status='true', str_menssagem='Solicitação de cancelamento recebida com sucesso')

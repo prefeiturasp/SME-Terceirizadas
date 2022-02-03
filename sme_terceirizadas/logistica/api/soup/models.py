@@ -165,7 +165,7 @@ class Guia(ComplexModel):
                 error = str(e)
                 msg = error.split('Key')
                 raise IntegrityError('Guia duplicada:' + msg[1])
-            raise IntegrityError('Erro ao salvar Guia.')
+            raise IntegrityError('Erro ao salvar Guia: ' + str(e))
 
         Alimento().create_many(alimentos_dict_list)
 
@@ -210,7 +210,7 @@ class ArqSolicitacaoMOD(ComplexModel):
                 error = str(e)
                 msg = error.split('Key')
                 raise IntegrityError('Solicitação duplicada:' + msg[1])
-            raise IntegrityError('Erro ao salvar Solicitação.')
+            raise IntegrityError('Erro ao salvar Solicitação: ' + str(e))
 
         Guia().create_many(guias, solicitacao)
 
@@ -241,7 +241,7 @@ class ArqCancelamento(ComplexModel):
             solicitacao = SolicitacaoRemessa.objects.get(numero_solicitacao=num_solicitacao)
 
         except exceptions.ObjectDoesNotExist:
-            raise exceptions.ObjectDoesNotExist('Solicitacão não encontrada.')
+            raise exceptions.ObjectDoesNotExist(f'Solicitacão {num_solicitacao} não encontrada.')
 
         guias_existentes = list(solicitacao.guias.values_list('numero_guia', flat=True))
         # Não depende de confirmação do distribuidor no sigpae
