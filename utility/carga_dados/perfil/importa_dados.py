@@ -52,6 +52,7 @@ def cria_vinculos():
         'perfil_usuario_dilog': Perfil.objects.get(nome='COORDENADOR_LOGISTICA'),  # noqa
         'perfil_usuario_nutri_codae': Perfil.objects.get(nome='COORDENADOR_DIETA_ESPECIAL'),  # noqa
         'perfil_usuario_nutri_supervisao': Perfil.objects.get(nome='COORDENADOR_SUPERVISAO_NUTRICAO'),  # noqa
+        'perfil_usuario_nutri_manifestacao': Perfil.objects.get(nome='COORDENADOR_SUPERVISAO_NUTRICAO_MANIFESTACAO'),
         'perfil_coordenador_gestao_produto': Perfil.objects.get(nome='COORDENADOR_GESTAO_PRODUTO'),  # noqa
         'perfil_usuario_terceirizada': Perfil.objects.get(nome='NUTRI_ADMIN_RESPONSAVEL'),  # noqa
         'perfil_usuario_ue': Perfil.objects.get(nome='ADMINISTRADOR_ESCOLA_ABASTECIMENTO'),
@@ -81,8 +82,10 @@ def cria_vinculos():
         'usuario_dilog': Usuario.objects.get(email='dilog@admin.com'),
         'usuario_nutri_codae': Usuario.objects.get(email='nutricodae@admin.com'),
         'usuario_nutri_supervisao': Usuario.objects.get(email='nutrisupervisao@admin.com'),
+        'usuario_nutri_manifestacao': Usuario.objects.get(email='nutricionistamanifestacao@admin.com'),
         'usuario_gestao_produto_codae': Usuario.objects.get(email='gpcodae@admin.com'),
         'usuario_terceirizada': Usuario.objects.get(email='terceirizada@admin.com'),
+        'usuario_ue': Usuario.objects.get(email='ue@admin.com'),
         'usuario_codae_gabinete': Usuario.objects.get(email='codaegabinete@admin.com'),
         'usuario_codae_logistica': Usuario.objects.get(email='codaelogistica@admin.com'),
         'usuario_codae_contabio': Usuario.objects.get(email='codaecontabil@admin.com'),
@@ -99,17 +102,17 @@ def cria_vinculos():
             'usuario': usuario['usuario_escola'],
         },
         {
-            'nome': 'CEI ENEDINA DE SOUSA CARVALHO',
+            'nome': 'CEI DIRET ENEDINA DE SOUSA CARVALHO',
             'perfil': perfil['perfil_diretor_escola_cei'],
             'usuario': usuario['usuario_escola_cei'],
         },
         {
-            'nome': 'CEI CEU MENINOS',
+            'nome': 'CEU CEI MENINOS',
             'perfil': perfil['perfil_diretor_escola_cei'],
             'usuario': usuario['usuario_escola_cei_ceu'],
         },
         {
-            'nome': 'CCI CAMARA MUNICIPAL DE SAO PAULO',
+            'nome': 'CCI/CIPS CAMARA MUNICIPAL DE SAO PAULO',
             'perfil': perfil['perfil_diretor_escola_cei'],
             'usuario': usuario['usuario_escola_cci'],
         },
@@ -144,7 +147,7 @@ def cria_vinculos():
             'usuario': usuario['usuario_escola_ceu_emei'],
         },
         {
-            'nome': 'CEU EMEF MARA CRISTINA TATAGLIA SENA, PROFA.',
+            'nome': 'CEU EMEF MARA CRISTINA TARTAGLIA SENA, PROFA.',
             'perfil': perfil['perfil_diretor_escola'],
             'usuario': usuario['usuario_escola_ceu_emef'],
         },
@@ -154,7 +157,7 @@ def cria_vinculos():
             'usuario': usuario['usuario_ue'],
         },
         {
-            'nome': 'CEI MUN. PINHEIROS',
+            'nome': 'CEI DIRET PINHEIROS',
             'perfil': perfil['perfil_usuario_ue_mista'],
             'usuario': usuario['usuario_ue_mista'],
         },
@@ -164,7 +167,7 @@ def cria_vinculos():
             'usuario': usuario['usuario_ue_direta'],
         },
         {
-            'nome': 'CEI PARC. FRATERNIDADE MARIA DE NAZARÉ',
+            'nome': 'CR.P.CONV FRATERNIDADE MARIA DE NAZARE',
             'perfil': perfil['perfil_usuario_ue_parceira'],
             'usuario': usuario['usuario_ue_parceira'],
         },
@@ -195,6 +198,7 @@ def cria_vinculos():
     codae_dieta_especial, created = Codae.objects.get_or_create(nome='CODAE - GESTÃO DIETA ESPECIAL')
     codae_produtos, created = Codae.objects.get_or_create(nome='CODAE - GESTÃO PRODUTOS')
     codae_nutrisupervisao, created = Codae.objects.get_or_create(nome='CODAE - SUPERVISÃO DE NUTRIÇÃO')
+    codae_nutrisupervisao_manifestacao, created = Codae.objects.get_or_create(nome='CODAE - NUTRIMANIFESTAÇÃO')
     escola = Escola.objects.get(nome='EMEF JOSE ERMIRIO DE MORAIS, SEN.')  # noqa
     terceirizada = escola.lote.terceirizada
 
@@ -223,6 +227,11 @@ def cria_vinculos():
             'instituicao': codae_nutrisupervisao,
             'perfil': perfil['perfil_usuario_nutri_supervisao'],
             'usuario': usuario['usuario_nutri_supervisao'],
+        },
+        {
+            'instituicao': codae_nutrisupervisao_manifestacao,
+            'perfil': perfil['perfil_usuario_nutri_supervisao'],
+            'usuario': usuario['usuario_nutri_manifestacao'],
         },
         {
             'instituicao': codae_produtos,
@@ -478,12 +487,14 @@ class ProcessadorPlanilhaUsuarioPerfilCodae:
             'perfil_usuario_codae': Perfil.objects.get(nome__unaccent__icontains='COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA').nome,
             'perfil_usuario_nutri_codae': Perfil.objects.get(nome__unaccent__icontains='COORDENADOR_DIETA_ESPECIAL').nome,
             'perfil_usuario_nutri_supervisao': Perfil.objects.get(nome__unaccent__icontains='COORDENADOR_SUPERVISAO_NUTRICAO').nome,
+            'perfil_usuario_nutri_manifestacao': Perfil.objects.get(nome__unaccent__icontains='COORDENADOR_SUPERVISAO_NUTRICAO_MANIFESTACAO').nome,
             'perfil_coordenador_gestao_produto': Perfil.objects.get(nome__unaccent__icontains='COORDENADOR_GESTAO_PRODUTO').nome
         }
         instituicoes_codae = {
             'codae_alimentacao': Codae.objects.get(nome__unaccent__icontains='ALIMENTAÇÃO'),
             'codae_dieta_especial': Codae.objects.get(nome__unaccent__icontains='ESPECIAL'),
             'codae_nutrisupervisao': Codae.objects.get(nome__unaccent__icontains='NUTRIÇÃO'),
+            'codae_nutrimanifestacao': Codae.objects.get(nome__unaccent__icontains='NUTRIMANIFESTAÇÃO'),
             'codae_produtos': Codae.objects.get(nome__unaccent__icontains='PRODUTOS')
         }
 
@@ -498,6 +509,8 @@ class ProcessadorPlanilhaUsuarioPerfilCodae:
             codae = instituicoes_codae['codae_dieta_especial']
         elif usuario_schema.perfil == perfis['perfil_usuario_nutri_supervisao']:
             codae = instituicoes_codae['codae_nutrisupervisao']
+        elif usuario_schema.perfil == perfis['perfil_usuario_nutri_manifestacao']:
+            codae = instituicoes_codae['codae_nutrimanifestacao']
         elif usuario_schema.perfil == perfis['perfil_coordenador_gestao_produto']:
             codae = instituicoes_codae['codae_produtos']
         else:
