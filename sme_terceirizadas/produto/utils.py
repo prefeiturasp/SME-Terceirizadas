@@ -198,13 +198,7 @@ def changes_between(produto, validated_data):  # noqa C901
     mudancas = {}
 
     for field in produto._meta.get_fields():
-        if field.name == 'protocolos':
-            mudancas_protocolos = compara_lista_protocolos(
-                produto.protocolos.all(),
-                validated_data['protocolos'])
-            if mudancas_protocolos.keys():
-                mudancas['protocolos'] = mudancas_protocolos
-        elif field.name == 'informacoes_nutricionais':
+        if field.name == 'informacoes_nutricionais':
             mudancas_info_nutricionais = compara_lista_informacoes_nutricionais(
                 produto.informacoes_nutricionais.all(),
                 validated_data['informacoes_nutricionais'])
