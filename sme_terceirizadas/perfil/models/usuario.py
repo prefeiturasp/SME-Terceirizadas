@@ -26,8 +26,7 @@ from ...dados_comuns.constants import (
     COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
     COORDENADOR_GESTAO_PRODUTO,
     COORDENADOR_LOGISTICA,
-    COORDENADOR_SUPERVISAO_NUTRICAO,
-    COORDENADOR_SUPERVISAO_NUTRICAO_MANIFESTACAO
+    COORDENADOR_SUPERVISAO_NUTRICAO
 )
 from ...dados_comuns.tasks import envia_email_unico_task
 from ...dados_comuns.utils import url_configs
@@ -196,8 +195,6 @@ class Usuario(ExportModelOperationsMixin('usuario'), SimpleEmailConfirmationUser
                 elif self.vinculo_atual.perfil.nome in [COORDENADOR_SUPERVISAO_NUTRICAO,
                                                         ADMINISTRADOR_SUPERVISAO_NUTRICAO]:
                     tipo_usuario = 'supervisao_nutricao'
-                elif self.vinculo_atual.perfil.nome in [COORDENADOR_SUPERVISAO_NUTRICAO_MANIFESTACAO]:
-                    tipo_usuario = 'nutricao_manifestacao'
                 else:
                     tipo_usuario = 'dieta_especial'
         return tipo_usuario
