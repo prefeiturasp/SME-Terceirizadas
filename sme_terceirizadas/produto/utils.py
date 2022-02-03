@@ -121,7 +121,6 @@ class ItemCadastroPagination(PageNumberPagination):
 
 def compara_lista_imagens(anterior, proxima):  # noqa C901
     adicoes = []
-    exclusoes = []
 
     for imagem_p in proxima:
         for imagem_a in anterior:
@@ -129,21 +128,10 @@ def compara_lista_imagens(anterior, proxima):  # noqa C901
                 break
         else:
             adicoes.append(imagem_p)
-
-    for imagem_a in anterior:
-        for imagem_p in proxima:
-            if imagem_a.nome == imagem_p['nome']:
-                break
-        else:
-            exclusoes.append(imagem_a)
-
     retorno = {}
 
     if len(adicoes) > 0:
         retorno['adicoes'] = adicoes
-    if len(exclusoes) > 0:
-        retorno['exclusoes'] = exclusoes
-
     return retorno
 
 

@@ -1,5 +1,6 @@
 import datetime
 
+import environ
 from rest_framework import serializers
 
 from ....dados_comuns.api.serializers import (
@@ -94,9 +95,9 @@ class ImagemDoProdutoSerializer(serializers.ModelSerializer):
     arquivo = serializers.SerializerMethodField()
 
     def get_arquivo(self, obj):
-        request = self.context.get('request')
-        arquivo = obj.arquivo.url
-        return request.build_absolute_uri(arquivo)
+        env = environ.Env()
+        api_url = env.str('URL_ANEXO', default='http://localhost:8000')
+        return f'{api_url}{obj.arquivo.url}'
 
     class Meta:
         model = ImagemDoProduto
@@ -416,6 +417,7 @@ class HomologacaoProdutoBase(serializers.ModelSerializer):
 class HomologacaoProdutoPainelGerencialSerializer(HomologacaoProdutoBase):
     nome_produto = serializers.SerializerMethodField()
     log_mais_recente = serializers.SerializerMethodField()
+    nome_usuario_log_de_reclamacao = serializers.SerializerMethodField()
 
     def get_log_mais_recente(self, obj):
         if obj.log_mais_recente:
@@ -425,12 +427,22 @@ class HomologacaoProdutoPainelGerencialSerializer(HomologacaoProdutoBase):
         else:
             return datetime.datetime.strftime(obj.criado_em, '%d/%m/%Y')
 
+    def get_nome_usuario_log_de_reclamacao(self, obj) -> str:
+        _status = LogSolicitacoesUsuario.STATUS_POSSIVEIS
+        status = {v: k for (k, v) in _status}
+        usr = ''
+        try:
+            usr = obj.logs.filter(status_evento=status['Escola/Nutricionista reclamou do produto'])
+            return usr.first().usuario.nome
+        except Exception:
+            return usr
+
     def get_nome_produto(self, obj):
         return obj.produto.nome
 
     class Meta:
         model = HomologacaoDoProduto
-        fields = ('uuid', 'nome_produto', 'status', 'id_externo', 'log_mais_recente',
+        fields = ('uuid', 'nome_produto', 'status', 'id_externo', 'log_mais_recente', 'nome_usuario_log_de_reclamacao',
                   'qtde_reclamacoes', 'qtde_questionamentos')
 
 

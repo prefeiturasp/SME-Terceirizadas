@@ -253,7 +253,14 @@ def cancela_dietas_ativas_automaticamente():  # noqa C901 D205 D400
         dados_do_aluno = get_aluno_eol(dieta.codigo_eol_aluno)
         solicitacao_dieta = SolicitacaoDietaEspecial.objects.filter(pk=dieta.pk).first()
 
-        if dados_do_aluno:
+        # Condições:
+        # retorno do EOL é uma lista
+        # lista não está vazia
+        # última matrícula  registrada é do ano atual
+
+        if (type(dados_do_aluno) == list and len(dados_do_aluno) > 0 and
+                dados_do_aluno[-1]['anoLetivo'] == date.today().year):
+
             if aluno.escola:
                 cod_escola_no_sigpae = aluno.escola.codigo_eol
             else:

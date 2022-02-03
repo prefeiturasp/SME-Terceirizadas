@@ -71,12 +71,13 @@ class LogSolicitacoesUsuario(
         DISTRIBUIDOR_SOLICITA_ALTERACAO_SOLICITACAO,
         PAPA_CANCELA_SOLICITACAO,
         PAPA_AGUARDA_CONFIRMACAO_CANCELAMENTO_SOLICITACAO,
+        DISTRIBUIDOR_CONFIRMA_CANCELAMENTO,
         # ESPECIFICA SOLICITAÇÃO DE ALTERACAO
         DILOG_ACEITA_ALTERACAO,
         DILOG_NEGA_ALTERACAO,
         CANCELADO_ALUNO_MUDOU_ESCOLA,
         CANCELADO_ALUNO_NAO_PERTENCE_REDE,
-    ) = range(52)
+    ) = range(53)
 
     STATUS_POSSIVEIS = (
         (INICIO_FLUXO, 'Solicitação Realizada'),
@@ -159,6 +160,7 @@ class LogSolicitacoesUsuario(
         ),  # noqa
         (PAPA_CANCELA_SOLICITACAO, 'Papa cancelou a requisição'),
         (PAPA_AGUARDA_CONFIRMACAO_CANCELAMENTO_SOLICITACAO, 'Papa aguarda confirmação do cancelamento da solicitação'),
+        (DISTRIBUIDOR_CONFIRMA_CANCELAMENTO, 'Distribuidor confirmou cancelamento e Papa cancelou a requisição'),
         (DILOG_ACEITA_ALTERACAO, 'Dilog Aceita Alteração'),
         (DILOG_NEGA_ALTERACAO, 'Dilog Nega Alteração'),
         (
