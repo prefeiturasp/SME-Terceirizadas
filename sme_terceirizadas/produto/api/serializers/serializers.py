@@ -237,7 +237,6 @@ class EspecificacaoProdutoSerializer(serializers.ModelSerializer):
 
 
 class ProdutoSerializer(serializers.ModelSerializer):
-    protocolos = ProtocoloDeDietaEspecialSerializer(many=True)
     marca = MarcaSerializer()
     fabricante = FabricanteSerializer()
     imagens = serializers.ListField(
@@ -277,7 +276,7 @@ class ProdutoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Produto
-        exclude = ('id',)
+        exclude = ('id', 'protocolos')
 
 
 class ProdutoSemAnexoSerializer(serializers.ModelSerializer):
