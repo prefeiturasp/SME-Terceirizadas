@@ -74,15 +74,6 @@ USUARIOS = [
         'cargo': 'Nutricionista',
     },
     {
-        'email': 'nutricionistamanifestacao@admin.com',
-        'password': DJANGO_ADMIN_PASSWORD,
-        'cpf': '89237238002',
-        'registro_funcional': '6348945',
-        'nome': 'SUPER USUARIO NUTRICIONISTA MANIFESTACAO',
-        'crn_numero': '47135859',
-        'cargo': 'Nutricionista da Assessoria Jurídica',
-    },
-    {
         'email': 'escolacei@admin.com',
         'password': DJANGO_ADMIN_PASSWORD,
         'cpf': '11111111108',
