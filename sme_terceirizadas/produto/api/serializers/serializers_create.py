@@ -103,7 +103,6 @@ class ProdutoSerializerCreate(serializers.ModelSerializer):
     def create(self, validated_data):  # noqa C901
         validated_data['criado_por'] = self.context['request'].user
         imagens = validated_data.pop('imagens', [])
-        protocolos = validated_data.pop('protocolos', [])
         informacoes_nutricionais = validated_data.pop('informacoes_nutricionais', [])
         cadastro_finalizado = validated_data.pop('cadastro_finalizado', False)
         especificacoes_produto = validated_data.pop('especificacoes', [])
@@ -132,7 +131,6 @@ class ProdutoSerializerCreate(serializers.ModelSerializer):
                 embalagem_produto=especificacao.get('embalagem_produto', '')
             )
 
-        produto.protocolos.set(protocolos)
         if produto.homologacoes.exists():
             homologacao = produto.homologacoes.first()
         else:
@@ -150,7 +148,6 @@ class ProdutoSerializerCreate(serializers.ModelSerializer):
         mudancas = changes_between(instance, validated_data)
         justificativa = mudancas_para_justificativa_html(mudancas, instance._meta.get_fields())
         imagens = validated_data.pop('imagens', [])
-        protocolos = validated_data.pop('protocolos', [])
         informacoes_nutricionais = validated_data.pop('informacoes_nutricionais', [])
         especificacoes_produto = validated_data.pop('especificacoes', [])
         update_instance_from_dict(instance, validated_data, save=True)
@@ -185,8 +182,6 @@ class ProdutoSerializerCreate(serializers.ModelSerializer):
                 embalagem_produto=especificacao.get('embalagem_produto', '')
             )
 
-        instance.protocolos.set([])
-        instance.protocolos.set(protocolos)
         usuario = self.context['request'].user
         if validated_data.get('cadastro_atualizado', False):
             ultima_homologacao = instance.homologacoes.first()
