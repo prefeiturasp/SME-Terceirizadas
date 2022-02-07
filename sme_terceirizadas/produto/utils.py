@@ -4,6 +4,7 @@ from functools import reduce
 
 from django.db.models import Q
 from django.template.loader import render_to_string
+from rest_framework import serializers
 from rest_framework.pagination import PageNumberPagination
 
 
@@ -194,22 +195,30 @@ def compara_lista_informacoes_nutricionais(anterior, proxima):  # noqa C901
     return retorno
 
 
+def checa_campo(field_name, produto, validated_data):
+    if field_name == 'nome':
+        if not produto.nome == validated_data['nome']:
+            raise serializers.ValidationError('Não é possível alterar o campo: "Nome do produto"')
+    else:
+        if not produto.eh_para_alunos_com_dieta == validated_data['eh_para_alunos_com_dieta']:
+            raise serializers.ValidationError(
+                'Não é possível alterar o campo: "O produto se destina ao atendimento de alunos com dieta especial?"'
+            )
+
+
 def changes_between(produto, validated_data):  # noqa C901
     mudancas = {}
 
     for field in produto._meta.get_fields():
-        if field.name == 'protocolos':
-            mudancas_protocolos = compara_lista_protocolos(
-                produto.protocolos.all(),
-                validated_data['protocolos'])
-            if mudancas_protocolos.keys():
-                mudancas['protocolos'] = mudancas_protocolos
-        elif field.name == 'informacoes_nutricionais':
+        if field.name == 'informacoes_nutricionais':
             mudancas_info_nutricionais = compara_lista_informacoes_nutricionais(
                 produto.informacoes_nutricionais.all(),
                 validated_data['informacoes_nutricionais'])
             if mudancas_info_nutricionais.keys():
                 mudancas['informacoes_nutricionais'] = mudancas_info_nutricionais
+        elif field.name in ['nome', 'eh_para_alunos_com_dieta']:
+            kwargs = {'field_name': field.name, 'produto': produto, 'validated_data': validated_data}
+            checa_campo(**kwargs)
         elif field.is_relation:
             if field.many_to_one and field.name in validated_data:
                 valor_original = getattr(produto, field.name)
