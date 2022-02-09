@@ -6,6 +6,7 @@ from django.db.models import Count, Prefetch, Q
 from django_filters import rest_framework as filters
 from rest_framework import mixins, serializers, status, viewsets
 from rest_framework.decorators import action
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
@@ -101,6 +102,24 @@ from .serializers.serializers_create import (
     SolicitacaoCadastroProdutoDietaSerializerCreate
 )
 
+DEFAULT_PAGE = 1
+DEFAULT_PAGE_SIZE = 10
+
+
+class CustomPagination(PageNumberPagination):
+    page = DEFAULT_PAGE
+    page_size = DEFAULT_PAGE_SIZE
+    page_size_query_param = 'page_size'
+
+    def get_paginated_response(self, data):
+        return Response({
+            'previous': self.get_previous_link(),
+            'next': self.get_next_link(),
+            'count': self.page.paginator.count,
+            'page_size': int(self.request.GET.get('page_size', self.page_size)),
+            'results': data
+        })
+
 
 class ListaNomesUnicos():
     @action(detail=False, methods=['GET'], url_path='lista-nomes-unicos')
@@ -165,6 +184,7 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
     serializer_class = HomologacaoProdutoPainelGerencialSerializer
     queryset = HomologacaoDoProduto.objects.all()
+    pagination_class = CustomPagination
 
     def get_lista_status(self):
         lista_status = [
@@ -260,6 +280,7 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
     def solicitacoes_homologacao_por_status(self, request, filtro_aplicado=constants.RASCUNHO):
         filtros = {}
         user = self.request.user
+        page = request.GET.get('page', False)
         if filtro_aplicado:
             if filtro_aplicado == 'codae_pediu_analise_reclamacao':
                 status__in = ['ESCOLA_OU_NUTRICIONISTA_RECLAMOU',
@@ -301,10 +322,15 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
             else:
                 filtros['status'] = filtro_aplicado.upper()
         query_set = self.get_queryset().filter(**filtros).distinct()
-        serializer = self.get_serializer if filtro_aplicado != constants.RASCUNHO else HomologacaoProdutoSerializer
-        response = {'results': serializer(
-            query_set, context={'request': request}, many=True).data}
-        return Response(response)
+        if page:
+            page = self.paginate_queryset(query_set)
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        else:
+            serializer = self.get_serializer if filtro_aplicado != constants.RASCUNHO else HomologacaoProdutoSerializer
+            response = {'results': serializer(
+                query_set, context={'request': request}, many=True).data}
+            return Response(response)
 
 
 class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
@@ -323,6 +349,7 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
             args=[homologacao_produto.produto.uuid]
         )
         try:
+
             homologacao_produto.codae_homologa(
                 user=request.user,
                 link_pdf=url_configs('API', {'uri': uri}))
