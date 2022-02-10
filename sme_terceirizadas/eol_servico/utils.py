@@ -138,9 +138,11 @@ class EOLServicoSGP:
 
     @classmethod
     def get_aluno_eol(cls, codigo_eol_aluno: str):
+        ano_vigente = date.today().year
         try:
+            filtros = f'turmas/anosLetivos/{ano_vigente}/historico/false/filtrar-situacao/false'
             r = requests.get(
-                f'{DJANGO_EOL_SGP_API_URL}/alunos/{codigo_eol_aluno}/turmas',
+                f'{DJANGO_EOL_SGP_API_URL}/alunos/{codigo_eol_aluno}/{filtros}',
                 headers=cls.HEADER, timeout=cls.TIMEOUT
             )
             if r.status_code != 404:
