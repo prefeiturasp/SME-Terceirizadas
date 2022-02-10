@@ -66,6 +66,22 @@ def get_aluno_eol(codigo_eol_aluno):
         return {}
 
 
+def lista_valida(dados_do_aluno):
+    if(type(dados_do_aluno) == list and len(dados_do_aluno) > 0):
+        return True
+    else:
+        return False
+
+
+def tem_matricula_ativa(matriculas, codigo_eol):
+    resultado = False
+    for matricula in matriculas:
+        if(matricula['codigoEscola'] == codigo_eol and matricula['situacaoMatricula'] == 'Ativo'):
+            resultado = True
+            break
+    return resultado
+
+
 def aluno_pertence_a_escola_ou_esta_na_rede(cod_escola_no_eol, cod_escola_no_sigpae) -> bool:
     return cod_escola_no_eol == cod_escola_no_sigpae
 
@@ -258,9 +274,8 @@ def cancela_dietas_ativas_automaticamente():  # noqa C901 D205 D400
         # lista não está vazia
         # última matrícula  registrada é do ano atual
 
-        if (type(dados_do_aluno) == list and len(dados_do_aluno) > 0 and
-                dados_do_aluno[-1]['anoLetivo'] == date.today().year):
-
+        if(lista_valida(dados_do_aluno) and
+                tem_matricula_ativa(dados_do_aluno, solicitacao_dieta.escola.codigo_eol)):
             if aluno.escola:
                 cod_escola_no_sigpae = aluno.escola.codigo_eol
             else:
