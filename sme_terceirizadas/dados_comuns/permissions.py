@@ -20,7 +20,8 @@ from .constants import (
     COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
     COORDENADOR_GESTAO_PRODUTO,
     COORDENADOR_LOGISTICA,
-    COORDENADOR_SUPERVISAO_NUTRICAO
+    COORDENADOR_SUPERVISAO_NUTRICAO,
+    COORDENADOR_SUPERVISAO_NUTRICAO_MANIFESTACAO
 )
 
 
@@ -226,7 +227,8 @@ class PermissaoParaRecuperarDietaEspecial(BasePermission):
                                                       COORDENADOR_SUPERVISAO_NUTRICAO,
                                                       COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
                                                       ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
-                                                      ADMINISTRADOR_SUPERVISAO_NUTRICAO]
+                                                      ADMINISTRADOR_SUPERVISAO_NUTRICAO,
+                                                      COORDENADOR_SUPERVISAO_NUTRICAO_MANIFESTACAO]
             )
         elif isinstance(usuario.vinculo_atual.instituicao, Terceirizada):
             return (
