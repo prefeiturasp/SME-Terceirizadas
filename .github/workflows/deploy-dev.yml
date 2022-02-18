@@ -10,11 +10,22 @@ on:
   workflow_dispatch:
 
 jobs:
+
+  test:
+    runs-on: self-hosted
+    steps:
+      - name: Test
+        run: |
+          echo "ok"
+          pwd
+          ls -ltra
+          docker ps         
    
   sonar:
   
     runs-on: self-hosted
     if: ${{ github.ref == 'refs/heads/development' }}
+    needs: [ test ]
     steps:
       - uses: actions/checkout@v2
 
