@@ -29,12 +29,14 @@ jobs:
   
     runs-on: self-hosted
     if: ${{ github.ref == 'refs/heads/development' }}
+    needs: [ sonar ]
     steps:
       - name: Sonar
         uses: luizhpriotto/action_images@python36-v1.0
         with:
           command: |
             pip install --user pipenv
+            pip install --user psycopg2
             
   build:
 
