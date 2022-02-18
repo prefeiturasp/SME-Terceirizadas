@@ -44,7 +44,6 @@ jobs:
           command: |
             docker network connect python-network $(hostname)
             pip install --user pipenv
-            pip install --user psycopg2
             source terceirizadas
             pipenv install --dev
             pipenv run pytest
