@@ -11,31 +11,12 @@ on:
 
 jobs:
 
-  test:
-    runs-on: self-hosted
-    steps:
-      - name: Test
-        run: |
-          echo "ok"
-          pwd
-          ls -ltra
-          docker ps         
-   
   sonar:
   
     runs-on: self-hosted
     if: ${{ github.ref == 'refs/heads/development' }}
     steps:
       - uses: actions/checkout@v2
-      
-      - name: Test      
-        run: |
-          echo "ok"
-          pwd
-          ls -ltra
-          docker ps
-          touch ok.txt
-          echo "========teste========" > ok.txt
           
       - name: Sonar
         uses: luizhpriotto/action_images@sonarscannercli-v1.0
@@ -43,17 +24,23 @@ jobs:
           SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST: http://sonar.sme.prefeitura.sp.gov.br/
-       
-      - name: Test2      
-        run: |
-          echo "ok"
-          pwd
-          cat ok.txt
+          
+  test:
+  
+    runs-on: self-hosted
+    if: ${{ github.ref == 'refs/heads/development' }}
+    steps:
+      - name: Sonar
+        uses: luizhpriotto/action_images@python36-v1.0
+        with:
+          command: |
+            pip install --user pipenv
+            
   build:
 
     runs-on: self-hosted
     if: ${{ github.ref == 'refs/heads/development' }}
-    needs: [ sonar ]
+    needs: [ test ]
     steps:
       - uses: actions/checkout@v2     
       -  name: Login to registry
