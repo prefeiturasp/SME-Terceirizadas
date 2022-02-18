@@ -32,8 +32,7 @@ jobs:
     needs: [ sonar ]
     steps:
       - name: Preparing
-        if: always()
-        run: docker rm -f terceirizadas-db
+        run: if [ ! -z $(docker ps -q --filter "name=terceirizadas-db") ]; then docker rm -f terceirizadas-db; fi
       
       - name: Preparing
         run: |
