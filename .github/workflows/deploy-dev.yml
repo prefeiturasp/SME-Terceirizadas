@@ -31,12 +31,21 @@ jobs:
     if: ${{ github.ref == 'refs/heads/development' }}
     needs: [ sonar ]
     steps:
-      - name: Sonar
+      - name: Configuring
+        run: |
+          cp /srv/env/terceirizadas .
+          cat terceirizadas
+          
+      - name: Running Python Tests
         uses: luizhpriotto/action_images@python36-v1.0
         with:
           command: |
+            source terceirizadas
             pip install --user pipenv
             pip install --user psycopg2
+            pipenv install --dev
+            pipenv run pytest
+            pipenv run flake8
             
   build:
 
