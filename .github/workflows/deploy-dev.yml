@@ -31,8 +31,13 @@ jobs:
     if: ${{ github.ref == 'refs/heads/development' }}
     needs: [ sonar ]
     steps:
-      - name: Configuring
+      - name: Preparing
+        if: always()
+        run: docker rm -f terceirizadas-db
+      
+      - name: Preparing
         run: |
+          docker run -d --rm --cap-add SYS_TIME --name terceirizadas-db -p 5432 -e TZ="America/Sao_Paulo" -e POSTGRES_DB=terceirizadas -e POSTGRES_PASSWORD=adminadmin -e POSTGRES_USER=postgres postgres:11-alpine
           cp /srv/env/terceirizadas .
           
       - name: Running Python Tests
