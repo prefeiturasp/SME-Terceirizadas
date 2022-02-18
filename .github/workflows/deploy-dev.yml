@@ -14,7 +14,7 @@ jobs:
   sonar:
   
     runs-on: self-hosted
-    if: ${{ github.ref == 'refs/heads/development' }}
+    if: ${{ github.ref == 'refs/heads/development_' }}
     steps:
       - uses: actions/checkout@v2
           
@@ -29,14 +29,13 @@ jobs:
   
     runs-on: self-hosted
     if: ${{ github.ref == 'refs/heads/development' }}
-    needs: [ sonar ]
     steps:
       - name: Delete Container..
         run: if [ ! -z $(docker ps -q --filter "name=terceirizadas-db") ]; then docker rm -f terceirizadas-db; fi
       
       - name: Preparing Container...
         run: |
-          docker run -d --rm --cap-add SYS_TIME --name terceirizadas-db -p 5432 -e TZ="America/Sao_Paulo" -e POSTGRES_DB=terceirizadas -e POSTGRES_PASSWORD=adminadmin -e POSTGRES_USER=postgres postgres:11-alpine
+          docker run -d --rm --cap-add SYS_TIME --name terceirizadas-db -p 5432 --network python-network -e TZ="America/Sao_Paulo" -e POSTGRES_DB=terceirizadas -e POSTGRES_PASSWORD=adminadmin -e POSTGRES_USER=postgres postgres:11-alpine
           cp /srv/env/terceirizadas .
           
       - name: Running Python Tests
@@ -45,7 +44,7 @@ jobs:
           command: |
             pip install --user pipenv
             pip install --user psycopg2
-            source terceirizadas 
+            source terceirizadas
             pipenv install --dev
             pipenv run pytest
             pipenv run flake8
