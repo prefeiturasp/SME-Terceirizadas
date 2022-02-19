@@ -273,8 +273,9 @@ def cancela_dietas_ativas_automaticamente():  # noqa C901 D205 D400
         # retorno do EOL é uma lista
         # lista não está vazia
         # última matrícula  registrada é do ano atual
-
-        if(lista_valida(dados_do_aluno) and
+        if dados_do_aluno == {}:
+            continue
+        elif(lista_valida(dados_do_aluno) and
                 tem_matricula_ativa(dados_do_aluno, solicitacao_dieta.escola.codigo_eol)):
             if aluno.escola:
                 cod_escola_no_sigpae = aluno.escola.codigo_eol
