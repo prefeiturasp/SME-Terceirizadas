@@ -149,7 +149,7 @@ class EOLServicoSGP:
                 json = r.json()
                 return json
         except ConnectionError as e:
-            raise EOLService(f'Erro de conexão na api do EOL: {e}')
+            raise EOLException(f'Erro de conexão na api do EOL: {e}')
 
 
 class EOLPapaService:
