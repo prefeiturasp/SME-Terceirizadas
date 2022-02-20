@@ -25,6 +25,13 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST: http://sonar.sme.prefeitura.sp.gov.br/
           
+      - name: send default message
+        if: ${{ failure() }}
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_TO }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+    
   test:
   
     runs-on: self-hosted
@@ -50,6 +57,13 @@ jobs:
             pipenv run pytest
             pipenv run flake8
             
+      - name: send default message
+        if: ${{ failure() }}
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_TO }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+         
   build:
 
     runs-on: self-hosted
