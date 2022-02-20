@@ -35,7 +35,7 @@ jobs:
             Commit message: ${{ github.event.commits[0].message }}            
             Repository: ${{ github.repository }}            
             See changes: https://github.com/${{ github.repository }}/commit/${{github.sha}}
-            $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID
+            ${GITHUB_SERVER_URL}/ ${$GITHUB_REPOSITORY}/actions/runs/ ${$GITHUB_RUN_ID}
     
   test:
   
