@@ -334,7 +334,7 @@ REDIS_URL = env('REDIS_URL')
 CACHES = {
     'default': {
         'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': f'{REDIS_URL}/0',
+        'LOCATION': REDIS_URL,
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
             # Mimicing memcache behavior.
@@ -345,8 +345,8 @@ CACHES = {
 }
 
 # http://docs.celeryproject.org/en/v4.3.0/userguide/configuration.html
-CELERY_BROKER_URL = f'{REDIS_URL}/1'
-CELERY_RESULT_BACKEND = f'{REDIS_URL}/2'
+CELERY_BROKER_URL = REDIS_URL
+CELERY_RESULT_BACKEND = REDIS_URL
 
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
