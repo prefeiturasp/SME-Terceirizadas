@@ -1,5 +1,6 @@
 from datetime import date
 
+import environ
 from django.contrib.contenttypes.models import ContentType
 from django.template.loader import render_to_string
 from rest_framework.pagination import PageNumberPagination
@@ -97,8 +98,7 @@ def enviar_email_para_diretor_da_escola_origem(solicitacao_dieta, aluno, escola)
     assunto = f'Cancelamento Automático de Dieta Especial Nº {solicitacao_dieta.id_externo}'
     perfil = Perfil.objects.get(nome='DIRETOR')
     ct = ContentType.objects.get_for_model(escola)
-    vinculos = Vinculo.objects.filter(perfil=perfil, content_type=ct, object_id=escola.pk)
-
+    vinculos = Vinculo.objects.filter(ativo=True, perfil=perfil, content_type=ct, object_id=escola.pk)
     # E-mail do Diretor da Escola.
     # Pode ter mais de um Diretor?
     emails = []
@@ -119,10 +119,12 @@ def enviar_email_para_diretor_da_escola_origem(solicitacao_dieta, aluno, escola)
     html = render_to_string(template, dados_template)
 
     # Pega o email da Terceirizada
-    vinculos_terc = escola.lote.terceirizada.vinculos.all()
-    for vinculo in vinculos_terc:
-        if vinculo.usuario:
-            emails.append(vinculo.usuario.email)
+    terceirizada = escola.lote.terceirizada
+    if terceirizada:
+        vinculos_terc = terceirizada.lote.vinculos.all()
+        for vinculo in vinculos_terc:
+            if vinculo.usuario:
+                emails.append(vinculo.usuario.email)
 
     # Parece que está previsto ter mais Diretores vinculados a mesma escola.
     for email in emails:
@@ -265,8 +267,10 @@ def cancela_dietas_ativas_automaticamente():  # noqa C901 D205 D400
             )
             gerar_log_dietas_ativas_canceladas_automaticamente(solicitacao_dieta, dados)
             _cancelar_dieta(solicitacao_dieta)
-            enviar_email_para_diretor_da_escola_origem(solicitacao_dieta, aluno, escola=solicitacao_dieta.escola.nome)
-            enviar_email_para_diretor_da_escola_destino(solicitacao_dieta, aluno, escola=aluno.escola.nome)
+            env = environ.Env()
+            if env('DJANGO_ENV') == 'production':
+                enviar_email_para_diretor_da_escola_origem(solicitacao_dieta, aluno, escola=solicitacao_dieta.escola)
+                enviar_email_para_diretor_da_escola_destino(solicitacao_dieta, aluno, escola=aluno.escola)
         else:
             continue
 
