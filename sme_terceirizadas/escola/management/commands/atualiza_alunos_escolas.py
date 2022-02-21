@@ -110,7 +110,7 @@ class Command(BaseCommand):
                 aluno.nome = matricula['nomeAluno'].strip()
                 aluno.codigo_eol = matricula['codigoAluno']
                 aluno.data_nascimento = matricula['dataNascimento'].split('T')[0]
-                aluno.escola = Escola.objects.get(codigo_eol=matricula['codigoEscola'])
+                aluno.escola = Escola.objects.filter(codigo_eol=matricula['codigoEscola']).first()
                 aluno.nao_matriculado = False
                 break
         if(aluno.nao_matriculado):

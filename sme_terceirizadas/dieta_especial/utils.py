@@ -4,7 +4,6 @@ from django.contrib.contenttypes.models import ContentType
 from django.template.loader import render_to_string
 from rest_framework.pagination import PageNumberPagination
 
-from sme_terceirizadas.eol_servico.utils import EOLException, EOLServicoSGP
 from sme_terceirizadas.perfil.models import Perfil, Usuario, Vinculo
 from sme_terceirizadas.relatorios.relatorios import relatorio_dieta_especial_conteudo
 from sme_terceirizadas.relatorios.utils import html_to_pdf_email_anexo
@@ -12,7 +11,7 @@ from sme_terceirizadas.relatorios.utils import html_to_pdf_email_anexo
 from ..dados_comuns.constants import TIPO_SOLICITACAO_DIETA
 from ..dados_comuns.fluxo_status import DietaEspecialWorkflow
 from ..dados_comuns.utils import envia_email_unico, envia_email_unico_com_anexo_inmemory
-from ..escola.models import Aluno, Escola
+from ..escola.models import Aluno
 from ..paineis_consolidados.models import SolicitacoesCODAE
 from .models import LogDietasAtivasCanceladasAutomaticamente, SolicitacaoDietaEspecial
 
@@ -56,30 +55,6 @@ def inicia_dietas_temporarias(usuario):
             solicitacao.dieta_alterada.save()
         solicitacao.ativo = True
         solicitacao.save()
-
-
-def get_aluno_eol(codigo_eol_aluno):
-    try:
-        dados_do_aluno = EOLServicoSGP.get_aluno_eol(codigo_eol_aluno)
-        return dados_do_aluno
-    except EOLException:
-        return {}
-
-
-def lista_valida(dados_do_aluno):
-    if(type(dados_do_aluno) == list and len(dados_do_aluno) > 0):
-        return True
-    else:
-        return False
-
-
-def tem_matricula_ativa(matriculas, codigo_eol):
-    resultado = False
-    for matricula in matriculas:
-        if(matricula['codigoEscola'] == codigo_eol and matricula['situacaoMatricula'] == 'Ativo'):
-            resultado = True
-            break
-    return resultado
 
 
 def aluno_pertence_a_escola_ou_esta_na_rede(cod_escola_no_eol, cod_escola_no_sigpae) -> bool:
@@ -258,75 +233,42 @@ def enviar_email_para_diretor_da_escola_destino(solicitacao_dieta, aluno, escola
         )
 
 
+def aluno_matriculado_em_outra_ue(aluno, solicitacao_dieta):
+    if(aluno.escola):
+        return aluno.escola.codigo_eol != solicitacao_dieta.escola.codigo_eol
+    return False
+
+
 def cancela_dietas_ativas_automaticamente():  # noqa C901 D205 D400
-    """Se um aluno trocar de escola ou não pertencer a rede
-    e se tiver uma Dieta Especial Ativa, essa dieta será cancelada automaticamente.
-    """
     dietas_ativas_comuns = SolicitacoesCODAE.get_autorizados_dieta_especial().filter(
         tipo_solicitacao_dieta='COMUM').order_by('pk').distinct('pk')
     for dieta in dietas_ativas_comuns:
-        aluno = Aluno.objects.get(codigo_eol=dieta.codigo_eol_aluno)
-        dados_do_aluno = get_aluno_eol(dieta.codigo_eol_aluno)
+        aluno = Aluno.objects.filter(codigo_eol=dieta.codigo_eol_aluno).first()
         solicitacao_dieta = SolicitacaoDietaEspecial.objects.filter(pk=dieta.pk).first()
-
-        # Condições:
-        # retorno do EOL é uma lista
-        # lista não está vazia
-        # última matrícula  registrada é do ano atual
-        if dados_do_aluno == {}:
-            continue
-        elif(lista_valida(dados_do_aluno) and
-                tem_matricula_ativa(dados_do_aluno, solicitacao_dieta.escola.codigo_eol)):
-            if aluno.escola:
-                cod_escola_no_sigpae = aluno.escola.codigo_eol
-            else:
-                cod_escola_no_sigpae = None
-            # Retorna True ou False
-            resposta = aluno_pertence_a_escola_ou_esta_na_rede(
-                cod_escola_no_eol=solicitacao_dieta.escola.codigo_eol,
-                cod_escola_no_sigpae=cod_escola_no_sigpae
-            )
-            escola_existe_no_sigpae = Escola.objects.filter(codigo_eol=solicitacao_dieta.escola.codigo_eol).first()
-
-            nome_escola_destino = None
-            if escola_existe_no_sigpae:
-                nome_escola_destino = escola_existe_no_sigpae.nome
-
+        if aluno.nao_matriculado:
             dados = dict(
-                codigo_eol_aluno=dieta.codigo_eol_aluno,
+                codigo_eol_aluno=aluno.codigo_eol,
                 nome_aluno=aluno.nome,
-                codigo_eol_escola_destino=solicitacao_dieta.escola.codigo_eol,
-                nome_escola_destino=nome_escola_destino,
-            )
-            if cod_escola_no_sigpae:
-                dados['nome_escola_origem'] = aluno.escola.nome
-                dados['codigo_eol_escola_origem'] = aluno.escola.codigo_eol
-
-            if not resposta:
-                gerar_log_dietas_ativas_canceladas_automaticamente(solicitacao_dieta, dados)
-                # Cancelar Dieta
-                _cancelar_dieta(solicitacao_dieta)
-
-                if escola_existe_no_sigpae:
-                    # Envia email pra escola Origem.
-                    escola_origem = escola_existe_no_sigpae
-                    enviar_email_para_diretor_da_escola_origem(solicitacao_dieta, aluno, escola=escola_origem)
-
-                    # Envia email pra escola Destino.
-                    # Parece que está invertido, mas está certo.
-                    escola_destino = aluno.escola
-                    enviar_email_para_diretor_da_escola_destino(solicitacao_dieta, aluno, escola=escola_destino)
-        else:
-            # Aluno não pertence a rede municipal.
-            # Inverte escola origem.
-            dados = dict(
-                codigo_eol_aluno=dieta.codigo_eol_aluno,
-                nome_aluno=aluno.nome,
-                codigo_eol_escola_origem=aluno.escola.codigo_eol,
-                nome_escola_origem=aluno.escola.nome,
+                codigo_eol_escola_origem=solicitacao_dieta.escola.codigo_eol,
+                nome_escola_origem=solicitacao_dieta.escola.nome,
             )
             gerar_log_dietas_ativas_canceladas_automaticamente(solicitacao_dieta, dados, fora_da_rede=True)
             _cancelar_dieta_aluno_fora_da_rede(dieta=solicitacao_dieta)
+        elif aluno_matriculado_em_outra_ue(aluno, solicitacao_dieta):
+            dados = dict(
+                codigo_eol_aluno=aluno.codigo_eol,
+                nome_aluno=aluno.nome,
+                codigo_eol_escola_destino=aluno.escola.codigo_eol,
+                nome_escola_destino=aluno.escola.nome,
+                nome_escola_origem=solicitacao_dieta.escola.nome,
+                codigo_eol_escola_origem=solicitacao_dieta.escola.codigo_eol,
+            )
+            gerar_log_dietas_ativas_canceladas_automaticamente(solicitacao_dieta, dados)
+            _cancelar_dieta(solicitacao_dieta)
+            enviar_email_para_diretor_da_escola_origem(solicitacao_dieta, aluno, escola=solicitacao_dieta.escola.nome)
+            enviar_email_para_diretor_da_escola_destino(solicitacao_dieta, aluno, escola=aluno.escola.nome)
+        else:
+            continue
 
 
 class RelatorioPagination(PageNumberPagination):
