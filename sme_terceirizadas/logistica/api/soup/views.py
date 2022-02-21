@@ -56,8 +56,8 @@ class SolicitacaoService(ServiceBase):
             logger.info(str(e))
             return SoapResponse(str_status='false', str_menssagem=str(e))
 
-        except Exception:
-            msg = 'Houve um erro ao salvar a solicitação.'
+        except Exception as e:
+            msg = f'Houve um erro ao salvar a solicitação: {str(e)}'
             logger.info(msg)
             return SoapResponse(str_status='false', str_menssagem=msg)
 
@@ -90,8 +90,8 @@ class SolicitacaoService(ServiceBase):
             logger.info(str(e))
             return SoapResponse(str_status='false', str_menssagem=str(e))
 
-        except Exception:
-            msg = 'Houve um erro ao receber a solicitação de cancelamento.'
+        except Exception as e:
+            msg = f'Houve um erro ao receber a solicitação de cancelamento: {str(e)}'
             logger.info(msg)
             return SoapResponse(str_status='false', str_menssagem=msg)
 

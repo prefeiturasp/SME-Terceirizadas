@@ -136,21 +136,6 @@ class EOLServicoSGP:
         else:
             raise EOLException(f'API EOL do SGP está com erro. Erro: {str(response)}, Status: {response.status_code}')
 
-    @classmethod
-    def get_aluno_eol(cls, codigo_eol_aluno: str):
-        ano_vigente = date.today().year
-        try:
-            filtros = f'turmas/anosLetivos/{ano_vigente}/historico/false/filtrar-situacao/false'
-            r = requests.get(
-                f'{DJANGO_EOL_SGP_API_URL}/alunos/{codigo_eol_aluno}/{filtros}',
-                headers=cls.HEADER, timeout=cls.TIMEOUT
-            )
-            if r.status_code != 404:
-                json = r.json()
-                return json
-        except ConnectionError as e:
-            raise EOLService(f'Erro de conexão na api do EOL: {e}')
-
 
 class EOLPapaService:
     TIMEOUT = 20
