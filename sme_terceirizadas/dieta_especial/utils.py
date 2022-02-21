@@ -1,5 +1,6 @@
 from datetime import date
 
+import environ
 from django.contrib.contenttypes.models import ContentType
 from django.template.loader import render_to_string
 from rest_framework.pagination import PageNumberPagination
@@ -266,8 +267,10 @@ def cancela_dietas_ativas_automaticamente():  # noqa C901 D205 D400
             )
             gerar_log_dietas_ativas_canceladas_automaticamente(solicitacao_dieta, dados)
             _cancelar_dieta(solicitacao_dieta)
-            enviar_email_para_diretor_da_escola_origem(solicitacao_dieta, aluno, escola=solicitacao_dieta.escola)
-            enviar_email_para_diretor_da_escola_destino(solicitacao_dieta, aluno, escola=aluno.escola)
+            env = environ.Env()
+            if env('DJANGO_ENV') == 'production':
+                enviar_email_para_diretor_da_escola_origem(solicitacao_dieta, aluno, escola=solicitacao_dieta.escola)
+                enviar_email_para_diretor_da_escola_destino(solicitacao_dieta, aluno, escola=aluno.escola)
         else:
             continue
 
