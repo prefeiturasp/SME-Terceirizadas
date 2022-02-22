@@ -15,7 +15,7 @@ from ....dados_comuns.models import LogSolicitacoesUsuario
 from ....escola.models import Escola
 from ....terceirizada.models import Terceirizada
 from ...models.alimento import Alimento as AlimentoModel  # noqa I001
-from ...models.alimento import Embalagem, TipoEmbalagem
+from ...models.alimento import Embalagem
 from ...models.guia import Guia as GuiaModel
 from ...models.solicitacao import SolicitacaoRemessa
 
@@ -30,8 +30,11 @@ class Alimento(ComplexModel):
     StrCodSup = String
     StrCodPapa = String
     StrNomAli = String
-    StrEmbala = String
-    IntQtdVol = Integer
+    StrTpEmbala = String
+    StrQtEmbala = String
+    StrDescEmbala = String
+    StrPesoEmbala = String
+    StrUnMedEmbala = String
 
     def build_alimento_obj(self, data):
         alimento_dict = {
@@ -43,23 +46,14 @@ class Alimento(ComplexModel):
         return AlimentoModel(**alimento_dict)
 
     def build_embalagem_obj(self, data):
-
-        str_embalagem = data.get('StrEmbala')
-        embalagem_array = str_embalagem.split()
-
         embalagem_dict = {
             'alimento': data.get('alimento'),
-            'descricao_embalagem': embalagem_array[0],
-            'capacidade_embalagem': float(embalagem_array[1].replace(',', '.')),
-            'unidade_medida': embalagem_array[2],
-            'qtd_volume': data.get('IntQtdVol')
+            'descricao_embalagem': data.get('StrDescEmbala'),
+            'capacidade_embalagem': float(data.get('StrPesoEmbala').replace(',', '.')),
+            'unidade_medida': data.get('StrUnMedEmbala'),
+            'qtd_volume': data.get('StrQtEmbala'),
+            'tipo_embalagem': 'FECHADA' if data.get('StrTpEmbala') == 'A' else 'FRACIONADA',
         }
-
-        if TipoEmbalagem.objects.filter(sigla__iexact=embalagem_dict['descricao_embalagem'], ativo=True).exists():
-            embalagem_dict['tipo_embalagem'] = 'FECHADA'
-        else:
-            embalagem_dict['tipo_embalagem'] = 'FRACIONADA'
-
         return Embalagem(**embalagem_dict)
 
     def create_embalagens(self, embalagens_data):

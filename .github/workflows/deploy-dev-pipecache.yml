@@ -55,6 +55,9 @@ jobs:
           
       - name: Running Python Tests
         uses: luizhpriotto/action_images@terceirizadas-backend-v1.0
+        env: 
+          WORKON_HOME: /runner
+          PIPENV_PIPFILE: /runner/SME-Terceirizadas/Pipfile
         with:
           command: |
             echo "Conectando o container a rede python..."
