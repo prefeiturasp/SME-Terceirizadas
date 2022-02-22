@@ -348,6 +348,48 @@ class SolicitacoesNutrisupervisao(MoldeConsolidado):
         ).exclude(tipo_doc=cls.TP_SOL_DIETA_ESPECIAL).distinct().order_by('-data_log')
 
 
+class SolicitacoesNutrimanifestacao(MoldeConsolidado):
+    #
+    # Filtros padrão
+    #
+
+    AUTORIZADOS_STATUS = [PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO,
+                          PedidoAPartirDaEscolaWorkflow.TERCEIRIZADA_TOMOU_CIENCIA,
+                          InformativoPartindoDaEscolaWorkflow.INFORMADO]
+    AUTORIZADOS_EVENTO = [LogSolicitacoesUsuario.CODAE_AUTORIZOU,
+                          LogSolicitacoesUsuario.TERCEIRIZADA_TOMOU_CIENCIA,
+                          LogSolicitacoesUsuario.INICIO_FLUXO]
+
+    CANCELADOS_STATUS = [PedidoAPartirDaEscolaWorkflow.ESCOLA_CANCELOU,
+                         PedidoAPartirDaDiretoriaRegionalWorkflow.DRE_CANCELOU]
+    CANCELADOS_EVENTO = [LogSolicitacoesUsuario.DRE_CANCELOU,
+                         LogSolicitacoesUsuario.ESCOLA_CANCELOU]
+
+    NEGADOS_STATUS = [PedidoAPartirDaEscolaWorkflow.CODAE_NEGOU_PEDIDO]
+    NEGADOS_EVENTO = [LogSolicitacoesUsuario.CODAE_NEGOU]
+
+    @classmethod
+    def get_autorizados(cls, **kwargs):
+        return cls.objects.filter(
+            status_evento__in=cls.AUTORIZADOS_EVENTO,
+            status_atual__in=cls.AUTORIZADOS_STATUS
+        ).exclude(tipo_doc=cls.TP_SOL_DIETA_ESPECIAL).distinct().order_by('-data_log')
+
+    @classmethod
+    def get_negados(cls, **kwargs):
+        return cls.objects.filter(
+            status_evento__in=cls.NEGADOS_EVENTO,
+            status_atual__in=cls.NEGADOS_STATUS
+        ).exclude(tipo_doc=cls.TP_SOL_DIETA_ESPECIAL).distinct().order_by('-data_log')
+
+    @classmethod
+    def get_cancelados(cls, **kwargs):
+        return cls.objects.filter(
+            status_evento__in=cls.CANCELADOS_EVENTO,
+            status_atual__in=cls.CANCELADOS_STATUS,
+        ).exclude(tipo_doc=cls.TP_SOL_DIETA_ESPECIAL).distinct().order_by('-data_log')
+
+
 class SolicitacoesCODAE(MoldeConsolidado):
     #
     # Filtros padrão
