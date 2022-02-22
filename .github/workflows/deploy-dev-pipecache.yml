@@ -65,8 +65,8 @@ jobs:
             echo "### Caso tenha alterado o Pipefile recentemente, execute a rotina sem Pipefile cache!!! ###"
             echo "###########################################################################################"
             echo "Executando os testes..."
-            pipenv run pytest
-            pipenv run flake8
+            pytest
+            flake8
             
       - name: send failure message
         if: ${{ failure() }}
