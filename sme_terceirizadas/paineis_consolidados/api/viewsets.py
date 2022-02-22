@@ -25,6 +25,7 @@ from ..models import (
     SolicitacoesCODAE,
     SolicitacoesDRE,
     SolicitacoesEscola,
+    SolicitacoesNutrimanifestacao,
     SolicitacoesNutrisupervisao,
     SolicitacoesTerceirizada
 )
@@ -215,6 +216,37 @@ class NutrisupervisaoSolicitacoesViewSet(SolicitacoesViewSet):
             permission_classes=(UsuarioNutricionista,))
     def questionamentos(self, request):
         query_set = SolicitacoesCODAE.get_questionamentos()
+        return self._retorno_base(query_set)
+
+
+class NutrimanifestacaoSolicitacoesViewSet(SolicitacoesViewSet):
+    lookup_field = 'uuid'
+    permission_classes = (IsAuthenticated,)
+    queryset = SolicitacoesNutrimanifestacao.objects.all()
+    serializer_class = SolicitacoesSerializer
+
+    @action(detail=False,
+            methods=['GET'],
+            url_path=AUTORIZADOS,
+            permission_classes=(UsuarioNutricionista,))
+    def autorizados(self, request):
+        query_set = SolicitacoesNutrimanifestacao.get_autorizados()
+        return self._retorno_base(query_set)
+
+    @action(detail=False,
+            methods=['GET'],
+            url_path=NEGADOS,
+            permission_classes=(UsuarioNutricionista,))
+    def negados(self, request):
+        query_set = SolicitacoesNutrimanifestacao.get_negados()
+        return self._retorno_base(query_set)
+
+    @action(detail=False,
+            methods=['GET'],
+            url_path=CANCELADOS,
+            permission_classes=(UsuarioNutricionista,))
+    def cancelados(self, request):
+        query_set = SolicitacoesNutrimanifestacao.get_cancelados()
         return self._retorno_base(query_set)
 
 
