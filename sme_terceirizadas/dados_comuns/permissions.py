@@ -113,7 +113,8 @@ class UsuarioNutricionista(BasePermission):
             usuario.vinculo_atual.perfil.nome in [COORDENADOR_DIETA_ESPECIAL,
                                                   ADMINISTRADOR_DIETA_ESPECIAL,
                                                   COORDENADOR_SUPERVISAO_NUTRICAO,
-                                                  ADMINISTRADOR_SUPERVISAO_NUTRICAO]
+                                                  ADMINISTRADOR_SUPERVISAO_NUTRICAO,
+                                                  COORDENADOR_SUPERVISAO_NUTRICAO_MANIFESTACAO]
         )
 
 
@@ -171,7 +172,8 @@ class PermissaoParaRecuperarObjeto(BasePermission):
             return (
                 usuario.vinculo_atual.perfil.nome in [COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
                                                       ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
-                                                      COORDENADOR_SUPERVISAO_NUTRICAO]
+                                                      COORDENADOR_SUPERVISAO_NUTRICAO,
+                                                      COORDENADOR_SUPERVISAO_NUTRICAO_MANIFESTACAO]
             )
         elif isinstance(usuario.vinculo_atual.instituicao, Terceirizada):
             try:  # solicitacoes normais
@@ -199,7 +201,8 @@ class PermissaoParaRecuperarSolicitacaoUnificada(BasePermission):
             return (
                 usuario.vinculo_atual.perfil.nome in [COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
                                                       ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
-                                                      COORDENADOR_SUPERVISAO_NUTRICAO]
+                                                      COORDENADOR_SUPERVISAO_NUTRICAO,
+                                                      COORDENADOR_SUPERVISAO_NUTRICAO_MANIFESTACAO]
             )
         elif isinstance(usuario.vinculo_atual.instituicao, Terceirizada):
             return (
