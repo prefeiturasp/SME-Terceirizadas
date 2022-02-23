@@ -65,7 +65,6 @@ jobs:
             echo "### Caso tenha alterado o Pipefile recentemente, execute a rotina sem Pipefile cache!!! ###"
             echo "###########################################################################################"
             echo "Executando os testes..."
-            pip install -r /runner/requirements.txt 
             pytest
             flake8
             
