@@ -1,12 +1,7 @@
-name: Dev - Docker Image CI
+name: Dev - CI/CD Pip sem cache
  
 on:
 
-  push:
-    branches: [ development ]
-    paths-ignore:
-    - ".github/workflows/**"  
-  
   workflow_dispatch:
 
 jobs:
