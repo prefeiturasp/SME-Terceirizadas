@@ -1,4 +1,4 @@
-name: Dev - CI/CD Pipefile cache
+name: Dev - CI/CD Pip cache
  
 on:
 
@@ -61,12 +61,12 @@ jobs:
             echo "Carregando as variaveis de ambiente..."
             source terceirizadas
             echo "###########################################################################################"
-            echo "### Caso tenha alterado o Pipefile recentemente, execute a rotina sem Pipefile cache!!! ###"
+            echo "### Caso tenha alterado o Pipefile recentemente, execute a rotina sem Pip cache!!! ###"
             echo "###########################################################################################"
             echo "Executando os testes..."
-            sleep 600
-            flake8
+            export PYTHONPATH="$PYTHONPATH:/runner/.local/lib/python3.6/site-packages"
             pytest
+            flake8
             
       - name: send failure message
         if: ${{ failure() }}
