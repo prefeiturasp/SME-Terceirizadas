@@ -65,7 +65,9 @@ jobs:
             echo "### Caso tenha alterado o Pipefile recentemente, execute a rotina sem Pipefile cache!!! ###"
             echo "###########################################################################################"
             echo "Executando os testes..."
-            pip cache dir
+            export PYTHONPATH="$PYTHONPATH:$HOME/.python"
+            echo "****** variaveis ******"
+            env
             flake8
             pytest
             
