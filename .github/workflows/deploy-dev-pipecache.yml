@@ -14,7 +14,7 @@ jobs:
   sonar:
   
     runs-on: self-hosted
-    if: ${{ github.ref == 'refs/heads/developmen_' }}
+    if: ${{ github.ref == 'refs/heads/development' }}
     steps:
       - uses: actions/checkout@v2
           
@@ -43,11 +43,13 @@ jobs:
   
     runs-on: self-hosted
     if: ${{ github.ref == 'refs/heads/development' }}
+    needs: [ sonar ]
     steps:
       - name: Delete Container..
         run: if [ ! -z $(docker ps -q --filter "name=terceirizadas-db") ]; then docker rm -f terceirizadas-db; fi
       
       - name: Preparing Container...
+        #Criação do container de banco de dados e copia das variaveis que serão carregadas.
         run: |
           docker run -d --rm --cap-add SYS_TIME --name terceirizadas-db -p 5432 --network python-network -e TZ="America/Sao_Paulo" -e POSTGRES_DB=terceirizadas -e POSTGRES_PASSWORD=adminadmin -e POSTGRES_USER=postgres postgres:11-alpine
           cp /srv/env/terceirizadas .
@@ -60,10 +62,11 @@ jobs:
             docker network connect python-network $(hostname)
             echo "Carregando as variaveis de ambiente..."
             source terceirizadas
-            echo "###########################################################################################"
-            echo "### Caso tenha alterado o Pipefile recentemente, execute a rotina sem Pip cache!!! ###"
-            echo "###########################################################################################"
+            echo "###################################################################################################################################################"
+            echo "### Caso tenha problemas na rotina de testes por conta de conflitos de biblioteca, execute a action sem Pip cache e informe a equipe de DevOps. ###"
+            echo "###################################################################################################################################################"
             echo "Executando os testes..."
+            #Identificado este path através dos comandos em python "import sys" e "print(sys.path)" no ambiente funcional.
             export PYTHONPATH="$PYTHONPATH:/runner/.local/lib/python3.6/site-packages"
             pytest
             flake8
