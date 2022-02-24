@@ -64,7 +64,7 @@ jobs:
         env: 
           RANCHER_URL: ${{ secrets.RANCHER_URL }}
           RANCHER_TOKEN: ${{ secrets.RANCHER_TOKEN }}
-          NAMESPACE: sme-sigpae
+          NAMESPACE: sme-sigpae-hom2
           
       - name: send failure message
         if: ${{ failure() }}
