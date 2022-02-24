@@ -1,0 +1,130 @@
+name: Dev - CI/CD
+ 
+on:
+
+  push:
+    branches: [ master, main, homolog, homolog-r2 ]
+    paths-ignore:
+    - ".github/workflows/**"  
+  
+  workflow_dispatch:
+
+jobs:
+         
+  build:
+
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v2     
+      -  name: Login to registry
+         uses: docker/login-action@v1
+         with:
+          registry: ${{ secrets.REGISTRY_HOST }}
+          username: ${{ secrets.REGISTRY_USER }}
+          password: ${{ secrets.REGISTRY_PWD }}
+    
+      - name: Build the Docker image    
+        run: | 
+             docker build . --tag ${{ secrets.REGISTRY_HOST }}/${GITHUB_REF##*/}/sme-sigpae-api
+             docker push ${{ secrets.REGISTRY_HOST }}/${GITHUB_REF##*/}/sme-sigpae-api
+             
+      - name: send failure message
+        if: ${{ failure() }}
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_TO }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          message: |
+            💥 Failed in ${{ github.ref_name	}}!
+            ${{ github.actor }} created commit:
+            Commit message: ${{ github.event.commits[0].message }}            
+            Repository: ${{ github.repository }}            
+            See changes: https://github.com/${{ github.repository }}/commit/${{github.sha}}
+            Actions: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+             
+  deploy-hom:
+  
+    runs-on: self-hosted
+    needs: [ build ]
+    if: ${{ github.ref == 'refs/heads/homolog' }}
+    else if: ${{ github.ref == 'refs/heads/homolog-r2' }}
+    environment:
+      name: release
+    steps:
+      - name: Redeploy
+        uses: luizhpriotto/action_images@kubectl-v1.0
+        env: 
+          RANCHER_URL: ${{ secrets.RANCHER_URL }}
+          RANCHER_TOKEN: ${{ secrets.RANCHER_TOKEN }}
+          NAMESPACE: sme-sigpae
+          
+      - name: send failure message
+        if: ${{ failure() }}
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_TO }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          message: |
+            💥 Failed in ${{ github.ref_name	}}!
+            ${{ github.actor }} created commit:
+            Commit message: ${{ github.event.commits[0].message }}            
+            Repository: ${{ github.repository }}            
+            See changes: https://github.com/${{ github.repository }}/commit/${{github.sha}}
+            Actions: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            
+      - name: send success message
+        if: ${{ success() }}
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_TO }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          message: |
+            🚀 Success in ${{ github.ref_name	}}!
+            ${{ github.actor }} created commit:
+            Commit message: ${{ github.event.commits[0].message }}            
+            Repository: ${{ github.repository }}            
+            See changes: https://github.com/${{ github.repository }}/commit/${{github.sha}}
+            Actions: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            
+  deploy-prod:
+  
+    runs-on: self-hosted
+    needs: [ build ]
+    if: ${{ github.ref == 'refs/heads/master' }}
+    environment:
+      name: production
+    steps:
+      - name: Redeploy
+        uses: luizhpriotto/action_images@kubectl-v1.0
+        env: 
+          RANCHER_URL: ${{ secrets.RANCHER_URL }}
+          RANCHER_TOKEN: ${{ secrets.RANCHER_TOKEN }}
+          NAMESPACE: sme-sigpae
+          
+      - name: send failure message
+        if: ${{ failure() }}
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_TO }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          message: |
+            💥 Failed in ${{ github.ref_name	}}!
+            ${{ github.actor }} created commit:
+            Commit message: ${{ github.event.commits[0].message }}            
+            Repository: ${{ github.repository }}            
+            See changes: https://github.com/${{ github.repository }}/commit/${{github.sha}}
+            Actions: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            
+      - name: send success message
+        if: ${{ success() }}
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_TO }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          message: |
+            🚀 Success in ${{ github.ref_name	}}!
+            ${{ github.actor }} created commit:
+            Commit message: ${{ github.event.commits[0].message }}            
+            Repository: ${{ github.repository }}            
+            See changes: https://github.com/${{ github.repository }}/commit/${{github.sha}}
+            Actions: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
