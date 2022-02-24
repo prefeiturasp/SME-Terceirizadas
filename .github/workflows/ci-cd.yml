@@ -1,4 +1,4 @@
-name: Dev - CI/CD
+name: CI/CD
  
 on:
 
@@ -46,12 +46,20 @@ jobs:
   
     runs-on: self-hosted
     needs: [ build ]
-    if: ${{ github.ref == 'refs/heads/homolog' }}
-    else if: ${{ github.ref == 'refs/heads/homolog-r2' }}
+    
     environment:
       name: release
     steps:
-      - name: Redeploy
+      - name: Redeploy Hom
+        if: ${{ github.ref == 'refs/heads/homolog' }}
+        uses: luizhpriotto/action_images@kubectl-v1.0
+        env: 
+          RANCHER_URL: ${{ secrets.RANCHER_URL }}
+          RANCHER_TOKEN: ${{ secrets.RANCHER_TOKEN }}
+          NAMESPACE: sme-sigpae
+          
+      - name: Redeploy Hom2
+        if: ${{ github.ref == 'refs/heads/homolog-r2' }}
         uses: luizhpriotto/action_images@kubectl-v1.0
         env: 
           RANCHER_URL: ${{ secrets.RANCHER_URL }}
