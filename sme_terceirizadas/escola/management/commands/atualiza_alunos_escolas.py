@@ -104,8 +104,8 @@ class Command(BaseCommand):
             self._filtra_matricula_ativa(aluno, lista_de_matriculas, status_matricula_ativa)
 
     def _filtra_matricula_ativa(self, aluno, lista_de_matriculas, status_matricula_ativa):
+        aluno.nao_matriculado = True
         for matricula in lista_de_matriculas:
-            aluno.nao_matriculado = True
             if matricula['codigoSituacaoMatricula'] in status_matricula_ativa:
                 aluno.nome = matricula['nomeAluno'].strip()
                 aluno.codigo_eol = matricula['codigoAluno']
@@ -117,24 +117,15 @@ class Command(BaseCommand):
             aluno.escola = None
         aluno.save()
 
-    def _desvincula_matricula_inativa(self, aluno):
-        aluno.nao_matriculado = True
-        aluno.escola = None
-        aluno.save()
-
-    def _atualiza_escola_atribuida(self, registro, aluno, escola, data, status_ativos, status_transferidos):
-        if registro['codigoSituacaoMatricula'] in status_ativos:
-            self._atualiza_aluno(aluno, registro, data, escola)
-        elif registro['codigoSituacaoMatricula'] in status_transferidos:
-            self._verifica_se_aluno_esta_matriculado(aluno, status_ativos)
+    def _atualiza_escola_atribuida(self, registro, aluno, escola, data_nascimento):
+        status_matricula_ativa = [1, 6, 10, 13, 5]
+        if registro['codigoSituacaoMatricula'] in status_matricula_ativa:
+            self._atualiza_aluno(aluno, registro, data_nascimento, escola)
         else:
-            self._desvincula_matricula_inativa(aluno)
+            self._verifica_se_aluno_esta_matriculado(aluno, status_matricula_ativa)
 
     def _atualiza_alunos_da_escola(self, escola, dados_alunos_escola):
         novos_alunos = {}
-        status_matricula_ativa = [1, 6, 10, 13, 5]
-        status_matricula_transferida = [3, 14, 15]
-
         self.total_alunos += len(dados_alunos_escola)
         for registro in dados_alunos_escola:
             self.contador_alunos += 1
@@ -147,11 +138,7 @@ class Command(BaseCommand):
             data_nascimento = registro['dataNascimento'].split('T')[0]
 
             if aluno:
-                self._atualiza_escola_atribuida(
-                    registro, aluno, escola,
-                    data_nascimento, status_matricula_ativa,
-                    status_matricula_transferida
-                )
+                self._atualiza_escola_atribuida(registro, aluno, escola, data_nascimento)
             else:
                 novos_alunos[registro['codigoAluno']] = self._monta_obj_aluno(registro, escola, data_nascimento)
 
