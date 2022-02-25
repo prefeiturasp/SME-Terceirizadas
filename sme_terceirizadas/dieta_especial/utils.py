@@ -1,11 +1,10 @@
 from datetime import date
 
 import environ
-from django.contrib.contenttypes.models import ContentType
 from django.template.loader import render_to_string
 from rest_framework.pagination import PageNumberPagination
 
-from sme_terceirizadas.perfil.models import Perfil, Usuario, Vinculo
+from sme_terceirizadas.perfil.models import Usuario
 from sme_terceirizadas.relatorios.relatorios import relatorio_dieta_especial_conteudo
 from sme_terceirizadas.relatorios.utils import html_to_pdf_email_anexo
 
@@ -96,18 +95,7 @@ def _cancelar_dieta_aluno_fora_da_rede(dieta):
 
 def enviar_email_para_diretor_da_escola_origem(solicitacao_dieta, aluno, escola):  # noqa C901
     assunto = f'Cancelamento Automático de Dieta Especial Nº {solicitacao_dieta.id_externo}'
-    perfil = Perfil.objects.get(nome='DIRETOR')
-    ct = ContentType.objects.get_for_model(escola)
-    vinculos = Vinculo.objects.filter(ativo=True, perfil=perfil, content_type=ct, object_id=escola.pk)
-    # E-mail do Diretor da Escola.
-    # Pode ter mais de um Diretor?
-    emails = []
-    for vinculo in vinculos:
-        email = vinculo.usuario.email
-        emails.append(email)
-
     hoje = date.today().strftime('%d/%m/%Y')
-
     template = 'email/email_dieta_cancelada_automaticamente_escola_origem.html',
     dados_template = {
         'nome_aluno': aluno.nome,
@@ -117,16 +105,13 @@ def enviar_email_para_diretor_da_escola_origem(solicitacao_dieta, aluno, escola)
         'hoje': hoje,
     }
     html = render_to_string(template, dados_template)
-
-    # Pega o email da Terceirizada
     terceirizada = escola.lote.terceirizada
     if terceirizada:
-        vinculos_terc = terceirizada.lote.vinculos.all()
-        for vinculo in vinculos_terc:
-            if vinculo.usuario:
-                emails.append(vinculo.usuario.email)
+        emails = [contato.email for contato in terceirizada.contatos.all()]
+        emails.append(escola.contato.email)
+    else:
+        emails = [escola.contato.email]
 
-    # Parece que está previsto ter mais Diretores vinculados a mesma escola.
     for email in emails:
         envia_email_unico(
             assunto=assunto,
@@ -198,17 +183,7 @@ def enviar_email_para_escola_destino_eol(solicitacao_dieta, aluno, escola):
 
 def enviar_email_para_diretor_da_escola_destino(solicitacao_dieta, aluno, escola):
     assunto = 'Alerta para Criar uma Nova Dieta Especial'
-    perfil = Perfil.objects.get(nome='DIRETOR')
-    ct = ContentType.objects.get_for_model(escola)
-    vinculos = Vinculo.objects.filter(perfil=perfil, content_type=ct, object_id=escola.pk)
-
-    # E-mail do Diretor da Escola.
-    # Pode ter mais de um Diretor?
-    emails = []
-    for vinculo in vinculos:
-        email = vinculo.usuario.email
-        emails.append(email)
-
+    email = escola.contato.email
     html_string = relatorio_dieta_especial_conteudo(solicitacao_dieta)
     anexo = html_to_pdf_email_anexo(html_string)
     anexo_nome = f'dieta_especial_{aluno.codigo_eol}.pdf'
@@ -223,16 +198,14 @@ def enviar_email_para_diretor_da_escola_destino(solicitacao_dieta, aluno, escola
         }
     )
 
-    # Parece que está previsto ter mais Diretores vinculados a mesma escola.
-    for email in emails:
-        envia_email_unico_com_anexo_inmemory(
-            assunto=assunto,
-            corpo=corpo,
-            email=email,
-            anexo_nome=anexo_nome,
-            mimetypes='application/pdf',
-            anexo=anexo,
-        )
+    envia_email_unico_com_anexo_inmemory(
+        assunto=assunto,
+        corpo=corpo,
+        email=email,
+        anexo_nome=anexo_nome,
+        mimetypes='application/pdf',
+        anexo=anexo,
+    )
 
 
 def aluno_matriculado_em_outra_ue(aluno, solicitacao_dieta):

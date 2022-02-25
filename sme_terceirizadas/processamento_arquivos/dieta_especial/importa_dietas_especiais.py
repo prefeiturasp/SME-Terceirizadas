@@ -144,7 +144,7 @@ class ProcessadorPlanilha:
         entre em contato com o Núcleo de Dieta Especial através do e-mail:
         smecodaedietaespecial@sme.prefeitura.sp.gov.br."""
 
-        email_fake = f'fake{aluno.escola.id}@admin.com'
+        email_fake = f'fake{escola.id}@admin.com'
         usuario_escola = Usuario.objects.filter(email=email_fake).first()
         if not usuario_escola:
             perfil = Perfil.objects.get(nome='DIRETOR')
