@@ -34,6 +34,10 @@ class Command(BaseCommand):
                 msg = f'readTimeout: {re}'
                 logger.error(msg)
                 self.stdout.write(self.style.ERROR(msg))
+            except Exception as ex:
+                msg = f'Erro ao tentar atualizar dados da escola: {ex}'
+                logger.error(msg)
+                self.stdout.write(self.style.ERROR(msg))
 
     def _atualiza_dados_escola(self, dre):
         response = requests.get(

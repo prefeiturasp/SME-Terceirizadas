@@ -59,6 +59,7 @@ class AlimentoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Alimento
         fields = '__all__'
+        ordering = ('nome')
 
 
 class AlimentosSubstitutosSerializer(serializers.ModelSerializer):
@@ -223,7 +224,7 @@ class SolicitacaoDietaEspecialSerializer(serializers.ModelSerializer):
     alergias_intolerancias = AlergiaIntoleranciaSerializer(many=True)
     motivo_negacao = MotivoNegacaoSerializer()
     motivo_alteracao_ue = MotivoAlteracaoUESerializer()
-    substituicoes = SubstituicaoAlimentoSerializer(many=True)
+    substituicoes = serializers.SerializerMethodField()
 
     tem_solicitacao_cadastro_produto = serializers.SerializerMethodField()
     protocolo_padrao = serializers.SlugRelatedField(
@@ -231,6 +232,10 @@ class SolicitacaoDietaEspecialSerializer(serializers.ModelSerializer):
         required=False,
         queryset=ProtocoloPadraoDietaEspecial.objects.all()
     )
+
+    def get_substituicoes(self, obj):
+        substituicoes = obj.substituicoes.order_by('alimento__nome')
+        return SubstituicaoAlimentoSerializer(substituicoes, many=True).data
 
     def get_tem_solicitacao_cadastro_produto(self, obj):
         return SolicitacaoCadastroProdutoDieta.objects.filter(
@@ -446,7 +451,7 @@ class SubstituicaoAlimentoProtocoloPadraoSerializer(ModelSerializer):
 
 class ProtocoloPadraoDietaEspecialSerializer(serializers.ModelSerializer):
     status = serializers.CharField(source='get_status_display')
-    substituicoes = SubstituicaoAlimentoProtocoloPadraoSerializer(many=True)
+    substituicoes = serializers.SerializerMethodField()
     historico = serializers.SerializerMethodField()
 
     class Meta:
@@ -463,6 +468,10 @@ class ProtocoloPadraoDietaEspecialSerializer(serializers.ModelSerializer):
     def get_historico(self, obj):
         import json
         return json.loads(obj.historico) if obj.historico else []
+
+    def get_substituicoes(self, obj):
+        substituicoes = obj.substituicoes.all().order_by('alimento__nome')
+        return SubstituicaoAlimentoProtocoloPadraoSerializer(substituicoes, many=True).data
 
 
 class ProtocoloPadraoDietaEspecialSimplesSerializer(serializers.ModelSerializer):
