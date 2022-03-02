@@ -928,6 +928,12 @@ class MotivosAlteracaoCardapioViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = MotivoAlteracaoCardapio.objects.all()
     serializer_class = MotivoAlteracaoCardapioSerializer
 
+    def get_queryset(self):
+        user = self.request.user
+        if user.vinculo_atual.perfil.nome in ['DIRETOR CEI']:
+            return MotivoAlteracaoCardapio.objects.exclude(nome__icontains='Merenda Seca')
+        return MotivoAlteracaoCardapio.objects.all()
+
 
 class MotivosSuspensaoCardapioViewSet(viewsets.ReadOnlyModelViewSet):
     lookup_field = 'uuid'
