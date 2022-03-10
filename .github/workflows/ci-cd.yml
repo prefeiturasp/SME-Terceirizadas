@@ -41,6 +41,21 @@ jobs:
             Repository: ${{ github.repository }}            
             See changes: https://github.com/${{ github.repository }}/commit/${{github.sha}}
             Actions: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            
+      - name: send message asking for aprove
+        if: ${{ ( github.ref == 'refs/heads/master') && ( success() ) }}
+        uses: appleboy/telegram-action@master
+        with:
+          to: -752736369
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          message: |
+            😍 Por favor me aprove!!!!!
+            branch: ${{ github.ref_name	}}
+            ${{ github.actor }} created commit:
+            Repository: ${{ github.repository }}            
+            See changes: https://github.com/${{ github.repository }}/commit/${{github.sha}}
+            🚀🚀🚀
+            To aprove: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
              
   deploy-hom:
   
