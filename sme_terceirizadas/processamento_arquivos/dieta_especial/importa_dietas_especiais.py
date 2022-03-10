@@ -15,7 +15,7 @@ from sme_terceirizadas.dieta_especial.models import (
     ClassificacaoDieta,
     SolicitacaoDietaEspecial
 )
-from sme_terceirizadas.escola.models import Aluno
+from sme_terceirizadas.escola.models import Aluno, Escola
 from sme_terceirizadas.perfil.models.perfil import Perfil, Vinculo
 from sme_terceirizadas.perfil.models.usuario import Usuario
 
@@ -56,12 +56,14 @@ class ProcessadorPlanilha:
 
                 aluno = self.consulta_aluno(solicitacao_dieta_schema)
 
+                escola = self.consulta_escola(solicitacao_dieta_schema)
+
                 classificacao_dieta = self.consulta_classificacao(solicitacao_dieta_schema)
 
                 diagnosticos = self.monta_diagnosticos(solicitacao_dieta_schema.codigo_diagnostico)
 
                 self.checa_existencia_solicitacao(solicitacao_dieta_schema, aluno)
-                self.cria_solicitacao(solicitacao_dieta_schema, aluno, classificacao_dieta, diagnosticos)
+                self.cria_solicitacao(solicitacao_dieta_schema, aluno, classificacao_dieta, diagnosticos, escola)
             except Exception as exc:
                 self.erros.append(f'Linha {ind} - {exc}')
 
@@ -100,6 +102,12 @@ class ProcessadorPlanilha:
                             + f'{solicitacao_dieta_schema.nome_aluno.upper()} != Nome aluno sistema: {aluno.nome}')
         return aluno
 
+    def consulta_escola(self, solicitacao_dieta_schema) -> Escola:
+        escola = Escola.objects.filter(codigo_codae=solicitacao_dieta_schema.codigo_escola).first()
+        if not escola:
+            raise Exception(f'Erro: escola com código codae {solicitacao_dieta_schema.codigo_escola} não encontrada.')
+        return escola
+
     def consulta_classificacao(self, dieta_schema) -> ClassificacaoDieta:
         classificacao_dieta = ClassificacaoDieta.objects.filter(
             nome=f'Tipo {dieta_schema.codigo_categoria_dieta}').first()
@@ -130,13 +138,13 @@ class ProcessadorPlanilha:
                             + f'{solicitacao_dieta_schema.codigo_eol_aluno}')
 
     @transaction.atomic
-    def cria_solicitacao(self, solicitacao_dieta_schema, aluno, classificacao_dieta, diagnosticos):  # noqa C901
+    def cria_solicitacao(self, solicitacao_dieta_schema, aluno, classificacao_dieta, diagnosticos, escola):  # noqa C901
         observacoes = """Essa Dieta Especial foi autorizada anteriormente a implantação do SIGPAE.
         Para ter acesso ao Protocolo da Dieta Especial,
         entre em contato com o Núcleo de Dieta Especial através do e-mail:
         smecodaedietaespecial@sme.prefeitura.sp.gov.br."""
 
-        email_fake = f'fake{aluno.escola.id}@admin.com'
+        email_fake = f'fake{escola.id}@admin.com'
         usuario_escola = Usuario.objects.filter(email=email_fake).first()
         if not usuario_escola:
             perfil = Perfil.objects.get(nome='DIRETOR')
@@ -147,12 +155,12 @@ class ProcessadorPlanilha:
             usuario_escola = Usuario.objects.create(
                 email=email_fake,
                 password=DJANGO_ADMIN_PASSWORD,
-                nome=aluno.escola.nome,
+                nome=escola.nome,
                 cargo='DIRETOR',
                 is_active=False
             )
             Vinculo.objects.create(
-                instituicao=aluno.escola,
+                instituicao=escola,
                 perfil=perfil,
                 usuario=usuario_escola,
                 data_inicial=data_atual,
@@ -162,7 +170,7 @@ class ProcessadorPlanilha:
         solicitacao: SolicitacaoDietaEspecial = SolicitacaoDietaEspecial.objects.create(
             criado_por=usuario_escola,
             aluno=aluno,
-            escola_destino=aluno.escola,
+            escola_destino=escola,
             ativo=True,
             nome_protocolo=solicitacao_dieta_schema.protocolo_dieta.upper(),
             classificacao=classificacao_dieta,
