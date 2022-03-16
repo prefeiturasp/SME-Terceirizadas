@@ -1,3 +1,5 @@
+import uuid as uuid_generator
+from copy import deepcopy
 from datetime import date
 
 from django.db import transaction
@@ -42,11 +44,13 @@ from ..forms import (
 from ..models import (
     AlergiaIntolerancia,
     Alimento,
+    Anexo,
     ClassificacaoDieta,
     MotivoAlteracaoUE,
     MotivoNegacao,
     ProtocoloPadraoDietaEspecial,
     SolicitacaoDietaEspecial,
+    SubstituicaoAlimento,
     TipoContagem
 )
 from ..utils import ProtocoloPadraoPagination, RelatorioPagination
@@ -166,23 +170,47 @@ class SolicitacaoDietaEspecialViewSet(
             return Response({'detail': f'Dados inválidos {e}'}, status=HTTP_400_BAD_REQUEST)  # noqa
 
     @action(detail=True,
-            methods=['patch'],
+            methods=['POST'],
             url_path=constants.ESCOLA_SOLICITA_INATIVACAO,
             permission_classes=(UsuarioEscola,))
     def escola_solicita_inativacao(self, request, uuid=None):
-        solicitacao_dieta_especial = self.get_object()
+        dieta_cancelada = self.get_object()
+        solicitacoes_de_cancelamento = SolicitacaoDietaEspecial.objects.filter(
+            tipo_solicitacao='CANCELAMENTO_DIETA', dieta_alterada=dieta_cancelada,
+            status=SolicitacaoDietaEspecial.workflow_class.ESCOLA_SOLICITOU_INATIVACAO)
+        if solicitacoes_de_cancelamento:
+            return Response(dict(detail='Já existe uma solicitação de cancelamento para essa dieta'),
+                            status=HTTP_400_BAD_REQUEST)
         justificativa = request.data.get('justificativa', '')
-        try:
-            solicitacao_dieta_especial.cria_anexos_inativacao(
-                request.data.get('anexos'))
-            solicitacao_dieta_especial.inicia_fluxo_inativacao(
-                user=request.user, justificativa=justificativa)
-            serializer = self.get_serializer(solicitacao_dieta_especial)
-            return Response(serializer.data)
-        except AssertionError as e:
-            return Response(dict(detail=str(e)), status=HTTP_400_BAD_REQUEST)
-        except InvalidTransitionError as e:
-            return Response(dict(detail=f'Erro de transição de estado: {e}'), status=HTTP_400_BAD_REQUEST)  # noqa
+        substituicoes = SubstituicaoAlimento.objects.filter(
+            solicitacao_dieta_especial=dieta_cancelada)
+        anexos = Anexo.objects.filter(
+            solicitacao_dieta_especial=dieta_cancelada)
+        solicitacao_cancelamento = deepcopy(dieta_cancelada)
+        solicitacao_cancelamento.id = None
+        solicitacao_cancelamento.status = None
+        solicitacao_cancelamento.ativo = False
+        solicitacao_cancelamento.uuid = uuid_generator.uuid4()
+        solicitacao_cancelamento.tipo_solicitacao = 'CANCELAMENTO_DIETA'
+        solicitacao_cancelamento.dieta_alterada = dieta_cancelada
+        solicitacao_cancelamento.save()
+        solicitacao_cancelamento.alergias_intolerancias.add(*dieta_cancelada.alergias_intolerancias.all())
+        solicitacao_cancelamento.cria_anexos_inativacao(request.data.get('anexos'))
+        solicitacao_cancelamento.inicia_fluxo_inativacao(user=request.user, justificativa=justificativa)
+        for substituicao in substituicoes:
+            substituicao_cancelamento = deepcopy(substituicao)
+            substituicao_cancelamento.id = None
+            substituicao_cancelamento.solicitacao_dieta_especial = solicitacao_cancelamento
+            substituicao_cancelamento.save()
+            substituicao_cancelamento.substitutos.add(*substituicao.substitutos.all())
+            substituicao_cancelamento.alimentos_substitutos.add(*substituicao.alimentos_substitutos.all())
+        for anexo in anexos:
+            anexo_cancelamento = deepcopy(anexo)
+            anexo_cancelamento.id = None
+            anexo_cancelamento.solicitacao_dieta_especial = solicitacao_cancelamento
+            anexo_cancelamento.save()
+        serializer = self.get_serializer(solicitacao_cancelamento)
+        return Response(serializer.data)
 
     @action(detail=True,
             methods=['patch'],
@@ -263,11 +291,7 @@ class SolicitacaoDietaEspecialViewSet(
     def protocolo(self, request, uuid=None):
         return relatorio_dieta_especial_protocolo(request, solicitacao=self.get_object())  # noqa
 
-    @action(
-        detail=True,
-        methods=['post'],
-        url_path=constants.ESCOLA_CANCELA_DIETA_ESPECIAL
-    )
+    @action(detail=True, methods=['post'], url_path=constants.ESCOLA_CANCELA_DIETA_ESPECIAL) # noqa C901
     def escola_cancela_solicitacao(self, request, uuid=None):
         justificativa = request.data.get('justificativa', '')
         solicitacao = self.get_object()
@@ -276,6 +300,11 @@ class SolicitacaoDietaEspecialViewSet(
                 user=request.user, justificativa=justificativa)
             solicitacao.ativo = False
             solicitacao.save()
+            if solicitacao.tipo_solicitacao == 'CANCELAMENTO_DIETA':
+                solicitacao.dieta_alterada.ativo = False
+                solicitacao.dieta_alterada.cancelar_pedido(
+                    user=request.user, justificativa=solicitacao.logs.first().justificativa)
+                solicitacao.dieta_alterada.save()
             if solicitacao.tipo_solicitacao == 'ALTERACAO_UE':
                 solicitacao.dieta_alterada.ativo = True
                 solicitacao.dieta_alterada.save()
