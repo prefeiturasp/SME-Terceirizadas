@@ -73,6 +73,14 @@ jobs:
           RANCHER_TOKEN: ${{ secrets.RANCHER_TOKEN }}
           NAMESPACE: sme-sigpae
           
+      - name: Redeploy Treino
+        if: ${{ github.ref == 'refs/heads/homolog' }}
+        uses: luizhpriotto/action_images@kubectl-v1.0
+        env: 
+          RANCHER_URL: ${{ secrets.RANCHER_URL }}
+          RANCHER_TOKEN: ${{ secrets.RANCHER_TOKEN }}
+          NAMESPACE: sme-sigpae-treino
+          
       - name: Redeploy Hom2
         if: ${{ github.ref == 'refs/heads/homolog-r2' }}
         uses: luizhpriotto/action_images@kubectl-v1.0
