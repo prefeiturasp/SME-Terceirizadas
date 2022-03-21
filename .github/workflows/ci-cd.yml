@@ -61,6 +61,7 @@ jobs:
   
     runs-on: self-hosted
     needs: [ build ]
+    if: ${{ github.ref != 'refs/heads/master' }}
     
     environment:
       name: release
