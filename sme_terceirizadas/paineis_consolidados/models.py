@@ -647,6 +647,7 @@ class SolicitacoesEscola(MoldeConsolidado):
             tipo_doc=cls.TP_SOL_DIETA_ESPECIAL,
             dieta_alterada_id__isnull=False
         )
+
         solicitacoes = solicitacoes_em_vigencia_e_ativas | solicitacoes_de_alteracao_para_escola_de_origem
         return solicitacoes.distinct().order_by('-data_log')
 

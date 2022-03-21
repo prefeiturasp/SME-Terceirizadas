@@ -45,6 +45,7 @@ class LogSolicitacoesUsuario(
         CODAE_HOMOLOGADO,
         CODAE_NAO_HOMOLOGADO,
         CODAE_PEDIU_ANALISE_SENSORIAL,
+        CODAE_CANCELOU_ANALISE_SENSORIAL,
         TERCEIRIZADA_CANCELOU,
         CODAE_SUSPENDEU,
         ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
@@ -77,7 +78,7 @@ class LogSolicitacoesUsuario(
         DILOG_NEGA_ALTERACAO,
         CANCELADO_ALUNO_MUDOU_ESCOLA,
         CANCELADO_ALUNO_NAO_PERTENCE_REDE,
-    ) = range(53)
+    ) = range(54)
 
     STATUS_POSSIVEIS = (
         (INICIO_FLUXO, 'Solicitação Realizada'),
@@ -114,6 +115,7 @@ class LogSolicitacoesUsuario(
         (CODAE_HOMOLOGADO, 'CODAE homologou'),
         (CODAE_NAO_HOMOLOGADO, 'CODAE não homologou'),
         (CODAE_PEDIU_ANALISE_SENSORIAL, 'CODAE pediu análise sensorial'),
+        (CODAE_CANCELOU_ANALISE_SENSORIAL, 'CODAE cancelou análise sensorial'),
         (TERCEIRIZADA_CANCELOU, 'Terceirizada cancelou homologação'),
         (INATIVA, 'Homologação inativa'),
         (
