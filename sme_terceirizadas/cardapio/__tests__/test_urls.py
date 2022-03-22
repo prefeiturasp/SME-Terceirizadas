@@ -911,7 +911,7 @@ def test_endpoint_horario_do_combo_tipo_alimentacao_unidade_escolar(client_auten
         'uuid': 'a627fc63-16fd-482c-a877-16ebc1a82e57',
         'nome': 'EMEF JOAO MENDES',
         'codigo_eol': '000546',
-        'quantidade_alunos': 743
+        'quantidade_alunos': 0
     }
 
 
