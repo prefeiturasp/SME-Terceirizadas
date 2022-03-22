@@ -88,7 +88,7 @@ def test_kit_lanche_unificado_serializer_validators_lista_igual(kits_unificados_
     qtd_alunos_escola, quantidade_alunos_pedido, data = kits_unificados_param_serializer
     escola = mommy.make('Escola', nome='teste')
     mommy.make('escola.AlunosMatriculadosPeriodoEscola', escola=escola, quantidade_alunos=800,
-                periodo_escolar=periodo_escolar)
+               periodo_escolar=periodo_escolar)
     escola_quantidades = []
     for _ in range(3):
         eq = mommy.make('EscolaQuantidade', quantidade_alunos=quantidade_alunos_pedido)
