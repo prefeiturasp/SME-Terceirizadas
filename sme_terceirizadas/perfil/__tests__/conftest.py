@@ -13,7 +13,7 @@ f = Faker(locale='pt-Br')
 
 @pytest.fixture
 def perfil():
-    return mommy.make(models.Perfil, nome='título do perfil')
+    return mommy.make(models.Perfil, nome='título do perfil', uuid='d38e10da-c5e3-4dd5-9916-010fc250595a')
 
 
 @pytest.fixture
@@ -140,13 +140,18 @@ def usuario_update_serializer(usuario_2):
     return UsuarioUpdateSerializer(usuario_2)
 
 
+@pytest.fixture
+def tipo_gestao():
+    return mommy.make('TipoGestao', nome='TERC TOTAL')
+
+
 @pytest.fixture(params=[
     ('admin_1@sme.prefeitura.sp.gov.br', 'adminadmin', '0000002'),
     ('admin_2@sme.prefeitura.sp.gov.br', 'xxASD123@@', '0000013'),
     ('admin_3@sme.prefeitura.sp.gov.br', '....!!!123213#$', '0044002'),
     ('admin_4@sme.prefeitura.sp.gov.br', 'XXXDDxx@@@77', '0000552'),
 ])
-def users_admin_escola(client, django_user_model, request):
+def users_admin_escola(client, django_user_model, request, tipo_gestao):
     email, password, rf = request.param
     user = django_user_model.objects.create_user(
         password=password, email=email, registro_funcional=rf)
@@ -164,7 +169,7 @@ def users_admin_escola(client, django_user_model, request):
                                       uuid='56725de5-89d3-4edf-8633-3e0b5c99e9d4')
     escola = mommy.make('Escola', nome='EMEI NOE AZEVEDO, PROF',
                         uuid='b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd', diretoria_regional=diretoria_regional,
-                        codigo_eol='256341', tipo_unidade=tipo_unidade_escolar)
+                        codigo_eol='256341', tipo_unidade=tipo_unidade_escolar, tipo_gestao=tipo_gestao)
     periodo_escolar_tarde = mommy.make(
         'PeriodoEscolar', nome='TARDE', uuid='57af972c-938f-4f6f-9f4b-cf7b983a10b7')
     periodo_escolar_manha = mommy.make(
@@ -196,7 +201,7 @@ def users_admin_escola(client, django_user_model, request):
     ('diretor_4@sme.prefeitura.sp.gov.br', '##$$csazd@!', '0000441', '13151715036'),
     ('diretor_5@sme.prefeitura.sp.gov.br', '!!@##FFG121', '0005551', '40296233013')
 ])
-def users_diretor_escola(client, django_user_model, request, usuario_2):
+def users_diretor_escola(client, django_user_model, request, usuario_2, tipo_gestao):
     email, password, rf, cpf = request.param
     user = django_user_model.objects.create_user(
         password=password, email=email, registro_funcional=rf, cpf=cpf)
@@ -214,7 +219,7 @@ def users_diretor_escola(client, django_user_model, request, usuario_2):
                                       uuid='56725de5-89d3-4edf-8633-3e0b5c99e9d4')
     escola = mommy.make('Escola', nome='EMEI NOE AZEVEDO, PROF',
                         uuid='b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd', diretoria_regional=diretoria_regional,
-                        codigo_eol='256341', tipo_unidade=tipo_unidade_escolar)
+                        codigo_eol='256341', tipo_unidade=tipo_unidade_escolar, tipo_gestao=tipo_gestao)
     periodo_escolar_tarde = mommy.make(
         'PeriodoEscolar', nome='TARDE', uuid='57af972c-938f-4f6f-9f4b-cf7b983a10b7')
     periodo_escolar_manha = mommy.make(
@@ -379,10 +384,11 @@ def mocked_request_api_eol_usuario_diretoria_regional():
     (f.name(), f.uuid4()),
 
 ])
-def usuarios_pendentes_confirmacao(request, perfil):
-    nome, uuid = request.param
+def usuarios_pendentes_confirmacao(request, perfil, tipo_gestao):
+    nome = 'Bruno da Conceição'
+    uuid = 'd36fa08e-e91e-4acb-9d54-b88115147e8e'
     usuario = mommy.make('Usuario', nome=nome, uuid=uuid,
-                         is_active=False, registro_funcional='1234567')
+                         is_active=False, registro_funcional='1234567', email='GrVdXIhxqb@example.com')
     hoje = datetime.date.today()
 
     diretoria_regional = mommy.make('DiretoriaRegional', nome='DIRETORIA REGIONAL IPIRANGA',
@@ -397,7 +403,7 @@ def usuarios_pendentes_confirmacao(request, perfil):
                                       uuid='56725de5-89d3-4edf-8633-3e0b5c99e9d4')
     escola = mommy.make('Escola', nome='EMEI NOE AZEVEDO, PROF',
                         uuid='b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd', diretoria_regional=diretoria_regional,
-                        codigo_eol='256341', tipo_unidade=tipo_unidade_escolar)
+                        codigo_eol='256341', tipo_unidade=tipo_unidade_escolar, tipo_gestao=tipo_gestao)
 
     mommy.make('Vinculo', perfil=perfil, usuario=usuario, data_inicial=None, data_final=None, ativo=False,
                instituicao=escola)  # vinculo esperando ativacao
