@@ -2,7 +2,7 @@
 {% load email_templatetags %}
 
 {% block conteudo %}
-  <p>O cancelamento de guias de remessa da Requisição nº {{ REQUISICAO }} foi confirmado pela empresa {{ EMPRESA }},
+  <p>O cancelamento de guias de remessa da Requisição nº {{ requisicao }} foi confirmado pela empresa {{ empresa }},
     em {{ log_transicao.criado_em }}.</p>
   <br/>
   <a href="{{ url }}">Clique para acessar detalhes da solicitação</a>

@@ -530,8 +530,8 @@ class FluxoSolicitacaoRemessa(xwf_models.WorkflowEnabled, models.Model):
                 'solicitacao': self,
                 'log_transicao': log_transicao,
                 'url': url,
-                'REQUISICAO': self.numero_solicitacao,
-                'EMPRESA': self.distribuidor,
+                'requisicao': self.numero_solicitacao,
+                'empresa': self.distribuidor,
             }
         )
 
@@ -712,7 +712,8 @@ class FluxoSolicitacaoDeAlteracao(xwf_models.WorkflowEnabled, models.Model):
             vinculos__perfil__nome__in=(
                 'COORDENADOR_LOGISTICA',
                 'COORDENADOR_CODAE_DILOG_LOGISTICA',
-            )
+            ),
+            vinculos__ativo=True
         )
         return [usuario for usuario in queryset]
 
