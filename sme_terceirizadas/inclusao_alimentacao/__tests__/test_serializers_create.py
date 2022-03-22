@@ -1,9 +1,6 @@
-import datetime
-
 import pytest
 from freezegun import freeze_time
 from model_mommy import mommy
-from rest_framework.exceptions import ValidationError
 
 from ..api.serializers.serializers_create import (
     GrupoInclusaoAlimentacaoNormalCreationSerializer,
