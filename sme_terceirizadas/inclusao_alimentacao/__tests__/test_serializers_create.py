@@ -42,21 +42,6 @@ def test_inclusao_continua_serializer_validators(inclusao_alimentacao_continua_p
 
 
 @freeze_time('2019-10-15')
-def test_inclusao_continua_serializer_validate_feriado():
-    data_inicial = datetime.date(2020, 9, 2)
-    data_final = datetime.date(2020, 9, 12)
-    dias_semana = [0, 1]
-    attrs = dict(data_inicial=data_inicial, data_final=data_final, dias_semana=dias_semana)
-
-    serializer_obj = InclusaoAlimentacaoContinuaCreationSerializer()
-    try:
-        serializer_obj.validate(attrs=attrs)
-        pytest.fail('Deveria ter subido uma exceção')
-    except ValidationError as e:
-        assert str(e) == "[ErrorDetail(string='Não pode haver feriado na faixa escolhida. Feriado encontrado: 07/09/2020', code='invalid')]"  # noqa E501
-
-
-@freeze_time('2019-10-15')
 def test_inclusao_continua_serializer_creators(inclusao_alimentacao_continua_parametros, escola):
     class FakeObject(object):
         user = mommy.make('perfil.Usuario')
