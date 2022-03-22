@@ -1,8 +1,8 @@
 from datetime import date, datetime
 
 import pytest
-
 from django.core.files.uploadedfile import SimpleUploadedFile
+
 from ..utils import (
     changes_between,
     compara_lista_imagens,
@@ -141,10 +141,9 @@ def test_compara_lista_imagens(produto, imagem_produto1, imagem_produto2):
         {
             'arquivo': imagem_produto1.arquivo,
             'nome': imagem_produto1.nome
-        },
-        {
-           'arquivo': SimpleUploadedFile(f'doc-novo.pdf', bytes(f'CONTEUDO TESTE TESTE TESTE', encoding='utf-8')),
-           'nome': 'doc-novo'
+        }, {
+            'arquivo': SimpleUploadedFile(f'doc-novo.pdf', bytes(f'CONTEUDO TESTE TESTE TESTE', encoding='utf-8')),
+            'nome': 'doc-novo'
         }
     ]
 
@@ -188,10 +187,9 @@ def test_changes_between(produto, info_nutricional1, info_nutricional2, info_nut
             {
                 'arquivo': imagem_produto1.arquivo,
                 'nome': imagem_produto1.nome
-            },
-            {
-               'arquivo': SimpleUploadedFile(f'doc-novo.pdf', bytes(f'CONTEUDO TESTE TESTE TESTE', encoding='utf-8')),
-               'nome': 'doc-novo'
+            }, {
+                'arquivo': SimpleUploadedFile(f'doc-novo.pdf', bytes(f'CONTEUDO TESTE TESTE TESTE', encoding='utf-8')),
+                'nome': 'doc-novo'
             }
         ]
     }
