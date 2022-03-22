@@ -43,6 +43,7 @@ jobs:
   
     runs-on: self-hosted
     if: ${{ github.ref == 'refs/heads/development' }}
+    needs: [ sonar ]
     steps:
       - name: Delete Container..
         run: if [ ! -z $(docker ps -q --filter "name=terceirizadas-db") ]; then docker rm -f terceirizadas-db; fi
@@ -88,7 +89,7 @@ jobs:
 
     runs-on: self-hosted
     if: ${{ github.ref == 'refs/heads/development' }}
-    needs: [ sonar ]
+    needs: [ test ]
     steps:
       - uses: actions/checkout@v2     
       -  name: Login to registry
