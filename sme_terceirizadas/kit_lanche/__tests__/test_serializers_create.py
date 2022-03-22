@@ -82,12 +82,13 @@ def test_kit_lanche_avulso_serializer_creators(kits_avulsos_param_serializer):
 
 
 @freeze_time('2019-10-16')
-def test_kit_lanche_unificado_serializer_validators_lista_igual(kits_unificados_param_serializer):
+def test_kit_lanche_unificado_serializer_validators_lista_igual(kits_unificados_param_serializer, periodo_escolar):
     serializer_obj = SolicitacaoKitLancheUnificadaCreationSerializer()
     kits = mommy.make('KitLanche', _quantity=3)
     qtd_alunos_escola, quantidade_alunos_pedido, data = kits_unificados_param_serializer
     escola = mommy.make('Escola', nome='teste')
-    mommy.make('escola.EscolaPeriodoEscolar', escola=escola, quantidade_alunos=800)
+    mommy.make('escola.AlunosMatriculadosPeriodoEscola', escola=escola, quantidade_alunos=800,
+               periodo_escolar=periodo_escolar)
     escola_quantidades = []
     for _ in range(3):
         eq = mommy.make('EscolaQuantidade', quantidade_alunos=quantidade_alunos_pedido)

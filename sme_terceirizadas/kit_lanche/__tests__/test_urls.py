@@ -1,5 +1,6 @@
 import pytest
 from freezegun import freeze_time
+from model_mommy import mommy
 from rest_framework import status
 
 from ...dados_comuns import constants
@@ -29,8 +30,11 @@ def test_url_endpoint_solicitacoes_kit_lanche_avulsa_pode(
     assert isinstance(response.json()['results'], list)
 
 
-def test_url_endpoint_solicitacoes_kit_lanche_avulsa_inicio_fluxo(client_autenticado_da_escola, solicitacao_avulsa):
+def test_url_endpoint_solicitacoes_kit_lanche_avulsa_inicio_fluxo(client_autenticado_da_escola,
+                                                                  solicitacao_avulsa, periodo_escolar):
     assert str(solicitacao_avulsa.status) == PedidoAPartirDaEscolaWorkflow.RASCUNHO
+    mommy.make('escola.AlunosMatriculadosPeriodoEscola', escola=solicitacao_avulsa.escola, quantidade_alunos=800,
+               periodo_escolar=periodo_escolar)
     response = client_autenticado_da_escola.patch(
         f'/{ENDPOINT_AVULSO}/{solicitacao_avulsa.uuid}/{constants.ESCOLA_INICIO_PEDIDO}/'
     )
@@ -43,9 +47,13 @@ def test_url_endpoint_solicitacoes_kit_lanche_avulsa_inicio_fluxo(client_autenti
 
 
 def test_url_endpoint_solicitacoes_kit_lanche_avulsa_inicio_fluxo_exception(client_autenticado_da_escola,
-                                                                            solicitacao_avulsa_dre_a_validar):
+                                                                            solicitacao_avulsa_dre_a_validar,
+                                                                            periodo_escolar):
     assert str(solicitacao_avulsa_dre_a_validar.status) == PedidoAPartirDaEscolaWorkflow.DRE_A_VALIDAR
-
+    mommy.make('escola.AlunosMatriculadosPeriodoEscola',
+               escola=solicitacao_avulsa_dre_a_validar.escola,
+               quantidade_alunos=800,
+               periodo_escolar=periodo_escolar)
     response = client_autenticado_da_escola.patch(
         f'/{ENDPOINT_AVULSO}/{solicitacao_avulsa_dre_a_validar.uuid}/{constants.ESCOLA_INICIO_PEDIDO}/'
     )
@@ -460,7 +468,8 @@ def test_url_endpoint_solicitacoes_kit_lanche_unificado_relatorio(
 
 
 @freeze_time('2019-10-11')
-def test_create_kit_lanche(client_autenticado_da_escola, solicitacao_avulsa, escola, kit_lanche, aluno):
+def test_create_kit_lanche(client_autenticado_da_escola,
+                           solicitacao_avulsa, escola, kit_lanche, aluno, periodo_escolar):
     """Primeiro cria-se 3 rascunhos (POST) 200, 200, 200 totalizando 600 alunos que é mais que 500.
 
     Após isso, vamos efetivar a solicitacao (PATCH), no qual sai de RASCUNHO para DRE_A_VALIDAR, deve-se
@@ -468,6 +477,10 @@ def test_create_kit_lanche(client_autenticado_da_escola, solicitacao_avulsa, esc
     da escola
     """
     escola.save()
+    mommy.make('escola.AlunosMatriculadosPeriodoEscola',
+               escola=escola,
+               quantidade_alunos=400,
+               periodo_escolar=periodo_escolar)
     data_do_evento = '27/11/2019'
     step = 200
     solicitacoes_avulsas = []

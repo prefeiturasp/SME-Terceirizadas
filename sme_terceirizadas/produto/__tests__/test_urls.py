@@ -306,7 +306,6 @@ def test_url_endpoint_cadastro_produto_os_steps_sem_rascunho(client_autenticado_
         'unidade_caseira': '01 copo',
         'tipo': 'algum tipo',
         'tem_aditivos_alergicos': False,
-        'protocolos': [],
         'prazo_validade': '12 meses',
         'porcao': 'colher de sopa',
         'outras_informacoes': '',
