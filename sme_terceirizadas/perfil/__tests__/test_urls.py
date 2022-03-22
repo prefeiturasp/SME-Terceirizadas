@@ -91,7 +91,7 @@ def test_get_meus_dados_admin_escola(users_admin_escola):
     assert json['vinculo_atual']['instituicao']['nome'] == 'EMEI NOE AZEVEDO, PROF'
     assert json['vinculo_atual']['instituicao']['uuid'] == 'b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd'
     assert json['vinculo_atual']['instituicao']['codigo_eol'] == '256341'
-    assert json['vinculo_atual']['ativo'] == True
+    assert json['vinculo_atual']['ativo'] is True
     assert json['vinculo_atual']['perfil']['nome'] == 'Admin'
     assert json['vinculo_atual']['perfil']['uuid'] == 'd6fd15cc-52c6-4db4-b604-018d22eeb3dd'
 
@@ -113,7 +113,7 @@ def test_get_meus_dados_diretor_escola(users_diretor_escola):
     assert json['vinculo_atual']['instituicao']['nome'] == 'EMEI NOE AZEVEDO, PROF'
     assert json['vinculo_atual']['instituicao']['uuid'] == 'b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd'
     assert json['vinculo_atual']['instituicao']['codigo_eol'] == '256341'
-    assert json['vinculo_atual']['ativo'] == True
+    assert json['vinculo_atual']['ativo'] is True
     assert json['vinculo_atual']['perfil']['nome'] == 'COORDENADOR_ESCOLA'
     assert json['vinculo_atual']['perfil']['uuid'] == '41c20c8b-7e57-41ed-9433-ccb92e8afaf1'
 
