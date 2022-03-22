@@ -68,7 +68,9 @@ jobs:
             echo "Executando os testes..."
             #Identificado este path através dos comandos em python "import sys" e "print(sys.path)" no ambiente funcional.
             export PYTHONPATH="$PYTHONPATH:/runner/.local/lib/python3.6/site-packages"
-            flake8
+            echo "################ FLAKE8 ################"
+            flake8 -v
+            echo "################ PYTEST ################"
             pytest
             
       - name: send failure message
