@@ -599,17 +599,6 @@ def test_url_endpoint_escola_solicita_inativacao_dieta(client_autenticado_vincul
     obj = SolicitacaoDietaEspecial.objects.first()
     obj.status = SolicitacaoDietaEspecial.workflow_class.CODAE_AUTORIZADO
     obj.save()
-    # data = {
-    #     'justificativa': '<p>alta pelo médico</p>',
-    #     'anexos': []
-    # }
-    # response = client_autenticado_vinculo_escola_dieta.post(
-    #     f'/solicitacoes-dieta-especial/{obj.uuid}/escola-solicita-inativacao/',
-    #     content_type='application/json',
-    #     data=data
-    # )
-    # assert response.status_code == status.HTTP_400_BAD_REQUEST
-    # assert response.json() == {'detail': f'anexos não pode ser vazio'}
 
     data = {
         'justificativa':
@@ -659,7 +648,7 @@ def test_url_endpoint_escola_solicita_inativacao_dieta(client_autenticado_vincul
         data=data
     )
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.json() == {'detail': "Já existe uma solicitação de cancelamento para essa dieta"}
+    assert response.json() == {'detail': 'Já existe uma solicitação de cancelamento para essa dieta'}
 
 
 def test_url_endpoint_codae_autoriza_inativacao_dieta(client_autenticado_vinculo_codae_dieta,
