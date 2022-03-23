@@ -498,3 +498,8 @@ def kits_unificados_param_serializer(request):
 @pytest.fixture
 def escola_quantidade():
     return mommy.make(models.EscolaQuantidade)
+
+
+@pytest.fixture
+def periodo_escolar():
+    return mommy.make('PeriodoEscolar', nome='INTEGRAL')

@@ -174,6 +174,7 @@ class SolicitacaoDietaEspecialViewSet(
             url_path=constants.ESCOLA_SOLICITA_INATIVACAO,
             permission_classes=(UsuarioEscola,))
     def escola_solicita_inativacao(self, request, uuid=None):
+        # TODO: colocar essa lógica dentro de um serializer
         dieta_cancelada = self.get_object()
         solicitacoes_de_cancelamento = SolicitacaoDietaEspecial.objects.filter(
             tipo_solicitacao='CANCELAMENTO_DIETA', dieta_alterada=dieta_cancelada,

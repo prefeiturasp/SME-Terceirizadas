@@ -521,6 +521,27 @@ class FluxoSolicitacaoRemessa(xwf_models.WorkflowEnabled, models.Model):
             html=html
         )
 
+    def _envia_email_distribuidor_confirma_cancelamento(self, log_transicao, partes_interessadas):
+        url = f'{base_url}/logistica/envio-requisicoes-entrega-completo?numero_requisicao={self.numero_solicitacao}'
+        html = render_to_string(
+            template_name='logistica_distribuidor_confirma_cancelamento.html',
+            context={
+                'titulo': f'Cancelamento Confirmado - Guias de Remessa da Requisição N° {self.numero_solicitacao}',
+                'solicitacao': self,
+                'log_transicao': log_transicao,
+                'url': url,
+                'requisicao': self.numero_solicitacao,
+                'empresa': self.distribuidor,
+            }
+        )
+
+        envia_email_em_massa_task.delay(
+            assunto=f'Cancelamento Confirmado - Guias de Remessa da Requisição N° {self.numero_solicitacao}',
+            emails=partes_interessadas,
+            corpo='',
+            html=html
+        )
+
     def _preenche_template_e_cria_notificacao(self, template_notif, titulo_notif, usuarios, link, tipo,
                                               log_transicao=None):
         if usuarios:
@@ -552,6 +573,16 @@ class FluxoSolicitacaoRemessa(xwf_models.WorkflowEnabled, models.Model):
             return [vinculo.usuario for vinculo in vinculos]
         else:
             return []
+
+    def _partes_interessadas_codae_dilog(self):
+        # Envia email somente para COORDENADOR_LOGISTICA.
+        queryset = Usuario.objects.filter(
+            vinculos__perfil__nome__in=(
+                'COORDENADOR_LOGISTICA',
+                'COORDENADOR_CODAE_DILOG_LOGISTICA',
+            )
+        )
+        return [usuario.email for usuario in queryset]
 
     @xworkflows.after_transition('inicia_fluxo')
     def _inicia_fluxo_hook(self, *args, **kwargs):
@@ -609,9 +640,14 @@ class FluxoSolicitacaoRemessa(xwf_models.WorkflowEnabled, models.Model):
     @xworkflows.after_transition('distribuidor_confirma_cancelamento')
     def _distribuidor_confirma_cancelamento_hook(self, *args, **kwargs):
         user = kwargs['user']
-        self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.DISTRIBUIDOR_CONFIRMA_CANCELAMENTO,
-                                  usuario=user,
-                                  justificativa=kwargs.get('justificativa', ''))
+        log_transicao = self.salvar_log_transicao(
+            status_evento=LogSolicitacoesUsuario.DISTRIBUIDOR_CONFIRMA_CANCELAMENTO,
+            usuario=user,
+            justificativa=kwargs.get('justificativa', ''))
+
+        partes_interessadas = self._partes_interessadas_codae_dilog()
+        self._envia_email_distribuidor_confirma_cancelamento(log_transicao=log_transicao,
+                                                             partes_interessadas=partes_interessadas)
 
     @xworkflows.after_transition('solicita_alteracao')
     def _solicita_alteracao_hook(self, *args, **kwargs):
@@ -676,7 +712,8 @@ class FluxoSolicitacaoDeAlteracao(xwf_models.WorkflowEnabled, models.Model):
             vinculos__perfil__nome__in=(
                 'COORDENADOR_LOGISTICA',
                 'COORDENADOR_CODAE_DILOG_LOGISTICA',
-            )
+            ),
+            vinculos__ativo=True
         )
         return [usuario for usuario in queryset]
 
