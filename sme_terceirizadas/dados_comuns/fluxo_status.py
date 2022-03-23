@@ -485,6 +485,9 @@ class FluxoSolicitacaoRemessa(xwf_models.WorkflowEnabled, models.Model):
     def _preenche_template_e_envia_email(self, assunto, titulo, user, partes_interessadas):
         raise NotImplementedError('Deve criar um método de envio de email as partes interessadas')  # noqa
 
+    def _titulo_notificacao_confirma_cancelamento(self):
+        return f'Cancelamento de Guias de Remessa da Requisição N° {self.numero_solicitacao}'
+
     def _envia_email_dilog_envia_solicitacao_para_distibuidor(self, log_transicao):
         url = f'{env("REACT_APP_URL")}/logistica/gestao-requisicao-entrega?numero_requisicao={self.numero_solicitacao}'
         html = render_to_string(
@@ -625,7 +628,7 @@ class FluxoSolicitacaoRemessa(xwf_models.WorkflowEnabled, models.Model):
         usuarios = self._usuarios_partes_interessadas_distribuidor()
         template_notif = 'logistica_notificacao_aguardando_cancelamento_distribuidor.html'
         tipo = Notificacao.TIPO_NOTIFICACAO_PENDENCIA
-        titulo_notif = f'Cancelamento de Guias de Remessa da Requisição N° {self.numero_solicitacao}'
+        titulo_notif = self._titulo_notificacao_confirma_cancelamento()
         link = f'/logistica/gestao-requisicao-entrega?numero_requisicao={self.numero_solicitacao}'
 
         self._preenche_template_e_cria_notificacao(template_notif, titulo_notif, usuarios, link, tipo, log_transicao)
@@ -648,6 +651,8 @@ class FluxoSolicitacaoRemessa(xwf_models.WorkflowEnabled, models.Model):
         partes_interessadas = self._partes_interessadas_codae_dilog()
         self._envia_email_distribuidor_confirma_cancelamento(log_transicao=log_transicao,
                                                              partes_interessadas=partes_interessadas)
+        titulo_notif = self._titulo_notificacao_confirma_cancelamento()
+        Notificacao.resolver_pendencia(titulo=titulo_notif, requisicao=self)
 
     @xworkflows.after_transition('solicita_alteracao')
     def _solicita_alteracao_hook(self, *args, **kwargs):
