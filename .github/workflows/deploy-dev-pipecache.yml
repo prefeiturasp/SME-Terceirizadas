@@ -43,6 +43,7 @@ jobs:
   
     runs-on: self-hosted
     if: ${{ github.ref == 'refs/heads/development' }}
+    needs: [ sonar ]
     steps:
       - name: Delete Container..
         run: if [ ! -z $(docker ps -q --filter "name=terceirizadas-db") ]; then docker rm -f terceirizadas-db; fi
@@ -67,8 +68,10 @@ jobs:
             echo "Executando os testes..."
             #Identificado este path através dos comandos em python "import sys" e "print(sys.path)" no ambiente funcional.
             export PYTHONPATH="$PYTHONPATH:/runner/.local/lib/python3.6/site-packages"
+            echo "################ FLAKE8 ################"
+            flake8 -v
+            echo "################ PYTEST ################"
             pytest
-            flake8
             
       - name: send failure message
         if: ${{ failure() }}
@@ -88,7 +91,7 @@ jobs:
 
     runs-on: self-hosted
     if: ${{ github.ref == 'refs/heads/development' }}
-    needs: [ sonar ]
+    needs: [ test ]
     steps:
       - uses: actions/checkout@v2     
       -  name: Login to registry
