@@ -7,6 +7,8 @@ from django.template.loader import render_to_string
 from rest_framework import serializers
 from rest_framework.pagination import PageNumberPagination
 
+from .models import ImagemDoProduto
+
 
 def agrupa_por_terceirizada(queryset):  # noqa C901
     agrupado = []
@@ -122,6 +124,19 @@ class ItemCadastroPagination(PageNumberPagination):
 
 def compara_lista_imagens(anterior, proxima):  # noqa C901
     adicoes = []
+    lista_de_paths_proxima = []
+
+    [lista_de_paths_proxima.append(imagem_p.get('arquivo')) for imagem_p in proxima]
+
+    lista_imagens_anterior = anterior
+
+    for imagem_a in lista_imagens_anterior:
+        url_imagem_a = imagem_a.arquivo.url
+        imagem_a_continua_na_lista = any(url_imagem_a in path_image_p for path_image_p in lista_de_paths_proxima)
+        if not imagem_a_continua_na_lista:
+            uuid_imagem_a = imagem_a.uuid
+            ImagemDoProduto.objects.get(uuid=uuid_imagem_a).delete()
+            lista_imagens_anterior = lista_imagens_anterior.exclude(id=imagem_a.id)
 
     for imagem_p in proxima:
         for imagem_a in anterior:

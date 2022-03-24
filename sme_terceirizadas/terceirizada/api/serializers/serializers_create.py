@@ -10,7 +10,7 @@ from ....dados_comuns.models import Contato
 from ....dados_comuns.utils import update_instance_from_dict
 from ....escola.models import DiretoriaRegional, Lote
 from ....perfil.api.serializers import SuperAdminTerceirizadaSerializer, UsuarioUpdateSerializer
-from ....perfil.models import Usuario
+from ....perfil.models import Perfil, Usuario
 from ...models import Contrato, Edital, Nutricionista, Terceirizada, VigenciaContrato
 
 
@@ -206,6 +206,7 @@ class TerceirizadaCreateSerializer(serializers.ModelSerializer):
         usuario.enviar_email_administrador()
 
     def atualizar_super_admin_terceirizada(self, dados_usuario, terceirizada): # noqa C901
+        dados_usuario_original = dados_usuario.copy()
         contatos = dados_usuario.pop('contatos')
         email = dados_usuario.get('email')
         cpf = dados_usuario.get('cpf')
@@ -225,21 +226,24 @@ class TerceirizadaCreateSerializer(serializers.ModelSerializer):
                 raise ValidationError('Usuario com este Email já existe.')
             novo_email = True
 
-        super_admin.nome = nome
-        super_admin.email = email
-        super_admin.cpf = cpf
-        super_admin.cargo = cargo
-
         if novo_email:
-            super_admin.enviar_email_administrador()
-            super_admin.is_active = False
-
-        super_admin.save()
-        for contato in contatos:
-            email = contato.get('email', '')
-            telefone = contato.get('telefone', '')
-            contato = Contato.objects.create(email=email, telefone=telefone)
-            super_admin.contatos.add(contato)
+            self.criar_super_admin_terceirizada(dados_usuario_original, terceirizada)
+        else:
+            super_admin.nome = nome
+            super_admin.email = email
+            super_admin.cpf = cpf
+            super_admin.cargo = cargo
+            super_admin.crn_numero = None
+            vinculo_atual = super_admin.vinculo_atual
+            vinculo_atual.perfil = Perfil.objects.get(nome='ADMINISTRADOR_TERCEIRIZADA')
+            vinculo_atual.perfil.save()
+            vinculo_atual.save()
+            super_admin.save()
+            for contato in contatos:
+                email = contato.get('email', '')
+                telefone = contato.get('telefone', '')
+                contato = Contato.objects.create(email=email, telefone=telefone)
+                super_admin.contatos.add(contato)
 
     class Meta:
         model = Terceirizada

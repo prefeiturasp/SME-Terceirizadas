@@ -444,6 +444,56 @@ class HomologacaoProdutoViewSet(viewsets.ModelViewSet):
                             status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=True,  # noqa C901
+            permission_classes=(UsuarioCODAEGestaoProduto,),
+            methods=['patch'],
+            url_path=constants.CODAE_CANCELA_ANALISE_SENSORIAL)
+    def codae_cancela_analise_sensorial(self, request, uuid=None):
+        from sme_terceirizadas.produto.models import AnaliseSensorial
+        homologacao_produto = self.get_object()
+        _status = LogSolicitacoesUsuario.STATUS_POSSIVEIS
+        status = {v: k for (k, v) in _status}
+        try:
+            justificativa = request.data.get('justificativa', '')
+            logs = homologacao_produto.logs
+            log_anterior_pedido_analise = logs[logs.count() - 2]
+            homologacao_produto.codae_cancela_analise_sensorial(
+                user=request.user, justificativa=justificativa,
+            )
+
+            if log_anterior_pedido_analise.status_evento == status['Escola/Nutricionista reclamou do produto']:
+                homologacao_produto.escola_ou_nutricionista_reclamou(
+                    user=log_anterior_pedido_analise.usuario,
+                    reclamacao={'reclamacao': log_anterior_pedido_analise.justificativa},
+                    nao_enviar_email=True
+                )
+                ultima_reclamacao = homologacao_produto.reclamacoes.last()
+                ultima_reclamacao.codae_cancela_analise_sensorial(
+                    user=log_anterior_pedido_analise.usuario,
+                    anexos=ultima_reclamacao.anexos.all(),
+                    justificativa=ultima_reclamacao.reclamacao
+                )
+            elif log_anterior_pedido_analise.status_evento == status['Solicitação Realizada']:
+                homologacao_produto.inicia_fluxo(user=log_anterior_pedido_analise.usuario)
+            elif log_anterior_pedido_analise.status_evento == status['CODAE homologou']:
+                homologacao_produto.codae_homologa(
+                    user=log_anterior_pedido_analise.usuario,
+                    anexos=log_anterior_pedido_analise.anexos.all(),
+                    justificativa=log_anterior_pedido_analise.justificativa,
+                    nao_enviar_email=True
+                )
+
+            homologacao_produto.protocolo_analise_sensorial = ''
+            uuid_ultima_analise = homologacao_produto.ultima_analise.uuid
+            AnaliseSensorial.objects.get(uuid=uuid_ultima_analise).delete()
+            homologacao_produto.save()
+
+            serializer = self.get_serializer(homologacao_produto)
+            return Response(serializer.data)
+        except InvalidTransitionError as e:
+            return Response(dict(detail=f'Erro de transição de estado: {e}'),
+                            status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True,  # noqa C901
             permission_classes=[PermissaoParaReclamarDeProduto],
             methods=['patch'],
             url_path=constants.ESCOLA_OU_NUTRI_RECLAMA)

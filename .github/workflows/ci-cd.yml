@@ -41,7 +41,7 @@ jobs:
             Repository: ${{ github.repository }}            
             See changes: https://github.com/${{ github.repository }}/commit/${{github.sha}}
             Actions: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-            
+
       - name: send message asking for aprove
         if: ${{ ( github.ref == 'refs/heads/master') && ( success() ) }}
         uses: appleboy/telegram-action@master
@@ -56,7 +56,7 @@ jobs:
             See changes: https://github.com/${{ github.repository }}/commit/${{github.sha}}
             🚀🚀🚀
             To aprove: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-             
+
   deploy-hom:
   
     runs-on: self-hosted

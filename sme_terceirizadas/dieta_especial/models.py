@@ -50,6 +50,7 @@ class SolicitacaoDietaEspecial(
         ('COMUM', 'Comum'),
         ('ALUNO_NAO_MATRICULADO', 'Aluno não matriculado'),
         ('ALTERACAO_UE', 'Alteração U.E'),
+        ('CANCELAMENTO_DIETA', 'Cancelamento de dieta especial'),
     ]
 
     aluno = models.ForeignKey(

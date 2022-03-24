@@ -335,11 +335,11 @@ class DietaEspecialWorkflow(xwf_models.Workflow):
         ('codae_autoriza', [RASCUNHO, CODAE_A_AUTORIZAR], CODAE_AUTORIZADO),
         ('terceirizada_toma_ciencia', CODAE_AUTORIZADO, TERCEIRIZADA_TOMOU_CIENCIA),
         ('cancelar_pedido', [CODAE_A_AUTORIZAR,
-                             ESCOLA_SOLICITOU_INATIVACAO], ESCOLA_CANCELOU),
+                             ESCOLA_SOLICITOU_INATIVACAO, CODAE_AUTORIZADO], ESCOLA_CANCELOU),
         ('negar_cancelamento_pedido', [CODAE_A_AUTORIZAR,
                                        ESCOLA_SOLICITOU_INATIVACAO], CODAE_NEGOU_CANCELAMENTO),
         ('inicia_fluxo_inativacao', [
-            CODAE_AUTORIZADO, TERCEIRIZADA_TOMOU_CIENCIA], ESCOLA_SOLICITOU_INATIVACAO),
+            RASCUNHO, CODAE_AUTORIZADO, TERCEIRIZADA_TOMOU_CIENCIA], ESCOLA_SOLICITOU_INATIVACAO),
         ('codae_nega_inativacao', ESCOLA_SOLICITOU_INATIVACAO, CODAE_NEGOU_INATIVACAO),
         ('codae_autoriza_inativacao',
          ESCOLA_SOLICITOU_INATIVACAO, CODAE_AUTORIZOU_INATIVACAO),
@@ -363,6 +363,7 @@ class HomologacaoProdutoWorkflow(xwf_models.Workflow):
     CODAE_NAO_HOMOLOGADO = 'CODAE_NAO_HOMOLOGADO'
     CODAE_QUESTIONADO = 'CODAE_QUESTIONADO'
     CODAE_PEDIU_ANALISE_SENSORIAL = 'CODAE_PEDIU_ANALISE_SENSORIAL'
+    CODAE_CANCELOU_ANALISE_SENSORIAL = 'CODAE_CANCELOU_ANALISE_SENSORIAL'
     TERCEIRIZADA_CANCELOU = 'TERCEIRIZADA_CANCELOU'
     INATIVA = 'HOMOLOGACAO_INATIVA'
     CODAE_SUSPENDEU = 'CODAE_SUSPENDEU'
@@ -383,6 +384,7 @@ class HomologacaoProdutoWorkflow(xwf_models.Workflow):
         (CODAE_NAO_HOMOLOGADO, 'CODAE não homologou'),
         (CODAE_QUESTIONADO, 'CODAE pediu correção'),
         (CODAE_PEDIU_ANALISE_SENSORIAL, 'CODAE pediu análise sensorial'),
+        (CODAE_CANCELOU_ANALISE_SENSORIAL, 'CODAE cancelou análise sensorial'),
         (TERCEIRIZADA_CANCELOU, 'Terceirizada cancelou homologação'),
         (INATIVA, 'Homologação inativada'),
         (CODAE_SUSPENDEU, 'CODAE suspendeu o produto'),
@@ -399,11 +401,13 @@ class HomologacaoProdutoWorkflow(xwf_models.Workflow):
     )
 
     transitions = (
-        ('inicia_fluxo', [RASCUNHO, CODAE_AUTORIZOU_RECLAMACAO],
-         CODAE_PENDENTE_HOMOLOGACAO),
+        ('inicia_fluxo',
+         [RASCUNHO,
+          CODAE_AUTORIZOU_RECLAMACAO,
+          CODAE_CANCELOU_ANALISE_SENSORIAL], CODAE_PENDENTE_HOMOLOGACAO),
         ('codae_homologa', [CODAE_PENDENTE_HOMOLOGACAO, CODAE_PEDIU_ANALISE_SENSORIAL,
                             TERCEIRIZADA_RESPONDEU_RECLAMACAO, CODAE_SUSPENDEU,
-                            ESCOLA_OU_NUTRICIONISTA_RECLAMOU],
+                            ESCOLA_OU_NUTRICIONISTA_RECLAMOU, CODAE_CANCELOU_ANALISE_SENSORIAL],
          CODAE_HOMOLOGADO),
         ('codae_nao_homologa', [CODAE_PENDENTE_HOMOLOGACAO,
                                 CODAE_PEDIU_ANALISE_SENSORIAL], CODAE_NAO_HOMOLOGADO),
@@ -416,12 +420,15 @@ class HomologacaoProdutoWorkflow(xwf_models.Workflow):
           ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
           TERCEIRIZADA_RESPONDEU_RECLAMACAO,
           CODAE_HOMOLOGADO], CODAE_PEDIU_ANALISE_SENSORIAL),
+        ('codae_cancela_analise_sensorial',
+         CODAE_PEDIU_ANALISE_SENSORIAL, CODAE_CANCELOU_ANALISE_SENSORIAL),
         ('terceirizada_responde_analise_sensorial',
          CODAE_PEDIU_ANALISE_SENSORIAL, CODAE_PENDENTE_HOMOLOGACAO),
         ('codae_suspende', CODAE_HOMOLOGADO, CODAE_SUSPENDEU),
         ('codae_ativa', CODAE_SUSPENDEU, CODAE_HOMOLOGADO),
         ('escola_ou_nutricionista_reclamou',
-         CODAE_HOMOLOGADO, ESCOLA_OU_NUTRICIONISTA_RECLAMOU),
+         [CODAE_HOMOLOGADO,
+          CODAE_CANCELOU_ANALISE_SENSORIAL], ESCOLA_OU_NUTRICIONISTA_RECLAMOU),
         ('codae_questiona_ue',
          [UE_RESPONDEU_QUESTIONAMENTO,
           NUTRISUPERVISOR_RESPONDEU_QUESTIONAMENTO,
@@ -1256,6 +1263,14 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
         self._envia_email_codae_pede_analise_sensorial(
             log_transicao=log_transicao, link_pdf=kwargs['link_pdf'])
 
+    @xworkflows.after_transition('codae_cancela_analise_sensorial')
+    def _codae_cancela_analise_sensorial_hook(self, *args, **kwargs):
+        user = kwargs['user']
+        justificativa = kwargs.get('justificativa', '')
+        self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_CANCELOU_ANALISE_SENSORIAL,
+                                  usuario=user,
+                                  justificativa=justificativa)
+
     @xworkflows.after_transition('terceirizada_cancelou_solicitacao_homologacao')
     def _terceirizada_cancelou_solicitacao_homologacao_hook(self, *args, **kwargs):
         user = kwargs['user']
@@ -1364,7 +1379,8 @@ class FluxoHomologacaoProduto(xwf_models.WorkflowEnabled, models.Model):
             usuario=user,
             justificativa=reclamacao['reclamacao'],
         )
-        self._envia_email_escola_ou_nutricionista_reclamou(reclamacao)
+        if not kwargs.get('nao_enviar_email', None):
+            self._envia_email_escola_ou_nutricionista_reclamou(reclamacao)
 
     def salva_log_com_justificativa_e_anexos(self, evento, request):
         log_transicao = self.salvar_log_transicao(
@@ -2414,6 +2430,7 @@ class ReclamacaoProdutoWorkflow(xwf_models.Workflow):
                                           RESPONDIDO_TERCEIRIZADA,
                                           RESPONDIDO_NUTRISUPERVISOR,
                                           RESPONDIDO_UE], AGUARDANDO_ANALISE_SENSORIAL),
+        ('codae_cancela_analise_sensorial', AGUARDANDO_ANALISE_SENSORIAL, AGUARDANDO_AVALIACAO),
         ('terceirizada_responde_analise_sensorial', AGUARDANDO_ANALISE_SENSORIAL, ANALISE_SENSORIAL_RESPONDIDA)
     )
 
@@ -2547,6 +2564,12 @@ class FluxoReclamacaoProduto(xwf_models.WorkflowEnabled, models.Model):
     def _codae_pede_analise_sensorial_hook(self, *args, **kwargs):
         self.salvar_log_transicao(
             status_evento=LogSolicitacoesUsuario.CODAE_PEDIU_ANALISE_SENSORIAL,
+            **kwargs)
+
+    @xworkflows.after_transition('codae_cancela_analise_sensorial')
+    def _codae_cancela_analise_sensorial_hook(self, *args, **kwargs):
+        self.salvar_log_transicao(
+            status_evento=LogSolicitacoesUsuario.ESCOLA_OU_NUTRICIONISTA_RECLAMOU,
             **kwargs)
 
     @xworkflows.after_transition('terceirizada_responde_analise_sensorial')

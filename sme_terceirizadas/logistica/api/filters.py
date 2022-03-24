@@ -15,7 +15,7 @@ class SolicitacaoFilter(filters.FilterSet):
     )
     numero_requisicao = filters.CharFilter(
         field_name='numero_solicitacao',
-        lookup_expr='exact',
+        lookup_expr='icontains',
     )
     nome_distribuidor = filters.CharFilter(
         field_name='distribuidor__nome_fantasia',
@@ -70,7 +70,7 @@ class GuiaFilter(filters.FilterSet):
     )
     numero_requisicao = filters.CharFilter(
         field_name='solicitacao__numero_solicitacao',
-        lookup_expr='exact',
+        lookup_expr='icontains',
     )
     data_inicial = filters.DateFilter(
         field_name='data_entrega',
@@ -94,7 +94,7 @@ class SolicitacaoAlteracaoFilter(filters.FilterSet):
     )
     numero_requisicao = filters.CharFilter(
         field_name='requisicao__numero_solicitacao',
-        lookup_expr='exact',
+        lookup_expr='icontains',
     )
     nome_distribuidor = filters.CharFilter(
         field_name='requisicao__distribuidor__razao_social',

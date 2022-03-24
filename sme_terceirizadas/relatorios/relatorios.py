@@ -246,11 +246,13 @@ def relatorio_dieta_especial_protocolo(request, solicitacao):
         escola = solicitacao.rastro_escola
     else:
         escola = solicitacao.escola_destino
+    substituicao_ordenada = solicitacao.substituicoes.order_by('alimento__nome')
     html_string = render_to_string(
         'solicitacao_dieta_especial_protocolo.html',
         {
             'escola': escola,
             'solicitacao': solicitacao,
+            'substituicoes': substituicao_ordenada,
             'data_termino': solicitacao.data_termino,
             'log_autorizacao': solicitacao.logs.get(status_evento=LogSolicitacoesUsuario.CODAE_AUTORIZOU)
         }

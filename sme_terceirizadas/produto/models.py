@@ -241,7 +241,7 @@ class HomologacaoDoProduto(TemChaveExterna, CriadoEm, CriadoPor, FluxoHomologaca
     @property
     def data_cadastro(self):
         if self.status != self.workflow_class.RASCUNHO:
-            log = self.logs.get(status_evento=LogSolicitacoesUsuario.INICIO_FLUXO)
+            log = self.logs.filter(status_evento=LogSolicitacoesUsuario.INICIO_FLUXO).first()
             return log.criado_em.date()
 
     @property
