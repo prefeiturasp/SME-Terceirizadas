@@ -2,7 +2,7 @@ import pytest
 from django.contrib import admin
 from model_mommy import mommy
 
-from ..models import Notificacao
+from ..models import CentralDeDownload, Notificacao
 
 pytestmark = pytest.mark.django_db
 
@@ -100,3 +100,24 @@ def test_resolver_pendencia(notificacao_de_pendencia_com_requisicao):
     assert obj2.requisicao == notificacao_de_pendencia_com_requisicao.requisicao
     assert obj2.resolvido is True
     assert obj2.lido is True
+
+
+def test_instance_model_central_download(download, django_user_model):
+    model = download
+    assert isinstance(model, CentralDeDownload)
+    assert model.status
+    assert model.identificador
+    assert model.arquivo
+    assert isinstance(model.usuario, django_user_model)
+    assert model.criado_em
+    assert model.uuid
+    assert model.id
+
+
+def test_srt_model_central_download(download):
+    assert str(download) == 'teste.pdf'
+
+
+def test_meta_modelo_central_download(download):
+    assert download._meta.verbose_name == 'Central de Download'
+    assert download._meta.verbose_name_plural == 'Central de Downloads'
