@@ -522,7 +522,7 @@ class CentralDeDownload(models.Model):
 
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     identificador = models.CharField('Nome do arquivo', max_length=200, default='')
-    arquivo = models.FileField(blank=True, verbose_name='Arquivo')
+    arquivo = models.FileField(blank=True, verbose_name='Arquivo', upload_to='cental_downloads')
     status = models.CharField(
         'status',
         max_length=20,
@@ -537,3 +537,10 @@ class CentralDeDownload(models.Model):
     class Meta:
         verbose_name = 'Central de Download'
         verbose_name_plural = 'Central de Downloads'''
+
+    def __str__(self):
+        return self.identificador
+
+    def delete(self, using=None, keep_parents=False):
+        self.arquivo.storage.delete(self.arquivo.name)
+        super().delete()
