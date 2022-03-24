@@ -16,6 +16,7 @@ router.register('perguntas-frequentes', viewsets.PerguntaFrequenteViewSet, basen
 router.register('categorias-pergunta-frequente', viewsets.CategoriaPerguntaFrequenteViewSet,
                 basename='Categorias de Pergunta Frequente')
 router.register('notificacoes', viewsets.NotificacaoViewSet, basename='Notificações')
+router.register('downloads', viewsets.CentralDeDownloadViewSet, basename='Downloads')
 
 urlpatterns = [
     path('', include(router.urls)),
