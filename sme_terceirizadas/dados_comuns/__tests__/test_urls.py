@@ -290,12 +290,13 @@ def test_delete_download(usuario_teste_notificacao_autenticado, download):
 
 def test_get_download_filters(usuario_teste_notificacao_autenticado, download):
     user, client = usuario_teste_notificacao_autenticado
-    rota = f'/downloads/?uuid={str(download.uuid)}' + \
-           f'&identificador={download.identificador}' + \
-           f'&status={CentralDeDownload.STATUS_CONCLUIDO}' + \
-           f'&data_geracao={download.criado_em.strftime("%d/%m/%Y")}' + \
-           f'&visto={download.visto}'.lower()
-    response = client.get(rota, content_type='application/json')
+    rota = f"""/downloads/?uuid={str(download.uuid)}
+           &identificador={download.identificador}
+           &status={CentralDeDownload.STATUS_CONCLUIDO}
+           &data_geracao={download.criado_em.strftime("%d/%m/%Y")}
+           &visto={str(download.visto).lower()}'"""
+    url = rota.replace('\n', '').replace(' ', '')
+    response = client.get(url, content_type='application/json')
     result = json.loads(response.content)
     esperado = {
         'count': 1,
