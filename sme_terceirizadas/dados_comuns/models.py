@@ -536,7 +536,7 @@ class CentralDeDownload(models.Model):
 
     class Meta:
         verbose_name = 'Central de Download'
-        verbose_name_plural = 'Central de Downloads'''
+        verbose_name_plural = 'Central de Downloads'
 
     def __str__(self):
         return self.identificador
