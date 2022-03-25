@@ -286,3 +286,33 @@ def test_delete_download(usuario_teste_notificacao_autenticado, download):
     response = client.delete(
         f'/downloads/{download.uuid}/', content_type='application/json')
     assert response.status_code == status.HTTP_204_NO_CONTENT
+
+
+def test_get_download_filters(usuario_teste_notificacao_autenticado, download):
+    user, client = usuario_teste_notificacao_autenticado
+    rota = f"""/downloads/?uuid={str(download.uuid)}
+           &identificador={download.identificador}
+           &status={CentralDeDownload.STATUS_CONCLUIDO}
+           &data_geracao={download.criado_em.strftime("%d/%m/%Y")}
+           &visto={str(download.visto).lower()}'"""
+    url = rota.replace('\n', '').replace(' ', '')
+    response = client.get(url, content_type='application/json')
+    result = json.loads(response.content)
+    esperado = {
+        'count': 1,
+        'next': None,
+        'previous': None,
+        'results': [
+            {
+                'uuid': str(download.uuid),
+                'identificador': download.identificador,
+                'data_criacao': download.criado_em.strftime('%d/%m/%Y ás %H:%M'),
+                'status': CentralDeDownload.STATUS_NOMES[download.status],
+                'arquivo': f'http://testserver{download.arquivo.url}',
+                'visto': download.visto,
+                'msg_erro': download.msg_erro
+            }
+        ]
+    }
+    assert response.status_code == status.HTTP_200_OK
+    assert result == esperado
