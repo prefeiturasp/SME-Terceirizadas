@@ -321,7 +321,8 @@ class HomologacaoProdutoPainelGerencialViewSet(viewsets.ModelViewSet):
                 filtros['status__in'] = status__in
             else:
                 filtros['status'] = filtro_aplicado.upper()
-        query_set = self.get_queryset().filter(**filtros).distinct()
+        query_set = sorted(self.get_queryset().filter(**filtros).distinct(),
+                           key=lambda x: x.ultimo_log.criado_em, reverse=True)
         if page:
             page = self.paginate_queryset(query_set)
             serializer = self.get_serializer(page, many=True)
