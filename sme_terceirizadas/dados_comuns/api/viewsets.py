@@ -15,7 +15,7 @@ from ..behaviors import DiasSemana, TempoPasseio
 from ..constants import TEMPO_CACHE_1H, TEMPO_CACHE_6H, obter_dias_uteis_apos_hoje
 from ..models import CategoriaPerguntaFrequente, CentralDeDownload, Notificacao, PerguntaFrequente, TemplateMensagem
 from ..permissions import UsuarioCODAEGestaoAlimentacao
-from .filters import NotificacaoFilter
+from .filters import CentralDeDownloadFilter, NotificacaoFilter
 from .serializers import (
     CategoriaPerguntaFrequenteSerializer,
     CentralDeDownloadSerializer,
@@ -235,6 +235,8 @@ class CentralDeDownloadViewSet(viewsets.ModelViewSet):
     queryset = CentralDeDownload.objects.all()
     serializer_class = CentralDeDownloadSerializer
     pagination_class = DownloadPagination
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = CentralDeDownloadFilter
 
     def get_queryset(self):
         qs = CentralDeDownload.objects.filter(usuario=self.request.user).all().order_by('-criado_em')
