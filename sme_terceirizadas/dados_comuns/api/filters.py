@@ -1,6 +1,6 @@
 from django_filters import rest_framework as filters
 
-from ..models import CentralDeDownload, Notificacao
+from ..models import Notificacao
 
 
 class NotificacaoFilter(filters.FilterSet):
@@ -38,9 +38,9 @@ class CentralDeDownloadFilter(filters.FilterSet):
         field_name='identificador',
         lookup_expr='exact',
     )
-    status = filters.MultipleChoiceFilter(
+    status = filters.CharFilter(
         field_name='status',
-        choices=[(str(status), status) for status in CentralDeDownload.STATUS_NOMES],
+        lookup_expr='exact',
     )
     data_geracao = filters.DateFilter(
         field_name='criado_em__date',
