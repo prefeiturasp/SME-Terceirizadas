@@ -104,6 +104,10 @@ No futuro, o sistema também contará com módulos que apoiarão o trabalho da c
 
 - Release 7 - Supervisão
 
+Detalhamento do roadmap> https://whimsical.com/roadmap-geral-sigpae-C2tThx2G9GpuVviBeHZ5me@VsSo8s35X1aaSatHxnJFRV 
+
+Fluxos: https://whimsical.com/fluxos-i7SkAADB94XRhRMd2afif
+
 # Sobre o Time
 
 | Papel | Titular | Suplente  
