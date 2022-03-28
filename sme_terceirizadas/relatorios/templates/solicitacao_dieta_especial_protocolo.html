@@ -49,7 +49,7 @@
     {% endif %}
     <table>
       <tr>
-        <th class="w-25">Data de aceite do laudo</th>
+        <th class="w-25">Data da autorização da Dieta</th>
         <th class="w-40">Data de término da dieta</th>
         <th class="w-25" />
       </tr>
@@ -73,8 +73,8 @@
     <thead>
       <tr>
         <th>Alimento</th>
-        <th>Tipo</th>
         <th>Isenção/Substituição</th>
+        <th>Alimento/Ingrediente</th>
       </tr>
     </thead>
     <tbody>
@@ -83,9 +83,9 @@
         <td>{{ substituicao.alimento }}</td>
         <td className="tipo">
           {% if substituicao.tipo == 'I' %}
-          Isenção
+          Isento
           {% elif substituicao.tipo == 'S' %}
-          Substituição
+          Substituir
           {% endif %}
         </td>
         <td>
