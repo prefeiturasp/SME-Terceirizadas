@@ -530,7 +530,6 @@ def test_url_endpoint_alt_card_criar(client_autenticado_vinculo_escola_cardapio,
     if hoje.month == 12 and hoje.day == 30:
         return
     dia_alteracao = daqui_dez_dias_ou_ultimo_dia_do_ano()
-    (data_inicial, data_final, combo1, combo2, substituicao1, substituicao2) = alteracao_substituicoes_params
     data = {
         'motivo': str(motivo_alteracao_cardapio.uuid),
         'alterar_dia': dia_alteracao.isoformat(),
@@ -538,9 +537,7 @@ def test_url_endpoint_alt_card_criar(client_autenticado_vinculo_escola_cardapio,
         'data_final': dia_alteracao.isoformat(),
         'escola': escola.uuid,
         'substituicoes': [{
-            'periodo_escolar': str(periodo_escolar.uuid),
-            'tipo_alimentacao_de': str(combo1.uuid),
-            'tipo_alimentacao_para': str(substituicao1.uuid),
+            'combos': alteracao_substituicoes_params['substituicoes'],
             'qtd_alunos': 10
         }]
     }
@@ -560,9 +557,7 @@ def test_url_endpoint_alt_card_criar(client_autenticado_vinculo_escola_cardapio,
     assert resp_json['motivo'] == str(motivo_alteracao_cardapio.uuid)
 
     substituicao = resp_json['substituicoes'][0]
-    assert substituicao['periodo_escolar'] == str(periodo_escolar.uuid)
-    assert substituicao['tipo_alimentacao_de'] == str(combo1.uuid)
-    assert substituicao['tipo_alimentacao_para'] == str(substituicao1.uuid)
+    assert substituicao['combos'] == str(periodo_escolar.uuid)
     assert substituicao['qtd_alunos'] == 10
 
 

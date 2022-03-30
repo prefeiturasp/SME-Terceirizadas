@@ -555,21 +555,35 @@ def suspensao_alimentacao_parametros_semana(request):
 def alteracao_card_params(request):
     alimentacao1 = mommy.make('cardapio.TipoAlimentacao', nome='tp_alimentacao1')
     alimentacao2 = mommy.make('cardapio.TipoAlimentacao', nome='tp_alimentacao2')
-    alimentacao3 = mommy.make('cardapio.TipoAlimentacao', nome='tp_alimentacao3')
-    alimentacao4 = mommy.make('cardapio.TipoAlimentacao', nome='tp_alimentacao4')
-    alimentacao5 = mommy.make('cardapio.TipoAlimentacao', nome='tp_alimentacao5')
-    combo1 = mommy.make('cardapio.ComboDoVinculoTipoAlimentacaoPeriodoTipoUE',
-                        tipos_alimentacao=[alimentacao1, alimentacao5])
-    combo2 = mommy.make('cardapio.ComboDoVinculoTipoAlimentacaoPeriodoTipoUE',
-                        tipos_alimentacao=[alimentacao2, alimentacao4])
     substituicao1 = mommy.make('cardapio.SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE',
-                               tipos_alimentacao=[alimentacao3, alimentacao1], combo=combo1)
+                               nome='substituicao1')
     substituicao2 = mommy.make('cardapio.SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE',
-                               tipos_alimentacao=[alimentacao5, alimentacao2], combo=combo2)
+                               nome='substituicao2')
+    tipo_unidade_escolar = mommy.make('TipoUnidadeEscolar', iniciais='EMEF')
+    periodo_escolar1 = mommy.make('PeriodoEscolar', nome='MANHA')
+    periodo_escolar2 = mommy.make('PeriodoEscolar', nome='TARDE')
+    vinculo1 =  mommy.make('VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar',
+                          tipo_unidade_escolar=tipo_unidade_escolar,
+                          periodo_escolar=periodo_escolar1)
+    vinculo2 =  mommy.make('VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar',
+                          tipo_unidade_escolar=tipo_unidade_escolar,
+                          periodo_escolar=periodo_escolar2)
+    combo1 = mommy.make('ComboDoVinculoTipoAlimentacaoPeriodoTipoUE',
+                        tipo_alimentacao=alimentacao1,
+                        substituicao=substituicao1,
+                        vinculo=vinculo1)
+    combo2 = mommy.make('ComboDoVinculoTipoAlimentacaoPeriodoTipoUE',
+                        tipo_alimentacao=alimentacao2,
+                        substituicao=substituicao2,
+                        vinculo=vinculo2)
     motivo = mommy.make('cardapio.MotivoSuspensao', nome='outro', uuid='478b09e1-4c14-4e50-a446-fbc0af727a09')
-
     data_inicial, data_final = request.param
-    return motivo, data_inicial, data_final, combo1, combo2, substituicao1, substituicao2
+
+    return {'motivo': motivo,
+            'data_inicial': data_inicial,
+            'data_final': data_final,
+            'substituicoes': [{'tipo_alimentacao_de': combo1.tipo_alimentacao, 'vinculo': combo1.vinculo, 'tipo_alimentacao_para': combo1.substituicao},
+                              {'tipo_alimentacao_de': combo2.tipo_alimentacao, 'vinculo': combo2.vinculo, 'tipo_alimentacao_para': combo2.substituicao}]}
 
 
 @pytest.fixture(params=[
@@ -582,22 +596,33 @@ def alteracao_card_params(request):
 def alteracao_substituicoes_params(request):
     alimentacao1 = mommy.make('cardapio.TipoAlimentacao', nome='tp_alimentacao1')
     alimentacao2 = mommy.make('cardapio.TipoAlimentacao', nome='tp_alimentacao2')
-    alimentacao3 = mommy.make('cardapio.TipoAlimentacao', nome='tp_alimentacao3')
-    alimentacao4 = mommy.make('cardapio.TipoAlimentacao', nome='tp_alimentacao4')
-    alimentacao5 = mommy.make('cardapio.TipoAlimentacao', nome='tp_alimentacao5')
-    combo1 = mommy.make('cardapio.ComboDoVinculoTipoAlimentacaoPeriodoTipoUE',
-                        tipos_alimentacao=[alimentacao1, alimentacao3, alimentacao5])
-    combo2 = mommy.make('cardapio.ComboDoVinculoTipoAlimentacaoPeriodoTipoUE',
-                        tipos_alimentacao=[alimentacao2, alimentacao3, alimentacao4])
     substituicao1 = mommy.make('cardapio.SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE',
-                               tipos_alimentacao=[alimentacao2, alimentacao4],
-                               combo=combo1)
+                               nome='substituicao1')
     substituicao2 = mommy.make('cardapio.SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE',
-                               tipos_alimentacao=[alimentacao1, alimentacao5],
-                               combo=combo2)
-
+                               nome='substituicao2')
+    tipo_unidade_escolar = mommy.make('TipoUnidadeEscolar', iniciais='EMEF')
+    periodo_escolar1 = mommy.make('PeriodoEscolar', nome='MANHA')
+    periodo_escolar2 = mommy.make('PeriodoEscolar', nome='TARDE')
+    vinculo1 =  mommy.make('VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar',
+                          tipo_unidade_escolar=tipo_unidade_escolar,
+                          periodo_escolar=periodo_escolar1)
+    vinculo2 =  mommy.make('VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar',
+                          tipo_unidade_escolar=tipo_unidade_escolar,
+                          periodo_escolar=periodo_escolar2)
+    combo1 = mommy.make('ComboDoVinculoTipoAlimentacaoPeriodoTipoUE',
+                        tipo_alimentacao=alimentacao1,
+                        substituicao=substituicao1,
+                        vinculo=vinculo1)
+    combo2 = mommy.make('ComboDoVinculoTipoAlimentacaoPeriodoTipoUE',
+                        tipo_alimentacao=alimentacao2,
+                        substituicao=substituicao2,
+                        vinculo=vinculo2)
     data_inicial, data_final = request.param
-    return data_inicial, data_final, combo1, combo2, substituicao1, substituicao2
+
+    return {'data_inicial': data_inicial,
+            'data_final': data_final,
+            'substituicoes': [{'tipo_alimentacao_de': combo1.tipo_alimentacao, 'vinculo': combo1.vinculo, 'tipo_alimentacao_para': combo1.substituicao},
+                              {'tipo_alimentacao_de': combo2.tipo_alimentacao, 'vinculo': combo2.vinculo, 'tipo_alimentacao_para': combo2.substituicao}]}
 
 
 @pytest.fixture(params=[
@@ -660,14 +685,21 @@ def faixas_etarias_ativas():
 ])
 def vinculo_tipo_alimentacao(request):
     nome_periodo, nome_ue = request.param
-    alimentacoes = mommy.make('TipoAlimentacao', _quantity=4)
-    combos = mommy.make('ComboDoVinculoTipoAlimentacaoPeriodoTipoUE', tipos_alimentacao=alimentacoes, _quantity=5)
+    tipos_alimentacao = mommy.make('TipoAlimentacao', _quantity=5)
+    substitutos = mommy.make('SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE', _quantity=5)
     tipo_unidade_escolar = mommy.make('TipoUnidadeEscolar', iniciais=nome_ue)
     periodo_escolar = mommy.make('PeriodoEscolar', nome=nome_periodo)
-    return mommy.make('VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar', combos=combos,
-                      uuid='3bdf8144-9b17-495a-8387-5ce0d2a6120a',
-                      tipo_unidade_escolar=tipo_unidade_escolar,
-                      periodo_escolar=periodo_escolar)
+    vinculo =  mommy.make('VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar',
+                          uuid='3bdf8144-9b17-495a-8387-5ce0d2a6120a',
+                          tipo_unidade_escolar=tipo_unidade_escolar,
+                          periodo_escolar=periodo_escolar)
+    for i in range(5):
+        j = len(substitutos) - 1
+        combo = mommy.make('ComboDoVinculoTipoAlimentacaoPeriodoTipoUE',
+                           tipo_alimentacao=tipos_alimentacao[i],
+                           substituicao=substitutos[j],
+                           vinculo=vinculo)
+    return vinculo
 
 
 @pytest.fixture(params=[
@@ -676,17 +708,17 @@ def vinculo_tipo_alimentacao(request):
 ])
 def horario_combo_tipo_alimentacao(request, vinculo_tipo_alimentacao, escola_com_periodos_e_horarios_combos):
     hora_inicio, hora_fim = request.param
-    escola = escola_com_periodos_e_horarios_combos
-    tp_alimentacao1 = mommy.make('TipoAlimentacao', nome='Lanche', uuid='c42a24bb-14f8-4871-9ee8-05bc42cf3061')
-    tp_alimentacao2 = mommy.make('TipoAlimentacao', nome='Refeição', uuid='22596464-271e-448d-bcb3-adaba43fffc8')
+    tipo_alimentacao = mommy.make('TipoAlimentacao', nome='Lanche', uuid='c42a24bb-14f8-4871-9ee8-05bc42cf3061')
+    substituicao = mommy.make('SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE', nome='Refeição', uuid='22596464-271e-448d-bcb3-adaba43fffc8')
     combo = mommy.make('ComboDoVinculoTipoAlimentacaoPeriodoTipoUE',
-                       tipos_alimentacao=[tp_alimentacao1, tp_alimentacao2],
+                       tipo_alimentacao=tipo_alimentacao,
+                       substituicao=substituicao,
                        vinculo=vinculo_tipo_alimentacao,
                        uuid='9fe31f4a-716b-4677-9d7d-2868557cf954')
     return mommy.make('HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolar',
                       hora_inicial=hora_inicio,
                       hora_final=hora_fim,
-                      escola=escola,
+                      escola=escola_com_periodos_e_horarios_combos,
                       combo_tipos_alimentacao=combo)
 
 
