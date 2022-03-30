@@ -7,7 +7,7 @@ from django.http import HttpResponse
 from django_weasyprint.utils import django_url_fetcher
 from pikepdf import Pdf
 from PyPDF4 import PdfFileReader, PdfFileWriter
-from weasyprint import CSS, HTML
+from weasyprint import HTML
 
 from ..dados_comuns.models import LogSolicitacoesUsuario
 
@@ -55,8 +55,7 @@ def html_to_pdf_file(html_string, pdf_filename, is_async=False):
     pdf_file = HTML(
         string=html_string,
         base_url=staticfiles_storage.location
-    ).write_pdf(
-        stylesheets=[CSS(staticfiles_storage.location + '/css/logistica/cabecalho.css')])
+    ).write_pdf()
 
     if is_async:
         return pdf_file
@@ -71,8 +70,7 @@ def html_to_pdf_cancelada(html_string, pdf_filename, is_async=False):
     pdf_file = HTML(
         string=html_string,
         base_url=staticfiles_storage.location
-    ).write_pdf(
-        stylesheets=[CSS(staticfiles_storage.location + '/css/logistica/cabecalho.css')])
+    ).write_pdf()
 
     watermark_instance = PdfFileReader('sme_terceirizadas/relatorios/static/images/cancel-1.pdf')
     watermark_page = watermark_instance.getPage(0)
@@ -101,8 +99,7 @@ def html_to_pdf_multiple(lista_strings, pdf_filename, is_async=False):
         pdf_file = HTML(
             string=html_string,
             base_url=staticfiles_storage.location
-        ).write_pdf(
-            stylesheets=[CSS(staticfiles_storage.location + '/css/logistica/cabecalho.css')])
+        ).write_pdf()
         src = Pdf.open(io.BytesIO(pdf_file))
         arquivo.pages.extend(src.pages)
 
