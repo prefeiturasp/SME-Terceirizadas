@@ -137,7 +137,7 @@ def gera_pdf_async(user, nome_arquivo, list_guias):
     obj_central_download = gera_objeto_na_central_download(user=user, identificador=nome_arquivo)
     try:
         guias = Guia.objects.filter(id__in=list_guias)
-        arquivo = relatorio_guia_de_remessa(guias=guias)
+        arquivo = relatorio_guia_de_remessa(guias=guias, is_async=True)
         atualiza_central_download(obj_central_download, nome_arquivo, arquivo)
     except Exception as e:
         atualiza_central_download_com_erro(obj_central_download, str(e))

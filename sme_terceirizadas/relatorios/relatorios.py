@@ -3,13 +3,16 @@ import datetime
 import environ
 from django.db.models import F, FloatField, Sum
 from django.template.loader import render_to_string
+from django.contrib.staticfiles.storage import staticfiles_storage
+from django.template.loader import get_template
 
 from ..dados_comuns.fluxo_status import GuiaRemessaWorkFlow as GuiaStatus
 from ..dados_comuns.fluxo_status import ReclamacaoProdutoWorkflow
 from ..dados_comuns.models import LogSolicitacoesUsuario
 from ..kit_lanche.models import EscolaQuantidade
 from ..logistica.api.helpers import retorna_status_guia_remessa
-from ..relatorios.utils import html_to_pdf_multiple_response, html_to_pdf_response, html_to_pdf_response_cancelada
+from ..relatorios.utils import html_to_pdf_multiple, html_to_pdf_response, html_to_pdf_cancelada, \
+    html_to_pdf_file
 from ..terceirizada.utils import transforma_dados_relatorio_quantitativo
 from . import constants
 from .utils import (
@@ -143,7 +146,7 @@ def relatorio_dieta_especial_conteudo(solicitacao):
     return html_string
 
 
-def relatorio_guia_de_remessa(guias): # noqa C901
+def relatorio_guia_de_remessa(guias, is_async=False): # noqa C901
     SERVER_NAME = env.str('SERVER_NAME', default=None)
     page = None
     lista_pdfs = []
@@ -221,19 +224,20 @@ def relatorio_guia_de_remessa(guias): # noqa C901
             page['lista_imagens_conferencia'] = lista_imagens_conferencia
             page['lista_imagens_reposicao'] = lista_imagens_reposicao
 
-        html_string = render_to_string('logistica/guia_remessa/relatorio_guia.html',
-                                       {'pages': [page], 'URL': SERVER_NAME})
+        html_template = get_template('logistica/guia_remessa/relatorio_guia.html')
+        html_string = html_template.render({'pages': [page], 'base_static_url': staticfiles_storage.location})
+
         data_arquivo = datetime.datetime.today().strftime('%d/%m/%Y às %H:%M')
 
         lista_pdfs.append(html_string.replace('dt_file', data_arquivo))
 
     if len(lista_pdfs) == 1:
         if guia.status == GuiaStatus.CANCELADA:
-            return html_to_pdf_response_cancelada(lista_pdfs[0], 'guia_de_remessa.pdf')
+            return html_to_pdf_cancelada(lista_pdfs[0], 'guia_de_remessa.pdf', is_async)
         else:
-            return html_to_pdf_response(lista_pdfs[0], 'guia_de_remessa.pdf')
+            return html_to_pdf_file(lista_pdfs[0], 'guia_de_remessa.pdf', is_async)
     else:
-        return html_to_pdf_multiple_response(lista_pdfs, 'guia_de_remessa.pdf')
+        return html_to_pdf_multiple(lista_pdfs, 'guia_de_remessa.pdf', is_async)
 
 
 def relatorio_dieta_especial(request, solicitacao):
