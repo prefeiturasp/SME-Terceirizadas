@@ -96,7 +96,7 @@ class Command(BaseCommand):
                     f'{self.contador_alunos} DE UM TOTAL DE {self.total_alunos} MATRICULAS'
                 )
             )
-            if registro['codigoSituacaoMatricula'] in status_matricula_ativa:
+            if registro['codigoSituacaoMatricula'] in status_matricula_ativa and registro['codigoTipoTurma'] == 1:
                 codigos_consultados.append(registro['codigoAluno'])
                 aluno = Aluno.objects.filter(codigo_eol=registro['codigoAluno']).first()
                 data_nascimento = registro['dataNascimento'].split('T')[0]
