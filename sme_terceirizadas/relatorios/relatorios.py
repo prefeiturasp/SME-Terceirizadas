@@ -1,18 +1,16 @@
 import datetime
 
 import environ
-from django.db.models import F, FloatField, Sum
-from django.template.loader import render_to_string
 from django.contrib.staticfiles.storage import staticfiles_storage
-from django.template.loader import get_template
+from django.db.models import F, FloatField, Sum
+from django.template.loader import get_template, render_to_string
 
 from ..dados_comuns.fluxo_status import GuiaRemessaWorkFlow as GuiaStatus
 from ..dados_comuns.fluxo_status import ReclamacaoProdutoWorkflow
 from ..dados_comuns.models import LogSolicitacoesUsuario
 from ..kit_lanche.models import EscolaQuantidade
 from ..logistica.api.helpers import retorna_status_guia_remessa
-from ..relatorios.utils import html_to_pdf_multiple, html_to_pdf_response, html_to_pdf_cancelada, \
-    html_to_pdf_file
+from ..relatorios.utils import html_to_pdf_cancelada, html_to_pdf_file, html_to_pdf_multiple, html_to_pdf_response
 from ..terceirizada.utils import transforma_dados_relatorio_quantitativo
 from . import constants
 from .utils import (
@@ -225,7 +223,8 @@ def relatorio_guia_de_remessa(guias, is_async=False): # noqa C901
             page['lista_imagens_reposicao'] = lista_imagens_reposicao
 
         html_template = get_template('logistica/guia_remessa/relatorio_guia.html')
-        html_string = html_template.render({'pages': [page], 'base_static_url': staticfiles_storage.location})
+        html_string = html_template.render({'pages': [page], 'URL': SERVER_NAME,
+                                            'base_static_url': staticfiles_storage.location})
 
         data_arquivo = datetime.datetime.today().strftime('%d/%m/%Y às %H:%M')
 

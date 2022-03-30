@@ -55,4 +55,4 @@ JWT_AUTH = {
 }
 
 # Alterado para rodar a geração de PDF localmente
-STATIC_URL = "/staticfiles/"
+STATIC_URL = '/staticfiles/'

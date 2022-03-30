@@ -7,7 +7,7 @@ from django.http import HttpResponse
 from django_weasyprint.utils import django_url_fetcher
 from pikepdf import Pdf
 from PyPDF4 import PdfFileReader, PdfFileWriter
-from weasyprint import HTML, CSS
+from weasyprint import CSS, HTML
 
 from ..dados_comuns.models import LogSolicitacoesUsuario
 
