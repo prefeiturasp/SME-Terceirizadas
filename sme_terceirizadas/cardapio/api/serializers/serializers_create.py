@@ -18,7 +18,7 @@ from ...api.validators import (
     hora_inicio_nao_pode_ser_maior_que_hora_final,
     nao_pode_existir_solicitacao_igual_para_mesma_escola,
     nao_pode_ter_mais_que_60_dias_diferenca,
-    precisa_pertencer_a_um_tipo_de_alimentacao
+    precisa_ter_combo
 )
 from ...models import (
     AlteracaoCardapio,
@@ -270,28 +270,7 @@ class FaixaEtariaSubstituicaoAlimentacaoCEISerializerCreate(serializers.ModelSer
         exclude = ('id',)
 
 
-class SubstituicoesAlimentacaoNoPeriodoEscolarSerializerCreateBase(serializers.ModelSerializer):
-    periodo_escolar = serializers.SlugRelatedField(
-        slug_field='uuid',
-        required=True,
-        queryset=PeriodoEscolar.objects.all()
-    )
-
-    tipo_alimentacao_de = serializers.SlugRelatedField(
-        slug_field='uuid',
-        required=False,
-        queryset=ComboDoVinculoTipoAlimentacaoPeriodoTipoUE.objects.all()
-    )
-
-    tipo_alimentacao_para = serializers.SlugRelatedField(
-        slug_field='uuid',
-        required=False,
-        queryset=SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE.objects.all()
-    )
-
-
-class SubstituicoesAlimentacaoNoPeriodoEscolarSerializerCreate(
-    SubstituicoesAlimentacaoNoPeriodoEscolarSerializerCreateBase):  # noqa E501
+class SubstituicoesAlimentacaoNoPeriodoEscolarSerializerCreate(serializers.ModelSerializer):  # noqa E501
     alteracao_cardapio = serializers.SlugRelatedField(
         slug_field='uuid',
         required=False,
@@ -299,7 +278,9 @@ class SubstituicoesAlimentacaoNoPeriodoEscolarSerializerCreate(
     )
 
     def create(self, validated_data):
+        combos = validated_data.pop('combos')
         substituicao_alimentacao = SubstituicaoAlimentacaoNoPeriodoEscolar.objects.create(**validated_data)
+        substituicao_alimentacao.combos.set(combos)
         return substituicao_alimentacao
 
     class Meta:
@@ -307,9 +288,7 @@ class SubstituicoesAlimentacaoNoPeriodoEscolarSerializerCreate(
         exclude = ('id',)
 
 
-class SubstituicoesAlimentacaoNoPeriodoEscolarCEISerializerCreate(
-    SubstituicoesAlimentacaoNoPeriodoEscolarSerializerCreateBase):  # noqa E501
-
+class SubstituicoesAlimentacaoNoPeriodoEscolarCEISerializerCreate(serializers.ModelSerializer):  # noqa E501
     alteracao_cardapio = serializers.SlugRelatedField(
         slug_field='uuid',
         required=False,
@@ -354,18 +333,22 @@ class AlteracaoCardapioSerializerCreateBase(serializers.ModelSerializer):
         for substicuicao in substituicoes:
             tipo_alimentacao_de = substicuicao.get('tipo_alimentacao_de')
             tipo_alimentacao_para = substicuicao.get('tipo_alimentacao_para')
-            precisa_pertencer_a_um_tipo_de_alimentacao(tipo_alimentacao_de, tipo_alimentacao_para)
+            vinculo = substicuicao.get('vinculo')
+            precisa_ter_combo(tipo_alimentacao_de, tipo_alimentacao_para, vinculo)
         return substituicoes
 
     def create(self, validated_data):
         substituicoes = validated_data.pop('substituicoes')
         validated_data['criado_por'] = self.context['request'].user
-
+        combos = []
         substituicoes_lista = []
         for substituicao in substituicoes:
-            substituicoes_object = self.Meta.serializer_substituicao(
-            ).create(substituicao)
-            substituicoes_lista.append(substituicoes_object)
+            combo = ComboDoVinculoTipoAlimentacaoPeriodoTipoUE.objects.filter(tipo_alimentacao=substituicao['tipo_alimentacao_de'],
+                                                                              substituicao=substituicao['tipo_alimentacao_para'],
+                                                                              vinculo=substituicao['vinculo']).first()
+            combos.append(combo)
+        substituicoes_object = self.Meta.serializer_substituicao().create({'combos': combos})
+        substituicoes_lista.append(substituicoes_object)
         alteracao_cardapio = self.Meta.model.objects.create(**validated_data)
         alteracao_cardapio.substituicoes.set(substituicoes_lista)
 
@@ -375,11 +358,15 @@ class AlteracaoCardapioSerializerCreateBase(serializers.ModelSerializer):
         substituicoes_json = validated_data.pop('substituicoes')
         instance.substituicoes.all().delete()
 
+        combos = []
         substituicoes_lista = []
         for substituicao_json in substituicoes_json:
-            substituicoes_object = self.Meta.serializer_substituicao(
-            ).create(substituicao_json)
-            substituicoes_lista.append(substituicoes_object)
+            combo = ComboDoVinculoTipoAlimentacaoPeriodoTipoUE.objects.filter(tipo_alimentacao=substituicao_json['tipo_alimentacao_de'],
+                                                                              substituicao=substituicao_json['tipo_alimentacao_para'],
+                                                                              vinculo=substituicao_json['vinculo']).first()
+            combos.append(combo)
+        substituicoes_object = self.Meta.serializer_substituicao().create({'combos': combos})
+        substituicoes_lista.append(substituicoes_object)
 
         update_instance_from_dict(instance, validated_data)
         instance.substituicoes.set(substituicoes_lista)
