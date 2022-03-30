@@ -42,13 +42,9 @@ class TipoAlimentacao(ExportModelOperationsMixin('tipo_alimentacao'), Nomeavel, 
     Sobremesa
     Lanche 4 horas
     Lanche 5 horas
-    Lanche 6horas
+    Lanche 6 horas
     Merenda Seca
     """
-
-    @property
-    def substituicoes_periodo_escolar(self):
-        return self.substituicoes_periodo_escolar
 
     def __str__(self):
         return self.nome
@@ -75,24 +71,18 @@ class ComboDoVinculoTipoAlimentacaoPeriodoTipoUE(
         'substituicoes_vinculo_alimentacao'), TemChaveExterna,
     TemLabelDeTiposDeAlimentacao):  # noqa E125
 
-    tipos_alimentacao = models.ManyToManyField('TipoAlimentacao',
-                                               related_name='%(app_label)s_%(class)s_possibilidades',
-                                               help_text='Tipos de alimentacao do combo.',
-                                               blank=True,
-                                               )
+    tipo_alimentacao = models.ForeignKey('TipoAlimentacao',
+                                         null=True,
+                                         on_delete=models.CASCADE,
+                                         related_name='combos')
+    substituicao = models.ForeignKey('SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE',
+                                     null=True,
+                                     on_delete=models.CASCADE,
+                                     related_name='combos')
     vinculo = models.ForeignKey('VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar',
                                 null=True,
                                 on_delete=models.CASCADE,
                                 related_name='combos')
-
-    def pode_excluir(self):
-        # TODO: incrementar esse método,  impedir exclusão se tiver
-        # solicitações em cima desse combo também.
-        return not self.substituicoes.exists()
-
-    def __str__(self):
-        tipos_alimentacao_nome = [nome for nome in self.tipos_alimentacao.values_list('nome', flat=True)]  # noqa
-        return f'TiposAlim.: {tipos_alimentacao_nome}'
 
     class Meta:
         verbose_name = 'Combo do vínculo tipo alimentação'
@@ -100,27 +90,11 @@ class ComboDoVinculoTipoAlimentacaoPeriodoTipoUE(
 
 
 class SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE(TemChaveExterna,
-                                                               TemLabelDeTiposDeAlimentacao):  # noqa E125
-
-    tipos_alimentacao = models.ManyToManyField('TipoAlimentacao',
-                                               related_name='%(app_label)s_%(class)s_possibilidades',
-                                               help_text='Tipos de alimentacao das substituições dos combos.',
-                                               blank=True,
-                                               )
-    combo = models.ForeignKey('ComboDoVinculoTipoAlimentacaoPeriodoTipoUE',
-                              null=True,
-                              on_delete=models.CASCADE,
-                              related_name='substituicoes')
-
-    def pode_excluir(self):
-        # TODO: incrementar esse método,  impedir exclusão se tiver
-        # solicitações em cima dessa substituição do combo.
-        return True
+                                                               TemLabelDeTiposDeAlimentacao,
+                                                               Nomeavel):  # noqa E125
 
     def __str__(self):
-        tipos_alimentacao_nome = [
-            nome for nome in self.tipos_alimentacao.values_list('nome', flat=True)]
-        return f'TiposAlim.:{tipos_alimentacao_nome}'
+        return self.nome
 
     class Meta:
         verbose_name = 'Substituição do combo do vínculo tipo alimentação'
@@ -564,14 +538,15 @@ class SubstituicaoAlimentacaoNoPeriodoEscolar(ExportModelOperationsMixin('substi
                                            null=True, blank=True,
                                            related_name='substituicoes_periodo_escolar')
     qtd_alunos = models.PositiveSmallIntegerField(default=0)
-    periodo_escolar = models.ForeignKey('escola.PeriodoEscolar', on_delete=models.PROTECT,
-                                        related_name='substituicoes_periodo_escolar')
-    tipo_alimentacao_de = models.ForeignKey('cardapio.ComboDoVinculoTipoAlimentacaoPeriodoTipoUE',
-                                            on_delete=models.PROTECT,
-                                            related_name='substituicoes_tipo_alimentacao_de', blank=True, null=True)
-    tipo_alimentacao_para = models.ForeignKey('cardapio.SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE',
-                                              on_delete=models.PROTECT,
-                                              related_name='substituicoes_tipo_alimentacao_para', blank=True, null=True)
+    combos = models.ManyToManyField(ComboDoVinculoTipoAlimentacaoPeriodoTipoUE)
+    # periodo_escolar = models.ForeignKey('escola.PeriodoEscolar', on_delete=models.PROTECT,
+    #                                     related_name='substituicoes_periodo_escolar')
+    # tipo_alimentacao_de = models.ForeignKey('cardapio.ComboDoVinculoTipoAlimentacaoPeriodoTipoUE',
+    #                                         on_delete=models.PROTECT,
+    #                                         related_name='substituicoes_tipo_alimentacao_de', blank=True, null=True)
+    # tipo_alimentacao_para = models.ForeignKey('cardapio.SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE',
+    #                                           on_delete=models.PROTECT,
+    #                                           related_name='substituicoes_tipo_alimentacao_para', blank=True, null=True)
 
     def __str__(self):
         return f'Substituições de alimentação: {self.uuid} da Alteração de Cardápio: {self.alteracao_cardapio.uuid}'
