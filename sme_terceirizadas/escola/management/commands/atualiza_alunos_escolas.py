@@ -98,7 +98,7 @@ class Command(BaseCommand):
                 )
             )
             if (registro['codigoSituacaoMatricula'] in self.status_matricula_ativa and
-                registro['codigoTipoTurma'] == self.codigo_turma_regular):
+                    registro['codigoTipoTurma'] == self.codigo_turma_regular):
 
                 codigos_consultados.append(registro['codigoAluno'])
                 aluno = Aluno.objects.filter(codigo_eol=registro['codigoAluno']).first()
