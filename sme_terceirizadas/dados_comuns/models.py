@@ -542,5 +542,6 @@ class CentralDeDownload(models.Model):
         return self.identificador
 
     def delete(self, using=None, keep_parents=False):
-        self.arquivo.storage.delete(self.arquivo.name)
+        if self.arquivo:
+            self.arquivo.storage.delete(self.arquivo.name)
         super().delete()

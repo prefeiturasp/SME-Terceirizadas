@@ -9,11 +9,14 @@ import environ
 from config.settings.base import URL_CONFIGS
 from des.models import DynamicEmailConfiguration
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.mail import EmailMessage, EmailMultiAlternatives, get_connection, send_mail
 from workalendar.america import BrazilSaoPauloCity
 
 from .constants import DAQUI_A_SETE_DIAS, DAQUI_A_TRINTA_DIAS, DOMINIOS_DEV
+from .models import CentralDeDownload
 
 calendar = BrazilSaoPauloCity()
 
@@ -201,3 +204,30 @@ def ordena_dias_semana_comeca_domingo(dias_semana):
     A função retorna uma lista de inteiros ordenados sendo que o número 6 sempre será o primeiro número.
     """
     return sorted(dias_semana, key=lambda x: -1 if x == 6 else x)
+
+
+def gera_objeto_na_central_download(user, identificador):
+    usuario = get_user_model().objects.get(email=user)
+    obj_arquivo_download = CentralDeDownload.objects.create(
+        identificador=identificador,
+        arquivo=None,
+        status=CentralDeDownload.STATUS_EM_PROCESSAMENTO,
+        msg_erro='',
+        visto=False,
+        usuario=usuario
+    )
+    obj_arquivo_download.save()
+
+    return obj_arquivo_download
+
+
+def atualiza_central_download(obj_central_download, identificador, arquivo):
+    obj_central_download.arquivo = SimpleUploadedFile(identificador, arquivo, content_type='application/pdf')
+    obj_central_download.status = CentralDeDownload.STATUS_CONCLUIDO
+    obj_central_download.save()
+
+
+def atualiza_central_download_com_erro(obj_central_download, msg_erro):
+    obj_central_download.status = CentralDeDownload.STATUS_ERRO
+    obj_central_download.msg_erro = msg_erro
+    obj_central_download.save()
