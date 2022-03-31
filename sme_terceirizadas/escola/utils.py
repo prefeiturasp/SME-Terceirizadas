@@ -32,54 +32,70 @@ def remove_acentos(texto):
     return resultado
 
 
-def registra_quantidade_matriculados(turnos, escola, data, tipo_turma):
+def registra_quantidade_matriculados(matriculas, data, tipo_turma):  # noqa C901
     from sme_terceirizadas.escola.models import (
         AlunosMatriculadosPeriodoEscola,
         LogAlunosMatriculadosPeriodoEscola,
-        PeriodoEscolar
+        PeriodoEscolar,
+        Escola
     )
+    objs = []
+    for matricula in matriculas:
+        escola = Escola.objects.filter(codigo_eol=matricula['codigoEolEscola']).first()
+        turnos = matricula['turnos']
+        periodos = []
+        for turno_resp in turnos:
+            turno = remove_acentos(turno_resp['turno'])
+            periodo = PeriodoEscolar.objects.filter(nome=turno.upper()).first()
+            if not periodo:
+                logger.debug(f'Periodo {turno_resp["turno"]} não encontrado na tabela de Períodos')
+                continue
+            periodos.append(periodo)
+            matricula_sigpae = AlunosMatriculadosPeriodoEscola.objects.filter(tipo_turma=tipo_turma,
+                                                                              escola=escola,
+                                                                              periodo_escolar=periodo).first()
+            if matricula_sigpae:
+                matricula_sigpae.quantidade_alunos = turno_resp['quantidade']
+                objs.append(matricula_sigpae)
+            else:
+                AlunosMatriculadosPeriodoEscola.criar(
+                    escola=escola, periodo_escolar=periodo,
+                    quantidade_alunos=turno_resp['quantidade'],
+                    tipo_turma=tipo_turma)
 
-    AlunosMatriculadosPeriodoEscola.objects.filter(tipo_turma=tipo_turma, escola=escola).delete()
-    for turno_resp in turnos:
-        turno = remove_acentos(turno_resp['turno'])
-        periodo = PeriodoEscolar.objects.filter(nome=turno.upper()).first()
-        if not periodo:
-            logger.debug(f'Periodo {turno_resp["turno"]} não encontrado na tabela de Períodos')
-            continue
+            LogAlunosMatriculadosPeriodoEscola.criar(
+                escola=escola, periodo_escolar=periodo,
+                quantidade_alunos=turno_resp['quantidade'],
+                data=data, tipo_turma=tipo_turma)
 
-        AlunosMatriculadosPeriodoEscola.criar(
-            escola=escola, periodo_escolar=periodo,
-            quantidade_alunos=turno_resp['quantidade'],
-            tipo_turma=tipo_turma)
-
-        LogAlunosMatriculadosPeriodoEscola.criar(
-            escola=escola, periodo_escolar=periodo,
-            quantidade_alunos=turno_resp['quantidade'],
-            data=data, tipo_turma=tipo_turma)
+        AlunosMatriculadosPeriodoEscola.objects.filter(
+            tipo_turma=tipo_turma,
+            escola=escola).exclude(periodo_escolar__in=periodos).delete()
+    AlunosMatriculadosPeriodoEscola.objects.bulk_update(objs, ['quantidade_alunos'])
 
 
 def registro_quantidade_alunos_matriculados_por_escola_periodo(tipo_turma):
     from sme_terceirizadas.escola.models import (
-        Escola
+        DiretoriaRegional
     )
     hoje = date.today()
-    escolas = Escola.objects.all()
-    total = len(escolas)
+    dres = DiretoriaRegional.objects.all()
+    total = len(dres)
     cont = 1
-    for escola in escolas:
+    for dre in dres:
         logger.debug(f'Processando {cont} de {total}')
-        logger.debug(f"""Consultando matriculados da escola com Nome: {escola.nome}
-        e código eol: {escola.codigo_eol}, data: {hoje.strftime('%Y-%m-%d')} para o tipo turma {tipo_turma.name}""")
+        logger.debug(f"""Consultando matriculados da dre com Nome: {dre.nome}
+        e código eol: {dre.codigo_eol}, data: {hoje.strftime('%Y-%m-%d')} para o tipo turma {tipo_turma.name}""")
         try:
             resposta = EOLServicoSGP.matricula_por_escola(
-                codigo_eol=escola.codigo_eol,
+                codigo_eol=dre.codigo_eol,
                 data=hoje.strftime('%Y-%m-%d'),
                 tipo_turma=tipo_turma.value)
             logger.debug(resposta)
 
-            registra_quantidade_matriculados(resposta['turnos'], escola, hoje, tipo_turma.name)
+            registra_quantidade_matriculados(resposta, hoje, tipo_turma.name)
         except Exception as e:
-            logger.error(f'Dados não encontrados para escola {escola} : {str(e)}')
+            logger.error(f'Houve um erro inesperado ao consultar a Diretoria Regional {dre} : {str(e)}')
         cont += 1
 
 
