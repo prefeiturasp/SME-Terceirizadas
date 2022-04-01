@@ -128,7 +128,7 @@ class EOLServicoSGP:
     @classmethod
     def matricula_por_escola(cls, codigo_eol: str, data: str, tipo_turma: int = 1):
         """Consulta a quantidade de matriculados na API do sgp."""
-        response = requests.get(f'{DJANGO_EOL_SGP_API_URL}/matriculas/escolas/{codigo_eol}/quantidades/',
+        response = requests.get(f'{DJANGO_EOL_SGP_API_URL}/matriculas/escolas/dre/{codigo_eol}/quantidades/',
                                 headers=cls.HEADER, timeout=cls.TIMEOUT, params={'data': data, 'tipoTurma': tipo_turma})
         if response.status_code == status.HTTP_200_OK:
             resultado = response.json()

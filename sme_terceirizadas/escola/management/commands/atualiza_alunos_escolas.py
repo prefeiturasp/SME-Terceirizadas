@@ -20,6 +20,8 @@ class Command(BaseCommand):
     timeout = 10
     contador_alunos = 0
     total_alunos = 0
+    status_matricula_ativa = [1, 6, 10, 13, 5]  # status para matrículas ativas
+    codigo_turma_regular = 1  # código da turma para matrículas do tipo REGULAR
 
     def handle(self, *args, **options):
         tic = timeit.default_timer()
@@ -87,7 +89,6 @@ class Command(BaseCommand):
     def _atualiza_alunos_da_escola(self, escola, dados_alunos_escola):
         novos_alunos = {}
         self.total_alunos += len(dados_alunos_escola)
-        status_matricula_ativa = [1, 6, 10, 13, 5]
         codigos_consultados = []
         for registro in dados_alunos_escola:
             self.contador_alunos += 1
@@ -96,7 +97,9 @@ class Command(BaseCommand):
                     f'{self.contador_alunos} DE UM TOTAL DE {self.total_alunos} MATRICULAS'
                 )
             )
-            if registro['codigoSituacaoMatricula'] in status_matricula_ativa:
+            if (registro['codigoSituacaoMatricula'] in self.status_matricula_ativa and
+                    registro['codigoTipoTurma'] == self.codigo_turma_regular):
+
                 codigos_consultados.append(registro['codigoAluno'])
                 aluno = Aluno.objects.filter(codigo_eol=registro['codigoAluno']).first()
                 data_nascimento = registro['dataNascimento'].split('T')[0]

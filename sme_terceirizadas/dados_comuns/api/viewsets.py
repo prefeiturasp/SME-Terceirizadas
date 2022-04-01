@@ -13,11 +13,12 @@ from rest_framework.viewsets import ModelViewSet, ViewSet
 from ... import __version__
 from ..behaviors import DiasSemana, TempoPasseio
 from ..constants import TEMPO_CACHE_1H, TEMPO_CACHE_6H, obter_dias_uteis_apos_hoje
-from ..models import CategoriaPerguntaFrequente, Notificacao, PerguntaFrequente, TemplateMensagem
+from ..models import CategoriaPerguntaFrequente, CentralDeDownload, Notificacao, PerguntaFrequente, TemplateMensagem
 from ..permissions import UsuarioCODAEGestaoAlimentacao
-from .filters import NotificacaoFilter
+from .filters import CentralDeDownloadFilter, NotificacaoFilter
 from .serializers import (
     CategoriaPerguntaFrequenteSerializer,
+    CentralDeDownloadSerializer,
     ConfiguracaoEmailSerializer,
     ConfiguracaoMensagemSerializer,
     ConsultaPerguntasFrequentesSerializer,
@@ -43,6 +44,11 @@ class CustomPagination(PageNumberPagination):
             'page_size': int(self.request.GET.get('page_size', self.page_size)),
             'results': data
         })
+
+
+class DownloadPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
 
 
 class ApiVersion(viewsets.ViewSet):
@@ -217,6 +223,49 @@ class NotificacaoViewSet(viewsets.ModelViewSet):
 
         resultado = {
             'mensagem': 'Notificação atualizada com sucesso'
+        }
+        status_code = status.HTTP_200_OK
+
+        return Response(resultado, status=status_code)
+
+
+class CentralDeDownloadViewSet(viewsets.ModelViewSet):
+    lookup_field = 'uuid'
+    permission_classes = [IsAuthenticated]
+    queryset = CentralDeDownload.objects.all()
+    serializer_class = CentralDeDownloadSerializer
+    pagination_class = DownloadPagination
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = CentralDeDownloadFilter
+
+    def get_queryset(self):
+        qs = CentralDeDownload.objects.filter(usuario=self.request.user).all().order_by('-criado_em')
+
+        return qs
+
+    @action(detail=False, methods=['get'], url_path='quantidade-nao-vistos')
+    def quantidade_de_nao_vistos(self, request):
+        user = self.request.user
+        downloads = CentralDeDownload.objects.filter(
+            usuario=user).filter(visto=False).exclude(status=CentralDeDownload.STATUS_EM_PROCESSAMENTO).count()
+        data = {
+            'quantidade_nao_vistos': downloads
+        }
+        return Response(data)
+
+    @action(detail=False, methods=['put'], url_path='marcar-visto')
+    def marcar_como_visto_nao_visto(self, request):
+        dado = self.request.data
+
+        try:
+            download = CentralDeDownload.objects.filter(uuid=dado['uuid']).first()
+            download.visto = dado['visto']
+            download.save()
+        except Exception as err:
+            return Response(dict(detail=f'Erro ao realizar atualização: {err}'), status=status.HTTP_400_BAD_REQUEST)
+
+        resultado = {
+            'mensagem': 'Arquivo atualizado com sucesso'
         }
         status_code = status.HTTP_200_OK
 

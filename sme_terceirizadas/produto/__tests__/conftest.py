@@ -2,6 +2,7 @@ import datetime
 
 import pytest
 from django.contrib.contenttypes.models import ContentType
+from django.core.files.uploadedfile import SimpleUploadedFile
 from faker import Faker
 from model_mommy import mommy
 
@@ -229,13 +230,18 @@ def especificacao_produto1(produto, unidade_medida, embalagem_produto):
 
 
 @pytest.fixture
-def imagem_produto1(produto):
-    return mommy.make('ImagemDoProduto', produto=produto, nome='Imagem1')
+def arquivo():
+    return SimpleUploadedFile(f'planilha-teste.pdf', bytes(f'CONTEUDO TESTE TESTE TESTE', encoding='utf-8'))
 
 
 @pytest.fixture
-def imagem_produto2(produto):
-    return mommy.make('ImagemDoProduto', produto=produto, nome='Imagem2')
+def imagem_produto1(produto, arquivo):
+    return mommy.make('ImagemDoProduto', produto=produto, nome='Imagem1', arquivo=arquivo)
+
+
+@pytest.fixture
+def imagem_produto2(produto, arquivo):
+    return mommy.make('ImagemDoProduto', produto=produto, nome='Imagem2', arquivo=arquivo)
 
 
 @pytest.fixture

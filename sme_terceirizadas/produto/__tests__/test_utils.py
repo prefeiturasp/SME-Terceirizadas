@@ -1,6 +1,7 @@
 from datetime import date, datetime
 
 import pytest
+from django.core.files.uploadedfile import SimpleUploadedFile
 
 from ..utils import (
     changes_between,
@@ -134,25 +135,30 @@ def test_compara_lista_protocolos(protocolo1, protocolo2, protocolo3):
     assert resultado['exclusoes'][0] == protocolo1
 
 
-def test_compara_lista_imagens(imagem_produto1, imagem_produto2):
-    anterior = [imagem_produto1, imagem_produto2]
-    proxima = [{'nome': imagem_produto1.nome}, {'nome': 'Imagem3'}]
+def test_compara_lista_imagens(produto, imagem_produto1, imagem_produto2):
+    anterior = produto.imagens.all()
+    proxima = [
+        {
+            'arquivo': imagem_produto1.arquivo,
+            'nome': imagem_produto1.nome
+        }, {
+            'arquivo': SimpleUploadedFile(f'doc-novo.pdf', bytes(f'CONTEUDO TESTE TESTE TESTE', encoding='utf-8')),
+            'nome': 'doc-novo'
+        }
+    ]
 
     resultado = compara_lista_imagens(anterior, proxima)
 
     assert len(resultado['adicoes']) == 1
-    assert resultado['adicoes'][0] == {'nome': 'Imagem3'}
-
-    assert len(resultado['exclusoes']) == 1
-    assert resultado['exclusoes'][0] == imagem_produto2
+    assert resultado['adicoes'][0]['nome'] == 'doc-novo'
 
 
-def test_changes_between(produto, protocolo1, protocolo2, protocolo3,
-                         info_nutricional1, info_nutricional2, info_nutricional3,
+def test_changes_between(produto, info_nutricional1, info_nutricional2, info_nutricional3,
                          info_nutricional_produto1, info_nutricional_produto2,
                          imagem_produto1, imagem_produto2, marca2):
     validated_data = {
-        'eh_para_alunos_com_dieta': False,
+        'nome': produto.nome,
+        'eh_para_alunos_com_dieta': True,
         'componentes': 'Componente3, Componente4',
         'tem_aditivos_alergenicos': False,
         'tipo': 'Tipo1',
@@ -164,7 +170,6 @@ def test_changes_between(produto, protocolo1, protocolo2, protocolo3,
         'porcao': '5 cuias',
         'unidade_caseira': 'Unidade3',
         'marca': marca2,
-        'protocolos': [protocolo1, protocolo3],
         'informacoes_nutricionais': [{
             'informacao_nutricional': info_nutricional1,
             'quantidade_porcao': '1',
@@ -178,20 +183,21 @@ def test_changes_between(produto, protocolo1, protocolo2, protocolo3,
             'quantidade_porcao': '5',
             'valor_diario': '6',
         }],
-        'imagens': [{'nome': imagem_produto1.nome}, {'nome': 'Imagem3'}]
+        'imagens': [
+            {
+                'arquivo': imagem_produto1.arquivo,
+                'nome': imagem_produto1.nome
+            }, {
+                'arquivo': SimpleUploadedFile(f'doc-novo.pdf', bytes(f'CONTEUDO TESTE TESTE TESTE', encoding='utf-8')),
+                'nome': 'doc-novo'
+            }
+        ]
     }
     changes = changes_between(produto, validated_data)
 
     assert changes['componentes'] == {'de': 'Componente1, Componente2', 'para': 'Componente3, Componente4'}
     assert changes['info_armazenamento'] == {'de': 'Guardem bem', 'para': 'Bote na geladeira'}
-    assert changes['eh_para_alunos_com_dieta'] == {'de': True, 'para': False}
     assert changes['marca'] == {'de': produto.marca, 'para': validated_data['marca']}
-
-    assert len(changes['protocolos']['adicoes']) == 1
-    assert changes['protocolos']['adicoes'][0] == protocolo3
-
-    assert len(changes['protocolos']['exclusoes']) == 1
-    assert changes['protocolos']['exclusoes'][0] == protocolo2
 
     assert len(changes['informacoes_nutricionais']['adicoes']) == 1
     adicao = changes['informacoes_nutricionais']['adicoes'][0]
@@ -214,10 +220,7 @@ def test_changes_between(produto, protocolo1, protocolo2, protocolo3,
     assert modif2['para'] == '8'
 
     assert len(changes['imagens']['adicoes']) == 1
-    assert changes['imagens']['adicoes'][0] == {'nome': 'Imagem3'}
-
-    assert len(changes['imagens']['exclusoes']) == 1
-    assert changes['imagens']['exclusoes'][0] == imagem_produto2
+    assert changes['imagens']['adicoes'][0]['nome'] == 'doc-novo'
 
 
 def test_mudancas_para_justificativa(info_nutricional1, info_nutricional2, info_nutricional3,

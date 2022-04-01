@@ -278,6 +278,7 @@ class InclusaoAlimentacaoContinuaCreationSerializer(serializers.ModelSerializer)
 
     def validate_feriados_no_periodo(self, data_inicial, data_final, dias_semana):
         # Valida se a faixa de datas não contém feriado
+        # Não está sendo utilizado atualmente, cliente pediu para não validar
         data_atual = data_inicial
         while data_atual <= data_final:
             if dias_semana and data_atual.weekday() not in dias_semana:

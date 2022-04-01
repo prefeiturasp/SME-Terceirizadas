@@ -66,6 +66,7 @@ from sme_terceirizadas.logistica.services import arquiva_guias, confirma_cancela
 from ...escola.models import DiretoriaRegional, Escola
 from ...relatorios.relatorios import relatorio_guia_de_remessa
 from ..models.guia import InsucessoEntregaGuia
+from ..tasks import gera_pdf_async
 from ..utils import GuiaPagination, RequisicaoPagination, SolicitacaoAlteracaoPagination
 from .filters import GuiaFilter, SolicitacaoAlteracaoFilter, SolicitacaoFilter
 from .helpers import (
@@ -454,19 +455,26 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['GET'], url_path='gerar-pdf-distribuidor', permission_classes=[UsuarioDistribuidor])
     def gerar_pdf_distribuidor(self, request, uuid=None):
+        user = request.user.get_username()
         solicitacao = self.get_object()
-        guias = solicitacao.guias.all()
-        return relatorio_guia_de_remessa(guias=guias)
+        guias = list(solicitacao.guias.all().values_list('id', flat=True))
+        gera_pdf_async.delay(user=user, nome_arquivo='guia_de_remessa.pdf', list_guias=guias)
+        return Response(dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),
+                        status=HTTP_200_OK)
 
     @action(
         detail=False, methods=['GET'],
         url_path='gerar-pdf-distribuidor-geral',
         permission_classes=[UsuarioDistribuidor])
     def gerar_pdf_distribuidor_geral(self, request, uuid=None):
+        user = request.user.get_username()
         queryset = self.filter_queryset(self.get_queryset())
         queryset = queryset.filter(status='DISTRIBUIDOR_CONFIRMA')
         guias = GuiasDasRequisicoes.objects.filter(solicitacao__in=queryset).order_by('-data_entrega').distinct()
-        return relatorio_guia_de_remessa(guias=guias)
+        lista_id_guias = list(guias.values_list('id', flat=True))
+        gera_pdf_async.delay(user=user, nome_arquivo='guia_de_remessa.pdf', list_guias=lista_id_guias)
+        return Response(dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),
+                        status=HTTP_200_OK)
 
     @action(
         detail=True,
@@ -474,9 +482,12 @@ class SolicitacaoModelViewSet(viewsets.ModelViewSet):
         url_path='relatorio-guias-da-requisicao',
         permission_classes=[PermissaoParaListarEntregas])
     def gerar_relaorio_guias_da_requisicao(self, request, uuid=None):
+        user = request.user.get_username()
         solicitacao = self.get_object()
-        guias = solicitacao.guias.all()
-        return relatorio_guia_de_remessa(guias=guias)
+        guias = list(solicitacao.guias.all().values_list('id', flat=True))
+        gera_pdf_async.delay(user=user, nome_arquivo='guia_de_remessa.pdf', list_guias=guias)
+        return Response(dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),
+                        status=HTTP_200_OK)
 
     @action(
         detail=False, methods=['GET'],
@@ -622,8 +633,11 @@ class GuiaDaRequisicaoModelViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['GET'], url_path='gerar-pdf-distribuidor', permission_classes=[UsuarioDistribuidor])
     def gerar_pdf_distribuidor(self, request, uuid=None):
+        user = request.user.get_username()
         guia = self.get_object()
-        return relatorio_guia_de_remessa(guias=[guia])
+        gera_pdf_async.delay(user=user, nome_arquivo='guias_da_requisicao.pdf', list_guias=[guia.id])
+        return Response(dict(detail='Solicitação de geração de arquivo recebida com sucesso.'),
+                        status=HTTP_200_OK)
 
     @action(detail=False,
             methods=['GET'],

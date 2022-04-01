@@ -369,7 +369,7 @@ class VinculoInstituicaoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Vinculo
-        fields = ('uuid', 'instituicao', 'perfil')
+        fields = ('uuid', 'instituicao', 'perfil', 'ativo')
 
 
 class UsuarioNutricionistaSerializer(serializers.ModelSerializer):

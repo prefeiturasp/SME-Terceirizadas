@@ -1,12 +1,13 @@
 import datetime
 
 import pytest
+from django.core.files.uploadedfile import SimpleUploadedFile
 from faker import Faker
 from model_mommy import mommy
 
 from ...escola import models
 from ..constants import COORDENADOR_LOGISTICA, DJANGO_ADMIN_PASSWORD
-from ..models import Notificacao, TemplateMensagem
+from ..models import CentralDeDownload, Notificacao, TemplateMensagem
 
 fake = Faker('pt_BR')
 fake.seed(420)
@@ -274,4 +275,24 @@ def notificacao_de_pendencia_com_requisicao(usuario_teste_notificacao_autenticad
         descricao='A guia 0000 precisa ser conferida',
         usuario=user,
         requisicao=requisicao
+    )
+
+
+@pytest.fixture
+def arquivo():
+    return SimpleUploadedFile(f'teste.pdf', bytes('CONTEUDO TESTE', encoding='utf-8'))
+
+
+@pytest.fixture
+def download(usuario_teste_notificacao_autenticado, arquivo):
+    user, client = usuario_teste_notificacao_autenticado
+    return mommy.make(
+        'CentralDeDownload',
+        status=CentralDeDownload.STATUS_CONCLUIDO,
+        identificador='teste.pdf',
+        arquivo=arquivo,
+        usuario=user,
+        visto=False,
+        criado_em=datetime.datetime.now(),
+        msg_erro=''
     )

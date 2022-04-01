@@ -500,3 +500,48 @@ class Notificacao(models.Model):
             resolvido=False
         )
         pendencias.update(resolvido=True, lido=True)
+
+
+class CentralDeDownload(models.Model):
+    # Status Choice
+    STATUS_EM_PROCESSAMENTO = 'EM_PROCESSAMENTO'
+    STATUS_CONCLUIDO = 'CONCLUIDO'
+    STATUS_ERRO = 'ERRO'
+
+    STATUS_NOMES = {
+        STATUS_EM_PROCESSAMENTO: 'Em processamento',
+        STATUS_CONCLUIDO: 'Concluído',
+        STATUS_ERRO: 'Erro'
+    }
+
+    STATUS_CHOICES = (
+        (STATUS_EM_PROCESSAMENTO, STATUS_NOMES[STATUS_EM_PROCESSAMENTO]),
+        (STATUS_CONCLUIDO, STATUS_NOMES[STATUS_CONCLUIDO]),
+        (STATUS_ERRO, STATUS_NOMES[STATUS_ERRO])
+    )
+
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    identificador = models.CharField('Nome do arquivo', max_length=200, default='')
+    arquivo = models.FileField(blank=True, verbose_name='Arquivo', upload_to='cental_downloads')
+    status = models.CharField(
+        'status',
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default=STATUS_EM_PROCESSAMENTO
+    )
+    msg_erro = models.CharField('Mensagem erro', max_length=300, blank=True)
+    visto = models.BooleanField('Foi visto?', default=False)
+    usuario = models.ForeignKey('perfil.Usuario', on_delete=models.CASCADE, default='', null=True, blank=True)
+    criado_em = models.DateTimeField('Criado em', editable=False, auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Central de Download'
+        verbose_name_plural = 'Central de Downloads'
+
+    def __str__(self):
+        return self.identificador
+
+    def delete(self, using=None, keep_parents=False):
+        if self.arquivo:
+            self.arquivo.storage.delete(self.arquivo.name)
+        super().delete()
