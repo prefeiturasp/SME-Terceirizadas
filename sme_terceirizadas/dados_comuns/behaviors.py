@@ -245,7 +245,7 @@ class TemPrioridade(object):
 class Logs(object):
     @property
     def logs(self):
-        return LogSolicitacoesUsuario.objects.filter(uuid_original=self.uuid)
+        return LogSolicitacoesUsuario.objects.filter(uuid_original=self.uuid).order_by('criado_em')
 
     @property
     def log_mais_recente(self):
