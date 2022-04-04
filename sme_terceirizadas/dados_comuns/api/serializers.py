@@ -5,6 +5,7 @@ from ...perfil.api.serializers import UsuarioSerializer
 from ..models import (
     AnexoLogSolicitacoesUsuario,
     CategoriaPerguntaFrequente,
+    CentralDeDownload,
     Contato,
     Endereco,
     LogSolicitacoesUsuario,
@@ -168,4 +169,24 @@ class NotificacaoSerializer(serializers.ModelSerializer):
             'link',
             'lido',
             'resolvido'
+        ]
+
+
+class CentralDeDownloadSerializer(serializers.ModelSerializer):
+    status = serializers.CharField(source='get_status_display')
+    data_criacao = serializers.SerializerMethodField()
+
+    def get_data_criacao(self, obj):
+        return obj.criado_em.strftime('%d/%m/%Y ás %H:%M')
+
+    class Meta:
+        model = CentralDeDownload
+        fields = [
+            'uuid',
+            'identificador',
+            'arquivo',
+            'status',
+            'data_criacao',
+            'msg_erro',
+            'visto'
         ]

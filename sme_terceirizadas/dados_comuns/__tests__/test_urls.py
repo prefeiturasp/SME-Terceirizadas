@@ -5,7 +5,7 @@ from freezegun import freeze_time
 from model_mommy import mommy
 from rest_framework import status
 
-from ..models import CategoriaPerguntaFrequente, Notificacao, PerguntaFrequente
+from ..models import CategoriaPerguntaFrequente, CentralDeDownload, Notificacao, PerguntaFrequente
 
 fake = Faker('pt_BR')
 fake.seed(420)
@@ -233,3 +233,86 @@ def test_put_notificacao_marcar_como_lida(usuario_teste_notificacao_autenticado,
     response = client.put(
         f'/notificacoes/marcar-lido/', data=json.dumps(payload), content_type='application/json')
     assert response.status_code == status.HTTP_200_OK
+
+
+def test_get_downloads(usuario_teste_notificacao_autenticado, download):
+    user, client = usuario_teste_notificacao_autenticado
+    response = client.get(
+        f'/downloads/', content_type='application/json')
+    result = json.loads(response.content)
+    esperado = {
+        'count': 1,
+        'next': None,
+        'previous': None,
+        'results': [
+            {
+                'uuid': str(download.uuid),
+                'identificador': download.identificador,
+                'data_criacao': download.criado_em.strftime('%d/%m/%Y ás %H:%M'),
+                'status': CentralDeDownload.STATUS_NOMES[download.status],
+                'arquivo': f'http://testserver{download.arquivo.url}',
+                'visto': download.visto,
+                'msg_erro': download.msg_erro
+            }
+        ]
+    }
+    assert response.status_code == status.HTTP_200_OK
+    assert result == esperado
+
+
+def test_get_download_quantidade_de_nao_vistos(usuario_teste_notificacao_autenticado, download):
+    user, client = usuario_teste_notificacao_autenticado
+    response = client.get(
+        '/downloads/quantidade-nao-vistos/', content_type='application/json')
+    result = json.loads(response.content)
+    assert response.status_code == status.HTTP_200_OK
+    assert result['quantidade_nao_vistos'] == 1
+
+
+def test_put_download_marcar_como_lida(usuario_teste_notificacao_autenticado, download):
+    user, client = usuario_teste_notificacao_autenticado
+    payload = {
+        'uuid': str(download.uuid),
+        'visto': True
+    }
+
+    response = client.put(
+        '/downloads/marcar-visto/', data=json.dumps(payload), content_type='application/json')
+    assert response.status_code == status.HTTP_200_OK
+
+
+def test_delete_download(usuario_teste_notificacao_autenticado, download):
+    user, client = usuario_teste_notificacao_autenticado
+    response = client.delete(
+        f'/downloads/{download.uuid}/', content_type='application/json')
+    assert response.status_code == status.HTTP_204_NO_CONTENT
+
+
+def test_get_download_filters(usuario_teste_notificacao_autenticado, download):
+    user, client = usuario_teste_notificacao_autenticado
+    rota = f"""/downloads/?uuid={str(download.uuid)}
+           &identificador={download.identificador}
+           &status={CentralDeDownload.STATUS_CONCLUIDO}
+           &data_geracao={download.criado_em.strftime("%d/%m/%Y")}
+           &visto={str(download.visto).lower()}'"""
+    url = rota.replace('\n', '').replace(' ', '')
+    response = client.get(url, content_type='application/json')
+    result = json.loads(response.content)
+    esperado = {
+        'count': 1,
+        'next': None,
+        'previous': None,
+        'results': [
+            {
+                'uuid': str(download.uuid),
+                'identificador': download.identificador,
+                'data_criacao': download.criado_em.strftime('%d/%m/%Y ás %H:%M'),
+                'status': CentralDeDownload.STATUS_NOMES[download.status],
+                'arquivo': f'http://testserver{download.arquivo.url}',
+                'visto': download.visto,
+                'msg_erro': download.msg_erro
+            }
+        ]
+    }
+    assert response.status_code == status.HTTP_200_OK
+    assert result == esperado

@@ -53,3 +53,6 @@ JWT_AUTH = {
     'JWT_REFRESH_EXPIRATION_DELTA': datetime.timedelta(hours=1),  # noqa
     'JWT_ALLOW_REFRESH': True,
 }
+
+# Alterado para rodar a geração de PDF localmente
+STATIC_URL = '/staticfiles/'

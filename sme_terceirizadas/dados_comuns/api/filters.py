@@ -27,3 +27,25 @@ class NotificacaoFilter(filters.FilterSet):
     lido = filters.BooleanFilter(
         field_name='lido'
     )
+
+
+class CentralDeDownloadFilter(filters.FilterSet):
+    uuid = filters.CharFilter(
+        field_name='uuid',
+        lookup_expr='exact',
+    )
+    identificador = filters.CharFilter(
+        field_name='identificador',
+        lookup_expr='exact',
+    )
+    status = filters.CharFilter(
+        field_name='status',
+        lookup_expr='exact',
+    )
+    data_geracao = filters.DateFilter(
+        field_name='criado_em__date',
+        lookup_expr='exact',
+    )
+    visto = filters.BooleanFilter(
+        field_name='visto'
+    )

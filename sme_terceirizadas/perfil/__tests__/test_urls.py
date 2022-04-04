@@ -88,43 +88,12 @@ def test_get_meus_dados_admin_escola(users_admin_escola):
     response.json().get('vinculo_atual').pop('uuid')
     assert json['registro_funcional'] == rf
     assert json['tipo_usuario'] == 'escola'
-    assert json['vinculo_atual'] == {
-        'instituicao': {
-            'nome': 'EMEI NOE AZEVEDO, PROF',
-            'uuid': 'b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd',
-            'codigo_eol': '256341',
-            'contato': {'nome': '',
-                        'celular': '',
-                        'email': '',
-                        'telefone': '',
-                        'telefone2': ''},
-            'endereco': {'bairro': '',
-                         'cep': None,
-                         'complemento': '',
-                         'logradouro': '',
-                         'numero': None},
-            'quantidade_alunos': 450,
-            'lotes': [],
-            'tipos_contagem': [],
-            'periodos_escolares': [
-                {
-                    'tipos_alimentacao': [],
-                    'nome': 'MANHA',
-                    'uuid': 'd0c12dae-a215-41f6-af86-b7cd1838ba81'
-                },
-                {
-                    'tipos_alimentacao': [],
-                    'nome': 'TARDE',
-                    'uuid': '57af972c-938f-4f6f-9f4b-cf7b983a10b7'
-                }
-            ],
-            'escolas': [],
-            'diretoria_regional': {'uuid': '7da9acec-48e1-430c-8a5c-1f1efc666fad',
-                                   'nome': 'DIRETORIA REGIONAL IPIRANGA',
-                                   'codigo_eol': '987656'},
-            'tipo_unidade_escolar': '56725de5-89d3-4edf-8633-3e0b5c99e9d4'
-        },
-        'perfil': {'nome': 'Admin', 'uuid': 'd6fd15cc-52c6-4db4-b604-018d22eeb3dd'}}
+    assert json['vinculo_atual']['instituicao']['nome'] == 'EMEI NOE AZEVEDO, PROF'
+    assert json['vinculo_atual']['instituicao']['uuid'] == 'b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd'
+    assert json['vinculo_atual']['instituicao']['codigo_eol'] == '256341'
+    assert json['vinculo_atual']['ativo'] is True
+    assert json['vinculo_atual']['perfil']['nome'] == 'Admin'
+    assert json['vinculo_atual']['perfil']['uuid'] == 'd6fd15cc-52c6-4db4-b604-018d22eeb3dd'
 
 
 def test_get_meus_dados_diretor_escola(users_diretor_escola):
@@ -141,43 +110,12 @@ def test_get_meus_dados_diretor_escola(users_diretor_escola):
     assert json['email'] == email
     assert json['registro_funcional'] == rf
     assert json['tipo_usuario'] == 'escola'
-    assert json['vinculo_atual'] == {
-        'instituicao': {
-            'nome': 'EMEI NOE AZEVEDO, PROF',
-            'uuid': 'b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd',
-            'codigo_eol': '256341',
-            'quantidade_alunos': 450,
-            'lotes': [],
-            'contato': {'nome': '',
-                        'celular': '',
-                        'email': '',
-                        'telefone': '',
-                        'telefone2': ''},
-            'endereco': {'bairro': '',
-                         'cep': None,
-                         'complemento': '',
-                         'logradouro': '',
-                         'numero': None},
-            'tipos_contagem': [],
-            'periodos_escolares': [
-                {
-                    'tipos_alimentacao': [],
-                    'nome': 'MANHA',
-                    'uuid': 'd0c12dae-a215-41f6-af86-b7cd1838ba81'
-                },
-                {
-                    'tipos_alimentacao': [],
-                    'nome': 'TARDE',
-                    'uuid': '57af972c-938f-4f6f-9f4b-cf7b983a10b7'
-                }
-            ],
-            'escolas': [],
-            'diretoria_regional': {'uuid': '7da9acec-48e1-430c-8a5c-1f1efc666fad',
-                                   'nome': 'DIRETORIA REGIONAL IPIRANGA',
-                                   'codigo_eol': '987656'},
-            'tipo_unidade_escolar': '56725de5-89d3-4edf-8633-3e0b5c99e9d4'
-        },
-        'perfil': {'nome': 'COORDENADOR_ESCOLA', 'uuid': '41c20c8b-7e57-41ed-9433-ccb92e8afaf1'}}
+    assert json['vinculo_atual']['instituicao']['nome'] == 'EMEI NOE AZEVEDO, PROF'
+    assert json['vinculo_atual']['instituicao']['uuid'] == 'b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd'
+    assert json['vinculo_atual']['instituicao']['codigo_eol'] == '256341'
+    assert json['vinculo_atual']['ativo'] is True
+    assert json['vinculo_atual']['perfil']['nome'] == 'COORDENADOR_ESCOLA'
+    assert json['vinculo_atual']['perfil']['uuid'] == '41c20c8b-7e57-41ed-9433-ccb92e8afaf1'
 
 
 def test_cadastro_vinculo_diretor_escola(users_diretor_escola, monkeypatch):
@@ -210,26 +148,13 @@ def test_cadastro_vinculo_diretor_escola(users_diretor_escola, monkeypatch):
         'tipo_email': None,
         'registro_funcional': '5696569',
         'tipo_usuario': 'escola',
-        'crn_numero': None,
-        'cargo': '',
         'vinculo_atual': {
             'instituicao': {
                 'nome': 'EMEI NOE AZEVEDO, PROF',
                 'uuid': 'b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd',
                 'codigo_eol': '256341',
-                'quantidade_alunos': 450,
+                'quantidade_alunos': 0,
                 'lotes': [],
-                'contato': {'nome': '',
-                            'celular': '',
-                            'email': '',
-                            'telefone': '',
-                            'telefone2': ''},
-                'endereco': {'bairro': '',
-                             'cep': None,
-                             'complemento': '',
-                             'logradouro': '',
-                             'numero': None},
-                'tipos_contagem': [],
                 'periodos_escolares': [
                     {
                         'tipos_alimentacao': [],
@@ -248,13 +173,34 @@ def test_cadastro_vinculo_diretor_escola(users_diretor_escola, monkeypatch):
                     'nome': 'DIRETORIA REGIONAL IPIRANGA',
                     'codigo_eol': '987656'
                 },
-                'tipo_unidade_escolar': '56725de5-89d3-4edf-8633-3e0b5c99e9d4'
+                'tipo_unidade_escolar': '56725de5-89d3-4edf-8633-3e0b5c99e9d4',
+                'tipo_gestao': 'TERC TOTAL',
+                'tipos_contagem': [],
+                'endereco': {
+                    'logradouro': '',
+                    'numero': None,
+                    'complemento': '',
+                    'bairro': '',
+                    'cep': None
+                },
+                'contato': {
+                    'nome': '',
+                    'telefone': '',
+                    'telefone2': '',
+                    'celular': '',
+                    'email': '',
+                    'eh_nutricionista': False,
+                    'crn_numero': ''
+                }
             },
             'perfil': {
                 'nome': 'ADMINISTRADOR_ESCOLA',
                 'uuid': '48330a6f-c444-4462-971e-476452b328b2'
-            }
-        }
+            },
+            'ativo': False
+        },
+        'crn_numero': None,
+        'cargo': ''
     }
     usuario_novo = Usuario.objects.get(registro_funcional='5696569')
     assert usuario_novo.is_active is False
@@ -349,35 +295,36 @@ def test_cadastro_vinculo_diretoria_regional(users_cogestor_diretoria_regional, 
     response.json().get('vinculo_atual').pop('uuid')
     response.json().pop('uuid')
     assert response.json() == {
-        'cargo': '',
         'cpf': '47088910080',
-        'crn_numero': None,
-        'email': '47088910080@emailtemporario.prefeitura.sp.gov.br',
         'nome': 'LUIZA MARIA BASTOS',
-        'registro_funcional': '6812805',
+        'email': '47088910080@emailtemporario.prefeitura.sp.gov.br',
         'tipo_email': None,
+        'registro_funcional': '6812805',
         'tipo_usuario': 'diretoriaregional',
         'vinculo_atual': {
             'instituicao': {
+                'nome': 'DIRETORIA REGIONAL DE EDUCACAO CAPELA DO SOCORRO',
+                'uuid': 'b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd',
                 'codigo_eol': None,
-                'contato': None,
-                'diretoria_regional': None,
-                'endereco': None,
-                'escolas': [],
-                'lotes': [],
-                'nome': 'DIRETORIA REGIONAL DE EDUCACAO '
-                        'CAPELA DO SOCORRO',
-                'periodos_escolares': [],
                 'quantidade_alunos': 0,
+                'lotes': [],
+                'periodos_escolares': [],
+                'escolas': [],
+                'diretoria_regional': None,
                 'tipo_unidade_escolar': None,
+                'tipo_gestao': None,
                 'tipos_contagem': None,
-                'uuid': 'b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd'
+                'endereco': None,
+                'contato': None
             },
             'perfil': {
                 'nome': 'ADMINISTRADOR_DRE',
                 'uuid': '48330a6f-c444-4462-971e-476452b328b2'
-            }
-        }
+            },
+            'ativo': False
+        },
+        'crn_numero': None,
+        'cargo': ''
     }
     usuario_novo = Usuario.objects.get(registro_funcional='6812805')
     assert usuario_novo.is_active is False
@@ -475,34 +422,36 @@ def test_cadastro_vinculo_codae_gestao_alimentacao(users_codae_gestao_alimentaca
     response.json().get('vinculo_atual').pop('uuid')
     response.json().pop('uuid')
     assert response.json() == {
-        'cargo': '',
         'cpf': '47088910080',
-        'crn_numero': None,
-        'email': '47088910080@emailtemporario.prefeitura.sp.gov.br',
         'nome': 'LUIZA MARIA BASTOS',
-        'registro_funcional': '6812805',
+        'email': '47088910080@emailtemporario.prefeitura.sp.gov.br',
         'tipo_email': None,
+        'registro_funcional': '6812805',
         'tipo_usuario': 'gestao_alimentacao_terceirizada',
         'vinculo_atual': {
             'instituicao': {
-                'codigo_eol': None,
-                'contato': None,
-                'diretoria_regional': None,
-                'endereco': None,
-                'escolas': [],
-                'lotes': [],
                 'nome': 'CODAE',
-                'periodos_escolares': [],
+                'uuid': 'b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd',
+                'codigo_eol': None,
                 'quantidade_alunos': 0,
+                'lotes': [],
+                'periodos_escolares': [],
+                'escolas': [],
+                'diretoria_regional': None,
                 'tipo_unidade_escolar': None,
+                'tipo_gestao': None,
                 'tipos_contagem': None,
-                'uuid': 'b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd'
+                'endereco': None,
+                'contato': None
             },
             'perfil': {
                 'nome': 'ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA',
                 'uuid': '48330a6f-c444-4462-971e-476452b328b2'
-            }
-        }
+            },
+            'ativo': False
+        },
+        'crn_numero': None,
+        'cargo': ''
     }
     usuario_novo = Usuario.objects.get(registro_funcional='6812805')
     assert usuario_novo.is_active is False
@@ -642,19 +591,8 @@ def test_cadastro_diretor(client, users_diretor_escola, monkeypatch):
             'nome': 'EMEI NOE AZEVEDO, PROF',
             'uuid': 'b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd',
             'codigo_eol': '256341',
-            'quantidade_alunos': 450,
+            'quantidade_alunos': 0,
             'lotes': [],
-            'contato': {'nome': '',
-                        'celular': '',
-                        'email': '',
-                        'telefone': '',
-                        'telefone2': ''},
-            'endereco': {'bairro': '',
-                         'cep': None,
-                         'complemento': '',
-                         'logradouro': '',
-                         'numero': None},
-            'tipos_contagem': [],
             'periodos_escolares': [
                 {
                     'tipos_alimentacao': [],
@@ -668,12 +606,38 @@ def test_cadastro_diretor(client, users_diretor_escola, monkeypatch):
                 }
             ],
             'escolas': [],
-            'diretoria_regional': {'uuid': '7da9acec-48e1-430c-8a5c-1f1efc666fad',
-                                   'nome': 'DIRETORIA REGIONAL IPIRANGA',
-                                   'codigo_eol': '987656'},
-            'tipo_unidade_escolar': '56725de5-89d3-4edf-8633-3e0b5c99e9d4'
+            'diretoria_regional': {
+                'uuid': '7da9acec-48e1-430c-8a5c-1f1efc666fad',
+                'nome': 'DIRETORIA REGIONAL IPIRANGA',
+                'codigo_eol': '987656'
+            },
+            'tipo_unidade_escolar':
+            '56725de5-89d3-4edf-8633-3e0b5c99e9d4',
+            'tipo_gestao': 'TERC TOTAL',
+            'tipos_contagem': [],
+            'endereco': {
+                'logradouro': '',
+                'numero': None,
+                'complemento': '',
+                'bairro': '',
+                'cep': None
+            },
+            'contato': {
+                'nome': '',
+                'telefone': '',
+                'telefone2': '',
+                'celular': '',
+                'email': '',
+                'eh_nutricionista': False,
+                'crn_numero': ''
+            }
         },
-        'perfil': {'nome': 'COORDENADOR_ESCOLA', 'uuid': '41c20c8b-7e57-41ed-9433-ccb92e8afaf1'}}
+        'perfil': {
+            'nome': 'COORDENADOR_ESCOLA',
+            'uuid': '41c20c8b-7e57-41ed-9433-ccb92e8afaf1'
+        },
+        'ativo': True
+    }
 
 
 def test_post_usuarios(client_autenticado):
@@ -705,34 +669,21 @@ def test_confirmar_email(client, usuarios_pendentes_confirmacao):
     assert len(json.keys()) == len(keys)
     json.pop('date_joined')
     json.get('vinculo_atual').pop('uuid')
-    assert json == {
-        'cpf': usuario.cpf,
-        'uuid': usuario.uuid,
-        'nome': usuario.nome,
-        'email': usuario.email,
+    result = {
+        'uuid': 'd36fa08e-e91e-4acb-9d54-b88115147e8e',
+        'cpf': None,
+        'nome': 'Bruno da Conceição',
+        'email': 'GrVdXIhxqb@example.com',
         'tipo_email': None,
-        'registro_funcional': usuario.registro_funcional,
+        'registro_funcional': '1234567',
         'tipo_usuario': 'escola',
-        'crn_numero': None,
-        'cargo': '',
         'vinculo_atual': {
             'instituicao': {
-                'nome': usuario.vinculo_atual.instituicao.nome,
-                'uuid': str(usuario.vinculo_atual.instituicao.uuid),
+                'nome': 'EMEI NOE AZEVEDO, PROF',
+                'uuid': 'b00b2cf4-286d-45ba-a18b-9ffe4e8d8dfd',
                 'codigo_eol': '256341',
-                'quantidade_alunos': usuario.vinculo_atual.instituicao.quantidade_alunos,
+                'quantidade_alunos': 0,
                 'lotes': [],
-                'contato': {'nome': '',
-                            'celular': '',
-                            'email': '',
-                            'telefone': '',
-                            'telefone2': ''},
-                'endereco': {'bairro': '',
-                             'cep': None,
-                             'complemento': '',
-                             'logradouro': '',
-                             'numero': None},
-                'tipos_contagem': [],
                 'periodos_escolares': [],
                 'escolas': [],
                 'diretoria_regional': {
@@ -740,14 +691,36 @@ def test_confirmar_email(client, usuarios_pendentes_confirmacao):
                     'nome': 'DIRETORIA REGIONAL IPIRANGA',
                     'codigo_eol': '987656'
                 },
-                'tipo_unidade_escolar': '56725de5-89d3-4edf-8633-3e0b5c99e9d4'
+                'tipo_unidade_escolar': '56725de5-89d3-4edf-8633-3e0b5c99e9d4',
+                'tipo_gestao': 'TERC TOTAL',
+                'tipos_contagem': [],
+                'endereco': {
+                    'logradouro': '',
+                    'numero': None,
+                    'complemento': '',
+                    'bairro': '',
+                    'cep': None
+                },
+                'contato': {
+                    'nome': '',
+                    'telefone': '',
+                    'telefone2': '',
+                    'celular': '',
+                    'email': '',
+                    'eh_nutricionista': False,
+                    'crn_numero': ''
+                }
             },
             'perfil': {
-                'nome': usuario.vinculo_atual.perfil.nome,
-                'uuid': str(usuario.vinculo_atual.perfil.uuid)
-            }
-        }
+                'nome': 'título do perfil',
+                'uuid': 'd38e10da-c5e3-4dd5-9916-010fc250595a'
+            },
+            'ativo': True
+        },
+        'crn_numero': None,
+        'cargo': ''
     }
+    assert json == result
 
 
 def test_confirmar_error(client, usuarios_pendentes_confirmacao):

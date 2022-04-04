@@ -1,0 +1,9 @@
+{% extends 'email_base.html' %}
+{% load email_templatetags %}
+
+{% block conteudo %}
+
+ {% include "logistica_notificacao_confirma_cancelamento_distribuidor.html" %}
+  <a href="{{ url }}">Clique para acessar detalhes da solicitação</a>
+  <br/>
+{% endblock %}
