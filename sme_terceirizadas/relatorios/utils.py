@@ -2,6 +2,7 @@ import io
 import math
 from datetime import date
 
+from django.contrib.staticfiles.storage import staticfiles_storage
 from django.http import HttpResponse
 from django_weasyprint.utils import django_url_fetcher
 from pikepdf import Pdf
@@ -50,12 +51,26 @@ def html_to_pdf_response(html_string, pdf_filename):
     return response
 
 
-def html_to_pdf_response_cancelada(html_string, pdf_filename):
+def html_to_pdf_file(html_string, pdf_filename, is_async=False):
+    pdf_file = HTML(
+        string=html_string,
+        base_url=staticfiles_storage.location
+    ).write_pdf()
+
+    if is_async:
+        return pdf_file
+    else:
+        response = HttpResponse(pdf_file, content_type='application/pdf')
+        response['Content-Disposition'] = f'filename="{pdf_filename}"'
+        return response
+
+
+def html_to_pdf_cancelada(html_string, pdf_filename, is_async=False):
     arquivo_final = io.BytesIO()
     pdf_file = HTML(
         string=html_string,
-        url_fetcher=django_url_fetcher,
-        base_url='file://abobrinha').write_pdf()
+        base_url=staticfiles_storage.location
+    ).write_pdf()
 
     watermark_instance = PdfFileReader('sme_terceirizadas/relatorios/static/images/cancel-1.pdf')
     watermark_page = watermark_instance.getPage(0)
@@ -69,27 +84,34 @@ def html_to_pdf_response_cancelada(html_string, pdf_filename):
 
     pdf_writer.write(arquivo_final)
     arquivo_final.seek(0)
-    response = HttpResponse(arquivo_final, content_type='application/pdf')
-    response['Content-Disposition'] = f'filename="{pdf_filename}"'
-    return response
+    if is_async:
+        return arquivo_final.read()
+    else:
+        response = HttpResponse(arquivo_final, content_type='application/pdf')
+        response['Content-Disposition'] = f'filename="{pdf_filename}"'
+        return response
 
 
-def html_to_pdf_multiple_response(lista_strings, pdf_filename):
+def html_to_pdf_multiple(lista_strings, pdf_filename, is_async=False):
     arquivo_final = io.BytesIO()
     arquivo = Pdf.new()
     for html_string in lista_strings:
         pdf_file = HTML(
             string=html_string,
-            url_fetcher=django_url_fetcher,
-            base_url='file://abobrinha').write_pdf()
+            base_url=staticfiles_storage.location
+        ).write_pdf()
         src = Pdf.open(io.BytesIO(pdf_file))
         arquivo.pages.extend(src.pages)
 
     arquivo.save(arquivo_final)
     arquivo_final.seek(0)
-    response = HttpResponse(arquivo_final, content_type='application/pdf')
-    response['Content-Disposition'] = f'filename="{pdf_filename}"'
-    return response
+
+    if is_async:
+        return arquivo_final.read()
+    else:
+        response = HttpResponse(arquivo_final, content_type='application/pdf')
+        response['Content-Disposition'] = f'filename="{pdf_filename}"'
+        return response
 
 
 def html_to_pdf_email_anexo(html_string, pdf_filename=None):
