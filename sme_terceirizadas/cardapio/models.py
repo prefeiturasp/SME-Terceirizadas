@@ -148,10 +148,6 @@ class VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar(
                                                related_name='vinculos',
                                                blank=True)
 
-    # def __str__(self):
-    #     combos = [f'{str(sub)} --- ' for sub in self.combos.all()]
-    #     return f'{self.tipo_unidade_escolar.iniciais} - {self.periodo_escolar.nome} - {combos}'
-
     class Meta:
         unique_together = [['periodo_escolar', 'tipo_unidade_escolar']]
         verbose_name = 'Vínculo tipo alimentação'
@@ -310,7 +306,6 @@ class QuantidadePorPeriodoSuspensaoAlimentacao(ExportModelOperationsMixin('quant
                                         blank=True, null=True, related_name='quantidades_por_periodo')
     # TODO: SUBSTITUIR POR COMBOS DO TIPO DE ALIMENTACAO
     tipos_alimentacao = models.ManyToManyField(TipoAlimentacao)
-
 
     def __str__(self):
         return f'Quantidade de alunos: {self.numero_alunos}'
