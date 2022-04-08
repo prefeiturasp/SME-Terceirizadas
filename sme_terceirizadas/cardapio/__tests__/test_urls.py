@@ -874,7 +874,7 @@ def test_url_endpoint_get_vinculos_tipo_alimentacao(client_autenticado_vinculo_e
     assert json[0]['uuid'] == str(vinculo_tipo_alimentacao.uuid)
     assert json[0]['periodo_escolar']['uuid'] == str(vinculo_tipo_alimentacao.periodo_escolar.uuid)
     assert json[0]['tipo_unidade_escolar']['uuid'] == str(vinculo_tipo_alimentacao.tipo_unidade_escolar.uuid)
-    assert len(json[0]['combos']) == 5
+    assert len(json[0]['tipos_alimentacao']) == 5
 
     # testa endpoint de filtro tipo_ue
     response = client_autenticado_vinculo_escola.get(
@@ -884,7 +884,7 @@ def test_url_endpoint_get_vinculos_tipo_alimentacao(client_autenticado_vinculo_e
     assert json[0]['uuid'] == str(vinculo_tipo_alimentacao.uuid)
     assert json[0]['periodo_escolar']['uuid'] == str(vinculo_tipo_alimentacao.periodo_escolar.uuid)
     assert json[0]['tipo_unidade_escolar']['uuid'] == str(vinculo_tipo_alimentacao.tipo_unidade_escolar.uuid)
-    assert len(json[0]['combos']) == 5
+    assert len(json[0]['tipos_alimentacao']) == 5
 
 
 def test_endpoint_horario_do_combo_tipo_alimentacao_unidade_escolar(client_autenticado_vinculo_escola,
