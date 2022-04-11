@@ -660,11 +660,11 @@ def faixas_etarias_ativas():
 ])
 def vinculo_tipo_alimentacao(request):
     nome_periodo, nome_ue = request.param
-    alimentacoes = mommy.make('TipoAlimentacao', _quantity=4)
-    combos = mommy.make('ComboDoVinculoTipoAlimentacaoPeriodoTipoUE', tipos_alimentacao=alimentacoes, _quantity=5)
+    tipos_alimentacao = mommy.make('TipoAlimentacao', _quantity=5)
     tipo_unidade_escolar = mommy.make('TipoUnidadeEscolar', iniciais=nome_ue)
     periodo_escolar = mommy.make('PeriodoEscolar', nome=nome_periodo)
-    return mommy.make('VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar', combos=combos,
+    return mommy.make('VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar',
+                      tipos_alimentacao=tipos_alimentacao,
                       uuid='3bdf8144-9b17-495a-8387-5ce0d2a6120a',
                       tipo_unidade_escolar=tipo_unidade_escolar,
                       periodo_escolar=periodo_escolar)

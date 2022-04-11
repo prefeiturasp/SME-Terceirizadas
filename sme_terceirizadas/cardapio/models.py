@@ -144,10 +144,9 @@ class VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar(
     periodo_escolar = models.ForeignKey('escola.PeriodoEscolar',
                                         null=True,
                                         on_delete=models.DO_NOTHING)
-
-    def __str__(self):
-        combos = [f'{str(sub)} --- ' for sub in self.combos.all()]
-        return f'{self.tipo_unidade_escolar.iniciais} - {self.periodo_escolar.nome} - {combos}'
+    tipos_alimentacao = models.ManyToManyField('TipoAlimentacao',
+                                               related_name='vinculos',
+                                               blank=True)
 
     class Meta:
         unique_together = [['periodo_escolar', 'tipo_unidade_escolar']]
@@ -306,8 +305,7 @@ class QuantidadePorPeriodoSuspensaoAlimentacao(ExportModelOperationsMixin('quant
     grupo_suspensao = models.ForeignKey('GrupoSuspensaoAlimentacao', on_delete=models.CASCADE,
                                         blank=True, null=True, related_name='quantidades_por_periodo')
     # TODO: SUBSTITUIR POR COMBOS DO TIPO DE ALIMENTACAO
-    tipos_alimentacao = models.ManyToManyField(
-        ComboDoVinculoTipoAlimentacaoPeriodoTipoUE)
+    tipos_alimentacao = models.ManyToManyField(TipoAlimentacao)
 
     def __str__(self):
         return f'Quantidade de alunos: {self.numero_alunos}'
