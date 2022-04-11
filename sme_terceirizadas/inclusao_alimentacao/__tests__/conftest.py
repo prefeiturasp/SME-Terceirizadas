@@ -51,7 +51,7 @@ def motivo_inclusao_normal():
 @pytest.fixture
 def quantidade_por_periodo():
     periodo_escolar = mommy.make('escola.PeriodoEscolar')
-    tipos_alimentacao = mommy.make('cardapio.ComboDoVinculoTipoAlimentacaoPeriodoTipoUE', _quantity=5, make_m2m=True)
+    tipos_alimentacao = mommy.make('cardapio.TipoAlimentacao', _quantity=5, make_m2m=True)
 
     return mommy.make(models.QuantidadePorPeriodo,
                       numero_alunos=0,
