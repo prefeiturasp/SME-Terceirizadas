@@ -1,3 +1,4 @@
+from django.contrib.postgres.fields import ArrayField
 from django.core.validators import MinLengthValidator
 from django.db import models
 from multiselectfield import MultiSelectField
@@ -126,3 +127,37 @@ class SolicitacaoDeAlteracaoRequisicao(ModeloBase, TemIdentificadorExternoAmigav
     class Meta:
         verbose_name = 'Solicitação de Alteração de Requisição'
         verbose_name_plural = 'Solicitações de Alteração de Requisição'
+
+
+class SolicitacaoCancelamentoException(Exception):
+    pass
+
+
+class LogSolicitacaoDeCAncelamentoPeloPapa(ModeloBase):
+    requisicao = models.ForeignKey(SolicitacaoRemessa, on_delete=models.CASCADE,
+                                   related_name='solicitacoes_de_cancelamento')
+    guias = ArrayField(models.CharField(max_length=100))
+    sequencia_envio = models.IntegerField('Sequência de envio atribuída pelo papa')
+    foi_confirmada = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f'Sol. de cancelamento {self.sequencia_envio}'
+
+    @classmethod
+    def registrar_solicitacao(cls, requisicao, guias, sequencia_envio):
+        if not requisicao or not guias or not sequencia_envio:
+            raise SolicitacaoCancelamentoException('É necessário informar a requisição, lista das guias e o número de '
+                                                   'sequencia do cancelamento.')
+
+        solicitacao = cls.objects.create(
+            requisicao=requisicao, guias=guias, sequencia_envio=sequencia_envio
+        )
+        return solicitacao
+
+    def confirmar_cancelamento(self):
+        self.foi_confirmada = True
+        self.save()
+
+    class Meta:
+        verbose_name = 'Log de Solicitação de Cancelamento do PAPA'
+        verbose_name_plural = 'Logs de Solicitações de Cancelamento do PAPA'
