@@ -133,7 +133,7 @@ class SolicitacaoCancelamentoException(Exception):
     pass
 
 
-class LogSolicitacaoDeCAncelamentoPeloPapa(ModeloBase):
+class LogSolicitacaoDeCancelamentoPeloPapa(ModeloBase):
     requisicao = models.ForeignKey(SolicitacaoRemessa, on_delete=models.CASCADE,
                                    related_name='solicitacoes_de_cancelamento')
     guias = ArrayField(models.CharField(max_length=100))

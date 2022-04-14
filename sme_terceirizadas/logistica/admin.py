@@ -6,7 +6,7 @@ from .models import (
     ConferenciaGuia,
     Embalagem,
     Guia,
-    LogSolicitacaoDeCAncelamentoPeloPapa,
+    LogSolicitacaoDeCancelamentoPeloPapa,
     SolicitacaoDeAlteracaoRequisicao,
     SolicitacaoRemessa,
     TipoEmbalagem
@@ -196,8 +196,8 @@ class InsucessoEntregaGuiaAdmin(admin.ModelAdmin):
     get_data_tentativa.short_description = 'Data Tentativa da Entrega'
 
 
-@admin.register(LogSolicitacaoDeCAncelamentoPeloPapa)
-class LogSolicitacaoDeCAncelamentoPeloPapaAdmin(admin.ModelAdmin):
+@admin.register(LogSolicitacaoDeCancelamentoPeloPapa)
+class LogSolicitacaoDeCancelamentoPeloPapaAdmin(admin.ModelAdmin):
     def get_requisicao(self, obj):
         return obj.requisicao.numero_solicitacao
     get_requisicao.short_description = 'Número Solicitação'

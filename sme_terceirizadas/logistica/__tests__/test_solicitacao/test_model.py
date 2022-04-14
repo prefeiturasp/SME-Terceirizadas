@@ -2,7 +2,7 @@ import pytest
 from django.contrib.auth import get_user_model
 
 from ...models.solicitacao import (
-    LogSolicitacaoDeCAncelamentoPeloPapa,
+    LogSolicitacaoDeCancelamentoPeloPapa,
     SolicitacaoDeAlteracaoRequisicao,
     SolicitacaoRemessa
 )
@@ -58,7 +58,7 @@ def test_solicitacao_de_alteracao_requisicao_numero_solicitacao(solicitacao_de_a
 
 def test_log_solicitcacao_cancelamento_instance_model(solicitacao_cancelamento_log):
     model = solicitacao_cancelamento_log
-    assert isinstance(model, LogSolicitacaoDeCAncelamentoPeloPapa)
+    assert isinstance(model, LogSolicitacaoDeCancelamentoPeloPapa)
     assert model.requisicao
     assert model.guias
     assert model.sequencia_envio

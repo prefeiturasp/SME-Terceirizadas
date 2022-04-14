@@ -17,7 +17,7 @@ from ....terceirizada.models import Terceirizada
 from ...models.alimento import Alimento as AlimentoModel  # noqa I001
 from ...models.alimento import Embalagem
 from ...models.guia import Guia as GuiaModel
-from ...models.solicitacao import LogSolicitacaoDeCAncelamentoPeloPapa, SolicitacaoRemessa
+from ...models.solicitacao import LogSolicitacaoDeCancelamentoPeloPapa, SolicitacaoRemessa
 
 env = environ.Env()
 
@@ -240,7 +240,7 @@ class ArqCancelamento(ComplexModel):
         guias_existentes = list(solicitacao.guias.values_list('numero_guia', flat=True))
 
         # Registra solicitação de cancelamento
-        solicitacao_cancelamento = LogSolicitacaoDeCAncelamentoPeloPapa.registrar_solicitacao(
+        solicitacao_cancelamento = LogSolicitacaoDeCancelamentoPeloPapa.registrar_solicitacao(
             requisicao=solicitacao,
             guias=guias_payload,
             sequencia_envio=seq_envio

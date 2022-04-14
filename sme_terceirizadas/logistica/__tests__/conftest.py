@@ -225,7 +225,7 @@ def insucesso_entrega_guia(guia):
 @pytest.fixture
 def solicitacao_cancelamento_log(solicitacao):
     return mommy.make(
-        'LogSolicitacaoDeCAncelamentoPeloPapa',
+        'LogSolicitacaoDeCancelamentoPeloPapa',
         requisicao=solicitacao,
         guias=['21236', '235264'],
         sequencia_envio='123456',
