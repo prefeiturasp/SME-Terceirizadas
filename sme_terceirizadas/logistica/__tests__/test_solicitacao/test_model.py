@@ -1,7 +1,11 @@
 import pytest
 from django.contrib.auth import get_user_model
 
-from ...models.solicitacao import SolicitacaoDeAlteracaoRequisicao, SolicitacaoRemessa
+from ...models.solicitacao import (
+    LogSolicitacaoDeCAncelamentoPeloPapa,
+    SolicitacaoDeAlteracaoRequisicao,
+    SolicitacaoRemessa
+)
 
 pytestmark = pytest.mark.django_db
 
@@ -50,3 +54,20 @@ def test_meta_solicitacao_de_alteracao_requisicao_model(solicitacao_de_alteracao
 
 def test_solicitacao_de_alteracao_requisicao_numero_solicitacao(solicitacao_de_alteracao_requisicao):
     assert solicitacao_de_alteracao_requisicao.numero_solicitacao == '00000001-ALT'
+
+
+def test_log_solicitcacao_cancelamento_instance_model(solicitacao_cancelamento_log):
+    model = solicitacao_cancelamento_log
+    assert isinstance(model, LogSolicitacaoDeCAncelamentoPeloPapa)
+    assert model.requisicao
+    assert model.guias
+    assert model.sequencia_envio
+
+
+def test_srt_log_solicitcacao_cancelamento_model(solicitacao_cancelamento_log):
+    assert solicitacao_cancelamento_log.__str__() == 'Sol. de cancelamento 123456'
+
+
+def test_meta_log_solicitcacao_cancelamento_model(solicitacao_cancelamento_log):
+    assert solicitacao_cancelamento_log._meta.verbose_name == 'Log de Solicitação de Cancelamento do PAPA'
+    assert solicitacao_cancelamento_log._meta.verbose_name_plural == 'Logs de Solicitações de Cancelamento do PAPA'
