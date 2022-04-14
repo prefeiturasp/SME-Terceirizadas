@@ -220,3 +220,14 @@ def insucesso_entrega_guia(guia):
         justificativa='Unidade estava fechada.',
         motivo='UNIDADE_FECHADA'
     )
+
+
+@pytest.fixture
+def solicitacao_cancelamento_log(solicitacao):
+    return mommy.make(
+        'LogSolicitacaoDeCAncelamentoPeloPapa',
+        requisicao=solicitacao,
+        guias=['21236', '235264'],
+        sequencia_envio='123456',
+        foi_confirmada=False
+    )
