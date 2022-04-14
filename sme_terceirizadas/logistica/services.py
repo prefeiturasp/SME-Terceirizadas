@@ -71,24 +71,30 @@ def confirma_cancelamento(numero_requisicao, guias, user):
     # além das guias, a requisição também será cancelada.
 
     try:
-        solicitacao = SolicitacaoRemessa.objects.get(numero_solicitacao=numero_requisicao)
-        seq_envio = solicitacao.sequencia_envio
-        solicitacao.guias.filter(numero_guia__in=guias).update(status=GuiaStatus.CANCELADA)
-        existe_guia_nao_cancelada = solicitacao.guias.exclude(status=GuiaStatus.CANCELADA).exists()
-        guias_existentes = list(solicitacao.guias.values_list('numero_guia', flat=True))
+        requisicao = SolicitacaoRemessa.objects.get(numero_solicitacao=numero_requisicao)
+        solicitacoes_de_cancelamento = requisicao.solicitacoes_de_cancelamento.filter(foi_confirmada=False)
+        requisicao.guias.filter(numero_guia__in=guias).update(status=GuiaStatus.CANCELADA)
+        existe_guia_nao_cancelada = requisicao.guias.exclude(status=GuiaStatus.CANCELADA).exists()
+        guias_existentes = list(requisicao.guias.values_list('numero_guia', flat=True))
 
         if set(guias_existentes) == set(guias) or not existe_guia_nao_cancelada:
-            solicitacao.distribuidor_confirma_cancelamento(user=user)
+            requisicao.distribuidor_confirma_cancelamento(user=user)
         else:
-            solicitacao.salvar_log_transicao(
+            requisicao.salvar_log_transicao(
                 status_evento=LogSolicitacoesUsuario.PAPA_CANCELA_SOLICITACAO,
                 usuario=user,
                 justificativa=f'Guias canceladas: {guias}'
             )
         # Envia confirmação para o papa
         if not settings.DEBUG:
-            EOLPapaService.confirmacao_de_cancelamento(
-                cnpj=solicitacao.cnpj, numero_solicitacao=solicitacao.numero_solicitacao, sequencia_envio=seq_envio)
+            for solicitacao in solicitacoes_de_cancelamento:
+                EOLPapaService.confirmacao_de_cancelamento(
+                    cnpj=solicitacao.requisicao.cnpj,
+                    numero_solicitacao=solicitacao.requisicao.numero_solicitacao,
+                    sequencia_envio=solicitacao.sequencia_envio
+                )
+        # Atualiza registros das solicitações de cancelamento
+        solicitacoes_de_cancelamento.update(foi_confirmada=True)
     except ObjectDoesNotExist:
         raise ValidationError(f'Requisição {numero_requisicao} não existe.')
 
