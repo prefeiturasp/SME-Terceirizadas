@@ -17,7 +17,7 @@ from ....terceirizada.models import Terceirizada
 from ...models.alimento import Alimento as AlimentoModel  # noqa I001
 from ...models.alimento import Embalagem
 from ...models.guia import Guia as GuiaModel
-from ...models.solicitacao import SolicitacaoRemessa
+from ...models.solicitacao import LogSolicitacaoDeCAncelamentoPeloPapa, SolicitacaoRemessa
 
 env = environ.Env()
 
@@ -238,6 +238,13 @@ class ArqCancelamento(ComplexModel):
             raise exceptions.ObjectDoesNotExist(f'Solicitacão {num_solicitacao} não encontrada.')
 
         guias_existentes = list(solicitacao.guias.values_list('numero_guia', flat=True))
+
+        # Registra solicitação de cancelamento
+        solicitacao_cancelamento = LogSolicitacaoDeCAncelamentoPeloPapa.registrar_solicitacao(
+            requisicao=solicitacao,
+            guias=guias_payload,
+            sequencia_envio=seq_envio
+        )
         # Não depende de confirmação do distribuidor no sigpae
         if solicitacao.status in (StatusReq.AGUARDANDO_ENVIO, StatusReq.DILOG_ENVIA, StatusReq.DILOG_ACEITA_ALTERACAO):
             solicitacao.guias.filter(numero_guia__in=guias_payload).update(status=GuiaStatus.CANCELADA)
@@ -255,14 +262,16 @@ class ArqCancelamento(ComplexModel):
             if not settings.DEBUG:
                 EOLPapaService.confirmacao_de_cancelamento(
                     cnpj=solicitacao.cnpj, numero_solicitacao=solicitacao.numero_solicitacao, sequencia_envio=seq_envio)
+            # Atualiza registro da solicitação de cancelamento
+            solicitacao_cancelamento.confirmar_cancelamento()
 
         # Depende de confirmação do distribuidor no sigpae
         elif solicitacao.status in (StatusReq.DISTRIBUIDOR_CONFIRMA, StatusReq.DISTRIBUIDOR_SOLICITA_ALTERACAO):
             solicitacao.guias.filter(numero_guia__in=guias_payload).update(status=GuiaStatus.AGUARDANDO_CANCELAMENTO)
-            existe_guia_aguardando_cancelamento = solicitacao.guias.exclude(
-                status=GuiaStatus.AGUARDANDO_CANCELAMENTO).exists()
+            existe_guia_valida = solicitacao.guias.exclude(
+                status__in=(GuiaStatus.AGUARDANDO_CANCELAMENTO, GuiaStatus.CANCELADA)).exists()
 
-            if set(guias_existentes) == set(guias_payload) or not existe_guia_aguardando_cancelamento:
+            if set(guias_existentes) == set(guias_payload) or not existe_guia_valida:
                 solicitacao.aguarda_confirmacao_de_cancelamento(user=user)
             else:
                 solicitacao.salvar_log_transicao(
