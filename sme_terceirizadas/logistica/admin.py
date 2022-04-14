@@ -6,6 +6,7 @@ from .models import (
     ConferenciaGuia,
     Embalagem,
     Guia,
+    LogSolicitacaoDeCancelamentoPeloPapa,
     SolicitacaoDeAlteracaoRequisicao,
     SolicitacaoRemessa,
     TipoEmbalagem
@@ -193,3 +194,12 @@ class InsucessoEntregaGuiaAdmin(admin.ModelAdmin):
     def get_data_tentativa(self, obj):
         return obj.guia.data_entrega
     get_data_tentativa.short_description = 'Data Tentativa da Entrega'
+
+
+@admin.register(LogSolicitacaoDeCancelamentoPeloPapa)
+class LogSolicitacaoDeCancelamentoPeloPapaAdmin(admin.ModelAdmin):
+    def get_requisicao(self, obj):
+        return obj.requisicao.numero_solicitacao
+    get_requisicao.short_description = 'Número Solicitação'
+    list_display = ('get_requisicao', 'sequencia_envio', 'foi_confirmada', 'criado_em')
+    readonly_fields = ('requisicao', 'guias', 'sequencia_envio', 'criado_em', 'alterado_em', 'foi_confirmada')
