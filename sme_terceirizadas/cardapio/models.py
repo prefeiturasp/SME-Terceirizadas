@@ -144,10 +144,9 @@ class VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar(
     periodo_escolar = models.ForeignKey('escola.PeriodoEscolar',
                                         null=True,
                                         on_delete=models.DO_NOTHING)
-
-    def __str__(self):
-        combos = [f'{str(sub)} --- ' for sub in self.combos.all()]
-        return f'{self.tipo_unidade_escolar.iniciais} - {self.periodo_escolar.nome} - {combos}'
+    tipos_alimentacao = models.ManyToManyField('TipoAlimentacao',
+                                               related_name='vinculos',
+                                               blank=True)
 
     class Meta:
         unique_together = [['periodo_escolar', 'tipo_unidade_escolar']]
@@ -306,8 +305,7 @@ class QuantidadePorPeriodoSuspensaoAlimentacao(ExportModelOperationsMixin('quant
     grupo_suspensao = models.ForeignKey('GrupoSuspensaoAlimentacao', on_delete=models.CASCADE,
                                         blank=True, null=True, related_name='quantidades_por_periodo')
     # TODO: SUBSTITUIR POR COMBOS DO TIPO DE ALIMENTACAO
-    tipos_alimentacao = models.ManyToManyField(
-        ComboDoVinculoTipoAlimentacaoPeriodoTipoUE)
+    tipos_alimentacao = models.ManyToManyField(TipoAlimentacao)
 
     def __str__(self):
         return f'Quantidade de alunos: {self.numero_alunos}'
@@ -499,12 +497,9 @@ class AlteracaoCardapio(ExportModelOperationsMixin('alteracao_cardapio'), Criado
     @classmethod
     def com_lanche_do_mes_corrente(cls, escola_uuid):
         lanche = TipoAlimentacao.objects.get(nome__icontains='lanche')
-        substituicoes = SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE.objects.filter(
-            tipos_alimentacao=lanche
-        )
         alteracoes_da_escola = cls.do_mes_corrente.all().filter(
             escola__uuid=escola_uuid,
-            substituicoes_periodo_escolar__tipo_alimentacao_para__in=substituicoes
+            substituicoes_periodo_escolar__tipo_alimentacao_para=lanche
         )
         return alteracoes_da_escola
 
@@ -566,12 +561,15 @@ class SubstituicaoAlimentacaoNoPeriodoEscolar(ExportModelOperationsMixin('substi
     qtd_alunos = models.PositiveSmallIntegerField(default=0)
     periodo_escolar = models.ForeignKey('escola.PeriodoEscolar', on_delete=models.PROTECT,
                                         related_name='substituicoes_periodo_escolar')
-    tipo_alimentacao_de = models.ForeignKey('cardapio.ComboDoVinculoTipoAlimentacaoPeriodoTipoUE',
-                                            on_delete=models.PROTECT,
-                                            related_name='substituicoes_tipo_alimentacao_de', blank=True, null=True)
-    tipo_alimentacao_para = models.ForeignKey('cardapio.SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE',
-                                              on_delete=models.PROTECT,
-                                              related_name='substituicoes_tipo_alimentacao_para', blank=True, null=True)
+    tipos_alimentacao_de = models.ManyToManyField('TipoAlimentacao',
+                                                  related_name='substituicoes_alimentos_de',
+                                                  help_text='Tipos de alimentação substituídos na solicitação',
+                                                  blank=True)
+    tipo_alimentacao_para = models.ForeignKey('TipoAlimentacao',
+                                              related_name='substituicao_alimento_para',
+                                              help_text='Substituição selecionada na solicitação',
+                                              null=True, blank=True,
+                                              on_delete=models.PROTECT)
 
     def __str__(self):
         return f'Substituições de alimentação: {self.uuid} da Alteração de Cardápio: {self.alteracao_cardapio.uuid}'

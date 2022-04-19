@@ -116,11 +116,11 @@ class HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolarSerializer(serializers.M
 class VinculoTipoAlimentoSimplesSerializer(serializers.ModelSerializer):
     tipo_unidade_escolar = TipoUnidadeEscolarSerializerSimples()
     periodo_escolar = PeriodoEscolarSimplesSerializer()
-    combos = CombosVinculoTipoAlimentoSimplesSerializer(many=True)
+    tipos_alimentacao = TipoAlimentacaoSerializer(many=True, read_only=True)
 
     class Meta:
         model = VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
-        fields = ('uuid', 'tipo_unidade_escolar', 'periodo_escolar', 'combos')
+        fields = ('uuid', 'tipo_unidade_escolar', 'periodo_escolar', 'tipos_alimentacao')
 
 
 class CardapioSimplesSerializer(serializers.ModelSerializer):
@@ -203,7 +203,7 @@ class SuspensaoAlimentacaoSerializer(serializers.ModelSerializer):
 
 class QuantidadePorPeriodoSuspensaoAlimentacaoSerializer(serializers.ModelSerializer):
     periodo_escolar = PeriodoEscolarSimplesSerializer()
-    tipos_alimentacao = CombosVinculoTipoAlimentoSimplesSerializer(many=True)
+    tipos_alimentacao = TipoAlimentacaoSerializer(many=True)
 
     class Meta:
         model = QuantidadePorPeriodoSuspensaoAlimentacao
@@ -259,8 +259,8 @@ class SubstituicoesAlimentacaoNoPeriodoEscolarSerializerBase(serializers.ModelSe
         required=False,
         queryset=AlteracaoCardapio.objects.all()
     )
-    tipo_alimentacao_de = CombosVinculoTipoAlimentoSimplesSerializer()
-    tipo_alimentacao_para = SubstituicaoDoComboVinculoTipoAlimentoSimplesSerializer()
+    tipos_alimentacao_de = TipoAlimentacaoSerializer(many=True)
+    tipo_alimentacao_para = TipoAlimentacaoSerializer()
 
 
 class SubstituicoesAlimentacaoNoPeriodoEscolarSerializer(SubstituicoesAlimentacaoNoPeriodoEscolarSerializerBase):
