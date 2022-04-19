@@ -259,8 +259,8 @@ class SubstituicoesAlimentacaoNoPeriodoEscolarSerializerBase(serializers.ModelSe
         required=False,
         queryset=AlteracaoCardapio.objects.all()
     )
-    tipo_alimentacao_de = CombosVinculoTipoAlimentoSimplesSerializer()
-    tipo_alimentacao_para = SubstituicaoDoComboVinculoTipoAlimentoSimplesSerializer()
+    tipos_alimentacao_de = TipoAlimentacaoSerializer(many=True)
+    tipo_alimentacao_para = TipoAlimentacaoSerializer()
 
 
 class SubstituicoesAlimentacaoNoPeriodoEscolarSerializer(SubstituicoesAlimentacaoNoPeriodoEscolarSerializerBase):
