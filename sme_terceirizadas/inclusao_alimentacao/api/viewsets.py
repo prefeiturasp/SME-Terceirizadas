@@ -98,11 +98,12 @@ class CodaeAutoriza():
             url_path=constants.CODAE_NEGA_PEDIDO)
     def codae_nega_pedido(self, request, uuid=None):
         obj = self.get_object()
+        justificativa = request.data.get('justificativa', '')
         try:
             if obj.status == obj.workflow_class.DRE_VALIDADO:
-                obj.codae_nega(user=request.user)
+                obj.codae_nega(user=request.user, justificativa=justificativa)
             else:
-                obj.codae_nega_questionamento(user=request.user)
+                obj.codae_nega_questionamento(user=request.user, justificativa=justificativa)
             serializer = self.get_serializer(obj)
             return Response(serializer.data)
         except InvalidTransitionError as e:

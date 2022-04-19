@@ -45,7 +45,7 @@ def total_merendas_secas_por_escola_periodo_escolar_e_data(escola_periodo_escola
             grupo_inclusao_normal__status=PedidoAPartirDaEscolaWorkflow.CODAE_AUTORIZADO
         ),
         periodo_escolar=escola_periodo_escolar.periodo_escolar,
-        tipos_alimentacao__tipos_alimentacao__nome__iexact='merenda seca'
+        tipos_alimentacao__nome__iexact='merenda seca'
     ).aggregate(total_merendas_secas=Sum('numero_alunos'))['total_merendas_secas']
 
 

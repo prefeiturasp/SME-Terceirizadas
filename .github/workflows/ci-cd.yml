@@ -24,7 +24,8 @@ jobs:
           password: ${{ secrets.REGISTRY_PWD }}
     
       - name: Build the Docker image    
-        run: | 
+        run: |
+             docker login ${{ secrets.REGISTRY_HOST }}
              docker build . --tag ${{ secrets.REGISTRY_HOST }}/${GITHUB_REF##*/}/sme-sigpae-api
              docker push ${{ secrets.REGISTRY_HOST }}/${GITHUB_REF##*/}/sme-sigpae-api
              

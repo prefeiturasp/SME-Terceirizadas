@@ -132,6 +132,11 @@ class ProcessadorPlanilha:
 
         return lista_diagnosticos
 
+    def consulta_relacao_lote_terceirizada(self, solicitacao) -> None:
+        if solicitacao.rastro_terceirizada is None:
+            raise Exception(f'Lote "{solicitacao.rastro_lote.nome}" relacionado à escola '
+                            + f'"{solicitacao.rastro_escola.nome}" não está vinculado à uma terceirizada.')
+
     def checa_existencia_solicitacao(self, solicitacao_dieta_schema, aluno) -> None:
         if SolicitacaoDietaEspecial.objects.filter(aluno=aluno, ativo=True, eh_importado=True).exists():
             raise Exception('Erro: Já existe uma solicitação ativa que foi importada para o aluno com código eol: '
@@ -180,6 +185,7 @@ class ProcessadorPlanilha:
         )
         solicitacao.inicia_fluxo(user=usuario_escola)
         solicitacao.alergias_intolerancias.add(*diagnosticos)
+        self.consulta_relacao_lote_terceirizada(solicitacao)
         solicitacao.save()
         solicitacao.codae_autoriza(user=self.usuario)
 
