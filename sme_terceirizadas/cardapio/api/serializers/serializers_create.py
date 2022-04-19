@@ -277,16 +277,17 @@ class SubstituicoesAlimentacaoNoPeriodoEscolarSerializerCreateBase(serializers.M
         queryset=PeriodoEscolar.objects.all()
     )
 
-    tipo_alimentacao_de = serializers.SlugRelatedField(
+    tipos_alimentacao_de = serializers.SlugRelatedField(
         slug_field='uuid',
         required=False,
-        queryset=ComboDoVinculoTipoAlimentacaoPeriodoTipoUE.objects.all()
+        many=True,
+        queryset=TipoAlimentacao.objects.all()
     )
 
     tipo_alimentacao_para = serializers.SlugRelatedField(
         slug_field='uuid',
         required=False,
-        queryset=SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE.objects.all()
+        queryset=TipoAlimentacao.objects.all()
     )
 
 
@@ -299,7 +300,9 @@ class SubstituicoesAlimentacaoNoPeriodoEscolarSerializerCreate(
     )
 
     def create(self, validated_data):
+        tipos_alimentacao_de = validated_data.pop('tipos_alimentacao_de')
         substituicao_alimentacao = SubstituicaoAlimentacaoNoPeriodoEscolar.objects.create(**validated_data)
+        substituicao_alimentacao.tipos_alimentacao_de.set(tipos_alimentacao_de)
         return substituicao_alimentacao
 
     class Meta:
@@ -350,13 +353,6 @@ class AlteracaoCardapioSerializerCreateBase(serializers.ModelSerializer):
         read_only=True
     )
 
-    def validate_substituicoes(self, substituicoes):
-        for substicuicao in substituicoes:
-            tipo_alimentacao_de = substicuicao.get('tipo_alimentacao_de')
-            tipo_alimentacao_para = substicuicao.get('tipo_alimentacao_para')
-            precisa_pertencer_a_um_tipo_de_alimentacao(tipo_alimentacao_de, tipo_alimentacao_para)
-        return substituicoes
-
     def create(self, validated_data):
         substituicoes = validated_data.pop('substituicoes')
         validated_data['criado_por'] = self.context['request'].user
@@ -392,10 +388,21 @@ class AlteracaoCardapioSerializerCreate(AlteracaoCardapioSerializerCreateBase):
     substituicoes = SubstituicoesAlimentacaoNoPeriodoEscolarSerializerCreate(many=True)
 
     def validate(self, attrs):
+        escola = attrs.get('escola')
+        substituicoes = attrs.get('substituicoes')
+        for substicuicao in substituicoes:
+            tipos_alimentacao_de = substicuicao.get('tipos_alimentacao_de')
+            tipo_alimentacao_para = substicuicao.get('tipo_alimentacao_para')
+            periodo_escolar = substicuicao.get('periodo_escolar')
+            precisa_pertencer_a_um_tipo_de_alimentacao(tipos_alimentacao_de,
+                                                       tipo_alimentacao_para,
+                                                       escola.tipo_unidade,
+                                                       periodo_escolar)
         nao_pode_ser_no_passado(attrs['data_inicial'])
         if attrs['motivo'].nome != 'Merenda Seca':
             deve_pedir_com_antecedencia(attrs['data_inicial'])
         deve_ser_no_mesmo_ano_corrente(attrs['data_inicial'])
+
         return attrs
 
     class Meta:
@@ -427,7 +434,7 @@ class QuantidadePorPeriodoSuspensaoAlimentacaoCreateSerializer(serializers.Model
     tipos_alimentacao = serializers.SlugRelatedField(
         slug_field='uuid',
         many=True,
-        queryset=ComboDoVinculoTipoAlimentacaoPeriodoTipoUE.objects.all()
+        queryset=TipoAlimentacao.objects.all()
     )
 
     class Meta:
