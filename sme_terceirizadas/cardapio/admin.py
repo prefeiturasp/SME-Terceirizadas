@@ -11,7 +11,6 @@ from .models import (
     MotivoAlteracaoCardapio,
     MotivoSuspensao,
     QuantidadePorPeriodoSuspensaoAlimentacao,
-    SubstituicaoAlimentacaoNoPeriodoEscolar,
     SubstituicaoAlimentacaoNoPeriodoEscolarCEI,
     SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE,
     SuspensaoAlimentacao,
@@ -45,16 +44,6 @@ class ComboDoVinculoTipoAlimentacaoPeriodoTipoUEModelAdmin(admin.ModelAdmin):
     readonly_fields = ('vinculo',)
 
 
-@admin.register(SubstituicaoAlimentacaoNoPeriodoEscolar)
-class SubstituicaoAlimentacaoNoPeriodoEscolarModelAdmin(admin.ModelAdmin):
-    readonly_fields = (
-        'alteracao_cardapio',
-        'periodo_escolar',
-        'tipo_alimentacao_de',
-        'tipo_alimentacao_para'
-    )
-
-
 class ComboVinculoLine(admin.TabularInline):
     model = ComboDoVinculoTipoAlimentacaoPeriodoTipoUE
     extra = 1
@@ -71,20 +60,8 @@ class CardapioAdmin(admin.ModelAdmin):
     ordering = ['data', 'criado_em']
 
 
-class SubstituicoesInLine(admin.TabularInline):
-    model = SubstituicaoAlimentacaoNoPeriodoEscolar
-    extra = 0
-    readonly_fields = (
-        'alteracao_cardapio',
-        'periodo_escolar',
-        'tipo_alimentacao_de',
-        'tipo_alimentacao_para'
-    )
-
-
 @admin.register(AlteracaoCardapio)
 class AlteracaoCardapioModelAdmin(admin.ModelAdmin):
-    inlines = [SubstituicoesInLine]
     list_display = ('uuid', 'data_inicial', 'data_final', 'status', 'DESCRICAO')
     list_filter = ('status',)
     readonly_fields = ('escola',)
