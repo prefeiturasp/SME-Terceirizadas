@@ -7,7 +7,7 @@ from ...cardapio.models import (
     Cardapio,
     ComboDoVinculoTipoAlimentacaoPeriodoTipoUE,
     HorarioDoComboDoTipoDeAlimentacaoPorUnidadeEscolar,
-    SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE
+    VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar
 )
 from ...escola.models import Escola
 from ..models import InversaoCardapio
@@ -49,13 +49,19 @@ def nao_pode_ter_mais_que_60_dias_diferenca(data_de: datetime.date, data_para: d
     return True
 
 
-def precisa_pertencer_a_um_tipo_de_alimentacao(tipo_alimentacao_de: ComboDoVinculoTipoAlimentacaoPeriodoTipoUE,
-                                               tipo_alimentacao_para:
-                                               SubstituicaoDoComboDoVinculoTipoAlimentacaoPeriodoTipoUE):
-    if tipo_alimentacao_de != tipo_alimentacao_para.combo:
+def precisa_pertencer_a_um_tipo_de_alimentacao(tipos_alimentacao_de,
+                                               tipo_alimentacao_para,
+                                               tipo_unidade_escolar,
+                                               periodo_escolar):
+    tipos_alimentacao = VinculoTipoAlimentacaoComPeriodoEscolarETipoUnidadeEscolar.objects.get(periodo_escolar=periodo_escolar, tipo_unidade_escolar=tipo_unidade_escolar).tipos_alimentacao.all()  # noqa E501
+    for tipo_alimentacao in tipos_alimentacao_de:
+        if tipo_alimentacao not in tipos_alimentacao:
+            raise serializers.ValidationError(
+                f'Tipo de alimentação {tipo_alimentacao.nome} não pertence ao período e tipo de unidade'
+            )
+    if tipo_alimentacao_para in tipos_alimentacao_de:
         raise serializers.ValidationError(
-            f'Tipo de alimentação {tipo_alimentacao_para.label} não é substituível por {tipo_alimentacao_de.label}'
-
+            f'Substituto {tipo_alimentacao_para.nome} está incluso na lista de alimentos substituídos'
         )
     return True
 
