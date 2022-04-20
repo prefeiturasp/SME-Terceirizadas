@@ -19,7 +19,7 @@ from .constants import (
     ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
     COORDENADOR_DIETA_ESPECIAL,
     COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
-    TIPO_SOLICITACAO_DIETA
+    TIPO_SOLICITACAO_DIETA, CODAE_NEGA_PEDIDO
 )
 from .models import AnexoLogSolicitacoesUsuario, LogSolicitacoesUsuario, Notificacao
 from .tasks import envia_email_em_massa_task, envia_email_unico_task
@@ -1648,7 +1648,6 @@ class FluxoAprovacaoPartindoDaEscola(xwf_models.WorkflowEnabled, models.Model):
 
     @property
     def _partes_interessadas_codae_autoriza_ou_nega(self):
-        email_lista = []
         email_query_set_escola = self.rastro_escola.vinculos.filter(
             ativo=True
         ).values_list('usuario__email', flat=False)
@@ -2204,7 +2203,6 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
 
     @property  # noqa c901
     def _partes_interessadas_codae_autoriza_ou_nega(self):
-        email_lista = []
         try:
             email_escola_eol = self.escola.contato.email
             email_lista = [email_escola_eol]
@@ -2273,21 +2271,22 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
                 anexo=anexo.get('arquivo'),
             )
 
-    def _preenche_template_e_envia_email(self, assunto, titulo, user, partes_interessadas, eh_codae_autoriza):
-        if eh_codae_autoriza:
-            template = 'fluxo_codae_autoriza_dieta.html'
-        else:
-            template = 'fluxo_autorizar_negar_cancelar.html'
+    def _preenche_template_e_envia_email(self, assunto, titulo, user, partes_interessadas, eh_codae_autoriza_ou_nega):
         dados_template = {'titulo': titulo, 'tipo_solicitacao': self.DESCRICAO,
                           'movimentacao_realizada': str(self.status), 'perfil_que_autorizou': user.nome}
+        if eh_codae_autoriza_ou_nega:
+            template = 'fluxo_codae_autoriza_ou_nega_dieta.html'
+            dados_template['acao'] = 'NEGADA' if self.status == self.workflow_class.CODAE_NEGOU_PEDIDO else 'AUTORIZADA'
+        else:
+            template = 'fluxo_autorizar_negar_cancelar.html'
+
         html = render_to_string(template, dados_template)
         envia_email_em_massa_task.delay(
             assunto=assunto,
             corpo='',
             emails=partes_interessadas,
             template=template,
-            dados_template={'titulo': titulo, 'tipo_solicitacao': self.DESCRICAO,
-                            'movimentacao_realizada': str(self.status), 'perfil_que_autorizou': user.nome},
+            dados_template=dados_template,
             html=html
         )
 
@@ -2332,11 +2331,11 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
     def _codae_nega_hook(self, *args, **kwargs):
         user = kwargs['user']
         assunto = '[SIGPAE] Status de solicitação - #' + self.id_externo
-        titulo = 'Status de solicitação - #' + self.id_externo
+        titulo = f'Status de solicitação - {self.aluno.codigo_eol} - {self.aluno.nome}'
         self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_NEGOU,
                                   usuario=user)
         self._preenche_template_e_envia_email(assunto, titulo, user,
-                                              self._partes_interessadas_codae_autoriza_ou_nega, False)
+                                              self._partes_interessadas_codae_autoriza_ou_nega, True)
 
     @xworkflows.after_transition('codae_autoriza')
     def _codae_autoriza_hook(self, *args, **kwargs):
