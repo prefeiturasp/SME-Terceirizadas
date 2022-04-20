@@ -17,6 +17,7 @@ from ..relatorios.utils import html_to_pdf_email_anexo
 from .constants import (
     ADMINISTRADOR_DIETA_ESPECIAL,
     ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
+    ADMINISTRADOR_TERCEIRIZADA,
     COORDENADOR_DIETA_ESPECIAL,
     COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
     TIPO_SOLICITACAO_DIETA
@@ -2208,10 +2209,15 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
             email_lista = [email_escola_eol]
         except AttributeError:
             email_lista = []
-        if self.tipo_solicitacao != TIPO_SOLICITACAO_DIETA.get('COMUM'):
-            if self.escola_destino.lote.terceirizada:
+        if self.escola_destino.lote.terceirizada:
+            if self.tipo_solicitacao != TIPO_SOLICITACAO_DIETA.get('COMUM'):
                 email_query_set_terceirizada = self.escola_destino.lote.terceirizada.vinculos.filter(
                     ativo=True
+                ).values_list('usuario__email', flat=True)
+                email_lista += [email for email in email_query_set_terceirizada]
+            elif self.status == self.workflow_class.CODAE_AUTORIZADO:
+                email_query_set_terceirizada = self.escola_destino.lote.terceirizada.vinculos.filter(
+                    ativo=True, perfil__nome=ADMINISTRADOR_TERCEIRIZADA
                 ).values_list('usuario__email', flat=True)
                 email_lista += [email for email in email_query_set_terceirizada]
         return email_lista
