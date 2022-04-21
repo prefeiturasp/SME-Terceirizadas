@@ -2209,7 +2209,7 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
             email_lista = [email_escola_eol]
         except AttributeError:
             email_lista = []
-        if self.escola_destino.lote.terceirizada:
+        if self.escola_destino and self.escola_destino.lote and self.escola_destino.lote.terceirizada:
             if self.tipo_solicitacao != TIPO_SOLICITACAO_DIETA.get('COMUM'):
                 email_query_set_terceirizada = self.escola_destino.lote.terceirizada.vinculos.filter(
                     ativo=True
