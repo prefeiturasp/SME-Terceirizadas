@@ -100,12 +100,12 @@ class LogSolicitacoesUsuario(
             TERCEIRIZADA_RESPONDEU_QUESTIONAMENTO,
             'Terceirizada respondeu questionamento',
         ),  # noqa
-        (INICIO_FLUXO_INATIVACAO, 'Escola solicitou inativação'),
-        (CODAE_AUTORIZOU_INATIVACAO, 'CODAE autorizou inativação'),
-        (CODAE_NEGOU_INATIVACAO, 'CODAE negou inativação'),
+        (INICIO_FLUXO_INATIVACAO, 'Escola solicitou cancelamento'),
+        (CODAE_AUTORIZOU_INATIVACAO, 'CODAE autorizou cancelamento'),
+        (CODAE_NEGOU_INATIVACAO, 'CODAE negou cancelamento'),
         (
             TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO,
-            'Terceirizada tomou ciência da inativação',
+            'Terceirizada tomou ciência do cancelamento',
         ),  # noqa
         (
             TERMINADA_AUTOMATICAMENTE_SISTEMA,
