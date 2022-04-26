@@ -62,6 +62,7 @@ from .serializers import (
     DiretoriaRegionalCompletaSerializer,
     DiretoriaRegionalSimplissimaSerializer,
     EscolaListagemSimplissimaComDRESelializer,
+    EscolaListagemSimplesSelializer,
     EscolaSimplesSerializer,
     EscolaSimplissimaSerializer,
     PeriodoEFaixaEtariaCounterSerializer,
@@ -185,6 +186,12 @@ class EscolaSimplissimaComDREViewSet(ReadOnlyModelViewSet):
 class EscolaSimplissimaComDREUnpaginatedViewSet(EscolaSimplissimaComDREViewSet):
     pagination_class = None
     filterset_class = DiretoriaRegionalFilter
+
+    @action(detail=False, methods=['GET'], url_path='terc-total')
+    def terc_total(self, request):
+        escolas = self.queryset.filter(tipo_gestao__nome='TERC TOTAL')
+        # import pdb; pdb.set_trace()
+        return Response(self.get_serializer(escolas, many=True).data)
 
 
 class EscolaQuantidadeAlunosPorPeriodoEFaixaViewSet(GenericViewSet):
