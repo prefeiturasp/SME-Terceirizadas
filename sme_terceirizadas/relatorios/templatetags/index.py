@@ -43,8 +43,9 @@ def fim_de_fluxo(logs):
 def class_css(log):
     classe_css = 'pending'
     if log.status_evento_explicacao in ['Solicitação Realizada', 'Escola revisou', 'DRE validou', 'DRE revisou',
-                                        'CODAE autorizou', 'Terceirizada tomou ciência', 'Escola solicitou cancelamento',
-                                        'CODAE autorizou cancelamento', 'Terceirizada tomou ciência do cancelamento',
+                                        'CODAE autorizou', 'Terceirizada tomou ciência',
+                                        'Escola solicitou cancelamento', 'CODAE autorizou cancelamento',
+                                        'Terceirizada tomou ciência do cancelamento',
                                         'CODAE homologou', 'CODAE autorizou reclamação']:
         classe_css = 'active'
     elif log.status_evento_explicacao in ['Escola cancelou', 'DRE cancelou', 'Terceirizada cancelou homologação',
