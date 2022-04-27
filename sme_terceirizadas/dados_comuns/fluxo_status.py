@@ -17,6 +17,7 @@ from ..relatorios.utils import html_to_pdf_email_anexo
 from .constants import (
     ADMINISTRADOR_DIETA_ESPECIAL,
     ADMINISTRADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
+    ADMINISTRADOR_TERCEIRIZADA,
     COORDENADOR_DIETA_ESPECIAL,
     COORDENADOR_GESTAO_ALIMENTACAO_TERCEIRIZADA,
     TIPO_SOLICITACAO_DIETA
@@ -319,11 +320,11 @@ class DietaEspecialWorkflow(xwf_models.Workflow):
         (TERCEIRIZADA_TOMOU_CIENCIA, 'Terceirizada toma ciencia'),
         (ESCOLA_CANCELOU, 'Escola cancelou'),
         (CODAE_NEGOU_CANCELAMENTO, 'CODAE negou o cancelamento'),
-        (ESCOLA_SOLICITOU_INATIVACAO, 'Escola solicitou inativação'),
-        (CODAE_NEGOU_INATIVACAO, 'CODAE negou a inativação'),
-        (CODAE_AUTORIZOU_INATIVACAO, 'CODAE autorizou a inativação'),
+        (ESCOLA_SOLICITOU_INATIVACAO, 'Escola solicitou cancelamento'),
+        (CODAE_NEGOU_INATIVACAO, 'CODAE negou o cancelamento'),
+        (CODAE_AUTORIZOU_INATIVACAO, 'CODAE autorizou o cancelamento'),
         (TERCEIRIZADA_TOMOU_CIENCIA_INATIVACAO,
-         'Terceirizada tomou ciência da inativação'),
+         'Terceirizada tomou ciência do cancelamento'),
         (TERMINADA_AUTOMATICAMENTE_SISTEMA, 'Data de término atingida'),
         (CANCELADO_ALUNO_MUDOU_ESCOLA, 'Cancelamento por alteração de unidade educacional'),
         (CANCELADO_ALUNO_NAO_PERTENCE_REDE, 'Cancelamento para aluno não matriculado na rede municipal')
@@ -2208,10 +2209,15 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
             email_lista = [email_escola_eol]
         except AttributeError:
             email_lista = []
-        if self.tipo_solicitacao != TIPO_SOLICITACAO_DIETA.get('COMUM'):
-            if self.escola_destino.lote.terceirizada:
+        if self.escola_destino and self.escola_destino.lote and self.escola_destino.lote.terceirizada:
+            if self.tipo_solicitacao != TIPO_SOLICITACAO_DIETA.get('COMUM'):
                 email_query_set_terceirizada = self.escola_destino.lote.terceirizada.vinculos.filter(
                     ativo=True
+                ).values_list('usuario__email', flat=True)
+                email_lista += [email for email in email_query_set_terceirizada]
+            elif self.status == self.workflow_class.CODAE_AUTORIZADO:
+                email_query_set_terceirizada = self.escola_destino.lote.terceirizada.vinculos.filter(
+                    ativo=True, perfil__nome=ADMINISTRADOR_TERCEIRIZADA
                 ).values_list('usuario__email', flat=True)
                 email_lista += [email for email in email_query_set_terceirizada]
         return email_lista
