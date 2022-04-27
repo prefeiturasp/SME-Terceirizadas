@@ -2337,7 +2337,7 @@ class FluxoDietaEspecialPartindoDaEscola(xwf_models.WorkflowEnabled, models.Mode
     def _codae_nega_hook(self, *args, **kwargs):
         user = kwargs['user']
         assunto = '[SIGPAE] Status de solicitação - #' + self.id_externo
-        titulo = f'Status de solicitação - {self.aluno.codigo_eol} - {self.aluno.nome}'
+        titulo = f'Status de solicitação - "{self.aluno.codigo_eol} - {self.aluno.nome}"'
         self.salvar_log_transicao(status_evento=LogSolicitacoesUsuario.CODAE_NEGOU,
                                   usuario=user)
         self._preenche_template_e_envia_email(assunto, titulo, user,
