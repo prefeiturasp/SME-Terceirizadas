@@ -76,9 +76,11 @@ No futuro, o sistema também contará com módulos que apoiarão o trabalho da c
 - Relatórios
 
 **Gestão de Produtos**
-- Cadastro de produto
+- Homologação de produto
 - Suspensão e ativação de produto
 - Registro de reclamação
+- Analise sensorial
+- Correção do produto
 - Relatórios
 
 **Dieta Especial**
@@ -86,25 +88,22 @@ No futuro, o sistema também contará com módulos que apoiarão o trabalho da c
 - Cancelamento de Dieta
 - Autorização de Dieta
 - Criação de Protocolos de Dieta Especial
+- Alteração de UE
 - Relatórios
 
 ## Roadmap
 
-- Release 1  - Gestão de Alimentação
-
+- Release 1 - Gestão de Alimentação
 - Release 2 - Gestão de Produtos e Dieta Especial
+- Release 3 – CoreSSO
+- Release 4 – Gestão de nutricionistas
+- Release 5 - Medição Inicial EMEF (visão UE)
+- Release 6 - Medição Inicial EMEF (visão DRE e CODAE)
+- Release 7 - Medição Inicial CEI e EMEI
+- Release 8 - Cardápio
+- Release 9 - Supervisão
 
-- Release 3 - Medição Inicial EMEF (visão UE)
-
-- Release 4 - Medição Inicial EMEF (visão DRE e CODAE)
-
-- Release 5 - Medição Inicial CEI e EMEI
-
-- Release 6-  Cardápio
-
-- Release 7 - Supervisão
-
-Detalhamento do roadmap> https://whimsical.com/roadmap-geral-sigpae-C2tThx2G9GpuVviBeHZ5me@VsSo8s35X1aaSatHxnJFRV 
+Detalhamento do roadmap: https://whimsical.com/roadmap-geral-sigpae-C2tThx2G9GpuVviBeHZ5me@VsSo8s35X1aaSatHxnJFRV 
 
 Fluxos: https://whimsical.com/fluxos-i7SkAADB94XRhRMd2afif
 
@@ -113,13 +112,13 @@ Fluxos: https://whimsical.com/fluxos-i7SkAADB94XRhRMd2afif
 | Papel | Titular | Suplente  
 |--|--|--|  
 | Product Owner | Andrea Wang e Daniela Chichon| Elisete Pereira |  
-| Agente de Governança | Juliana Demay | Vítor Ferragini |  
-| Gerente de Projeto | Andrea Paiva | |  
-| Scrum Master | Augusto Silva |  | 
+| Agente de Governança | Juliana Demay | Fernando Gonsales |  
+| Gerente de Projeto | Aline Freitas | |  
+| Scrum Master | |  | 
 | Designer de Serviços | Caio Dib | |  
 | Analista de negócios | Jaqueline Sargi |  |  
-| Analista UX/UI | Pamela Marsola |  |  
-| Analista Programador | Anderson Moraes | Rodolpho Lima |
+| Analista UX/UI | Joilson Day |  |  
+| Analista Programador | Calvin Rossignoli | Rodolpho Lima e João Mesquita |
 | Analista de teste |Paula Pimentel|  |
 
 ## Protótipos
